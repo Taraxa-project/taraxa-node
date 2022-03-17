@@ -55,17 +55,6 @@ class DagBlockManager {
 
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   bool pivotAndTipsValid(DagBlock const &blk);
-  uint64_t getCurrentMaxProposalPeriod() const;
-  uint64_t getLastProposalPeriod() const;
-  void setLastProposalPeriod(uint64_t const period);
-  std::pair<uint64_t, bool> getProposalPeriod(level_t level);
-
-  /**
-   * @brief generate a proposal period with DAG levels entry
-   * @param anchor_level anchor block level in PBFT block
-   * @return ProposalPeriodDagLevelsMap
-   */
-  std::shared_ptr<ProposalPeriodDagLevelsMap> newProposePeriodDagLevelsMap(level_t anchor_level = 0);
 
   SortitionParamsManager &sortitionParamsManager() { return sortition_params_manager_; }
 
@@ -79,8 +68,7 @@ class DagBlockManager {
   const uint32_t cache_max_size_ = 10000;
   const uint32_t cache_delete_step_ = 100;
   std::atomic<bool> stopped_ = false;
-  std::atomic<uint64_t> last_proposal_period_ = 0;
-  uint64_t current_max_proposal_period_ = 0;
+  std::atomic<uint64_t> current_max_proposal_period_ = 0;
 
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<TransactionManager> trx_mgr_;

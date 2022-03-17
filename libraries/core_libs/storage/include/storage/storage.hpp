@@ -11,7 +11,6 @@
 
 #include "common/types.hpp"
 #include "dag/dag_block.hpp"
-#include "dag/proposal_period_levels_map.hpp"
 #include "logger/logger.hpp"
 #include "pbft/pbft_block.hpp"
 #include "pbft/sync_block.hpp"
@@ -49,8 +48,6 @@ enum PbftMgrStatus : uint8_t {
 };
 
 enum PbftMgrVotedValue : uint8_t { OwnStartingValueInRound = 0, SoftVotedBlockHashInRound, LastCertVotedValue };
-
-enum DposProposalPeriodLevelsStatus : uint8_t { MaxProposalPeriod = 0 };
 
 class DbException : public std::exception {
  public:
@@ -113,7 +110,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(pbft_block_period);
     COLUMN(dag_block_period);
     COLUMN(dpos_proposal_period_levels_status);
-    COLUMN(proposal_period_levels_map);
+    COLUMN_W_COMP(proposal_period_levels_map, getIntComparator<uint64_t>());
     COLUMN(final_chain_meta);
     COLUMN(final_chain_transaction_location_by_hash);
     COLUMN(final_chain_replay_protection);
@@ -124,7 +121,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(final_chain_blk_number_by_hash);
     COLUMN(final_chain_receipt_by_trx_hash);
     COLUMN(final_chain_log_blooms_index);
-    COLUMN_W_COMP(pbft_block_dag_efficiency, getIntComparator<uint64_t>());
     COLUMN_W_COMP(sortition_params_change, getIntComparator<uint64_t>());
 
 #undef COLUMN
@@ -195,10 +191,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::map<level_t, std::vector<DagBlock>> getNonfinalizedDagBlocks();
   void removeDagBlockBatch(Batch& write_batch, blk_hash_t const& hash);
   void removeDagBlock(blk_hash_t const& hash);
-  // DAG Efficiency
-  void savePbftBlockDagEfficiency(uint64_t period, uint16_t efficiency, DbStorage::Batch& batch);
-  std::deque<uint16_t> getLastIntervalEfficiencies(uint16_t changing_interval, uint16_t computation_interval);
-  void cleanupDagEfficiencies(uint64_t current_period);
   // Sortition params
   void saveSortitionParamsChange(uint64_t period, SortitionParamsChange params, DbStorage::Batch& batch);
   std::deque<SortitionParamsChange> getLastSortitionParams(size_t count);
@@ -300,16 +292,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   std::vector<blk_hash_t> getFinalizedDagBlockHashesByPeriod(uint32_t period);
 
-  // DPOS proposal period levels status
-  uint64_t getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus field);
-  void saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus field, uint64_t value);
-  void addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus field, uint64_t value,
-                                               Batch& write_batch);
-
-  // DPOS proposal period to DAG block levels map
-  bytes getProposalPeriodDagLevelsMap(uint64_t proposal_period);
-  void saveProposalPeriodDagLevelsMap(ProposalPeriodDagLevelsMap const& period_levels_map);
-  void addProposalPeriodDagLevelsMapToBatch(ProposalPeriodDagLevelsMap const& period_levels_map, Batch& write_batch);
+  // DPOS level to proposal period map
+  std::optional<uint64_t> getProposalPeriodForDagLevel(uint64_t level);
+  void saveProposalPeriodDagLevelsMap(uint64_t level, uint64_t period);
+  void addProposalPeriodDagLevelsMapToBatch(uint64_t level, uint64_t period, Batch& write_batch);
 
   bool hasMinorVersionChanged() { return minor_version_changed_; }
 

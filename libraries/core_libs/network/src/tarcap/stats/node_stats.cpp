@@ -77,6 +77,7 @@ void NodeStats::logNodeStats() {
   // Local pbft info...
   uint64_t local_pbft_round = pbft_mgr_->getPbftRound();
   const auto local_chain_size = pbft_chain_->getPbftChainSize();
+  const auto local_chain_size_without_empty_blocks = pbft_chain_->getPbftChainSizeExcludingEmptyPbftBlocks();
 
   const auto local_dpos_total_votes_count = pbft_mgr_->getDposTotalVotesCount();
   const auto local_dpos_total_address_count = pbft_mgr_->getDposTotalAddressCount();
@@ -148,7 +149,8 @@ void NodeStats::logNodeStats() {
   }
   LOG(log_nf_) << "Max DAG block level in DAG:      " << local_max_level_in_dag;
   LOG(log_nf_) << "Max DAG block level in queue:    " << local_max_dag_level_in_queue;
-  LOG(log_nf_) << "PBFT chain size:                 " << local_chain_size;
+  LOG(log_nf_) << "PBFT chain size:                 " << local_chain_size << " ("
+               << local_chain_size_without_empty_blocks << ")";
   LOG(log_nf_) << "Current PBFT round:              " << local_pbft_round;
   LOG(log_nf_) << "DPOS total votes count:          " << local_dpos_total_votes_count;
   LOG(log_nf_) << "DPOS total addresses count:      " << local_dpos_total_address_count;

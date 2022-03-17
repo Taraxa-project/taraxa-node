@@ -66,7 +66,6 @@ Json::Value Test::get_sortition_change(const Json::Value &param1) {
     if (auto node = full_node_.lock()) {
       uint64_t period = param1["period"].asUInt64();
       auto params_change = node->getDB()->getParamsChangeForPeriod(period);
-      res["actual_correction_per_percent"] = params_change->actual_correction_per_percent;
       res["interval_efficiency"] = params_change->interval_efficiency;
       res["period"] = params_change->period;
       res["threshold_range"] = params_change->vrf_params.threshold_range;

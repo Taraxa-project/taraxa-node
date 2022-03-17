@@ -235,19 +235,18 @@ const char *devnet_json = R"foo({
       "range": "0xa"
     },
     "sortition": {
-      "changes_count_for_average": "0x5",
-      "max_interval_correction": "0x3E8",
-      "dag_efficiency_targets": ["0x12C0", "0x1450"],
-      "changing_interval": "0xC8",
-      "computation_interval": "0x32",
+      "changes_count_for_average": 10,
+      "dag_efficiency_targets": [4800, 5200],
+      "changing_interval": 200,
+      "computation_interval": 50,
       "vrf": {
         "threshold_upper": "0xafff",
-        "threshold_range": "0x1800"
+        "threshold_range": 50
       },
       "vdf": {
-        "difficulty_max": "0x15",
-        "difficulty_min": "0x10",
-        "difficulty_stale": "0x17",
+        "difficulty_max": 21,
+        "difficulty_min": 16,
+        "difficulty_stale": 23,
         "lambda_bound": "0x64"
       }
     }

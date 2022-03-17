@@ -3,6 +3,8 @@
 #include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
 
+#include <memory>
+
 namespace taraxa::vdf_sortition {
 
 VdfSortition::VdfSortition(const SortitionParams& config, const vrf_sk_t& sk, const bytes& vrf_input)
@@ -11,8 +13,7 @@ VdfSortition::VdfSortition(const SortitionParams& config, const vrf_sk_t& sk, co
 }
 
 bool VdfSortition::isOmitVdf(SortitionParams const& config) const {
-  return config.vrf.threshold_upper >= config.vrf.threshold_range &&
-         threshold_ <= config.vrf.threshold_upper - config.vrf.threshold_range;
+  return threshold_ <= config.vrf.threshold_upper * (100 - config.vrf.threshold_range) / 100;
 }
 
 bool VdfSortition::isStale(SortitionParams const& config) const { return threshold_ > config.vrf.threshold_upper; }
@@ -23,7 +24,7 @@ uint16_t VdfSortition::calculateDifficulty(SortitionParams const& config) const 
     if (isStale(config)) {
       difficulty = config.vdf.difficulty_stale;
     } else {
-      difficulty = config.vdf.difficulty_min + threshold_ % (config.vdf.difficulty_max - config.vdf.difficulty_min);
+      difficulty = config.vdf.difficulty_min + threshold_ % (config.vdf.difficulty_max - config.vdf.difficulty_min + 1);
     }
   }
   return difficulty;
@@ -67,13 +68,15 @@ Json::Value VdfSortition::getJson() const {
   return res;
 }
 
+void VdfSortition::cancelCompute() { prover_->cancel(); }
+
 void VdfSortition::computeVdfSolution(SortitionParams const& config, bytes const& msg) {
   if (!isOmitVdf(config)) {
     auto t1 = getCurrentTimeMilliSeconds();
     VerifierWesolowski verifier(config.vdf.lambda_bound, difficulty_, msg, N);
 
-    ProverWesolowski prover;
-    vdf_sol_ = prover(verifier);  // this line takes time ...
+    prover_ = std::static_pointer_cast<ProverWesolowski>(std::make_shared<ProverWesolowski>());
+    vdf_sol_ = (*prover_)(verifier);  // this line takes time ...
     auto t2 = getCurrentTimeMilliSeconds();
     vdf_computation_time_ = t2 - t1;
   }

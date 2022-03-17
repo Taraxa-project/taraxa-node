@@ -418,36 +418,25 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(3, db.getDagBlockPeriod(blk_hash_t(2))->first);
   EXPECT_EQ(4, db.getDagBlockPeriod(blk_hash_t(2))->second);
 
-  // DPOS proposal period DAG levels status
-  EXPECT_EQ(0, db.getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::MaxProposalPeriod));
-  db.saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::MaxProposalPeriod, 5);
-  EXPECT_EQ(5, db.getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::MaxProposalPeriod));
-  batch = db.createWriteBatch();
-  db.addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus::MaxProposalPeriod, 10, batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(10, db.getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus::MaxProposalPeriod));
-
   // DPOS proposal period DAG levels map
-  EXPECT_TRUE(db.getProposalPeriodDagLevelsMap(0).empty());
-  ProposalPeriodDagLevelsMap proposal_period_0_levels;
-  db.saveProposalPeriodDagLevelsMap(proposal_period_0_levels);
-  auto period_0_levels_bytes = db.getProposalPeriodDagLevelsMap(0);
-  EXPECT_FALSE(period_0_levels_bytes.empty());
-  ProposalPeriodDagLevelsMap period_0_levels_from_db(period_0_levels_bytes);
-  EXPECT_EQ(period_0_levels_from_db.proposal_period, 0);
-  EXPECT_EQ(period_0_levels_from_db.levels_interval.first, 0);
-  EXPECT_EQ(period_0_levels_from_db.levels_interval.second, proposal_period_0_levels.max_levels_per_period);
-  EXPECT_EQ(period_0_levels_from_db.levels_interval.second, 100);
-  batch = db.createWriteBatch();
-  ProposalPeriodDagLevelsMap proposal_period_1_levels(1, 101, 110);
-  db.addProposalPeriodDagLevelsMapToBatch(proposal_period_1_levels, batch);
-  db.commitWriteBatch(batch);
-  auto period_1_levels_bytes = db.getProposalPeriodDagLevelsMap(1);
-  EXPECT_FALSE(period_1_levels_bytes.empty());
-  ProposalPeriodDagLevelsMap period_1_levels_from_db(period_1_levels_bytes);
-  EXPECT_EQ(period_1_levels_from_db.proposal_period, 1);
-  EXPECT_EQ(period_1_levels_from_db.levels_interval.first, 101);
-  EXPECT_EQ(period_1_levels_from_db.levels_interval.second, 110);
+  db.saveProposalPeriodDagLevelsMap(100, 0);
+  db.saveProposalPeriodDagLevelsMap(103, 1);
+  db.saveProposalPeriodDagLevelsMap(106, 3);
+  EXPECT_TRUE(db.getProposalPeriodForDagLevel(5));
+  EXPECT_TRUE(db.getProposalPeriodForDagLevel(100));
+  EXPECT_EQ(*db.getProposalPeriodForDagLevel(5), 0);
+  EXPECT_EQ(*db.getProposalPeriodForDagLevel(100), 0);
+
+  EXPECT_TRUE(db.getProposalPeriodForDagLevel(101));
+  EXPECT_TRUE(db.getProposalPeriodForDagLevel(103));
+  EXPECT_EQ(*db.getProposalPeriodForDagLevel(101), 1);
+  EXPECT_EQ(*db.getProposalPeriodForDagLevel(103), 1);
+
+  EXPECT_TRUE(db.getProposalPeriodForDagLevel(105));
+  EXPECT_TRUE(db.getProposalPeriodForDagLevel(106));
+  EXPECT_EQ(*db.getProposalPeriodForDagLevel(105), 3);
+  EXPECT_EQ(*db.getProposalPeriodForDagLevel(106), 3);
+  EXPECT_FALSE(db.getProposalPeriodForDagLevel(107));
 }
 
 TEST_F(FullNodeTest, sync_five_nodes) {
@@ -964,7 +953,7 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
   auto num_vertices1 = nodes[0]->getDagManager()->getNumVerticesInDag();
   auto num_vertices2 = nodes[1]->getDagManager()->getNumVerticesInDag();
   for (unsigned i = 0; i < SYNC_TIMEOUT; i++) {
-    if (num_vertices1.first > 3 && num_vertices2.first > 3 && num_vertices1 == num_vertices2) break;
+    if (num_vertices1.first >= 3 && num_vertices2.first >= 3 && num_vertices1 == num_vertices2) break;
     taraxa::thisThreadSleepForMilliSeconds(500);
     num_vertices1 = nodes[0]->getDagManager()->getNumVerticesInDag();
     num_vertices2 = nodes[1]->getDagManager()->getNumVerticesInDag();
@@ -1485,22 +1474,21 @@ TEST_F(FullNodeTest, chain_config_json) {
     "run_count_votes": false
   },
   "sortition": {
-    "changes_count_for_average": "0x5",
-    "max_interval_correction": "0x3e8",
-    "computation_interval": "0xc8",
-    "changing_interval" : "0x32",
-    "dag_efficiency_targets": ["0x12c0", "0x1450"],
-    "vdf": {
-      "difficulty_max": "0x15",
-      "difficulty_min": "0x10",
-      "difficulty_stale": "0x16",
-      "lambda_bound": "0x64"
-    },
-    "vrf": {
-      "threshold_range": "0xe00",
-      "threshold_upper": "0x8000"
+      "changes_count_for_average": 10,
+      "dag_efficiency_targets": [4800, 5200],
+      "changing_interval": 200,
+      "computation_interval": 50,
+      "vrf": {
+        "threshold_upper": "0xafff",
+        "threshold_range": 50
+      },
+      "vdf": {
+        "difficulty_max": 21,
+        "difficulty_min": 16,
+        "difficulty_stale": 23,
+        "lambda_bound": "0x64"
+      }
     }
-  }
 })";
   Json::Value default_chain_config_json;
   std::istringstream(expected_default_chain_cfg_json) >> default_chain_config_json;

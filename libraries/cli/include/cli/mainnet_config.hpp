@@ -252,19 +252,18 @@ const char *mainnet_json = R"foo({
       "range": "0xa"
     },
     "sortition": {
-      "changes_count_for_average": "0x5",
-      "max_interval_correction": "0x3E8",
-      "dag_efficiency_targets": ["0x12C0", "0x1450"],
-      "changing_interval": "0x0",
-      "computation_interval": "0xC8",
+      "changes_count_for_average": 10,
+      "dag_efficiency_targets": [4800, 5200],
+      "changing_interval": 200,
+      "computation_interval": 50,
       "vrf": {
-        "threshold_upper": "0x1770",
-        "threshold_range": "0xbb8"
+        "threshold_upper": "0xafff",
+        "threshold_range": 50
       },
       "vdf": {
-        "difficulty_max": "0x12",
-        "difficulty_min": "0x10",
-        "difficulty_stale": "0x14",
+        "difficulty_max": 21,
+        "difficulty_min": 16,
+        "difficulty_stale": 23,
         "lambda_bound": "0x64"
       }
     }
