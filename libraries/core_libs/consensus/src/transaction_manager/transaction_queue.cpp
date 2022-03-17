@@ -52,15 +52,17 @@ bool TransactionQueue::erase(const trx_hash_t &hash) {
   return true;
 }
 
-bool TransactionQueue::insert(const std::shared_ptr<Transaction> &transaction) {
+bool TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction) {
   assert(transaction);
   if (hash_queue_.contains(transaction->getHash())) return false;
 
-  const auto it = priority_queue_.insert(transaction);
+  const auto tx_hash = transaction->getHash();
+  const auto it = priority_queue_.insert(std::move(transaction));
+
   // This assert is here to check if priorityComparator works correctly. If object is not inserted, then there could be
   // something wrong with comparator
   assert(it != priority_queue_.end());
-  hash_queue_[transaction->getHash()] = it;
+  hash_queue_[tx_hash] = it;
   return true;
 }
 

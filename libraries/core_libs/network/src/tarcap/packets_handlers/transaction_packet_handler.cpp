@@ -39,7 +39,7 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
     }
 
     if (dag_blk_mgr_) [[likely]] {  // ONLY FOR TESTING
-      if (trx_mgr_->markTransactionSeen(transaction->getHash())) {
+      if (trx_mgr_->isTransactionKnown(transaction->getHash())) {
         continue;
       }
       if (const auto [is_valid, reason] = trx_mgr_->verifyTransaction(transaction); !is_valid) {

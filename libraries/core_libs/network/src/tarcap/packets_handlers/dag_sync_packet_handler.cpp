@@ -71,7 +71,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
 
     peer->markTransactionAsKnown(trx->getHash());
     transactions_to_log += trx->getHash().abridged();
-    if (trx_mgr_->markTransactionSeen(trx->getHash())) {
+    if (trx_mgr_->isTransactionKnown(trx->getHash())) {
       continue;
     }
 

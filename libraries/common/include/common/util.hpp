@@ -217,16 +217,12 @@ class ExpirationCache {
    * @return true if actual insertion took place, otherwise false
    */
   bool insert(Key const &key) {
-    {
-      std::shared_lock lock(mtx_);
-      if (cache_.count(key)) {
-        return false;
-      }
+    if (contains(key)) {
+      return false;
     }
 
-    std::unique_lock lock(mtx_);
-
     // There must be double check if key is not already in cache due to possible race condition
+    std::unique_lock lock(mtx_);
     if (!cache_.insert(key).second) {
       return false;
     }
@@ -240,6 +236,11 @@ class ExpirationCache {
     }
 
     return true;
+  }
+
+  bool contains(Key const &key) const {
+    std::shared_lock lck(mtx_);
+    return cache_.contains(key);
   }
 
   std::size_t count(Key const &key) const {
