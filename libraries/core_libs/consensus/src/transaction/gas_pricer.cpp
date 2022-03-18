@@ -28,12 +28,16 @@ void GasPricer::init(std::shared_ptr<DbStorage> db) {
 
   while (price_list_.capacity() != price_list_.size() && block_num) {
     auto trxs = db->getPeriodTransactions(block_num);
+    // TODO [1640]
+    assert(trxs);
     block_num--;
 
+    // TODO [1640]
     // Light node
-    if (!trxs) {
-      break;
-    }
+    // if (!trxs) {
+    //   break;
+    // }
+
     // Empty block
     if (!trxs->size()) {
       continue;
