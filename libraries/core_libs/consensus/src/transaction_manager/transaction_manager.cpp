@@ -89,6 +89,8 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const Transac
 
   const auto trx_ptr = std::make_shared<Transaction>(trx);
   if (const auto [is_valid, reason] = verifyTransaction(trx_ptr); !is_valid) {
+    // We need to mark even failed transactions
+    markTransactionKnown(trx_ptr->getHash());
     return {false, reason};
   }
 

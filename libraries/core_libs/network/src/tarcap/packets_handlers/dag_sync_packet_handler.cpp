@@ -76,6 +76,8 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     }
 
     if (const auto [is_valid, reason] = trx_mgr_->verifyTransaction(trx); !is_valid) {
+      // We need to mark even failed transactions
+      trx_mgr_->isTransactionKnown(trx->getHash());
       std::ostringstream err_msg;
       err_msg << "DagBlock transaction " << trx->getHash() << " validation failed: " << reason;
 

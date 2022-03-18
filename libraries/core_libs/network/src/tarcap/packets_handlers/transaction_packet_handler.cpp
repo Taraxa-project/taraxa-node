@@ -43,6 +43,8 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
         continue;
       }
       if (const auto [is_valid, reason] = trx_mgr_->verifyTransaction(transaction); !is_valid) {
+        // We need to mark even failed transactions
+        trx_mgr_->markTransactionKnown(transaction->getHash());
         std::ostringstream err_msg;
         err_msg << "Transaction " << transaction->getHash() << " validation failed: " << reason;
 

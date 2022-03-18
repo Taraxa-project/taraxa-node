@@ -55,9 +55,9 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
     period++;
     SyncBlock sync_block(data);
     if (sync_block.pbft_blk->getPivotDagBlockHash() != kNullBlockHash) {
-      if (ignored_efficiency_counter_ >= config_.changing_interval - config_.computation_interval) {
-        uint16_t dag_efficiency = calculateDagEfficiency(sync_block);
-        dag_efficiencies_.push_back(dag_efficiency);
+      if (ignored_efficiency_counter_ >=
+          static_cast<uint32_t>(config_.changing_interval - config_.computation_interval)) {
+        dag_efficiencies_.push_back(calculateDagEfficiency(sync_block));
       } else {
         ignored_efficiency_counter_++;
       }
@@ -107,10 +107,10 @@ void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::
   if (config_.changing_interval == 0) {
     return;
   }
-  if (ignored_efficiency_counter_ >= config_.changing_interval - config_.computation_interval) {
-    uint16_t dag_efficiency = calculateDagEfficiency(block);
+  if (ignored_efficiency_counter_ >= static_cast<uint32_t>(config_.changing_interval - config_.computation_interval)) {
+    const auto dag_efficiency = calculateDagEfficiency(block);
     dag_efficiencies_.push_back(dag_efficiency);
-    const auto& period = block.pbft_blk->getPeriod();
+    const auto period = block.pbft_blk->getPeriod();
     LOG(log_dg_) << period << " pbftBlockPushed, efficiency: " << dag_efficiency / 100. << "%";
 
     if (non_empty_pbft_chain_size % config_.changing_interval == 0) {
