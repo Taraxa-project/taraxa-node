@@ -25,6 +25,12 @@
 
 namespace taraxa {
 
+/**
+ * @param value
+ * @return unstyled json string (without new lines and whitespaces).
+ */
+std::string jsonToUnstyledString(const Json::Value &value);
+
 template <typename T>
 std::weak_ptr<T> as_weak(std::shared_ptr<T> sp) {
   return std::weak_ptr<T>(sp);
@@ -211,16 +217,12 @@ class ExpirationCache {
    * @return true if actual insertion took place, otherwise false
    */
   bool insert(Key const &key) {
-    {
-      std::shared_lock lock(mtx_);
-      if (cache_.count(key)) {
-        return false;
-      }
+    if (contains(key)) {
+      return false;
     }
 
-    std::unique_lock lock(mtx_);
-
     // There must be double check if key is not already in cache due to possible race condition
+    std::unique_lock lock(mtx_);
     if (!cache_.insert(key).second) {
       return false;
     }
@@ -234,6 +236,11 @@ class ExpirationCache {
     }
 
     return true;
+  }
+
+  bool contains(Key const &key) const {
+    std::shared_lock lck(mtx_);
+    return cache_.contains(key);
   }
 
   std::size_t count(Key const &key) const {
@@ -265,7 +272,7 @@ template <typename T>
 auto getRlpBytes(T const &t) {
   dev::RLPStream s;
   s << t;
-  return s.out();
+  return s.invalidate();
 }
 
 template <class Key, class Value>
@@ -448,6 +455,16 @@ class ThreadSafeMap {
       }
     }
     return values;
+  }
+
+  void erase(std::function<bool(Value)> condition) {
+    std::unique_lock lck(mtx_);
+    for (auto it = map_.cbegin(), next_it = it; it != map_.cend(); it = next_it) {
+      ++next_it;
+      if (condition(it->second)) {
+        map_.erase(it);
+      }
+    }
   }
 
   void clear() {

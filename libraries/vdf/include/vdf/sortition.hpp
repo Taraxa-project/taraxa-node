@@ -23,16 +23,17 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   };
 
   VdfSortition() = default;
-  explicit VdfSortition(SortitionParams const& config, vrf_sk_t const& sk, bytes const& msg);
+  explicit VdfSortition(SortitionParams const& config, vrf_sk_t const& sk, bytes const& vrf_input);
   explicit VdfSortition(bytes const& b);
   explicit VdfSortition(Json::Value const& json);
 
   void computeVdfSolution(SortitionParams const& config, dev::bytes const& msg);
+  void cancelCompute();
   void verifyVdf(SortitionParams const& config, bytes const& vrf_input, bytes const& vdf_input) const;
 
   bytes rlp() const;
   bool operator==(VdfSortition const& other) const {
-    return pk == other.pk && proof == other.proof && output == other.output && vdf_sol_.first == other.vdf_sol_.first &&
+    return vrf_wrapper::VrfSortitionBase::operator==(other) && vdf_sol_.first == other.vdf_sol_.first &&
            vdf_sol_.second == other.vdf_sol_.second;
   }
   bool operator!=(VdfSortition const& other) const { return !operator==(other); }
@@ -65,6 +66,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   std::pair<bytes, bytes> vdf_sol_;
   unsigned long vdf_computation_time_ = 0;
   uint16_t difficulty_ = 0;
+  std::shared_ptr<ProverWesolowski> prover_;
 };
 
 }  // namespace taraxa::vdf_sortition

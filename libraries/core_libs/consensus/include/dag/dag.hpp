@@ -73,8 +73,8 @@ class Dag {
   void getLeaves(std::vector<blk_hash_t> &tips) const;
   void drawGraph(std::string const &filename) const;
 
-  bool computeOrder(blk_hash_t const &anchor, std::vector<blk_hash_t> &ordered_period_vertices,
-                    std::map<uint64_t, std::vector<blk_hash_t>> const &non_finalized_blks);
+  bool computeOrder(const blk_hash_t &anchor, std::vector<blk_hash_t> &ordered_period_vertices,
+                    const std::map<uint64_t, std::unordered_set<blk_hash_t>> &non_finalized_blks);
 
   void clear();
 
@@ -101,7 +101,7 @@ class Dag {
 class PivotTree : public Dag {
  public:
   friend DagManager;
-  explicit PivotTree(blk_hash_t const &genesis, addr_t node_addr) : Dag(genesis, node_addr){};
+  explicit PivotTree(blk_hash_t const &genesis, addr_t node_addr) : Dag(genesis, node_addr) {}
   virtual ~PivotTree() = default;
   using vertex_t = Dag::vertex_t;
   using vertex_adj_iter_t = Dag::vertex_adj_iter_t;
@@ -114,8 +114,8 @@ class FullNode;
 
 class DagManager : public std::enable_shared_from_this<DagManager> {
  public:
-  using ULock = boost::unique_lock<boost::shared_mutex>;
-  using SharedLock = boost::shared_lock<boost::shared_mutex>;
+  using ULock = std::unique_lock<std::shared_mutex>;
+  using SharedLock = std::shared_lock<std::shared_mutex>;
 
   explicit DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagBlockManager> dag_blk_mgr,
@@ -134,7 +134,18 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   // return block order
   vec_blk_t getDagBlockOrder(blk_hash_t const &anchor, uint64_t period);
-  // receive pbft-pivot-blk, update periods and finalized, return size of ordered blocks
+
+  /**
+   * @brief Sets the dag block order on finalizing PBFT block
+   * IMPORTANT: This method is invoked on finalizing a pbft block, it needs to be protected with mutex_ but the mutex is
+   * locked from pbft manager for the entire pbft finalization to make the finalization atomic
+   *
+   * @param anchor Anchor of the finalized pbft block
+   * @param period Period finalized
+   * @param dag_order Dag order of the finalized pbft block
+   *
+   * @return number of dag blocks finalized
+   */
   uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period, vec_blk_t const &dag_order);
 
   std::optional<std::pair<blk_hash_t, std::vector<blk_hash_t>>> getLatestPivotAndTips() const;
@@ -163,7 +174,17 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
     return std::make_pair(old_anchor_, anchor_);
   }
 
-  const std::map<uint64_t, std::vector<blk_hash_t>> getNonFinalizedBlocks() const;
+  const std::pair<uint64_t, std::map<uint64_t, std::unordered_set<blk_hash_t>>> getNonFinalizedBlocks() const;
+
+  /**
+   * @brief Retrieves current period together with non finalized blocks with the unique list of non finalized
+   * transactions from these blocks
+   *
+   * @param known_hashes excludes known hashes from result
+   * @return Period, blocks and transactions
+   */
+  const std::tuple<uint64_t, std::vector<std::shared_ptr<DagBlock>>, SharedTransactions>
+  getNonFinalizedBlocksWithTransactions(const std::unordered_set<blk_hash_t> &known_hashes) const;
 
   DagFrontier getDagFrontier();
 
@@ -174,6 +195,13 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   util::Event<DagManager, DagBlock> const block_verified_{};
 
+  /**
+   * @brief Retrieves Dag Manager mutex, only to be used when finalizing pbft block
+   *
+   * @return mutex
+   */
+  std::shared_mutex &getDagMutex() { return mutex_; }
+
  private:
   void recoverDag();
   void addToDag(blk_hash_t const &hash, blk_hash_t const &pivot, std::vector<blk_hash_t> const &tips, uint64_t level,
@@ -181,7 +209,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void worker();
   std::pair<blk_hash_t, std::vector<blk_hash_t>> getFrontier() const;  // return pivot and tips
   std::atomic<level_t> max_level_ = 0;
-  mutable boost::shared_mutex mutex_;
+  mutable std::shared_mutex mutex_;
+  mutable std::shared_mutex order_dag_blocks_mutex_;
   std::shared_ptr<PivotTree> pivot_tree_;  // only contains pivot edges
   std::shared_ptr<Dag> total_dag_;         // contains both pivot and tips
   std::shared_ptr<TransactionManager> trx_mgr_;
@@ -193,7 +222,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   blk_hash_t old_anchor_;  // anchor of the second to last period
   uint64_t period_;        // last period
   blk_hash_t genesis_;
-  std::map<uint64_t, std::vector<blk_hash_t>> non_finalized_blks_;
+  std::map<uint64_t, std::unordered_set<blk_hash_t>> non_finalized_blks_;
   DagFrontier frontier_;
   std::atomic<bool> stopped_ = true;
   std::thread block_worker_;

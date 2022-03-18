@@ -69,5 +69,5 @@ struct BaseTest : virtual WithDataDir {
       remove_all(cfg.data_path);
     }
   }
-  virtual ~BaseTest(){};
+  virtual ~BaseTest() {}
 };

@@ -15,6 +15,8 @@
 #include "network/network.hpp"
 #include "transaction_manager/transaction_manager.hpp"
 
+#define NULL_BLOCK_HASH blk_hash_t(0)
+
 namespace taraxa {
 
 Dag::Dag(blk_hash_t const &genesis, addr_t node_addr) {
@@ -103,8 +105,8 @@ void Dag::collectLeafVertices(std::vector<vertex_t> &leaves) const {
 }
 
 // only iterate through non finalized blocks
-bool Dag::computeOrder(blk_hash_t const &anchor, std::vector<blk_hash_t> &ordered_period_vertices,
-                       std::map<uint64_t, std::vector<blk_hash_t>> const &non_finalized_blks) {
+bool Dag::computeOrder(const blk_hash_t &anchor, std::vector<blk_hash_t> &ordered_period_vertices,
+                       const std::map<uint64_t, std::unordered_set<blk_hash_t>> &non_finalized_blks) {
   vertex_t target = graph_.vertex(anchor);
 
   if (target == graph_.null_vertex()) {
@@ -119,7 +121,7 @@ bool Dag::computeOrder(blk_hash_t const &anchor, std::vector<blk_hash_t> &ordere
   epfriend[index_map[target]] = target;
 
   // Step 1: collect all epoch blks that can reach anchor
-  // Erase from recent_added_blks after mark epoch number if finialized
+  // Erase from recent_added_blks after mark epoch number if finalized
 
   for (auto &l : non_finalized_blks) {
     for (auto &blk : l.second) {
@@ -339,13 +341,13 @@ bool DagManager::pivotAndTipsAvailable(DagBlock const &blk) {
   auto dag_blk_pivot = blk.getPivot();
 
   if (!db_->dagBlockInDb(dag_blk_pivot)) {
-    LOG(log_dg_) << "DAG Block " << dag_blk_hash << " pivot " << dag_blk_pivot << " unavailable";
+    LOG(log_nf_) << "DAG Block " << dag_blk_hash << " pivot " << dag_blk_pivot << " unavailable";
     return false;
   }
 
   for (auto const &t : blk.getTips()) {
     if (!db_->dagBlockInDb(t)) {
-      LOG(log_dg_) << "DAG Block " << dag_blk_hash << " tip " << t << " unavailable";
+      LOG(log_nf_) << "DAG Block " << dag_blk_hash << " tip " << t << " unavailable";
       return false;
     }
   }
@@ -375,21 +377,18 @@ void DagManager::worker() {
       continue;
     }
     level_limit = false;
-    SharedTransactions transactions;
     if (pivotAndTipsAvailable(*blk)) {
-      auto transactions_finalized = db_->transactionsFinalized(blk->getTrxs());
-      auto it_trx_finalized = transactions_finalized.begin();
+      // Retrieve pool transactions
+      auto [transactions, missing_trxs] = trx_mgr_->getPoolTransactions(blk->getTrxs());
 
-      // Retrieve all the transactions
-      for (auto const &trx_hash : blk->getTrxs()) {
-        if (*it_trx_finalized++) {
-          continue;
-        }
-        auto trx = trx_mgr_->getTransaction(trx_hash);
-        // DAG block should not have been verified if it is missing a transaction
-        assert(trx != nullptr);
-        transactions.emplace_back(std::move(trx));
+      // DAG block should not have been verified if it is missing a transaction
+      // This check is taking some resources so in time we can remove it but it is safe to have it as a sanity check
+      size_t trx_found_count = 0;
+      for (const auto b : db_->transactionsInDb(missing_trxs)) {
+        if (b) trx_found_count++;
       }
+      assert(missing_trxs.size() == trx_found_count);
+
       addDagBlock(*blk, std::move(transactions));
       LOG(log_time_) << "Broadcast block " << blk->getHash() << " at: " << getCurrentTimeMilliSeconds();
     } else {
@@ -410,48 +409,46 @@ void DagManager::worker() {
 
 void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, bool proposed, bool save) {
   {
-    ULock lock(mutex_);
-    if (save) {
-      if (db_->dagBlockInDb(blk.getHash())) {
-        LOG(log_dg_) << "Block already in DB: " << blk.getHash();
-        return;
+    // One mutex protects the DagManager internal state, the other mutex ensures that dag blocks are gossiped in
+    // correct order since multiple threads can call this method. There is a need for using two mutexes since having
+    // blocks gossip under mutex_ leads to a deadlock with mutex in TaraxaPeer
+    ULock order_lock(order_dag_blocks_mutex_);
+    {
+      ULock lock(mutex_);
+      if (save) {
+        if (db_->dagBlockInDb(blk.getHash())) {
+          LOG(log_dg_) << "Block already in DB: " << blk.getHash();
+          return;
+        }
+        // Saves transactions and remove them from memory pool
+        trx_mgr_->saveTransactionsFromDagBlock(trxs);
+        // Save the dag block
+        db_->saveDagBlock(blk);
       }
-      // Saves transactions and remove them from memory pool
-      trx_mgr_->saveTransactionsFromDagBlock(trxs);
-      // Save the dag block
-      db_->saveDagBlock(blk);
+      auto blk_hash = blk.getHash();
+      auto pivot_hash = blk.getPivot();
 
-      // TODO: This is an ugly temporary fix for testnet, a better solution is needed later
-      if (db_->getDagBlockPeriod(blk.getHash()) != nullptr) {
-        db_->removeDagBlock(blk.getHash());
-        LOG(log_er_) << "Block already in DB: " << blk.getHash();
-        return;
+      std::vector<blk_hash_t> tips = blk.getTips();
+      level_t current_max_level = max_level_;
+      max_level_ = std::max(current_max_level, blk.getLevel());
+
+      addToDag(blk_hash, pivot_hash, tips, blk.getLevel());
+
+      auto [p, ts] = getFrontier();
+      frontier_.pivot = p;
+      frontier_.tips.clear();
+      for (auto const &t : ts) {
+        frontier_.tips.push_back(t);
       }
     }
-    auto blk_hash = blk.getHash();
-    auto pivot_hash = blk.getPivot();
-
-    std::vector<blk_hash_t> tips = blk.getTips();
-    level_t current_max_level = max_level_;
-    max_level_ = std::max(current_max_level, blk.getLevel());
-
-    addToDag(blk_hash, pivot_hash, tips, blk.getLevel());
-
-    auto [p, ts] = getFrontier();
-    frontier_.pivot = p;
-    frontier_.tips.clear();
-    for (auto const &t : ts) {
-      frontier_.tips.push_back(t);
-    }
-
     if (save) {
       block_verified_.emit(blk);
       if (auto net = network_.lock()) {
-        net->onNewBlockVerified(blk, proposed);
+        net->onNewBlockVerified(blk, proposed, std::move(trxs));
       }
     }
   }
-  LOG(log_dg_) << " Update frontier after adding block " << blk.getHash() << "anchor " << anchor_
+  LOG(log_nf_) << " Update frontier after adding block " << blk.getHash() << "anchor " << anchor_
                << " pivot = " << frontier_.pivot << " tips: " << frontier_.tips;
 }
 
@@ -465,10 +462,15 @@ void DagManager::addToDag(blk_hash_t const &hash, blk_hash_t const &pivot, std::
                           uint64_t level, bool finalized) {
   total_dag_->addVEEs(hash, pivot, tips);
   pivot_tree_->addVEEs(hash, pivot, {});
-  if (!finalized) {
-    non_finalized_blks_[level].push_back(hash);
-  }
+
   LOG(log_dg_) << " Insert block to DAG : " << hash;
+  if (finalized) {
+    return;
+  }
+
+  if (!non_finalized_blks_[level].insert(hash).second) {
+    LOG(log_er_) << "Trying to insert duplicate block into the dag: " << hash;
+  }
 }
 
 std::optional<std::pair<blk_hash_t, std::vector<blk_hash_t>>> DagManager::getLatestPivotAndTips() const {
@@ -535,11 +537,16 @@ std::vector<blk_hash_t> DagManager::getDagBlockOrder(blk_hash_t const &anchor, u
 }
 
 uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period, vec_blk_t const &dag_order) {
-  ULock lock(mutex_);
   LOG(log_dg_) << "setDagBlockOrder called with anchor " << new_anchor << " and period " << period;
   if (period != period_ + 1) {
     LOG(log_er_) << " Inserting period (" << period << ") anchor " << new_anchor
                  << " does not match ..., previous internal period (" << period_ << ") " << anchor_;
+    return 0;
+  }
+
+  if (new_anchor == NULL_BLOCK_HASH) {
+    period_ = period;
+    LOG(log_nf_) << "Set new period " << period << " with NULL_BLOCK_HASH anchor";
     return 0;
   }
 
@@ -598,58 +605,94 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
 
 void DagManager::recoverDag() {
   if (pbft_chain_) {
-    blk_hash_t pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+    auto pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
     if (pbft_block_hash) {
-      PbftBlock pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
-      blk_hash_t dag_block_hash_as_anchor = pbft_block.getPivotDagBlockHash();
-      period_ = pbft_block.getPeriod();
-      anchor_ = dag_block_hash_as_anchor;
-      LOG(log_nf_) << "Recover anchor " << anchor_;
-      addToDag(anchor_, blk_hash_t(), vec_blk_t(), 0, true);
+      period_ = pbft_chain_->getPbftBlockInChain(pbft_block_hash).getPeriod();
+    }
 
+    while (pbft_block_hash) {
+      auto pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
+      auto anchor = pbft_block.getPivotDagBlockHash();
       pbft_block_hash = pbft_block.getPrevBlockHash();
-      if (pbft_block_hash) {
-        pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
-        dag_block_hash_as_anchor = pbft_block.getPivotDagBlockHash();
-        old_anchor_ = dag_block_hash_as_anchor;
+      if (anchor) {
+        anchor_ = anchor;
+        LOG(log_nf_) << "Recover anchor " << anchor_;
+        addToDag(anchor_, blk_hash_t(), vec_blk_t(), 0, true);
+        break;
+      }
+    }
+
+    if (pbft_block_hash) {
+      auto pbft_block = pbft_chain_->getPbftBlockInChain(pbft_block_hash);
+      auto anchor = pbft_block.getPivotDagBlockHash();
+      if (anchor) {
+        old_anchor_ = anchor;
+        LOG(log_nf_) << "Recover old anchor " << old_anchor_;
       }
     }
   }
 
-  bool found_invalid = false;
   for (auto &lvl : db_->getNonfinalizedDagBlocks()) {
     for (auto &blk : lvl.second) {
+      // These are some sanity checks that difficulty is correct and block is truly non-finalized.
+      // This is only done on startup
       auto period = db_->getDagBlockPeriod(blk.getHash());
       if (period != nullptr) {
         LOG(log_er_) << "Nonfinalized Dag Block actually finalized in period " << period->first;
-        db_->removeDagBlock(blk.getHash());
+        break;
       } else {
-        // Testnet hotfix
-        auto propose_period = dag_blk_mgr_->getProposalPeriod(blk.getLevel());
+        auto propose_period = db_->getProposalPeriodForDagLevel(blk.getLevel());
         // Verify VDF solution
         try {
-          blk.verifyVdf(dag_blk_mgr_->sortitionParamsManager().getSortitionParams(propose_period.first));
+          blk.verifyVdf(dag_blk_mgr_->sortitionParamsManager().getSortitionParams(*propose_period),
+                        db_->getPeriodBlockHash(*propose_period));
         } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
           LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
                        << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason "
                        << e.what();
-          // Even when this is set to true check all the blocks to log all invalid ones
-          found_invalid = true;
-        }
-        if (found_invalid) {
-          db_->removeDagBlock(blk.getHash());
-        } else {
-          addDagBlock(std::move(blk), {}, false, false);
+          break;
         }
       }
+
+      addDagBlock(std::move(blk), {}, false, false);
     }
   }
   trx_mgr_->recoverNonfinalizedTransactions();
 }
 
-const std::map<uint64_t, std::vector<blk_hash_t>> DagManager::getNonFinalizedBlocks() const {
+const std::pair<uint64_t, std::map<uint64_t, std::unordered_set<blk_hash_t>>> DagManager::getNonFinalizedBlocks()
+    const {
   SharedLock lock(mutex_);
-  return non_finalized_blks_;
+  return {period_, non_finalized_blks_};
+}
+
+const std::tuple<uint64_t, std::vector<std::shared_ptr<DagBlock>>, SharedTransactions>
+DagManager::getNonFinalizedBlocksWithTransactions(const std::unordered_set<blk_hash_t> &known_hashes) const {
+  SharedLock lock(mutex_);
+  std::vector<std::shared_ptr<DagBlock>> dag_blocks;
+  std::unordered_set<trx_hash_t> unique_trxs;
+  std::vector<trx_hash_t> trx_to_query;
+  for (const auto &level_blocks : non_finalized_blks_) {
+    for (const auto &hash : level_blocks.second) {
+      if (known_hashes.count(hash) == 0) {
+        if (auto blk = dag_blk_mgr_->getDagBlock(hash); blk) {
+          dag_blocks.emplace_back(blk);
+        } else {
+          LOG(log_er_) << "NonFinalizedBlock " << hash << " not in DB";
+          assert(false);
+        }
+      }
+    }
+  }
+  for (const auto &block : dag_blocks) {
+    for (auto trx : block->getTrxs()) {
+      if (unique_trxs.emplace(trx).second) {
+        trx_to_query.emplace_back(trx);
+      }
+    }
+  }
+  auto trxs = trx_mgr_->getNonfinalizedTrx(trx_to_query);
+  return {period_, std::move(dag_blocks), std::move(trxs)};
 }
 
 std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {

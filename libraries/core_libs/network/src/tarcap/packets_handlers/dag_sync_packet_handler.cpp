@@ -20,20 +20,72 @@ DagSyncPacketHandler::DagSyncPacketHandler(std::shared_ptr<PeersState> peers_sta
                               std::move(db), node_addr, "DAG_SYNC_PH"),
       trx_mgr_(std::move(trx_mgr)) {}
 
-void DagSyncPacketHandler::process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
-  std::string received_dag_blocks_str;
-  std::unordered_set<blk_hash_t> missing_blks;
-
-  auto it = packet_data.rlp_.begin();
-  uint64_t transactions_count = (*it++).toInt<uint64_t>();
-  SharedTransactions new_transactions;
-  for (uint64_t i = 0; i < transactions_count; i++) {
-    Transaction transaction(*it++);
-    peer->markTransactionAsKnown(transaction.getHash());
-    new_transactions.emplace_back(std::make_shared<Transaction>(std::move(transaction)));
+void DagSyncPacketHandler::validatePacketRlpFormat(const PacketData& packet_data) const {
+  if (constexpr size_t required_min_size = 3; packet_data.rlp_.itemCount() < required_min_size) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_min_size);
   }
 
-  trx_mgr_->insertBroadcastedTransactions(std::move(new_transactions));
+  // TODO[1551]: rlp format of this packet should be fixed:
+  //             has format: [request_period, response_period, transactions_count, tx1, ..., txN, dag1, ...., dagN]
+  //             should have format: [request_period, response_period, [tx1, ..., txN], [dag1, ...., dagN] ]
+}
+
+void DagSyncPacketHandler::process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
+  std::string received_dag_blocks_str;
+
+  auto it = packet_data.rlp_.begin();
+  const auto request_period = (*it++).toInt<uint64_t>();
+  const auto response_period = (*it++).toInt<uint64_t>();
+
+  // If the periods did not match restart syncing
+  if (response_period > request_period) {
+    LOG(log_dg_) << "Received DagSyncPacket with mismatching periods: " << response_period << " " << request_period
+                 << " from " << packet_data.from_node_id_.abridged();
+    if (peer->pbft_chain_size_ < response_period) {
+      peer->pbft_chain_size_ = response_period;
+    }
+    peer->peer_dag_syncing_ = false;
+    // We might be behind, restart pbft sync if needed
+    restartSyncingPbft();
+    return;
+  } else if (response_period < request_period) {
+    // This should not be possible for honest node
+    std::ostringstream err_msg;
+    err_msg << "Received DagSyncPacket with mismatching periods: response_period(" << response_period
+            << ") != request_period(" << request_period << ")";
+
+    throw MaliciousPeerException(err_msg.str());
+  }
+
+  uint64_t transactions_count = (*it++).toInt<uint64_t>();
+  SharedTransactions new_transactions;
+  std::string transactions_to_log;
+  for (uint64_t i = 0; i < transactions_count; i++) {
+    std::shared_ptr<Transaction> trx;
+
+    try {
+      trx = std::make_shared<Transaction>(*it++);
+    } catch (const Transaction::InvalidSignature& e) {
+      throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
+    }
+
+    peer->markTransactionAsKnown(trx->getHash());
+    transactions_to_log += trx->getHash().abridged();
+    if (trx_mgr_->isTransactionKnown(trx->getHash())) {
+      continue;
+    }
+
+    if (const auto [is_valid, reason] = trx_mgr_->verifyTransaction(trx); !is_valid) {
+      std::ostringstream err_msg;
+      err_msg << "DagBlock transaction " << trx->getHash() << " validation failed: " << reason;
+
+      throw MaliciousPeerException(err_msg.str());
+    }
+
+    new_transactions.push_back(std::move(trx));
+  }
+
+  trx_mgr_->insertValidatedTransactions(std::move(new_transactions));
 
   for (; it != packet_data.rlp_.end();) {
     DagBlock block(*it++);
@@ -43,25 +95,23 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
 
     auto status = checkDagBlockValidation(block);
     if (!status.first) {
-      LOG(log_er_) << "DagBlock " << block.getHash() << " validation failed " << status.second;
-      status.second.insert(block.getHash());
-      missing_blks.merge(status.second);
-      continue;
+      // This should only happen with a malicious node or a fork
+      std::ostringstream err_msg;
+      err_msg << "DagBlock " << block.getHash() << " validation failed: " << status.second;
+
+      throw MaliciousPeerException(err_msg.str());
     }
 
-    LOG(log_dg_) << "Storing block " << block.getHash().abridged() << " with " << new_transactions.size()
-                 << " transactions";
     if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
 
-    dag_blk_mgr_->insertBroadcastedBlock(std::move(block));
+    dag_blk_mgr_->insertAndVerifyBlock(std::move(block));
   }
 
-  if (missing_blks.size() > 0) {
-    requestDagBlocks(packet_data.from_node_id_, missing_blks, DagSyncRequestType::MissingHashes);
-  }
-  syncing_state_->set_dag_syncing(false);
+  peer->peer_dag_synced_ = true;
+  peer->peer_dag_syncing_ = false;
 
-  LOG(log_nf_) << "Received DagDagSyncPacket with blocks: " << received_dag_blocks_str;
+  LOG(log_dg_) << "Received DagSyncPacket with blocks: " << received_dag_blocks_str
+               << " Transactions: " << transactions_to_log << " from " << packet_data.from_node_id_;
 }
 
 }  // namespace taraxa::network::tarcap

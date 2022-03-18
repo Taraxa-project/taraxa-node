@@ -24,33 +24,45 @@ std::optional<vrf_proof_t> getVrfProof(vrf_sk_t const &pk, bytes const &msg);
 // get output if proff is valid
 std::optional<vrf_output_t> getVrfOutput(vrf_pk_t const &pk, vrf_proof_t const &proof, bytes const &msg);
 
-struct VrfSortitionBase {
+class VrfSortitionBase {
+ public:
   VrfSortitionBase() = default;
-  VrfSortitionBase(vrf_sk_t const &sk, bytes const &msg) : pk(vrf_wrapper::getVrfPublicKey(sk)) {
-    assert(isValidVrfPublicKey(pk));
-    proof = vrf_wrapper::getVrfProof(sk, msg).value();
-    output = vrf_wrapper::getVrfOutput(pk, proof, msg).value();
+
+  VrfSortitionBase(vrf_sk_t const &sk, bytes const &msg) : pk_(vrf_wrapper::getVrfPublicKey(sk)) {
+    assert(isValidVrfPublicKey(pk_));
+    proof_ = vrf_wrapper::getVrfProof(sk, msg).value();
+    output_ = vrf_wrapper::getVrfOutput(pk_, proof_, msg).value();
     thresholdFromOutput();
   }
+
+  static dev::bytes makeVrfInput(taraxa::level_t level, const dev::h256 &period_hash);
+
   bool verify(bytes const &msg) const;
+
   bool operator==(VrfSortitionBase const &other) const {
-    return pk == other.pk && proof == other.proof && output == other.output;
+    return pk_ == other.pk_ && proof_ == other.proof_ && output_ == other.output_;
   }
-  void thresholdFromOutput() const { threshold = (((uint16_t)output[1] << 8) | output[0]); }
+
   virtual std::ostream &print(std::ostream &strm) const {
     strm << "\n[VRF SortitionBase] " << std::endl;
-    strm << "  pk: " << pk << std::endl;
-    strm << "  proof: " << proof << std::endl;
-    strm << "  output: " << output << std::endl;
+    strm << "  pk: " << pk_ << std::endl;
+    strm << "  proof: " << proof_ << std::endl;
+    strm << "  output: " << output_ << std::endl;
     return strm;
   }
+
   friend std::ostream &operator<<(std::ostream &strm, VrfSortitionBase const &vrf_sortition) {
     return vrf_sortition.print(strm);
   }
-  vrf_pk_t pk;
-  vrf_proof_t proof;
-  mutable vrf_output_t output;
-  mutable uint16_t threshold;
+
+ private:
+  void thresholdFromOutput() const { threshold_ = (((uint16_t)output_[1] << 8) | output_[0]); }
+
+ public:
+  vrf_pk_t pk_;
+  vrf_proof_t proof_;
+  mutable vrf_output_t output_;
+  mutable uint16_t threshold_;
 };
 
 }  // namespace taraxa::vrf_wrapper

@@ -127,16 +127,6 @@ bool dev::decryptECIES(Secret const& _k, bytesConstRef _sharedMacData, bytesCons
   return true;
 }
 
-void dev::encryptSym(Secret const& _k, bytesConstRef _plain, bytes& o_cipher) {
-  // TODO: @alex @subtly do this properly.
-  encrypt(KeyPair(_k).pub(), _plain, o_cipher);
-}
-
-bool dev::decryptSym(Secret const& _k, bytesConstRef _cipher, bytes& o_plain) {
-  // TODO: @alex @subtly do this properly.
-  return decrypt(_k, _cipher, o_plain);
-}
-
 std::pair<bytes, h128> dev::encryptSymNoAuth(SecureFixedHash<16> const& _k, bytesConstRef _plain) {
   h128 iv(Nonce::get().makeInsecure());
   return make_pair(encryptSymNoAuth(_k, iv, _plain), iv);

@@ -200,7 +200,7 @@ void StateAPI::create_snapshot(uint64_t period) {
   err_h.check();
 }
 
-uint64_t StateAPI::dpos_eligible_count(EthBlockNumber blk_num) const {
+uint64_t StateAPI::dpos_eligible_address_count(EthBlockNumber blk_num) const {
   ErrorHandler err_h;
   auto ret = taraxa_evm_state_api_dpos_eligible_count(this_c_, blk_num, err_h.cgo_part_);
   err_h.check();

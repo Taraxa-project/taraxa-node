@@ -14,14 +14,21 @@
     "returns": {}
   },
   {
-    "name": "send_coin_transaction",
+    "name": "get_nf_blocks",
     "params": [
       {}
     ],
     "returns": {}
   },
   {
-    "name": "create_test_coin_transactions",
+    "name": "get_sortition_change",
+    "params": [
+      {}
+    ],
+    "returns": {}
+  },
+  {
+    "name": "send_coin_transaction",
     "params": [
       {}
     ],

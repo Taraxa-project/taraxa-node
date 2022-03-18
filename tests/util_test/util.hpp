@@ -105,11 +105,27 @@ inline bool wait(wait_opts const& opts, std::function<void(wait_ctx&)> const& po
   }
 
 #define WAIT_EXPECT_LT(ctx, o1, o2)         \
-  if (o1 < o2) {                            \
+  if (o1 >= o2) {                           \
     if (ctx.fail(); !ctx.is_last_attempt) { \
       return;                               \
     }                                       \
     EXPECT_LT(o1, o2);                      \
+  }
+
+#define WAIT_EXPECT_GT(ctx, o1, o2)         \
+  if (o1 <= o2) {                           \
+    if (ctx.fail(); !ctx.is_last_attempt) { \
+      return;                               \
+    }                                       \
+    EXPECT_GT(o1, o2);                      \
+  }
+
+#define WAIT_EXPECT_GE(ctx, o1, o2)         \
+  if (o1 < o2) {                            \
+    if (ctx.fail(); !ctx.is_last_attempt) { \
+      return;                               \
+    }                                       \
+    EXPECT_GE(o1, o2);                      \
   }
 
 template <uint tests_speed = 1, bool enable_rpc_http = false, bool enable_rpc_ws = false>
@@ -286,8 +302,8 @@ inline auto own_effective_genesis_bal(FullNodeConfig const& cfg) {
   return cfg.chain.final_chain.state.effective_genesis_balance(dev::toAddress(dev::Secret(cfg.node_secret)));
 }
 
-inline auto make_simple_pbft_block(h256 const& hash, uint64_t period) {
-  return PbftBlock(hash, blk_hash_t(0), blk_hash_t(), period, addr_t(0), secret_t::random());
+inline auto make_simple_pbft_block(h256 const& hash, uint64_t period, h256 const& anchor_hash = blk_hash_t(0)) {
+  return PbftBlock(hash, anchor_hash, blk_hash_t(), period, addr_t(0), secret_t::random());
 }
 
 inline std::vector<blk_hash_t> getOrderedDagBlocks(std::shared_ptr<DbStorage> const& db) {
@@ -316,21 +332,21 @@ inline auto make_addr(uint8_t i) {
 using expected_balances_map_t = std::map<addr_t, u256>;
 inline void wait_for_balances(const std::vector<std::shared_ptr<FullNode>>& nodes,
                               const expected_balances_map_t& balances, wait_opts to_wait = {10s, 500ms}) {
-  TransactionClient trx_client(nodes[0]);
-  auto sendDummyTransaction = [&]() {
+  auto sendDummyTransaction = [&](const auto& trx_client) {
     trx_client.coinTransfer(KeyPair::create().address(), 0, KeyPair::create(), false);
   };
   wait(to_wait, [&](auto& ctx) {
     for (const auto& node : nodes) {
       for (const auto& b : balances) {
         if (node->getFinalChain()->getBalance(b.first).first != b.second) {
-          sendDummyTransaction();
+          sendDummyTransaction(TransactionClient(node));
           WAIT_EXPECT_EQ(ctx, node->getFinalChain()->getBalance(b.first).first, b.second);
         }
       }
       // wait for the same chain size on all nodes
       for (const auto& n : nodes) {
-        WAIT_EXPECT_EQ(ctx, node->getPbftChain()->getPbftChainSize(), n->getPbftChain()->getPbftChainSize());
+        WAIT_EXPECT_EQ(ctx, node->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(),
+                       n->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks());
       }
     }
   });

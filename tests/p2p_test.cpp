@@ -81,76 +81,6 @@ TEST_F(P2PTest, p2p_discovery) {
 
 /*
 Test creates two host/network/capability and verifies that host connect
-to each other and that a test packet message can be sent from one host
-to the other using TaraxaCapability
-*/
-TEST_F(P2PTest, capability_send_test) {
-  int const step = 10;
-  const char *const localhost = "127.0.0.1";
-  dev::p2p::NetworkConfig prefs1(localhost, 10007, false, true);
-  prefs1.discovery = false;
-  dev::p2p::NetworkConfig prefs2(localhost, 10003, false, true);
-  prefs2.discovery = false;
-  NetworkConfig network_conf;
-  network_conf.network_simulated_delay = 0;
-  network_conf.network_bandwidth = 40;
-  network_conf.network_transaction_interval = 1000;
-  std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1, thc2;
-  auto host1 = Host::make(
-      "Test",
-      [&](auto host) {
-        thc1 = std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, KeyPair::create(), network_conf);
-        return Host::CapabilityList{thc1};
-      },
-      KeyPair::create(), prefs1);
-  auto host2 = Host::make(
-      "Test",
-      [&](auto host) {
-        thc2 = std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, KeyPair::create(), network_conf);
-        return Host::CapabilityList{thc2};
-      },
-      KeyPair::create(), prefs2);
-  util::ThreadPool tp;
-  tp.post_loop({}, [=] { host1->do_work(); });
-  tp.post_loop({}, [=] { host2->do_work(); });
-  thc1->start();
-  thc2->start();
-
-  auto port1 = host1->listenPort();
-  auto port2 = host2->listenPort();
-  EXPECT_NE(port1, 0);
-  EXPECT_NE(port2, 0);
-  EXPECT_NE(port1, port2);
-
-  host1->addNode(
-      Node(host2->id(), NodeIPEndpoint(bi::address::from_string(localhost), port2, port2), PeerType::Required));
-
-  // Wait for up to 12 seconds, to give the hosts time to connect to each
-  // other.
-  for (unsigned i = 0; i < 12000; i += step) {
-    std::this_thread::sleep_for(std::chrono::milliseconds(step));
-    setPendingPeersToReady(thc1);
-    setPendingPeersToReady(thc2);
-
-    if ((host1->peer_count() > 0) && (host2->peer_count() > 0)) break;
-  }
-
-  EXPECT_GT(host1->peer_count(), 0);
-  EXPECT_GT(host2->peer_count(), 0);
-
-  int const target = 5;
-  int checksum = 0;
-  std::vector<char> dummy_data(10 * 1024 * 1024);  // 10MB memory buffer
-  for (int i = 0; i < target; checksum += i++) thc2->sendTestMessage(host1->id(), i, dummy_data);
-
-  std::this_thread::sleep_for(std::chrono::seconds(target / 2));
-  std::pair<int, int> testData = thc1->retrieveTestData(host2->id());
-  EXPECT_EQ(target, testData.first);
-  EXPECT_EQ(checksum, testData.second);
-}
-
-/*
-Test creates two host/network/capability and verifies that host connect
 to each other and that a block packet message can be sent from one host
 to the other using TaraxaCapability
 */
@@ -214,7 +144,11 @@ TEST_F(P2PTest, capability_send_block) {
 
   SharedTransactions transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
   thc2->onNewTransactions(std::move(transactions));
-  thc2->sendBlock(host1->id(), blk);
+  std::vector<taraxa::bytes> transactions_raw;
+  transactions_raw.push_back(g_signed_trx_samples[0]->rlp());
+  transactions_raw.push_back(g_signed_trx_samples[1]->rlp());
+  thc2->sendTransactions(host1->id(), transactions_raw);
+  thc2->sendBlock(host1->id(), blk, {});
 
   std::this_thread::sleep_for(std::chrono::seconds(1));
   auto blocks = thc1->test_state_->getBlocks();
@@ -329,6 +263,12 @@ TEST_F(P2PTest, block_propagate) {
   thc1->onNewTransactions(std::move(transactions2));
   thc1->onNewBlockReceived(std::move(blk));
 
+  std::vector<taraxa::bytes> transactions_raw;
+  transactions_raw.push_back(g_signed_trx_samples[0]->rlp());
+  transactions_raw.push_back(g_signed_trx_samples[1]->rlp());
+  for (int i = 0; i < nodeCount; i++) {
+    thc1->sendTransactions(vHosts[i]->id(), transactions_raw);
+  }
   for (int i = 0; i < 50; i++) {
     std::this_thread::sleep_for(std::chrono::seconds(1));
     bool synced = true;

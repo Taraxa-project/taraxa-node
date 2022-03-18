@@ -35,6 +35,7 @@ class Tools {
   // Override existing config and wallet files
   static Json::Value overrideConfig(Json::Value& config, std::string& data_dir, bool boot_node,
                                     std::vector<std::string> boot_nodes, std::vector<std::string> log_channels,
+                                    std::vector<std::string> log_configurations,
                                     const std::vector<std::string>& boot_nodes_append,
                                     const std::vector<std::string>& log_channels_append);
   static Json::Value overrideWallet(Json::Value& wallet, const std::string& node_key, const std::string& vrf_key);

@@ -19,7 +19,7 @@ class ExtVotesPacketHandler : public PacketHandler {
 
   virtual ~ExtVotesPacketHandler() = default;
 
-  void onNewPbftVote(std::shared_ptr<Vote> const& vote);
+  void onNewPbftVote(std::shared_ptr<Vote>&& vote);
   void sendPbftVote(dev::p2p::NodeID const& peer_id, std::shared_ptr<Vote> const& vote);
 
  protected:

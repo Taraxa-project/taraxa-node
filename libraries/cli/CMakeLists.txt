@@ -3,6 +3,7 @@ set(HEADERS
     include/cli/config_updater.hpp
     include/cli/default_config.hpp
     include/cli/devnet_config.hpp
+    include/cli/mainnet_config.hpp
     include/cli/testnet_config.hpp
     include/cli/tools.hpp
 )

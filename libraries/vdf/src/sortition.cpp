@@ -3,19 +3,20 @@
 #include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
 
+#include <memory>
+
 namespace taraxa::vdf_sortition {
 
-VdfSortition::VdfSortition(SortitionParams const& config, vrf_sk_t const& sk, bytes const& msg)
-    : VrfSortitionBase(sk, msg) {
+VdfSortition::VdfSortition(const SortitionParams& config, const vrf_sk_t& sk, const bytes& vrf_input)
+    : VrfSortitionBase(sk, vrf_input) {
   difficulty_ = calculateDifficulty(config);
 }
 
 bool VdfSortition::isOmitVdf(SortitionParams const& config) const {
-  return config.vrf.threshold_upper >= config.vrf.threshold_range &&
-         threshold <= config.vrf.threshold_upper - config.vrf.threshold_range;
+  return threshold_ <= config.vrf.threshold_upper * (100 - config.vrf.threshold_range) / 100;
 }
 
-bool VdfSortition::isStale(SortitionParams const& config) const { return threshold > config.vrf.threshold_upper; }
+bool VdfSortition::isStale(SortitionParams const& config) const { return threshold_ > config.vrf.threshold_upper; }
 
 uint16_t VdfSortition::calculateDifficulty(SortitionParams const& config) const {
   uint16_t difficulty = 0;
@@ -23,7 +24,7 @@ uint16_t VdfSortition::calculateDifficulty(SortitionParams const& config) const 
     if (isStale(config)) {
       difficulty = config.vdf.difficulty_stale;
     } else {
-      difficulty = config.vdf.difficulty_min + threshold % (config.vdf.difficulty_max - config.vdf.difficulty_min);
+      difficulty = config.vdf.difficulty_min + threshold_ % (config.vdf.difficulty_max - config.vdf.difficulty_min + 1);
     }
   }
   return difficulty;
@@ -33,22 +34,14 @@ VdfSortition::VdfSortition(bytes const& b) {
   if (b.empty()) {
     return;
   }
-  dev::RLP const rlp(b);
-  if (!rlp.isList()) {
-    throw std::invalid_argument("VdfSortition RLP must be a list");
-  }
 
-  auto it = rlp.begin();
-  pk = (*it++).toHash<vrf_pk_t>();
-  proof = (*it++).toHash<vrf_proof_t>();
-  vdf_sol_.first = (*it++).toBytes();
-  vdf_sol_.second = (*it++).toBytes();
-  difficulty_ = (*it++).toInt<uint16_t>();
+  dev::RLP rlp(b);
+  util::rlp_tuple(util::RLPDecoderRef(rlp, true), pk_, proof_, vdf_sol_.first, vdf_sol_.second, difficulty_);
 }
 
 VdfSortition::VdfSortition(Json::Value const& json) {
-  pk = vrf_pk_t(json["pk"].asString());
-  proof = vrf_proof_t(json["proof"].asString());
+  pk_ = vrf_pk_t(json["pk"].asString());
+  proof_ = vrf_proof_t(json["proof"].asString());
   vdf_sol_.first = dev::fromHex(json["sol1"].asString());
   vdf_sol_.second = dev::fromHex(json["sol2"].asString());
   difficulty_ = dev::jsToInt(json["difficulty"].asString());
@@ -57,31 +50,33 @@ VdfSortition::VdfSortition(Json::Value const& json) {
 bytes VdfSortition::rlp() const {
   dev::RLPStream s;
   s.appendList(5);
-  s << pk;
-  s << proof;
+  s << pk_;
+  s << proof_;
   s << vdf_sol_.first;
   s << vdf_sol_.second;
   s << difficulty_;
-  return s.out();
+  return s.invalidate();
 }
 
 Json::Value VdfSortition::getJson() const {
   Json::Value res;
-  res["pk"] = dev::toJS(pk);
-  res["proof"] = dev::toJS(proof);
+  res["pk"] = dev::toJS(pk_);
+  res["proof"] = dev::toJS(proof_);
   res["sol1"] = dev::toJS(dev::toHex(vdf_sol_.first));
   res["sol2"] = dev::toJS(dev::toHex(vdf_sol_.second));
   res["difficulty"] = dev::toJS(difficulty_);
   return res;
 }
 
+void VdfSortition::cancelCompute() { prover_->cancel(); }
+
 void VdfSortition::computeVdfSolution(SortitionParams const& config, bytes const& msg) {
   if (!isOmitVdf(config)) {
     auto t1 = getCurrentTimeMilliSeconds();
     VerifierWesolowski verifier(config.vdf.lambda_bound, difficulty_, msg, N);
 
-    ProverWesolowski prover;
-    vdf_sol_ = prover(verifier);  // this line takes time ...
+    prover_ = std::static_pointer_cast<ProverWesolowski>(std::make_shared<ProverWesolowski>());
+    vdf_sol_ = (*prover_)(verifier);  // this line takes time ...
     auto t2 = getCurrentTimeMilliSeconds();
     vdf_computation_time_ = t2 - t1;
   }
@@ -102,7 +97,7 @@ void VdfSortition::verifyVdf(SortitionParams const& config, bytes const& vrf_inp
                                 ", expected: " + std::to_string(expected) +
                                 ", vrf_params: ( range: " + std::to_string(config.vrf.threshold_range) +
                                 ", threshold_upper: " + std::to_string(config.vrf.threshold_upper) +
-                                ") THRESHOLD: " + std::to_string(threshold));
+                                ") THRESHOLD: " + std::to_string(threshold_));
     }
 
     // Verify VDF solution

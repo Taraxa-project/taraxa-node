@@ -9,6 +9,7 @@
 #include "cli/config.hpp"
 #include "cli/default_config.hpp"
 #include "cli/devnet_config.hpp"
+#include "cli/mainnet_config.hpp"
 #include "cli/testnet_config.hpp"
 #include "common/jsoncpp.hpp"
 
@@ -19,26 +20,15 @@ namespace fs = std::filesystem;
 namespace taraxa::cli {
 
 void Tools::generateConfig(const std::string& config, Config::NetworkIdType network_id) {
-  Json::Value conf;
-  switch (network_id) {
-    case Config::NetworkIdType::Testnet:
-      conf = util::readJsonFromString(testnet_json);
-      break;
-    case Config::NetworkIdType::Devnet:
-      conf = util::readJsonFromString(devnet_json);
-      break;
-    default:
-      conf = util::readJsonFromString(default_json);
-      std::stringstream stream;
-      stream << "0x" << std::hex << static_cast<int>(network_id);
-      conf["chain_config"]["chain_id"] = stream.str();
-  }
-  util::writeJsonToFile(config, conf);
+  util::writeJsonToFile(config, generateConfig(network_id));
 }
 
 Json::Value Tools::generateConfig(Config::NetworkIdType network_id) {
   Json::Value conf;
   switch (network_id) {
+    case Config::NetworkIdType::Mainnet:
+      conf = util::readJsonFromString(mainnet_json);
+      break;
     case Config::NetworkIdType::Testnet:
       conf = util::readJsonFromString(testnet_json);
       break;
@@ -55,8 +45,8 @@ Json::Value Tools::generateConfig(Config::NetworkIdType network_id) {
 }
 
 Json::Value Tools::overrideConfig(Json::Value& conf, std::string& data_dir, bool boot_node, vector<string> boot_nodes,
-                                  vector<string> log_channels, const vector<string>& boot_nodes_append,
-                                  const vector<string>& log_channels_append) {
+                                  vector<string> log_channels, vector<string> log_configurations,
+                                  const vector<string>& boot_nodes_append, const vector<string>& log_channels_append) {
   if (data_dir.empty()) {
     if (conf["data_path"].asString().empty()) {
       conf["data_path"] = getTaraxaDataDefaultDir();
@@ -110,6 +100,17 @@ Json::Value Tools::overrideConfig(Json::Value& conf, std::string& data_dir, bool
   // Override log channels
   if (log_channels.size() > 0) {
     conf["logging"]["configurations"][0u]["channels"] = Json::Value(Json::arrayValue);
+  }
+
+  // Turn on logging configurations
+  if (log_configurations.size() > 0) {
+    for (Json::Value& node : conf["logging"]["configurations"]) {
+      for (const auto& log_conf : log_configurations) {
+        if (node["name"].asString() == log_conf) {
+          node["on"] = true;
+        }
+      }
+    }
   }
   if (log_channels_append.size() > 0) {
     log_channels = log_channels_append;

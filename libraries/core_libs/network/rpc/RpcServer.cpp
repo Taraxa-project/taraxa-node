@@ -52,15 +52,13 @@ bool RpcServer::StopListening() {
   return true;
 }
 
-bool RpcServer::SendResponse(const std::string & /*response*/, void * /*addInfo*/) { return true; }
-
 RpcConnection::RpcConnection(std::shared_ptr<RpcServer> rpc) : rpc_(move(rpc)), socket_(rpc_->io_context_) {}
 
 void RpcConnection::read() {
   boost::beast::http::async_read(
       socket_, buffer_, request_, [this, this_sp = shared_from_this()](auto const &ec, auto /*bytes_transfered*/) {
         if (ec) {
-          LOG(rpc_->log_er_) << "Error! RPC conncetion read fail ... " << ec.message() << "\n";
+          LOG(rpc_->log_er_) << "Error! RPC connection read fail ... " << ec.message() << "\n";
         } else {
           process_request();
         }

@@ -15,10 +15,10 @@ struct Transaction {
   };
 
  private:
-  uint64_t nonce_ = 0;
+  trx_nonce_t nonce_ = 0;
   val_t value_ = 0;
   val_t gas_price_;
-  uint64_t gas_ = 0;
+  gas_t gas_ = 0;
   bytes data_;
   std::optional<addr_t> receiver_;
   uint64_t chain_id_ = 0;
@@ -31,22 +31,21 @@ struct Transaction {
   mutable bool sender_valid_ = false;
   mutable addr_t sender_;
   mutable util::DefaultConstructCopyableMovable<std::mutex> sender_mu_;
-  mutable std::shared_ptr<bytes> cached_rlp_;
+  mutable bytes cached_rlp_;
   mutable util::DefaultConstructCopyableMovable<std::mutex> cached_rlp_mu_;
 
-  template <bool for_signature, bool w_sender>
+  template <bool for_signature>
   void streamRLP(dev::RLPStream &s) const;
   trx_hash_t hash_for_signature() const;
   addr_t const &get_sender_() const;
 
  public:
   // TODO eliminate and use shared_ptr<Transaction> everywhere
-  Transaction() : is_zero_(true){};
-  Transaction(uint64_t nonce, val_t const &value, val_t const &gas_price, uint64_t gas, bytes data, secret_t const &sk,
-              std::optional<addr_t> const &receiver = std::nullopt, uint64_t chain_id = 0);
-  explicit Transaction(dev::RLP const &_rlp, bool verify_strict = false, h256 const &hash = {},
-                       bool rlp_w_sender = false);
-  explicit Transaction(bytes const &_rlp, bool verify_strict = false, h256 const &hash = {})
+  Transaction() : is_zero_(true) {}
+  Transaction(const trx_nonce_t &nonce, const val_t &value, const val_t &gas_price, gas_t gas, bytes data,
+              const secret_t &sk, const std::optional<addr_t> &receiver = std::nullopt, uint64_t chain_id = 0);
+  explicit Transaction(const dev::RLP &_rlp, bool verify_strict = false, const h256 &hash = {});
+  explicit Transaction(const bytes &_rlp, bool verify_strict = false, const h256 &hash = {})
       : Transaction(dev::RLP(_rlp), verify_strict, hash) {}
 
   auto isZero() const { return is_zero_; }
@@ -60,10 +59,11 @@ struct Transaction {
   auto const &getReceiver() const { return receiver_; }
   auto getChainID() const { return chain_id_; }
   auto const &getVRS() const { return vrs_; }
+  auto getCost() const { return gas_price_ * gas_ + value_; }
 
   bool operator==(Transaction const &other) const { return getHash() == other.getHash(); }
 
-  std::shared_ptr<bytes> rlp(bool w_sender = false) const;
+  const bytes &rlp() const;
 
   Json::Value toJSON() const;
 };

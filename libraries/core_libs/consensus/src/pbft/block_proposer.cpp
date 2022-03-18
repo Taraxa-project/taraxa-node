@@ -31,10 +31,12 @@ bool SortitionPropose::propose() {
     return false;
   }
 
-  const auto proposal_period = dag_blk_mgr_->getProposalPeriod(propose_level);
+  const auto proposal_period = db_->getProposalPeriodForDagLevel(propose_level);
+  const auto period_block_hash = db_->getPeriodBlockHash(*proposal_period);
   // get sortition
-  const auto sortition_params = dag_blk_mgr_->sortitionParamsManager().getSortitionParams(proposal_period.first);
-  vdf_sortition::VdfSortition vdf(sortition_params, vrf_sk_, getRlpBytes(propose_level));
+  const auto sortition_params = dag_blk_mgr_->sortitionParamsManager().getSortitionParams(*proposal_period);
+  vdf_sortition::VdfSortition vdf(sortition_params, vrf_sk_,
+                                  VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   if (vdf.isStale(sortition_params)) {
     if (last_frontier_.isEqual(frontier)) {
       if (num_tries_ < max_num_tries_) {
@@ -43,16 +45,43 @@ bool SortitionPropose::propose() {
         return false;
       }
     } else {
-      LOG(log_dg_)
-          << "Will not propose DAG block, will reset number of tries. Get difficulty at stale , current propose level "
-          << propose_level;
+      LOG(log_dg_) << "Will not propose DAG block, will reset number of tries. Get difficulty at stale , current "
+                      "propose level "
+                   << propose_level;
       last_frontier_ = frontier;
       num_tries_ = 0;
       return false;
     }
   }
 
-  vdf.computeVdfSolution(sortition_params, frontier.pivot.asBytes());
+  std::future<void> result = std::async(std::launch::async, &vdf_sortition::VdfSortition::computeVdfSolution, &vdf,
+                                        sortition_params, frontier.pivot.asBytes());
+  bool vdf_computation_cancel = false;
+  while (result.wait_for(std::chrono::milliseconds(100)) != std::future_status::ready) {
+    auto latest_frontier = dag_mgr_->getDagFrontier();
+    if (!latest_frontier.isEqual(frontier)) {
+      if (vdf.isStale(sortition_params)) {
+        vdf_computation_cancel = true;
+        break;
+      } else {
+        const auto latest_level = proposer->getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
+        if (latest_level > propose_level) {
+          vdf_computation_cancel = true;
+          break;
+        }
+      }
+    }
+  }
+
+  if (vdf_computation_cancel) {
+    last_frontier_ = frontier;
+    num_tries_ = 0;
+    vdf.cancelCompute();
+    result.wait();
+    // Since compute was canceled there is a chance to propose a new block immediately, return true to skip sleep
+    return true;
+  }
+
   if (vdf.isStale(sortition_params)) {
     // Computing VDF for a stale block is CPU extensive, there is a possibility that some dag blocks are in a queue,
     // give it a second to process these dag blocks
@@ -102,10 +131,10 @@ void BlockProposer::start() {
       if (auto net = network_.lock()) {
         syncing = net->pbft_syncing();
       }
-      if (!syncing) {
-        propose_model_->propose();
+      // Only sleep if block was not proposed, if block is proposed try to propose another block immediately
+      if (syncing || propose_model_->propose()) {
+        thisThreadSleepForMilliSeconds(min_proposal_delay);
       }
-      thisThreadSleepForMilliSeconds(min_proposal_delay);
     }
   });
 }
@@ -191,17 +220,17 @@ void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTr
 }
 
 bool BlockProposer::validDposProposer(level_t const propose_level) {
-  auto proposal_period = dag_blk_mgr_->getProposalPeriod(propose_level);
-  if (!proposal_period.second) {
+  auto proposal_period = db_->getProposalPeriodForDagLevel(propose_level);
+  if (!proposal_period) {
     LOG(log_nf_) << "Cannot find the proposal level " << propose_level
                  << " in DB, too far ahead of proposal DAG blocks level";
     return false;
   }
 
   try {
-    return final_chain_->dpos_is_eligible(proposal_period.first, node_addr_);
+    return final_chain_->dpos_is_eligible(*proposal_period, node_addr_);
   } catch (state_api::ErrFutureBlock& c) {
-    LOG(log_er_) << "Proposal period " << proposal_period.first << " is too far ahead of DPOS. " << c.what();
+    LOG(log_er_) << "Proposal period " << *proposal_period << " is too far ahead of DPOS. " << c.what();
     return false;
   }
 }

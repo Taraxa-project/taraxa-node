@@ -13,7 +13,7 @@
 
 #define NULL_BLOCK_HASH blk_hash_t(0)
 #define POLLING_INTERVAL_ms 100  // milliseconds...
-#define MAX_STEPS 13
+#define MAX_STEPS 13             // Need to be a odd number
 #define MAX_WAIT_FOR_SOFT_VOTED_BLOCK_STEPS 20
 #define MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS 20
 
@@ -56,10 +56,20 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t getTwoTPlusOne() const;
   void setPbftStep(size_t const pbft_step);
 
+  /**
+   * @brief Generate PBFT block, push into unverified queue, and broadcast to peers
+   * @param prev_blk_hash previous PBFT block hash
+   * @param anchor_hash proposed DAG pivot block hash for finalization
+   * @param order_hash the hash of all DAG blocks include in the PBFT block
+   * @return PBFT block hash
+   */
+  blk_hash_t generatePbftBlock(const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
+                               const blk_hash_t &order_hash);
   std::shared_ptr<Vote> generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step);
 
   size_t getDposTotalVotesCount() const;
   size_t getDposWeightedVotesCount() const;
+  size_t getDposTotalAddressCount() const;
 
   uint64_t pbftSyncingPeriod() const;
   size_t syncBlockQueueSize() const;
@@ -68,8 +78,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   // Notice: Test purpose
   // TODO: Add a check for some kind of guards to ensure these are only called from within a test
   void setSortitionThreshold(size_t const sortition_threshold);
-  std::vector<std::vector<uint>> createMockTrxSchedule(
-      std::shared_ptr<std::vector<std::pair<blk_hash_t, std::vector<bool>>>> trx_overlap_table);
   size_t getPbftCommitteeSize() const { return COMMITTEE_SIZE; }
   u_long getPbftInitialLambda() const { return LAMBDA_ms_MIN; }
   void setLastSoftVotedValue(blk_hash_t soft_voted_value);
@@ -77,6 +85,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void resumeSingleState();
   void setMaxWaitForSoftVotedBlock_ms(uint64_t wait_ms);
   void setMaxWaitForNextVotedBlock_ms(uint64_t wait_ms);
+
+  static blk_hash_t calculateOrderHash(std::vector<blk_hash_t> const &dag_block_hashes,
+                                       std::vector<trx_hash_t> const &trx_hashes);
+  static blk_hash_t calculateOrderHash(std::vector<DagBlock> const &dag_blocks,
+                                       std::vector<Transaction> const &transactions);
 
  private:
   // DPOS
@@ -108,9 +121,13 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   size_t placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round, size_t step);
 
-  std::pair<blk_hash_t, bool> proposeMyPbftBlock_();
+  uint64_t getThreshold(PbftVoteTypes vote_type) const;
 
-  std::pair<blk_hash_t, bool> identifyLeaderBlock_();
+  blk_hash_t proposePbftBlock_();
+
+  blk_hash_t identifyLeaderBlock_();
+
+  h256 getProposal(const std::shared_ptr<Vote> &vote) const;
 
   bool syncRequestedAlreadyThisStep_() const;
 
@@ -119,15 +136,15 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool broadcastAlreadyThisStep_() const;
 
   bool comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash);
-  std::optional<vec_blk_t> comparePbftBlockScheduleWithDAGblocks_(std::shared_ptr<PbftBlock> pbft_block);
+  std::pair<vec_blk_t, bool> comparePbftBlockScheduleWithDAGblocks_(std::shared_ptr<PbftBlock> pbft_block);
 
   bool pushCertVotedPbftBlockIntoChain_(blk_hash_t const &cert_voted_block_hash,
                                         std::vector<std::shared_ptr<Vote>> &&cert_votes_for_round);
 
   void pushSyncedPbftBlocksIntoChain_();
 
-  void finalize_(PbftBlock const &pbft_block, std::vector<h256> finalized_dag_blk_hashes, bool sync = false);
-  bool pushPbftBlock_(SyncBlock &sync_block, vec_blk_t &dag_blocks_order);
+  void finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalized_dag_blk_hashes, bool sync = false);
+  bool pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_order = {});
 
   void updateTwoTPlusOneAndThreshold_();
   bool is_syncing_();
@@ -139,17 +156,14 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void checkPreviousRoundNextVotedValueChange_();
   bool updateSoftVotedBlockForThisRound_();
 
-  blk_hash_t calculateOrderHash(std::vector<blk_hash_t> const &dag_block_hashes,
-                                std::vector<trx_hash_t> const &trx_hashes);
-  blk_hash_t calculateOrderHash(std::vector<DagBlock> const &dag_blocks, std::vector<Transaction> const &transactions);
-
   std::optional<SyncBlock> processSyncBlock();
 
   std::shared_ptr<PbftBlock> getUnfinalizedBlock_(blk_hash_t const &block_hash);
 
   std::atomic<bool> stopped_ = true;
-  // Using to check if PBFT block has been proposed already in one period
-  std::pair<blk_hash_t, bool> proposed_block_hash_ = std::make_pair(NULL_BLOCK_HASH, false);
+
+  // Ensures that only one PBFT block per period can be proposed
+  blk_hash_t proposed_block_hash_ = NULL_BLOCK_HASH;
 
   std::unique_ptr<std::thread> daemon_;
   std::shared_ptr<DbStorage> db_;
@@ -169,12 +183,14 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   u_long const LAMBDA_ms_MIN;
   u_long LAMBDA_ms = 0;
   u_long LAMBDA_backoff_multiple = 1;
+  const u_long kMaxLambda = 60000;  // in ms, max lambda is 1 minutes
 
   std::default_random_engine random_engine_{std::random_device{}()};
 
-  size_t const COMMITTEE_SIZE;
-  size_t const DAG_BLOCKS_SIZE;
-  size_t const GHOST_PATH_MOVE_BACK;
+  const size_t COMMITTEE_SIZE;
+  const size_t NUMBER_OF_PROPOSERS;
+  const size_t DAG_BLOCKS_SIZE;
+  const size_t GHOST_PATH_MOVE_BACK;
   bool RUN_COUNT_VOTES;  // TODO: Only for test, need remove later
 
   PbftStates state_ = value_proposal_state;
@@ -224,6 +240,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::atomic<uint64_t> dpos_period_;
   std::atomic<size_t> dpos_votes_count_;
   std::atomic<size_t> weighted_votes_count_;
+  std::atomic<size_t> dpos_address_count_;
 
   size_t sortition_threshold_ = 0;
   // 2t+1 minimum number of votes for consensus

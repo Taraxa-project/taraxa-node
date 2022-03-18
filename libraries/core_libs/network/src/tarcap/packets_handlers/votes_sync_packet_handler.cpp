@@ -17,11 +17,15 @@ VotesSyncPacketHandler::VotesSyncPacketHandler(std::shared_ptr<PeersState> peers
       next_votes_mgr_(std::move(next_votes_mgr)),
       db_(std::move(db)) {}
 
+void VotesSyncPacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketData &packet_data) const {
+  // Number of votes is not fixed, nothing to be checked here
+}
+
 void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   const auto next_votes_count = packet_data.rlp_.itemCount();
   if (next_votes_count == 0) {
     LOG(log_er_) << "Receive 0 next votes from peer " << packet_data.from_node_id_
-                 << ". The peer may be a malicous player, will be disconnected";
+                 << ". The peer may be a malicious player, will be disconnected";
     disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
     return;
   }
@@ -44,7 +48,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
     const auto next_vote_hash = next_vote->getHash();
     LOG(log_nf_) << "Received PBFT next vote " << next_vote_hash;
     peer->markVoteAsKnown(next_vote_hash);
-    next_votes.emplace_back(next_vote);
+    next_votes.push_back(std::move(next_vote));
   }
 
   LOG(log_nf_) << "Received " << next_votes_count << " next votes from peer " << packet_data.from_node_id_
@@ -52,7 +56,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
 
   if (pbft_current_round < peer_pbft_round) {
     // Add into votes unverified queue
-    for (auto const &vote_n : next_votes) {
+    for (auto &vote_n : next_votes) {
       auto vote_hash = vote_n->getHash();
       auto vote_round = vote_n->getRound();
 
@@ -70,7 +74,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
         continue;
       }
 
-      onNewPbftVote(vote_n);
+      onNewPbftVote(std::move(vote_n));
     }
   } else if (pbft_current_round == peer_pbft_round) {
     // Update previous round next votes
@@ -101,9 +105,9 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
       }
 
       std::vector<std::shared_ptr<Vote>> send_next_votes_bundle;
-      for (auto const &v : next_votes) {
+      for (const auto &v : next_votes) {
         if (!peer_to_share_to.second->isVoteKnown(v->getHash())) {
-          send_next_votes_bundle.push_back(std::move(v));
+          send_next_votes_bundle.push_back(v);
         }
       }
       sendPbftNextVotes(peer_to_share_to.first, send_next_votes_bundle);

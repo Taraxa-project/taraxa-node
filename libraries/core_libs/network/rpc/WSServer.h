@@ -87,9 +87,8 @@ class WSServer : public std::enable_shared_from_this<WSServer>, public jsonrpc::
   void newPbftBlockExecuted(PbftBlock const& sche_blk, std::vector<blk_hash_t> const& finalized_dag_blk_hashes);
   void newPendingTransaction(trx_hash_t const& trx_hash);
 
-  virtual bool StartListening() { return true; };
-  virtual bool StopListening() { return true; };
-  virtual bool SendResponse(const std::string& /*response*/, void* /*addInfo*/) { return true; };
+  virtual bool StartListening() { return true; }
+  virtual bool StopListening() { return true; }
 
  private:
   void do_accept();

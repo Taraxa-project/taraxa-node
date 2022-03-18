@@ -140,16 +140,17 @@ auto rlp(RLPDecoderRef encoding, Map& target) -> decltype(target[target.begin()-
 }
 
 template <typename Param, typename... Params>
-uint __dec_rlp_tuple_body__(RLP::iterator& i, RLP::iterator const& end, RLP::Strictness strictness, Param& target,
+void __dec_rlp_tuple_body__(RLP::iterator& i, RLP::iterator const& end, RLP::Strictness strictness, Param& target,
                             Params&... rest) {
   if (i == end) {
-    return 0;
+    return;
   }
+
   rlp(RLPDecoderRef(*i, strictness), target);
-  if constexpr (sizeof...(rest) != 0) {
-    return 1 + __dec_rlp_tuple_body__(++i, end, strictness, rest...);
+
+  if constexpr (sizeof...(rest) > 0) {
+    __dec_rlp_tuple_body__(++i, end, strictness, rest...);
   }
-  return 1;
 }
 
 struct InvalidEncodingSize : std::invalid_argument {
@@ -165,11 +166,13 @@ template <typename... Params>
 void rlp_tuple(RLPDecoderRef encoding, Params&... args) {
   constexpr auto num_elements = sizeof...(args);
   static_assert(0 < num_elements);
-  auto list_begin = encoding.value.begin();
-  auto num_elements_processed = __dec_rlp_tuple_body__(list_begin, encoding.value.end(), encoding.strictness, args...);
-  if (num_elements != num_elements_processed) {
-    throw InvalidEncodingSize(num_elements, num_elements_processed);
+
+  if (encoding.value.itemCount() != num_elements) {
+    throw InvalidEncodingSize(num_elements, encoding.value.itemCount());
   }
+
+  auto it_begin = encoding.value.begin();
+  __dec_rlp_tuple_body__(it_begin, encoding.value.end(), encoding.strictness, args...);
 }
 
 template <typename T>

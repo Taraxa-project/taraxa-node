@@ -1,7 +1,6 @@
 namespace taraxa::cli {
 
 const char *testnet_json = R"foo({
-  "version" : 1,
   "node_secret": "",
   "vrf_secret": "",
   "data_path": "",
@@ -15,7 +14,8 @@ const char *testnet_json = R"foo({
   "network_ideal_peer_count": 10,
   "network_max_peer_count": 50,
   "network_sync_level_size": 10,
-  "network_packets_processing_threads": 10,
+  "network_packets_processing_threads": 14,
+  "network_peer_blacklist_timeout" : 600,
   "deep_syncing_threshold" : 10,
   "network_boot_nodes": [
     {
@@ -91,6 +91,79 @@ const char *testnet_json = R"foo({
             "max_size": 1000000000
           }
         ]
+      },
+      {
+        "name": "network",
+        "on": false,
+        "verbosity": "ERROR",
+        "channels": [
+          {
+            "name": "PBFT_CHAIN",
+            "verbosity": "INFO"
+          },
+          {
+            "name": "PBFT_MGR",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "GET_PBFT_SYNC_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "PBFT_SYNC_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "GET_DAG_SYNC_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "DAG_SYNC_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "DAG_BLOCK_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "PBFT_BLOCK_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "TARCAP",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "NETWORK",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "TRANSACTION_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "DAGBLKMGR",
+            "verbosity": "INFO"
+          },
+          {
+            "name": "DAGMGR",
+            "verbosity": "INFO"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "console",
+            "format": "%ThreadID% %Channel% [%TimeStamp%] %SeverityStr%: %Message%"
+          },
+          {
+            "type": "file",
+            "file_name": "TaraxaNetwork_N1_%m%d%Y_%H%M%S_%5N.log",
+            "rotation_size": 10000000,
+            "time_based_rotation": "0,0,0",
+            "format": "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
+            "max_size": 1000000000
+          }
+        ]
       }
     ]
   },
@@ -100,30 +173,30 @@ const char *testnet_json = R"foo({
       "level": "0x0",
       "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
       "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
-      "timestamp": "0x61F13E00",
+      "timestamp": "0x6218FD00",
       "tips": [],
       "transactions": []
     },
     "final_chain": {
       "genesis_block_fields": {
         "author": "0x0000000000000000000000000000000000000000",
-        "timestamp": "0x61F13E00"
+        "timestamp": "0x6218FD00"
       },
       "state": {
         "disable_block_rewards": true,
         "dpos": {
           "deposit_delay": "0x5",
           "withdrawal_delay": "0x5",
-          "eligibility_balance_threshold": "0x186A0",
-          "vote_eligibility_balance_step": "0x186A0",
+          "eligibility_balance_threshold": "0xd3c21bcecceda1000000",
+          "vote_eligibility_balance_step": "0x152d02c7e14af6800000",
           "genesis_state": {
             "0x76870407332398322576505f3c5423d0a71af296": {
-              "0x18551e353aa65bc0ffbdf9d93b7ad4a8fe29cf95": "0x989680",
-              "0xc578bb5fc3dac3e96a8c4cb126c71d2dc9082817": "0x989680",
-              "0x5c9afb23fba3967ca6102fb60c9949f6a38cd9e8": "0x989680",
-              "0x403480c2b2ade0851c62bd1ff7a594c416aff7ce": "0x989680",
-              "0x5042fa2711fe547e46c2f64852fdaa5982c80697": "0x989680",
-              "0x6258d8f51ea17e873f69a2a978fe311fd95743dd": "0x989680"
+              "0x18551e353aa65bc0ffbdf9d93b7ad4a8fe29cf95": "0x84595161401484a000000",
+              "0xc578bb5fc3dac3e96a8c4cb126c71d2dc9082817": "0x84595161401484a000000",
+              "0x5c9afb23fba3967ca6102fb60c9949f6a38cd9e8": "0x84595161401484a000000",
+              "0x403480c2b2ade0851c62bd1ff7a594c416aff7ce": "0x84595161401484a000000",
+              "0x5042fa2711fe547e46c2f64852fdaa5982c80697": "0x84595161401484a000000",
+              "0x6258d8f51ea17e873f69a2a978fe311fd95743dd": "0x84595161401484a000000"
             }
           }
         },
@@ -141,17 +214,18 @@ const char *testnet_json = R"foo({
           "disable_nonce_check": true
         },
         "genesis_balances": {
-          "76870407332398322576505f3c5423d0a71af296": "0x141e8d17",
-          "f4a52b8f6dc8ab046fec6ad02e77023c044342e4": "0x24048ce3d"
+          "76870407332398322576505f3c5423d0a71af296": "0x117364175f2cb0e1dfc0000",
+          "f4a52b8f6dc8ab046fec6ad02e77023c044342e4": "0x1f3d8d75bcb82da15ad40000"
         },
         "hardforks": {
-          "fix_genesis_fork_block": "0x1ADB0"
+          "fix_genesis_fork_block": "0x0"
         }
       }
     },
     "pbft": {
       "committee_size": "0x3e8",
-      "dag_blocks_size": "0xa",
+      "number_of_proposers": "0x14",
+      "dag_blocks_size": "0x32",
       "ghost_path_move_back": "0x0",
       "lambda_ms_min": "0x5dc",
       "run_count_votes": false
@@ -160,19 +234,18 @@ const char *testnet_json = R"foo({
       "range": "0xa"
     },
     "sortition": {
-      "changes_count_for_average": "0x5",
-      "max_interval_correction": "0x3E8",
-      "dag_efficiency_targets": ["0x12C0", "0x1450"],
-      "changing_interval": "0xC8",
-      "computation_interval": "0xC8",
+      "changes_count_for_average": 10,
+      "dag_efficiency_targets": [4800, 5200],
+      "changing_interval": 200,
+      "computation_interval": 50,
       "vrf": {
-        "threshold_upper": "0x1770",
-        "threshold_range": "0xbb8"
+        "threshold_upper": "0xafff",
+        "threshold_range": 50
       },
       "vdf": {
-        "difficulty_max": "0x15",
-        "difficulty_min": "0x10",
-        "difficulty_stale": "0x17",
+        "difficulty_max": 21,
+        "difficulty_min": 16,
+        "difficulty_stale": 23,
         "lambda_bound": "0x64"
       }
     }

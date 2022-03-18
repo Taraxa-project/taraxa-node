@@ -9,6 +9,7 @@
 #include "common/static_init.hpp"
 #include "logger/logger.hpp"
 #include "transaction_manager/transaction_manager.hpp"
+#include "transaction_manager/transaction_queue.hpp"
 #include "util_test/samples.hpp"
 
 namespace taraxa::core_tests {
@@ -87,14 +88,13 @@ TEST_F(TransactionTest, sig) {
       ASSERT_EQ(t.getChainID(), chain_id);
       ASSERT_EQ(t.getHash(), h256(hash_str));
       if (i) {
-        t = Transaction(*t.rlp());
+        t = Transaction(t.rlp());
         continue;
       }
       dev::RLPStream with_modified_payload(9);
       dev::RLPStream with_invalid_signature(9);
       uint fields_processed = 0;
-      auto rlp = t.rlp();
-      for (auto const el : dev::RLP(*rlp)) {
+      for (auto const el : dev::RLP(t.rlp())) {
         if (auto el_modified = el.toBytes(); ++fields_processed <= 6) {
           for (auto& b : el_modified) {
             b = ~b;
@@ -116,8 +116,7 @@ TEST_F(TransactionTest, sig) {
 }
 
 TEST_F(TransactionTest, verifiers) {
-  TransactionManager trx_mgr(FullNodeConfig(), addr_t(), std::make_shared<DbStorage>(data_dir),
-                             TransactionManager::VerifyMode::skip_verify_sig);
+  TransactionManager trx_mgr(FullNodeConfig(), std::make_shared<DbStorage>(data_dir), nullptr, addr_t());
   // insert trx
   std::thread t([&trx_mgr]() {
     for (auto const& t : *g_trx_samples) {
@@ -135,8 +134,7 @@ TEST_F(TransactionTest, verifiers) {
 }
 
 TEST_F(TransactionTest, transaction_limit) {
-  TransactionManager trx_mgr(FullNodeConfig(), addr_t(), std::make_shared<DbStorage>(data_dir),
-                             TransactionManager::VerifyMode::skip_verify_sig);
+  TransactionManager trx_mgr(FullNodeConfig(), std::make_shared<DbStorage>(data_dir), nullptr, addr_t());
   // insert trx
   std::thread t([&trx_mgr]() {
     for (auto const& t : *g_trx_samples) {
@@ -161,7 +159,7 @@ TEST_F(TransactionTest, transaction_limit) {
 
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  TransactionManager trx_mgr(FullNodeConfig(), addr_t(), db);
+  TransactionManager trx_mgr(FullNodeConfig(), db, nullptr, addr_t());
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : *g_signed_trx_samples) {
       trx_mgr.insertTransaction(*t);
@@ -188,7 +186,7 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
 
 TEST_F(TransactionTest, transaction_concurrency) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  TransactionManager trx_mgr(FullNodeConfig(), addr_t(), db);
+  TransactionManager trx_mgr(FullNodeConfig(), db, nullptr, addr_t());
   bool stopped = false;
   // Insert transactions to memory pool and keep trying to insert them again on separate thread, it should always fail
   std::thread insertTrx([&trx_mgr, &stopped]() {
@@ -220,9 +218,8 @@ TEST_F(TransactionTest, transaction_concurrency) {
   insertTrx.join();
 
   // Verify all transactions are in correct state in pool, db and finalized
-  auto trx_pool = trx_mgr.getTransactionsSnapShot();
   std::set<trx_hash_t> pool_trx_hashes;
-  for (auto const& t : trx_mgr.getTransactionsSnapShot()) {
+  for (auto const& t : trx_mgr.packTrxs()) {
     pool_trx_hashes.insert(t->getHash());
   }
 
@@ -243,6 +240,67 @@ TEST_F(TransactionTest, transaction_concurrency) {
   for (size_t i = g_signed_trx_samples->size() * 2 / 3; i < g_signed_trx_samples->size(); i++) {
     EXPECT_TRUE(pool_trx_hashes.count(g_signed_trx_samples[i]->getHash()) > 0);
     EXPECT_FALSE(db->transactionInDb(g_signed_trx_samples[i]->getHash()));
+  }
+}
+
+TEST_F(TransactionTest, priority_queue) {
+  // Check ordering by same sender and different nonce
+  {
+    TransactionQueue priority_queue;
+    uint32_t nonce = 0;
+    auto trx = Transaction(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+    auto trx2 = Transaction(nonce, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+    priority_queue.insert(std::make_shared<Transaction>(trx2));
+    priority_queue.insert(std::make_shared<Transaction>(trx));
+    EXPECT_EQ(priority_queue.get(1)[0]->getHash(), trx.getHash());
+    EXPECT_EQ(priority_queue.size(), 2);
+  }
+
+  // Check double insertion
+  {
+    TransactionQueue priority_queue;
+    uint32_t nonce = 0;
+    auto trx = Transaction(nonce, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+    EXPECT_TRUE(priority_queue.insert(std::make_shared<Transaction>(trx)));
+    EXPECT_FALSE(priority_queue.insert(std::make_shared<Transaction>(trx)));
+    EXPECT_EQ(priority_queue.size(), 1);
+  }
+
+  // Check ordering by same sender, same nonce but different gas_price
+  {
+    TransactionQueue priority_queue;
+    uint32_t nonce = 0;
+    auto trx = Transaction(nonce, 1, 10, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+    auto trx2 = Transaction(nonce, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+    priority_queue.insert(std::make_shared<Transaction>(trx2));
+    priority_queue.insert(std::make_shared<Transaction>(trx));
+    EXPECT_EQ(priority_queue.get(1)[0]->getHash(), trx.getHash());
+    EXPECT_EQ(priority_queue.size(), 2);
+  }
+
+  /*
+  sender A:
+  - TXA1, nonce 1, fee 5
+  - TXA2, nonce 2, fee 6
+  sender B
+  - TXB1, nonce 1, fee 4
+  Should be TXA1, TXB1, TXA2
+  */
+  {
+    TransactionQueue priority_queue;
+    auto trxa1 =
+        Transaction(1 /*nonce*/, 1, 5 /*fee*/, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+    auto trxa2 =
+        Transaction(2 /*nonce*/, 1, 6 /*fee*/, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+    auto trxb1 = Transaction(1 /*nonce*/, 1, 4 /*fee*/, 100, str2bytes("00FEDCBA9876543210000000"), secret_t::random(),
+                             addr_t::random());
+    priority_queue.insert(std::make_shared<Transaction>(trxb1));
+    priority_queue.insert(std::make_shared<Transaction>(trxa2));
+    priority_queue.insert(std::make_shared<Transaction>(trxa1));
+    EXPECT_EQ(priority_queue.size(), 3);
+    EXPECT_EQ(priority_queue.get(3)[0]->getHash(), trxa1.getHash());
+    EXPECT_EQ(priority_queue.get(3)[1]->getHash(), trxa2.getHash());
+    EXPECT_EQ(priority_queue.get(3)[2]->getHash(), trxb1.getHash());
   }
 }
 

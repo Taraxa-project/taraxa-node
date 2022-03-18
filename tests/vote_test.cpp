@@ -67,7 +67,7 @@ TEST_F(VoteTest, unverified_votes) {
     unverified_votes.emplace_back(vote);
   }
 
-  vote_mgr->addUnverifiedVotes(unverified_votes);
+  vote_mgr->moveVerifyToUnverify(unverified_votes);
   EXPECT_EQ(vote_mgr->getUnverifiedVotes().size(), unverified_votes.size());
   EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), unverified_votes.size());
 
@@ -182,8 +182,14 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
   size_t valid_sortition_players = 1;
   pbft_mgr->setSortitionThreshold(valid_sortition_players);
   uint64_t pbft_round = 2;
-  vote_mgr->verifyVotes(pbft_round, pbft_mgr->getSortitionThreshold(), valid_sortition_players,
-                        [](...) { return true; });
+  vote_mgr->verifyVotes(pbft_round, [&pbft_mgr, valid_sortition_players](auto const &v) {
+    try {
+      v->validate(1, valid_sortition_players, pbft_mgr->getSortitionThreshold());
+    } catch (const std::logic_error &e) {
+      return false;
+    }
+    return true;
+  });
   auto verified_votes_size = vote_mgr->getVerifiedVotesSize();
   EXPECT_EQ(verified_votes_size, 4);
   auto votes = vote_mgr->getVerifiedVotes();

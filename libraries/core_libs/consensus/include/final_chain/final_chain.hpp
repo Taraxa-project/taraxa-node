@@ -28,7 +28,8 @@ class FinalChain {
   virtual void stop() = 0;
 
   using finalize_precommit_ext = std::function<void(FinalizationResult const&, DB::Batch&)>;
-  virtual std::future<std::shared_ptr<FinalizationResult const>> finalize(NewBlock new_blk, uint64_t period,
+  virtual std::future<std::shared_ptr<FinalizationResult const>> finalize(SyncBlock&& sync_block,
+                                                                          std::vector<h256>&& finalized_dag_blk_hashes,
                                                                           finalize_precommit_ext = {}) = 0;
 
   virtual std::shared_ptr<BlockHeader const> block_header(std::optional<EthBlockNumber> n = {}) const = 0;
@@ -61,13 +62,15 @@ class FinalChain {
                                           std::optional<EthBlockNumber> blk_n = {},
                                           std::optional<state_api::ExecutionOptions> const& opts = {}) const = 0;
 
-  virtual uint64_t dpos_eligible_count(EthBlockNumber blk_num) const = 0;
+  virtual uint64_t dpos_eligible_address_count(EthBlockNumber blk_num) const = 0;
   virtual uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const = 0;
   virtual uint64_t dpos_eligible_vote_count(EthBlockNumber blk_num, addr_t const& addr) const = 0;
 
   virtual bool dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const = 0;
   virtual state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
                                                 std::optional<EthBlockNumber> blk_n = {}) const = 0;
+
+  virtual bool is_nonce_valid(const addr_t& addr, const trx_nonce_t& nonce) const = 0;
 
   // TODO move out of here:
 

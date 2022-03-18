@@ -26,14 +26,6 @@ class SyncingState {
   void set_pbft_syncing(bool syncing, uint64_t current_period = 0, std::shared_ptr<TaraxaPeer> peer = nullptr);
 
   /**
-   * @brief Set dag syncing
-   *
-   * @param syncing
-   * @param peer used in case syncing flag == true to set which peer is the node syncing with
-   */
-  void set_dag_syncing(bool syncing, std::shared_ptr<TaraxaPeer> peer = nullptr);
-
-  /**
    * @brief Set current time as last received sync packet  time
    */
   void set_last_sync_packet_time();
@@ -53,26 +45,12 @@ class SyncingState {
   bool is_syncing();
   bool is_deep_pbft_syncing() const;
   bool is_pbft_syncing();
-  bool is_dag_syncing() const;
 
   const dev::p2p::NodeID syncing_peer() const;
-
-  /**
-   * @brief Marks peer as malicious, in case none is provided, peer_id_ (node that we currently syncing with) is marked
-   * @param peer_id
-   */
-  void set_peer_malicious(const std::optional<dev::p2p::NodeID> &peer_id = {});
-  bool is_peer_malicious(const dev::p2p::NodeID &peer_id) const;
-
- private:
-  void set_peer(std::shared_ptr<TaraxaPeer> &&peer);
 
  private:
   std::atomic<bool> deep_pbft_syncing_{false};
   std::atomic<bool> pbft_syncing_{false};
-  std::atomic<bool> dag_syncing_{false};
-
-  ExpirationCache<dev::p2p::NodeID> malicious_peers_;
 
   const uint16_t kDeepSyncingThreshold;
 

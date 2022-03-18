@@ -68,6 +68,8 @@ class DummyPacketHandler : public tarcap::PacketHandler {
   virtual ~DummyPacketHandler() = default;
 
  private:
+  void validatePacketRlpFormat([[maybe_unused]] const tarcap::PacketData& packet_data) const override {}
+
   void process(const tarcap::PacketData& packet_data,
                [[maybe_unused]] const std::shared_ptr<tarcap::TaraxaPeer>& peer) override {
     // Note do not use LOG() before saving start & finish time as it is internally synchronized and can
@@ -108,7 +110,7 @@ HandlersInitData createHandlersInitData() {
   ret_init_data.own_node_id = dev::p2p::NodeID(2);
   ret_init_data.own_node_addr = addr_t(2);
   ret_init_data.peers_state =
-      std::make_shared<tarcap::PeersState>(std::weak_ptr<dev::p2p::Host>(), ret_init_data.own_node_id);
+      std::make_shared<tarcap::PeersState>(std::weak_ptr<dev::p2p::Host>(), ret_init_data.own_node_id, NetworkConfig());
   ret_init_data.packets_stats = std::make_shared<tarcap::PacketsStats>(ret_init_data.own_node_addr);
   ret_init_data.packets_processing_info = std::make_shared<PacketsProcessingInfo>();
 
@@ -132,7 +134,8 @@ tarcap::PacketData createPacket(dev::p2p::NodeID&& sender_node_id, tarcap::Subpr
     return {packet_type, std::move(sender_node_id), std::move(packet_rlp_bytes.value())};
   }
 
-  return {packet_type, std::move(sender_node_id), {}};
+  dev::RLPStream s(0);
+  return {packet_type, std::move(sender_node_id), s.invalidate()};
 }
 
 bytes createDagBlockRlp(level_t level) {
@@ -143,7 +146,7 @@ bytes createDagBlockRlp(level_t level) {
   s.appendRaw(blk.rlp(false));
   s << static_cast<uint8_t>(0);
 
-  return s.out();
+  return s.invalidate();
 }
 
 /**
@@ -196,12 +199,8 @@ TEST_F(TarcapTpTest, block_free_packets) {
                                    createDummyPacketHandler(init_data, "TX_PH", 20));
   packets_handler->registerHandler(tarcap::SubprotocolPacketType::DagBlockPacket,
                                    createDummyPacketHandler(init_data, "DAG_BLOCK_PH", 20));
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::TestPacket,
-                                   createDummyPacketHandler(init_data, "TEST_PH", 20));
   packets_handler->registerHandler(tarcap::SubprotocolPacketType::StatusPacket,
                                    createDummyPacketHandler(init_data, "STATUS_PH", 20));
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::SyncedPacket,
-                                   createDummyPacketHandler(init_data, "SYNCED_PH", 20));
   packets_handler->registerHandler(tarcap::SubprotocolPacketType::VotePacket,
                                    createDummyPacketHandler(init_data, "VOTE_PH", 20));
   packets_handler->registerHandler(tarcap::SubprotocolPacketType::GetVotesSyncPacket,
@@ -235,20 +234,10 @@ TEST_F(TarcapTpTest, block_free_packets) {
                            {createDagBlockRlp(0)}))
           .value();
 
-  const auto packet6_test_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TestPacket, {})).value();
-  const auto packet7_test_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TestPacket, {})).value();
-
   const auto packet8_status_id =
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::StatusPacket, {})).value();
   const auto packet9_status_id =
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::StatusPacket, {})).value();
-
-  const auto packet10_synced_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::SyncedPacket, {})).value();
-  const auto packet11_synced_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::SyncedPacket, {})).value();
 
   const auto packet12_vote_id =
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotePacket, {})).value();
@@ -308,14 +297,8 @@ TEST_F(TarcapTpTest, block_free_packets) {
   const auto packet4_dag_block_proc_info = packets_proc_info->getPacketProcessingTimes(packet4_dag_block_id);
   const auto packet5_dag_block_proc_info = packets_proc_info->getPacketProcessingTimes(packet5_dag_block_id);
 
-  const auto packet6_test_proc_info = packets_proc_info->getPacketProcessingTimes(packet6_test_id);
-  const auto packet7_test_proc_info = packets_proc_info->getPacketProcessingTimes(packet7_test_id);
-
   const auto packet8_status_proc_info = packets_proc_info->getPacketProcessingTimes(packet8_status_id);
   const auto packet9_status_proc_info = packets_proc_info->getPacketProcessingTimes(packet9_status_id);
-
-  const auto packet10_synced_proc_info = packets_proc_info->getPacketProcessingTimes(packet10_synced_id);
-  const auto packet11_synced_proc_info = packets_proc_info->getPacketProcessingTimes(packet11_synced_id);
 
   const auto packet12_vote_proc_info = packets_proc_info->getPacketProcessingTimes(packet12_vote_id);
   const auto packet13_vote_proc_info = packets_proc_info->getPacketProcessingTimes(packet13_vote_id);
@@ -337,12 +320,8 @@ TEST_F(TarcapTpTest, block_free_packets) {
       {packet3_tx_proc_info, "packet3_tx"},
       {packet4_dag_block_proc_info, "packet4_dag_block"},
       {packet5_dag_block_proc_info, "packet5_dag_block"},
-      {packet6_test_proc_info, "packet6_test"},
-      {packet7_test_proc_info, "packet7_test"},
       {packet8_status_proc_info, "packet8_status"},
       {packet9_status_proc_info, "packet9_status"},
-      {packet10_synced_proc_info, "packet10_synced"},
-      {packet11_synced_proc_info, "packet10_synced"},
       {packet12_vote_proc_info, "packet12_vote"},
       {packet13_vote_proc_info, "packet13_vote"},
       {packet14_get_pbft_next_votes_proc_info, "packet14_get_pbft_next_votes"},
@@ -761,9 +740,9 @@ TEST_F(TarcapTpTest, low_priotity_queue_starvation) {
   packets_handler->registerHandler(tarcap::SubprotocolPacketType::TransactionPacket,
                                    createDummyPacketHandler(init_data, "TX_PH", 20));
 
-  // Handler for packet from mid priority queue
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::TestPacket,
-                                   createDummyPacketHandler(init_data, "TEST_PH", 20));
+  // Handler for packet from low priority queue
+  packets_handler->registerHandler(tarcap::SubprotocolPacketType::StatusPacket,
+                                   createDummyPacketHandler(init_data, "STATUS_PH", 20));
 
   // Creates threadpool
   size_t threads_num = 10;
@@ -780,7 +759,7 @@ TEST_F(TarcapTpTest, low_priotity_queue_starvation) {
 
   // Push a few packets low priority packets
   for (size_t i = 0; i < 4; i++) {
-    tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TestPacket, {})).value();
+    tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::StatusPacket, {})).value();
   }
 
   tp.startProcessing();
@@ -792,7 +771,7 @@ TEST_F(TarcapTpTest, low_priotity_queue_starvation) {
   // when we have 10 threads in thredpool:
   // - 4 is limit for High priority queue - VotePacket
   // - 4 is limit for Mid priority queue - TransactionPacket
-  // - 3 is limit for Low priority queue - TestPacket, but because max total limit (10) is always checked first
+  // - 3 is limit for Low priority queue - StatusPacket, but because max total limit (10) is always checked first
   // , low priority queue wont be able to use more than 2 threads concurrently
   /*
     ----------------

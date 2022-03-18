@@ -91,21 +91,6 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
       minor_version_changed_ = true;
     }
   }
-
-  rebuildPbftBlockDagEfficiencies();
-}
-
-void DbStorage::rebuildPbftBlockDagEfficiencies() {
-  auto i =
-      std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::pbft_block_dag_efficiency)));
-  auto write_batch = createWriteBatch();
-  for (i->SeekToFirst(); i->Valid(); i->Next()) {
-    const auto period = FromSlice<uint64_t>(i->key().data());
-    const auto efficiency = FromSlice<uint16_t>(i->value());
-    savePbftBlockDagEfficiency(period, efficiency, write_batch);
-  }
-  commitWriteBatch(write_batch);
-  db_->DropColumnFamily(handle(Columns::pbft_block_dag_efficiency));
 }
 
 void DbStorage::rebuildColumns(const rocksdb::Options& options) {
@@ -327,7 +312,7 @@ std::map<level_t, std::vector<DagBlock>> DbStorage::getNonfinalizedDagBlocks() {
   return res;
 }
 
-SharedTransactions DbStorage::getNonfinalizedTransactions() {
+SharedTransactions DbStorage::getAllNonfinalizedTransactions() {
   SharedTransactions res;
   auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::transactions)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
@@ -400,37 +385,6 @@ void DbStorage::saveDagBlock(DagBlock const& blk, Batch* write_batch_p) {
   }
 }
 
-// DAG Efficiency
-void DbStorage::savePbftBlockDagEfficiency(uint64_t period, uint16_t efficiency, DbStorage::Batch& batch) {
-  insert(batch, Columns::pbft_block_dag_efficiency_with_comparator, toSlice(period), toSlice(efficiency));
-}
-
-std::deque<uint16_t> DbStorage::getLastIntervalEfficiencies(uint16_t changing_interval, uint16_t computation_interval) {
-  std::deque<uint16_t> efficiencies;
-
-  auto it = std::unique_ptr<rocksdb::Iterator>(
-      db_->NewIterator(read_options_, handle(Columns::pbft_block_dag_efficiency_with_comparator)));
-  it->SeekToLast();
-  if (it->Valid()) {
-    const auto last_period = FromSlice<uint64_t>(it->key().data());
-    auto count_to_get = last_period % changing_interval;
-    count_to_get += (computation_interval - changing_interval);
-
-    for (; it->Valid() && efficiencies.size() < count_to_get; it->Prev()) {
-      // order doesn't matter
-      efficiencies.push_front(FromSlice<uint16_t>(it->value()));
-    }
-  }
-
-  return efficiencies;
-}
-
-void DbStorage::cleanupDagEfficiencies(uint64_t current_period) {
-  // endKey is not including, so add 1
-  db_->DeleteRange(write_options_, handle(Columns::pbft_block_dag_efficiency_with_comparator), 0,
-                   toSlice(current_period + 1));
-}
-
 // Sortition params
 void DbStorage::saveSortitionParamsChange(uint64_t period, SortitionParamsChange params, Batch& batch) {
   insert(batch, Columns::sortition_params_change, toSlice(period), toSlice(params.rlp()));
@@ -484,12 +438,12 @@ void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) 
   insert(write_batch, Columns::period_data, toSlice(period), toSlice(sync_block.rlp()));
 }
 
-dev::bytes DbStorage::getPeriodDataRaw(uint64_t period) {
+dev::bytes DbStorage::getPeriodDataRaw(uint64_t period) const {
   return asBytes(lookup(toSlice(period), Columns::period_data));
 }
 
-void DbStorage::saveTransaction(Transaction const& trx, bool verified) {
-  insert(Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(*trx.rlp(verified)));
+void DbStorage::saveTransaction(Transaction const& trx) {
+  insert(Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(trx.rlp()));
 }
 
 void DbStorage::saveTransactionPeriod(trx_hash_t const& trx_hash, uint32_t period, uint32_t position) {
@@ -549,12 +503,20 @@ std::unordered_map<trx_hash_t, uint32_t> DbStorage::getAllTransactionPeriod() {
   return res;
 }
 
-std::optional<PbftBlock> DbStorage::getPbftBlock(uint64_t period) {
+std::optional<PbftBlock> DbStorage::getPbftBlock(uint64_t period) const {
   auto period_data = getPeriodDataRaw(period);
   // DB is corrupted if status point to missing or incorrect transaction
   if (period_data.size() > 0) {
     auto period_data_rlp = dev::RLP(period_data);
     return std::optional<PbftBlock>(period_data_rlp[PBFT_BLOCK_POS_IN_PERIOD_DATA]);
+  }
+  return {};
+}
+
+blk_hash_t DbStorage::getPeriodBlockHash(uint64_t period) const {
+  const auto& blk = getPbftBlock(period);
+  if (blk.has_value()) {
+    return blk->getBlockHash();
   }
   return {};
 }
@@ -576,8 +538,8 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
   return nullptr;
 }
 
-void DbStorage::addTransactionToBatch(Transaction const& trx, Batch& write_batch, bool verified) {
-  insert(write_batch, DbStorage::Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(*trx.rlp(verified)));
+void DbStorage::addTransactionToBatch(Transaction const& trx, Batch& write_batch) {
+  insert(write_batch, DbStorage::Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(trx.rlp()));
 }
 
 void DbStorage::removeTransactionToBatch(trx_hash_t const& trx, Batch& write_batch) {
@@ -593,8 +555,7 @@ bool DbStorage::transactionFinalized(trx_hash_t const& hash) {
 }
 
 std::vector<bool> DbStorage::transactionsInDb(std::vector<trx_hash_t> const& trx_hashes) {
-  std::vector<bool> result;
-  result.reserve(trx_hashes.size());
+  std::vector<bool> result(trx_hashes.size(), false);
 
   DbStorage::MultiGetQuery db_query(shared_from_this(), trx_hashes.size());
   db_query.append(DbStorage::Columns::transactions, trx_hashes);
@@ -611,22 +572,6 @@ std::vector<bool> DbStorage::transactionsInDb(std::vector<trx_hash_t> const& trx
     result[idx] = result[idx] || (!trx_raw_status.empty());
   }
 
-  return result;
-}
-
-std::vector<std::shared_ptr<Transaction>> DbStorage::getTransactions(std::vector<trx_hash_t> const& trx_hashes) {
-  std::vector<std::shared_ptr<Transaction>> result;
-  result.reserve(trx_hashes.size());
-
-  DbStorage::MultiGetQuery db_query(shared_from_this(), trx_hashes.size());
-  db_query.append(DbStorage::Columns::transactions, trx_hashes);
-  auto db_trxs = db_query.execute();
-  for (size_t idx = 0; idx < db_trxs.size(); idx++) {
-    auto& trx_raw = db_trxs[idx];
-    if (!trx_raw.empty()) {
-      result.emplace_back(std::make_shared<Transaction>(asBytes(trx_raw)));
-    }
-  }
   return result;
 }
 
@@ -949,40 +894,27 @@ std::vector<blk_hash_t> DbStorage::getFinalizedDagBlockHashesByPeriod(uint32_t p
   return ret;
 }
 
-uint64_t DbStorage::getDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus field) {
-  auto status = lookup(toSlice(field), Columns::dpos_proposal_period_levels_status);
-  if (!status.empty()) {
-    uint64_t value;
-    memcpy(&value, status.data(), sizeof(uint64_t));
-    return value;
+std::optional<uint64_t> DbStorage::getProposalPeriodForDagLevel(uint64_t level) {
+  auto it =
+      std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::proposal_period_levels_map)));
+  it->Seek(toSlice(level));
+
+  // this means that no sortition_params_change in database. It could be met in the tests
+  if (!it->Valid()) {
+    return {};
   }
 
-  return 0;
+  uint64_t value;
+  memcpy(&value, it->value().data(), sizeof(uint64_t));
+  return value;
 }
 
-// Only for test
-void DbStorage::saveDposProposalPeriodLevelsField(DposProposalPeriodLevelsStatus field, uint64_t value) {
-  insert(Columns::dpos_proposal_period_levels_status, toSlice(field), toSlice(value));
+void DbStorage::saveProposalPeriodDagLevelsMap(uint64_t level, uint64_t period) {
+  insert(Columns::proposal_period_levels_map, toSlice(level), toSlice(period));
 }
 
-void DbStorage::addDposProposalPeriodLevelsFieldToBatch(DposProposalPeriodLevelsStatus field, uint64_t value,
-                                                        Batch& write_batch) {
-  insert(write_batch, Columns::dpos_proposal_period_levels_status, toSlice(field), toSlice(value));
-}
-
-bytes DbStorage::getProposalPeriodDagLevelsMap(uint64_t proposal_period) {
-  return asBytes(lookup(toSlice(proposal_period), Columns::proposal_period_levels_map));
-}
-
-void DbStorage::saveProposalPeriodDagLevelsMap(ProposalPeriodDagLevelsMap const& period_levels_map) {
-  insert(Columns::proposal_period_levels_map, toSlice(period_levels_map.proposal_period),
-         toSlice(period_levels_map.rlp()));
-}
-
-void DbStorage::addProposalPeriodDagLevelsMapToBatch(ProposalPeriodDagLevelsMap const& period_levels_map,
-                                                     Batch& write_batch) {
-  insert(write_batch, Columns::proposal_period_levels_map, toSlice(period_levels_map.proposal_period),
-         toSlice(period_levels_map.rlp()));
+void DbStorage::addProposalPeriodDagLevelsMapToBatch(uint64_t level, uint64_t period, Batch& write_batch) {
+  insert(write_batch, Columns::proposal_period_levels_map, toSlice(level), toSlice(period));
 }
 
 uint64_t DbStorage::getColumnSize(Column const& col) const {
