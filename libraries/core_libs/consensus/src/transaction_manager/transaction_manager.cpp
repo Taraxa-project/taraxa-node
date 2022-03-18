@@ -10,7 +10,7 @@
 namespace taraxa {
 TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_ptr<DbStorage> db,
                                        std::shared_ptr<FinalChain> final_chain, addr_t node_addr)
-    : conf_(conf), seen_txs_(200000 /*capacity*/, 2000 /*delete step*/), db_(db), final_chain_(final_chain) {
+    : conf_(conf), known_txs_(200000 /*capacity*/, 2000 /*delete step*/), db_(db), final_chain_(final_chain) {
   LOG_OBJECTS_CREATE("TRXMGR");
   {
     std::unique_lock transactions_lock(transactions_mutex_);
@@ -69,12 +69,15 @@ bool TransactionManager::checkMemoryPoolOverflow() {
   return false;
 }
 
-bool TransactionManager::markTransactionSeen(const trx_hash_t &trx_hash) { return !seen_txs_.insert(trx_hash); }
+void TransactionManager::markTransactionKnown(const trx_hash_t &trx_hash) { known_txs_.insert(trx_hash); }
+
+bool TransactionManager::isTransactionKnown(const trx_hash_t &trx_hash) { return known_txs_.contains(trx_hash); }
 
 std::pair<bool, std::string> TransactionManager::insertTransaction(const Transaction &trx) {
-  if (markTransactionSeen(trx.getHash())) {
+  if (isTransactionKnown(trx.getHash())) {
     return {false, "Transaction already in transactions pool"};
   }
+
   {
     std::shared_lock transactions_lock(transactions_mutex_);
     if (transactions_pool_.contains(trx.getHash())) {
@@ -126,15 +129,20 @@ uint32_t TransactionManager::insertValidatedTransactions(const SharedTransaction
   for (uint32_t i = 0; i < txs_hashes.size(); i++) {
     if (!db_seen[i]) {
       unseen_txs.push_back(std::move(txs[i]));
+    } else {
+      // In case we received a new tx that is already in db, mark it as known in cache
+      markTransactionKnown(txs[i]->getHash());
     }
   }
 
   size_t trx_inserted_count = 0;
   // Save transactions in memory pool
-  for (auto const &trx : unseen_txs) {
-    LOG(log_dg_) << "Transaction " << trx->getHash() << " inserted in trx pool";
-    if (transactions_pool_.insert(trx)) {
+  for (auto &trx : unseen_txs) {
+    auto tx_hash = trx->getHash();
+    LOG(log_dg_) << "Transaction " << tx_hash << " inserted in trx pool";
+    if (transactions_pool_.insert(std::move(trx))) {
       trx_inserted_count++;
+      markTransactionKnown(tx_hash);
     }
   }
   return trx_inserted_count;

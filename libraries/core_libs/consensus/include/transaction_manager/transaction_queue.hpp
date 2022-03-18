@@ -18,7 +18,7 @@ class TransactionQueue {
    * @return true
    * @return false
    */
-  bool insert(const std::shared_ptr<Transaction>& transaction);
+  bool insert(std::shared_ptr<Transaction>&& transaction);
 
   /**
    * @brief remove transaction from queue

@@ -53,12 +53,17 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   uint32_t insertValidatedTransactions(const SharedTransactions &txs);
 
   /**
-   * @brief Marks transaction as seen and returns if was seen before
+   * @brief Marks transaction as known (was successfully verified and pushed into the tx pool)
    *
    * @param trx_hash transaction hash
-   * @return true if seen
    */
-  bool markTransactionSeen(const trx_hash_t &trx_hash);
+  void markTransactionKnown(const trx_hash_t &trx_hash);
+
+  /**
+   * @param trx_hash transaction hash
+   * @return Returns true if tx is known (was successfully verified and pushed into the tx pool), oth
+   */
+  bool isTransactionKnown(const trx_hash_t &trx_hash);
 
   size_t getTransactionPoolSize() const;
 
@@ -136,7 +141,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> nonfinalized_transactions_in_dag_;
   uint64_t trx_count_ = 0;
 
-  ExpirationCache<trx_hash_t> seen_txs_;
+  ExpirationCache<trx_hash_t> known_txs_;
 
   std::shared_ptr<DbStorage> db_{nullptr};
   std::shared_ptr<FinalChain> final_chain_{nullptr};
