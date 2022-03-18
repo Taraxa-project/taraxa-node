@@ -21,19 +21,31 @@ const char *devnet_json = R"foo({
     {
       "id": "fdcf4c860d9bb1f17608cbf2dd10ac3ae8d0ba41aa20b3e43fb85a72617a356f8609475d68b44e25dd508a0e5b36da75e7ae9aaf93360f4f002464d1d75fd353",
       "ip": "boot-node-0.devnet.taraxa.io",
-      "tcp_port": 10002,
       "udp_port": 10002
     },
     {
       "id": "5dad63f090ab5b5960dfd33b2deed974fd2e058b2af47b3d1a4682a192a47880f7b1de9aa6c80758aaabb40972a196634774373be27e0bdc52572194ad57acc2",
       "ip": "boot-node-1.devnet.taraxa.io",
-      "tcp_port": 10002,
       "udp_port": 10002
     },
     {
       "id": "8a919928e2ee8908d3ef7cf49f245b79d228a86fd2c1c0b8c687007e62b5777aff11e748d0b29fcebd321780ce9e0544717a4c221271252a66bd50b3db6eb532",
       "ip": "boot-node-2.devnet.taraxa.io",
-      "tcp_port": 10002,
+      "udp_port": 10002
+    },
+    {
+      "id": "53b7010037543c15159d6dc77c7ea8e60c61489a06ebf1a7b0a940332c1ef73d9774e4323da34c327a8cecea001de4cde79d473f14ed61f044f8a6102c6cf7d0",
+      "ip": "taraxa-node-0.devnet.taraxa.io",
+      "udp_port": 10002
+    },
+    {
+      "id": "ed78f60235a9dfe2142bf0dbf9ef4c4bb2520dd64b0bf5bc8d04fed3020c348c01f752e5c0af9ae012b16c7bdc3153889dccc684d5232d2b604b283e9d9e7990",
+      "ip": "taraxa-node-1.devnet.taraxa.io",
+      "udp_port": 10002
+    },
+    {
+      "id": "1755f430ff1c030097b61f0effa88551d172ac8e6fa59877164cde932428284a19135d23f72088d723b3179830043c238669a9f96ec116e2e841215c730fd0d5",
+      "ip": "taraxa-node-2.devnet.taraxa.io",
       "udp_port": 10002
     }
   ],
