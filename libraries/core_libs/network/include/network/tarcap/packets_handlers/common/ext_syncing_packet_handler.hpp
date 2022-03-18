@@ -13,7 +13,7 @@ class DbStorage;
 
 namespace taraxa::network::tarcap {
 
-class SyncingState;
+class PbftSyncingState;
 
 /**
  * @brief ExtSyncingPacketHandler is extended abstract PacketHandler with added functions that are used in packet
@@ -22,7 +22,7 @@ class SyncingState;
 class ExtSyncingPacketHandler : public PacketHandler {
  public:
   ExtSyncingPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-                          std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
+                          std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
                           std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                           std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
                           const addr_t &node_addr, const std::string &log_channel_name);
@@ -45,7 +45,7 @@ class ExtSyncingPacketHandler : public PacketHandler {
   std::shared_ptr<TaraxaPeer> getMaxChainPeer();
 
  protected:
-  std::shared_ptr<SyncingState> syncing_state_{nullptr};
+  std::shared_ptr<PbftSyncingState> pbft_syncing_state_{nullptr};
 
   std::shared_ptr<PbftChain> pbft_chain_{nullptr};
   std::shared_ptr<PbftManager> pbft_mgr_{nullptr};

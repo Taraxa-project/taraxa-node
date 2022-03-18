@@ -3,7 +3,7 @@
 #include "config/version.hpp"
 #include "dag/dag.hpp"
 #include "network/tarcap/packets_handlers/common/ext_syncing_packet_handler.hpp"
-#include "network/tarcap/shared_states/syncing_state.hpp"
+#include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "vote_manager/vote_manager.hpp"
@@ -12,11 +12,11 @@ namespace taraxa::network::tarcap {
 
 StatusPacketHandler::StatusPacketHandler(
     std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-    std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
+    std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
     std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
     std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
     std::shared_ptr<DbStorage> db, uint64_t conf_network_id, const addr_t& node_addr)
-    : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(syncing_state),
+    : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(dag_blk_mgr),
                               std::move(db), node_addr, "STATUS_PH"),
       conf_network_id_(conf_network_id),
@@ -131,7 +131,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     selected_peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
 
     // TODO: Address malicious status
-    if (!syncing_state_->is_pbft_syncing()) {
+    if (!pbft_syncing_state_->isPbftSyncing()) {
       if (pbft_synced_period < selected_peer->pbft_chain_size_) {
         LOG(log_nf_) << "Restart PBFT chain syncing. Own synced PBFT at period " << pbft_synced_period
                      << ", peer PBFT chain size " << selected_peer->pbft_chain_size_;
@@ -192,13 +192,13 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
           sealAndSend(node_id, StatusPacket,
                       std::move(dev::RLPStream(kInitialStatusPacketItemsCount)
                                 << conf_network_id_ << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
-                                << syncing_state_->is_pbft_syncing() << pbft_round
+                                << pbft_syncing_state_->isPbftSyncing() << pbft_round
                                 << pbft_previous_round_next_votes_size << TARAXA_MAJOR_VERSION << TARAXA_MINOR_VERSION
                                 << TARAXA_PATCH_VERSION << db_->isLightNode() << db_->getLightNodeHistory()));
     } else {
       success = sealAndSend(node_id, StatusPacket,
                             std::move(dev::RLPStream(kStandardStatusPacketItemsCount)
-                                      << dag_max_level << pbft_chain_size << syncing_state_->is_deep_pbft_syncing()
+                                      << dag_max_level << pbft_chain_size << pbft_syncing_state_->isDeepPbftSyncing()
                                       << pbft_round << pbft_previous_round_next_votes_size));
     }
   }

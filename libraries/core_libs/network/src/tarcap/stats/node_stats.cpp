@@ -3,8 +3,8 @@
 #include "dag/dag.hpp"
 #include "dag/dag_block_manager.hpp"
 #include "libp2p/Common.h"
+#include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "network/tarcap/shared_states/peers_state.hpp"
-#include "network/tarcap/shared_states/syncing_state.hpp"
 #include "network/tarcap/stats/packets_stats.hpp"
 #include "network/tarcap/threadpool/tarcap_thread_pool.hpp"
 #include "pbft/pbft_chain.hpp"
@@ -14,14 +14,14 @@
 
 namespace taraxa::network::tarcap {
 
-NodeStats::NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<SyncingState> syncing_state,
+NodeStats::NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
                      std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                      std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<TransactionManager> trx_mgr,
                      std::shared_ptr<PacketsStats> packets_stats, std::shared_ptr<const TarcapThreadPool> thread_pool,
                      const addr_t &node_addr)
     : peers_state_(std::move(peers_state)),
-      syncing_state_(std::move(syncing_state)),
+      pbft_syncing_state_(std::move(pbft_syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       pbft_mgr_(std::move(pbft_mgr)),
       dag_mgr_(std::move(dag_mgr)),
@@ -36,7 +36,7 @@ NodeStats::NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<Sy
 uint64_t NodeStats::syncTimeSeconds() const { return syncing_duration_seconds; }
 
 void NodeStats::logNodeStats() {
-  bool is_syncing = syncing_state_->is_syncing();
+  bool is_pbft_syncing = pbft_syncing_state_->isPbftSyncing();
 
   dev::p2p::NodeID max_pbft_round_node_id;
   dev::p2p::NodeID max_pbft_chain_node_id;
@@ -103,7 +103,7 @@ void NodeStats::logNodeStats() {
   auto current_call_time = std::chrono::steady_clock::now();
   uint64_t delta = std::chrono::duration_cast<std::chrono::seconds>(current_call_time - previous_call_time).count();
 
-  if (is_syncing) {
+  if (is_pbft_syncing) {
     intervals_syncing_since_launch_++;
 
     syncing_duration_seconds += delta;
@@ -119,7 +119,7 @@ void NodeStats::logNodeStats() {
 
   LOG(log_dg_) << "Making PBFT chain progress: " << std::boolalpha << making_pbft_chain_progress << " (advanced "
                << pbft_chain_size_growth << " blocks)";
-  if (is_syncing) {
+  if (is_pbft_syncing) {
     LOG(log_dg_) << "Making PBFT sync period progress: " << std::boolalpha << making_pbft_sync_period_progress
                  << " (synced " << pbft_sync_period_progress << " blocks)";
   }
@@ -130,12 +130,12 @@ void NodeStats::logNodeStats() {
 
   LOG(log_nf_) << "Connected to " << peers_size << " peers: [ " << connected_peers_str << "]";
 
-  if (is_syncing) {
+  if (is_pbft_syncing) {
     // Syncing...
     const auto percent_synced = (local_pbft_sync_period * 100) / peer_max_pbft_chain_size;
     const auto syncing_time_sec = syncTimeSeconds();
     LOG(log_nf_) << "Syncing for " << syncing_time_sec << " seconds, " << percent_synced << "% synced";
-    LOG(log_nf_) << "Currently syncing from node " << syncing_state_->syncing_peer();
+    LOG(log_nf_) << "Currently syncing from node " << pbft_syncing_state_->syncingPeer();
     LOG(log_nf_) << "Max peer PBFT chain size:       " << peer_max_pbft_chain_size << " (peer "
                  << max_pbft_chain_node_id << ")";
     LOG(log_nf_) << "Max peer PBFT consensus round:  " << peer_max_pbft_round << " (peer " << max_pbft_round_node_id
@@ -178,25 +178,25 @@ void NodeStats::logNodeStats() {
   LOG(log_nf_) << "------------- tl;dr -------------";
 
   if (making_pbft_chain_progress) {
-    if (is_syncing) {
+    if (is_pbft_syncing) {
       LOG(log_nf_) << "STATUS: GOOD. ACTIVELY SYNCING";
     } else if (local_weighted_votes) {
       LOG(log_nf_) << "STATUS: GOOD. NODE SYNCED AND PARTICIPATING IN CONSENSUS";
     } else {
       LOG(log_nf_) << "STATUS: GOOD. NODE SYNCED";
     }
-  } else if (is_syncing && (making_pbft_sync_period_progress || making_dag_progress)) {
+  } else if (is_pbft_syncing && (making_pbft_sync_period_progress || making_dag_progress)) {
     LOG(log_nf_) << "STATUS: PENDING SYNCED DATA";
-  } else if (!is_syncing && making_pbft_consensus_progress) {
+  } else if (!is_pbft_syncing && making_pbft_consensus_progress) {
     if (local_weighted_votes) {
       LOG(log_nf_) << "STATUS: PARTICIPATING IN CONSENSUS BUT NO NEW FINALIZED BLOCKS";
     } else {
       LOG(log_nf_) << "STATUS: NODE SYNCED BUT NO NEW FINALIZED BLOCKS";
     }
-  } else if (!is_syncing && making_dag_progress) {
+  } else if (!is_pbft_syncing && making_dag_progress) {
     LOG(log_nf_) << "STATUS: PBFT STALLED, POSSIBLY PARTITIONED. NODE HAS NOT RESTARTED SYNCING";
   } else if (peers_size) {
-    if (is_syncing) {
+    if (is_pbft_syncing) {
       LOG(log_nf_) << "STATUS: SYNCING STALLED. NO PROGRESS MADE IN LAST " << stalled_syncing_duration_seconds
                    << " SECONDS";
     } else {
@@ -209,7 +209,7 @@ void NodeStats::logNodeStats() {
 
   LOG(log_nf_) << "In the last " << delta << " seconds...";
 
-  if (is_syncing) {
+  if (is_pbft_syncing) {
     LOG(log_nf_) << "PBFT sync period progress:      " << pbft_sync_period_progress;
   }
 
@@ -263,8 +263,8 @@ Json::Value NodeStats::getStatus() const {
     }
   }
 
-  if (syncing_state_->is_syncing()) {
-    res["syncing_from_node_id"] = syncing_state_->syncing_peer().toString();
+  if (pbft_syncing_state_->isPbftSyncing()) {
+    res["syncing_from_node_id"] = pbft_syncing_state_->syncingPeer().toString();
   }
 
   res["peer_max_pbft_round"] = Json::UInt64(peer_max_pbft_round);

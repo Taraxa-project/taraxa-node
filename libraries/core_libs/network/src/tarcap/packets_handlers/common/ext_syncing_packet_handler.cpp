@@ -2,7 +2,7 @@
 
 #include "dag/dag.hpp"
 #include "dag/dag_block_manager.hpp"
-#include "network/tarcap/shared_states/syncing_state.hpp"
+#include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
 
@@ -10,12 +10,12 @@ namespace taraxa::network::tarcap {
 
 ExtSyncingPacketHandler::ExtSyncingPacketHandler(
     std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-    std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
+    std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
     std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
     std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db, const addr_t &node_addr,
     const std::string &log_channel_name)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
-      syncing_state_(std::move(syncing_state)),
+      pbft_syncing_state_(std::move(pbft_syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       pbft_mgr_(std::move(pbft_mgr)),
       dag_mgr_(std::move(dag_mgr)),
@@ -23,7 +23,7 @@ ExtSyncingPacketHandler::ExtSyncingPacketHandler(
       db_(std::move(db)) {}
 
 void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
-  if (syncing_state_->is_pbft_syncing() && !force) {
+  if (pbft_syncing_state_->isPbftSyncing() && !force) {
     LOG(log_dg_) << "restartSyncingPbft called but syncing_ already true";
     return;
   }
@@ -31,7 +31,7 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
   std::shared_ptr<TaraxaPeer> peer = getMaxChainPeer();
 
   if (!peer) {
-    syncing_state_->set_pbft_syncing(false);
+    pbft_syncing_state_->setPbftSyncing(false);
     LOG(log_nf_) << "Restarting syncing PBFT not possible since no connected peers";
     return;
   }
@@ -41,7 +41,7 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
     LOG(log_si_) << "Restarting syncing PBFT from peer " << peer->getId() << ", peer PBFT chain size "
                  << peer->pbft_chain_size_ << ", own PBFT chain synced at period " << pbft_sync_period;
 
-    syncing_state_->set_pbft_syncing(true, pbft_sync_period, std::move(peer));
+    pbft_syncing_state_->setPbftSyncing(true, pbft_sync_period, std::move(peer));
 
     // Handle case where syncing peer just disconnected
     if (!syncPeerPbft(pbft_sync_period + 1)) {
@@ -49,20 +49,20 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
     }
 
     // Disable snapshots only if are syncing from scratch
-    if (syncing_state_->is_deep_pbft_syncing()) {
+    if (pbft_syncing_state_->isDeepPbftSyncing()) {
       db_->disableSnapshots();
     }
   } else {
     LOG(log_nf_) << "Restarting syncing PBFT not needed since our pbft chain size: " << pbft_sync_period << "("
                  << pbft_chain_->getPbftChainSize() << ")"
                  << " is greater or equal than max node pbft chain size:" << peer->pbft_chain_size_;
-    syncing_state_->set_pbft_syncing(false);
+    pbft_syncing_state_->setPbftSyncing(false);
     db_->enableSnapshots();
   }
 }
 
 bool ExtSyncingPacketHandler::syncPeerPbft(unsigned long height_to_sync) {
-  const auto node_id = syncing_state_->syncing_peer();
+  const auto node_id = pbft_syncing_state_->syncingPeer();
   LOG(log_nf_) << "Sync peer node " << node_id << " from pbft chain height " << height_to_sync;
   return sealAndSend(node_id, SubprotocolPacketType::GetPbftSyncPacket, std::move(dev::RLPStream(1) << height_to_sync));
 }

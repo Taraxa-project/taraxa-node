@@ -2,20 +2,20 @@
 
 #include "dag/dag_block_manager.hpp"
 #include "network/tarcap/packets_handlers/common/ext_syncing_packet_handler.hpp"
-#include "network/tarcap/shared_states/syncing_state.hpp"
+#include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "transaction/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {
 
 DagSyncPacketHandler::DagSyncPacketHandler(std::shared_ptr<PeersState> peers_state,
                                            std::shared_ptr<PacketsStats> packets_stats,
-                                           std::shared_ptr<SyncingState> syncing_state,
+                                           std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                                            std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
                                            std::shared_ptr<DagManager> dag_mgr,
                                            std::shared_ptr<TransactionManager> trx_mgr,
                                            std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
                                            const addr_t& node_addr)
-    : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(syncing_state),
+    : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(dag_blk_mgr),
                               std::move(db), node_addr, "DAG_SYNC_PH"),
       trx_mgr_(std::move(trx_mgr)) {}

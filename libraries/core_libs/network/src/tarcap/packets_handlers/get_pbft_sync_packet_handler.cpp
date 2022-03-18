@@ -1,6 +1,6 @@
 #include "network/tarcap/packets_handlers/get_pbft_sync_packet_handler.hpp"
 
-#include "network/tarcap/shared_states/syncing_state.hpp"
+#include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "storage/storage.hpp"
 #include "vote/vote.hpp"
@@ -9,12 +9,12 @@ namespace taraxa::network::tarcap {
 
 GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(std::shared_ptr<PeersState> peers_state,
                                                    std::shared_ptr<PacketsStats> packets_stats,
-                                                   std::shared_ptr<SyncingState> syncing_state,
+                                                   std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                                                    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DbStorage> db,
                                                    size_t network_sync_level_size, const addr_t &node_addr,
                                                    bool is_light_node, uint64_t light_node_history)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_PBFT_SYNC_PH"),
-      syncing_state_(std::move(syncing_state)),
+      pbft_syncing_state_(std::move(pbft_syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       db_(std::move(db)),
       network_sync_level_size_(network_sync_level_size),
