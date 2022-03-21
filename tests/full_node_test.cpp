@@ -152,29 +152,24 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbft2TPlus1(11), 3);
 
   // PBFT manager status
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::SoftVotedBlockInRound));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
-  db.savePbftMgrStatus(PbftMgrStatus::SoftVotedBlockInRound, true);
   db.savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, true);
   db.savePbftMgrStatus(PbftMgrStatus::ExecutedInRound, true);
   db.savePbftMgrStatus(PbftMgrStatus::NextVotedSoftValue, true);
   db.savePbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash, true);
-  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::SoftVotedBlockInRound));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
   batch = db.createWriteBatch();
-  db.addPbftMgrStatusToBatch(PbftMgrStatus::SoftVotedBlockInRound, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::ExecutedBlock, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::ExecutedInRound, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedSoftValue, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedNullBlockHash, false, batch);
   db.commitWriteBatch(batch);
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::SoftVotedBlockInRound));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
@@ -1367,7 +1362,7 @@ TEST_F(FullNodeTest, db_rebuild) {
     std::cout << "Check rebuild DB" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
     auto nodes = launch_nodes(node_cfgs);
-    EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
+    EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
       WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count)
       WAIT_EXPECT_EQ(ctx, nodes[0]->getFinalChain()->last_block_number(), executed_chain_size)
     });
@@ -1385,7 +1380,7 @@ TEST_F(FullNodeTest, db_rebuild) {
     std::cout << "Check rebuild for period 5" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
     auto nodes = launch_nodes(node_cfgs);
-    EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
+    EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
       WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count_at_pbft_size_5)
       WAIT_EXPECT_EQ(ctx, nodes[0]->getFinalChain()->last_block_number(), 5)
     });

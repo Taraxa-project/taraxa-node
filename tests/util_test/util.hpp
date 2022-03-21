@@ -88,6 +88,15 @@ inline bool wait(wait_opts const& opts, std::function<void(wait_ctx&)> const& po
 }
 #define ASSERT_HAPPENS(...) ASSERT_TRUE(wait(__VA_ARGS__))
 #define EXPECT_HAPPENS(...) EXPECT_TRUE(wait(__VA_ARGS__))
+
+#define WAIT_EXPECT_TRUE(ctx, o)            \
+  if (!o) {                                 \
+    if (ctx.fail(); !ctx.is_last_attempt) { \
+      return;                               \
+    }                                       \
+    EXPECT_TRUE(o);                         \
+  }
+
 #define WAIT_EXPECT_EQ(ctx, o1, o2)         \
   if (o1 != o2) {                           \
     if (ctx.fail(); !ctx.is_last_attempt) { \

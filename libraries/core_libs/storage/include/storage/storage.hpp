@@ -40,8 +40,7 @@ enum PbftMgrPreviousRoundStatus : uint8_t {
 enum PbftMgrRoundStep : uint8_t { PbftRound = 0, PbftStep };
 
 enum PbftMgrStatus : uint8_t {
-  SoftVotedBlockInRound = 0,
-  ExecutedBlock,
+  ExecutedBlock = 0,
   ExecutedInRound,
   NextVotedSoftValue,
   NextVotedNullBlockHash,
