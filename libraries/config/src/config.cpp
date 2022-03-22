@@ -270,6 +270,10 @@ void NetworkConfig::validate() const {
                           std::to_string(MAX_PACKETS_PROCESSING_THREADS_NUM) + "]");
   }
 
+  if (network_transaction_interval < 0) {
+    throw ConfigException(std::string("network_transaction_interval must be greater than zero"));
+  }
+
   // TODO validate that the boot node list doesn't contain self (although it's not critical)
   for (auto const &node : network_boot_nodes) {
     if (node.ip.empty()) {

@@ -7,7 +7,7 @@
 namespace taraxa {
 
 class FullNode;
-class PbftManager;
+class VoteManager;
 class PbftChain;
 class Network;
 
@@ -65,9 +65,13 @@ class NextVotesManager {
 
 class VoteManager {
  public:
-  VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
+  VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
               std::shared_ptr<NextVotesManager> next_votes_mgr);
   ~VoteManager();
+  VoteManager(const VoteManager&) = delete;
+  VoteManager(VoteManager&&) = delete;
+  VoteManager& operator=(const VoteManager&) = delete;
+  VoteManager& operator=(VoteManager&&) = delete;
 
   void setNetwork(std::weak_ptr<Network> network);
 

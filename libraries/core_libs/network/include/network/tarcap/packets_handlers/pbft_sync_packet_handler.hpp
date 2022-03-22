@@ -13,8 +13,6 @@ class PbftSyncPacketHandler : public ExtSyncingPacketHandler {
                         std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
                         size_t network_sync_level_size, const addr_t& node_addr);
 
-  virtual ~PbftSyncPacketHandler() = default;
-
   void handleMaliciousSyncPeer(dev::p2p::NodeID const& id);
 
  private:

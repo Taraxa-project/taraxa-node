@@ -14,7 +14,8 @@ class PacketData {
   using PacketId = uint64_t;
   enum PacketPriority : size_t { High = 0, Mid, Low, Count };
 
-  PacketData(SubprotocolPacketType type, dev::p2p::NodeID&& from_node_id_, std::vector<unsigned char>&& bytes);
+  PacketData(SubprotocolPacketType type, const dev::p2p::NodeID& from_node_id, std::vector<unsigned char>&& bytes);
+  ~PacketData() = default;
   PacketData(const PacketData&) = default;
   PacketData(PacketData&&) = default;
   PacketData& operator=(const PacketData&) = default;

@@ -95,6 +95,11 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   explicit FullNode(FullNodeConfig const &conf);
   ~FullNode();
 
+  FullNode(const FullNode &) = delete;
+  FullNode(FullNode &&) = delete;
+  FullNode &operator=(const FullNode &) = delete;
+  FullNode &operator=(FullNode &&) = delete;
+
   void start();
   bool isStarted() const { return started_; }
   shared_ptr_t getShared() { return shared_from_this(); }

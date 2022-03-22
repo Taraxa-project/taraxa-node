@@ -105,7 +105,7 @@ class FinalChainImpl final : public FinalChain {
           continue;
         }
         // Non-executed trxs
-        auto const& trx = new_blk.transactions[i];
+        auto& trx = new_blk.transactions[i];
         if (!(replay_protection_service_ &&
               replay_protection_service_->is_nonce_stale(trx.getSender(), trx.getNonce()))) [[likely]] {
           to_execute.push_back(std::move(trx));

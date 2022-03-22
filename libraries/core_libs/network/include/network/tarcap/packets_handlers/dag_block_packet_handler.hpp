@@ -18,11 +18,9 @@ class DagBlockPacketHandler : public ExtSyncingPacketHandler {
                         std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
                         std::shared_ptr<DbStorage> db, std::shared_ptr<TestState> test_state, const addr_t &node_addr);
 
-  virtual ~DagBlockPacketHandler() = default;
-
   void sendBlock(dev::p2p::NodeID const &peer_id, DagBlock block, const SharedTransactions &trxs);
   void onNewBlockReceived(DagBlock &&block, const std::shared_ptr<TaraxaPeer> &peer = nullptr);
-  void onNewBlockVerified(DagBlock const &block, bool proposed, SharedTransactions &&trxs);
+  void onNewBlockVerified(DagBlock &&block, bool proposed, SharedTransactions &&trxs);
 
  private:
   void validatePacketRlpFormat(const PacketData &packet_data) const override;

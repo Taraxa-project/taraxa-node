@@ -79,6 +79,11 @@ class WSServer : public std::enable_shared_from_this<WSServer>, public jsonrpc::
   WSServer(boost::asio::io_context& ioc, tcp::endpoint endpoint, addr_t node_addr);
   ~WSServer();
 
+  WSServer(const WSServer&) = delete;
+  WSServer(WSServer&&) = delete;
+  WSServer& operator=(const WSServer&) = delete;
+  WSServer& operator=(WSServer&&) = delete;
+
   // Start accepting incoming connections
   void run();
   void newEthBlock(::taraxa::final_chain::BlockHeader const& payload);

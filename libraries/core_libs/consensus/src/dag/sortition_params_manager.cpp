@@ -115,8 +115,8 @@ void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::
 
     if (non_empty_pbft_chain_size % config_.changing_interval == 0) {
       const auto params_change = calculateChange(period);
-      params_changes_.push_back(params_change);
-      db_->saveSortitionParamsChange(period, std::move(params_change), batch);
+      params_changes_.push_back(std::move(params_change));
+      db_->saveSortitionParamsChange(period, params_change, batch);
       cleanup();
       ignored_efficiency_counter_ = 0;
     }

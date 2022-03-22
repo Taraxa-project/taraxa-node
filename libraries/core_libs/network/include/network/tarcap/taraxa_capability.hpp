@@ -42,6 +42,10 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
                    addr_t const &node_addr = {});
 
   virtual ~TaraxaCapability() = default;
+  TaraxaCapability(const TaraxaCapability &ro) = delete;
+  TaraxaCapability &operator=(const TaraxaCapability &ro) = delete;
+  TaraxaCapability(TaraxaCapability &&ro) = delete;
+  TaraxaCapability &operator=(TaraxaCapability &&ro) = delete;
 
   // CapabilityFace implemented interface
   std::string name() const override;
@@ -72,7 +76,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
 
   void restartSyncingPbft(bool force = false);
   bool pbft_syncing() const;
-  void onNewBlockVerified(DagBlock const &blk, bool proposed, SharedTransactions &&trxs);
+  void onNewBlockVerified(DagBlock &&blk, bool proposed, SharedTransactions &&trxs);
   void onNewTransactions(SharedTransactions &&transactions);
   void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
   void onNewPbftVote(std::shared_ptr<Vote> &&vote);

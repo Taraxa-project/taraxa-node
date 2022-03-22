@@ -17,8 +17,6 @@ class PbftBlockPacketHandler : public PacketHandler {
                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
                          const addr_t& node_addr);
 
-  virtual ~PbftBlockPacketHandler() = default;
-
   void onNewPbftBlock(PbftBlock const& pbft_block);
   void sendPbftBlock(dev::p2p::NodeID const& peer_id, PbftBlock const& pbft_block, uint64_t pbft_chain_size);
 

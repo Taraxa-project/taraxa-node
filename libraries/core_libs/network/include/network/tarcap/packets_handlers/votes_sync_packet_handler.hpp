@@ -18,8 +18,6 @@ class VotesSyncPacketHandler : public ExtVotesPacketHandler {
                          std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DbStorage> db,
                          const addr_t& node_addr);
 
-  virtual ~VotesSyncPacketHandler() = default;
-
   void broadcastPreviousRoundNextVotesBundle();
 
  private:

@@ -11,8 +11,6 @@ class Config {
  public:
   Config(int argc, const char* argv[]);
 
-  ~Config() {}
-
   // Returns true if node configuration is loaded successfully and command is node
   bool nodeConfigured();
 

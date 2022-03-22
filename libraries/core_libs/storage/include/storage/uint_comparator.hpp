@@ -8,9 +8,6 @@ namespace taraxa {
 template <class T>
 class UintComparator : public rocksdb::Comparator {
  public:
-  UintComparator() = default;
-  ~UintComparator() = default;
-
   static const char *kClassName() { return "taraxa.UintComparator"; }
   virtual const char *Name() const override { return kClassName(); }
 

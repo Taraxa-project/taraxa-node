@@ -18,8 +18,6 @@ class GetDagSyncPacketHandler : public PacketHandler {
                           std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
                           const addr_t& node_addr);
 
-  virtual ~GetDagSyncPacketHandler() = default;
-
   void sendBlocks(const dev::p2p::NodeID& peer_id, std::vector<std::shared_ptr<DagBlock>>&& blocks,
                   SharedTransactions&& transactions, uint64_t request_period, uint64_t period);
 

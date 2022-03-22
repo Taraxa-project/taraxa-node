@@ -14,6 +14,7 @@ using std::remove_reference;
 using std::size_t;
 using std::unique_lock;
 
+// TODO: Oleh's legacy of bad and ridiculously complicated code - clean up this class !!!
 template <typename Provider>
 class Lazy {
   Provider* provider_ = nullptr;

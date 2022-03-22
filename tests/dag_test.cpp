@@ -155,57 +155,64 @@ TEST_F(DagTest, compute_epoch) {
   DagBlock blkI(blk_hash_t(11), 3, {blk_hash_t(4)}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
   DagBlock blkJ(blk_hash_t(7), 2, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
   DagBlock blkK(blk_hash_t(9), 5, {}, {}, sig_t(1), blk_hash_t(12), addr_t(1));
-  mgr->addDagBlock(blkA);
-  mgr->addDagBlock(blkB);
-  mgr->addDagBlock(blkC);
-  mgr->addDagBlock(blkD);
-  mgr->addDagBlock(blkF);
+
+  const auto blkA_hash = blkA.getHash();
+  const auto blkC_hash = blkC.getHash();
+  const auto blkE_hash = blkE.getHash();
+  const auto blkH_hash = blkH.getHash();
+  const auto blkK_hash = blkK.getHash();
+
+  mgr->addDagBlock(std::move(blkA));
+  mgr->addDagBlock(std::move(blkB));
+  mgr->addDagBlock(std::move(blkC));
+  mgr->addDagBlock(std::move(blkD));
+  mgr->addDagBlock(std::move(blkF));
   taraxa::thisThreadSleepForMilliSeconds(100);
-  mgr->addDagBlock(blkE);
-  mgr->addDagBlock(blkG);
-  mgr->addDagBlock(blkJ);
-  mgr->addDagBlock(blkI);
-  mgr->addDagBlock(blkH);
-  mgr->addDagBlock(blkK);
+  mgr->addDagBlock(std::move(blkE));
+  mgr->addDagBlock(std::move(blkG));
+  mgr->addDagBlock(std::move(blkJ));
+  mgr->addDagBlock(std::move(blkI));
+  mgr->addDagBlock(std::move(blkH));
+  mgr->addDagBlock(std::move(blkK));
   taraxa::thisThreadSleepForMilliSeconds(100);
 
   vec_blk_t orders;
   uint64_t period;
 
   // Test that with incorrect period, order is not returned
-  orders = mgr->getDagBlockOrder(blkA.getHash(), 2);
+  orders = mgr->getDagBlockOrder(blkA_hash, 2);
   EXPECT_EQ(orders.size(), 0);
 
-  orders = mgr->getDagBlockOrder(blkA.getHash(), 0);
+  orders = mgr->getDagBlockOrder(blkA_hash, 0);
   EXPECT_EQ(orders.size(), 0);
 
   period = 1;
-  orders = mgr->getDagBlockOrder(blkA.getHash(), period);
+  orders = mgr->getDagBlockOrder(blkA_hash, period);
   EXPECT_EQ(orders.size(), 1);
   // repeat, should not change
-  orders = mgr->getDagBlockOrder(blkA.getHash(), period);
+  orders = mgr->getDagBlockOrder(blkA_hash, period);
   EXPECT_EQ(orders.size(), 1);
 
-  mgr->setDagBlockOrder(blkA.getHash(), period, orders);
+  mgr->setDagBlockOrder(blkA_hash, period, orders);
 
   period = 2;
-  orders = mgr->getDagBlockOrder(blkC.getHash(), period);
+  orders = mgr->getDagBlockOrder(blkC_hash, period);
   EXPECT_EQ(orders.size(), 2);
   // repeat, should not change
-  orders = mgr->getDagBlockOrder(blkC.getHash(), period);
+  orders = mgr->getDagBlockOrder(blkC_hash, period);
   EXPECT_EQ(orders.size(), 2);
 
-  mgr->setDagBlockOrder(blkC.getHash(), period, orders);
+  mgr->setDagBlockOrder(blkC_hash, period, orders);
 
   period = 3;
-  orders = mgr->getDagBlockOrder(blkE.getHash(), period);
+  orders = mgr->getDagBlockOrder(blkE_hash, period);
   EXPECT_EQ(orders.size(), period);
-  mgr->setDagBlockOrder(blkE.getHash(), period, orders);
+  mgr->setDagBlockOrder(blkE_hash, period, orders);
 
   period = 4;
-  orders = mgr->getDagBlockOrder(blkH.getHash(), period);
+  orders = mgr->getDagBlockOrder(blkH_hash, period);
   EXPECT_EQ(orders.size(), period);
-  mgr->setDagBlockOrder(blkH.getHash(), period, orders);
+  mgr->setDagBlockOrder(blkH_hash, period, orders);
 
   if (orders.size() == 4) {
     EXPECT_EQ(orders[0], blk_hash_t(11));
@@ -215,9 +222,9 @@ TEST_F(DagTest, compute_epoch) {
   }
 
   period = 5;
-  orders = mgr->getDagBlockOrder(blkK.getHash(), period);
+  orders = mgr->getDagBlockOrder(blkK_hash, period);
   EXPECT_EQ(orders.size(), 1);
-  mgr->setDagBlockOrder(blkK.getHash(), period, orders);
+  mgr->setDagBlockOrder(blkK_hash, period, orders);
 }
 
 TEST_F(DagTest, receive_block_in_order) {
@@ -235,13 +242,13 @@ TEST_F(DagTest, receive_block_in_order) {
   DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(777), blk_hash_t(2), addr_t(15));
   DagBlock blk3(blk_hash_t(10), 0, {blk_hash_t(1), blk_hash_t(2)}, {}, sig_t(777), blk_hash_t(3), addr_t(15));
 
-  mgr->addDagBlock(genesis_block);
-  mgr->addDagBlock(blk1);
-  mgr->addDagBlock(blk2);
+  mgr->addDagBlock(std::move(genesis_block));
+  mgr->addDagBlock(std::move(blk1));
+  mgr->addDagBlock(std::move(blk2));
   EXPECT_EQ(mgr->getNumVerticesInDag().first, 3);
   EXPECT_EQ(mgr->getNumEdgesInDag().first, 2);
 
-  mgr->addDagBlock(blk3);
+  mgr->addDagBlock(std::move(blk3));
   taraxa::thisThreadSleepForMilliSeconds(500);
 
   auto ret = mgr->getLatestPivotAndTips();
@@ -277,48 +284,54 @@ TEST_F(DagTest, compute_epoch_2) {
   DagBlock blkJ(blk_hash_t(7), 2, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
   DagBlock blkK(blk_hash_t(10), 4, {}, {}, sig_t(1), blk_hash_t(12), addr_t(1));
 
-  mgr->addDagBlock(blkA);
-  mgr->addDagBlock(blkB);
-  mgr->addDagBlock(blkC);
-  mgr->addDagBlock(blkD);
-  mgr->addDagBlock(blkF);
-  mgr->addDagBlock(blkJ);
-  mgr->addDagBlock(blkE);
+  const auto blkA_hash = blkA.getHash();
+  const auto blkC_hash = blkC.getHash();
+  const auto blkE_hash = blkE.getHash();
+  const auto blkH_hash = blkH.getHash();
+  const auto blkK_hash = blkK.getHash();
+
+  mgr->addDagBlock(std::move(blkA));
+  mgr->addDagBlock(std::move(blkB));
+  mgr->addDagBlock(std::move(blkC));
+  mgr->addDagBlock(std::move(blkD));
+  mgr->addDagBlock(std::move(blkF));
+  mgr->addDagBlock(std::move(blkJ));
+  mgr->addDagBlock(std::move(blkE));
   taraxa::thisThreadSleepForMilliSeconds(100);
-  mgr->addDagBlock(blkG);
-  mgr->addDagBlock(blkI);
-  mgr->addDagBlock(blkH);
-  mgr->addDagBlock(blkK);
+  mgr->addDagBlock(std::move(blkG));
+  mgr->addDagBlock(std::move(blkI));
+  mgr->addDagBlock(std::move(blkH));
+  mgr->addDagBlock(std::move(blkK));
   taraxa::thisThreadSleepForMilliSeconds(100);
 
   vec_blk_t orders;
   uint64_t period = 1;
-  orders = mgr->getDagBlockOrder(blkA.getHash(), period);
+  orders = mgr->getDagBlockOrder(blkA_hash, period);
   EXPECT_EQ(orders.size(), 1);
   // repeat, should not change
-  orders = mgr->getDagBlockOrder(blkA.getHash(), period);
+  orders = mgr->getDagBlockOrder(blkA_hash, period);
   EXPECT_EQ(orders.size(), 1);
 
-  mgr->setDagBlockOrder(blkA.getHash(), period, orders);
+  mgr->setDagBlockOrder(blkA_hash, period, orders);
 
   period = 2;
-  orders = mgr->getDagBlockOrder(blkC.getHash(), period);
+  orders = mgr->getDagBlockOrder(blkC_hash, period);
   EXPECT_EQ(orders.size(), 2);
   // repeat, should not change
-  orders = mgr->getDagBlockOrder(blkC.getHash(), period);
+  orders = mgr->getDagBlockOrder(blkC_hash, period);
   EXPECT_EQ(orders.size(), 2);
 
-  mgr->setDagBlockOrder(blkC.getHash(), period, orders);
+  mgr->setDagBlockOrder(blkC_hash, period, orders);
 
   period = 3;
-  orders = mgr->getDagBlockOrder(blkE.getHash(), period);
+  orders = mgr->getDagBlockOrder(blkE_hash, period);
   EXPECT_EQ(orders.size(), period);
-  mgr->setDagBlockOrder(blkE.getHash(), period, orders);
+  mgr->setDagBlockOrder(blkE_hash, period, orders);
 
   period = 4;
-  orders = mgr->getDagBlockOrder(blkH.getHash(), period);
+  orders = mgr->getDagBlockOrder(blkH_hash, period);
   EXPECT_EQ(orders.size(), 4);
-  mgr->setDagBlockOrder(blkH.getHash(), period, orders);
+  mgr->setDagBlockOrder(blkH_hash, period, orders);
 
   if (orders.size() == 4) {
     EXPECT_EQ(orders[0], blk_hash_t(11));
@@ -328,9 +341,9 @@ TEST_F(DagTest, compute_epoch_2) {
   }
 
   period = 5;
-  orders = mgr->getDagBlockOrder(blkK.getHash(), period);
+  orders = mgr->getDagBlockOrder(blkK_hash, period);
   EXPECT_EQ(orders.size(), 1);
-  mgr->setDagBlockOrder(blkK.getHash(), period, orders);
+  mgr->setDagBlockOrder(blkK_hash, period, orders);
 }
 
 TEST_F(DagTest, get_latest_pivot_tips) {
@@ -349,12 +362,12 @@ TEST_F(DagTest, get_latest_pivot_tips) {
   DagBlock blk4(blk_hash_t(1), 0, {}, {}, sig_t(1), blk_hash_t(4), addr_t(15));
   DagBlock blk5(blk_hash_t(4), 0, {}, {}, sig_t(1), blk_hash_t(5), addr_t(15));
   DagBlock blk6(blk_hash_t(2), 0, {blk_hash_t(5)}, {}, sig_t(1), blk_hash_t(6), addr_t(15));
-  mgr->addDagBlock(blk1);
-  mgr->addDagBlock(blk2);
-  mgr->addDagBlock(blk3);
-  mgr->addDagBlock(blk4);
-  mgr->addDagBlock(blk5);
-  mgr->addDagBlock(blk6);
+  mgr->addDagBlock(std::move(blk1));
+  mgr->addDagBlock(std::move(blk2));
+  mgr->addDagBlock(std::move(blk3));
+  mgr->addDagBlock(std::move(blk4));
+  mgr->addDagBlock(std::move(blk5));
+  mgr->addDagBlock(std::move(blk6));
   taraxa::thisThreadSleepForMilliSeconds(100);
 
   auto ret = mgr->getLatestPivotAndTips();

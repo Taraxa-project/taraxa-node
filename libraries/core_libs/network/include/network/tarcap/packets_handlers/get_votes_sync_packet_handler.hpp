@@ -15,8 +15,6 @@ class GetVotesSyncPacketHandler : public ExtVotesPacketHandler {
                             std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
                             const addr_t& node_addr);
 
-  virtual ~GetVotesSyncPacketHandler() = default;
-
  private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;

@@ -757,7 +757,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   g_mock_dag0 = samples::createMockDag1(node->getConfig().chain.dag_genesis_block.getHash().toString());
 
   for (int i = 1; i <= 9; i++) {
-    node->getDagManager()->addDagBlock(g_mock_dag0[i]);
+    node->getDagManager()->addDagBlock(std::move(g_mock_dag0[i]));
   }
   // -------- first period ----------
 
@@ -783,7 +783,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   // -------- second period ----------
 
   for (int i = 10; i <= 16; i++) {
-    node->getDagManager()->addDagBlock(g_mock_dag0[i]);
+    node->getDagManager()->addDagBlock(std::move(g_mock_dag0[i]));
   }
 
   ret = node->getDagManager()->getLatestPivotAndTips();
@@ -807,7 +807,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   // -------- third period ----------
 
   for (size_t i = 17; i < g_mock_dag0->size(); i++) {
-    node->getDagManager()->addDagBlock(g_mock_dag0[i]);
+    node->getDagManager()->addDagBlock(std::move(g_mock_dag0[i]));
   }
 
   ret = node->getDagManager()->getLatestPivotAndTips();
@@ -886,7 +886,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
     taraxa::thisThreadSleepForMilliSeconds(100);
 
     for (size_t i = 1; i < num_blks; i++) {
-      node->getDagManager()->addDagBlock(g_mock_dag0[i]);
+      node->getDagManager()->addDagBlock(std::move(g_mock_dag0[i]));
     }
 
     taraxa::thisThreadSleepForMilliSeconds(100);
@@ -906,7 +906,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
     // TODO: pbft does not support node stop yet, to be fixed ...
     node->getPbftManager()->stop();
     for (size_t i = 1; i < num_blks; i++) {
-      node->getDagManager()->addDagBlock(g_mock_dag0[i]);
+      node->getDagManager()->addDagBlock(std::move(g_mock_dag0[i]));
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
     vertices3 = node->getDagManager()->getNumVerticesInDag().first;

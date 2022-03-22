@@ -16,8 +16,6 @@ class StatusPacketHandler : public ExtSyncingPacketHandler {
                       std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
                       std::shared_ptr<DbStorage> db, uint64_t conf_network_id, const addr_t& node_addr);
 
-  virtual ~StatusPacketHandler() = default;
-
   bool sendStatus(const dev::p2p::NodeID& node_id, bool initial);
   void sendStatusToPeers();
 
