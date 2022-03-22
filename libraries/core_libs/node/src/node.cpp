@@ -23,7 +23,8 @@
 namespace taraxa {
 
 FullNode::FullNode(FullNodeConfig const &conf)
-    : conf_(conf),
+    : subscription_pool_(1),
+      conf_(conf),
       kp_(conf_.node_secret.empty()
               ? dev::KeyPair::create()
               : dev::KeyPair(dev::Secret(conf_.node_secret, dev::Secret::ConstructFromStringType::FromHex))) {
@@ -206,16 +207,15 @@ void FullNode::start() {
         },
         *rpc_thread_pool_);
   }
-  subscription_pool_ = std::make_unique<util::ThreadPool>(1);
 
   // GasPricer updater
   final_chain_->block_finalized_.subscribe(
       [gas_pricer = as_weak(gas_pricer_)](auto const &res) {
-        if (auto _gas_pricer = gas_pricer.lock()) {
-          _gas_pricer->update(res->trxs);
+        if (auto gp = gas_pricer.lock()) {
+          gp->update(res->trxs);
         }
       },
-      *subscription_pool_);
+      subscription_pool_);
 
   // Subscription to process hardforks
   final_chain_->block_applying_.subscribe([&](uint64_t block_num) {

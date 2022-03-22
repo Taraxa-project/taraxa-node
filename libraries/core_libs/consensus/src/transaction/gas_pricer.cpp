@@ -3,14 +3,15 @@
 namespace taraxa {
 
 GasPricer::GasPricer(uint64_t percentile, uint64_t number_of_blocks, std::shared_ptr<DbStorage> db)
-    : percentile_(percentile), price_list_(number_of_blocks) {
+    : kPercentile_(percentile), price_list_(number_of_blocks) {
+  assert(kPercentile_ <= 100);
   if (db) {
     init_daemon_ = std::make_unique<std::thread>([this, db_ = std::move(db)]() { init(std::move(db_)); });
   }
 }
 
 GasPricer::~GasPricer() {
-  if (init_daemon_) init_daemon_->join();
+  if (init_daemon_ && init_daemon_->joinable()) init_daemon_->join();
 }
 
 u256 GasPricer::bid() const {
@@ -47,7 +48,7 @@ void GasPricer::init(std::shared_ptr<DbStorage> db) {
             *std::min_element(trxs->begin(), trxs->end(),
                               [](const auto& t1, const auto& t2) { return t1.getGasPrice() < t2.getGasPrice(); });
         min_trx.getGasPrice()) {
-      price_list_.push_front(std::move(min_trx.getGasPrice()));
+      price_list_.push_front(min_trx.getGasPrice());
     }
   }
 
@@ -58,7 +59,7 @@ void GasPricer::init(std::shared_ptr<DbStorage> db) {
   std::copy(price_list_.begin(), price_list_.end(), std::back_inserter(sorted_prices));
   std::sort(sorted_prices.begin(), sorted_prices.end());
 
-  if (auto new_price = sorted_prices[(sorted_prices.size() - 1) * percentile_ / 100]) {
+  if (auto new_price = sorted_prices[(sorted_prices.size() - 1) * kPercentile_ / 100]) {
     latest_price_ = std::move(new_price);
   }
 }
@@ -66,23 +67,19 @@ void GasPricer::init(std::shared_ptr<DbStorage> db) {
 void GasPricer::update(const Transactions& trxs) {
   if (trxs.empty()) return;
 
-  std::vector<u256> prices;
-  prices.reserve(trxs.size());
-
-  std::transform(trxs.begin(), trxs.end(), std::back_inserter(prices),
-                 [](const auto& trx) { return trx.getGasPrice(); });
-
-  if (u256 minimum = *std::min_element(prices.begin(), prices.end())) {
+  if (const auto min_trx = *std::min_element(
+          trxs.begin(), trxs.end(), [](const auto& t1, const auto& t2) { return t1.getGasPrice() < t2.getGasPrice(); });
+      min_trx.getGasPrice()) {
     std::unique_lock lock(mutex_);
 
-    price_list_.push_back(std::move(minimum));
+    price_list_.push_back(min_trx.getGasPrice());
 
     std::vector<u256> sorted_prices;
     sorted_prices.reserve(price_list_.size());
     std::copy(price_list_.begin(), price_list_.end(), std::back_inserter(sorted_prices));
     std::sort(sorted_prices.begin(), sorted_prices.end());
 
-    if (auto new_price = sorted_prices[(sorted_prices.size() - 1) * percentile_ / 100]) {
+    if (auto new_price = sorted_prices[(sorted_prices.size() - 1) * kPercentile_ / 100]) {
       latest_price_ = std::move(new_price);
     }
   }

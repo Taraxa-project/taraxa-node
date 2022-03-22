@@ -1460,7 +1460,7 @@ TEST_F(FullNodeTest, chain_config_json) {
       }
     }
   },
-  "gas_price" : {
+  "gas_price": {
     "blocks" : "0xc8",
     "percentile" : "0x3c"
   },

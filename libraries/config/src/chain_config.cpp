@@ -4,6 +4,8 @@
 
 #include <sstream>
 
+#include "common/config_exception.hpp"
+
 namespace taraxa::chain_config {
 using std::stringstream;
 
@@ -17,6 +19,12 @@ Json::Value enc_json(GasPriceConfig const& obj) {
 void dec_json(Json::Value const& json, GasPriceConfig& obj) {
   obj.percentile = dev::jsToInt(json["percentile"].asString());
   obj.blocks = dev::jsToInt(json["blocks"].asString());
+}
+
+void GasPriceConfig::validate() const {
+  if (percentile > 100) {
+    throw ConfigException("gas_price::percentile can not be greater then 100");
+  }
 }
 
 Json::Value enc_json(ChainConfig const& obj) {
@@ -96,5 +104,7 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
   }();
   return cfgs;
 });
+
+void ChainConfig::validate() const { gas_price.validate(); }
 
 }  // namespace taraxa::chain_config

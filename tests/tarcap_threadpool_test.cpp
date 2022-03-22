@@ -14,7 +14,7 @@ struct BaseTest : virtual testing::Test {
   testing::UnitTest* current_test = ::testing::UnitTest::GetInstance();
   testing::TestInfo const* current_test_info = current_test->current_test_info();
 
-  virtual ~BaseTest() {}
+  virtual ~BaseTest() = default;
 };
 
 struct TarcapTpTest : BaseTest {};

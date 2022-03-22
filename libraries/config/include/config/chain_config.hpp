@@ -18,6 +18,7 @@ using ::taraxa::util::lazy::LazyVal;
 struct GasPriceConfig {
   uint64_t percentile = 60;
   uint64_t blocks = 200;
+  void validate() const;
 };
 
 Json::Value enc_json(GasPriceConfig const& obj);
@@ -41,6 +42,7 @@ struct ChainConfig {
   ChainConfig& operator=(ChainConfig&&) = default;
   ChainConfig& operator=(const ChainConfig&) = default;
 
+  void validate() const;
   static const ChainConfig& predefined(std::string const& name = "default");
 };
 
