@@ -3,7 +3,7 @@
 #include "dag/dag_block_manager.hpp"
 #include "network/tarcap/packets_handlers/common/ext_syncing_packet_handler.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
-#include "transaction_manager/transaction_manager.hpp"
+#include "transaction/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {
 

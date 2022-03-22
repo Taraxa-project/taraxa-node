@@ -5,7 +5,7 @@
 #include "common/util.hpp"
 #include "dag/dag.hpp"
 #include "transaction/transaction.hpp"
-#include "transaction_manager/transaction_manager.hpp"
+#include "transaction/transaction_manager.hpp"
 
 namespace taraxa {
 

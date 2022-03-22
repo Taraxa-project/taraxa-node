@@ -18,6 +18,8 @@ struct RpcConfig {
 
   // Number of threads dedicated to the rpc calls processing, default = 5
   uint16_t threads_num{5};
+
+  void validate() const;
 };
 
 struct NodeConfig {
@@ -48,6 +50,8 @@ struct NetworkConfig {
   uint16_t network_peer_blacklist_timeout = kBlacklistTimeoutDefaultInSeconds;
   bool disable_peer_blacklist = false;
   uint16_t deep_syncing_threshold = 10;
+
+  void validate() const;
 };
 
 struct BlockProposerConfig {
@@ -99,7 +103,7 @@ struct FullNodeConfig {
    * @brief Validates config values, throws configexception if validation failes
    * @return
    */
-  void validate();
+  void validate() const;
 
   void overwrite_chain_config_in_file() const;
 };

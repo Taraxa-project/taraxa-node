@@ -5,7 +5,7 @@
 #include "network/tarcap/shared_states/syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
-#include "transaction_manager/transaction_manager.hpp"
+#include "transaction/transaction_manager.hpp"
 #include "vote/vote.hpp"
 
 namespace taraxa::network::tarcap {

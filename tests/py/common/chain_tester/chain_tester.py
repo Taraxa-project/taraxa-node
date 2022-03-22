@@ -261,7 +261,9 @@ class ChainTester:
                 for addr in [from_addr, tx.to]:
                     if addr and addr not in tracked_balances:
                         tracked_balances[addr] = self._cluster.node().eth.get_balance(addr, block_identifier=blk_n - 1)
-                tracked_balances[from_addr] -= (tx.value + tx.gasPrice * tx.gas)
+                # TODO [1620]: remove this when gas is enabled
+                # tracked_balances[from_addr] -= (tx.value + tx.gasPrice * receipt.gasUsed)
+                tracked_balances[from_addr] -= tx.value
                 if tx.to:
                     tracked_balances[tx.to] += tx.value
         self._blocks_by_num.append(blk)

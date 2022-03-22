@@ -16,7 +16,7 @@
 #include "gtest.hpp"
 #include "network/network.hpp"
 #include "node/node.hpp"
-#include "transaction_manager/transaction_manager.hpp"
+#include "transaction/transaction_manager.hpp"
 
 // TODO rename this namespace to `util_test`
 namespace taraxa::core_tests {

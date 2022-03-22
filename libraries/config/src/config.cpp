@@ -247,41 +247,47 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   opts_final_chain.max_trie_full_node_levels_to_cache = 4;
 }
 
-void FullNodeConfig::validate() {
-  if (network.network_sync_level_size == 0) {
+void NetworkConfig::validate() const {
+  if (network_sync_level_size == 0) {
     throw ConfigException(std::string("network_sync_level_size cannot be 0"));
   }
 
   // Max enabled number of threads for processing rpc requests
   constexpr uint16_t MAX_PACKETS_PROCESSING_THREADS_NUM = 30;
-  if (network.network_packets_processing_threads < 3 ||
-      network.network_packets_processing_threads > MAX_PACKETS_PROCESSING_THREADS_NUM) {
+  if (network_packets_processing_threads < 3 ||
+      network_packets_processing_threads > MAX_PACKETS_PROCESSING_THREADS_NUM) {
     throw ConfigException(std::string("network_packets_processing_threads must be in range [3, ") +
                           std::to_string(MAX_PACKETS_PROCESSING_THREADS_NUM) + "]");
   }
 
-  // Validates rpc config values
-  if (rpc) {
-    if (!rpc->http_port && !rpc->ws_port) {
-      throw ConfigException("Either rpc::http_port or rpc::ws_port post must be specified for rpc");
-    }
-
-    // Max enabled number of threads for processing rpc requests
-    constexpr uint16_t MAX_RPC_THREADS_NUM = 10;
-    if (rpc->threads_num <= 0 || rpc->threads_num > MAX_RPC_THREADS_NUM) {
-      throw ConfigException(string("rpc::threads_num must be in range (0, ") + std::to_string(MAX_RPC_THREADS_NUM) +
-                            "]");
-    }
-  }
-
   // TODO validate that the boot node list doesn't contain self (although it's not critical)
-  for (auto const &node : network.network_boot_nodes) {
+  for (auto const &node : network_boot_nodes) {
     if (node.ip.empty()) {
       throw ConfigException(std::string("Boot node ip is empty:") + node.ip + ":" + std::to_string(node.udp_port));
     }
     if (node.udp_port == 0) {
       throw ConfigException(std::string("Boot node port invalid: ") + std::to_string(node.udp_port));
     }
+  }
+}
+
+void RpcConfig::validate() const {
+  if (!http_port && !ws_port) {
+    throw ConfigException("Either rpc::http_port or rpc::ws_port post must be specified for rpc");
+  }
+
+  // Max enabled number of threads for processing rpc requests
+  constexpr uint16_t MAX_RPC_THREADS_NUM = 10;
+  if (threads_num <= 0 || threads_num > MAX_RPC_THREADS_NUM) {
+    throw ConfigException(string("rpc::threads_num must be in range (0, ") + std::to_string(MAX_RPC_THREADS_NUM) + "]");
+  }
+}
+
+void FullNodeConfig::validate() const {
+  network.validate();
+  chain.validate();
+  if (rpc) {
+    rpc->validate();
   }
   // TODO: add validation of other config values
 }

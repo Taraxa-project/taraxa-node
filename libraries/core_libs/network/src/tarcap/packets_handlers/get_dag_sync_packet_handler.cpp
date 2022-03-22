@@ -1,7 +1,7 @@
 #include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
 
 #include "dag/dag.hpp"
-#include "transaction_manager/transaction_manager.hpp"
+#include "transaction/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {
 

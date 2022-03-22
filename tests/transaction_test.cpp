@@ -8,8 +8,8 @@
 
 #include "common/static_init.hpp"
 #include "logger/logger.hpp"
-#include "transaction_manager/transaction_manager.hpp"
-#include "transaction_manager/transaction_queue.hpp"
+#include "transaction/transaction_manager.hpp"
+#include "transaction/transaction_queue.hpp"
 #include "util_test/samples.hpp"
 
 namespace taraxa::core_tests {

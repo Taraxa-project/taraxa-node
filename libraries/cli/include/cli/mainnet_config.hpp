@@ -240,6 +240,10 @@ const char *mainnet_json = R"foo({
         }
       }
     },
+    "gas_price" : {
+      "blocks" : 200,
+      "percentile" : 60
+    },
     "pbft": {
       "committee_size": "0x3e8",
       "number_of_proposers": "0x14",
