@@ -11,14 +11,14 @@ using std::stringstream;
 
 Json::Value enc_json(GasPriceConfig const& obj) {
   Json::Value json(Json::objectValue);
-  json["percentile"] = dev::toJS(obj.percentile);
-  json["blocks"] = dev::toJS(obj.blocks);
+  json["percentile"] = obj.percentile;
+  json["blocks"] = obj.blocks;
   return json;
 }
 
 void dec_json(Json::Value const& json, GasPriceConfig& obj) {
-  obj.percentile = dev::jsToInt(json["percentile"].asString());
-  obj.blocks = dev::jsToInt(json["blocks"].asString());
+  obj.percentile = json["percentile"].asUInt64();
+  obj.blocks = json["blocks"].asUInt64();
 }
 
 void GasPriceConfig::validate() const {
