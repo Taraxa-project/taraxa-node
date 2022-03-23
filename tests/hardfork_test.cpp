@@ -12,7 +12,7 @@
 #include "logger/logger.hpp"
 #include "node/node.hpp"
 #include "string"
-#include "transaction_manager/transaction_manager.hpp"
+#include "transaction/transaction_manager.hpp"
 #include "util_test/samples.hpp"
 
 namespace taraxa::core_tests {

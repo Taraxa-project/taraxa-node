@@ -75,7 +75,7 @@ class Vote {
 
 struct VotesBundle {
   blk_hash_t voted_block_hash;
-  std::vector<std::shared_ptr<Vote>> votes;  // exactly 2t+1 votes
+  std::vector<std::shared_ptr<Vote>> votes;  // Greater than 2t+1 votes
 
   VotesBundle() : voted_block_hash(blk_hash_t(0)) {}
   VotesBundle(blk_hash_t const& voted_block_hash, std::vector<std::shared_ptr<Vote>> const& votes)

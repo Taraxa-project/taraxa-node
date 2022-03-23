@@ -18,12 +18,14 @@ static constexpr uint16_t DAG_BLOCKS_POS_IN_PERIOD_DATA = 2;
 static constexpr uint16_t TRANSACTIONS_POS_IN_PERIOD_DATA = 3;
 
 DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t max_open_files,
-                     uint32_t db_max_snapshots, uint32_t db_revert_to_period, addr_t node_addr, bool rebuild,
-                     bool rebuild_columns)
+                     uint32_t db_max_snapshots, uint32_t db_revert_to_period, addr_t node_addr, bool is_light_node,
+                     uint64_t light_node_history, bool rebuild, bool rebuild_columns)
     : path_(path),
       handles_(Columns::all.size()),
       db_snapshot_each_n_pbft_block_(db_snapshot_each_n_pbft_block),
-      db_max_snapshots_(db_max_snapshots) {
+      db_max_snapshots_(db_max_snapshots),
+      is_light_node_(is_light_node),
+      light_node_history_(light_node_history) {
   db_path_ = (path / db_dir);
   state_db_path_ = (path / state_db_dir);
 
@@ -415,6 +417,18 @@ std::optional<SortitionParamsChange> DbStorage::getParamsChangeForPeriod(uint64_
   return SortitionParamsChange::from_rlp(dev::RLP(it->value().ToString()));
 }
 
+void DbStorage::clearPeriodDataHistory(uint64_t period, uint64_t dag_expiry_period, bool force) {
+  // Actual history size will be between 100% and 110% of light_node_history_ to avoid deleting on every period
+  if (is_light_node_ && ((period % (std::max(light_node_history_ / 10, (uint64_t)1)) == 0) || force) &&
+      period > light_node_history_) {
+    const uint64_t start = 0;
+    // This prevents deleting any data needed for dag blocks proposal period, we only delete periods for the expired dag
+    // blocks
+    const uint64_t end = std::min(period - light_node_history_, dag_expiry_period - 1);
+    db_->DeleteRange(write_options_, handle(Columns::period_data), toSlice(start), toSlice(end));
+  }
+}
+
 void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) {
   uint64_t period = sync_block.pbft_blk->getPeriod();
   addPbftBlockPeriodToBatch(period, sync_block.pbft_blk->getBlockHash(), write_batch);
@@ -529,13 +543,28 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
   auto res = getTransactionPeriod(hash);
   if (res) {
     auto period_data = getPeriodDataRaw(res->first);
-    // DB is corrupted if status point to missing or incorrect transaction
-    assert(period_data.size() > 0);
-    auto period_data_rlp = dev::RLP(period_data);
-    auto transaction_data = period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA];
-    return std::make_shared<Transaction>(transaction_data[res->second]);
+    if (period_data.size() > 0) {
+      auto period_data_rlp = dev::RLP(period_data);
+      auto transaction_data = period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA];
+      return std::make_shared<Transaction>(transaction_data[res->second]);
+    }
   }
   return nullptr;
+}
+
+std::optional<std::vector<Transaction>> DbStorage::getPeriodTransactions(uint64_t period) const {
+  const auto period_data = getPeriodDataRaw(period);
+  if (!period_data.size()) {
+    return std::nullopt;
+  }
+
+  auto period_data_rlp = dev::RLP(period_data);
+
+  std::vector<Transaction> ret(period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA].size());
+  for (const auto transaction_data : period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA]) {
+    ret.emplace_back(transaction_data);
+  }
+  return {ret};
 }
 
 void DbStorage::addTransactionToBatch(Transaction const& trx, Batch& write_batch) {

@@ -17,12 +17,14 @@
 #include "network/rpc/rpc_error_handler.hpp"
 #include "pbft/block_proposer.hpp"
 #include "pbft/pbft_manager.hpp"
-#include "transaction_manager/transaction_manager.hpp"
+#include "transaction/gas_pricer.hpp"
+#include "transaction/transaction_manager.hpp"
 
 namespace taraxa {
 
 FullNode::FullNode(FullNodeConfig const &conf)
-    : conf_(conf),
+    : subscription_pool_(1),
+      conf_(conf),
       kp_(conf_.node_secret.empty()
               ? dev::KeyPair::create()
               : dev::KeyPair(dev::Secret(conf_.node_secret, dev::Secret::ConstructFromStringType::FromHex))) {
@@ -57,13 +59,14 @@ void FullNode::init() {
     if (conf_.test_params.rebuild_db) {
       old_db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
                                             conf_.test_params.db_max_open_files, conf_.test_params.db_max_snapshots,
-                                            conf_.test_params.db_revert_to_period, node_addr, true);
+                                            conf_.test_params.db_revert_to_period, node_addr, conf_.is_light_node,
+                                            conf_.light_node_history, true);
     }
 
     db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
                                       conf_.test_params.db_max_open_files, conf_.test_params.db_max_snapshots,
-                                      conf_.test_params.db_revert_to_period, node_addr, false,
-                                      conf_.test_params.rebuild_db_columns);
+                                      conf_.test_params.db_revert_to_period, node_addr, conf_.is_light_node,
+                                      conf_.light_node_history, false, conf_.test_params.rebuild_db_columns);
 
     if (db_->hasMinorVersionChanged()) {
       LOG(log_si_) << "Minor DB version has changed. Rebuilding Db";
@@ -71,10 +74,12 @@ void FullNode::init() {
       db_ = nullptr;
       old_db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
                                             conf_.test_params.db_max_open_files, conf_.test_params.db_max_snapshots,
-                                            conf_.test_params.db_revert_to_period, node_addr, true);
+                                            conf_.test_params.db_revert_to_period, node_addr, conf_.is_light_node,
+                                            conf_.light_node_history, true);
       db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
                                         conf_.test_params.db_max_open_files, conf_.test_params.db_max_snapshots,
-                                        conf_.test_params.db_revert_to_period, node_addr);
+                                        conf_.test_params.db_revert_to_period, node_addr, conf_.is_light_node,
+                                        conf_.light_node_history);
     }
 
     if (db_->getNumDagBlocks() == 0) {
@@ -83,6 +88,7 @@ void FullNode::init() {
   }
   LOG(log_nf_) << "DB initialized ...";
 
+  gas_pricer_ = std::make_shared<GasPricer>(conf_.chain.gas_price.percentile, conf_.chain.gas_price.blocks, db_);
   final_chain_ = NewFinalChain(db_, conf_.chain.final_chain, node_addr);
   trx_mgr_ = std::make_shared<TransactionManager>(conf_, db_, final_chain_, node_addr);
 
@@ -123,6 +129,7 @@ void FullNode::start() {
     eth_rpc_params.secret = kp_.secret();
     eth_rpc_params.chain_id = conf_.chain.chain_id;
     eth_rpc_params.final_chain = final_chain_;
+    eth_rpc_params.gas_pricer = [gas_pricer = gas_pricer_]() { return gas_pricer->bid(); };
     eth_rpc_params.get_trx = [db = db_](auto const &trx_hash) { return db->getTransaction(trx_hash); };
     eth_rpc_params.send_trx = [trx_manager = trx_mgr_](auto const &trx) {
       if (auto [ok, err_msg] = trx_manager->insertTransaction(trx); !ok) {
@@ -185,29 +192,6 @@ void FullNode::start() {
         },
         *rpc_thread_pool_);
 
-    // Subscription to process hardforks
-    final_chain_->block_applying.subscribe([&](uint64_t block_num) {
-      // TODO: should have only common hardfork code calling hardfork executor
-      auto &state_conf = conf_.chain.final_chain.state;
-      if (state_conf.hardforks.fix_genesis_fork_block == block_num) {
-        for (auto &e : state_conf.dpos->genesis_state) {
-          for (auto &b : e.second) {
-            b.second *= kOneTara;
-          }
-        }
-        for (auto &b : state_conf.genesis_balances) {
-          b.second *= kOneTara;
-        }
-        // we are multiplying it by TARA precision
-        state_conf.dpos->eligibility_balance_threshold *= kOneTara;
-        // amount of stake per vote should be 10 times smaller than eligibility threshold
-        state_conf.dpos->vote_eligibility_balance_step.assign(state_conf.dpos->eligibility_balance_threshold);
-        state_conf.dpos->eligibility_balance_threshold *= 10;
-        conf_.overwrite_chain_config_in_file();
-        final_chain_->update_state_config(state_conf);
-      }
-    });
-
     trx_mgr_->transaction_accepted_.subscribe(
         [eth_json_rpc = as_weak(eth_json_rpc), ws = as_weak(jsonrpc_ws_)](auto const &trx_hash) {
           if (auto _eth_json_rpc = eth_json_rpc.lock()) {
@@ -227,28 +211,61 @@ void FullNode::start() {
         *rpc_thread_pool_);
   }
 
+  // GasPricer updater
+  final_chain_->block_finalized_.subscribe(
+      [gas_pricer = as_weak(gas_pricer_)](auto const &res) {
+        if (auto gp = gas_pricer.lock()) {
+          gp->update(res->trxs);
+        }
+      },
+      subscription_pool_);
+
+  // Subscription to process hardforks
+  final_chain_->block_applying_.subscribe([&](uint64_t block_num) {
+    // TODO: should have only common hardfork code calling hardfork executor
+    auto &state_conf = conf_.chain.final_chain.state;
+    if (state_conf.hardforks.fix_genesis_fork_block == block_num) {
+      for (auto &e : state_conf.dpos->genesis_state) {
+        for (auto &b : e.second) {
+          b.second *= kOneTara;
+        }
+      }
+      for (auto &b : state_conf.genesis_balances) {
+        b.second *= kOneTara;
+      }
+      // we are multiplying it by TARA precision
+      state_conf.dpos->eligibility_balance_threshold *= kOneTara;
+      // amount of stake per vote should be 10 times smaller than eligibility threshold
+      state_conf.dpos->vote_eligibility_balance_step.assign(state_conf.dpos->eligibility_balance_threshold);
+      state_conf.dpos->eligibility_balance_threshold *= 10;
+      conf_.overwrite_chain_config_in_file();
+      final_chain_->update_state_config(state_conf);
+    }
+  });
+
   LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
 
   if (conf_.network.network_is_boot_node) {
     LOG(log_nf_) << "Starting a boot node ..." << std::endl;
   }
-  if (!conf_.test_params.rebuild_db) {
-    network_->start();
-    blk_proposer_->setNetwork(network_);
-    blk_proposer_->start();
-  }
+
   vote_mgr_->setNetwork(network_);
   pbft_mgr_->setNetwork(network_);
   dag_mgr_->setNetwork(network_);
-  pbft_mgr_->start();
-  dag_mgr_->start();
 
   if (conf_.test_params.rebuild_db) {
     rebuildDb();
     LOG(log_si_) << "Rebuild db completed successfully. Restart node without db_rebuild option";
     started_ = false;
     return;
+  } else {
+    network_->start();
+    blk_proposer_->setNetwork(network_);
+    blk_proposer_->start();
   }
+
+  pbft_mgr_->start();
+  dag_mgr_->start();
 
   started_ = true;
   LOG(log_nf_) << "Node started ... ";
@@ -272,9 +289,10 @@ void FullNode::close() {
 }
 
 void FullNode::rebuildDb() {
+  pbft_mgr_->initialState();
+
   // Read pbft blocks one by one
   uint64_t period = 1;
-
   while (true) {
     auto data = old_db_->getPeriodDataRaw(period);
     if (data.size() == 0) {
@@ -282,23 +300,22 @@ void FullNode::rebuildDb() {
     }
     SyncBlock sync_block(data);
 
-    LOG(log_nf_) << "Adding sync block into queue " << sync_block.pbft_blk->getBlockHash().toString();
+    LOG(log_nf_) << "Adding PBFT block " << sync_block.pbft_blk->getBlockHash().toString()
+                 << " from old DB into syncing queue for processing";
     pbft_mgr_->syncBlockQueuePush(std::move(sync_block), dev::p2p::NodeID());
+    pbft_mgr_->pushSyncedPbftBlocksIntoChain();
 
-    // Wait if more than 10 pbft blocks in queue to be processed
-    while (pbft_mgr_->syncBlockQueueSize() > 10) {
-      thisThreadSleepForMilliSeconds(10);
-    }
     period++;
 
     if (period - 1 == conf_.test_params.rebuild_db_period) {
       break;
     }
   }
-  while (pbft_mgr_->syncBlockQueueSize() > 0 || final_chain_->last_block_number() != period - 1) {
+
+  while (final_chain_->last_block_number() != period - 1) {
     thisThreadSleepForMilliSeconds(1000);
-    LOG(log_nf_) << "Waiting on PBFT blocks to be processed. Queue size: " << pbft_mgr_->syncBlockQueueSize()
-                 << " Chain size: " << final_chain_->last_block_number();
+    LOG(log_nf_) << "Waiting on PBFT blocks to be processed. PBFT chain size " << pbft_mgr_->pbftSyncingPeriod()
+                 << ", final chain size: " << final_chain_->last_block_number();
   }
 }
 

@@ -18,6 +18,8 @@ struct RpcConfig {
 
   // Number of threads dedicated to the rpc calls processing, default = 5
   uint16_t threads_num{5};
+
+  void validate() const;
 };
 
 struct NodeConfig {
@@ -48,6 +50,8 @@ struct NetworkConfig {
   uint16_t network_peer_blacklist_timeout = kBlacklistTimeoutDefaultInSeconds;
   bool disable_peer_blacklist = false;
   uint16_t deep_syncing_threshold = 10;
+
+  void validate() const;
 };
 
 struct BlockProposerConfig {
@@ -71,6 +75,8 @@ struct TestParamsConfig {
 };
 
 struct FullNodeConfig {
+  static const uint32_t kDefaultLightNodeHistoryDays = 7;
+
   FullNodeConfig() = default;
   // The reason of using Json::Value as a union is that in the tests
   // there are attempts to pass char const* to this constructor, which
@@ -92,6 +98,8 @@ struct FullNodeConfig {
   ChainConfig chain = ChainConfig::predefined();
   state_api::Opts opts_final_chain;
   std::vector<logger::Config> log_configs;
+  bool is_light_node = false;       // Is light node
+  uint64_t light_node_history = 0;  // Number of periods to keep in history for a light node
 
   auto net_file_path() const { return data_path / "net"; }
 
@@ -99,7 +107,7 @@ struct FullNodeConfig {
    * @brief Validates config values, throws configexception if validation failes
    * @return
    */
-  void validate();
+  void validate() const;
 
   void overwrite_chain_config_in_file() const;
 };

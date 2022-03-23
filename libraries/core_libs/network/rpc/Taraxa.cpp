@@ -8,7 +8,7 @@
 #include "dag/dag.hpp"
 #include "dag/dag_block_manager.hpp"
 #include "pbft/pbft_manager.hpp"
-#include "transaction_manager/transaction_manager.hpp"
+#include "transaction/transaction_manager.hpp"
 
 using namespace std;
 using namespace jsonrpc;

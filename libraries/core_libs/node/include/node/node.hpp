@@ -38,6 +38,7 @@ class DagBlock;
 class BlockManager;
 struct Transaction;
 class TransactionManager;
+class GasPricer;
 class PbftManager;
 struct NetworkConfig;
 
@@ -55,6 +56,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // should be destroyed after all components, since they may depend on it through unsafe pointers
   std::unique_ptr<util::ThreadPool> rpc_thread_pool_;
+  // In cae we will you config for this TP, it needs to be unique_ptr !!!
+  util::ThreadPool subscription_pool_;
 
   std::atomic<bool> stopped_ = true;
   // configuration
@@ -64,6 +67,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   // components
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<DbStorage> old_db_;
+  std::shared_ptr<GasPricer> gas_pricer_;
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;

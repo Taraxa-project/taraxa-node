@@ -1,4 +1,4 @@
-#include "transaction_manager/transaction_manager.hpp"
+#include "transaction/transaction_manager.hpp"
 
 #include <string>
 #include <utility>
@@ -10,7 +10,10 @@
 namespace taraxa {
 TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_ptr<DbStorage> db,
                                        std::shared_ptr<FinalChain> final_chain, addr_t node_addr)
-    : conf_(conf), known_txs_(200000 /*capacity*/, 2000 /*delete step*/), db_(db), final_chain_(final_chain) {
+    : conf_(conf),
+      known_txs_(200000 /*capacity*/, 2000 /*delete step*/),
+      db_(std::move(db)),
+      final_chain_(std::move(final_chain)) {
   LOG_OBJECTS_CREATE("TRXMGR");
   {
     std::unique_lock transactions_lock(transactions_mutex_);
@@ -284,6 +287,21 @@ void TransactionManager::updateFinalizedTransactionsStatus(SyncBlock const &sync
     }
   }
   db_->saveStatusField(StatusDbField::TrxCount, trx_count_);
+}
+
+void TransactionManager::moveNonFinalizedTransactionsToTransactionsPool(std::unordered_set<trx_hash_t> &&transactions) {
+  // !!! There is no lock because it is called under std::unique_lock trx_lock(trx_mgr_->getTransactionsMutex());
+  auto write_batch = db_->createWriteBatch();
+  for (auto const &trx_hash : transactions) {
+    auto trx = nonfinalized_transactions_in_dag_.find(trx_hash);
+    if (trx != nonfinalized_transactions_in_dag_.end()) {
+      db_->removeTransactionToBatch(trx_hash, write_batch);
+      nonfinalized_transactions_in_dag_.erase(trx_hash);
+      auto transaction = trx->second;
+      transactions_pool_.insert(std::move(transaction));
+    }
+  }
+  db_->commitWriteBatch(write_batch);
 }
 
 // Verify all block transactions are present

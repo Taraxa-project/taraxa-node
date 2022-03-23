@@ -22,7 +22,7 @@
 #include "node/node.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
-#include "transaction_manager/transaction_manager.hpp"
+#include "transaction/transaction_manager.hpp"
 #include "vote/vote.hpp"
 
 namespace taraxa::network::tarcap {
@@ -252,6 +252,7 @@ void TaraxaCapability::onConnect(std::weak_ptr<dev::p2p::Session> session, u256 
     LOG(log_wr_) << "Node " << node_id << " connection dropped - malicious node";
     return;
   }
+
   peers_state_->addPendingPeer(node_id);
   LOG(log_nf_) << "Node " << node_id << " connected";
 

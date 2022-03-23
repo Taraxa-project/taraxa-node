@@ -3,7 +3,7 @@
 #include "dag/dag_block_manager.hpp"
 #include "network/tarcap/shared_states/syncing_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
-#include "transaction_manager/transaction_manager.hpp"
+#include "transaction/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {
 
@@ -147,6 +147,7 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shar
         break;
       case DagBlockManager::InsertAndVerifyBlockReturnType::InsertedAndVerified:
       case DagBlockManager::InsertAndVerifyBlockReturnType::AlreadyKnown:
+      case DagBlockManager::InsertAndVerifyBlockReturnType::ExpiredBlock:
         break;
     }
   } else if (!test_state_->hasBlock(block.getHash())) {

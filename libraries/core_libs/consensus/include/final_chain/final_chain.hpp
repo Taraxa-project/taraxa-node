@@ -12,6 +12,8 @@
 
 namespace taraxa::final_chain {
 
+enum class DBMetaKeys { LAST_NUMBER = 1 };
+
 class FinalChain {
  public:
   static constexpr auto GAS_LIMIT = ((uint64_t)1 << 53) - 1;
@@ -22,7 +24,7 @@ class FinalChain {
 
  public:
   decltype(block_finalized_emitter_)::Subscriber const& block_finalized_ = block_finalized_emitter_;
-  decltype(block_applying_emitter_)::Subscriber const& block_applying = block_applying_emitter_;
+  decltype(block_applying_emitter_)::Subscriber const& block_applying_ = block_applying_emitter_;
 
   virtual ~FinalChain() = default;
   virtual void stop() = 0;

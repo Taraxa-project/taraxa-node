@@ -16,6 +16,7 @@ const char *mainnet_json = R"foo({
   "network_sync_level_size": 10,
   "network_packets_processing_threads": 14,
   "network_peer_blacklist_timeout" : 600,
+  "is_light_node" : false,
   "deep_syncing_threshold" : 10,
   "network_boot_nodes": [
     {
@@ -239,6 +240,10 @@ const char *mainnet_json = R"foo({
           "fix_genesis_fork_block": "0x102CA0"
         }
       }
+    },
+    "gas_price" : {
+      "blocks" : 200,
+      "percentile" : 60
     },
     "pbft": {
       "committee_size": "0x3e8",

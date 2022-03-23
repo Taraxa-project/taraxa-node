@@ -156,6 +156,7 @@ int main(int argc, char** argv) {
 
   dev::p2p::TaraxaNetworkConfig taraxa_net_conf;
   taraxa_net_conf.is_boot_node = true;
+  taraxa_net_conf.network_id = network_id;
   auto network_file_path = taraxa::cli::Tools::getTaraxaDefaultDir() / std::filesystem::path(kNetworkConfigFileName);
 
   auto boot_host = dev::p2p::Host::make(

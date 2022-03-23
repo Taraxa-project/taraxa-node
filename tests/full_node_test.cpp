@@ -17,7 +17,7 @@
 #include "node/node.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "string"
-#include "transaction_manager/transaction_manager.hpp"
+#include "transaction/transaction_manager.hpp"
 #include "util_test/samples.hpp"
 
 // TODO rename this namespace to `tests`
@@ -152,29 +152,24 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbft2TPlus1(11), 3);
 
   // PBFT manager status
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::SoftVotedBlockInRound));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
-  db.savePbftMgrStatus(PbftMgrStatus::SoftVotedBlockInRound, true);
   db.savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, true);
   db.savePbftMgrStatus(PbftMgrStatus::ExecutedInRound, true);
   db.savePbftMgrStatus(PbftMgrStatus::NextVotedSoftValue, true);
   db.savePbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash, true);
-  EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::SoftVotedBlockInRound));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
   EXPECT_TRUE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
   batch = db.createWriteBatch();
-  db.addPbftMgrStatusToBatch(PbftMgrStatus::SoftVotedBlockInRound, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::ExecutedBlock, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::ExecutedInRound, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedSoftValue, false, batch);
   db.addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedNullBlockHash, false, batch);
   db.commitWriteBatch(batch);
-  EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::SoftVotedBlockInRound));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
@@ -953,12 +948,14 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
   auto num_vertices1 = nodes[0]->getDagManager()->getNumVerticesInDag();
   auto num_vertices2 = nodes[1]->getDagManager()->getNumVerticesInDag();
   for (unsigned i = 0; i < SYNC_TIMEOUT; i++) {
-    if (num_vertices1.first >= 3 && num_vertices2.first >= 3 && num_vertices1 == num_vertices2) break;
+    if (nodes[0]->getTransactionManager()->getTransactionPoolSize() == 0 &&
+        nodes[1]->getTransactionManager()->getTransactionPoolSize() == 0 && num_vertices1 == num_vertices2)
+      break;
     taraxa::thisThreadSleepForMilliSeconds(500);
     num_vertices1 = nodes[0]->getDagManager()->getNumVerticesInDag();
     num_vertices2 = nodes[1]->getDagManager()->getNumVerticesInDag();
   }
-  EXPECT_GE(num_vertices1.first, 3);
+  EXPECT_GE(num_vertices1.first, 2);
   EXPECT_EQ(num_vertices1, num_vertices2);
 }
 
@@ -1367,7 +1364,7 @@ TEST_F(FullNodeTest, db_rebuild) {
     std::cout << "Check rebuild DB" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
     auto nodes = launch_nodes(node_cfgs);
-    EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
+    EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
       WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count)
       WAIT_EXPECT_EQ(ctx, nodes[0]->getFinalChain()->last_block_number(), executed_chain_size)
     });
@@ -1385,7 +1382,7 @@ TEST_F(FullNodeTest, db_rebuild) {
     std::cout << "Check rebuild for period 5" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
     auto nodes = launch_nodes(node_cfgs);
-    EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
+    EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
       WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count_at_pbft_size_5)
       WAIT_EXPECT_EQ(ctx, nodes[0]->getFinalChain()->last_block_number(), 5)
     });
@@ -1465,6 +1462,10 @@ TEST_F(FullNodeTest, chain_config_json) {
       }
     }
   },
+  "gas_price": {
+    "blocks": 200,
+    "percentile": 60
+  },
   "pbft": {
     "committee_size": "0x5",
     "dag_blocks_size": "0x64",
@@ -1492,21 +1493,25 @@ TEST_F(FullNodeTest, chain_config_json) {
 })";
   Json::Value default_chain_config_json;
   std::istringstream(expected_default_chain_cfg_json) >> default_chain_config_json;
-  ASSERT_EQ(default_chain_config_json, enc_json(ChainConfig::predefined()));
+  // TODO [1473] : remove jsonToUnstyledString
+  ASSERT_EQ(jsonToUnstyledString(default_chain_config_json), jsonToUnstyledString(enc_json(ChainConfig::predefined())));
   std::string config_file_path = DIR_CONF / "conf_taraxa1.json";
   Json::Value test_node_config_json;
   std::ifstream(config_file_path, std::ifstream::binary) >> test_node_config_json;
   Json::Value test_node_wallet_json;
   std::ifstream((DIR_CONF / "wallet1.json").string(), std::ifstream::binary) >> test_node_wallet_json;
   test_node_config_json.removeMember("chain_config");
-  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain),
-            default_chain_config_json);
+  ASSERT_EQ(jsonToUnstyledString(
+                enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain)),
+            jsonToUnstyledString(default_chain_config_json));
   test_node_config_json["chain_config"] = default_chain_config_json;
-  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain),
-            default_chain_config_json);
+  ASSERT_EQ(jsonToUnstyledString(
+                enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain)),
+            jsonToUnstyledString(default_chain_config_json));
   test_node_config_json["chain_config"] = "test";
-  ASSERT_EQ(enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain),
-            enc_json(ChainConfig::predefined("test")));
+  ASSERT_EQ(jsonToUnstyledString(
+                enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain)),
+            jsonToUnstyledString(enc_json(ChainConfig::predefined("test"))));
 }
 
 TEST_F(FullNodeTest, transaction_validation) {
@@ -1539,6 +1544,33 @@ TEST_F(FullNodeTest, transaction_validation) {
                     str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
   // FAIL on BALANCE
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
+}
+
+TEST_F(FullNodeTest, light_node) {
+  auto node_cfgs = make_node_cfgs<20, true>(2);
+  node_cfgs[0].is_light_node = true;
+  node_cfgs[0].light_node_history = 10;
+  auto nodes = launch_nodes(node_cfgs);
+  uint64_t nonce = 0;
+  while (nodes[0]->getPbftChain()->getPbftChainSize() < 40) {
+    Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
+    // broadcast dummy transaction
+    nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
+    thisThreadSleepForMilliSeconds(200);
+  }
+  EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
+    // Verify full node and light node sync without any issues
+    WAIT_EXPECT_EQ(ctx, nodes[0]->getPbftChain()->getPbftChainSize(), nodes[1]->getPbftChain()->getPbftChainSize())
+  });
+  uint32_t min_period_in_db = 0;
+  for (uint64_t i = 0; i < nodes[0]->getPbftChain()->getPbftChainSize(); i++) {
+    if (nodes[0]->getDB()->getPeriodDataRaw(i).size() > 0) {
+      min_period_in_db = i;
+      break;
+    }
+  }
+  // Verify light node stores only expected number of period_data
+  EXPECT_GT(min_period_in_db, nodes[0]->getPbftChain()->getPbftChainSize() - node_cfgs[0].light_node_history - 1);
 }
 
 }  // namespace taraxa::core_tests

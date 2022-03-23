@@ -96,6 +96,15 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   void updateFinalizedTransactionsStatus(SyncBlock const &sync_block);
 
   /**
+   * @brief Moves non-finalized transactions from discarded old dag blocks back to transactions pool
+   * IMPORTANT: This method is invoked on finalizing a pbft block, it needs to be protected with transactions_mutex_ but
+   * the mutex is locked from pbft manager for the entire pbft finalization process to make the finalization atomic
+   *
+   * @param transactions transactions to move
+   */
+  void moveNonFinalizedTransactionsToTransactionsPool(std::unordered_set<trx_hash_t> &&transactions);
+
+  /**
    * @brief Retrieves transactions mutex, only to be used when finalizing pbft block
    *
    * @return mutex
