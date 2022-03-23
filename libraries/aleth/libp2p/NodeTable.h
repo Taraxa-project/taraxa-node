@@ -109,7 +109,8 @@ class NodeTable : UDPSocketEvents {
   /// Constructor requiring host for I/O, credentials, and IP Address, port to
   /// listen on and host ENR.
   NodeTable(ba::io_context& _io, KeyPair const& _alias, NodeIPEndpoint const& _endpoint, ENR const& _enr,
-            bool _enabled = true, bool _allowLocalDiscovery = false, bool is_boot_node = false);
+            bool _enabled = true, bool _allowLocalDiscovery = false, bool is_boot_node = false,
+            unsigned network_id = 0);
 
   ~NodeTable() {
     if (m_socket->isOpen()) {
@@ -332,10 +333,10 @@ class NodeTable : UDPSocketEvents {
 
   std::unique_ptr<NodeTableEventHandler> m_nodeEventHandler;  ///< Event handler for node events.
 
-  NodeID const m_hostNodeID;
-  h256 const m_hostNodeIDHash;
-  bool m_allowLocalDiscovery;  ///< Allow nodes with local addresses to be
-                               ///< included in the discovery process
+  const NodeID m_hostNodeID;
+  const h256 m_hostNodeIDHash;
+  const bool m_allowLocalDiscovery;  ///< Allow nodes with local addresses to be
+                                     ///< included in the discovery process
   // Host IP address given to constructor
   bi::address const m_hostStaticIP;
   // Dynamically updated host endpoint
@@ -384,7 +385,8 @@ class NodeTable : UDPSocketEvents {
   std::shared_ptr<ba::steady_timer> m_timeoutsTimer;
   std::shared_ptr<ba::steady_timer> m_endpointTrackingTimer;
 
-  bool is_boot_node_ = false;
+  const bool is_boot_node_ = false;
+  const uint32_t network_id_ = 0;
 };
 
 /**
@@ -457,8 +459,8 @@ struct DiscoveryDatagram : public RLPXDatagramFace {
  */
 struct PingNode : DiscoveryDatagram {
   using DiscoveryDatagram::DiscoveryDatagram;
-  PingNode(NodeIPEndpoint const& _src, NodeIPEndpoint const& _dest)
-      : DiscoveryDatagram(_dest), source(_src), destination(_dest) {}
+  PingNode(NodeIPEndpoint const& _src, NodeIPEndpoint const& _dest, unsigned _network_id)
+      : DiscoveryDatagram(_dest), network_id(_network_id), source(_src), destination(_dest) {}
   PingNode(bi::udp::endpoint const& _from, NodeID const& _fromid, h256 const& _echo)
       : DiscoveryDatagram(_from, _fromid, _echo) {}
 
@@ -466,6 +468,7 @@ struct PingNode : DiscoveryDatagram {
   uint8_t packetType() const override { return type; }
 
   unsigned version = 0;
+  unsigned network_id = 0;
   NodeIPEndpoint source;
   NodeIPEndpoint destination;
   boost::optional<uint64_t> seq;
@@ -473,18 +476,21 @@ struct PingNode : DiscoveryDatagram {
   void streamRLP(RLPStream& _s) const override {
     _s.appendList(seq.is_initialized() ? 5 : 4);
     _s << dev::p2p::c_protocolVersion;
+    _s << network_id;
     source.streamRLP(_s);
     destination.streamRLP(_s);
     _s << *expiration;
     if (seq.is_initialized()) _s << *seq;
   }
+
   void interpretRLP(bytesConstRef _bytes) override {
     RLP r(_bytes, RLP::AllowNonCanon | RLP::ThrowOnFail);
     version = r[0].toInt<unsigned>();
-    source.interpretRLP(r[1]);
-    destination.interpretRLP(r[2]);
-    expiration = r[3].toInt<uint32_t>();
-    if (r.itemCount() > 4 && r[4].isInt()) seq = r[4].toInt<uint64_t>();
+    network_id = r[1].toInt<unsigned>();
+    source.interpretRLP(r[2]);
+    destination.interpretRLP(r[3]);
+    expiration = r[4].toInt<uint32_t>();
+    if (r.itemCount() > 5 && r[5].isInt()) seq = r[5].toInt<uint64_t>();
   }
 
   std::string typeName() const override { return "Ping"; }

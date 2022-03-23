@@ -8,6 +8,7 @@ struct TaraxaNetworkConfig {
   unsigned ideal_peer_count = 11;
   unsigned peer_stretch = 7;
   bool is_boot_node = false;
+  unsigned network_id = 0;
   uint expected_parallelism = 1;
   std::chrono::seconds peer_healthcheck_interval{30};
   std::chrono::seconds peer_healthcheck_timeout{1};

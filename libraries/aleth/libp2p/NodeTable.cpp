@@ -33,7 +33,7 @@ inline bool operator==(weak_ptr<NodeEntry> const& _weak, shared_ptr<NodeEntry> c
 }
 
 NodeTable::NodeTable(ba::io_context& _io, KeyPair const& _alias, NodeIPEndpoint const& _endpoint, ENR const& _enr,
-                     bool _enabled, bool _allowLocalDiscovery, bool is_boot_node)
+                     bool _enabled, bool _allowLocalDiscovery, bool is_boot_node, unsigned network_id)
     : strand_(ba::make_strand(_io)),
       m_hostNodeID{_alias.pub()},
       m_hostNodeIDHash{sha3(m_hostNodeID)},
@@ -47,7 +47,8 @@ NodeTable::NodeTable(ba::io_context& _io, KeyPair const& _alias, NodeIPEndpoint 
       m_discoveryTimer{make_shared<ba::steady_timer>(_io)},
       m_timeoutsTimer{make_shared<ba::steady_timer>(_io)},
       m_endpointTrackingTimer{make_shared<ba::steady_timer>(_io)},
-      is_boot_node_(is_boot_node) {
+      is_boot_node_(is_boot_node),
+      network_id_(network_id) {
   if (is_boot_node_) {
     s_bucketSize = BOOT_NODE_BUCKET_SIZE;
   }
@@ -256,7 +257,7 @@ void NodeTable::ping(Node const& _node, shared_ptr<NodeEntry> _replacementNodeEn
     return;
   }
 
-  PingNode p{m_hostNodeEndpoint, _node.get_endpoint()};
+  PingNode p{m_hostNodeEndpoint, _node.get_endpoint(), network_id_};
   p.expiration = nextRequestExpirationTime();
   p.seq = m_hostENR.sequenceNumber();
   auto const pingHash = p.sign(m_secret);
@@ -574,6 +575,12 @@ std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _f
 
   if (in.version != dev::p2p::c_protocolVersion) {
     LOG(m_logger) << "Received a ping from a different protocol version node " << in.version << " from: " << _from;
+    if (auto node = nodeEntry(_packet.sourceid)) dropNode(move(node));
+    return nullptr;
+  }
+
+  if (in.network_id != network_id_) {
+    LOG(m_logger) << "Received a ping from a different network node " << in.network_id << " from: " << _from;
     if (auto node = nodeEntry(_packet.sourceid)) dropNode(move(node));
     return nullptr;
   }
