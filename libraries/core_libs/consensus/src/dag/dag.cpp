@@ -420,6 +420,16 @@ void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, boo
           LOG(log_dg_) << "Block already in DB: " << blk.getHash();
           return;
         }
+        const auto proposal_period = db_->getProposalPeriodForDagLevel(blk.getLevel());
+        const auto expiry_period = pbft_chain_->getDagExpiryPeriod();
+        assert(proposal_period);
+        if (*proposal_period < expiry_period) {
+          LOG(log_nf_) << "Dropping old block: " << blk.getHash() << ". Proposal period: " << *proposal_period
+                       << ". Current period: " << period_ << " Expiry period: " << expiry_period
+                       << ". Block level: " << blk.getLevel();
+          return;
+        }
+
         // Saves transactions and remove them from memory pool
         trx_mgr_->saveTransactionsFromDagBlock(trxs);
         // Save the dag block
@@ -434,12 +444,7 @@ void DagManager::addDagBlock(DagBlock const &blk, SharedTransactions &&trxs, boo
 
       addToDag(blk_hash, pivot_hash, tips, blk.getLevel());
 
-      auto [p, ts] = getFrontier();
-      frontier_.pivot = p;
-      frontier_.tips.clear();
-      for (auto const &t : ts) {
-        frontier_.tips.push_back(t);
-      }
+      updateFrontier();
     }
     if (save) {
       block_verified_.emit(blk);
@@ -493,6 +498,15 @@ std::pair<blk_hash_t, std::vector<blk_hash_t>> DagManager::getFrontier() const {
     tips.erase(end, tips.end());
   }
   return {pivot, tips};
+}
+
+void DagManager::updateFrontier() {
+  auto [p, ts] = getFrontier();
+  frontier_.pivot = p;
+  frontier_.tips.clear();
+  for (auto const &t : ts) {
+    frontier_.tips.push_back(t);
+  }
 }
 
 void DagManager::getGhostPath(blk_hash_t const &source, std::vector<blk_hash_t> &ghost) const {
@@ -584,23 +598,91 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
   assert(dag_order_set.count(new_anchor));
   addToDag(new_anchor, blk_hash_t(), vec_blk_t(), 0, true);
 
+  std::unordered_map<blk_hash_t, std::shared_ptr<DagBlock>> expired_dag_blocks_to_remove;
+  std::vector<trx_hash_t> expired_dag_blocks_transactions;
+
   for (auto &v : non_finalized_blocks) {
-    for (auto &blk : v.second) {
-      if (dag_order_set.count(blk) == 0) {
-        auto dag_block = dag_blk_mgr_->getDagBlock(blk);
+    for (auto &blk_hash : v.second) {
+      if (dag_order_set.count(blk_hash) == 0) {
+        auto dag_block = dag_blk_mgr_->getDagBlock(blk_hash);
         auto pivot_hash = dag_block->getPivot();
-        addToDag(blk, pivot_hash, dag_block->getTips(), dag_block->getLevel(), false);
+
+        if (validateBlockNotExpired(dag_block, expired_dag_blocks_to_remove)) {
+          addToDag(blk_hash, pivot_hash, dag_block->getTips(), dag_block->getLevel(), false);
+        } else {
+          for (const auto &trx : dag_block->getTrxs()) expired_dag_blocks_transactions.emplace_back(trx);
+        }
       }
     }
+  }
+
+  // Remove any transactions from expired dag blocks if not already finalized or included in another dag block
+  if (expired_dag_blocks_transactions.size()) {
+    handleExpiredDagBlocksTransactions(expired_dag_blocks_transactions);
   }
 
   old_anchor_ = anchor_;
   anchor_ = new_anchor;
   period_ = period;
+  updateFrontier();
 
   LOG(log_nf_) << "Set new period " << period << " with anchor " << new_anchor;
 
   return dag_order_set.size();
+}
+
+void DagManager::handleExpiredDagBlocksTransactions(
+    const std::vector<trx_hash_t> &transactions_from_expired_dag_blocks) const {
+  std::unordered_set<trx_hash_t> transactions_from_expired_dag_blocks_to_remove;
+  // Only transactions that need to be moved to memory pool are the ones that are not yet finalized and are not part of
+  // another valid DAG block
+  auto trxs_finalized = db_->transactionsFinalized(transactions_from_expired_dag_blocks);
+  for (uint32_t i = 0; i < trxs_finalized.size(); i++) {
+    if (!trxs_finalized[i]) {
+      transactions_from_expired_dag_blocks_to_remove.emplace(transactions_from_expired_dag_blocks[i]);
+    }
+  }
+  for (auto const &level : non_finalized_blks_) {
+    for (auto const &blk : level.second) {
+      auto dag_block = dag_blk_mgr_->getDagBlock(blk);
+      for (auto const &trx : dag_block->getTrxs()) {
+        transactions_from_expired_dag_blocks_to_remove.erase(trx);
+      }
+    }
+  }
+  if (transactions_from_expired_dag_blocks_to_remove.size() > 0) {
+    trx_mgr_->moveNonFinalizedTransactionsToTransactionsPool(std::move(transactions_from_expired_dag_blocks_to_remove));
+  }
+}
+
+bool DagManager::validateBlockNotExpired(
+    const std::shared_ptr<DagBlock> &dag_block,
+    std::unordered_map<blk_hash_t, std::shared_ptr<DagBlock>> &expired_dag_blocks_to_remove) {
+  // Check for expired dag blocks, in practice this should happen very rarely if some node is cut off from the rest of
+  // the network. In normal cases DAG blocks will be finalized or an old dag block will not enter the DAG at all
+  const auto &blk_hash = dag_block->getHash();
+  bool block_points_to_expired_block = expired_dag_blocks_to_remove.contains(dag_block->getPivot());
+  if (!block_points_to_expired_block) {
+    for (const auto &tip : dag_block->getTips()) {
+      if (expired_dag_blocks_to_remove.contains(tip)) {
+        block_points_to_expired_block = true;
+        break;
+      }
+    }
+  }
+
+  const auto proposal_period = db_->getProposalPeriodForDagLevel(dag_block->getLevel());
+  assert(proposal_period);
+  const auto expiry_period = pbft_chain_->getDagExpiryPeriod();
+  if (block_points_to_expired_block || *proposal_period < expiry_period) {
+    LOG(log_nf_) << "Dropping expired block in setDagBlockOrder: " << blk_hash
+                 << ". Proposal period: " << *proposal_period << ". Current period: " << period_
+                 << ". Expiry period: " << expiry_period << ". Block level: " << dag_block->getLevel();
+    expired_dag_blocks_to_remove[blk_hash] = dag_block;
+    assert(blk_hash != frontier_.pivot);
+    return false;
+  }
+  return true;
 }
 
 void DagManager::recoverDag() {

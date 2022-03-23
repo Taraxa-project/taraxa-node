@@ -138,10 +138,11 @@ TEST_F(DagTest, compute_epoch) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
+  auto pbft_chain = std::make_shared<PbftChain>(GENESIS, addr_t(), db_ptr);
   auto mgr =
-      std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, nullptr,
+      std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, pbft_chain,
                                    std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition, db_ptr,
-                                                                     nullptr, nullptr, nullptr, time_log),
+                                                                     nullptr, nullptr, pbft_chain, time_log),
                                    db_ptr, logger::Logger());
   DagBlock blkA(blk_hash_t(1), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkB(blk_hash_t(1), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
@@ -222,11 +223,12 @@ TEST_F(DagTest, compute_epoch) {
 TEST_F(DagTest, receive_block_in_order) {
   const blk_hash_t GENESIS("000000000000000000000000000000000000000000000000000000000000000a");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
+  auto pbft_chain = std::make_shared<PbftChain>(GENESIS, addr_t(), db_ptr);
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto mgr =
-      std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, nullptr,
+      std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, pbft_chain,
                                    std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition, db_ptr,
-                                                                     nullptr, nullptr, nullptr, time_log),
+                                                                     nullptr, nullptr, pbft_chain, time_log),
                                    db_ptr, logger::Logger());
   DagBlock genesis_block(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(10), addr_t(15));
   DagBlock blk1(blk_hash_t(10), 0, {}, {}, sig_t(777), blk_hash_t(1), addr_t(15));
@@ -256,11 +258,12 @@ TEST_F(DagTest, receive_block_in_order) {
 TEST_F(DagTest, compute_epoch_2) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
+  auto pbft_chain = std::make_shared<PbftChain>(GENESIS, addr_t(), db_ptr);
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto mgr =
-      std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, nullptr,
+      std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, pbft_chain,
                                    std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition, db_ptr,
-                                                                     nullptr, nullptr, nullptr, time_log),
+                                                                     nullptr, nullptr, pbft_chain, time_log),
                                    db_ptr, logger::Logger());
   DagBlock blkA(blk_hash_t(1), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkB(blk_hash_t(1), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
@@ -334,10 +337,11 @@ TEST_F(DagTest, get_latest_pivot_tips) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
+  auto pbft_chain = std::make_shared<PbftChain>(GENESIS, addr_t(), db_ptr);
   auto mgr =
-      std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, nullptr,
+      std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, pbft_chain,
                                    std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition, db_ptr,
-                                                                     nullptr, nullptr, nullptr, time_log),
+                                                                     nullptr, nullptr, pbft_chain, time_log),
                                    db_ptr, logger::Logger());
   DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(0), blk_hash_t(1), addr_t(15));
   DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(1), blk_hash_t(2), addr_t(15));

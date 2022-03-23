@@ -147,6 +147,7 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shar
         break;
       case DagBlockManager::InsertAndVerifyBlockReturnType::InsertedAndVerified:
       case DagBlockManager::InsertAndVerifyBlockReturnType::AlreadyKnown:
+      case DagBlockManager::InsertAndVerifyBlockReturnType::ExpiredBlock:
         break;
     }
   } else if (!test_state_->hasBlock(block.getHash())) {

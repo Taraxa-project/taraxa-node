@@ -16,6 +16,7 @@ const char *default_json = R"foo({
   "network_sync_level_size": 25,
   "network_packets_processing_threads": 14,
   "network_peer_blacklist_timeout" : 600,
+  "is_light_node" : false,
   "deep_syncing_threshold" : 10,
   "network_boot_nodes": [
   ],

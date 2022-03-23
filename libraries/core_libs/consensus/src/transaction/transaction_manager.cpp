@@ -289,6 +289,21 @@ void TransactionManager::updateFinalizedTransactionsStatus(SyncBlock const &sync
   db_->saveStatusField(StatusDbField::TrxCount, trx_count_);
 }
 
+void TransactionManager::moveNonFinalizedTransactionsToTransactionsPool(std::unordered_set<trx_hash_t> &&transactions) {
+  // !!! There is no lock because it is called under std::unique_lock trx_lock(trx_mgr_->getTransactionsMutex());
+  auto write_batch = db_->createWriteBatch();
+  for (auto const &trx_hash : transactions) {
+    auto trx = nonfinalized_transactions_in_dag_.find(trx_hash);
+    if (trx != nonfinalized_transactions_in_dag_.end()) {
+      db_->removeTransactionToBatch(trx_hash, write_batch);
+      nonfinalized_transactions_in_dag_.erase(trx_hash);
+      auto transaction = trx->second;
+      transactions_pool_.insert(std::move(transaction));
+    }
+  }
+  db_->commitWriteBatch(write_batch);
+}
+
 // Verify all block transactions are present
 bool TransactionManager::checkBlockTransactions(DagBlock const &blk) {
   vec_trx_t const &all_block_trx_hashes = blk.getTrxs();

@@ -47,11 +47,17 @@ Json::Value Test::get_dag_block(const Json::Value &param1) {
   try {
     if (auto node = full_node_.lock()) {
       blk_hash_t hash = blk_hash_t(param1["hash"].asString());
-      auto blk = node->getDagBlockManager()->getDagBlock(hash);
-      if (!blk) {
-        res = "Block not available \n";
+      const auto &dag_blk_mgr = node->getDagBlockManager();
+      auto known_block = dag_blk_mgr->isDagBlockKnown(hash);
+      if (known_block) {
+        auto blk = dag_blk_mgr->getDagBlock(hash);
+        if (!blk) {
+          res["status"] = "Light node - Block could not be retrieved";
+        } else {
+          res = blk->getJsonStr();
+        }
       } else {
-        res = node->getDagBlockManager()->getDagBlock(hash)->getJsonStr();
+        res["status"] = "Unknown block";
       }
     }
   } catch (std::exception &e) {

@@ -58,6 +58,19 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     auto const node_major_version = (*it++).toInt<unsigned>();
     auto const node_minor_version = (*it++).toInt<unsigned>();
     auto const node_patch_version = (*it++).toInt<unsigned>();
+    auto const is_light_node = (*it++).toInt();
+    auto const node_history = (*it++).toInt<uint64_t>();
+
+    // If this is a light node and it cannot serve our sync request disconnect from it
+    if (is_light_node) {
+      selected_peer->peer_light_node = true;
+      selected_peer->peer_light_node_history = node_history;
+      if (pbft_synced_period + node_history < peer_pbft_chain_size) {
+        LOG(log_nf_) << "Light node is not able to serve our syncing request. " << packet_data.from_node_id_.abridged()
+                     << " peer will be disconnected";
+        disconnect(peer->getId(), dev::p2p::UserReason);
+      }
+    }
 
     // We need logic when some different node versions might still be compatible
     if (node_major_version != TARAXA_MAJOR_VERSION || node_minor_version != TARAXA_MINOR_VERSION) {
@@ -175,12 +188,13 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
     auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();
 
     if (initial) {
-      success = sealAndSend(
-          node_id, StatusPacket,
-          std::move(dev::RLPStream(kInitialStatusPacketItemsCount)
-                    << conf_network_id_ << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
-                    << syncing_state_->is_pbft_syncing() << pbft_round << pbft_previous_round_next_votes_size
-                    << TARAXA_MAJOR_VERSION << TARAXA_MINOR_VERSION << TARAXA_PATCH_VERSION));
+      success =
+          sealAndSend(node_id, StatusPacket,
+                      std::move(dev::RLPStream(kInitialStatusPacketItemsCount)
+                                << conf_network_id_ << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
+                                << syncing_state_->is_pbft_syncing() << pbft_round
+                                << pbft_previous_round_next_votes_size << TARAXA_MAJOR_VERSION << TARAXA_MINOR_VERSION
+                                << TARAXA_PATCH_VERSION << db_->isLightNode() << db_->getLightNodeHistory()));
     } else {
       success = sealAndSend(node_id, StatusPacket,
                             std::move(dev::RLPStream(kStandardStatusPacketItemsCount)
