@@ -11,7 +11,7 @@ namespace taraxa::network::tarcap {
 class StatusPacketHandler : public ExtSyncingPacketHandler {
  public:
   StatusPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-                      std::shared_ptr<SyncingState> syncing_state, std::shared_ptr<PbftChain> pbft_chain,
+                      std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
                       std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                       std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
                       std::shared_ptr<DbStorage> db, uint64_t conf_network_id, const addr_t& node_addr);

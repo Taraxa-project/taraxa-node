@@ -2,7 +2,7 @@
 
 #include "dag/dag_block_manager.hpp"
 #include "network/tarcap/packets_handlers/common/ext_syncing_packet_handler.hpp"
-#include "network/tarcap/shared_states/syncing_state.hpp"
+#include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "transaction/transaction_manager.hpp"
@@ -12,13 +12,13 @@ namespace taraxa::network::tarcap {
 
 PbftSyncPacketHandler::PbftSyncPacketHandler(std::shared_ptr<PeersState> peers_state,
                                              std::shared_ptr<PacketsStats> packets_stats,
-                                             std::shared_ptr<SyncingState> syncing_state,
+                                             std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                                              std::shared_ptr<PbftChain> pbft_chain,
                                              std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                                              std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                              std::shared_ptr<DbStorage> db, size_t network_sync_level_size,
                                              const addr_t &node_addr)
-    : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(syncing_state),
+    : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(dag_blk_mgr),
                               std::move(db), node_addr, "PBFT_SYNC_PH"),
       network_sync_level_size_(network_sync_level_size),
@@ -41,9 +41,9 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   // Note: no need to consider possible race conditions due to concurrent processing as it is
   // disabled on priority_queue blocking dependencies level
 
-  if (syncing_state_->syncing_peer() != packet_data.from_node_id_) {
+  if (pbft_syncing_state_->syncingPeer() != packet_data.from_node_id_) {
     LOG(log_wr_) << "PbftSyncPacket received from unexpected peer " << packet_data.from_node_id_.abridged()
-                 << " current syncing peer " << syncing_state_->syncing_peer().abridged();
+                 << " current syncing peer " << pbft_syncing_state_->syncingPeer().abridged();
     return;
   }
 
@@ -136,7 +136,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
 
   // Reset last sync packet received time
-  syncing_state_->set_last_sync_packet_time();
+  pbft_syncing_state_->setLastSyncPacketTime();
 
   if (pbft_chain_synced) {
     pbftSyncComplete();
@@ -144,7 +144,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   }
 
   if (last_block) {
-    if (syncing_state_->is_pbft_syncing()) {
+    if (pbft_syncing_state_->isPbftSyncing()) {
       if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * network_sync_level_size_)) {
         LOG(log_tr_) << "Syncing pbft blocks too fast than processing. Has synced period " << pbft_sync_period
                      << ", PBFT chain size " << pbft_chain_->getPbftChainSize();
@@ -170,7 +170,7 @@ void PbftSyncPacketHandler::pbftSyncComplete() {
     // greater pbft chain size and we should continue syncing with
     // them, Or sync pending DAG blocks
     restartSyncingPbft(true);
-    if (!syncing_state_->is_pbft_syncing()) {
+    if (!pbft_syncing_state_->isPbftSyncing()) {
       requestPendingDagBlocks();
     }
   }
@@ -181,12 +181,12 @@ void PbftSyncPacketHandler::delayedPbftSync(int counter) {
   if (counter > 60) {
     LOG(log_er_) << "Pbft blocks stuck in queue, no new block processed in 60 seconds " << pbft_sync_period << " "
                  << pbft_chain_->getPbftChainSize();
-    syncing_state_->set_pbft_syncing(false);
+    pbft_syncing_state_->setPbftSyncing(false);
     LOG(log_tr_) << "Syncing PBFT is stopping";
     return;
   }
 
-  if (syncing_state_->is_pbft_syncing()) {
+  if (pbft_syncing_state_->isPbftSyncing()) {
     if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * network_sync_level_size_)) {
       LOG(log_tr_) << "Syncing pbft blocks faster than processing " << pbft_sync_period << " "
                    << pbft_chain_->getPbftChainSize();

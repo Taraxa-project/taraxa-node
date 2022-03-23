@@ -29,7 +29,7 @@ class TransactionManager;
 namespace taraxa::network::tarcap {
 
 class PacketsHandler;
-class SyncingState;
+class PbftSyncingState;
 class TaraxaPeer;
 
 class TaraxaCapability : public dev::p2p::CapabilityFace {
@@ -121,7 +121,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   std::shared_ptr<PeersState> peers_state_;
 
   // Syncing state + syncing handler
-  std::shared_ptr<SyncingState> syncing_state_;
+  std::shared_ptr<PbftSyncingState> pbft_syncing_state_;
 
   // List of boot nodes (from config)
   std::map<dev::Public, dev::p2p::NodeIPEndpoint> boot_nodes_;

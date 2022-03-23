@@ -16,13 +16,13 @@ class TransactionManager;
 namespace taraxa::network::tarcap {
 
 class PeersState;
-class SyncingState;
+class PbftSyncingState;
 class PacketsStats;
 class TarcapThreadPool;
 
 class NodeStats {
  public:
-  NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<SyncingState> syncing_state,
+  NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PbftSyncingState> pbft_syncing_state,
             std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
             std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
             std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<TransactionManager> trx_mgr,
@@ -39,7 +39,7 @@ class NodeStats {
 
  private:
   std::shared_ptr<PeersState> peers_state_;
-  std::shared_ptr<SyncingState> syncing_state_;
+  std::shared_ptr<PbftSyncingState> pbft_syncing_state_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<DagManager> dag_mgr_;
