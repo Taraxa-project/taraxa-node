@@ -2,8 +2,8 @@
 
 namespace taraxa {
 
-GasPricer::GasPricer(uint64_t percentile, uint64_t number_of_blocks, std::shared_ptr<DbStorage> db)
-    : kPercentile_(percentile), price_list_(number_of_blocks) {
+GasPricer::GasPricer(uint64_t percentile, uint64_t number_of_blocks, bool is_light_node, std::shared_ptr<DbStorage> db)
+    : kPercentile_(percentile), kIsLightNode_(is_light_node), price_list_(number_of_blocks) {
   assert(kPercentile_ <= 100);
   if (db) {
     init_daemon_ = std::make_unique<std::thread>([this, db_ = std::move(db)]() { init(std::move(db_)); });
@@ -29,15 +29,14 @@ void GasPricer::init(std::shared_ptr<DbStorage> db) {
 
   while (price_list_.capacity() != price_list_.size() && block_num) {
     auto trxs = db->getPeriodTransactions(block_num);
-    // TODO [1640]
-    assert(trxs);
     block_num--;
 
-    // TODO [1640]
+    assert(kIsLightNode_ || trxs);
+
     // Light node
-    // if (!trxs) {
-    //   break;
-    // }
+    if (kIsLightNode_ && !trxs) {
+      break;
+    }
 
     // Empty block
     if (!trxs->size()) {
