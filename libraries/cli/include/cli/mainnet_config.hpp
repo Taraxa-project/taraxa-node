@@ -237,7 +237,7 @@ const char *mainnet_json = R"foo({
           "111f91441efc8c6c0edf6534970cc887e2fabaa8": "0x24048ce3d"
         },
         "hardforks": {
-          "fix_genesis_fork_block": "0x0"
+          "fix_genesis_fork_block": "0x102CA0"
         }
       }
     },
