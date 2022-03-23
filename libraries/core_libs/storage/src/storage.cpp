@@ -547,7 +547,7 @@ std::optional<std::vector<Transaction>> DbStorage::getPeriodTransactions(uint64_
   auto period_data_rlp = dev::RLP(period_data);
 
   std::vector<Transaction> ret(period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA].size());
-  for (const auto& transaction_data : period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA]) {
+  for (const auto transaction_data : period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA]) {
     ret.emplace_back(transaction_data);
   }
   return {ret};
