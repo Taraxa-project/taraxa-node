@@ -1,0 +1,77 @@
+{{ if .Values.node.enabled }}
+{{- if .Values.node.ingress.enabled -}}
+{{- $fullName := include "taraxa-node.fullname" . -}}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}-rpc
+  labels:
+    app: taraxa-node
+    app.kubernetes.io/name: {{ include "taraxa-node.name" . }}
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  {{- with .Values.node.ingress.annotationsRpc }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+{{- if .Values.ingressClassName }}
+  ingressClassName: {{ .Values.ingressClassName }}
+{{- end }}
+  {{- if .Values.wildCertDomainSecret }}
+  tls:
+    - hosts:
+        - {{ include "taraxa-node.rpcName" . | quote }}
+      secretName: {{ .Values.wildCertDomainSecret }}
+  {{- end }}
+  rules:
+    - host: {{ include "taraxa-node.rpcName" . | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ include "taraxa-node.fullname" . }}-head
+                port: 
+                  number: 7777
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}-ws
+  labels:
+    app: taraxa-node
+    app.kubernetes.io/name: {{ include "taraxa-node.name" . }}
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  {{- with .Values.node.ingress.annotationsRpcWS }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+{{- if .Values.ingressClassName }}
+  ingressClassName: {{ .Values.ingressClassName }}
+{{- end }}
+  {{- if .Values.wildCertDomainSecret }}
+  tls:
+    - hosts:
+        - {{ include "taraxa-node.wsName" . | quote }}
+      secretName: {{ .Values.wildCertDomainSecret }}
+  {{- end }}
+  rules:
+    - host: {{ include "taraxa-node.wsName" . | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: {{ include "taraxa-node.fullname" . }}-head
+                port: 
+                  number: 8777
+{{- end }}
+{{- end }}
