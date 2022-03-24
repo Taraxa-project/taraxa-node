@@ -17,12 +17,13 @@ vec_trx_t generateTrxHashes(size_t count) {
   return res;
 }
 
-SyncBlock createBlock(uint64_t period, uint16_t efficiency, size_t dag_blocks_count = 5) {
+SyncBlock createBlock(uint64_t period, uint16_t efficiency, size_t dag_blocks_count = 5,
+                      blk_hash_t anchor_hash = blk_hash_t(1)) {
   // produced transactions count should be equal to or multiple of this value to produce block with accurate enough
   // efficiency
   const size_t kTrxCount = 100 * kOnePercent;
   SyncBlock b;
-  b.pbft_blk = std::make_shared<PbftBlock>(PbftBlock{{}, {}, {}, period, {}, dev::KeyPair::create().secret()});
+  b.pbft_blk = std::make_shared<PbftBlock>(PbftBlock{{}, anchor_hash, {}, period, {}, dev::KeyPair::create().secret()});
   size_t effective_transactions = kTrxCount * efficiency / (100 * kOnePercent);
   auto trx_hashes = generateTrxHashes(effective_transactions);
   auto trx_per_block = effective_transactions / dag_blocks_count;
@@ -374,6 +375,167 @@ TEST_F(SortitionTest, get_params_from_period_reverse) {
     EXPECT_EQ(db->getParamsChangeForPeriod(69)->vrf_params.threshold_upper, params_for_period_60_and_more);
     EXPECT_EQ(db->getParamsChangeForPeriod(79)->vrf_params.threshold_upper, params_for_period_60_and_more);
     EXPECT_EQ(db->getParamsChangeForPeriod(210)->vrf_params.threshold_upper, params_for_period_60_and_more);
+  }
+}
+
+TEST_F(SortitionTest, efficiency_restart) {
+  // Test verifies that the efficiency memory structure contains same values before and after node restart
+  auto& cfg = node_cfgs[0].chain.sortition;
+  cfg.changing_interval = 6;
+  cfg.computation_interval = 3;
+  cfg.dag_efficiency_targets = {48 * kOnePercent, 52 * kOnePercent};
+
+  {
+    auto db = std::make_shared<DbStorage>(data_dir / "db");
+    SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
+    auto batch = db->createWriteBatch();
+    {
+      auto b = createBlock(1, 75 * kOnePercent);
+      sp.pbftBlockPushed(b, batch, 1);
+      db->savePeriodData(b, batch);
+
+      b = createBlock(2, 74 * kOnePercent);
+      sp.pbftBlockPushed(b, batch, 2);
+      db->savePeriodData(b, batch);
+
+      // Empty block to be ignored
+      b = createBlock(3, 74 * kOnePercent, 5, {});
+      db->savePeriodData(b, batch);
+
+      b = createBlock(4, 73 * kOnePercent);
+      sp.pbftBlockPushed(b, batch, 3);
+      db->savePeriodData(b, batch);
+
+      // Empty block to be ignored
+      b = createBlock(5, 74 * kOnePercent, 5, {});
+      db->savePeriodData(b, batch);
+
+      b = createBlock(6, 50 * kOnePercent);
+      sp.pbftBlockPushed(b, batch, 4);
+      db->savePeriodData(b, batch);
+      db->commitWriteBatch(batch);
+    }
+    EXPECT_EQ(sp.averageDagEfficiency(), 50 * kOnePercent);
+  }
+
+  {
+    auto db = std::make_shared<DbStorage>(data_dir / "db");
+    auto batch = db->createWriteBatch();
+    SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
+    EXPECT_EQ(sp.averageDagEfficiency(), 50 * kOnePercent);
+
+    // Empty block to be ignored
+    auto b = createBlock(7, 74 * kOnePercent, 5, {});
+    db->savePeriodData(b, batch);
+
+    b = createBlock(8, 40 * kOnePercent);
+    sp.pbftBlockPushed(b, batch, 5);
+    db->savePeriodData(b, batch);
+    db->commitWriteBatch(batch);
+
+    EXPECT_EQ(sp.averageDagEfficiency(), 45 * kOnePercent);
+  }
+
+  {
+    auto db = std::make_shared<DbStorage>(data_dir / "db");
+    auto batch = db->createWriteBatch();
+    SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
+    EXPECT_EQ(sp.averageDagEfficiency(), 45 * kOnePercent);
+
+    // Empty block to be ignored
+    auto b = createBlock(9, 74 * kOnePercent, 5, {});
+    db->savePeriodData(b, batch);
+
+    b = createBlock(10, 30 * kOnePercent);
+    sp.pbftBlockPushed(b, batch, 6);
+    db->savePeriodData(b, batch);
+    db->commitWriteBatch(batch);
+
+    b = createBlock(11, 30 * kOnePercent);
+    sp.pbftBlockPushed(b, batch, 7);
+    db->savePeriodData(b, batch);
+    db->commitWriteBatch(batch);
+
+    b = createBlock(12, 30 * kOnePercent);
+    sp.pbftBlockPushed(b, batch, 8);
+    db->savePeriodData(b, batch);
+    db->commitWriteBatch(batch);
+
+    b = createBlock(13, 30 * kOnePercent);
+    sp.pbftBlockPushed(b, batch, 9);
+    db->savePeriodData(b, batch);
+    db->commitWriteBatch(batch);
+
+    // Empty block to be ignored
+    b = createBlock(14, 74 * kOnePercent, 5, {});
+    db->savePeriodData(b, batch);
+
+    b = createBlock(15, 20 * kOnePercent);
+    sp.pbftBlockPushed(b, batch, 10);
+    db->savePeriodData(b, batch);
+    db->commitWriteBatch(batch);
+
+    b = createBlock(16, 10 * kOnePercent);
+    sp.pbftBlockPushed(b, batch, 11);
+    db->savePeriodData(b, batch);
+    db->commitWriteBatch(batch);
+
+    EXPECT_EQ(sp.averageDagEfficiency(), 15 * kOnePercent);
+  }
+
+  {
+    auto db = std::make_shared<DbStorage>(data_dir / "db");
+    auto batch = db->createWriteBatch();
+    SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
+    EXPECT_EQ(sp.averageDagEfficiency(), 15 * kOnePercent);
+  }
+}
+
+TEST_F(SortitionTest, params_restart) {
+  // Test verifies that params_changes memory structure contains same values before and after node restart
+  auto& cfg = node_cfgs[0].chain.sortition;
+  cfg.changes_count_for_average = 3;
+  cfg.changing_interval = 1;
+  cfg.computation_interval = 1;
+  {
+    auto db = std::make_shared<DbStorage>(data_dir / "db");
+    SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
+    auto params_changes = sp.getParamsChanges();
+    EXPECT_EQ(params_changes.size(), 1);
+    EXPECT_EQ(params_changes[0].period, 0);
+    EXPECT_EQ(params_changes[0].vrf_params.threshold_upper, cfg.vrf.threshold_upper);
+    EXPECT_EQ(params_changes[0].vrf_params.threshold_range, cfg.vrf.threshold_range);
+    auto batch = db->createWriteBatch();
+    auto b = createBlock(1, 75 * kOnePercent);
+    sp.pbftBlockPushed(b, batch, 1);
+    db->savePeriodData(b, batch);
+    db->commitWriteBatch(batch);
+    params_changes = sp.getParamsChanges();
+    EXPECT_EQ(params_changes.size(), 2);
+    b = createBlock(2, 65 * kOnePercent);
+    sp.pbftBlockPushed(b, batch, 2);
+    db->savePeriodData(b, batch);
+    db->commitWriteBatch(batch);
+    params_changes = sp.getParamsChanges();
+    EXPECT_EQ(params_changes.size(), 3);
+    b = createBlock(3, 55 * kOnePercent);
+    sp.pbftBlockPushed(b, batch, 2);
+    db->savePeriodData(b, batch);
+    db->commitWriteBatch(batch);
+    params_changes = sp.getParamsChanges();
+    EXPECT_EQ(params_changes.size(), 3);
+    EXPECT_EQ(params_changes[0].period, 1);
+    EXPECT_EQ(params_changes[1].period, 2);
+    EXPECT_EQ(params_changes[2].period, 3);
+  }
+  {
+    auto db = std::make_shared<DbStorage>(data_dir / "db");
+    SortitionParamsManager sp({}, node_cfgs[0].chain.sortition, db);
+    auto params_changes = sp.getParamsChanges();
+    EXPECT_EQ(params_changes.size(), 3);
+    EXPECT_EQ(params_changes[0].period, 1);
+    EXPECT_EQ(params_changes[1].period, 2);
+    EXPECT_EQ(params_changes[2].period, 3);
   }
 }
 
