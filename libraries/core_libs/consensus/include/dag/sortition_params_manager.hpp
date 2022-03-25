@@ -49,6 +49,12 @@ class SortitionParamsManager {
    */
   uint16_t averageDagEfficiency();
 
+  /**
+   * Get memory params changes, used only for unit tests
+   * @returns params changes
+   */
+  const std::deque<SortitionParamsChange>& getParamsChanges() const { return params_changes_; }
+
  protected:
   SortitionConfig config_;
   std::shared_ptr<DbStorage> db_;
