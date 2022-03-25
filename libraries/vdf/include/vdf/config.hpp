@@ -50,7 +50,7 @@ struct SortitionParams {
 
 struct SortitionConfig : SortitionParams {
   uint16_t changes_count_for_average = 10;  // intervals
-  std::pair<uint16_t, uint16_t> dag_efficiency_targets = {48 * kOnePercent, 52 * kOnePercent};
+  std::pair<uint16_t, uint16_t> dag_efficiency_targets = {69 * kOnePercent, 71 * kOnePercent};
   uint16_t changing_interval = 200;    // non empty pbft blocks
   uint16_t computation_interval = 50;  // non empty pbft blocks
 
