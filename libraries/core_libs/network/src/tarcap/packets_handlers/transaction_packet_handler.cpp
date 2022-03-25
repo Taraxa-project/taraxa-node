@@ -64,7 +64,7 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
 }
 
 void TransactionPacketHandler::onNewTransactions(SharedTransactions &&transactions) {
-  if (dag_blk_mgr_) {
+  if (dag_blk_mgr_) [[likely]] {
     received_trx_count_ += transactions.size();
     unique_received_trx_count_ += trx_mgr_->insertValidatedTransactions(std::move(transactions));
     return;

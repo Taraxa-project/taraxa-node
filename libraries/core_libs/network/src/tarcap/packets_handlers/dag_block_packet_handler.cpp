@@ -43,7 +43,7 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
     peer->dag_level_ = block.getLevel();
   }
 
-  if (dag_blk_mgr_) {
+  if (dag_blk_mgr_) [[likely]] {
     // Do not process this block in case we already have it
     if (dag_blk_mgr_->isDagBlockKnown(block.getHash())) {
       LOG(log_tr_) << "Received known DagBlockPacket " << hash << "from: " << peer->getId();
@@ -115,7 +115,7 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
 }
 
 void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shared_ptr<TaraxaPeer> &peer) {
-  if (dag_blk_mgr_) {
+  if (dag_blk_mgr_) [[likely]] {
     const auto block_hash = block.getHash();
     const auto verified = dag_blk_mgr_->insertAndVerifyBlock(std::move(block));
     switch (verified) {

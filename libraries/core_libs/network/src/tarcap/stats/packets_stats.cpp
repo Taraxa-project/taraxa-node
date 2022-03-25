@@ -31,7 +31,7 @@ AllPacketTypesStats::PacketTypeStatsMap operator-(const AllPacketTypesStats::Pac
     if (ro_packets_stats != ro.end()) {
       AllPacketTypesStats::PacketTypeStats packet_avg_stats_result = lo_packet_stats.second - ro_packets_stats->second;
       if (packet_avg_stats_result.count_ > 0) {
-        result[lo_packet_stats.first] = std::move(packet_avg_stats_result);
+        result[lo_packet_stats.first] = packet_avg_stats_result;
       }
     } else {
       result[lo_packet_stats.first] = lo_packet_stats.second;

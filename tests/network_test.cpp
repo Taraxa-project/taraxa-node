@@ -552,7 +552,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   order_stream2 << blk2.getHash();
   order_stream2.appendList(2);
   order_stream2 << g_signed_trx_samples[2]->getHash() << g_signed_trx_samples[3]->getHash();
-  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), 2, beneficiary,
+  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), period, beneficiary,
                         node1->getSecretKey());
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(
@@ -685,8 +685,6 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   // generate second PBFT block sample
   prev_block_hash = pbft_block1.getBlockHash();
-  period = 2;
-  beneficiary = addr_t(543);
   level = 2;
   vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk, getRlpBytes(level));
   vdf2.computeVdfSolution(vdf_config, blk1.getHash().asBytes(), false);
@@ -1214,7 +1212,7 @@ TEST_F(NetworkTest, node_transaction_sync) {
   auto& node1 = nodes[0];
   auto& node2 = nodes[1];
 
-  auto txs = *g_signed_trx_samples;
+  SharedTransactions txs = *g_signed_trx_samples;
   node1->getTransactionManager()->insertValidatedTransactions(std::move(txs));
 
   std::cout << "Waiting Sync for 2000 milliseconds ..." << std::endl;

@@ -55,13 +55,13 @@ class DbException : public std::exception {
 
   DbException(const DbException&) = default;
   DbException(DbException&&) = default;
-  DbException& operator=(const DbException&) = default;
-  DbException& operator=(DbException&&) = default;
+  DbException& operator=(const DbException&) = delete;
+  DbException& operator=(DbException&&) = delete;
 
   virtual const char* what() const noexcept { return desc_.c_str(); }
 
  private:
-  std::string desc_;
+  const std::string desc_;
 };
 
 class DbStorage : public std::enable_shared_from_this<DbStorage> {

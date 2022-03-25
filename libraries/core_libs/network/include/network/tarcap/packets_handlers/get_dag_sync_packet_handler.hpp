@@ -11,7 +11,7 @@ class TransactionManager;
 
 namespace taraxa::network::tarcap {
 
-class GetDagSyncPacketHandler : public PacketHandler {
+class GetDagSyncPacketHandler final : public PacketHandler {
  public:
   GetDagSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                           std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagManager> dag_mgr,

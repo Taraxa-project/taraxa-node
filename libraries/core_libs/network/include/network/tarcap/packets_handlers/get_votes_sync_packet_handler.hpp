@@ -9,7 +9,7 @@ class NextVotesManager;
 
 namespace taraxa::network::tarcap {
 
-class GetVotesSyncPacketHandler : public ExtVotesPacketHandler {
+class GetVotesSyncPacketHandler final : public ExtVotesPacketHandler {
  public:
   GetVotesSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                             std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,

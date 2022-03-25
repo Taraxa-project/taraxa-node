@@ -5,7 +5,7 @@
 
 namespace taraxa::network::tarcap {
 
-class PbftSyncPacketHandler : public ExtSyncingPacketHandler {
+class PbftSyncPacketHandler final : public ExtSyncingPacketHandler {
  public:
   PbftSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                         std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,

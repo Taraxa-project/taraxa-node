@@ -8,7 +8,7 @@ class TransactionManager;
 
 namespace taraxa::network::tarcap {
 
-class DagSyncPacketHandler : public ExtSyncingPacketHandler {
+class DagSyncPacketHandler final : public ExtSyncingPacketHandler {
  public:
   DagSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                        std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,

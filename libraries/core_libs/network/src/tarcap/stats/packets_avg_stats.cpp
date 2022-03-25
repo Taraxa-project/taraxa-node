@@ -22,7 +22,7 @@ Json::Value AllPacketTypesStats::getStatsJson(bool include_duration_fields) cons
 
   for (auto &single_packet_stats : getStatsCopy()) {
     Json::Value packet_json = single_packet_stats.second.getStatsJson(include_duration_fields);
-    packet_json["type"] = std::move(single_packet_stats.first);
+    packet_json["type"] = single_packet_stats.first;
     ret.append(std::move(packet_json));
   }
 

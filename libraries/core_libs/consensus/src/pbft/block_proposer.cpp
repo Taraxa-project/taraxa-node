@@ -208,8 +208,10 @@ void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTr
   LOG(log_nf_) << "Add proposed DAG block " << blk.getHash() << ", pivot " << blk.getPivot() << " , number of trx ("
                << blk.getTrxs().size() << ")";
 
-  dag_mgr_->addDagBlock(std::move(blk), std::move(trxs), true);
+  // It is ok to mark our proposed new dag block as seen before adding it to dag as no one else has it yet - not
+  // possible to get into the invalid sync state -> marking something as seen before it is in internal structure
   dag_blk_mgr_->markDagBlockAsSeen(blk);
+  dag_mgr_->addDagBlock(std::move(blk), std::move(trxs), true);
 
   BlockProposer::num_proposed_blocks.fetch_add(1);
 }

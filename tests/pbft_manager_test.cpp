@@ -18,7 +18,6 @@ auto g_secret = Lazy([] {
 });
 auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 auto g_trx_signed_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
-auto g_mock_dag0 = Lazy([] { return samples::createMockDag0(); });
 
 struct PbftManagerTest : BaseTest {};
 

@@ -13,7 +13,7 @@ namespace taraxa::network::tarcap {
 
 class TestState;
 
-class TransactionPacketHandler : public PacketHandler {
+class TransactionPacketHandler final : public PacketHandler {
  public:
   TransactionPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                            std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,

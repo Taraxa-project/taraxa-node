@@ -10,7 +10,7 @@ namespace taraxa::network::tarcap {
 
 class TestState;
 
-class DagBlockPacketHandler : public ExtSyncingPacketHandler {
+class DagBlockPacketHandler final : public ExtSyncingPacketHandler {
  public:
   DagBlockPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                         std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,

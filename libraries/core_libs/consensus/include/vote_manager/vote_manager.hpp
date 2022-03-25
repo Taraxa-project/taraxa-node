@@ -6,9 +6,6 @@
 
 namespace taraxa {
 
-class FullNode;
-class VoteManager;
-class PbftChain;
 class Network;
 
 class NextVotesManager {

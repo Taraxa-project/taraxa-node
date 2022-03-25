@@ -289,8 +289,8 @@ DagManager::DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_
   LOG_OBJECTS_CREATE("DAGMGR");
   if (auto ret = getLatestPivotAndTips(); ret) {
     frontier_.pivot = ret->first;
-    for (auto &t : ret->second) {
-      frontier_.tips.push_back(std::move(t));
+    for (const auto &t : ret->second) {
+      frontier_.tips.push_back(t);
     }
   }
   recoverDag();
@@ -407,6 +407,8 @@ void DagManager::worker() {
 }
 
 void DagManager::addDagBlock(DagBlock &&blk, SharedTransactions &&trxs, bool proposed, bool save) {
+  auto blk_hash = blk.getHash();
+
   {
     // One mutex protects the DagManager internal state, the other mutex ensures that dag blocks are gossiped in
     // correct order since multiple threads can call this method. There is a need for using two mutexes since having
@@ -415,15 +417,15 @@ void DagManager::addDagBlock(DagBlock &&blk, SharedTransactions &&trxs, bool pro
     {
       ULock lock(mutex_);
       if (save) {
-        if (db_->dagBlockInDb(blk.getHash())) {
-          LOG(log_dg_) << "Block already in DB: " << blk.getHash();
+        if (db_->dagBlockInDb(blk_hash)) {
+          LOG(log_dg_) << "Block already in DB: " << blk_hash;
           return;
         }
         const auto proposal_period = db_->getProposalPeriodForDagLevel(blk.getLevel());
         const auto expiry_period = pbft_chain_->getDagExpiryPeriod();
         assert(proposal_period);
         if (*proposal_period < expiry_period) {
-          LOG(log_nf_) << "Dropping old block: " << blk.getHash() << ". Proposal period: " << *proposal_period
+          LOG(log_nf_) << "Dropping old block: " << blk_hash << ". Proposal period: " << *proposal_period
                        << ". Current period: " << period_ << " Expiry period: " << expiry_period
                        << ". Block level: " << blk.getLevel();
           return;
@@ -434,7 +436,6 @@ void DagManager::addDagBlock(DagBlock &&blk, SharedTransactions &&trxs, bool pro
         // Save the dag block
         db_->saveDagBlock(blk);
       }
-      auto blk_hash = blk.getHash();
       auto pivot_hash = blk.getPivot();
 
       std::vector<blk_hash_t> tips = blk.getTips();
@@ -452,7 +453,7 @@ void DagManager::addDagBlock(DagBlock &&blk, SharedTransactions &&trxs, bool pro
       }
     }
   }
-  LOG(log_nf_) << " Update frontier after adding block " << blk.getHash() << "anchor " << anchor_
+  LOG(log_nf_) << " Update frontier after adding block " << blk_hash << "anchor " << anchor_
                << " pivot = " << frontier_.pivot << " tips: " << frontier_.tips;
 }
 

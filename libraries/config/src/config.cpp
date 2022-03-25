@@ -270,7 +270,7 @@ void NetworkConfig::validate() const {
                           std::to_string(MAX_PACKETS_PROCESSING_THREADS_NUM) + "]");
   }
 
-  if (network_transaction_interval < 0) {
+  if (network_transaction_interval == 0) {
     throw ConfigException(std::string("network_transaction_interval must be greater than zero"));
   }
 
