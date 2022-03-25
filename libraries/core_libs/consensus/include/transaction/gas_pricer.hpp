@@ -12,7 +12,8 @@ namespace taraxa {
  */
 class GasPricer {
  public:
-  GasPricer(uint64_t percentile = 60, uint64_t number_of_blocks = 200, std::shared_ptr<DbStorage> db = {});
+  GasPricer(uint64_t percentile = 60, uint64_t number_of_blocks = 200, bool is_light_node = false,
+            std::shared_ptr<DbStorage> db = {});
   ~GasPricer();
 
   /**
@@ -38,6 +39,7 @@ class GasPricer {
   void init(std::shared_ptr<DbStorage> db);
 
   const uint64_t kPercentile_;
+  const bool kIsLightNode_;
 
   mutable std::shared_mutex mutex_;
   u256 latest_price_ = 1;
