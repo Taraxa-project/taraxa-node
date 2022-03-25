@@ -125,11 +125,24 @@ void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::
   }
 }
 
-int32_t getThresholdChange(uint16_t efficiency, uint16_t target_efficiency) {
-  uint16_t deviation = std::abs(efficiency - target_efficiency) * 100 / target_efficiency;
-  // If goal is 50 % return 1% change for 40%-60%, 2% change for 30%-70% and 5% change for over that
+int32_t getThresholdChange(uint16_t efficiency, uint16_t target_efficiency, int32_t current_threshold) {
+  uint16_t deviation = 0;
+  // Deviation is measured in percentage of the range between target efficiency and 0% or 100% depending if the
+  // efficiency is below or over target efficiency. For instance for target efficiency of 80% deviation for values over
+  // 80% will be deviation 20% for efficiency of 84%, and deviation of 40% for efficiency of 88%. For values
+  // below 80%, deviation 20% will match efficiency of 64% and deviation of 40% will match efficiency of 48%
+  if (efficiency > target_efficiency) {
+    deviation = (efficiency - target_efficiency) * 100 / (100 * kOnePercent - target_efficiency);
+  } else if (efficiency < target_efficiency) {
+    deviation = (target_efficiency - efficiency) * 100 / (target_efficiency);
+  } else {
+    return 0;
+  }
   if (deviation < 20) {
-    return UINT16_MAX / 100;
+    // If the deviation is less than 20% we are close to target so to minimize large movements, 1% of the current value
+    // is used rather than 1% of the full range. For larger deviations full range is used so that we can adjust quicker
+    // to any sudden large changes in the network
+    return current_threshold / 100;
   }
   if (deviation < 40) {
     return UINT16_MAX / 50;
@@ -174,7 +187,7 @@ int32_t SortitionParamsManager::getNewUpperRange(uint16_t efficiency) const {
   }
 
   const auto target_efficiency = config_.targetEfficiency();
-  int32_t threshold_change = getThresholdChange(efficiency, target_efficiency);
+  int32_t threshold_change = getThresholdChange(efficiency, target_efficiency, last_threshold_upper);
   const bool is_over_target_efficiency = efficiency >= target_efficiency;
   // If we are below target the value we are changing threshold by should be negative
   if (!is_over_target_efficiency) {

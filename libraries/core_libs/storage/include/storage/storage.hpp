@@ -108,7 +108,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(next_votes);  // only for previous PBFT round
     COLUMN(pbft_block_period);
     COLUMN(dag_block_period);
-    COLUMN(dpos_proposal_period_levels_status);
     COLUMN_W_COMP(proposal_period_levels_map, getIntComparator<uint64_t>());
     COLUMN(final_chain_meta);
     COLUMN(final_chain_transaction_location_by_hash);

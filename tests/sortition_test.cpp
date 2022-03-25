@@ -278,7 +278,7 @@ TEST_F(SortitionTest, get_params_from_period) {
 
     const auto params_for_period_10_19 = cfg.vrf.threshold_upper - UINT16_MAX / 20;
     const auto params_for_period_20_39 = params_for_period_10_19 - UINT16_MAX / 50;
-    const auto params_for_period_40_49 = params_for_period_20_39 - UINT16_MAX / 100;
+    const auto params_for_period_40_49 = params_for_period_20_39 - params_for_period_20_39 / 100;
     const auto params_for_period_50_59 = (params_for_period_20_39 + params_for_period_40_49) / 2;
     const auto params_for_period_60_and_more = (params_for_period_40_49 + params_for_period_50_59) / 2;
     EXPECT_EQ(sp.getSortitionParams(11).vrf.threshold_upper, params_for_period_10_19);
@@ -347,7 +347,7 @@ TEST_F(SortitionTest, get_params_from_period_reverse) {
 
     const auto params_for_period_10_19 = cfg.vrf.threshold_upper + UINT16_MAX / 20;
     const auto params_for_period_20_39 = params_for_period_10_19 + UINT16_MAX / 50;
-    const auto params_for_period_40_49 = params_for_period_20_39 + UINT16_MAX / 100;
+    const auto params_for_period_40_49 = params_for_period_20_39 + params_for_period_20_39 / 100;
     const auto params_for_period_50_59 = (params_for_period_20_39 + params_for_period_40_49) / 2;
     const auto params_for_period_60_and_more = (params_for_period_40_49 + params_for_period_50_59) / 2;
     EXPECT_EQ(sp.getSortitionParams(11).vrf.threshold_upper, params_for_period_10_19);

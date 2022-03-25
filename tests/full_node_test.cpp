@@ -1476,7 +1476,7 @@ TEST_F(FullNodeTest, chain_config_json) {
   },
   "sortition": {
       "changes_count_for_average": 10,
-      "dag_efficiency_targets": [4800, 5200],
+      "dag_efficiency_targets": [6900, 7100],
       "changing_interval": 200,
       "computation_interval": 50,
       "vrf": {
