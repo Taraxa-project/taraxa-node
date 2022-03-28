@@ -1481,7 +1481,7 @@ TEST_F(FullNodeTest, chain_config_json) {
       "computation_interval": 50,
       "vrf": {
         "threshold_upper": "0xafff",
-        "threshold_range": 50
+        "threshold_range": 80
       },
       "vdf": {
         "difficulty_max": 21,
