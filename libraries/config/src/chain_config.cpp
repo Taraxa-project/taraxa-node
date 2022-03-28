@@ -82,7 +82,7 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     dpos.vote_eligibility_balance_step = 1000000000;
     // VDF config
     cfg.sortition.vrf.threshold_upper = 0xafff;
-    cfg.sortition.vrf.threshold_range = 50;
+    cfg.sortition.vrf.threshold_range = 80;
     cfg.sortition.vdf.difficulty_min = 16;
     cfg.sortition.vdf.difficulty_max = 21;
     cfg.sortition.vdf.difficulty_stale = 23;

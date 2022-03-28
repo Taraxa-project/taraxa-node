@@ -263,7 +263,7 @@ const char *mainnet_json = R"foo({
       "computation_interval": 50,
       "vrf": {
         "threshold_upper": "0xafff",
-        "threshold_range": 50
+        "threshold_range": 80
       },
       "vdf": {
         "difficulty_max": 21,
