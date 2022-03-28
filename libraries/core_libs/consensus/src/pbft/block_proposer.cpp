@@ -54,8 +54,8 @@ bool SortitionPropose::propose() {
     }
   }
   std::atomic_bool cancellation_token = false;
-  std::future<void> result = std::async(std::launch::async, &vdf_sortition::VdfSortition::computeVdfSolutionCancellable,
-                                        &vdf, sortition_params, frontier.pivot.asBytes(), std::ref(cancellation_token));
+  std::future<void> result = std::async(std::launch::async, &vdf_sortition::VdfSortition::computeVdfSolution, &vdf,
+                                        sortition_params, frontier.pivot.asBytes(), std::ref(cancellation_token));
   while (result.wait_for(std::chrono::milliseconds(100)) != std::future_status::ready) {
     auto latest_frontier = dag_mgr_->getDagFrontier();
     if (!latest_frontier.isEqual(frontier)) {

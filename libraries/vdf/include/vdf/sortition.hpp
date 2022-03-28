@@ -27,11 +27,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   explicit VdfSortition(bytes const& b);
   explicit VdfSortition(Json::Value const& json);
 
-  // Only for testing
-  void computeVdfSolution(const SortitionParams& config, const bytes& msg);
-
-  void computeVdfSolutionCancellable(const SortitionParams& config, const bytes& msg,
-                                     const std::atomic_bool& cancelled);
+  void computeVdfSolution(const SortitionParams& config, const bytes& msg, const std::atomic_bool& cancelled);
 
   void verifyVdf(SortitionParams const& config, bytes const& vrf_input, bytes const& vdf_input) const;
 

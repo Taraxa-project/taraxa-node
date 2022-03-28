@@ -68,12 +68,8 @@ Json::Value VdfSortition::getJson() const {
   return res;
 }
 
-void VdfSortition::computeVdfSolution(const SortitionParams& config, const bytes& msg) {
-  computeVdfSolutionCancellable(config, msg, false);
-}
-
-void VdfSortition::computeVdfSolutionCancellable(const SortitionParams& config, const bytes& msg,
-                                                 const std::atomic_bool& cancelled) {
+void VdfSortition::computeVdfSolution(const SortitionParams& config, const bytes& msg,
+                                      const std::atomic_bool& cancelled) {
   if (!isOmitVdf(config)) {
     auto t1 = getCurrentTimeMilliSeconds();
     VerifierWesolowski verifier(config.vdf.lambda_bound, difficulty_, msg, N);
