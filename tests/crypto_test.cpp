@@ -117,8 +117,8 @@ TEST_F(CryptoTest, vdf_sortition) {
   blk_hash_t vdf_input = blk_hash_t(200);
   VdfSortition vdf(sortition_params, sk, getRlpBytes(level));
   VdfSortition vdf2(sortition_params, sk, getRlpBytes(level));
-  vdf.computeVdfSolution(sortition_params, vdf_input.asBytes());
-  vdf2.computeVdfSolution(sortition_params, vdf_input.asBytes());
+  vdf.computeVdfSolution(sortition_params, vdf_input.asBytes(), false);
+  vdf2.computeVdfSolution(sortition_params, vdf_input.asBytes(), false);
   auto b = vdf.rlp();
   VdfSortition vdf3(b);
   EXPECT_NO_THROW(vdf3.verifyVdf(sortition_params, getRlpBytes(level), vdf_input.asBytes()));
@@ -151,9 +151,10 @@ TEST_F(CryptoTest, vdf_solution) {
   blk_hash_t vdf_input = blk_hash_t(200);
 
   std::thread th1(
-      [&vdf, vdf_input, sortition_params]() { vdf.computeVdfSolution(sortition_params, vdf_input.asBytes()); });
-  std::thread th2(
-      [&vdf2, vdf_input, sortition_params]() { vdf2.computeVdfSolution(sortition_params, vdf_input.asBytes()); });
+      [&vdf, vdf_input, sortition_params]() { vdf.computeVdfSolution(sortition_params, vdf_input.asBytes(), false); });
+  std::thread th2([&vdf2, vdf_input, sortition_params]() {
+    vdf2.computeVdfSolution(sortition_params, vdf_input.asBytes(), false);
+  });
   th1.join();
   th2.join();
   EXPECT_NE(vdf, vdf2);
@@ -170,7 +171,7 @@ TEST_F(CryptoTest, vdf_proof_verify) {
   VdfSortition vdf(sortition_params, sk, getRlpBytes(level));
   blk_hash_t vdf_input = blk_hash_t(200);
 
-  vdf.computeVdfSolution(sortition_params, vdf_input.asBytes());
+  vdf.computeVdfSolution(sortition_params, vdf_input.asBytes(), false);
   EXPECT_NO_THROW(vdf.verifyVdf(sortition_params, getRlpBytes(level), vdf_input.asBytes()));
   VdfSortition vdf2(sortition_params, sk, getRlpBytes(level));
   EXPECT_THROW(vdf2.verifyVdf(sortition_params, getRlpBytes(level), vdf_input.asBytes()),
@@ -199,15 +200,15 @@ TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
     SortitionParams sortition_params(threshold_upper, threshold_range, difficulty_min, difficulty_max, difficulty_stale,
                                      lambda_bound);
     VdfSortition vdf(sortition_params, sk, getRlpBytes(level));
-    vdf.computeVdfSolution(sortition_params, proposal_dag_block_pivot_hash1.asBytes());
+    vdf.computeVdfSolution(sortition_params, proposal_dag_block_pivot_hash1.asBytes(), false);
     vdf_computation_time = vdf.getComputationTime();
     std::cout << "VDF message " << proposal_dag_block_pivot_hash1 << ", lambda bits " << lambda_bound << ", difficulty "
               << vdf.getDifficulty() << ", computation cost time " << vdf_computation_time << "(ms)" << std::endl;
-    vdf.computeVdfSolution(sortition_params, proposal_dag_block_pivot_hash2.asBytes());
+    vdf.computeVdfSolution(sortition_params, proposal_dag_block_pivot_hash2.asBytes(), false);
     vdf_computation_time = vdf.getComputationTime();
     std::cout << "VDF message " << proposal_dag_block_pivot_hash2 << ", lambda bits " << lambda_bound << ", difficulty "
               << vdf.getDifficulty() << ", computation cost time " << vdf_computation_time << "(ms)" << std::endl;
-    vdf.computeVdfSolution(sortition_params, proposal_dag_block_pivot_hash3.asBytes());
+    vdf.computeVdfSolution(sortition_params, proposal_dag_block_pivot_hash3.asBytes(), false);
     vdf_computation_time = vdf.getComputationTime();
     std::cout << "VDF message " << proposal_dag_block_pivot_hash3 << ", lambda bits " << lambda_bound << ", difficulty "
               << vdf.getDifficulty() << ", computation cost time " << vdf_computation_time << "(ms)" << std::endl;
@@ -219,15 +220,15 @@ TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
     SortitionParams sortition_params(threshold_upper, threshold_range, difficulty_min, difficulty_max, difficulty_stale,
                                      lambda);
     VdfSortition vdf(sortition_params, sk, getRlpBytes(level));
-    vdf.computeVdfSolution(sortition_params, proposal_dag_block_pivot_hash1.asBytes());
+    vdf.computeVdfSolution(sortition_params, proposal_dag_block_pivot_hash1.asBytes(), false);
     vdf_computation_time = vdf.getComputationTime();
     std::cout << "VDF message " << proposal_dag_block_pivot_hash1 << ", lambda bits " << lambda << ", difficulty "
               << vdf.getDifficulty() << ", computation cost time " << vdf_computation_time << "(ms)" << std::endl;
-    vdf.computeVdfSolution(sortition_params, proposal_dag_block_pivot_hash2.asBytes());
+    vdf.computeVdfSolution(sortition_params, proposal_dag_block_pivot_hash2.asBytes(), false);
     vdf_computation_time = vdf.getComputationTime();
     std::cout << "VDF message " << proposal_dag_block_pivot_hash2 << ", lambda bits " << lambda << ", difficulty "
               << vdf.getDifficulty() << ", computation cost time " << vdf_computation_time << "(ms)" << std::endl;
-    vdf.computeVdfSolution(sortition_params, proposal_dag_block_pivot_hash3.asBytes());
+    vdf.computeVdfSolution(sortition_params, proposal_dag_block_pivot_hash3.asBytes(), false);
     vdf_computation_time = vdf.getComputationTime();
     std::cout << "VDF message " << proposal_dag_block_pivot_hash3 << ", lambda bits " << lambda << ", difficulty "
               << vdf.getDifficulty() << ", computation cost time " << vdf_computation_time << "(ms)" << std::endl;

@@ -46,7 +46,7 @@ TEST_F(DagBlockTest, serialize_deserialize) {
   level_t level = 3;
   VdfSortition vdf(sortition_params, sk, getRlpBytes(level));
   blk_hash_t vdf_input(200);
-  vdf.computeVdfSolution(sortition_params, vdf_input.asBytes());
+  vdf.computeVdfSolution(sortition_params, vdf_input.asBytes(), false);
   DagBlock blk1(blk_hash_t(1), 2, {}, {}, vdf, secret_t::random());
   auto b = blk1.rlp(true);
   DagBlock blk2(b);
