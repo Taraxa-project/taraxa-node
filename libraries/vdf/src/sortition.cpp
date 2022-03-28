@@ -68,15 +68,17 @@ Json::Value VdfSortition::getJson() const {
   return res;
 }
 
-void VdfSortition::cancelCompute() { prover_->cancel(); }
+void VdfSortition::computeVdfSolution(const SortitionParams& config, const bytes& msg) {
+  computeVdfSolutionCancellable(config, msg, false);
+}
 
-void VdfSortition::computeVdfSolution(SortitionParams const& config, bytes const& msg) {
+void VdfSortition::computeVdfSolutionCancellable(const SortitionParams& config, const bytes& msg,
+                                                 const std::atomic_bool& cancelled) {
   if (!isOmitVdf(config)) {
     auto t1 = getCurrentTimeMilliSeconds();
     VerifierWesolowski verifier(config.vdf.lambda_bound, difficulty_, msg, N);
-
-    prover_ = std::static_pointer_cast<ProverWesolowski>(std::make_shared<ProverWesolowski>());
-    vdf_sol_ = (*prover_)(verifier);  // this line takes time ...
+    ProverWesolowski prover;
+    vdf_sol_ = prover(verifier, cancelled);  // this line takes time ...
     auto t2 = getCurrentTimeMilliSeconds();
     vdf_computation_time_ = t2 - t1;
   }
