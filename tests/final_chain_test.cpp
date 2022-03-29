@@ -20,7 +20,7 @@ struct advance_check_opts {
 
 struct FinalChainTest : WithDataDir {
   shared_ptr<DbStorage> db{new DbStorage(data_dir / "db")};
-  Config cfg = ChainConfig::predefined().final_chain;
+  Config cfg = ChainConfig::predefined("test").final_chain;
   shared_ptr<FinalChain> SUT;
   bool assume_only_toplevel_transfers = true;
   unordered_map<addr_t, u256> expected_balances;
@@ -171,6 +171,7 @@ TEST_F(FinalChainTest, contract) {
   cfg.state.genesis_balances = {};
   cfg.state.genesis_balances[addr] = 100000;
   cfg.state.dpos = nullopt;
+  cfg.state.execution_options.disable_nonce_check = true;
   init();
   static string const contract_deploy_code =
       // pragma solidity ^0.6.8;
@@ -299,7 +300,7 @@ TEST_F(FinalChainTest, coin_transfers) {
   advance({
       {0, 100431, 0, TRX_GAS, {}, keys[135].secret(), keys[232].address()},
       {0, 13411, 0, TRX_GAS, {}, keys[112].secret(), keys[34].address()},
-      {0, 130, 0, TRX_GAS, {}, keys[133].secret(), keys[233].address()},
+      {0, 130, 0, TRX_GAS, {}, keys[134].secret(), keys[233].address()},
       {0, 343434, 0, TRX_GAS, {}, keys[13].secret(), keys[213].address()},
       {0, 131313, 0, TRX_GAS, {}, keys[405].secret(), keys[344].address()},
       {0, 143430, 0, TRX_GAS, {}, keys[331].secret(), keys[420].address()},

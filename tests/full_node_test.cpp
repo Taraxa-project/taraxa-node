@@ -1086,12 +1086,13 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
 
   std::cout << "First trx executed ..." << std::endl;
   std::cout << "Send second trx ..." << std::endl;
+  // Will be rejected same nonce
   EXPECT_FALSE(system(send_raw_trx2.c_str()));
 
   EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 2)
-    WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), 2)
-    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first, 3)
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 1)
+    WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), 1)
+    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first, 2)
   });
 }
 
@@ -1127,18 +1128,19 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
   EXPECT_EQ(trx_executed1, 1);
   std::cout << "First trx executed ..." << std::endl;
   std::cout << "Send second trx ..." << std::endl;
+  // Will be rejected same nonce
   EXPECT_FALSE(system(send_raw_trx2.c_str()));
 
   trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
 
   for (unsigned i(0); i < SYNC_TIMEOUT; ++i) {
     trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
-    if (trx_executed1 == 2) break;
+    if (trx_executed1 == 1) break;
     thisThreadSleepForMilliSeconds(1000);
   }
-  EXPECT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), 2);
-  EXPECT_GE(nodes[0]->getDagManager()->getNumVerticesInDag().first, 3);
-  EXPECT_EQ(trx_executed1, 2);
+  EXPECT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), 1);
+  EXPECT_GE(nodes[0]->getDagManager()->getNumVerticesInDag().first, 2);
+  EXPECT_EQ(trx_executed1, 1);
 }
 
 TEST_F(FullNodeTest, save_network_to_file) {
@@ -1186,13 +1188,12 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   // Even distribute coins from master boot node to other nodes. Since master
   // boot node owns whole coins, the active players should be only master boot
   // node at the moment.
-  auto gas_price = 0;
-  auto data = bytes();
-  auto nonce = 0;
+  const auto gas_price = 1;
+  auto nonce = 1;
   uint64_t trxs_count = 0;
   auto test_transfer_val = node_1_genesis_bal / node_cfgs.size();
   for (size_t i(1); i < nodes.size(); ++i) {
-    Transaction master_boot_node_send_coins(nonce++, test_transfer_val, gas_price, 100000, data,
+    Transaction master_boot_node_send_coins(nonce++, test_transfer_val, gas_price, 100000, bytes(),
                                             nodes[0]->getSecretKey(), nodes[i]->getAddress());
     // broadcast trx and insert
     nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins);
@@ -1233,7 +1234,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     // Each node sends 500 transactions
     auto j = 0;
     for (; j < 500; j++) {
-      Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, 100000, data, nodes[i]->getSecretKey(),
+      Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, 100000, bytes(), nodes[i]->getSecretKey(),
                                             nodes[receiver_index]->getAddress());
       // broadcast trx and insert
       nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle);
@@ -1452,8 +1453,8 @@ TEST_F(FullNodeTest, chain_config_json) {
         "petersburg_block": "0x0"
       },
       "execution_options": {
-        "disable_gas_fee": true,
-        "disable_nonce_check": true
+        "disable_gas_fee": false,
+        "disable_nonce_check": false
       },
       "genesis_balances": {
       },
@@ -1533,8 +1534,7 @@ TEST_F(FullNodeTest, transaction_validation) {
   wait({60s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), 2) });
   trx = Transaction(0, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
   // FAIL on NONCE
-  // THIS IS DISABLED BY DEFAULT check final_chain to enable
-  // EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
+  EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 
   trx = Transaction(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
   // PASS on BALANCE

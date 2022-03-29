@@ -42,14 +42,16 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
     return {false, "invalid signature"};
   }
 
+  const auto account = final_chain_->get_account(trx->getSender()).value_or(taraxa::state_api::ZeroAccount);
+
   // Ensure the transaction adheres to nonce ordering
-  if (!final_chain_->is_nonce_valid(trx->getSender(), trx->getNonce())) {
+  if (account.nonce && account.nonce >= trx->getNonce()) {
     return {false, "nonce too low"};
   }
 
   // Transactor should have enough funds to cover the costs
   // cost == V + GP * GL
-  if (final_chain_->get_account(trx->getSender()).value_or(taraxa::state_api::ZeroAccount).balance < trx->getCost()) {
+  if (account.balance < trx->getCost()) {
     return {false, "insufficient balance"};
   }
 
