@@ -65,4 +65,32 @@ bool PbftSyncingState::isPbftSyncing() {
   return pbft_syncing_;
 }
 
+bool PbftSyncingState::updatePeerAskingPeriod(const dev::p2p::NodeID& peer_id, uint64_t period) {
+  auto now = std::chrono::steady_clock::now();
+
+  UpgradableLock lock(asking_period_mutex_);
+  if (asking_period_peers_table_.contains(peer_id) && asking_period_peers_table_[peer_id].first >= period &&
+      std::chrono::duration_cast<std::chrono::milliseconds>(now - asking_period_peers_table_[peer_id].second) <=
+          kPeerAskingPeriodTimeout) {
+    return false;
+  }
+
+  UpgradeLock locked(lock);
+  asking_period_peers_table_[peer_id] = std::make_pair(period, now);
+
+  return true;
+}
+
+bool PbftSyncingState::updatePeerSyncingPeriod(const dev::p2p::NodeID& peer_id, uint64_t period) {
+  UpgradableLock lock(incoming_blocks_mutex_);
+  if (incoming_blocks_period_peers_table_.contains(peer_id) && incoming_blocks_period_peers_table_[peer_id] >= period) {
+    return false;
+  }
+
+  UpgradeLock locked(lock);
+  incoming_blocks_period_peers_table_[peer_id] = period;
+
+  return true;
+}
+
 }  // namespace taraxa::network::tarcap

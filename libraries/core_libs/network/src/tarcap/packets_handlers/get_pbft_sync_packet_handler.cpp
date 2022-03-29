@@ -32,6 +32,12 @@ void GetPbftSyncPacketHandler::process(const PacketData &packet_data,
   LOG(log_tr_) << "Received GetPbftSyncPacket Block";
 
   const size_t height_to_sync = packet_data.rlp_[0].toInt();
+  if (!pbft_syncing_state_->updatePeerAskingPeriod(packet_data.from_node_id_, height_to_sync)) {
+    std::ostringstream err_msg;
+    err_msg << "Peer " << packet_data.from_node_id_ << " request syncing asked previoud period " << height_to_sync;
+    throw MaliciousPeerException(err_msg.str());
+  }
+
   // Here need PBFT chain size, not synced period since synced blocks has not verified yet.
   const size_t my_chain_size = pbft_chain_->getPbftChainSize();
   if (height_to_sync > my_chain_size) {

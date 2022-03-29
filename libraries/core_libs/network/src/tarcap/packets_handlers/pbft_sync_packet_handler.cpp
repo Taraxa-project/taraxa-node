@@ -39,12 +39,6 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   // Note: no need to consider possible race conditions due to concurrent processing as it is
   // disabled on priority_queue blocking dependencies level
 
-  if (pbft_syncing_state_->syncingPeer() != packet_data.from_node_id_) {
-    LOG(log_wr_) << "PbftSyncPacket received from unexpected peer " << packet_data.from_node_id_.abridged()
-                 << " current syncing peer " << pbft_syncing_state_->syncingPeer().abridged();
-    return;
-  }
-
   // Process received pbft blocks
   // pbft_chain_synced is the flag to indicate own PBFT chain has synced with the peer's PBFT chain
   const bool pbft_chain_synced = packet_data.rlp_[0].toInt<bool>();
@@ -57,6 +51,21 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
     throw MaliciousPeerException("Unable to parse SyncBlock: " + std::string(e.what()));
   }
 
+  auto sync_period = sync_block.pbft_blk->getPeriod();
+
+  if (!pbft_syncing_state_->updatePeerSyncingPeriod(packet_data.from_node_id_, sync_period)) {
+    std::ostringstream err_msg;
+    err_msg << "PbftSyncPacket received from peer " << packet_data.from_node_id_ << " sending previous period "
+            << sync_period << " PBFT block";
+    throw MaliciousPeerException(err_msg.str());
+  }
+
+  if (pbft_syncing_state_->syncingPeer() != packet_data.from_node_id_) {
+    LOG(log_wr_) << "PbftSyncPacket received from unexpected peer " << packet_data.from_node_id_.abridged()
+                 << " current syncing peer " << pbft_syncing_state_->syncingPeer().abridged();
+    return;
+  }
+
   const auto pbft_blk_hash = sync_block.pbft_blk->getBlockHash();
 
   std::string received_dag_blocks_str;  // This is just log related stuff
@@ -67,13 +76,14 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
     }
   }
 
-  LOG(log_dg_) << "PbftSyncPacket received. Period: " << sync_block.pbft_blk->getPeriod()
-               << ", dag Blocks: " << received_dag_blocks_str << " from " << packet_data.from_node_id_;
+  LOG(log_dg_) << "PbftSyncPacket received. Period: " << sync_period << ", dag Blocks: " << received_dag_blocks_str
+               << " from " << packet_data.from_node_id_;
 
   peer->markPbftBlockAsKnown(pbft_blk_hash);
+
   // Update peer's pbft period if outdated
-  if (peer->pbft_chain_size_ < sync_block.pbft_blk->getPeriod()) {
-    peer->pbft_chain_size_ = sync_block.pbft_blk->getPeriod();
+  if (peer->pbft_chain_size_ < sync_period) {
+    peer->pbft_chain_size_ = sync_period;
   }
 
   LOG(log_tr_) << "Processing pbft block: " << pbft_blk_hash;
@@ -87,8 +97,8 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
     return;
   }
 
-  if (sync_block.pbft_blk->getPeriod() != pbft_mgr_->pbftSyncingPeriod() + 1) {
-    LOG(log_wr_) << "Block " << pbft_blk_hash << " period unexpected: " << sync_block.pbft_blk->getPeriod()
+  if (sync_period != pbft_mgr_->pbftSyncingPeriod() + 1) {
+    LOG(log_wr_) << "Block " << pbft_blk_hash << " period unexpected: " << sync_period
                  << ". Expected period: " << pbft_mgr_->pbftSyncingPeriod() + 1;
     restartSyncingPbft(true);
     return;
