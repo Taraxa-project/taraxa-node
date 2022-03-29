@@ -32,6 +32,12 @@ class DagBlockManager {
                   std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
                   std::shared_ptr<PbftChain> pbft_chain, logger::Logger log_time_, uint32_t queue_limit = 0);
   ~DagBlockManager();
+
+  DagBlockManager(const DagBlockManager &) = delete;
+  DagBlockManager(DagBlockManager &&) = delete;
+  DagBlockManager &operator=(const DagBlockManager &) = delete;
+  DagBlockManager &operator=(DagBlockManager &&) = delete;
+
   InsertAndVerifyBlockReturnType insertAndVerifyBlock(DagBlock &&blk);
   std::optional<DagBlock> popVerifiedBlock(bool level_limit = false,
                                            uint64_t level = 0);  // get one verified block and pop

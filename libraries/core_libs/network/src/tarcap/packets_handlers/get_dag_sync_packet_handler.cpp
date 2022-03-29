@@ -49,7 +49,7 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
   for (; it != packet_data.rlp_.end(); ++it) {
     blk_hash_t hash = (*it).toHash<blk_hash_t>();
     blocks_hashes_to_log += hash.abridged();
-    blocks_hashes.emplace(std::move(hash));
+    blocks_hashes.emplace(hash);
   }
 
   LOG(log_dg_) << "Received GetDagSyncPacket: " << blocks_hashes_to_log << " from " << peer->getId();

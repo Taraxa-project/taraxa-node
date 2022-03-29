@@ -6,7 +6,7 @@ GasPricer::GasPricer(uint64_t percentile, uint64_t number_of_blocks, bool is_lig
     : kPercentile_(percentile), kIsLightNode_(is_light_node), price_list_(number_of_blocks) {
   assert(kPercentile_ <= 100);
   if (db) {
-    init_daemon_ = std::make_unique<std::thread>([this, db_ = std::move(db)]() { init(std::move(db_)); });
+    init_daemon_ = std::make_unique<std::thread>([this, db_ = std::move(db)]() { init(db_); });
   }
 }
 
@@ -19,7 +19,7 @@ u256 GasPricer::bid() const {
   return latest_price_;
 }
 
-void GasPricer::init(std::shared_ptr<DbStorage> db) {
+void GasPricer::init(const std::shared_ptr<DbStorage>& db) {
   const auto last_blk_num =
       db->lookup_int<EthBlockNumber>(final_chain::DBMetaKeys::LAST_NUMBER, DB::Columns::final_chain_meta);
   if (!last_blk_num || *last_blk_num == 0) return;

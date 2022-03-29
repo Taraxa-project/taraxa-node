@@ -1,6 +1,10 @@
+#pragma once
+
+#include <string_view>
+
 namespace taraxa::cli {
 
-const char *testnet_json = R"foo({
+constexpr std::string_view testnet_json = R"foo({
   "node_secret": "",
   "vrf_secret": "",
   "data_path": "",

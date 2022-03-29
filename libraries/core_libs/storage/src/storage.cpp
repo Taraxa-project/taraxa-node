@@ -388,7 +388,7 @@ void DbStorage::saveDagBlock(DagBlock const& blk, Batch* write_batch_p) {
 }
 
 // Sortition params
-void DbStorage::saveSortitionParamsChange(uint64_t period, SortitionParamsChange params, Batch& batch) {
+void DbStorage::saveSortitionParamsChange(uint64_t period, const SortitionParamsChange& params, Batch& batch) {
   insert(batch, Columns::sortition_params_change, toSlice(period), toSlice(params.rlp()));
 }
 

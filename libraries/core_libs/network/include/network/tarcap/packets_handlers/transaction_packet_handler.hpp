@@ -13,17 +13,22 @@ namespace taraxa::network::tarcap {
 
 class TestState;
 
-class TransactionPacketHandler : public PacketHandler {
+class TransactionPacketHandler final : public PacketHandler {
  public:
   TransactionPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                            std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                           std::shared_ptr<TestState> test_state, uint16_t network_transaction_interval,
-                           const addr_t& node_addr);
+                           std::shared_ptr<TestState> test_state, const addr_t& node_addr);
 
-  virtual ~TransactionPacketHandler() = default;
-
-  void onNewTransactions(SharedTransactions&& transactions, bool fromNetwork);
+  void onNewTransactions(SharedTransactions&& transactions);
   void sendTransactions(dev::p2p::NodeID const& peer_id, std::vector<taraxa::bytes> const& transactions);
+
+  /**
+   * @brief Sends batch of transactions to all connected peers
+   * @note This method is used as periodic event to broadcast transactions to the other peers in network
+   *
+   * @param transactions to be sent
+   */
+  void periodicSendTransactions(SharedTransactions&& transactions);
 
  private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;
@@ -35,7 +40,6 @@ class TransactionPacketHandler : public PacketHandler {
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<TestState> test_state_;
 
-  const uint16_t network_transaction_interval_;
   std::atomic<uint64_t> received_trx_count_{0};
   std::atomic<uint64_t> unique_received_trx_count_{0};
 

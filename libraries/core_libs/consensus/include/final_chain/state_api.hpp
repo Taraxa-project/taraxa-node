@@ -22,6 +22,10 @@ class StateAPI {
   StateAPI(std::function<h256(EthBlockNumber)> get_blk_hash, Config const& chain_config, Opts const& opts,
            OptsDB const& opts_db);
   ~StateAPI();
+  StateAPI(const StateAPI&) = default;
+  StateAPI(StateAPI&&) = default;
+  StateAPI& operator=(const StateAPI&) = default;
+  StateAPI& operator=(StateAPI&&) = default;
 
   void update_state_config(const Config& new_config) const;
 

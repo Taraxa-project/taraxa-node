@@ -26,7 +26,13 @@ class FinalChain {
   decltype(block_finalized_emitter_)::Subscriber const& block_finalized_ = block_finalized_emitter_;
   decltype(block_applying_emitter_)::Subscriber const& block_applying_ = block_applying_emitter_;
 
+  FinalChain() = default;
   virtual ~FinalChain() = default;
+  FinalChain(const FinalChain&) = delete;
+  FinalChain(FinalChain&&) = delete;
+  FinalChain& operator=(const FinalChain&) = delete;
+  FinalChain& operator=(FinalChain&&) = delete;
+
   virtual void stop() = 0;
 
   using finalize_precommit_ext = std::function<void(FinalizationResult const&, DB::Batch&)>;
@@ -39,7 +45,12 @@ class FinalChain {
   virtual std::optional<EthBlockNumber> block_number(h256 const& h) const = 0;
   virtual std::optional<h256> block_hash(std::optional<EthBlockNumber> n = {}) const = 0;
   struct TransactionHashes {
-    virtual ~TransactionHashes() {}
+    TransactionHashes() = default;
+    virtual ~TransactionHashes() = default;
+    TransactionHashes(const TransactionHashes&) = default;
+    TransactionHashes(TransactionHashes&&) = default;
+    TransactionHashes& operator=(const TransactionHashes&) = default;
+    TransactionHashes& operator=(TransactionHashes&&) = default;
 
     virtual size_t count() const = 0;
     virtual h256 get(size_t i) const = 0;

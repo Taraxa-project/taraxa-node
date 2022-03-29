@@ -19,7 +19,13 @@ struct EthParams {
 };
 
 struct Eth : virtual ::taraxa::net::EthFace {
-  virtual ~Eth() {}
+  Eth() = default;
+  virtual ~Eth() = default;
+
+  Eth(const Eth&) = default;
+  Eth(Eth&&) = default;
+  Eth& operator=(const Eth&) = default;
+  Eth& operator=(Eth&&) = default;
 
   virtual void note_block_executed(final_chain::BlockHeader const&, Transactions const&,
                                    final_chain::TransactionReceipts const&) = 0;

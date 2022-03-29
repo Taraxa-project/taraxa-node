@@ -23,9 +23,6 @@
 
 namespace taraxa {
 
-struct TaraxaCapability;
-class TaraxaPeer;
-
 // TODO merge with TaraxaCapability, and then split the result in reasonable components
 class Network {
  public:
@@ -37,6 +34,10 @@ class Network {
           std::shared_ptr<TransactionManager> trx_mgr = {});
 
   ~Network();
+  Network(const Network &) = delete;
+  Network(Network &&) = delete;
+  Network &operator=(const Network &) = delete;
+  Network &operator=(Network &&) = delete;
 
   static std::pair<bool, bi::tcp::endpoint> resolveHost(string const &addr, uint16_t port);
 
@@ -49,7 +50,7 @@ class Network {
   Json::Value getStatus();
   Json::Value getPacketsStats();
   std::vector<dev::p2p::NodeID> getAllPeersIDs() const;
-  void onNewBlockVerified(DagBlock const &blk, bool proposed, SharedTransactions &&trxs);
+  void onNewBlockVerified(DagBlock &&blk, bool proposed, SharedTransactions &&trxs);
   void onNewTransactions(SharedTransactions &&transactions);
   void restartSyncingPbft(bool force = false);
   void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);

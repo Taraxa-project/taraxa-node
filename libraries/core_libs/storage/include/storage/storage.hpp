@@ -50,12 +50,18 @@ enum PbftMgrVotedValue : uint8_t { OwnStartingValueInRound = 0, SoftVotedBlockHa
 
 class DbException : public std::exception {
  public:
-  explicit DbException(string const& desc) : desc_(desc) {}
-  virtual ~DbException() {}
+  explicit DbException(const std::string& desc) : desc_(desc) {}
+  virtual ~DbException() = default;
+
+  DbException(const DbException&) = default;
+  DbException(DbException&&) = default;
+  DbException& operator=(const DbException&) = delete;
+  DbException& operator=(DbException&&) = delete;
+
   virtual const char* what() const noexcept { return desc_.c_str(); }
 
  private:
-  string desc_;
+  const std::string desc_;
 };
 
 class DbStorage : public std::enable_shared_from_this<DbStorage> {
@@ -152,14 +158,16 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   LOG_OBJECTS_DEFINE
 
  public:
-  DbStorage(DbStorage const&) = delete;
-  DbStorage& operator=(DbStorage const&) = delete;
-
   explicit DbStorage(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block = 0, uint32_t max_open_files = 0,
                      uint32_t db_max_snapshots = 0, uint32_t db_revert_to_period = 0, addr_t node_addr = addr_t(),
                      bool is_light_node = false, uint64_t light_node_history = 0, bool rebuild = false,
                      bool rebuild_columns = false);
   ~DbStorage();
+
+  DbStorage(const DbStorage&) = delete;
+  DbStorage(DbStorage&&) = delete;
+  DbStorage& operator=(const DbStorage&) = delete;
+  DbStorage& operator=(DbStorage&&) = delete;
 
   auto const& path() const { return path_; }
   auto dbStoragePath() const { return db_path_; }
@@ -197,7 +205,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void removeDagBlockBatch(Batch& write_batch, blk_hash_t const& hash);
   void removeDagBlock(blk_hash_t const& hash);
   // Sortition params
-  void saveSortitionParamsChange(uint64_t period, SortitionParamsChange params, DbStorage::Batch& batch);
+  void saveSortitionParamsChange(uint64_t period, const SortitionParamsChange& params, DbStorage::Batch& batch);
   std::deque<SortitionParamsChange> getLastSortitionParams(size_t count);
   std::optional<SortitionParamsChange> getParamsChangeForPeriod(uint64_t period);
 

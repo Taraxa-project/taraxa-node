@@ -48,10 +48,10 @@ struct FinalChainTest : WithDataDir {
     }
     DagBlock dag_blk({}, {}, {}, trx_hashes, {}, secret_t::random());
     db->saveDagBlock(dag_blk);
-    PbftBlock pbft_block(blk_hash_t(), blk_hash_t(), blk_hash_t(), 1, addr_t::random(),
-                         dev::KeyPair::create().secret());
+    auto pbft_block = std::make_shared<PbftBlock>(blk_hash_t(), blk_hash_t(), blk_hash_t(), 1, addr_t::random(),
+                                                  dev::KeyPair::create().secret());
     std::vector<std::shared_ptr<Vote>> votes;
-    SyncBlock sync_block(std::make_shared<PbftBlock>(std::move(pbft_block)), votes);
+    SyncBlock sync_block(pbft_block, votes);
     sync_block.dag_blocks.push_back(dag_blk);
     sync_block.transactions = trxs;
 
@@ -74,8 +74,8 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(SUT->transactionCount(blk_h.number), trxs.size());
     EXPECT_EQ(SUT->transactions(blk_h.number), trxs);
     EXPECT_EQ(*SUT->block_number(*SUT->block_hash(blk_h.number)), expected_blk_num);
-    EXPECT_EQ(blk_h.author, pbft_block.getBeneficiary());
-    EXPECT_EQ(blk_h.timestamp, pbft_block.getTimestamp());
+    EXPECT_EQ(blk_h.author, pbft_block->getBeneficiary());
+    EXPECT_EQ(blk_h.timestamp, pbft_block->getTimestamp());
     EXPECT_EQ(receipts.size(), trxs.size());
     EXPECT_EQ(blk_h.transactions_root,
               trieRootOver(

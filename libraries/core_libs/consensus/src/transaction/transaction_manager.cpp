@@ -109,7 +109,7 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const Transac
   }
 }
 
-uint32_t TransactionManager::insertValidatedTransactions(const SharedTransactions &txs) {
+uint32_t TransactionManager::insertValidatedTransactions(SharedTransactions &&txs) {
   SharedTransactions unseen_txs;
   std::vector<trx_hash_t> txs_hashes;
 

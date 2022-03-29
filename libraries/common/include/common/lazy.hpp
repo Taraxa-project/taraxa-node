@@ -14,6 +14,7 @@ using std::remove_reference;
 using std::size_t;
 using std::unique_lock;
 
+// TODO [1657]: clean up this class - remove ned/delete, ideally remove whole Lazy class !!!
 template <typename Provider>
 class Lazy {
   Provider* provider_ = nullptr;

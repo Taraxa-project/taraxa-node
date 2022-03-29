@@ -110,7 +110,7 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::
   if (trx_mgr /* just because of tests */ && conf.network_transaction_interval > 0) {
     periodic_events_tp_.post_loop({conf.network_transaction_interval},
                                   [tx_packet_handler = std::move(tx_packet_handler), trx_mgr = std::move(trx_mgr)] {
-                                    tx_packet_handler->onNewTransactions(trx_mgr->packTrxs(), false);
+                                    tx_packet_handler->periodicSendTransactions(trx_mgr->packTrxs());
                                   });
   }
 
@@ -199,10 +199,9 @@ void TaraxaCapability::registerPacketHandlers(
                                               dag_mgr, dag_blk_mgr, trx_mgr, db, test_state_, node_addr);
   packets_handlers_->registerHandler(SubprotocolPacketType::DagBlockPacket, dag_handler);
 
-  packets_handlers_->registerHandler(
-      SubprotocolPacketType::TransactionPacket,
-      std::make_shared<TransactionPacketHandler>(peers_state_, packets_stats, trx_mgr, dag_blk_mgr, test_state_,
-                                                 conf.network_transaction_interval, node_addr));
+  packets_handlers_->registerHandler(SubprotocolPacketType::TransactionPacket,
+                                     std::make_shared<TransactionPacketHandler>(peers_state_, packets_stats, trx_mgr,
+                                                                                dag_blk_mgr, test_state_, node_addr));
 
   // Non critical packets with low processing priority
   packets_handlers_->registerHandler(
@@ -323,7 +322,7 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
   }
   // TODO: we are making a copy here for each packet bytes(toBytes()), which is pretty significant. Check why RLP does
   //       not support move semantics so we can take advantage of it...
-  thread_pool_->push(PacketData(packet_type, std::move(node_id), _r.data().toBytes()));
+  thread_pool_->push(PacketData(packet_type, node_id, _r.data().toBytes()));
 }
 
 inline bool TaraxaCapability::filterSyncIrrelevantPackets(SubprotocolPacketType packet_type) const {
@@ -365,16 +364,16 @@ void TaraxaCapability::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) {
       ->handleMaliciousSyncPeer(id);
 }
 
-void TaraxaCapability::onNewBlockVerified(DagBlock const &blk, bool proposed, SharedTransactions &&trxs) {
+void TaraxaCapability::onNewBlockVerified(DagBlock &&blk, bool proposed, SharedTransactions &&trxs) {
   std::static_pointer_cast<DagBlockPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::DagBlockPacket))
-      ->onNewBlockVerified(blk, proposed, std::move(trxs));
+      ->onNewBlockVerified(std::move(blk), proposed, std::move(trxs));
 }
 
 void TaraxaCapability::onNewTransactions(SharedTransactions &&transactions) {
   std::static_pointer_cast<TransactionPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::TransactionPacket))
-      ->onNewTransactions(std::move(transactions), true);
+      ->onNewTransactions(std::move(transactions));
 }
 
 void TaraxaCapability::onNewBlockReceived(DagBlock &&block) {

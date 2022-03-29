@@ -116,7 +116,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
 }
 
 void VotesSyncPacketHandler::broadcastPreviousRoundNextVotesBundle() {
-  const auto next_votes_bundle = next_votes_mgr_->getNextVotes();
+  auto next_votes_bundle = next_votes_mgr_->getNextVotes();
   if (next_votes_bundle.empty()) {
     LOG(log_er_) << "There are empty next votes for previous PBFT round";
     return;
@@ -128,7 +128,7 @@ void VotesSyncPacketHandler::broadcastPreviousRoundNextVotesBundle() {
     // Nodes may vote at different values at previous round, so need less or equal
     if (!peer.second->syncing_ && peer.second->pbft_round_ <= pbft_current_round) {
       std::vector<std::shared_ptr<Vote>> send_next_votes_bundle;
-      for (auto const &v : next_votes_bundle) {
+      for (auto &v : next_votes_bundle) {
         if (!peer.second->isVoteKnown(v->getHash())) {
           send_next_votes_bundle.push_back(std::move(v));
         }

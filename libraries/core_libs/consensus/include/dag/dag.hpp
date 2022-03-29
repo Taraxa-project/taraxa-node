@@ -63,8 +63,15 @@ class Dag {
   using edge_index_map_t = boost::property_map<graph_t, boost::edge_index_t>::type;
 
   friend DagManager;
+
   explicit Dag(blk_hash_t const &genesis, addr_t node_addr);
   virtual ~Dag() = default;
+
+  Dag(const Dag &) = default;
+  Dag(Dag &&) = default;
+  Dag &operator=(const Dag &) = default;
+  Dag &operator=(Dag &&) = default;
+
   uint64_t getNumVertices() const;
   uint64_t getNumEdges() const;
   bool hasVertex(blk_hash_t const &v) const;
@@ -103,6 +110,12 @@ class PivotTree : public Dag {
   friend DagManager;
   explicit PivotTree(blk_hash_t const &genesis, addr_t node_addr) : Dag(genesis, node_addr) {}
   virtual ~PivotTree() = default;
+
+  PivotTree(const PivotTree &) = default;
+  PivotTree(PivotTree &&) = default;
+  PivotTree &operator=(const PivotTree &) = default;
+  PivotTree &operator=(PivotTree &&) = default;
+
   using vertex_t = Dag::vertex_t;
   using vertex_adj_iter_t = Dag::vertex_adj_iter_t;
   using vertex_index_map_const_t = Dag::vertex_index_map_const_t;
@@ -121,6 +134,12 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                       std::shared_ptr<DbStorage> db, logger::Logger log_time);
   virtual ~DagManager() { stop(); }
+
+  DagManager(const DagManager &) = delete;
+  DagManager(DagManager &&) = delete;
+  DagManager &operator=(const DagManager &) = delete;
+  DagManager &operator=(DagManager &&) = delete;
+
   std::shared_ptr<DagManager> getShared();
   void start();
   void stop();
@@ -129,7 +148,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   blk_hash_t const &get_genesis() { return genesis_; }
 
   bool pivotAndTipsAvailable(DagBlock const &blk);
-  void addDagBlock(DagBlock const &blk, SharedTransactions &&trxs = {}, bool proposed = false,
+  void addDagBlock(DagBlock &&blk, SharedTransactions &&trxs = {}, bool proposed = false,
                    bool save = true);  // insert to buffer if fail
 
   // return block order

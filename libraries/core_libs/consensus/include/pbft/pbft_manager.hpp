@@ -40,6 +40,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
               std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
               std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk);
   ~PbftManager();
+  PbftManager(const PbftManager &) = delete;
+  PbftManager(PbftManager &&) = delete;
+  PbftManager &operator=(const PbftManager &) = delete;
+  PbftManager &operator=(PbftManager &&) = delete;
 
   void setNetwork(std::weak_ptr<Network> network);
   void start();

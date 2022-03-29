@@ -1286,7 +1286,7 @@ h256 PbftManager::getProposal(const std::shared_ptr<Vote> &vote) const {
     vrf_hash.iter = i;
     auto tmp_hash = vrf_hash.getHash();
     if (lowest_hash > tmp_hash) {
-      lowest_hash = std::move(tmp_hash);
+      lowest_hash = tmp_hash;
     }
   }
   return lowest_hash;
@@ -1549,7 +1549,7 @@ void PbftManager::finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalize
 
   auto result = final_chain_->finalize(
       std::move(sync_block), std::move(finalized_dag_blk_hashes),
-      [this, weak_ptr = weak_from_this(), anchor_hash = std::move(anchor), period = sync_block.pbft_blk->getPeriod()](
+      [this, weak_ptr = weak_from_this(), anchor_hash = anchor, period = sync_block.pbft_blk->getPeriod()](
           auto const &, auto &batch) {
         // Update proposal period DAG levels map
         auto ptr = weak_ptr.lock();

@@ -57,6 +57,11 @@ struct HardforkTest : WithDataDir {
   }
 
   ~HardforkTest() { fs::remove_all(node_cfg.data_path); }
+
+  HardforkTest(const HardforkTest &) = delete;
+  HardforkTest(HardforkTest &&) = delete;
+  HardforkTest &operator=(const HardforkTest &) = delete;
+  HardforkTest &operator=(HardforkTest &&) = delete;
 };
 
 TEST_F(HardforkTest, hardfork_override) {

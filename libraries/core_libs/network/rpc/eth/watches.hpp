@@ -174,8 +174,12 @@ class Watches {
 
  public:
   Watches(WatchesConfig const& _cfg);
-
   ~Watches();
+
+  Watches(const Watches&) = delete;
+  Watches(Watches&&) = delete;
+  Watches& operator=(const Watches&) = delete;
+  Watches& operator=(Watches&&) = delete;
 
   template <typename Visitor>
   auto visit_by_id(WatchID watch_id, Visitor&& visitor) {
