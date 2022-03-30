@@ -194,6 +194,7 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
   for (uint64_t i = 0; i < trxs.size(); i++) {
     auto const &trx_hash = trx_hashes[i];
     // We only save transaction if it has not already been saved
+    markTransactionKnown(trx_hash);
     if (!trx_in_db[i]) {
       db_->addTransactionToBatch(*trxs[i], write_batch);
       nonfinalized_transactions_in_dag_.emplace(trx_hash, trxs[i]);
@@ -279,6 +280,7 @@ SharedTransactions TransactionManager::packTrxs(uint16_t max_trx_to_pack) {
 void TransactionManager::updateFinalizedTransactionsStatus(SyncBlock const &sync_block) {
   // !!! There is no lock because it is called under std::unique_lock trx_lock(trx_mgr_->getTransactionsMutex());
   for (auto const &trx : sync_block.transactions) {
+    markTransactionKnown(trx.getHash());
     if (!nonfinalized_transactions_in_dag_.erase(trx.getHash())) {
       trx_count_++;
     } else {
