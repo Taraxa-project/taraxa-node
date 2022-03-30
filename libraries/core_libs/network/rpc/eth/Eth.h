@@ -25,8 +25,10 @@ struct Eth : virtual ::taraxa::net::EthFace {
   Eth(const Eth&) = default;
   Eth(Eth&&) = default;
   Eth& operator=(const Eth&) = default;
-  Eth& operator=(Eth&&) = default;
-
+  Eth& operator=(Eth&& rhs) {
+    ::taraxa::net::EthFace::operator=(std::move(rhs));
+    return *this;
+  }
   virtual void note_block_executed(final_chain::BlockHeader const&, Transactions const&,
                                    final_chain::TransactionReceipts const&) = 0;
   virtual void note_pending_transaction(h256 const& trx_hash) = 0;

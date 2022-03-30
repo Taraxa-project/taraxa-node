@@ -1001,7 +1001,7 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf4.computeVdfSolution(vdf_config, blk3.getHash().asBytes(), false);
   DagBlock blk4(blk3.getHash(), propose_level, {}, {g_signed_trx_samples[4]->getHash()}, vdf4, sk);
-  SharedTransactions tr4({g_signed_trx_samples[3], g_signed_trx_samples[4]});
+  SharedTransactions tr4({g_signed_trx_samples[4]});
 
   propose_level = 5;
   vdf_sortition::VdfSortition vdf5(vdf_config, vrf_sk,
