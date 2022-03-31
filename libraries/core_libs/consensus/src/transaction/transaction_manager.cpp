@@ -45,7 +45,7 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
   const auto account = final_chain_->get_account(trx->getSender()).value_or(taraxa::state_api::ZeroAccount);
 
   // Ensure the transaction adheres to nonce ordering
-  if (account.nonce && account.nonce >= trx->getNonce()) {
+  if (account.nonce && account.nonce > trx->getNonce()) {
     return {false, "nonce too low"};
   }
 
