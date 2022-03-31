@@ -1044,10 +1044,11 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
 
   std::cout << "Waiting Sync for up to 20000 milliseconds ..." << std::endl;
-  wait({20s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_GT(ctx, node2->getDagManager()->getNumVerticesInDag().first, 6) });
-
-  EXPECT_GT(node2->getDagManager()->getNumVerticesInDag().first, 6);
-  EXPECT_GT(node2->getDagManager()->getNumEdgesInDag().first, 7);
+  wait({20s, 100ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, node2->getDagManager()->getNumVerticesInDag().first,
+                   node1->getDagManager()->getNumVerticesInDag().first)
+  });
+  EXPECT_EQ(node2->getDagManager()->getNumEdgesInDag().first, node1->getDagManager()->getNumEdgesInDag().first);
 }
 
 // Test creates a complex DAG on one node and verifies
