@@ -21,13 +21,14 @@ class PbftBlock {
   uint64_t timestamp_;
   addr_t beneficiary_;
   sig_t signature_;
+  std::vector<vote_hash_t> reward_votes_;  // Cert votes in previous period
 
  public:
-  PbftBlock(blk_hash_t const& prev_blk_hash, blk_hash_t const& dag_blk_hash_as_pivot, blk_hash_t const& order_hash,
-            uint64_t period, addr_t const& beneficiary, secret_t const& sk);
-  explicit PbftBlock(dev::RLP const& rlp);
-  explicit PbftBlock(bytes const& RLP);
-  explicit PbftBlock(std::string const& JSON);
+  PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_hash_as_pivot, const blk_hash_t& order_hash,
+            uint64_t period, const addr_t& beneficiary, const secret_t& sk,
+            const std::vector<vote_hash_t>& reward_votes);
+  explicit PbftBlock(const dev::RLP& rlp);
+  explicit PbftBlock(const bytes& RLP);
 
   blk_hash_t sha3(bool include_sig) const;
   std::string getJsonStr() const;
@@ -35,7 +36,7 @@ class PbftBlock {
   void streamRLP(dev::RLPStream& strm, bool include_sig) const;
   bytes rlp(bool include_sig) const;
 
-  static Json::Value toJson(PbftBlock const& b, std::vector<blk_hash_t> const& dag_blks);
+  static Json::Value toJson(const PbftBlock& b, const std::vector<blk_hash_t>& dag_blks);
 
   auto const& getBlockHash() const { return block_hash_; }
   auto const& getPrevBlockHash() const { return prev_block_hash_; }

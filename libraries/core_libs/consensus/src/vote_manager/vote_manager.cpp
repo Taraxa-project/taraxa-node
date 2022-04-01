@@ -392,7 +392,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t pbft_r
   std::vector<std::shared_ptr<Vote>> proposal_votes;
 
   SharedLock lock(verified_votes_access_);
-  // For each proposed value should only have one vote(except NULL_BLOCK_HASH)
+  // For each proposed value should only have one vote
   proposal_votes.reserve(verified_votes_[pbft_round][1].size());
   for (auto const& voted_value : verified_votes_[pbft_round][1]) {
     for (auto const& v : voted_value.second.second) {
@@ -415,15 +415,25 @@ std::optional<VotesBundle> VoteManager::getVotesBundleByRoundAndStep(uint64_t ro
       for (auto const& voted_value : found_step_it->second) {
         if (voted_value.second.first >= two_t_plus_one) {
           const auto voted_block_hash = voted_value.first;
-          auto it = voted_value.second.second.begin();
           size_t count = 0;
 
-          // Copy at least 2t+1 votes
-          while (count < two_t_plus_one) {
-            votes.emplace_back(it->second);
-            count += it->second->getWeight().value();
-            it++;
+          if (step == 3) {
+            // Collect all cert votes
+            votes.reserve(voted_value.second.second.size());
+            for (const auto& v : voted_value.second.second) {
+              votes.emplace_back(v.second);
+              count += v.second->getWeight().value();
+            }
+          } else {
+            auto it = voted_value.second.second.begin();
+            // Copy at least 2t+1 votes
+            while (count < two_t_plus_one) {
+              votes.emplace_back(it->second);
+              count += it->second->getWeight().value();
+              it++;
+            }
           }
+
           LOG(log_nf_) << "Found enough " << count << " votes at voted value " << voted_block_hash << " for round "
                        << round << " step " << step;
 

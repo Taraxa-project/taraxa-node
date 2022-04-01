@@ -31,6 +31,9 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::s
                << ", Peer PBFT Chain size: " << peer_pbft_chain_size << " from " << peer->getId();
 
   peer->markPbftBlockAsKnown(pbft_block->getBlockHash());
+  // TODO: Update pbft_chain_size after verify PBFT block. Malicious players can send larget fake chain size
+  // to force peers syncing with him.
+  // After fix this, need refactor unit test NetworkTest.send_pbft_block
   if (peer_pbft_chain_size > peer->pbft_chain_size_) {
     peer->pbft_chain_size_ = peer_pbft_chain_size;
   }

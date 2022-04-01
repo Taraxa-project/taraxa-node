@@ -97,8 +97,7 @@ void PbftManager::run() {
   LOG(log_nf_) << "PBFT running ...";
 
   for (auto period = final_chain_->last_block_number() + 1, curr_period = pbft_chain_->getPbftChainSize();
-       period <= curr_period;  //
-       ++period) {
+       period <= curr_period; ++period) {
     auto period_raw = db_->getPeriodDataRaw(period);
     if (period_raw.size() == 0) {
       LOG(log_er_) << "DB corrupted - Cannot find PBFT block in period " << period << " in PBFT chain DB pbft_blocks.";
@@ -1072,9 +1071,13 @@ void PbftManager::secondFinish_() {
 
 blk_hash_t PbftManager::generatePbftBlock(const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
                                           const blk_hash_t &order_hash) {
-  auto propose_period = pbft_chain_->getPbftChainSize() + 1;
-  const auto pbft_block =
-      std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, propose_period, node_addr_, node_sk_);
+  auto period = pbft_chain_->getPbftChainSize();
+  auto reward_votes = db_->getCertVotes(period - 1);  // No cert votes in period 0
+  std::vector<vote_hash_t> reward_votes_hash;
+  std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hash),
+                 [](const auto &v) { return v->getHash(); });
+  const auto pbft_block = std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, period + 1, node_addr_,
+                                                      node_sk_, reward_votes_hash);
 
   // push pbft block
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
