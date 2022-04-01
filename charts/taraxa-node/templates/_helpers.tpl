@@ -108,7 +108,7 @@ If release name contains chart name it will be used as a full name.
 
 {{/* Get Ingress API Version */}}
 {{- define "taraxa-node.ingress.apiVersion" -}}
-  {{- if and (.Capabilities.APIVersions.Has "networking.k8s.io/v1") (semverCompare ">= 1.19-0" (include "explorer.kubeVersion" .)) -}}
+  {{- if and (.Capabilities.APIVersions.Has "networking.k8s.io/v1") (semverCompare ">= 1.19-0" (include "taraxa-node.kubeVersion" .)) -}}
       {{- print "networking.k8s.io/v1" -}}
   {{- else if .Capabilities.APIVersions.Has "networking.k8s.io/v1beta1" -}}
     {{- print "networking.k8s.io/v1beta1" -}}

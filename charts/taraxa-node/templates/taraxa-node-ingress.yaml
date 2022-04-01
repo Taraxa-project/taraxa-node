@@ -1,8 +1,20 @@
 {{ if .Values.node.enabled }}
 {{- if .Values.node.ingress.enabled -}}
 {{- $fullName := include "taraxa-node.fullname" . -}}
+{{- $apiIsStable := eq (include "taraxa-node.ingress.isStable" .) "true" -}}
+{{- $ingressSupportsPathType := eq (include "taraxa-node.ingress.supportsPathType" .) "true" -}}
+{{- $serviceName := printf "%s-%s" (include "taraxa-node.fullname" .) "head" -}}
+
+{{- $servicePortRpc := 7777 -}}
+{{- $servicePortRpcWs := 8777 -}}
+{{- range .Values.node.service.ports }}
+  {{ if eq .name "rest"}} {{ $servicePortRpc = .port }} {{ end }}
+  {{ if eq .name "ws"}} {{ $servicePortRpcWs = .port }} {{ end }}
+{{- end }}
+
+{{- $pathType := .Values.node.ingress.pathType | default "ImplementationSpecific" -}}
 ---
-apiVersion: networking.k8s.io/v1
+apiVersion: {{ include "taraxa-node.ingress.apiVersion" . }}
 kind: Ingress
 metadata:
   name: {{ $fullName }}-rpc
@@ -17,8 +29,10 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-{{- if .Values.ingressClassName }}
-  ingressClassName: {{ .Values.ingressClassName }}
+{{- if $apiIsStable }}
+{{- if .Values.node.ingress.ingressClassName }}
+ingressClassName: {{ .Values.node.ingress.ingressClassName }}
+{{- end }}
 {{- end }}
   {{- if .Values.wildCertDomainSecret }}
   tls:
@@ -31,14 +45,21 @@ spec:
       http:
         paths:
           - path: /
-            pathType: ImplementationSpecific
+            {{- if and $pathType $ingressSupportsPathType }}
+            pathType: {{ $pathType }}
+            {{- end }}
             backend:
+              {{- if $apiIsStable }}
               service:
-                name: {{ include "taraxa-node.fullname" . }}-head
-                port: 
-                  number: 7777
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePortRpc }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePortRpc }}
+              {{- end }}
 ---
-apiVersion: networking.k8s.io/v1
+apiVersion: {{ include "taraxa-node.ingress.apiVersion" . }}
 kind: Ingress
 metadata:
   name: {{ $fullName }}-ws
@@ -53,8 +74,10 @@ metadata:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-{{- if .Values.ingressClassName }}
-  ingressClassName: {{ .Values.ingressClassName }}
+{{- if $apiIsStable }}
+{{- if .Values.node.ingress.ingressClassName }}
+ingressClassName: {{ .Values.node.ingress.ingressClassName }}
+{{- end }}
 {{- end }}
   {{- if .Values.wildCertDomainSecret }}
   tls:
@@ -67,11 +90,18 @@ spec:
       http:
         paths:
           - path: /
-            pathType: ImplementationSpecific
+            {{- if and $pathType $ingressSupportsPathType }}
+            pathType: {{ $pathType }}
+            {{- end }}
             backend:
+              {{- if $apiIsStable }}
               service:
-                name: {{ include "taraxa-node.fullname" . }}-head
-                port: 
-                  number: 8777
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePortRpcWs }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePortRpcWs }}
+              {{- end }}
 {{- end }}
 {{- end }}
