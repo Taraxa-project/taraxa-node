@@ -256,8 +256,9 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   auto propose_pbft_period = pbft_chain->getPbftChainSize() + 1;
   auto beneficiary = nodes[0]->getAddress();
   auto node_sk = nodes[0]->getSecretKey();
+  std::vector<vote_hash_t> reward_votes;
   auto propose_pbft_block = std::make_shared<PbftBlock>(last_pbft_block_hash, dag_anchor, blk_hash_t(),
-                                                        propose_pbft_period, beneficiary, node_sk);
+                                                        propose_pbft_period, beneficiary, node_sk, reward_votes);
   auto pbft_block_hash = propose_pbft_block->getBlockHash();
   pbft_chain->pushUnverifiedPbftBlock(propose_pbft_block);
 
