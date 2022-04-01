@@ -31,7 +31,7 @@ metadata:
 spec:
 {{- if $apiIsStable }}
 {{- if .Values.node.ingress.ingressClassName }}
-ingressClassName: {{ .Values.node.ingress.ingressClassName }}
+  ingressClassName: {{ .Values.node.ingress.ingressClassName }}
 {{- end }}
 {{- end }}
   {{- if .Values.wildCertDomainSecret }}
@@ -76,7 +76,7 @@ metadata:
 spec:
 {{- if $apiIsStable }}
 {{- if .Values.node.ingress.ingressClassName }}
-ingressClassName: {{ .Values.node.ingress.ingressClassName }}
+  ingressClassName: {{ .Values.node.ingress.ingressClassName }}
 {{- end }}
 {{- end }}
   {{- if .Values.wildCertDomainSecret }}
