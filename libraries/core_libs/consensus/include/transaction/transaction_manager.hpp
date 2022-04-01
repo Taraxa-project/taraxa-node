@@ -10,6 +10,8 @@
 
 namespace taraxa {
 
+enum class TransactionStatus { Verified = 0, Invalid, Old };
+
 class DagBlock;
 class DagManager;
 class FullNode;
@@ -125,7 +127,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::shared_ptr<Transaction> getNonFinalizedTransaction(trx_hash_t const &hash) const;
   unsigned long getTransactionCount() const;
   void recoverNonfinalizedTransactions();
-  std::pair<bool, std::string> verifyTransaction(const std::shared_ptr<Transaction> &trx) const;
+  std::pair<TransactionStatus, std::string> verifyTransaction(const std::shared_ptr<Transaction> &trx) const;
 
  private:
   /**

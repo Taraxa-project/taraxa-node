@@ -21,41 +21,42 @@ TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_p
   }
 }
 
-std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::shared_ptr<Transaction> &trx) const {
+std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
+    const std::shared_ptr<Transaction> &trx) const {
   // ONLY FOR TESTING
   if (!final_chain_) [[unlikely]] {
-    return {true, ""};
+    return {TransactionStatus::Verified, ""};
   }
 
   if (trx->getChainID() != conf_.chain.chain_id) {
-    return {false, "chain_id mismatch"};
+    return {TransactionStatus::Invalid, "chain_id mismatch"};
   }
 
   // Ensure the transaction doesn't exceed the current block limit gas.
   if (FinalChain::GAS_LIMIT < trx->getGas()) {
-    return {false, "invalid gas"};
+    return {TransactionStatus::Invalid, "invalid gas"};
   }
 
   try {
     trx->getSender();
   } catch (Transaction::InvalidSignature const &) {
-    return {false, "invalid signature"};
+    return {TransactionStatus::Invalid, "invalid signature"};
   }
 
   const auto account = final_chain_->get_account(trx->getSender()).value_or(taraxa::state_api::ZeroAccount);
 
   // Ensure the transaction adheres to nonce ordering
   if (account.nonce && account.nonce > trx->getNonce()) {
-    return {false, "nonce too low"};
+    return {TransactionStatus::Old, "nonce too low"};
   }
 
   // Transactor should have enough funds to cover the costs
   // cost == V + GP * GL
   if (account.balance < trx->getCost()) {
-    return {false, "insufficient balance"};
+    return {TransactionStatus::Old, "insufficient balance"};
   }
 
-  return {true, ""};
+  return {TransactionStatus::Verified, ""};
 }
 
 bool TransactionManager::checkMemoryPoolOverflow() {
@@ -93,7 +94,7 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const Transac
   }
 
   const auto trx_ptr = std::make_shared<Transaction>(trx);
-  if (const auto [is_valid, reason] = verifyTransaction(trx_ptr); !is_valid) {
+  if (const auto [status, reason] = verifyTransaction(trx_ptr); status != TransactionStatus::Verified) {
     return {false, reason};
   }
 

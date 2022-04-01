@@ -40,7 +40,8 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
       if (trx_mgr_->isTransactionKnown(transaction->getHash())) {
         continue;
       }
-      if (const auto [is_valid, reason] = trx_mgr_->verifyTransaction(transaction); !is_valid) {
+      if (const auto [status, reason] = trx_mgr_->verifyTransaction(transaction);
+          status != TransactionStatus::Verified) {
         std::ostringstream err_msg;
         err_msg << "Transaction " << transaction->getHash() << " validation failed: " << reason;
 

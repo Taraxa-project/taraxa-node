@@ -75,11 +75,15 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
       continue;
     }
 
-    if (const auto [is_valid, reason] = trx_mgr_->verifyTransaction(trx); !is_valid) {
+    if (const auto [status, reason] = trx_mgr_->verifyTransaction(trx); status == TransactionStatus::Invalid) {
       std::ostringstream err_msg;
       err_msg << "DagBlock transaction " << trx->getHash() << " validation failed: " << reason;
 
       throw MaliciousPeerException(err_msg.str());
+    } else if (status == TransactionStatus::Old) {
+      // It could happen that dag has transaction that was valid under old state (nonce/balance)
+      // let's keep it and it will fail in execution
+      LOG(log_wr_) << "DagBlock transaction " << trx->getHash() << " is probably old due to: " << reason;
     }
 
     new_transactions.push_back(std::move(trx));
