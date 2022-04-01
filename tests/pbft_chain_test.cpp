@@ -25,7 +25,7 @@ TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
   blk_hash_t dag_block_hash_as_pivot(45678);
   uint64_t period = 1;
   addr_t beneficiary(98765);
-  PbftBlock pbft_block1(prev_block_hash, dag_block_hash_as_pivot, blk_hash_t(), period, beneficiary, sk);
+  PbftBlock pbft_block1(prev_block_hash, dag_block_hash_as_pivot, blk_hash_t(), period, beneficiary, sk, {});
 
   auto rlp = pbft_block1.rlp(true);
   PbftBlock pbft_block2(rlp);
@@ -56,7 +56,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
 
   uint64_t period = 1;
   addr_t beneficiary(987);
-  PbftBlock pbft_block(prev_block_hash, blk1.getHash(), blk_hash_t(), period, beneficiary, node->getSecretKey());
+  PbftBlock pbft_block(prev_block_hash, blk1.getHash(), blk_hash_t(), period, beneficiary, node->getSecretKey(), {});
 
   // put into pbft chain and store into DB
   auto batch = db->createWriteBatch();
@@ -115,8 +115,9 @@ TEST_F(PbftChainTest, proposal_block_broadcast) {
   // Node1 generate a PBFT block sample
   blk_hash_t prev_block_hash = pbft_chain1->getLastPbftBlockHash();
   uint64_t propose_period = node1_pbft_chain_size + 1;
+  std::vector<vote_hash_t> reward_votes;
   auto pbft_block = std::make_shared<PbftBlock>(prev_block_hash, blk_hash_t(0), blk_hash_t(0), propose_period,
-                                                node1->getAddress(), node1->getSecretKey());
+                                                node1->getAddress(), node1->getSecretKey(), reward_votes);
 
   pbft_chain1->pushUnverifiedPbftBlock(pbft_block);
   auto block1_from_node1 = pbft_chain1->getUnverifiedPbftBlock(pbft_block->getBlockHash());

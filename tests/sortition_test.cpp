@@ -23,7 +23,8 @@ SyncBlock createBlock(uint64_t period, uint16_t efficiency, size_t dag_blocks_co
   // efficiency
   const size_t kTrxCount = 100 * kOnePercent;
   SyncBlock b;
-  b.pbft_blk = std::make_shared<PbftBlock>(PbftBlock{{}, anchor_hash, {}, period, {}, dev::KeyPair::create().secret()});
+  b.pbft_blk =
+      std::make_shared<PbftBlock>(PbftBlock{{}, anchor_hash, {}, period, {}, dev::KeyPair::create().secret(), {}});
   size_t effective_transactions = kTrxCount * efficiency / (100 * kOnePercent);
   auto trx_hashes = generateTrxHashes(effective_transactions);
   auto trx_per_block = effective_transactions / dag_blocks_count;
