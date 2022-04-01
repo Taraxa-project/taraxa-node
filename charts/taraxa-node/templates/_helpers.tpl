@@ -99,3 +99,31 @@ If release name contains chart name it will be used as a full name.
 {{- printf "%s-%s.%s" "rpc" .Release.Name .Values.domain | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}
+
+
+{{/* Allow KubeVersion to be overridden. */}}
+{{- define "taraxa-node.kubeVersion" -}}
+  {{- default .Capabilities.KubeVersion.Version .Values.kubeVersionOverride -}}
+{{- end -}}
+
+{{/* Get Ingress API Version */}}
+{{- define "taraxa-node.ingress.apiVersion" -}}
+  {{- if and (.Capabilities.APIVersions.Has "networking.k8s.io/v1") (semverCompare ">= 1.19-0" (include "explorer.kubeVersion" .)) -}}
+      {{- print "networking.k8s.io/v1" -}}
+  {{- else if .Capabilities.APIVersions.Has "networking.k8s.io/v1beta1" -}}
+    {{- print "networking.k8s.io/v1beta1" -}}
+  {{- else -}}
+    {{- print "extensions/v1beta1" -}}
+  {{- end -}}
+{{- end -}}
+
+{{/* Check Ingress stability */}}
+{{- define "taraxa-node.ingress.isStable" -}}
+  {{- eq (include "taraxa-node.ingress.apiVersion" .) "networking.k8s.io/v1" -}}
+{{- end -}}
+
+{{/* Check Ingress supports pathType */}}
+{{/* pathType was added to networking.k8s.io/v1beta1 in Kubernetes 1.18 */}}
+{{- define "taraxa-node.ingress.supportsPathType" -}}
+  {{- or (eq (include "taraxa-node.ingress.isStable" .) "true") (and (eq (include "taraxa-node.ingress.apiVersion" .) "networking.k8s.io/v1beta1") (semverCompare ">= 1.18-0" (include "taraxa-node.kubeVersion" .))) -}}
+{{- end -}}
