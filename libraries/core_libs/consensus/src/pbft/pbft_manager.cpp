@@ -1077,8 +1077,8 @@ blk_hash_t PbftManager::generatePbftBlock(const blk_hash_t &prev_blk_hash, const
   std::vector<vote_hash_t> reward_votes_hash;
   std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hash),
                  [](const auto &v) { return v->getHash(); });
-  const auto pbft_block = std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, period + 1, node_addr_,
-                                                      node_sk_, reward_votes_hash);
+  const auto pbft_block =
+      std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, period + 1, reward_votes_hash, node_sk_);
 
   // push pbft block
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);

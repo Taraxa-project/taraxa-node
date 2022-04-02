@@ -480,7 +480,6 @@ TEST_F(NetworkTest, node_pbft_sync) {
   // generate first PBFT block sample
   blk_hash_t prev_block_hash(0);
   uint64_t period = 1;
-  addr_t beneficiary(987);
 
   level_t level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(level));
@@ -498,8 +497,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
   order_stream.appendList(2);
   order_stream << g_signed_trx_samples[0]->getHash() << g_signed_trx_samples[1]->getHash();
 
-  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), period, beneficiary,
-                        node1->getSecretKey(), {});
+  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), period, {},
+                        node1->getSecretKey());
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
       node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3));
@@ -547,14 +546,13 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   batch = db1->createWriteBatch();
   period = 2;
-  beneficiary = addr_t(654);
   dev::RLPStream order_stream2(2);
   order_stream2.appendList(1);
   order_stream2 << blk2.getHash();
   order_stream2.appendList(2);
   order_stream2 << g_signed_trx_samples[2]->getHash() << g_signed_trx_samples[3]->getHash();
-  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), period, beneficiary,
-                        node1->getSecretKey(), {});
+  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), period, {},
+                        node1->getSecretKey());
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(
       node1->getPbftManager()->generateVote(pbft_block2.getBlockHash(), cert_vote_type, 2, 3));
@@ -644,7 +642,6 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   // generate first PBFT block sample
   blk_hash_t prev_block_hash(0);
   uint64_t period = 1;
-  addr_t beneficiary(876);
   level_t level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(level));
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
@@ -660,8 +657,8 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   order_stream.appendList(2);
   order_stream << g_signed_trx_samples[0]->getHash() << g_signed_trx_samples[1]->getHash();
 
-  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), period, beneficiary,
-                        node1->getSecretKey(), {});
+  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), period, {},
+                        node1->getSecretKey());
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
       node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3));
@@ -698,16 +695,14 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   batch = db1->createWriteBatch();
   period = 2;
-  beneficiary = addr_t(654);
-
   dev::RLPStream order_stream2(2);
   order_stream2.appendList(1);
   order_stream2 << blk2.getHash();
   order_stream2.appendList(2);
   order_stream2 << g_signed_trx_samples[2]->getHash() << g_signed_trx_samples[3]->getHash();
 
-  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), period, beneficiary,
-                        node1->getSecretKey(), {});
+  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), period, {},
+                        node1->getSecretKey());
   std::cout << "Use fake votes for the second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and use fake votes storing into DB (malicious player)
   // Add fake votes in DB
