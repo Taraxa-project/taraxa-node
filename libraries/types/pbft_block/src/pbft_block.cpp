@@ -11,18 +11,17 @@ PbftBlock::PbftBlock(const bytes& b) : PbftBlock(dev::RLP(b)) {}
 
 PbftBlock::PbftBlock(const dev::RLP& rlp) {
   util::rlp_tuple(util::RLPDecoderRef(rlp, true), prev_block_hash_, dag_block_hash_as_pivot_, order_hash_, period_,
-                  timestamp_, beneficiary_, reward_votes_, signature_);
+                  reward_votes_, timestamp_, signature_);
   calculateHash_();
 }
 
 PbftBlock::PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_hash_as_pivot,
-                     const blk_hash_t& order_hash, uint64_t period, const addr_t& beneficiary, const secret_t& sk,
-                     const std::vector<vote_hash_t>& reward_votes)
+                     const blk_hash_t& order_hash, uint64_t period, const std::vector<vote_hash_t>& reward_votes,
+                     const secret_t& sk)
     : prev_block_hash_(prev_blk_hash),
       dag_block_hash_as_pivot_(dag_blk_hash_as_pivot),
       order_hash_(order_hash),
       period_(period),
-      beneficiary_(beneficiary),
       reward_votes_(reward_votes) {
   timestamp_ = dev::utcTime();
   signature_ = dev::sign(sk, sha3(false));
@@ -64,27 +63,27 @@ Json::Value PbftBlock::getJson() const {
   json["dag_block_hash_as_pivot"] = dag_block_hash_as_pivot_.toString();
   json["order_hash"] = order_hash_.toString();
   json["period"] = (Json::Value::UInt64)period_;
-  json["timestamp"] = (Json::Value::UInt64)timestamp_;
-  json["beneficiary"] = beneficiary_.toString();
   json["reward_votes"] = Json::Value(Json::arrayValue);
   for (const auto& v : reward_votes_) {
     json["reward_votes"].append(v.toString());
   }
+  json["timestamp"] = (Json::Value::UInt64)timestamp_;
   json["signature"] = signature_.toString();
+  json["beneficiary"] = beneficiary_.toString();
 
   return json;
 }
 
 // Using to setup PBFT block hash
 void PbftBlock::streamRLP(dev::RLPStream& strm, bool include_sig) const {
-  strm.appendList(include_sig ? 8 : 7);
+  // Don't include beneficiary here
+  strm.appendList(include_sig ? 7 : 6);
   strm << prev_block_hash_;
   strm << dag_block_hash_as_pivot_;
   strm << order_hash_;
   strm << period_;
-  strm << timestamp_;
-  strm << beneficiary_;
   strm.appendVector(reward_votes_);
+  strm << timestamp_;
   if (include_sig) {
     strm << signature_;
   }

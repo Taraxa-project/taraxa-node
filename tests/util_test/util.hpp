@@ -315,7 +315,7 @@ inline auto own_effective_genesis_bal(FullNodeConfig const& cfg) {
 }
 
 inline auto make_simple_pbft_block(h256 const& hash, uint64_t period, h256 const& anchor_hash = blk_hash_t(0)) {
-  return PbftBlock(hash, anchor_hash, blk_hash_t(), period, addr_t(0), secret_t::random(), {});
+  return PbftBlock(hash, anchor_hash, blk_hash_t(), period, {}, secret_t::random());
 }
 
 inline std::vector<blk_hash_t> getOrderedDagBlocks(std::shared_ptr<DbStorage> const& db) {
