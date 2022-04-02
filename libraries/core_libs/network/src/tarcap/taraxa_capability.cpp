@@ -426,11 +426,10 @@ size_t TaraxaCapability::getReceivedBlocksCount() const { return test_state_->ge
 size_t TaraxaCapability::getReceivedTransactionsCount() const { return test_state_->getTransactionsSize(); }
 
 // PBFT
-void TaraxaCapability::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block,
-                                     uint64_t pbft_chain_size) {
+void TaraxaCapability::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block) {
   std::static_pointer_cast<PbftBlockPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::PbftBlockPacket))
-      ->sendPbftBlock(id, pbft_block, pbft_chain_size);
+      ->sendPbftBlock(id, pbft_block);
 }
 
 void TaraxaCapability::sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote) {
