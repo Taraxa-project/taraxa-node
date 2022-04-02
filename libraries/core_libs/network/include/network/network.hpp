@@ -75,7 +75,7 @@ class Network {
   std::shared_ptr<network::tarcap::TaraxaPeer> getPeer(dev::p2p::NodeID const &id) const;
 
   // PBFT
-  void sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
+  void sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block);
   void sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote);
   // END METHODS USED IN TESTS ONLY
 

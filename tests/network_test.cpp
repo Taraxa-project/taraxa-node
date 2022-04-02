@@ -147,10 +147,11 @@ TEST_F(NetworkTest, send_pbft_block) {
   auto nw1 = nodes[0]->getNetwork();
   auto nw2 = nodes[1]->getNetwork();
 
-  auto pbft_block = make_simple_pbft_block(blk_hash_t(1), 2, node_cfgs[0].chain.dag_genesis_block.getHash());
-  uint64_t chain_size = 111;
+  const uint64_t chain_size = 111;
+  auto pbft_block =
+      make_simple_pbft_block(blk_hash_t(1), chain_size + 1, node_cfgs[0].chain.dag_genesis_block.getHash());
 
-  nw2->sendPbftBlock(nw1->getNodeId(), pbft_block, chain_size);
+  nw2->sendPbftBlock(nw1->getNodeId(), pbft_block);
 
   auto node2_id = nw2->getNodeId();
   EXPECT_HAPPENS({10s, 200ms},
