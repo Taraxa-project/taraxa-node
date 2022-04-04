@@ -6,6 +6,7 @@
 #include <unordered_map>
 
 #include "common/lazy.hpp"
+#include "config/dag_config.hpp"
 #include "config/final_chain_config.hpp"
 #include "config/pbft_config.hpp"
 #include "dag/dag_block.hpp"
@@ -31,6 +32,7 @@ struct ChainConfig {
   SortitionConfig sortition;
   PbftConfig pbft;
   final_chain::Config final_chain;
+  DagConfig dag;
 
  private:
   static LazyVal<std::unordered_map<string, ChainConfig>> const predefined_;

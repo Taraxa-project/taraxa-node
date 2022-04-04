@@ -52,7 +52,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
   level_t level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(level));
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
-  DagBlock blk1(dag_genesis, 1, {}, {}, vdf1, sk);
+  DagBlock blk1(dag_genesis, 1, {}, {}, {}, vdf1, sk);
 
   uint64_t period = 1;
   addr_t beneficiary(987);

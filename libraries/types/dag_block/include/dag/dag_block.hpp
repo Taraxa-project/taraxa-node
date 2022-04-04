@@ -7,6 +7,7 @@ namespace taraxa {
 
 using std::string;
 using VdfSortition = vdf_sortition::VdfSortition;
+using estimations_vec_t = std::vector<u256>;
 
 // Note: Need to sign first then sender() and hash() is available
 class DagBlock {
@@ -20,7 +21,9 @@ class DagBlock {
   level_t level_ = 0;
   vec_blk_t tips_;
   vec_trx_t trxs_;  // transactions
+  estimations_vec_t trx_estimations_;
   sig_t sig_;
+  u256 block_weight_;
   mutable blk_hash_t hash_;
   mutable util::DefaultConstructCopyableMovable<std::mutex> hash_mu_;
   uint64_t timestamp_ = 0;
@@ -31,12 +34,14 @@ class DagBlock {
  public:
   DagBlock() = default;
   // fixme: This constructor is bogus, used only in tests. Eliminate it
+  DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, estimations_vec_t est, sig_t signature,
+           blk_hash_t hash, addr_t sender);
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, sig_t signature, blk_hash_t hash,
            addr_t sender);
   // fixme: used only in tests, Eliminate it
   DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, secret_t const &sk);
-  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, VdfSortition vdf,
-           secret_t const &sk);
+  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, estimations_vec_t est,
+           VdfSortition vdf, secret_t const &sk);
   explicit DagBlock(Json::Value const &doc);
   explicit DagBlock(string const &json);
   explicit DagBlock(dev::RLP const &_rlp);
@@ -72,6 +77,7 @@ class DagBlock {
   auto getTimestamp() const { return timestamp_; }
   auto const &getTips() const { return tips_; }
   auto const &getTrxs() const { return trxs_; }
+  auto const &getEstimations() const { return trx_estimations_; }
   auto const &getSig() const { return sig_; }
   blk_hash_t const &getHash() const;
   uint16_t getDifficulty() const { return vdf_.getDifficulty(); }
@@ -88,6 +94,29 @@ class DagBlock {
   void streamRLP(dev::RLPStream &s, bool include_sig) const;
   blk_hash_t sha3(bool include_sig) const;
 };
+
+// class DagBlockEstimated : public DagBlock {
+//  public:
+
+//   static DagBlockEstimated fromDagBlock(const DagBlock &dag_block,
+//                                         std::function<uint64_t(const trx_hash_t &)> estimate_by_hash) {
+//     DagBlockEstimated res;
+//     for (const auto &tx_hash : dag_block.getTrxs()) {
+//       res.trxs_.emplace(tx_hash, estimate_by_hash(tx_hash));
+//     }
+//     return res;
+//   }
+//   const trx_estimate_map_t &getTransactionsWithEstimations() const { return trxs_; }
+//   uint64_t getTransactionEstimation(const trx_hash_t &trx_hash) const { return trxs_.at(trx_hash); }
+
+//  private:
+//   void streamRLP(dev::RLPStream &s, bool include_sig) const override {
+//     DagBlock::streamRLP(s, include_sig);
+//     s.appendMap(trxs_);
+//   }
+
+//   trx_estimate_map_t trxs_;
+// };
 
 struct DagFrontier {
   DagFrontier() = default;

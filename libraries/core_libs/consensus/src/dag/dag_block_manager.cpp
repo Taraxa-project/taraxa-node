@@ -4,7 +4,7 @@
 
 namespace taraxa {
 
-DagBlockManager::DagBlockManager(addr_t node_addr, SortitionConfig const &sortition_config,
+DagBlockManager::DagBlockManager(addr_t node_addr, SortitionConfig const &sortition_config, const DagConfig &dag_config,
                                  std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                                  std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
                                  logger::Logger log_time, uint32_t queue_limit, uint32_t max_levels_per_period)
@@ -16,7 +16,8 @@ DagBlockManager::DagBlockManager(addr_t node_addr, SortitionConfig const &sortit
       invalid_blocks_(cache_max_size_, cache_delete_step_),
       seen_blocks_(cache_max_size_, cache_delete_step_),
       queue_limit_(queue_limit),
-      sortition_params_manager_(node_addr, sortition_config, db_) {
+      sortition_params_manager_(node_addr, sortition_config, db_),
+      dag_config_(dag_config) {
   LOG_OBJECTS_CREATE("DAGBLKMGR");
 
   // Set DAG level proposal period map
@@ -221,6 +222,25 @@ DagBlockManager::InsertAndVerifyBlockReturnType DagBlockManager::verifyBlock(con
     markBlockInvalid(block_hash);
     return InsertAndVerifyBlockReturnType::NotEligible;
   }
+  {
+    u256 total_block_weight = 0;
+    const auto &trxs = blk.getTrxs();
+    const auto &estimations = blk.getEstimations();
+    if (trxs.size() != estimations.size()) {
+      return InsertAndVerifyBlockReturnType::IncorrectTransactionsEstimation;
+    }
+    for (uint32_t i = 0; i < trxs.size(); ++i) {
+      const auto &e = trx_mgr_->estimateTransactionByHash(trxs[i], propose_period);
+      if (e != estimations[i]) {
+        return InsertAndVerifyBlockReturnType::IncorrectTransactionsEstimation;
+      }
+      total_block_weight += estimations[i];
+    }
+    if (total_block_weight > getDagConfig().gas_limit) {
+      return InsertAndVerifyBlockReturnType::BlockTooBig;
+    }
+  }
+
   return InsertAndVerifyBlockReturnType::InsertedAndVerified;
 }
 

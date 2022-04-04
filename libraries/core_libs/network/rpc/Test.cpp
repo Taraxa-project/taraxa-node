@@ -32,7 +32,7 @@ Json::Value Test::insert_dag_block(const Json::Value &param1) {
       blk_hash_t hash = blk_hash_t(param1["hash"].asString());
       addr_t sender = addr_t(param1["sender"].asString());
 
-      DagBlock blk(pivot, 0, tips, {}, signature, hash, sender);
+      DagBlock blk(pivot, 0, tips, {}, {}, signature, hash, sender);
       res = blk.getJsonStr();
       node->getDagManager()->addDagBlock(std::move(blk), {});
     }

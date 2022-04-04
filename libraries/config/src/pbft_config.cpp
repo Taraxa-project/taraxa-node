@@ -12,6 +12,7 @@ Json::Value enc_json(PbftConfig const& obj) {
   ret["dag_blocks_size"] = dev::toJS(obj.dag_blocks_size);
   ret["ghost_path_move_back"] = dev::toJS(obj.ghost_path_move_back);
   ret["run_count_votes"] = obj.run_count_votes;
+  ret["gas_limit"] = dev::toJS(obj.gas_limit);
   return ret;
 }
 
@@ -22,6 +23,7 @@ void dec_json(Json::Value const& json, PbftConfig& obj) {
   obj.dag_blocks_size = dev::jsToInt(json["dag_blocks_size"].asString());
   obj.ghost_path_move_back = dev::jsToInt(json["ghost_path_move_back"].asString());
   obj.run_count_votes = json["run_count_votes"].asBool();
+  obj.gas_limit = dev::jsToU256(json["gas_limit"].asString());
 }
 
 }  // namespace taraxa

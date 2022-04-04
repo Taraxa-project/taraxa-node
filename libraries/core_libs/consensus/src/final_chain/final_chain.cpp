@@ -344,12 +344,12 @@ class FinalChainImpl final : public FinalChain {
 
   state_api::ExecutionResult call(state_api::EVMTransaction const& trx, optional<EthBlockNumber> blk_n = {},
                                   optional<state_api::ExecutionOptions> const& opts = {}) const override {
-    auto const& blk_header = *block_header(last_if_absent(blk_n));
-    return state_api_.dry_run_transaction(blk_header.number,
+    auto const blk_header = block_header(last_if_absent(blk_n));
+    return state_api_.dry_run_transaction(blk_header->number,
                                           {
-                                              blk_header.author,
-                                              blk_header.gas_limit,
-                                              blk_header.timestamp,
+                                              blk_header->author,
+                                              blk_header->gas_limit,
+                                              blk_header->timestamp,
                                               BlockHeader::difficulty(),
                                           },
                                           trx, opts);

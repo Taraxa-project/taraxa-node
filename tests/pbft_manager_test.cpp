@@ -8,6 +8,7 @@
 #include "network/network.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
+#include "vdf/sortition.hpp"
 
 namespace taraxa::core_tests {
 
@@ -18,8 +19,6 @@ auto g_secret = Lazy([] {
 });
 auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 auto g_trx_signed_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
-
-struct PbftManagerTest : BaseTest {};
 
 std::pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size, size_t valid_voting_players) {
   size_t two_t_plus_one;
@@ -179,6 +178,43 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     EXPECT_EQ(threshold, expected_threshold);
   }
 }
+
+struct PbftManagerTest : BaseTest {
+  PbftManagerTest() : BaseTest() { node = create_nodes(1).front(); }
+
+  ~PbftManagerTest() = default;
+  // std::vector<Transaction> generateTransactions()
+
+  SharedTransactions makeTransactions(uint32_t) { return {}; }
+
+  void insertTransactions(const SharedTransactions &transactions) {
+    for (const auto &trx : transactions) {
+      node->getTransactionManager()->insertTransaction(trx);
+    }
+  }
+
+  std::vector<DagBlock> generateDagBlocks(uint16_t levels, uint16_t blocks_per_level, uint16_t trx_per_block) {
+    std::vector<DagBlock> result;
+    auto dag_genesis = node->getConfig().chain.dag_genesis_block.getHash();
+    SortitionConfig vdf_config(node->getConfig().chain.sortition);
+
+    auto transactions = makeTransactions(levels * blocks_per_level * trx_per_block);
+    insertTransactions(transactions);
+    auto trx_estimation = node->getTransactionManager()->estimateTransactionByHash(transactions.front().getHash(), {});
+
+    for (uint32_t level = 0; level < levels; ++level) {
+      for (uint32_t block_n = 0; block_n < blocks_per_level; ++block_n) {
+        vdf_sortition::VdfSortition vdf(vdf_config, node->getVrfSecretKey(),
+                                        VrfSortitionBase::makeVrfInput(level, period_block_hash));
+        vdf.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
+
+        DagBlock blk(dag_genesis, level, {}, transacions, estimations, vdf, node->getSecretKey());
+      }
+    }
+    return result;
+  }
+  std::shared_ptr<FullNode> node;
+};
 
 // Test that after some amount of elapsed time will not continue soft voting for same value
 TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {

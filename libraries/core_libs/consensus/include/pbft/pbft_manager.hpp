@@ -98,6 +98,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
                                        const std::vector<trx_hash_t> &trx_hashes);
   static blk_hash_t calculateOrderHash(const std::vector<DagBlock> &dag_blocks, const SharedTransactions &transactions);
 
+  bool checkBlockWeight(const SyncBlock &block) const;
+
  private:
   // DPOS
   void updateDposState_();
@@ -250,6 +252,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t TWO_T_PLUS_ONE = 0;
 
   blk_hash_t dag_genesis_;
+
+  const PbftConfig &config_;
 
   std::condition_variable stop_cv_;
   std::mutex stop_mtx_;

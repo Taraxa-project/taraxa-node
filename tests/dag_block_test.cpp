@@ -8,6 +8,7 @@
 #include "common/static_init.hpp"
 #include "common/types.hpp"
 #include "common/util.hpp"
+#include "dag/dag.hpp"
 #include "logger/logger.hpp"
 #include "node/node.hpp"
 #include "util_test/samples.hpp"
@@ -47,7 +48,7 @@ TEST_F(DagBlockTest, serialize_deserialize) {
   VdfSortition vdf(sortition_params, sk, getRlpBytes(level));
   blk_hash_t vdf_input(200);
   vdf.computeVdfSolution(sortition_params, vdf_input.asBytes(), false);
-  DagBlock blk1(blk_hash_t(1), 2, {}, {}, vdf, secret_t::random());
+  DagBlock blk1(blk_hash_t(1), 2, {}, {}, {}, vdf, secret_t::random());
   auto b = blk1.rlp(true);
   DagBlock blk2(b);
   EXPECT_EQ(blk1, blk2);
@@ -203,6 +204,159 @@ TEST_F(DagBlockMgrTest, proposal_period) {
   // Proposal period not exsit
   proposal_period = db->getProposalPeriodForDagLevel(131);
   EXPECT_FALSE(proposal_period);
+}
+
+TEST_F(DagBlockMgrTest, incorrect_tx_estimation) {
+  auto node = create_nodes(1).front();
+  auto db = node->getDB();
+  auto dag_blk_mgr = node->getDagBlockManager();
+
+  auto trx = samples::createSignedTrxSamples(0, 1, g_secret).front();
+  node->getTransactionManager()->insertTransaction(trx);
+  // Generate DAG blocks
+  auto dag_genesis = node->getConfig().chain.dag_genesis_block.getHash();
+  SortitionConfig vdf_config(node->getConfig().chain.sortition);
+  auto propose_level = 1;
+  const auto period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
+  vdf_sortition::VdfSortition vdf1(vdf_config, node->getVrfSecretKey(),
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
+
+  // transactions.size and estimations size is not equal
+  {
+    DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, {}, vdf1, node->getSecretKey());
+    EXPECT_EQ(node->getDagBlockManager()->insertAndVerifyBlock(std::move(blk)),
+              DagBlockManager::InsertAndVerifyBlockReturnType::IncorrectTransactionsEstimation);
+  }
+
+  // wrong estimated tx
+  {
+    DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, {100}, vdf1, node->getSecretKey());
+    EXPECT_EQ(node->getDagBlockManager()->insertAndVerifyBlock(std::move(blk)),
+              DagBlockManager::InsertAndVerifyBlockReturnType::IncorrectTransactionsEstimation);
+  }
+}
+
+TEST_F(DagBlockMgrTest, too_big_dag_block) {
+  // make config
+  auto node_cfgs = make_node_cfgs<20>(1);
+  node_cfgs.front().chain.dag.gas_limit = 250000;
+
+  auto node = create_nodes(node_cfgs).front();
+  auto db = node->getDB();
+
+  std::vector<trx_hash_t> hashes;
+  std::vector<u256> estimations;
+  for (uint32_t i = 0; i < 5; ++i) {
+    Transaction create_trx(i, 100, 0, 0, dev::fromHex(samples::greeter_contract_code), node->getSecretKey());
+    auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(create_trx);
+    EXPECT_EQ(ok, true);
+    hashes.emplace_back(create_trx.getHash());
+    const auto& e = node->getTransactionManager()->estimateTransactionByHash(create_trx.getHash(), std::nullopt);
+    std::cout << "estimation: " << e << std::endl;
+    estimations.emplace_back(e);
+  }
+
+  for (uint32_t i = 0; i < hashes.size(); ++i) {
+    std::cout << hashes[i] << ": " << estimations[i] << std::endl;
+  }
+
+  // Generate DAG block
+  auto dag_genesis = node->getConfig().chain.dag_genesis_block.getHash();
+  SortitionConfig vdf_config(node->getConfig().chain.sortition);
+  auto propose_level = 1;
+  const auto period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
+  vdf_sortition::VdfSortition vdf1(vdf_config, node->getVrfSecretKey(),
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
+
+  {
+    DagBlock blk(dag_genesis, propose_level, {}, hashes, estimations, vdf1, node->getSecretKey());
+    EXPECT_EQ(node->getDagBlockManager()->insertAndVerifyBlock(std::move(blk)),
+              DagBlockManager::InsertAndVerifyBlockReturnType::BlockTooBig);
+  }
+}
+
+TEST_F(DagBlockMgrTest, single_node_create_execute_transaction) {
+  auto node_cfgs = make_node_cfgs<5, true>(1);
+  node_cfgs.front().chain.dag.gas_limit = 250000;
+  auto node = create_nodes(node_cfgs, true /*start*/).front();
+
+  Transaction trx(0, 100, 0, 0, dev::fromHex(samples::greeter_contract_code), node->getSecretKey());
+  auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(trx);
+  EXPECT_EQ(ok, true);
+
+  EXPECT_HAPPENS({60s, 1s}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 1)
+    WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), 1)
+    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first, 2)
+  });
+
+  auto res = node->getFinalChain()->transaction_receipt(trx.getHash());
+  auto contract_addr = res->new_contract_address;
+
+  std::cout << "First trx executed ..." << std::endl;
+  std::cout << "Send second trx ..." << std::endl;
+
+  auto greet = [&] {
+    auto ret = node->getFinalChain()->call({
+        node->getAddress(),
+        0,
+        contract_addr,
+        0,
+        0,
+        0,
+        // greet()
+        dev::fromHex("0xcfae3217"),
+    });
+    return dev::toHexPrefixed(ret.code_retval);
+  };
+  ASSERT_EQ(greet(),
+            // "Hello"
+            "0x0000000000000000000000000000000000000000000000000000000000000020"
+            "000000000000000000000000000000000000000000000000000000000000000548"
+            "656c6c6f000000000000000000000000000000000000000000000000000000");
+  auto executed_count = node->getDB()->getNumTransactionExecuted();
+  {
+    for (int i = 1; i < 102; ++i) {
+      auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(
+          Transaction(i, 11, 0, 0,
+                      // setGreeting("Hola")
+                      dev::fromHex("0xa4136862000000000000000000000000000000000000000000000000"
+                                   "00000000000000200000000000000000000000000000000000000000000"
+                                   "000000000000000000004486f6c61000000000000000000000000000000"
+                                   "00000000000000000000000000"),
+                      node->getSecretKey(), contract_addr));
+      executed_count += 1;
+      EXPECT_HAPPENS({60s, 100ms}, [&](auto& ctx) {
+        WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), executed_count)
+      });
+    }
+  }
+  {
+    for (int i = 102; i < 127; ++i) {
+      auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(
+          Transaction(i, 11, 0, 0,
+                      // setGreeting("Hola")
+                      dev::fromHex("0xa4136862000000000000000000000000000000000000000000000000"
+                                   "00000000000000200000000000000000000000000000000000000000000"
+                                   "000000000000000000004486f6c61000000000000000000000000000000"
+                                   "00000000000000000000000000"),
+                      node->getSecretKey(), contract_addr));
+    }
+    ASSERT_EQ(ok, true);
+  }
+  EXPECT_HAPPENS({60s, 1s}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 124)
+    WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), 127)
+    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first, 104)
+  });
+  std::cout << " TESTING CHANGED GREET" << std::endl;
+  ASSERT_EQ(greet(),
+            // "Hola"
+            "0x000000000000000000000000000000000000000000000000000000000000002000"
+            "00000000000000000000000000000000000000000000000000000000000004486f"
+            "6c6100000000000000000000000000000000000000000000000000000000");
 }
 
 }  // namespace taraxa::core_tests

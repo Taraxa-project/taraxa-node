@@ -25,12 +25,15 @@ class DagBlockManager {
     FailedVdfVerification,
     FutureBlock,
     NotEligible,
-    ExpiredBlock
+    ExpiredBlock,
+    IncorrectTransactionsEstimation,
+    BlockTooBig
   };
 
-  DagBlockManager(addr_t node_addr, SortitionConfig const &sortition_config, std::shared_ptr<DbStorage> db,
-                  std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
-                  std::shared_ptr<PbftChain> pbft_chain, logger::Logger log_time_, uint32_t queue_limit = 0,
+  DagBlockManager(addr_t node_addr, SortitionConfig const &sortition_config, const DagConfig &dag_config,
+                  std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
+                  std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
+                  logger::Logger log_time_, uint32_t queue_limit = 0,
                   uint32_t max_levels_per_period = kMaxLevelsPerPeriod);
   ~DagBlockManager();
 
@@ -80,6 +83,8 @@ class DagBlockManager {
 
   SortitionParamsManager &sortitionParamsManager() { return sortition_params_manager_; }
 
+  const DagConfig &getDagConfig() const { return dag_config_; }
+
  private:
   using uLock = std::unique_lock<std::shared_mutex>;
   using sharedLock = std::shared_lock<std::shared_mutex>;
@@ -110,6 +115,8 @@ class DagBlockManager {
           // always current anchor level minus dag_expiry_limit_ of non empty pbft periods
 
   SortitionParamsManager sortition_params_manager_;
+  DagConfig dag_config_;
+
   LOG_OBJECTS_DEFINE
 };
 

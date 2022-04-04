@@ -198,13 +198,29 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const&
 void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTransactions&& trxs, VdfSortition&& vdf) {
   if (stopped_) return;
 
-  vec_trx_t trx_hashes;
-  std::transform(trxs.begin(), trxs.end(), std::back_inserter(trx_hashes),
-                 [](std::shared_ptr<Transaction> const& t) { return t->getHash(); });
+  auto proposal_period = db_->getProposalPeriodForDagLevel(level);
 
   // When we propose block we know it is valid, no need for block verification with queue,
   // simply add the block to the DAG
-  DagBlock blk(frontier.pivot, level, std::move(frontier.tips), std::move(trx_hashes), std::move(vdf), node_sk_);
+  vec_trx_t trx_hashes;
+  estimations_vec_t estimations;
+  uint32_t block_weight = 0;
+  for (auto trx : trxs) {
+    const auto& trx_hash = trx->getHash();
+    auto weight = trx_mgr_->estimateTransactionByHash(trx_hash, proposal_period);
+    block_weight += weight;
+    if (block_weight > dag_blk_mgr_->getDagConfig().gas_limit) {
+      break;
+    }
+    trx_hashes.push_back(trx_hash);
+    estimations.push_back(weight);
+  }
+  DagBlock blk(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes), estimations,
+               std::move(vdf), node_sk_);
+
+  dag_mgr_->addDagBlock(std::move(blk), std::move(trxs), true);
+  dag_blk_mgr_->markDagBlockAsSeen(blk);
+
   LOG(log_nf_) << "Add proposed DAG block " << blk.getHash() << ", pivot " << blk.getPivot() << " , number of trx ("
                << blk.getTrxs().size() << ")";
 
