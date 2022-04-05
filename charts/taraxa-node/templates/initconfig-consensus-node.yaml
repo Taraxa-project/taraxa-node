@@ -39,7 +39,7 @@ data:
         NODE_ADDRESS=$(taraxad --command account ${KEY} | grep node_address | cut -d\  -f3 | tr -d \")
         echo "New wallet: 0x${NODE_ADDRESS}"
 
-        SIG=$(taraxa-sign sign --key 0x{EXPLORER_DELEGATION_PRIVATE_KEY} 0x${NODE_ADDRESS})
+        SIG=$(taraxa-sign sign --key 0x${EXPLORER_DELEGATION_PRIVATE_KEY} 0x${NODE_ADDRESS})
    
         curl --silent http://{{ .Release.Name }}-explorer/api/delegate/0x${NODE_ADDRESS}?sig=${SIG}
         {{- end }}
@@ -89,7 +89,7 @@ data:
 
     {{- if and (ne .Values.config.network "1") (ne .Values.config.network "2") (ne .Values.config.network "3") }}
     {{ if .Values.explorer.enabled }}
-    export FAUCET_ADDRESS=$(taraxad --command account {EXPLORER_FAUCET_PRIVATE_KEY} | grep node_address | cut -d\  -f3 | tr -d \")
+    export FAUCET_ADDRESS=$(taraxad --command account ${EXPLORER_FAUCET_PRIVATE_KEY} | grep node_address | cut -d\  -f3 | tr -d \")
     cat $CONFIG_PATH | jq '.chain_config.final_chain.state.genesis_balances += ({("0x"+env.FAUCET_ADDRESS): "0x1027e72f1f12813088000000"})' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
     {{- end }}
     {{- end }}
