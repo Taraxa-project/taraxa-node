@@ -666,7 +666,7 @@ jobs:
             helm lint charts/${HELMCHART}/
 
       - run:
-          name: Generate Helm chart and output yaml manifests
+          name: Generate Helm chart and output yaml manifests for verification
           command: |
             helm dependency build charts/${HELMCHART}/
             helm template charts/${HELMCHART}/ --values charts/${HELMCHART}/values.yaml
