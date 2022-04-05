@@ -25,7 +25,7 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
                          std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                          std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
-                         secret_t node_sk, vrf_sk_t vrf_sk)
+                         secret_t node_sk, vrf_sk_t vrf_sk, uint32_t max_levels_per_period)
     : db_(db),
       next_votes_manager_(next_votes_mgr),
       pbft_chain_(pbft_chain),
@@ -43,9 +43,9 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
       DAG_BLOCKS_SIZE(conf.dag_blocks_size),
       GHOST_PATH_MOVE_BACK(conf.ghost_path_move_back),
       RUN_COUNT_VOTES(conf.run_count_votes),
-      dag_genesis_(genesis) {
+      dag_genesis_(genesis),
+      max_levels_per_period_(max_levels_per_period) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
-  db_->clearPeriodDataHistory(pbft_chain_->getPbftChainSize(), pbft_chain_->getDagExpiryPeriod(), true);
 }
 
 PbftManager::~PbftManager() { stop(); }
@@ -1566,7 +1566,7 @@ void PbftManager::finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalize
           assert(false);
         }
 
-        db_->addProposalPeriodDagLevelsMapToBatch(anchor->getLevel() + kMaxLevelsPerPeriod, period, batch);
+        db_->addProposalPeriodDagLevelsMapToBatch(anchor->getLevel() + max_levels_per_period_, period, batch);
       });
 
   if (sync) {
@@ -1632,8 +1632,6 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
     // update PBFT chain size
     pbft_chain_->updatePbftChain(pbft_block_hash, null_anchor);
   }
-
-  db_->clearPeriodDataHistory(sync_block.pbft_blk->getPeriod(), pbft_chain_->getDagExpiryPeriod());
 
   last_cert_voted_value_ = NULL_BLOCK_HASH;
 

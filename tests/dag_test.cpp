@@ -227,6 +227,83 @@ TEST_F(DagTest, compute_epoch) {
   mgr->setDagBlockOrder(blkK_hash, period, orders);
 }
 
+TEST_F(DagTest, dag_expiry) {
+  const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");
+  const uint32_t EXPIRY_LIMIT = 3;
+  auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
+  auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
+  auto pbft_chain = std::make_shared<PbftChain>(GENESIS, addr_t(), db_ptr);
+  auto dag_blk_mgr = std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition, db_ptr, nullptr, nullptr,
+                                                       pbft_chain, time_log);
+  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, pbft_chain, dag_blk_mgr, db_ptr, logger::Logger(),
+                                          false, 0, 3, EXPIRY_LIMIT);
+  DagBlock blkA(blk_hash_t(1), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
+  DagBlock blkB(blk_hash_t(1), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
+  DagBlock blkC(blk_hash_t(2), 1, {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
+  DagBlock blkD(blk_hash_t(2), 1, {}, {}, sig_t(1), blk_hash_t(5), addr_t(1));
+  DagBlock blkE(blk_hash_t(4), 2, {blk_hash_t(5), blk_hash_t(7)}, {}, sig_t(1), blk_hash_t(6), addr_t(1));
+  DagBlock blkF(blk_hash_t(3), 1, {}, {}, sig_t(1), blk_hash_t(7), addr_t(1));
+  DagBlock blkG(blk_hash_t(2), 1, {}, {trx_hash_t(4)}, sig_t(1), blk_hash_t(8), addr_t(1));
+  DagBlock blkH(blk_hash_t(6), 4, {blk_hash_t(8), blk_hash_t(10)}, {}, sig_t(1), blk_hash_t(9), addr_t(1));
+  DagBlock blkI(blk_hash_t(11), 3, {blk_hash_t(4)}, {}, sig_t(1), blk_hash_t(10), addr_t(1));
+  DagBlock blkJ(blk_hash_t(7), 2, {}, {}, sig_t(1), blk_hash_t(11), addr_t(1));
+  DagBlock blkK(blk_hash_t(9), 5, {}, {}, sig_t(1), blk_hash_t(12), addr_t(1));
+
+  const auto blkK_hash = blkK.getHash();
+
+  mgr->addDagBlock(std::move(blkA));
+  mgr->addDagBlock(std::move(blkB));
+  mgr->addDagBlock(std::move(blkC));
+  mgr->addDagBlock(std::move(blkD));
+  mgr->addDagBlock(std::move(blkF));
+  mgr->addDagBlock(std::move(blkE));
+  mgr->addDagBlock(std::move(blkG));
+  mgr->addDagBlock(std::move(blkJ));
+  mgr->addDagBlock(std::move(blkI));
+  mgr->addDagBlock(std::move(blkH));
+  mgr->addDagBlock(std::move(blkK));
+  taraxa::thisThreadSleepForMilliSeconds(100);
+
+  vec_blk_t orders;
+  orders = mgr->getDagBlockOrder(blkK_hash, 1);
+
+  // Verify all blocks made it to DAG
+  EXPECT_EQ(orders.size(), 11);
+
+  // Verify initial expiry level
+  EXPECT_EQ(dag_blk_mgr->getDagExpiryLevel(), 0);
+  mgr->setDagBlockOrder(blkK_hash, 1, orders);
+
+  // Verify expiry level
+  EXPECT_EQ(dag_blk_mgr->getDagExpiryLevel(), blkK.getLevel() - EXPIRY_LIMIT);
+
+  DagBlock blk_under_limit(blk_hash_t(2), blkK.getLevel() - EXPIRY_LIMIT - 1, {}, {}, sig_t(1), blk_hash_t(13),
+                           addr_t(1));
+  DagBlock blk_at_limit(blk_hash_t(4), blkK.getLevel() - EXPIRY_LIMIT, {}, {}, sig_t(1), blk_hash_t(14), addr_t(1));
+  DagBlock blk_over_limit(blk_hash_t(11), blkK.getLevel() - EXPIRY_LIMIT + 1, {}, {}, sig_t(1), blk_hash_t(15),
+                          addr_t(1));
+
+  // Block under limit is not accepted to DAG since it is expired
+  EXPECT_FALSE(mgr->addDagBlock(std::move(blk_under_limit)));
+  EXPECT_TRUE(mgr->addDagBlock(std::move(blk_at_limit)));
+  EXPECT_TRUE(mgr->addDagBlock(std::move(blk_over_limit)));
+  EXPECT_FALSE(db_ptr->dagBlockInDb(blk_under_limit.getHash()));
+  EXPECT_TRUE(db_ptr->dagBlockInDb(blk_at_limit.getHash()));
+  EXPECT_TRUE(db_ptr->dagBlockInDb(blk_over_limit.getHash()));
+
+  DagBlock blk_new_anchor(blk_hash_t(12), 6, {}, {}, sig_t(1), blk_hash_t(16), addr_t(1));
+  EXPECT_TRUE(mgr->addDagBlock(std::move(blk_new_anchor)));
+
+  orders = mgr->getDagBlockOrder(blk_new_anchor.getHash(), 2);
+  mgr->setDagBlockOrder(blk_new_anchor.getHash(), 2, orders);
+
+  // Verify that the block blk_at_limit which was initially part of the DAG became expired once new anchor moved the
+  // limit
+  EXPECT_FALSE(db_ptr->dagBlockInDb(blk_under_limit.getHash()));
+  EXPECT_FALSE(db_ptr->dagBlockInDb(blk_at_limit.getHash()));
+  EXPECT_TRUE(db_ptr->dagBlockInDb(blk_over_limit.getHash()));
+}
+
 TEST_F(DagTest, receive_block_in_order) {
   const blk_hash_t GENESIS("000000000000000000000000000000000000000000000000000000000000000a");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");

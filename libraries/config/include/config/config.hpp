@@ -98,8 +98,10 @@ struct FullNodeConfig {
   ChainConfig chain = ChainConfig::predefined();
   state_api::Opts opts_final_chain;
   std::vector<logger::Config> log_configs;
-  bool is_light_node = false;       // Is light node
-  uint64_t light_node_history = 0;  // Number of periods to keep in history for a light node
+  bool is_light_node = false;                            // Is light node
+  uint64_t light_node_history = 0;                       // Number of periods to keep in history for a light node
+  uint32_t dag_expiry_limit = kDagExpiryLevelLimit;      // For unit tests only
+  uint32_t max_levels_per_period = kMaxLevelsPerPeriod;  // For unit tests only
 
   auto net_file_path() const { return data_path / "net"; }
 

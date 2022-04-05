@@ -30,7 +30,6 @@ class PbftChain {
   uint64_t getPbftChainSize() const;
   uint64_t getPbftChainSizeExcludingEmptyPbftBlocks() const;
   blk_hash_t getLastPbftBlockHash() const;
-  uint64_t getDagExpiryPeriod() const;
 
   PbftBlock getPbftBlockInChain(blk_hash_t const& pbft_block_hash);
   std::shared_ptr<PbftBlock> getUnverifiedPbftBlock(blk_hash_t const& pbft_block_hash);
@@ -65,8 +64,6 @@ class PbftChain {
   uint64_t size_;                // PBFT chain size, includes both executed and unexecuted PBFT blocks
   uint64_t non_empty_size_;  // PBFT chain size excluding blocks with null anchor, includes both executed and unexecuted
                              // PBFT blocks
-  uint64_t dag_expiry_period_;       // Proposal period limit on which dag blocks are considered expired, it's value is
-                                     // always current period minus kDagExpiryPeriodLimit of non empty pbft periods
   blk_hash_t last_pbft_block_hash_;  // last PBFT block hash in PBFT chain, may not execute yet
 
   std::shared_ptr<DbStorage> db_ = nullptr;
@@ -74,11 +71,6 @@ class PbftChain {
   // <prev block hash, vector<PBFT proposed blocks waiting for vote>>
   std::unordered_map<blk_hash_t, std::vector<blk_hash_t>> unverified_blocks_map_;
   std::unordered_map<blk_hash_t, std::shared_ptr<PbftBlock>> unverified_blocks_;
-
-  static const uint32_t kDagExpiryPeriodLimit =
-      1000;  // Any non finalized dag block with a propose period smaller by
-             // kDagExpiryPeriodLimit of non empty PBFT periods than the current period is considered
-             // expired and it should be ignored or removed from DAG
 
   LOG_OBJECTS_DEFINE
 };
