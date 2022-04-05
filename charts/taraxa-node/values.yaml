@@ -122,6 +122,7 @@ node:
     limits:
       memory: "8Gi"
       cpu: 3.5
+  nodeSelector: {}
 
 bootnode:
   enabled: true
@@ -158,6 +159,7 @@ bootnode:
     limits:
       memory: "256Mi"
       cpu: 250m
+  nodeSelector: {}
 
 consensusnode:
   enabled: true
@@ -201,6 +203,7 @@ consensusnode:
     limits:
       memory: "8Gi"
       cpu: 3.5
+  nodeSelector: {}
 
 
 explorer:

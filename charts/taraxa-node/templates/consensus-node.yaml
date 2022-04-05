@@ -137,7 +137,7 @@ spec:
             capabilities:
               add:
               - SYS_PTRACE
-      {{- with .Values.nodeSelector }}
+      {{- with .Values.consensusnode.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
