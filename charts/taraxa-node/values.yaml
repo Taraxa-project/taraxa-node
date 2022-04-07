@@ -1,0 +1,231 @@
+# Default values for taraxa-node.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+rbac:
+  create: true
+
+serviceAccounts:
+  pythontester:
+    create: true
+    name:
+
+image:
+  repository: gcr.io/jovial-meridian-249123/taraxa-node
+  tag: latest
+  pullPolicy: IfNotPresent
+
+config:
+  # integer, 1=Mainnet, 2=Testnet, 3=Devnet)
+  # 100 for default helm test
+  network: "100"
+  extraArgs: []
+  
+  # Default keys, VRFs and address for kube testing
+  node:
+    keys:
+      - "c2bae6546061feb384742797cda745cddbb8552fdd044206053844dfacff8ae2"
+    vrfs:
+      - "590d5ff3d577ebca38c1f29e4798e8ce4ab9bd826ea7bccaba8c1d1bdaf5ff94ed07a2832b5a6077dd0147eae950d170ca8777dd3e8c9a01a035833fdc86ffcc"
+  consensusnode:
+    explorerDelegationPrivateKey: ""
+    keys:
+      - "badf7196e18f653130564fd2f27419bff36194094057a69053bbe3a83a97b4fe"
+    vrfs:
+      - "c7c32f136cf4529471905a6b775ad82a076a5b5d3160b76ba683c743b8a852cff06560102e3dbab2e8b62082611dfc378c90336d01c0a7fd2a1a7bb88fb63478"
+  bootnode:
+    keys:
+      - "45dc56636faf97230f557e16345055f5839dad25f4b3f6f88a02add24b4a00fc"
+    vrfs:
+      - "040950c16dcd7b6578ad32c93138d948dcccdc08a5d5e809eeecff59cd39c304e624bff2da26c0cfe512eb77df399b2ad676e1815e407b37d4c6ca4de35e37cd"
+    addresses:
+      - "31a472957604e93a77144b434162410f173f3962c950d7b8f9145a42254310db8244383d03f759159092232e8ef85f73806b0380a5e520e536158bb11037ec56"
+
+secrets:
+  enabled: true
+
+slack:
+  enabled: false
+  token: xoxb-XXXXXX-XXXXXX-XXXXXX
+  channel: channel
+
+nameOverride: ""
+fullnameOverride: ""
+
+domain: "default.example.com"
+# Add wild certs for this
+# wildCertDomainSecret: ""
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+persistence:
+  enabled: false
+  accessMode: ReadWriteOnce
+  name: taraxa-data
+  size: "30Gi"
+  storageClass: "fast"
+
+node:
+  enabled: true
+  replicaCount: 20
+  loadBalancer:
+    enabled: false
+  probes:
+    enabled: true
+  debug: 0
+  args:
+    - "taraxad"
+    - "--config"
+    - "/root/.taraxa/conf_taraxa.json"
+    - "--wallet"
+    - "/root/.taraxa/wallet_taraxa.json"
+  ingress:
+    # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
+    # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
+    # ingressClassName: nginx
+    enabled: false
+    annotationsRpc: {}
+    annotationsRpcWS: {}
+    hosts: []
+    tls: []
+  ports:
+    - name: rest
+      containerPort: 7777
+    - name: ws
+      containerPort: 8777
+    - name: tcp-listen-port
+      containerPort: 10002
+      protocol: TCP
+    - name: udp-listen-port
+      containerPort: 10002
+      protocol: UDP
+  service:
+    ports:
+        - name: rest
+          port: 7777
+        - name: ws
+          port: 8777
+        - name: tcp-listen-port
+          port: 10002
+          protocol: TCP
+        - name: udp-listen-port
+          port: 10002
+          protocol: UDP
+  resources:
+    requests:
+      memory: "8Gi"
+      cpu: 3.5
+    limits:
+      memory: "8Gi"
+      cpu: 3.5
+  nodeSelector: {}
+
+bootnode:
+  enabled: true
+  replicaCount: 1
+  loadBalancer:
+    enabled: false
+    addresses: []
+  probes:
+    enabled: true
+  debug: 0
+  args:
+    - "taraxa-bootnode"
+    - "--number-of-threads"
+    - "10"
+    - "--listen-ip"
+    - "0.0.0.0"
+    - "--listen"
+    - "10002"
+    - "--wallet"
+    - "/root/.taraxa/wallet_taraxa.json"
+  ports:
+    - name: udp-listen-port
+      containerPort: 10002
+      protocol: UDP
+  service:
+    ports:
+      - name: udp-listen-port
+        port: 10002
+        protocol: UDP
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: 250m
+    limits:
+      memory: "256Mi"
+      cpu: 250m
+  nodeSelector: {}
+
+consensusnode:
+  enabled: true
+  replicaCount: 1
+  probes:
+    enabled: true
+  debug: 0
+  args:
+    - "taraxad"
+    - "--config"
+    - "/root/.taraxa/conf_taraxa.json"
+    - "--wallet"
+    - "/root/.taraxa/wallet_taraxa.json"
+  ports:
+    - name: rest
+      containerPort: 7777
+    - name: ws
+      containerPort: 8777
+    - name: tcp-listen-port
+      containerPort: 10002
+      protocol: TCP
+    - name: udp-listen-port
+      containerPort: 10002
+      protocol: UDP
+  service:
+    ports:
+      - name: rest
+        port: 7777
+      - name: ws
+        port: 8777
+      - name: tcp-listen-port
+        port: 10002
+        protocol: TCP
+      - name: udp-listen-port
+        port: 10002
+        protocol: UDP
+  resources:
+    requests:
+      memory: "8Gi"
+      cpu: 3.5
+    limits:
+      memory: "8Gi"
+      cpu: 3.5
+  nodeSelector: {}
+
+
+explorer:
+  enabled: false
+  configEnvs:
+    rpcHttpProvider: ""
+    rpcWsProvider: ""
+    wsProvider: ""
+    faucetEnabled: false
+  domain: "default.example.com"
+  # Add wild certs for this
+  # wildCertDomainSecret: ""
+  faucet:
+    enabled: true
+    privKey: ""
+    dripInterval: 500
+  sandbox:
+    enabled: true
+  nodeSelector: {}
+
+test:
+  image:
+    repository: gcr.io/jovial-meridian-249123/python
+    tag: latest
+    pullPolicy: IfNotPresent

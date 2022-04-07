@@ -1,0 +1,43 @@
+{{ if .Values.node.enabled }}
+{{ if .Values.node.loadBalancer.enabled }}
+{{- range $key, $value := .Values.node.loadBalancer.addresses }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $.Release.Name }}-taraxa-node-udp-{{ $key }}
+  labels:
+    name: {{ $.Release.Name }}-taraxa-node-udp-{{ $key }}
+spec:
+  type: LoadBalancer
+  loadBalancerIP: {{ $value | quote }}
+  externalTrafficPolicy: Local
+  selector:
+    statefulset.kubernetes.io/pod-name: {{ $.Release.Name }}-taraxa-node-{{ $key }}
+  ports:
+    - name: udp-listen-port
+      port: 10002
+      targetPort: 10002
+      protocol: UDP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $.Release.Name }}-taraxa-node-tcp-{{ $key }}
+  labels:
+    name: {{ $.Release.Name }}-taraxa-node-tcp-{{ $key }}
+spec:
+  type: LoadBalancer
+  loadBalancerIP: {{ $value | quote }}
+  externalTrafficPolicy: Local
+  selector:
+    statefulset.kubernetes.io/pod-name: {{ $.Release.Name }}-taraxa-node-{{ $key }}
+  ports:
+    - name: tcp-listen-port
+      port: 10002
+      targetPort: 10002
+      protocol: TCP
+{{- end }}
+{{- end }}
+{{- end }}
