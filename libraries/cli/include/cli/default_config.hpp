@@ -187,7 +187,8 @@ constexpr std::string_view default_json = R"foo({
         },
         "genesis_balances": {
           "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027e72f1f12813088000000",
-          "7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x1027e72f1f12813088000000"
+          "7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x1027e72f1f12813088000000",
+          "de2b1203d72d3549EE2f733b00b2789414C7Cea5": "0x1027e72f1f12813088000000"
         },
         "hardforks": {
           "fix_genesis_fork_block": "0x0"
