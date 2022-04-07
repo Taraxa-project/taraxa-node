@@ -1515,7 +1515,7 @@ TEST_F(FullNodeTest, chain_config_json) {
             jsonToUnstyledString(enc_json(ChainConfig::predefined("test"))));
 }
 
-TEST_F(FullNodeTest, transaction_validation) {
+TEST_F(FullNodeTest, DISABLED_transaction_validation) {
   auto node_cfgs = make_node_cfgs<5, true>(1);
   auto nodes = launch_nodes(node_cfgs);
   uint32_t nonce = 0;

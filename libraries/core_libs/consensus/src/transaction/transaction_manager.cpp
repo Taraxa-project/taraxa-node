@@ -46,13 +46,13 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
 
   // Ensure the transaction adheres to nonce ordering
   if (account.nonce && account.nonce > trx->getNonce()) {
-    return {false, "nonce too low"};
+    return {true, "nonce too low"};
   }
 
   // Transactor should have enough funds to cover the costs
   // cost == V + GP * GL
   if (account.balance < trx->getCost()) {
-    return {false, "insufficient balance"};
+    return {true, "insufficient balance"};
   }
 
   return {true, ""};
