@@ -1547,30 +1547,87 @@ TEST_F(FullNodeTest, transaction_validation) {
 }
 
 TEST_F(FullNodeTest, light_node) {
-  auto node_cfgs = make_node_cfgs<20, true>(2);
+  auto node_cfgs = make_node_cfgs<10, true>(2);
   node_cfgs[0].is_light_node = true;
   node_cfgs[0].light_node_history = 10;
+  node_cfgs[0].dag_expiry_limit = 5;
+  node_cfgs[0].max_levels_per_period = 3;
+  node_cfgs[1].dag_expiry_limit = 5;
+  node_cfgs[1].max_levels_per_period = 3;
   auto nodes = launch_nodes(node_cfgs);
   uint64_t nonce = 0;
-  while (nodes[0]->getPbftChain()->getPbftChainSize() < 40) {
+  while (nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks() < 20) {
     Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
     // broadcast dummy transaction
-    nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
+    nodes[1]->getTransactionManager()->insertTransaction(dummy_trx);
     thisThreadSleepForMilliSeconds(200);
   }
   EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
     // Verify full node and light node sync without any issues
-    WAIT_EXPECT_EQ(ctx, nodes[0]->getPbftChain()->getPbftChainSize(), nodes[1]->getPbftChain()->getPbftChainSize())
+    WAIT_EXPECT_EQ(ctx, nodes[0]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(),
+                   nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks())
   });
-  uint32_t min_period_in_db = 0;
+  uint32_t non_empty_counter = 0;
   for (uint64_t i = 0; i < nodes[0]->getPbftChain()->getPbftChainSize(); i++) {
-    if (nodes[0]->getDB()->getPeriodDataRaw(i).size() > 0) {
-      min_period_in_db = i;
-      break;
+    const auto pbft_block = nodes[0]->getDB()->getPbftBlock(i);
+    if (pbft_block) {
+      non_empty_counter++;
     }
   }
   // Verify light node stores only expected number of period_data
-  EXPECT_GT(min_period_in_db, nodes[0]->getPbftChain()->getPbftChainSize() - node_cfgs[0].light_node_history - 1);
+  EXPECT_GE(non_empty_counter, node_cfgs[0].light_node_history);
+  EXPECT_LE(non_empty_counter, node_cfgs[0].light_node_history + 1);
+}
+
+TEST_F(FullNodeTest, clear_period_data) {
+  auto node_cfgs = make_node_cfgs<10, true>(2);
+  node_cfgs[0].is_light_node = true;
+  node_cfgs[0].light_node_history = 4;
+  node_cfgs[0].dag_expiry_limit = 15;
+  node_cfgs[0].max_levels_per_period = 3;
+  node_cfgs[1].dag_expiry_limit = 15;
+  node_cfgs[1].max_levels_per_period = 3;
+  auto nodes = launch_nodes(node_cfgs);
+  uint64_t nonce = 0;
+  while (nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks() < 20) {
+    Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
+    // broadcast dummy transaction
+    nodes[1]->getTransactionManager()->insertTransaction(dummy_trx);
+    thisThreadSleepForMilliSeconds(200);
+  }
+  EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
+    // Verify full node and light node sync without any issues
+    WAIT_EXPECT_EQ(ctx, nodes[0]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(),
+                   nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks())
+  });
+  uint32_t non_empty_counter = 0;
+  uint64_t last_anchor_level;
+  for (uint64_t i = 0; i < nodes[0]->getPbftChain()->getPbftChainSize(); i++) {
+    const auto pbft_block = nodes[0]->getDB()->getPbftBlock(i);
+    if (pbft_block && pbft_block->getPivotDagBlockHash() != NULL_BLOCK_HASH) {
+      non_empty_counter++;
+      last_anchor_level = nodes[0]->getDB()->getDagBlock(pbft_block->getPivotDagBlockHash())->getLevel();
+    }
+  }
+  uint32_t first_over_limit = 0;
+  for (uint64_t i = 0; i < nodes[1]->getPbftChain()->getPbftChainSize(); i++) {
+    const auto pbft_block = nodes[1]->getDB()->getPbftBlock(i);
+    if (pbft_block && pbft_block->getPivotDagBlockHash() != NULL_BLOCK_HASH) {
+      if (nodes[1]->getDB()->getDagBlock(pbft_block->getPivotDagBlockHash())->getLevel() +
+              node_cfgs[0].dag_expiry_limit >=
+          last_anchor_level) {
+        first_over_limit = i;
+        break;
+      }
+    }
+  }
+
+  std::cout << "Non empty counter: " << non_empty_counter << std::endl;
+  std::cout << "Last anchor level: " << last_anchor_level << std::endl;
+  std::cout << "First over limit: " << first_over_limit << std::endl;
+
+  // Verify light node does not delete non expired dag blocks
+  EXPECT_TRUE(nodes[0]->getDB()->getPbftBlock(first_over_limit));
 }
 
 }  // namespace taraxa::core_tests

@@ -30,7 +30,8 @@ class DagBlockManager {
 
   DagBlockManager(addr_t node_addr, SortitionConfig const &sortition_config, std::shared_ptr<DbStorage> db,
                   std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
-                  std::shared_ptr<PbftChain> pbft_chain, logger::Logger log_time_, uint32_t queue_limit = 0);
+                  std::shared_ptr<PbftChain> pbft_chain, logger::Logger log_time_, uint32_t queue_limit = 0,
+                  uint32_t max_levels_per_period = kMaxLevelsPerPeriod);
   ~DagBlockManager();
 
   DagBlockManager(const DagBlockManager &) = delete;
@@ -59,6 +60,20 @@ class DagBlockManager {
    * @return true in case block was actually marked as seen(was not seen before), otherwise false (was already seen)
    */
   bool markDagBlockAsSeen(const DagBlock &dag_block);
+
+  /**
+   * @brief Sets dag expiry level
+   *
+   * @param dag_expiry_level
+   */
+  void setDagExpiryLevel(uint64_t dag_expiry_level) { dag_expiry_level_ = dag_expiry_level; }
+
+  /**
+   * @brief Retrieves Dag expiry level
+   *
+   * @return level
+   */
+  uint64_t getDagExpiryLevel() { return dag_expiry_level_; }
 
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
   bool pivotAndTipsValid(DagBlock const &blk);
@@ -89,6 +104,10 @@ class DagBlockManager {
   mutable std::shared_mutex shared_mutex_for_verified_qu_;
   std::condition_variable_any cond_for_verified_qu_;
   std::map<uint64_t, std::deque<DagBlock>> verified_qu_;
+
+  std::atomic_uint64_t dag_expiry_level_ =
+      0;  // Level below which dag blocks are considered expired, it's value is
+          // always current anchor level minus dag_expiry_limit_ of non empty pbft periods
 
   SortitionParamsManager sortition_params_manager_;
   LOG_OBJECTS_DEFINE

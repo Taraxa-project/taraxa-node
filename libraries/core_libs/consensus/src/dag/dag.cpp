@@ -275,7 +275,8 @@ void PivotTree::getGhostPath(blk_hash_t const &vertex, std::vector<blk_hash_t> &
 
 DagManager::DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
                        std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                       std::shared_ptr<DbStorage> db, logger::Logger log_time) try
+                       std::shared_ptr<DbStorage> db, logger::Logger log_time, bool is_light_node,
+                       uint64_t light_node_history, uint32_t max_levels_per_period, uint32_t dag_expiry_limit) try
     : pivot_tree_(std::make_shared<PivotTree>(genesis, node_addr)),
       total_dag_(std::make_shared<Dag>(genesis, node_addr)),
       trx_mgr_(trx_mgr),
@@ -285,6 +286,10 @@ DagManager::DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_
       anchor_(genesis),
       period_(0),
       genesis_(genesis),
+      is_light_node_(is_light_node),
+      light_node_history_(light_node_history),
+      max_levels_per_period_(max_levels_per_period),
+      dag_expiry_limit_(dag_expiry_limit),
       log_time_(log_time) {
   LOG_OBJECTS_CREATE("DAGMGR");
   if (auto ret = getLatestPivotAndTips(); ret) {
@@ -406,7 +411,7 @@ void DagManager::worker() {
   }
 }
 
-void DagManager::addDagBlock(DagBlock &&blk, SharedTransactions &&trxs, bool proposed, bool save) {
+bool DagManager::addDagBlock(DagBlock &&blk, SharedTransactions &&trxs, bool proposed, bool save) {
   auto blk_hash = blk.getHash();
 
   {
@@ -419,16 +424,13 @@ void DagManager::addDagBlock(DagBlock &&blk, SharedTransactions &&trxs, bool pro
       if (save) {
         if (db_->dagBlockInDb(blk_hash)) {
           LOG(log_dg_) << "Block already in DB: " << blk_hash;
-          return;
+          return false;
         }
-        const auto proposal_period = db_->getProposalPeriodForDagLevel(blk.getLevel());
-        const auto expiry_period = pbft_chain_->getDagExpiryPeriod();
-        assert(proposal_period);
-        if (*proposal_period < expiry_period) {
-          LOG(log_nf_) << "Dropping old block: " << blk_hash << ". Proposal period: " << *proposal_period
-                       << ". Current period: " << period_ << " Expiry period: " << expiry_period
+        const auto dag_expiry_level = dag_blk_mgr_->getDagExpiryLevel();
+        if (blk.getLevel() < dag_expiry_level) {
+          LOG(log_nf_) << "Dropping old block: " << blk_hash << ". Expiry level: " << dag_expiry_level
                        << ". Block level: " << blk.getLevel();
-          return;
+          return false;
         }
 
         // Saves transactions and remove them from memory pool
@@ -455,6 +457,7 @@ void DagManager::addDagBlock(DagBlock &&blk, SharedTransactions &&trxs, bool pro
   }
   LOG(log_nf_) << " Update frontier after adding block " << blk_hash << "anchor " << anchor_
                << " pivot = " << frontier_.pivot << " tips: " << frontier_.tips;
+  return true;
 }
 
 void DagManager::drawGraph(std::string const &dotfile) const {
@@ -550,6 +553,26 @@ std::vector<blk_hash_t> DagManager::getDagBlockOrder(blk_hash_t const &anchor, u
   return blk_orders;
 }
 
+void DagManager::clearLightNodeHistory() {
+  const auto dag_expiry_level = dag_blk_mgr_->getDagExpiryLevel();
+  // Actual history size will be between 100% and 110% of light_node_history_ to avoid deleting on every period
+  if (((period_ % (std::max(light_node_history_ / 10, (uint64_t)1)) == 0)) && period_ > light_node_history_ &&
+      dag_expiry_level > max_levels_per_period_ + 1) {
+    const auto proposal_period = db_->getProposalPeriodForDagLevel(dag_expiry_level - max_levels_per_period_ - 1);
+    assert(proposal_period);
+
+    const uint64_t start = 0;
+    // This prevents deleting any data needed for dag blocks proposal period, we only delete periods for the expired dag
+    // blocks
+    const uint64_t end = std::min(period_ - light_node_history_, *proposal_period);
+    LOG(log_tr_) << "period_ - light_node_history_ " << period_ - light_node_history_;
+    LOG(log_tr_) << "dag_expiry_level - max_levels_per_period_ - 1: " << dag_expiry_level - max_levels_per_period_ - 1
+                 << " *proposal_period " << *proposal_period;
+    LOG(log_tr_) << "Delete period history from: " << start << " to " << end;
+    db_->clearPeriodDataHistory(end);
+  }
+}
+
 uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period, vec_blk_t const &dag_order) {
   LOG(log_dg_) << "setDagBlockOrder called with anchor " << new_anchor << " and period " << period;
   if (period != period_ + 1) {
@@ -598,6 +621,11 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
   assert(dag_order_set.count(new_anchor));
   addToDag(new_anchor, blk_hash_t(), vec_blk_t(), 0, true);
 
+  const auto anchor_block_level = dag_blk_mgr_->getDagBlock(new_anchor)->getLevel();
+  if (anchor_block_level > dag_expiry_limit_) {
+    dag_blk_mgr_->setDagExpiryLevel(anchor_block_level - dag_expiry_limit_);
+  }
+
   std::unordered_map<blk_hash_t, std::shared_ptr<DagBlock>> expired_dag_blocks_to_remove;
   std::vector<trx_hash_t> expired_dag_blocks_transactions;
 
@@ -610,6 +638,7 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
         if (validateBlockNotExpired(dag_block, expired_dag_blocks_to_remove)) {
           addToDag(blk_hash, pivot_hash, dag_block->getTips(), dag_block->getLevel(), false);
         } else {
+          db_->removeDagBlock(blk_hash);
           for (const auto &trx : dag_block->getTrxs()) expired_dag_blocks_transactions.emplace_back(trx);
         }
       }
@@ -625,6 +654,10 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
   anchor_ = new_anchor;
   period_ = period;
   updateFrontier();
+
+  if (is_light_node_) {
+    clearLightNodeHistory();
+  }
 
   LOG(log_nf_) << "Set new period " << period << " with anchor " << new_anchor;
 
@@ -671,13 +704,10 @@ bool DagManager::validateBlockNotExpired(
     }
   }
 
-  const auto proposal_period = db_->getProposalPeriodForDagLevel(dag_block->getLevel());
-  assert(proposal_period);
-  const auto expiry_period = pbft_chain_->getDagExpiryPeriod();
-  if (block_points_to_expired_block || *proposal_period < expiry_period) {
-    LOG(log_nf_) << "Dropping expired block in setDagBlockOrder: " << blk_hash
-                 << ". Proposal period: " << *proposal_period << ". Current period: " << period_
-                 << ". Expiry period: " << expiry_period << ". Block level: " << dag_block->getLevel();
+  const auto dag_expiry_level = dag_blk_mgr_->getDagExpiryLevel();
+  if (block_points_to_expired_block || dag_block->getLevel() < dag_expiry_level) {
+    LOG(log_nf_) << "Dropping expired block in setDagBlockOrder: " << blk_hash << ". Expiry level: " << dag_expiry_level
+                 << ". Block level: " << dag_block->getLevel();
     expired_dag_blocks_to_remove[blk_hash] = dag_block;
     assert(blk_hash != frontier_.pivot);
     return false;

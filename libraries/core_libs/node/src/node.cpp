@@ -59,14 +59,13 @@ void FullNode::init() {
     if (conf_.test_params.rebuild_db) {
       old_db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
                                             conf_.test_params.db_max_open_files, conf_.test_params.db_max_snapshots,
-                                            conf_.test_params.db_revert_to_period, node_addr, conf_.is_light_node,
-                                            conf_.light_node_history, true);
+                                            conf_.test_params.db_revert_to_period, node_addr, true);
     }
 
     db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
                                       conf_.test_params.db_max_open_files, conf_.test_params.db_max_snapshots,
-                                      conf_.test_params.db_revert_to_period, node_addr, conf_.is_light_node,
-                                      conf_.light_node_history, false, conf_.test_params.rebuild_db_columns);
+                                      conf_.test_params.db_revert_to_period, node_addr, false,
+                                      conf_.test_params.rebuild_db_columns);
 
     if (db_->hasMinorVersionChanged()) {
       LOG(log_si_) << "Minor DB version has changed. Rebuilding Db";
@@ -74,12 +73,10 @@ void FullNode::init() {
       db_ = nullptr;
       old_db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
                                             conf_.test_params.db_max_open_files, conf_.test_params.db_max_snapshots,
-                                            conf_.test_params.db_revert_to_period, node_addr, conf_.is_light_node,
-                                            conf_.light_node_history, true);
+                                            conf_.test_params.db_revert_to_period, node_addr, true);
       db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
                                         conf_.test_params.db_max_open_files, conf_.test_params.db_max_snapshots,
-                                        conf_.test_params.db_revert_to_period, node_addr, conf_.is_light_node,
-                                        conf_.light_node_history);
+                                        conf_.test_params.db_revert_to_period, node_addr);
     }
 
     if (db_->getNumDagBlocks() == 0) {
@@ -103,13 +100,16 @@ void FullNode::init() {
 
   pbft_chain_ = std::make_shared<PbftChain>(genesis_hash, node_addr, db_);
   next_votes_mgr_ = std::make_shared<NextVotesManager>(node_addr, db_, final_chain_);
-  dag_blk_mgr_ = std::make_shared<DagBlockManager>(node_addr, conf_.chain.sortition, db_, trx_mgr_, final_chain_,
-                                                   pbft_chain_, log_time_, conf_.test_params.max_block_queue_warn);
-  dag_mgr_ = std::make_shared<DagManager>(genesis_hash, node_addr, trx_mgr_, pbft_chain_, dag_blk_mgr_, db_, log_time_);
+  dag_blk_mgr_ =
+      std::make_shared<DagBlockManager>(node_addr, conf_.chain.sortition, db_, trx_mgr_, final_chain_, pbft_chain_,
+                                        log_time_, conf_.test_params.max_block_queue_warn, conf_.max_levels_per_period);
+  dag_mgr_ = std::make_shared<DagManager>(genesis_hash, node_addr, trx_mgr_, pbft_chain_, dag_blk_mgr_, db_, log_time_,
+                                          conf_.is_light_node, conf_.light_node_history, conf_.max_levels_per_period,
+                                          conf_.dag_expiry_limit);
   vote_mgr_ = std::make_shared<VoteManager>(node_addr, db_, final_chain_, next_votes_mgr_);
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_,
                                             next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, final_chain_,
-                                            kp_.secret(), conf_.vrf_secret);
+                                            kp_.secret(), conf_.vrf_secret, conf_.max_levels_per_period);
   blk_proposer_ = std::make_shared<BlockProposer>(conf_.test_params.block_proposer, dag_mgr_, trx_mgr_, dag_blk_mgr_,
                                                   final_chain_, db_, node_addr, getSecretKey(), getVrfSecretKey());
   network_ = std::make_shared<Network>(conf_.network, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_,
