@@ -128,9 +128,9 @@ void VotesSyncPacketHandler::broadcastPreviousRoundNextVotesBundle() {
     // Nodes may vote at different values at previous round, so need less or equal
     if (!peer.second->syncing_ && peer.second->pbft_round_ <= pbft_current_round) {
       std::vector<std::shared_ptr<Vote>> send_next_votes_bundle;
-      for (auto &v : next_votes_bundle) {
+      for (const auto &v : next_votes_bundle) {
         if (!peer.second->isVoteKnown(v->getHash())) {
-          send_next_votes_bundle.push_back(std::move(v));
+          send_next_votes_bundle.push_back(v);
         }
       }
       sendPbftNextVotes(peer.first, send_next_votes_bundle);
