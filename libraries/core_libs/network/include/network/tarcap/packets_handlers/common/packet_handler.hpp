@@ -3,6 +3,7 @@
 #include <memory>
 #include <string_view>
 
+#include "common/thread_pool.hpp"
 #include "libdevcore/RLP.h"
 #include "logger/logger.hpp"
 #include "network/tarcap/packet_types.hpp"
