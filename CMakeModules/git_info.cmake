@@ -14,6 +14,15 @@ execute_process(
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
 
+# Commit date(RFC2822 style)
+execute_process(
+  COMMAND git show -s --format=%aD 
+  WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+  OUTPUT_VARIABLE GIT_COMMIT_DATE
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+
 # Current revision description(closest release or tag name and other info)
 execute_process(
   COMMAND git describe
@@ -21,4 +30,3 @@ execute_process(
   OUTPUT_VARIABLE GIT_DESCRIBE
   OUTPUT_STRIP_TRAILING_WHITESPACE
 )
-

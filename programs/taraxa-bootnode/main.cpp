@@ -125,12 +125,7 @@ int main(int argc, char** argv) {
   }
 
   if (vm.count("version")) {
-    Json::Value version_json;
-    version_json["version"] = TARAXA_VERSION;
-    version_json["git_commit_hash"] = TARAXA_GIT_COMMIT_HASH;
-    version_json["git_branch"] = TARAXA_GIT_BRANCH;
-    version_json["git_description"] = TARAXA_GIT_DESCRIBE;
-    std::cout << version_json << std::endl;
+    std::cout << VERSION_JSON << std::endl;
     return 0;
   }
 
