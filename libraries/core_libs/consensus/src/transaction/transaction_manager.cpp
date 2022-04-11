@@ -21,8 +21,8 @@ TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_p
   }
 }
 
-uint64_t TransactionManager::estimateTransactionByHash(const trx_hash_t &hash,
-                                                       std::optional<uint64_t> proposal_period) const {
+u256 TransactionManager::estimateTransactionByHash(const trx_hash_t &hash,
+                                                   std::optional<uint64_t> proposal_period) const {
   const auto &trx = getTransaction(hash);
   const auto &result = final_chain_->call(
       state_api::EVMTransaction{
@@ -35,8 +35,6 @@ uint64_t TransactionManager::estimateTransactionByHash(const trx_hash_t &hash,
           trx->getData(),
       },
       proposal_period);
-  std::cout << "proposal period " << *proposal_period << " current block: " << final_chain_->block_header()->number
-            << std::endl;
   return result.gas_used;
 }
 

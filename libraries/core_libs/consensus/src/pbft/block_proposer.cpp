@@ -208,6 +208,7 @@ void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTr
   for (auto trx : trxs) {
     const auto& trx_hash = trx->getHash();
     auto weight = trx_mgr_->estimateTransactionByHash(trx_hash, proposal_period);
+    std::cout << trx_hash << " : " << weight << std::endl;
     block_weight += weight;
     if (block_weight > dag_blk_mgr_->getDagConfig().gas_limit) {
       break;

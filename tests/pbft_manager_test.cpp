@@ -4,8 +4,10 @@
 
 #include "common/lazy.hpp"
 #include "common/static_init.hpp"
+#include "dag/dag.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
+#include "pbft/block_proposer.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
 #include "vdf/sortition.hpp"
@@ -179,42 +181,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   }
 }
 
-struct PbftManagerTest : BaseTest {
-  PbftManagerTest() : BaseTest() { node = create_nodes(1).front(); }
-
-  ~PbftManagerTest() = default;
-  // std::vector<Transaction> generateTransactions()
-
-  SharedTransactions makeTransactions(uint32_t) { return {}; }
-
-  void insertTransactions(const SharedTransactions &transactions) {
-    for (const auto &trx : transactions) {
-      node->getTransactionManager()->insertTransaction(trx);
-    }
-  }
-
-  std::vector<DagBlock> generateDagBlocks(uint16_t levels, uint16_t blocks_per_level, uint16_t trx_per_block) {
-    std::vector<DagBlock> result;
-    auto dag_genesis = node->getConfig().chain.dag_genesis_block.getHash();
-    SortitionConfig vdf_config(node->getConfig().chain.sortition);
-
-    auto transactions = makeTransactions(levels * blocks_per_level * trx_per_block);
-    insertTransactions(transactions);
-    auto trx_estimation = node->getTransactionManager()->estimateTransactionByHash(transactions.front().getHash(), {});
-
-    for (uint32_t level = 0; level < levels; ++level) {
-      for (uint32_t block_n = 0; block_n < blocks_per_level; ++block_n) {
-        vdf_sortition::VdfSortition vdf(vdf_config, node->getVrfSecretKey(),
-                                        VrfSortitionBase::makeVrfInput(level, period_block_hash));
-        vdf.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
-
-        DagBlock blk(dag_genesis, level, {}, transacions, estimations, vdf, node->getSecretKey());
-      }
-    }
-    return result;
-  }
-  std::shared_ptr<FullNode> node;
-};
+struct PbftManagerTest : BaseTest {};
 
 // Test that after some amount of elapsed time will not continue soft voting for same value
 TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
@@ -643,6 +610,237 @@ TEST_F(PbftManagerTest, check_committeeSize_greater_than_activePlayers) {
   // Set committee size to 6. Since only running 5 nodes, that will make sure
   // committee > active_players always
   check_2tPlus1_validVotingPlayers_activePlayers_threshold(6);
+}
+
+struct PbftManagerWithDagCreation : BaseTest {
+  PbftManagerWithDagCreation() : BaseTest() {}
+  ~PbftManagerWithDagCreation() = default;
+
+  void modifyConfig(FullNodeConfig &cfg) {
+    auto &vdf_config = cfg.chain.sortition.vdf;
+    vdf_config.difficulty_min = 1;
+    vdf_config.difficulty_max = 3;
+    vdf_config.difficulty_stale = 4;
+  }
+  void makeNode(bool start = true) {
+    auto cfgs = make_node_cfgs<5, true>(1);
+    modifyConfig(cfgs.front());
+    node = create_nodes(cfgs, start).front();
+  }
+  void makeNodeFromConfig(std::vector<FullNodeConfig> cfgs, bool start = true) {
+    modifyConfig(cfgs.front());
+    node = create_nodes(cfgs, start).front();
+  }
+
+  void deployContract() {
+    // auto executed_before = node->getDB()->getNumTransactionExecuted();
+
+    Transaction trx(0, 100, 0, 0, dev::fromHex(samples::greeter_contract_code), node->getSecretKey());
+    auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(trx);
+    EXPECT_TRUE(ok);
+
+    auto receipt = node->getFinalChain()->transaction_receipt(trx.getHash());
+    EXPECT_HAPPENS({30s, 1s}, [&](auto &ctx) {
+      WAIT_EXPECT_TRUE(ctx, receipt->new_contract_address.has_value());
+      receipt = node->getFinalChain()->transaction_receipt(trx.getHash());
+      // WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), executed_before + 1)
+    });
+    EXPECT_TRUE(receipt->new_contract_address.has_value());
+    contract_addr = receipt->new_contract_address;
+    std::cout << "Contract deployed: " << contract_addr.value() << std::endl;
+  }
+
+  std::vector<Transaction> makeTransactions(uint32_t count) {
+    std::vector<Transaction> result;
+    auto nonce = node->getFinalChain()->get_account(node->getAddress())->nonce;
+    for (auto i = nonce; i < nonce + count; ++i) {
+      result.emplace_back(i, 11, 0, 0,
+                          // setGreeting("Hola")
+                          dev::fromHex("0xa4136862000000000000000000000000000000000000000000000000"
+                                       "00000000000000200000000000000000000000000000000000000000000"
+                                       "000000000000000000004486f6c61000000000000000000000000000000"
+                                       "00000000000000000000000000"),
+                          node->getSecretKey(), contract_addr);
+    }
+    return result;
+  }
+
+  void insertTransactions(const std::vector<Transaction> &transactions) {
+    for (const auto &trx : transactions) {
+      auto insert_result = node->getTransactionManager()->insertTransaction(trx);
+      EXPECT_EQ(insert_result.first, true);
+    }
+  }
+
+  void generateAndApplyInitialDag() {
+    auto blocks = generateDagBlocks(100, 1, 1);
+    for (auto &b : blocks) {
+      node->getDagManager()->addDagBlock(std::move(b));
+    }
+  }
+
+  std::vector<DagBlock> generateDagBlocks(uint16_t levels, uint16_t blocks_per_level, uint16_t trx_per_block) {
+    std::vector<DagBlock> result;
+    auto start_level = node->getDagManager()->getMaxLevel() + 1;
+    auto &db = node->getDB();
+    auto dag_genesis = node->getConfig().chain.dag_genesis_block.getHash();
+    SortitionConfig vdf_config(node->getConfig().chain.sortition);
+
+    auto transactions = makeTransactions(levels * blocks_per_level * trx_per_block);
+    insertTransactions(transactions);
+    auto trx_estimation = node->getTransactionManager()->estimateTransactionByHash(transactions.front().getHash(), {});
+    std::cout << "trx_estimation: " << trx_estimation << std::endl;
+
+    blk_hash_t pivot = dag_genesis;
+    vec_blk_t tips;
+
+    auto pivot_and_tips = node->getDagManager()->getLatestPivotAndTips();
+    if (pivot_and_tips) {
+      pivot = pivot_and_tips->first;
+      tips = pivot_and_tips->second;
+    }
+
+    auto trx_itr = transactions.begin();
+    auto trx_itr_next = transactions.begin();
+
+    for (uint32_t level = start_level; level < start_level + levels; ++level) {
+      // save hashes of all dag blocks from this level to use as tips for next level blocks
+      vec_blk_t this_level_blocks;
+      for (uint32_t block_n = 0; block_n < blocks_per_level; ++block_n) {
+        trx_itr_next += trx_per_block;
+        const auto proposal_period = db->getProposalPeriodForDagLevel(level);
+        const auto period_block_hash = db->getPeriodBlockHash(*proposal_period);
+        vdf_sortition::VdfSortition vdf(vdf_config, node->getVrfSecretKey(),
+                                        vrf_wrapper::VrfSortitionBase::makeVrfInput(level, period_block_hash));
+        vdf.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
+        std::vector<trx_hash_t> trx_hashes;
+        std::transform(trx_itr, trx_itr_next, std::back_inserter(trx_hashes),
+                       [](Transaction &trx) { return trx.getHash(); });
+        DagBlock blk(pivot, level, tips, trx_hashes, std::vector<u256>(trx_per_block, trx_estimation), vdf,
+                     node->getSecretKey());
+        this_level_blocks.push_back(blk.getHash());
+        result.push_back(blk);
+        trx_itr = std::move(trx_itr_next);
+      }
+      tips = this_level_blocks;
+    }
+    return result;
+  }
+
+  std::shared_ptr<FullNode> node;
+  std::optional<addr_t> contract_addr;
+};
+
+TEST_F(PbftManagerWithDagCreation, dag_generation) {
+  makeNode(false);
+  deployContract();
+  node->getBlockProposer()->stop();
+  auto prev_pool_size = node->getTransactionManager()->getTransactionPoolSize();
+
+  auto blocks = generateDagBlocks(10, 3, 3);
+
+  EXPECT_EQ(blocks.size(), 30);
+  EXPECT_EQ(node->getTransactionManager()->getTransactionPoolSize() - prev_pool_size, 3 * 30);
+  // node->getDagBlockManager().
+  for (auto &b : blocks) {
+    node->getDagManager()->addDagBlock(std::move(b));
+  }
+  node->start();
+
+  EXPECT_HAPPENS({90s, 100ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), 3 * 30 + 1)
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 3 * 30 + 1)
+  });
+}
+
+TEST_F(PbftManagerWithDagCreation, test_trx_generation) {
+  makeNode();
+  deployContract();
+  auto transaction_count = node->getDB()->getNumTransactionExecuted();
+  auto trxs1 = makeTransactions(10);
+  EXPECT_EQ(trxs1.size(), 10);
+  EXPECT_EQ(trxs1.front().getNonce(), 0);
+  EXPECT_EQ(trxs1.back().getNonce(), 9);
+  insertTransactions(trxs1);
+
+  EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), transaction_count + 10);
+  });
+
+  auto trxs2 = makeTransactions(10);
+  EXPECT_EQ(trxs2.size(), 10);
+  EXPECT_EQ(trxs2.front().getNonce(), 11);
+  EXPECT_EQ(trxs2.back().getNonce(), 20);
+}
+
+TEST_F(PbftManagerWithDagCreation, single_node_create_execute_transaction) {
+  auto node_cfgs = make_node_cfgs<5, true>(1);
+  node_cfgs.front().chain.dag.gas_limit = 250000;
+  makeNodeFromConfig(node_cfgs, false);
+  deployContract();
+  generateAndApplyInitialDag();
+  node->start();
+
+  EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 101) });
+  auto greet = [&] {
+    auto ret = node->getFinalChain()->call({
+        node->getAddress(),
+        0,
+        contract_addr,
+        0,
+        0,
+        0,
+        // greet()
+        dev::fromHex("0xcfae3217"),
+    });
+    return dev::toHexPrefixed(ret.code_retval);
+  };
+  ASSERT_EQ(greet(),
+            // "Hello"
+            "0x0000000000000000000000000000000000000000000000000000000000000020"
+            "000000000000000000000000000000000000000000000000000000000000000548"
+            "656c6c6f000000000000000000000000000000000000000000000000000000");
+  auto executed_count = node->getDB()->getNumTransactionExecuted();
+  {
+    for (int i = 1; i < 102; ++i) {
+      auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(
+          Transaction(i, 11, 0, 0,
+                      // setGreeting("Hola")
+                      dev::fromHex("0xa4136862000000000000000000000000000000000000000000000000"
+                                   "00000000000000200000000000000000000000000000000000000000000"
+                                   "000000000000000000004486f6c61000000000000000000000000000000"
+                                   "00000000000000000000000000"),
+                      node->getSecretKey(), contract_addr));
+      executed_count += 1;
+      EXPECT_HAPPENS({60s, 100ms}, [&](auto &ctx) {
+        WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), executed_count)
+      });
+    }
+  }
+  {
+    for (int i = 102; i < 127; ++i) {
+      auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(
+          Transaction(i, 11, 0, 0,
+                      // setGreeting("Hola")
+                      dev::fromHex("0xa4136862000000000000000000000000000000000000000000000000"
+                                   "00000000000000200000000000000000000000000000000000000000000"
+                                   "000000000000000000004486f6c61000000000000000000000000000000"
+                                   "00000000000000000000000000"),
+                      node->getSecretKey(), contract_addr));
+      ASSERT_TRUE(ok);
+    }
+  }
+  EXPECT_HAPPENS({30s, 50ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 124)
+    WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), 127)
+    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first, 104)
+  });
+  std::cout << " TESTING CHANGED GREET" << std::endl;
+  ASSERT_EQ(greet(),
+            // "Hola"
+            "0x000000000000000000000000000000000000000000000000000000000000002000"
+            "00000000000000000000000000000000000000000000000000000000000004486f"
+            "6c6100000000000000000000000000000000000000000000000000000000");
 }
 
 }  // namespace taraxa::core_tests
