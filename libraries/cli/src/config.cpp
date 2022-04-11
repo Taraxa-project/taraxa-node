@@ -135,7 +135,12 @@ Config::Config(int argc, const char* argv[]) {
     return;
   }
   if (version) {
-    cout << TARAXA_VERSION << endl;
+    Json::Value version_json;
+    version_json["version"] = TARAXA_VERSION;
+    version_json["git_commit_hash"] = TARAXA_GIT_COMMIT_HASH;
+    version_json["git_branch"] = TARAXA_GIT_BRANCH;
+    version_json["git_description"] = TARAXA_GIT_DESCRIBE;
+    std::cout << version_json << endl;
     // If version requested, ignore any additional commands
     command.clear();
     return;
