@@ -125,7 +125,7 @@ int main(int argc, char** argv) {
   }
 
   if (vm.count("version")) {
-    std::cout << VERSION_JSON << std::endl;
+    std::cout << kVersionJson << std::endl;
     return 0;
   }
 

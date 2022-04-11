@@ -14,7 +14,7 @@ class TaraxaClient : public jsonrpc::Client {
   TaraxaClient(jsonrpc::IClientConnector& conn, jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2)
       : jsonrpc::Client(conn, type) {}
 
-  std::string taraxa_protocolVersion() throw(jsonrpc::JsonRpcException) {
+  Json::Value taraxa_protocolVersion() throw(jsonrpc::JsonRpcException) {
     Json::Value p;
     p = Json::nullValue;
     Json::Value result = this->CallMethod("taraxa_protocolVersion", p);
@@ -23,12 +23,12 @@ class TaraxaClient : public jsonrpc::Client {
     else
       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
-  std::string taraxa_getVersion() throw(jsonrpc::JsonRpcException) {
+  Json::Value taraxa_getVersion() throw(jsonrpc::JsonRpcException) {
     Json::Value p;
     p = Json::nullValue;
     Json::Value result = this->CallMethod("taraxa_getVersion", p);
-    if (result.isString())
-      return result.asString();
+    if (result.isObject())
+      return result;
     else
       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }

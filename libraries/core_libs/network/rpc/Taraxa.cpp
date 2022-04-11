@@ -7,6 +7,7 @@
 
 #include "dag/dag.hpp"
 #include "dag/dag_block_manager.hpp"
+#include "json/reader.h"
 #include "pbft/pbft_manager.hpp"
 #include "transaction/transaction_manager.hpp"
 
@@ -18,11 +19,14 @@ using namespace ::taraxa::final_chain;
 
 namespace taraxa::net {
 
-Taraxa::Taraxa(std::shared_ptr<FullNode> const& _full_node) : full_node_(_full_node) {}
+Taraxa::Taraxa(std::shared_ptr<FullNode> const& _full_node) : full_node_(_full_node) {
+  Json::Reader reader;
+  reader.parse(kVersionJson, version);
+}
 
 string Taraxa::taraxa_protocolVersion() { return toJS(TARAXA_NET_VERSION); }
 
-string Taraxa::taraxa_getVersion() { return TARAXA_VERSION; }
+Json::Value Taraxa::taraxa_getVersion() { return version; }
 
 string Taraxa::taraxa_dagBlockLevel() {
   try {

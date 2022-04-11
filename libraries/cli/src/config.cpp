@@ -135,7 +135,7 @@ Config::Config(int argc, const char* argv[]) {
     return;
   }
   if (version) {
-    std::cout << VERSION_JSON << endl;
+    std::cout << kVersionJson << endl;
     // If version requested, ignore any additional commands
     command.clear();
     return;
