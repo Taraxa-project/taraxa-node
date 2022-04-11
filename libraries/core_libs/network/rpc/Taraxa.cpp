@@ -20,8 +20,11 @@ using namespace ::taraxa::final_chain;
 namespace taraxa::net {
 
 Taraxa::Taraxa(std::shared_ptr<FullNode> const& _full_node) : full_node_(_full_node) {
-  Json::Reader reader;
-  reader.parse(kVersionJson, version);
+  Json::CharReaderBuilder builder;
+  auto reader = std::unique_ptr<Json::CharReader>(builder.newCharReader());
+  
+  bool parsingSuccessful = reader->parse(kVersionJson, kVersionJson + strlen(kVersionJson), &version, nullptr);
+  assert(parsingSuccessful);
 }
 
 string Taraxa::taraxa_protocolVersion() { return toJS(TARAXA_NET_VERSION); }
