@@ -252,8 +252,8 @@ TEST_F(FullNodeTest, db_test) {
   db.savePeriodData(sync_block2, batch);
   db.savePeriodData(sync_block3, batch);
   db.savePeriodData(sync_block4, batch);
-
   db.commitWriteBatch(batch);
+
   EXPECT_TRUE(db.pbftBlockInDb(pbft_block1.getBlockHash()));
   EXPECT_TRUE(db.pbftBlockInDb(pbft_block2.getBlockHash()));
   EXPECT_TRUE(db.pbftBlockInDb(pbft_block3.getBlockHash()));
@@ -262,11 +262,34 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftBlock(pbft_block2.getBlockHash())->rlp(false), pbft_block2.rlp(false));
   EXPECT_EQ(db.getPbftBlock(pbft_block3.getBlockHash())->rlp(false), pbft_block3.rlp(false));
   EXPECT_EQ(db.getPbftBlock(pbft_block4.getBlockHash())->rlp(false), pbft_block4.rlp(false));
+  EXPECT_EQ(db.getPeriodDataRaw(pbft_block1.getPeriod()), sync_block1.rlp());
+  EXPECT_EQ(db.getPeriodDataRaw(pbft_block2.getPeriod()), sync_block2.rlp());
+  EXPECT_EQ(db.getPeriodDataRaw(pbft_block3.getPeriod()), sync_block3.rlp());
+  EXPECT_EQ(db.getPeriodDataRaw(pbft_block4.getPeriod()), sync_block4.rlp());
 
   SyncBlock pbft_block_cert_votes(std::make_shared<PbftBlock>(pbft_block1), cert_votes);
   auto cert_votes_from_db = db.getCertVotes(pbft_block1.getPeriod());
+  EXPECT_EQ(cert_votes_from_db.size(), 3);
   SyncBlock pbft_block_cert_votes_from_db(std::make_shared<PbftBlock>(pbft_block1), cert_votes_from_db);
   EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
+
+  // Update cert votes in sync_block1
+  for (auto i = 3; i < 5; i++) {
+    VrfPbftMsg msg(cert_vote_type, i, 3);
+    vrf_wrapper::vrf_sk_t vrf_sk(
+        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+    VrfPbftSortition vrf_sortition(vrf_sk, msg);
+    Vote vote(g_secret, vrf_sortition, blk_hash_t(10));
+    sync_block1.cert_votes.emplace_back(std::make_shared<Vote>(vote));
+  }
+  db.UpdateCertVotesInPeriodData(sync_block1);
+  auto period_data = db.getPeriodDataRaw(pbft_block1.getPeriod());
+  EXPECT_EQ(period_data, sync_block1.rlp());
+  cert_votes_from_db = db.getCertVotes(pbft_block1.getPeriod());
+  EXPECT_EQ(cert_votes_from_db.size(), 5);
+  SyncBlock sync_block_with_updated_cert_votes_from_db(std::make_shared<PbftBlock>(pbft_block1), cert_votes_from_db);
+  EXPECT_EQ(period_data, sync_block_with_updated_cert_votes_from_db.rlp());
 
   // pbft_blocks (head)
   PbftChain pbft_chain(blk_hash_t(0), addr_t(), db_ptr);

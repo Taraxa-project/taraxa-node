@@ -598,9 +598,7 @@ void VoteManager::updateRewardVotes(uint64_t reward_period) {
   }
 
   if (update) {
-    auto batch = db_->createWriteBatch();
-    db_->savePeriodData(reward_period_sync_block, batch);
-    db_->commitWriteBatch(batch);
+    db_->UpdateCertVotesInPeriodData(reward_period_sync_block);
   }
 }
 
