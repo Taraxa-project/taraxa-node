@@ -183,6 +183,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void enableSnapshots();
 
   // Period data
+  void UpdateCertVotesInPeriodData(const SyncBlock& sync_block);
   void savePeriodData(const SyncBlock& sync_block, Batch& write_batch);
   void clearPeriodDataHistory(uint64_t period);
   dev::bytes getPeriodDataRaw(uint64_t period) const;
