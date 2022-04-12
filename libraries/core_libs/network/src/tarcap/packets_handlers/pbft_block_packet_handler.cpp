@@ -50,7 +50,7 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::s
 
   // Reward votes
   vote_mgr_->updateRewardVotes(proposed_period - 1);
-  auto missing_reward_votes = vote_mgr_->checkRewardVotes(pbft_block);
+  const auto missing_reward_votes = vote_mgr_->checkRewardVotes(pbft_block);
   if (missing_reward_votes.second) {
     std::ostringstream err_msg;
     err_msg << "Disconnect to malicious peer " << packet_data.from_node_id_;
