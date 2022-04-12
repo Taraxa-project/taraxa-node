@@ -12,10 +12,11 @@ constexpr size_t EXTENDED_PARTITION_STEPS = 1000;
 constexpr size_t FIRST_FINISH_STEP = 4;
 
 namespace taraxa {
-VoteManager::VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db,
+VoteManager::VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
                          std::shared_ptr<FinalChain> final_chain, std::shared_ptr<NextVotesManager> next_votes_mgr)
     : node_addr_(node_addr),
       db_(std::move(db)),
+      pbft_chain_(std::move(pbft_chain)),
       final_chain_(std::move(final_chain)),
       next_votes_manager_(std::move(next_votes_mgr)) {
   LOG_OBJECTS_CREATE("VOTE_MGR");
@@ -479,6 +480,163 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
   }
 
   return 0;
+}
+
+void VoteManager::sendRewardPeriodCertVotes(uint64_t reward_period) {
+  auto reward_period_cert_votes = db_->getCertVotes(reward_period);
+  auto net = network_.lock();
+  net->onNewPbftVotes(std::move(reward_period_cert_votes), true);
+}
+
+bool VoteManager::AddRewardVote(std::shared_ptr<Vote>& vote) {
+  // Don't check if in DB. That will check in  updateRewardVotes for reducing DB read
+  const auto& vote_hash = vote->getHash();
+  std::unique_lock lock(reward_votes_mutex_);
+  if (reward_votes_.second.contains(vote_hash)) {
+    return false;
+  }
+
+  // Verify reward vote
+  if (!verifyRewardVote(vote)) {
+    return false;
+  }
+
+  const auto pbft_chain_last_block_hash = pbft_chain_->getLastPbftBlockHash();
+  if (reward_votes_.first && reward_votes_.first != pbft_chain_last_block_hash) {
+    // Clear missing reward votes
+    reward_votes_ = {};
+  }
+  const auto& voted_block_hash = vote->getBlockHash();
+  assert(!reward_votes_.first || voted_block_hash == reward_votes_.first);
+
+  reward_votes_.first = voted_block_hash;
+  reward_votes_.second.insert({vote_hash, vote});
+
+  return true;
+}
+
+bool VoteManager::verifyRewardVote(std::shared_ptr<Vote>& vote) {
+  const auto& voted_block_hash = vote->getBlockHash();
+  const auto pbft_chain_last_block_hash = pbft_chain_->getLastPbftBlockHash();
+  if (voted_block_hash != pbft_chain_last_block_hash) {
+    LOG(log_dg_) << "Drop reward vote " << *vote << ". PBFT chain last block is " << pbft_chain_last_block_hash
+                 << ", but vote for PBFT block is " << voted_block_hash;
+    return false;
+  }
+
+  if (vote->getType() != cert_vote_type) {
+    LOG(log_er_) << "Reward vote type is not cert vote type " << *vote;
+    return false;
+  }
+
+  if (vote->getStep() != 3) {
+    LOG(log_er_) << "Reward vote step is not 3 " << *vote;
+    return false;
+  }
+
+  uint64_t reward_period = pbft_chain_->getPbftChainSize();
+  const auto& voter_account_addr = vote->getVoterAddr();
+  uint64_t voter_dpos_votes_count;
+  try {
+    voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(reward_period, voter_account_addr);
+  } catch (state_api::ErrFutureBlock& c) {
+    LOG(log_er_) << c.what() << ". Voter account " << voter_account_addr << " in period(PBFT chain size) "
+                 << reward_period << " is too far for ahead of DPOS. Have executed chain size "
+                 << final_chain_->last_block_number();
+    return false;
+  }
+
+  if (!voter_dpos_votes_count) {
+    LOG(log_er_) << "Reward vote is invalid. DPOS votes count is 0 " << *vote;
+    return false;
+  }
+
+  const uint64_t reward_period_dpos_total_votes_count = final_chain_->dpos_eligible_total_vote_count(reward_period);
+  const size_t reward_period_pbft_sortition_threshold = db_->getPbftSortitionThreshold(reward_period);
+  if (reward_period_pbft_sortition_threshold == 0) {
+    LOG(log_er_) << "Cannot get PBFT sortition threshold for period " << reward_period;
+    assert(false);
+  }
+  try {
+    vote->validate(voter_dpos_votes_count, reward_period_dpos_total_votes_count,
+                   reward_period_pbft_sortition_threshold);
+  } catch (const std::logic_error& e) {
+    LOG(log_er_) << e.what();
+    return false;
+  }
+
+  return true;
+}
+
+void VoteManager::updateRewardVotes(uint64_t reward_period) {
+  auto period_data = db_->getPeriodDataRaw(reward_period);
+  if (period_data.size() == 0) {
+    return;
+  }
+
+  SyncBlock reward_period_sync_block(period_data);
+
+  std::unordered_set<vote_hash_t> reward_period_cert_votes_hash;
+  for (const auto& v : reward_period_sync_block.cert_votes) {
+    reward_period_cert_votes_hash.insert(v->getHash());
+  }
+
+  bool update = false;
+  {
+    std::unique_lock lock(reward_votes_mutex_);
+    if (reward_votes_.first != reward_period_sync_block.pbft_blk->getBlockHash()) {
+      return;
+    }
+    for (auto& v : reward_votes_.second) {
+      if (reward_period_cert_votes_hash.insert(v.first).second) {
+        update = true;
+        reward_period_sync_block.cert_votes.push_back(std::move(v.second));
+      }
+    }
+    // Clear reward votes table
+    reward_votes_ = {};
+  }
+
+  if (update) {
+    auto batch = db_->createWriteBatch();
+    db_->savePeriodData(reward_period_sync_block, batch);
+    db_->commitWriteBatch(batch);
+  }
+}
+
+std::pair<std::vector<vote_hash_t>, bool> VoteManager::checkRewardVotes(
+    const std::shared_ptr<PbftBlock>& proposed_pbft_block) {
+  std::vector<vote_hash_t> missing_reward_votes;
+  auto reward_period = proposed_pbft_block->getPeriod() - 1;
+  if (!reward_period) {
+    // First period no reward votes
+    return std::make_pair(std::move(missing_reward_votes), false);
+  }
+
+  const auto reward_period_cert_votes = db_->getCertVotes(reward_period);
+  std::unordered_set<vote_hash_t> reward_period_cert_votes_hash;
+  for (const auto& v : reward_period_cert_votes) {
+    reward_period_cert_votes_hash.insert(v->getHash());
+  }
+
+  const auto reward_period_in_round = reward_period_cert_votes[0]->getRound();
+  const auto reward_period_2t_plus_1 = db_->getPbft2TPlus1(reward_period_in_round);
+  const auto& reward_votes = proposed_pbft_block->getRewardVotes();
+  if (reward_votes.size() < reward_period_2t_plus_1) {
+    LOG(log_er_) << "Not enough reward votes in proposal block " << *proposed_pbft_block << ". In round "
+                 << reward_period_in_round << " 2t+1 is " << reward_period_2t_plus_1 << ", but there are only "
+                 << reward_votes.size() << " reward votes.";
+    // Malicious player
+    return std::make_pair(std::move(missing_reward_votes), true);
+  }
+
+  for (const auto& v : reward_votes) {
+    if (!reward_period_cert_votes_hash.contains(v)) {
+      missing_reward_votes.emplace_back(v);
+    }
+  }
+
+  return std::make_pair(std::move(missing_reward_votes), false);
 }
 
 NextVotesManager::NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db,

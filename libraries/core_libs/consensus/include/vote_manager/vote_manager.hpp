@@ -2,6 +2,7 @@
 
 #include "common/util.hpp"
 #include "final_chain/final_chain.hpp"
+#include "pbft/pbft_chain.hpp"
 #include "vote/vote.hpp"
 
 namespace taraxa {
@@ -62,8 +63,8 @@ class NextVotesManager {
 
 class VoteManager {
  public:
-  VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
-              std::shared_ptr<NextVotesManager> next_votes_mgr);
+  VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
+              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<NextVotesManager> next_votes_mgr);
   ~VoteManager();
   VoteManager(const VoteManager&) = delete;
   VoteManager(VoteManager&&) = delete;
@@ -102,6 +103,13 @@ class VoteManager {
 
   uint64_t roundDeterminedFromVotes(size_t two_t_plus_one);
 
+  // Reward votes
+  void sendRewardPeriodCertVotes(uint64_t reward_period);
+  bool AddRewardVote(std::shared_ptr<Vote>& vote);
+  bool verifyRewardVote(std::shared_ptr<Vote>& vote);
+  void updateRewardVotes(uint64_t reward_period);
+  std::pair<std::vector<vote_hash_t>, bool> checkRewardVotes(const std::shared_ptr<PbftBlock>& proposed_pbft_block);
+
  private:
   void retreieveVotes_();
 
@@ -132,9 +140,13 @@ class VoteManager {
   const addr_t node_addr_;
 
   std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<NextVotesManager> next_votes_manager_;
   std::weak_ptr<Network> network_;
+
+  std::pair<blk_hash_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>> reward_votes_;
+  mutable std::shared_mutex reward_votes_mutex_;
 
   LOG_OBJECTS_DEFINE
 };

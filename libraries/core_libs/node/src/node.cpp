@@ -106,7 +106,7 @@ void FullNode::init() {
   dag_mgr_ = std::make_shared<DagManager>(genesis_hash, node_addr, trx_mgr_, pbft_chain_, dag_blk_mgr_, db_, log_time_,
                                           conf_.is_light_node, conf_.light_node_history, conf_.max_levels_per_period,
                                           conf_.dag_expiry_limit);
-  vote_mgr_ = std::make_shared<VoteManager>(node_addr, db_, final_chain_, next_votes_mgr_);
+  vote_mgr_ = std::make_shared<VoteManager>(node_addr, db_, pbft_chain_, final_chain_, next_votes_mgr_);
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_,
                                             next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, final_chain_,
                                             kp_.secret(), conf_.vrf_secret, conf_.max_levels_per_period);

@@ -141,7 +141,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   bool syncRequestedAlreadyThisStep_() const;
 
-  void syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::blk_hash_t const &relevant_blk_hash);
+  void syncPbftChainFromPeers_(PbftSyncRequestReason reason, const blk_hash_t &relevant_blk_hash);
 
   bool broadcastAlreadyThisStep_() const;
 

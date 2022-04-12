@@ -14,18 +14,34 @@ VotePacketHandler::VotePacketHandler(std::shared_ptr<PeersState> peers_state,
       seen_votes_(1000000, 1000) {}
 
 void VotePacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
-  if (constexpr size_t required_size = 1; packet_data.rlp_.itemCount() != required_size) {
+  if (constexpr size_t required_size = 2; packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
 }
 
 void VotePacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   auto vote = std::make_shared<Vote>(packet_data.rlp_[0].toBytes());
+  const bool reward_vote = packet_data.rlp_[1].toInt<bool>();
   const auto vote_hash = vote->getHash();
   LOG(log_dg_) << "Received PBFT vote " << vote_hash;
 
-  const auto vote_round = vote->getRound();
+  if (reward_vote) {
+    // Synchronization point in case multiple threads are processing the same vote at the same time
+    if (!seen_votes_.insert(vote_hash)) {
+      LOG(log_dg_) << "Received reward vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
+                   << ") already seen.";
+      return;
+    }
 
+    if (vote_mgr_->AddRewardVote(vote)) {
+      peer->markVoteAsKnown(vote_hash);
+      onNewPbftVote(std::move(vote), reward_vote);
+    }
+
+    return;
+  }
+
+  const auto vote_round = vote->getRound();
   if (vote_round < pbft_mgr_->getPbftRound()) {
     LOG(log_dg_) << "Received old PBFT vote " << vote_hash << " from " << packet_data.from_node_id_.abridged()
                  << ". Vote round: " << vote_round << ", current pbft round: " << pbft_mgr_->getPbftRound();
@@ -50,7 +66,7 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
   // And we do not need to mark it before this point as we won't be sending
   peer->markVoteAsKnown(vote_hash);
 
-  onNewPbftVote(std::move(vote));
+  onNewPbftVote(std::move(vote), reward_vote);
 }
 
 }  // namespace taraxa::network::tarcap
