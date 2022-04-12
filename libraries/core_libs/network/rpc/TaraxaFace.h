@@ -16,7 +16,7 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
         jsonrpc::Procedure("taraxa_protocolVersion", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, NULL),
         &taraxa::net::TaraxaFace::taraxa_protocolVersionI);
     this->bindAndAddMethod(
-        jsonrpc::Procedure("taraxa_getVersion", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, NULL),
+        jsonrpc::Procedure("taraxa_getVersion", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
         &taraxa::net::TaraxaFace::taraxa_getVersionI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("taraxa_getDagBlockByHash", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",
@@ -76,7 +76,7 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
     response = this->taraxa_queryDPOS(request[0u]);
   }
   virtual std::string taraxa_protocolVersion() = 0;
-  virtual std::string taraxa_getVersion() = 0;
+  virtual Json::Value taraxa_getVersion() = 0;
   virtual Json::Value taraxa_getDagBlockByHash(const std::string &param1, bool param2) = 0;
   virtual Json::Value taraxa_getDagBlockByLevel(const std::string &param1, bool param2) = 0;
   virtual std::string taraxa_dagBlockLevel() = 0;
