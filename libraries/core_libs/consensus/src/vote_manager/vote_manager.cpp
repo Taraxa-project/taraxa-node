@@ -605,7 +605,7 @@ void VoteManager::updateRewardVotes(uint64_t reward_period) {
 std::pair<std::vector<vote_hash_t>, bool> VoteManager::checkRewardVotes(
     const std::shared_ptr<PbftBlock>& proposed_pbft_block) {
   std::vector<vote_hash_t> missing_reward_votes;
-  auto reward_period = proposed_pbft_block->getPeriod() - 1;
+  const auto reward_period = proposed_pbft_block->getPeriod() - 1;
   if (!reward_period) {
     // First period no reward votes
     return std::make_pair(std::move(missing_reward_votes), false);

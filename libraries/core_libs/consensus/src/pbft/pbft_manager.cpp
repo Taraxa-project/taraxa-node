@@ -1873,6 +1873,26 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
     return std::nullopt;
   }
 
+  // Check reward votes
+  const auto missing_reward_votes = vote_mgr_->checkRewardVotes(sync_block.first.pbft_blk);
+  if (missing_reward_votes.second) {
+    LOG(log_er_) << "Not enough reward votes. Disconnect to malicious peer " << sync_block.second;
+    sync_queue_.clear();
+    net->handleMaliciousSyncPeer(sync_block.second);
+    return std::nullopt;
+  }
+  if (!missing_reward_votes.first.empty()) {
+    std::string missing_reward_votes_log = "Cannot find reward votes: ";
+    for (const auto &v : missing_reward_votes.first) {
+      missing_reward_votes_log += "\n" + v.toString();
+    }
+    LOG(log_er_) << missing_reward_votes_log << "\n"
+                 << "Disconnect to malicious peer " << sync_block.second;
+    sync_queue_.clear();
+    net->handleMaliciousSyncPeer(sync_block.second);
+    return std::nullopt;
+  }
+
   return std::optional<SyncBlock>(std::move(sync_block.first));
 }
 
