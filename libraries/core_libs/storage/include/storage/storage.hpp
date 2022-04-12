@@ -105,6 +105,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(pbft_mgr_previous_round_status);
     COLUMN(pbft_mgr_round_step);
     COLUMN(pbft_round_2t_plus_1);
+    COLUMN(period_pbft_sortition_threshold);
     COLUMN(pbft_mgr_status);
     COLUMN(pbft_mgr_voted_value);
     COLUMN(pbft_cert_voted_block);
@@ -232,6 +233,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   size_t getPbft2TPlus1(uint64_t pbft_round);
   void savePbft2TPlus1(uint64_t pbft_round, size_t pbft_2t_plus_1);
   void addPbft2TPlus1ToBatch(uint64_t pbft_round, size_t pbft_2t_plus_1, Batch& write_batch);
+
+  size_t getPbftSortitionThreshold(uint64_t period);
+  void savePbftSortitionThreshold(uint64_t period, size_t sortition_threshold);
+  void addPbftSortitionThresholdToBatch(uint64_t period, size_t sortition_threshold, Batch& write_batch);
 
   bool getPbftMgrStatus(PbftMgrStatus field);
   void savePbftMgrStatus(PbftMgrStatus field, bool const& value);

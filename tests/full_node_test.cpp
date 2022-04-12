@@ -150,6 +150,16 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbft2TPlus1(10), 6);
   EXPECT_EQ(db.getPbft2TPlus1(11), 3);
 
+  // PBFT sortition threshold
+  db.savePbftSortitionThreshold(1, 10);
+  EXPECT_EQ(db.getPbftSortitionThreshold(1), 10);
+  batch = db.createWriteBatch();
+  db.addPbftSortitionThresholdToBatch(1, 11, batch);
+  db.addPbftSortitionThresholdToBatch(2, 20, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getPbftSortitionThreshold(1), 11);
+  EXPECT_EQ(db.getPbftSortitionThreshold(2), 20);
+
   // PBFT manager status
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));

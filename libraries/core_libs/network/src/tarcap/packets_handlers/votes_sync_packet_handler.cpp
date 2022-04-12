@@ -74,7 +74,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
         continue;
       }
 
-      onNewPbftVote(std::move(vote_n));
+      onNewPbftVote(std::move(vote_n), false);
     }
   } else if (pbft_current_round == peer_pbft_round) {
     // Update previous round next votes

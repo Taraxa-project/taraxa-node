@@ -674,6 +674,27 @@ void DbStorage::addPbft2TPlus1ToBatch(uint64_t pbft_round, size_t pbft_2t_plus_1
   insert(write_batch, DbStorage::Columns::pbft_round_2t_plus_1, toSlice(pbft_round), toSlice(pbft_2t_plus_1));
 }
 
+size_t DbStorage::getPbftSortitionThreshold(uint64_t period) {
+  auto status = lookup(toSlice(period), Columns::period_pbft_sortition_threshold);
+
+  if (!status.empty()) {
+    size_t value;
+    memcpy(&value, status.data(), sizeof(size_t));
+    return value;
+  }
+
+  return 0;
+}
+
+void DbStorage::savePbftSortitionThreshold(uint64_t period, size_t sortition_threshold) {
+  insert(Columns::period_pbft_sortition_threshold, toSlice(period), toSlice(sortition_threshold));
+}
+
+void DbStorage::addPbftSortitionThresholdToBatch(uint64_t period, size_t sortition_threshold, Batch& write_batch) {
+  insert(write_batch, DbStorage::Columns::period_pbft_sortition_threshold, toSlice(period),
+         toSlice(sortition_threshold));
+}
+
 bool DbStorage::getPbftMgrStatus(PbftMgrStatus field) {
   auto status = lookup(toSlice(field), Columns::pbft_mgr_status);
   if (!status.empty()) {

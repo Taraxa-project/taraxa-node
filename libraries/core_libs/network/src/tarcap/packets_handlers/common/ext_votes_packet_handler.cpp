@@ -9,24 +9,29 @@ ExtVotesPacketHandler::ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_s
                                              const std::string &log_channel_name)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name) {}
 
-void ExtVotesPacketHandler::onNewPbftVote(std::shared_ptr<Vote> &&vote) {
+void ExtVotesPacketHandler::onNewPbftVote(std::shared_ptr<Vote> &&vote, bool reward_vote) {
   std::vector<dev::p2p::NodeID> peers_to_send;
   const auto round = vote->getRound();
   for (auto const &peer : peers_state_->getAllPeers()) {
-    if (!peer.second->isVoteKnown(vote->getHash()) && !peer.second->syncing_ && peer.second->pbft_round_ <= round) {
+    if (!peer.second->isVoteKnown(vote->getHash()) && !peer.second->syncing_ &&
+        (peer.second->pbft_round_ <= round || reward_vote)) {
       peers_to_send.push_back(peer.first);
     }
   }
   for (auto const &peer_id : peers_to_send) {
-    sendPbftVote(peer_id, vote);
+    sendPbftVote(peer_id, vote, reward_vote);
   }
 }
 
-void ExtVotesPacketHandler::sendPbftVote(dev::p2p::NodeID const &peer_id, std::shared_ptr<Vote> const &vote) {
+void ExtVotesPacketHandler::sendPbftVote(dev::p2p::NodeID const &peer_id, std::shared_ptr<Vote> const &vote,
+                                         bool reward_vote) {
   const auto peer = peers_state_->getPeer(peer_id);
   // TODO: We should disable PBFT votes when a node is bootstrapping but not when trying to resync
   if (peer) {
-    if (sealAndSend(peer_id, SubprotocolPacketType::VotePacket, std::move(dev::RLPStream(1) << vote->rlp(true)))) {
+    dev::RLPStream s(2);
+    s << vote->rlp(true);
+    s << reward_vote;
+    if (sealAndSend(peer_id, SubprotocolPacketType::VotePacket, std::move(s))) {
       LOG(log_dg_) << "sendPbftVote " << vote->getHash() << " to " << peer_id;
       peer->markVoteAsKnown(vote->getHash());
     }

@@ -5,16 +5,19 @@
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
+#include "vote_manager/vote_manager.hpp"
 
 namespace taraxa::network::tarcap {
 
 PbftBlockPacketHandler::PbftBlockPacketHandler(std::shared_ptr<PeersState> peers_state,
                                                std::shared_ptr<PacketsStats> packets_stats,
                                                std::shared_ptr<PbftChain> pbft_chain,
-                                               std::shared_ptr<PbftManager> pbft_mgr, const addr_t &node_addr)
+                                               std::shared_ptr<PbftManager> pbft_mgr,
+                                               std::shared_ptr<VoteManager> vote_mgr, const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "PBFT_BLOCK_PH"),
       pbft_chain_(std::move(pbft_chain)),
-      pbft_mgr_(std::move(pbft_mgr)) {}
+      pbft_mgr_(std::move(pbft_mgr)),
+      vote_mgr_(std::move(vote_mgr)) {}
 
 void PbftBlockPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
   if (constexpr size_t required_size = 1; packet_data.rlp_.itemCount() != required_size) {
@@ -33,9 +36,6 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::s
 
   peer->markPbftBlockAsKnown(pbft_block->getBlockHash());
 
-  // TODO: Update pbft_chain_size after verify PBFT block. Malicious players can send larget fake chain size
-  // to force peers syncing with him.
-  // After fix this, need refactor unit test NetworkTest.send_pbft_block
   const auto peer_pbft_chain_size = proposed_period - 1;
   if (peer_pbft_chain_size > peer->pbft_chain_size_) {
     peer->pbft_chain_size_ = peer_pbft_chain_size;
@@ -45,6 +45,25 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::s
   if (pbft_synced_period >= proposed_period) {
     LOG(log_tr_) << "Drop new PBFT block " << proposed_block_hash.abridged() << " at period " << proposed_period
                  << ", own PBFT chain has synced at period " << pbft_synced_period;
+    return;
+  }
+
+  // Reward votes
+  vote_mgr_->updateRewardVotes(proposed_period - 1);
+  auto missing_reward_votes = vote_mgr_->checkRewardVotes(pbft_block);
+  if (missing_reward_votes.second) {
+    std::ostringstream err_msg;
+    err_msg << "Disconnect to malicious peer " << packet_data.from_node_id_;
+    throw MaliciousPeerException(err_msg.str());
+  }
+  if (!missing_reward_votes.first.empty()) {
+    std::ostringstream missing_reward_votes_log;
+    missing_reward_votes_log << "Missing reward votes: ";
+    for (const auto &v : missing_reward_votes.first) {
+      missing_reward_votes_log << "\n" << v.toString();
+    }
+    LOG(log_er_) << missing_reward_votes_log.str();
+    // TODO: If see the error often, need implement reward votes syncing process.
     return;
   }
 
@@ -61,7 +80,7 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::s
   onNewPbftBlock(*pbft_block);
 }
 
-void PbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
+void PbftBlockPacketHandler::onNewPbftBlock(const PbftBlock &pbft_block) {
   std::vector<std::shared_ptr<TaraxaPeer>> peers_to_send;
   std::string peers_to_log;
 
@@ -72,8 +91,10 @@ void PbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
     }
   }
 
-  LOG(log_dg_) << "sendPbftBlock " << pbft_block.getBlockHash() << " to " << peers_to_log;
+  LOG(log_dg_) << "sendPbftBlock " << pbft_block.getBlockHash() << " with reward period cert votes to " << peers_to_log;
   for (auto const &peer : peers_to_send) {
+    // Send reward period cert votes, that include more than reward votes in the proposed PBFT block
+    vote_mgr_->sendRewardPeriodCertVotes(pbft_block.getPeriod() - 1);
     sendPbftBlock(peer->getId(), pbft_block);
     peer->markPbftBlockAsKnown(pbft_block.getBlockHash());
   }

@@ -192,7 +192,7 @@ void TaraxaCapability::registerPacketHandlers(
   // Standard packets with mid processing priority
   packets_handlers_->registerHandler(
       SubprotocolPacketType::PbftBlockPacket,
-      std::make_shared<PbftBlockPacketHandler>(peers_state_, packets_stats, pbft_chain, pbft_mgr, node_addr));
+      std::make_shared<PbftBlockPacketHandler>(peers_state_, packets_stats, pbft_chain, pbft_mgr, vote_mgr, node_addr));
 
   const auto dag_handler =
       std::make_shared<DagBlockPacketHandler>(peers_state_, packets_stats, pbft_syncing_state_, pbft_chain, pbft_mgr,
@@ -382,15 +382,15 @@ void TaraxaCapability::onNewBlockReceived(DagBlock &&block) {
       ->onNewBlockReceived(std::move(block));
 }
 
-void TaraxaCapability::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block) {
+void TaraxaCapability::onNewPbftBlock(const std::shared_ptr<PbftBlock> &pbft_block) {
   std::static_pointer_cast<PbftBlockPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::PbftBlockPacket))
       ->onNewPbftBlock(*pbft_block);
 }
 
-void TaraxaCapability::onNewPbftVote(std::shared_ptr<Vote> &&vote) {
+void TaraxaCapability::onNewPbftVote(std::shared_ptr<Vote> &&vote, bool reward_vote) {
   std::static_pointer_cast<VotePacketHandler>(packets_handlers_->getSpecificHandler(SubprotocolPacketType::VotePacket))
-      ->onNewPbftVote(std::move(vote));
+      ->onNewPbftVote(std::move(vote), reward_vote);
 }
 
 void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
@@ -432,9 +432,9 @@ void TaraxaCapability::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const
       ->sendPbftBlock(id, pbft_block);
 }
 
-void TaraxaCapability::sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote) {
+void TaraxaCapability::sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote, bool reward_vote) {
   std::static_pointer_cast<VotePacketHandler>(packets_handlers_->getSpecificHandler(SubprotocolPacketType::VotePacket))
-      ->sendPbftVote(id, vote);
+      ->sendPbftVote(id, vote, reward_vote);
 }
 
 // END METHODS USED IN TESTS ONLY

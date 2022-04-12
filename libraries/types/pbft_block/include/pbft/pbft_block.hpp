@@ -37,13 +37,14 @@ class PbftBlock {
 
   static Json::Value toJson(const PbftBlock& b, const std::vector<blk_hash_t>& dag_blks);
 
-  auto const& getBlockHash() const { return block_hash_; }
-  auto const& getPrevBlockHash() const { return prev_block_hash_; }
-  auto const& getPivotDagBlockHash() const { return dag_block_hash_as_pivot_; }
-  auto const& getOrderHash() const { return order_hash_; }
+  const auto& getBlockHash() const { return block_hash_; }
+  const auto& getPrevBlockHash() const { return prev_block_hash_; }
+  const auto& getPivotDagBlockHash() const { return dag_block_hash_as_pivot_; }
+  const auto& getOrderHash() const { return order_hash_; }
   auto getPeriod() const { return period_; }
+  const auto& getRewardVotes() const { return reward_votes_; }
   auto getTimestamp() const { return timestamp_; }
-  auto const& getBeneficiary() const { return beneficiary_; }
+  const auto& getBeneficiary() const { return beneficiary_; }
 
  private:
   void calculateHash_();

@@ -23,8 +23,8 @@ class ExtVotesPacketHandler : public PacketHandler {
   ExtVotesPacketHandler& operator=(const ExtVotesPacketHandler&) = default;
   ExtVotesPacketHandler& operator=(ExtVotesPacketHandler&&) = default;
 
-  void onNewPbftVote(std::shared_ptr<Vote>&& vote);
-  void sendPbftVote(dev::p2p::NodeID const& peer_id, std::shared_ptr<Vote> const& vote);
+  void onNewPbftVote(std::shared_ptr<Vote>&& vote, bool reward_vote);
+  void sendPbftVote(dev::p2p::NodeID const& peer_id, std::shared_ptr<Vote> const& vote, bool reward_vote = false);
 
  protected:
   void sendPbftNextVotes(dev::p2p::NodeID const& peer_id,

@@ -53,14 +53,14 @@ class Network {
   void onNewBlockVerified(DagBlock &&blk, bool proposed, SharedTransactions &&trxs);
   void onNewTransactions(SharedTransactions &&transactions);
   void restartSyncingPbft(bool force = false);
-  void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
+  void onNewPbftBlock(const std::shared_ptr<PbftBlock> &pbft_block);
   bool pbft_syncing();
   uint64_t syncTimeSeconds() const;
   void setSyncStatePeriod(uint64_t period);
 
   void handleMaliciousSyncPeer(dev::p2p::NodeID const &id);
 
-  void onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes);
+  void onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes, bool reward_votes = false);
   void broadcastPreviousRoundNextVotesBundle();
 
   // METHODS USED IN TESTS ONLY
@@ -76,7 +76,7 @@ class Network {
 
   // PBFT
   void sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block);
-  void sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote);
+  void sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote, bool reward_vote = false);
   // END METHODS USED IN TESTS ONLY
 
  private:
