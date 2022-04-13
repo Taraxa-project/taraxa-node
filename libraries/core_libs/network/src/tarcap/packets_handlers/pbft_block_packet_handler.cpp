@@ -42,8 +42,8 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::s
   }
 
   const auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
-  if (pbft_synced_period >= proposed_period) {
-    LOG(log_tr_) << "Drop new PBFT block " << proposed_block_hash.abridged() << " at period " << proposed_period
+  if (pbft_synced_period + 1 != proposed_period) {
+    LOG(log_tr_) << "Drop proposed PBFT block " << proposed_block_hash.abridged() << " at period " << proposed_period
                  << ", own PBFT chain has synced at period " << pbft_synced_period;
     return;
   }
@@ -62,7 +62,7 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::s
     for (const auto &v : missing_reward_votes.first) {
       missing_reward_votes_log << "\n" << v.toString();
     }
-    LOG(log_er_) << missing_reward_votes_log.str();
+    LOG(log_tr_) << missing_reward_votes_log.str();
     // TODO: If see the error often, need implement reward votes syncing process.
     return;
   }

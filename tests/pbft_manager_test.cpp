@@ -248,15 +248,19 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
 
   auto pbft_chain = nodes[0]->getPbftChain();
   auto vote_mgr = nodes[0]->getVoteManager();
+  auto db = nodes[0]->getDB();
 
   // Generate bogus DAG anchor for PBFT block
   auto dag_anchor = blk_hash_t("1234567890000000000000000000000000000000000000000000000000000000");
   auto last_pbft_block_hash = pbft_chain->getLastPbftBlockHash();
-  auto propose_pbft_period = pbft_chain->getPbftChainSize() + 1;
+  auto period = pbft_chain->getPbftChainSize();
+  auto reward_votes = db->getCertVotes(period);
+  std::vector<vote_hash_t> reward_votes_hash;
+  std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hash),
+                 [](const auto &v) { return v->getHash(); });
   auto node_sk = nodes[0]->getSecretKey();
-  std::vector<vote_hash_t> reward_votes;
-  auto propose_pbft_block = std::make_shared<PbftBlock>(last_pbft_block_hash, dag_anchor, blk_hash_t(),
-                                                        propose_pbft_period, reward_votes, node_sk);
+  auto propose_pbft_block = std::make_shared<PbftBlock>(last_pbft_block_hash, dag_anchor, blk_hash_t(), period + 1,
+                                                        reward_votes_hash, node_sk);
   auto pbft_block_hash = propose_pbft_block->getBlockHash();
   pbft_chain->pushUnverifiedPbftBlock(propose_pbft_block);
 
