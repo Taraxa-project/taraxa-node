@@ -108,14 +108,19 @@ TEST_F(PbftChainTest, proposal_block_broadcast) {
     WAIT_EXPECT_EQ(ctx, pbft_chain2->getPbftChainSize(), pbft_chain3->getPbftChainSize())
   });
 
+  auto db1 = node1->getDB();
+
   auto node1_pbft_chain_size = pbft_chain1->getPbftChainSize();
 
   // Node1 generate a PBFT block sample
-  blk_hash_t prev_block_hash = pbft_chain1->getLastPbftBlockHash();
-  uint64_t propose_period = node1_pbft_chain_size + 1;
-  std::vector<vote_hash_t> reward_votes;
+  auto prev_block_hash = pbft_chain1->getLastPbftBlockHash();
+  auto propose_period = node1_pbft_chain_size + 1;
+  auto reward_votes = db1->getCertVotes(node1_pbft_chain_size);
+  std::vector<vote_hash_t> reward_votes_hash;
+  std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hash),
+                 [](const auto &v) { return v->getHash(); });
   auto pbft_block = std::make_shared<PbftBlock>(prev_block_hash, blk_hash_t(0), blk_hash_t(0), propose_period,
-                                                reward_votes, node1->getSecretKey());
+                                                reward_votes_hash, node1->getSecretKey());
 
   pbft_chain1->pushUnverifiedPbftBlock(pbft_block);
   auto block1_from_node1 = pbft_chain1->getUnverifiedPbftBlock(pbft_block->getBlockHash());
@@ -123,7 +128,6 @@ TEST_F(PbftChainTest, proposal_block_broadcast) {
   EXPECT_EQ(block1_from_node1->getJsonStr(), pbft_block->getJsonStr());
 
   // node1 put block into pbft chain and store into DB
-  auto db1 = node1->getDB();
   auto batch = db1->createWriteBatch();
   // Add PBFT block in DB
   std::vector<std::shared_ptr<Vote>> votes;

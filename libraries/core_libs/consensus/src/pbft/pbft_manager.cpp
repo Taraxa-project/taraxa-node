@@ -1077,8 +1077,8 @@ void PbftManager::secondFinish_() {
 
 blk_hash_t PbftManager::generatePbftBlock(const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
                                           const blk_hash_t &order_hash) {
-  auto period = pbft_chain_->getPbftChainSize();
-  auto reward_votes = db_->getCertVotes(period);  // No cert votes in period 0
+  const auto period = pbft_chain_->getPbftChainSize();
+  const auto reward_votes = db_->getCertVotes(period);  // No cert votes in period 0
   std::vector<vote_hash_t> reward_votes_hash;
   std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hash),
                  [](const auto &v) { return v->getHash(); });
