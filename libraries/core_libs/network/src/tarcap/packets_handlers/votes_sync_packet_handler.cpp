@@ -23,8 +23,8 @@ void VotesSyncPacketHandler::validatePacketRlpFormat([[maybe_unused]] const Pack
 
 void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   const auto next_votes_count = packet_data.rlp_.itemCount();
-  if (next_votes_count == 0) {
-    LOG(log_er_) << "Receive 0 next votes from peer " << packet_data.from_node_id_
+  if (next_votes_count == 0 || next_votes_count > kMaxVotesInPacket) {
+    LOG(log_er_) << "Receive " << next_votes_count << " next votes from peer " << packet_data.from_node_id_
                  << ". The peer may be a malicious player, will be disconnected";
     disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
     return;

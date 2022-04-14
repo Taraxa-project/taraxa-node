@@ -103,10 +103,6 @@ void TransactionPacketHandler::periodicSendTransactions(SharedTransactions &&tra
           continue;
         }
 
-        if (transactions_to_send[peer.first].size() > MAX_TRANSACTIONS_IN_PACKET) {
-          break;
-        }
-
         transactions_to_send[peer.first].push_back(trx->rlp());
         transactions_hash_to_send[peer.first].push_back(trx_hash);
       }
@@ -129,13 +125,21 @@ void TransactionPacketHandler::sendTransactions(dev::p2p::NodeID const &peer_id,
                                                 std::vector<taraxa::bytes> const &transactions) {
   LOG(log_tr_) << "sendTransactions " << transactions.size() << " to " << peer_id;
 
-  dev::RLPStream s(transactions.size());
-  taraxa::bytes trx_bytes;
-  for (const auto &transaction : transactions) {
-    trx_bytes.insert(trx_bytes.end(), std::begin(transaction), std::end(transaction));
+  uint32_t index = 0;
+  while (index < transactions.size()) {
+    uint32_t trx_count_to_send = std::min(static_cast<size_t>(kMaxTransactionsInPacket), transactions.size() - index);
+
+    dev::RLPStream s(trx_count_to_send);
+    taraxa::bytes trx_bytes;
+    for (uint32_t i = index; i < index + trx_count_to_send; i++) {
+      const auto &transaction = transactions[i];
+      trx_bytes.insert(trx_bytes.end(), std::begin(transaction), std::end(transaction));
+    }
+    s.appendRaw(trx_bytes, trx_count_to_send);
+    sealAndSend(peer_id, TransactionPacket, std::move(s));
+
+    index += trx_count_to_send;
   }
-  s.appendRaw(trx_bytes, transactions.size());
-  sealAndSend(peer_id, TransactionPacket, std::move(s));
 }
 
 }  // namespace taraxa::network::tarcap

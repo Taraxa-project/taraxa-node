@@ -42,8 +42,6 @@ class TransactionPacketHandler final : public PacketHandler {
 
   std::atomic<uint64_t> received_trx_count_{0};
   std::atomic<uint64_t> unique_received_trx_count_{0};
-
-  const uint32_t MAX_TRANSACTIONS_IN_PACKET{1000};
 };
 
 }  // namespace taraxa::network::tarcap
