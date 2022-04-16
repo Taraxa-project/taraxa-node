@@ -145,10 +145,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   bool broadcastAlreadyThisStep_() const;
 
-  bool comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash);
-  std::pair<vec_blk_t, bool> comparePbftBlockScheduleWithDAGblocks_(std::shared_ptr<PbftBlock> pbft_block);
+  bool compareDagBlocksAndRewardVotes_(const blk_hash_t &pbft_block_hash);
+  std::pair<vec_blk_t, bool> compareDagBlocksAndRewardVotes_(std::shared_ptr<PbftBlock> pbft_block);
 
-  bool pushCertVotedPbftBlockIntoChain_(blk_hash_t const &cert_voted_block_hash,
+  bool pushCertVotedPbftBlockIntoChain_(const blk_hash_t &cert_voted_block_hash,
                                         std::vector<std::shared_ptr<Vote>> &&cert_votes_for_round);
 
   void finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalized_dag_blk_hashes, bool sync = false);

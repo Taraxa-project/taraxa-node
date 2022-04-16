@@ -1055,6 +1055,8 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
 TEST_F(NetworkTest, DISABLED_node_sync2) {
   auto node_cfgs = make_node_cfgs<5>(2);
   auto node1 = create_nodes({node_cfgs[0]}, true /*start*/).front();
+  // Stop PBFT manager
+  node1->getPbftManager()->stop();
 
   std::vector<DagBlock> blks;
   // Generate DAG blocks
@@ -1194,6 +1196,8 @@ TEST_F(NetworkTest, DISABLED_node_sync2) {
   }
 
   auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
+  // Stop PBFT manager
+  node2->getPbftManager()->stop();
 
   EXPECT_HAPPENS({10s, 100ms}, [&](auto& ctx) {
     WAIT_EXPECT_LT(ctx, 12, node1->getDagManager()->getNumVerticesInDag().first)

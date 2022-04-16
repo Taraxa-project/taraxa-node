@@ -886,9 +886,8 @@ void PbftManager::certifyBlock_() {
   if (!should_have_cert_voted_in_this_round_) {
     LOG(log_tr_) << "In step 3";
 
-    if (updateSoftVotedBlockForThisRound_() &&
-        comparePbftBlockScheduleWithDAGblocks_(soft_voted_block_for_this_round_)) {
-      LOG(log_tr_) << "Finished comparePbftBlockScheduleWithDAGblocks_";
+    if (updateSoftVotedBlockForThisRound_() && compareDagBlocksAndRewardVotes_(soft_voted_block_for_this_round_)) {
+      LOG(log_tr_) << "Finished compareDagBlocksAndRewardVotes_";
 
       // NOTE: If we have already executed this round then block won't be found in unverified queue...
       bool executed_soft_voted_block_for_this_round = false;
@@ -916,7 +915,7 @@ void PbftManager::certifyBlock_() {
       }
 
       if (executed_soft_voted_block_for_this_round || unverified_soft_vote_block_for_this_round_is_valid) {
-        // comparePbftBlockScheduleWithDAGblocks_ has checked the cert voted block exist
+        // compareDagBlocksAndRewardVotes_ has checked the cert voted block exist
         last_cert_voted_value_ = soft_voted_block_for_this_round_;
         auto cert_voted_block = getUnfinalizedBlock_(last_cert_voted_value_);
 
@@ -966,7 +965,7 @@ void PbftManager::firstFinish_() {
     bool giveUpSoftVotedBlockInFirstFinish = last_cert_voted_value_ == NULL_BLOCK_HASH &&
                                              own_starting_value_for_round_ == previous_round_next_voted_value_ &&
                                              giveUpSoftVotedBlock_() &&
-                                             !comparePbftBlockScheduleWithDAGblocks_(own_starting_value_for_round_);
+                                             !compareDagBlocksAndRewardVotes_(own_starting_value_for_round_);
 
     if (round >= 2 && (giveUpNextVotedBlock_() || giveUpSoftVotedBlockInFirstFinish)) {
       auto place_votes = placeVote_(NULL_BLOCK_HASH, next_vote_type, round, step_);
@@ -983,7 +982,7 @@ void PbftManager::firstFinish_() {
           own_starting_value_for_round_ = previous_round_next_voted_value_;
           LOG(log_dg_) << "Updating own starting value of NULL BLOCK HASH to previous round next voted value of "
                        << previous_round_next_voted_value_;
-        } else if (comparePbftBlockScheduleWithDAGblocks_(previous_round_next_voted_value_)) {
+        } else if (compareDagBlocksAndRewardVotes_(previous_round_next_voted_value_)) {
           // Check if we have received the previous round next voted value and its a viable value...
           // IF it is viable then reset own starting value to it...
           db_->savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, previous_round_next_voted_value_);
@@ -1036,7 +1035,7 @@ void PbftManager::secondFinish_() {
   // 3) we don't have the block or if have block it can't be cert voted (yet)
   bool giveUpSoftVotedBlockInSecondFinish =
       last_cert_voted_value_ == NULL_BLOCK_HASH && last_soft_voted_value_ == previous_round_next_voted_value_ &&
-      giveUpSoftVotedBlock_() && !comparePbftBlockScheduleWithDAGblocks_(soft_voted_block_for_this_round_);
+      giveUpSoftVotedBlock_() && !compareDagBlocksAndRewardVotes_(soft_voted_block_for_this_round_);
 
   if (!next_voted_soft_value_ && soft_voted_block_for_this_round_ && !giveUpSoftVotedBlockInSecondFinish) {
     auto place_votes = placeVote_(soft_voted_block_for_this_round_, next_vote_type, round, step_);
@@ -1469,16 +1468,16 @@ bool PbftManager::broadcastAlreadyThisStep_() const {
   return getPbftRound() == pbft_round_last_broadcast_ && step_ == pbft_step_last_broadcast_;
 }
 
-bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash) {
+bool PbftManager::compareDagBlocksAndRewardVotes_(const blk_hash_t &pbft_block_hash) {
   auto pbft_block = getUnfinalizedBlock_(pbft_block_hash);
   if (!pbft_block) {
     return false;
   }
 
-  return comparePbftBlockScheduleWithDAGblocks_(std::move(pbft_block)).second;
+  return compareDagBlocksAndRewardVotes_(std::move(pbft_block)).second;
 }
 
-std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std::shared_ptr<PbftBlock> pbft_block) {
+std::pair<vec_blk_t, bool> PbftManager::compareDagBlocksAndRewardVotes_(std::shared_ptr<PbftBlock> pbft_block) {
   vec_blk_t dag_blocks_order;
   const auto proposal_block_hash = pbft_block->getBlockHash();
   // If cert sync block is already populated with this pbft block, no need to do verification again
@@ -1556,6 +1555,13 @@ std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(s
         return std::make_pair(std::move(dag_blocks_order), false);
       }
     }
+
+  // Check reward votes
+  vote_mgr_->updateRewardVotes(proposal_period - 1);
+  if (!vote_mgr_->checkRewardVotes(pbft_block)) {
+    LOG(log_er_) << "Failed varifying reward votes for proposed PBFT block " << proposal_block_hash;
+    dag_blocks_order.clear();
+    return std::make_pair(std::move(dag_blocks_order), false);
   }
 
   cert_sync_block_.pbft_blk = std::move(pbft_block);
@@ -1563,7 +1569,7 @@ std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(s
   return std::make_pair(std::move(dag_blocks_order), true);
 }
 
-bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cert_voted_block_hash,
+bool PbftManager::pushCertVotedPbftBlockIntoChain_(const blk_hash_t &cert_voted_block_hash,
                                                    std::vector<std::shared_ptr<Vote>> &&cert_votes_for_round) {
   auto pbft_block = getUnfinalizedBlock_(cert_voted_block_hash);
   if (!pbft_block) {
@@ -1576,10 +1582,16 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
     return false;
   }
 
+<<<<<<< HEAD
   // TODO: refactor. Call of comparePbftBlockScheduleWithDAGblocks_ fills cert_sync_block_ which is not obvious
   auto [dag_blocks_order, ok] = comparePbftBlockScheduleWithDAGblocks_(pbft_block);
   if (!ok) {
     LOG(log_nf_) << "DAG has not build up for PBFT block " << cert_voted_block_hash;
+=======
+  auto dag_blocks_order = compareDagBlocksAndRewardVotes_(pbft_block);
+  if (!dag_blocks_order.second) {
+    LOG(log_nf_) << "Failed compare DAG blocks or reward votes in block " << cert_voted_block_hash;
+>>>>>>> 165edd2f (feature: fix adding reward votes several bugs and race conditions)
     return false;
   }
 
@@ -1674,10 +1686,15 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
   auto pbft_period = sync_block.pbft_blk->getPeriod();
   auto null_anchor = sync_block.pbft_blk->getPivotDagBlockHash() == NULL_BLOCK_HASH;
 
+  auto round = getPbftRound();
+
   auto batch = db_->createWriteBatch();
 
   LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash;
-  LOG(log_dg_) << "Stored following cert votes:\n" << cert_votes;
+  LOG(log_dg_) << "In round " << round << ". Stored following cert votes:\n";
+  for (const auto &v : cert_votes) {
+    LOG(log_dg_) << v->getHash();
+  }
   // Update PBFT chain head block
   db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStrForBlock(pbft_block_hash, null_anchor),
                           batch);
@@ -1689,6 +1706,10 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
   }
 
   db_->savePeriodData(sync_block, batch);
+
+  // Save PBFT sortition threshold per period for reward votes verification
+  auto sortition_threshold = std::min<size_t>(COMMITTEE_SIZE, getDposTotalVotesCount());
+  db_->addPbftSortitionThresholdToBatch(pbft_period, sortition_threshold, batch);
 
   // Reset last cert voted value to NULL_BLOCK_HASH
   db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::LastCertVotedValue, NULL_BLOCK_HASH, batch);
@@ -1720,7 +1741,7 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
   last_cert_voted_value_ = NULL_BLOCK_HASH;
 
   LOG(log_nf_) << node_addr_ << " successful push unexecuted PBFT block " << pbft_block_hash << " in period "
-               << pbft_period << " into chain! In round " << getPbftRound();
+               << pbft_period << " into chain! In round " << round;
 
   finalize_(std::move(sync_block), std::move(dag_blocks_order));
 
@@ -1735,7 +1756,6 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
   // Update 2t+1 and threshold
   auto dpos_total_votes_count = getDposTotalVotesCount();
   sortition_threshold_ = std::min<size_t>(COMMITTEE_SIZE, dpos_total_votes_count);
-  db_->savePbftSortitionThreshold(pbft_chain_->getPbftChainSize(), sortition_threshold_);
   TWO_T_PLUS_ONE = sortition_threshold_ * 2 / 3 + 1;
   LOG(log_nf_) << "Committee size " << COMMITTEE_SIZE << ", DPOS total votes count " << dpos_total_votes_count
                << ". Update 2t+1 " << TWO_T_PLUS_ONE << ", Threshold " << sortition_threshold_;
@@ -1940,20 +1960,9 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
   }
 
   // Check reward votes
-  const auto missing_reward_votes = vote_mgr_->checkRewardVotes(sync_block.first.pbft_blk);
-  if (missing_reward_votes.second) {
-    LOG(log_er_) << "Not enough reward votes. Disconnect to malicious peer " << sync_block.second;
-    sync_queue_.clear();
-    net->handleMaliciousSyncPeer(sync_block.second);
-    return std::nullopt;
-  }
-  if (!missing_reward_votes.first.empty()) {
-    std::string missing_reward_votes_log = "Cannot find reward votes: ";
-    for (const auto &v : missing_reward_votes.first) {
-      missing_reward_votes_log += "\n" + v.toString();
-    }
-    LOG(log_er_) << missing_reward_votes_log << "\n"
-                 << "Disconnect to malicious peer " << sync_block.second;
+  vote_mgr_->updateRewardVotes(sync_block.first.pbft_blk->getPeriod() - 1);
+  if (!vote_mgr_->checkRewardVotes(sync_block.first.pbft_blk)) {
+    LOG(log_er_) << "Failed varifying reward votes. Disconnect to malicious peer " << sync_block.second;
     sync_queue_.clear();
     net->handleMaliciousSyncPeer(sync_block.second);
     return std::nullopt;
