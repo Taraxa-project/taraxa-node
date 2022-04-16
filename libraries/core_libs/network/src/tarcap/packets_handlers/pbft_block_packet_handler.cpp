@@ -41,29 +41,10 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::s
     peer->pbft_chain_size_ = peer_pbft_chain_size;
   }
 
-  const auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
-  if (pbft_synced_period + 1 != proposed_period) {
+  const auto pbft_chain_size = pbft_chain_->getPbftChainSize();
+  if (pbft_chain_size + 1 != proposed_period) {
     LOG(log_tr_) << "Drop proposed PBFT block " << proposed_block_hash.abridged() << " at period " << proposed_period
-                 << ", own PBFT chain has synced at period " << pbft_synced_period;
-    return;
-  }
-
-  // Reward votes
-  vote_mgr_->updateRewardVotes(proposed_period - 1);
-  const auto missing_reward_votes = vote_mgr_->checkRewardVotes(pbft_block);
-  if (missing_reward_votes.second) {
-    std::ostringstream err_msg;
-    err_msg << "Disconnect to malicious peer " << packet_data.from_node_id_;
-    throw MaliciousPeerException(err_msg.str());
-  }
-  if (!missing_reward_votes.first.empty()) {
-    std::ostringstream missing_reward_votes_log;
-    missing_reward_votes_log << "Missing reward votes: ";
-    for (const auto &v : missing_reward_votes.first) {
-      missing_reward_votes_log << "\n" << v.toString();
-    }
-    LOG(log_tr_) << missing_reward_votes_log.str();
-    // TODO: If see the error often, need implement reward votes syncing process.
+                 << ", own PBFT chain size is " << pbft_chain_size;
     return;
   }
 

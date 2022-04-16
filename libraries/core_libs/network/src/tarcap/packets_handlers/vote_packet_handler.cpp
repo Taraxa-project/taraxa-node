@@ -25,7 +25,8 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
   const auto vote_hash = vote->getHash();
   LOG(log_dg_) << "Received PBFT vote " << vote_hash;
 
-  if (reward_vote) {
+  const auto vote_round = vote->getRound();
+  if (reward_vote || (vote_round < pbft_mgr_->getPbftRound() && vote->getType() == cert_vote_type)) {
     if (vote_mgr_->AddRewardVote(vote)) {
       peer->markVoteAsKnown(vote_hash);
       onNewPbftVote(std::move(vote), reward_vote);
@@ -33,7 +34,6 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     return;
   }
 
-  const auto vote_round = vote->getRound();
   if (vote_round < pbft_mgr_->getPbftRound()) {
     LOG(log_dg_) << "Received old PBFT vote " << vote_hash << " from " << packet_data.from_node_id_.abridged()
                  << ". Vote round: " << vote_round << ", current pbft round: " << pbft_mgr_->getPbftRound();

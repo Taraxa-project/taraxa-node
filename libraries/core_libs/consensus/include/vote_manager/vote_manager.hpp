@@ -105,10 +105,10 @@ class VoteManager {
 
   // Reward votes
   void sendRewardPeriodCertVotes(uint64_t reward_period);
-  bool AddRewardVote(std::shared_ptr<Vote>& vote);
+  bool AddRewardVote(const std::shared_ptr<Vote>& vote);
   bool verifyRewardVote(std::shared_ptr<Vote>& vote);
   void updateRewardVotes(uint64_t reward_period);
-  std::pair<std::vector<vote_hash_t>, bool> checkRewardVotes(const std::shared_ptr<PbftBlock>& proposed_pbft_block);
+  bool checkRewardVotes(const std::shared_ptr<PbftBlock>& proposed_pbft_block);
 
  private:
   void retreieveVotes_();
