@@ -628,8 +628,8 @@ void VoteManager::updateRewardVotes(uint64_t reward_period) {
   }
 }
 
-bool VoteManager::checkRewardVotes(const std::shared_ptr<PbftBlock>& proposed_pbft_block) {
-  const auto reward_period = proposed_pbft_block->getPeriod() - 1;
+bool VoteManager::checkRewardVotes(const std::shared_ptr<PbftBlock>& pbft_block) {
+  const auto reward_period = pbft_block->getPeriod() - 1;
   if (!reward_period) {
     // First period no reward votes
     return true;
@@ -642,7 +642,7 @@ bool VoteManager::checkRewardVotes(const std::shared_ptr<PbftBlock>& proposed_pb
   }
 
   std::vector<vote_hash_t> missing_reward_votes;
-  const auto& reward_votes = proposed_pbft_block->getRewardVotes();
+  const auto& reward_votes = pbft_block->getRewardVotes();
   for (const auto& v : reward_votes) {
     if (!reward_period_cert_votes_set.contains(v)) {
       missing_reward_votes.emplace_back(v);
