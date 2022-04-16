@@ -150,7 +150,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbft2TPlus1(10), 6);
   EXPECT_EQ(db.getPbft2TPlus1(11), 3);
 
-  // PBFT sortition threshold
+  // PBFT period sortition threshold
   db.savePbftSortitionThreshold(1, 10);
   EXPECT_EQ(db.getPbftSortitionThreshold(1), 10);
   batch = db.createWriteBatch();

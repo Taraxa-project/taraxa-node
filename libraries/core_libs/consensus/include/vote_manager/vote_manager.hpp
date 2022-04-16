@@ -104,11 +104,47 @@ class VoteManager {
   uint64_t roundDeterminedFromVotes(size_t two_t_plus_one);
 
   // Reward votes
+
+  /**
+   * @brief Send reward period cert votes to peers. Reward period cert votes should be greater or equal to reward votes
+   *
+   * @param reward_period
+   */
   void sendRewardPeriodCertVotes(uint64_t reward_period);
+
+  /**
+   * @brief Add unverified incoming reward vote to reward votes table
+   *
+   * @param vote unverified incoming reward vote
+   *
+   * @return true if add successful
+   */
   bool AddRewardVote(const std::shared_ptr<Vote>& vote);
+
+  /**
+   * @brief Verify reward vote
+   *
+   * @param vote reward vote
+   *
+   * @return true if pass vote verification
+   */
   bool verifyRewardVote(std::shared_ptr<Vote>& vote);
+
+  /**
+   * @brief Update missing reward votes to previous period finalized block
+   *
+   * @param reward_period
+   */
   void updateRewardVotes(uint64_t reward_period);
-  bool checkRewardVotes(const std::shared_ptr<PbftBlock>& proposed_pbft_block);
+
+  /**
+   * @brief Check previous finalized block that includes all reward votes
+   *
+   * @param pbft_block
+   *
+   * @return true if include all reward votes
+   */
+  bool checkRewardVotes(const std::shared_ptr<PbftBlock>& pbft_block);
 
  private:
   void retreieveVotes_();
