@@ -24,15 +24,19 @@ TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_p
 u256 TransactionManager::estimateTransactionByHash(const trx_hash_t &hash,
                                                    std::optional<uint64_t> proposal_period) const {
   const auto &trx = getTransaction(hash);
+  return estimateTransaction(*trx, proposal_period);
+}
+
+u256 TransactionManager::estimateTransaction(const Transaction &trx, std::optional<uint64_t> proposal_period) const {
   const auto &result = final_chain_->call(
       state_api::EVMTransaction{
-          trx->getSender(),
-          trx->getGasPrice(),
-          trx->getReceiver(),
-          trx->getNonce(),
-          trx->getValue(),
-          trx->getGas(),
-          trx->getData(),
+          trx.getSender(),
+          trx.getGasPrice(),
+          trx.getReceiver(),
+          trx.getNonce(),
+          trx.getValue(),
+          trx.getGas(),
+          trx.getData(),
       },
       proposal_period);
   return result.gas_used;
@@ -206,6 +210,7 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
   vec_trx_t trx_hashes;
   std::transform(trxs.begin(), trxs.end(), std::back_inserter(trx_hashes),
                  [](std::shared_ptr<Transaction> const &t) { return t->getHash(); });
+
   auto trx_in_db = db_->transactionsInDb(trx_hashes);
   for (uint64_t i = 0; i < trxs.size(); i++) {
     auto const &trx_hash = trx_hashes[i];
@@ -219,6 +224,9 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
       // Transactions are counted when included in DAG
       trx_count_++;
       transaction_accepted_.emit(trx_hash);
+    } else {
+      std::cout << "saveTransactionsFromDagBlock: " << trx_hash << " was not in trx_pool" << std::endl;
+      // trx_count_++;
     }
   }
   db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count_, write_batch);

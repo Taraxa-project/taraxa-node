@@ -431,7 +431,6 @@ bool DagManager::addDagBlock(DagBlock &&blk, SharedTransactions &&trxs, bool pro
                        << ". Block level: " << blk.getLevel();
           return false;
         }
-
         // Saves transactions and remove them from memory pool
         trx_mgr_->saveTransactionsFromDagBlock(trxs);
         // Save the dag block

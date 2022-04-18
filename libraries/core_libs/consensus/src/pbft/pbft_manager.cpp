@@ -1220,6 +1220,12 @@ blk_hash_t PbftManager::proposePbftBlock_() {
     dag_block_hash = ghost[DAG_BLOCKS_SIZE - 1];
   }
 
+  // std::cout << "GHOST   ===========================" << std::endl;
+  // for (const auto &g : ghost) {
+  //   std::cout << g << std::endl;
+  // }
+  // std::cout << "===========================   GHOST" << std::endl;
+
   if (dag_block_hash == dag_genesis_) {
     LOG(log_dg_) << "No new DAG blocks generated. DAG only has genesis " << dag_block_hash
                  << " PBFT propose NULL BLOCK HASH anchor";
@@ -1243,11 +1249,23 @@ blk_hash_t PbftManager::proposePbftBlock_() {
     LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlockOrder failed in propose";
     assert(false);
   }
+
+  // std::cout << "dag_block_order   ===========================" << std::endl;
+  // for (const auto &g : dag_block_order) {
+  //   std::cout << g << std::endl;
+  // }
+  // std::cout << "===========================   dag_block_order" << std::endl;
+
+  // auto findClosestAnchor = [](const std::vector<blk_hash_t>& ghost,) {
+
+  // }
+
   std::unordered_set<trx_hash_t> trx_hashes_set;
   std::vector<trx_hash_t> trx_hashes;
   u256 total_weight = 0;
   uint32_t dag_blocks_included = 0;
-  for (auto const &blk_hash : dag_block_order) {
+  for (auto itr = dag_block_order.begin(); itr != dag_block_order.end(); ++itr) {
+    const auto blk_hash = *itr;
     auto dag_blk = dag_blk_mgr_->getDagBlock(blk_hash);
     if (!dag_blk) {
       LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlock failed in propose for block "
@@ -1268,18 +1286,43 @@ blk_hash_t PbftManager::proposePbftBlock_() {
       i++;
     }
     if (total_weight + dag_block_weight > config_.gas_limit) {
-      std::cout << "block is overweighted " << total_weight + dag_block_weight << std::endl;
+      std::cout << "block is overweighted " << total_weight + dag_block_weight << " new hash " << dag_block_hash
+                << std::endl;
       break;
     }
-    trx_hashes.insert(trx_hashes.end(), hashes.begin(), hashes.end());
     total_weight += dag_block_weight;
     dag_blocks_included++;
   }
+  std::cout << "included: " << dag_blocks_included << " " << dag_block_order.size() << std::endl;
+  if (dag_blocks_included != dag_block_order.size()) {
+    for (uint32_t i = dag_blocks_included - 1; i >= 0; i--) {
+      std::cout << "trying to find " << dag_block_order[i] << std::endl;
+      auto is_equal = [&](auto e) { return dag_block_order[i].toString() == e.toString(); };
+      if (std::find_if(ghost.begin(), ghost.end(), is_equal) != ghost.end()) {
+        if (dag_block_order.size() > i + 1) {
+          dag_block_order.erase(dag_block_order.begin() + i + 1, dag_block_order.end());
+        }
+        std::cout << "dag_blockorder.size(): " << dag_block_order.size() << " i: " << i << std::endl;
+        std::cout << "moving from " << dag_block_hash << " to " << dag_block_order[i] << std::endl;
+        dag_block_hash = dag_block_order[i];
+        break;
+      }
+    }
 
-  for (int32_t i = dag_blocks_included - 1; i == 0; --i) {
-    if (std::count(ghost.begin(), ghost.end(), dag_block_order[i])) {
-      dag_block_hash = dag_block_order[i];
-      break;
+    // std::cout << "MODIFIED ORDER: " << dag_block_order << std::endl;
+    dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash, propose_period);
+  }
+  {
+    std::unordered_set<trx_hash_t> trx_set;
+    std::vector<trx_hash_t> transactions_to_query;
+    for (auto const &dag_blk_hash : dag_block_order) {
+      auto dag_block = dag_blk_mgr_->getDagBlock(dag_blk_hash);
+      assert(dag_block);
+      for (auto const &trx_hash : dag_block->getTrxs()) {
+        if (trx_set.insert(trx_hash).second) {
+          trx_hashes.emplace_back(trx_hash);
+        }
+      }
     }
   }
   std::vector<trx_hash_t> non_finalized_transactions;
@@ -1289,15 +1332,17 @@ blk_hash_t PbftManager::proposePbftBlock_() {
       non_finalized_transactions.emplace_back(trx_hashes[i]);
     }
   }
+  // std::cout << "non_finalized_transactions: " << non_finalized_transactions << std::endl;
 
   const auto transactions = trx_mgr_->getNonfinalizedTrx(non_finalized_transactions, true /*sorted*/);
+  std::cout << "trx_mgr_->getNonfinalizedTrx: " << transactions.size() << std::endl;
   non_finalized_transactions.clear();
   std::transform(transactions.begin(), transactions.end(), std::back_inserter(non_finalized_transactions),
                  [](const auto &t) { return t->getHash(); });
 
   auto order_hash = calculateOrderHash(dag_block_order, non_finalized_transactions);
   auto pbft_block_hash = generatePbftBlock(last_pbft_block_hash, dag_block_hash, order_hash);
-  LOG(log_nf_) << "Proposed Pbft block: " << pbft_block_hash << ". Order hash:" << order_hash
+  LOG(log_er_) << "Proposed Pbft block: " << pbft_block_hash << ". Order hash:" << order_hash
                << ". DAG order for proposed block" << dag_block_order << ". Transaction order for proposed block"
                << non_finalized_transactions;
 
@@ -1440,6 +1485,9 @@ bool PbftManager::comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_
 
 std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(std::shared_ptr<PbftBlock> pbft_block) {
   vec_blk_t dag_blocks_order;
+  std::cout << "comparePbftBlockScheduleWithDAGblocks_: " << pbft_block->getBlockHash()
+            << " order: " << pbft_block->getOrderHash() << " anchor: " << pbft_block->getPivotDagBlockHash()
+            << std::endl;
   // If cert sync block is already populated with this pbft block, no need to do verification again
   if (cert_sync_block_.pbft_blk && cert_sync_block_.pbft_blk->getBlockHash() == pbft_block->getBlockHash()) {
     dag_blocks_order.reserve(cert_sync_block_.dag_blocks.size());
@@ -1476,7 +1524,7 @@ std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(s
     cert_sync_block_.dag_blocks.emplace_back(std::move(*dag_block));
   }
   std::vector<trx_hash_t> non_finalized_transactions;
-
+  std::cout << "transactionsFinalized(transactions_to_query): " << transactions_to_query << std::endl;
   auto trx_finalized = db_->transactionsFinalized(transactions_to_query);
   for (uint32_t i = 0; i < trx_finalized.size(); i++) {
     if (!trx_finalized[i]) {

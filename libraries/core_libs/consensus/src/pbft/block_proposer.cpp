@@ -204,11 +204,12 @@ void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTr
   // simply add the block to the DAG
   vec_trx_t trx_hashes;
   estimations_vec_t estimations;
-  uint32_t block_weight = 0;
+  u256 block_weight = 0;
+  std::cout << "trxs size: " << trxs.size() << std::endl;
   for (auto trx : trxs) {
     const auto& trx_hash = trx->getHash();
     auto weight = trx_mgr_->estimateTransactionByHash(trx_hash, proposal_period);
-    std::cout << trx_hash << " : " << weight << std::endl;
+    std::cout << trx_hash << " : " << weight << " total: " << block_weight << std::endl;
     block_weight += weight;
     if (block_weight > dag_blk_mgr_->getDagConfig().gas_limit) {
       break;
