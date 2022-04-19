@@ -1567,14 +1567,21 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
     return false;
   }
 
-  auto dag_blocks_order = comparePbftBlockScheduleWithDAGblocks_(pbft_block);
-  if (!dag_blocks_order.second) {
+  // TODO: refactor. Call of comparePbftBlockScheduleWithDAGblocks_ fills cert_sync_block_ which is not obvious
+  auto [dag_blocks_order, ok] = comparePbftBlockScheduleWithDAGblocks_(pbft_block);
+  if (!ok) {
     LOG(log_nf_) << "DAG has not build up for PBFT block " << cert_voted_block_hash;
     return false;
   }
 
   cert_sync_block_.cert_votes = std::move(cert_votes_for_round);
-  if (!pushPbftBlock_(std::move(cert_sync_block_), std::move(dag_blocks_order.first))) {
+
+  if (!checkBlockWeight(cert_sync_block_)) {
+    LOG(log_er_) << "PBFT block " << pbft_block->getBlockHash() << " is overweighted";
+    return false;
+  }
+
+  if (!pushPbftBlock_(std::move(cert_sync_block_), std::move(dag_blocks_order))) {
     LOG(log_er_) << "Failed push PBFT block " << pbft_block->getBlockHash() << " into chain";
     return false;
   }
@@ -1940,15 +1947,27 @@ void PbftManager::syncBlockQueuePush(SyncBlock &&block, dev::p2p::NodeID const &
 
 size_t PbftManager::syncBlockQueueSize() const { return sync_queue_.size(); }
 
-bool PbftManager::checkBlockWeight(const SyncBlock &) const {
-  // u256 total_weight = 0;
-  // for (const auto &tx : block.transactions) {
-  //   // TODO: estimation period is wrong. Could use estimations from dag blocks
-  //   total_weight += trx_mgr_->estimateTransactionByHash(tx.getHash(), block.pbft_blk->getPeriod());
-  // }
-  // if (total_weight > config_.gas_limit) {
-  //   return false;
-  // }
+std::unordered_map<trx_hash_t, u256> getAllTrxEstimations(const SyncBlock &sync_block) {
+  std::unordered_map<trx_hash_t, u256> result;
+  for (const auto &dag_block : sync_block.dag_blocks) {
+    const auto &transactions = dag_block.getTrxs();
+    const auto &estimations = dag_block.getEstimations();
+    for (uint32_t i = 0; i < transactions.size(); ++i) {
+      result.emplace(transactions[i], estimations[i]);
+    }
+  }
+  return result;
+}
+
+bool PbftManager::checkBlockWeight(const SyncBlock &blk) const {
+  const auto &trx_estimations = getAllTrxEstimations(blk);
+  u256 total_weight = 0;
+  for (const auto &tx : blk.transactions) {
+    total_weight += trx_estimations.at(tx.getHash());
+  }
+  if (total_weight > config_.gas_limit) {
+    return false;
+  }
   return true;
 }
 
