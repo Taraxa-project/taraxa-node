@@ -69,27 +69,18 @@ class PbftSyncingState {
    *
    * @param peer_id
    * @param period peer asking sync period
-   *
-   * @return true if table not include peer or asking sync period greater than saving value or has excessed the
-   * kPeerAskingPeriodTimeout for peer restart/rebuild DB situation. Otherwise return false.
    */
-  bool updatePeerAskingPeriod(const dev::p2p::NodeID& peer_id, uint64_t period);
+  void updatePeerAskingPeriod(const dev::p2p::NodeID& peer_id, uint64_t period);
 
   /**
    * @brief Update peers sending sync blocks period
    *
    * @param peer_id
    * @param period peer sending sync block period
-   *
-   * @return true if table not include peer or sending sync block period greater than saving value. Otherwise return
-   * false
    */
-  bool updatePeerSyncingPeriod(const dev::p2p::NodeID& peer_id, uint64_t period);
+  void updatePeerSyncingPeriod(const dev::p2p::NodeID& peer_id, uint64_t period);
 
  private:
-  using UpgradableLock = boost::upgrade_lock<boost::shared_mutex>;
-  using UpgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
-
   std::atomic<bool> deep_pbft_syncing_{false};
   std::atomic<bool> pbft_syncing_{false};
 

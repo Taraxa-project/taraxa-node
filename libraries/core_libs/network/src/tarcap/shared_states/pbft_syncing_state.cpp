@@ -65,32 +65,36 @@ bool PbftSyncingState::isPbftSyncing() {
   return pbft_syncing_;
 }
 
-bool PbftSyncingState::updatePeerAskingPeriod(const dev::p2p::NodeID& peer_id, uint64_t period) {
+void PbftSyncingState::updatePeerAskingPeriod(const dev::p2p::NodeID& peer_id, uint64_t period) {
   auto now = std::chrono::steady_clock::now();
+  const auto duration =
+      std::chrono::duration_cast<std::chrono::milliseconds>(now - asking_period_peers_table_[peer_id].second);
 
-  UpgradableLock lock(asking_period_mutex_);
+  std::unique_lock lock(asking_period_mutex_);
   if (asking_period_peers_table_.contains(peer_id) && asking_period_peers_table_[peer_id].first >= period &&
-      std::chrono::duration_cast<std::chrono::milliseconds>(now - asking_period_peers_table_[peer_id].second) <=
-          kPeerAskingPeriodTimeout) {
-    return false;
+      duration < kPeerAskingPeriodTimeout) {
+    std::stringstream err;
+    err << "Peer " << peer_id << " request syncing period " << period << " that is previous period. "
+        << " The peer last request period is " << asking_period_peers_table_[peer_id].first << " that within "
+        << duration.count() << " ms";
+    asking_period_peers_table_.erase(peer_id);
+    throw std::logic_error(err.str());
   }
 
-  UpgradeLock locked(lock);
   asking_period_peers_table_[peer_id] = std::make_pair(period, now);
-
-  return true;
 }
 
-bool PbftSyncingState::updatePeerSyncingPeriod(const dev::p2p::NodeID& peer_id, uint64_t period) {
-  UpgradableLock lock(incoming_blocks_mutex_);
+void PbftSyncingState::updatePeerSyncingPeriod(const dev::p2p::NodeID& peer_id, uint64_t period) {
+  std::unique_lock lock(incoming_blocks_mutex_);
   if (incoming_blocks_period_peers_table_.contains(peer_id) && incoming_blocks_period_peers_table_[peer_id] >= period) {
-    return false;
+    std::stringstream err;
+    err << "Peer " << peer_id << " sending previous period " << period
+        << " PBFT block. The peer last sending PBFT block period is " << incoming_blocks_period_peers_table_[peer_id];
+    incoming_blocks_period_peers_table_.erase(peer_id);
+    throw std::logic_error(err.str());
   }
 
-  UpgradeLock locked(lock);
   incoming_blocks_period_peers_table_[peer_id] = period;
-
-  return true;
 }
 
 }  // namespace taraxa::network::tarcap

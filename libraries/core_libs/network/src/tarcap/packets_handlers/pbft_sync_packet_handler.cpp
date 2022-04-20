@@ -51,13 +51,12 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
     throw MaliciousPeerException("Unable to parse SyncBlock: " + std::string(e.what()));
   }
 
-  auto sync_period = sync_block.pbft_blk->getPeriod();
+  const auto sync_period = sync_block.pbft_blk->getPeriod();
 
-  if (!pbft_syncing_state_->updatePeerSyncingPeriod(packet_data.from_node_id_, sync_period)) {
-    std::ostringstream err_msg;
-    err_msg << "PbftSyncPacket received from peer " << packet_data.from_node_id_ << " sending previous period "
-            << sync_period << " PBFT block";
-    throw MaliciousPeerException(err_msg.str());
+  try {
+    pbft_syncing_state_->updatePeerSyncingPeriod(packet_data.from_node_id_, sync_period);
+  } catch (const std::logic_error &e) {
+    throw MaliciousPeerException(e.what());
   }
 
   if (pbft_syncing_state_->syncingPeer() != packet_data.from_node_id_) {
