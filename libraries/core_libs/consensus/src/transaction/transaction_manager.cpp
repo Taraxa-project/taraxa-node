@@ -224,9 +224,6 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
       // Transactions are counted when included in DAG
       trx_count_++;
       transaction_accepted_.emit(trx_hash);
-    } else {
-      std::cout << "saveTransactionsFromDagBlock: " << trx_hash << " was not in trx_pool" << std::endl;
-      // trx_count_++;
     }
   }
   db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count_, write_batch);

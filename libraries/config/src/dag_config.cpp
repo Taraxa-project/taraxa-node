@@ -10,6 +10,6 @@ Json::Value enc_json(const DagConfig& obj) {
   return ret;
 }
 
-void dec_json(const Json::Value& json, DagConfig& obj) { obj.gas_limit = dev::jsToU256(json["gas_limit"].asString()); }
+void dec_json(const Json::Value& json, DagConfig& obj) { obj.gas_limit = dev::getUInt(json["gas_limit"]); }
 
 }  // namespace taraxa

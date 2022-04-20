@@ -95,29 +95,6 @@ class DagBlock {
   blk_hash_t sha3(bool include_sig) const;
 };
 
-// class DagBlockEstimated : public DagBlock {
-//  public:
-
-//   static DagBlockEstimated fromDagBlock(const DagBlock &dag_block,
-//                                         std::function<uint64_t(const trx_hash_t &)> estimate_by_hash) {
-//     DagBlockEstimated res;
-//     for (const auto &tx_hash : dag_block.getTrxs()) {
-//       res.trxs_.emplace(tx_hash, estimate_by_hash(tx_hash));
-//     }
-//     return res;
-//   }
-//   const trx_estimate_map_t &getTransactionsWithEstimations() const { return trxs_; }
-//   uint64_t getTransactionEstimation(const trx_hash_t &trx_hash) const { return trxs_.at(trx_hash); }
-
-//  private:
-//   void streamRLP(dev::RLPStream &s, bool include_sig) const override {
-//     DagBlock::streamRLP(s, include_sig);
-//     s.appendMap(trxs_);
-//   }
-
-//   trx_estimate_map_t trxs_;
-// };
-
 struct DagFrontier {
   DagFrontier() = default;
   DagFrontier(blk_hash_t const &pivot, vec_blk_t const &tips) : pivot(pivot), tips(tips) {}

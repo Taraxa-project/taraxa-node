@@ -205,11 +205,9 @@ void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTr
   vec_trx_t trx_hashes;
   estimations_vec_t estimations;
   u256 block_weight = 0;
-  std::cout << "trxs size: " << trxs.size() << std::endl;
   for (auto trx : trxs) {
     const auto& trx_hash = trx->getHash();
     auto weight = trx_mgr_->estimateTransactionByHash(trx_hash, proposal_period);
-    std::cout << trx_hash << " : " << weight << " total: " << block_weight << std::endl;
     block_weight += weight;
     if (block_weight > dag_blk_mgr_->getDagConfig().gas_limit) {
       break;
@@ -219,9 +217,6 @@ void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTr
   }
   DagBlock blk(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes), estimations,
                std::move(vdf), node_sk_);
-
-  dag_mgr_->addDagBlock(std::move(blk), std::move(trxs), true);
-  dag_blk_mgr_->markDagBlockAsSeen(blk);
 
   LOG(log_nf_) << "Add proposed DAG block " << blk.getHash() << ", pivot " << blk.getPivot() << " , number of trx ("
                << blk.getTrxs().size() << ")";

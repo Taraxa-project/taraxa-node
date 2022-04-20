@@ -1480,7 +1480,7 @@ TEST_F(FullNodeTest, chain_config_json) {
     "lambda_ms_min": "0x7d0",
     "number_of_proposers" : "0x14",
     "run_count_votes": false,
-    "gas_limit": "0x989680" 
+    "gas_limit": "0x3938700" 
   },
   "dag": {
     "gas_limit": "0x989680" 

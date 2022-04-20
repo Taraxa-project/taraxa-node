@@ -23,7 +23,7 @@ void dec_json(Json::Value const& json, PbftConfig& obj) {
   obj.dag_blocks_size = dev::jsToInt(json["dag_blocks_size"].asString());
   obj.ghost_path_move_back = dev::jsToInt(json["ghost_path_move_back"].asString());
   obj.run_count_votes = json["run_count_votes"].asBool();
-  obj.gas_limit = dev::jsToU256(json["gas_limit"].asString());
+  obj.gas_limit = dev::getUInt(json["gas_limit"]);
 }
 
 }  // namespace taraxa
