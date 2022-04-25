@@ -130,6 +130,7 @@ bootnode:
   loadBalancer:
     enabled: false
     addresses: []
+    serviceAnnotations: {}
   probes:
     enabled: true
   debug: 0
