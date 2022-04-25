@@ -594,7 +594,7 @@ void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& ne
       if (voted_value == NULL_BLOCK_HASH) {
         enough_votes_for_null_block_hash_ = true;
       } else {
-        if (voted_value_ != NULL_BLOCK_HASH) {
+        if (voted_value_ != NULL_BLOCK_HASH && voted_value != voted_value_) {
           assertError_(next_votes_.at(voted_value), next_votes_.at(voted_value_));
         }
 
