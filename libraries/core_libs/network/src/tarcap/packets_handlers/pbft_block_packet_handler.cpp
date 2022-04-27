@@ -41,6 +41,7 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::s
     peer->pbft_chain_size_ = peer_pbft_chain_size;
   }
 
+  // TODO: need to fix that missing proposal PBFT blocks
   const auto pbft_chain_size = pbft_chain_->getPbftChainSize();
   if (pbft_chain_size + 1 != proposed_period) {
     LOG(log_tr_) << "Drop proposed PBFT block " << proposed_block_hash.abridged() << " at period " << proposed_period
