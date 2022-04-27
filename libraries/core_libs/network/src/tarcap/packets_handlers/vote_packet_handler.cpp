@@ -27,7 +27,7 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
 
   const auto vote_round = vote->getRound();
   if (reward_vote || (vote_round < pbft_mgr_->getPbftRound() && vote->getType() == cert_vote_type)) {
-    if (vote_mgr_->AddRewardVote(vote)) {
+    if (vote_mgr_->addRewardVote(vote)) {
       peer->markVoteAsKnown(vote_hash);
       onNewPbftVote(std::move(vote), reward_vote);
     }

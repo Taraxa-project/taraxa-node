@@ -119,7 +119,7 @@ class VoteManager {
    *
    * @return true if add successful
    */
-  bool AddRewardVote(const std::shared_ptr<Vote>& vote);
+  bool addRewardVote(const std::shared_ptr<Vote>& vote);
 
   /**
    * @brief Verify reward vote

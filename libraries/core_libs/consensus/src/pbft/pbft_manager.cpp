@@ -1078,11 +1078,11 @@ blk_hash_t PbftManager::generatePbftBlock(const blk_hash_t &prev_blk_hash, const
                                           const blk_hash_t &order_hash) {
   const auto period = pbft_chain_->getPbftChainSize();
   const auto reward_votes = db_->getCertVotes(period);  // No cert votes in period 0
-  std::vector<vote_hash_t> reward_votes_hash;
-  std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hash),
+  std::vector<vote_hash_t> reward_votes_hashes;
+  std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
                  [](const auto &v) { return v->getHash(); });
   const auto pbft_block =
-      std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, period + 1, reward_votes_hash, node_sk_);
+      std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, period + 1, reward_votes_hashes, node_sk_);
 
   // push pbft block
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
@@ -1487,16 +1487,14 @@ std::pair<vec_blk_t, bool> PbftManager::compareDagBlocksAndRewardVotes_(std::sha
     LOG(log_er_) << "Order hash incorrect. Pbft block: " << proposal_block_hash
                  << ". Order hash: " << pbft_block->getOrderHash() << " . Calculated hash:" << calculated_order_hash
                  << ". Dag order: " << dag_blocks_order << ". Trx order: " << non_finalized_transactions;
-    dag_blocks_order.clear();
-    return std::make_pair(std::move(dag_blocks_order), false);
+    return {{}, false};
   }
 
   // Check reward votes
   vote_mgr_->updateRewardVotes(proposal_period - 1);
   if (!vote_mgr_->checkRewardVotes(pbft_block)) {
-    LOG(log_er_) << "Failed varifying reward votes for proposed PBFT block " << proposal_block_hash;
-    dag_blocks_order.clear();
-    return std::make_pair(std::move(dag_blocks_order), false);
+    LOG(log_er_) << "Failed verifying reward votes for proposed PBFT block " << proposal_block_hash;
+    return {{}, false};
   }
 
   cert_sync_block_.pbft_blk = std::move(pbft_block);
@@ -1618,7 +1616,7 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
   auto batch = db_->createWriteBatch();
 
   LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash;
-  LOG(log_dg_) << "In round " << round << ". Stored following cert votes:\n";
+  LOG(log_dg_) << "In round " << round << ". Stored following cert votes:";
   for (const auto &v : cert_votes) {
     LOG(log_dg_) << v->getHash();
   }
@@ -1889,7 +1887,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
   // Check reward votes
   vote_mgr_->updateRewardVotes(sync_block.first.pbft_blk->getPeriod() - 1);
   if (!vote_mgr_->checkRewardVotes(sync_block.first.pbft_blk)) {
-    LOG(log_er_) << "Failed varifying reward votes. Disconnect to malicious peer " << sync_block.second;
+    LOG(log_er_) << "Failed verifying reward votes. Disconnect malicious peer " << sync_block.second;
     sync_queue_.clear();
     net->handleMaliciousSyncPeer(sync_block.second);
     return std::nullopt;

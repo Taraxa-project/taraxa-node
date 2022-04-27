@@ -364,8 +364,8 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
             LOG(log_dg_) << "Remove verified vote " << v.first << " for round " << v.second->getRound()
                          << ". PBFT round " << pbft_round;
             if (v.second->getType() == cert_vote_type) {
-              // The verified vote may reward vote
-              AddRewardVote(v.second);
+              // The verified vote may be reward vote
+              addRewardVote(v.second);
             }
           }
         }
@@ -426,7 +426,7 @@ std::optional<VotesBundle> VoteManager::getVotesBundleByRoundAndStep(uint64_t ro
           const auto voted_block_hash = voted_value.first;
           size_t count = 0;
 
-          if (step == 3) {
+          if (step == certify_state) {
             // Collect all cert votes
             votes.reserve(voted_value.second.second.size());
             for (const auto& v : voted_value.second.second) {
@@ -493,10 +493,11 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
 void VoteManager::sendRewardPeriodCertVotes(uint64_t reward_period) {
   auto reward_period_cert_votes = db_->getCertVotes(reward_period);
   auto net = network_.lock();
+  assert(net);
   net->onNewPbftVotes(std::move(reward_period_cert_votes), true);
 }
 
-bool VoteManager::AddRewardVote(const std::shared_ptr<Vote>& vote) {
+bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
   // Don't check the vote if in DB here. That will check in updateRewardVotes for reducing DB read
   const auto vote_hash = vote->getHash();
   std::unique_lock lock(reward_votes_mutex_);
@@ -514,7 +515,7 @@ bool VoteManager::AddRewardVote(const std::shared_ptr<Vote>& vote) {
 
   if (!reward_votes_.first) {
     reward_votes_.first = voted_block_hash;
-  } else if (reward_votes_.first && reward_votes_.first != pbft_chain_last_block_hash) {
+  } else if (reward_votes_.first != pbft_chain_last_block_hash) {
     // Clear missing reward votes
     LOG(log_dg_) << "Remove reward votes: \n";
     for (const auto& v : reward_votes_.second) {
@@ -556,13 +557,13 @@ bool VoteManager::verifyRewardVote(std::shared_ptr<Vote>& vote) {
   try {
     voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(dpos_period, voter_account_addr);
   } catch (state_api::ErrFutureBlock& c) {
-    LOG(log_er_) << c.what() << ". Voter account " << voter_account_addr << " in DPOS period " << dpos_period
-                 << " is too far for ahead of DPOS. Have executed chain size " << final_chain_->last_block_number();
+    LOG(log_er_) << c.what() << ". Voter account " << voter_account_addr << " in DPOS period<" << dpos_period
+                 << "> is too far for ahead of DPOS. Have executed chain size " << final_chain_->last_block_number();
     return false;
   }
 
   if (!voter_dpos_votes_count) {
-    LOG(log_er_) << "Reward vote is invalid. DPOS votes count is 0 " << *vote;
+    LOG(log_er_) << "Invalid reward vote: voter was not eligible to vote " << *vote;
     return false;
   }
 
@@ -597,9 +598,9 @@ void VoteManager::updateRewardVotes(uint64_t reward_period) {
 
   SyncBlock reward_period_sync_block(period_data);
 
-  std::unordered_set<vote_hash_t> reward_period_cert_votes_hash;
+  std::unordered_set<vote_hash_t> reward_period_cert_votes_hashes;
   for (const auto& v : reward_period_sync_block.cert_votes) {
-    reward_period_cert_votes_hash.insert(v->getHash());
+    reward_period_cert_votes_hashes.insert(v->getHash());
   }
 
   bool update = false;
@@ -607,15 +608,15 @@ void VoteManager::updateRewardVotes(uint64_t reward_period) {
     const auto reward_period_pbft_block_hash = reward_period_sync_block.pbft_blk->getBlockHash();
     std::unique_lock lock(reward_votes_mutex_);
     if (reward_votes_.first != reward_period_pbft_block_hash) {
-      LOG(log_dg_) << "Not match reward period pbft block " << reward_period_pbft_block_hash
-                   << ", reward votes voted value " << reward_votes_.first;
+      LOG(log_dg_) << "Reward period pbft block<" << reward_period_pbft_block_hash
+                   << "> does not match reward votes voted value " << reward_votes_.first;
       return;
     }
     for (auto& v : reward_votes_.second) {
-      if (!reward_period_cert_votes_hash.contains(v.first) && verifyRewardVote(v.second)) {
+      if (!reward_period_cert_votes_hashes.contains(v.first) && verifyRewardVote(v.second)) {
         LOG(log_nf_) << "Add new reward vote " << v.first;
         update = true;
-        reward_period_cert_votes_hash.insert(v.first);
+        reward_period_cert_votes_hashes.insert(v.first);
         reward_period_sync_block.cert_votes.push_back(std::move(v.second));
       }
     }
