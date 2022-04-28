@@ -249,7 +249,7 @@ constexpr std::string_view testnet_json = R"foo({
       "computation_interval": 50,
       "vrf": {
         "threshold_upper": "0xafff",
-        "threshold_range": 80
+        "threshold_range": 90
       },
       "vdf": {
         "difficulty_max": 21,
