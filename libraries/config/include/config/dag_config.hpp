@@ -7,9 +7,9 @@
 namespace taraxa {
 
 struct DagConfig {
-  uint64_t gas_limit = 0x989680;
+  uint64_t gas_limit = 0;
 };
-Json::Value enc_json(DagConfig const& obj);
-void dec_json(Json::Value const& json, DagConfig& obj);
+Json::Value enc_json(const DagConfig& obj);
+void dec_json(const Json::Value& json, DagConfig& obj);
 
 }  // namespace taraxa

@@ -114,6 +114,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto const &getNextVotesManager() const { return next_votes_mgr_; }
   auto const &getPbftChain() const { return pbft_chain_; }
   auto const &getFinalChain() const { return final_chain_; }
+  // used only in tests
   auto &getBlockProposer() { return blk_proposer_; }
 
   auto const &getAddress() const { return kp_.address(); }

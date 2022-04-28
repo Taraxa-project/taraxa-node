@@ -246,18 +246,17 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
   auto db = node->getDB();
 
   std::vector<trx_hash_t> hashes;
-  std::vector<u256> estimations;
-  for (uint32_t i = 0; i < 5; ++i) {
+  std::vector<uint64_t> estimations;
+  for (size_t i = 0; i < 5; ++i) {
     Transaction create_trx(i, 100, 0, 0, dev::fromHex(samples::greeter_contract_code), node->getSecretKey());
     auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(create_trx);
     EXPECT_EQ(ok, true);
     hashes.emplace_back(create_trx.getHash());
-    const auto& e = node->getTransactionManager()->estimateTransactionByHash(create_trx.getHash(), std::nullopt);
-    std::cout << "estimation: " << e << std::endl;
+    const auto& e = node->getTransactionManager()->estimateTransactionGasByHash(create_trx.getHash(), std::nullopt);
     estimations.emplace_back(e);
   }
 
-  for (uint32_t i = 0; i < hashes.size(); ++i) {
+  for (size_t i = 0; i < hashes.size(); ++i) {
     std::cout << hashes[i] << ": " << estimations[i] << std::endl;
   }
 

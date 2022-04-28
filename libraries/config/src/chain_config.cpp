@@ -91,8 +91,11 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     cfg.pbft.lambda_ms_min = 2000;
     cfg.pbft.committee_size = 5;
     cfg.pbft.dag_blocks_size = 100;
-    cfg.pbft.ghost_path_move_back = 0;
+    cfg.pbft.ghost_path_move_back = 1;
     cfg.pbft.run_count_votes = false;
+    cfg.pbft.gas_limit = 60000000;
+    // DAG config
+    cfg.dag.gas_limit = 10000000;
     return cfg;
   }();
   cfgs["test"] = [&] {

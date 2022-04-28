@@ -7,7 +7,6 @@ namespace taraxa {
 
 using std::string;
 using VdfSortition = vdf_sortition::VdfSortition;
-using estimations_vec_t = std::vector<u256>;
 
 // Note: Need to sign first then sender() and hash() is available
 class DagBlock {
@@ -21,7 +20,7 @@ class DagBlock {
   level_t level_ = 0;
   vec_blk_t tips_;
   vec_trx_t trxs_;  // transactions
-  estimations_vec_t trx_estimations_;
+  std::vector<uint64_t> trxs_gas_estimations_;
   sig_t sig_;
   u256 block_weight_;
   mutable blk_hash_t hash_;
@@ -34,13 +33,13 @@ class DagBlock {
  public:
   DagBlock() = default;
   // fixme: This constructor is bogus, used only in tests. Eliminate it
-  DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, estimations_vec_t est, sig_t signature,
+  DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, std::vector<uint64_t> est, sig_t signature,
            blk_hash_t hash, addr_t sender);
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, sig_t signature, blk_hash_t hash,
            addr_t sender);
   // fixme: used only in tests, Eliminate it
   DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, secret_t const &sk);
-  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, estimations_vec_t est,
+  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, std::vector<uint64_t> est,
            VdfSortition vdf, secret_t const &sk);
   explicit DagBlock(Json::Value const &doc);
   explicit DagBlock(string const &json);
@@ -77,7 +76,7 @@ class DagBlock {
   auto getTimestamp() const { return timestamp_; }
   auto const &getTips() const { return tips_; }
   auto const &getTrxs() const { return trxs_; }
-  auto const &getEstimations() const { return trx_estimations_; }
+  auto const &getTrxsGasEstimations() const { return trxs_gas_estimations_; }
   auto const &getSig() const { return sig_; }
   blk_hash_t const &getHash() const;
   uint16_t getDifficulty() const { return vdf_.getDifficulty(); }

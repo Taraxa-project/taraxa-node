@@ -735,7 +735,7 @@ TEST_F(PbftManagerWithDagCreation, limit_pbft_block) {
   });
 
   auto max_pbft_block_capacity = node_cfgs.front().chain.pbft.gas_limit / (trxEstimation() * 5);
-  for (uint32_t i = starting_block_number; i < node->getFinalChain()->last_block_number(); ++i) {
+  for (size_t i = starting_block_number; i < node->getFinalChain()->last_block_number(); ++i) {
     const auto &blk_hash = node->getDB()->getPeriodBlockHash(i);
     ASSERT_TRUE(blk_hash != blk_hash_t());
     const auto &pbft_block = node->getPbftChain()->getPbftBlockInChain(blk_hash);

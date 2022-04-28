@@ -565,12 +565,6 @@ class RLPStream {
     for (auto const& i : _s) append(i);
     return *this;
   }
-  template <class _T, class _T2>
-  RLPStream& appendMap(std::map<_T, _T2> const& _s) {
-    appendList(_s.size());
-    for (auto const& p : _s) append(p);
-    return *this;
-  }
   template <class _T, size_t S>
   RLPStream& append(std::array<_T, S> const& _s) {
     appendList(_s.size());

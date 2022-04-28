@@ -100,7 +100,7 @@ bool SortitionPropose::propose() {
   }
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
   last_frontier_ = frontier;
-  proposer->proposeBlock(std::move(frontier), propose_level, std::move(shared_trxs), std::move(vdf));
+  proposer->proposeBlock(std::move(frontier), propose_level, proposal_period, std::move(shared_trxs), std::move(vdf));
   num_tries_ = 0;
   return true;
 }
@@ -195,28 +195,26 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const&
   return max_level;
 }
 
-void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTransactions&& trxs, VdfSortition&& vdf) {
+void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, std::optional<uint64_t> proposal_period,
+                                 SharedTransactions&& trxs, VdfSortition&& vdf) {
   if (stopped_) return;
-
-  auto proposal_period = db_->getProposalPeriodForDagLevel(level);
 
   // When we propose block we know it is valid, no need for block verification with queue,
   // simply add the block to the DAG
   vec_trx_t trx_hashes;
-  estimations_vec_t estimations;
+  std::vector<uint64_t> estimations;
   u256 block_weight = 0;
-  for (auto trx : trxs) {
-    const auto& trx_hash = trx->getHash();
-    auto weight = trx_mgr_->estimateTransactionByHash(trx_hash, proposal_period);
+  for (const auto& trx : trxs) {
+    auto weight = trx_mgr_->estimateTransactionGas(trx, proposal_period);
     block_weight += weight;
     if (block_weight > dag_blk_mgr_->getDagConfig().gas_limit) {
       break;
     }
-    trx_hashes.push_back(trx_hash);
+    trx_hashes.push_back(trx->getHash());
     estimations.push_back(weight);
   }
-  DagBlock blk(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes), estimations,
-               std::move(vdf), node_sk_);
+  DagBlock blk(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes),
+               std::move(estimations), std::move(vdf), node_sk_);
 
   LOG(log_nf_) << "Add proposed DAG block " << blk.getHash() << ", pivot " << blk.getPivot() << " , number of trx ("
                << blk.getTrxs().size() << ")";

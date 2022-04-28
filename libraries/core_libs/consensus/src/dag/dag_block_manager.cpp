@@ -4,7 +4,7 @@
 
 namespace taraxa {
 
-DagBlockManager::DagBlockManager(addr_t node_addr, SortitionConfig const &sortition_config, const DagConfig &dag_config,
+DagBlockManager::DagBlockManager(addr_t node_addr, const SortitionConfig &sortition_config, const DagConfig &dag_config,
                                  std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                                  std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
                                  logger::Logger log_time, uint32_t queue_limit, uint32_t max_levels_per_period)
@@ -34,7 +34,7 @@ void DagBlockManager::stop() {
   cond_for_verified_qu_.notify_all();
 }
 
-bool DagBlockManager::isDagBlockKnown(blk_hash_t const &hash) {
+bool DagBlockManager::isDagBlockKnown(const blk_hash_t &hash) {
   auto known = seen_blocks_.count(hash);
   if (!known) return db_->dagBlockInDb(hash);
   return true;
@@ -44,7 +44,7 @@ bool DagBlockManager::markDagBlockAsSeen(const DagBlock &dag_block) {
   return seen_blocks_.insert(dag_block.getHash(), dag_block);
 }
 
-std::shared_ptr<DagBlock> DagBlockManager::getDagBlock(blk_hash_t const &hash) const {
+std::shared_ptr<DagBlock> DagBlockManager::getDagBlock(const blk_hash_t &hash) const {
   auto blk = seen_blocks_.get(hash);
   if (blk.second) {
     return std::make_shared<DagBlock>(blk.first);
@@ -53,7 +53,7 @@ std::shared_ptr<DagBlock> DagBlockManager::getDagBlock(blk_hash_t const &hash) c
   return db_->getDagBlock(hash);
 }
 
-bool DagBlockManager::pivotAndTipsValid(DagBlock const &blk) {
+bool DagBlockManager::pivotAndTipsValid(const DagBlock &blk) {
   // Check pivot validation
   if (invalid_blocks_.count(blk.getPivot())) {
     invalid_blocks_.insert(blk.getHash());
@@ -159,7 +159,7 @@ std::optional<DagBlock> DagBlockManager::popVerifiedBlock(bool level_limit, uint
   return blk;
 }
 
-void DagBlockManager::pushVerifiedBlock(DagBlock const &blk) {
+void DagBlockManager::pushVerifiedBlock(const DagBlock &blk) {
   uLock lock(shared_mutex_for_verified_qu_);
   verified_qu_[blk.getLevel()].emplace_back(blk);
 }
@@ -225,16 +225,16 @@ DagBlockManager::InsertAndVerifyBlockReturnType DagBlockManager::verifyBlock(con
   {
     u256 total_block_weight = 0;
     const auto &trxs = blk.getTrxs();
-    const auto &estimations = blk.getEstimations();
-    if (trxs.size() != estimations.size()) {
+    const auto &trxs_gas_estimations = blk.getTrxsGasEstimations();
+    if (trxs.size() != trxs_gas_estimations.size()) {
       return InsertAndVerifyBlockReturnType::IncorrectTransactionsEstimation;
     }
-    for (uint32_t i = 0; i < trxs.size(); ++i) {
-      const auto &e = trx_mgr_->estimateTransactionByHash(trxs[i], propose_period);
-      if (e != estimations[i]) {
+    for (size_t i = 0; i < trxs.size(); ++i) {
+      const auto &e = trx_mgr_->estimateTransactionGasByHash(trxs[i], propose_period);
+      if (e != trxs_gas_estimations[i]) {
         return InsertAndVerifyBlockReturnType::IncorrectTransactionsEstimation;
       }
-      total_block_weight += estimations[i];
+      total_block_weight += e;
     }
     if (total_block_weight > getDagConfig().gas_limit) {
       return InsertAndVerifyBlockReturnType::BlockTooBig;
@@ -244,7 +244,7 @@ DagBlockManager::InsertAndVerifyBlockReturnType DagBlockManager::verifyBlock(con
   return InsertAndVerifyBlockReturnType::InsertedAndVerified;
 }
 
-void DagBlockManager::markBlockInvalid(blk_hash_t const &hash) {
+void DagBlockManager::markBlockInvalid(const blk_hash_t &hash) {
   invalid_blocks_.insert(hash);
   seen_blocks_.erase(hash);
 }

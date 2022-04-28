@@ -30,7 +30,7 @@ class DagBlockManager {
     BlockTooBig
   };
 
-  DagBlockManager(addr_t node_addr, SortitionConfig const &sortition_config, const DagConfig &dag_config,
+  DagBlockManager(addr_t node_addr, const SortitionConfig &sortition_config, const DagConfig &dag_config,
                   std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                   std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
                   logger::Logger log_time_, uint32_t queue_limit = 0,
@@ -45,7 +45,7 @@ class DagBlockManager {
   InsertAndVerifyBlockReturnType insertAndVerifyBlock(DagBlock &&blk);
   std::optional<DagBlock> popVerifiedBlock(bool level_limit = false,
                                            uint64_t level = 0);  // get one verified block and pop
-  void pushVerifiedBlock(DagBlock const &blk);
+  void pushVerifiedBlock(const DagBlock &blk);
   size_t getDagBlockQueueSize() const;
   level_t getMaxDagLevelInQueue() const;
   void stop();
@@ -54,7 +54,7 @@ class DagBlockManager {
    * @param hash
    * @return true in case block was already seen or is part of dag structure
    */
-  bool isDagBlockKnown(blk_hash_t const &hash);
+  bool isDagBlockKnown(const blk_hash_t &hash);
 
   /**
    * @brief Mark block as seen
@@ -78,8 +78,8 @@ class DagBlockManager {
    */
   uint64_t getDagExpiryLevel() { return dag_expiry_level_; }
 
-  std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const &hash) const;
-  bool pivotAndTipsValid(DagBlock const &blk);
+  std::shared_ptr<DagBlock> getDagBlock(const blk_hash_t &hash) const;
+  bool pivotAndTipsValid(const DagBlock &blk);
 
   SortitionParamsManager &sortitionParamsManager() { return sortition_params_manager_; }
 
@@ -90,7 +90,7 @@ class DagBlockManager {
   using sharedLock = std::shared_lock<std::shared_mutex>;
 
   InsertAndVerifyBlockReturnType verifyBlock(const DagBlock &blk);
-  void markBlockInvalid(blk_hash_t const &hash);
+  void markBlockInvalid(const blk_hash_t &hash);
 
   const uint32_t cache_max_size_ = 10000;
   const uint32_t cache_delete_step_ = 100;
@@ -115,7 +115,7 @@ class DagBlockManager {
           // always current anchor level minus dag_expiry_limit_ of non empty pbft periods
 
   SortitionParamsManager sortition_params_manager_;
-  DagConfig dag_config_;
+  const DagConfig dag_config_;
 
   LOG_OBJECTS_DEFINE
 };

@@ -24,6 +24,7 @@ struct NodeDagCreationFixture : BaseTest {
     vdf_config.difficulty_min = 1;
     vdf_config.difficulty_max = 3;
     vdf_config.difficulty_stale = 4;
+    cfg.chain.pbft.ghost_path_move_back = 0;
   }
   void makeNode(bool start = true) {
     auto cfgs = make_node_cfgs<5, true>(1);
@@ -74,8 +75,7 @@ struct NodeDagCreationFixture : BaseTest {
 
   uint64_t trxEstimation() {
     const auto &transactions = makeTransactions(1);
-    static auto estimation =
-        node->getTransactionManager()->estimateTransaction(*transactions.front(), {}).convert_to<uint64_t>();
+    static auto estimation = node->getTransactionManager()->estimateTransactionGas(transactions.front(), {});
 
     return estimation;
   }
@@ -123,7 +123,7 @@ struct NodeDagCreationFixture : BaseTest {
     SortitionConfig vdf_config(node->getConfig().chain.sortition);
 
     auto transactions = makeTransactions(levels * blocks_per_level * trx_per_block);
-    auto trx_estimation = node->getTransactionManager()->estimateTransaction(*transactions.front(), {});
+    auto trx_estimation = node->getTransactionManager()->estimateTransactionGas(transactions.front(), {});
 
     blk_hash_t pivot = dag_genesis;
     vec_blk_t tips;
@@ -137,10 +137,10 @@ struct NodeDagCreationFixture : BaseTest {
     auto trx_itr = transactions.begin();
     auto trx_itr_next = transactions.begin();
 
-    for (uint32_t level = start_level; level < start_level + levels; ++level) {
+    for (size_t level = start_level; level < start_level + levels; ++level) {
       // save hashes of all dag blocks from this level to use as tips for next level blocks
       vec_blk_t this_level_blocks;
-      for (uint32_t block_n = 0; block_n < blocks_per_level; ++block_n) {
+      for (size_t block_n = 0; block_n < blocks_per_level; ++block_n) {
         trx_itr_next += trx_per_block;
         const auto proposal_period = db->getProposalPeriodForDagLevel(level);
         const auto period_block_hash = db->getPeriodBlockHash(*proposal_period);
@@ -150,7 +150,7 @@ struct NodeDagCreationFixture : BaseTest {
         std::vector<trx_hash_t> trx_hashes;
         std::transform(trx_itr, trx_itr_next, std::back_inserter(trx_hashes),
                        [](std::shared_ptr<Transaction> trx) { return trx->getHash(); });
-        DagBlock blk(pivot, level, tips, trx_hashes, std::vector<u256>(trx_per_block, trx_estimation), vdf,
+        DagBlock blk(pivot, level, tips, trx_hashes, std::vector<uint64_t>(trx_per_block, trx_estimation), vdf,
                      node->getSecretKey());
         this_level_blocks.push_back(blk.getHash());
         result.emplace_back(DagBlockWithTxs{blk, SharedTransactions(trx_itr, trx_itr_next)});
@@ -169,7 +169,7 @@ struct NodeDagCreationFixture : BaseTest {
                                       vrf_wrapper::VrfSortitionBase::makeVrfInput(level, period_block_hash));
       vdf.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
       DagBlock blk(pivot, level + i, tips, {transactions.rbegin()->get()->getHash()},
-                   std::vector<u256>(trx_per_block, trx_estimation), vdf, node->getSecretKey());
+                   std::vector<uint64_t>(trx_per_block, trx_estimation), vdf, node->getSecretKey());
       result.emplace_back(DagBlockWithTxs{blk, SharedTransactions(transactions.rbegin(), transactions.rbegin() + 1)});
       pivot = blk.getHash();
       tips = {blk.getHash()};

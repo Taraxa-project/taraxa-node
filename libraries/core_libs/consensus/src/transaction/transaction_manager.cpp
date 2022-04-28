@@ -21,22 +21,23 @@ TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_p
   }
 }
 
-u256 TransactionManager::estimateTransactionByHash(const trx_hash_t &hash,
-                                                   std::optional<uint64_t> proposal_period) const {
+uint64_t TransactionManager::estimateTransactionGasByHash(const trx_hash_t &hash,
+                                                          std::optional<uint64_t> proposal_period) const {
   const auto &trx = getTransaction(hash);
-  return estimateTransaction(*trx, proposal_period);
+  return estimateTransactionGas(trx, proposal_period);
 }
 
-u256 TransactionManager::estimateTransaction(const Transaction &trx, std::optional<uint64_t> proposal_period) const {
+uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction> trx,
+                                                    std::optional<uint64_t> proposal_period) const {
   const auto &result = final_chain_->call(
       state_api::EVMTransaction{
-          trx.getSender(),
-          trx.getGasPrice(),
-          trx.getReceiver(),
-          trx.getNonce(),
-          trx.getValue(),
-          trx.getGas(),
-          trx.getData(),
+          trx->getSender(),
+          trx->getGasPrice(),
+          trx->getReceiver(),
+          trx->getNonce(),
+          trx->getValue(),
+          trx->getGas(),
+          trx->getData(),
       },
       proposal_period);
   return result.gas_used;

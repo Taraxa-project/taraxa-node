@@ -1166,13 +1166,12 @@ blk_hash_t PbftManager::calculateOrderHash(const std::vector<DagBlock> &dag_bloc
 
 std::optional<blk_hash_t> findClosestAnchor(const std::vector<blk_hash_t> &ghost, std::vector<blk_hash_t> &dag_order,
                                             uint32_t included) {
-  for (uint32_t i = included - 1; i >= 0; i--) {
-    auto is_equal = [&](const auto &e) { return dag_order[i].toString() == e.toString(); };
-    if (std::find_if(ghost.begin(), ghost.end(), is_equal) != ghost.end()) {
-      if (dag_order.size() > i + 1) {
-        dag_order.erase(dag_order.begin() + i + 1, dag_order.end());
+  for (uint32_t i = included; i > 0; i--) {
+    if (std::count(ghost.begin(), ghost.end(), dag_order[i - 1])) {
+      if (dag_order.size() > i) {
+        dag_order.erase(dag_order.begin() + i, dag_order.end());
       }
-      return dag_order[i];
+      return dag_order[i - 1];
     }
   }
   return {};
@@ -1262,8 +1261,7 @@ blk_hash_t PbftManager::proposePbftBlock_() {
   std::vector<trx_hash_t> trx_hashes;
   u256 total_weight = 0;
   uint32_t dag_blocks_included = 0;
-  for (auto itr = dag_block_order.begin(); itr != dag_block_order.end(); ++itr) {
-    const auto blk_hash = *itr;
+  for (auto const &blk_hash : dag_block_order) {
     auto dag_blk = dag_blk_mgr_->getDagBlock(blk_hash);
     if (!dag_blk) {
       LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlock failed in propose for block "
@@ -1271,19 +1269,19 @@ blk_hash_t PbftManager::proposePbftBlock_() {
       assert(false);
     }
     u256 dag_block_weight = 0;
-    std::vector<trx_hash_t> hashes;
-    const auto &estimations = dag_blk->getEstimations();
-    hashes.reserve(estimations.size());
+    const auto &estimations = dag_blk->getTrxsGasEstimations();
 
     int32_t i = 0;
-    for (auto const &trx_hash : dag_blk->getTrxs()) {
+    for (const auto &trx_hash : dag_blk->getTrxs()) {
       if (trx_hashes_set.emplace(trx_hash).second) {
-        hashes.emplace_back(trx_hash);
+        trx_hashes.emplace_back(trx_hash);
         dag_block_weight += estimations[i];
       }
       i++;
     }
     if (total_weight + dag_block_weight > config_.gas_limit) {
+      // we need to form new list of transactions after clipping if block is overweighted
+      trx_hashes.clear();
       break;
     }
     total_weight += dag_block_weight;
@@ -1292,12 +1290,16 @@ blk_hash_t PbftManager::proposePbftBlock_() {
 
   if (dag_blocks_included != dag_block_order.size()) {
     auto closest_anchor = findClosestAnchor(ghost, dag_block_order, dag_blocks_included);
-    assert(closest_anchor.has_value());
+    if (!closest_anchor) {
+      LOG(log_er_) << "Can't find closest anchor after block clipping. Ghost: " << ghost << ". Clipped block_order: "
+                   << vec_blk_t(dag_block_order.begin(), dag_block_order.begin() + dag_blocks_included);
+      assert(false);
+    }
 
     dag_block_hash = closest_anchor.value();
     dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash, propose_period);
   }
-  {
+  if (trx_hashes.empty()) {
     std::unordered_set<trx_hash_t> trx_set;
     std::vector<trx_hash_t> transactions_to_query;
     for (auto const &dag_blk_hash : dag_block_order) {
@@ -1528,6 +1530,11 @@ std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(s
     return std::make_pair(std::move(dag_blocks_order), false);
   }
 
+  if (!checkBlockWeight(cert_sync_block_)) {
+    LOG(log_er_) << "PBFT block " << pbft_block->getBlockHash() << " is overweighted";
+    return std::make_pair(std::move(dag_blocks_order), false);
+  }
+
   cert_sync_block_.pbft_blk = std::move(pbft_block);
 
   return std::make_pair(std::move(dag_blocks_order), true);
@@ -1554,11 +1561,6 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
   }
 
   cert_sync_block_.cert_votes = std::move(cert_votes_for_round);
-
-  if (!checkBlockWeight(cert_sync_block_)) {
-    LOG(log_er_) << "PBFT block " << pbft_block->getBlockHash() << " is overweighted";
-    return false;
-  }
 
   if (!pushPbftBlock_(std::move(cert_sync_block_), std::move(dag_blocks_order))) {
     LOG(log_er_) << "Failed push PBFT block " << pbft_block->getBlockHash() << " into chain";
@@ -1930,7 +1932,7 @@ std::unordered_map<trx_hash_t, u256> getAllTrxEstimations(const SyncBlock &sync_
   std::unordered_map<trx_hash_t, u256> result;
   for (const auto &dag_block : sync_block.dag_blocks) {
     const auto &transactions = dag_block.getTrxs();
-    const auto &estimations = dag_block.getEstimations();
+    const auto &estimations = dag_block.getTrxsGasEstimations();
     for (uint32_t i = 0; i < transactions.size(); ++i) {
       result.emplace(transactions[i], estimations[i]);
     }

@@ -14,7 +14,6 @@ else ()
             --suppress=useStlAlgorithm
             --suppress=noExplicitConstructor
             --suppress=unknownMacro
-            --suppress=unsignedPositive
             # false positive
             --suppress=uninitMemberVar:${PROJECT_SOURCE_DIR}/*/UPnP.cpp
             # This is only enabled because of test functions and false positives
