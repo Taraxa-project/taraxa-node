@@ -22,7 +22,13 @@ using vrf_sk_t = vrf_wrapper::vrf_sk_t;
 
 class ProposeModelFace {
  public:
-  virtual ~ProposeModelFace() {}
+  ProposeModelFace() = default;
+  virtual ~ProposeModelFace() = default;
+  ProposeModelFace(const ProposeModelFace&) = default;
+  ProposeModelFace(ProposeModelFace&&) = default;
+  ProposeModelFace& operator=(const ProposeModelFace&) = default;
+  ProposeModelFace& operator=(ProposeModelFace&&) = default;
+
   virtual bool propose() = 0;
   void setProposer(std::shared_ptr<BlockProposer> proposer, addr_t node_addr, secret_t const& sk,
                    vrf_sk_t const& vrf_sk) {
@@ -53,7 +59,7 @@ class SortitionPropose : public ProposeModelFace {
     // This will make stale block be proposed after waiting random interval between 2 and 20 seconds
     max_num_tries_ += (node_addr_[0] % (10 * max_num_tries_));
   }
-  ~SortitionPropose() {}
+
   bool propose() override;
 
  private:
@@ -77,14 +83,13 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   BlockProposer(BlockProposerConfig const& bp_config, std::shared_ptr<DagManager> dag_mgr,
                 std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                 std::shared_ptr<FinalChain> final_chain, std::shared_ptr<DbStorage> db, addr_t node_addr,
-                secret_t node_sk, vrf_sk_t vrf_sk, logger::Logger log_time)
+                secret_t node_sk, vrf_sk_t vrf_sk)
       : bp_config_(bp_config),
         dag_mgr_(std::move(dag_mgr)),
         trx_mgr_(std::move(trx_mgr)),
         dag_blk_mgr_(std::move(dag_blk_mgr)),
         final_chain_(std::move(final_chain)),
         db_(std::move(db)),
-        log_time_(log_time),
         node_addr_(node_addr),
         node_sk_(node_sk),
         vrf_sk_(vrf_sk) {
@@ -97,6 +102,10 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   }
 
   ~BlockProposer() { stop(); }
+  BlockProposer(const BlockProposer&) = delete;
+  BlockProposer(BlockProposer&&) = delete;
+  BlockProposer& operator=(const BlockProposer&) = delete;
+  BlockProposer& operator=(BlockProposer&&) = delete;
 
   void start();
   void stop();
@@ -125,7 +134,6 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   std::shared_ptr<std::thread> proposer_worker_;
   std::unique_ptr<ProposeModelFace> propose_model_;
   std::weak_ptr<Network> network_;
-  logger::Logger log_time_;
   addr_t node_addr_;
   secret_t node_sk_;
   vrf_sk_t vrf_sk_;

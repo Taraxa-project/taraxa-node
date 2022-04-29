@@ -64,3 +64,6 @@ class DefaultNonceStrategy:
     def __call__(self, addr):
         prev, self.i = self.i, self.i + 1
         return prev
+
+    def update(self, new_value):
+        self.i = new_value

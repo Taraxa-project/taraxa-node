@@ -433,6 +433,7 @@ jobs:
    build-and-push-docker-image:
     environment:
       - IMAGE: taraxa-node
+      - HELMCHART: taraxa-node
       - CONAN_REVISIONS_ENABLED: 1
     machine:
       image: ubuntu-2004:202010-01
@@ -453,46 +454,55 @@ jobs:
            done
 
       - run:
-         name: Prepare Environment
-         command: |
-           if [[ ${CIRCLE_SHELL_ENV} =~ "localbuild" ]]; then
+          name: Prepare Environment
+          command: |
+            if [[ ${CIRCLE_SHELL_ENV} =~ "localbuild" ]]; then
               export CIRCLE_BRANCH=circleci
               export CIRCLE_BUILD_NUM=300
-           fi
-           echo "export HELM_TEST_NAME=$(echo $CIRCLE_BRANCH | sed 's/[^A-Za-z0-9\\-]*//g' | tr '[:upper:]' '[:lower:]')" >>$BASH_ENV
-           echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >>$BASH_ENV
-           echo "export START_TIME=$(date +%Y%m%d-%Hh%Mm%Ss)" >>$BASH_ENV
-           echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
-           echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >>$BASH_ENV
-           export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )           
-           echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
-           sudo service apport stop
+            fi
+            echo "export HELM_TEST_NAME=$(echo $CIRCLE_BRANCH | sed 's/[^A-Za-z0-9\\-]*//g' | tr '[:upper:]' '[:lower:]')" >>$BASH_ENV
+            echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >>$BASH_ENV
+            echo "export START_TIME=$(date +%Y%m%d-%Hh%Mm%Ss)" >>$BASH_ENV
+            echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
+            echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >>$BASH_ENV
+            export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )           
+            echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
+            sudo service apport stop
+            curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
+            sudo apt-get install apt-transport-https --yes
+            echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+            sudo apt-get update
+            sudo apt-get install helm
+            helm plugin install https://github.com/chartmuseum/helm-push.git
+            helm repo add --username ${HELM_REPO_USERNAME} --password ${HELM_REPO_PASSWORD} taraxacharts https://charts.gcp.taraxa.io
+            helm repo add bitnami https://charts.bitnami.com/bitnami
+            helm repo update
 
       - run:
-         name: Login into gcr
-         command: |
+          name: Login into gcr
+          command: |
             echo ${GCLOUD_SERVICE_KEY} | docker login -u _json_key --password-stdin https://gcr.io
 
       - run:
-         name: Build docker builder image
-         command: |
+          name: Build docker builder image
+          command: |
                 docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target builder .
 
       - run:
-         name: Checkout Submodules
-         command: |
+          name: Checkout Submodules
+          command: |
               git submodule sync
               git submodule update --init --recursive --jobs 8
 
       - run:
-         name: Build ctest image
-         command: |
-               docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target build .
+          name: Build ctest image
+          command: |
+                docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target build .
 
       - run:
-         name: Build taraxad image
-         command: |
-               docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
+          name: Build taraxad image
+          command: |
+                docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
 
       - run:
          name: Run Ctest
@@ -511,6 +521,7 @@ jobs:
               sudo chmod 777 tmp_docker/core*
             fi
           when: on_fail
+
       - run:
          name: Run SmokeTest
          command: |
@@ -648,6 +659,23 @@ jobs:
               docker push taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
               docker push taraxa/${IMAGE}:latest
            fi
+
+      - run:
+          name: Verify Helm chart with linter
+          command: |
+            helm lint charts/${HELMCHART}/
+
+      - run:
+          name: Generate Helm chart and output yaml manifests for verification
+          command: |
+            helm dependency build charts/${HELMCHART}/
+            helm template charts/${HELMCHART}/ --values charts/${HELMCHART}/values.yaml
+
+      - run:
+          name: Publish chart to Taraxa's repository
+          command: |
+            helm cm-push -f charts/${HELMCHART}/ taraxacharts
+
       - run:
          name: Cleanup smoke tests
          when: always
@@ -906,6 +934,7 @@ workflows:
           - K8S   
           - GCR
           - DOCKERHUB
+          - CHARTSREPO
 
   create-builder-image:
     jobs:
@@ -916,7 +945,7 @@ workflows:
           filters:
             branches:
               only:
-#               - develop
+              #  - develop
                - cirleci
 
       - build-linux:

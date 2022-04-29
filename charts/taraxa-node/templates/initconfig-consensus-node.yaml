@@ -1,0 +1,98 @@
+{{ if .Values.consensusnode.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-consensus-node-init-script
+  labels:
+    app: consensus-node
+    app.kubernetes.io/name: consensus-node
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  entrypoint.sh: |-
+    #!/bin/bash
+    DATA_PATH=/root/.taraxa
+    CONFIG_PATH=$DATA_PATH/conf_taraxa.json
+    WALLET_PATH=$DATA_PATH/wallet_taraxa.json
+
+    echo "Cleaning up old config..."
+    rm -rf $CONFIG_PATH
+
+    echo "Generating config"
+    INDEX=${HOSTNAME##*-}
+    KEY="CONSENSUS_NODE_KEY_${INDEX}"
+    VRF="CONSENSUS_NODE_VRF_${INDEX}"
+
+    KEY="${!KEY}"
+    VRF="${!VRF}"
+
+    if [ -z "$KEY" ]
+    then
+      if [ ! -f "$WALLET_PATH" ]
+      then
+        echo "No predifined keys. Generating new wallet..."
+        KEY=$(taraxad --command account | grep node_secret | cut -d\  -f3- | tr -d \")
+        VRF=$(taraxad --command vrf | grep vrf_secret | cut -d\  -f3 | tr -d \")
+        {{ if .Values.explorer.enabled }}
+        NODE_ADDRESS=$(taraxad --command account ${KEY} | grep node_address | cut -d\  -f3 | tr -d \")
+        echo "New wallet: 0x${NODE_ADDRESS}"
+
+        SIG=$(taraxa-sign sign --key 0x${EXPLORER_DELEGATION_PRIVATE_KEY} 0x${NODE_ADDRESS})
+   
+        curl --silent http://{{ .Release.Name }}-explorer/api/delegate/0x${NODE_ADDRESS}?sig=${SIG}
+        {{- end }}
+      else
+        echo "Found wallet file."
+        KEY=$(cat "$WALLET_PATH" | jq -r .node_secret)
+        VRF=$(cat "$WALLET_PATH" | jq -r .vrf_secret)
+      fi
+    fi
+
+    {{ if .Values.explorer.enabled }}
+    {{- if and (ne .Values.config.network "1") (ne .Values.config.network "2") (ne .Values.config.network "3") }}
+    NODE_ADDRESS=$(taraxad --command account ${KEY} | grep node_address | cut -d\  -f3 | tr -d \")
+    curl --silent http://{{ .Release.Name }}-explorer/api/faucet/0x${NODE_ADDRESS}
+    {{- end }}
+    {{- end }}
+  
+    taraxad --command config \
+      --network-id {{ .Values.config.network }} \
+      --node-secret ${KEY} \
+      --vrf-secret ${VRF} \
+      {{- if and (ne .Values.config.network "1") (ne .Values.config.network "2") (ne .Values.config.network "3") }}
+      {{- $lbEnabled := .Values.bootnode.loadBalancer.enabled -}}
+      {{- $lbIPs := .Values.bootnode.loadBalancer.addresses -}}
+      {{- range $key, $value := .Values.config.bootnode.addresses }}
+      --boot-nodes {{ if $lbEnabled }}{{ index $lbIPs $key }}{{- else }}{{ include "taraxa-boot-node.fullname" $ }}-{{ $key }}.{{ include "taraxa-boot-node.fullname" $ }}.{{$.Release.Namespace}}{{- end }}:10002/{{ $value }} \
+      {{- end }}
+      {{- end }}
+      {{- if .Values.config.extraArgs }}
+      {{ join " " .Values.config.extraArgs }} \
+      {{- end }}
+      --config $CONFIG_PATH \
+      --wallet $WALLET_PATH \
+      --data-dir $DATA_PATH
+
+    {{- if and (ne .Values.config.network "1") (ne .Values.config.network "2") (ne .Values.config.network "3") }}
+    export DELEGATION_ADDRESS=$(cat $CONFIG_PATH | jq -r '.chain_config.final_chain.state.dpos.genesis_state | keys[0]')
+    export FIRST_NODE_ADDRESS=$(cat $CONFIG_PATH | jq -r '.chain_config.final_chain.state.dpos.genesis_state[env.DELEGATION_ADDRESS] | keys[0]')
+    export DELEGATION_VALUE=$(cat $CONFIG_PATH | jq -r '.chain_config.final_chain.state.dpos.genesis_state[env.DELEGATION_ADDRESS][env.FIRST_NODE_ADDRESS]')
+    cat $CONFIG_PATH | jq '.chain_config.final_chain.state.dpos.genesis_state[env.DELEGATION_ADDRESS] = ({})' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
+    {{- range $key, $value := .Values.config.consensusnode.keys }}
+    echo "Adding node {{ $key }} address to the config..."
+    export ADDRESS="0x$(taraxad --command account {{ $value }} | grep "node_address" | awk '{print $3}' | tr -d '"')"
+    cat $CONFIG_PATH | jq '.chain_config.final_chain.state.dpos.genesis_state[env.DELEGATION_ADDRESS] += ({(env.ADDRESS): env.DELEGATION_VALUE})' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
+    {{- end }}
+    {{- end }}
+
+    {{- if and (ne .Values.config.network "1") (ne .Values.config.network "2") (ne .Values.config.network "3") }}
+    {{ if .Values.explorer.enabled }}
+    export FAUCET_ADDRESS=$(taraxad --command account ${EXPLORER_FAUCET_PRIVATE_KEY} | grep node_address | cut -d\  -f3 | tr -d \")
+    cat $CONFIG_PATH | jq '.chain_config.final_chain.state.genesis_balances += ({("0x"+env.FAUCET_ADDRESS): "0x1027e72f1f12813088000000"})' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
+    {{- end }}
+    {{- end }}
+
+    cat $CONFIG_PATH
+{{- end }}

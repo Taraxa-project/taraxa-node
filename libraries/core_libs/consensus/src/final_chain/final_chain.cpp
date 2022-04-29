@@ -105,7 +105,7 @@ class FinalChainImpl final : public FinalChain {
           continue;
         }
         // Non-executed trxs
-        auto const& trx = new_blk.transactions[i];
+        auto& trx = new_blk.transactions[i];
         if (!(replay_protection_service_ &&
               replay_protection_service_->is_nonce_stale(trx.getSender(), trx.getNonce()))) [[likely]] {
           to_execute.push_back(std::move(trx));
@@ -374,10 +374,6 @@ class FinalChainImpl final : public FinalChain {
   state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
                                         std::optional<EthBlockNumber> blk_n = {}) const override {
     return state_api_.dpos_query(last_if_absent(blk_n), q);
-  }
-
-  bool is_nonce_valid(const addr_t& addr, const trx_nonce_t& nonce) const override {
-    return !(replay_protection_service_ && replay_protection_service_->is_nonce_stale(addr, nonce));
   }
 
   EthBlockNumber last_if_absent(std::optional<EthBlockNumber> const& client_blk_n) const {

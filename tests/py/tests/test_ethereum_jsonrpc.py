@@ -14,21 +14,21 @@ def test_1(default_cluster):
 contract Greeter {
 
     event MyEvent(uint val);
-    
+
     string public greeting;
-    
+
     constructor(string memory _greeting) public {
        setGreeting(_greeting);
     }
-    
+
     function setGreeting(string memory _greeting) public {
        greeting = _greeting;
     }
-    
+
     function greet() view public returns (string memory) {
        return greeting;
     }
-    
+
     function fireEvent(uint val) public {
         emit MyEvent(val);
     }

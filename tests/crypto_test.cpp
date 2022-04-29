@@ -379,7 +379,7 @@ TEST_F(CryptoTest, leader_selection) {
         for (uint64_t j = 2; j <= stake; j++) {
           hash.iter = j;
           auto tmp = hash.getHash();
-          if (tmp < lowest) lowest = std::move(tmp);
+          if (tmp < lowest) lowest = tmp;
         }
         outputs.emplace(n.first, lowest);
       }
