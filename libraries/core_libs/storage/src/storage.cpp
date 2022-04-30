@@ -420,7 +420,7 @@ void DbStorage::clearPeriodDataHistory(uint64_t period) {
   db_->DeleteRange(write_options_, handle(Columns::period_data), toSlice(start), toSlice(period));
 }
 
-void DbStorage::UpdateCertVotesInPeriodData(const SyncBlock& sync_block) {
+void DbStorage::overridePeriodData(const SyncBlock& sync_block) {
   insert(Columns::period_data, toSlice(sync_block.pbft_blk->getPeriod()), toSlice(sync_block.rlp()));
 }
 

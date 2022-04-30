@@ -589,11 +589,12 @@ bool VoteManager::verifyRewardVote(std::shared_ptr<Vote>& vote) {
   return true;
 }
 
-void VoteManager::updateRewardVotes(uint64_t reward_period) {
+std::vector<std::shared_ptr<Vote>> VoteManager::updateRewardVotes(uint64_t reward_period) {
+  // TODO[issue1699]
   auto period_data = db_->getPeriodDataRaw(reward_period);
   if (period_data.size() == 0) {
     // First period no reward votes
-    return;
+    return {};
   }
 
   SyncBlock reward_period_sync_block(period_data);
@@ -610,7 +611,7 @@ void VoteManager::updateRewardVotes(uint64_t reward_period) {
     if (reward_votes_.first != reward_period_pbft_block_hash) {
       LOG(log_dg_) << "Reward period pbft block<" << reward_period_pbft_block_hash
                    << "> does not match reward votes voted value " << reward_votes_.first;
-      return;
+      return reward_period_sync_block.cert_votes;
     }
     for (auto& v : reward_votes_.second) {
       if (!reward_period_cert_votes_hashes.contains(v.first) && verifyRewardVote(v.second)) {
@@ -625,18 +626,19 @@ void VoteManager::updateRewardVotes(uint64_t reward_period) {
   }
 
   if (update) {
-    db_->UpdateCertVotesInPeriodData(reward_period_sync_block);
+    db_->overridePeriodData(reward_period_sync_block);
   }
+
+  return reward_period_sync_block.cert_votes;
 }
 
-bool VoteManager::checkRewardVotes(const std::shared_ptr<PbftBlock>& pbft_block) {
-  const auto reward_period = pbft_block->getPeriod() - 1;
-  if (!reward_period) {
+bool VoteManager::checkRewardVotes(const std::shared_ptr<PbftBlock>& pbft_block,
+                                   const std::vector<std::shared_ptr<Vote>>& reward_period_cert_votes) {
+  if (pbft_block->getPeriod() == 1) {
     // First period no reward votes
     return true;
   }
 
-  const auto reward_period_cert_votes = db_->getCertVotes(reward_period);
   std::unordered_set<vote_hash_t> reward_period_cert_votes_set;
   for (const auto& v : reward_period_cert_votes) {
     reward_period_cert_votes_set.insert(v->getHash());
