@@ -1078,7 +1078,7 @@ void PbftManager::secondFinish_() {
 blk_hash_t PbftManager::generatePbftBlock(const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
                                           const blk_hash_t &order_hash) {
   const auto period = pbft_chain_->getPbftChainSize();
-  const auto reward_votes = db_->getCertVotes(period);  // No cert votes in period 0
+  const auto reward_votes = vote_mgr_->updateRewardVotes(period);  // No cert votes in period 0
   std::vector<vote_hash_t> reward_votes_hashes;
   std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
                  [](const auto &v) { return v->getHash(); });
@@ -1556,8 +1556,8 @@ std::pair<vec_blk_t, bool> PbftManager::compareDagBlocksAndRewardVotes_(std::sha
     }
 
   // Check reward votes
-  vote_mgr_->updateRewardVotes(proposal_period - 1);
-  if (!vote_mgr_->checkRewardVotes(pbft_block)) {
+  auto reward_votes = vote_mgr_->updateRewardVotes(proposal_period - 1);
+  if (!vote_mgr_->checkRewardVotes(pbft_block, reward_votes)) {
     LOG(log_er_) << "Failed verifying reward votes for proposed PBFT block " << proposal_block_hash;
     return {{}, false};
   }
@@ -1958,8 +1958,8 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
   }
 
   // Check reward votes
-  vote_mgr_->updateRewardVotes(sync_block.first.pbft_blk->getPeriod() - 1);
-  if (!vote_mgr_->checkRewardVotes(sync_block.first.pbft_blk)) {
+  auto reward_votes = vote_mgr_->updateRewardVotes(sync_block.first.pbft_blk->getPeriod() - 1);
+  if (!vote_mgr_->checkRewardVotes(sync_block.first.pbft_blk, reward_votes)) {
     LOG(log_er_) << "Failed verifying reward votes. Disconnect malicious peer " << sync_block.second;
     sync_queue_.clear();
     net->handleMaliciousSyncPeer(sync_block.second);

@@ -134,17 +134,21 @@ class VoteManager {
    * @brief Update missing reward votes to previous period finalized block
    *
    * @param reward_period
+   *
+   * @return reward votes that are same as previous period cert votes
    */
-  void updateRewardVotes(uint64_t reward_period);
+  std::vector<std::shared_ptr<Vote>> updateRewardVotes(uint64_t reward_period);
 
   /**
    * @brief Check previous finalized block that includes all reward votes
    *
    * @param pbft_block
+   * @param reward_period_cert_votes
    *
    * @return true if include all reward votes
    */
-  bool checkRewardVotes(const std::shared_ptr<PbftBlock>& pbft_block);
+  bool checkRewardVotes(const std::shared_ptr<PbftBlock>& pbft_block,
+                        const std::vector<std::shared_ptr<Vote>>& reward_period_cert_votes);
 
  private:
   void retreieveVotes_();

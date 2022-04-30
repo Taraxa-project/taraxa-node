@@ -283,7 +283,7 @@ TEST_F(FullNodeTest, db_test) {
     Vote vote(g_secret, vrf_sortition, blk_hash_t(10));
     sync_block1.cert_votes.emplace_back(std::make_shared<Vote>(vote));
   }
-  db.UpdateCertVotesInPeriodData(sync_block1);
+  db.overridePeriodData(sync_block1);
   auto period_data = db.getPeriodDataRaw(pbft_block1.getPeriod());
   EXPECT_EQ(period_data, sync_block1.rlp());
   cert_votes_from_db = db.getCertVotes(pbft_block1.getPeriod());

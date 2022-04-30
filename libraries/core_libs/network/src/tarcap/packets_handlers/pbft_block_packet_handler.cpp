@@ -41,18 +41,17 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::s
     peer->pbft_chain_size_ = peer_pbft_chain_size;
   }
 
-  // TODO: need to fix that missing proposal PBFT blocks
-  const auto pbft_chain_size = pbft_chain_->getPbftChainSize();
-  if (pbft_chain_size + 1 != proposed_period) {
-    LOG(log_tr_) << "Drop proposed PBFT block " << proposed_block_hash.abridged() << " at period " << proposed_period
-                 << ", own PBFT chain size is " << pbft_chain_size;
+  const auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
+  if (pbft_synced_period >= pbft_block->getPeriod()) {
+    LOG(log_tr_) << "Drop proposed PBFT block " << pbft_block->getBlockHash().abridged() << " at period "
+                 << proposed_period << ", own PBFT chain has synced at period " << pbft_synced_period;
     return;
   }
 
   // Synchronization point in case multiple threads are processing the same block at the same time
   if (!pbft_chain_->pushUnverifiedPbftBlock(pbft_block)) {
-    LOG(log_tr_) << "Drop new PBFT block " << proposed_block_hash.abridged() << " at period " << proposed_period
-                 << " -> already inserted in unverified queue ";
+    LOG(log_tr_) << "Drop proposed PBFT block " << proposed_block_hash.abridged() << " at period " << proposed_period
+                 << " -> already inserted in unverified queue";
     return;
   }
 
@@ -68,6 +67,10 @@ void PbftBlockPacketHandler::onNewPbftBlock(const PbftBlock &pbft_block) {
 
   for (auto const &peer : peers_state_->getAllPeers()) {
     if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash()) && !peer.second->syncing_) {
+      if (!peer.second->isDagBlockKnown(pbft_block.getPivotDagBlockHash())) {
+        LOG(log_tr_) << "Send PbftBlock " << pbft_block.getBlockHash() << " with missing dag anchor<"
+                     << pbft_block.getPivotDagBlockHash() << "> to " << peer.first;
+      }
       peers_to_send.emplace_back(peer.second);
       peers_to_log += peer.second->getId().abridged();
     }
