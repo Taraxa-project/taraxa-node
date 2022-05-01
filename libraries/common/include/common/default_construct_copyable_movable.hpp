@@ -14,14 +14,13 @@ struct DefaultConstructCopyableMovable {
   T val;
 
   DefaultConstructCopyableMovable() = default;
-  ~DefaultConstructCopyableMovable() = default;
-
   DefaultConstructCopyableMovable(T val) : val(std::move(val)) {}
-  DefaultConstructCopyableMovable(const DefaultConstructCopyableMovable&) noexcept(noexcept(T())) : val() {}
-  DefaultConstructCopyableMovable(DefaultConstructCopyableMovable&&) noexcept(noexcept(T())) : val() {}
 
-  DefaultConstructCopyableMovable& operator=(const DefaultConstructCopyableMovable&) noexcept { return *this; }
-  DefaultConstructCopyableMovable& operator=(DefaultConstructCopyableMovable&&) noexcept { return *this; }
+  DefaultConstructCopyableMovable(DefaultConstructCopyableMovable const&) : val() {}
+  DefaultConstructCopyableMovable(DefaultConstructCopyableMovable&&) : val() {}
+
+  auto& operator=(DefaultConstructCopyableMovable const&) { return *this; }
+  auto& operator=(DefaultConstructCopyableMovable&&) { return *this; }
 };
 
 }  // namespace taraxa::util

@@ -17,7 +17,6 @@
 #include "cli/tools.hpp"
 #include "common/jsoncpp.hpp"
 #include "common/thread_pool.hpp"
-#include "config/version.hpp"
 
 namespace po = boost::program_options;
 namespace bi = boost::asio::ip;
@@ -81,7 +80,6 @@ int main(int argc, char** argv) {
   po::options_description general_options("GENERAL OPTIONS", kLineWidth);
   auto addGeneralOption = general_options.add_options();
   addGeneralOption("help,h", "Show this help message and exit\n");
-  addGeneralOption("version", "Print version of taraxad");
 
   dev::LoggingOptions logging_options;
   po::options_description logging_program_options(createLoggingProgramOptions(logging_options));
@@ -121,11 +119,6 @@ int main(int argc, char** argv) {
               << "USAGE:\n"
               << "   " << kProgramName << " [options]\n\n";
     std::cout << general_options << client_networking << logging_program_options;
-    return 0;
-  }
-
-  if (vm.count("version")) {
-    std::cout << kVersionJson << std::endl;
     return 0;
   }
 

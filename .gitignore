@@ -25,6 +25,3 @@ libraries/config/include/config/version.hpp
 
 # python test related folders
 __pycache__/
-
-# do not include into git chart dependencies
-charts/*/charts/*.tgz

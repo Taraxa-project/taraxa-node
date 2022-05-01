@@ -18,6 +18,7 @@ auto g_secret = Lazy([] {
 });
 auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 auto g_trx_signed_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
+auto g_mock_dag0 = Lazy([] { return samples::createMockDag0(); });
 
 struct PbftManagerTest : BaseTest {};
 
@@ -46,8 +47,9 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   // Even distribute coins from master boot node to other nodes. Since master
   // boot node owns whole coins, the active players should be only master boot
   // node at the moment.
-  const auto gas_price = val_t(2);
-  auto nonce = 1;  // fixme: the following nonce approach is not correct anyway
+  auto gas_price = val_t(2);
+  auto data = bytes();
+  auto nonce = 0;  // fixme: the following nonce approach is not correct anyway
   uint64_t trxs_count = 0;
 
   {
@@ -71,7 +73,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
 
   auto init_bal = node_1_expected_bal / nodes.size();
   for (size_t i(1); i < nodes.size(); ++i) {
-    Transaction master_boot_node_send_coins(nonce++, init_bal, gas_price, TEST_TX_GAS_LIMIT, bytes(),
+    Transaction master_boot_node_send_coins(nonce++, init_bal, gas_price, TEST_TX_GAS_LIMIT, data,
                                             nodes[0]->getSecretKey(), nodes[i]->getAddress());
     node_1_expected_bal -= init_bal;
     // broadcast trx and insert
@@ -128,7 +130,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     // Sending coins in Robin Cycle in order to make all nodes to be active
     // players, but not guarantee
     auto receiver_index = (i + 1) % nodes.size();
-    Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, TEST_TX_GAS_LIMIT, bytes(),
+    Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, TEST_TX_GAS_LIMIT, data,
                                           nodes[i]->getSecretKey(), nodes[receiver_index]->getAddress());
     // broadcast trx and insert
     nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle);
@@ -387,8 +389,9 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
   // Even distribute coins from master boot node to other nodes. Since master
   // boot node owns whole coins, the active players should be only master boot
   // node at the moment.
-  const auto gas_price = val_t(2);
-  auto nonce = 1;  // fixme: the following nonce approach is not correct anyway
+  auto gas_price = val_t(2);
+  auto data = bytes();
+  auto nonce = 0;  // fixme: the following nonce approach is not correct anyway
   uint64_t trxs_count = 0;
 
   auto expected_eligible_total_vote = 1;
@@ -420,7 +423,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
 
   auto init_bal = node_1_expected_bal / nodes.size() / 2;
   for (size_t i(1); i < nodes.size(); ++i) {
-    Transaction master_boot_node_send_coins(nonce++, init_bal, gas_price, TEST_TX_GAS_LIMIT, bytes(),
+    Transaction master_boot_node_send_coins(nonce++, init_bal, gas_price, TEST_TX_GAS_LIMIT, data,
                                             nodes[0]->getSecretKey(), nodes[i]->getAddress());
     node_1_expected_bal -= init_bal;
     // broadcast trx and insert
@@ -462,7 +465,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
     // Sending coins in Robin Cycle in order to make all nodes to be active
     // players, but not guarantee
     auto receiver_index = (i + 1) % nodes.size();
-    Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, TEST_TX_GAS_LIMIT, bytes(),
+    Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, TEST_TX_GAS_LIMIT, data,
                                           nodes[i]->getSecretKey(), nodes[receiver_index]->getAddress());
     // broadcast trx and insert
     nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle);
@@ -565,7 +568,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   // create a transaction transfer coins from node1 to node2
   const auto gas_price = val_t(2);
-  Transaction trx_master_boot_node_to_node2(1, val_t(100), gas_price, TEST_TX_GAS_LIMIT, bytes(),
+  Transaction trx_master_boot_node_to_node2(0, val_t(100), gas_price, TEST_TX_GAS_LIMIT, bytes(),
                                             nodes[0]->getSecretKey(), node2_addr);
   // broadcast trx and insert
   nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node2);
@@ -580,7 +583,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   wait_for_balances(nodes, expected_balances1, {100s, 500ms});
 
   // create a transaction transfer coins from node1 to node3
-  Transaction trx_master_boot_node_to_node3(2, val_t(1000), gas_price, TEST_TX_GAS_LIMIT, bytes(),
+  Transaction trx_master_boot_node_to_node3(1, val_t(1000), gas_price, TEST_TX_GAS_LIMIT, bytes(),
                                             nodes[0]->getSecretKey(), node3_addr);
   // broadcast trx and insert
   nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node3);

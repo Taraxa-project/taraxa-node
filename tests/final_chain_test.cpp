@@ -20,7 +20,7 @@ struct advance_check_opts {
 
 struct FinalChainTest : WithDataDir {
   shared_ptr<DbStorage> db{new DbStorage(data_dir / "db")};
-  Config cfg = ChainConfig::predefined("test").final_chain;
+  Config cfg = ChainConfig::predefined().final_chain;
   shared_ptr<FinalChain> SUT;
   bool assume_only_toplevel_transfers = true;
   unordered_map<addr_t, u256> expected_balances;
@@ -48,10 +48,10 @@ struct FinalChainTest : WithDataDir {
     }
     DagBlock dag_blk({}, {}, {}, trx_hashes, {}, secret_t::random());
     db->saveDagBlock(dag_blk);
-    auto pbft_block = std::make_shared<PbftBlock>(blk_hash_t(), blk_hash_t(), blk_hash_t(), 1, addr_t::random(),
-                                                  dev::KeyPair::create().secret());
+    PbftBlock pbft_block(blk_hash_t(), blk_hash_t(), blk_hash_t(), 1, addr_t::random(),
+                         dev::KeyPair::create().secret());
     std::vector<std::shared_ptr<Vote>> votes;
-    SyncBlock sync_block(pbft_block, votes);
+    SyncBlock sync_block(std::make_shared<PbftBlock>(std::move(pbft_block)), votes);
     sync_block.dag_blocks.push_back(dag_blk);
     sync_block.transactions = trxs;
 
@@ -74,8 +74,8 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(SUT->transactionCount(blk_h.number), trxs.size());
     EXPECT_EQ(SUT->transactions(blk_h.number), trxs);
     EXPECT_EQ(*SUT->block_number(*SUT->block_hash(blk_h.number)), expected_blk_num);
-    EXPECT_EQ(blk_h.author, pbft_block->getBeneficiary());
-    EXPECT_EQ(blk_h.timestamp, pbft_block->getTimestamp());
+    EXPECT_EQ(blk_h.author, pbft_block.getBeneficiary());
+    EXPECT_EQ(blk_h.timestamp, pbft_block.getTimestamp());
     EXPECT_EQ(receipts.size(), trxs.size());
     EXPECT_EQ(blk_h.transactions_root,
               trieRootOver(
@@ -171,7 +171,6 @@ TEST_F(FinalChainTest, contract) {
   cfg.state.genesis_balances = {};
   cfg.state.genesis_balances[addr] = 100000;
   cfg.state.dpos = nullopt;
-  cfg.state.execution_options.disable_nonce_check = true;
   init();
   static string const contract_deploy_code =
       // pragma solidity ^0.6.8;
@@ -300,7 +299,7 @@ TEST_F(FinalChainTest, coin_transfers) {
   advance({
       {0, 100431, 0, TRX_GAS, {}, keys[135].secret(), keys[232].address()},
       {0, 13411, 0, TRX_GAS, {}, keys[112].secret(), keys[34].address()},
-      {0, 130, 0, TRX_GAS, {}, keys[134].secret(), keys[233].address()},
+      {0, 130, 0, TRX_GAS, {}, keys[133].secret(), keys[233].address()},
       {0, 343434, 0, TRX_GAS, {}, keys[13].secret(), keys[213].address()},
       {0, 131313, 0, TRX_GAS, {}, keys[405].secret(), keys[344].address()},
       {0, 143430, 0, TRX_GAS, {}, keys[331].secret(), keys[420].address()},

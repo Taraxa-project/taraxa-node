@@ -149,9 +149,6 @@ inline auto make_node_cfgs(uint count) {
       cfg.chain.final_chain.state.genesis_balances[root_node_addr] = 9007199254740991;
       auto& dpos = *cfg.chain.final_chain.state.dpos;
       dpos.genesis_state[root_node_addr][root_node_addr] = dpos.eligibility_balance_threshold;
-      // As test are badly written let's disable it for now
-      cfg.chain.final_chain.state.execution_options.disable_nonce_check = true;
-      cfg.chain.final_chain.state.execution_options.disable_gas_fee = true;
       if constexpr (tests_speed != 1) {
         // VDF config
         cfg.chain.sortition.vrf.threshold_upper = 0xffff;
@@ -325,7 +322,7 @@ inline std::vector<blk_hash_t> getOrderedDagBlocks(std::shared_ptr<DbStorage> co
     auto pbft_block = db->getPbftBlock(period);
     if (pbft_block.has_value()) {
       for (auto& dag_block_hash : db->getFinalizedDagBlockHashesByPeriod(period)) {
-        res.push_back(dag_block_hash);
+        res.push_back(std::move(dag_block_hash));
       }
       period++;
       continue;

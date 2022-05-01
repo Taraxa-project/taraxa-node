@@ -12,7 +12,7 @@ Vote::Vote(dev::RLP const& rlp) {
     util::rlp_tuple(util::RLPDecoderRef(rlp, true), blockhash_, vrf_bytes, vote_signature_, weight_);
   }
 
-  vrf_sortition_ = VrfPbftSortition(vrf_bytes);
+  vrf_sortition_ = VrfPbftSortition(std::move(vrf_bytes));
   vote_hash_ = sha3(true);
 }
 

@@ -6,8 +6,10 @@
 
 namespace taraxa::state_api {
 
-TaraxaEVMError::TaraxaEVMError(std::string&& type, const std::string& msg)
-    : runtime_error(msg), type(std::move(type)) {}
+TaraxaEVMError::TaraxaEVMError(std::string type, std::string msg) : runtime_error(move(msg)), type(move(type)) {}
+TaraxaEVMError::~TaraxaEVMError() throw() {}
+
+ErrFutureBlock::~ErrFutureBlock() throw() {}
 
 h256 const& Account::storage_root_eth() const { return storage_root_hash ? storage_root_hash : EmptyRLPListSHA3(); }
 

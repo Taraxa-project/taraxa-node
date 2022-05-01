@@ -37,7 +37,7 @@ void GetVotesSyncPacketHandler::process(const PacketData &packet_data, const std
 
     auto next_votes_bundle = next_votes_mgr_->getNextVotes();
     std::vector<std::shared_ptr<Vote>> send_next_votes_bundle;
-    for (auto &v : next_votes_bundle) {
+    for (auto const &v : next_votes_bundle) {
       if (!peer->isVoteKnown(v->getHash())) {
         send_next_votes_bundle.push_back(std::move(v));
       }

@@ -42,16 +42,14 @@ std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::sh
     return {false, "invalid signature"};
   }
 
-  const auto account = final_chain_->get_account(trx->getSender()).value_or(taraxa::state_api::ZeroAccount);
-
   // Ensure the transaction adheres to nonce ordering
-  if (account.nonce && account.nonce > trx->getNonce()) {
+  if (!final_chain_->is_nonce_valid(trx->getSender(), trx->getNonce())) {
     return {false, "nonce too low"};
   }
 
   // Transactor should have enough funds to cover the costs
   // cost == V + GP * GL
-  if (account.balance < trx->getCost()) {
+  if (final_chain_->get_account(trx->getSender()).value_or(taraxa::state_api::ZeroAccount).balance < trx->getCost()) {
     return {false, "insufficient balance"};
   }
 
@@ -109,7 +107,7 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const Transac
   }
 }
 
-uint32_t TransactionManager::insertValidatedTransactions(SharedTransactions &&txs) {
+uint32_t TransactionManager::insertValidatedTransactions(const SharedTransactions &txs) {
   SharedTransactions unseen_txs;
   std::vector<trx_hash_t> txs_hashes;
 

@@ -28,10 +28,6 @@ class ExtSyncingPacketHandler : public PacketHandler {
                           const addr_t &node_addr, const std::string &log_channel_name);
 
   virtual ~ExtSyncingPacketHandler() = default;
-  ExtSyncingPacketHandler(const ExtSyncingPacketHandler &) = default;
-  ExtSyncingPacketHandler(ExtSyncingPacketHandler &&) = default;
-  ExtSyncingPacketHandler &operator=(const ExtSyncingPacketHandler &) = default;
-  ExtSyncingPacketHandler &operator=(ExtSyncingPacketHandler &&) = default;
 
   /**
    * @brief Restart syncing

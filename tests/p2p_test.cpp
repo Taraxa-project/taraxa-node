@@ -143,7 +143,7 @@ TEST_F(P2PTest, capability_send_block) {
                addr_t(999));
 
   SharedTransactions transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
-  thc2->onNewTransactions(SharedTransactions(transactions));
+  thc2->onNewTransactions(std::move(transactions));
   std::vector<taraxa::bytes> transactions_raw;
   transactions_raw.push_back(g_signed_trx_samples[0]->rlp());
   transactions_raw.push_back(g_signed_trx_samples[1]->rlp());
@@ -258,10 +258,10 @@ TEST_F(P2PTest, block_propagate) {
                addr_t(999));
 
   SharedTransactions transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
-  thc1->onNewTransactions(SharedTransactions(transactions));
+  thc1->onNewTransactions(std::move(transactions));
   SharedTransactions transactions2;
   thc1->onNewTransactions(std::move(transactions2));
-  thc1->onNewBlockReceived(DagBlock(blk));
+  thc1->onNewBlockReceived(std::move(blk));
 
   std::vector<taraxa::bytes> transactions_raw;
   transactions_raw.push_back(g_signed_trx_samples[0]->rlp());

@@ -24,10 +24,15 @@ struct VdfParams {
 
 struct SortitionParams {
   SortitionParams() = default;
+  SortitionParams(SortitionParams&&) = default;
+  SortitionParams(const SortitionParams& config) = default;
   SortitionParams(uint16_t threshold_upper, uint16_t threshold_range, uint16_t min, uint16_t max, uint16_t stale,
                   uint16_t lambda_max_bound)
       : vrf{threshold_upper, threshold_range}, vdf{min, max, stale, lambda_max_bound} {}
   SortitionParams(const VrfParams& vrf, const VdfParams& vdf) : vrf{vrf}, vdf{vdf} {}
+
+  SortitionParams& operator=(SortitionParams&&) = default;
+  SortitionParams& operator=(const SortitionParams&) = default;
 
   friend std::ostream& operator<<(std::ostream& strm, const SortitionParams& config) {
     strm << " [VDF config] " << std::endl;
