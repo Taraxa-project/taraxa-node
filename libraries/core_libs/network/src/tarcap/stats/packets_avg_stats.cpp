@@ -2,6 +2,15 @@
 
 namespace taraxa::network::tarcap {
 
+AllPacketTypesStats::AllPacketTypesStats(const AllPacketTypesStats &ro) : stats_(ro.stats_), mutex_() {}
+
+AllPacketTypesStats &AllPacketTypesStats::operator=(const AllPacketTypesStats &ro) {
+  std::scoped_lock<std::shared_mutex> lock(mutex_);
+  stats_ = ro.getStatsCopy();
+
+  return *this;
+}
+
 void AllPacketTypesStats::addPacket(const std::string &packet_type, const SinglePacketStats &packet) {
   std::scoped_lock<std::shared_mutex> lock(mutex_);
   auto &packet_stats = stats_[packet_type];
@@ -12,6 +21,18 @@ void AllPacketTypesStats::addPacket(const std::string &packet_type, const Single
   packet_stats.tp_wait_duration_ += packet.tp_wait_duration_;
 }
 
+std::optional<AllPacketTypesStats::PacketTypeStats> AllPacketTypesStats::getPacketTypeStats(
+    const std::string &packet_type) const {
+  std::shared_lock<std::shared_mutex> lock(mutex_);
+  const auto found_stats = stats_.find(packet_type);
+
+  if (found_stats == stats_.end()) {
+    return {};
+  }
+
+  return {found_stats->second};
+}
+
 std::unordered_map<std::string, AllPacketTypesStats::PacketTypeStats> AllPacketTypesStats::getStatsCopy() const {
   std::shared_lock<std::shared_mutex> lock(mutex_);
   return stats_;
@@ -20,18 +41,18 @@ std::unordered_map<std::string, AllPacketTypesStats::PacketTypeStats> AllPacketT
 Json::Value AllPacketTypesStats::getStatsJson(bool include_duration_fields) const {
   Json::Value ret;
 
-  for (auto &single_packet_stats : getStatsCopy()) {
+  for (const auto &single_packet_stats : getStatsCopy()) {
     Json::Value packet_json = single_packet_stats.second.getStatsJson(include_duration_fields);
-    packet_json["type"] = single_packet_stats.first;
+    packet_json["type"] = std::move(single_packet_stats.first);
     ret.append(std::move(packet_json));
   }
 
   return ret;
 }
 
-void AllPacketTypesStats::updatePeriodMaxStats(const AllPacketTypesStats::PacketTypeStatsMap &period_stats) {
+void AllPacketTypesStats::updatePeriodMaxStats(const AllPacketTypesStats &period_stats) {
   std::scoped_lock<std::shared_mutex> lock(max_stats_mutex_);
-  for (const auto &packet_stats : period_stats) {
+  for (const auto &packet_stats : period_stats.getStatsCopy()) {
     auto &abs_max_packet_count = max_counts_stats_[packet_stats.first];
     if (packet_stats.second.count_ > abs_max_packet_count.count_) {
       abs_max_packet_count = packet_stats.second;
@@ -52,13 +73,13 @@ Json::Value AllPacketTypesStats::getPeriodMaxStatsJson(bool include_duration_fie
     std::shared_lock<std::shared_mutex> lock(max_stats_mutex_);
     for (const auto &packet : max_counts_stats_) {
       Json::Value packet_json = packet.second.getStatsJson(include_duration_fields /* include duration fields */);
-      packet_json["type"] = packet.first;
+      packet_json["type"] = std::move(packet.first);
       max_counts_stats_json.append(std::move(packet_json));
     }
 
     for (const auto &packet : max_sizes_stats_) {
       Json::Value packet_json = packet.second.getStatsJson(include_duration_fields /* include duration fields */);
-      packet_json["type"] = packet.first;
+      packet_json["type"] = std::move(packet.first);
       max_sizes_stats_json.append(std::move(packet_json));
     }
   }
@@ -68,6 +89,25 @@ Json::Value AllPacketTypesStats::getPeriodMaxStatsJson(bool include_duration_fie
   ret["period_max_sizes_stats"] = std::move(max_sizes_stats_json);
 
   return ret;
+}
+
+AllPacketTypesStats AllPacketTypesStats::operator-(const AllPacketTypesStats &ro) const {
+  AllPacketTypesStats result;
+
+  for (const auto &packet_stats : getStatsCopy()) {
+    const auto ro_packet_stats = ro.getPacketTypeStats(packet_stats.first);
+
+    if (ro_packet_stats.has_value()) {
+      PacketTypeStats packet_avg_stats_result = packet_stats.second - ro_packet_stats.value();
+      if (packet_avg_stats_result.count_ > 0) {
+        result.stats_[packet_stats.first] = std::move(packet_avg_stats_result);
+      }
+    } else {
+      result.stats_[packet_stats.first] = std::move(packet_stats.second);
+    }
+  }
+
+  return result;
 }
 
 Json::Value AllPacketTypesStats::PacketTypeStats::getStatsJson(bool include_duration_fields) const {

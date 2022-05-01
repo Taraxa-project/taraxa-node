@@ -2,14 +2,13 @@
 
 namespace taraxa::network::tarcap {
 
-PacketData::PacketData(SubprotocolPacketType type, const dev::p2p::NodeID& from_node_id,
-                       std::vector<unsigned char>&& bytes)
+PacketData::PacketData(SubprotocolPacketType type, dev::p2p::NodeID&& from_node_id_, std::vector<unsigned char>&& bytes)
     : rlp_bytes_(std::move(bytes)),
       receive_time_(std::chrono::steady_clock::now()),
       type_(type),
       type_str_(convertPacketTypeToString(static_cast<SubprotocolPacketType>(type_))),
       priority_(getPacketPriority(type)),
-      from_node_id_(from_node_id),
+      from_node_id_(std::move(from_node_id_)),
       rlp_(dev::RLP(rlp_bytes_)) {}
 
 /**

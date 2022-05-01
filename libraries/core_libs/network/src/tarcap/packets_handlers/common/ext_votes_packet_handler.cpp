@@ -39,27 +39,18 @@ void ExtVotesPacketHandler::sendPbftNextVotes(dev::p2p::NodeID const &peer_id,
     return;
   }
 
-  uint32_t index = 0;
-  while (index < send_next_votes_bundle.size()) {
-    uint32_t vote_count_to_send =
-        std::min(static_cast<size_t>(kMaxVotesInPacket), send_next_votes_bundle.size() - index);
-
-    dev::RLPStream s(vote_count_to_send);
-    for (uint32_t i = index; i < index + vote_count_to_send; i++) {
-      const auto &next_vote = send_next_votes_bundle[i];
-      s.appendRaw(next_vote->rlp(true));
-      LOG(log_dg_) << "Send out next vote " << next_vote->getHash() << " to peer " << peer_id;
-    }
-
-    if (sealAndSend(peer_id, SubprotocolPacketType::VotesSyncPacket, std::move(s))) {
-      LOG(log_nf_) << "Send out size of " << vote_count_to_send << " PBFT next votes to " << peer_id;
-    }
-
-    index += vote_count_to_send;
+  dev::RLPStream s(send_next_votes_bundle.size());
+  for (auto const &next_vote : send_next_votes_bundle) {
+    s.appendRaw(next_vote->rlp(true));
+    LOG(log_dg_) << "Send out next vote " << next_vote->getHash() << " to peer " << peer_id;
   }
-  if (auto peer = peers_state_->getPeer(peer_id)) {
-    for (auto const &v : send_next_votes_bundle) {
-      peer->markVoteAsKnown(v->getHash());
+
+  if (sealAndSend(peer_id, SubprotocolPacketType::VotesSyncPacket, std::move(s))) {
+    LOG(log_nf_) << "Send out size of " << send_next_votes_bundle.size() << " PBFT next votes to " << peer_id;
+    if (auto peer = peers_state_->getPeer(peer_id)) {
+      for (auto const &v : send_next_votes_bundle) {
+        peer->markVoteAsKnown(v->getHash());
+      }
     }
   }
 }

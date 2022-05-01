@@ -17,12 +17,6 @@ static const blk_hash_t kNullBlockHash = blk_hash_t(0);
 
 constexpr uint16_t kOnePercent = 100;
 constexpr uint16_t kMaxLevelsPerPeriod = 100;
-constexpr uint32_t kDagExpiryLevelLimit = 1000;
-
-const uint32_t kMaxVotesInPacket{1000};
-const uint32_t kMaxTransactionsInPacket{1000};
-
-const uint32_t kPeriodicEventsThreadCount{2};
 
 // The various denominations; here for ease of use where needed within code.
 static const u256 kOneTara = dev::exp10<18>();

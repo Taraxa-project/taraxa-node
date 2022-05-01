@@ -71,8 +71,8 @@ class VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
  public:
   VrfPbftSortition() = default;
 
-  VrfPbftSortition(vrf_sk_t const& sk, const VrfPbftMsg& pbft_msg)
-      : VrfSortitionBase(sk, pbft_msg.getRlpBytes()), pbft_msg_(pbft_msg) {}
+  VrfPbftSortition(vrf_sk_t const& sk, VrfPbftMsg pbft_msg)
+      : VrfSortitionBase(sk, pbft_msg.getRlpBytes()), pbft_msg_(std::move(pbft_msg)) {}
 
   explicit VrfPbftSortition(dev::bytes const& rlp);
 

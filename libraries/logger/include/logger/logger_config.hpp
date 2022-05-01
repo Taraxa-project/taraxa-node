@@ -49,12 +49,11 @@ class Config {
 
  public:
   Config() = default;
-  ~Config();
-
   Config(const Config& other);
   Config& operator=(const Config& other);
-  Config(Config&& other) noexcept;
-  Config& operator=(Config&& other) noexcept;
+  Config(Config&& other);
+  Config& operator=(Config&& other);
+  ~Config();
 
   /**
    * @brief Init logging - creates boost sinks according to the Config

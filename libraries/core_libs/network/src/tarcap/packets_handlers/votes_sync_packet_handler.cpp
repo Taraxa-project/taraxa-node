@@ -23,8 +23,8 @@ void VotesSyncPacketHandler::validatePacketRlpFormat([[maybe_unused]] const Pack
 
 void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   const auto next_votes_count = packet_data.rlp_.itemCount();
-  if (next_votes_count == 0 || next_votes_count > kMaxVotesInPacket) {
-    LOG(log_er_) << "Receive " << next_votes_count << " next votes from peer " << packet_data.from_node_id_
+  if (next_votes_count == 0) {
+    LOG(log_er_) << "Receive 0 next votes from peer " << packet_data.from_node_id_
                  << ". The peer may be a malicious player, will be disconnected";
     disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
     return;
@@ -116,7 +116,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
 }
 
 void VotesSyncPacketHandler::broadcastPreviousRoundNextVotesBundle() {
-  auto next_votes_bundle = next_votes_mgr_->getNextVotes();
+  const auto next_votes_bundle = next_votes_mgr_->getNextVotes();
   if (next_votes_bundle.empty()) {
     LOG(log_er_) << "There are empty next votes for previous PBFT round";
     return;
@@ -128,9 +128,9 @@ void VotesSyncPacketHandler::broadcastPreviousRoundNextVotesBundle() {
     // Nodes may vote at different values at previous round, so need less or equal
     if (!peer.second->syncing_ && peer.second->pbft_round_ <= pbft_current_round) {
       std::vector<std::shared_ptr<Vote>> send_next_votes_bundle;
-      for (const auto &v : next_votes_bundle) {
+      for (auto const &v : next_votes_bundle) {
         if (!peer.second->isVoteKnown(v->getHash())) {
-          send_next_votes_bundle.push_back(v);
+          send_next_votes_bundle.push_back(std::move(v));
         }
       }
       sendPbftNextVotes(peer.first, send_next_votes_bundle);

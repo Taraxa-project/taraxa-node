@@ -14,11 +14,13 @@ namespace taraxa::state_api {
 
 struct TaraxaEVMError : std::runtime_error {
   std::string const type;
-  TaraxaEVMError(std::string&& type, const std::string& msg);
+  TaraxaEVMError(std::string type, std::string msg);
+  ~TaraxaEVMError() throw();
 };
 
 struct ErrFutureBlock : TaraxaEVMError {
   using TaraxaEVMError::TaraxaEVMError;
+  ~ErrFutureBlock() throw();
 };
 
 struct DPOSTransfer {

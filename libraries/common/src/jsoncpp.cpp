@@ -49,14 +49,17 @@ Json::Value readJsonFromFile(const std::string& file_name) {
   }
 }
 
-Json::Value readJsonFromString(std::string_view str) {
+Json::Value readJsonFromString(const std::string& str) {
   Json::CharReaderBuilder builder;
-  std::unique_ptr<Json::CharReader> reader(builder.newCharReader());
+  Json::CharReader* reader = builder.newCharReader();
   Json::Value json;
   std::string errors;
 
-  if (!reader->parse(str.begin(), str.end(), &json, &errors)) {
-    throw std::invalid_argument("Cannot parse json. Err: " + errors);
+  bool parsingSuccessful = reader->parse(str.c_str(), str.c_str() + str.size(), &json, &errors);
+  delete reader;
+
+  if (!parsingSuccessful) {
+    throw std::invalid_argument(std::string("Cannot parse json"));
   }
 
   return json;

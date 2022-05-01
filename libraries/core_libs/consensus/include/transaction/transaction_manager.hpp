@@ -50,7 +50,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @param txs transactions to be processed
    * @return number of successfully inserted unseen transactions
    */
-  uint32_t insertValidatedTransactions(SharedTransactions &&txs);
+  uint32_t insertValidatedTransactions(const SharedTransactions &txs);
 
   /**
    * @brief Marks transaction as known (was successfully verified and pushed into the tx pool)

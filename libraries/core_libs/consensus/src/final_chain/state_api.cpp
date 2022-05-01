@@ -53,14 +53,14 @@ class ErrorHandler {
         string msg(err_str.substr(delim_pos + delim_len));
 
         if (type == "github.com/Taraxa-project/taraxa-evm/taraxa/state/state_db/ErrFutureBlock") {
-          raise = [err = ErrFutureBlock(std::move(type), msg)] { BOOST_THROW_EXCEPTION(err); };
+          raise = [err = ErrFutureBlock(move(type), move(msg))] { BOOST_THROW_EXCEPTION(err); };
           return;
         }
 
         string traceback;
         taraxa_evm_traceback(decoder_cb_c<string, to_str>(traceback));
         msg += "\nGo stack trace:\n" + traceback;
-        raise = [err = TaraxaEVMError(std::move(type), msg)] { BOOST_THROW_EXCEPTION(err); };
+        raise = [err = TaraxaEVMError(move(type), move(msg))] { BOOST_THROW_EXCEPTION(err); };
       },
   };
 

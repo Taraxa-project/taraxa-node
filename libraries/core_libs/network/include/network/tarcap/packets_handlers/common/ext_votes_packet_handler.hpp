@@ -18,10 +18,6 @@ class ExtVotesPacketHandler : public PacketHandler {
                         const addr_t& node_addr, const std::string& log_channel_name);
 
   virtual ~ExtVotesPacketHandler() = default;
-  ExtVotesPacketHandler(const ExtVotesPacketHandler&) = default;
-  ExtVotesPacketHandler(ExtVotesPacketHandler&&) = default;
-  ExtVotesPacketHandler& operator=(const ExtVotesPacketHandler&) = default;
-  ExtVotesPacketHandler& operator=(ExtVotesPacketHandler&&) = default;
 
   void onNewPbftVote(std::shared_ptr<Vote>&& vote);
   void sendPbftVote(dev::p2p::NodeID const& peer_id, std::shared_ptr<Vote> const& vote);

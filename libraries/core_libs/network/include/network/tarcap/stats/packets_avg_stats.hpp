@@ -43,31 +43,27 @@ class AllPacketTypesStats {
     PacketTypeStats operator-(const PacketTypeStats &ro) const;
   };
 
-  using PacketTypeStatsMap = std::unordered_map<std::string /*packet name*/, PacketTypeStats>;
-
  public:
   AllPacketTypesStats() = default;
-  ~AllPacketTypesStats() = default;
-
-  AllPacketTypesStats(const AllPacketTypesStats &ro) = delete;
-  AllPacketTypesStats &operator=(const AllPacketTypesStats &ro) = delete;
-  AllPacketTypesStats(AllPacketTypesStats &&ro) = delete;
-  AllPacketTypesStats &operator=(AllPacketTypesStats &&ro) = delete;
+  AllPacketTypesStats(const AllPacketTypesStats &ro);
+  AllPacketTypesStats &operator=(const AllPacketTypesStats &ro);
+  AllPacketTypesStats operator-(const AllPacketTypesStats &ro) const;
 
   void addPacket(const std::string &packet_type, const SinglePacketStats &packet);
+  std::optional<PacketTypeStats> getPacketTypeStats(const std::string &packet_type) const;
 
-  PacketTypeStatsMap getStatsCopy() const;
+  std::unordered_map<std::string, PacketTypeStats> getStatsCopy() const;
   Json::Value getStatsJson(bool include_duration_fields = true) const;
 
   /**
    * @brief Updates max_counts/sizes_stats based on period_stats if needed
    * @param period_stats packets stats during certain time period
    */
-  void updatePeriodMaxStats(const AllPacketTypesStats::PacketTypeStatsMap &period_stats);
+  void updatePeriodMaxStats(const AllPacketTypesStats &period_stats);
   Json::Value getPeriodMaxStatsJson(bool include_duration_fields = true) const;
 
  private:
-  PacketTypeStatsMap stats_;
+  std::unordered_map<std::string /*packet name*/, PacketTypeStats> stats_;
   mutable std::shared_mutex mutex_;
 
   // Statistics about max number of packets (of the same type) received during fixed time period

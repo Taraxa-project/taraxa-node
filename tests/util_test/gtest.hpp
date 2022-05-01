@@ -14,28 +14,22 @@ using ::taraxa::util::lazy::Lazy;
 inline auto const DIR = fs::path(__FILE__).parent_path();
 inline auto const DIR_CONF = DIR / "conf";
 
-#define TARAXA_TEST_MAIN(_extension)                          \
-  int main(int argc, char **argv) {                           \
-    taraxa::static_init();                                    \
-    std::function<void(int, char **)> extension = _extension; \
-    if (extension) {                                          \
-      extension(argc, argv);                                  \
-    }                                                         \
-    ::testing::InitGoogleTest(&argc, argv);                   \
-    return RUN_ALL_TESTS();                                   \
+#define TARAXA_TEST_MAIN(_extension)                         \
+  int main(int argc, char** argv) {                          \
+    taraxa::static_init();                                   \
+    std::function<void(int, char**)> extension = _extension; \
+    if (extension) {                                         \
+      extension(argc, argv);                                 \
+    }                                                        \
+    ::testing::InitGoogleTest(&argc, argv);                  \
+    return RUN_ALL_TESTS();                                  \
   }
 
 struct WithTestInfo : virtual testing::Test {
-  testing::UnitTest *current_test = ::testing::UnitTest::GetInstance();
-  testing::TestInfo const *current_test_info = current_test->current_test_info();
+  testing::UnitTest* current_test = ::testing::UnitTest::GetInstance();
+  testing::TestInfo const* current_test_info = current_test->current_test_info();
 
-  WithTestInfo() = default;
-  virtual ~WithTestInfo() = default;
-
-  WithTestInfo(const WithTestInfo &) = delete;
-  WithTestInfo(WithTestInfo &&) = delete;
-  WithTestInfo &operator=(const WithTestInfo &) = delete;
-  WithTestInfo &operator=(WithTestInfo &&) = delete;
+  virtual ~WithTestInfo() {}
 };
 
 struct WithDataDir : virtual WithTestInfo {
@@ -47,11 +41,6 @@ struct WithDataDir : virtual WithTestInfo {
     std::filesystem::create_directories(data_dir);
   }
   virtual ~WithDataDir() { std::filesystem::remove_all(data_dir); }
-
-  WithDataDir(const WithDataDir &) = delete;
-  WithDataDir(WithDataDir &&) = delete;
-  WithDataDir &operator=(const WithDataDir &) = delete;
-  WithDataDir &operator=(WithDataDir &&) = delete;
 };
 
 inline auto const node_cfgs_original = Lazy([] {
@@ -71,20 +60,14 @@ inline auto const node_cfgs_original = Lazy([] {
 
 struct BaseTest : virtual WithDataDir {
   BaseTest() : WithDataDir() {
-    for (auto &cfg : *node_cfgs_original) {
+    for (auto& cfg : *node_cfgs_original) {
+      remove_all(cfg.data_path);
+    }
+  }
+  void TearDown() override {
+    for (auto& cfg : *node_cfgs_original) {
       remove_all(cfg.data_path);
     }
   }
   virtual ~BaseTest() {}
-
-  BaseTest(const BaseTest &) = delete;
-  BaseTest(BaseTest &&) = delete;
-  BaseTest &operator=(const BaseTest &) = delete;
-  BaseTest &operator=(BaseTest &&) = delete;
-
-  void TearDown() override {
-    for (auto &cfg : *node_cfgs_original) {
-      remove_all(cfg.data_path);
-    }
-  }
 };

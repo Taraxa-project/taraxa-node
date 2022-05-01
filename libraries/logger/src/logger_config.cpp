@@ -51,27 +51,27 @@ Config &Config::operator=(const Config &other) {
   return *this;
 }
 
-Config::Config(Config &&other) noexcept
+Config::Config(Config &&other)
     : name(std::move(other.name)),
-      verbosity(other.verbosity),
+      verbosity(std::move(other.verbosity)),
       channels(std::move(other.channels)),
       outputs(std::move(other.outputs)),
       console_sinks(std::move(other.console_sinks)),
       file_sinks(std::move(other.file_sinks)),
-      logging_initialized_(other.logging_initialized_) {
+      logging_initialized_(std::move(other.logging_initialized_)) {
   // logging_initialized_ flag in orig. object is always set to false(in moves) so it is not deinitialized
   // in destructor of the orig. config object
   other.logging_initialized_ = false;
 }
 
-Config &Config::operator=(Config &&other) noexcept {
+Config &Config::operator=(Config &&other) {
   name = std::move(other.name);
-  verbosity = other.verbosity;
+  verbosity = std::move(other.verbosity);
   channels = std::move(other.channels);
   outputs = std::move(other.outputs);
   console_sinks = std::move(other.console_sinks);
   file_sinks = std::move(other.file_sinks);
-  logging_initialized_ = other.logging_initialized_;
+  logging_initialized_ = std::move(other.logging_initialized_);
 
   // logging_initialized_ flag is always set to false(in copies) so it is deinitialized
   // only in orig. config object destructor and not also in new copied Config

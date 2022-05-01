@@ -10,7 +10,7 @@ namespace taraxa {
 VrfPbftSortition::VrfPbftSortition(bytes const& b) {
   dev::RLP const rlp(b);
 
-  uint8_t pbft_msg_type = 0;
+  uint8_t pbft_msg_type;
   util::rlp_tuple(util::RLPDecoderRef(rlp, true), pk_, pbft_msg_type, pbft_msg_.round, pbft_msg_.step, proof_);
   pbft_msg_.type = static_cast<PbftVoteTypes>(pbft_msg_type);
 }

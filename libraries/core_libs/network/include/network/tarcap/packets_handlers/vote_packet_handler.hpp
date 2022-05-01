@@ -9,11 +9,13 @@ class VoteManager;
 
 namespace taraxa::network::tarcap {
 
-class VotePacketHandler final : public ExtVotesPacketHandler {
+class VotePacketHandler : public ExtVotesPacketHandler {
  public:
   VotePacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                     std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<VoteManager> vote_mgr,
                     const addr_t& node_addr);
+
+  virtual ~VotePacketHandler() = default;
 
  private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;

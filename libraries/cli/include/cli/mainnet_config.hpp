@@ -1,10 +1,6 @@
-#pragma once
-
-#include <string_view>
-
 namespace taraxa::cli {
 
-constexpr std::string_view mainnet_json = R"foo({
+const char *mainnet_json = R"foo({
   "node_secret": "",
   "vrf_secret": "",
   "data_path": "",

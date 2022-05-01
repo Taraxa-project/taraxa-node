@@ -204,15 +204,16 @@ void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTr
 
   // When we propose block we know it is valid, no need for block verification with queue,
   // simply add the block to the DAG
-  DagBlock blk(frontier.pivot, level, std::move(frontier.tips), std::move(trx_hashes), std::move(vdf), node_sk_);
+  DagBlock blk(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes), std::move(vdf),
+               node_sk_);
+  dag_mgr_->addDagBlock(blk, std::move(trxs), true);
+  dag_blk_mgr_->markDagBlockAsSeen(blk);
+
+  auto now = getCurrentTimeMilliSeconds();
+  LOG(log_time_) << "Propose block " << blk.getHash() << " at: " << now << " ,trxs: " << blk.getTrxs()
+                 << " , tips: " << blk.getTips().size();
   LOG(log_nf_) << "Add proposed DAG block " << blk.getHash() << ", pivot " << blk.getPivot() << " , number of trx ("
                << blk.getTrxs().size() << ")";
-
-  // It is ok to mark our proposed new dag block as seen before adding it to dag as no one else has it yet - not
-  // possible to get into the invalid sync state -> marking something as seen before it is in internal structure
-  dag_blk_mgr_->markDagBlockAsSeen(blk);
-  dag_mgr_->addDagBlock(std::move(blk), std::move(trxs), true);
-
   BlockProposer::num_proposed_blocks.fetch_add(1);
 }
 
