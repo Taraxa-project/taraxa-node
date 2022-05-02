@@ -3,6 +3,7 @@
 #include <memory>
 #include <string_view>
 
+#include "common/thread_pool.hpp"
 #include "libdevcore/RLP.h"
 #include "logger/logger.hpp"
 #include "network/tarcap/packet_types.hpp"
@@ -26,6 +27,10 @@ class PacketHandler {
   PacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                 const addr_t& node_addr, const std::string& log_channel_name);
   virtual ~PacketHandler() = default;
+  PacketHandler(const PacketHandler&) = default;
+  PacketHandler(PacketHandler&&) = default;
+  PacketHandler& operator=(const PacketHandler&) = default;
+  PacketHandler& operator=(PacketHandler&&) = default;
 
   /**
    * @brief Packet processing function wrapper that logs packet stats and calls process function

@@ -1,6 +1,10 @@
+#pragma once
+
+#include <string_view>
+
 namespace taraxa::cli {
 
-const char *testnet_json = R"foo({
+constexpr std::string_view testnet_json = R"foo({
   "node_secret": "",
   "vrf_secret": "",
   "data_path": "",
@@ -174,14 +178,14 @@ const char *testnet_json = R"foo({
       "level": "0x0",
       "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
       "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
-      "timestamp": "0x6241D67F",
+      "timestamp": "0x626FB9AF",
       "tips": [],
       "transactions": []
     },
     "final_chain": {
       "genesis_block_fields": {
         "author": "0x0000000000000000000000000000000000000000",
-        "timestamp": "0x6241D67F"
+        "timestamp": "0x626FB9AF"
       },
       "state": {
         "disable_block_rewards": true,
@@ -212,7 +216,7 @@ const char *testnet_json = R"foo({
         },
         "execution_options": {
           "disable_gas_fee": false,
-          "disable_nonce_check": true
+          "disable_nonce_check": false
         },
         "genesis_balances": {
           "76870407332398322576505f3c5423d0a71af296": "0x117364175f2cb0e1dfc0000",
@@ -245,7 +249,7 @@ const char *testnet_json = R"foo({
       "computation_interval": 50,
       "vrf": {
         "threshold_upper": "0xafff",
-        "threshold_range": 80
+        "threshold_range": 90
       },
       "vdf": {
         "difficulty_max": 21,

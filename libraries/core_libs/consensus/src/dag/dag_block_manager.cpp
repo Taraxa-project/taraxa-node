@@ -7,7 +7,7 @@ namespace taraxa {
 DagBlockManager::DagBlockManager(addr_t node_addr, SortitionConfig const &sortition_config,
                                  std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                                  std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
-                                 logger::Logger log_time, uint32_t queue_limit)
+                                 logger::Logger log_time, uint32_t queue_limit, uint32_t max_levels_per_period)
     : db_(db),
       trx_mgr_(trx_mgr),
       final_chain_(final_chain),
@@ -20,9 +20,9 @@ DagBlockManager::DagBlockManager(addr_t node_addr, SortitionConfig const &sortit
   LOG_OBJECTS_CREATE("DAGBLKMGR");
 
   // Set DAG level proposal period map
-  if (!db_->getProposalPeriodForDagLevel(kMaxLevelsPerPeriod)) {
+  if (!db_->getProposalPeriodForDagLevel(max_levels_per_period)) {
     // Node start from scratch
-    db_->saveProposalPeriodDagLevelsMap(kMaxLevelsPerPeriod, 0);
+    db_->saveProposalPeriodDagLevelsMap(max_levels_per_period, 0);
   }
 }
 
@@ -181,17 +181,16 @@ DagBlockManager::InsertAndVerifyBlockReturnType DagBlockManager::verifyBlock(con
   }
 
   auto propose_period = db_->getProposalPeriodForDagLevel(blk.getLevel());
-  const auto expiry_period = pbft_chain_->getDagExpiryPeriod();
   // Verify DPOS
   if (!propose_period) {
     // Cannot find the proposal period in DB yet. The slow node gets an ahead block, remove from seen_blocks
-    LOG(log_nf_) << "Cannot find proposal period " << *propose_period << " in DB for DAG block " << blk.getHash();
+    LOG(log_nf_) << "Cannot find proposal period in DB for DAG block " << blk.getHash();
     seen_blocks_.erase(block_hash);
     return InsertAndVerifyBlockReturnType::AheadBlock;
   }
-  if (*propose_period < expiry_period) {
-    LOG(log_nf_) << "Dropping old block: " << blk.getHash() << ". Proposal period: " << *propose_period
-                 << " Expiry period: " << expiry_period << ". Block level: " << blk.getLevel();
+  if (blk.getLevel() < dag_expiry_level_) {
+    LOG(log_nf_) << "Dropping old block: " << blk.getHash() << ". Expiry level: " << dag_expiry_level_
+                 << ". Block level: " << blk.getLevel();
     return InsertAndVerifyBlockReturnType::ExpiredBlock;
   }
 

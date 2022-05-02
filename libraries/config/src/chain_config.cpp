@@ -75,8 +75,6 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     })"));
     cfg.final_chain.state.disable_block_rewards = true;
     cfg.final_chain.state.eth_chain_config.dao_fork_block = state_api::BlockNumberNIL;
-    cfg.final_chain.state.execution_options.disable_nonce_check = true;
-    cfg.final_chain.state.execution_options.disable_gas_fee = true;
     auto& dpos = cfg.final_chain.state.dpos.emplace();
     dpos.eligibility_balance_threshold = 1000000000;
     dpos.vote_eligibility_balance_step = 1000000000;
@@ -98,6 +96,7 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
   cfgs["test"] = [&] {
     auto cfg = cfgs["default"];
     cfg.chain_id = 12345;
+    cfg.final_chain.state.execution_options.disable_gas_fee = true;
     cfg.final_chain.state.genesis_balances[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")] =
         u256(7200999050) * 10000000000000000;  // https://ethereum.stackexchange.com/a/74832
     return cfg;

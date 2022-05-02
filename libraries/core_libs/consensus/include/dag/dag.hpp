@@ -63,8 +63,15 @@ class Dag {
   using edge_index_map_t = boost::property_map<graph_t, boost::edge_index_t>::type;
 
   friend DagManager;
+
   explicit Dag(blk_hash_t const &genesis, addr_t node_addr);
   virtual ~Dag() = default;
+
+  Dag(const Dag &) = default;
+  Dag(Dag &&) = default;
+  Dag &operator=(const Dag &) = default;
+  Dag &operator=(Dag &&) = default;
+
   uint64_t getNumVertices() const;
   uint64_t getNumEdges() const;
   bool hasVertex(blk_hash_t const &v) const;
@@ -103,6 +110,12 @@ class PivotTree : public Dag {
   friend DagManager;
   explicit PivotTree(blk_hash_t const &genesis, addr_t node_addr) : Dag(genesis, node_addr) {}
   virtual ~PivotTree() = default;
+
+  PivotTree(const PivotTree &) = default;
+  PivotTree(PivotTree &&) = default;
+  PivotTree &operator=(const PivotTree &) = default;
+  PivotTree &operator=(PivotTree &&) = default;
+
   using vertex_t = Dag::vertex_t;
   using vertex_adj_iter_t = Dag::vertex_adj_iter_t;
   using vertex_index_map_const_t = Dag::vertex_index_map_const_t;
@@ -119,8 +132,16 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   explicit DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                      std::shared_ptr<DbStorage> db, logger::Logger log_time);
+                      std::shared_ptr<DbStorage> db, logger::Logger log_time, bool is_light_node = false,
+                      uint64_t light_node_history = 0, uint32_t max_levels_per_period = kMaxLevelsPerPeriod,
+                      uint32_t dag_expiry_limit = kDagExpiryLevelLimit);
   virtual ~DagManager() { stop(); }
+
+  DagManager(const DagManager &) = delete;
+  DagManager(DagManager &&) = delete;
+  DagManager &operator=(const DagManager &) = delete;
+  DagManager &operator=(DagManager &&) = delete;
+
   std::shared_ptr<DagManager> getShared();
   void start();
   void stop();
@@ -129,7 +150,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   blk_hash_t const &get_genesis() { return genesis_; }
 
   bool pivotAndTipsAvailable(DagBlock const &blk);
-  void addDagBlock(DagBlock const &blk, SharedTransactions &&trxs = {}, bool proposed = false,
+  bool addDagBlock(DagBlock &&blk, SharedTransactions &&trxs = {}, bool proposed = false,
                    bool save = true);  // insert to buffer if fail
 
   // return block order
@@ -147,6 +168,9 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    * @return number of dag blocks finalized
    */
   uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period, vec_blk_t const &dag_order);
+
+  uint64_t getLightNodeHistory() const { return light_node_history_; }
+  bool isLightNode() const { return is_light_node_; }
 
   std::optional<std::pair<blk_hash_t, std::vector<blk_hash_t>>> getLatestPivotAndTips() const;
 
@@ -173,6 +197,13 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
     SharedLock lock(mutex_);
     return std::make_pair(old_anchor_, anchor_);
   }
+
+  /**
+   * @brief Retrieves Dag expiry limit
+   *
+   * @return limit
+   */
+  uint32_t getDagExpiryLimit() const { return dag_expiry_limit_; }
 
   const std::pair<uint64_t, std::map<uint64_t, std::unordered_set<blk_hash_t>>> getNonFinalizedBlocks() const;
 
@@ -209,6 +240,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   bool validateBlockNotExpired(const std::shared_ptr<DagBlock> &dag_block,
                                std::unordered_map<blk_hash_t, std::shared_ptr<DagBlock>> &expired_dag_blocks_to_remove);
   void handleExpiredDagBlocksTransactions(const std::vector<trx_hash_t> &transactions_from_expired_dag_blocks) const;
+  void clearLightNodeHistory();
 
   void worker();
   std::pair<blk_hash_t, std::vector<blk_hash_t>> getFrontier() const;  // return pivot and tips
@@ -231,6 +263,13 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   DagFrontier frontier_;
   std::atomic<bool> stopped_ = true;
   std::thread block_worker_;
+
+  const bool is_light_node_ = false;
+  const uint64_t light_node_history_ = 0;
+  const uint32_t max_levels_per_period_;
+  const uint32_t dag_expiry_limit_;  // Any non finalized dag block with a level smaller by
+                                     // dag_expiry_limit_ than the current period anchor level is considered
+                                     // expired and it should be ignored or removed from DAG
 
   logger::Logger log_time_;
   LOG_OBJECTS_DEFINE

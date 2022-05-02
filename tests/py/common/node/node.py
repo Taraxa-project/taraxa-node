@@ -68,6 +68,9 @@ class Node:
                 cfg["chain_config"]["final_chain"]["state"]["dpos"]["genesis_state"] = {}
                 cfg["chain_config"]["final_chain"]["state"]["dpos"]["genesis_state"]["0xde2b1203d72d3549ee2f733b00b2789414c7cea5"] = {}
                 cfg["chain_config"]["final_chain"]["state"]["dpos"]["genesis_state"]["0xde2b1203d72d3549ee2f733b00b2789414c7cea5"]["0xde2b1203d72d3549ee2f733b00b2789414c7cea5"] = "0x3b9aca00"
+                cfg["chain_config"]["final_chain"]["state"]["execution_options"] = {}
+                cfg["chain_config"]["final_chain"]["state"]["execution_options"]["disable_nonce_check"] = True
+                cfg["chain_config"]["final_chain"]["state"]["execution_options"]["disable_gas_fee"] = True
             with open(datadir_cfg_file_path, mode="w") as f:
                 json.dump(cfg, f)
 
