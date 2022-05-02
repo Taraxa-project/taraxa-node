@@ -22,6 +22,8 @@ class ThreadPool : std::enable_shared_from_this<ThreadPool> {
 
   ThreadPool(ThreadPool const &) = delete;
   ThreadPool &operator=(ThreadPool const &) = delete;
+  ThreadPool(ThreadPool &&) = delete;
+  ThreadPool &operator=(ThreadPool &&) = delete;
 
   auto capacity() const { return threads_.capacity(); }
   uint64_t num_pending_tasks() const { return num_pending_tasks_; }

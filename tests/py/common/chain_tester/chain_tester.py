@@ -269,6 +269,14 @@ class ChainTester:
         self._blocks_by_num.append(blk)
         return blk, tracked_balances
 
+    def _get_correct_nonce(self, node, address):
+        node_nonce = node.eth.get_transaction_count(address)
+        local_nonce = self._nonce_strategy(address)
+        if(node_nonce == 0 or local_nonce > node_nonce):
+            return local_nonce
+        self._nonce_strategy.update(node_nonce + 1)
+        return node_nonce + 1
+
     def _send_tx(self, tx: TxParams, node_index=None, signer: Optional[BaseAccount] = None,
                  expectation=TransactionExpectation()):
         signer = signer or self.default_tx_signer
@@ -278,13 +286,13 @@ class ChainTester:
         tx = dict(**tx)
         if 'nonce' not in tx:
             if send_signed:
-                tx['nonce'] = self._nonce_strategy(signer.address)
+                tx['nonce'] = self._get_correct_nonce(node, signer.address)
             else:
                 if 'from' in tx:
-                    tx['nonce'] = self._nonce_strategy(getattr(tx, 'from'))
+                    tx['nonce'] = self._get_correct_nonce(node, getattr(tx, 'from'))
                 else:
                     tx['from'] = node.account.address
-                    tx['nonce'] = self._nonce_strategy(node.account.address)
+                    tx['nonce'] = self._get_correct_nonce(node, node.account.address)
         if send_signed:
             if 'gasPrice' not in tx:
                 tx['gasPrice'] = node.eth.gas_price

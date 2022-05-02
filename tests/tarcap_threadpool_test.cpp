@@ -14,7 +14,13 @@ struct BaseTest : virtual testing::Test {
   testing::UnitTest* current_test = ::testing::UnitTest::GetInstance();
   testing::TestInfo const* current_test_info = current_test->current_test_info();
 
+  BaseTest() = default;
   virtual ~BaseTest() = default;
+
+  BaseTest(const BaseTest&) = delete;
+  BaseTest(BaseTest&&) = delete;
+  BaseTest& operator=(const BaseTest&) = delete;
+  BaseTest& operator=(BaseTest&&) = delete;
 };
 
 struct TarcapTpTest : BaseTest {};
@@ -30,9 +36,9 @@ class PacketsProcessingInfo {
 
  public:
   void addPacketProcessingTimes(tarcap::PacketData::PacketId packet_id,
-                                PacketProcessingTimes&& packet_processing_times) {
+                                const PacketProcessingTimes& packet_processing_times) {
     std::scoped_lock<std::shared_mutex> lock(mutex_);
-    bool res = packets_processing_times_.emplace(packet_id, std::move(packet_processing_times)).second;
+    bool res = packets_processing_times_.emplace(packet_id, packet_processing_times).second;
     assert(res);
   }
 
@@ -66,6 +72,10 @@ class DummyPacketHandler : public tarcap::PacketHandler {
         packets_proc_info_(std::move(packets_proc_info)) {}
 
   virtual ~DummyPacketHandler() = default;
+  DummyPacketHandler(const DummyPacketHandler&) = default;
+  DummyPacketHandler(DummyPacketHandler&&) = default;
+  DummyPacketHandler& operator=(const DummyPacketHandler&) = default;
+  DummyPacketHandler& operator=(DummyPacketHandler&&) = default;
 
  private:
   void validatePacketRlpFormat([[maybe_unused]] const tarcap::PacketData& packet_data) const override {}
@@ -128,14 +138,14 @@ std::shared_ptr<DummyPacketHandler> createDummyPacketHandler(const HandlersInitD
                                               logger_name, processing_delay_ms, init_data.packets_processing_info);
 }
 
-tarcap::PacketData createPacket(dev::p2p::NodeID&& sender_node_id, tarcap::SubprotocolPacketType packet_type,
+tarcap::PacketData createPacket(const dev::p2p::NodeID& sender_node_id, tarcap::SubprotocolPacketType packet_type,
                                 std::optional<std::vector<unsigned char>> packet_rlp_bytes = {}) {
   if (packet_rlp_bytes.has_value()) {
-    return {packet_type, std::move(sender_node_id), std::move(packet_rlp_bytes.value())};
+    return {packet_type, sender_node_id, std::move(packet_rlp_bytes.value())};
   }
 
   dev::RLPStream s(0);
-  return {packet_type, std::move(sender_node_id), s.invalidate()};
+  return {packet_type, sender_node_id, s.invalidate()};
 }
 
 bytes createDagBlockRlp(level_t level) {

@@ -135,7 +135,7 @@ Config::Config(int argc, const char* argv[]) {
     return;
   }
   if (version) {
-    cout << TARAXA_VERSION << endl;
+    std::cout << kVersionJson << endl;
     // If version requested, ignore any additional commands
     command.clear();
     return;

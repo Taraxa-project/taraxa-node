@@ -1,0 +1,19 @@
+{{- $fullName := include "taraxa-node.fullname" . -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $fullName }}-port-check
+  labels:
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  entrypoint.sh: |-
+    #!/bin/sh
+    set -e
+    echo "Checking host $1"
+    while [ $(nc -z -w5 $1 $2 > /dev/null 2>&1; echo $?) -ne 0 ]; do
+      sleep 5
+      echo "Waiting for $1:$2..."
+    done

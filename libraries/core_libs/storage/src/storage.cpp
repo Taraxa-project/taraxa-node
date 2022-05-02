@@ -18,14 +18,12 @@ static constexpr uint16_t DAG_BLOCKS_POS_IN_PERIOD_DATA = 2;
 static constexpr uint16_t TRANSACTIONS_POS_IN_PERIOD_DATA = 3;
 
 DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t max_open_files,
-                     uint32_t db_max_snapshots, uint32_t db_revert_to_period, addr_t node_addr, bool is_light_node,
-                     uint64_t light_node_history, bool rebuild, bool rebuild_columns)
+                     uint32_t db_max_snapshots, uint32_t db_revert_to_period, addr_t node_addr, bool rebuild,
+                     bool rebuild_columns)
     : path_(path),
       handles_(Columns::all.size()),
       db_snapshot_each_n_pbft_block_(db_snapshot_each_n_pbft_block),
-      db_max_snapshots_(db_max_snapshots),
-      is_light_node_(is_light_node),
-      light_node_history_(light_node_history) {
+      db_max_snapshots_(db_max_snapshots) {
   db_path_ = (path / db_dir);
   state_db_path_ = (path / state_db_dir);
 
@@ -388,7 +386,7 @@ void DbStorage::saveDagBlock(DagBlock const& blk, Batch* write_batch_p) {
 }
 
 // Sortition params
-void DbStorage::saveSortitionParamsChange(uint64_t period, SortitionParamsChange params, Batch& batch) {
+void DbStorage::saveSortitionParamsChange(uint64_t period, const SortitionParamsChange& params, Batch& batch) {
   insert(batch, Columns::sortition_params_change, toSlice(period), toSlice(params.rlp()));
 }
 
@@ -417,16 +415,9 @@ std::optional<SortitionParamsChange> DbStorage::getParamsChangeForPeriod(uint64_
   return SortitionParamsChange::from_rlp(dev::RLP(it->value().ToString()));
 }
 
-void DbStorage::clearPeriodDataHistory(uint64_t period, uint64_t dag_expiry_period, bool force) {
-  // Actual history size will be between 100% and 110% of light_node_history_ to avoid deleting on every period
-  if (is_light_node_ && ((period % (std::max(light_node_history_ / 10, (uint64_t)1)) == 0) || force) &&
-      period > light_node_history_) {
-    const uint64_t start = 0;
-    // This prevents deleting any data needed for dag blocks proposal period, we only delete periods for the expired dag
-    // blocks
-    const uint64_t end = std::min(period - light_node_history_, dag_expiry_period - 1);
-    db_->DeleteRange(write_options_, handle(Columns::period_data), toSlice(start), toSlice(end));
-  }
+void DbStorage::clearPeriodDataHistory(uint64_t period) {
+  const uint64_t start = 0;
+  db_->DeleteRange(write_options_, handle(Columns::period_data), toSlice(start), toSlice(period));
 }
 
 void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) {

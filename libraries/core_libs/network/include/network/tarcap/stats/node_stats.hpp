@@ -28,8 +28,6 @@ class NodeStats {
             std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<TransactionManager> trx_mgr,
             std::shared_ptr<PacketsStats> packets_stats, std::shared_ptr<const TarcapThreadPool> thread_pool,
             const addr_t &node_addr);
-  NodeStats(const NodeStats &) = default;
-  NodeStats(NodeStats &&) = default;
 
   void logNodeStats();
   uint64_t syncTimeSeconds() const;

@@ -68,7 +68,8 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
       if (pbft_synced_period + node_history < peer_pbft_chain_size) {
         LOG(log_nf_) << "Light node is not able to serve our syncing request. " << packet_data.from_node_id_.abridged()
                      << " peer will be disconnected";
-        disconnect(peer->getId(), dev::p2p::UserReason);
+        disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
+        return;
       }
     }
 
@@ -194,7 +195,7 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
                                 << conf_network_id_ << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
                                 << pbft_syncing_state_->isPbftSyncing() << pbft_round
                                 << pbft_previous_round_next_votes_size << TARAXA_MAJOR_VERSION << TARAXA_MINOR_VERSION
-                                << TARAXA_PATCH_VERSION << db_->isLightNode() << db_->getLightNodeHistory()));
+                                << TARAXA_PATCH_VERSION << dag_mgr_->isLightNode() << dag_mgr_->getLightNodeHistory()));
     } else {
       success = sealAndSend(node_id, StatusPacket,
                             std::move(dev::RLPStream(kStandardStatusPacketItemsCount)
