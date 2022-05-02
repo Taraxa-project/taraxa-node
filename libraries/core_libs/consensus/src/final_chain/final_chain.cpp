@@ -90,13 +90,13 @@ class FinalChainImpl final : public FinalChain {
   shared_ptr<FinalizationResult> finalize_(SyncBlock&& new_blk, std::vector<h256>&& finalized_dag_blk_hashes,
                                            finalize_precommit_ext const& precommit_ext) {
     auto batch = db_->createWriteBatch();
-    Transactions to_execute;
+    SharedTransactions to_execute;
     {
       // This artificial scope will make sure we clean up the big chunk of memory allocated for this batch-processing
       // stuff as soon as possible
       DB::MultiGetQuery db_query(db_, new_blk.transactions.size());
       for (auto const& trx : new_blk.transactions) {
-        db_query.append(DB::Columns::final_chain_transaction_location_by_hash, trx.getHash());
+        db_query.append(DB::Columns::final_chain_transaction_location_by_hash, trx->getHash());
       }
       auto trx_db_results = db_query.execute(false);
       to_execute.reserve(new_blk.transactions.size());
@@ -107,7 +107,7 @@ class FinalChainImpl final : public FinalChain {
         // Non-executed trxs
         auto& trx = new_blk.transactions[i];
         if (!(replay_protection_service_ &&
-              replay_protection_service_->is_nonce_stale(trx.getSender(), trx.getNonce()))) [[likely]] {
+              replay_protection_service_->is_nonce_stale(trx->getSender(), trx->getNonce()))) [[likely]] {
           to_execute.push_back(std::move(trx));
         }
       }
@@ -139,7 +139,7 @@ class FinalChainImpl final : public FinalChain {
       // Update replay protection service, like nonce watermark. Nonce watermark has been disabled
       replay_protection_service_->update(
           batch, blk_header->number, util::make_range_view(to_execute).map([](auto const& trx) {
-            return ReplayProtectionService::TransactionInfo{trx.getSender(), trx.getNonce()};
+            return ReplayProtectionService::TransactionInfo{trx->getSender(), trx->getNonce()};
           }));
     }
     // Update number of executed DAG blocks and transactions
@@ -184,7 +184,7 @@ class FinalChainImpl final : public FinalChain {
   }
 
   shared_ptr<BlockHeader> append_block(DB::Batch& batch, addr_t const& author, uint64_t timestamp, uint64_t gas_limit,
-                                       h256 const& state_root, Transactions const& transactions = {},
+                                       h256 const& state_root, SharedTransactions const& transactions = {},
                                        TransactionReceipts const& receipts = {}) {
     auto blk_header_ptr = make_shared<BlockHeader>();
     auto& blk_header = *blk_header_ptr;
@@ -201,10 +201,10 @@ class FinalChainImpl final : public FinalChain {
     for (size_t i(0); i < transactions.size(); ++i) {
       auto const& trx = transactions[i];
       auto i_rlp = util::rlp_enc(rlp_strm, i);
-      trxs_trie[i_rlp] = trx.rlp();
+      trxs_trie[i_rlp] = trx->rlp();
       auto const& receipt = receipts[i];
       receipts_trie[i_rlp] = util::rlp_enc(rlp_strm, receipt);
-      db_->insert(batch, DB::Columns::final_chain_receipt_by_trx_hash, trx.getHash(), rlp_strm.out());
+      db_->insert(batch, DB::Columns::final_chain_receipt_by_trx_hash, trx->getHash(), rlp_strm.out());
       auto bloom = receipt.bloom();
       blk_header.log_bloom |= bloom;
     }
@@ -225,7 +225,7 @@ class FinalChainImpl final : public FinalChain {
     }
     TransactionLocation tl{blk_header.number};
     for (auto const& trx : transactions) {
-      db_->insert(batch, DB::Columns::final_chain_transaction_location_by_hash, trx.getHash(),
+      db_->insert(batch, DB::Columns::final_chain_transaction_location_by_hash, trx->getHash(),
                   util::rlp_enc(rlp_strm, tl));
       ++tl.index;
     }
@@ -299,14 +299,14 @@ class FinalChainImpl final : public FinalChain {
         .value_or(0);
   }
 
-  Transactions transactions(optional<EthBlockNumber> n = {}) const override {
-    Transactions ret;
+  SharedTransactions transactions(optional<EthBlockNumber> n = {}) const override {
+    SharedTransactions ret;
     auto hashes = transaction_hashes(n);
     ret.reserve(hashes->count());
     for (size_t i = 0; i < ret.capacity(); ++i) {
       auto trx = db_->getTransaction(hashes->get(i));
       assert(trx);
-      ret.emplace_back(*trx);
+      ret.emplace_back(trx);
     }
     return ret;
   }
@@ -380,11 +380,11 @@ class FinalChainImpl final : public FinalChain {
     return client_blk_n ? *client_blk_n : last_block_number();
   }
 
-  static util::RangeView<state_api::EVMTransaction> to_state_api_transactions(Transactions const& trxs) {
+  static util::RangeView<state_api::EVMTransaction> to_state_api_transactions(SharedTransactions const& trxs) {
     return util::make_range_view(trxs).map([](auto const& trx) {
       return state_api::EVMTransaction{
-          trx.getSender(), trx.getGasPrice(), trx.getReceiver(), trx.getNonce(),
-          trx.getValue(),  trx.getGas(),      trx.getData(),
+          trx->getSender(), trx->getGasPrice(), trx->getReceiver(), trx->getNonce(),
+          trx->getValue(),  trx->getGas(),      trx->getData(),
       };
     });
   }
@@ -426,11 +426,11 @@ class FinalChainImpl final : public FinalChain {
     explicit TransactionHashesImpl(string serialized)
         : serialized_(move(serialized)), count_(serialized_.size() / h256::size) {}
 
-    static bytes serialize_from_transactions(Transactions const& transactions) {
+    static bytes serialize_from_transactions(SharedTransactions const& transactions) {
       bytes serialized;
       serialized.reserve(transactions.size() * h256::size);
       for (auto const& trx : transactions) {
-        for (auto b : trx.getHash()) {
+        for (auto b : trx->getHash()) {
           serialized.push_back(b);
         }
       }

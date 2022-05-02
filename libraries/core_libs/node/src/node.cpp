@@ -137,7 +137,7 @@ void FullNode::start() {
             std::runtime_error(fmt("Transaction is rejected.\n"
                                    "RLP: %s\n"
                                    "Reason: %s",
-                                   dev::toJS(trx.rlp()), err_msg)));
+                                   dev::toJS(trx->rlp()), err_msg)));
       }
     };
     eth_rpc_params.syncing_probe = [network = network_, pbft_chain = pbft_chain_, pbft_mgr = pbft_mgr_] {

@@ -226,7 +226,7 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
         ctx.fail_if(trx_pool_size > 0);
       });
     }
-    nodes[0]->getTransactionManager()->insertTransaction(*signed_trxs[i]);
+    nodes[0]->getTransactionManager()->insertTransaction(signed_trxs[i]);
   }
 
   const auto node1_pbft_chain = nodes[0]->getPbftChain();
@@ -508,8 +508,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   SyncBlock sync_block1(std::make_shared<PbftBlock>(pbft_block1), votes_for_pbft_blk1);
   sync_block1.dag_blocks.push_back(blk1);
-  sync_block1.transactions.push_back(*g_signed_trx_samples[0]);
-  sync_block1.transactions.push_back(*g_signed_trx_samples[1]);
+  sync_block1.transactions.push_back(g_signed_trx_samples[0]);
+  sync_block1.transactions.push_back(g_signed_trx_samples[1]);
 
   db1->savePeriodData(sync_block1, batch);
   // Update period_pbft_block in DB
@@ -566,8 +566,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   SyncBlock sync_block2(std::make_shared<PbftBlock>(pbft_block2), votes_for_pbft_blk2);
   sync_block2.dag_blocks.push_back(blk2);
-  sync_block2.transactions.push_back(*g_signed_trx_samples[2]);
-  sync_block2.transactions.push_back(*g_signed_trx_samples[3]);
+  sync_block2.transactions.push_back(g_signed_trx_samples[2]);
+  sync_block2.transactions.push_back(g_signed_trx_samples[3]);
 
   db1->savePeriodData(sync_block2, batch);
 
@@ -669,8 +669,8 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   SyncBlock sync_block1(std::make_shared<PbftBlock>(pbft_block1), votes_for_pbft_blk1);
   sync_block1.dag_blocks.push_back(blk1);
-  sync_block1.transactions.push_back(*g_signed_trx_samples[0]);
-  sync_block1.transactions.push_back(*g_signed_trx_samples[1]);
+  sync_block1.transactions.push_back(g_signed_trx_samples[0]);
+  sync_block1.transactions.push_back(g_signed_trx_samples[1]);
 
   db1->savePeriodData(sync_block1, batch);
   // Update pbft chain
@@ -713,8 +713,8 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   SyncBlock sync_block2(std::make_shared<PbftBlock>(pbft_block2), votes_for_pbft_blk1);
   sync_block2.dag_blocks.push_back(blk1);
-  sync_block2.transactions.push_back(*g_signed_trx_samples[2]);
-  sync_block2.transactions.push_back(*g_signed_trx_samples[3]);
+  sync_block2.transactions.push_back(g_signed_trx_samples[2]);
+  sync_block2.transactions.push_back(g_signed_trx_samples[3]);
 
   db1->savePeriodData(sync_block2, batch);
   // Update pbft chain
@@ -1274,8 +1274,8 @@ TEST_F(NetworkTest, node_full_sync) {
   // When last level have more than 1 DAG blocks, send a dummy transaction to converge DAG
   if (!dag_synced) {
     std::cout << "Send dummy trx" << std::endl;
-    Transaction dummy_trx(num_of_trxs++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
-                          nodes[0]->getAddress());
+    auto dummy_trx = std::make_shared<Transaction>(num_of_trxs++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
+                                                   nodes[0]->getSecretKey(), nodes[0]->getAddress());
     // broadcast dummy transaction
     nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
 
@@ -1329,8 +1329,8 @@ TEST_F(NetworkTest, node_full_sync) {
   // When last level have more than 1 DAG blocks, send a dummy transaction to converge DAG
   if (!dag_synced) {
     std::cout << "Send dummy trx" << std::endl;
-    Transaction dummy_trx(num_of_trxs++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
-                          nodes[0]->getAddress());
+    auto dummy_trx = std::make_shared<Transaction>(num_of_trxs++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
+                                                   nodes[0]->getSecretKey(), nodes[0]->getAddress());
     // broadcast dummy transaction
     nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
 

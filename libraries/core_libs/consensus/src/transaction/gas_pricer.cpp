@@ -45,9 +45,9 @@ void GasPricer::init(const std::shared_ptr<DbStorage>& db) {
 
     if (const auto min_trx =
             *std::min_element(trxs->begin(), trxs->end(),
-                              [](const auto& t1, const auto& t2) { return t1.getGasPrice() < t2.getGasPrice(); });
-        min_trx.getGasPrice()) {
-      price_list_.push_front(min_trx.getGasPrice());
+                              [](const auto& t1, const auto& t2) { return t1->getGasPrice() < t2->getGasPrice(); });
+        min_trx->getGasPrice()) {
+      price_list_.push_front(min_trx->getGasPrice());
     }
   }
 
@@ -63,15 +63,16 @@ void GasPricer::init(const std::shared_ptr<DbStorage>& db) {
   }
 }
 
-void GasPricer::update(const Transactions& trxs) {
+void GasPricer::update(const SharedTransactions& trxs) {
   if (trxs.empty()) return;
 
-  if (const auto min_trx = *std::min_element(
-          trxs.begin(), trxs.end(), [](const auto& t1, const auto& t2) { return t1.getGasPrice() < t2.getGasPrice(); });
-      min_trx.getGasPrice()) {
+  if (const auto min_trx =
+          *std::min_element(trxs.begin(), trxs.end(),
+                            [](const auto& t1, const auto& t2) { return t1->getGasPrice() < t2->getGasPrice(); });
+      min_trx->getGasPrice()) {
     std::unique_lock lock(mutex_);
 
-    price_list_.push_back(min_trx.getGasPrice());
+    price_list_.push_back(min_trx->getGasPrice());
 
     std::vector<u256> sorted_prices;
     sorted_prices.reserve(price_list_.size());

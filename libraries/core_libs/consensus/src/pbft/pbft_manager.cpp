@@ -1130,8 +1130,8 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
   return weight;
 }
 
-blk_hash_t PbftManager::calculateOrderHash(std::vector<blk_hash_t> const &dag_block_hashes,
-                                           std::vector<trx_hash_t> const &trx_hashes) {
+blk_hash_t PbftManager::calculateOrderHash(const std::vector<blk_hash_t> &dag_block_hashes,
+                                           const std::vector<trx_hash_t> &trx_hashes) {
   if (dag_block_hashes.empty()) {
     return NULL_BLOCK_HASH;
   }
@@ -1147,8 +1147,7 @@ blk_hash_t PbftManager::calculateOrderHash(std::vector<blk_hash_t> const &dag_bl
   return dev::sha3(order_stream.out());
 }
 
-blk_hash_t PbftManager::calculateOrderHash(std::vector<DagBlock> const &dag_blocks,
-                                           std::vector<Transaction> const &trxs) {
+blk_hash_t PbftManager::calculateOrderHash(const std::vector<DagBlock> &dag_blocks, const SharedTransactions &trxs) {
   if (dag_blocks.empty()) {
     return NULL_BLOCK_HASH;
   }
@@ -1159,7 +1158,7 @@ blk_hash_t PbftManager::calculateOrderHash(std::vector<DagBlock> const &dag_bloc
   }
   order_stream.appendList(trxs.size());
   for (auto const &trx : trxs) {
-    order_stream << trx.getHash();
+    order_stream << trx->getHash();
   }
   return dev::sha3(order_stream.out());
 }
@@ -1464,7 +1463,7 @@ std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(s
   cert_sync_block_.transactions.reserve(transactions.size());
   for (const auto &trx : transactions) {
     non_finalized_transactions.push_back(trx->getHash());
-    cert_sync_block_.transactions.push_back(*trx);
+    cert_sync_block_.transactions.push_back(trx);
   }
 
   auto calculated_order_hash = calculateOrderHash(dag_blocks_order, non_finalized_transactions);

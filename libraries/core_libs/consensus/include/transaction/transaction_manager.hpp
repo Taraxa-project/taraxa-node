@@ -41,7 +41,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @param trx transaction to be processed
    * @return std::pair<bool, std::string> -> pair<OK status, ERR message>
    */
-  std::pair<bool, std::string> insertTransaction(Transaction const &trx);
+  std::pair<bool, std::string> insertTransaction(const std::shared_ptr<Transaction> &trx);
 
   /**
    * @brief Inserts batch of verified transactions to transaction pool

@@ -95,7 +95,7 @@ struct NewBlock {
 
 struct FinalizationResult : NewBlock {
   std::shared_ptr<BlockHeader const> final_chain_blk;
-  Transactions trxs;
+  SharedTransactions trxs;
   TransactionReceipts trx_receipts;
 };
 

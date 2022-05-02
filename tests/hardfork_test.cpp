@@ -87,7 +87,7 @@ TEST_F(HardforkTest, fix_genesis_fork_block_is_zero) {
   cfg.state.hardforks.fix_genesis_fork_block = 0;
   auto node = launch_nodes({node_cfg}).front();
 
-  Transaction dummy_trx(1, 0, 0, 0, bytes(), node->getSecretKey(), node->getAddress());
+  auto dummy_trx = std::make_shared<Transaction>(1, 0, 0, 0, bytes(), node->getSecretKey(), node->getAddress());
   // broadcast dummy transaction
   node->getTransactionManager()->insertTransaction(dummy_trx);
   wait({100s, 500ms}, [&](auto &ctx) {
@@ -123,7 +123,7 @@ TEST_F(HardforkTest, hardfork) {
   auto node = launch_nodes({node_cfg}).front();
   auto nonce = 0;
   auto dummy_trx = [&nonce, node]() {
-    Transaction dummy_trx(nonce++, 0, 0, 0, bytes(), node->getSecretKey(), node->getAddress());
+    auto dummy_trx = std::make_shared<Transaction>(nonce++, 0, 0, 0, bytes(), node->getSecretKey(), node->getAddress());
     // broadcast dummy transaction
     node->getTransactionManager()->insertTransaction(dummy_trx);
   };

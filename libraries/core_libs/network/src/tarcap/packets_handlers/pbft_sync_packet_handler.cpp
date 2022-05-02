@@ -112,7 +112,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
       std::vector<blk_hash_t> blk_order;
       blk_order.reserve(sync_block.dag_blocks.size());
       for (auto t : sync_block.transactions) {
-        trx_order.push_back(t.getHash());
+        trx_order.push_back(t->getHash());
       }
       for (auto b : sync_block.dag_blocks) {
         blk_order.push_back(b.getHash());

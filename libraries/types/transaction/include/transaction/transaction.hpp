@@ -24,15 +24,16 @@ struct Transaction {
   uint64_t chain_id_ = 0;
   dev::SignatureStruct vrs_;
   mutable trx_hash_t hash_;
-  mutable bool hash_initialized_ = false;
+  mutable std::atomic_bool hash_initialized_ = false;
   bool is_zero_ = false;
-  mutable util::DefaultConstructCopyableMovable<std::mutex> hash_mu_;
-  mutable bool sender_initialized_ = false;
+  mutable std::mutex hash_mu_;
+  mutable std::atomic_bool sender_initialized_ = false;
   mutable bool sender_valid_ = false;
   mutable addr_t sender_;
-  mutable util::DefaultConstructCopyableMovable<std::mutex> sender_mu_;
+  mutable std::mutex sender_mu_;
+  mutable std::atomic_bool cached_rlp_set_ = false;
   mutable bytes cached_rlp_;
-  mutable util::DefaultConstructCopyableMovable<std::mutex> cached_rlp_mu_;
+  mutable std::mutex cached_rlp_mu_;
 
   template <bool for_signature>
   void streamRLP(dev::RLPStream &s) const;
