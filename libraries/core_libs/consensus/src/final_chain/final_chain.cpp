@@ -120,6 +120,9 @@ class FinalChainImpl final : public FinalChain {
     receipts.reserve(exec_results.size());
     gas_t cumulative_gas_used = 0;
     for (auto const& r : exec_results) {
+      if(!(r.code_err.empty() && r.consensus_err.empty())) {
+        LOG(log_er_) << "Transaction failed with error: " << ((r.code_err.empty()) ? r.consensus_err : r.code_err);
+      }
       LogEntries logs;
       logs.reserve(r.logs.size());
       for (auto const& l : r.logs) {
