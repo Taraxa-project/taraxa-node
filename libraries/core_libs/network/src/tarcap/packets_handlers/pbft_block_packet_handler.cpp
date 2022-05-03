@@ -26,8 +26,6 @@ void PbftBlockPacketHandler::validatePacketRlpFormat(const PacketData &packet_da
 }
 
 void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
-  LOG(log_tr_) << "In PbftBlockPacket";
-
   auto pbft_block = std::make_shared<PbftBlock>(packet_data.rlp_[0]);
   const auto proposed_block_hash = pbft_block->getBlockHash();
   const auto proposed_period = pbft_block->getPeriod();
@@ -43,14 +41,14 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::s
 
   const auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();
   if (pbft_synced_period >= pbft_block->getPeriod()) {
-    LOG(log_tr_) << "Drop proposed PBFT block " << pbft_block->getBlockHash().abridged() << " at period "
+    LOG(log_dg_) << "Drop proposed PBFT block " << pbft_block->getBlockHash().abridged() << " at period "
                  << proposed_period << ", own PBFT chain has synced at period " << pbft_synced_period;
     return;
   }
 
   // Synchronization point in case multiple threads are processing the same block at the same time
   if (!pbft_chain_->pushUnverifiedPbftBlock(pbft_block)) {
-    LOG(log_tr_) << "Drop proposed PBFT block " << proposed_block_hash.abridged() << " at period " << proposed_period
+    LOG(log_dg_) << "Drop proposed PBFT block " << proposed_block_hash.abridged() << " at period " << proposed_period
                  << " -> already inserted in unverified queue";
     return;
   }
