@@ -551,7 +551,8 @@ bool VoteManager::verifyRewardVote(std::shared_ptr<Vote>& vote) {
     return false;
   }
 
-  uint64_t dpos_period = pbft_chain_->getPbftChainSize() - 1;  // reward period - 1
+  const uint64_t pbft_chain_size = pbft_chain_->getPbftChainSize();  // reward period
+  const uint64_t dpos_period = pbft_chain_size - 1;                  // reward period - 1
   const auto& voter_account_addr = vote->getVoterAddr();
   uint64_t voter_dpos_votes_count;
   try {
@@ -569,9 +570,9 @@ bool VoteManager::verifyRewardVote(std::shared_ptr<Vote>& vote) {
 
   const uint64_t reward_period_dpos_total_votes_count = final_chain_->dpos_eligible_total_vote_count(dpos_period);
   const size_t reward_period_pbft_sortition_threshold =
-      db_->getPbftSortitionThreshold(dpos_period + 1);  // reward period
+      db_->getPbftSortitionThreshold(pbft_chain_size);  // reward period
   if (!reward_period_pbft_sortition_threshold) {
-    LOG(log_er_) << "Cannot get PBFT sortition threshold for period " << dpos_period;
+    LOG(log_er_) << "Cannot get PBFT sortition threshold for period " << pbft_chain_size;
     return false;
   }
   try {
