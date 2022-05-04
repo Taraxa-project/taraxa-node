@@ -259,7 +259,7 @@ std::vector<std::shared_ptr<Transaction>> TransactionManager::getNonfinalizedTrx
         return t1->getNonce() < t2->getNonce() ||
                (t1->getNonce() == t2->getNonce() && t1->getGasPrice() > t2->getGasPrice());
       }
-      return true;
+      return t1->getGasPrice() > t2->getGasPrice();
     });
   }
   return ret;
