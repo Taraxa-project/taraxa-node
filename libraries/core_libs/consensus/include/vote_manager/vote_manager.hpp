@@ -63,8 +63,9 @@ class NextVotesManager {
 
 class VoteManager {
  public:
-  VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<NextVotesManager> next_votes_mgr);
+  VoteManager(size_t pbft_committee_size, const addr_t& node_addr, std::shared_ptr<DbStorage> db,
+              std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
+              std::shared_ptr<NextVotesManager> next_votes_mgr);
   ~VoteManager();
   VoteManager(const VoteManager&) = delete;
   VoteManager(VoteManager&&) = delete;
@@ -177,6 +178,7 @@ class VoteManager {
   mutable boost::shared_mutex unverified_votes_access_;
   mutable boost::shared_mutex verified_votes_access_;
 
+  const size_t pbft_committee_size_;
   const addr_t node_addr_;
 
   std::shared_ptr<DbStorage> db_;
