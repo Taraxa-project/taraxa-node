@@ -1269,6 +1269,9 @@ blk_hash_t PbftManager::proposePbftBlock_() {
   non_finalized_transactions.clear();
   std::transform(transactions.begin(), transactions.end(), std::back_inserter(non_finalized_transactions),
                  [](const auto &t) { return t->getHash(); });
+  for (const auto &trx : transactions) {
+    LOG(log_er_) << "ZZZ trx: " << trx->getSender() << " nonce: " << trx->getNonce();;
+  }
 
   auto order_hash = calculateOrderHash(dag_block_order, non_finalized_transactions);
   auto pbft_block_hash = generatePbftBlock(last_pbft_block_hash, dag_block_hash, order_hash);
@@ -1464,6 +1467,7 @@ std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(s
   cert_sync_block_.transactions.reserve(transactions.size());
   for (const auto &trx : transactions) {
     non_finalized_transactions.push_back(trx->getHash());
+    LOG(log_er_) << "XXXX trx: " << trx->getSender() << " nonce: " << trx->getNonce();
     cert_sync_block_.transactions.push_back(*trx);
   }
 
