@@ -1705,10 +1705,6 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
 
   db_->savePeriodData(sync_block, batch);
 
-  // Save PBFT sortition threshold per period for reward votes verification
-  auto sortition_threshold = std::min<size_t>(COMMITTEE_SIZE, getDposTotalVotesCount());
-  db_->addPbftSortitionThresholdToBatch(pbft_period, sortition_threshold, batch);
-
   // Reset last cert voted value to NULL_BLOCK_HASH
   db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::LastCertVotedValue, NULL_BLOCK_HASH, batch);
 

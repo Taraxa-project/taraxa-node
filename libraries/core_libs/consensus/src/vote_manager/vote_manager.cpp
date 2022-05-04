@@ -12,9 +12,11 @@ constexpr size_t EXTENDED_PARTITION_STEPS = 1000;
 constexpr size_t FIRST_FINISH_STEP = 4;
 
 namespace taraxa {
-VoteManager::VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-                         std::shared_ptr<FinalChain> final_chain, std::shared_ptr<NextVotesManager> next_votes_mgr)
-    : node_addr_(node_addr),
+VoteManager::VoteManager(size_t pbft_committee_size, const addr_t& node_addr, std::shared_ptr<DbStorage> db,
+                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
+                         std::shared_ptr<NextVotesManager> next_votes_mgr)
+    : pbft_committee_size_(pbft_committee_size),
+      node_addr_(node_addr),
       db_(std::move(db)),
       pbft_chain_(std::move(pbft_chain)),
       final_chain_(std::move(final_chain)),
@@ -551,8 +553,7 @@ bool VoteManager::verifyRewardVote(std::shared_ptr<Vote>& vote) {
     return false;
   }
 
-  const uint64_t pbft_chain_size = pbft_chain_->getPbftChainSize();  // reward period
-  const uint64_t dpos_period = pbft_chain_size - 1;                  // reward period - 1
+  const uint64_t dpos_period = pbft_chain_->getPbftChainSize() - 1;  // reward period - 1
   const auto& voter_account_addr = vote->getVoterAddr();
   uint64_t voter_dpos_votes_count;
   try {
@@ -568,21 +569,15 @@ bool VoteManager::verifyRewardVote(std::shared_ptr<Vote>& vote) {
     return false;
   }
 
-  const uint64_t reward_period_dpos_total_votes_count = final_chain_->dpos_eligible_total_vote_count(dpos_period);
-  const size_t reward_period_pbft_sortition_threshold =
-      db_->getPbftSortitionThreshold(pbft_chain_size);  // reward period
-  if (!reward_period_pbft_sortition_threshold) {
-    LOG(log_er_) << "Cannot get PBFT sortition threshold for period " << pbft_chain_size;
-    return false;
-  }
+  const auto dpos_total_votes_count = final_chain_->dpos_eligible_total_vote_count(dpos_period);
+  const size_t pbft_sortition_threshold = std::min<size_t>(pbft_committee_size_, dpos_total_votes_count);
   try {
-    vote->validate(voter_dpos_votes_count, reward_period_dpos_total_votes_count,
-                   reward_period_pbft_sortition_threshold);
+    vote->validate(voter_dpos_votes_count, dpos_total_votes_count, pbft_sortition_threshold);
   } catch (const std::logic_error& e) {
     LOG(log_er_) << e.what();
     LOG(log_er_) << "DPOS period " << dpos_period << ", voter " << voter_account_addr << " votes count "
-                 << voter_dpos_votes_count << ", total votes count " << reward_period_dpos_total_votes_count
-                 << ", pbft sortition threshold " << reward_period_pbft_sortition_threshold;
+                 << voter_dpos_votes_count << ", total votes count " << dpos_total_votes_count
+                 << ", pbft sortition threshold " << pbft_sortition_threshold;
 
     return false;
   }
