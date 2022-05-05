@@ -44,6 +44,7 @@ void dec_json(Json::Value const& json, DPOSConfig& obj);
 struct ExecutionOptions {
   bool disable_nonce_check = 0;
   bool disable_gas_fee = 0;
+  bool enable_nonce_skipping = 0;
 
   HAS_RLP_FIELDS
 };
