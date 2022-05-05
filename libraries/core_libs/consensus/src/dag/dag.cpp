@@ -317,7 +317,6 @@ void DagManager::stop() {
     return;
   }
   std::unique_lock lock(mutex_);
-  trx_mgr_ = nullptr;
   block_worker_.join();
 }
 
