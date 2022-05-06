@@ -276,7 +276,7 @@ TEST_F(VoteTest, transfer_vote) {
   size_t step = 1000;
   auto vote = pbft_mgr2->generateVote(propose_block_hash, type, period, step);
 
-  nw2->sendPbftVote(nw1->getNodeId(), vote);
+  nw2->sendPbftVotes(nw1->getNodeId(), {vote});
 
   auto vote_mgr1 = node1->getVoteManager();
   auto vote_mgr2 = node2->getVoteManager();

@@ -9,56 +9,51 @@ ExtVotesPacketHandler::ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_s
                                              const std::string &log_channel_name)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name) {}
 
-void ExtVotesPacketHandler::onNewPbftVote(std::shared_ptr<Vote> &&vote) {
-  std::vector<dev::p2p::NodeID> peers_to_send;
-  const auto round = vote->getRound();
-  for (auto const &peer : peers_state_->getAllPeers()) {
-    if (!peer.second->isVoteKnown(vote->getHash()) && !peer.second->syncing_ && peer.second->pbft_round_ <= round) {
-      peers_to_send.push_back(peer.first);
+void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes) {
+  for (const auto &peer : peers_state_->getAllPeers()) {
+    if (peer.second->syncing_) {
+      continue;
     }
-  }
-  for (auto const &peer_id : peers_to_send) {
-    sendPbftVote(peer_id, vote);
+
+    std::vector<std::shared_ptr<Vote>> send_votes;
+    for (const auto &v : votes) {
+      if (!peer.second->isVoteKnown(v->getHash()) && peer.second->pbft_round_ <= v->getRound()) {
+        send_votes.push_back(v);
+      }
+    }
+    sendPbftVotes(peer.first, std::move(send_votes));
   }
 }
 
-void ExtVotesPacketHandler::sendPbftVote(dev::p2p::NodeID const &peer_id, std::shared_ptr<Vote> const &vote) {
-  const auto peer = peers_state_->getPeer(peer_id);
-  // TODO: We should disable PBFT votes when a node is bootstrapping but not when trying to resync
-  if (peer) {
-    if (sealAndSend(peer_id, SubprotocolPacketType::VotePacket, std::move(dev::RLPStream(1) << vote->rlp(true)))) {
-      LOG(log_dg_) << "sendPbftVote " << vote->getHash() << " to " << peer_id;
-      peer->markVoteAsKnown(vote->getHash());
-    }
-  }
-}
-
-void ExtVotesPacketHandler::sendPbftNextVotes(dev::p2p::NodeID const &peer_id,
-                                              std::vector<std::shared_ptr<Vote>> const &send_next_votes_bundle) {
-  if (send_next_votes_bundle.empty()) {
+void ExtVotesPacketHandler::sendPbftVotes(const dev::p2p::NodeID &peer_id, std::vector<std::shared_ptr<Vote>> &&votes,
+                                          bool next_votes_type) {
+  if (votes.empty()) {
     return;
   }
 
-  uint32_t index = 0;
-  while (index < send_next_votes_bundle.size()) {
-    uint32_t vote_count_to_send =
-        std::min(static_cast<size_t>(kMaxVotesInPacket), send_next_votes_bundle.size() - index);
+  LOG(log_nf_) << "Will send next votes type " << std::boolalpha << next_votes_type;
+  auto subprotocol_packet_type =
+      next_votes_type ? SubprotocolPacketType::VotesSyncPacket : SubprotocolPacketType::VotePacket;
 
-    dev::RLPStream s(vote_count_to_send);
-    for (uint32_t i = index; i < index + vote_count_to_send; i++) {
-      const auto &next_vote = send_next_votes_bundle[i];
-      s.appendRaw(next_vote->rlp(true));
-      LOG(log_dg_) << "Send out next vote " << next_vote->getHash() << " to peer " << peer_id;
+  size_t index = 0;
+  while (index < votes.size()) {
+    const size_t count = std::min(static_cast<size_t>(kMaxVotesInPacket), votes.size() - index);
+    dev::RLPStream s(count);
+    for (auto i = index; i < index + count; i++) {
+      const auto &v = votes[i];
+      s.appendRaw(v->rlp(true));
+      LOG(log_dg_) << "Send out vote " << v->getHash() << " to peer " << peer_id;
     }
 
-    if (sealAndSend(peer_id, SubprotocolPacketType::VotesSyncPacket, std::move(s))) {
-      LOG(log_nf_) << "Send out size of " << vote_count_to_send << " PBFT next votes to " << peer_id;
+    if (sealAndSend(peer_id, subprotocol_packet_type, std::move(s))) {
+      LOG(log_nf_) << "Send out size of " << count << " PBFT votes to " << peer_id;
     }
 
-    index += vote_count_to_send;
+    index += count;
   }
-  if (auto peer = peers_state_->getPeer(peer_id)) {
-    for (auto const &v : send_next_votes_bundle) {
+
+  if (const auto peer = peers_state_->getPeer(peer_id)) {
+    for (const auto &v : votes) {
       peer->markVoteAsKnown(v->getHash());
     }
   }
