@@ -41,6 +41,7 @@ data:
 
     SLACK_TOKEN = os.environ['SLACK_TOKEN']
     SLACK_CHANNEL = os.environ['SLACK_CHANNEL']
+    K8S_CLUSTER = os.environ['K8S_CLUSTER']
     CHECK_PERIOD = 5*60
     NOTIFICATION_REMINDER = 12*60*60
     RPC_URL = "http://127.0.0.1:7777"
@@ -116,9 +117,9 @@ data:
                 logging.info("Sending Slack notification")
 
                 switcher = {
-                    "UP": ":white_check_mark: {} node is up and running :white_check_mark:".format(HOSTNAME),
-                    "DOWN": ":fire: {} node is down (RPC not responding) :fire:".format(HOSTNAME),
-                    "DOWN_NP": ":fire: {} node is down (no network progress). Last block is {} :fire:".format(HOSTNAME, last_block),
+                    "UP": ":white_check_mark: {} ({}) node is up and running :white_check_mark:".format(HOSTNAME, K8S_CLUSTER),
+                    "DOWN": ":fire: {} ({}) node is down (RPC not responding) :fire:".format(HOSTNAME, K8S_CLUSTER),
+                    "DOWN_NP": ":fire: {} ({}) node is down (no network progress). Last block is {} :fire:".format(HOSTNAME, K8S_CLUSTER, last_block),
                 }
 
                 message = switcher.get(current_status)

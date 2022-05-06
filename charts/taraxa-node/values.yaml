@@ -48,6 +48,7 @@ slack:
   enabled: false
   token: xoxb-XXXXXX-XXXXXX-XXXXXX
   channel: channel
+  k8s_cluster: taraxa
 
 nameOverride: ""
 fullnameOverride: ""

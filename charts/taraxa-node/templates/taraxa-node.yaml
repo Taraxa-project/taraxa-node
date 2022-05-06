@@ -72,6 +72,8 @@ spec:
                 key: SLACK_TOKEN
           - name: SLACK_CHANNEL
             value: {{ .Values.slack.channel }}
+          - name: K8S_CLUSTER
+            value: {{ .Values.slack.k8s_cluster }}
           command: ["/bin/bash", "-c", "--"]
           args: [ "pip install -r /app/requirements.txt && python /app/status.py" ]
           volumeMounts:
