@@ -111,10 +111,7 @@ void Network::setSyncStatePeriod(uint64_t period) { taraxa_capability_->setSyncS
 void Network::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) { taraxa_capability_->handleMaliciousSyncPeer({id}); }
 
 void Network::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes) {
-  for (auto &vote : votes) {
-    LOG(log_tr_) << "Network broadcast PBFT vote: " << vote->getHash();
-    taraxa_capability_->onNewPbftVote(std::move(vote));
-  }
+  taraxa_capability_->onNewPbftVotes(std::move(votes));
 }
 
 void Network::broadcastPreviousRoundNextVotesBundle() {
@@ -162,14 +159,14 @@ std::shared_ptr<network::tarcap::TaraxaPeer> Network::getPeer(dev::p2p::NodeID c
   return taraxa_capability_->getPeersState()->getPeer(id);
 }
 
-void Network::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size) {
+void Network::sendPbftBlock(const dev::p2p::NodeID &id, const PbftBlock &pbft_block, uint64_t pbft_chain_size) {
   LOG(log_dg_) << "Network send PBFT block: " << pbft_block.getBlockHash() << " to: " << id;
   taraxa_capability_->sendPbftBlock(id, pbft_block, pbft_chain_size);
 }
 
-void Network::sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote) {
-  LOG(log_tr_) << "Network sent PBFT vote: " << vote->getHash() << " to: " << id;
-  taraxa_capability_->sendPbftVote(id, vote);
+void Network::sendPbftVotes(const dev::p2p::NodeID &peer_id, std::vector<std::shared_ptr<Vote>> &&votes,
+                            bool next_votes_type) {
+  taraxa_capability_->sendPbftVotes(peer_id, std::move(votes), next_votes_type);
 }
 
 }  // namespace taraxa

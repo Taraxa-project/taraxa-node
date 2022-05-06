@@ -78,7 +78,7 @@ void PbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
   }
 }
 
-void PbftBlockPacketHandler::sendPbftBlock(dev::p2p::NodeID const &peer_id, PbftBlock const &pbft_block,
+void PbftBlockPacketHandler::sendPbftBlock(const dev::p2p::NodeID &peer_id, const PbftBlock &pbft_block,
                                            uint64_t pbft_chain_size) {
   LOG(log_tr_) << "sendPbftBlock " << pbft_block.getBlockHash() << " to " << peer_id;
   dev::RLPStream s(2);

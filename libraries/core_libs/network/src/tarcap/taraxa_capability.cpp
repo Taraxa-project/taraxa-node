@@ -388,9 +388,9 @@ void TaraxaCapability::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_blo
       ->onNewPbftBlock(*pbft_block);
 }
 
-void TaraxaCapability::onNewPbftVote(std::shared_ptr<Vote> &&vote) {
+void TaraxaCapability::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes) {
   std::static_pointer_cast<VotePacketHandler>(packets_handlers_->getSpecificHandler(SubprotocolPacketType::VotePacket))
-      ->onNewPbftVote(std::move(vote));
+      ->onNewPbftVotes(std::move(votes));
 }
 
 void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
@@ -426,16 +426,17 @@ size_t TaraxaCapability::getReceivedBlocksCount() const { return test_state_->ge
 size_t TaraxaCapability::getReceivedTransactionsCount() const { return test_state_->getTransactionsSize(); }
 
 // PBFT
-void TaraxaCapability::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block,
+void TaraxaCapability::sendPbftBlock(const dev::p2p::NodeID &id, const PbftBlock &pbft_block,
                                      uint64_t pbft_chain_size) {
   std::static_pointer_cast<PbftBlockPacketHandler>(
       packets_handlers_->getSpecificHandler(SubprotocolPacketType::PbftBlockPacket))
       ->sendPbftBlock(id, pbft_block, pbft_chain_size);
 }
 
-void TaraxaCapability::sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote) {
+void TaraxaCapability::sendPbftVotes(const dev::p2p::NodeID &peer_id, std::vector<std::shared_ptr<Vote>> &&votes,
+                                     bool next_votes_type) {
   std::static_pointer_cast<VotePacketHandler>(packets_handlers_->getSpecificHandler(SubprotocolPacketType::VotePacket))
-      ->sendPbftVote(id, vote);
+      ->sendPbftVotes(peer_id, std::move(votes), next_votes_type);
 }
 
 // END METHODS USED IN TESTS ONLY
