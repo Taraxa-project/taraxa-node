@@ -102,7 +102,7 @@ Config::Config(int argc, const char* argv[]) {
       LOG_CHANNELS_APPEND, bpo::value<vector<string>>(&log_channels_append)->multitoken(),
       "Log channels to log in addition to log channels defined in config: [channel:level, ....]");
   node_command_options.add_options()(LOG_CONFIGURATIONS, bpo::value<vector<string>>(&log_configurations)->multitoken(),
-                                     "Log confifugrations to use: [channel:level, ....]");
+                                     "Log confifugrations to use: [configuration_name, ....]");
   node_command_options.add_options()(NODE_SECRET, bpo::value<string>(&node_secret), "Nose secret key to use");
 
   node_command_options.add_options()(VRF_SECRET, bpo::value<string>(&vrf_secret), "Vrf secret key to use");
