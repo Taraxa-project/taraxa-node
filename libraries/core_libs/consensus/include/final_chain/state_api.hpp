@@ -27,7 +27,7 @@ class StateAPI {
   StateAPI& operator=(const StateAPI&) = default;
   StateAPI& operator=(StateAPI&&) = default;
 
-  void update_state_config(const Config& new_config) const;
+  void update_state_config(const Config& new_config);
 
   Proof prove(EthBlockNumber blk_num, root_t const& state_root, addr_t const& addr,
               std::vector<h256> const& keys) const;

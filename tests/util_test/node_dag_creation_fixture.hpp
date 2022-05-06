@@ -35,7 +35,7 @@ struct NodeDagCreationFixture : BaseTest {
     modifyConfig(cfgs.front());
     node = create_nodes(cfgs, start).front();
 
-    auto trx = Transaction(0, 1000000, 0, 0, bytes(), node->getSecretKey(), dummy.address());
+    auto trx = std::make_shared<Transaction>(0, 1000000, 0, 0, bytes(), node->getSecretKey(), dummy.address());
     auto [ok, _] = node->getTransactionManager()->insertTransaction(trx);
     ASSERT_TRUE(ok);
     nonce++;
@@ -44,28 +44,29 @@ struct NodeDagCreationFixture : BaseTest {
   uint32_t getInitialDagSize() { return node->getConfig().max_levels_per_period; }
 
   void dummyTransaction() {
-    auto trx = Transaction(dummy_nonce, 1, 0, 0, bytes(), dummy.secret(), node->getAddress());
+    auto trx = std::make_shared<Transaction>(dummy_nonce, 1, 0, 0, bytes(), dummy.secret(), node->getAddress());
     auto [ok, m] = node->getTransactionManager()->insertTransaction(trx);
     ASSERT_TRUE(ok);
     dummy_nonce++;
   }
 
   void deployContract() {
-    Transaction trx(nonce, 100, 0, 0, dev::fromHex(samples::greeter_contract_code), node->getSecretKey());
+    auto trx = std::make_shared<Transaction>(nonce, 100, 0, 0, dev::fromHex(samples::greeter_contract_code),
+                                             node->getSecretKey());
     auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(trx);
     ASSERT_TRUE(ok);
     nonce++;
 
     EXPECT_HAPPENS({30s, 1s}, [&](auto &ctx) {
-      WAIT_EXPECT_TRUE(ctx, node->getDB()->transactionFinalized(trx.getHash()));
+      WAIT_EXPECT_TRUE(ctx, node->getDB()->transactionFinalized(trx->getHash()));
 
       if (!contract_addr) {
-        auto receipt = node->getFinalChain()->transaction_receipt(trx.getHash());
+        auto receipt = node->getFinalChain()->transaction_receipt(trx->getHash());
         WAIT_EXPECT_TRUE(ctx, receipt.has_value());
         WAIT_EXPECT_TRUE(ctx, receipt->new_contract_address.has_value());
         contract_addr = receipt->new_contract_address;
       }
-      auto r = node->getFinalChain()->transaction_receipt(trx.getHash());
+      auto r = node->getFinalChain()->transaction_receipt(trx->getHash());
 
       WAIT_EXPECT_TRUE(ctx, !node->getFinalChain()->get_code(contract_addr.value()).empty());
     });
@@ -100,7 +101,7 @@ struct NodeDagCreationFixture : BaseTest {
   void insertBlocks(std::vector<DagBlockWithTxs> blks_with_txs) {
     for (auto &b : blks_with_txs) {
       for (auto t : b.trxs) {
-        node->getTransactionManager()->insertTransaction(*t);
+        node->getTransactionManager()->insertTransaction(t);
       }
       node->getDagManager()->addDagBlock(std::move(b.blk), std::move(b.trxs));
     }
@@ -108,7 +109,7 @@ struct NodeDagCreationFixture : BaseTest {
 
   void insertTransactions(SharedTransactions transactions) {
     for (const auto &trx : transactions) {
-      auto insert_result = node->getTransactionManager()->insertTransaction(*trx);
+      auto insert_result = node->getTransactionManager()->insertTransaction(trx);
       EXPECT_EQ(insert_result.first, true);
     }
   }

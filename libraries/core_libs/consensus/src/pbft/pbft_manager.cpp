@@ -1164,17 +1164,14 @@ blk_hash_t PbftManager::calculateOrderHash(const std::vector<DagBlock> &dag_bloc
   return dev::sha3(order_stream.out());
 }
 
-std::optional<blk_hash_t> findClosestAnchor(const std::vector<blk_hash_t> &ghost, std::vector<blk_hash_t> &dag_order,
-                                            uint32_t included) {
+std::optional<blk_hash_t> findClosestAnchor(const std::vector<blk_hash_t> &ghost,
+                                            const std::vector<blk_hash_t> &dag_order, uint32_t included) {
   for (uint32_t i = included; i > 0; i--) {
     if (std::count(ghost.begin(), ghost.end(), dag_order[i - 1])) {
-      if (dag_order.size() > i) {
-        dag_order.erase(dag_order.begin() + i, dag_order.end());
-      }
       return dag_order[i - 1];
     }
   }
-  return {};
+  return ghost[1];
 }
 
 blk_hash_t PbftManager::proposePbftBlock_() {
@@ -1530,9 +1527,18 @@ std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(s
     return std::make_pair(std::move(dag_blocks_order), false);
   }
 
-  if (!checkBlockWeight(cert_sync_block_)) {
-    LOG(log_er_) << "PBFT block " << pbft_block->getBlockHash() << " is overweighted";
-    return std::make_pair(std::move(dag_blocks_order), false);
+  auto last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+  if (last_pbft_block_hash) {
+    auto prev_pbft_block = pbft_chain_->getPbftBlockInChain(last_pbft_block_hash);
+
+    std::vector<blk_hash_t> ghost;
+    dag_mgr_->getGhostPath(prev_pbft_block.getPivotDagBlockHash(), ghost);
+    if (ghost.size() > 1 && anchor_hash != ghost[1]) {
+      if (!checkBlockWeight(cert_sync_block_)) {
+        LOG(log_er_) << "PBFT block " << pbft_block->getBlockHash() << " is overweighted";
+        return std::make_pair(std::move(dag_blocks_order), false);
+      }
+    }
   }
 
   cert_sync_block_.pbft_blk = std::move(pbft_block);
@@ -1944,7 +1950,7 @@ bool PbftManager::checkBlockWeight(const SyncBlock &blk) const {
   const auto &trx_estimations = getAllTrxEstimations(blk);
   u256 total_weight = 0;
   for (const auto &tx : blk.transactions) {
-    total_weight += trx_estimations.at(tx.getHash());
+    total_weight += trx_estimations.at(tx->getHash());
   }
   if (total_weight > config_.gas_limit) {
     return false;

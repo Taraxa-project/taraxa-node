@@ -56,7 +56,7 @@ class FinalChain {
     virtual h256 get(size_t i) const = 0;
   };
 
-  virtual void update_state_config(const state_api::Config& new_config) const = 0;
+  virtual void update_state_config(const state_api::Config& new_config) = 0;
   virtual std::shared_ptr<TransactionHashes> transaction_hashes(std::optional<EthBlockNumber> n = {}) const = 0;
   virtual SharedTransactions transactions(std::optional<EthBlockNumber> n = {}) const = 0;
   virtual std::optional<TransactionLocation> transaction_location(h256 const& trx_hash) const = 0;

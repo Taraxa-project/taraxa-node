@@ -133,7 +133,7 @@ StateAPI::~StateAPI() {
   err_h.check();
 }
 
-void StateAPI::update_state_config(const Config& new_config) const {
+void StateAPI::update_state_config(const Config& new_config) {
   dev::RLPStream encoding;
   util::rlp_tuple(encoding, new_config);
 

@@ -745,6 +745,40 @@ TEST_F(PbftManagerWithDagCreation, limit_pbft_block) {
   }
 }
 
+TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
+  auto node_cfgs = make_node_cfgs<5, true>(1);
+  auto dag_gas_limit = node_cfgs.front().chain.dag.gas_limit = 300000;
+  node_cfgs.front().chain.pbft.gas_limit = 1000000;
+  makeNodeFromConfig(node_cfgs);
+
+  deployContract();
+  node->getBlockProposer()->stop();
+  generateAndApplyInitialDag();
+
+  const auto trxs_before = node->getTransactionManager()->getTransactionCount();
+  EXPECT_HAPPENS({10s, 500ms},
+                 [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, trxs_before, node->getDB()->getNumTransactionExecuted()); });
+
+  const auto starting_block_number = node->getFinalChain()->last_block_number();
+  const auto trx_in_block = dag_gas_limit / trxEstimation() + 2;
+  insertBlocks(generateDagBlocks(1, 5, trx_in_block));
+
+  uint64_t tx_count = 5 * trx_in_block;
+
+  EXPECT_HAPPENS({60s, 500ms}, [&](auto &ctx) {
+    // all transactions should be included in 2 blocks
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), trxs_before + tx_count);
+    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->last_block_number(), starting_block_number + 2);
+  });
+
+  // verify that last block is overweighted, but it is in chain
+  const auto period = node->getFinalChain()->last_block_number();
+  auto period_raw = node->getDB()->getPeriodDataRaw(period);
+  ASSERT_FALSE(period_raw.empty());
+  SyncBlock sync_block(period_raw);
+  EXPECT_FALSE(node->getPbftManager()->checkBlockWeight(sync_block));
+}
+
 TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
   auto node_cfgs = make_node_cfgs<5, true>(1);
   node_cfgs.front().chain.dag.gas_limit = 300000;

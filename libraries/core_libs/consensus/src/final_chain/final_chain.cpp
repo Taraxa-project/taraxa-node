@@ -7,33 +7,31 @@
 #include "vote/vote.hpp"
 
 namespace taraxa::final_chain {
-using namespace std;
-using namespace dev;
 
 class FinalChainImpl final : public FinalChain {
-  shared_ptr<DB> db_;
-  unique_ptr<ReplayProtectionService> replay_protection_service_;
+  std::shared_ptr<DB> db_;
+  std::unique_ptr<ReplayProtectionService> replay_protection_service_;
   StateAPI state_api_;
 
-  mutable shared_mutex last_block_mu_;
-  mutable shared_ptr<BlockHeader> last_block_;
+  mutable std::shared_mutex last_block_mu_;
+  mutable std::shared_ptr<BlockHeader> last_block_;
 
   // It is not prepared to use more then 1 thread. Examine it if you want to change threads count
   util::ThreadPool executor_thread_{1};
 
-  atomic<uint64_t> num_executed_dag_blk_ = 0;
-  atomic<uint64_t> num_executed_trx_ = 0;
+  std::atomic<uint64_t> num_executed_dag_blk_ = 0;
+  std::atomic<uint64_t> num_executed_trx_ = 0;
 
   rocksdb::WriteOptions const db_opts_w_ = [] {
     rocksdb::WriteOptions ret;
     ret.sync = true;
     return ret;
   }();
-
+  EthBlockNumber deposit_delay_;
   LOG_OBJECTS_DEFINE
 
  public:
-  FinalChainImpl(shared_ptr<DB> const& db, Config const& config, addr_t const& node_addr)
+  FinalChainImpl(std::shared_ptr<DB> const& db, Config const& config, addr_t const& node_addr)
       : db_(db),
         // replay_protection_service_(NewReplayProtectionService({}, db)),
         state_api_([this](auto n) { return block_hash(n).value_or(ZeroHash()); },  //
@@ -51,8 +49,8 @@ class FinalChainImpl final : public FinalChain {
     auto state_db_descriptor = state_api_.get_last_committed_state_descriptor();
     if (auto last_blk_num = db_->lookup_int<EthBlockNumber>(DBMetaKeys::LAST_NUMBER, DB::Columns::final_chain_meta);
         last_blk_num) {
-      last_block_ = make_shared<BlockHeader>();
-      last_block_->rlp(RLP(db_->lookup(*last_blk_num, DB::Columns::final_chain_blk_by_number)));
+      last_block_ = std::make_shared<BlockHeader>();
+      last_block_->rlp(dev::RLP(db_->lookup(*last_blk_num, DB::Columns::final_chain_blk_by_number)));
       if (last_block_->number != state_db_descriptor.blk_num) {
         assert(state_db_descriptor.blk_num < last_block_->number);
         for (auto n = state_db_descriptor.blk_num + 1; n <= last_block_->number; ++n) {
@@ -71,14 +69,15 @@ class FinalChainImpl final : public FinalChain {
                                  GAS_LIMIT, state_db_descriptor.state_root);
       db_->commitWriteBatch(batch, db_opts_w_);
     }
+    deposit_delay_ = config.state.dpos->deposit_delay;
   }
 
   void stop() override { executor_thread_.stop(); }
 
-  future<shared_ptr<FinalizationResult const>> finalize(SyncBlock&& new_blk,
-                                                        std::vector<h256>&& finalized_dag_blk_hashes,
-                                                        finalize_precommit_ext precommit_ext = {}) override {
-    auto p = make_shared<promise<shared_ptr<FinalizationResult const>>>();
+  std::future<std::shared_ptr<FinalizationResult const>> finalize(SyncBlock&& new_blk,
+                                                                  std::vector<h256>&& finalized_dag_blk_hashes,
+                                                                  finalize_precommit_ext precommit_ext = {}) override {
+    auto p = std::make_shared<std::promise<std::shared_ptr<FinalizationResult const>>>();
     executor_thread_.post([this, new_blk = std::move(new_blk),
                            finalized_dag_blk_hashes = std::move(finalized_dag_blk_hashes),
                            precommit_ext = move(precommit_ext), p]() mutable {
@@ -87,8 +86,8 @@ class FinalChainImpl final : public FinalChain {
     return p->get_future();
   }
 
-  shared_ptr<FinalizationResult> finalize_(SyncBlock&& new_blk, std::vector<h256>&& finalized_dag_blk_hashes,
-                                           finalize_precommit_ext const& precommit_ext) {
+  std::shared_ptr<FinalizationResult> finalize_(SyncBlock&& new_blk, std::vector<h256>&& finalized_dag_blk_hashes,
+                                                finalize_precommit_ext const& precommit_ext) {
     auto batch = db_->createWriteBatch();
     SharedTransactions to_execute;
     {
@@ -130,7 +129,7 @@ class FinalChainImpl final : public FinalChain {
           r.gas_used,
           cumulative_gas_used += r.gas_used,
           move(logs),
-          r.new_contract_addr ? optional(r.new_contract_addr) : nullopt,
+          r.new_contract_addr ? std::optional(r.new_contract_addr) : std::nullopt,
       });
     }
     auto blk_header = append_block(batch, new_blk.pbft_blk->getBeneficiary(), new_blk.pbft_blk->getTimestamp(),
@@ -152,7 +151,7 @@ class FinalChainImpl final : public FinalChain {
                    << num_executed_dag_blk_ - 1 << " , Transactions count: " << to_execute.size();
     }
 
-    auto result = make_shared<FinalizationResult>(FinalizationResult{
+    auto result = std::make_shared<FinalizationResult>(FinalizationResult{
         {
             new_blk.pbft_blk->getBeneficiary(),
             new_blk.pbft_blk->getTimestamp(),
@@ -169,7 +168,7 @@ class FinalChainImpl final : public FinalChain {
     db_->commitWriteBatch(batch, db_opts_w_);
     state_api_.transition_state_commit();
     {
-      unique_lock l(last_block_mu_);
+      std::unique_lock l(last_block_mu_);
       last_block_ = blk_header;
     }
     num_executed_dag_blk_ = num_executed_dag_blk;
@@ -183,10 +182,11 @@ class FinalChainImpl final : public FinalChain {
     return result;
   }
 
-  shared_ptr<BlockHeader> append_block(DB::Batch& batch, addr_t const& author, uint64_t timestamp, uint64_t gas_limit,
-                                       h256 const& state_root, SharedTransactions const& transactions = {},
-                                       TransactionReceipts const& receipts = {}) {
-    auto blk_header_ptr = make_shared<BlockHeader>();
+  std::shared_ptr<BlockHeader> append_block(DB::Batch& batch, const addr_t& author, uint64_t timestamp,
+                                            uint64_t gas_limit, const h256& state_root,
+                                            const SharedTransactions& transactions = {},
+                                            const TransactionReceipts& receipts = {}) {
+    auto blk_header_ptr = std::make_shared<BlockHeader>();
     auto& blk_header = *blk_header_ptr;
     auto last_block = block_header();
     blk_header.number = last_block ? last_block->number + 1 : 0;
@@ -196,8 +196,8 @@ class FinalChainImpl final : public FinalChain {
     blk_header.state_root = state_root;
     blk_header.gas_used = receipts.empty() ? 0 : receipts.back().cumulative_gas_used;
     blk_header.gas_limit = gas_limit;
-    BytesMap trxs_trie, receipts_trie;
-    RLPStream rlp_strm;
+    dev::BytesMap trxs_trie, receipts_trie;
+    dev::RLPStream rlp_strm;
     for (size_t i(0); i < transactions.size(); ++i) {
       auto const& trx = transactions[i];
       auto i_rlp = util::rlp_enc(rlp_strm, i);
@@ -212,7 +212,7 @@ class FinalChainImpl final : public FinalChain {
     blk_header.receipts_root = hash256(receipts_trie);
     rlp_strm.clear(), blk_header.ethereum_rlp(rlp_strm);
     blk_header.ethereum_rlp_size = rlp_strm.out().size();
-    blk_header.hash = sha3(rlp_strm.out());
+    blk_header.hash = dev::sha3(rlp_strm.out());
     db_->insert(batch, DB::Columns::final_chain_blk_by_number, blk_header.number, util::rlp_enc(rlp_strm, blk_header));
     auto log_bloom_for_index = blk_header.log_bloom;
     log_bloom_for_index.shiftBloom<3>(sha3(blk_header.author.ref()));
@@ -239,14 +239,14 @@ class FinalChainImpl final : public FinalChain {
     return blk_header_ptr;
   }
 
-  shared_ptr<BlockHeader const> block_header(optional<EthBlockNumber> n = {}) const override {
+  std::shared_ptr<BlockHeader const> block_header(std::optional<EthBlockNumber> n = {}) const override {
     if (!n) {
-      shared_lock l(last_block_mu_);
+      std::shared_lock l(last_block_mu_);
       return last_block_;
     }
     if (auto raw = db_->lookup(*n, DB::Columns::final_chain_blk_by_number); !raw.empty()) {
-      auto ret = make_shared<BlockHeader>();
-      ret->rlp(RLP(raw));
+      auto ret = std::make_shared<BlockHeader>();
+      ret->rlp(dev::RLP(raw));
       return ret;
     }
     return {};
@@ -254,11 +254,11 @@ class FinalChainImpl final : public FinalChain {
 
   EthBlockNumber last_block_number() const override { return block_header()->number; }
 
-  optional<EthBlockNumber> block_number(h256 const& h) const override {
+  std::optional<EthBlockNumber> block_number(h256 const& h) const override {
     return db_->lookup_int<EthBlockNumber>(h, DB::Columns::final_chain_blk_number_by_hash);
   }
 
-  optional<h256> block_hash(optional<EthBlockNumber> n = {}) const override {
+  std::optional<h256> block_hash(std::optional<EthBlockNumber> n = {}) const override {
     if (!n) {
       return block_header()->hash;
     }
@@ -269,37 +269,37 @@ class FinalChainImpl final : public FinalChain {
     return h256(raw, h256::FromBinary);
   }
 
-  shared_ptr<TransactionHashes> transaction_hashes(optional<EthBlockNumber> n = {}) const override {
+  std::shared_ptr<TransactionHashes> transaction_hashes(std::optional<EthBlockNumber> n = {}) const override {
     return make_shared<TransactionHashesImpl>(
         db_->lookup(last_if_absent(n), DB::Columns::final_chain_transaction_hashes_by_blk_number));
   }
 
-  optional<TransactionLocation> transaction_location(h256 const& trx_hash) const override {
+  std::optional<TransactionLocation> transaction_location(h256 const& trx_hash) const override {
     auto raw = db_->lookup(trx_hash, DB::Columns::final_chain_transaction_location_by_hash);
     if (raw.empty()) {
       return {};
     }
     TransactionLocation ret;
-    ret.rlp(RLP(raw));
+    ret.rlp(dev::RLP(raw));
     return ret;
   }
 
-  optional<TransactionReceipt> transaction_receipt(h256 const& trx_h) const override {
+  std::optional<TransactionReceipt> transaction_receipt(h256 const& trx_h) const override {
     auto raw = db_->lookup(trx_h, DB::Columns::final_chain_receipt_by_trx_hash);
     if (raw.empty()) {
       return {};
     }
     TransactionReceipt ret;
-    ret.rlp(RLP(raw));
+    ret.rlp(dev::RLP(raw));
     return ret;
   }
 
-  uint64_t transactionCount(optional<EthBlockNumber> n = {}) const override {
+  uint64_t transactionCount(std::optional<EthBlockNumber> n = {}) const override {
     return db_->lookup_int<uint64_t>(last_if_absent(n), DB::Columns::final_chain_transaction_count_by_blk_number)
         .value_or(0);
   }
 
-  SharedTransactions transactions(optional<EthBlockNumber> n = {}) const override {
+  SharedTransactions transactions(std::optional<EthBlockNumber> n = {}) const override {
     SharedTransactions ret;
     auto hashes = transaction_hashes(n);
     ret.reserve(hashes->count());
@@ -311,8 +311,8 @@ class FinalChainImpl final : public FinalChain {
     return ret;
   }
 
-  vector<EthBlockNumber> withBlockBloom(LogBloom const& b, EthBlockNumber from, EthBlockNumber to) const override {
-    vector<EthBlockNumber> ret;
+  std::vector<EthBlockNumber> withBlockBloom(LogBloom const& b, EthBlockNumber from, EthBlockNumber to) const override {
+    std::vector<EthBlockNumber> ret;
     // start from the top-level
     auto u = int_pow(c_bloomIndexSize, c_bloomIndexLevels);
     // run through each of the top-level blocks
@@ -322,7 +322,8 @@ class FinalChainImpl final : public FinalChain {
     return ret;
   }
 
-  optional<state_api::Account> get_account(addr_t const& addr, optional<EthBlockNumber> blk_n = {}) const override {
+  std::optional<state_api::Account> get_account(addr_t const& addr,
+                                                std::optional<EthBlockNumber> blk_n = {}) const override {
     return state_api_.get_account(last_if_absent(blk_n), addr);
   }
 
@@ -330,20 +331,22 @@ class FinalChainImpl final : public FinalChain {
     return state_api_.get_staking_balance(last_if_absent(blk_n), addr);
   }
 
-  void update_state_config(const state_api::Config& new_config) const override {
+  void update_state_config(const state_api::Config& new_config) override {
+    deposit_delay_ = new_config.dpos->deposit_delay;
     state_api_.update_state_config(new_config);
   }
 
-  u256 get_account_storage(addr_t const& addr, u256 const& key, optional<EthBlockNumber> blk_n = {}) const override {
+  u256 get_account_storage(addr_t const& addr, u256 const& key,
+                           std::optional<EthBlockNumber> blk_n = {}) const override {
     return state_api_.get_account_storage(last_if_absent(blk_n), addr, key);
   }
 
-  bytes get_code(addr_t const& addr, optional<EthBlockNumber> blk_n = {}) const override {
+  bytes get_code(addr_t const& addr, std::optional<EthBlockNumber> blk_n = {}) const override {
     return state_api_.get_code_by_address(last_if_absent(blk_n), addr);
   }
 
-  state_api::ExecutionResult call(state_api::EVMTransaction const& trx, optional<EthBlockNumber> blk_n = {},
-                                  optional<state_api::ExecutionOptions> const& opts = {}) const override {
+  state_api::ExecutionResult call(state_api::EVMTransaction const& trx, std::optional<EthBlockNumber> blk_n = {},
+                                  std::optional<state_api::ExecutionOptions> const& opts = {}) const override {
     auto const blk_header = block_header(last_if_absent(blk_n));
     return state_api_.dry_run_transaction(blk_header->number,
                                           {
@@ -391,16 +394,16 @@ class FinalChainImpl final : public FinalChain {
 
   BlocksBlooms block_blooms(h256 const& chunk_id) const {
     if (auto raw = db_->lookup(chunk_id, DB::Columns::final_chain_log_blooms_index); !raw.empty()) {
-      return RLP(raw).toArray<LogBloom, c_bloomIndexSize>();
+      return dev::RLP(raw).toArray<LogBloom, c_bloomIndexSize>();
     }
     return {};
   }
 
   static h256 block_blooms_chunk_id(EthBlockNumber level, EthBlockNumber index) { return h256(index * 0xff + level); }
 
-  vector<EthBlockNumber> withBlockBloom(LogBloom const& b, EthBlockNumber from, EthBlockNumber to, EthBlockNumber level,
-                                        EthBlockNumber index) const {
-    vector<EthBlockNumber> ret;
+  std::vector<EthBlockNumber> withBlockBloom(LogBloom const& b, EthBlockNumber from, EthBlockNumber to,
+                                             EthBlockNumber level, EthBlockNumber index) const {
+    std::vector<EthBlockNumber> ret;
     auto uCourse = int_pow(c_bloomIndexSize, level + 1);
     auto uFine = int_pow(c_bloomIndexSize, level);
     auto obegin = index == from / uCourse ? from / uFine % c_bloomIndexSize : 0;
@@ -445,7 +448,8 @@ class FinalChainImpl final : public FinalChain {
   };
 };
 
-shared_ptr<FinalChain> NewFinalChain(shared_ptr<DB> const& db, Config const& config, addr_t const& node_addr) {
+std::shared_ptr<FinalChain> NewFinalChain(std::shared_ptr<DB> const& db, Config const& config,
+                                          addr_t const& node_addr) {
   return make_shared<FinalChainImpl>(db, config, node_addr);
 }
 

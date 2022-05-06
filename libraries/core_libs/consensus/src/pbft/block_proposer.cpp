@@ -32,6 +32,10 @@ bool SortitionPropose::propose() {
   }
 
   const auto proposal_period = db_->getProposalPeriodForDagLevel(propose_level);
+  if (!proposal_period.has_value()) {
+    LOG(log_er_) << "No proposal period for propose_level " << propose_level << " found";
+    assert(false);
+  }
   const auto period_block_hash = db_->getPeriodBlockHash(*proposal_period);
   // get sortition
   const auto sortition_params = dag_blk_mgr_->sortitionParamsManager().getSortitionParams(*proposal_period);
@@ -100,7 +104,7 @@ bool SortitionPropose::propose() {
   }
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
   last_frontier_ = frontier;
-  proposer->proposeBlock(std::move(frontier), propose_level, proposal_period, std::move(shared_trxs), std::move(vdf));
+  proposer->proposeBlock(std::move(frontier), propose_level, *proposal_period, std::move(shared_trxs), std::move(vdf));
   num_tries_ = 0;
   return true;
 }
@@ -195,7 +199,7 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const&
   return max_level;
 }
 
-void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, std::optional<uint64_t> proposal_period,
+void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, uint64_t proposal_period,
                                  SharedTransactions&& trxs, VdfSortition&& vdf) {
   if (stopped_) return;
 
@@ -204,6 +208,7 @@ void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, std::opt
   vec_trx_t trx_hashes;
   std::vector<uint64_t> estimations;
   u256 block_weight = 0;
+
   for (const auto& trx : trxs) {
     auto weight = trx_mgr_->estimateTransactionGas(trx, proposal_period);
     block_weight += weight;

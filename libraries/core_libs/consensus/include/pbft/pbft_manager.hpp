@@ -100,6 +100,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   bool checkBlockWeight(const SyncBlock &block) const;
 
+  uint64_t getFinalizedDPOSPeriod() const { return dpos_period_; }
+
  private:
   // DPOS
   void updateDposState_();
