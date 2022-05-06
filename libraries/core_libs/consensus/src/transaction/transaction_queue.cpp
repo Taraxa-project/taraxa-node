@@ -1,5 +1,7 @@
 #include "transaction/transaction_queue.hpp"
 
+#include "transaction/transaction_manager.hpp"
+
 namespace taraxa {
 
 auto priorityComparator = [](const std::shared_ptr<Transaction> &first, const std::shared_ptr<Transaction> &second) {
@@ -15,13 +17,21 @@ TransactionQueue::TransactionQueue() : priority_queue_{priorityComparator} {}
 
 size_t TransactionQueue::size() const { return hash_queue_.size(); }
 
-bool TransactionQueue::contains(const trx_hash_t &hash) const { return hash_queue_.contains(hash); }
+bool TransactionQueue::contains(const trx_hash_t &hash) const {
+  return hash_queue_.contains(hash) || non_proposable_transactions_.contains(hash);
+}
 
 std::shared_ptr<Transaction> TransactionQueue::get(const trx_hash_t &hash) const {
-  const auto it = hash_queue_.find(hash);
-  if (it == hash_queue_.end()) return nullptr;
+  if (const auto it = hash_queue_.find(hash); it != hash_queue_.end()) {
+    return *(it->second);
+  }
 
-  return *(it->second);
+  if (const auto transaction = non_proposable_transactions_.find(hash);
+      transaction != non_proposable_transactions_.end()) {
+    return transaction->second.second;
+  }
+
+  return nullptr;
 }
 
 std::vector<std::shared_ptr<Transaction>> TransactionQueue::get(uint64_t count) const {
@@ -52,18 +62,43 @@ bool TransactionQueue::erase(const trx_hash_t &hash) {
   return true;
 }
 
-bool TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction) {
-  assert(transaction);
-  if (hash_queue_.contains(transaction->getHash())) return false;
+bool TransactionQueue::insert(std::pair<std::shared_ptr<Transaction>, TransactionStatus> &&transaction,
+                              uint64_t last_block_number) {
+  assert(transaction.first);
+  const auto tx_hash = transaction.first->getHash();
 
-  const auto tx_hash = transaction->getHash();
-  const auto it = priority_queue_.insert(std::move(transaction));
+  if (contains(tx_hash)) return false;
 
-  // This assert is here to check if priorityComparator works correctly. If object is not inserted, then there could be
-  // something wrong with comparator
-  assert(it != priority_queue_.end());
-  hash_queue_[tx_hash] = it;
+  switch (transaction.second) {
+    case TransactionStatus::Verified: {
+      const auto it = priority_queue_.insert(std::move(transaction.first));
+
+      // This assert is here to check if priorityComparator works correctly. If object is not inserted, then there could
+      // be something wrong with comparator
+      assert(it != priority_queue_.end());
+      hash_queue_[tx_hash] = it;
+    } break;
+    case TransactionStatus::LowNonce:
+    case TransactionStatus::InsufficentBalance:
+      if (non_proposable_transactions_.size() < kNonProposableTransactionsLimit)
+        non_proposable_transactions_[tx_hash] = {last_block_number, transaction.first};
+      else
+        return false;
+      break;
+    default:
+      assert(false);
+  }
   return true;
+}
+
+void TransactionQueue::blockFinalized(uint64_t block_number) {
+  for (auto it = non_proposable_transactions_.begin(); it != non_proposable_transactions_.end();) {
+    if (it->second.first + kNonProposableTransactionsPeriodExpiryLimit < block_number) {
+      it = non_proposable_transactions_.erase(it);
+    } else {
+      ++it;
+    }
+  }
 }
 
 }  // namespace taraxa

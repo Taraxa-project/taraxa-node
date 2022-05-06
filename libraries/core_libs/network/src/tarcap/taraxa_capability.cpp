@@ -346,7 +346,8 @@ void TaraxaCapability::onNewBlockVerified(DagBlock &&blk, bool proposed, SharedT
                                                                                      std::move(trxs));
 }
 
-void TaraxaCapability::onNewTransactions(SharedTransactions &&transactions) {
+void TaraxaCapability::onNewTransactions(
+    std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> &&transactions) {
   packets_handlers_->getSpecificHandler<TransactionPacketHandler>()->onNewTransactions(std::move(transactions));
 }
 

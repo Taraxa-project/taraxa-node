@@ -10,6 +10,8 @@
 
 namespace taraxa {
 
+enum class TransactionStatus { Verified = 0, Invalid, LowNonce, InsufficentBalance };
+
 class DagBlock;
 class DagManager;
 class FullNode;
@@ -46,13 +48,20 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::pair<bool, std::string> insertTransaction(const std::shared_ptr<Transaction> &trx);
 
   /**
+   * @brief Invoked when block finalized in final chain
+   *
+   * @param block_number block number finalized
+   */
+  void blockFinalized(uint64_t block_number);
+
+  /**
    * @brief Inserts batch of verified transactions to transaction pool
    *
    * @note Some of the transactions might be already processed -> they are not processed and inserted again
    * @param txs transactions to be processed
    * @return number of successfully inserted unseen transactions
    */
-  uint32_t insertValidatedTransactions(SharedTransactions &&txs);
+  uint32_t insertValidatedTransactions(std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> &&txs);
 
   /**
    * @brief Marks transaction as known (was successfully verified and pushed into the tx pool)
@@ -127,7 +136,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::shared_ptr<Transaction> getNonFinalizedTransaction(trx_hash_t const &hash) const;
   unsigned long getTransactionCount() const;
   void recoverNonfinalizedTransactions();
-  std::pair<bool, std::string> verifyTransaction(const std::shared_ptr<Transaction> &trx) const;
+  std::pair<TransactionStatus, std::string> verifyTransaction(const std::shared_ptr<Transaction> &trx) const;
 
  private:
   /**

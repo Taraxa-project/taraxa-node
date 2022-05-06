@@ -7,6 +7,8 @@
 #include <vector>
 
 #include "common/static_init.hpp"
+#include "config/chain_config.hpp"
+#include "final_chain/trie_common.hpp"
 #include "logger/logger.hpp"
 #include "transaction/transaction_manager.hpp"
 #include "transaction/transaction_queue.hpp"
@@ -116,34 +118,39 @@ TEST_F(TransactionTest, sig) {
 }
 
 TEST_F(TransactionTest, verifiers) {
-  TransactionManager trx_mgr(FullNodeConfig(), std::make_shared<DbStorage>(data_dir), nullptr, addr_t());
+  taraxa::final_chain::Config cfg = ChainConfig::predefined("test").final_chain;
+  auto db = std::make_shared<DbStorage>(data_dir);
+  auto final_chain = NewFinalChain(db, cfg);
+  TransactionManager trx_mgr(FullNodeConfig(), db, final_chain, addr_t());
   // insert trx
   std::thread t([&trx_mgr]() {
-    for (auto const& t : *g_trx_samples) {
+    for (auto const& t : *g_signed_trx_samples) {
       trx_mgr.insertTransaction(t);
     }
   });
 
   // insert trx again, should not duplicated
-  for (auto const& t : *g_trx_samples) {
+  for (auto const& t : *g_signed_trx_samples) {
     trx_mgr.insertTransaction(t);
   }
   t.join();
   thisThreadSleepForMilliSeconds(100);
-  EXPECT_EQ(trx_mgr.getTransactionPoolSize(), g_trx_samples->size());
+  EXPECT_EQ(trx_mgr.getTransactionPoolSize(), g_signed_trx_samples->size());
 }
 
 TEST_F(TransactionTest, transaction_limit) {
-  TransactionManager trx_mgr(FullNodeConfig(), std::make_shared<DbStorage>(data_dir), nullptr, addr_t());
+  auto db = std::make_shared<DbStorage>(data_dir);
+  TransactionManager trx_mgr(FullNodeConfig(), db, NewFinalChain(db, ChainConfig::predefined("test").final_chain),
+                             addr_t());
   // insert trx
   std::thread t([&trx_mgr]() {
-    for (auto const& t : *g_trx_samples) {
+    for (auto const& t : *g_signed_trx_samples) {
       trx_mgr.insertTransaction(t);
     }
   });
 
   // insert trx again, should not duplicated
-  for (auto const& t : *g_trx_samples) {
+  for (auto const& t : *g_signed_trx_samples) {
     trx_mgr.insertTransaction(t);
   }
   t.join();
@@ -154,12 +161,13 @@ TEST_F(TransactionTest, transaction_limit) {
   verified_trxs3 = trx_mgr.packTrxs(0);
   EXPECT_EQ(verified_trxs1.size(), 10);
   EXPECT_EQ(verified_trxs2.size(), 20);
-  EXPECT_EQ(verified_trxs3.size(), g_trx_samples->size());
+  EXPECT_EQ(verified_trxs3.size(), g_signed_trx_samples->size());
 }
 
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  TransactionManager trx_mgr(FullNodeConfig(), db, nullptr, addr_t());
+  TransactionManager trx_mgr(FullNodeConfig(), db, NewFinalChain(db, ChainConfig::predefined("test").final_chain),
+                             addr_t());
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : *g_signed_trx_samples) {
       trx_mgr.insertTransaction(t);
@@ -184,9 +192,76 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   EXPECT_EQ(total_packed_trxs.size(), NUM_TRX) << " Packed Trx: " << ::testing::PrintToString(total_packed_trxs);
 }
 
+TEST_F(TransactionTest, transaction_low_nonce) {
+  auto db = std::make_shared<DbStorage>(data_dir);
+  taraxa::final_chain::Config cfg = ChainConfig::predefined("test").final_chain;
+  cfg.state.execution_options.enable_nonce_skipping = true;
+  auto final_chain = NewFinalChain(db, cfg);
+  TransactionManager trx_mgr(FullNodeConfig(), db, final_chain, addr_t());
+  const auto& trx_nonce_2 = g_signed_trx_samples[1];
+  const auto& trx_low_nonce = g_signed_trx_samples[0];
+  auto trx_samples = samples::createSignedTrxSamples(1, 2, dev::KeyPair::create().secret());
+  const auto& trx_insufficient_balance = trx_samples[0];
+
+  // Insert and execute transaction with nonce 2
+  EXPECT_TRUE(trx_mgr.insertTransaction(trx_nonce_2).first);
+  std::vector<trx_hash_t> trx_hashes;
+  trx_hashes.emplace_back(trx_nonce_2->getHash());
+  DagBlock dag_blk({}, {}, {}, trx_hashes, secret_t::random());
+  db->saveDagBlock(dag_blk);
+  auto pbft_block = std::make_shared<PbftBlock>(blk_hash_t(), blk_hash_t(), blk_hash_t(), 1, addr_t::random(),
+                                                dev::KeyPair::create().secret());
+  SyncBlock sync_block(pbft_block, {});
+  sync_block.dag_blocks.push_back(dag_blk);
+  SharedTransactions trxs{trx_nonce_2};
+  sync_block.transactions = trxs;
+  auto batch = db->createWriteBatch();
+  db->saveTransactionPeriod(trx_nonce_2->getHash(), 1, 0);
+  db->savePeriodData(sync_block, batch);
+  db->commitWriteBatch(batch);
+  final_chain->finalize(std::move(sync_block), {dag_blk.getHash()}).get();
+
+  // Verify low nonce transaction is detected in verification
+  auto result = trx_mgr.verifyTransaction(trx_low_nonce);
+  EXPECT_EQ(result.first, TransactionStatus::LowNonce);
+  EXPECT_FALSE(trx_mgr.insertTransaction(trx_low_nonce).first);
+
+  // Verify insufficient balance transaction is detected in verification
+  result = trx_mgr.verifyTransaction(trx_insufficient_balance);
+  EXPECT_EQ(result.first, TransactionStatus::InsufficentBalance);
+  EXPECT_FALSE(trx_mgr.insertTransaction(trx_insufficient_balance).first);
+
+  std::vector<trx_hash_t> trx_hashes_low_nonce;
+  trx_hashes_low_nonce.push_back(trx_low_nonce->getHash());
+  DagBlock dag_blk_with_low_nonce_transaction({}, {}, {}, trx_hashes_low_nonce, secret_t::random());
+
+  std::vector<trx_hash_t> trx_hashes_insufficient_balance;
+  trx_hashes_insufficient_balance.push_back(trx_insufficient_balance->getHash());
+  DagBlock dag_blk_with_insufficient_balance_transaction({}, {}, {}, trx_hashes_insufficient_balance,
+                                                         secret_t::random());
+
+  // Verify dag blocks will pass verification if contain low nonce or insufficient balance transactions
+  EXPECT_FALSE(trx_mgr.checkBlockTransactions(dag_blk_with_low_nonce_transaction));
+  trx_mgr.insertValidatedTransactions({{trx_low_nonce, TransactionStatus::LowNonce}});
+  EXPECT_TRUE(trx_mgr.checkBlockTransactions(dag_blk_with_low_nonce_transaction));
+  EXPECT_FALSE(trx_mgr.checkBlockTransactions(dag_blk_with_insufficient_balance_transaction));
+  trx_mgr.insertValidatedTransactions({{trx_insufficient_balance, TransactionStatus::InsufficentBalance}});
+  EXPECT_TRUE(trx_mgr.checkBlockTransactions(dag_blk_with_insufficient_balance_transaction));
+
+  trx_mgr.blockFinalized(11);
+  EXPECT_TRUE(trx_mgr.checkBlockTransactions(dag_blk_with_low_nonce_transaction));
+  EXPECT_TRUE(trx_mgr.checkBlockTransactions(dag_blk_with_insufficient_balance_transaction));
+
+  // Verify that after 10 executed blocks transactions expire
+  trx_mgr.blockFinalized(12);
+  EXPECT_FALSE(trx_mgr.checkBlockTransactions(dag_blk_with_low_nonce_transaction));
+  EXPECT_FALSE(trx_mgr.checkBlockTransactions(dag_blk_with_insufficient_balance_transaction));
+}
+
 TEST_F(TransactionTest, transaction_concurrency) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  TransactionManager trx_mgr(FullNodeConfig(), db, nullptr, addr_t());
+  TransactionManager trx_mgr(FullNodeConfig(), db, NewFinalChain(db, ChainConfig::predefined("test").final_chain),
+                             addr_t());
   bool stopped = false;
   // Insert transactions to memory pool and keep trying to insert them again on separate thread, it should always fail
   std::thread insertTrx([&trx_mgr, &stopped]() {
@@ -253,8 +328,8 @@ TEST_F(TransactionTest, priority_queue) {
     auto trx2 = std::make_shared<Transaction>(nonce, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
                                               addr_t::random());
     const auto trx_hash = trx->getHash();
-    priority_queue.insert(std::move(trx2));
-    priority_queue.insert(std::move(trx));
+    priority_queue.insert({trx2, TransactionStatus::Verified}, 1);
+    priority_queue.insert({trx, TransactionStatus::Verified}, 1);
     EXPECT_EQ(priority_queue.get(1)[0]->getHash(), trx_hash);
     EXPECT_EQ(priority_queue.size(), 2);
   }
@@ -266,8 +341,8 @@ TEST_F(TransactionTest, priority_queue) {
     auto trx = std::make_shared<Transaction>(nonce, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
                                              addr_t::random());
     auto trx2 = trx;
-    EXPECT_TRUE(priority_queue.insert(std::move(trx)));
-    EXPECT_FALSE(priority_queue.insert(std::move(trx2)));
+    EXPECT_TRUE(priority_queue.insert({trx, TransactionStatus::Verified}, 1));
+    EXPECT_FALSE(priority_queue.insert({trx2, TransactionStatus::Verified}, 1));
     EXPECT_EQ(priority_queue.size(), 1);
   }
 
@@ -280,8 +355,8 @@ TEST_F(TransactionTest, priority_queue) {
     auto trx2 = std::make_shared<Transaction>(nonce, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
                                               addr_t::random());
     auto trx_hash = trx->getHash();
-    priority_queue.insert(std::move(trx2));
-    priority_queue.insert(std::move(trx));
+    priority_queue.insert({trx2, TransactionStatus::Verified}, 1);
+    priority_queue.insert({trx, TransactionStatus::Verified}, 1);
     EXPECT_EQ(priority_queue.get(1)[0]->getHash(), trx_hash);
     EXPECT_EQ(priority_queue.size(), 2);
   }
@@ -306,9 +381,9 @@ TEST_F(TransactionTest, priority_queue) {
     auto trxa2_hash = trxa2->getHash();
     auto trxb1_hash = trxb1->getHash();
 
-    priority_queue.insert(std::move(trxb1));
-    priority_queue.insert(std::move(trxa2));
-    priority_queue.insert(std::move(trxa1));
+    priority_queue.insert({trxb1, TransactionStatus::Verified}, 1);
+    priority_queue.insert({trxa2, TransactionStatus::Verified}, 1);
+    priority_queue.insert({trxa1, TransactionStatus::Verified}, 1);
     EXPECT_EQ(priority_queue.size(), 3);
     EXPECT_EQ(priority_queue.get(3)[0]->getHash(), trxa1_hash);
     EXPECT_EQ(priority_queue.get(3)[1]->getHash(), trxa2_hash);

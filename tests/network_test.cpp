@@ -52,7 +52,8 @@ TEST_F(NetworkTest, transfer_block) {
                {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, sig_t(7777), blk_hash_t(888),
                addr_t(999));
 
-  SharedTransactions transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> transactions{
+      {g_signed_trx_samples[0], TransactionStatus::Verified}, {g_signed_trx_samples[1], TransactionStatus::Verified}};
   nw2->onNewTransactions(std::move(transactions));
 
   EXPECT_HAPPENS({10s, 200ms}, [&](auto& ctx) {
@@ -112,8 +113,10 @@ TEST_F(NetworkTest, DISABLED_transfer_lot_of_blocks) {
   // creating lot of blocks just for size
   std::vector<trx_hash_t> trx_hashes;
   auto trxs = samples::createSignedTrxSamples(0, 1500, g_secret);
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> verified_transactions;
   for (const auto& trx : trxs) {
     trx_hashes.push_back(trx->getHash());
+    verified_transactions.push_back({trx, TransactionStatus::Verified});
   }
   for (int i = 0; i < 100; ++i) {
     const auto proposal_period = *db1->getProposalPeriodForDagLevel(proposal_level + 1);
@@ -125,7 +128,7 @@ TEST_F(NetworkTest, DISABLED_transfer_lot_of_blocks) {
     dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
   }
 
-  nw1->onNewTransactions(std::move(trxs));
+  nw1->onNewTransactions(std::move(verified_transactions));
   for (auto block : dag_blocks) {
     dag_blk_mgr1->insertAndVerifyBlock(DagBlock(*block));
   }
@@ -440,7 +443,7 @@ TEST_F(NetworkTest, node_sync) {
   blks.push_back(std::make_pair(blk6, g_signed_trx_samples[6]));
 
   for (size_t i = 0; i < blks.size(); ++i) {
-    node1->getTransactionManager()->insertValidatedTransactions({(blks[i].second)});
+    node1->getTransactionManager()->insertValidatedTransactions({{blks[i].second, TransactionStatus::Verified}});
     node1->getDagBlockManager()->insertAndVerifyBlock(std::move(blks[i].first));
   }
 
@@ -487,7 +490,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
   DagBlock blk1(dag_genesis, 1, {}, {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, {0, 0},
                 vdf1, sk);
-  SharedTransactions txs1({g_signed_trx_samples[0], g_signed_trx_samples[1]});
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> txs1{
+      {g_signed_trx_samples[0], TransactionStatus::Verified}, {g_signed_trx_samples[1], TransactionStatus::Verified}};
 
   node1->getTransactionManager()->insertValidatedTransactions(std::move(txs1));
   node1->getDagBlockManager()->insertAndVerifyBlock(DagBlock(blk1));
@@ -540,7 +544,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
   vdf2.computeVdfSolution(vdf_config, blk1.getHash().asBytes(), false);
   DagBlock blk2(blk1.getHash(), 2, {}, {g_signed_trx_samples[2]->getHash(), g_signed_trx_samples[3]->getHash()}, {0, 0},
                 vdf2, sk);
-  SharedTransactions txs2({g_signed_trx_samples[2], g_signed_trx_samples[3]});
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> txs2{
+      {g_signed_trx_samples[2], TransactionStatus::Verified}, {g_signed_trx_samples[3], TransactionStatus::Verified}};
 
   node1->getTransactionManager()->insertValidatedTransactions(std::move(txs2));
   node1->getDagBlockManager()->insertAndVerifyBlock(DagBlock(blk2));
@@ -650,7 +655,9 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
   DagBlock blk1(dag_genesis, 1, {}, {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, {0, 0},
                 vdf1, sk);
-  SharedTransactions tr1({g_signed_trx_samples[0], g_signed_trx_samples[1]});
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> tr1{
+      {g_signed_trx_samples[0], TransactionStatus::Verified}, {g_signed_trx_samples[1], TransactionStatus::Verified}};
+
   node1->getTransactionManager()->insertValidatedTransactions(std::move(tr1));
   node1->getDagBlockManager()->insertAndVerifyBlock(DagBlock(blk1));
 
@@ -692,7 +699,9 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   vdf2.computeVdfSolution(vdf_config, blk1.getHash().asBytes(), false);
   DagBlock blk2(blk1.getHash(), 2, {}, {g_signed_trx_samples[2]->getHash(), g_signed_trx_samples[3]->getHash()}, {0, 0},
                 vdf2, sk);
-  SharedTransactions tr2({g_signed_trx_samples[2], g_signed_trx_samples[3]});
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> tr2{
+      {g_signed_trx_samples[2], TransactionStatus::Verified}, {g_signed_trx_samples[3], TransactionStatus::Verified}};
+
   node1->getTransactionManager()->insertValidatedTransactions(std::move(tr2));
   node1->getDagBlockManager()->insertAndVerifyBlock(DagBlock(blk2));
 
@@ -982,28 +991,32 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
   DagBlock blk1(dag_genesis, propose_level, {},
                 {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, {0, 0}, vdf1, sk);
-  SharedTransactions tr1({g_signed_trx_samples[0], g_signed_trx_samples[1]});
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> tr1{
+      {g_signed_trx_samples[0], TransactionStatus::Verified}, {g_signed_trx_samples[1], TransactionStatus::Verified}};
 
   propose_level = 2;
   vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk,
                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf2.computeVdfSolution(vdf_config, blk1.getHash().asBytes(), false);
   DagBlock blk2(blk1.getHash(), propose_level, {}, {g_signed_trx_samples[2]->getHash()}, {0}, vdf2, sk);
-  SharedTransactions tr2({g_signed_trx_samples[2]});
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> tr2{
+      {g_signed_trx_samples[2], TransactionStatus::Verified}};
 
   propose_level = 3;
   vdf_sortition::VdfSortition vdf3(vdf_config, vrf_sk,
                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf3.computeVdfSolution(vdf_config, blk2.getHash().asBytes(), false);
   DagBlock blk3(blk2.getHash(), propose_level, {}, {g_signed_trx_samples[3]->getHash()}, {0}, vdf3, sk);
-  SharedTransactions tr3{g_signed_trx_samples[3]};
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> tr3{
+      {g_signed_trx_samples[3], TransactionStatus::Verified}};
 
   propose_level = 4;
   vdf_sortition::VdfSortition vdf4(vdf_config, vrf_sk,
                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   vdf4.computeVdfSolution(vdf_config, blk3.getHash().asBytes(), false);
   DagBlock blk4(blk3.getHash(), propose_level, {}, {g_signed_trx_samples[4]->getHash()}, {0}, vdf4, sk);
-  SharedTransactions tr4({g_signed_trx_samples[3], g_signed_trx_samples[4]});
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> tr4{
+      {g_signed_trx_samples[4], TransactionStatus::Verified}};
 
   propose_level = 5;
   vdf_sortition::VdfSortition vdf5(vdf_config, vrf_sk,
@@ -1013,8 +1026,11 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
                 {g_signed_trx_samples[5]->getHash(), g_signed_trx_samples[6]->getHash(),
                  g_signed_trx_samples[7]->getHash(), g_signed_trx_samples[8]->getHash()},
                 {0, 0, 0, 0}, vdf5, sk);
-  SharedTransactions tr5(
-      {g_signed_trx_samples[5], g_signed_trx_samples[6], g_signed_trx_samples[7], g_signed_trx_samples[8]});
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> tr5{
+      {g_signed_trx_samples[5], TransactionStatus::Verified},
+      {g_signed_trx_samples[6], TransactionStatus::Verified},
+      {g_signed_trx_samples[7], TransactionStatus::Verified},
+      {g_signed_trx_samples[8], TransactionStatus::Verified}};
 
   propose_level = 6;
   vdf_sortition::VdfSortition vdf6(vdf_config, vrf_sk,
@@ -1022,7 +1038,8 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   vdf6.computeVdfSolution(vdf_config, blk5.getHash().asBytes(), false);
   DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()}, {g_signed_trx_samples[9]->getHash()},
                 {0}, vdf6, sk);
-  SharedTransactions tr6({g_signed_trx_samples[9]});
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> tr6{
+      {g_signed_trx_samples[9], TransactionStatus::Verified}};
 
   node1->getTransactionManager()->insertValidatedTransactions(std::move(tr1));
   node1->getDagBlockManager()->insertAndVerifyBlock(std::move(blk1));
@@ -1193,7 +1210,9 @@ TEST_F(NetworkTest, DISABLED_node_sync2) {
   trxs.push_back(tr12);
 
   for (size_t i = 0; i < blks.size(); ++i) {
-    node1->getTransactionManager()->insertValidatedTransactions(std::move(trxs[i]));
+    std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> ver_trxs;
+    for (auto t : trxs[i]) ver_trxs.push_back({t, TransactionStatus::Verified});
+    node1->getTransactionManager()->insertValidatedTransactions(std::move(ver_trxs));
     node1->getDagBlockManager()->insertAndVerifyBlock(std::move(blks[i]));
   }
 
@@ -1220,8 +1239,9 @@ TEST_F(NetworkTest, node_transaction_sync) {
   auto& node1 = nodes[0];
   auto& node2 = nodes[1];
 
-  SharedTransactions txs = *g_signed_trx_samples;
-  node1->getTransactionManager()->insertValidatedTransactions(std::move(txs));
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> ver_trxs;
+  for (auto t : *g_signed_trx_samples) ver_trxs.push_back({t, TransactionStatus::Verified});
+  node1->getTransactionManager()->insertValidatedTransactions(std::move(ver_trxs));
 
   std::cout << "Waiting Sync for 2000 milliseconds ..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(2000);
@@ -1251,7 +1271,8 @@ TEST_F(NetworkTest, node_full_sync) {
   int num_of_trxs = 50;
   const auto trxs = samples::createSignedTrxSamples(0, num_of_trxs, g_secret);
   for (auto i = 0; i < num_of_trxs; ++i) {
-    nodes[distNodes(rng)]->getTransactionManager()->insertValidatedTransactions({trxs[i]});
+    nodes[distNodes(rng)]->getTransactionManager()->insertValidatedTransactions(
+        {{trxs[i], TransactionStatus::Verified}});
     thisThreadSleepForMilliSeconds(distTransactions(rng));
   }
   ASSERT_EQ(num_of_trxs, 50);  // 50 transactions
@@ -1401,6 +1422,24 @@ TEST_F(NetworkTest, node_full_sync) {
     if (blocks1.size() == 0) break;
     level++;
   }
+}
+
+TEST_F(NetworkTest, suspicious_packets) {
+  network::tarcap::TaraxaPeer peer;
+  // Verify that after 1000 reported suspicious packets true is returned
+  for (int i = 0; i < 1000; i++) {
+    EXPECT_FALSE(peer.reportSuspiciousPacket());
+  }
+  EXPECT_TRUE(peer.reportSuspiciousPacket());
+
+  // This part of unit tests is commented out since it takes about one minute to actually test, run it if there are any
+  // issues with this functionality
+
+  /*thisThreadSleepForSeconds(60);
+  for (int i = 0; i < 1000; i++) {
+    EXPECT_FALSE(peer.reportSuspiciousPacket());
+  }
+  EXPECT_TRUE(peer.reportSuspiciousPacket());*/
 }
 
 }  // namespace taraxa::core_tests

@@ -220,6 +220,14 @@ void FullNode::start() {
       },
       subscription_pool_);
 
+  final_chain_->block_finalized_.subscribe(
+      [trx_manager = as_weak(trx_mgr_)](auto const &res) {
+        if (auto trx_mgr = trx_manager.lock()) {
+          trx_mgr->blockFinalized(res->final_chain_blk->number);
+        }
+      },
+      subscription_pool_);
+
   // Subscription to process hardforks
   final_chain_->block_applying_.subscribe([&](uint64_t block_num) {
     // TODO: should have only common hardfork code calling hardfork executor
