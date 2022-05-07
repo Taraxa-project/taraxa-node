@@ -494,6 +494,10 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
 
 void VoteManager::sendRewardPeriodCertVotes(uint64_t reward_period) {
   auto reward_period_cert_votes = db_->getCertVotes(reward_period);
+  if (reward_period_cert_votes.empty()) {
+    return;
+  }
+
   auto net = network_.lock();
   assert(net);
   net->onNewPbftVotes(std::move(reward_period_cert_votes), true);
