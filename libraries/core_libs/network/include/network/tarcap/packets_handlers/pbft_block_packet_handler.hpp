@@ -19,7 +19,7 @@ class PbftBlockPacketHandler final : public PacketHandler {
                          std::shared_ptr<VoteManager> vote_mgr, const addr_t& node_addr);
 
   void onNewPbftBlock(PbftBlock const& pbft_block);
-  void sendPbftBlock(dev::p2p::NodeID const& peer_id, PbftBlock const& pbft_block);
+  void sendPbftBlock(const dev::p2p::NodeID& peer_id, const PbftBlock& pbft_block, uint64_t pbft_chain_size);
 
  private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;

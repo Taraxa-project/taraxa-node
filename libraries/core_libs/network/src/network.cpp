@@ -163,9 +163,9 @@ std::shared_ptr<network::tarcap::TaraxaPeer> Network::getPeer(dev::p2p::NodeID c
   return taraxa_capability_->getPeersState()->getPeer(id);
 }
 
-void Network::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block) {
+void Network::sendPbftBlock(const dev::p2p::NodeID &id, const PbftBlock &pbft_block, uint64_t pbft_chain_size) {
   LOG(log_dg_) << "Network send PBFT block: " << pbft_block.getBlockHash() << " to: " << id;
-  taraxa_capability_->sendPbftBlock(id, pbft_block);
+  taraxa_capability_->sendPbftBlock(id, pbft_block, pbft_chain_size);
 }
 
 void Network::sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote, bool reward_vote) {
