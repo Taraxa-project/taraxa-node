@@ -16,6 +16,7 @@ using namespace std;
 struct advance_check_opts {
   bool dont_assume_no_logs = 0;
   bool dont_assume_all_trx_success = 0;
+  bool expect_to_fail = 0;
 };
 
 struct FinalChainTest : WithDataDir {
@@ -97,7 +98,9 @@ struct FinalChainTest : WithDataDir {
     for (size_t i = 0; i < trxs.size(); ++i) {
       auto const& trx = trxs[i];
       auto const& r = receipts[i];
-      EXPECT_TRUE(r.gas_used != 0);
+      if (!opts.expect_to_fail) {
+        EXPECT_TRUE(r.gas_used != 0);
+      }
       EXPECT_EQ(util::rlp_enc(r), util::rlp_enc(*SUT->transaction_receipt(trx.getHash())));
       cumulative_gas_used_actual += r.gas_used;
       if (assume_only_toplevel_transfers && trx.getValue() != 0 && r.status_code == 1) {
@@ -114,9 +117,12 @@ struct FinalChainTest : WithDataDir {
           expected_balance_changes[receiver] = receiver_bal;
         }
       }
-      if (!opts.dont_assume_all_trx_success) {
+      if (opts.expect_to_fail) {
+        EXPECT_EQ(r.status_code, 0);
+      } else if (!opts.dont_assume_all_trx_success) {
         EXPECT_EQ(r.status_code, 1);
       }
+
       if (!opts.dont_assume_no_logs) {
         EXPECT_EQ(r.logs.size(), 0);
         EXPECT_EQ(r.bloom(), LogBloom());
@@ -306,6 +312,21 @@ TEST_F(FinalChainTest, coin_transfers) {
       {0, 143430, 0, TRX_GAS, {}, keys[331].secret(), keys[420].address()},
       {0, 1313145, 0, TRX_GAS, {}, keys[345].secret(), keys[134].address()},
   });
+}
+
+TEST_F(FinalChainTest, nonce_skipping) {
+  const dev::KeyPair key = dev::KeyPair::create();
+  constexpr auto TRX_GAS = 100000;
+  cfg.state.genesis_balances = {};
+  cfg.state.dpos = nullopt;
+  cfg.state.genesis_balances[key.address()] = numeric_limits<u256>::max();
+  cfg.state.execution_options.disable_gas_fee = false;
+  cfg.state.execution_options.disable_nonce_check = false;
+  init();
+  advance({{2, 13, 0, TRX_GAS, {}, key.secret(), key.address()}}, {false, false, true});
+
+  cfg.state.execution_options.enable_nonce_skipping = true;
+  advance({{5, 13, 0, TRX_GAS, {}, key.secret(), key.address()}});
 }
 
 }  // namespace taraxa::final_chain

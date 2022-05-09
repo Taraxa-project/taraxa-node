@@ -231,7 +231,8 @@ constexpr std::string_view testnet_json = R"foo({
         },
         "execution_options": {
           "disable_gas_fee": false,
-          "disable_nonce_check": false
+          "disable_nonce_check": false,
+          "enable_nonce_skipping": true
         },
         "genesis_balances": {
           "76870407332398322576505f3c5423d0a71af296": "0x117364175f2cb0e1dfc0000",

@@ -198,7 +198,8 @@ constexpr std::string_view default_json = R"foo({
         },
         "execution_options": {
           "disable_gas_fee": false,
-          "disable_nonce_check": false
+          "disable_nonce_check": false,
+          "enable_nonce_skipping": true
         },
         "genesis_balances": {
           "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027e72f1f12813088000000",
