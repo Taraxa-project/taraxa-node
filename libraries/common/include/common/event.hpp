@@ -2,6 +2,7 @@
 
 #include <functional>
 #include <map>
+#include <mutex>
 #include <shared_mutex>
 
 #include "common/functional.hpp"
