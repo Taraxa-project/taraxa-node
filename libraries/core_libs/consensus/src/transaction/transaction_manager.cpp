@@ -78,29 +78,28 @@ void TransactionManager::markTransactionKnown(const trx_hash_t &trx_hash) { know
 
 bool TransactionManager::isTransactionKnown(const trx_hash_t &trx_hash) { return known_txs_.contains(trx_hash); }
 
-std::pair<bool, std::string> TransactionManager::insertTransaction(const Transaction &trx) {
-  if (isTransactionKnown(trx.getHash())) {
+std::pair<bool, std::string> TransactionManager::insertTransaction(const std::shared_ptr<Transaction> &trx) {
+  if (isTransactionKnown(trx->getHash())) {
     return {false, "Transaction already in transactions pool"};
   }
 
   {
     std::shared_lock transactions_lock(transactions_mutex_);
-    if (transactions_pool_.contains(trx.getHash())) {
+    if (transactions_pool_.contains(trx->getHash())) {
       return {false, "Transaction already in transactions pool"};
-    } else if (nonfinalized_transactions_in_dag_.contains(trx.getHash())) {
+    } else if (nonfinalized_transactions_in_dag_.contains(trx->getHash())) {
       return {false, "Transaction already included in DAG block"};
     }
   }
 
-  const auto trx_ptr = std::make_shared<Transaction>(trx);
-  if (const auto [is_valid, reason] = verifyTransaction(trx_ptr); !is_valid) {
+  if (const auto [is_valid, reason] = verifyTransaction(trx); !is_valid) {
     return {false, reason};
   }
 
-  if (insertValidatedTransactions({trx_ptr})) {
+  if (insertValidatedTransactions({trx})) {
     return {true, "Can not insert transactions"};
   } else {
-    const auto period = db_->getTransactionPeriod(trx.getHash());
+    const auto period = db_->getTransactionPeriod(trx->getHash());
     if (period != std::nullopt) {
       return {false, "Transaction already finalized in period" + std::to_string(period->first)};
     } else {
@@ -279,13 +278,13 @@ SharedTransactions TransactionManager::packTrxs(uint16_t max_trx_to_pack) {
 void TransactionManager::updateFinalizedTransactionsStatus(SyncBlock const &sync_block) {
   // !!! There is no lock because it is called under std::unique_lock trx_lock(trx_mgr_->getTransactionsMutex());
   for (auto const &trx : sync_block.transactions) {
-    if (!nonfinalized_transactions_in_dag_.erase(trx.getHash())) {
+    if (!nonfinalized_transactions_in_dag_.erase(trx->getHash())) {
       trx_count_++;
     } else {
-      LOG(log_dg_) << "Transaction " << trx.getHash() << " removed from nonfinalized transactions";
+      LOG(log_dg_) << "Transaction " << trx->getHash() << " removed from nonfinalized transactions";
     }
-    if (transactions_pool_.erase(trx.getHash())) {
-      LOG(log_dg_) << "Transaction " << trx.getHash() << " removed from transactions_pool_";
+    if (transactions_pool_.erase(trx->getHash())) {
+      LOG(log_dg_) << "Transaction " << trx->getHash() << " removed from transactions_pool_";
     }
   }
   db_->saveStatusField(StatusDbField::TrxCount, trx_count_);

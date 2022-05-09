@@ -248,7 +248,7 @@ struct TransactionClient {
   };
   struct Context {
     TransactionStage stage;
-    Transaction trx;
+    std::shared_ptr<Transaction> trx;
   };
 
  private:
@@ -259,11 +259,11 @@ struct TransactionClient {
   explicit TransactionClient(decltype(node_) node, wait_opts const& wait_opts = {60s, 1s})
       : node_(move(node)), wait_opts_(wait_opts) {}
 
-  void must_process_sync(::taraxa::Transaction const& trx) const {
+  void must_process_sync(std::shared_ptr<Transaction> const& trx) const {
     ASSERT_EQ(process(trx, true).stage, TransactionStage::executed);
   }
 
-  Context process(::taraxa::Transaction const& trx, bool wait_executed = true) const {
+  Context process(std::shared_ptr<Transaction> const& trx, bool wait_executed = true) const {
     Context ctx{
         TransactionStage::created,
         trx,
@@ -272,7 +272,7 @@ struct TransactionClient {
       return ctx;
     }
     ctx.stage = TransactionStage::inserted;
-    auto trx_hash = ctx.trx.getHash();
+    auto trx_hash = ctx.trx->getHash();
     if (wait_executed) {
       auto success = wait(
           wait_opts_, [&, this](auto& ctx) { ctx.fail_if(!node_->getFinalChain()->transaction_location(trx_hash)); });
@@ -293,17 +293,18 @@ struct TransactionClient {
     // we don't wait for previous transactions for a sender to complete before
     // sending a new one
     static std::atomic<uint64_t> nonce = 100000;
-    return process(
-        Transaction(++nonce, val, 0, TEST_TX_GAS_LIMIT, bytes(), from_k ? from_k->secret() : node_->getSecretKey(), to),
-        wait_executed);
+    return process(std::make_shared<Transaction>(++nonce, val, 0, TEST_TX_GAS_LIMIT, bytes(),
+                                                 from_k ? from_k->secret() : node_->getSecretKey(), to),
+                   wait_executed);
   }
 };
 
 inline auto make_dpos_trx(FullNodeConfig const& sender_node_cfg, state_api::DPOSTransfers const& transfers,
                           uint64_t nonce = 0, u256 const& gas_price = 0, uint64_t extra_gas = 0) {
   StateAPI::DPOSTransactionPrototype proto(transfers);
-  return Transaction(nonce, proto.value, gas_price, proto.minimal_gas + extra_gas, std::move(proto.input),
-                     dev::Secret(sender_node_cfg.node_secret), proto.to, sender_node_cfg.chain.chain_id);
+  return std::make_shared<Transaction>(nonce, proto.value, gas_price, proto.minimal_gas + extra_gas,
+                                       std::move(proto.input), dev::Secret(sender_node_cfg.node_secret), proto.to,
+                                       sender_node_cfg.chain.chain_id);
 }
 
 inline auto own_balance(std::shared_ptr<FullNode> const& node) {

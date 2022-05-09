@@ -11,8 +11,8 @@ namespace taraxa::network::tarcap {
 class TestState {
  public:
   bool hasTransaction(const trx_hash_t& tx_hash) const;
-  void insertTransaction(const Transaction& tx);
-  const Transaction& getTransaction(const trx_hash_t& tx_hash) const;
+  void insertTransaction(const std::shared_ptr<Transaction>& tx);
+  const std::shared_ptr<Transaction> getTransaction(const trx_hash_t& tx_hash) const;
   size_t getTransactionsSize() const;
 
   bool hasBlock(const blk_hash_t& block_hash) const;
@@ -20,11 +20,11 @@ class TestState {
   const DagBlock& getBlock(const blk_hash_t& block_hash) const;
   size_t getBlocksSize() const;
 
-  std::unordered_map<trx_hash_t, Transaction> getTransactions();
+  std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> getTransactions();
   std::unordered_map<blk_hash_t, DagBlock> getBlocks();
 
  private:
-  std::unordered_map<trx_hash_t, Transaction> test_transactions_;
+  std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> test_transactions_;
   mutable std::shared_mutex transactions_mutex_;
 
   std::unordered_map<blk_hash_t, DagBlock> test_blocks_;

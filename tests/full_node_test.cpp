@@ -467,7 +467,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       }
       auto result = trx_clients[0].coinTransfer(KeyPair::create().address(), 0, KeyPair::create(), false);
       EXPECT_NE(result.stage, TransactionClient::TransactionStage::created);
-      transactions.emplace(result.trx.getHash());
+      transactions.emplace(result.trx->getHash());
     }
 
     void coin_transfer(int sender_node_i, addr_t const &to, val_t const &amount, bool verify_executed = true) {
@@ -479,7 +479,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       }
       auto result = trx_clients[sender_node_i].coinTransfer(to, amount, {}, verify_executed);
       EXPECT_NE(result.stage, TransactionClient::TransactionStage::created);
-      transactions.emplace(result.trx.getHash());
+      transactions.emplace(result.trx->getHash());
       if (verify_executed)
         EXPECT_EQ(result.stage, TransactionClient::TransactionStage::executed);
       else
@@ -927,10 +927,10 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
 
   // send 1000 trxs
   for (const auto &trx : samples::createSignedTrxSamples(0, 400, g_secret)) {
-    nodes[0]->getTransactionManager()->insertTransaction(*trx);
+    nodes[0]->getTransactionManager()->insertTransaction(trx);
   }
   for (const auto &trx : samples::createSignedTrxSamples(400, 1000, g_secret)) {
-    nodes[1]->getTransactionManager()->insertTransaction(*trx);
+    nodes[1]->getTransactionManager()->insertTransaction(trx);
   }
 
   auto num_trx1 = nodes[0]->getTransactionManager()->getTransactionCount();
@@ -967,10 +967,10 @@ TEST_F(FullNodeTest, persist_counter) {
 
     // send 1000 trxs
     for (const auto &trx : samples::createSignedTrxSamples(0, 400, g_secret)) {
-      nodes[0]->getTransactionManager()->insertTransaction(*trx);
+      nodes[0]->getTransactionManager()->insertTransaction(trx);
     }
     for (const auto &trx : samples::createSignedTrxSamples(400, 1000, g_secret)) {
-      nodes[1]->getTransactionManager()->insertTransaction(*trx);
+      nodes[1]->getTransactionManager()->insertTransaction(trx);
     }
 
     num_trx1 = nodes[0]->getTransactionManager()->getTransactionCount();
@@ -1193,8 +1193,8 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   uint64_t trxs_count = 0;
   auto test_transfer_val = node_1_genesis_bal / node_cfgs.size();
   for (size_t i(1); i < nodes.size(); ++i) {
-    Transaction master_boot_node_send_coins(nonce++, test_transfer_val, gas_price, 100000, bytes(),
-                                            nodes[0]->getSecretKey(), nodes[i]->getAddress());
+    auto master_boot_node_send_coins = std::make_shared<Transaction>(
+        nonce++, test_transfer_val, gas_price, 100000, bytes(), nodes[0]->getSecretKey(), nodes[i]->getAddress());
     // broadcast trx and insert
     nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins);
     trxs_count++;
@@ -1207,7 +1207,8 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions, expected " << trxs_count << std::endl;
         if (ctx.fail(); !ctx.is_last_attempt) {
-          Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
+          auto dummy_trx = std::make_shared<Transaction>(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(),
+                                                         nodes[0]->getAddress());
           // broadcast dummy transaction
           nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
           trxs_count++;
@@ -1234,8 +1235,9 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     // Each node sends 500 transactions
     auto j = 0;
     for (; j < 500; j++) {
-      Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, 100000, bytes(), nodes[i]->getSecretKey(),
-                                            nodes[receiver_index]->getAddress());
+      auto send_coins_in_robin_cycle =
+          std::make_shared<Transaction>(nonce++, send_coins, gas_price, 100000, bytes(), nodes[i]->getSecretKey(),
+                                        nodes[receiver_index]->getAddress());
       // broadcast trx and insert
       nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle);
       trxs_count++;
@@ -1250,7 +1252,8 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions, expected " << trxs_count << std::endl;
         if (ctx.fail(); !ctx.is_last_attempt) {
-          Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
+          auto dummy_trx = std::make_shared<Transaction>(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(),
+                                                         nodes[0]->getAddress());
           // broadcast dummy transaction
           nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
           trxs_count++;
@@ -1325,8 +1328,8 @@ TEST_F(FullNodeTest, db_rebuild) {
 
     // Issue dummy trx until at least 10 pbft blocks created
     while (executed_chain_size < 10) {
-      Transaction dummy_trx(nonce++, 0, gas_price, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
-                            nodes[0]->getAddress());
+      auto dummy_trx = std::make_shared<Transaction>(nonce++, 0, gas_price, TEST_TX_GAS_LIMIT, bytes(),
+                                                     nodes[0]->getSecretKey(), nodes[0]->getAddress());
       nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
       trxs_count++;
       thisThreadSleepForMilliSeconds(100);
@@ -1400,7 +1403,8 @@ TEST_F(FullNodeTest, transfer_to_self) {
   uint64_t trx_count(100);
   EXPECT_TRUE(initial_bal.second);
   for (uint64_t i = 0; i < trx_count; ++i) {
-    const auto trx = Transaction(i, i * 100, 0, 1000000, str2bytes("00FEDCBA9876543210000000"), g_secret, node_addr);
+    const auto trx = std::make_shared<Transaction>(i, i * 100, 0, 1000000, str2bytes("00FEDCBA9876543210000000"),
+                                                   g_secret, node_addr);
     nodes[0]->getTransactionManager()->insertTransaction(trx);
   }
   thisThreadSleepForSeconds(5);
@@ -1521,28 +1525,31 @@ TEST_F(FullNodeTest, transaction_validation) {
   auto nodes = launch_nodes(node_cfgs);
   uint32_t nonce = 0;
 
-  auto trx = Transaction(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  auto trx = std::make_shared<Transaction>(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
+                                           addr_t::random());
   // PASS on GAS
   EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
-  trx = Transaction(nonce++, 1, 1, FinalChain::GAS_LIMIT + 1, str2bytes("00FEDCBA9876543210000000"), g_secret,
-                    addr_t::random());
+  trx = std::make_shared<Transaction>(nonce++, 1, 1, FinalChain::GAS_LIMIT + 1, str2bytes("00FEDCBA9876543210000000"),
+                                      g_secret, addr_t::random());
   // FAIL on GAS
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 
-  trx = Transaction(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  trx = std::make_shared<Transaction>(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
+                                      addr_t::random());
   // PASS on NONCE
   EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
   wait({60s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), 2) });
-  trx = Transaction(0, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  trx = std::make_shared<Transaction>(0, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
   // FAIL on NONCE
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 
-  trx = Transaction(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  trx = std::make_shared<Transaction>(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
+                                      addr_t::random());
   // PASS on BALANCE
   EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 
-  trx = Transaction(nonce++, own_effective_genesis_bal(nodes[0]->getConfig()) + 1, 1, 100,
-                    str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  trx = std::make_shared<Transaction>(nonce++, own_effective_genesis_bal(nodes[0]->getConfig()) + 1, 1, 100,
+                                      str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
   // FAIL on BALANCE
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 }
@@ -1558,7 +1565,8 @@ TEST_F(FullNodeTest, light_node) {
   auto nodes = launch_nodes(node_cfgs);
   uint64_t nonce = 0;
   while (nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks() < 20) {
-    Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
+    auto dummy_trx =
+        std::make_shared<Transaction>(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
     // broadcast dummy transaction
     nodes[1]->getTransactionManager()->insertTransaction(dummy_trx);
     thisThreadSleepForMilliSeconds(200);
@@ -1591,7 +1599,8 @@ TEST_F(FullNodeTest, clear_period_data) {
   auto nodes = launch_nodes(node_cfgs);
   uint64_t nonce = 0;
   while (nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks() < 20) {
-    Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
+    auto dummy_trx =
+        std::make_shared<Transaction>(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
     // broadcast dummy transaction
     nodes[1]->getTransactionManager()->insertTransaction(dummy_trx);
     thisThreadSleepForMilliSeconds(200);

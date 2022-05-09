@@ -159,8 +159,8 @@ TEST_F(P2PTest, capability_send_block) {
   }
   EXPECT_EQ(rtransactions.size(), 2);
   if (rtransactions.size() == 2) {
-    EXPECT_EQ(Transaction(*transactions[0]), rtransactions[g_signed_trx_samples[0]->getHash()]);
-    EXPECT_EQ(Transaction(*transactions[1]), rtransactions[g_signed_trx_samples[1]->getHash()]);
+    EXPECT_EQ(*transactions[0], *rtransactions[g_signed_trx_samples[0]->getHash()]);
+    EXPECT_EQ(*transactions[1], *rtransactions[g_signed_trx_samples[1]->getHash()]);
   }
 }
 
@@ -288,8 +288,8 @@ TEST_F(P2PTest, block_propagate) {
     auto rtransactions = vCapabilities[i]->test_state_->getTransactions();
     EXPECT_EQ(rtransactions.size(), 2);
     if (rtransactions.size() == 2) {
-      EXPECT_EQ(Transaction(*transactions[0]), rtransactions[g_signed_trx_samples[0]->getHash()]);
-      EXPECT_EQ(Transaction(*transactions[1]), rtransactions[g_signed_trx_samples[1]->getHash()]);
+      EXPECT_EQ(*transactions[0], *rtransactions[g_signed_trx_samples[0]->getHash()]);
+      EXPECT_EQ(*transactions[1], *rtransactions[g_signed_trx_samples[1]->getHash()]);
     }
   }
   EXPECT_EQ(blocks1.size(), 1);

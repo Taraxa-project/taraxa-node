@@ -33,7 +33,7 @@ class GasPricer {
    *
    * @param trxs from latest block
    */
-  void update(const Transactions &trxs);
+  void update(const SharedTransactions &trxs);
 
  private:
   /**

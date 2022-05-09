@@ -62,7 +62,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     trxs_count++;
     EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
       for (auto &node : nodes) {
-        if (ctx.fail_if(!node->getFinalChain()->transaction_location(trx.getHash()))) {
+        if (ctx.fail_if(!node->getFinalChain()->transaction_location(trx->getHash()))) {
           return;
         }
       }
@@ -71,8 +71,8 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
 
   auto init_bal = node_1_expected_bal / nodes.size();
   for (size_t i(1); i < nodes.size(); ++i) {
-    Transaction master_boot_node_send_coins(nonce++, init_bal, gas_price, TEST_TX_GAS_LIMIT, bytes(),
-                                            nodes[0]->getSecretKey(), nodes[i]->getAddress());
+    auto master_boot_node_send_coins = std::make_shared<Transaction>(
+        nonce++, init_bal, gas_price, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(), nodes[i]->getAddress());
     node_1_expected_bal -= init_bal;
     // broadcast trx and insert
     nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins);
@@ -85,8 +85,8 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions, expected " << trxs_count << std::endl;
-        Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
-                              nodes[0]->getAddress());
+        auto dummy_trx = std::make_shared<Transaction>(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
+                                                       nodes[0]->getSecretKey(), nodes[0]->getAddress());
         // broadcast dummy transaction
         nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
         trxs_count++;
@@ -128,8 +128,9 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     // Sending coins in Robin Cycle in order to make all nodes to be active
     // players, but not guarantee
     auto receiver_index = (i + 1) % nodes.size();
-    Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, TEST_TX_GAS_LIMIT, bytes(),
-                                          nodes[i]->getSecretKey(), nodes[receiver_index]->getAddress());
+    auto send_coins_in_robin_cycle =
+        std::make_shared<Transaction>(nonce++, send_coins, gas_price, TEST_TX_GAS_LIMIT, bytes(),
+                                      nodes[i]->getSecretKey(), nodes[receiver_index]->getAddress());
     // broadcast trx and insert
     nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle);
     trxs_count++;
@@ -141,8 +142,8 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions. Expected " << trxs_count << std::endl;
-        Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
-                              nodes[0]->getAddress());
+        auto dummy_trx = std::make_shared<Transaction>(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
+                                                       nodes[0]->getSecretKey(), nodes[0]->getAddress());
         // broadcast dummy transaction
         nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
         trxs_count++;
@@ -411,7 +412,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
     trxs_count++;
     EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
       for (auto &node : nodes) {
-        if (ctx.fail_if(!node->getFinalChain()->transaction_location(trx.getHash()))) {
+        if (ctx.fail_if(!node->getFinalChain()->transaction_location(trx->getHash()))) {
           return;
         }
       }
@@ -420,8 +421,8 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
 
   auto init_bal = node_1_expected_bal / nodes.size() / 2;
   for (size_t i(1); i < nodes.size(); ++i) {
-    Transaction master_boot_node_send_coins(nonce++, init_bal, gas_price, TEST_TX_GAS_LIMIT, bytes(),
-                                            nodes[0]->getSecretKey(), nodes[i]->getAddress());
+    auto master_boot_node_send_coins = std::make_shared<Transaction>(
+        nonce++, init_bal, gas_price, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(), nodes[i]->getAddress());
     node_1_expected_bal -= init_bal;
     // broadcast trx and insert
     nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins);
@@ -434,8 +435,8 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions, expected " << trxs_count << std::endl;
-        Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
-                              nodes[0]->getAddress());
+        auto dummy_trx = std::make_shared<Transaction>(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
+                                                       nodes[0]->getSecretKey(), nodes[0]->getAddress());
         // broadcast dummy transaction
         nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
         trxs_count++;
@@ -462,8 +463,9 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
     // Sending coins in Robin Cycle in order to make all nodes to be active
     // players, but not guarantee
     auto receiver_index = (i + 1) % nodes.size();
-    Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, TEST_TX_GAS_LIMIT, bytes(),
-                                          nodes[i]->getSecretKey(), nodes[receiver_index]->getAddress());
+    auto send_coins_in_robin_cycle =
+        std::make_shared<Transaction>(nonce++, send_coins, gas_price, TEST_TX_GAS_LIMIT, bytes(),
+                                      nodes[i]->getSecretKey(), nodes[receiver_index]->getAddress());
     // broadcast trx and insert
     nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle);
     trxs_count++;
@@ -475,8 +477,8 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions. Expected " << trxs_count << std::endl;
-        Transaction dummy_trx(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
-                              nodes[0]->getAddress());
+        auto dummy_trx = std::make_shared<Transaction>(nonce++, 0, 2, TEST_TX_GAS_LIMIT, bytes(),
+                                                       nodes[0]->getSecretKey(), nodes[0]->getAddress());
         // broadcast dummy transaction
         nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
         trxs_count++;
@@ -538,8 +540,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   auto coins_value = val_t(100);
   auto gas_price = val_t(2);
   auto data = bytes();
-  Transaction trx_master_boot_node_to_receiver(0, coins_value, gas_price, TEST_TX_GAS_LIMIT, data, node->getSecretKey(),
-                                               receiver);
+  auto trx_master_boot_node_to_receiver =
+      std::make_shared<Transaction>(0, coins_value, gas_price, TEST_TX_GAS_LIMIT, data, node->getSecretKey(), receiver);
   node->getTransactionManager()->insertTransaction(trx_master_boot_node_to_receiver);
 
   // Check there is proposing DAG blocks
@@ -565,8 +567,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   // create a transaction transfer coins from node1 to node2
   const auto gas_price = val_t(2);
-  Transaction trx_master_boot_node_to_node2(1, val_t(100), gas_price, TEST_TX_GAS_LIMIT, bytes(),
-                                            nodes[0]->getSecretKey(), node2_addr);
+  auto trx_master_boot_node_to_node2 = std::make_shared<Transaction>(1, val_t(100), gas_price, TEST_TX_GAS_LIMIT,
+                                                                     bytes(), nodes[0]->getSecretKey(), node2_addr);
   // broadcast trx and insert
   nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node2);
 
@@ -580,8 +582,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   wait_for_balances(nodes, expected_balances1, {100s, 500ms});
 
   // create a transaction transfer coins from node1 to node3
-  Transaction trx_master_boot_node_to_node3(2, val_t(1000), gas_price, TEST_TX_GAS_LIMIT, bytes(),
-                                            nodes[0]->getSecretKey(), node3_addr);
+  auto trx_master_boot_node_to_node3 = std::make_shared<Transaction>(2, val_t(1000), gas_price, TEST_TX_GAS_LIMIT,
+                                                                     bytes(), nodes[0]->getSecretKey(), node3_addr);
   // broadcast trx and insert
   nodes[0]->getTransactionManager()->insertTransaction(trx_master_boot_node_to_node3);
 

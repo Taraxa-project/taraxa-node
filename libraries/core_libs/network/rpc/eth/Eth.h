@@ -12,7 +12,7 @@ struct EthParams {
   uint64_t chain_id = 0;
   std::shared_ptr<FinalChain> final_chain;
   std::function<std::shared_ptr<Transaction>(h256 const&)> get_trx;
-  std::function<void(Transaction const& trx)> send_trx;
+  std::function<void(std::shared_ptr<Transaction> const& trx)> send_trx;
   std::function<u256()> gas_pricer = [] { return u256(0); };
   std::function<std::optional<SyncStatus>()> syncing_probe = [] { return std::nullopt; };
   WatchesConfig watches_cfg;
@@ -29,7 +29,7 @@ struct Eth : virtual ::taraxa::net::EthFace {
     ::taraxa::net::EthFace::operator=(std::move(rhs));
     return *this;
   }
-  virtual void note_block_executed(final_chain::BlockHeader const&, Transactions const&,
+  virtual void note_block_executed(final_chain::BlockHeader const&, SharedTransactions const&,
                                    final_chain::TransactionReceipts const&) = 0;
   virtual void note_pending_transaction(h256 const& trx_hash) = 0;
 };

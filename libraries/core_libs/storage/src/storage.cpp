@@ -316,8 +316,7 @@ SharedTransactions DbStorage::getAllNonfinalizedTransactions() {
   SharedTransactions res;
   auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::transactions)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
-    Transaction transaction(asBytes(i->value().ToString()));
-    res.emplace_back(std::make_shared<Transaction>(std::move(transaction)));
+    res.emplace_back(std::make_shared<Transaction>(asBytes(i->value().ToString())));
   }
   return res;
 }
@@ -435,8 +434,8 @@ void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) 
   // Remove transactions from non finalized column in db and add dag_block_period in DB
   uint32_t trx_pos = 0;
   for (auto const& trx : sync_block.transactions) {
-    removeTransactionToBatch(trx.getHash(), write_batch);
-    addTransactionPeriodToBatch(write_batch, trx.getHash(), sync_block.pbft_blk->getPeriod(), trx_pos);
+    removeTransactionToBatch(trx->getHash(), write_batch);
+    addTransactionPeriodToBatch(write_batch, trx->getHash(), sync_block.pbft_blk->getPeriod(), trx_pos);
     trx_pos++;
   }
 
@@ -543,7 +542,7 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
   return nullptr;
 }
 
-std::optional<std::vector<Transaction>> DbStorage::getPeriodTransactions(uint64_t period) const {
+std::optional<SharedTransactions> DbStorage::getPeriodTransactions(uint64_t period) const {
   const auto period_data = getPeriodDataRaw(period);
   if (!period_data.size()) {
     return std::nullopt;
@@ -551,9 +550,9 @@ std::optional<std::vector<Transaction>> DbStorage::getPeriodTransactions(uint64_
 
   auto period_data_rlp = dev::RLP(period_data);
 
-  std::vector<Transaction> ret(period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA].size());
+  SharedTransactions ret(period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA].size());
   for (const auto transaction_data : period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA]) {
-    ret.emplace_back(transaction_data);
+    ret.emplace_back(std::make_shared<Transaction>(transaction_data));
   }
   return {ret};
 }

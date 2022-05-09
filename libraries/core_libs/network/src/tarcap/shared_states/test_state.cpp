@@ -7,12 +7,12 @@ bool TestState::hasTransaction(const trx_hash_t& tx_hash) const {
   return test_transactions_.count(tx_hash);
 }
 
-void TestState::insertTransaction(const Transaction& tx) {
+void TestState::insertTransaction(const std::shared_ptr<Transaction>& tx) {
   std::unique_lock lock(transactions_mutex_);
-  test_transactions_.emplace(tx.getHash(), tx);
+  test_transactions_.emplace(tx->getHash(), tx);
 }
 
-const Transaction& TestState::getTransaction(const trx_hash_t& tx_hash) const {
+const std::shared_ptr<Transaction> TestState::getTransaction(const trx_hash_t& tx_hash) const {
   std::shared_lock lock(transactions_mutex_);
   assert(test_transactions_.count(tx_hash));
 
@@ -46,7 +46,7 @@ size_t TestState::getBlocksSize() const {
   return test_blocks_.size();
 }
 
-std::unordered_map<trx_hash_t, Transaction> TestState::getTransactions() {
+std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> TestState::getTransactions() {
   std::shared_lock lock(transactions_mutex_);
   return test_transactions_;
 }

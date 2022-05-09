@@ -26,7 +26,7 @@ SyncBlock::SyncBlock(dev::RLP&& rlp) {
   }
 
   for (auto const trx_rlp : *it) {
-    transactions.emplace_back(trx_rlp);
+    transactions.emplace_back(std::make_shared<Transaction>(trx_rlp));
   }
 }
 
@@ -45,7 +45,7 @@ bytes SyncBlock::rlp() const {
   }
   s.appendList(transactions.size());
   for (auto const& t : transactions) {
-    s.appendRaw(t.rlp());
+    s.appendRaw(t->rlp());
   }
   return s.invalidate();
 }

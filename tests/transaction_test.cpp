@@ -81,20 +81,20 @@ TEST_F(TransactionTest, sig) {
       {uint64_t(1) << uint(32), "0xc1651c53d21ad6ddaac0af7ad93947074ef9f3b03479a36b29fa577b9faba8a9"},
   };
   for (auto& [chain_id, hash_str] : valid_cases) {
-    Transaction t(1, 2, 3, 4, dev::jsToBytes("0xabcd"), sk, addr_t("0xd3CdA913deB6f67967B99D67aCDFa1712C293601"),
-                  chain_id);
+    auto t = std::make_shared<Transaction>(1, 2, 3, 4, dev::jsToBytes("0xabcd"), sk,
+                                           addr_t("0xd3CdA913deB6f67967B99D67aCDFa1712C293601"), chain_id);
     for (auto i : {1, 0}) {
-      ASSERT_EQ(t.getSender(), sender);
-      ASSERT_EQ(t.getChainID(), chain_id);
-      ASSERT_EQ(t.getHash(), h256(hash_str));
+      ASSERT_EQ(t->getSender(), sender);
+      ASSERT_EQ(t->getChainID(), chain_id);
+      ASSERT_EQ(t->getHash(), h256(hash_str));
       if (i) {
-        t = Transaction(t.rlp());
+        t = std::make_shared<Transaction>(t->rlp());
         continue;
       }
       dev::RLPStream with_modified_payload(9);
       dev::RLPStream with_invalid_signature(9);
       uint fields_processed = 0;
-      for (auto const el : dev::RLP(t.rlp())) {
+      for (auto const el : dev::RLP(t->rlp())) {
         if (auto el_modified = el.toBytes(); ++fields_processed <= 6) {
           for (auto& b : el_modified) {
             b = ~b;
@@ -162,7 +162,7 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   TransactionManager trx_mgr(FullNodeConfig(), db, nullptr, addr_t());
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : *g_signed_trx_samples) {
-      trx_mgr.insertTransaction(*t);
+      trx_mgr.insertTransaction(t);
     }
   });
 
@@ -191,11 +191,11 @@ TEST_F(TransactionTest, transaction_concurrency) {
   // Insert transactions to memory pool and keep trying to insert them again on separate thread, it should always fail
   std::thread insertTrx([&trx_mgr, &stopped]() {
     for (auto const& t : *g_signed_trx_samples) {
-      trx_mgr.insertTransaction(*t);
+      trx_mgr.insertTransaction(t);
     }
     while (!stopped) {
       for (auto const& t : *g_signed_trx_samples) {
-        EXPECT_FALSE(trx_mgr.insertTransaction(*t).first);
+        EXPECT_FALSE(trx_mgr.insertTransaction(t).first);
       }
     }
   });
@@ -209,7 +209,7 @@ TEST_F(TransactionTest, transaction_concurrency) {
   for (size_t i = 0; i < g_signed_trx_samples->size() / 3; i++) {
     db->saveTransactionPeriod(g_signed_trx_samples[i]->getHash(), 1, i);
     SyncBlock sync_block;
-    sync_block.transactions = {*g_signed_trx_samples[i]};
+    sync_block.transactions = {g_signed_trx_samples[i]};
     trx_mgr.updateFinalizedTransactionsStatus(sync_block);
   }
 
@@ -248,11 +248,14 @@ TEST_F(TransactionTest, priority_queue) {
   {
     TransactionQueue priority_queue;
     uint32_t nonce = 0;
-    auto trx = Transaction(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
-    auto trx2 = Transaction(nonce, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
-    priority_queue.insert(std::make_shared<Transaction>(trx2));
-    priority_queue.insert(std::make_shared<Transaction>(trx));
-    EXPECT_EQ(priority_queue.get(1)[0]->getHash(), trx.getHash());
+    auto trx = std::make_shared<Transaction>(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
+                                             addr_t::random());
+    auto trx2 = std::make_shared<Transaction>(nonce, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
+                                              addr_t::random());
+    const auto trx_hash = trx->getHash();
+    priority_queue.insert(std::move(trx2));
+    priority_queue.insert(std::move(trx));
+    EXPECT_EQ(priority_queue.get(1)[0]->getHash(), trx_hash);
     EXPECT_EQ(priority_queue.size(), 2);
   }
 
@@ -260,9 +263,11 @@ TEST_F(TransactionTest, priority_queue) {
   {
     TransactionQueue priority_queue;
     uint32_t nonce = 0;
-    auto trx = Transaction(nonce, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
-    EXPECT_TRUE(priority_queue.insert(std::make_shared<Transaction>(trx)));
-    EXPECT_FALSE(priority_queue.insert(std::make_shared<Transaction>(trx)));
+    auto trx = std::make_shared<Transaction>(nonce, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
+                                             addr_t::random());
+    auto trx2 = trx;
+    EXPECT_TRUE(priority_queue.insert(std::move(trx)));
+    EXPECT_FALSE(priority_queue.insert(std::move(trx2)));
     EXPECT_EQ(priority_queue.size(), 1);
   }
 
@@ -270,11 +275,14 @@ TEST_F(TransactionTest, priority_queue) {
   {
     TransactionQueue priority_queue;
     uint32_t nonce = 0;
-    auto trx = Transaction(nonce, 1, 10, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
-    auto trx2 = Transaction(nonce, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
-    priority_queue.insert(std::make_shared<Transaction>(trx2));
-    priority_queue.insert(std::make_shared<Transaction>(trx));
-    EXPECT_EQ(priority_queue.get(1)[0]->getHash(), trx.getHash());
+    auto trx = std::make_shared<Transaction>(nonce, 1, 10, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
+                                             addr_t::random());
+    auto trx2 = std::make_shared<Transaction>(nonce, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
+                                              addr_t::random());
+    auto trx_hash = trx->getHash();
+    priority_queue.insert(std::move(trx2));
+    priority_queue.insert(std::move(trx));
+    EXPECT_EQ(priority_queue.get(1)[0]->getHash(), trx_hash);
     EXPECT_EQ(priority_queue.size(), 2);
   }
 
@@ -288,19 +296,23 @@ TEST_F(TransactionTest, priority_queue) {
   */
   {
     TransactionQueue priority_queue;
-    auto trxa1 =
-        Transaction(1 /*nonce*/, 1, 5 /*fee*/, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
-    auto trxa2 =
-        Transaction(2 /*nonce*/, 1, 6 /*fee*/, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
-    auto trxb1 = Transaction(1 /*nonce*/, 1, 4 /*fee*/, 100, str2bytes("00FEDCBA9876543210000000"), secret_t::random(),
-                             addr_t::random());
-    priority_queue.insert(std::make_shared<Transaction>(trxb1));
-    priority_queue.insert(std::make_shared<Transaction>(trxa2));
-    priority_queue.insert(std::make_shared<Transaction>(trxa1));
+    auto trxa1 = std::make_shared<Transaction>(1 /*nonce*/, 1, 5 /*fee*/, 100, str2bytes("00FEDCBA9876543210000000"),
+                                               g_secret, addr_t::random());
+    auto trxa2 = std::make_shared<Transaction>(2 /*nonce*/, 1, 6 /*fee*/, 100, str2bytes("00FEDCBA9876543210000000"),
+                                               g_secret, addr_t::random());
+    auto trxb1 = std::make_shared<Transaction>(1 /*nonce*/, 1, 4 /*fee*/, 100, str2bytes("00FEDCBA9876543210000000"),
+                                               secret_t::random(), addr_t::random());
+    auto trxa1_hash = trxa1->getHash();
+    auto trxa2_hash = trxa2->getHash();
+    auto trxb1_hash = trxb1->getHash();
+
+    priority_queue.insert(std::move(trxb1));
+    priority_queue.insert(std::move(trxa2));
+    priority_queue.insert(std::move(trxa1));
     EXPECT_EQ(priority_queue.size(), 3);
-    EXPECT_EQ(priority_queue.get(3)[0]->getHash(), trxa1.getHash());
-    EXPECT_EQ(priority_queue.get(3)[1]->getHash(), trxa2.getHash());
-    EXPECT_EQ(priority_queue.get(3)[2]->getHash(), trxb1.getHash());
+    EXPECT_EQ(priority_queue.get(3)[0]->getHash(), trxa1_hash);
+    EXPECT_EQ(priority_queue.get(3)[1]->getHash(), trxa2_hash);
+    EXPECT_EQ(priority_queue.get(3)[2]->getHash(), trxb1_hash);
   }
 }
 

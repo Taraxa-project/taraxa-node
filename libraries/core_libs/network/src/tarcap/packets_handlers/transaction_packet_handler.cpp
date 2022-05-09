@@ -74,7 +74,7 @@ void TransactionPacketHandler::onNewTransactions(SharedTransactions &&transactio
   for (auto const &trx : transactions) {
     auto trx_hash = trx->getHash();
     if (!test_state_->hasTransaction(trx_hash)) {
-      test_state_->insertTransaction(*trx);
+      test_state_->insertTransaction(trx);
       LOG(log_tr_) << "Received New Transaction " << trx_hash;
     } else {
       LOG(log_tr_) << "Received New Transaction" << trx_hash << "that is already known";

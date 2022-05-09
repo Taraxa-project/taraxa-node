@@ -59,29 +59,25 @@ Transaction::Transaction(const dev::RLP &_rlp, bool verify_strict, const h256 &h
 }
 
 trx_hash_t const &Transaction::getHash() const {
-  if (!hash_initialized_) {
-    std::unique_lock l(hash_mu_.val, std::try_to_lock);
-    if (!l.owns_lock()) {
-      l.lock();
-      return hash_;
+  if (!hash_initialized_.load()) {
+    std::unique_lock l(hash_mu_);
+    if (!hash_initialized_.load()) {
+      hash_ = dev::sha3(rlp());
+      hash_initialized_ = true;
     }
-    hash_ = dev::sha3(rlp());
-    hash_initialized_ = true;
   }
   return hash_;
 }
 
 addr_t const &Transaction::get_sender_() const {
-  if (!sender_initialized_) {
-    std::unique_lock l(sender_mu_.val, std::try_to_lock);
-    if (!l.owns_lock()) {
-      l.lock();
-      return sender_;
-    }
-    sender_initialized_ = true;
-    if (auto pubkey = recover(vrs_, hash_for_signature()); pubkey) {
-      sender_ = toAddress(pubkey);
-      sender_valid_ = true;
+  if (!sender_initialized_.load()) {
+    std::unique_lock l(sender_mu_);
+    if (!sender_initialized_.load()) {
+      sender_initialized_ = true;
+      if (auto pubkey = recover(vrs_, hash_for_signature()); pubkey) {
+        sender_ = toAddress(pubkey);
+        sender_valid_ = true;
+      }
     }
   }
   return sender_;
@@ -91,8 +87,8 @@ addr_t const &Transaction::getSender() const {
   if (auto const &ret = get_sender_(); sender_valid_) {
     return ret;
   }
-  throw InvalidSignature("transaction body: " + toJSON().toStyledString() + "\nOriginal RLP: " +
-                         (cached_rlp_.size() ? dev::toJS(cached_rlp_) : "wasn't created from rlp"));
+  throw InvalidSignature("transaction body: " + toJSON().toStyledString() +
+                         "\nOriginal RLP: " + (cached_rlp_set_ ? dev::toJS(cached_rlp_) : "wasn't created from rlp"));
 }
 
 template <bool for_signature>
@@ -113,17 +109,16 @@ void Transaction::streamRLP(dev::RLPStream &s) const {
 }
 
 const bytes &Transaction::rlp() const {
-  if (!cached_rlp_.empty()) {
-    return cached_rlp_;
+  if (!cached_rlp_set_.load()) {
+    std::unique_lock l(cached_rlp_mu_);
+    if (!cached_rlp_set_.load()) {
+      dev::RLPStream s;
+      streamRLP<false>(s);
+      cached_rlp_ = s.invalidate();
+      cached_rlp_set_ = true;
+    }
   }
-  std::unique_lock l(cached_rlp_mu_.val, std::try_to_lock);
-  if (!l.owns_lock()) {
-    l.lock();
-    return cached_rlp_;
-  }
-  dev::RLPStream s;
-  streamRLP<false>(s);
-  return cached_rlp_ = s.invalidate();
+  return cached_rlp_;
 }
 
 trx_hash_t Transaction::hash_for_signature() const {

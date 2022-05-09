@@ -26,10 +26,11 @@ class TxGenerator {
 
   auto getSerialTrxWithSameSender(uint trx_num, uint64_t const &start_nonce, val_t const &value,
                                   addr_t const &receiver = addr_t::random()) const {
-    std::vector<Transaction> trxs;
+    SharedTransactions trxs;
     for (auto i = start_nonce; i < start_nonce + trx_num; ++i) {
-      trxs.emplace_back(Transaction(i, value, 0, TEST_TX_GAS_LIMIT, str2bytes("00FEDCBA9876543210000000"),
-                                    getRandomUniqueSenderSecret(), receiver));
+      trxs.emplace_back(std::make_shared<Transaction>(i, value, 0, TEST_TX_GAS_LIMIT,
+                                                      str2bytes("00FEDCBA9876543210000000"),
+                                                      getRandomUniqueSenderSecret(), receiver));
     }
     return trxs;
   }
@@ -110,17 +111,17 @@ inline std::map<int, TestAccount> createTestAccountTable(std::string const &file
   return acc_table;
 }
 
-inline std::vector<Transaction> createMockTrxSamples(unsigned start, unsigned num) {
+inline SharedTransactions createMockTrxSamples(unsigned start, unsigned num) {
   assert(start + num < std::numeric_limits<unsigned>::max());
-  std::vector<Transaction> trxs;
+  SharedTransactions trxs;
   for (auto i = start; i < num; ++i) {
-    Transaction trx(i,                                      // nonce
-                    3,                                      // value
-                    4,                                      // gas_price
-                    5,                                      // gas
-                    str2bytes("00FEDCBA9876543210000000"),  // data
-                    secret_t::random(),                     // secret
-                    addr_t(i * 1000)                        // receiver
+    auto trx = std::make_shared<Transaction>(i,                                      // nonce
+                                             3,                                      // value
+                                             4,                                      // gas_price
+                                             5,                                      // gas
+                                             str2bytes("00FEDCBA9876543210000000"),  // data
+                                             secret_t::random(),                     // secret
+                                             addr_t(i * 1000)                        // receiver
     );
     trxs.emplace_back(trx);
   }
