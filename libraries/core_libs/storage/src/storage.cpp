@@ -22,10 +22,10 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
                      bool rebuild_columns)
     : path_(path),
       handles_(Columns::all.size()),
-      db_snapshot_each_n_pbft_block_(db_snapshot_each_n_pbft_block),
-      db_max_snapshots_(db_max_snapshots) {
-  db_path_ = (path / db_dir);
-  state_db_path_ = (path / state_db_dir);
+      kDbSnapshotsEachNblock_(db_snapshot_each_n_pbft_block),
+      kDbSnapshotsMaxCount_(db_max_snapshots) {
+  db_path_ = (path / kDbDir_);
+  state_db_path_ = (path / kStateDbDir_);
 
   if (rebuild) {
     const std::string backup_label = "-rebuild-backup-";
@@ -131,10 +131,10 @@ void DbStorage::loadSnapshots() {
 
     try {
       // Check for db or state_db prefix
-      if (boost::starts_with(fileName, db_dir) && fileName.size() > db_dir.size()) {
-        dir_period = stoi(fileName.substr(db_dir.size()));
-      } else if (boost::starts_with(fileName, state_db_dir) && fileName.size() > state_db_dir.size()) {
-        dir_period = stoi(fileName.substr(state_db_dir.size()));
+      if (boost::starts_with(fileName, kDbDir_) && fileName.size() > kDbDir_.size()) {
+        dir_period = stoi(fileName.substr(kDbDir_.size()));
+      } else if (boost::starts_with(fileName, kStateDbDir_) && fileName.size() > kStateDbDir_.size()) {
+        dir_period = stoi(fileName.substr(kStateDbDir_.size()));
       } else {
         continue;
       }
@@ -150,8 +150,8 @@ void DbStorage::loadSnapshots() {
 }
 
 bool DbStorage::createSnapshot(uint64_t period) {
-  // Only creates snapshot each db_snapshot_each_n_pbft_block_ periods
-  if (!snapshot_enable_ || db_snapshot_each_n_pbft_block_ <= 0 || period % db_snapshot_each_n_pbft_block_ != 0 ||
+  // Only creates snapshot each kDbSnapshotsEachNblock_ periods
+  if (!snapshots_enabled_ || kDbSnapshotsEachNblock_ <= 0 || period % kDbSnapshotsEachNblock_ != 0 ||
       snapshots_.find(period) != snapshots_.end()) {
     return false;
   }
@@ -171,9 +171,9 @@ bool DbStorage::createSnapshot(uint64_t period) {
   checkStatus(status);
   snapshots_.insert(period);
 
-  // Delete any snapshot over db_max_snapshots_
-  if (db_max_snapshots_ && snapshots_.size() > db_max_snapshots_) {
-    while (snapshots_.size() > db_max_snapshots_) {
+  // Delete any snapshot over kDbSnapshotsMaxCount_
+  if (kDbSnapshotsMaxCount_ && snapshots_.size() > kDbSnapshotsMaxCount_) {
+    while (snapshots_.size() > kDbSnapshotsMaxCount_) {
       auto snapshot = snapshots_.begin();
       deleteSnapshot(*snapshot);
       snapshots_.erase(snapshot);
@@ -230,9 +230,9 @@ void DbStorage::deleteSnapshot(uint64_t period) {
   LOG(log_dg_) << "Deleted folder: " << period_path;
 }
 
-void DbStorage::disableSnapshots() { snapshot_enable_ = false; }
+void DbStorage::disableSnapshots() { snapshots_enabled_ = false; }
 
-void DbStorage::enableSnapshots() { snapshot_enable_ = true; }
+void DbStorage::enableSnapshots() { snapshots_enabled_ = true; }
 
 DbStorage::~DbStorage() {
   for (auto cf : handles_) {
