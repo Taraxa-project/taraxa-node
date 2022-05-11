@@ -26,14 +26,14 @@ void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&
 }
 
 void ExtVotesPacketHandler::sendPbftVotes(const dev::p2p::NodeID &peer_id, std::vector<std::shared_ptr<Vote>> &&votes,
-                                          bool next_votes_type) {
+                                          bool is_next_votes) {
   if (votes.empty()) {
     return;
   }
 
-  LOG(log_nf_) << "Will send next votes type " << std::boolalpha << next_votes_type;
+  LOG(log_nf_) << "Will send next votes type " << std::boolalpha << is_next_votes;
   auto subprotocol_packet_type =
-      next_votes_type ? SubprotocolPacketType::VotesSyncPacket : SubprotocolPacketType::VotePacket;
+      is_next_votes ? SubprotocolPacketType::VotesSyncPacket : SubprotocolPacketType::VotePacket;
 
   size_t index = 0;
   while (index < votes.size()) {
