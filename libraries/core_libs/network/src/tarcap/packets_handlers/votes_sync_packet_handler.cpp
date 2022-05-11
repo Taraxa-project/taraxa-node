@@ -19,23 +19,20 @@ VotesSyncPacketHandler::VotesSyncPacketHandler(std::shared_ptr<PeersState> peers
 
 void VotesSyncPacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketData &packet_data) const {
   // Number of votes is not fixed, nothing to be checked here
+  auto iteam_count = packet_data.rlp_.itemCount();
+  if (iteam_count == 0 || iteam_count > kMaxVotesInPacket) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, iteam_count, 1, kMaxVotesInPacket);
+  }
 }
 
 void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
-  const auto next_votes_count = packet_data.rlp_.itemCount();
-  if (next_votes_count == 0 || next_votes_count > kMaxVotesInPacket) {
-    std::ostringstream err_msg;
-    err_msg << "Receive " << next_votes_count << " next votes from peer " << packet_data.from_node_id_
-            << ". The peer is a malicious player, will be disconnected";
-    throw MaliciousPeerException(err_msg.str());
-  }
-
   auto vote = std::make_shared<Vote>(packet_data.rlp_[0].data().toBytes());
 
   const auto pbft_current_round = pbft_mgr_->getPbftRound();
   const auto peer_pbft_round = vote->getRound() + 1;
 
   std::vector<std::shared_ptr<Vote>> next_votes;
+  const auto next_votes_count = packet_data.rlp_.itemCount();
   for (size_t i = 0; i < next_votes_count; i++) {
     auto next_vote = std::make_shared<Vote>(packet_data.rlp_[i].data().toBytes());
     if (next_vote->getRound() != peer_pbft_round - 1) {

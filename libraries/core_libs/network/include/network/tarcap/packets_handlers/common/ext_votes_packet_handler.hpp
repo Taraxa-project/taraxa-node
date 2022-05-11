@@ -25,7 +25,7 @@ class ExtVotesPacketHandler : public PacketHandler {
 
   void onNewPbftVotes(std::vector<std::shared_ptr<Vote>>&& votes);
   void sendPbftVotes(const dev::p2p::NodeID& peer_id, std::vector<std::shared_ptr<Vote>>&& votes,
-                     bool next_votes_type = false);
+                     bool is_next_votes = false);
 };
 
 }  // namespace taraxa::network::tarcap
