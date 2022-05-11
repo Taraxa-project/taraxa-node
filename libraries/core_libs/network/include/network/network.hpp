@@ -23,6 +23,8 @@
 
 namespace taraxa {
 
+class PacketHandler;
+
 // TODO merge with TaraxaCapability, and then split the result in reasonable components
 class Network {
  public:
@@ -63,6 +65,9 @@ class Network {
   void onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes);
   void broadcastPreviousRoundNextVotesBundle();
 
+  const std::shared_ptr<taraxa::network::tarcap::PacketHandler> &getSpecificHandler(
+      network::tarcap::SubprotocolPacketType packet_type);
+
   // METHODS USED IN TESTS ONLY
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, const SharedTransactions &trxs);
   void sendBlocks(const dev::p2p::NodeID &id, std::vector<std::shared_ptr<DagBlock>> &&blocks,
@@ -76,8 +81,6 @@ class Network {
 
   // PBFT
   void sendPbftBlock(const dev::p2p::NodeID &id, const PbftBlock &pbft_block, uint64_t pbft_chain_size);
-  void sendPbftVotes(const dev::p2p::NodeID &peer_id, std::vector<std::shared_ptr<Vote>> &&votes,
-                     bool next_votes_type = false);
   // END METHODS USED IN TESTS ONLY
 
  private:

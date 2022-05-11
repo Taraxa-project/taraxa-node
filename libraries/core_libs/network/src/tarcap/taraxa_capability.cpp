@@ -394,9 +394,9 @@ void TaraxaCapability::sendPbftBlock(const dev::p2p::NodeID &id, const PbftBlock
   packets_handlers_->getSpecificHandler<PbftBlockPacketHandler>()->sendPbftBlock(id, pbft_block, pbft_chain_size);
 }
 
-void TaraxaCapability::sendPbftVotes(const dev::p2p::NodeID &peer_id, std::vector<std::shared_ptr<Vote>> &&votes,
-                                     bool next_votes_type) {
-  packets_handlers_->getSpecificHandler<VotePacketHandler>()->sendPbftVotes(peer_id, std::move(votes), next_votes_type);
+const std::shared_ptr<taraxa::network::tarcap::PacketHandler> &TaraxaCapability::getSpecificHandler(
+    SubprotocolPacketType packet_type) {
+  return packets_handlers_->getSpecificHandler(packet_type);
 }
 
 // END METHODS USED IN TESTS ONLY

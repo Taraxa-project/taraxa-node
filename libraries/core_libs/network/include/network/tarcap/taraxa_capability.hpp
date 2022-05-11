@@ -30,6 +30,7 @@ enum class TransactionStatus;
 namespace taraxa::network::tarcap {
 
 class PacketsHandler;
+class PacketHandler;
 class PbftSyncingState;
 class TaraxaPeer;
 
@@ -56,6 +57,8 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   void onDisconnect(dev::p2p::NodeID const &_nodeID) override;
   void interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session> session, unsigned _id, dev::RLP const &_r) override;
   std::string packetTypeToString(unsigned _packetType) const override;
+
+  const std::shared_ptr<taraxa::network::tarcap::PacketHandler> &getSpecificHandler(SubprotocolPacketType packet_type);
 
   /**
    * @brief Start processing packets
@@ -97,8 +100,6 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
 
   // PBFT
   void sendPbftBlock(const dev::p2p::NodeID &id, const PbftBlock &pbft_block, uint64_t pbft_chain_size);
-  void sendPbftVotes(const dev::p2p::NodeID &peer_id, std::vector<std::shared_ptr<Vote>> &&votes,
-                     bool next_votes_type = false);
 
   // END METHODS USED IN TESTS ONLY
 
