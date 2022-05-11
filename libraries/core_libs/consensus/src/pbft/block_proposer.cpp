@@ -32,6 +32,10 @@ bool SortitionPropose::propose() {
   }
 
   const auto proposal_period = db_->getProposalPeriodForDagLevel(propose_level);
+  if (!proposal_period.has_value()) {
+    LOG(log_er_) << "No proposal period for propose_level " << propose_level << " found";
+    assert(false);
+  }
   const auto period_block_hash = db_->getPeriodBlockHash(*proposal_period);
   // get sortition
   const auto sortition_params = dag_blk_mgr_->sortitionParamsManager().getSortitionParams(*proposal_period);
@@ -100,7 +104,7 @@ bool SortitionPropose::propose() {
   }
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
   last_frontier_ = frontier;
-  proposer->proposeBlock(std::move(frontier), propose_level, std::move(shared_trxs), std::move(vdf));
+  proposer->proposeBlock(std::move(frontier), propose_level, *proposal_period, std::move(shared_trxs), std::move(vdf));
   num_tries_ = 0;
   return true;
 }
@@ -195,16 +199,28 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const&
   return max_level;
 }
 
-void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTransactions&& trxs, VdfSortition&& vdf) {
+void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, uint64_t proposal_period,
+                                 SharedTransactions&& trxs, VdfSortition&& vdf) {
   if (stopped_) return;
-
-  vec_trx_t trx_hashes;
-  std::transform(trxs.begin(), trxs.end(), std::back_inserter(trx_hashes),
-                 [](std::shared_ptr<Transaction> const& t) { return t->getHash(); });
 
   // When we propose block we know it is valid, no need for block verification with queue,
   // simply add the block to the DAG
-  DagBlock blk(frontier.pivot, level, std::move(frontier.tips), std::move(trx_hashes), std::move(vdf), node_sk_);
+  vec_trx_t trx_hashes;
+  std::vector<uint64_t> estimations;
+  u256 block_weight = 0;
+
+  for (const auto& trx : trxs) {
+    auto weight = trx_mgr_->estimateTransactionGas(trx, proposal_period);
+    block_weight += weight;
+    if (block_weight > dag_blk_mgr_->getDagConfig().gas_limit) {
+      break;
+    }
+    trx_hashes.push_back(trx->getHash());
+    estimations.push_back(weight);
+  }
+  DagBlock blk(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes),
+               std::move(estimations), std::move(vdf), node_sk_);
+
   LOG(log_nf_) << "Add proposed DAG block " << blk.getHash() << ", pivot " << blk.getPivot() << " , number of trx ("
                << blk.getTrxs().size() << ")";
 

@@ -8,6 +8,7 @@
 #include "common/static_init.hpp"
 #include "common/types.hpp"
 #include "common/util.hpp"
+#include "dag/dag.hpp"
 #include "logger/logger.hpp"
 #include "node/node.hpp"
 #include "util_test/samples.hpp"
@@ -47,7 +48,7 @@ TEST_F(DagBlockTest, serialize_deserialize) {
   VdfSortition vdf(sortition_params, sk, getRlpBytes(level));
   blk_hash_t vdf_input(200);
   vdf.computeVdfSolution(sortition_params, vdf_input.asBytes(), false);
-  DagBlock blk1(blk_hash_t(1), 2, {}, {}, vdf, secret_t::random());
+  DagBlock blk1(blk_hash_t(1), 2, {}, {}, {}, vdf, secret_t::random());
   auto b = blk1.rlp(true);
   DagBlock blk2(b);
   EXPECT_EQ(blk1, blk2);
@@ -203,6 +204,77 @@ TEST_F(DagBlockMgrTest, proposal_period) {
   // Proposal period not exsit
   proposal_period = db->getProposalPeriodForDagLevel(131);
   EXPECT_FALSE(proposal_period);
+}
+
+TEST_F(DagBlockMgrTest, incorrect_tx_estimation) {
+  auto node = create_nodes(1).front();
+  auto db = node->getDB();
+  auto dag_blk_mgr = node->getDagBlockManager();
+
+  auto trx = samples::createSignedTrxSamples(0, 1, g_secret).front();
+  node->getTransactionManager()->insertTransaction(trx);
+  // Generate DAG blocks
+  auto dag_genesis = node->getConfig().chain.dag_genesis_block.getHash();
+  SortitionConfig vdf_config(node->getConfig().chain.sortition);
+  auto propose_level = 1;
+  const auto period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
+  vdf_sortition::VdfSortition vdf1(vdf_config, node->getVrfSecretKey(),
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
+
+  // transactions.size and estimations size is not equal
+  {
+    DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, {}, vdf1, node->getSecretKey());
+    EXPECT_EQ(node->getDagBlockManager()->insertAndVerifyBlock(std::move(blk)),
+              DagBlockManager::InsertAndVerifyBlockReturnType::IncorrectTransactionsEstimation);
+  }
+
+  // wrong estimated tx
+  {
+    DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, {100}, vdf1, node->getSecretKey());
+    EXPECT_EQ(node->getDagBlockManager()->insertAndVerifyBlock(std::move(blk)),
+              DagBlockManager::InsertAndVerifyBlockReturnType::IncorrectTransactionsEstimation);
+  }
+}
+
+TEST_F(DagBlockMgrTest, too_big_dag_block) {
+  // make config
+  auto node_cfgs = make_node_cfgs<20>(1);
+  node_cfgs.front().chain.dag.gas_limit = 250000;
+
+  auto node = create_nodes(node_cfgs).front();
+  auto db = node->getDB();
+
+  std::vector<trx_hash_t> hashes;
+  std::vector<uint64_t> estimations;
+  for (size_t i = 0; i < 5; ++i) {
+    auto create_trx =
+        std::make_shared<Transaction>(i, 100, 0, 0, dev::fromHex(samples::greeter_contract_code), node->getSecretKey());
+    auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(create_trx);
+    EXPECT_EQ(ok, true);
+    hashes.emplace_back(create_trx->getHash());
+    const auto& e = node->getTransactionManager()->estimateTransactionGasByHash(create_trx->getHash(), std::nullopt);
+    estimations.emplace_back(e);
+  }
+
+  for (size_t i = 0; i < hashes.size(); ++i) {
+    std::cout << hashes[i] << ": " << estimations[i] << std::endl;
+  }
+
+  // Generate DAG block
+  auto dag_genesis = node->getConfig().chain.dag_genesis_block.getHash();
+  SortitionConfig vdf_config(node->getConfig().chain.sortition);
+  auto propose_level = 1;
+  const auto period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
+  vdf_sortition::VdfSortition vdf1(vdf_config, node->getVrfSecretKey(),
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
+
+  {
+    DagBlock blk(dag_genesis, propose_level, {}, hashes, estimations, vdf1, node->getSecretKey());
+    EXPECT_EQ(node->getDagBlockManager()->insertAndVerifyBlock(std::move(blk)),
+              DagBlockManager::InsertAndVerifyBlockReturnType::BlockTooBig);
+  }
 }
 
 }  // namespace taraxa::core_tests

@@ -37,6 +37,7 @@ Json::Value enc_json(ChainConfig const& obj) {
   json["pbft"] = enc_json(obj.pbft);
   json["final_chain"] = enc_json(obj.final_chain);
   json["gas_price"] = enc_json(obj.gas_price);
+  json["dag"] = enc_json(obj.dag);
   return json;
 }
 
@@ -49,6 +50,7 @@ void dec_json(Json::Value const& json, ChainConfig& obj) {
   dec_json(json["pbft"], obj.pbft);
   dec_json(json["final_chain"], obj.final_chain);
   dec_json(json["gas_price"], obj.gas_price);
+  dec_json(json["dag"], obj.dag);
 }
 
 const ChainConfig& ChainConfig::predefined(std::string const& name) {
@@ -91,6 +93,9 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     cfg.pbft.dag_blocks_size = 100;
     cfg.pbft.ghost_path_move_back = 1;
     cfg.pbft.run_count_votes = false;
+    cfg.pbft.gas_limit = 60000000;
+    // DAG config
+    cfg.dag.gas_limit = 10000000;
     return cfg;
   }();
   cfgs["test"] = [&] {

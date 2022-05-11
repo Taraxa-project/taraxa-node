@@ -21,6 +21,28 @@ TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_p
   }
 }
 
+uint64_t TransactionManager::estimateTransactionGasByHash(const trx_hash_t &hash,
+                                                          std::optional<uint64_t> proposal_period) const {
+  const auto &trx = getTransaction(hash);
+  return estimateTransactionGas(trx, proposal_period);
+}
+
+uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction> trx,
+                                                    std::optional<uint64_t> proposal_period) const {
+  const auto &result = final_chain_->call(
+      state_api::EVMTransaction{
+          trx->getSender(),
+          trx->getGasPrice(),
+          trx->getReceiver(),
+          trx->getNonce(),
+          trx->getValue(),
+          trx->getGas(),
+          trx->getData(),
+      },
+      proposal_period);
+  return result.gas_used;
+}
+
 std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::shared_ptr<Transaction> &trx) const {
   // ONLY FOR TESTING
   if (!final_chain_) [[unlikely]] {
@@ -189,6 +211,7 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
   vec_trx_t trx_hashes;
   std::transform(trxs.begin(), trxs.end(), std::back_inserter(trx_hashes),
                  [](std::shared_ptr<Transaction> const &t) { return t->getHash(); });
+
   auto trx_in_db = db_->transactionsInDb(trx_hashes);
   for (uint64_t i = 0; i < trxs.size(); i++) {
     auto const &trx_hash = trx_hashes[i];

@@ -1430,7 +1430,8 @@ TEST_F(FullNodeTest, chain_config_json) {
     "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
     "timestamp": "0x5d422b80",
     "tips": [],
-    "transactions": []
+    "transactions": [],
+    "trx_estimations" : []
   },
   "final_chain": {
     "genesis_block_fields": {
@@ -1478,7 +1479,11 @@ TEST_F(FullNodeTest, chain_config_json) {
     "ghost_path_move_back": "0x1",
     "lambda_ms_min": "0x7d0",
     "number_of_proposers" : "0x14",
-    "run_count_votes": false
+    "run_count_votes": false,
+    "gas_limit": "0x3938700" 
+  },
+  "dag": {
+    "gas_limit": "0x989680" 
   },
   "sortition": {
       "changes_count_for_average": 10,

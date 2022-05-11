@@ -48,12 +48,15 @@ auto int_pow(Int1 x, Int2 y) {
 }
 
 template <typename T>
-std::vector<T> asVector(Json::Value const &json) {
+std::vector<T> asVector(const Json::Value &json) {
   std::vector<T> v;
+  v.reserve(json.size());
   std::transform(json.begin(), json.end(), std::back_inserter(v),
                  [](const Json::Value &item) { return T(item.asString()); });
   return v;
 }
+
+std::vector<uint64_t> asUInt64Vector(const Json::Value &json);
 
 using stream = std::basic_streambuf<uint8_t>;
 using bufferstream = boost::iostreams::stream_buffer<boost::iostreams::basic_array_source<uint8_t>>;

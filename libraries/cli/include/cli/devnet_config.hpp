@@ -251,7 +251,11 @@ constexpr std::string_view devnet_json = R"foo({
       "dag_blocks_size": "0x32",
       "ghost_path_move_back": "0x0",
       "lambda_ms_min": "0x29a",
-      "run_count_votes": false
+      "run_count_votes": false,
+      "gas_limit": "0x3938700" 
+    },
+    "dag": {
+      "gas_limit": "0x989680" 
     },
     "replay_protection_service": {
       "range": "0xa"

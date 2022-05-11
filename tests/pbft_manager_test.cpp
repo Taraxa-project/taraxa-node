@@ -1,13 +1,11 @@
-#include "pbft/pbft_manager.hpp"
-
 #include <gtest/gtest.h>
 
 #include "common/lazy.hpp"
 #include "common/static_init.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
-#include "util_test/samples.hpp"
-#include "util_test/util.hpp"
+#include "util_test/node_dag_creation_fixture.hpp"
+#include "vdf/sortition.hpp"
 
 namespace taraxa::core_tests {
 
@@ -18,8 +16,6 @@ auto g_secret = Lazy([] {
 });
 auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 auto g_trx_signed_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
-
-struct PbftManagerTest : BaseTest {};
 
 std::pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size, size_t valid_voting_players) {
   size_t two_t_plus_one;
@@ -179,6 +175,8 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     EXPECT_EQ(threshold, expected_threshold);
   }
 }
+
+struct PbftManagerTest : BaseTest {};
 
 // Test that after some amount of elapsed time will not continue soft voting for same value
 TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
@@ -607,6 +605,226 @@ TEST_F(PbftManagerTest, check_committeeSize_greater_than_activePlayers) {
   // Set committee size to 6. Since only running 5 nodes, that will make sure
   // committee > active_players always
   check_2tPlus1_validVotingPlayers_activePlayers_threshold(6);
+}
+
+struct PbftManagerWithDagCreation : NodeDagCreationFixture {};
+
+TEST_F(PbftManagerWithDagCreation, trx_generation) {
+  makeNode();
+  deployContract();
+
+  auto testing_cycle_txs_count = {10, 100, 1000};
+  for (const auto &count : testing_cycle_txs_count) {
+    auto txs_before = nonce;
+    auto trxs = makeTransactions(count);
+    EXPECT_EQ(trxs.size(), count);
+    EXPECT_EQ(trxs.front()->getNonce(), txs_before);
+    EXPECT_EQ(trxs.back()->getNonce(), txs_before + trxs.size() - 1);
+    insertTransactions(trxs);
+
+    EXPECT_HAPPENS({10s, 500ms},
+                   [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce); });
+    std::cout << "Creation and applying of " << count << " transactions is ok" << std::endl;
+  }
+}
+
+TEST_F(PbftManagerWithDagCreation, initial_dag) {
+  makeNode();
+  deployContract();
+
+  auto prev_value = node->getDagManager()->getNumVerticesInDag().first;
+  generateAndApplyInitialDag();
+
+  EXPECT_HAPPENS({10s, 250ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().second, prev_value + getInitialDagSize());
+  });
+}
+
+TEST_F(PbftManagerWithDagCreation, dag_generation) {
+  makeNode();
+  deployContract();
+  node->getBlockProposer()->stop();
+  generateAndApplyInitialDag();
+
+  EXPECT_HAPPENS({10s, 250ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce);
+  });
+
+  auto nonce_before = nonce;
+  {
+    auto blocks = generateDagBlocks(20, 5, 5);
+    insertBlocks(std::move(blocks));
+  }
+
+  auto tx_count = 20 * 5 * 5;
+  EXPECT_EQ(nonce, nonce_before + tx_count);
+
+  EXPECT_HAPPENS({20s, 250ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce);
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce);
+  });
+}
+
+TEST_F(PbftManagerWithDagCreation, limit_dag_block_size) {
+  auto node_cfgs = make_node_cfgs<5, true>(1);
+  node_cfgs.front().chain.dag.gas_limit = 250000;
+  makeNodeFromConfig(node_cfgs);
+  deployContract();
+
+  auto greet = [&] {
+    auto ret = node->getFinalChain()->call({
+        node->getAddress(),
+        0,
+        contract_addr,
+        0,
+        0,
+        0,
+        // greet()
+        dev::fromHex("0xcfae3217"),
+    });
+    return dev::toHexPrefixed(ret.code_retval);
+  };
+  ASSERT_EQ(
+      greet(),
+      // "Hello"
+      "0x0000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000"
+      "000000000000000000548656c6c6f000000000000000000000000000000000000000000000000000000");
+
+  generateAndApplyInitialDag();
+
+  auto trxs_before = node->getTransactionManager()->getTransactionCount();
+  EXPECT_HAPPENS({10s, 500ms},
+                 [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, trxs_before, node->getDB()->getNumTransactionExecuted()); });
+
+  insertTransactions(makeTransactions(30));
+
+  uint64_t should_be_executed = node->getConfig().chain.dag.gas_limit / trxEstimation();
+  EXPECT_HAPPENS({10s, 250ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), trxs_before + should_be_executed)
+    WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), trxs_before + 30)
+  });
+  ASSERT_EQ(greet(),
+            // "Hola"
+            "0x000000000000000000000000000000000000000000000000000000000000002000"
+            "00000000000000000000000000000000000000000000000000000000000004486f"
+            "6c6100000000000000000000000000000000000000000000000000000000");
+}
+
+TEST_F(PbftManagerWithDagCreation, limit_pbft_block) {
+  auto node_cfgs = make_node_cfgs<5, true>(1);
+  node_cfgs.front().chain.dag.gas_limit = 300000;
+  node_cfgs.front().chain.pbft.gas_limit = 1000000;
+  makeNodeFromConfig(node_cfgs);
+
+  deployContract();
+  node->getBlockProposer()->stop();
+  generateAndApplyInitialDag();
+
+  auto trxs_before = node->getTransactionManager()->getTransactionCount();
+  EXPECT_HAPPENS({10s, 500ms},
+                 [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, trxs_before, node->getDB()->getNumTransactionExecuted()); });
+
+  auto starting_block_number = node->getFinalChain()->last_block_number();
+  auto trx_in_block = 5;
+  insertBlocks(generateDagBlocks(20, 5, trx_in_block));
+
+  uint64_t tx_count = 20 * 5 * 5;
+
+  EXPECT_HAPPENS({60s, 500ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), trxs_before + tx_count);
+  });
+
+  auto max_pbft_block_capacity = node_cfgs.front().chain.pbft.gas_limit / (trxEstimation() * 5);
+  for (size_t i = starting_block_number; i < node->getFinalChain()->last_block_number(); ++i) {
+    const auto &blk_hash = node->getDB()->getPeriodBlockHash(i);
+    ASSERT_TRUE(blk_hash != blk_hash_t());
+    const auto &pbft_block = node->getPbftChain()->getPbftBlockInChain(blk_hash);
+    const auto &dag_blocks_order = node->getDagManager()->getDagBlockOrder(pbft_block.getPivotDagBlockHash(), i);
+
+    EXPECT_LE(dag_blocks_order.size(), max_pbft_block_capacity);
+  }
+}
+
+TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
+  auto node_cfgs = make_node_cfgs<5, true>(1);
+  auto dag_gas_limit = node_cfgs.front().chain.dag.gas_limit = 300000;
+  node_cfgs.front().chain.pbft.gas_limit = 1000000;
+  makeNodeFromConfig(node_cfgs);
+
+  deployContract();
+  node->getBlockProposer()->stop();
+  generateAndApplyInitialDag();
+
+  const auto trxs_before = node->getTransactionManager()->getTransactionCount();
+  EXPECT_HAPPENS({10s, 500ms},
+                 [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, trxs_before, node->getDB()->getNumTransactionExecuted()); });
+
+  const auto starting_block_number = node->getFinalChain()->last_block_number();
+  const auto trx_in_block = dag_gas_limit / trxEstimation() + 2;
+  insertBlocks(generateDagBlocks(1, 5, trx_in_block));
+
+  uint64_t tx_count = 5 * trx_in_block;
+
+  EXPECT_HAPPENS({60s, 500ms}, [&](auto &ctx) {
+    // all transactions should be included in 2 blocks
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), trxs_before + tx_count);
+    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->last_block_number(), starting_block_number + 2);
+  });
+
+  // verify that last block is overweighted, but it is in chain
+  const auto period = node->getFinalChain()->last_block_number();
+  auto period_raw = node->getDB()->getPeriodDataRaw(period);
+  ASSERT_FALSE(period_raw.empty());
+  SyncBlock sync_block(period_raw);
+  EXPECT_FALSE(node->getPbftManager()->checkBlockWeight(sync_block));
+}
+
+TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
+  auto node_cfgs = make_node_cfgs<5, true>(1);
+  node_cfgs.front().chain.dag.gas_limit = 300000;
+  node_cfgs.front().chain.pbft.gas_limit = 500000;
+  makeNode();
+  deployContract();
+  node->getBlockProposer()->stop();
+  generateAndApplyInitialDag();
+
+  EXPECT_HAPPENS({10s, 500ms},
+                 [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nonce, node->getDB()->getNumTransactionExecuted()); });
+
+  node->getPbftManager()->stop();
+  // create pbft block
+  auto chain_size_before = node->getPbftChain()->getPbftChainSize();
+  {
+    auto blocks_with_txs = generateDagBlocks(10, 3, 1);
+    insertBlocks(blocks_with_txs);
+    auto dag_block_hash = blocks_with_txs.back().blk.getHash();
+
+    // get DAG block and transaction order
+    const auto propose_period = node->getPbftChain()->getPbftChainSize() + 1;
+    auto dag_block_order = node->getDagManager()->getDagBlockOrder(dag_block_hash, propose_period);
+    ASSERT_TRUE(!dag_block_order.empty());
+
+    std::vector<trx_hash_t> trx_hashes;
+    for (const auto &bt : blocks_with_txs) {
+      std::transform(bt.trxs.begin(), bt.trxs.end(), std::back_inserter(trx_hashes),
+                     [](const auto &t) { return t->getHash(); });
+    }
+    const auto transactions = node->getTransactionManager()->getNonfinalizedTrx(trx_hashes, true /*sorted*/);
+    trx_hashes.clear();
+    std::transform(transactions.begin(), transactions.end(), std::back_inserter(trx_hashes),
+                   [](const auto &t) { return t->getHash(); });
+
+    auto order_hash = node->getPbftManager()->calculateOrderHash(dag_block_order, trx_hashes);
+
+    const auto &last_hash = node->getPbftChain()->getLastPbftBlockHash();
+    const auto pbft_block = std::make_shared<PbftBlock>(last_hash, dag_block_hash, order_hash, propose_period,
+                                                        node->getAddress(), node->getSecretKey());
+    node->getPbftChain()->pushUnverifiedPbftBlock(pbft_block);
+  }
+
+  EXPECT_HAPPENS({60s, 500ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, node->getPbftChain()->getPbftChainSize(), chain_size_before + 1);
+  });
 }
 
 }  // namespace taraxa::core_tests

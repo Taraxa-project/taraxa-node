@@ -119,6 +119,8 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shar
     const auto block_hash = block.getHash();
     const auto verified = dag_blk_mgr_->insertAndVerifyBlock(std::move(block));
     switch (verified) {
+      case DagBlockManager::InsertAndVerifyBlockReturnType::IncorrectTransactionsEstimation:
+      case DagBlockManager::InsertAndVerifyBlockReturnType::BlockTooBig:
       case DagBlockManager::InsertAndVerifyBlockReturnType::InvalidBlock:
       case DagBlockManager::InsertAndVerifyBlockReturnType::FailedVdfVerification:
       case DagBlockManager::InsertAndVerifyBlockReturnType::NotEligible: {

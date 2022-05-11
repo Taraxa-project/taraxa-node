@@ -25,6 +25,8 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   TransactionManager(FullNodeConfig const &conf, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
                      addr_t node_addr);
 
+  uint64_t estimateTransactionGas(std::shared_ptr<Transaction> trx, std::optional<uint64_t> proposal_period) const;
+  uint64_t estimateTransactionGasByHash(const trx_hash_t &hash, std::optional<uint64_t> proposal_period) const;
   /**
    * Retrieves transactions to be included in a proposed pbft block
    */
