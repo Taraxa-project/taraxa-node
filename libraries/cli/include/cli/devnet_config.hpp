@@ -15,8 +15,8 @@ constexpr std::string_view devnet_json = R"foo({
   "network_simulated_delay": 0,
   "network_transaction_interval": 100,
   "network_bandwidth": 40,
-  "network_ideal_peer_count": 5,
-  "network_max_peer_count": 15,
+  "network_ideal_peer_count": 15,
+  "network_max_peer_count": 30,
   "network_sync_level_size": 25,
   "network_packets_processing_threads": 14,
   "network_peer_blacklist_timeout" : 600,
@@ -154,7 +154,7 @@ constexpr std::string_view devnet_json = R"foo({
             "max_size": 1000000000
           }
         ]
-      }, 
+      },
       {
         "name": "debug",
         "on": false,
