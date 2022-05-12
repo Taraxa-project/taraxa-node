@@ -94,17 +94,9 @@ class FinalChainImpl final : public FinalChain {
       // stuff as soon as possible
       auto period_raw = db_->getPeriodDataRaw(period);
       SyncBlock sync_block(period_raw);
-      DB::MultiGetQuery db_query(db_, sync_block.transactions.size());
-      for (auto const& trx : sync_block.transactions) {
-        db_query.append(DB::Columns::final_chain_transaction_location_by_hash, trx.getHash());
-      }
-      auto trx_db_results = db_query.execute(false);
       to_execute.reserve(sync_block.transactions.size());
+
       for (size_t i = 0; i < sync_block.transactions.size(); ++i) {
-        if (auto has_been_executed = !trx_db_results[i].empty(); has_been_executed) {
-          continue;
-        }
-        // Non-executed trxs
         auto const& trx = sync_block.transactions[i];
         if (!(replay_protection_service_ &&
               replay_protection_service_->is_nonce_stale(trx.getSender(), trx.getNonce()))) [[likely]] {
