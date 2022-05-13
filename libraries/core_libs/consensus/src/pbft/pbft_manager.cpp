@@ -1580,16 +1580,9 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(const blk_hash_t &cert_voted_
     return false;
   }
 
-<<<<<<< HEAD
-  // TODO: refactor. Call of comparePbftBlockScheduleWithDAGblocks_ fills cert_sync_block_ which is not obvious
-  auto [dag_blocks_order, ok] = comparePbftBlockScheduleWithDAGblocks_(pbft_block);
+  auto [dag_blocks_order, ok] = compareDagBlocksAndRewardVotes_(pbft_block);
   if (!ok) {
-    LOG(log_nf_) << "DAG has not build up for PBFT block " << cert_voted_block_hash;
-=======
-  auto dag_blocks_order = compareDagBlocksAndRewardVotes_(pbft_block);
-  if (!dag_blocks_order.second) {
     LOG(log_nf_) << "Failed compare DAG blocks or reward votes in block " << cert_voted_block_hash;
->>>>>>> 165edd2f (feature: fix adding reward votes several bugs and race conditions)
     return false;
   }
 
