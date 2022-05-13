@@ -804,7 +804,8 @@ TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
     auto dag_block_hash = blocks_with_txs.back().blk.getHash();
 
     // get DAG block and transaction order
-    const auto propose_period = node->getPbftChain()->getPbftChainSize() + 1;
+    const auto pbft_chain_size = node->getPbftChain()->getPbftChainSize();
+    const auto propose_period = pbft_chain_size + 1;
     auto dag_block_order = node->getDagManager()->getDagBlockOrder(dag_block_hash, propose_period);
     ASSERT_TRUE(!dag_block_order.empty());
 
@@ -821,8 +822,12 @@ TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
     auto order_hash = node->getPbftManager()->calculateOrderHash(dag_block_order, trx_hashes);
 
     const auto &last_hash = node->getPbftChain()->getLastPbftBlockHash();
+    const auto reward_votes = node->getDB()->getCertVotes(pbft_chain_size);
+    std::vector<vote_hash_t> reward_votes_hash;
+    std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hash),
+                   [](const auto &v) { return v->getHash(); });
     const auto pbft_block = std::make_shared<PbftBlock>(last_hash, dag_block_hash, order_hash, propose_period,
-                                                        node->getAddress(), node->getSecretKey());
+                                                        reward_votes_hash, node->getSecretKey());
     node->getPbftChain()->pushUnverifiedPbftBlock(pbft_block);
   }
 

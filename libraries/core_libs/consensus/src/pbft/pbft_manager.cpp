@@ -1551,9 +1551,10 @@ std::pair<vec_blk_t, bool> PbftManager::compareDagBlocksAndRewardVotes_(std::sha
     if (ghost.size() > 1 && anchor_hash != ghost[1]) {
       if (!checkBlockWeight(cert_sync_block_)) {
         LOG(log_er_) << "PBFT block " << pbft_block->getBlockHash() << " is overweighted";
-        return std::make_pair(std::move(dag_blocks_order), false);
+        return {{}, false};
       }
     }
+  }
 
   // Check reward votes
   auto reward_votes = vote_mgr_->updateRewardVotes(proposal_period - 1);
@@ -1707,8 +1708,8 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
                                                            pbft_chain_->getPbftChainSizeExcludingEmptyPbftBlocks() + 1);
   }
   {
-    // This makes sure that no DAG block or transaction can be added or change state in transaction and dag manager when
-    // finalizing pbft block with dag blocks and transactions
+    // This makes sure that no DAG block or transaction can be added or change state in transaction and dag manager
+    // when finalizing pbft block with dag blocks and transactions
     std::unique_lock dag_lock(dag_mgr_->getDagMutex());
     std::unique_lock trx_lock(trx_mgr_->getTransactionsMutex());
 
