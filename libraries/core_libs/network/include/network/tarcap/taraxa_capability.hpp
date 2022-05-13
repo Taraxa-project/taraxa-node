@@ -57,7 +57,8 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   void interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session> session, unsigned _id, dev::RLP const &_r) override;
   std::string packetTypeToString(unsigned _packetType) const override;
 
-  const std::shared_ptr<taraxa::network::tarcap::PacketHandler> &getSpecificHandler(SubprotocolPacketType packet_type);
+  template <typename PacketHandlerType>
+  const std::shared_ptr<PacketHandlerType> &getSpecificHandler(SubprotocolPacketType packet_type);
 
   /**
    * @brief Start processing packets

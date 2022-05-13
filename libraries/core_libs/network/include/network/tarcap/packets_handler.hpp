@@ -20,7 +20,8 @@ class PacketsHandler {
    * @param packet_type
    * @return reference to std::shared_ptr<PacketsHandler>
    */
-  std::shared_ptr<PacketHandler>& getSpecificHandler(SubprotocolPacketType packet_type);
+  template <typename PacketHandlerType>
+  std::shared_ptr<PacketHandlerType>& getSpecificHandler(SubprotocolPacketType packet_type);
 
   /**
    * @brief Registers handler for specific packet type
