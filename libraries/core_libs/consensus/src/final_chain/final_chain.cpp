@@ -94,17 +94,8 @@ class FinalChainImpl final : public FinalChain {
     {
       // This artificial scope will make sure we clean up the big chunk of memory allocated for this batch-processing
       // stuff as soon as possible
-      DB::MultiGetQuery db_query(db_, new_blk.transactions.size());
-      for (auto const& trx : new_blk.transactions) {
-        db_query.append(DB::Columns::final_chain_transaction_location_by_hash, trx.getHash());
-      }
-      auto trx_db_results = db_query.execute(false);
       to_execute.reserve(new_blk.transactions.size());
       for (size_t i = 0; i < new_blk.transactions.size(); ++i) {
-        if (auto has_been_executed = !trx_db_results[i].empty(); has_been_executed) {
-          continue;
-        }
-        // Non-executed trxs
         auto const& trx = new_blk.transactions[i];
         if (!(replay_protection_service_ &&
               replay_protection_service_->is_nonce_stale(trx.getSender(), trx.getNonce()))) [[likely]] {
