@@ -236,7 +236,7 @@ class NodeTable : UDPSocketEvents {
   /// Intervals
 
   /// How long to wait for requests (evict, find iterations).
-  static constexpr std::chrono::milliseconds c_reqTimeoutMs{300};
+  static constexpr std::chrono::milliseconds c_reqTimeoutMs{600};
   /// How long to wait before starting a new discovery round
   static constexpr std::chrono::milliseconds c_discoveryRoundIntervalMs{c_reqTimeoutMs * 2};
   /// Refresh interval prevents bucket from becoming stale. [Kademlia]
