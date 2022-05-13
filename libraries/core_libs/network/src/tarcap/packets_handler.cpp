@@ -8,7 +8,8 @@ void PacketsHandler::registerHandler(SubprotocolPacketType packet_type, std::sha
   packets_handlers_.emplace(packet_type, std::move(handler));
 }
 
-std::shared_ptr<PacketHandler>& PacketsHandler::getSpecificHandler(SubprotocolPacketType packet_type) {
+template <typename PacketHandlerType>
+std::shared_ptr<PacketHandlerType>& PacketsHandler::getSpecificHandler(SubprotocolPacketType packet_type) {
   auto selected_handler = packets_handlers_.find(packet_type);
 
   if (selected_handler == packets_handlers_.end()) {
@@ -17,7 +18,7 @@ std::shared_ptr<PacketHandler>& PacketsHandler::getSpecificHandler(SubprotocolPa
     throw std::runtime_error("No registered packet handler for packet type: " + std::to_string(packet_type));
   }
 
-  return selected_handler->second;
+  return std::static_pointer_cast<PacketHandlerType>(selected_handler->second);
 }
 
 }  // namespace taraxa::network::tarcap
