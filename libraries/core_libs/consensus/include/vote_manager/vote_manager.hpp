@@ -136,20 +136,20 @@ class VoteManager {
    *
    * @param reward_period
    *
-   * @return reward votes that are same as previous period cert votes
+   * @return reward votes hashes that are same as previous period cert votes hashes
    */
-  std::vector<std::shared_ptr<Vote>> updateRewardVotes(uint64_t reward_period);
+  std::vector<vote_hash_t> updateRewardVotesAndGetBackRewardPeriodCertVotesHashes(uint64_t reward_period);
 
   /**
    * @brief Check previous finalized block that includes all reward votes
    *
    * @param pbft_block
-   * @param reward_period_cert_votes
+   * @param reward_period_cert_votes_hashes
    *
    * @return true if include all reward votes
    */
   bool checkRewardVotes(const std::shared_ptr<PbftBlock>& pbft_block,
-                        const std::vector<std::shared_ptr<Vote>>& reward_period_cert_votes);
+                        std::vector<vote_hash_t>&& reward_period_cert_votes_hashes);
 
  private:
   void retreieveVotes_();
