@@ -18,9 +18,9 @@ VotesSyncPacketHandler::VotesSyncPacketHandler(std::shared_ptr<PeersState> peers
       db_(std::move(db)) {}
 
 void VotesSyncPacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketData &packet_data) const {
-  auto iteam_count = packet_data.rlp_.itemCount();
-  if (iteam_count == 0 || iteam_count > kMaxVotesInPacket) {
-    throw InvalidRlpItemsCountException(packet_data.type_str_, iteam_count, 1, kMaxVotesInPacket);
+  auto items = packet_data.rlp_.itemCount();
+  if (items == 0 || items > kMaxVotesInPacket) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, items, kMaxVotesInPacket);
   }
 }
 
