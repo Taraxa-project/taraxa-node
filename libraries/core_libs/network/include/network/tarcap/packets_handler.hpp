@@ -23,20 +23,24 @@ class PacketsHandler {
   const std::shared_ptr<PacketHandler>& getSpecificHandler(SubprotocolPacketType packet_type) const;
 
   /**
-   * @brief templated getSpecificHandler method, which internally casts fetched PacketHandler to specified
-   * PacketHandlerType
-   * @see non-templated getSpecificHandler method for other specs
+   * @brief templated getSpecificHandler method for getting specific packet handler based on
+   * PacketHandlerType::kPacketType_
+   * @tparam PacketHandlerType
+   *
+   * @return std::shared_ptr<PacketHandlerType>
    */
   template <typename PacketHandlerType>
-  std::shared_ptr<PacketHandlerType> getSpecificHandler(SubprotocolPacketType packet_type);
+  std::shared_ptr<PacketHandlerType> getSpecificHandler();
 
   /**
-   * @brief Registers handler for specific packet type
+   * @brief Registers packet handler
    *
-   * @param packet_type
-   * @param handler
+   * @tparam PacketHandlerType
+   * @tparam Args
+   * @param args to be forwarded to the PacketHandlerType ctor
    */
-  void registerHandler(SubprotocolPacketType packet_type, std::shared_ptr<PacketHandler> handler);
+  template <typename PacketHandlerType, typename... Args>
+  void registerHandler(Args&&... args);
 
  private:
   // Map of all packets handlers, factory method selects specific packet handler for processing based on packet type
@@ -44,8 +48,15 @@ class PacketsHandler {
 };
 
 template <typename PacketHandlerType>
-std::shared_ptr<PacketHandlerType> PacketsHandler::getSpecificHandler(SubprotocolPacketType packet_type) {
-  return std::static_pointer_cast<PacketHandlerType>(getSpecificHandler(packet_type));
+std::shared_ptr<PacketHandlerType> PacketsHandler::getSpecificHandler() {
+  return std::static_pointer_cast<PacketHandlerType>(getSpecificHandler(PacketHandlerType::kPacketType_));
+}
+
+template <typename PacketHandlerType, typename... Args>
+void PacketsHandler::registerHandler(Args&&... args) {
+  assert(packets_handlers_.find(PacketHandlerType::kPacketType_) == packets_handlers_.end());
+  packets_handlers_.emplace(PacketHandlerType::kPacketType_,
+                            std::make_shared<PacketHandlerType>(std::forward<Args>(args)...));
 }
 
 }  // namespace taraxa::network::tarcap

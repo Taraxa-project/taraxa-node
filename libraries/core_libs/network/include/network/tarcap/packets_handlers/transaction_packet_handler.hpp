@@ -30,6 +30,9 @@ class TransactionPacketHandler final : public PacketHandler {
    */
   void periodicSendTransactions(SharedTransactions&& transactions);
 
+  // Packet type that is processed by this handler
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::TransactionPacket;
+
  private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;

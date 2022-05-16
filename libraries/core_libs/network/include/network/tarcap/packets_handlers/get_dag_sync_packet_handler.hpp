@@ -21,6 +21,9 @@ class GetDagSyncPacketHandler final : public PacketHandler {
   void sendBlocks(const dev::p2p::NodeID& peer_id, std::vector<std::shared_ptr<DagBlock>>&& blocks,
                   SharedTransactions&& transactions, uint64_t request_period, uint64_t period);
 
+  // Packet type that is processed by this handler
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetDagSyncPacket;
+
  private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
