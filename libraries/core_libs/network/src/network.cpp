@@ -7,16 +7,20 @@
 #include <boost/tokenizer.hpp>
 
 #include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
-#include "transaction/transaction_manager.hpp"
+// #include "transaction/transaction_manager.hpp"
+
+#include "config/version.hpp"
 
 namespace taraxa {
 
-Network::Network(FullNodeConfig const &config, std::filesystem::path const &network_file_path, dev::KeyPair const &key,
-                 std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
-                 std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-                 std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
-                 std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr)
-    : conf_(config.network), tp_(conf_.network_num_threads, false) {
+Network::Network(NetworkConfig const &config, const h256 &genesis_hash,
+                 dev::p2p::Host::CapabilitiesFactory construct_capabilities,
+                 std::filesystem::path const &network_file_path, dev::KeyPair const &key, std::shared_ptr<DbStorage> db,
+                 std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
+                 std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
+                 std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                 std::shared_ptr<TransactionManager> trx_mgr)
+    : conf_(config), tp_(config.network_num_threads, false) {
   auto const &node_addr = key.address();
   LOG_OBJECTS_CREATE("NETWORK");
   LOG(log_nf_) << "Read Network Config: " << std::endl << conf_ << std::endl;
@@ -39,16 +43,18 @@ Network::Network(FullNodeConfig const &config, std::filesystem::path const &netw
   taraxa_net_conf.expected_parallelism = tp_.capacity();
 
   string net_version = "TaraxaNode";  // TODO maybe give a proper name?
-  auto construct_capabilities = [&, this](auto host) {
-    assert(!host.expired());
+  if (!construct_capabilities) {
+    construct_capabilities = [&](std::weak_ptr<dev::p2p::Host> host) {
+      assert(!host.expired());
 
-    taraxa_capability_ = std::make_shared<network::tarcap::TaraxaCapability>(
-        host, key, conf_, config.chain.genesisHash(), db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr,
-        dag_blk_mgr, trx_mgr, key.address());
-    return dev::p2p::Host::CapabilityList{taraxa_capability_};
-  };
+      auto taraxa_capability =
+          network::tarcap::TaraxaCapability::make(host, key, conf_, genesis_hash, TARAXA_NET_VERSION, db, pbft_mgr,
+                                                  pbft_chain, vote_mgr, next_votes_mgr, dag_mgr, dag_blk_mgr, trx_mgr);
+      return dev::p2p::Host::CapabilityList{taraxa_capability};
+    };
+  }
   host_ = dev::p2p::Host::make(net_version, construct_capabilities, key, net_conf, taraxa_net_conf, network_file_path);
-
+  taraxa_capability_ = std::static_pointer_cast<network::tarcap::TaraxaCapability>(host_->latestCapability());
   for (uint i = 0; i < tp_.capacity(); ++i) {
     tp_.post_loop({100 + i * 20}, [this] {
       while (0 < host_->do_work())
@@ -73,7 +79,7 @@ bool Network::isStarted() { return tp_.is_running(); }
 
 std::list<dev::p2p::NodeEntry> Network::getAllNodes() const { return host_->getNodes(); }
 
-size_t Network::getPeerCount() { return taraxa_capability_->getPeersState()->getPeersCount(); }
+size_t Network::getPeerCount() { return host_->peer_count(); }
 
 unsigned Network::getNodeCount() { return host_->getNodeCount(); }
 

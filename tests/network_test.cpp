@@ -22,6 +22,7 @@
 
 namespace taraxa::core_tests {
 
+using dev::p2p::Host;
 using vrf_wrapper::VrfSortitionBase;
 
 const unsigned NUM_TRX = 10;
@@ -47,8 +48,8 @@ struct NetworkTest : BaseTest {};
 
 // Test creates two Network setup and verifies sending block between is successfull
 TEST_F(NetworkTest, transfer_block) {
-  std::unique_ptr<Network> nw1 = std::make_unique<taraxa::Network>(g_conf1);
-  std::unique_ptr<Network> nw2 = std::make_unique<taraxa::Network>(g_conf2);
+  auto nw1 = std::make_unique<Network>(g_conf1->network);
+  auto nw2 = std::make_unique<Network>(g_conf2->network);
 
   nw1->start();
   nw2->start();
@@ -298,8 +299,8 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
 // Test creates two Network setup and verifies sending transaction
 // between is successfull
 TEST_F(NetworkTest, transfer_transaction) {
-  auto nw1 = std::make_unique<Network>(g_conf1);
-  auto nw2 = std::make_unique<Network>(g_conf2);
+  auto nw1 = std::make_unique<Network>(g_conf1->network);
+  auto nw2 = std::make_unique<Network>(g_conf2->network);
   nw1->start();
   nw2->start();
 
@@ -333,10 +334,14 @@ TEST_F(NetworkTest, save_network) {
   std::filesystem::remove_all("/tmp/nw3");
   auto key2 = dev::KeyPair::create();
   auto key3 = dev::KeyPair::create();
+  h256 genesis_hash;
   {
-    std::shared_ptr<Network> nw1 = std::make_shared<taraxa::Network>(g_conf1);
-    std::shared_ptr<Network> nw2 = std::make_shared<taraxa::Network>(g_conf2, "/tmp/nw2", key2);
-    std::shared_ptr<Network> nw3 = std::make_shared<taraxa::Network>(g_conf3, "/tmp/nw3", key3);
+    std::shared_ptr<Network> nw1 =
+        std::make_shared<taraxa::Network>(g_conf1->network, genesis_hash, Host::CapabilitiesFactory());
+    std::shared_ptr<Network> nw2 = std::make_shared<taraxa::Network>(g_conf2->network, genesis_hash,
+                                                                     Host::CapabilitiesFactory(), "/tmp/nw2", key2);
+    std::shared_ptr<Network> nw3 = std::make_shared<taraxa::Network>(g_conf3->network, genesis_hash,
+                                                                     Host::CapabilitiesFactory(), "/tmp/nw3", key3);
 
     nw1->start();
     nw2->start();
@@ -352,8 +357,10 @@ TEST_F(NetworkTest, save_network) {
     });
   }
 
-  std::shared_ptr<Network> nw2 = std::make_shared<taraxa::Network>(g_conf2, "/tmp/nw2", key2);
-  std::shared_ptr<Network> nw3 = std::make_shared<taraxa::Network>(g_conf3, "/tmp/nw3", key3);
+  std::shared_ptr<Network> nw2 =
+      std::make_shared<taraxa::Network>(g_conf2->network, genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw2", key2);
+  std::shared_ptr<Network> nw3 =
+      std::make_shared<taraxa::Network>(g_conf3->network, genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw3", key3);
   nw2->start();
   nw3->start();
 

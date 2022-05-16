@@ -84,6 +84,7 @@ struct Host final : std::enable_shared_from_this<Host> {
                                     KeyPair const& kp, NetworkConfig _n, TaraxaNetworkConfig taraxa_conf = {},
                                     std::filesystem::path state_file_path = {});
 
+  std::shared_ptr<CapabilityFace> latestCapability() { return m_capabilities.rbegin()->second.ref; }
   ~Host();
 
   ba::io_context::count_type do_work();
@@ -180,11 +181,11 @@ struct Host final : std::enable_shared_from_this<Host> {
   /// Get Ethereum Node Record of the host
   ENR enr() const { return m_nodeTable->hostENR(); }
 
-  // Really private
- private:
   /// Get number of peers connected.
   size_t peer_count_() const;
 
+  // Really private
+ private:
   /// Get peer information.
   PeerSessionInfos peerSessionInfos() const;
 
