@@ -8,7 +8,7 @@ void PacketsHandler::registerHandler(SubprotocolPacketType packet_type, std::sha
   packets_handlers_.emplace(packet_type, std::move(handler));
 }
 
-std::shared_ptr<PacketHandler>& PacketsHandler::getSpecificHandler(SubprotocolPacketType packet_type) {
+const std::shared_ptr<PacketHandler>& PacketsHandler::getSpecificHandler(SubprotocolPacketType packet_type) const {
   auto selected_handler = packets_handlers_.find(packet_type);
 
   if (selected_handler == packets_handlers_.end()) {
