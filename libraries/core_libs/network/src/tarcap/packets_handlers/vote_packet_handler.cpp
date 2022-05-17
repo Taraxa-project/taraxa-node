@@ -26,8 +26,12 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
   LOG(log_dg_) << "Received PBFT vote " << vote_hash;
 
   const auto vote_round = vote->getRound();
-  if (reward_vote || (vote_round < pbft_mgr_->getPbftRound() && vote->getType() == cert_vote_type)) {
-    if (vote_mgr_->addRewardVote(vote)) {
+  if (reward_vote) {
+    // Synchronization point in case multiple threads are processing the same vote at the same time
+    if (!seen_votes_.insert(vote_hash)) {
+      LOG(log_dg_) << "Received reward vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
+                   << ") already seen.";
+    } else if (vote_mgr_->addRewardVote(vote)) {
       peer->markVoteAsKnown(vote_hash);
       onNewPbftVote(std::move(vote), reward_vote);
     }

@@ -504,7 +504,8 @@ void VoteManager::sendRewardPeriodCertVotes(uint64_t reward_period) {
 }
 
 bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
-  // Don't check the vote if in DB here. That will check in updateRewardVotes for reducing DB read
+  // Don't check the vote if in DB here. That will check in updateRewardVotesAndGetBackRewardPeriodCertVotesHashes for
+  // reducing DB read
   const auto vote_hash = vote->getHash();
   std::unique_lock lock(reward_votes_mutex_);
   if (reward_votes_.second.contains(vote_hash)) {
@@ -523,10 +524,12 @@ bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
     reward_votes_.first = voted_block_hash;
   } else if (reward_votes_.first != pbft_chain_last_block_hash) {
     // Clear missing reward votes
-    LOG(log_dg_) << "Remove reward votes: \n";
+    std::ostringstream remove_reward_votes_log;
+    remove_reward_votes_log << "Remove reward votes:";
     for (const auto& v : reward_votes_.second) {
-      LOG(log_dg_) << v.first;
+      remove_reward_votes_log << " " << v.first;
     }
+    LOG(log_dg_) << remove_reward_votes_log.str();
     reward_votes_ = {};
     reward_votes_.first = voted_block_hash;
   }
@@ -538,7 +541,7 @@ bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
   return true;
 }
 
-bool VoteManager::verifyRewardVote(std::shared_ptr<Vote>& vote) {
+bool VoteManager::verifyRewardVote(const std::shared_ptr<Vote>& vote) {
   const auto voted_block_hash = vote->getBlockHash();
   const auto pbft_chain_last_block_hash = pbft_chain_->getLastPbftBlockHash();
   if (voted_block_hash != pbft_chain_last_block_hash) {
@@ -615,9 +618,9 @@ std::vector<vote_hash_t> VoteManager::updateRewardVotesAndGetBackRewardPeriodCer
                    << "> does not match reward votes voted value " << reward_votes_.first;
       return reward_period_cert_votes_hashes;
     }
-    for (auto& v : reward_votes_.second) {
+    for (const auto& v : reward_votes_.second) {
       if (!reward_period_cert_votes_hashes_set.contains(v.first) && verifyRewardVote(v.second)) {
-        LOG(log_nf_) << "Add new reward vote " << v.first;
+        LOG(log_dg_) << "Add new reward vote " << v.first;
         update = true;
         reward_period_cert_votes_hashes.push_back(v.first);
         reward_period_sync_block.cert_votes.push_back(std::move(v.second));
@@ -658,7 +661,7 @@ bool VoteManager::checkRewardVotes(const std::shared_ptr<PbftBlock>& pbft_block,
     std::ostringstream missing_reward_votes_log;
     missing_reward_votes_log << "Missing reward votes: ";
     for (const auto& v : missing_reward_votes) {
-      missing_reward_votes_log << "\n" << v.toString();
+      missing_reward_votes_log << " " << v.toString();
     }
     LOG(log_er_) << missing_reward_votes_log.str();
 

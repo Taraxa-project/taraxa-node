@@ -129,7 +129,7 @@ class VoteManager {
    *
    * @return true if pass vote verification
    */
-  bool verifyRewardVote(std::shared_ptr<Vote>& vote);
+  bool verifyRewardVote(const std::shared_ptr<Vote>& vote);
 
   /**
    * @brief Update missing reward votes to previous period finalized block
