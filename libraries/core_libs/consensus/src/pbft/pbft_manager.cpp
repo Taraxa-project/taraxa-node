@@ -1561,8 +1561,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
     return false;
   }
 
-  // TODO: Only include reward votes that are part of the pbft block and not all cert votes
-  period_data_.previous_block_cert_votes = db_->getLastBlockCertVotes();
+  period_data_.previous_block_cert_votes = getRewardVotes(period_data_.pbft_blk->getRewardVotes());
 
   if (!pushPbftBlock_(std::move(period_data_), std::move(current_round_cert_votes), std::move(dag_blocks_order))) {
     LOG(log_er_) << "Failed push PBFT block " << pbft_block->getBlockHash() << " into chain";
