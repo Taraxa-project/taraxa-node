@@ -1513,6 +1513,9 @@ std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(s
     period_data_.transactions.push_back(trx);
   }
 
+  // TODO: Only include reward votes that are part of the pbft block and not all cert votes
+  cert_sync_block_.cert_votes = db_->getLastBlockCertVotes();
+
   auto calculated_order_hash = calculateOrderHash(dag_blocks_order, non_finalized_transactions);
   if (calculated_order_hash != pbft_block->getOrderHash()) {
     LOG(log_er_) << "Order hash incorrect. Pbft block: " << pbft_block->getBlockHash()
