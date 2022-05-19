@@ -277,9 +277,7 @@ TEST_F(VoteTest, transfer_vote) {
   size_t step = 1000;
   auto vote = pbft_mgr2->generateVote(propose_block_hash, type, period, step);
 
-  std::static_pointer_cast<network::tarcap::VotePacketHandler>(
-      nw2->getSpecificHandler(network::tarcap::SubprotocolPacketType::VotePacket))
-      ->sendPbftVotes(nw1->getNodeId(), {vote});
+  nw2->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVotes(nw1->getNodeId(), {vote});
 
   auto vote_mgr1 = node1->getVoteManager();
   auto vote_mgr2 = node2->getVoteManager();

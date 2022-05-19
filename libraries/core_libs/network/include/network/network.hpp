@@ -65,8 +65,8 @@ class Network {
   void onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes);
   void broadcastPreviousRoundNextVotesBundle();
 
-  const std::shared_ptr<taraxa::network::tarcap::PacketHandler> &getSpecificHandler(
-      network::tarcap::SubprotocolPacketType packet_type);
+  template <typename PacketHandlerType>
+  const std::shared_ptr<PacketHandlerType> &getSpecificHandler() const;
 
   // METHODS USED IN TESTS ONLY
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, const SharedTransactions &trxs);
@@ -91,5 +91,10 @@ class Network {
 
   LOG_OBJECTS_DEFINE
 };
+
+template <typename PacketHandlerType>
+const std::shared_ptr<PacketHandlerType> &Network::getSpecificHandler() const {
+  return taraxa_capability_->getSpecificHandler<PacketHandlerType>();
+}
 
 }  // namespace taraxa

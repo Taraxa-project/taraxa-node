@@ -394,11 +394,14 @@ void TaraxaCapability::sendPbftBlock(const dev::p2p::NodeID &id, const PbftBlock
   packets_handlers_->getSpecificHandler<PbftBlockPacketHandler>()->sendPbftBlock(id, pbft_block, pbft_chain_size);
 }
 
-const std::shared_ptr<taraxa::network::tarcap::PacketHandler> &TaraxaCapability::getSpecificHandler(
-    SubprotocolPacketType packet_type) {
-  return packets_handlers_->getSpecificHandler(packet_type);
+// END METHODS USED IN TESTS ONLY
+
+template <typename PacketHandlerType>
+const std::shared_ptr<PacketHandlerType> &TaraxaCapability::getSpecificHandler() const {
+  static auto packet_handler = packets_handlers_->getSpecificHandler<PacketHandlerType>();
+  return packet_handler;
 }
 
-// END METHODS USED IN TESTS ONLY
+template const std::shared_ptr<VotePacketHandler> &TaraxaCapability::getSpecificHandler() const;
 
 }  // namespace taraxa::network::tarcap

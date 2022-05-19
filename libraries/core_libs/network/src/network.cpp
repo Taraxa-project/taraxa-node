@@ -167,9 +167,4 @@ void Network::sendPbftBlock(const dev::p2p::NodeID &id, const PbftBlock &pbft_bl
   taraxa_capability_->sendPbftBlock(id, pbft_block, pbft_chain_size);
 }
 
-const std::shared_ptr<taraxa::network::tarcap::PacketHandler> &Network::getSpecificHandler(
-    network::tarcap::SubprotocolPacketType packet_type) {
-  return taraxa_capability_->getSpecificHandler(packet_type);
-}
-
 }  // namespace taraxa
