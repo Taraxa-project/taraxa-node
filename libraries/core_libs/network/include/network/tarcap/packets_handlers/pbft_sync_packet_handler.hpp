@@ -29,6 +29,9 @@ class PbftSyncPacketHandler final : public ExtSyncingPacketHandler {
 
   // Initialized from network config
   const size_t network_sync_level_size_;
+
+  const size_t kStandardPacketSize = 2;
+  const size_t kChainSyncedPacketSize = 3;
 };
 
 }  // namespace taraxa::network::tarcap

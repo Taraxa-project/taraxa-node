@@ -53,7 +53,7 @@ bool RewardsStats::addVote(const Vote& vote) {
   return true;
 }
 
-void RewardsStats::initStats(const SyncBlock& sync_blk) {
+void RewardsStats::initStats(const PeriodData& sync_blk) {
   txs_validators_.reserve(sync_blk.transactions.size());
 
   // TODO: use std::max(sync_blk.dag_blocks.size(), sync_blk.rewards_votes.size())
@@ -69,7 +69,7 @@ void RewardsStats::initStats(const SyncBlock& sync_blk) {
   // TODO: add votes to rewards_stats
 }
 
-std::vector<addr_t> RewardsStats::processStats(const SyncBlock& block) {
+std::vector<addr_t> RewardsStats::processStats(const PeriodData& block) {
   initStats(block);
 
   // Dag blocks validators that included transactions to be executed as first in their blocks

@@ -433,13 +433,13 @@ void DbStorage::clearPeriodDataHistory(uint64_t period) {
   db_->DeleteRange(write_options_, handle(Columns::period_data), toSlice(start), toSlice(period));
 }
 
-void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) {
-  uint64_t period = sync_block.pbft_blk->getPeriod();
-  addPbftBlockPeriodToBatch(period, sync_block.pbft_blk->getBlockHash(), write_batch);
+void DbStorage::savePeriodData(const PeriodData& period_data, Batch& write_batch) {
+  uint64_t period = period_data.pbft_blk->getPeriod();
+  addPbftBlockPeriodToBatch(period, period_data.pbft_blk->getBlockHash(), write_batch);
 
   // Remove dag blocks from non finalized column in db and add dag_block_period in DB
   uint64_t block_pos = 0;
-  for (auto const& block : sync_block.dag_blocks) {
+  for (auto const& block : period_data.dag_blocks) {
     removeDagBlockBatch(write_batch, block.getHash());
     addDagBlockPeriodToBatch(block.getHash(), period, block_pos, write_batch);
     block_pos++;
@@ -447,13 +447,13 @@ void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) 
 
   // Remove transactions from non finalized column in db and add dag_block_period in DB
   uint32_t trx_pos = 0;
-  for (auto const& trx : sync_block.transactions) {
+  for (auto const& trx : period_data.transactions) {
     removeTransactionToBatch(trx->getHash(), write_batch);
-    addTransactionPeriodToBatch(write_batch, trx->getHash(), sync_block.pbft_blk->getPeriod(), trx_pos);
+    addTransactionPeriodToBatch(write_batch, trx->getHash(), period_data.pbft_blk->getPeriod(), trx_pos);
     trx_pos++;
   }
 
-  insert(write_batch, Columns::period_data, toSlice(period), toSlice(sync_block.rlp()));
+  insert(write_batch, Columns::period_data, toSlice(period), toSlice(period_data.rlp()));
 }
 
 dev::bytes DbStorage::getPeriodDataRaw(uint64_t period) const {
@@ -870,6 +870,27 @@ void DbStorage::addNextVotesToBatch(uint64_t pbft_round, std::vector<std::shared
     s.appendRaw(v->rlp(true, true));
   }
   insert(write_batch, Columns::next_votes, toSlice(pbft_round), toSlice(s.out()));
+}
+
+void DbStorage::addLastBlockCertVotesToBatch(std::vector<std::shared_ptr<Vote>> const& cert_votes, Batch& write_batch) {
+  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::last_block_cert_votes)));
+  for (it->SeekToFirst(); it->Valid(); it->Next()) {
+    remove(write_batch, Columns::last_block_cert_votes, it->key());
+  }
+
+  dev::RLPStream s(cert_votes.size());
+  for (auto const& v : cert_votes) {
+    insert(write_batch, Columns::last_block_cert_votes, toSlice(v->getHash()), toSlice(v->rlp(true, true)));
+  }
+}
+
+std::vector<std::shared_ptr<Vote>> DbStorage::getLastBlockCertVotes() {
+  std::vector<std::shared_ptr<Vote>> votes;
+  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::last_block_cert_votes)));
+  for (it->SeekToFirst(); it->Valid(); it->Next()) {
+    votes.emplace_back(std::make_shared<Vote>(asBytes(it->value().ToString())));
+  }
+  return votes;
 }
 
 void DbStorage::removeNextVotesToBatch(uint64_t pbft_round, Batch& write_batch) {

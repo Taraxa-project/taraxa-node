@@ -51,9 +51,9 @@ void GetPbftSyncPacketHandler::process(const PacketData &packet_data,
 
   size_t blocks_to_transfer = 0;
   auto pbft_chain_synced = false;
-  const auto total_sync_blocks_size = my_chain_size - height_to_sync + 1;
-  if (total_sync_blocks_size <= network_sync_level_size_) {
-    blocks_to_transfer = total_sync_blocks_size;
+  const auto total_period_datas_size = my_chain_size - height_to_sync + 1;
+  if (total_period_datas_size <= network_sync_level_size_) {
+    blocks_to_transfer = total_period_datas_size;
     pbft_chain_synced = true;
   } else {
     blocks_to_transfer = network_sync_level_size_;
@@ -79,10 +79,20 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, s
     }
 
     dev::RLPStream s;
-    s.appendList(3);
-    s << (pbft_chain_synced && last_block);
-    s << last_block;
-    s.appendRaw(data);
+    if (pbft_chain_synced && last_block) {
+      s.appendList(3);
+      s << last_block;
+      s.appendRaw(data);
+      const auto votes = db_->getLastBlockCertVotes();
+      s.appendList(votes.size());
+      for (const auto &vote : votes) {
+        s.appendRaw(vote->rlp(true));
+      }
+    } else {
+      s.appendList(2);
+      s << last_block;
+      s.appendRaw(data);
+    }
     LOG(log_dg_) << "Sending PbftSyncPacket period " << block_period << " to " << peer_id;
     sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, std::move(s));
   }

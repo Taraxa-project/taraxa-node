@@ -9,7 +9,7 @@
 #include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "network/tarcap/taraxa_capability.hpp"
-#include "pbft/sync_queue.hpp"
+#include "pbft/period_data_queue.hpp"
 
 #define NULL_BLOCK_HASH blk_hash_t(0)
 #define POLLING_INTERVAL_ms 100  // milliseconds...
@@ -197,14 +197,22 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Get PBFT blocks syncing queue size
    * @return PBFT syncing queue size
    */
-  size_t syncBlockQueueSize() const;
+  size_t periodDataQueueSize() const;
 
   /**
-   * @brief Push synced PBFT block in syncing queue
-   * @param block synced PBFT block from peer
+   * @brief Push synced period data in syncing queue
+   * @param block synced period data from peer
+   * @param current_block_cert_votes cert votes for PeriodData pbft block period
    * @param node_id peer node ID
    */
-  void syncBlockQueuePush(SyncBlock &&block, dev::p2p::NodeID const &node_id);
+  void periodDataQueuePush(PeriodData &&period_data, dev::p2p::NodeID const &node_id,
+                           std::vector<std::shared_ptr<Vote>> &&current_block_cert_votes);
+
+  /**
+   * @brief Get last pbft block hash from queue or if queue empty, from chain
+   * @return last block hash
+   */
+  blk_hash_t lastPbftBlockHashFromQueueOrChain();
 
   // Notice: Test purpose
   // TODO: Add a check for some kind of guards to ensure these are only called from within a test
@@ -273,10 +281,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   /**
    * @brief Check a block weight of gas estimation
-   * @param block sync block
+   * @param period_data period data
    * @return true if total weight of gas estimation is less or equal to gas limit. Otherwise return false
    */
-  bool checkBlockWeight(const SyncBlock &block) const;
+  bool checkBlockWeight(const PeriodData &period_data) const;
 
   /**
    * @brief Get finalized DPOS period
@@ -465,27 +473,29 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   /**
    * @brief If there are enough certify votes, push the vote PBFT block in PBFT chain
    * @param cert_voted_block_hash PBFT block hash
-   * @param cert_votes_for_round certify votes
+   * @param current_round_cert_votes certify votes
    * @return true if push a new PBFT block in chain
    */
   bool pushCertVotedPbftBlockIntoChain_(blk_hash_t const &cert_voted_block_hash,
-                                        std::vector<std::shared_ptr<Vote>> &&cert_votes_for_round);
+                                        std::vector<std::shared_ptr<Vote>> &&current_round_cert_votes);
 
   /**
    * @brief Final chain executes a finalized PBFT block
-   * @param sync_block PBFT block, cert votes, DAG blocks, and transactions
+   * @param period_data PBFT block, cert votes, DAG blocks, and transactions
    * @param finalized_dag_blk_hashes DAG blocks hashes
    * @param sync it's true when it's last finalized block
    */
-  void finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalized_dag_blk_hashes, bool sync = false);
+  void finalize_(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes, bool sync = false);
 
   /**
    * @brief Push a new PBFT block into the PBFT chain
-   * @param sync_block PBFT block, cert votes, DAG blocks, and transactions
+   * @param period_data PBFT block, cert votes for previous period, DAG blocks, and transactions
+   * @param cert_votes cert votes for pbft block period
    * @param dag_blocks_order DAG blocks hashes
    * @return true if push a new PBFT block into the PBFT chain
    */
-  bool pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_order = {});
+  bool pushPbftBlock_(PeriodData &&period_data, std::vector<std::shared_ptr<Vote>> &&cert_votes,
+                      vec_blk_t &&dag_blocks_order = {});
 
   /**
    * @brief Update PBFT 2t+1 and PBFT sortition threshold
@@ -534,9 +544,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   /**
    * @brief Process synced PBFT blocks if PBFT syncing queue is not empty
-   * @return sync block
+   * @return period data with cert votes for the current period
    */
-  std::optional<SyncBlock> processSyncBlock();
+  std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> processPeriodData();
 
   /**
    * @brief Get the unfinalized PBFT block for current period
@@ -586,8 +596,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
   blk_hash_t soft_voted_block_for_this_round_ = NULL_BLOCK_HASH;
 
-  // Full sync block for pbft block that is being currently cert voted for
-  SyncBlock cert_sync_block_;
+  // Period data for pbft block that is being currently cert voted for
+  PeriodData period_data_;
 
   time_point round_clock_initial_datetime_;
   time_point now_;
@@ -636,7 +646,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::condition_variable stop_cv_;
   std::mutex stop_mtx_;
 
-  SyncBlockQueue sync_queue_;
+  PeriodDataQueue sync_queue_;
 
   const uint32_t max_levels_per_period_;
 

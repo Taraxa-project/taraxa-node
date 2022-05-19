@@ -19,17 +19,18 @@ class Vote;
 class PbftBlock;
 
 /**
- * @brief SyncBlock class is for block execution, that includes PBFT block, certify votes, DAG blocks, and transactions
+ * @brief PeriodData class is for block execution, that includes PBFT block, certify votes, DAG blocks, and transactions
  */
-class SyncBlock {
+class PeriodData {
  public:
-  SyncBlock() = default;
-  SyncBlock(std::shared_ptr<PbftBlock> pbft_blk, std::vector<std::shared_ptr<Vote>> const& cert_votes);
-  explicit SyncBlock(dev::RLP&& all_rlp);
-  explicit SyncBlock(bytes const& all_rlp);
+  PeriodData() = default;
+  PeriodData(std::shared_ptr<PbftBlock> pbft_blk, std::vector<std::shared_ptr<Vote>> const& cert_votes);
+  explicit PeriodData(dev::RLP&& all_rlp);
+  explicit PeriodData(bytes const& all_rlp);
 
   std::shared_ptr<PbftBlock> pbft_blk;
-  std::vector<std::shared_ptr<Vote>> cert_votes;
+  std::vector<std::shared_ptr<Vote>> previous_block_cert_votes;  // These votes are the cert votes of previous block
+                                                                 // which match reward votes in current pbft block
   std::vector<DagBlock> dag_blocks;
   SharedTransactions transactions;
 
@@ -51,10 +52,11 @@ class SyncBlock {
    * @param pbft_2t_plus_1 PBFT 2t+1
    * @param dpos_eligible_vote_count function of getting voter DPOS eligible votes count
    */
-  void hasEnoughValidCertVotes(size_t valid_sortition_players, size_t sortition_threshold, size_t pbft_2t_plus_1,
+  void hasEnoughValidCertVotes(const std::vector<std::shared_ptr<Vote>>& votes, size_t valid_sortition_players,
+                               size_t sortition_threshold, size_t pbft_2t_plus_1,
                                std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count) const;
 };
-std::ostream& operator<<(std::ostream& strm, SyncBlock const& b);
+std::ostream& operator<<(std::ostream& strm, PeriodData const& b);
 
 /** @}*/
 

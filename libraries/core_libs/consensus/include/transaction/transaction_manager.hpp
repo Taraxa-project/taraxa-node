@@ -121,13 +121,10 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * IMPORTANT: This method is invoked on finalizing a pbft block, it needs to be protected with transactions_mutex_ but
    * the mutex is locked from pbft manager for the entire pbft finalization process to make the finalization atomic
    *
-   * @param anchor Anchor of the finalized pbft block
-   * @param period Period finalized
-   * @param dag_order Dag order of the finalized pbft block
-   *
+   * @param period_data period data
    * @return number of dag blocks finalized
    */
-  void updateFinalizedTransactionsStatus(SyncBlock const &sync_block);
+  void updateFinalizedTransactionsStatus(PeriodData const &period_data);
 
   /**
    * @brief Moves non-finalized transactions from discarded old dag blocks back to transactions pool

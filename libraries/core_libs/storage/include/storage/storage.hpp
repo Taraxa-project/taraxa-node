@@ -13,7 +13,7 @@
 #include "dag/dag_block.hpp"
 #include "logger/logger.hpp"
 #include "pbft/pbft_block.hpp"
-#include "pbft/sync_block.hpp"
+#include "pbft/period_data.hpp"
 #include "storage/uint_comparator.hpp"
 #include "transaction/transaction.hpp"
 
@@ -111,8 +111,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(pbft_cert_voted_block);
     COLUMN(pbft_head);
     COLUMN(verified_votes);
-    COLUMN(soft_votes);  // only for current PBFT round
-    COLUMN(next_votes);  // only for previous PBFT round
+    COLUMN(soft_votes);             // only for current PBFT round
+    COLUMN(next_votes);             // only for previous PBFT round
+    COLUMN(last_block_cert_votes);  // cert votes for last block in pbft chain
     COLUMN(pbft_block_period);
     COLUMN(dag_block_period);
     COLUMN_W_COMP(proposal_period_levels_map, getIntComparator<uint64_t>());
@@ -187,7 +188,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::optional<h256> getGenesisHash();
 
   // Period data
-  void savePeriodData(const SyncBlock& sync_block, Batch& write_batch);
+  void savePeriodData(const PeriodData& period_data, Batch& write_batch);
   void clearPeriodDataHistory(uint64_t period);
   dev::bytes getPeriodDataRaw(uint64_t period) const;
   std::optional<PbftBlock> getPbftBlock(uint64_t period) const;
@@ -287,6 +288,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void addNextVotesToBatch(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& next_votes,
                            Batch& write_batch);
   void removeNextVotesToBatch(uint64_t pbft_round, Batch& write_batch);
+
+  // last block cert votes
+  void addLastBlockCertVotesToBatch(std::vector<std::shared_ptr<Vote>> const& cert_votes, Batch& write_batch);
+  std::vector<std::shared_ptr<Vote>> getLastBlockCertVotes();
 
   // period_pbft_block
   void addPbftBlockPeriodToBatch(uint64_t period, taraxa::blk_hash_t const& pbft_block_hash, Batch& write_batch);

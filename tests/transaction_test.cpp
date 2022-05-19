@@ -210,15 +210,15 @@ TEST_F(TransactionTest, transaction_low_nonce) {
   db->saveDagBlock(dag_blk);
   auto pbft_block = std::make_shared<PbftBlock>(blk_hash_t(), blk_hash_t(), blk_hash_t(), 1, addr_t::random(),
                                                 dev::KeyPair::create().secret());
-  SyncBlock sync_block(pbft_block, {});
-  sync_block.dag_blocks.push_back(dag_blk);
+  PeriodData period_data(pbft_block, {});
+  period_data.dag_blocks.push_back(dag_blk);
   SharedTransactions trxs{trx_nonce_2};
-  sync_block.transactions = trxs;
+  period_data.transactions = trxs;
   auto batch = db->createWriteBatch();
   db->saveTransactionPeriod(trx_nonce_2->getHash(), 1, 0);
-  db->savePeriodData(sync_block, batch);
+  db->savePeriodData(period_data, batch);
   db->commitWriteBatch(batch);
-  final_chain->finalize(std::move(sync_block), {dag_blk.getHash()}).get();
+  final_chain->finalize(std::move(period_data), {dag_blk.getHash()}).get();
 
   // Verify low nonce transaction is detected in verification
   auto result = trx_mgr.verifyTransaction(trx_low_nonce);
@@ -282,9 +282,9 @@ TEST_F(TransactionTest, transaction_concurrency) {
   // 1/3 transactions finalized
   for (size_t i = 0; i < g_signed_trx_samples->size() / 3; i++) {
     db->saveTransactionPeriod(g_signed_trx_samples[i]->getHash(), 1, i);
-    SyncBlock sync_block;
-    sync_block.transactions = {g_signed_trx_samples[i]};
-    trx_mgr.updateFinalizedTransactionsStatus(sync_block);
+    PeriodData period_data;
+    period_data.transactions = {g_signed_trx_samples[i]};
+    trx_mgr.updateFinalizedTransactionsStatus(period_data);
   }
 
   // Stop the thread which is trying to indert transactions to pool

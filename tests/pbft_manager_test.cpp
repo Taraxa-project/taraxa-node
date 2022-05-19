@@ -778,8 +778,8 @@ TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
   const auto period = node->getFinalChain()->last_block_number();
   auto period_raw = node->getDB()->getPeriodDataRaw(period);
   ASSERT_FALSE(period_raw.empty());
-  SyncBlock sync_block(period_raw);
-  EXPECT_FALSE(node->getPbftManager()->checkBlockWeight(sync_block));
+  PeriodData period_data(period_raw);
+  EXPECT_FALSE(node->getPbftManager()->checkBlockWeight(period_data));
 }
 
 TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {

@@ -50,12 +50,12 @@ class FinalChain {
   /**
    * @brief Method which finalizes a block and executes it in EVM
    *
-   * @param sync_block Full block with transactions
+   * @param period_data Full period data with transactions
    * @param finalized_dag_blk_hashes
    * @param precommit_ext
    * @return finalization result
    */
-  virtual std::future<std::shared_ptr<FinalizationResult const>> finalize(SyncBlock&& sync_block,
+  virtual std::future<std::shared_ptr<FinalizationResult const>> finalize(PeriodData&& period_data,
                                                                           std::vector<h256>&& finalized_dag_blk_hashes,
                                                                           finalize_precommit_ext = {}) = 0;
 

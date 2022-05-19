@@ -1,10 +1,10 @@
 set(HEADERS
     include/pbft/pbft_block.hpp
-    include/pbft/sync_block.hpp
+    include/pbft/period_data.hpp
 )
 set(SOURCES
     src/pbft_block.cpp
-    src/sync_block.cpp
+    src/period_data.cpp
 )
 
 add_library(pbft_block ${SOURCES} ${HEADERS})

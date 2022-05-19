@@ -1,6 +1,6 @@
 #pragma once
 
-#include "pbft/sync_block.hpp"
+#include "pbft/period_data.hpp"
 #include "storage/storage.hpp"
 #include "vdf/config.hpp"
 
@@ -39,23 +39,23 @@ class SortitionParamsManager {
   SortitionParams getSortitionParams(std::optional<uint64_t> for_period = {}) const;
 
   /**
-   * Calculating DAG efficiency in passed SyncBlock(PBFT)
+   * Calculating DAG efficiency in passed PeriodData(PBFT)
    * DAG efficiency is count of unique transactions over all DAG blocks in a PBFT block divided by the count over all
    * DAG blocks in a PBFT block.
-   * @param block SyncBlock to calculate its efficiency
+   * @param block PeriodData to calculate its efficiency
    * @returns DAG efficiency
    */
-  uint16_t calculateDagEfficiency(const SyncBlock& block) const;
+  uint16_t calculateDagEfficiency(const PeriodData& block) const;
 
   /**
    * Called from PbftManager.pushPbftBlock_()
    * Calculates and stores needed data on every block.
    * Every `computation_interval` blocks from config launches `recalculate` based on previous data
-   * @param block SyncBlock to process
+   * @param block PeriodData to process
    * @param batch DB batch in which all changes  will be added
    * @param non_empty_pbft_chain_size PBFT chain size excluding pbft blocks with null anchor
    */
-  void pbftBlockPushed(const SyncBlock& block, DbStorage::Batch& batch, size_t non_empty_pbft_chain_size);
+  void pbftBlockPushed(const PeriodData& block, DbStorage::Batch& batch, size_t non_empty_pbft_chain_size);
 
   /**
    * Calculate average DAG efficiency from dag_efficiencies_. Used at the end of interval.
