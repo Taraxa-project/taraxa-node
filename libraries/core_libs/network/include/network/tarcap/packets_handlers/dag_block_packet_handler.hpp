@@ -22,6 +22,9 @@ class DagBlockPacketHandler final : public ExtSyncingPacketHandler {
   void onNewBlockReceived(DagBlock &&block, const std::shared_ptr<TaraxaPeer> &peer = nullptr);
   void onNewBlockVerified(DagBlock &&block, bool proposed, SharedTransactions &&trxs);
 
+  // Packet type that is processed by this handler
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::DagBlockPacket;
+
  private:
   void validatePacketRlpFormat(const PacketData &packet_data) const override;
   void process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) override;

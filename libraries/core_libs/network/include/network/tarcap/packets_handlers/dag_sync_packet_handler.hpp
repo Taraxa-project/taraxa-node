@@ -16,6 +16,9 @@ class DagSyncPacketHandler final : public ExtSyncingPacketHandler {
                        std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                        std::shared_ptr<DbStorage> db, const addr_t& node_addr);
 
+  // Packet type that is processed by this handler
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::DagSyncPacket;
+
  private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;

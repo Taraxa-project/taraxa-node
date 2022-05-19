@@ -19,6 +19,9 @@ class StatusPacketHandler final : public ExtSyncingPacketHandler {
   bool sendStatus(const dev::p2p::NodeID& node_id, bool initial);
   void sendStatusToPeers();
 
+  // Packet type that is processed by this handler
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::StatusPacket;
+
  private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;

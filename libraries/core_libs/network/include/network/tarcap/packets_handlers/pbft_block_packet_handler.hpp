@@ -20,6 +20,9 @@ class PbftBlockPacketHandler final : public PacketHandler {
   void onNewPbftBlock(PbftBlock const& pbft_block);
   void sendPbftBlock(dev::p2p::NodeID const& peer_id, PbftBlock const& pbft_block, uint64_t pbft_chain_size);
 
+  // Packet type that is processed by this handler
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::PbftBlockPacket;
+
  private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
