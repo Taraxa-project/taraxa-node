@@ -252,39 +252,6 @@ TEST_F(VoteTest, reconstruct_votes) {
   EXPECT_EQ(vote1, vote2);
 }
 
-// Generate a vote, send the vote from node2 to node1
-TEST_F(VoteTest, transfer_vote) {
-  auto node_cfgs = make_node_cfgs(2);
-  auto nodes = launch_nodes(node_cfgs);
-  auto &node1 = nodes[0];
-  auto &node2 = nodes[1];
-  std::shared_ptr<Network> nw1 = node1->getNetwork();
-  std::shared_ptr<Network> nw2 = node2->getNetwork();
-
-  // stop PBFT manager, that will place vote
-  std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
-  std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
-  pbft_mgr1->stop();
-  pbft_mgr2->stop();
-
-  clearAllVotes(node1);
-  clearAllVotes(node2);
-
-  // generate a vote far ahead (never exist in PBFT manager)
-  blk_hash_t propose_block_hash(11);
-  PbftVoteTypes type = next_vote_type;
-  uint64_t period = 999;
-  size_t step = 1000;
-  auto vote = pbft_mgr2->generateVote(propose_block_hash, type, period, step);
-
-  nw2->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVotes(nw1->getNodeId(), {vote});
-
-  auto vote_mgr1 = node1->getVoteManager();
-  auto vote_mgr2 = node2->getVoteManager();
-  EXPECT_HAPPENS({60s, 100ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, vote_mgr1->getUnverifiedVotesSize(), 1) });
-  EXPECT_EQ(vote_mgr2->getUnverifiedVotesSize(), 0);
-}
-
 TEST_F(VoteTest, vote_broadcast) {
   auto node_cfgs = make_node_cfgs(3);
   auto nodes = launch_nodes(node_cfgs);
@@ -448,6 +415,39 @@ TEST_F(VoteTest, vote_count_compare) {
     auto balance = u256(7 * step);
     EXPECT_EQ(vote_count_old(balance, threshold), vote_count_new(balance, threshold, threshold));
   }
+}
+
+// Generate a vote, send the vote from node2 to node1
+TEST_F(VoteTest, transfer_vote) {
+  auto node_cfgs = make_node_cfgs(2);
+  auto nodes = launch_nodes(node_cfgs);
+  auto &node1 = nodes[0];
+  auto &node2 = nodes[1];
+  std::shared_ptr<Network> nw1 = node1->getNetwork();
+  std::shared_ptr<Network> nw2 = node2->getNetwork();
+
+  // stop PBFT manager, that will place vote
+  std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
+  std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
+  pbft_mgr1->stop();
+  pbft_mgr2->stop();
+
+  clearAllVotes(node1);
+  clearAllVotes(node2);
+
+  // generate a vote far ahead (never exist in PBFT manager)
+  blk_hash_t propose_block_hash(11);
+  PbftVoteTypes type = next_vote_type;
+  uint64_t period = 999;
+  size_t step = 1000;
+  auto vote = pbft_mgr2->generateVote(propose_block_hash, type, period, step);
+
+  nw2->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVotes(nw1->getNodeId(), {vote});
+
+  auto vote_mgr1 = node1->getVoteManager();
+  auto vote_mgr2 = node2->getVoteManager();
+  EXPECT_HAPPENS({60s, 100ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, vote_mgr1->getUnverifiedVotesSize(), 1) });
+  EXPECT_EQ(vote_mgr2->getUnverifiedVotesSize(), 0);
 }
 
 }  // namespace taraxa::core_tests
