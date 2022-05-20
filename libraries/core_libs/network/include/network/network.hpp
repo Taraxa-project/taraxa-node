@@ -66,7 +66,7 @@ class Network {
   void broadcastPreviousRoundNextVotesBundle();
 
   template <typename PacketHandlerType>
-  const std::shared_ptr<PacketHandlerType> &getSpecificHandler() const;
+  std::shared_ptr<PacketHandlerType> getSpecificHandler() const;
 
   // METHODS USED IN TESTS ONLY
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, const SharedTransactions &trxs);
@@ -93,7 +93,7 @@ class Network {
 };
 
 template <typename PacketHandlerType>
-const std::shared_ptr<PacketHandlerType> &Network::getSpecificHandler() const {
+std::shared_ptr<PacketHandlerType> Network::getSpecificHandler() const {
   return taraxa_capability_->getSpecificHandler<PacketHandlerType>();
 }
 

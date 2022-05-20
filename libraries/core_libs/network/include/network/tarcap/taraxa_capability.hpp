@@ -9,6 +9,7 @@
 
 #include "common/thread_pool.hpp"
 #include "config/config.hpp"
+#include "network/tarcap/packets_handler.hpp"
 #include "network/tarcap/shared_states/peers_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
 #include "network/tarcap/stats/node_stats.hpp"
@@ -30,7 +31,6 @@ enum class TransactionStatus;
 namespace taraxa::network::tarcap {
 
 class PacketsHandler;
-class PacketHandler;
 class PbftSyncingState;
 class TaraxaPeer;
 
@@ -59,7 +59,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   std::string packetTypeToString(unsigned _packetType) const override;
 
   template <typename PacketHandlerType>
-  const std::shared_ptr<PacketHandlerType> &getSpecificHandler() const;
+  std::shared_ptr<PacketHandlerType> getSpecificHandler() const;
 
   /**
    * @brief Start processing packets
@@ -148,5 +148,10 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
 
   LOG_OBJECTS_DEFINE
 };
+
+template <typename PacketHandlerType>
+std::shared_ptr<PacketHandlerType> TaraxaCapability::getSpecificHandler() const {
+  return packets_handlers_->getSpecificHandler<PacketHandlerType>();
+}
 
 }  // namespace taraxa::network::tarcap
