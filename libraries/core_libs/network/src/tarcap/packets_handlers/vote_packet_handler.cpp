@@ -8,7 +8,7 @@ namespace taraxa::network::tarcap {
 VotePacketHandler::VotePacketHandler(std::shared_ptr<PeersState> peers_state,
                                      std::shared_ptr<PacketsStats> packets_stats, std::shared_ptr<PbftManager> pbft_mgr,
                                      std::shared_ptr<VoteManager> vote_mgr, const addr_t &node_addr)
-    : ExtVotesPacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "PBFT_VOTE_PH"),
+    : ExtVotesPacketHandler(std::move(peers_state), std::move(packets_stats), pbft_mgr, node_addr, "PBFT_VOTE_PH"),
       pbft_mgr_(std::move(pbft_mgr)),
       vote_mgr_(std::move(vote_mgr)),
       seen_votes_(1000000, 1000) {}
@@ -29,10 +29,26 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     LOG(log_dg_) << "Received PBFT vote " << vote_hash;
 
     const auto vote_round = vote->getRound();
-    const auto pbft_round = pbft_mgr_->getPbftRound();
-    if (vote_round < pbft_round) {
+    const auto current_pbft_round = pbft_mgr_->getPbftRound();
+
+    // Check reward vote
+    if (vote_round < current_pbft_round && vote->getType() == cert_vote_type &&
+        vote->getBlockHash() == pbft_mgr_->getLastPbftBlockHash()) {
+      // Synchronization point in case multiple threads are processing the same vote at the same time
+      if (!seen_votes_.insert(vote_hash)) {
+        LOG(log_dg_) << "Received reward vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
+                     << ") already seen.";
+      } else if (vote_mgr_->addRewardVote(vote)) {
+        // As peers have small caches of known votes. Only mark gossiping votes
+        peer->markVoteAsKnown(vote_hash);
+        votes.push_back(std::move(vote));
+      }
+      continue;
+    }
+
+    if (vote_round < current_pbft_round) {
       LOG(log_dg_) << "Received old PBFT vote " << vote_hash << " from " << packet_data.from_node_id_.abridged()
-                   << ". Vote round: " << vote_round << ", current pbft round: " << pbft_round;
+                   << ". Vote round: " << vote_round << ", current pbft round: " << current_pbft_round;
       continue;
     }
 

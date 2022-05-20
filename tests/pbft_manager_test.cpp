@@ -253,10 +253,14 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   auto dag_anchor = blk_hash_t("1234567890000000000000000000000000000000000000000000000000000000");
   auto last_pbft_block_hash = pbft_chain->getLastPbftBlockHash();
   auto propose_pbft_period = pbft_chain->getPbftChainSize() + 1;
+  auto reward_votes = nodes[0]->getDB()->getLastBlockCertVotes();
+  std::vector<vote_hash_t> reward_votes_hash;
+  std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hash),
+                 [](const auto &v) { return v->getHash(); });
   auto beneficiary = nodes[0]->getAddress();
   auto node_sk = nodes[0]->getSecretKey();
   auto propose_pbft_block = std::make_shared<PbftBlock>(last_pbft_block_hash, dag_anchor, blk_hash_t(),
-                                                        propose_pbft_period, beneficiary, node_sk);
+                                                        propose_pbft_period, beneficiary, node_sk, reward_votes_hash);
   auto pbft_block_hash = propose_pbft_block->getBlockHash();
   pbft_chain->pushUnverifiedPbftBlock(propose_pbft_block);
 
@@ -820,8 +824,12 @@ TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
     auto order_hash = node->getPbftManager()->calculateOrderHash(dag_block_order, trx_hashes);
 
     const auto &last_hash = node->getPbftChain()->getLastPbftBlockHash();
+    auto reward_votes = node->getDB()->getLastBlockCertVotes();
+    std::vector<vote_hash_t> reward_votes_hash;
+    std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hash),
+                   [](const auto &v) { return v->getHash(); });
     const auto pbft_block = std::make_shared<PbftBlock>(last_hash, dag_block_hash, order_hash, propose_period,
-                                                        node->getAddress(), node->getSecretKey());
+                                                        node->getAddress(), node->getSecretKey(), reward_votes_hash);
     node->getPbftChain()->pushUnverifiedPbftBlock(pbft_block);
   }
 

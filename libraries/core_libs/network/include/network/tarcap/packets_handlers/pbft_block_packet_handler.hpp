@@ -7,6 +7,7 @@ class PbftBlock;
 class PbftChain;
 class PbftManager;
 class DagBlockManager;
+class VoteManager;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {
@@ -15,7 +16,7 @@ class PbftBlockPacketHandler final : public PacketHandler {
  public:
   PbftBlockPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
-                         const addr_t& node_addr);
+                         std::shared_ptr<VoteManager> vote_mgr, const addr_t& node_addr);
 
   void onNewPbftBlock(const std::shared_ptr<PbftBlock>& pbft_block);
   void sendPbftBlock(const dev::p2p::NodeID& peer_id, const std::shared_ptr<PbftBlock>& pbft_block,
@@ -30,6 +31,7 @@ class PbftBlockPacketHandler final : public PacketHandler {
 
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<PbftManager> pbft_mgr_;
+  std::shared_ptr<VoteManager> vote_mgr_;
 };
 
 }  // namespace taraxa::network::tarcap

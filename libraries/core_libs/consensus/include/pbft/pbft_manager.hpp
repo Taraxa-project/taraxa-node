@@ -292,6 +292,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    */
   uint64_t getFinalizedDPOSPeriod() const { return dpos_period_; }
 
+  blk_hash_t getLastPbftBlockHash();
+
  private:
   // DPOS
   /**
@@ -455,20 +457,20 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool broadcastAlreadyThisStep_() const;
 
   /**
-   * @brief Check that there are all DAG blocks with correct ordering, and total gas estimation is not greater than gas
-   * limit.
+   * @brief Check that there are all DAG blocks with correct ordering, total gas estimation is not greater than gas
+   * limit, and PBFT block includes all reward votes.
    * @param pbft_block_hash PBFT block hash
    * @return true if pass verification
    */
-  bool comparePbftBlockScheduleWithDAGblocks_(blk_hash_t const &pbft_block_hash);
+  bool compareBlocksAndRewardVotes_(const blk_hash_t &pbft_block_hash);
 
   /**
-   * @brief Check that there are all DAG blocks with correct ordering, and total gas estimation is not greater than gas
-   * limit.
+   * @brief Check that there are all DAG blocks with correct ordering, total gas estimation is not greater than gas
+   * limit, and PBFT block include all reward votes.
    * @param pbft_block PBFT block
    * @return true with DAG blocks hashes in order if passed verification. Otherwise return false
    */
-  std::pair<vec_blk_t, bool> comparePbftBlockScheduleWithDAGblocks_(std::shared_ptr<PbftBlock> pbft_block);
+  std::pair<vec_blk_t, bool> compareBlocksAndRewardVotes_(std::shared_ptr<PbftBlock> pbft_block);
 
   /**
    * @brief If there are enough certify votes, push the vote PBFT block in PBFT chain
@@ -554,6 +556,13 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @return PBFT block
    */
   std::shared_ptr<PbftBlock> getUnfinalizedBlock_(blk_hash_t const &block_hash);
+
+  /**
+   * @brief Get only include reward votes that are list in PBFT block
+   * @param reward_votes_hashes reward votes hashes are list in PBFT block
+   * @return reward votes that are list in PBFT block
+   */
+  std::vector<std::shared_ptr<Vote>> getRewardVotes(const std::vector<vote_hash_t> &reward_votes_hashes);
 
   std::atomic<bool> stopped_ = true;
 
