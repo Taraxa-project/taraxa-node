@@ -43,41 +43,42 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
   return result.gas_used;
 }
 
-std::pair<bool, std::string> TransactionManager::verifyTransaction(const std::shared_ptr<Transaction> &trx) const {
+std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
+    const std::shared_ptr<Transaction> &trx) const {
   // ONLY FOR TESTING
   if (!final_chain_) [[unlikely]] {
-    return {true, ""};
+    return {TransactionStatus::Verified, ""};
   }
 
   if (trx->getChainID() != conf_.chain.chain_id) {
-    return {false, "chain_id mismatch"};
+    return {TransactionStatus::Invalid, "chain_id mismatch"};
   }
 
   // Ensure the transaction doesn't exceed the current block limit gas.
   if (FinalChain::GAS_LIMIT < trx->getGas()) {
-    return {false, "invalid gas"};
+    return {TransactionStatus::Invalid, "invalid gas"};
   }
 
   try {
     trx->getSender();
   } catch (Transaction::InvalidSignature const &) {
-    return {false, "invalid signature"};
+    return {TransactionStatus::Invalid, "invalid signature"};
   }
 
   const auto account = final_chain_->get_account(trx->getSender()).value_or(taraxa::state_api::ZeroAccount);
 
   // Ensure the transaction adheres to nonce ordering
   if (account.nonce && account.nonce > trx->getNonce()) {
-    return {false, "nonce too low"};
+    return {TransactionStatus::LowNonce, "nonce too low"};
   }
 
   // Transactor should have enough funds to cover the costs
   // cost == V + GP * GL
   if (account.balance < trx->getCost()) {
-    return {false, "insufficient balance"};
+    return {TransactionStatus::InsufficentBalance, "insufficient balance"};
   }
 
-  return {true, ""};
+  return {TransactionStatus::Verified, ""};
 }
 
 bool TransactionManager::checkMemoryPoolOverflow() {
@@ -114,11 +115,12 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const std::sh
     }
   }
 
-  if (const auto [is_valid, reason] = verifyTransaction(trx); !is_valid) {
+  const auto [status, reason] = verifyTransaction(trx);
+  if (status != TransactionStatus::Verified) {
     return {false, reason};
   }
 
-  if (insertValidatedTransactions({trx})) {
+  if (insertValidatedTransactions({{trx, status}})) {
     return {true, "Can not insert transactions"};
   } else {
     const auto period = db_->getTransactionPeriod(trx->getHash());
@@ -130,8 +132,9 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const std::sh
   }
 }
 
-uint32_t TransactionManager::insertValidatedTransactions(SharedTransactions &&txs) {
-  SharedTransactions unseen_txs;
+uint32_t TransactionManager::insertValidatedTransactions(
+    std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> &&txs) {
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> unseen_txs;
   std::vector<trx_hash_t> txs_hashes;
 
   if (txs.empty()) {
@@ -143,12 +146,14 @@ uint32_t TransactionManager::insertValidatedTransactions(SharedTransactions &&tx
     return 0;
   }
   txs_hashes.reserve(txs.size());
-  std::transform(txs.begin(), txs.end(), std::back_inserter(txs_hashes), [](const auto &t) { return t->getHash(); });
+  std::transform(txs.begin(), txs.end(), std::back_inserter(txs_hashes),
+                 [](const auto &t) { return t.first->getHash(); });
 
   // This lock synchronizes inserting and removing transactions from transactions memory pool with database insertion.
   // It is very important to lock checking the db state of transaction together with transaction pool checking to be
   // protected from new DAG block and Sync block transactions insertions which are inserted directly in the database.
   std::unique_lock transactions_lock(transactions_mutex_);
+  const auto last_block_number = final_chain_->last_block_number();
 
   // Check the db with a multiquery if transactions are really new
   auto db_seen = db_->transactionsInDb(txs_hashes);
@@ -157,16 +162,16 @@ uint32_t TransactionManager::insertValidatedTransactions(SharedTransactions &&tx
       unseen_txs.push_back(std::move(txs[i]));
     } else {
       // In case we received a new tx that is already in db, mark it as known in cache
-      markTransactionKnown(txs[i]->getHash());
+      markTransactionKnown(txs[i].first->getHash());
     }
   }
 
   size_t trx_inserted_count = 0;
   // Save transactions in memory pool
   for (auto &trx : unseen_txs) {
-    auto tx_hash = trx->getHash();
+    auto tx_hash = trx.first->getHash();
     LOG(log_dg_) << "Transaction " << tx_hash << " inserted in trx pool";
-    if (transactions_pool_.insert(std::move(trx))) {
+    if (transactions_pool_.insert(std::move(trx), last_block_number)) {
       trx_inserted_count++;
       markTransactionKnown(tx_hash);
     }
@@ -322,7 +327,7 @@ void TransactionManager::moveNonFinalizedTransactionsToTransactionsPool(std::uno
       db_->removeTransactionToBatch(trx_hash, write_batch);
       nonfinalized_transactions_in_dag_.erase(trx_hash);
       auto transaction = trx->second;
-      transactions_pool_.insert(std::move(transaction));
+      transactions_pool_.insert({std::move(transaction), TransactionStatus::Verified});
     }
   }
   db_->commitWriteBatch(write_batch);
@@ -347,6 +352,11 @@ bool TransactionManager::checkBlockTransactions(DagBlock const &blk) {
   }
 
   return true;
+}
+
+void TransactionManager::blockFinalized(uint64_t block_number) {
+  std::unique_lock transactions_lock(transactions_mutex_);
+  transactions_pool_.blockFinalized(block_number);
 }
 
 }  // namespace taraxa

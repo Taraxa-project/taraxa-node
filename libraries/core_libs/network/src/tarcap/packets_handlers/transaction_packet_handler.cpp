@@ -24,7 +24,7 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
   std::string received_transactions;
   const auto transaction_count = packet_data.rlp_.itemCount();
 
-  SharedTransactions transactions;
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> transactions;
   transactions.reserve(transaction_count);
 
   for (size_t tx_idx = 0; tx_idx < transaction_count; tx_idx++) {
@@ -36,20 +36,38 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
       throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
     }
 
+    TransactionStatus status = TransactionStatus::Verified;
+    std::string reason;
     if (dag_blk_mgr_) [[likely]] {  // ONLY FOR TESTING
       if (trx_mgr_->isTransactionKnown(transaction->getHash())) {
         continue;
       }
-      if (const auto [is_valid, reason] = trx_mgr_->verifyTransaction(transaction); !is_valid) {
-        std::ostringstream err_msg;
-        err_msg << "Transaction " << transaction->getHash() << " validation failed: " << reason;
 
-        throw MaliciousPeerException(err_msg.str());
+      std::tie(status, reason) = trx_mgr_->verifyTransaction(transaction);
+
+      switch (status) {
+        case TransactionStatus::Invalid: {
+          std::ostringstream err_msg;
+          err_msg << "DagBlock transaction " << transaction->getHash() << " validation failed: " << reason;
+          throw MaliciousPeerException(err_msg.str());
+        }
+        case TransactionStatus::InsufficentBalance:
+        case TransactionStatus::LowNonce: {
+          if (peer->reportSuspiciousPacket()) {
+            std::ostringstream err_msg;
+            err_msg << "Suspicious packets over the limit on DagBlock transaction " << transaction->getHash()
+                    << " validation: " << reason;
+            throw MaliciousPeerException(err_msg.str());
+          }
+          break;
+        }
+        case TransactionStatus::Verified:
+          break;
       }
     }
     received_transactions += transaction->getHash().abridged() + " ";
     peer->markTransactionAsKnown(transaction->getHash());
-    transactions.push_back(std::move(transaction));
+    transactions.push_back({std::move(transaction), std::move(status)});
   }
 
   if (transaction_count > 0) {
@@ -63,7 +81,8 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
   }
 }
 
-void TransactionPacketHandler::onNewTransactions(SharedTransactions &&transactions) {
+void TransactionPacketHandler::onNewTransactions(
+    std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> &&transactions) {
   if (dag_blk_mgr_) [[likely]] {
     received_trx_count_ += transactions.size();
     unique_received_trx_count_ += trx_mgr_->insertValidatedTransactions(std::move(transactions));
@@ -72,9 +91,9 @@ void TransactionPacketHandler::onNewTransactions(SharedTransactions &&transactio
 
   // Only for testing
   for (auto const &trx : transactions) {
-    auto trx_hash = trx->getHash();
+    auto trx_hash = trx.first->getHash();
     if (!test_state_->hasTransaction(trx_hash)) {
-      test_state_->insertTransaction(trx);
+      test_state_->insertTransaction(trx.first);
       LOG(log_tr_) << "Received New Transaction " << trx_hash;
     } else {
       LOG(log_tr_) << "Received New Transaction" << trx_hash << "that is already known";

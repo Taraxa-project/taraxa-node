@@ -7,6 +7,7 @@
 namespace taraxa {
 class DagBlockManager;
 class TransactionManager;
+enum class TransactionStatus;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {
@@ -19,7 +20,7 @@ class TransactionPacketHandler final : public PacketHandler {
                            std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                            std::shared_ptr<TestState> test_state, const addr_t& node_addr);
 
-  void onNewTransactions(SharedTransactions&& transactions);
+  void onNewTransactions(std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>>&& transactions);
   void sendTransactions(dev::p2p::NodeID const& peer_id, std::vector<taraxa::bytes> const& transactions);
 
   /**

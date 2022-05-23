@@ -24,6 +24,7 @@ class NextVotesManager;
 class DagManager;
 class DagBlockManager;
 class TransactionManager;
+enum class TransactionStatus;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {
@@ -77,7 +78,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   void restartSyncingPbft(bool force = false);
   bool pbft_syncing() const;
   void onNewBlockVerified(DagBlock &&blk, bool proposed, SharedTransactions &&trxs);
-  void onNewTransactions(SharedTransactions &&transactions);
+  void onNewTransactions(std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> &&transactions);
   void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
   void onNewPbftVote(std::shared_ptr<Vote> &&vote);
   void broadcastPreviousRoundNextVotesBundle();
