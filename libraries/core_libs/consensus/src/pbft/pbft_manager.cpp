@@ -346,7 +346,7 @@ bool PbftManager::resetRound_() {
     return false;
   }
 
-  LOG(log_nf_) << "From votes determined round " << consensus_pbft_round;
+  LOG(log_nf_) << "Determined round from votes: " << consensus_pbft_round;
   round_clock_initial_datetime_ = now_;
   // Update current round and reset step to 1
   round_ = consensus_pbft_round;
@@ -1692,8 +1692,8 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
 
   last_cert_voted_value_ = NULL_BLOCK_HASH;
 
-  LOG(log_nf_) << node_addr_ << " successful push unexecuted PBFT block " << pbft_block_hash << " in period "
-               << pbft_period << " into chain! In round " << getPbftRound();
+  LOG(log_nf_) << "Pushed new PBFT block " << pbft_block_hash << " into chain. Period: " << pbft_period
+               << ", round: " << getPbftRound();
 
   finalize_(std::move(sync_block), std::move(dag_blocks_order));
 
@@ -1807,7 +1807,7 @@ void PbftManager::countVotes_() {
   auto round = getPbftRound();
   while (!monitor_stop_) {
     auto verified_votes = vote_mgr_->getVerifiedVotes();
-    auto unverified_votes = vote_mgr_->getUnverifiedVotes();
+    auto unverified_votes = vote_mgr_->copyUnverifiedVotes();
     std::vector<std::shared_ptr<Vote>> votes;
     votes.reserve(verified_votes.size() + unverified_votes.size());
     votes.insert(votes.end(), std::make_move_iterator(verified_votes.begin()),

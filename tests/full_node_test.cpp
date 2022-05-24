@@ -1439,12 +1439,11 @@ TEST_F(FullNodeTest, chain_config_json) {
       "timestamp": "0x0"
     },
     "state": {
-      "disable_block_rewards": true,
       "dpos": {
         "deposit_delay": "0x0",
         "eligibility_balance_threshold": "0x3b9aca00",
         "vote_eligibility_balance_step": "0x3b9aca00",
-        "maximum_stake":"0x0",
+        "maximum_stake":"0x84595161401484a000000",
         "minimum_deposit":"0x0",
         "commission_change_delta":"0x0",
         "commission_change_frequency":"0x0",
@@ -1462,9 +1461,11 @@ TEST_F(FullNodeTest, chain_config_json) {
         "petersburg_block": "0x0"
       },
       "execution_options": {
-        "disable_gas_fee": false,
+        "disable_block_rewards": true,
+        "disable_gas_fee": true,
         "disable_nonce_check": false,
-        "enable_nonce_skipping": false
+        "enable_nonce_skipping": false,
+        "disable_stats_rewards": true
       },
       "genesis_balances": {
       }

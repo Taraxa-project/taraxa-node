@@ -32,7 +32,6 @@ Json::Value enc_json(Config const& obj) {
   Json::Value json(Json::objectValue);
   json["eth_chain_config"] = enc_json(obj.eth_chain_config);
   json["execution_options"] = enc_json(obj.execution_options);
-  json["disable_block_rewards"] = obj.disable_block_rewards;
   json["genesis_balances"] = enc_json(obj.genesis_balances);
   // json["hardforks"] = enc_json(obj.hardforks);
   if (obj.dpos) {
@@ -44,7 +43,6 @@ Json::Value enc_json(Config const& obj) {
 void dec_json(Json::Value const& json, Config& obj) {
   dec_json(json["eth_chain_config"], obj.eth_chain_config);
   dec_json(json["execution_options"], obj.execution_options);
-  obj.disable_block_rewards = json["disable_block_rewards"].asBool();
   dec_json(json["genesis_balances"], obj.genesis_balances);
   // dec_json(json["hardforks"], obj.hardforks);
   if (auto const& dpos = json["dpos"]; !dpos.isNull()) {
@@ -101,25 +99,30 @@ void dec_json(Json::Value const& json, DPOSConfig& obj) {
 
 Json::Value enc_json(ExecutionOptions const& obj) {
   Json::Value json(Json::objectValue);
+  json["disable_block_rewards"] = obj.disable_block_rewards;
   json["disable_nonce_check"] = obj.disable_nonce_check;
   json["disable_gas_fee"] = obj.disable_gas_fee;
   json["enable_nonce_skipping"] = obj.enable_nonce_skipping;
+  json["disable_stats_rewards"] = obj.disable_stats_rewards;
   return json;
 }
 
 void dec_json(Json::Value const& json, ExecutionOptions& obj) {
+  obj.disable_block_rewards = json["disable_block_rewards"].asBool();
   obj.disable_nonce_check = json["disable_nonce_check"].asBool();
   obj.disable_gas_fee = json["disable_gas_fee"].asBool();
   obj.enable_nonce_skipping = json["enable_nonce_skipping"].asBool();
+  obj.disable_stats_rewards = json["disable_stats_rewards"].asBool();
 }
 
-RLP_FIELDS_DEFINE(ExecutionOptions, disable_nonce_check, disable_gas_fee, enable_nonce_skipping)
+RLP_FIELDS_DEFINE(ExecutionOptions, disable_nonce_check, disable_gas_fee, enable_nonce_skipping, disable_block_rewards,
+                  disable_stats_rewards)
 RLP_FIELDS_DEFINE(ETHChainConfig, homestead_block, dao_fork_block, eip_150_block, eip_158_block, byzantium_block,
                   constantinople_block, petersburg_block)
 RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, vote_eligibility_balance_step, maximum_stake,
                   minimum_deposit, commission_change_delta, commission_change_frequency, deposit_delay,
                   withdrawal_delay, genesis_state)
-RLP_FIELDS_DEFINE(Config, eth_chain_config, disable_block_rewards, execution_options, genesis_balances, dpos)
+RLP_FIELDS_DEFINE(Config, eth_chain_config, execution_options, genesis_balances, dpos)
 RLP_FIELDS_DEFINE(Opts, expected_max_trx_per_block, max_trie_full_node_levels_to_cache)
 RLP_FIELDS_DEFINE(OptsDB, db_path, disable_most_recent_trie_value_views)
 

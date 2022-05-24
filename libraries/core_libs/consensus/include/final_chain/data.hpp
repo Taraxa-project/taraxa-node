@@ -13,6 +13,10 @@
 #include "final_chain/state_api_data.hpp"
 #include "transaction/transaction.hpp"
 
+namespace taraxa {
+class PbftBlock;
+}
+
 namespace taraxa::final_chain {
 
 /** @addtogroup FinalChain

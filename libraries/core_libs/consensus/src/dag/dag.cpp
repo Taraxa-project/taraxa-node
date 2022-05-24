@@ -629,16 +629,18 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
 
   for (auto &v : non_finalized_blocks) {
     for (auto &blk_hash : v.second) {
-      if (dag_order_set.count(blk_hash) == 0) {
-        auto dag_block = dag_blk_mgr_->getDagBlock(blk_hash);
-        auto pivot_hash = dag_block->getPivot();
+      if (dag_order_set.count(blk_hash) != 0) {
+        continue;
+      }
 
-        if (validateBlockNotExpired(dag_block, expired_dag_blocks_to_remove)) {
-          addToDag(blk_hash, pivot_hash, dag_block->getTips(), dag_block->getLevel(), false);
-        } else {
-          db_->removeDagBlock(blk_hash);
-          for (const auto &trx : dag_block->getTrxs()) expired_dag_blocks_transactions.emplace_back(trx);
-        }
+      auto dag_block = dag_blk_mgr_->getDagBlock(blk_hash);
+      auto pivot_hash = dag_block->getPivot();
+
+      if (validateBlockNotExpired(dag_block, expired_dag_blocks_to_remove)) {
+        addToDag(blk_hash, pivot_hash, dag_block->getTips(), dag_block->getLevel(), false);
+      } else {
+        db_->removeDagBlock(blk_hash);
+        for (const auto &trx : dag_block->getTrxs()) expired_dag_blocks_transactions.emplace_back(trx);
       }
     }
   }
