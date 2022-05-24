@@ -46,24 +46,24 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   auto nonce = 1;  // fixme: the following nonce approach is not correct anyway
   uint64_t trxs_count = 0;
 
-  {
-    auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos->eligibility_balance_threshold;
-    state_api::DPOSTransfers delegations;
-    for (size_t i(1); i < nodes.size(); ++i) {
-      std::cout << "Delegating stake of " << min_stake_to_vote << " to node " << i << std::endl;
-      node_1_expected_bal -= delegations[nodes[i]->getAddress()].value = min_stake_to_vote;
-    }
-    auto trx = make_dpos_trx(node_cfgs[0], delegations, nonce++);
-    nodes[0]->getTransactionManager()->insertTransaction(trx);
-    trxs_count++;
-    EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
-      for (auto &node : nodes) {
-        if (ctx.fail_if(!node->getFinalChain()->transaction_location(trx->getHash()))) {
-          return;
-        }
-      }
-    });
-  }
+  // {
+  //   auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos->eligibility_balance_threshold;
+  //   state_api::DPOSTransfers delegations;
+  //   for (size_t i(1); i < nodes.size(); ++i) {
+  //     std::cout << "Delegating stake of " << min_stake_to_vote << " to node " << i << std::endl;
+  //     node_1_expected_bal -= delegations[nodes[i]->getAddress()].value = min_stake_to_vote;
+  //   }
+  //   auto trx = make_dpos_trx(node_cfgs[0], delegations, nonce++);
+  //   nodes[0]->getTransactionManager()->insertTransaction(trx);
+  //   trxs_count++;
+  //   EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
+  //     for (auto &node : nodes) {
+  //       if (ctx.fail_if(!node->getFinalChain()->transaction_location(trx->getHash()))) {
+  //         return;
+  //       }
+  //     }
+  //   });
+  // }
 
   auto init_bal = node_1_expected_bal / nodes.size();
   for (size_t i(1); i < nodes.size(); ++i) {
@@ -391,31 +391,31 @@ TEST_F(PbftManagerTest, DISABLED_check_get_eligible_vote_count) {
   uint64_t trxs_count = 0;
 
   auto expected_eligible_total_vote = 1;
-  auto curent_votes_for_node = 1;
+  // auto curent_votes_for_node = 1;
 
-  {
-    auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos->eligibility_balance_threshold;
-    auto stake_to_vote = min_stake_to_vote;
-    state_api::DPOSTransfers delegations;
-    for (size_t i(1); i < nodes.size(); ++i) {
-      stake_to_vote += min_stake_to_vote;
-      curent_votes_for_node++;
-      expected_eligible_total_vote += curent_votes_for_node;
-      std::cout << "Delegating stake of " << stake_to_vote << " to node " << i << std::endl;
-      node_1_expected_bal -= delegations[nodes[i]->getAddress()].value = stake_to_vote;
-    }
-    auto trx = make_dpos_trx(node_cfgs[0], delegations, nonce++);
-    nodes[0]->getTransactionManager()->insertTransaction(trx);
+  // {
+  //   auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos->eligibility_balance_threshold;
+  //   auto stake_to_vote = min_stake_to_vote;
+  //   state_api::DPOSTransfers delegations;
+  //   for (size_t i(1); i < nodes.size(); ++i) {
+  //     stake_to_vote += min_stake_to_vote;
+  //     curent_votes_for_node++;
+  //     expected_eligible_total_vote += curent_votes_for_node;
+  //     std::cout << "Delegating stake of " << stake_to_vote << " to node " << i << std::endl;
+  //     node_1_expected_bal -= delegations[nodes[i]->getAddress()].value = stake_to_vote;
+  //   }
+  //   auto trx = make_dpos_trx(node_cfgs[0], delegations, nonce++);
+  //   nodes[0]->getTransactionManager()->insertTransaction(trx);
 
-    trxs_count++;
-    EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
-      for (auto &node : nodes) {
-        if (ctx.fail_if(!node->getFinalChain()->transaction_location(trx->getHash()))) {
-          return;
-        }
-      }
-    });
-  }
+  //   trxs_count++;
+  //   EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
+  //     for (auto &node : nodes) {
+  //       if (ctx.fail_if(!node->getFinalChain()->transaction_location(trx->getHash()))) {
+  //         return;
+  //       }
+  //     }
+  //   });
+  // }
 
   auto init_bal = node_1_expected_bal / nodes.size() / 2;
   for (size_t i(1); i < nodes.size(); ++i) {

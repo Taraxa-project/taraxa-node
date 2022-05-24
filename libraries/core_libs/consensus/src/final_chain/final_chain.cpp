@@ -365,11 +365,6 @@ class FinalChainImpl final : public FinalChain {
     return state_api_.dpos_is_eligible(blk_num, addr);
   }
 
-  state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
-                                        std::optional<EthBlockNumber> blk_n = {}) const override {
-    return state_api_.dpos_query(last_if_absent(blk_n), q);
-  }
-
   EthBlockNumber last_if_absent(std::optional<EthBlockNumber> const& client_blk_n) const {
     return client_blk_n ? *client_blk_n : last_block_number();
   }

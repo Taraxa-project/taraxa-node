@@ -184,7 +184,7 @@ TEST_F(HardforkTest, DISABLED_hardfork) {
     q.with_eligible_count = true;
     q.account_queries[genesis_sender] = acc_q;
 
-    auto q_res = node->getFinalChain()->dpos_query(q);
+    // auto q_res = node->getFinalChain()->dpos_query(q);
     auto res = q_res.account_results[genesis_sender];
     EXPECT_EQ(res.inbound_deposits.size(), 1);
     EXPECT_EQ(res.inbound_deposits.begin()->first, genesis_sender);

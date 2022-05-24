@@ -50,134 +50,136 @@ T parse_rlp_file(path const& p) {
 TEST_F(StateAPITest, DISABLED_dpos_integration) {
   auto chain_cfg = base_taraxa_chain_cfg;
 
-  DPOSQuery::AccountQuery acc_q;
-  acc_q.with_staking_balance = true;
-  acc_q.with_outbound_deposits = true;
-  acc_q.with_inbound_deposits = true;
-  DPOSQuery q;
-  q.with_eligible_count = true;
-  q.account_queries[make_addr(1)] = acc_q;
-  q.account_queries[make_addr(2)] = acc_q;
-  q.account_queries[make_addr(3)] = acc_q;
+  // DPOSQuery::AccountQuery acc_q;
+  // acc_q.with_staking_balance = true;
+  // acc_q.with_outbound_deposits = true;
+  // acc_q.with_inbound_deposits = true;
+  // DPOSQuery q;
+  // q.with_eligible_count = true;
+  // q.account_queries[make_addr(1)] = acc_q;
+  // q.account_queries[make_addr(2)] = acc_q;
+  // q.account_queries[make_addr(3)] = acc_q;
 
-  u256 addr_1_bal_expected = 100000000;
-  chain_cfg.genesis_balances[make_addr(1)] = addr_1_bal_expected;
-  auto& dpos_cfg = chain_cfg.dpos.emplace();
-  dpos_cfg.deposit_delay = 2;
-  dpos_cfg.withdrawal_delay = 4;
-  dpos_cfg.eligibility_balance_threshold = 1000;
-  dpos_cfg.vote_eligibility_balance_step = 1000;
-  addr_1_bal_expected -= dpos_cfg.genesis_state[make_addr(1)][make_addr(1)] = dpos_cfg.eligibility_balance_threshold;
-  chain_cfg.hardforks.fix_genesis_fork_block = 0;
+  // u256 addr_1_bal_expected = 100000000;
+  // chain_cfg.genesis_balances[make_addr(1)] = addr_1_bal_expected;
+  // auto& dpos_cfg = chain_cfg.dpos.emplace();
+  // dpos_cfg.deposit_delay = 2;
+  // dpos_cfg.withdrawal_delay = 4;
+  // dpos_cfg.eligibility_balance_threshold = 1000;
+  // dpos_cfg.vote_eligibility_balance_step = 1000;
+  // addr_1_bal_expected -= dpos_cfg.genesis_state[make_addr(1)][make_addr(1)] = dpos_cfg.eligibility_balance_threshold;
+  // chain_cfg.hardforks.fix_genesis_fork_block = 0;
 
-  uint64_t curr_blk = 0;
-  StateAPI SUT([&](auto /*n*/) -> h256 { assert(false); },  //
-               chain_cfg,
-               {
-                   10,
-                   1,
-               },
-               {
-                   (data_dir / "state").string(),
-               });
+  // uint64_t curr_blk = 0;
+  // StateAPI SUT([&](auto /*n*/) -> h256 { assert(false); },  //
+  //              chain_cfg,
+  //              {
+  //                  10,
+  //                  1,
+  //              },
+  //              {
+  //                  (data_dir / "state").string(),
+  //              });
 
-  unordered_set<addr_t> expected_eligible_set;
-  decltype(DPOSQueryResult().account_results) exp_q_acc_res;
-  auto CHECK = [&] {
-    for (auto& [addr, res] : exp_q_acc_res) {
-      res.is_eligible = expected_eligible_set.count(addr);
-    }
-    for (auto const& addr : expected_eligible_set) {
-      exp_q_acc_res[addr].is_eligible = true;
-    }
-    string meta = "at block " + to_string(curr_blk);
-    EXPECT_EQ(addr_1_bal_expected, SUT.get_account(curr_blk, make_addr(1))->balance) << meta;
-    for (auto const& addr : expected_eligible_set) {
-      EXPECT_TRUE(SUT.dpos_is_eligible(curr_blk, addr)) << meta;
-      EXPECT_EQ(SUT.dpos_eligible_vote_count(curr_blk, addr), 1) << meta;
-    }
-    EXPECT_EQ(SUT.dpos_eligible_address_count(curr_blk), expected_eligible_set.size()) << meta;
-    EXPECT_EQ(SUT.dpos_eligible_total_vote_count(curr_blk), expected_eligible_set.size()) << meta;
-    auto q_res = SUT.dpos_query(curr_blk, q);
-    EXPECT_EQ(q_res.eligible_count, expected_eligible_set.size()) << meta;
-    for (auto& [addr, res_exp] : exp_q_acc_res) {
-      auto& res_act = q_res.account_results[addr];
-      auto meta_ = meta + " @ " + addr.hex();
-      EXPECT_EQ(res_exp.staking_balance, res_act.staking_balance) << meta_;
-      EXPECT_EQ(res_exp.is_eligible, res_act.is_eligible) << meta_;
-      for (auto [label, deposits_p_exp, deposits_p_act] : {
-               tuple{"in", &res_exp.inbound_deposits, &res_act.inbound_deposits},
-               tuple{"out", &res_exp.outbound_deposits, &res_act.outbound_deposits},
-           }) {
-        auto& deposits_exp = *deposits_p_exp;
-        auto& deposits_act = *deposits_p_act;
-        auto meta__ = meta_ + " (" + label + ")";
-        EXPECT_EQ(deposits_exp.size(), deposits_act.size()) << meta__;
-        for (auto& [addr, deposit_v_exp] : deposits_exp) {
-          EXPECT_EQ(deposit_v_exp, deposits_act[addr]) << meta__;
-        }
-      }
-    }
-  };
-  auto EXEC_AND_CHECK = [&](vector<EVMTransaction> const& trxs) {
-    auto result = SUT.transition_state({}, trxs);
-    SUT.transition_state_commit();
-    for (auto& r : result.execution_results) {
-      EXPECT_TRUE(r.code_retval.empty());
-      EXPECT_TRUE(r.code_err.empty());
-    }
-    ++curr_blk;
-    CHECK();
-  };
+  // unordered_set<addr_t> expected_eligible_set;
+  // decltype(DPOSQueryResult().account_results) exp_q_acc_res;
+  // auto CHECK = [&] {
+  //   for (auto& [addr, res] : exp_q_acc_res) {
+  //     res.is_eligible = expected_eligible_set.count(addr);
+  //   }
+  //   for (auto const& addr : expected_eligible_set) {
+  //     exp_q_acc_res[addr].is_eligible = true;
+  //   }
+  //   string meta = "at block " + to_string(curr_blk);
+  //   EXPECT_EQ(addr_1_bal_expected, SUT.get_account(curr_blk, make_addr(1))->balance) << meta;
+  //   for (auto const& addr : expected_eligible_set) {
+  //     EXPECT_TRUE(SUT.dpos_is_eligible(curr_blk, addr)) << meta;
+  //     EXPECT_EQ(SUT.dpos_eligible_vote_count(curr_blk, addr), 1) << meta;
+  //   }
+  //   EXPECT_EQ(SUT.dpos_eligible_address_count(curr_blk), expected_eligible_set.size()) << meta;
+  //   EXPECT_EQ(SUT.dpos_eligible_total_vote_count(curr_blk), expected_eligible_set.size()) << meta;
+  //   // auto q_res = SUT.dpos_query(curr_blk, q);
+  //   EXPECT_EQ(q_res.eligible_count, expected_eligible_set.size()) << meta;
+  //   for (auto& [addr, res_exp] : exp_q_acc_res) {
+  //     auto& res_act = q_res.account_results[addr];
+  //     auto meta_ = meta + " @ " + addr.hex();
+  //     EXPECT_EQ(res_exp.staking_balance, res_act.staking_balance) << meta_;
+  //     EXPECT_EQ(res_exp.is_eligible, res_act.is_eligible) << meta_;
+  //     for (auto [label, deposits_p_exp, deposits_p_act] : {
+  //              tuple{"in", &res_exp.inbound_deposits, &res_act.inbound_deposits},
+  //              tuple{"out", &res_exp.outbound_deposits, &res_act.outbound_deposits},
+  //          }) {
+  //       auto& deposits_exp = *deposits_p_exp;
+  //       auto& deposits_act = *deposits_p_act;
+  //       auto meta__ = meta_ + " (" + label + ")";
+  //       EXPECT_EQ(deposits_exp.size(), deposits_act.size()) << meta__;
+  //       for (auto& [addr, deposit_v_exp] : deposits_exp) {
+  //         EXPECT_EQ(deposit_v_exp, deposits_act[addr]) << meta__;
+  //       }
+  //     }
+  //   }
+  // };
+  // auto EXEC_AND_CHECK = [&](vector<EVMTransaction> const& trxs) {
+  //   auto result = SUT.transition_state({}, trxs);
+  //   SUT.transition_state_commit();
+  //   for (auto& r : result.execution_results) {
+  //     EXPECT_TRUE(r.code_retval.empty());
+  //     EXPECT_TRUE(r.code_err.empty());
+  //   }
+  //   ++curr_blk;
+  //   CHECK();
+  // };
 
-  DPOSTransfers transfers;
-  auto make_dpos_trx = [&] {
-    StateAPI::DPOSTransactionPrototype trx_proto(transfers);
-    transfers = {};
-    EVMTransaction trx;
-    trx.from = make_addr(1);
-    trx.to = trx_proto.to;
-    trx.value = trx_proto.value;
-    trx.input = trx_proto.input;
-    trx.gas = trx_proto.minimal_gas;
-    return trx;
-  };
+  // DPOSTransfers transfers;
+  // auto make_dpos_trx = [&] {
+  //   StateAPI::DPOSTransactionPrototype trx_proto(transfers);
+  //   transfers = {};
+  //   EVMTransaction trx;
+  //   trx.from = make_addr(1);
+  //   trx.to = trx_proto.to;
+  //   trx.value = trx_proto.value;
+  //   trx.input = trx_proto.input;
+  //   trx.gas = trx_proto.minimal_gas;
+  //   return trx;
+  // };
 
-  expected_eligible_set = {make_addr(1)};
-  exp_q_acc_res[make_addr(1)].inbound_deposits[make_addr(1)] =
-      exp_q_acc_res[make_addr(1)].outbound_deposits[make_addr(1)] = exp_q_acc_res[make_addr(1)].staking_balance = 1000;
-  CHECK();
+  // expected_eligible_set = {make_addr(1)};
+  // exp_q_acc_res[make_addr(1)].inbound_deposits[make_addr(1)] =
+  //     exp_q_acc_res[make_addr(1)].outbound_deposits[make_addr(1)] = exp_q_acc_res[make_addr(1)].staking_balance =
+  //     1000;
+  // CHECK();
 
-  addr_1_bal_expected -= transfers[make_addr(2)].value = 1000;
-  addr_1_bal_expected -= transfers[make_addr(3)].value = 999;
-  EXEC_AND_CHECK({make_dpos_trx()});
+  // addr_1_bal_expected -= transfers[make_addr(2)].value = 1000;
+  // addr_1_bal_expected -= transfers[make_addr(3)].value = 999;
+  // EXEC_AND_CHECK({make_dpos_trx()});
 
-  transfers[make_addr(2)] = {1, true};
-  addr_1_bal_expected -= transfers[make_addr(3)].value = 1;
-  EXEC_AND_CHECK({make_dpos_trx()});
+  // transfers[make_addr(2)] = {1, true};
+  // addr_1_bal_expected -= transfers[make_addr(3)].value = 1;
+  // EXEC_AND_CHECK({make_dpos_trx()});
 
-  expected_eligible_set = {make_addr(1), make_addr(2)};
-  exp_q_acc_res[make_addr(1)].outbound_deposits[make_addr(2)] =
-      exp_q_acc_res[make_addr(2)].inbound_deposits[make_addr(1)] = exp_q_acc_res[make_addr(2)].staking_balance = 1000;
-  exp_q_acc_res[make_addr(1)].outbound_deposits[make_addr(3)] =
-      exp_q_acc_res[make_addr(3)].inbound_deposits[make_addr(1)] = exp_q_acc_res[make_addr(3)].staking_balance = 999;
-  EXEC_AND_CHECK({});
+  // expected_eligible_set = {make_addr(1), make_addr(2)};
+  // exp_q_acc_res[make_addr(1)].outbound_deposits[make_addr(2)] =
+  //     exp_q_acc_res[make_addr(2)].inbound_deposits[make_addr(1)] = exp_q_acc_res[make_addr(2)].staking_balance =
+  //     1000;
+  // exp_q_acc_res[make_addr(1)].outbound_deposits[make_addr(3)] =
+  //     exp_q_acc_res[make_addr(3)].inbound_deposits[make_addr(1)] = exp_q_acc_res[make_addr(3)].staking_balance = 999;
+  // EXEC_AND_CHECK({});
 
-  expected_eligible_set = {make_addr(1), make_addr(2), make_addr(3)};
-  exp_q_acc_res[make_addr(1)].outbound_deposits[make_addr(3)] =
-      exp_q_acc_res[make_addr(3)].inbound_deposits[make_addr(1)] = 1000;
-  exp_q_acc_res[make_addr(3)].staking_balance = 1000;
-  EXEC_AND_CHECK({});
-  EXEC_AND_CHECK({});
+  // expected_eligible_set = {make_addr(1), make_addr(2), make_addr(3)};
+  // exp_q_acc_res[make_addr(1)].outbound_deposits[make_addr(3)] =
+  //     exp_q_acc_res[make_addr(3)].inbound_deposits[make_addr(1)] = 1000;
+  // exp_q_acc_res[make_addr(3)].staking_balance = 1000;
+  // EXEC_AND_CHECK({});
+  // EXEC_AND_CHECK({});
 
-  addr_1_bal_expected += 1;
-  expected_eligible_set = {make_addr(1), make_addr(3)};
-  exp_q_acc_res[make_addr(1)].outbound_deposits[make_addr(2)] =
-      exp_q_acc_res[make_addr(2)].inbound_deposits[make_addr(1)] = exp_q_acc_res[make_addr(2)].staking_balance = 999;
-  EXEC_AND_CHECK({});
-  EXEC_AND_CHECK({});
-  EXEC_AND_CHECK({});
-  EXEC_AND_CHECK({});
+  // addr_1_bal_expected += 1;
+  // expected_eligible_set = {make_addr(1), make_addr(3)};
+  // exp_q_acc_res[make_addr(1)].outbound_deposits[make_addr(2)] =
+  //     exp_q_acc_res[make_addr(2)].inbound_deposits[make_addr(1)] = exp_q_acc_res[make_addr(2)].staking_balance = 999;
+  // EXEC_AND_CHECK({});
+  // EXEC_AND_CHECK({});
+  // EXEC_AND_CHECK({});
+  // EXEC_AND_CHECK({});
 }
 
 TEST_F(StateAPITest, eth_mainnet_smoke) {

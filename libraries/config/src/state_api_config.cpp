@@ -34,7 +34,7 @@ Json::Value enc_json(Config const& obj) {
   json["execution_options"] = enc_json(obj.execution_options);
   json["disable_block_rewards"] = obj.disable_block_rewards;
   json["genesis_balances"] = enc_json(obj.genesis_balances);
-  json["hardforks"] = enc_json(obj.hardforks);
+  // json["hardforks"] = enc_json(obj.hardforks);
   if (obj.dpos) {
     json["dpos"] = enc_json(*obj.dpos);
   }
@@ -46,7 +46,7 @@ void dec_json(Json::Value const& json, Config& obj) {
   dec_json(json["execution_options"], obj.execution_options);
   obj.disable_block_rewards = json["disable_block_rewards"].asBool();
   dec_json(json["genesis_balances"], obj.genesis_balances);
-  dec_json(json["hardforks"], obj.hardforks);
+  // dec_json(json["hardforks"], obj.hardforks);
   if (auto const& dpos = json["dpos"]; !dpos.isNull()) {
     dec_json(dpos, obj.dpos.emplace());
   }
@@ -109,7 +109,7 @@ RLP_FIELDS_DEFINE(ETHChainConfig, homestead_block, dao_fork_block, eip_150_block
                   constantinople_block, petersburg_block)
 RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, vote_eligibility_balance_step, deposit_delay,
                   withdrawal_delay, genesis_state)
-RLP_FIELDS_DEFINE(Config, eth_chain_config, disable_block_rewards, execution_options, genesis_balances, dpos, hardforks)
+RLP_FIELDS_DEFINE(Config, eth_chain_config, disable_block_rewards, execution_options, genesis_balances, dpos)
 RLP_FIELDS_DEFINE(Opts, expected_max_trx_per_block, max_trie_full_node_levels_to_cache)
 RLP_FIELDS_DEFINE(OptsDB, db_path, disable_most_recent_trie_value_views)
 

@@ -15,11 +15,11 @@ struct TaraxaTest : BaseTest {
 
 TEST_F(TaraxaTest, DISABLED_queryDPOS) {
   auto enough_balance = cfg.chain.final_chain.state.dpos->eligibility_balance_threshold;
-  state_api::DPOSTransfers transfers;
-  transfers[make_addr(1)].value = enough_balance;
-  transfers[make_addr(2)].value = enough_balance - 1;
-  transfers[make_addr(3)].value = enough_balance + 1;
-  trx_client.must_process_sync(make_dpos_trx(cfg, transfers));
+  // state_api::DPOSTransfers transfers;
+  // transfers[make_addr(1)].value = enough_balance;
+  // transfers[make_addr(2)].value = enough_balance - 1;
+  // transfers[make_addr(3)].value = enough_balance + 1;
+  // trx_client.must_process_sync(make_dpos_trx(cfg, transfers));
   /*
    * The following is a flat json array of request and expected response pairs,
    * evaluated and checked in the order of occurrence.

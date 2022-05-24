@@ -53,17 +53,7 @@ class StateAPI {
 
   bool dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const;
   u256 get_staking_balance(EthBlockNumber blk_num, const addr_t& addr) const;
-
-  DPOSQueryResult dpos_query(EthBlockNumber blk_num, DPOSQuery const& q) const;
   static addr_t const& dpos_contract_addr();
-  struct DPOSTransactionPrototype {
-    uint64_t minimal_gas = 0;  // TODO estimate gas
-    byte value = 0;
-    bytes input;
-    addr_t const& to = dpos_contract_addr();
-
-    DPOSTransactionPrototype(DPOSTransfers const& transfers);
-  };
 };
 /** @} */
 
