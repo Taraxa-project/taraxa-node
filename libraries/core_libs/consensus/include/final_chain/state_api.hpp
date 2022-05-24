@@ -10,6 +10,10 @@
 
 namespace taraxa::state_api {
 
+/** \addtogroup FinalChain
+ * @{
+ */
+
 class StateAPI {
   std::function<h256(EthBlockNumber)> get_blk_hash_;
   taraxa_evm_GetBlockHash get_blk_hash_c_;
@@ -61,6 +65,7 @@ class StateAPI {
     DPOSTransactionPrototype(DPOSTransfers const& transfers);
   };
 };
+/** @} */
 
 }  // namespace taraxa::state_api
 

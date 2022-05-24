@@ -8,9 +8,9 @@
 
 #include "common/lazy.hpp"
 #include "common/static_init.hpp"
+#include "dag/block_proposer.hpp"
 #include "dag/dag.hpp"
 #include "logger/logger.hpp"
-#include "pbft/block_proposer.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"

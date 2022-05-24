@@ -12,6 +12,10 @@
 
 namespace taraxa::final_chain {
 
+/** \addtogroup FinalChain
+ * @{
+ */
+
 enum class DBMetaKeys { LAST_NUMBER = 1 };
 
 class FinalChain {
@@ -94,6 +98,7 @@ class FinalChain {
 
 std::shared_ptr<FinalChain> NewFinalChain(std::shared_ptr<DB> const& db, Config const& config,
                                           addr_t const& node_addr = {});
+/** @} */
 
 }  // namespace taraxa::final_chain
 

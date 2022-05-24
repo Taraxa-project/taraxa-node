@@ -12,6 +12,10 @@
 
 namespace taraxa::state_api {
 
+/** \addtogroup FinalChain
+ * @{
+ */
+
 struct TaraxaEVMError : std::runtime_error {
   std::string const type;
   TaraxaEVMError(std::string&& type, const std::string& msg);
@@ -155,5 +159,6 @@ struct DPOSQueryResult {
 };
 Json::Value enc_json(DPOSQueryResult::AccountResult const& obj, DPOSQuery::AccountQuery* q = nullptr);
 Json::Value enc_json(DPOSQueryResult const& obj, DPOSQuery* q = nullptr);
+/** @} */
 
 }  // namespace taraxa::state_api

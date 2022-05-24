@@ -9,7 +9,13 @@
 #include "vdf/sortition.hpp"
 
 namespace taraxa {
-// Thread safe
+/** \addtogroup DAG
+ * @{
+ */
+
+/**
+ * @brief Thread safe
+ */
 class DagBlockManager {
  public:
   /**
@@ -119,5 +125,6 @@ class DagBlockManager {
 
   LOG_OBJECTS_DEFINE
 };
+/** @}*/
 
 }  // namespace taraxa
