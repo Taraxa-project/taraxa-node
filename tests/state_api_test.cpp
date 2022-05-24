@@ -47,7 +47,7 @@ T parse_rlp_file(path const& p) {
   return ret;
 }
 
-TEST_F(StateAPITest, dpos_integration) {
+TEST_F(StateAPITest, DISABLED_dpos_integration) {
   auto chain_cfg = base_taraxa_chain_cfg;
 
   DPOSQuery::AccountQuery acc_q;

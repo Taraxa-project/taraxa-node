@@ -375,7 +375,7 @@ TEST_F(PbftManagerTest, full_node_lambda_input_test) {
   EXPECT_EQ(pbft_mgr->getPbftInitialLambda(), 2000);
 }
 
-TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
+TEST_F(PbftManagerTest, DISABLED_check_get_eligible_vote_count) {
   auto node_cfgs = make_node_cfgs<5>(5);
   auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
   for (auto &cfg : node_cfgs) {
@@ -596,12 +596,12 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   wait_for_balances(nodes, expected_balances2, {100s, 500ms});
 }
 
-TEST_F(PbftManagerTest, check_committeeSize_less_or_equal_to_activePlayers) {
+TEST_F(PbftManagerTest, DISABLED_check_committeeSize_less_or_equal_to_activePlayers) {
   // Set committee size to 5, make sure to be committee <= active_players
   check_2tPlus1_validVotingPlayers_activePlayers_threshold(5);
 }
 
-TEST_F(PbftManagerTest, check_committeeSize_greater_than_activePlayers) {
+TEST_F(PbftManagerTest, DISABLED_check_committeeSize_greater_than_activePlayers) {
   // Set committee size to 6. Since only running 5 nodes, that will make sure
   // committee > active_players always
   check_2tPlus1_validVotingPlayers_activePlayers_threshold(6);

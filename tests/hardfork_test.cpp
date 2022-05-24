@@ -99,7 +99,7 @@ TEST_F(HardforkTest, fix_genesis_fork_block_is_zero) {
             node->getConfig().chain.final_chain.state.genesis_balances.begin()->second);
 }
 
-TEST_F(HardforkTest, hardfork) {
+TEST_F(HardforkTest, DISABLED_hardfork) {
   auto &cfg = node_cfg.chain.final_chain;
   cfg.state.hardforks.fix_genesis_fork_block = 10;
   cfg.state.dpos->eligibility_balance_threshold = 100000;

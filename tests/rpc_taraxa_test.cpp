@@ -13,7 +13,7 @@ struct TaraxaTest : BaseTest {
   std::filesystem::path response_file = data_dir / "response.json";
 };
 
-TEST_F(TaraxaTest, queryDPOS) {
+TEST_F(TaraxaTest, DISABLED_queryDPOS) {
   auto enough_balance = cfg.chain.final_chain.state.dpos->eligibility_balance_threshold;
   state_api::DPOSTransfers transfers;
   transfers[make_addr(1)].value = enough_balance;
