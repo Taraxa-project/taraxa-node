@@ -8,6 +8,7 @@
 #include <chrono>
 #include <stdexcept>
 
+#include "dag/block_proposer.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block.hpp"
 #include "network/rpc/Net.h"
@@ -15,7 +16,6 @@
 #include "network/rpc/Test.h"
 #include "network/rpc/eth/Eth.h"
 #include "network/rpc/rpc_error_handler.hpp"
-#include "pbft/block_proposer.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "transaction/gas_pricer.hpp"
 #include "transaction/transaction_manager.hpp"

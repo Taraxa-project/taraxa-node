@@ -18,6 +18,11 @@
 #define MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS 20
 
 namespace taraxa {
+
+/** \addtogroup PBFT
+ * @{
+ */
+
 class FullNode;
 
 enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_state, finish_polling_state };
@@ -277,5 +282,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   LOG_OBJECTS_DEFINE
   mutable logger::Logger log_nf_test_{logger::createLogger(taraxa::logger::Verbosity::Info, "PBFT_TEST", node_addr_)};
 };
+
+/** @}*/
 
 }  // namespace taraxa

@@ -10,6 +10,10 @@
 
 namespace taraxa {
 
+/** \addtogroup Transaction
+ * @{
+ */
+
 enum class TransactionStatus { Verified = 0, Invalid, LowNonce, InsufficentBalance };
 
 class DagBlock;
@@ -168,4 +172,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
 
   LOG_OBJECTS_DEFINE
 };
+
+/** @}*/
+
 }  // namespace taraxa

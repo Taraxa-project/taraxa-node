@@ -5,6 +5,11 @@
 #include "final_chain/final_chain.hpp"
 
 namespace taraxa {
+
+/** \addtogroup Transaction
+ * @{
+ */
+
 /**
  * @brief Basic gas price calculator. We calculate the gas price based on the lowest price in last number_of_blocks
  * blocks. Then all of those values are sorted and currnet price is selected based on percentile
@@ -52,5 +57,7 @@ class GasPricer {
 
   std::unique_ptr<std::thread> init_daemon_;
 };
+
+/** @}*/
 
 }  // namespace taraxa
