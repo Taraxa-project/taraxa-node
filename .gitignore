@@ -28,3 +28,6 @@ __pycache__/
 
 # do not include into git chart dependencies
 charts/*/charts/*.tgz
+
+# do not include generated documentation
+doxygen_docs

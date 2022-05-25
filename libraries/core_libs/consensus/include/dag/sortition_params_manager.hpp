@@ -8,7 +8,7 @@ namespace taraxa {
 
 using EfficienciesMap = std::map<uint16_t, int32_t>;
 
-/** \addtogroup DAG
+/** @addtogroup DAG
  * @{
  */
 

@@ -10,7 +10,7 @@
 
 namespace taraxa::state_api {
 
-/** \addtogroup FinalChain
+/** @addtogroup FinalChain
  * @{
  */
 

@@ -11,7 +11,7 @@
 
 namespace taraxa {
 
-/** \addtogroup PBFT
+/** @addtogroup PBFT
  * @{
  */
 

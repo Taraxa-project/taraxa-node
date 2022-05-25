@@ -9,7 +9,7 @@
 #include "vdf/sortition.hpp"
 
 namespace taraxa {
-/** \addtogroup DAG
+/** @addtogroup DAG
  * @{
  */
 

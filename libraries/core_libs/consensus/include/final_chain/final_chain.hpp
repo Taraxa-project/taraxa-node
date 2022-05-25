@@ -12,7 +12,7 @@
 
 namespace taraxa::final_chain {
 
-/** \addtogroup FinalChain
+/** @addtogroup FinalChain
  * @{
  */
 

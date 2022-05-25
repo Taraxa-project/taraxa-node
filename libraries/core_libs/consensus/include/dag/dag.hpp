@@ -30,7 +30,7 @@
 #include "transaction/transaction_manager.hpp"
 namespace taraxa {
 
-/** \addtogroup DAG
+/** @addtogroup DAG
  * @{
  */
 class DagManager;
