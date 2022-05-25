@@ -25,15 +25,6 @@ struct ErrFutureBlock : TaraxaEVMError {
   using TaraxaEVMError::TaraxaEVMError;
 };
 
-struct DPOSTransfer {
-  u256 value;
-  bool negative = 0;
-
-  HAS_RLP_FIELDS
-};
-
-using DPOSTransfers = std::unordered_map<addr_t, DPOSTransfer>;
-
 struct EVMBlock {
   addr_t author;
   gas_t gas_limit = 0;
@@ -120,45 +111,5 @@ struct StateDescriptor {
 
   HAS_RLP_FIELDS
 };
-
-struct DPOSQuery {
-  struct AccountQuery {
-    bool with_staking_balance = 0;
-    bool with_outbound_deposits = 0;
-    bool outbound_deposits_addrs_only = 0;
-    bool with_inbound_deposits = 0;
-    bool inbound_deposits_addrs_only = 0;
-
-    HAS_RLP_FIELDS
-  };
-
-  bool with_eligible_count = 0;
-  std::unordered_map<addr_t, AccountQuery> account_queries;
-
-  HAS_RLP_FIELDS
-};
-void dec_json(Json::Value const& json, DPOSQuery::AccountQuery& obj);
-void dec_json(Json::Value const& json, DPOSQuery& obj);
-
-struct DPOSQueryResult {
-  struct AccountResult {
-    u256 staking_balance;
-    bool is_eligible = 0;
-    // intentionally used ordered map to have a stable key order in iteration
-    using deposits_t = std::map<addr_t, u256>;
-    deposits_t outbound_deposits;
-    deposits_t inbound_deposits;
-
-    HAS_RLP_FIELDS
-  };
-
-  uint64_t eligible_count = 0;
-  std::unordered_map<addr_t, AccountResult> account_results;
-
-  HAS_RLP_FIELDS
-};
-Json::Value enc_json(DPOSQueryResult::AccountResult const& obj, DPOSQuery::AccountQuery* q = nullptr);
-Json::Value enc_json(DPOSQueryResult const& obj, DPOSQuery* q = nullptr);
 /** @} */
-
 }  // namespace taraxa::state_api

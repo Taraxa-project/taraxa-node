@@ -57,7 +57,7 @@ struct Config {
   ExecutionOptions execution_options;
   BalanceMap genesis_balances;
   std::optional<DPOSConfig> dpos;
-  Hardforks hardforks;
+  // Hardforks hardforks;
 
   HAS_RLP_FIELDS
 

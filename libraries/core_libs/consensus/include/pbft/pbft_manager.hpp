@@ -82,7 +82,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   size_t getDposTotalVotesCount() const;
   size_t getDposWeightedVotesCount() const;
-  size_t getDposTotalAddressCount() const;
 
   uint64_t pbftSyncingPeriod() const;
   size_t syncBlockQueueSize() const;
@@ -252,7 +251,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::atomic<uint64_t> dpos_period_;
   std::atomic<size_t> dpos_votes_count_;
   std::atomic<size_t> weighted_votes_count_;
-  std::atomic<size_t> dpos_address_count_;
 
   size_t sortition_threshold_ = 0;
   // 2t+1 minimum number of votes for consensus

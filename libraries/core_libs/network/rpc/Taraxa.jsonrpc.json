@@ -54,14 +54,6 @@
     "params": [],
     "order": [],
     "returns": {}
-  },
-  {
-    "name": "taraxa_queryDPOS",
-    "params": [
-      {}
-    ],
-    "order": [],
-    "returns": {}
   }
 ]
 

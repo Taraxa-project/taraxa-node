@@ -279,7 +279,6 @@ void PbftManager::updateDposState_() {
     try {
       dpos_votes_count_ = final_chain_->dpos_eligible_total_vote_count(dpos_period_);
       weighted_votes_count_ = final_chain_->dpos_eligible_vote_count(dpos_period_, node_addr_);
-      dpos_address_count_ = final_chain_->dpos_eligible_address_count(dpos_period_);
       break;
     } catch (state_api::ErrFutureBlock &c) {
       LOG(log_nf_) << c.what();
@@ -298,8 +297,6 @@ void PbftManager::updateDposState_() {
 size_t PbftManager::getDposTotalVotesCount() const { return dpos_votes_count_.load(); }
 
 size_t PbftManager::getDposWeightedVotesCount() const { return weighted_votes_count_.load(); }
-
-size_t PbftManager::getDposTotalAddressCount() const { return dpos_address_count_.load(); }
 
 size_t PbftManager::dposEligibleVoteCount_(addr_t const &addr) {
   try {

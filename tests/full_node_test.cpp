@@ -1463,9 +1463,6 @@ TEST_F(FullNodeTest, chain_config_json) {
         "enable_nonce_skipping": false
       },
       "genesis_balances": {
-      },
-      "hardforks": {
-        "fix_genesis_fork_block": "0x0"
       }
     }
   },
@@ -1480,10 +1477,10 @@ TEST_F(FullNodeTest, chain_config_json) {
     "lambda_ms_min": "0x7d0",
     "number_of_proposers" : "0x14",
     "run_count_votes": false,
-    "gas_limit": "0x3938700" 
+    "gas_limit": "0x3938700"
   },
   "dag": {
-    "gas_limit": "0x989680" 
+    "gas_limit": "0x989680"
   },
   "sortition": {
       "changes_count_for_average": 10,

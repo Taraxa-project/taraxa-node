@@ -80,7 +80,6 @@ void NodeStats::logNodeStats() {
   const auto local_chain_size_without_empty_blocks = pbft_chain_->getPbftChainSizeExcludingEmptyPbftBlocks();
 
   const auto local_dpos_total_votes_count = pbft_mgr_->getDposTotalVotesCount();
-  const auto local_dpos_total_address_count = pbft_mgr_->getDposTotalAddressCount();
   const auto local_weighted_votes = pbft_mgr_->getDposWeightedVotesCount();
   const auto local_twotplusone = pbft_mgr_->getTwoTPlusOne();
 
@@ -153,7 +152,6 @@ void NodeStats::logNodeStats() {
                << local_chain_size_without_empty_blocks << ")";
   LOG(log_nf_) << "Current PBFT round:              " << local_pbft_round;
   LOG(log_nf_) << "DPOS total votes count:          " << local_dpos_total_votes_count;
-  LOG(log_nf_) << "DPOS total addresses count:      " << local_dpos_total_address_count;
   LOG(log_nf_) << "PBFT consensus 2t+1 threshold:   " << local_twotplusone;
   LOG(log_nf_) << "Node elligible vote count:       " << local_weighted_votes;
 

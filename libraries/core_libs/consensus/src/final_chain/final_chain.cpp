@@ -349,10 +349,6 @@ class FinalChainImpl final : public FinalChain {
                                           trx, opts);
   }
 
-  uint64_t dpos_eligible_address_count(EthBlockNumber blk_num) const override {
-    return state_api_.dpos_eligible_address_count(blk_num);
-  }
-
   uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const override {
     return state_api_.dpos_eligible_total_vote_count(blk_num);
   }
@@ -363,11 +359,6 @@ class FinalChainImpl final : public FinalChain {
 
   bool dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const override {
     return state_api_.dpos_is_eligible(blk_num, addr);
-  }
-
-  state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
-                                        std::optional<EthBlockNumber> blk_n = {}) const override {
-    return state_api_.dpos_query(last_if_absent(blk_n), q);
   }
 
   EthBlockNumber last_if_absent(std::optional<EthBlockNumber> const& client_blk_n) const {

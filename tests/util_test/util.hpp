@@ -299,13 +299,13 @@ struct TransactionClient {
   }
 };
 
-inline auto make_dpos_trx(FullNodeConfig const& sender_node_cfg, state_api::DPOSTransfers const& transfers,
-                          uint64_t nonce = 0, u256 const& gas_price = 0, uint64_t extra_gas = 0) {
-  StateAPI::DPOSTransactionPrototype proto(transfers);
-  return std::make_shared<Transaction>(nonce, proto.value, gas_price, proto.minimal_gas + extra_gas,
-                                       std::move(proto.input), dev::Secret(sender_node_cfg.node_secret), proto.to,
-                                       sender_node_cfg.chain.chain_id);
-}
+// inline auto make_dpos_trx(FullNodeConfig const& sender_node_cfg, state_api::DPOSTransfers const& transfers,
+// uint64_t nonce = 0, u256 const& gas_price = 0, uint64_t extra_gas = 0) {
+// StateAPI::DPOSTransactionPrototype proto(transfers);
+// return std::make_shared<Transaction>(nonce, proto.value, gas_price, proto.minimal_gas + extra_gas,
+//                                      std::move(proto.input), dev::Secret(sender_node_cfg.node_secret), proto.to,
+//                                      sender_node_cfg.chain.chain_id);
+// }
 
 inline auto own_balance(std::shared_ptr<FullNode> const& node) {
   return node->getFinalChain()->getBalance(node->getAddress()).first;

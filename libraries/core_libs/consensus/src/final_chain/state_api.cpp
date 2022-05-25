@@ -200,13 +200,6 @@ void StateAPI::create_snapshot(uint64_t period) {
   err_h.check();
 }
 
-uint64_t StateAPI::dpos_eligible_address_count(EthBlockNumber blk_num) const {
-  ErrorHandler err_h;
-  auto ret = taraxa_evm_state_api_dpos_eligible_count(this_c_, blk_num, err_h.cgo_part_);
-  err_h.check();
-  return ret;
-}
-
 uint64_t StateAPI::dpos_eligible_total_vote_count(EthBlockNumber blk_num) const {
   ErrorHandler err_h;
   auto ret = taraxa_evm_state_api_dpos_eligible_vote_count(this_c_, blk_num, err_h.cgo_part_);
@@ -238,22 +231,12 @@ u256 StateAPI::get_staking_balance(EthBlockNumber blk_num, const addr_t& addr) c
   return c_method_args_rlp<u256, to_u256, taraxa_evm_state_api_dpos_get_staking_balance>(this_c_, blk_num, addr);
 }
 
-DPOSQueryResult StateAPI::dpos_query(EthBlockNumber blk_num, DPOSQuery const& q) const {
-  return c_method_args_rlp<DPOSQueryResult, from_rlp, taraxa_evm_state_api_dpos_query>(this_c_, blk_num, q);
-}
-
 addr_t const& StateAPI::dpos_contract_addr() {
   static auto const ret = [] {
     auto ret_c = taraxa_evm_state_api_dpos_contract_addr();
     return addr_t(ret_c.Val, addr_t::ConstructFromPointer);
   }();
   return ret;
-}
-
-StateAPI::DPOSTransactionPrototype::DPOSTransactionPrototype(DPOSTransfers const& transfers) {
-  dev::RLPStream transfers_rlp;
-  util::rlp(transfers_rlp, transfers);
-  input = move(transfers_rlp.invalidate());
 }
 
 }  // namespace taraxa::state_api
