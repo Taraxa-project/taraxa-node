@@ -10,7 +10,7 @@
 
 namespace taraxa {
 
-/** \addtogroup Transaction
+/** @addtogroup Transaction
  * @{
  */
 

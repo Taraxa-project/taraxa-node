@@ -6,7 +6,7 @@
 
 namespace taraxa {
 
-/** \addtogroup Vote
+/** @addtogroup Vote
  * @{
  */
 

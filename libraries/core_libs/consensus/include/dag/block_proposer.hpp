@@ -12,7 +12,7 @@
 
 namespace taraxa {
 
-/** \addtogroup DAG
+/** @addtogroup DAG
  * @{
  */
 
