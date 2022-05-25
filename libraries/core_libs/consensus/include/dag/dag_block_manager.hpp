@@ -14,7 +14,18 @@ namespace taraxa {
  */
 
 /**
- * @brief Thread safe
+ * @brief DagBlockManager class queues and verifies incoming DAG blocks
+ *
+ * DagBlockManager main functionality is verifying and queueing new DAG blocks with insertAndVerifyBlock and providing
+ * verified DAG blocks to DagManager with popVerifiedBlock.
+ * Block verification consists of:
+ * - Verifying that node has already received all the transactions for this block
+ * - Verifying block has not expired
+ * - Verifying block has proper VRF/VDF params with the correct difficulty
+ * - Verifying block author was eligible to propose blocks
+ * - Verifying size of the block gas limit
+ *
+ * Class is thread safe and public methods can be safely called from multiple threads
  */
 class DagBlockManager {
  public:
@@ -48,12 +59,35 @@ class DagBlockManager {
   DagBlockManager &operator=(const DagBlockManager &) = delete;
   DagBlockManager &operator=(DagBlockManager &&) = delete;
 
+  /**
+   * @brief Inserts and verifies new DAG block
+   * @param blk Block to insert
+   * @return verification result
+   */
   InsertAndVerifyBlockReturnType insertAndVerifyBlock(DagBlock &&blk);
+
+  /**
+   * @brief Pop verified block from the queue. This is a blocking function. It only returns if queue has blocks or if
+   * stop function is invoked
+   * @param level_limit If true only pop when block of specified level is in the queue
+   * @param level Level for level_limit
+   * @return Block or empty optional if stop is invoked
+   */
   std::optional<DagBlock> popVerifiedBlock(bool level_limit = false,
                                            uint64_t level = 0);  // get one verified block and pop
+
+  /**
+   * @brief Inserts verified DAG block to queue without verification
+   * @param blk Block to insert
+   */
   void pushVerifiedBlock(const DagBlock &blk);
+
   size_t getDagBlockQueueSize() const;
   level_t getMaxDagLevelInQueue() const;
+
+  /**
+   * @brief Stops blocking popVerifiedBlock method
+   */
   void stop();
 
   /**
@@ -84,7 +118,19 @@ class DagBlockManager {
    */
   uint64_t getDagExpiryLevel() { return dag_expiry_level_; }
 
+  /**
+   * @brief Gets dag block from either local memory cache or db
+   * @param hash Block hash
+   * @return Block or nullptr if block is not found
+   */
   std::shared_ptr<DagBlock> getDagBlock(const blk_hash_t &hash) const;
+
+  /**
+   * @brief Checks if tips and pivot are known and valid for a block. If tip or a pivot of a block is an invalid block,
+   * block is invalid as well
+   * @param blk Block to check
+   * @return true if known and valid
+   */
   bool pivotAndTipsValid(const DagBlock &blk);
 
   SortitionParamsManager &sortitionParamsManager() { return sortition_params_manager_; }

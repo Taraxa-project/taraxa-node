@@ -26,6 +26,13 @@ struct SortitionParamsChange {
   bytes rlp() const;
 };
 
+/**
+ * @brief SortitionParamsManager class calculates DAG efficiency and makes VDF difficulty adjustments
+ *
+ * On each new pbft block that is finalized DAG efficiency calculation is performed with calculateDagEfficiency.
+ * On config specified intervals a difficulty adjustment is performed using getNewUpperRange to keep the efficiency in
+ * the desired range.
+ */
 class SortitionParamsManager {
  public:
   SortitionParamsManager(const addr_t& node_addr, SortitionConfig sort_conf, std::shared_ptr<DbStorage> db);

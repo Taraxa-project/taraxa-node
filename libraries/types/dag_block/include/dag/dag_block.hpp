@@ -8,7 +8,11 @@ namespace taraxa {
 using std::string;
 using VdfSortition = vdf_sortition::VdfSortition;
 
-// Note: Need to sign first then sender() and hash() is available
+/**
+ * @brief DagBlock class is a DAG block class which main data is a list of transaction hashes included in the block and
+ * hashes of pivot and tips blocks it points to
+ *
+ */
 class DagBlock {
   // !!! Important: Any change in order or types of DagBlock class members will result in broken RLP ctor and some
   // methods
