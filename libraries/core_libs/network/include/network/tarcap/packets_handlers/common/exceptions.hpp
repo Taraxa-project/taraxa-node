@@ -26,7 +26,7 @@ class InvalidRlpItemsCountException : public PacketProcessingException {
  public:
   InvalidRlpItemsCountException(const std::string &packet_type_str, size_t actual_size, size_t expected_size)
       : PacketProcessingException(packet_type_str + " RLP items count(" + std::to_string(actual_size) +
-                                      ") != " + std::to_string(expected_size),
+                                      "), expected size is " + std::to_string(expected_size),
                                   dev::p2p::DisconnectReason::BadProtocol) {}
 };
 

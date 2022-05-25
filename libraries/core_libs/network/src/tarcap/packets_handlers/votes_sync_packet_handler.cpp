@@ -18,24 +18,20 @@ VotesSyncPacketHandler::VotesSyncPacketHandler(std::shared_ptr<PeersState> peers
       db_(std::move(db)) {}
 
 void VotesSyncPacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketData &packet_data) const {
-  // Number of votes is not fixed, nothing to be checked here
+  auto items = packet_data.rlp_.itemCount();
+  if (items == 0 || items > kMaxVotesInPacket) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, items, kMaxVotesInPacket);
+  }
 }
 
 void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
-  const auto next_votes_count = packet_data.rlp_.itemCount();
-  if (next_votes_count == 0 || next_votes_count > kMaxVotesInPacket) {
-    LOG(log_er_) << "Receive " << next_votes_count << " next votes from peer " << packet_data.from_node_id_
-                 << ". The peer may be a malicious player, will be disconnected";
-    disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
-    return;
-  }
-
   auto vote = std::make_shared<Vote>(packet_data.rlp_[0].data().toBytes());
 
   const auto pbft_current_round = pbft_mgr_->getPbftRound();
   const auto peer_pbft_round = vote->getRound() + 1;
 
   std::vector<std::shared_ptr<Vote>> next_votes;
+  const auto next_votes_count = packet_data.rlp_.itemCount();
   for (size_t i = 0; i < next_votes_count; i++) {
     auto next_vote = std::make_shared<Vote>(packet_data.rlp_[i].data().toBytes());
     if (next_vote->getRound() != peer_pbft_round - 1) {
@@ -56,26 +52,30 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
 
   if (pbft_current_round < peer_pbft_round) {
     // Add into votes unverified queue
-    for (auto &vote_n : next_votes) {
-      auto vote_hash = vote_n->getHash();
-      auto vote_round = vote_n->getRound();
+    for (auto it = next_votes.begin(); it != next_votes.end();) {
+      auto vote_hash = (*it)->getHash();
+      auto vote_round = (*it)->getRound();
 
-      if (vote_mgr_->voteInUnverifiedMap(vote_round, vote_hash) || vote_mgr_->voteInVerifiedMap(vote_n)) {
+      if (vote_mgr_->voteInUnverifiedMap(vote_round, vote_hash) || vote_mgr_->voteInVerifiedMap(*it)) {
         LOG(log_dg_) << "Received PBFT next vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
                      << ") already saved in queue.";
+        it = next_votes.erase(it);
         continue;
       }
 
       // Synchronization point in case multiple threads are processing the same vote at the same time
       // Adds unverified vote into local structure + database
-      if (!vote_mgr_->addUnverifiedVote(vote_n)) {
+      if (!vote_mgr_->addUnverifiedVote(*it)) {
         LOG(log_dg_) << "Received PBFT next vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
                      << ") already saved in unverified queue by a different thread(race condition).";
+        it = next_votes.erase(it);
         continue;
       }
-
-      onNewPbftVote(std::move(vote_n));
+      ++it;
     }
+
+    onNewPbftVotes(std::move(next_votes));
+
   } else if (pbft_current_round == peer_pbft_round) {
     // Update previous round next votes
     const auto pbft_2t_plus_1 = db_->getPbft2TPlus1(pbft_current_round - 1);
@@ -110,7 +110,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
           send_next_votes_bundle.push_back(v);
         }
       }
-      sendPbftNextVotes(peer_to_share_to.first, send_next_votes_bundle);
+      sendPbftVotes(peer_to_share_to.first, std::move(send_next_votes_bundle), true);
     }
   }
 }
@@ -133,7 +133,7 @@ void VotesSyncPacketHandler::broadcastPreviousRoundNextVotesBundle() {
           send_next_votes_bundle.push_back(v);
         }
       }
-      sendPbftNextVotes(peer.first, send_next_votes_bundle);
+      sendPbftVotes(peer.first, std::move(send_next_votes_bundle), true);
     }
   }
 }

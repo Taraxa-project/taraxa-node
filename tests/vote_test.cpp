@@ -4,6 +4,7 @@
 #include "common/static_init.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
+#include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
 #include "node/node.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "util_test/util.hpp"
@@ -276,7 +277,7 @@ TEST_F(VoteTest, transfer_vote) {
   size_t step = 1000;
   auto vote = pbft_mgr2->generateVote(propose_block_hash, type, period, step);
 
-  nw2->sendPbftVote(nw1->getNodeId(), vote);
+  nw2->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVotes(nw1->getNodeId(), {vote});
 
   auto vote_mgr1 = node1->getVoteManager();
   auto vote_mgr2 = node2->getVoteManager();

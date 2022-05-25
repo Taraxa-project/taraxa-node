@@ -42,7 +42,7 @@ void GetVotesSyncPacketHandler::process(const PacketData &packet_data, const std
         send_next_votes_bundle.push_back(std::move(v));
       }
     }
-    sendPbftNextVotes(packet_data.from_node_id_, send_next_votes_bundle);
+    sendPbftVotes(packet_data.from_node_id_, std::move(send_next_votes_bundle), true);
   }
 }
 
