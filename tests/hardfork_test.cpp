@@ -99,7 +99,7 @@ TEST_F(HardforkTest, fix_genesis_fork_block_is_zero) {
             node->getConfig().chain.final_chain.state.genesis_balances.begin()->second);
 }
 
-TEST_F(HardforkTest, DISABLED_hardfork) {
+TEST_F(HardforkTest, hardfork) {
   auto &cfg = node_cfg.chain.final_chain;
   cfg.state.hardforks.fix_genesis_fork_block = 10;
   cfg.state.dpos->eligibility_balance_threshold = 100000;
@@ -142,7 +142,6 @@ TEST_F(HardforkTest, DISABLED_hardfork) {
     balances_before.emplace(b.first, balance);
   }
   auto votes_count = 11;
-  EXPECT_EQ(2, node->getFinalChain()->dpos_eligible_address_count(0));
   EXPECT_EQ(votes_count + random_votes, node->getFinalChain()->dpos_eligible_total_vote_count(0));
   EXPECT_EQ(random_votes, node->getFinalChain()->dpos_eligible_vote_count(0, random_node));
 
@@ -168,7 +167,6 @@ TEST_F(HardforkTest, DISABLED_hardfork) {
   }
 
   auto block = node->getFinalChain()->last_block_number();
-  EXPECT_EQ(1, node->getFinalChain()->dpos_eligible_address_count(block));
   EXPECT_EQ(votes_count, node->getFinalChain()->dpos_eligible_total_vote_count(block));
   EXPECT_EQ(0, node->getFinalChain()->dpos_eligible_vote_count(block, random_node));
 

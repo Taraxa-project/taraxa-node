@@ -349,10 +349,6 @@ class FinalChainImpl final : public FinalChain {
                                           trx, opts);
   }
 
-  uint64_t dpos_eligible_address_count(EthBlockNumber blk_num) const override {
-    return state_api_.dpos_eligible_address_count(blk_num);
-  }
-
   uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const override {
     return state_api_.dpos_eligible_total_vote_count(blk_num);
   }
