@@ -30,11 +30,15 @@
 #include "transaction/transaction_manager.hpp"
 namespace taraxa {
 
-/**
- * Thread safe. Labelled graph.
+/** @addtogroup DAG
+ * @{
  */
 class DagManager;
 class Network;
+
+/**
+ * @brief Thread safe. Labelled graph.
+ */
 class Dag {
  public:
   // properties
@@ -306,5 +310,6 @@ class edge_label_writer {
  private:
   Property weight;
 };
+/** @}*/
 
 }  // namespace taraxa

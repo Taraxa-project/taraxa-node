@@ -6,6 +6,10 @@
 
 namespace taraxa {
 
+/** @addtogroup Vote
+ * @{
+ */
+
 class Network;
 
 class NextVotesManager {
@@ -138,5 +142,7 @@ class VoteManager {
 
   LOG_OBJECTS_DEFINE
 };
+
+/** @}*/
 
 }  // namespace taraxa

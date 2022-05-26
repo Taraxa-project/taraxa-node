@@ -3,6 +3,11 @@
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
+
+/** @addtogroup Transaction
+ * @{
+ */
+
 enum class TransactionStatus;
 /**
  * @brief this is NOT thread safe class. It is proteced only by transactions_mutex_ in the transaction mamanger !!!
@@ -86,5 +91,7 @@ class TransactionQueue {
   // Maximum number of save transactions
   const uint64_t kNonProposableTransactionsLimit = 1000;
 };
+
+/** @}*/
 
 }  // namespace taraxa

@@ -9,12 +9,11 @@
 #include "logger/logger.hpp"
 #include "pbft/pbft_block.hpp"
 
-/**
- * In pbft_chain, two kinds of blocks:
- * 1. PivotBlock: determine DAG block in pivot chain
- * 2. ScheduleBlock: determine sequential/concurrent set
- */
 namespace taraxa {
+
+/** @addtogroup PBFT
+ * @{
+ */
 
 class DbStorage;
 class FullNode;
@@ -22,6 +21,11 @@ class Vote;
 class DagBlock;
 struct Transaction;
 
+/**
+ * In pbft_chain, two kinds of blocks:
+ * 1. PivotBlock: determine DAG block in pivot chain
+ * 2. ScheduleBlock: determine sequential/concurrent set
+ */
 class PbftChain {
  public:
   explicit PbftChain(blk_hash_t const& dag_genesis_hash, addr_t node_addr, std::shared_ptr<DbStorage> db);
@@ -75,5 +79,7 @@ class PbftChain {
   LOG_OBJECTS_DEFINE
 };
 std::ostream& operator<<(std::ostream& strm, PbftChain const& pbft_chain);
+
+/** @}*/
 
 }  // namespace taraxa

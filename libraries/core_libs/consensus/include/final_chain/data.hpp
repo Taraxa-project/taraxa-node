@@ -15,6 +15,10 @@
 
 namespace taraxa::final_chain {
 
+/** @addtogroup FinalChain
+ * @{
+ */
+
 using LogBloom = dev::h2048;
 using LogBlooms = std::vector<LogBloom>;
 using Nonce = dev::h64;
@@ -98,5 +102,7 @@ struct FinalizationResult : NewBlock {
   SharedTransactions trxs;
   TransactionReceipts trx_receipts;
 };
+
+/** @} */
 
 }  // namespace taraxa::final_chain

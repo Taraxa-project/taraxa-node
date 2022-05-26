@@ -18,6 +18,11 @@
 #define MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS 20
 
 namespace taraxa {
+
+/** @addtogroup PBFT
+ * @{
+ */
+
 class FullNode;
 
 enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_state, finish_polling_state };
@@ -77,7 +82,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   size_t getDposTotalVotesCount() const;
   size_t getDposWeightedVotesCount() const;
-  size_t getDposTotalAddressCount() const;
 
   uint64_t pbftSyncingPeriod() const;
   size_t syncBlockQueueSize() const;
@@ -247,7 +251,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::atomic<uint64_t> dpos_period_;
   std::atomic<size_t> dpos_votes_count_;
   std::atomic<size_t> weighted_votes_count_;
-  std::atomic<size_t> dpos_address_count_;
 
   size_t sortition_threshold_ = 0;
   // 2t+1 minimum number of votes for consensus
@@ -277,5 +280,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   LOG_OBJECTS_DEFINE
   mutable logger::Logger log_nf_test_{logger::createLogger(taraxa::logger::Verbosity::Info, "PBFT_TEST", node_addr_)};
 };
+
+/** @}*/
 
 }  // namespace taraxa

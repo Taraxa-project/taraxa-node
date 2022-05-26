@@ -9,6 +9,7 @@
 
 #include "common/thread_pool.hpp"
 #include "config/config.hpp"
+#include "network/tarcap/packets_handler.hpp"
 #include "network/tarcap/shared_states/peers_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
 #include "network/tarcap/stats/node_stats.hpp"
@@ -57,6 +58,9 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   void interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session> session, unsigned _id, dev::RLP const &_r) override;
   std::string packetTypeToString(unsigned _packetType) const override;
 
+  template <typename PacketHandlerType>
+  std::shared_ptr<PacketHandlerType> getSpecificHandler() const;
+
   /**
    * @brief Start processing packets
    */
@@ -80,7 +84,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   void onNewBlockVerified(DagBlock &&blk, bool proposed, SharedTransactions &&trxs);
   void onNewTransactions(std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> &&transactions);
   void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
-  void onNewPbftVote(std::shared_ptr<Vote> &&vote);
+  void onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes);
   void broadcastPreviousRoundNextVotesBundle();
   void sendTransactions(dev::p2p::NodeID const &id, std::vector<taraxa::bytes> const &transactions);
   void handleMaliciousSyncPeer(dev::p2p::NodeID const &id);
@@ -96,8 +100,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   void onNewBlockReceived(DagBlock &&block);
 
   // PBFT
-  void sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block, uint64_t pbft_chain_size);
-  void sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote);
+  void sendPbftBlock(const dev::p2p::NodeID &id, const PbftBlock &pbft_block, uint64_t pbft_chain_size);
 
   // END METHODS USED IN TESTS ONLY
 
@@ -145,4 +148,10 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
 
   LOG_OBJECTS_DEFINE
 };
+
+template <typename PacketHandlerType>
+std::shared_ptr<PacketHandlerType> TaraxaCapability::getSpecificHandler() const {
+  return packets_handlers_->getSpecificHandler<PacketHandlerType>();
+}
+
 }  // namespace taraxa::network::tarcap

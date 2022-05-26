@@ -8,6 +8,13 @@ namespace taraxa {
 
 using EfficienciesMap = std::map<uint16_t, int32_t>;
 
+/** @addtogroup DAG
+ * @{
+ */
+
+/**
+ * @brief Changing vrf params for DAG blocks generation
+ */
 struct SortitionParamsChange {
   uint64_t period = 0;
   VrfParams vrf_params;
@@ -68,5 +75,6 @@ class SortitionParamsManager {
 
   LOG_OBJECTS_DEFINE
 };
+/** @}*/
 
 }  // namespace taraxa

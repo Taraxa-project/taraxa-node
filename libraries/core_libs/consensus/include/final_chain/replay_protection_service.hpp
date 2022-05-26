@@ -7,6 +7,10 @@
 
 namespace taraxa::final_chain {
 
+/** @addtogroup FinalChain
+ * @{
+ */
+
 class ReplayProtectionService {
  public:
   struct Config {
@@ -34,5 +38,6 @@ std::unique_ptr<ReplayProtectionService> NewReplayProtectionService(ReplayProtec
 
 Json::Value enc_json(ReplayProtectionService::Config const &);
 void dec_json(Json::Value const &, ReplayProtectionService::Config &);
+/** @} */
 
 }  // namespace taraxa::final_chain

@@ -18,7 +18,7 @@ class PbftBlockPacketHandler final : public PacketHandler {
                          const addr_t& node_addr);
 
   void onNewPbftBlock(PbftBlock const& pbft_block);
-  void sendPbftBlock(dev::p2p::NodeID const& peer_id, PbftBlock const& pbft_block, uint64_t pbft_chain_size);
+  void sendPbftBlock(const dev::p2p::NodeID& peer_id, const PbftBlock& pbft_block, uint64_t pbft_chain_size);
 
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::PbftBlockPacket;

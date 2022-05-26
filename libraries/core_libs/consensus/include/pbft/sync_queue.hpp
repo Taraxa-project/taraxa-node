@@ -8,6 +8,10 @@
 
 namespace taraxa {
 
+/** @addtogroup PBFT
+ * @{
+ */
+
 class SyncBlock;
 
 class SyncBlockQueue {
@@ -26,5 +30,7 @@ class SyncBlockQueue {
   uint64_t period_{0};
   mutable std::shared_mutex queue_access_;
 };
+
+/** @}*/
 
 }  // namespace taraxa

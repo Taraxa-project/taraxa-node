@@ -359,8 +359,8 @@ void TaraxaCapability::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_blo
   packets_handlers_->getSpecificHandler<PbftBlockPacketHandler>()->onNewPbftBlock(*pbft_block);
 }
 
-void TaraxaCapability::onNewPbftVote(std::shared_ptr<Vote> &&vote) {
-  packets_handlers_->getSpecificHandler<VotePacketHandler>()->onNewPbftVote(std::move(vote));
+void TaraxaCapability::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes) {
+  packets_handlers_->getSpecificHandler<VotePacketHandler>()->onNewPbftVotes(std::move(votes));
 }
 
 void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
@@ -389,15 +389,10 @@ size_t TaraxaCapability::getReceivedBlocksCount() const { return test_state_->ge
 size_t TaraxaCapability::getReceivedTransactionsCount() const { return test_state_->getTransactionsSize(); }
 
 // PBFT
-void TaraxaCapability::sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block,
+void TaraxaCapability::sendPbftBlock(const dev::p2p::NodeID &id, const PbftBlock &pbft_block,
                                      uint64_t pbft_chain_size) {
   packets_handlers_->getSpecificHandler<PbftBlockPacketHandler>()->sendPbftBlock(id, pbft_block, pbft_chain_size);
 }
 
-void TaraxaCapability::sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote) {
-  packets_handlers_->getSpecificHandler<VotePacketHandler>()->sendPbftVote(id, vote);
-}
-
 // END METHODS USED IN TESTS ONLY
-
 }  // namespace taraxa::network::tarcap

@@ -12,6 +12,10 @@
 
 namespace taraxa {
 
+/** @addtogroup DAG
+ * @{
+ */
+
 class DagManager;
 class TransactionManager;
 class FullNode;

@@ -23,6 +23,8 @@
 
 namespace taraxa {
 
+class PacketHandler;
+
 // TODO merge with TaraxaCapability, and then split the result in reasonable components
 class Network {
  public:
@@ -63,6 +65,9 @@ class Network {
   void onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes);
   void broadcastPreviousRoundNextVotesBundle();
 
+  template <typename PacketHandlerType>
+  std::shared_ptr<PacketHandlerType> getSpecificHandler() const;
+
   // METHODS USED IN TESTS ONLY
   void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, const SharedTransactions &trxs);
   void sendBlocks(const dev::p2p::NodeID &id, std::vector<std::shared_ptr<DagBlock>> &&blocks,
@@ -75,8 +80,7 @@ class Network {
   std::shared_ptr<network::tarcap::TaraxaPeer> getPeer(dev::p2p::NodeID const &id) const;
 
   // PBFT
-  void sendPbftBlock(dev::p2p::NodeID const &id, PbftBlock const &pbft_block, uint64_t const &pbft_chain_size);
-  void sendPbftVote(dev::p2p::NodeID const &id, std::shared_ptr<Vote> const &vote);
+  void sendPbftBlock(const dev::p2p::NodeID &id, const PbftBlock &pbft_block, uint64_t pbft_chain_size);
   // END METHODS USED IN TESTS ONLY
 
  private:
@@ -87,5 +91,10 @@ class Network {
 
   LOG_OBJECTS_DEFINE
 };
+
+template <typename PacketHandlerType>
+std::shared_ptr<PacketHandlerType> Network::getSpecificHandler() const {
+  return taraxa_capability_->getSpecificHandler<PacketHandlerType>();
+}
 
 }  // namespace taraxa

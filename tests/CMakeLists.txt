@@ -39,12 +39,12 @@ target_link_libraries(full_node_test
 )
 add_test(full_node_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/full_node_test)
 
-add_executable(hardfork_test hardfork_test.cpp ${UTIL_HEADERS})
-target_link_libraries(hardfork_test
-    core_libs
-    CONAN_PKG::gtest
-)
-add_test(hardfork_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/hardfork_test)
+# add_executable(hardfork_test hardfork_test.cpp ${UTIL_HEADERS})
+# target_link_libraries(hardfork_test
+#     core_libs
+#     CONAN_PKG::gtest
+# )
+# add_test(hardfork_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/hardfork_test)
 
 add_executable(network_test network_test.cpp ${UTIL_HEADERS})
 target_link_libraries(network_test

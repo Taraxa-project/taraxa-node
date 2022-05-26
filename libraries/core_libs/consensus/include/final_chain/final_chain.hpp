@@ -12,6 +12,10 @@
 
 namespace taraxa::final_chain {
 
+/** @addtogroup FinalChain
+ * @{
+ */
+
 enum class DBMetaKeys { LAST_NUMBER = 1 };
 
 class FinalChain {
@@ -75,13 +79,10 @@ class FinalChain {
                                           std::optional<EthBlockNumber> blk_n = {},
                                           std::optional<state_api::ExecutionOptions> const& opts = {}) const = 0;
 
-  virtual uint64_t dpos_eligible_address_count(EthBlockNumber blk_num) const = 0;
   virtual uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const = 0;
   virtual uint64_t dpos_eligible_vote_count(EthBlockNumber blk_num, addr_t const& addr) const = 0;
 
   virtual bool dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const = 0;
-  virtual state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
-                                                std::optional<EthBlockNumber> blk_n = {}) const = 0;
   // TODO move out of here:
 
   std::pair<val_t, bool> getBalance(addr_t const& addr) const {
@@ -94,6 +95,7 @@ class FinalChain {
 
 std::shared_ptr<FinalChain> NewFinalChain(std::shared_ptr<DB> const& db, Config const& config,
                                           addr_t const& node_addr = {});
+/** @} */
 
 }  // namespace taraxa::final_chain
 
