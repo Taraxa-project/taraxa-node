@@ -12,6 +12,14 @@
 
 namespace taraxa {
 
+/** @addtogroup PBFT
+ * @{
+ */
+
+/**
+ * @brief The PbftBlockk class is a PBFT block class that includes PBFT block hash, previous PBFT block hash, DAG anchor
+ * hash, DAG blocks ordering hash, period number, timestamp, proposer address, and proposer signature.
+ */
 class PbftBlock {
   blk_hash_t block_hash_;
   blk_hash_t prev_block_hash_;
@@ -29,25 +37,97 @@ class PbftBlock {
   explicit PbftBlock(bytes const& RLP);
   explicit PbftBlock(std::string const& JSON);
 
+  /**
+   * @brief Secure Hash Algorithm 3
+   * @param include_sig if include signature
+   * @return secure hash as PBFT block hash
+   */
   blk_hash_t sha3(bool include_sig) const;
+
+  /**
+   * @brief Get PBFT block in string
+   * @return PBFT block in string
+   */
   std::string getJsonStr() const;
+
+  /**
+   * @brief Get PBFT block in JSON
+   * @return PBFT block in JSON
+   */
   Json::Value getJson() const;
+
+  /**
+   * @brief Stream RLP uses to setup PBFT block hash
+   * @param strm RLP stream
+   * @param include_sig if include signature
+   */
   void streamRLP(dev::RLPStream& strm, bool include_sig) const;
+
+  /**
+   * @brief Recursive Length Prefix
+   * @param include_sig if include signature
+   * @return bytes of RLP stream
+   */
   bytes rlp(bool include_sig) const;
 
+  /**
+   * @brief Get PBFT block with DAG blocks in JSON
+   * @param b PBFT block
+   * @param dag_blks DAG blocks hashes
+   * @return PBFT block with DAG blocks in JSON
+   */
   static Json::Value toJson(PbftBlock const& b, std::vector<blk_hash_t> const& dag_blks);
 
+  /**
+   * @brief Get PBFT block hash
+   * @return PBFT block hash
+   */
   auto const& getBlockHash() const { return block_hash_; }
+
+  /**
+   * @brief Get previous PBFT block hash
+   * @return previous PBFT block hash
+   */
   auto const& getPrevBlockHash() const { return prev_block_hash_; }
+
+  /**
+   * @brief Get DAG anchor hash for the finalized PBFT block
+   * @return DAG anchor hash
+   */
   auto const& getPivotDagBlockHash() const { return dag_block_hash_as_pivot_; }
+
+  /**
+   * @brief Get DAG blocks ordering hash
+   * @return DAG blocks ordering hash
+   */
   auto const& getOrderHash() const { return order_hash_; }
+
+  /**
+   * @brief Get period number
+   * @return period number
+   */
   auto getPeriod() const { return period_; }
+
+  /**
+   * @brief Get timestamp
+   * @return timestamp
+   */
   auto getTimestamp() const { return timestamp_; }
+
+  /**
+   * @brief Get PBFT block proposer address
+   * @return PBFT block proposer address
+   */
   auto const& getBeneficiary() const { return beneficiary_; }
 
  private:
+  /**
+   * @brief Set PBFT block hash and block proposer address
+   */
   void calculateHash_();
 };
 std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
+
+/** @}*/
 
 }  // namespace taraxa
