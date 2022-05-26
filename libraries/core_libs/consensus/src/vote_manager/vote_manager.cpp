@@ -367,27 +367,6 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
   db_->commitWriteBatch(batch);
 }
 
-std::string VoteManager::getJsonStr(std::vector<std::shared_ptr<Vote>> const& votes) {
-  Json::Value ptroot;
-  Json::Value ptvotes(Json::arrayValue);
-
-  for (auto const& v : votes) {
-    Json::Value ptvote;
-    ptvote["vote_hash"] = v->getHash().toString();
-    ptvote["accounthash"] = v->getVoter().toString();
-    ptvote["sortition_proof"] = v->getSortitionProof().toString();
-    ptvote["vote_signature"] = v->getVoteSignature().toString();
-    ptvote["blockhash"] = v->getBlockHash().toString();
-    ptvote["type"] = v->getType();
-    ptvote["round"] = Json::Value::UInt64(v->getRound());
-    ptvote["step"] = Json::Value::UInt64(v->getStep());
-    ptvotes.append(ptvote);
-  }
-  ptroot["votes"] = ptvotes;
-
-  return ptroot.toStyledString();
-}
-
 std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t pbft_round) {
   std::vector<std::shared_ptr<Vote>> proposal_votes;
 

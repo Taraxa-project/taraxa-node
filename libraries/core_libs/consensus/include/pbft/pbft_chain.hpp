@@ -67,15 +67,6 @@ class PbftChain {
   std::shared_ptr<PbftBlock> getUnverifiedPbftBlock(blk_hash_t const& pbft_block_hash);
 
   /**
-   * @brief Get a bunch of PBFT blocks in string. This is only used by single RPC call
-   * @param period start period
-   * @param count number of PBFT blocks
-   * @param hash if return PBFT blocks hashes only
-   * @return a bunch of PBFT blocks in string
-   */
-  std::vector<std::string> getPbftBlocksStr(size_t period, size_t count, bool hash) const;  // Remove
-
-  /**
    * @brief Get PBFT chain head block in JSON string
    * @return PBFT chain head block in string
    */

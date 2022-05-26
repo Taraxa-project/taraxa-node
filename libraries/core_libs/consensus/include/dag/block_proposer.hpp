@@ -186,4 +186,8 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   LOG_OBJECTS_DEFINE
 };
 
+/**
+ * @}
+ */
+
 }  // namespace taraxa
