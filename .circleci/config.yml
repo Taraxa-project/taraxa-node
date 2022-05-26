@@ -647,6 +647,12 @@ jobs:
                 --set node.replicaCount=1 \
                 --set bootnode.replicaCount=1 \
                 --set consensusnode.replicaCount=1 \
+                --set node.resources.limits.memory=64Mi \
+                --set bootnode.resources.limits.memory=64Mi \
+                --set consensusnode.resources.limits.memory=64Mi \
+                --set node.resources.limits.cpu=100m \
+                --set bootnode.resources.limits.cpu=100m \
+                --set consensusnode.resources.limits.cpu=100m \
                 --set node.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set bootnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set consensusnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
