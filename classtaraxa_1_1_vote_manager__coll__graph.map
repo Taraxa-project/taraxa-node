@@ -1,4 +1,4 @@
 <map id="taraxa::VoteManager" name="taraxa::VoteManager">
-<area shape="rect" id="node1" title=" " alt="" coords="6,124,165,151"/>
+<area shape="rect" id="node1" title="VoteManager class manage votes for PBFT consensus." alt="" coords="6,124,165,151"/>
 <area shape="rect" id="node2" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,165,32"/>
 </map>

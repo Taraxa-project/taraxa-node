@@ -25,7 +25,7 @@ var namespacetaraxa =
     [ "FullNode", "classtaraxa_1_1_full_node.html", "classtaraxa_1_1_full_node" ],
     [ "FullNodeConfig", "structtaraxa_1_1_full_node_config.html", "structtaraxa_1_1_full_node_config" ],
     [ "GasPricer", "group___transaction.html#classtaraxa_1_1_gas_pricer", "group___transaction_classtaraxa_1_1_gas_pricer" ],
-    [ "HashableVrf", "structtaraxa_1_1_hashable_vrf.html", "structtaraxa_1_1_hashable_vrf" ],
+    [ "HashableVrf", "group___vote.html#structtaraxa_1_1_hashable_vrf", "group___vote_structtaraxa_1_1_hashable_vrf" ],
     [ "InvalidRlpItemsCountException", "classtaraxa_1_1_invalid_rlp_items_count_exception.html", "classtaraxa_1_1_invalid_rlp_items_count_exception" ],
     [ "MaliciousPeerException", "classtaraxa_1_1_malicious_peer_exception.html", "classtaraxa_1_1_malicious_peer_exception" ],
     [ "Network", "classtaraxa_1_1_network.html", "classtaraxa_1_1_network" ],
@@ -55,10 +55,10 @@ var namespacetaraxa =
     [ "UintComparator", "classtaraxa_1_1_uint_comparator.html", "classtaraxa_1_1_uint_comparator" ],
     [ "VdfParams", "namespacetaraxa.html#structtaraxa_1_1_vdf_params", "namespacetaraxa_structtaraxa_1_1_vdf_params_dup" ],
     [ "vertex_label_writer", "group___d_a_g.html#classtaraxa_1_1vertex__label__writer", "group___d_a_g_classtaraxa_1_1vertex__label__writer" ],
-    [ "Vote", "classtaraxa_1_1_vote.html", "classtaraxa_1_1_vote" ],
+    [ "Vote", "group___vote.html#classtaraxa_1_1_vote", "group___vote_classtaraxa_1_1_vote" ],
     [ "VoteManager", "group___vote.html#classtaraxa_1_1_vote_manager", "group___vote_classtaraxa_1_1_vote_manager" ],
-    [ "VotesBundle", "structtaraxa_1_1_votes_bundle.html", "structtaraxa_1_1_votes_bundle" ],
+    [ "VotesBundle", "group___vote.html#structtaraxa_1_1_votes_bundle", "group___vote_structtaraxa_1_1_votes_bundle" ],
     [ "VrfParams", "structtaraxa_1_1_vrf_params.html", "structtaraxa_1_1_vrf_params" ],
-    [ "VrfPbftMsg", "structtaraxa_1_1_vrf_pbft_msg.html", "structtaraxa_1_1_vrf_pbft_msg" ],
-    [ "VrfPbftSortition", "classtaraxa_1_1_vrf_pbft_sortition.html", "classtaraxa_1_1_vrf_pbft_sortition" ]
+    [ "VrfPbftMsg", "group___vote.html#structtaraxa_1_1_vrf_pbft_msg", "group___vote_structtaraxa_1_1_vrf_pbft_msg" ],
+    [ "VrfPbftSortition", "group___vote.html#classtaraxa_1_1_vrf_pbft_sortition", "group___vote_classtaraxa_1_1_vrf_pbft_sortition" ]
 ];

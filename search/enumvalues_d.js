@@ -11,6 +11,6 @@ var searchData=
   ['previousrounddposperiod_6811',['PreviousRoundDposPeriod',['../namespacetaraxa.html#a8e508ba78029ac1c479821219bebc249a461b57f71ed39e1f41cefd2a353d634c',1,'taraxa']]],
   ['previousrounddpostotalvotescount_6812',['PreviousRoundDposTotalVotesCount',['../namespacetaraxa.html#a8e508ba78029ac1c479821219bebc249a82a7e6aa3ec6615c655c5924b545647e',1,'taraxa']]],
   ['previousroundsortitionthreshold_6813',['PreviousRoundSortitionThreshold',['../namespacetaraxa.html#a8e508ba78029ac1c479821219bebc249a639d445a527ae39a767474b55921fdef',1,'taraxa']]],
-  ['propose_5fvote_5ftype_6814',['propose_vote_type',['../namespacetaraxa.html#a8a0770e242b649865f15f20a405507cca6b855bb8e616fa447b785fb292d1109a',1,'taraxa']]],
+  ['propose_5fvote_5ftype_6814',['propose_vote_type',['../group___vote.html#gga8a0770e242b649865f15f20a405507cca6b855bb8e616fa447b785fb292d1109a',1,'taraxa']]],
   ['protocolerror_6815',['ProtocolError',['../namespacedev_1_1p2p.html#a1a6ed6078a9c0a52b98d376eb09397beaca3da8f495e4e628912a7798655da6c2',1,'dev::p2p']]]
 ];

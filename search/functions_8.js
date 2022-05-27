@@ -20,7 +20,7 @@ var searchData=
   ['hash256rlp_4668',['hash256rlp',['../namespacetaraxa_1_1final__chain.html#a31a1e83861e1b14e99841d137c2da0a1',1,'taraxa::final_chain']]],
   ['hash_5ffor_5fsignature_4669',['hash_for_signature',['../structtaraxa_1_1_transaction.html#af492cd79a6fcf8ff4403062401e10ae2',1,'taraxa::Transaction']]],
   ['hash_5fvalue_4670',['hash_value',['../namespacedev.html#ae12d1dd0acf7786829a044974dbea66b',1,'dev']]],
-  ['hashablevrf_4671',['HashableVrf',['../structtaraxa_1_1_hashable_vrf.html#a9ebc1d25cb4292a469a57a304f342095',1,'taraxa::HashableVrf']]],
+  ['hashablevrf_4671',['HashableVrf',['../group___vote.html#a9ebc1d25cb4292a469a57a304f342095',1,'taraxa::HashableVrf']]],
   ['hasminorversionchanged_4672',['hasMinorVersionChanged',['../classtaraxa_1_1_db_storage.html#abc2340acad061b1f9698e54c2018e0ea',1,'taraxa::DbStorage']]],
   ['hastransaction_4673',['hasTransaction',['../classtaraxa_1_1network_1_1tarcap_1_1_test_state.html#a466a52dae57545ed72c21d558fd4bce3',1,'taraxa::network::tarcap::TestState']]],
   ['hasvalidendpointproof_4674',['hasValidEndpointProof',['../structdev_1_1p2p_1_1_node_entry.html#a12d3cc67ce98990b5cc87e5a699825ff',1,'dev::p2p::NodeEntry']]],

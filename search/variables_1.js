@@ -18,7 +18,7 @@ var searchData=
   ['block_5fweight_5f_5513',['block_weight_',['../classtaraxa_1_1_dag_block.html#ad833bf9bd0f3861242fca4906fbe1679',1,'taraxa::DagBlock']]],
   ['block_5fworker_5f_5514',['block_worker_',['../group___d_a_g.html#ae4bafcc36c6239d90d28dd950b7dbf6c',1,'taraxa::DagManager']]],
   ['blocked_5fpackets_5fmask_5f_5515',['blocked_packets_mask_',['../classtaraxa_1_1network_1_1tarcap_1_1_priority_queue.html#af6b90d362cba12b86466d64e51880ff1',1,'taraxa::network::tarcap::PriorityQueue']]],
-  ['blockhash_5f_5516',['blockhash_',['../classtaraxa_1_1_vote.html#ac78ef9dfd827f78306480e741808ba91',1,'taraxa::Vote']]],
+  ['blockhash_5f_5516',['blockhash_',['../group___vote.html#ac78ef9dfd827f78306480e741808ba91',1,'taraxa::Vote']]],
   ['blocknumbernil_5517',['BlockNumberNIL',['../namespacetaraxa_1_1state__api.html#a9aa3f912b525631665f9049907d9001f',1,'taraxa::state_api']]],
   ['blocks_5518',['blocks',['../structtaraxa_1_1chain__config_1_1_gas_price_config.html#a9477d891b21c648aedc34305791b3e34',1,'taraxa::chain_config::GasPriceConfig']]],
   ['blocks_5fmutex_5f_5519',['blocks_mutex_',['../classtaraxa_1_1network_1_1tarcap_1_1_test_state.html#ad633264825467c10330ebd78e70320ff',1,'taraxa::network::tarcap::TestState']]],

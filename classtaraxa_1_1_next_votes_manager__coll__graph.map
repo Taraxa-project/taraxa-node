@@ -1,4 +1,4 @@
 <map id="taraxa::NextVotesManager" name="taraxa::NextVotesManager">
-<area shape="rect" id="node1" title=" " alt="" coords="5,95,201,121"/>
+<area shape="rect" id="node1" title="NextVotesManager class manage next voting type votes for previous PBFT round." alt="" coords="5,95,201,121"/>
 <area shape="rect" id="node2" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="23,5,183,32"/>
 </map>

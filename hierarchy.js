@@ -163,7 +163,7 @@ var hierarchy =
     ] ],
     [ "std::hash< bi::address >", "structstd_1_1hash_3_01bi_1_1address_01_4.html", null ],
     [ "std::hash< pair< dev::p2p::NodeID, string > >", "structstd_1_1hash_3_01pair_3_01dev_1_1p2p_1_1_node_i_d_00_01string_01_4_01_4.html", null ],
-    [ "taraxa::HashableVrf", "structtaraxa_1_1_hashable_vrf.html", null ],
+    [ "taraxa::HashableVrf", "group___vote.html#structtaraxa_1_1_hashable_vrf", null ],
     [ "dev::p2p::RLPXHandshake::HostContext", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#structdev_1_1p2p_1_1_r_l_p_x_handshake_1_1_host_context", null ],
     [ "dev::p2p::IdentitySchemeV4", "classdev_1_1p2p_1_1_identity_scheme_v4.html", null ],
     [ "dev::intTraits< _T >", "structdev_1_1int_traits.html", null ],
@@ -381,14 +381,14 @@ var hierarchy =
     [ "dev::vector_ref< _T >", "classdev_1_1vector__ref.html", null ],
     [ "dev::vector_ref<::byte const >", "classdev_1_1vector__ref.html", null ],
     [ "taraxa::vertex_label_writer< Property1 >", "group___d_a_g.html#classtaraxa_1_1vertex__label__writer", null ],
-    [ "taraxa::Vote", "classtaraxa_1_1_vote.html", null ],
+    [ "taraxa::Vote", "group___vote.html#classtaraxa_1_1_vote", null ],
     [ "taraxa::VoteManager", "group___vote.html#classtaraxa_1_1_vote_manager", null ],
-    [ "taraxa::VotesBundle", "structtaraxa_1_1_votes_bundle.html", null ],
+    [ "taraxa::VotesBundle", "group___vote.html#structtaraxa_1_1_votes_bundle", null ],
     [ "taraxa::VrfParams", "structtaraxa_1_1_vrf_params.html", null ],
-    [ "taraxa::VrfPbftMsg", "structtaraxa_1_1_vrf_pbft_msg.html", null ],
+    [ "taraxa::VrfPbftMsg", "group___vote.html#structtaraxa_1_1_vrf_pbft_msg", null ],
     [ "taraxa::vrf_wrapper::VrfSortitionBase", "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html", [
       [ "taraxa::vdf_sortition::VdfSortition", "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html", null ],
-      [ "taraxa::VrfPbftSortition", "classtaraxa_1_1_vrf_pbft_sortition.html", null ]
+      [ "taraxa::VrfPbftSortition", "group___vote.html#classtaraxa_1_1_vrf_pbft_sortition", null ]
     ] ],
     [ "taraxa::net::rpc::eth::WatchGroup< type_, InputType_, OutputType_, Params >::Watch", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_1_1_watch", null ],
     [ "taraxa::net::rpc::eth::Watches", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html", null ],

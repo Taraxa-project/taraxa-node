@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['cert_5fvote_5ftype_6716',['cert_vote_type',['../namespacetaraxa.html#a8a0770e242b649865f15f20a405507ccaf71b2848e2805b713a2343ad6d134b65',1,'taraxa']]],
+  ['cert_5fvote_5ftype_6716',['cert_vote_type',['../group___vote.html#gga8a0770e242b649865f15f20a405507ccaf71b2848e2805b713a2343ad6d134b65',1,'taraxa']]],
   ['certify_5fstate_6717',['certify_state',['../group___p_b_f_t.html#ggaa671924d435517347832c7f40f1f6cfca86ef818379572b2425cfa5bfa5380594',1,'taraxa']]],
   ['clientquit_6718',['ClientQuit',['../namespacedev_1_1p2p.html#ab97a033c9bbe0fb22e2b4f093593f276a9ba229099ac02e85a42e45ce321d87ce',1,'dev::p2p']]],
   ['compressed_6719',['Compressed',['../classdev_1_1p2p_1_1_r_l_p_x_frame_coder.html#a799d44bbb3840ed20e05c3f0d0f3bf95a4d602abc0c0f2f7c1a5156d964517e4e',1,'dev::p2p::RLPXFrameCoder']]],

@@ -8,7 +8,7 @@ var searchData=
   ['pbftmgrvotedvalue_6689',['PbftMgrVotedValue',['../namespacetaraxa.html#ac2dbdc97d5c79cc3e162083c102499ca',1,'taraxa']]],
   ['pbftstates_6690',['PbftStates',['../group___p_b_f_t.html#gaa671924d435517347832c7f40f1f6cfc',1,'taraxa']]],
   ['pbftsyncrequestreason_6691',['PbftSyncRequestReason',['../group___p_b_f_t.html#gaa7d94f2f957e0d74251efb2a6b9b64b5',1,'taraxa']]],
-  ['pbftvotetypes_6692',['PbftVoteTypes',['../namespacetaraxa.html#a8a0770e242b649865f15f20a405507cc',1,'taraxa']]],
+  ['pbftvotetypes_6692',['PbftVoteTypes',['../group___vote.html#ga8a0770e242b649865f15f20a405507cc',1,'taraxa']]],
   ['peerslottype_6693',['PeerSlotType',['../structdev_1_1p2p_1_1_host.html#a2d1ef71cbab758a65c3b57956f172850',1,'dev::p2p::Host']]],
   ['peertype_6694',['PeerType',['../namespacedev_1_1p2p.html#ae2efc7abea1ff6a4b3f66b5deeb7b863',1,'dev::p2p']]],
   ['protocolidtype_6695',['ProtocolIdType',['../classdev_1_1p2p_1_1_r_l_p_x_frame_coder.html#a799d44bbb3840ed20e05c3f0d0f3bf95',1,'dev::p2p::RLPXFrameCoder']]]

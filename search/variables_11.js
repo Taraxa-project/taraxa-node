@@ -27,7 +27,7 @@ var searchData=
   ['rlpemptylist_6239',['RLPEmptyList',['../namespacedev.html#aba5c8b319ef77bd8ce01b888d6d99624',1,'dev']]],
   ['rlpnull_6240',['RLPNull',['../namespacedev.html#affa24fd5d3a46f390966c600ea1ee954',1,'dev']]],
   ['rotation_5fsize_6241',['rotation_size',['../structtaraxa_1_1logger_1_1_config_1_1_output_config.html#a3473ff2f82e2e5bf9307536478b18a3b',1,'taraxa::logger::Config::OutputConfig']]],
-  ['round_6242',['round',['../structtaraxa_1_1_vrf_pbft_msg.html#a6632aae1ac76d6d6d4d40ec4bd2b8d42',1,'taraxa::VrfPbftMsg']]],
+  ['round_6242',['round',['../group___vote.html#a6632aae1ac76d6d6d4d40ec4bd2b8d42',1,'taraxa::VrfPbftMsg']]],
   ['round_5f_6243',['round_',['../group___p_b_f_t.html#a0d2720a707dd407e5db0e3de47d7f2b8',1,'taraxa::PbftManager']]],
   ['round_5fclock_5finitial_5fdatetime_5f_6244',['round_clock_initial_datetime_',['../group___p_b_f_t.html#ab7b8cf334ef26a6cb3f5edb11f58e20a',1,'taraxa::PbftManager']]],
   ['rpc_6245',['rpc',['../structtaraxa_1_1_full_node_config.html#aaac918474f5387a7733ce3276022499c',1,'taraxa::FullNodeConfig']]],

@@ -10,7 +10,7 @@ var searchData=
   ['order_5fdag_5fblocks_5fmutex_5f_6121',['order_dag_blocks_mutex_',['../group___d_a_g.html#a6957731509338e71d5f995fa8e68869b',1,'taraxa::DagManager']]],
   ['order_5fhash_5f_6122',['order_hash_',['../group___p_b_f_t.html#a1a06c26808dcf0c8c997c896aa682c65',1,'taraxa::PbftBlock']]],
   ['ordinal_5f_6123',['ordinal_',['../classtaraxa_1_1_db_storage_1_1_column.html#a4fdece7ff5d91f52458a8f4ae7731da4',1,'taraxa::DbStorage::Column']]],
-  ['output_6124',['output',['../structtaraxa_1_1_hashable_vrf.html#ad7d473f8d055044812f2d069cd098164',1,'taraxa::HashableVrf']]],
+  ['output_6124',['output',['../group___vote.html#ad7d473f8d055044812f2d069cd098164',1,'taraxa::HashableVrf']]],
   ['output_5f_6125',['output_',['../classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a56388610d05fbabd1b779dde87510b2b',1,'taraxa::vrf_wrapper::VrfSortitionBase']]],
   ['outputs_6126',['outputs',['../classtaraxa_1_1logger_1_1_config.html#a1e0674b8eace3b9c297ed78d16f8ec33',1,'taraxa::logger::Config']]],
   ['overwrite_5fconfig_6127',['OVERWRITE_CONFIG',['../classtaraxa_1_1cli_1_1_config.html#a0e57340cfbb66133f07943f856a74814',1,'taraxa::cli::Config']]],

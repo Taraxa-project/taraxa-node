@@ -58,7 +58,7 @@ var searchData=
   ['stats_5f_6305',['stats_',['../classtaraxa_1_1network_1_1tarcap_1_1_all_packet_types_stats.html#a46363fd8805000fb4d93f5e157d9a036',1,'taraxa::network::tarcap::AllPacketTypesStats']]],
   ['status_5f_6306',['status_',['../classtaraxa_1_1_status_table.html#aa0854e52dcdb01ba7afbc553c6ac203d',1,'taraxa::StatusTable']]],
   ['status_5fcode_6307',['status_code',['../group___final_chain.html#a638cdb2e246e18eeafe1ed33cca7c50f',1,'taraxa::final_chain::TransactionReceipt']]],
-  ['step_6308',['step',['../structtaraxa_1_1_vrf_pbft_msg.html#a069a0877638436a04ecf9902f63c47e8',1,'taraxa::VrfPbftMsg']]],
+  ['step_6308',['step',['../group___vote.html#a069a0877638436a04ecf9902f63c47e8',1,'taraxa::VrfPbftMsg']]],
   ['step_5f_6309',['step_',['../group___p_b_f_t.html#ac9131c68097d5a1d589fb2768a800637',1,'taraxa::PbftManager']]],
   ['stop_5fcv_5f_6310',['stop_cv_',['../group___p_b_f_t.html#abdfcd22c3259000afb5e4aeb1c7c387f',1,'taraxa::PbftManager']]],
   ['stop_5fmtx_5f_6311',['stop_mtx_',['../group___p_b_f_t.html#a7c039fb4f8e57d9c6ed15b81f0d6b0a4',1,'taraxa::PbftManager']]],

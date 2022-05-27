@@ -8,7 +8,7 @@ var searchData=
   ['watches_5fcfg_6432',['watches_cfg',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#adf4c926338f30990776ef3ceeda26d8d',1,'taraxa::net::rpc::eth::EthParams']]],
   ['watches_5fmu_5f_6433',['watches_mu_',['../classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a0c31eb3bc727f3add7ca13d5e59dae24',1,'taraxa::net::rpc::eth::WatchGroup']]],
   ['weight_6434',['weight',['../group___d_a_g.html#ad7028483092a37dc7870ef8ad99e23b8',1,'taraxa::edge_label_writer']]],
-  ['weight_5f_6435',['weight_',['../classtaraxa_1_1_vote.html#a25def29b02c4c9e2adcde735d8136c48',1,'taraxa::Vote']]],
+  ['weight_5f_6435',['weight_',['../group___vote.html#a25def29b02c4c9e2adcde735d8136c48',1,'taraxa::Vote']]],
   ['weighted_5fvotes_5fcount_5f_6436',['weighted_votes_count_',['../group___p_b_f_t.html#a79927ca643f205c9540d22cf4d3c4718',1,'taraxa::PbftManager']]],
   ['withdrawal_5fdelay_6437',['withdrawal_delay',['../namespacetaraxa_1_1state__api.html#a926bb5735fcdefb2d485c8f43a2a2433',1,'taraxa::state_api::DPOSConfig::withdrawal_delay()'],['../namespacetaraxa_1_1state__api.html#a1ffbbfa17d4ce0150290200b697eada9',1,'taraxa::state_api::withdrawal_delay()']]],
   ['workers_5f_6438',['workers_',['../classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#af12d79a4a161f0e90d58a0d43655cde8',1,'taraxa::network::tarcap::TarcapThreadPool']]],

@@ -5,13 +5,13 @@ var searchData=
   ['vector_5fref_3662',['vector_ref',['../classdev_1_1vector__ref.html',1,'dev']]],
   ['vector_5fref_3c_3a_3abyte_20const_20_3e_3663',['vector_ref&lt;::byte const &gt;',['../classdev_1_1vector__ref.html',1,'dev']]],
   ['vertex_5flabel_5fwriter_3664',['vertex_label_writer',['../group___d_a_g.html#classtaraxa_1_1vertex__label__writer',1,'taraxa']]],
-  ['vote_3665',['Vote',['../classtaraxa_1_1_vote.html',1,'taraxa']]],
+  ['vote_3665',['Vote',['../group___vote.html#classtaraxa_1_1_vote',1,'taraxa']]],
   ['votemanager_3666',['VoteManager',['../group___vote.html#classtaraxa_1_1_vote_manager',1,'taraxa']]],
   ['votepackethandler_3667',['VotePacketHandler',['../classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html',1,'taraxa::network::tarcap']]],
-  ['votesbundle_3668',['VotesBundle',['../structtaraxa_1_1_votes_bundle.html',1,'taraxa']]],
+  ['votesbundle_3668',['VotesBundle',['../group___vote.html#structtaraxa_1_1_votes_bundle',1,'taraxa']]],
   ['votessyncpackethandler_3669',['VotesSyncPacketHandler',['../classtaraxa_1_1network_1_1tarcap_1_1_votes_sync_packet_handler.html',1,'taraxa::network::tarcap']]],
   ['vrfparams_3670',['VrfParams',['../structtaraxa_1_1_vrf_params.html',1,'taraxa']]],
-  ['vrfpbftmsg_3671',['VrfPbftMsg',['../structtaraxa_1_1_vrf_pbft_msg.html',1,'taraxa']]],
-  ['vrfpbftsortition_3672',['VrfPbftSortition',['../classtaraxa_1_1_vrf_pbft_sortition.html',1,'taraxa']]],
+  ['vrfpbftmsg_3671',['VrfPbftMsg',['../group___vote.html#structtaraxa_1_1_vrf_pbft_msg',1,'taraxa']]],
+  ['vrfpbftsortition_3672',['VrfPbftSortition',['../group___vote.html#classtaraxa_1_1_vrf_pbft_sortition',1,'taraxa']]],
   ['vrfsortitionbase_3673',['VrfSortitionBase',['../classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html',1,'taraxa::vrf_wrapper']]]
 ];

@@ -57,7 +57,7 @@ var searchData=
   ['hash_5fmu_5f_1354',['hash_mu_',['../classtaraxa_1_1_dag_block.html#ac3fee1611ecdde1dd78b99e4f7856fc4',1,'taraxa::DagBlock::hash_mu_()'],['../structtaraxa_1_1_transaction.html#a4e8f91f7dec8e84dc51f046f4b4ef41c',1,'taraxa::Transaction::hash_mu_()']]],
   ['hash_5fqueue_5f_1355',['hash_queue_',['../group___transaction.html#a27aa6547fefe919b3ca104d931209d7c',1,'taraxa::TransactionQueue']]],
   ['hash_5fvalue_1356',['hash_value',['../namespacedev.html#ae12d1dd0acf7786829a044974dbea66b',1,'dev']]],
-  ['hashablevrf_1357',['HashableVrf',['../structtaraxa_1_1_hashable_vrf.html',1,'taraxa::HashableVrf'],['../structtaraxa_1_1_hashable_vrf.html#a9ebc1d25cb4292a469a57a304f342095',1,'taraxa::HashableVrf::HashableVrf()']]],
+  ['hashablevrf_1357',['HashableVrf',['../group___vote.html#structtaraxa_1_1_hashable_vrf',1,'taraxa::HashableVrf'],['../group___vote.html#a9ebc1d25cb4292a469a57a304f342095',1,'taraxa::HashableVrf::HashableVrf()']]],
   ['hasminorversionchanged_1358',['hasMinorVersionChanged',['../classtaraxa_1_1_db_storage.html#abc2340acad061b1f9698e54c2018e0ea',1,'taraxa::DbStorage']]],
   ['hastransaction_1359',['hasTransaction',['../classtaraxa_1_1network_1_1tarcap_1_1_test_state.html#a466a52dae57545ed72c21d558fd4bce3',1,'taraxa::network::tarcap::TestState']]],
   ['hasvalidendpointproof_1360',['hasValidEndpointProof',['../structdev_1_1p2p_1_1_node_entry.html#a12d3cc67ce98990b5cc87e5a699825ff',1,'dev::p2p::NodeEntry']]],

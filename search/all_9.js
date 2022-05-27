@@ -128,7 +128,7 @@ var searchData=
   ['itemcount_1512',['itemCount',['../classdev_1_1_r_l_p.html#a55b3c546515995fc89c0ab7b542905cc',1,'dev::RLP']]],
   ['itemcountstrict_1513',['itemCountStrict',['../classdev_1_1_r_l_p.html#a6af115f6182bba00b77fae60e083498d',1,'dev::RLP']]],
   ['items_1514',['items',['../classdev_1_1_r_l_p.html#a37228fa3e7b33110078b5997324e2622',1,'dev::RLP']]],
-  ['iter_1515',['iter',['../structtaraxa_1_1_hashable_vrf.html#a15103e56034b8e547ff6325d711d8ecd',1,'taraxa::HashableVrf']]],
+  ['iter_1515',['iter',['../group___vote.html#a15103e56034b8e547ff6325d711d8ecd',1,'taraxa::HashableVrf']]],
   ['iteration_5ft_1516',['iteration_t',['../structtaraxa_1_1util_1_1range__view_1_1_range_view.html#a13f916793abf82a291673c2aea5f07b9',1,'taraxa::util::range_view::RangeView']]],
   ['iterator_1517',['iterator',['../classdev_1_1_r_l_p_1_1iterator.html',1,'dev::RLP::iterator'],['../classdev_1_1_r_l_p_1_1iterator.html#a33096d54b1adf5e8f680f816d12f6056',1,'dev::RLP::iterator::iterator()'],['../classdev_1_1_r_l_p_1_1iterator.html#ac0fb6a595aae7b535dac137fee6eafc1',1,'dev::RLP::iterator::iterator(RLP const &amp;_parent, bool _begin)']]]
 ];

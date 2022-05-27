@@ -18,7 +18,7 @@ var searchData=
   ['keyvaluepairs_1546',['keyValuePairs',['../classdev_1_1p2p_1_1_e_n_r.html#aec334b76ee5f4a986f4bc030a5c53b2b',1,'dev::p2p::ENR']]],
   ['kinitialstatuspacketitemscount_1547',['kInitialStatusPacketItemsCount',['../classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#ac0c8c57b5f652761c8ec32b0a41812c2',1,'taraxa::network::tarcap::StatusPacketHandler']]],
   ['kislightnode_5f_1548',['kIsLightNode_',['../group___transaction.html#ae0f9ee1a34ae3d4aaeaa2d16f36695b9',1,'taraxa::GasPricer']]],
-  ['kmax256bfp_1549',['kMax256bFP',['../classtaraxa_1_1_vrf_pbft_sortition.html#aed1745d8a9bffdabdfcd83465cf6a002',1,'taraxa::VrfPbftSortition']]],
+  ['kmax256bfp_1549',['kMax256bFP',['../group___vote.html#aed1745d8a9bffdabdfcd83465cf6a002',1,'taraxa::VrfPbftSortition']]],
   ['kmaxlambda_1550',['kMaxLambda',['../group___p_b_f_t.html#a04b7b13e9fb8dbb5bfca8595f742adce',1,'taraxa::PbftManager']]],
   ['kmaxlevelsperperiod_1551',['kMaxLevelsPerPeriod',['../namespacetaraxa.html#ab2f5ec0c8b9d91b604a61ca8062d0505',1,'taraxa']]],
   ['kmaxsuspiciouspacketperminute_1552',['kMaxSuspiciousPacketPerMinute',['../classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ab3bbe4adc4861112464995c4a54eff8c',1,'taraxa::network::tarcap::TaraxaPeer']]],

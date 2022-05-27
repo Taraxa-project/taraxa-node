@@ -130,7 +130,7 @@ var searchData=
   ['mainnet_5fjson_5998',['mainnet_json',['../namespacetaraxa_1_1cli.html#ae21a985437a3c4036dc42bda536c1039',1,'taraxa::cli']]],
   ['malicious_5fpeers_5f_5999',['malicious_peers_',['../classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a920e985e24c86975431f10868d663ad9',1,'taraxa::network::tarcap::PeersState']]],
   ['map_5f_6000',['map_',['../class_thread_safe_map.html#a2ca6d9cc693879afcb676e2e7c2b4c15',1,'ThreadSafeMap']]],
-  ['max256bits_6001',['max256bits',['../classtaraxa_1_1_vrf_pbft_sortition.html#ae25944089b11af1b3ef37dff72b8c86b',1,'taraxa::VrfPbftSortition']]],
+  ['max256bits_6001',['max256bits',['../group___vote.html#ae25944089b11af1b3ef37dff72b8c86b',1,'taraxa::VrfPbftSortition']]],
   ['max_5fblock_5fqueue_5fwarn_6002',['max_block_queue_warn',['../namespacetaraxa.html#a8566d0a88627fdd56ad3d521ad78da08',1,'taraxa::TestParamsConfig']]],
   ['max_5fcounts_5fstats_5f_6003',['max_counts_stats_',['../classtaraxa_1_1network_1_1tarcap_1_1_all_packet_types_stats.html#acf5df6e9780f302f12545eec03782543',1,'taraxa::network::tarcap::AllPacketTypesStats']]],
   ['max_5flevel_5f_6004',['max_level_',['../group___d_a_g.html#ab34b96991cbcfd2f72be34a8813ca335',1,'taraxa::DagManager']]],

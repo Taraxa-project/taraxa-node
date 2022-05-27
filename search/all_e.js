@@ -74,7 +74,7 @@ var searchData=
   ['next_1962',['next',['../classdev_1_1vector__ref.html#a9515025d40d8a01203c10ce886450878',1,'dev::vector_ref::next()'],['../classdev_1_1crypto_1_1_nonce.html#ac1a6eb6de21a1948fc1ca57d5744c587',1,'dev::crypto::Nonce::next()']]],
   ['next_5fstep_5ftime_5fms_5f_1963',['next_step_time_ms_',['../group___p_b_f_t.html#ab29e96c85ccf9fb1835ab746b8b16e7d',1,'taraxa::PbftManager']]],
   ['next_5fsubscription_5fid_5f_1964',['next_subscription_id_',['../classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html#affc7445fe0137c5cc34dcefe752ce88f',1,'taraxa::util::event::EventSubscriber::State']]],
-  ['next_5fvote_5ftype_1965',['next_vote_type',['../namespacetaraxa.html#a8a0770e242b649865f15f20a405507cca45551cf975f0ce273a2e1abca68ba8dc',1,'taraxa']]],
+  ['next_5fvote_5ftype_1965',['next_vote_type',['../group___vote.html#gga8a0770e242b649865f15f20a405507cca45551cf975f0ce273a2e1abca68ba8dc',1,'taraxa']]],
   ['next_5fvoted_5fnull_5fblock_5fhash_5f_1966',['next_voted_null_block_hash_',['../group___p_b_f_t.html#ae956498854263a909a5732efe88c117c',1,'taraxa::PbftManager']]],
   ['next_5fvoted_5fsoft_5fvalue_5f_1967',['next_voted_soft_value_',['../group___p_b_f_t.html#a778034d0d7c5d12067c8ec6f355fd3ac',1,'taraxa::PbftManager']]],
   ['next_5fvotes_5f_1968',['next_votes_',['../group___vote.html#ab749d4c76cae7d3e7f54ebe20a1c3b66',1,'taraxa::NextVotesManager']]],

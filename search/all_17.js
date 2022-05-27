@@ -23,7 +23,7 @@ var searchData=
   ['watchid_3272',['WatchID',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a05439f49d2ef28843b9619e59f1bde4b',1,'taraxa::net::rpc::eth']]],
   ['watchtype_3273',['WatchType',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#aeb19a0c91d9b3f39936dcbb097ccd138',1,'taraxa::net::rpc::eth']]],
   ['weight_3274',['weight',['../group___d_a_g.html#ad7028483092a37dc7870ef8ad99e23b8',1,'taraxa::edge_label_writer']]],
-  ['weight_5f_3275',['weight_',['../classtaraxa_1_1_vote.html#a25def29b02c4c9e2adcde735d8136c48',1,'taraxa::Vote']]],
+  ['weight_5f_3275',['weight_',['../group___vote.html#a25def29b02c4c9e2adcde735d8136c48',1,'taraxa::Vote']]],
   ['weighted_5fvotes_5fcount_5f_3276',['weighted_votes_count_',['../group___p_b_f_t.html#a79927ca643f205c9540d22cf4d3c4718',1,'taraxa::PbftManager']]],
   ['what_3277',['what',['../structdev_1_1_exception.html#ae4d8c318a8d5b7217fa7f71f3a67d975',1,'dev::Exception::what()'],['../classtaraxa_1_1_db_exception.html#afe83e8ae220204a577fceeef18d5eb2a',1,'taraxa::DbException::what()']]],
   ['whenerror_3278',['WhenError',['../namespacedev.html#a7d630db95b674f8768ae006ef31c0670',1,'dev']]],

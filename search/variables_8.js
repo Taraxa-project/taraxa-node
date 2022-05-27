@@ -27,5 +27,5 @@ var searchData=
   ['is_5flight_5fnode_5f_5781',['is_light_node_',['../group___d_a_g.html#a304bc3dd4e16a2e6fe824960998fa85c',1,'taraxa::DagManager::is_light_node_()'],['../classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a008642dc8ca72e19d7b3eab2dc523d63',1,'taraxa::network::tarcap::GetPbftSyncPacketHandler::is_light_node_()']]],
   ['is_5frange_5fonly_5f_5782',['is_range_only_',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a8941b92efb95c5029e19574b4cb8c3b8',1,'taraxa::net::rpc::eth::LogFilter']]],
   ['is_5fzero_5f_5783',['is_zero_',['../structtaraxa_1_1_transaction.html#ac9757f51915ac63d923b4d58d06f4f29',1,'taraxa::Transaction']]],
-  ['iter_5784',['iter',['../structtaraxa_1_1_hashable_vrf.html#a15103e56034b8e547ff6325d711d8ecd',1,'taraxa::HashableVrf']]]
+  ['iter_5784',['iter',['../group___vote.html#a15103e56034b8e547ff6325d711d8ecd',1,'taraxa::HashableVrf']]]
 ];
