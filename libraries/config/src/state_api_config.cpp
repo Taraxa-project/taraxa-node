@@ -72,6 +72,10 @@ Json::Value enc_json(DPOSConfig const& obj) {
   json["deposit_delay"] = dev::toJS(obj.deposit_delay);
   json["withdrawal_delay"] = dev::toJS(obj.withdrawal_delay);
   json["vote_eligibility_balance_step"] = dev::toJS(obj.vote_eligibility_balance_step);
+  json["maximum_stake"] = dev::toJS(obj.maximum_stake);
+  json["minimum_deposit"] = dev::toJS(obj.minimum_deposit);
+  json["commission_change_delta"] = dev::toJS(obj.commission_change_delta);
+  json["commission_change_frequency"] = dev::toJS(obj.commission_change_frequency);
   auto& genesis_state = json["genesis_state"] = Json::Value(Json::objectValue);
   for (auto const& [k, v] : obj.genesis_state) {
     genesis_state[dev::toJS(k)] = enc_json(v);
@@ -84,6 +88,11 @@ void dec_json(Json::Value const& json, DPOSConfig& obj) {
   obj.deposit_delay = dev::getUInt(json["deposit_delay"].asString());
   obj.withdrawal_delay = dev::getUInt(json["withdrawal_delay"].asString());
   obj.vote_eligibility_balance_step = dev::jsToU256(json["vote_eligibility_balance_step"].asString());
+  obj.maximum_stake = dev::jsToU256(json["maximum_stake"].asString());
+  obj.minimum_deposit = dev::jsToU256(json["minimum_deposit"].asString());
+  obj.commission_change_delta = dev::getUInt(json["commission_change_delta"].asString());
+  obj.commission_change_frequency = dev::getUInt(json["commission_change_frequency"].asString());
+
   auto const& genesis_state = json["genesis_state"];
   for (auto const& k : genesis_state.getMemberNames()) {
     dec_json(genesis_state[k], obj.genesis_state[addr_t(k)]);
@@ -107,7 +116,8 @@ void dec_json(Json::Value const& json, ExecutionOptions& obj) {
 RLP_FIELDS_DEFINE(ExecutionOptions, disable_nonce_check, disable_gas_fee, enable_nonce_skipping)
 RLP_FIELDS_DEFINE(ETHChainConfig, homestead_block, dao_fork_block, eip_150_block, eip_158_block, byzantium_block,
                   constantinople_block, petersburg_block)
-RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, vote_eligibility_balance_step, deposit_delay,
+RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, vote_eligibility_balance_step, maximum_stake,
+                  minimum_deposit, commission_change_delta, commission_change_frequency, deposit_delay,
                   withdrawal_delay, genesis_state)
 RLP_FIELDS_DEFINE(Config, eth_chain_config, disable_block_rewards, execution_options, genesis_balances, dpos)
 RLP_FIELDS_DEFINE(Opts, expected_max_trx_per_block, max_trie_full_node_levels_to_cache)
