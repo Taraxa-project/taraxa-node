@@ -1,0 +1,4 @@
+<map id="taraxa::network::tarcap::ExtSyncingPacketHandler" name="taraxa::network::tarcap::ExtSyncingPacketHandler">
+<area shape="rect" id="node1" title="ExtSyncingPacketHandler is extended abstract PacketHandler with added functions that are used in pack..." alt="" coords="5,95,200,136"/>
+<area shape="rect" id="node2" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html" title="Packet handler base class that consists of shared state and some commonly used functions." alt="" coords="15,5,190,47"/>
+</map>

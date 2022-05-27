@@ -1,0 +1,7 @@
+<map id="taraxa::network::tarcap::PeersState" name="taraxa::network::tarcap::PeersState">
+<area shape="rect" id="node1" title="PeersState contains common members and functions related to peers, host, etc... that are shared among..." alt="" coords="604,78,779,119"/>
+<area shape="rect" id="node2" href="$class_thread_safe_map.html" title=" " alt="" coords="231,5,439,61"/>
+<area shape="rect" id="node3" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="255,85,415,112"/>
+<area shape="rect" id="node4" href="$structtaraxa_1_1_network_config.html" title=" " alt="" coords="251,136,419,163"/>
+<area shape="rect" id="node5" title=" " alt="" coords="5,136,64,163"/>
+</map>

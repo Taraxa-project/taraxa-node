@@ -1,0 +1,8 @@
+<map id="taraxa::final_chain::Config" name="taraxa::final_chain::Config">
+<area shape="rect" id="node1" title=" " alt="" coords="728,39,871,80"/>
+<area shape="rect" id="node2" href="$namespacetaraxa_1_1final__chain.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields" title=" " alt="" coords="336,5,541,47"/>
+<area shape="rect" id="node3" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,13,165,39"/>
+<area shape="rect" id="node4" href="$structtaraxa_1_1state__api_1_1_config.html" title=" " alt="" coords="369,71,509,112"/>
+<area shape="rect" id="node5" href="$namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_execution_options" title=" " alt="" coords="15,67,155,108"/>
+<area shape="rect" id="node6" href="$namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_t_h_chain_config" title=" " alt="" coords="15,132,155,173"/>
+</map>

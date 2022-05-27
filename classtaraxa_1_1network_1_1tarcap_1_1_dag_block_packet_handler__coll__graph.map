@@ -1,0 +1,6 @@
+<map id="taraxa::network::tarcap::DagBlockPacketHandler" name="taraxa::network::tarcap::DagBlockPacketHandler">
+<area shape="rect" id="node1" title=" " alt="" coords="553,53,739,95"/>
+<area shape="rect" id="node2" href="$classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html" title="ExtSyncingPacketHandler is extended abstract PacketHandler with added functions that are used in pack..." alt="" coords="229,5,424,47"/>
+<area shape="rect" id="node3" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html" title="Packet handler base class that consists of shared state and some commonly used functions." alt="" coords="5,5,180,47"/>
+<area shape="rect" id="node4" href="$class_expiration_cache.html" title=" " alt="" coords="243,71,410,112"/>
+</map>

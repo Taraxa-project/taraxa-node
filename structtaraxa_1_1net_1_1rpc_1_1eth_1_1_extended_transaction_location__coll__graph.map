@@ -1,0 +1,6 @@
+<map id="taraxa::net::rpc::eth::ExtendedTransactionLocation" name="taraxa::net::rpc::eth::ExtendedTransactionLocation">
+<area shape="rect" id="node1" title=" " alt="" coords="113,200,333,241"/>
+<area shape="rect" id="node2" href="$structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html" title=" " alt="" coords="5,109,264,151"/>
+<area shape="rect" id="node3" href="$group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location" title=" " alt="" coords="46,5,205,47"/>
+<area shape="rect" id="node4" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="229,13,395,39"/>
+</map>

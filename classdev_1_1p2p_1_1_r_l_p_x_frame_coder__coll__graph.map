@@ -1,0 +1,4 @@
+<map id="dev::p2p::RLPXFrameCoder" name="dev::p2p::RLPXFrameCoder">
+<area shape="rect" id="node1" title="Encoder/decoder transport for RLPx connection established by RLPXHandshake." alt="" coords="5,95,203,121"/>
+<area shape="rect" id="node2" title=" " alt="" coords="74,5,134,32"/>
+</map>

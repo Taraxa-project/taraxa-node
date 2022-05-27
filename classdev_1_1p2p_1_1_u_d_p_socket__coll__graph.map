@@ -1,0 +1,7 @@
+<map id="dev::p2p::UDPSocket&lt; Handler, MaxDatagramSize &gt;" name="dev::p2p::UDPSocket&lt; Handler, MaxDatagramSize &gt;">
+<area shape="rect" id="node1" title="UDP Interface Handler must implement UDPSocketEvents." alt="" coords="393,94,624,135"/>
+<area shape="rect" id="node2" href="$structdev_1_1p2p_1_1_u_d_p_socket_face.html" title="Interface which UDPSocket will implement." alt="" coords="36,5,221,32"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,56,252,112"/>
+<area shape="rect" id="node4" href="$structdev_1_1p2p_1_1_u_d_p_socket_events.html" title="Interface which a UDPSocket&#39;s owner must implement." alt="" coords="29,136,229,163"/>
+<area shape="rect" id="node5" title=" " alt="" coords="97,191,161,217"/>
+</map>

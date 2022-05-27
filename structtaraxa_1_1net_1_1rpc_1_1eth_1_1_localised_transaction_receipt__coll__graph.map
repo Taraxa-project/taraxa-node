@@ -1,0 +1,9 @@
+<map id="taraxa::net::rpc::eth::LocalisedTransactionReceipt" name="taraxa::net::rpc::eth::LocalisedTransactionReceipt">
+<area shape="rect" id="node1" title=" " alt="" coords="897,64,1112,105"/>
+<area shape="rect" id="node2" href="$group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt" title=" " alt="" coords="601,5,755,47"/>
+<area shape="rect" id="node3" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="598,71,758,98"/>
+<area shape="rect" id="node4" href="$structtaraxa_1_1net_1_1rpc_1_1eth_1_1_extended_transaction_location.html" title=" " alt="" coords="568,123,788,164"/>
+<area shape="rect" id="node5" href="$structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html" title=" " alt="" coords="260,85,519,127"/>
+<area shape="rect" id="node6" href="$group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location" title=" " alt="" coords="9,67,168,108"/>
+<area shape="rect" id="node7" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,142,172,169"/>
+</map>

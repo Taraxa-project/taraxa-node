@@ -1,0 +1,9 @@
+<map id="taraxa::net::rpc::eth::LocalisedLogEntry" name="taraxa::net::rpc::eth::LocalisedLogEntry">
+<area shape="rect" id="node1" title=" " alt="" coords="940,115,1091,156"/>
+<area shape="rect" id="node2" href="$structtaraxa_1_1net_1_1rpc_1_1eth_1_1_extended_transaction_location.html" title=" " alt="" coords="623,81,843,123"/>
+<area shape="rect" id="node3" href="$structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html" title=" " alt="" coords="260,24,519,65"/>
+<area shape="rect" id="node4" href="$group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location" title=" " alt="" coords="9,5,168,47"/>
+<area shape="rect" id="node5" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,81,172,107"/>
+<area shape="rect" id="node6" href="$group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry" title=" " alt="" coords="661,147,804,188"/>
+<area shape="rect" id="node7" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="309,154,469,181"/>
+</map>

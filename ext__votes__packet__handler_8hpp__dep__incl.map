@@ -1,0 +1,11 @@
+<map id="libraries/core_libs/network/include/network/tarcap/packets_handlers/common/ext_votes_packet_handler.hpp" name="libraries/core_libs/network/include/network/tarcap/packets_handlers/common/ext_votes_packet_handler.hpp">
+<area shape="rect" id="node1" title=" " alt="" coords="457,5,658,91"/>
+<area shape="rect" id="node2" href="$get__votes__sync__packet__handler_8hpp.html" title=" " alt="" coords="62,139,322,209"/>
+<area shape="rect" id="node5" href="$vote__packet__handler_8hpp.html" title=" " alt="" coords="346,139,534,209"/>
+<area shape="rect" id="node7" href="$votes__sync__packet__handler_8hpp.html" title=" " alt="" coords="559,139,791,209"/>
+<area shape="rect" id="node9" href="$ext__votes__packet__handler_8cpp.html" title=" " alt="" coords="815,139,1038,209"/>
+<area shape="rect" id="node3" href="$get__votes__sync__packet__handler_8cpp.html" title=" " alt="" coords="5,257,240,328"/>
+<area shape="rect" id="node4" href="$taraxa__capability_8cpp.html" title=" " alt="" coords="265,265,429,321"/>
+<area shape="rect" id="node6" href="$vote__packet__handler_8cpp.html" title=" " alt="" coords="453,257,625,328"/>
+<area shape="rect" id="node8" href="$votes__sync__packet__handler_8cpp.html" title=" " alt="" coords="649,257,839,328"/>
+</map>

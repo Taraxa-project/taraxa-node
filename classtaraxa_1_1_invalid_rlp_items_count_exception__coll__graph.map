@@ -1,0 +1,5 @@
+<map id="taraxa::InvalidRlpItemsCountException" name="taraxa::InvalidRlpItemsCountException">
+<area shape="rect" id="node1" title="Exception thrown in case basic rlp format validation fails &#45; number of rlp items." alt="" coords="5,169,217,211"/>
+<area shape="rect" id="node2" href="$classtaraxa_1_1_packet_processing_exception.html" title=" " alt="" coords="19,80,203,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="56,5,167,32"/>
+</map>
