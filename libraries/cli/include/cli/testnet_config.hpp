@@ -209,6 +209,10 @@ constexpr std::string_view testnet_json = R"foo({
           "withdrawal_delay": "0x5",
           "eligibility_balance_threshold": "0xd3c21bcecceda1000000",
           "vote_eligibility_balance_step": "0x152d02c7e14af6800000",
+          "maximum_stake":"0x0",
+          "minimum_deposit":"0x0",
+          "commission_change_delta":"0x0",
+          "commission_change_frequency":"0x0",
           "genesis_state": {
             "0x76870407332398322576505f3c5423d0a71af296": {
               "0x18551e353aa65bc0ffbdf9d93b7ad4a8fe29cf95": "0x84595161401484a000000",
@@ -254,10 +258,10 @@ constexpr std::string_view testnet_json = R"foo({
       "ghost_path_move_back": "0x0",
       "lambda_ms_min": "0x5dc",
       "run_count_votes": false,
-      "gas_limit": "0x3938700" 
+      "gas_limit": "0x3938700"
     },
     "dag": {
-      "gas_limit": "0x989680" 
+      "gas_limit": "0x989680"
     },
     "replay_protection_service": {
       "range": "0xa"

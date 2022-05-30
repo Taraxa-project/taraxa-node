@@ -90,7 +90,7 @@ void dec_json(Json::Value const& json, DPOSConfig& obj) {
   obj.vote_eligibility_balance_step = dev::jsToU256(json["vote_eligibility_balance_step"].asString());
   obj.maximum_stake = dev::jsToU256(json["maximum_stake"].asString());
   obj.minimum_deposit = dev::jsToU256(json["minimum_deposit"].asString());
-  obj.commission_change_delta = dev::getUInt(json["commission_change_delta"].asString());
+  obj.commission_change_delta = static_cast<uint16_t>(dev::getUInt(json["commission_change_delta"].asString()));
   obj.commission_change_frequency = dev::getUInt(json["commission_change_frequency"].asString());
 
   auto const& genesis_state = json["genesis_state"];
