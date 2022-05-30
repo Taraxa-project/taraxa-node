@@ -18,16 +18,14 @@ static constexpr uint16_t DAG_BLOCKS_POS_IN_PERIOD_DATA = 2;
 static constexpr uint16_t TRANSACTIONS_POS_IN_PERIOD_DATA = 3;
 
 DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t max_open_files,
-                     uint32_t db_max_snapshots, uint32_t db_revert_to_period, addr_t node_addr, bool is_light_node,
-                     uint64_t light_node_history, bool rebuild, bool rebuild_columns)
+                     uint32_t db_max_snapshots, uint32_t db_revert_to_period, addr_t node_addr, bool rebuild,
+                     bool rebuild_columns)
     : path_(path),
       handles_(Columns::all.size()),
-      db_snapshot_each_n_pbft_block_(db_snapshot_each_n_pbft_block),
-      db_max_snapshots_(db_max_snapshots),
-      is_light_node_(is_light_node),
-      light_node_history_(light_node_history) {
-  db_path_ = (path / db_dir);
-  state_db_path_ = (path / state_db_dir);
+      kDbSnapshotsEachNblock_(db_snapshot_each_n_pbft_block),
+      kDbSnapshotsMaxCount_(db_max_snapshots) {
+  db_path_ = (path / kDbDir_);
+  state_db_path_ = (path / kStateDbDir_);
 
   if (rebuild) {
     const std::string backup_label = "-rebuild-backup-";
@@ -133,10 +131,10 @@ void DbStorage::loadSnapshots() {
 
     try {
       // Check for db or state_db prefix
-      if (boost::starts_with(fileName, db_dir) && fileName.size() > db_dir.size()) {
-        dir_period = stoi(fileName.substr(db_dir.size()));
-      } else if (boost::starts_with(fileName, state_db_dir) && fileName.size() > state_db_dir.size()) {
-        dir_period = stoi(fileName.substr(state_db_dir.size()));
+      if (boost::starts_with(fileName, kDbDir_) && fileName.size() > kDbDir_.size()) {
+        dir_period = stoi(fileName.substr(kDbDir_.size()));
+      } else if (boost::starts_with(fileName, kStateDbDir_) && fileName.size() > kStateDbDir_.size()) {
+        dir_period = stoi(fileName.substr(kStateDbDir_.size()));
       } else {
         continue;
       }
@@ -152,8 +150,8 @@ void DbStorage::loadSnapshots() {
 }
 
 bool DbStorage::createSnapshot(uint64_t period) {
-  // Only creates snapshot each db_snapshot_each_n_pbft_block_ periods
-  if (!snapshot_enable_ || db_snapshot_each_n_pbft_block_ <= 0 || period % db_snapshot_each_n_pbft_block_ != 0 ||
+  // Only creates snapshot each kDbSnapshotsEachNblock_ periods
+  if (!snapshots_enabled_ || kDbSnapshotsEachNblock_ <= 0 || period % kDbSnapshotsEachNblock_ != 0 ||
       snapshots_.find(period) != snapshots_.end()) {
     return false;
   }
@@ -173,9 +171,9 @@ bool DbStorage::createSnapshot(uint64_t period) {
   checkStatus(status);
   snapshots_.insert(period);
 
-  // Delete any snapshot over db_max_snapshots_
-  if (db_max_snapshots_ && snapshots_.size() > db_max_snapshots_) {
-    while (snapshots_.size() > db_max_snapshots_) {
+  // Delete any snapshot over kDbSnapshotsMaxCount_
+  if (kDbSnapshotsMaxCount_ && snapshots_.size() > kDbSnapshotsMaxCount_) {
+    while (snapshots_.size() > kDbSnapshotsMaxCount_) {
       auto snapshot = snapshots_.begin();
       deleteSnapshot(*snapshot);
       snapshots_.erase(snapshot);
@@ -232,9 +230,9 @@ void DbStorage::deleteSnapshot(uint64_t period) {
   LOG(log_dg_) << "Deleted folder: " << period_path;
 }
 
-void DbStorage::disableSnapshots() { snapshot_enable_ = false; }
+void DbStorage::disableSnapshots() { snapshots_enabled_ = false; }
 
-void DbStorage::enableSnapshots() { snapshot_enable_ = true; }
+void DbStorage::enableSnapshots() { snapshots_enabled_ = true; }
 
 DbStorage::~DbStorage() {
   for (auto cf : handles_) {
@@ -318,8 +316,7 @@ SharedTransactions DbStorage::getAllNonfinalizedTransactions() {
   SharedTransactions res;
   auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::transactions)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
-    Transaction transaction(asBytes(i->value().ToString()));
-    res.emplace_back(std::make_shared<Transaction>(std::move(transaction)));
+    res.emplace_back(std::make_shared<Transaction>(asBytes(i->value().ToString())));
   }
   return res;
 }
@@ -388,7 +385,7 @@ void DbStorage::saveDagBlock(DagBlock const& blk, Batch* write_batch_p) {
 }
 
 // Sortition params
-void DbStorage::saveSortitionParamsChange(uint64_t period, SortitionParamsChange params, Batch& batch) {
+void DbStorage::saveSortitionParamsChange(uint64_t period, const SortitionParamsChange& params, Batch& batch) {
   insert(batch, Columns::sortition_params_change, toSlice(period), toSlice(params.rlp()));
 }
 
@@ -417,16 +414,9 @@ std::optional<SortitionParamsChange> DbStorage::getParamsChangeForPeriod(uint64_
   return SortitionParamsChange::from_rlp(dev::RLP(it->value().ToString()));
 }
 
-void DbStorage::clearPeriodDataHistory(uint64_t period, uint64_t dag_expiry_period, bool force) {
-  // Actual history size will be between 100% and 110% of light_node_history_ to avoid deleting on every period
-  if (is_light_node_ && ((period % (std::max(light_node_history_ / 10, (uint64_t)1)) == 0) || force) &&
-      period > light_node_history_) {
-    const uint64_t start = 0;
-    // This prevents deleting any data needed for dag blocks proposal period, we only delete periods for the expired dag
-    // blocks
-    const uint64_t end = std::min(period - light_node_history_, dag_expiry_period - 1);
-    db_->DeleteRange(write_options_, handle(Columns::period_data), toSlice(start), toSlice(end));
-  }
+void DbStorage::clearPeriodDataHistory(uint64_t period) {
+  const uint64_t start = 0;
+  db_->DeleteRange(write_options_, handle(Columns::period_data), toSlice(start), toSlice(period));
 }
 
 void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) {
@@ -444,8 +434,8 @@ void DbStorage::savePeriodData(const SyncBlock& sync_block, Batch& write_batch) 
   // Remove transactions from non finalized column in db and add dag_block_period in DB
   uint32_t trx_pos = 0;
   for (auto const& trx : sync_block.transactions) {
-    removeTransactionToBatch(trx.getHash(), write_batch);
-    addTransactionPeriodToBatch(write_batch, trx.getHash(), sync_block.pbft_blk->getPeriod(), trx_pos);
+    removeTransactionToBatch(trx->getHash(), write_batch);
+    addTransactionPeriodToBatch(write_batch, trx->getHash(), sync_block.pbft_blk->getPeriod(), trx_pos);
     trx_pos++;
   }
 
@@ -552,7 +542,7 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
   return nullptr;
 }
 
-std::optional<std::vector<Transaction>> DbStorage::getPeriodTransactions(uint64_t period) const {
+std::optional<SharedTransactions> DbStorage::getPeriodTransactions(uint64_t period) const {
   const auto period_data = getPeriodDataRaw(period);
   if (!period_data.size()) {
     return std::nullopt;
@@ -560,9 +550,9 @@ std::optional<std::vector<Transaction>> DbStorage::getPeriodTransactions(uint64_
 
   auto period_data_rlp = dev::RLP(period_data);
 
-  std::vector<Transaction> ret(period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA].size());
+  SharedTransactions ret(period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA].size());
   for (const auto transaction_data : period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA]) {
-    ret.emplace_back(transaction_data);
+    ret.emplace_back(std::make_shared<Transaction>(transaction_data));
   }
   return {ret};
 }

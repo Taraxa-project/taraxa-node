@@ -36,6 +36,11 @@ struct RpcServer final : std::enable_shared_from_this<RpcServer>, jsonrpc::Abstr
             ApiExceptionHandler api_ex_handler = {});
   ~RpcServer() { RpcServer::StopListening(); }
 
+  RpcServer(const RpcServer &) = delete;
+  RpcServer(RpcServer &&) = delete;
+  RpcServer &operator=(const RpcServer &) = delete;
+  RpcServer &operator=(RpcServer &&) = delete;
+
   bool StartListening() override;
   bool StopListening() override;
 

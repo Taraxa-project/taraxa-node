@@ -14,7 +14,13 @@ struct BaseTest : virtual testing::Test {
   testing::UnitTest* current_test = ::testing::UnitTest::GetInstance();
   testing::TestInfo const* current_test_info = current_test->current_test_info();
 
+  BaseTest() = default;
   virtual ~BaseTest() = default;
+
+  BaseTest(const BaseTest&) = delete;
+  BaseTest(BaseTest&&) = delete;
+  BaseTest& operator=(const BaseTest&) = delete;
+  BaseTest& operator=(BaseTest&&) = delete;
 };
 
 struct TarcapTpTest : BaseTest {};
@@ -30,9 +36,9 @@ class PacketsProcessingInfo {
 
  public:
   void addPacketProcessingTimes(tarcap::PacketData::PacketId packet_id,
-                                PacketProcessingTimes&& packet_processing_times) {
+                                const PacketProcessingTimes& packet_processing_times) {
     std::scoped_lock<std::shared_mutex> lock(mutex_);
-    bool res = packets_processing_times_.emplace(packet_id, std::move(packet_processing_times)).second;
+    bool res = packets_processing_times_.emplace(packet_id, packet_processing_times).second;
     assert(res);
   }
 
@@ -55,17 +61,33 @@ class PacketsProcessingInfo {
   mutable std::shared_mutex mutex_;
 };
 
+// Help functions for tests
+struct HandlersInitData {
+  dev::p2p::NodeID sender_node_id;
+
+  dev::p2p::NodeID own_node_id;
+  addr_t own_node_addr;
+
+  std::shared_ptr<tarcap::PeersState> peers_state;
+  std::shared_ptr<tarcap::PacketsStats> packets_stats;
+  std::shared_ptr<PacketsProcessingInfo> packets_processing_info;
+
+  dev::p2p::NodeID copySender() { return sender_node_id; }
+};
+
 class DummyPacketHandler : public tarcap::PacketHandler {
  public:
-  DummyPacketHandler(std::shared_ptr<tarcap::PeersState> peers_state,
-                     std::shared_ptr<tarcap::PacketsStats> packets_stats, const addr_t& node_addr,
-                     const std::string& log_channel_name, uint32_t processing_delay_ms,
-                     std::shared_ptr<PacketsProcessingInfo> packets_proc_info)
-      : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
+  DummyPacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
+                     uint32_t processing_delay_ms)
+      : PacketHandler(init_data.peers_state, init_data.packets_stats, init_data.own_node_addr, log_channel_name),
         processing_delay_ms_(processing_delay_ms),
-        packets_proc_info_(std::move(packets_proc_info)) {}
+        packets_proc_info_(init_data.packets_processing_info) {}
 
   virtual ~DummyPacketHandler() = default;
+  DummyPacketHandler(const DummyPacketHandler&) = default;
+  DummyPacketHandler(DummyPacketHandler&&) = default;
+  DummyPacketHandler& operator=(const DummyPacketHandler&) = default;
+  DummyPacketHandler& operator=(DummyPacketHandler&&) = default;
 
  private:
   void validatePacketRlpFormat([[maybe_unused]] const tarcap::PacketData& packet_data) const override {}
@@ -89,18 +111,114 @@ class DummyPacketHandler : public tarcap::PacketHandler {
   std::shared_ptr<PacketsProcessingInfo> packets_proc_info_;
 };
 
-// Help functions for tests
-struct HandlersInitData {
-  dev::p2p::NodeID sender_node_id;
+class DummyPbftBlockPacketHandler : public DummyPacketHandler {
+ public:
+  DummyPbftBlockPacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
+                              uint32_t processing_delay_ms)
+      : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
 
-  dev::p2p::NodeID own_node_id;
-  addr_t own_node_addr;
+  // Packet type that is processed by this handler
+  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::PbftBlockPacket;
+};
 
-  std::shared_ptr<tarcap::PeersState> peers_state;
-  std::shared_ptr<tarcap::PacketsStats> packets_stats;
-  std::shared_ptr<PacketsProcessingInfo> packets_processing_info;
+class DummyTransactionPacketHandler : public DummyPacketHandler {
+ public:
+  DummyTransactionPacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
+                                uint32_t processing_delay_ms)
+      : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
 
-  dev::p2p::NodeID copySender() { return sender_node_id; }
+  // Packet type that is processed by this handler
+  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::TransactionPacket;
+};
+
+class DummyDagBlockPacketHandler : public DummyPacketHandler {
+ public:
+  DummyDagBlockPacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
+                             uint32_t processing_delay_ms)
+      : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
+
+  // Packet type that is processed by this handler
+  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::DagBlockPacket;
+};
+
+class DummyStatusPacketHandler : public DummyPacketHandler {
+ public:
+  DummyStatusPacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
+                           uint32_t processing_delay_ms)
+      : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
+
+  // Packet type that is processed by this handler
+  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::StatusPacket;
+};
+
+class DummyVotePacketHandler : public DummyPacketHandler {
+ public:
+  DummyVotePacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
+                         uint32_t processing_delay_ms)
+      : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
+
+  // Packet type that is processed by this handler
+  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::VotePacket;
+};
+
+class DummyGetVotesSyncPacketHandler : public DummyPacketHandler {
+ public:
+  DummyGetVotesSyncPacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
+                                 uint32_t processing_delay_ms)
+      : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
+
+  // Packet type that is processed by this handler
+  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::GetVotesSyncPacket;
+};
+
+class DummyVotesSyncPacketHandler : public DummyPacketHandler {
+ public:
+  DummyVotesSyncPacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
+                              uint32_t processing_delay_ms)
+      : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
+
+  // Packet type that is processed by this handler
+  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::VotesSyncPacket;
+};
+
+class DummyGetDagSyncPacketHandler : public DummyPacketHandler {
+ public:
+  DummyGetDagSyncPacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
+                               uint32_t processing_delay_ms)
+      : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
+
+  // Packet type that is processed by this handler
+  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::GetDagSyncPacket;
+};
+
+class DummyGetPbftSyncPacketHandler : public DummyPacketHandler {
+ public:
+  DummyGetPbftSyncPacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
+                                uint32_t processing_delay_ms)
+      : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
+
+  // Packet type that is processed by this handler
+  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::GetPbftSyncPacket;
+};
+
+class DummyDagSyncPacketHandler : public DummyPacketHandler {
+ public:
+  DummyDagSyncPacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
+                            uint32_t processing_delay_ms)
+      : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
+
+  // Packet type that is processed by this handler
+  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::DagSyncPacket;
+};
+
+class DummyPbftSyncPacketHandler : public DummyPacketHandler {
+ public:
+  DummyPbftSyncPacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
+                             uint32_t processing_delay_ms)
+      : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
+
+  // Packet type that is processed by this handler
+  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::PbftSyncPacket;
 };
 
 HandlersInitData createHandlersInitData() {
@@ -121,21 +239,14 @@ HandlersInitData createHandlersInitData() {
   return ret_init_data;
 }
 
-std::shared_ptr<DummyPacketHandler> createDummyPacketHandler(const HandlersInitData& init_data,
-                                                             const std::string& logger_name,
-                                                             uint32_t processing_delay_ms) {
-  return std::make_shared<DummyPacketHandler>(init_data.peers_state, init_data.packets_stats, init_data.own_node_addr,
-                                              logger_name, processing_delay_ms, init_data.packets_processing_info);
-}
-
-tarcap::PacketData createPacket(dev::p2p::NodeID&& sender_node_id, tarcap::SubprotocolPacketType packet_type,
+tarcap::PacketData createPacket(const dev::p2p::NodeID& sender_node_id, tarcap::SubprotocolPacketType packet_type,
                                 std::optional<std::vector<unsigned char>> packet_rlp_bytes = {}) {
   if (packet_rlp_bytes.has_value()) {
-    return {packet_type, std::move(sender_node_id), std::move(packet_rlp_bytes.value())};
+    return {packet_type, sender_node_id, std::move(packet_rlp_bytes.value())};
   }
 
   dev::RLPStream s(0);
-  return {packet_type, std::move(sender_node_id), s.invalidate()};
+  return {packet_type, sender_node_id, s.invalidate()};
 }
 
 bytes createDagBlockRlp(level_t level) {
@@ -193,20 +304,14 @@ TEST_F(TarcapTpTest, block_free_packets) {
   init_data.peers_state->setPeerAsReadyToSendMessages(sender2, peer);
 
   auto packets_handler = std::make_shared<tarcap::PacketsHandler>();
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::PbftBlockPacket,
-                                   createDummyPacketHandler(init_data, "PBFT_BLOCK_PH", 20));
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::TransactionPacket,
-                                   createDummyPacketHandler(init_data, "TX_PH", 20));
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::DagBlockPacket,
-                                   createDummyPacketHandler(init_data, "DAG_BLOCK_PH", 20));
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::StatusPacket,
-                                   createDummyPacketHandler(init_data, "STATUS_PH", 20));
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::VotePacket,
-                                   createDummyPacketHandler(init_data, "VOTE_PH", 20));
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::GetVotesSyncPacket,
-                                   createDummyPacketHandler(init_data, "GET_VOTES_SYNC_PH", 20));
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::VotesSyncPacket,
-                                   createDummyPacketHandler(init_data, "VOTES_SYNC_PH", 20));
+
+  packets_handler->registerHandler<DummyPbftBlockPacketHandler>(init_data, "PBFT_BLOCK_PH", 20);
+  packets_handler->registerHandler<DummyTransactionPacketHandler>(init_data, "TX_PH", 20);
+  packets_handler->registerHandler<DummyDagBlockPacketHandler>(init_data, "DAG_BLOCK_PH", 20);
+  packets_handler->registerHandler<DummyStatusPacketHandler>(init_data, "STATUS_PH", 20);
+  packets_handler->registerHandler<DummyVotePacketHandler>(init_data, "VOTE_PH", 20);
+  packets_handler->registerHandler<DummyGetVotesSyncPacketHandler>(init_data, "GET_VOTES_SYNC_PH", 20);
+  packets_handler->registerHandler<DummyVotesSyncPacketHandler>(init_data, "VOTES_SYNC_PH", 20);
 
   // Creates threadpool
   // Note: make num of threads >= num of packets to check if they are processed concurrently without blocks, otherwise
@@ -340,14 +445,10 @@ TEST_F(TarcapTpTest, hard_blocking_deps) {
   HandlersInitData init_data = createHandlersInitData();
 
   auto packets_handler = std::make_shared<tarcap::PacketsHandler>();
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::GetDagSyncPacket,
-                                   createDummyPacketHandler(init_data, "GET_DAG_SYNC_PH", 20));
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::GetPbftSyncPacket,
-                                   createDummyPacketHandler(init_data, "GET_PBFT_SYNC_PH", 20));
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::DagSyncPacket,
-                                   createDummyPacketHandler(init_data, "DAG_SYNC_PH", 20));
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::PbftSyncPacket,
-                                   createDummyPacketHandler(init_data, "PBFT_SYNC_PH", 20));
+  packets_handler->registerHandler<DummyGetDagSyncPacketHandler>(init_data, "GET_DAG_SYNC_PH", 20);
+  packets_handler->registerHandler<DummyGetPbftSyncPacketHandler>(init_data, "GET_PBFT_SYNC_PH", 20);
+  packets_handler->registerHandler<DummyDagSyncPacketHandler>(init_data, "DAG_SYNC_PH", 20);
+  packets_handler->registerHandler<DummyPbftSyncPacketHandler>(init_data, "PBFT_SYNC_PH", 20);
 
   // Creates threadpool
   tarcap::TarcapThreadPool tp(10);
@@ -460,12 +561,9 @@ TEST_F(TarcapTpTest, peer_order_blocking_deps) {
   HandlersInitData init_data = createHandlersInitData();
 
   auto packets_handler = std::make_shared<tarcap::PacketsHandler>();
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::TransactionPacket,
-                                   createDummyPacketHandler(init_data, "TX_PH", 20));
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::DagBlockPacket,
-                                   createDummyPacketHandler(init_data, "DAG_BLOCK_PH", 0));
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::DagSyncPacket,
-                                   createDummyPacketHandler(init_data, "SYNC_TEST_PH", 40));
+  packets_handler->registerHandler<DummyTransactionPacketHandler>(init_data, "TX_PH", 20);
+  packets_handler->registerHandler<DummyDagBlockPacketHandler>(init_data, "DAG_BLOCK_PH", 0);
+  packets_handler->registerHandler<DummyDagSyncPacketHandler>(init_data, "SYNC_TEST_PH", 40);
 
   // Creates threadpool
   tarcap::TarcapThreadPool tp(10);
@@ -548,8 +646,7 @@ TEST_F(TarcapTpTest, dag_blks_lvls_ordering) {
   HandlersInitData init_data = createHandlersInitData();
 
   auto packets_handler = std::make_shared<tarcap::PacketsHandler>();
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::DagBlockPacket,
-                                   createDummyPacketHandler(init_data, "DAG_BLOCK_PH", 20));
+  packets_handler->registerHandler<DummyDagBlockPacketHandler>(init_data, "DAG_BLOCK_PH", 20);
 
   // Creates threadpool
   tarcap::TarcapThreadPool tp(10);
@@ -643,8 +740,7 @@ TEST_F(TarcapTpTest, threads_borrowing) {
   HandlersInitData init_data = createHandlersInitData();
 
   auto packets_handler = std::make_shared<tarcap::PacketsHandler>();
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::VotePacket,
-                                   createDummyPacketHandler(init_data, "VOTE_PH", 100));
+  packets_handler->registerHandler<DummyVotePacketHandler>(init_data, "VOTE_PH", 100);
 
   // Creates threadpool
   const size_t threads_num = 10;
@@ -733,16 +829,13 @@ TEST_F(TarcapTpTest, low_priotity_queue_starvation) {
 
   auto packets_handler = std::make_shared<tarcap::PacketsHandler>();
   // Handler for packet from high priority queue
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::VotePacket,
-                                   createDummyPacketHandler(init_data, "VOTE_PH", 20));
+  packets_handler->registerHandler<DummyVotePacketHandler>(init_data, "VOTE_PH", 20);
 
   // Handler for packet from mid priority queue
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::TransactionPacket,
-                                   createDummyPacketHandler(init_data, "TX_PH", 20));
+  packets_handler->registerHandler<DummyTransactionPacketHandler>(init_data, "TX_PH", 20);
 
   // Handler for packet from low priority queue
-  packets_handler->registerHandler(tarcap::SubprotocolPacketType::StatusPacket,
-                                   createDummyPacketHandler(init_data, "STATUS_PH", 20));
+  packets_handler->registerHandler<DummyStatusPacketHandler>(init_data, "STATUS_PH", 20);
 
   // Creates threadpool
   size_t threads_num = 10;

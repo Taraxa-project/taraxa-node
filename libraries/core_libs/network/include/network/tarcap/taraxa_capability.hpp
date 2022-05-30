@@ -24,6 +24,7 @@ class NextVotesManager;
 class DagManager;
 class DagBlockManager;
 class TransactionManager;
+enum class TransactionStatus;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {
@@ -42,6 +43,10 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
                    addr_t const &node_addr = {});
 
   virtual ~TaraxaCapability() = default;
+  TaraxaCapability(const TaraxaCapability &ro) = delete;
+  TaraxaCapability &operator=(const TaraxaCapability &ro) = delete;
+  TaraxaCapability(TaraxaCapability &&ro) = delete;
+  TaraxaCapability &operator=(TaraxaCapability &&ro) = delete;
 
   // CapabilityFace implemented interface
   std::string name() const override;
@@ -72,8 +77,8 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
 
   void restartSyncingPbft(bool force = false);
   bool pbft_syncing() const;
-  void onNewBlockVerified(DagBlock const &blk, bool proposed, SharedTransactions &&trxs);
-  void onNewTransactions(SharedTransactions &&transactions);
+  void onNewBlockVerified(DagBlock &&blk, bool proposed, SharedTransactions &&trxs);
+  void onNewTransactions(std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> &&transactions);
   void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
   void onNewPbftVote(std::shared_ptr<Vote> &&vote);
   void broadcastPreviousRoundNextVotesBundle();
@@ -135,9 +140,8 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   // Main Threadpool for processing packets
   std::shared_ptr<TarcapThreadPool> thread_pool_;
 
-  // TODO: refactor this: we could have some shared global threadpool for periodic events ?
-  // Fake threadpool (1 thread) for periodic events like printing summary logs, packets stats, etc...
-  util::ThreadPool periodic_events_tp_;
+  // Threadpool for periodic and delayed events
+  std::shared_ptr<util::ThreadPool> periodic_events_tp_;
 
   LOG_OBJECTS_DEFINE
 };

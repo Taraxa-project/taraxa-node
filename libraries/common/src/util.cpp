@@ -34,4 +34,11 @@ std::string getFormattedVersion(std::initializer_list<uint32_t> list) {
   return ret.substr(0, ret.size() - 1);
 }
 
+std::vector<uint64_t> asUInt64Vector(const Json::Value &json) {
+  std::vector<uint64_t> v;
+  v.reserve(json.size());
+  std::transform(json.begin(), json.end(), std::back_inserter(v),
+                 [](const Json::Value &item) { return item.asUInt64(); });
+  return v;
+}
 }  // namespace taraxa

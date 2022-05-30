@@ -11,17 +11,18 @@ namespace taraxa::network::tarcap {
 
 class PbftSyncingState;
 
-class GetPbftSyncPacketHandler : public PacketHandler {
+class GetPbftSyncPacketHandler final : public PacketHandler {
  public:
   GetPbftSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                            std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
                            std::shared_ptr<DbStorage> db, size_t network_sync_level_size, const addr_t& node_addr,
                            bool is_light_node = false, uint64_t light_node_history = 0);
 
-  virtual ~GetPbftSyncPacketHandler() = default;
-
   void sendPbftBlocks(dev::p2p::NodeID const& peer_id, size_t height_to_sync, size_t blocks_to_transfer,
                       bool pbft_chain_synced);
+
+  // Packet type that is processed by this handler
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetPbftSyncPacket;
 
  private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;

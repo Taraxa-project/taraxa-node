@@ -1,6 +1,10 @@
+#pragma once
+
+#include <string_view>
+
 namespace taraxa::cli {
 
-const char *mainnet_json = R"foo({
+constexpr std::string_view mainnet_json = R"foo({
   "node_secret": "",
   "vrf_secret": "",
   "data_path": "",
@@ -174,6 +178,21 @@ const char *mainnet_json = R"foo({
           {
             "type": "file",
             "file_name": "TaraxaNetwork_N1_%m%d%Y_%H%M%S_%5N.log",
+            "rotation_size": 10000000,
+            "time_based_rotation": "0,0,0",
+            "format": "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
+            "max_size": 1000000000
+          }
+        ]
+      },
+      {
+        "name": "debug",
+        "on": false,
+        "verbosity": "DEBUG",
+        "outputs": [
+          {
+            "type": "file",
+            "file_name": "debug/TaraxaDebug_N1_%m%d%Y_%H%M%S_%5N.log",
             "rotation_size": 10000000,
             "time_based_rotation": "0,0,0",
             "format": "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",

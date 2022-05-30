@@ -29,7 +29,7 @@ SyncBlock createBlock(uint64_t period, uint16_t efficiency, size_t dag_blocks_co
   auto trx_per_block = effective_transactions / dag_blocks_count;
 
   for (uint32_t i = 0; i < trx_hashes.size(); ++i) {
-    b.transactions.push_back(Transaction());
+    b.transactions.push_back(std::make_shared<Transaction>());
   }
 
   for (size_t i = 0; i < dag_blocks_count; ++i) {

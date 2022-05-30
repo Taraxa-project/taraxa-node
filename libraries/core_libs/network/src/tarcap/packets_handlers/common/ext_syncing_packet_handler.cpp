@@ -41,11 +41,19 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
     LOG(log_si_) << "Restarting syncing PBFT from peer " << peer->getId() << ", peer PBFT chain size "
                  << peer->pbft_chain_size_ << ", own PBFT chain synced at period " << pbft_sync_period;
 
+    const auto node_id = peer->getId();
+
     pbft_syncing_state_->setPbftSyncing(true, pbft_sync_period, std::move(peer));
 
     // Handle case where syncing peer just disconnected
     if (!syncPeerPbft(pbft_sync_period + 1)) {
-      return restartSyncingPbft(true);
+      // Only restart syncing if peer is actually disconnected and removed from peers_state, otherwise there is a risk
+      // of endless recursion
+      if (peers_state_->getPeer(node_id) == nullptr) {
+        return restartSyncingPbft(true);
+      }
+      pbft_syncing_state_->setPbftSyncing(false);
+      return;
     }
 
     // Disable snapshots only if are syncing from scratch

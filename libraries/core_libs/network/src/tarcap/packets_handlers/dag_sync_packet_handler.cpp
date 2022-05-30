@@ -58,7 +58,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
   }
 
   uint64_t transactions_count = (*it++).toInt<uint64_t>();
-  SharedTransactions new_transactions;
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> new_transactions;
   std::string transactions_to_log;
   for (uint64_t i = 0; i < transactions_count; i++) {
     std::shared_ptr<Transaction> trx;
@@ -75,14 +75,27 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
       continue;
     }
 
-    if (const auto [is_valid, reason] = trx_mgr_->verifyTransaction(trx); !is_valid) {
-      std::ostringstream err_msg;
-      err_msg << "DagBlock transaction " << trx->getHash() << " validation failed: " << reason;
-
-      throw MaliciousPeerException(err_msg.str());
+    const auto [status, reason] = trx_mgr_->verifyTransaction(trx);
+    switch (status) {
+      case TransactionStatus::Invalid: {
+        std::ostringstream err_msg;
+        err_msg << "DagBlock transaction " << trx->getHash() << " validation failed: " << reason;
+        throw MaliciousPeerException(err_msg.str());
+      }
+      case TransactionStatus::InsufficentBalance:
+      case TransactionStatus::LowNonce: {
+        if (peer->reportSuspiciousPacket()) {
+          std::ostringstream err_msg;
+          err_msg << "Suspicious packets over the limit on DagBlock transaction " << trx->getHash()
+                  << " validation: " << reason;
+          throw MaliciousPeerException(err_msg.str());
+        }
+        break;
+      }
+      case TransactionStatus::Verified:
+        break;
     }
-
-    new_transactions.push_back(std::move(trx));
+    new_transactions.push_back({std::move(trx), std::move(status)});
   }
 
   trx_mgr_->insertValidatedTransactions(std::move(new_transactions));

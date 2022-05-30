@@ -38,8 +38,13 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
               std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
               std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-              std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk);
+              std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk,
+              uint32_t max_levels_per_period = kMaxLevelsPerPeriod);
   ~PbftManager();
+  PbftManager(const PbftManager &) = delete;
+  PbftManager(PbftManager &&) = delete;
+  PbftManager &operator=(const PbftManager &) = delete;
+  PbftManager &operator=(PbftManager &&) = delete;
 
   void setNetwork(std::weak_ptr<Network> network);
   void start();
@@ -89,10 +94,13 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void setMaxWaitForSoftVotedBlock_ms(uint64_t wait_ms);
   void setMaxWaitForNextVotedBlock_ms(uint64_t wait_ms);
 
-  static blk_hash_t calculateOrderHash(std::vector<blk_hash_t> const &dag_block_hashes,
-                                       std::vector<trx_hash_t> const &trx_hashes);
-  static blk_hash_t calculateOrderHash(std::vector<DagBlock> const &dag_blocks,
-                                       std::vector<Transaction> const &transactions);
+  static blk_hash_t calculateOrderHash(const std::vector<blk_hash_t> &dag_block_hashes,
+                                       const std::vector<trx_hash_t> &trx_hashes);
+  static blk_hash_t calculateOrderHash(const std::vector<DagBlock> &dag_blocks, const SharedTransactions &transactions);
+
+  bool checkBlockWeight(const SyncBlock &block) const;
+
+  uint64_t getFinalizedDPOSPeriod() const { return dpos_period_; }
 
  private:
   // DPOS
@@ -247,10 +255,14 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   blk_hash_t dag_genesis_;
 
+  const PbftConfig &config_;
+
   std::condition_variable stop_cv_;
   std::mutex stop_mtx_;
 
   SyncBlockQueue sync_queue_;
+
+  const uint32_t max_levels_per_period_;
 
   // TODO: will remove later, TEST CODE
   void countVotes_();

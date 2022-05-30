@@ -50,12 +50,18 @@ enum PbftMgrVotedValue : uint8_t { OwnStartingValueInRound = 0, SoftVotedBlockHa
 
 class DbException : public std::exception {
  public:
-  explicit DbException(string const& desc) : desc_(desc) {}
-  virtual ~DbException() {}
+  explicit DbException(const std::string& desc) : desc_(desc) {}
+  virtual ~DbException() = default;
+
+  DbException(const DbException&) = default;
+  DbException(DbException&&) = default;
+  DbException& operator=(const DbException&) = delete;
+  DbException& operator=(DbException&&) = delete;
+
   virtual const char* what() const noexcept { return desc_.c_str(); }
 
  private:
-  string desc_;
+  const std::string desc_;
 };
 
 class DbStorage : public std::enable_shared_from_this<DbStorage> {
@@ -129,8 +135,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   fs::path path_;
   fs::path db_path_;
   fs::path state_db_path_;
-  const std::string db_dir = "db";
-  const std::string state_db_dir = "state_db";
+  const std::string kDbDir_ = "db";
+  const std::string kStateDbDir_ = "state_db";
   std::unique_ptr<rocksdb::DB> db_;
   std::vector<rocksdb::ColumnFamilyHandle*> handles_;
   rocksdb::ReadOptions read_options_;
@@ -138,12 +144,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::mutex dag_blocks_mutex_;
   std::atomic<uint64_t> dag_blocks_count_;
   std::atomic<uint64_t> dag_edge_count_;
-  uint32_t db_snapshot_each_n_pbft_block_ = 0;
-  bool snapshot_enable_ = true;
-  uint32_t db_max_snapshots_ = 0;
+  const uint32_t kDbSnapshotsEachNblock_ = 0;
+  std::atomic<bool> snapshots_enabled_ = true;
+  const uint32_t kDbSnapshotsMaxCount_ = 0;
   std::set<uint64_t> snapshots_;
-  const bool is_light_node_ = false;
-  const uint64_t light_node_history_ = 0;
 
   bool minor_version_changed_ = false;
 
@@ -152,14 +156,15 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   LOG_OBJECTS_DEFINE
 
  public:
-  DbStorage(DbStorage const&) = delete;
-  DbStorage& operator=(DbStorage const&) = delete;
-
   explicit DbStorage(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block = 0, uint32_t max_open_files = 0,
                      uint32_t db_max_snapshots = 0, uint32_t db_revert_to_period = 0, addr_t node_addr = addr_t(),
-                     bool is_light_node = false, uint64_t light_node_history = 0, bool rebuild = false,
-                     bool rebuild_columns = false);
+                     bool rebuild = false, bool rebuild_columns = false);
   ~DbStorage();
+
+  DbStorage(const DbStorage&) = delete;
+  DbStorage(DbStorage&&) = delete;
+  DbStorage& operator=(const DbStorage&) = delete;
+  DbStorage& operator=(DbStorage&&) = delete;
 
   auto const& path() const { return path_; }
   auto dbStoragePath() const { return db_path_; }
@@ -178,13 +183,11 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // Period data
   void savePeriodData(const SyncBlock& sync_block, Batch& write_batch);
-  void clearPeriodDataHistory(uint64_t period, uint64_t dag_expiry_period, bool force = false);
+  void clearPeriodDataHistory(uint64_t period);
   dev::bytes getPeriodDataRaw(uint64_t period) const;
   std::optional<PbftBlock> getPbftBlock(uint64_t period) const;
   blk_hash_t getPeriodBlockHash(uint64_t period) const;
-  std::optional<std::vector<Transaction>> getPeriodTransactions(uint64_t period) const;
-  uint64_t getLightNodeHistory() const { return light_node_history_; }
-  bool isLightNode() const { return is_light_node_; }
+  std::optional<SharedTransactions> getPeriodTransactions(uint64_t period) const;
 
   // DAG
   void saveDagBlock(DagBlock const& blk, Batch* write_batch_p = nullptr);
@@ -197,7 +200,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void removeDagBlockBatch(Batch& write_batch, blk_hash_t const& hash);
   void removeDagBlock(blk_hash_t const& hash);
   // Sortition params
-  void saveSortitionParamsChange(uint64_t period, SortitionParamsChange params, DbStorage::Batch& batch);
+  void saveSortitionParamsChange(uint64_t period, const SortitionParamsChange& params, DbStorage::Batch& batch);
   std::deque<SortitionParamsChange> getLastSortitionParams(size_t count);
   std::optional<SortitionParamsChange> getParamsChangeForPeriod(uint64_t period);
 

@@ -142,8 +142,9 @@ TEST_F(P2PTest, capability_send_block) {
                {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, sig_t(7777), blk_hash_t(888),
                addr_t(999));
 
-  SharedTransactions transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
-  thc2->onNewTransactions(std::move(transactions));
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> transactions{
+      {g_signed_trx_samples[0], TransactionStatus::Verified}, {g_signed_trx_samples[1], TransactionStatus::Verified}};
+  thc2->onNewTransactions(std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>>(transactions));
   std::vector<taraxa::bytes> transactions_raw;
   transactions_raw.push_back(g_signed_trx_samples[0]->rlp());
   transactions_raw.push_back(g_signed_trx_samples[1]->rlp());
@@ -159,8 +160,8 @@ TEST_F(P2PTest, capability_send_block) {
   }
   EXPECT_EQ(rtransactions.size(), 2);
   if (rtransactions.size() == 2) {
-    EXPECT_EQ(Transaction(*transactions[0]), rtransactions[g_signed_trx_samples[0]->getHash()]);
-    EXPECT_EQ(Transaction(*transactions[1]), rtransactions[g_signed_trx_samples[1]->getHash()]);
+    EXPECT_EQ(*transactions[0].first, *rtransactions[g_signed_trx_samples[0]->getHash()]);
+    EXPECT_EQ(*transactions[1].first, *rtransactions[g_signed_trx_samples[1]->getHash()]);
   }
 }
 
@@ -257,11 +258,12 @@ TEST_F(P2PTest, block_propagate) {
                {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, sig_t(7777), blk_hash_t(0),
                addr_t(999));
 
-  SharedTransactions transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
-  thc1->onNewTransactions(std::move(transactions));
-  SharedTransactions transactions2;
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> transactions{
+      {g_signed_trx_samples[0], TransactionStatus::Verified}, {g_signed_trx_samples[1], TransactionStatus::Verified}};
+  thc1->onNewTransactions(std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>>(transactions));
+  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> transactions2;
   thc1->onNewTransactions(std::move(transactions2));
-  thc1->onNewBlockReceived(std::move(blk));
+  thc1->onNewBlockReceived(DagBlock(blk));
 
   std::vector<taraxa::bytes> transactions_raw;
   transactions_raw.push_back(g_signed_trx_samples[0]->rlp());
@@ -288,8 +290,8 @@ TEST_F(P2PTest, block_propagate) {
     auto rtransactions = vCapabilities[i]->test_state_->getTransactions();
     EXPECT_EQ(rtransactions.size(), 2);
     if (rtransactions.size() == 2) {
-      EXPECT_EQ(Transaction(*transactions[0]), rtransactions[g_signed_trx_samples[0]->getHash()]);
-      EXPECT_EQ(Transaction(*transactions[1]), rtransactions[g_signed_trx_samples[1]->getHash()]);
+      EXPECT_EQ(*transactions[0].first, *rtransactions[g_signed_trx_samples[0]->getHash()]);
+      EXPECT_EQ(*transactions[1].first, *rtransactions[g_signed_trx_samples[1]->getHash()]);
     }
   }
   EXPECT_EQ(blocks1.size(), 1);

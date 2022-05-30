@@ -32,7 +32,7 @@ Json::Value Test::insert_dag_block(const Json::Value &param1) {
       blk_hash_t hash = blk_hash_t(param1["hash"].asString());
       addr_t sender = addr_t(param1["sender"].asString());
 
-      DagBlock blk(pivot, 0, tips, {}, signature, hash, sender);
+      DagBlock blk(pivot, 0, tips, {}, {}, signature, hash, sender);
       res = blk.getJsonStr();
       node->getDagManager()->addDagBlock(std::move(blk), {});
     }
@@ -122,12 +122,12 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
       bytes data;
       // get trx receiving time stamp
       auto now = getCurrentTimeMilliSeconds();
-      taraxa::Transaction trx(nonce, value, gas_price, gas, data, sk, receiver);
-      LOG(log_time) << "Transaction " << trx.getHash() << " received at: " << now;
+      auto trx = std::make_shared<Transaction>(nonce, value, gas_price, gas, data, sk, receiver);
+      LOG(log_time) << "Transaction " << trx->getHash() << " received at: " << now;
       if (auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(trx); !ok) {
         res["status"] = err_msg;
       } else {
-        res = toHex(trx.rlp());
+        res = toHex(trx->rlp());
       }
     }
   } catch (std::exception &e) {

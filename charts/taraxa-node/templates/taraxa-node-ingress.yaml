@@ -1,0 +1,107 @@
+{{ if .Values.node.enabled }}
+{{- if .Values.node.ingress.enabled -}}
+{{- $fullName := include "taraxa-node.fullname" . -}}
+{{- $apiIsStable := eq (include "taraxa-node.ingress.isStable" .) "true" -}}
+{{- $ingressSupportsPathType := eq (include "taraxa-node.ingress.supportsPathType" .) "true" -}}
+{{- $serviceName := printf "%s-%s" (include "taraxa-node.fullname" .) "head" -}}
+
+{{- $servicePortRpc := 7777 -}}
+{{- $servicePortRpcWs := 8777 -}}
+{{- range .Values.node.service.ports }}
+  {{ if eq .name "rest"}} {{ $servicePortRpc = .port }} {{ end }}
+  {{ if eq .name "ws"}} {{ $servicePortRpcWs = .port }} {{ end }}
+{{- end }}
+
+{{- $pathType := .Values.node.ingress.pathType | default "ImplementationSpecific" -}}
+---
+apiVersion: {{ include "taraxa-node.ingress.apiVersion" . }}
+kind: Ingress
+metadata:
+  name: {{ $fullName }}-rpc
+  labels:
+    app: taraxa-node
+    app.kubernetes.io/name: {{ include "taraxa-node.name" . }}
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  {{- with .Values.node.ingress.annotationsRpc }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+{{- if $apiIsStable }}
+{{- if .Values.node.ingress.ingressClassName }}
+  ingressClassName: {{ .Values.node.ingress.ingressClassName }}
+{{- end }}
+{{- end }}
+  {{- if .Values.wildCertDomainSecret }}
+  tls:
+    - hosts:
+        - {{ include "taraxa-node.rpcName" . | quote }}
+      secretName: {{ .Values.wildCertDomainSecret }}
+  {{- end }}
+  rules:
+    - host: {{ include "taraxa-node.rpcName" . | quote }}
+      http:
+        paths:
+          - path: /
+            {{- if and $pathType $ingressSupportsPathType }}
+            pathType: {{ $pathType }}
+            {{- end }}
+            backend:
+              {{- if $apiIsStable }}
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePortRpc }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePortRpc }}
+              {{- end }}
+---
+apiVersion: {{ include "taraxa-node.ingress.apiVersion" . }}
+kind: Ingress
+metadata:
+  name: {{ $fullName }}-ws
+  labels:
+    app: taraxa-node
+    app.kubernetes.io/name: {{ include "taraxa-node.name" . }}
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  {{- with .Values.node.ingress.annotationsRpcWS }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+{{- if $apiIsStable }}
+{{- if .Values.node.ingress.ingressClassName }}
+  ingressClassName: {{ .Values.node.ingress.ingressClassName }}
+{{- end }}
+{{- end }}
+  {{- if .Values.wildCertDomainSecret }}
+  tls:
+    - hosts:
+        - {{ include "taraxa-node.wsName" . | quote }}
+      secretName: {{ .Values.wildCertDomainSecret }}
+  {{- end }}
+  rules:
+    - host: {{ include "taraxa-node.wsName" . | quote }}
+      http:
+        paths:
+          - path: /
+            {{- if and $pathType $ingressSupportsPathType }}
+            pathType: {{ $pathType }}
+            {{- end }}
+            backend:
+              {{- if $apiIsStable }}
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePortRpcWs }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePortRpcWs }}
+              {{- end }}
+{{- end }}
+{{- end }}

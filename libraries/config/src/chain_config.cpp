@@ -37,6 +37,7 @@ Json::Value enc_json(ChainConfig const& obj) {
   json["pbft"] = enc_json(obj.pbft);
   json["final_chain"] = enc_json(obj.final_chain);
   json["gas_price"] = enc_json(obj.gas_price);
+  json["dag"] = enc_json(obj.dag);
   return json;
 }
 
@@ -49,6 +50,7 @@ void dec_json(Json::Value const& json, ChainConfig& obj) {
   dec_json(json["pbft"], obj.pbft);
   dec_json(json["final_chain"], obj.final_chain);
   dec_json(json["gas_price"], obj.gas_price);
+  dec_json(json["dag"], obj.dag);
 }
 
 const ChainConfig& ChainConfig::predefined(std::string const& name) {
@@ -75,8 +77,6 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     })"));
     cfg.final_chain.state.disable_block_rewards = true;
     cfg.final_chain.state.eth_chain_config.dao_fork_block = state_api::BlockNumberNIL;
-    cfg.final_chain.state.execution_options.disable_nonce_check = true;
-    cfg.final_chain.state.execution_options.disable_gas_fee = true;
     auto& dpos = cfg.final_chain.state.dpos.emplace();
     dpos.eligibility_balance_threshold = 1000000000;
     dpos.vote_eligibility_balance_step = 1000000000;
@@ -93,11 +93,15 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     cfg.pbft.dag_blocks_size = 100;
     cfg.pbft.ghost_path_move_back = 1;
     cfg.pbft.run_count_votes = false;
+    cfg.pbft.gas_limit = 60000000;
+    // DAG config
+    cfg.dag.gas_limit = 10000000;
     return cfg;
   }();
   cfgs["test"] = [&] {
     auto cfg = cfgs["default"];
     cfg.chain_id = 12345;
+    cfg.final_chain.state.execution_options.disable_gas_fee = true;
     cfg.final_chain.state.genesis_balances[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")] =
         u256(7200999050) * 10000000000000000;  // https://ethereum.stackexchange.com/a/74832
     return cfg;

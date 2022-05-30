@@ -16,6 +16,11 @@ class GasPricer {
             std::shared_ptr<DbStorage> db = {});
   ~GasPricer();
 
+  GasPricer(const GasPricer &) = delete;
+  GasPricer(GasPricer &&) = delete;
+  GasPricer &operator=(const GasPricer &) = delete;
+  GasPricer &operator=(GasPricer &&) = delete;
+
   /**
    * @brief returns current gas price
    *
@@ -28,7 +33,7 @@ class GasPricer {
    *
    * @param trxs from latest block
    */
-  void update(const Transactions& trxs);
+  void update(const SharedTransactions &trxs);
 
  private:
   /**
@@ -36,7 +41,7 @@ class GasPricer {
    *
    * @param db
    */
-  void init(std::shared_ptr<DbStorage> db);
+  void init(const std::shared_ptr<DbStorage> &db);
 
   const uint64_t kPercentile_;
   const bool kIsLightNode_;

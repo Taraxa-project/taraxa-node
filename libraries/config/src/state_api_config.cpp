@@ -94,15 +94,17 @@ Json::Value enc_json(ExecutionOptions const& obj) {
   Json::Value json(Json::objectValue);
   json["disable_nonce_check"] = obj.disable_nonce_check;
   json["disable_gas_fee"] = obj.disable_gas_fee;
+  json["enable_nonce_skipping"] = obj.enable_nonce_skipping;
   return json;
 }
 
 void dec_json(Json::Value const& json, ExecutionOptions& obj) {
   obj.disable_nonce_check = json["disable_nonce_check"].asBool();
   obj.disable_gas_fee = json["disable_gas_fee"].asBool();
+  obj.enable_nonce_skipping = json["enable_nonce_skipping"].asBool();
 }
 
-RLP_FIELDS_DEFINE(ExecutionOptions, disable_nonce_check, disable_gas_fee)
+RLP_FIELDS_DEFINE(ExecutionOptions, disable_nonce_check, disable_gas_fee, enable_nonce_skipping)
 RLP_FIELDS_DEFINE(ETHChainConfig, homestead_block, dao_fork_block, eip_150_block, eip_158_block, byzantium_block,
                   constantinople_block, petersburg_block)
 RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, vote_eligibility_balance_step, deposit_delay,

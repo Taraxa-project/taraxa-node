@@ -26,7 +26,13 @@ class FinalChain {
   decltype(block_finalized_emitter_)::Subscriber const& block_finalized_ = block_finalized_emitter_;
   decltype(block_applying_emitter_)::Subscriber const& block_applying_ = block_applying_emitter_;
 
+  FinalChain() = default;
   virtual ~FinalChain() = default;
+  FinalChain(const FinalChain&) = delete;
+  FinalChain(FinalChain&&) = delete;
+  FinalChain& operator=(const FinalChain&) = delete;
+  FinalChain& operator=(FinalChain&&) = delete;
+
   virtual void stop() = 0;
 
   using finalize_precommit_ext = std::function<void(FinalizationResult const&, DB::Batch&)>;
@@ -39,15 +45,20 @@ class FinalChain {
   virtual std::optional<EthBlockNumber> block_number(h256 const& h) const = 0;
   virtual std::optional<h256> block_hash(std::optional<EthBlockNumber> n = {}) const = 0;
   struct TransactionHashes {
-    virtual ~TransactionHashes() {}
+    TransactionHashes() = default;
+    virtual ~TransactionHashes() = default;
+    TransactionHashes(const TransactionHashes&) = default;
+    TransactionHashes(TransactionHashes&&) = default;
+    TransactionHashes& operator=(const TransactionHashes&) = default;
+    TransactionHashes& operator=(TransactionHashes&&) = default;
 
     virtual size_t count() const = 0;
     virtual h256 get(size_t i) const = 0;
   };
 
-  virtual void update_state_config(const state_api::Config& new_config) const = 0;
+  virtual void update_state_config(const state_api::Config& new_config) = 0;
   virtual std::shared_ptr<TransactionHashes> transaction_hashes(std::optional<EthBlockNumber> n = {}) const = 0;
-  virtual Transactions transactions(std::optional<EthBlockNumber> n = {}) const = 0;
+  virtual SharedTransactions transactions(std::optional<EthBlockNumber> n = {}) const = 0;
   virtual std::optional<TransactionLocation> transaction_location(h256 const& trx_hash) const = 0;
   virtual std::optional<TransactionReceipt> transaction_receipt(h256 const& _transactionHash) const = 0;
   virtual uint64_t transactionCount(std::optional<EthBlockNumber> n = {}) const = 0;
@@ -71,9 +82,6 @@ class FinalChain {
   virtual bool dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const = 0;
   virtual state_api::DPOSQueryResult dpos_query(state_api::DPOSQuery const& q,
                                                 std::optional<EthBlockNumber> blk_n = {}) const = 0;
-
-  virtual bool is_nonce_valid(const addr_t& addr, const trx_nonce_t& nonce) const = 0;
-
   // TODO move out of here:
 
   std::pair<val_t, bool> getBalance(addr_t const& addr) const {

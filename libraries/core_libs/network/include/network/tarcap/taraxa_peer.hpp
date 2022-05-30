@@ -16,8 +16,8 @@ class TaraxaPeer : public boost::noncopyable {
         known_transactions_(100000, 10000),
         known_pbft_blocks_(10000, 1000),
         known_votes_(10000, 1000) {}
-  explicit TaraxaPeer(dev::p2p::NodeID id)
-      : id_(std::move(id)),
+  explicit TaraxaPeer(const dev::p2p::NodeID &id)
+      : id_(id),
         known_dag_blocks_(10000, 1000),
         known_transactions_(100000, 10000),
         known_pbft_blocks_(10000, 1000),
@@ -65,6 +65,24 @@ class TaraxaPeer : public boost::noncopyable {
 
   const dev::p2p::NodeID &getId() const { return id_; }
 
+  /**
+   * @brief Reports suspicious pacet
+   *
+   * @return true in case suspicious packet count within current minute is greater than kMaxSuspiciousPacketPerMinute
+   */
+  bool reportSuspiciousPacket() {
+    uint64_t now =
+        std::chrono::duration_cast<std::chrono::minutes>(std::chrono::system_clock::now().time_since_epoch()).count();
+    // Reset counter if no suspicious packet sent for over a minute
+    if (now > timestamp_suspicious_packet_) {
+      suspicious_packet_count_ = 1;
+      timestamp_suspicious_packet_ = now;
+    } else {
+      suspicious_packet_count_++;
+    }
+    return suspicious_packet_count_ > kMaxSuspiciousPacketPerMinute;
+  }
+
   std::atomic<bool> syncing_ = false;
   std::atomic<uint64_t> dag_level_ = 0;
   std::atomic<uint64_t> pbft_chain_size_ = 0;
@@ -88,6 +106,10 @@ class TaraxaPeer : public boost::noncopyable {
   // PBFT
   ExpirationCache<blk_hash_t> known_pbft_blocks_;
   ExpirationCache<vote_hash_t> known_votes_;  // for peers
+
+  std::atomic<uint64_t> timestamp_suspicious_packet_ = 0;
+  std::atomic<uint64_t> suspicious_packet_count_ = 0;
+  const uint64_t kMaxSuspiciousPacketPerMinute = 1000;
 };
 
 }  // namespace taraxa::network::tarcap

@@ -15,7 +15,7 @@ struct TransactionLocationWithBlockHash : TransactionLocation {
 };
 
 struct LocalisedTransaction {
-  Transaction trx{};
+  std::shared_ptr<Transaction> trx;
   std::optional<TransactionLocationWithBlockHash> trx_loc{};
 };
 

@@ -1,6 +1,10 @@
+#pragma once
+
+#include <string_view>
+
 namespace taraxa::cli {
 
-const char *default_json = R"foo({
+constexpr std::string_view default_json = R"foo({
   "node_secret": "",
   "vrf_secret": "",
   "data_path": "",
@@ -135,6 +139,21 @@ const char *default_json = R"foo({
             "max_size": 1000000000
           }
         ]
+      },
+      {
+        "name": "debug",
+        "on": false,
+        "verbosity": "DEBUG",
+        "outputs": [
+          {
+            "type": "file",
+            "file_name": "debug/TaraxaDebug_N1_%m%d%Y_%H%M%S_%5N.log",
+            "rotation_size": 10000000,
+            "time_based_rotation": "0,0,0",
+            "format": "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
+            "max_size": 1000000000
+          }
+        ]
       }
     ]
   },
@@ -179,7 +198,8 @@ const char *default_json = R"foo({
         },
         "execution_options": {
           "disable_gas_fee": false,
-          "disable_nonce_check": true
+          "disable_nonce_check": false,
+          "enable_nonce_skipping": true
         },
         "genesis_balances": {
           "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027e72f1f12813088000000",
@@ -200,7 +220,11 @@ const char *default_json = R"foo({
       "dag_blocks_size": "0x32",
       "ghost_path_move_back": "0x0",
       "lambda_ms_min": "0x29a",
-      "run_count_votes": false
+      "run_count_votes": false,
+      "gas_limit": "0x3938700" 
+    },
+    "dag": {
+      "gas_limit": "0x989680" 
     },
     "replay_protection_service": {
       "range": "0xa"

@@ -32,7 +32,6 @@ auto g_secret = Lazy([] {
 });
 auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 auto g_trx_signed_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
-auto g_mock_dag0 = Lazy([] { return samples::createMockDag0(); });
 
 void send_dummy_trx() {
   std::string dummy_trx =
@@ -468,7 +467,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       }
       auto result = trx_clients[0].coinTransfer(KeyPair::create().address(), 0, KeyPair::create(), false);
       EXPECT_NE(result.stage, TransactionClient::TransactionStage::created);
-      transactions.emplace(result.trx.getHash());
+      transactions.emplace(result.trx->getHash());
     }
 
     void coin_transfer(int sender_node_i, addr_t const &to, val_t const &amount, bool verify_executed = true) {
@@ -480,7 +479,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       }
       auto result = trx_clients[sender_node_i].coinTransfer(to, amount, {}, verify_executed);
       EXPECT_NE(result.stage, TransactionClient::TransactionStage::created);
-      transactions.emplace(result.trx.getHash());
+      transactions.emplace(result.trx->getHash());
       if (verify_executed)
         EXPECT_EQ(result.stage, TransactionClient::TransactionStage::executed);
       else
@@ -754,10 +753,10 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   auto nodes = launch_nodes(node_cfgs);
   auto &node = nodes[0];
 
-  g_mock_dag0 = samples::createMockDag1(node->getConfig().chain.dag_genesis_block.getHash().toString());
+  auto mock_dags = samples::createMockDag1(node->getConfig().chain.dag_genesis_block.getHash().toString());
 
   for (int i = 1; i <= 9; i++) {
-    node->getDagManager()->addDagBlock(g_mock_dag0[i]);
+    node->getDagManager()->addDagBlock(std::move(mock_dags[i]));
   }
   // -------- first period ----------
 
@@ -783,7 +782,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   // -------- second period ----------
 
   for (int i = 10; i <= 16; i++) {
-    node->getDagManager()->addDagBlock(g_mock_dag0[i]);
+    node->getDagManager()->addDagBlock(std::move(mock_dags[i]));
   }
 
   ret = node->getDagManager()->getLatestPivotAndTips();
@@ -806,8 +805,8 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
 
   // -------- third period ----------
 
-  for (size_t i = 17; i < g_mock_dag0->size(); i++) {
-    node->getDagManager()->addDagBlock(g_mock_dag0[i]);
+  for (size_t i = 17; i < mock_dags.size(); i++) {
+    node->getDagManager()->addDagBlock(std::move(mock_dags[i]));
   }
 
   ret = node->getDagManager()->getLatestPivotAndTips();
@@ -878,15 +877,16 @@ TEST_F(FullNodeTest, reconstruct_dag) {
   unsigned long vertices3 = 0;
   unsigned long vertices4 = 0;
 
-  auto num_blks = g_mock_dag0->size();
+  auto mock_dags = samples::createMockDag0(node_cfgs.front().chain.dag_genesis_block.getHash().toString());
+  auto num_blks = mock_dags.size();
+
   {
     auto node = create_nodes(node_cfgs, true /*start*/).front();
-    g_mock_dag0 = samples::createMockDag0(node->getConfig().chain.dag_genesis_block.getHash().toString());
 
     taraxa::thisThreadSleepForMilliSeconds(100);
 
     for (size_t i = 1; i < num_blks; i++) {
-      node->getDagManager()->addDagBlock(g_mock_dag0[i]);
+      node->getDagManager()->addDagBlock(DagBlock(mock_dags[i]));
     }
 
     taraxa::thisThreadSleepForMilliSeconds(100);
@@ -906,7 +906,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
     // TODO: pbft does not support node stop yet, to be fixed ...
     node->getPbftManager()->stop();
     for (size_t i = 1; i < num_blks; i++) {
-      node->getDagManager()->addDagBlock(g_mock_dag0[i]);
+      node->getDagManager()->addDagBlock(std::move(mock_dags[i]));
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
     vertices3 = node->getDagManager()->getNumVerticesInDag().first;
@@ -927,10 +927,10 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
 
   // send 1000 trxs
   for (const auto &trx : samples::createSignedTrxSamples(0, 400, g_secret)) {
-    nodes[0]->getTransactionManager()->insertTransaction(*trx);
+    nodes[0]->getTransactionManager()->insertTransaction(trx);
   }
   for (const auto &trx : samples::createSignedTrxSamples(400, 1000, g_secret)) {
-    nodes[1]->getTransactionManager()->insertTransaction(*trx);
+    nodes[1]->getTransactionManager()->insertTransaction(trx);
   }
 
   auto num_trx1 = nodes[0]->getTransactionManager()->getTransactionCount();
@@ -967,10 +967,10 @@ TEST_F(FullNodeTest, persist_counter) {
 
     // send 1000 trxs
     for (const auto &trx : samples::createSignedTrxSamples(0, 400, g_secret)) {
-      nodes[0]->getTransactionManager()->insertTransaction(*trx);
+      nodes[0]->getTransactionManager()->insertTransaction(trx);
     }
     for (const auto &trx : samples::createSignedTrxSamples(400, 1000, g_secret)) {
-      nodes[1]->getTransactionManager()->insertTransaction(*trx);
+      nodes[1]->getTransactionManager()->insertTransaction(trx);
     }
 
     num_trx1 = nodes[0]->getTransactionManager()->getTransactionCount();
@@ -1086,12 +1086,13 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
 
   std::cout << "First trx executed ..." << std::endl;
   std::cout << "Send second trx ..." << std::endl;
+  // Will be rejected same nonce
   EXPECT_FALSE(system(send_raw_trx2.c_str()));
 
   EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 2)
-    WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), 2)
-    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first, 3)
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 1)
+    WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), 1)
+    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first, 2)
   });
 }
 
@@ -1127,18 +1128,19 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
   EXPECT_EQ(trx_executed1, 1);
   std::cout << "First trx executed ..." << std::endl;
   std::cout << "Send second trx ..." << std::endl;
+  // Will be rejected same nonce
   EXPECT_FALSE(system(send_raw_trx2.c_str()));
 
   trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
 
   for (unsigned i(0); i < SYNC_TIMEOUT; ++i) {
     trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
-    if (trx_executed1 == 2) break;
+    if (trx_executed1 == 1) break;
     thisThreadSleepForMilliSeconds(1000);
   }
-  EXPECT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), 2);
-  EXPECT_GE(nodes[0]->getDagManager()->getNumVerticesInDag().first, 3);
-  EXPECT_EQ(trx_executed1, 2);
+  EXPECT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), 1);
+  EXPECT_GE(nodes[0]->getDagManager()->getNumVerticesInDag().first, 2);
+  EXPECT_EQ(trx_executed1, 1);
 }
 
 TEST_F(FullNodeTest, save_network_to_file) {
@@ -1186,14 +1188,13 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   // Even distribute coins from master boot node to other nodes. Since master
   // boot node owns whole coins, the active players should be only master boot
   // node at the moment.
-  auto gas_price = 0;
-  auto data = bytes();
-  auto nonce = 0;
+  const auto gas_price = 1;
+  auto nonce = 1;
   uint64_t trxs_count = 0;
   auto test_transfer_val = node_1_genesis_bal / node_cfgs.size();
   for (size_t i(1); i < nodes.size(); ++i) {
-    Transaction master_boot_node_send_coins(nonce++, test_transfer_val, gas_price, 100000, data,
-                                            nodes[0]->getSecretKey(), nodes[i]->getAddress());
+    auto master_boot_node_send_coins = std::make_shared<Transaction>(
+        nonce++, test_transfer_val, gas_price, 100000, bytes(), nodes[0]->getSecretKey(), nodes[i]->getAddress());
     // broadcast trx and insert
     nodes[0]->getTransactionManager()->insertTransaction(master_boot_node_send_coins);
     trxs_count++;
@@ -1206,7 +1207,8 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions, expected " << trxs_count << std::endl;
         if (ctx.fail(); !ctx.is_last_attempt) {
-          Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
+          auto dummy_trx = std::make_shared<Transaction>(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(),
+                                                         nodes[0]->getAddress());
           // broadcast dummy transaction
           nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
           trxs_count++;
@@ -1233,8 +1235,9 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     // Each node sends 500 transactions
     auto j = 0;
     for (; j < 500; j++) {
-      Transaction send_coins_in_robin_cycle(nonce++, send_coins, gas_price, 100000, data, nodes[i]->getSecretKey(),
-                                            nodes[receiver_index]->getAddress());
+      auto send_coins_in_robin_cycle =
+          std::make_shared<Transaction>(nonce++, send_coins, gas_price, 100000, bytes(), nodes[i]->getSecretKey(),
+                                        nodes[receiver_index]->getAddress());
       // broadcast trx and insert
       nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle);
       trxs_count++;
@@ -1249,7 +1252,8 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions, expected " << trxs_count << std::endl;
         if (ctx.fail(); !ctx.is_last_attempt) {
-          Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
+          auto dummy_trx = std::make_shared<Transaction>(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(),
+                                                         nodes[0]->getAddress());
           // broadcast dummy transaction
           nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
           trxs_count++;
@@ -1324,8 +1328,8 @@ TEST_F(FullNodeTest, db_rebuild) {
 
     // Issue dummy trx until at least 10 pbft blocks created
     while (executed_chain_size < 10) {
-      Transaction dummy_trx(nonce++, 0, gas_price, TEST_TX_GAS_LIMIT, bytes(), nodes[0]->getSecretKey(),
-                            nodes[0]->getAddress());
+      auto dummy_trx = std::make_shared<Transaction>(nonce++, 0, gas_price, TEST_TX_GAS_LIMIT, bytes(),
+                                                     nodes[0]->getSecretKey(), nodes[0]->getAddress());
       nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
       trxs_count++;
       thisThreadSleepForMilliSeconds(100);
@@ -1399,7 +1403,8 @@ TEST_F(FullNodeTest, transfer_to_self) {
   uint64_t trx_count(100);
   EXPECT_TRUE(initial_bal.second);
   for (uint64_t i = 0; i < trx_count; ++i) {
-    const auto trx = Transaction(i, i * 100, 0, 1000000, str2bytes("00FEDCBA9876543210000000"), g_secret, node_addr);
+    const auto trx = std::make_shared<Transaction>(i, i * 100, 0, 1000000, str2bytes("00FEDCBA9876543210000000"),
+                                                   g_secret, node_addr);
     nodes[0]->getTransactionManager()->insertTransaction(trx);
   }
   thisThreadSleepForSeconds(5);
@@ -1425,7 +1430,8 @@ TEST_F(FullNodeTest, chain_config_json) {
     "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
     "timestamp": "0x5d422b80",
     "tips": [],
-    "transactions": []
+    "transactions": [],
+    "trx_estimations" : []
   },
   "final_chain": {
     "genesis_block_fields": {
@@ -1452,8 +1458,9 @@ TEST_F(FullNodeTest, chain_config_json) {
         "petersburg_block": "0x0"
       },
       "execution_options": {
-        "disable_gas_fee": true,
-        "disable_nonce_check": true
+        "disable_gas_fee": false,
+        "disable_nonce_check": false,
+        "enable_nonce_skipping": false
       },
       "genesis_balances": {
       },
@@ -1472,7 +1479,11 @@ TEST_F(FullNodeTest, chain_config_json) {
     "ghost_path_move_back": "0x1",
     "lambda_ms_min": "0x7d0",
     "number_of_proposers" : "0x14",
-    "run_count_votes": false
+    "run_count_votes": false,
+    "gas_limit": "0x3938700" 
+  },
+  "dag": {
+    "gas_limit": "0x989680" 
   },
   "sortition": {
       "changes_count_for_average": 10,
@@ -1519,58 +1530,119 @@ TEST_F(FullNodeTest, transaction_validation) {
   auto nodes = launch_nodes(node_cfgs);
   uint32_t nonce = 0;
 
-  auto trx = Transaction(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  auto trx = std::make_shared<Transaction>(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
+                                           addr_t::random());
   // PASS on GAS
   EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
-  trx = Transaction(nonce++, 1, 1, FinalChain::GAS_LIMIT + 1, str2bytes("00FEDCBA9876543210000000"), g_secret,
-                    addr_t::random());
+  trx = std::make_shared<Transaction>(nonce++, 1, 1, FinalChain::GAS_LIMIT + 1, str2bytes("00FEDCBA9876543210000000"),
+                                      g_secret, addr_t::random());
   // FAIL on GAS
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 
-  trx = Transaction(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  trx = std::make_shared<Transaction>(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
+                                      addr_t::random());
   // PASS on NONCE
   EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
   wait({60s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), 2) });
-  trx = Transaction(0, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  trx = std::make_shared<Transaction>(0, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
   // FAIL on NONCE
-  // THIS IS DISABLED BY DEFAULT check final_chain to enable
-  // EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
+  EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 
-  trx = Transaction(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  trx = std::make_shared<Transaction>(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
+                                      addr_t::random());
   // PASS on BALANCE
   EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 
-  trx = Transaction(nonce++, own_effective_genesis_bal(nodes[0]->getConfig()) + 1, 1, 100,
-                    str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  trx = std::make_shared<Transaction>(nonce++, own_effective_genesis_bal(nodes[0]->getConfig()) + 1, 1, 100,
+                                      str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
   // FAIL on BALANCE
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 }
 
 TEST_F(FullNodeTest, light_node) {
-  auto node_cfgs = make_node_cfgs<20, true>(2);
+  auto node_cfgs = make_node_cfgs<10, true>(2);
   node_cfgs[0].is_light_node = true;
   node_cfgs[0].light_node_history = 10;
+  node_cfgs[0].dag_expiry_limit = 5;
+  node_cfgs[0].max_levels_per_period = 3;
+  node_cfgs[1].dag_expiry_limit = 5;
+  node_cfgs[1].max_levels_per_period = 3;
   auto nodes = launch_nodes(node_cfgs);
   uint64_t nonce = 0;
-  while (nodes[0]->getPbftChain()->getPbftChainSize() < 40) {
-    Transaction dummy_trx(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
+  while (nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks() < 20) {
+    auto dummy_trx =
+        std::make_shared<Transaction>(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
     // broadcast dummy transaction
-    nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
+    nodes[1]->getTransactionManager()->insertTransaction(dummy_trx);
     thisThreadSleepForMilliSeconds(200);
   }
   EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
     // Verify full node and light node sync without any issues
-    WAIT_EXPECT_EQ(ctx, nodes[0]->getPbftChain()->getPbftChainSize(), nodes[1]->getPbftChain()->getPbftChainSize())
+    WAIT_EXPECT_EQ(ctx, nodes[0]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(),
+                   nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks())
   });
-  uint32_t min_period_in_db = 0;
+  uint32_t non_empty_counter = 0;
   for (uint64_t i = 0; i < nodes[0]->getPbftChain()->getPbftChainSize(); i++) {
-    if (nodes[0]->getDB()->getPeriodDataRaw(i).size() > 0) {
-      min_period_in_db = i;
-      break;
+    const auto pbft_block = nodes[0]->getDB()->getPbftBlock(i);
+    if (pbft_block) {
+      non_empty_counter++;
     }
   }
   // Verify light node stores only expected number of period_data
-  EXPECT_GT(min_period_in_db, nodes[0]->getPbftChain()->getPbftChainSize() - node_cfgs[0].light_node_history - 1);
+  EXPECT_GE(non_empty_counter, node_cfgs[0].light_node_history);
+  EXPECT_LE(non_empty_counter, node_cfgs[0].light_node_history + 1);
+}
+
+TEST_F(FullNodeTest, clear_period_data) {
+  auto node_cfgs = make_node_cfgs<10, true>(2);
+  node_cfgs[0].is_light_node = true;
+  node_cfgs[0].light_node_history = 4;
+  node_cfgs[0].dag_expiry_limit = 15;
+  node_cfgs[0].max_levels_per_period = 3;
+  node_cfgs[1].dag_expiry_limit = 15;
+  node_cfgs[1].max_levels_per_period = 3;
+  auto nodes = launch_nodes(node_cfgs);
+  uint64_t nonce = 0;
+  while (nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks() < 20) {
+    auto dummy_trx =
+        std::make_shared<Transaction>(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
+    // broadcast dummy transaction
+    nodes[1]->getTransactionManager()->insertTransaction(dummy_trx);
+    thisThreadSleepForMilliSeconds(200);
+  }
+  EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
+    // Verify full node and light node sync without any issues
+    WAIT_EXPECT_EQ(ctx, nodes[0]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks(),
+                   nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks())
+  });
+  uint32_t non_empty_counter = 0;
+  uint64_t last_anchor_level;
+  for (uint64_t i = 0; i < nodes[0]->getPbftChain()->getPbftChainSize(); i++) {
+    const auto pbft_block = nodes[0]->getDB()->getPbftBlock(i);
+    if (pbft_block && pbft_block->getPivotDagBlockHash() != NULL_BLOCK_HASH) {
+      non_empty_counter++;
+      last_anchor_level = nodes[0]->getDB()->getDagBlock(pbft_block->getPivotDagBlockHash())->getLevel();
+    }
+  }
+  uint32_t first_over_limit = 0;
+  for (uint64_t i = 0; i < nodes[1]->getPbftChain()->getPbftChainSize(); i++) {
+    const auto pbft_block = nodes[1]->getDB()->getPbftBlock(i);
+    if (pbft_block && pbft_block->getPivotDagBlockHash() != NULL_BLOCK_HASH) {
+      if (nodes[1]->getDB()->getDagBlock(pbft_block->getPivotDagBlockHash())->getLevel() +
+              node_cfgs[0].dag_expiry_limit >=
+          last_anchor_level) {
+        first_over_limit = i;
+        break;
+      }
+    }
+  }
+
+  std::cout << "Non empty counter: " << non_empty_counter << std::endl;
+  std::cout << "Last anchor level: " << last_anchor_level << std::endl;
+  std::cout << "First over limit: " << first_over_limit << std::endl;
+
+  // Verify light node does not delete non expired dag blocks
+  EXPECT_TRUE(nodes[0]->getDB()->getPbftBlock(first_over_limit));
 }
 
 }  // namespace taraxa::core_tests

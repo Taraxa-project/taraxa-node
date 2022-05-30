@@ -1,0 +1,22 @@
+{{- $fullName := include "taraxa-node.fullname" . -}}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $fullName }}-explorer-check
+  labels:
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  entrypoint.sh: |-
+    #!/bin/sh
+    set -e
+
+    HOST="http://{{ .Release.Name }}-explorer/api/address/0x0000000000000000000000000000000000000000"
+
+    echo "Checking host ${HOST}"
+    while [ $(curl -L -sw '%{http_code}' ${HOST} -o /dev/null) -ne 200 ]; do
+      sleep 5
+      echo 'Waiting for the explorer...'
+    done

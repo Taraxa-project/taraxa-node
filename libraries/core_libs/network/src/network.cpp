@@ -6,6 +6,8 @@
 
 #include <boost/tokenizer.hpp>
 
+#include "transaction/transaction_manager.hpp"
+
 namespace taraxa {
 
 Network::Network(NetworkConfig const &config, std::filesystem::path const &network_file_path, dev::KeyPair const &key,
@@ -45,8 +47,7 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
                                                                              dag_blk_mgr, trx_mgr, key.address());
     return dev::p2p::Host::CapabilityList{taraxa_capability_};
   };
-  host_ = dev::p2p::Host::make(net_version, construct_capabilities, key, net_conf, std::move(taraxa_net_conf),
-                               network_file_path);
+  host_ = dev::p2p::Host::make(net_version, construct_capabilities, key, net_conf, taraxa_net_conf, network_file_path);
 
   for (uint i = 0; i < tp_.capacity(); ++i) {
     tp_.post_loop({100 + i * 20}, [this] {
@@ -84,14 +85,15 @@ std::vector<dev::p2p::NodeID> Network::getAllPeersIDs() const {
   return taraxa_capability_->getPeersState()->getAllPeersIDs();
 }
 
-void Network::onNewBlockVerified(DagBlock const &blk, bool proposed, SharedTransactions &&trxs) {
-  taraxa_capability_->onNewBlockVerified(blk, proposed, std::move(trxs));
+void Network::onNewBlockVerified(DagBlock &&blk, bool proposed, SharedTransactions &&trxs) {
   LOG(log_dg_) << "On new block verified:" << blk.getHash().toString();
+  taraxa_capability_->onNewBlockVerified(std::move(blk), proposed, std::move(trxs));
 }
 
-void Network::onNewTransactions(SharedTransactions &&transactions) {
-  taraxa_capability_->onNewTransactions(std::move(transactions));
+void Network::onNewTransactions(
+    std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> &&transactions) {
   LOG(log_tr_) << "On new transactions" << transactions.size();
+  taraxa_capability_->onNewTransactions(std::move(transactions));
 }
 
 void Network::restartSyncingPbft(bool force) {

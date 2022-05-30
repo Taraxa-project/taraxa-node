@@ -10,7 +10,7 @@ namespace taraxa::network::tarcap {
 
 class TestState;
 
-class DagBlockPacketHandler : public ExtSyncingPacketHandler {
+class DagBlockPacketHandler final : public ExtSyncingPacketHandler {
  public:
   DagBlockPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                         std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
@@ -18,11 +18,12 @@ class DagBlockPacketHandler : public ExtSyncingPacketHandler {
                         std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
                         std::shared_ptr<DbStorage> db, std::shared_ptr<TestState> test_state, const addr_t &node_addr);
 
-  virtual ~DagBlockPacketHandler() = default;
-
   void sendBlock(dev::p2p::NodeID const &peer_id, DagBlock block, const SharedTransactions &trxs);
   void onNewBlockReceived(DagBlock &&block, const std::shared_ptr<TaraxaPeer> &peer = nullptr);
-  void onNewBlockVerified(DagBlock const &block, bool proposed, SharedTransactions &&trxs);
+  void onNewBlockVerified(DagBlock &&block, bool proposed, SharedTransactions &&trxs);
+
+  // Packet type that is processed by this handler
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::DagBlockPacket;
 
  private:
   void validatePacketRlpFormat(const PacketData &packet_data) const override;

@@ -6,12 +6,12 @@
 #include <vector>
 
 #include "common/types.hpp"
+#include "transaction/transaction.hpp"
 
 namespace taraxa {
 
 class Vote;
 class PbftBlock;
-struct Transaction;
 class DagBlock;
 
 class SyncBlock {
@@ -24,7 +24,7 @@ class SyncBlock {
   std::shared_ptr<PbftBlock> pbft_blk;
   std::vector<std::shared_ptr<Vote>> cert_votes;
   std::vector<DagBlock> dag_blocks;
-  std::vector<Transaction> transactions;
+  SharedTransactions transactions;
   bytes rlp() const;
   void clear();
   void hasEnoughValidCertVotes(size_t valid_sortition_players, size_t sortition_threshold, size_t pbft_2t_plus_1,

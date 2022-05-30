@@ -25,7 +25,7 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
                          std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                          std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
-                         secret_t node_sk, vrf_sk_t vrf_sk)
+                         secret_t node_sk, vrf_sk_t vrf_sk, uint32_t max_levels_per_period)
     : db_(db),
       next_votes_manager_(next_votes_mgr),
       pbft_chain_(pbft_chain),
@@ -43,9 +43,10 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
       DAG_BLOCKS_SIZE(conf.dag_blocks_size),
       GHOST_PATH_MOVE_BACK(conf.ghost_path_move_back),
       RUN_COUNT_VOTES(conf.run_count_votes),
-      dag_genesis_(genesis) {
+      dag_genesis_(genesis),
+      config_(conf),
+      max_levels_per_period_(max_levels_per_period) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
-  db_->clearPeriodDataHistory(pbft_chain_->getPbftChainSize(), pbft_chain_->getDagExpiryPeriod(), true);
 }
 
 PbftManager::~PbftManager() { stop(); }
@@ -1130,8 +1131,8 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
   return weight;
 }
 
-blk_hash_t PbftManager::calculateOrderHash(std::vector<blk_hash_t> const &dag_block_hashes,
-                                           std::vector<trx_hash_t> const &trx_hashes) {
+blk_hash_t PbftManager::calculateOrderHash(const std::vector<blk_hash_t> &dag_block_hashes,
+                                           const std::vector<trx_hash_t> &trx_hashes) {
   if (dag_block_hashes.empty()) {
     return NULL_BLOCK_HASH;
   }
@@ -1147,8 +1148,7 @@ blk_hash_t PbftManager::calculateOrderHash(std::vector<blk_hash_t> const &dag_bl
   return dev::sha3(order_stream.out());
 }
 
-blk_hash_t PbftManager::calculateOrderHash(std::vector<DagBlock> const &dag_blocks,
-                                           std::vector<Transaction> const &trxs) {
+blk_hash_t PbftManager::calculateOrderHash(const std::vector<DagBlock> &dag_blocks, const SharedTransactions &trxs) {
   if (dag_blocks.empty()) {
     return NULL_BLOCK_HASH;
   }
@@ -1159,9 +1159,19 @@ blk_hash_t PbftManager::calculateOrderHash(std::vector<DagBlock> const &dag_bloc
   }
   order_stream.appendList(trxs.size());
   for (auto const &trx : trxs) {
-    order_stream << trx.getHash();
+    order_stream << trx->getHash();
   }
   return dev::sha3(order_stream.out());
+}
+
+std::optional<blk_hash_t> findClosestAnchor(const std::vector<blk_hash_t> &ghost,
+                                            const std::vector<blk_hash_t> &dag_order, uint32_t included) {
+  for (uint32_t i = included; i > 0; i--) {
+    if (std::count(ghost.begin(), ghost.end(), dag_order[i - 1])) {
+      return dag_order[i - 1];
+    }
+  }
+  return ghost[1];
 }
 
 blk_hash_t PbftManager::proposePbftBlock_() {
@@ -1238,13 +1248,16 @@ blk_hash_t PbftManager::proposePbftBlock_() {
   // get DAG block and transaction order
   const auto propose_period = pbft_chain_->getPbftChainSize() + 1;
   auto dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash, propose_period);
+
   if (dag_block_order.empty()) {
     LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlockOrder failed in propose";
     assert(false);
   }
-  std::vector<trx_hash_t> non_finalized_transactions;
+
   std::unordered_set<trx_hash_t> trx_hashes_set;
   std::vector<trx_hash_t> trx_hashes;
+  u256 total_weight = 0;
+  uint32_t dag_blocks_included = 0;
   for (auto const &blk_hash : dag_block_order) {
     auto dag_blk = dag_blk_mgr_->getDagBlock(blk_hash);
     if (!dag_blk) {
@@ -1252,12 +1265,51 @@ blk_hash_t PbftManager::proposePbftBlock_() {
                    << blk_hash;
       assert(false);
     }
-    for (auto const &trx_hash : dag_blk->getTrxs()) {
+    u256 dag_block_weight = 0;
+    const auto &estimations = dag_blk->getTrxsGasEstimations();
+
+    int32_t i = 0;
+    for (const auto &trx_hash : dag_blk->getTrxs()) {
       if (trx_hashes_set.emplace(trx_hash).second) {
         trx_hashes.emplace_back(trx_hash);
+        dag_block_weight += estimations[i];
+      }
+      i++;
+    }
+    if (total_weight + dag_block_weight > config_.gas_limit) {
+      // we need to form new list of transactions after clipping if block is overweighted
+      trx_hashes.clear();
+      break;
+    }
+    total_weight += dag_block_weight;
+    dag_blocks_included++;
+  }
+
+  if (dag_blocks_included != dag_block_order.size()) {
+    auto closest_anchor = findClosestAnchor(ghost, dag_block_order, dag_blocks_included);
+    if (!closest_anchor) {
+      LOG(log_er_) << "Can't find closest anchor after block clipping. Ghost: " << ghost << ". Clipped block_order: "
+                   << vec_blk_t(dag_block_order.begin(), dag_block_order.begin() + dag_blocks_included);
+      assert(false);
+    }
+
+    dag_block_hash = closest_anchor.value();
+    dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash, propose_period);
+  }
+  if (trx_hashes.empty()) {
+    std::unordered_set<trx_hash_t> trx_set;
+    std::vector<trx_hash_t> transactions_to_query;
+    for (auto const &dag_blk_hash : dag_block_order) {
+      auto dag_block = dag_blk_mgr_->getDagBlock(dag_blk_hash);
+      assert(dag_block);
+      for (auto const &trx_hash : dag_block->getTrxs()) {
+        if (trx_set.insert(trx_hash).second) {
+          trx_hashes.emplace_back(trx_hash);
+        }
       }
     }
   }
+  std::vector<trx_hash_t> non_finalized_transactions;
   auto trx_finalized = db_->transactionsFinalized(trx_hashes);
   for (uint32_t i = 0; i < trx_finalized.size(); i++) {
     if (!trx_finalized[i]) {
@@ -1286,7 +1338,7 @@ h256 PbftManager::getProposal(const std::shared_ptr<Vote> &vote) const {
     vrf_hash.iter = i;
     auto tmp_hash = vrf_hash.getHash();
     if (lowest_hash > tmp_hash) {
-      lowest_hash = std::move(tmp_hash);
+      lowest_hash = tmp_hash;
     }
   }
   return lowest_hash;
@@ -1451,7 +1503,6 @@ std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(s
     cert_sync_block_.dag_blocks.emplace_back(std::move(*dag_block));
   }
   std::vector<trx_hash_t> non_finalized_transactions;
-
   auto trx_finalized = db_->transactionsFinalized(transactions_to_query);
   for (uint32_t i = 0; i < trx_finalized.size(); i++) {
     if (!trx_finalized[i]) {
@@ -1464,7 +1515,7 @@ std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(s
   cert_sync_block_.transactions.reserve(transactions.size());
   for (const auto &trx : transactions) {
     non_finalized_transactions.push_back(trx->getHash());
-    cert_sync_block_.transactions.push_back(*trx);
+    cert_sync_block_.transactions.push_back(trx);
   }
 
   auto calculated_order_hash = calculateOrderHash(dag_blocks_order, non_finalized_transactions);
@@ -1474,6 +1525,20 @@ std::pair<vec_blk_t, bool> PbftManager::comparePbftBlockScheduleWithDAGblocks_(s
                  << ". Dag order: " << dag_blocks_order << ". Trx order: " << non_finalized_transactions;
     dag_blocks_order.clear();
     return std::make_pair(std::move(dag_blocks_order), false);
+  }
+
+  auto last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
+  if (last_pbft_block_hash) {
+    auto prev_pbft_block = pbft_chain_->getPbftBlockInChain(last_pbft_block_hash);
+
+    std::vector<blk_hash_t> ghost;
+    dag_mgr_->getGhostPath(prev_pbft_block.getPivotDagBlockHash(), ghost);
+    if (ghost.size() > 1 && anchor_hash != ghost[1]) {
+      if (!checkBlockWeight(cert_sync_block_)) {
+        LOG(log_er_) << "PBFT block " << pbft_block->getBlockHash() << " is overweighted";
+        return std::make_pair(std::move(dag_blocks_order), false);
+      }
+    }
   }
 
   cert_sync_block_.pbft_blk = std::move(pbft_block);
@@ -1494,14 +1559,16 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
     return false;
   }
 
-  auto dag_blocks_order = comparePbftBlockScheduleWithDAGblocks_(pbft_block);
-  if (!dag_blocks_order.second) {
+  // TODO: refactor. Call of comparePbftBlockScheduleWithDAGblocks_ fills cert_sync_block_ which is not obvious
+  auto [dag_blocks_order, ok] = comparePbftBlockScheduleWithDAGblocks_(pbft_block);
+  if (!ok) {
     LOG(log_nf_) << "DAG has not build up for PBFT block " << cert_voted_block_hash;
     return false;
   }
 
   cert_sync_block_.cert_votes = std::move(cert_votes_for_round);
-  if (!pushPbftBlock_(std::move(cert_sync_block_), std::move(dag_blocks_order.first))) {
+
+  if (!pushPbftBlock_(std::move(cert_sync_block_), std::move(dag_blocks_order))) {
     LOG(log_er_) << "Failed push PBFT block " << pbft_block->getBlockHash() << " into chain";
     return false;
   }
@@ -1549,7 +1616,7 @@ void PbftManager::finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalize
 
   auto result = final_chain_->finalize(
       std::move(sync_block), std::move(finalized_dag_blk_hashes),
-      [this, weak_ptr = weak_from_this(), anchor_hash = std::move(anchor), period = sync_block.pbft_blk->getPeriod()](
+      [this, weak_ptr = weak_from_this(), anchor_hash = anchor, period = sync_block.pbft_blk->getPeriod()](
           auto const &, auto &batch) {
         // Update proposal period DAG levels map
         auto ptr = weak_ptr.lock();
@@ -1566,7 +1633,7 @@ void PbftManager::finalize_(SyncBlock &&sync_block, std::vector<h256> &&finalize
           assert(false);
         }
 
-        db_->addProposalPeriodDagLevelsMapToBatch(anchor->getLevel() + kMaxLevelsPerPeriod, period, batch);
+        db_->addProposalPeriodDagLevelsMapToBatch(anchor->getLevel() + max_levels_per_period_, period, batch);
       });
 
   if (sync) {
@@ -1632,8 +1699,6 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
     // update PBFT chain size
     pbft_chain_->updatePbftChain(pbft_block_hash, null_anchor);
   }
-
-  db_->clearPeriodDataHistory(sync_block.pbft_blk->getPeriod(), pbft_chain_->getDagExpiryPeriod());
 
   last_cert_voted_value_ = NULL_BLOCK_HASH;
 
@@ -1868,5 +1933,29 @@ void PbftManager::syncBlockQueuePush(SyncBlock &&block, dev::p2p::NodeID const &
 }
 
 size_t PbftManager::syncBlockQueueSize() const { return sync_queue_.size(); }
+
+std::unordered_map<trx_hash_t, u256> getAllTrxEstimations(const SyncBlock &sync_block) {
+  std::unordered_map<trx_hash_t, u256> result;
+  for (const auto &dag_block : sync_block.dag_blocks) {
+    const auto &transactions = dag_block.getTrxs();
+    const auto &estimations = dag_block.getTrxsGasEstimations();
+    for (uint32_t i = 0; i < transactions.size(); ++i) {
+      result.emplace(transactions[i], estimations[i]);
+    }
+  }
+  return result;
+}
+
+bool PbftManager::checkBlockWeight(const SyncBlock &blk) const {
+  const auto &trx_estimations = getAllTrxEstimations(blk);
+  u256 total_weight = 0;
+  for (const auto &tx : blk.transactions) {
+    total_weight += trx_estimations.at(tx->getHash());
+  }
+  if (total_weight > config_.gas_limit) {
+    return false;
+  }
+  return true;
+}
 
 }  // namespace taraxa

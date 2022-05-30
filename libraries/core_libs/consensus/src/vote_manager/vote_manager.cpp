@@ -12,9 +12,9 @@ constexpr size_t EXTENDED_PARTITION_STEPS = 1000;
 constexpr size_t FIRST_FINISH_STEP = 4;
 
 namespace taraxa {
-VoteManager::VoteManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
-                         std::shared_ptr<NextVotesManager> next_votes_mgr)
-    : node_addr_(std::move(node_addr)),
+VoteManager::VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db,
+                         std::shared_ptr<FinalChain> final_chain, std::shared_ptr<NextVotesManager> next_votes_mgr)
+    : node_addr_(node_addr),
       db_(std::move(db)),
       final_chain_(std::move(final_chain)),
       next_votes_manager_(std::move(next_votes_mgr)) {
@@ -572,7 +572,7 @@ void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& ne
     next_votes_[voted_block_hash].emplace_back(v);
     next_votes_weight_[voted_block_hash] += v->getWeight().value();
 
-    voted_values.insert(std::move(voted_block_hash));
+    voted_values.insert(voted_block_hash);
     next_votes_in_db.emplace_back(v);
   }
 
@@ -594,7 +594,7 @@ void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& ne
       if (voted_value == NULL_BLOCK_HASH) {
         enough_votes_for_null_block_hash_ = true;
       } else {
-        if (voted_value_ != NULL_BLOCK_HASH) {
+        if (voted_value_ != NULL_BLOCK_HASH && voted_value != voted_value_) {
           assertError_(next_votes_.at(voted_value), next_votes_.at(voted_value_));
         }
 

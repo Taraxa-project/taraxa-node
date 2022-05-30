@@ -149,6 +149,9 @@ inline auto make_node_cfgs(uint count) {
       cfg.chain.final_chain.state.genesis_balances[root_node_addr] = 9007199254740991;
       auto& dpos = *cfg.chain.final_chain.state.dpos;
       dpos.genesis_state[root_node_addr][root_node_addr] = dpos.eligibility_balance_threshold;
+      // As test are badly written let's disable it for now
+      cfg.chain.final_chain.state.execution_options.disable_nonce_check = true;
+      cfg.chain.final_chain.state.execution_options.disable_gas_fee = true;
       if constexpr (tests_speed != 1) {
         // VDF config
         cfg.chain.sortition.vrf.threshold_upper = 0xffff;
@@ -245,7 +248,7 @@ struct TransactionClient {
   };
   struct Context {
     TransactionStage stage;
-    Transaction trx;
+    std::shared_ptr<Transaction> trx;
   };
 
  private:
@@ -256,11 +259,11 @@ struct TransactionClient {
   explicit TransactionClient(decltype(node_) node, wait_opts const& wait_opts = {60s, 1s})
       : node_(move(node)), wait_opts_(wait_opts) {}
 
-  void must_process_sync(::taraxa::Transaction const& trx) const {
+  void must_process_sync(std::shared_ptr<Transaction> const& trx) const {
     ASSERT_EQ(process(trx, true).stage, TransactionStage::executed);
   }
 
-  Context process(::taraxa::Transaction const& trx, bool wait_executed = true) const {
+  Context process(std::shared_ptr<Transaction> const& trx, bool wait_executed = true) const {
     Context ctx{
         TransactionStage::created,
         trx,
@@ -269,7 +272,7 @@ struct TransactionClient {
       return ctx;
     }
     ctx.stage = TransactionStage::inserted;
-    auto trx_hash = ctx.trx.getHash();
+    auto trx_hash = ctx.trx->getHash();
     if (wait_executed) {
       auto success = wait(
           wait_opts_, [&, this](auto& ctx) { ctx.fail_if(!node_->getFinalChain()->transaction_location(trx_hash)); });
@@ -290,17 +293,18 @@ struct TransactionClient {
     // we don't wait for previous transactions for a sender to complete before
     // sending a new one
     static std::atomic<uint64_t> nonce = 100000;
-    return process(
-        Transaction(++nonce, val, 0, TEST_TX_GAS_LIMIT, bytes(), from_k ? from_k->secret() : node_->getSecretKey(), to),
-        wait_executed);
+    return process(std::make_shared<Transaction>(++nonce, val, 0, TEST_TX_GAS_LIMIT, bytes(),
+                                                 from_k ? from_k->secret() : node_->getSecretKey(), to),
+                   wait_executed);
   }
 };
 
 inline auto make_dpos_trx(FullNodeConfig const& sender_node_cfg, state_api::DPOSTransfers const& transfers,
                           uint64_t nonce = 0, u256 const& gas_price = 0, uint64_t extra_gas = 0) {
   StateAPI::DPOSTransactionPrototype proto(transfers);
-  return Transaction(nonce, proto.value, gas_price, proto.minimal_gas + extra_gas, std::move(proto.input),
-                     dev::Secret(sender_node_cfg.node_secret), proto.to, sender_node_cfg.chain.chain_id);
+  return std::make_shared<Transaction>(nonce, proto.value, gas_price, proto.minimal_gas + extra_gas,
+                                       std::move(proto.input), dev::Secret(sender_node_cfg.node_secret), proto.to,
+                                       sender_node_cfg.chain.chain_id);
 }
 
 inline auto own_balance(std::shared_ptr<FullNode> const& node) {
@@ -322,7 +326,7 @@ inline std::vector<blk_hash_t> getOrderedDagBlocks(std::shared_ptr<DbStorage> co
     auto pbft_block = db->getPbftBlock(period);
     if (pbft_block.has_value()) {
       for (auto& dag_block_hash : db->getFinalizedDagBlockHashesByPeriod(period)) {
-        res.push_back(std::move(dag_block_hash));
+        res.push_back(dag_block_hash);
       }
       period++;
       continue;

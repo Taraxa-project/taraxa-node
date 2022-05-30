@@ -8,7 +8,7 @@ class NextVotesManager;
 
 namespace taraxa::network::tarcap {
 
-class StatusPacketHandler : public ExtSyncingPacketHandler {
+class StatusPacketHandler final : public ExtSyncingPacketHandler {
  public:
   StatusPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                       std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
@@ -16,10 +16,11 @@ class StatusPacketHandler : public ExtSyncingPacketHandler {
                       std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
                       std::shared_ptr<DbStorage> db, uint64_t conf_network_id, const addr_t& node_addr);
 
-  virtual ~StatusPacketHandler() = default;
-
   bool sendStatus(const dev::p2p::NodeID& node_id, bool initial);
   void sendStatusToPeers();
+
+  // Packet type that is processed by this handler
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::StatusPacket;
 
  private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;
