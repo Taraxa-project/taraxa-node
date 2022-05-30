@@ -193,14 +193,14 @@ constexpr std::string_view testnet_json = R"foo({
       "level": "0x0",
       "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
       "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
-      "timestamp": "0x626FB9AF",
+      "timestamp": "0x62947A63",
       "tips": [],
       "transactions": []
     },
     "final_chain": {
       "genesis_block_fields": {
         "author": "0x0000000000000000000000000000000000000000",
-        "timestamp": "0x626FB9AF"
+        "timestamp": "0x62947A63"
       },
       "state": {
         "disable_block_rewards": true,
@@ -254,10 +254,10 @@ constexpr std::string_view testnet_json = R"foo({
       "ghost_path_move_back": "0x0",
       "lambda_ms_min": "0x5dc",
       "run_count_votes": false,
-      "gas_limit": "0x3938700" 
+      "gas_limit": "0x3938700"
     },
     "dag": {
-      "gas_limit": "0x989680" 
+      "gas_limit": "0x989680"
     },
     "replay_protection_service": {
       "range": "0xa"
