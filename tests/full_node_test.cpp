@@ -1444,6 +1444,10 @@ TEST_F(FullNodeTest, chain_config_json) {
         "deposit_delay": "0x0",
         "eligibility_balance_threshold": "0x3b9aca00",
         "vote_eligibility_balance_step": "0x3b9aca00",
+        "maximum_stake":"0x0",
+        "minimum_deposit":"0x0",
+        "commission_change_delta":"0x0",
+        "commission_change_frequency":"0x0",
         "genesis_state": {
         },
         "withdrawal_delay": "0x0"

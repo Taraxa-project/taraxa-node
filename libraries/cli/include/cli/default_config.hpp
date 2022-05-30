@@ -179,6 +179,10 @@ constexpr std::string_view default_json = R"foo({
           "withdrawal_delay": "0x5",
           "eligibility_balance_threshold": "0xd3c21bcecceda1000000",
           "vote_eligibility_balance_step": "0x152d02c7e14af6800000",
+          "maximum_stake":"0x0",
+          "minimum_deposit":"0x0",
+          "commission_change_delta":"0x0",
+          "commission_change_frequency":"0x0",
           "genesis_state": {
             "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": {
               "0x780fe8b2226cf212c55635de399ee4c2a860810c": "0x84595161401484a000000",
