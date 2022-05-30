@@ -197,6 +197,14 @@ Variables</h2></td></tr>
 <tr class="separator:aafa8b77e0045f2d6b5ff357da833db7d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae7829c4843555cce147992c9fbbd0d94"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#ae7829c4843555cce147992c9fbbd0d94">vote_eligibility_balance_step</a></td></tr>
 <tr class="separator:ae7829c4843555cce147992c9fbbd0d94"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab33c0c95ac0ec45ca7bda7a1deffd9e6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#ab33c0c95ac0ec45ca7bda7a1deffd9e6">maximum_stake</a></td></tr>
+<tr class="separator:ab33c0c95ac0ec45ca7bda7a1deffd9e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a08b81db2b997a29fa4f23480817d27a6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#a08b81db2b997a29fa4f23480817d27a6">minimum_deposit</a></td></tr>
+<tr class="separator:a08b81db2b997a29fa4f23480817d27a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a344e95a80f2468a5d361dd0344a3b347"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#a344e95a80f2468a5d361dd0344a3b347">commission_change_delta</a></td></tr>
+<tr class="separator:a344e95a80f2468a5d361dd0344a3b347"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c00c63852de970de6c87fcc59404454"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#a7c00c63852de970de6c87fcc59404454">commission_change_frequency</a></td></tr>
+<tr class="separator:a7c00c63852de970de6c87fcc59404454"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae3aabb7a5b42763fa23f9126c905d58c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#ae3aabb7a5b42763fa23f9126c905d58c">deposit_delay</a></td></tr>
 <tr class="separator:ae3aabb7a5b42763fa23f9126c905d58c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ffbbfa17d4ce0150290200b697eada9"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#a1ffbbfa17d4ce0150290200b697eada9">withdrawal_delay</a></td></tr>
@@ -219,6 +227,18 @@ Variables</h2></td></tr>
 <div class="textblock"></div><table class="fieldtable">
 <tr><th colspan="3">Class Members</th></tr>
 <tr><td class="fieldtype">
+<a id="a7335fd9b4fd13740b7db232bb3093501"></a>uint16_t</td>
+<td class="fieldname">
+commission_change_delta</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a id="ae9d64d87f671254cc8e1addec649f26d"></a><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a></td>
+<td class="fieldname">
+commission_change_frequency</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
 <a id="a646f250b37acb995026722377092d66a"></a><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a></td>
 <td class="fieldname">
 deposit_delay</td>
@@ -234,6 +254,18 @@ eligibility_balance_threshold</td>
 <a id="ad63597efb7ff6cde413e5becd7a2291f"></a>unordered_map&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>, <a class="el" href="namespacetaraxa_1_1state__api.html#a3c8849f3f4293ae89bd8eaad52d17e3a">BalanceMap</a> &gt;</td>
 <td class="fieldname">
 genesis_state</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a id="ac8b9522bc3e811d6f8ea09a6a985acf0"></a><a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a></td>
+<td class="fieldname">
+maximum_stake</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a id="ad8eb3f9eb0841e339ef13826d264e183"></a><a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a></td>
+<td class="fieldname">
+minimum_deposit</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
@@ -1018,6 +1050,34 @@ template&lt;typename Result &gt; </div>
 
 </div>
 </div>
+<a id="a344e95a80f2468a5d361dd0344a3b347"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a344e95a80f2468a5d361dd0344a3b347">&#9670;&nbsp;</a></span>commission_change_delta</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">taraxa::state_api::commission_change_delta</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7c00c63852de970de6c87fcc59404454"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c00c63852de970de6c87fcc59404454">&#9670;&nbsp;</a></span>commission_change_frequency</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">taraxa::state_api::commission_change_frequency</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ae3aabb7a5b42763fa23f9126c905d58c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae3aabb7a5b42763fa23f9126c905d58c">&#9670;&nbsp;</a></span>deposit_delay</h2>
 
@@ -1040,6 +1100,34 @@ template&lt;typename Result &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">taraxa::state_api::eligibility_balance_threshold</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab33c0c95ac0ec45ca7bda7a1deffd9e6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab33c0c95ac0ec45ca7bda7a1deffd9e6">&#9670;&nbsp;</a></span>maximum_stake</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">taraxa::state_api::maximum_stake</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a08b81db2b997a29fa4f23480817d27a6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a08b81db2b997a29fa4f23480817d27a6">&#9670;&nbsp;</a></span>minimum_deposit</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">taraxa::state_api::minimum_deposit</td>
         </tr>
       </table>
 </div><div class="memdoc">
