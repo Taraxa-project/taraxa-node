@@ -180,7 +180,7 @@ class VoteManager {
    * @brief Get all unverified votes
    * @return all unverified votes
    */
-  std::vector<std::shared_ptr<Vote>> getUnverifiedVotes();
+  std::vector<std::shared_ptr<Vote>> copyUnverifiedVotes();
 
   /**
    * @brief Clear the unverified votes map

@@ -218,13 +218,12 @@ constexpr std::string_view mainnet_json = R"foo({
         "timestamp": "0x61CD9F40"
       },
       "state": {
-        "disable_block_rewards": true,
         "dpos": {
           "deposit_delay": "0x5",
           "withdrawal_delay": "0x5",
           "eligibility_balance_threshold": "0x186A0",
           "vote_eligibility_balance_step": "0x186A0",
-          "maximum_stake":"0x0",
+          "maximum_stake":"0x84595161401484A000000",
           "minimum_deposit":"0x0",
           "commission_change_delta":"0x0",
           "commission_change_frequency":"0x0",
@@ -252,8 +251,11 @@ constexpr std::string_view mainnet_json = R"foo({
           "petersburg_block": "0x0"
         },
         "execution_options": {
+          "disable_block_rewards": true,
           "disable_gas_fee": false,
-          "disable_nonce_check": true
+          "disable_nonce_check": true,
+          "enable_nonce_skipping": true,
+          "disable_stats_rewards": true
         },
         "genesis_balances": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x141e8d17",

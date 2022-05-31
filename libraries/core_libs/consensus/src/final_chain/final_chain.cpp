@@ -3,6 +3,7 @@
 #include "common/constants.hpp"
 #include "common/thread_pool.hpp"
 #include "final_chain/replay_protection_service.hpp"
+#include "final_chain/rewards_stats.hpp"
 #include "final_chain/trie_common.hpp"
 #include "vote/vote.hpp"
 
@@ -89,23 +90,48 @@ class FinalChainImpl final : public FinalChain {
   std::shared_ptr<FinalizationResult> finalize_(SyncBlock&& new_blk, std::vector<h256>&& finalized_dag_blk_hashes,
                                                 finalize_precommit_ext const& precommit_ext) {
     auto batch = db_->createWriteBatch();
-    SharedTransactions to_execute;
-    {
-      // This artificial scope will make sure we clean up the big chunk of memory allocated for this batch-processing
-      // stuff as soon as possible
-      to_execute.reserve(new_blk.transactions.size());
-      for (size_t i = 0; i < new_blk.transactions.size(); ++i) {
-        auto& trx = new_blk.transactions[i];
-        if (!(replay_protection_service_ &&
-              replay_protection_service_->is_nonce_stale(trx->getSender(), trx->getNonce()))) [[likely]] {
-          to_execute.push_back(std::move(trx));
-        }
+
+    // Transactions to be executed in evm
+    SharedTransactions txs_to_execute;
+    txs_to_execute.reserve(new_blk.transactions.size());
+
+    // Dag blocks validators that included transactions to be executed as first in their blocks
+    std::vector<addr_t> txs_to_execute_validators;
+    txs_to_execute_validators.reserve(new_blk.transactions.size());
+
+    // Creates rewards stats
+    RewardsStats rewards_stats;
+    rewards_stats.processStats(new_blk);
+
+    for (size_t i = 0; i < new_blk.transactions.size(); ++i) {
+      auto& tx = new_blk.transactions[i];
+
+      // TODO: if enabled, it would break current implementation of RewardsStats
+      // if (replay_protection_service_ && replay_protection_service_->is_nonce_stale(trx->getSender(),
+      //   trx->getNonce())) {
+      //   rewards_stats.removeTransaction(tx.getHash());
+      //   continue;
+      // }
+
+      // Non-executed trxs
+      auto tx_validator = rewards_stats.getTransactionValidator(tx->getHash());
+      if (!tx_validator.has_value()) {
+        // This should never happen
+        LOG(log_er_) << "Inconsistent reward stats data: unable to find tx validator";
+        assert(false);
       }
+
+      txs_to_execute.push_back(std::move(tx));
+      txs_to_execute_validators.push_back(tx_validator.value());
     }
+    assert(txs_to_execute.size() == txs_to_execute_validators.size());
+
     block_applying_emitter_.emit(block_header()->number + 1);
+
     auto const& [exec_results, state_root] = state_api_.transition_state(
         {new_blk.pbft_blk->getBeneficiary(), GAS_LIMIT, new_blk.pbft_blk->getTimestamp(), BlockHeader::difficulty()},
-        to_state_api_transactions(to_execute));
+        to_state_api_transactions(txs_to_execute), txs_to_execute_validators, {}, rewards_stats);
+
     TransactionReceipts receipts;
     receipts.reserve(exec_results.size());
     gas_t cumulative_gas_used = 0;
@@ -119,27 +145,28 @@ class FinalChainImpl final : public FinalChain {
           r.code_err.empty() && r.consensus_err.empty(),
           r.gas_used,
           cumulative_gas_used += r.gas_used,
-          move(logs),
+          std::move(logs),
           r.new_contract_addr ? std::optional(r.new_contract_addr) : std::nullopt,
       });
     }
     auto blk_header = append_block(batch, new_blk.pbft_blk->getBeneficiary(), new_blk.pbft_blk->getTimestamp(),
-                                   GAS_LIMIT, state_root, to_execute, receipts);
-    if (replay_protection_service_) {
-      // Update replay protection service, like nonce watermark. Nonce watermark has been disabled
-      replay_protection_service_->update(
-          batch, blk_header->number, util::make_range_view(to_execute).map([](auto const& trx) {
-            return ReplayProtectionService::TransactionInfo{trx->getSender(), trx->getNonce()};
-          }));
-    }
+                                   GAS_LIMIT, state_root, txs_to_execute, receipts);
+    //    if (replay_protection_service_) {
+    //      // Update replay protection service, like nonce watermark. Nonce watermark has been disabled
+    //      replay_protection_service_->update(
+    //          batch, blk_header->number, util::make_range_view(txs_to_execute).map([](auto const& trx) {
+    //            return ReplayProtectionService::TransactionInfo{trx->getSender(), trx->getNonce()};
+    //          }));
+    //    }
+
     // Update number of executed DAG blocks and transactions
     auto num_executed_dag_blk = num_executed_dag_blk_ + finalized_dag_blk_hashes.size();
-    auto num_executed_trx = num_executed_trx_ + to_execute.size();
+    auto num_executed_trx = num_executed_trx_ + txs_to_execute.size();
     if (!finalized_dag_blk_hashes.empty()) {
       db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk);
       db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx);
       LOG(log_nf_) << "Executed dag blocks #" << num_executed_dag_blk_ - finalized_dag_blk_hashes.size() << "-"
-                   << num_executed_dag_blk_ - 1 << " , Transactions count: " << to_execute.size();
+                   << num_executed_dag_blk_ - 1 << " , Transactions count: " << txs_to_execute.size();
     }
 
     auto result = std::make_shared<FinalizationResult>(FinalizationResult{
@@ -150,26 +177,31 @@ class FinalChainImpl final : public FinalChain {
             new_blk.pbft_blk->getBlockHash(),
         },
         blk_header,
-        std::move(to_execute),
+        std::move(txs_to_execute),
         std::move(receipts),
     });
+
     if (precommit_ext) {
       precommit_ext(*result, batch);
     }
+
     db_->commitWriteBatch(batch, db_opts_w_);
     state_api_.transition_state_commit();
     {
       std::unique_lock l(last_block_mu_);
       last_block_ = blk_header;
     }
+
     num_executed_dag_blk_ = num_executed_dag_blk;
     num_executed_trx_ = num_executed_trx;
     block_finalized_emitter_.emit(result);
     LOG(log_nf_) << " successful finalize block " << result->hash << " with number " << blk_header->number;
+
     // Creates snapshot if needed
     if (db_->createSnapshot(blk_header->number)) {
       state_api_.create_snapshot(blk_header->number);
     }
+
     return result;
   }
 

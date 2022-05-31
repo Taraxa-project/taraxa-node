@@ -75,11 +75,14 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
       "timestamp": 1564617600,
       "vdf": ""
     })"));
-    cfg.final_chain.state.disable_block_rewards = true;
+    cfg.final_chain.state.execution_options.disable_block_rewards = true;
+    cfg.final_chain.state.execution_options.disable_stats_rewards = true;
+    cfg.final_chain.state.execution_options.disable_gas_fee = true;
     cfg.final_chain.state.eth_chain_config.dao_fork_block = state_api::BlockNumberNIL;
     auto& dpos = cfg.final_chain.state.dpos.emplace();
     dpos.eligibility_balance_threshold = 1000000000;
     dpos.vote_eligibility_balance_step = 1000000000;
+    dpos.maximum_stake = dev::jsToU256("0x84595161401484A000000");
     // VDF config
     cfg.sortition.vrf.threshold_upper = 0xafff;
     cfg.sortition.vrf.threshold_range = 80;
