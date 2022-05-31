@@ -112,15 +112,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void pushSyncedPbftBlocksIntoChain();
 
   /**
-   * @brief Get a vote weight for RPC call
-   * @param type vote type
-   * @param round PBFT round
-   * @param step PBFT step
-   * @return vote weight
-   */
-  uint64_t getVoteWeight(PbftVoteTypes type, uint64_t round, size_t step) const;
-
-  /**
    * @brief Get a DAG block period number
    * @param hash DAG block hash
    * @return true with DAG block period number if the DAG block has been finalized. Otherwise return false

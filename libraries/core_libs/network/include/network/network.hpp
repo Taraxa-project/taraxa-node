@@ -51,7 +51,6 @@ class Network {
   unsigned getNodeCount();
   Json::Value getStatus();
   Json::Value getPacketsStats();
-  std::vector<dev::p2p::NodeID> getAllPeersIDs() const;
   void onNewBlockVerified(DagBlock &&blk, bool proposed, SharedTransactions &&trxs);
   void onNewTransactions(std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> &&transactions);
   void restartSyncingPbft(bool force = false);

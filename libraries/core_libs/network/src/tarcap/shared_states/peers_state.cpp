@@ -42,17 +42,6 @@ std::pair<std::shared_ptr<TaraxaPeer>, bool> PeersState::getAnyPeer(const dev::p
   return {nullptr, false};
 }
 
-std::vector<dev::p2p::NodeID> PeersState::getAllPeersIDs() const {
-  std::vector<dev::p2p::NodeID> peers;
-
-  std::shared_lock lock(peers_mutex_);
-  peers.reserve(peers_.size());
-  std::transform(peers_.begin(), peers_.end(), std::back_inserter(peers),
-                 [](std::pair<const dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> const& peer) { return peer.first; });
-
-  return peers;
-}
-
 std::vector<dev::p2p::NodeID> PeersState::getAllPendingPeersIDs() const {
   std::vector<dev::p2p::NodeID> peers;
 

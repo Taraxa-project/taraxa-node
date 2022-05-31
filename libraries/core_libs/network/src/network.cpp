@@ -81,10 +81,6 @@ Json::Value Network::getStatus() { return taraxa_capability_->getNodeStats()->ge
 
 Json::Value Network::getPacketsStats() { return taraxa_capability_->getNodeStats()->getPacketsStats(); }
 
-std::vector<dev::p2p::NodeID> Network::getAllPeersIDs() const {
-  return taraxa_capability_->getPeersState()->getAllPeersIDs();
-}
-
 void Network::onNewBlockVerified(DagBlock &&blk, bool proposed, SharedTransactions &&trxs) {
   LOG(log_dg_) << "On new block verified:" << blk.getHash().toString();
   taraxa_capability_->onNewBlockVerified(std::move(blk), proposed, std::move(trxs));

@@ -307,13 +307,6 @@ size_t PbftManager::dposEligibleVoteCount_(addr_t const &addr) {
   }
 }
 
-// Only used by RPC call
-uint64_t PbftManager::getVoteWeight(PbftVoteTypes type, uint64_t round, size_t step) const {
-  VrfPbftSortition vrf_sortition(vrf_sk_, {type, round, step});
-  return vrf_sortition.calculateWeight(weighted_votes_count_, getDposTotalVotesCount(), getThreshold(type),
-                                       dev::toPublic(node_sk_));
-}
-
 void PbftManager::setPbftStep(size_t const pbft_step) {
   last_step_ = step_;
   db_->savePbftMgrField(PbftMgrRoundStep::PbftStep, pbft_step);

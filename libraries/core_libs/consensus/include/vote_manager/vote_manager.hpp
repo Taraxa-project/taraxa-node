@@ -244,13 +244,6 @@ class VoteManager {
   void cleanupVotes(uint64_t pbft_round);
 
   /**
-   * @brief Get a bunch of votes in string format
-   * @param votes votes
-   * @return a bunch of votes in string format
-   */
-  std::string getJsonStr(std::vector<std::shared_ptr<Vote>> const& votes);
-
-  /**
    * @brief Get all verified votes in proposal vote type for the current PBFT round
    * @param pbft_round current PBFT round
    * @return all verified votes in proposal vote type for the current PBFT round
