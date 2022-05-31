@@ -236,7 +236,7 @@ constexpr std::string_view testnet_json = R"foo({
           "disable_block_rewards": true,
           "disable_gas_fee": false,
           "disable_nonce_check": false,
-          "enable_nonce_skipping": true
+          "enable_nonce_skipping": true,
           "disable_stats_rewards": true
         },
         "genesis_balances": {
