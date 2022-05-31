@@ -129,6 +129,18 @@ class PivotTree : public Dag {
 class DagBuffer;
 class FullNode;
 
+/**
+ * @brief DagManager class contains in memory representation of part of the DAG that is not yet finalized in a pbft
+ * block.
+ *
+ * DagManager provides ordering of non-finalized DAG block with getDagOrder method. Once a pbft block is finalized
+ * setDagBlockOrder is invoked which removes all the finalized DAG blocks from in memory DAG.
+ * Class is running a dedicated worker thread which inserts new and verified DAG blocks provided by DagBlockManager into
+ * the DAG and updates the state of DAG blocks and transactions blocks consist of by interacting with TransactionManager
+ * class.
+ * DagManager class is thread safe in general with exception of function setDagBlockOrder. See details in function
+ * descriptions.
+ */
 class DagManager : public std::enable_shared_from_this<DagManager> {
  public:
   using ULock = std::unique_lock<std::shared_mutex>;
@@ -147,17 +159,49 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   DagManager &operator=(DagManager &&) = delete;
 
   std::shared_ptr<DagManager> getShared();
+
+  /**
+   * @brief Start the worker thread processing new DAG blocks
+   */
   void start();
+
+  /**
+   * @brief Stop the worker thread and waits until thread exits
+   */
   void stop();
+
   void setNetwork(std::weak_ptr<Network> network) { network_ = std::move(network); }
 
+  /**
+   * @brief Returns DAG genesis block hash
+   */
   blk_hash_t const &get_genesis() { return genesis_; }
 
+  /**
+   * @brief Checks if block pivot and tips are in DAG
+   * @param blk Block to check
+   * @return true if all pivot and tips are in the DAG
+   */
   bool pivotAndTipsAvailable(DagBlock const &blk);
+
+  /**
+   * @brief adds verified DAG block in the DAG
+   * @param trxs Block transactions which are part of the pool, transactions that are already present in a previous DAG
+   * block are excluded
+   * @param proposed if this node proposed the block
+   * @param save if true save block and transactions to database
+   * @return true if block added successfully
+   */
   bool addDagBlock(DagBlock &&blk, SharedTransactions &&trxs = {}, bool proposed = false,
                    bool save = true);  // insert to buffer if fail
 
-  // return block order
+  /**
+   * @brief Retrieves DAG block order for specified anchor. Order should always be the same for the same anchor in the
+   * same period
+   * @param anchor anchor block
+   * @param period period
+   * @return ordered blocks
+   */
   vec_blk_t getDagBlockOrder(blk_hash_t const &anchor, uint64_t period);
 
   /**
@@ -178,8 +222,19 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   std::optional<std::pair<blk_hash_t, std::vector<blk_hash_t>>> getLatestPivotAndTips() const;
 
+  /**
+   * @brief Retrieves ghost path which is ordered list of non finalized pivot blocks for a specific source block
+   * @param source source block
+   * @param ghost returned ordered blocks
+   */
   void getGhostPath(blk_hash_t const &source, std::vector<blk_hash_t> &ghost) const;
+
+  /**
+   * @brief Retrieves ghost path which is ordered list of non finalized pivot blocks for last anchor
+   * @param ghost returned ordered blocks
+   */
   void getGhostPath(std::vector<blk_hash_t> &ghost) const;  // get ghost path from last anchor
+
   // ----- Total graph
   void drawTotalGraph(std::string const &str) const;
 

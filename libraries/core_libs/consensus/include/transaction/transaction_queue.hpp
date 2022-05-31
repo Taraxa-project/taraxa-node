@@ -10,7 +10,16 @@ namespace taraxa {
 
 enum class TransactionStatus;
 /**
- * @brief this is NOT thread safe class. It is proteced only by transactions_mutex_ in the transaction mamanger !!!
+ * @brief TransactionQueue keeps transactions in memory sorted by priority to be included in a proposed DAG block or
+ * which might be required by an incoming DAG block
+ *
+ * TransactionQueue stores two type of transactions: Transactions that can be included in a proposed DAG block and non
+ * proposable transactions which are not to be used for proposal but an incoming DAG block could contain such
+ * transactions. Non proposable transactions can expire if no DAG block that contains them is received within the
+ * kNonProposableTransactionsPeriodExpiryLimit.
+ *
+ * This is NOT thread safe class. It is proteced only by transactions_mutex_
+ * in the TransactionsManager !!!
  *
  */
 class TransactionQueue {
