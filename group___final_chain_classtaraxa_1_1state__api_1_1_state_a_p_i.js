@@ -18,7 +18,7 @@ var group___final_chain_classtaraxa_1_1state__api_1_1_state_a_p_i =
     [ "operator=", "group___final_chain.html#a0053d2c9e2c118c572681ca1055e500b", null ],
     [ "operator=", "group___final_chain.html#a2ef92fcd4156622aa3dfe52a9f0a4f12", null ],
     [ "prove", "group___final_chain.html#a5dbcaade6b9b0d0cb429dafb4a74abba", null ],
-    [ "transition_state", "group___final_chain.html#a1334904a75f9a1084daa21b3aef2615f", null ],
+    [ "transition_state", "group___final_chain.html#a8b93319945cc5e43c1acc5dbf4c57e03", null ],
     [ "transition_state_commit", "group___final_chain.html#a7b5dc95d0aa9a90b7fd37fd3e0593cff", null ],
     [ "update_state_config", "group___final_chain.html#a80acb20cfd3c4b7b4c293657167e849e", null ],
     [ "db_path_", "group___final_chain.html#a2e7fd611f3cc2fcc8a6a3cfbaa858cc0", null ],

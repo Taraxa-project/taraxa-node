@@ -261,6 +261,7 @@ var hierarchy =
     [ "taraxa::final_chain::ReplayProtectionService", "group___final_chain.html#classtaraxa_1_1final__chain_1_1_replay_protection_service", [
       [ "taraxa::final_chain::ReplayProtectionServiceImpl", "classtaraxa_1_1final__chain_1_1_replay_protection_service_impl.html", null ]
     ] ],
+    [ "taraxa::RewardsStats", "classtaraxa_1_1_rewards_stats.html", null ],
     [ "dev::RLP", "classdev_1_1_r_l_p.html", null ],
     [ "taraxa::util::encoding_rlp::RLPDecoderRef", "structtaraxa_1_1util_1_1encoding__rlp_1_1_r_l_p_decoder_ref.html", null ],
     [ "dev::RLPStream", "classdev_1_1_r_l_p_stream.html", null ],
@@ -377,6 +378,7 @@ var hierarchy =
     ] ],
     [ "taraxa::state_api::UncleBlock", "group___final_chain.html#structtaraxa_1_1state__api_1_1_uncle_block", null ],
     [ "dev::p2p::UPnP", "classdev_1_1p2p_1_1_u_pn_p.html", null ],
+    [ "taraxa::RewardsStats::ValidatorStats", "classtaraxa_1_1_rewards_stats.html#structtaraxa_1_1_rewards_stats_1_1_validator_stats", null ],
     [ "taraxa::VdfParams", "namespacetaraxa.html#structtaraxa_1_1_vdf_params", null ],
     [ "dev::vector_ref< _T >", "classdev_1_1vector__ref.html", null ],
     [ "dev::vector_ref<::byte const >", "classdev_1_1vector__ref.html", null ],

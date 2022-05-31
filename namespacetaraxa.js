@@ -39,6 +39,7 @@ var namespacetaraxa =
     [ "PbftManager", "group___p_b_f_t.html#classtaraxa_1_1_pbft_manager", "group___p_b_f_t_classtaraxa_1_1_pbft_manager" ],
     [ "PivotTree", "group___d_a_g.html#classtaraxa_1_1_pivot_tree", "group___d_a_g_classtaraxa_1_1_pivot_tree" ],
     [ "ProposeModelFace", "group___d_a_g.html#classtaraxa_1_1_propose_model_face", "group___d_a_g_classtaraxa_1_1_propose_model_face" ],
+    [ "RewardsStats", "classtaraxa_1_1_rewards_stats.html", "classtaraxa_1_1_rewards_stats" ],
     [ "RpcConfig", "structtaraxa_1_1_rpc_config.html", "structtaraxa_1_1_rpc_config" ],
     [ "SortitionConfig", "structtaraxa_1_1_sortition_config.html", "structtaraxa_1_1_sortition_config" ],
     [ "SortitionParams", "structtaraxa_1_1_sortition_params.html", "structtaraxa_1_1_sortition_params" ],

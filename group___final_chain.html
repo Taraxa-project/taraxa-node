@@ -1570,8 +1570,7 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <p>Method which finalizes a block and executes it in EVM. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">sync_block</td><td>Full block with transactions <br  />
- </td></tr>
+    <tr><td class="paramname">sync_block</td><td>Full block with transactions </td></tr>
     <tr><td class="paramname">finalized_dag_blk_hashes</td><td></td></tr>
     <tr><td class="paramname">precommit_ext</td><td></td></tr>
   </table>
@@ -2612,8 +2611,8 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
 <tr class="separator:ae138ffc47d79be1c7cd497ddb36e72d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab04bdafacc9f54a8df616345ac8e2e34"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_state_descriptor">StateDescriptor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#ab04bdafacc9f54a8df616345ac8e2e34">get_last_committed_state_descriptor</a> () const</td></tr>
 <tr class="separator:ab04bdafacc9f54a8df616345ac8e2e34"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1334904a75f9a1084daa21b3aef2615f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_state_transition_result">StateTransitionResult</a> const  &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a1334904a75f9a1084daa21b3aef2615f">transition_state</a> (<a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_block">EVMBlock</a> const &amp;block, <a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">util::RangeView</a>&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">EVMTransaction</a> &gt; const &amp;transactions, <a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">util::RangeView</a>&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_uncle_block">UncleBlock</a> &gt; const &amp;uncles={})</td></tr>
-<tr class="separator:a1334904a75f9a1084daa21b3aef2615f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b93319945cc5e43c1acc5dbf4c57e03"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_state_transition_result">StateTransitionResult</a> const  &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a8b93319945cc5e43c1acc5dbf4c57e03">transition_state</a> (const <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_block">EVMBlock</a> &amp;block, const <a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">util::RangeView</a>&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">EVMTransaction</a> &gt; &amp;transactions, const <a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">util::RangeView</a>&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &gt; &amp;transactions_validators={}, const <a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">util::RangeView</a>&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_uncle_block">UncleBlock</a> &gt; &amp;uncles={}, const <a class="el" href="classtaraxa_1_1_rewards_stats.html">RewardsStats</a> &amp;rewards_stats={})</td></tr>
+<tr class="separator:a8b93319945cc5e43c1acc5dbf4c57e03"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b5dc95d0aa9a90b7fd37fd3e0593cff"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a7b5dc95d0aa9a90b7fd37fd3e0593cff">transition_state_commit</a> ()</td></tr>
 <tr class="separator:a7b5dc95d0aa9a90b7fd37fd3e0593cff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a57479a161b10fa3e43da6919c0ae18e0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a57479a161b10fa3e43da6919c0ae18e0">create_snapshot</a> (uint64_t period)</td></tr>
@@ -3138,8 +3137,8 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
 
 </div>
 </div>
-<a id="a1334904a75f9a1084daa21b3aef2615f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1334904a75f9a1084daa21b3aef2615f">&#9670;&nbsp;</a></span>transition_state()</h2>
+<a id="a8b93319945cc5e43c1acc5dbf4c57e03"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b93319945cc5e43c1acc5dbf4c57e03">&#9670;&nbsp;</a></span>transition_state()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3147,20 +3146,32 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
         <tr>
           <td class="memname"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_state_transition_result">StateTransitionResult</a> const  &amp; taraxa::state_api::StateAPI::transition_state </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_block">EVMBlock</a> const &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_block">EVMBlock</a> &amp;&#160;</td>
           <td class="paramname"><em>block</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">util::RangeView</a>&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">EVMTransaction</a> &gt; const &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">util::RangeView</a>&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">EVMTransaction</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>transactions</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">util::RangeView</a>&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_uncle_block">UncleBlock</a> &gt; const &amp;&#160;</td>
-          <td class="paramname"><em>uncles</em> = <code>{}</code>&#160;</td>
+          <td class="paramtype">const <a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">util::RangeView</a>&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>transactions_validators</em> = <code>{}</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">util::RangeView</a>&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_uncle_block">UncleBlock</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>uncles</em> = <code>{}</code>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classtaraxa_1_1_rewards_stats.html">RewardsStats</a> &amp;&#160;</td>
+          <td class="paramname"><em>rewards_stats</em> = <code>{}</code>&#160;</td>
         </tr>
         <tr>
           <td></td>

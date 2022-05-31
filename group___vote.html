@@ -923,9 +923,9 @@ Collaboration diagram for taraxa::VoteManager:</div>
 <tr class="memitem:abe520e33144ec6b950af4af127d3748e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#abe520e33144ec6b950af4af127d3748e">voteInUnverifiedMap</a> (uint64_t pbft_round, <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> const &amp;vote_hash)</td></tr>
 <tr class="memdesc:abe520e33144ec6b950af4af127d3748e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if the vote has been in the unverified votes map.  <a href="group___vote.html#abe520e33144ec6b950af4af127d3748e">More...</a><br /></td></tr>
 <tr class="separator:abe520e33144ec6b950af4af127d3748e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5f4926b872a8bdec6da3f9dfec8e8495"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a5f4926b872a8bdec6da3f9dfec8e8495">getUnverifiedVotes</a> ()</td></tr>
-<tr class="memdesc:a5f4926b872a8bdec6da3f9dfec8e8495"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get all unverified votes.  <a href="group___vote.html#a5f4926b872a8bdec6da3f9dfec8e8495">More...</a><br /></td></tr>
-<tr class="separator:a5f4926b872a8bdec6da3f9dfec8e8495"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f79129a9740f50330585b367df79bd5"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a3f79129a9740f50330585b367df79bd5">copyUnverifiedVotes</a> ()</td></tr>
+<tr class="memdesc:a3f79129a9740f50330585b367df79bd5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get all unverified votes.  <a href="group___vote.html#a3f79129a9740f50330585b367df79bd5">More...</a><br /></td></tr>
+<tr class="separator:a3f79129a9740f50330585b367df79bd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af191d62ff72bd440d6fd3b711c4879c8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#af191d62ff72bd440d6fd3b711c4879c8">clearUnverifiedVotesTable</a> ()</td></tr>
 <tr class="memdesc:af191d62ff72bd440d6fd3b711c4879c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear the unverified votes map.  <a href="group___vote.html#af191d62ff72bd440d6fd3b711c4879c8">More...</a><br /></td></tr>
 <tr class="separator:af191d62ff72bd440d6fd3b711c4879c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1323,6 +1323,26 @@ Collaboration diagram for taraxa::VoteManager:</div>
 
 </div>
 </div>
+<a id="a3f79129a9740f50330585b367df79bd5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f79129a9740f50330585b367df79bd5">&#9670;&nbsp;</a></span>copyUnverifiedVotes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::VoteManager::copyUnverifiedVotes </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get all unverified votes. </p>
+<dl class="section return"><dt>Returns</dt><dd>all unverified votes </dd></dl>
+
+</div>
+</div>
 <a id="aa29f2337837f177f9c0c8c78601faa8d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa29f2337837f177f9c0c8c78601faa8d">&#9670;&nbsp;</a></span>getProposalVotes()</h2>
 
@@ -1347,26 +1367,6 @@ Collaboration diagram for taraxa::VoteManager:</div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>all verified votes in proposal vote type for the current PBFT round </dd></dl>
-
-</div>
-</div>
-<a id="a5f4926b872a8bdec6da3f9dfec8e8495"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5f4926b872a8bdec6da3f9dfec8e8495">&#9670;&nbsp;</a></span>getUnverifiedVotes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::VoteManager::getUnverifiedVotes </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Get all unverified votes. </p>
-<dl class="section return"><dt>Returns</dt><dd>all unverified votes </dd></dl>
 
 </div>
 </div>

@@ -1,7 +1,7 @@
 <map id="libraries/types/pbft_block/include" name="libraries/types/pbft_block/include">
 <area shape="rect" id="node2" href="dir_3b1a9d163f89b4c09af95dc61eb18843.html" title="pbft" alt="" coords="113,63,185,111"/>
 <area shape="rect" id="node3" href="dir_619017460b6a47a62dcf0948c8b7d59a.html" title="dag_block" alt="" coords="24,159,112,207"/>
-<area shape="rect" id="edge8-headlabel" href="dir_000074_000068.html" title="1" alt="" coords="102,143,111,158"/>
+<area shape="rect" id="edge8-headlabel" href="dir_000074_000068.html" title="2" alt="" coords="102,143,111,158"/>
 <area shape="rect" id="node4" href="dir_468f50b028e1e94ed0441083f377df37.html" title="common" alt="" coords="111,255,190,303"/>
 <area shape="rect" id="edge9-headlabel" href="dir_000074_000022.html" title="2" alt="" coords="154,229,164,244"/>
 <area shape="rect" id="node5" href="dir_6f1be2f61d6bcf85eb88f26a07e090c0.html" title="transaction" alt="" coords="187,159,282,207"/>
