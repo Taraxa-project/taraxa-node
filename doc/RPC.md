@@ -403,7 +403,6 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getConfig","params":[],"i
         "timestamp": "0x61cd9f40"
       },
       "state": {
-        "disable_block_rewards": true,
         "dpos": {
           "deposit_delay": "0x5",
           "eligibility_balance_threshold": "0x186a0",
@@ -433,8 +432,11 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getConfig","params":[],"i
           "petersburg_block": "0x0"
         },
         "execution_options": {
+          "disable_block_rewards": true,
           "disable_gas_fee": false,
-          "disable_nonce_check": true
+          "disable_nonce_check": true,
+          "enable_nonce_skipping" : true,
+          "disable_stats_rewards": true
         },
         "genesis_balances": {
           "0x0274cfffea9fa850e54c93a23042f12a87358a82": "0x141e8d17",
