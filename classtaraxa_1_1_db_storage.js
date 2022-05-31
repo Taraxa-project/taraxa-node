@@ -44,7 +44,6 @@ var classtaraxa_1_1_db_storage =
     [ "getAllTransactionPeriod", "classtaraxa_1_1_db_storage.html#a82eba762347a2c6ec8c6b63ba84e9795", null ],
     [ "getBlocksByLevel", "classtaraxa_1_1_db_storage.html#a952faaf7edbe9f4819802f2901984d58", null ],
     [ "getCertVotes", "classtaraxa_1_1_db_storage.html#a553ddbb3e81a7ec650d582bfd19ef04a", null ],
-    [ "getColumnSize", "classtaraxa_1_1_db_storage.html#a8398d76862dff92c218cb060ee3eee6f", null ],
     [ "getDagBlock", "classtaraxa_1_1_db_storage.html#a0f71fda142f1ecfb890e7a4d044f73a4", null ],
     [ "getDagBlockPeriod", "classtaraxa_1_1_db_storage.html#af1d67249f17302907f05a9c3f0a5043c", null ],
     [ "getDagBlocksAtLevel", "classtaraxa_1_1_db_storage.html#a2825b519d3915971fd998ed79b3c0152", null ],

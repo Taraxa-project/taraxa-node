@@ -181,9 +181,6 @@ Collaboration diagram for taraxa::PbftChain:</div>
 <tr class="memitem:acb30f318cdecfdecd8b0745629b42f47"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#acb30f318cdecfdecd8b0745629b42f47">getUnverifiedPbftBlock</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;pbft_block_hash)</td></tr>
 <tr class="memdesc:acb30f318cdecfdecd8b0745629b42f47"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a unverified PBFT block.  <a href="group___p_b_f_t.html#acb30f318cdecfdecd8b0745629b42f47">More...</a><br /></td></tr>
 <tr class="separator:acb30f318cdecfdecd8b0745629b42f47"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae3a60ba7a43eae7daf552588d934a2ff"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ae3a60ba7a43eae7daf552588d934a2ff">getPbftBlocksStr</a> (size_t period, size_t count, bool hash) const</td></tr>
-<tr class="memdesc:ae3a60ba7a43eae7daf552588d934a2ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a bunch of PBFT blocks in string. This is only used by single RPC call.  <a href="group___p_b_f_t.html#ae3a60ba7a43eae7daf552588d934a2ff">More...</a><br /></td></tr>
-<tr class="separator:ae3a60ba7a43eae7daf552588d934a2ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aebf71150397fd977ca00618d1162de92"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aebf71150397fd977ca00618d1162de92">getJsonStr</a> () const</td></tr>
 <tr class="memdesc:aebf71150397fd977ca00618d1162de92"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get PBFT chain head block in JSON string.  <a href="group___p_b_f_t.html#aebf71150397fd977ca00618d1162de92">More...</a><br /></td></tr>
 <tr class="separator:aebf71150397fd977ca00618d1162de92"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -601,51 +598,6 @@ Collaboration diagram for taraxa::PbftChain:</div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>PBFT block </dd></dl>
-
-</div>
-</div>
-<a id="ae3a60ba7a43eae7daf552588d934a2ff"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae3a60ba7a43eae7daf552588d934a2ff">&#9670;&nbsp;</a></span>getPbftBlocksStr()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt; std::string &gt; taraxa::PbftChain::getPbftBlocksStr </td>
-          <td>(</td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>period</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>count</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>hash</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Get a bunch of PBFT blocks in string. This is only used by single RPC call. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">period</td><td>start period </td></tr>
-    <tr><td class="paramname">count</td><td>number of PBFT blocks </td></tr>
-    <tr><td class="paramname">hash</td><td>if return PBFT blocks hashes only </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>a bunch of PBFT blocks in string </dd></dl>
 
 </div>
 </div>
@@ -1086,9 +1038,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:a85fd5d3b057978179f6f0b4a71b4a991"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a85fd5d3b057978179f6f0b4a71b4a991">pushSyncedPbftBlocksIntoChain</a> ()</td></tr>
 <tr class="memdesc:a85fd5d3b057978179f6f0b4a71b4a991"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check PBFT blocks syncing queue. If there are synced PBFT blocks in queue, push it to PBFT chain.  <a href="group___p_b_f_t.html#a85fd5d3b057978179f6f0b4a71b4a991">More...</a><br /></td></tr>
 <tr class="separator:a85fd5d3b057978179f6f0b4a71b4a991"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4137f116bcca659c79bd49a4abb04dda"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a4137f116bcca659c79bd49a4abb04dda">getVoteWeight</a> (<a class="el" href="group___vote.html#ga8a0770e242b649865f15f20a405507cc">PbftVoteTypes</a> type, uint64_t round, size_t step) const</td></tr>
-<tr class="memdesc:a4137f116bcca659c79bd49a4abb04dda"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a vote weight for RPC call.  <a href="group___p_b_f_t.html#a4137f116bcca659c79bd49a4abb04dda">More...</a><br /></td></tr>
-<tr class="separator:a4137f116bcca659c79bd49a4abb04dda"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab3ce68e566ff343e864a51a882155fb2"><td class="memItemLeft" align="right" valign="top">std::pair&lt; bool, uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ab3ce68e566ff343e864a51a882155fb2">getDagBlockPeriod</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;hash)</td></tr>
 <tr class="memdesc:ab3ce68e566ff343e864a51a882155fb2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a DAG block period number.  <a href="group___p_b_f_t.html#ab3ce68e566ff343e864a51a882155fb2">More...</a><br /></td></tr>
 <tr class="separator:ab3ce68e566ff343e864a51a882155fb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2544,51 +2493,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>PBFT block </dd></dl>
-
-</div>
-</div>
-<a id="a4137f116bcca659c79bd49a4abb04dda"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4137f116bcca659c79bd49a4abb04dda">&#9670;&nbsp;</a></span>getVoteWeight()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint64_t taraxa::PbftManager::getVoteWeight </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group___vote.html#ga8a0770e242b649865f15f20a405507cc">PbftVoteTypes</a>&#160;</td>
-          <td class="paramname"><em>type</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>round</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>step</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Get a vote weight for RPC call. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">type</td><td>vote type </td></tr>
-    <tr><td class="paramname">round</td><td>PBFT round </td></tr>
-    <tr><td class="paramname">step</td><td>PBFT step </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>vote weight </dd></dl>
 
 </div>
 </div>

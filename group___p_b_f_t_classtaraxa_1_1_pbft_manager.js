@@ -35,7 +35,6 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_manager =
     [ "getThreshold", "group___p_b_f_t.html#a9b97a1e6d1de5f8f3dff2a95076ce6fd", null ],
     [ "getTwoTPlusOne", "group___p_b_f_t.html#a07a1394d6cd2a629a4e272201000d8fc", null ],
     [ "getUnfinalizedBlock_", "group___p_b_f_t.html#a9f072050236e2b71acb9e831a8f016a9", null ],
-    [ "getVoteWeight", "group___p_b_f_t.html#a4137f116bcca659c79bd49a4abb04dda", null ],
     [ "giveUpNextVotedBlock_", "group___p_b_f_t.html#a05b2cb27abc411ce52a06f516debc9d0", null ],
     [ "giveUpSoftVotedBlock_", "group___p_b_f_t.html#a0657aefab4a26d2fff73be40e891b18a", null ],
     [ "identifyBlock_", "group___p_b_f_t.html#a4e2dc0b0fdd0e68a9ffac002daa6486d", null ],

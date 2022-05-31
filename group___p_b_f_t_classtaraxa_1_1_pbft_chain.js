@@ -14,7 +14,6 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_chain =
     [ "getJsonStrForBlock", "group___p_b_f_t.html#a66dedbe500e68fb2526e7c960cb1482e", null ],
     [ "getLastPbftBlockHash", "group___p_b_f_t.html#ae536513a88a0a306ef40e9af6a85cb76", null ],
     [ "getPbftBlockInChain", "group___p_b_f_t.html#acd48a78dbe8d552be5f35b0ba4795ed9", null ],
-    [ "getPbftBlocksStr", "group___p_b_f_t.html#ae3a60ba7a43eae7daf552588d934a2ff", null ],
     [ "getPbftChainSize", "group___p_b_f_t.html#ac6c712199accc4ef5838c0e1705a22b1", null ],
     [ "getPbftChainSizeExcludingEmptyPbftBlocks", "group___p_b_f_t.html#af91ccc58e1af807630b0ae218fe3bf03", null ],
     [ "getUnverifiedPbftBlock", "group___p_b_f_t.html#acb30f318cdecfdecd8b0745629b42f47", null ],

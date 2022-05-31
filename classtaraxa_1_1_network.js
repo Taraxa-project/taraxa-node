@@ -6,7 +6,6 @@ var classtaraxa_1_1_network =
     [ "Network", "classtaraxa_1_1_network.html#ad9faf0457b7ba90aacae80230a744376", null ],
     [ "broadcastPreviousRoundNextVotesBundle", "classtaraxa_1_1_network.html#a94f154e55430929d4121761b8740aead", null ],
     [ "getAllNodes", "classtaraxa_1_1_network.html#a0402a98a77e20969de80be41981d038f", null ],
-    [ "getAllPeersIDs", "classtaraxa_1_1_network.html#a7695039b6518e502430bde82c4a255bb", null ],
     [ "getNodeCount", "classtaraxa_1_1_network.html#a4388be45cc36b080cd6d3b261ed1f7a6", null ],
     [ "getNodeId", "classtaraxa_1_1_network.html#a87a092a6afecd4748768d07ee9f59b71", null ],
     [ "getPacketsStats", "classtaraxa_1_1_network.html#a3444060546109ee47792393760b8611c", null ],

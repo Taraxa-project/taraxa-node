@@ -13,7 +13,6 @@ var group___vote_classtaraxa_1_1_vote_manager =
     [ "cleanupVotes", "group___vote.html#aa1acd61f6d8fde344499d8417ea2ba0e", null ],
     [ "clearUnverifiedVotesTable", "group___vote.html#af191d62ff72bd440d6fd3b711c4879c8", null ],
     [ "clearVerifiedVotesTable", "group___vote.html#aa5ffd73f7dfb4f311c29a24c983ea4b3", null ],
-    [ "getJsonStr", "group___vote.html#a1abfd5edf9eb51916bb20b9178796d3b", null ],
     [ "getProposalVotes", "group___vote.html#aa29f2337837f177f9c0c8c78601faa8d", null ],
     [ "getUnverifiedVotes", "group___vote.html#a5f4926b872a8bdec6da3f9dfec8e8495", null ],
     [ "getUnverifiedVotesSize", "group___vote.html#a2f6d8e5d1f78ff17fcef2dbf3c332a4e", null ],
