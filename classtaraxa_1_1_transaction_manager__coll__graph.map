@@ -1,12 +1,12 @@
 <map id="taraxa::TransactionManager" name="taraxa::TransactionManager">
-<area shape="rect" id="node1" title=" " alt="" coords="2221,151,2424,178"/>
+<area shape="rect" id="node1" title="TransactionManager class verifies and inserts incoming transactions in memory pool and handles saving..." alt="" coords="2221,151,2424,178"/>
 <area shape="rect" id="node2" title=" " alt="" coords="1771,5,2023,47"/>
 <area shape="rect" id="node3" href="$class_expiration_cache.html" title=" " alt="" coords="1813,71,1980,112"/>
 <area shape="rect" id="node4" href="$classtaraxa_1_1util_1_1event_1_1_event.html" title=" " alt="" coords="1793,137,2000,193"/>
 <area shape="rect" id="node5" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="1443,57,1597,113"/>
 <area shape="rect" id="node6" href="$structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="1433,137,1607,193"/>
 <area shape="rect" id="node7" href="$classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="1047,93,1248,149"/>
-<area shape="rect" id="node8" href="$group___transaction.html#classtaraxa_1_1_transaction_queue" title="this is NOT thread safe class. It is proteced only by transactions_mutex_ in the transaction mamanger..." alt="" coords="1803,217,1991,243"/>
+<area shape="rect" id="node8" href="$group___transaction.html#classtaraxa_1_1_transaction_queue" title="TransactionQueue keeps transactions in memory sorted by priority to be included in a proposed DAG blo..." alt="" coords="1803,217,1991,243"/>
 <area shape="rect" id="node9" href="$structtaraxa_1_1_full_node_config.html" title=" " alt="" coords="1811,461,1982,487"/>
 <area shape="rect" id="node10" href="$namespacetaraxa.html#structtaraxa_1_1_test_params_config" title=" " alt="" coords="1427,257,1613,283"/>
 <area shape="rect" id="node11" href="$namespacetaraxa.html#structtaraxa_1_1_block_proposer_config" title=" " alt="" coords="1044,173,1251,199"/>
@@ -15,7 +15,7 @@
 <area shape="rect" id="node14" href="$structtaraxa_1_1_sortition_params.html" title=" " alt="" coords="651,89,825,115"/>
 <area shape="rect" id="node15" href="$namespacetaraxa.html#structtaraxa_1_1_vdf_params" title=" " alt="" coords="297,42,439,69"/>
 <area shape="rect" id="node16" href="$structtaraxa_1_1_vrf_params.html" title=" " alt="" coords="299,93,437,119"/>
-<area shape="rect" id="node17" href="$classtaraxa_1_1_dag_block.html" title=" " alt="" coords="1080,274,1215,301"/>
+<area shape="rect" id="node17" href="$classtaraxa_1_1_dag_block.html" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b..." alt="" coords="1080,274,1215,301"/>
 <area shape="rect" id="node18" href="$structtaraxa_1_1util_1_1_default_construct_copyable_movable.html" title=" " alt="" coords="619,140,857,181"/>
 <area shape="rect" id="node19" title=" " alt="" coords="336,147,400,174"/>
 <area shape="rect" id="node20" href="$classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html" title=" " alt="" coords="661,205,815,247"/>

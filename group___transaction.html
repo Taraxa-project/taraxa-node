@@ -95,9 +95,10 @@ Classes</h2></td></tr>
 <tr class="memdesc:classtaraxa_1_1_gas_pricer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Basic gas price calculator. We calculate the gas price based on the lowest price in last number_of_blocks blocks. Then all of those values are sorted and currnet price is selected based on percentile.  <a href="group___transaction.html#classtaraxa_1_1_gas_pricer">More...</a><br /></td></tr>
 <tr class="separator:classtaraxa_1_1_gas_pricer"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:classtaraxa_1_1_transaction_manager"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">taraxa::TransactionManager</a></td></tr>
+<tr class="memdesc:classtaraxa_1_1_transaction_manager"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager" title="TransactionManager class verifies and inserts incoming transactions in memory pool and handles saving...">TransactionManager</a> class verifies and inserts incoming transactions in memory pool and handles saving transactions and all transactions state change.  <a href="group___transaction.html#classtaraxa_1_1_transaction_manager">More...</a><br /></td></tr>
 <tr class="separator:classtaraxa_1_1_transaction_manager"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:classtaraxa_1_1_transaction_queue"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_queue">taraxa::TransactionQueue</a></td></tr>
-<tr class="memdesc:classtaraxa_1_1_transaction_queue"><td class="mdescLeft">&#160;</td><td class="mdescRight">this is NOT thread safe class. It is proteced only by transactions_mutex_ in the transaction mamanger !!!  <a href="group___transaction.html#classtaraxa_1_1_transaction_queue">More...</a><br /></td></tr>
+<tr class="memdesc:classtaraxa_1_1_transaction_queue"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_queue" title="TransactionQueue keeps transactions in memory sorted by priority to be included in a proposed DAG blo...">TransactionQueue</a> keeps transactions in memory sorted by priority to be included in a proposed DAG block or which might be required by an incoming DAG block.  <a href="group___transaction.html#classtaraxa_1_1_transaction_queue">More...</a><br /></td></tr>
 <tr class="separator:classtaraxa_1_1_transaction_queue"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
@@ -551,23 +552,35 @@ Enumerations</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<div class="textblock"><p>Manage transactions within an epoch</p><ol type="1">
-<li>Check existence of transaction</li>
-<li>Push to transaction pool and verify </li>
+<div class="textblock"><p><a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager" title="TransactionManager class verifies and inserts incoming transactions in memory pool and handles saving...">TransactionManager</a> class verifies and inserts incoming transactions in memory pool and handles saving transactions and all transactions state change. </p>
+<p>Incoming new transactions can be verified with verifyTransaction functions and than inserted in the transaction pool with insertValidatedTransactions. Transactions are kept in transactions memory pool until they are included in a proposed dag block or received in an incoming dag block. <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> verification consist of:</p><ul>
+<li>Verifying the format</li>
+<li>Verifying signature</li>
+<li>Verifying chan id</li>
+<li>Verifying gas</li>
+<li>Verifying nonce</li>
+<li>Verifying balance</li>
+</ul>
+<p>Verified transaction inserted in <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager" title="TransactionManager class verifies and inserts incoming transactions in memory pool and handles saving...">TransactionManager</a> can be in three state:</p><ol type="1">
+<li>In transactions memory pool</li>
+<li>In Non-finalized DAG block</li>
+<li>Finalized transaction</li>
 </ol>
+<p><a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> transition to non-finalized block state is done with call to saveTransactionsFromDagBlock. <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> transition to finalized block state is done with call to updateFinalizedTransactionsStatus</p>
+<p>Class is thread safe in general with exception of two special methods: updateFinalizedTransactionsStatus and moveNonFinalizedTransactionsToTransactionsPool. See details in function descriptions. </p>
 </div><div class="dynheader">
 Collaboration diagram for taraxa::TransactionManager:</div>
 <div class="dyncontent">
 <div class="center"><img src="classtaraxa_1_1_transaction_manager__coll__graph.png" border="0" usemap="#taraxa_1_1_transaction_manager_coll__map" alt="Collaboration graph"/></div>
 <map name="taraxa_1_1_transaction_manager_coll__map" id="taraxa_1_1_transaction_manager_coll__map">
-<area shape="rect" title=" " alt="" coords="2221,151,2424,178"/>
+<area shape="rect" title="TransactionManager class verifies and inserts incoming transactions in memory pool and handles saving..." alt="" coords="2221,151,2424,178"/>
 <area shape="rect" title=" " alt="" coords="1771,5,2023,47"/>
 <area shape="rect" href="class_expiration_cache.html" title=" " alt="" coords="1813,71,1980,112"/>
 <area shape="rect" href="classtaraxa_1_1util_1_1event_1_1_event.html" title=" " alt="" coords="1793,137,2000,193"/>
 <area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="1443,57,1597,113"/>
 <area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="1433,137,1607,193"/>
 <area shape="rect" href="classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="1047,93,1248,149"/>
-<area shape="rect" href="group___transaction.html#classtaraxa_1_1_transaction_queue" title="this is NOT thread safe class. It is proteced only by transactions_mutex_ in the transaction mamanger..." alt="" coords="1803,217,1991,243"/>
+<area shape="rect" href="group___transaction.html#classtaraxa_1_1_transaction_queue" title="TransactionQueue keeps transactions in memory sorted by priority to be included in a proposed DAG blo..." alt="" coords="1803,217,1991,243"/>
 <area shape="rect" href="structtaraxa_1_1_full_node_config.html" title=" " alt="" coords="1811,461,1982,487"/>
 <area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_test_params_config" title=" " alt="" coords="1427,257,1613,283"/>
 <area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_block_proposer_config" title=" " alt="" coords="1044,173,1251,199"/>
@@ -576,7 +589,7 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 <area shape="rect" href="structtaraxa_1_1_sortition_params.html" title=" " alt="" coords="651,89,825,115"/>
 <area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_vdf_params" title=" " alt="" coords="297,42,439,69"/>
 <area shape="rect" href="structtaraxa_1_1_vrf_params.html" title=" " alt="" coords="299,93,437,119"/>
-<area shape="rect" href="classtaraxa_1_1_dag_block.html" title=" " alt="" coords="1080,274,1215,301"/>
+<area shape="rect" href="classtaraxa_1_1_dag_block.html" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b..." alt="" coords="1080,274,1215,301"/>
 <area shape="rect" href="structtaraxa_1_1util_1_1_default_construct_copyable_movable.html" title=" " alt="" coords="619,140,857,181"/>
 <area shape="rect" title=" " alt="" coords="336,147,400,174"/>
 <area shape="rect" href="classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html" title=" " alt="" coords="661,205,815,247"/>
@@ -1499,7 +1512,9 @@ Collaboration diagram for taraxa::TransactionManager:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<div class="textblock"><p>this is NOT thread safe class. It is proteced only by transactions_mutex_ in the transaction mamanger !!! </p>
+<div class="textblock"><p><a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_queue" title="TransactionQueue keeps transactions in memory sorted by priority to be included in a proposed DAG blo...">TransactionQueue</a> keeps transactions in memory sorted by priority to be included in a proposed DAG block or which might be required by an incoming DAG block. </p>
+<p><a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_queue" title="TransactionQueue keeps transactions in memory sorted by priority to be included in a proposed DAG blo...">TransactionQueue</a> stores two type of transactions: Transactions that can be included in a proposed DAG block and non proposable transactions which are not to be used for proposal but an incoming DAG block could contain such transactions. Non proposable transactions can expire if no DAG block that contains them is received within the kNonProposableTransactionsPeriodExpiryLimit.</p>
+<p>This is NOT thread safe class. It is proteced only by transactions_mutex_ in the TransactionsManager !!! </p>
 </div><table class="memberdecls">
 <tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
 <tr class="memitem:a57a8e7599ea13a2faea78328b9324bc7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a57a8e7599ea13a2faea78328b9324bc7">TransactionQueue</a> ()</td></tr>

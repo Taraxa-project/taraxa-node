@@ -471,14 +471,14 @@ $(document).ready(function(){initNavTree('hierarchy.html',''); initResizable(); 
 <area shape="rect" href="structdev_1_1p2p_1_1_r_l_p_x_handshake.html" title="Setup inbound or outbound connection for communication over RLPXFrameCoder. RLPx Spec: https://github..." alt="" coords="260,680,451,707"/>
 <area shape="rect" href="structdev_1_1p2p_1_1_session.html" title="The Session class." alt="" coords="288,731,423,757"/>
 <area shape="rect" href="classdev_1_1p2p_1_1_u_d_p_socket.html" title="UDP Interface Handler must implement UDPSocketEvents." alt="" coords="240,107,471,149"/>
-<area shape="rect" href="group___d_a_g.html#classtaraxa_1_1_block_proposer" title=" " alt="" coords="273,173,438,200"/>
-<area shape="rect" href="group___d_a_g.html#classtaraxa_1_1_dag_manager" title=" " alt="" coords="278,224,433,251"/>
+<area shape="rect" href="group___d_a_g.html#classtaraxa_1_1_block_proposer" title="BlockProposer class proposes new DAG blocks using transactions retrieved from TransactionManager." alt="" coords="273,173,438,200"/>
+<area shape="rect" href="group___d_a_g.html#classtaraxa_1_1_dag_manager" title="DagManager class contains in memory representation of part of the DAG that is not yet finalized in a ..." alt="" coords="278,224,433,251"/>
 <area shape="rect" href="classtaraxa_1_1_db_storage.html" title=" " alt="" coords="285,275,425,301"/>
 <area shape="rect" href="classtaraxa_1_1_full_node.html" title=" " alt="" coords="291,325,420,352"/>
 <area shape="rect" href="classtaraxa_1_1net_1_1_rpc_connection.html" title=" " alt="" coords="256,376,455,403"/>
 <area shape="rect" href="classtaraxa_1_1net_1_1_w_s_session.html" title=" " alt="" coords="269,427,441,453"/>
 <area shape="rect" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager" title="PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks..." alt="" coords="278,477,433,504"/>
-<area shape="rect" href="group___transaction.html#classtaraxa_1_1_transaction_manager" title=" " alt="" coords="254,528,457,555"/>
+<area shape="rect" href="group___transaction.html#classtaraxa_1_1_transaction_manager" title="TransactionManager class verifies and inserts incoming transactions in memory pool and handles saving..." alt="" coords="254,528,457,555"/>
 <area shape="rect" href="classtaraxa_1_1util_1_1_thread_pool.html" title=" " alt="" coords="268,579,443,605"/>
 <area shape="rect" href="structdev_1_1p2p_1_1_u_d_p_socket_face.html" title="Interface which UDPSocket will implement." alt="" coords="6,115,191,141"/>
 </map>
@@ -690,12 +690,12 @@ $(document).ready(function(){initNavTree('hierarchy.html',''); initResizable(); 
 </td></tr>
 <tr><td><img src="inherit_graph_106.png" border="0" usemap="#taraxa_1_1_dag_block" alt=""/>
 <map name="taraxa_1_1_dag_block" id="taraxa_1_1_dag_block">
-<area shape="rect" href="classtaraxa_1_1_dag_block.html" title=" " alt="" coords="5,5,140,32"/>
+<area shape="rect" href="classtaraxa_1_1_dag_block.html" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b..." alt="" coords="5,5,140,32"/>
 </map>
 </td></tr>
 <tr><td><img src="inherit_graph_107.png" border="0" usemap="#taraxa_1_1_dag_block_manager" alt=""/>
 <map name="taraxa_1_1_dag_block_manager" id="taraxa_1_1_dag_block_manager">
-<area shape="rect" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager" title="Thread safe." alt="" coords="5,5,196,32"/>
+<area shape="rect" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager" title="DagBlockManager class queues and verifies incoming DAG blocks." alt="" coords="5,5,196,32"/>
 </map>
 </td></tr>
 <tr><td><img src="inherit_graph_108.png" border="0" usemap="#taraxa_1_1_dag_config" alt=""/>
@@ -1071,7 +1071,7 @@ $(document).ready(function(){initNavTree('hierarchy.html',''); initResizable(); 
 </td></tr>
 <tr><td><img src="inherit_graph_177.png" border="0" usemap="#taraxa_1_1_sortition_params_manager" alt=""/>
 <map name="taraxa_1_1_sortition_params_manager" id="taraxa_1_1_sortition_params_manager">
-<area shape="rect" href="group___d_a_g.html#classtaraxa_1_1_sortition_params_manager" title=" " alt="" coords="5,5,237,32"/>
+<area shape="rect" href="group___d_a_g.html#classtaraxa_1_1_sortition_params_manager" title="SortitionParamsManager class calculates DAG efficiency and makes VDF difficulty adjustments." alt="" coords="5,5,237,32"/>
 </map>
 </td></tr>
 <tr><td><img src="inherit_graph_178.png" border="0" usemap="#taraxa_1_1state__api_1_1_account" alt=""/>
@@ -1191,7 +1191,7 @@ $(document).ready(function(){initNavTree('hierarchy.html',''); initResizable(); 
 </td></tr>
 <tr><td><img src="inherit_graph_201.png" border="0" usemap="#taraxa_1_1_transaction_queue" alt=""/>
 <map name="taraxa_1_1_transaction_queue" id="taraxa_1_1_transaction_queue">
-<area shape="rect" href="group___transaction.html#classtaraxa_1_1_transaction_queue" title="this is NOT thread safe class. It is proteced only by transactions_mutex_ in the transaction mamanger..." alt="" coords="5,5,193,32"/>
+<area shape="rect" href="group___transaction.html#classtaraxa_1_1_transaction_queue" title="TransactionQueue keeps transactions in memory sorted by priority to be included in a proposed DAG blo..." alt="" coords="5,5,193,32"/>
 </map>
 </td></tr>
 <tr><td><img src="inherit_graph_202.png" border="0" usemap="#taraxa_1_1_uint_comparator_3_01_t_01_4" alt=""/>

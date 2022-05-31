@@ -1,8 +1,8 @@
 <map id="taraxa::DagBlockManager" name="taraxa::DagBlockManager">
-<area shape="rect" id="node1" title="Thread safe." alt="" coords="1179,116,1369,143"/>
+<area shape="rect" id="node1" title="DagBlockManager class queues and verifies incoming DAG blocks." alt="" coords="1179,116,1369,143"/>
 <area shape="rect" id="node2" href="$class_expiration_cache_map.html" title=" " alt="" coords="735,5,921,61"/>
 <area shape="rect" id="node3" href="$class_expiration_cache.html" title=" " alt="" coords="745,86,911,127"/>
-<area shape="rect" id="node4" href="$group___d_a_g.html#classtaraxa_1_1_sortition_params_manager" title=" " alt="" coords="712,152,944,179"/>
+<area shape="rect" id="node4" href="$group___d_a_g.html#classtaraxa_1_1_sortition_params_manager" title="SortitionParamsManager class calculates DAG efficiency and makes VDF difficulty adjustments." alt="" coords="712,152,944,179"/>
 <area shape="rect" id="node5" href="$structtaraxa_1_1_sortition_config.html" title=" " alt="" coords="445,152,613,179"/>
 <area shape="rect" id="node6" href="$structtaraxa_1_1_sortition_params.html" title=" " alt="" coords="221,152,396,179"/>
 <area shape="rect" id="node7" href="$namespacetaraxa.html#structtaraxa_1_1_vdf_params" title=" " alt="" coords="5,127,148,153"/>
