@@ -45,14 +45,16 @@ struct DPOSConfig {
 Json::Value enc_json(DPOSConfig const& obj);
 void dec_json(Json::Value const& json, DPOSConfig& obj);
 
+// This struct has strict ordering, do not change it
 struct ExecutionOptions {
-  bool disable_block_rewards = false;
   bool disable_nonce_check = false;
   bool disable_gas_fee = false;
+
   bool enable_nonce_skipping = false;
   // Do not process reward pool (newly minted tokens & tx fees) according to the reward statistics,
   // give whole reward pool to the pbft block proposer
   bool disable_stats_rewards = false;
+  bool disable_block_rewards = false;
 
   HAS_RLP_FIELDS
 };
