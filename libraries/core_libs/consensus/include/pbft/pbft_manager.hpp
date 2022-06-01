@@ -643,7 +643,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   /**
    * @brief Count how many votes in the current PBFT round and step. This is only for testing purpose
    */
-  void countVotes_();
+  void countVotes_() const;
 
   std::shared_ptr<std::thread> monitor_votes_ = nullptr;
   std::atomic<bool> monitor_stop_ = true;

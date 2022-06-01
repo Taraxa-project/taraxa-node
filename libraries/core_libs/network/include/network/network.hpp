@@ -28,7 +28,7 @@ class PacketHandler;
 // TODO merge with TaraxaCapability, and then split the result in reasonable components
 class Network {
  public:
-  Network(NetworkConfig const &config, std::filesystem::path const &network_file_path = {},
+  Network(FullNodeConfig const &config, std::filesystem::path const &network_file_path = {},
           dev::KeyPair const &key = dev::KeyPair::create(), std::shared_ptr<DbStorage> db = {},
           std::shared_ptr<PbftManager> pbft_mgr = {}, std::shared_ptr<PbftChain> pbft_chain = {},
           std::shared_ptr<VoteManager> vote_mgr = {}, std::shared_ptr<NextVotesManager> next_votes_mgr = {},

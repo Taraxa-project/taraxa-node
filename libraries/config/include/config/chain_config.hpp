@@ -11,7 +11,7 @@
 #include "config/pbft_config.hpp"
 #include "dag/dag_block.hpp"
 
-namespace taraxa::chain_config {
+namespace taraxa {
 using std::string;
 using std::unordered_map;
 using ::taraxa::util::lazy::LazyVal;
@@ -20,6 +20,7 @@ struct GasPriceConfig {
   uint64_t percentile = 60;
   uint64_t blocks = 200;
   void validate() const;
+  bytes rlp() const;
 };
 
 Json::Value enc_json(GasPriceConfig const& obj);
@@ -39,14 +40,12 @@ struct ChainConfig {
 
  public:
   void validate() const;
+  bytes rlp() const;
+  blk_hash_t genesisHash() const;
   static const ChainConfig& predefined(std::string const& name = "default");
 };
 
 Json::Value enc_json(ChainConfig const& obj);
 void dec_json(Json::Value const& json, ChainConfig& obj);
 
-}  // namespace taraxa::chain_config
-
-namespace taraxa {
-using chain_config::ChainConfig;
-}
+}  // namespace taraxa

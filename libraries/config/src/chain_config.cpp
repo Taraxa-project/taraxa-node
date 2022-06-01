@@ -5,8 +5,9 @@
 #include <sstream>
 
 #include "common/config_exception.hpp"
+#include "libdevcore/SHA3.h"
 
-namespace taraxa::chain_config {
+namespace taraxa {
 using std::stringstream;
 
 Json::Value enc_json(GasPriceConfig const& obj) {
@@ -27,7 +28,17 @@ void GasPriceConfig::validate() const {
   }
 }
 
-Json::Value enc_json(ChainConfig const& obj) {
+bytes GasPriceConfig::rlp() const {
+  dev::RLPStream s;
+  s.appendList(2);
+
+  s << percentile;
+  s << blocks;
+
+  return s.out();
+}
+
+Json::Value enc_json(const ChainConfig& obj) {
   Json::Value json(Json::objectValue);
   if (obj.chain_id) {
     json["chain_id"] = dev::toJS(obj.chain_id);
@@ -95,7 +106,6 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     cfg.pbft.committee_size = 5;
     cfg.pbft.dag_blocks_size = 100;
     cfg.pbft.ghost_path_move_back = 1;
-    cfg.pbft.run_count_votes = false;
     cfg.pbft.gas_limit = 60000000;
     // DAG config
     cfg.dag.gas_limit = 10000000;
@@ -114,4 +124,21 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
 
 void ChainConfig::validate() const { gas_price.validate(); }
 
-}  // namespace taraxa::chain_config
+bytes ChainConfig::rlp() const {
+  dev::RLPStream s;
+  s.appendList(7);
+
+  s << chain_id;
+  s << dag_genesis_block.rlp(true);
+  s << gas_price.rlp();
+  s << sortition.rlp();
+  s << pbft.rlp();
+  s << final_chain.rlp();
+  s << dag.rlp();
+
+  return s.out();
+}
+
+blk_hash_t ChainConfig::genesisHash() const { return dev::sha3(rlp()); }
+
+}  // namespace taraxa

@@ -29,7 +29,6 @@ class Config {
   static constexpr const char* CONFIG = "config";
   static constexpr const char* DATA_DIR = "data-dir";
   static constexpr const char* NETWORK_ID = "network-id";
-  static constexpr const char* BOOT_NODE = "boot-node";
   static constexpr const char* COMMAND = "command";
   static constexpr const char* DESTROY_DB = "destroy-db";
   static constexpr const char* REBUILD_NETWORK = "rebuild-network";

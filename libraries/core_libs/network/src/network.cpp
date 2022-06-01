@@ -10,12 +10,12 @@
 
 namespace taraxa {
 
-Network::Network(NetworkConfig const &config, std::filesystem::path const &network_file_path, dev::KeyPair const &key,
+Network::Network(FullNodeConfig const &config, std::filesystem::path const &network_file_path, dev::KeyPair const &key,
                  std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                  std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                  std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
                  std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr)
-    : conf_(config), tp_(config.network_num_threads, false) {
+    : conf_(config.network), tp_(conf_.network_num_threads, false) {
   auto const &node_addr = key.address();
   LOG_OBJECTS_CREATE("NETWORK");
   LOG(log_nf_) << "Read Network Config: " << std::endl << conf_ << std::endl;
@@ -34,7 +34,6 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
 
   // TODO conf_.network_max_peer_count -> conf_.peer_count_stretch
   taraxa_net_conf.peer_stretch = conf_.network_max_peer_count / conf_.network_ideal_peer_count;
-  taraxa_net_conf.is_boot_node = conf_.network_is_boot_node;
   taraxa_net_conf.network_id = conf_.network_id;
   taraxa_net_conf.expected_parallelism = tp_.capacity();
 
@@ -42,9 +41,9 @@ Network::Network(NetworkConfig const &config, std::filesystem::path const &netwo
   auto construct_capabilities = [&, this](auto host) {
     assert(!host.expired());
 
-    taraxa_capability_ = std::make_shared<network::tarcap::TaraxaCapability>(host, key, conf_, db, pbft_mgr, pbft_chain,
-                                                                             vote_mgr, next_votes_mgr, dag_mgr,
-                                                                             dag_blk_mgr, trx_mgr, key.address());
+    taraxa_capability_ = std::make_shared<network::tarcap::TaraxaCapability>(
+        host, key, conf_, config.chain.genesisHash(), db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr,
+        dag_blk_mgr, trx_mgr, key.address());
     return dev::p2p::Host::CapabilityList{taraxa_capability_};
   };
   host_ = dev::p2p::Host::make(net_version, construct_capabilities, key, net_conf, taraxa_net_conf, network_file_path);

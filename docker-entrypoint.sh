@@ -43,8 +43,7 @@ case $1 in
   single)
 	  echo "Starting taraxad..."
     taraxad $FLAGS \
-            --config $TARAXA_CONF_PATH \
-            --boot-node true
+            --config $TARAXA_CONF_PATH 
 
     ;;
   exec)

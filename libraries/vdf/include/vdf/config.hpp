@@ -50,6 +50,7 @@ struct SortitionConfig : SortitionParams {
   uint16_t computation_interval = 50;  // non empty pbft blocks
 
   uint16_t targetEfficiency() const { return (dag_efficiency_targets.first + dag_efficiency_targets.second) / 2; }
+  bytes rlp() const;
 };
 
 Json::Value enc_json(const VrfParams& obj);

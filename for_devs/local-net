@@ -125,7 +125,7 @@ def config(binary, boot_nodes, rpc_nodes):
             cmd += f'--boot-nodes {boot_nodes_flags} '
 
             if type == "boot":
-                cmd += '--boot-node '
+                # cmd += '--boot-node ' // TODO: we should replace this with bootnode binary? 
                 cmd += f'--node-secret {private_keys[worker_name]} '
 
             if type == "boot":
@@ -172,7 +172,6 @@ def config(binary, boot_nodes, rpc_nodes):
                 config['chain_config']['final_chain']['genesis_block_fields']['timestamp'] = timestamp
 
             config['network_tcp_port'] = int(f'1{port_prefix}{i+1}02')
-            config['network_udp_port'] = int(f'1{port_prefix}{i+1}02')
             config['rpc']['http_port'] = int(f'7{port_prefix}{i+1}7')
             config['rpc']['ws_port'] = int(f'8{port_prefix}{i+1}7')
 
