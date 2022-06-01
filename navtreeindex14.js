@@ -1,5 +1,6 @@
 var NAVTREEINDEX14 =
 {
+"group___p_b_f_t.html#a4b041e54ffc037ab9ac0cdcea7b35824":[9,2,1,25],
 "group___p_b_f_t.html#a4b8d1b3019be6aae748b0b7f3e4a23b9":[9,2,1,70],
 "group___p_b_f_t.html#a4c42ae982119ffa8578683b2464b8825":[9,2,1,150],
 "group___p_b_f_t.html#a4d3ab20a116f88b6621ff48b0af60e57":[9,2,1,144],
@@ -248,6 +249,5 @@ var NAVTREEINDEX14 =
 "group___transaction.html#classtaraxa_1_1_transaction_manager":[9,3,1],
 "group___transaction.html#classtaraxa_1_1_transaction_queue":[9,3,2],
 "group___transaction.html#gae7551c287ae57b46d56d27de67df61e7":[9,3,3],
-"group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a1329e7699345f6e7d1b9bfb0965a3c03":[9,3,3,2],
-"group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a3f68e67dc6c397aaa9d1c24c356f754f":[9,3,3,0]
+"group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a1329e7699345f6e7d1b9bfb0965a3c03":[9,3,3,2]
 };

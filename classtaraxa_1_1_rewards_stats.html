@@ -84,6 +84,7 @@ $(document).ready(function(){initNavTree('classtaraxa_1_1_rewards_stats.html',''
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-methods">Private Member Functions</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classtaraxa_1_1_rewards_stats-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -103,6 +104,12 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:a63dd78e20e6f0783645b44059a141c71"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#a63dd78e20e6f0783645b44059a141c71">processStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block">SyncBlock</a> &amp;block)</td></tr>
+<tr class="memdesc:a63dd78e20e6f0783645b44059a141c71"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block" title="SyncBlock class is for block execution, that includes PBFT block, certify votes, DAG blocks,...">SyncBlock</a> and returns vector of validators, who included provided block.transactions as first in dag block, e.g. returned validator on position 2 included transaction block.transactions[2] as first in his dag block.  <a href="classtaraxa_1_1_rewards_stats.html#a63dd78e20e6f0783645b44059a141c71">More...</a><br /></td></tr>
+<tr class="separator:a63dd78e20e6f0783645b44059a141c71"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
+Private Member Functions</h2></td></tr>
 <tr class="memitem:a8817d1b9e12e477f1b2332cd4f9c7055"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#a8817d1b9e12e477f1b2332cd4f9c7055">addTransaction</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;tx_hash, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;validator)</td></tr>
 <tr class="memdesc:a8817d1b9e12e477f1b2332cd4f9c7055"><td class="mdescLeft">&#160;</td><td class="mdescRight">In case unique tx_hash is provided, it is mapped to it's validator's address + validator's unique txs count is incremented. If provided tx_hash was already processed, nothing happens.  <a href="classtaraxa_1_1_rewards_stats.html#a8817d1b9e12e477f1b2332cd4f9c7055">More...</a><br /></td></tr>
 <tr class="separator:a8817d1b9e12e477f1b2332cd4f9c7055"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -114,9 +121,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ab833b335b8ad0858918d9404188084e3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#ab833b335b8ad0858918d9404188084e3">addVote</a> (const <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &amp;vote)</td></tr>
 <tr class="memdesc:ab833b335b8ad0858918d9404188084e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">In case unique vote is provided, it's author's unique votes count is incremented. If provided vote was already processed, nothing happens.  <a href="classtaraxa_1_1_rewards_stats.html#ab833b335b8ad0858918d9404188084e3">More...</a><br /></td></tr>
 <tr class="separator:ab833b335b8ad0858918d9404188084e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4905833f1a38157997611014a7d91bba"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#a4905833f1a38157997611014a7d91bba">processStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block">SyncBlock</a> &amp;sync_blk)</td></tr>
-<tr class="memdesc:a4905833f1a38157997611014a7d91bba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prepares reward statistics bases on sync block data.  <a href="classtaraxa_1_1_rewards_stats.html#a4905833f1a38157997611014a7d91bba">More...</a><br /></td></tr>
-<tr class="separator:a4905833f1a38157997611014a7d91bba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a501ffa16f65469b0fb70cfc5d3248a62"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#a501ffa16f65469b0fb70cfc5d3248a62">initStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block">SyncBlock</a> &amp;sync_blk)</td></tr>
+<tr class="memdesc:a501ffa16f65469b0fb70cfc5d3248a62"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prepares reward statistics bases on sync block data.  <a href="classtaraxa_1_1_rewards_stats.html#a501ffa16f65469b0fb70cfc5d3248a62">More...</a><br /></td></tr>
+<tr class="separator:a501ffa16f65469b0fb70cfc5d3248a62"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -167,6 +174,9 @@ valid_cert_vote_</td>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">bool taraxa::RewardsStats::addTransaction </td>
@@ -186,6 +196,11 @@ valid_cert_vote_</td>
           <td></td><td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>In case unique tx_hash is provided, it is mapped to it's validator's address + validator's unique txs count is incremented. If provided tx_hash was already processed, nothing happens. </p>
@@ -205,6 +220,9 @@ valid_cert_vote_</td>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">bool taraxa::RewardsStats::addVote </td>
@@ -214,6 +232,11 @@ valid_cert_vote_</td>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>In case unique vote is provided, it's author's unique votes count is incremented. If provided vote was already processed, nothing happens. </p>
@@ -232,6 +255,9 @@ valid_cert_vote_</td>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">std::optional&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &gt; taraxa::RewardsStats::getTransactionValidator </td>
@@ -241,6 +267,11 @@ valid_cert_vote_</td>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -252,20 +283,28 @@ valid_cert_vote_</td>
 
 </div>
 </div>
-<a id="a4905833f1a38157997611014a7d91bba"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4905833f1a38157997611014a7d91bba">&#9670;&nbsp;</a></span>processStats()</h2>
+<a id="a501ffa16f65469b0fb70cfc5d3248a62"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a501ffa16f65469b0fb70cfc5d3248a62">&#9670;&nbsp;</a></span>initStats()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void taraxa::RewardsStats::processStats </td>
+          <td class="memname">void taraxa::RewardsStats::initStats </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block">SyncBlock</a> &amp;&#160;</td>
           <td class="paramname"><em>sync_blk</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>Prepares reward statistics bases on sync block data. </p>
@@ -278,11 +317,41 @@ valid_cert_vote_</td>
 
 </div>
 </div>
+<a id="a63dd78e20e6f0783645b44059a141c71"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a63dd78e20e6f0783645b44059a141c71">&#9670;&nbsp;</a></span>processStats()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &gt; taraxa::RewardsStats::processStats </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block">SyncBlock</a> &amp;&#160;</td>
+          <td class="paramname"><em>block</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Process <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block" title="SyncBlock class is for block execution, that includes PBFT block, certify votes, DAG blocks,...">SyncBlock</a> and returns vector of validators, who included provided block.transactions as first in dag block, e.g. returned validator on position 2 included transaction block.transactions[2] as first in his dag block. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">block</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>vector of validators </dd></dl>
+
+</div>
+</div>
 <a id="a01782dc9656c2b1312080964fd8437b2"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a01782dc9656c2b1312080964fd8437b2">&#9670;&nbsp;</a></span>removeTransaction()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void taraxa::RewardsStats::removeTransaction </td>
@@ -292,6 +361,11 @@ valid_cert_vote_</td>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>Remove tx from statistics. </p>

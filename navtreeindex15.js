@@ -1,5 +1,6 @@
 var NAVTREEINDEX15 =
 {
+"group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a3f68e67dc6c397aaa9d1c24c356f754f":[9,3,3,0],
 "group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a4bbb8f967da6d1a610596d7257179c2b":[9,3,3,1],
 "group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7ad10cbf6c0f5918304899ed32d94cb0bf":[9,3,3,3],
 "group___vote.html":[9,4],
@@ -159,8 +160,8 @@ var NAVTREEINDEX15 =
 "hardfork_8hpp.html#struct_hardforks":[12,0,1,3,0,0,4,0],
 "hardfork_8hpp_source.html":[12,0,1,3,0,0,4],
 "hierarchy.html":[11,2],
-"index.html":[],
 "index.html":[0],
+"index.html":[],
 "index.html#autotoc_md1":[0,0],
 "index.html#autotoc_md10":[0,5],
 "index.html#autotoc_md11":[0,6],
@@ -248,6 +249,5 @@ var NAVTREEINDEX15 =
 "libdevcore_2_exceptions_8h.html#a1bde550ecbaebfe3bc6075909cde28cf":[12,0,1,0,0,12,17],
 "libdevcore_2_exceptions_8h.html#a1c4cad491ccea98485acd91f7d80c264":[12,0,1,0,0,12,3],
 "libdevcore_2_exceptions_8h.html#a1eec65a70ee38e4e2715844253809228":[12,0,1,0,0,12,31],
-"libdevcore_2_exceptions_8h.html#a26d6030caa188d3e8d7dfe9994e11814":[12,0,1,0,0,12,12],
-"libdevcore_2_exceptions_8h.html#a284d5976ac6f74a28637a11ff0471120":[12,0,1,0,0,12,35]
+"libdevcore_2_exceptions_8h.html#a26d6030caa188d3e8d7dfe9994e11814":[12,0,1,0,0,12,12]
 };

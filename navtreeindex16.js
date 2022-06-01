@@ -1,5 +1,6 @@
 var NAVTREEINDEX16 =
 {
+"libdevcore_2_exceptions_8h.html#a284d5976ac6f74a28637a11ff0471120":[12,0,1,0,0,12,35],
 "libdevcore_2_exceptions_8h.html#a28d0d371bcd53a79ec6e025388dfaf26":[12,0,1,0,0,12,28],
 "libdevcore_2_exceptions_8h.html#a327de80dab18a48aa368ab844bc395b5":[12,0,1,0,0,12,25],
 "libdevcore_2_exceptions_8h.html#a3bc6cd2e673d17317a6f9ad877f33f23":[12,0,1,0,0,12,21],
@@ -248,6 +249,5 @@ var NAVTREEINDEX16 =
 "md_doc_building.html#autotoc_md32":[1,1,0],
 "md_doc_building.html#autotoc_md33":[1,1,1],
 "md_doc_building.html#autotoc_md34":[1,1,2],
-"md_doc_building.html#autotoc_md35":[1,1,3],
-"md_doc_building.html#autotoc_md36":[1,1,3,0]
+"md_doc_building.html#autotoc_md35":[1,1,3]
 };

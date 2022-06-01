@@ -1,5 +1,6 @@
 var NAVTREEINDEX18 =
 {
+"namespacemembers_func_s.html":[10,1,17],
 "namespacemembers_func_t.html":[10,1,18],
 "namespacemembers_func_u.html":[10,1,19],
 "namespacemembers_func_v.html":[10,1,20],
@@ -66,8 +67,8 @@ var NAVTREEINDEX18 =
 "namespacetaraxa_1_1final__chain.html#a955c880531dc4addb9d4c9e44022d843":[12,0,1,3,0,0,3,0,0,0],
 "namespacetaraxa_1_1final__chain.html#a955c880531dc4addb9d4c9e44022d843":[12,0,1,3,0,0,3,1,0],
 "namespacetaraxa_1_1final__chain.html#aaf85cbc4d2d04c3d5f30645a755eef60":[12,0,1,3,0,0,3,0,1],
-"namespacetaraxa_1_1final__chain.html#ada8d5e73db5ef864faa4aa45da49abb0":[12,0,1,3,0,0,3,1,1],
 "namespacetaraxa_1_1final__chain.html#ada8d5e73db5ef864faa4aa45da49abb0":[12,0,1,3,0,0,3,0,0,1],
+"namespacetaraxa_1_1final__chain.html#ada8d5e73db5ef864faa4aa45da49abb0":[12,0,1,3,0,0,3,1,1],
 "namespacetaraxa_1_1final__chain.html#structtaraxa_1_1final__chain_1_1_config":[12,0,1,3,0,0,3,0],
 "namespacetaraxa_1_1final__chain.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields":[12,0,1,3,0,0,3,0,0],
 "namespacetaraxa_1_1final__chain.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields":[12,0,1,3,0,0,3,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX18 =
 "peers__state_8hpp.html":[12,0,1,4,1,0,0,0,1,1],
 "peers__state_8hpp_source.html":[12,0,1,4,1,0,0,0,1,1],
 "priority__queue_8cpp.html":[12,0,1,4,1,2,0,3,3],
-"priority__queue_8hpp.html":[12,0,1,4,1,0,0,0,3,3],
-"priority__queue_8hpp_source.html":[12,0,1,4,1,0,0,0,3,3]
+"priority__queue_8hpp.html":[12,0,1,4,1,0,0,0,3,3]
 };

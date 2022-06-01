@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['introducing_20taraxa_6938',['Introducing Taraxa',['../index.html',1,'']]]
+  ['introducing_20taraxa_6940',['Introducing Taraxa',['../index.html',1,'']]]
 ];
