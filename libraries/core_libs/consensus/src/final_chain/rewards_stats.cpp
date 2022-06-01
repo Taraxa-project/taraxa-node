@@ -53,7 +53,7 @@ bool RewardsStats::addVote(const Vote& vote) {
   return true;
 }
 
-void RewardsStats::processStats(const SyncBlock& sync_blk) {
+void RewardsStats::initStats(const SyncBlock& sync_blk) {
   txs_validators_.reserve(sync_blk.transactions.size());
 
   // TODO: use std::max(sync_blk.dag_blocks.size(), sync_blk.rewards_votes.size())
@@ -67,6 +67,31 @@ void RewardsStats::processStats(const SyncBlock& sync_blk) {
   }
 
   // TODO: add votes to rewards_stats
+}
+
+std::vector<addr_t> RewardsStats::processStats(const SyncBlock& block) {
+  initStats(block);
+
+  // Dag blocks validators that included transactions to be executed as first in their blocks
+  std::vector<addr_t> txs_validators;
+  txs_validators.reserve(block.transactions.size());
+
+  for (const auto& tx : block.transactions) {
+    // TODO: if enabled, it would break current implementation of RewardsStats
+    // if (replay_protection_service_ && replay_protection_service_->is_nonce_stale(trx->getSender(),
+    //   trx->getNonce())) {
+    //   removeTransaction(tx.getHash());
+    //   continue;
+    // }
+
+    // Non-executed trxs
+    auto tx_validator = getTransactionValidator(tx->getHash());
+    assert(tx_validator.has_value());
+
+    txs_validators.push_back(tx_validator.value());
+  }
+
+  return txs_validators;
 }
 
 RLP_FIELDS_DEFINE(RewardsStats::ValidatorStats, unique_txs_count_, valid_cert_vote_)
