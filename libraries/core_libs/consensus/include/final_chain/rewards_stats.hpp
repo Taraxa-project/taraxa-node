@@ -16,6 +16,19 @@ namespace taraxa {
 class RewardsStats {
  public:
   /**
+   * @brief Process SyncBlock and returns vector of validators, who included provided block.transactions as first in
+   * dag block, e.g. returned validator on position 2 included transaction block.transactions[2] as first in his dag
+   * block
+   *
+   * @param block
+   * @return vector of validators
+   */
+  std::vector<addr_t> processStats(const SyncBlock& block);
+
+  HAS_RLP_FIELDS
+
+ private:
+  /**
    * @brief In case unique tx_hash is provided, it is mapped to it's validator's address + validator's unique txs count
    *        is incremented. If provided tx_hash was already processed, nothing happens
    *
@@ -53,10 +66,7 @@ class RewardsStats {
    *
    * @param sync_blk
    */
-  void processStats(const SyncBlock& sync_blk);
-
- public:
-  HAS_RLP_FIELDS
+  void initStats(const SyncBlock& sync_blk);
 
  private:
   struct ValidatorStats {

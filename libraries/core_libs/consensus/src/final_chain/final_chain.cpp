@@ -56,9 +56,20 @@ class FinalChainImpl final : public FinalChain {
         assert(state_db_descriptor.blk_num < last_block_->number);
         for (auto n = state_db_descriptor.blk_num + 1; n <= last_block_->number; ++n) {
           auto blk = n == last_block_->number ? last_block_ : FinalChainImpl::block_header(n);
-          auto res =
-              state_api_.transition_state({blk->author, blk->gas_limit, blk->timestamp, BlockHeader::difficulty()},
-                                          to_state_api_transactions(transactions(blk->number)));
+
+          auto period_data = db_->getPeriodDataRaw(blk->number);
+          assert(period_data.size() > 0);
+
+          SyncBlock block_data(period_data);
+
+          // Creates rewards stats
+          RewardsStats rewards_stats;
+          std::vector<addr_t> txs_validators = rewards_stats.processStats(block_data);
+
+          auto res = state_api_.transition_state(
+              {blk->author, blk->gas_limit, blk->timestamp, BlockHeader::difficulty()},
+              to_state_api_transactions(block_data.transactions), txs_validators, {}, rewards_stats);
+
           assert(res.state_root == blk->state_root);
           state_api_.transition_state_commit();
         }
@@ -91,46 +102,15 @@ class FinalChainImpl final : public FinalChain {
                                                 finalize_precommit_ext const& precommit_ext) {
     auto batch = db_->createWriteBatch();
 
-    // Transactions to be executed in evm
-    SharedTransactions txs_to_execute;
-    txs_to_execute.reserve(new_blk.transactions.size());
-
-    // Dag blocks validators that included transactions to be executed as first in their blocks
-    std::vector<addr_t> txs_to_execute_validators;
-    txs_to_execute_validators.reserve(new_blk.transactions.size());
-
-    // Creates rewards stats
     RewardsStats rewards_stats;
-    rewards_stats.processStats(new_blk);
-
-    for (size_t i = 0; i < new_blk.transactions.size(); ++i) {
-      auto& tx = new_blk.transactions[i];
-
-      // TODO: if enabled, it would break current implementation of RewardsStats
-      // if (replay_protection_service_ && replay_protection_service_->is_nonce_stale(trx->getSender(),
-      //   trx->getNonce())) {
-      //   rewards_stats.removeTransaction(tx.getHash());
-      //   continue;
-      // }
-
-      // Non-executed trxs
-      auto tx_validator = rewards_stats.getTransactionValidator(tx->getHash());
-      if (!tx_validator.has_value()) {
-        // This should never happen
-        LOG(log_er_) << "Inconsistent reward stats data: unable to find tx validator";
-        assert(false);
-      }
-
-      txs_to_execute.push_back(std::move(tx));
-      txs_to_execute_validators.push_back(tx_validator.value());
-    }
-    assert(txs_to_execute.size() == txs_to_execute_validators.size());
+    // returns list of validators for new_blk.transactions
+    std::vector<addr_t> txs_validators = rewards_stats.processStats(new_blk);
 
     block_applying_emitter_.emit(block_header()->number + 1);
 
     auto const& [exec_results, state_root] = state_api_.transition_state(
         {new_blk.pbft_blk->getBeneficiary(), GAS_LIMIT, new_blk.pbft_blk->getTimestamp(), BlockHeader::difficulty()},
-        to_state_api_transactions(txs_to_execute), txs_to_execute_validators, {}, rewards_stats);
+        to_state_api_transactions(new_blk.transactions), txs_validators, {}, rewards_stats);
 
     TransactionReceipts receipts;
     receipts.reserve(exec_results.size());
@@ -150,7 +130,7 @@ class FinalChainImpl final : public FinalChain {
       });
     }
     auto blk_header = append_block(batch, new_blk.pbft_blk->getBeneficiary(), new_blk.pbft_blk->getTimestamp(),
-                                   GAS_LIMIT, state_root, txs_to_execute, receipts);
+                                   GAS_LIMIT, state_root, new_blk.transactions, receipts);
     //    if (replay_protection_service_) {
     //      // Update replay protection service, like nonce watermark. Nonce watermark has been disabled
     //      replay_protection_service_->update(
@@ -161,12 +141,12 @@ class FinalChainImpl final : public FinalChain {
 
     // Update number of executed DAG blocks and transactions
     auto num_executed_dag_blk = num_executed_dag_blk_ + finalized_dag_blk_hashes.size();
-    auto num_executed_trx = num_executed_trx_ + txs_to_execute.size();
+    auto num_executed_trx = num_executed_trx_ + new_blk.transactions.size();
     if (!finalized_dag_blk_hashes.empty()) {
       db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk);
       db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx);
       LOG(log_nf_) << "Executed dag blocks #" << num_executed_dag_blk_ - finalized_dag_blk_hashes.size() << "-"
-                   << num_executed_dag_blk_ - 1 << " , Transactions count: " << txs_to_execute.size();
+                   << num_executed_dag_blk_ - 1 << " , Transactions count: " << new_blk.transactions.size();
     }
 
     auto result = std::make_shared<FinalizationResult>(FinalizationResult{
@@ -177,7 +157,7 @@ class FinalChainImpl final : public FinalChain {
             new_blk.pbft_blk->getBlockHash(),
         },
         blk_header,
-        std::move(txs_to_execute),
+        std::move(new_blk.transactions),
         std::move(receipts),
     });
 
