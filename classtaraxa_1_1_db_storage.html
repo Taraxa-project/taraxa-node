@@ -162,6 +162,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a1389c4d576ca86153be5668efdff49de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab38881e05d52dd3406f49ac3ebe0a030"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ab38881e05d52dd3406f49ac3ebe0a030">enableSnapshots</a> ()</td></tr>
 <tr class="separator:ab38881e05d52dd3406f49ac3ebe0a030"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a996ba68dcc57852ac1e84bb712da079f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a996ba68dcc57852ac1e84bb712da079f">setGenesisHash</a> (const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &amp;genesis_hash)</td></tr>
+<tr class="separator:a996ba68dcc57852ac1e84bb712da079f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b5913c661bb192e45c7a6b659886aed"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a3b5913c661bb192e45c7a6b659886aed">getGenesisHash</a> ()</td></tr>
+<tr class="separator:a3b5913c661bb192e45c7a6b659886aed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a266e6910aee0bd6f88c38abe398f3932"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a266e6910aee0bd6f88c38abe398f3932">savePeriodData</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block">SyncBlock</a> &amp;sync_block, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:a266e6910aee0bd6f88c38abe398f3932"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b0bcec590d04d86d7f8089af6ac1fbd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a8b0bcec590d04d86d7f8089af6ac1fbd">clearPeriodDataHistory</a> (uint64_t period)</td></tr>
@@ -1678,6 +1682,23 @@ template&lt;typename K &gt; </div>
           <td>(</td>
           <td class="paramtype">uint32_t&#160;</td>
           <td class="paramname"><em>period</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3b5913c661bb192e45c7a6b659886aed"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3b5913c661bb192e45c7a6b659886aed">&#9670;&nbsp;</a></span>getGenesisHash()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt; taraxa::DbStorage::getGenesisHash </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -3313,6 +3334,24 @@ template&lt;typename K &gt; </div>
           <td>(</td>
           <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; const &amp;&#160;</td>
           <td class="paramname"><em>vote</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a996ba68dcc57852ac1e84bb712da079f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a996ba68dcc57852ac1e84bb712da079f">&#9670;&nbsp;</a></span>setGenesisHash()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::DbStorage::setGenesisHash </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &amp;&#160;</td>
+          <td class="paramname"><em>genesis_hash</em></td><td>)</td>
           <td></td>
         </tr>
       </table>

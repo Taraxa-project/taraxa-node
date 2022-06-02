@@ -15,7 +15,7 @@ var classtaraxa_1_1cli_1_1_tools =
     [ "getTaraxaDefaultConfigFile", "classtaraxa_1_1cli_1_1_tools.html#a39193aaa26dc7fa5d2f26d6ebced9fd4", null ],
     [ "getTaraxaDefaultDir", "classtaraxa_1_1cli_1_1_tools.html#a3ee0f920c5e16140871f45d1730244db", null ],
     [ "getWalletDefaultFile", "classtaraxa_1_1cli_1_1_tools.html#ad831f0efb2617db8547f9233828c541f", null ],
-    [ "overrideConfig", "classtaraxa_1_1cli_1_1_tools.html#a54e5eaeb059da90530acad9065b14149", null ],
+    [ "overrideConfig", "classtaraxa_1_1cli_1_1_tools.html#a23e059973ffaaed12a114d61d8a4e3bd", null ],
     [ "overrideWallet", "classtaraxa_1_1cli_1_1_tools.html#a3c452b9970dfc6d64de3a4a68eca0b15", null ],
     [ "DEFAULT_CONFIG_FILE_NAME", "classtaraxa_1_1cli_1_1_tools.html#a742ed75e96d4b8916ff3b4bf16bbd88c", null ],
     [ "DEFAULT_TARAXA_DATA_DIR_NAME", "classtaraxa_1_1cli_1_1_tools.html#aa3140f735327e480455c05fe1873ffe9", null ],

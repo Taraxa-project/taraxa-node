@@ -15,7 +15,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_manager =
     [ "comparePbftBlockScheduleWithDAGblocks_", "group___p_b_f_t.html#ae28da2858cc02c7038a0924bc7c36b15", null ],
     [ "comparePbftBlockScheduleWithDAGblocks_", "group___p_b_f_t.html#a00d0b3f3ea955d7256d954b66e80262c", null ],
     [ "continuousOperation_", "group___p_b_f_t.html#a42070d27f2343ddf0f3c55131dfd8904", null ],
-    [ "countVotes_", "group___p_b_f_t.html#abf9db0f2ceedd3068647dd228fec1784", null ],
+    [ "countVotes_", "group___p_b_f_t.html#a5a518a3d602960194b8f9b2aac1bcc8d", null ],
     [ "doNextState_", "group___p_b_f_t.html#a1dd40ea7c26c6ecfe49ffd38e5dd0d8f", null ],
     [ "dposEligibleVoteCount_", "group___p_b_f_t.html#a234f1b78d5615f2cef4de3a49e3640a7", null ],
     [ "finalize_", "group___p_b_f_t.html#a2330dc00a1b3067a0673a7e3ad4e1789", null ],

@@ -1,5 +1,8 @@
 var NAVTREEINDEX14 =
 {
+"group___p_b_f_t.html#a48759fa891dc1d0f9a700e329195db71":[9,2,1,68],
+"group___p_b_f_t.html#a48b2338faa93e4a389f3bc5683a228ee":[9,2,1,45],
+"group___p_b_f_t.html#a49b3437e04f7884b667b28e537403a70":[9,2,2,8],
 "group___p_b_f_t.html#a4b041e54ffc037ab9ac0cdcea7b35824":[9,2,1,25],
 "group___p_b_f_t.html#a4b8d1b3019be6aae748b0b7f3e4a23b9":[9,2,1,70],
 "group___p_b_f_t.html#a4c42ae982119ffa8578683b2464b8825":[9,2,1,150],
@@ -17,6 +20,7 @@ var NAVTREEINDEX14 =
 "group___p_b_f_t.html#a5734de8f8252ba4603d5250393f8bdd8":[9,2,1,73],
 "group___p_b_f_t.html#a5848efce29141c7402bdbcee31185c9b":[9,2,0,27],
 "group___p_b_f_t.html#a59a9a8bd086c2f5ed76c823635475ab2":[9,2,1,148],
+"group___p_b_f_t.html#a5a518a3d602960194b8f9b2aac1bcc8d":[9,2,1,15],
 "group___p_b_f_t.html#a5bac9fba1c4cbae2f02fc04a3a5c5d6c":[9,2,1,76],
 "group___p_b_f_t.html#a5c07848027fb2b186ddb512e9e5b9cd8":[9,2,1,91],
 "group___p_b_f_t.html#a5c29f331e865d26f67f70e336a9dcefd":[9,2,3,3],
@@ -107,7 +111,6 @@ var NAVTREEINDEX14 =
 "group___p_b_f_t.html#abea84a668c159505b7e453db0df192d8":[9,2,1,143],
 "group___p_b_f_t.html#abee65cb73c7432eb31eadce9f69d3853":[9,2,1,31],
 "group___p_b_f_t.html#abf233be73a4e02fb4f260cb7684cd977":[9,2,1,79],
-"group___p_b_f_t.html#abf9db0f2ceedd3068647dd228fec1784":[9,2,1,15],
 "group___p_b_f_t.html#abfe2c34106f0f7c4250e92f7fe6cc095":[9,2,3,22],
 "group___p_b_f_t.html#ac223cb71b31a508a0be870366c48b877":[9,2,1,111],
 "group___p_b_f_t.html#ac3b27ff13663f656adc80fecc15db6d1":[9,2,1,77],
@@ -246,8 +249,5 @@ var NAVTREEINDEX14 =
 "group___transaction.html#afc9f2c8a2cb05322ddc8226301341f85":[9,3,1,22],
 "group___transaction.html#afddcd300c382363d24312db01b456b5a":[9,3,0,7],
 "group___transaction.html#classtaraxa_1_1_gas_pricer":[9,3,0],
-"group___transaction.html#classtaraxa_1_1_transaction_manager":[9,3,1],
-"group___transaction.html#classtaraxa_1_1_transaction_queue":[9,3,2],
-"group___transaction.html#gae7551c287ae57b46d56d27de67df61e7":[9,3,3],
-"group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a1329e7699345f6e7d1b9bfb0965a3c03":[9,3,3,2]
+"group___transaction.html#classtaraxa_1_1_transaction_manager":[9,3,1]
 };

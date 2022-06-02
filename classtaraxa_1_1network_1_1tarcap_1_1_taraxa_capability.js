@@ -1,6 +1,6 @@
 var classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability =
 [
-    [ "TaraxaCapability", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ac7d8df8626d8a44bd1f8a89f8807d557", null ],
+    [ "TaraxaCapability", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ab1f9b112fb43e53882d70266c31df03e", null ],
     [ "~TaraxaCapability", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a04c6c147929b39ccc4fba7a4fe3af361", null ],
     [ "TaraxaCapability", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ac3ba3188d8fdc5278972c8df2c93d183", null ],
     [ "TaraxaCapability", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a984544272e48490629e33c8e866c94ff", null ],
@@ -28,7 +28,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability =
     [ "operator=", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ab01ed374f8a5aeef3b66e315cc0057fc", null ],
     [ "packetTypeToString", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a019cad08c10ef2af5b9e2bd639f2de00", null ],
     [ "pbft_syncing", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ab71e9b2ef6327eff94d08d79c6f64d7f", null ],
-    [ "registerPacketHandlers", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#aa13ca3de08038cc8c1fc4c25a41ea966", null ],
+    [ "registerPacketHandlers", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#af869d9783616cedd23dddfe1c7fcbc8d", null ],
     [ "restartSyncingPbft", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ae8873716bbe969533bd4d6995b8fb223", null ],
     [ "sendBlock", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a8fc78436db6f97febbdff436e3fc2340", null ],
     [ "sendBlocks", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#afe76c210d549e051e95ed4d461f440f1", null ],

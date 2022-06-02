@@ -99,16 +99,17 @@ Collaboration diagram for taraxa::network::tarcap::StatusPacketHandler:</div>
 <div class="dyncontent">
 <div class="center"><img src="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler__coll__graph.png" border="0" usemap="#taraxa_1_1network_1_1tarcap_1_1_status_packet_handler_coll__map" alt="Collaboration graph"/></div>
 <map name="taraxa_1_1network_1_1tarcap_1_1_status_packet_handler_coll__map" id="taraxa_1_1network_1_1tarcap_1_1_status_packet_handler_coll__map">
-<area shape="rect" title=" " alt="" coords="15,184,190,225"/>
-<area shape="rect" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html" title="ExtSyncingPacketHandler is extended abstract PacketHandler with added functions that are used in pack..." alt="" coords="5,95,200,136"/>
+<area shape="rect" title=" " alt="" coords="166,200,341,241"/>
+<area shape="rect" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html" title="ExtSyncingPacketHandler is extended abstract PacketHandler with added functions that are used in pack..." alt="" coords="5,96,200,137"/>
 <area shape="rect" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html" title="Packet handler base class that consists of shared state and some commonly used functions." alt="" coords="15,5,190,47"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="224,103,384,130"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a71c101da7a1a0a8203817681d7d86b39"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#a71c101da7a1a0a8203817681d7d86b39">StatusPacketHandler</a> (std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt; peers_state, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html">PacketsStats</a> &gt; packets_stats, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html">PbftSyncingState</a> &gt; pbft_syncing_state, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt; pbft_chain, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">PbftManager</a> &gt; pbft_mgr, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &gt; dag_mgr, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &gt; dag_blk_mgr, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_next_votes_manager">NextVotesManager</a> &gt; next_votes_mgr, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db, uint64_t conf_network_id, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr)</td></tr>
-<tr class="separator:a71c101da7a1a0a8203817681d7d86b39"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a192167b7db2a6a903c43b462a9b70ccd"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#a192167b7db2a6a903c43b462a9b70ccd">StatusPacketHandler</a> (std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt; peers_state, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html">PacketsStats</a> &gt; packets_stats, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html">PbftSyncingState</a> &gt; pbft_syncing_state, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt; pbft_chain, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">PbftManager</a> &gt; pbft_mgr, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &gt; dag_mgr, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &gt; dag_blk_mgr, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_next_votes_manager">NextVotesManager</a> &gt; next_votes_mgr, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db, uint64_t conf_network_id, <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> genesis_hash, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr)</td></tr>
+<tr class="separator:a192167b7db2a6a903c43b462a9b70ccd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6aba7f16e36428ad0d91fbe6ee7eb455"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#a6aba7f16e36428ad0d91fbe6ee7eb455">sendStatus</a> (const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;node_id, bool initial)</td></tr>
 <tr class="separator:a6aba7f16e36428ad0d91fbe6ee7eb455"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aacf2facbe8a9d30f8b2b01e435535b09"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#aacf2facbe8a9d30f8b2b01e435535b09">sendStatusToPeers</a> ()</td></tr>
@@ -178,6 +179,8 @@ Private Member Functions</h2></td></tr>
 Private Attributes</h2></td></tr>
 <tr class="memitem:acbaa807cc3ef7db89b92537ca41098bc"><td class="memItemLeft" align="right" valign="top">const uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#acbaa807cc3ef7db89b92537ca41098bc">conf_network_id_</a></td></tr>
 <tr class="separator:acbaa807cc3ef7db89b92537ca41098bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afdaa139f2d109014e728dc9aa294e074"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#afdaa139f2d109014e728dc9aa294e074">genesis_hash_</a></td></tr>
+<tr class="separator:afdaa139f2d109014e728dc9aa294e074"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3dd72ee4f4aeb6402506cbccb0e92520"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_next_votes_manager">NextVotesManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#a3dd72ee4f4aeb6402506cbccb0e92520">next_votes_mgr_</a></td></tr>
 <tr class="separator:a3dd72ee4f4aeb6402506cbccb0e92520"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -218,8 +221,8 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:afabdc72598d541c7b8abb17bfbb6d93b inherit pro_attribs_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a71c101da7a1a0a8203817681d7d86b39"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a71c101da7a1a0a8203817681d7d86b39">&#9670;&nbsp;</a></span>StatusPacketHandler()</h2>
+<a id="a192167b7db2a6a903c43b462a9b70ccd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a192167b7db2a6a903c43b462a9b70ccd">&#9670;&nbsp;</a></span>StatusPacketHandler()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -283,6 +286,12 @@ Additional Inherited Members</h2></td></tr>
           <td></td>
           <td class="paramtype">uint64_t&#160;</td>
           <td class="paramname"><em>conf_network_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a>&#160;</td>
+          <td class="paramname"><em>genesis_hash</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -512,6 +521,28 @@ Additional Inherited Members</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">const uint64_t taraxa::network::tarcap::StatusPacketHandler::conf_network_id_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afdaa139f2d109014e728dc9aa294e074"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afdaa139f2d109014e728dc9aa294e074">&#9670;&nbsp;</a></span>genesis_hash_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> taraxa::network::tarcap::StatusPacketHandler::genesis_hash_</td>
         </tr>
       </table>
   </td>

@@ -12,7 +12,6 @@ var classtaraxa_1_1cli_1_1_config =
     [ "getNodeConfiguration", "classtaraxa_1_1cli_1_1_config.html#ab38c7a1400e791c5508ffe228fb96d01", null ],
     [ "nodeConfigured", "classtaraxa_1_1cli_1_1_config.html#ac39b3fa325ebfd964fb752af045f9dd0", null ],
     [ "ACCOUNT_COMMAND", "classtaraxa_1_1cli_1_1_config.html#aefd8336821cddd1d12517048cedb73dc", null ],
-    [ "BOOT_NODE", "classtaraxa_1_1cli_1_1_config.html#a17ee22c0ea403b41597dac1c141c8831", null ],
     [ "BOOT_NODES", "classtaraxa_1_1cli_1_1_config.html#a429389baad782d37e15107c72f3e1eb8", null ],
     [ "BOOT_NODES_APPEND", "classtaraxa_1_1cli_1_1_config.html#aafd8e83fb66d62165e39cdc4941b8033", null ],
     [ "COMMAND", "classtaraxa_1_1cli_1_1_config.html#a9c04d754a682827ccc65600bf75735a1", null ],

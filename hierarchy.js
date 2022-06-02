@@ -14,7 +14,7 @@ var hierarchy =
     [ "dev::p2p::CapabilityFace", "classdev_1_1p2p_1_1_capability_face.html", [
       [ "taraxa::network::tarcap::TaraxaCapability", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html", null ]
     ] ],
-    [ "taraxa::chain_config::ChainConfig", "structtaraxa_1_1chain__config_1_1_chain_config.html", null ],
+    [ "taraxa::ChainConfig", "structtaraxa_1_1_chain_config.html", null ],
     [ "Client", null, [
       [ "taraxa::net::EthClient", "classtaraxa_1_1net_1_1_eth_client.html", null ],
       [ "taraxa::net::NetClient", "classtaraxa_1_1net_1_1_net_client.html", null ],
@@ -26,7 +26,7 @@ var hierarchy =
     [ "Comparator", null, [
       [ "taraxa::UintComparator< T >", "classtaraxa_1_1_uint_comparator.html", null ]
     ] ],
-    [ "taraxa::final_chain::Config", "namespacetaraxa_1_1final__chain.html#structtaraxa_1_1final__chain_1_1_config", null ],
+    [ "taraxa::final_chain::Config", "structtaraxa_1_1final__chain_1_1_config.html", null ],
     [ "taraxa::logger::Config", "classtaraxa_1_1logger_1_1_config.html", null ],
     [ "taraxa::state_api::Config", "structtaraxa_1_1state__api_1_1_config.html", null ],
     [ "taraxa::final_chain::ReplayProtectionService::Config", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_config", null ],
@@ -54,7 +54,7 @@ var hierarchy =
     ] ],
     [ "taraxa::DagBlock", "classtaraxa_1_1_dag_block.html", null ],
     [ "taraxa::DagBlockManager", "group___d_a_g.html#classtaraxa_1_1_dag_block_manager", null ],
-    [ "taraxa::DagConfig", "namespacetaraxa.html#structtaraxa_1_1_dag_config", null ],
+    [ "taraxa::DagConfig", "structtaraxa_1_1_dag_config.html", null ],
     [ "taraxa::DagFrontier", "structtaraxa_1_1_dag_frontier.html", null ],
     [ "taraxa::util::DefaultConstructCopyableMovable< T >", "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html", null ],
     [ "taraxa::util::DefaultConstructCopyableMovable< std::mutex >", "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html", null ],
@@ -143,11 +143,11 @@ var hierarchy =
       [ "dev::SecureFixedHash< 32 >", "classdev_1_1_secure_fixed_hash.html", null ]
     ] ],
     [ "taraxa::FullNodeConfig", "structtaraxa_1_1_full_node_config.html", null ],
-    [ "taraxa::chain_config::GasPriceConfig", "structtaraxa_1_1chain__config_1_1_gas_price_config.html", null ],
+    [ "taraxa::GasPriceConfig", "structtaraxa_1_1_gas_price_config.html", null ],
     [ "taraxa::GasPricer", "group___transaction.html#classtaraxa_1_1_gas_pricer", null ],
     [ "dev::GenericUnguardBool< MutexType >", "structdev_1_1_generic_unguard_bool.html", null ],
     [ "dev::GenericUnguardSharedBool< MutexType >", "structdev_1_1_generic_unguard_shared_bool.html", null ],
-    [ "taraxa::final_chain::Config::GenesisBlockFields", "namespacetaraxa_1_1final__chain.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields", null ],
+    [ "taraxa::final_chain::Config::GenesisBlockFields", "structtaraxa_1_1final__chain_1_1_config.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields", null ],
     [ "GuardType", null, [
       [ "dev::GenericGuardBool< GuardType, MutexType >", "structdev_1_1_generic_guard_bool.html", null ]
     ] ],
@@ -244,7 +244,7 @@ var hierarchy =
     [ "taraxa::network::tarcap::AllPacketTypesStats::PacketTypeStats", "structtaraxa_1_1network_1_1tarcap_1_1_all_packet_types_stats_1_1_packet_type_stats.html", null ],
     [ "taraxa::PbftBlock", "group___p_b_f_t.html#classtaraxa_1_1_pbft_block", null ],
     [ "taraxa::PbftChain", "group___p_b_f_t.html#classtaraxa_1_1_pbft_chain", null ],
-    [ "taraxa::PbftConfig", "namespacetaraxa.html#structtaraxa_1_1_pbft_config", null ],
+    [ "taraxa::PbftConfig", "structtaraxa_1_1_pbft_config.html", null ],
     [ "taraxa::network::tarcap::PbftSyncingState", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html", null ],
     [ "dev::p2p::PeerSessionInfo", "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_peer_session_info", null ],
     [ "taraxa::network::tarcap::PeersState", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html", null ],
