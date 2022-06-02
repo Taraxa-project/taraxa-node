@@ -1,9 +1,5 @@
 var NAVTREEINDEX19 =
 {
-"rewards__stats_8cpp.html":[12,0,1,4,0,1,1,3],
-"rewards__stats_8hpp.html":[12,0,1,4,0,0,1,3],
-"rewards__stats_8hpp_source.html":[12,0,1,4,0,0,1,3],
-"rpc__error__handler_8cpp.html":[12,0,1,4,1,1,7],
 "rpc__error__handler_8cpp.html#addc8ea7a95b1b5bcc33b970b5d118a8c":[12,0,1,4,1,1,7,0],
 "rpc__error__handler_8hpp.html":[12,0,1,4,1,1,8],
 "rpc__error__handler_8hpp.html#addc8ea7a95b1b5bcc33b970b5d118a8c":[12,0,1,4,1,1,8,0],
@@ -223,8 +219,8 @@ var NAVTREEINDEX19 =
 "structdev_1_1p2p_1_1_find_node.html#aa2d6118a2ade86aa6b464dba3d61f08a":[11,0,1,1,8,1],
 "structdev_1_1p2p_1_1_find_node.html#ae786f2d5f11db32aa749fd8e846a3dcf":[11,0,1,1,8,4],
 "structdev_1_1p2p_1_1_host.html":[11,0,1,1,9],
-"structdev_1_1p2p_1_1_host.html#a02347e7bf3c420974812af9b3e701737":[12,0,1,0,2,9,4,2],
 "structdev_1_1p2p_1_1_host.html#a02347e7bf3c420974812af9b3e701737":[11,0,1,1,9,1,2],
+"structdev_1_1p2p_1_1_host.html#a02347e7bf3c420974812af9b3e701737":[12,0,1,0,2,9,4,2],
 "structdev_1_1p2p_1_1_host.html#a071593a39c481a0cad338c976fe39786":[11,0,1,1,9,65],
 "structdev_1_1p2p_1_1_host.html#a0e538e8d25bf6374eed667d53698fecd":[11,0,1,1,9,27],
 "structdev_1_1p2p_1_1_host.html#a0ffacbabf44a7843d24d6831f6fb7c63":[11,0,1,1,9,66],
@@ -249,5 +245,9 @@ var NAVTREEINDEX19 =
 "structdev_1_1p2p_1_1_host.html#a4b23feb69056b7a3c381f9e30d84a509":[11,0,1,1,9,18],
 "structdev_1_1p2p_1_1_host.html#a4d01c5e35e506c1ab3a51e8fc9c58d9f":[11,0,1,1,9,13],
 "structdev_1_1p2p_1_1_host.html#a4f170aae51e527db4605ddc4097a9e62":[11,0,1,1,9,43],
-"structdev_1_1p2p_1_1_host.html#a51239084dd8d29c8adbf725c4aee5208":[11,0,1,1,9,8]
+"structdev_1_1p2p_1_1_host.html#a51239084dd8d29c8adbf725c4aee5208":[11,0,1,1,9,8],
+"structdev_1_1p2p_1_1_host.html#a58f9bae75580d1d522fd3b0300949615":[11,0,1,1,9,57],
+"structdev_1_1p2p_1_1_host.html#a5a61db7ee55fff50544cdcfa7b913e0e":[11,0,1,1,9,73],
+"structdev_1_1p2p_1_1_host.html#a5bfc3d72250374fcc0273b355a23b8e3":[11,0,1,1,9,35],
+"structdev_1_1p2p_1_1_host.html#a635530337ad0e62f0d65da4379f609a4":[11,0,1,1,9,23]
 };

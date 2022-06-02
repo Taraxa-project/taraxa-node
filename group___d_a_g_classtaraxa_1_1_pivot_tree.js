@@ -1,9 +1,9 @@
 var group___d_a_g_classtaraxa_1_1_pivot_tree =
 [
-    [ "vertex_adj_iter_t", "group___d_a_g.html#a15ca6fbb73254a3e90e243c5212ec796", null ],
-    [ "vertex_index_map_const_t", "group___d_a_g.html#a20f5f5cf8ca5c11ab5a06e270f021658", null ],
-    [ "vertex_t", "group___d_a_g.html#a78471d32df69bcef484a6910abf03642", null ],
-    [ "PivotTree", "group___d_a_g.html#aa2f349ee8306a6b394a57a87c5172708", null ],
+    [ "vertex_adj_iter_t", "group___d_a_g.html#a25673c13616627747de49dfc52659715", null ],
+    [ "vertex_index_map_const_t", "group___d_a_g.html#a1b2178eac432bfa3c314f03d8e603542", null ],
+    [ "vertex_t", "group___d_a_g.html#aedd4ab062b216be0eec87417a5ccb1ff", null ],
+    [ "PivotTree", "group___d_a_g.html#aeb623a2dd2ca1842ae5cd609bdaa3a21", null ],
     [ "~PivotTree", "group___d_a_g.html#a07534cb54fc033a78ec54666c92fe0eb", null ],
     [ "PivotTree", "group___d_a_g.html#a7f00185a260406eb025c473f2f74da1c", null ],
     [ "PivotTree", "group___d_a_g.html#aece3a8463f93b0b4fd5c62d7830e6562", null ],

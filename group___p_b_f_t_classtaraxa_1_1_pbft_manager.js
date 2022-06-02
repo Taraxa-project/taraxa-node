@@ -2,7 +2,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_manager =
 [
     [ "time_point", "group___p_b_f_t.html#a0aab8b19e04b0d0100d6ae93c3b170b8", null ],
     [ "vrf_sk_t", "group___p_b_f_t.html#a119430e17475efbfab1a196d7e2f54f2", null ],
-    [ "PbftManager", "group___p_b_f_t.html#a751ed4dca3477df69b77bb72752a2cd7", null ],
+    [ "PbftManager", "group___p_b_f_t.html#ab7d292b056b0f8a16b4800ff9015b0c2", null ],
     [ "~PbftManager", "group___p_b_f_t.html#a37f64cdc660f7bb1a22d03ce102c16a8", null ],
     [ "PbftManager", "group___p_b_f_t.html#ac6bf3bfdb609d5c2ace0a2130ff5d59e", null ],
     [ "PbftManager", "group___p_b_f_t.html#aee1e57b8818e581deb443cc7ef5ff948", null ],
@@ -90,7 +90,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_manager =
     [ "daemon_", "group___p_b_f_t.html#adcd7ff1c28e3c0b6b0a0108118b479fa", null ],
     [ "dag_blk_mgr_", "group___p_b_f_t.html#a01afe1291d76bc1752891ffb8bc989da", null ],
     [ "DAG_BLOCKS_SIZE", "group___p_b_f_t.html#a768f92917004384adb070a4aa99df3ca", null ],
-    [ "dag_genesis_", "group___p_b_f_t.html#ae8e6c5c9ea25f0c31ddbe0f77fd3edf4", null ],
+    [ "dag_genesis_block_hash_", "group___p_b_f_t.html#a213b6246edf1fbff391d04acb13f37eb", null ],
     [ "dag_mgr_", "group___p_b_f_t.html#a5c07848027fb2b186ddb512e9e5b9cd8", null ],
     [ "db_", "group___p_b_f_t.html#afe4427d4c3cf84e1bc69322057167721", null ],
     [ "dpos_period_", "group___p_b_f_t.html#a22bab16b2b7940daa4a463c5cd07e79c", null ],
