@@ -259,7 +259,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
 
   // pbft_blocks (head)
-  PbftChain pbft_chain(blk_hash_t(0), addr_t(), db_ptr);
+  PbftChain pbft_chain(addr_t(), db_ptr);
   db.savePbftHead(pbft_chain.getHeadHash(), pbft_chain.getJsonStr());
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
   batch = db.createWriteBatch();

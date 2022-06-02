@@ -181,7 +181,7 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
     std::string status_packet_type = initial ? "initial" : "standard";
 
     LOG(log_dg_) << "Sending " << status_packet_type << " status message to " << node_id << ", protocol version "
-                 << TARAXA_NET_VERSION << ", network id " << conf_network_id_ << ", genesis " << dag_mgr_->get_genesis()
+                 << TARAXA_NET_VERSION << ", network id " << conf_network_id_ << ", genesis " << genesis_hash_
                  << ", node version " << TARAXA_VERSION;
 
     auto dag_max_level = dag_mgr_->getMaxLevel();

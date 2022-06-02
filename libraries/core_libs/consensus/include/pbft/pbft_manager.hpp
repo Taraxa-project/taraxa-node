@@ -68,12 +68,12 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   using time_point = std::chrono::system_clock::time_point;
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;
 
-  PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<DbStorage> db,
-              std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-              std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
-              std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-              std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk,
-              uint32_t max_levels_per_period = kMaxLevelsPerPeriod);
+  PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_block_hash, addr_t node_addr,
+              std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
+              std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
+              std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain, secret_t node_sk,
+              vrf_sk_t vrf_sk, uint32_t max_levels_per_period = kMaxLevelsPerPeriod);
   ~PbftManager();
   PbftManager(const PbftManager &) = delete;
   PbftManager(PbftManager &&) = delete;
@@ -629,7 +629,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   // 2t+1 minimum number of votes for consensus
   size_t TWO_T_PLUS_ONE = 0;
 
-  blk_hash_t dag_genesis_;
+  const blk_hash_t dag_genesis_block_hash_;
 
   const PbftConfig &config_;
 

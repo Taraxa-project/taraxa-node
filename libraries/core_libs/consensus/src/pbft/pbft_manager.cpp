@@ -20,7 +20,7 @@
 namespace taraxa {
 using vrf_output_t = vrf_wrapper::vrf_output_t;
 
-PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr_t node_addr,
+PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_block_hash, addr_t node_addr,
                          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
                          std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
@@ -43,7 +43,7 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
       DAG_BLOCKS_SIZE(conf.dag_blocks_size),
       GHOST_PATH_MOVE_BACK(conf.ghost_path_move_back),
       RUN_COUNT_VOTES(false),  // this field is for tests only and almost the time is disabled
-      dag_genesis_(genesis),
+      dag_genesis_block_hash_(dag_genesis_block_hash),
       config_(conf),
       max_levels_per_period_(max_levels_per_period) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
@@ -1185,7 +1185,7 @@ blk_hash_t PbftManager::proposePbftBlock_() {
       prev_block_hash = prev_pbft_block.getPrevBlockHash();
       if (!prev_block_hash) {
         // The genesis PBFT block head
-        last_period_dag_anchor_block_hash = dag_genesis_;
+        last_period_dag_anchor_block_hash = dag_genesis_block_hash_;
         break;
       }
       prev_pbft_block = pbft_chain_->getPbftBlockInChain(prev_block_hash);
@@ -1193,7 +1193,7 @@ blk_hash_t PbftManager::proposePbftBlock_() {
     }
   } else {
     // First PBFT block
-    last_period_dag_anchor_block_hash = dag_genesis_;
+    last_period_dag_anchor_block_hash = dag_genesis_block_hash_;
   }
 
   std::vector<blk_hash_t> ghost;
@@ -1220,7 +1220,7 @@ blk_hash_t PbftManager::proposePbftBlock_() {
     dag_block_hash = ghost[DAG_BLOCKS_SIZE - 1];
   }
 
-  if (dag_block_hash == dag_genesis_) {
+  if (dag_block_hash == dag_genesis_block_hash_) {
     LOG(log_dg_) << "No new DAG blocks generated. DAG only has genesis " << dag_block_hash
                  << " PBFT propose NULL BLOCK HASH anchor";
     return generatePbftBlock(last_pbft_block_hash, NULL_BLOCK_HASH, NULL_BLOCK_HASH);

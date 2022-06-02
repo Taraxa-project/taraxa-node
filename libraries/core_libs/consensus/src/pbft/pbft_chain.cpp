@@ -9,13 +9,8 @@ using namespace std;
 
 namespace taraxa {
 
-PbftChain::PbftChain(blk_hash_t const& dag_genesis_hash, addr_t node_addr, std::shared_ptr<DbStorage> db)
-    : head_hash_(blk_hash_t(0)),
-      dag_genesis_hash_(dag_genesis_hash),
-      size_(0),
-      non_empty_size_(0),
-      last_pbft_block_hash_(blk_hash_t(0)),
-      db_(move(db)) {
+PbftChain::PbftChain(addr_t node_addr, std::shared_ptr<DbStorage> db)
+    : head_hash_(blk_hash_t(0)), size_(0), non_empty_size_(0), last_pbft_block_hash_(blk_hash_t(0)), db_(move(db)) {
   LOG_OBJECTS_CREATE("PBFT_CHAIN");
   // Get PBFT head from DB
   auto pbft_head_str = db_->getPbftHead(head_hash_);
@@ -32,8 +27,6 @@ PbftChain::PbftChain(blk_hash_t const& dag_genesis_hash, addr_t node_addr, std::
   size_ = doc["size"].asUInt64();
   non_empty_size_ = doc["non_empty_size"].asUInt64();
   last_pbft_block_hash_ = blk_hash_t(doc["last_pbft_block_hash"].asString());
-  auto dag_genesis_hash_db = blk_hash_t(doc["dag_genesis_hash"].asString());
-  assert(dag_genesis_hash_ == dag_genesis_hash_db);
   LOG(log_nf_) << "Retrieve from DB, PBFT chain head " << getJsonStr();
 }
 
@@ -162,7 +155,6 @@ std::string PbftChain::getJsonStr() const {
   Json::Value json;
   SharedLock lock(chain_head_access_);
   json["head_hash"] = head_hash_.toString();
-  json["dag_genesis_hash"] = dag_genesis_hash_.toString();
   json["size"] = (Json::Value::UInt64)size_;
   json["non_empty_size"] = (Json::Value::UInt64)non_empty_size_;
   json["last_pbft_block_hash"] = last_pbft_block_hash_.toString();
@@ -173,7 +165,6 @@ std::string PbftChain::getJsonStrForBlock(blk_hash_t const& block_hash, bool nul
   Json::Value json;
   SharedLock lock(chain_head_access_);
   json["head_hash"] = head_hash_.toString();
-  json["dag_genesis_hash"] = dag_genesis_hash_.toString();
   json["size"] = (Json::Value::UInt64)size_ + 1;
   auto non_empty_size = non_empty_size_;
   if (!null_anchor) {
