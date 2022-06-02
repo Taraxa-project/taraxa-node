@@ -548,7 +548,7 @@ jobs:
 
             echo "--- Logs from container ---"
             docker logs smoketest-${DOCKER_BRANCH_TAG:0:52}
-            echo "--- Logs from container --"
+            echo "--- Logs from container ---"
             
             http_code=$(docker run --rm  -v $PWD/test_build-d:/data \
               --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
