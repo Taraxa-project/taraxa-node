@@ -20,15 +20,9 @@
     "ws_port": 8781,
     "threads_num": 2
   },
-  "test_params": {
-    "max_transactions_pool_warn": 0,
-    "max_transactions_pool_drop": 0,
-    "max_block_queue_warn": 0,
-    "block_proposer": {
-      "shard": 1,
-      "transaction_limit": 0
-    }
-  },
+  "max_transactions_pool_warn": 0,
+  "max_transactions_pool_drop": 0,
+  "max_block_queue_warn": 0,
   "logging": {
     "configurations": [
       {

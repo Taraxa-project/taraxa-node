@@ -221,10 +221,10 @@ Config::Config(int argc, const char* argv[]) {
     if (!public_ip.empty()) {
       node_config_.network.network_public_ip = public_ip;
     }
-    node_config_.test_params.db_revert_to_period = revert_to_period;
-    node_config_.test_params.rebuild_db = rebuild_db;
-    node_config_.test_params.rebuild_db_columns = rebuild_db_columns;
-    node_config_.test_params.rebuild_db_period = rebuild_db_period;
+    node_config_.db_config.db_revert_to_period = revert_to_period;
+    node_config_.db_config.rebuild_db = rebuild_db;
+    node_config_.db_config.rebuild_db_columns = rebuild_db_columns;
+    node_config_.db_config.rebuild_db_period = rebuild_db_period;
     if (command[0] == NODE_COMMAND) node_configured_ = true;
   } else if (command[0] == ACCOUNT_COMMAND) {
     if (command.size() == 1)

@@ -56,27 +56,27 @@ void FullNode::init() {
     assert(false);
   }
   {
-    if (conf_.test_params.rebuild_db) {
-      old_db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
-                                            conf_.test_params.db_max_open_files, conf_.test_params.db_max_snapshots,
-                                            conf_.test_params.db_revert_to_period, node_addr, true);
+    if (conf_.db_config.rebuild_db) {
+      old_db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.db_config.db_snapshot_each_n_pbft_block,
+                                            conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
+                                            conf_.db_config.db_revert_to_period, node_addr, true);
     }
 
-    db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
-                                      conf_.test_params.db_max_open_files, conf_.test_params.db_max_snapshots,
-                                      conf_.test_params.db_revert_to_period, node_addr, false,
-                                      conf_.test_params.rebuild_db_columns);
+    db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.db_config.db_snapshot_each_n_pbft_block,
+                                      conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
+                                      conf_.db_config.db_revert_to_period, node_addr, false,
+                                      conf_.db_config.rebuild_db_columns);
 
     if (db_->hasMinorVersionChanged()) {
       LOG(log_si_) << "Minor DB version has changed. Rebuilding Db";
-      conf_.test_params.rebuild_db = true;
+      conf_.db_config.rebuild_db = true;
       db_ = nullptr;
-      old_db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
-                                            conf_.test_params.db_max_open_files, conf_.test_params.db_max_snapshots,
-                                            conf_.test_params.db_revert_to_period, node_addr, true);
-      db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.test_params.db_snapshot_each_n_pbft_block,
-                                        conf_.test_params.db_max_open_files, conf_.test_params.db_max_snapshots,
-                                        conf_.test_params.db_revert_to_period, node_addr);
+      old_db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.db_config.db_snapshot_each_n_pbft_block,
+                                            conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
+                                            conf_.db_config.db_revert_to_period, node_addr, true);
+      db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.db_config.db_snapshot_each_n_pbft_block,
+                                        conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
+                                        conf_.db_config.db_revert_to_period, node_addr);
     }
     if (db_->getNumDagBlocks() == 0) {
       db_->saveDagBlock(conf_.chain.dag_genesis_block);
@@ -107,7 +107,7 @@ void FullNode::init() {
   next_votes_mgr_ = std::make_shared<NextVotesManager>(node_addr, db_, final_chain_);
   dag_blk_mgr_ = std::make_shared<DagBlockManager>(node_addr, conf_.chain.sortition, conf_.chain.dag, db_, trx_mgr_,
                                                    final_chain_, pbft_chain_, log_time_,
-                                                   conf_.test_params.max_block_queue_warn, conf_.max_levels_per_period);
+                                                   conf_.max_block_queue_warn, conf_.max_levels_per_period);
   dag_mgr_ = std::make_shared<DagManager>(dag_genesis_block_hash, node_addr, trx_mgr_, pbft_chain_, dag_blk_mgr_, db_,
                                           log_time_, conf_.is_light_node, conf_.light_node_history,
                                           conf_.max_levels_per_period, conf_.dag_expiry_limit);
@@ -115,7 +115,7 @@ void FullNode::init() {
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.chain.pbft, dag_genesis_block_hash, node_addr, db_, pbft_chain_,
                                             vote_mgr_, next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, final_chain_,
                                             kp_.secret(), conf_.vrf_secret, conf_.max_levels_per_period);
-  blk_proposer_ = std::make_shared<BlockProposer>(conf_.test_params.block_proposer, dag_mgr_, trx_mgr_, dag_blk_mgr_,
+  blk_proposer_ = std::make_shared<BlockProposer>(conf_.chain.dag.block_proposer, dag_mgr_, trx_mgr_, dag_blk_mgr_,
                                                   final_chain_, db_, node_addr, getSecretKey(), getVrfSecretKey());
   network_ = std::make_shared<Network>(conf_, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_,
                                        vote_mgr_, next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_);
@@ -262,7 +262,7 @@ void FullNode::start() {
   pbft_mgr_->setNetwork(network_);
   dag_mgr_->setNetwork(network_);
 
-  if (conf_.test_params.rebuild_db) {
+  if (conf_.db_config.rebuild_db) {
     rebuildDb();
     LOG(log_si_) << "Rebuild db completed successfully. Restart node without db_rebuild option";
     started_ = false;
@@ -316,7 +316,7 @@ void FullNode::rebuildDb() {
 
     period++;
 
-    if (period - 1 == conf_.test_params.rebuild_db_period) {
+    if (period - 1 == conf_.db_config.rebuild_db_period) {
       break;
     }
   }
