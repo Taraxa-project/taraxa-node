@@ -496,26 +496,26 @@ jobs:
             git submodule sync
             git submodule update --init --recursive --jobs 8
 
-      # - run:
-      #     name: Build ctest image
-      #     command: |
-      #       docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target build .
+      - run:
+          name: Build ctest image
+          command: |
+            docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target build .
 
       - run:
           name: Build taraxad image
           command: |
             docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
 
-      # - run:
-      #    name: Run Ctest
-      #    command: |
-      #      docker run  --ulimit nofile=4096:4096 \
-      #                  --rm -v $PWD/tmp_docker:/tmp \
-      #                  --name ${IMAGE}-ctest-${DOCKER_BRANCH_TAG} \
-      #                  ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
-      #                   sh -c \
-      #                  'cd cmake-docker-build-debug/bin \
-      #                   && ctest --output-on-failure'
+      - run:
+         name: Run Ctest
+         command: |
+           docker run  --ulimit nofile=4096:4096 \
+                       --rm -v $PWD/tmp_docker:/tmp \
+                       --name ${IMAGE}-ctest-${DOCKER_BRANCH_TAG} \
+                       ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
+                        sh -c \
+                       'cd cmake-docker-build-debug/bin \
+                        && ctest --output-on-failure'
 
       - run:
           name: Chmod core dump if fail
