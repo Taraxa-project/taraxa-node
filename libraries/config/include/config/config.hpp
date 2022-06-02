@@ -51,17 +51,7 @@ struct NetworkConfig {
   void validate() const;
 };
 
-struct BlockProposerConfig {
-  uint16_t shard = 0;
-  uint16_t transaction_limit = 0;
-};
-
-// Parameter Tuning purpose
-struct TestParamsConfig {
-  BlockProposerConfig block_proposer;  // test_params.block_proposer
-  uint32_t max_transactions_pool_warn = 0;
-  uint32_t max_transactions_pool_drop = 0;
-  uint32_t max_block_queue_warn = 0;
+struct DBConfig {
   uint32_t db_snapshot_each_n_pbft_block = 0;
   uint32_t db_max_snapshots = 0;
   uint32_t db_max_open_files = 0;
@@ -91,7 +81,7 @@ struct FullNodeConfig {
   fs::path log_path;
   NetworkConfig network;
   std::optional<RpcConfig> rpc;
-  TestParamsConfig test_params;
+  DBConfig db_config;
   ChainConfig chain = ChainConfig::predefined();
   state_api::Opts opts_final_chain;
   std::vector<logger::Config> log_configs;
@@ -99,6 +89,11 @@ struct FullNodeConfig {
   uint64_t light_node_history = 0;                       // Number of periods to keep in history for a light node
   uint32_t dag_expiry_limit = kDagExpiryLevelLimit;      // For unit tests only
   uint32_t max_levels_per_period = kMaxLevelsPerPeriod;  // For unit tests only
+
+  // config values that limits transactions and blocks memory pools
+  uint32_t max_transactions_pool_warn = 0;
+  uint32_t max_transactions_pool_drop = 0;
+  uint32_t max_block_queue_warn = 0;
 
   auto net_file_path() const { return data_path / "net"; }
 

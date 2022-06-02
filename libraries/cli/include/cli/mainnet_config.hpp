@@ -70,16 +70,12 @@ constexpr std::string_view mainnet_json = R"foo({
     "ws_port": 8777,
     "threads_num": 10
   },
-  "test_params": {
-    "max_transactions_pool_warn": 0,
-    "max_transactions_pool_drop": 0,
-    "max_block_queue_warn": 0,
+  "max_transactions_pool_warn": 0,
+  "max_transactions_pool_drop": 0,
+  "max_block_queue_warn": 0,
+  "db_config": {
     "db_snapshot_each_n_pbft_block": 10000,
-    "db_max_snapshots": 5,
-    "block_proposer": {
-      "shard": 1,
-      "transaction_limit": 250
-    }
+    "db_max_snapshots": 5
   },
   "logging": {
     "configurations": [
@@ -271,7 +267,15 @@ constexpr std::string_view mainnet_json = R"foo({
       "number_of_proposers": "0x14",
       "dag_blocks_size": "0xa",
       "ghost_path_move_back": "0x0",
-      "lambda_ms_min": "0x5dc"
+      "lambda_ms_min": "0x5dc",
+      "gas_limit": "0x3938700"
+    },
+    "dag": {
+      "block_proposer": {
+        "shard": 1,
+        "transaction_limit": 250
+      },
+      "gas_limit": "0x989680"
     },
     "replay_protection_service": {
       "range": "0xa"

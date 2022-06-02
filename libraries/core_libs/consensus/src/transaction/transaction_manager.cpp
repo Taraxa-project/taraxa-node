@@ -82,8 +82,8 @@ std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
 }
 
 bool TransactionManager::checkMemoryPoolOverflow() {
-  size_t queue_overflow_warn = conf_.test_params.max_transactions_pool_warn;
-  size_t queue_overflow_drop = conf_.test_params.max_transactions_pool_drop;
+  size_t queue_overflow_warn = conf_.max_transactions_pool_warn;
+  size_t queue_overflow_drop = conf_.max_transactions_pool_drop;
 
   if (queue_overflow_drop && getTransactionPoolSize() >= queue_overflow_drop) {
     LOG(log_wr_) << "Transaction pool size: " << getTransactionPoolSize()

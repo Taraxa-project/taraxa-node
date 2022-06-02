@@ -1360,7 +1360,7 @@ TEST_F(FullNodeTest, db_rebuild) {
   {
     std::cout << "Test rebuild DB" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
-    node_cfgs[0].test_params.rebuild_db = true;
+    node_cfgs[0].db_config.rebuild_db = true;
     auto nodes = launch_nodes(node_cfgs);
   }
 
@@ -1377,8 +1377,8 @@ TEST_F(FullNodeTest, db_rebuild) {
   {
     std::cout << "Test rebuild for period 5" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
-    node_cfgs[0].test_params.rebuild_db = true;
-    node_cfgs[0].test_params.rebuild_db_period = 5;
+    node_cfgs[0].db_config.rebuild_db = true;
+    node_cfgs[0].db_config.rebuild_db_period = 5;
     auto nodes = launch_nodes(node_cfgs);
   }
 
@@ -1484,6 +1484,10 @@ TEST_F(FullNodeTest, chain_config_json) {
     "gas_limit": "0x3938700"
   },
   "dag": {
+    "block_proposer": {
+      "shard": "0x1",
+      "transaction_limit": "0xfa"
+    },
     "gas_limit": "0x989680"
   },
   "sortition": {

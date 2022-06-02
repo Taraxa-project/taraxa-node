@@ -40,16 +40,12 @@ constexpr std::string_view devnet_json = R"foo({
     "ws_port": 8777,
     "threads_num": 10
   },
-  "test_params": {
-    "max_transactions_pool_warn": 0,
-    "max_transactions_pool_drop": 0,
-    "max_block_queue_warn": 0,
+  "max_transactions_pool_warn": 0,
+  "max_transactions_pool_drop": 0,
+  "max_block_queue_warn": 0,
+  "db_config": {
     "db_snapshot_each_n_pbft_block": 10000,
-    "db_max_snapshots": 5,
-    "block_proposer": {
-      "shard": 1,
-      "transaction_limit": 250
-    }
+    "db_max_snapshots": 5
   },
   "logging": {
     "configurations": [
@@ -255,6 +251,10 @@ constexpr std::string_view devnet_json = R"foo({
       "gas_limit": "0x3938700"
     },
     "dag": {
+      "block_proposer": {
+        "shard": 1,
+        "transaction_limit": 250
+      },
       "gas_limit": "0x989680"
     },
     "replay_protection_service": {
