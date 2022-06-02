@@ -1,5 +1,9 @@
 var NAVTREEINDEX14 =
 {
+"group___p_b_f_t.html#a4643fcb542532d3705fb1a61679204eb":[9,2,1,39],
+"group___p_b_f_t.html#a46b49acbc25a6f9dbb49bedaa86f91c1":[9,2,1,123],
+"group___p_b_f_t.html#a48759fa891dc1d0f9a700e329195db71":[9,2,1,68],
+"group___p_b_f_t.html#a48b2338faa93e4a389f3bc5683a228ee":[9,2,1,45],
 "group___p_b_f_t.html#a49b3437e04f7884b667b28e537403a70":[9,2,2,8],
 "group___p_b_f_t.html#a4b041e54ffc037ab9ac0cdcea7b35824":[9,2,1,25],
 "group___p_b_f_t.html#a4b8d1b3019be6aae748b0b7f3e4a23b9":[9,2,1,70],
@@ -245,9 +249,5 @@ var NAVTREEINDEX14 =
 "group___transaction.html#afc9f2c8a2cb05322ddc8226301341f85":[9,3,1,22],
 "group___transaction.html#afddcd300c382363d24312db01b456b5a":[9,3,0,7],
 "group___transaction.html#classtaraxa_1_1_gas_pricer":[9,3,0],
-"group___transaction.html#classtaraxa_1_1_transaction_manager":[9,3,1],
-"group___transaction.html#classtaraxa_1_1_transaction_queue":[9,3,2],
-"group___transaction.html#gae7551c287ae57b46d56d27de67df61e7":[9,3,3],
-"group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a1329e7699345f6e7d1b9bfb0965a3c03":[9,3,3,2],
-"group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a3f68e67dc6c397aaa9d1c24c356f754f":[9,3,3,0]
+"group___transaction.html#classtaraxa_1_1_transaction_manager":[9,3,1]
 };

@@ -7,22 +7,14 @@ var config_2include_2config_2config_8hpp =
       [ "udp_port", "namespacetaraxa.html#ae0cd39b43c10f421e537483bfec486f7", null ]
     ] ],
     [ "NetworkConfig", "structtaraxa_1_1_network_config.html", "structtaraxa_1_1_network_config" ],
-    [ "BlockProposerConfig", "namespacetaraxa.html#structtaraxa_1_1_block_proposer_config", [
-      [ "shard", "namespacetaraxa.html#a663f587ea5d3a8ada0a4327b938e7d39", null ],
-      [ "transaction_limit", "namespacetaraxa.html#af56b21815fe57a400371ee1d86316eb1", null ]
-    ] ],
-    [ "TestParamsConfig", "namespacetaraxa.html#structtaraxa_1_1_test_params_config", [
-      [ "block_proposer", "namespacetaraxa.html#a4064faff97ad80b1644ea69febd1f40d", null ],
-      [ "db_max_open_files", "namespacetaraxa.html#accc03e49aa89a54a620d2b11d4b3fb2f", null ],
-      [ "db_max_snapshots", "namespacetaraxa.html#aa6490dbea4fb278a40d891e9a3544128", null ],
-      [ "db_revert_to_period", "namespacetaraxa.html#a35f71fe49d3fd0564f4fd3cdbd2166a3", null ],
-      [ "db_snapshot_each_n_pbft_block", "namespacetaraxa.html#adcaf2831903c991cc460f3cc238b3385", null ],
-      [ "max_block_queue_warn", "namespacetaraxa.html#a8566d0a88627fdd56ad3d521ad78da08", null ],
-      [ "max_transactions_pool_drop", "namespacetaraxa.html#a68fad5fe2004d88dd86cd542c2464521", null ],
-      [ "max_transactions_pool_warn", "namespacetaraxa.html#a91c66e9151585e9c5f5df3de363415d4", null ],
-      [ "rebuild_db", "namespacetaraxa.html#ab7687a1087c6d100c918dfc4d226d05c", null ],
-      [ "rebuild_db_columns", "namespacetaraxa.html#a9f9d1b2dc7632ab7c4092e1b9ff3bccd", null ],
-      [ "rebuild_db_period", "namespacetaraxa.html#aec7d3bb360ff429196245f3a395d8193", null ]
+    [ "DBConfig", "namespacetaraxa.html#structtaraxa_1_1_d_b_config", [
+      [ "db_max_open_files", "namespacetaraxa.html#a20a355304a30d8893626b16bf7c78595", null ],
+      [ "db_max_snapshots", "namespacetaraxa.html#acb88135b62c8aadb5c6636e1796ec016", null ],
+      [ "db_revert_to_period", "namespacetaraxa.html#ad15c710db5fa1c1a877c1b95d8dab462", null ],
+      [ "db_snapshot_each_n_pbft_block", "namespacetaraxa.html#af3c4e725bf6e47b5496a0dc02c820a39", null ],
+      [ "rebuild_db", "namespacetaraxa.html#afe98d31404ee192f56b630ef745af1ce", null ],
+      [ "rebuild_db_columns", "namespacetaraxa.html#a7cf61447587eb8da03bc489b7867ba30", null ],
+      [ "rebuild_db_period", "namespacetaraxa.html#a042f45f490bbf12481a44fbb1629201c", null ]
     ] ],
     [ "FullNodeConfig", "structtaraxa_1_1_full_node_config.html", "structtaraxa_1_1_full_node_config" ],
     [ "operator<<", "config_2include_2config_2config_8hpp.html#ae8c764ebb2b4085bbff52d37f6a1fefe", null ],

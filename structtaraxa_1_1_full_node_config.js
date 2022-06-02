@@ -8,6 +8,7 @@ var structtaraxa_1_1_full_node_config =
     [ "chain", "structtaraxa_1_1_full_node_config.html#a7742f349891febbc4d6a77cac6703edc", null ],
     [ "dag_expiry_limit", "structtaraxa_1_1_full_node_config.html#a6eb0f104bf3dcfaead265c1718809d89", null ],
     [ "data_path", "structtaraxa_1_1_full_node_config.html#a864347d8c0df47defc19d10ff4733d21", null ],
+    [ "db_config", "structtaraxa_1_1_full_node_config.html#aa39ce68f57655792c78dcdac574bca99", null ],
     [ "db_path", "structtaraxa_1_1_full_node_config.html#acffae136a1a4516b1e8935af67d63aa8", null ],
     [ "is_light_node", "structtaraxa_1_1_full_node_config.html#ad1e384f37a3fbb2470149c985e458e1f", null ],
     [ "json_file_name", "structtaraxa_1_1_full_node_config.html#ad62102338c52adccaa31fab23541fd68", null ],
@@ -15,11 +16,13 @@ var structtaraxa_1_1_full_node_config =
     [ "light_node_history", "structtaraxa_1_1_full_node_config.html#aac2f32b6354412297072e81cb9b0c828", null ],
     [ "log_configs", "structtaraxa_1_1_full_node_config.html#a322f6369b84610a65239aeffae42841e", null ],
     [ "log_path", "structtaraxa_1_1_full_node_config.html#a944aff6d1ac6d851475babe34c2cbcea", null ],
+    [ "max_block_queue_warn", "structtaraxa_1_1_full_node_config.html#abb155505de7b9dccb0a003b4ea4a1482", null ],
     [ "max_levels_per_period", "structtaraxa_1_1_full_node_config.html#a724641b971674ec5052d295a2e2ee5fc", null ],
+    [ "max_transactions_pool_drop", "structtaraxa_1_1_full_node_config.html#ace4eda2108b9591b7b86e61ce850f682", null ],
+    [ "max_transactions_pool_warn", "structtaraxa_1_1_full_node_config.html#a6e4d05173f13b57dc8c0e19450912357", null ],
     [ "network", "structtaraxa_1_1_full_node_config.html#aa92cfdd3c9bc4f4b6411ef9d4a735668", null ],
     [ "node_secret", "structtaraxa_1_1_full_node_config.html#ab6bfd489b91bf094fad3fc2bb4b45eaf", null ],
     [ "opts_final_chain", "structtaraxa_1_1_full_node_config.html#a936cfee38f236d99e4505fbff2f40155", null ],
     [ "rpc", "structtaraxa_1_1_full_node_config.html#aaac918474f5387a7733ce3276022499c", null ],
-    [ "test_params", "structtaraxa_1_1_full_node_config.html#a169ae6fe40f27b9b4bc1b8b388131581", null ],
     [ "vrf_secret", "structtaraxa_1_1_full_node_config.html#a0a81eb125af3592470454f1f932b07fe", null ]
 ];

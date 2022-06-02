@@ -7,7 +7,7 @@ var hierarchy =
     [ "taraxa::state_api::Account", "group___final_chain.html#structtaraxa_1_1state__api_1_1_account", null ],
     [ "taraxa::network::tarcap::AllPacketTypesStats", "classtaraxa_1_1network_1_1tarcap_1_1_all_packet_types_stats.html", null ],
     [ "taraxa::final_chain::BlockHeader", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header", null ],
-    [ "taraxa::BlockProposerConfig", "namespacetaraxa.html#structtaraxa_1_1_block_proposer_config", null ],
+    [ "taraxa::BlockProposerConfig", "structtaraxa_1_1_block_proposer_config.html", null ],
     [ "dev::p2p::Capability", "structdev_1_1p2p_1_1_capability.html", [
       [ "dev::p2p::SessionCapability", "structdev_1_1p2p_1_1_session_capability.html", null ]
     ] ],
@@ -56,6 +56,7 @@ var hierarchy =
     [ "taraxa::DagBlockManager", "group___d_a_g.html#classtaraxa_1_1_dag_block_manager", null ],
     [ "taraxa::DagConfig", "structtaraxa_1_1_dag_config.html", null ],
     [ "taraxa::DagFrontier", "structtaraxa_1_1_dag_frontier.html", null ],
+    [ "taraxa::DBConfig", "namespacetaraxa.html#structtaraxa_1_1_d_b_config", null ],
     [ "taraxa::util::DefaultConstructCopyableMovable< T >", "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html", null ],
     [ "taraxa::util::DefaultConstructCopyableMovable< std::mutex >", "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html", null ],
     [ "taraxa::util::DefaultConstructCopyableMovable< std::shared_mutex >", "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html", null ],
@@ -335,7 +336,6 @@ var hierarchy =
     [ "taraxa::net::rpc::eth::SyncStatus", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_sync_status", null ],
     [ "dev::p2p::TaraxaNetworkConfig", "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_taraxa_network_config", null ],
     [ "taraxa::network::tarcap::TarcapThreadPool", "classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html", null ],
-    [ "taraxa::TestParamsConfig", "namespacetaraxa.html#structtaraxa_1_1_test_params_config", null ],
     [ "taraxa::network::tarcap::TestState", "classtaraxa_1_1network_1_1tarcap_1_1_test_state.html", null ],
     [ "ThreadSafeMap< Key, Value >", "class_thread_safe_map.html", null ],
     [ "ThreadSafeMap< dev::FixedHash, std::chrono::steady_clock::time_point >", "class_thread_safe_map.html", null ],
@@ -344,10 +344,10 @@ var hierarchy =
     [ "dev::TimerHelper", "classdev_1_1_timer_helper.html", null ],
     [ "taraxa::cli::Tools", "classtaraxa_1_1cli_1_1_tools.html", null ],
     [ "taraxa::Transaction", "structtaraxa_1_1_transaction.html", null ],
+    [ "taraxa::final_chain::FinalChain::TransactionHashes", "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html", null ],
     [ "TransactionHashes", null, [
       [ "taraxa::final_chain::FinalChainImpl::TransactionHashesImpl", "structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl.html", null ]
     ] ],
-    [ "taraxa::final_chain::FinalChain::TransactionHashes", "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html", null ],
     [ "taraxa::final_chain::ReplayProtectionService::TransactionInfo", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_transaction_info", null ],
     [ "taraxa::final_chain::TransactionLocation", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location", [
       [ "taraxa::net::rpc::eth::TransactionLocationWithBlockHash", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html", [

@@ -13,7 +13,7 @@ var searchData=
   ['block_5ffinalized_5f_5453',['block_finalized_',['../group___final_chain.html#a2e621698a6b854047e645f21cd7f9c38',1,'taraxa::final_chain::FinalChain']]],
   ['block_5ffinalized_5femitter_5f_5454',['block_finalized_emitter_',['../group___final_chain.html#a9d96fe095fcf303295edb569fb8e8499',1,'taraxa::final_chain::FinalChain']]],
   ['block_5fhash_5f_5455',['block_hash_',['../group___p_b_f_t.html#aadb9f72a5f6d7fc39f882143d1dd5f0d',1,'taraxa::PbftBlock']]],
-  ['block_5fproposer_5456',['block_proposer',['../namespacetaraxa.html#a4064faff97ad80b1644ea69febd1f40d',1,'taraxa::TestParamsConfig']]],
+  ['block_5fproposer_5456',['block_proposer',['../structtaraxa_1_1_dag_config.html#a06052d5892975640d50bb4374dde85ee',1,'taraxa::DagConfig']]],
   ['block_5fverified_5f_5457',['block_verified_',['../group___d_a_g.html#a3935e897459f808552ad22fa79fdae84',1,'taraxa::DagManager']]],
   ['block_5fweight_5f_5458',['block_weight_',['../classtaraxa_1_1_dag_block.html#ad833bf9bd0f3861242fca4906fbe1679',1,'taraxa::DagBlock']]],
   ['block_5fworker_5f_5459',['block_worker_',['../group___d_a_g.html#ae4bafcc36c6239d90d28dd950b7dbf6c',1,'taraxa::DagManager']]],
