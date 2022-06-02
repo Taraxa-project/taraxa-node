@@ -34,7 +34,6 @@ Config::Config(int argc, const char* argv[]) {
   string vrf_secret;
   bool overwrite_config;
 
-  bool boot_node = false;
   bool destroy_db = false;
   bool rebuild_network = false;
   bool rebuild_db = false;
@@ -87,7 +86,6 @@ Config::Config(int argc, const char* argv[]) {
   node_command_options.add_options()(NETWORK_ID, bpo::value<int>(&network_id),
                                      "Network identifier (integer, 1=Mainnet, 2=Testnet, 3=Devnet) (default: 1)"
                                      "Only used when creating new config file");
-  node_command_options.add_options()(BOOT_NODE, bpo::bool_switch(&boot_node), "Run as bootnode (default: false)");
 
   node_command_options.add_options()(BOOT_NODES, bpo::value<vector<string>>(&boot_nodes)->multitoken(),
                                      "Boot nodes to connect to: [ip_address:port_number/node_id, ....]");
@@ -185,7 +183,7 @@ Config::Config(int argc, const char* argv[]) {
     }
 
     // Override config values with values from CLI
-    config_json = Tools::overrideConfig(config_json, data_dir, boot_node, boot_nodes, log_channels, log_configurations,
+    config_json = Tools::overrideConfig(config_json, data_dir, boot_nodes, log_channels, log_configurations,
                                         boot_nodes_append, log_channels_append);
     wallet_json = Tools::overrideWallet(wallet_json, node_secret, vrf_secret);
 

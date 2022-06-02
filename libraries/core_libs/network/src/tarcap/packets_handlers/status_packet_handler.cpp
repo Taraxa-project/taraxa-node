@@ -15,11 +15,12 @@ StatusPacketHandler::StatusPacketHandler(
     std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
     std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
     std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
-    std::shared_ptr<DbStorage> db, uint64_t conf_network_id, const addr_t& node_addr)
+    std::shared_ptr<DbStorage> db, uint64_t conf_network_id, h256 genesis_hash, const addr_t& node_addr)
     : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(dag_blk_mgr),
                               std::move(db), node_addr, "STATUS_PH"),
       conf_network_id_(conf_network_id),
+      genesis_hash_(genesis_hash),
       next_votes_mgr_(std::move(next_votes_mgr)) {}
 
 void StatusPacketHandler::validatePacketRlpFormat(const PacketData& packet_data) const {
@@ -92,7 +93,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
       return;
     }
 
-    if (genesis_hash != dag_mgr_->get_genesis()) {
+    if (genesis_hash != genesis_hash_) {
       LOG((peers_state_->getPeersCount()) ? log_nf_ : log_er_)
           << "Incorrect genesis hash " << genesis_hash << ", host " << packet_data.from_node_id_.abridged()
           << " will be disconnected";
@@ -192,7 +193,7 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
       success =
           sealAndSend(node_id, StatusPacket,
                       std::move(dev::RLPStream(kInitialStatusPacketItemsCount)
-                                << conf_network_id_ << dag_max_level << dag_mgr_->get_genesis() << pbft_chain_size
+                                << conf_network_id_ << dag_max_level << genesis_hash_ << pbft_chain_size
                                 << pbft_syncing_state_->isPbftSyncing() << pbft_round
                                 << pbft_previous_round_next_votes_size << TARAXA_MAJOR_VERSION << TARAXA_MINOR_VERSION
                                 << TARAXA_PATCH_VERSION << dag_mgr_->isLightNode() << dag_mgr_->getLightNodeHistory()));

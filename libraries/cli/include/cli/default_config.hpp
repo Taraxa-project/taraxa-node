@@ -8,13 +8,9 @@ constexpr std::string_view default_json = R"foo({
   "node_secret": "",
   "vrf_secret": "",
   "data_path": "",
-  "network_is_boot_node": false,
   "network_listen_ip": "0.0.0.0",
   "network_tcp_port": 10002,
-  "network_udp_port": 10002,
-  "network_simulated_delay": 0,
   "network_transaction_interval": 100,
-  "network_bandwidth": 40,
   "network_ideal_peer_count": 5,
   "network_max_peer_count": 15,
   "network_sync_level_size": 25,
@@ -225,7 +221,6 @@ constexpr std::string_view default_json = R"foo({
       "dag_blocks_size": "0x32",
       "ghost_path_move_back": "0x0",
       "lambda_ms_min": "0x29a",
-      "run_count_votes": false,
       "gas_limit": "0x3938700"
     },
     "dag": {

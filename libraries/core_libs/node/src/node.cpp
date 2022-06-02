@@ -78,9 +78,9 @@ void FullNode::init() {
                                         conf_.test_params.db_max_open_files, conf_.test_params.db_max_snapshots,
                                         conf_.test_params.db_revert_to_period, node_addr);
     }
-
     if (db_->getNumDagBlocks() == 0) {
       db_->saveDagBlock(conf_.chain.dag_genesis_block);
+      db_->setGenesisHash(conf_.chain.genesisHash());
     }
   }
   LOG(log_nf_) << "DB initialized ...";
@@ -90,29 +90,34 @@ void FullNode::init() {
   final_chain_ = NewFinalChain(db_, conf_.chain.final_chain, node_addr);
   trx_mgr_ = std::make_shared<TransactionManager>(conf_, db_, final_chain_, node_addr);
 
-  auto genesis_hash = conf_.chain.dag_genesis_block.getHash();
-  auto dag_genesis_hash_from_db = *db_->getBlocksByLevel(0).begin();
-  if (genesis_hash != dag_genesis_hash_from_db) {
-    LOG(log_er_) << "The DAG genesis block hash " << genesis_hash << " in config is different with "
-                 << dag_genesis_hash_from_db << " in DB";
+  auto genesis_hash = conf_.chain.genesisHash();
+  auto genesis_hash_from_db = db_->getGenesisHash();
+  if (!genesis_hash_from_db.has_value()) {
+    LOG(log_er_) << "Genesis hash was not found in DB. Something is wrong";
     assert(false);
   }
+  if (genesis_hash != genesis_hash_from_db) {
+    LOG(log_er_) << "Genesis hash " << genesis_hash << " is different with "
+                 << (genesis_hash_from_db.has_value() ? *genesis_hash_from_db : h256(0)) << " in DB";
+    assert(false);
+  }
+  auto dag_genesis_hash = conf_.chain.dag_genesis_block.getHash();
 
-  pbft_chain_ = std::make_shared<PbftChain>(genesis_hash, node_addr, db_);
+  pbft_chain_ = std::make_shared<PbftChain>(dag_genesis_hash, node_addr, db_);
   next_votes_mgr_ = std::make_shared<NextVotesManager>(node_addr, db_, final_chain_);
   dag_blk_mgr_ = std::make_shared<DagBlockManager>(node_addr, conf_.chain.sortition, conf_.chain.dag, db_, trx_mgr_,
                                                    final_chain_, pbft_chain_, log_time_,
                                                    conf_.test_params.max_block_queue_warn, conf_.max_levels_per_period);
-  dag_mgr_ = std::make_shared<DagManager>(genesis_hash, node_addr, trx_mgr_, pbft_chain_, dag_blk_mgr_, db_, log_time_,
-                                          conf_.is_light_node, conf_.light_node_history, conf_.max_levels_per_period,
-                                          conf_.dag_expiry_limit);
+  dag_mgr_ = std::make_shared<DagManager>(dag_genesis_hash, node_addr, trx_mgr_, pbft_chain_, dag_blk_mgr_, db_,
+                                          log_time_, conf_.is_light_node, conf_.light_node_history,
+                                          conf_.max_levels_per_period, conf_.dag_expiry_limit);
   vote_mgr_ = std::make_shared<VoteManager>(node_addr, db_, final_chain_, next_votes_mgr_);
-  pbft_mgr_ = std::make_shared<PbftManager>(conf_.chain.pbft, genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_,
+  pbft_mgr_ = std::make_shared<PbftManager>(conf_.chain.pbft, dag_genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_,
                                             next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, final_chain_,
                                             kp_.secret(), conf_.vrf_secret, conf_.max_levels_per_period);
   blk_proposer_ = std::make_shared<BlockProposer>(conf_.test_params.block_proposer, dag_mgr_, trx_mgr_, dag_blk_mgr_,
                                                   final_chain_, db_, node_addr, getSecretKey(), getVrfSecretKey());
-  network_ = std::make_shared<Network>(conf_.network, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_,
+  network_ = std::make_shared<Network>(conf_, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_,
                                        vote_mgr_, next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_);
 }
 
@@ -252,10 +257,6 @@ void FullNode::start() {
   // });
 
   LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
-
-  if (conf_.network.network_is_boot_node) {
-    LOG(log_nf_) << "Starting a boot node ..." << std::endl;
-  }
 
   vote_mgr_->setNetwork(network_);
   pbft_mgr_->setNetwork(network_);

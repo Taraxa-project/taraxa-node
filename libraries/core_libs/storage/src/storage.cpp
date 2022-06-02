@@ -234,6 +234,20 @@ void DbStorage::disableSnapshots() { snapshots_enabled_ = false; }
 
 void DbStorage::enableSnapshots() { snapshots_enabled_ = true; }
 
+void DbStorage::setGenesisHash(const h256& genesis_hash) {
+  if (!exist(0, Columns::genesis)) {
+    insert(Columns::genesis, 0, genesis_hash);
+  }
+}
+
+std::optional<h256> DbStorage::getGenesisHash() {
+  auto hash = asBytes(lookup(0, Columns::genesis));
+  if (hash.size() > 0) {
+    return h256(hash);
+  }
+  return {};
+}
+
 DbStorage::~DbStorage() {
   for (auto cf : handles_) {
     checkStatus(db_->DestroyColumnFamilyHandle(cf));

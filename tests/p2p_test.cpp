@@ -93,21 +93,22 @@ TEST_F(P2PTest, capability_send_block) {
   dev::p2p::NetworkConfig prefs2(localhost, 10003, false, true);
   prefs2.discovery = false;
   NetworkConfig network_conf;
-  network_conf.network_simulated_delay = 0;
-  network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
+  h256 genesis;
   std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1, thc2;
   auto host1 = Host::make(
       "Test",
       [&](auto host) {
-        thc1 = std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, KeyPair::create(), network_conf);
+        thc1 =
+            std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, KeyPair::create(), network_conf, genesis);
         return Host::CapabilityList{thc1};
       },
       KeyPair::create(), prefs1);
   auto host2 = Host::make(
       "Test",
       [&](auto host) {
-        thc2 = std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, KeyPair::create(), network_conf);
+        thc2 =
+            std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, KeyPair::create(), network_conf, genesis);
         return Host::CapabilityList{thc2};
       },
       KeyPair::create(), prefs2);
@@ -182,14 +183,14 @@ TEST_F(P2PTest, block_propagate) {
   TaraxaNetworkConfig taraxa_net_conf_1;
   taraxa_net_conf_1.is_boot_node = true;
   NetworkConfig network_conf;
-  network_conf.network_simulated_delay = 0;
-  network_conf.network_bandwidth = 40;
   network_conf.network_transaction_interval = 1000;
+  h256 genesis;
   std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1;
   auto host1 = Host::make(
       "Test",
       [&](auto host) {
-        thc1 = std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, KeyPair::create(), network_conf);
+        thc1 =
+            std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, KeyPair::create(), network_conf, genesis);
         thc1->start();
         return Host::CapabilityList{thc1};
       },
@@ -202,8 +203,8 @@ TEST_F(P2PTest, block_propagate) {
     auto host = vHosts.emplace_back(Host::make(
         "Test",
         [&](auto host) {
-          auto cap = vCapabilities.emplace_back(
-              std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, KeyPair::create(), network_conf));
+          auto cap = vCapabilities.emplace_back(std::make_shared<taraxa::network::tarcap::TaraxaCapability>(
+              host, KeyPair::create(), network_conf, genesis));
           cap->start();
           return Host::CapabilityList{cap};
         },

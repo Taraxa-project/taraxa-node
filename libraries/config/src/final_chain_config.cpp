@@ -16,6 +16,17 @@ void dec_json(Json::Value const& json, Config& obj) {
   dec_json(json["genesis_block_fields"], obj.genesis_block_fields);
 }
 
+bytes Config::rlp() const {
+  dev::RLPStream s;
+  s.appendList(3);
+
+  state.rlp(s);
+  s << genesis_block_fields.author;
+  s << genesis_block_fields.timestamp;
+
+  return s.out();
+}
+
 Json::Value enc_json(Config::GenesisBlockFields const& obj) {
   Json::Value json(Json::objectValue);
   json["timestamp"] = dev::toJS(obj.timestamp);

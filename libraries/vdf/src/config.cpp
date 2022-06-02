@@ -88,4 +88,16 @@ void dec_json(Json::Value const& json, SortitionConfig& obj) {
   obj.computation_interval = json["computation_interval"].asInt();
 }
 
+bytes SortitionConfig::rlp() const {
+  dev::RLPStream s;
+  s.appendList(4);
+
+  s << changes_count_for_average;
+  s << dag_efficiency_targets;
+  s << changing_interval;
+  s << computation_interval;
+
+  return s.out();
+}
+
 }  // namespace taraxa

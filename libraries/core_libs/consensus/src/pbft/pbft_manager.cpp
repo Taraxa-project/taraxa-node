@@ -42,7 +42,7 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
       NUMBER_OF_PROPOSERS(conf.number_of_proposers),
       DAG_BLOCKS_SIZE(conf.dag_blocks_size),
       GHOST_PATH_MOVE_BACK(conf.ghost_path_move_back),
-      RUN_COUNT_VOTES(conf.run_count_votes),
+      RUN_COUNT_VOTES(false),  // this field is for tests only and almost the time is disabled
       dag_genesis_(genesis),
       config_(conf),
       max_levels_per_period_(max_levels_per_period) {
@@ -1803,7 +1803,7 @@ std::shared_ptr<PbftBlock> PbftManager::getUnfinalizedBlock_(blk_hash_t const &b
   return block;
 }
 
-void PbftManager::countVotes_() {
+void PbftManager::countVotes_() const {
   auto round = getPbftRound();
   while (!monitor_stop_) {
     auto verified_votes = vote_mgr_->getVerifiedVotes();

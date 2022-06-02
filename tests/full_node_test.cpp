@@ -1481,7 +1481,6 @@ TEST_F(FullNodeTest, chain_config_json) {
     "ghost_path_move_back": "0x1",
     "lambda_ms_min": "0x7d0",
     "number_of_proposers" : "0x14",
-    "run_count_votes": false,
     "gas_limit": "0x3938700"
   },
   "dag": {
