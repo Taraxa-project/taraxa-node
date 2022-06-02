@@ -26,7 +26,7 @@ struct Transaction;
  */
 class PbftChain {
  public:
-  explicit PbftChain(blk_hash_t const& dag_genesis_hash, addr_t node_addr, std::shared_ptr<DbStorage> db);
+  explicit PbftChain(addr_t node_addr, std::shared_ptr<DbStorage> db);
 
   /**
    * @brief Get PBFT chain head hash
@@ -130,9 +130,8 @@ class PbftChain {
   mutable boost::shared_mutex unverified_access_;
   mutable boost::shared_mutex chain_head_access_;
 
-  blk_hash_t head_hash_;         // PBFT head hash
-  blk_hash_t dag_genesis_hash_;  // DAG genesis at height 1
-  uint64_t size_;                // PBFT chain size, includes both executed and unexecuted PBFT blocks
+  blk_hash_t head_hash_;     // PBFT head hash
+  uint64_t size_;            // PBFT chain size, includes both executed and unexecuted PBFT blocks
   uint64_t non_empty_size_;  // PBFT chain size excluding blocks with null anchor, includes both executed and unexecuted
                              // PBFT blocks
   blk_hash_t last_pbft_block_hash_;  // last PBFT block hash in PBFT chain, may not execute yet

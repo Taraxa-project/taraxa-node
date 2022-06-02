@@ -138,7 +138,7 @@ TEST_F(DagTest, compute_epoch) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
-  auto pbft_chain = std::make_shared<PbftChain>(GENESIS, addr_t(), db_ptr);
+  auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   auto mgr = std::make_shared<DagManager>(
       GENESIS, addr_t(), trx_mgr, pbft_chain,
       std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition, node_cfgs[0].chain.dag, db_ptr, nullptr,
@@ -232,7 +232,7 @@ TEST_F(DagTest, dag_expiry) {
   const uint32_t EXPIRY_LIMIT = 3;
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
-  auto pbft_chain = std::make_shared<PbftChain>(GENESIS, addr_t(), db_ptr);
+  auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   auto dag_blk_mgr = std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition, node_cfgs[0].chain.dag,
                                                        db_ptr, nullptr, nullptr, pbft_chain, time_log);
   auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, pbft_chain, dag_blk_mgr, db_ptr, logger::Logger(),
@@ -307,7 +307,7 @@ TEST_F(DagTest, dag_expiry) {
 TEST_F(DagTest, receive_block_in_order) {
   const blk_hash_t GENESIS("000000000000000000000000000000000000000000000000000000000000000a");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
-  auto pbft_chain = std::make_shared<PbftChain>(GENESIS, addr_t(), db_ptr);
+  auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto mgr = std::make_shared<DagManager>(
       GENESIS, addr_t(), trx_mgr, pbft_chain,
@@ -342,7 +342,7 @@ TEST_F(DagTest, receive_block_in_order) {
 TEST_F(DagTest, compute_epoch_2) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
-  auto pbft_chain = std::make_shared<PbftChain>(GENESIS, addr_t(), db_ptr);
+  auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto mgr = std::make_shared<DagManager>(
       GENESIS, addr_t(), trx_mgr, pbft_chain,
@@ -427,7 +427,7 @@ TEST_F(DagTest, get_latest_pivot_tips) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
-  auto pbft_chain = std::make_shared<PbftChain>(GENESIS, addr_t(), db_ptr);
+  auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   auto mgr = std::make_shared<DagManager>(
       GENESIS, addr_t(), trx_mgr, pbft_chain,
       std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition, node_cfgs[0].chain.dag, db_ptr, nullptr,

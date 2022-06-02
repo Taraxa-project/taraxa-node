@@ -101,19 +101,19 @@ void FullNode::init() {
                  << (genesis_hash_from_db.has_value() ? *genesis_hash_from_db : h256(0)) << " in DB";
     assert(false);
   }
-  auto dag_genesis_hash = conf_.chain.dag_genesis_block.getHash();
+  auto dag_genesis_block_hash = conf_.chain.dag_genesis_block.getHash();
 
-  pbft_chain_ = std::make_shared<PbftChain>(dag_genesis_hash, node_addr, db_);
+  pbft_chain_ = std::make_shared<PbftChain>(node_addr, db_);
   next_votes_mgr_ = std::make_shared<NextVotesManager>(node_addr, db_, final_chain_);
   dag_blk_mgr_ = std::make_shared<DagBlockManager>(node_addr, conf_.chain.sortition, conf_.chain.dag, db_, trx_mgr_,
                                                    final_chain_, pbft_chain_, log_time_,
                                                    conf_.test_params.max_block_queue_warn, conf_.max_levels_per_period);
-  dag_mgr_ = std::make_shared<DagManager>(dag_genesis_hash, node_addr, trx_mgr_, pbft_chain_, dag_blk_mgr_, db_,
+  dag_mgr_ = std::make_shared<DagManager>(dag_genesis_block_hash, node_addr, trx_mgr_, pbft_chain_, dag_blk_mgr_, db_,
                                           log_time_, conf_.is_light_node, conf_.light_node_history,
                                           conf_.max_levels_per_period, conf_.dag_expiry_limit);
   vote_mgr_ = std::make_shared<VoteManager>(node_addr, db_, final_chain_, next_votes_mgr_);
-  pbft_mgr_ = std::make_shared<PbftManager>(conf_.chain.pbft, dag_genesis_hash, node_addr, db_, pbft_chain_, vote_mgr_,
-                                            next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, final_chain_,
+  pbft_mgr_ = std::make_shared<PbftManager>(conf_.chain.pbft, dag_genesis_block_hash, node_addr, db_, pbft_chain_,
+                                            vote_mgr_, next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, final_chain_,
                                             kp_.secret(), conf_.vrf_secret, conf_.max_levels_per_period);
   blk_proposer_ = std::make_shared<BlockProposer>(conf_.test_params.block_proposer, dag_mgr_, trx_mgr_, dag_blk_mgr_,
                                                   final_chain_, db_, node_addr, getSecretKey(), getVrfSecretKey());

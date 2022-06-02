@@ -68,7 +68,7 @@ class Dag {
 
   friend DagManager;
 
-  explicit Dag(blk_hash_t const &genesis, addr_t node_addr);
+  explicit Dag(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr);
   virtual ~Dag() = default;
 
   Dag(const Dag &) = default;
@@ -98,7 +98,6 @@ class Dag {
   void collectLeafVertices(std::vector<vertex_t> &leaves) const;
 
   graph_t graph_;
-  vertex_t genesis_;  // root node
 
  protected:
   LOG_OBJECTS_DEFINE
@@ -112,7 +111,8 @@ class Dag {
 class PivotTree : public Dag {
  public:
   friend DagManager;
-  explicit PivotTree(blk_hash_t const &genesis, addr_t node_addr) : Dag(genesis, node_addr) {}
+  explicit PivotTree(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr)
+      : Dag(dag_genesis_block_hash, node_addr) {}
   virtual ~PivotTree() = default;
 
   PivotTree(const PivotTree &) = default;
@@ -120,9 +120,9 @@ class PivotTree : public Dag {
   PivotTree &operator=(const PivotTree &) = default;
   PivotTree &operator=(PivotTree &&) = default;
 
-  using vertex_t = Dag::vertex_t;
-  using vertex_adj_iter_t = Dag::vertex_adj_iter_t;
-  using vertex_index_map_const_t = Dag::vertex_index_map_const_t;
+  using Dag::vertex_adj_iter_t;
+  using Dag::vertex_index_map_const_t;
+  using Dag::vertex_t;
 
   void getGhostPath(blk_hash_t const &vertex, std::vector<blk_hash_t> &pivot_chain) const;
 };
@@ -146,10 +146,11 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   using ULock = std::unique_lock<std::shared_mutex>;
   using SharedLock = std::shared_lock<std::shared_mutex>;
 
-  explicit DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
-                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                      std::shared_ptr<DbStorage> db, logger::Logger log_time, bool is_light_node = false,
-                      uint64_t light_node_history = 0, uint32_t max_levels_per_period = kMaxLevelsPerPeriod,
+  explicit DagManager(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr,
+                      std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<PbftChain> pbft_chain,
+                      std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
+                      logger::Logger log_time, bool is_light_node = false, uint64_t light_node_history = 0,
+                      uint32_t max_levels_per_period = kMaxLevelsPerPeriod,
                       uint32_t dag_expiry_limit = kDagExpiryLevelLimit);
   virtual ~DagManager() { stop(); }
 
@@ -171,11 +172,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   void stop();
 
   void setNetwork(std::weak_ptr<Network> network) { network_ = std::move(network); }
-
-  /**
-   * @brief Returns DAG genesis block hash
-   */
-  blk_hash_t const &get_genesis() { return genesis_; }
 
   /**
    * @brief Checks if block pivot and tips are in DAG
@@ -317,7 +313,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   blk_hash_t anchor_;      // anchor of the last period
   blk_hash_t old_anchor_;  // anchor of the second to last period
   uint64_t period_;        // last period
-  blk_hash_t genesis_;
   std::map<uint64_t, std::unordered_set<blk_hash_t>> non_finalized_blks_;
   DagFrontier frontier_;
   std::atomic<bool> stopped_ = true;
