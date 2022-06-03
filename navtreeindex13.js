@@ -1,5 +1,7 @@
 var NAVTREEINDEX13 =
 {
+"group___final_chain.html#a0c747503c3474ff5dd8eb28ee5a09771":[9,1,6,25],
+"group___final_chain.html#a11308c7dc37d541466e06fdcc9048cd0":[9,1,14,0],
 "group___final_chain.html#a14c08ea6c9fbfc910c086f34aa68ab4f":[9,1,11,3],
 "group___final_chain.html#a19cae7d3b4caa28a0cdb070b22eec756":[9,1,6,28],
 "group___final_chain.html#a1d8ca5785c8af2536b1790f68b89b76b":[9,1,1,3],
@@ -133,8 +135,8 @@ var NAVTREEINDEX13 =
 "group___final_chain.html#ae85b81d392741dd9953bc11a32eaec2f":[9,1,0,15],
 "group___final_chain.html#ae985c450054f31b6f7948b03ea4a88cf":[9,1,8,10],
 "group___final_chain.html#aecdfbb5abbabaa31d5d28b05acd17d62":[9,1,12,6],
-"group___final_chain.html#af237fda7591655d4c3237aef585b3a91":[12,0,1,4,0,0,1,2,0,0],
 "group___final_chain.html#af237fda7591655d4c3237aef585b3a91":[9,1,7,0,0],
+"group___final_chain.html#af237fda7591655d4c3237aef585b3a91":[12,0,1,4,0,0,1,2,0,0],
 "group___final_chain.html#af308f0004365872e558a91cd1212c1f1":[9,1,4,3],
 "group___final_chain.html#af48fcb40611583ab8f628376b40fae72":[9,1,6,17],
 "group___final_chain.html#af70061ae5615e772bb05ffd0f20559cb":[9,1,12,5],
@@ -164,8 +166,8 @@ var NAVTREEINDEX13 =
 "group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result":[9,1,5],
 "group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry":[9,1,1],
 "group___final_chain.html#structtaraxa_1_1final__chain_1_1_new_block":[9,1,4],
-"group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_config":[9,1,7,0],
 "group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_config":[12,0,1,4,0,0,1,2,0],
+"group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_config":[9,1,7,0],
 "group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_transaction_info":[12,0,1,4,0,0,1,2,1],
 "group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_transaction_info":[9,1,7,1],
 "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location":[9,1,3],
@@ -247,7 +249,5 @@ var NAVTREEINDEX13 =
 "group___p_b_f_t.html#a3f62783c3acffc0c3c51f48b703675b3":[9,2,3,20],
 "group___p_b_f_t.html#a3fae0d5cbb23148aec8dc5827a2f4ce0":[9,2,1,66],
 "group___p_b_f_t.html#a41c26a8791a8fc12b0c7190c3c960c0e":[9,2,1,59],
-"group___p_b_f_t.html#a42070d27f2343ddf0f3c55131dfd8904":[9,2,1,14],
-"group___p_b_f_t.html#a42e77905a597a9e42ebacbfbb9be501a":[9,2,1,47],
-"group___p_b_f_t.html#a46334d090efe037a0a8d67aaaff89e7f":[9,2,1,26]
+"group___p_b_f_t.html#a42070d27f2343ddf0f3c55131dfd8904":[9,2,1,14]
 };

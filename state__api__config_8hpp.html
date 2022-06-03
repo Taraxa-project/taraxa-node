@@ -164,6 +164,8 @@ Classes</h2></td></tr>
 <tr class="separator:structtaraxa_1_1state__api_1_1_d_p_o_s_config"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:structtaraxa_1_1state__api_1_1_execution_options"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_execution_options">taraxa::state_api::ExecutionOptions</a></td></tr>
 <tr class="separator:structtaraxa_1_1state__api_1_1_execution_options"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:structtaraxa_1_1state__api_1_1_block_rewards_options"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_block_rewards_options">taraxa::state_api::BlockRewardsOptions</a></td></tr>
+<tr class="separator:structtaraxa_1_1state__api_1_1_block_rewards_options"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1state__api_1_1_config.html">taraxa::state_api::Config</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:structtaraxa_1_1state__api_1_1_opts"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts">taraxa::state_api::Opts</a></td></tr>
@@ -201,6 +203,10 @@ Functions</h2></td></tr>
 <tr class="separator:a46e45ef29f14b12b52809d3ff9830743"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aedc8070daeaa488e6ef8f67eee528288"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#aedc8070daeaa488e6ef8f67eee528288">taraxa::state_api::dec_json</a> (Json::Value const &amp;json, ExecutionOptions &amp;obj)</td></tr>
 <tr class="separator:aedc8070daeaa488e6ef8f67eee528288"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae22eaa229bb6f367f792ca1a29832f7a"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#ae22eaa229bb6f367f792ca1a29832f7a">taraxa::state_api::enc_json</a> (BlockRewardsOptions const &amp;obj)</td></tr>
+<tr class="separator:ae22eaa229bb6f367f792ca1a29832f7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a84cc6631d476124c36cc92189e325e6c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#a84cc6631d476124c36cc92189e325e6c">taraxa::state_api::dec_json</a> (Json::Value const &amp;json, BlockRewardsOptions &amp;obj)</td></tr>
+<tr class="separator:a84cc6631d476124c36cc92189e325e6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ba12d4fdb54255fdfbd30e2885cc7a3"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#a7ba12d4fdb54255fdfbd30e2885cc7a3">taraxa::state_api::enc_json</a> (Config const &amp;obj)</td></tr>
 <tr class="separator:a7ba12d4fdb54255fdfbd30e2885cc7a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a820e86a470395233eb43fee033588656"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#a820e86a470395233eb43fee033588656">taraxa::state_api::dec_json</a> (Json::Value const &amp;json, Config &amp;obj)</td></tr>
@@ -285,21 +291,33 @@ petersburg_block</td>
 <div class="textblock"></div><table class="fieldtable">
 <tr><th colspan="3">Class Members</th></tr>
 <tr><td class="fieldtype">
+<a id="ac4aaee6dbf60f4917c72a4d660a6c576"></a>uint32_t</td>
+<td class="fieldname">
+blocks_per_year</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
 <a id="a7335fd9b4fd13740b7db232bb3093501"></a>uint16_t</td>
 <td class="fieldname">
 commission_change_delta</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
-<a id="ae9d64d87f671254cc8e1addec649f26d"></a><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a></td>
+<a id="ab2b4c9752dae77c339d0c5d2d51fced5"></a>uint32_t</td>
 <td class="fieldname">
 commission_change_frequency</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
-<a id="a646f250b37acb995026722377092d66a"></a><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a></td>
+<a id="a675ca6539814532483aef9cb91caf8a1"></a>uint32_t</td>
 <td class="fieldname">
-deposit_delay</td>
+delegation_delay</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a id="a8c3b02a035312481a460ddce3d2ad06a"></a>uint32_t</td>
+<td class="fieldname">
+delegation_locking_period</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
@@ -333,9 +351,9 @@ vote_eligibility_balance_step</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
-<a id="a926bb5735fcdefb2d485c8f43a2a2433"></a><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a></td>
+<a id="affb25c212fee2a8eeed95be39a47f163"></a>uint16_t</td>
 <td class="fieldname">
-withdrawal_delay</td>
+yield_percentage</td>
 <td class="fielddoc">
 </td></tr>
 </table>
@@ -356,12 +374,6 @@ withdrawal_delay</td>
 <div class="textblock"></div><table class="fieldtable">
 <tr><th colspan="3">Class Members</th></tr>
 <tr><td class="fieldtype">
-<a id="a2741837796836298a58d3f1b49776888"></a>bool</td>
-<td class="fieldname">
-disable_block_rewards</td>
-<td class="fielddoc">
-</td></tr>
-<tr><td class="fieldtype">
 <a id="a62a48438946e72f71485a5e306c6ec17"></a>bool</td>
 <td class="fieldname">
 disable_gas_fee</td>
@@ -374,15 +386,38 @@ disable_nonce_check</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
-<a id="a5d99939ed73815970a9b3c3e3eedf6e1"></a>bool</td>
-<td class="fieldname">
-disable_stats_rewards</td>
-<td class="fielddoc">
-</td></tr>
-<tr><td class="fieldtype">
 <a id="a8c9a9f6e4017927d3fd461fe7f0e6a78"></a>bool</td>
 <td class="fieldname">
 enable_nonce_skipping</td>
+<td class="fielddoc">
+</td></tr>
+</table>
+
+</div>
+</div>
+<a name="structtaraxa_1_1state__api_1_1_block_rewards_options" id="structtaraxa_1_1state__api_1_1_block_rewards_options"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#structtaraxa_1_1state__api_1_1_block_rewards_options">&#9670;&nbsp;</a></span>taraxa::state_api::BlockRewardsOptions</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct taraxa::state_api::BlockRewardsOptions</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="textblock"></div><table class="fieldtable">
+<tr><th colspan="3">Class Members</th></tr>
+<tr><td class="fieldtype">
+<a id="aff6119dea4bee1b8391ecd7d7406b18a"></a>bool</td>
+<td class="fieldname">
+disable_block_rewards</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a id="abe0fd99d8fdc2e0d8a7257051d3226ee"></a>bool</td>
+<td class="fieldname">
+disable_contract_distribution</td>
 <td class="fielddoc">
 </td></tr>
 </table>

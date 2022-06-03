@@ -207,9 +207,11 @@ var NAVTREEINDEX11 =
 "functions_vars_v.html":[11,3,2,21],
 "functions_vars_w.html":[11,3,2,22],
 "functions_vars_x.html":[11,3,2,23],
+"functions_vars_y.html":[11,3,2,24],
 "functions_w.html":[11,3,0,22],
 "functions_x.html":[11,3,0,23],
-"functions_~.html":[11,3,0,24],
+"functions_y.html":[11,3,0,24],
+"functions_~.html":[11,3,0,25],
 "gas__pricer_8cpp.html":[12,0,1,4,0,1,3,0],
 "gas__pricer_8hpp.html":[12,0,1,4,0,0,3,0],
 "gas__pricer_8hpp_source.html":[12,0,1,4,0,0,3,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX11 =
 "group___d_a_g.html#a0afd1e23455ca5a01b371ed9c0c54ef5":[9,0,8,33],
 "group___d_a_g.html#a0ea9e01202a61f80b3ed0175515db2bf":[9,0,3,32],
 "group___d_a_g.html#a0f97a16095056b36c675382c4c0ee6b1":[9,0,2,19],
-"group___d_a_g.html#a100bcdee78cad40bd64f861a624ed825":[9,0,10,2],
-"group___d_a_g.html#a118b22ab449b21d0e506a0fc5c015880":[9,0,8,32],
-"group___d_a_g.html#a1659d1ede64f5ba52d5578f04585fc31":[9,0,8,23]
+"group___d_a_g.html#a100bcdee78cad40bd64f861a624ed825":[9,0,10,2]
 };

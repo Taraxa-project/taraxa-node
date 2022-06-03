@@ -32,7 +32,7 @@ var classtaraxa_1_1final__chain_1_1_final_chain_impl =
     [ "withBlockBloom", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#af25bd1212cccc62d2ab149a4b0292b6e", null ],
     [ "db_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a73eff020d0822578989e0b8baed42091", null ],
     [ "db_opts_w_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#abe278c33988b4ca3f2828c6265fa151d", null ],
-    [ "deposit_delay_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a4cf756beea33443a22d1da0d66e7797a", null ],
+    [ "delegation_delay_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#aff2354a2747d98d738374c29bc2b34cd", null ],
     [ "executor_thread_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a49057cbf347c291a51a87d399c93bbf4", null ],
     [ "last_block_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a4758d245dc2e4499a796d24fbc4e332c", null ],
     [ "last_block_mu_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a54fb8fecd29c44a6bc18ee913fe9b2ea", null ],

@@ -1,5 +1,7 @@
 var NAVTREEINDEX15 =
 {
+"group___transaction.html#classtaraxa_1_1_gas_pricer":[9,3,0],
+"group___transaction.html#classtaraxa_1_1_transaction_manager":[9,3,1],
 "group___transaction.html#classtaraxa_1_1_transaction_queue":[9,3,2],
 "group___transaction.html#gae7551c287ae57b46d56d27de67df61e7":[9,3,3],
 "group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a1329e7699345f6e7d1b9bfb0965a3c03":[9,3,3,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX15 =
 "libdevcore_2_exceptions_8h.html#a0abd1e289895c041811e1476d306ece1":[12,0,1,0,0,12,26],
 "libdevcore_2_exceptions_8h.html#a0b68bc35f453b1ed62a9976f05cddad0":[12,0,1,0,0,12,8],
 "libdevcore_2_exceptions_8h.html#a0b8085cfa4ce4c6d2dbe50a8d2bd458a":[12,0,1,0,0,12,34],
-"libdevcore_2_exceptions_8h.html#a0ec8a6a96f1b00a388296a2b515118c4":[12,0,1,0,0,12,37],
-"libdevcore_2_exceptions_8h.html#a0fce2e8d2a40506fc15e2ce75792e580":[12,0,1,0,0,12,19],
-"libdevcore_2_exceptions_8h.html#a1bde550ecbaebfe3bc6075909cde28cf":[12,0,1,0,0,12,17]
+"libdevcore_2_exceptions_8h.html#a0ec8a6a96f1b00a388296a2b515118c4":[12,0,1,0,0,12,37]
 };
