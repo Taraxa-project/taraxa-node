@@ -22,11 +22,12 @@ struct StateAPITest : WithDataDir {};
 
 static auto const base_taraxa_chain_cfg = [] {
   Config ret;
-  ret.execution_options.disable_block_rewards = true;
   ret.execution_options.disable_nonce_check = true;
   ret.execution_options.disable_gas_fee = true;
-  ret.execution_options.disable_stats_rewards = true;
+  ret.block_rewards_options.disable_block_rewards = true;
+  ret.block_rewards_options.disable_contract_distribution = true;
   ret.eth_chain_config.dao_fork_block = BlockNumberNIL;
+
   return ret;
 }();
 
@@ -64,8 +65,8 @@ TEST_F(StateAPITest, DISABLED_dpos_integration) {
   // u256 addr_1_bal_expected = 100000000;
   // chain_cfg.genesis_balances[make_addr(1)] = addr_1_bal_expected;
   // auto& dpos_cfg = chain_cfg.dpos.emplace();
-  // dpos_cfg.deposit_delay = 2;
-  // dpos_cfg.withdrawal_delay = 4;
+  // dpos_cfg.delegation_delay = 2;
+  // dpos_cfg.delegation_locking_period = 4;
   // dpos_cfg.eligibility_balance_threshold = 1000;
   // dpos_cfg.vote_eligibility_balance_step = 1000;
   // addr_1_bal_expected -= dpos_cfg.genesis_state[make_addr(1)][make_addr(1)] = dpos_cfg.eligibility_balance_threshold;
@@ -188,8 +189,8 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
                                         "taraxa" / "data" / "eth_mainnet_blocks_0_300000.rlp");
 
   Config chain_config;
-  chain_config.execution_options.disable_block_rewards = false;
-  chain_config.execution_options.disable_stats_rewards = true;
+  chain_config.block_rewards_options.disable_block_rewards = false;
+  chain_config.block_rewards_options.disable_contract_distribution = true;
 
   auto& eth_cfg = chain_config.eth_chain_config;
   eth_cfg.homestead_block = 1150000;

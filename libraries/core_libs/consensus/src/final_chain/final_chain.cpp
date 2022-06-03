@@ -28,7 +28,7 @@ class FinalChainImpl final : public FinalChain {
     ret.sync = true;
     return ret;
   }();
-  EthBlockNumber deposit_delay_;
+  EthBlockNumber delegation_delay_;
   LOG_OBJECTS_DEFINE
 
  public:
@@ -81,7 +81,7 @@ class FinalChainImpl final : public FinalChain {
                                  GAS_LIMIT, state_db_descriptor.state_root);
       db_->commitWriteBatch(batch, db_opts_w_);
     }
-    deposit_delay_ = config.state.dpos->deposit_delay;
+    delegation_delay_ = config.state.dpos->delegation_delay;
   }
 
   void stop() override { executor_thread_.stop(); }
@@ -335,7 +335,7 @@ class FinalChainImpl final : public FinalChain {
   }
 
   void update_state_config(const state_api::Config& new_config) override {
-    deposit_delay_ = new_config.dpos->deposit_delay;
+    delegation_delay_ = new_config.dpos->delegation_delay;
     state_api_.update_state_config(new_config);
   }
 

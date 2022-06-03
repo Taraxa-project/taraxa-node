@@ -104,8 +104,8 @@ TEST_F(HardforkTest, hardfork) {
   cfg.state.hardforks.fix_genesis_fork_block = 10;
   cfg.state.dpos->eligibility_balance_threshold = 100000;
   cfg.state.dpos->vote_eligibility_balance_step.assign(cfg.state.dpos->eligibility_balance_threshold);
-  cfg.state.dpos->deposit_delay = 5;
-  cfg.state.dpos->withdrawal_delay = 5;
+  cfg.state.dpos->delegation_delay = 5;
+  cfg.state.dpos->delegation_locking_period = 5;
 
   auto random_node = addr_t::random();
   auto random_votes = 3;

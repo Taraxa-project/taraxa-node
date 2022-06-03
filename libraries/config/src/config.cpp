@@ -227,6 +227,11 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
     chain = ChainConfig::predefined();
   }
 
+  // blocks_per_year config param is calculated from lambda_ms_min
+  uint64_t year_ms = 365 * 24 * 60 * 60;
+  year_ms *= 1000;
+  chain.final_chain.state.dpos->blocks_per_year = year_ms / (4 * chain.pbft.lambda_ms_min);
+
   is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, false);
   if (is_light_node) {
     uint64_t min_light_node_history =
