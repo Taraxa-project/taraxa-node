@@ -1440,16 +1440,18 @@ TEST_F(FullNodeTest, chain_config_json) {
     },
     "state": {
       "dpos": {
-        "deposit_delay": "0x0",
+        "delegation_delay": "0x0",
+        "delegation_locking_period": "0x0",
         "eligibility_balance_threshold": "0x3b9aca00",
         "vote_eligibility_balance_step": "0x3b9aca00",
         "maximum_stake":"0x84595161401484a000000",
         "minimum_deposit":"0x0",
         "commission_change_delta":"0x0",
         "commission_change_frequency":"0x0",
+        "yield_percentage":"0x14",
+        "blocks_per_year":"0x3c2670",
         "genesis_state": {
-        },
-        "withdrawal_delay": "0x0"
+        }
       },
       "eth_chain_config": {
         "byzantium_block": "0x0",
@@ -1461,11 +1463,13 @@ TEST_F(FullNodeTest, chain_config_json) {
         "petersburg_block": "0x0"
       },
       "execution_options": {
-        "disable_block_rewards": true,
         "disable_gas_fee": true,
         "disable_nonce_check": false,
-        "enable_nonce_skipping": false,
-        "disable_stats_rewards": true
+        "enable_nonce_skipping": false
+      },
+      "block_rewards_options": {
+        "disable_block_rewards": true,
+        "disable_contract_distribution": true
       },
       "genesis_balances": {
       }

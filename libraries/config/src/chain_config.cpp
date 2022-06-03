@@ -86,14 +86,12 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
       "timestamp": 1564617600,
       "vdf": ""
     })"));
-    cfg.final_chain.state.execution_options.disable_block_rewards = true;
-    cfg.final_chain.state.execution_options.disable_stats_rewards = true;
+
+    cfg.final_chain.state.block_rewards_options.disable_block_rewards = true;
+    cfg.final_chain.state.block_rewards_options.disable_contract_distribution = true;
     cfg.final_chain.state.execution_options.disable_gas_fee = true;
     cfg.final_chain.state.eth_chain_config.dao_fork_block = state_api::BlockNumberNIL;
-    auto& dpos = cfg.final_chain.state.dpos.emplace();
-    dpos.eligibility_balance_threshold = 1000000000;
-    dpos.vote_eligibility_balance_step = 1000000000;
-    dpos.maximum_stake = dev::jsToU256("0x84595161401484A000000");
+
     // VDF config
     cfg.sortition.vrf.threshold_upper = 0xafff;
     cfg.sortition.vrf.threshold_range = 80;
@@ -101,14 +99,28 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     cfg.sortition.vdf.difficulty_max = 21;
     cfg.sortition.vdf.difficulty_stale = 23;
     cfg.sortition.vdf.lambda_bound = 100;
+
     // PBFT config
     cfg.pbft.lambda_ms_min = 2000;
     cfg.pbft.committee_size = 5;
     cfg.pbft.dag_blocks_size = 100;
     cfg.pbft.ghost_path_move_back = 1;
     cfg.pbft.gas_limit = 60000000;
+
     // DAG config
     cfg.dag.gas_limit = 10000000;
+
+    // DPOS config
+    auto& dpos = cfg.final_chain.state.dpos.emplace();
+    dpos.eligibility_balance_threshold = 1000000000;
+    dpos.vote_eligibility_balance_step = 1000000000;
+    dpos.maximum_stake = dev::jsToU256("0x84595161401484A000000");
+    dpos.yield_percentage = 20;
+
+    uint64_t year_ms = 365 * 24 * 60 * 60;
+    year_ms *= 1000;
+    dpos.blocks_per_year = year_ms / (4 * cfg.pbft.lambda_ms_min);
+
     return cfg;
   }();
   cfgs["test"] = [&] {

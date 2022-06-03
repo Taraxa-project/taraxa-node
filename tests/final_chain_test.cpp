@@ -268,7 +268,7 @@ TEST_F(FinalChainTest, nonce_skipping) {
   cfg.state.genesis_balances[key.address()] = std::numeric_limits<u256>::max();
   cfg.state.execution_options.disable_gas_fee = false;
   cfg.state.execution_options.disable_nonce_check = false;
-  cfg.state.execution_options.disable_stats_rewards = true;
+  cfg.state.block_rewards_options.disable_contract_distribution = true;
   init();
   advance({std::make_shared<Transaction>(2, 13, 0, TRX_GAS, dev::bytes(), key.secret(), key.address())},
           {false, false, true});

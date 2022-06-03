@@ -152,8 +152,8 @@ inline auto make_node_cfgs(uint count) {
       // As test are badly written let's disable it for now
       cfg.chain.final_chain.state.execution_options.disable_nonce_check = true;
       cfg.chain.final_chain.state.execution_options.disable_gas_fee = true;
-      cfg.chain.final_chain.state.execution_options.disable_block_rewards = true;
-      cfg.chain.final_chain.state.execution_options.disable_stats_rewards = true;
+      cfg.chain.final_chain.state.block_rewards_options.disable_block_rewards = true;
+      cfg.chain.final_chain.state.block_rewards_options.disable_contract_distribution = true;
       if constexpr (tests_speed != 1) {
         // VDF config
         cfg.chain.sortition.vrf.threshold_upper = 0xffff;

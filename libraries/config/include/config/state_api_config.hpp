@@ -35,9 +35,11 @@ struct DPOSConfig {
   u256 maximum_stake;
   u256 minimum_deposit;
   uint16_t commission_change_delta;
-  EthBlockNumber commission_change_frequency = 0;
-  EthBlockNumber deposit_delay = 0;
-  EthBlockNumber withdrawal_delay = 0;
+  uint32_t commission_change_frequency = 0;  // number of blocks
+  uint32_t delegation_delay = 0;             // number of blocks
+  uint32_t delegation_locking_period = 0;    // number of blocks
+  uint32_t blocks_per_year = 0;              // number of blocks - it is calculated from lambda_ms_min
+  uint16_t yield_percentage = 0;             // [%]
   std::unordered_map<addr_t, BalanceMap> genesis_state;
 
   HAS_RLP_FIELDS
@@ -49,21 +51,30 @@ void dec_json(Json::Value const& json, DPOSConfig& obj);
 struct ExecutionOptions {
   bool disable_nonce_check = false;
   bool disable_gas_fee = false;
-
   bool enable_nonce_skipping = false;
-  // Do not process reward pool (newly minted tokens & tx fees) according to the reward statistics,
-  // give whole reward pool to the pbft block proposer
-  bool disable_stats_rewards = false;
-  bool disable_block_rewards = false;
 
   HAS_RLP_FIELDS
 };
 Json::Value enc_json(ExecutionOptions const& obj);
 void dec_json(Json::Value const& json, ExecutionOptions& obj);
 
+struct BlockRewardsOptions {
+  // Disables new tokens generation as block reward
+  bool disable_block_rewards = false;
+
+  // TODO: once we fix tests, this flag can be deleted as rewards should be processed only in dpos contract
+  // Disbales rewards distribution through contract - rewards are added directly to the validators accounts
+  bool disable_contract_distribution = false;
+
+  HAS_RLP_FIELDS
+};
+Json::Value enc_json(BlockRewardsOptions const& obj);
+void dec_json(Json::Value const& json, BlockRewardsOptions& obj);
+
 struct Config {
   ETHChainConfig eth_chain_config;
   ExecutionOptions execution_options;
+  BlockRewardsOptions block_rewards_options;
   BalanceMap genesis_balances;
   std::optional<DPOSConfig> dpos;
   // Hardforks hardforks;

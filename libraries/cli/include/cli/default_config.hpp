@@ -166,14 +166,15 @@ constexpr std::string_view default_json = R"foo({
       },
       "state": {
         "dpos": {
-          "deposit_delay": "0x5",
-          "withdrawal_delay": "0x5",
+          "delegation_delay": "0x5",
+          "delegation_locking_period": "0x5",
           "eligibility_balance_threshold": "0xd3c21bcecceda1000000",
           "vote_eligibility_balance_step": "0x152d02c7e14af6800000",
           "maximum_stake":"0x84595161401484A000000",
           "minimum_deposit":"0x0",
           "commission_change_delta":"0x0",
           "commission_change_frequency":"0x0",
+          "yield_percentage":"0x14",
           "genesis_state": {
             "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": {
               "0x780fe8b2226cf212c55635de399ee4c2a860810c": "0x84595161401484a000000",
@@ -192,11 +193,13 @@ constexpr std::string_view default_json = R"foo({
           "petersburg_block": "0x0"
         },
         "execution_options": {
-          "disable_block_rewards": true,
           "disable_gas_fee": false,
           "disable_nonce_check": false,
-          "enable_nonce_skipping": true,
-          "disable_stats_rewards": true
+          "enable_nonce_skipping": true
+        },
+        "block_rewards_options": {
+          "disable_block_rewards": false,
+          "disable_contract_distribution": false
         },
         "genesis_balances": {
           "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027e72f1f12813088000000",
