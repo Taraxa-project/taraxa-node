@@ -215,7 +215,7 @@ constexpr std::string_view mainnet_json = R"foo({
           "delegation_locking_period": "0x5",
           "eligibility_balance_threshold": "0x186A0",
           "vote_eligibility_balance_step": "0x186A0",
-          "maximum_stake":"0x84595161401484A000000",
+          "validator_maximum_stake":"0x84595161401484A000000",
           "minimum_deposit":"0x0",
           "commission_change_delta":"0x0",
           "commission_change_frequency":"0x0",

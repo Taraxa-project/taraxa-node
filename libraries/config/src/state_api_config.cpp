@@ -6,7 +6,7 @@
 
 namespace taraxa::state_api {
 
-Json::Value enc_json(ETHChainConfig const& obj) {
+Json::Value enc_json(const ETHChainConfig& obj) {
   Json::Value json(Json::objectValue);
   json["homestead_block"] = dev::toJS(obj.homestead_block);
   json["dao_fork_block"] = dev::toJS(obj.dao_fork_block);
@@ -18,7 +18,7 @@ Json::Value enc_json(ETHChainConfig const& obj) {
   return json;
 }
 
-void dec_json(Json::Value const& json, ETHChainConfig& obj) {
+void dec_json(const Json::Value& json, ETHChainConfig& obj) {
   obj.homestead_block = dev::jsToInt(json["homestead_block"].asString());
   obj.dao_fork_block = dev::jsToInt(json["dao_fork_block"].asString());
   obj.eip_150_block = dev::jsToInt(json["eip_150_block"].asString());
@@ -28,7 +28,7 @@ void dec_json(Json::Value const& json, ETHChainConfig& obj) {
   obj.petersburg_block = dev::jsToInt(json["petersburg_block"].asString());
 }
 
-Json::Value enc_json(Config const& obj) {
+Json::Value enc_json(const Config& obj) {
   Json::Value json(Json::objectValue);
   json["eth_chain_config"] = enc_json(obj.eth_chain_config);
   json["execution_options"] = enc_json(obj.execution_options);
@@ -41,18 +41,18 @@ Json::Value enc_json(Config const& obj) {
   return json;
 }
 
-void dec_json(Json::Value const& json, Config& obj) {
+void dec_json(const Json::Value& json, Config& obj) {
   dec_json(json["eth_chain_config"], obj.eth_chain_config);
   dec_json(json["execution_options"], obj.execution_options);
   dec_json(json["block_rewards_options"], obj.block_rewards_options);
   dec_json(json["genesis_balances"], obj.genesis_balances);
   // dec_json(json["hardforks"], obj.hardforks);
-  if (auto const& dpos = json["dpos"]; !dpos.isNull()) {
+  if (const auto& dpos = json["dpos"]; !dpos.isNull()) {
     dec_json(dpos, obj.dpos.emplace());
   }
 }
 
-Json::Value enc_json(BalanceMap const& obj) {
+Json::Value enc_json(const BalanceMap& obj) {
   Json::Value json(Json::objectValue);
   for (auto const& [k, v] : obj) {
     json[dev::toJS(k)] = dev::toJS(v);
@@ -60,50 +60,74 @@ Json::Value enc_json(BalanceMap const& obj) {
   return json;
 }
 
-void dec_json(Json::Value const& json, BalanceMap& obj) {
-  for (auto const& k : json.getMemberNames()) {
+void dec_json(const Json::Value& json, BalanceMap& obj) {
+  for (const auto& k : json.getMemberNames()) {
     obj[addr_t(k)] = dev::jsToU256(json[k].asString());
   }
 }
 
-Json::Value enc_json(DPOSConfig const& obj) {
+Json::Value enc_json(const ValidatorInfo& obj) {
+  Json::Value json(Json::objectValue);
+
+  json["address"] = dev::toJS(obj.address);
+  json["owner"] = dev::toJS(obj.owner);
+  json["commission"] = dev::toJS(obj.commission);
+  json["endpoint"] = obj.endpoint;
+  json["description"] = obj.description;
+  json["delegations"] = enc_json(obj.delegations);
+
+  return json;
+}
+void dec_json(const Json::Value& json, ValidatorInfo& obj) {
+  obj.address = addr_t(json["address"].asString());
+  obj.owner = addr_t(json["owner"].asString());
+  obj.commission = dev::getUInt(json["owner"]);
+  obj.endpoint = json["endpoint"].asString();
+  obj.description = json["description"].asString();
+
+  dec_json(json["delegations"], obj.delegations);
+}
+
+Json::Value enc_json(const DPOSConfig& obj) {
   Json::Value json(Json::objectValue);
   json["eligibility_balance_threshold"] = dev::toJS(obj.eligibility_balance_threshold);
   json["delegation_delay"] = dev::toJS(obj.delegation_delay);
   json["delegation_locking_period"] = dev::toJS(obj.delegation_locking_period);
   json["vote_eligibility_balance_step"] = dev::toJS(obj.vote_eligibility_balance_step);
-  json["maximum_stake"] = dev::toJS(obj.maximum_stake);
+  json["validator_maximum_stake"] = dev::toJS(obj.validator_maximum_stake);
   json["minimum_deposit"] = dev::toJS(obj.minimum_deposit);
   json["commission_change_delta"] = dev::toJS(obj.commission_change_delta);
   json["commission_change_frequency"] = dev::toJS(obj.commission_change_frequency);
   json["yield_percentage"] = dev::toJS(obj.yield_percentage);
   json["blocks_per_year"] = dev::toJS(obj.blocks_per_year);
-  auto& genesis_state = json["genesis_state"] = Json::Value(Json::objectValue);
-  for (auto const& [k, v] : obj.genesis_state) {
-    genesis_state[dev::toJS(k)] = enc_json(v);
+
+  json["initial_validators"] = Json::Value(Json::arrayValue);
+  for (const auto& v : obj.initial_validators) {
+    json["initial_validators"].append(enc_json(v));
   }
   return json;
 }
 
-void dec_json(Json::Value const& json, DPOSConfig& obj) {
+void dec_json(const Json::Value& json, DPOSConfig& obj) {
   obj.eligibility_balance_threshold = dev::jsToU256(json["eligibility_balance_threshold"].asString());
   obj.delegation_delay = dev::getUInt(json["delegation_delay"].asString());
   obj.delegation_locking_period = dev::getUInt(json["delegation_locking_period"].asString());
   obj.vote_eligibility_balance_step = dev::jsToU256(json["vote_eligibility_balance_step"].asString());
-  obj.maximum_stake = dev::jsToU256(json["maximum_stake"].asString());
+  obj.validator_maximum_stake = dev::jsToU256(json["validator_maximum_stake"].asString());
   obj.minimum_deposit = dev::jsToU256(json["minimum_deposit"].asString());
   obj.commission_change_delta = static_cast<uint16_t>(dev::getUInt(json["commission_change_delta"].asString()));
   obj.commission_change_frequency = dev::getUInt(json["commission_change_frequency"].asString());
   obj.yield_percentage = static_cast<uint16_t>(dev::getUInt(json["yield_percentage"]));
   obj.blocks_per_year = dev::getUInt(json["blocks_per_year"]);
 
-  auto const& genesis_state = json["genesis_state"];
-  for (auto const& k : genesis_state.getMemberNames()) {
-    dec_json(genesis_state[k], obj.genesis_state[addr_t(k)]);
+  const auto& initial_validators_json = json["initial_validators"];
+  obj.initial_validators.reserve(initial_validators_json.size());
+  for (uint32_t i = 0; i < initial_validators_json.size(); ++i) {
+    dec_json(initial_validators_json[i], obj.initial_validators[i]);
   }
 }
 
-Json::Value enc_json(ExecutionOptions const& obj) {
+Json::Value enc_json(const ExecutionOptions& obj) {
   Json::Value json(Json::objectValue);
   json["disable_nonce_check"] = obj.disable_nonce_check;
   json["disable_gas_fee"] = obj.disable_gas_fee;
@@ -112,7 +136,7 @@ Json::Value enc_json(ExecutionOptions const& obj) {
   return json;
 }
 
-void dec_json(Json::Value const& json, ExecutionOptions& obj) {
+void dec_json(const Json::Value& json, ExecutionOptions& obj) {
   obj.disable_nonce_check = json["disable_nonce_check"].asBool();
   obj.disable_gas_fee = json["disable_gas_fee"].asBool();
   obj.enable_nonce_skipping = json["enable_nonce_skipping"].asBool();
@@ -135,9 +159,10 @@ RLP_FIELDS_DEFINE(ExecutionOptions, disable_nonce_check, disable_gas_fee, enable
 RLP_FIELDS_DEFINE(BlockRewardsOptions, disable_block_rewards, disable_contract_distribution)
 RLP_FIELDS_DEFINE(ETHChainConfig, homestead_block, dao_fork_block, eip_150_block, eip_158_block, byzantium_block,
                   constantinople_block, petersburg_block)
-RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, vote_eligibility_balance_step, maximum_stake,
+RLP_FIELDS_DEFINE(ValidatorInfo, address, owner, commission, endpoint, description, delegations)
+RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, vote_eligibility_balance_step, validator_maximum_stake,
                   minimum_deposit, commission_change_delta, commission_change_frequency, delegation_delay,
-                  delegation_locking_period, blocks_per_year, yield_percentage, genesis_state)
+                  delegation_locking_period, blocks_per_year, yield_percentage, initial_validators)
 RLP_FIELDS_DEFINE(Config, eth_chain_config, execution_options, block_rewards_options, genesis_balances, dpos)
 RLP_FIELDS_DEFINE(Opts, expected_max_trx_per_block, max_trie_full_node_levels_to_cache)
 RLP_FIELDS_DEFINE(OptsDB, db_path, disable_most_recent_trie_value_views)

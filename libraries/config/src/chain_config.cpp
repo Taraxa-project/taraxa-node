@@ -114,7 +114,7 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     auto& dpos = cfg.final_chain.state.dpos.emplace();
     dpos.eligibility_balance_threshold = 1000000000;
     dpos.vote_eligibility_balance_step = 1000000000;
-    dpos.maximum_stake = dev::jsToU256("0x84595161401484A000000");
+    dpos.validator_maximum_stake = dev::jsToU256("0x84595161401484A000000");
     dpos.yield_percentage = 20;
 
     uint64_t year_ms = 365 * 24 * 60 * 60;
