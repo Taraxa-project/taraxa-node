@@ -51,35 +51,20 @@ class Network {
   unsigned getNodeCount();
   Json::Value getStatus();
   Json::Value getPacketsStats();
-  void onNewBlockVerified(DagBlock &&blk, bool proposed, SharedTransactions &&trxs);
-  void onNewTransactions(std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> &&transactions);
   void restartSyncingPbft(bool force = false);
-  void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
   bool pbft_syncing();
   uint64_t syncTimeSeconds() const;
   void setSyncStatePeriod(uint64_t period);
-
-  void handleMaliciousSyncPeer(dev::p2p::NodeID const &id);
-
-  void onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes);
-  void broadcastPreviousRoundNextVotesBundle();
 
   template <typename PacketHandlerType>
   std::shared_ptr<PacketHandlerType> getSpecificHandler() const;
 
   // METHODS USED IN TESTS ONLY
-  void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, const SharedTransactions &trxs);
-  void sendBlocks(const dev::p2p::NodeID &id, std::vector<std::shared_ptr<DagBlock>> &&blocks,
-                  SharedTransactions &&transactions, uint64_t request_period, uint64_t period);
-  void sendTransactions(dev::p2p::NodeID const &_id, std::vector<taraxa::bytes> const &transactions);
   void setPendingPeersToReady();
   dev::p2p::NodeID getNodeId() const;
   int getReceivedBlocksCount() const;
   int getReceivedTransactionsCount() const;
   std::shared_ptr<network::tarcap::TaraxaPeer> getPeer(dev::p2p::NodeID const &id) const;
-
-  // PBFT
-  void sendPbftBlock(const dev::p2p::NodeID &id, const PbftBlock &pbft_block, uint64_t pbft_chain_size);
   // END METHODS USED IN TESTS ONLY
 
  private:

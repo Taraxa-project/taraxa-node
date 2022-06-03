@@ -311,7 +311,7 @@ TEST_F(VoteTest, vote_broadcast) {
   size_t step = 1002;
   auto vote = pbft_mgr1->generateVote(propose_block_hash, type, period, step);
 
-  node1->getNetwork()->onNewPbftVotes(std::vector{vote});
+  node1->getNetwork()->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(std::vector{vote});
 
   auto vote_mgr1 = node1->getVoteManager();
   auto vote_mgr2 = node2->getVoteManager();

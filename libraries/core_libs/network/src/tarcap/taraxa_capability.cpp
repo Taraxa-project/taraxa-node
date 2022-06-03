@@ -251,7 +251,7 @@ void TaraxaCapability::onDisconnect(dev::p2p::NodeID const &_nodeID) {
   if (pbft_syncing_state_->isPbftSyncing() && pbft_syncing_state_->syncingPeer() == _nodeID) {
     if (peers_state_->getPeersCount() > 0) {
       LOG(log_dg_) << "Restart PBFT/DAG syncing due to syncing peer disconnect.";
-      restartSyncingPbft(true);
+      packets_handlers_->getSpecificHandler<PbftSyncPacketHandler>()->restartSyncingPbft(true);
     } else {
       LOG(log_dg_) << "Stop PBFT/DAG syncing due to syncing peer disconnect and no other peers available.";
       pbft_syncing_state_->setPbftSyncing(false);
@@ -332,68 +332,14 @@ const std::shared_ptr<PeersState> &TaraxaCapability::getPeersState() { return pe
 
 const std::shared_ptr<NodeStats> &TaraxaCapability::getNodeStats() { return node_stats_; }
 
-void TaraxaCapability::restartSyncingPbft(bool force) {
-  packets_handlers_->getSpecificHandler<PbftSyncPacketHandler>()->restartSyncingPbft(force);
-}
-
 bool TaraxaCapability::pbft_syncing() const { return pbft_syncing_state_->isPbftSyncing(); }
-
-void TaraxaCapability::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) {
-  packets_handlers_->getSpecificHandler<PbftSyncPacketHandler>()->handleMaliciousSyncPeer(id);
-}
-
-void TaraxaCapability::onNewBlockVerified(DagBlock &&blk, bool proposed, SharedTransactions &&trxs) {
-  packets_handlers_->getSpecificHandler<DagBlockPacketHandler>()->onNewBlockVerified(std::move(blk), proposed,
-                                                                                     std::move(trxs));
-}
-
-void TaraxaCapability::onNewTransactions(
-    std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> &&transactions) {
-  packets_handlers_->getSpecificHandler<TransactionPacketHandler>()->onNewTransactions(std::move(transactions));
-}
-
-void TaraxaCapability::onNewBlockReceived(DagBlock &&block) {
-  packets_handlers_->getSpecificHandler<DagBlockPacketHandler>()->onNewBlockReceived(std::move(block));
-}
-
-void TaraxaCapability::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block) {
-  packets_handlers_->getSpecificHandler<PbftBlockPacketHandler>()->onNewPbftBlock(*pbft_block);
-}
-
-void TaraxaCapability::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes) {
-  packets_handlers_->getSpecificHandler<VotePacketHandler>()->onNewPbftVotes(std::move(votes));
-}
-
-void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
-  packets_handlers_->getSpecificHandler<VotesSyncPacketHandler>()->broadcastPreviousRoundNextVotesBundle();
-}
-
-void TaraxaCapability::sendTransactions(dev::p2p::NodeID const &id, std::vector<taraxa::bytes> const &transactions) {
-  packets_handlers_->getSpecificHandler<TransactionPacketHandler>()->sendTransactions(id, transactions);
-}
 
 void TaraxaCapability::setSyncStatePeriod(uint64_t period) { pbft_syncing_state_->setSyncStatePeriod(period); }
 
 // METHODS USED IN TESTS ONLY
-void TaraxaCapability::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, const SharedTransactions &trxs) {
-  packets_handlers_->getSpecificHandler<DagBlockPacketHandler>()->sendBlock(id, blk, trxs);
-}
-
-void TaraxaCapability::sendBlocks(const dev::p2p::NodeID &id, std::vector<std::shared_ptr<DagBlock>> &&blocks,
-                                  SharedTransactions &&transactions, uint64_t request_period, uint64_t period) {
-  packets_handlers_->getSpecificHandler<GetDagSyncPacketHandler>()->sendBlocks(
-      id, std::move(blocks), std::move(transactions), request_period, period);
-}
-
 size_t TaraxaCapability::getReceivedBlocksCount() const { return test_state_->getBlocksSize(); }
 
 size_t TaraxaCapability::getReceivedTransactionsCount() const { return test_state_->getTransactionsSize(); }
-
-// PBFT
-void TaraxaCapability::sendPbftBlock(const dev::p2p::NodeID &id, const PbftBlock &pbft_block,
-                                     uint64_t pbft_chain_size) {
-  packets_handlers_->getSpecificHandler<PbftBlockPacketHandler>()->sendPbftBlock(id, pbft_block, pbft_chain_size);
-}
-
 // END METHODS USED IN TESTS ONLY
+
 }  // namespace taraxa::network::tarcap
