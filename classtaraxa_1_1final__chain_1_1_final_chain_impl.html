@@ -164,7 +164,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae4ca8097009913b97ea8bf21c148ae40"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ae4ca8097009913b97ea8bf21c148ae40">get_staking_balance</a> (<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;addr, std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; blk_n={}) const override</td></tr>
 <tr class="memdesc:ae4ca8097009913b97ea8bf21c148ae40"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method to get staking balance from DPOS precompiled contract.  <a href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ae4ca8097009913b97ea8bf21c148ae40">More...</a><br /></td></tr>
 <tr class="separator:ae4ca8097009913b97ea8bf21c148ae40"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7a2b85b63424ab773bdfa6d36ddfc77d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a7a2b85b63424ab773bdfa6d36ddfc77d">update_state_config</a> (const <a class="el" href="structtaraxa_1_1state__api_1_1_config.html">state_api::Config</a> &amp;new_config) override</td></tr>
+<tr class="memitem:a7a2b85b63424ab773bdfa6d36ddfc77d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a7a2b85b63424ab773bdfa6d36ddfc77d">update_state_config</a> (const <a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config">state_api::Config</a> &amp;new_config) override</td></tr>
 <tr class="memdesc:a7a2b85b63424ab773bdfa6d36ddfc77d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Needed if we are changing params with hardfork and it affects Go part of code. For example DPOS contract.  <a href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a7a2b85b63424ab773bdfa6d36ddfc77d">More...</a><br /></td></tr>
 <tr class="separator:a7a2b85b63424ab773bdfa6d36ddfc77d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8e1d7d3502a1452f0cbfb260970a516c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a8e1d7d3502a1452f0cbfb260970a516c">get_account_storage</a> (<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;addr, <a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a> const &amp;key, std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; blk_n={}) const override</td></tr>
@@ -1330,7 +1330,7 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">void taraxa::final_chain::FinalChainImpl::update_state_config </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="structtaraxa_1_1state__api_1_1_config.html">state_api::Config</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config">state_api::Config</a> &amp;&#160;</td>
           <td class="paramname"><em>new_config</em></td><td>)</td>
           <td></td>
         </tr>
@@ -1345,7 +1345,7 @@ Additional Inherited Members</h2></td></tr>
 <p>Needed if we are changing params with hardfork and it affects Go part of code. For example DPOS contract. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">new_config</td><td><a class="el" href="structtaraxa_1_1state__api_1_1_config.html">state_api::Config</a> </td></tr>
+    <tr><td class="paramname">new_config</td><td><a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config">state_api::Config</a> </td></tr>
   </table>
   </dd>
 </dl>

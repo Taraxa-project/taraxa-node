@@ -2,7 +2,7 @@ var namespacetaraxa_1_1state__api =
 [
     [ "Account", "group___final_chain.html#structtaraxa_1_1state__api_1_1_account", "group___final_chain_structtaraxa_1_1state__api_1_1_account" ],
     [ "BlockRewardsOptions", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_block_rewards_options", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_block_rewards_options_dup" ],
-    [ "Config", "structtaraxa_1_1state__api_1_1_config.html", "structtaraxa_1_1state__api_1_1_config" ],
+    [ "Config", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_config_dup" ],
     [ "DPOSConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_d_p_o_s_config_dup" ],
     [ "ErrFutureBlock", "group___final_chain.html#structtaraxa_1_1state__api_1_1_err_future_block", "group___final_chain_structtaraxa_1_1state__api_1_1_err_future_block" ],
     [ "ErrorHandler", "classtaraxa_1_1state__api_1_1_error_handler.html", "classtaraxa_1_1state__api_1_1_error_handler" ],
@@ -20,5 +20,6 @@ var namespacetaraxa_1_1state__api =
     [ "StateTransitionResult", "group___final_chain.html#structtaraxa_1_1state__api_1_1_state_transition_result", "group___final_chain_structtaraxa_1_1state__api_1_1_state_transition_result" ],
     [ "TaraxaEVMError", "group___final_chain.html#structtaraxa_1_1state__api_1_1_taraxa_e_v_m_error", "group___final_chain_structtaraxa_1_1state__api_1_1_taraxa_e_v_m_error" ],
     [ "TrieProof", "group___final_chain.html#structtaraxa_1_1state__api_1_1_trie_proof", "group___final_chain_structtaraxa_1_1state__api_1_1_trie_proof" ],
-    [ "UncleBlock", "group___final_chain.html#structtaraxa_1_1state__api_1_1_uncle_block", "group___final_chain_structtaraxa_1_1state__api_1_1_uncle_block" ]
+    [ "UncleBlock", "group___final_chain.html#structtaraxa_1_1state__api_1_1_uncle_block", "group___final_chain_structtaraxa_1_1state__api_1_1_uncle_block" ],
+    [ "ValidatorInfo", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_validator_info", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_validator_info_dup" ]
 ];

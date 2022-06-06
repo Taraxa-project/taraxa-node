@@ -34,7 +34,7 @@ var searchData=
   ['block_5fproposer_148',['block_proposer',['../structtaraxa_1_1_dag_config.html#a06052d5892975640d50bb4374dde85ee',1,'taraxa::DagConfig']]],
   ['block_5fproposer_2ecpp_149',['block_proposer.cpp',['../block__proposer_8cpp.html',1,'']]],
   ['block_5fproposer_2ehpp_150',['block_proposer.hpp',['../block__proposer_8hpp.html',1,'']]],
-  ['block_5frewards_5foptions_151',['block_rewards_options',['../structtaraxa_1_1state__api_1_1_config.html#a8a026f23355b4b2a7ad58042d4d8f354',1,'taraxa::state_api::Config']]],
+  ['block_5frewards_5foptions_151',['block_rewards_options',['../namespacetaraxa_1_1state__api.html#a8a026f23355b4b2a7ad58042d4d8f354',1,'taraxa::state_api::Config']]],
   ['block_5fverified_5f_152',['block_verified_',['../group___d_a_g.html#a3935e897459f808552ad22fa79fdae84',1,'taraxa::DagManager']]],
   ['block_5fweight_5f_153',['block_weight_',['../classtaraxa_1_1_dag_block.html#ad833bf9bd0f3861242fca4906fbe1679',1,'taraxa::DagBlock']]],
   ['block_5fworker_5f_154',['block_worker_',['../group___d_a_g.html#ae4bafcc36c6239d90d28dd950b7dbf6c',1,'taraxa::DagManager']]],

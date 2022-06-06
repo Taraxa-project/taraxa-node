@@ -291,11 +291,11 @@ var NAVTREEINDEX =
 "libdevcore_2_exceptions_8h.html#ab900e3615719a0cf136272805113dd30",
 "md_doc_coding_practices.html#autotoc_md103",
 "namespacemembers_t.html",
-"state__api_8cpp.html#a96ca88c5edfe67b4b7624d297d659c94",
-"structdev_1_1p2p_1_1_host.html#a7fde5b13a3d95ab9c51ce2fac405ad52",
-"structdev_1_1p2p_1_1_session.html#a35eee075de948bbc88bfe29b62554b3b",
-"structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl.html#ad3ade44e59266e3e660bc3354c225546",
-"types_8hpp.html#af2ca1b305283051b7c795a43e75d6aa3"
+"sortition_8hpp_source.html",
+"structdev_1_1p2p_1_1_host.html#a4f170aae51e527db4605ddc4097a9e62",
+"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#af67251080be60836f380077d344f018e",
+"structtaraxa_1_1final__chain_1_1_config.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields",
+"types_8hpp.html#aad3ca55780e79a029c6a1ccf43f66e67"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

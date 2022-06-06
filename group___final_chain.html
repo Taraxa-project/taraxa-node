@@ -1048,7 +1048,7 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <tr class="memitem:a41cb6b8ab4d1d31ea8d28655ccba2d86"><td class="memItemLeft" align="right" valign="top">virtual std::optional&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a41cb6b8ab4d1d31ea8d28655ccba2d86">block_hash</a> (std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; n={}) const =0</td></tr>
 <tr class="memdesc:a41cb6b8ab4d1d31ea8d28655ccba2d86"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method to get block hash by block number.  <a href="group___final_chain.html#a41cb6b8ab4d1d31ea8d28655ccba2d86">More...</a><br /></td></tr>
 <tr class="separator:a41cb6b8ab4d1d31ea8d28655ccba2d86"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a19cae7d3b4caa28a0cdb070b22eec756"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a19cae7d3b4caa28a0cdb070b22eec756">update_state_config</a> (const <a class="el" href="structtaraxa_1_1state__api_1_1_config.html">state_api::Config</a> &amp;new_config)=0</td></tr>
+<tr class="memitem:a19cae7d3b4caa28a0cdb070b22eec756"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a19cae7d3b4caa28a0cdb070b22eec756">update_state_config</a> (const <a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config">state_api::Config</a> &amp;new_config)=0</td></tr>
 <tr class="memdesc:a19cae7d3b4caa28a0cdb070b22eec756"><td class="mdescLeft">&#160;</td><td class="mdescRight">Needed if we are changing params with hardfork and it affects Go part of code. For example DPOS contract.  <a href="group___final_chain.html#a19cae7d3b4caa28a0cdb070b22eec756">More...</a><br /></td></tr>
 <tr class="separator:a19cae7d3b4caa28a0cdb070b22eec756"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa5f8742b1c7609692d6856cd1d7dfef4"><td class="memItemLeft" align="right" valign="top">virtual std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html">TransactionHashes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#aa5f8742b1c7609692d6856cd1d7dfef4">transaction_hashes</a> (std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; n={}) const =0</td></tr>
@@ -2114,7 +2114,7 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
         <tr>
           <td class="memname">virtual void taraxa::final_chain::FinalChain::update_state_config </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="structtaraxa_1_1state__api_1_1_config.html">state_api::Config</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config">state_api::Config</a> &amp;&#160;</td>
           <td class="paramname"><em>new_config</em></td><td>)</td>
           <td></td>
         </tr>
@@ -2129,7 +2129,7 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <p>Needed if we are changing params with hardfork and it affects Go part of code. For example DPOS contract. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">new_config</td><td><a class="el" href="structtaraxa_1_1state__api_1_1_config.html">state_api::Config</a> </td></tr>
+    <tr><td class="paramname">new_config</td><td><a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config">state_api::Config</a> </td></tr>
   </table>
   </dd>
 </dl>
@@ -2585,7 +2585,7 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
-<tr class="memitem:a6b8e0c5638773e72d4ce19745165e0e0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a6b8e0c5638773e72d4ce19745165e0e0">StateAPI</a> (std::function&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a>(<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>)&gt; get_blk_hash, <a class="el" href="structtaraxa_1_1state__api_1_1_config.html">Config</a> const &amp;chain_config, <a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts">Opts</a> const &amp;opts, <a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts_d_b">OptsDB</a> const &amp;opts_db)</td></tr>
+<tr class="memitem:a6b8e0c5638773e72d4ce19745165e0e0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a6b8e0c5638773e72d4ce19745165e0e0">StateAPI</a> (std::function&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a>(<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>)&gt; get_blk_hash, <a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config">Config</a> const &amp;chain_config, <a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts">Opts</a> const &amp;opts, <a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts_d_b">OptsDB</a> const &amp;opts_db)</td></tr>
 <tr class="separator:a6b8e0c5638773e72d4ce19745165e0e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a96bc22686a2b7500cf6cdf657ced3858"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a96bc22686a2b7500cf6cdf657ced3858">~StateAPI</a> ()</td></tr>
 <tr class="separator:a96bc22686a2b7500cf6cdf657ced3858"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2597,7 +2597,7 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
 <tr class="separator:a0053d2c9e2c118c572681ca1055e500b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2ef92fcd4156622aa3dfe52a9f0a4f12"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___final_chain.html#classtaraxa_1_1state__api_1_1_state_a_p_i">StateAPI</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a2ef92fcd4156622aa3dfe52a9f0a4f12">operator=</a> (<a class="el" href="group___final_chain.html#classtaraxa_1_1state__api_1_1_state_a_p_i">StateAPI</a> &amp;&amp;)=default</td></tr>
 <tr class="separator:a2ef92fcd4156622aa3dfe52a9f0a4f12"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a80acb20cfd3c4b7b4c293657167e849e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a80acb20cfd3c4b7b4c293657167e849e">update_state_config</a> (const <a class="el" href="structtaraxa_1_1state__api_1_1_config.html">Config</a> &amp;new_config)</td></tr>
+<tr class="memitem:a80acb20cfd3c4b7b4c293657167e849e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a80acb20cfd3c4b7b4c293657167e849e">update_state_config</a> (const <a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config">Config</a> &amp;new_config)</td></tr>
 <tr class="separator:a80acb20cfd3c4b7b4c293657167e849e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5dbcaade6b9b0d0cb429dafb4a74abba"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_proof">Proof</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a5dbcaade6b9b0d0cb429dafb4a74abba">prove</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num, <a class="el" href="namespacetaraxa.html#a0826926ee3a622c25c010d9004097ef8">root_t</a> const &amp;state_root, <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;addr, std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt; const &amp;keys) const</td></tr>
 <tr class="separator:a5dbcaade6b9b0d0cb429dafb4a74abba"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2658,7 +2658,7 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structtaraxa_1_1state__api_1_1_config.html">Config</a> const &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config">Config</a> const &amp;&#160;</td>
           <td class="paramname"><em>chain_config</em>, </td>
         </tr>
         <tr>
@@ -3209,7 +3209,7 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
         <tr>
           <td class="memname">void taraxa::state_api::StateAPI::update_state_config </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="structtaraxa_1_1state__api_1_1_config.html">Config</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config">Config</a> &amp;&#160;</td>
           <td class="paramname"><em>new_config</em></td><td>)</td>
           <td></td>
         </tr>
