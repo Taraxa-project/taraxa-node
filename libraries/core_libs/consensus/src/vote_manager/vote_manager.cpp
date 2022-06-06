@@ -6,6 +6,7 @@
 #include <optional>
 
 #include "network/network.hpp"
+#include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
 #include "pbft/pbft_manager.hpp"
 
 constexpr size_t EXTENDED_PARTITION_STEPS = 1000;
@@ -39,7 +40,7 @@ void VoteManager::retreieveVotes_() {
     if (v->getStep() >= FIRST_FINISH_STEP && pbft_step > EXTENDED_PARTITION_STEPS) {
       std::vector<std::shared_ptr<Vote>> votes = {v};
       if (auto net = network_.lock()) {
-        net->onNewPbftVotes(std::move(votes));
+        net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(std::move(votes));
       }
     }
 

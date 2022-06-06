@@ -13,6 +13,7 @@
 
 #include "dag/dag.hpp"
 #include "network/network.hpp"
+#include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 #include "transaction/transaction_manager.hpp"
 
 #define NULL_BLOCK_HASH blk_hash_t(0)
@@ -449,7 +450,8 @@ bool DagManager::addDagBlock(DagBlock &&blk, SharedTransactions &&trxs, bool pro
     if (save) {
       block_verified_.emit(blk);
       if (auto net = network_.lock()) {
-        net->onNewBlockVerified(std::move(blk), proposed, std::move(trxs));
+        net->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->onNewBlockVerified(std::move(blk), proposed,
+                                                                                              std::move(trxs));
       }
     }
   }

@@ -52,37 +52,39 @@ void PbftBlockPacketHandler::process(const PacketData &packet_data, const std::s
   LOG(log_dg_) << "Receive proposed PBFT Block " << pbft_block->getBlockHash().abridged()
                << ", Peer PBFT Chain size: " << peer_pbft_chain_size << " from " << peer->getId();
 
-  onNewPbftBlock(*pbft_block);
+  onNewPbftBlock(pbft_block);
 }
 
-void PbftBlockPacketHandler::onNewPbftBlock(PbftBlock const &pbft_block) {
+void PbftBlockPacketHandler::onNewPbftBlock(const std::shared_ptr<PbftBlock> &pbft_block) {
   std::vector<std::shared_ptr<TaraxaPeer>> peers_to_send;
   const auto my_chain_size = pbft_chain_->getPbftChainSize();
   std::string peers_to_log;
 
+  const auto pbft_block_hash = pbft_block->getBlockHash();
+  const auto dag_anchor_hash = pbft_block->getPivotDagBlockHash();
   for (auto const &peer : peers_state_->getAllPeers()) {
-    if (!peer.second->isPbftBlockKnown(pbft_block.getBlockHash()) && !peer.second->syncing_) {
-      if (!peer.second->isDagBlockKnown(pbft_block.getPivotDagBlockHash())) {
-        LOG(log_tr_) << "sending PbftBlock " << pbft_block.getBlockHash() << " with missing dag anchor"
-                     << pbft_block.getPivotDagBlockHash() << " to " << peer.first;
+    if (!peer.second->isPbftBlockKnown(pbft_block_hash) && !peer.second->syncing_) {
+      if (!peer.second->isDagBlockKnown(dag_anchor_hash)) {
+        LOG(log_tr_) << "sending PbftBlock " << pbft_block_hash << " with missing dag anchor" << dag_anchor_hash
+                     << " to " << peer.first;
       }
       peers_to_send.emplace_back(peer.second);
       peers_to_log += peer.second->getId().abridged();
     }
   }
 
-  LOG(log_dg_) << "sendPbftBlock " << pbft_block.getBlockHash() << " to " << peers_to_log;
+  LOG(log_dg_) << "sendPbftBlock " << pbft_block_hash << " to " << peers_to_log;
   for (auto const &peer : peers_to_send) {
     sendPbftBlock(peer->getId(), pbft_block, my_chain_size);
-    peer->markPbftBlockAsKnown(pbft_block.getBlockHash());
+    peer->markPbftBlockAsKnown(pbft_block_hash);
   }
 }
 
-void PbftBlockPacketHandler::sendPbftBlock(const dev::p2p::NodeID &peer_id, const PbftBlock &pbft_block,
-                                           uint64_t pbft_chain_size) {
-  LOG(log_tr_) << "sendPbftBlock " << pbft_block.getBlockHash() << " to " << peer_id;
+void PbftBlockPacketHandler::sendPbftBlock(const dev::p2p::NodeID &peer_id,
+                                           const std::shared_ptr<PbftBlock> &pbft_block, uint64_t pbft_chain_size) {
+  LOG(log_tr_) << "sendPbftBlock " << pbft_block->getBlockHash() << " to " << peer_id;
   dev::RLPStream s(2);
-  pbft_block.streamRLP(s, true);
+  pbft_block->streamRLP(s, true);
   s << pbft_chain_size;
   sealAndSend(peer_id, PbftBlockPacket, std::move(s));
 }

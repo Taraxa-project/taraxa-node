@@ -15,6 +15,8 @@
 #include "common/static_init.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
+#include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
 #include "network/tarcap/taraxa_capability.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
@@ -84,7 +86,6 @@ Test creates two host/network/capability and verifies that host connect
 to each other and that a block packet message can be sent from one host
 to the other using TaraxaCapability
 */
-
 TEST_F(P2PTest, capability_send_block) {
   int const step = 10;
   const char *const localhost = "127.0.0.1";
@@ -145,12 +146,14 @@ TEST_F(P2PTest, capability_send_block) {
 
   std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> transactions{
       {g_signed_trx_samples[0], TransactionStatus::Verified}, {g_signed_trx_samples[1], TransactionStatus::Verified}};
-  thc2->onNewTransactions(std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>>(transactions));
+  thc2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->onNewTransactions(
+      std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>>(transactions));
   std::vector<taraxa::bytes> transactions_raw;
   transactions_raw.push_back(g_signed_trx_samples[0]->rlp());
   transactions_raw.push_back(g_signed_trx_samples[1]->rlp());
-  thc2->sendTransactions(host1->id(), transactions_raw);
-  thc2->sendBlock(host1->id(), blk, {});
+  thc2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(host1->id(),
+                                                                                          transactions_raw);
+  thc2->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->sendBlock(host1->id(), blk, {});
 
   std::this_thread::sleep_for(std::chrono::seconds(1));
   auto blocks = thc1->test_state_->getBlocks();
@@ -261,16 +264,18 @@ TEST_F(P2PTest, block_propagate) {
 
   std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> transactions{
       {g_signed_trx_samples[0], TransactionStatus::Verified}, {g_signed_trx_samples[1], TransactionStatus::Verified}};
-  thc1->onNewTransactions(std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>>(transactions));
+  thc1->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->onNewTransactions(
+      std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>>(transactions));
   std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> transactions2;
-  thc1->onNewTransactions(std::move(transactions2));
-  thc1->onNewBlockReceived(DagBlock(blk));
+  thc1->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->onNewTransactions(std::move(transactions2));
+  thc1->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->onNewBlockReceived(DagBlock(blk));
 
   std::vector<taraxa::bytes> transactions_raw;
   transactions_raw.push_back(g_signed_trx_samples[0]->rlp());
   transactions_raw.push_back(g_signed_trx_samples[1]->rlp());
   for (int i = 0; i < nodeCount; i++) {
-    thc1->sendTransactions(vHosts[i]->id(), transactions_raw);
+    thc1->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(vHosts[i]->id(),
+                                                                                            transactions_raw);
   }
   for (int i = 0; i < 50; i++) {
     std::this_thread::sleep_for(std::chrono::seconds(1));

@@ -199,16 +199,16 @@ TEST_F(FullNodeTest, db_test) {
   auto pbft_block3 = make_simple_pbft_block(blk_hash_t(3), 3);
   auto pbft_block4 = make_simple_pbft_block(blk_hash_t(4), 4);
   EXPECT_EQ(db.getPbftCertVotedBlock(blk_hash_t(1)), nullptr);
-  db.savePbftCertVotedBlock(pbft_block1);
-  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block1.getBlockHash())->rlp(false), pbft_block1.rlp(false));
+  db.savePbftCertVotedBlock(*pbft_block1);
+  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block1->getBlockHash())->rlp(false), pbft_block1->rlp(false));
   batch = db.createWriteBatch();
-  db.addPbftCertVotedBlockToBatch(pbft_block2, batch);
-  db.addPbftCertVotedBlockToBatch(pbft_block3, batch);
-  db.addPbftCertVotedBlockToBatch(pbft_block4, batch);
+  db.addPbftCertVotedBlockToBatch(*pbft_block2, batch);
+  db.addPbftCertVotedBlockToBatch(*pbft_block3, batch);
+  db.addPbftCertVotedBlockToBatch(*pbft_block4, batch);
   db.commitWriteBatch(batch);
-  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block2.getBlockHash())->rlp(false), pbft_block2.rlp(false));
-  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block3.getBlockHash())->rlp(false), pbft_block3.rlp(false));
-  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block4.getBlockHash())->rlp(false), pbft_block4.rlp(false));
+  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block2->getBlockHash())->rlp(false), pbft_block2->rlp(false));
+  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block3->getBlockHash())->rlp(false), pbft_block3->rlp(false));
+  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block4->getBlockHash())->rlp(false), pbft_block4->rlp(false));
 
   // pbft_blocks and cert votes
   EXPECT_FALSE(db.pbftBlockInDb(blk_hash_t(0)));
@@ -233,10 +233,10 @@ TEST_F(FullNodeTest, db_test) {
   batch = db.createWriteBatch();
   std::vector<std::shared_ptr<Vote>> votes;
 
-  SyncBlock sync_block1(std::make_shared<PbftBlock>(pbft_block1), cert_votes);
-  SyncBlock sync_block2(std::make_shared<PbftBlock>(pbft_block2), votes);
-  SyncBlock sync_block3(std::make_shared<PbftBlock>(pbft_block3), votes);
-  SyncBlock sync_block4(std::make_shared<PbftBlock>(pbft_block4), votes);
+  SyncBlock sync_block1(pbft_block1, cert_votes);
+  SyncBlock sync_block2(pbft_block2, votes);
+  SyncBlock sync_block3(pbft_block3, votes);
+  SyncBlock sync_block4(pbft_block4, votes);
 
   db.savePeriodData(sync_block1, batch);
   db.savePeriodData(sync_block2, batch);
@@ -244,18 +244,18 @@ TEST_F(FullNodeTest, db_test) {
   db.savePeriodData(sync_block4, batch);
 
   db.commitWriteBatch(batch);
-  EXPECT_TRUE(db.pbftBlockInDb(pbft_block1.getBlockHash()));
-  EXPECT_TRUE(db.pbftBlockInDb(pbft_block2.getBlockHash()));
-  EXPECT_TRUE(db.pbftBlockInDb(pbft_block3.getBlockHash()));
-  EXPECT_TRUE(db.pbftBlockInDb(pbft_block4.getBlockHash()));
-  EXPECT_EQ(db.getPbftBlock(pbft_block1.getBlockHash())->rlp(false), pbft_block1.rlp(false));
-  EXPECT_EQ(db.getPbftBlock(pbft_block2.getBlockHash())->rlp(false), pbft_block2.rlp(false));
-  EXPECT_EQ(db.getPbftBlock(pbft_block3.getBlockHash())->rlp(false), pbft_block3.rlp(false));
-  EXPECT_EQ(db.getPbftBlock(pbft_block4.getBlockHash())->rlp(false), pbft_block4.rlp(false));
+  EXPECT_TRUE(db.pbftBlockInDb(pbft_block1->getBlockHash()));
+  EXPECT_TRUE(db.pbftBlockInDb(pbft_block2->getBlockHash()));
+  EXPECT_TRUE(db.pbftBlockInDb(pbft_block3->getBlockHash()));
+  EXPECT_TRUE(db.pbftBlockInDb(pbft_block4->getBlockHash()));
+  EXPECT_EQ(db.getPbftBlock(pbft_block1->getBlockHash())->rlp(false), pbft_block1->rlp(false));
+  EXPECT_EQ(db.getPbftBlock(pbft_block2->getBlockHash())->rlp(false), pbft_block2->rlp(false));
+  EXPECT_EQ(db.getPbftBlock(pbft_block3->getBlockHash())->rlp(false), pbft_block3->rlp(false));
+  EXPECT_EQ(db.getPbftBlock(pbft_block4->getBlockHash())->rlp(false), pbft_block4->rlp(false));
 
-  SyncBlock pbft_block_cert_votes(std::make_shared<PbftBlock>(pbft_block1), cert_votes);
-  auto cert_votes_from_db = db.getCertVotes(pbft_block1.getPeriod());
-  SyncBlock pbft_block_cert_votes_from_db(std::make_shared<PbftBlock>(pbft_block1), cert_votes_from_db);
+  SyncBlock pbft_block_cert_votes(pbft_block1, cert_votes);
+  auto cert_votes_from_db = db.getCertVotes(pbft_block1->getPeriod());
+  SyncBlock pbft_block_cert_votes_from_db(pbft_block1, cert_votes_from_db);
   EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
 
   // pbft_blocks (head)

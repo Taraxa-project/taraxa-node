@@ -15,6 +15,10 @@
 
 #include "dag/dag.hpp"
 #include "final_chain/final_chain.hpp"
+#include "network/tarcap/packets_handlers/pbft_block_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
 #include "vote_manager/vote_manager.hpp"
 
 namespace taraxa {
@@ -812,7 +816,7 @@ void PbftManager::proposeBlock_() {
                      << " from previous round. In round " << round;
         // broadcast pbft block
         if (auto net = network_.lock()) {
-          net->onNewPbftBlock(pbft_block);
+          net->getSpecificHandler<network::tarcap::PbftBlockPacketHandler>()->onNewPbftBlock(pbft_block);
         }
       }
     }
@@ -940,7 +944,7 @@ void PbftManager::firstFinish_() {
       auto pbft_block = db_->getPbftCertVotedBlock(last_cert_voted_value_);
       assert(pbft_block);
       if (auto net = network_.lock()) {
-        net->onNewPbftBlock(pbft_block);
+        net->getSpecificHandler<network::tarcap::PbftBlockPacketHandler>()->onNewPbftBlock(pbft_block);
       }
     }
   } else {
@@ -986,7 +990,7 @@ void PbftManager::firstFinish_() {
         if (step_ % 20 == 0) {
           auto pbft_block = getUnfinalizedBlock_(own_starting_value_for_round_);
           if (auto net = network_.lock(); net && pbft_block) {
-            net->onNewPbftBlock(pbft_block);
+            net->getSpecificHandler<network::tarcap::PbftBlockPacketHandler>()->onNewPbftBlock(pbft_block);
           }
         }
       }
@@ -1009,7 +1013,8 @@ void PbftManager::secondFinish_() {
       // Have enough soft votes for a voting value
       auto net = network_.lock();
       assert(net);  // Should never happen
-      net->onNewPbftVotes(std::move(voted_block_hash_with_soft_votes->votes));
+      net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(
+          std::move(voted_block_hash_with_soft_votes->votes));
       LOG(log_dg_) << "Node has seen enough soft votes voted at " << voted_block_hash_with_soft_votes->voted_block_hash
                    << ", regossip soft votes. In round " << round << " step " << step_;
     }
@@ -1052,7 +1057,7 @@ void PbftManager::secondFinish_() {
     LOG(log_dg_) << "Node " << node_addr_ << " broadcast next votes for previous round. In round " << round << " step "
                  << step_;
     if (auto net = network_.lock()) {
-      net->broadcastPreviousRoundNextVotesBundle();
+      net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->broadcastPreviousRoundNextVotesBundle();
     }
     pbft_round_last_broadcast_ = round;
     pbft_step_last_broadcast_ = step_;
@@ -1072,7 +1077,7 @@ blk_hash_t PbftManager::generatePbftBlock(const blk_hash_t &prev_blk_hash, const
 
   // broadcast pbft block
   if (auto net = network_.lock()) {
-    net->onNewPbftBlock(pbft_block);
+    net->getSpecificHandler<network::tarcap::PbftBlockPacketHandler>()->onNewPbftBlock(pbft_block);
   }
 
   LOG(log_dg_) << node_addr_ << " propose PBFT block succussful! in round: " << round_ << " in step: " << step_
@@ -1114,7 +1119,7 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
     db_->saveVerifiedVote(vote);
     vote_mgr_->addVerifiedVote(vote);
     if (auto net = network_.lock()) {
-      net->onNewPbftVotes({std::move(vote)});
+      net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes({std::move(vote)});
     }
   }
 
@@ -1891,7 +1896,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
                  << sync_block.second.abridged() << " received, stop syncing.";
     sync_queue_.clear();
     // Handle malicious peer on network level
-    net->handleMaliciousSyncPeer(sync_block.second);
+    net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(sync_block.second);
     return std::nullopt;
   }
 
@@ -1907,7 +1912,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
                  << " doesn't have enough valid cert votes. Clear synced PBFT blocks! DPOS total votes count: "
                  << getDposTotalVotesCount();
     sync_queue_.clear();
-    net->handleMaliciousSyncPeer(sync_block.second);
+    net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(sync_block.second);
     return std::nullopt;
   }
 
