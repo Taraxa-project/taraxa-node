@@ -200,21 +200,73 @@ constexpr std::string_view testnet_json = R"foo({
           "delegation_locking_period": "0x5",
           "eligibility_balance_threshold": "0xd3c21bcecceda1000000",
           "vote_eligibility_balance_step": "0x152d02c7e14af6800000",
-          "maximum_stake":"0x84595161401484A000000",
+          "validator_maximum_stake":"0x84595161401484A000000",
           "minimum_deposit":"0x0",
           "commission_change_delta":"0x0",
           "commission_change_frequency":"0x0",
           "yield_percentage":"0x14",
-          "genesis_state": {
-            "0x76870407332398322576505f3c5423d0a71af296": {
-              "0x18551e353aa65bc0ffbdf9d93b7ad4a8fe29cf95": "0x84595161401484a000000",
-              "0xc578bb5fc3dac3e96a8c4cb126c71d2dc9082817": "0x84595161401484a000000",
-              "0x5c9afb23fba3967ca6102fb60c9949f6a38cd9e8": "0x84595161401484a000000",
-              "0x403480c2b2ade0851c62bd1ff7a594c416aff7ce": "0x84595161401484a000000",
-              "0x5042fa2711fe547e46c2f64852fdaa5982c80697": "0x84595161401484a000000",
-              "0x6258d8f51ea17e873f69a2a978fe311fd95743dd": "0x84595161401484a000000"
+          "initial_validators": [
+            {
+              "address": "0x18551e353aa65bc0ffbdf9d93b7ad4a8fe29cf95",
+              "owner": "0x18551e353aa65bc0ffbdf9d93b7ad4a8fe29cf95",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa testnet validator 1",
+              "delegations": {
+                "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0xc578bb5fc3dac3e96a8c4cb126c71d2dc9082817",
+              "owner": "0xc578bb5fc3dac3e96a8c4cb126c71d2dc9082817",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa testnet validator 2",
+              "delegations": {
+                "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x5c9afb23fba3967ca6102fb60c9949f6a38cd9e8",
+              "owner": "0x5c9afb23fba3967ca6102fb60c9949f6a38cd9e8",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa testnet validator 3",
+              "delegations": {
+                "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x403480c2b2ade0851c62bd1ff7a594c416aff7ce",
+              "owner": "0x403480c2b2ade0851c62bd1ff7a594c416aff7ce",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa testnet validator 4",
+              "delegations": {
+                "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x5042fa2711fe547e46c2f64852fdaa5982c80697",
+              "owner": "0x5042fa2711fe547e46c2f64852fdaa5982c80697",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa testnet validator 5",
+              "delegations": {
+                "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x6258d8f51ea17e873f69a2a978fe311fd95743dd",
+              "owner": "0x6258d8f51ea17e873f69a2a978fe311fd95743dd",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa testnet validator 6",
+              "delegations": {
+                "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
+              }
             }
-          }
+          ]
         },
         "eth_chain_config": {
           "byzantium_block": "0x0",

@@ -1444,14 +1444,13 @@ TEST_F(FullNodeTest, chain_config_json) {
         "delegation_locking_period": "0x0",
         "eligibility_balance_threshold": "0x3b9aca00",
         "vote_eligibility_balance_step": "0x3b9aca00",
-        "maximum_stake":"0x84595161401484a000000",
+        "validator_maximum_stake":"0x84595161401484a000000",
         "minimum_deposit":"0x0",
         "commission_change_delta":"0x0",
         "commission_change_frequency":"0x0",
         "yield_percentage":"0x14",
         "blocks_per_year":"0x3c2670",
-        "genesis_state": {
-        }
+        "initial_validators": []
       },
       "eth_chain_config": {
         "byzantium_block": "0x0",

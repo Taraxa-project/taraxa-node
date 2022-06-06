@@ -170,18 +170,43 @@ constexpr std::string_view default_json = R"foo({
           "delegation_locking_period": "0x5",
           "eligibility_balance_threshold": "0xd3c21bcecceda1000000",
           "vote_eligibility_balance_step": "0x152d02c7e14af6800000",
-          "maximum_stake":"0x84595161401484A000000",
+          "validator_maximum_stake":"0x84595161401484A000000",
           "minimum_deposit":"0x0",
           "commission_change_delta":"0x0",
           "commission_change_frequency":"0x0",
           "yield_percentage":"0x14",
-          "genesis_state": {
-            "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": {
-              "0x780fe8b2226cf212c55635de399ee4c2a860810c": "0x84595161401484a000000",
-              "0x56e0de6933d9d0453d0363caf42b136eb5854e4e": "0x84595161401484a000000",
-              "0x71bdcbec7e3642782447b0fbf31eed068dfbdbb1": "0x84595161401484a000000"
+          "initial_validators": [
+            {
+              "address": "0x780fe8b2226cf212c55635de399ee4c2a860810c",
+              "owner": "0x780fe8b2226cf212c55635de399ee4c2a860810c",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa validator 1",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x56e0de6933d9d0453d0363caf42b136eb5854e4e",
+              "owner": "0x56e0de6933d9d0453d0363caf42b136eb5854e4e",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa validator 2",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x71bdcbec7e3642782447b0fbf31eed068dfbdbb1",
+              "owner": "0x71bdcbec7e3642782447b0fbf31eed068dfbdbb1",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa validator 3",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
             }
-          }
+          ]
         },
         "eth_chain_config": {
           "byzantium_block": "0x0",

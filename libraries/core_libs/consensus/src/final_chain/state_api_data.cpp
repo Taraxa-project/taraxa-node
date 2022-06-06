@@ -11,19 +11,6 @@ TaraxaEVMError::TaraxaEVMError(std::string&& type, const std::string& msg)
 
 h256 const& Account::storage_root_eth() const { return storage_root_hash ? storage_root_hash : EmptyRLPListSHA3(); }
 
-u256 Config::effective_genesis_balance(addr_t const& addr) const {
-  if (!genesis_balances.count(addr)) {
-    return 0;
-  }
-  auto ret = genesis_balances.at(addr);
-  if (dpos && dpos->genesis_state.count(addr)) {
-    for ([[maybe_unused]] auto const& [_, val] : dpos->genesis_state.at(addr)) {
-      ret -= val;
-    }
-  }
-  return ret;
-}
-
 RLP_FIELDS_DEFINE(EVMBlock, author, gas_limit, time, difficulty)
 RLP_FIELDS_DEFINE(EVMTransaction, from, gas_price, to, nonce, value, gas, input)
 RLP_FIELDS_DEFINE(UncleBlock, number, author)
