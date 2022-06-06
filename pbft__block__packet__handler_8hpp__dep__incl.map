@@ -1,5 +1,6 @@
 <map id="libraries/core_libs/network/include/network/tarcap/packets_handlers/pbft_block_packet_handler.hpp" name="libraries/core_libs/network/include/network/tarcap/packets_handlers/pbft_block_packet_handler.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="91,5,318,76"/>
-<area shape="rect" id="node2" href="$pbft__block__packet__handler_8cpp.html" title=" " alt="" coords="5,124,201,195"/>
-<area shape="rect" id="node3" href="$taraxa__capability_8cpp.html" title=" " alt="" coords="225,131,389,187"/>
+<area shape="rect" id="node1" title=" " alt="" coords="161,5,388,76"/>
+<area shape="rect" id="node2" href="$pbft__manager_8cpp.html" title=" " alt="" coords="5,131,152,187"/>
+<area shape="rect" id="node3" href="$pbft__block__packet__handler_8cpp.html" title=" " alt="" coords="177,124,373,195"/>
+<area shape="rect" id="node4" href="$taraxa__capability_8cpp.html" title=" " alt="" coords="397,131,561,187"/>
 </map>

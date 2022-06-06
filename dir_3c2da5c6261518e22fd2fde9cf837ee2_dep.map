@@ -1,7 +1,7 @@
 <map id="libraries/core_libs/consensus/src/dag" name="libraries/core_libs/consensus/src/dag">
 <area shape="rect" id="node1" href="dir_3c2da5c6261518e22fd2fde9cf837ee2.html" title="dag" alt="" coords="171,52,243,100"/>
 <area shape="rect" id="node2" href="dir_8674271c498d921231015373c94f828f.html" title="network" alt="" coords="169,148,244,196"/>
-<area shape="rect" id="edge1-headlabel" href="dir_000036_000007.html" title="1" alt="" coords="210,122,220,137"/>
+<area shape="rect" id="edge1-headlabel" href="dir_000036_000007.html" title="2" alt="" coords="210,122,220,137"/>
 <area shape="rect" id="node3" href="dir_bb181686c77a27360510480f210f31ff.html" title="types" alt="" coords="99,340,171,388"/>
 <area shape="rect" id="edge2-headlabel" href="dir_000036_000067.html" title="2" alt="" coords="137,314,146,329"/>
 <area shape="rect" id="node4" href="dir_468f50b028e1e94ed0441083f377df37.html" title="common" alt="" coords="170,436,249,484"/>

@@ -50,7 +50,7 @@ var searchData=
   ['resetstep_5f_5026',['resetStep_',['../group___p_b_f_t.html#abc3e5e2247d3f2a7b933450f0a0985db',1,'taraxa::PbftManager']]],
   ['resolvehost_5027',['resolveHost',['../classdev_1_1p2p_1_1_network.html#a647912e734af23479acfa81c85c34243',1,'dev::p2p::Network::resolveHost()'],['../classtaraxa_1_1_network.html#af124cdbf5349f09740c52d12db45ee7d',1,'taraxa::Network::resolveHost()']]],
   ['restart_5028',['restart',['../classdev_1_1_timer.html#afe18e81027546ef7213ca05c0fe94e4c',1,'dev::Timer']]],
-  ['restartsyncingpbft_5029',['restartSyncingPbft',['../classtaraxa_1_1_network.html#a03f6a57216449ef19820aee28ec38253',1,'taraxa::Network::restartSyncingPbft()'],['../classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#af65a39e11ac6b202d8db3d5f2755b9ba',1,'taraxa::network::tarcap::ExtSyncingPacketHandler::restartSyncingPbft()'],['../classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ae8873716bbe969533bd4d6995b8fb223',1,'taraxa::network::tarcap::TaraxaCapability::restartSyncingPbft()']]],
+  ['restartsyncingpbft_5029',['restartSyncingPbft',['../classtaraxa_1_1_network.html#a03f6a57216449ef19820aee28ec38253',1,'taraxa::Network::restartSyncingPbft()'],['../classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#af65a39e11ac6b202d8db3d5f2755b9ba',1,'taraxa::network::tarcap::ExtSyncingPacketHandler::restartSyncingPbft()']]],
   ['restore_5fstate_5030',['restore_state',['../structdev_1_1p2p_1_1_host.html#a4f170aae51e527db4605ddc4097a9e62',1,'dev::p2p::Host']]],
   ['restoreenr_5031',['restoreENR',['../structdev_1_1p2p_1_1_host.html#a7b2e3c45444299b4fa1771f6aeca0cdd',1,'dev::p2p::Host']]],
   ['resume_5032',['resume',['../group___p_b_f_t.html#ad13b43c3f0bd4d1a94ea942f98765779',1,'taraxa::PbftManager']]],

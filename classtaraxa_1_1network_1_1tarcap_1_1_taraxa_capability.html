@@ -147,38 +147,14 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ac377d3b4ac4aeeac65d31448036468dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1a0e87dfbe5b1b0ecbe2211daddeecde"><td class="memItemLeft" align="right" valign="top">const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html">NodeStats</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a1a0e87dfbe5b1b0ecbe2211daddeecde">getNodeStats</a> ()</td></tr>
 <tr class="separator:a1a0e87dfbe5b1b0ecbe2211daddeecde"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae8873716bbe969533bd4d6995b8fb223"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ae8873716bbe969533bd4d6995b8fb223">restartSyncingPbft</a> (bool force=false)</td></tr>
-<tr class="separator:ae8873716bbe969533bd4d6995b8fb223"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab71e9b2ef6327eff94d08d79c6f64d7f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ab71e9b2ef6327eff94d08d79c6f64d7f">pbft_syncing</a> () const</td></tr>
 <tr class="separator:ab71e9b2ef6327eff94d08d79c6f64d7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a570589000af1b11fd2e043e77ebf06fe"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a570589000af1b11fd2e043e77ebf06fe">onNewBlockVerified</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&amp;blk, bool proposed, <a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;&amp;trxs)</td></tr>
-<tr class="separator:a570589000af1b11fd2e043e77ebf06fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a50d7d69a9149bb11d2aa5ca80a4d5a31"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a50d7d69a9149bb11d2aa5ca80a4d5a31">onNewTransactions</a> (std::vector&lt; std::pair&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;, <a class="el" href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">TransactionStatus</a> &gt;&gt; &amp;&amp;transactions)</td></tr>
-<tr class="separator:a50d7d69a9149bb11d2aa5ca80a4d5a31"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6fc16b54d4ad0a3932e3745e4c6f0f48"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a6fc16b54d4ad0a3932e3745e4c6f0f48">onNewPbftBlock</a> (std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; const &amp;pbft_block)</td></tr>
-<tr class="separator:a6fc16b54d4ad0a3932e3745e4c6f0f48"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a95576099192fc97bccc7d20d3953c162"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a95576099192fc97bccc7d20d3953c162">onNewPbftVotes</a> (std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&amp;votes)</td></tr>
-<tr class="separator:a95576099192fc97bccc7d20d3953c162"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9bfdb83ffccf03a335adcc22010474bb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a9bfdb83ffccf03a335adcc22010474bb">broadcastPreviousRoundNextVotesBundle</a> ()</td></tr>
-<tr class="separator:a9bfdb83ffccf03a335adcc22010474bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a05384ce8a8d5186375206fbfb4fdc3aa"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a05384ce8a8d5186375206fbfb4fdc3aa">sendTransactions</a> (<a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> const &amp;id, std::vector&lt; <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">taraxa::bytes</a> &gt; const &amp;transactions)</td></tr>
-<tr class="separator:a05384ce8a8d5186375206fbfb4fdc3aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5f65d385737822989177882619a72195"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a5f65d385737822989177882619a72195">handleMaliciousSyncPeer</a> (<a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> const &amp;id)</td></tr>
-<tr class="separator:a5f65d385737822989177882619a72195"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa4e7a03cb7c16c501c0cdf41de4ff931"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#aa4e7a03cb7c16c501c0cdf41de4ff931">setSyncStatePeriod</a> (uint64_t period)</td></tr>
 <tr class="separator:aa4e7a03cb7c16c501c0cdf41de4ff931"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8fc78436db6f97febbdff436e3fc2340"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a8fc78436db6f97febbdff436e3fc2340">sendBlock</a> (<a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> const &amp;id, <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;blk, const <a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;trxs)</td></tr>
-<tr class="separator:a8fc78436db6f97febbdff436e3fc2340"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afe76c210d549e051e95ed4d461f440f1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#afe76c210d549e051e95ed4d461f440f1">sendBlocks</a> (const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;id, std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&gt; &amp;&amp;blocks, <a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;&amp;transactions, uint64_t request_period, uint64_t period)</td></tr>
-<tr class="separator:afe76c210d549e051e95ed4d461f440f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a265c47943d96effd9bcf0743ec16f087"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a265c47943d96effd9bcf0743ec16f087">getReceivedBlocksCount</a> () const</td></tr>
 <tr class="separator:a265c47943d96effd9bcf0743ec16f087"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1dbee693a33a8dcdfc097d1c5175d6dc"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a1dbee693a33a8dcdfc097d1c5175d6dc">getReceivedTransactionsCount</a> () const</td></tr>
 <tr class="separator:a1dbee693a33a8dcdfc097d1c5175d6dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa9a7aeccdad134183313fe1916b10807"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#aa9a7aeccdad134183313fe1916b10807">onNewBlockReceived</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&amp;block)</td></tr>
-<tr class="separator:aa9a7aeccdad134183313fe1916b10807"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4db5ec9299cb2d038e9972259512d798"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a4db5ec9299cb2d038e9972259512d798">sendPbftBlock</a> (const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;id, const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &amp;pbft_block, uint64_t pbft_chain_size)</td></tr>
-<tr class="separator:a4db5ec9299cb2d038e9972259512d798"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classdev_1_1p2p_1_1_capability_face"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classdev_1_1p2p_1_1_capability_face')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classdev_1_1p2p_1_1_capability_face.html">dev::p2p::CapabilityFace</a></td></tr>
 <tr class="memitem:ad4d84dc08191552d98d19c1a96aaeef1 inherit pub_methods_classdev_1_1p2p_1_1_capability_face"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_capability_face.html#ad4d84dc08191552d98d19c1a96aaeef1">~CapabilityFace</a> ()=default</td></tr>
 <tr class="separator:ad4d84dc08191552d98d19c1a96aaeef1 inherit pub_methods_classdev_1_1p2p_1_1_capability_face"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -389,23 +365,6 @@ Private Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a9bfdb83ffccf03a335adcc22010474bb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9bfdb83ffccf03a335adcc22010474bb">&#9670;&nbsp;</a></span>broadcastPreviousRoundNextVotesBundle()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::network::tarcap::TaraxaCapability::broadcastPreviousRoundNextVotesBundle </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="ae943e5cd74d383e06f7e7d9c64189d46"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae943e5cd74d383e06f7e7d9c64189d46">&#9670;&nbsp;</a></span>filterSyncIrrelevantPackets()</h2>
 
@@ -510,24 +469,6 @@ template&lt;typename PacketHandlerType &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">std::shared_ptr&lt; PacketHandlerType &gt; taraxa::network::tarcap::TaraxaCapability::getSpecificHandler</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a5f65d385737822989177882619a72195"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5f65d385737822989177882619a72195">&#9670;&nbsp;</a></span>handleMaliciousSyncPeer()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::network::tarcap::TaraxaCapability::handleMaliciousSyncPeer </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> const &amp;&#160;</td>
-          <td class="paramname"><em>id</em></td><td>)</td>
-          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -789,112 +730,6 @@ template&lt;typename PacketHandlerType &gt; </div>
 
 </div>
 </div>
-<a id="aa9a7aeccdad134183313fe1916b10807"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa9a7aeccdad134183313fe1916b10807">&#9670;&nbsp;</a></span>onNewBlockReceived()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::network::tarcap::TaraxaCapability::onNewBlockReceived </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&amp;&#160;</td>
-          <td class="paramname"><em>block</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a570589000af1b11fd2e043e77ebf06fe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a570589000af1b11fd2e043e77ebf06fe">&#9670;&nbsp;</a></span>onNewBlockVerified()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::network::tarcap::TaraxaCapability::onNewBlockVerified </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&amp;&#160;</td>
-          <td class="paramname"><em>blk</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>proposed</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;&amp;&#160;</td>
-          <td class="paramname"><em>trxs</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a6fc16b54d4ad0a3932e3745e4c6f0f48"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6fc16b54d4ad0a3932e3745e4c6f0f48">&#9670;&nbsp;</a></span>onNewPbftBlock()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::network::tarcap::TaraxaCapability::onNewPbftBlock </td>
-          <td>(</td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; const &amp;&#160;</td>
-          <td class="paramname"><em>pbft_block</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a95576099192fc97bccc7d20d3953c162"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a95576099192fc97bccc7d20d3953c162">&#9670;&nbsp;</a></span>onNewPbftVotes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::network::tarcap::TaraxaCapability::onNewPbftVotes </td>
-          <td>(</td>
-          <td class="paramtype">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&amp;&#160;</td>
-          <td class="paramname"><em>votes</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a50d7d69a9149bb11d2aa5ca80a4d5a31"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a50d7d69a9149bb11d2aa5ca80a4d5a31">&#9670;&nbsp;</a></span>onNewTransactions()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::network::tarcap::TaraxaCapability::onNewTransactions </td>
-          <td>(</td>
-          <td class="paramtype">std::vector&lt; std::pair&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;, <a class="el" href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">TransactionStatus</a> &gt;&gt; &amp;&amp;&#160;</td>
-          <td class="paramname"><em>transactions</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a8c50f4e9c6315abc5806e2f0afc2b8d9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8c50f4e9c6315abc5806e2f0afc2b8d9">&#9670;&nbsp;</a></span>operator=() <span class="overload">[1/2]</span></h2>
 
@@ -1086,166 +921,6 @@ template&lt;typename PacketHandlerType &gt; </div>
 <span class="mlabels"><span class="mlabel">private</span></span>  </td>
   </tr>
 </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ae8873716bbe969533bd4d6995b8fb223"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae8873716bbe969533bd4d6995b8fb223">&#9670;&nbsp;</a></span>restartSyncingPbft()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::network::tarcap::TaraxaCapability::restartSyncingPbft </td>
-          <td>(</td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>force</em> = <code>false</code></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a8fc78436db6f97febbdff436e3fc2340"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8fc78436db6f97febbdff436e3fc2340">&#9670;&nbsp;</a></span>sendBlock()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::network::tarcap::TaraxaCapability::sendBlock </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> const &amp;&#160;</td>
-          <td class="paramname"><em>id</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;&#160;</td>
-          <td class="paramname"><em>blk</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;&#160;</td>
-          <td class="paramname"><em>trxs</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="afe76c210d549e051e95ed4d461f440f1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afe76c210d549e051e95ed4d461f440f1">&#9670;&nbsp;</a></span>sendBlocks()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::network::tarcap::TaraxaCapability::sendBlocks </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;&#160;</td>
-          <td class="paramname"><em>id</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&gt; &amp;&amp;&#160;</td>
-          <td class="paramname"><em>blocks</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;&amp;&#160;</td>
-          <td class="paramname"><em>transactions</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>request_period</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>period</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a4db5ec9299cb2d038e9972259512d798"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4db5ec9299cb2d038e9972259512d798">&#9670;&nbsp;</a></span>sendPbftBlock()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::network::tarcap::TaraxaCapability::sendPbftBlock </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;&#160;</td>
-          <td class="paramname"><em>id</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &amp;&#160;</td>
-          <td class="paramname"><em>pbft_block</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>pbft_chain_size</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a05384ce8a8d5186375206fbfb4fdc3aa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a05384ce8a8d5186375206fbfb4fdc3aa">&#9670;&nbsp;</a></span>sendTransactions()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::network::tarcap::TaraxaCapability::sendTransactions </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> const &amp;&#160;</td>
-          <td class="paramname"><em>id</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::vector&lt; <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">taraxa::bytes</a> &gt; const &amp;&#160;</td>
-          <td class="paramname"><em>transactions</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
 </div><div class="memdoc">
 
 </div>
