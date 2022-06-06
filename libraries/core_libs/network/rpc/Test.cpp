@@ -133,17 +133,24 @@ Json::Value Test::get_packets_stats() {
 
 Json::Value Test::get_all_nodes() {
   Json::Value res;
+
   try {
-    if (auto node = full_node_.lock()) {
-      auto nodes = node->getNetwork()->getAllNodes();
+    if (auto full_node = full_node_.lock()) {
+      auto nodes = full_node->getNetwork()->getAllNodes();
+      res["nodes_count"] = Json::UInt64(nodes.size());
+      res["nodes"] = Json::Value(Json::arrayValue);
       for (auto const &n : nodes) {
-        res = res.asString() + n.id().toString() + " " + n.endpoint().address().to_string() + ":" +
-              std::to_string(n.endpoint().tcpPort()) + "\n";
+        Json::Value node;
+        node["node_id"] = n.id().toString();
+        node["address"] = n.endpoint().address().to_string();
+        node["tcp_port"] = Json::UInt64(n.endpoint().tcpPort());
+        res["nodes"].append(node);
       }
     }
   } catch (std::exception &e) {
     res["status"] = e.what();
   }
+
   return res;
 }
 
