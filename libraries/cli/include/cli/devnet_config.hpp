@@ -196,7 +196,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0x780fe8b2226cf212c55635de399ee4c2a860810c",
               "commission": 0,
               "endpoint": "",
-              "description": "1 initial validator",
+              "description": "Taraxa devnet validator 1",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -206,7 +206,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0x56e0de6933d9d0453d0363caf42b136eb5854e4e",
               "commission": 0,
               "endpoint": "",
-              "description": "2 initial validator",
+              "description": "Taraxa devnet validator 2",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -216,7 +216,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0x71bdcbec7e3642782447b0fbf31eed068dfbdbb1",
               "commission": 0,
               "endpoint": "",
-              "description": "3 initial validator",
+              "description": "Taraxa devnet validator 3",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -226,7 +226,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0xac24bc60a491bd0c29414e5f34aa6bbd8d4aa499",
               "commission": 0,
               "endpoint": "",
-              "description": "5 initial validator",
+              "description": "Taraxa devnet validator 5",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -236,7 +236,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0x635d3831ad5d1252a2a07f09b8d3539b3af34df8",
               "commission": 0,
               "endpoint": "",
-              "description": "6 initial validator",
+              "description": "Taraxa devnet validator 6",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -246,7 +246,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0x43af71034ed7fd0b54496a30ba4a5889a94e7088",
               "commission": 0,
               "endpoint": "",
-              "description": "7 initial validator",
+              "description": "Taraxa devnet validator 7",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -256,7 +256,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0x4546f088bf636ed4652d1635c98ef5422805dfa3",
               "commission": 0,
               "endpoint": "",
-              "description": "8 initial validator",
+              "description": "Taraxa devnet validator 8",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -266,7 +266,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0x8ca042649a263272442bee8b7209fa19426e54c4",
               "commission": 0,
               "endpoint": "",
-              "description": "9 initial validator",
+              "description": "Taraxa devnet validator 9",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -276,7 +276,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0x7d7319df8950546850a01a0d793ee602f6eb390f",
               "commission": 0,
               "endpoint": "",
-              "description": "10 initial validator",
+              "description": "Taraxa devnet validator 10",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -286,7 +286,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0x64c171b9845c15c4555f7a4489895f0e687c496c",
               "commission": 0,
               "endpoint": "",
-              "description": "11 initial validator",
+              "description": "Taraxa devnet validator 11",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -296,7 +296,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0x614c85fad6f17f03949f735e05b1a24c5155b726",
               "commission": 0,
               "endpoint": "",
-              "description": "12 initial validator",
+              "description": "Taraxa devnet validator 12",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -306,7 +306,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0xeff3dd2b0a6c29146c46ca01764aae0691ee1744",
               "commission": 0,
               "endpoint": "",
-              "description": "13 initial validator",
+              "description": "Taraxa devnet validator 13",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -316,7 +316,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0xe543a20db4fa1820cc9f00144fc402bb1f31aa29",
               "commission": 0,
               "endpoint": "",
-              "description": "14 initial validator",
+              "description": "Taraxa devnet validator 14",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -326,7 +326,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0x211a5ec33fec843b14319bcd62ab30c2a064745e",
               "commission": 0,
               "endpoint": "",
-              "description": "15 initial validator",
+              "description": "Taraxa devnet validator 15",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -336,7 +336,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0x5354adf587cad5fe74e4912d4b6c1f754538891d",
               "commission": 0,
               "endpoint": "",
-              "description": "16 initial validator",
+              "description": "Taraxa devnet validator 16",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -346,7 +346,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0x1473a6c154655fdc1f19d98e5823d3bb3f09a895",
               "commission": 0,
               "endpoint": "",
-              "description": "17 initial validator",
+              "description": "Taraxa devnet validator 17",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -356,7 +356,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0x9588f6457d67792f141424983a93978f44331054",
               "commission": 0,
               "endpoint": "",
-              "description": "18 initial validator",
+              "description": "Taraxa devnet validator 18",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -366,7 +366,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0xb48da366e19f141f5647dcdb0960eb88719e1c8d",
               "commission": 0,
               "endpoint": "",
-              "description": "19 initial validator",
+              "description": "Taraxa devnet validator 19",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -376,7 +376,7 @@ constexpr std::string_view devnet_json = R"foo({
               "owner": "0x2b95aeed70a4e21fcb8665b1a1e16eb114a1caf3",
               "commission": 0,
               "endpoint": "",
-              "description": "20 initial validator",
+              "description": "Taraxa devnet validator 20",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }

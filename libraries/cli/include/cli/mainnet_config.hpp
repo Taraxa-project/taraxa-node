@@ -226,7 +226,7 @@ constexpr std::string_view mainnet_json = R"foo({
               "owner": "0x1f8333245650a19a0683891b7afe7787a3ce9f00",
               "commission": 0,
               "endpoint": "",
-              "description": "first initial validator",
+              "description": "Taraxa mainnet validator 1",
               "delegations": {
                 "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
               }
@@ -236,7 +236,7 @@ constexpr std::string_view mainnet_json = R"foo({
               "owner": "0xd4e4728bea5a67dd70dccb742bdc9c3a48465bec",
               "commission": 0,
               "endpoint": "",
-              "description": "second initial validator",
+              "description": "Taraxa mainnet validator 2",
               "delegations": {
                 "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
               }
@@ -246,7 +246,7 @@ constexpr std::string_view mainnet_json = R"foo({
               "owner": "0xec591a85f613fe98f057dc09712a9b22cdd05845",
               "commission": 0,
               "endpoint": "",
-              "description": "third initial validator",
+              "description": "Taraxa mainnet validator 3",
               "delegations": {
                 "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
               }
@@ -256,7 +256,7 @@ constexpr std::string_view mainnet_json = R"foo({
               "owner": "0x267e780b7843992e57f52e13018f0f97467ac06e",
               "commission": 0,
               "endpoint": "",
-              "description": "fourth initial validator",
+              "description": "Taraxa mainnet validator 4",
               "delegations": {
                 "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
               }
@@ -266,7 +266,7 @@ constexpr std::string_view mainnet_json = R"foo({
               "owner": "0x9d047654e55248ec38aa6723a5ab36d171008584",
               "commission": 0,
               "endpoint": "",
-              "description": "fifth initial validator",
+              "description": "Taraxa mainnet validator 5",
               "delegations": {
                 "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
               }
@@ -276,7 +276,7 @@ constexpr std::string_view mainnet_json = R"foo({
               "owner": "0x0d149e61cc02b5893ef6fc33bc7d67ff13eeeee0",
               "commission": 0,
               "endpoint": "",
-              "description": "sixth initial validator",
+              "description": "Taraxa mainnet validator 6",
               "delegations": {
                 "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
               }
@@ -286,7 +286,7 @@ constexpr std::string_view mainnet_json = R"foo({
               "owner": "0x00ccd0de0809ac03fd292036ee1544185583cd88",
               "commission": 0,
               "endpoint": "",
-              "description": "seventh initial validator",
+              "description": "Taraxa mainnet validator 7",
               "delegations": {
                 "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
               }
@@ -296,7 +296,7 @@ constexpr std::string_view mainnet_json = R"foo({
               "owner": "0x6f96be7626a74e86c76e65ccbccf0a38e2b62fc5",
               "commission": 0,
               "endpoint": "",
-              "description": "eighth initial validator",
+              "description": "Taraxa mainnet validator 8",
               "delegations": {
                 "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
               }
@@ -306,7 +306,7 @@ constexpr std::string_view mainnet_json = R"foo({
               "owner": "0xd20131f980c9932b1df31cf3aafeecfb1d504381",
               "commission": 0,
               "endpoint": "",
-              "description": "ninth initial validator",
+              "description": "Taraxa mainnet validator 9",
               "delegations": {
                 "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
               }

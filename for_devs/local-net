@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env /usr/local/bin/python3
 
 import click
 import subprocess
@@ -147,27 +147,25 @@ def config(binary, boot_nodes, rpc_nodes):
             if existing_chain_config:
                 config['chain_config'] = existing_chain_config
             else:
-                eligibility_balance_threshold = config['chain_config'][
-                    'final_chain']['state']['dpos']['eligibility_balance_threshold']
-                genesis_state = config['chain_config']['final_chain']['state']['dpos']['genesis_state']
-                genesis_balances = config['chain_config']['final_chain']['state']['genesis_balances']
+                default_validator = config['chain_config']['final_chain']['state']['dpos']['initial_validators'][0]
+                config['chain_config']['final_chain']['state']['dpos']['initial_validators'] = []
+                print("boot_nodes_public_addresses: ",boot_nodes_public_addresses)
+                for key in boot_nodes_public_addresses:
+                    address = boot_nodes_public_addresses[key]
+                    print("a: ", address)
+                    default_validator["address"] = address
+                    default_validator["owner"] = address
+                    print("appending", default_validator)
+                    config['chain_config']['final_chain']['state']['dpos']['initial_validators'].append(default_validator.copy())
 
+                genesis_balances = config['chain_config']['final_chain']['state']['genesis_balances']
                 genesis_balances_faucet_address = list(genesis_balances.keys())[0]
                 delegator_address = list(genesis_balances.keys())[1]
                 genesis_balances_faucet_value = genesis_balances[genesis_balances_faucet_address]
                 del genesis_balances[genesis_balances_faucet_address]
                 genesis_balances[faucet_public_address] = genesis_balances_faucet_value
-
-                genesis_state = genesis_state[list(genesis_state.keys())[0]]
-                dpos_config_balance = genesis_state[list(genesis_state.keys())[0]]
-                genesis_state = {}
-                genesis_state[delegator_address] = {}
-                for a in boot_nodes_public_addresses:
-                    genesis_state[delegator_address][boot_nodes_public_addresses[a]
-                                        ] = dpos_config_balance
-
-                config['chain_config']['final_chain']['state']['dpos']['genesis_state'] = genesis_state
                 config['chain_config']['final_chain']['state']['genesis_balances'] = genesis_balances
+
                 config['chain_config']['dag_genesis_block']['timestamp'] = timestamp
                 config['chain_config']['final_chain']['genesis_block_fields']['timestamp'] = timestamp
 

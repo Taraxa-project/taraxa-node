@@ -181,7 +181,7 @@ constexpr std::string_view default_json = R"foo({
               "owner": "0x780fe8b2226cf212c55635de399ee4c2a860810c",
               "commission": 0,
               "endpoint": "",
-              "description": "first initial validator",
+              "description": "Taraxa validator 1",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -191,7 +191,7 @@ constexpr std::string_view default_json = R"foo({
               "owner": "0x56e0de6933d9d0453d0363caf42b136eb5854e4e",
               "commission": 0,
               "endpoint": "",
-              "description": "second initial validator",
+              "description": "Taraxa validator 2",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
@@ -201,7 +201,7 @@ constexpr std::string_view default_json = R"foo({
               "owner": "0x71bdcbec7e3642782447b0fbf31eed068dfbdbb1",
               "commission": 0,
               "endpoint": "",
-              "description": "third initial validator",
+              "description": "Taraxa validator 3",
               "delegations": {
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               }
