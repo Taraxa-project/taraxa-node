@@ -276,9 +276,8 @@ void PivotTree::getGhostPath(blk_hash_t const &vertex, std::vector<blk_hash_t> &
 
 DagManager::DagManager(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr,
                        std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<PbftChain> pbft_chain,
-                       std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
-                       logger::Logger log_time, bool is_light_node, uint64_t light_node_history,
-                       uint32_t max_levels_per_period, uint32_t dag_expiry_limit) try
+                       std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db, bool is_light_node,
+                       uint64_t light_node_history, uint32_t max_levels_per_period, uint32_t dag_expiry_limit) try
     : pivot_tree_(std::make_shared<PivotTree>(dag_genesis_block_hash, node_addr)),
       total_dag_(std::make_shared<Dag>(dag_genesis_block_hash, node_addr)),
       trx_mgr_(trx_mgr),
@@ -290,8 +289,7 @@ DagManager::DagManager(blk_hash_t const &dag_genesis_block_hash, addr_t node_add
       is_light_node_(is_light_node),
       light_node_history_(light_node_history),
       max_levels_per_period_(max_levels_per_period),
-      dag_expiry_limit_(dag_expiry_limit),
-      log_time_(log_time) {
+      dag_expiry_limit_(dag_expiry_limit) {
   LOG_OBJECTS_CREATE("DAGMGR");
   if (auto ret = getLatestPivotAndTips(); ret) {
     frontier_.pivot = ret->first;

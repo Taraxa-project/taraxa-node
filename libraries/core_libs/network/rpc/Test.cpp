@@ -42,7 +42,6 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto &log_time = node->getTimeLogger();
       secret_t sk = secret_t(param1["secret"].asString());
       auto nonce = dev::jsToInt(param1["nonce"].asString());
       val_t value = val_t(param1["value"].asString());
@@ -50,10 +49,7 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
       auto gas = dev::jsToInt(param1["gas"].asString());
       addr_t receiver = addr_t(param1["receiver"].asString());
       bytes data;
-      // get trx receiving time stamp
-      auto now = getCurrentTimeMilliSeconds();
       auto trx = std::make_shared<Transaction>(nonce, value, gas_price, gas, data, sk, receiver);
-      LOG(log_time) << "Transaction " << trx->getHash() << " received at: " << now;
       if (auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(trx); !ok) {
         res["status"] = err_msg;
       } else {

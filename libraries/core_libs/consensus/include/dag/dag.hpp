@@ -149,7 +149,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   explicit DagManager(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr,
                       std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<PbftChain> pbft_chain,
                       std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
-                      logger::Logger log_time, bool is_light_node = false, uint64_t light_node_history = 0,
+                      bool is_light_node = false, uint64_t light_node_history = 0,
                       uint32_t max_levels_per_period = kMaxLevelsPerPeriod,
                       uint32_t dag_expiry_limit = kDagExpiryLevelLimit);
   virtual ~DagManager() { stop(); }
@@ -324,8 +324,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   const uint32_t dag_expiry_limit_;  // Any non finalized dag block with a level smaller by
                                      // dag_expiry_limit_ than the current period anchor level is considered
                                      // expired and it should be ignored or removed from DAG
-
-  logger::Logger log_time_;
   LOG_OBJECTS_DEFINE
 };
 

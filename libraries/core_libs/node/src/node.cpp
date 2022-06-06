@@ -44,7 +44,6 @@ void FullNode::init() {
   }
 
   LOG_OBJECTS_CREATE("FULLND");
-  log_time_ = logger::createLogger(logger::Verbosity::Info, "TMSTM", node_addr);
 
   LOG(log_si_) << "Node public key: " << EthGreen << kp_.pub().toString() << std::endl
                << EthReset << "Node address: " << EthRed << node_addr.toString() << std::endl
@@ -105,12 +104,12 @@ void FullNode::init() {
 
   pbft_chain_ = std::make_shared<PbftChain>(node_addr, db_);
   next_votes_mgr_ = std::make_shared<NextVotesManager>(node_addr, db_, final_chain_);
-  dag_blk_mgr_ = std::make_shared<DagBlockManager>(node_addr, conf_.chain.sortition, conf_.chain.dag, db_, trx_mgr_,
-                                                   final_chain_, pbft_chain_, log_time_, conf_.max_block_queue_warn,
-                                                   conf_.max_levels_per_period);
+  dag_blk_mgr_ =
+      std::make_shared<DagBlockManager>(node_addr, conf_.chain.sortition, conf_.chain.dag, db_, trx_mgr_, final_chain_,
+                                        pbft_chain_, conf_.max_block_queue_warn, conf_.max_levels_per_period);
   dag_mgr_ = std::make_shared<DagManager>(dag_genesis_block_hash, node_addr, trx_mgr_, pbft_chain_, dag_blk_mgr_, db_,
-                                          log_time_, conf_.is_light_node, conf_.light_node_history,
-                                          conf_.max_levels_per_period, conf_.dag_expiry_limit);
+                                          conf_.is_light_node, conf_.light_node_history, conf_.max_levels_per_period,
+                                          conf_.dag_expiry_limit);
   vote_mgr_ = std::make_shared<VoteManager>(node_addr, db_, final_chain_, next_votes_mgr_);
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.chain.pbft, dag_genesis_block_hash, node_addr, db_, pbft_chain_,
                                             vote_mgr_, next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, final_chain_,
@@ -255,8 +254,6 @@ void FullNode::start() {
   //     final_chain_->update_state_config(state_conf);
   //   }
   // });
-
-  LOG(log_time_) << "Start taraxa efficiency evaluation logging:" << std::endl;
 
   vote_mgr_->setNetwork(network_);
   pbft_mgr_->setNetwork(network_);
