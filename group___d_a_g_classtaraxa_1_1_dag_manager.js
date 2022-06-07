@@ -2,7 +2,7 @@ var group___d_a_g_classtaraxa_1_1_dag_manager =
 [
     [ "SharedLock", "group___d_a_g.html#a438a9cce146f37209702173a90707322", null ],
     [ "ULock", "group___d_a_g.html#aed1bf9463f3f5dd18f46ead7f1323fc1", null ],
-    [ "DagManager", "group___d_a_g.html#a37de2bd5f6e72b1c2d7b6b10e83d963d", null ],
+    [ "DagManager", "group___d_a_g.html#a8453313bcabe397e4fb48a511dc0416c", null ],
     [ "~DagManager", "group___d_a_g.html#a48a75c329913f004614ae538d206ec03", null ],
     [ "DagManager", "group___d_a_g.html#aa0fe82cc22a187cab97099ef465bed02", null ],
     [ "DagManager", "group___d_a_g.html#a1a957529304d407e997ca611b4530ab7", null ],
@@ -52,7 +52,6 @@ var group___d_a_g_classtaraxa_1_1_dag_manager =
     [ "frontier_", "group___d_a_g.html#aa8ecef50260ac0b2b2da330f53fb42c2", null ],
     [ "is_light_node_", "group___d_a_g.html#a304bc3dd4e16a2e6fe824960998fa85c", null ],
     [ "light_node_history_", "group___d_a_g.html#a9da5c3fb13e2ae292e70a030efdfbdec", null ],
-    [ "log_time_", "group___d_a_g.html#ab8e949d7acf01e5df646344c70b370cc", null ],
     [ "max_level_", "group___d_a_g.html#ab34b96991cbcfd2f72be34a8813ca335", null ],
     [ "max_levels_per_period_", "group___d_a_g.html#a07187ee4b316918016d048c7c48d14f7", null ],
     [ "mutex_", "group___d_a_g.html#a9a2851fc95fa8d2e023a3ba82d42610b", null ],

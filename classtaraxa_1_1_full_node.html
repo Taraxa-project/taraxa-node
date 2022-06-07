@@ -196,8 +196,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a63f8280719fb2097a61def187b2e120a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0a0c42337b7d42d58c8dbc6c910a6fa5"><td class="memItemLeft" align="right" valign="top">const auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a0a0c42337b7d42d58c8dbc6c910a6fa5">getVrfSecretKey</a> () const</td></tr>
 <tr class="separator:a0a0c42337b7d42d58c8dbc6c910a6fa5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a42699f0281c777a734cac4d65a9d8a91"><td class="memItemLeft" align="right" valign="top">auto &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a42699f0281c777a734cac4d65a9d8a91">getTimeLogger</a> ()</td></tr>
-<tr class="separator:a42699f0281c777a734cac4d65a9d8a91"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d55c6a5d0e5ad9c257f04b4bb51894e"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a4d55c6a5d0e5ad9c257f04b4bb51894e">getNumProposedBlocks</a> () const</td></tr>
 <tr class="separator:a4d55c6a5d0e5ad9c257f04b4bb51894e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7181214abb558c6453f1b91c9e1e33fa"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a7181214abb558c6453f1b91c9e1e33fa">rebuildDb</a> ()</td></tr>
@@ -267,10 +265,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a6b5a6c69b2c1566cb75efe494d2de5fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae46eb02fbf66cc65d4d1bbddc02ac1f"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="classtaraxa_1_1_full_node.html#ac891a58548db8eea1e30d30d90f1fd83">jsonrpc_server_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#aae46eb02fbf66cc65d4d1bbddc02ac1f">jsonrpc_api_</a></td></tr>
 <tr class="separator:aae46eb02fbf66cc65d4d1bbddc02ac1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7fca4a05f5e80e851c3ebb257cf0c7fd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="logger_8hpp.html#a41399a11426ea3272948aca283625fb5">LOG_OBJECTS_DEFINE</a> <a class="el" href="namespacetaraxa_1_1logger.html#a9acd43b09e6273f2daa1e209d23db989">logger::Logger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a7fca4a05f5e80e851c3ebb257cf0c7fd">log_time_</a></td></tr>
-<tr class="separator:a7fca4a05f5e80e851c3ebb257cf0c7fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a777d80b6b09b91e1de3e3e78fab912d8"><td class="memItemLeft" align="right" valign="top">std::atomic_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a777d80b6b09b91e1de3e3e78fab912d8">started_</a> = 0</td></tr>
-<tr class="separator:a777d80b6b09b91e1de3e3e78fab912d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a324cf17816fc78dafaf48adaa39bebac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="logger_8hpp.html#a41399a11426ea3272948aca283625fb5">LOG_OBJECTS_DEFINE</a> std::atomic_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a324cf17816fc78dafaf48adaa39bebac">started_</a> = 0</td></tr>
+<tr class="separator:a324cf17816fc78dafaf48adaa39bebac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/><h2 class="groupheader">Class Documentation</h2>
 <a name="structtaraxa_1_1_full_node_1_1_post_destruction_context" id="structtaraxa_1_1_full_node_1_1_post_destruction_context"></a>
@@ -902,31 +898,6 @@ num_shared_pointers_to_check</td>
 
 </div>
 </div>
-<a id="a42699f0281c777a734cac4d65a9d8a91"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a42699f0281c777a734cac4d65a9d8a91">&#9670;&nbsp;</a></span>getTimeLogger()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto&amp; taraxa::FullNode::getTimeLogger </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a6dbc2bae50a9b2413384e75a37f2c732"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a6dbc2bae50a9b2413384e75a37f2c732">&#9670;&nbsp;</a></span>getTransactionManager()</h2>
 
@@ -1381,28 +1352,6 @@ num_shared_pointers_to_check</td>
 
 </div>
 </div>
-<a id="a7fca4a05f5e80e851c3ebb257cf0c7fd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7fca4a05f5e80e851c3ebb257cf0c7fd">&#9670;&nbsp;</a></span>log_time_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="logger_8hpp.html#a41399a11426ea3272948aca283625fb5">LOG_OBJECTS_DEFINE</a> <a class="el" href="namespacetaraxa_1_1logger.html#a9acd43b09e6273f2daa1e209d23db989">logger::Logger</a> taraxa::FullNode::log_time_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">mutable</span><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a70c7aa5338cbc231c0739504204e49ce"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a70c7aa5338cbc231c0739504204e49ce">&#9670;&nbsp;</a></span>network_</h2>
 
@@ -1535,8 +1484,8 @@ num_shared_pointers_to_check</td>
 
 </div>
 </div>
-<a id="a777d80b6b09b91e1de3e3e78fab912d8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a777d80b6b09b91e1de3e3e78fab912d8">&#9670;&nbsp;</a></span>started_</h2>
+<a id="a324cf17816fc78dafaf48adaa39bebac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a324cf17816fc78dafaf48adaa39bebac">&#9670;&nbsp;</a></span>started_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1545,7 +1494,7 @@ num_shared_pointers_to_check</td>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::atomic_bool taraxa::FullNode::started_ = 0</td>
+          <td class="memname"><a class="el" href="logger_8hpp.html#a41399a11426ea3272948aca283625fb5">LOG_OBJECTS_DEFINE</a> std::atomic_bool taraxa::FullNode::started_ = 0</td>
         </tr>
       </table>
   </td>
