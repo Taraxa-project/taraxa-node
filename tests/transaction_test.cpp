@@ -25,7 +25,6 @@ auto g_secret = Lazy([] {
                      dev::Secret::ConstructFromStringType::FromHex);
 });
 auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
-auto g_trx_samples = Lazy([] { return samples::createMockTrxSamples(0, NUM_TRX); });
 auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 auto g_blk_samples = Lazy([] { return samples::createMockDagBlkSamples(0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP); });
 

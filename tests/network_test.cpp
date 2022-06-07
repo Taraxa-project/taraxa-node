@@ -33,12 +33,6 @@ auto g_secret = Lazy([] {
 auto node_key = dev::KeyPair(g_secret);
 auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 
-const unsigned NUM_TRX2 = 200;
-auto g_secret2 = Lazy([] {
-  return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                     dev::Secret::ConstructFromStringType::FromHex);
-});
-auto g_signed_trx_samples2 = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX2, g_secret2); });
 auto three_default_configs = Lazy([] { return make_node_cfgs(3); });
 auto g_conf1 = Lazy([] { return three_default_configs[0]; });
 auto g_conf2 = Lazy([] { return three_default_configs[1]; });
@@ -218,13 +212,15 @@ TEST_F(NetworkTest, malicious_peers) {
 TEST_F(NetworkTest, sync_large_pbft_block) {
   const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
   auto node_cfgs = make_node_cfgs<5>(2);
+  node_cfgs[0].chain.pbft.gas_limit = FinalChain::GAS_LIMIT;
+  node_cfgs[1].chain.pbft.gas_limit = FinalChain::GAS_LIMIT;
+  auto nodes = launch_nodes({node_cfgs[0]});
 
   // Create 250 transactions, each one has 10k dummy data
   bytes dummy_100k_data(100000, 0);
-  auto signed_trxs = samples::createSignedTrxSamples(0, 250, g_secret2, dummy_100k_data);
+  auto signed_trxs = samples::createSignedTrxSamples(0, 500, nodes[0]->getSecretKey(), dummy_100k_data);
 
   // node1 own all coins, could produce blocks by itself
-  auto nodes = launch_nodes({node_cfgs[0]});
   nodes[0]->getPbftManager()->stop();
 
   auto nw1 = nodes[0]->getNetwork();

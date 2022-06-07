@@ -167,23 +167,6 @@ inline std::map<int, TestAccount> createTestAccountTable(std::string const &file
   return acc_table;
 }
 
-inline SharedTransactions createMockTrxSamples(unsigned start, unsigned num) {
-  assert(start + num < std::numeric_limits<unsigned>::max());
-  SharedTransactions trxs;
-  for (auto i = start; i < num; ++i) {
-    auto trx = std::make_shared<Transaction>(i,                                      // nonce
-                                             3,                                      // value
-                                             4,                                      // gas_price
-                                             5,                                      // gas
-                                             str2bytes("00FEDCBA9876543210000000"),  // data
-                                             secret_t::random(),                     // secret
-                                             addr_t(i * 1000)                        // receiver
-    );
-    trxs.emplace_back(trx);
-  }
-  return trxs;
-}
-
 inline SharedTransactions createSignedTrxSamples(unsigned start, unsigned num, secret_t const &sk,
                                                  bytes data = str2bytes("00FEDCBA9876543210000000")) {
   assert(start + num < std::numeric_limits<unsigned>::max());
