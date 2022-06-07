@@ -1,5 +1,9 @@
 var NAVTREEINDEX18 =
 {
+"namespacemembers_t.html":[10,0,19],
+"namespacemembers_type.html":[10,3],
+"namespacemembers_u.html":[10,0,20],
+"namespacemembers_v.html":[10,0,21],
 "namespacemembers_vars.html":[10,2],
 "namespacemembers_w.html":[10,0,22],
 "namespacemembers_y.html":[10,0,23],
@@ -245,9 +249,5 @@ var NAVTREEINDEX18 =
 "rpc__error__handler_8hpp.html#addc8ea7a95b1b5bcc33b970b5d118a8c":[12,0,1,4,1,1,8,0],
 "rpc__error__handler_8hpp_source.html":[12,0,1,4,1,1,8],
 "sortition_8cpp.html":[12,0,1,7,1,1],
-"sortition_8hpp.html":[12,0,1,7,0,0,1],
-"sortition_8hpp_source.html":[12,0,1,7,0,0,1],
-"sortition__params__manager_8cpp.html":[12,0,1,4,0,1,0,3],
-"sortition__params__manager_8cpp.html#aa90c9f0332c5cb6f975c11a607dfcb80":[12,0,1,4,0,1,0,3,1],
-"sortition__params__manager_8cpp.html#ada5bb0a560627ca344997d1e5b52c415":[12,0,1,4,0,1,0,3,0]
+"sortition_8hpp.html":[12,0,1,7,0,0,1]
 };

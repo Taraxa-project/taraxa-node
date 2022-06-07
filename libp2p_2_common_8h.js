@@ -22,7 +22,6 @@ var libp2p_2_common_8h =
     [ "NET_GLOBAL_LOGGER", "libp2p_2_common_8h.html#a51f56021df04d94ed5e89aa6bec715bb", null ],
     [ "CapDesc", "libp2p_2_common_8h.html#a3e91739f2f67f56a118ab753083470b9", null ],
     [ "CapDescs", "libp2p_2_common_8h.html#a0ab8a939e4445ca462831a92d76428e9", null ],
-    [ "CapDescSet", "libp2p_2_common_8h.html#a3cd5ca149dd3d2ed406bcbae70447f00", null ],
     [ "NodeID", "libp2p_2_common_8h.html#abbde6b5aa63ddcf129cc2ccdda42e5d5", null ],
     [ "PeerSessionInfos", "libp2p_2_common_8h.html#a4a6dd4e0ba0ff50e301bdbc81b4e2bea", null ],
     [ "DisconnectReason", "libp2p_2_common_8h.html#ab97a033c9bbe0fb22e2b4f093593f276", [

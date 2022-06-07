@@ -37,6 +37,7 @@ var structdev_1_1p2p_1_1_host =
     [ "isHandshaking", "structdev_1_1p2p_1_1_host.html#a635530337ad0e62f0d65da4379f609a4", null ],
     [ "isRunning", "structdev_1_1p2p_1_1_host.html#af172022af7fd54783396778c6c64d208", null ],
     [ "keepAlivePeers", "structdev_1_1p2p_1_1_host.html#a979ca721d86fbb90b7b87d31ece7bbac", null ],
+    [ "latestCapability", "structdev_1_1p2p_1_1_host.html#a7ccba36279e4e5d6bfc241d6a418f83a", null ],
     [ "listenAddress", "structdev_1_1p2p_1_1_host.html#a3e01d167821457263b023b6a248b4eed", null ],
     [ "listenPort", "structdev_1_1p2p_1_1_host.html#a0e538e8d25bf6374eed667d53698fecd", null ],
     [ "logActivePeers", "structdev_1_1p2p_1_1_host.html#ad7bea36bbfe3b25bec9cbd9eb1d9adad", null ],
