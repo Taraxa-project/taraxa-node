@@ -116,8 +116,9 @@ void FullNode::init() {
                                             kp_.secret(), conf_.vrf_secret, conf_.max_levels_per_period);
   blk_proposer_ = std::make_shared<BlockProposer>(conf_.chain.dag.block_proposer, dag_mgr_, trx_mgr_, dag_blk_mgr_,
                                                   final_chain_, db_, node_addr, getSecretKey(), getVrfSecretKey());
-  network_ = std::make_shared<Network>(conf_, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_,
-                                       vote_mgr_, next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_);
+  network_ = std::make_shared<Network>(conf_.network, genesis_hash, dev::p2p::Host::CapabilitiesFactory(),
+                                       conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_, vote_mgr_,
+                                       next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_);
 }
 
 void FullNode::start() {

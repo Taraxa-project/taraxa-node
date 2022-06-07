@@ -74,17 +74,6 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
       }
     }
 
-    // We need logic when some different node versions might still be compatible
-    if (node_major_version != TARAXA_MAJOR_VERSION || node_minor_version != TARAXA_MINOR_VERSION) {
-      // Log this only if we have 0 peers, so it is error of this node
-      LOG((peers_state_->getPeersCount()) ? log_nf_ : log_er_)
-          << "Incorrect node version: "
-          << getFormattedVersion({node_major_version, node_minor_version, node_patch_version}) << ", our node version"
-          << TARAXA_VERSION << ", host " << packet_data.from_node_id_.abridged() << " will be disconnected";
-      disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
-      return;
-    }
-
     if (peer_network_id != conf_network_id_) {
       LOG((peers_state_->getPeersCount()) ? log_nf_ : log_er_)
           << "Incorrect network id " << peer_network_id << ", host " << packet_data.from_node_id_.abridged()
@@ -114,7 +103,8 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
                  << genesis_hash << ", peer pbft chain size " << selected_peer->pbft_chain_size_ << ", peer syncing "
                  << std::boolalpha << selected_peer->syncing_ << ", peer pbft round " << selected_peer->pbft_round_
                  << ", peer pbft previous round next votes size " << selected_peer->pbft_previous_round_next_votes_size_
-                 << ", node major version" << node_major_version << ", node minor version" << node_minor_version;
+                 << ", node major version" << node_major_version << ", node minor version" << node_minor_version
+                 << ", node patch version" << node_patch_version;
 
   } else {  // Standard status packet
     // TODO: initial and standard status packet could be separated...

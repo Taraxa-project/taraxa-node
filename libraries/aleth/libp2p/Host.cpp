@@ -104,7 +104,7 @@ std::shared_ptr<Host> Host::make(std::string _clientVersion, CapabilitiesFactory
                                  NetworkConfig _n, TaraxaNetworkConfig taraxa_conf,
                                  std::filesystem::path state_file_path) {
   shared_ptr<Host> self(new Host(move(_clientVersion), kp, move(_n), taraxa_conf, move(state_file_path)));
-  for (auto const& cap : cap_factory(self)) {
+  for (const auto& cap : cap_factory(self)) {
     CapabilityNameAndVersion cap_id{cap->name(), cap->version()};
     self->m_capabilities.emplace(cap_id, Capability(cap, cap->messageCount()));
     self->handshake_ctx_->capability_descriptions.push_back(cap_id);
