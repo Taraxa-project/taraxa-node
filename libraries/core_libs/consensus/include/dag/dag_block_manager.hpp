@@ -50,8 +50,7 @@ class DagBlockManager {
   DagBlockManager(addr_t node_addr, const SortitionConfig &sortition_config, const DagConfig &dag_config,
                   std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                   std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
-                  logger::Logger log_time_, uint32_t queue_limit = 0,
-                  uint32_t max_levels_per_period = kMaxLevelsPerPeriod);
+                  uint32_t queue_limit = 0, uint32_t max_levels_per_period = kMaxLevelsPerPeriod);
   ~DagBlockManager();
 
   DagBlockManager(const DagBlockManager &) = delete;
@@ -152,7 +151,6 @@ class DagBlockManager {
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<PbftChain> pbft_chain_;
-  logger::Logger log_time_;
 
   ExpirationCache<blk_hash_t> invalid_blocks_;
   ExpirationCacheMap<blk_hash_t, DagBlock> seen_blocks_;

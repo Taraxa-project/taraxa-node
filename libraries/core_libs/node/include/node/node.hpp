@@ -84,7 +84,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // logging
   LOG_OBJECTS_DEFINE
-  mutable logger::Logger log_time_;
 
   std::atomic_bool started_ = 0;
 
@@ -123,7 +122,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto const &getVrfSecretKey() const { return conf_.vrf_secret; }
 
   // For Debug
-  auto &getTimeLogger() { return log_time_; }
   uint64_t getNumProposedBlocks() const;
 
   void rebuildDb();

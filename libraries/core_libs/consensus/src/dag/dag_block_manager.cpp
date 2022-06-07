@@ -7,12 +7,11 @@ namespace taraxa {
 DagBlockManager::DagBlockManager(addr_t node_addr, const SortitionConfig &sortition_config, const DagConfig &dag_config,
                                  std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                                  std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
-                                 logger::Logger log_time, uint32_t queue_limit, uint32_t max_levels_per_period)
+                                 uint32_t queue_limit, uint32_t max_levels_per_period)
     : db_(db),
       trx_mgr_(trx_mgr),
       final_chain_(final_chain),
       pbft_chain_(pbft_chain),
-      log_time_(log_time),
       invalid_blocks_(cache_max_size_, cache_delete_step_),
       seen_blocks_(cache_max_size_, cache_delete_step_),
       queue_limit_(queue_limit),
@@ -166,7 +165,6 @@ void DagBlockManager::pushVerifiedBlock(const DagBlock &blk) {
 
 DagBlockManager::InsertAndVerifyBlockReturnType DagBlockManager::verifyBlock(const DagBlock &blk) {
   const auto &block_hash = blk.getHash();
-  LOG(log_time_) << "Verifying Trx block  " << block_hash << " at: " << getCurrentTimeMilliSeconds();
 
   if (invalid_blocks_.count(block_hash)) {
     LOG(log_wr_) << "Skip invalid DAG block " << block_hash;

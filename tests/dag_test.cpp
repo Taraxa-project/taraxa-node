@@ -11,7 +11,6 @@ namespace taraxa::core_tests {
 
 struct DagTest : BaseTest {
   std::vector<FullNodeConfig> node_cfgs = make_node_cfgs(1);
-  logger::Logger time_log = logger::createLogger(logger::Verbosity::Info, "TMSTM", addr_t());
 };
 
 TEST_F(DagTest, build_dag) {
@@ -142,8 +141,8 @@ TEST_F(DagTest, compute_epoch) {
   auto mgr = std::make_shared<DagManager>(
       GENESIS, addr_t(), trx_mgr, pbft_chain,
       std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition, node_cfgs[0].chain.dag, db_ptr, nullptr,
-                                        nullptr, pbft_chain, time_log),
-      db_ptr, logger::Logger());
+                                        nullptr, pbft_chain),
+      db_ptr);
   DagBlock blkA(blk_hash_t(1), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkB(blk_hash_t(1), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
   DagBlock blkC(blk_hash_t(2), 1, {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
@@ -234,9 +233,9 @@ TEST_F(DagTest, dag_expiry) {
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   auto dag_blk_mgr = std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition, node_cfgs[0].chain.dag,
-                                                       db_ptr, nullptr, nullptr, pbft_chain, time_log);
-  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, pbft_chain, dag_blk_mgr, db_ptr, logger::Logger(),
-                                          false, 0, 3, EXPIRY_LIMIT);
+                                                       db_ptr, nullptr, nullptr, pbft_chain);
+  auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), trx_mgr, pbft_chain, dag_blk_mgr, db_ptr, false, 0, 3,
+                                          EXPIRY_LIMIT);
   DagBlock blkA(blk_hash_t(1), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkB(blk_hash_t(1), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
   DagBlock blkC(blk_hash_t(2), 1, {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
@@ -312,8 +311,8 @@ TEST_F(DagTest, receive_block_in_order) {
   auto mgr = std::make_shared<DagManager>(
       GENESIS, addr_t(), trx_mgr, pbft_chain,
       std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition, node_cfgs[0].chain.dag, db_ptr, nullptr,
-                                        nullptr, pbft_chain, time_log),
-      db_ptr, logger::Logger());
+                                        nullptr, pbft_chain),
+      db_ptr);
   DagBlock genesis_block(blk_hash_t(0), 0, {}, {}, sig_t(777), blk_hash_t(10), addr_t(15));
   DagBlock blk1(blk_hash_t(10), 0, {}, {}, sig_t(777), blk_hash_t(1), addr_t(15));
   DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(777), blk_hash_t(2), addr_t(15));
@@ -347,8 +346,8 @@ TEST_F(DagTest, compute_epoch_2) {
   auto mgr = std::make_shared<DagManager>(
       GENESIS, addr_t(), trx_mgr, pbft_chain,
       std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition, node_cfgs[0].chain.dag, db_ptr, nullptr,
-                                        nullptr, pbft_chain, time_log),
-      db_ptr, logger::Logger());
+                                        nullptr, pbft_chain),
+      db_ptr);
   DagBlock blkA(blk_hash_t(1), 0, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkB(blk_hash_t(1), 0, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
   DagBlock blkC(blk_hash_t(2), 1, {blk_hash_t(3)}, {}, sig_t(1), blk_hash_t(4), addr_t(1));
@@ -431,8 +430,8 @@ TEST_F(DagTest, get_latest_pivot_tips) {
   auto mgr = std::make_shared<DagManager>(
       GENESIS, addr_t(), trx_mgr, pbft_chain,
       std::make_shared<DagBlockManager>(addr_t(), node_cfgs[0].chain.sortition, node_cfgs[0].chain.dag, db_ptr, nullptr,
-                                        nullptr, pbft_chain, time_log),
-      db_ptr, logger::Logger());
+                                        nullptr, pbft_chain),
+      db_ptr);
   DagBlock blk1(blk_hash_t(0), 0, {}, {}, sig_t(0), blk_hash_t(1), addr_t(15));
   DagBlock blk2(blk_hash_t(1), 0, {}, {}, sig_t(1), blk_hash_t(2), addr_t(15));
   DagBlock blk3(blk_hash_t(2), 0, {}, {}, sig_t(1), blk_hash_t(3), addr_t(15));
