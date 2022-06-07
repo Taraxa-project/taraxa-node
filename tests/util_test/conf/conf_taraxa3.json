@@ -29,12 +29,7 @@
         "name": "standard",
         "on": true,
         "verbosity": "ERROR",
-        "channels": [
-          {
-            "name": "FULLND",
-            "verbosity": "ERROR"
-          }
-        ],
+        "channels": [],
         "outputs": [
           {
             "type": "console",

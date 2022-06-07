@@ -147,6 +147,14 @@ inline auto make_node_cfgs(uint count) {
     for (auto& cfg : ret) {
       addr_t root_node_addr("de2b1203d72d3549ee2f733b00b2789414c7cea5");
       cfg.chain.final_chain.state.genesis_balances[root_node_addr] = 9007199254740991;
+      cfg.chain.final_chain.state.genesis_balances[addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0")] =
+          9007199254740991;
+      cfg.chain.final_chain.state.genesis_balances[addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e")] =
+          9007199254740991;
+      cfg.chain.final_chain.state.genesis_balances[addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0")] =
+          9007199254740991;
+      cfg.chain.final_chain.state.genesis_balances[addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858")] =
+          9007199254740991;
       auto& dpos = *cfg.chain.final_chain.state.dpos;
 
       state_api::BalanceMap delegations;
@@ -157,7 +165,6 @@ inline auto make_node_cfgs(uint count) {
 
       // As test are badly written let's disable it for now
       cfg.chain.final_chain.state.execution_options.disable_nonce_check = true;
-      cfg.chain.final_chain.state.execution_options.disable_gas_fee = true;
       cfg.chain.final_chain.state.block_rewards_options.disable_block_rewards = true;
       cfg.chain.final_chain.state.block_rewards_options.disable_contract_distribution = true;
       if constexpr (tests_speed != 1) {

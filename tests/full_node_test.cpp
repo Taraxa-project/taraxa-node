@@ -1462,7 +1462,6 @@ TEST_F(FullNodeTest, chain_config_json) {
         "petersburg_block": "0x0"
       },
       "execution_options": {
-        "disable_gas_fee": true,
         "disable_nonce_check": false,
         "enable_nonce_skipping": false
       },
@@ -1534,7 +1533,7 @@ TEST_F(FullNodeTest, chain_config_json) {
 }
 
 TEST_F(FullNodeTest, transaction_validation) {
-  auto node_cfgs = make_node_cfgs<5, true>(1);
+  auto node_cfgs = make_node_cfgs<5>(1);
   auto nodes = launch_nodes(node_cfgs);
   uint32_t nonce = 0;
 
@@ -1568,7 +1567,7 @@ TEST_F(FullNodeTest, transaction_validation) {
 }
 
 TEST_F(FullNodeTest, light_node) {
-  auto node_cfgs = make_node_cfgs<10, true>(2);
+  auto node_cfgs = make_node_cfgs<10>(2);
   node_cfgs[0].is_light_node = true;
   node_cfgs[0].light_node_history = 10;
   node_cfgs[0].dag_expiry_limit = 5;
@@ -1602,7 +1601,7 @@ TEST_F(FullNodeTest, light_node) {
 }
 
 TEST_F(FullNodeTest, clear_period_data) {
-  auto node_cfgs = make_node_cfgs<10, true>(2);
+  auto node_cfgs = make_node_cfgs<10>(2);
   node_cfgs[0].is_light_node = true;
   node_cfgs[0].light_node_history = 4;
   node_cfgs[0].dag_expiry_limit = 15;

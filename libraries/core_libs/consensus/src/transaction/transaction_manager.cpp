@@ -36,7 +36,7 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
           trx->getReceiver(),
           trx->getNonce(),
           trx->getValue(),
-          trx->getGas(),
+          FinalChain::GAS_LIMIT,
           trx->getData(),
       },
       proposal_period);

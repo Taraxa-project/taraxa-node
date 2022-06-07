@@ -532,12 +532,12 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
 
   auto receiver = addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0");
   EXPECT_EQ(own_balance(node), own_effective_genesis_bal(node_cfgs[0]));
-  EXPECT_EQ(node->getFinalChain()->getBalance(receiver).first, 0);
+  const auto old_balance = node->getFinalChain()->getBalance(receiver).first;
 
   // create a transaction
-  auto coins_value = val_t(100);
-  auto gas_price = val_t(2);
-  auto data = bytes();
+  const auto coins_value = val_t(100);
+  const auto gas_price = val_t(2);
+  const auto data = bytes();
   auto trx_master_boot_node_to_receiver =
       std::make_shared<Transaction>(0, coins_value, gas_price, TEST_TX_GAS_LIMIT, data, node->getSecretKey(), receiver);
   node->getTransactionManager()->insertTransaction(trx_master_boot_node_to_receiver);
@@ -550,8 +550,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   // Make sure the transaction get executed
   EXPECT_HAPPENS({1s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 1) });
 
-  EXPECT_EQ(own_balance(node), own_effective_genesis_bal(node_cfgs[0]) - 100);
-  EXPECT_EQ(node->getFinalChain()->getBalance(receiver).first, 100);
+  EXPECT_EQ(own_balance(node), own_effective_genesis_bal(node_cfgs[0]) - coins_value);
+  EXPECT_EQ(node->getFinalChain()->getBalance(receiver).first, old_balance + coins_value);
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
