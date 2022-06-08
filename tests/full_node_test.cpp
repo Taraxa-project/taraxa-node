@@ -449,9 +449,9 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
    public:
     context(decltype(nodes_) nodes) : nodes_(nodes) {
-      expected_balances[nodes[0]->getAddress()] = own_effective_genesis_bal(nodes[0]->getConfig());
       for (auto const &node : nodes_) {
         trx_clients.emplace_back(node);
+        expected_balances[node->getAddress()] = node->getFinalChain()->getBalance(node->getAddress()).first;
       }
     }
 
@@ -1183,12 +1183,14 @@ TEST_F(FullNodeTest, receive_send_transaction) {
 
 TEST_F(FullNodeTest, detect_overlap_transactions) {
   auto node_cfgs = make_node_cfgs<20>(5);
-  auto node_1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
   auto nodes = launch_nodes(node_cfgs);
+  const auto expected_balances = effective_genesis_balances(node_cfgs[0].chain.final_chain.state);
+  const auto node_1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
+
   // Even distribute coins from master boot node to other nodes. Since master
   // boot node owns whole coins, the active players should be only master boot
   // node at the moment.
-  const auto gas_price = 1;
+  const auto gas_price = 0;
   auto nonce = 1;
   uint64_t trxs_count = 0;
   auto test_transfer_val = node_1_genesis_bal / node_cfgs.size();
@@ -1224,7 +1226,8 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
               node_1_genesis_bal - (node_cfgs.size() - 1) * test_transfer_val);
     for (size_t j(1); j < nodes.size(); ++j) {
       // For node1 to node4 balances info on each node
-      EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first, test_transfer_val);
+      EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first,
+                expected_balances.at(nodes[j]->getAddress()) + test_transfer_val);
     }
   }
 
@@ -1462,7 +1465,6 @@ TEST_F(FullNodeTest, chain_config_json) {
         "petersburg_block": "0x0"
       },
       "execution_options": {
-        "disable_gas_fee": true,
         "disable_nonce_check": false,
         "enable_nonce_skipping": false
       },
@@ -1534,41 +1536,46 @@ TEST_F(FullNodeTest, chain_config_json) {
 }
 
 TEST_F(FullNodeTest, transaction_validation) {
-  auto node_cfgs = make_node_cfgs<5, true>(1);
+  auto node_cfgs = make_node_cfgs<5>(1);
   auto nodes = launch_nodes(node_cfgs);
   uint32_t nonce = 0;
+  const uint32_t gasprice = 1;
+  const uint32_t gas = 100000;
 
-  auto trx = std::make_shared<Transaction>(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
-                                           addr_t::random());
+  auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, str2bytes("00FEDCBA9876543210000000"),
+                                           nodes[0]->getSecretKey(), addr_t::random());
   // PASS on GAS
   EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
-  trx = std::make_shared<Transaction>(nonce++, 1, 1, FinalChain::GAS_LIMIT + 1, str2bytes("00FEDCBA9876543210000000"),
-                                      g_secret, addr_t::random());
+  trx =
+      std::make_shared<Transaction>(nonce++, 0, gasprice, FinalChain::GAS_LIMIT + 1,
+                                    str2bytes("00FEDCBA9876543210000000"), nodes[0]->getSecretKey(), addr_t::random());
   // FAIL on GAS
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 
-  trx = std::make_shared<Transaction>(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
-                                      addr_t::random());
+  trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, str2bytes("00FEDCBA9876543210000000"),
+                                      nodes[0]->getSecretKey(), addr_t::random());
   // PASS on NONCE
   EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
   wait({60s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), 2) });
-  trx = std::make_shared<Transaction>(0, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  trx = std::make_shared<Transaction>(0, 0, gasprice, gas, str2bytes("00FEDCBA9876543210000000"),
+                                      nodes[0]->getSecretKey(), addr_t::random());
   // FAIL on NONCE
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 
-  trx = std::make_shared<Transaction>(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
-                                      addr_t::random());
+  trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, str2bytes("00FEDCBA9876543210000000"),
+                                      nodes[0]->getSecretKey(), addr_t::random());
   // PASS on BALANCE
   EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 
-  trx = std::make_shared<Transaction>(nonce++, own_effective_genesis_bal(nodes[0]->getConfig()) + 1, 1, 100,
-                                      str2bytes("00FEDCBA9876543210000000"), g_secret, addr_t::random());
+  trx =
+      std::make_shared<Transaction>(nonce++, own_effective_genesis_bal(nodes[0]->getConfig()) + 1, 0, gas,
+                                    str2bytes("00FEDCBA9876543210000000"), nodes[0]->getSecretKey(), addr_t::random());
   // FAIL on BALANCE
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 }
 
 TEST_F(FullNodeTest, light_node) {
-  auto node_cfgs = make_node_cfgs<10, true>(2);
+  auto node_cfgs = make_node_cfgs<10>(2);
   node_cfgs[0].is_light_node = true;
   node_cfgs[0].light_node_history = 10;
   node_cfgs[0].dag_expiry_limit = 5;
@@ -1602,7 +1609,7 @@ TEST_F(FullNodeTest, light_node) {
 }
 
 TEST_F(FullNodeTest, clear_period_data) {
-  auto node_cfgs = make_node_cfgs<10, true>(2);
+  auto node_cfgs = make_node_cfgs<10>(2);
   node_cfgs[0].is_light_node = true;
   node_cfgs[0].light_node_history = 4;
   node_cfgs[0].dag_expiry_limit = 15;

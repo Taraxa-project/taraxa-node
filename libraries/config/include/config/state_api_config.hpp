@@ -63,7 +63,6 @@ void dec_json(const Json::Value& json, DPOSConfig& obj);
 // This struct has strict ordering, do not change it
 struct ExecutionOptions {
   bool disable_nonce_check = false;
-  bool disable_gas_fee = false;
   bool enable_nonce_skipping = false;
 
   HAS_RLP_FIELDS

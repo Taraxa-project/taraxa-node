@@ -278,7 +278,6 @@ constexpr std::string_view testnet_json = R"foo({
           "petersburg_block": "0x0"
         },
         "execution_options": {
-          "disable_gas_fee": false,
           "disable_nonce_check": false,
           "enable_nonce_skipping": true
         },

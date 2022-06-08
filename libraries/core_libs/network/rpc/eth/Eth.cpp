@@ -54,14 +54,15 @@ class EthImpl : public Eth, EthParams {
     auto t = toTransactionSkeleton(_json);
     auto blk_n = parse_blk_num(_blockNumber);
     set_transaction_defaults(t, blk_n);
-    return toJS(call(blk_n, t, false).code_retval);
+    return toJS(call(blk_n, t).code_retval);
   }
 
   string eth_estimateGas(Json::Value const& _json) override {
     auto t = toTransactionSkeleton(_json);
     auto blk_n = final_chain->last_block_number();
     set_transaction_defaults(t, blk_n);
-    return toJS(call(blk_n, t, true).gas_used);
+    t.gas.value_or(FinalChain::GAS_LIMIT);
+    return toJS(call(blk_n, t).gas_used);
   }
 
   string eth_getTransactionCount(string const& _address, string const& _blockNumber) override {
@@ -262,7 +263,7 @@ class EthImpl : public Eth, EthParams {
     return final_chain->get_account(addr, n).value_or(ZeroAccount).nonce;
   }
 
-  state_api::ExecutionResult call(EthBlockNumber blk_n, TransactionSkeleton const& trx, bool free_gas) {
+  state_api::ExecutionResult call(EthBlockNumber blk_n, TransactionSkeleton const& trx) {
     return final_chain->call(
         {
             trx.from,
@@ -273,12 +274,7 @@ class EthImpl : public Eth, EthParams {
             trx.gas.value_or(0),
             trx.data,
         },
-        blk_n,
-        state_api::ExecutionOptions{
-            true,
-            free_gas,
-            false,
-        });
+        blk_n, state_api::ExecutionOptions{true, false});
   }
 
   void set_transaction_defaults(TransactionSkeleton& t, EthBlockNumber blk_n) {

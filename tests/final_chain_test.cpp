@@ -194,7 +194,7 @@ TEST_F(FinalChainTest, contract) {
   cfg.state.dpos = std::nullopt;
   cfg.state.execution_options.disable_nonce_check = true;
   init();
-  auto trx = std::make_shared<Transaction>(0, 100, 0, 0, dev::fromHex(samples::greeter_contract_code), sk);
+  auto trx = std::make_shared<Transaction>(0, 100, 0, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
   auto result = advance({trx});
   auto contract_addr = result->trx_receipts[0].new_contract_address;
   EXPECT_EQ(contract_addr, dev::right160(dev::sha3(dev::rlpList(addr, 0))));
@@ -205,7 +205,7 @@ TEST_F(FinalChainTest, contract) {
         contract_addr,
         0,
         0,
-        0,
+        1000000,
         // greet()
         dev::fromHex("0xcfae3217"),
     });
@@ -218,7 +218,7 @@ TEST_F(FinalChainTest, contract) {
             "656c6c6f000000000000000000000000000000000000000000000000000000");
   {
     advance({
-        std::make_shared<Transaction>(0, 11, 0, 0,
+        std::make_shared<Transaction>(0, 11, 0, 1000000,
                                       // setGreeting("Hola")
                                       dev::fromHex("0xa4136862000000000000000000000000000000000000000000000000"
                                                    "00000000000000200000000000000000000000000000000000000000000"
@@ -244,7 +244,6 @@ TEST_F(FinalChainTest, coin_transfers) {
     auto const& k = keys.emplace_back(dev::KeyPair::create());
     cfg.state.genesis_balances[k.address()] = std::numeric_limits<u256>::max() / NUM_ACCS;
   }
-  cfg.state.execution_options.disable_gas_fee = false;
   init();
   constexpr auto TRX_GAS = 100000;
   advance({
@@ -280,7 +279,6 @@ TEST_F(FinalChainTest, nonce_skipping) {
   cfg.state.genesis_balances = {};
   cfg.state.dpos = std::nullopt;
   cfg.state.genesis_balances[key.address()] = std::numeric_limits<u256>::max();
-  cfg.state.execution_options.disable_gas_fee = false;
   cfg.state.execution_options.disable_nonce_check = false;
   cfg.state.block_rewards_options.disable_contract_distribution = true;
   init();

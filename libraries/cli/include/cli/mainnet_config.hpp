@@ -323,7 +323,6 @@ constexpr std::string_view mainnet_json = R"foo({
           "petersburg_block": "0x0"
         },
         "execution_options": {
-          "disable_gas_fee": false,
           "disable_nonce_check": true,
           "enable_nonce_skipping": true
         },

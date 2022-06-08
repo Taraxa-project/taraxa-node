@@ -532,12 +532,12 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
 
   auto receiver = addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0");
   EXPECT_EQ(own_balance(node), own_effective_genesis_bal(node_cfgs[0]));
-  EXPECT_EQ(node->getFinalChain()->getBalance(receiver).first, 0);
+  const auto old_balance = node->getFinalChain()->getBalance(receiver).first;
 
   // create a transaction
-  auto coins_value = val_t(100);
-  auto gas_price = val_t(2);
-  auto data = bytes();
+  const auto coins_value = val_t(100);
+  const auto gas_price = val_t(2);
+  const auto data = bytes();
   auto trx_master_boot_node_to_receiver =
       std::make_shared<Transaction>(0, coins_value, gas_price, TEST_TX_GAS_LIMIT, data, node->getSecretKey(), receiver);
   node->getTransactionManager()->insertTransaction(trx_master_boot_node_to_receiver);
@@ -550,13 +550,15 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   // Make sure the transaction get executed
   EXPECT_HAPPENS({1s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 1) });
 
-  EXPECT_EQ(own_balance(node), own_effective_genesis_bal(node_cfgs[0]) - 100);
-  EXPECT_EQ(node->getFinalChain()->getBalance(receiver).first, 100);
+  EXPECT_EQ(own_balance(node), own_effective_genesis_bal(node_cfgs[0]) - coins_value);
+  EXPECT_EQ(node->getFinalChain()->getBalance(receiver).first, old_balance + coins_value);
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   const auto node_cfgs = make_node_cfgs<20>(3);
   const auto node1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
+  const auto node2_genesis_bal = own_effective_genesis_bal(node_cfgs[1]);
+  const auto node3_genesis_bal = own_effective_genesis_bal(node_cfgs[2]);
   auto nodes = launch_nodes(node_cfgs);
 
   const auto node1_addr = nodes[0]->getAddress();
@@ -576,7 +578,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   });
 
   const expected_balances_map_t expected_balances1 = {
-      {node1_addr, node1_genesis_bal - 100}, {node2_addr, 100}, {node3_addr, 0}};
+      {node1_addr, node1_genesis_bal - 100}, {node2_addr, node2_genesis_bal + 100}, {node3_addr, node3_genesis_bal}};
   wait_for_balances(nodes, expected_balances1, {100s, 500ms});
 
   // create a transaction transfer coins from node1 to node3
@@ -591,8 +593,9 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   });
 
   std::cout << "Checking all nodes see transaction from node 1 to node 3..." << std::endl;
-  const expected_balances_map_t expected_balances2 = {
-      {node1_addr, node1_genesis_bal - 1100}, {node2_addr, 100}, {node3_addr, 1000}};
+  const expected_balances_map_t expected_balances2 = {{node1_addr, node1_genesis_bal - 1100},
+                                                      {node2_addr, node2_genesis_bal + 100},
+                                                      {node3_addr, node3_genesis_bal + 1000}};
   wait_for_balances(nodes, expected_balances2, {100s, 500ms});
 }
 
@@ -667,7 +670,7 @@ TEST_F(PbftManagerWithDagCreation, dag_generation) {
 
 TEST_F(PbftManagerWithDagCreation, limit_dag_block_size) {
   auto node_cfgs = make_node_cfgs<5, true>(1);
-  node_cfgs.front().chain.dag.gas_limit = 250000;
+  node_cfgs.front().chain.dag.gas_limit = 500000;
   makeNodeFromConfig(node_cfgs);
   deployContract();
 
@@ -678,7 +681,7 @@ TEST_F(PbftManagerWithDagCreation, limit_dag_block_size) {
         contract_addr,
         0,
         0,
-        0,
+        TEST_TX_GAS_LIMIT,
         // greet()
         dev::fromHex("0xcfae3217"),
     });
@@ -712,8 +715,8 @@ TEST_F(PbftManagerWithDagCreation, limit_dag_block_size) {
 
 TEST_F(PbftManagerWithDagCreation, limit_pbft_block) {
   auto node_cfgs = make_node_cfgs<5, true>(1);
-  node_cfgs.front().chain.dag.gas_limit = 300000;
-  node_cfgs.front().chain.pbft.gas_limit = 1000000;
+  node_cfgs.front().chain.dag.gas_limit = 500000;
+  node_cfgs.front().chain.pbft.gas_limit = 1100000;
   makeNodeFromConfig(node_cfgs);
 
   deployContract();
@@ -747,8 +750,8 @@ TEST_F(PbftManagerWithDagCreation, limit_pbft_block) {
 
 TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
   auto node_cfgs = make_node_cfgs<5, true>(1);
-  auto dag_gas_limit = node_cfgs.front().chain.dag.gas_limit = 300000;
-  node_cfgs.front().chain.pbft.gas_limit = 1000000;
+  auto dag_gas_limit = node_cfgs.front().chain.dag.gas_limit = 500000;
+  node_cfgs.front().chain.pbft.gas_limit = 1100000;
   makeNodeFromConfig(node_cfgs);
 
   deployContract();
@@ -781,8 +784,8 @@ TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
 
 TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
   auto node_cfgs = make_node_cfgs<5, true>(1);
-  node_cfgs.front().chain.dag.gas_limit = 300000;
-  node_cfgs.front().chain.pbft.gas_limit = 500000;
+  node_cfgs.front().chain.dag.gas_limit = 500000;
+  node_cfgs.front().chain.pbft.gas_limit = 600000;
   makeNode();
   deployContract();
   node->getBlockProposer()->stop();

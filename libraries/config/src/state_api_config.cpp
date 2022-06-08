@@ -131,7 +131,6 @@ void dec_json(const Json::Value& json, DPOSConfig& obj) {
 Json::Value enc_json(const ExecutionOptions& obj) {
   Json::Value json(Json::objectValue);
   json["disable_nonce_check"] = obj.disable_nonce_check;
-  json["disable_gas_fee"] = obj.disable_gas_fee;
   json["enable_nonce_skipping"] = obj.enable_nonce_skipping;
 
   return json;
@@ -139,7 +138,6 @@ Json::Value enc_json(const ExecutionOptions& obj) {
 
 void dec_json(const Json::Value& json, ExecutionOptions& obj) {
   obj.disable_nonce_check = json["disable_nonce_check"].asBool();
-  obj.disable_gas_fee = json["disable_gas_fee"].asBool();
   obj.enable_nonce_skipping = json["enable_nonce_skipping"].asBool();
 }
 
@@ -156,7 +154,7 @@ void dec_json(Json::Value const& json, BlockRewardsOptions& obj) {
   obj.disable_contract_distribution = json["disable_contract_distribution"].asBool();
 }
 
-RLP_FIELDS_DEFINE(ExecutionOptions, disable_nonce_check, disable_gas_fee, enable_nonce_skipping)
+RLP_FIELDS_DEFINE(ExecutionOptions, disable_nonce_check, enable_nonce_skipping)
 RLP_FIELDS_DEFINE(BlockRewardsOptions, disable_block_rewards, disable_contract_distribution)
 RLP_FIELDS_DEFINE(ETHChainConfig, homestead_block, dao_fork_block, eip_150_block, eip_158_block, byzantium_block,
                   constantinople_block, petersburg_block)
