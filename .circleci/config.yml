@@ -577,6 +577,14 @@ jobs:
             fi
 
       - run:
+          name: Cleanup smoke tests
+          when: always
+          command: |
+            docker kill smoketest-${DOCKER_BRANCH_TAG:0:52} || true
+            docker rm smoketest-${DOCKER_BRANCH_TAG:0:52}
+            docker network rm smoketest-${DOCKER_BRANCH_TAG:0:52} || true
+
+      - run:
           name: Tag images
           command: |
             if [[ ${CIRCLE_BRANCH} == "develop" ]]; then
@@ -705,13 +713,6 @@ jobs:
             if [[ ${PR} != "false" ]]; then
               helm cm-push -f charts/${HELMCHART}/ --version="${HELMCHART_VERSION}-pr${PR}" taraxacharts
             fi
-
-      - run:
-          name: Cleanup smoke tests
-          when: always
-          command: |
-            docker kill smoketest-${DOCKER_BRANCH_TAG:0:52} || true
-            docker network rm smoketest-${DOCKER_BRANCH_TAG:0:52} || true
 
       - store_artifacts:
           path: tmp_docker
