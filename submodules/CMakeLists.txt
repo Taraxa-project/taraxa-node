@@ -103,7 +103,7 @@ else()
     set(EVM_LIBRARY_NAME ${CMAKE_SHARED_LIBRARY_PREFIX}taraxaevm${CMAKE_SHARED_LIBRARY_SUFFIX})
 endif()
 ## go env settings
-set(EVM_BUILD_ENV CGO_CFLAGS_ALLOW='.*' CGO_CXXFLAGS_ALLOW='.*' CGO_CXXFLAGS=\"-O3\" CGO_CFLAGS=\"${EVM_BUILD_CGO_CFLAGS}\" CGO_LDFLAGS=\"${EVM_BUILD_LD}\")
+set(EVM_BUILD_ENV CGO_CFLAGS_ALLOW='.*' CGO_CXXFLAGS_ALLOW='.*' CGO_CXXFLAGS=\"-O3\" CGO_CFLAGS=\"${EVM_BUILD_CGO_CFLAGS}\" CGO_LDFLAGS=\"${EVM_BUILD_LD}\" CACHE INTERNAL "")
 ## add build command
 set(EVM_BUILD_COMMAND cd taraxa/C && ${EVM_BUILD_ENV} go build -buildmode=c-archive -o ${EVM_BUILD_DIR}/${EVM_LIBRARY_NAME})
 ## cp headers into `taraxa-evm/include`
@@ -141,3 +141,12 @@ if (APPLE)  # if "APPLE" not sufficient, use if (${CMAKE_SYSTEM_NAME} MATCHES "D
 else ()
     target_link_libraries(taraxa-evm INTERFACE stdc++fs)
 endif ()
+
+add_custom_target(run_go_dpos_test)
+
+add_custom_command(
+    TARGET run_go_dpos_test
+    DEPENDS ${TARAXA_EVM_SOURCES}
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/taraxa-evm
+    COMMAND cd taraxa/ && ${EVM_BUILD_ENV} go test ./state/dpos/tests
+    COMMENT "Running Go DPOS tests")
