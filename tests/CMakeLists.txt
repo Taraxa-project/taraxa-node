@@ -151,11 +151,11 @@ set(DPOS_TEST_SCRIPT ${CMAKE_BINARY_DIR}/bin/go_dpos_test.sh)
 # List serializes with ; delimiter by default. This is not working for bash
 list(JOIN EVM_BUILD_ENV " " EVM_BUILD_ENV_STRING)
 
-# we need to write this command to file because add_test can't accept command 
-file(WRITE ${DPOS_TEST_SCRIPT} 
-"cd ${CMAKE_SOURCE_DIR}/submodules/taraxa-evm/taraxa
+# we need to write this command to file because add_test can't accept command
+file(WRITE ${DPOS_TEST_SCRIPT}
+"cd ${CMAKE_SOURCE_DIR}/submodules/taraxa-evm/
 export ${EVM_BUILD_ENV_STRING}
-go test ./state/dpos/tests"
+go test ./..."
 )
 
 # make script executable
