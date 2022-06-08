@@ -532,39 +532,57 @@ jobs:
               docker network rm \
               smoketest-${DOCKER_BRANCH_TAG:0:52} >/dev/null;
             fi
+            
             docker network create --driver=bridge \
-                        smoketest-${DOCKER_BRANCH_TAG:0:52}
-            docker run --rm -d \
-                --name smoketest-${DOCKER_BRANCH_TAG:0:52} \
-                --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
-                ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
-                single
+              smoketest-${DOCKER_BRANCH_TAG:0:52}
+            
+            docker run -d\
+              --name smoketest-${DOCKER_BRANCH_TAG:0:52} \
+              --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
+              ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
+              single
+            
             mkdir -p  $PWD/test_build-d/
+            
             sleep 30
+
+            echo "--- Logs from container ---"
+            docker logs smoketest-${DOCKER_BRANCH_TAG:0:52}
+            echo "--- Logs from container ---"
+            
             http_code=$(docker run --rm  -v $PWD/test_build-d:/data \
-                  --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
-                  byrnedo/alpine-curl \
-                  -sS --fail -w '%{http_code}' -o /data/http.out \
-                  --url smoketest-${DOCKER_BRANCH_TAG:0:52}:7777 \
-                  -d '{
-                          "jsonrpc": "2.0",
-                          "id":"0",
-                          "method": "send_coin_transaction",
-                          "params":[{
-                              "nonce": 0,
-                              "value": 0,
-                              "gas": 0,
-                              "gas_price": 1,
-                              "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
-                              "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
-                          }]
-                      }')
-              cat $PWD/test_build-d/http.out || true
-              if [[ $http_code -eq 200 ]] ; then
-                  exit 0
-              else
-                  exit $http_code
-              fi
+              --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
+              byrnedo/alpine-curl \
+              -sS --fail -w '%{http_code}' -o /data/http.out \
+              --url smoketest-${DOCKER_BRANCH_TAG:0:52}:7777 \
+              -d '{
+                      "jsonrpc": "2.0",
+                      "id":"0",
+                      "method": "send_coin_transaction",
+                      "params":[{
+                          "nonce": 0,
+                          "value": 0,
+                          "gas": 0,
+                          "gas_price": 1,
+                          "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
+                          "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
+                      }]
+                  }')
+              
+            cat $PWD/test_build-d/http.out || true
+            if [[ $http_code -eq 200 ]] ; then
+                exit 0
+            else
+                exit $http_code
+            fi
+
+      - run:
+          name: Cleanup smoke tests
+          when: always
+          command: |
+            docker kill smoketest-${DOCKER_BRANCH_TAG:0:52} || true
+            docker rm smoketest-${DOCKER_BRANCH_TAG:0:52}
+            docker network rm smoketest-${DOCKER_BRANCH_TAG:0:52} || true
 
       - run:
           name: Tag images
@@ -695,13 +713,6 @@ jobs:
             if [[ ${PR} != "false" ]]; then
               helm cm-push -f charts/${HELMCHART}/ --version="${HELMCHART_VERSION}-pr${PR}" taraxacharts
             fi
-
-      - run:
-          name: Cleanup smoke tests
-          when: always
-          command: |
-            docker kill smoketest-${DOCKER_BRANCH_TAG:0:52} || true
-            docker network rm smoketest-${DOCKER_BRANCH_TAG:0:52} || true
 
       - store_artifacts:
           path: tmp_docker
