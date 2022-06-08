@@ -20,52 +20,6 @@ using namespace taraxa;
 
 namespace taraxa::net {
 
-Json::Value Test::insert_dag_block(const Json::Value &param1) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      blk_hash_t pivot = blk_hash_t(param1["pivot"].asString());
-      vec_blk_t tips = asVector<blk_hash_t>(param1["tips"]);
-      taraxa::sig_t signature = taraxa::sig_t(
-          "777777777777777777777777777777777777777777777777777777777777777777"
-          "777777777777777777777777777777777777777777777777777777777777777");
-      blk_hash_t hash = blk_hash_t(param1["hash"].asString());
-      addr_t sender = addr_t(param1["sender"].asString());
-
-      DagBlock blk(pivot, 0, tips, {}, {}, signature, hash, sender);
-      res = blk.getJsonStr();
-      node->getDagManager()->addDagBlock(std::move(blk), {});
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_dag_block(const Json::Value &param1) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      blk_hash_t hash = blk_hash_t(param1["hash"].asString());
-      const auto &dag_blk_mgr = node->getDagBlockManager();
-      auto known_block = dag_blk_mgr->isDagBlockKnown(hash);
-      if (known_block) {
-        auto blk = dag_blk_mgr->getDagBlock(hash);
-        if (!blk) {
-          res["status"] = "Light node - Block could not be retrieved";
-        } else {
-          res = blk->getJsonStr();
-        }
-      } else {
-        res["status"] = "Unknown block";
-      }
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
 Json::Value Test::get_sortition_change(const Json::Value &param1) {
   Json::Value res;
   try {
@@ -84,35 +38,10 @@ Json::Value Test::get_sortition_change(const Json::Value &param1) {
   return res;
 }
 
-Json::Value Test::get_nf_blocks(const Json::Value &) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      auto nf = node->getDagManager()->getNonFinalizedBlocks();
-      res["value"] = Json::Value(Json::arrayValue);
-      for (auto const &n : nf.second) {
-        Json::Value level_json;
-        level_json["level"] = n.first;
-        level_json["blocks"] = Json::Value(Json::arrayValue);
-        for (auto const &b : n.second) {
-          Json::Value block_json;
-          block_json["hash"] = b.abridged();
-          level_json["value"].append(block_json);
-        }
-        res["value"].append(level_json);
-      }
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
 Json::Value Test::send_coin_transaction(const Json::Value &param1) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
-      auto &log_time = node->getTimeLogger();
       secret_t sk = secret_t(param1["secret"].asString());
       auto nonce = dev::jsToInt(param1["nonce"].asString());
       val_t value = val_t(param1["value"].asString());
@@ -120,30 +49,12 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
       auto gas = dev::jsToInt(param1["gas"].asString());
       addr_t receiver = addr_t(param1["receiver"].asString());
       bytes data;
-      // get trx receiving time stamp
-      auto now = getCurrentTimeMilliSeconds();
       auto trx = std::make_shared<Transaction>(nonce, value, gas_price, gas, data, sk, receiver);
-      LOG(log_time) << "Transaction " << trx->getHash() << " received at: " << now;
       if (auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(trx); !ok) {
         res["status"] = err_msg;
       } else {
         res = toHex(trx->rlp());
       }
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_num_proposed_blocks() {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      auto &log_time = node->getTimeLogger();
-      auto num_prop_block = node->getNumProposedBlocks();
-      res["value"] = Json::UInt64(num_prop_block);
-      LOG(log_time) << "Number of proposed block " << num_prop_block << std::endl;
     }
   } catch (std::exception &e) {
     res["status"] = e.what();
@@ -157,26 +68,6 @@ Json::Value Test::get_account_address() {
     if (auto node = full_node_.lock()) {
       addr_t addr = node->getAddress();
       res["value"] = addr.toString();
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_account_balance(const Json::Value &param1) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      addr_t addr = addr_t(param1["address"].asString());
-      auto bal = node->getFinalChain()->getBalance(addr);
-      if (!bal.second) {
-        res["found"] = false;
-        res["value"] = 0;
-      } else {
-        res["found"] = true;
-        res["value"] = boost::lexical_cast<std::string>(bal.first);
-      }
     }
   } catch (std::exception &e) {
     res["status"] = e.what();
@@ -240,261 +131,26 @@ Json::Value Test::get_packets_stats() {
   return res;
 }
 
-Json::Value Test::get_node_version() {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      res["node_version"] = TARAXA_VERSION;
-      res["db_version"] = getFormattedVersion({TARAXA_DB_MAJOR_VERSION, TARAXA_DB_MINOR_VERSION});
-      res["network_version"] = std::to_string(TARAXA_NET_VERSION);
-      ;
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_node_count() {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      auto peer = node->getNetwork()->getNodeCount();
-      res["value"] = Json::UInt64(peer);
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_all_peers() {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      auto peers = node->getNetwork()->getAllPeersIDs();
-      for (auto const &peer : peers) {
-        res = res.asString() + peer.toString() + "\n";
-      }
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
 Json::Value Test::get_all_nodes() {
   Json::Value res;
+
   try {
-    if (auto node = full_node_.lock()) {
-      auto nodes = node->getNetwork()->getAllNodes();
+    if (auto full_node = full_node_.lock()) {
+      auto nodes = full_node->getNetwork()->getAllNodes();
+      res["nodes_count"] = Json::UInt64(nodes.size());
+      res["nodes"] = Json::Value(Json::arrayValue);
       for (auto const &n : nodes) {
-        res = res.asString() + n.id().toString() + " " + n.endpoint().address().to_string() + ":" +
-              std::to_string(n.endpoint().tcpPort()) + "\n";
+        Json::Value node;
+        node["node_id"] = n.id().toString();
+        node["address"] = n.endpoint().address().to_string();
+        node["tcp_port"] = Json::UInt64(n.endpoint().tcpPort());
+        res["nodes"].append(node);
       }
     }
   } catch (std::exception &e) {
     res["status"] = e.what();
   }
-  return res;
-}
 
-Json::Value Test::get_vote_weight(const Json::Value &param1) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      PbftVoteTypes type = static_cast<PbftVoteTypes>(param1["type"].asInt());
-      uint64_t period = param1["period"].asUInt64();
-      size_t step = param1["step"].asUInt();
-      res = node->getPbftManager()->getVoteWeight(type, period, step);
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::place_vote(const Json::Value & /*param1*/) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      // blk_hash_t blockhash = blk_hash_t(param1["blockhash"].asString());
-      // PbftVoteTypes type = static_cast<PbftVoteTypes>(param1["type"].asInt());
-      // uint64_t period = param1["period"].asUInt64();
-      // size_t step = param1["step"].asUInt();
-
-      // put vote into vote queue
-      // node->placeVote(blockhash, type, period, step);
-      // broadcast vote
-      // node->broadcastVote(blockhash, type, period, step);
-
-      res = "Place vote successfully";
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_votes(const Json::Value & /*param1*/) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      auto vote_mgr = node->getVoteManager();
-
-      auto verified_votes = vote_mgr->getVerifiedVotes();
-      auto unverified_votes = vote_mgr->getUnverifiedVotes();
-      std::vector<std::shared_ptr<Vote>> votes;
-      votes.reserve(verified_votes.size() + unverified_votes.size());
-      votes.insert(votes.end(), verified_votes.begin(), verified_votes.end());
-      votes.insert(votes.end(), unverified_votes.begin(), unverified_votes.end());
-
-      res = vote_mgr->getJsonStr(votes);
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::draw_graph(const Json::Value &param1) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      std::string filename = param1["filename"].asString();
-      node->getDagManager()->drawGraph(filename);
-      res = "Dag is drwan as " + filename + " on the server side ...";
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_transaction_count(const Json::Value & /*param1*/) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      auto count = node->getTransactionManager()->getTransactionCount();
-      res["value"] = Json::UInt64(count);
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_executed_trx_count(const Json::Value & /*param1*/) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      auto count = node->getDB()->getNumTransactionExecuted();
-      res["value"] = Json::UInt64(count);
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_executed_blk_count(const Json::Value & /*param1*/) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      auto count = node->getDB()->getNumBlockExecuted();
-      res["value"] = Json::UInt64(count);
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_dag_size(const Json::Value & /*param1*/) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      auto count = node->getDagManager()->getNumVerticesInDag();
-      res["value"] = std::to_string(count.first) + " , " + std::to_string(count.second);
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_dag_blk_count(const Json::Value & /*param1*/) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      auto count = node->getDB()->getNumDagBlocks();
-      res["value"] = std::to_string(count);
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_pbft_chain_size() {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      auto count = node->getPbftChain()->getPbftChainSize();
-      res["value"] = std::to_string(count);
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_pbft_chain_blocks(const Json::Value &param1) {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      auto height_json = param1["height"];
-      auto count_json = param1["count"];
-      auto include_json = param1["include_json"];
-      int height = 1;
-      int count = 0;
-      if (!count_json.isNull())
-        count = std::stoi(count_json.asString());
-      else
-        count = node->getPbftChain()->getPbftChainSize();
-      if (!height_json.isNull())
-        height = std::stoi(height_json.asString());
-      else
-        height = node->getPbftChain()->getPbftChainSize() - count + 1;
-
-      auto blocks = node->getPbftChain()->getPbftBlocksStr(height, count, include_json.isNull());
-      res["value"] = Json::Value(Json::arrayValue);
-      count = 0;
-      for (auto const &b : blocks) {
-        Json::Value block_json;
-        block_json["height"] = height + count;
-        count++;
-        block_json["block"] = b;
-        res["value"].append(block_json);
-      }
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
-  return res;
-}
-
-Json::Value Test::get_db_stats() {
-  Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      for (auto const &col : taraxa::DB::Columns::all) {
-        res[col.name()] = node->getDB()->getColumnSize(col);
-      }
-    }
-  } catch (std::exception &e) {
-    res["status"] = e.what();
-  }
   return res;
 }
 

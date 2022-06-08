@@ -116,17 +116,12 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   auto const &root = string_or_object.isString() ? parsed_from_file : string_or_object;
   data_path = getConfigDataAsString(root, {"data_path"});
   db_path = data_path / "db";
-  if (auto n = getConfigData(root, {"network_is_boot_node"}, true); !n.isNull()) {
-    network.network_is_boot_node = n.asBool();
-  }
   network.network_listen_ip = getConfigDataAsString(root, {"network_listen_ip"});
   network.network_public_ip = getConfigDataAsString(root, {"network_public_ip"}, true);
   network.network_tcp_port = getConfigDataAsUInt(root, {"network_tcp_port"});
-  network.network_simulated_delay = getConfigDataAsUInt(root, {"network_simulated_delay"});
   network.network_performance_log_interval =
       getConfigDataAsUInt(root, {"network_performance_log_interval"}, true, 30000 /*ms*/);
   network.network_transaction_interval = getConfigDataAsUInt(root, {"network_transaction_interval"});
-  network.network_bandwidth = getConfigDataAsUInt(root, {"network_bandwidth"});
   network.network_ideal_peer_count = getConfigDataAsUInt(root, {"network_ideal_peer_count"});
   network.network_max_peer_count = getConfigDataAsUInt(root, {"network_max_peer_count"});
   network.network_sync_level_size = getConfigDataAsUInt(root, {"network_sync_level_size"});
@@ -167,25 +162,19 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
     }
   }
 
-  {  // for test experiments
-    test_params.max_transactions_pool_warn =
-        getConfigDataAsUInt(root, {"test_params", "max_transactions_pool_warn"}, true);
-    test_params.max_transactions_pool_drop =
-        getConfigDataAsUInt(root, {"test_params", "max_transactions_pool_drop"}, true);
+  {  // config values that limits transactions and blocks memory pools
+    max_transactions_pool_warn = getConfigDataAsUInt(root, {"max_transactions_pool_warn"}, true);
+    max_transactions_pool_drop = getConfigDataAsUInt(root, {"max_transactions_pool_drop"}, true);
 
-    test_params.max_block_queue_warn = getConfigDataAsUInt(root, {"test_params", "max_block_queue_warn"}, true);
-
+    max_block_queue_warn = getConfigDataAsUInt(root, {"max_block_queue_warn"}, true);
+  }
+  {  // db_config
     // Create db snapshot each N pbft block
-    test_params.db_snapshot_each_n_pbft_block =
-        getConfigDataAsUInt(root, {"test_params", "db_snapshot_each_n_pbft_block"}, true);
+    db_config.db_snapshot_each_n_pbft_block =
+        getConfigDataAsUInt(root, {"db_config", "db_snapshot_each_n_pbft_block"}, true);
 
-    test_params.db_max_snapshots = getConfigDataAsUInt(root, {"test_params", "db_max_snapshots"}, true);
-    test_params.db_max_open_files = getConfigDataAsUInt(root, {"test_params", "db_max_open_files"}, true);
-
-    // DAG proposal
-    test_params.block_proposer.shard = getConfigDataAsUInt(root, {"test_params", "block_proposer", "shard"});
-    test_params.block_proposer.transaction_limit =
-        getConfigDataAsUInt(root, {"test_params", "block_proposer", "transaction_limit"});
+    db_config.db_max_snapshots = getConfigDataAsUInt(root, {"db_config", "db_max_snapshots"}, true);
+    db_config.db_max_open_files = getConfigDataAsUInt(root, {"db_config", "db_max_open_files"}, true);
   }
 
   // Network logging in p2p library creates performance issues even with
@@ -237,6 +226,11 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   } else {
     chain = ChainConfig::predefined();
   }
+
+  // blocks_per_year config param is calculated from lambda_ms_min
+  uint64_t year_ms = 365 * 24 * 60 * 60;
+  year_ms *= 1000;
+  chain.final_chain.state.dpos->blocks_per_year = year_ms / (4 * chain.pbft.lambda_ms_min);
 
   is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, false);
   if (is_light_node) {
@@ -323,13 +317,10 @@ std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf) {
 std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
   strm << "[Network Config] " << std::endl;
   strm << "  json_file_name: " << conf.json_file_name << std::endl;
-  strm << "  network_is_boot_node: " << conf.network_is_boot_node << std::endl;
   strm << "  network_listen_ip: " << conf.network_listen_ip << std::endl;
   strm << "  network_public_ip: " << conf.network_public_ip << std::endl;
   strm << "  network_tcp_port: " << conf.network_tcp_port << std::endl;
-  strm << "  network_simulated_delay: " << conf.network_simulated_delay << std::endl;
   strm << "  network_transaction_interval: " << conf.network_transaction_interval << std::endl;
-  strm << "  network_bandwidth: " << conf.network_bandwidth << std::endl;
   strm << "  network_ideal_peer_count: " << conf.network_ideal_peer_count << std::endl;
   strm << "  network_max_peer_count: " << conf.network_max_peer_count << std::endl;
   strm << "  network_sync_level_size: " << conf.network_sync_level_size << std::endl;

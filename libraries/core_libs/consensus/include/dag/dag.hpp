@@ -68,7 +68,7 @@ class Dag {
 
   friend DagManager;
 
-  explicit Dag(blk_hash_t const &genesis, addr_t node_addr);
+  explicit Dag(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr);
   virtual ~Dag() = default;
 
   Dag(const Dag &) = default;
@@ -98,7 +98,6 @@ class Dag {
   void collectLeafVertices(std::vector<vertex_t> &leaves) const;
 
   graph_t graph_;
-  vertex_t genesis_;  // root node
 
  protected:
   LOG_OBJECTS_DEFINE
@@ -112,7 +111,8 @@ class Dag {
 class PivotTree : public Dag {
  public:
   friend DagManager;
-  explicit PivotTree(blk_hash_t const &genesis, addr_t node_addr) : Dag(genesis, node_addr) {}
+  explicit PivotTree(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr)
+      : Dag(dag_genesis_block_hash, node_addr) {}
   virtual ~PivotTree() = default;
 
   PivotTree(const PivotTree &) = default;
@@ -120,24 +120,37 @@ class PivotTree : public Dag {
   PivotTree &operator=(const PivotTree &) = default;
   PivotTree &operator=(PivotTree &&) = default;
 
-  using vertex_t = Dag::vertex_t;
-  using vertex_adj_iter_t = Dag::vertex_adj_iter_t;
-  using vertex_index_map_const_t = Dag::vertex_index_map_const_t;
+  using Dag::vertex_adj_iter_t;
+  using Dag::vertex_index_map_const_t;
+  using Dag::vertex_t;
 
   void getGhostPath(blk_hash_t const &vertex, std::vector<blk_hash_t> &pivot_chain) const;
 };
 class DagBuffer;
 class FullNode;
 
+/**
+ * @brief DagManager class contains in memory representation of part of the DAG that is not yet finalized in a pbft
+ * block.
+ *
+ * DagManager provides ordering of non-finalized DAG block with getDagOrder method. Once a pbft block is finalized
+ * setDagBlockOrder is invoked which removes all the finalized DAG blocks from in memory DAG.
+ * Class is running a dedicated worker thread which inserts new and verified DAG blocks provided by DagBlockManager into
+ * the DAG and updates the state of DAG blocks and transactions blocks consist of by interacting with TransactionManager
+ * class.
+ * DagManager class is thread safe in general with exception of function setDagBlockOrder. See details in function
+ * descriptions.
+ */
 class DagManager : public std::enable_shared_from_this<DagManager> {
  public:
   using ULock = std::unique_lock<std::shared_mutex>;
   using SharedLock = std::shared_lock<std::shared_mutex>;
 
-  explicit DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
-                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                      std::shared_ptr<DbStorage> db, logger::Logger log_time, bool is_light_node = false,
-                      uint64_t light_node_history = 0, uint32_t max_levels_per_period = kMaxLevelsPerPeriod,
+  explicit DagManager(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr,
+                      std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<PbftChain> pbft_chain,
+                      std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
+                      bool is_light_node = false, uint64_t light_node_history = 0,
+                      uint32_t max_levels_per_period = kMaxLevelsPerPeriod,
                       uint32_t dag_expiry_limit = kDagExpiryLevelLimit);
   virtual ~DagManager() { stop(); }
 
@@ -147,17 +160,44 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   DagManager &operator=(DagManager &&) = delete;
 
   std::shared_ptr<DagManager> getShared();
+
+  /**
+   * @brief Start the worker thread processing new DAG blocks
+   */
   void start();
+
+  /**
+   * @brief Stop the worker thread and waits until thread exits
+   */
   void stop();
+
   void setNetwork(std::weak_ptr<Network> network) { network_ = std::move(network); }
 
-  blk_hash_t const &get_genesis() { return genesis_; }
-
+  /**
+   * @brief Checks if block pivot and tips are in DAG
+   * @param blk Block to check
+   * @return true if all pivot and tips are in the DAG
+   */
   bool pivotAndTipsAvailable(DagBlock const &blk);
+
+  /**
+   * @brief adds verified DAG block in the DAG
+   * @param trxs Block transactions which are part of the pool, transactions that are already present in a previous DAG
+   * block are excluded
+   * @param proposed if this node proposed the block
+   * @param save if true save block and transactions to database
+   * @return true if block added successfully
+   */
   bool addDagBlock(DagBlock &&blk, SharedTransactions &&trxs = {}, bool proposed = false,
                    bool save = true);  // insert to buffer if fail
 
-  // return block order
+  /**
+   * @brief Retrieves DAG block order for specified anchor. Order should always be the same for the same anchor in the
+   * same period
+   * @param anchor anchor block
+   * @param period period
+   * @return ordered blocks
+   */
   vec_blk_t getDagBlockOrder(blk_hash_t const &anchor, uint64_t period);
 
   /**
@@ -178,8 +218,19 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   std::optional<std::pair<blk_hash_t, std::vector<blk_hash_t>>> getLatestPivotAndTips() const;
 
+  /**
+   * @brief Retrieves ghost path which is ordered list of non finalized pivot blocks for a specific source block
+   * @param source source block
+   * @param ghost returned ordered blocks
+   */
   void getGhostPath(blk_hash_t const &source, std::vector<blk_hash_t> &ghost) const;
+
+  /**
+   * @brief Retrieves ghost path which is ordered list of non finalized pivot blocks for last anchor
+   * @param ghost returned ordered blocks
+   */
   void getGhostPath(std::vector<blk_hash_t> &ghost) const;  // get ghost path from last anchor
+
   // ----- Total graph
   void drawTotalGraph(std::string const &str) const;
 
@@ -262,7 +313,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   blk_hash_t anchor_;      // anchor of the last period
   blk_hash_t old_anchor_;  // anchor of the second to last period
   uint64_t period_;        // last period
-  blk_hash_t genesis_;
   std::map<uint64_t, std::unordered_set<blk_hash_t>> non_finalized_blks_;
   DagFrontier frontier_;
   std::atomic<bool> stopped_ = true;
@@ -274,8 +324,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   const uint32_t dag_expiry_limit_;  // Any non finalized dag block with a level smaller by
                                      // dag_expiry_limit_ than the current period anchor level is considered
                                      // expired and it should be ignored or removed from DAG
-
-  logger::Logger log_time_;
   LOG_OBJECTS_DEFINE
 };
 

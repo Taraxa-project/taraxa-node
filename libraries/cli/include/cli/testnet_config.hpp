@@ -8,13 +8,9 @@ constexpr std::string_view testnet_json = R"foo({
   "node_secret": "",
   "vrf_secret": "",
   "data_path": "",
-  "network_is_boot_node": false,
   "network_listen_ip": "0.0.0.0",
   "network_tcp_port": 10002,
-  "network_udp_port": 10002,
-  "network_simulated_delay": 0,
   "network_transaction_interval": 100,
-  "network_bandwidth": 40,
   "network_ideal_peer_count": 10,
   "network_max_peer_count": 50,
   "network_sync_level_size": 10,
@@ -59,16 +55,12 @@ constexpr std::string_view testnet_json = R"foo({
     "ws_port": 8777,
     "threads_num": 10
   },
-  "test_params": {
-    "max_transactions_pool_warn": 0,
-    "max_transactions_pool_drop": 0,
-    "max_block_queue_warn": 0,
+  "max_transactions_pool_warn": 0,
+  "max_transactions_pool_drop": 0,
+  "max_block_queue_warn": 0,
+  "db_config": {
     "db_snapshot_each_n_pbft_block": 10000,
-    "db_max_snapshots": 5,
-    "block_proposer": {
-      "shard": 1,
-      "transaction_limit": 250
-    }
+    "db_max_snapshots": 5
   },
   "logging": {
     "configurations": [
@@ -193,36 +185,88 @@ constexpr std::string_view testnet_json = R"foo({
       "level": "0x0",
       "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
       "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
-      "timestamp": "0x626FB9AF",
+      "timestamp": "0x62947A63",
       "tips": [],
       "transactions": []
     },
     "final_chain": {
       "genesis_block_fields": {
         "author": "0x0000000000000000000000000000000000000000",
-        "timestamp": "0x626FB9AF"
+        "timestamp": "0x62947A63"
       },
       "state": {
-        "disable_block_rewards": true,
         "dpos": {
-          "deposit_delay": "0x5",
-          "withdrawal_delay": "0x5",
+          "delegation_delay": "0x5",
+          "delegation_locking_period": "0x5",
           "eligibility_balance_threshold": "0xd3c21bcecceda1000000",
           "vote_eligibility_balance_step": "0x152d02c7e14af6800000",
-          "maximum_stake":"0x0",
+          "validator_maximum_stake":"0x84595161401484A000000",
           "minimum_deposit":"0x0",
           "commission_change_delta":"0x0",
           "commission_change_frequency":"0x0",
-          "genesis_state": {
-            "0x76870407332398322576505f3c5423d0a71af296": {
-              "0x18551e353aa65bc0ffbdf9d93b7ad4a8fe29cf95": "0x84595161401484a000000",
-              "0xc578bb5fc3dac3e96a8c4cb126c71d2dc9082817": "0x84595161401484a000000",
-              "0x5c9afb23fba3967ca6102fb60c9949f6a38cd9e8": "0x84595161401484a000000",
-              "0x403480c2b2ade0851c62bd1ff7a594c416aff7ce": "0x84595161401484a000000",
-              "0x5042fa2711fe547e46c2f64852fdaa5982c80697": "0x84595161401484a000000",
-              "0x6258d8f51ea17e873f69a2a978fe311fd95743dd": "0x84595161401484a000000"
+          "yield_percentage":"0x14",
+          "initial_validators": [
+            {
+              "address": "0x18551e353aa65bc0ffbdf9d93b7ad4a8fe29cf95",
+              "owner": "0x18551e353aa65bc0ffbdf9d93b7ad4a8fe29cf95",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa testnet validator 1",
+              "delegations": {
+                "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0xc578bb5fc3dac3e96a8c4cb126c71d2dc9082817",
+              "owner": "0xc578bb5fc3dac3e96a8c4cb126c71d2dc9082817",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa testnet validator 2",
+              "delegations": {
+                "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x5c9afb23fba3967ca6102fb60c9949f6a38cd9e8",
+              "owner": "0x5c9afb23fba3967ca6102fb60c9949f6a38cd9e8",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa testnet validator 3",
+              "delegations": {
+                "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x403480c2b2ade0851c62bd1ff7a594c416aff7ce",
+              "owner": "0x403480c2b2ade0851c62bd1ff7a594c416aff7ce",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa testnet validator 4",
+              "delegations": {
+                "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x5042fa2711fe547e46c2f64852fdaa5982c80697",
+              "owner": "0x5042fa2711fe547e46c2f64852fdaa5982c80697",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa testnet validator 5",
+              "delegations": {
+                "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x6258d8f51ea17e873f69a2a978fe311fd95743dd",
+              "owner": "0x6258d8f51ea17e873f69a2a978fe311fd95743dd",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa testnet validator 6",
+              "delegations": {
+                "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
+              }
             }
-          }
+          ]
         },
         "eth_chain_config": {
           "byzantium_block": "0x0",
@@ -237,6 +281,10 @@ constexpr std::string_view testnet_json = R"foo({
           "disable_gas_fee": false,
           "disable_nonce_check": false,
           "enable_nonce_skipping": true
+        },
+        "block_rewards_options": {
+          "disable_block_rewards": true,
+          "disable_contract_distribution": true
         },
         "genesis_balances": {
           "76870407332398322576505f3c5423d0a71af296": "0x117364175f2cb0e1dfc0000",
@@ -257,10 +305,13 @@ constexpr std::string_view testnet_json = R"foo({
       "dag_blocks_size": "0x32",
       "ghost_path_move_back": "0x0",
       "lambda_ms_min": "0x5dc",
-      "run_count_votes": false,
       "gas_limit": "0x3938700"
     },
     "dag": {
+      "block_proposer": {
+        "shard": 1,
+        "transaction_limit": 250
+      },
       "gas_limit": "0x989680"
     },
     "replay_protection_service": {

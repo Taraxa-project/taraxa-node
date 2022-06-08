@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "common/types.hpp"
+#include "dag/dag_block.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
@@ -16,7 +17,6 @@ namespace taraxa {
 
 class Vote;
 class PbftBlock;
-class DagBlock;
 
 /**
  * @brief SyncBlock class is for block execution, that includes PBFT block, certify votes, DAG blocks, and transactions

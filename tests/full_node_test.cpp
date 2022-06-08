@@ -199,16 +199,16 @@ TEST_F(FullNodeTest, db_test) {
   auto pbft_block3 = make_simple_pbft_block(blk_hash_t(3), 3);
   auto pbft_block4 = make_simple_pbft_block(blk_hash_t(4), 4);
   EXPECT_EQ(db.getPbftCertVotedBlock(blk_hash_t(1)), nullptr);
-  db.savePbftCertVotedBlock(pbft_block1);
-  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block1.getBlockHash())->rlp(false), pbft_block1.rlp(false));
+  db.savePbftCertVotedBlock(*pbft_block1);
+  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block1->getBlockHash())->rlp(false), pbft_block1->rlp(false));
   batch = db.createWriteBatch();
-  db.addPbftCertVotedBlockToBatch(pbft_block2, batch);
-  db.addPbftCertVotedBlockToBatch(pbft_block3, batch);
-  db.addPbftCertVotedBlockToBatch(pbft_block4, batch);
+  db.addPbftCertVotedBlockToBatch(*pbft_block2, batch);
+  db.addPbftCertVotedBlockToBatch(*pbft_block3, batch);
+  db.addPbftCertVotedBlockToBatch(*pbft_block4, batch);
   db.commitWriteBatch(batch);
-  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block2.getBlockHash())->rlp(false), pbft_block2.rlp(false));
-  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block3.getBlockHash())->rlp(false), pbft_block3.rlp(false));
-  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block4.getBlockHash())->rlp(false), pbft_block4.rlp(false));
+  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block2->getBlockHash())->rlp(false), pbft_block2->rlp(false));
+  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block3->getBlockHash())->rlp(false), pbft_block3->rlp(false));
+  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block4->getBlockHash())->rlp(false), pbft_block4->rlp(false));
 
   // pbft_blocks and cert votes
   EXPECT_FALSE(db.pbftBlockInDb(blk_hash_t(0)));
@@ -233,10 +233,10 @@ TEST_F(FullNodeTest, db_test) {
   batch = db.createWriteBatch();
   std::vector<std::shared_ptr<Vote>> votes;
 
-  SyncBlock sync_block1(std::make_shared<PbftBlock>(pbft_block1), cert_votes);
-  SyncBlock sync_block2(std::make_shared<PbftBlock>(pbft_block2), votes);
-  SyncBlock sync_block3(std::make_shared<PbftBlock>(pbft_block3), votes);
-  SyncBlock sync_block4(std::make_shared<PbftBlock>(pbft_block4), votes);
+  SyncBlock sync_block1(pbft_block1, cert_votes);
+  SyncBlock sync_block2(pbft_block2, votes);
+  SyncBlock sync_block3(pbft_block3, votes);
+  SyncBlock sync_block4(pbft_block4, votes);
 
   db.savePeriodData(sync_block1, batch);
   db.savePeriodData(sync_block2, batch);
@@ -244,22 +244,22 @@ TEST_F(FullNodeTest, db_test) {
   db.savePeriodData(sync_block4, batch);
 
   db.commitWriteBatch(batch);
-  EXPECT_TRUE(db.pbftBlockInDb(pbft_block1.getBlockHash()));
-  EXPECT_TRUE(db.pbftBlockInDb(pbft_block2.getBlockHash()));
-  EXPECT_TRUE(db.pbftBlockInDb(pbft_block3.getBlockHash()));
-  EXPECT_TRUE(db.pbftBlockInDb(pbft_block4.getBlockHash()));
-  EXPECT_EQ(db.getPbftBlock(pbft_block1.getBlockHash())->rlp(false), pbft_block1.rlp(false));
-  EXPECT_EQ(db.getPbftBlock(pbft_block2.getBlockHash())->rlp(false), pbft_block2.rlp(false));
-  EXPECT_EQ(db.getPbftBlock(pbft_block3.getBlockHash())->rlp(false), pbft_block3.rlp(false));
-  EXPECT_EQ(db.getPbftBlock(pbft_block4.getBlockHash())->rlp(false), pbft_block4.rlp(false));
+  EXPECT_TRUE(db.pbftBlockInDb(pbft_block1->getBlockHash()));
+  EXPECT_TRUE(db.pbftBlockInDb(pbft_block2->getBlockHash()));
+  EXPECT_TRUE(db.pbftBlockInDb(pbft_block3->getBlockHash()));
+  EXPECT_TRUE(db.pbftBlockInDb(pbft_block4->getBlockHash()));
+  EXPECT_EQ(db.getPbftBlock(pbft_block1->getBlockHash())->rlp(false), pbft_block1->rlp(false));
+  EXPECT_EQ(db.getPbftBlock(pbft_block2->getBlockHash())->rlp(false), pbft_block2->rlp(false));
+  EXPECT_EQ(db.getPbftBlock(pbft_block3->getBlockHash())->rlp(false), pbft_block3->rlp(false));
+  EXPECT_EQ(db.getPbftBlock(pbft_block4->getBlockHash())->rlp(false), pbft_block4->rlp(false));
 
-  SyncBlock pbft_block_cert_votes(std::make_shared<PbftBlock>(pbft_block1), cert_votes);
-  auto cert_votes_from_db = db.getCertVotes(pbft_block1.getPeriod());
-  SyncBlock pbft_block_cert_votes_from_db(std::make_shared<PbftBlock>(pbft_block1), cert_votes_from_db);
+  SyncBlock pbft_block_cert_votes(pbft_block1, cert_votes);
+  auto cert_votes_from_db = db.getCertVotes(pbft_block1->getPeriod());
+  SyncBlock pbft_block_cert_votes_from_db(pbft_block1, cert_votes_from_db);
   EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
 
   // pbft_blocks (head)
-  PbftChain pbft_chain(blk_hash_t(0), addr_t(), db_ptr);
+  PbftChain pbft_chain(addr_t(), db_ptr);
   db.savePbftHead(pbft_chain.getHeadHash(), pbft_chain.getJsonStr());
   EXPECT_EQ(db.getPbftHead(pbft_chain.getHeadHash()), pbft_chain.getJsonStr());
   batch = db.createWriteBatch();
@@ -1360,7 +1360,7 @@ TEST_F(FullNodeTest, db_rebuild) {
   {
     std::cout << "Test rebuild DB" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
-    node_cfgs[0].test_params.rebuild_db = true;
+    node_cfgs[0].db_config.rebuild_db = true;
     auto nodes = launch_nodes(node_cfgs);
   }
 
@@ -1377,8 +1377,8 @@ TEST_F(FullNodeTest, db_rebuild) {
   {
     std::cout << "Test rebuild for period 5" << std::endl;
     auto node_cfgs = make_node_cfgs<5>(1);
-    node_cfgs[0].test_params.rebuild_db = true;
-    node_cfgs[0].test_params.rebuild_db_period = 5;
+    node_cfgs[0].db_config.rebuild_db = true;
+    node_cfgs[0].db_config.rebuild_db_period = 5;
     auto nodes = launch_nodes(node_cfgs);
   }
 
@@ -1439,18 +1439,18 @@ TEST_F(FullNodeTest, chain_config_json) {
       "timestamp": "0x0"
     },
     "state": {
-      "disable_block_rewards": true,
       "dpos": {
-        "deposit_delay": "0x0",
+        "delegation_delay": "0x0",
+        "delegation_locking_period": "0x0",
         "eligibility_balance_threshold": "0x3b9aca00",
         "vote_eligibility_balance_step": "0x3b9aca00",
-        "maximum_stake":"0x0",
+        "validator_maximum_stake":"0x84595161401484a000000",
         "minimum_deposit":"0x0",
         "commission_change_delta":"0x0",
         "commission_change_frequency":"0x0",
-        "genesis_state": {
-        },
-        "withdrawal_delay": "0x0"
+        "yield_percentage":"0x14",
+        "blocks_per_year":"0x3c2670",
+        "initial_validators": []
       },
       "eth_chain_config": {
         "byzantium_block": "0x0",
@@ -1462,9 +1462,13 @@ TEST_F(FullNodeTest, chain_config_json) {
         "petersburg_block": "0x0"
       },
       "execution_options": {
-        "disable_gas_fee": false,
+        "disable_gas_fee": true,
         "disable_nonce_check": false,
         "enable_nonce_skipping": false
+      },
+      "block_rewards_options": {
+        "disable_block_rewards": true,
+        "disable_contract_distribution": true
       },
       "genesis_balances": {
       }
@@ -1480,10 +1484,13 @@ TEST_F(FullNodeTest, chain_config_json) {
     "ghost_path_move_back": "0x1",
     "lambda_ms_min": "0x7d0",
     "number_of_proposers" : "0x14",
-    "run_count_votes": false,
     "gas_limit": "0x3938700"
   },
   "dag": {
+    "block_proposer": {
+      "shard": "0x1",
+      "transaction_limit": "0xfa"
+    },
     "gas_limit": "0x989680"
   },
   "sortition": {

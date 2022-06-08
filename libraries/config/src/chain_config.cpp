@@ -5,8 +5,9 @@
 #include <sstream>
 
 #include "common/config_exception.hpp"
+#include "libdevcore/SHA3.h"
 
-namespace taraxa::chain_config {
+namespace taraxa {
 using std::stringstream;
 
 Json::Value enc_json(GasPriceConfig const& obj) {
@@ -27,7 +28,17 @@ void GasPriceConfig::validate() const {
   }
 }
 
-Json::Value enc_json(ChainConfig const& obj) {
+bytes GasPriceConfig::rlp() const {
+  dev::RLPStream s;
+  s.appendList(2);
+
+  s << percentile;
+  s << blocks;
+
+  return s.out();
+}
+
+Json::Value enc_json(const ChainConfig& obj) {
   Json::Value json(Json::objectValue);
   if (obj.chain_id) {
     json["chain_id"] = dev::toJS(obj.chain_id);
@@ -75,11 +86,12 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
       "timestamp": 1564617600,
       "vdf": ""
     })"));
-    cfg.final_chain.state.disable_block_rewards = true;
+
+    cfg.final_chain.state.block_rewards_options.disable_block_rewards = true;
+    cfg.final_chain.state.block_rewards_options.disable_contract_distribution = true;
+    cfg.final_chain.state.execution_options.disable_gas_fee = true;
     cfg.final_chain.state.eth_chain_config.dao_fork_block = state_api::BlockNumberNIL;
-    auto& dpos = cfg.final_chain.state.dpos.emplace();
-    dpos.eligibility_balance_threshold = 1000000000;
-    dpos.vote_eligibility_balance_step = 1000000000;
+
     // VDF config
     cfg.sortition.vrf.threshold_upper = 0xafff;
     cfg.sortition.vrf.threshold_range = 80;
@@ -87,15 +99,28 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     cfg.sortition.vdf.difficulty_max = 21;
     cfg.sortition.vdf.difficulty_stale = 23;
     cfg.sortition.vdf.lambda_bound = 100;
+
     // PBFT config
     cfg.pbft.lambda_ms_min = 2000;
     cfg.pbft.committee_size = 5;
     cfg.pbft.dag_blocks_size = 100;
     cfg.pbft.ghost_path_move_back = 1;
-    cfg.pbft.run_count_votes = false;
     cfg.pbft.gas_limit = 60000000;
+
     // DAG config
     cfg.dag.gas_limit = 10000000;
+
+    // DPOS config
+    auto& dpos = cfg.final_chain.state.dpos.emplace();
+    dpos.eligibility_balance_threshold = 1000000000;
+    dpos.vote_eligibility_balance_step = 1000000000;
+    dpos.validator_maximum_stake = dev::jsToU256("0x84595161401484A000000");
+    dpos.yield_percentage = 20;
+
+    uint64_t year_ms = 365 * 24 * 60 * 60;
+    year_ms *= 1000;
+    dpos.blocks_per_year = year_ms / (4 * cfg.pbft.lambda_ms_min);
+
     return cfg;
   }();
   cfgs["test"] = [&] {
@@ -111,4 +136,21 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
 
 void ChainConfig::validate() const { gas_price.validate(); }
 
-}  // namespace taraxa::chain_config
+bytes ChainConfig::rlp() const {
+  dev::RLPStream s;
+  s.appendList(7);
+
+  s << chain_id;
+  s << dag_genesis_block.rlp(true);
+  s << gas_price.rlp();
+  s << sortition.rlp();
+  s << pbft.rlp();
+  s << final_chain.rlp();
+  s << dag.rlp();
+
+  return s.out();
+}
+
+blk_hash_t ChainConfig::genesisHash() const { return dev::sha3(rlp()); }
+
+}  // namespace taraxa

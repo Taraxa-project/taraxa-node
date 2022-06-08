@@ -28,39 +28,55 @@
 namespace taraxa::network::tarcap {
 
 TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key,
-                                   const NetworkConfig &conf, std::shared_ptr<DbStorage> db,
-                                   std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
-                                   std::shared_ptr<VoteManager> vote_mgr,
-                                   std::shared_ptr<NextVotesManager> next_votes_mgr,
-                                   std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                                   std::shared_ptr<TransactionManager> trx_mgr, addr_t const &node_addr)
+                                   const NetworkConfig &conf, unsigned version)
     : test_state_(std::make_shared<TestState>()),
+      version_(version),
+      net_conf_(conf),
       peers_state_(nullptr),
       pbft_syncing_state_(std::make_shared<PbftSyncingState>(conf.deep_syncing_threshold)),
       node_stats_(nullptr),
       packets_handlers_(std::make_shared<PacketsHandler>()),
-      thread_pool_(std::make_shared<TarcapThreadPool>(conf.network_packets_processing_threads, node_addr)),
+      thread_pool_(std::make_shared<TarcapThreadPool>(conf.network_packets_processing_threads, key.address())),
       periodic_events_tp_(std::make_shared<util::ThreadPool>(kPeriodicEventsThreadCount, false)) {
+  const auto &node_addr = key.address();
   LOG_OBJECTS_CREATE("TARCAP");
 
   assert(host.lock());
-  peers_state_ = std::make_shared<PeersState>(host, host.lock()->id(), conf);
+  peers_state_ = std::make_shared<PeersState>(host, host.lock()->id(), net_conf_);
 
-  auto packets_stats = std::make_shared<PacketsStats>(node_addr);
+  packets_stats_ = std::make_shared<PacketsStats>(node_addr);
 
   // Inits boot nodes (based on config)
   initBootNodes(conf.network_boot_nodes, key);
+}
 
+std::shared_ptr<TaraxaCapability> TaraxaCapability::make(
+    std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const NetworkConfig &conf, const h256 &genesis_hash,
+    unsigned version, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
+    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+    std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
+    std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr) {
+  auto instance = std::make_shared<TaraxaCapability>(host, key, conf, version);
+  instance->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr, dag_blk_mgr, trx_mgr,
+                 key.address());
+  return instance;
+}
+
+void TaraxaCapability::init(const h256 &genesis_hash, std::shared_ptr<DbStorage> db,
+                            std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
+                            std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
+                            std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                            std::shared_ptr<TransactionManager> trx_mgr, const dev::Address &node_addr) {
   // Creates and registers all packets handlers
-  registerPacketHandlers(conf, packets_stats, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr, dag_blk_mgr,
-                         trx_mgr, node_addr);
+  registerPacketHandlers(net_conf_, genesis_hash, packets_stats_, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr,
+                         dag_mgr, dag_blk_mgr, trx_mgr, node_addr);
 
   // Inits periodic events. Must be called after registerHandlers !!!
-  initPeriodicEvents(conf, pbft_mgr, trx_mgr, packets_stats);
+  initPeriodicEvents(net_conf_, pbft_mgr, trx_mgr, packets_stats_);
 }
 
 void TaraxaCapability::initBootNodes(const std::vector<NodeConfig> &network_boot_nodes, const dev::KeyPair &key) {
-  auto resolveHost = [](string const &addr, uint16_t port) {
+  auto resolveHost = [](const std::string &addr, uint16_t port) {
     static boost::asio::io_context s_resolverIoService;
     boost::system::error_code ec;
     bi::address address = bi::address::from_string(addr, ec);
@@ -166,11 +182,12 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::
 }
 
 void TaraxaCapability::registerPacketHandlers(
-    const NetworkConfig &conf, const std::shared_ptr<PacketsStats> &packets_stats, const std::shared_ptr<DbStorage> &db,
-    const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
-    const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<NextVotesManager> &next_votes_mgr,
-    const std::shared_ptr<DagManager> &dag_mgr, const std::shared_ptr<DagBlockManager> &dag_blk_mgr,
-    const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr) {
+    const NetworkConfig &conf, const h256 &genesis_hash, const std::shared_ptr<PacketsStats> &packets_stats,
+    const std::shared_ptr<DbStorage> &db, const std::shared_ptr<PbftManager> &pbft_mgr,
+    const std::shared_ptr<PbftChain> &pbft_chain, const std::shared_ptr<VoteManager> &vote_mgr,
+    const std::shared_ptr<NextVotesManager> &next_votes_mgr, const std::shared_ptr<DagManager> &dag_mgr,
+    const std::shared_ptr<DagBlockManager> &dag_blk_mgr, const std::shared_ptr<TransactionManager> &trx_mgr,
+    addr_t const &node_addr) {
   node_stats_ = std::make_shared<NodeStats>(peers_state_, pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr,
                                             dag_blk_mgr, vote_mgr, trx_mgr, packets_stats, thread_pool_, node_addr);
 
@@ -197,7 +214,7 @@ void TaraxaCapability::registerPacketHandlers(
   // Non critical packets with low processing priority
   packets_handlers_->registerHandler<StatusPacketHandler>(peers_state_, packets_stats, pbft_syncing_state_, pbft_chain,
                                                           pbft_mgr, dag_mgr, dag_blk_mgr, next_votes_mgr, db,
-                                                          conf.network_id, node_addr);
+                                                          conf.network_id, genesis_hash, node_addr);
   packets_handlers_->registerHandler<GetDagSyncPacketHandler>(peers_state_, packets_stats, trx_mgr, dag_mgr,
                                                               dag_blk_mgr, db, node_addr);
 
@@ -217,7 +234,7 @@ void TaraxaCapability::registerPacketHandlers(
 
 std::string TaraxaCapability::name() const { return TARAXA_CAPABILITY_NAME; }
 
-unsigned TaraxaCapability::version() const { return TARAXA_NET_VERSION; }
+unsigned TaraxaCapability::version() const { return version_; }
 
 unsigned TaraxaCapability::messageCount() const { return SubprotocolPacketType::PacketCount; }
 
@@ -250,7 +267,7 @@ void TaraxaCapability::onDisconnect(dev::p2p::NodeID const &_nodeID) {
   if (pbft_syncing_state_->isPbftSyncing() && pbft_syncing_state_->syncingPeer() == _nodeID) {
     if (peers_state_->getPeersCount() > 0) {
       LOG(log_dg_) << "Restart PBFT/DAG syncing due to syncing peer disconnect.";
-      restartSyncingPbft(true);
+      packets_handlers_->getSpecificHandler<PbftSyncPacketHandler>()->restartSyncingPbft(true);
     } else {
       LOG(log_dg_) << "Stop PBFT/DAG syncing due to syncing peer disconnect and no other peers available.";
       pbft_syncing_state_->setPbftSyncing(false);
@@ -331,68 +348,14 @@ const std::shared_ptr<PeersState> &TaraxaCapability::getPeersState() { return pe
 
 const std::shared_ptr<NodeStats> &TaraxaCapability::getNodeStats() { return node_stats_; }
 
-void TaraxaCapability::restartSyncingPbft(bool force) {
-  packets_handlers_->getSpecificHandler<PbftSyncPacketHandler>()->restartSyncingPbft(force);
-}
-
 bool TaraxaCapability::pbft_syncing() const { return pbft_syncing_state_->isPbftSyncing(); }
-
-void TaraxaCapability::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) {
-  packets_handlers_->getSpecificHandler<PbftSyncPacketHandler>()->handleMaliciousSyncPeer(id);
-}
-
-void TaraxaCapability::onNewBlockVerified(DagBlock &&blk, bool proposed, SharedTransactions &&trxs) {
-  packets_handlers_->getSpecificHandler<DagBlockPacketHandler>()->onNewBlockVerified(std::move(blk), proposed,
-                                                                                     std::move(trxs));
-}
-
-void TaraxaCapability::onNewTransactions(
-    std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> &&transactions) {
-  packets_handlers_->getSpecificHandler<TransactionPacketHandler>()->onNewTransactions(std::move(transactions));
-}
-
-void TaraxaCapability::onNewBlockReceived(DagBlock &&block) {
-  packets_handlers_->getSpecificHandler<DagBlockPacketHandler>()->onNewBlockReceived(std::move(block));
-}
-
-void TaraxaCapability::onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block) {
-  packets_handlers_->getSpecificHandler<PbftBlockPacketHandler>()->onNewPbftBlock(*pbft_block);
-}
-
-void TaraxaCapability::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes) {
-  packets_handlers_->getSpecificHandler<VotePacketHandler>()->onNewPbftVotes(std::move(votes));
-}
-
-void TaraxaCapability::broadcastPreviousRoundNextVotesBundle() {
-  packets_handlers_->getSpecificHandler<VotesSyncPacketHandler>()->broadcastPreviousRoundNextVotesBundle();
-}
-
-void TaraxaCapability::sendTransactions(dev::p2p::NodeID const &id, std::vector<taraxa::bytes> const &transactions) {
-  packets_handlers_->getSpecificHandler<TransactionPacketHandler>()->sendTransactions(id, transactions);
-}
 
 void TaraxaCapability::setSyncStatePeriod(uint64_t period) { pbft_syncing_state_->setSyncStatePeriod(period); }
 
 // METHODS USED IN TESTS ONLY
-void TaraxaCapability::sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, const SharedTransactions &trxs) {
-  packets_handlers_->getSpecificHandler<DagBlockPacketHandler>()->sendBlock(id, blk, trxs);
-}
-
-void TaraxaCapability::sendBlocks(const dev::p2p::NodeID &id, std::vector<std::shared_ptr<DagBlock>> &&blocks,
-                                  SharedTransactions &&transactions, uint64_t request_period, uint64_t period) {
-  packets_handlers_->getSpecificHandler<GetDagSyncPacketHandler>()->sendBlocks(
-      id, std::move(blocks), std::move(transactions), request_period, period);
-}
-
 size_t TaraxaCapability::getReceivedBlocksCount() const { return test_state_->getBlocksSize(); }
 
 size_t TaraxaCapability::getReceivedTransactionsCount() const { return test_state_->getTransactionsSize(); }
-
-// PBFT
-void TaraxaCapability::sendPbftBlock(const dev::p2p::NodeID &id, const PbftBlock &pbft_block,
-                                     uint64_t pbft_chain_size) {
-  packets_handlers_->getSpecificHandler<PbftBlockPacketHandler>()->sendPbftBlock(id, pbft_block, pbft_chain_size);
-}
-
 // END METHODS USED IN TESTS ONLY
+
 }  // namespace taraxa::network::tarcap

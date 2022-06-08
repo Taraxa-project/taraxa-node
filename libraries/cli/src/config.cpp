@@ -34,7 +34,6 @@ Config::Config(int argc, const char* argv[]) {
   string vrf_secret;
   bool overwrite_config;
 
-  bool boot_node = false;
   bool destroy_db = false;
   bool rebuild_network = false;
   bool rebuild_db = false;
@@ -87,7 +86,6 @@ Config::Config(int argc, const char* argv[]) {
   node_command_options.add_options()(NETWORK_ID, bpo::value<int>(&network_id),
                                      "Network identifier (integer, 1=Mainnet, 2=Testnet, 3=Devnet) (default: 1)"
                                      "Only used when creating new config file");
-  node_command_options.add_options()(BOOT_NODE, bpo::bool_switch(&boot_node), "Run as bootnode (default: false)");
 
   node_command_options.add_options()(BOOT_NODES, bpo::value<vector<string>>(&boot_nodes)->multitoken(),
                                      "Boot nodes to connect to: [ip_address:port_number/node_id, ....]");
@@ -185,7 +183,7 @@ Config::Config(int argc, const char* argv[]) {
     }
 
     // Override config values with values from CLI
-    config_json = Tools::overrideConfig(config_json, data_dir, boot_node, boot_nodes, log_channels, log_configurations,
+    config_json = Tools::overrideConfig(config_json, data_dir, boot_nodes, log_channels, log_configurations,
                                         boot_nodes_append, log_channels_append);
     wallet_json = Tools::overrideWallet(wallet_json, node_secret, vrf_secret);
 
@@ -223,10 +221,10 @@ Config::Config(int argc, const char* argv[]) {
     if (!public_ip.empty()) {
       node_config_.network.network_public_ip = public_ip;
     }
-    node_config_.test_params.db_revert_to_period = revert_to_period;
-    node_config_.test_params.rebuild_db = rebuild_db;
-    node_config_.test_params.rebuild_db_columns = rebuild_db_columns;
-    node_config_.test_params.rebuild_db_period = rebuild_db_period;
+    node_config_.db_config.db_revert_to_period = revert_to_period;
+    node_config_.db_config.rebuild_db = rebuild_db;
+    node_config_.db_config.rebuild_db_columns = rebuild_db_columns;
+    node_config_.db_config.rebuild_db_period = rebuild_db_period;
     if (command[0] == NODE_COMMAND) node_configured_ = true;
   } else if (command[0] == ACCOUNT_COMMAND) {
     if (command.size() == 1)

@@ -15,12 +15,16 @@
 
 #include "dag/dag.hpp"
 #include "final_chain/final_chain.hpp"
+#include "network/tarcap/packets_handlers/pbft_block_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
 #include "vote_manager/vote_manager.hpp"
 
 namespace taraxa {
 using vrf_output_t = vrf_wrapper::vrf_output_t;
 
-PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr_t node_addr,
+PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_block_hash, addr_t node_addr,
                          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
                          std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
@@ -42,8 +46,8 @@ PbftManager::PbftManager(PbftConfig const &conf, blk_hash_t const &genesis, addr
       NUMBER_OF_PROPOSERS(conf.number_of_proposers),
       DAG_BLOCKS_SIZE(conf.dag_blocks_size),
       GHOST_PATH_MOVE_BACK(conf.ghost_path_move_back),
-      RUN_COUNT_VOTES(conf.run_count_votes),
-      dag_genesis_(genesis),
+      RUN_COUNT_VOTES(false),  // this field is for tests only and almost the time is disabled
+      dag_genesis_block_hash_(dag_genesis_block_hash),
       config_(conf),
       max_levels_per_period_(max_levels_per_period) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
@@ -307,13 +311,6 @@ size_t PbftManager::dposEligibleVoteCount_(addr_t const &addr) {
   }
 }
 
-// Only used by RPC call
-uint64_t PbftManager::getVoteWeight(PbftVoteTypes type, uint64_t round, size_t step) const {
-  VrfPbftSortition vrf_sortition(vrf_sk_, {type, round, step});
-  return vrf_sortition.calculateWeight(weighted_votes_count_, getDposTotalVotesCount(), getThreshold(type),
-                                       dev::toPublic(node_sk_));
-}
-
 void PbftManager::setPbftStep(size_t const pbft_step) {
   last_step_ = step_;
   db_->savePbftMgrField(PbftMgrRoundStep::PbftStep, pbft_step);
@@ -353,7 +350,7 @@ bool PbftManager::resetRound_() {
     return false;
   }
 
-  LOG(log_nf_) << "From votes determined round " << consensus_pbft_round;
+  LOG(log_nf_) << "Determined round from votes: " << consensus_pbft_round;
   round_clock_initial_datetime_ = now_;
   // Update current round and reset step to 1
   round_ = consensus_pbft_round;
@@ -819,7 +816,7 @@ void PbftManager::proposeBlock_() {
                      << " from previous round. In round " << round;
         // broadcast pbft block
         if (auto net = network_.lock()) {
-          net->onNewPbftBlock(pbft_block);
+          net->getSpecificHandler<network::tarcap::PbftBlockPacketHandler>()->onNewPbftBlock(pbft_block);
         }
       }
     }
@@ -947,7 +944,7 @@ void PbftManager::firstFinish_() {
       auto pbft_block = db_->getPbftCertVotedBlock(last_cert_voted_value_);
       assert(pbft_block);
       if (auto net = network_.lock()) {
-        net->onNewPbftBlock(pbft_block);
+        net->getSpecificHandler<network::tarcap::PbftBlockPacketHandler>()->onNewPbftBlock(pbft_block);
       }
     }
   } else {
@@ -993,7 +990,7 @@ void PbftManager::firstFinish_() {
         if (step_ % 20 == 0) {
           auto pbft_block = getUnfinalizedBlock_(own_starting_value_for_round_);
           if (auto net = network_.lock(); net && pbft_block) {
-            net->onNewPbftBlock(pbft_block);
+            net->getSpecificHandler<network::tarcap::PbftBlockPacketHandler>()->onNewPbftBlock(pbft_block);
           }
         }
       }
@@ -1016,7 +1013,8 @@ void PbftManager::secondFinish_() {
       // Have enough soft votes for a voting value
       auto net = network_.lock();
       assert(net);  // Should never happen
-      net->onNewPbftVotes(std::move(voted_block_hash_with_soft_votes->votes));
+      net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(
+          std::move(voted_block_hash_with_soft_votes->votes));
       LOG(log_dg_) << "Node has seen enough soft votes voted at " << voted_block_hash_with_soft_votes->voted_block_hash
                    << ", regossip soft votes. In round " << round << " step " << step_;
     }
@@ -1059,7 +1057,7 @@ void PbftManager::secondFinish_() {
     LOG(log_dg_) << "Node " << node_addr_ << " broadcast next votes for previous round. In round " << round << " step "
                  << step_;
     if (auto net = network_.lock()) {
-      net->broadcastPreviousRoundNextVotesBundle();
+      net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->broadcastPreviousRoundNextVotesBundle();
     }
     pbft_round_last_broadcast_ = round;
     pbft_step_last_broadcast_ = step_;
@@ -1079,7 +1077,7 @@ blk_hash_t PbftManager::generatePbftBlock(const blk_hash_t &prev_blk_hash, const
 
   // broadcast pbft block
   if (auto net = network_.lock()) {
-    net->onNewPbftBlock(pbft_block);
+    net->getSpecificHandler<network::tarcap::PbftBlockPacketHandler>()->onNewPbftBlock(pbft_block);
   }
 
   LOG(log_dg_) << node_addr_ << " propose PBFT block succussful! in round: " << round_ << " in step: " << step_
@@ -1121,7 +1119,7 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
     db_->saveVerifiedVote(vote);
     vote_mgr_->addVerifiedVote(vote);
     if (auto net = network_.lock()) {
-      net->onNewPbftVotes({std::move(vote)});
+      net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes({std::move(vote)});
     }
   }
 
@@ -1192,7 +1190,7 @@ blk_hash_t PbftManager::proposePbftBlock_() {
       prev_block_hash = prev_pbft_block.getPrevBlockHash();
       if (!prev_block_hash) {
         // The genesis PBFT block head
-        last_period_dag_anchor_block_hash = dag_genesis_;
+        last_period_dag_anchor_block_hash = dag_genesis_block_hash_;
         break;
       }
       prev_pbft_block = pbft_chain_->getPbftBlockInChain(prev_block_hash);
@@ -1200,7 +1198,7 @@ blk_hash_t PbftManager::proposePbftBlock_() {
     }
   } else {
     // First PBFT block
-    last_period_dag_anchor_block_hash = dag_genesis_;
+    last_period_dag_anchor_block_hash = dag_genesis_block_hash_;
   }
 
   std::vector<blk_hash_t> ghost;
@@ -1227,7 +1225,7 @@ blk_hash_t PbftManager::proposePbftBlock_() {
     dag_block_hash = ghost[DAG_BLOCKS_SIZE - 1];
   }
 
-  if (dag_block_hash == dag_genesis_) {
+  if (dag_block_hash == dag_genesis_block_hash_) {
     LOG(log_dg_) << "No new DAG blocks generated. DAG only has genesis " << dag_block_hash
                  << " PBFT propose NULL BLOCK HASH anchor";
     return generatePbftBlock(last_pbft_block_hash, NULL_BLOCK_HASH, NULL_BLOCK_HASH);
@@ -1699,8 +1697,8 @@ bool PbftManager::pushPbftBlock_(SyncBlock &&sync_block, vec_blk_t &&dag_blocks_
 
   last_cert_voted_value_ = NULL_BLOCK_HASH;
 
-  LOG(log_nf_) << node_addr_ << " successful push unexecuted PBFT block " << pbft_block_hash << " in period "
-               << pbft_period << " into chain! In round " << getPbftRound();
+  LOG(log_nf_) << "Pushed new PBFT block " << pbft_block_hash << " into chain. Period: " << pbft_period
+               << ", round: " << getPbftRound();
 
   finalize_(std::move(sync_block), std::move(dag_blocks_order));
 
@@ -1810,11 +1808,11 @@ std::shared_ptr<PbftBlock> PbftManager::getUnfinalizedBlock_(blk_hash_t const &b
   return block;
 }
 
-void PbftManager::countVotes_() {
+void PbftManager::countVotes_() const {
   auto round = getPbftRound();
   while (!monitor_stop_) {
     auto verified_votes = vote_mgr_->getVerifiedVotes();
-    auto unverified_votes = vote_mgr_->getUnverifiedVotes();
+    auto unverified_votes = vote_mgr_->copyUnverifiedVotes();
     std::vector<std::shared_ptr<Vote>> votes;
     votes.reserve(verified_votes.size() + unverified_votes.size());
     votes.insert(votes.end(), std::make_move_iterator(verified_votes.begin()),
@@ -1898,7 +1896,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
                  << sync_block.second.abridged() << " received, stop syncing.";
     sync_queue_.clear();
     // Handle malicious peer on network level
-    net->handleMaliciousSyncPeer(sync_block.second);
+    net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(sync_block.second);
     return std::nullopt;
   }
 
@@ -1914,7 +1912,7 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
                  << " doesn't have enough valid cert votes. Clear synced PBFT blocks! DPOS total votes count: "
                  << getDposTotalVotesCount();
     sync_queue_.clear();
-    net->handleMaliciousSyncPeer(sync_block.second);
+    net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(sync_block.second);
     return std::nullopt;
   }
 

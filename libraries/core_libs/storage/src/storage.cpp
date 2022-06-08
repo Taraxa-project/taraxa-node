@@ -234,6 +234,20 @@ void DbStorage::disableSnapshots() { snapshots_enabled_ = false; }
 
 void DbStorage::enableSnapshots() { snapshots_enabled_ = true; }
 
+void DbStorage::setGenesisHash(const h256& genesis_hash) {
+  if (!exist(0, Columns::genesis)) {
+    insert(Columns::genesis, 0, genesis_hash);
+  }
+}
+
+std::optional<h256> DbStorage::getGenesisHash() {
+  auto hash = asBytes(lookup(0, Columns::genesis));
+  if (hash.size() > 0) {
+    return h256(hash);
+  }
+  return {};
+}
+
 DbStorage::~DbStorage() {
   for (auto cf : handles_) {
     checkStatus(db_->DestroyColumnFamilyHandle(cf));
@@ -934,12 +948,6 @@ void DbStorage::saveProposalPeriodDagLevelsMap(uint64_t level, uint64_t period) 
 
 void DbStorage::addProposalPeriodDagLevelsMapToBatch(uint64_t level, uint64_t period, Batch& write_batch) {
   insert(write_batch, Columns::proposal_period_levels_map, toSlice(level), toSlice(period));
-}
-
-uint64_t DbStorage::getColumnSize(Column const& col) const {
-  rocksdb::ColumnFamilyMetaData data;
-  db_->GetColumnFamilyMetaData(handle(col), &data);
-  return data.size;
 }
 
 void DbStorage::forEach(Column const& col, OnEntry const& f) {

@@ -79,8 +79,13 @@ class SortitionPropose : public ProposeModelFace {
 };
 
 /**
- * Single thread
- * Block proproser request for unpacked transaction
+ * @brief BlockProposer class proposes new DAG blocks using transactions retrieved from TransactionManager
+ *
+ * Class is running a proposer thread which will try to propose DAG blocks if eligible to propose.
+ * Dag block proposal consists of calculating VDF if required.
+ * VDF calculation is asynchronous and it is interrupted if another node on the network has produced a valid block at
+ * the same level. Proposal includes stale block proposal in case no block is produced on the network for extended
+ * period of time.
  */
 class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
  public:
@@ -111,15 +116,51 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   BlockProposer& operator=(const BlockProposer&) = delete;
   BlockProposer& operator=(BlockProposer&&) = delete;
 
+  /**
+   * @brief Start the worker thread proposing new DAG blocks
+   */
   void start();
+
+  /**
+   * @brief Stop the worker thread
+   */
   void stop();
+
   std::shared_ptr<BlockProposer> getShared();
   void setNetwork(std::weak_ptr<Network> network) { network_ = move(network); }
+
+  /**
+   * @brief Creates/proposes a new block with provided data
+   * @param frontier frontier to use for pivot and tips of the new block
+   * @param level level of the new block
+   * @param proposal_period proposal period
+   * @param trxs transactions to be included in the block
+   * @param vdf vdf with correct difficulty calculation
+   */
   void proposeBlock(DagFrontier&& frontier, level_t level, uint64_t proposal_period, SharedTransactions&& trxs,
                     VdfSortition&& vdf);
+
+  /**
+   * @brief Gets transactions to include in the block - sharding not supported yet
+   * @return transactions
+   */
   SharedTransactions getShardedTrxs();
+
+  /**
+   * @brief Gets current propose level for provided pivot and tips
+   * @param pivot pivot block hash
+   * @param tips tips blocks hashes
+   * @return level
+   */
   level_t getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips);
+
+  /**
+   * @brief Checks if valid proposer for provided level
+   * @param level level of the new block
+   * @return true if eligible to propose
+   */
   bool validDposProposer(level_t const propose_level);
+
   // debug
   static uint64_t getNumProposedBlocks() { return BlockProposer::num_proposed_blocks; }
   friend ProposeModelFace;
@@ -144,5 +185,9 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   vrf_sk_t vrf_sk_;
   LOG_OBJECTS_DEFINE
 };
+
+/**
+ * @}
+ */
 
 }  // namespace taraxa

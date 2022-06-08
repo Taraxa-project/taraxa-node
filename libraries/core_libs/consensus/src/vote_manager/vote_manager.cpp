@@ -6,6 +6,7 @@
 #include <optional>
 
 #include "network/network.hpp"
+#include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
 #include "pbft/pbft_manager.hpp"
 
 constexpr size_t EXTENDED_PARTITION_STEPS = 1000;
@@ -39,7 +40,7 @@ void VoteManager::retreieveVotes_() {
     if (v->getStep() >= FIRST_FINISH_STEP && pbft_step > EXTENDED_PARTITION_STEPS) {
       std::vector<std::shared_ptr<Vote>> votes = {v};
       if (auto net = network_.lock()) {
-        net->onNewPbftVotes(std::move(votes));
+        net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(std::move(votes));
       }
     }
 
@@ -93,7 +94,7 @@ bool VoteManager::voteInUnverifiedMap(uint64_t pbft_round, vote_hash_t const& vo
   return false;
 }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getUnverifiedVotes() {
+std::vector<std::shared_ptr<Vote>> VoteManager::copyUnverifiedVotes() {
   std::vector<std::shared_ptr<Vote>> votes;
   votes.reserve(getUnverifiedVotesSize());
 
@@ -269,7 +270,7 @@ void VoteManager::clearVerifiedVotesTable() {
 void VoteManager::verifyVotes(uint64_t pbft_round, std::function<bool(std::shared_ptr<Vote> const&)> const& is_valid) {
   // Cleanup votes for previous rounds
   cleanupVotes(pbft_round);
-  auto votes_to_verify = getUnverifiedVotes();
+  auto votes_to_verify = copyUnverifiedVotes();
 
   h256 latest_final_chain_block_hash = final_chain_->block_header()->hash;
 
@@ -365,27 +366,6 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
     }
   }
   db_->commitWriteBatch(batch);
-}
-
-std::string VoteManager::getJsonStr(std::vector<std::shared_ptr<Vote>> const& votes) {
-  Json::Value ptroot;
-  Json::Value ptvotes(Json::arrayValue);
-
-  for (auto const& v : votes) {
-    Json::Value ptvote;
-    ptvote["vote_hash"] = v->getHash().toString();
-    ptvote["accounthash"] = v->getVoter().toString();
-    ptvote["sortition_proof"] = v->getSortitionProof().toString();
-    ptvote["vote_signature"] = v->getVoteSignature().toString();
-    ptvote["blockhash"] = v->getBlockHash().toString();
-    ptvote["type"] = v->getType();
-    ptvote["round"] = Json::Value::UInt64(v->getRound());
-    ptvote["step"] = Json::Value::UInt64(v->getStep());
-    ptvotes.append(ptvote);
-  }
-  ptroot["votes"] = ptvotes;
-
-  return ptroot.toStyledString();
 }
 
 std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t pbft_round) {

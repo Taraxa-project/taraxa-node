@@ -8,13 +8,9 @@ constexpr std::string_view mainnet_json = R"foo({
   "node_secret": "",
   "vrf_secret": "",
   "data_path": "",
-  "network_is_boot_node": false,
   "network_listen_ip": "0.0.0.0",
   "network_tcp_port": 10002,
-  "network_udp_port": 10002,
-  "network_simulated_delay": 0,
   "network_transaction_interval": 100,
-  "network_bandwidth": 40,
   "network_ideal_peer_count": 10,
   "network_max_peer_count": 50,
   "network_sync_level_size": 10,
@@ -74,16 +70,12 @@ constexpr std::string_view mainnet_json = R"foo({
     "ws_port": 8777,
     "threads_num": 10
   },
-  "test_params": {
-    "max_transactions_pool_warn": 0,
-    "max_transactions_pool_drop": 0,
-    "max_block_queue_warn": 0,
+  "max_transactions_pool_warn": 0,
+  "max_transactions_pool_drop": 0,
+  "max_block_queue_warn": 0,
+  "db_config": {
     "db_snapshot_each_n_pbft_block": 10000,
-    "db_max_snapshots": 5,
-    "block_proposer": {
-      "shard": 1,
-      "transaction_limit": 250
-    }
+    "db_max_snapshots": 5
   },
   "logging": {
     "configurations": [
@@ -218,29 +210,108 @@ constexpr std::string_view mainnet_json = R"foo({
         "timestamp": "0x61CD9F40"
       },
       "state": {
-        "disable_block_rewards": true,
         "dpos": {
-          "deposit_delay": "0x5",
-          "withdrawal_delay": "0x5",
+          "delegation_delay": "0x5",
+          "delegation_locking_period": "0x5",
           "eligibility_balance_threshold": "0x186A0",
           "vote_eligibility_balance_step": "0x186A0",
-          "maximum_stake":"0x0",
+          "validator_maximum_stake":"0x84595161401484A000000",
           "minimum_deposit":"0x0",
           "commission_change_delta":"0x0",
           "commission_change_frequency":"0x0",
-          "genesis_state": {
-            "0x0274cfffea9fa850e54c93a23042f12a87358a82": {
-              "0x1f8333245650a19a0683891b7afe7787a3ce9f00": "0x989680",
-              "0xd4e4728bea5a67dd70dccb742bdc9c3a48465bec": "0x989680",
-              "0xec591a85f613fe98f057dc09712a9b22cdd05845": "0x989680",
-              "0x267e780b7843992e57f52e13018f0f97467ac06e": "0x989680",
-              "0x9d047654e55248ec38aa6723a5ab36d171008584": "0x989680",
-              "0x0d149e61cc02b5893ef6fc33bc7d67ff13eeeee0": "0x989680",
-              "0x00ccd0de0809ac03fd292036ee1544185583cd88": "0x989680",
-              "0x6f96be7626a74e86c76e65ccbccf0a38e2b62fc5": "0x989680",
-              "0xd20131f980c9932b1df31cf3aafeecfb1d504381": "0x989680"
+          "yield_percentage":"0x14",
+          "initial_validators": [
+            {
+              "address": "0x1f8333245650a19a0683891b7afe7787a3ce9f00",
+              "owner": "0x1f8333245650a19a0683891b7afe7787a3ce9f00",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 1",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
+              }
+            },
+            {
+              "address": "0xd4e4728bea5a67dd70dccb742bdc9c3a48465bec",
+              "owner": "0xd4e4728bea5a67dd70dccb742bdc9c3a48465bec",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 2",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
+              }
+            },
+            {
+              "address": "0xec591a85f613fe98f057dc09712a9b22cdd05845",
+              "owner": "0xec591a85f613fe98f057dc09712a9b22cdd05845",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 3",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
+              }
+            },
+            {
+              "address": "0x267e780b7843992e57f52e13018f0f97467ac06e",
+              "owner": "0x267e780b7843992e57f52e13018f0f97467ac06e",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 4",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
+              }
+            },
+            {
+              "address": "0x9d047654e55248ec38aa6723a5ab36d171008584",
+              "owner": "0x9d047654e55248ec38aa6723a5ab36d171008584",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 5",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
+              }
+            },
+            {
+              "address": "0x0d149e61cc02b5893ef6fc33bc7d67ff13eeeee0",
+              "owner": "0x0d149e61cc02b5893ef6fc33bc7d67ff13eeeee0",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 6",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
+              }
+            },
+            {
+              "address": "0x00ccd0de0809ac03fd292036ee1544185583cd88",
+              "owner": "0x00ccd0de0809ac03fd292036ee1544185583cd88",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 7",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
+              }
+            },
+            {
+              "address": "0x6f96be7626a74e86c76e65ccbccf0a38e2b62fc5",
+              "owner": "0x6f96be7626a74e86c76e65ccbccf0a38e2b62fc5",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 8",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
+              }
+            },
+            {
+              "address": "0xd20131f980c9932b1df31cf3aafeecfb1d504381",
+              "owner": "0xd20131f980c9932b1df31cf3aafeecfb1d504381",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 9",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
+              }
             }
-          }
+          ]
         },
         "eth_chain_config": {
           "byzantium_block": "0x0",
@@ -253,7 +324,12 @@ constexpr std::string_view mainnet_json = R"foo({
         },
         "execution_options": {
           "disable_gas_fee": false,
-          "disable_nonce_check": true
+          "disable_nonce_check": true,
+          "enable_nonce_skipping": true
+        },
+        "block_rewards_options": {
+          "disable_block_rewards": true,
+          "disable_contract_distribution": true
         },
         "genesis_balances": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x141e8d17",
@@ -274,7 +350,14 @@ constexpr std::string_view mainnet_json = R"foo({
       "dag_blocks_size": "0xa",
       "ghost_path_move_back": "0x0",
       "lambda_ms_min": "0x5dc",
-      "run_count_votes": false
+      "gas_limit": "0x3938700"
+    },
+    "dag": {
+      "block_proposer": {
+        "shard": 1,
+        "transaction_limit": 250
+      },
+      "gas_limit": "0x989680"
     },
     "replay_protection_service": {
       "range": "0xa"

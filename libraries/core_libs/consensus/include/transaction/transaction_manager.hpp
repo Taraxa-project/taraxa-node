@@ -21,10 +21,29 @@ class DagManager;
 class FullNode;
 
 /**
- * Manage transactions within an epoch
- * 1. Check existence of transaction
- * 2. Push to transaction pool and verify
+ * @brief TransactionManager class verifies and inserts incoming transactions in memory pool and handles saving
+ * transactions and all transactions state change
  *
+ * Incoming new transactions can be verified with verifyTransaction functions and than inserted in the transaction pool
+ * with insertValidatedTransactions. Transactions are kept in transactions memory pool until they are included in a
+ * proposed dag block or received in an incoming dag block. Transaction verification consist of:
+ * - Verifying the format
+ * - Verifying signature
+ * - Verifying chan id
+ * - Verifying gas
+ * - Verifying nonce
+ * - Verifying balance
+ *
+ * Verified transaction inserted in TransactionManager can be in three state:
+ * 1. In transactions memory pool
+ * 2. In Non-finalized DAG block
+ * 3. Finalized transaction
+ *
+ * Transaction transition to non-finalized block state is done with call to saveTransactionsFromDagBlock.
+ * Transaction transition to finalized block state is done with call to updateFinalizedTransactionsStatus
+ *
+ * Class is thread safe in general with exception of two special methods: updateFinalizedTransactionsStatus and
+ * moveNonFinalizedTransactionsToTransactionsPool. See details in function descriptions.
  */
 class TransactionManager : public std::enable_shared_from_this<TransactionManager> {
  public:

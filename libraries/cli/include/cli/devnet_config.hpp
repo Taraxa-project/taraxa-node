@@ -8,13 +8,9 @@ constexpr std::string_view devnet_json = R"foo({
   "node_secret": "",
   "vrf_secret": "",
   "data_path": "",
-  "network_is_boot_node": false,
   "network_listen_ip": "0.0.0.0",
   "network_tcp_port": 10002,
-  "network_udp_port": 10002,
-  "network_simulated_delay": 0,
   "network_transaction_interval": 100,
-  "network_bandwidth": 40,
   "network_ideal_peer_count": 15,
   "network_max_peer_count": 30,
   "network_sync_level_size": 25,
@@ -44,16 +40,12 @@ constexpr std::string_view devnet_json = R"foo({
     "ws_port": 8777,
     "threads_num": 10
   },
-  "test_params": {
-    "max_transactions_pool_warn": 0,
-    "max_transactions_pool_drop": 0,
-    "max_block_queue_warn": 0,
+  "max_transactions_pool_warn": 0,
+  "max_transactions_pool_drop": 0,
+  "max_block_queue_warn": 0,
+  "db_config": {
     "db_snapshot_each_n_pbft_block": 10000,
-    "db_max_snapshots": 5,
-    "block_proposer": {
-      "shard": 1,
-      "transaction_limit": 250
-    }
+    "db_max_snapshots": 5
   },
   "logging": {
     "configurations": [
@@ -188,39 +180,208 @@ constexpr std::string_view devnet_json = R"foo({
         "timestamp": "0x60aee104"
       },
       "state": {
-        "disable_block_rewards": true,
         "dpos": {
-          "deposit_delay": "0x5",
-          "withdrawal_delay": "0x5",
+          "delegation_delay": "0x5",
+          "delegation_locking_period": "0x5",
           "eligibility_balance_threshold": "0xd3c21bcecceda1000000",
           "vote_eligibility_balance_step": "0x152d02c7e14af6800000",
-          "maximum_stake":"0x0",
+          "validator_maximum_stake":"0x84595161401484A000000",
           "minimum_deposit":"0x0",
           "commission_change_delta":"0x0",
           "commission_change_frequency":"0x0",
-          "genesis_state": {
-            "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": {
-              "0x780fe8b2226cf212c55635de399ee4c2a860810c": "0x84595161401484a000000",
-              "0x56e0de6933d9d0453d0363caf42b136eb5854e4e": "0x84595161401484a000000",
-              "0x71bdcbec7e3642782447b0fbf31eed068dfbdbb1": "0x84595161401484a000000",
-              "0xac24bc60a491bd0c29414e5f34aa6bbd8d4aa499": "0x84595161401484a000000",
-              "0x635d3831ad5d1252a2a07f09b8d3539b3af34df8": "0x84595161401484a000000",
-              "0x43af71034ed7fd0b54496a30ba4a5889a94e7088": "0x84595161401484a000000",
-              "0x4546f088bf636ed4652d1635c98ef5422805dfa3": "0x84595161401484a000000",
-              "0x8ca042649a263272442bee8b7209fa19426e54c4": "0x84595161401484a000000",
-              "0x7d7319df8950546850a01a0d793ee602f6eb390f": "0x84595161401484a000000",
-              "0x64c171b9845c15c4555f7a4489895f0e687c496c": "0x84595161401484a000000",
-              "0x614c85fad6f17f03949f735e05b1a24c5155b726": "0x84595161401484a000000",
-              "0xeff3dd2b0a6c29146c46ca01764aae0691ee1744": "0x84595161401484a000000",
-              "0xe543a20db4fa1820cc9f00144fc402bb1f31aa29": "0x84595161401484a000000",
-              "0x211a5ec33fec843b14319bcd62ab30c2a064745e": "0x84595161401484a000000",
-              "0x5354adf587cad5fe74e4912d4b6c1f754538891d": "0x84595161401484a000000",
-              "0x1473a6c154655fdc1f19d98e5823d3bb3f09a895": "0x84595161401484a000000",
-              "0x9588f6457d67792f141424983a93978f44331054": "0x84595161401484a000000",
-              "0xb48da366e19f141f5647dcdb0960eb88719e1c8d": "0x84595161401484a000000",
-              "0x2b95aeed70a4e21fcb8665b1a1e16eb114a1caf3": "0x84595161401484a000000"
+          "yield_percentage":"0x14",
+           "initial_validators": [
+            {
+              "address": "0x780fe8b2226cf212c55635de399ee4c2a860810c",
+              "owner": "0x780fe8b2226cf212c55635de399ee4c2a860810c",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 1",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x56e0de6933d9d0453d0363caf42b136eb5854e4e",
+              "owner": "0x56e0de6933d9d0453d0363caf42b136eb5854e4e",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 2",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x71bdcbec7e3642782447b0fbf31eed068dfbdbb1",
+              "owner": "0x71bdcbec7e3642782447b0fbf31eed068dfbdbb1",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 3",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0xac24bc60a491bd0c29414e5f34aa6bbd8d4aa499",
+              "owner": "0xac24bc60a491bd0c29414e5f34aa6bbd8d4aa499",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 5",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x635d3831ad5d1252a2a07f09b8d3539b3af34df8",
+              "owner": "0x635d3831ad5d1252a2a07f09b8d3539b3af34df8",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 6",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x43af71034ed7fd0b54496a30ba4a5889a94e7088",
+              "owner": "0x43af71034ed7fd0b54496a30ba4a5889a94e7088",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 7",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x4546f088bf636ed4652d1635c98ef5422805dfa3",
+              "owner": "0x4546f088bf636ed4652d1635c98ef5422805dfa3",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 8",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x8ca042649a263272442bee8b7209fa19426e54c4",
+              "owner": "0x8ca042649a263272442bee8b7209fa19426e54c4",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 9",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x7d7319df8950546850a01a0d793ee602f6eb390f",
+              "owner": "0x7d7319df8950546850a01a0d793ee602f6eb390f",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 10",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x64c171b9845c15c4555f7a4489895f0e687c496c",
+              "owner": "0x64c171b9845c15c4555f7a4489895f0e687c496c",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 11",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x614c85fad6f17f03949f735e05b1a24c5155b726",
+              "owner": "0x614c85fad6f17f03949f735e05b1a24c5155b726",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 12",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0xeff3dd2b0a6c29146c46ca01764aae0691ee1744",
+              "owner": "0xeff3dd2b0a6c29146c46ca01764aae0691ee1744",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 13",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0xe543a20db4fa1820cc9f00144fc402bb1f31aa29",
+              "owner": "0xe543a20db4fa1820cc9f00144fc402bb1f31aa29",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 14",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x211a5ec33fec843b14319bcd62ab30c2a064745e",
+              "owner": "0x211a5ec33fec843b14319bcd62ab30c2a064745e",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 15",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x5354adf587cad5fe74e4912d4b6c1f754538891d",
+              "owner": "0x5354adf587cad5fe74e4912d4b6c1f754538891d",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 16",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x1473a6c154655fdc1f19d98e5823d3bb3f09a895",
+              "owner": "0x1473a6c154655fdc1f19d98e5823d3bb3f09a895",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 17",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x9588f6457d67792f141424983a93978f44331054",
+              "owner": "0x9588f6457d67792f141424983a93978f44331054",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 18",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0xb48da366e19f141f5647dcdb0960eb88719e1c8d",
+              "owner": "0xb48da366e19f141f5647dcdb0960eb88719e1c8d",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 19",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
+            },
+            {
+              "address": "0x2b95aeed70a4e21fcb8665b1a1e16eb114a1caf3",
+              "owner": "0x2b95aeed70a4e21fcb8665b1a1e16eb114a1caf3",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa devnet validator 20",
+              "delegations": {
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+              }
             }
-          }
+          ]
         },
         "eth_chain_config": {
           "byzantium_block": "0x0",
@@ -235,6 +396,10 @@ constexpr std::string_view devnet_json = R"foo({
           "disable_gas_fee": false,
           "disable_nonce_check": false,
           "enable_nonce_skipping": true
+        },
+        "block_rewards_options": {
+          "disable_block_rewards": false,
+          "disable_contract_distribution": false
         },
         "genesis_balances": {
           "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027e72f1f12813088000000",
@@ -255,10 +420,13 @@ constexpr std::string_view devnet_json = R"foo({
       "dag_blocks_size": "0x32",
       "ghost_path_move_back": "0x0",
       "lambda_ms_min": "0x29a",
-      "run_count_votes": false,
       "gas_limit": "0x3938700"
     },
     "dag": {
+      "block_proposer": {
+        "shard": 1,
+        "transaction_limit": 250
+      },
       "gas_limit": "0x989680"
     },
     "replay_protection_service": {

@@ -37,18 +37,25 @@ class TaraxaPeer;
 class TaraxaCapability : public dev::p2p::CapabilityFace {
  public:
   TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const NetworkConfig &conf,
-                   std::shared_ptr<DbStorage> db = {}, std::shared_ptr<PbftManager> pbft_mgr = {},
-                   std::shared_ptr<PbftChain> pbft_chain = {}, std::shared_ptr<VoteManager> vote_mgr = {},
-                   std::shared_ptr<NextVotesManager> next_votes_mgr = {}, std::shared_ptr<DagManager> dag_mgr = {},
-                   std::shared_ptr<DagBlockManager> dag_blk_mgr = {}, std::shared_ptr<TransactionManager> trx_mgr = {},
-                   addr_t const &node_addr = {});
+                   unsigned version);
 
   virtual ~TaraxaCapability() = default;
   TaraxaCapability(const TaraxaCapability &ro) = delete;
   TaraxaCapability &operator=(const TaraxaCapability &ro) = delete;
   TaraxaCapability(TaraxaCapability &&ro) = delete;
   TaraxaCapability &operator=(TaraxaCapability &&ro) = delete;
-
+  static std::shared_ptr<TaraxaCapability> make(
+      std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const NetworkConfig &conf, const h256 &genesis_hash,
+      unsigned version, std::shared_ptr<DbStorage> db = {}, std::shared_ptr<PbftManager> pbft_mgr = {},
+      std::shared_ptr<PbftChain> pbft_chain = {}, std::shared_ptr<VoteManager> vote_mgr = {},
+      std::shared_ptr<NextVotesManager> next_votes_mgr = {}, std::shared_ptr<DagManager> dag_mgr = {},
+      std::shared_ptr<DagBlockManager> dag_blk_mgr = {}, std::shared_ptr<TransactionManager> trx_mgr = {});
+  // Init capability. Register packet handlers and periodic events
+  virtual void init(const h256 &genesis_hash, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
+                    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+                    std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
+                    std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+                    const dev::Address &node_addr);
   // CapabilityFace implemented interface
   std::string name() const override;
   unsigned version() const override;
@@ -79,43 +86,28 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   const std::shared_ptr<PeersState> &getPeersState();
   const std::shared_ptr<NodeStats> &getNodeStats();
 
-  void restartSyncingPbft(bool force = false);
   bool pbft_syncing() const;
-  void onNewBlockVerified(DagBlock &&blk, bool proposed, SharedTransactions &&trxs);
-  void onNewTransactions(std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> &&transactions);
-  void onNewPbftBlock(std::shared_ptr<PbftBlock> const &pbft_block);
-  void onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes);
-  void broadcastPreviousRoundNextVotesBundle();
-  void sendTransactions(dev::p2p::NodeID const &id, std::vector<taraxa::bytes> const &transactions);
-  void handleMaliciousSyncPeer(dev::p2p::NodeID const &id);
   void setSyncStatePeriod(uint64_t period);
 
   // METHODS USED IN TESTS ONLY
-  void sendBlock(dev::p2p::NodeID const &id, DagBlock const &blk, const SharedTransactions &trxs);
-  void sendBlocks(const dev::p2p::NodeID &id, std::vector<std::shared_ptr<DagBlock>> &&blocks,
-                  SharedTransactions &&transactions, uint64_t request_period, uint64_t period);
   size_t getReceivedBlocksCount() const;
   size_t getReceivedTransactionsCount() const;
-
-  void onNewBlockReceived(DagBlock &&block);
-
-  // PBFT
-  void sendPbftBlock(const dev::p2p::NodeID &id, const PbftBlock &pbft_block, uint64_t pbft_chain_size);
-
   // END METHODS USED IN TESTS ONLY
+
+ protected:
+  virtual void initPeriodicEvents(const NetworkConfig &conf, const std::shared_ptr<PbftManager> &pbft_mgr,
+                                  std::shared_ptr<TransactionManager> trx_mgr,
+                                  std::shared_ptr<PacketsStats> packets_stats);
+  virtual void registerPacketHandlers(
+      const NetworkConfig &conf, const h256 &genesis_hash, const std::shared_ptr<PacketsStats> &packets_stats,
+      const std::shared_ptr<DbStorage> &db, const std::shared_ptr<PbftManager> &pbft_mgr,
+      const std::shared_ptr<PbftChain> &pbft_chain, const std::shared_ptr<VoteManager> &vote_mgr,
+      const std::shared_ptr<NextVotesManager> &next_votes_mgr, const std::shared_ptr<DagManager> &dag_mgr,
+      const std::shared_ptr<DagBlockManager> &dag_blk_mgr, const std::shared_ptr<TransactionManager> &trx_mgr,
+      addr_t const &node_addr);
 
  private:
   void initBootNodes(const std::vector<NodeConfig> &network_boot_nodes, const dev::KeyPair &key);
-  void initPeriodicEvents(const NetworkConfig &conf, const std::shared_ptr<PbftManager> &pbft_mgr,
-                          std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<PacketsStats> packets_stats);
-  void registerPacketHandlers(const NetworkConfig &conf, const std::shared_ptr<PacketsStats> &packets_stats,
-                              const std::shared_ptr<DbStorage> &db, const std::shared_ptr<PbftManager> &pbft_mgr,
-                              const std::shared_ptr<PbftChain> &pbft_chain,
-                              const std::shared_ptr<VoteManager> &vote_mgr,
-                              const std::shared_ptr<NextVotesManager> &next_votes_mgr,
-                              const std::shared_ptr<DagManager> &dag_mgr,
-                              const std::shared_ptr<DagBlockManager> &dag_blk_mgr,
-                              const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr);
 
   bool filterSyncIrrelevantPackets(SubprotocolPacketType packet_type) const;
 
@@ -125,6 +117,15 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   std::shared_ptr<TestState> test_state_;
 
  private:
+  // Capability version
+  unsigned version_;
+
+  // Packets stats
+  std::shared_ptr<PacketsStats> packets_stats_;
+
+  // Network config
+  const NetworkConfig &net_conf_;
+
   // Peers state
   std::shared_ptr<PeersState> peers_state_;
 

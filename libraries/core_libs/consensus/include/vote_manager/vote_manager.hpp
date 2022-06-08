@@ -180,7 +180,7 @@ class VoteManager {
    * @brief Get all unverified votes
    * @return all unverified votes
    */
-  std::vector<std::shared_ptr<Vote>> getUnverifiedVotes();
+  std::vector<std::shared_ptr<Vote>> copyUnverifiedVotes();
 
   /**
    * @brief Clear the unverified votes map
@@ -242,13 +242,6 @@ class VoteManager {
    * @param pbft_round current PBFT round
    */
   void cleanupVotes(uint64_t pbft_round);
-
-  /**
-   * @brief Get a bunch of votes in string format
-   * @param votes votes
-   * @return a bunch of votes in string format
-   */
-  std::string getJsonStr(std::vector<std::shared_ptr<Vote>> const& votes);
 
   /**
    * @brief Get all verified votes in proposal vote type for the current PBFT round

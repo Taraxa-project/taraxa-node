@@ -148,10 +148,18 @@ inline auto make_node_cfgs(uint count) {
       addr_t root_node_addr("de2b1203d72d3549ee2f733b00b2789414c7cea5");
       cfg.chain.final_chain.state.genesis_balances[root_node_addr] = 9007199254740991;
       auto& dpos = *cfg.chain.final_chain.state.dpos;
-      dpos.genesis_state[root_node_addr][root_node_addr] = dpos.eligibility_balance_threshold;
+
+      state_api::BalanceMap delegations;
+      delegations.emplace(root_node_addr, dpos.eligibility_balance_threshold);
+
+      auto initial_validator = state_api::ValidatorInfo{root_node_addr, root_node_addr, 100, "", "", delegations};
+      dpos.initial_validators.emplace_back(initial_validator);
+
       // As test are badly written let's disable it for now
       cfg.chain.final_chain.state.execution_options.disable_nonce_check = true;
       cfg.chain.final_chain.state.execution_options.disable_gas_fee = true;
+      cfg.chain.final_chain.state.block_rewards_options.disable_block_rewards = true;
+      cfg.chain.final_chain.state.block_rewards_options.disable_contract_distribution = true;
       if constexpr (tests_speed != 1) {
         // VDF config
         cfg.chain.sortition.vrf.threshold_upper = 0xffff;
@@ -311,12 +319,26 @@ inline auto own_balance(std::shared_ptr<FullNode> const& node) {
   return node->getFinalChain()->getBalance(node->getAddress()).first;
 }
 
-inline auto own_effective_genesis_bal(FullNodeConfig const& cfg) {
-  return cfg.chain.final_chain.state.effective_genesis_balance(dev::toAddress(dev::Secret(cfg.node_secret)));
+inline state_api::BalanceMap effective_genesis_balances(const state_api::Config& cfg) {
+  if (!cfg.dpos) {
+    return cfg.genesis_balances;
+  }
+
+  state_api::BalanceMap effective_balances = cfg.genesis_balances;
+  for (const auto& validator_info : cfg.dpos->initial_validators) {
+    for (const auto& [delegator, amount] : validator_info.delegations) {
+      effective_balances[delegator] -= amount;
+    }
+  }
+  return effective_balances;
+}
+
+inline auto own_effective_genesis_bal(const FullNodeConfig& cfg) {
+  return effective_genesis_balances(cfg.chain.final_chain.state)[dev::toAddress(dev::Secret(cfg.node_secret))];
 }
 
 inline auto make_simple_pbft_block(h256 const& hash, uint64_t period, h256 const& anchor_hash = blk_hash_t(0)) {
-  return PbftBlock(hash, anchor_hash, blk_hash_t(), period, addr_t(0), secret_t::random());
+  return std::make_shared<PbftBlock>(hash, anchor_hash, blk_hash_t(), period, addr_t(0), secret_t::random());
 }
 
 inline std::vector<blk_hash_t> getOrderedDagBlocks(std::shared_ptr<DbStorage> const& db) {

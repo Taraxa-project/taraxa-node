@@ -2,10 +2,7 @@
   "data_path": "/tmp/taraxa2",
   "network_listen_ip": "127.0.0.1",
   "network_tcp_port": 10003,
-  "network_udp_port": 10003,
-  "network_simulated_delay": 0,
   "network_transaction_interval": 100,
-  "network_bandwidth": 40,
   "network_ideal_peer_count": 10,
   "network_max_peer_count": 50,
   "network_sync_level_size": 1,
@@ -23,15 +20,9 @@
     "ws_port": 8778,
     "threads_num": 2
   },
-  "test_params": {
-    "max_transactions_pool_warn" : 0,
-    "max_transactions_pool_drop" : 0,
-    "max_block_queue_warn" : 0,
-    "block_proposer": {
-      "shard": 1,
-      "transaction_limit": 0
-    }
-  },
+  "max_transactions_pool_warn" : 0,
+  "max_transactions_pool_drop" : 0,
+  "max_block_queue_warn" : 0,
   "logging": {
     "configurations": [
       {

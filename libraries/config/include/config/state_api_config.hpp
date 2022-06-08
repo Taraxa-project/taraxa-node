@@ -22,53 +22,80 @@ struct ETHChainConfig {
 
   HAS_RLP_FIELDS
 };
-Json::Value enc_json(ETHChainConfig const& obj);
-void dec_json(Json::Value const& json, ETHChainConfig& obj);
+Json::Value enc_json(const ETHChainConfig& obj);
+void dec_json(const Json::Value& json, ETHChainConfig& obj);
 
 using BalanceMap = std::unordered_map<addr_t, u256>;
-Json::Value enc_json(BalanceMap const& obj);
-void dec_json(Json::Value const& json, BalanceMap& obj);
+Json::Value enc_json(const BalanceMap& obj);
+void dec_json(const Json::Value& json, BalanceMap& obj);
+
+struct ValidatorInfo {
+  addr_t address;
+  addr_t owner;
+  uint16_t commission = 0;
+  std::string endpoint;
+  std::string description;
+  BalanceMap delegations;
+
+  HAS_RLP_FIELDS
+};
+Json::Value enc_json(const ValidatorInfo& obj);
+void dec_json(const Json::Value& json, ValidatorInfo& obj);
 
 struct DPOSConfig {
   u256 eligibility_balance_threshold;
   u256 vote_eligibility_balance_step;
-  u256 maximum_stake;
+  u256 validator_maximum_stake;
   u256 minimum_deposit;
-  uint16_t commission_change_delta;
-  EthBlockNumber commission_change_frequency = 0;
-  EthBlockNumber deposit_delay = 0;
-  EthBlockNumber withdrawal_delay = 0;
-  std::unordered_map<addr_t, BalanceMap> genesis_state;
+  uint16_t commission_change_delta = 0;
+  uint32_t commission_change_frequency = 0;  // number of blocks
+  uint32_t delegation_delay = 0;             // number of blocks
+  uint32_t delegation_locking_period = 0;    // number of blocks
+  uint32_t blocks_per_year = 0;              // number of blocks - it is calculated from lambda_ms_min
+  uint16_t yield_percentage = 0;             // [%]
+  std::vector<ValidatorInfo> initial_validators;
 
   HAS_RLP_FIELDS
 };
-Json::Value enc_json(DPOSConfig const& obj);
-void dec_json(Json::Value const& json, DPOSConfig& obj);
+Json::Value enc_json(const DPOSConfig& obj);
+void dec_json(const Json::Value& json, DPOSConfig& obj);
 
+// This struct has strict ordering, do not change it
 struct ExecutionOptions {
-  bool disable_nonce_check = 0;
-  bool disable_gas_fee = 0;
-  bool enable_nonce_skipping = 0;
+  bool disable_nonce_check = false;
+  bool disable_gas_fee = false;
+  bool enable_nonce_skipping = false;
 
   HAS_RLP_FIELDS
 };
-Json::Value enc_json(ExecutionOptions const& obj);
-void dec_json(Json::Value const& json, ExecutionOptions& obj);
+Json::Value enc_json(const ExecutionOptions& obj);
+void dec_json(const Json::Value& json, ExecutionOptions& obj);
+
+struct BlockRewardsOptions {
+  // Disables new tokens generation as block reward
+  bool disable_block_rewards = false;
+
+  // TODO: once we fix tests, this flag can be deleted as rewards should be processed only in dpos contract
+  // Disbales rewards distribution through contract - rewards are added directly to the validators accounts
+  bool disable_contract_distribution = false;
+
+  HAS_RLP_FIELDS
+};
+Json::Value enc_json(BlockRewardsOptions const& obj);
+void dec_json(Json::Value const& json, BlockRewardsOptions& obj);
 
 struct Config {
   ETHChainConfig eth_chain_config;
-  bool disable_block_rewards = 0;
   ExecutionOptions execution_options;
+  BlockRewardsOptions block_rewards_options;
   BalanceMap genesis_balances;
   std::optional<DPOSConfig> dpos;
   // Hardforks hardforks;
 
   HAS_RLP_FIELDS
-
-  u256 effective_genesis_balance(addr_t const& addr) const;
 };
-Json::Value enc_json(Config const& obj);
-void dec_json(Json::Value const& json, Config& obj);
+Json::Value enc_json(const Config& obj);
+void dec_json(const Json::Value& json, Config& obj);
 
 struct Opts {
   uint32_t expected_max_trx_per_block = 0;

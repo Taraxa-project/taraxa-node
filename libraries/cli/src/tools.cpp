@@ -44,7 +44,7 @@ Json::Value Tools::generateConfig(Config::NetworkIdType network_id) {
   return conf;
 }
 
-Json::Value Tools::overrideConfig(Json::Value& conf, std::string& data_dir, bool boot_node, vector<string> boot_nodes,
+Json::Value Tools::overrideConfig(Json::Value& conf, std::string& data_dir, vector<string> boot_nodes,
                                   vector<string> log_channels, vector<string> log_configurations,
                                   const vector<string>& boot_nodes_append, const vector<string>& log_channels_append) {
   if (data_dir.empty()) {
@@ -55,8 +55,6 @@ Json::Value Tools::overrideConfig(Json::Value& conf, std::string& data_dir, bool
   } else {
     conf["data_path"] = data_dir;
   }
-
-  if (boot_node) conf["network_is_boot_node"] = boot_node;
 
   if (log_channels.size() > 0 && log_channels_append.size() > 0) {
     throw invalid_argument("log_channels and log_channels_append args are not allowed to be used together");

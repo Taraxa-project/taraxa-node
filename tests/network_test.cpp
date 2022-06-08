@@ -11,12 +11,18 @@
 #include "dag/block_proposer.hpp"
 #include "dag/dag.hpp"
 #include "logger/logger.hpp"
+#include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/pbft_block_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
 
 namespace taraxa::core_tests {
 
+using dev::p2p::Host;
 using vrf_wrapper::VrfSortitionBase;
 
 const unsigned NUM_TRX = 10;
@@ -40,11 +46,10 @@ auto g_conf3 = Lazy([] { return three_default_configs[2]; });
 
 struct NetworkTest : BaseTest {};
 
-// Test creates two Network setup and verifies sending block
-// between is successfull
+// Test creates two Network setup and verifies sending block between is successfull
 TEST_F(NetworkTest, transfer_block) {
-  std::unique_ptr<Network> nw1 = std::make_unique<taraxa::Network>(g_conf1->network);
-  std::unique_ptr<Network> nw2 = std::make_unique<taraxa::Network>(g_conf2->network);
+  auto nw1 = std::make_unique<Network>(g_conf1->network);
+  auto nw2 = std::make_unique<Network>(g_conf2->network);
 
   nw1->start();
   nw2->start();
@@ -54,7 +59,7 @@ TEST_F(NetworkTest, transfer_block) {
 
   std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> transactions{
       {g_signed_trx_samples[0], TransactionStatus::Verified}, {g_signed_trx_samples[1], TransactionStatus::Verified}};
-  nw2->onNewTransactions(std::move(transactions));
+  nw2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->onNewTransactions(std::move(transactions));
 
   EXPECT_HAPPENS({10s, 200ms}, [&](auto& ctx) {
     nw1->setPendingPeersToReady();
@@ -63,7 +68,7 @@ TEST_F(NetworkTest, transfer_block) {
     WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 1)
   });
 
-  nw2->sendBlock(nw1->getNodeId(), blk, {});
+  nw2->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->sendBlock(nw1->getNodeId(), blk, {});
 
   std::cout << "Waiting packages for 10 seconds ..." << std::endl;
 
@@ -128,7 +133,8 @@ TEST_F(NetworkTest, DISABLED_transfer_lot_of_blocks) {
     dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
   }
 
-  nw1->onNewTransactions(std::move(verified_transactions));
+  nw1->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->onNewTransactions(
+      std::move(verified_transactions));
   for (auto block : dag_blocks) {
     dag_blk_mgr1->insertAndVerifyBlock(DagBlock(*block));
   }
@@ -138,7 +144,8 @@ TEST_F(NetworkTest, DISABLED_transfer_lot_of_blocks) {
   const auto node1_period = node1->getPbftChain()->getPbftChainSize();
   const auto node2_period = node2->getPbftChain()->getPbftChainSize();
   std::cout << "node1 period " << node1_period << ", node2 period " << node2_period << std::endl;
-  nw1->sendBlocks(nw2->getNodeId(), std::move(dag_blocks), {}, node2_period, node1_period);
+  nw1->getSpecificHandler<network::tarcap::GetDagSyncPacketHandler>()->sendBlocks(
+      nw2->getNodeId(), std::move(dag_blocks), {}, node2_period, node1_period);
 
   std::cout << "Waiting Sync ..." << std::endl;
   wait({30s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_blk_mgr2->getDagBlock(block_hash), nullptr) });
@@ -153,7 +160,8 @@ TEST_F(NetworkTest, send_pbft_block) {
   auto pbft_block = make_simple_pbft_block(blk_hash_t(1), 2, node_cfgs[0].chain.dag_genesis_block.getHash());
   uint64_t chain_size = 111;
 
-  nw2->sendPbftBlock(nw1->getNodeId(), pbft_block, chain_size);
+  nw2->getSpecificHandler<network::tarcap::PbftBlockPacketHandler>()->sendPbftBlock(nw1->getNodeId(), pbft_block,
+                                                                                    chain_size);
 
   auto node2_id = nw2->getNodeId();
   EXPECT_HAPPENS({10s, 200ms},
@@ -313,7 +321,7 @@ TEST_F(NetworkTest, transfer_transaction) {
   transactions.push_back(g_signed_trx_samples[1]->rlp());
   transactions.push_back(g_signed_trx_samples[2]->rlp());
 
-  nw2->sendTransactions(nw1_nodeid, transactions);
+  nw2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(nw1_nodeid, transactions);
 
   EXPECT_HAPPENS({2s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, nw1->getReceivedTransactionsCount(), 3) });
 }
@@ -326,10 +334,14 @@ TEST_F(NetworkTest, save_network) {
   std::filesystem::remove_all("/tmp/nw3");
   auto key2 = dev::KeyPair::create();
   auto key3 = dev::KeyPair::create();
+  h256 genesis_hash;
   {
-    std::shared_ptr<Network> nw1 = std::make_shared<taraxa::Network>(g_conf1->network);
-    std::shared_ptr<Network> nw2 = std::make_shared<taraxa::Network>(g_conf2->network, "/tmp/nw2", key2);
-    std::shared_ptr<Network> nw3 = std::make_shared<taraxa::Network>(g_conf3->network, "/tmp/nw3", key3);
+    std::shared_ptr<Network> nw1 =
+        std::make_shared<taraxa::Network>(g_conf1->network, genesis_hash, Host::CapabilitiesFactory());
+    std::shared_ptr<Network> nw2 = std::make_shared<taraxa::Network>(g_conf2->network, genesis_hash,
+                                                                     Host::CapabilitiesFactory(), "/tmp/nw2", key2);
+    std::shared_ptr<Network> nw3 = std::make_shared<taraxa::Network>(g_conf3->network, genesis_hash,
+                                                                     Host::CapabilitiesFactory(), "/tmp/nw3", key3);
 
     nw1->start();
     nw2->start();
@@ -345,8 +357,10 @@ TEST_F(NetworkTest, save_network) {
     });
   }
 
-  std::shared_ptr<Network> nw2 = std::make_shared<taraxa::Network>(g_conf2->network, "/tmp/nw2", key2);
-  std::shared_ptr<Network> nw3 = std::make_shared<taraxa::Network>(g_conf3->network, "/tmp/nw3", key3);
+  std::shared_ptr<Network> nw2 =
+      std::make_shared<taraxa::Network>(g_conf2->network, genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw2", key2);
+  std::shared_ptr<Network> nw3 =
+      std::make_shared<taraxa::Network>(g_conf3->network, genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw3", key3);
   nw2->start();
   nw3->start();
 
@@ -943,7 +957,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   std::shared_ptr<Network> nw2 = node2->getNetwork();
 
   // Node1 broadcast next votes1 to node2
-  nw1->broadcastPreviousRoundNextVotesBundle();
+  nw1->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->broadcastPreviousRoundNextVotesBundle();
 
   auto node2_expect_size = next_votes1.size() + next_votes2.size();
   EXPECT_HAPPENS({5s, 100ms},
@@ -962,7 +976,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   node1_db->commitWriteBatch(batch);
 
   // Node2 broadcast updated next votes to node1
-  nw2->broadcastPreviousRoundNextVotesBundle();
+  nw2->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->broadcastPreviousRoundNextVotesBundle();
 
   auto node1_expect_size = next_votes1.size() + next_votes2.size();
   EXPECT_HAPPENS({5s, 100ms},

@@ -69,16 +69,16 @@ TEST_F(VoteTest, unverified_votes) {
   }
 
   vote_mgr->moveVerifyToUnverify(unverified_votes);
-  EXPECT_EQ(vote_mgr->getUnverifiedVotes().size(), unverified_votes.size());
+  EXPECT_EQ(vote_mgr->copyUnverifiedVotes().size(), unverified_votes.size());
   EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), unverified_votes.size());
 
   vote_mgr->removeUnverifiedVote(unverified_votes[0]->getRound(), unverified_votes[0]->getHash());
   EXPECT_FALSE(vote_mgr->voteInUnverifiedMap(unverified_votes[0]->getRound(), unverified_votes[0]->getHash()));
-  EXPECT_EQ(vote_mgr->getUnverifiedVotes().size(), unverified_votes.size() - 1);
+  EXPECT_EQ(vote_mgr->copyUnverifiedVotes().size(), unverified_votes.size() - 1);
   EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), unverified_votes.size() - 1);
 
   vote_mgr->clearUnverifiedVotesTable();
-  EXPECT_TRUE(vote_mgr->getUnverifiedVotes().empty());
+  EXPECT_TRUE(vote_mgr->copyUnverifiedVotes().empty());
   EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), 0);
 }
 
@@ -311,7 +311,7 @@ TEST_F(VoteTest, vote_broadcast) {
   size_t step = 1002;
   auto vote = pbft_mgr1->generateVote(propose_block_hash, type, period, step);
 
-  node1->getNetwork()->onNewPbftVotes(std::vector{vote});
+  node1->getNetwork()->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(std::vector{vote});
 
   auto vote_mgr1 = node1->getVoteManager();
   auto vote_mgr2 = node2->getVoteManager();

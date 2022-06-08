@@ -131,9 +131,38 @@ target_link_libraries(gas_pricer_test
 )
 add_test(gas_pricer_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gas_pricer_test)
 
-add_executable(py_test py_test.cpp ${UTIL_HEADERS})
-add_dependencies(py_test taraxad)
-target_compile_definitions(py_test PRIVATE NODE_EXECUTABLE_PATH=\"${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/taraxad\")
-add_test(py_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/py_test)
+add_custom_target(py_test)
+
+add_custom_command(
+    TARGET py_test
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/py
+    COMMAND ./run.sh -s --tb=short --node_executable_path=${CMAKE_BINARY_DIR}/bin/taraxad
+    COMMENT "Running Python tests")
+
+add_test(py_test
+  ${CMAKE_CURRENT_SOURCE_DIR}/py/run.sh
+  -s 
+  --tb=short 
+  --node_executable_path=${CMAKE_BINARY_DIR}/bin/taraxad
+)
+
+set(DPOS_TEST_SCRIPT ${CMAKE_BINARY_DIR}/bin/go_dpos_test.sh)
+
+# List serializes with ; delimiter by default. This is not working for bash
+list(JOIN EVM_BUILD_ENV " " EVM_BUILD_ENV_STRING)
+
+# we need to write this command to file because add_test can't accept command 
+file(WRITE ${DPOS_TEST_SCRIPT} 
+"cd ${CMAKE_SOURCE_DIR}/submodules/taraxa-evm/taraxa
+export ${EVM_BUILD_ENV_STRING}
+go test ./state/dpos/tests"
+)
+
+# make script executable
+execute_process(COMMAND chmod +x ${DPOS_TEST_SCRIPT})
+
+add_test(go_dpos_test
+    ${DPOS_TEST_SCRIPT}
+)
 
 add_custom_target(all_tests COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure)

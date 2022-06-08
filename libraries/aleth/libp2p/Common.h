@@ -113,7 +113,6 @@ enum class HandshakeFailureReason {
 };
 
 using CapDesc = std::pair<std::string, unsigned>;
-using CapDescSet = std::set<CapDesc>;
 using CapDescs = std::vector<CapDesc>;
 
 /*

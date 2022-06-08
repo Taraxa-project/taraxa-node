@@ -13,17 +13,18 @@
 
 #include "dag/dag.hpp"
 #include "network/network.hpp"
+#include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 #include "transaction/transaction_manager.hpp"
 
 #define NULL_BLOCK_HASH blk_hash_t(0)
 
 namespace taraxa {
 
-Dag::Dag(blk_hash_t const &genesis, addr_t node_addr) {
+Dag::Dag(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr) {
   LOG_OBJECTS_CREATE("DAGMGR");
   std::vector<blk_hash_t> tips;
   // add genesis block
-  addVEEs(genesis, {}, tips);
+  addVEEs(dag_genesis_block_hash, {}, tips);
 }
 
 uint64_t Dag::getNumVertices() const { return boost::num_vertices(graph_); }
@@ -273,24 +274,22 @@ void PivotTree::getGhostPath(blk_hash_t const &vertex, std::vector<blk_hash_t> &
   }
 }
 
-DagManager::DagManager(blk_hash_t const &genesis, addr_t node_addr, std::shared_ptr<TransactionManager> trx_mgr,
-                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                       std::shared_ptr<DbStorage> db, logger::Logger log_time, bool is_light_node,
+DagManager::DagManager(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr,
+                       std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<PbftChain> pbft_chain,
+                       std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db, bool is_light_node,
                        uint64_t light_node_history, uint32_t max_levels_per_period, uint32_t dag_expiry_limit) try
-    : pivot_tree_(std::make_shared<PivotTree>(genesis, node_addr)),
-      total_dag_(std::make_shared<Dag>(genesis, node_addr)),
+    : pivot_tree_(std::make_shared<PivotTree>(dag_genesis_block_hash, node_addr)),
+      total_dag_(std::make_shared<Dag>(dag_genesis_block_hash, node_addr)),
       trx_mgr_(trx_mgr),
       pbft_chain_(pbft_chain),
       dag_blk_mgr_(dag_blk_mgr),
       db_(db),
-      anchor_(genesis),
+      anchor_(dag_genesis_block_hash),
       period_(0),
-      genesis_(genesis),
       is_light_node_(is_light_node),
       light_node_history_(light_node_history),
       max_levels_per_period_(max_levels_per_period),
-      dag_expiry_limit_(dag_expiry_limit),
-      log_time_(log_time) {
+      dag_expiry_limit_(dag_expiry_limit) {
   LOG_OBJECTS_CREATE("DAGMGR");
   if (auto ret = getLatestPivotAndTips(); ret) {
     frontier_.pivot = ret->first;
@@ -449,7 +448,8 @@ bool DagManager::addDagBlock(DagBlock &&blk, SharedTransactions &&trxs, bool pro
     if (save) {
       block_verified_.emit(blk);
       if (auto net = network_.lock()) {
-        net->onNewBlockVerified(std::move(blk), proposed, std::move(trxs));
+        net->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->onNewBlockVerified(std::move(blk), proposed,
+                                                                                              std::move(trxs));
       }
     }
   }
@@ -629,16 +629,18 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
 
   for (auto &v : non_finalized_blocks) {
     for (auto &blk_hash : v.second) {
-      if (dag_order_set.count(blk_hash) == 0) {
-        auto dag_block = dag_blk_mgr_->getDagBlock(blk_hash);
-        auto pivot_hash = dag_block->getPivot();
+      if (dag_order_set.count(blk_hash) != 0) {
+        continue;
+      }
 
-        if (validateBlockNotExpired(dag_block, expired_dag_blocks_to_remove)) {
-          addToDag(blk_hash, pivot_hash, dag_block->getTips(), dag_block->getLevel(), false);
-        } else {
-          db_->removeDagBlock(blk_hash);
-          for (const auto &trx : dag_block->getTrxs()) expired_dag_blocks_transactions.emplace_back(trx);
-        }
+      auto dag_block = dag_blk_mgr_->getDagBlock(blk_hash);
+      auto pivot_hash = dag_block->getPivot();
+
+      if (validateBlockNotExpired(dag_block, expired_dag_blocks_to_remove)) {
+        addToDag(blk_hash, pivot_hash, dag_block->getTips(), dag_block->getLevel(), false);
+      } else {
+        db_->removeDagBlock(blk_hash);
+        for (const auto &trx : dag_block->getTrxs()) expired_dag_blocks_transactions.emplace_back(trx);
       }
     }
   }
