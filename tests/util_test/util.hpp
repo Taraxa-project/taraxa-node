@@ -28,7 +28,7 @@ using std::filesystem::recursive_directory_iterator;
 using std::filesystem::remove_all;
 using namespace std::chrono;
 
-inline const uint64_t TEST_TX_GAS_LIMIT = 0;
+inline const uint64_t TEST_TX_GAS_LIMIT = 1000000;
 
 struct wait_opts {
   nanoseconds timeout;

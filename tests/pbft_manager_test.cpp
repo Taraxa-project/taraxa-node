@@ -557,6 +557,8 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
 TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   const auto node_cfgs = make_node_cfgs<20>(3);
   const auto node1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
+  const auto node2_genesis_bal = own_effective_genesis_bal(node_cfgs[1]);
+  const auto node3_genesis_bal = own_effective_genesis_bal(node_cfgs[2]);
   auto nodes = launch_nodes(node_cfgs);
 
   const auto node1_addr = nodes[0]->getAddress();
@@ -576,7 +578,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   });
 
   const expected_balances_map_t expected_balances1 = {
-      {node1_addr, node1_genesis_bal - 100}, {node2_addr, 100}, {node3_addr, 0}};
+      {node1_addr, node1_genesis_bal - 100}, {node2_addr, node2_genesis_bal + 100}, {node3_addr, node3_genesis_bal}};
   wait_for_balances(nodes, expected_balances1, {100s, 500ms});
 
   // create a transaction transfer coins from node1 to node3
@@ -592,7 +594,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 
   std::cout << "Checking all nodes see transaction from node 1 to node 3..." << std::endl;
   const expected_balances_map_t expected_balances2 = {
-      {node1_addr, node1_genesis_bal - 1100}, {node2_addr, 100}, {node3_addr, 1000}};
+      {node1_addr, node1_genesis_bal - 1100}, {node2_addr, node2_genesis_bal + 100}, {node3_addr, node3_genesis_bal + 1000}};
   wait_for_balances(nodes, expected_balances2, {100s, 500ms});
 }
 

@@ -35,7 +35,7 @@ struct NodeDagCreationFixture : BaseTest {
     modifyConfig(cfgs.front());
     node = create_nodes(cfgs, start).front();
 
-    auto trx = std::make_shared<Transaction>(0, 1000000, 0, 0, bytes(), node->getSecretKey(), dummy.address());
+    auto trx = std::make_shared<Transaction>(0, 1000000, 0, TEST_TX_GAS_LIMIT, bytes(), node->getSecretKey(), dummy.address());
     auto [ok, _] = node->getTransactionManager()->insertTransaction(trx);
     ASSERT_TRUE(ok);
     nonce++;
@@ -44,14 +44,14 @@ struct NodeDagCreationFixture : BaseTest {
   uint32_t getInitialDagSize() { return node->getConfig().max_levels_per_period; }
 
   void dummyTransaction() {
-    auto trx = std::make_shared<Transaction>(dummy_nonce, 1, 0, 0, bytes(), dummy.secret(), node->getAddress());
+    auto trx = std::make_shared<Transaction>(dummy_nonce, 1, 0, TEST_TX_GAS_LIMIT, bytes(), dummy.secret(), node->getAddress());
     auto [ok, m] = node->getTransactionManager()->insertTransaction(trx);
     ASSERT_TRUE(ok);
     dummy_nonce++;
   }
 
   void deployContract() {
-    auto trx = std::make_shared<Transaction>(nonce, 100, 0, 0, dev::fromHex(samples::greeter_contract_code),
+    auto trx = std::make_shared<Transaction>(nonce, 100, 0, TEST_TX_GAS_LIMIT, dev::fromHex(samples::greeter_contract_code),
                                              node->getSecretKey());
     auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(trx);
     ASSERT_TRUE(ok);
@@ -86,7 +86,7 @@ struct NodeDagCreationFixture : BaseTest {
     auto _nonce = nonce;
     for (auto i = _nonce; i < _nonce + count; ++i) {
       result.emplace_back(
-          std::make_shared<Transaction>(i, 11, 0, 0,
+          std::make_shared<Transaction>(i, 11, 0, TEST_TX_GAS_LIMIT,
                                         // setGreeting("Hola")
                                         dev::fromHex("0xa4136862000000000000000000000000000000000000000000000000"
                                                      "00000000000000200000000000000000000000000000000000000000000"
