@@ -669,7 +669,7 @@ TEST_F(PbftManagerWithDagCreation, dag_generation) {
 
 TEST_F(PbftManagerWithDagCreation, limit_dag_block_size) {
   auto node_cfgs = make_node_cfgs<5, true>(1);
-  node_cfgs.front().chain.dag.gas_limit = 250000;
+  node_cfgs.front().chain.dag.gas_limit = 500000;
   makeNodeFromConfig(node_cfgs);
   deployContract();
 
@@ -680,7 +680,7 @@ TEST_F(PbftManagerWithDagCreation, limit_dag_block_size) {
         contract_addr,
         0,
         0,
-        0,
+        TEST_TX_GAS_LIMIT,
         // greet()
         dev::fromHex("0xcfae3217"),
     });
@@ -714,8 +714,8 @@ TEST_F(PbftManagerWithDagCreation, limit_dag_block_size) {
 
 TEST_F(PbftManagerWithDagCreation, limit_pbft_block) {
   auto node_cfgs = make_node_cfgs<5, true>(1);
-  node_cfgs.front().chain.dag.gas_limit = 300000;
-  node_cfgs.front().chain.pbft.gas_limit = 1000000;
+  node_cfgs.front().chain.dag.gas_limit = 500000;
+  node_cfgs.front().chain.pbft.gas_limit = 1100000;
   makeNodeFromConfig(node_cfgs);
 
   deployContract();
@@ -749,8 +749,8 @@ TEST_F(PbftManagerWithDagCreation, limit_pbft_block) {
 
 TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
   auto node_cfgs = make_node_cfgs<5, true>(1);
-  auto dag_gas_limit = node_cfgs.front().chain.dag.gas_limit = 300000;
-  node_cfgs.front().chain.pbft.gas_limit = 1000000;
+  auto dag_gas_limit = node_cfgs.front().chain.dag.gas_limit = 500000;
+  node_cfgs.front().chain.pbft.gas_limit = 1100000;
   makeNodeFromConfig(node_cfgs);
 
   deployContract();
@@ -783,8 +783,8 @@ TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
 
 TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
   auto node_cfgs = make_node_cfgs<5, true>(1);
-  node_cfgs.front().chain.dag.gas_limit = 300000;
-  node_cfgs.front().chain.pbft.gas_limit = 500000;
+  node_cfgs.front().chain.dag.gas_limit = 500000;
+  node_cfgs.front().chain.pbft.gas_limit = 600000;
   makeNode();
   deployContract();
   node->getBlockProposer()->stop();
