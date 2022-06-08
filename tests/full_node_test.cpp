@@ -1184,13 +1184,9 @@ TEST_F(FullNodeTest, receive_send_transaction) {
 TEST_F(FullNodeTest, detect_overlap_transactions) {
   auto node_cfgs = make_node_cfgs<20>(5);
   auto nodes = launch_nodes(node_cfgs);
-  std::unordered_map<addr_t, val_t> expected_balances;
+  const auto expected_balances = effective_genesis_balances(node_cfgs[0].chain.final_chain.state);
   const auto node_1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
-  for (const auto &node : nodes) {
-    expected_balances[node->getAddress()] = own_effective_genesis_bal(node->getConfig());
-  }
 
-  expected_balances[nodes[0]->getAddress()] = own_effective_genesis_bal(nodes[0]->getConfig());
   // Even distribute coins from master boot node to other nodes. Since master
   // boot node owns whole coins, the active players should be only master boot
   // node at the moment.
@@ -1231,7 +1227,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     for (size_t j(1); j < nodes.size(); ++j) {
       // For node1 to node4 balances info on each node
       EXPECT_EQ(nodes[i]->getFinalChain()->getBalance(nodes[j]->getAddress()).first,
-                expected_balances[nodes[j]->getAddress()] + test_transfer_val);
+                expected_balances.at(nodes[j]->getAddress()) + test_transfer_val);
     }
   }
 
