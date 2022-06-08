@@ -142,11 +142,11 @@ else ()
     target_link_libraries(taraxa-evm INTERFACE stdc++fs)
 endif ()
 
-add_custom_target(run_go_dpos_test)
+add_custom_target(run_go_test)
 
 add_custom_command(
-    TARGET run_go_dpos_test
+    TARGET run_go_test
     DEPENDS ${TARAXA_EVM_SOURCES}
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/taraxa-evm
-    COMMAND cd taraxa/ && ${EVM_BUILD_ENV} go test ./state/dpos/tests
+    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    COMMAND cd ./taraxa-evm && ${EVM_BUILD_ENV} go test ./...
     COMMENT "Running Go DPOS tests")

@@ -141,28 +141,28 @@ add_custom_command(
 
 add_test(py_test
   ${CMAKE_CURRENT_SOURCE_DIR}/py/run.sh
-  -s 
-  --tb=short 
+  -s
+  --tb=short
   --node_executable_path=${CMAKE_BINARY_DIR}/bin/taraxad
 )
 
-set(DPOS_TEST_SCRIPT ${CMAKE_BINARY_DIR}/bin/go_dpos_test.sh)
+set(GO_TEST_SCRIPT ${CMAKE_BINARY_DIR}/bin/go_test.sh)
 
 # List serializes with ; delimiter by default. This is not working for bash
 list(JOIN EVM_BUILD_ENV " " EVM_BUILD_ENV_STRING)
 
 # we need to write this command to file because add_test can't accept command
-file(WRITE ${DPOS_TEST_SCRIPT}
+file(WRITE ${GO_TEST_SCRIPT}
 "cd ${CMAKE_SOURCE_DIR}/submodules/taraxa-evm/
 export ${EVM_BUILD_ENV_STRING}
 go test ./..."
 )
 
 # make script executable
-execute_process(COMMAND chmod +x ${DPOS_TEST_SCRIPT})
+execute_process(COMMAND chmod +x ${GO_TEST_SCRIPT})
 
-add_test(go_dpos_test
-    ${DPOS_TEST_SCRIPT}
+add_test(go_test
+    ${GO_TEST_SCRIPT}
 )
 
 add_custom_target(all_tests COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure)
