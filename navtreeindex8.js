@@ -1,5 +1,6 @@
 var NAVTREEINDEX8 =
 {
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a33b1eb30d14d6c11511bd495feb46df5":[11,0,3,3,0,0,1,54],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a3784c14e0331c576b4b0d95a391dd4fd":[11,0,3,3,0,0,1,21],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a38884697778ea5c0383f7c5d7dcb61f2":[11,0,3,3,0,0,1,28],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a3f48b5e406a9ff0ebc21962a3d7c729c":[11,0,3,3,0,0,1,25],
@@ -19,7 +20,6 @@ var NAVTREEINDEX8 =
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a70b8b32f882a008ae56bb265e40a0fb0":[11,0,3,3,0,0,1,60],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a758e6b7eb2d99ab08fbf84bf69cad1e8":[11,0,3,3,0,0,1,2],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a7595cb360faa9adb731640f9c787a6f9":[11,0,3,3,0,0,1,64],
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a78bf205ea02b709741bf274f8aa55ffd":[11,0,3,3,0,0,1,3],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a7b02f72b61212a6f399563a8ffbcc41e":[11,0,3,3,0,0,1,52],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a7f4b4a73f737c09fd248861fb7b6f59f":[11,0,3,3,0,0,1,0],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a80b47958d84f030a61233915d7edec3e":[11,0,3,3,0,0,1,44],
@@ -79,8 +79,8 @@ var NAVTREEINDEX8 =
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#adfb6b30b31fb7e4f641ddafcd11c55f5":[12,0,1,4,1,1,0,6,3,2],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#adfb6b30b31fb7e4f641ddafcd11c55f5":[11,0,3,3,0,0,13,0,2],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#afa9b19f9509543c932b6901c6723bf77":[11,0,3,3,0,0,13,6],
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_1_1_watch":[11,0,3,3,0,0,13,0],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_1_1_watch":[12,0,1,4,1,1,0,6,3],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_1_1_watch":[11,0,3,3,0,0,13,0],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html":[11,0,3,3,0,0,12],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a0d0209125e06c9caa6b5d9c47eeb2c52":[11,0,3,3,0,0,12,4],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a31b2b25b494ed5a73471dc15ee89f9dc":[11,0,3,3,0,0,12,2],
