@@ -593,8 +593,9 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   });
 
   std::cout << "Checking all nodes see transaction from node 1 to node 3..." << std::endl;
-  const expected_balances_map_t expected_balances2 = {
-      {node1_addr, node1_genesis_bal - 1100}, {node2_addr, node2_genesis_bal + 100}, {node3_addr, node3_genesis_bal + 1000}};
+  const expected_balances_map_t expected_balances2 = {{node1_addr, node1_genesis_bal - 1100},
+                                                      {node2_addr, node2_genesis_bal + 100},
+                                                      {node3_addr, node3_genesis_bal + 1000}};
   wait_for_balances(nodes, expected_balances2, {100s, 500ms});
 }
 
