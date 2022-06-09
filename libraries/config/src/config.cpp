@@ -219,12 +219,14 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
       }
     }
   }
-  if (auto const &v = root["chain_config"]; v.isString()) {
-    chain = ChainConfig::predefined(v.asString());
-  } else if (v.isObject()) {
-    dec_json(v, chain);
+
+  const auto &chain_config = root["chain_config"];
+  if (chain_config.isString()) {
+    chain = ChainConfig(chain_config.asString());
+  } else if (chain_config.isObject()) {
+    dec_json(chain_config, chain);
   } else {
-    chain = ChainConfig::predefined();
+    chain = ChainConfig("default");
   }
 
   // blocks_per_year config param is calculated from lambda_ms_min

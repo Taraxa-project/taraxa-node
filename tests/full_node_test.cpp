@@ -1515,7 +1515,8 @@ TEST_F(FullNodeTest, chain_config_json) {
   Json::Value default_chain_config_json;
   std::istringstream(expected_default_chain_cfg_json) >> default_chain_config_json;
   // TODO [1473] : remove jsonToUnstyledString
-  ASSERT_EQ(jsonToUnstyledString(default_chain_config_json), jsonToUnstyledString(enc_json(ChainConfig::predefined())));
+  ChainConfig chain_config("default");
+  ASSERT_EQ(jsonToUnstyledString(default_chain_config_json), jsonToUnstyledString(enc_json(chain_config)));
   std::string config_file_path = DIR_CONF / "conf_taraxa1.json";
   Json::Value test_node_config_json;
   std::ifstream(config_file_path, std::ifstream::binary) >> test_node_config_json;
@@ -1530,9 +1531,10 @@ TEST_F(FullNodeTest, chain_config_json) {
                 enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain)),
             jsonToUnstyledString(default_chain_config_json));
   test_node_config_json["chain_config"] = "test";
+  chain_config = ChainConfig("test");
   ASSERT_EQ(jsonToUnstyledString(
                 enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain)),
-            jsonToUnstyledString(enc_json(ChainConfig::predefined("test"))));
+            jsonToUnstyledString(enc_json(chain_config)));
 }
 
 TEST_F(FullNodeTest, transaction_validation) {

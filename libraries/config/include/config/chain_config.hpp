@@ -27,6 +27,9 @@ Json::Value enc_json(GasPriceConfig const& obj);
 void dec_json(Json::Value const& json, GasPriceConfig& obj);
 
 struct ChainConfig {
+  ChainConfig() = default;
+  ChainConfig(const std::string& name);
+
   uint64_t chain_id = 0;
   DagBlock dag_genesis_block;
   GasPriceConfig gas_price;
@@ -35,14 +38,13 @@ struct ChainConfig {
   final_chain::Config final_chain;
   DagConfig dag;
 
- private:
-  static LazyVal<std::unordered_map<string, ChainConfig>> const predefined_;
-
- public:
   void validate() const;
   bytes rlp() const;
   blk_hash_t genesisHash() const;
-  static const ChainConfig& predefined(std::string const& name = "default");
+
+ private:
+  void setDefaultValue();
+  void setTestValue();
 };
 
 Json::Value enc_json(ChainConfig const& obj);
