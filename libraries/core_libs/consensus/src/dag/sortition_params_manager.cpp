@@ -53,11 +53,11 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
     auto data = db_->getPeriodDataRaw(period);
     if (data.size() == 0) break;
     period++;
-    SyncBlock sync_block(data);
-    if (sync_block.pbft_blk->getPivotDagBlockHash() != kNullBlockHash) {
+    PeriodData period_data(data);
+    if (period_data.pbft_blk->getPivotDagBlockHash() != kNullBlockHash) {
       if (static_cast<int32_t>(ignored_efficiency_counter_) >=
           config_.changing_interval - config_.computation_interval) {
-        dag_efficiencies_.push_back(calculateDagEfficiency(sync_block));
+        dag_efficiencies_.push_back(calculateDagEfficiency(period_data));
       } else {
         ignored_efficiency_counter_++;
       }
@@ -78,7 +78,7 @@ SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_
   return p;
 }
 
-uint16_t SortitionParamsManager::calculateDagEfficiency(const SyncBlock& block) const {
+uint16_t SortitionParamsManager::calculateDagEfficiency(const PeriodData& block) const {
   size_t total_transactions_count = 0;
   for (const auto& dag_block : block.dag_blocks) {
     const auto& trxs = dag_block.getTrxs();
@@ -102,7 +102,7 @@ void SortitionParamsManager::cleanup() {
   }
 }
 
-void SortitionParamsManager::pbftBlockPushed(const SyncBlock& block, DbStorage::Batch& batch,
+void SortitionParamsManager::pbftBlockPushed(const PeriodData& block, DbStorage::Batch& batch,
                                              size_t non_empty_pbft_chain_size) {
   if (config_.changing_interval == 0) {
     return;

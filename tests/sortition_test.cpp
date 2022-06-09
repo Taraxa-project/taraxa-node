@@ -17,12 +17,12 @@ vec_trx_t generateTrxHashes(size_t count) {
   return res;
 }
 
-SyncBlock createBlock(uint64_t period, uint16_t efficiency, size_t dag_blocks_count = 5,
-                      blk_hash_t anchor_hash = blk_hash_t(1)) {
+PeriodData createBlock(uint64_t period, uint16_t efficiency, size_t dag_blocks_count = 5,
+                       blk_hash_t anchor_hash = blk_hash_t(1)) {
   // produced transactions count should be equal to or multiple of this value to produce block with accurate enough
   // efficiency
   const size_t kTrxCount = 100 * kOnePercent;
-  SyncBlock b;
+  PeriodData b;
   b.pbft_blk = std::make_shared<PbftBlock>(PbftBlock{{}, anchor_hash, {}, period, {}, dev::KeyPair::create().secret()});
   size_t effective_transactions = kTrxCount * efficiency / (100 * kOnePercent);
   auto trx_hashes = generateTrxHashes(effective_transactions);

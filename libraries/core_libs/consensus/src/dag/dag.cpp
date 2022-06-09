@@ -587,7 +587,7 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
 
   // Update dag counts correctly
   // When synced and gossiping there should not be anything to update
-  // When syncing we must check if some of the DAG blocks are both in sync block and in memory DAG although
+  // When syncing we must check if some of the DAG blocks are both in period data and in memory DAG although
   // non-finalized block should be empty when syncing, maybe we should clear it if we are deep out of sync to improve
   // performance
   std::unordered_set<blk_hash_t> non_finalized_blocks_set;
@@ -597,7 +597,7 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period,
     }
   }
   // Only update counter for blocks that are in the dag_order and not in memory DAG, this is only possible when pbft
-  // syncing and processing sync block
+  // syncing and processing period data
   std::vector<DagBlock> dag_blocks_to_update_counters;
   for (auto const &blk : dag_order) {
     if (non_finalized_blocks_set.count(blk) == 0) {

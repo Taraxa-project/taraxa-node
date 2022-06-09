@@ -523,12 +523,12 @@ TEST_F(NetworkTest, node_pbft_sync) {
   // Add cert votes in DB
   // Add PBFT block in DB
 
-  SyncBlock sync_block1(std::make_shared<PbftBlock>(pbft_block1), votes_for_pbft_blk1);
-  sync_block1.dag_blocks.push_back(blk1);
-  sync_block1.transactions.push_back(g_signed_trx_samples[0]);
-  sync_block1.transactions.push_back(g_signed_trx_samples[1]);
+  PeriodData period_data1(std::make_shared<PbftBlock>(pbft_block1), {});
+  period_data1.dag_blocks.push_back(blk1);
+  period_data1.transactions.push_back(g_signed_trx_samples[0]);
+  period_data1.transactions.push_back(g_signed_trx_samples[1]);
 
-  db1->savePeriodData(sync_block1, batch);
+  db1->savePeriodData(period_data1, batch);
   // Update period_pbft_block in DB
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
@@ -582,12 +582,13 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   std::cout << "B1 " << pbft_block2.getBlockHash() << std::endl;
 
-  SyncBlock sync_block2(std::make_shared<PbftBlock>(pbft_block2), votes_for_pbft_blk2);
-  sync_block2.dag_blocks.push_back(blk2);
-  sync_block2.transactions.push_back(g_signed_trx_samples[2]);
-  sync_block2.transactions.push_back(g_signed_trx_samples[3]);
+  PeriodData period_data2(std::make_shared<PbftBlock>(pbft_block2), votes_for_pbft_blk1);
+  period_data2.dag_blocks.push_back(blk2);
+  period_data2.transactions.push_back(g_signed_trx_samples[2]);
+  period_data2.transactions.push_back(g_signed_trx_samples[3]);
+  db1->addLastBlockCertVotesToBatch(votes_for_pbft_blk2, batch);
 
-  db1->savePeriodData(sync_block2, batch);
+  db1->savePeriodData(period_data2, batch);
 
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
@@ -688,12 +689,12 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   // Add cert votes in DB
   // Add PBFT block in DB
 
-  SyncBlock sync_block1(std::make_shared<PbftBlock>(pbft_block1), votes_for_pbft_blk1);
-  sync_block1.dag_blocks.push_back(blk1);
-  sync_block1.transactions.push_back(g_signed_trx_samples[0]);
-  sync_block1.transactions.push_back(g_signed_trx_samples[1]);
+  PeriodData period_data1(std::make_shared<PbftBlock>(pbft_block1), {});
+  period_data1.dag_blocks.push_back(blk1);
+  period_data1.transactions.push_back(g_signed_trx_samples[0]);
+  period_data1.transactions.push_back(g_signed_trx_samples[1]);
 
-  db1->savePeriodData(sync_block1, batch);
+  db1->savePeriodData(period_data1, batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
   // Update PBFT chain head block
@@ -734,12 +735,13 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   // Add fake votes in DB
   // Add PBFT block in DB
 
-  SyncBlock sync_block2(std::make_shared<PbftBlock>(pbft_block2), votes_for_pbft_blk1);
-  sync_block2.dag_blocks.push_back(blk1);
-  sync_block2.transactions.push_back(g_signed_trx_samples[2]);
-  sync_block2.transactions.push_back(g_signed_trx_samples[3]);
+  PeriodData period_data2(std::make_shared<PbftBlock>(pbft_block2), votes_for_pbft_blk1);
+  period_data2.dag_blocks.push_back(blk2);
+  period_data2.transactions.push_back(g_signed_trx_samples[2]);
+  period_data2.transactions.push_back(g_signed_trx_samples[3]);
 
-  db1->savePeriodData(sync_block2, batch);
+  db1->savePeriodData(period_data2, batch);
+  db1->addLastBlockCertVotesToBatch(votes_for_pbft_blk1, batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
   // Update PBFT chain head block
@@ -754,15 +756,12 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   std::cout << "Waiting Sync for max 1 minutes..." << std::endl;
   uint64_t sync_pbft_chain_size = 1;
   for (int i = 0; i < 600; i++) {
-    if (node2->getPbftChain()->getPbftChainSize() >= sync_pbft_chain_size) {
+    if (node2->getPbftManager()->pbftSyncingPeriod() >= sync_pbft_chain_size) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
   }
-  EXPECT_EQ(node2->getPbftChain()->getPbftChainSize(), sync_pbft_chain_size);
-  std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
-  blk_hash_t last_pbft_block_hash = pbft_chain2->getLastPbftBlockHash();
-  EXPECT_EQ(last_pbft_block_hash, pbft_block1.getBlockHash());
+  EXPECT_EQ(node2->getPbftManager()->pbftSyncingPeriod(), sync_pbft_chain_size);
 }
 
 // Test PBFT next votes sycning when node is behind of PBFT round with peer

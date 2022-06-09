@@ -107,7 +107,7 @@ Json::Value Test::get_node_status() {
       res["dpos_total_votes"] = Json::UInt64(node->getPbftManager()->getDposTotalVotesCount());
       res["dpos_node_votes"] = Json::UInt64(node->getPbftManager()->getDposWeightedVotesCount());
       res["dpos_quorum"] = Json::UInt64(node->getPbftManager()->getTwoTPlusOne());
-      res["pbft_sync_queue_size"] = Json::UInt64(node->getPbftManager()->syncBlockQueueSize());
+      res["pbft_sync_queue_size"] = Json::UInt64(node->getPbftManager()->periodDataQueueSize());
       res["trx_pool_size"] = Json::UInt64(node->getTransactionManager()->getTransactionPoolSize());
       res["trx_nonfinalized_size"] = Json::UInt64(node->getTransactionManager()->getNonfinalizedTrxSize());
       res["blk_queue_size"] = Json::UInt64(node->getDagBlockManager()->getDagBlockQueueSize());

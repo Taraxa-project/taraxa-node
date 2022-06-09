@@ -4,7 +4,7 @@
 
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
-#include "pbft/sync_block.hpp"
+#include "pbft/period_data.hpp"
 #include "vote/vote.hpp"
 
 namespace taraxa {
@@ -16,14 +16,14 @@ namespace taraxa {
 class RewardsStats {
  public:
   /**
-   * @brief Process SyncBlock and returns vector of validators, who included provided block.transactions as first in
+   * @brief Process PeriodData and returns vector of validators, who included provided block.transactions as first in
    * dag block, e.g. returned validator on position 2 included transaction block.transactions[2] as first in his dag
    * block
    *
    * @param block
    * @return vector of validators
    */
-  std::vector<addr_t> processStats(const SyncBlock& block);
+  std::vector<addr_t> processStats(const PeriodData& block);
 
   HAS_RLP_FIELDS
 
@@ -62,11 +62,11 @@ class RewardsStats {
   bool addVote(const Vote& vote);
 
   /**
-   * @brief Prepares reward statistics bases on sync block data
+   * @brief Prepares reward statistics bases on period data data
    *
    * @param sync_blk
    */
-  void initStats(const SyncBlock& sync_blk);
+  void initStats(const PeriodData& sync_blk);
 
  private:
   struct ValidatorStats {

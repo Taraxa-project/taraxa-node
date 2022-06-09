@@ -54,16 +54,16 @@ struct FinalChainTest : WithDataDir {
     auto pbft_block = std::make_shared<PbftBlock>(blk_hash_t(), blk_hash_t(), blk_hash_t(), 1, addr_t::random(),
                                                   dev::KeyPair::create().secret());
     std::vector<std::shared_ptr<Vote>> votes;
-    SyncBlock sync_block(pbft_block, votes);
-    sync_block.dag_blocks.push_back(dag_blk);
-    sync_block.transactions = trxs;
+    PeriodData period_data(pbft_block, votes);
+    period_data.dag_blocks.push_back(dag_blk);
+    period_data.transactions = trxs;
 
     auto batch = db->createWriteBatch();
-    db->savePeriodData(sync_block, batch);
+    db->savePeriodData(period_data, batch);
 
     db->commitWriteBatch(batch);
 
-    auto result = SUT->finalize(std::move(sync_block), {dag_blk.getHash()}).get();
+    auto result = SUT->finalize(std::move(period_data), {dag_blk.getHash()}).get();
     ++expected_blk_num;
     auto const& blk_h = *result->final_chain_blk;
     EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->block_header(blk_h.number)));

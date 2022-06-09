@@ -151,7 +151,7 @@ uint32_t TransactionManager::insertValidatedTransactions(
 
   // This lock synchronizes inserting and removing transactions from transactions memory pool with database insertion.
   // It is very important to lock checking the db state of transaction together with transaction pool checking to be
-  // protected from new DAG block and Sync block transactions insertions which are inserted directly in the database.
+  // protected from new DAG block and Period data transactions insertions which are inserted directly in the database.
   std::unique_lock transactions_lock(transactions_mutex_);
   const auto last_block_number = final_chain_->last_block_number();
 
@@ -303,9 +303,9 @@ SharedTransactions TransactionManager::packTrxs(uint16_t max_trx_to_pack) {
 /**
  * Update transaction counters and state, it only has effect when PBFT syncing
  */
-void TransactionManager::updateFinalizedTransactionsStatus(SyncBlock const &sync_block) {
+void TransactionManager::updateFinalizedTransactionsStatus(PeriodData const &period_data) {
   // !!! There is no lock because it is called under std::unique_lock trx_lock(trx_mgr_->getTransactionsMutex());
-  for (auto const &trx : sync_block.transactions) {
+  for (auto const &trx : period_data.transactions) {
     if (!nonfinalized_transactions_in_dag_.erase(trx->getHash())) {
       trx_count_++;
     } else {

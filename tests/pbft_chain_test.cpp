@@ -64,9 +64,9 @@ TEST_F(PbftChainTest, pbft_db_test) {
   // Add PBFT block in DB
   std::vector<std::shared_ptr<Vote>> votes;
 
-  SyncBlock sync_block(std::make_shared<PbftBlock>(pbft_block), votes);
-  sync_block.dag_blocks.push_back(blk1);
-  db->savePeriodData(sync_block, batch);
+  PeriodData period_data(std::make_shared<PbftBlock>(pbft_block), votes);
+  period_data.dag_blocks.push_back(blk1);
+  db->savePeriodData(period_data, batch);
 
   // Update PBFT chain
   pbft_chain->updatePbftChain(pbft_block.getBlockHash());
@@ -129,8 +129,8 @@ TEST_F(PbftChainTest, proposal_block_broadcast) {
   auto batch = db1->createWriteBatch();
   // Add PBFT block in DB
   std::vector<std::shared_ptr<Vote>> votes;
-  SyncBlock sync_block(pbft_block, votes);
-  db1->savePeriodData(sync_block, batch);
+  PeriodData period_data(pbft_block, votes);
+  db1->savePeriodData(period_data, batch);
   // Update PBFT chain head block
   blk_hash_t pbft_chain_head_hash = pbft_chain1->getHeadHash();
   std::string pbft_chain_head_str = pbft_chain1->getJsonStrForBlock(pbft_block->getBlockHash(), true);

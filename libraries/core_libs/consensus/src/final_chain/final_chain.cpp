@@ -57,18 +57,18 @@ class FinalChainImpl final : public FinalChain {
         for (auto n = state_db_descriptor.blk_num + 1; n <= last_block_->number; ++n) {
           auto blk = n == last_block_->number ? last_block_ : FinalChainImpl::block_header(n);
 
-          auto period_data = db_->getPeriodDataRaw(blk->number);
-          assert(period_data.size() > 0);
+          auto raw_period_data = db_->getPeriodDataRaw(blk->number);
+          assert(raw_period_data.size() > 0);
 
-          SyncBlock block_data(period_data);
+          PeriodData period_data(raw_period_data);
 
           // Creates rewards stats
           RewardsStats rewards_stats;
-          std::vector<addr_t> txs_validators = rewards_stats.processStats(block_data);
+          std::vector<addr_t> txs_validators = rewards_stats.processStats(period_data);
 
           auto res = state_api_.transition_state(
               {blk->author, blk->gas_limit, blk->timestamp, BlockHeader::difficulty()},
-              to_state_api_transactions(block_data.transactions), txs_validators, {}, rewards_stats);
+              to_state_api_transactions(period_data.transactions), txs_validators, {}, rewards_stats);
 
           assert(res.state_root == blk->state_root);
           state_api_.transition_state_commit();
@@ -86,7 +86,7 @@ class FinalChainImpl final : public FinalChain {
 
   void stop() override { executor_thread_.stop(); }
 
-  std::future<std::shared_ptr<FinalizationResult const>> finalize(SyncBlock&& new_blk,
+  std::future<std::shared_ptr<FinalizationResult const>> finalize(PeriodData&& new_blk,
                                                                   std::vector<h256>&& finalized_dag_blk_hashes,
                                                                   finalize_precommit_ext precommit_ext = {}) override {
     auto p = std::make_shared<std::promise<std::shared_ptr<FinalizationResult const>>>();
@@ -98,7 +98,7 @@ class FinalChainImpl final : public FinalChain {
     return p->get_future();
   }
 
-  std::shared_ptr<FinalizationResult> finalize_(SyncBlock&& new_blk, std::vector<h256>&& finalized_dag_blk_hashes,
+  std::shared_ptr<FinalizationResult> finalize_(PeriodData&& new_blk, std::vector<h256>&& finalized_dag_blk_hashes,
                                                 finalize_precommit_ext const& precommit_ext) {
     auto batch = db_->createWriteBatch();
 

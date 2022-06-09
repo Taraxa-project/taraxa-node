@@ -300,16 +300,28 @@ void FullNode::rebuildDb() {
 
   // Read pbft blocks one by one
   uint64_t period = 1;
+  std::shared_ptr<PeriodData> period_data, next_period_data;
+  std::vector<std::shared_ptr<Vote>> cert_votes;
   while (true) {
-    auto data = old_db_->getPeriodDataRaw(period);
-    if (data.size() == 0) {
-      break;
+    if (next_period_data != nullptr)
+      period_data = next_period_data;
+    else {
+      auto data = old_db_->getPeriodDataRaw(period);
+      if (data.size() == 0) break;
+      period_data = std::make_shared<PeriodData>(data);
     }
-    SyncBlock sync_block(data);
+    auto data = old_db_->getPeriodDataRaw(period + 1);
+    if (data.size() == 0) {
+      next_period_data = nullptr;
+      cert_votes = old_db_->getLastBlockCertVotes();
+    } else {
+      next_period_data = std::make_shared<PeriodData>(data);
+      cert_votes = next_period_data->previous_block_cert_votes;
+    }
 
-    LOG(log_nf_) << "Adding PBFT block " << sync_block.pbft_blk->getBlockHash().toString()
+    LOG(log_nf_) << "Adding PBFT block " << period_data->pbft_blk->getBlockHash().toString()
                  << " from old DB into syncing queue for processing";
-    pbft_mgr_->syncBlockQueuePush(std::move(sync_block), dev::p2p::NodeID());
+    pbft_mgr_->periodDataQueuePush(std::move(*period_data), dev::p2p::NodeID(), std::move(cert_votes));
     pbft_mgr_->pushSyncedPbftBlocksIntoChain();
 
     period++;
