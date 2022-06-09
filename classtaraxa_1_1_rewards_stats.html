@@ -104,9 +104,9 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a63dd78e20e6f0783645b44059a141c71"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#a63dd78e20e6f0783645b44059a141c71">processStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block">SyncBlock</a> &amp;block)</td></tr>
-<tr class="memdesc:a63dd78e20e6f0783645b44059a141c71"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block" title="SyncBlock class is for block execution, that includes PBFT block, certify votes, DAG blocks,...">SyncBlock</a> and returns vector of validators, who included provided block.transactions as first in dag block, e.g. returned validator on position 2 included transaction block.transactions[2] as first in his dag block.  <a href="classtaraxa_1_1_rewards_stats.html#a63dd78e20e6f0783645b44059a141c71">More...</a><br /></td></tr>
-<tr class="separator:a63dd78e20e6f0783645b44059a141c71"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a494d18d03385b45f4037f5483f956cf3"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#a494d18d03385b45f4037f5483f956cf3">processStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;block)</td></tr>
+<tr class="memdesc:a494d18d03385b45f4037f5483f956cf3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data" title="PeriodData class is for block execution, that includes PBFT block, certify votes, DAG blocks,...">PeriodData</a> and returns vector of validators, who included provided block.transactions as first in dag block, e.g. returned validator on position 2 included transaction block.transactions[2] as first in his dag block.  <a href="classtaraxa_1_1_rewards_stats.html#a494d18d03385b45f4037f5483f956cf3">More...</a><br /></td></tr>
+<tr class="separator:a494d18d03385b45f4037f5483f956cf3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
@@ -121,9 +121,9 @@ Private Member Functions</h2></td></tr>
 <tr class="memitem:ab833b335b8ad0858918d9404188084e3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#ab833b335b8ad0858918d9404188084e3">addVote</a> (const <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &amp;vote)</td></tr>
 <tr class="memdesc:ab833b335b8ad0858918d9404188084e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">In case unique vote is provided, it's author's unique votes count is incremented. If provided vote was already processed, nothing happens.  <a href="classtaraxa_1_1_rewards_stats.html#ab833b335b8ad0858918d9404188084e3">More...</a><br /></td></tr>
 <tr class="separator:ab833b335b8ad0858918d9404188084e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a501ffa16f65469b0fb70cfc5d3248a62"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#a501ffa16f65469b0fb70cfc5d3248a62">initStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block">SyncBlock</a> &amp;sync_blk)</td></tr>
-<tr class="memdesc:a501ffa16f65469b0fb70cfc5d3248a62"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prepares reward statistics bases on sync block data.  <a href="classtaraxa_1_1_rewards_stats.html#a501ffa16f65469b0fb70cfc5d3248a62">More...</a><br /></td></tr>
-<tr class="separator:a501ffa16f65469b0fb70cfc5d3248a62"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a2be59ffbdff89345255a6e6aea68f6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#a9a2be59ffbdff89345255a6e6aea68f6">initStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;sync_blk)</td></tr>
+<tr class="memdesc:a9a2be59ffbdff89345255a6e6aea68f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prepares reward statistics bases on period data data.  <a href="classtaraxa_1_1_rewards_stats.html#a9a2be59ffbdff89345255a6e6aea68f6">More...</a><br /></td></tr>
+<tr class="separator:a9a2be59ffbdff89345255a6e6aea68f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -283,8 +283,8 @@ valid_cert_vote_</td>
 
 </div>
 </div>
-<a id="a501ffa16f65469b0fb70cfc5d3248a62"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a501ffa16f65469b0fb70cfc5d3248a62">&#9670;&nbsp;</a></span>initStats()</h2>
+<a id="a9a2be59ffbdff89345255a6e6aea68f6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a2be59ffbdff89345255a6e6aea68f6">&#9670;&nbsp;</a></span>initStats()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -295,7 +295,7 @@ valid_cert_vote_</td>
         <tr>
           <td class="memname">void taraxa::RewardsStats::initStats </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block">SyncBlock</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&#160;</td>
           <td class="paramname"><em>sync_blk</em></td><td>)</td>
           <td></td>
         </tr>
@@ -307,7 +307,7 @@ valid_cert_vote_</td>
 </table>
 </div><div class="memdoc">
 
-<p>Prepares reward statistics bases on sync block data. </p>
+<p>Prepares reward statistics bases on period data data. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">sync_blk</td><td></td></tr>
@@ -317,8 +317,8 @@ valid_cert_vote_</td>
 
 </div>
 </div>
-<a id="a63dd78e20e6f0783645b44059a141c71"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a63dd78e20e6f0783645b44059a141c71">&#9670;&nbsp;</a></span>processStats()</h2>
+<a id="a494d18d03385b45f4037f5483f956cf3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a494d18d03385b45f4037f5483f956cf3">&#9670;&nbsp;</a></span>processStats()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -326,14 +326,14 @@ valid_cert_vote_</td>
         <tr>
           <td class="memname">std::vector&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &gt; taraxa::RewardsStats::processStats </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block">SyncBlock</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&#160;</td>
           <td class="paramname"><em>block</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Process <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block" title="SyncBlock class is for block execution, that includes PBFT block, certify votes, DAG blocks,...">SyncBlock</a> and returns vector of validators, who included provided block.transactions as first in dag block, e.g. returned validator on position 2 included transaction block.transactions[2] as first in his dag block. </p>
+<p>Process <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data" title="PeriodData class is for block execution, that includes PBFT block, certify votes, DAG blocks,...">PeriodData</a> and returns vector of validators, who included provided block.transactions as first in dag block, e.g. returned validator on position 2 included transaction block.transactions[2] as first in his dag block. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">block</td><td></td></tr>

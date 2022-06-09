@@ -6,7 +6,9 @@ var classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler =
     [ "pbftSyncComplete", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#aeda98ed2ba99f1ef374cda1f81192334", null ],
     [ "process", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#adbc694f90d0908f861195bcd6ed49749", null ],
     [ "validatePacketRlpFormat", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#a699f00bcbdac8d17af659727b6b69bfe", null ],
+    [ "kChainSyncedPacketSize", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#aafdc4b042fe59cfaf7c0987ca3eeac8d", null ],
     [ "kPacketType_", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#aab076aac8ccb972af61d6fa6aa80759b", null ],
+    [ "kStandardPacketSize", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#a97dfd77eb900ecbc35e936db28d946c8", null ],
     [ "network_sync_level_size_", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#a24daaa71ccc65831635787ddc90fc8c6", null ],
     [ "periodic_events_tp_", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#ac72d173f4683bcac94b199cb627afc22", null ]
 ];

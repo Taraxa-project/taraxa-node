@@ -38,7 +38,7 @@ var searchData=
   ['hardforks_1305',['Hardforks',['../hardfork_8hpp.html#struct_hardforks',1,'']]],
   ['has_5frlp_5ffields_1306',['HAS_RLP_FIELDS',['../encoding__rlp_8hpp.html#a0064bd5a28c05c265cc7f805e05a31e4',1,'encoding_rlp.hpp']]],
   ['hasblock_1307',['hasBlock',['../classtaraxa_1_1network_1_1tarcap_1_1_test_state.html#af8d7517dd329771704b58d395fb67174',1,'taraxa::network::tarcap::TestState']]],
-  ['hasenoughvalidcertvotes_1308',['hasEnoughValidCertVotes',['../group___p_b_f_t.html#a4e6afff464292d0d315718327181a9f4',1,'taraxa::SyncBlock']]],
+  ['hasenoughvalidcertvotes_1308',['hasEnoughValidCertVotes',['../group___p_b_f_t.html#a72da84a68517b285fc379dc5e1da4517',1,'taraxa::PeriodData']]],
   ['hash_1309',['hash',['../structdev_1_1_fixed_hash_1_1hash.html',1,'dev::FixedHash&lt; N &gt;::hash'],['../group___final_chain.html#aa248d8ceb01bdb669ae3c64822dae150',1,'taraxa::final_chain::BlockHeader::hash()'],['../group___final_chain.html#a74bb648e6d8f03814ed5a5567c347be5',1,'taraxa::final_chain::NewBlock::hash()']]],
   ['hash256_1310',['hash256',['../namespacetaraxa_1_1final__chain.html#a41b2ec28d1ad728e6c4d190795391e6e',1,'taraxa::final_chain']]],
   ['hash256aux_1311',['hash256aux',['../namespacetaraxa_1_1final__chain.html#aaaba8929089b332775874032190fb5e6',1,'taraxa::final_chain']]],

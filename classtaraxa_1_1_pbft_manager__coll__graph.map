@@ -1,12 +1,12 @@
 <map id="taraxa::PbftManager" name="taraxa::PbftManager">
-<area shape="rect" id="node1" title="PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks..." alt="" coords="640,323,795,350"/>
+<area shape="rect" id="node1" title="PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks..." alt="" coords="640,213,795,239"/>
 <area shape="rect" id="node2" title=" " alt="" coords="213,5,416,47"/>
-<area shape="rect" id="node3" title=" " alt="" coords="283,71,347,98"/>
-<area shape="rect" id="node4" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="233,123,397,164"/>
-<area shape="rect" id="node5" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,130,164,157"/>
-<area shape="rect" id="node6" href="$structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="245,189,384,215"/>
-<area shape="rect" id="node7" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="235,467,395,494"/>
-<area shape="rect" id="node8" href="$group___p_b_f_t.html#classtaraxa_1_1_sync_block_queue" title="SyncBlockQueue class is a syncing queue, the queue stores blocks synced from peers." alt="" coords="224,518,405,545"/>
-<area shape="rect" id="node9" title=" " alt="" coords="285,766,345,793"/>
-<area shape="rect" id="node10" href="$group___p_b_f_t.html#classtaraxa_1_1_sync_block" title="SyncBlock class is for block execution, that includes PBFT block, certify votes, DAG blocks,..." alt="" coords="245,817,384,843"/>
+<area shape="rect" id="node3" href="$group___p_b_f_t.html#classtaraxa_1_1_period_data" title="PeriodData class is for block execution, that includes PBFT block, certify votes, DAG blocks,..." alt="" coords="243,71,387,98"/>
+<area shape="rect" id="node4" title=" " alt="" coords="283,122,347,149"/>
+<area shape="rect" id="node5" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="233,173,397,215"/>
+<area shape="rect" id="node6" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,181,164,207"/>
+<area shape="rect" id="node7" href="$group___p_b_f_t.html#classtaraxa_1_1_period_data_queue" title="PeriodDataQueue class is a syncing queue, the queue stores blocks synced from peers." alt="" coords="221,239,408,266"/>
+<area shape="rect" id="node8" href="$structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="245,290,384,317"/>
+<area shape="rect" id="node9" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="235,575,395,602"/>
+<area shape="rect" id="node10" title=" " alt="" coords="285,826,345,853"/>
 </map>

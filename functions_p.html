@@ -184,7 +184,7 @@ $(document).ready(function(){initNavTree('functions_p.html',''); initResizable()
 : <a class="el" href="structtaraxa_1_1_chain_config.html#ad9a8b8d6c17ded4a7073ed7359e7a4a2">taraxa::ChainConfig</a>
 </li>
 <li>pbft_blk
-: <a class="el" href="group___p_b_f_t.html#a793e7e05cd61051d34aa1bd13f186b46">taraxa::SyncBlock</a>
+: <a class="el" href="group___p_b_f_t.html#a65b044ffd5778ee985dd4fdff34b5d0d">taraxa::PeriodData</a>
 </li>
 <li>pbft_chain_
 : <a class="el" href="group___d_a_g.html#a3922e92ad40ab5bb38c12b667239c3e8">taraxa::DagBlockManager</a>
@@ -252,7 +252,7 @@ $(document).ready(function(){initNavTree('functions_p.html',''); initResizable()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_block_packet_handler.html#ac563b3a7a7f510d3d129a2aafc0faeb2">taraxa::network::tarcap::PbftBlockPacketHandler</a>
 </li>
 <li>pbftBlockPushed()
-: <a class="el" href="group___d_a_g.html#a50a666e31bf3f21c2a0d5d72e6984a3f">taraxa::SortitionParamsManager</a>
+: <a class="el" href="group___d_a_g.html#acc1c01af0006bac79483bb3adbf3f764">taraxa::SortitionParamsManager</a>
 </li>
 <li>PbftChain()
 : <a class="el" href="group___p_b_f_t.html#a9437dee7bab66a6671a3baabfaa5d177">taraxa::PbftChain</a>
@@ -371,10 +371,25 @@ $(document).ready(function(){initNavTree('functions_p.html',''); initResizable()
 <li>period_
 : <a class="el" href="group___d_a_g.html#a5a146cb6f4a63454cf294d68191146c4">taraxa::DagManager</a>
 , <a class="el" href="group___p_b_f_t.html#abfe2c34106f0f7c4250e92f7fe6cc095">taraxa::PbftBlock</a>
-, <a class="el" href="group___p_b_f_t.html#aec3a3f2a3fcbb0dd60687d48422618f4">taraxa::SyncBlockQueue</a>
+, <a class="el" href="group___p_b_f_t.html#a640d29636712763de0c3e2710b3578b3">taraxa::PeriodDataQueue</a>
+</li>
+<li>period_data_
+: <a class="el" href="group___p_b_f_t.html#a3bc8579fe23998a9792e6e1fa53e3696">taraxa::PbftManager</a>
 </li>
 <li>period_ms
 : <a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html#ae86f735fc4ed90d3965864a4f3b11b95">taraxa::util::ThreadPool::Periodicity</a>
+</li>
+<li>PeriodData()
+: <a class="el" href="group___p_b_f_t.html#a6d5f9246e611add87a88fff9891f5121">taraxa::PeriodData</a>
+</li>
+<li>PeriodDataQueue()
+: <a class="el" href="group___p_b_f_t.html#a31dd69567432d7f00aebdbf984d0e9c8">taraxa::PeriodDataQueue</a>
+</li>
+<li>periodDataQueuePush()
+: <a class="el" href="group___p_b_f_t.html#af99be33f6d99194ea651c417aedd062c">taraxa::PbftManager</a>
+</li>
+<li>periodDataQueueSize()
+: <a class="el" href="group___p_b_f_t.html#a3cb557d56583afb18dfb5c9d012fef90">taraxa::PbftManager</a>
 </li>
 <li>periodic_events_tp_
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#ac72d173f4683bcac94b199cb627afc22">taraxa::network::tarcap::PbftSyncPacketHandler</a>
@@ -436,12 +451,12 @@ $(document).ready(function(){initNavTree('functions_p.html',''); initResizable()
 : <a class="el" href="group___p_b_f_t.html#aba83f15ed5ff4177ea29828391147b8b">taraxa::PbftManager</a>
 </li>
 <li>Pong()
-: <a class="el" href="structdev_1_1p2p_1_1_pong.html#a1c3c15dd24433f0724adce1a2c036656">dev::p2p::Pong</a>
+: <a class="el" href="structdev_1_1p2p_1_1_pong.html#a5cc55badc75f3e66efc0a43fe008c80b">dev::p2p::Pong</a>
 </li>
 <li>pop()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_queue.html#a57a7970d285d6df8e2307daa9c28258f">taraxa::network::tarcap::PacketsQueue</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_priority_queue.html#aae9323a943cf92475352c2d066adac9b">taraxa::network::tarcap::PriorityQueue</a>
-, <a class="el" href="group___p_b_f_t.html#acefd281d752cfb13166e9935852e7204">taraxa::SyncBlockQueue</a>
+, <a class="el" href="group___p_b_f_t.html#acff085e65460e2a4c52a58aa0f486246">taraxa::PeriodDataQueue</a>
 </li>
 <li>populate()
 : <a class="el" href="classdev_1_1vector__ref.html#a191434e3bafb2f3e49174d67bfd6ac5c">dev::vector_ref&lt; _T &gt;</a>
@@ -462,7 +477,7 @@ $(document).ready(function(){initNavTree('functions_p.html',''); initResizable()
 : <a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a66d8e31c32390658c5c3478254b96875">taraxa::net::rpc::eth::LocalisedLogEntry</a>
 </li>
 <li>post()
-: <a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html#af4cb24bda484de2b3ceeb5480da5590e">taraxa::util::ThreadPool</a>
+: <a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html#a2ca60da1d07f473bde488cd0a721da48">taraxa::util::ThreadPool</a>
 </li>
 <li>post_loop()
 : <a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html#ab8cf191affab5fc7a1f04368e68b9f74">taraxa::util::ThreadPool</a>
@@ -478,6 +493,9 @@ $(document).ready(function(){initNavTree('functions_p.html',''); initResizable()
 </li>
 <li>prev_block_hash_
 : <a class="el" href="group___p_b_f_t.html#af03389b53718e15a31c0da5a22411b22">taraxa::PbftBlock</a>
+</li>
+<li>previous_block_cert_votes
+: <a class="el" href="group___p_b_f_t.html#ae4cda577538fab03cda161a89aa2a228">taraxa::PeriodData</a>
 </li>
 <li>previous_round_next_voted_null_block_hash_
 : <a class="el" href="group___p_b_f_t.html#a5ee8283e2abebcbe3372fb1d76ca40bc">taraxa::PbftManager</a>
@@ -537,11 +555,11 @@ $(document).ready(function(){initNavTree('functions_p.html',''); initResizable()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a8c34274b8c4d41a6959de4442f2b2dab">taraxa::network::tarcap::PacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#a0dfff0dab459adcee1981bd47b1f8ce8">taraxa::network::tarcap::TarcapThreadPool</a>
 </li>
-<li>processStats()
-: <a class="el" href="classtaraxa_1_1_rewards_stats.html#a63dd78e20e6f0783645b44059a141c71">taraxa::RewardsStats</a>
+<li>processPeriodData()
+: <a class="el" href="group___p_b_f_t.html#a98aa2d65de6a6448020cf06ccd14e972">taraxa::PbftManager</a>
 </li>
-<li>processSyncBlock()
-: <a class="el" href="group___p_b_f_t.html#a42e77905a597a9e42ebacbfbb9be501a">taraxa::PbftManager</a>
+<li>processStats()
+: <a class="el" href="classtaraxa_1_1_rewards_stats.html#a494d18d03385b45f4037f5483f956cf3">taraxa::RewardsStats</a>
 </li>
 <li>proof_
 : <a class="el" href="classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#ad5d2ebb95d8cdffa2c4c2273319af50c">taraxa::vrf_wrapper::VrfSortitionBase</a>
@@ -564,7 +582,7 @@ $(document).ready(function(){initNavTree('functions_p.html',''); initResizable()
 </li>
 <li>ProposeModelFace
 : <a class="el" href="group___d_a_g.html#a3f428c9aa82f41ec6498eeb240f2acc0">taraxa::BlockProposer</a>
-, <a class="el" href="group___d_a_g.html#a0a77160b5825fdc2683e0a94bf121197">taraxa::ProposeModelFace</a>
+, <a class="el" href="group___d_a_g.html#a9ca981bd09e2edddac49388d015c35b1">taraxa::ProposeModelFace</a>
 </li>
 <li>proposePbftBlock_()
 : <a class="el" href="group___p_b_f_t.html#ae51aab269e1c1bf96708a202fa531bbd">taraxa::PbftManager</a>
@@ -601,14 +619,14 @@ $(document).ready(function(){initNavTree('functions_p.html',''); initResizable()
 </li>
 <li>push()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#a08acc424e974f0cdc0edf807ab9e3ef8">taraxa::network::tarcap::TarcapThreadPool</a>
-, <a class="el" href="group___p_b_f_t.html#a7013e114f93fe6a35ab94d9f311b67c9">taraxa::SyncBlockQueue</a>
+, <a class="el" href="group___p_b_f_t.html#a4f9910e8511f5297d62911247a711cae">taraxa::PeriodDataQueue</a>
 </li>
 <li>pushBack()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_queue.html#ae3684dfb2d3eb6038c56688cb8d13a12">taraxa::network::tarcap::PacketsQueue</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_priority_queue.html#a4b4275d87f6e7657291e1883ef01aaa3">taraxa::network::tarcap::PriorityQueue</a>
 </li>
 <li>pushCertVotedPbftBlockIntoChain_()
-: <a class="el" href="group___p_b_f_t.html#a0bbfdd9592bfa2777a7072deb457aac3">taraxa::PbftManager</a>
+: <a class="el" href="group___p_b_f_t.html#acf16b37b9e008a70a8ae23ddfcbf5d51">taraxa::PbftManager</a>
 </li>
 <li>pushCount()
 : <a class="el" href="classdev_1_1_r_l_p_stream.html#a8a1c77999759b4d5d0bd956268c9e27d">dev::RLPStream</a>
@@ -617,7 +635,7 @@ $(document).ready(function(){initNavTree('functions_p.html',''); initResizable()
 : <a class="el" href="classdev_1_1_r_l_p_stream.html#ae2bf3eb7c99f0383663c25be8cd42a2f">dev::RLPStream</a>
 </li>
 <li>pushPbftBlock_()
-: <a class="el" href="group___p_b_f_t.html#a9f50e0902a9cf9b6e7020810329e2bf9">taraxa::PbftManager</a>
+: <a class="el" href="group___p_b_f_t.html#a8132b54aca664bd3fb441e22d8cd5826">taraxa::PbftManager</a>
 </li>
 <li>pushSyncedPbftBlocksIntoChain()
 : <a class="el" href="group___p_b_f_t.html#a85fd5d3b057978179f6f0b4a71b4a991">taraxa::PbftManager</a>

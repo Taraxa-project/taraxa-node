@@ -1003,7 +1003,7 @@ Collaboration diagram for taraxa::final_chain::FinalizationResult:</div>
       </table>
 </div><div class="memdoc">
 <div class="textblock"><p>main responsibility is blocks execution in EVM, getting data from EVM state </p>
-<p>Class have methods which you can call to get info from EVM and related state. Main thing here is <a class="el" href="group___final_chain.html#a5b8358ff08257c5b43d76ba493fae822" title="Method which finalizes a block and executes it in EVM.">finalize()</a> method, that is called to execute some pbft block. It implements few events and implements methods related to Ethereum API </p>
+<p>Class have methods which you can call to get info from EVM and related state. Main thing here is <a class="el" href="group___final_chain.html#a266e83f473963f7ab585279f6e50d835" title="Method which finalizes a block and executes it in EVM.">finalize()</a> method, that is called to execute some pbft block. It implements few events and implements methods related to Ethereum API </p>
 </div><div class="dynheader">
 Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <div class="dyncontent">
@@ -1033,9 +1033,9 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <tr class="separator:a417ad359468f6932de665cb660c505e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a91ede0e4ca9b7b7c75b474756ab4c2a6"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a91ede0e4ca9b7b7c75b474756ab4c2a6">stop</a> ()=0</td></tr>
 <tr class="separator:a91ede0e4ca9b7b7c75b474756ab4c2a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5b8358ff08257c5b43d76ba493fae822"><td class="memItemLeft" align="right" valign="top">virtual std::future&lt; std::shared_ptr&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result">FinalizationResult</a> const  &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a5b8358ff08257c5b43d76ba493fae822">finalize</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block">SyncBlock</a> &amp;&amp;sync_block, std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt; &amp;&amp;finalized_dag_blk_hashes, <a class="el" href="group___final_chain.html#a85c2c0863dab085cd063aac9b6886d51">finalize_precommit_ext</a>={})=0</td></tr>
-<tr class="memdesc:a5b8358ff08257c5b43d76ba493fae822"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method which finalizes a block and executes it in EVM.  <a href="group___final_chain.html#a5b8358ff08257c5b43d76ba493fae822">More...</a><br /></td></tr>
-<tr class="separator:a5b8358ff08257c5b43d76ba493fae822"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a266e83f473963f7ab585279f6e50d835"><td class="memItemLeft" align="right" valign="top">virtual std::future&lt; std::shared_ptr&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result">FinalizationResult</a> const  &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a266e83f473963f7ab585279f6e50d835">finalize</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&amp;period_data, std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt; &amp;&amp;finalized_dag_blk_hashes, <a class="el" href="group___final_chain.html#a85c2c0863dab085cd063aac9b6886d51">finalize_precommit_ext</a>={})=0</td></tr>
+<tr class="memdesc:a266e83f473963f7ab585279f6e50d835"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method which finalizes a block and executes it in EVM.  <a href="group___final_chain.html#a266e83f473963f7ab585279f6e50d835">More...</a><br /></td></tr>
+<tr class="separator:a266e83f473963f7ab585279f6e50d835"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a54ac8988197b1305b953c15077980f10"><td class="memItemLeft" align="right" valign="top">virtual std::shared_ptr&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header">BlockHeader</a> const  &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a54ac8988197b1305b953c15077980f10">block_header</a> (std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; n={}) const =0</td></tr>
 <tr class="memdesc:a54ac8988197b1305b953c15077980f10"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method to get block header by block number.  <a href="group___final_chain.html#a54ac8988197b1305b953c15077980f10">More...</a><br /></td></tr>
 <tr class="separator:a54ac8988197b1305b953c15077980f10"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1527,8 +1527,8 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 
 </div>
 </div>
-<a id="a5b8358ff08257c5b43d76ba493fae822"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5b8358ff08257c5b43d76ba493fae822">&#9670;&nbsp;</a></span>finalize()</h2>
+<a id="a266e83f473963f7ab585279f6e50d835"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a266e83f473963f7ab585279f6e50d835">&#9670;&nbsp;</a></span>finalize()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1539,8 +1539,8 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
         <tr>
           <td class="memname">virtual std::future&lt;std::shared_ptr&lt;<a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result">FinalizationResult</a> const&gt; &gt; taraxa::final_chain::FinalChain::finalize </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block">SyncBlock</a> &amp;&amp;&#160;</td>
-          <td class="paramname"><em>sync_block</em>, </td>
+          <td class="paramtype"><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>period_data</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1570,7 +1570,7 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <p>Method which finalizes a block and executes it in EVM. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">sync_block</td><td>Full block with transactions </td></tr>
+    <tr><td class="paramname">period_data</td><td>Full period data with transactions </td></tr>
     <tr><td class="paramname">finalized_dag_blk_hashes</td><td></td></tr>
     <tr><td class="paramname">precommit_ext</td><td></td></tr>
   </table>
@@ -1578,7 +1578,7 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>finalization result </dd></dl>
 
-<p>Implemented in <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a077c041f66324a9c1c42c5583ae2ef2c">taraxa::final_chain::FinalChainImpl</a>.</p>
+<p>Implemented in <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a2fe52fd61d922049681db39a41bff8c8">taraxa::final_chain::FinalChainImpl</a>.</p>
 
 </div>
 </div>

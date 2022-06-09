@@ -6370,10 +6370,10 @@ Collaboration diagram for taraxa::SortitionParamsManager:</div>
 <tr class="separator:a01f7049f14fca2abe48f308af342e5e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6492214527dfe34bc89397f847bac40d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtaraxa_1_1_sortition_params.html">SortitionParams</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a6492214527dfe34bc89397f847bac40d">getSortitionParams</a> (std::optional&lt; uint64_t &gt; for_period={}) const</td></tr>
 <tr class="separator:a6492214527dfe34bc89397f847bac40d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6f7b71bda4e0721528944f8090814e65"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a6f7b71bda4e0721528944f8090814e65">calculateDagEfficiency</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block">SyncBlock</a> &amp;block) const</td></tr>
-<tr class="separator:a6f7b71bda4e0721528944f8090814e65"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a50a666e31bf3f21c2a0d5d72e6984a3f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a50a666e31bf3f21c2a0d5d72e6984a3f">pbftBlockPushed</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block">SyncBlock</a> &amp;block, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DbStorage::Batch</a> &amp;batch, size_t non_empty_pbft_chain_size)</td></tr>
-<tr class="separator:a50a666e31bf3f21c2a0d5d72e6984a3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a35fef01437cc79fc14367aa1682ab841"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a35fef01437cc79fc14367aa1682ab841">calculateDagEfficiency</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;block) const</td></tr>
+<tr class="separator:a35fef01437cc79fc14367aa1682ab841"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acc1c01af0006bac79483bb3adbf3f764"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#acc1c01af0006bac79483bb3adbf3f764">pbftBlockPushed</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;block, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DbStorage::Batch</a> &amp;batch, size_t non_empty_pbft_chain_size)</td></tr>
+<tr class="separator:acc1c01af0006bac79483bb3adbf3f764"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad5f6eb4c57da4b322cf14c6b519a2764"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ad5f6eb4c57da4b322cf14c6b519a2764">averageDagEfficiency</a> ()</td></tr>
 <tr class="separator:ad5f6eb4c57da4b322cf14c6b519a2764"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4a999528259fcdb861b9e8388cc550df"><td class="memItemLeft" align="right" valign="top">const std::deque&lt; <a class="el" href="group___d_a_g.html#structtaraxa_1_1_sortition_params_change">SortitionParamsChange</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a4a999528259fcdb861b9e8388cc550df">getParamsChanges</a> () const</td></tr>
@@ -6479,8 +6479,8 @@ Collaboration diagram for taraxa::SortitionParamsManager:</div>
 
 </div>
 </div>
-<a id="a6f7b71bda4e0721528944f8090814e65"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6f7b71bda4e0721528944f8090814e65">&#9670;&nbsp;</a></span>calculateDagEfficiency()</h2>
+<a id="a35fef01437cc79fc14367aa1682ab841"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a35fef01437cc79fc14367aa1682ab841">&#9670;&nbsp;</a></span>calculateDagEfficiency()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -6488,15 +6488,15 @@ Collaboration diagram for taraxa::SortitionParamsManager:</div>
         <tr>
           <td class="memname">uint16_t taraxa::SortitionParamsManager::calculateDagEfficiency </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block">SyncBlock</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&#160;</td>
           <td class="paramname"><em>block</em></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Calculating DAG efficiency in passed SyncBlock(PBFT) DAG efficiency is count of unique transactions over all DAG blocks in a PBFT block divided by the count over all DAG blocks in a PBFT block. </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Calculating DAG efficiency in passed PeriodData(PBFT) DAG efficiency is count of unique transactions over all DAG blocks in a PBFT block divided by the count over all DAG blocks in a PBFT block. </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">block</td><td><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block" title="SyncBlock class is for block execution, that includes PBFT block, certify votes, DAG blocks,...">SyncBlock</a> to calculate its efficiency </td></tr>
+    <tr><td class="paramname">block</td><td><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data" title="PeriodData class is for block execution, that includes PBFT block, certify votes, DAG blocks,...">PeriodData</a> to calculate its efficiency </td></tr>
   </table>
   </dd>
 </dl>
@@ -6635,8 +6635,8 @@ Collaboration diagram for taraxa::SortitionParamsManager:</div>
 
 </div>
 </div>
-<a id="a50a666e31bf3f21c2a0d5d72e6984a3f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a50a666e31bf3f21c2a0d5d72e6984a3f">&#9670;&nbsp;</a></span>pbftBlockPushed()</h2>
+<a id="acc1c01af0006bac79483bb3adbf3f764"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acc1c01af0006bac79483bb3adbf3f764">&#9670;&nbsp;</a></span>pbftBlockPushed()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -6644,7 +6644,7 @@ Collaboration diagram for taraxa::SortitionParamsManager:</div>
         <tr>
           <td class="memname">void taraxa::SortitionParamsManager::pbftBlockPushed </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block">SyncBlock</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&#160;</td>
           <td class="paramname"><em>block</em>, </td>
         </tr>
         <tr>
@@ -6666,9 +6666,9 @@ Collaboration diagram for taraxa::SortitionParamsManager:</div>
         </tr>
       </table>
 </div><div class="memdoc">
-<p>Called from <a class="el" href="group___p_b_f_t.html#a9f50e0902a9cf9b6e7020810329e2bf9" title="Push a new PBFT block into the PBFT chain.">PbftManager.pushPbftBlock_()</a> Calculates and stores needed data on every block. Every <code>computation_interval</code> blocks from config launches <code>recalculate</code> based on previous data </p><dl class="params"><dt>Parameters</dt><dd>
+<p>Called from <a class="el" href="group___p_b_f_t.html#a8132b54aca664bd3fb441e22d8cd5826" title="Push a new PBFT block into the PBFT chain.">PbftManager.pushPbftBlock_()</a> Calculates and stores needed data on every block. Every <code>computation_interval</code> blocks from config launches <code>recalculate</code> based on previous data </p><dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">block</td><td><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block" title="SyncBlock class is for block execution, that includes PBFT block, certify votes, DAG blocks,...">SyncBlock</a> to process </td></tr>
+    <tr><td class="paramname">block</td><td><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data" title="PeriodData class is for block execution, that includes PBFT block, certify votes, DAG blocks,...">PeriodData</a> to process </td></tr>
     <tr><td class="paramname">batch</td><td>DB batch in which all changes will be added </td></tr>
     <tr><td class="paramname">non_empty_pbft_chain_size</td><td>PBFT chain size excluding pbft blocks with null anchor </td></tr>
   </table>

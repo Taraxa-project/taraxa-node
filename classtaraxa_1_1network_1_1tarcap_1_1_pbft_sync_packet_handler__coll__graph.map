@@ -1,5 +1,5 @@
 <map id="taraxa::network::tarcap::PbftSyncPacketHandler" name="taraxa::network::tarcap::PbftSyncPacketHandler">
-<area shape="rect" id="node1" title=" " alt="" coords="89,215,268,256"/>
+<area shape="rect" id="node1" title=" " alt="" coords="89,229,268,271"/>
 <area shape="rect" id="node2" href="$classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html" title="ExtSyncingPacketHandler is extended abstract PacketHandler with added functions that are used in pack..." alt="" coords="5,96,200,137"/>
 <area shape="rect" id="node3" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html" title="Packet handler base class that consists of shared state and some commonly used functions." alt="" coords="15,5,190,47"/>
 <area shape="rect" id="node4" title=" " alt="" coords="225,103,285,130"/>

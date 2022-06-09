@@ -1,5 +1,8 @@
 var NAVTREEINDEX8 =
 {
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a2633b9dd117d887e31fa019fbe8f7e9a":[11,0,3,3,0,0,1,5],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a2cac604ead6058d9fd7370f1d9b4ab68":[11,0,3,3,0,0,1,50],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a3148b367ea988085a70ec58ea25b2ec7":[11,0,3,3,0,0,1,3],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a33b1eb30d14d6c11511bd495feb46df5":[11,0,3,3,0,0,1,54],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a3784c14e0331c576b4b0d95a391dd4fd":[11,0,3,3,0,0,1,21],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a38884697778ea5c0383f7c5d7dcb61f2":[11,0,3,3,0,0,1,28],
@@ -79,8 +82,8 @@ var NAVTREEINDEX8 =
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#adfb6b30b31fb7e4f641ddafcd11c55f5":[12,0,1,4,1,1,0,6,3,2],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#adfb6b30b31fb7e4f641ddafcd11c55f5":[11,0,3,3,0,0,13,0,2],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#afa9b19f9509543c932b6901c6723bf77":[11,0,3,3,0,0,13,6],
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_1_1_watch":[12,0,1,4,1,1,0,6,3],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_1_1_watch":[11,0,3,3,0,0,13,0],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group_1_1_watch":[12,0,1,4,1,1,0,6,3],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html":[11,0,3,3,0,0,12],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a0d0209125e06c9caa6b5d9c47eeb2c52":[11,0,3,3,0,0,12,4],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watches.html#a31b2b25b494ed5a73471dc15ee89f9dc":[11,0,3,3,0,0,12,2],
@@ -246,8 +249,5 @@ var NAVTREEINDEX8 =
 "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a74412b7f1bd0797e24ba65dd97db8bfa":[11,0,3,4,0,10,9],
 "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a7fc54c59db2e2c11f440de4503b49cb8":[11,0,3,4,0,10,6],
 "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a8c34274b8c4d41a6959de4442f2b2dab":[11,0,3,4,0,10,10],
-"classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a9543214a6d87aeb9dbb1902fa2aa5ccf":[11,0,3,4,0,10,14],
-"classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#aaa9095a31e4e70562c66de0c9da63563":[11,0,3,4,0,10,8],
-"classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#ab06ae64a92de5d4350a8429977b36b2f":[11,0,3,4,0,10,1],
-"classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#abe1ff775fb75eafc7e0a549833a4c50b":[11,0,3,4,0,10,11]
+"classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a9543214a6d87aeb9dbb1902fa2aa5ccf":[11,0,3,4,0,10,14]
 };

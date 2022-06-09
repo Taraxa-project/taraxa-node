@@ -648,9 +648,9 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 <tr class="separator:a3ee587760633681c1fd24d5bfe79ff12"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa4e01fa96847e153ef0c6867bf6ad900"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#aa4e01fa96847e153ef0c6867bf6ad900">checkBlockTransactions</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;blk)</td></tr>
 <tr class="separator:aa4e01fa96847e153ef0c6867bf6ad900"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad167a47a95f9c094e297734c75c18759"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#ad167a47a95f9c094e297734c75c18759">updateFinalizedTransactionsStatus</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block">SyncBlock</a> const &amp;sync_block)</td></tr>
-<tr class="memdesc:ad167a47a95f9c094e297734c75c18759"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates the status of transactions to finalized IMPORTANT: This method is invoked on finalizing a pbft block, it needs to be protected with transactions_mutex_ but the mutex is locked from pbft manager for the entire pbft finalization process to make the finalization atomic.  <a href="group___transaction.html#ad167a47a95f9c094e297734c75c18759">More...</a><br /></td></tr>
-<tr class="separator:ad167a47a95f9c094e297734c75c18759"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a593e70106cf0a36f54792117b42a7d2a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a593e70106cf0a36f54792117b42a7d2a">updateFinalizedTransactionsStatus</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> const &amp;period_data)</td></tr>
+<tr class="memdesc:a593e70106cf0a36f54792117b42a7d2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates the status of transactions to finalized IMPORTANT: This method is invoked on finalizing a pbft block, it needs to be protected with transactions_mutex_ but the mutex is locked from pbft manager for the entire pbft finalization process to make the finalization atomic.  <a href="group___transaction.html#a593e70106cf0a36f54792117b42a7d2a">More...</a><br /></td></tr>
+<tr class="separator:a593e70106cf0a36f54792117b42a7d2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a165c1f695b5681e65ae25296a04e2c65"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a165c1f695b5681e65ae25296a04e2c65">moveNonFinalizedTransactionsToTransactionsPool</a> (std::unordered_set&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt; &amp;&amp;transactions)</td></tr>
 <tr class="memdesc:a165c1f695b5681e65ae25296a04e2c65"><td class="mdescLeft">&#160;</td><td class="mdescRight">Moves non-finalized transactions from discarded old dag blocks back to transactions pool IMPORTANT: This method is invoked on finalizing a pbft block, it needs to be protected with transactions_mutex_ but the mutex is locked from pbft manager for the entire pbft finalization process to make the finalization atomic.  <a href="group___transaction.html#a165c1f695b5681e65ae25296a04e2c65">More...</a><br /></td></tr>
 <tr class="separator:a165c1f695b5681e65ae25296a04e2c65"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1260,8 +1260,8 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 
 </div>
 </div>
-<a id="ad167a47a95f9c094e297734c75c18759"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad167a47a95f9c094e297734c75c18759">&#9670;&nbsp;</a></span>updateFinalizedTransactionsStatus()</h2>
+<a id="a593e70106cf0a36f54792117b42a7d2a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a593e70106cf0a36f54792117b42a7d2a">&#9670;&nbsp;</a></span>updateFinalizedTransactionsStatus()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1269,8 +1269,8 @@ Collaboration diagram for taraxa::TransactionManager:</div>
         <tr>
           <td class="memname">void taraxa::TransactionManager::updateFinalizedTransactionsStatus </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_sync_block">SyncBlock</a> const &amp;&#160;</td>
-          <td class="paramname"><em>sync_block</em></td><td>)</td>
+          <td class="paramtype"><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> const &amp;&#160;</td>
+          <td class="paramname"><em>period_data</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -1279,9 +1279,7 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 <p>Updates the status of transactions to finalized IMPORTANT: This method is invoked on finalizing a pbft block, it needs to be protected with transactions_mutex_ but the mutex is locked from pbft manager for the entire pbft finalization process to make the finalization atomic. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">anchor</td><td>Anchor of the finalized pbft block </td></tr>
-    <tr><td class="paramname">period</td><td>Period finalized </td></tr>
-    <tr><td class="paramname">dag_order</td><td><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag" title="Thread safe. Labelled graph.">Dag</a> order of the finalized pbft block</td></tr>
+    <tr><td class="paramname">period_data</td><td>period data </td></tr>
   </table>
   </dd>
 </dl>
