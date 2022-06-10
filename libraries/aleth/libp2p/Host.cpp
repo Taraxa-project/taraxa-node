@@ -11,6 +11,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <chrono>
+#include <fstream>
 #include <memory>
 #include <mutex>
 #include <set>
