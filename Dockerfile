@@ -4,13 +4,10 @@ ARG BUILD_OUTPUT_DIR=cmake-docker-build-debug
 #############################################
 # builder image - contains all dependencies #
 #############################################
-FROM amd64/ubuntu:20.04 as builder
+FROM ubuntu:22.04 as builder
 
 # deps versions
-ARG GO_VERSION=1.16.3
-ARG CMAKE_VERSION=3.16.3-1ubuntu1
-ARG GFLAGS_VERSION=2.2.2-1build1
-ARG LLVM_VERSION=12
+ARG LLVM_VERSION=14
 
 # Install standard packages
 RUN apt-get update \
@@ -26,12 +23,6 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 
-# Install LLVM
-RUN curl -SL -o llvm.sh https://apt.llvm.org/llvm.sh && \
-    chmod +x llvm.sh && \
-    ./llvm.sh $LLVM_VERSION && \
-    rm -f llvm.sh
-
 # To get Solidity compiler for python integration tests
 # install standart tools
 RUN add-apt-repository ppa:ethereum/ethereum \
@@ -39,15 +30,18 @@ RUN add-apt-repository ppa:ethereum/ethereum \
     && apt-get install -y \ 
     clang-format-$LLVM_VERSION \
     clang-tidy-$LLVM_VERSION \
+    llvm-$LLVM_VERSION \
+    golang-go \
     ca-certificates \
     libtool \
     autoconf \
     binutils \
-    cmake=$CMAKE_VERSION \
+    cmake \
+    libsnappy-dev \
+    libzstd-dev \
     ccache \
-    libgflags-dev=$GFLAGS_VERSION \
-    solc \
     && rm -rf /var/lib/apt/lists/*
+
 
 ENV CXX="clang++-${LLVM_VERSION}"
 ENV CC="clang-${LLVM_VERSION}"
@@ -55,14 +49,6 @@ ENV CC="clang-${LLVM_VERSION}"
 # Install conan
 RUN pip3 install --upgrade conan
 
-# Install go
-RUN curl -SL https://dl.google.com/go/go$GO_VERSION.linux-amd64.tar.gz \
-    | tar -xzC /usr/local
-
-# Add go to PATH
-ENV GOROOT=/usr/local/go
-ENV GOPATH=$HOME/.go
-ENV PATH=$GOPATH/bin:$GOROOT/bin:$PATH
 ENV CONAN_REVISIONS_ENABLED=1
 
 # Install conan deps
@@ -102,11 +88,10 @@ RUN mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR \
     # keep only required shared libraries and final binaries
     && find . -maxdepth 1 ! -name "lib" ! -name "bin" -exec rm -rfv {} \;
 
-
 ###############################################################################
 ##### Taraxa image containing taraxad binary + dynamic libraries + config #####
 ###############################################################################
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
 # Install curl and jq
 RUN apt-get update \

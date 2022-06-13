@@ -13,6 +13,7 @@ class TaraxaConan(ConanFile):
     generators = "cmake"
 
     def requirements(self):
+        self.requires("mpfr/4.1.0")
         self.requires("boost/1.79.0")
         self.requires("cppcheck/2.7.5")
         self.requires("openssl/1.1.1o")
@@ -21,7 +22,6 @@ class TaraxaConan(ConanFile):
         self.requires("lz4/1.9.3")
         self.requires("rocksdb/6.20.3")
         self.requires("gmp/6.2.1")
-        self.requires("mpfr/4.1.0")
         self.requires("libjson-rpc-cpp/1.3.0@bincrafters/stable")
 
     def _configure_boost_libs(self):
@@ -67,6 +67,9 @@ class TaraxaConan(ConanFile):
         self.options["libjson-rpc-cpp"].shared = False
         # mpir is required by cppcheck and it causing gmp confict
         self.options["mpir"].enable_gmpcompat = False
+        # it is disabled because mpir couldn't be built for arm
+        if (self.settings.arch == "armv8"):
+            self.options["cppcheck"].with_z3 = False
 
     def _configure_cmake(self):
         cmake = CMake(self)

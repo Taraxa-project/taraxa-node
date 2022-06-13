@@ -432,7 +432,7 @@ jobs:
       - HELMCHART: taraxa-node
       - CONAN_REVISIONS_ENABLED: 1
     machine:
-      image: ubuntu-2004:202010-01
+      image: ubuntu-2204:2022.04.2
       docker_layer_caching: true
     resource_class: xlarge
     steps:
