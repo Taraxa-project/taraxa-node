@@ -1608,7 +1608,7 @@ TEST_F(FullNodeTest, light_node) {
   EXPECT_LE(non_empty_counter, node_cfgs[0].light_node_history + 1);
 }
 
-TEST_F(FullNodeTest, clear_period_data) {
+TEST_F(FullNodeTest, DISABLED_clear_period_data) {
   auto node_cfgs = make_node_cfgs<10>(2);
   node_cfgs[0].is_light_node = true;
   node_cfgs[0].light_node_history = 4;
