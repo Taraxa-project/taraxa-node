@@ -8,6 +8,68 @@ Specifies whether to build with or without optimization and without or with
 the symbol table for debugging. Unless you are specifically debugging or
 running tests, it is recommended to build as release.
 
+## Building on Ubuntu 22.04
+For Ubuntu 22.04 users, after installing the right packages with `apt` taraxa-node
+will build out of the box without further effort:
+
+### Install taraxa-node dependencies:
+
+    # Required packages
+    sudo apt-get install -y \
+        libtool \
+        autoconf \
+        ccache \
+        cmake \
+        clang-format-14 \
+        clang-tidy-14 \
+        golang-go \
+        python3-pip \
+        # this libs are required for arm build by go part. you can skip it for amd64 build
+        libzstd-dev \
+        libsnappy-dev
+
+    # Optional. Needed to run py_test. This won't install on arm64 OS because package is missing in apt
+    sudo add-apt-repository ppa:ethereum/ethereum
+    sudo apt-get update
+    sudo apt install solc
+
+    # Install conan package manager
+    sudo python3 -m pip install conan
+
+    # Setup clang as default compiler either in your IDE or by env. variables"
+    export C="clang-14"
+    export CXX="clang++-14"
+
+### Clone the Repository
+
+    git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
+    cd taraxa-node
+    git submodule update --init --recursive
+
+### Compile
+
+    # Optional - one time action
+    # Create clang profile
+    # It is recommended to use clang because on other compilers you could face some errors
+    conan profile new clang --detect && \
+    conan profile update settings.compiler=clang clang && \
+    conan profile update settings.compiler.version=14 clang && \
+    conan profile update settings.compiler.libcxx=libstdc++11 clang && \
+    conan profile update env.CC=clang-14 clang && \
+    conan profile update env.CXX=clang++-14 clang
+
+    # Export needed var for conan
+    export CONAN_REVISIONS_ENABLED=1
+
+    # Fetch and compile libraries fetched from conan
+    conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
+
+    # Compile project using cmake
+    mkdir cmake-build
+    cd cmake-build
+    cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo ../
+    make -j$(nproc)
+
 ## Building on Ubuntu 20.04
 For Ubuntu 20.04 users, after installing the right packages with `apt` taraxa-node
 will build out of the box without further effort:
@@ -96,10 +158,10 @@ And optional:
 
 ### Install taraxa-node dependencies:
 
-First you need to get (Brew)[https://brew.sh/] package manager. After that you need tot install dependencies with it:
+First you need to get (Brew)[https://brew.sh/] package manager. After that you need tot install dependencies with it. Currently there is no llvm-14 in brew, but it works well with llvm-13
 
     brew update
-    brew install coreutils go autoconf automake gflags git libtool llvm@12 make pkg-config cmake conan
+    brew install coreutils go autoconf automake gflags git libtool llvm@13 make pkg-config cmake conan snappy zstd
 
 ### Clone the Repository
 
@@ -113,7 +175,7 @@ First you need to get (Brew)[https://brew.sh/] package manager. After that you n
     # It is recommended to use clang because on other compilers you could face some errors
     conan profile new clang --detect && \
     conan profile update settings.compiler=clang clang && \
-    conan profile update settings.compiler.version=12 clang && \
+    conan profile update settings.compiler.version=13 clang && \
     conan profile update settings.compiler.libcxx=libc++ clang && \
     conan profile update env.CC=clang clang && \
     conan profile update env.CXX=clang++ clang
@@ -173,7 +235,9 @@ cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clan
 make -j$(nproc)
 ```
 
-## Building on M1 macs
+## Building on M1 Macs for x86_64 with Rosetta2
+
+You should be able to build project following default MacOS building process. But here is a guide how to build project for x86_64 arch with Rosetta2. 
 
 ### Install Rosetta2
 
@@ -189,7 +253,7 @@ make -j$(nproc)
 
 ### Install dependencies 
 
-    /usr/local/bin/brew install coreutils go autoconf automake gflags git libtool llvm@12 make pkg-config cmake conan
+    /usr/local/bin/brew install coreutils go autoconf automake gflags git libtool llvm@13 make pkg-config cmake conan snappy zstd
 
 ### Clone the Repository
 
@@ -205,7 +269,7 @@ make -j$(nproc)
     # It output should be equal to `i386`
     conan profile new clang --detect && \
     conan profile update settings.compiler=clang clang && \
-    conan profile update settings.compiler.version=12 clang && \
+    conan profile update settings.compiler.version=13 clang && \
     conan profile update settings.compiler.libcxx=libc++ clang && \
     conan profile update env.CC=/usr/local/opt/llvm/bin/clang clang && \
     conan profile update env.CXX=/usr/local/opt/llvm/bin/clang++ clang

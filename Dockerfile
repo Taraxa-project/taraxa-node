@@ -43,14 +43,13 @@ RUN add-apt-repository ppa:ethereum/ethereum \
     ca-certificates \
     libtool \
     autoconf \
-    binutils \
+    binutils \ 
     cmake \
-    libsnappy-dev \
-    libzstd-dev \
     ccache \
+    # this libs are required for arm build by go part
+    libzstd-dev \
+    libsnappy-dev \
     && rm -rf /var/lib/apt/lists/*
-
-
 
 ENV CXX="clang++-${LLVM_VERSION}"
 ENV CC="clang-${LLVM_VERSION}"

@@ -67,7 +67,8 @@ class TaraxaConan(ConanFile):
         self.options["libjson-rpc-cpp"].shared = False
         # mpir is required by cppcheck and it causing gmp confict
         self.options["mpir"].enable_gmpcompat = False
-        # it is disabled because mpir couldn't be built for arm
+
+        # mpir is z3 dependency and it couldn't be built for arm
         if (self.settings.arch == "armv8"):
             self.options["cppcheck"].with_z3 = False
 
