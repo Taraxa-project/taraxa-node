@@ -6,6 +6,7 @@ ARG BUILD_OUTPUT_DIR=cmake-docker-build-debug
 #############################################
 FROM ubuntu:22.04 as builder
 
+
 # deps versions
 ARG LLVM_VERSION=14
 
@@ -22,8 +23,15 @@ RUN apt-get update \
     software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
+# install solc for py_test if arch is not arm64 because it is not availiable 
+RUN \
+if [ `arch` != "aarch64" ]; \
+then  \
+    add-apt-repository ppa:ethereum/ethereum \
+    && apt-get update \
+    && apt install solc; \
+fi 
 
-# To get Solidity compiler for python integration tests
 # install standart tools
 RUN add-apt-repository ppa:ethereum/ethereum \
     && apt-get update \
@@ -41,6 +49,7 @@ RUN add-apt-repository ppa:ethereum/ethereum \
     libzstd-dev \
     ccache \
     && rm -rf /var/lib/apt/lists/*
+
 
 
 ENV CXX="clang++-${LLVM_VERSION}"

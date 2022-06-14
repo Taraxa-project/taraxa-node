@@ -7,9 +7,14 @@
 
 (
   cd "$(dirname "$0")"
+  if [ `arch` = "aarch64" ]
+  then
+    echo "pytests currently is not supported for arm because of unavailable solc package"
+    exit 0
+  fi
   pip3 install virtualenv
   virtualenv -p python3 venv
   source venv/bin/activate
-  pip install -r requirements.txt
-  python -m pytest $@
+  pip3 install -r requirements.txt
+  python3 -m pytest $@
 )
