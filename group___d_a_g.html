@@ -516,18 +516,22 @@ Collaboration diagram for taraxa::SortitionPropose:</div>
 <div class="dyncontent">
 <div class="center"><img src="classtaraxa_1_1_sortition_propose__coll__graph.png" border="0" usemap="#taraxa_1_1_sortition_propose_coll__map" alt="Collaboration graph"/></div>
 <map name="taraxa_1_1_sortition_propose_coll__map" id="taraxa_1_1_sortition_propose_coll__map">
-<area shape="rect" title=" " alt="" coords="109,289,287,316"/>
-<area shape="rect" href="group___d_a_g.html#classtaraxa_1_1_propose_model_face" title=" " alt="" coords="5,200,199,227"/>
-<area shape="rect" href="classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="20,81,184,123"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="23,5,181,32"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="213,89,373,115"/>
-<area shape="rect" href="structtaraxa_1_1_dag_frontier.html" title=" " alt="" coords="223,200,371,227"/>
+<area shape="rect" title=" " alt="" coords="868,118,1047,145"/>
+<area shape="rect" href="group___d_a_g.html#classtaraxa_1_1_propose_model_face" title=" " alt="" coords="536,67,729,94"/>
+<area shape="rect" href="classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="229,5,393,47"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,13,164,39"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="231,91,391,118"/>
+<area shape="rect" href="structtaraxa_1_1_dag_frontier.html" title=" " alt="" coords="559,118,707,145"/>
+<area shape="rect" href="classtaraxa_1_1util_1_1_thread_pool.html" title=" " alt="" coords="545,169,720,195"/>
+<area shape="rect" title=" " alt="" coords="213,161,408,203"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
 <tr class="memitem:a3aec4432b2b2a3e5a48162933945da86"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a3aec4432b2b2a3e5a48162933945da86">SortitionPropose</a> (<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> node_addr, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &gt; dag_mgr, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &gt; dag_blk_mgr, std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt; trx_mgr)</td></tr>
 <tr class="separator:a3aec4432b2b2a3e5a48162933945da86"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adba632348f69df65960098fc0efb5eb7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#adba632348f69df65960098fc0efb5eb7">~SortitionPropose</a> ()</td></tr>
+<tr class="separator:adba632348f69df65960098fc0efb5eb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:addeec0eeb2caa6b651d3a9e9e136e1ed"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#addeec0eeb2caa6b651d3a9e9e136e1ed">propose</a> () override</td></tr>
 <tr class="separator:addeec0eeb2caa6b651d3a9e9e136e1ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_group___d_a_g"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_group___d_a_g')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="group___d_a_g.html#classtaraxa_1_1_propose_model_face">taraxa::ProposeModelFace</a></td></tr>
@@ -552,6 +556,8 @@ Collaboration diagram for taraxa::SortitionPropose:</div>
 <tr class="separator:aae1e3fb89b672481721fd3bc4180d3f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3dd257da790b6978fd814dcce1785c5a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtaraxa_1_1_dag_frontier.html">DagFrontier</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a3dd257da790b6978fd814dcce1785c5a">last_frontier_</a></td></tr>
 <tr class="separator:a3dd257da790b6978fd814dcce1785c5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ac36f60bce997dbb4f952aaa0b1e22a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a7ac36f60bce997dbb4f952aaa0b1e22a">executor_</a> {1}</td></tr>
+<tr class="separator:a7ac36f60bce997dbb4f952aaa0b1e22a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a35a01524cd913a3c6109def68b32f842"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a35a01524cd913a3c6109def68b32f842">db_</a></td></tr>
 <tr class="separator:a35a01524cd913a3c6109def68b32f842"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab2ea22f5c74c111431955cbaeced65e7"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ab2ea22f5c74c111431955cbaeced65e7">dag_mgr_</a></td></tr>
@@ -617,6 +623,31 @@ Additional Inherited Members</h2></td></tr>
           <td></td>
           <td>)</td>
           <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adba632348f69df65960098fc0efb5eb7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adba632348f69df65960098fc0efb5eb7">&#9670;&nbsp;</a></span>~SortitionPropose()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">taraxa::SortitionPropose::~SortitionPropose </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
         </tr>
       </table>
   </td>
@@ -712,6 +743,28 @@ Additional Inherited Members</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a>&gt; taraxa::SortitionPropose::db_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7ac36f60bce997dbb4f952aaa0b1e22a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ac36f60bce997dbb4f952aaa0b1e22a">&#9670;&nbsp;</a></span>executor_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a> taraxa::SortitionPropose::executor_ {1}</td>
         </tr>
       </table>
   </td>
