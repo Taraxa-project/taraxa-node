@@ -496,6 +496,7 @@ bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
   }
 
   {
+    // This lock protects the both reward_votes_pbft_block_hash_ and reward_votes_
     std::shared_lock lock(reward_votes_mutex_);
 
     if (reward_votes_pbft_block_hash_ != voted_block_hash) {
