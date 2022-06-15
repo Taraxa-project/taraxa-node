@@ -1,5 +1,9 @@
 var NAVTREEINDEX22 =
 {
+"structtaraxa_1_1_transaction.html#a75ca1b1824b133c6e887eea54c1fcc26":[11,0,3,51,4],
+"structtaraxa_1_1_transaction.html#a798255ffdb21876ddd0f6b6cb208c60d":[11,0,3,51,9],
+"structtaraxa_1_1_transaction.html#a7b82e66ad83dcbd693e9ad4638a95884":[11,0,3,51,6],
+"structtaraxa_1_1_transaction.html#a7dabdd6bd1f4499c4a3c04af0a3df65d":[11,0,3,51,16],
 "structtaraxa_1_1_transaction.html#a8ca76c9b899fe302fb338da46f5e36a0":[11,0,3,51,36],
 "structtaraxa_1_1_transaction.html#a8fc79af8f68622e0dce2617e842f51d8":[11,0,3,51,31],
 "structtaraxa_1_1_transaction.html#a99afe7d871bbb84a7d8d5c948c090985":[11,0,3,51,10],
@@ -245,9 +249,5 @@ var NAVTREEINDEX22 =
 "trie__common_8cpp.html#a31a1e83861e1b14e99841d137c2da0a1":[12,0,1,4,0,1,1,6,2],
 "trie__common_8cpp.html#a41b2ec28d1ad728e6c4d190795391e6e":[12,0,1,4,0,1,1,6,0],
 "trie__common_8cpp.html#aa0b5a88e3d820936d80621999c99726c":[12,0,1,4,0,1,1,6,3],
-"trie__common_8cpp.html#aaaba8929089b332775874032190fb5e6":[12,0,1,4,0,1,1,6,1],
-"trie__common_8hpp.html":[12,0,1,4,0,0,1,6],
-"trie__common_8hpp.html#a41b2ec28d1ad728e6c4d190795391e6e":[12,0,1,4,0,0,1,6,0],
-"trie__common_8hpp_source.html":[12,0,1,4,0,0,1,6],
-"types_8hpp.html":[12,0,1,2,0,0,12]
+"trie__common_8cpp.html#aaaba8929089b332775874032190fb5e6":[12,0,1,4,0,1,1,6,1]
 };
