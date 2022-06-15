@@ -105,8 +105,8 @@ Collaboration diagram for taraxa::network::tarcap::PbftBlockPacketHandler:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ac563b3a7a7f510d3d129a2aafc0faeb2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_block_packet_handler.html#ac563b3a7a7f510d3d129a2aafc0faeb2">PbftBlockPacketHandler</a> (std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt; peers_state, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html">PacketsStats</a> &gt; packets_stats, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt; pbft_chain, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">PbftManager</a> &gt; pbft_mgr, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr)</td></tr>
-<tr class="separator:ac563b3a7a7f510d3d129a2aafc0faeb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d04aa1213e85d839e8e1baddc20e72a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_block_packet_handler.html#a2d04aa1213e85d839e8e1baddc20e72a">PbftBlockPacketHandler</a> (std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt; peers_state, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html">PacketsStats</a> &gt; packets_stats, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt; pbft_chain, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">PbftManager</a> &gt; pbft_mgr, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote_manager">VoteManager</a> &gt; vote_mgr, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr)</td></tr>
+<tr class="separator:a2d04aa1213e85d839e8e1baddc20e72a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac5246b4a560e68d7a38afa8464f1f514"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_block_packet_handler.html#ac5246b4a560e68d7a38afa8464f1f514">onNewPbftBlock</a> (const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;pbft_block)</td></tr>
 <tr class="separator:ac5246b4a560e68d7a38afa8464f1f514"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a778d8b62d309d9c954cd79ddc3c3c087"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_block_packet_handler.html#a778d8b62d309d9c954cd79ddc3c3c087">sendPbftBlock</a> (const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;peer_id, const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;pbft_block, uint64_t pbft_chain_size)</td></tr>
@@ -148,6 +148,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a306fc8d5512dfe771988a02091dac84c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a993ef37f122d90ccca2fc19274daf39b"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">PbftManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_block_packet_handler.html#a993ef37f122d90ccca2fc19274daf39b">pbft_mgr_</a></td></tr>
 <tr class="separator:a993ef37f122d90ccca2fc19274daf39b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af803b58ae64309e34bafbc511195f670"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote_manager">VoteManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_block_packet_handler.html#af803b58ae64309e34bafbc511195f670">vote_mgr_</a></td></tr>
+<tr class="separator:af803b58ae64309e34bafbc511195f670"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
@@ -166,8 +168,8 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:afabdc72598d541c7b8abb17bfbb6d93b inherit pro_attribs_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="ac563b3a7a7f510d3d129a2aafc0faeb2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac563b3a7a7f510d3d129a2aafc0faeb2">&#9670;&nbsp;</a></span>PbftBlockPacketHandler()</h2>
+<a id="a2d04aa1213e85d839e8e1baddc20e72a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2d04aa1213e85d839e8e1baddc20e72a">&#9670;&nbsp;</a></span>PbftBlockPacketHandler()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -195,6 +197,12 @@ Additional Inherited Members</h2></td></tr>
           <td></td>
           <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">PbftManager</a> &gt;&#160;</td>
           <td class="paramname"><em>pbft_mgr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote_manager">VoteManager</a> &gt;&#160;</td>
+          <td class="paramname"><em>vote_mgr</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -397,6 +405,28 @@ Additional Inherited Members</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::shared_ptr&lt;<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">PbftManager</a>&gt; taraxa::network::tarcap::PbftBlockPacketHandler::pbft_mgr_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="af803b58ae64309e34bafbc511195f670"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af803b58ae64309e34bafbc511195f670">&#9670;&nbsp;</a></span>vote_mgr_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt;<a class="el" href="group___vote.html#classtaraxa_1_1_vote_manager">VoteManager</a>&gt; taraxa::network::tarcap::PbftBlockPacketHandler::vote_mgr_</td>
         </tr>
       </table>
   </td>

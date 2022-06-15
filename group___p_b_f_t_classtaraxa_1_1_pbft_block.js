@@ -1,9 +1,8 @@
 var group___p_b_f_t_classtaraxa_1_1_pbft_block =
 [
-    [ "PbftBlock", "group___p_b_f_t.html#a027531e7c0eab36c4f302d1107b490b5", null ],
+    [ "PbftBlock", "group___p_b_f_t.html#ac83e1136c4e49c9c0d4022b60942617b", null ],
     [ "PbftBlock", "group___p_b_f_t.html#aee0c137aa382c405740c0f1a6c9d90c3", null ],
     [ "PbftBlock", "group___p_b_f_t.html#aa7b0decfa810c255b6a75a4053b1fb29", null ],
-    [ "PbftBlock", "group___p_b_f_t.html#a5c29f331e865d26f67f70e336a9dcefd", null ],
     [ "calculateHash_", "group___p_b_f_t.html#a2faa8e8207dbf6a67be09f98ceefd9f4", null ],
     [ "getBeneficiary", "group___p_b_f_t.html#a881559c8555e34dd4bd6d4e198da6f14", null ],
     [ "getBlockHash", "group___p_b_f_t.html#af7c819faf5bba2d9a7de8a1959afcd77", null ],
@@ -13,6 +12,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_block =
     [ "getPeriod", "group___p_b_f_t.html#aa99d8f1d2ce5f7cdc496f950f77f1bee", null ],
     [ "getPivotDagBlockHash", "group___p_b_f_t.html#a726ccb0f775ed6d6f0ef0648ec5b0c0c", null ],
     [ "getPrevBlockHash", "group___p_b_f_t.html#a6e8501884b3ee9a0e4b3b71dc0d66e60", null ],
+    [ "getRewardVotes", "group___p_b_f_t.html#a3495e3adf8b3ea6c3d9b8a60960c2124", null ],
     [ "getTimestamp", "group___p_b_f_t.html#a22eee336df7fc15a4fc28879d96a56fa", null ],
     [ "rlp", "group___p_b_f_t.html#a1b7708eb909c07d3c0a98013acfcbb46", null ],
     [ "sha3", "group___p_b_f_t.html#ae942808470cc3b06077fd9b1524c975e", null ],
@@ -24,6 +24,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_block =
     [ "order_hash_", "group___p_b_f_t.html#a1a06c26808dcf0c8c997c896aa682c65", null ],
     [ "period_", "group___p_b_f_t.html#abfe2c34106f0f7c4250e92f7fe6cc095", null ],
     [ "prev_block_hash_", "group___p_b_f_t.html#af03389b53718e15a31c0da5a22411b22", null ],
+    [ "reward_votes_", "group___p_b_f_t.html#a248fb35d65b886baed84bbb5d623c7c2", null ],
     [ "signature_", "group___p_b_f_t.html#aa89c0cf004ce3cafd5382b7421e5e0bd", null ],
     [ "timestamp_", "group___p_b_f_t.html#abd176d7c9b14807e431bb5d8ee6a2dea", null ]
 ];

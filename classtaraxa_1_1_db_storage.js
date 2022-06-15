@@ -104,6 +104,7 @@ var classtaraxa_1_1_db_storage =
     [ "removeTransactionToBatch", "classtaraxa_1_1_db_storage.html#ae8176573026b914f06c298c0dc138140", null ],
     [ "removeVerifiedVoteToBatch", "classtaraxa_1_1_db_storage.html#a78e849ad7b803865efffac2e43e642be", null ],
     [ "saveDagBlock", "classtaraxa_1_1_db_storage.html#a78da78cc5c8beadb10b5884f848403ee", null ],
+    [ "saveLastBlockCertVote", "classtaraxa_1_1_db_storage.html#a1af48648a3a24253c85a679ebc13c394", null ],
     [ "saveNextVotes", "classtaraxa_1_1_db_storage.html#af8941db6112df6f4213ca003562d261b", null ],
     [ "savePbft2TPlus1", "classtaraxa_1_1_db_storage.html#aee8eadfbe2ddd92311ff955ebe6c778d", null ],
     [ "savePbftCertVotedBlock", "classtaraxa_1_1_db_storage.html#a5e205f0319e03dfb180f8dc910d33ca3", null ],
