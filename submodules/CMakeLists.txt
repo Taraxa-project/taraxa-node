@@ -105,7 +105,7 @@ endif()
 ## go env settings
 set(EVM_BUILD_ENV CGO_CFLAGS_ALLOW='.*' CGO_CXXFLAGS_ALLOW='.*' CGO_CXXFLAGS=\"-O3\" CGO_CFLAGS=\"${EVM_BUILD_CGO_CFLAGS}\" CGO_LDFLAGS=\"${EVM_BUILD_LD}\" CACHE INTERNAL "")
 ## add build command
-set(EVM_BUILD_COMMAND cd taraxa/C && ${EVM_BUILD_ENV} go build -buildmode=c-archive -o ${EVM_BUILD_DIR}/${EVM_LIBRARY_NAME})
+set(EVM_BUILD_COMMAND cd taraxa/C && ${EVM_BUILD_ENV} go build -buildvcs=false -buildmode=c-archive -o ${EVM_BUILD_DIR}/${EVM_LIBRARY_NAME})
 ## cp headers into `taraxa-evm/include`
 set(EVM_AFTER_BUILD_COMMAND cd - && mkdir -p ${EVM_BUILD_DIR}/include/taraxa-evm && cp taraxa/C/*.h ${EVM_BUILD_DIR}/include/taraxa-evm/)
 ## mv library into `lib`

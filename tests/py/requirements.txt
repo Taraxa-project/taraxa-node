@@ -1,4 +1,4 @@
 web3==5.20.1
-pytest==6.2.4
+pytest==6.2.5
 py-solc-x==1.1.0
-py-evm==0.4.0a4
+py-evm==0.5.0a3
