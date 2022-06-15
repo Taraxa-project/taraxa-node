@@ -513,7 +513,9 @@ bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
     }
   }
 
-  if (!verifyRewardVote(vote)) return false;
+  if (!verifyRewardVote(vote)) {
+    return false;
+  }
 
   {
     std::unique_lock lock(reward_votes_mutex_);
