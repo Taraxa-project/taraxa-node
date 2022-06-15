@@ -5,16 +5,19 @@
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
+#include "vote_manager/vote_manager.hpp"
 
 namespace taraxa::network::tarcap {
 
 PbftBlockPacketHandler::PbftBlockPacketHandler(std::shared_ptr<PeersState> peers_state,
                                                std::shared_ptr<PacketsStats> packets_stats,
                                                std::shared_ptr<PbftChain> pbft_chain,
-                                               std::shared_ptr<PbftManager> pbft_mgr, const addr_t &node_addr)
+                                               std::shared_ptr<PbftManager> pbft_mgr,
+                                               std::shared_ptr<VoteManager> vote_mgr, const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "PBFT_BLOCK_PH"),
       pbft_chain_(std::move(pbft_chain)),
-      pbft_mgr_(std::move(pbft_mgr)) {}
+      pbft_mgr_(std::move(pbft_mgr)),
+      vote_mgr_(std::move(vote_mgr)) {}
 
 void PbftBlockPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
   if (constexpr size_t required_size = 2; packet_data.rlp_.itemCount() != required_size) {
@@ -65,7 +68,7 @@ void PbftBlockPacketHandler::onNewPbftBlock(const std::shared_ptr<PbftBlock> &pb
   for (auto const &peer : peers_state_->getAllPeers()) {
     if (!peer.second->isPbftBlockKnown(pbft_block_hash) && !peer.second->syncing_) {
       if (!peer.second->isDagBlockKnown(dag_anchor_hash)) {
-        LOG(log_tr_) << "sending PbftBlock " << pbft_block_hash << " with missing dag anchor" << dag_anchor_hash
+        LOG(log_tr_) << "sending PbftBlock " << pbft_block_hash << " with missing dag anchor " << dag_anchor_hash
                      << " to " << peer.first;
       }
       peers_to_send.emplace_back(peer.second);
@@ -75,6 +78,7 @@ void PbftBlockPacketHandler::onNewPbftBlock(const std::shared_ptr<PbftBlock> &pb
 
   LOG(log_dg_) << "sendPbftBlock " << pbft_block_hash << " to " << peers_to_log;
   for (auto const &peer : peers_to_send) {
+    vote_mgr_->sendRewardVotes(pbft_block_hash);
     sendPbftBlock(peer->getId(), pbft_block, my_chain_size);
     peer->markPbftBlockAsKnown(pbft_block_hash);
   }

@@ -872,6 +872,10 @@ void DbStorage::addNextVotesToBatch(uint64_t pbft_round, std::vector<std::shared
   insert(write_batch, Columns::next_votes, toSlice(pbft_round), toSlice(s.out()));
 }
 
+void DbStorage::saveLastBlockCertVote(const std::shared_ptr<Vote>& cert_vote) {
+  insert(Columns::last_block_cert_votes, toSlice(cert_vote->getHash()), toSlice(cert_vote->rlp(true, true)));
+}
+
 void DbStorage::addLastBlockCertVotesToBatch(std::vector<std::shared_ptr<Vote>> const& cert_votes, Batch& write_batch) {
   auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::last_block_cert_votes)));
   for (it->SeekToFirst(); it->Valid(); it->Next()) {

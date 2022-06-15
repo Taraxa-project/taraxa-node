@@ -1,13 +1,16 @@
 #include "network/tarcap/packets_handlers/common/ext_votes_packet_handler.hpp"
 
+#include "pbft/pbft_manager.hpp"
 #include "vote/vote.hpp"
 
 namespace taraxa::network::tarcap {
 
 ExtVotesPacketHandler::ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_state,
-                                             std::shared_ptr<PacketsStats> packets_stats, const addr_t &node_addr,
+                                             std::shared_ptr<PacketsStats> packets_stats,
+                                             std::shared_ptr<PbftManager> pbft_mgr, const addr_t &node_addr,
                                              const std::string &log_channel_name)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name) {}
+    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
+      pbft_mgr_(std::move(pbft_mgr)) {}
 
 void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes) {
   for (const auto &peer : peers_state_->getAllPeers()) {
@@ -17,7 +20,10 @@ void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&
 
     std::vector<std::shared_ptr<Vote>> send_votes;
     for (const auto &v : votes) {
-      if (!peer.second->isVoteKnown(v->getHash()) && peer.second->pbft_round_ <= v->getRound()) {
+      if (!peer.second->isVoteKnown(v->getHash()) &&
+          (peer.second->pbft_round_ <= v->getRound() ||
+           (v->getType() == cert_vote_type &&
+            v->getBlockHash() == pbft_mgr_->getLastPbftBlockHash() /* reward vote */))) {
         send_votes.push_back(v);
       }
     }
