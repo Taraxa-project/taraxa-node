@@ -244,7 +244,7 @@ bool BlockProposer::validDposProposer(level_t const propose_level) {
     return false;
   }
 
-  if(final_chain_->last_block_number() < *proposal_period) {
+  if (final_chain_->last_block_number() < *proposal_period) {
     return false;
   }
 

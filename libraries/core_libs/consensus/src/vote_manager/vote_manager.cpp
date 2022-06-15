@@ -4,6 +4,7 @@
 #include <libdevcrypto/Common.h>
 
 #include <optional>
+#include <shared_mutex>
 
 #include "network/network.hpp"
 #include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
@@ -479,25 +480,45 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
 }
 
 bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
-  if (!verifyRewardVote(vote)) return false;
-
   const auto vote_hash = vote->getHash();
   const auto voted_block_hash = vote->getBlockHash();
+  const auto vote_step = vote->getStep();
+  const auto vote_type = vote->getType();
+
+  if (vote_type != cert_vote_type) {
+    LOG(log_dg_) << "Drop vote " << vote_hash << ". The vote type " << vote_type << " is not cert vote type.";
+    return false;
+  }
+
+  if (vote_step != 3) {
+    LOG(log_dg_) << "Drop vote " << vote_hash << ". The vote step " << vote_step << " is not 3.";
+    return false;
+  }
+
   {
-    std::unique_lock lock(reward_votes_mutex_);
-    if (reward_votes_.contains(vote_hash)) {
-      // Should not happen, we have checked seen votes in VotePacketHandler::process
-      LOG(log_er_) << "Reward vote " << vote_hash << " saved already";
-      return false;
-    }
+    // This lock protects the both reward_votes_pbft_block_hash_ and reward_votes_
+    std::shared_lock lock(reward_votes_mutex_);
 
     if (reward_votes_pbft_block_hash_ != voted_block_hash) {
       // Should not happen, reward_votes_pbft_block_hash_ should always equal to last block hash in PBFT chain
-      LOG(log_er_) << "The reward vote voted PBFT block hash " << voted_block_hash << " is different with "
+      LOG(log_wr_) << "The reward vote voted PBFT block hash " << voted_block_hash << " is different with "
                    << reward_votes_pbft_block_hash_;
       return false;
     }
 
+    if (reward_votes_.contains(vote_hash)) {
+      // Should not happen, we have checked seen votes in VotePacketHandler::process
+      LOG(log_nf_) << "Reward vote " << vote_hash << " saved already";
+      return false;
+    }
+  }
+
+  if (!verifyRewardVote(vote)) {
+    return false;
+  }
+
+  {
+    std::unique_lock lock(reward_votes_mutex_);
     reward_votes_.insert({vote_hash, vote});
   }
 
@@ -509,18 +530,9 @@ bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
 
 bool VoteManager::verifyRewardVote(const std::shared_ptr<Vote>& vote) {
   const auto vote_hash = vote->getHash();
-  const auto vote_type = vote->getType();
-  if (vote_type != cert_vote_type) {
-    LOG(log_dg_) << "Drop vote " << vote_hash << ". The vote type " << vote_type << " is not cert vote type.";
-    return false;
-  }
-  const auto vote_step = vote->getStep();
-  if (vote_step != 3) {
-    LOG(log_dg_) << "Drop vote " << vote_hash << ". The vote step " << vote_step << " is not 3.";
-    return false;
-  }
   const auto voted_block_hash = vote->getBlockHash();
   const auto pbft_chain_last_block_hash = pbft_chain_->getLastPbftBlockHash();
+
   if (voted_block_hash != pbft_chain_last_block_hash) {
     LOG(log_dg_) << "Drop vote " << vote_hash << ". PBFT chain last block is " << pbft_chain_last_block_hash
                  << ", but vote for PBFT block is " << voted_block_hash;
