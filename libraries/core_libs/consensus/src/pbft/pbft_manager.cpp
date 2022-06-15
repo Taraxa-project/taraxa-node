@@ -1078,7 +1078,7 @@ blk_hash_t PbftManager::generatePbftBlock(const blk_hash_t &prev_blk_hash, const
   std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
                  [](const auto &v) { return v->getHash(); });
   const auto pbft_block = std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, propose_period,
-                                                      node_addr_, node_sk_, reward_votes_hashes);
+                                                      node_addr_, node_sk_, std::move(reward_votes_hashes));
 
   // push pbft block
   pbft_chain_->pushUnverifiedPbftBlock(pbft_block);
@@ -1575,7 +1575,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
     return false;
   }
 
-  period_data_.previous_block_cert_votes = getRewardVotes(period_data_.pbft_blk->getRewardVotes());
+  period_data_.previous_block_cert_votes = getRewardVotesInBlock(period_data_.pbft_blk->getRewardVotes());
 
   if (!pushPbftBlock_(std::move(period_data_), std::move(current_round_cert_votes), std::move(dag_blocks_order))) {
     LOG(log_er_) << "Failed push PBFT block " << pbft_block->getBlockHash() << " into chain";
@@ -1917,6 +1917,14 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
     return std::nullopt;
   }
 
+  // Check reward votes
+  if (!vote_mgr_->checkRewardVotes(period_data.pbft_blk)) {
+    LOG(log_er_) << "Failed verifying reward votes. Disconnect malicious peer " << node_id.abridged();
+    sync_queue_.clear();
+    net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
+    return std::nullopt;
+  }
+
   // Check cert votes validation
   try {
     period_data.hasEnoughValidCertVotes(cert_votes, getDposTotalVotesCount(), getThreshold(cert_vote_type),
@@ -1929,14 +1937,6 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
     LOG(log_er_) << "Synced PBFT block " << pbft_block_hash
                  << " doesn't have enough valid cert votes. Clear synced PBFT blocks! DPOS total votes count: "
                  << getDposTotalVotesCount();
-    sync_queue_.clear();
-    net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
-    return std::nullopt;
-  }
-
-  // Check reward votes
-  if (!vote_mgr_->checkRewardVotes(period_data.pbft_blk)) {
-    LOG(log_er_) << "Failed verifying reward votes. Disconnect malicious peer " << node_id.abridged();
     sync_queue_.clear();
     net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
     return std::nullopt;
@@ -1992,7 +1992,8 @@ bool PbftManager::checkBlockWeight(const PeriodData &period_data) const {
 
 blk_hash_t PbftManager::getLastPbftBlockHash() { return pbft_chain_->getLastPbftBlockHash(); }
 
-std::vector<std::shared_ptr<Vote>> PbftManager::getRewardVotes(const std::vector<vote_hash_t> &reward_votes_hashes) {
+std::vector<std::shared_ptr<Vote>> PbftManager::getRewardVotesInBlock(
+    const std::vector<vote_hash_t> &reward_votes_hashes) {
   std::unordered_set<vote_hash_t> reward_votes_hashes_set;
   for (const auto &v : reward_votes_hashes) reward_votes_hashes_set.insert(v);
 

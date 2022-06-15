@@ -117,11 +117,12 @@ TEST_F(PbftChainTest, proposal_block_broadcast) {
   blk_hash_t prev_block_hash = pbft_chain1->getLastPbftBlockHash();
   uint64_t propose_period = node1_pbft_chain_size + 1;
   auto reward_votes = node1->getDB()->getLastBlockCertVotes();
-  std::vector<vote_hash_t> reward_votes_hash;
-  std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hash),
+  std::vector<vote_hash_t> reward_votes_hashes;
+  std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
                  [](const auto &v) { return v->getHash(); });
-  auto pbft_block = std::make_shared<PbftBlock>(prev_block_hash, blk_hash_t(0), blk_hash_t(0), propose_period,
-                                                node1->getAddress(), node1->getSecretKey(), reward_votes_hash);
+  auto pbft_block =
+      std::make_shared<PbftBlock>(prev_block_hash, blk_hash_t(0), blk_hash_t(0), propose_period, node1->getAddress(),
+                                  node1->getSecretKey(), std::move(reward_votes_hashes));
 
   pbft_chain1->pushUnverifiedPbftBlock(pbft_block);
   auto block1_from_node1 = pbft_chain1->getUnverifiedPbftBlock(pbft_block->getBlockHash());

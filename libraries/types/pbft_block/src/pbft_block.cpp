@@ -17,7 +17,7 @@ PbftBlock::PbftBlock(dev::RLP const& rlp) {
 
 PbftBlock::PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_hash_as_pivot,
                      const blk_hash_t& order_hash, uint64_t period, const addr_t& beneficiary, const secret_t& sk,
-                     const std::vector<vote_hash_t>& reward_votes)
+                     std::vector<vote_hash_t>&& reward_votes)
     : prev_block_hash_(prev_blk_hash),
       dag_block_hash_as_pivot_(dag_blk_hash_as_pivot),
       order_hash_(order_hash),

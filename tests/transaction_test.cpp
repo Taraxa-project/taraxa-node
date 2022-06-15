@@ -210,7 +210,7 @@ TEST_F(TransactionTest, transaction_low_nonce) {
   db->saveDagBlock(dag_blk);
   std::vector<vote_hash_t> reward_votes_hashes;
   auto pbft_block = std::make_shared<PbftBlock>(blk_hash_t(), blk_hash_t(), blk_hash_t(), 1, addr_t::random(),
-                                                dev::KeyPair::create().secret(), reward_votes_hashes);
+                                                dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
   PeriodData period_data(pbft_block, {});
   period_data.dag_blocks.push_back(dag_blk);
   SharedTransactions trxs{trx_nonce_2};

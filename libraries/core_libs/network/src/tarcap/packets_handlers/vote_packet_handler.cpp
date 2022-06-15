@@ -32,11 +32,10 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     const auto current_pbft_round = pbft_mgr_->getPbftRound();
 
     // Check reward vote
-    if (vote_round < current_pbft_round && vote->getType() == cert_vote_type &&
-        vote->getBlockHash() == pbft_mgr_->getLastPbftBlockHash()) {
+    if (vote_round < current_pbft_round) {
       // Synchronization point in case multiple threads are processing the same vote at the same time
       if (!seen_votes_.insert(vote_hash)) {
-        LOG(log_dg_) << "Received reward vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
+        LOG(log_dg_) << "Received vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
                      << ") already seen.";
       } else if (vote_mgr_->addRewardVote(vote)) {
         // As peers have small caches of known votes. Only mark gossiping votes
@@ -46,12 +45,7 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
       continue;
     }
 
-    if (vote_round < current_pbft_round) {
-      LOG(log_dg_) << "Received old PBFT vote " << vote_hash << " from " << packet_data.from_node_id_.abridged()
-                   << ". Vote round: " << vote_round << ", current pbft round: " << current_pbft_round;
-      continue;
-    }
-
+    // Votes vote_round >= current_pbft_round
     // Synchronization point in case multiple threads are processing the same vote at the same time
     if (!seen_votes_.insert(vote_hash)) {
       LOG(log_dg_) << "Received PBFT vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()

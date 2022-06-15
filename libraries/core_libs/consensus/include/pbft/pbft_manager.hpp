@@ -562,7 +562,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param reward_votes_hashes reward votes hashes are list in PBFT block
    * @return reward votes that are list in PBFT block
    */
-  std::vector<std::shared_ptr<Vote>> getRewardVotes(const std::vector<vote_hash_t> &reward_votes_hashes);
+  std::vector<std::shared_ptr<Vote>> getRewardVotesInBlock(const std::vector<vote_hash_t> &reward_votes_hashes);
 
   std::atomic<bool> stopped_ = true;
 
