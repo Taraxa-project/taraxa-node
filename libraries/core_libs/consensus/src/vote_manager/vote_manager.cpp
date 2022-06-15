@@ -500,14 +500,14 @@ bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
 
     if (reward_votes_pbft_block_hash_ != voted_block_hash) {
       // Should not happen, reward_votes_pbft_block_hash_ should always equal to last block hash in PBFT chain
-      LOG(log_er_) << "The reward vote voted PBFT block hash " << voted_block_hash << " is different with "
+      LOG(log_wr_) << "The reward vote voted PBFT block hash " << voted_block_hash << " is different with "
                    << reward_votes_pbft_block_hash_;
       return false;
     }
 
     if (reward_votes_.contains(vote_hash)) {
       // Should not happen, we have checked seen votes in VotePacketHandler::process
-      LOG(log_er_) << "Reward vote " << vote_hash << " saved already";
+      LOG(log_nf_) << "Reward vote " << vote_hash << " saved already";
       return false;
     }
   }
