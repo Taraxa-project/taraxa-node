@@ -144,7 +144,7 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shar
       case DagBlockManager::InsertAndVerifyBlockReturnType::AheadBlock:
       case DagBlockManager::InsertAndVerifyBlockReturnType::FutureBlock:
         if (peer->peer_dag_synced_) {
-          LOG(log_wr_) << "DagBlock" << block_hash << " is an ahead/future block. Peer " << peer->getId()
+          LOG(log_er_) << "DagBlock" << block_hash << " is an ahead/future block. Peer " << peer->getId()
                        << " will be disconnected";
           disconnect(peer->getId(), dev::p2p::UserReason);
         }

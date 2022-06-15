@@ -1608,22 +1608,25 @@ TEST_F(FullNodeTest, light_node) {
   EXPECT_LE(non_empty_counter, node_cfgs[0].light_node_history + 1);
 }
 
-TEST_F(FullNodeTest, DISABLED_clear_period_data) {
+TEST_F(FullNodeTest, clear_period_data) {
   auto node_cfgs = make_node_cfgs<10>(2);
-  node_cfgs[0].is_light_node = true;
-  node_cfgs[0].light_node_history = 4;
+  node_cfgs[1].is_light_node = true;
+  node_cfgs[1].light_node_history = 4;
   node_cfgs[0].dag_expiry_limit = 15;
   node_cfgs[0].max_levels_per_period = 3;
   node_cfgs[1].dag_expiry_limit = 15;
   node_cfgs[1].max_levels_per_period = 3;
   auto nodes = launch_nodes(node_cfgs);
   uint64_t nonce = 0;
-  while (nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks() < 20) {
+  size_t node1_chain_size = 0, node2_chain_size = 0;
+  while (node2_chain_size < 20) {
     auto dummy_trx =
         std::make_shared<Transaction>(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(), nodes[0]->getAddress());
     // broadcast dummy transaction
-    nodes[1]->getTransactionManager()->insertTransaction(dummy_trx);
-    thisThreadSleepForMilliSeconds(200);
+    if (node1_chain_size == node2_chain_size) nodes[1]->getTransactionManager()->insertTransaction(dummy_trx);
+    thisThreadSleepForMilliSeconds(500);
+    node1_chain_size = nodes[0]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks();
+    node2_chain_size = nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks();
   }
   EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
     // Verify full node and light node sync without any issues
