@@ -4,6 +4,7 @@
 #include <libdevcrypto/Common.h>
 
 #include <optional>
+#include <shared_mutex>
 
 #include "network/network.hpp"
 #include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
@@ -479,17 +480,10 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
 }
 
 bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
-  if (!verifyRewardVote(vote)) return false;
-
   const auto vote_hash = vote->getHash();
   const auto voted_block_hash = vote->getBlockHash();
   {
-    std::unique_lock lock(reward_votes_mutex_);
-    if (reward_votes_.contains(vote_hash)) {
-      // Should not happen, we have checked seen votes in VotePacketHandler::process
-      LOG(log_er_) << "Reward vote " << vote_hash << " saved already";
-      return false;
-    }
+    std::shared_lock lock(reward_votes_mutex_);
 
     if (reward_votes_pbft_block_hash_ != voted_block_hash) {
       // Should not happen, reward_votes_pbft_block_hash_ should always equal to last block hash in PBFT chain
@@ -498,6 +492,17 @@ bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
       return false;
     }
 
+    if (reward_votes_.contains(vote_hash)) {
+      // Should not happen, we have checked seen votes in VotePacketHandler::process
+      LOG(log_er_) << "Reward vote " << vote_hash << " saved already";
+      return false;
+    }
+  }
+
+  if (!verifyRewardVote(vote)) return false;
+
+  {
+    std::unique_lock lock(reward_votes_mutex_);
     reward_votes_.insert({vote_hash, vote});
   }
 
