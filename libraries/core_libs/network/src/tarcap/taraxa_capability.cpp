@@ -202,7 +202,7 @@ void TaraxaCapability::registerPacketHandlers(
 
   // Standard packets with mid processing priority
   packets_handlers_->registerHandler<PbftBlockPacketHandler>(peers_state_, packets_stats, pbft_chain, pbft_mgr,
-                                                             node_addr);
+                                                             vote_mgr, node_addr);
 
   packets_handlers_->registerHandler<DagBlockPacketHandler>(peers_state_, packets_stats, pbft_syncing_state_,
                                                             pbft_chain, pbft_mgr, dag_mgr, dag_blk_mgr, trx_mgr, db,

@@ -2,6 +2,7 @@
 
 #include "common/util.hpp"
 #include "final_chain/final_chain.hpp"
+#include "pbft/pbft_chain.hpp"
 #include "vote/vote.hpp"
 
 namespace taraxa {
@@ -133,7 +134,8 @@ class NextVotesManager {
  */
 class VoteManager {
  public:
-  VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
+  VoteManager(size_t pbft_committee_size, const addr_t& node_addr, std::shared_ptr<DbStorage> db,
+              std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
               std::shared_ptr<NextVotesManager> next_votes_mgr);
   ~VoteManager();
   VoteManager(const VoteManager&) = delete;
@@ -267,6 +269,57 @@ class VoteManager {
    */
   uint64_t roundDeterminedFromVotes(size_t two_t_plus_one);
 
+  // reward votes
+
+  /**
+   * @brief Add last period cert vote to reward_votes_ after the cert vote voted block finalized
+   *
+   * @param cert vote voted to last period PBFT block
+   *
+   * @return true if add successful
+   */
+  bool addRewardVote(const std::shared_ptr<Vote>& vote);
+
+  /**
+   * @brief Verify reward vote
+   *
+   * @param cert vote voted to last period PBFT block
+   *
+   * @return true if pass vote verification
+   */
+  bool verifyRewardVote(const std::shared_ptr<Vote>& vote);
+
+  /**
+   * @brief Check reward_votes_ if including all reward votes for the PBFT block
+   *
+   * @param PBFT block
+   *
+   * @return true if include all reward votes
+   */
+  bool checkRewardVotes(const std::shared_ptr<PbftBlock>& pbft_block);
+
+  /**
+   * @brief When finalize a new PBFT block, clear reward_votes_ and add the new cert votes to reward_votes_
+   *
+   * @param cert votes for last finalized PBFT block
+   */
+  void replaceRewardVotes(std::vector<std::shared_ptr<Vote>>&& cert_votes);
+
+  /**
+   * @brief Get all reward votes in reward_votes_
+   *
+   * @return vector of all reward votes
+   */
+
+  std::vector<std::shared_ptr<Vote>> getRewardVotes();
+
+  /**
+   * @brief Send out all reward votes to peers
+   *
+   * @param PBFT block hash
+   */
+  void sendRewardVotes(const blk_hash_t& pbft_block_hash);
+
  private:
   /**
    * @brief Retrieve all verified votes from DB to the verified votes map. And broadcast all next voting type votes to
@@ -298,12 +351,18 @@ class VoteManager {
   mutable boost::shared_mutex unverified_votes_access_;
   mutable boost::shared_mutex verified_votes_access_;
 
+  const size_t pbft_committee_size_;
   const addr_t node_addr_;
 
   std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<NextVotesManager> next_votes_manager_;
   std::weak_ptr<Network> network_;
+
+  blk_hash_t reward_votes_pbft_block_hash_;
+  std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> reward_votes_;
+  mutable std::shared_mutex reward_votes_mutex_;
 
   LOG_OBJECTS_DEFINE
 };

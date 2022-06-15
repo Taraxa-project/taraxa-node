@@ -11,7 +11,7 @@ VotesSyncPacketHandler::VotesSyncPacketHandler(std::shared_ptr<PeersState> peers
                                                std::shared_ptr<VoteManager> vote_mgr,
                                                std::shared_ptr<NextVotesManager> next_votes_mgr,
                                                std::shared_ptr<DbStorage> db, const addr_t &node_addr)
-    : ExtVotesPacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "VOTES_SYNC_PH"),
+    : ExtVotesPacketHandler(std::move(peers_state), std::move(packets_stats), pbft_mgr, node_addr, "VOTES_SYNC_PH"),
       pbft_mgr_(std::move(pbft_mgr)),
       vote_mgr_(std::move(vote_mgr)),
       next_votes_mgr_(std::move(next_votes_mgr)),
