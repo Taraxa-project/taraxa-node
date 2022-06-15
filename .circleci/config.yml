@@ -581,7 +581,7 @@ jobs:
           when: always
           command: |
             docker kill smoketest-${DOCKER_BRANCH_TAG:0:52} || true
-            docker rm smoketest-${DOCKER_BRANCH_TAG:0:52}
+            docker rm smoketest-${DOCKER_BRANCH_TAG:0:52} || true
             docker network rm smoketest-${DOCKER_BRANCH_TAG:0:52} || true
 
       - run:
