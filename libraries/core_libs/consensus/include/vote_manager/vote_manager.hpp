@@ -281,15 +281,6 @@ class VoteManager {
   bool addRewardVote(const std::shared_ptr<Vote>& vote);
 
   /**
-   * @brief Verify reward vote
-   *
-   * @param cert vote voted to last period PBFT block
-   *
-   * @return true if pass vote verification
-   */
-  bool verifyRewardVote(const std::shared_ptr<Vote>& vote);
-
-  /**
    * @brief Check reward_votes_ if including all reward votes for the PBFT block
    *
    * @param PBFT block
@@ -321,6 +312,15 @@ class VoteManager {
   void sendRewardVotes(const blk_hash_t& pbft_block_hash);
 
  private:
+  /**
+   * @brief Verify reward vote
+   *
+   * @param cert vote voted to last period PBFT block
+   *
+   * @return true if pass vote verification
+   */
+  bool verifyRewardVote(const std::shared_ptr<Vote>& vote);
+
   /**
    * @brief Retrieve all verified votes from DB to the verified votes map. And broadcast all next voting type votes to
    * peers if node has extended the partition steps (1000). That only happens when nodes start.
