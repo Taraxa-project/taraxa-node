@@ -969,9 +969,6 @@ Collaboration diagram for taraxa::VoteManager:</div>
 <tr class="memitem:a73a6fa0a508154918b806266e11a8a4d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a73a6fa0a508154918b806266e11a8a4d">addRewardVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote)</td></tr>
 <tr class="memdesc:a73a6fa0a508154918b806266e11a8a4d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add last period cert vote to reward_votes_ after the cert vote voted block finalized.  <a href="group___vote.html#a73a6fa0a508154918b806266e11a8a4d">More...</a><br /></td></tr>
 <tr class="separator:a73a6fa0a508154918b806266e11a8a4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3c7381a7c63348288bb4199a611505cb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a3c7381a7c63348288bb4199a611505cb">verifyRewardVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote)</td></tr>
-<tr class="memdesc:a3c7381a7c63348288bb4199a611505cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verify reward vote.  <a href="group___vote.html#a3c7381a7c63348288bb4199a611505cb">More...</a><br /></td></tr>
-<tr class="separator:a3c7381a7c63348288bb4199a611505cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a46247b6596c46711ea4144a83f01c399"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a46247b6596c46711ea4144a83f01c399">checkRewardVotes</a> (const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;pbft_block)</td></tr>
 <tr class="memdesc:a46247b6596c46711ea4144a83f01c399"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check reward_votes_ if including all reward votes for the PBFT block.  <a href="group___vote.html#a46247b6596c46711ea4144a83f01c399">More...</a><br /></td></tr>
 <tr class="separator:a46247b6596c46711ea4144a83f01c399"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -994,6 +991,9 @@ Collaboration diagram for taraxa::VoteManager:</div>
 <tr class="memitem:a154b75d8f400bb5b6d6151899e9f0144"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a154b75d8f400bb5b6d6151899e9f0144">UpgradeLock</a> = boost::upgrade_to_unique_lock&lt; boost::shared_mutex &gt;</td></tr>
 <tr class="separator:a154b75d8f400bb5b6d6151899e9f0144"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Member Functions</h3></td></tr>
+<tr class="memitem:a3c7381a7c63348288bb4199a611505cb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a3c7381a7c63348288bb4199a611505cb">verifyRewardVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote)</td></tr>
+<tr class="memdesc:a3c7381a7c63348288bb4199a611505cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verify reward vote.  <a href="group___vote.html#a3c7381a7c63348288bb4199a611505cb">More...</a><br /></td></tr>
+<tr class="separator:a3c7381a7c63348288bb4199a611505cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a335593af04d28ee24d262c401a32f8b0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a335593af04d28ee24d262c401a32f8b0">retreieveVotes_</a> ()</td></tr>
 <tr class="memdesc:a335593af04d28ee24d262c401a32f8b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve all verified votes from DB to the verified votes map. And broadcast all next voting type votes to peers if node has extended the partition steps (1000). That only happens when nodes start.  <a href="group___vote.html#a335593af04d28ee24d262c401a32f8b0">More...</a><br /></td></tr>
 <tr class="separator:a335593af04d28ee24d262c401a32f8b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1861,6 +1861,9 @@ Collaboration diagram for taraxa::VoteManager:</div>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">bool taraxa::VoteManager::verifyRewardVote </td>
@@ -1870,6 +1873,11 @@ Collaboration diagram for taraxa::VoteManager:</div>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>Verify reward vote. </p>
