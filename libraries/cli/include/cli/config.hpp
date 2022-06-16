@@ -3,6 +3,7 @@
 #include <boost/program_options.hpp>
 #include <string>
 
+#include "cli/configs.hpp"
 #include "config/config.hpp"
 
 namespace taraxa::cli {

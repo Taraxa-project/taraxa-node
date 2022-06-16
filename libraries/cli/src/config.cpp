@@ -45,8 +45,8 @@ Config::Config(int argc, const char* argv[]) {
   command.push_back(NODE_COMMAND);
 
   // Set config file and data directory to default values
-  config = Tools::getTaraxaDefaultConfigFile();
-  wallet = Tools::getWalletDefaultFile();
+  config = tools::getTaraxaDefaultConfigFile();
+  wallet = tools::getWalletDefaultFile();
 
   // Define all the command line options and descriptions
   main_options.add_options()(HELP, "Print this help message and exit");
@@ -153,11 +153,11 @@ Config::Config(int argc, const char* argv[]) {
     // If any of the config files are missing they are generated with default values
     if (!fs::exists(config)) {
       cout << "Configuration file does not exist at: " << config << ". New config file will be generated" << endl;
-      Tools::generateConfig(config, (Config::NetworkIdType)network_id);
+      tools::generateConfig(config, (Config::NetworkIdType)network_id);
     }
     if (!fs::exists(wallet)) {
       cout << "Wallet file does not exist at: " << wallet << ". New wallet file will be generated" << endl;
-      Tools::generateWallet(wallet);
+      tools::generateWallet(wallet);
     }
 
     Json::Value config_json = util::readJsonFromFile(config);
@@ -171,7 +171,7 @@ Config::Config(int argc, const char* argv[]) {
     // Check that it is not empty, to not create chain config with just overwritten files
     if (!config_json["chain_config"].isNull()) {
       network_id = dev::getUInt(config_json["chain_config"]["chain_id"]);
-      auto default_config_json = Tools::generateConfig((Config::NetworkIdType)network_id);
+      auto default_config_json = tools::generateConfig((Config::NetworkIdType)network_id);
       // override hardforks data with one from default json
       addNewHardforks(config_json, default_config_json);
       // add vote_eligibility_balance_step field if it is missing in the config
@@ -183,9 +183,9 @@ Config::Config(int argc, const char* argv[]) {
     }
 
     // Override config values with values from CLI
-    config_json = Tools::overrideConfig(config_json, data_dir, boot_nodes, log_channels, log_configurations,
+    config_json = tools::overrideConfig(config_json, data_dir, boot_nodes, log_channels, log_configurations,
                                         boot_nodes_append, log_channels_append);
-    wallet_json = Tools::overrideWallet(wallet_json, node_secret, vrf_secret);
+    wallet_json = tools::overrideWallet(wallet_json, node_secret, vrf_secret);
 
     // Create data directory
     if (!data_dir.empty() && !fs::exists(data_dir)) {
@@ -228,14 +228,14 @@ Config::Config(int argc, const char* argv[]) {
     if (command[0] == NODE_COMMAND) node_configured_ = true;
   } else if (command[0] == ACCOUNT_COMMAND) {
     if (command.size() == 1)
-      Tools::generateAccount();
+      tools::generateAccount();
     else
-      Tools::generateAccountFromKey(command[1]);
+      tools::generateAccountFromKey(command[1]);
   } else if (command[0] == VRF_COMMAND) {
     if (command.size() == 1)
-      Tools::generateVrf();
+      tools::generateVrf();
     else
-      Tools::generateVrfFromKey(command[1]);
+      tools::generateVrfFromKey(command[1]);
   } else {
     throw bpo::invalid_option_value(command[0]);
   }

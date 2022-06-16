@@ -70,11 +70,7 @@ inline auto const node_cfgs_original = Lazy([] {
 });
 
 struct BaseTest : virtual WithDataDir {
-  BaseTest() : WithDataDir() {
-    for (auto &cfg : *node_cfgs_original) {
-      remove_all(cfg.data_path);
-    }
-  }
+  BaseTest() : WithDataDir() { CleanupDirs(); }
   virtual ~BaseTest() {}
 
   BaseTest(const BaseTest &) = delete;
@@ -82,9 +78,11 @@ struct BaseTest : virtual WithDataDir {
   BaseTest &operator=(const BaseTest &) = delete;
   BaseTest &operator=(BaseTest &&) = delete;
 
-  void TearDown() override {
+  void CleanupDirs() {
     for (auto &cfg : *node_cfgs_original) {
       remove_all(cfg.data_path);
     }
   }
+
+  void TearDown() override { CleanupDirs(); }
 };

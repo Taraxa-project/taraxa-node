@@ -37,6 +37,8 @@ void writeJsonToFile(const std::string& file_name, const Json::Value& json) {
   }
 }
 
+Json::Value readJsonFromFile(const std::filesystem::path& file_path) { return readJsonFromFile(file_path.string()); }
+
 Json::Value readJsonFromFile(const std::string& file_name) {
   std::ifstream ifile(file_name);
   if (ifile.is_open()) {

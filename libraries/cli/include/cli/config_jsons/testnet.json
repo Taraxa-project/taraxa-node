@@ -1,10 +1,4 @@
-#pragma once
-
-#include <string_view>
-
-namespace taraxa::cli {
-
-constexpr std::string_view testnet_json = R"foo({
+{
   "node_secret": "",
   "vrf_secret": "",
   "data_path": "",
@@ -288,9 +282,6 @@ constexpr std::string_view testnet_json = R"foo({
         "genesis_balances": {
           "76870407332398322576505f3c5423d0a71af296": "0x117364175f2cb0e1dfc0000",
           "f4a52b8f6dc8ab046fec6ad02e77023c044342e4": "0x1f3d8d75bcb82da15ad40000"
-        },
-        "hardforks": {
-          "fix_genesis_fork_block": "0x0"
         }
       }
     },
@@ -333,6 +324,4 @@ constexpr std::string_view testnet_json = R"foo({
       }
     }
   }
-}
-)foo";
 }
