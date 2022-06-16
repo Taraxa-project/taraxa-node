@@ -74,7 +74,7 @@ struct FullNodeConfig {
   explicit FullNodeConfig(Json::Value const &file_name_str_or_json_object, Json::Value const &wallet,
                           const std::string &config_file_path = "");
   std::string json_file_name;
-  std::string node_secret;
+  dev::Secret node_secret;
   vrf_wrapper::vrf_sk_t vrf_secret;
   fs::path data_path;
   fs::path db_path;

@@ -242,8 +242,17 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
     }
   }
 
-  node_secret = wallet["node_secret"].asString();
-  vrf_secret = vrf_wrapper::vrf_sk_t(wallet["vrf_secret"].asString());
+  try {
+    node_secret = dev::Secret(wallet["node_secret"].asString(), dev::Secret::ConstructFromStringType::FromHex);
+  } catch (...) {
+    throw ConfigException("Could not parse node_secret");
+  }
+
+  try {
+    vrf_secret = vrf_wrapper::vrf_sk_t(wallet["vrf_secret"].asString());
+  } catch (...) {
+    throw ConfigException("Could not parse vrf_secret");
+  }
 
   network.network_id = chain.chain_id;
   // TODO configurable

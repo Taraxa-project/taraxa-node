@@ -22,14 +22,7 @@
 
 namespace taraxa {
 
-FullNode::FullNode(FullNodeConfig const &conf)
-    : subscription_pool_(1),
-      conf_(conf),
-      kp_(conf_.node_secret.empty()
-              ? dev::KeyPair::create()
-              : dev::KeyPair(dev::Secret(conf_.node_secret, dev::Secret::ConstructFromStringType::FromHex))) {
-  init();
-}
+FullNode::FullNode(FullNodeConfig const &conf) : subscription_pool_(1), conf_(conf), kp_(conf_.node_secret) { init(); }
 
 FullNode::~FullNode() { close(); }
 
