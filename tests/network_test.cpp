@@ -78,7 +78,7 @@ TEST_F(NetworkTest, transfer_block) {
 
 // Test creates two Network setup and verifies sending blocks between is successfull
 // This test can not work anymore as we are marking other nodes as malicous becasue of invalid dag blocks
-TEST_F(NetworkTest, DISABLED_transfer_lot_of_blocks) {
+TEST_F(NetworkTest, transfer_lot_of_blocks) {
   auto node_cfgs = make_node_cfgs<20>(2);
   auto nodes = launch_nodes(node_cfgs);
   const auto& node1 = nodes[0];
@@ -94,6 +94,10 @@ TEST_F(NetworkTest, DISABLED_transfer_lot_of_blocks) {
   const auto nw1 = node1->getNetwork();
   const auto nw2 = node2->getNetwork();
 
+  const auto trxs = samples::createSignedTrxSamples(0, 1500, g_secret);
+  const auto estimation = node1->getTransactionManager()->estimateTransactionGas(trxs[0], {});
+  const std::vector<uint64_t> estimations(trxs.size(), estimation);
+
   // node1 add one valid block
   const auto proposal_level = 1;
   const auto proposal_period = *db1->getProposalPeriodForDagLevel(proposal_level);
@@ -101,22 +105,25 @@ TEST_F(NetworkTest, DISABLED_transfer_lot_of_blocks) {
   const auto sortition_params = dag_blk_mgr1->sortitionParamsManager().getSortitionParams(proposal_period);
   vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
                                   VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash));
-  auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
+  const auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   vdf.computeVdfSolution(sortition_params, dag_genesis.asBytes(), false);
-  DagBlock blk(dag_genesis, proposal_level, {}, {samples::createSignedTrxSamples(0, 1, g_secret)[0]->getHash()}, {},
+  DagBlock blk(dag_genesis, proposal_level, {}, {trxs[0]->getHash()}, {estimation},
                vdf, node1->getSecretKey());
   auto block_hash = blk.getHash();
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
-  dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
+  dag_blocks.emplace_back(std::make_shared<DagBlock>(std::move(blk)));
 
   // creating lot of blocks just for size
   std::vector<trx_hash_t> trx_hashes;
-  auto trxs = samples::createSignedTrxSamples(0, 1500, g_secret);
   std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> verified_transactions;
+  trx_hashes.reserve(trxs.size());
+  verified_transactions.reserve(trxs.size());
+
   for (const auto& trx : trxs) {
     trx_hashes.push_back(trx->getHash());
     verified_transactions.push_back({trx, TransactionStatus::Verified});
   }
+
   for (int i = 0; i < 100; ++i) {
     const auto proposal_period = *db1->getProposalPeriodForDagLevel(proposal_level + 1);
     const auto period_block_hash = db1->getPeriodBlockHash(proposal_period);
