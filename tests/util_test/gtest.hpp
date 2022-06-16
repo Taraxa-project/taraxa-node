@@ -81,7 +81,7 @@ inline auto const node_cfgs_original = Lazy([] {
   const auto data_path = "/tmp/taraxa";
   const auto tcp_port = 10002;
   const auto http_port = 7777;
-  const auto ws_port = 8776;
+  const auto ws_port = 8777;
   Json::Value conf_json = taraxa::util::readJsonFromString(taraxa::core_tests::test_json);
   Json::Value wallet_json;
   for (auto i = 1; i <= nodes_count; i++) {
@@ -100,7 +100,7 @@ inline auto const node_cfgs_original = Lazy([] {
     wallet_json["node_secret"] = secret_keys[i - 1];
     wallet_json["vrf_secret"] = vrf_secret_keys[i - 1];
     auto wallet_file = node_data_path + (std::string("/wallet") + std::to_string(i) + ".json");
-    taraxa::util::writeJsonToFile(conf_file, conf_json);
+    taraxa::util::writeJsonToFile(wallet_file, wallet_json);
     ret.emplace_back(conf_json, wallet_json, conf_file);
   }
 

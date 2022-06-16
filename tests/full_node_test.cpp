@@ -1517,11 +1517,20 @@ TEST_F(FullNodeTest, chain_config_json) {
   // TODO [1473] : remove jsonToUnstyledString
   ChainConfig chain_config("default");
   ASSERT_EQ(jsonToUnstyledString(default_chain_config_json), jsonToUnstyledString(enc_json(chain_config)));
-  std::string config_file_path = DIR_CONF / "conf_taraxa1.json";
+
   Json::Value test_node_config_json;
-  std::ifstream(config_file_path, std::ifstream::binary) >> test_node_config_json;
+  const auto config_file_path = "/tmp/taraxa1/conf_taraxa1.json";
+  test_node_config_json = taraxa::util::readJsonFromString(taraxa::core_tests::test_json);
+  test_node_config_json["data_path"] = "tmp/taraxa_config_test";
+  test_node_config_json["network_tcp_port"] = 10003;
+  test_node_config_json["rpc"]["http_port"] = 7778;
+  test_node_config_json["rpc"]["ws_port"] = 8778;
+  test_node_config_json["logging"]["configurations"][0]["outputs"][1]["file_name"] = "Taraxa_N1_%m%d%Y_%H%M%S_%5N.log";
   Json::Value test_node_wallet_json;
-  std::ifstream((DIR_CONF / "wallet1.json").string(), std::ifstream::binary) >> test_node_wallet_json;
+  test_node_wallet_json["node_secret"] = "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd";
+  test_node_wallet_json["vrf_secret"] =
+      "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c1df1edc9f3367fba550b7971fc2de6c5998d87"
+      "84051c5be69abc9644";
   test_node_config_json.removeMember("chain_config");
   ASSERT_EQ(jsonToUnstyledString(
                 enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain)),

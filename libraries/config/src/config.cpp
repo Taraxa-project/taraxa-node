@@ -246,13 +246,13 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
 
   try {
     node_secret = dev::Secret(wallet["node_secret"].asString(), dev::Secret::ConstructFromStringType::FromHex);
-  } catch (const dev::Exception& e) {
+  } catch (const dev::Exception &e) {
     throw ConfigException(std::string("Could not parse node_secret: ") + e.what());
   }
 
   try {
     vrf_secret = vrf_wrapper::vrf_sk_t(wallet["vrf_secret"].asString());
-  } catch (const dev::Exception& e) {
+  } catch (const dev::Exception &e) {
     throw ConfigException(std::string("Could not parse vrf_secret: ") + e.what());
   }
 

@@ -107,8 +107,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
                                   VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash));
   const auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
   vdf.computeVdfSolution(sortition_params, dag_genesis.asBytes(), false);
-  DagBlock blk(dag_genesis, proposal_level, {}, {trxs[0]->getHash()}, {estimation},
-               vdf, node1->getSecretKey());
+  DagBlock blk(dag_genesis, proposal_level, {}, {trxs[0]->getHash()}, {estimation}, vdf, node1->getSecretKey());
   auto block_hash = blk.getHash();
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
   dag_blocks.emplace_back(std::make_shared<DagBlock>(std::move(blk)));
