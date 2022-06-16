@@ -495,17 +495,12 @@ std::optional<std::pair<uint32_t, uint32_t>> DbStorage::getTransactionPeriod(trx
 }
 
 std::vector<bool> DbStorage::transactionsFinalized(std::vector<trx_hash_t> const& trx_hashes) {
-  std::vector<bool> result;
-  result.reserve(trx_hashes.size());
-
-  DbStorage::MultiGetQuery db_query(shared_from_this(), trx_hashes.size());
-  db_query.append(DbStorage::Columns::trx_period, trx_hashes);
-  auto db_trxs_period = db_query.execute();
-  for (size_t idx = 0; idx < db_trxs_period.size(); idx++) {
-    auto& trx_raw_period = db_trxs_period[idx];
-    result.push_back(!trx_raw_period.empty());
+  std::vector<bool> result(trx_hashes.size(), false);
+  for (size_t i = 0; i < trx_hashes.size(); ++i) {
+    if (exist(toSlice(trx_hashes[i].asBytes()), Columns::trx_period)) {
+      result[i] = true;
+    }
   }
-
   return result;
 }
 
@@ -589,22 +584,12 @@ bool DbStorage::transactionFinalized(trx_hash_t const& hash) {
 
 std::vector<bool> DbStorage::transactionsInDb(std::vector<trx_hash_t> const& trx_hashes) {
   std::vector<bool> result(trx_hashes.size(), false);
-
-  DbStorage::MultiGetQuery db_query(shared_from_this(), trx_hashes.size());
-  db_query.append(DbStorage::Columns::transactions, trx_hashes);
-  auto db_trxs_statuses = db_query.execute();
-  for (size_t idx = 0; idx < db_trxs_statuses.size(); idx++) {
-    auto& trx_raw_status = db_trxs_statuses[idx];
-    result[idx] = !trx_raw_status.empty();
+  for (size_t i = 0; i < trx_hashes.size(); ++i) {
+    const auto key = trx_hashes[i].asBytes();
+    if (exist(toSlice(key), Columns::transactions) || exist(toSlice(key), Columns::trx_period)) {
+      result[i] = true;
+    }
   }
-
-  db_query.append(DbStorage::Columns::trx_period, trx_hashes);
-  db_trxs_statuses = db_query.execute();
-  for (size_t idx = 0; idx < db_trxs_statuses.size(); idx++) {
-    auto& trx_raw_status = db_trxs_statuses[idx];
-    result[idx] = result[idx] || (!trx_raw_status.empty());
-  }
-
   return result;
 }
 
@@ -980,44 +965,6 @@ void DbStorage::forEach(Column const& col, OnEntry const& f) {
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
     f(i->key(), i->value());
   }
-}
-
-DbStorage::MultiGetQuery::MultiGetQuery(std::shared_ptr<DbStorage> const& db, uint capacity) : db_(db) {
-  if (capacity) {
-    cfs_.reserve(capacity);
-    keys_.reserve(capacity);
-    str_pool_.reserve(capacity);
-  }
-}
-
-uint DbStorage::MultiGetQuery::size() { return keys_.size(); }
-
-std::vector<std::string> DbStorage::MultiGetQuery::execute(bool and_reset) {
-  auto _size = size();
-  if (_size == 0) {
-    return {};
-  }
-  std::vector<std::string> ret(_size);
-  uint i = 0;
-  for (auto const& s : db_->db_->MultiGet(db_->read_options_, cfs_, keys_, &ret)) {
-    if (s.IsNotFound()) {
-      ret[i] = "";
-    } else {
-      checkStatus(s);
-    }
-    ++i;
-  }
-  if (and_reset) {
-    reset();
-  }
-  return ret;
-}
-
-DbStorage::MultiGetQuery& DbStorage::MultiGetQuery::reset() {
-  cfs_.clear();
-  keys_.clear();
-  str_pool_.clear();
-  return *this;
 }
 
 }  // namespace taraxa

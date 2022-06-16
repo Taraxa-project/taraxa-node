@@ -418,40 +418,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   }
 
   void forEach(Column const& col, OnEntry const& f);
-
-  class MultiGetQuery {
-    std::shared_ptr<DbStorage> const db_;
-    std::vector<rocksdb::ColumnFamilyHandle*> cfs_;
-    std::vector<Slice> keys_;
-    std::vector<string> str_pool_;
-
-   public:
-    explicit MultiGetQuery(std::shared_ptr<DbStorage> const& db, uint capacity = 0);
-
-    template <typename T>
-    MultiGetQuery& append(Column const& col, std::vector<T> const& keys, bool copy_key = true) {
-      auto h = db_->handle(col);
-      for (auto const& k : keys) {
-        cfs_.emplace_back(h);
-        if (copy_key) {
-          auto const& slice = toSlice(k);
-          keys_.emplace_back(toSlice(str_pool_.emplace_back(slice.data(), slice.size())));
-        } else {
-          keys_.emplace_back(toSlice(k));
-        }
-      }
-      return *this;
-    }
-
-    template <typename T>
-    MultiGetQuery& append(Column const& col, T const& key, bool copy_key = true) {
-      return append(col, std::vector{toSlice(key)}, copy_key);
-    }
-
-    uint size();
-    std::vector<string> execute(bool and_reset = true);
-    MultiGetQuery& reset();
-  };
 };
 
 using DB = DbStorage;
