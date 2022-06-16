@@ -21,7 +21,7 @@ var structtaraxa_1_1_full_node_config =
     [ "max_transactions_pool_drop", "structtaraxa_1_1_full_node_config.html#ace4eda2108b9591b7b86e61ce850f682", null ],
     [ "max_transactions_pool_warn", "structtaraxa_1_1_full_node_config.html#a6e4d05173f13b57dc8c0e19450912357", null ],
     [ "network", "structtaraxa_1_1_full_node_config.html#aa92cfdd3c9bc4f4b6411ef9d4a735668", null ],
-    [ "node_secret", "structtaraxa_1_1_full_node_config.html#ab6bfd489b91bf094fad3fc2bb4b45eaf", null ],
+    [ "node_secret", "structtaraxa_1_1_full_node_config.html#a21a1f640ba90bfeb59c42efa0f0afbe1", null ],
     [ "opts_final_chain", "structtaraxa_1_1_full_node_config.html#a936cfee38f236d99e4505fbff2f40155", null ],
     [ "rpc", "structtaraxa_1_1_full_node_config.html#aaac918474f5387a7733ce3276022499c", null ],
     [ "vrf_secret", "structtaraxa_1_1_full_node_config.html#a0a81eb125af3592470454f1f932b07fe", null ]

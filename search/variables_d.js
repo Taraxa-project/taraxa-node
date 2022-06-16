@@ -50,7 +50,7 @@ var searchData=
   ['node_5fconfig_5f_6070',['node_config_',['../classtaraxa_1_1cli_1_1_config.html#ac880d1d588ac08651bce9522e3110451',1,'taraxa::cli::Config']]],
   ['node_5fconfigured_5f_6071',['node_configured_',['../classtaraxa_1_1cli_1_1_config.html#aad52a2c6f0dbba5387779f2785ab80a5',1,'taraxa::cli::Config']]],
   ['node_5fid_5f_6072',['node_id_',['../classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a7d5b32c19b286f4ee5d46a2c4fd7a2d7',1,'taraxa::network::tarcap::PeersState']]],
-  ['node_5fsecret_6073',['NODE_SECRET',['../classtaraxa_1_1cli_1_1_config.html#a12b0435ed80a9c51802116aedd87271d',1,'taraxa::cli::Config::NODE_SECRET()'],['../structtaraxa_1_1_full_node_config.html#ab6bfd489b91bf094fad3fc2bb4b45eaf',1,'taraxa::FullNodeConfig::node_secret()']]],
+  ['node_5fsecret_6073',['NODE_SECRET',['../classtaraxa_1_1cli_1_1_config.html#a12b0435ed80a9c51802116aedd87271d',1,'taraxa::cli::Config::NODE_SECRET()'],['../structtaraxa_1_1_full_node_config.html#a21a1f640ba90bfeb59c42efa0f0afbe1',1,'taraxa::FullNodeConfig::node_secret()']]],
   ['node_5fsk_5f_6074',['node_sk_',['../group___d_a_g.html#a1a319a60241e118bb0c0982c41c04619',1,'taraxa::BlockProposer::node_sk_()'],['../group___p_b_f_t.html#a46b49acbc25a6f9dbb49bedaa86f91c1',1,'taraxa::PbftManager::node_sk_()']]],
   ['node_5fstats_5f_6075',['node_stats_',['../classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#abfec2e601d44f94bba5d5dd2122bb039',1,'taraxa::network::tarcap::TaraxaCapability']]],
   ['nodeid_6076',['nodeID',['../structdev_1_1p2p_1_1_node_table_1_1_node_validation.html#ac1ed1c28d457a35f062dba42f7de3631',1,'dev::p2p::NodeTable::NodeValidation']]],
