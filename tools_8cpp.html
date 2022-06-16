@@ -82,7 +82,8 @@ $(document).ready(function(){initNavTree('tools_8cpp.html',''); initResizable();
 
 <div class="header">
   <div class="summary">
-<a href="#namespaces">Namespaces</a>  </div>
+<a href="#namespaces">Namespaces</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">tools.cpp File Reference</div>  </div>
 </div><!--header-->
@@ -92,10 +93,6 @@ $(document).ready(function(){initNavTree('tools_8cpp.html',''); initResizable();
 <code>#include &lt;boost/algorithm/string.hpp&gt;</code><br />
 <code>#include &lt;filesystem&gt;</code><br />
 <code>#include &quot;<a class="el" href="cli_2include_2cli_2config_8hpp_source.html">cli/config.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="default__config_8hpp_source.html">cli/default_config.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="devnet__config_8hpp_source.html">cli/devnet_config.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="mainnet__config_8hpp_source.html">cli/mainnet_config.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="testnet__config_8hpp_source.html">cli/testnet_config.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="jsoncpp_8hpp_source.html">common/jsoncpp.hpp</a>&quot;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
@@ -104,6 +101,45 @@ Namespaces</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespacetaraxa_1_1cli"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli.html">taraxa::cli</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:namespacetaraxa_1_1cli_1_1tools"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli_1_1tools.html">taraxa::cli::tools</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:afae4856f053137144bb50375ee28c732"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli_1_1tools.html#afae4856f053137144bb50375ee28c732">taraxa::cli::tools::generateConfig</a> (const std::string &amp;config, cli::Config::NetworkIdType network_id)</td></tr>
+<tr class="separator:afae4856f053137144bb50375ee28c732"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a51f22847aa47033c88758c8e69e7ab01"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli_1_1tools.html#a51f22847aa47033c88758c8e69e7ab01">taraxa::cli::tools::generateConfig</a> (Config::NetworkIdType network_id)</td></tr>
+<tr class="separator:a51f22847aa47033c88758c8e69e7ab01"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0a585ba6993574f9b86827d59c8f485"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli_1_1tools.html#ae0a585ba6993574f9b86827d59c8f485">taraxa::cli::tools::overrideConfig</a> (Json::Value &amp;conf, std::string &amp;data_dir, vector&lt; string &gt; boot_nodes, vector&lt; string &gt; log_channels, vector&lt; string &gt; log_configurations, const vector&lt; string &gt; &amp;boot_nodes_append, const vector&lt; string &gt; &amp;log_channels_append)</td></tr>
+<tr class="separator:ae0a585ba6993574f9b86827d59c8f485"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77e6b42e5c28596e36805e806c77cc5a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli_1_1tools.html#a77e6b42e5c28596e36805e806c77cc5a">taraxa::cli::tools::generateWallet</a> (const string &amp;wallet)</td></tr>
+<tr class="separator:a77e6b42e5c28596e36805e806c77cc5a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6faa605dc03f24fc87bfd798e42bacc8"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli_1_1tools.html#a6faa605dc03f24fc87bfd798e42bacc8">taraxa::cli::tools::overrideWallet</a> (Json::Value &amp;wallet, const string &amp;node_key, const string &amp;vrf_key)</td></tr>
+<tr class="separator:a6faa605dc03f24fc87bfd798e42bacc8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a27887c82e6f5ab3508065eb49bbd4b8a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli_1_1tools.html#a27887c82e6f5ab3508065eb49bbd4b8a">taraxa::cli::tools::generateAccount</a> (const <a class="el" href="classdev_1_1_key_pair.html">dev::KeyPair</a> &amp;account)</td></tr>
+<tr class="separator:a27887c82e6f5ab3508065eb49bbd4b8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0155ee84696d6d8fbc532b317e9d7964"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli_1_1tools.html#a0155ee84696d6d8fbc532b317e9d7964">taraxa::cli::tools::generateAccount</a> ()</td></tr>
+<tr class="separator:a0155ee84696d6d8fbc532b317e9d7964"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a25e9e4b11942e2f228683bfc8df9f365"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli_1_1tools.html#a25e9e4b11942e2f228683bfc8df9f365">taraxa::cli::tools::generateAccountFromKey</a> (const string &amp;key)</td></tr>
+<tr class="separator:a25e9e4b11942e2f228683bfc8df9f365"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a95868ba88dd248aca4fe4f8cfbda09a1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli_1_1tools.html#a95868ba88dd248aca4fe4f8cfbda09a1">taraxa::cli::tools::generateVrf</a> (const <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#af96b06f21607d29faa75f7e006c8ea9e">taraxa::vrf_wrapper::vrf_sk_t</a> &amp;sk, const <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">taraxa::vrf_wrapper::vrf_pk_t</a> &amp;pk)</td></tr>
+<tr class="separator:a95868ba88dd248aca4fe4f8cfbda09a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7aa9641a017a85118d2718cfdde0138a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli_1_1tools.html#a7aa9641a017a85118d2718cfdde0138a">taraxa::cli::tools::generateVrf</a> ()</td></tr>
+<tr class="separator:a7aa9641a017a85118d2718cfdde0138a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91439e9012344f4f61aa6c5f518e90e3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli_1_1tools.html#a91439e9012344f4f61aa6c5f518e90e3">taraxa::cli::tools::generateVrfFromKey</a> (const string &amp;key)</td></tr>
+<tr class="separator:a91439e9012344f4f61aa6c5f518e90e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4593c739f5901c861856b711cd7fd798"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli_1_1tools.html#a4593c739f5901c861856b711cd7fd798">taraxa::cli::tools::createWalletJson</a> (const <a class="el" href="classdev_1_1_key_pair.html">dev::KeyPair</a> &amp;account, const <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#af96b06f21607d29faa75f7e006c8ea9e">taraxa::vrf_wrapper::vrf_sk_t</a> &amp;sk, const <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">taraxa::vrf_wrapper::vrf_pk_t</a> &amp;pk)</td></tr>
+<tr class="separator:a4593c739f5901c861856b711cd7fd798"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7bea8c0640537805e5ec7c0599d9462b"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli_1_1tools.html#a7bea8c0640537805e5ec7c0599d9462b">taraxa::cli::tools::getHomeDir</a> ()</td></tr>
+<tr class="separator:a7bea8c0640537805e5ec7c0599d9462b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af025832254c59368104f4122b217b190"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli_1_1tools.html#af025832254c59368104f4122b217b190">taraxa::cli::tools::getTaraxaDefaultDir</a> ()</td></tr>
+<tr class="separator:af025832254c59368104f4122b217b190"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5dcfd9e02330e5c11402248fa850edf4"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli_1_1tools.html#a5dcfd9e02330e5c11402248fa850edf4">taraxa::cli::tools::getTaraxaDataDefaultDir</a> ()</td></tr>
+<tr class="separator:a5dcfd9e02330e5c11402248fa850edf4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad950c77c2b9ca495ef9166b3514f537f"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli_1_1tools.html#ad950c77c2b9ca495ef9166b3514f537f">taraxa::cli::tools::getWalletDefaultFile</a> ()</td></tr>
+<tr class="separator:ad950c77c2b9ca495ef9166b3514f537f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6bbd495d21ee3a686d5bc8f695270349"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1cli_1_1tools.html#a6bbd495d21ee3a686d5bc8f695270349">taraxa::cli::tools::getTaraxaDefaultConfigFile</a> ()</td></tr>
+<tr class="separator:a6bbd495d21ee3a686d5bc8f695270349"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->
