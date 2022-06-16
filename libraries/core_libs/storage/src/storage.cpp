@@ -967,44 +967,4 @@ void DbStorage::forEach(Column const& col, OnEntry const& f) {
   }
 }
 
-// Disabling MultiGetQuery class as it has quite bad performance on huge databases
-
-// DbStorage::MultiGetQuery::MultiGetQuery(std::shared_ptr<DbStorage> const& db, uint capacity) : db_(db) {
-//   if (capacity) {
-//     cfs_.reserve(capacity);
-//     keys_.reserve(capacity);
-//     str_pool_.reserve(capacity);
-//   }
-// }
-
-// uint DbStorage::MultiGetQuery::size() { return keys_.size(); }
-
-// std::vector<std::string> DbStorage::MultiGetQuery::execute(bool and_reset) {
-//   auto _size = size();
-//   if (_size == 0) {
-//     return {};
-//   }
-//   std::vector<std::string> ret(_size);
-//   uint i = 0;
-//   for (auto const& s : db_->db_->MultiGet(db_->read_options_, cfs_, keys_, &ret)) {
-//     if (s.IsNotFound()) {
-//       ret[i] = "";
-//     } else {
-//       checkStatus(s);
-//     }
-//     ++i;
-//   }
-//   if (and_reset) {
-//     reset();
-//   }
-//   return ret;
-// }
-
-// DbStorage::MultiGetQuery& DbStorage::MultiGetQuery::reset() {
-//   cfs_.clear();
-//   keys_.clear();
-//   str_pool_.clear();
-//   return *this;
-// }
-
 }  // namespace taraxa
