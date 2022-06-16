@@ -384,6 +384,9 @@ TEST_F(NetworkTest, node_network_id) {
     node_cfgs_[1].network.network_id = 1;
     auto nodes = launch_nodes(node_cfgs_);
   }
+  // we need to cleanup datadirs because we saved previous genesis_hash in db. And it is different after network_id
+  // change
+  CleanupDirs();
   {
     node_cfgs[0].network.network_id = 1;
     node_cfgs[1].network.network_id = 2;

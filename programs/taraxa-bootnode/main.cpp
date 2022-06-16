@@ -164,7 +164,7 @@ int main(int argc, char** argv) {
   dev::p2p::TaraxaNetworkConfig taraxa_net_conf;
   taraxa_net_conf.is_boot_node = true;
   taraxa_net_conf.network_id = network_id;
-  auto network_file_path = taraxa::cli::Tools::getTaraxaDefaultDir() / std::filesystem::path(kNetworkConfigFileName);
+  auto network_file_path = taraxa::cli::tools::getTaraxaDefaultDir() / std::filesystem::path(kNetworkConfigFileName);
 
   auto boot_host = dev::p2p::Host::make(
       kProgramName, [](auto /*host*/) { return dev::p2p::Host::CapabilityList{}; }, key, net_conf, taraxa_net_conf,
@@ -181,7 +181,7 @@ int main(int argc, char** argv) {
     std::cout << "Node ID: " << boot_host->enode() << std::endl;
     if (static_cast<taraxa::cli::Config::NetworkIdType>(network_id) <
         taraxa::cli::Config::NetworkIdType::LastNetworkId) {
-      const auto conf = taraxa::cli::Tools::generateConfig(static_cast<taraxa::cli::Config::NetworkIdType>(network_id));
+      const auto conf = taraxa::cli::tools::generateConfig(static_cast<taraxa::cli::Config::NetworkIdType>(network_id));
       for (auto const& bn : conf["network_boot_nodes"]) {
         bi::tcp::endpoint ep = dev::p2p::Network::resolveHost(bn["ip"].asString() + ":" + bn["udp_port"].asString());
         boot_host->addNode(

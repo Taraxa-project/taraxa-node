@@ -7,23 +7,19 @@
 #include <filesystem>
 
 #include "cli/config.hpp"
-#include "cli/default_config.hpp"
-#include "cli/devnet_config.hpp"
-#include "cli/mainnet_config.hpp"
-#include "cli/testnet_config.hpp"
 #include "common/jsoncpp.hpp"
 
 using namespace std;
 using namespace dev;
 namespace fs = std::filesystem;
 
-namespace taraxa::cli {
+namespace taraxa::cli::tools {
 
-void Tools::generateConfig(const std::string& config, Config::NetworkIdType network_id) {
+void generateConfig(const std::string& config, Config::NetworkIdType network_id) {
   util::writeJsonToFile(config, generateConfig(network_id));
 }
 
-Json::Value Tools::generateConfig(Config::NetworkIdType network_id) {
+Json::Value generateConfig(Config::NetworkIdType network_id) {
   Json::Value conf;
   switch (network_id) {
     case Config::NetworkIdType::Mainnet:
@@ -44,9 +40,9 @@ Json::Value Tools::generateConfig(Config::NetworkIdType network_id) {
   return conf;
 }
 
-Json::Value Tools::overrideConfig(Json::Value& conf, std::string& data_dir, vector<string> boot_nodes,
-                                  vector<string> log_channels, vector<string> log_configurations,
-                                  const vector<string>& boot_nodes_append, const vector<string>& log_channels_append) {
+Json::Value overrideConfig(Json::Value& conf, std::string& data_dir, vector<string> boot_nodes,
+                           vector<string> log_channels, vector<string> log_configurations,
+                           const vector<string>& boot_nodes_append, const vector<string>& log_channels_append) {
   if (data_dir.empty()) {
     if (conf["data_path"].asString().empty()) {
       conf["data_path"] = getTaraxaDataDefaultDir();
@@ -137,7 +133,7 @@ Json::Value Tools::overrideConfig(Json::Value& conf, std::string& data_dir, vect
   return conf;
 }
 
-void Tools::generateWallet(const string& wallet) {
+void generateWallet(const string& wallet) {
   // Wallet
   dev::KeyPair account = dev::KeyPair::create();
 
@@ -149,7 +145,7 @@ void Tools::generateWallet(const string& wallet) {
   util::writeJsonToFile(wallet, account_json);
 }
 
-Json::Value Tools::overrideWallet(Json::Value& wallet, const string& node_key, const string& vrf_key) {
+Json::Value overrideWallet(Json::Value& wallet, const string& node_key, const string& vrf_key) {
   if (!node_key.empty()) {
     auto sk = dev::Secret(node_key, dev::Secret::ConstructFromStringType::FromHex);
     dev::KeyPair account = dev::KeyPair(sk);
@@ -168,38 +164,38 @@ Json::Value Tools::overrideWallet(Json::Value& wallet, const string& node_key, c
   return wallet;
 }
 
-void Tools::generateAccount(const dev::KeyPair& account) {
+void generateAccount(const dev::KeyPair& account) {
   cout << "\"node_secret\" : \"" << toHex(account.secret().ref()) << "\"" << endl;
   cout << "\"node_public\" : \"" << account.pub().toString() << "\"" << endl;
   cout << "\"node_address\" : \"" << account.address().toString() << "\"" << endl;
 }
 
-void Tools::generateAccount() { generateAccount(dev::KeyPair::create()); }
+void generateAccount() { generateAccount(dev::KeyPair::create()); }
 
-void Tools::generateAccountFromKey(const string& key) {
+void generateAccountFromKey(const string& key) {
   auto sk = dev::Secret(key, dev::Secret::ConstructFromStringType::FromHex);
   auto account = dev::KeyPair(sk);
   generateAccount(account);
 }
 
-void Tools::generateVrf(const taraxa::vrf_wrapper::vrf_sk_t& sk, const taraxa::vrf_wrapper::vrf_pk_t& pk) {
+void generateVrf(const taraxa::vrf_wrapper::vrf_sk_t& sk, const taraxa::vrf_wrapper::vrf_pk_t& pk) {
   cout << "\"vrf_secret\" : \"" << sk.toString() << "\"" << endl;
   cout << "\"vrf_public\" : \"" << pk.toString() << "\"" << endl;
 }
 
-void Tools::generateVrf() {
+void generateVrf() {
   auto [pk, sk] = taraxa::vrf_wrapper::getVrfKeyPair();
   generateVrf(sk, pk);
 }
 
-void Tools::generateVrfFromKey(const string& key) {
+void generateVrfFromKey(const string& key) {
   auto sk = taraxa::vrf_wrapper::vrf_sk_t(key);
   auto pk = taraxa::vrf_wrapper::getVrfPublicKey(sk);
   generateVrf(sk, pk);
 }
 
-Json::Value Tools::createWalletJson(const dev::KeyPair& account, const taraxa::vrf_wrapper::vrf_sk_t& sk,
-                                    const taraxa::vrf_wrapper::vrf_pk_t& pk) {
+Json::Value createWalletJson(const dev::KeyPair& account, const taraxa::vrf_wrapper::vrf_sk_t& sk,
+                             const taraxa::vrf_wrapper::vrf_pk_t& pk) {
   Json::Value json(Json::objectValue);
   json["node_secret"] = toHex(account.secret().ref());
   json["node_public"] = account.pub().toString();
@@ -209,14 +205,14 @@ Json::Value Tools::createWalletJson(const dev::KeyPair& account, const taraxa::v
   return json;
 }
 
-string Tools::getHomeDir() { return string(getpwuid(getuid())->pw_dir); }
+string getHomeDir() { return string(getpwuid(getuid())->pw_dir); }
 
-string Tools::getTaraxaDefaultDir() { return getHomeDir() + "/" + DEFAULT_TARAXA_DIR_NAME; }
+string getTaraxaDefaultDir() { return getHomeDir() + "/" + DEFAULT_TARAXA_DIR_NAME; }
 
-string Tools::getTaraxaDataDefaultDir() { return getHomeDir() + "/" + DEFAULT_TARAXA_DATA_DIR_NAME; }
+string getTaraxaDataDefaultDir() { return getHomeDir() + "/" + DEFAULT_TARAXA_DATA_DIR_NAME; }
 
-string Tools::getWalletDefaultFile() { return getTaraxaDefaultDir() + "/" + DEFAULT_WALLET_FILE_NAME; }
+string getWalletDefaultFile() { return getTaraxaDefaultDir() + "/" + DEFAULT_WALLET_FILE_NAME; }
 
-string Tools::getTaraxaDefaultConfigFile() { return getTaraxaDefaultDir() + "/" + DEFAULT_CONFIG_FILE_NAME; }
+string getTaraxaDefaultConfigFile() { return getTaraxaDefaultDir() + "/" + DEFAULT_CONFIG_FILE_NAME; }
 
-}  // namespace taraxa::cli
+}  // namespace taraxa::cli::tools
