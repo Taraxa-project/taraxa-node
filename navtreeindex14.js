@@ -1,16 +1,5 @@
 var NAVTREEINDEX14 =
 {
-"group___p_b_f_t.html#a48b2338faa93e4a389f3bc5683a228ee":[9,2,1,48],
-"group___p_b_f_t.html#a4b041e54ffc037ab9ac0cdcea7b35824":[9,2,1,25],
-"group___p_b_f_t.html#a4b8d1b3019be6aae748b0b7f3e4a23b9":[9,2,1,75],
-"group___p_b_f_t.html#a4c42ae982119ffa8578683b2464b8825":[9,2,1,153],
-"group___p_b_f_t.html#a4d3ab20a116f88b6621ff48b0af60e57":[9,2,1,147],
-"group___p_b_f_t.html#a4d8a79206911aabe3cd5bf0bfd869073":[9,2,1,40],
-"group___p_b_f_t.html#a4e2dc0b0fdd0e68a9ffac002daa6486d":[9,2,1,39],
-"group___p_b_f_t.html#a4f9910e8511f5297d62911247a711cae":[9,2,2,5],
-"group___p_b_f_t.html#a4f9ad5119af63a0c993d9c59e0d22d4e":[9,2,1,98],
-"group___p_b_f_t.html#a53fe40f58e69c874a64d6ee20be4cc7c":[9,2,1,145],
-"group___p_b_f_t.html#a54320bf3e4e774ee45eda5e56aa9440c":[9,2,0,20],
 "group___p_b_f_t.html#a544fd1d4f13335c23f2febe112855a1f":[9,2,4,7],
 "group___p_b_f_t.html#a5583520db804275b4ae4fb283dcb93e9":[9,2,1,115],
 "group___p_b_f_t.html#a564222cc2cfd8ecee034c0a89656be13":[9,2,2,10],
@@ -249,5 +238,16 @@ var NAVTREEINDEX14 =
 "group___transaction.html#classtaraxa_1_1_transaction_manager":[9,3,1],
 "group___transaction.html#classtaraxa_1_1_transaction_queue":[9,3,2],
 "group___transaction.html#gae7551c287ae57b46d56d27de67df61e7":[9,3,3],
-"group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a1329e7699345f6e7d1b9bfb0965a3c03":[9,3,3,2]
+"group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a1329e7699345f6e7d1b9bfb0965a3c03":[9,3,3,2],
+"group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a3f68e67dc6c397aaa9d1c24c356f754f":[9,3,3,0],
+"group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a4bbb8f967da6d1a610596d7257179c2b":[9,3,3,1],
+"group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7ad10cbf6c0f5918304899ed32d94cb0bf":[9,3,3,3],
+"group___vote.html":[9,4],
+"group___vote.html#a007f95fc9afcf66409e13455a77a6508":[9,4,1,1],
+"group___vote.html#a069a0877638436a04ecf9902f63c47e8":[9,4,4,7],
+"group___vote.html#a08ba8186689a8e3621443397e2a4866b":[9,4,6,6],
+"group___vote.html#a091f3cdc0e3856d46187dd189867379c":[9,4,2,7],
+"group___vote.html#a0df9206eb59b8daf35ec72c99b007546":[9,4,6,3],
+"group___vote.html#a0fbda645a19ad3d80cf0101f45801855":[9,4,5,2],
+"group___vote.html#a123d80c39013339668ef5d5a2f70ee07":[9,4,0,19]
 };

@@ -4,7 +4,6 @@ var storage_8hpp =
     [ "DbStorage", "classtaraxa_1_1_db_storage.html", "classtaraxa_1_1_db_storage" ],
     [ "Column", "classtaraxa_1_1_db_storage_1_1_column.html", "classtaraxa_1_1_db_storage_1_1_column" ],
     [ "Columns", "classtaraxa_1_1_db_storage_1_1_columns.html", "classtaraxa_1_1_db_storage_1_1_columns" ],
-    [ "MultiGetQuery", "classtaraxa_1_1_db_storage_1_1_multi_get_query.html", "classtaraxa_1_1_db_storage_1_1_multi_get_query" ],
     [ "COLUMN", "storage_8hpp.html#a2eaa50d8ab492e7c148571d65b81f7d9", null ],
     [ "COLUMN_W_COMP", "storage_8hpp.html#ac9945ca6fe197b285226f1698ce8a202", null ],
     [ "DB", "storage_8hpp.html#a32216cff36a3565783afe8fa0099ae89", null ],

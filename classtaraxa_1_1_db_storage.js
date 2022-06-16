@@ -2,7 +2,6 @@ var classtaraxa_1_1_db_storage =
 [
     [ "Column", "classtaraxa_1_1_db_storage_1_1_column.html", "classtaraxa_1_1_db_storage_1_1_column" ],
     [ "Columns", "classtaraxa_1_1_db_storage_1_1_columns.html", "classtaraxa_1_1_db_storage_1_1_columns" ],
-    [ "MultiGetQuery", "classtaraxa_1_1_db_storage_1_1_multi_get_query.html", "classtaraxa_1_1_db_storage_1_1_multi_get_query" ],
     [ "Batch", "classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63", null ],
     [ "OnEntry", "classtaraxa_1_1_db_storage.html#a1b03875569a66efcada69ddd866989a3", null ],
     [ "Slice", "classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0", null ],

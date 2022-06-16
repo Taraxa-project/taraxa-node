@@ -1,16 +1,5 @@
 var NAVTREEINDEX9 =
 {
-"classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a8c34274b8c4d41a6959de4442f2b2dab":[11,0,3,4,0,10,10],
-"classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a9543214a6d87aeb9dbb1902fa2aa5ccf":[11,0,3,4,0,10,14],
-"classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#aaa9095a31e4e70562c66de0c9da63563":[11,0,3,4,0,10,8],
-"classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#ab06ae64a92de5d4350a8429977b36b2f":[11,0,3,4,0,10,1],
-"classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#abe1ff775fb75eafc7e0a549833a4c50b":[11,0,3,4,0,10,11],
-"classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#aee747ea085b5f0cbc9b765833eb135b2":[11,0,3,4,0,10,5],
-"classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#afabdc72598d541c7b8abb17bfbb6d93b":[11,0,3,4,0,10,13],
-"classtaraxa_1_1network_1_1tarcap_1_1_packets_blocking_mask.html":[11,0,3,4,0,11],
-"classtaraxa_1_1network_1_1tarcap_1_1_packets_blocking_mask.html#a03ecdc73b2d058425f870bd24ea82a74":[11,0,3,4,0,11,5],
-"classtaraxa_1_1network_1_1tarcap_1_1_packets_blocking_mask.html#a0ac6e51dca2d7354291c5ecdeb7fc0b0":[11,0,3,4,0,11,12],
-"classtaraxa_1_1network_1_1tarcap_1_1_packets_blocking_mask.html#a202930c446cf206beee46d0608cadd3e":[11,0,3,4,0,11,6],
 "classtaraxa_1_1network_1_1tarcap_1_1_packets_blocking_mask.html#a3615957f5cc28f8b2c0d45382b20517b":[11,0,3,4,0,11,8],
 "classtaraxa_1_1network_1_1tarcap_1_1_packets_blocking_mask.html#a457ccebb16664fc9707285e4ccc15bcd":[11,0,3,4,0,11,13],
 "classtaraxa_1_1network_1_1tarcap_1_1_packets_blocking_mask.html#a498edd7047f808d368514d03b1a131a8":[11,0,3,4,0,11,9],
@@ -249,5 +238,16 @@ var NAVTREEINDEX9 =
 "classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html":[11,0,3,4,0,26],
 "classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a0278fa38ffa38ca0e781671601501687":[11,0,3,4,0,26,9],
 "classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a1592657752e99a1a4136d559cb7fb1e0":[11,0,3,4,0,26,2],
-"classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a1c152214549063dbb0ae25427a369bcd":[11,0,3,4,0,26,6]
+"classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a1c152214549063dbb0ae25427a369bcd":[11,0,3,4,0,26,6],
+"classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a28a9f68da9bd6923e18be898df8ab509":[11,0,3,4,0,26,1],
+"classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a470ce2322a047acdde8024eaa41bf083":[11,0,3,4,0,26,3],
+"classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a76aa6dc6deb4a6091fcc96ac7463bd1a":[11,0,3,4,0,26,5],
+"classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a76e477c62ee058b54a26bff8c18870c6":[11,0,3,4,0,26,10],
+"classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a8ca8ec0d164aca81f25ebedffa45b733":[11,0,3,4,0,26,7],
+"classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#aa66354b3d71df215162924c6644b6b11":[11,0,3,4,0,26,4],
+"classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#ac57aebb46f843c0aae56a5a0b4ce3df1":[11,0,3,4,0,26,11],
+"classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#acaa3001d57fd1f5b8b0c4d9fd199ada1":[11,0,3,4,0,26,8],
+"classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#aff49ee2d25dd0ea3c8bab6f085c741ba":[11,0,3,4,0,26,0],
+"classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html":[11,0,3,4,0,27],
+"classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a3563daa113e2ca9ce581f7733e4bd960":[11,0,3,4,0,27,5]
 };
