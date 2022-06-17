@@ -22,11 +22,19 @@ struct advance_check_opts {
 
 struct FinalChainTest : WithDataDir {
   std::shared_ptr<DbStorage> db{new DbStorage(data_dir / "db")};
-  Config cfg = ChainConfig::predefined("test").final_chain;
+  Config cfg;
   std::shared_ptr<FinalChain> SUT;
   bool assume_only_toplevel_transfers = true;
   std::unordered_map<addr_t, u256> expected_balances;
   uint64_t expected_blk_num = 0;
+
+  FinalChainTest() {
+    std::string config_file_path = DIR_CONF / "conf_taraxa1.json";
+    Json::Value test_node_config_json;
+    std::ifstream(config_file_path, std::ifstream::binary) >> test_node_config_json;
+    dec_json(test_node_config_json["chain_config"]["final_chain"], cfg);
+    setTestGenesisBalances(cfg);
+  }
 
   void init() {
     SUT = NewFinalChain(db, cfg);

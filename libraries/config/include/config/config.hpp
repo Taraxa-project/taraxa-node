@@ -82,7 +82,7 @@ struct FullNodeConfig {
   NetworkConfig network;
   std::optional<RpcConfig> rpc;
   DBConfig db_config;
-  ChainConfig chain = ChainConfig::predefined();
+  ChainConfig chain;
   state_api::Opts opts_final_chain;
   std::vector<logger::Config> log_configs;
   bool is_light_node = false;                            // Is light node

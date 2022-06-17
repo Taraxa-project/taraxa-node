@@ -35,14 +35,9 @@ struct ChainConfig {
   final_chain::Config final_chain;
   DagConfig dag;
 
- private:
-  static LazyVal<std::unordered_map<string, ChainConfig>> const predefined_;
-
- public:
   void validate() const;
   bytes rlp() const;
   blk_hash_t genesisHash() const;
-  static const ChainConfig& predefined(std::string const& name = "default");
 };
 
 Json::Value enc_json(ChainConfig const& obj);

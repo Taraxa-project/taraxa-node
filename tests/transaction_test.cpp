@@ -30,6 +30,19 @@ auto g_blk_samples = Lazy([] { return samples::createMockDagBlkSamples(0, NUM_BL
 
 struct TransactionTest : BaseTest {};
 
+taraxa::final_chain::Config getFinalChainConfig(bool setGenesisBalance = false) {
+  std::string config_file_path = DIR_CONF / "conf_taraxa1.json";
+  Json::Value test_node_config_json;
+  std::ifstream(config_file_path, std::ifstream::binary) >> test_node_config_json;
+  taraxa::final_chain::Config final_chain_config;
+  dec_json(test_node_config_json["chain_config"]["final_chain"], final_chain_config);
+  if (setGenesisBalance) {
+    setTestGenesisBalances(final_chain_config);
+  }
+
+  return final_chain_config;
+}
+
 TEST_F(TransactionTest, status_table_lru) {
   using TestStatus = StatusTable<int, int>;
   TestStatus status_table(100);
@@ -117,7 +130,7 @@ TEST_F(TransactionTest, sig) {
 }
 
 TEST_F(TransactionTest, verifiers) {
-  taraxa::final_chain::Config cfg = ChainConfig::predefined("test").final_chain;
+  taraxa::final_chain::Config cfg = getFinalChainConfig(true);
   auto db = std::make_shared<DbStorage>(data_dir);
   auto final_chain = NewFinalChain(db, cfg);
   TransactionManager trx_mgr(FullNodeConfig(), db, final_chain, addr_t());
@@ -139,8 +152,7 @@ TEST_F(TransactionTest, verifiers) {
 
 TEST_F(TransactionTest, transaction_limit) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  TransactionManager trx_mgr(FullNodeConfig(), db, NewFinalChain(db, ChainConfig::predefined("test").final_chain),
-                             addr_t());
+  TransactionManager trx_mgr(FullNodeConfig(), db, NewFinalChain(db, getFinalChainConfig(true)), addr_t());
   // insert trx
   std::thread t([&trx_mgr]() {
     for (auto const& t : *g_signed_trx_samples) {
@@ -165,8 +177,7 @@ TEST_F(TransactionTest, transaction_limit) {
 
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  TransactionManager trx_mgr(FullNodeConfig(), db, NewFinalChain(db, ChainConfig::predefined("test").final_chain),
-                             addr_t());
+  TransactionManager trx_mgr(FullNodeConfig(), db, NewFinalChain(db, getFinalChainConfig(true)), addr_t());
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : *g_signed_trx_samples) {
       trx_mgr.insertTransaction(t);
@@ -193,7 +204,7 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
 
 TEST_F(TransactionTest, transaction_low_nonce) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  taraxa::final_chain::Config cfg = ChainConfig::predefined("test").final_chain;
+  taraxa::final_chain::Config cfg = getFinalChainConfig(true);
   cfg.state.execution_options.enable_nonce_skipping = true;
   auto final_chain = NewFinalChain(db, cfg);
   TransactionManager trx_mgr(FullNodeConfig(), db, final_chain, addr_t());
@@ -260,8 +271,7 @@ TEST_F(TransactionTest, transaction_low_nonce) {
 
 TEST_F(TransactionTest, transaction_concurrency) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  TransactionManager trx_mgr(FullNodeConfig(), db, NewFinalChain(db, ChainConfig::predefined("test").final_chain),
-                             addr_t());
+  TransactionManager trx_mgr(FullNodeConfig(), db, NewFinalChain(db, getFinalChainConfig(true)), addr_t());
   bool stopped = false;
   // Insert transactions to memory pool and keep trying to insert them again on separate thread, it should always fail
   std::thread insertTrx([&trx_mgr, &stopped]() {

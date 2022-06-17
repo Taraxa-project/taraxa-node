@@ -396,4 +396,9 @@ inline void wait_for_balances(const std::vector<std::shared_ptr<FullNode>>& node
   });
 }
 
+inline void setTestGenesisBalances(final_chain::Config& final_chain_config) {
+  final_chain_config.state.genesis_balances[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")] =
+      u256(7200999050) * 10000000000000000;  // https://ethereum.stackexchange.com/a/74832
+}
+
 }  // namespace taraxa::core_tests

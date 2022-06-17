@@ -219,13 +219,12 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
       }
     }
   }
-  if (auto const &v = root["chain_config"]; v.isString()) {
-    chain = ChainConfig::predefined(v.asString());
-  } else if (v.isObject()) {
-    dec_json(v, chain);
-  } else {
-    chain = ChainConfig::predefined();
+
+  const auto &chain_config = root["chain_config"];
+  if (!chain_config.isObject()) {
+    throw ConfigException(std::string("unknown chain config"));
   }
+  dec_json(chain_config, chain);
 
   // blocks_per_year config param is calculated from lambda_ms_min
   uint64_t year_ms = 365 * 24 * 60 * 60;
