@@ -13,7 +13,7 @@ using namespace std;
 
 PeriodData::PeriodData(std::shared_ptr<PbftBlock> pbft_blk,
                        std::vector<std::shared_ptr<Vote>> const& previous_block_cert_votes)
-    : pbft_blk(std::move(pbft_blk)), previous_block_cert_votes(previous_block_cert_votes) {}
+    : pbft_blk(std::move(pbft_blk)), previous_block_cert_votes(previous_block_cert_votes), bonus_votes_count(0) {}
 
 PeriodData::PeriodData(dev::RLP&& rlp) {
   auto it = rlp.begin();
@@ -26,15 +26,17 @@ PeriodData::PeriodData(dev::RLP&& rlp) {
     dag_blocks.emplace_back(dag_block_rlp);
   }
 
-  for (auto const trx_rlp : *it) {
+  for (auto const trx_rlp : *it++) {
     transactions.emplace_back(std::make_shared<Transaction>(trx_rlp));
   }
+
+  bonus_votes_count = (*it).toInt<size_t>();
 }
 
 PeriodData::PeriodData(bytes const& all_rlp) : PeriodData(dev::RLP(all_rlp)) {}
 
 bytes PeriodData::rlp() const {
-  dev::RLPStream s(4);
+  dev::RLPStream s(kItemCount);
   s.appendRaw(pbft_blk->rlp(true));
   s.appendList(previous_block_cert_votes.size());
   for (auto const& v : previous_block_cert_votes) {
@@ -48,6 +50,7 @@ bytes PeriodData::rlp() const {
   for (auto const& t : transactions) {
     s.appendRaw(t->rlp());
   }
+  s << bonus_votes_count;
   return s.invalidate();
 }
 

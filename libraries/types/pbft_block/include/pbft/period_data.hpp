@@ -31,8 +31,12 @@ class PeriodData {
   std::shared_ptr<PbftBlock> pbft_blk;
   std::vector<std::shared_ptr<Vote>> previous_block_cert_votes;  // These votes are the cert votes of previous block
                                                                  // which match reward votes in current pbft block
+  size_t bonus_votes_count;
+
   std::vector<DagBlock> dag_blocks;
   SharedTransactions transactions;
+
+  const static size_t kItemCount = 5;
 
   /**
    * @brief Recursive Length Prefix

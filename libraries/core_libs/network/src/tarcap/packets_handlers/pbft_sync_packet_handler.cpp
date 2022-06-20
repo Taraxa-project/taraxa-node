@@ -31,9 +31,9 @@ void PbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_dat
 
   // PeriodData rlp parsing cannot be done through util::rlp_tuple, which automatically checks the rlp size so it is
   // checked here manually
-  if (constexpr size_t required_size = 4; packet_data.rlp_[1].itemCount() != required_size) {
+  if (packet_data.rlp_[1].itemCount() != PeriodData::kItemCount) {
     throw InvalidRlpItemsCountException(packet_data.type_str_ + ":PeriodData", packet_data.rlp_[1].itemCount(),
-                                        required_size);
+                                        PeriodData::kItemCount);
   }
 }
 

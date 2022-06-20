@@ -42,22 +42,20 @@ std::optional<addr_t> RewardsStats::getTransactionValidator(const trx_hash_t& tx
   return {found_tx->second};
 }
 
-bool RewardsStats::addVote(const Vote& vote) {
+bool RewardsStats::addVote(const std::shared_ptr<Vote>& vote) {
   // Set valid cert vote to validator
-  auto& validator_stats = validators_stats_[vote.getVoterAddr()];
+  auto& validator_stats = validators_stats_[vote->getVoterAddr()];
   assert(validator_stats.valid_cert_vote_ == false);
 
+  total_votes_count_++;
   validator_stats.valid_cert_vote_ = true;
-  total_unique_votes_count_++;
-
   return true;
 }
 
 void RewardsStats::initStats(const PeriodData& sync_blk) {
   txs_validators_.reserve(sync_blk.transactions.size());
-
-  // TODO: use std::max(sync_blk.dag_blocks.size(), sync_blk.rewards_votes.size())
-  validators_stats_.reserve(sync_blk.dag_blocks.size());
+  validators_stats_.reserve(std::max(sync_blk.dag_blocks.size(), sync_blk.previous_block_cert_votes.size()));
+  bonus_votes_count_ = sync_blk.bonus_votes_count;
 
   for (const auto& dag_block : sync_blk.dag_blocks) {
     const addr_t& dag_block_author = dag_block.getSender();
@@ -66,7 +64,9 @@ void RewardsStats::initStats(const PeriodData& sync_blk) {
     }
   }
 
-  // TODO: add votes to rewards_stats
+  for (const auto& vote : sync_blk.previous_block_cert_votes) {
+    addVote(vote);
+  }
 }
 
 std::vector<addr_t> RewardsStats::processStats(const PeriodData& block) {
@@ -95,6 +95,6 @@ std::vector<addr_t> RewardsStats::processStats(const PeriodData& block) {
 }
 
 RLP_FIELDS_DEFINE(RewardsStats::ValidatorStats, unique_txs_count_, valid_cert_vote_)
-RLP_FIELDS_DEFINE(RewardsStats, validators_stats_, total_unique_txs_count_, total_unique_votes_count_)
+RLP_FIELDS_DEFINE(RewardsStats, validators_stats_, total_unique_txs_count_, total_votes_count_, bonus_votes_count_)
 
 }  // namespace taraxa

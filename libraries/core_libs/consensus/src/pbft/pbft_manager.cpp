@@ -11,6 +11,7 @@
 #include <libdevcore/SHA3.h>
 
 #include <chrono>
+#include <cstdint>
 #include <string>
 
 #include "dag/dag.hpp"
@@ -19,6 +20,7 @@
 #include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
+#include "pbft/period_data.hpp"
 #include "vote_manager/vote_manager.hpp"
 
 namespace taraxa {
@@ -1711,6 +1713,8 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   }
 
   vote_mgr_->replaceRewardVotes(std::move(cert_votes));
+  // Calculated additional votes count for rewards
+  calculateBonusVoteCount(period_data);
 
   last_cert_voted_value_ = NULL_BLOCK_HASH;
 
@@ -1724,6 +1728,24 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   db_->savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, true);
   executed_pbft_block_ = true;
   return true;
+}
+
+void PbftManager::calculateBonusVoteCount(PeriodData &period_data) const {
+  // First period does not have any reward votes
+  if (period_data.pbft_blk->getPeriod() < 2) [[unlikely]] {
+    return;
+  }
+  const auto dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(period_data.pbft_blk->getPeriod() - 1);
+  const auto min_weight = std::min<size_t>(COMMITTEE_SIZE, dpos_votes_count) * 2 / 3 + 1;
+  size_t total_weight = 0;
+
+  for (size_t i = 0; i < period_data.previous_block_cert_votes.size(); i++) {
+    assert(period_data.previous_block_cert_votes[i]->getWeight());
+    total_weight += *period_data.previous_block_cert_votes[i]->getWeight();
+    if (total_weight > min_weight) {
+      period_data.bonus_votes_count = period_data.previous_block_cert_votes.size() - i - 1;
+    }
+  }
 }
 
 void PbftManager::updateTwoTPlusOneAndThreshold_() {

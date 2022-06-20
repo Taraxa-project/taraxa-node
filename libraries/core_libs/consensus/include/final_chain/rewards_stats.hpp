@@ -59,7 +59,7 @@ class RewardsStats {
    * @param vote
    * @return true in case vote was unique and processed, otherwise false
    */
-  bool addVote(const Vote& vote);
+  bool addVote(const std::shared_ptr<Vote>& vote);
 
   /**
    * @brief Prepares reward statistics bases on period data data
@@ -73,10 +73,10 @@ class RewardsStats {
     // How many unique txs validator included in his dag blocks
     // Unique txs is what defines quality of block -> block with 10 unique transactions is 10 times more valuable
     // than block with single unique transaction
-    uint32_t unique_txs_count_;
+    uint32_t unique_txs_count_ = 0;
 
     // Validator cert voted block
-    bool valid_cert_vote_;
+    bool valid_cert_vote_ = false;
 
     HAS_RLP_FIELDS
   };
@@ -90,8 +90,11 @@ class RewardsStats {
   // Total unique txs counter
   uint32_t total_unique_txs_count_{0};
 
-  // Total unique votes counter
-  uint32_t total_unique_votes_count_{0};
+  // Total count of votes in block
+  uint32_t total_votes_count_{0};
+
+  // Bonus count of votes in block
+  uint32_t bonus_votes_count_{0};
 };
 
 }  // namespace taraxa
