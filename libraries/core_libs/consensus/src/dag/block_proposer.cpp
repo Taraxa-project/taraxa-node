@@ -100,15 +100,16 @@ bool SortitionPropose::propose() {
     }
   }
 
-  SharedTransactions shared_trxs = proposer->getShardedTrxs();
-  if (shared_trxs.empty()) {
+  auto [transactions, estimations] = proposer->getShardedTrxs(*proposal_period, dag_blk_mgr_->getDagConfig().gas_limit);
+  if (transactions.empty()) {
     last_frontier_ = frontier;
     num_tries_ = 0;
     return false;
   }
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
   last_frontier_ = frontier;
-  proposer->proposeBlock(std::move(frontier), propose_level, *proposal_period, std::move(shared_trxs), std::move(vdf));
+  proposer->proposeBlock(std::move(frontier), propose_level, std::move(transactions), std::move(estimations),
+                         std::move(vdf));
   num_tries_ = 0;
   return true;
 }
@@ -153,7 +154,8 @@ void BlockProposer::stop() {
   proposer_worker_->join();
 }
 
-SharedTransactions BlockProposer::getShardedTrxs() {
+std::pair<SharedTransactions, std::vector<uint64_t>> BlockProposer::getShardedTrxs(uint64_t proposal_period,
+                                                                                   uint64_t weight_limit) {
   // If syncing return empty list
   auto syncing = false;
   if (auto net = network_.lock()) {
@@ -163,24 +165,28 @@ SharedTransactions BlockProposer::getShardedTrxs() {
     return {};
   }
 
-  SharedTransactions to_be_packed_trx = trx_mgr_->packTrxs(bp_config_.transaction_limit);
+  if (total_trx_shards_ == 1) return trx_mgr_->packTrxs(proposal_period, weight_limit);
 
-  if (to_be_packed_trx.empty()) {
+  auto [transactions, estimations] = trx_mgr_->packTrxs(proposal_period, weight_limit);
+
+  if (transactions.empty()) {
     LOG(log_tr_) << "Skip block proposer, zero unpacked transactions ..." << std::endl;
     return {};
   }
   SharedTransactions sharded_trxs;
-  for (auto const& t : to_be_packed_trx) {
-    auto shard = std::stoull(t->getHash().toString().substr(0, 10), NULL, 16);
+  std::vector<uint64_t> sharded_estimations;
+  for (uint32_t i = 0; i < transactions.size(); i++) {
+    auto shard = std::stoull(transactions[i]->getHash().toString().substr(0, 10), NULL, 16);
     if (shard % total_trx_shards_ == my_trx_shard_) {
-      sharded_trxs.emplace_back(t);
+      sharded_trxs.emplace_back(transactions[i]);
+      estimations.emplace_back(estimations[i]);
     }
   }
   if (sharded_trxs.empty()) {
     LOG(log_tr_) << "Skip block proposer, zero sharded transactions ..." << std::endl;
     return {};
   }
-  return sharded_trxs;
+  return {sharded_trxs, sharded_estimations};
 }
 
 level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips) {
@@ -204,24 +210,16 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const&
   return max_level;
 }
 
-void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, uint64_t proposal_period,
-                                 SharedTransactions&& trxs, VdfSortition&& vdf) {
+void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTransactions&& trxs,
+                                 std::vector<uint64_t>&& estimations, VdfSortition&& vdf) {
   if (stopped_) return;
 
   // When we propose block we know it is valid, no need for block verification with queue,
   // simply add the block to the DAG
   vec_trx_t trx_hashes;
-  std::vector<uint64_t> estimations;
-  u256 block_weight = 0;
 
   for (const auto& trx : trxs) {
-    auto weight = trx_mgr_->estimateTransactionGas(trx, proposal_period);
-    block_weight += weight;
-    if (block_weight > dag_blk_mgr_->getDagConfig().gas_limit) {
-      break;
-    }
     trx_hashes.push_back(trx->getHash());
-    estimations.push_back(weight);
   }
   DagBlock blk(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes),
                std::move(estimations), std::move(vdf), node_sk_);

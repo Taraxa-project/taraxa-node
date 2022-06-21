@@ -152,13 +152,9 @@ TEST_F(TransactionTest, transaction_limit) {
   }
   t.join();
   thisThreadSleepForMilliSeconds(100);
-  SharedTransactions verified_trxs1, verified_trxs2, verified_trxs3;
-  verified_trxs1 = trx_mgr.packTrxs(10);
-  verified_trxs2 = trx_mgr.packTrxs(20);
-  verified_trxs3 = trx_mgr.packTrxs(0);
-  EXPECT_EQ(verified_trxs1.size(), 10);
-  EXPECT_EQ(verified_trxs2.size(), 20);
-  EXPECT_EQ(verified_trxs3.size(), g_signed_trx_samples->size());
+  SharedTransactions verified_trxs;
+  verified_trxs = trx_mgr.getAllPoolTrxs();
+  EXPECT_EQ(verified_trxs.size(), g_signed_trx_samples->size());
 }
 
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
@@ -179,7 +175,7 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   auto batch = db->createWriteBatch();
 
   do {
-    packed_trxs = trx_mgr.packTrxs();
+    packed_trxs = trx_mgr.getAllPoolTrxs();
     total_packed_trxs.insert(total_packed_trxs.end(), packed_trxs.begin(), packed_trxs.end());
     trx_mgr.saveTransactionsFromDagBlock(packed_trxs);
     thisThreadSleepForMicroSeconds(100);
@@ -290,7 +286,7 @@ TEST_F(TransactionTest, transaction_concurrency) {
 
   // Verify all transactions are in correct state in pool, db and finalized
   std::set<trx_hash_t> pool_trx_hashes;
-  for (auto const& t : trx_mgr.packTrxs()) {
+  for (auto const& t : trx_mgr.getAllPoolTrxs()) {
     pool_trx_hashes.insert(t->getHash());
   }
 

@@ -8,7 +8,6 @@ namespace taraxa {
 
 struct BlockProposerConfig {
   uint16_t shard = 1;
-  uint16_t transaction_limit = 250;
 
   bytes rlp() const;
 };

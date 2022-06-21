@@ -125,7 +125,7 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::
   if (trx_mgr /* just because of tests */ && conf.network_transaction_interval > 0) {
     periodic_events_tp_->post_loop({conf.network_transaction_interval},
                                    [tx_packet_handler = std::move(tx_packet_handler), trx_mgr = std::move(trx_mgr)] {
-                                     tx_packet_handler->periodicSendTransactions(trx_mgr->packTrxs());
+                                     tx_packet_handler->periodicSendTransactions(trx_mgr->getAllPoolTrxs());
                                    });
   }
 

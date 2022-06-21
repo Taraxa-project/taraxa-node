@@ -300,8 +300,7 @@
     },
     "dag": {
       "block_proposer": {
-        "shard": 1,
-        "transaction_limit": 250
+        "shard": 1
       },
       "gas_limit": "0x989680"
     },

@@ -226,7 +226,7 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
       nonfinalized_transactions_in_dag_.emplace(trx_hash, trxs[i]);
     }
     if (transactions_pool_.erase(trx_hash)) {
-      LOG(log_dg_) << "Transaction " << trx_hash << " removed from trx pool";
+      LOG(log_dg_) << "Transaction " << trx_hash << " removed from trx pool ";
       // Transactions are counted when included in DAG
       trx_count_++;
       transaction_accepted_.emit(trx_hash);
@@ -295,9 +295,30 @@ std::vector<std::shared_ptr<Transaction>> TransactionManager::getNonfinalizedTrx
 /**
  * Retrieve transactions to be included in proposed block
  */
-SharedTransactions TransactionManager::packTrxs(uint16_t max_trx_to_pack) {
+std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrxs(uint64_t proposal_period,
+                                                                                  uint64_t weight_limit) {
   std::shared_lock transactions_lock(transactions_mutex_);
-  return transactions_pool_.get(max_trx_to_pack);
+  SharedTransactions trxs;
+  std::vector<uint64_t> estimations;
+  transactions_pool_.resetGetNextTransactionIterator();
+  uint64_t total_weight = 0;
+  while (true) {
+    auto trx = transactions_pool_.getNextTransaction();
+    if (trx == nullptr) break;
+    uint64_t weight = estimateTransactionGas(trx, proposal_period);
+    total_weight += weight;
+    if (total_weight > weight_limit) {
+      break;
+    }
+    estimations.push_back(weight);
+    trxs.emplace_back(trx);
+  }
+  return {trxs, estimations};
+}
+
+SharedTransactions TransactionManager::getAllPoolTrxs() {
+  std::shared_lock transactions_lock(transactions_mutex_);
+  return transactions_pool_.get();
 }
 
 /**

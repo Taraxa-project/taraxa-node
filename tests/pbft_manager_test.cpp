@@ -704,13 +704,24 @@ TEST_F(PbftManagerWithDagCreation, limit_dag_block_size) {
   EXPECT_HAPPENS({10s, 500ms},
                  [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, trxs_before, node->getDB()->getNumTransactionExecuted()); });
 
-  insertTransactions(makeTransactions(30));
+  auto pivot_before = node->getDagManager()->getDagFrontier().pivot;
 
-  uint64_t should_be_executed = node->getConfig().chain.dag.gas_limit / trxEstimation();
+  const uint32_t additional_trx_count = 30;
+  insertTransactions(makeTransactions(additional_trx_count));
+
+  uint64_t should_be_in_one_dag_block = node->getConfig().chain.dag.gas_limit / trxEstimation();
   EXPECT_HAPPENS({10s, 250ms}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), trxs_before + should_be_executed)
-    WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), trxs_before + 30)
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), trxs_before + additional_trx_count)
+    WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), trxs_before + additional_trx_count)
   });
+
+  auto dag_block = node->getDB()->getDagBlock(node->getDagManager()->getDagFrontier().pivot);
+  while (dag_block->getPivot() != pivot_before) {
+    dag_block = node->getDB()->getDagBlock(dag_block->getPivot());
+  }
+
+  ASSERT_EQ(should_be_in_one_dag_block, dag_block->getTrxs().size());
+
   ASSERT_EQ(greet(),
             // "Hola"
             "0x000000000000000000000000000000000000000000000000000000000000002000"
