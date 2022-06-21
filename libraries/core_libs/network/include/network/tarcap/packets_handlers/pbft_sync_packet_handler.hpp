@@ -1,6 +1,7 @@
 #pragma once
 
 #include "network/tarcap/packets_handlers/common/ext_syncing_packet_handler.hpp"
+#include "vote_manager/vote_manager.hpp"
 
 namespace taraxa::network::tarcap {
 
@@ -9,7 +10,7 @@ class PbftSyncPacketHandler final : public ExtSyncingPacketHandler {
   PbftSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                         std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
                         std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
-                        std::shared_ptr<DagBlockManager> dag_blk_mgr,
+                        std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<VoteManager> vote_mgr,
                         std::shared_ptr<util::ThreadPool> periodic_events_tp, std::shared_ptr<DbStorage> db,
                         size_t network_sync_level_size, const addr_t& node_addr);
 
@@ -24,6 +25,8 @@ class PbftSyncPacketHandler final : public ExtSyncingPacketHandler {
 
   void pbftSyncComplete();
   void delayedPbftSync(int counter);
+
+  std::shared_ptr<VoteManager> vote_mgr_;
 
   std::weak_ptr<util::ThreadPool> periodic_events_tp_;
 

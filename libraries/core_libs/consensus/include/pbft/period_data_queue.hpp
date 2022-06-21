@@ -59,7 +59,7 @@ class PeriodDataQueue {
    * @brief Get last pbft block from queue
    * @return last block or nullptr if queue empty
    */
-  std::shared_ptr<PbftBlock> lastPbftBlock();
+  std::shared_ptr<PbftBlock> lastPbftBlock() const;
 
  private:
   std::deque<std::pair<PeriodData, dev::p2p::NodeID>> queue_;

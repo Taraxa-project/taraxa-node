@@ -200,6 +200,12 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t periodDataQueueSize() const;
 
   /**
+   * @brief Returns true if queue is really empty
+   * @return
+   */
+  bool periodDataQueueEmpty() const;
+
+  /**
    * @brief Push synced period data in syncing queue
    * @param block synced period data from peer
    * @param current_block_cert_votes cert votes for PeriodData pbft block period
@@ -293,6 +299,13 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   uint64_t getFinalizedDPOSPeriod() const { return dpos_period_; }
 
   blk_hash_t getLastPbftBlockHash();
+
+  /**
+   * @brief Get only include reward votes that are list in PBFT block
+   * @param reward_votes_hashes reward votes hashes are list in PBFT block
+   * @return reward votes that are list in PBFT block
+   */
+  std::vector<std::shared_ptr<Vote>> getRewardVotesInBlock(const std::vector<vote_hash_t> &reward_votes_hashes);
 
  private:
   // DPOS
@@ -556,13 +569,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @return PBFT block
    */
   std::shared_ptr<PbftBlock> getUnfinalizedBlock_(blk_hash_t const &block_hash);
-
-  /**
-   * @brief Get only include reward votes that are list in PBFT block
-   * @param reward_votes_hashes reward votes hashes are list in PBFT block
-   * @return reward votes that are list in PBFT block
-   */
-  std::vector<std::shared_ptr<Vote>> getRewardVotesInBlock(const std::vector<vote_hash_t> &reward_votes_hashes);
 
   std::atomic<bool> stopped_ = true;
 
