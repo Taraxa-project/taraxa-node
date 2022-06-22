@@ -14,11 +14,13 @@ PbftSyncPacketHandler::PbftSyncPacketHandler(
     std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
     std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
     std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
-    std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<util::ThreadPool> periodic_events_tp,
-    std::shared_ptr<DbStorage> db, size_t network_sync_level_size, const addr_t &node_addr)
+    std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<VoteManager> vote_mgr,
+    std::shared_ptr<util::ThreadPool> periodic_events_tp, std::shared_ptr<DbStorage> db, size_t network_sync_level_size,
+    const addr_t &node_addr)
     : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(dag_blk_mgr),
                               std::move(db), node_addr, "PBFT_SYNC_PH"),
+      vote_mgr_(std::move(vote_mgr)),
       periodic_events_tp_(periodic_events_tp),
       network_sync_level_size_(network_sync_level_size) {}
 
@@ -150,6 +152,24 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
     }
     handleMaliciousSyncPeer(packet_data.from_node_id_);
     return;
+  }
+
+  // This is special case when queue is empty and we can not say for sure that all votes that are part of this block
+  // have been verified before
+  if (pbft_mgr_->periodDataQueueEmpty()) {
+    for (const auto &v : period_data.previous_block_cert_votes) {
+      vote_mgr_->addRewardVote(v);
+    }
+    if (!vote_mgr_->checkRewardVotes(period_data.pbft_blk)) {
+      LOG(log_er_) << "Invalid reward votes in block " << period_data.pbft_blk->getBlockHash() << " from peer "
+                   << packet_data.from_node_id_.abridged() << " received, stop syncing.";
+      handleMaliciousSyncPeer(packet_data.from_node_id_);
+      return;
+    }
+    // And now we need to replace it with verified votes
+    if (auto votes = pbft_mgr_->getRewardVotesInBlock(period_data.pbft_blk->getRewardVotes()); votes.size()) {
+      period_data.previous_block_cert_votes = std::move(votes);
+    }
   }
 
   LOG(log_tr_) << "Synced PBFT block hash " << pbft_blk_hash << " with " << period_data.previous_block_cert_votes.size()

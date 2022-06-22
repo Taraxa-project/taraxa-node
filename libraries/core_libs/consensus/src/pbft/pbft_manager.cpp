@@ -1952,10 +1952,11 @@ blk_hash_t PbftManager::lastPbftBlockHashFromQueueOrChain() {
   return pbft_chain_->getLastPbftBlockHash();
 }
 
+bool PbftManager::periodDataQueueEmpty() const { return sync_queue_.empty(); }
+
 void PbftManager::periodDataQueuePush(PeriodData &&period_data, dev::p2p::NodeID const &node_id,
                                       std::vector<std::shared_ptr<Vote>> &&current_block_cert_votes) {
   const auto period = period_data.pbft_blk->getPeriod();
-
   if (!sync_queue_.push(std::move(period_data), node_id, pbft_chain_->getPbftChainSize(),
                         std::move(current_block_cert_votes))) {
     LOG(log_er_) << "Trying to push period data with " << period << " period, but current period is "

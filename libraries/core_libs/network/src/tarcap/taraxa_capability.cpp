@@ -226,8 +226,8 @@ void TaraxaCapability::registerPacketHandlers(
                                                                pbft_chain, db, conf.network_sync_level_size, node_addr);
 
   packets_handlers_->registerHandler<PbftSyncPacketHandler>(
-      peers_state_, packets_stats, pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr, dag_blk_mgr, periodic_events_tp_,
-      db, conf.network_sync_level_size, node_addr);
+      peers_state_, packets_stats, pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr, dag_blk_mgr, vote_mgr,
+      periodic_events_tp_, db, conf.network_sync_level_size, node_addr);
 
   thread_pool_->setPacketsHandlers(packets_handlers_);
 }

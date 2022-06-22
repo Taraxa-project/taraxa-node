@@ -50,6 +50,12 @@ class PeriodDataQueue {
   size_t size() const;
 
   /**
+   * @brief Return true if the queue is empty
+   * @return
+   */
+  bool empty() const;
+
+  /**
    * @brief Get period number of the last synced block in queue
    * @return period number of the last synced block in queue. If syncing queue is empty, return 0
    */
@@ -59,7 +65,7 @@ class PeriodDataQueue {
    * @brief Get last pbft block from queue
    * @return last block or nullptr if queue empty
    */
-  std::shared_ptr<PbftBlock> lastPbftBlock();
+  std::shared_ptr<PbftBlock> lastPbftBlock() const;
 
  private:
   std::deque<std::pair<PeriodData, dev::p2p::NodeID>> queue_;

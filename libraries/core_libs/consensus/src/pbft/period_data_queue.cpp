@@ -21,6 +21,11 @@ size_t PeriodDataQueue::size() const {
     return queue_.size() - 1;
 }
 
+bool PeriodDataQueue::empty() const {
+  std::shared_lock lock(queue_access_);
+  return queue_.empty();
+}
+
 void PeriodDataQueue::clear() {
   std::unique_lock lock(queue_access_);
   period_ = 0;
@@ -53,7 +58,7 @@ std::tuple<PeriodData, std::vector<std::shared_ptr<Vote>>, dev::p2p::NodeID> Per
     return {block.first, last_block_cert_votes_, block.second};
 }
 
-std::shared_ptr<PbftBlock> PeriodDataQueue::lastPbftBlock() {
+std::shared_ptr<PbftBlock> PeriodDataQueue::lastPbftBlock() const {
   std::shared_lock lock(queue_access_);
   if (queue_.size() > 0) {
     return queue_.back().first.pbft_blk;
