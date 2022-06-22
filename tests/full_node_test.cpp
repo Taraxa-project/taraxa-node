@@ -959,6 +959,67 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
   EXPECT_EQ(num_vertices1, num_vertices2);
 }
 
+TEST_F(FullNodeTest, tps) {
+  int node_count = 1;
+  uint64_t trx_count = 1000000;
+  auto node_cfgs = make_node_cfgs(node_count);
+  for (int i = 0; i < node_count; i++) {
+    node_cfgs[i].chain.sortition.vrf.threshold_upper = 0xffff;
+    node_cfgs[i].chain.sortition.vrf.threshold_range = 50;
+    node_cfgs[i].chain.sortition.vdf.difficulty_min = 13;
+    node_cfgs[i].chain.sortition.vdf.difficulty_max = 15;
+    node_cfgs[i].chain.pbft.lambda_ms_min = 0x29a;
+    node_cfgs[i].chain.pbft.gas_limit = 0x39387000000;
+    node_cfgs[i].chain.dag.gas_limit = 0x39387000000;
+    node_cfgs[i].chain.dag.block_proposer.transaction_limit = 10000;
+  }
+  auto nodes = launch_nodes(node_cfgs);
+  auto &node = nodes[0];
+  TransactionClient trx_client(node);
+
+  std::vector<std::shared_ptr<Transaction>> trxs;
+  for (uint64_t i = 0; i < trx_count; i++) {
+    static std::atomic<uint64_t> nonce = 100000;
+    trxs.emplace_back(std::make_shared<Transaction>(++nonce, 10, 0, TEST_TX_GAS_LIMIT, bytes(), node->getSecretKey(),
+                                                    addr_t(100000000l + (i % 2000))));
+    if (i % 100000 == 0) {
+      std::cout << "Transactions created: " << i << std::endl;
+    }
+  }
+
+  auto now = std::chrono::steady_clock::now();
+  for (uint64_t i = 0; i < trx_count; i++) {
+    // addr_t to(100000 + i);
+    // auto result = trx_client.coinTransfer(/*KeyPair::create().address()*/ addr_t(100000000l + (i % 50)), 10, {},
+    // false); EXPECT_EQ(result.stage, TransactionClient::TransactionStage::inserted);
+
+    /*std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> txs1{
+        {trxs[i], TransactionStatus::Verified}};
+
+    node->getTransactionManager()->insertValidatedTransactions(std::move(txs1));*/
+    node->getTransactionManager()->insertTransaction(trxs[i]);
+
+    if (i % 10000 == 0) {
+      auto elapsed_time_in_ms =
+          std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - now).count();
+      for (int n = 0; n < node_count; n++) {
+        if (elapsed_time_in_ms) {
+          std::cout << "Node: " << n << ". Transactions inserted: " << i
+                    << " N1 Transactions executed: " << nodes[n]->getDB()->getNumTransactionExecuted()
+                    << " Transactions in DAG: " << nodes[n]->getDB()->getNumTransactionInDag()
+                    << " Transactions executed per second: "
+                    << nodes[n]->getDB()->getNumTransactionExecuted() * 1000 / elapsed_time_in_ms << std::endl;
+        }
+      }
+      // Stop feeding transactions if too many transactions in pool or unexecuted
+      while (node->getTransactionManager()->getTransactionPoolSize() > 100000 ||
+             node->getDB()->getNumTransactionInDag() - node->getDB()->getNumTransactionExecuted() > 100000) {
+        thisThreadSleepForMilliSeconds(1);
+      }
+    }
+  }
+}
+
 TEST_F(FullNodeTest, persist_counter) {
   auto node_cfgs = make_node_cfgs<2, true>(2);
   unsigned long num_exe_trx1 = 0, num_exe_trx2 = 0, num_exe_blk1 = 0, num_exe_blk2 = 0, num_trx1 = 0, num_trx2 = 0;
