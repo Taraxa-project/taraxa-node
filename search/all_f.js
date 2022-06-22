@@ -84,7 +84,7 @@ var searchData=
   ['overwrite_5fchain_5fconfig_5fin_5ffile_2103',['overwrite_chain_config_in_file',['../structtaraxa_1_1_full_node_config.html#a47afb4c0b109d250bda3f1bafc091f1d',1,'taraxa::FullNodeConfig']]],
   ['overwrite_5fconfig_2104',['OVERWRITE_CONFIG',['../classtaraxa_1_1cli_1_1_config.html#a0e57340cfbb66133f07943f856a74814',1,'taraxa::cli::Config']]],
   ['own_5fstarting_5fvalue_5ffor_5fround_5f_2105',['own_starting_value_for_round_',['../group___p_b_f_t.html#ad1b3a4217c149a2a96bcfe2759bb14ea',1,'taraxa::PbftManager']]],
-  ['owner_2106',['owner',['../namespacetaraxa_1_1state__api.html#acf8492fa86e6ac73c82ae55d9db33c2e',1,'taraxa::state_api::ValidatorInfo::owner()'],['../classtaraxa_1_1util_1_1event_1_1_event.html#a469cd772a6e2826427f8b6e2af03f64f',1,'taraxa::util::event::Event::Owner()']]],
+  ['owner_2106',['Owner',['../classtaraxa_1_1util_1_1event_1_1_event.html#a469cd772a6e2826427f8b6e2af03f64f',1,'taraxa::util::event::Event::Owner()'],['../namespacetaraxa_1_1state__api.html#acf8492fa86e6ac73c82ae55d9db33c2e',1,'taraxa::state_api::ValidatorInfo::owner()']]],
   ['ownstartingvalueinround_2107',['OwnStartingValueInRound',['../namespacetaraxa.html#ac2dbdc97d5c79cc3e162083c102499caa52d1c67ef710583932920bc233cabe4c',1,'taraxa']]],
   ['pair_3c_20t_2c_20u_20_3e_2108',['pair&lt; T, U &gt;',['../classdev_1_1_r_l_p.html#a625235b730ffcc549d3a0854e6868dfd',1,'dev::RLP']]],
   ['set_3c_20t_20_3e_2109',['set&lt; T &gt;',['../classdev_1_1_r_l_p.html#a4302105f4156da4d37496eeb986ee9b2',1,'dev::RLP']]],

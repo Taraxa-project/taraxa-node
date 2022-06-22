@@ -1,5 +1,8 @@
 var NAVTREEINDEX22 =
 {
+"structtaraxa_1_1final__chain_1_1_config.html#aeb06d5eff71102bb3eb858ee7dcfc6cb":[11,0,3,1,1,1],
+"structtaraxa_1_1final__chain_1_1_config.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields":[11,0,3,1,1,0],
+"structtaraxa_1_1final__chain_1_1_config.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields":[12,0,1,3,0,0,3,1],
 "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html":[9,1,6,0],
 "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#a09820dc8d12ecec7986747838f146ad8":[9,1,6,0,1],
 "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#a20ae0df7b61567032daaf88d695dcf8b":[9,1,6,0,3],
@@ -33,8 +36,8 @@ var NAVTREEINDEX22 =
 "structtaraxa_1_1logger_1_1_config_1_1_output_config.html#ac7c3f2572837d067de6ce7e9eeab6fce":[11,0,3,2,0,0,0],
 "structtaraxa_1_1net_1_1_rpc_server.html":[11,0,3,3,7],
 "structtaraxa_1_1net_1_1_rpc_server.html#a06dbadee19346bc394f6e0763c61af65":[11,0,3,3,7,4],
-"structtaraxa_1_1net_1_1_rpc_server.html#a07556e2e3c8c3fbb99c285278c1e815d":[12,0,1,4,1,1,10,1,0],
 "structtaraxa_1_1net_1_1_rpc_server.html#a07556e2e3c8c3fbb99c285278c1e815d":[11,0,3,3,7,0,0],
+"structtaraxa_1_1net_1_1_rpc_server.html#a07556e2e3c8c3fbb99c285278c1e815d":[12,0,1,4,1,1,10,1,0],
 "structtaraxa_1_1net_1_1_rpc_server.html#a1d6e4c66f3b89b37e43c967b285268dd":[11,0,3,3,7,11],
 "structtaraxa_1_1net_1_1_rpc_server.html#a2e1be133e3bde7b50a96dddba7f6bdc1":[11,0,3,3,7,1],
 "structtaraxa_1_1net_1_1_rpc_server.html#a3967f237e151a42d7e3a3b4dc647ac73":[11,0,3,3,7,10],
@@ -246,8 +249,5 @@ var NAVTREEINDEX22 =
 "trie__common_8cpp.html#aa0b5a88e3d820936d80621999c99726c":[12,0,1,4,0,1,1,6,3],
 "trie__common_8cpp.html#aaaba8929089b332775874032190fb5e6":[12,0,1,4,0,1,1,6,1],
 "trie__common_8hpp.html":[12,0,1,4,0,0,1,6],
-"trie__common_8hpp.html#a41b2ec28d1ad728e6c4d190795391e6e":[12,0,1,4,0,0,1,6,0],
-"trie__common_8hpp_source.html":[12,0,1,4,0,0,1,6],
-"types_8hpp.html":[12,0,1,2,0,0,12],
-"types_8hpp.html#a065268f6e371a32cb5ce8a455b68f0bc":[12,0,1,2,0,0,12,36]
+"trie__common_8hpp.html#a41b2ec28d1ad728e6c4d190795391e6e":[12,0,1,4,0,0,1,6,0]
 };

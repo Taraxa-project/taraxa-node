@@ -80,6 +80,7 @@ var group___p_b_f_t =
       [ "operator=", "group___p_b_f_t.html#a6d73425783d2dff2cc3dc85eae6cfd7e", null ],
       [ "operator=", "group___p_b_f_t.html#acdba9333d35310ed3d1c13a7c32fb6ed", null ],
       [ "pbftSyncingPeriod", "group___p_b_f_t.html#a48b2338faa93e4a389f3bc5683a228ee", null ],
+      [ "periodDataQueueEmpty", "group___p_b_f_t.html#ac6f1e9ae86354d330025d2c325e0e808", null ],
       [ "periodDataQueuePush", "group___p_b_f_t.html#af99be33f6d99194ea651c417aedd062c", null ],
       [ "periodDataQueueSize", "group___p_b_f_t.html#a3cb557d56583afb18dfb5c9d012fef90", null ],
       [ "placeVote_", "group___p_b_f_t.html#a9b9694d419c74d882effd26ec7078eff", null ],
@@ -195,8 +196,9 @@ var group___p_b_f_t =
     [ "PeriodDataQueue", "group___p_b_f_t.html#classtaraxa_1_1_period_data_queue", [
       [ "PeriodDataQueue", "group___p_b_f_t.html#a31dd69567432d7f00aebdbf984d0e9c8", null ],
       [ "clear", "group___p_b_f_t.html#a04f1f4514d95643b359fadbde0242d8c", null ],
+      [ "empty", "group___p_b_f_t.html#a17b94e3a1433be93abb38abe082407a9", null ],
       [ "getPeriod", "group___p_b_f_t.html#afaca3f57b144e8058c7fab897407749c", null ],
-      [ "lastPbftBlock", "group___p_b_f_t.html#a2bc38878a2209f48358dc983ba3c6935", null ],
+      [ "lastPbftBlock", "group___p_b_f_t.html#ad2cf3c010649e8a6224a7fc5416471f4", null ],
       [ "pop", "group___p_b_f_t.html#acff085e65460e2a4c52a58aa0f486246", null ],
       [ "push", "group___p_b_f_t.html#a4f9910e8511f5297d62911247a711cae", null ],
       [ "size", "group___p_b_f_t.html#ad05cce3b393dd7901495b40ece4af8ee", null ],

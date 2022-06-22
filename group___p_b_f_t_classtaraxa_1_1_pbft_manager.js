@@ -49,6 +49,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_manager =
     [ "operator=", "group___p_b_f_t.html#a6d73425783d2dff2cc3dc85eae6cfd7e", null ],
     [ "operator=", "group___p_b_f_t.html#acdba9333d35310ed3d1c13a7c32fb6ed", null ],
     [ "pbftSyncingPeriod", "group___p_b_f_t.html#a48b2338faa93e4a389f3bc5683a228ee", null ],
+    [ "periodDataQueueEmpty", "group___p_b_f_t.html#ac6f1e9ae86354d330025d2c325e0e808", null ],
     [ "periodDataQueuePush", "group___p_b_f_t.html#af99be33f6d99194ea651c417aedd062c", null ],
     [ "periodDataQueueSize", "group___p_b_f_t.html#a3cb557d56583afb18dfb5c9d012fef90", null ],
     [ "placeVote_", "group___p_b_f_t.html#a9b9694d419c74d882effd26ec7078eff", null ],

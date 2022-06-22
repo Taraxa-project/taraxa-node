@@ -2,8 +2,9 @@ var group___p_b_f_t_classtaraxa_1_1_period_data_queue =
 [
     [ "PeriodDataQueue", "group___p_b_f_t.html#a31dd69567432d7f00aebdbf984d0e9c8", null ],
     [ "clear", "group___p_b_f_t.html#a04f1f4514d95643b359fadbde0242d8c", null ],
+    [ "empty", "group___p_b_f_t.html#a17b94e3a1433be93abb38abe082407a9", null ],
     [ "getPeriod", "group___p_b_f_t.html#afaca3f57b144e8058c7fab897407749c", null ],
-    [ "lastPbftBlock", "group___p_b_f_t.html#a2bc38878a2209f48358dc983ba3c6935", null ],
+    [ "lastPbftBlock", "group___p_b_f_t.html#ad2cf3c010649e8a6224a7fc5416471f4", null ],
     [ "pop", "group___p_b_f_t.html#acff085e65460e2a4c52a58aa0f486246", null ],
     [ "push", "group___p_b_f_t.html#a4f9910e8511f5297d62911247a711cae", null ],
     [ "size", "group___p_b_f_t.html#ad05cce3b393dd7901495b40ece4af8ee", null ],
