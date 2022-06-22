@@ -137,8 +137,9 @@ void BlockProposer::start() {
       if (auto net = network_.lock()) {
         syncing = net->pbft_syncing();
       }
-      // Only sleep if block was not proposed, if block is proposed try to propose another block immediately
-      if (syncing || propose_model_->propose()) {
+      // Only sleep if block was not proposed or if we are syncing, if block is proposed try to propose another block
+      // immediately
+      if (syncing || !propose_model_->propose()) {
         thisThreadSleepForMilliSeconds(min_proposal_delay);
       }
     }
