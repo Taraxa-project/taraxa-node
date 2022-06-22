@@ -88,13 +88,18 @@ will build out of the box without further effort:
 
 
     # Install conan package manager
-    # >= 1.36.0 version is required to work properly with clang-12
+    # >= 1.36.0 version is required to work properly with clang-14
     sudo python3 -m pip install conan
 
+    # Install cmake
+    # >= 3.20 version is required for JSON subcommand
+    # Setup your IDE accordingly to use this version
+    sudo python3 -m pip install cmake
+
     # Go (required)
-    wget https://dl.google.com/go/go1.16.3.linux-amd64.tar.gz
-    tar -xf go1.16.3.linux-amd64.tar.gz -C /usr/local
-    rm -rf go1.16.3.linux-amd64.tar.gz
+    curl -LO https://go.dev/dl/go1.18.3.linux-amd64.tar.gz
+    sudo tar -C /usr/local -xzf go1.18.3.linux-amd64.tar.gz
+    rm -rf go1.18.3.linux-amd64.tar.gz
 
     # Add go to PATH
     # Add these env. variables to the ~/.profile to persist go settings even after restart
@@ -111,13 +116,13 @@ will build out of the box without further effort:
 
     curl -SL -o llvm.sh https://apt.llvm.org/llvm.sh && \
     chmod +x llvm.sh && \
-    ./llvm.sh 12 && \
-    apt-get install -y clang-format-12 clang-tidy-12 && \
+    ./llvm.sh 14 && \
+    apt-get install -y clang-format-14 clang-tidy-14 && \
     rm -f llvm.sh
 
     # Setup clang as default compiler either in your IDE or by env. variables"
-    export C="clang-12"
-    export CXX="clang++-12"
+    export C="clang-14"
+    export CXX="clang++-14"
 
 ### Clone the Repository
 
@@ -132,10 +137,10 @@ will build out of the box without further effort:
     # It is recommended to use clang because on other compilers you could face some errors
     conan profile new clang --detect && \
     conan profile update settings.compiler=clang clang && \
-    conan profile update settings.compiler.version=12 clang && \
+    conan profile update settings.compiler.version=14 clang && \
     conan profile update settings.compiler.libcxx=libstdc++11 clang && \
-    conan profile update env.CC=clang-12 clang && \
-    conan profile update env.CXX=clang++-12 clang
+    conan profile update env.CC=clang-14 clang && \
+    conan profile update env.CXX=clang++-14 clang
 
     # Export needed var for conan
     export CONAN_REVISIONS_ENABLED=1
