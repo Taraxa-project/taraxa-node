@@ -1952,7 +1952,7 @@ blk_hash_t PbftManager::lastPbftBlockHashFromQueueOrChain() {
   return pbft_chain_->getLastPbftBlockHash();
 }
 
-bool PbftManager::periodDataQueueEmpty() const { return sync_queue_.lastPbftBlock() == nullptr; }
+bool PbftManager::periodDataQueueEmpty() const { return sync_queue_.empty(); }
 
 void PbftManager::periodDataQueuePush(PeriodData &&period_data, dev::p2p::NodeID const &node_id,
                                       std::vector<std::shared_ptr<Vote>> &&current_block_cert_votes) {

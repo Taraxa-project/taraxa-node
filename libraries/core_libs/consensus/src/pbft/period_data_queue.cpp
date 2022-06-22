@@ -21,6 +21,11 @@ size_t PeriodDataQueue::size() const {
     return queue_.size() - 1;
 }
 
+bool PeriodDataQueue::empty() const {
+  std::shared_lock lock(queue_access_);
+  return queue_.empty();
+}
+
 void PeriodDataQueue::clear() {
   std::unique_lock lock(queue_access_);
   period_ = 0;

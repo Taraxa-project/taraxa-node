@@ -200,7 +200,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t periodDataQueueSize() const;
 
   /**
-   * @brief Returns true if queue is really empty
+   * @brief Returns true if queue is empty
    * @return
    */
   bool periodDataQueueEmpty() const;
