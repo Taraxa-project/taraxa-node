@@ -18,13 +18,9 @@ GetDagSyncPacketHandler::GetDagSyncPacketHandler(std::shared_ptr<PeersState> pee
       db_(std::move(db)) {}
 
 void GetDagSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
-  if (constexpr size_t required_min_size = 1; packet_data.rlp_.itemCount() < required_min_size) {
-    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_min_size);
+  if (constexpr size_t required_size = 2; packet_data.rlp_.itemCount() != required_size) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
-
-  // TODO[1551]: rlp format of this packet should be fixed:
-  //             has format: [peer_period, blk_hash1, ..., blk_hashN]
-  //             should have format: [peer_period, [blk_hash1, ..., blk_hashN] ]
 }
 
 void GetDagSyncPacketHandler::process(const PacketData &packet_data,
@@ -46,8 +42,8 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
   const auto peer_period = (*it++).toInt<uint64_t>();
 
   std::string blocks_hashes_to_log;
-  for (; it != packet_data.rlp_.end(); ++it) {
-    blk_hash_t hash = (*it).toHash<blk_hash_t>();
+  for (const auto block_hash_rlp : *it) {
+    blk_hash_t hash = block_hash_rlp.toHash<blk_hash_t>();
     blocks_hashes_to_log += hash.abridged();
     blocks_hashes.emplace(hash);
   }
@@ -72,38 +68,21 @@ void GetDagSyncPacketHandler::sendBlocks(const dev::p2p::NodeID &peer_id,
   auto peer = peers_state_->getPeer(peer_id);
   if (!peer) return;
 
-  size_t total_transactions_count = 0;
-  std::vector<taraxa::bytes> raw_transactions;
-  std::string dag_blocks_to_send;
-  std::string transactions_to_log;
+  dev::RLPStream s(4);
+  s.append(request_period);
+  s.append(period);
 
+  s.appendList(transactions.size());
+  for (const auto &tx : transactions) {
+    s.appendRaw(tx->rlp());
+  }
+
+  s.appendList(blocks.size());
   for (const auto &block : blocks) {
-    dag_blocks_to_send += block->getHash().abridged();
-  }
-
-  for (const auto &t : transactions) {
-    transactions_to_log += t->getHash().abridged();
-    raw_transactions.push_back(t->rlp());
-    total_transactions_count++;
-  }
-
-  dev::RLPStream s(3 + blocks.size() + total_transactions_count);
-  s << static_cast<uint64_t>(request_period);
-  s << static_cast<uint64_t>(period);
-  s << raw_transactions.size();
-  taraxa::bytes trx_bytes;
-  for (auto &trx : raw_transactions) {
-    trx_bytes.insert(trx_bytes.end(), std::make_move_iterator(trx.begin()), std::make_move_iterator(trx.end()));
-  }
-  s.appendRaw(trx_bytes, raw_transactions.size());
-
-  for (auto &block : blocks) {
     s.appendRaw(block->rlp(true));
   }
 
   sealAndSend(peer_id, SubprotocolPacketType::DagSyncPacket, std::move(s));
-  LOG(log_dg_) << "Send DagSyncPacket with " << dag_blocks_to_send << "# Trx: " << transactions_to_log << " from "
-               << peer->getId();
 }
 
 }  // namespace taraxa::network::tarcap

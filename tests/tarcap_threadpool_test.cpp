@@ -252,12 +252,7 @@ tarcap::PacketData createPacket(const dev::p2p::NodeID& sender_node_id, tarcap::
 bytes createDagBlockRlp(level_t level) {
   // Creates dag block rlp as it is required for blocking mask to extract dag block level
   DagBlock blk(blk_hash_t(10), level, {}, {}, sig_t(777), blk_hash_t(1), addr_t(15));
-  dev::RLPStream s;
-  s.appendList(2);
-  s.appendRaw(blk.rlp(false));
-  s << static_cast<uint8_t>(0);
-
-  return s.invalidate();
+  return blk.rlp(false);
 }
 
 /**

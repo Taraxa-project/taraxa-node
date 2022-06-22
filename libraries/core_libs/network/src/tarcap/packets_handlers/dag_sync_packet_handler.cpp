@@ -21,13 +21,9 @@ DagSyncPacketHandler::DagSyncPacketHandler(std::shared_ptr<PeersState> peers_sta
       trx_mgr_(std::move(trx_mgr)) {}
 
 void DagSyncPacketHandler::validatePacketRlpFormat(const PacketData& packet_data) const {
-  if (constexpr size_t required_min_size = 3; packet_data.rlp_.itemCount() < required_min_size) {
-    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_min_size);
+  if (constexpr size_t required_size = 4; packet_data.rlp_.itemCount() < required_size) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
-
-  // TODO[1551]: rlp format of this packet should be fixed:
-  //             has format: [request_period, response_period, transactions_count, tx1, ..., txN, dag1, ...., dagN]
-  //             should have format: [request_period, response_period, [tx1, ..., txN], [dag1, ...., dagN] ]
 }
 
 void DagSyncPacketHandler::process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
@@ -57,14 +53,14 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     throw MaliciousPeerException(err_msg.str());
   }
 
-  uint64_t transactions_count = (*it++).toInt<uint64_t>();
   std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> new_transactions;
   std::string transactions_to_log;
-  for (uint64_t i = 0; i < transactions_count; i++) {
+
+  for (const auto& tx_rlp : (*it++)) {
     std::shared_ptr<Transaction> trx;
 
     try {
-      trx = std::make_shared<Transaction>(*it++);
+      trx = std::make_shared<Transaction>(tx_rlp);
     } catch (const Transaction::InvalidSignature& e) {
       throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
     }
@@ -100,8 +96,8 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
 
   trx_mgr_->insertValidatedTransactions(std::move(new_transactions));
 
-  for (; it != packet_data.rlp_.end();) {
-    DagBlock block(*it++);
+  for (const auto& block_rlp : *it) {
+    DagBlock block(block_rlp);
     peer->markDagBlockAsKnown(block.getHash());
 
     received_dag_blocks_str += block.getHash().abridged() + " ";

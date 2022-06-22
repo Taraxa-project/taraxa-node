@@ -24,17 +24,13 @@ DagBlockPacketHandler::DagBlockPacketHandler(std::shared_ptr<PeersState> peers_s
 
 void DagBlockPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
   // Only one dag block can be received
-  if (constexpr size_t required_size = 1; packet_data.rlp_.itemCount() != required_size) {
+  if (constexpr size_t required_size = 8; packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
-
-  // TODO[1551]: rlp format of this packet should be fixed:
-  //             has format: [[dag_pivot, dag_pivot, ...]]
-  //             should have format: [dag_pivot, dag_pivot, ...]
 }
 
 void DagBlockPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
-  DagBlock block(packet_data.rlp_[0].data().toBytes());
+  DagBlock block(packet_data.rlp_);
   blk_hash_t const hash = block.getHash();
 
   peer->markDagBlockAsKnown(hash);
@@ -97,12 +93,7 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
   s.appendRaw(trx_bytes, trxs.size());
   sealAndSend(peer_id, TransactionPacket, std::move(s));
 
-  // Send the block
-  dev::RLPStream block_stream(1);
-  block_stream.appendRaw(block.rlp(true));
-
-  // Try to send data over network
-  if (!sealAndSend(peer_id, DagBlockPacket, std::move(block_stream))) {
+  if (!sealAndSend(peer_id, DagBlockPacket, block.streamRLP(true))) {
     LOG(log_wr_) << "Sending DagBlock " << block.getHash() << " failed to " << peer_id;
     return;
   }

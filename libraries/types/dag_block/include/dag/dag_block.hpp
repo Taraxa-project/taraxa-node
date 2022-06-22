@@ -93,8 +93,15 @@ class DagBlock {
   void verifyVdf(const SortitionParams &vdf_config, const h256 &proposal_period_hash) const;
   bytes rlp(bool include_sig) const;
 
+  /**
+   * @brief Returns dag block data rlp stream
+   *
+   * @param include_sig
+   * @return dev::RLPStream
+   */
+  dev::RLPStream streamRLP(bool include_sig) const;
+
  private:
-  void streamRLP(dev::RLPStream &s, bool include_sig) const;
   blk_hash_t sha3(bool include_sig) const;
 };
 

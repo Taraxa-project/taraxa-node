@@ -141,12 +141,10 @@ void ExtSyncingPacketHandler::requestPendingDagBlocks(std::shared_ptr<TaraxaPeer
 
 void ExtSyncingPacketHandler::requestDagBlocks(const dev::p2p::NodeID &_nodeID,
                                                const std::unordered_set<blk_hash_t> &blocks, uint64_t period) {
-  LOG(log_nf_) << "Sending GetDagSyncPacket";
-  dev::RLPStream s(blocks.size() + 1);  // Period + block itself
-  s << static_cast<uint64_t>(period);   // Send period first
-  for (const auto &blk : blocks) {
-    s << blk;
-  }
+  dev::RLPStream s(2);  // Period + blocks list
+  s.append(static_cast<uint64_t>(period));
+  s.append(blocks);
+
   sealAndSend(_nodeID, SubprotocolPacketType::GetDagSyncPacket, std::move(s));
 }
 
