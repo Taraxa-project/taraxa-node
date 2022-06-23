@@ -1,5 +1,7 @@
 #include "final_chain/rewards_stats.hpp"
 
+#include <cstdint>
+
 namespace taraxa {
 
 bool RewardsStats::addTransaction(const trx_hash_t& tx_hash, const addr_t& validator) {
@@ -52,10 +54,9 @@ bool RewardsStats::addVote(const std::shared_ptr<Vote>& vote) {
   return true;
 }
 
-void RewardsStats::initStats(const PeriodData& sync_blk) {
+void RewardsStats::initStats(const PeriodData& sync_blk, uint64_t dpos_vote_count, uint32_t committee_size) {
   txs_validators_.reserve(sync_blk.transactions.size());
   validators_stats_.reserve(std::max(sync_blk.dag_blocks.size(), sync_blk.previous_block_cert_votes.size()));
-  bonus_votes_count_ = sync_blk.bonus_votes_count;
 
   for (const auto& dag_block : sync_blk.dag_blocks) {
     const addr_t& dag_block_author = dag_block.getSender();
@@ -63,14 +64,21 @@ void RewardsStats::initStats(const PeriodData& sync_blk) {
       addTransaction(tx_hash, dag_block_author);
     }
   }
-
+  const auto min_weight = std::min<size_t>(committee_size, dpos_vote_count) * 2 / 3 + 1;
+  size_t total_weight = 0;
   for (const auto& vote : sync_blk.previous_block_cert_votes) {
+    assert(vote->getWeight());
+    if (total_weight > min_weight) {
+      bonus_votes_count_++;
+    }
+    total_weight += *vote->getWeight();
     addVote(vote);
   }
 }
 
-std::vector<addr_t> RewardsStats::processStats(const PeriodData& block) {
-  initStats(block);
+std::vector<addr_t> RewardsStats::processStats(const PeriodData& block, uint64_t dpos_vote_count,
+                                               uint32_t committee_size) {
+  initStats(block, dpos_vote_count, committee_size);
 
   // Dag blocks validators that included transactions to be executed as first in their blocks
   std::vector<addr_t> txs_validators;

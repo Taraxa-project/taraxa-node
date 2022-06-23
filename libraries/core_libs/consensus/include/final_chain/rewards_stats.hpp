@@ -21,9 +21,11 @@ class RewardsStats {
    * block
    *
    * @param block
+   * @param dpos_vote_count - votes count for previous block
+   * @param committee_size
    * @return vector of validators
    */
-  std::vector<addr_t> processStats(const PeriodData& block);
+  std::vector<addr_t> processStats(const PeriodData& block, uint64_t dpos_vote_count, uint32_t committee_size);
 
   HAS_RLP_FIELDS
 
@@ -65,8 +67,10 @@ class RewardsStats {
    * @brief Prepares reward statistics bases on period data data
    *
    * @param sync_blk
+   * @param dpos_vote_count - votes count for previous block
+   * @param committee_size
    */
-  void initStats(const PeriodData& sync_blk);
+  void initStats(const PeriodData& sync_blk, uint64_t dpos_vote_count, uint32_t committee_size);
 
  private:
   struct ValidatorStats {

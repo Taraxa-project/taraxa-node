@@ -13,7 +13,7 @@ using namespace std;
 
 PeriodData::PeriodData(std::shared_ptr<PbftBlock> pbft_blk,
                        std::vector<std::shared_ptr<Vote>> const& previous_block_cert_votes)
-    : pbft_blk(std::move(pbft_blk)), previous_block_cert_votes(previous_block_cert_votes), bonus_votes_count(0) {}
+    : pbft_blk(std::move(pbft_blk)), previous_block_cert_votes(previous_block_cert_votes) {}
 
 PeriodData::PeriodData(dev::RLP&& rlp) {
   auto it = rlp.begin();
@@ -29,8 +29,6 @@ PeriodData::PeriodData(dev::RLP&& rlp) {
   for (auto const trx_rlp : *it++) {
     transactions.emplace_back(std::make_shared<Transaction>(trx_rlp));
   }
-
-  bonus_votes_count = (*it).toInt<size_t>();
 }
 
 PeriodData::PeriodData(bytes const& all_rlp) : PeriodData(dev::RLP(all_rlp)) {}
@@ -50,7 +48,6 @@ bytes PeriodData::rlp() const {
   for (auto const& t : transactions) {
     s.appendRaw(t->rlp());
   }
-  s << bonus_votes_count;
   return s.invalidate();
 }
 

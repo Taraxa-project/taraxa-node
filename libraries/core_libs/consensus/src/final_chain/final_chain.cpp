@@ -1,5 +1,7 @@
 #include "final_chain/final_chain.hpp"
 
+#include <cstdint>
+
 #include "common/constants.hpp"
 #include "common/thread_pool.hpp"
 #include "final_chain/replay_protection_service.hpp"
@@ -11,6 +13,7 @@ namespace taraxa::final_chain {
 
 class FinalChainImpl final : public FinalChain {
   std::shared_ptr<DB> db_;
+  const uint32_t commitee_size_;
   std::unique_ptr<ReplayProtectionService> replay_protection_service_;
   StateAPI state_api_;
 
@@ -32,11 +35,12 @@ class FinalChainImpl final : public FinalChain {
   LOG_OBJECTS_DEFINE
 
  public:
-  FinalChainImpl(std::shared_ptr<DB> const& db, Config const& config, addr_t const& node_addr)
+  FinalChainImpl(std::shared_ptr<DB> const& db, taraxa::ChainConfig const& config, addr_t const& node_addr)
       : db_(db),
+        commitee_size_(config.pbft.committee_size),
         // replay_protection_service_(NewReplayProtectionService({}, db)),
         state_api_([this](auto n) { return block_hash(n).value_or(ZeroHash()); },  //
-                   config.state,
+                   config.final_chain.state,
                    {
                        1500,
                        4,
@@ -64,7 +68,8 @@ class FinalChainImpl final : public FinalChain {
 
           // Creates rewards stats
           RewardsStats rewards_stats;
-          std::vector<addr_t> txs_validators = rewards_stats.processStats(period_data);
+          std::vector<addr_t> txs_validators = rewards_stats.processStats(
+              period_data, dpos_eligible_total_vote_count(period_data.pbft_blk->getPeriod() - 1), commitee_size_);
 
           auto res = state_api_.transition_state(
               {blk->author, blk->gas_limit, blk->timestamp, BlockHeader::difficulty()},
@@ -77,11 +82,12 @@ class FinalChainImpl final : public FinalChain {
     } else {
       assert(state_db_descriptor.blk_num == 0);
       auto batch = db_->createWriteBatch();
-      last_block_ = append_block(batch, config.genesis_block_fields.author, config.genesis_block_fields.timestamp,
-                                 GAS_LIMIT, state_db_descriptor.state_root);
+      last_block_ =
+          append_block(batch, config.final_chain.genesis_block_fields.author,
+                       config.final_chain.genesis_block_fields.timestamp, GAS_LIMIT, state_db_descriptor.state_root);
       db_->commitWriteBatch(batch, db_opts_w_);
     }
-    delegation_delay_ = config.state.dpos->delegation_delay;
+    delegation_delay_ = config.final_chain.state.dpos->delegation_delay;
   }
 
   void stop() override { executor_thread_.stop(); }
@@ -104,7 +110,8 @@ class FinalChainImpl final : public FinalChain {
 
     RewardsStats rewards_stats;
     // returns list of validators for new_blk.transactions
-    std::vector<addr_t> txs_validators = rewards_stats.processStats(new_blk);
+    std::vector<addr_t> txs_validators = rewards_stats.processStats(
+        new_blk, dpos_eligible_total_vote_count(new_blk.pbft_blk->getPeriod() - 1), commitee_size_);
 
     block_applying_emitter_.emit(block_header()->number + 1);
 
@@ -442,7 +449,7 @@ class FinalChainImpl final : public FinalChain {
   };
 };
 
-std::shared_ptr<FinalChain> NewFinalChain(std::shared_ptr<DB> const& db, Config const& config,
+std::shared_ptr<FinalChain> NewFinalChain(std::shared_ptr<DB> const& db, taraxa::ChainConfig const& config,
                                           addr_t const& node_addr) {
   return make_shared<FinalChainImpl>(db, config, node_addr);
 }

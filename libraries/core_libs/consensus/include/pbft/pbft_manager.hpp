@@ -570,12 +570,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    */
   std::shared_ptr<PbftBlock> getUnfinalizedBlock_(blk_hash_t const &block_hash);
 
-  /**
-   * @brief Calculates bonus votes for a given block
-   * @param period_data block data
-   */
-  void calculateBonusVoteCount(PeriodData &period_data) const;
-
   std::atomic<bool> stopped_ = true;
 
   // Ensures that only one PBFT block per period can be proposed
