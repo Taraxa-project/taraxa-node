@@ -26,7 +26,7 @@ PeriodData::PeriodData(dev::RLP&& rlp) {
     dag_blocks.emplace_back(dag_block_rlp);
   }
 
-  for (auto const trx_rlp : *it++) {
+  for (auto const trx_rlp : *it) {
     transactions.emplace_back(std::make_shared<Transaction>(trx_rlp));
   }
 }

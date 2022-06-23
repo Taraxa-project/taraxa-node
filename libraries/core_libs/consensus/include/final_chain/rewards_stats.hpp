@@ -55,13 +55,14 @@ class RewardsStats {
   std::optional<addr_t> getTransactionValidator(const trx_hash_t& tx_hash);
 
   /**
-   * @brief In case unique vote is provided, it's author's unique votes count is incremented. If provided vote was
+   * @brief In case unique vote is provided, author's votes weight is updated. If provided vote was
    *        already processed, nothing happens
    *
    * @param vote
+   * @param min_weight
    * @return true in case vote was unique and processed, otherwise false
    */
-  bool addVote(const std::shared_ptr<Vote>& vote);
+  bool addVote(const std::shared_ptr<Vote>& vote, uint64_t min_weight);
 
   /**
    * @brief Prepares reward statistics bases on period data data
@@ -79,8 +80,8 @@ class RewardsStats {
     // than block with single unique transaction
     uint32_t unique_txs_count_ = 0;
 
-    // Validator cert voted block
-    bool valid_cert_vote_ = false;
+    // Validator cert voted block weight
+    uint64_t vote_weight_ = 0;
 
     HAS_RLP_FIELDS
   };
@@ -94,11 +95,14 @@ class RewardsStats {
   // Total unique txs counter
   uint32_t total_unique_txs_count_{0};
 
-  // Total count of votes in block
-  uint32_t total_votes_count_{0};
+  // Total weight of votes in block
+  uint64_t total_votes_weight_{0};
 
-  // Bonus count of votes in block
-  uint32_t bonus_votes_count_{0};
+  // Bonus weight of votes in block
+  uint64_t bonus_votes_weight_{0};
+
+  // Max weight of votes in block
+  uint64_t max_votes_weight_{0};
 };
 
 }  // namespace taraxa

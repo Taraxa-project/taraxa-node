@@ -98,6 +98,7 @@ Json::Value enc_json(const DPOSConfig& obj) {
   json["minimum_deposit"] = dev::toJS(obj.minimum_deposit);
   json["commission_change_delta"] = dev::toJS(obj.commission_change_delta);
   json["commission_change_frequency"] = dev::toJS(obj.commission_change_frequency);
+  json["max_block_author_reward"] = dev::toJS(obj.max_block_author_reward);
   json["yield_percentage"] = dev::toJS(obj.yield_percentage);
   json["blocks_per_year"] = dev::toJS(obj.blocks_per_year);
 
@@ -117,6 +118,7 @@ void dec_json(const Json::Value& json, DPOSConfig& obj) {
   obj.minimum_deposit = dev::jsToU256(json["minimum_deposit"].asString());
   obj.commission_change_delta = static_cast<uint16_t>(dev::getUInt(json["commission_change_delta"].asString()));
   obj.commission_change_frequency = dev::getUInt(json["commission_change_frequency"].asString());
+  obj.max_block_author_reward = static_cast<uint16_t>(dev::getUInt(json["max_block_author_reward"].asString()));
   obj.yield_percentage = static_cast<uint16_t>(dev::getUInt(json["yield_percentage"]));
   obj.blocks_per_year = dev::getUInt(json["blocks_per_year"]);
 
@@ -160,8 +162,8 @@ RLP_FIELDS_DEFINE(ETHChainConfig, homestead_block, dao_fork_block, eip_150_block
                   constantinople_block, petersburg_block)
 RLP_FIELDS_DEFINE(ValidatorInfo, address, owner, commission, endpoint, description, delegations)
 RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, vote_eligibility_balance_step, validator_maximum_stake,
-                  minimum_deposit, commission_change_delta, commission_change_frequency, delegation_delay,
-                  delegation_locking_period, blocks_per_year, yield_percentage, initial_validators)
+                  minimum_deposit, max_block_author_reward, commission_change_delta, commission_change_frequency,
+                  delegation_delay, delegation_locking_period, blocks_per_year, yield_percentage, initial_validators)
 RLP_FIELDS_DEFINE(Config, eth_chain_config, execution_options, block_rewards_options, genesis_balances, dpos)
 RLP_FIELDS_DEFINE(Opts, expected_max_trx_per_block, max_trie_full_node_levels_to_cache)
 RLP_FIELDS_DEFINE(OptsDB, db_path, disable_most_recent_trie_value_views)
