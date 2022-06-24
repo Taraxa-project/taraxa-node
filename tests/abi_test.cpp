@@ -32,7 +32,7 @@ TEST_F(ABITest, abi_encoding) {
       ContractInterface::pack("baz(uint32,bool)", 69, true, addr_t("0x9da168dd6f1e0d4fe15736a65af68d9b9c772a1b")));
 }
 
-TEST_F(ABITest, abi_dynamic_encoding) {
+TEST_F(ABITest, DISABLED_abi_dynamic_encoding) {
   std::array bytes3{dev::asBytes("abc"), dev::asBytes("def")};
   EXPECT_EQ(ContractInterface::pack("bar(bytes3[2])", bytes3),
             dev::fromHex("0xfce353f661626300000000000000000000000000000000000000000000000000000000006465660000000000000"
