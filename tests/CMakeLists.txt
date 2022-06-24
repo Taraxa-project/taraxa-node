@@ -88,13 +88,6 @@ target_link_libraries(replay_protection_service_test
 )
 add_test(replay_protection_service_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/replay_protection_service_test)
 
-add_executable(rpc_taraxa_test rpc_taraxa_test.cpp ${UTIL_HEADERS})
-target_link_libraries(rpc_taraxa_test
-    core_libs
-    CONAN_PKG::gtest
-)
-add_test(rpc_taraxa_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/rpc_taraxa_test)
-
 add_executable(sortition_test sortition_test.cpp ${UTIL_HEADERS})
 target_link_libraries(sortition_test
     core_libs

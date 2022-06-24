@@ -2,10 +2,7 @@
 
 #include <limits>
 
-// #include "common/event.hpp"
-// #include "common/range_view.hpp"
 #include "common/types.hpp"
-// #include "config/final_chain_config.hpp"
 #include "final_chain/final_chain.hpp"
 
 namespace taraxa::final_chain {
@@ -82,7 +79,7 @@ class ContractInterface {
   static bytes getFunction(const string& function);
 
  private:
-  bytes finalChainCall(bytes data);
+  bytes finalChainCall(bytes&& data);
 
   const addr_t contract_addr_;
   std::shared_ptr<FinalChain> final_chain_;
