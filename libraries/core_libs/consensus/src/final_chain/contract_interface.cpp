@@ -13,21 +13,16 @@ Result ContractInterface::call(const string& function, const Params&... args) {
   return unpack<Result>(finalChainCall(pack<Params...>(function, args...)));
 }
 
-bytes ContractInterface::finalChainCall(bytes data) {
+bytes ContractInterface::finalChainCall(bytes&& data) {
   state_api::EVMTransaction trx;
   trx.input = std::move(data);
-  // return final_chain_->call(trx,
-  //     final_chain_->last_block_number(),
-  //     state_api::ExecutionOptions{
-  //         true, //disable_nonce_check
-  //         false, //disable_gas_fee
-  //     }).code_retval;
   return final_chain_->call(trx).code_retval;
 }
 
 template <typename Result>
 Result ContractInterface::unpack(const bytes& /*data*/) {
   Result r;
+  // TODO: implement
   return r;
 }
 
