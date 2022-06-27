@@ -55,7 +55,7 @@ bool RewardsStats::addVote(const std::shared_ptr<Vote>& vote, uint64_t min_weigh
   }
 
   const auto weight = *vote->getWeight();
-  if (total_votes_weight_ > min_weight) {
+  if (total_votes_weight_ >= min_weight) {
     bonus_votes_weight_ += weight;
   }
 

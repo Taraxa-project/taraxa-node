@@ -35,7 +35,7 @@ class FinalChainImpl final : public FinalChain {
   LOG_OBJECTS_DEFINE
 
  public:
-  FinalChainImpl(std::shared_ptr<DB> const& db, taraxa::ChainConfig const& config, addr_t const& node_addr)
+  FinalChainImpl(const std::shared_ptr<DB>& db, const taraxa::ChainConfig& config, const addr_t& node_addr)
       : db_(db),
         commitee_size_(config.pbft.committee_size),
         // replay_protection_service_(NewReplayProtectionService({}, db)),
@@ -449,8 +449,8 @@ class FinalChainImpl final : public FinalChain {
   };
 };
 
-std::shared_ptr<FinalChain> NewFinalChain(std::shared_ptr<DB> const& db, taraxa::ChainConfig const& config,
-                                          addr_t const& node_addr) {
+std::shared_ptr<FinalChain> NewFinalChain(const std::shared_ptr<DB>& db, const taraxa::ChainConfig& config,
+                                          const addr_t& node_addr) {
   return make_shared<FinalChainImpl>(db, config, node_addr);
 }
 
