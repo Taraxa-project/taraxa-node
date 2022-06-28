@@ -44,7 +44,7 @@ std::optional<addr_t> RewardsStats::getTransactionValidator(const trx_hash_t& tx
   return {found_tx->second};
 }
 
-bool RewardsStats::addVote(const std::shared_ptr<Vote>& vote, uint64_t min_weight) {
+bool RewardsStats::addVote(const std::shared_ptr<Vote>& vote) {
   // Set valid cert vote to validator
   auto& validator_stats = validators_stats_[vote->getVoterAddr()];
   assert(validator_stats.vote_weight_ == 0);
@@ -55,10 +55,6 @@ bool RewardsStats::addVote(const std::shared_ptr<Vote>& vote, uint64_t min_weigh
   }
 
   const auto weight = *vote->getWeight();
-  if (total_votes_weight_ >= min_weight) {
-    bonus_votes_weight_ += weight;
-  }
-
   total_votes_weight_ += weight;
   validator_stats.vote_weight_ = weight;
   return true;
@@ -75,9 +71,8 @@ void RewardsStats::initStats(const PeriodData& sync_blk, uint64_t dpos_vote_coun
     }
   }
   max_votes_weight_ = std::min<uint64_t>(committee_size, dpos_vote_count);
-  const uint64_t min_weight = max_votes_weight_ * 2 / 3 + 1;
   for (const auto& vote : sync_blk.previous_block_cert_votes) {
-    addVote(vote, min_weight);
+    addVote(vote);
   }
 }
 
@@ -108,7 +103,6 @@ std::vector<addr_t> RewardsStats::processStats(const PeriodData& block, uint64_t
 }
 
 RLP_FIELDS_DEFINE(RewardsStats::ValidatorStats, unique_txs_count_, vote_weight_)
-RLP_FIELDS_DEFINE(RewardsStats, validators_stats_, total_unique_txs_count_, total_votes_weight_, bonus_votes_weight_,
-                  max_votes_weight_)
+RLP_FIELDS_DEFINE(RewardsStats, validators_stats_, total_unique_txs_count_, total_votes_weight_, max_votes_weight_)
 
 }  // namespace taraxa

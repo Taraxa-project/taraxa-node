@@ -211,7 +211,7 @@
           "vote_eligibility_balance_step": "0x186A0",
           "validator_maximum_stake":"0x84595161401484A000000",
           "minimum_deposit":"0x0",
-          "max_block_author_reward": "0x64",
+          "max_block_author_reward": "0xa",
           "commission_change_delta":"0x0",
           "commission_change_frequency":"0x0",
           "yield_percentage":"0x14",

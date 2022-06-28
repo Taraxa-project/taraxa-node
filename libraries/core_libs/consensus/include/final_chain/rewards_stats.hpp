@@ -59,10 +59,9 @@ class RewardsStats {
    *        already processed, nothing happens
    *
    * @param vote
-   * @param min_weight
    * @return true in case vote was unique and processed, otherwise false
    */
-  bool addVote(const std::shared_ptr<Vote>& vote, uint64_t min_weight);
+  bool addVote(const std::shared_ptr<Vote>& vote);
 
   /**
    * @brief Prepares reward statistics bases on period data data
@@ -97,9 +96,6 @@ class RewardsStats {
 
   // Total weight of votes in block
   uint64_t total_votes_weight_{0};
-
-  // Bonus weight of votes in block
-  uint64_t bonus_votes_weight_{0};
 
   // Max weight of votes in block
   uint64_t max_votes_weight_{0};
