@@ -1,5 +1,8 @@
 var NAVTREEINDEX18 =
 {
+"namespacemembers_vars.html":[10,2],
+"namespacemembers_w.html":[10,0,22],
+"namespacemembers_y.html":[10,0,23],
 "namespacemembers_z.html":[10,0,24],
 "namespacestd.html":[11,0,2],
 "namespacetaraxa.html":[11,0,3],
@@ -57,7 +60,7 @@ var NAVTREEINDEX18 =
 "namespacetaraxa_1_1network.html":[11,0,3,4],
 "namespacetaraxa_1_1network_1_1tarcap.html":[11,0,3,4,0],
 "namespacetaraxa_1_1state__api.html":[11,0,3,5],
-"namespacetaraxa_1_1state__api.html#a07ec4cf31d69e169a6187e45821d86f4":[12,0,1,3,0,0,6,2,8],
+"namespacetaraxa_1_1state__api.html#a07ec4cf31d69e169a6187e45821d86f4":[12,0,1,3,0,0,6,2,9],
 "namespacetaraxa_1_1state__api.html#a13aa11cb2ea1bbd6a159176729bafd90":[12,0,1,3,0,0,6,7,0],
 "namespacetaraxa_1_1state__api.html#a1a9997e4f7fcc0fd915039afd6a5c31d":[12,0,1,3,0,0,6,7,1],
 "namespacetaraxa_1_1state__api.html#a2041eaccdc0eb98c32298010ec3bed89":[12,0,1,3,0,0,6,5,1],
@@ -77,7 +80,7 @@ var NAVTREEINDEX18 =
 "namespacetaraxa_1_1state__api.html#a8c3b02a035312481a460ddce3d2ad06a":[12,0,1,3,0,0,6,2,4],
 "namespacetaraxa_1_1state__api.html#a8c9a9f6e4017927d3fd461fe7f0e6a78":[12,0,1,3,0,0,6,3,1],
 "namespacetaraxa_1_1state__api.html#a9939f1ea12b35cc221769286f99dbe95":[12,0,1,3,0,0,6,0,5],
-"namespacetaraxa_1_1state__api.html#a9d7316cafe803848e671557efb79b754":[12,0,1,3,0,0,6,2,9],
+"namespacetaraxa_1_1state__api.html#a9d7316cafe803848e671557efb79b754":[12,0,1,3,0,0,6,2,10],
 "namespacetaraxa_1_1state__api.html#ab094db016ae63d9e76541fbd2e016fda":[12,0,1,3,0,0,6,1,4],
 "namespacetaraxa_1_1state__api.html#ab2b4c9752dae77c339d0c5d2d51fced5":[12,0,1,3,0,0,6,2,2],
 "namespacetaraxa_1_1state__api.html#ab5bf595e29304fcaae9657c01e4e8158":[12,0,1,3,0,0,6,0,0],
@@ -88,12 +91,13 @@ var NAVTREEINDEX18 =
 "namespacetaraxa_1_1state__api.html#acb5a9058dc94935d934dd25836b82f58":[12,0,1,3,0,0,6,0,6],
 "namespacetaraxa_1_1state__api.html#acf8492fa86e6ac73c82ae55d9db33c2e":[12,0,1,3,0,0,6,1,5],
 "namespacetaraxa_1_1state__api.html#ad4691677fe3777ad9cda380c7cd120b3":[12,0,1,3,0,0,6,1,0],
-"namespacetaraxa_1_1state__api.html#ad8eb3f9eb0841e339ef13826d264e183":[12,0,1,3,0,0,6,2,7],
+"namespacetaraxa_1_1state__api.html#ad8eb3f9eb0841e339ef13826d264e183":[12,0,1,3,0,0,6,2,8],
+"namespacetaraxa_1_1state__api.html#ad98233293c73914facb8f4b31084838d":[12,0,1,3,0,0,6,2,7],
 "namespacetaraxa_1_1state__api.html#aea7b5ea27213170e2cb08ab8ebdc0327":[12,0,1,3,0,0,6,0,1],
 "namespacetaraxa_1_1state__api.html#aef9819bc22722fa155b8f2980a7847f4":[12,0,1,3,0,0,6,2,5],
 "namespacetaraxa_1_1state__api.html#af57fed8c0b8fb07b99ce8a363540d5f0":[12,0,1,3,0,0,6,5,2],
 "namespacetaraxa_1_1state__api.html#aff6119dea4bee1b8391ecd7d7406b18a":[12,0,1,3,0,0,6,4,0],
-"namespacetaraxa_1_1state__api.html#affb25c212fee2a8eeed95be39a47f163":[12,0,1,3,0,0,6,2,10],
+"namespacetaraxa_1_1state__api.html#affb25c212fee2a8eeed95be39a47f163":[12,0,1,3,0,0,6,2,11],
 "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_block_rewards_options":[12,0,1,3,0,0,6,4],
 "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config":[12,0,1,3,0,0,6,5],
 "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config":[12,0,1,3,0,0,6,2],
@@ -245,9 +249,5 @@ var NAVTREEINDEX18 =
 "rewards__stats_8hpp_source.html":[12,0,1,4,0,0,1,3],
 "rpc__error__handler_8cpp.html":[12,0,1,4,1,1,7],
 "rpc__error__handler_8cpp.html#addc8ea7a95b1b5bcc33b970b5d118a8c":[12,0,1,4,1,1,7,0],
-"rpc__error__handler_8hpp.html":[12,0,1,4,1,1,8],
-"rpc__error__handler_8hpp.html#addc8ea7a95b1b5bcc33b970b5d118a8c":[12,0,1,4,1,1,8,0],
-"rpc__error__handler_8hpp_source.html":[12,0,1,4,1,1,8],
-"sortition_8cpp.html":[12,0,1,7,1,1],
-"sortition_8hpp.html":[12,0,1,7,0,0,1]
+"rpc__error__handler_8hpp.html":[12,0,1,4,1,1,8]
 };

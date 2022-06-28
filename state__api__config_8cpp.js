@@ -21,6 +21,7 @@ var state__api__config_8cpp =
     [ "delegation_delay", "state__api__config_8cpp.html#aa52ebe83d5b7679c9a5bb13f60d4f5c0", null ],
     [ "delegation_locking_period", "state__api__config_8cpp.html#a8120db572d6a00ddd5c494e256bc814f", null ],
     [ "eligibility_balance_threshold", "state__api__config_8cpp.html#aafa8b77e0045f2d6b5ff357da833db7d", null ],
+    [ "max_block_author_reward", "state__api__config_8cpp.html#aa4d0a09dab100bbc4452c5d55c05d312", null ],
     [ "minimum_deposit", "state__api__config_8cpp.html#a08b81db2b997a29fa4f23480817d27a6", null ],
     [ "validator_maximum_stake", "state__api__config_8cpp.html#a52aadce3eb0f022eacbf166d31b9fe4b", null ],
     [ "vote_eligibility_balance_step", "state__api__config_8cpp.html#ae7829c4843555cce147992c9fbbd0d94", null ],

@@ -215,7 +215,7 @@ var group___final_chain =
     ] ],
     [ "dec_json", "group___final_chain.html#ga25455681de21efb73c8696f632a83919", null ],
     [ "enc_json", "group___final_chain.html#gac7d6f6aea359f528d0f3f10e32bad1e3", null ],
-    [ "NewFinalChain", "group___final_chain.html#gaafff835a9be05379c7bd8a62a276146a", null ],
+    [ "NewFinalChain", "group___final_chain.html#gadfef2c5d6fa30744a9a86b0abdb4eb09", null ],
     [ "NewReplayProtectionService", "group___final_chain.html#ga616e43c45af4a2d35b2b752f1b51b68f", null ],
     [ "c_bloomIndexLevels", "group___final_chain.html#gafa9d5d8f0427b57b0a22530677e2e99b", null ],
     [ "c_bloomIndexSize", "group___final_chain.html#gab574ac6d6a7a462feef4499a61a17be2", null ],

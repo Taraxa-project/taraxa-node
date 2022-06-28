@@ -62,7 +62,7 @@ var searchData=
   ['addvees_61',['addVEEs',['../group___d_a_g.html#a50d307a99d2ce78294d970a67b07038b',1,'taraxa::Dag']]],
   ['addverifiedvote_62',['addVerifiedVote',['../group___vote.html#a95db7e43efcd4f8b2dfd3f8fdd00a15e',1,'taraxa::VoteManager']]],
   ['addverifiedvotetobatch_63',['addVerifiedVoteToBatch',['../classtaraxa_1_1_db_storage.html#ad88a9e344ff797e2012fd415feb78853',1,'taraxa::DbStorage']]],
-  ['addvote_64',['addVote',['../classtaraxa_1_1_rewards_stats.html#ab833b335b8ad0858918d9404188084e3',1,'taraxa::RewardsStats']]],
+  ['addvote_64',['addVote',['../classtaraxa_1_1_rewards_stats.html#ae7aeffa18408970f1d6d4f6c705c22a8',1,'taraxa::RewardsStats']]],
   ['adj_5flist_5ft_65',['adj_list_t',['../group___d_a_g.html#aebe0629679ef96c6a242faeded09311e',1,'taraxa::Dag']]],
   ['aes_2ecpp_66',['AES.cpp',['../_a_e_s_8cpp.html',1,'']]],
   ['aes_2eh_67',['AES.h',['../_a_e_s_8h.html',1,'']]],

@@ -1,5 +1,10 @@
 var NAVTREEINDEX22 =
 {
+"structtaraxa_1_1final__chain_1_1_config.html#a955c880531dc4addb9d4c9e44022d843":[11,0,3,1,1,0,0],
+"structtaraxa_1_1final__chain_1_1_config.html#a955c880531dc4addb9d4c9e44022d843":[12,0,1,3,0,0,3,1,0],
+"structtaraxa_1_1final__chain_1_1_config.html#aaf85cbc4d2d04c3d5f30645a755eef60":[11,0,3,1,1,2],
+"structtaraxa_1_1final__chain_1_1_config.html#ada8d5e73db5ef864faa4aa45da49abb0":[12,0,1,3,0,0,3,1,1],
+"structtaraxa_1_1final__chain_1_1_config.html#ada8d5e73db5ef864faa4aa45da49abb0":[11,0,3,1,1,0,1],
 "structtaraxa_1_1final__chain_1_1_config.html#aeb06d5eff71102bb3eb858ee7dcfc6cb":[11,0,3,1,1,1],
 "structtaraxa_1_1final__chain_1_1_config.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields":[11,0,3,1,1,0],
 "structtaraxa_1_1final__chain_1_1_config.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields":[12,0,1,3,0,0,3,1],
@@ -47,8 +52,8 @@ var NAVTREEINDEX22 =
 "structtaraxa_1_1net_1_1_rpc_server.html#a97e487e12a7912a747e36d57ae2f3b8a":[11,0,3,3,7,16],
 "structtaraxa_1_1net_1_1_rpc_server.html#a9a7af1a4149389e6bb8603b82cecbc6e":[11,0,3,3,7,13],
 "structtaraxa_1_1net_1_1_rpc_server.html#a9bc9bd15e9552a9ac06b87c25045e6d0":[11,0,3,3,7,7],
-"structtaraxa_1_1net_1_1_rpc_server.html#a9e1d71ecafa47620a50a7aea5da0cadb":[11,0,3,3,7,0,1],
 "structtaraxa_1_1net_1_1_rpc_server.html#a9e1d71ecafa47620a50a7aea5da0cadb":[12,0,1,4,1,1,10,1,1],
+"structtaraxa_1_1net_1_1_rpc_server.html#a9e1d71ecafa47620a50a7aea5da0cadb":[11,0,3,3,7,0,1],
 "structtaraxa_1_1net_1_1_rpc_server.html#aa0f8f8c917e8fbf0ed322b47a56c903f":[11,0,3,3,7,8],
 "structtaraxa_1_1net_1_1_rpc_server.html#aab2707875d45d224d2ab4e9e7e2ae032":[11,0,3,3,7,2],
 "structtaraxa_1_1net_1_1_rpc_server.html#aad649da5dfd3a73391294f90f3199635":[11,0,3,3,7,9],
@@ -244,10 +249,5 @@ var NAVTREEINDEX22 =
 "transaction__queue_8hpp.html":[12,0,1,4,0,0,3,2],
 "transaction__queue_8hpp_source.html":[12,0,1,4,0,0,3,2],
 "trie__common_8cpp.html":[12,0,1,4,0,1,1,6],
-"trie__common_8cpp.html#a31a1e83861e1b14e99841d137c2da0a1":[12,0,1,4,0,1,1,6,2],
-"trie__common_8cpp.html#a41b2ec28d1ad728e6c4d190795391e6e":[12,0,1,4,0,1,1,6,0],
-"trie__common_8cpp.html#aa0b5a88e3d820936d80621999c99726c":[12,0,1,4,0,1,1,6,3],
-"trie__common_8cpp.html#aaaba8929089b332775874032190fb5e6":[12,0,1,4,0,1,1,6,1],
-"trie__common_8hpp.html":[12,0,1,4,0,0,1,6],
-"trie__common_8hpp.html#a41b2ec28d1ad728e6c4d190795391e6e":[12,0,1,4,0,0,1,6,0]
+"trie__common_8cpp.html#a31a1e83861e1b14e99841d137c2da0a1":[12,0,1,4,0,1,1,6,2]
 };

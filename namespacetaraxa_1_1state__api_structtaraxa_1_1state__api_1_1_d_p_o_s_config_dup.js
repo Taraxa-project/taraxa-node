@@ -7,6 +7,7 @@ var namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_d_p_o_s_config_
     [ "delegation_locking_period", "namespacetaraxa_1_1state__api.html#a8c3b02a035312481a460ddce3d2ad06a", null ],
     [ "eligibility_balance_threshold", "namespacetaraxa_1_1state__api.html#aef9819bc22722fa155b8f2980a7847f4", null ],
     [ "initial_validators", "namespacetaraxa_1_1state__api.html#a7cba8e74712f847021e5118974cf97ae", null ],
+    [ "max_block_author_reward", "namespacetaraxa_1_1state__api.html#ad98233293c73914facb8f4b31084838d", null ],
     [ "minimum_deposit", "namespacetaraxa_1_1state__api.html#ad8eb3f9eb0841e339ef13826d264e183", null ],
     [ "validator_maximum_stake", "namespacetaraxa_1_1state__api.html#a07ec4cf31d69e169a6187e45821d86f4", null ],
     [ "vote_eligibility_balance_step", "namespacetaraxa_1_1state__api.html#a9d7316cafe803848e671557efb79b754", null ],

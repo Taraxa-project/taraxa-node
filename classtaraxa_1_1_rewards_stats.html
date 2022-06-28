@@ -104,9 +104,9 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a494d18d03385b45f4037f5483f956cf3"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#a494d18d03385b45f4037f5483f956cf3">processStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;block)</td></tr>
-<tr class="memdesc:a494d18d03385b45f4037f5483f956cf3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data" title="PeriodData class is for block execution, that includes PBFT block, certify votes, DAG blocks,...">PeriodData</a> and returns vector of validators, who included provided block.transactions as first in dag block, e.g. returned validator on position 2 included transaction block.transactions[2] as first in his dag block.  <a href="classtaraxa_1_1_rewards_stats.html#a494d18d03385b45f4037f5483f956cf3">More...</a><br /></td></tr>
-<tr class="separator:a494d18d03385b45f4037f5483f956cf3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a311ec5ce19f31e319bdba9b7054bed"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#a2a311ec5ce19f31e319bdba9b7054bed">processStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;block, uint64_t dpos_vote_count, uint32_t committee_size)</td></tr>
+<tr class="memdesc:a2a311ec5ce19f31e319bdba9b7054bed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data" title="PeriodData class is for block execution, that includes PBFT block, certify votes, DAG blocks,...">PeriodData</a> and returns vector of validators, who included provided block.transactions as first in dag block, e.g. returned validator on position 2 included transaction block.transactions[2] as first in his dag block.  <a href="classtaraxa_1_1_rewards_stats.html#a2a311ec5ce19f31e319bdba9b7054bed">More...</a><br /></td></tr>
+<tr class="separator:a2a311ec5ce19f31e319bdba9b7054bed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
@@ -118,12 +118,12 @@ Private Member Functions</h2></td></tr>
 <tr class="separator:a01782dc9656c2b1312080964fd8437b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4926a79fcd025b9da3581a4bab5956dd"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#a4926a79fcd025b9da3581a4bab5956dd">getTransactionValidator</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;tx_hash)</td></tr>
 <tr class="separator:a4926a79fcd025b9da3581a4bab5956dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab833b335b8ad0858918d9404188084e3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#ab833b335b8ad0858918d9404188084e3">addVote</a> (const <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &amp;vote)</td></tr>
-<tr class="memdesc:ab833b335b8ad0858918d9404188084e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">In case unique vote is provided, it's author's unique votes count is incremented. If provided vote was already processed, nothing happens.  <a href="classtaraxa_1_1_rewards_stats.html#ab833b335b8ad0858918d9404188084e3">More...</a><br /></td></tr>
-<tr class="separator:ab833b335b8ad0858918d9404188084e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9a2be59ffbdff89345255a6e6aea68f6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#a9a2be59ffbdff89345255a6e6aea68f6">initStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;sync_blk)</td></tr>
-<tr class="memdesc:a9a2be59ffbdff89345255a6e6aea68f6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prepares reward statistics bases on period data data.  <a href="classtaraxa_1_1_rewards_stats.html#a9a2be59ffbdff89345255a6e6aea68f6">More...</a><br /></td></tr>
-<tr class="separator:a9a2be59ffbdff89345255a6e6aea68f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7aeffa18408970f1d6d4f6c705c22a8"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#ae7aeffa18408970f1d6d4f6c705c22a8">addVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote)</td></tr>
+<tr class="memdesc:ae7aeffa18408970f1d6d4f6c705c22a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">In case unique vote is provided, author's votes weight is updated. If provided vote was already processed, nothing happens.  <a href="classtaraxa_1_1_rewards_stats.html#ae7aeffa18408970f1d6d4f6c705c22a8">More...</a><br /></td></tr>
+<tr class="separator:ae7aeffa18408970f1d6d4f6c705c22a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a784a6485399c21d270b4142db51d0853"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#a784a6485399c21d270b4142db51d0853">initStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;sync_blk, uint64_t dpos_vote_count, uint32_t committee_size)</td></tr>
+<tr class="memdesc:a784a6485399c21d270b4142db51d0853"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prepares reward statistics bases on period data data.  <a href="classtaraxa_1_1_rewards_stats.html#a784a6485399c21d270b4142db51d0853">More...</a><br /></td></tr>
+<tr class="separator:a784a6485399c21d270b4142db51d0853"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -133,8 +133,10 @@ Private Attributes</h2></td></tr>
 <tr class="separator:aedbc7e29596af98f779d8b2337de4732"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad77a04eb9a9d891d9b88c9c6a73b539c"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#ad77a04eb9a9d891d9b88c9c6a73b539c">total_unique_txs_count_</a> {0}</td></tr>
 <tr class="separator:ad77a04eb9a9d891d9b88c9c6a73b539c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aba3cb303b9844c4269ce6aaf16a3d21f"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#aba3cb303b9844c4269ce6aaf16a3d21f">total_unique_votes_count_</a> {0}</td></tr>
-<tr class="separator:aba3cb303b9844c4269ce6aaf16a3d21f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa0dcb9d8834c41ad295d8605d124c572"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#aa0dcb9d8834c41ad295d8605d124c572">total_votes_weight_</a> {0}</td></tr>
+<tr class="separator:aa0dcb9d8834c41ad295d8605d124c572"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9763e30976297223d225db8bedaae5cf"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_rewards_stats.html#a9763e30976297223d225db8bedaae5cf">max_votes_weight_</a> {0}</td></tr>
+<tr class="separator:a9763e30976297223d225db8bedaae5cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="classtaraxa_1_1_rewards_stats.html" title="RewardsStats contains rewards statistics for single pbft block.">RewardsStats</a> contains rewards statistics for single pbft block. </p>
@@ -159,9 +161,9 @@ unique_txs_count_</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
-<a id="aea327da020b57f89c6f4b47e3d476ad6"></a>bool</td>
+<a id="acb0cc6050dc3a9d47d8b1f5bade31912"></a>uint64_t</td>
 <td class="fieldname">
-valid_cert_vote_</td>
+vote_weight_</td>
 <td class="fielddoc">
 </td></tr>
 </table>
@@ -215,8 +217,8 @@ valid_cert_vote_</td>
 
 </div>
 </div>
-<a id="ab833b335b8ad0858918d9404188084e3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab833b335b8ad0858918d9404188084e3">&#9670;&nbsp;</a></span>addVote()</h2>
+<a id="ae7aeffa18408970f1d6d4f6c705c22a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7aeffa18408970f1d6d4f6c705c22a8">&#9670;&nbsp;</a></span>addVote()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -227,7 +229,7 @@ valid_cert_vote_</td>
         <tr>
           <td class="memname">bool taraxa::RewardsStats::addVote </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &amp;&#160;</td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>vote</em></td><td>)</td>
           <td></td>
         </tr>
@@ -239,7 +241,7 @@ valid_cert_vote_</td>
 </table>
 </div><div class="memdoc">
 
-<p>In case unique vote is provided, it's author's unique votes count is incremented. If provided vote was already processed, nothing happens. </p>
+<p>In case unique vote is provided, author's votes weight is updated. If provided vote was already processed, nothing happens. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">vote</td><td></td></tr>
@@ -283,8 +285,8 @@ valid_cert_vote_</td>
 
 </div>
 </div>
-<a id="a9a2be59ffbdff89345255a6e6aea68f6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9a2be59ffbdff89345255a6e6aea68f6">&#9670;&nbsp;</a></span>initStats()</h2>
+<a id="a784a6485399c21d270b4142db51d0853"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a784a6485399c21d270b4142db51d0853">&#9670;&nbsp;</a></span>initStats()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -296,8 +298,24 @@ valid_cert_vote_</td>
           <td class="memname">void taraxa::RewardsStats::initStats </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&#160;</td>
-          <td class="paramname"><em>sync_blk</em></td><td>)</td>
+          <td class="paramname"><em>sync_blk</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>dpos_vote_count</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>committee_size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -311,14 +329,16 @@ valid_cert_vote_</td>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">sync_blk</td><td></td></tr>
+    <tr><td class="paramname">dpos_vote_count</td><td>- votes count for previous block </td></tr>
+    <tr><td class="paramname">committee_size</td><td></td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="a494d18d03385b45f4037f5483f956cf3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a494d18d03385b45f4037f5483f956cf3">&#9670;&nbsp;</a></span>processStats()</h2>
+<a id="a2a311ec5ce19f31e319bdba9b7054bed"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a311ec5ce19f31e319bdba9b7054bed">&#9670;&nbsp;</a></span>processStats()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -327,8 +347,24 @@ valid_cert_vote_</td>
           <td class="memname">std::vector&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &gt; taraxa::RewardsStats::processStats </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&#160;</td>
-          <td class="paramname"><em>block</em></td><td>)</td>
+          <td class="paramname"><em>block</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>dpos_vote_count</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>committee_size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -337,6 +373,8 @@ valid_cert_vote_</td>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">block</td><td></td></tr>
+    <tr><td class="paramname">dpos_vote_count</td><td>- votes count for previous block </td></tr>
+    <tr><td class="paramname">committee_size</td><td></td></tr>
   </table>
   </dd>
 </dl>
@@ -379,6 +417,28 @@ valid_cert_vote_</td>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="a9763e30976297223d225db8bedaae5cf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9763e30976297223d225db8bedaae5cf">&#9670;&nbsp;</a></span>max_votes_weight_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t taraxa::RewardsStats::max_votes_weight_ {0}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ad77a04eb9a9d891d9b88c9c6a73b539c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad77a04eb9a9d891d9b88c9c6a73b539c">&#9670;&nbsp;</a></span>total_unique_txs_count_</h2>
 
@@ -401,8 +461,8 @@ valid_cert_vote_</td>
 
 </div>
 </div>
-<a id="aba3cb303b9844c4269ce6aaf16a3d21f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aba3cb303b9844c4269ce6aaf16a3d21f">&#9670;&nbsp;</a></span>total_unique_votes_count_</h2>
+<a id="aa0dcb9d8834c41ad295d8605d124c572"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa0dcb9d8834c41ad295d8605d124c572">&#9670;&nbsp;</a></span>total_votes_weight_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -411,7 +471,7 @@ valid_cert_vote_</td>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">uint32_t taraxa::RewardsStats::total_unique_votes_count_ {0}</td>
+          <td class="memname">uint64_t taraxa::RewardsStats::total_votes_weight_ {0}</td>
         </tr>
       </table>
   </td>

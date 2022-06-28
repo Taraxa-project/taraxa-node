@@ -117,8 +117,8 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a423ce91622705ef87825e9830f4eee5f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a423ce91622705ef87825e9830f4eee5f">FinalChainImpl</a> (std::shared_ptr&lt; <a class="el" href="namespacetaraxa.html#a32216cff36a3565783afe8fa0099ae89">DB</a> &gt; const &amp;db, <a class="el" href="structtaraxa_1_1final__chain_1_1_config.html">Config</a> const &amp;config, <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;node_addr)</td></tr>
-<tr class="separator:a423ce91622705ef87825e9830f4eee5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a64319cd916b607f480b8f4e3ab571a33"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a64319cd916b607f480b8f4e3ab571a33">FinalChainImpl</a> (const std::shared_ptr&lt; <a class="el" href="namespacetaraxa.html#a32216cff36a3565783afe8fa0099ae89">DB</a> &gt; &amp;db, const <a class="el" href="structtaraxa_1_1_chain_config.html">taraxa::ChainConfig</a> &amp;config, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr)</td></tr>
+<tr class="separator:a64319cd916b607f480b8f4e3ab571a33"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2586af303e2a0f870e81a409ec273da9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a2586af303e2a0f870e81a409ec273da9">stop</a> () override</td></tr>
 <tr class="separator:a2586af303e2a0f870e81a409ec273da9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2fe52fd61d922049681db39a41bff8c8"><td class="memItemLeft" align="right" valign="top">std::future&lt; std::shared_ptr&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result">FinalizationResult</a> const  &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a2fe52fd61d922049681db39a41bff8c8">finalize</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&amp;new_blk, std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt; &amp;&amp;finalized_dag_blk_hashes, <a class="el" href="group___final_chain.html#a85c2c0863dab085cd063aac9b6886d51">finalize_precommit_ext</a> precommit_ext={}) override</td></tr>
@@ -218,6 +218,8 @@ Static Public Member Functions</h2></td></tr>
 Private Attributes</h2></td></tr>
 <tr class="memitem:a73eff020d0822578989e0b8baed42091"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="namespacetaraxa.html#a32216cff36a3565783afe8fa0099ae89">DB</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a73eff020d0822578989e0b8baed42091">db_</a></td></tr>
 <tr class="separator:a73eff020d0822578989e0b8baed42091"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab47eff25f36fb22b214fffe61f2c9149"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab47eff25f36fb22b214fffe61f2c9149">commitee_size_</a></td></tr>
+<tr class="separator:ab47eff25f36fb22b214fffe61f2c9149"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a603e75098c6c8f63e42e392b8ef8fd76"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_replay_protection_service">ReplayProtectionService</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a603e75098c6c8f63e42e392b8ef8fd76">replay_protection_service_</a></td></tr>
 <tr class="separator:a603e75098c6c8f63e42e392b8ef8fd76"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8dc59861e1ecd2ad92e753bab9cf13bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___final_chain.html#classtaraxa_1_1state__api_1_1_state_a_p_i">StateAPI</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a8dc59861e1ecd2ad92e753bab9cf13bd">state_api_</a></td></tr>
@@ -257,8 +259,8 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:a69bbe62bb85c685861fa39df13226a2e inherit pro_attribs_group___final_chain"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a423ce91622705ef87825e9830f4eee5f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a423ce91622705ef87825e9830f4eee5f">&#9670;&nbsp;</a></span>FinalChainImpl()</h2>
+<a id="a64319cd916b607f480b8f4e3ab571a33"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a64319cd916b607f480b8f4e3ab571a33">&#9670;&nbsp;</a></span>FinalChainImpl()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -269,19 +271,19 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">taraxa::final_chain::FinalChainImpl::FinalChainImpl </td>
           <td>(</td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="namespacetaraxa.html#a32216cff36a3565783afe8fa0099ae89">DB</a> &gt; const &amp;&#160;</td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="namespacetaraxa.html#a32216cff36a3565783afe8fa0099ae89">DB</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>db</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structtaraxa_1_1final__chain_1_1_config.html">Config</a> const &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="structtaraxa_1_1_chain_config.html">taraxa::ChainConfig</a> &amp;&#160;</td>
           <td class="paramname"><em>config</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;&#160;</td>
           <td class="paramname"><em>node_addr</em>&#160;</td>
         </tr>
         <tr>
@@ -1464,6 +1466,28 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="ab47eff25f36fb22b214fffe61f2c9149"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab47eff25f36fb22b214fffe61f2c9149">&#9670;&nbsp;</a></span>commitee_size_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const uint32_t taraxa::final_chain::FinalChainImpl::commitee_size_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a73eff020d0822578989e0b8baed42091"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a73eff020d0822578989e0b8baed42091">&#9670;&nbsp;</a></span>db_</h2>
 
