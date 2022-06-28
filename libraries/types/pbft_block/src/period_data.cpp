@@ -34,7 +34,7 @@ PeriodData::PeriodData(dev::RLP&& rlp) {
 PeriodData::PeriodData(bytes const& all_rlp) : PeriodData(dev::RLP(all_rlp)) {}
 
 bytes PeriodData::rlp() const {
-  dev::RLPStream s(kItemCount);
+  dev::RLPStream s(kRlpItemCount);
   s.appendRaw(pbft_blk->rlp(true));
   s.appendList(previous_block_cert_votes.size());
   for (auto const& v : previous_block_cert_votes) {

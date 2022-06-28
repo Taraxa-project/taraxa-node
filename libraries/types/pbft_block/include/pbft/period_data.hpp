@@ -34,7 +34,7 @@ class PeriodData {
   std::vector<DagBlock> dag_blocks;
   SharedTransactions transactions;
 
-  const static size_t kItemCount = 4;
+  const static size_t kRlpItemCount = 4;
 
   /**
    * @brief Recursive Length Prefix
