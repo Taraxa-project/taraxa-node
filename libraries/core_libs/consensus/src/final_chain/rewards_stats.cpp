@@ -1,5 +1,7 @@
 #include "final_chain/rewards_stats.hpp"
 
+#include <cstdint>
+
 namespace taraxa {
 
 bool RewardsStats::addTransaction(const trx_hash_t& tx_hash, const addr_t& validator) {
@@ -42,22 +44,25 @@ std::optional<addr_t> RewardsStats::getTransactionValidator(const trx_hash_t& tx
   return {found_tx->second};
 }
 
-bool RewardsStats::addVote(const Vote& vote) {
+bool RewardsStats::addVote(const std::shared_ptr<Vote>& vote) {
   // Set valid cert vote to validator
-  auto& validator_stats = validators_stats_[vote.getVoterAddr()];
-  assert(validator_stats.valid_cert_vote_ == false);
+  auto& validator_stats = validators_stats_[vote->getVoterAddr()];
+  assert(validator_stats.vote_weight_ == 0);
+  assert(vote->getWeight());
 
-  validator_stats.valid_cert_vote_ = true;
-  total_unique_votes_count_++;
+  if (validator_stats.vote_weight_) {
+    return false;
+  }
 
+  const auto weight = *vote->getWeight();
+  total_votes_weight_ += weight;
+  validator_stats.vote_weight_ = weight;
   return true;
 }
 
-void RewardsStats::initStats(const PeriodData& sync_blk) {
+void RewardsStats::initStats(const PeriodData& sync_blk, uint64_t dpos_vote_count, uint32_t committee_size) {
   txs_validators_.reserve(sync_blk.transactions.size());
-
-  // TODO: use std::max(sync_blk.dag_blocks.size(), sync_blk.rewards_votes.size())
-  validators_stats_.reserve(sync_blk.dag_blocks.size());
+  validators_stats_.reserve(std::max(sync_blk.dag_blocks.size(), sync_blk.previous_block_cert_votes.size()));
 
   for (const auto& dag_block : sync_blk.dag_blocks) {
     const addr_t& dag_block_author = dag_block.getSender();
@@ -65,12 +70,15 @@ void RewardsStats::initStats(const PeriodData& sync_blk) {
       addTransaction(tx_hash, dag_block_author);
     }
   }
-
-  // TODO: add votes to rewards_stats
+  max_votes_weight_ = std::min<uint64_t>(committee_size, dpos_vote_count);
+  for (const auto& vote : sync_blk.previous_block_cert_votes) {
+    addVote(vote);
+  }
 }
 
-std::vector<addr_t> RewardsStats::processStats(const PeriodData& block) {
-  initStats(block);
+std::vector<addr_t> RewardsStats::processStats(const PeriodData& block, uint64_t dpos_vote_count,
+                                               uint32_t committee_size) {
+  initStats(block, dpos_vote_count, committee_size);
 
   // Dag blocks validators that included transactions to be executed as first in their blocks
   std::vector<addr_t> txs_validators;
@@ -94,7 +102,7 @@ std::vector<addr_t> RewardsStats::processStats(const PeriodData& block) {
   return txs_validators;
 }
 
-RLP_FIELDS_DEFINE(RewardsStats::ValidatorStats, unique_txs_count_, valid_cert_vote_)
-RLP_FIELDS_DEFINE(RewardsStats, validators_stats_, total_unique_txs_count_, total_unique_votes_count_)
+RLP_FIELDS_DEFINE(RewardsStats::ValidatorStats, unique_txs_count_, vote_weight_)
+RLP_FIELDS_DEFINE(RewardsStats, validators_stats_, total_unique_txs_count_, total_votes_weight_, max_votes_weight_)
 
 }  // namespace taraxa

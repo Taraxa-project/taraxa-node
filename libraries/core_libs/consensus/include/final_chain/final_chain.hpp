@@ -5,7 +5,7 @@
 #include "common/event.hpp"
 #include "common/range_view.hpp"
 #include "common/types.hpp"
-#include "config/final_chain_config.hpp"
+#include "config/chain_config.hpp"
 #include "final_chain/data.hpp"
 #include "final_chain/state_api.hpp"
 #include "storage/storage.hpp"
@@ -229,8 +229,8 @@ class FinalChain {
   }
 };
 
-std::shared_ptr<FinalChain> NewFinalChain(std::shared_ptr<DB> const& db, Config const& config,
-                                          addr_t const& node_addr = {});
+std::shared_ptr<FinalChain> NewFinalChain(const std::shared_ptr<DB>& db, const taraxa::ChainConfig& config,
+                                          const addr_t& node_addr = {});
 /** @} */
 
 }  // namespace taraxa::final_chain

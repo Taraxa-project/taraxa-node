@@ -47,6 +47,7 @@ struct DPOSConfig {
   u256 vote_eligibility_balance_step;
   u256 validator_maximum_stake;
   u256 minimum_deposit;
+  uint16_t max_block_author_reward = 0;
   uint16_t commission_change_delta = 0;
   uint32_t commission_change_frequency = 0;  // number of blocks
   uint32_t delegation_delay = 0;             // number of blocks

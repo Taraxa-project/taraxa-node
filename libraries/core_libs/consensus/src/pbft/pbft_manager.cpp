@@ -11,6 +11,7 @@
 #include <libdevcore/SHA3.h>
 
 #include <chrono>
+#include <cstdint>
 #include <string>
 
 #include "dag/dag.hpp"
@@ -19,6 +20,7 @@
 #include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
+#include "pbft/period_data.hpp"
 #include "vote_manager/vote_manager.hpp"
 
 namespace taraxa {
@@ -113,6 +115,14 @@ void PbftManager::run() {
       LOG(log_er_) << "DB corrupted - PBFT block hash " << period_data.pbft_blk->getBlockHash()
                    << " has different period " << period_data.pbft_blk->getPeriod()
                    << " in block data than in block order db: " << period;
+      assert(false);
+    }
+    // We need this section because votes need to be verified for reward distribution
+    for (const auto &v : period_data.previous_block_cert_votes) {
+      vote_mgr_->addRewardVote(v);
+    }
+    if (!vote_mgr_->checkRewardVotes(period_data.pbft_blk)) {
+      LOG(log_er_) << "Invalid reward votes in block " << period_data.pbft_blk->getBlockHash() << " in DB.";
       assert(false);
     }
     finalize_(std::move(period_data), db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);

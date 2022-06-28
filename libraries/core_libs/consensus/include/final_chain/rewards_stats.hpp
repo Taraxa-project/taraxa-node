@@ -21,9 +21,11 @@ class RewardsStats {
    * block
    *
    * @param block
+   * @param dpos_vote_count - votes count for previous block
+   * @param committee_size
    * @return vector of validators
    */
-  std::vector<addr_t> processStats(const PeriodData& block);
+  std::vector<addr_t> processStats(const PeriodData& block, uint64_t dpos_vote_count, uint32_t committee_size);
 
   HAS_RLP_FIELDS
 
@@ -53,30 +55,32 @@ class RewardsStats {
   std::optional<addr_t> getTransactionValidator(const trx_hash_t& tx_hash);
 
   /**
-   * @brief In case unique vote is provided, it's author's unique votes count is incremented. If provided vote was
+   * @brief In case unique vote is provided, author's votes weight is updated. If provided vote was
    *        already processed, nothing happens
    *
    * @param vote
    * @return true in case vote was unique and processed, otherwise false
    */
-  bool addVote(const Vote& vote);
+  bool addVote(const std::shared_ptr<Vote>& vote);
 
   /**
    * @brief Prepares reward statistics bases on period data data
    *
    * @param sync_blk
+   * @param dpos_vote_count - votes count for previous block
+   * @param committee_size
    */
-  void initStats(const PeriodData& sync_blk);
+  void initStats(const PeriodData& sync_blk, uint64_t dpos_vote_count, uint32_t committee_size);
 
  private:
   struct ValidatorStats {
     // How many unique txs validator included in his dag blocks
     // Unique txs is what defines quality of block -> block with 10 unique transactions is 10 times more valuable
     // than block with single unique transaction
-    uint32_t unique_txs_count_;
+    uint32_t unique_txs_count_ = 0;
 
-    // Validator cert voted block
-    bool valid_cert_vote_;
+    // Validator cert voted block weight
+    uint64_t vote_weight_ = 0;
 
     HAS_RLP_FIELDS
   };
@@ -90,8 +94,11 @@ class RewardsStats {
   // Total unique txs counter
   uint32_t total_unique_txs_count_{0};
 
-  // Total unique votes counter
-  uint32_t total_unique_votes_count_{0};
+  // Total weight of votes in block
+  uint64_t total_votes_weight_{0};
+
+  // Max weight of votes in block
+  uint64_t max_votes_weight_{0};
 };
 
 }  // namespace taraxa

@@ -572,7 +572,7 @@ bool VoteManager::verifyRewardVote(const std::shared_ptr<Vote>& vote) {
 }
 
 bool VoteManager::checkRewardVotes(const std::shared_ptr<PbftBlock>& pbft_block) {
-  if (pbft_block->getPeriod() == 1) {
+  if (pbft_block->getPeriod() == 1) [[unlikely]] {
     // First period no reward votes
     return true;
   }
