@@ -918,12 +918,12 @@ Collaboration diagram for taraxa::BlockProposer:</div>
 <tr class="separator:aab264e4d9ace503123f82f79af7b6ba6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae1912c7533bd9260e019a6cd2cb5aa37"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ae1912c7533bd9260e019a6cd2cb5aa37">setNetwork</a> (std::weak_ptr&lt; <a class="el" href="classtaraxa_1_1_network.html">Network</a> &gt; network)</td></tr>
 <tr class="separator:ae1912c7533bd9260e019a6cd2cb5aa37"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8ba2c0662e1a5da8b360de11f54aac51"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a8ba2c0662e1a5da8b360de11f54aac51">proposeBlock</a> (<a class="el" href="structtaraxa_1_1_dag_frontier.html">DagFrontier</a> &amp;&amp;frontier, <a class="el" href="namespacetaraxa.html#ac29ce7c6f0fae63e548b523170910526">level_t</a> level, uint64_t proposal_period, <a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;&amp;trxs, <a class="el" href="classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html">VdfSortition</a> &amp;&amp;vdf)</td></tr>
-<tr class="memdesc:a8ba2c0662e1a5da8b360de11f54aac51"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates/proposes a new block with provided data.  <a href="group___d_a_g.html#a8ba2c0662e1a5da8b360de11f54aac51">More...</a><br /></td></tr>
-<tr class="separator:a8ba2c0662e1a5da8b360de11f54aac51"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a04cb83c988e8da6ef79933c8473f793d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a04cb83c988e8da6ef79933c8473f793d">getShardedTrxs</a> ()</td></tr>
-<tr class="memdesc:a04cb83c988e8da6ef79933c8473f793d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets transactions to include in the block - sharding not supported yet.  <a href="group___d_a_g.html#a04cb83c988e8da6ef79933c8473f793d">More...</a><br /></td></tr>
-<tr class="separator:a04cb83c988e8da6ef79933c8473f793d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac33953697d8542c2987b789ab08b701c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ac33953697d8542c2987b789ab08b701c">proposeBlock</a> (<a class="el" href="structtaraxa_1_1_dag_frontier.html">DagFrontier</a> &amp;&amp;frontier, <a class="el" href="namespacetaraxa.html#ac29ce7c6f0fae63e548b523170910526">level_t</a> level, <a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;&amp;trxs, std::vector&lt; uint64_t &gt; &amp;&amp;estimations, <a class="el" href="classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html">VdfSortition</a> &amp;&amp;vdf)</td></tr>
+<tr class="memdesc:ac33953697d8542c2987b789ab08b701c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates/proposes a new block with provided data.  <a href="group___d_a_g.html#ac33953697d8542c2987b789ab08b701c">More...</a><br /></td></tr>
+<tr class="separator:ac33953697d8542c2987b789ab08b701c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6f607da040c0f33dc48a6c4624340d88"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a>, std::vector&lt; uint64_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a6f607da040c0f33dc48a6c4624340d88">getShardedTrxs</a> (uint64_t proposal_period, uint64_t weight_limit)</td></tr>
+<tr class="memdesc:a6f607da040c0f33dc48a6c4624340d88"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets transactions to include in the block - sharding not supported yet.  <a href="group___d_a_g.html#a6f607da040c0f33dc48a6c4624340d88">More...</a><br /></td></tr>
+<tr class="separator:a6f607da040c0f33dc48a6c4624340d88"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a65049d7c6d06d4dafcd21fc4be034520"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#ac29ce7c6f0fae63e548b523170910526">level_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a65049d7c6d06d4dafcd21fc4be034520">getProposeLevel</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;pivot, <a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a> const &amp;tips)</td></tr>
 <tr class="memdesc:a65049d7c6d06d4dafcd21fc4be034520"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets current propose level for provided pivot and tips.  <a href="group___d_a_g.html#a65049d7c6d06d4dafcd21fc4be034520">More...</a><br /></td></tr>
 <tr class="separator:a65049d7c6d06d4dafcd21fc4be034520"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1193,23 +1193,41 @@ Collaboration diagram for taraxa::BlockProposer:</div>
 
 </div>
 </div>
-<a id="a04cb83c988e8da6ef79933c8473f793d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a04cb83c988e8da6ef79933c8473f793d">&#9670;&nbsp;</a></span>getShardedTrxs()</h2>
+<a id="a6f607da040c0f33dc48a6c4624340d88"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6f607da040c0f33dc48a6c4624340d88">&#9670;&nbsp;</a></span>getShardedTrxs()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> taraxa::BlockProposer::getShardedTrxs </td>
+          <td class="memname">std::pair&lt; <a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a>, std::vector&lt; uint64_t &gt; &gt; taraxa::BlockProposer::getShardedTrxs </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>proposal_period</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>weight_limit</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 <p>Gets transactions to include in the block - sharding not supported yet. </p>
-<dl class="section return"><dt>Returns</dt><dd>transactions </dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">proposal_period</td><td>proposal period </td></tr>
+    <tr><td class="paramname">weight_limit</td><td>weight limit </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>transactions and weight estimations </dd></dl>
 
 </div>
 </div>
@@ -1282,8 +1300,8 @@ Collaboration diagram for taraxa::BlockProposer:</div>
 
 </div>
 </div>
-<a id="a8ba2c0662e1a5da8b360de11f54aac51"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8ba2c0662e1a5da8b360de11f54aac51">&#9670;&nbsp;</a></span>proposeBlock()</h2>
+<a id="ac33953697d8542c2987b789ab08b701c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac33953697d8542c2987b789ab08b701c">&#9670;&nbsp;</a></span>proposeBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1303,14 +1321,14 @@ Collaboration diagram for taraxa::BlockProposer:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>proposal_period</em>, </td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>trxs</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;&amp;&#160;</td>
-          <td class="paramname"><em>trxs</em>, </td>
+          <td class="paramtype">std::vector&lt; uint64_t &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"><em>estimations</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1331,8 +1349,8 @@ Collaboration diagram for taraxa::BlockProposer:</div>
   <table class="params">
     <tr><td class="paramname">frontier</td><td>frontier to use for pivot and tips of the new block </td></tr>
     <tr><td class="paramname">level</td><td>level of the new block </td></tr>
-    <tr><td class="paramname">proposal_period</td><td>proposal period </td></tr>
     <tr><td class="paramname">trxs</td><td>transactions to be included in the block </td></tr>
+    <tr><td class="paramname">estimations</td><td>transactions gas estimation </td></tr>
     <tr><td class="paramname">vdf</td><td>vdf with correct difficulty calculation </td></tr>
   </table>
   </dd>
