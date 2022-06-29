@@ -52,10 +52,20 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
 
   uint64_t estimateTransactionGas(std::shared_ptr<Transaction> trx, std::optional<uint64_t> proposal_period) const;
   uint64_t estimateTransactionGasByHash(const trx_hash_t &hash, std::optional<uint64_t> proposal_period) const;
+
   /**
-   * Retrieves transactions to be included in a proposed pbft block
+   * @brief Gets transactions from pool to include in the block with specified weight limit
+   * @param proposal_period proposal period
+   * @param weight_limit weight limit
+   * @return transactions and weight estimations
    */
-  SharedTransactions packTrxs(uint16_t max_trx_to_pack = 0);
+  std::pair<SharedTransactions, std::vector<uint64_t>> packTrxs(uint64_t proposal_period, uint64_t weight_limit);
+
+  /**
+   * @brief Gets all transactions from pool
+   * @return transactions
+   */
+  SharedTransactions getAllPoolTrxs();
 
   /**
    * Saves transactions from dag block which was added to the DAG. Removes transactions from memory pool

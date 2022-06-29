@@ -51,6 +51,15 @@ std::vector<std::shared_ptr<Transaction>> TransactionQueue::get(uint64_t count) 
   return ret;
 }
 
+void TransactionQueue::resetGetNextTransactionIterator() { priority_queue_it_ = priority_queue_.begin(); }
+
+std::shared_ptr<Transaction> TransactionQueue::getNextTransaction() {
+  if (priority_queue_it_ == priority_queue_.end()) return nullptr;
+  auto res = *priority_queue_it_;
+  priority_queue_it_++;
+  return res;
+}
+
 bool TransactionQueue::erase(const trx_hash_t &hash) {
   // Find the hash
   const auto it = hash_queue_.find(hash);

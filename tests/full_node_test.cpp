@@ -1491,8 +1491,7 @@ TEST_F(FullNodeTest, chain_config_json) {
   },
   "dag": {
     "block_proposer": {
-      "shard": "0x1",
-      "transaction_limit": "0xfa"
+      "shard": "0x1"
     },
     "gas_limit": "0x989680"
   },

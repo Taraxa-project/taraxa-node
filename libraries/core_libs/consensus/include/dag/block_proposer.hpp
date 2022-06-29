@@ -136,18 +136,20 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
    * @brief Creates/proposes a new block with provided data
    * @param frontier frontier to use for pivot and tips of the new block
    * @param level level of the new block
-   * @param proposal_period proposal period
    * @param trxs transactions to be included in the block
+   * @param estimations transactions gas estimation
    * @param vdf vdf with correct difficulty calculation
    */
-  void proposeBlock(DagFrontier&& frontier, level_t level, uint64_t proposal_period, SharedTransactions&& trxs,
-                    VdfSortition&& vdf);
+  void proposeBlock(DagFrontier&& frontier, level_t level, SharedTransactions&& trxs,
+                    std::vector<uint64_t>&& estimations, VdfSortition&& vdf);
 
   /**
    * @brief Gets transactions to include in the block - sharding not supported yet
-   * @return transactions
+   * @param proposal_period proposal period
+   * @param weight_limit weight limit
+   * @return transactions and weight estimations
    */
-  SharedTransactions getShardedTrxs();
+  std::pair<SharedTransactions, std::vector<uint64_t>> getShardedTrxs(uint64_t proposal_period, uint64_t weight_limit);
 
   /**
    * @brief Gets current propose level for provided pivot and tips

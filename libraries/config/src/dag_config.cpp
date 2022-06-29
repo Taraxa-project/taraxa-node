@@ -7,10 +7,8 @@ namespace taraxa {
 
 bytes BlockProposerConfig::rlp() const {
   dev::RLPStream s;
-  s.appendList(2);
-
+  s.appendList(1);
   s << shard;
-  s << transaction_limit;
 
   return s.out();
 }
@@ -18,13 +16,9 @@ bytes BlockProposerConfig::rlp() const {
 Json::Value enc_json(const BlockProposerConfig& obj) {
   Json::Value ret(Json::objectValue);
   ret["shard"] = dev::toJS(obj.shard);
-  ret["transaction_limit"] = dev::toJS(obj.transaction_limit);
   return ret;
 }
-void dec_json(const Json::Value& json, BlockProposerConfig& obj) {
-  obj.shard = dev::getUInt(json["shard"]);
-  obj.transaction_limit = dev::getUInt(json["transaction_limit"]);
-}
+void dec_json(const Json::Value& json, BlockProposerConfig& obj) { obj.shard = dev::getUInt(json["shard"]); }
 
 bytes DagConfig::rlp() const {
   dev::RLPStream s;
