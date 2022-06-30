@@ -13,3 +13,4 @@
 !docker-entrypoint.sh
 !cli
 !conanfile.py
+!.git
