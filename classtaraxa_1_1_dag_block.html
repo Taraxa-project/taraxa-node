@@ -166,6 +166,9 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a1ef2829d6bac3f78d900e08cd0827df0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad56b5133c0560c42278111eb4f0033bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#ad56b5133c0560c42278111eb4f0033bd">rlp</a> (bool include_sig) const</td></tr>
 <tr class="separator:ad56b5133c0560c42278111eb4f0033bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abff9ac02f998b919d4605153e4d03f79"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classdev_1_1_r_l_p_stream.html">dev::RLPStream</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#abff9ac02f998b919d4605153e4d03f79">streamRLP</a> (bool include_sig) const</td></tr>
+<tr class="memdesc:abff9ac02f998b919d4605153e4d03f79"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns dag block data rlp stream.  <a href="classtaraxa_1_1_dag_block.html#abff9ac02f998b919d4605153e4d03f79">More...</a><br /></td></tr>
+<tr class="separator:abff9ac02f998b919d4605153e4d03f79"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-methods"></a>
 Static Public Member Functions</h2></td></tr>
@@ -175,8 +178,6 @@ Static Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
-<tr class="memitem:acdf2e8058302165e911c53711a29bf03"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#acdf2e8058302165e911c53711a29bf03">streamRLP</a> (<a class="el" href="classdev_1_1_r_l_p_stream.html">dev::RLPStream</a> &amp;s, bool include_sig) const</td></tr>
-<tr class="separator:acdf2e8058302165e911c53711a29bf03"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8d35045f23d40d390546972399f08255"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#a8d35045f23d40d390546972399f08255">sha3</a> (bool include_sig) const</td></tr>
 <tr class="separator:a8d35045f23d40d390546972399f08255"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -947,39 +948,30 @@ Friends</h2></td></tr>
 
 </div>
 </div>
-<a id="acdf2e8058302165e911c53711a29bf03"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acdf2e8058302165e911c53711a29bf03">&#9670;&nbsp;</a></span>streamRLP()</h2>
+<a id="abff9ac02f998b919d4605153e4d03f79"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abff9ac02f998b919d4605153e4d03f79">&#9670;&nbsp;</a></span>streamRLP()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void taraxa::DagBlock::streamRLP </td>
+          <td class="memname"><a class="el" href="classdev_1_1_r_l_p_stream.html">dev::RLPStream</a> taraxa::DagBlock::streamRLP </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classdev_1_1_r_l_p_stream.html">dev::RLPStream</a> &amp;&#160;</td>
-          <td class="paramname"><em>s</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>include_sig</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
+          <td class="paramname"><em>include_sig</em></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
+
+<p>Returns dag block data rlp stream. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">include_sig</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="classdev_1_1_r_l_p_stream.html" title="Class for writing to an RLP bytestream.">dev::RLPStream</a> </dd></dl>
 
 </div>
 </div>
