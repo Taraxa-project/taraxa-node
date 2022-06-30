@@ -21,7 +21,7 @@ DagSyncPacketHandler::DagSyncPacketHandler(std::shared_ptr<PeersState> peers_sta
       trx_mgr_(std::move(trx_mgr)) {}
 
 void DagSyncPacketHandler::validatePacketRlpFormat(const PacketData& packet_data) const {
-  if (constexpr size_t required_size = 4; packet_data.rlp_.itemCount() < required_size) {
+  if (constexpr size_t required_size = 4; packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
 }
