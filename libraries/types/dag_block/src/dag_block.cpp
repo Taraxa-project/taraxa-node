@@ -151,7 +151,9 @@ addr_t const &DagBlock::getSender() const {
   return cached_sender_;
 }
 
-void DagBlock::streamRLP(dev::RLPStream &s, bool include_sig) const {
+dev::RLPStream DagBlock::streamRLP(bool include_sig) const {
+  dev::RLPStream s;
+
   constexpr auto base_field_count = 7;
   s.appendList(include_sig ? base_field_count + 1 : base_field_count);
   s << pivot_;
@@ -164,13 +166,11 @@ void DagBlock::streamRLP(dev::RLPStream &s, bool include_sig) const {
     s << sig_;
   }
   s.appendVector(trxs_gas_estimations_);
+
+  return s;
 }
 
-bytes DagBlock::rlp(bool include_sig) const {
-  dev::RLPStream s;
-  streamRLP(s, include_sig);
-  return s.invalidate();
-}
+bytes DagBlock::rlp(bool include_sig) const { return streamRLP(include_sig).invalidate(); }
 
 blk_hash_t DagBlock::sha3(bool include_sig) const { return dev::sha3(rlp(include_sig)); }
 

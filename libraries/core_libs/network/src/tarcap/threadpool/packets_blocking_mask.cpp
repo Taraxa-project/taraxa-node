@@ -77,7 +77,7 @@ std::optional<taraxa::level_t> PacketsBlockingMask::getSmallestDagLevelBeingProc
 }
 
 void PacketsBlockingMask::setDagBlockLevelBeingProcessed(const PacketData& packet) {
-  level_t dag_level = DagBlock::extract_dag_level_from_rlp(packet.rlp_[0]);
+  level_t dag_level = DagBlock::extract_dag_level_from_rlp(packet.rlp_);
 
   // Only new dag blocks with smaller or equal level than the smallest level from all blocks currently being processed
   // are allowed
@@ -95,7 +95,7 @@ void PacketsBlockingMask::setDagBlockLevelBeingProcessed(const PacketData& packe
 }
 
 void PacketsBlockingMask::unsetDagBlockLevelBeingProcessed(const PacketData& packet) {
-  level_t dag_block_level = DagBlock::extract_dag_level_from_rlp(packet.rlp_[0]);
+  level_t dag_block_level = DagBlock::extract_dag_level_from_rlp(packet.rlp_);
 
   // There must be existing dag level inside processing_dag_levels_
   const auto processing_dag_level = processing_dag_levels_.find(dag_block_level);
@@ -128,7 +128,7 @@ bool PacketsBlockingMask::isDagBlockPacketBlockedByLevel(const PacketData& packe
     return false;
   }
 
-  const auto dag_level = DagBlock::extract_dag_level_from_rlp(packet_data.rlp_[0]);
+  const auto dag_level = DagBlock::extract_dag_level_from_rlp(packet_data.rlp_);
   if (dag_level > smallest_processing_dag_level.value()) {
     return true;
   }
