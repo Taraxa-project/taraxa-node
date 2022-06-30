@@ -17,7 +17,10 @@ TransactionPacketHandler::TransactionPacketHandler(std::shared_ptr<PeersState> p
       test_state_(std::move(test_state)) {}
 
 void TransactionPacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketData &packet_data) const {
-  // Number of txs is not fixed, nothing to be checked here
+  auto items = packet_data.rlp_.itemCount();
+  if (items == 0 || items > kMaxTransactionsInPacket) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, items, kMaxTransactionsInPacket);
+  }
 }
 
 inline void TransactionPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
