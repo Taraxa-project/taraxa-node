@@ -25,7 +25,7 @@ struct ETHChainConfig {
 Json::Value enc_json(const ETHChainConfig& obj);
 void dec_json(const Json::Value& json, ETHChainConfig& obj);
 
-using BalanceMap = std::unordered_map<addr_t, u256>;
+using BalanceMap = std::map<addr_t, u256>;
 Json::Value enc_json(const BalanceMap& obj);
 void dec_json(const Json::Value& json, BalanceMap& obj);
 
