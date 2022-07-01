@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['balancemap_6464',['BalanceMap',['../namespacetaraxa_1_1state__api.html#a3c8849f3f4293ae89bd8eaad52d17e3a',1,'taraxa::state_api']]],
+  ['balancemap_6464',['BalanceMap',['../namespacetaraxa_1_1state__api.html#a3e5d8455efc176980b350d5f8ef5970f',1,'taraxa::state_api']]],
   ['batch_6465',['Batch',['../classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63',1,'taraxa::DbStorage']]],
   ['bigint_6466',['bigint',['../namespacedev.html#a94843ba60acb243dcb31fa1f3525760b',1,'dev']]],
   ['blk_5fhash_5ft_6467',['blk_hash_t',['../namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b',1,'taraxa']]],

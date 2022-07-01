@@ -54,7 +54,7 @@ var state__api__config_8hpp =
       [ "db_path", "namespacetaraxa_1_1state__api.html#a13aa11cb2ea1bbd6a159176729bafd90", null ],
       [ "disable_most_recent_trie_value_views", "namespacetaraxa_1_1state__api.html#a1a9997e4f7fcc0fd915039afd6a5c31d", null ]
     ] ],
-    [ "BalanceMap", "state__api__config_8hpp.html#a3c8849f3f4293ae89bd8eaad52d17e3a", null ],
+    [ "BalanceMap", "state__api__config_8hpp.html#a3e5d8455efc176980b350d5f8ef5970f", null ],
     [ "dec_json", "state__api__config_8hpp.html#a0cdba49b2802bab1d0da7a671714e77b", null ],
     [ "dec_json", "state__api__config_8hpp.html#a71678cb3f5feb67a738df3d7d2f45270", null ],
     [ "dec_json", "state__api__config_8hpp.html#a8430d4247900167bc1ac842c70484cc3", null ],

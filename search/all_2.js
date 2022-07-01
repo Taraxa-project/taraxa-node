@@ -3,7 +3,7 @@ var searchData=
   ['b_119',['b',['../structdev_1_1_generic_guard_bool.html#a2676e3ba81e271d7a67a414517386bdd',1,'dev::GenericGuardBool::b()'],['../structdev_1_1_generic_unguard_bool.html#adc2e4a266ca7d84cecc5293947f9f976',1,'dev::GenericUnguardBool::b()'],['../structdev_1_1_generic_unguard_shared_bool.html#a7da5427fd9453f37d49349e6081cd16c',1,'dev::GenericUnguardSharedBool::b()']]],
   ['badprotocol_120',['BadProtocol',['../namespacedev_1_1p2p.html#ab97a033c9bbe0fb22e2b4f093593f276acf49e79057333a6f4368523ebc414a1a',1,'dev::p2p']]],
   ['balance_121',['balance',['../group___final_chain.html#a905d262ea2a6c2877e535928a5a6f185',1,'taraxa::state_api::Account']]],
-  ['balancemap_122',['BalanceMap',['../namespacetaraxa_1_1state__api.html#a3c8849f3f4293ae89bd8eaad52d17e3a',1,'taraxa::state_api']]],
+  ['balancemap_122',['BalanceMap',['../namespacetaraxa_1_1state__api.html#a3e5d8455efc176980b350d5f8ef5970f',1,'taraxa::state_api']]],
   ['base64_2ecpp_123',['Base64.cpp',['../_base64_8cpp.html',1,'']]],
   ['base64_2eh_124',['Base64.h',['../_base64_8h.html',1,'']]],
   ['batch_125',['Batch',['../classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63',1,'taraxa::DbStorage']]],
