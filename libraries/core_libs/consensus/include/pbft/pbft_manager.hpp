@@ -3,15 +3,14 @@
 #include <string>
 #include <thread>
 
-#include "common/types.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
 #include "logger/logger.hpp"
-#include "network/network.hpp"
 #include "network/tarcap/taraxa_capability.hpp"
 #include "pbft/period_data_queue.hpp"
+#include "pbft/step/step.hpp"
+#include "pbft/utils.hpp"
 
-#define NULL_BLOCK_HASH blk_hash_t(0)
 #define POLLING_INTERVAL_ms 100  // milliseconds...
 #define MAX_STEPS 13             // Need to be a odd number
 #define MAX_WAIT_FOR_SOFT_VOTED_BLOCK_STEPS 20
@@ -24,8 +23,6 @@ namespace taraxa {
  */
 
 class FullNode;
-
-enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_state, finish_polling_state };
 
 enum PbftSyncRequestReason {
   missing_dag_blk = 1,
@@ -41,9 +38,9 @@ enum PbftSyncRequestReason {
  * According to paper "ALGORAND AGREEMENT Super Fast and Partition Resilient Byzantine Agreement
  * (https://eprint.iacr.org/2018/377.pdf)", implement PBFT manager for finalizing DAG blocks.
  *
- * There are 5 states in one PBFT round: proposal state, filter state, certify state, finish state, and finish polling
+ * There are 5 states in one PBFT round: propose state, filter state, certify state, finish state, and finish polling
  * state.
- * - Proposal state: PBFT step 1. Generate a PBFT block and propose a vote on the block hash
+ * - Propose state: PBFT step 1. Generate a PBFT block and propose a vote on the block hash
  * - Filter state: PBFT step 2. Identify a leader block from all received proposed blocks for the current period by
  * using minimum Verifiable Random Function (VRF) output. Soft vote at the leader block hash. In filter state, don’t
  * need check vote value correction.
@@ -56,7 +53,7 @@ enum PbftSyncRequestReason {
  *
  * PBFT timing: All players keep a timer clock. The timer clock will reset to 0 at every new PBFT round. That doesn’t
  * require all players clocks to be synchronized; it only requires that they have the same clock speed.
- * - Proposal state: Reset clock to 0
+ * - Propose state: Reset clock to 0
  * - Filter state: Start at clock 2 lambda time
  * - Certify state: Start after filter state, clock is between 2 lambda and 4 lambda duration
  * - Finish state: Start at 4 lambda time, until receive enough next voting votes to go to next round
@@ -66,14 +63,13 @@ enum PbftSyncRequestReason {
 class PbftManager : public std::enable_shared_from_this<PbftManager> {
  public:
   using time_point = std::chrono::system_clock::time_point;
-  using vrf_sk_t = vrf_wrapper::vrf_sk_t;
 
   PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_block_hash, addr_t node_addr,
               std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
               std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
               std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
               std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain, secret_t node_sk,
-              vrf_sk_t vrf_sk, uint32_t max_levels_per_period = kMaxLevelsPerPeriod);
+              vrf_wrapper::vrf_sk_t vrf_sk, uint32_t max_levels_per_period = kMaxLevelsPerPeriod);
   ~PbftManager();
   PbftManager(const PbftManager &) = delete;
   PbftManager(PbftManager &&) = delete;
@@ -104,7 +100,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   /**
    * @brief Initial PBFT states when node start PBFT
    */
-  void initialState();
+  void initialize();
 
   /**
    * @brief Check PBFT blocks syncing queue. If there are synced PBFT blocks in queue, push it to PBFT chain
@@ -123,12 +119,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @return PBFT round
    */
   uint64_t getPbftRound() const;
-
-  /**
-   * @brief Get PBFT step number
-   * @return PBFT step
-   */
-  uint64_t getPbftStep() const;
 
   /**
    * @brief Set PBFT round number
@@ -154,16 +144,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param pbft_step PBFT step
    */
   void setPbftStep(size_t const pbft_step);
-
-  /**
-   * @brief Generate PBFT block, push into unverified queue, and broadcast to peers
-   * @param prev_blk_hash previous PBFT block hash
-   * @param anchor_hash proposed DAG pivot block hash for finalization
-   * @param order_hash the hash of all DAG blocks include in the PBFT block
-   * @return PBFT block hash
-   */
-  blk_hash_t generatePbftBlock(const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
-                               const blk_hash_t &order_hash);
 
   /**
    * @brief Generate a vote
@@ -232,58 +212,52 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Get PBFT committee size
    * @return PBFT committee size
    */
-  size_t getPbftCommitteeSize() const { return COMMITTEE_SIZE; }
+  size_t getPbftCommitteeSize() const { return config_.committee_size; }
 
   /**
    * @brief Get PBFT lambda. PBFT lambda is a timer clock
    * @return PBFT lambda
    */
-  u_long getPbftInitialLambda() const { return LAMBDA_ms_MIN; }
+  uint64_t getPbftInitialLambda() const { return config_.lambda_ms_min; }
 
   /**
+   * @note Used only for tests
+   * @brief Go to next PBFT state
+   */
+  // void doNextState_();
+
+  /**
+   * @note Used only for tests
    * @brief Set last soft vote value of PBFT block hash
    * @param soft_voted_value soft vote value of PBFT block hash
    */
-  void setLastSoftVotedValue(blk_hash_t soft_voted_value);
+  // void setLastSoftVotedValue(blk_hash_t soft_voted_value) { updateLastSoftVotedValue_(soft_voted_value); }
 
   /**
-   * @brief Resume PBFT daemon. Only to be used for unit tests
+   * @note Used only for tests
+   * @brief Resume PBFT daemon
    */
-  void resume();
+  // void resume();
 
   /**
-   * @brief Resume PBFT daemon on single state. Only to be used for unit tests
+   * @note Used only for tests
+   * @brief Resume PBFT daemon on single state
    */
-  void resumeSingleState();
+  // void resumeSingleState();
 
   /**
-   * @brief Set maximum waiting time for soft vote value. Only to be used for unit tests
+   * @note Used only for tests
+   * @brief Set maximum waiting time for soft vote value
    * @param wait_ms waiting time in milisecond
    */
-  void setMaxWaitForSoftVotedBlock_ms(uint64_t wait_ms);
+  // void setMaxWaitForSoftVotedBlock_ms(uint64_t wait_ms);
 
   /**
-   * @brief Set maximum waiting time for next vote value. Only to be used for unit tests
+   * @note Used only for tests
+   * @brief Set maximum waiting time for next vote value
    * @param wait_ms waiting time in milisecond
    */
-  void setMaxWaitForNextVotedBlock_ms(uint64_t wait_ms);
-
-  /**
-   * @brief Calculate DAG blocks ordering hash
-   * @param dag_block_hashes DAG blocks hashes
-   * @param trx_hashes transactions hashes
-   * @return DAG blocks ordering hash
-   */
-  static blk_hash_t calculateOrderHash(const std::vector<blk_hash_t> &dag_block_hashes,
-                                       const std::vector<trx_hash_t> &trx_hashes);
-
-  /**
-   * @brief Calculate DAG blocks ordering hash
-   * @param dag_blocks DAG blocks
-   * @param transactions transactions
-   * @return DAG blocks ordering hash
-   */
-  static blk_hash_t calculateOrderHash(const std::vector<DagBlock> &dag_blocks, const SharedTransactions &transactions);
+  // void setMaxWaitForNextVotedBlock_ms(uint64_t wait_ms);
 
   /**
    * @brief Check a block weight of gas estimation
@@ -307,7 +281,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    */
   std::vector<std::shared_ptr<Vote>> getRewardVotesInBlock(const std::vector<vote_hash_t> &reward_votes_hashes);
 
- private:
   // DPOS
   /**
    * @brief Update DPOS period, total DPOS votes count, and node DPOS weighted votes count.
@@ -343,39 +316,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void continuousOperation_();
 
   /**
-   * @brief Go to next PBFT state. Only to be used for unit tests
+   * @brief move to next Step
    */
-  void doNextState_();
-
-  /**
-   * @brief Set next PBFT state
-   */
-  void setNextState_();
-
-  /**
-   * @brief Set PBFT filter state
-   */
-  void setFilterState_();
-
-  /**
-   * @brief Set PBFT certify state
-   */
-  void setCertifyState_();
-
-  /**
-   * @brief Set PBFT finish state
-   */
-  void setFinishState_();
-
-  /**
-   * @brief Set PBFT finish polling state
-   */
-  void setFinishPollingState_();
-
-  /**
-   * @brief Set back to PBFT finish state from PBFT finish polling state
-   */
-  void loopBackFinishState_();
+  void nextStep_();
 
   /**
    * @brief If there are any synced PBFT blocks from peers, push the synced blocks in PBFT chain. Verify all received
@@ -385,56 +328,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool stateOperations_();
 
   /**
-   * @brief PBFT proposal state. PBFT step 1. Propose a PBFT block and place a proposal vote on the block hash.
-   */
-  void proposeBlock_();
-
-  /**
-   * @brief PBFT filter state. PBFT step 2. Identify a leader block from all received proposed blocks for the current
-   * period, and place a soft vote at the leader block hash.
-   */
-  void identifyBlock_();
-
-  /**
-   * @brief PBFT certify state. PBFT step 3. If receive enough soft votes and pass verification, place a cert vote at
-   * the value.
-   */
-  void certifyBlock_();
-
-  /**
-   * @brief PBFT finish state. Happens at even number steps from step 4. Place a next vote at finishing value for the
-   * current PBFT round.
-   */
-  void firstFinish_();
-
-  /**
-   * @brief PBFT finish polling state: Happens at odd number steps from step 5. Place a next vote at finishing value for
-   * the current PBFT round.
-   */
-  void secondFinish_();
-
-  /**
-   * @brief Place a vote, save it in the verified votes queue, and gossip to peers
-   * @param blockhash vote on PBFT block hash
-   * @param vote_type vote type
-   * @param round PBFT round
-   * @param step PBFT step
-   * @return vote weight
-   */
-  size_t placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round, size_t step);
-
-  /**
    * @brief Get PBFT sortition threshold
    * @param vote_type vote type
    * @return PBFT sortition threshold
    */
   uint64_t getThreshold(PbftVoteTypes vote_type) const;
-
-  /**
-   * @brief Propose a new PBFT block
-   * @return proposed PBFT block hash
-   */
-  blk_hash_t proposePbftBlock_();
 
   /**
    * @brief Identify a leader block from all received proposed PBFT blocks for the current period by using minimum
@@ -462,12 +360,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param relevant_blk_hash relevant block hash
    */
   void syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::blk_hash_t const &relevant_blk_hash);
-
-  /**
-   * @brief Only be able to broadcast one time of previous round next voting votes per each PBFT round and step
-   * @return true if the current PBFT round and step has broadcasted previous round next voting votes already
-   */
-  bool broadcastAlreadyThisStep_() const;
 
   /**
    * @brief Check that there are all DAG blocks with correct ordering, total gas estimation is not greater than gas
@@ -524,12 +416,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool is_syncing_();
 
   /**
-   * @brief Terminate the next voting value of the PBFT block hash
-   * @return true if terminate the vote value successfully
-   */
-  bool giveUpNextVotedBlock_();
-
-  /**
    * @brief Terminate the soft voting value of the PBFT block hash
    * @return true if terminate the vote value successfully
    */
@@ -539,12 +425,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Set initial time for voting value
    */
   void initializeVotedValueTimeouts_();
-
-  /**
-   * @brief Update last soft voting value
-   * @param new_soft_voted_value soft voting value
-   */
-  void updateLastSoftVotedValue_(blk_hash_t const new_soft_voted_value);
 
   /**
    * @brief Check if previous round next voting value has been changed
@@ -573,78 +453,43 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::atomic<bool> stopped_ = true;
 
   // Ensures that only one PBFT block per period can be proposed
-  blk_hash_t proposed_block_hash_ = NULL_BLOCK_HASH;
+  blk_hash_t proposed_block_hash_ = kNullBlockHash;
 
   std::unique_ptr<std::thread> daemon_;
-  std::shared_ptr<DbStorage> db_;
-  std::shared_ptr<NextVotesManager> next_votes_manager_;
-  std::shared_ptr<PbftChain> pbft_chain_;
-  std::shared_ptr<VoteManager> vote_mgr_;
-  std::shared_ptr<DagManager> dag_mgr_;
-  std::weak_ptr<Network> network_;
-  std::shared_ptr<DagBlockManager> dag_blk_mgr_;
-  std::shared_ptr<TransactionManager> trx_mgr_;
-  std::shared_ptr<FinalChain> final_chain_;
 
+  std::shared_ptr<CommonState> shared_state_;
+  std::shared_ptr<NodeFace> node_;
   addr_t node_addr_;
-  secret_t node_sk_;
-  vrf_sk_t vrf_sk_;
 
-  u_long const LAMBDA_ms_MIN;
-  u_long LAMBDA_ms = 0;
-  u_long LAMBDA_backoff_multiple = 1;
-  const u_long kMaxLambda = 60000;  // in ms, max lambda is 1 minutes
+  std::unique_ptr<Step> current_step_;
 
-  std::default_random_engine random_engine_{std::random_device{}()};
+  uint64_t LAMBDA_ms = 0;
+  uint64_t LAMBDA_backoff_multiple = 1;
+  const uint64_t kMaxLambda = 60000;  // in ms, max lambda is 1 minutes
 
-  const size_t COMMITTEE_SIZE;
-  const size_t NUMBER_OF_PROPOSERS;
-  const size_t DAG_BLOCKS_SIZE;
-  const size_t GHOST_PATH_MOVE_BACK;
-  bool RUN_COUNT_VOTES;  // TODO: Only for test, need remove later
-
-  PbftStates state_ = value_proposal_state;
   std::atomic<uint64_t> round_ = 1;
   size_t step_ = 1;
   size_t startingStepInRound_ = 1;
 
-  blk_hash_t own_starting_value_for_round_ = NULL_BLOCK_HASH;
-  blk_hash_t soft_voted_block_for_this_round_ = NULL_BLOCK_HASH;
-
   // Period data for pbft block that is being currently cert voted for
   PeriodData period_data_;
 
-  time_point round_clock_initial_datetime_;
-  time_point now_;
-
-  time_point time_began_waiting_next_voted_block_;
-  time_point time_began_waiting_soft_voted_block_;
-  blk_hash_t previous_round_next_voted_value_ = NULL_BLOCK_HASH;
   bool previous_round_next_voted_null_block_hash_ = false;
-
-  blk_hash_t last_soft_voted_value_ = NULL_BLOCK_HASH;
-  blk_hash_t last_cert_voted_value_ = NULL_BLOCK_HASH;
-
-  std::chrono::duration<double> duration_;
-  u_long next_step_time_ms_ = 0;
-  u_long elapsed_time_in_round_ms_ = 0;
 
   bool executed_pbft_block_ = false;
   bool have_executed_this_round_ = false;
   bool should_have_cert_voted_in_this_round_ = false;
   bool next_voted_soft_value_ = false;
   bool next_voted_null_block_hash_ = false;
-  bool go_finish_state_ = false;
-  bool loop_back_finish_state_ = false;
   bool polling_state_print_log_ = true;
 
   uint64_t max_wait_for_soft_voted_block_steps_ms_ = 30;
-  uint64_t max_wait_for_next_voted_block_steps_ms_ = 30;
+
+  // Was used for 1 unit test
+  // uint64_t max_wait_for_next_voted_block_steps_ms_ = 30;
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
-  uint64_t pbft_round_last_broadcast_ = 0;
-  size_t pbft_step_last_broadcast_ = 0;
 
   std::atomic<uint64_t> dpos_period_;
   std::atomic<size_t> dpos_votes_count_;
@@ -665,20 +510,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   const uint32_t max_levels_per_period_;
 
-  /**
-   * @brief Count how many votes in the current PBFT round and step. This is only for testing purpose
-   */
-  void countVotes_() const;
-
-  std::shared_ptr<std::thread> monitor_votes_ = nullptr;
-  std::atomic<bool> monitor_stop_ = true;
-  size_t last_step_ = 0;
-  time_point last_step_clock_initial_datetime_;
-  time_point current_step_clock_initial_datetime_;
-  // END TEST CODE
-
   LOG_OBJECTS_DEFINE
-  mutable logger::Logger log_nf_test_{logger::createLogger(taraxa::logger::Verbosity::Info, "PBFT_TEST", node_addr_)};
 };
 
 /** @}*/

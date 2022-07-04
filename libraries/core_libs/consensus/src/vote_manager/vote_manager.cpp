@@ -26,7 +26,7 @@ VoteManager::VoteManager(size_t pbft_committee_size, const addr_t& node_addr, st
   LOG_OBJECTS_CREATE("VOTE_MGR");
 
   // Retrieve votes from DB
-  daemon_ = std::make_unique<std::thread>([this]() { retreieveVotes_(); });
+  daemon_ = std::make_unique<std::thread>([this]() { retrieveVotes_(); });
 
   current_period_final_chain_block_hash_ = final_chain_->block_header()->hash;
 
@@ -37,7 +37,7 @@ VoteManager::~VoteManager() { daemon_->join(); }
 
 void VoteManager::setNetwork(std::weak_ptr<Network> network) { network_ = std::move(network); }
 
-void VoteManager::retreieveVotes_() {
+void VoteManager::retrieveVotes_() {
   LOG(log_si_) << "Retrieve verified votes from DB";
   auto verified_votes = db_->getVerifiedVotes();
   const auto pbft_step = db_->getPbftMgrField(PbftMgrRoundStep::PbftStep);
@@ -390,7 +390,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t pbft_r
   std::vector<std::shared_ptr<Vote>> proposal_votes;
 
   SharedLock lock(verified_votes_access_);
-  // For each proposed value should only have one vote(except NULL_BLOCK_HASH)
+  // For each proposed value should only have one vote(except kNullBlockHash)
   proposal_votes.reserve(verified_votes_[pbft_round][1].size());
   for (auto const& voted_value : verified_votes_[pbft_round][1]) {
     for (auto const& v : voted_value.second.second) {
@@ -415,7 +415,7 @@ std::optional<VotesBundle> VoteManager::getVotesBundleByRoundAndStep(uint64_t ro
           const auto voted_block_hash = voted_value.first;
           size_t count = 0;
 
-          if (step == certify_state) {
+          if (step == PbftStates::certify) {
             // Collect all cert votes
             votes.reserve(voted_value.second.second.size());
             for (const auto& v : voted_value.second.second) {
@@ -630,14 +630,14 @@ NextVotesManager::NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> 
     : db_(std::move(db)),
       final_chain_(std::move(final_chain)),
       enough_votes_for_null_block_hash_(false),
-      voted_value_(NULL_BLOCK_HASH) {
+      voted_value_(kNullBlockHash) {
   LOG_OBJECTS_CREATE("NEXT_VOTES");
 }
 
 void NextVotesManager::clear() {
   UniqueLock lock(access_);
   enough_votes_for_null_block_hash_ = false;
-  voted_value_ = NULL_BLOCK_HASH;
+  voted_value_ = kNullBlockHash;
   next_votes_.clear();
   next_votes_weight_.clear();
   next_votes_set_.clear();
@@ -650,7 +650,7 @@ bool NextVotesManager::find(vote_hash_t next_vote_hash) {
 
 bool NextVotesManager::enoughNextVotes() const {
   SharedLock lock(access_);
-  return enough_votes_for_null_block_hash_ && (voted_value_ != NULL_BLOCK_HASH);
+  return enough_votes_for_null_block_hash_ && (voted_value_ != kNullBlockHash);
 }
 
 bool NextVotesManager::haveEnoughVotesForNullBlockHash() const {
@@ -684,7 +684,7 @@ size_t NextVotesManager::getNextVotesWeight() const {
 
 // Assumption is that all votes are validated, in next voting phase, in the same round.
 // Votes for same voted value are in the same step
-// Voted values have maximum 2 PBFT block hashes, NULL_BLOCK_HASH and a non NULL_BLOCK_HASH
+// Voted values have maximum 2 PBFT block hashes, kNullBlockHash and a non kNullBlockHash
 void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes, size_t pbft_2t_plus_1) {
   if (next_votes.empty()) {
     return;
@@ -745,10 +745,10 @@ void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& ne
       LOG(log_dg_) << "Voted PBFT block hash " << voted_value << " has enough " << voted_value_next_votes_size
                    << " next votes";
 
-      if (voted_value == NULL_BLOCK_HASH) {
+      if (voted_value == kNullBlockHash) {
         enough_votes_for_null_block_hash_ = true;
       } else {
-        if (voted_value_ != NULL_BLOCK_HASH && voted_value != voted_value_) {
+        if (voted_value_ != kNullBlockHash && voted_value != voted_value_) {
           assertError_(next_votes_.at(voted_value), next_votes_.at(voted_value_));
         }
 
@@ -812,10 +812,10 @@ void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const&
       LOG(log_nf_) << "Voted PBFT block hash " << it->first << " has " << next_votes_weight_[it->first]
                    << " next votes";
 
-      if (it->first == NULL_BLOCK_HASH) {
+      if (it->first == kNullBlockHash) {
         enough_votes_for_null_block_hash_ = true;
       } else {
-        if (voted_value_ != NULL_BLOCK_HASH) {
+        if (voted_value_ != kNullBlockHash) {
           assertError_(it->second, next_votes_.at(voted_value_));
         }
 
@@ -843,7 +843,7 @@ void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const&
 }
 
 // Assumption is that all synced votes are in next voting phase, in the same round.
-// Valid voted values have maximum 2 block hash, NULL_BLOCK_HASH and a non NULL_BLOCK_HASH
+// Valid voted values have maximum 2 block hash, kNullBlockHash and a non kNullBlockHash
 void NextVotesManager::updateWithSyncedVotes(std::vector<std::shared_ptr<Vote>>& next_votes, size_t pbft_2t_plus_1) {
   if (next_votes.empty()) {
     LOG(log_er_) << "Synced next votes is empty.";
@@ -981,7 +981,7 @@ void NextVotesManager::assertError_(std::vector<std::shared_ptr<Vote>> next_vote
     return;
   }
 
-  LOG(log_er_) << "There are more than one voted values on non NULL_BLOCK_HASH have 2t+1 next votes.";
+  LOG(log_er_) << "There are more than one voted values on non kNullBlockHash have 2t+1 next votes.";
 
   LOG(log_er_) << "Voted value " << next_votes_1[0]->getBlockHash();
   for (auto const& v : next_votes_1) {

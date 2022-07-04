@@ -864,7 +864,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   node1_next_votes_mgr->updateNextVotes(next_votes1, node1_pbft_2t_plus_1);
   EXPECT_EQ(node1_next_votes_mgr->getNextVotesWeight(), next_votes1.size());
 
-  // Generate 1 same next votes with node1, voted same value on NULL_BLOCK_HASH
+  // Generate 1 same next votes with node1, voted same value on kNullBlockHash
   blk_hash_t voted_pbft_block_hash2(0);
   auto vote1 = pbft_mgr1->generateVote(voted_pbft_block_hash2, type, round, step);
   vote1->calculateWeight(1, 1, 1);
@@ -923,7 +923,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   auto node2_pbft_2t_plus_1 = pbft_mgr2->getTwoTPlusOne();
   EXPECT_EQ(node2_pbft_2t_plus_1, 1);
 
-  // Node1 generate 1 next vote voted at NULL_BLOCK_HASH
+  // Node1 generate 1 next vote voted at kNullBlockHash
   blk_hash_t voted_pbft_block_hash1(blk_hash_t(0));
   PbftVoteTypes type = next_vote_type;
   uint64_t round = 1;
