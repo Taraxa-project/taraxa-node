@@ -60,29 +60,13 @@ struct VrfPbftMsg {
 };
 
 /**
- * @brief HashableVrf struct uses VRF output, voter address, and vote weight index to calculate a hash number.
+ * @brief Get a hash number of combining VRF output, voter address, and vote weight index
+ * @param vrf VRF output
+ * @param address voter address
+ * @param index vote weight index
+ * @return a hash number in Secure Hash Algorithm 3
  */
-struct HashableVrf {
-  HashableVrf(const vrf_wrapper::vrf_output_t& vrf, const public_t& addr, uint64_t i = 0)
-      : output(vrf), address(addr), iter(i) {}
-
-  /**
-   * @brief Get a hash number of combining VRF output, voter address, and vote weight index
-   * @return a hash number in Secure Hash Algorithm 3
-   */
-  dev::h256 getHash() const {
-    dev::RLPStream s;
-    s.appendList(3);
-    s << output;
-    s << address;
-    s << iter;
-    return dev::sha3(s.invalidate());
-  }
-
-  const vrf_wrapper::vrf_output_t& output;
-  const public_t& address;
-  uint64_t iter;
-};
+dev::h256 getVoterIndexHash(const vrf_wrapper::vrf_output_t& vrf, const public_t& address, uint64_t index = 0);
 
 /**
  * @brief VrfPbftSortition class used for doing VRF sortition to place a vote or to propose a new PBFT block

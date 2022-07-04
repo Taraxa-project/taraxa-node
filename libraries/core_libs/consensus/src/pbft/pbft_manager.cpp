@@ -1345,11 +1345,9 @@ blk_hash_t PbftManager::proposePbftBlock_() {
 }
 
 h256 PbftManager::getProposal(const std::shared_ptr<Vote> &vote) const {
-  HashableVrf vrf_hash(vote->getCredential(), vote->getVoter(), 1);
-  auto lowest_hash = vrf_hash.getHash();
+  auto lowest_hash = getVoterIndexHash(vote->getCredential(), vote->getVoter(), 1);
   for (uint64_t i = 2; i <= vote->getWeight(); ++i) {
-    vrf_hash.iter = i;
-    auto tmp_hash = vrf_hash.getHash();
+    auto tmp_hash = getVoterIndexHash(vote->getCredential(), vote->getVoter(), i);
     if (lowest_hash > tmp_hash) {
       lowest_hash = tmp_hash;
     }
