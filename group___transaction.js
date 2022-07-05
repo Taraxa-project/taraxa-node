@@ -63,16 +63,13 @@ var group___transaction =
       [ "erase", "group___transaction.html#af14c7d11cc715eb2f9ff782d48f04c97", null ],
       [ "get", "group___transaction.html#aec44e28210d47f379b6f01532b77945b", null ],
       [ "get", "group___transaction.html#a3fe4774e5ef6011818ee0b472b22e366", null ],
-      [ "getNextTransaction", "group___transaction.html#ae33e4214ea04aa0c47b7a45760bbb2dc", null ],
       [ "insert", "group___transaction.html#aa2955a714eff5db636b213de65cca41b", null ],
-      [ "resetGetNextTransactionIterator", "group___transaction.html#a96d1e5e3cf14ddd0b4d47cec0ad17c66", null ],
       [ "size", "group___transaction.html#a9e914abebe36a40abaa78fec71c16eaa", null ],
       [ "hash_queue_", "group___transaction.html#a27aa6547fefe919b3ca104d931209d7c", null ],
       [ "kNonProposableTransactionsLimit", "group___transaction.html#ad0611feecdfc2b9ac4b571e6ea00215c", null ],
       [ "kNonProposableTransactionsPeriodExpiryLimit", "group___transaction.html#a3939cca69427d80759d82b611423a4f8", null ],
       [ "non_proposable_transactions_", "group___transaction.html#a25bb53f8bb74f9d2619667c5b9701f7c", null ],
-      [ "priority_queue_", "group___transaction.html#a6d547434ddff79ee175dc2cccbe9593c", null ],
-      [ "priority_queue_it_", "group___transaction.html#a0d5a6eed2d8c7313d470eec836123181", null ]
+      [ "priority_queue_", "group___transaction.html#a6d547434ddff79ee175dc2cccbe9593c", null ]
     ] ],
     [ "TransactionStatus", "group___transaction.html#gae7551c287ae57b46d56d27de67df61e7", [
       [ "Verified", "group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a3f68e67dc6c397aaa9d1c24c356f754f", null ],

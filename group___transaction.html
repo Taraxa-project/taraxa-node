@@ -1575,12 +1575,6 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 <tr class="memitem:a3fe4774e5ef6011818ee0b472b22e366"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a3fe4774e5ef6011818ee0b472b22e366">get</a> (uint64_t count=0) const</td></tr>
 <tr class="memdesc:a3fe4774e5ef6011818ee0b472b22e366"><td class="mdescLeft">&#160;</td><td class="mdescRight">returns up to the number of requested transaction sorted by priority  <a href="group___transaction.html#a3fe4774e5ef6011818ee0b472b22e366">More...</a><br /></td></tr>
 <tr class="separator:a3fe4774e5ef6011818ee0b472b22e366"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a96d1e5e3cf14ddd0b4d47cec0ad17c66"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a96d1e5e3cf14ddd0b4d47cec0ad17c66">resetGetNextTransactionIterator</a> ()</td></tr>
-<tr class="memdesc:a96d1e5e3cf14ddd0b4d47cec0ad17c66"><td class="mdescLeft">&#160;</td><td class="mdescRight">resets internal iterator for getNextTransaction  <a href="group___transaction.html#a96d1e5e3cf14ddd0b4d47cec0ad17c66">More...</a><br /></td></tr>
-<tr class="separator:a96d1e5e3cf14ddd0b4d47cec0ad17c66"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae33e4214ea04aa0c47b7a45760bbb2dc"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#ae33e4214ea04aa0c47b7a45760bbb2dc">getNextTransaction</a> ()</td></tr>
-<tr class="memdesc:ae33e4214ea04aa0c47b7a45760bbb2dc"><td class="mdescLeft">&#160;</td><td class="mdescRight">returns next transaction sorted by priority or null ptr if no transactions left  <a href="group___transaction.html#ae33e4214ea04aa0c47b7a45760bbb2dc">More...</a><br /></td></tr>
-<tr class="separator:ae33e4214ea04aa0c47b7a45760bbb2dc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a30842e7297b1138e6b33aa4a97361237"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a30842e7297b1138e6b33aa4a97361237">contains</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;hash) const</td></tr>
 <tr class="memdesc:a30842e7297b1138e6b33aa4a97361237"><td class="mdescLeft">&#160;</td><td class="mdescRight">returns true/false if the transaction is in the queue  <a href="group___transaction.html#a30842e7297b1138e6b33aa4a97361237">More...</a><br /></td></tr>
 <tr class="separator:a30842e7297b1138e6b33aa4a97361237"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1606,8 +1600,6 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 <tr class="separator:a3939cca69427d80759d82b611423a4f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad0611feecdfc2b9ac4b571e6ea00215c"><td class="memItemLeft" align="right" valign="top">const uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#ad0611feecdfc2b9ac4b571e6ea00215c">kNonProposableTransactionsLimit</a> = 1000</td></tr>
 <tr class="separator:ad0611feecdfc2b9ac4b571e6ea00215c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0d5a6eed2d8c7313d470eec836123181"><td class="memItemLeft" align="right" valign="top">PriorityQueue::iterator&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a0d5a6eed2d8c7313d470eec836123181">priority_queue_it_</a></td></tr>
-<tr class="separator:a0d5a6eed2d8c7313d470eec836123181"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h4 class="groupheader">Member Typedef Documentation</h4>
 <a id="a6269817707baa2b16a749aa842c75cfa"></a>
@@ -1811,32 +1803,6 @@ false </dd></dl>
 
 </div>
 </div>
-<a id="ae33e4214ea04aa0c47b7a45760bbb2dc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae33e4214ea04aa0c47b7a45760bbb2dc">&#9670;&nbsp;</a></span>getNextTransaction()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; taraxa::TransactionQueue::getNextTransaction </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>returns next transaction sorted by priority or null ptr if no transactions left </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">count</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>std::shared_ptr&lt;Transaction&gt; </dd></dl>
-
-</div>
-</div>
 <a id="aa2955a714eff5db636b213de65cca41b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa2955a714eff5db636b213de65cca41b">&#9670;&nbsp;</a></span>insert()</h2>
 
@@ -1874,25 +1840,6 @@ false </dd></dl>
 <dl class="section return"><dt>Returns</dt><dd>true </dd>
 <dd>
 false </dd></dl>
-
-</div>
-</div>
-<a id="a96d1e5e3cf14ddd0b4d47cec0ad17c66"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a96d1e5e3cf14ddd0b4d47cec0ad17c66">&#9670;&nbsp;</a></span>resetGetNextTransactionIterator()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::TransactionQueue::resetGetNextTransactionIterator </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>resets internal iterator for getNextTransaction </p>
 
 </div>
 </div>
@@ -2016,28 +1963,6 @@ false </dd></dl>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="group___transaction.html#adf6c06957a644c57859b4490944ced6f">PriorityQueue</a> taraxa::TransactionQueue::priority_queue_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a0d5a6eed2d8c7313d470eec836123181"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0d5a6eed2d8c7313d470eec836123181">&#9670;&nbsp;</a></span>priority_queue_it_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">PriorityQueue::iterator taraxa::TransactionQueue::priority_queue_it_</td>
         </tr>
       </table>
   </td>

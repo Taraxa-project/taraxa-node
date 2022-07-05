@@ -9,6 +9,7 @@ var constants_8hpp =
     [ "kMaxLevelsPerPeriod", "constants_8hpp.html#ab2f5ec0c8b9d91b604a61ca8062d0505", null ],
     [ "kMaxTransactionsInPacket", "constants_8hpp.html#ae8b2a4b2aa68f4fcb448a76b73dcc6c8", null ],
     [ "kMaxVotesInPacket", "constants_8hpp.html#ad9e4d316fe40667dcec76bcf4ba3272a", null ],
+    [ "kMinTxGas", "constants_8hpp.html#a80d7e0bedeecd255ab611e8054073fc5", null ],
     [ "kNullBlockHash", "constants_8hpp.html#a84112ec70b7375cf162f481a3ea15852", null ],
     [ "kOnePercent", "constants_8hpp.html#aabc5f78e10c03c40461ce8d35591cc10", null ],
     [ "kOneTara", "constants_8hpp.html#af37c840bbc7870c8fb9f5c878ac55582", null ],
