@@ -62,20 +62,6 @@ class TransactionQueue {
   std::vector<std::shared_ptr<Transaction>> get(uint64_t count = 0) const;
 
   /**
-   * @brief resets internal iterator for getNextTransaction
-   *
-   */
-  void resetGetNextTransactionIterator();
-
-  /**
-   * @brief returns next transaction sorted by priority or null ptr if no transactions left
-   *
-   * @param count
-   * @return std::shared_ptr<Transaction>
-   */
-  std::shared_ptr<Transaction> getNextTransaction();
-
-  /**
    * @brief returns true/false if the transaction is in the queue
    *
    * @param hash
@@ -113,9 +99,6 @@ class TransactionQueue {
 
   // Maximum number of save transactions
   const uint64_t kNonProposableTransactionsLimit = 1000;
-
-  // Priority queue iterator
-  PriorityQueue::iterator priority_queue_it_;
 };
 
 /** @}*/

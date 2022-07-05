@@ -209,31 +209,37 @@ std::shared_ptr<Transaction> TransactionManager::getTransaction(trx_hash_t const
 }
 
 void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &trxs) {
-  // This lock synchronizes inserting and removing transactions from transactions memory pool with database insertion.
-  // Unique lock here makes sure that transactions we are removing are not reinserted in transactions_pool_
-  std::unique_lock transactions_lock(transactions_mutex_);
+  std::vector<trx_hash_t> accepted_transactions;
+  accepted_transactions.reserve(trxs.size());
   auto write_batch = db_->createWriteBatch();
   vec_trx_t trx_hashes;
   std::transform(trxs.begin(), trxs.end(), std::back_inserter(trx_hashes),
                  [](std::shared_ptr<Transaction> const &t) { return t->getHash(); });
 
-  auto trx_in_db = db_->transactionsInDb(trx_hashes);
-  for (uint64_t i = 0; i < trxs.size(); i++) {
-    auto const &trx_hash = trx_hashes[i];
-    // We only save transaction if it has not already been saved
-    if (!trx_in_db[i]) {
-      db_->addTransactionToBatch(*trxs[i], write_batch);
-      nonfinalized_transactions_in_dag_.emplace(trx_hash, trxs[i]);
+  {
+    // This lock synchronizes inserting and removing transactions from transactions memory pool with database insertion.
+    // Unique lock here makes sure that transactions we are removing are not reinserted in transactions_pool_
+    std::unique_lock transactions_lock(transactions_mutex_);
+
+    auto trx_in_db = db_->transactionsInDb(trx_hashes);
+    for (uint64_t i = 0; i < trxs.size(); i++) {
+      auto const &trx_hash = trx_hashes[i];
+      // We only save transaction if it has not already been saved
+      if (!trx_in_db[i]) {
+        db_->addTransactionToBatch(*trxs[i], write_batch);
+        nonfinalized_transactions_in_dag_.emplace(trx_hash, trxs[i]);
+      }
+      if (transactions_pool_.erase(trx_hash)) {
+        LOG(log_dg_) << "Transaction " << trx_hash << " removed from trx pool ";
+        // Transactions are counted when included in DAG
+        trx_count_++;
+        accepted_transactions.emplace_back(trx_hash);
+      }
     }
-    if (transactions_pool_.erase(trx_hash)) {
-      LOG(log_dg_) << "Transaction " << trx_hash << " removed from trx pool ";
-      // Transactions are counted when included in DAG
-      trx_count_++;
-      transaction_accepted_.emit(trx_hash);
-    }
+    db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count_, write_batch);
+    db_->commitWriteBatch(write_batch);
   }
-  db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count_, write_batch);
-  db_->commitWriteBatch(write_batch);
+  for (auto &trx_hash : accepted_transactions) transaction_accepted_.emit(trx_hash);
 }
 
 void TransactionManager::recoverNonfinalizedTransactions() {
@@ -297,21 +303,22 @@ std::vector<std::shared_ptr<Transaction>> TransactionManager::getNonfinalizedTrx
  */
 std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrxs(uint64_t proposal_period,
                                                                                   uint64_t weight_limit) {
-  std::shared_lock transactions_lock(transactions_mutex_);
   SharedTransactions trxs;
   std::vector<uint64_t> estimations;
-  transactions_pool_.resetGetNextTransactionIterator();
   uint64_t total_weight = 0;
-  while (true) {
-    auto trx = transactions_pool_.getNextTransaction();
-    if (trx == nullptr) break;
-    uint64_t weight = estimateTransactionGas(trx, proposal_period);
+  const uint64_t max_transactions_in_block = weight_limit / kMinTxGas;
+  {
+    std::shared_lock transactions_lock(transactions_mutex_);
+    trxs = transactions_pool_.get(max_transactions_in_block);
+  }
+  for (uint64_t i = 0; i < trxs.size(); i++) {
+    uint64_t weight = estimateTransactionGas(trxs[i], proposal_period);
     total_weight += weight;
     if (total_weight > weight_limit) {
+      trxs.resize(i);
       break;
     }
     estimations.push_back(weight);
-    trxs.emplace_back(trx);
   }
   return {trxs, estimations};
 }
