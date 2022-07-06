@@ -279,7 +279,7 @@ class EthImpl : public Eth, EthParams {
 
   void set_transaction_defaults(TransactionSkeleton& t, EthBlockNumber blk_n) {
     if (!t.from) {
-      t.from = address;
+      t.from = ZeroAddress;
     }
     if (!t.nonce) {
       t.nonce = transaction_count(blk_n, t.from);
