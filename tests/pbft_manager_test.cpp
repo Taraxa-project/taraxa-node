@@ -56,7 +56,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     }
     EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
       for (auto &node : nodes) {
-        if (ctx.fail_if(node->getFinalChain()->transactionCount() != trxs_count)) {
+        if (ctx.fail_if(node->getDB()->getNumTransactionExecuted() != trxs_count)) {
           return;
         }
       }
@@ -409,7 +409,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
     }
     EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
       for (auto &node : nodes) {
-        if (ctx.fail_if(node->getFinalChain()->transactionCount() != trxs_count)) {
+        if (ctx.fail_if(node->getDB()->getNumTransactionExecuted() != trxs_count)) {
           return;
         }
       }
@@ -433,8 +433,8 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
   std::cout << "Checking all nodes executed transactions from master boot node" << std::endl;
   EXPECT_HAPPENS({80s, 8s}, [&](auto &ctx) {
     for (size_t i(0); i < nodes.size(); ++i) {
-      if (nodes[i]->getFinalChain()->transactionCount() != trxs_count) {
-        std::cout << "node" << i << " executed " << nodes[i]->getFinalChain()->transactionCount()
+      if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
+        std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions, expected " << trxs_count << std::endl;
         auto dummy_trx = std::make_shared<Transaction>(nonce++, 0, gas_price, TEST_TX_GAS_LIMIT, bytes(),
                                                        nodes[0]->getSecretKey(), nodes[0]->getAddress());
@@ -447,7 +447,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
     }
   });
   for (size_t i(0); i < nodes.size(); ++i) {
-    EXPECT_EQ(nodes[i]->getFinalChain()->transactionCount(), trxs_count);
+    EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
   }
 
   for (size_t i(0); i < nodes.size(); ++i) {
@@ -475,8 +475,8 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
   std::cout << "Checking all nodes execute transactions from robin cycle" << std::endl;
   EXPECT_HAPPENS({80s, 8s}, [&](auto &ctx) {
     for (size_t i(0); i < nodes.size(); ++i) {
-      if (nodes[i]->getFinalChain()->transactionCount() != trxs_count) {
-        std::cout << "node" << i << " executed " << nodes[i]->getFinalChain()->transactionCount()
+      if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
+        std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions. Expected " << trxs_count << std::endl;
         auto dummy_trx = std::make_shared<Transaction>(nonce++, 0, gas_price, TEST_TX_GAS_LIMIT, bytes(),
                                                        nodes[0]->getSecretKey(), nodes[0]->getAddress());
@@ -489,7 +489,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
     }
   });
   for (size_t i = 0; i < nodes.size(); i++) {
-    EXPECT_EQ(nodes[i]->getFinalChain()->transactionCount(), trxs_count);
+    EXPECT_EQ(nodes[i]->getDB()->getNumTransactionExecuted(), trxs_count);
   }
   // Account balances should not change in robin cycle
   for (size_t i(0); i < nodes.size(); ++i) {
