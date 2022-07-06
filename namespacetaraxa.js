@@ -27,7 +27,6 @@ var namespacetaraxa =
     [ "FullNodeConfig", "structtaraxa_1_1_full_node_config.html", "structtaraxa_1_1_full_node_config" ],
     [ "GasPriceConfig", "structtaraxa_1_1_gas_price_config.html", "structtaraxa_1_1_gas_price_config" ],
     [ "GasPricer", "group___transaction.html#classtaraxa_1_1_gas_pricer", "group___transaction_classtaraxa_1_1_gas_pricer" ],
-    [ "HashableVrf", "group___vote.html#structtaraxa_1_1_hashable_vrf", "group___vote_structtaraxa_1_1_hashable_vrf" ],
     [ "InvalidRlpItemsCountException", "classtaraxa_1_1_invalid_rlp_items_count_exception.html", "classtaraxa_1_1_invalid_rlp_items_count_exception" ],
     [ "MaliciousPeerException", "classtaraxa_1_1_malicious_peer_exception.html", "classtaraxa_1_1_malicious_peer_exception" ],
     [ "Network", "classtaraxa_1_1_network.html", "classtaraxa_1_1_network" ],

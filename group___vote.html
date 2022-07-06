@@ -83,7 +83,8 @@ $(document).ready(function(){initNavTree('group___vote.html',''); initResizable(
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Classes</a> &#124;
-<a href="#enum-members">Enumerations</a>  </div>
+<a href="#enum-members">Enumerations</a> &#124;
+<a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
 <div class="title">Vote</div>  </div>
 </div><!--header-->
@@ -106,9 +107,6 @@ Classes</h2></td></tr>
 <tr class="memitem:structtaraxa_1_1_vrf_pbft_msg"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#structtaraxa_1_1_vrf_pbft_msg">taraxa::VrfPbftMsg</a></td></tr>
 <tr class="memdesc:structtaraxa_1_1_vrf_pbft_msg"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___vote.html#structtaraxa_1_1_vrf_pbft_msg" title="VrfPbftMsg struct uses vote type, PBFT round, and PBFT step to generate a message for doing VRF sorti...">VrfPbftMsg</a> struct uses vote type, PBFT round, and PBFT step to generate a message for doing VRF sortition.  <a href="group___vote.html#structtaraxa_1_1_vrf_pbft_msg">More...</a><br /></td></tr>
 <tr class="separator:structtaraxa_1_1_vrf_pbft_msg"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:structtaraxa_1_1_hashable_vrf"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#structtaraxa_1_1_hashable_vrf">taraxa::HashableVrf</a></td></tr>
-<tr class="memdesc:structtaraxa_1_1_hashable_vrf"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___vote.html#structtaraxa_1_1_hashable_vrf" title="HashableVrf struct uses VRF output, voter address, and vote weight index to calculate a hash number.">HashableVrf</a> struct uses VRF output, voter address, and vote weight index to calculate a hash number.  <a href="group___vote.html#structtaraxa_1_1_hashable_vrf">More...</a><br /></td></tr>
-<tr class="separator:structtaraxa_1_1_hashable_vrf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:classtaraxa_1_1_vrf_pbft_sortition"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#classtaraxa_1_1_vrf_pbft_sortition">taraxa::VrfPbftSortition</a></td></tr>
 <tr class="memdesc:classtaraxa_1_1_vrf_pbft_sortition"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___vote.html#classtaraxa_1_1_vrf_pbft_sortition" title="VrfPbftSortition class used for doing VRF sortition to place a vote or to propose a new PBFT block.">VrfPbftSortition</a> class used for doing VRF sortition to place a vote or to propose a new PBFT block.  <a href="group___vote.html#classtaraxa_1_1_vrf_pbft_sortition">More...</a><br /></td></tr>
 <tr class="separator:classtaraxa_1_1_vrf_pbft_sortition"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -121,6 +119,12 @@ Enumerations</h2></td></tr>
 <a class="el" href="group___vote.html#gga8a0770e242b649865f15f20a405507cca45551cf975f0ce273a2e1abca68ba8dc">taraxa::next_vote_type</a>
  }</td></tr>
 <tr class="separator:ga8a0770e242b649865f15f20a405507cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
+Functions</h2></td></tr>
+<tr class="memitem:gac8701dc4b2326bc90d8d2df733e0bae0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">dev::h256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#gac8701dc4b2326bc90d8d2df733e0bae0">taraxa::getVoterIndexHash</a> (const <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#afca747f9efe9c54e3e5dd36cbd4dd8f2">vrf_wrapper::vrf_output_t</a> &amp;vrf, const <a class="el" href="namespacetaraxa.html#a939db49e844b718c8ccc5ab4f5833f57">public_t</a> &amp;address, uint64_t index=0)</td></tr>
+<tr class="memdesc:gac8701dc4b2326bc90d8d2df733e0bae0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a hash number of combining VRF output, voter address, and vote weight index.  <a href="group___vote.html#gac8701dc4b2326bc90d8d2df733e0bae0">More...</a><br /></td></tr>
+<tr class="separator:gac8701dc4b2326bc90d8d2df733e0bae0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <hr/><h2 class="groupheader">Class Documentation</h2>
@@ -3828,160 +3832,6 @@ Collaboration diagram for taraxa::VrfPbftMsg:</div>
 
 </div>
 </div>
-<a name="structtaraxa_1_1_hashable_vrf" id="structtaraxa_1_1_hashable_vrf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#structtaraxa_1_1_hashable_vrf">&#9670;&nbsp;</a></span>taraxa::HashableVrf</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">struct taraxa::HashableVrf</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="textblock"><p><a class="el" href="group___vote.html#structtaraxa_1_1_hashable_vrf" title="HashableVrf struct uses VRF output, voter address, and vote weight index to calculate a hash number.">HashableVrf</a> struct uses VRF output, voter address, and vote weight index to calculate a hash number. </p>
-</div><div class="dynheader">
-Collaboration diagram for taraxa::HashableVrf:</div>
-<div class="dyncontent">
-<div class="center"><img src="structtaraxa_1_1_hashable_vrf__coll__graph.png" border="0" usemap="#taraxa_1_1_hashable_vrf_coll__map" alt="Collaboration graph"/></div>
-<map name="taraxa_1_1_hashable_vrf_coll__map" id="taraxa_1_1_hashable_vrf_coll__map">
-<area shape="rect" title="HashableVrf struct uses VRF output, voter address, and vote weight index to calculate a hash number." alt="" coords="9,109,161,136"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,165,32"/>
-</map>
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
-<table class="memberdecls">
-<tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
-<tr class="memitem:a9ebc1d25cb4292a469a57a304f342095"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a9ebc1d25cb4292a469a57a304f342095">HashableVrf</a> (const <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#afca747f9efe9c54e3e5dd36cbd4dd8f2">vrf_wrapper::vrf_output_t</a> &amp;vrf, const <a class="el" href="namespacetaraxa.html#a939db49e844b718c8ccc5ab4f5833f57">public_t</a> &amp;addr, uint64_t i=0)</td></tr>
-<tr class="separator:a9ebc1d25cb4292a469a57a304f342095"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afc545d131592b6507db7b4f8b16ba29e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">dev::h256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#afc545d131592b6507db7b4f8b16ba29e">getHash</a> () const</td></tr>
-<tr class="memdesc:afc545d131592b6507db7b4f8b16ba29e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a hash number of combining VRF output, voter address, and vote weight index.  <a href="group___vote.html#afc545d131592b6507db7b4f8b16ba29e">More...</a><br /></td></tr>
-<tr class="separator:afc545d131592b6507db7b4f8b16ba29e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><h3>Public Attributes</h3></td></tr>
-<tr class="memitem:ad7d473f8d055044812f2d069cd098164"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#afca747f9efe9c54e3e5dd36cbd4dd8f2">vrf_wrapper::vrf_output_t</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ad7d473f8d055044812f2d069cd098164">output</a></td></tr>
-<tr class="separator:ad7d473f8d055044812f2d069cd098164"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0fbda645a19ad3d80cf0101f45801855"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespacetaraxa.html#a939db49e844b718c8ccc5ab4f5833f57">public_t</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a0fbda645a19ad3d80cf0101f45801855">address</a></td></tr>
-<tr class="separator:a0fbda645a19ad3d80cf0101f45801855"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a15103e56034b8e547ff6325d711d8ecd"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a15103e56034b8e547ff6325d711d8ecd">iter</a></td></tr>
-<tr class="separator:a15103e56034b8e547ff6325d711d8ecd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table>
-<h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
-<a id="a9ebc1d25cb4292a469a57a304f342095"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9ebc1d25cb4292a469a57a304f342095">&#9670;&nbsp;</a></span>HashableVrf()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">taraxa::HashableVrf::HashableVrf </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#afca747f9efe9c54e3e5dd36cbd4dd8f2">vrf_wrapper::vrf_output_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>vrf</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a939db49e844b718c8ccc5ab4f5833f57">public_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>addr</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>i</em> = <code>0</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<h4 class="groupheader">Member Function Documentation</h4>
-<a id="afc545d131592b6507db7b4f8b16ba29e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afc545d131592b6507db7b4f8b16ba29e">&#9670;&nbsp;</a></span>getHash()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">dev::h256</a> taraxa::HashableVrf::getHash </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Get a hash number of combining VRF output, voter address, and vote weight index. </p>
-<dl class="section return"><dt>Returns</dt><dd>a hash number in Secure Hash Algorithm 3 </dd></dl>
-
-</div>
-</div>
-<h4 class="groupheader">Member Data Documentation</h4>
-<a id="a0fbda645a19ad3d80cf0101f45801855"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0fbda645a19ad3d80cf0101f45801855">&#9670;&nbsp;</a></span>address</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const <a class="el" href="namespacetaraxa.html#a939db49e844b718c8ccc5ab4f5833f57">public_t</a>&amp; taraxa::HashableVrf::address</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a15103e56034b8e547ff6325d711d8ecd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a15103e56034b8e547ff6325d711d8ecd">&#9670;&nbsp;</a></span>iter</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint64_t taraxa::HashableVrf::iter</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ad7d473f8d055044812f2d069cd098164"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad7d473f8d055044812f2d069cd098164">&#9670;&nbsp;</a></span>output</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">const <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#afca747f9efe9c54e3e5dd36cbd4dd8f2">vrf_wrapper::vrf_output_t</a>&amp; taraxa::HashableVrf::output</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-
-</div>
-</div>
 <a name="classtaraxa_1_1_vrf_pbft_sortition" id="classtaraxa_1_1_vrf_pbft_sortition"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#classtaraxa_1_1_vrf_pbft_sortition">&#9670;&nbsp;</a></span>taraxa::VrfPbftSortition</h2>
 
@@ -4556,6 +4406,52 @@ Collaboration diagram for taraxa::VrfPbftSortition:</div>
 <tr><td class="fieldname"><a id="gga8a0770e242b649865f15f20a405507ccaf71b2848e2805b713a2343ad6d134b65"></a>cert_vote_type&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="gga8a0770e242b649865f15f20a405507cca45551cf975f0ce273a2e1abca68ba8dc"></a>next_vote_type&#160;</td><td class="fielddoc"></td></tr>
 </table>
+
+</div>
+</div>
+<h2 class="groupheader">Function Documentation</h2>
+<a id="gac8701dc4b2326bc90d8d2df733e0bae0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#gac8701dc4b2326bc90d8d2df733e0bae0">&#9670;&nbsp;</a></span>getVoterIndexHash()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">dev::h256</a> taraxa::getVoterIndexHash </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#afca747f9efe9c54e3e5dd36cbd4dd8f2">vrf_wrapper::vrf_output_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>vrf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a939db49e844b718c8ccc5ab4f5833f57">public_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>address</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>index</em> = <code>0</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get a hash number of combining VRF output, voter address, and vote weight index. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">vrf</td><td>VRF output </td></tr>
+    <tr><td class="paramname">address</td><td>voter address </td></tr>
+    <tr><td class="paramname">index</td><td>vote weight index </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>a hash number in Secure Hash Algorithm 3 </dd></dl>
 
 </div>
 </div>

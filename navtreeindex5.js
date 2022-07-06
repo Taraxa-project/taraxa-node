@@ -248,6 +248,6 @@ var NAVTREEINDEX5 =
 "classtaraxa_1_1_full_node.html#af336b43e37cc96080c62f10de5682886":[11,0,3,23,38],
 "classtaraxa_1_1_full_node.html#structtaraxa_1_1_full_node_1_1_post_destruction_context":[12,0,1,4,2,0,0,0,1],
 "classtaraxa_1_1_full_node.html#structtaraxa_1_1_full_node_1_1_post_destruction_context":[11,0,3,23,0],
-"classtaraxa_1_1_invalid_rlp_items_count_exception.html":[11,0,3,28],
-"classtaraxa_1_1_invalid_rlp_items_count_exception.html#a4d55bcea09672b3eb97c9190c0afee74":[11,0,3,28,0]
+"classtaraxa_1_1_invalid_rlp_items_count_exception.html":[11,0,3,27],
+"classtaraxa_1_1_invalid_rlp_items_count_exception.html#a4d55bcea09672b3eb97c9190c0afee74":[11,0,3,27,0]
 };

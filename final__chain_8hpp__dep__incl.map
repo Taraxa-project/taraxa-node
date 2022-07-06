@@ -1,13 +1,14 @@
 <map id="libraries/core_libs/consensus/include/final_chain/final_chain.hpp" name="libraries/core_libs/consensus/include/final_chain/final_chain.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="3856,5,4033,61"/>
+<area shape="rect" id="node1" title=" " alt="" coords="4120,5,4297,61"/>
 <area shape="rect" id="node2" href="$dag__block__manager_8hpp.html" title=" " alt="" coords="2950,213,3134,269"/>
 <area shape="rect" id="node7" href="$pbft__manager_8cpp.html" title=" " alt="" coords="221,562,367,618"/>
-<area shape="rect" id="node36" href="$gas__pricer_8hpp.html" title=" " alt="" coords="3987,109,4209,165"/>
-<area shape="rect" id="node38" href="$transaction__manager_8hpp.html" title=" " alt="" coords="3635,109,3857,165"/>
-<area shape="rect" id="node40" href="$vote__manager_8hpp.html" title=" " alt="" coords="1277,213,1489,269"/>
-<area shape="rect" id="node42" href="$final__chain_8cpp.html" title=" " alt="" coords="4746,109,4911,165"/>
-<area shape="rect" id="node43" href="$_eth_8h.html" title=" " alt="" coords="4319,332,4485,373"/>
-<area shape="rect" id="node46" href="$_log_filter_8hpp.html" title=" " alt="" coords="4507,117,4721,158"/>
+<area shape="rect" id="node36" href="$contract__interface_8hpp.html" title=" " alt="" coords="4745,109,4960,165"/>
+<area shape="rect" id="node37" href="$gas__pricer_8hpp.html" title=" " alt="" coords="4097,109,4320,165"/>
+<area shape="rect" id="node39" href="$transaction__manager_8hpp.html" title=" " alt="" coords="3636,109,3859,165"/>
+<area shape="rect" id="node41" href="$vote__manager_8hpp.html" title=" " alt="" coords="1277,213,1489,269"/>
+<area shape="rect" id="node43" href="$final__chain_8cpp.html" title=" " alt="" coords="4985,109,5150,165"/>
+<area shape="rect" id="node44" href="$_eth_8h.html" title=" " alt="" coords="4319,332,4485,373"/>
+<area shape="rect" id="node47" href="$_log_filter_8hpp.html" title=" " alt="" coords="4507,117,4721,158"/>
 <area shape="rect" id="node3" href="$dag_8hpp.html" title=" " alt="" coords="3105,443,3278,499"/>
 <area shape="rect" id="node6" href="$dag__block__manager_8cpp.html" title=" " alt="" coords="3374,562,3547,618"/>
 <area shape="rect" id="node9" href="$_taraxa_8cpp.html" title=" " alt="" coords="2727,569,2904,611"/>
@@ -40,12 +41,12 @@
 <area shape="rect" id="node27" href="$votes__sync__packet__handler_8cpp.html" title=" " alt="" coords="603,555,793,625"/>
 <area shape="rect" id="node34" href="$_taraxa_8h.html" title=" " alt="" coords="2614,451,2777,492"/>
 <area shape="rect" id="node35" href="$taraxad_2main_8cpp.html" title=" " alt="" coords="1523,458,1726,485"/>
-<area shape="rect" id="node37" href="$gas__pricer_8cpp.html" title=" " alt="" coords="4237,213,4431,269"/>
-<area shape="rect" id="node39" href="$transaction__queue_8cpp.html" title=" " alt="" coords="3413,213,3607,269"/>
-<area shape="rect" id="node41" href="$pbft__sync__packet__handler_8hpp.html" title=" " alt="" coords="433,436,654,507"/>
-<area shape="rect" id="node44" href="$_eth_8cpp.html" title=" " alt="" coords="4597,451,4777,492"/>
-<area shape="rect" id="node45" href="$_w_s_server_8cpp.html" title=" " alt="" coords="4304,451,4500,492"/>
-<area shape="rect" id="node47" href="$watches_8hpp.html" title=" " alt="" coords="4507,221,4721,262"/>
-<area shape="rect" id="node49" href="$_log_filter_8cpp.html" title=" " alt="" coords="4797,221,5012,262"/>
-<area shape="rect" id="node48" href="$watches_8cpp.html" title=" " alt="" coords="4509,332,4722,373"/>
+<area shape="rect" id="node38" href="$gas__pricer_8cpp.html" title=" " alt="" coords="4237,213,4431,269"/>
+<area shape="rect" id="node40" href="$transaction__queue_8cpp.html" title=" " alt="" coords="3414,213,3609,269"/>
+<area shape="rect" id="node42" href="$pbft__sync__packet__handler_8hpp.html" title=" " alt="" coords="433,436,654,507"/>
+<area shape="rect" id="node45" href="$_eth_8cpp.html" title=" " alt="" coords="4597,451,4777,492"/>
+<area shape="rect" id="node46" href="$_w_s_server_8cpp.html" title=" " alt="" coords="4304,451,4500,492"/>
+<area shape="rect" id="node48" href="$watches_8hpp.html" title=" " alt="" coords="4507,221,4721,262"/>
+<area shape="rect" id="node50" href="$_log_filter_8cpp.html" title=" " alt="" coords="4797,221,5012,262"/>
+<area shape="rect" id="node49" href="$watches_8cpp.html" title=" " alt="" coords="4509,332,4722,373"/>
 </map>
