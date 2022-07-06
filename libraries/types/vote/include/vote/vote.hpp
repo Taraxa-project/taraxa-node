@@ -43,7 +43,7 @@ class Vote {
    * @brief Get voter public key
    * @return voter public key
    */
-  public_t getVoter() const {
+  const public_t& getVoter() const {
     if (!cached_voter_) cached_voter_ = dev::recover(vote_signature_, sha3(false));
     return cached_voter_;
   }
@@ -67,25 +67,25 @@ class Vote {
    * @brief Get VRF sortition
    * @return VRF sortition
    */
-  auto getVrfSortition() const { return vrf_sortition_; }
+  const VrfPbftSortition& getVrfSortition() const { return vrf_sortition_; }
 
   /**
    * @brief Get VRF sortition proof
    * @return VRF sortition proof
    */
-  auto getSortitionProof() const { return vrf_sortition_.proof_; }
+  const vrf_wrapper::vrf_proof_t& getSortitionProof() const { return vrf_sortition_.proof_; }
 
   /**
    * @brief Get VRF sortition output
    * @return VRF sortition output
    */
-  auto getCredential() const { return vrf_sortition_.output_; }
+  const vrf_wrapper::vrf_output_t& getCredential() const { return vrf_sortition_.output_; }
 
   /**
    * @brief Get vote signature
    * @return vote signature
    */
-  sig_t getVoteSignature() const { return vote_signature_; }
+  const sig_t& getVoteSignature() const { return vote_signature_; }
 
   /**
    * @brief Get PBFT block hash that votes on
