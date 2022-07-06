@@ -37,7 +37,7 @@ class Vote {
    * @brief Get vote hash
    * @return vote hash
    */
-  vote_hash_t getHash() const { return vote_hash_; }
+  const vote_hash_t& getHash() const { return vote_hash_; }
 
   /**
    * @brief Get voter public key
@@ -52,7 +52,7 @@ class Vote {
    * @brief Get voter address
    * @return voter address
    */
-  addr_t getVoterAddr() const {
+  const addr_t& getVoterAddr() const {
     if (!cached_voter_addr_) cached_voter_addr_ = dev::toAddress(getVoter());
     return cached_voter_addr_;
   }
@@ -91,7 +91,7 @@ class Vote {
    * @brief Get PBFT block hash that votes on
    * @return PBFT block hash
    */
-  blk_hash_t getBlockHash() const { return blockhash_; }
+  const blk_hash_t& getBlockHash() const { return blockhash_; }
 
   /**
    * @brief Get vote type
