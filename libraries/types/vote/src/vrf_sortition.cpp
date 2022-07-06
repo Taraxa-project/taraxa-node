@@ -59,8 +59,17 @@ uint64_t VrfPbftSortition::calculateWeight(uint64_t stake, double dpos_total_vot
                                            const public_t& address) const {
   // Also hash in the address. This is necessary to decorrelate the selection of different accounts that have the same
   // VRF key.
-  HashableVrf hash_vrf(output_, address);
-  return VrfPbftSortition::getBinominalDistribution(stake, dpos_total_votes_count, threshold, hash_vrf.getHash());
+  auto vrf_hash = getVoterIndexHash(output_, address);
+  return VrfPbftSortition::getBinominalDistribution(stake, dpos_total_votes_count, threshold, vrf_hash);
+}
+
+dev::h256 getVoterIndexHash(const vrf_wrapper::vrf_output_t& vrf, const public_t& address, uint64_t index) {
+  dev::RLPStream s;
+  s.appendList(3);
+  s << vrf;
+  s << address;
+  s << index;
+  return dev::sha3(s.invalidate());
 }
 
 }  // namespace taraxa
