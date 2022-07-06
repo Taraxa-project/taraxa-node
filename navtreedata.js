@@ -292,7 +292,7 @@ var NAVTREEINDEX =
 "group___d_a_g.html#a35f55bbaac2bf16d5c905610950bfd30",
 "group___final_chain.html#a4881d484f902c33bcab4d1aedb7dbc8e",
 "group___p_b_f_t.html#a60e41e8bc4ac1571a0fd3716b1cbaf6c",
-"group___vote.html#a25976532fc726c9eaf69ccdd418bdcaa",
+"group___vote.html#a25def29b02c4c9e2adcde735d8136c48",
 "libdevcore_2_exceptions_8h.html#a8bd5764483662329f2f83dccc90bb13a",
 "md_doc_coding_practices.html",
 "namespacemembers_o.html",
