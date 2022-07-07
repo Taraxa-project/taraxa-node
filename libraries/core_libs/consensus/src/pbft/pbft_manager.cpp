@@ -44,8 +44,10 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
   LOG_OBJECTS_CREATE("PBFT_MGR");
 
   shared_state_ = std::make_shared<CommonState>();
-  node_ = std::make_shared<NodeFace>(node_addr, node_sk, vrf_sk, std::move(db), next_votes_mgr, pbft_chain, vote_mgr,
-                                     dag_mgr, dag_blk_mgr, trx_mgr, final_chain);
+  node_ = std::make_shared<NodeFace>(std::move(node_addr), std::move(node_sk), std::move(vrf_sk), std::move(db),
+                                     std::move(next_votes_mgr), std::move(pbft_chain), std::move(vote_mgr),
+                                     std::move(dag_mgr), std::move(dag_blk_mgr), std::move(trx_mgr),
+                                     std::move(final_chain));
 }
 
 PbftManager::~PbftManager() { stop(); }
@@ -57,7 +59,7 @@ void PbftManager::start() {
     return;
   }
 
-  node_->pbft_manager_ = shared_from_this();
+  node_->pbft_manager_ = weak_from_this();
 
   daemon_ = std::make_unique<std::thread>([this]() { run(); });
 
@@ -284,7 +286,7 @@ size_t PbftManager::dposEligibleVoteCount_(addr_t const &addr) {
 }
 
 void PbftManager::setPbftStep(size_t const pbft_step) {
-  static std::default_random_engine random_engine_{std::random_device{}()};
+  static std::default_random_engine random_engine{std::random_device{}()};
 
   node_->db_->savePbftMgrField(PbftMgrRoundStep::PbftStep, pbft_step);
   step_ = pbft_step;
@@ -293,7 +295,7 @@ void PbftManager::setPbftStep(size_t const pbft_step) {
     // Note: We calculate the lambda for a step independently of prior steps
     //       in case missed earlier steps.
     std::uniform_int_distribution<u_long> distribution(0, step_ - MAX_STEPS);
-    auto lambda_random_count = distribution(random_engine_);
+    auto lambda_random_count = distribution(random_engine);
     LAMBDA_backoff_multiple = 2 * LAMBDA_backoff_multiple;
     LAMBDA_ms = std::min(kMaxLambda, config_.lambda_ms_min * (LAMBDA_backoff_multiple + lambda_random_count));
     LOG(log_dg_) << "Surpassed max steps, exponentially backing off lambda to " << LAMBDA_ms << " ms in round "

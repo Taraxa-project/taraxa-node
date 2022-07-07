@@ -9,8 +9,6 @@ namespace taraxa {
 
 using time_point = std::chrono::system_clock::time_point;
 
-#define kNullBlockHash blk_hash_t(0)
-
 enum PbftStates { propose = 1, filter, certify, finish, polling };
 
 // TODO: Should be removed or minimized
