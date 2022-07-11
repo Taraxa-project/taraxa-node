@@ -1419,6 +1419,7 @@ TEST_F(FullNodeTest, transfer_to_self) {
     if (trx_executed1 == trx_count + 1) break;
     thisThreadSleepForMilliSeconds(100);
   }
+
   EXPECT_EQ(trx_executed1, trx_count + 1);
   auto const bal = nodes[0]->getFinalChain()->getBalance(node_addr);
   EXPECT_TRUE(bal.second);
