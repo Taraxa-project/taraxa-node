@@ -341,6 +341,10 @@ class FinalChainImpl final : public FinalChain {
     return state_api_.get_staking_balance(last_if_absent(blk_n), addr);
   }
 
+  vrf_wrapper::vrf_pk_t get_vrf_key(addr_t const& addr, std::optional<EthBlockNumber> blk_n = {}) const override {
+    return state_api_.get_vrf_key(last_if_absent(blk_n), addr);
+  }
+
   void update_state_config(const state_api::Config& new_config) override {
     delegation_delay_ = new_config.dpos->delegation_delay;
     state_api_.update_state_config(new_config);

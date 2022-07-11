@@ -4,6 +4,8 @@
 
 #include <sstream>
 
+#include "common/vrf_wrapper.hpp"
+
 namespace taraxa::state_api {
 
 Json::Value enc_json(const ETHChainConfig& obj) {
@@ -71,6 +73,7 @@ Json::Value enc_json(const ValidatorInfo& obj) {
 
   json["address"] = dev::toJS(obj.address);
   json["owner"] = dev::toJS(obj.owner);
+  json["vrf_key"] = dev::toJS(obj.vrf_key);
   json["commission"] = dev::toJS(obj.commission);
   json["endpoint"] = obj.endpoint;
   json["description"] = obj.description;
@@ -81,6 +84,7 @@ Json::Value enc_json(const ValidatorInfo& obj) {
 void dec_json(const Json::Value& json, ValidatorInfo& obj) {
   obj.address = addr_t(json["address"].asString());
   obj.owner = addr_t(json["owner"].asString());
+  obj.vrf_key = vrf_wrapper::vrf_pk_t(json["vrf_key"].asString());
   obj.commission = dev::getUInt(json["commission"]);
   obj.endpoint = json["endpoint"].asString();
   obj.description = json["description"].asString();
@@ -160,7 +164,7 @@ RLP_FIELDS_DEFINE(ExecutionOptions, disable_nonce_check, enable_nonce_skipping)
 RLP_FIELDS_DEFINE(BlockRewardsOptions, disable_block_rewards, disable_contract_distribution)
 RLP_FIELDS_DEFINE(ETHChainConfig, homestead_block, dao_fork_block, eip_150_block, eip_158_block, byzantium_block,
                   constantinople_block, petersburg_block)
-RLP_FIELDS_DEFINE(ValidatorInfo, address, owner, commission, endpoint, description, delegations)
+RLP_FIELDS_DEFINE(ValidatorInfo, address, owner, vrf_key, commission, endpoint, description, delegations)
 RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, vote_eligibility_balance_step, validator_maximum_stake,
                   minimum_deposit, max_block_author_reward, commission_change_delta, commission_change_frequency,
                   delegation_delay, delegation_locking_period, blocks_per_year, yield_percentage, initial_validators)

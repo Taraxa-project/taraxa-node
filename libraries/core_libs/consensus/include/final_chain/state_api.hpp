@@ -55,6 +55,7 @@ class StateAPI {
 
   bool dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const;
   u256 get_staking_balance(EthBlockNumber blk_num, const addr_t& addr) const;
+  vrf_wrapper::vrf_pk_t get_vrf_key(EthBlockNumber blk_num, const addr_t& addr) const;
   static addr_t const& dpos_contract_addr();
 };
 /** @} */

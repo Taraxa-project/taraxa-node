@@ -34,15 +34,15 @@ void Vote::validate(uint64_t stake, double dpos_total_votes_count, double sortit
     throw std::logic_error(err.str());
   }
 
-  if (!verifyVrfSortition()) {
-    std::stringstream err;
-    err << "Invalid vrf proof. " << *this;
-    throw std::logic_error(err.str());
-  }
-
   if (!verifyVote()) {
     std::stringstream err;
     err << "Invalid vote signature. " << dev::toHex(rlp(false)) << "  " << *this;
+    throw std::logic_error(err.str());
+  }
+
+  if (!verifyVrfSortition()) {
+    std::stringstream err;
+    err << "Invalid vrf proof. " << *this;
     throw std::logic_error(err.str());
   }
 
