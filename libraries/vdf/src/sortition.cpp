@@ -36,11 +36,10 @@ VdfSortition::VdfSortition(bytes const& b) {
   }
 
   dev::RLP rlp(b);
-  util::rlp_tuple(util::RLPDecoderRef(rlp, true), pk_, proof_, vdf_sol_.first, vdf_sol_.second, difficulty_);
+  util::rlp_tuple(util::RLPDecoderRef(rlp, true), proof_, vdf_sol_.first, vdf_sol_.second, difficulty_);
 }
 
 VdfSortition::VdfSortition(Json::Value const& json) {
-  pk_ = vrf_pk_t(json["pk"].asString());
   proof_ = vrf_proof_t(json["proof"].asString());
   vdf_sol_.first = dev::fromHex(json["sol1"].asString());
   vdf_sol_.second = dev::fromHex(json["sol2"].asString());
@@ -49,8 +48,7 @@ VdfSortition::VdfSortition(Json::Value const& json) {
 
 bytes VdfSortition::rlp() const {
   dev::RLPStream s;
-  s.appendList(5);
-  s << pk_;
+  s.appendList(4);
   s << proof_;
   s << vdf_sol_.first;
   s << vdf_sol_.second;
@@ -60,7 +58,6 @@ bytes VdfSortition::rlp() const {
 
 Json::Value VdfSortition::getJson() const {
   Json::Value res;
-  res["pk"] = dev::toJS(pk_);
   res["proof"] = dev::toJS(proof_);
   res["sol1"] = dev::toJS(dev::toHex(vdf_sol_.first));
   res["sol2"] = dev::toJS(dev::toHex(vdf_sol_.second));
@@ -80,9 +77,10 @@ void VdfSortition::computeVdfSolution(const SortitionParams& config, const bytes
   }
 }
 
-void VdfSortition::verifyVdf(SortitionParams const& config, bytes const& vrf_input, bytes const& vdf_input) const {
+void VdfSortition::verifyVdf(SortitionParams const& config, bytes const& vrf_input, const vrf_pk_t& pk,
+                             bytes const& vdf_input) const {
   // Verify VRF output
-  if (!verifyVrf(vrf_input)) {
+  if (!verifyVrf(pk, vrf_input)) {
     throw InvalidVdfSortition("VRF verify failed. VRF input " + bytes2str(vrf_input));
   }
 
@@ -108,7 +106,9 @@ void VdfSortition::verifyVdf(SortitionParams const& config, bytes const& vrf_inp
   }
 }
 
-bool VdfSortition::verifyVrf(bytes const& vrf_input) const { return VrfSortitionBase::verify(vrf_input); }
+bool VdfSortition::verifyVrf(const vrf_pk_t& pk, const bytes& vrf_input) const {
+  return VrfSortitionBase::verify(pk, vrf_input);
+}
 
 uint16_t VdfSortition::getDifficulty() const { return difficulty_; }
 

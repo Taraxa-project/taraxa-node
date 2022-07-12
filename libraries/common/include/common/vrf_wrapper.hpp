@@ -28,24 +28,22 @@ class VrfSortitionBase {
  public:
   VrfSortitionBase() = default;
 
-  VrfSortitionBase(vrf_sk_t const &sk, bytes const &msg) : pk_(vrf_wrapper::getVrfPublicKey(sk)) {
-    assert(isValidVrfPublicKey(pk_));
+  VrfSortitionBase(vrf_sk_t const &sk, bytes const &msg) {
+    const auto pk(vrf_wrapper::getVrfPublicKey(sk));
+    assert(isValidVrfPublicKey(pk));
     proof_ = vrf_wrapper::getVrfProof(sk, msg).value();
-    output_ = vrf_wrapper::getVrfOutput(pk_, proof_, msg).value();
+    output_ = vrf_wrapper::getVrfOutput(pk, proof_, msg).value();
     thresholdFromOutput();
   }
 
   static dev::bytes makeVrfInput(taraxa::level_t level, const dev::h256 &period_hash);
 
-  bool verify(bytes const &msg) const;
+  bool verify(const vrf_pk_t &pk, const bytes &msg) const;
 
-  bool operator==(VrfSortitionBase const &other) const {
-    return pk_ == other.pk_ && proof_ == other.proof_ && output_ == other.output_;
-  }
+  bool operator==(VrfSortitionBase const &other) const { return proof_ == other.proof_ && output_ == other.output_; }
 
   virtual std::ostream &print(std::ostream &strm) const {
     strm << "\n[VRF SortitionBase] " << std::endl;
-    strm << "  pk: " << pk_ << std::endl;
     strm << "  proof: " << proof_ << std::endl;
     strm << "  output: " << output_ << std::endl;
     return strm;
@@ -59,7 +57,6 @@ class VrfSortitionBase {
   void thresholdFromOutput() const { threshold_ = (((uint16_t)output_[1] << 8) | output_[0]); }
 
  public:
-  vrf_pk_t pk_;
   vrf_proof_t proof_;
   mutable vrf_output_t output_;
   mutable uint16_t threshold_;

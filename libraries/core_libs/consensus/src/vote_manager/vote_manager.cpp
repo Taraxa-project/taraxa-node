@@ -16,13 +16,14 @@ constexpr size_t FIRST_FINISH_STEP = 4;
 namespace taraxa {
 VoteManager::VoteManager(size_t pbft_committee_size, const addr_t& node_addr, std::shared_ptr<DbStorage> db,
                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
-                         std::shared_ptr<NextVotesManager> next_votes_mgr)
+                         std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<KeyManager> key_manager)
     : pbft_committee_size_(pbft_committee_size),
       node_addr_(node_addr),
       db_(std::move(db)),
       pbft_chain_(std::move(pbft_chain)),
       final_chain_(std::move(final_chain)),
-      next_votes_manager_(std::move(next_votes_mgr)) {
+      next_votes_manager_(std::move(next_votes_mgr)),
+      key_manager_(std::move(key_manager)) {
   LOG_OBJECTS_CREATE("VOTE_MGR");
 
   // Retrieve votes from DB
@@ -541,6 +542,12 @@ bool VoteManager::verifyRewardVote(const std::shared_ptr<Vote>& vote) {
 
   const uint64_t dpos_period = pbft_chain_->getPbftChainSize() - 1;  // reward period - 1
   const auto& voter_account_addr = vote->getVoterAddr();
+  const auto& pk = key_manager_->get(voter_account_addr);
+  if (!pk) {
+    LOG(log_er_) << "No vrf key mapped to voter " << voter_account_addr;
+    return false;
+  }
+
   uint64_t voter_dpos_votes_count;
   try {
     voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(dpos_period, voter_account_addr);
@@ -558,7 +565,7 @@ bool VoteManager::verifyRewardVote(const std::shared_ptr<Vote>& vote) {
   const auto dpos_total_votes_count = final_chain_->dpos_eligible_total_vote_count(dpos_period);
   const size_t pbft_sortition_threshold = std::min<size_t>(pbft_committee_size_, dpos_total_votes_count);
   try {
-    vote->validate(voter_dpos_votes_count, dpos_total_votes_count, pbft_sortition_threshold);
+    vote->validate(voter_dpos_votes_count, dpos_total_votes_count, pbft_sortition_threshold, *pk);
   } catch (const std::logic_error& e) {
     LOG(log_er_) << e.what();
     LOG(log_er_) << "DPOS period " << dpos_period << ", voter " << voter_account_addr << " votes count "
@@ -626,9 +633,10 @@ void VoteManager::sendRewardVotes(const blk_hash_t& pbft_block_hash) {
 }
 
 NextVotesManager::NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db,
-                                   std::shared_ptr<FinalChain> final_chain)
+                                   std::shared_ptr<FinalChain> final_chain, std::shared_ptr<KeyManager> key_manager)
     : db_(std::move(db)),
       final_chain_(std::move(final_chain)),
+      key_manager_(std::move(key_manager)),
       enough_votes_for_null_block_hash_(false),
       voted_value_(NULL_BLOCK_HASH) {
   LOG_OBJECTS_CREATE("NEXT_VOTES");
@@ -950,7 +958,12 @@ bool NextVotesManager::voteVerification(std::shared_ptr<Vote>& vote, uint64_t dp
     return false;
   }
 
-  const auto vote_account_addr = vote->getVoterAddr();
+  const auto& vote_account_addr = vote->getVoterAddr();
+  const auto pk = key_manager_->get(vote_account_addr);
+  if (!pk) {
+    LOG(log_er_) << "No vrf key mapped to voter " << vote_account_addr;
+    return false;
+  }
   uint64_t dpos_votes_count;
   try {
     dpos_votes_count = final_chain_->dpos_eligible_vote_count(dpos_period, vote_account_addr);
@@ -966,7 +979,7 @@ bool NextVotesManager::voteVerification(std::shared_ptr<Vote>& vote, uint64_t dp
   }
 
   try {
-    vote->validate(dpos_votes_count, dpos_total_votes_count, pbft_sortition_threshold);
+    vote->validate(dpos_votes_count, dpos_total_votes_count, pbft_sortition_threshold, *pk);
   } catch (const std::logic_error& e) {
     LOG(log_er_) << e.what();
     return false;

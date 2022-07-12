@@ -183,9 +183,10 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
   size_t valid_sortition_players = 1;
   pbft_mgr->setSortitionThreshold(valid_sortition_players);
   uint64_t pbft_round = 2;
-  vote_mgr->verifyVotes(pbft_round, [&pbft_mgr, valid_sortition_players](auto const &v) {
+  const auto pk = vrf_wrapper::getVrfPublicKey(node->getVrfSecretKey());
+  vote_mgr->verifyVotes(pbft_round, [&pbft_mgr, valid_sortition_players, &pk](auto const &v) {
     try {
-      v->validate(1, valid_sortition_players, pbft_mgr->getSortitionThreshold());
+      v->validate(1, valid_sortition_players, pbft_mgr->getSortitionThreshold(), pk);
     } catch (const std::logic_error &e) {
       return false;
     }

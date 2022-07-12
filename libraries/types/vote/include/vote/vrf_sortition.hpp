@@ -95,7 +95,7 @@ class VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
    * @brief Verify VRF sortition
    * @return true if passed
    */
-  bool verify() const { return VrfSortitionBase::verify(pbft_msg_.getRlpBytes()); }
+  bool verify(const vrf_pk_t& pk) const { return VrfSortitionBase::verify(pk, pbft_msg_.getRlpBytes()); }
 
   bool operator==(VrfPbftSortition const& other) const {
     return pbft_msg_ == other.pbft_msg_ && vrf_wrapper::VrfSortitionBase::operator==(other);
@@ -128,7 +128,6 @@ class VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
 
   friend std::ostream& operator<<(std::ostream& strm, const VrfPbftSortition& vrf_sortition) {
     strm << "[VRF sortition] " << std::endl;
-    strm << "  pk: " << vrf_sortition.pk_ << std::endl;
     strm << "  proof: " << vrf_sortition.proof_ << std::endl;
     strm << "  output: " << vrf_sortition.output_ << std::endl;
     strm << vrf_sortition.pbft_msg_ << std::endl;

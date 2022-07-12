@@ -58,9 +58,10 @@ void PeriodData::clear() {
   previous_block_cert_votes.clear();
 }
 
-void PeriodData::hasEnoughValidCertVotes(const std::vector<std::shared_ptr<Vote>>& votes, size_t dpos_total_votes_count,
-                                         size_t sortition_threshold, size_t pbft_2t_plus_1,
-                                         std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count) const {
+void PeriodData::hasEnoughValidCertVotes(
+    const std::vector<std::shared_ptr<Vote>>& votes, size_t dpos_total_votes_count, size_t sortition_threshold,
+    size_t pbft_2t_plus_1, std::function<size_t(addr_t const&)> const& dpos_eligible_vote_count,
+    std::function<std::shared_ptr<vrf_wrapper::vrf_pk_t>(addr_t const&)> const& get_vrf_key) const {
   if (votes.empty()) {
     throw std::logic_error("No cert votes provided! The synced PBFT block comes from a malicious player.");
   }
@@ -90,9 +91,17 @@ void PeriodData::hasEnoughValidCertVotes(const std::vector<std::shared_ptr<Vote>
           << " has wrong vote block hash " << v->getBlockHash();
       throw std::logic_error(err.str());
     }
-    auto stake = dpos_eligible_vote_count(v->getVoterAddr());
+    const auto& addr = v->getVoterAddr();
+    const auto pk = get_vrf_key(addr);
+    if (!pk) {
+      std::stringstream err;
+      err << "For PBFT block " << pbft_blk->getBlockHash() << ", cert vote " << v->getHash()
+          << " failed to obtian vrf key for addr: " << addr;
+      throw std::logic_error(err.str());
+    }
+    const auto stake = dpos_eligible_vote_count(addr);
     try {
-      v->validate(stake, dpos_total_votes_count, sortition_threshold);
+      v->validate(stake, dpos_total_votes_count, sortition_threshold, *pk);
     } catch (const std::logic_error& e) {
       std::stringstream err;
       err << "For PBFT block " << pbft_blk->getBlockHash() << ", cert vote " << v->getHash()

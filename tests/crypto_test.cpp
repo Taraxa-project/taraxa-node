@@ -103,7 +103,7 @@ TEST_F(CryptoTest, vrf_sortition) {
   EXPECT_TRUE(sortition.calculateWeight(1, 1, 1, dev::FixedHash<64>::random()));
   auto b = sortition.getRlpBytes();
   VrfPbftSortition sortition3(b);
-  sortition3.verify();
+  sortition3.verify(getVrfPublicKey(sk));
   EXPECT_EQ(sortition, sortition2);
   EXPECT_EQ(sortition, sortition3);
 }
@@ -121,7 +121,7 @@ TEST_F(CryptoTest, vdf_sortition) {
   vdf2.computeVdfSolution(sortition_params, vdf_input.asBytes(), false);
   auto b = vdf.rlp();
   VdfSortition vdf3(b);
-  EXPECT_NO_THROW(vdf3.verifyVdf(sortition_params, getRlpBytes(level), vdf_input.asBytes()));
+  EXPECT_NO_THROW(vdf3.verifyVdf(sortition_params, getRlpBytes(level), getVrfPublicKey(sk), vdf_input.asBytes()));
   EXPECT_EQ(vdf, vdf2);
   EXPECT_EQ(vdf, vdf3);
 
@@ -170,11 +170,11 @@ TEST_F(CryptoTest, vdf_proof_verify) {
   level_t level = 1;
   VdfSortition vdf(sortition_params, sk, getRlpBytes(level));
   blk_hash_t vdf_input = blk_hash_t(200);
-
+  const auto pk = getVrfPublicKey(sk);
   vdf.computeVdfSolution(sortition_params, vdf_input.asBytes(), false);
-  EXPECT_NO_THROW(vdf.verifyVdf(sortition_params, getRlpBytes(level), vdf_input.asBytes()));
+  EXPECT_NO_THROW(vdf.verifyVdf(sortition_params, getRlpBytes(level), pk, vdf_input.asBytes()));
   VdfSortition vdf2(sortition_params, sk, getRlpBytes(level));
-  EXPECT_THROW(vdf2.verifyVdf(sortition_params, getRlpBytes(level), vdf_input.asBytes()),
+  EXPECT_THROW(vdf2.verifyVdf(sortition_params, getRlpBytes(level), pk, vdf_input.asBytes()),
                VdfSortition::InvalidVdfSortition);
 }
 

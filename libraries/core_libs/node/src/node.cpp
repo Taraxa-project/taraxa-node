@@ -11,6 +11,7 @@
 #include "dag/block_proposer.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block.hpp"
+#include "key_manager/key_manager.hpp"
 #include "network/rpc/Net.h"
 #include "network/rpc/Taraxa.h"
 #include "network/rpc/Test.h"
@@ -80,6 +81,7 @@ void FullNode::init() {
   gas_pricer_ = std::make_shared<GasPricer>(conf_.chain.gas_price.percentile, conf_.chain.gas_price.blocks,
                                             conf_.is_light_node, db_);
   final_chain_ = NewFinalChain(db_, conf_.chain, node_addr);
+  key_manager_ = std::make_shared<KeyManager>(final_chain_);
   trx_mgr_ = std::make_shared<TransactionManager>(conf_, db_, final_chain_, node_addr);
 
   auto genesis_hash = conf_.chain.genesisHash();
@@ -96,18 +98,18 @@ void FullNode::init() {
   auto dag_genesis_block_hash = conf_.chain.dag_genesis_block.getHash();
 
   pbft_chain_ = std::make_shared<PbftChain>(node_addr, db_);
-  next_votes_mgr_ = std::make_shared<NextVotesManager>(node_addr, db_, final_chain_);
-  dag_blk_mgr_ =
-      std::make_shared<DagBlockManager>(node_addr, conf_.chain.sortition, conf_.chain.dag, db_, trx_mgr_, final_chain_,
-                                        pbft_chain_, conf_.max_block_queue_warn, conf_.max_levels_per_period);
+  next_votes_mgr_ = std::make_shared<NextVotesManager>(node_addr, db_, final_chain_, key_manager_);
+  dag_blk_mgr_ = std::make_shared<DagBlockManager>(node_addr, conf_.chain.sortition, conf_.chain.dag, db_, trx_mgr_,
+                                                   final_chain_, pbft_chain_, key_manager_, conf_.max_block_queue_warn,
+                                                   conf_.max_levels_per_period);
   dag_mgr_ = std::make_shared<DagManager>(dag_genesis_block_hash, node_addr, trx_mgr_, pbft_chain_, dag_blk_mgr_, db_,
-                                          conf_.is_light_node, conf_.light_node_history, conf_.max_levels_per_period,
-                                          conf_.dag_expiry_limit);
+                                          key_manager_, conf_.is_light_node, conf_.light_node_history,
+                                          conf_.max_levels_per_period, conf_.dag_expiry_limit);
   vote_mgr_ = std::make_shared<VoteManager>(conf_.chain.pbft.committee_size, node_addr, db_, pbft_chain_, final_chain_,
-                                            next_votes_mgr_);
+                                            next_votes_mgr_, key_manager_);
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.chain.pbft, dag_genesis_block_hash, node_addr, db_, pbft_chain_,
                                             vote_mgr_, next_votes_mgr_, dag_mgr_, dag_blk_mgr_, trx_mgr_, final_chain_,
-                                            kp_.secret(), conf_.vrf_secret, conf_.max_levels_per_period);
+                                            key_manager_, kp_.secret(), conf_.vrf_secret, conf_.max_levels_per_period);
   blk_proposer_ = std::make_shared<BlockProposer>(conf_.chain.dag.block_proposer, dag_mgr_, trx_mgr_, dag_blk_mgr_,
                                                   final_chain_, db_, node_addr, getSecretKey(), getVrfSecretKey());
   network_ = std::make_shared<Network>(conf_.network, genesis_hash, dev::p2p::Host::CapabilitiesFactory(),

@@ -44,11 +44,11 @@ dev::bytes VrfSortitionBase::makeVrfInput(taraxa::level_t level, const dev::h256
   return s.invalidate();
 }
 
-bool VrfSortitionBase::verify(bytes const &msg) const {
-  if (!isValidVrfPublicKey(pk_)) {
+bool VrfSortitionBase::verify(const vrf_pk_t &pk, const bytes &msg) const {
+  if (!isValidVrfPublicKey(pk)) {
     return false;
   }
-  auto res = vrf_wrapper::getVrfOutput(pk_, proof_, msg);
+  auto res = vrf_wrapper::getVrfOutput(pk, proof_, msg);
   if (res != std::nullopt) {
     output_ = res.value();
     thresholdFromOutput();

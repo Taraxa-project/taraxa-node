@@ -31,18 +31,20 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
                          std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
                          std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
-                         secret_t node_sk, vrf_sk_t vrf_sk, uint32_t max_levels_per_period)
-    : db_(db),
-      next_votes_manager_(next_votes_mgr),
-      pbft_chain_(pbft_chain),
-      vote_mgr_(vote_mgr),
-      dag_mgr_(dag_mgr),
-      dag_blk_mgr_(dag_blk_mgr),
-      trx_mgr_(trx_mgr),
-      final_chain_(final_chain),
-      node_addr_(node_addr),
-      node_sk_(node_sk),
-      vrf_sk_(vrf_sk),
+                         std::shared_ptr<KeyManager> key_manager, secret_t node_sk, vrf_sk_t vrf_sk,
+                         uint32_t max_levels_per_period)
+    : db_(std::move(db)),
+      next_votes_manager_(std::move(next_votes_mgr)),
+      pbft_chain_(std::move(pbft_chain)),
+      vote_mgr_(std::move(vote_mgr)),
+      dag_mgr_(std::move(dag_mgr)),
+      dag_blk_mgr_(std::move(dag_blk_mgr)),
+      trx_mgr_(std::move(trx_mgr)),
+      final_chain_(std::move(final_chain)),
+      key_manager_(std::move(key_manager)),
+      node_addr_(std::move(node_addr)),
+      node_sk_(std::move(node_sk)),
+      vrf_sk_(std::move(vrf_sk)),
       LAMBDA_ms_MIN(conf.lambda_ms_min),
       COMMITTEE_SIZE(conf.committee_size),
       NUMBER_OF_PROPOSERS(conf.number_of_proposers),
@@ -675,8 +677,13 @@ bool PbftManager::stateOperations_() {
 
   // Periodically verify unverified votes
   vote_mgr_->verifyVotes(round, [this](auto const &v) {
+    const auto pk = key_manager_->get(v->getVoterAddr());
+    if (!pk) {
+      LOG(log_wr_) << "No vrf key mapped for vote author " << v->getVoterAddr();
+      return false;
+    }
     try {
-      v->validate(dposEligibleVoteCount_(v->getVoterAddr()), getDposTotalVotesCount(), getThreshold(v->getType()));
+      v->validate(dposEligibleVoteCount_(v->getVoterAddr()), getDposTotalVotesCount(), getThreshold(v->getType()), *pk);
     } catch (const std::logic_error &e) {
       LOG(log_wr_) << e.what();
       return false;
@@ -1936,9 +1943,10 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
 
   // Check cert votes validation
   try {
-    period_data.hasEnoughValidCertVotes(cert_votes, getDposTotalVotesCount(), getThreshold(cert_vote_type),
-                                        getTwoTPlusOne(),
-                                        [this](auto const &addr) { return dposEligibleVoteCount_(addr); });
+    period_data.hasEnoughValidCertVotes(
+        cert_votes, getDposTotalVotesCount(), getThreshold(cert_vote_type), getTwoTPlusOne(),
+        [this](auto const &addr) { return dposEligibleVoteCount_(addr); },
+        [this](auto const &addr) { return key_manager_->get(addr); });
   } catch (const std::logic_error &e) {
     // Failed cert votes validation, flush synced PBFT queue and set since
     // next block validation depends on the current one
