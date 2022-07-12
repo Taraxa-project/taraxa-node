@@ -16,7 +16,7 @@ std::shared_ptr<vrf_wrapper::vrf_pk_t> KeyManager::get(const addr_t& addr) {
   {
     std::unique_lock lock(mutex_);
     if (auto key = final_chain_->get_vrf_key(addr); key != kEmptyVrfKey) {
-      key_map_[addr] = std::make_shared<vrf_wrapper::vrf_pk_t>(key);
+      key_map_[addr] = std::make_shared<vrf_wrapper::vrf_pk_t>(std::move(key));
       return key_map_.at(addr);
     } else {
       return nullptr;
