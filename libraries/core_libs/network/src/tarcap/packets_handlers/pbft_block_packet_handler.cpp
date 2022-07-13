@@ -76,9 +76,10 @@ void PbftBlockPacketHandler::onNewPbftBlock(const std::shared_ptr<PbftBlock> &pb
     }
   }
 
+  vote_mgr_->sendRewardVotes(pbft_block_hash);
+
   LOG(log_dg_) << "sendPbftBlock " << pbft_block_hash << " to " << peers_to_log;
   for (auto const &peer : peers_to_send) {
-    vote_mgr_->sendRewardVotes(pbft_block_hash);
     sendPbftBlock(peer->getId(), pbft_block, my_chain_size);
     peer->markPbftBlockAsKnown(pbft_block_hash);
   }
