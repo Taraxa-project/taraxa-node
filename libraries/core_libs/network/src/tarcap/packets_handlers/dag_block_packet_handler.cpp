@@ -83,16 +83,20 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
   std::unique_lock lock(peer->mutex_for_sending_dag_blocks_);
 
   // Transactions are first sent in transactions packet before sending the block
-  if (!trxs.empty()) {
-    dev::RLPStream s;
+  uint32_t index = 0;
+  while (index < trxs.size()) {
+    const uint32_t trx_count_to_send = std::min(static_cast<size_t>(kMaxTransactionsInPacket), trxs.size() - index);
+
+    dev::RLPStream s(trx_count_to_send);
     taraxa::bytes trx_bytes;
-    s.appendList(trxs.size());
-    for (auto &trx : trxs) {
-      auto &trx_data = trx->rlp();
+    for (uint32_t i = index; i < index + trx_count_to_send; i++) {
+      auto &trx_data = trxs[i]->rlp();
       trx_bytes.insert(trx_bytes.end(), std::begin(trx_data), std::end(trx_data));
     }
-    s.appendRaw(trx_bytes, trxs.size());
+    s.appendRaw(trx_bytes, trx_count_to_send);
     sealAndSend(peer_id, TransactionPacket, std::move(s));
+
+    index += trx_count_to_send;
   }
 
   if (!sealAndSend(peer_id, DagBlockPacket, block.streamRLP(true))) {

@@ -371,14 +371,12 @@ TEST_F(CryptoTest, leader_selection) {
   const auto selector = [&](auto& outputs, const auto& msg, const auto& nodes, auto node_power) {
     for (const auto& n : nodes) {
       VrfPbftSortition sortition(n.second, msg);
-      HashableVrf hash(sortition.output_, n.second, 0);
-      if (auto stake = VrfPbftSortition::getBinominalDistribution(node_power, valid_sortition_players, committee_size,
-                                                                  hash.getHash())) {
-        hash.iter = 1;
-        auto lowest = hash.getHash();
+      auto hash = getVoterIndexHash(sortition.output_, n.second, 0);
+      if (auto stake =
+              VrfPbftSortition::getBinominalDistribution(node_power, valid_sortition_players, committee_size, hash)) {
+        auto lowest = getVoterIndexHash(sortition.output_, n.second, 1);
         for (uint64_t j = 2; j <= stake; j++) {
-          hash.iter = j;
-          auto tmp = hash.getHash();
+          auto tmp = getVoterIndexHash(sortition.output_, n.second, j);
           if (tmp < lowest) lowest = tmp;
         }
         outputs.emplace(n.first, lowest);

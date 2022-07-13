@@ -1,5 +1,6 @@
 #pragma once
 
+#include <libdevcore/SHA3.h>
 #include <libdevcrypto/Common.h>
 
 #include <array>
@@ -13,6 +14,7 @@
 #include <vector>
 
 #include "config/config.hpp"
+#include "final_chain/contract_interface.hpp"
 #include "gtest.hpp"
 #include "network/network.hpp"
 #include "node/node.hpp"
@@ -29,6 +31,7 @@ using std::filesystem::remove_all;
 using namespace std::chrono;
 
 inline const uint64_t TEST_TX_GAS_LIMIT = 1000000;
+const auto kContractAddress = addr_t("0x00000000000000000000000000000000000000FE");
 
 struct wait_opts {
   nanoseconds timeout;
@@ -314,13 +317,18 @@ struct TransactionClient {
   }
 };
 
-// inline auto make_dpos_trx(FullNodeConfig const& sender_node_cfg, state_api::DPOSTransfers const& transfers,
-// uint64_t nonce = 0, u256 const& gas_price = 0, uint64_t extra_gas = 0) {
-// StateAPI::DPOSTransactionPrototype proto(transfers);
-// return std::make_shared<Transaction>(nonce, proto.value, gas_price, proto.minimal_gas + extra_gas,
-//                                      std::move(proto.input), dev::Secret(sender_node_cfg.node_secret), proto.to,
-//                                      sender_node_cfg.chain.chain_id);
-// }
+inline auto make_dpos_trx(const FullNodeConfig& sender_node_cfg, const u256& value = 0, uint64_t nonce = 0,
+                          const u256& gas_price = 0) {
+  const auto addr = dev::toAddress(sender_node_cfg.node_secret);
+  auto proof = dev::sign(sender_node_cfg.node_secret, dev::sha3(addr)).asBytes();
+  // We need this for eth compatibility
+  proof[64] += 27;
+  const auto input =
+      final_chain::ContractInterface::packFunctionCall("registerValidator(address,bytes,uint16,string,string)", addr,
+                                                       proof, 10, dev::asBytes("test"), dev::asBytes("test"));
+  return std::make_shared<Transaction>(nonce, value, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
+                                       sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.chain.chain_id);
+}
 
 inline auto own_balance(std::shared_ptr<FullNode> const& node) {
   return node->getFinalChain()->getBalance(node->getAddress()).first;
