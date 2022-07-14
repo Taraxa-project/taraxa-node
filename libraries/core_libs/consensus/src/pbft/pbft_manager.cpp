@@ -1934,6 +1934,20 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
     return std::nullopt;
   }
 
+  if (last_pbft_block_hash) {
+    auto prev_pbft_block = pbft_chain_->getPbftBlockInChain(last_pbft_block_hash);
+    std::vector<blk_hash_t> ghost;
+    dag_mgr_->getGhostPath(prev_pbft_block.getPivotDagBlockHash(), ghost);
+    if (ghost.size() > 1 && period_data.pbft_blk->getPivotDagBlockHash() != ghost[1]) {
+      if (!checkBlockWeight(period_data)) {
+        LOG(log_er_) << "processSyncBlock: SyncBlock block " << pbft_block_hash << " is overweighted";
+        sync_queue_.clear();
+        net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
+        return std::nullopt;
+      }
+    }
+  }
+
   // Check cert votes validation
   try {
     period_data.hasEnoughValidCertVotes(cert_votes, getDposTotalVotesCount(), getThreshold(cert_vote_type),
