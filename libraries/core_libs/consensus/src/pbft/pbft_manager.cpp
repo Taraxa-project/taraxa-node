@@ -1890,8 +1890,8 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
 
   // Check previous hash matches
   if (sync_block.first.pbft_blk->getPrevBlockHash() != last_pbft_block_hash) {
-    auto last_pbft_block = pbft_chain_->getPbftBlockInChain(last_pbft_block_hash);
-    if (sync_block.first.pbft_blk->getPeriod() <= last_pbft_block.getPeriod()) {
+    auto prev_pbft_block = pbft_chain_->getPbftBlockInChain(last_pbft_block_hash);
+    if (sync_block.first.pbft_blk->getPeriod() <= prev_pbft_block.getPeriod()) {
       // Old block in the sync queue
       return std::nullopt;
     }
@@ -1903,6 +1903,20 @@ std::optional<SyncBlock> PbftManager::processSyncBlock() {
     // Handle malicious peer on network level
     net->handleMaliciousSyncPeer(sync_block.second);
     return std::nullopt;
+  }
+
+  if (last_pbft_block_hash) {
+    auto prev_pbft_block = pbft_chain_->getPbftBlockInChain(last_pbft_block_hash);
+    std::vector<blk_hash_t> ghost;
+    dag_mgr_->getGhostPath(prev_pbft_block.getPivotDagBlockHash(), ghost);
+    if (ghost.size() > 1 && sync_block.first.pbft_blk->getPivotDagBlockHash() != ghost[1]) {
+      if (!checkBlockWeight(sync_block.first)) {
+        LOG(log_er_) << "processSyncBlock: SyncBlock block " << pbft_block_hash << " is overweighted";
+        sync_queue_.clear();
+        net->handleMaliciousSyncPeer(sync_block.second);
+        return std::nullopt;
+      }
+    }
   }
 
   // Check cert votes validation
