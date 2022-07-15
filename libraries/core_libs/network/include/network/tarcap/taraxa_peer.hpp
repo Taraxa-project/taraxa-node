@@ -13,13 +13,13 @@ class TaraxaPeer : public boost::noncopyable {
  public:
   TaraxaPeer()
       : known_dag_blocks_(10000, 1000),
-        known_transactions_(100000, 10000),
+        known_transactions_(500000, 10000),
         known_pbft_blocks_(10000, 1000),
         known_votes_(10000, 1000) {}
   explicit TaraxaPeer(const dev::p2p::NodeID &id)
       : id_(id),
         known_dag_blocks_(10000, 1000),
-        known_transactions_(100000, 10000),
+        known_transactions_(500000, 10000),
         known_pbft_blocks_(10000, 1000),
         known_votes_(100000, 1000) {}
 
