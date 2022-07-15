@@ -67,10 +67,6 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
     }
   }
 
-  if (!pbft_mgr_->checkBlockWeight(sync_block)) {
-    throw MaliciousPeerException("Block summary gas amount is bigger then limit");
-  }
-
   LOG(log_dg_) << "PbftSyncPacket received. Period: " << sync_block.pbft_blk->getPeriod()
                << ", dag Blocks: " << received_dag_blocks_str << " from " << packet_data.from_node_id_;
 
