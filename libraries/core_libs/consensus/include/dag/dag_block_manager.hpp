@@ -92,7 +92,7 @@ class DagBlockManager {
   InsertAndVerifyBlockReturnType verifyBlock(const DagBlock &blk);
   void markBlockInvalid(const blk_hash_t &hash);
 
-  const uint32_t cache_max_size_ = 10000;
+  const uint32_t cache_max_size_ = 20000;
   const uint32_t cache_delete_step_ = 100;
   std::atomic<bool> stopped_ = false;
 
