@@ -946,12 +946,10 @@ void PbftManager::firstFinish_() {
                    << " for round " << round << " , step " << step_;
     }
     // Re-broadcast pbft block in case some nodes do not have it
-    if (step_ % 20 == 0) {
-      auto pbft_block = db_->getPbftCertVotedBlock(last_cert_voted_value_);
-      assert(pbft_block);
-      if (auto net = network_.lock()) {
-        net->onNewPbftBlock(pbft_block);
-      }
+    auto pbft_block = db_->getPbftCertVotedBlock(last_cert_voted_value_);
+    assert(pbft_block);
+    if (auto net = network_.lock()) {
+      net->onNewPbftBlock(pbft_block);
     }
   } else {
     // We only want to give up soft voted value IF:
@@ -993,11 +991,9 @@ void PbftManager::firstFinish_() {
         LOG(log_nf_) << "Next votes " << place_votes << " voting nodes own starting value "
                      << own_starting_value_for_round_ << " for round " << round << ", at step " << step_;
         // Re-broadcast pbft block in case some nodes do not have it
-        if (step_ % 20 == 0) {
-          auto pbft_block = getUnfinalizedBlock_(own_starting_value_for_round_);
-          if (auto net = network_.lock(); net && pbft_block) {
-            net->onNewPbftBlock(pbft_block);
-          }
+        auto pbft_block = getUnfinalizedBlock_(own_starting_value_for_round_);
+        if (auto net = network_.lock(); net && pbft_block) {
+          net->onNewPbftBlock(pbft_block);
         }
       }
     }
