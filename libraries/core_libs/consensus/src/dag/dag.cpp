@@ -764,7 +764,25 @@ void DagManager::recoverDag() {
         }
       }
 
-      addDagBlock(std::move(blk), {}, false, false);
+      bool missing_tip_or_pivot = false;
+      for (auto const &tip : blk.getTips()) {
+        auto tip_block = dag_blk_mgr_->getDagBlock(tip);
+        if (!tip_block) {
+          LOG(log_er_) << "Block " << blk.getHash().abridged() << " has a missing tip " << tip.abridged();
+          missing_tip_or_pivot = true;
+        }
+      }
+
+      const auto pivot = blk.getPivot();
+      const auto pivot_block = dag_blk_mgr_->getDagBlock(pivot);
+      if (!pivot_block) {
+        LOG(log_er_) << "Block " << blk.getHash().abridged() << " has a missing pivot " << pivot.abridged();
+        missing_tip_or_pivot = true;
+      }
+
+      if (!missing_tip_or_pivot) {
+        addDagBlock(std::move(blk), {}, false, false);
+      }
     }
   }
   trx_mgr_->recoverNonfinalizedTransactions();
