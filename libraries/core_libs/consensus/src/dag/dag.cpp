@@ -780,7 +780,9 @@ void DagManager::recoverDag() {
         missing_tip_or_pivot = true;
       }
 
-      if (!missing_tip_or_pivot) {
+      if (missing_tip_or_pivot) {
+        db_->removeDagBlock(blk.getHash());
+      } else {
         addDagBlock(std::move(blk), {}, false, false);
       }
     }
