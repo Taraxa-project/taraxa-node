@@ -383,16 +383,6 @@
                 "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
               },
               "vrf_key": "37bf145ac98e7de7db6e5b933e72737fbf190fd4fb1d193b15cf8b00db30ba30"
-            },
-            {
-              "address": "0x2b95aeed70a4e21fcb8665b1a1e16eb114a1caf3",
-              "owner": "0x2b95aeed70a4e21fcb8665b1a1e16eb114a1caf3",
-              "commission": 0,
-              "endpoint": "",
-              "description": "Taraxa devnet validator 19",
-              "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
-              }
             }
           ]
         },
