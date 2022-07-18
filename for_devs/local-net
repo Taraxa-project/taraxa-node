@@ -1,4 +1,4 @@
-#!/usr/bin/env /usr/local/bin/python3
+#!/usr/bin/env python3
 
 import click
 import subprocess
@@ -149,13 +149,10 @@ def config(binary, boot_nodes, rpc_nodes):
             else:
                 default_validator = config['chain_config']['final_chain']['state']['dpos']['initial_validators'][0]
                 config['chain_config']['final_chain']['state']['dpos']['initial_validators'] = []
-                print("boot_nodes_public_addresses: ",boot_nodes_public_addresses)
                 for key in boot_nodes_public_addresses:
                     address = boot_nodes_public_addresses[key]
-                    print("a: ", address)
                     default_validator["address"] = address
                     default_validator["owner"] = address
-                    print("appending", default_validator)
                     config['chain_config']['final_chain']['state']['dpos']['initial_validators'].append(default_validator.copy())
 
                 genesis_balances = config['chain_config']['final_chain']['state']['genesis_balances']
