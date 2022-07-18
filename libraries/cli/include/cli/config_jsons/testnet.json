@@ -9,9 +9,9 @@
   "network_max_peer_count": 50,
   "network_sync_level_size": 10,
   "network_packets_processing_threads": 14,
-  "network_peer_blacklist_timeout" : 600,
-  "is_light_node" : false,
-  "deep_syncing_threshold" : 10,
+  "network_peer_blacklist_timeout": 600,
+  "is_light_node": false,
+  "deep_syncing_threshold": 10,
   "network_boot_nodes": [
     {
       "id": "f36f467529fe91a750dfdc8086fd0d2f30bad9f55a5800b6b4aa603c7787501db78dc4ac1bf3cf16e42af7c2ebb53648653013c3da1987494960d751871d598a",
@@ -194,12 +194,12 @@
           "delegation_locking_period": "0x5",
           "eligibility_balance_threshold": "0xd3c21bcecceda1000000",
           "vote_eligibility_balance_step": "0x152d02c7e14af6800000",
-          "validator_maximum_stake":"0x84595161401484A000000",
-          "minimum_deposit":"0x0",
+          "validator_maximum_stake": "0x84595161401484A000000",
+          "minimum_deposit": "0x0",
           "max_block_author_reward": "0xa",
-          "commission_change_delta":"0x0",
-          "commission_change_frequency":"0x0",
-          "yield_percentage":"0x14",
+          "commission_change_delta": "0x0",
+          "commission_change_frequency": "0x0",
+          "yield_percentage": "0x14",
           "initial_validators": [
             {
               "address": "0x18551e353aa65bc0ffbdf9d93b7ad4a8fe29cf95",
@@ -209,7 +209,8 @@
               "description": "Taraxa testnet validator 1",
               "delegations": {
                 "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
-              }
+              },
+              "vrf_key": "3cebcfdc7a076352e7b55c5a277a63769ff7baf62d44bd9a8d9add904ab11b7b"
             },
             {
               "address": "0xc578bb5fc3dac3e96a8c4cb126c71d2dc9082817",
@@ -219,7 +220,8 @@
               "description": "Taraxa testnet validator 2",
               "delegations": {
                 "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
-              }
+              },
+              "vrf_key": "48c633fe14f3c5e13ffb62816fa3111d3a09739bd9be7b6ab05c3f03ed6a879c"
             },
             {
               "address": "0x5c9afb23fba3967ca6102fb60c9949f6a38cd9e8",
@@ -229,7 +231,8 @@
               "description": "Taraxa testnet validator 3",
               "delegations": {
                 "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
-              }
+              },
+              "vrf_key": "f8bbb0c73c74997498796b845458e1cca5a0ef83b3489fca084badd9fba968c6"
             },
             {
               "address": "0x403480c2b2ade0851c62bd1ff7a594c416aff7ce",
@@ -239,7 +242,8 @@
               "description": "Taraxa testnet validator 4",
               "delegations": {
                 "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
-              }
+              },
+              "vrf_key": "c3912a8c849032ebdc071397c5ae4178a5e67f3399315b30fd6277fca8e1b64f"
             },
             {
               "address": "0x5042fa2711fe547e46c2f64852fdaa5982c80697",
@@ -249,7 +253,8 @@
               "description": "Taraxa testnet validator 5",
               "delegations": {
                 "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
-              }
+              },
+              "vrf_key": "7c6dab1852f34ebdf3ad73b60ad70b95b2a6a457d88693823f356c3f8ccc74c6"
             },
             {
               "address": "0x6258d8f51ea17e873f69a2a978fe311fd95743dd",
@@ -259,7 +264,8 @@
               "description": "Taraxa testnet validator 6",
               "delegations": {
                 "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
-              }
+              },
+              "vrf_key": "f5f88dcc7fbfa50a576359ae05ace6ca28352fbc40b4ebbc99605e04c6f42883"
             }
           ]
         },
@@ -286,9 +292,9 @@
         }
       }
     },
-    "gas_price" : {
-      "blocks" : 200,
-      "percentile" : 60
+    "gas_price": {
+      "blocks": 200,
+      "percentile": 60
     },
     "pbft": {
       "committee_size": "0x3e8",
@@ -309,7 +315,10 @@
     },
     "sortition": {
       "changes_count_for_average": 10,
-      "dag_efficiency_targets": [6900, 7100],
+      "dag_efficiency_targets": [
+        6900,
+        7100
+      ],
       "changing_interval": 200,
       "computation_interval": 50,
       "vrf": {
