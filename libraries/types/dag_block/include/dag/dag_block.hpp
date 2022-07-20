@@ -90,7 +90,8 @@ class DagBlock {
   std::string getJsonStr() const;
 
   bool verifySig() const;
-  void verifyVdf(const SortitionParams &vdf_config, const h256 &proposal_period_hash) const;
+  void verifyVdf(const SortitionParams &vdf_config, const h256 &proposal_period_hash,
+                 const vrf_wrapper::vrf_pk_t &pk) const;
   bytes rlp(bool include_sig) const;
 
   /**

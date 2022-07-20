@@ -118,8 +118,10 @@ bool DagBlock::verifySig() const {
   return !pk.isZero();
 }
 
-void DagBlock::verifyVdf(const SortitionParams &vdf_config, const h256 &proposal_period_hash) const {
-  vdf_.verifyVdf(vdf_config, VrfSortitionBase::makeVrfInput(getLevel(), proposal_period_hash), getPivot().asBytes());
+void DagBlock::verifyVdf(const SortitionParams &vdf_config, const h256 &proposal_period_hash,
+                         const vrf_wrapper::vrf_pk_t &pk) const {
+  vdf_.verifyVdf(vdf_config, VrfSortitionBase::makeVrfInput(getLevel(), proposal_period_hash), pk,
+                 getPivot().asBytes());
 }
 
 blk_hash_t const &DagBlock::getHash() const {

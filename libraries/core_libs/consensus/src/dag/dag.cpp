@@ -276,14 +276,16 @@ void PivotTree::getGhostPath(blk_hash_t const &vertex, std::vector<blk_hash_t> &
 
 DagManager::DagManager(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr,
                        std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<PbftChain> pbft_chain,
-                       std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db, bool is_light_node,
-                       uint64_t light_node_history, uint32_t max_levels_per_period, uint32_t dag_expiry_limit) try
+                       std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
+                       std::shared_ptr<KeyManager> key_manager, bool is_light_node, uint64_t light_node_history,
+                       uint32_t max_levels_per_period, uint32_t dag_expiry_limit) try
     : pivot_tree_(std::make_shared<PivotTree>(dag_genesis_block_hash, node_addr)),
       total_dag_(std::make_shared<Dag>(dag_genesis_block_hash, node_addr)),
-      trx_mgr_(trx_mgr),
-      pbft_chain_(pbft_chain),
-      dag_blk_mgr_(dag_blk_mgr),
-      db_(db),
+      trx_mgr_(std::move(trx_mgr)),
+      pbft_chain_(std::move(pbft_chain)),
+      dag_blk_mgr_(std::move(dag_blk_mgr)),
+      db_(std::move(db)),
+      key_manager_(std::move(key_manager)),
       anchor_(dag_genesis_block_hash),
       period_(0),
       is_light_node_(is_light_node),
@@ -754,10 +756,16 @@ void DagManager::recoverDag() {
         break;
       } else {
         auto propose_period = db_->getProposalPeriodForDagLevel(blk.getLevel());
+        const auto pk = key_manager_->get(blk.getSender());
+        if (!pk) {
+          LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
+                       << " level is missing VRF key for sender " << blk.getSender();
+          break;
+        }
         // Verify VDF solution
         try {
           blk.verifyVdf(dag_blk_mgr_->sortitionParamsManager().getSortitionParams(*propose_period),
-                        db_->getPeriodBlockHash(*propose_period));
+                        db_->getPeriodBlockHash(*propose_period), *pk);
         } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
           LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
                        << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason "

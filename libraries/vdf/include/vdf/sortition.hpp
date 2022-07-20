@@ -29,7 +29,8 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
 
   void computeVdfSolution(const SortitionParams& config, const bytes& msg, const std::atomic_bool& cancelled);
 
-  void verifyVdf(SortitionParams const& config, bytes const& vrf_input, bytes const& vdf_input) const;
+  void verifyVdf(SortitionParams const& config, bytes const& vrf_input, const vrf_pk_t& pk,
+                 bytes const& vdf_input) const;
 
   bytes rlp() const;
   bool operator==(VdfSortition const& other) const {
@@ -61,7 +62,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
       "9aee2a207e5173a7ee8f90ee9ab9b6a745d27c6e850e7ca7332388dfef7e5bbe6267d1f7"
       "9f9330e44715b3f2066f903081836c1c83ca29126f8fdc5f5922bf3f9ddb4540171691ac"
       "cc1ef6a34b2a804a18159c89c39b16edee2ede35");
-  bool verifyVrf(bytes const& vrf_input) const;
+  bool verifyVrf(const vrf_pk_t& pk, const bytes& vrf_input) const;
 
   std::pair<bytes, bytes> vdf_sol_;
   unsigned long vdf_computation_time_ = 0;

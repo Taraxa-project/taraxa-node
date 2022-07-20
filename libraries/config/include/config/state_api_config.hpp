@@ -5,6 +5,7 @@
 
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
+#include "common/vrf_wrapper.hpp"
 #include "config/hardfork.hpp"
 
 namespace taraxa::state_api {
@@ -32,6 +33,7 @@ void dec_json(const Json::Value& json, BalanceMap& obj);
 struct ValidatorInfo {
   addr_t address;
   addr_t owner;
+  vrf_wrapper::vrf_pk_t vrf_key;
   uint16_t commission = 0;
   std::string endpoint;
   std::string description;

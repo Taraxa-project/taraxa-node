@@ -61,14 +61,16 @@ def config(binary, boot_nodes, rpc_nodes):
 
     boot_nodes_flags = []
     private_keys = {}
+    vrf_secrets = {}
     for i in range(boot_nodes):
         worker_name = f'boot-node-{i}'
         wallet_path = f'wallet-boot-node-{i}.json'
 
-        (private_key, public_key, public_address) = generate_node_wallet(binary, wallet_path)
+        (private_key, public_key, public_address, vrf_secret, vrf_public) = generate_node_wallet(binary, wallet_path)
 
         private_keys[worker_name] = private_key
-        boot_nodes_public_addresses[worker_name] = public_address
+        vrf_secrets[worker_name] = vrf_secret
+        boot_nodes_public_addresses[worker_name] = {public_address, vrf_public}
 
         boot_nodes_flags.append(
             f'127.0.0.1:10{i+1}02/{public_key}')
@@ -125,8 +127,9 @@ def config(binary, boot_nodes, rpc_nodes):
             cmd += f'--boot-nodes {boot_nodes_flags} '
 
             if type == "boot":
-                # cmd += '--boot-node ' // TODO: we should replace this with bootnode binary? 
+                # cmd += '--boot-node ' // TODO: we should replace this with bootnode binary?
                 cmd += f'--node-secret {private_keys[worker_name]} '
+                cmd += f'--vrf-secret {vrf_secrets[worker_name]} '
 
             if type == "boot":
                 port_prefix = '0'
@@ -149,10 +152,12 @@ def config(binary, boot_nodes, rpc_nodes):
             else:
                 default_validator = config['chain_config']['final_chain']['state']['dpos']['initial_validators'][0]
                 config['chain_config']['final_chain']['state']['dpos']['initial_validators'] = []
+                print("boot_nodes_public_addresses: ",boot_nodes_public_addresses)
                 for key in boot_nodes_public_addresses:
-                    address = boot_nodes_public_addresses[key]
+                    address, vrf_key = boot_nodes_public_addresses[key]
                     default_validator["address"] = address
                     default_validator["owner"] = address
+                    default_validator["vrf_key"] = vrf_key
                     config['chain_config']['final_chain']['state']['dpos']['initial_validators'].append(default_validator.copy())
 
                 genesis_balances = config['chain_config']['final_chain']['state']['genesis_balances']
@@ -183,8 +188,7 @@ def generate_node_wallet(binary, wallet_path):
         with open(wallet_path) as json_file:
             wallet_data = json.load(json_file)
             wallet.update(wallet_data)
-
-        return (wallet['node_secret'], wallet['node_public'], wallet['node_address'])
+        return (wallet['node_secret'], wallet['node_public'], wallet['node_address'], wallet['vrf_secret'], wallet['vrf_public'])
     else:
         return generate_wallet(binary)
 
@@ -205,7 +209,7 @@ def generate_faucet_wallet(binary):
         faucet_private_key = wallet['faucet_private_key']
         faucet_public_address = wallet['faucet_public_address']
     else:
-        (faucet_private_key, _, faucet_public_address) = generate_wallet(binary)
+        (faucet_private_key, _, faucet_public_address, _, _) = generate_wallet(binary)
         chain_id = randint(500, 1000)
 
         wallet = {
@@ -224,8 +228,12 @@ def generate_wallet(binary):
         f'{binary} --command account {private_key} | grep node_public | cut -d\  -f3- | tr -d \\"', shell=True).strip().decode('utf-8')
     public_address = subprocess.check_output(
         f'{binary} --command account {private_key} | grep node_address| cut -d\  -f3- | tr -d \\"', shell=True).strip().decode('utf-8')
+    vrf_secret = subprocess.check_output(
+        f'{binary} --command vrf | grep vrf_secret | cut -d\  -f3- | tr -d \\"', shell=True).strip().decode('utf-8')
+    vrf_key = subprocess.check_output(
+        f'{binary} --command vrf {vrf_secret} | grep vrf_public| cut -d\  -f3- | tr -d \\"', shell=True).strip().decode('utf-8')
 
-    return (private_key, public_key, public_address)
+    return (private_key, public_key, public_address, vrf_secret, vrf_key)
 
 
 def start_workers(binary, boot_nodes, rpc_nodes, tps):

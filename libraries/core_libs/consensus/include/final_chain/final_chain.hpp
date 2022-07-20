@@ -169,6 +169,14 @@ class FinalChain {
   virtual u256 get_staking_balance(addr_t const& addr, std::optional<EthBlockNumber> blk_n = {}) const = 0;
 
   /**
+   * @brief Get the vrf key object from DPOS state
+   * @param addr account address
+   * @param blk_n number of block we are getting state from
+   * @return vrf_wrapper::vrf_pk_t
+   */
+  virtual vrf_wrapper::vrf_pk_t get_vrf_key(const addr_t& addr, std::optional<EthBlockNumber> blk_n = {}) const = 0;
+
+  /**
    * @brief Returns the value from a storage position at a given address.
    * @param addr account address
    * @param key position in the storage

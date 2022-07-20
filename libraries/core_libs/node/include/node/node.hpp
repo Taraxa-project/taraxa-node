@@ -41,6 +41,7 @@ class TransactionManager;
 class GasPricer;
 class PbftManager;
 struct NetworkConfig;
+class KeyManager;
 
 class FullNode : public std::enable_shared_from_this<FullNode> {
   using shared_ptr_t = std::shared_ptr<FullNode>;
@@ -77,6 +78,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<NextVotesManager> next_votes_mgr_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<KeyManager> key_manager_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<net::RpcServer> jsonrpc_http_;
   std::shared_ptr<net::WSServer> jsonrpc_ws_;

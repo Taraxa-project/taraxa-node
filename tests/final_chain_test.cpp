@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "common/constants.hpp"
+#include "common/vrf_wrapper.hpp"
 #include "config/chain_config.hpp"
 #include "final_chain/trie_common.hpp"
 #include "util_test/gtest.hpp"
@@ -294,7 +295,8 @@ TEST_F(FinalChainTest, initial_validators) {
   fillConfigForGenesisTests(key.address());
 
   for (const auto& vk : validator_keys) {
-    state_api::ValidatorInfo validator{vk.address(), key.address(), 0, "", "", {}};
+    const auto [vrf_key, _] = taraxa::vrf_wrapper::getVrfKeyPair();
+    state_api::ValidatorInfo validator{vk.address(), key.address(), vrf_key, 0, "", "", {}};
     validator.delegations.emplace(key.address(), cfg.final_chain.state.dpos->validator_maximum_stake);
     cfg.final_chain.state.dpos->initial_validators.emplace_back(validator);
   }
@@ -313,9 +315,10 @@ TEST_F(FinalChainTest, initial_validators) {
 TEST_F(FinalChainTest, initial_validator_exceed_maximum_stake) {
   const dev::KeyPair key = dev::KeyPair::create();
   const dev::KeyPair validator_key = dev::KeyPair::create();
+  const auto [vrf_key, _] = taraxa::vrf_wrapper::getVrfKeyPair();
   fillConfigForGenesisTests(key.address());
 
-  state_api::ValidatorInfo validator{validator_key.address(), key.address(), 0, "", "", {}};
+  state_api::ValidatorInfo validator{validator_key.address(), key.address(), vrf_key, 0, "", "", {}};
   validator.delegations.emplace(key.address(), cfg.final_chain.state.dpos->validator_maximum_stake);
   validator.delegations.emplace(validator_key.address(), cfg.final_chain.state.dpos->minimum_deposit);
   cfg.final_chain.state.dpos->initial_validators.emplace_back(validator);

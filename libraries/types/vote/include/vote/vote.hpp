@@ -31,7 +31,8 @@ class Vote {
    * @param sortition_threshold PBFT sortition threshold that is minimum of between PBFT committee size and total DPOS
    * votes count
    */
-  void validate(uint64_t stake, double dpos_total_votes_count, double sortition_threshold) const;
+  void validate(uint64_t stake, double dpos_total_votes_count, double sortition_threshold,
+                const vrf_wrapper::vrf_pk_t& pk) const;
 
   /**
    * @brief Get vote hash
@@ -61,7 +62,7 @@ class Vote {
    * @brief Verify VRF sortition
    * @return true if passed
    */
-  bool verifyVrfSortition() const { return vrf_sortition_.verify(); }
+  bool verifyVrfSortition(const vrf_pk_t& pk) const { return vrf_sortition_.verify(pk); }
 
   /**
    * @brief Get VRF sortition

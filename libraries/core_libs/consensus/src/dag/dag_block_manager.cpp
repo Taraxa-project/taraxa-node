@@ -1,17 +1,20 @@
 #include "dag/dag_block_manager.hpp"
 
 #include "dag/dag.hpp"
+#include "key_manager/key_manager.hpp"
 
 namespace taraxa {
 
 DagBlockManager::DagBlockManager(addr_t node_addr, const SortitionConfig &sortition_config, const DagConfig &dag_config,
                                  std::shared_ptr<DbStorage> db, std::shared_ptr<TransactionManager> trx_mgr,
                                  std::shared_ptr<FinalChain> final_chain, std::shared_ptr<PbftChain> pbft_chain,
-                                 uint32_t queue_limit, uint32_t max_levels_per_period)
-    : db_(db),
-      trx_mgr_(trx_mgr),
-      final_chain_(final_chain),
-      pbft_chain_(pbft_chain),
+                                 std::shared_ptr<KeyManager> key_manager, uint32_t queue_limit,
+                                 uint32_t max_levels_per_period)
+    : db_(std::move(db)),
+      trx_mgr_(std::move(trx_mgr)),
+      final_chain_(std::move(final_chain)),
+      pbft_chain_(std::move(pbft_chain)),
+      key_manager_(std::move(key_manager)),
       invalid_blocks_(cache_max_size_, cache_delete_step_),
       seen_blocks_(cache_max_size_, cache_delete_step_),
       queue_limit_(queue_limit),
@@ -193,10 +196,20 @@ DagBlockManager::InsertAndVerifyBlockReturnType DagBlockManager::verifyBlock(con
     return InsertAndVerifyBlockReturnType::ExpiredBlock;
   }
 
+  const auto &dag_block_sender = blk.getSender();
+  // Get vrf public key
+  const auto pk = key_manager_->get(dag_block_sender);
+  if (!pk) {
+    LOG(log_er_) << "DAG block " << block_hash << " with " << blk.getLevel() << " level no VRF key for sender"
+                 << dag_block_sender;
+    markBlockInvalid(block_hash);
+    return InsertAndVerifyBlockReturnType::FailedVdfVerification;
+  }
+
   // Verify VDF solution
   const auto proposal_period_hash = db_->getPeriodBlockHash(*propose_period);
   try {
-    blk.verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period), proposal_period_hash);
+    blk.verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period), proposal_period_hash, *pk);
   } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
     LOG(log_er_) << "DAG block " << block_hash << " with " << blk.getLevel()
                  << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason " << e.what();
@@ -205,7 +218,6 @@ DagBlockManager::InsertAndVerifyBlockReturnType DagBlockManager::verifyBlock(con
     return InsertAndVerifyBlockReturnType::FailedVdfVerification;
   }
 
-  auto dag_block_sender = blk.getSender();
   bool dpos_qualified;
   try {
     dpos_qualified = final_chain_->dpos_is_eligible(*propose_period, dag_block_sender);

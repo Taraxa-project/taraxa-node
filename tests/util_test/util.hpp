@@ -13,6 +13,7 @@
 #include <type_traits>
 #include <vector>
 
+#include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
 #include "final_chain/contract_interface.hpp"
 #include "gtest.hpp"
@@ -149,6 +150,7 @@ inline auto make_node_cfgs(uint count) {
     }
     for (auto& cfg : ret) {
       addr_t root_node_addr("de2b1203d72d3549ee2f733b00b2789414c7cea5");
+      vrf_wrapper::vrf_pk_t root_node_vrf_key("d05dc12c1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
       cfg.chain.final_chain.state.genesis_balances[root_node_addr] = 9007199254740991;
       cfg.chain.final_chain.state.genesis_balances[addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0")] =
           9007199254740991;
@@ -163,7 +165,8 @@ inline auto make_node_cfgs(uint count) {
       state_api::BalanceMap delegations;
       delegations.emplace(root_node_addr, dpos.eligibility_balance_threshold);
 
-      auto initial_validator = state_api::ValidatorInfo{root_node_addr, root_node_addr, 100, "", "", delegations};
+      auto initial_validator =
+          state_api::ValidatorInfo{root_node_addr, root_node_addr, root_node_vrf_key, 100, "", "", delegations};
       dpos.initial_validators.emplace_back(initial_validator);
 
       // As test are badly written let's disable it for now
@@ -323,9 +326,10 @@ inline auto make_dpos_trx(const FullNodeConfig& sender_node_cfg, const u256& val
   auto proof = dev::sign(sender_node_cfg.node_secret, dev::sha3(addr)).asBytes();
   // We need this for eth compatibility
   proof[64] += 27;
-  const auto input =
-      final_chain::ContractInterface::packFunctionCall("registerValidator(address,bytes,uint16,string,string)", addr,
-                                                       proof, 10, dev::asBytes("test"), dev::asBytes("test"));
+  const auto input = final_chain::ContractInterface::packFunctionCall(
+      "registerValidator(address,bytes,bytes,uint16,string,string)", addr, proof,
+      vrf_wrapper::getVrfPublicKey(sender_node_cfg.vrf_secret).asBytes(), 10, dev::asBytes("test"),
+      dev::asBytes("test"));
   return std::make_shared<Transaction>(nonce, value, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
                                        sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.chain.chain_id);
 }

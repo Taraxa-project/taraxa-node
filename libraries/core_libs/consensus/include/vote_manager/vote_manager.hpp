@@ -2,6 +2,7 @@
 
 #include "common/util.hpp"
 #include "final_chain/final_chain.hpp"
+#include "key_manager/key_manager.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "vote/vote.hpp"
 
@@ -22,7 +23,8 @@ class Network;
  */
 class NextVotesManager {
  public:
-  NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain);
+  NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
+                   std::shared_ptr<KeyManager> key_manager);
 
   /**
    * @brief Clear previous PBFT round next voting type votes
@@ -117,6 +119,7 @@ class NextVotesManager {
 
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<KeyManager> key_manager_;
 
   bool enough_votes_for_null_block_hash_;
   blk_hash_t voted_value_;  // For value is not null block hash
@@ -136,7 +139,7 @@ class VoteManager {
  public:
   VoteManager(size_t pbft_committee_size, const addr_t& node_addr, std::shared_ptr<DbStorage> db,
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
-              std::shared_ptr<NextVotesManager> next_votes_mgr);
+              std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<KeyManager> key_manager);
   ~VoteManager();
   VoteManager(const VoteManager&) = delete;
   VoteManager(VoteManager&&) = delete;
@@ -358,6 +361,7 @@ class VoteManager {
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<NextVotesManager> next_votes_manager_;
+  std::shared_ptr<KeyManager> key_manager_;
   std::weak_ptr<Network> network_;
 
   blk_hash_t reward_votes_pbft_block_hash_;
