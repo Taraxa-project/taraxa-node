@@ -1075,6 +1075,9 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <tr class="memitem:af48fcb40611583ab8f628376b40fae72"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#af48fcb40611583ab8f628376b40fae72">get_staking_balance</a> (<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;addr, std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; blk_n={}) const =0</td></tr>
 <tr class="memdesc:af48fcb40611583ab8f628376b40fae72"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method to get staking balance from DPOS precompiled contract.  <a href="group___final_chain.html#af48fcb40611583ab8f628376b40fae72">More...</a><br /></td></tr>
 <tr class="separator:af48fcb40611583ab8f628376b40fae72"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac48978307495d0525138c32dc6564da6"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#ac48978307495d0525138c32dc6564da6">get_vrf_key</a> (const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;addr, std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; blk_n={}) const =0</td></tr>
+<tr class="memdesc:ac48978307495d0525138c32dc6564da6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the vrf key object from DPOS state.  <a href="group___final_chain.html#ac48978307495d0525138c32dc6564da6">More...</a><br /></td></tr>
+<tr class="separator:ac48978307495d0525138c32dc6564da6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a20d7b88f1fef839aacb13035bb65e2be"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a20d7b88f1fef839aacb13035bb65e2be">get_account_storage</a> (<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;addr, <a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a> const &amp;key, std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; blk_n={}) const =0</td></tr>
 <tr class="memdesc:a20d7b88f1fef839aacb13035bb65e2be"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the value from a storage position at a given address.  <a href="group___final_chain.html#a20d7b88f1fef839aacb13035bb65e2be">More...</a><br /></td></tr>
 <tr class="separator:a20d7b88f1fef839aacb13035bb65e2be"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1779,6 +1782,54 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <dl class="section return"><dt>Returns</dt><dd>staking balance </dd></dl>
 
 <p>Implemented in <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ae4ca8097009913b97ea8bf21c148ae40">taraxa::final_chain::FinalChainImpl</a>.</p>
+
+</div>
+</div>
+<a id="ac48978307495d0525138c32dc6564da6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac48978307495d0525138c32dc6564da6">&#9670;&nbsp;</a></span>get_vrf_key()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a> taraxa::final_chain::FinalChain::get_vrf_key </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>addr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt;&#160;</td>
+          <td class="paramname"><em>blk_n</em> = <code>{}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get the vrf key object from DPOS state. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">addr</td><td>account address </td></tr>
+    <tr><td class="paramname">blk_n</td><td>number of block we are getting state from </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a> </dd></dl>
+
+<p>Implemented in <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a6aadc3605d713e6a120bca740591f26c">taraxa::final_chain::FinalChainImpl</a>.</p>
 
 </div>
 </div>
@@ -2625,6 +2676,8 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
 <tr class="separator:a743c319b56438591e3d53f3a0f1ea8d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a95c64474d9b590c0a57755f8a486a7d1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a95c64474d9b590c0a57755f8a486a7d1">get_staking_balance</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;addr) const</td></tr>
 <tr class="separator:a95c64474d9b590c0a57755f8a486a7d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab2a1a35595d01eb6a026033a93e9822a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#ab2a1a35595d01eb6a026033a93e9822a">get_vrf_key</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;addr) const</td></tr>
+<tr class="separator:ab2a1a35595d01eb6a026033a93e9822a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Static Public Member Functions</h3></td></tr>
 <tr class="memitem:a08051cf5358f178a09049d5f4dbf9ee4"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const  &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a08051cf5358f178a09049d5f4dbf9ee4">dpos_contract_addr</a> ()</td></tr>
 <tr class="separator:a08051cf5358f178a09049d5f4dbf9ee4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -3025,6 +3078,34 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a> taraxa::state_api::StateAPI::get_staking_balance </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td>
+          <td class="paramname"><em>blk_num</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>addr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab2a1a35595d01eb6a026033a93e9822a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab2a1a35595d01eb6a026033a93e9822a">&#9670;&nbsp;</a></span>get_vrf_key()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a> taraxa::state_api::StateAPI::get_vrf_key </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td>
           <td class="paramname"><em>blk_num</em>, </td>

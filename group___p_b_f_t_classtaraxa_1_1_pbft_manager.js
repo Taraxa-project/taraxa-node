@@ -2,7 +2,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_manager =
 [
     [ "time_point", "group___p_b_f_t.html#a0aab8b19e04b0d0100d6ae93c3b170b8", null ],
     [ "vrf_sk_t", "group___p_b_f_t.html#a119430e17475efbfab1a196d7e2f54f2", null ],
-    [ "PbftManager", "group___p_b_f_t.html#ab7d292b056b0f8a16b4800ff9015b0c2", null ],
+    [ "PbftManager", "group___p_b_f_t.html#a76be6f8dcafef3b1080436ad1a7832d9", null ],
     [ "~PbftManager", "group___p_b_f_t.html#a37f64cdc660f7bb1a22d03ce102c16a8", null ],
     [ "PbftManager", "group___p_b_f_t.html#ac6bf3bfdb609d5c2ace0a2130ff5d59e", null ],
     [ "PbftManager", "group___p_b_f_t.html#aee1e57b8818e581deb443cc7ef5ff948", null ],
@@ -105,6 +105,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_manager =
     [ "GHOST_PATH_MOVE_BACK", "group___p_b_f_t.html#aab6b88deb03507066408686f792f3074", null ],
     [ "go_finish_state_", "group___p_b_f_t.html#a3e19126cae83075ff10f088e155bc7f8", null ],
     [ "have_executed_this_round_", "group___p_b_f_t.html#afa5a5c1c218637b61c18f7c5b6b6787f", null ],
+    [ "key_manager_", "group___p_b_f_t.html#a07cd83fb15922aa8cd8d6d6f2cebfb71", null ],
     [ "kMaxLambda", "group___p_b_f_t.html#a04b7b13e9fb8dbb5bfca8595f742adce", null ],
     [ "LAMBDA_backoff_multiple", "group___p_b_f_t.html#a1fd4bb37e4d9037eb3bdc5bfe0fb3591", null ],
     [ "LAMBDA_ms", "group___p_b_f_t.html#af148f92987f7c9017a6d55963b1abc3d", null ],

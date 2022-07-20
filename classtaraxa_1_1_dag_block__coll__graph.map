@@ -1,11 +1,10 @@
 <map id="taraxa::DagBlock" name="taraxa::DagBlock">
-<area shape="rect" id="node1" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b..." alt="" coords="932,73,1067,99"/>
-<area shape="rect" id="node2" href="$structtaraxa_1_1util_1_1_default_construct_copyable_movable.html" title=" " alt="" coords="512,5,751,47"/>
-<area shape="rect" id="node3" title=" " alt="" coords="331,13,395,39"/>
-<area shape="rect" id="node4" href="$classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html" title=" " alt="" coords="554,71,709,112"/>
-<area shape="rect" id="node5" href="$classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html" title=" " alt="" coords="288,71,439,112"/>
-<area shape="rect" id="node6" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,187,47"/>
-<area shape="rect" id="node7" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="8,71,184,112"/>
-<area shape="rect" id="node8" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="8,136,184,177"/>
-<area shape="rect" id="node9" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="551,162,711,189"/>
+<area shape="rect" id="node1" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b..." alt="" coords="927,73,1061,99"/>
+<area shape="rect" id="node2" href="$structtaraxa_1_1util_1_1_default_construct_copyable_movable.html" title=" " alt="" coords="507,5,745,47"/>
+<area shape="rect" id="node3" title=" " alt="" coords="326,13,390,39"/>
+<area shape="rect" id="node4" href="$classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html" title=" " alt="" coords="549,71,703,112"/>
+<area shape="rect" id="node5" href="$classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html" title=" " alt="" coords="283,71,433,112"/>
+<area shape="rect" id="node6" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,37,181,79"/>
+<area shape="rect" id="node7" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,103,181,144"/>
+<area shape="rect" id="node8" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="546,162,706,189"/>
 </map>

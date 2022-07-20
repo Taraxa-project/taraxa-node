@@ -1,11 +1,10 @@
 <map id="taraxa::Vote" name="taraxa::Vote">
-<area shape="rect" id="node1" title="Vote class is a vote class that includes vote hash, vote on PBFT block hash, vote signature,..." alt="" coords="901,198,1003,225"/>
-<area shape="rect" id="node2" href="$group___vote.html#classtaraxa_1_1_vrf_pbft_sortition" title="VrfPbftSortition class used for doing VRF sortition to place a vote or to propose a new PBFT block." alt="" coords="559,138,729,165"/>
-<area shape="rect" id="node3" href="$classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html" title=" " alt="" coords="288,88,439,129"/>
-<area shape="rect" id="node4" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,187,47"/>
-<area shape="rect" id="node5" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="8,71,184,112"/>
-<area shape="rect" id="node6" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="8,136,184,177"/>
-<area shape="rect" id="node7" href="$group___vote.html#structtaraxa_1_1_vrf_pbft_msg" title="VrfPbftMsg struct uses vote type, PBFT round, and PBFT step to generate a message for doing VRF sorti..." alt="" coords="292,170,435,197"/>
-<area shape="rect" id="node8" title=" " alt="" coords="66,202,126,229"/>
-<area shape="rect" id="node9" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="564,257,724,283"/>
+<area shape="rect" id="node1" title="Vote class is a vote class that includes vote hash, vote on PBFT block hash, vote signature,..." alt="" coords="896,165,997,191"/>
+<area shape="rect" id="node2" href="$group___vote.html#classtaraxa_1_1_vrf_pbft_sortition" title="VrfPbftSortition class used for doing VRF sortition to place a vote or to propose a new PBFT block." alt="" coords="553,105,724,131"/>
+<area shape="rect" id="node3" href="$classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html" title=" " alt="" coords="283,71,433,112"/>
+<area shape="rect" id="node4" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,181,47"/>
+<area shape="rect" id="node5" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,71,181,112"/>
+<area shape="rect" id="node6" href="$group___vote.html#structtaraxa_1_1_vrf_pbft_msg" title="VrfPbftMsg struct uses vote type, PBFT round, and PBFT step to generate a message for doing VRF sorti..." alt="" coords="287,137,429,163"/>
+<area shape="rect" id="node7" title=" " alt="" coords="63,137,123,163"/>
+<area shape="rect" id="node8" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="559,223,719,250"/>
 </map>

@@ -164,6 +164,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ae4ca8097009913b97ea8bf21c148ae40"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ae4ca8097009913b97ea8bf21c148ae40">get_staking_balance</a> (<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;addr, std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; blk_n={}) const override</td></tr>
 <tr class="memdesc:ae4ca8097009913b97ea8bf21c148ae40"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method to get staking balance from DPOS precompiled contract.  <a href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ae4ca8097009913b97ea8bf21c148ae40">More...</a><br /></td></tr>
 <tr class="separator:ae4ca8097009913b97ea8bf21c148ae40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6aadc3605d713e6a120bca740591f26c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a6aadc3605d713e6a120bca740591f26c">get_vrf_key</a> (<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;addr, std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; blk_n={}) const override</td></tr>
+<tr class="memdesc:a6aadc3605d713e6a120bca740591f26c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the vrf key object from DPOS state.  <a href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a6aadc3605d713e6a120bca740591f26c">More...</a><br /></td></tr>
+<tr class="separator:a6aadc3605d713e6a120bca740591f26c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7a2b85b63424ab773bdfa6d36ddfc77d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a7a2b85b63424ab773bdfa6d36ddfc77d">update_state_config</a> (const <a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config">state_api::Config</a> &amp;new_config) override</td></tr>
 <tr class="memdesc:a7a2b85b63424ab773bdfa6d36ddfc77d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Needed if we are changing params with hardfork and it affects Go part of code. For example DPOS contract.  <a href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a7a2b85b63424ab773bdfa6d36ddfc77d">More...</a><br /></td></tr>
 <tr class="separator:a7a2b85b63424ab773bdfa6d36ddfc77d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1023,6 +1026,54 @@ Additional Inherited Members</h2></td></tr>
 <dl class="section return"><dt>Returns</dt><dd>staking balance </dd></dl>
 
 <p>Implements <a class="el" href="group___final_chain.html#af48fcb40611583ab8f628376b40fae72">taraxa::final_chain::FinalChain</a>.</p>
+
+</div>
+</div>
+<a id="a6aadc3605d713e6a120bca740591f26c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6aadc3605d713e6a120bca740591f26c">&#9670;&nbsp;</a></span>get_vrf_key()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a> taraxa::final_chain::FinalChainImpl::get_vrf_key </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;&#160;</td>
+          <td class="paramname"><em>addr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt;&#160;</td>
+          <td class="paramname"><em>blk_n</em> = <code>{}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get the vrf key object from DPOS state. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">addr</td><td>account address </td></tr>
+    <tr><td class="paramname">blk_n</td><td>number of block we are getting state from </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a> </dd></dl>
+
+<p>Implements <a class="el" href="group___final_chain.html#ac48978307495d0525138c32dc6564da6">taraxa::final_chain::FinalChain</a>.</p>
 
 </div>
 </div>

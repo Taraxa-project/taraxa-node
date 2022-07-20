@@ -15,6 +15,7 @@ var group___final_chain_classtaraxa_1_1state__api_1_1_state_a_p_i =
     [ "get_code_by_address", "group___final_chain.html#ab2e44d5a21f4b140a324966c83d99a7c", null ],
     [ "get_last_committed_state_descriptor", "group___final_chain.html#ab04bdafacc9f54a8df616345ac8e2e34", null ],
     [ "get_staking_balance", "group___final_chain.html#a95c64474d9b590c0a57755f8a486a7d1", null ],
+    [ "get_vrf_key", "group___final_chain.html#ab2a1a35595d01eb6a026033a93e9822a", null ],
     [ "operator=", "group___final_chain.html#a0053d2c9e2c118c572681ca1055e500b", null ],
     [ "operator=", "group___final_chain.html#a2ef92fcd4156622aa3dfe52a9f0a4f12", null ],
     [ "prove", "group___final_chain.html#a5dbcaade6b9b0d0cb429dafb4a74abba", null ],

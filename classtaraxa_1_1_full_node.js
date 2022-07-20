@@ -48,6 +48,7 @@ var classtaraxa_1_1_full_node =
     [ "jsonrpc_api_", "classtaraxa_1_1_full_node.html#aae46eb02fbf66cc65d4d1bbddc02ac1f", null ],
     [ "jsonrpc_http_", "classtaraxa_1_1_full_node.html#aaf9a564df808c0675b6da0c9f18a1e7f", null ],
     [ "jsonrpc_ws_", "classtaraxa_1_1_full_node.html#a6b5a6c69b2c1566cb75efe494d2de5fe", null ],
+    [ "key_manager_", "classtaraxa_1_1_full_node.html#a9718bf42b46b6db94ab5565aa34c9b93", null ],
     [ "kp_", "classtaraxa_1_1_full_node.html#acd9c6b5ca7ab7b27e0f1f438bcbe98c9", null ],
     [ "network_", "classtaraxa_1_1_full_node.html#a70c7aa5338cbc231c0739504204e49ce", null ],
     [ "next_votes_mgr_", "classtaraxa_1_1_full_node.html#abbfd2a5cf53df38d4414544aaee632df", null ],

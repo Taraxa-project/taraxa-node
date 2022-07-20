@@ -182,6 +182,7 @@ var hierarchy =
       ] ]
     ] ],
     [ "dev::RLP::iterator", "classdev_1_1_r_l_p_1_1iterator.html", null ],
+    [ "taraxa::KeyManager", "classtaraxa_1_1_key_manager.html", null ],
     [ "dev::KeyPair", "classdev_1_1_key_pair.html", null ],
     [ "dev::p2p::Host::KnownNode", "structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_known_node", null ],
     [ "taraxa::util::lazy::Lazy< Provider >", "classtaraxa_1_1util_1_1lazy_1_1_lazy.html", null ],

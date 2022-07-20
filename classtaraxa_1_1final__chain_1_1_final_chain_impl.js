@@ -18,6 +18,7 @@ var classtaraxa_1_1final__chain_1_1_final_chain_impl =
     [ "get_account_storage", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a8e1d7d3502a1452f0cbfb260970a516c", null ],
     [ "get_code", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a55413a1397ce7bd28d4616f72f2dddfe", null ],
     [ "get_staking_balance", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ae4ca8097009913b97ea8bf21c148ae40", null ],
+    [ "get_vrf_key", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a6aadc3605d713e6a120bca740591f26c", null ],
     [ "last_block_number", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#aa7011215c95945e0322fb58c5e736f2c", null ],
     [ "last_if_absent", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a0b0996f00fe09b643e036ab66b07d3d4", null ],
     [ "stop", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a2586af303e2a0f870e81a409ec273da9", null ],

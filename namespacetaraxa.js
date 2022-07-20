@@ -28,6 +28,7 @@ var namespacetaraxa =
     [ "GasPriceConfig", "structtaraxa_1_1_gas_price_config.html", "structtaraxa_1_1_gas_price_config" ],
     [ "GasPricer", "group___transaction.html#classtaraxa_1_1_gas_pricer", "group___transaction_classtaraxa_1_1_gas_pricer" ],
     [ "InvalidRlpItemsCountException", "classtaraxa_1_1_invalid_rlp_items_count_exception.html", "classtaraxa_1_1_invalid_rlp_items_count_exception" ],
+    [ "KeyManager", "classtaraxa_1_1_key_manager.html", "classtaraxa_1_1_key_manager" ],
     [ "MaliciousPeerException", "classtaraxa_1_1_malicious_peer_exception.html", "classtaraxa_1_1_malicious_peer_exception" ],
     [ "Network", "classtaraxa_1_1_network.html", "classtaraxa_1_1_network" ],
     [ "NetworkConfig", "structtaraxa_1_1_network_config.html", "structtaraxa_1_1_network_config" ],

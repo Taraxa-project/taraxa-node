@@ -113,7 +113,7 @@ var group___d_a_g =
     [ "DagManager", "group___d_a_g.html#classtaraxa_1_1_dag_manager", [
       [ "SharedLock", "group___d_a_g.html#a438a9cce146f37209702173a90707322", null ],
       [ "ULock", "group___d_a_g.html#aed1bf9463f3f5dd18f46ead7f1323fc1", null ],
-      [ "DagManager", "group___d_a_g.html#a8453313bcabe397e4fb48a511dc0416c", null ],
+      [ "DagManager", "group___d_a_g.html#ad3b06a09f1085ab0a646888528cb94c2", null ],
       [ "~DagManager", "group___d_a_g.html#a48a75c329913f004614ae538d206ec03", null ],
       [ "DagManager", "group___d_a_g.html#aa0fe82cc22a187cab97099ef465bed02", null ],
       [ "DagManager", "group___d_a_g.html#a1a957529304d407e997ca611b4530ab7", null ],
@@ -162,6 +162,7 @@ var group___d_a_g =
       [ "db_", "group___d_a_g.html#a8df95cccdea775300aec10f65ab0cdea", null ],
       [ "frontier_", "group___d_a_g.html#aa8ecef50260ac0b2b2da330f53fb42c2", null ],
       [ "is_light_node_", "group___d_a_g.html#a304bc3dd4e16a2e6fe824960998fa85c", null ],
+      [ "key_manager_", "group___d_a_g.html#a24126b789e44798ff62e6f7504ee659f", null ],
       [ "light_node_history_", "group___d_a_g.html#a9da5c3fb13e2ae292e70a030efdfbdec", null ],
       [ "max_level_", "group___d_a_g.html#ab34b96991cbcfd2f72be34a8813ca335", null ],
       [ "max_levels_per_period_", "group___d_a_g.html#a07187ee4b316918016d048c7c48d14f7", null ],
@@ -324,7 +325,7 @@ var group___d_a_g =
         [ "IncorrectTransactionsEstimation", "group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeffa122320ab35a2188727e599b3cc61d72f", null ],
         [ "BlockTooBig", "group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeffa6acb71e475d0aaa76f18fde586c6d6db", null ]
       ] ],
-      [ "DagBlockManager", "group___d_a_g.html#a05618e7be921d861077a55b1bdf00c9e", null ],
+      [ "DagBlockManager", "group___d_a_g.html#a1f1989edec480e687026c02cfe8313db", null ],
       [ "~DagBlockManager", "group___d_a_g.html#a8b7a7da38aa6bb9e0ff22e4c3d875843", null ],
       [ "DagBlockManager", "group___d_a_g.html#a32bff32e9ad02535296b3852bb150880", null ],
       [ "DagBlockManager", "group___d_a_g.html#abb6d5a15f8dea540e666a394189100c1", null ],
@@ -354,6 +355,7 @@ var group___d_a_g =
       [ "db_", "group___d_a_g.html#a5bd6a7f9a72708a86a165ccc225ff261", null ],
       [ "final_chain_", "group___d_a_g.html#a73157b4b7fe34ae4d9f6c47c1bff5275", null ],
       [ "invalid_blocks_", "group___d_a_g.html#a118b22ab449b21d0e506a0fc5c015880", null ],
+      [ "key_manager_", "group___d_a_g.html#a5ff778195a906f87cbed2d78cd2833e9", null ],
       [ "pbft_chain_", "group___d_a_g.html#a3922e92ad40ab5bb38c12b667239c3e8", null ],
       [ "queue_limit_", "group___d_a_g.html#ae9b308ab6f0f2add54d3daef5ef69c59", null ],
       [ "seen_blocks_", "group___d_a_g.html#ad73f78f6b04b14be06eb2b54da2335ce", null ],

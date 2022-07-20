@@ -18,6 +18,7 @@ var group___final_chain_classtaraxa_1_1final__chain_1_1_final_chain =
     [ "get_account_storage", "group___final_chain.html#a20d7b88f1fef839aacb13035bb65e2be", null ],
     [ "get_code", "group___final_chain.html#aa66ce3061b2e802f2bd08e6428fb2159", null ],
     [ "get_staking_balance", "group___final_chain.html#af48fcb40611583ab8f628376b40fae72", null ],
+    [ "get_vrf_key", "group___final_chain.html#ac48978307495d0525138c32dc6564da6", null ],
     [ "getBalance", "group___final_chain.html#afcb9ccbdd87a08842e591ed1c228d66f", null ],
     [ "last_block_number", "group___final_chain.html#aa54056cae99ff621cbf5c2570eb382ac", null ],
     [ "operator=", "group___final_chain.html#add84b37513bf456c4dc32ce8f7a617db", null ],

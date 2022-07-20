@@ -11,7 +11,7 @@ var group___vote_classtaraxa_1_1_vrf_pbft_sortition =
     [ "getBinominalDistribution", "group___vote.html#ae3345fa449b38a914532c5ec2822d0d3", null ],
     [ "getRlpBytes", "group___vote.html#accdd1eb1fa9ffa965c31dc6a5fe61602", null ],
     [ "operator==", "group___vote.html#afd43da336fbf99a0727bdddd9f654cf7", null ],
-    [ "verify", "group___vote.html#a5c8e126bd60e8a39bd49cdb9f3e5ea45", null ],
+    [ "verify", "group___vote.html#ae6d8d23cfef3a3decfbdcfeef90e1035", null ],
     [ "operator<<", "group___vote.html#a5a9524665903c1186005956de19f7fd2", null ],
     [ "kMax256bFP", "group___vote.html#aed1745d8a9bffdabdfcd83465cf6a002", null ],
     [ "max256bits", "group___vote.html#ae25944089b11af1b3ef37dff72b8c86b", null ],

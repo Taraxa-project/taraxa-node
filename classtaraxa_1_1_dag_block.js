@@ -27,7 +27,7 @@ var classtaraxa_1_1_dag_block =
     [ "sha3", "classtaraxa_1_1_dag_block.html#a8d35045f23d40d390546972399f08255", null ],
     [ "streamRLP", "classtaraxa_1_1_dag_block.html#abff9ac02f998b919d4605153e4d03f79", null ],
     [ "verifySig", "classtaraxa_1_1_dag_block.html#ab28ae9dda4c128c0e90e086f72d823d4", null ],
-    [ "verifyVdf", "classtaraxa_1_1_dag_block.html#a1ef2829d6bac3f78d900e08cd0827df0", null ],
+    [ "verifyVdf", "classtaraxa_1_1_dag_block.html#a7a45d537a02efa1803505932f17b8c3a", null ],
     [ "operator<<", "classtaraxa_1_1_dag_block.html#ae33978bc71c0adc0c70c8ea4fbfc095a", null ],
     [ "block_weight_", "classtaraxa_1_1_dag_block.html#ad833bf9bd0f3861242fca4906fbe1679", null ],
     [ "cached_sender_", "classtaraxa_1_1_dag_block.html#ab804781e239bdde16f10ea8ca3d57bd3", null ],
