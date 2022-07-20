@@ -18,7 +18,7 @@ class KeyManager {
   std::shared_ptr<vrf_wrapper::vrf_pk_t> get(const addr_t &addr);
 
  private:
-  mutable std::shared_mutex mutex_;
+  std::shared_mutex mutex_;
   std::unordered_map<addr_t, std::shared_ptr<vrf_wrapper::vrf_pk_t>> key_map_;
 
   std::shared_ptr<FinalChain> final_chain_;

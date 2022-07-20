@@ -197,7 +197,7 @@ DagBlockManager::InsertAndVerifyBlockReturnType DagBlockManager::verifyBlock(con
   }
 
   const auto &dag_block_sender = blk.getSender();
-  // Get vrf publick key
+  // Get vrf public key
   const auto pk = key_manager_->get(dag_block_sender);
   if (!pk) {
     LOG(log_er_) << "DAG block " << block_hash << " with " << blk.getLevel() << " level no VRF key for sender"

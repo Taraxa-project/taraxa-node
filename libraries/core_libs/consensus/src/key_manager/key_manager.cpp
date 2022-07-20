@@ -9,18 +9,17 @@ KeyManager::KeyManager(std::shared_ptr<FinalChain> final_chain) : final_chain_(s
 std::shared_ptr<vrf_wrapper::vrf_pk_t> KeyManager::get(const addr_t& addr) {
   {
     std::shared_lock lock(mutex_);
-    if (key_map_.contains(addr)) {
-      return key_map_.at(addr);
+    if (const auto it = key_map_.find(addr); it != key_map_.end()) {
+      return it->second;
     }
   }
   {
     std::unique_lock lock(mutex_);
     if (auto key = final_chain_->get_vrf_key(addr); key != kEmptyVrfKey) {
-      key_map_[addr] = std::make_shared<vrf_wrapper::vrf_pk_t>(std::move(key));
-      return key_map_.at(addr);
-    } else {
-      return nullptr;
+      const auto [it, _] = key_map_.insert_or_assign(addr, std::make_shared<vrf_wrapper::vrf_pk_t>(std::move(key)));
+      return it->second;
     }
+    return nullptr;
   }
 }
 }  // namespace taraxa
