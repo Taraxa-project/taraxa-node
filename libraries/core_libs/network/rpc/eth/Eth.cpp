@@ -460,7 +460,7 @@ class EthImpl : public Eth, EthParams {
     add(res, ltr.trx_loc);
     res["from"] = toJson(ltr.trx_from);
     res["to"] = toJson(ltr.trx_to);
-    res["status"] = toString(ltr.r.status_code);
+    res["status"] = toJson(ltr.r.status_code);
     res["gasUsed"] = toJson(ltr.r.gas_used);
     res["cumulativeGasUsed"] = toJson(ltr.r.cumulative_gas_used);
     res["contractAddress"] = toJson(ltr.r.new_contract_address);
