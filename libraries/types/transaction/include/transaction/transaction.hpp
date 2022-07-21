@@ -39,6 +39,7 @@ struct Transaction {
   void streamRLP(dev::RLPStream &s) const;
   trx_hash_t hash_for_signature() const;
   addr_t const &get_sender_() const;
+  void fromRLP(const dev::RLP &_rlp, bool verify_strict, const h256 &hash);
 
  public:
   // TODO eliminate and use shared_ptr<Transaction> everywhere
@@ -46,8 +47,7 @@ struct Transaction {
   Transaction(const trx_nonce_t &nonce, const val_t &value, const val_t &gas_price, gas_t gas, bytes data,
               const secret_t &sk, const std::optional<addr_t> &receiver = std::nullopt, uint64_t chain_id = 0);
   explicit Transaction(const dev::RLP &_rlp, bool verify_strict = false, const h256 &hash = {});
-  explicit Transaction(const bytes &_rlp, bool verify_strict = false, const h256 &hash = {})
-      : Transaction(dev::RLP(_rlp), verify_strict, hash) {}
+  explicit Transaction(const bytes &_rlp, bool verify_strict = false, const h256 &hash = {});
 
   auto isZero() const { return is_zero_; }
   trx_hash_t const &getHash() const;

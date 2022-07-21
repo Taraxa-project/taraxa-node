@@ -81,10 +81,10 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[1]->getHash()));
   EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[2]->getHash()));
   EXPECT_TRUE(db.transactionInDb(g_trx_signed_samples[3]->getHash()));
-  EXPECT_EQ(*g_trx_signed_samples[0], *db.getTransaction(g_trx_signed_samples[0]->getHash()));
-  EXPECT_EQ(*g_trx_signed_samples[1], *db.getTransaction(g_trx_signed_samples[1]->getHash()));
-  EXPECT_EQ(*g_trx_signed_samples[2], *db.getTransaction(g_trx_signed_samples[2]->getHash()));
-  EXPECT_EQ(*g_trx_signed_samples[3], *db.getTransaction(g_trx_signed_samples[3]->getHash()));
+  ASSERT_EQ(*g_trx_signed_samples[0], *db.getTransaction(g_trx_signed_samples[0]->getHash()));
+  ASSERT_EQ(*g_trx_signed_samples[1], *db.getTransaction(g_trx_signed_samples[1]->getHash()));
+  ASSERT_EQ(*g_trx_signed_samples[2], *db.getTransaction(g_trx_signed_samples[2]->getHash()));
+  ASSERT_EQ(*g_trx_signed_samples[3], *db.getTransaction(g_trx_signed_samples[3]->getHash()));
 
   // PBFT manager previous round status
   EXPECT_EQ(db.getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold), 0);

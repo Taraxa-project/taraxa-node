@@ -1,3 +1,4 @@
+
 #include "transaction/transaction.hpp"
 
 #include <libdevcore/CommonJS.h>
@@ -34,12 +35,33 @@ Transaction::Transaction(const trx_nonce_t &nonce, const val_t &value, const val
   getSender();
 }
 
-Transaction::Transaction(const dev::RLP &_rlp, bool verify_strict, const h256 &hash)
-    : hash_(hash), hash_initialized_(!hash.isZero()) {
+Transaction::Transaction(const bytes &_bytes, bool verify_strict, const h256 &hash) {
+  dev::RLP rlp;
+  try {
+    rlp = dev::RLP(_bytes);
+  } catch (const dev::RLPException &e) {
+    // TODO[1881]: this should be removed when we will add typed transactions support
+    std::string error_msg =
+        "Can't parse transaction from RLP. Use legacy transactions because typed transactions aren't supported yet.";
+    error_msg += "\nException details:\n";
+    error_msg += e.what();
+    BOOST_THROW_EXCEPTION(RLPException() << errinfo_comment(error_msg));
+  }
+
+  fromRLP(rlp, verify_strict, hash);
+}
+
+Transaction::Transaction(const dev::RLP &_rlp, bool verify_strict, const h256 &hash) {
+  fromRLP(_rlp, verify_strict, hash);
+}
+
+void Transaction::fromRLP(const dev::RLP &_rlp, bool verify_strict, const h256 &hash) {
+  hash_ = hash;
+  hash_initialized_ = !hash.isZero();
+
   u256 v, r, s;
   util::rlp_tuple(util::RLPDecoderRef(_rlp, verify_strict), nonce_, gas_price_, gas_, receiver_, value_, data_, v, r,
                   s);
-
   // the following piece of code should be equivalent to
   // https://github.com/ethereum/aleth/blob/644d420f8ac0f550a28e9ca65fe1ad1905d0f069/libethcore/TransactionBase.cpp#L58-L78
   // Plus, we don't allow `0` for chain_id. In this code, `chain_id_ == 0` means there is no chain id at all.
