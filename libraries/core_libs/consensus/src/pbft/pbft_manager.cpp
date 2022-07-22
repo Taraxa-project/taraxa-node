@@ -1941,6 +1941,15 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
     return std::nullopt;
   }
 
+  // Special case when previous block was already in chain so we hit condition
+  // pbft_chain_->findPbftBlockInChain(pbft_block_hash) and it's cert votes were not verified here, they are part of
+  // vote_manager so we need to replace them as they are not verified period_data structure
+  if (period_data.previous_block_cert_votes.size() && !period_data.previous_block_cert_votes.front()->getWeight()) {
+    if (auto votes = getRewardVotesInBlock(period_data.pbft_blk->getRewardVotes()); votes.size()) {
+      period_data.previous_block_cert_votes = std::move(votes);
+    }
+  }
+
   // Check cert votes validation
   try {
     period_data.hasEnoughValidCertVotes(
