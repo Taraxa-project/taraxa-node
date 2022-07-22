@@ -672,25 +672,6 @@ bool PbftManager::stateOperations_() {
   // Remove old votes
   vote_mgr_->cleanupVotes(round);
 
-  // TODO: Important !!! -> use this key_manager_ somewhere else
-  //  // Periodically verify unverified votes
-  //  vote_mgr_->verifyVotes(round, [this](auto const &v) {
-  //    const auto pk = key_manager_->get(v->getVoterAddr());
-  //    if (!pk) {
-  //      LOG(log_wr_) << "No vrf key mapped for vote author " << v->getVoterAddr();
-  //      return false;
-  //    }
-  //    try {
-  //      v->validate(dposEligibleVoteCount_(v->getVoterAddr()), getDposTotalVotesCount(),
-  //      getCurrentPbftSortitionThreshold(v->getType()));
-  //    } catch (const std::logic_error &e) {
-  //      LOG(log_wr_) << e.what();
-  //      return false;
-  //    }
-  //
-  //    return true;
-  //  });
-
   // CHECK IF WE HAVE RECEIVED 2t+1 CERT VOTES FOR A BLOCK IN OUR CURRENT
   // ROUND.  IF WE HAVE THEN WE EXECUTE THE BLOCK
   // ONLY CHECK IF HAVE *NOT* YET EXECUTED THIS ROUND...
@@ -1153,13 +1134,20 @@ std::pair<bool, std::string> PbftManager::dposValidateVote(const std::shared_ptr
 
   // Validate vote against dpos contract
   try {
+    const auto pk = key_manager_->get(vote->getVoterAddr());
+    if (!pk) {
+      std::stringstream err;
+      err << "No vrf key mapped for vote author " << vote->getVoterAddr();
+      return {false, err.str()};
+    }
+
     // TODO: final_chain_->dpos... ret values should be cached as it is heavily used and most of the time it returns the
     // same value!
     const uint64_t voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(vote_period, vote->getVoterAddr());
     const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(vote_period);
     const uint64_t pbft_sortition_threshold = getPbftSortitionThreshold(vote->getType(), vote_period);
 
-    vote->validate(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold);
+    vote->validate(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold, *pk);
   } catch (state_api::ErrFutureBlock &e) {
     std::stringstream err;
     err << "Unable to validate vote " << vote->getHash() << " against dpos contract. It's period (" << vote_period
@@ -2044,11 +2032,10 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
 
   // Check cert votes validation
   try {
-==== BASE ====
-    period_data.hasEnoughValidCertVotes(cert_votes, getDposTotalVotesCount(), getThreshold(cert_vote_type),
-                                        getTwoTPlusOne(),
-                                        [this](auto const &addr) { return dposEligibleVoteCount_(addr); });
-==== BASE ====
+    period_data.hasEnoughValidCertVotes(
+        cert_votes, getDposTotalVotesCount(), getCurrentPbftSortitionThreshold(cert_vote_type), getTwoTPlusOne(),
+        [this](auto const &addr) { return dposEligibleVoteCount_(addr); },
+        [this](auto const &addr) { return key_manager_->get(addr); });
   } catch (const std::logic_error &e) {
     // Failed cert votes validation, flush synced PBFT queue and set since
     // next block validation depends on the current one

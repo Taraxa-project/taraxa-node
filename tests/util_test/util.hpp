@@ -162,7 +162,8 @@ inline auto make_node_cfgs(size_t total_count, size_t validators_count = 1) {
 
     state_api::BalanceMap delegations;
     delegations.emplace(node_addr, cfg.chain.final_chain.state.dpos->eligibility_balance_threshold);
-    initial_validators.emplace_back(state_api::ValidatorInfo{node_addr, node_addr, 100, "", "", delegations});
+    initial_validators.emplace_back(state_api::ValidatorInfo{
+        node_addr, node_addr, vrf_wrapper::getVrfPublicKey(cfg.vrf_secret), 100, "", "", delegations});
   }
 
   std::vector<taraxa::FullNodeConfig> ret_configs;
@@ -173,8 +174,8 @@ inline auto make_node_cfgs(size_t total_count, size_t validators_count = 1) {
       continue;
     }
 
-      state_api::BalanceMap delegations;
-      delegations.emplace(root_node_addr, dpos.eligibility_balance_threshold);
+    cfg.chain.final_chain.state.genesis_balances = genesis_balances;
+    cfg.chain.final_chain.state.dpos->initial_validators = initial_validators;
 
     cfg.chain.final_chain.state.dpos->delegation_delay = 5;
     cfg.chain.final_chain.state.dpos->delegation_locking_period = 5;

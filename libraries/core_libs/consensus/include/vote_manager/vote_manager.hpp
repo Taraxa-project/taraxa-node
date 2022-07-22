@@ -137,9 +137,9 @@ class NextVotesManager {
  */
 class VoteManager {
  public:
-  VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db,
-              std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
-              std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<KeyManager> key_manager);
+  VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
+              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<NextVotesManager> next_votes_mgr,
+              std::shared_ptr<KeyManager> key_manager);
   ~VoteManager();
   VoteManager(const VoteManager&) = delete;
   VoteManager(VoteManager&&) = delete;
