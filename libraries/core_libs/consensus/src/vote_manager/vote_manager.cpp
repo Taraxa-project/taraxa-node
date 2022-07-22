@@ -603,6 +603,7 @@ void VoteManager::replaceRewardVotes(std::vector<std::shared_ptr<Vote>>&& cert_v
   reward_votes_ = {};
   reward_votes_pbft_block_hash_ = cert_votes[0]->getBlockHash();
   for (auto& v : cert_votes) {
+    assert(v->getWeight());
     reward_votes_.insert({v->getHash(), std::move(v)});
   }
 }
