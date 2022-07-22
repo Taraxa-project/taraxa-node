@@ -8,7 +8,7 @@ target_link_libraries(abi_test
     core_libs
     CONAN_PKG::gtest
 )
-add_test(crypto_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/abi_test)
+add_test(abi_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/abi_test)
 
 add_executable(crypto_test crypto_test.cpp ${UTIL_HEADERS})
 target_link_libraries(crypto_test

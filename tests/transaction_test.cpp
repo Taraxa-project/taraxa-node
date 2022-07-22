@@ -383,6 +383,23 @@ TEST_F(TransactionTest, priority_queue) {
   }
 }
 
+TEST_F(TransactionTest, typed_deserialization) {
+  auto trx_rlp =
+      "0x01f88380018203339407a565b7ed7d7a678680a4c162885bedbb695fe080a44401a6e40000000000000000000000000000000000000000"
+      "00000000000000000000001226a0223a7c9bcf5531c99be5ea7082183816eb20cfe0bbc322e97cc5c7f71ab8b20ea02aadee6b34b45bb15b"
+      "c42d9c09de4a6754e7000908da72d48cc7704971491663";
+  try {
+    Transaction(jsToBytes(trx_rlp, dev::OnFailed::Throw), true);
+  } catch (const std::exception& e) {
+    const std::string exception_str = e.what();
+    EXPECT_TRUE(exception_str.find("Can't parse transaction from RLP. Use legacy transactions because typed "
+                                   "transactions aren't supported yet.") != string::npos);
+    return;
+  }
+  // shouldn't reach this code
+  GTEST_FAIL();
+}
+
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;
