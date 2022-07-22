@@ -24,7 +24,7 @@ std::pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size, siz
 }
 
 void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_size) {
-  auto node_cfgs = make_node_cfgs<5>(5);
+  auto node_cfgs = make_node_cfgs<5>(5, 5);
   auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
   for (auto &cfg : node_cfgs) {
     cfg.chain.pbft.committee_size = committee_size;
@@ -38,22 +38,6 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   auto nonce = 1;  // fixme: the following nonce approach is not correct anyway
   uint64_t trxs_count = 0;
 
-  {
-    const auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos->eligibility_balance_threshold;
-    for (size_t i(1); i < node_cfgs.size(); ++i) {
-      std::cout << "Delegating stake of " << min_stake_to_vote << " to node " << i << std::endl;
-      const auto trx = make_dpos_trx(node_cfgs[i], min_stake_to_vote, nonce++, gas_price);
-      nodes[0]->getTransactionManager()->insertTransaction(trx);
-      trxs_count++;
-    }
-    EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
-      for (auto &node : nodes) {
-        if (ctx.fail_if(node->getDB()->getNumTransactionExecuted() != trxs_count)) {
-          return;
-        }
-      }
-    });
-  }
   std::vector<u256> balances;
   for (size_t i(0); i < nodes.size(); ++i) {
     balances.push_back(std::move(nodes[i]->getFinalChain()->getBalance(nodes[i]->getAddress()).first));
@@ -186,7 +170,7 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
 
   // Generate bogus votes
   auto stale_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
-  auto propose_vote = pbft_mgr->generateVote(stale_block_hash, propose_vote_type, 2, 1);
+  auto propose_vote = pbft_mgr->generateVote(stale_block_hash, propose_vote_type, 2, 2, 1);
   propose_vote->calculateWeight(1, 1, 1);
   vote_mgr->addVerifiedVote(propose_vote);
 
@@ -261,9 +245,10 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   pbft_chain->pushUnverifiedPbftBlock(propose_pbft_block);
 
   // Generate bogus vote
+  auto period = 1;
   auto round = 1;
   auto step = 4;
-  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step);
+  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, period, round, step);
   propose_vote->calculateWeight(1, 1, 1);
   vote_mgr->addVerifiedVote(propose_vote);
 
@@ -319,10 +304,11 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
   auto node_sk = nodes[0]->getSecretKey();
 
   // Generate bogus vote
+  auto period = 1;
   auto round = 1;
   auto step = 4;
   auto pbft_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
-  auto next_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step);
+  auto next_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, period, round, step);
   next_vote->calculateWeight(1, 1, 1);
   vote_mgr->addVerifiedVote(next_vote);
 
@@ -376,7 +362,7 @@ TEST_F(PbftManagerTest, full_node_lambda_input_test) {
 }
 
 TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
-  auto node_cfgs = make_node_cfgs<5>(5);
+  auto node_cfgs = make_node_cfgs<5>(5, 5);
   auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
   for (auto &cfg : node_cfgs) {
     cfg.chain.pbft.committee_size = 100;
@@ -389,24 +375,8 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
   const auto gas_price = val_t(0);
   auto nonce = 1;  // fixme: the following nonce approach is not correct anyway
   uint64_t trxs_count = 0;
-  auto expected_eligible_total_vote = 1;
-  {
-    const auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos->eligibility_balance_threshold;
-    for (size_t i(1); i < node_cfgs.size(); ++i) {
-      std::cout << "Delegating stake of " << min_stake_to_vote << " to node " << i << std::endl;
-      const auto trx = make_dpos_trx(node_cfgs[i], min_stake_to_vote, nonce++, gas_price);
-      nodes[0]->getTransactionManager()->insertTransaction(trx);
-      trxs_count++;
-      expected_eligible_total_vote++;
-    }
-    EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
-      for (auto &node : nodes) {
-        if (ctx.fail_if(node->getDB()->getNumTransactionExecuted() != trxs_count)) {
-          return;
-        }
-      }
-    });
-  }
+  auto expected_eligible_total_vote = 5;
+
   std::vector<u256> balances;
   for (size_t i(0); i < nodes.size(); ++i) {
     balances.push_back(std::move(nodes[i]->getFinalChain()->getBalance(nodes[i]->getAddress()).first));

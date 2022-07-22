@@ -17,44 +17,35 @@ enum PbftVoteTypes : uint8_t { propose_vote_type = 0, soft_vote_type, cert_vote_
 /**
  * @brief VrfPbftMsg struct uses vote type, PBFT round, and PBFT step to generate a message for doing VRF sortition.
  */
-struct VrfPbftMsg {
+class VrfPbftMsg {
+ public:
   VrfPbftMsg() = default;
-  VrfPbftMsg(PbftVoteTypes type, uint64_t round, size_t step) : type(type), round(round), step(step) {}
+  VrfPbftMsg(PbftVoteTypes type, uint64_t period, uint64_t round, size_t step);
 
   /**
-   * @brief Combine vote type, PBFT round, and PBFT step to a string
-   * @return a string of vote type, PBFT round, and PBFT step
+   * @brief Combine vote type, PBFT period, round and step to a string
+   * @return a string of vote type, PBFT period, round and step
    */
-  std::string toString() const {
-    return std::to_string(type) + "_" + std::to_string(round) + "_" + std::to_string(step);
-  }
-
-  bool operator==(VrfPbftMsg const& other) const {
-    return type == other.type && round == other.round && step == other.step;
-  }
-
-  friend std::ostream& operator<<(std::ostream& strm, VrfPbftMsg const& pbft_msg) {
-    strm << "  [Vrf Pbft Msg] " << std::endl;
-    strm << "    type: " << static_cast<uint32_t>(pbft_msg.type) << std::endl;
-    strm << "    round: " << pbft_msg.round << std::endl;
-    strm << "    step: " << pbft_msg.step << std::endl;
-    return strm;
-  }
+  std::string toString() const;
 
   /**
    * @brief Get bytes of RLP stream
    * @return bytes of RLP stream
    */
-  bytes getRlpBytes() const {
-    dev::RLPStream s;
-    s.appendList(3);
-    s << static_cast<uint8_t>(type);
-    s << round;
-    s << step;
-    return s.invalidate();
+  bytes getRlpBytes() const;
+
+  bool operator==(VrfPbftMsg const& other) const;
+  friend std::ostream& operator<<(std::ostream& strm, VrfPbftMsg const& pbft_msg) {
+    strm << "  [Vrf Pbft Msg] " << std::endl;
+    strm << "    type: " << static_cast<uint32_t>(pbft_msg.type) << std::endl;
+    strm << "    period: " << pbft_msg.period << std::endl;
+    strm << "    round: " << pbft_msg.round << std::endl;
+    strm << "    step: " << pbft_msg.step << std::endl;
+    return strm;
   }
 
   PbftVoteTypes type;
+  uint64_t period;
   uint64_t round;
   size_t step;
 };

@@ -137,7 +137,7 @@ class NextVotesManager {
  */
 class VoteManager {
  public:
-  VoteManager(size_t pbft_committee_size, const addr_t& node_addr, std::shared_ptr<DbStorage> db,
+  VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db,
               std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
               std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<KeyManager> key_manager);
   ~VoteManager();
@@ -202,8 +202,10 @@ class VoteManager {
   /**
    * @brief Add a vote to the verified votes map
    * @param vote vote
+   *
+   * @return true if vote was successfully added, otherwise false
    */
-  void addVerifiedVote(std::shared_ptr<Vote> const& vote);
+  bool addVerifiedVote(std::shared_ptr<Vote> const& vote);
 
   /**
    * @brief Check if the vote has been in the verified votes map
@@ -276,12 +278,17 @@ class VoteManager {
 
   /**
    * @brief Add last period cert vote to reward_votes_ after the cert vote voted block finalized
-   *
    * @param cert vote voted to last period PBFT block
    *
-   * @return true if add successful
+   * @return true if vote was successfully added, otherwise false
    */
   bool addRewardVote(const std::shared_ptr<Vote>& vote);
+
+  /**
+   * @param vote_hash
+   * @return true if vote_hash is already in rewards_votes, otheriwse false
+   */
+  bool isKnownRewardVote(const vote_hash_t& vote_hash);
 
   /**
    * @brief Check reward_votes_ if including all reward votes for the PBFT block
@@ -378,9 +385,6 @@ class VoteManager {
   mutable boost::shared_mutex unverified_votes_access_;
   mutable boost::shared_mutex verified_votes_access_;
 
-  const size_t pbft_committee_size_;
-  const addr_t node_addr_;
-
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<FinalChain> final_chain_;
@@ -388,6 +392,7 @@ class VoteManager {
   std::shared_ptr<KeyManager> key_manager_;
   std::weak_ptr<Network> network_;
 
+  // TODO: this seems like something we dont we dont need
   blk_hash_t reward_votes_pbft_block_hash_;
   uint64_t last_pbft_block_cert_round_;
   std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> reward_votes_;

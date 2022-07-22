@@ -192,11 +192,12 @@ void TaraxaCapability::registerPacketHandlers(
   // Register all packet handlers
 
   // Consensus packets with high processing priority
-  packets_handlers_->registerHandler<VotePacketHandler>(peers_state_, packets_stats, pbft_mgr, vote_mgr, node_addr);
-  packets_handlers_->registerHandler<GetVotesSyncPacketHandler>(peers_state_, packets_stats, pbft_mgr, next_votes_mgr,
-                                                                node_addr);
-  packets_handlers_->registerHandler<VotesSyncPacketHandler>(peers_state_, packets_stats, pbft_mgr, vote_mgr,
-                                                             next_votes_mgr, db, node_addr);
+  packets_handlers_->registerHandler<VotePacketHandler>(peers_state_, packets_stats, pbft_mgr, pbft_chain, vote_mgr,
+                                                        node_addr);
+  packets_handlers_->registerHandler<GetVotesSyncPacketHandler>(peers_state_, packets_stats, pbft_mgr, pbft_chain,
+                                                                next_votes_mgr, node_addr);
+  packets_handlers_->registerHandler<VotesSyncPacketHandler>(peers_state_, packets_stats, pbft_mgr, pbft_chain,
+                                                             vote_mgr, next_votes_mgr, db, node_addr);
 
   // Standard packets with mid processing priority
   packets_handlers_->registerHandler<PbftBlockPacketHandler>(peers_state_, packets_stats, pbft_chain, pbft_mgr,

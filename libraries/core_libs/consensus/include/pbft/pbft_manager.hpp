@@ -171,11 +171,13 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Generate a vote
    * @param blockhash vote on PBFT block hash
    * @param type vote type
+   * @param period PBFT period
    * @param round PBFT round
    * @param step PBFT step
    * @return vote
    */
-  std::shared_ptr<Vote> generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step);
+  std::shared_ptr<Vote> generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t period, uint64_t round,
+                                     size_t step);
 
   /**
    * @brief Get total DPOS votes count
@@ -302,6 +304,21 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   blk_hash_t getLastPbftBlockHash();
 
+  /**
+   * @brief Get only include reward votes that are list in PBFT block
+   * @param reward_votes_hashes reward votes hashes are list in PBFT block
+   * @return reward votes that are list in PBFT block
+   */
+  std::vector<std::shared_ptr<Vote>> getRewardVotesInBlock(const std::vector<vote_hash_t> &reward_votes_hashes);
+
+  /**
+   * @brief Validates vote against dpos contract
+   *
+   * @param vote to be validated
+   * @return <true, ""> vote validation passed, otherwise <false, "err msg">
+   */
+  std::pair<bool, std::string> dposValidateVote(const std::shared_ptr<Vote> &vote);
+
  private:
   // DPOS
   /**
@@ -412,31 +429,41 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Place a vote, save it in the verified votes queue, and gossip to peers
    * @param blockhash vote on PBFT block hash
    * @param vote_type vote type
+   * @param period PBFT period
    * @param round PBFT round
    * @param step PBFT step
    * @return vote weight
    */
-  size_t placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t round, size_t step);
+  size_t placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t period, uint64_t round, size_t step);
 
   /**
-   * @brief Get PBFT sortition threshold
+   * @brief Get current (based on the latest finalized block) PBFT sortition threshold
    * @param vote_type vote type
    * @return PBFT sortition threshold
    */
-  uint64_t getThreshold(PbftVoteTypes vote_type) const;
+  uint64_t getCurrentPbftSortitionThreshold(PbftVoteTypes vote_type) const;
+
+  /**
+   * @brief Get PBFT sortition threshold for specific period
+   * @param vote_type vote type
+   * @param pbft_period pbft period
+   * @return PBFT sortition threshold
+   */
+  uint64_t getPbftSortitionThreshold(PbftVoteTypes vote_type, uint64_t pbft_period) const;
 
   /**
    * @brief Propose a new PBFT block
+   * @param propose_period PBFT propose period
    * @return proposed PBFT block hash
    */
-  blk_hash_t proposePbftBlock_();
+  blk_hash_t proposePbftBlock_(uint64_t propose_period);
 
   /**
-   * @brief Identify a leader block from all received proposed PBFT blocks for the current period by using minimum
+   * @brief Identify a leader block from all received proposed PBFT blocks for the current round by using minimum
    * Verifiable Random Function (VRF) output. In filter state, don’t need check vote value correction.
-   * @return PBFT leader block hash
+   * @return optional(pair<PBFT leader block hash, PBFT leader period>)
    */
-  blk_hash_t identifyLeaderBlock_();
+  std::optional<std::pair<blk_hash_t, uint64_t>> identifyLeaderBlock_();
 
   /**
    * @brief Calculate the lowest hash of a vote by vote weight
@@ -599,6 +626,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool RUN_COUNT_VOTES;  // TODO: Only for test, need remove later
 
   PbftStates state_ = value_proposal_state;
+
   std::atomic<uint64_t> round_ = 1;
   size_t step_ = 1;
   size_t startingStepInRound_ = 1;

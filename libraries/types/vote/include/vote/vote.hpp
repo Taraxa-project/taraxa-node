@@ -101,6 +101,12 @@ class Vote {
   PbftVoteTypes getType() const { return vrf_sortition_.pbft_msg_.type; }
 
   /**
+   * @brief Get vote PBFT period
+   * @return vote PBFT period
+   */
+  uint64_t getPeriod() const { return vrf_sortition_.pbft_msg_.period; }
+
+  /**
    * @brief Get vote PBFT round
    * @return vote PBFT round
    */

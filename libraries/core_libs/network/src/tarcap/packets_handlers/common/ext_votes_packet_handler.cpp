@@ -7,10 +7,44 @@ namespace taraxa::network::tarcap {
 
 ExtVotesPacketHandler::ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_state,
                                              std::shared_ptr<PacketsStats> packets_stats,
-                                             std::shared_ptr<PbftManager> pbft_mgr, const addr_t &node_addr,
+                                             std::shared_ptr<PbftManager> pbft_mgr,
+                                             std::shared_ptr<PbftChain> pbft_chain, const addr_t &node_addr,
                                              const std::string &log_channel_name)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
-      pbft_mgr_(std::move(pbft_mgr)) {}
+      pbft_mgr_(std::move(pbft_mgr)),
+      pbft_chain_(std::move(pbft_chain)) {}
+
+std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const std::shared_ptr<Vote> &vote) {
+  // TODO: add checks related to the roud & period that could be too far ahead, etc... ?
+
+  return pbft_mgr_->dposValidateVote(vote);
+}
+
+std::pair<bool, std::string> ExtVotesPacketHandler::validateRewardVote(const std::shared_ptr<Vote> &vote) {
+  if (vote->getType() != cert_vote_type) {
+    std::stringstream err;
+    err << "Invalid type: " << static_cast<uint64_t>(vote->getType());
+    // throw MaliciousPeerException(err.str());
+    return {false, err.str()};
+  }
+
+  if (vote->getStep() != 3) {
+    std::stringstream err;
+    err << "Invalid step: " << vote->getStep();
+    return {false, err.str()};
+  }
+
+  if (pbft_chain_->getLastPbftBlockHash() != vote->getBlockHash()) {
+    // Should not happen, reward_votes_pbft_block_hash_ should always equal to last block hash in PBFT chain
+    std::stringstream err;
+    err << "Invalid PBFT block hash " << vote->getBlockHash().abridged() << " -> different from "
+        << pbft_chain_->getLastPbftBlockHash().abridged();
+    // throw MaliciousPeerException(err.str());
+    return {false, err.str()};
+  }
+
+  return pbft_mgr_->dposValidateVote(vote);
+}
 
 void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes) {
   for (const auto &peer : peers_state_->getAllPeers()) {
@@ -47,7 +81,7 @@ void ExtVotesPacketHandler::sendPbftVotes(const dev::p2p::NodeID &peer_id, std::
     dev::RLPStream s(count);
     for (auto i = index; i < index + count; i++) {
       const auto &v = votes[i];
-      s.appendRaw(v->rlp(true));
+      s.appendRaw(v->rlp(true, true));
       LOG(log_dg_) << "Send out vote " << v->getHash() << " to peer " << peer_id;
     }
 
