@@ -5,6 +5,7 @@ var structtaraxa_1_1_transaction =
     [ "Transaction", "structtaraxa_1_1_transaction.html#a5dece3e8614eccb82bd10d5739200065", null ],
     [ "Transaction", "structtaraxa_1_1_transaction.html#ae2d6301c8b44e9ff093bc7bdeb625422", null ],
     [ "Transaction", "structtaraxa_1_1_transaction.html#a75ca1b1824b133c6e887eea54c1fcc26", null ],
+    [ "fromRLP", "structtaraxa_1_1_transaction.html#a751515286e21c26714170baea23742a9", null ],
     [ "get_sender_", "structtaraxa_1_1_transaction.html#a6792b0d7d82e86fb23e986e9fa602379", null ],
     [ "getChainID", "structtaraxa_1_1_transaction.html#a7b82e66ad83dcbd693e9ad4638a95884", null ],
     [ "getCost", "structtaraxa_1_1_transaction.html#a2d7ea13a5b6c350c283bf920586b3461", null ],
