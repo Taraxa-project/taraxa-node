@@ -165,8 +165,6 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   {  // config values that limits transactions and blocks memory pools
     max_transactions_pool_warn = getConfigDataAsUInt(root, {"max_transactions_pool_warn"}, true);
     max_transactions_pool_drop = getConfigDataAsUInt(root, {"max_transactions_pool_drop"}, true);
-
-    max_block_queue_warn = getConfigDataAsUInt(root, {"max_block_queue_warn"}, true);
   }
   {  // db_config
     // Create db snapshot each N pbft block

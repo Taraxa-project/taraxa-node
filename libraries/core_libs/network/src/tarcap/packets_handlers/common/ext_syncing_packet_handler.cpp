@@ -1,25 +1,24 @@
 #include "network/tarcap/packets_handlers/common/ext_syncing_packet_handler.hpp"
 
 #include "dag/dag.hpp"
-#include "dag/dag_block_manager.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
 
 namespace taraxa::network::tarcap {
 
-ExtSyncingPacketHandler::ExtSyncingPacketHandler(
-    std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-    std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
-    std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
-    std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db, const addr_t &node_addr,
-    const std::string &log_channel_name)
+ExtSyncingPacketHandler::ExtSyncingPacketHandler(std::shared_ptr<PeersState> peers_state,
+                                                 std::shared_ptr<PacketsStats> packets_stats,
+                                                 std::shared_ptr<PbftSyncingState> pbft_syncing_state,
+                                                 std::shared_ptr<PbftChain> pbft_chain,
+                                                 std::shared_ptr<PbftManager> pbft_mgr,
+                                                 std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DbStorage> db,
+                                                 const addr_t &node_addr, const std::string &log_channel_name)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
       pbft_syncing_state_(std::move(pbft_syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       pbft_mgr_(std::move(pbft_mgr)),
       dag_mgr_(std::move(dag_mgr)),
-      dag_blk_mgr_(std::move(dag_blk_mgr)),
       db_(std::move(db)) {}
 
 void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
@@ -146,46 +145,6 @@ void ExtSyncingPacketHandler::requestDagBlocks(const dev::p2p::NodeID &_nodeID,
   s.append(blocks);
 
   sealAndSend(_nodeID, SubprotocolPacketType::GetDagSyncPacket, std::move(s));
-}
-
-std::pair<bool, std::unordered_set<blk_hash_t>> ExtSyncingPacketHandler::checkDagBlockValidation(
-    const DagBlock &block) const {
-  std::unordered_set<blk_hash_t> missing_blks;
-
-  if (dag_blk_mgr_->isDagBlockKnown(block.getHash())) {
-    // The DAG block exist
-    return std::make_pair(true, missing_blks);
-  }
-
-  level_t expected_level = 0;
-  for (auto const &tip : block.getTips()) {
-    auto tip_block = dag_blk_mgr_->getDagBlock(tip);
-    if (!tip_block) {
-      LOG(log_tr_) << "Block " << block.getHash().abridged() << " has a missing tip " << tip.abridged();
-      missing_blks.insert(tip);
-    } else {
-      expected_level = std::max(tip_block->getLevel(), expected_level);
-    }
-  }
-
-  const auto pivot = block.getPivot();
-  const auto pivot_block = dag_blk_mgr_->getDagBlock(pivot);
-  if (!pivot_block) {
-    LOG(log_tr_) << "Block " << block.getHash().abridged() << " has a missing pivot " << pivot.abridged();
-    missing_blks.insert(pivot);
-  }
-
-  if (missing_blks.size()) return std::make_pair(false, missing_blks);
-
-  expected_level = std::max(pivot_block->getLevel(), expected_level);
-  expected_level++;
-  if (expected_level != block.getLevel()) {
-    LOG(log_er_) << "Invalid block level " << block.getLevel() << " for block " << block.getHash().abridged()
-                 << " . Expected level " << expected_level;
-    return std::make_pair(false, missing_blks);
-  }
-
-  return std::make_pair(true, missing_blks);
 }
 
 }  // namespace taraxa::network::tarcap

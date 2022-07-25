@@ -1,7 +1,6 @@
 #include "network/tarcap/stats/node_stats.hpp"
 
-#include "dag/dag.hpp"
-#include "dag/dag_block_manager.hpp"
+#include "dag/dag_manager.hpp"
 #include "libp2p/Common.h"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "network/tarcap/shared_states/peers_state.hpp"
@@ -16,16 +15,14 @@ namespace taraxa::network::tarcap {
 
 NodeStats::NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
-                     std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                     std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-                     std::shared_ptr<PacketsStats> packets_stats, std::shared_ptr<const TarcapThreadPool> thread_pool,
-                     const addr_t &node_addr)
+                     std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<VoteManager> vote_mgr,
+                     std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<PacketsStats> packets_stats,
+                     std::shared_ptr<const TarcapThreadPool> thread_pool, const addr_t &node_addr)
     : peers_state_(std::move(peers_state)),
       pbft_syncing_state_(std::move(pbft_syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       pbft_mgr_(std::move(pbft_mgr)),
       dag_mgr_(std::move(dag_mgr)),
-      dag_blk_mgr_(std::move(dag_blk_mgr)),
       vote_mgr_(std::move(vote_mgr)),
       trx_mgr_(std::move(trx_mgr)),
       packets_stats_(std::move(packets_stats)),
@@ -72,7 +69,6 @@ void NodeStats::logNodeStats() {
 
   // Local dag info...
   const auto local_max_level_in_dag = dag_mgr_->getMaxLevel();
-  const auto local_max_dag_level_in_queue = dag_blk_mgr_->getMaxDagLevelInQueue();
 
   // Local pbft info...
   uint64_t local_pbft_round = pbft_mgr_->getPbftRound();
@@ -147,7 +143,6 @@ void NodeStats::logNodeStats() {
     LOG(log_nf_) << "In sync since launch for " << sync_percentage << "% of the time";
   }
   LOG(log_nf_) << "Max DAG block level in DAG:      " << local_max_level_in_dag;
-  LOG(log_nf_) << "Max DAG block level in queue:    " << local_max_dag_level_in_queue;
   LOG(log_nf_) << "PBFT chain size:                 " << local_chain_size << " ("
                << local_chain_size_without_empty_blocks << ")";
   LOG(log_nf_) << "Current PBFT round:              " << local_pbft_round;
@@ -163,7 +158,6 @@ void NodeStats::logNodeStats() {
   LOG(log_dg_) << "Txs pool size:                   " << trx_mgr_->getTransactionPoolSize();
 
   const auto [non_finalized_blocks_levels, non_finalized_blocks_size] = dag_mgr_->getNonFinalizedBlocksSize();
-  LOG(log_dg_) << "Dag blocks size:        " << dag_blk_mgr_->getDagBlockQueueSize();
   LOG(log_dg_) << "Non finalized dag blocks levels: " << non_finalized_blocks_levels;
   LOG(log_dg_) << "Non finalized dag blocks size:   " << non_finalized_blocks_size;
 

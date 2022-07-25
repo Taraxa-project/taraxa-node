@@ -93,7 +93,6 @@ struct FullNodeConfig {
   // config values that limits transactions and blocks memory pools
   uint32_t max_transactions_pool_warn = 0;
   uint32_t max_transactions_pool_drop = 0;
-  uint32_t max_block_queue_warn = 0;
 
   auto net_file_path() const { return data_path / "net"; }
 

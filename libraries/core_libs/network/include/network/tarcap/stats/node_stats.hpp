@@ -9,7 +9,6 @@ class PbftChain;
 class PbftManager;
 class VoteManager;
 class DagManager;
-class DagBlockManager;
 class TransactionManager;
 }  // namespace taraxa
 
@@ -24,10 +23,9 @@ class NodeStats {
  public:
   NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PbftSyncingState> pbft_syncing_state,
             std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
-            std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-            std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-            std::shared_ptr<PacketsStats> packets_stats, std::shared_ptr<const TarcapThreadPool> thread_pool,
-            const addr_t &node_addr);
+            std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<VoteManager> vote_mgr,
+            std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<PacketsStats> packets_stats,
+            std::shared_ptr<const TarcapThreadPool> thread_pool, const addr_t &node_addr);
 
   void logNodeStats();
   uint64_t syncTimeSeconds() const;
@@ -41,7 +39,6 @@ class NodeStats {
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<DagManager> dag_mgr_;
-  std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<PacketsStats> packets_stats_;

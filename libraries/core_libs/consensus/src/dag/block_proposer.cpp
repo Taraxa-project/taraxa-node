@@ -38,7 +38,7 @@ bool SortitionPropose::propose() {
   }
   const auto period_block_hash = db_->getPeriodBlockHash(*proposal_period);
   // get sortition
-  const auto sortition_params = dag_blk_mgr_->sortitionParamsManager().getSortitionParams(*proposal_period);
+  const auto sortition_params = dag_mgr_->sortitionParamsManager().getSortitionParams(*proposal_period);
   vdf_sortition::VdfSortition vdf(sortition_params, vrf_sk_,
                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   if (vdf.isStale(sortition_params)) {
@@ -100,7 +100,7 @@ bool SortitionPropose::propose() {
     }
   }
 
-  auto [transactions, estimations] = proposer->getShardedTrxs(*proposal_period, dag_blk_mgr_->getDagConfig().gas_limit);
+  auto [transactions, estimations] = proposer->getShardedTrxs(*proposal_period, dag_mgr_->getDagConfig().gas_limit);
   if (transactions.empty()) {
     last_frontier_ = frontier;
     num_tries_ = 0;
@@ -192,7 +192,7 @@ std::pair<SharedTransactions, std::vector<uint64_t>> BlockProposer::getShardedTr
 level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const& tips) {
   level_t max_level = 0;
   // get current level
-  auto pivot_blk = dag_blk_mgr_->getDagBlock(pivot);
+  auto pivot_blk = dag_mgr_->getDagBlock(pivot);
   if (!pivot_blk) {
     LOG(log_er_) << "Cannot find pivot dag block " << pivot;
     return 0;
@@ -200,7 +200,7 @@ level_t BlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t const&
   max_level = std::max(pivot_blk->getLevel(), max_level);
 
   for (auto const& t : tips) {
-    auto tip_blk = dag_blk_mgr_->getDagBlock(t);
+    auto tip_blk = dag_mgr_->getDagBlock(t);
     if (!tip_blk) {
       LOG(log_er_) << "Cannot find tip dag block " << t;
       return 0;
@@ -227,9 +227,6 @@ void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTr
   LOG(log_nf_) << "Add proposed DAG block " << blk.getHash() << ", pivot " << blk.getPivot() << " , number of trx ("
                << blk.getTrxs().size() << ")";
 
-  // It is ok to mark our proposed new dag block as seen before adding it to dag as no one else has it yet - not
-  // possible to get into the invalid sync state -> marking something as seen before it is in internal structure
-  dag_blk_mgr_->markDagBlockAsSeen(blk);
   dag_mgr_->addDagBlock(std::move(blk), std::move(trxs), true);
 
   BlockProposer::num_proposed_blocks.fetch_add(1);

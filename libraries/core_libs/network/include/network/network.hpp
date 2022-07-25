@@ -17,7 +17,6 @@
 #include "common/thread_pool.hpp"
 #include "common/util.hpp"
 #include "config/config.hpp"
-#include "dag/dag_block_manager.hpp"
 #include "tarcap/taraxa_capability.hpp"
 #include "transaction/transaction.hpp"
 
@@ -34,7 +33,7 @@ class Network {
           std::shared_ptr<DbStorage> db = {}, std::shared_ptr<PbftManager> pbft_mgr = {},
           std::shared_ptr<PbftChain> pbft_chain = {}, std::shared_ptr<VoteManager> vote_mgr = {},
           std::shared_ptr<NextVotesManager> next_votes_mgr = {}, std::shared_ptr<DagManager> dag_mgr = {},
-          std::shared_ptr<DagBlockManager> dag_blk_mgr = {}, std::shared_ptr<TransactionManager> trx_mgr = {});
+          std::shared_ptr<TransactionManager> trx_mgr = {});
 
   ~Network();
   Network(const Network &) = delete;

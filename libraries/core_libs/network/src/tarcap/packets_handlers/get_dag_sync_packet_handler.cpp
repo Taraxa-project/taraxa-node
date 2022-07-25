@@ -1,6 +1,6 @@
 #include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
 
-#include "dag/dag.hpp"
+#include "dag/dag_manager.hpp"
 #include "transaction/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {
@@ -8,13 +8,11 @@ namespace taraxa::network::tarcap {
 GetDagSyncPacketHandler::GetDagSyncPacketHandler(std::shared_ptr<PeersState> peers_state,
                                                  std::shared_ptr<PacketsStats> packets_stats,
                                                  std::shared_ptr<TransactionManager> trx_mgr,
-                                                 std::shared_ptr<DagManager> dag_mgr,
-                                                 std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                                                 std::shared_ptr<DbStorage> db, const addr_t &node_addr)
+                                                 std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DbStorage> db,
+                                                 const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_DAG_SYNC_PH"),
       trx_mgr_(std::move(trx_mgr)),
       dag_mgr_(std::move(dag_mgr)),
-      dag_blk_mgr_(std::move(dag_blk_mgr)),
       db_(std::move(db)) {}
 
 void GetDagSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {

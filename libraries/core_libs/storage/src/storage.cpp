@@ -384,6 +384,7 @@ void DbStorage::saveDagBlock(DagBlock const& blk, Batch* write_batch_p) {
     blocks_stream << hash;
   }
   insert(write_batch, Columns::dag_blocks_index, toSlice(level), toSlice(blocks_stream.out()));
+
   dag_blocks_count_.fetch_add(1);
   insert(write_batch, Columns::status, toSlice((uint8_t)StatusDbField::DagBlkCount), toSlice(dag_blocks_count_.load()));
   // Do not count genesis pivot field

@@ -1,6 +1,6 @@
 #include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 
-#include "dag/dag_block_manager.hpp"
+#include "dag/dag_manager.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
 #include "transaction/transaction_manager.hpp"
@@ -12,12 +12,11 @@ DagBlockPacketHandler::DagBlockPacketHandler(std::shared_ptr<PeersState> peers_s
                                              std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                                              std::shared_ptr<PbftChain> pbft_chain,
                                              std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
-                                             std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DbStorage> db,
                                              std::shared_ptr<TestState> test_state, const addr_t &node_addr)
     : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
-                              std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(dag_blk_mgr),
-                              std::move(db), node_addr, "DAG_BLOCK_PH"),
+                              std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
+                              "DAG_BLOCK_PH"),
       test_state_(std::move(test_state)),
       trx_mgr_(std::move(trx_mgr)),
       seen_dags_(10000, 100) {}
@@ -39,31 +38,10 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
     peer->dag_level_ = block.getLevel();
   }
 
-  if (dag_blk_mgr_) [[likely]] {
+  if (dag_mgr_) [[likely]] {
     // Do not process this block in case we already have it
-    if (dag_blk_mgr_->isDagBlockKnown(block.getHash())) {
+    if (dag_mgr_->isDagBlockKnown(block.getHash())) {
       LOG(log_tr_) << "Received known DagBlockPacket " << hash << "from: " << peer->getId();
-      return;
-    }
-
-    LOG(log_dg_) << "Received DagBlockPacket " << hash << "from: " << peer->getId();
-
-    if (auto status = checkDagBlockValidation(block); !status.first) {
-      // Ignore new block packets when pbft syncing
-      if (pbft_syncing_state_->isPbftSyncing()) {
-        LOG(log_dg_) << "Ignore new dag block " << hash << ", pbft syncing is on";
-      } else if (peer->peer_dag_syncing_) {
-        LOG(log_dg_) << "Ignore new dag block " << hash << ", dag syncing is on";
-      } else {
-        if (peer->peer_dag_synced_) {
-          std::ostringstream err_msg;
-          err_msg << "DagBlock" << block.getHash() << " has missing pivot or/and tips " << status.second;
-          throw MaliciousPeerException(err_msg.str());
-        } else {
-          // peer_dag_synced_ flag ensures that this can only be performed once for a peer
-          requestPendingDagBlocks(peer);
-        }
-      }
       return;
     }
   }
@@ -112,43 +90,60 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
 }
 
 void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shared_ptr<TaraxaPeer> &peer) {
-  if (dag_blk_mgr_) [[likely]] {
+  if (dag_mgr_) [[likely]] {
     const auto block_hash = block.getHash();
-    const auto verified = dag_blk_mgr_->insertAndVerifyBlock(std::move(block));
+    const auto verified = dag_mgr_->verifyBlock(block);
     switch (verified) {
-      case DagBlockManager::InsertAndVerifyBlockReturnType::IncorrectTransactionsEstimation:
-      case DagBlockManager::InsertAndVerifyBlockReturnType::BlockTooBig:
-      case DagBlockManager::InsertAndVerifyBlockReturnType::InvalidBlock:
-      case DagBlockManager::InsertAndVerifyBlockReturnType::FailedVdfVerification:
-      case DagBlockManager::InsertAndVerifyBlockReturnType::NotEligible: {
+      case DagManager::VerifyBlockReturnType::IncorrectTransactionsEstimation:
+      case DagManager::VerifyBlockReturnType::BlockTooBig:
+      case DagManager::VerifyBlockReturnType::FailedVdfVerification:
+      case DagManager::VerifyBlockReturnType::NotEligible: {
         std::ostringstream err_msg;
         err_msg << "DagBlock" << block_hash << " failed verification with error code "
                 << static_cast<uint32_t>(verified);
         throw MaliciousPeerException(err_msg.str());
       }
-      case DagBlockManager::InsertAndVerifyBlockReturnType::BlockQueueOverflow:
-        LOG(log_wr_) << "DagBlock" << block_hash << " could not be inserted because of block queue overflow. Peer "
-                     << peer->getId() << " will be disconnected";
-        disconnect(peer->getId(), dev::p2p::UserReason);
-        break;
-      case DagBlockManager::InsertAndVerifyBlockReturnType::MissingTransaction:
+      case DagManager::VerifyBlockReturnType::MissingTransaction:
         if (peer->peer_dag_synced_) {
           std::ostringstream err_msg;
           err_msg << "DagBlock" << block_hash << " is missing a transaction while in a dag synced state";
           throw MaliciousPeerException(err_msg.str());
         }
         break;
-      case DagBlockManager::InsertAndVerifyBlockReturnType::AheadBlock:
-      case DagBlockManager::InsertAndVerifyBlockReturnType::FutureBlock:
+      case DagManager::VerifyBlockReturnType::AheadBlock:
+      case DagManager::VerifyBlockReturnType::FutureBlock:
         if (peer->peer_dag_synced_) {
           LOG(log_er_) << "DagBlock" << block_hash << " is an ahead/future block. Peer " << peer->getId()
                        << " will be disconnected";
           disconnect(peer->getId(), dev::p2p::UserReason);
         }
         break;
-      case DagBlockManager::InsertAndVerifyBlockReturnType::InsertedAndVerified:
-      case DagBlockManager::InsertAndVerifyBlockReturnType::AlreadyKnown:
-      case DagBlockManager::InsertAndVerifyBlockReturnType::ExpiredBlock:
+      case DagManager::VerifyBlockReturnType::Verified: {
+        auto transactions = trx_mgr_->getPoolTransactions(block.getTrxs()).first;
+        auto status = dag_mgr_->addDagBlock(std::move(block), std::move(transactions));
+        if (!status.first) {
+          LOG(log_dg_) << "Received DagBlockPacket " << block_hash << "from: " << peer->getId();
+          // Ignore new block packets when pbft syncing
+          if (pbft_syncing_state_->isPbftSyncing()) {
+            LOG(log_dg_) << "Ignore new dag block " << block_hash << ", pbft syncing is on";
+          } else if (peer->peer_dag_syncing_) {
+            LOG(log_dg_) << "Ignore new dag block " << block_hash << ", dag syncing is on";
+          } else {
+            if (peer->peer_dag_synced_) {
+              std::ostringstream err_msg;
+              if (status.second.size() > 0)
+                err_msg << "DagBlock" << block.getHash() << " has missing pivot or/and tips " << status.second;
+              else
+                err_msg << "DagBlock" << block.getHash() << " could not be added to DAG";
+              throw MaliciousPeerException(err_msg.str());
+            } else {
+              // peer_dag_synced_ flag ensures that this can only be performed once for a peer
+              requestPendingDagBlocks(peer);
+            }
+          }
+        }
+      } break;
+      case DagManager::VerifyBlockReturnType::ExpiredBlock:
         break;
     }
   } else if (!test_state_->hasBlock(block.getHash())) {
