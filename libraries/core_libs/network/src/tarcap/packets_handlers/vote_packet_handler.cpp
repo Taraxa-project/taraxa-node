@@ -22,8 +22,6 @@ void VotePacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketDat
 }
 
 void VotePacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
-  const uint64_t current_pbft_period = pbft_chain_->getPbftChainSize();
-
   std::vector<std::shared_ptr<Vote>> votes;
   const auto count = packet_data.rlp_.itemCount();
   for (size_t i = 0; i < count; i++) {
@@ -33,14 +31,6 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
 
     const auto vote_round = vote->getRound();
     const auto current_pbft_round = pbft_mgr_->getPbftRound();
-
-    // Old vote or vote from too far in the future, can be dropped
-    // TODO: current_pbft_period + 5 -> put 5 into some variable
-    if (vote->getPeriod() < current_pbft_period || vote->getPeriod() > current_pbft_period + 5) {
-      LOG(log_dg_) << "Dropping vote " << vote_hash << " due to period. Vote period: " << vote->getPeriod()
-                   << ", current pbft period: " << current_pbft_period;
-      continue;
-    }
 
     // Synchronization point in case multiple threads are processing the same vote at the same time
     // TODO: we might not need this as such synchronization is done in queues already ?

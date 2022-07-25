@@ -35,51 +35,7 @@ void clearAllVotes(std::shared_ptr<FullNode> &node) {
   }
   db->commitWriteBatch(batch);
 
-  vote_mgr->clearUnverifiedVotesTable();
   vote_mgr->clearVerifiedVotesTable();
-}
-
-TEST_F(VoteTest, unverified_votes) {
-  auto node = create_nodes(1, true /*start*/).front();
-
-  // stop PBFT manager, that will place vote
-  auto pbft_mgr = node->getPbftManager();
-  pbft_mgr->stop();
-
-  clearAllVotes(node);
-
-  // Generate a vote
-  blk_hash_t blockhash(1);
-  PbftVoteTypes type = propose_vote_type;
-  auto period = 1;
-  auto round = period;
-  auto step = 1;
-  auto vote = pbft_mgr->generateVote(blockhash, type, period, round, step);
-
-  auto vote_mgr = node->getVoteManager();
-  vote_mgr->addUnverifiedVote(vote);
-  EXPECT_TRUE(vote_mgr->voteInUnverifiedMap(vote->getRound(), vote->getHash()));
-
-  // Generate 3 votes, (round = 1, step = 1) is duplicate
-  std::vector<std::shared_ptr<Vote>> unverified_votes;
-  for (auto i = 1; i <= 3; i++) {
-    period = round = step = i;
-    auto vote = pbft_mgr->generateVote(blockhash, type, period, round, step);
-    unverified_votes.emplace_back(vote);
-  }
-
-  vote_mgr->moveVerifyToUnverify(unverified_votes);
-  EXPECT_EQ(vote_mgr->copyUnverifiedVotes().size(), unverified_votes.size());
-  EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), unverified_votes.size());
-
-  vote_mgr->removeUnverifiedVote(unverified_votes[0]->getRound(), unverified_votes[0]->getHash());
-  EXPECT_FALSE(vote_mgr->voteInUnverifiedMap(unverified_votes[0]->getRound(), unverified_votes[0]->getHash()));
-  EXPECT_EQ(vote_mgr->copyUnverifiedVotes().size(), unverified_votes.size() - 1);
-  EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), unverified_votes.size() - 1);
-
-  vote_mgr->clearUnverifiedVotesTable();
-  EXPECT_TRUE(vote_mgr->copyUnverifiedVotes().empty());
-  EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), 0);
 }
 
 TEST_F(VoteTest, verified_votes) {
@@ -114,44 +70,6 @@ TEST_F(VoteTest, verified_votes) {
   EXPECT_EQ(vote_mgr->getVerifiedVotes().size(), 0);
 }
 
-// Test moving all verified votes to unverified table/DB
-TEST_F(VoteTest, remove_verified_votes) {
-  auto node = create_nodes(1, true /*start*/).front();
-
-  // stop PBFT manager, that will place vote
-  auto pbft_mgr = node->getPbftManager();
-  pbft_mgr->stop();
-
-  clearAllVotes(node);
-
-  auto db = node->getDB();
-  auto vote_mgr = node->getVoteManager();
-
-  // Generate 3 votes and add into verified table
-  std::vector<std::shared_ptr<Vote>> votes;
-  blk_hash_t blockhash(1);
-  PbftVoteTypes type = next_vote_type;
-  for (auto i = 1; i <= 3; i++) {
-    auto period = i;
-    auto round = i;
-    auto step = i;
-    auto vote = pbft_mgr->generateVote(blockhash, type, period, round, step);
-    vote->calculateWeight(1, 1, 1);
-    votes.emplace_back(vote);
-    db->saveVerifiedVote(vote);
-    vote_mgr->addVerifiedVote(vote);
-    EXPECT_TRUE(vote_mgr->voteInVerifiedMap(vote));
-  }
-  EXPECT_EQ(vote_mgr->getVerifiedVotesSize(), votes.size());
-
-  vote_mgr->removeVerifiedVotes();
-
-  EXPECT_EQ(vote_mgr->getVerifiedVotesSize(), 0);
-  EXPECT_EQ(vote_mgr->getVerifiedVotes().size(), 0);
-  EXPECT_TRUE(db->getVerifiedVotes().empty());
-  EXPECT_EQ(vote_mgr->getUnverifiedVotesSize(), votes.size());
-}
-
 // Add votes round 1, 2 and 3 into unverified vote table
 // Verify votes by round 2, will remove round 1 in the table, and keep round 2 & 3 votes
 TEST_F(VoteTest, add_cleanup_get_votes) {
@@ -173,28 +91,17 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
       uint64_t round = i;
       size_t step = 3 + j;
       auto vote = pbft_mgr->generateVote(voted_block_hash, type, period, round, step);
-      vote_mgr->addUnverifiedVote(vote);
+      vote->calculateWeight(1, 1, 1);
+      vote_mgr->addVerifiedVote(vote);
     }
   }
 
   // Test add vote
-  size_t votes_size = vote_mgr->getUnverifiedVotesSize();
+  size_t votes_size = vote_mgr->getVerifiedVotesSize();
   EXPECT_EQ(votes_size, 6);
 
-  // Test Verify votes
-  // CREDENTIAL / SIGNATURE_HASH_MAX <= SORTITION THRESHOLD / VALID PLAYERS
-  size_t valid_sortition_players = 1;
-  pbft_mgr->setSortitionThreshold(valid_sortition_players);
-  uint64_t pbft_round = 2;
-  const auto pk = vrf_wrapper::getVrfPublicKey(node->getVrfSecretKey());
-  vote_mgr->verifyVotes(pbft_round, [&pbft_mgr, valid_sortition_players, &pk](auto const &v) {
-    try {
-      v->validate(1, valid_sortition_players, pbft_mgr->getSortitionThreshold(), pk);
-    } catch (const std::logic_error &e) {
-      return false;
-    }
-    return true;
-  });
+  // Test cleanup votes
+  vote_mgr->cleanupVotes(2);  // cleanup round 1
   auto verified_votes_size = vote_mgr->getVerifiedVotesSize();
   EXPECT_EQ(verified_votes_size, 4);
   auto votes = vote_mgr->getVerifiedVotes();
@@ -203,7 +110,6 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
     EXPECT_GT(v->getRound(), 1);
   }
 
-  // Test cleanup votes
   vote_mgr->cleanupVotes(4);  // cleanup round 2 & 3
   verified_votes_size = vote_mgr->getVerifiedVotesSize();
   EXPECT_EQ(verified_votes_size, 0);

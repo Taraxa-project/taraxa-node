@@ -42,6 +42,14 @@ class ExtVotesPacketHandler : public PacketHandler {
    */
   std::pair<bool, std::string> validateRewardVote(const std::shared_ptr<Vote>& vote);
 
+  /**
+   * @brief Validates next vote
+   *
+   * @param vote to be validated
+   * @return <true, ""> vote validation passed, otherwise <false, "err msg">
+   */
+  std::pair<bool, std::string> validateNextVote(const std::shared_ptr<Vote>& vote);
+
   void onNewPbftVotes(std::vector<std::shared_ptr<Vote>>&& votes);
   void sendPbftVotes(const dev::p2p::NodeID& peer_id, std::vector<std::shared_ptr<Vote>>&& votes,
                      bool is_next_votes = false);

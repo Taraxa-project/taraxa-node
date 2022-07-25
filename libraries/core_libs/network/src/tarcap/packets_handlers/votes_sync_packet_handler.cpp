@@ -26,10 +26,9 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
   auto vote = std::make_shared<Vote>(packet_data.rlp_[0].data().toBytes());
 
   const auto pbft_current_round = pbft_mgr_->getPbftRound();
-  const uint64_t pbft_current_period = pbft_chain_->getPbftChainSize();
   const auto peer_pbft_round = vote->getRound() + 1;
 
-  // Next votes are from too far ahead in the future
+  // Next votes are from too old
   if (pbft_current_round > peer_pbft_round) {
     LOG(log_dg_) << "Dropping votes sync packet due to round. Votes round: " << peer_pbft_round
                  << ", current pbft round: " << pbft_current_round;
@@ -48,24 +47,21 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
       return;
     }
 
-    // Old vote or vote from too far in the future, can be dropped
-    // TODO: current_pbft_period + 5 -> put 5 into some variable
-    if (next_vote->getPeriod() < pbft_current_period || next_vote->getPeriod() > pbft_current_period + 5) {
-      LOG(log_dg_) << "Dropping vote " << next_vote_hash << " due to period. Vote period: " << vote->getPeriod()
-                   << ", current pbft period: " << pbft_current_period;
-      continue;
-    }
-
-    if (auto vote_is_valid = validateStandardVote(vote); vote_is_valid.first == false) {
-      LOG(log_er_) << "Vote " << next_vote_hash << " validation failed. Err: " << vote_is_valid.second;
-      continue;
-    }
-
     if (pbft_current_round < peer_pbft_round) {
+      if (auto vote_is_valid = validateStandardVote(vote); vote_is_valid.first == false) {
+        LOG(log_er_) << "Standard vote " << next_vote_hash << " validation failed. Err: " << vote_is_valid.second;
+        continue;
+      }
+
       // Check if vote is already in verified queue, if not - try to add it
       if (vote_mgr_->voteInVerifiedMap(next_vote) || !vote_mgr_->addVerifiedVote(next_vote)) {
         LOG(log_dg_) << "Received PBFT next vote " << next_vote_hash << " (from "
                      << packet_data.from_node_id_.abridged() << ") already saved in verified queue.";
+        continue;
+      }
+    } else {  // pbft_current_round == peer_pbft_round
+      if (auto vote_is_valid = validateNextVote(vote); vote_is_valid.first == false) {
+        LOG(log_er_) << "Next vote " << next_vote_hash << " validation failed. Err: " << vote_is_valid.second;
         continue;
       }
     }
@@ -80,8 +76,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
 
   if (pbft_current_round < peer_pbft_round) {
     onNewPbftVotes(std::move(next_votes));
-
-  } else if (pbft_current_round == peer_pbft_round) {
+  } else {  // pbft_current_round == peer_pbft_round
     // Update previous round next votes
     const auto pbft_2t_plus_1 = db_->getPbft2TPlus1(pbft_current_round - 1);
     if (!pbft_2t_plus_1) {

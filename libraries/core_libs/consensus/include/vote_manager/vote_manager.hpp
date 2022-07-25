@@ -2,7 +2,6 @@
 
 #include "common/util.hpp"
 #include "final_chain/final_chain.hpp"
-#include "key_manager/key_manager.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "vote/vote.hpp"
 
@@ -23,8 +22,7 @@ class Network;
  */
 class NextVotesManager {
  public:
-  NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
-                   std::shared_ptr<KeyManager> key_manager);
+  NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain);
 
   /**
    * @brief Clear previous PBFT round next voting type votes
@@ -89,18 +87,6 @@ class NextVotesManager {
    */
   void updateWithSyncedVotes(std::vector<std::shared_ptr<Vote>>& votes, size_t pbft_2t_plus_1);
 
-  /**
-   * @brief Verify vote validation
-   * @param vote vote
-   * @param dpos_period DPOS period
-   * @param dpos_total_votes_count total DPOS votes count
-   * @param pbft_sortition_threshold PBFT sortition threshold is minimum of between PBFT committee size and total DPOS
-   * votes count
-   * @return true if passed validation
-   */
-  bool voteVerification(std::shared_ptr<Vote>& vote, uint64_t dpos_period, size_t dpos_total_votes_count,
-                        size_t pbft_sortition_threshold);
-
  private:
   using UniqueLock = boost::unique_lock<boost::shared_mutex>;
   using SharedLock = boost::shared_lock<boost::shared_mutex>;
@@ -119,7 +105,6 @@ class NextVotesManager {
 
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<FinalChain> final_chain_;
-  std::shared_ptr<KeyManager> key_manager_;
 
   bool enough_votes_for_null_block_hash_;
   blk_hash_t voted_value_;  // For value is not null block hash
@@ -138,8 +123,7 @@ class NextVotesManager {
 class VoteManager {
  public:
   VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<NextVotesManager> next_votes_mgr,
-              std::shared_ptr<KeyManager> key_manager);
+              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<NextVotesManager> next_votes_mgr);
   ~VoteManager();
   VoteManager(const VoteManager&) = delete;
   VoteManager(VoteManager&&) = delete;
@@ -151,52 +135,6 @@ class VoteManager {
    * @param network a weak pinter
    */
   void setNetwork(std::weak_ptr<Network> network);
-
-  // Unverified votes
-  /**
-   * @brief Add a vote to the unverified votes map
-   * @param vote vote
-   * @return true if added
-   */
-  bool addUnverifiedVote(std::shared_ptr<Vote> const& vote);
-
-  /**
-   * @brief Add verified votes to the unverified votes map
-   * @param votes verified votes
-   */
-  void moveVerifyToUnverify(std::vector<std::shared_ptr<Vote>> const& votes);
-
-  /**
-   * @brief Remove an unverified vote
-   * @param pbft_round vote PBFT round
-   * @param vote_hash vote hash
-   */
-  void removeUnverifiedVote(uint64_t pbft_round, vote_hash_t const& vote_hash);
-
-  /**
-   * @brief Check if the vote has been in the unverified votes map
-   * @param pbft_round vote PBFT round
-   * @param vote_hash vote hash
-   * @return true if exist
-   */
-  bool voteInUnverifiedMap(uint64_t pbft_round, vote_hash_t const& vote_hash);
-
-  /**
-   * @brief Get all unverified votes
-   * @return all unverified votes
-   */
-  std::vector<std::shared_ptr<Vote>> copyUnverifiedVotes();
-
-  /**
-   * @brief Clear the unverified votes map
-   */
-  void clearUnverifiedVotesTable();
-
-  /**
-   * @brief Get the total size of all unverified votes
-   * @return the total size of all unverified votes
-   */
-  uint64_t getUnverifiedVotesSize() const;
 
   // Verified votes
   /**
@@ -230,19 +168,6 @@ class VoteManager {
    * @return the total size of all verified votes
    */
   uint64_t getVerifiedVotesSize() const;
-
-  /**
-   * @brief Move all verified votes to the unverified map. Since PBFT chain has pushed new blocks, that will affect DPOS
-   * eligible votes count and players' eligibility
-   */
-  void removeVerifiedVotes();
-
-  /**
-   * @brief Cleanup votes for previous PBFT rounds and verify all unverified votes
-   * @param pbft_round current PBFT round
-   * @param is_valid vote validation function
-   */
-  void verifyVotes(uint64_t pbft_round, std::function<bool(std::shared_ptr<Vote> const&)> const& is_valid);
 
   /**
    * @brief Cleanup votes for previous PBFT rounds
@@ -366,9 +291,6 @@ class VoteManager {
   using UpgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using UpgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
-  // <pbft round, <vote hash, vote>>
-  std::map<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>> unverified_votes_;
-
   // <PBFT round, <PBFT step, <voted value, pair<voted weight, <vote hash, vote>>>>
   std::map<
       uint64_t,
@@ -376,20 +298,16 @@ class VoteManager {
                                           std::pair<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>>>>
       verified_votes_;
 
-  std::unordered_set<vote_hash_t> votes_invalid_in_current_final_chain_period_;
-  blk_hash_t current_period_final_chain_block_hash_;
   std::unordered_map<addr_t, uint64_t> max_received_round_for_address_;
 
   std::unique_ptr<std::thread> daemon_;
 
-  mutable boost::shared_mutex unverified_votes_access_;
   mutable boost::shared_mutex verified_votes_access_;
 
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<NextVotesManager> next_votes_manager_;
-  std::shared_ptr<KeyManager> key_manager_;
   std::weak_ptr<Network> network_;
 
   // TODO: this seems like something we dont we dont need

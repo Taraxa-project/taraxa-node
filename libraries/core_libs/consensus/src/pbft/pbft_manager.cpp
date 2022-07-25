@@ -414,7 +414,6 @@ bool PbftManager::resetRound_() {
   vote_mgr_->cleanupVotes(consensus_pbft_round);
 
   if (executed_pbft_block_) {
-    vote_mgr_->removeVerifiedVotes();
     updateDposState_();
     // reset sortition_threshold and TWO_T_PLUS_ONE
     updateTwoTPlusOneAndThreshold_();
@@ -1695,7 +1694,6 @@ void PbftManager::pushSyncedPbftBlocksIntoChain() {
       net->setSyncStatePeriod(period);
 
       if (executed_pbft_block_) {
-        vote_mgr_->removeVerifiedVotes();
         updateDposState_();
         // update sortition_threshold and TWO_T_PLUS_ONE
         updateTwoTPlusOneAndThreshold_();
@@ -1918,13 +1916,10 @@ void PbftManager::countVotes_() const {
   auto round = getPbftRound();
   while (!monitor_stop_) {
     auto verified_votes = vote_mgr_->getVerifiedVotes();
-    auto unverified_votes = vote_mgr_->copyUnverifiedVotes();
     std::vector<std::shared_ptr<Vote>> votes;
-    votes.reserve(verified_votes.size() + unverified_votes.size());
+    votes.reserve(verified_votes.size());
     votes.insert(votes.end(), std::make_move_iterator(verified_votes.begin()),
                  std::make_move_iterator(verified_votes.end()));
-    votes.insert(votes.end(), std::make_move_iterator(unverified_votes.begin()),
-                 std::make_move_iterator(unverified_votes.end()));
 
     size_t last_step_votes = 0;
     size_t current_step_votes = 0;

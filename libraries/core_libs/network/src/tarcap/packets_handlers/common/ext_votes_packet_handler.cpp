@@ -17,10 +17,55 @@ ExtVotesPacketHandler::ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_s
 std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const std::shared_ptr<Vote> &vote) {
   // TODO: add checks related to the roud & period that could be too far ahead, etc... ?
 
+  const uint64_t current_pbft_period = pbft_chain_->getPbftChainSize();
+  const auto current_pbft_round = pbft_mgr_->getPbftRound();
+
+  // Old vote or vote from too far in the future, can be dropped
+  // TODO: current_pbft_period + 5 -> put 5 into some variable
+  // TODO: here should be vote->getPeriod() < current_pbft_period
+  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() > current_pbft_period + 5) {
+    std::stringstream err;
+    err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
+    return {false, err.str()};
+  }
+
+  if (vote->getRound() < current_pbft_round) {
+    std::stringstream err;
+    err << "Invalid round: Vote round: " << vote->getRound() << ", current pbft round: " << current_pbft_round;
+    return {false, err.str()};
+  }
+
   return pbft_mgr_->dposValidateVote(vote);
 }
 
+std::pair<bool, std::string> ExtVotesPacketHandler::validateNextVote(const std::shared_ptr<Vote> &vote) {
+  if (vote->getType() != next_vote_type) {
+    std::stringstream err;
+    err << "Invalid type: " << static_cast<uint64_t>(vote->getType());
+    return {false, err.str()};
+  }
+
+  return validateStandardVote(vote);
+}
+
 std::pair<bool, std::string> ExtVotesPacketHandler::validateRewardVote(const std::shared_ptr<Vote> &vote) {
+  const uint64_t current_pbft_period = pbft_chain_->getPbftChainSize();
+  const auto current_pbft_round = pbft_mgr_->getPbftRound();
+
+  // TODO: think about this: should be reward vote period == current_pbft_period ???
+  // TODO: current_pbft_period + 5 -> put 5 into some variable
+  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() > current_pbft_period + 5) {
+    std::stringstream err;
+    err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
+    return {false, err.str()};
+  }
+
+  if (vote->getRound() >= current_pbft_round) {
+    std::stringstream err;
+    err << "Invalid round: Vote round: " << vote->getRound() << ", current pbft round: " << current_pbft_round;
+    return {false, err.str()};
+  }
+
   if (vote->getType() != cert_vote_type) {
     std::stringstream err;
     err << "Invalid type: " << static_cast<uint64_t>(vote->getType());

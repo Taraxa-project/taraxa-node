@@ -811,7 +811,6 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
   pbft_mgr2->stop();
   pbft_mgr2->setPbftRound(1);  // Make sure node2 PBFT round is less than node1
-  node2->getVoteManager()->clearUnverifiedVotesTable();
 
   // Wait node1 and node2 connect to each other
   EXPECT_HAPPENS({10s, 100ms}, [&](auto& ctx) {
@@ -855,7 +854,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   auto node2_pbft_2t_plus_1 = pbft_mgr2->getTwoTPlusOne();
   EXPECT_EQ(node2_pbft_2t_plus_1, 1);
 
-  // Generate 2 next votes for noode1
+  // Generate 2 next votes for node1
   std::vector<std::shared_ptr<Vote>> next_votes1;
   uint64_t period = 1;
   uint64_t round = 1;
