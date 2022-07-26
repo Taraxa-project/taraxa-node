@@ -8,10 +8,10 @@ namespace taraxa::network::tarcap {
 VotesSyncPacketHandler::VotesSyncPacketHandler(
     std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
     std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-    std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DbStorage> db, const addr_t &node_addr)
+    std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DbStorage> db, const uint32_t dpos_delay,
+    const addr_t &node_addr)
     : ExtVotesPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
-                            std::move(pbft_chain), node_addr, "VOTES_SYNC_PH"),
-      vote_mgr_(std::move(vote_mgr)),
+                            std::move(pbft_chain), std::move(vote_mgr), dpos_delay, node_addr, "VOTES_SYNC_PH"),
       next_votes_mgr_(std::move(next_votes_mgr)),
       db_(std::move(db)) {}
 
@@ -48,25 +48,40 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
     }
 
     if (pbft_current_round < peer_pbft_round) {
-      if (auto vote_is_valid = validateStandardVote(vote); vote_is_valid.first == false) {
-        LOG(log_er_) << "Standard vote " << next_vote_hash << " validation failed. Err: " << vote_is_valid.second;
+      if (vote_mgr_->voteInVerifiedMap(next_vote)) {
+        LOG(log_dg_) << "Vote " << next_vote_hash.abridged() << " already inserted in verified queue";
+      }
+
+      if (auto vote_is_valid = validateStandardVote(next_vote); vote_is_valid.first == false) {
+        LOG(log_er_) << "Vote " << next_vote_hash.abridged() << " validation failed. Err: " << vote_is_valid.second;
         continue;
       }
 
-      // Check if vote is already in verified queue, if not - try to add it
-      if (vote_mgr_->voteInVerifiedMap(next_vote) || !vote_mgr_->addVerifiedVote(next_vote)) {
-        LOG(log_dg_) << "Received PBFT next vote " << next_vote_hash << " (from "
-                     << packet_data.from_node_id_.abridged() << ") already saved in verified queue.";
+      if (!vote_mgr_->insertUniqueVote(vote)) {
+        LOG(log_dg_) << "Non unique vote " << next_vote_hash.abridged() << " (race condition)";
         continue;
       }
+
+      if (!vote_mgr_->addVerifiedVote(next_vote)) {
+        LOG(log_dg_) << "Vote " << next_vote_hash.abridged() << " already inserted in verified queue(race condition)";
+        continue;
+      }
+
+      setVoterMaxRound(vote->getVoterAddr(), vote->getRound());
     } else {  // pbft_current_round == peer_pbft_round
-      if (auto vote_is_valid = validateNextVote(vote); vote_is_valid.first == false) {
-        LOG(log_er_) << "Next vote " << next_vote_hash << " validation failed. Err: " << vote_is_valid.second;
+      if (auto vote_is_valid = validateNextSyncVote(next_vote); vote_is_valid.first == false) {
+        LOG(log_er_) << "Next vote " << next_vote_hash.abridged()
+                     << " validation failed. Err: " << vote_is_valid.second;
+        continue;
+      }
+
+      if (!vote_mgr_->insertUniqueVote(vote)) {
+        LOG(log_dg_) << "Non unique vote " << next_vote_hash.abridged() << " (race condition)";
         continue;
       }
     }
 
-    LOG(log_dg_) << "Received PBFT next vote " << next_vote_hash;
+    LOG(log_dg_) << "Received PBFT next vote " << next_vote_hash.abridged();
     peer->markVoteAsKnown(next_vote_hash);
     next_votes.push_back(std::move(next_vote));
   }

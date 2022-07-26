@@ -23,19 +23,32 @@ auto g_sk = Lazy([] {
 });
 struct VoteTest : BaseTest {};
 
-void clearAllVotes(std::shared_ptr<FullNode> &node) {
-  // Clear unverified votes and verified votes table
-  auto db = node->getDB();
-  auto vote_mgr = node->getVoteManager();
-  auto verified_votes = db->getVerifiedVotes();
-
-  auto batch = db->createWriteBatch();
-  for (auto const &v : verified_votes) {
-    db->removeVerifiedVoteToBatch(v->getHash(), batch);
+uint64_t clearAllVotes(const std::vector<std::shared_ptr<FullNode>> &nodes) {
+  // Get highest round from all nodes
+  uint64_t max_round = 0;
+  for (const auto &node : nodes) {
+    if (node->getPbftManager()->getPbftRound() > max_round) {
+      max_round = node->getPbftManager()->getPbftRound();
+    }
   }
-  db->commitWriteBatch(batch);
 
-  vote_mgr->clearVerifiedVotesTable();
+  // Clean up votes from db & memory for each node
+  for (const auto &node : nodes) {
+    // Clear unverified votes and verified votes table
+    auto db = node->getDB();
+    auto vote_mgr = node->getVoteManager();
+    auto verified_votes = db->getVerifiedVotes();
+
+    auto batch = db->createWriteBatch();
+    for (auto const &v : verified_votes) {
+      db->removeVerifiedVoteToBatch(v->getHash(), batch);
+    }
+    db->commitWriteBatch(batch);
+
+    vote_mgr->cleanupVotes(max_round + 1);
+  }
+
+  return max_round;
 }
 
 TEST_F(VoteTest, verified_votes) {
@@ -45,13 +58,12 @@ TEST_F(VoteTest, verified_votes) {
   auto pbft_mgr = node->getPbftManager();
   pbft_mgr->stop();
 
-  clearAllVotes(node);
+  auto round = clearAllVotes({node});
 
   // Generate a vote
   blk_hash_t blockhash(1);
   PbftVoteTypes type = soft_vote_type;
-  auto period = 1;
-  auto round = 1;
+  auto period = round;
   auto step = 2;
   auto vote = pbft_mgr->generateVote(blockhash, type, period, round, step);
   vote->calculateWeight(1, 1, 1);
@@ -64,7 +76,7 @@ TEST_F(VoteTest, verified_votes) {
   EXPECT_EQ(vote_mgr->getVerifiedVotesSize(), 1);
   EXPECT_EQ(vote_mgr->getVerifiedVotes().size(), 1);
 
-  vote_mgr->clearVerifiedVotesTable();
+  clearAllVotes({node});
   EXPECT_FALSE(vote_mgr->voteInVerifiedMap(vote));
   EXPECT_EQ(vote_mgr->getVerifiedVotesSize(), 0);
   EXPECT_EQ(vote_mgr->getVerifiedVotes().size(), 0);
@@ -79,7 +91,7 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
   auto pbft_mgr = node->getPbftManager();
   pbft_mgr->stop();
 
-  clearAllVotes(node);
+  clearAllVotes({node});
 
   // generate 6 votes, each round has 2 votes
   auto vote_mgr = node->getVoteManager();
@@ -124,7 +136,7 @@ TEST_F(VoteTest, round_determine_from_next_votes) {
   auto pbft_mgr = node->getPbftManager();
   pbft_mgr->stop();
 
-  clearAllVotes(node);
+  clearAllVotes({node});
 
   auto vote_mgr = node->getVoteManager();
   size_t two_t_plus_one = 2;
@@ -180,8 +192,7 @@ TEST_F(VoteTest, transfer_vote) {
   pbft_mgr1->stop();
   pbft_mgr2->stop();
 
-  clearAllVotes(node1);
-  clearAllVotes(node2);
+  clearAllVotes({node1, node2});
 
   // generate a vote far ahead (never exist in PBFT manager)
   blk_hash_t propose_block_hash(11);
@@ -214,15 +225,12 @@ TEST_F(VoteTest, vote_broadcast) {
   pbft_mgr2->stop();
   pbft_mgr3->stop();
 
-  clearAllVotes(node1);
-  clearAllVotes(node2);
-  clearAllVotes(node3);
+  uint64_t round = clearAllVotes({node1, node2, node3});
 
   // generate a vote far ahead (never exist in PBFT manager)
   blk_hash_t propose_block_hash(111);
   PbftVoteTypes type = next_vote_type;
-  uint64_t period = 2;
-  uint64_t round = 2;
+  uint64_t period = 0;
   size_t step = 1;
   auto vote = pbft_mgr1->generateVote(propose_block_hash, type, period, round, step);
 
@@ -248,7 +256,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   pbft_mgr->stop();
 
   // Clear unverfied/verified table/DB
-  clearAllVotes(node);
+  clearAllVotes({node});
 
   // Clear next votes structure
   auto next_votes_mgr = node->getNextVotesManager();

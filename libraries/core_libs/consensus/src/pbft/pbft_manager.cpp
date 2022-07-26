@@ -973,7 +973,6 @@ void PbftManager::firstFinish_() {
                                              !compareBlocksAndRewardVotes_(own_starting_value_for_round_);
 
     if (round >= 2 && (giveUpNextVotedBlock_() || giveUpSoftVotedBlockInFirstFinish)) {
-      // TODO: is this period 100% valid ???
       // last_cert_voted_value_ == NULL_BLOCK_HASH, which means the block was successfully pushed into the chain and we
       // can use pbft chain size + 1 as period
       const auto voting_period = pbft_chain_->getPbftChainSize() + 1;
@@ -1056,6 +1055,11 @@ void PbftManager::secondFinish_() {
   if (!next_voted_soft_value_ && soft_voted_block_for_this_round_ && !giveUpSoftVotedBlockInSecondFinish) {
     // TODO: what period to send here ???
     const auto voting_period = pbft_chain_->getPbftChainSize() + 1;
+
+    LOG(log_dg_) << "1 Place vote, round: " << round << ", step: " << step_
+                 << ", voter: " << dev::toAddress(dev::toPublic(node_sk_))
+                 << ", block: " << soft_voted_block_for_this_round_.abridged();
+
     auto place_votes = placeVote_(soft_voted_block_for_this_round_, next_vote_type, voting_period, round, step_);
     if (place_votes) {
       LOG(log_nf_) << "Next votes " << place_votes << " voting " << soft_voted_block_for_this_round_ << " for round "
@@ -1128,7 +1132,7 @@ std::shared_ptr<Vote> PbftManager::generateVote(blk_hash_t const &blockhash, Pbf
   return std::make_shared<Vote>(node_sk_, std::move(vrf_sortition), blockhash);
 }
 
-std::pair<bool, std::string> PbftManager::dposValidateVote(const std::shared_ptr<Vote> &vote) {
+std::pair<bool, std::string> PbftManager::validateVote(const std::shared_ptr<Vote> &vote) const {
   const uint64_t vote_period = vote->getPeriod();
 
   // Validate vote against dpos contract
@@ -1140,8 +1144,8 @@ std::pair<bool, std::string> PbftManager::dposValidateVote(const std::shared_ptr
       return {false, err.str()};
     }
 
-    // TODO: final_chain_->dpos... ret values should be cached as it is heavily used and most of the time it returns the
-    // same value!
+    // TODO[1896]: final_chain_->dpos... ret values should be cached as it is heavily used and most of the time it
+    // returns the same value!
     const uint64_t voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(vote_period, vote->getVoterAddr());
     const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(vote_period);
     const uint64_t pbft_sortition_threshold = getPbftSortitionThreshold(vote->getType(), vote_period);
@@ -1197,12 +1201,35 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
     return 0;
   }
 
+  uint64_t voter_dpos_votes_count = 0;
+  uint64_t total_dpos_votes_count = 0;
+  uint64_t pbft_sortition_threshold = 0;
+
+  try {
+    // TODO[1896]: final_chain_->dpos... ret values should be cached as it is heavily used and most of the time it
+    // returns the same value!
+    voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(period, node_addr_);
+    total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(period);
+    pbft_sortition_threshold = getPbftSortitionThreshold(vote_type, period);
+
+  } catch (state_api::ErrFutureBlock &e) {
+    LOG(log_er_) << "Unable to place vote for round: " << round << ", period: " << period << ", step: " << step
+                 << ", voted block hash: " << blockhash.abridged() << ". "
+                 << "Period  is too far ahead of actual finalized pbft chain size ("
+                 << final_chain_->last_block_number() << "). Err msg: " << e.what();
+
+    return 0;
+  }
+
   auto vote = generateVote(blockhash, vote_type, period, round, step);
-  // TODO: this should probably work with provided period ???
-  const auto weight = vote->calculateWeight(getDposWeightedVotesCount(), getDposTotalVotesCount(),
-                                            getCurrentPbftSortitionThreshold(vote_type));
+  const auto weight = vote->calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold);
 
   if (weight) {
+    if (!vote_mgr_->insertUniqueVote(vote)) {
+      // This should never happen
+      assert(false);
+    }
+
     db_->saveVerifiedVote(vote);
     vote_mgr_->addVerifiedVote(vote);
     if (auto net = network_.lock()) {

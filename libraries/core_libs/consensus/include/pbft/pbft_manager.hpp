@@ -312,12 +312,12 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::vector<std::shared_ptr<Vote>> getRewardVotesInBlock(const std::vector<vote_hash_t> &reward_votes_hashes);
 
   /**
-   * @brief Validates vote against dpos contract
+   * @brief Validates vote
    *
    * @param vote to be validated
    * @return <true, ""> vote validation passed, otherwise <false, "err msg">
    */
-  std::pair<bool, std::string> dposValidateVote(const std::shared_ptr<Vote> &vote);
+  std::pair<bool, std::string> validateVote(const std::shared_ptr<Vote> &vote) const;
 
  private:
   // DPOS

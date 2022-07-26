@@ -120,7 +120,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   // Packets stats
   std::shared_ptr<PacketsStats> packets_stats_;
 
-  // Network config
+  // Node config
   const FullNodeConfig &kConf;
 
   // Peers state

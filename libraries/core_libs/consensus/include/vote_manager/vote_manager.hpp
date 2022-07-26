@@ -150,12 +150,21 @@ class VoteManager {
    * @param vote vote
    * @return true if exist
    */
-  bool voteInVerifiedMap(std::shared_ptr<Vote> const& vote);
+  bool voteInVerifiedMap(std::shared_ptr<Vote> const& vote) const;
 
   /**
-   * @brief Clear the verified votes map
+   * @brief Inserts unique vote
+   * @param vote
+   * @return true if vote was successfully inserted(it was unique) or this specific vote was already inserted, otherwise
+   * false
    */
-  void clearVerifiedVotesTable();
+  bool insertUniqueVote(const std::shared_ptr<Vote>& vote);
+
+  /**
+   * @param vote
+   * @return <true, ""> if vote is unique per round & step & voter, otherwise <false, "err msg">
+   */
+  std::pair<bool, std::string> isUniqueVote(const std::shared_ptr<Vote>& vote) const;
 
   /**
    * @brief Get all verified votes
@@ -200,6 +209,10 @@ class VoteManager {
   uint64_t roundDeterminedFromVotes(size_t two_t_plus_one);
 
   // reward votes
+  /**
+   * @return current rewards votes pbft block hash
+   */
+  blk_hash_t getCurrentRewardsVotesBlock() const;
 
   /**
    * @brief Add last period cert vote to reward_votes_ after the cert vote voted block finalized
@@ -213,7 +226,7 @@ class VoteManager {
    * @param vote_hash
    * @return true if vote_hash is already in rewards_votes, otheriwse false
    */
-  bool isKnownRewardVote(const vote_hash_t& vote_hash);
+  bool isInRewardsVotes(const vote_hash_t& vote_hash);
 
   /**
    * @brief Check reward_votes_ if including all reward votes for the PBFT block
@@ -298,8 +311,6 @@ class VoteManager {
                                           std::pair<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>>>>
       verified_votes_;
 
-  std::unordered_map<addr_t, uint64_t> max_received_round_for_address_;
-
   std::unique_ptr<std::thread> daemon_;
 
   mutable boost::shared_mutex verified_votes_access_;
@@ -310,11 +321,17 @@ class VoteManager {
   std::shared_ptr<NextVotesManager> next_votes_manager_;
   std::weak_ptr<Network> network_;
 
-  // TODO: this seems like something we dont we dont need
   blk_hash_t reward_votes_pbft_block_hash_;
   uint64_t last_pbft_block_cert_round_;
   std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> reward_votes_;
   mutable std::shared_mutex reward_votes_mutex_;
+
+  // <PBFT round, <PBFT step, <voter address, pair<vote 1, vote 2>>>>
+  // For next votes we enable 2 votes per round & step, one of which must be vote for NULL_BLOCK_HASH
+  std::map<uint64_t, std::unordered_map<
+                         size_t, std::unordered_map<addr_t, std::pair<std::shared_ptr<Vote>, std::shared_ptr<Vote>>>>>
+      voters_unique_votes_;
+  mutable std::shared_mutex voters_unique_votes_mutex_;
 
   LOG_OBJECTS_DEFINE
 };

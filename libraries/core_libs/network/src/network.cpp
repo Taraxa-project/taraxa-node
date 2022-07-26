@@ -13,7 +13,7 @@
 
 namespace taraxa {
 
-Network::Network(FullNodeConfig const &config, const h256 &genesis_hash,
+Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
                  dev::p2p::Host::CapabilitiesFactory construct_capabilities,
                  std::filesystem::path const &network_file_path, dev::KeyPair const &key, std::shared_ptr<DbStorage> db,
                  std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
@@ -33,6 +33,7 @@ Network::Network(FullNodeConfig const &config, const h256 &genesis_hash,
   net_conf.traverseNAT = false;
   net_conf.publicIPAddress = kConf.network.network_public_ip;
   net_conf.pin = false;
+
   dev::p2p::TaraxaNetworkConfig taraxa_net_conf;
   taraxa_net_conf.ideal_peer_count = kConf.network.network_ideal_peer_count;
 
@@ -60,6 +61,9 @@ Network::Network(FullNodeConfig const &config, const h256 &genesis_hash,
         ;
     });
   }
+
+  LOG(log_nf_) << "Configured host. Listening on address: " << kConf.network.network_listen_ip << ":"
+               << config.network.network_tcp_port;
 }
 
 Network::~Network() {

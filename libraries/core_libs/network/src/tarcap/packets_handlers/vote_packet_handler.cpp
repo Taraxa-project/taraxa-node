@@ -8,10 +8,9 @@ namespace taraxa::network::tarcap {
 VotePacketHandler::VotePacketHandler(std::shared_ptr<PeersState> peers_state,
                                      std::shared_ptr<PacketsStats> packets_stats, std::shared_ptr<PbftManager> pbft_mgr,
                                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-                                     const addr_t &node_addr)
+                                     const uint32_t dpos_delay, const addr_t &node_addr)
     : ExtVotesPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
-                            std::move(pbft_chain), node_addr, "PBFT_VOTE_PH"),
-      vote_mgr_(std::move(vote_mgr)),
+                            std::move(pbft_chain), std::move(vote_mgr), dpos_delay, node_addr, "PBFT_VOTE_PH"),
       seen_votes_(1000000, 1000) {}
 
 void VotePacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketData &packet_data) const {
@@ -33,7 +32,6 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     const auto current_pbft_round = pbft_mgr_->getPbftRound();
 
     // Synchronization point in case multiple threads are processing the same vote at the same time
-    // TODO: we might not need this as such synchronization is done in queues already ?
     if (!seen_votes_.insert(vote_hash)) {
       LOG(log_dg_) << "Received vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
                    << ") already seen.";
@@ -41,13 +39,11 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     }
     peer->markVoteAsKnown(vote_hash);
 
-    // TODO: I am so sure about this, why do we allow smaller round without any bound ?
-    // TODO: this is bad - we say vote is reward vote based on round, but it is not enough as some out of sync node
-    // might send us standard vote and we identify as reward vote - this way we cant really set peer as malicious if
-    // reward vote type != cert vote, etc...
+    // TODO[1880]: We identify vote as reward vote based on round, but if some out of sync node sends us standard vote
+    // we identify it as reward vote and use wrong validation....
     if (vote_round < current_pbft_round) {  // reward vote
-      if (vote_mgr_->isKnownRewardVote(vote->getHash())) {
-        LOG(log_dg_) << "Reward vote " << vote_hash.abridged() << " already inserted in verified queue";
+      if (vote_mgr_->isInRewardsVotes(vote->getHash())) {
+        LOG(log_dg_) << "Reward vote " << vote_hash.abridged() << " already inserted in reeards votes";
       }
 
       if (auto vote_is_valid = validateRewardVote(vote); vote_is_valid.first == false) {
@@ -55,8 +51,13 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
         continue;
       }
 
+      if (!vote_mgr_->insertUniqueVote(vote)) {
+        LOG(log_dg_) << "Non unique reward vote " << vote_hash << " (race condition)";
+        continue;
+      }
+
       if (!vote_mgr_->addRewardVote(vote)) {
-        LOG(log_dg_) << "Reward vote " << vote_hash.abridged() << " already inserted in verified queue(race condition)";
+        LOG(log_dg_) << "Reward vote " << vote_hash.abridged() << " already inserted in reward votes(race condition)";
         continue;
       }
     } else {  // standard vote -> vote_round >= current_pbft_round
@@ -69,13 +70,18 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
         continue;
       }
 
+      if (!vote_mgr_->insertUniqueVote(vote)) {
+        LOG(log_dg_) << "Non unique vote " << vote_hash << " (race condition)";
+        continue;
+      }
+
       if (!vote_mgr_->addVerifiedVote(vote)) {
         LOG(log_dg_) << "Vote " << vote_hash << " already inserted in verified queue(race condition)";
         continue;
       }
-    }
 
-    // TODO: add protection so each voter can cast only 1 vote per round & step
+      setVoterMaxRound(vote->getVoterAddr(), vote->getRound());
+    }
 
     // Do not mark it before, as peers have small caches of known votes. Only mark gossiping votes
     peer->markVoteAsKnown(vote_hash);

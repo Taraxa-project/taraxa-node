@@ -94,6 +94,7 @@ TEST_F(P2PTest, capability_send_block) {
   prefs1.discovery = false;
   dev::p2p::NetworkConfig prefs2(localhost, 10003, false, true);
   prefs2.discovery = false;
+
   FullNodeConfig conf;
   conf.network.network_transaction_interval = 1000;
   h256 genesis;
@@ -184,6 +185,7 @@ TEST_F(P2PTest, block_propagate) {
   }
   TaraxaNetworkConfig taraxa_net_conf_1;
   taraxa_net_conf_1.is_boot_node = true;
+
   FullNodeConfig conf;
   conf.network.network_transaction_interval = 1000;
   h256 genesis;
