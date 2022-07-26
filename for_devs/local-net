@@ -283,11 +283,11 @@ def faucet_worker(tps):
     nonce = web3.eth.getTransactionCount(
         Web3.toChecksumAddress(faucet_public_address))
 
-    boot_nodes = list(boot_nodes_public_addresses)
+    boot_nodes = list(boot_nodes_public_addresses.keys())
 
     while True:
         time.sleep(1/tps)
-        to = boot_nodes_public_addresses[boot_nodes[randint(
+        to, _ = boot_nodes_public_addresses[boot_nodes[randint(
             0, len(boot_nodes)-1)]]
         tx = {
             'nonce': nonce,
