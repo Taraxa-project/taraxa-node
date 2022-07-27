@@ -1,0 +1,31 @@
+{{ if .Values.bootnode.enabled }}
+{{- if .Values.bootnode.service.ports  }}
+# Note: This is a headless service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "taraxa-boot-node.fullname" . }}
+  labels:
+    name: boot-node
+    app.kubernetes.io/name: boot-node
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: boot-node
+    app.kubernetes.io/name: {{ .Release.Name }}-boot-node
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+  {{- range $port := .Values.bootnode.service.ports }}
+    - name: {{ $port.name | default $port.port }}
+      port: {{ $port.port }}
+      targetPort: {{ $port.targetPort | default $port.port }}
+      {{- if $port.protocol }}
+      protocol: {{ $port.protocol }}
+      {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
