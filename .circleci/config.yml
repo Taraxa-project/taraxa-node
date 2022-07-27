@@ -8,19 +8,19 @@ parameters:
   deploy_prnet:
     default: false
     type: boolean
-  
+
   redeploy_prnet:
-     default: false
-     type: boolean
-   
+    default: false
+    type: boolean
+
   cleanup_prnet:
-     default: false
-     type: boolean
+    default: false
+    type: boolean
 
   pr_number:
     default: ""
     type: string
-  
+
 orbs:
   git: opuscapita/git@0.0.3
   github-release: izumin5210/github-release@0.1.1
@@ -29,207 +29,207 @@ orbs:
   docker-cache: cci-x/docker-registry-image-cache@0.2.12
 
 commands:
-   pr_comment:
-      description: |
-       Post a comment on the pull request.
-       Requires `GITHUB_TOKEN` to be set as an environment variable.
-      parameters:
-         comment:
-            description: Content of the comment to post
-            type: string
-         pr_number:
-            description: github pr number
-            type: string
-         when:
-            default: on_success
-            description: Condition for when the comment should be created
-            enum:
-               - on_success
-               - on_fail
-               - always
-            type: enum
-      steps:
-         - run:
-            command: |
-               echo "{ \"body\": \"<< parameters.comment >>\" }" >comment.txt
-               cat comment.txt
-               http_code=$(curl \
-                -sS --fail -w '%{http_code}' -o ./http.out \
-                -X POST \
-                -H "Authorization: token $GITHUB_TOKEN" \
-                --url "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/<< parameters.pr_number >>/comments" \
-                --data-binary @comment.txt )
-               cat ./http.out || true
-               if [ $http_code -ge 200 ] && [ $http_code -lt 300 ] ; then
-                exit 0
-               else
-                 exit $http_code
-               fi
-            name: Post comment to PR
-            when: << parameters.when >>
-   
-   gcloud_login:
-      description: Logs in in gcloud
-      parameters:
-        gcloud-username:
-          description: gcloud username
-          type: string
-        gcloud-key:
-          description: Json key for gcloud service account
-          type: string
-      steps:
-        - run:
-           name: Login to gcloud
-           command: |
-              echo << parameters.gcloud-key >> | gcloud auth activate-service-account << parameters.gcloud-username >> --key-file=-     
-        
-   create_prnet_ips:
-      description: | 
-        Creates a gcloud ip address
-      parameters:
-        region:
-          description: gcloud region
-          type: string
-          default: "us-central1"
-        project:
-          description: gcloud project
-          type: string
-          default:  "jovial-meridian-249123"
-        pr-name:
-          description: Prefix to name ip addresses after
-          type: string
-        when:
-          default: on_success
-          description: Condition for when the comment should be created
-          enum:
-            - on_success
-            - on_fail
-            - always
-          type: enum
-      steps:
-        - run:
-            name: Create PRNET IPs
-            command: |
-              if [ ! ${PRNET_IPS_BOOT_NODES} ];then
-                gcloud compute addresses create prnet-boot-<< parameters.pr-name >>-{1..3} --region << parameters.region >> --project << parameters.project >>
-              fi
-              if [ ! ${PRNET_IPS_RPC_NODES} ];then
-                gcloud compute addresses create prnet-rpc-<< parameters.pr-name >>-{1..3} --region << parameters.region >> --project << parameters.project >>
-              fi
-            when: << parameters.when >>
+  pr_comment:
+    description: |
+      Post a comment on the pull request.
+      Requires `GITHUB_TOKEN` to be set as an environment variable.
+    parameters:
+      comment:
+        description: Content of the comment to post
+        type: string
+      pr_number:
+        description: github pr number
+        type: string
+      when:
+        default: on_success
+        description: Condition for when the comment should be created
+        enum:
+          - on_success
+          - on_fail
+          - always
+        type: enum
+    steps:
+      - run:
+          command: |
+            echo "{ \"body\": \"<< parameters.comment >>\" }" >comment.txt
+            cat comment.txt
+            http_code=$(curl \
+             -sS --fail -w '%{http_code}' -o ./http.out \
+             -X POST \
+             -H "Authorization: token $GITHUB_TOKEN" \
+             --url "https://api.github.com/repos/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/issues/<< parameters.pr_number >>/comments" \
+             --data-binary @comment.txt )
+            cat ./http.out || true
+            if [ $http_code -ge 200 ] && [ $http_code -lt 300 ] ; then
+             exit 0
+            else
+              exit $http_code
+            fi
+          name: Post comment to PR
+          when: << parameters.when >>
 
-   get_prnet_ips:
-      description: | 
-        Gets previously created gcloud ip address for prnet
-      parameters:
-        region:
-          description: gcloud region
-          type: string
-          default: "us-central1"
-        project:
-          description: gcloud project
-          type: string
-          default:  "jovial-meridian-249123"
-        pr-name:
-          description: Prefix to name ip addresses after
-          type: string
-        when:
-          default: on_success
-          description: Condition for when the comment should be created
-          enum:
-            - on_success
-            - on_fail
-            - always
-          type: enum          
-      steps:
-        - run:
-            name: Get PRNET IPs
-            command: |
-              for i in {1..3}
-              do
-               IPS_BOOT_NODES=(${IPS_BOOT_NODES[@]} $(gcloud compute addresses describe prnet-boot-<< parameters.pr-name >>-${i} --region << parameters.region >> --project << parameters.project >> \
-                    --format="flattened(address)" |cut -d" " -f2) ) || true
-               IPS_RCP_NODES=(${IPS_RCP_NODES[@]} $(gcloud compute addresses describe prnet-rpc-<< parameters.pr-name >>-${i} --region << parameters.region >> --project << parameters.project >> \
-                    --format="flattened(address)" |cut -d" " -f2) ) || true
-              done
-              echo "export PRNET_IPS_BOOT_NODES=(${IPS_BOOT_NODES[@]})" >> ${BASH_ENV}
-              echo "export PRNET_IPS_RPC_NODES=(${IPS_RCP_NODES[@]})" >> ${BASH_ENV}
-            when: << parameters.when >>
+  gcloud_login:
+    description: Logs in in gcloud
+    parameters:
+      gcloud-username:
+        description: gcloud username
+        type: string
+      gcloud-key:
+        description: Json key for gcloud service account
+        type: string
+    steps:
+      - run:
+          name: Login to gcloud
+          command: |
+            echo << parameters.gcloud-key >> | gcloud auth activate-service-account << parameters.gcloud-username >> --key-file=-
 
-   cleanup_prnet_ips:
-      description: | 
-        Deletes previously created gcloud ip address for prnet
-      parameters:
-        region:
-          description: gcloud region
-          type: string
-          default: "us-central1"
-        project:
-          description: gcloud project
-          type: string
-          default:  "jovial-meridian-249123"
-        pr-name:
-          description: PR name
-          type: string
-        when:
-          default: on_success
-          description: Condition for when the comment should be created
-          enum:
-            - on_success
-            - on_fail
-            - always
-          type: enum  
-      steps:
-        - run:
-           name: Cleanup PRNet IPs
-           command: |
-              if [[ $(gcloud compute addresses list --format json  --project << parameters.project >> --filter="name~'prnet-boot-<< parameters.pr-name >>.*'" ) != "[]" ]];then 
-               gcloud compute addresses delete prnet-boot-<< parameters.pr-name >>-{1..3} --region << parameters.region >>  --project << parameters.project >> --quiet
-              fi
-              if [[ $(gcloud compute addresses list --format json  --project << parameters.project >> --filter="name~'prnet-rpc-<< parameters.pr-name >>.*'" ) != "[]" ]];then 
-               gcloud compute addresses delete prnet-rpc-<< parameters.pr-name >>-{1..3} --region << parameters.region >>  --project << parameters.project >> --quiet
-              fi
-           when: << parameters.when >>
+  create_prnet_ips:
+    description: |
+      Creates a gcloud ip address
+    parameters:
+      region:
+        description: gcloud region
+        type: string
+        default: "us-central1"
+      project:
+        description: gcloud project
+        type: string
+        default: "jovial-meridian-249123"
+      pr-name:
+        description: Prefix to name ip addresses after
+        type: string
+      when:
+        default: on_success
+        description: Condition for when the comment should be created
+        enum:
+          - on_success
+          - on_fail
+          - always
+        type: enum
+    steps:
+      - run:
+          name: Create PRNET IPs
+          command: |
+            if [ ! ${PRNET_IPS_BOOT_NODES} ];then
+              gcloud compute addresses create prnet-boot-<< parameters.pr-name >>-{1..3} --region << parameters.region >> --project << parameters.project >>
+            fi
+            if [ ! ${PRNET_IPS_RPC_NODES} ];then
+              gcloud compute addresses create prnet-rpc-<< parameters.pr-name >>-{1..3} --region << parameters.region >> --project << parameters.project >>
+            fi
+          when: << parameters.when >>
 
-   get_testnet_chart:
-      description: |
-          Gets Testnet chart downloads helm, kubectl and configures it
-      parameters:
-        kubeconfig:
-          description: kubeconfig file
-          type: string
-        when:
-          default: always
-          description: Condition for when the comment should be created
-          enum:
-            - on_success
-            - on_fail
-            - always
-          type: enum
-      steps:
-        - checkout
-        - run:
-           name: Get repo and install helm/kubectl
-           command: |
-              git clone --branch development https://github.com/Taraxa-project/taraxa-testnet.git
-              mkdir -p $HOME/.kube
-              echo -n "<< parameters.kubeconfig >>" | base64 --decode > $HOME/.kube/config
-              curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-              curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-              sudo cp kubectl /usr/local/bin 
-              sudo chmod +x /usr/local/bin/kubectl
-           when: << parameters.when >>
+  get_prnet_ips:
+    description: |
+      Gets previously created gcloud ip address for prnet
+    parameters:
+      region:
+        description: gcloud region
+        type: string
+        default: "us-central1"
+      project:
+        description: gcloud project
+        type: string
+        default: "jovial-meridian-249123"
+      pr-name:
+        description: Prefix to name ip addresses after
+        type: string
+      when:
+        default: on_success
+        description: Condition for when the comment should be created
+        enum:
+          - on_success
+          - on_fail
+          - always
+        type: enum
+    steps:
+      - run:
+          name: Get PRNET IPs
+          command: |
+            for i in {1..3}
+            do
+             IPS_BOOT_NODES=(${IPS_BOOT_NODES[@]} $(gcloud compute addresses describe prnet-boot-<< parameters.pr-name >>-${i} --region << parameters.region >> --project << parameters.project >> \
+                  --format="flattened(address)" |cut -d" " -f2) ) || true
+             IPS_RCP_NODES=(${IPS_RCP_NODES[@]} $(gcloud compute addresses describe prnet-rpc-<< parameters.pr-name >>-${i} --region << parameters.region >> --project << parameters.project >> \
+                  --format="flattened(address)" |cut -d" " -f2) ) || true
+            done
+            echo "export PRNET_IPS_BOOT_NODES=(${IPS_BOOT_NODES[@]})" >> ${BASH_ENV}
+            echo "export PRNET_IPS_RPC_NODES=(${IPS_RCP_NODES[@]})" >> ${BASH_ENV}
+          when: << parameters.when >>
 
-   deploy_testnet_chart:
-      description: Deploys taraxa-node chart 
-      parameters: 
-        pr-name:
-          description: PR name
-          type: string
-      steps:
-        - run:
-           name: Get Latest image for PR and deploy chart
-           command: |
+  cleanup_prnet_ips:
+    description: |
+      Deletes previously created gcloud ip address for prnet
+    parameters:
+      region:
+        description: gcloud region
+        type: string
+        default: "us-central1"
+      project:
+        description: gcloud project
+        type: string
+        default: "jovial-meridian-249123"
+      pr-name:
+        description: PR name
+        type: string
+      when:
+        default: on_success
+        description: Condition for when the comment should be created
+        enum:
+          - on_success
+          - on_fail
+          - always
+        type: enum
+    steps:
+      - run:
+          name: Cleanup PRNet IPs
+          command: |
+            if [[ $(gcloud compute addresses list --format json  --project << parameters.project >> --filter="name~'prnet-boot-<< parameters.pr-name >>.*'" ) != "[]" ]];then 
+             gcloud compute addresses delete prnet-boot-<< parameters.pr-name >>-{1..3} --region << parameters.region >>  --project << parameters.project >> --quiet
+            fi
+            if [[ $(gcloud compute addresses list --format json  --project << parameters.project >> --filter="name~'prnet-rpc-<< parameters.pr-name >>.*'" ) != "[]" ]];then 
+             gcloud compute addresses delete prnet-rpc-<< parameters.pr-name >>-{1..3} --region << parameters.region >>  --project << parameters.project >> --quiet
+            fi
+          when: << parameters.when >>
+
+  get_testnet_chart:
+    description: |
+      Gets Testnet chart downloads helm, kubectl and configures it
+    parameters:
+      kubeconfig:
+        description: kubeconfig file
+        type: string
+      when:
+        default: always
+        description: Condition for when the comment should be created
+        enum:
+          - on_success
+          - on_fail
+          - always
+        type: enum
+    steps:
+      - checkout
+      - run:
+          name: Get repo and install helm/kubectl
+          command: |
+            git clone --branch development https://github.com/Taraxa-project/taraxa-testnet.git
+            mkdir -p $HOME/.kube
+            echo -n "<< parameters.kubeconfig >>" | base64 --decode > $HOME/.kube/config
+            curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            sudo cp kubectl /usr/local/bin 
+            sudo chmod +x /usr/local/bin/kubectl
+          when: << parameters.when >>
+
+  deploy_testnet_chart:
+    description: Deploys taraxa-node chart
+    parameters:
+      pr-name:
+        description: PR name
+        type: string
+    steps:
+      - run:
+          name: Get Latest image for PR and deploy chart
+          command: |
             if [ ${PRNET_IPS_BOOT_NODES} ];then
               PR_TAG=$(gcloud container images list-tags gcr.io/jovial-meridian-249123/taraxa-node      --filter="tags:pr-<< parameters.pr-name >>-*" \
                 --sort-by="~timestamp" \
@@ -256,22 +256,22 @@ commands:
                 --set node.loadBalancer.addresses\[2\]="${PRNET_IPS_RPC_NODES[2]}"
             fi
 
-   cleanup_testnet_chart:
-     description: Deploys taraxa-node chart 
-     parameters: 
+  cleanup_testnet_chart:
+    description: Deploys taraxa-node chart
+    parameters:
       pr-name:
-       description: PR name
-       type: string
+        description: PR name
+        type: string
       when:
-       default: on_success
-       description: Condition for when the comment should be created
-       enum:
-         - on_success
-         - on_fail
-         - always
-       type: enum  
-     steps:
-       - run:
+        default: on_success
+        description: Condition for when the comment should be created
+        enum:
+          - on_success
+          - on_fail
+          - always
+        type: enum
+    steps:
+      - run:
           name: Delete chart
           command: |
             if [[ $(helm list --namespace blockchain-prnet -f "pr-<< parameters.pr-name >>" -o json) != '[]' ]] ; then
@@ -297,14 +297,11 @@ commands:
             fi
           when: << parameters.when >>
 
-
-
-
 jobs:
-   deploy-prnet:
-     docker:
-       - image: circleci/buildpack-deps:stretch
-     steps:
+  deploy-prnet:
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
       - gcp-cli/install
       - gcloud_login:
           gcloud-username: ${GCLOUD_USERNAME}
@@ -313,52 +310,52 @@ jobs:
           when: always
           pr-name: << pipeline.parameters.pr_number >>
       - create_prnet_ips:
-          pr-name: << pipeline.parameters.pr_number >>     
+          pr-name: << pipeline.parameters.pr_number >>
       - get_prnet_ips:
           when: always
           pr-name: << pipeline.parameters.pr_number >>
       - get_testnet_chart:
-         kubeconfig: ${KUBE_CONFIG} 
+          kubeconfig: ${KUBE_CONFIG}
       - deploy_testnet_chart:
-         pr-name: << pipeline.parameters.pr_number >>
+          pr-name: << pipeline.parameters.pr_number >>
       - pr_comment:
-         when: on_success
-         comment: "\
-           <h3><p>PR NET pr-<< pipeline.parameters.pr_number >> Successfully deployed!</p></h3>\ 
-           <table>\
-           <tr><td>explorer</td><td><a href=https://explorer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io >\ 
-                               https://explorer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr> \
-           <tr><td>RPC</td><td><a href=https://rpc-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io >\ 
-                          https://rpc-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr>\
-           </table>\
-           <h4><p>Boot Nodes</p></h4>\
-           <table>\
+          when: on_success
+          comment: "\
+            <h3><p>PR NET pr-<< pipeline.parameters.pr_number >> Successfully deployed!</p></h3>\
+            <table>\
+            <tr><td>explorer</td><td><a href=https://explorer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io >\
+            https://explorer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr> \
+            <tr><td>RPC</td><td><a href=https://rpc-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io >\
+            https://rpc-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr>\
+            </table>\
+            <h4><p>Boot Nodes</p></h4>\
+            <table>\
             <tr><td>Boot Node 1</td><td>${PRNET_IPS_BOOT_NODES[0]}</td></tr>\
             <tr><td>Boot Node 2</td><td>${PRNET_IPS_BOOT_NODES[1]}</td></tr>\
             <tr><td>Boot Node 3</td><td>${PRNET_IPS_BOOT_NODES[2]}</td></tr>\
-           </table>
-           <h4><p>RPC Nodes</p></h4>\
-           <table>\
+            </table>
+            <h4><p>RPC Nodes</p></h4>\
+            <table>\
             <tr><td>RPC Node 1</td><td>${PRNET_IPS_RPC_NODES[0]}</td></tr>\
             <tr><td>RPC Node 2</td><td>${PRNET_IPS_RPC_NODES[1]}</td></tr>\
             <tr><td>RPC Node 3</td><td>${PRNET_IPS_RPC_NODES[2]}</td></tr>\
-           </table>"
-         pr_number: << pipeline.parameters.pr_number >>
+            </table>"
+          pr_number: << pipeline.parameters.pr_number >>
       - cleanup_testnet_chart:
-         when: on_fail
-         pr-name: << pipeline.parameters.pr_number >>
+          when: on_fail
+          pr-name: << pipeline.parameters.pr_number >>
       - cleanup_prnet_ips:
-         when: on_fail
-         pr-name: << pipeline.parameters.pr_number >>
+          when: on_fail
+          pr-name: << pipeline.parameters.pr_number >>
       - pr_comment:
-         when: on_fail
-         comment: "Failed to deploy prnet"
-         pr_number: << pipeline.parameters.pr_number >>
-      
-   redeploy-prnet:
-     docker:
-       - image: circleci/buildpack-deps:stretch
-     steps:
+          when: on_fail
+          comment: "Failed to deploy prnet"
+          pr_number: << pipeline.parameters.pr_number >>
+
+  redeploy-prnet:
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
       - gcp-cli/install
       - gcloud_login:
           gcloud-username: ${GCLOUD_USERNAME}
@@ -366,34 +363,34 @@ jobs:
       - get_prnet_ips:
           pr-name: << pipeline.parameters.pr_number >>
       - get_testnet_chart:
-         kubeconfig: ${KUBE_CONFIG} 
+          kubeconfig: ${KUBE_CONFIG}
       - cleanup_testnet_chart:
           pr-name: << pipeline.parameters.pr_number >>
       - deploy_testnet_chart:
           pr-name: << pipeline.parameters.pr_number >>
       - pr_comment:
-         when: on_success
-         comment: "\
-           <h3><p>PR NET pr-<< pipeline.parameters.pr_number >> Successfully Re deployed!</p></h3>\ 
-           <table>\
-           <tr><td>explorer</td><td><a href=https://explorer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io >\ 
-                               https://explorer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr> \
-           <tr><td>RPC</td><td><a href=https://rpc-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io >\ 
-                          https://rpc-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr>\
-           </table>\
-           <h4><p>Boot Nodes</p></h4>\
-           <table>\
+          when: on_success
+          comment: "\
+            <h3><p>PR NET pr-<< pipeline.parameters.pr_number >> Successfully Re deployed!</p></h3>\
+            <table>\
+            <tr><td>explorer</td><td><a href=https://explorer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io >\
+            https://explorer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr> \
+            <tr><td>RPC</td><td><a href=https://rpc-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io >\
+            https://rpc-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr>\
+            </table>\
+            <h4><p>Boot Nodes</p></h4>\
+            <table>\
             <tr><td>Boot Node 1</td><td>${PRNET_IPS[0]}</td></tr>\
             <tr><td>Boot Node 2</td><td>${PRNET_IPS[1]}</td></tr>\
             <tr><td>Boot Node 3</td><td>${PRNET_IPS[2]}</td></tr>\
-           </table>
-           <h4><p>RPC Nodes</p></h4>\
-           <table>\
+            </table>
+            <h4><p>RPC Nodes</p></h4>\
+            <table>\
             <tr><td>RPC Node 1</td><td>${PRNET_IPS_RPC_NODES[0]}</td></tr>\
             <tr><td>RPC Node 2</td><td>${PRNET_IPS_RPC_NODES[1]}</td></tr>\
             <tr><td>RPC Node 3</td><td>${PRNET_IPS_RPC_NODES[2]}</td></tr>\
-           </table>"
-         pr_number: << pipeline.parameters.pr_number >>
+            </table>"
+          pr_number: << pipeline.parameters.pr_number >>
       - cleanup_testnet_chart:
           pr-name: << pipeline.parameters.pr_number >>
           when: on_fail
@@ -401,98 +398,113 @@ jobs:
           pr-name: << pipeline.parameters.pr_number >>
           when: on_fail
       - pr_comment:
-         when: on_fail
-         comment: "Failed to ReDeploy prnet"
-         pr_number: << pipeline.parameters.pr_number >>
+          when: on_fail
+          comment: "Failed to ReDeploy prnet"
+          pr_number: << pipeline.parameters.pr_number >>
 
-   cleanup-prnet:
-     docker:
-       - image: circleci/buildpack-deps:stretch
-     steps:
+  cleanup-prnet:
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
       - gcp-cli/install
       - gcloud_login:
           gcloud-username: ${GLCOUD_USERNAME}
           gcloud-key: ${GCLOUD_KEY}
       - get_testnet_chart:
-         kubeconfig: ${KUBE_CONFIG} 
+          kubeconfig: ${KUBE_CONFIG}
       - cleanup_testnet_chart:
           pr-name: << pipeline.parameters.pr_number >>
       - cleanup_prnet_ips:
-         pr-name: << pipeline.parameters.pr_number >>
-         when: on_success
+          pr-name: << pipeline.parameters.pr_number >>
+          when: on_success
       - pr_comment:
-         when: on_success
-         comment: "prnet cleaned-up successfully"
-         pr_number: << pipeline.parameters.pr_number >>
+          when: on_success
+          comment: "prnet cleaned-up successfully"
+          pr_number: << pipeline.parameters.pr_number >>
       - pr_comment:
-         when: on_fail
-         comment: "Failed to Clean up prnet"
-         pr_number: << pipeline.parameters.pr_number >>
+          when: on_fail
+          comment: "Failed to Clean up prnet"
+          pr_number: << pipeline.parameters.pr_number >>
 
-   
-   build-and-push-docker-image:
+  build-and-push-docker-image:
     environment:
       - IMAGE: taraxa-node
+      - HELMCHART: taraxa-node
       - CONAN_REVISIONS_ENABLED: 1
     machine:
-      image: ubuntu-2004:202010-01
+      image: ubuntu-2204:2022.04.2
       docker_layer_caching: true
     resource_class: xlarge
     steps:
       - checkout
-      - run: 
-         name: Clean old Images if disk available is lower than 15G
-         command: |
-           for time in 120 96 72 48 24 12 6 3 1 0
-           do
-             if [ $(df  /var/lib/docker --block-size=1073741824 --output=avail|grep -v Avail) -lt 15 ]; then 
-                df  /var/lib/docker --block-size=1073741824 --output=avail
-                echo "Pruning images older than ${time}h"
-                docker image prune -a --force --filter "until=${time}h"
-              fi
-           done
+      - run:
+          name: Clean old Images if disk available is lower than 15G
+          command: |
+            for time in 120 96 72 48 24 12 6 3 1 0
+            do
+              if [ $(df  /var/lib/docker --block-size=1073741824 --output=avail|grep -v Avail) -lt 15 ]; then 
+                 df  /var/lib/docker --block-size=1073741824 --output=avail
+                 echo "Pruning images older than ${time}h"
+                 docker image prune -a --force --filter "until=${time}h"
+               fi
+            done
 
       - run:
-         name: Prepare Environment
-         command: |
-           if [[ ${CIRCLE_SHELL_ENV} =~ "localbuild" ]]; then
+          name: Prepare Environment
+          command: |
+            if [[ ${CIRCLE_SHELL_ENV} =~ "localbuild" ]]; then
               export CIRCLE_BRANCH=circleci
               export CIRCLE_BUILD_NUM=300
-           fi
-           echo "export HELM_TEST_NAME=$(echo $CIRCLE_BRANCH | sed 's/[^A-Za-z0-9\\-]*//g' | tr '[:upper:]' '[:lower:]')" >>$BASH_ENV
-           echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >>$BASH_ENV
-           echo "export START_TIME=$(date +%Y%m%d-%Hh%Mm%Ss)" >>$BASH_ENV
-           echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
-           echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >>$BASH_ENV
-           export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )           
-           echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
-           sudo service apport stop
+            fi
+            echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >>$BASH_ENV
+            echo "export START_TIME=$(date +%Y%m%d-%Hh%Mm%Ss)" >>$BASH_ENV
+            echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
+            echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >>$BASH_ENV
+            export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )
+            echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
+            sudo service apport stop
+            curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
+            sudo apt-get install apt-transport-https --yes
+            echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+            sudo apt-get update
+            sudo apt-get install helm
+            helm plugin install https://github.com/chartmuseum/helm-push.git
+            helm repo add --username ${HELM_REPO_USERNAME} --password ${HELM_REPO_PASSWORD} taraxacharts https://charts.gcp.taraxa.io
+            helm repo add bitnami https://charts.bitnami.com/bitnami
+            helm repo update
+            mkdir -p $HOME/.kube
+            echo -n "${KUBE_CONFIG}" | base64 --decode > $HOME/.kube/config
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            sudo cp kubectl /usr/local/bin 
+            sudo chmod +x /usr/local/bin/kubectl
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            sudo chmod a+x /usr/local/bin/yq
 
       - run:
-         name: Login into gcr
-         command: |
+          name: Login into gcr
+          command: |
             echo ${GCLOUD_SERVICE_KEY} | docker login -u _json_key --password-stdin https://gcr.io
 
       - run:
-         name: Build docker builder image
-         command: |
-                docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target builder .
+          name: Build docker builder image
+          command: |
+            docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target builder .
 
       - run:
-         name: Checkout Submodules
-         command: |
-              git submodule sync
-              git submodule update --init --recursive --jobs 8
+          name: Checkout Submodules
+          command: |
+            git submodule sync
+            git submodule update --init --recursive --jobs 8
 
       - run:
-         name: Build ctest image
-         command: |
-               docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target build .
+          name: Build ctest image
+          command: |
+            docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target build .
 
       - run:
-         name: Build taraxad image
-         command: |
-               docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
+          name: Build taraxad image
+          command: |
+            docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
 
       - run:
          name: Run Ctest
@@ -504,6 +516,7 @@ jobs:
                         sh -c \
                        'cd cmake-docker-build-debug/bin \
                         && ctest --output-on-failure'
+
       - run:
           name: Chmod core dump if fail
           command: |
@@ -511,40 +524,51 @@ jobs:
               sudo chmod 777 tmp_docker/core*
             fi
           when: on_fail
+
       - run:
-         name: Run SmokeTest
-         command: |
-          if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoketest-${DOCKER_BRANCH_TAG:0:52})" ]; then
-            docker network rm \
-            smoketest-${DOCKER_BRANCH_TAG:0:52} >/dev/null;
-          fi
-          docker network create --driver=bridge \
-                      smoketest-${DOCKER_BRANCH_TAG:0:52}
-          docker run --rm -d \
+          name: Run SmokeTest
+          command: |
+            if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoketest-${DOCKER_BRANCH_TAG:0:52})" ]; then
+              docker network rm \
+              smoketest-${DOCKER_BRANCH_TAG:0:52} >/dev/null;
+            fi
+            
+            docker network create --driver=bridge \
+              smoketest-${DOCKER_BRANCH_TAG:0:52}
+            
+            docker run -d\
               --name smoketest-${DOCKER_BRANCH_TAG:0:52} \
               --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
               ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
               single
-          mkdir -p  $PWD/test_build-d/
-          sleep 30
-          http_code=$(docker run --rm  -v $PWD/test_build-d:/data \
-                --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
-                byrnedo/alpine-curl \
-                -sS --fail -w '%{http_code}' -o /data/http.out \
-                --url smoketest-${DOCKER_BRANCH_TAG:0:52}:7777 \
-                -d '{
-                        "jsonrpc": "2.0",
-                        "id":"0",
-                        "method": "send_coin_transaction",
-                        "params":[{
-                            "nonce": 0,
-                            "value": 0,
-                            "gas": 0,
-                            "gas_price": 0,
-                            "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
-                            "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
-                        }]
-                    }')
+            
+            mkdir -p  $PWD/test_build-d/
+            
+            sleep 30
+
+            echo "--- Logs from container ---"
+            docker logs smoketest-${DOCKER_BRANCH_TAG:0:52}
+            echo "--- Logs from container ---"
+            
+            http_code=$(docker run --rm  -v $PWD/test_build-d:/data \
+              --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
+              byrnedo/alpine-curl \
+              -sS --fail -w '%{http_code}' -o /data/http.out \
+              --url smoketest-${DOCKER_BRANCH_TAG:0:52}:7777 \
+              -d '{
+                      "jsonrpc": "2.0",
+                      "id":"0",
+                      "method": "send_coin_transaction",
+                      "params":[{
+                          "nonce": 0,
+                          "value": 0,
+                          "gas": 0,
+                          "gas_price": 1,
+                          "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
+                          "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
+                      }]
+                  }')
+              
             cat $PWD/test_build-d/http.out || true
             if [[ $http_code -eq 200 ]] ; then
                 exit 0
@@ -553,117 +577,152 @@ jobs:
             fi
 
       - run:
-         name: Tag images
-         command: |
-           if [[ ${CIRCLE_BRANCH} == "develop" ]]; then
-              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
-              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${START_TIME}
-              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${START_TIME}-${CIRCLE_SHA1}
-              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:latest
-           fi
-           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${CIRCLE_SHA1}
-           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}
-           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
-           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:latest
-           
-           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${CIRCLE_SHA1}
-           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${START_TIME}
-           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
-           docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:latest
-           if [[ ${PR} != "false" ]];then
-              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
-           fi
+          name: Cleanup smoke tests
+          when: always
+          command: |
+            docker kill smoketest-${DOCKER_BRANCH_TAG:0:52} || true
+            docker rm smoketest-${DOCKER_BRANCH_TAG:0:52} || true
+            docker network rm smoketest-${DOCKER_BRANCH_TAG:0:52} || true
 
       - run:
-         name: Install/configure helm and chart
-         no_output_timeout: 15m
-         command: |
+          name: Tag images
+          command: |
+            if [[ ${CIRCLE_BRANCH} == "develop" ]]; then
+               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
+               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${START_TIME}
+               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${START_TIME}-${CIRCLE_SHA1}
+               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:latest
+            fi
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${CIRCLE_SHA1}
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:latest
+
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${CIRCLE_SHA1}
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${START_TIME}
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:latest
             if [[ ${PR} != "false" ]];then
-              docker push ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-              git clone --branch development https://github.com/Taraxa-project/taraxa-testnet.git
-              mkdir -p $HOME/.kube
-              echo -n "${KUBE_CONFIG}" | base64 --decode > $HOME/.kube/config
-              curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-              cd taraxa-testnet/tests
-              helm install  ${HELM_TEST_NAME:0:40} taraxa-node \
+               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
+            fi
+
+
+      - run:
+          name: Push Images
+          command: |
+            if [[ ${CIRCLE_BRANCH} == "develop"   ]];then
+               docker push ${GCP_IMAGE}-develop:latest
+               docker push ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+               docker push ${GCP_IMAGE}-develop:${START_TIME}
+               docker push ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
+               docker push ${GCP_IMAGE}-develop:${START_TIME}-${CIRCLE_SHA1}
+            fi
+            if [[ ${PR} != "false" ]];then
+               docker push ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
+            fi
+            if [[ ${CIRCLE_BRANCH} == "master" ]];then
+               docker push ${GCP_IMAGE}:latest
+               docker push ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+               docker push ${GCP_IMAGE}:${START_TIME}
+               docker push ${GCP_IMAGE}:${CIRCLE_SHA1}
+               docker push ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+            fi
+            if [[ ${CIRCLE_BRANCH} == "testnet" ]];then
+               echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
+               docker push taraxa/${IMAGE}:${CIRCLE_SHA1}
+               docker push taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+               docker push taraxa/${IMAGE}:${START_TIME}
+               docker push taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+               docker push taraxa/${IMAGE}:latest
+            fi
+
+      - run:
+          name: Verify Helm chart with linter
+          command: |
+            helm lint charts/${HELMCHART}/
+
+      - run:
+          name: Generate Helm chart and output yaml manifests for verification
+          command: |
+            helm dependency build charts/${HELMCHART}/
+            helm template charts/${HELMCHART}/ --values charts/${HELMCHART}/values.yaml
+
+      - run:
+          name: Deploy helm chart
+          no_output_timeout: 15m
+          command: |
+
+            if [[ ${PR} != "false" ]];then
+              helm install ${HELM_TEST_NAME:0:40} charts/${HELMCHART}/ \
                 --wait \
                 --atomic \
                 --timeout 600s \
                 --create-namespace \
-                --namespace ${HELM_TEST_NAME} \
-                --set replicaCount=5 \
+                --namespace ${HELM_TEST_NAME:0:40} \
+                --set node.replicaCount=1 \
+                --set bootnode.replicaCount=1 \
+                --set consensusnode.replicaCount=1 \
+                --set node.resources.limits.memory=64Mi \
+                --set bootnode.resources.limits.memory=64Mi \
+                --set consensusnode.resources.limits.memory=64Mi \
+                --set node.resources.limits.cpu=100m \
+                --set bootnode.resources.limits.cpu=100m \
+                --set consensusnode.resources.limits.cpu=100m \
+                --set node.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
+                --set bootnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
+                --set consensusnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set test.pythontester.script=jenkins.py \
                 --set image.repository=${GCP_IMAGE} \
-                --set image.tag=${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
-                -f taraxa-node/values.yaml
+                --set image.tag=pr-${PR}-${CIRCLE_BUILD_NUM} \
+                -f charts/${HELMCHART}/values.yaml
             fi
+
       - run:
-         name: Run helm test
-         no_output_timeout: 15m
-         command: |
+          name: Run helm tests
+          no_output_timeout: 15m
+          command: |
             if [[ ${PR} != "false" ]];then
-              helm test ${HELM_TEST_NAME} \
+              helm test ${HELM_TEST_NAME:0:40} \
                 --timeout 600s \
-                --namespace ${HELM_TEST_NAME}
+                --namespace ${HELM_TEST_NAME:0:40}
               ./scripts/kibana-url.sh || true
             fi
+
       - run:
-         name: Cleanup helm tests
-         when: always
-         command: |
-           if [[ ${PR} != "false" ]];then
-              helm delete ${HELM_TEST_NAME} || true
-              curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-              chmod +x ./kubectl
-              ./kubectl delete ns ${HELM_TEST_NAME} || true
-           fi
+          name: Cleanup helm tests
+          when: always
+          command: |
+            if [[ ${PR} != "false" ]];then
+               helm -n ${HELM_TEST_NAME:0:40} delete ${HELM_TEST_NAME:0:40} || true
+               kubectl delete ns ${HELM_TEST_NAME:0:40} || true
+            fi
+
       - run:
-         name: Push Images
-         command: |
-           if [[ ${CIRCLE_BRANCH} == "develop"   ]];then
-              docker push ${GCP_IMAGE}-develop:latest
-              docker push ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-              docker push ${GCP_IMAGE}-develop:${START_TIME}
-              docker push ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
-              docker push ${GCP_IMAGE}-develop:${START_TIME}-${CIRCLE_SHA1}
-           fi
-           if [[ ${PR} != "false" ]];then
-              docker push ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
-           fi
-           if [[ ${CIRCLE_BRANCH} == "master" ]];then
-              docker push ${GCP_IMAGE}:latest
-              docker push ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-              docker push ${GCP_IMAGE}:${START_TIME}
-              docker push ${GCP_IMAGE}:${CIRCLE_SHA1}
-              docker push ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
-           fi
-           if [[ ${CIRCLE_BRANCH} == "testnet" ]];then
-              echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
-              docker push taraxa/${IMAGE}:${CIRCLE_SHA1}
-              docker push taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-              docker push taraxa/${IMAGE}:${START_TIME}
-              docker push taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
-              docker push taraxa/${IMAGE}:latest
-           fi
-      - run:
-         name: Cleanup smoke tests
-         when: always
-         command: |
-          docker kill smoketest-${DOCKER_BRANCH_TAG:0:52} || true
-          docker network rm smoketest-${DOCKER_BRANCH_TAG:0:52} || true
+          name: Publish chart to Taraxa's repository
+          command: |
+            HELMCHART_VERSION=$(yq .version charts/${HELMCHART}/Chart.yaml | tr -d \")
+            if [[ ${CIRCLE_BRANCH} == "develop"   ]]; then
+              helm cm-push -f charts/${HELMCHART}/ --version="${HELMCHART_VERSION}-dev" taraxacharts
+            fi
+            if [[ ${CIRCLE_BRANCH} == "master" ]]; then
+              helm cm-push -f charts/${HELMCHART}/ taraxacharts
+            fi
+            if [[ ${PR} != "false" ]]; then
+              helm cm-push -f charts/${HELMCHART}/ --version="${HELMCHART_VERSION}-pr${PR}" taraxacharts
+            fi
 
       - store_artifacts:
           path: tmp_docker
 
-   create-and-push-builder:
-     docker:
-       - image: circleci/buildpack-deps:stretch
-     steps:
-       ### This step is to enable local testing with circleci cli tool
-       - run:
+  create-and-push-builder:
+    docker:
+      - image: circleci/buildpack-deps:stretch
+    steps:
+      ### This step is to enable local testing with circleci cli tool
+      - run:
           name: Local build handling
           command: |
             if [[ ${CIRCLE_SHELL_ENV} =~ "localbuild" ]]; then
@@ -674,250 +733,249 @@ jobs:
                 exit 1
               fi
             fi
-       - checkout
-       - gcp-gcr/gcr-auth
-       - setup_remote_docker:
+      - checkout
+      - gcp-gcr/gcr-auth
+      - setup_remote_docker:
           docker_layer_caching: true
-       - gcp-gcr/build-image:
-           extra_build_args: --target builder
-           image: taraxa-node/builder
-       - gcp-gcr/push-image:
-           image: taraxa-node/builder
-   build-mac:
-     macos:
-       xcode: 12.0.0
-     environment:
-        CONAN_REVISIONS_ENABLED: true
-        LLVM_VERSION: "12"
-        CXX: clang++
-        CC: clang
-        LDFLAGS: -L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib
-        CPPFLAGS: -I/usr/local/opt/llvm/include
-        HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: true
-     steps:
-        - checkout
-        - run:
-           name: Checkout Submodules
-           command: |
-              git submodule sync
-              git submodule update --init --recursive --jobs 8
-        - run:
-           name: Update Brew
-           command: brew update
-        - run:
-           name: Install Tools
-           command: |
-              brew install coreutils llvm@$LLVM_VERSION go \
-                           ccache gflags libtool cmake conan clang-format
-        - run:
-           name: Setup Environment
-           command: |
-              echo 'export GOPATH="${HOME}/.go"' >> $HOME/.bash_profile
-              echo 'export GOROOT="$(brew --prefix golang)/libexec"' >> $HOME/.bash_profile
-              echo 'export PATH="$PATH:${GOPATH}/bin:${GOROOT}/bin"' >> $HOME/.bash_profile
-              test -d "${HOME}/.go" || mkdir "${HOME}/.go"
-              test -d "${HOME}/.go/src/github.com" || mkdir -p "${HOME}/.go/src/github.com"
+      - gcp-gcr/build-image:
+          extra_build_args: --target builder
+          image: taraxa-node/builder
+      - gcp-gcr/push-image:
+          image: taraxa-node/builder
+  build-mac:
+    macos:
+      xcode: 12.0.0
+    environment:
+      CONAN_REVISIONS_ENABLED: true
+      LLVM_VERSION: "12"
+      CXX: clang++
+      CC: clang
+      LDFLAGS: -L/usr/local/opt/llvm/lib -Wl,-rpath,/usr/local/opt/llvm/lib
+      CPPFLAGS: -I/usr/local/opt/llvm/include
+      HOMEBREW_NO_INSTALLED_DEPENDENTS_CHECK: true
+    steps:
+      - checkout
+      - run:
+          name: Checkout Submodules
+          command: |
+            git submodule sync
+            git submodule update --init --recursive --jobs 8
+      - run:
+          name: Update Brew
+          command: brew update
+      - run:
+          name: Install Tools
+          command: |
+            brew install coreutils llvm@$LLVM_VERSION go \
+                         ccache gflags libtool cmake conan clang-format
+      - run:
+          name: Setup Environment
+          command: |
+            echo 'export GOPATH="${HOME}/.go"' >> $HOME/.bash_profile
+            echo 'export GOROOT="$(brew --prefix golang)/libexec"' >> $HOME/.bash_profile
+            echo 'export PATH="$PATH:${GOPATH}/bin:${GOROOT}/bin"' >> $HOME/.bash_profile
+            test -d "${HOME}/.go" || mkdir "${HOME}/.go"
+            test -d "${HOME}/.go/src/github.com" || mkdir -p "${HOME}/.go/src/github.com"
 
-              echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> $HOME/.bash_profile
-              echo 'export PATH="/usr/local/opt/ccache/libexec:$PATH"' >> $HOME/.bash_profile
-        - run:
-           name: Install solc
-           command: |
-              brew tap ethereum/ethereum
-              brew install solidity
-        - restore_cache:
-           keys:
+            echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> $HOME/.bash_profile
+            echo 'export PATH="/usr/local/opt/ccache/libexec:$PATH"' >> $HOME/.bash_profile
+      - run:
+          name: Install solc
+          command: |
+            brew tap ethereum/ethereum
+            brew install solidity
+      - restore_cache:
+          keys:
             - conan-cache-v7-mac-{{ checksum "conanfile.py" }}
             - conan-cache-v7-mac
-        - run:
-           name: add conan bincrafters remote
-           command: conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
-        - run:
-           name: setup conan profile
-           command: |
-               conan profile new clang --detect || true && \
-               conan profile update settings.compiler=clang clang && \
-               conan profile update settings.compiler.version=$LLVM_VERSION clang && \
-               conan profile update settings.compiler.libcxx=libc++ clang && \
-               conan profile update settings.build_type=RelWithDebInfo clang && \
-               conan profile update env.CC=clang clang && \
-               conan profile update env.CXX=clang++ clang
-        - save_cache:
-           paths:
-             - ~/.conan
-           key: conan-cache-v7-mac-{{ checksum "conanfile.py" }}
-        - run:
-           name: Cmake
-           command: |
-               cd cmake-build
-               cmake \
-                  -DCONAN_PROFILE=clang \
-                  -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-                  -DTARAXA_ENABLE_LTO=ON \
-                  -DTARAXA_STATIC_BUILD=ON ../ &&
-               make -j 6 &&
-               mkdir $HOME/project/release &&
-               cp bin/taraxad $HOME/project/release/taraxad-macos
-        - run:
-           name: Execute ctest
-           command: |
-             ulimit -n 4096
-             cd cmake-build/tests && ctest --output-on-failure
-        - store_artifacts:
-           path: $HOME/project/release/taraxad-macos
-        - persist_to_workspace:
-           root: release
-           paths: [ taraxad-macos ]
-   build-linux:
-     environment:
-        CONAN_REVISIONS_ENABLED: true
-        BUILD_OUTPUT_DIR: "cmake-docker-build-debug"
-        LLVM_VERSION: "12"
-        GO_VERSION: "1.16.3"
-        CMAKE_VERSION: "3.16.3-1ubuntu1"
-        GCC_VERSION: "4:9.3.0-1ubuntu2"
-        GFLAGS_VERSION: "2.2.2-1build1"
-        GOROOT: "/usr/local/go"
-        GOPATH: "/root/.go"
-     docker:
+      - run:
+          name: add conan bincrafters remote
+          command: conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
+      - run:
+          name: setup conan profile
+          command: |
+            conan profile new clang --detect || true && \
+            conan profile update settings.compiler=clang clang && \
+            conan profile update settings.compiler.version=$LLVM_VERSION clang && \
+            conan profile update settings.compiler.libcxx=libc++ clang && \
+            conan profile update settings.build_type=RelWithDebInfo clang && \
+            conan profile update env.CC=clang clang && \
+            conan profile update env.CXX=clang++ clang
+      - save_cache:
+          paths:
+            - ~/.conan
+          key: conan-cache-v7-mac-{{ checksum "conanfile.py" }}
+      - run:
+          name: Cmake
+          command: |
+            cd cmake-build
+            cmake \
+               -DCONAN_PROFILE=clang \
+               -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+               -DTARAXA_ENABLE_LTO=ON \
+               -DTARAXA_STATIC_BUILD=ON ../ &&
+            make -j 6 &&
+            mkdir $HOME/project/release &&
+            cp bin/taraxad $HOME/project/release/taraxad-macos
+      - run:
+          name: Execute ctest
+          command: |
+            ulimit -n 4096
+            cd cmake-build/tests && ctest --output-on-failure
+      - store_artifacts:
+          path: $HOME/project/release/taraxad-macos
+      - persist_to_workspace:
+          root: release
+          paths: [taraxad-macos]
+  build-linux:
+    environment:
+      CONAN_REVISIONS_ENABLED: true
+      BUILD_OUTPUT_DIR: "cmake-docker-build-debug"
+      LLVM_VERSION: "12"
+      GO_VERSION: "1.16.3"
+      CMAKE_VERSION: "3.16.3-1ubuntu1"
+      GCC_VERSION: "4:9.3.0-1ubuntu2"
+      GFLAGS_VERSION: "2.2.2-1build1"
+      GOROOT: "/usr/local/go"
+      GOPATH: "/root/.go"
+    docker:
       - image: gcr.io/$GOOGLE_PROJECT_ID/taraxa-node/builder
         auth:
-          username: _json_key  # default username when using a JSON key file to authenticate
+          username: _json_key # default username when using a JSON key file to authenticate
           password: $GCLOUD_SERVICE_KEY
-     resource_class: xlarge
-     steps:
-        - checkout
-        - run:
-           name: Checkout Submodules
-           command: |
-              git submodule sync
-              git submodule update --init --recursive --jobs 8
-        - run:
-           command: mkdir $BUILD_OUTPUT_DIR
-        - restore_cache:
-           keys:
+    resource_class: xlarge
+    steps:
+      - checkout
+      - run:
+          name: Checkout Submodules
+          command: |
+            git submodule sync
+            git submodule update --init --recursive --jobs 8
+      - run:
+          command: mkdir $BUILD_OUTPUT_DIR
+      - restore_cache:
+          keys:
             - conan-cache-v4-linux--{{ checksum "conanfile.py" }}
             - conan-cache-v4-linux
-        - run:
-           name: Add conan bincrafters remote
-           command: conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
-        - run:
-           name: setup conan profile
-           command: |
-               conan profile new clang --detect || true && \
-               conan profile update settings.compiler=clang clang && \
-               conan profile update settings.compiler.version=$LLVM_VERSION clang && \
-               conan profile update settings.compiler.libcxx=libc++ clang && \
-               conan profile update settings.build_type=RelWithDebInfo clang && \
-               conan profile update env.CC=clang clang && \
-               conan profile update env.CXX=clang++ clang
-        - save_cache:
-           paths:
-             - ~/.conan
-           key: conan-cache-v4-linux--{{ checksum "conanfile.py" }}
-        - run:
-            name: Cmake
-            command: |
-              cd $BUILD_OUTPUT_DIR &&
-              cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-              -DCONAN_PROFILE=clang \
-              -DTARAXA_STATIC_BUILD=ON \
-              -DTARAXAD_INSTALL_DIR=./bin_install \
-              -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
-              ../
-        - run:
-           name: make
-           command: cd $BUILD_OUTPUT_DIR && make -j8 all
-        - run:
-           name: make install
-           command: cd $BUILD_OUTPUT_DIR && make install
-        - run:
-           name: strip binary
-           command: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad && mkdir -p /root/project/release && cp bin_install/taraxad /root/project/release/taraxad-x86_64
-        - run:
-           name: Execute ctest
-           command: |
+      - run:
+          name: Add conan bincrafters remote
+          command: conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
+      - run:
+          name: setup conan profile
+          command: |
+            conan profile new clang --detect || true && \
+            conan profile update settings.compiler=clang clang && \
+            conan profile update settings.compiler.version=$LLVM_VERSION clang && \
+            conan profile update settings.compiler.libcxx=libc++ clang && \
+            conan profile update settings.build_type=RelWithDebInfo clang && \
+            conan profile update env.CC=clang clang && \
+            conan profile update env.CXX=clang++ clang
+      - save_cache:
+          paths:
+            - ~/.conan
+          key: conan-cache-v4-linux--{{ checksum "conanfile.py" }}
+      - run:
+          name: Cmake
+          command: |
+            cd $BUILD_OUTPUT_DIR &&
+            cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+            -DCONAN_PROFILE=clang \
+            -DTARAXA_STATIC_BUILD=ON \
+            -DTARAXAD_INSTALL_DIR=./bin_install \
+            -DTARAXAD_CONF_INSTALL_DIR=./bin_install \
+            ../
+      - run:
+          name: make
+          command: cd $BUILD_OUTPUT_DIR && make -j8 all
+      - run:
+          name: make install
+          command: cd $BUILD_OUTPUT_DIR && make install
+      - run:
+          name: strip binary
+          command: cd $BUILD_OUTPUT_DIR && strip bin_install/taraxad && mkdir -p /root/project/release && cp bin_install/taraxad /root/project/release/taraxad-x86_64
+      - run:
+          name: Execute ctest
+          command: |
             ulimit -n 4096
             cd $BUILD_OUTPUT_DIR/tests && ctest --output-on-failure
-        - store_artifacts:
-           path: /root/project/release/taraxad-x86_64
-        - persist_to_workspace:
-           root: release
-           paths: [ taraxad-x86_64 ]
-
+      - store_artifacts:
+          path: /root/project/release/taraxad-x86_64
+      - persist_to_workspace:
+          root: release
+          paths: [taraxad-x86_64]
 
 workflows:
   version: 2
 
   deploy-prnet:
-    when: 
-      and: 
-        - << pipeline.parameters.deploy_prnet >> 
+    when:
+      and:
+        - << pipeline.parameters.deploy_prnet >>
         - << pipeline.parameters.pr_number >>
     jobs:
-     - deploy-prnet:
-         context: 
-          - TARAXA
-          - GCP
-          - K8S   
-          - GCR
-          - GITHUB
-
+      - deploy-prnet:
+          context:
+            - TARAXA
+            - GCP
+            - K8S
+            - GCR
+            - GITHUB
 
   redeploy-prnet:
-    when: 
-      and: 
-        - << pipeline.parameters.redeploy_prnet >> 
+    when:
+      and:
+        - << pipeline.parameters.redeploy_prnet >>
         - << pipeline.parameters.pr_number >>
     jobs:
-     - redeploy-prnet:
-        context: 
-          - TARAXA
-          - GCP
-          - K8S   
-          - GCR
-          - GITHUB
+      - redeploy-prnet:
+          context:
+            - TARAXA
+            - GCP
+            - K8S
+            - GCR
+            - GITHUB
 
   cleanup-prnet:
-    when: 
-      and: 
-        - << pipeline.parameters.cleanup_prnet >> 
+    when:
+      and:
+        - << pipeline.parameters.cleanup_prnet >>
         - << pipeline.parameters.pr_number >>
     jobs:
-     - cleanup-prnet:
-        context: 
-          - TARAXA
-          - GCP
-          - K8S   
-          - GCR
-          - GITHUB
-  
+      - cleanup-prnet:
+          context:
+            - TARAXA
+            - GCP
+            - K8S
+            - GCR
+            - GITHUB
+
   build-and-deploy-image:
     when:
-         and:
-           - not: << pipeline.parameters.deploy_prnet >>
-           - not: << pipeline.parameters.redeploy_prnet >>
-           - not: << pipeline.parameters.cleanup_prnet >>
+      and:
+        - not: << pipeline.parameters.deploy_prnet >>
+        - not: << pipeline.parameters.redeploy_prnet >>
+        - not: << pipeline.parameters.cleanup_prnet >>
     jobs:
       - build-and-push-docker-image:
-         context: 
-          - TARAXA
-          - GCP
-          - K8S   
-          - GCR
-          - DOCKERHUB
+          context:
+            - TARAXA
+            - GCP
+            - K8S
+            - GCR
+            - DOCKERHUB
+            - CHARTSREPO
 
   create-builder-image:
     jobs:
       - create-and-push-builder:
           context:
-           - TARAXA
-           - GCR
+            - TARAXA
+            - GCR
           filters:
             branches:
               only:
-#               - develop
-               - cirleci
+                #  - develop
+                - cirleci
 
       - build-linux:
           filters:
@@ -925,9 +983,9 @@ workflows:
               ignore: /.*/
             tags:
               only: /^v?\d+\.\d+\.\d+(?:-.*)?$/
-          context: 
-           - TARAXA
-           - GCR
+          context:
+            - TARAXA
+            - GCR
       - build-mac:
           filters:
             branches:
@@ -935,13 +993,13 @@ workflows:
             tags:
               only: /^v?\d+\.\d+\.\d+(?:-.*)?$/
           context:
-           - TARAXA
-           - GCR
+            - TARAXA
+            - GCR
       - github-release/create:
-          context: 
-           - TARAXA
-           - GCR
-           - GITHUB
+          context:
+            - TARAXA
+            - GCR
+            - GITHUB
           attach-workspace: true
           replace: true
           workspace-root: release
