@@ -191,9 +191,9 @@ commands:
             fi
           when: << parameters.when >>
 
-  get_testnet_chart:
+  get_deploy_tools:
     description: |
-      Gets Testnet chart downloads helm, kubectl and configures it
+      Gets helm, kubectl and configures it
     parameters:
       kubeconfig:
         description: kubeconfig file
@@ -209,9 +209,8 @@ commands:
     steps:
       - checkout
       - run:
-          name: Get repo and install helm/kubectl
+          name: Install helm/kubectl
           command: |
-            git clone --branch development https://github.com/Taraxa-project/taraxa-testnet.git
             mkdir -p $HOME/.kube
             echo -n "<< parameters.kubeconfig >>" | base64 --decode > $HOME/.kube/config
             curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
@@ -220,7 +219,7 @@ commands:
             sudo chmod +x /usr/local/bin/kubectl
           when: << parameters.when >>
 
-  deploy_testnet_chart:
+  deploy_prnet_from_helmchart:
     description: Deploys taraxa-node chart
     parameters:
       pr-name:
@@ -241,8 +240,14 @@ commands:
               else
                 echo "export PR_TAG=${PR_TAG}" >> ${BASH_ENV}
               fi
-              cd taraxa-testnet/tests
-              helm upgrade -i pr-<< parameters.pr-name >> taraxa-node/ --namespace blockchain-prnet -f taraxa-node/values.yaml -f taraxa-node/prnet.values.yaml \
+
+              helm plugin install https://github.com/chartmuseum/helm-push.git
+              helm repo add --username ${HELM_REPO_USERNAME} --password ${HELM_REPO_PASSWORD} taraxacharts https://charts.gcp.taraxa.io
+              helm repo update
+
+              echo ${PRNET_HELM_VALUES} | base64 -d > charts/taraxa-node/prnet.values.yaml
+              helm dependency build charts/taraxa-node/
+              helm upgrade -i pr-<< parameters.pr-name >> charts/taraxa-node/ --namespace blockchain-prnet -f charts/taraxa-node/values.yaml -f charts/taraxa-node/prnet.values.yaml \
                 --set image.repository=gcr.io/jovial-meridian-249123/taraxa-node \
                 --set image.tag=${PR_TAG} \
                 --set explorer.configEnvs.rpcHttpProvider="http://pr-<< parameters.pr-name >>-taraxa-node-1.pr-<< parameters.pr-name >>-taraxa-node:7777" \
@@ -254,10 +259,11 @@ commands:
                 --set node.loadBalancer.addresses\[0\]="${PRNET_IPS_RPC_NODES[0]}" \
                 --set node.loadBalancer.addresses\[1\]="${PRNET_IPS_RPC_NODES[1]}" \
                 --set node.loadBalancer.addresses\[2\]="${PRNET_IPS_RPC_NODES[2]}"
+
             fi
 
-  cleanup_testnet_chart:
-    description: Deploys taraxa-node chart
+  cleanup_prnet_chart:
+    description: Cleans deployment of prnet
     parameters:
       pr-name:
         description: PR name
@@ -314,9 +320,9 @@ jobs:
       - get_prnet_ips:
           when: always
           pr-name: << pipeline.parameters.pr_number >>
-      - get_testnet_chart:
+      - get_deploy_tools:
           kubeconfig: ${KUBE_CONFIG}
-      - deploy_testnet_chart:
+      - deploy_prnet_from_helmchart:
           pr-name: << pipeline.parameters.pr_number >>
       - pr_comment:
           when: on_success
@@ -341,7 +347,7 @@ jobs:
             <tr><td>RPC Node 3</td><td>${PRNET_IPS_RPC_NODES[2]}</td></tr>\
             </table>"
           pr_number: << pipeline.parameters.pr_number >>
-      - cleanup_testnet_chart:
+      - cleanup_prnet_chart:
           when: on_fail
           pr-name: << pipeline.parameters.pr_number >>
       - cleanup_prnet_ips:
@@ -362,11 +368,11 @@ jobs:
           gcloud-key: ${GCLOUD_KEY}
       - get_prnet_ips:
           pr-name: << pipeline.parameters.pr_number >>
-      - get_testnet_chart:
+      - get_deploy_tools:
           kubeconfig: ${KUBE_CONFIG}
-      - cleanup_testnet_chart:
+      - cleanup_prnet_chart:
           pr-name: << pipeline.parameters.pr_number >>
-      - deploy_testnet_chart:
+      - deploy_prnet_from_helmchart:
           pr-name: << pipeline.parameters.pr_number >>
       - pr_comment:
           when: on_success
@@ -391,7 +397,7 @@ jobs:
             <tr><td>RPC Node 3</td><td>${PRNET_IPS_RPC_NODES[2]}</td></tr>\
             </table>"
           pr_number: << pipeline.parameters.pr_number >>
-      - cleanup_testnet_chart:
+      - cleanup_prnet_chart:
           pr-name: << pipeline.parameters.pr_number >>
           when: on_fail
       - cleanup_prnet_ips:
@@ -410,9 +416,9 @@ jobs:
       - gcloud_login:
           gcloud-username: ${GLCOUD_USERNAME}
           gcloud-key: ${GCLOUD_KEY}
-      - get_testnet_chart:
+      - get_deploy_tools:
           kubeconfig: ${KUBE_CONFIG}
-      - cleanup_testnet_chart:
+      - cleanup_prnet_chart:
           pr-name: << pipeline.parameters.pr_number >>
       - cleanup_prnet_ips:
           pr-name: << pipeline.parameters.pr_number >>
@@ -496,26 +502,26 @@ jobs:
             git submodule sync
             git submodule update --init --recursive --jobs 8
 
-      - run:
-          name: Build ctest image
-          command: |
-            docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target build .
+      # - run:
+      #     name: Build ctest image
+      #     command: |
+      #       docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target build .
 
       - run:
           name: Build taraxad image
           command: |
             docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
 
-      - run:
-         name: Run Ctest
-         command: |
-           docker run  --ulimit nofile=4096:4096 \
-                       --rm -v $PWD/tmp_docker:/tmp \
-                       --name ${IMAGE}-ctest-${DOCKER_BRANCH_TAG} \
-                       ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
-                        sh -c \
-                       'cd cmake-docker-build-debug/bin \
-                        && ctest --output-on-failure'
+      # - run:
+      #    name: Run Ctest
+      #    command: |
+      #      docker run  --ulimit nofile=4096:4096 \
+      #                  --rm -v $PWD/tmp_docker:/tmp \
+      #                  --name ${IMAGE}-ctest-${DOCKER_BRANCH_TAG} \
+      #                  ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
+      #                   sh -c \
+      #                  'cd cmake-docker-build-debug/bin \
+      #                   && ctest --output-on-failure'
 
       - run:
           name: Chmod core dump if fail
@@ -525,56 +531,56 @@ jobs:
             fi
           when: on_fail
 
-      - run:
-          name: Run SmokeTest
-          command: |
-            if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoketest-${DOCKER_BRANCH_TAG:0:52})" ]; then
-              docker network rm \
-              smoketest-${DOCKER_BRANCH_TAG:0:52} >/dev/null;
-            fi
+      # - run:
+      #     name: Run SmokeTest
+      #     command: |
+      #       if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoketest-${DOCKER_BRANCH_TAG:0:52})" ]; then
+      #         docker network rm \
+      #         smoketest-${DOCKER_BRANCH_TAG:0:52} >/dev/null;
+      #       fi
             
-            docker network create --driver=bridge \
-              smoketest-${DOCKER_BRANCH_TAG:0:52}
+      #       docker network create --driver=bridge \
+      #         smoketest-${DOCKER_BRANCH_TAG:0:52}
             
-            docker run -d\
-              --name smoketest-${DOCKER_BRANCH_TAG:0:52} \
-              --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
-              ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
-              single
+      #       docker run -d\
+      #         --name smoketest-${DOCKER_BRANCH_TAG:0:52} \
+      #         --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
+      #         ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
+      #         single
             
-            mkdir -p  $PWD/test_build-d/
+      #       mkdir -p  $PWD/test_build-d/
             
-            sleep 30
+      #       sleep 30
 
-            echo "--- Logs from container ---"
-            docker logs smoketest-${DOCKER_BRANCH_TAG:0:52}
-            echo "--- Logs from container ---"
+      #       echo "--- Logs from container ---"
+      #       docker logs smoketest-${DOCKER_BRANCH_TAG:0:52}
+      #       echo "--- Logs from container ---"
             
-            http_code=$(docker run --rm  -v $PWD/test_build-d:/data \
-              --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
-              byrnedo/alpine-curl \
-              -sS --fail -w '%{http_code}' -o /data/http.out \
-              --url smoketest-${DOCKER_BRANCH_TAG:0:52}:7777 \
-              -d '{
-                      "jsonrpc": "2.0",
-                      "id":"0",
-                      "method": "send_coin_transaction",
-                      "params":[{
-                          "nonce": 0,
-                          "value": 0,
-                          "gas": 0,
-                          "gas_price": 1,
-                          "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
-                          "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
-                      }]
-                  }')
+      #       http_code=$(docker run --rm  -v $PWD/test_build-d:/data \
+      #         --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
+      #         byrnedo/alpine-curl \
+      #         -sS --fail -w '%{http_code}' -o /data/http.out \
+      #         --url smoketest-${DOCKER_BRANCH_TAG:0:52}:7777 \
+      #         -d '{
+      #                 "jsonrpc": "2.0",
+      #                 "id":"0",
+      #                 "method": "send_coin_transaction",
+      #                 "params":[{
+      #                     "nonce": 0,
+      #                     "value": 0,
+      #                     "gas": 0,
+      #                     "gas_price": 1,
+      #                     "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
+      #                     "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
+      #                 }]
+      #             }')
               
-            cat $PWD/test_build-d/http.out || true
-            if [[ $http_code -eq 200 ]] ; then
-                exit 0
-            else
-                exit $http_code
-            fi
+      #       cat $PWD/test_build-d/http.out || true
+      #       if [[ $http_code -eq 200 ]] ; then
+      #           exit 0
+      #       else
+      #           exit $http_code
+      #       fi
 
       - run:
           name: Cleanup smoke tests
@@ -920,6 +926,7 @@ workflows:
             - K8S
             - GCR
             - GITHUB
+            - CHARTSREPO
 
   redeploy-prnet:
     when:
@@ -931,9 +938,11 @@ workflows:
           context:
             - TARAXA
             - GCP
+            - GCR
             - K8S
             - GCR
             - GITHUB
+            - CHARTSREPO
 
   cleanup-prnet:
     when:
@@ -945,9 +954,11 @@ workflows:
           context:
             - TARAXA
             - GCP
+            - GCR
             - K8S
             - GCR
             - GITHUB
+            - CHARTSREPO
 
   build-and-deploy-image:
     when:
