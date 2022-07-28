@@ -1,6 +1,6 @@
 var classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler =
 [
-    [ "DagBlockPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html#accd85e2cad750fe916597299b78f7b78", null ],
+    [ "DagBlockPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html#ac12580a9030d3aac637210743406dbea", null ],
     [ "onNewBlockReceived", "classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html#a0b70c4b82caadc55728825e273a21ae1", null ],
     [ "onNewBlockVerified", "classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html#ae078c0f9ec32038366e33291666c1672", null ],
     [ "process", "classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html#ae60d1cfe77c0ef7bbee2d9d85039eede", null ],

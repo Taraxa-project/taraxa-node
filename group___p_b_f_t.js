@@ -33,7 +33,7 @@ var group___p_b_f_t =
     [ "PbftManager", "group___p_b_f_t.html#classtaraxa_1_1_pbft_manager", [
       [ "time_point", "group___p_b_f_t.html#a0aab8b19e04b0d0100d6ae93c3b170b8", null ],
       [ "vrf_sk_t", "group___p_b_f_t.html#a119430e17475efbfab1a196d7e2f54f2", null ],
-      [ "PbftManager", "group___p_b_f_t.html#a76be6f8dcafef3b1080436ad1a7832d9", null ],
+      [ "PbftManager", "group___p_b_f_t.html#ae917c6eeb7114beb9d08b6e86f7db768", null ],
       [ "~PbftManager", "group___p_b_f_t.html#a37f64cdc660f7bb1a22d03ce102c16a8", null ],
       [ "PbftManager", "group___p_b_f_t.html#ac6bf3bfdb609d5c2ace0a2130ff5d59e", null ],
       [ "PbftManager", "group___p_b_f_t.html#aee1e57b8818e581deb443cc7ef5ff948", null ],
@@ -122,7 +122,6 @@ var group___p_b_f_t =
       [ "config_", "group___p_b_f_t.html#af527c9f71edcd69538edcfe26608ab2d", null ],
       [ "current_step_clock_initial_datetime_", "group___p_b_f_t.html#a748072e6c04ffd40a9a91c6090d0512a", null ],
       [ "daemon_", "group___p_b_f_t.html#adcd7ff1c28e3c0b6b0a0108118b479fa", null ],
-      [ "dag_blk_mgr_", "group___p_b_f_t.html#a01afe1291d76bc1752891ffb8bc989da", null ],
       [ "DAG_BLOCKS_SIZE", "group___p_b_f_t.html#a768f92917004384adb070a4aa99df3ca", null ],
       [ "dag_genesis_block_hash_", "group___p_b_f_t.html#a213b6246edf1fbff391d04acb13f37eb", null ],
       [ "dag_mgr_", "group___p_b_f_t.html#a5c07848027fb2b186ddb512e9e5b9cd8", null ],

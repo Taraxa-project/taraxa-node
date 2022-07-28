@@ -16,7 +16,6 @@ var structtaraxa_1_1_full_node_config =
     [ "light_node_history", "structtaraxa_1_1_full_node_config.html#aac2f32b6354412297072e81cb9b0c828", null ],
     [ "log_configs", "structtaraxa_1_1_full_node_config.html#a322f6369b84610a65239aeffae42841e", null ],
     [ "log_path", "structtaraxa_1_1_full_node_config.html#a944aff6d1ac6d851475babe34c2cbcea", null ],
-    [ "max_block_queue_warn", "structtaraxa_1_1_full_node_config.html#abb155505de7b9dccb0a003b4ea4a1482", null ],
     [ "max_levels_per_period", "structtaraxa_1_1_full_node_config.html#a724641b971674ec5052d295a2e2ee5fc", null ],
     [ "max_transactions_pool_drop", "structtaraxa_1_1_full_node_config.html#ace4eda2108b9591b7b86e61ce850f682", null ],
     [ "max_transactions_pool_warn", "structtaraxa_1_1_full_node_config.html#a6e4d05173f13b57dc8c0e19450912357", null ],

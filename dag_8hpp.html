@@ -88,8 +88,7 @@ $(document).ready(function(){initNavTree('dag_8hpp.html',''); initResizable(); }
 <div class="title">dag.hpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;atomic&gt;</code><br />
-<code>#include &lt;bitset&gt;</code><br />
+<div class="textblock"><code>#include &lt;bitset&gt;</code><br />
 <code>#include &lt;boost/function.hpp&gt;</code><br />
 <code>#include &lt;boost/graph/adjacency_list.hpp&gt;</code><br />
 <code>#include &lt;boost/graph/breadth_first_search.hpp&gt;</code><br />
@@ -100,8 +99,6 @@ $(document).ready(function(){initNavTree('dag_8hpp.html',''); initResizable(); }
 <code>#include &lt;boost/graph/properties.hpp&gt;</code><br />
 <code>#include &lt;boost/property_map/property_map.hpp&gt;</code><br />
 <code>#include &lt;boost/thread.hpp&gt;</code><br />
-<code>#include &lt;chrono&gt;</code><br />
-<code>#include &lt;condition_variable&gt;</code><br />
 <code>#include &lt;iostream&gt;</code><br />
 <code>#include &lt;iterator&gt;</code><br />
 <code>#include &lt;list&gt;</code><br />
@@ -111,29 +108,36 @@ $(document).ready(function(){initNavTree('dag_8hpp.html',''); initResizable(); }
 <code>#include &quot;<a class="el" href="types_8hpp_source.html">common/types.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="util_8hpp_source.html">common/util.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="dag__block_8hpp_source.html">dag/dag_block.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="dag__block__manager_8hpp_source.html">dag/dag_block_manager.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="pbft__chain_8hpp_source.html">pbft/pbft_chain.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="storage_8hpp_source.html">storage/storage.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="transaction__manager_8hpp_source.html">transaction/transaction_manager.hpp</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
 <div class="dyncontent">
 <div class="center"><img src="dag_8hpp__dep__incl.png" border="0" usemap="#libraries_2core__libs_2consensus_2include_2dag_2dag_8hppdep" alt=""/></div>
 <map name="libraries_2core__libs_2consensus_2include_2dag_2dag_8hppdep" id="libraries_2core__libs_2consensus_2include_2dag_2dag_8hppdep">
-<area shape="rect" title=" " alt="" coords="1220,5,1393,61"/>
-<area shape="rect" href="block__proposer_8cpp.html" title=" " alt="" coords="5,117,189,173"/>
-<area shape="rect" href="dag_8cpp.html" title=" " alt="" coords="213,124,413,165"/>
-<area shape="rect" href="dag__block__manager_8cpp.html" title=" " alt="" coords="437,117,611,173"/>
-<area shape="rect" href="pbft__manager_8cpp.html" title=" " alt="" coords="635,117,781,173"/>
-<area shape="rect" href="transaction__manager_8cpp.html" title=" " alt="" coords="805,117,1000,173"/>
-<area shape="rect" href="_taraxa_8cpp.html" title=" " alt="" coords="1025,124,1202,165"/>
-<area shape="rect" href="_test_8cpp.html" title=" " alt="" coords="1227,124,1387,165"/>
-<area shape="rect" href="ext__syncing__packet__handler_8cpp.html" title=" " alt="" coords="1411,109,1647,180"/>
-<area shape="rect" href="get__dag__sync__packet__handler_8cpp.html" title=" " alt="" coords="1671,109,1894,180"/>
-<area shape="rect" href="status__packet__handler_8cpp.html" title=" " alt="" coords="1918,109,2101,180"/>
-<area shape="rect" href="node__stats_8cpp.html" title=" " alt="" coords="2125,117,2285,173"/>
-<area shape="rect" href="taraxa__capability_8cpp.html" title=" " alt="" coords="2310,117,2474,173"/>
-<area shape="rect" href="node_8cpp.html" title=" " alt="" coords="2499,124,2643,165"/>
+<area shape="rect" title=" " alt="" coords="1298,5,1471,61"/>
+<area shape="rect" href="dag__manager_8hpp.html" title=" " alt="" coords="915,109,1088,165"/>
+<area shape="rect" href="block__proposer_8cpp.html" title=" " alt="" coords="76,354,260,410"/>
+<area shape="rect" href="node_8cpp.html" title=" " alt="" coords="284,361,428,403"/>
+<area shape="rect" href="dag__manager_8cpp.html" title=" " alt="" coords="379,473,552,529"/>
+<area shape="rect" href="dag_8cpp.html" title=" " alt="" coords="702,480,902,521"/>
+<area shape="rect" href="taraxa__capability_8cpp.html" title=" " alt="" coords="1520,473,1684,529"/>
+<area shape="rect" href="dag__sync__packet__handler_8cpp.html" title=" " alt="" coords="1882,465,2073,536"/>
+<area shape="rect" href="pbft__manager_8cpp.html" title=" " alt="" coords="2560,473,2707,529"/>
+<area shape="rect" href="status__packet__handler_8cpp.html" title=" " alt="" coords="1313,465,1496,536"/>
+<area shape="rect" href="ext__syncing__packet__handler_8cpp.html" title=" " alt="" coords="2065,347,2301,417"/>
+<area shape="rect" href="transaction__manager_8cpp.html" title=" " alt="" coords="2671,109,2866,165"/>
+<area shape="rect" href="block__proposer_8hpp.html" title=" " alt="" coords="255,228,428,284"/>
+<area shape="rect" href="ext__syncing__packet__handler_8hpp.html" title=" " alt="" coords="1722,213,1937,299"/>
+<area shape="rect" href="dag__block__packet__handler_8cpp.html" title=" " alt="" coords="1074,465,1270,536"/>
+<area shape="rect" href="_taraxa_8cpp.html" title=" " alt="" coords="504,235,681,277"/>
+<area shape="rect" href="_test_8cpp.html" title=" " alt="" coords="706,235,866,277"/>
+<area shape="rect" href="get__dag__sync__packet__handler_8cpp.html" title=" " alt="" coords="890,221,1113,291"/>
+<area shape="rect" href="node__stats_8cpp.html" title=" " alt="" coords="1136,228,1296,284"/>
+<area shape="rect" href="dag__block__packet__handler_8hpp.html" title=" " alt="" coords="1046,347,1272,417"/>
+<area shape="rect" href="dag__sync__packet__handler_8hpp.html" title=" " alt="" coords="1720,347,1940,417"/>
+<area shape="rect" href="pbft__sync__packet__handler_8hpp.html" title=" " alt="" coords="2375,347,2596,417"/>
+<area shape="rect" href="pbft__sync__packet__handler_8cpp.html" title=" " alt="" coords="2116,465,2306,536"/>
+<area shape="rect" href="status__packet__handler_8hpp.html" title=" " alt="" coords="1497,347,1696,417"/>
+<area shape="rect" href="core__libs_2network_2src_2_network_8cpp.html" title=" " alt="" coords="2350,480,2536,521"/>
 </map>
 </div>
 </div>
@@ -146,9 +150,6 @@ Classes</h2></td></tr>
 <tr class="separator:classtaraxa_1_1_dag"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:classtaraxa_1_1_pivot_tree"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_pivot_tree">taraxa::PivotTree</a></td></tr>
 <tr class="separator:classtaraxa_1_1_pivot_tree"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:classtaraxa_1_1_dag_manager"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">taraxa::DagManager</a></td></tr>
-<tr class="memdesc:classtaraxa_1_1_dag_manager"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager" title="DagManager class contains in memory representation of part of the DAG that is not yet finalized in a ...">DagManager</a> class contains in memory representation of part of the DAG that is not yet finalized in a pbft block.  <a href="group___d_a_g.html#classtaraxa_1_1_dag_manager">More...</a><br /></td></tr>
-<tr class="separator:classtaraxa_1_1_dag_manager"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:classtaraxa_1_1vertex__label__writer"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#classtaraxa_1_1vertex__label__writer">taraxa::vertex_label_writer&lt; Property1 &gt;</a></td></tr>
 <tr class="separator:classtaraxa_1_1vertex__label__writer"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:classtaraxa_1_1edge__label__writer"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#classtaraxa_1_1edge__label__writer">taraxa::edge_label_writer&lt; Property &gt;</a></td></tr>

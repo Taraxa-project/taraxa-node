@@ -1,11 +1,10 @@
 var classtaraxa_1_1network_1_1tarcap_1_1_node_stats =
 [
-    [ "NodeStats", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a2cdd184a5afb23c171682c41387e9ce3", null ],
+    [ "NodeStats", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a71e4247f0eb231474621accba6ae3c32", null ],
     [ "getPacketsStats", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#adee217df8afd195899bbfc8f4fc3f5e3", null ],
     [ "getStatus", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#ac6f46e20d6b707c66ca7a0b184c00d28", null ],
     [ "logNodeStats", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a24c5620e6bb35000d3886663ce4a2ac2", null ],
     [ "syncTimeSeconds", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#ab00824d5ed31f5b77860715376c8b011", null ],
-    [ "dag_blk_mgr_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#af2c123e44fdc8b4929bb111e768ebfa5", null ],
     [ "dag_mgr_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a178b3edbfb69bbc60a7f009d66abbf7c", null ],
     [ "intervals_in_sync_since_launch_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#afe3b1759755fb264173dbb7db41b366c", null ],
     [ "intervals_syncing_since_launch_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a0be8e8d17158a4500fa71b81d9224222", null ],

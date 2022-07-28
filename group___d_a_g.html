@@ -103,16 +103,13 @@ Classes</h2></td></tr>
 <tr class="separator:classtaraxa_1_1_dag"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:classtaraxa_1_1_pivot_tree"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_pivot_tree">taraxa::PivotTree</a></td></tr>
 <tr class="separator:classtaraxa_1_1_pivot_tree"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:classtaraxa_1_1_dag_manager"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">taraxa::DagManager</a></td></tr>
-<tr class="memdesc:classtaraxa_1_1_dag_manager"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager" title="DagManager class contains in memory representation of part of the DAG that is not yet finalized in a ...">DagManager</a> class contains in memory representation of part of the DAG that is not yet finalized in a pbft block.  <a href="group___d_a_g.html#classtaraxa_1_1_dag_manager">More...</a><br /></td></tr>
-<tr class="separator:classtaraxa_1_1_dag_manager"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:classtaraxa_1_1vertex__label__writer"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#classtaraxa_1_1vertex__label__writer">taraxa::vertex_label_writer&lt; Property1 &gt;</a></td></tr>
 <tr class="separator:classtaraxa_1_1vertex__label__writer"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:classtaraxa_1_1edge__label__writer"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#classtaraxa_1_1edge__label__writer">taraxa::edge_label_writer&lt; Property &gt;</a></td></tr>
 <tr class="separator:classtaraxa_1_1edge__label__writer"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:classtaraxa_1_1_dag_block_manager"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">taraxa::DagBlockManager</a></td></tr>
-<tr class="memdesc:classtaraxa_1_1_dag_block_manager"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager" title="DagBlockManager class queues and verifies incoming DAG blocks.">DagBlockManager</a> class queues and verifies incoming DAG blocks.  <a href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">More...</a><br /></td></tr>
-<tr class="separator:classtaraxa_1_1_dag_block_manager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:classtaraxa_1_1_dag_manager"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">taraxa::DagManager</a></td></tr>
+<tr class="memdesc:classtaraxa_1_1_dag_manager"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager" title="DagManager class contains in memory representation of part of the DAG that is not yet finalized in a ...">DagManager</a> class contains in memory representation of part of the DAG that is not yet finalized in a pbft block and validates DAG blocks.  <a href="group___d_a_g.html#classtaraxa_1_1_dag_manager">More...</a><br /></td></tr>
+<tr class="separator:classtaraxa_1_1_dag_manager"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:structtaraxa_1_1_sortition_params_change"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#structtaraxa_1_1_sortition_params_change">taraxa::SortitionParamsChange</a></td></tr>
 <tr class="memdesc:structtaraxa_1_1_sortition_params_change"><td class="mdescLeft">&#160;</td><td class="mdescRight">Changing vrf params for DAG blocks generation.  <a href="group___d_a_g.html#structtaraxa_1_1_sortition_params_change">More...</a><br /></td></tr>
 <tr class="separator:structtaraxa_1_1_sortition_params_change"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -528,8 +525,8 @@ Collaboration diagram for taraxa::SortitionPropose:</div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
-<tr class="memitem:a3aec4432b2b2a3e5a48162933945da86"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a3aec4432b2b2a3e5a48162933945da86">SortitionPropose</a> (<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> node_addr, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &gt; dag_mgr, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &gt; dag_blk_mgr, std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt; trx_mgr)</td></tr>
-<tr class="separator:a3aec4432b2b2a3e5a48162933945da86"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad10321974adc640c27d55f0591ab9fa1"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ad10321974adc640c27d55f0591ab9fa1">SortitionPropose</a> (<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> node_addr, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &gt; dag_mgr, std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt; trx_mgr)</td></tr>
+<tr class="separator:ad10321974adc640c27d55f0591ab9fa1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adba632348f69df65960098fc0efb5eb7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#adba632348f69df65960098fc0efb5eb7">~SortitionPropose</a> ()</td></tr>
 <tr class="separator:adba632348f69df65960098fc0efb5eb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:addeec0eeb2caa6b651d3a9e9e136e1ed"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#addeec0eeb2caa6b651d3a9e9e136e1ed">propose</a> () override</td></tr>
@@ -562,8 +559,6 @@ Collaboration diagram for taraxa::SortitionPropose:</div>
 <tr class="separator:a35a01524cd913a3c6109def68b32f842"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab2ea22f5c74c111431955cbaeced65e7"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ab2ea22f5c74c111431955cbaeced65e7">dag_mgr_</a></td></tr>
 <tr class="separator:ab2ea22f5c74c111431955cbaeced65e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a71902b955db5b655522c84efe951669c"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a71902b955db5b655522c84efe951669c">dag_blk_mgr_</a></td></tr>
-<tr class="separator:a71902b955db5b655522c84efe951669c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab211aaaf09fe7fd2602ee0b35f86b9e8"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ab211aaaf09fe7fd2602ee0b35f86b9e8">trx_mgr_</a></td></tr>
 <tr class="separator:ab211aaaf09fe7fd2602ee0b35f86b9e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -580,8 +575,8 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:ab655682c0c19dc934bf9b2fffac9d019 inherit pro_attribs_group___d_a_g"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
-<a id="a3aec4432b2b2a3e5a48162933945da86"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3aec4432b2b2a3e5a48162933945da86">&#9670;&nbsp;</a></span>SortitionPropose()</h2>
+<a id="ad10321974adc640c27d55f0591ab9fa1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad10321974adc640c27d55f0591ab9fa1">&#9670;&nbsp;</a></span>SortitionPropose()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -606,12 +601,6 @@ Additional Inherited Members</h2></td></tr>
           <td></td>
           <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &gt;&#160;</td>
           <td class="paramname"><em>dag_mgr</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &gt;&#160;</td>
-          <td class="paramname"><em>dag_blk_mgr</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -688,28 +677,6 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h4 class="groupheader">Member Data Documentation</h4>
-<a id="a71902b955db5b655522c84efe951669c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a71902b955db5b655522c84efe951669c">&#9670;&nbsp;</a></span>dag_blk_mgr_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::shared_ptr&lt;<a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a>&gt; taraxa::SortitionPropose::dag_blk_mgr_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="ab2ea22f5c74c111431955cbaeced65e7"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab2ea22f5c74c111431955cbaeced65e7">&#9670;&nbsp;</a></span>dag_mgr_</h2>
 
@@ -896,8 +863,8 @@ Collaboration diagram for taraxa::BlockProposer:</div>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
-<tr class="memitem:ab645ca1e261d1bfce3210520731f5d8a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ab645ca1e261d1bfce3210520731f5d8a">BlockProposer</a> (<a class="el" href="structtaraxa_1_1_block_proposer_config.html">BlockProposerConfig</a> const &amp;bp_config, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &gt; dag_mgr, std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt; trx_mgr, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &gt; dag_blk_mgr, std::shared_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">FinalChain</a> &gt; final_chain, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db, <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> node_addr, <a class="el" href="namespacetaraxa.html#aee86984b7cf218e6347737f4f6cb5d60">secret_t</a> node_sk, <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#af96b06f21607d29faa75f7e006c8ea9e">vrf_sk_t</a> vrf_sk)</td></tr>
-<tr class="separator:ab645ca1e261d1bfce3210520731f5d8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add82cb3831ea49bd87d42f06802116e0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#add82cb3831ea49bd87d42f06802116e0">BlockProposer</a> (<a class="el" href="structtaraxa_1_1_block_proposer_config.html">BlockProposerConfig</a> const &amp;bp_config, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &gt; dag_mgr, std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt; trx_mgr, std::shared_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">FinalChain</a> &gt; final_chain, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db, <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> node_addr, <a class="el" href="namespacetaraxa.html#aee86984b7cf218e6347737f4f6cb5d60">secret_t</a> node_sk, <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#af96b06f21607d29faa75f7e006c8ea9e">vrf_sk_t</a> vrf_sk)</td></tr>
+<tr class="separator:add82cb3831ea49bd87d42f06802116e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a29b47a9568c03f74069b3ccc74552e9d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a29b47a9568c03f74069b3ccc74552e9d">~BlockProposer</a> ()</td></tr>
 <tr class="separator:a29b47a9568c03f74069b3ccc74552e9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a35133cb239cf48be8199dafa95d019dc"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a35133cb239cf48be8199dafa95d019dc">BlockProposer</a> (const <a class="el" href="group___d_a_g.html#classtaraxa_1_1_block_proposer">BlockProposer</a> &amp;)=delete</td></tr>
@@ -949,8 +916,6 @@ Collaboration diagram for taraxa::BlockProposer:</div>
 <tr class="separator:a27173abf08cdde637cab1dd0e4a67c4f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a17c4083039acb260cf25ab7eaee459b6"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a17c4083039acb260cf25ab7eaee459b6">trx_mgr_</a></td></tr>
 <tr class="separator:a17c4083039acb260cf25ab7eaee459b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8f145c2cbb17825a96ed2dc756994389"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a8f145c2cbb17825a96ed2dc756994389">dag_blk_mgr_</a></td></tr>
-<tr class="separator:a8f145c2cbb17825a96ed2dc756994389"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0f97a16095056b36c675382c4c0ee6b1"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">FinalChain</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a0f97a16095056b36c675382c4c0ee6b1">final_chain_</a></td></tr>
 <tr class="separator:a0f97a16095056b36c675382c4c0ee6b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4ee61a4f3ee1d45eab154c63152cf541"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a4ee61a4f3ee1d45eab154c63152cf541">db_</a></td></tr>
@@ -974,8 +939,8 @@ Collaboration diagram for taraxa::BlockProposer:</div>
 <tr class="separator:abf4bd7a7aaf332722e17eedfca762c98"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
-<a id="ab645ca1e261d1bfce3210520731f5d8a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab645ca1e261d1bfce3210520731f5d8a">&#9670;&nbsp;</a></span>BlockProposer() <span class="overload">[1/3]</span></h2>
+<a id="add82cb3831ea49bd87d42f06802116e0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add82cb3831ea49bd87d42f06802116e0">&#9670;&nbsp;</a></span>BlockProposer() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1000,12 +965,6 @@ Collaboration diagram for taraxa::BlockProposer:</div>
           <td></td>
           <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt;&#160;</td>
           <td class="paramname"><em>trx_mgr</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &gt;&#160;</td>
-          <td class="paramname"><em>dag_blk_mgr</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -1461,28 +1420,6 @@ Collaboration diagram for taraxa::BlockProposer:</div>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="structtaraxa_1_1_block_proposer_config.html">BlockProposerConfig</a> taraxa::BlockProposer::bp_config_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a8f145c2cbb17825a96ed2dc756994389"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8f145c2cbb17825a96ed2dc756994389">&#9670;&nbsp;</a></span>dag_blk_mgr_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::shared_ptr&lt;<a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a>&gt; taraxa::BlockProposer::dag_blk_mgr_</td>
         </tr>
       </table>
   </td>
@@ -2962,6 +2899,252 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a name="classtaraxa_1_1vertex__label__writer" id="classtaraxa_1_1vertex__label__writer"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#classtaraxa_1_1vertex__label__writer">&#9670;&nbsp;</a></span>taraxa::vertex_label_writer</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">class taraxa::vertex_label_writer</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="textblock"><h3>template&lt;class Property1&gt;<br />
+class taraxa::vertex_label_writer&lt; Property1 &gt;</h3>
+
+</div><table class="memberdecls">
+<tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
+<tr class="memitem:a6e2af8113874b6631b84c76df476d69c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a6e2af8113874b6631b84c76df476d69c">vertex_label_writer</a> (Property1 <a class="el" href="group___d_a_g.html#ad0062ff49a2f76fe2057c9b44d5e87fb">name</a>)</td></tr>
+<tr class="separator:a6e2af8113874b6631b84c76df476d69c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab19b1e20c4c7bcc2ce1032ad0bef7da8"><td class="memTemplParams" colspan="2">template&lt;class Vertex &gt; </td></tr>
+<tr class="memitem:ab19b1e20c4c7bcc2ce1032ad0bef7da8"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ab19b1e20c4c7bcc2ce1032ad0bef7da8">operator()</a> (std::ostream &amp;out, const Vertex &amp;v) const</td></tr>
+<tr class="separator:ab19b1e20c4c7bcc2ce1032ad0bef7da8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><h3>Private Attributes</h3></td></tr>
+<tr class="memitem:ad0062ff49a2f76fe2057c9b44d5e87fb"><td class="memItemLeft" align="right" valign="top">Property1&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ad0062ff49a2f76fe2057c9b44d5e87fb">name</a></td></tr>
+<tr class="separator:ad0062ff49a2f76fe2057c9b44d5e87fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
+<a id="a6e2af8113874b6631b84c76df476d69c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6e2af8113874b6631b84c76df476d69c">&#9670;&nbsp;</a></span>vertex_label_writer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Property1 &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group___d_a_g.html#classtaraxa_1_1vertex__label__writer">taraxa::vertex_label_writer</a>&lt; Property1 &gt;::<a class="el" href="group___d_a_g.html#classtaraxa_1_1vertex__label__writer">vertex_label_writer</a> </td>
+          <td>(</td>
+          <td class="paramtype">Property1&#160;</td>
+          <td class="paramname"><em>name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h4 class="groupheader">Member Function Documentation</h4>
+<a id="ab19b1e20c4c7bcc2ce1032ad0bef7da8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab19b1e20c4c7bcc2ce1032ad0bef7da8">&#9670;&nbsp;</a></span>operator()()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Property1 &gt; </div>
+<div class="memtemplate">
+template&lt;class Vertex &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="group___d_a_g.html#classtaraxa_1_1vertex__label__writer">taraxa::vertex_label_writer</a>&lt; Property1 &gt;::operator() </td>
+          <td>(</td>
+          <td class="paramtype">std::ostream &amp;&#160;</td>
+          <td class="paramname"><em>out</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const Vertex &amp;&#160;</td>
+          <td class="paramname"><em>v</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h4 class="groupheader">Member Data Documentation</h4>
+<a id="ad0062ff49a2f76fe2057c9b44d5e87fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad0062ff49a2f76fe2057c9b44d5e87fb">&#9670;&nbsp;</a></span>name</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Property1 &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Property1 <a class="el" href="group___d_a_g.html#classtaraxa_1_1vertex__label__writer">taraxa::vertex_label_writer</a>&lt; Property1 &gt;::name</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+
+</div>
+</div>
+<a name="classtaraxa_1_1edge__label__writer" id="classtaraxa_1_1edge__label__writer"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#classtaraxa_1_1edge__label__writer">&#9670;&nbsp;</a></span>taraxa::edge_label_writer</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">class taraxa::edge_label_writer</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="textblock"><h3>template&lt;class Property&gt;<br />
+class taraxa::edge_label_writer&lt; Property &gt;</h3>
+
+</div><table class="memberdecls">
+<tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
+<tr class="memitem:a189e1c73a17f9a4af9707ab45c929569"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a189e1c73a17f9a4af9707ab45c929569">edge_label_writer</a> (Property <a class="el" href="group___d_a_g.html#ad7028483092a37dc7870ef8ad99e23b8">weight</a>)</td></tr>
+<tr class="separator:a189e1c73a17f9a4af9707ab45c929569"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afef4b41fe4b9bd9639a562ae42b366c1"><td class="memTemplParams" colspan="2">template&lt;class Edge &gt; </td></tr>
+<tr class="memitem:afef4b41fe4b9bd9639a562ae42b366c1"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#afef4b41fe4b9bd9639a562ae42b366c1">operator()</a> (std::ostream &amp;out, const Edge &amp;e) const</td></tr>
+<tr class="separator:afef4b41fe4b9bd9639a562ae42b366c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><h3>Private Attributes</h3></td></tr>
+<tr class="memitem:ad7028483092a37dc7870ef8ad99e23b8"><td class="memItemLeft" align="right" valign="top">Property&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ad7028483092a37dc7870ef8ad99e23b8">weight</a></td></tr>
+<tr class="separator:ad7028483092a37dc7870ef8ad99e23b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table>
+<h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
+<a id="a189e1c73a17f9a4af9707ab45c929569"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a189e1c73a17f9a4af9707ab45c929569">&#9670;&nbsp;</a></span>edge_label_writer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Property &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group___d_a_g.html#classtaraxa_1_1edge__label__writer">taraxa::edge_label_writer</a>&lt; Property &gt;::<a class="el" href="group___d_a_g.html#classtaraxa_1_1edge__label__writer">edge_label_writer</a> </td>
+          <td>(</td>
+          <td class="paramtype">Property&#160;</td>
+          <td class="paramname"><em>weight</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h4 class="groupheader">Member Function Documentation</h4>
+<a id="afef4b41fe4b9bd9639a562ae42b366c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afef4b41fe4b9bd9639a562ae42b366c1">&#9670;&nbsp;</a></span>operator()()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Property &gt; </div>
+<div class="memtemplate">
+template&lt;class Edge &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void <a class="el" href="group___d_a_g.html#classtaraxa_1_1edge__label__writer">taraxa::edge_label_writer</a>&lt; Property &gt;::operator() </td>
+          <td>(</td>
+          <td class="paramtype">std::ostream &amp;&#160;</td>
+          <td class="paramname"><em>out</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const Edge &amp;&#160;</td>
+          <td class="paramname"><em>e</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h4 class="groupheader">Member Data Documentation</h4>
+<a id="ad7028483092a37dc7870ef8ad99e23b8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad7028483092a37dc7870ef8ad99e23b8">&#9670;&nbsp;</a></span>weight</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Property &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Property <a class="el" href="group___d_a_g.html#classtaraxa_1_1edge__label__writer">taraxa::edge_label_writer</a>&lt; Property &gt;::weight</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+
+</div>
+</div>
 <a name="classtaraxa_1_1_dag_manager" id="classtaraxa_1_1_dag_manager"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#classtaraxa_1_1_dag_manager">&#9670;&nbsp;</a></span>taraxa::DagManager</h2>
 
@@ -2973,34 +3156,56 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-<div class="textblock"><p><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager" title="DagManager class contains in memory representation of part of the DAG that is not yet finalized in a ...">DagManager</a> class contains in memory representation of part of the DAG that is not yet finalized in a pbft block. </p>
-<p><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager" title="DagManager class contains in memory representation of part of the DAG that is not yet finalized in a ...">DagManager</a> provides ordering of non-finalized DAG block with getDagOrder method. Once a pbft block is finalized setDagBlockOrder is invoked which removes all the finalized DAG blocks from in memory DAG. Class is running a dedicated worker thread which inserts new and verified DAG blocks provided by <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager" title="DagBlockManager class queues and verifies incoming DAG blocks.">DagBlockManager</a> into the DAG and updates the state of DAG blocks and transactions blocks consist of by interacting with <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager" title="TransactionManager class verifies and inserts incoming transactions in memory pool and handles saving...">TransactionManager</a> class. <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager" title="DagManager class contains in memory representation of part of the DAG that is not yet finalized in a ...">DagManager</a> class is thread safe in general with exception of function setDagBlockOrder. See details in function descriptions. </p>
+<div class="textblock"><p><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager" title="DagManager class contains in memory representation of part of the DAG that is not yet finalized in a ...">DagManager</a> class contains in memory representation of part of the DAG that is not yet finalized in a pbft block and validates DAG blocks. </p>
+<p><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager" title="DagManager class contains in memory representation of part of the DAG that is not yet finalized in a ...">DagManager</a> validates incoming dag blocks and provides ordering of non-finalized DAG block with getDagOrder method. Once a pbft block is finalized setDagBlockOrder is invoked which removes all the finalized DAG blocks from in memory DAG. <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager" title="DagManager class contains in memory representation of part of the DAG that is not yet finalized in a ...">DagManager</a> class is thread safe in general with exception of function setDagBlockOrder. See details in function descriptions. </p>
 </div><div class="dynheader">
 Collaboration diagram for taraxa::DagManager:</div>
 <div class="dyncontent">
 <div class="center"><img src="classtaraxa_1_1_dag_manager__coll__graph.png" border="0" usemap="#taraxa_1_1_dag_manager_coll__map" alt="Collaboration graph"/></div>
 <map name="taraxa_1_1_dag_manager_coll__map" id="taraxa_1_1_dag_manager_coll__map">
-<area shape="rect" title="DagManager class contains in memory representation of part of the DAG that is not yet finalized in a ..." alt="" coords="947,127,1101,154"/>
-<area shape="rect" title=" " alt="" coords="585,5,789,47"/>
-<area shape="rect" href="classtaraxa_1_1util_1_1event_1_1_event.html" title=" " alt="" coords="577,71,796,127"/>
-<area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="310,43,482,99"/>
-<area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="300,123,492,179"/>
-<area shape="rect" href="classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="5,123,207,179"/>
-<area shape="rect" href="structtaraxa_1_1_dag_frontier.html" title=" " alt="" coords="613,229,761,255"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="316,207,476,234"/>
+<area shape="rect" title="DagManager class contains in memory representation of part of the DAG that is not yet finalized in a ..." alt="" coords="1341,247,1496,274"/>
+<area shape="rect" title=" " alt="" coords="889,5,1093,47"/>
+<area shape="rect" href="class_expiration_cache_map.html" title=" " alt="" coords="898,71,1083,127"/>
+<area shape="rect" href="classtaraxa_1_1util_1_1event_1_1_event.html" title=" " alt="" coords="881,151,1100,207"/>
+<area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="533,110,705,166"/>
+<area shape="rect" href="structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="523,190,715,246"/>
+<area shape="rect" href="classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="221,190,423,246"/>
+<area shape="rect" href="structtaraxa_1_1_dag_frontier.html" title=" " alt="" coords="917,309,1065,335"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="539,285,699,311"/>
+<area shape="rect" href="group___d_a_g.html#classtaraxa_1_1_sortition_params_manager" title="SortitionParamsManager class calculates DAG efficiency and makes VDF difficulty adjustments." alt="" coords="875,359,1107,386"/>
+<area shape="rect" href="structtaraxa_1_1_sortition_config.html" title=" " alt="" coords="535,359,703,386"/>
+<area shape="rect" href="structtaraxa_1_1_sortition_params.html" title=" " alt="" coords="235,359,409,386"/>
+<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_vdf_params" title=" " alt="" coords="5,334,148,361"/>
+<area shape="rect" href="structtaraxa_1_1_vrf_params.html" title=" " alt="" coords="7,385,146,411"/>
+<area shape="rect" href="structtaraxa_1_1_dag_config.html" title=" " alt="" coords="921,410,1060,437"/>
+<area shape="rect" href="structtaraxa_1_1_block_proposer_config.html" title=" " alt="" coords="516,410,723,437"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr><td colspan="2"><h3>Public Types</h3></td></tr>
+<tr class="memitem:a3445d6e089f93e4e521fb98a0699d484"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484">VerifyBlockReturnType</a> : uint32_t { <br />
+&#160;&#160;<a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a3f68e67dc6c397aaa9d1c24c356f754f">VerifyBlockReturnType::Verified</a> = 0, 
+<a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a6650939da54b7c46c8dd6642277e0a6e">VerifyBlockReturnType::MissingTransaction</a>, 
+<a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484ac300941b40429dd6b0c4938610fe57e9">VerifyBlockReturnType::AheadBlock</a>, 
+<a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a0f00a32181260e84100676ad87f7b484">VerifyBlockReturnType::FailedVdfVerification</a>, 
+<br />
+&#160;&#160;<a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a06535ac2c9072d85020c37c87ff13ff4">VerifyBlockReturnType::FutureBlock</a>, 
+<a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a916ec32bed391fc1def53a8e263ec400">VerifyBlockReturnType::NotEligible</a>, 
+<a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a62018b502a00304fc02337ba19cdba0c">VerifyBlockReturnType::ExpiredBlock</a>, 
+<a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a122320ab35a2188727e599b3cc61d72f">VerifyBlockReturnType::IncorrectTransactionsEstimation</a>, 
+<br />
+&#160;&#160;<a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a6acb71e475d0aaa76f18fde586c6d6db">VerifyBlockReturnType::BlockTooBig</a>
+<br />
+ }</td></tr>
+<tr class="memdesc:a3445d6e089f93e4e521fb98a0699d484"><td class="mdescLeft">&#160;</td><td class="mdescRight">return type of verifyBlock  <a href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484">More...</a><br /></td></tr>
+<tr class="separator:a3445d6e089f93e4e521fb98a0699d484"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aed1bf9463f3f5dd18f46ead7f1323fc1"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aed1bf9463f3f5dd18f46ead7f1323fc1">ULock</a> = std::unique_lock&lt; std::shared_mutex &gt;</td></tr>
 <tr class="separator:aed1bf9463f3f5dd18f46ead7f1323fc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a438a9cce146f37209702173a90707322"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a438a9cce146f37209702173a90707322">SharedLock</a> = std::shared_lock&lt; std::shared_mutex &gt;</td></tr>
 <tr class="separator:a438a9cce146f37209702173a90707322"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
-<tr class="memitem:ad3b06a09f1085ab0a646888528cb94c2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ad3b06a09f1085ab0a646888528cb94c2">DagManager</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;dag_genesis_block_hash, <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> node_addr, std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt; trx_mgr, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt; pbft_chain, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &gt; dag_blk_mgr, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_key_manager.html">KeyManager</a> &gt; key_manager, bool is_light_node=false, uint64_t light_node_history=0, uint32_t max_levels_per_period=<a class="el" href="namespacetaraxa.html#ab2f5ec0c8b9d91b604a61ca8062d0505">kMaxLevelsPerPeriod</a>, uint32_t dag_expiry_limit=<a class="el" href="namespacetaraxa.html#ad71e68c4976b8c6ed7407682d06505ab">kDagExpiryLevelLimit</a>)</td></tr>
-<tr class="separator:ad3b06a09f1085ab0a646888528cb94c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a48a75c329913f004614ae538d206ec03"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a48a75c329913f004614ae538d206ec03">~DagManager</a> ()</td></tr>
-<tr class="separator:a48a75c329913f004614ae538d206ec03"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77daf30c3c77830f8fbaeebd0ff02b16"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a77daf30c3c77830f8fbaeebd0ff02b16">DagManager</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;dag_genesis_block_hash, <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> node_addr, const <a class="el" href="structtaraxa_1_1_sortition_config.html">SortitionConfig</a> &amp;sortition_config, const <a class="el" href="structtaraxa_1_1_dag_config.html">DagConfig</a> &amp;dag_config, std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt; trx_mgr, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt; pbft_chain, std::shared_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">FinalChain</a> &gt; final_chain, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_key_manager.html">KeyManager</a> &gt; key_manager, bool is_light_node=false, uint64_t light_node_history=0, uint32_t max_levels_per_period=<a class="el" href="namespacetaraxa.html#ab2f5ec0c8b9d91b604a61ca8062d0505">kMaxLevelsPerPeriod</a>, uint32_t dag_expiry_limit=<a class="el" href="namespacetaraxa.html#ad71e68c4976b8c6ed7407682d06505ab">kDagExpiryLevelLimit</a>)</td></tr>
+<tr class="separator:a77daf30c3c77830f8fbaeebd0ff02b16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa0fe82cc22a187cab97099ef465bed02"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aa0fe82cc22a187cab97099ef465bed02">DagManager</a> (const <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &amp;)=delete</td></tr>
 <tr class="separator:aa0fe82cc22a187cab97099ef465bed02"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1a957529304d407e997ca611b4530ab7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a1a957529304d407e997ca611b4530ab7">DagManager</a> (<a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &amp;&amp;)=delete</td></tr>
@@ -3011,20 +3216,22 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr class="separator:a53abc64df800c6d3c91473585df21628"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa8d1eb570a2cba814ff88f3500fe3fa1"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aa8d1eb570a2cba814ff88f3500fe3fa1">getShared</a> ()</td></tr>
 <tr class="separator:aa8d1eb570a2cba814ff88f3500fe3fa1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae5962cbe04d80645793af29a21b850a1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ae5962cbe04d80645793af29a21b850a1">start</a> ()</td></tr>
-<tr class="memdesc:ae5962cbe04d80645793af29a21b850a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Start the worker thread processing new DAG blocks.  <a href="group___d_a_g.html#ae5962cbe04d80645793af29a21b850a1">More...</a><br /></td></tr>
-<tr class="separator:ae5962cbe04d80645793af29a21b850a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a867dac34c0b717bdb14496130bcf1468"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a867dac34c0b717bdb14496130bcf1468">stop</a> ()</td></tr>
-<tr class="memdesc:a867dac34c0b717bdb14496130bcf1468"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stop the worker thread and waits until thread exits.  <a href="group___d_a_g.html#a867dac34c0b717bdb14496130bcf1468">More...</a><br /></td></tr>
-<tr class="separator:a867dac34c0b717bdb14496130bcf1468"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a33f6170a6c7af4d2e3b6d5c374a042fd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a33f6170a6c7af4d2e3b6d5c374a042fd">setNetwork</a> (std::weak_ptr&lt; <a class="el" href="classtaraxa_1_1_network.html">Network</a> &gt; network)</td></tr>
 <tr class="separator:a33f6170a6c7af4d2e3b6d5c374a042fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a80243609f7b4938afb25a133b5166669"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a80243609f7b4938afb25a133b5166669">pivotAndTipsAvailable</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;blk)</td></tr>
-<tr class="memdesc:a80243609f7b4938afb25a133b5166669"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if block pivot and tips are in DAG.  <a href="group___d_a_g.html#a80243609f7b4938afb25a133b5166669">More...</a><br /></td></tr>
-<tr class="separator:a80243609f7b4938afb25a133b5166669"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a01f2f25ecc48f6d72888229825f0e01f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a01f2f25ecc48f6d72888229825f0e01f">addDagBlock</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&amp;blk, <a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;&amp;trxs={}, bool proposed=false, bool save=true)</td></tr>
-<tr class="memdesc:a01f2f25ecc48f6d72888229825f0e01f"><td class="mdescLeft">&#160;</td><td class="mdescRight">adds verified DAG block in the DAG  <a href="group___d_a_g.html#a01f2f25ecc48f6d72888229825f0e01f">More...</a><br /></td></tr>
-<tr class="separator:a01f2f25ecc48f6d72888229825f0e01f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a478ed805801b09b4d80b940473840822"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a478ed805801b09b4d80b940473840822">isDagBlockKnown</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;hash) const</td></tr>
+<tr class="separator:a478ed805801b09b4d80b940473840822"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abce853c7b3f9c2ad1d7f8f645573254a"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#abce853c7b3f9c2ad1d7f8f645573254a">getDagBlock</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;hash) const</td></tr>
+<tr class="memdesc:abce853c7b3f9c2ad1d7f8f645573254a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets dag block from either local memory cache or db.  <a href="group___d_a_g.html#abce853c7b3f9c2ad1d7f8f645573254a">More...</a><br /></td></tr>
+<tr class="separator:abce853c7b3f9c2ad1d7f8f645573254a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2743a075e35d45823238cf5d540e69d1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484">VerifyBlockReturnType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a2743a075e35d45823238cf5d540e69d1">verifyBlock</a> (const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;blk)</td></tr>
+<tr class="memdesc:a2743a075e35d45823238cf5d540e69d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verifies new DAG block.  <a href="group___d_a_g.html#a2743a075e35d45823238cf5d540e69d1">More...</a><br /></td></tr>
+<tr class="separator:a2743a075e35d45823238cf5d540e69d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd43873f7de88687241db2e74a431966"><td class="memItemLeft" align="right" valign="top">std::pair&lt; bool, std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#afd43873f7de88687241db2e74a431966">pivotAndTipsAvailable</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;blk)</td></tr>
+<tr class="memdesc:afd43873f7de88687241db2e74a431966"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if block pivot and tips are in DAG.  <a href="group___d_a_g.html#afd43873f7de88687241db2e74a431966">More...</a><br /></td></tr>
+<tr class="separator:afd43873f7de88687241db2e74a431966"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af03ed62a5da2149160bf80318f94fc17"><td class="memItemLeft" align="right" valign="top">std::pair&lt; bool, std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#af03ed62a5da2149160bf80318f94fc17">addDagBlock</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&amp;blk, <a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;&amp;trxs={}, bool proposed=false, bool save=true)</td></tr>
+<tr class="memdesc:af03ed62a5da2149160bf80318f94fc17"><td class="mdescLeft">&#160;</td><td class="mdescRight">adds verified DAG block in the DAG  <a href="group___d_a_g.html#af03ed62a5da2149160bf80318f94fc17">More...</a><br /></td></tr>
+<tr class="separator:af03ed62a5da2149160bf80318f94fc17"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af0b8ed0231d112b87ebde613de0d53c9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#af0b8ed0231d112b87ebde613de0d53c9">getDagBlockOrder</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;anchor, uint64_t period)</td></tr>
 <tr class="memdesc:af0b8ed0231d112b87ebde613de0d53c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves DAG block order for specified anchor. Order should always be the same for the same anchor in the same period.  <a href="group___d_a_g.html#af0b8ed0231d112b87ebde613de0d53c9">More...</a><br /></td></tr>
 <tr class="separator:af0b8ed0231d112b87ebde613de0d53c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -3074,6 +3281,15 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr class="memitem:a99789a24775424e2a83effd8e6b1b2c8"><td class="memItemLeft" align="right" valign="top">std::shared_mutex &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a99789a24775424e2a83effd8e6b1b2c8">getDagMutex</a> ()</td></tr>
 <tr class="memdesc:a99789a24775424e2a83effd8e6b1b2c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag" title="Thread safe. Labelled graph.">Dag</a> Manager mutex, only to be used when finalizing pbft block.  <a href="group___d_a_g.html#a99789a24775424e2a83effd8e6b1b2c8">More...</a><br /></td></tr>
 <tr class="separator:a99789a24775424e2a83effd8e6b1b2c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a72081dbb8a3e1375f42994c59343a014"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_sortition_params_manager">SortitionParamsManager</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a72081dbb8a3e1375f42994c59343a014">sortitionParamsManager</a> ()</td></tr>
+<tr class="memdesc:a72081dbb8a3e1375f42994c59343a014"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves sortition manager.  <a href="group___d_a_g.html#a72081dbb8a3e1375f42994c59343a014">More...</a><br /></td></tr>
+<tr class="separator:a72081dbb8a3e1375f42994c59343a014"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a71166948658c55df76218ab2d7a45e60"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structtaraxa_1_1_dag_config.html">DagConfig</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a71166948658c55df76218ab2d7a45e60">getDagConfig</a> () const</td></tr>
+<tr class="memdesc:a71166948658c55df76218ab2d7a45e60"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag" title="Thread safe. Labelled graph.">Dag</a> config.  <a href="group___d_a_g.html#a71166948658c55df76218ab2d7a45e60">More...</a><br /></td></tr>
+<tr class="separator:a71166948658c55df76218ab2d7a45e60"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a029c23493b0db3bf8f2a1279df404b7e"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a029c23493b0db3bf8f2a1279df404b7e">getDagExpiryLevel</a> ()</td></tr>
+<tr class="memdesc:a029c23493b0db3bf8f2a1279df404b7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag" title="Thread safe. Labelled graph.">Dag</a> expiry level.  <a href="group___d_a_g.html#a029c23493b0db3bf8f2a1279df404b7e">More...</a><br /></td></tr>
+<tr class="separator:a029c23493b0db3bf8f2a1279df404b7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Public Attributes</h3></td></tr>
 <tr class="memitem:a3935e897459f808552ad22fa79fdae84"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classtaraxa_1_1util_1_1event_1_1_event.html">util::Event</a>&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a>, <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a3935e897459f808552ad22fa79fdae84">block_verified_</a> {}</td></tr>
 <tr class="separator:a3935e897459f808552ad22fa79fdae84"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -3088,8 +3304,6 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr class="separator:a05d925eccd7403ab607e5f70793c19e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1f6e18555f5e2ced0d3d3ab64d8b0065"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a1f6e18555f5e2ced0d3d3ab64d8b0065">clearLightNodeHistory</a> ()</td></tr>
 <tr class="separator:a1f6e18555f5e2ced0d3d3ab64d8b0065"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6244a41e59997e5b9ef04cf606fc051d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a6244a41e59997e5b9ef04cf606fc051d">worker</a> ()</td></tr>
-<tr class="separator:a6244a41e59997e5b9ef04cf606fc051d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af5488b8f21a5009586fa096a05867aa4"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#af5488b8f21a5009586fa096a05867aa4">getFrontier</a> () const</td></tr>
 <tr class="separator:af5488b8f21a5009586fa096a05867aa4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a48dff2f0634ce367582074273414ce44"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a48dff2f0634ce367582074273414ce44">updateFrontier</a> ()</td></tr>
@@ -3109,8 +3323,6 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr class="separator:a2b6094bb212edeb2dcba6476d91c62c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3ad66a8821cad052ce8b4ebb7016e804"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a3ad66a8821cad052ce8b4ebb7016e804">pbft_chain_</a></td></tr>
 <tr class="separator:a3ad66a8821cad052ce8b4ebb7016e804"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8459599e2bb93feb8dd2f9ceaf8d2910"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a8459599e2bb93feb8dd2f9ceaf8d2910">dag_blk_mgr_</a></td></tr>
-<tr class="separator:a8459599e2bb93feb8dd2f9ceaf8d2910"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3556c5c37d7798257f61f03c10192fb1"><td class="memItemLeft" align="right" valign="top">std::weak_ptr&lt; <a class="el" href="classtaraxa_1_1_network.html">Network</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a3556c5c37d7798257f61f03c10192fb1">network_</a></td></tr>
 <tr class="separator:a3556c5c37d7798257f61f03c10192fb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8df95cccdea775300aec10f65ab0cdea"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a8df95cccdea775300aec10f65ab0cdea">db_</a></td></tr>
@@ -3127,10 +3339,10 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr class="separator:a9b4105dc415f6f1169f537a9c662c914"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa8ecef50260ac0b2b2da330f53fb42c2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtaraxa_1_1_dag_frontier.html">DagFrontier</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aa8ecef50260ac0b2b2da330f53fb42c2">frontier_</a></td></tr>
 <tr class="separator:aa8ecef50260ac0b2b2da330f53fb42c2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af724718a4286e7c240eb78833c020ec3"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#af724718a4286e7c240eb78833c020ec3">stopped_</a> = true</td></tr>
-<tr class="separator:af724718a4286e7c240eb78833c020ec3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae4bafcc36c6239d90d28dd950b7dbf6c"><td class="memItemLeft" align="right" valign="top">std::thread&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ae4bafcc36c6239d90d28dd950b7dbf6c">block_worker_</a></td></tr>
-<tr class="separator:ae4bafcc36c6239d90d28dd950b7dbf6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9642bf023edd7084fcd0d7353fb93f81"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_sortition_params_manager">SortitionParamsManager</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a9642bf023edd7084fcd0d7353fb93f81">sortition_params_manager_</a></td></tr>
+<tr class="separator:a9642bf023edd7084fcd0d7353fb93f81"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa3697762b635b69a447e105984f20482"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structtaraxa_1_1_dag_config.html">DagConfig</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aa3697762b635b69a447e105984f20482">dag_config_</a></td></tr>
+<tr class="separator:aa3697762b635b69a447e105984f20482"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a304bc3dd4e16a2e6fe824960998fa85c"><td class="memItemLeft" align="right" valign="top">const bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a304bc3dd4e16a2e6fe824960998fa85c">is_light_node_</a> = false</td></tr>
 <tr class="separator:a304bc3dd4e16a2e6fe824960998fa85c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9da5c3fb13e2ae292e70a030efdfbdec"><td class="memItemLeft" align="right" valign="top">const uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a9da5c3fb13e2ae292e70a030efdfbdec">light_node_history_</a> = 0</td></tr>
@@ -3139,6 +3351,16 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr class="separator:a07187ee4b316918016d048c7c48d14f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6dc29019c4f006c91f4831b2e4f43162"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a6dc29019c4f006c91f4831b2e4f43162">dag_expiry_limit_</a></td></tr>
 <tr class="separator:a6dc29019c4f006c91f4831b2e4f43162"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c5c2559e31fc397527a42cbdfa20128"><td class="memItemLeft" align="right" valign="top">std::atomic_uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a7c5c2559e31fc397527a42cbdfa20128">dag_expiry_level_</a></td></tr>
+<tr class="separator:a7c5c2559e31fc397527a42cbdfa20128"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add633db15e04c6e237cdefdea21cd465"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#add633db15e04c6e237cdefdea21cd465">cache_max_size_</a> = 10000</td></tr>
+<tr class="separator:add633db15e04c6e237cdefdea21cd465"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8a5501aae6db9f6a2e22ab2d12a7e962"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a8a5501aae6db9f6a2e22ab2d12a7e962">cache_delete_step_</a> = 100</td></tr>
+<tr class="separator:a8a5501aae6db9f6a2e22ab2d12a7e962"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9882c7cb659923bc340e19ec1031eae6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_expiration_cache_map.html">ExpirationCacheMap</a>&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a9882c7cb659923bc340e19ec1031eae6">seen_blocks_</a></td></tr>
+<tr class="separator:a9882c7cb659923bc340e19ec1031eae6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa495661e7bb6c853172edf4311e86da8"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">FinalChain</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aa495661e7bb6c853172edf4311e86da8">final_chain_</a></td></tr>
+<tr class="separator:aa495661e7bb6c853172edf4311e86da8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h4 class="groupheader">Member Typedef Documentation</h4>
 <a id="a438a9cce146f37209702173a90707322"></a>
@@ -3169,9 +3391,45 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
+<h4 class="groupheader">Member Enumeration Documentation</h4>
+<a id="a3445d6e089f93e4e521fb98a0699d484"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3445d6e089f93e4e521fb98a0699d484">&#9670;&nbsp;</a></span>VerifyBlockReturnType</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484">taraxa::DagManager::VerifyBlockReturnType</a> : uint32_t</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>return type of verifyBlock </p>
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a3445d6e089f93e4e521fb98a0699d484a3f68e67dc6c397aaa9d1c24c356f754f"></a>Verified&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3445d6e089f93e4e521fb98a0699d484a6650939da54b7c46c8dd6642277e0a6e"></a>MissingTransaction&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3445d6e089f93e4e521fb98a0699d484ac300941b40429dd6b0c4938610fe57e9"></a>AheadBlock&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3445d6e089f93e4e521fb98a0699d484a0f00a32181260e84100676ad87f7b484"></a>FailedVdfVerification&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3445d6e089f93e4e521fb98a0699d484a06535ac2c9072d85020c37c87ff13ff4"></a>FutureBlock&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3445d6e089f93e4e521fb98a0699d484a916ec32bed391fc1def53a8e263ec400"></a>NotEligible&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3445d6e089f93e4e521fb98a0699d484a62018b502a00304fc02337ba19cdba0c"></a>ExpiredBlock&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3445d6e089f93e4e521fb98a0699d484a122320ab35a2188727e599b3cc61d72f"></a>IncorrectTransactionsEstimation&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3445d6e089f93e4e521fb98a0699d484a6acb71e475d0aaa76f18fde586c6d6db"></a>BlockTooBig&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
 <h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
-<a id="ad3b06a09f1085ab0a646888528cb94c2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad3b06a09f1085ab0a646888528cb94c2">&#9670;&nbsp;</a></span>DagManager() <span class="overload">[1/3]</span></h2>
+<a id="a77daf30c3c77830f8fbaeebd0ff02b16"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a77daf30c3c77830f8fbaeebd0ff02b16">&#9670;&nbsp;</a></span>DagManager() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3194,6 +3452,18 @@ Collaboration diagram for taraxa::DagManager:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const <a class="el" href="structtaraxa_1_1_sortition_config.html">SortitionConfig</a> &amp;&#160;</td>
+          <td class="paramname"><em>sortition_config</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="structtaraxa_1_1_dag_config.html">DagConfig</a> &amp;&#160;</td>
+          <td class="paramname"><em>dag_config</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt;&#160;</td>
           <td class="paramname"><em>trx_mgr</em>, </td>
         </tr>
@@ -3206,8 +3476,8 @@ Collaboration diagram for taraxa::DagManager:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &gt;&#160;</td>
-          <td class="paramname"><em>dag_blk_mgr</em>, </td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">FinalChain</a> &gt;&#160;</td>
+          <td class="paramname"><em>final_chain</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -3254,31 +3524,6 @@ Collaboration diagram for taraxa::DagManager:</div>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a48a75c329913f004614ae538d206ec03"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a48a75c329913f004614ae538d206ec03">&#9670;&nbsp;</a></span>~DagManager()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual taraxa::DagManager::~DagManager </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -3338,14 +3583,14 @@ Collaboration diagram for taraxa::DagManager:</div>
 </div>
 </div>
 <h4 class="groupheader">Member Function Documentation</h4>
-<a id="a01f2f25ecc48f6d72888229825f0e01f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a01f2f25ecc48f6d72888229825f0e01f">&#9670;&nbsp;</a></span>addDagBlock()</h2>
+<a id="af03ed62a5da2149160bf80318f94fc17"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af03ed62a5da2149160bf80318f94fc17">&#9670;&nbsp;</a></span>addDagBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool taraxa::DagManager::addDagBlock </td>
+          <td class="memname">std::pair&lt; bool, std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt; taraxa::DagManager::addDagBlock </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&amp;&#160;</td>
           <td class="paramname"><em>blk</em>, </td>
@@ -3385,7 +3630,7 @@ Collaboration diagram for taraxa::DagManager:</div>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>true if block added successfully </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>true if block added successfully, false with the hash of missing tips/pivot </dd></dl>
 
 </div>
 </div>
@@ -3547,6 +3792,33 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
+<a id="abce853c7b3f9c2ad1d7f8f645573254a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abce853c7b3f9c2ad1d7f8f645573254a">&#9670;&nbsp;</a></span>getDagBlock()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; taraxa::DagManager::getDagBlock </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>hash</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Gets dag block from either local memory cache or db. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">hash</td><td>Block hash </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Block or nullptr if block is not found </dd></dl>
+
+</div>
+</div>
 <a id="af0b8ed0231d112b87ebde613de0d53c9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af0b8ed0231d112b87ebde613de0d53c9">&#9670;&nbsp;</a></span>getDagBlockOrder()</h2>
 
@@ -3582,6 +3854,62 @@ Collaboration diagram for taraxa::DagManager:</div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>ordered blocks </dd></dl>
+
+</div>
+</div>
+<a id="a71166948658c55df76218ab2d7a45e60"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a71166948658c55df76218ab2d7a45e60">&#9670;&nbsp;</a></span>getDagConfig()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="structtaraxa_1_1_dag_config.html">DagConfig</a>&amp; taraxa::DagManager::getDagConfig </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Retrieves <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag" title="Thread safe. Labelled graph.">Dag</a> config. </p>
+<dl class="section return"><dt>Returns</dt><dd>dag config </dd></dl>
+
+</div>
+</div>
+<a id="a029c23493b0db3bf8f2a1279df404b7e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a029c23493b0db3bf8f2a1279df404b7e">&#9670;&nbsp;</a></span>getDagExpiryLevel()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t taraxa::DagManager::getDagExpiryLevel </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Retrieves <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag" title="Thread safe. Labelled graph.">Dag</a> expiry level. </p>
+<dl class="section return"><dt>Returns</dt><dd>level </dd></dl>
 
 </div>
 </div>
@@ -3977,6 +4305,31 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
+<a id="a478ed805801b09b4d80b940473840822"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a478ed805801b09b4d80b940473840822">&#9670;&nbsp;</a></span>isDagBlockKnown()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool taraxa::DagManager::isDagBlockKnown </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>hash</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">hash</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true in case block was already seen or is part of dag structure </dd></dl>
+
+</div>
+</div>
 <a id="a94f485fa25235a24f8ce24aaf061fa6f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a94f485fa25235a24f8ce24aaf061fa6f">&#9670;&nbsp;</a></span>isLightNode()</h2>
 
@@ -4054,14 +4407,14 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
-<a id="a80243609f7b4938afb25a133b5166669"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a80243609f7b4938afb25a133b5166669">&#9670;&nbsp;</a></span>pivotAndTipsAvailable()</h2>
+<a id="afd43873f7de88687241db2e74a431966"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd43873f7de88687241db2e74a431966">&#9670;&nbsp;</a></span>pivotAndTipsAvailable()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool taraxa::DagManager::pivotAndTipsAvailable </td>
+          <td class="memname">std::pair&lt; bool, std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt; taraxa::DagManager::pivotAndTipsAvailable </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;&#160;</td>
           <td class="paramname"><em>blk</em></td><td>)</td>
@@ -4077,7 +4430,7 @@ Collaboration diagram for taraxa::DagManager:</div>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>true if all pivot and tips are in the DAG </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>true if all pivot and tips are in the DAG, false if some is missing with the hash of missing tips/pivot </dd></dl>
 
 </div>
 </div>
@@ -4177,41 +4530,31 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
-<a id="ae5962cbe04d80645793af29a21b850a1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae5962cbe04d80645793af29a21b850a1">&#9670;&nbsp;</a></span>start()</h2>
+<a id="a72081dbb8a3e1375f42994c59343a014"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a72081dbb8a3e1375f42994c59343a014">&#9670;&nbsp;</a></span>sortitionParamsManager()</h2>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void taraxa::DagManager::start </td>
+          <td class="memname"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_sortition_params_manager">SortitionParamsManager</a>&amp; taraxa::DagManager::sortitionParamsManager </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
-<p>Start the worker thread processing new DAG blocks. </p>
-
-</div>
-</div>
-<a id="a867dac34c0b717bdb14496130bcf1468"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a867dac34c0b717bdb14496130bcf1468">&#9670;&nbsp;</a></span>stop()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::DagManager::stop </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Stop the worker thread and waits until thread exits. </p>
+<p>Retrieves sortition manager. </p>
+<dl class="section return"><dt>Returns</dt><dd>sortition manager </dd></dl>
 
 </div>
 </div>
@@ -4276,28 +4619,30 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
-<a id="a6244a41e59997e5b9ef04cf606fc051d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6244a41e59997e5b9ef04cf606fc051d">&#9670;&nbsp;</a></span>worker()</h2>
+<a id="a2743a075e35d45823238cf5d540e69d1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2743a075e35d45823238cf5d540e69d1">&#9670;&nbsp;</a></span>verifyBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void taraxa::DagManager::worker </td>
+          <td class="memname"><a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484">DagManager::VerifyBlockReturnType</a> taraxa::DagManager::verifyBlock </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&#160;</td>
+          <td class="paramname"><em>blk</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
+
+<p>Verifies new DAG block. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">blk</td><td>Block to verify </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>verification result </dd></dl>
 
 </div>
 </div>
@@ -4338,8 +4683,8 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
-<a id="ae4bafcc36c6239d90d28dd950b7dbf6c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae4bafcc36c6239d90d28dd950b7dbf6c">&#9670;&nbsp;</a></span>block_worker_</h2>
+<a id="a8a5501aae6db9f6a2e22ab2d12a7e962"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a5501aae6db9f6a2e22ab2d12a7e962">&#9670;&nbsp;</a></span>cache_delete_step_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -4348,7 +4693,7 @@ Collaboration diagram for taraxa::DagManager:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::thread taraxa::DagManager::block_worker_</td>
+          <td class="memname">const uint32_t taraxa::DagManager::cache_delete_step_ = 100</td>
         </tr>
       </table>
   </td>
@@ -4360,8 +4705,8 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
-<a id="a8459599e2bb93feb8dd2f9ceaf8d2910"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8459599e2bb93feb8dd2f9ceaf8d2910">&#9670;&nbsp;</a></span>dag_blk_mgr_</h2>
+<a id="add633db15e04c6e237cdefdea21cd465"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add633db15e04c6e237cdefdea21cd465">&#9670;&nbsp;</a></span>cache_max_size_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -4370,7 +4715,7 @@ Collaboration diagram for taraxa::DagManager:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::shared_ptr&lt;<a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a>&gt; taraxa::DagManager::dag_blk_mgr_</td>
+          <td class="memname">const uint32_t taraxa::DagManager::cache_max_size_ = 10000</td>
         </tr>
       </table>
   </td>
@@ -4380,6 +4725,52 @@ Collaboration diagram for taraxa::DagManager:</div>
 </table>
 </div><div class="memdoc">
 
+</div>
+</div>
+<a id="aa3697762b635b69a447e105984f20482"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa3697762b635b69a447e105984f20482">&#9670;&nbsp;</a></span>dag_config_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="structtaraxa_1_1_dag_config.html">DagConfig</a> taraxa::DagManager::dag_config_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7c5c2559e31fc397527a42cbdfa20128"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c5c2559e31fc397527a42cbdfa20128">&#9670;&nbsp;</a></span>dag_expiry_level_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::atomic_uint64_t taraxa::DagManager::dag_expiry_level_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">=</div>
+<div class="line">      0</div>
+</div><!-- fragment -->
 </div>
 </div>
 <a id="a6dc29019c4f006c91f4831b2e4f43162"></a>
@@ -4415,6 +4806,28 @@ Collaboration diagram for taraxa::DagManager:</div>
       <table class="memname">
         <tr>
           <td class="memname">std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a>&gt; taraxa::DagManager::db_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa495661e7bb6c853172edf4311e86da8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa495661e7bb6c853172edf4311e86da8">&#9670;&nbsp;</a></span>final_chain_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt;<a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">FinalChain</a>&gt; taraxa::DagManager::final_chain_</td>
         </tr>
       </table>
   </td>
@@ -4734,8 +5147,8 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
-<a id="af724718a4286e7c240eb78833c020ec3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af724718a4286e7c240eb78833c020ec3">&#9670;&nbsp;</a></span>stopped_</h2>
+<a id="a9882c7cb659923bc340e19ec1031eae6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9882c7cb659923bc340e19ec1031eae6">&#9670;&nbsp;</a></span>seen_blocks_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -4744,7 +5157,29 @@ Collaboration diagram for taraxa::DagManager:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::atomic&lt;bool&gt; taraxa::DagManager::stopped_ = true</td>
+          <td class="memname"><a class="el" href="class_expiration_cache_map.html">ExpirationCacheMap</a>&lt;<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a>&gt; taraxa::DagManager::seen_blocks_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9642bf023edd7084fcd0d7353fb93f81"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9642bf023edd7084fcd0d7353fb93f81">&#9670;&nbsp;</a></span>sortition_params_manager_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_sortition_params_manager">SortitionParamsManager</a> taraxa::DagManager::sortition_params_manager_</td>
         </tr>
       </table>
   </td>
@@ -4789,1483 +5224,6 @@ Collaboration diagram for taraxa::DagManager:</div>
       <table class="memname">
         <tr>
           <td class="memname">std::shared_ptr&lt;<a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a>&gt; taraxa::DagManager::trx_mgr_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-
-</div>
-</div>
-<a name="classtaraxa_1_1vertex__label__writer" id="classtaraxa_1_1vertex__label__writer"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#classtaraxa_1_1vertex__label__writer">&#9670;&nbsp;</a></span>taraxa::vertex_label_writer</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">class taraxa::vertex_label_writer</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="textblock"><h3>template&lt;class Property1&gt;<br />
-class taraxa::vertex_label_writer&lt; Property1 &gt;</h3>
-
-</div><table class="memberdecls">
-<tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
-<tr class="memitem:a6e2af8113874b6631b84c76df476d69c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a6e2af8113874b6631b84c76df476d69c">vertex_label_writer</a> (Property1 <a class="el" href="group___d_a_g.html#ad0062ff49a2f76fe2057c9b44d5e87fb">name</a>)</td></tr>
-<tr class="separator:a6e2af8113874b6631b84c76df476d69c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab19b1e20c4c7bcc2ce1032ad0bef7da8"><td class="memTemplParams" colspan="2">template&lt;class Vertex &gt; </td></tr>
-<tr class="memitem:ab19b1e20c4c7bcc2ce1032ad0bef7da8"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ab19b1e20c4c7bcc2ce1032ad0bef7da8">operator()</a> (std::ostream &amp;out, const Vertex &amp;v) const</td></tr>
-<tr class="separator:ab19b1e20c4c7bcc2ce1032ad0bef7da8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><h3>Private Attributes</h3></td></tr>
-<tr class="memitem:ad0062ff49a2f76fe2057c9b44d5e87fb"><td class="memItemLeft" align="right" valign="top">Property1&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ad0062ff49a2f76fe2057c9b44d5e87fb">name</a></td></tr>
-<tr class="separator:ad0062ff49a2f76fe2057c9b44d5e87fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table>
-<h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
-<a id="a6e2af8113874b6631b84c76df476d69c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6e2af8113874b6631b84c76df476d69c">&#9670;&nbsp;</a></span>vertex_label_writer()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;class Property1 &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group___d_a_g.html#classtaraxa_1_1vertex__label__writer">taraxa::vertex_label_writer</a>&lt; Property1 &gt;::<a class="el" href="group___d_a_g.html#classtaraxa_1_1vertex__label__writer">vertex_label_writer</a> </td>
-          <td>(</td>
-          <td class="paramtype">Property1&#160;</td>
-          <td class="paramname"><em>name</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<h4 class="groupheader">Member Function Documentation</h4>
-<a id="ab19b1e20c4c7bcc2ce1032ad0bef7da8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab19b1e20c4c7bcc2ce1032ad0bef7da8">&#9670;&nbsp;</a></span>operator()()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;class Property1 &gt; </div>
-<div class="memtemplate">
-template&lt;class Vertex &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void <a class="el" href="group___d_a_g.html#classtaraxa_1_1vertex__label__writer">taraxa::vertex_label_writer</a>&lt; Property1 &gt;::operator() </td>
-          <td>(</td>
-          <td class="paramtype">std::ostream &amp;&#160;</td>
-          <td class="paramname"><em>out</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const Vertex &amp;&#160;</td>
-          <td class="paramname"><em>v</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<h4 class="groupheader">Member Data Documentation</h4>
-<a id="ad0062ff49a2f76fe2057c9b44d5e87fb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad0062ff49a2f76fe2057c9b44d5e87fb">&#9670;&nbsp;</a></span>name</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;class Property1 &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">Property1 <a class="el" href="group___d_a_g.html#classtaraxa_1_1vertex__label__writer">taraxa::vertex_label_writer</a>&lt; Property1 &gt;::name</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-
-</div>
-</div>
-<a name="classtaraxa_1_1edge__label__writer" id="classtaraxa_1_1edge__label__writer"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#classtaraxa_1_1edge__label__writer">&#9670;&nbsp;</a></span>taraxa::edge_label_writer</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">class taraxa::edge_label_writer</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="textblock"><h3>template&lt;class Property&gt;<br />
-class taraxa::edge_label_writer&lt; Property &gt;</h3>
-
-</div><table class="memberdecls">
-<tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
-<tr class="memitem:a189e1c73a17f9a4af9707ab45c929569"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a189e1c73a17f9a4af9707ab45c929569">edge_label_writer</a> (Property <a class="el" href="group___d_a_g.html#ad7028483092a37dc7870ef8ad99e23b8">weight</a>)</td></tr>
-<tr class="separator:a189e1c73a17f9a4af9707ab45c929569"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afef4b41fe4b9bd9639a562ae42b366c1"><td class="memTemplParams" colspan="2">template&lt;class Edge &gt; </td></tr>
-<tr class="memitem:afef4b41fe4b9bd9639a562ae42b366c1"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#afef4b41fe4b9bd9639a562ae42b366c1">operator()</a> (std::ostream &amp;out, const Edge &amp;e) const</td></tr>
-<tr class="separator:afef4b41fe4b9bd9639a562ae42b366c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><h3>Private Attributes</h3></td></tr>
-<tr class="memitem:ad7028483092a37dc7870ef8ad99e23b8"><td class="memItemLeft" align="right" valign="top">Property&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ad7028483092a37dc7870ef8ad99e23b8">weight</a></td></tr>
-<tr class="separator:ad7028483092a37dc7870ef8ad99e23b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table>
-<h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
-<a id="a189e1c73a17f9a4af9707ab45c929569"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a189e1c73a17f9a4af9707ab45c929569">&#9670;&nbsp;</a></span>edge_label_writer()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;class Property &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group___d_a_g.html#classtaraxa_1_1edge__label__writer">taraxa::edge_label_writer</a>&lt; Property &gt;::<a class="el" href="group___d_a_g.html#classtaraxa_1_1edge__label__writer">edge_label_writer</a> </td>
-          <td>(</td>
-          <td class="paramtype">Property&#160;</td>
-          <td class="paramname"><em>weight</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<h4 class="groupheader">Member Function Documentation</h4>
-<a id="afef4b41fe4b9bd9639a562ae42b366c1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afef4b41fe4b9bd9639a562ae42b366c1">&#9670;&nbsp;</a></span>operator()()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;class Property &gt; </div>
-<div class="memtemplate">
-template&lt;class Edge &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void <a class="el" href="group___d_a_g.html#classtaraxa_1_1edge__label__writer">taraxa::edge_label_writer</a>&lt; Property &gt;::operator() </td>
-          <td>(</td>
-          <td class="paramtype">std::ostream &amp;&#160;</td>
-          <td class="paramname"><em>out</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const Edge &amp;&#160;</td>
-          <td class="paramname"><em>e</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<h4 class="groupheader">Member Data Documentation</h4>
-<a id="ad7028483092a37dc7870ef8ad99e23b8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad7028483092a37dc7870ef8ad99e23b8">&#9670;&nbsp;</a></span>weight</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;class Property &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">Property <a class="el" href="group___d_a_g.html#classtaraxa_1_1edge__label__writer">taraxa::edge_label_writer</a>&lt; Property &gt;::weight</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-
-</div>
-</div>
-<a name="classtaraxa_1_1_dag_block_manager" id="classtaraxa_1_1_dag_block_manager"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#classtaraxa_1_1_dag_block_manager">&#9670;&nbsp;</a></span>taraxa::DagBlockManager</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">class taraxa::DagBlockManager</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="textblock"><p><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager" title="DagBlockManager class queues and verifies incoming DAG blocks.">DagBlockManager</a> class queues and verifies incoming DAG blocks. </p>
-<p><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager" title="DagBlockManager class queues and verifies incoming DAG blocks.">DagBlockManager</a> main functionality is verifying and queueing new DAG blocks with insertAndVerifyBlock and providing verified DAG blocks to <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager" title="DagManager class contains in memory representation of part of the DAG that is not yet finalized in a ...">DagManager</a> with popVerifiedBlock. Block verification consists of:</p><ul>
-<li>Verifying that node has already received all the transactions for this block</li>
-<li>Verifying block has not expired</li>
-<li>Verifying block has proper VRF/VDF params with the correct difficulty</li>
-<li>Verifying block author was eligible to propose blocks</li>
-<li>Verifying size of the block gas limit</li>
-</ul>
-<p>Class is thread safe and public methods can be safely called from multiple threads </p>
-</div><div class="dynheader">
-Collaboration diagram for taraxa::DagBlockManager:</div>
-<div class="dyncontent">
-<div class="center"><img src="classtaraxa_1_1_dag_block_manager__coll__graph.png" border="0" usemap="#taraxa_1_1_dag_block_manager_coll__map" alt="Collaboration graph"/></div>
-<map name="taraxa_1_1_dag_block_manager_coll__map" id="taraxa_1_1_dag_block_manager_coll__map">
-<area shape="rect" title="DagBlockManager class queues and verifies incoming DAG blocks." alt="" coords="1271,116,1461,143"/>
-<area shape="rect" href="class_expiration_cache_map.html" title=" " alt="" coords="827,5,1013,61"/>
-<area shape="rect" href="class_expiration_cache.html" title=" " alt="" coords="837,86,1003,127"/>
-<area shape="rect" href="group___d_a_g.html#classtaraxa_1_1_sortition_params_manager" title="SortitionParamsManager class calculates DAG efficiency and makes VDF difficulty adjustments." alt="" coords="804,152,1036,179"/>
-<area shape="rect" href="structtaraxa_1_1_sortition_config.html" title=" " alt="" coords="465,152,633,179"/>
-<area shape="rect" href="structtaraxa_1_1_sortition_params.html" title=" " alt="" coords="221,152,396,179"/>
-<area shape="rect" href="namespacetaraxa.html#structtaraxa_1_1_vdf_params" title=" " alt="" coords="5,127,148,153"/>
-<area shape="rect" href="structtaraxa_1_1_vrf_params.html" title=" " alt="" coords="7,177,146,204"/>
-<area shape="rect" href="structtaraxa_1_1_dag_config.html" title=" " alt="" coords="851,203,989,229"/>
-<area shape="rect" href="structtaraxa_1_1_block_proposer_config.html" title=" " alt="" coords="445,203,652,229"/>
-</map>
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
-<table class="memberdecls">
-<tr><td colspan="2"><h3>Public Types</h3></td></tr>
-<tr class="memitem:a6a022455b10f60f14286574b3ef5aeff"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeff">InsertAndVerifyBlockReturnType</a> : uint32_t { <br />
-&#160;&#160;<a class="el" href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeffaee9c830cdad52669ede78468f45b6273">InsertAndVerifyBlockReturnType::InsertedAndVerified</a> = 0, 
-<a class="el" href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeffa4f99ea09e56db00f304eea54569e5697">InsertAndVerifyBlockReturnType::AlreadyKnown</a>, 
-<a class="el" href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeffa9f2f1cc933ed036dac4823b662900139">InsertAndVerifyBlockReturnType::BlockQueueOverflow</a>, 
-<a class="el" href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeffae5ec30c958ceddbb8b0a39c5be365cf3">InsertAndVerifyBlockReturnType::InvalidBlock</a>, 
-<br />
-&#160;&#160;<a class="el" href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeffa6650939da54b7c46c8dd6642277e0a6e">InsertAndVerifyBlockReturnType::MissingTransaction</a>, 
-<a class="el" href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeffac300941b40429dd6b0c4938610fe57e9">InsertAndVerifyBlockReturnType::AheadBlock</a>, 
-<a class="el" href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeffa0f00a32181260e84100676ad87f7b484">InsertAndVerifyBlockReturnType::FailedVdfVerification</a>, 
-<a class="el" href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeffa06535ac2c9072d85020c37c87ff13ff4">InsertAndVerifyBlockReturnType::FutureBlock</a>, 
-<br />
-&#160;&#160;<a class="el" href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeffa916ec32bed391fc1def53a8e263ec400">InsertAndVerifyBlockReturnType::NotEligible</a>, 
-<a class="el" href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeffa62018b502a00304fc02337ba19cdba0c">InsertAndVerifyBlockReturnType::ExpiredBlock</a>, 
-<a class="el" href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeffa122320ab35a2188727e599b3cc61d72f">InsertAndVerifyBlockReturnType::IncorrectTransactionsEstimation</a>, 
-<a class="el" href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeffa6acb71e475d0aaa76f18fde586c6d6db">InsertAndVerifyBlockReturnType::BlockTooBig</a>
-<br />
- }</td></tr>
-<tr class="memdesc:a6a022455b10f60f14286574b3ef5aeff"><td class="mdescLeft">&#160;</td><td class="mdescRight">return type of insertAndVerifyBlock  <a href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeff">More...</a><br /></td></tr>
-<tr class="separator:a6a022455b10f60f14286574b3ef5aeff"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
-<tr class="memitem:a1f1989edec480e687026c02cfe8313db"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a1f1989edec480e687026c02cfe8313db">DagBlockManager</a> (<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> node_addr, const <a class="el" href="structtaraxa_1_1_sortition_config.html">SortitionConfig</a> &amp;sortition_config, const <a class="el" href="structtaraxa_1_1_dag_config.html">DagConfig</a> &amp;dag_config, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db, std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt; trx_mgr, std::shared_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">FinalChain</a> &gt; final_chain, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt; pbft_chain, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_key_manager.html">KeyManager</a> &gt; key_manager, uint32_t queue_limit=0, uint32_t max_levels_per_period=<a class="el" href="namespacetaraxa.html#ab2f5ec0c8b9d91b604a61ca8062d0505">kMaxLevelsPerPeriod</a>)</td></tr>
-<tr class="separator:a1f1989edec480e687026c02cfe8313db"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8b7a7da38aa6bb9e0ff22e4c3d875843"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a8b7a7da38aa6bb9e0ff22e4c3d875843">~DagBlockManager</a> ()</td></tr>
-<tr class="separator:a8b7a7da38aa6bb9e0ff22e4c3d875843"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a32bff32e9ad02535296b3852bb150880"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a32bff32e9ad02535296b3852bb150880">DagBlockManager</a> (const <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &amp;)=delete</td></tr>
-<tr class="separator:a32bff32e9ad02535296b3852bb150880"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abb6d5a15f8dea540e666a394189100c1"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#abb6d5a15f8dea540e666a394189100c1">DagBlockManager</a> (<a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &amp;&amp;)=delete</td></tr>
-<tr class="separator:abb6d5a15f8dea540e666a394189100c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3bce31f84e7ecd460919203b8253f9af"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a3bce31f84e7ecd460919203b8253f9af">operator=</a> (const <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &amp;)=delete</td></tr>
-<tr class="separator:a3bce31f84e7ecd460919203b8253f9af"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa8de70736a6a60f045cbde54d81d25be"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aa8de70736a6a60f045cbde54d81d25be">operator=</a> (<a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &amp;&amp;)=delete</td></tr>
-<tr class="separator:aa8de70736a6a60f045cbde54d81d25be"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7e442442e8acbb63c376898715724d17"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeff">InsertAndVerifyBlockReturnType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a7e442442e8acbb63c376898715724d17">insertAndVerifyBlock</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&amp;blk)</td></tr>
-<tr class="memdesc:a7e442442e8acbb63c376898715724d17"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts and verifies new DAG block.  <a href="group___d_a_g.html#a7e442442e8acbb63c376898715724d17">More...</a><br /></td></tr>
-<tr class="separator:a7e442442e8acbb63c376898715724d17"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8a100254fdc5c26414feba66d245750d"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a8a100254fdc5c26414feba66d245750d">popVerifiedBlock</a> (bool level_limit=false, uint64_t level=0)</td></tr>
-<tr class="memdesc:a8a100254fdc5c26414feba66d245750d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Pop verified block from the queue. This is a blocking function. It only returns if queue has blocks or if stop function is invoked.  <a href="group___d_a_g.html#a8a100254fdc5c26414feba66d245750d">More...</a><br /></td></tr>
-<tr class="separator:a8a100254fdc5c26414feba66d245750d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8db9490b8b14c040ab367944b01aec6b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a8db9490b8b14c040ab367944b01aec6b">pushVerifiedBlock</a> (const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;blk)</td></tr>
-<tr class="memdesc:a8db9490b8b14c040ab367944b01aec6b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts verified DAG block to queue without verification.  <a href="group___d_a_g.html#a8db9490b8b14c040ab367944b01aec6b">More...</a><br /></td></tr>
-<tr class="separator:a8db9490b8b14c040ab367944b01aec6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9199f5fb2ddd1df487256468f598f01d"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a9199f5fb2ddd1df487256468f598f01d">getDagBlockQueueSize</a> () const</td></tr>
-<tr class="separator:a9199f5fb2ddd1df487256468f598f01d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a73589dbd0950313e73c9e1bdf87175e8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#ac29ce7c6f0fae63e548b523170910526">level_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a73589dbd0950313e73c9e1bdf87175e8">getMaxDagLevelInQueue</a> () const</td></tr>
-<tr class="separator:a73589dbd0950313e73c9e1bdf87175e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1659d1ede64f5ba52d5578f04585fc31"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a1659d1ede64f5ba52d5578f04585fc31">stop</a> ()</td></tr>
-<tr class="memdesc:a1659d1ede64f5ba52d5578f04585fc31"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stops blocking popVerifiedBlock method.  <a href="group___d_a_g.html#a1659d1ede64f5ba52d5578f04585fc31">More...</a><br /></td></tr>
-<tr class="separator:a1659d1ede64f5ba52d5578f04585fc31"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5232b16f5cd1dc68213eafac62e758b7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a5232b16f5cd1dc68213eafac62e758b7">isDagBlockKnown</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;hash)</td></tr>
-<tr class="separator:a5232b16f5cd1dc68213eafac62e758b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5c5d0750bf45ad28204505c2b622483e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a5c5d0750bf45ad28204505c2b622483e">markDagBlockAsSeen</a> (const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;dag_block)</td></tr>
-<tr class="memdesc:a5c5d0750bf45ad28204505c2b622483e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark block as seen.  <a href="group___d_a_g.html#a5c5d0750bf45ad28204505c2b622483e">More...</a><br /></td></tr>
-<tr class="separator:a5c5d0750bf45ad28204505c2b622483e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2c4cfb7f2046d0ba6f596b480ab03901"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a2c4cfb7f2046d0ba6f596b480ab03901">setDagExpiryLevel</a> (uint64_t dag_expiry_level)</td></tr>
-<tr class="memdesc:a2c4cfb7f2046d0ba6f596b480ab03901"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets dag expiry level.  <a href="group___d_a_g.html#a2c4cfb7f2046d0ba6f596b480ab03901">More...</a><br /></td></tr>
-<tr class="separator:a2c4cfb7f2046d0ba6f596b480ab03901"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa525d1a914f5f8215b1633eb73bb43ba"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aa525d1a914f5f8215b1633eb73bb43ba">getDagExpiryLevel</a> ()</td></tr>
-<tr class="memdesc:aa525d1a914f5f8215b1633eb73bb43ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag" title="Thread safe. Labelled graph.">Dag</a> expiry level.  <a href="group___d_a_g.html#aa525d1a914f5f8215b1633eb73bb43ba">More...</a><br /></td></tr>
-<tr class="separator:aa525d1a914f5f8215b1633eb73bb43ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af01bd6bcf2e0956177a2db81e3fefe8c"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#af01bd6bcf2e0956177a2db81e3fefe8c">getDagBlock</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;hash) const</td></tr>
-<tr class="memdesc:af01bd6bcf2e0956177a2db81e3fefe8c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets dag block from either local memory cache or db.  <a href="group___d_a_g.html#af01bd6bcf2e0956177a2db81e3fefe8c">More...</a><br /></td></tr>
-<tr class="separator:af01bd6bcf2e0956177a2db81e3fefe8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a632420b6cc28e1ff86634ff03f4c1ca2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a632420b6cc28e1ff86634ff03f4c1ca2">pivotAndTipsValid</a> (const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;blk)</td></tr>
-<tr class="memdesc:a632420b6cc28e1ff86634ff03f4c1ca2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if tips and pivot are known and valid for a block. If tip or a pivot of a block is an invalid block, block is invalid as well.  <a href="group___d_a_g.html#a632420b6cc28e1ff86634ff03f4c1ca2">More...</a><br /></td></tr>
-<tr class="separator:a632420b6cc28e1ff86634ff03f4c1ca2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aee8bfd4210fbacadb3ec0fce43b084a9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_sortition_params_manager">SortitionParamsManager</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aee8bfd4210fbacadb3ec0fce43b084a9">sortitionParamsManager</a> ()</td></tr>
-<tr class="separator:aee8bfd4210fbacadb3ec0fce43b084a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1a6998ab2a68998c86499a8fed944559"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structtaraxa_1_1_dag_config.html">DagConfig</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a1a6998ab2a68998c86499a8fed944559">getDagConfig</a> () const</td></tr>
-<tr class="separator:a1a6998ab2a68998c86499a8fed944559"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><h3>Private Types</h3></td></tr>
-<tr class="memitem:ade738e40116eac55d4aa93ba6e00b7f0"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ade738e40116eac55d4aa93ba6e00b7f0">uLock</a> = std::unique_lock&lt; std::shared_mutex &gt;</td></tr>
-<tr class="separator:ade738e40116eac55d4aa93ba6e00b7f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a70fe9531950e83700f554fe4828cc03f"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a70fe9531950e83700f554fe4828cc03f">sharedLock</a> = std::shared_lock&lt; std::shared_mutex &gt;</td></tr>
-<tr class="separator:a70fe9531950e83700f554fe4828cc03f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><h3>Private Member Functions</h3></td></tr>
-<tr class="memitem:a407af3f38baa8bf56db411c7f697251f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeff">InsertAndVerifyBlockReturnType</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a407af3f38baa8bf56db411c7f697251f">verifyBlock</a> (const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;blk)</td></tr>
-<tr class="separator:a407af3f38baa8bf56db411c7f697251f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4ad6cb1d1ef5ab0b0b79051f91c0ab2e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a4ad6cb1d1ef5ab0b0b79051f91c0ab2e">markBlockInvalid</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;hash)</td></tr>
-<tr class="separator:a4ad6cb1d1ef5ab0b0b79051f91c0ab2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><h3>Private Attributes</h3></td></tr>
-<tr class="memitem:a563dcc64d4306800459ddc4e418e5888"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a563dcc64d4306800459ddc4e418e5888">cache_max_size_</a> = 10000</td></tr>
-<tr class="separator:a563dcc64d4306800459ddc4e418e5888"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a87445bc2aa12b3ec0777e122e58cd2ae"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a87445bc2aa12b3ec0777e122e58cd2ae">cache_delete_step_</a> = 100</td></tr>
-<tr class="separator:a87445bc2aa12b3ec0777e122e58cd2ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57e1af55a3d9908984b365112bbb2c1f"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a57e1af55a3d9908984b365112bbb2c1f">stopped_</a> = false</td></tr>
-<tr class="separator:a57e1af55a3d9908984b365112bbb2c1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5bd6a7f9a72708a86a165ccc225ff261"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a5bd6a7f9a72708a86a165ccc225ff261">db_</a></td></tr>
-<tr class="separator:a5bd6a7f9a72708a86a165ccc225ff261"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5b1d25a9d43bfe9d3246532409116edf"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a5b1d25a9d43bfe9d3246532409116edf">trx_mgr_</a></td></tr>
-<tr class="separator:a5b1d25a9d43bfe9d3246532409116edf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a73157b4b7fe34ae4d9f6c47c1bff5275"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">FinalChain</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a73157b4b7fe34ae4d9f6c47c1bff5275">final_chain_</a></td></tr>
-<tr class="separator:a73157b4b7fe34ae4d9f6c47c1bff5275"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3922e92ad40ab5bb38c12b667239c3e8"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a3922e92ad40ab5bb38c12b667239c3e8">pbft_chain_</a></td></tr>
-<tr class="separator:a3922e92ad40ab5bb38c12b667239c3e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5ff778195a906f87cbed2d78cd2833e9"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_key_manager.html">KeyManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a5ff778195a906f87cbed2d78cd2833e9">key_manager_</a></td></tr>
-<tr class="separator:a5ff778195a906f87cbed2d78cd2833e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a118b22ab449b21d0e506a0fc5c015880"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a118b22ab449b21d0e506a0fc5c015880">invalid_blocks_</a></td></tr>
-<tr class="separator:a118b22ab449b21d0e506a0fc5c015880"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad73f78f6b04b14be06eb2b54da2335ce"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_expiration_cache_map.html">ExpirationCacheMap</a>&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ad73f78f6b04b14be06eb2b54da2335ce">seen_blocks_</a></td></tr>
-<tr class="separator:ad73f78f6b04b14be06eb2b54da2335ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae9b308ab6f0f2add54d3daef5ef69c59"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ae9b308ab6f0f2add54d3daef5ef69c59">queue_limit_</a></td></tr>
-<tr class="separator:ae9b308ab6f0f2add54d3daef5ef69c59"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acddf43cb09452dc3257ab8edf668f3ef"><td class="memItemLeft" align="right" valign="top">std::shared_mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#acddf43cb09452dc3257ab8edf668f3ef">shared_mutex_for_verified_qu_</a></td></tr>
-<tr class="separator:acddf43cb09452dc3257ab8edf668f3ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5b3b5a883ad173805558a1ac43436332"><td class="memItemLeft" align="right" valign="top">std::condition_variable_any&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a5b3b5a883ad173805558a1ac43436332">cond_for_verified_qu_</a></td></tr>
-<tr class="separator:a5b3b5a883ad173805558a1ac43436332"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab8869d02d17f5b6d5e166ec2b9f78fbb"><td class="memItemLeft" align="right" valign="top">std::map&lt; uint64_t, std::deque&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ab8869d02d17f5b6d5e166ec2b9f78fbb">verified_qu_</a></td></tr>
-<tr class="separator:ab8869d02d17f5b6d5e166ec2b9f78fbb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d6fe52382f727faa5b07b7222578c6f"><td class="memItemLeft" align="right" valign="top">std::atomic_uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a3d6fe52382f727faa5b07b7222578c6f">dag_expiry_level_</a></td></tr>
-<tr class="separator:a3d6fe52382f727faa5b07b7222578c6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a25f78c3d40ada431d73cd6fcc21ee43f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_sortition_params_manager">SortitionParamsManager</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a25f78c3d40ada431d73cd6fcc21ee43f">sortition_params_manager_</a></td></tr>
-<tr class="separator:a25f78c3d40ada431d73cd6fcc21ee43f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a990093e648d789a6be606953abbe2403"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structtaraxa_1_1_dag_config.html">DagConfig</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a990093e648d789a6be606953abbe2403">dag_config_</a></td></tr>
-<tr class="separator:a990093e648d789a6be606953abbe2403"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table>
-<h4 class="groupheader">Member Typedef Documentation</h4>
-<a id="a70fe9531950e83700f554fe4828cc03f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a70fe9531950e83700f554fe4828cc03f">&#9670;&nbsp;</a></span>sharedLock</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="group___d_a_g.html#a70fe9531950e83700f554fe4828cc03f">taraxa::DagBlockManager::sharedLock</a> =  std::shared_lock&lt;std::shared_mutex&gt;</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ade738e40116eac55d4aa93ba6e00b7f0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ade738e40116eac55d4aa93ba6e00b7f0">&#9670;&nbsp;</a></span>uLock</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="group___d_a_g.html#ade738e40116eac55d4aa93ba6e00b7f0">taraxa::DagBlockManager::uLock</a> =  std::unique_lock&lt;std::shared_mutex&gt;</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<h4 class="groupheader">Member Enumeration Documentation</h4>
-<a id="a6a022455b10f60f14286574b3ef5aeff"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6a022455b10f60f14286574b3ef5aeff">&#9670;&nbsp;</a></span>InsertAndVerifyBlockReturnType</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeff">taraxa::DagBlockManager::InsertAndVerifyBlockReturnType</a> : uint32_t</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>return type of insertAndVerifyBlock </p>
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="a6a022455b10f60f14286574b3ef5aeffaee9c830cdad52669ede78468f45b6273"></a>InsertedAndVerified&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a6a022455b10f60f14286574b3ef5aeffa4f99ea09e56db00f304eea54569e5697"></a>AlreadyKnown&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a6a022455b10f60f14286574b3ef5aeffa9f2f1cc933ed036dac4823b662900139"></a>BlockQueueOverflow&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a6a022455b10f60f14286574b3ef5aeffae5ec30c958ceddbb8b0a39c5be365cf3"></a>InvalidBlock&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a6a022455b10f60f14286574b3ef5aeffa6650939da54b7c46c8dd6642277e0a6e"></a>MissingTransaction&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a6a022455b10f60f14286574b3ef5aeffac300941b40429dd6b0c4938610fe57e9"></a>AheadBlock&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a6a022455b10f60f14286574b3ef5aeffa0f00a32181260e84100676ad87f7b484"></a>FailedVdfVerification&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a6a022455b10f60f14286574b3ef5aeffa06535ac2c9072d85020c37c87ff13ff4"></a>FutureBlock&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a6a022455b10f60f14286574b3ef5aeffa916ec32bed391fc1def53a8e263ec400"></a>NotEligible&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a6a022455b10f60f14286574b3ef5aeffa62018b502a00304fc02337ba19cdba0c"></a>ExpiredBlock&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a6a022455b10f60f14286574b3ef5aeffa122320ab35a2188727e599b3cc61d72f"></a>IncorrectTransactionsEstimation&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="a6a022455b10f60f14286574b3ef5aeffa6acb71e475d0aaa76f18fde586c6d6db"></a>BlockTooBig&#160;</td><td class="fielddoc"></td></tr>
-</table>
-
-</div>
-</div>
-<h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
-<a id="a1f1989edec480e687026c02cfe8313db"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1f1989edec480e687026c02cfe8313db">&#9670;&nbsp;</a></span>DagBlockManager() <span class="overload">[1/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">taraxa::DagBlockManager::DagBlockManager </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>&#160;</td>
-          <td class="paramname"><em>node_addr</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="structtaraxa_1_1_sortition_config.html">SortitionConfig</a> &amp;&#160;</td>
-          <td class="paramname"><em>sortition_config</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="structtaraxa_1_1_dag_config.html">DagConfig</a> &amp;&#160;</td>
-          <td class="paramname"><em>dag_config</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt;&#160;</td>
-          <td class="paramname"><em>db</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt;&#160;</td>
-          <td class="paramname"><em>trx_mgr</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">FinalChain</a> &gt;&#160;</td>
-          <td class="paramname"><em>final_chain</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt;&#160;</td>
-          <td class="paramname"><em>pbft_chain</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_key_manager.html">KeyManager</a> &gt;&#160;</td>
-          <td class="paramname"><em>key_manager</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint32_t&#160;</td>
-          <td class="paramname"><em>queue_limit</em> = <code>0</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint32_t&#160;</td>
-          <td class="paramname"><em>max_levels_per_period</em> = <code><a class="el" href="namespacetaraxa.html#ab2f5ec0c8b9d91b604a61ca8062d0505">kMaxLevelsPerPeriod</a></code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a8b7a7da38aa6bb9e0ff22e4c3d875843"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8b7a7da38aa6bb9e0ff22e4c3d875843">&#9670;&nbsp;</a></span>~DagBlockManager()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">taraxa::DagBlockManager::~DagBlockManager </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a32bff32e9ad02535296b3852bb150880"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a32bff32e9ad02535296b3852bb150880">&#9670;&nbsp;</a></span>DagBlockManager() <span class="overload">[2/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">taraxa::DagBlockManager::DagBlockManager </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &amp;&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="abb6d5a15f8dea540e666a394189100c1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abb6d5a15f8dea540e666a394189100c1">&#9670;&nbsp;</a></span>DagBlockManager() <span class="overload">[3/3]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">taraxa::DagBlockManager::DagBlockManager </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &amp;&amp;&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<h4 class="groupheader">Member Function Documentation</h4>
-<a id="af01bd6bcf2e0956177a2db81e3fefe8c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af01bd6bcf2e0956177a2db81e3fefe8c">&#9670;&nbsp;</a></span>getDagBlock()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; taraxa::DagBlockManager::getDagBlock </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>hash</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Gets dag block from either local memory cache or db. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">hash</td><td>Block hash </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>Block or nullptr if block is not found </dd></dl>
-
-</div>
-</div>
-<a id="a9199f5fb2ddd1df487256468f598f01d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9199f5fb2ddd1df487256468f598f01d">&#9670;&nbsp;</a></span>getDagBlockQueueSize()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">size_t taraxa::DagBlockManager::getDagBlockQueueSize </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a1a6998ab2a68998c86499a8fed944559"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1a6998ab2a68998c86499a8fed944559">&#9670;&nbsp;</a></span>getDagConfig()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const <a class="el" href="structtaraxa_1_1_dag_config.html">DagConfig</a>&amp; taraxa::DagBlockManager::getDagConfig </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aa525d1a914f5f8215b1633eb73bb43ba"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa525d1a914f5f8215b1633eb73bb43ba">&#9670;&nbsp;</a></span>getDagExpiryLevel()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint64_t taraxa::DagBlockManager::getDagExpiryLevel </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Retrieves <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag" title="Thread safe. Labelled graph.">Dag</a> expiry level. </p>
-<dl class="section return"><dt>Returns</dt><dd>level </dd></dl>
-
-</div>
-</div>
-<a id="a73589dbd0950313e73c9e1bdf87175e8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a73589dbd0950313e73c9e1bdf87175e8">&#9670;&nbsp;</a></span>getMaxDagLevelInQueue()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacetaraxa.html#ac29ce7c6f0fae63e548b523170910526">level_t</a> taraxa::DagBlockManager::getMaxDagLevelInQueue </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a7e442442e8acbb63c376898715724d17"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7e442442e8acbb63c376898715724d17">&#9670;&nbsp;</a></span>insertAndVerifyBlock()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeff">DagBlockManager::InsertAndVerifyBlockReturnType</a> taraxa::DagBlockManager::insertAndVerifyBlock </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&amp;&#160;</td>
-          <td class="paramname"><em>blk</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Inserts and verifies new DAG block. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">blk</td><td>Block to insert </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>verification result </dd></dl>
-
-</div>
-</div>
-<a id="a5232b16f5cd1dc68213eafac62e758b7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5232b16f5cd1dc68213eafac62e758b7">&#9670;&nbsp;</a></span>isDagBlockKnown()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool taraxa::DagBlockManager::isDagBlockKnown </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>hash</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">hash</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>true in case block was already seen or is part of dag structure </dd></dl>
-
-</div>
-</div>
-<a id="a4ad6cb1d1ef5ab0b0b79051f91c0ab2e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4ad6cb1d1ef5ab0b0b79051f91c0ab2e">&#9670;&nbsp;</a></span>markBlockInvalid()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::DagBlockManager::markBlockInvalid </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>hash</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a5c5d0750bf45ad28204505c2b622483e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5c5d0750bf45ad28204505c2b622483e">&#9670;&nbsp;</a></span>markDagBlockAsSeen()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool taraxa::DagBlockManager::markDagBlockAsSeen </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&#160;</td>
-          <td class="paramname"><em>dag_block</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Mark block as seen. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">dag_block</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>true in case block was actually marked as seen(was not seen before), otherwise false (was already seen) </dd></dl>
-
-</div>
-</div>
-<a id="a3bce31f84e7ecd460919203b8253f9af"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3bce31f84e7ecd460919203b8253f9af">&#9670;&nbsp;</a></span>operator=() <span class="overload">[1/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a>&amp; taraxa::DagBlockManager::operator= </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &amp;&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aa8de70736a6a60f045cbde54d81d25be"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa8de70736a6a60f045cbde54d81d25be">&#9670;&nbsp;</a></span>operator=() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a>&amp; taraxa::DagBlockManager::operator= </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &amp;&amp;&#160;</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">delete</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a632420b6cc28e1ff86634ff03f4c1ca2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a632420b6cc28e1ff86634ff03f4c1ca2">&#9670;&nbsp;</a></span>pivotAndTipsValid()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool taraxa::DagBlockManager::pivotAndTipsValid </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&#160;</td>
-          <td class="paramname"><em>blk</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Checks if tips and pivot are known and valid for a block. If tip or a pivot of a block is an invalid block, block is invalid as well. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">blk</td><td>Block to check </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>true if known and valid </dd></dl>
-
-</div>
-</div>
-<a id="a8a100254fdc5c26414feba66d245750d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8a100254fdc5c26414feba66d245750d">&#9670;&nbsp;</a></span>popVerifiedBlock()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::optional&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; taraxa::DagBlockManager::popVerifiedBlock </td>
-          <td>(</td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>level_limit</em> = <code>false</code>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>level</em> = <code>0</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Pop verified block from the queue. This is a blocking function. It only returns if queue has blocks or if stop function is invoked. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">level_limit</td><td>If true only pop when block of specified level is in the queue </td></tr>
-    <tr><td class="paramname">level</td><td>Level for level_limit </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>Block or empty optional if stop is invoked </dd></dl>
-
-</div>
-</div>
-<a id="a8db9490b8b14c040ab367944b01aec6b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8db9490b8b14c040ab367944b01aec6b">&#9670;&nbsp;</a></span>pushVerifiedBlock()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::DagBlockManager::pushVerifiedBlock </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&#160;</td>
-          <td class="paramname"><em>blk</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Inserts verified DAG block to queue without verification. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">blk</td><td>Block to insert </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a2c4cfb7f2046d0ba6f596b480ab03901"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2c4cfb7f2046d0ba6f596b480ab03901">&#9670;&nbsp;</a></span>setDagExpiryLevel()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::DagBlockManager::setDagExpiryLevel </td>
-          <td>(</td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>dag_expiry_level</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Sets dag expiry level. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">dag_expiry_level</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="aee8bfd4210fbacadb3ec0fce43b084a9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aee8bfd4210fbacadb3ec0fce43b084a9">&#9670;&nbsp;</a></span>sortitionParamsManager()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_sortition_params_manager">SortitionParamsManager</a>&amp; taraxa::DagBlockManager::sortitionParamsManager </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a1659d1ede64f5ba52d5578f04585fc31"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1659d1ede64f5ba52d5578f04585fc31">&#9670;&nbsp;</a></span>stop()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::DagBlockManager::stop </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Stops blocking popVerifiedBlock method. </p>
-
-</div>
-</div>
-<a id="a407af3f38baa8bf56db411c7f697251f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a407af3f38baa8bf56db411c7f697251f">&#9670;&nbsp;</a></span>verifyBlock()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group___d_a_g.html#a6a022455b10f60f14286574b3ef5aeff">DagBlockManager::InsertAndVerifyBlockReturnType</a> taraxa::DagBlockManager::verifyBlock </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&#160;</td>
-          <td class="paramname"><em>blk</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<h4 class="groupheader">Member Data Documentation</h4>
-<a id="a87445bc2aa12b3ec0777e122e58cd2ae"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a87445bc2aa12b3ec0777e122e58cd2ae">&#9670;&nbsp;</a></span>cache_delete_step_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const uint32_t taraxa::DagBlockManager::cache_delete_step_ = 100</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a563dcc64d4306800459ddc4e418e5888"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a563dcc64d4306800459ddc4e418e5888">&#9670;&nbsp;</a></span>cache_max_size_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const uint32_t taraxa::DagBlockManager::cache_max_size_ = 10000</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a5b3b5a883ad173805558a1ac43436332"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5b3b5a883ad173805558a1ac43436332">&#9670;&nbsp;</a></span>cond_for_verified_qu_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::condition_variable_any taraxa::DagBlockManager::cond_for_verified_qu_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a990093e648d789a6be606953abbe2403"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a990093e648d789a6be606953abbe2403">&#9670;&nbsp;</a></span>dag_config_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const <a class="el" href="structtaraxa_1_1_dag_config.html">DagConfig</a> taraxa::DagBlockManager::dag_config_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a3d6fe52382f727faa5b07b7222578c6f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3d6fe52382f727faa5b07b7222578c6f">&#9670;&nbsp;</a></span>dag_expiry_level_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::atomic_uint64_t taraxa::DagBlockManager::dag_expiry_level_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<b>Initial value:</b><div class="fragment"><div class="line">=</div>
-<div class="line">      0</div>
-</div><!-- fragment -->
-</div>
-</div>
-<a id="a5bd6a7f9a72708a86a165ccc225ff261"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5bd6a7f9a72708a86a165ccc225ff261">&#9670;&nbsp;</a></span>db_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a>&gt; taraxa::DagBlockManager::db_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a73157b4b7fe34ae4d9f6c47c1bff5275"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a73157b4b7fe34ae4d9f6c47c1bff5275">&#9670;&nbsp;</a></span>final_chain_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::shared_ptr&lt;<a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">FinalChain</a>&gt; taraxa::DagBlockManager::final_chain_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a118b22ab449b21d0e506a0fc5c015880"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a118b22ab449b21d0e506a0fc5c015880">&#9670;&nbsp;</a></span>invalid_blocks_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt;<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&gt; taraxa::DagBlockManager::invalid_blocks_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a5ff778195a906f87cbed2d78cd2833e9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5ff778195a906f87cbed2d78cd2833e9">&#9670;&nbsp;</a></span>key_manager_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1_key_manager.html">KeyManager</a>&gt; taraxa::DagBlockManager::key_manager_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a3922e92ad40ab5bb38c12b667239c3e8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3922e92ad40ab5bb38c12b667239c3e8">&#9670;&nbsp;</a></span>pbft_chain_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::shared_ptr&lt;<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a>&gt; taraxa::DagBlockManager::pbft_chain_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ae9b308ab6f0f2add54d3daef5ef69c59"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae9b308ab6f0f2add54d3daef5ef69c59">&#9670;&nbsp;</a></span>queue_limit_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const uint32_t taraxa::DagBlockManager::queue_limit_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ad73f78f6b04b14be06eb2b54da2335ce"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad73f78f6b04b14be06eb2b54da2335ce">&#9670;&nbsp;</a></span>seen_blocks_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="class_expiration_cache_map.html">ExpirationCacheMap</a>&lt;<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a>&gt; taraxa::DagBlockManager::seen_blocks_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="acddf43cb09452dc3257ab8edf668f3ef"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acddf43cb09452dc3257ab8edf668f3ef">&#9670;&nbsp;</a></span>shared_mutex_for_verified_qu_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::shared_mutex taraxa::DagBlockManager::shared_mutex_for_verified_qu_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">mutable</span><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a25f78c3d40ada431d73cd6fcc21ee43f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a25f78c3d40ada431d73cd6fcc21ee43f">&#9670;&nbsp;</a></span>sortition_params_manager_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_sortition_params_manager">SortitionParamsManager</a> taraxa::DagBlockManager::sortition_params_manager_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a57e1af55a3d9908984b365112bbb2c1f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a57e1af55a3d9908984b365112bbb2c1f">&#9670;&nbsp;</a></span>stopped_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::atomic&lt;bool&gt; taraxa::DagBlockManager::stopped_ = false</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a5b1d25a9d43bfe9d3246532409116edf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5b1d25a9d43bfe9d3246532409116edf">&#9670;&nbsp;</a></span>trx_mgr_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::shared_ptr&lt;<a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a>&gt; taraxa::DagBlockManager::trx_mgr_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ab8869d02d17f5b6d5e166ec2b9f78fbb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab8869d02d17f5b6d5e166ec2b9f78fbb">&#9670;&nbsp;</a></span>verified_qu_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::map&lt;uint64_t, std::deque&lt;<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a>&gt; &gt; taraxa::DagBlockManager::verified_qu_</td>
         </tr>
       </table>
   </td>

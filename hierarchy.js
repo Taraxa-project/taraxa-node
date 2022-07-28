@@ -55,7 +55,6 @@ var hierarchy =
       [ "taraxa::PivotTree", "group___d_a_g.html#classtaraxa_1_1_pivot_tree", null ]
     ] ],
     [ "taraxa::DagBlock", "classtaraxa_1_1_dag_block.html", null ],
-    [ "taraxa::DagBlockManager", "group___d_a_g.html#classtaraxa_1_1_dag_block_manager", null ],
     [ "taraxa::DagConfig", "structtaraxa_1_1_dag_config.html", null ],
     [ "taraxa::DagFrontier", "structtaraxa_1_1_dag_frontier.html", null ],
     [ "taraxa::DBConfig", "namespacetaraxa.html#structtaraxa_1_1_d_b_config", null ],
@@ -193,8 +192,8 @@ var hierarchy =
     [ "taraxa::net::rpc::eth::LogFilter", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html", null ],
     [ "taraxa::state_api::LogRecord", "group___final_chain.html#structtaraxa_1_1state__api_1_1_log_record", null ],
     [ "dev::p2p::Neighbours::Neighbour", "structdev_1_1p2p_1_1_neighbours_1_1_neighbour.html", null ],
-    [ "dev::p2p::Network", "classdev_1_1p2p_1_1_network.html", null ],
     [ "taraxa::Network", "classtaraxa_1_1_network.html", null ],
+    [ "dev::p2p::Network", "classdev_1_1p2p_1_1_network.html", null ],
     [ "dev::p2p::NetworkConfig", "structdev_1_1p2p_1_1_network_config.html", null ],
     [ "taraxa::NetworkConfig", "structtaraxa_1_1_network_config.html", null ],
     [ "taraxa::final_chain::NewBlock", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_new_block", [
@@ -344,10 +343,10 @@ var hierarchy =
     [ "dev::Timer", "classdev_1_1_timer.html", null ],
     [ "dev::TimerHelper", "classdev_1_1_timer_helper.html", null ],
     [ "taraxa::Transaction", "structtaraxa_1_1_transaction.html", null ],
+    [ "taraxa::final_chain::FinalChain::TransactionHashes", "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html", null ],
     [ "TransactionHashes", null, [
       [ "taraxa::final_chain::FinalChainImpl::TransactionHashesImpl", "structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl.html", null ]
     ] ],
-    [ "taraxa::final_chain::FinalChain::TransactionHashes", "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html", null ],
     [ "taraxa::final_chain::ReplayProtectionService::TransactionInfo", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_transaction_info", null ],
     [ "taraxa::final_chain::TransactionLocation", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location", [
       [ "taraxa::net::rpc::eth::TransactionLocationWithBlockHash", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html", [

@@ -15,7 +15,6 @@ var namespacetaraxa =
     [ "ConfigException", "structtaraxa_1_1_config_exception.html", null ],
     [ "Dag", "group___d_a_g.html#classtaraxa_1_1_dag", "group___d_a_g_classtaraxa_1_1_dag" ],
     [ "DagBlock", "classtaraxa_1_1_dag_block.html", "classtaraxa_1_1_dag_block" ],
-    [ "DagBlockManager", "group___d_a_g.html#classtaraxa_1_1_dag_block_manager", "group___d_a_g_classtaraxa_1_1_dag_block_manager" ],
     [ "DagConfig", "structtaraxa_1_1_dag_config.html", "structtaraxa_1_1_dag_config" ],
     [ "DagFrontier", "structtaraxa_1_1_dag_frontier.html", "structtaraxa_1_1_dag_frontier" ],
     [ "DagManager", "group___d_a_g.html#classtaraxa_1_1_dag_manager", "group___d_a_g_classtaraxa_1_1_dag_manager" ],

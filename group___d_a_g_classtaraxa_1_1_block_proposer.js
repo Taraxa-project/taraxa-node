@@ -1,6 +1,6 @@
 var group___d_a_g_classtaraxa_1_1_block_proposer =
 [
-    [ "BlockProposer", "group___d_a_g.html#ab645ca1e261d1bfce3210520731f5d8a", null ],
+    [ "BlockProposer", "group___d_a_g.html#add82cb3831ea49bd87d42f06802116e0", null ],
     [ "~BlockProposer", "group___d_a_g.html#a29b47a9568c03f74069b3ccc74552e9d", null ],
     [ "BlockProposer", "group___d_a_g.html#a35133cb239cf48be8199dafa95d019dc", null ],
     [ "BlockProposer", "group___d_a_g.html#a9e793aa0e34e450d4d6e8beb37974d8e", null ],
@@ -16,7 +16,6 @@ var group___d_a_g_classtaraxa_1_1_block_proposer =
     [ "stop", "group___d_a_g.html#aafe8f2b96e3a0e1f5157fa70af2b2ca6", null ],
     [ "validDposProposer", "group___d_a_g.html#a04621c25e3a89631cbb372f0fe2ff19d", null ],
     [ "bp_config_", "group___d_a_g.html#ab896afad4e45abbcd4e5c5e4f53d3bd9", null ],
-    [ "dag_blk_mgr_", "group___d_a_g.html#a8f145c2cbb17825a96ed2dc756994389", null ],
     [ "dag_mgr_", "group___d_a_g.html#a27173abf08cdde637cab1dd0e4a67c4f", null ],
     [ "db_", "group___d_a_g.html#a4ee61a4f3ee1d45eab154c63152cf541", null ],
     [ "final_chain_", "group___d_a_g.html#a0f97a16095056b36c675382c4c0ee6b1", null ],

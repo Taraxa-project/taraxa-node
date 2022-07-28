@@ -105,8 +105,8 @@ Collaboration diagram for taraxa::network::tarcap::GetDagSyncPacketHandler:</div
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a0bae65e701e3a4ee478faef6b5b0b5e0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#a0bae65e701e3a4ee478faef6b5b0b5e0">GetDagSyncPacketHandler</a> (std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt; peers_state, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html">PacketsStats</a> &gt; packets_stats, std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt; trx_mgr, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &gt; dag_mgr, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &gt; dag_blk_mgr, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr)</td></tr>
-<tr class="separator:a0bae65e701e3a4ee478faef6b5b0b5e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2a2098c11b4543766c45fef9516164db"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#a2a2098c11b4543766c45fef9516164db">GetDagSyncPacketHandler</a> (std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt; peers_state, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html">PacketsStats</a> &gt; packets_stats, std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt; trx_mgr, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &gt; dag_mgr, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr)</td></tr>
+<tr class="separator:a2a2098c11b4543766c45fef9516164db"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb2112aca6f528edb7f66bf948e520f3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#aeb2112aca6f528edb7f66bf948e520f3">sendBlocks</a> (const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;peer_id, std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&gt; &amp;&amp;blocks, <a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;&amp;transactions, uint64_t request_period, uint64_t period)</td></tr>
 <tr class="separator:aeb2112aca6f528edb7f66bf948e520f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a></td></tr>
@@ -146,8 +146,6 @@ Private Attributes</h2></td></tr>
 <tr class="separator:af72989a4803e44f6844063ef587a1157"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a400c64b100835afae1884bd462b9830c"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#a400c64b100835afae1884bd462b9830c">dag_mgr_</a></td></tr>
 <tr class="separator:a400c64b100835afae1884bd462b9830c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af8e48248993c5c6d14d8e2b32d05aad0"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#af8e48248993c5c6d14d8e2b32d05aad0">dag_blk_mgr_</a></td></tr>
-<tr class="separator:af8e48248993c5c6d14d8e2b32d05aad0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acbf5e3be4a8bff032f757845621f47d8"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#acbf5e3be4a8bff032f757845621f47d8">db_</a></td></tr>
 <tr class="separator:acbf5e3be4a8bff032f757845621f47d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -168,8 +166,8 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:afabdc72598d541c7b8abb17bfbb6d93b inherit pro_attribs_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a0bae65e701e3a4ee478faef6b5b0b5e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0bae65e701e3a4ee478faef6b5b0b5e0">&#9670;&nbsp;</a></span>GetDagSyncPacketHandler()</h2>
+<a id="a2a2098c11b4543766c45fef9516164db"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2a2098c11b4543766c45fef9516164db">&#9670;&nbsp;</a></span>GetDagSyncPacketHandler()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -197,12 +195,6 @@ Additional Inherited Members</h2></td></tr>
           <td></td>
           <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a> &gt;&#160;</td>
           <td class="paramname"><em>dag_mgr</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &gt;&#160;</td>
-          <td class="paramname"><em>dag_blk_mgr</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -350,28 +342,6 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="af8e48248993c5c6d14d8e2b32d05aad0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af8e48248993c5c6d14d8e2b32d05aad0">&#9670;&nbsp;</a></span>dag_blk_mgr_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::shared_ptr&lt;<a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a>&gt; taraxa::network::tarcap::GetDagSyncPacketHandler::dag_blk_mgr_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a400c64b100835afae1884bd462b9830c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a400c64b100835afae1884bd462b9830c">&#9670;&nbsp;</a></span>dag_mgr_</h2>
 

@@ -105,8 +105,8 @@ Collaboration diagram for taraxa::network::tarcap::TransactionPacketHandler:</di
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:aff49ee2d25dd0ea3c8bab6f085c741ba"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#aff49ee2d25dd0ea3c8bab6f085c741ba">TransactionPacketHandler</a> (std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt; peers_state, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html">PacketsStats</a> &gt; packets_stats, std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt; trx_mgr, std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &gt; dag_blk_mgr, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_test_state.html">TestState</a> &gt; test_state, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr)</td></tr>
-<tr class="separator:aff49ee2d25dd0ea3c8bab6f085c741ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a73d00c1ad700a7093134e3956de247de"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a73d00c1ad700a7093134e3956de247de">TransactionPacketHandler</a> (std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt; peers_state, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html">PacketsStats</a> &gt; packets_stats, std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt; trx_mgr, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_test_state.html">TestState</a> &gt; test_state, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr)</td></tr>
+<tr class="separator:a73d00c1ad700a7093134e3956de247de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a28a9f68da9bd6923e18be898df8ab509"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a28a9f68da9bd6923e18be898df8ab509">onNewTransactions</a> (std::vector&lt; std::pair&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;, <a class="el" href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">TransactionStatus</a> &gt;&gt; &amp;&amp;transactions)</td></tr>
 <tr class="separator:a28a9f68da9bd6923e18be898df8ab509"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa66354b3d71df215162924c6644b6b11"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#aa66354b3d71df215162924c6644b6b11">sendTransactions</a> (<a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> const &amp;peer_id, std::vector&lt; <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">taraxa::bytes</a> &gt; const &amp;transactions)</td></tr>
@@ -149,8 +149,6 @@ Private Member Functions</h2></td></tr>
 Private Attributes</h2></td></tr>
 <tr class="memitem:a76e477c62ee058b54a26bff8c18870c6"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a76e477c62ee058b54a26bff8c18870c6">trx_mgr_</a></td></tr>
 <tr class="separator:a76e477c62ee058b54a26bff8c18870c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1c152214549063dbb0ae25427a369bcd"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a1c152214549063dbb0ae25427a369bcd">dag_blk_mgr_</a></td></tr>
-<tr class="separator:a1c152214549063dbb0ae25427a369bcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0278fa38ffa38ca0e781671601501687"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_test_state.html">TestState</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a0278fa38ffa38ca0e781671601501687">test_state_</a></td></tr>
 <tr class="separator:a0278fa38ffa38ca0e781671601501687"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acaa3001d57fd1f5b8b0c4d9fd199ada1"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#acaa3001d57fd1f5b8b0c4d9fd199ada1">received_trx_count_</a> {0}</td></tr>
@@ -175,8 +173,8 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:afabdc72598d541c7b8abb17bfbb6d93b inherit pro_attribs_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="aff49ee2d25dd0ea3c8bab6f085c741ba"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aff49ee2d25dd0ea3c8bab6f085c741ba">&#9670;&nbsp;</a></span>TransactionPacketHandler()</h2>
+<a id="a73d00c1ad700a7093134e3956de247de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a73d00c1ad700a7093134e3956de247de">&#9670;&nbsp;</a></span>TransactionPacketHandler()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -198,12 +196,6 @@ Additional Inherited Members</h2></td></tr>
           <td></td>
           <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt;&#160;</td>
           <td class="paramname"><em>trx_mgr</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a> &gt;&#160;</td>
-          <td class="paramname"><em>dag_blk_mgr</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -378,28 +370,6 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="a1c152214549063dbb0ae25427a369bcd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1c152214549063dbb0ae25427a369bcd">&#9670;&nbsp;</a></span>dag_blk_mgr_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::shared_ptr&lt;<a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_block_manager">DagBlockManager</a>&gt; taraxa::network::tarcap::TransactionPacketHandler::dag_blk_mgr_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a8ca8ec0d164aca81f25ebedffa45b733"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8ca8ec0d164aca81f25ebedffa45b733">&#9670;&nbsp;</a></span>kPacketType_</h2>
 

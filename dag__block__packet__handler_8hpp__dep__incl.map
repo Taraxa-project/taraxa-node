@@ -1,6 +1,7 @@
 <map id="libraries/core_libs/network/include/network/tarcap/packets_handlers/dag_block_packet_handler.hpp" name="libraries/core_libs/network/include/network/tarcap/packets_handlers/dag_block_packet_handler.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="215,5,441,76"/>
+<area shape="rect" id="node1" title=" " alt="" coords="307,5,533,76"/>
 <area shape="rect" id="node2" href="$dag_8cpp.html" title=" " alt="" coords="5,139,205,180"/>
-<area shape="rect" id="node3" href="$dag__block__packet__handler_8cpp.html" title=" " alt="" coords="230,124,426,195"/>
-<area shape="rect" id="node4" href="$taraxa__capability_8cpp.html" title=" " alt="" coords="450,131,614,187"/>
+<area shape="rect" id="node3" href="$dag__manager_8cpp.html" title=" " alt="" coords="229,131,403,187"/>
+<area shape="rect" id="node4" href="$dag__block__packet__handler_8cpp.html" title=" " alt="" coords="427,124,623,195"/>
+<area shape="rect" id="node5" href="$taraxa__capability_8cpp.html" title=" " alt="" coords="647,131,811,187"/>
 </map>
