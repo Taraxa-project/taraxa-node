@@ -24,7 +24,7 @@ NETWORKING:
   --listen-ip <ip>(:<port>) Listen on the given IP for incoming connections (default: 0.0.0.0)
   --listen <port>           Listen on the given port for incoming connections (default: 10002)
   --deny-local-discovery    Reject local addresses in the discovery process. Used for testing purposes.
-  --network-id <id>         Connect to default mainet/testnet/devnet bootnodes
+  --chain-id <id>         Connect to default mainet/testnet/devnet bootnodes
   --number-of-threads <#>   Define number of threads for this bootnode (default: 1)
   --wallet arg              JSON wallet file, if not specified key random generated
 LOGGING OPTIONS:

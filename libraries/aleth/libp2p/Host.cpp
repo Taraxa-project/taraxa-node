@@ -83,7 +83,7 @@ Host::Host(std::string _clientVersion, KeyPair const& kp, NetworkConfig _n, Tara
   m_nodeTable = make_unique<NodeTable>(
       ioc_, m_alias, NodeIPEndpoint(bi::make_address(listenAddress()), listenPort(), listenPort()),
       updateENR(enr, m_tcpPublic, listenPort()), m_netConfig.discovery, m_netConfig.allowLocalDiscovery,
-      taraxa_conf_.is_boot_node, taraxa_conf_.network_id);
+      taraxa_conf_.is_boot_node, taraxa_conf_.chain_id);
   m_nodeTable->setEventHandler(new NodeTableEventHandler([this](auto const&... args) { onNodeTableEvent(args...); }));
   if (restored_state) {
     for (auto const& node : restored_state->known_nodes) {

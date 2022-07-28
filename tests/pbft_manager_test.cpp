@@ -9,14 +9,6 @@
 
 namespace taraxa::core_tests {
 
-const unsigned NUM_TRX = 200;
-auto g_secret = Lazy([] {
-  return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                     dev::Secret::ConstructFromStringType::FromHex);
-});
-auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
-auto g_trx_signed_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
-
 std::pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size, size_t valid_voting_players) {
   size_t two_t_plus_one;
   size_t threshold;

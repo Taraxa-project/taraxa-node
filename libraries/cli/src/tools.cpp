@@ -15,27 +15,25 @@ namespace fs = std::filesystem;
 
 namespace taraxa::cli::tools {
 
-void generateConfig(const std::string& config, Config::NetworkIdType network_id) {
-  util::writeJsonToFile(config, generateConfig(network_id));
+void generateConfig(const std::string& config, Config::ChainIdType chain_id) {
+  util::writeJsonToFile(config, generateConfig(chain_id));
 }
 
-Json::Value generateConfig(Config::NetworkIdType network_id) {
+Json::Value generateConfig(Config::ChainIdType chain_id) {
   Json::Value conf;
-  switch (network_id) {
-    case Config::NetworkIdType::Mainnet:
+  switch (chain_id) {
+    case Config::ChainIdType::Mainnet:
       conf = util::readJsonFromString(mainnet_json);
       break;
-    case Config::NetworkIdType::Testnet:
+    case Config::ChainIdType::Testnet:
       conf = util::readJsonFromString(testnet_json);
       break;
-    case Config::NetworkIdType::Devnet:
+    case Config::ChainIdType::Devnet:
       conf = util::readJsonFromString(devnet_json);
       break;
     default:
       conf = util::readJsonFromString(default_json);
-      std::stringstream stream;
-      stream << "0x" << std::hex << static_cast<int>(network_id);
-      conf["chain_config"]["chain_id"] = stream.str();
+      conf["chain_id"] = static_cast<int>(chain_id);
   }
   return conf;
 }

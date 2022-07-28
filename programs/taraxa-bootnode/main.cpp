@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
                       "Listen on the given port for incoming connections (default: 10002)");
   addNetworkingOption("deny-local-discovery", po::bool_switch(&denyLocalDiscovery),
                       "Reject local addresses in the discovery process. Used for testing purposes.");
-  addNetworkingOption("network-id", po::value<unsigned short>()->value_name("<id>"),
+  addNetworkingOption("chain-id", po::value<unsigned short>()->value_name("<id>"),
                       "Connect to default mainet/testnet/devnet bootnodes");
   addNetworkingOption("number-of-threads", po::value<uint32_t>()->value_name("<#>"),
                       "Define number of threads for this bootnode (default: 1)");
@@ -130,8 +130,8 @@ int main(int argc, char** argv) {
   }
 
   /// Networking params.
-  unsigned short network_id = static_cast<unsigned short>(taraxa::cli::Config::DEFAULT_NETWORK_ID);
-  if (vm.count("network-id")) network_id = vm["network-id"].as<unsigned short>();
+  unsigned short chain_id = static_cast<unsigned short>(taraxa::cli::Config::DEFAULT_CHAIN_ID);
+  if (vm.count("chain-id")) chain_id = vm["chain-id"].as<unsigned short>();
 
   std::string listen_ip = "0.0.0.0";
   unsigned short listen_port = 10002;
@@ -163,7 +163,7 @@ int main(int argc, char** argv) {
 
   dev::p2p::TaraxaNetworkConfig taraxa_net_conf;
   taraxa_net_conf.is_boot_node = true;
-  taraxa_net_conf.network_id = network_id;
+  taraxa_net_conf.chain_id = chain_id;
   auto network_file_path = taraxa::cli::tools::getTaraxaDefaultDir() / std::filesystem::path(kNetworkConfigFileName);
 
   auto boot_host = dev::p2p::Host::make(
@@ -179,9 +179,8 @@ int main(int argc, char** argv) {
 
   if (boot_host->isRunning()) {
     std::cout << "Node ID: " << boot_host->enode() << std::endl;
-    if (static_cast<taraxa::cli::Config::NetworkIdType>(network_id) <
-        taraxa::cli::Config::NetworkIdType::LastNetworkId) {
-      const auto conf = taraxa::cli::tools::generateConfig(static_cast<taraxa::cli::Config::NetworkIdType>(network_id));
+    if (static_cast<taraxa::cli::Config::ChainIdType>(chain_id) < taraxa::cli::Config::ChainIdType::LastNetworkId) {
+      const auto conf = taraxa::cli::tools::generateConfig(static_cast<taraxa::cli::Config::ChainIdType>(chain_id));
       for (auto const& bn : conf["network_boot_nodes"]) {
         bi::tcp::endpoint ep = dev::p2p::Network::resolveHost(bn["ip"].asString() + ":" + bn["udp_port"].asString());
         boot_host->addNode(

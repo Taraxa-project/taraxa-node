@@ -60,7 +60,7 @@ class Node:
             shutil.copyfile(wallet_file_path, datadir_wallet_file_path)
 
             # add default chain config section in config file and add default account to it
-            Popen([mode.executable_path, "--command", "config", "--config", datadir_cfg_file_path, "--wallet", datadir_wallet_file_path, "--network-id", "0"]).wait()
+            Popen([mode.executable_path, "--command", "config", "--config", datadir_cfg_file_path, "--wallet", datadir_wallet_file_path, "--chain-id", "0"]).wait()
             with open(datadir_cfg_file_path, mode="r") as f:
                 cfg = json.load(f)
                 cfg["chain_config"]["final_chain"]["state"]["genesis_balances"] = {}

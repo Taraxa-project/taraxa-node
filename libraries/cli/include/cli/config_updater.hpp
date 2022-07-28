@@ -8,7 +8,7 @@ namespace taraxa::cli {
 
 class ConfigUpdater {
  public:
-  ConfigUpdater(int network_id);
+  ConfigUpdater(int chain_id);
 
   void UpdateConfig(const std::string& config_name, Json::Value& old_conf);
 

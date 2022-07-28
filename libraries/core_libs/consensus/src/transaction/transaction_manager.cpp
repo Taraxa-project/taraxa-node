@@ -54,7 +54,7 @@ std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
     return {TransactionStatus::Verified, ""};
   }
 
-  if (trx->getChainID() != conf_.chain.chain_id) {
+  if (trx->getChainID() != conf_.network.chain_id) {
     return {TransactionStatus::Invalid, "chain_id mismatch"};
   }
 
