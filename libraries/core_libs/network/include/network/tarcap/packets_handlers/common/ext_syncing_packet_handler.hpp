@@ -1,13 +1,13 @@
 #pragma once
 
 #include "dag/dag_block.hpp"
+#include "dag/dag_manager.hpp"
 #include "packet_handler.hpp"
 
 namespace taraxa {
 class PbftChain;
 class PbftManager;
 class DagManager;
-class DagBlockManager;
 class DbStorage;
 }  // namespace taraxa
 
@@ -24,8 +24,7 @@ class ExtSyncingPacketHandler : public PacketHandler {
   ExtSyncingPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                           std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
                           std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
-                          std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
-                          const addr_t &node_addr, const std::string &log_channel_name);
+                          std::shared_ptr<DbStorage> db, const addr_t &node_addr, const std::string &log_channel_name);
 
   virtual ~ExtSyncingPacketHandler() = default;
   ExtSyncingPacketHandler(const ExtSyncingPacketHandler &) = default;
@@ -45,7 +44,6 @@ class ExtSyncingPacketHandler : public PacketHandler {
   void requestDagBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks, uint64_t period);
   void requestPendingDagBlocks(std::shared_ptr<TaraxaPeer> peer = nullptr);
 
-  std::pair<bool, std::unordered_set<blk_hash_t>> checkDagBlockValidation(const DagBlock &block) const;
   std::shared_ptr<TaraxaPeer> getMaxChainPeer();
 
  protected:
@@ -54,7 +52,6 @@ class ExtSyncingPacketHandler : public PacketHandler {
   std::shared_ptr<PbftChain> pbft_chain_{nullptr};
   std::shared_ptr<PbftManager> pbft_mgr_{nullptr};
   std::shared_ptr<DagManager> dag_mgr_{nullptr};
-  std::shared_ptr<DagBlockManager> dag_blk_mgr_{nullptr};
   std::shared_ptr<DbStorage> db_{nullptr};
 };
 

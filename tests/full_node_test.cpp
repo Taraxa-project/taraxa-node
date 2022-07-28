@@ -10,7 +10,7 @@
 #include "cli/config.hpp"
 #include "cli/tools.hpp"
 #include "common/static_init.hpp"
-#include "dag/dag.hpp"
+#include "dag/dag_manager.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "network/rpc/Taraxa.h"
@@ -711,7 +711,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       auto dags = getOrderedDagBlocks(node->getDB());
       for (size_t i(0); i < dags.size(); ++i) {
         auto d = dags[i];
-        std::cout << i << " " << d << " trx: " << nodes[0]->getDagBlockManager()->getDagBlock(d)->getTrxs().size()
+        std::cout << i << " " << d << " trx: " << nodes[0]->getDagManager()->getDagBlock(d)->getTrxs().size()
                   << std::endl;
       }
       std::string filename = "debug_dag_" + std::to_string(k);

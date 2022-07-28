@@ -55,21 +55,20 @@ std::shared_ptr<TaraxaCapability> TaraxaCapability::make(
     unsigned version, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
     std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
     std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
-    std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr) {
+    std::shared_ptr<TransactionManager> trx_mgr) {
   auto instance = std::make_shared<TaraxaCapability>(host, key, conf, version);
-  instance->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr, dag_blk_mgr, trx_mgr,
-                 key.address());
+  instance->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr, trx_mgr, key.address());
   return instance;
 }
 
 void TaraxaCapability::init(const h256 &genesis_hash, std::shared_ptr<DbStorage> db,
                             std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                             std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
-                            std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                            std::shared_ptr<TransactionManager> trx_mgr, const dev::Address &node_addr) {
+                            std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+                            const dev::Address &node_addr) {
   // Creates and registers all packets handlers
   registerPacketHandlers(net_conf_, genesis_hash, packets_stats_, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr,
-                         dag_mgr, dag_blk_mgr, trx_mgr, node_addr);
+                         dag_mgr, trx_mgr, node_addr);
 
   // Inits periodic events. Must be called after registerHandlers !!!
   initPeriodicEvents(net_conf_, pbft_mgr, trx_mgr, packets_stats_);
@@ -186,10 +185,9 @@ void TaraxaCapability::registerPacketHandlers(
     const std::shared_ptr<DbStorage> &db, const std::shared_ptr<PbftManager> &pbft_mgr,
     const std::shared_ptr<PbftChain> &pbft_chain, const std::shared_ptr<VoteManager> &vote_mgr,
     const std::shared_ptr<NextVotesManager> &next_votes_mgr, const std::shared_ptr<DagManager> &dag_mgr,
-    const std::shared_ptr<DagBlockManager> &dag_blk_mgr, const std::shared_ptr<TransactionManager> &trx_mgr,
-    addr_t const &node_addr) {
-  node_stats_ = std::make_shared<NodeStats>(peers_state_, pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr,
-                                            dag_blk_mgr, vote_mgr, trx_mgr, packets_stats, thread_pool_, node_addr);
+    const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr) {
+  node_stats_ = std::make_shared<NodeStats>(peers_state_, pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr, vote_mgr,
+                                            trx_mgr, packets_stats, thread_pool_, node_addr);
 
   // Register all packet handlers
 
@@ -205,29 +203,29 @@ void TaraxaCapability::registerPacketHandlers(
                                                              vote_mgr, node_addr);
 
   packets_handlers_->registerHandler<DagBlockPacketHandler>(peers_state_, packets_stats, pbft_syncing_state_,
-                                                            pbft_chain, pbft_mgr, dag_mgr, dag_blk_mgr, trx_mgr, db,
-                                                            test_state_, node_addr);
+                                                            pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, test_state_,
+                                                            node_addr);
 
-  packets_handlers_->registerHandler<TransactionPacketHandler>(peers_state_, packets_stats, trx_mgr, dag_blk_mgr,
-                                                               test_state_, node_addr);
+  packets_handlers_->registerHandler<TransactionPacketHandler>(peers_state_, packets_stats, trx_mgr, test_state_,
+                                                               node_addr);
 
   // Non critical packets with low processing priority
   packets_handlers_->registerHandler<StatusPacketHandler>(peers_state_, packets_stats, pbft_syncing_state_, pbft_chain,
-                                                          pbft_mgr, dag_mgr, dag_blk_mgr, next_votes_mgr, db,
-                                                          conf.network_id, genesis_hash, node_addr);
-  packets_handlers_->registerHandler<GetDagSyncPacketHandler>(peers_state_, packets_stats, trx_mgr, dag_mgr,
-                                                              dag_blk_mgr, db, node_addr);
+                                                          pbft_mgr, dag_mgr, next_votes_mgr, db, conf.network_id,
+                                                          genesis_hash, node_addr);
+  packets_handlers_->registerHandler<GetDagSyncPacketHandler>(peers_state_, packets_stats, trx_mgr, dag_mgr, db,
+                                                              node_addr);
 
   packets_handlers_->registerHandler<DagSyncPacketHandler>(peers_state_, packets_stats, pbft_syncing_state_, pbft_chain,
-                                                           pbft_mgr, dag_mgr, trx_mgr, dag_blk_mgr, db, node_addr);
+                                                           pbft_mgr, dag_mgr, trx_mgr, db, node_addr);
 
   // TODO there is additional logic, that should be moved outside process function
   packets_handlers_->registerHandler<GetPbftSyncPacketHandler>(peers_state_, packets_stats, pbft_syncing_state_,
                                                                pbft_chain, db, conf.network_sync_level_size, node_addr);
 
   packets_handlers_->registerHandler<PbftSyncPacketHandler>(
-      peers_state_, packets_stats, pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr, dag_blk_mgr, vote_mgr,
-      periodic_events_tp_, db, conf.network_sync_level_size, node_addr);
+      peers_state_, packets_stats, pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr, vote_mgr, periodic_events_tp_,
+      db, conf.network_sync_level_size, node_addr);
 
   thread_pool_->setPacketsHandlers(packets_handlers_);
 }

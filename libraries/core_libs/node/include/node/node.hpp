@@ -17,7 +17,6 @@
 #include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
 #include "config/version.hpp"
-#include "dag/dag_block_manager.hpp"
 #include "network/rpc/EthFace.h"
 #include "network/rpc/NetFace.h"
 #include "network/rpc/RpcServer.h"
@@ -35,7 +34,6 @@ class Network;
 class BlockProposer;
 class DagManager;
 class DagBlock;
-class BlockManager;
 struct Transaction;
 class TransactionManager;
 class GasPricer;
@@ -70,7 +68,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<DbStorage> old_db_;
   std::shared_ptr<GasPricer> gas_pricer_;
   std::shared_ptr<DagManager> dag_mgr_;
-  std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<Network> network_;
   std::shared_ptr<BlockProposer> blk_proposer_;
@@ -108,7 +105,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto const &getNetwork() const { return network_; }
   auto const &getTransactionManager() const { return trx_mgr_; }
   auto const &getDagManager() const { return dag_mgr_; }
-  auto const &getDagBlockManager() const { return dag_blk_mgr_; }
   auto const &getDB() const { return db_; }
   auto const &getPbftManager() const { return pbft_mgr_; }
   auto const &getVoteManager() const { return vote_mgr_; }

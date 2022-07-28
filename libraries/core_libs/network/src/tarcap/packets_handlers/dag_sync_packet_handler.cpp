@@ -1,6 +1,6 @@
 #include "network/tarcap/packets_handlers/dag_sync_packet_handler.hpp"
 
-#include "dag/dag_block_manager.hpp"
+#include "dag/dag.hpp"
 #include "network/tarcap/packets_handlers/common/ext_syncing_packet_handler.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "transaction/transaction_manager.hpp"
@@ -12,12 +12,11 @@ DagSyncPacketHandler::DagSyncPacketHandler(std::shared_ptr<PeersState> peers_sta
                                            std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                                            std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
                                            std::shared_ptr<DagManager> dag_mgr,
-                                           std::shared_ptr<TransactionManager> trx_mgr,
-                                           std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<DbStorage> db,
+                                           std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DbStorage> db,
                                            const addr_t& node_addr)
     : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
-                              std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(dag_blk_mgr),
-                              std::move(db), node_addr, "DAG_SYNC_PH"),
+                              std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
+                              "DAG_SYNC_PH"),
       trx_mgr_(std::move(trx_mgr)) {}
 
 void DagSyncPacketHandler::validatePacketRlpFormat(const PacketData& packet_data) const {
@@ -102,18 +101,26 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
 
     received_dag_blocks_str += block.getHash().abridged() + " ";
 
-    auto status = checkDagBlockValidation(block);
-    if (!status.first) {
-      // This should only happen with a malicious node or a fork
+    const auto verified = dag_mgr_->verifyBlock(block);
+    if (verified != DagManager::VerifyBlockReturnType::Verified) {
       std::ostringstream err_msg;
-      err_msg << "DagBlock " << block.getHash() << " validation failed: " << status.second;
-
+      err_msg << "DagBlock" << block.getHash() << " failed verification with error code "
+              << static_cast<uint32_t>(verified);
       throw MaliciousPeerException(err_msg.str());
     }
 
     if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
 
-    dag_blk_mgr_->insertAndVerifyBlock(std::move(block));
+    auto transactions = trx_mgr_->getPoolTransactions(block.getTrxs()).first;
+    auto status = dag_mgr_->addDagBlock(std::move(block), std::move(transactions));
+    if (!status.first) {
+      std::ostringstream err_msg;
+      if (status.second.size() > 0)
+        err_msg << "DagBlock" << block.getHash() << " has missing pivot or/and tips " << status.second;
+      else
+        err_msg << "DagBlock" << block.getHash() << " could not be added to DAG";
+      throw MaliciousPeerException(err_msg.str());
+    }
   }
 
   peer->peer_dag_synced_ = true;

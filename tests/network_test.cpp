@@ -89,8 +89,8 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   node2->getPbftManager()->stop();
 
   const auto db1 = node1->getDB();
-  const auto dag_blk_mgr1 = node1->getDagBlockManager();
-  const auto dag_blk_mgr2 = node2->getDagBlockManager();
+  const auto dag_mgr1 = node1->getDagManager();
+  const auto dag_mgr2 = node2->getDagManager();
   const auto nw1 = node1->getNetwork();
   const auto nw2 = node2->getNetwork();
 
@@ -102,7 +102,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   const auto proposal_level = 1;
   const auto proposal_period = *db1->getProposalPeriodForDagLevel(proposal_level);
   const auto period_block_hash = db1->getPeriodBlockHash(proposal_period);
-  const auto sortition_params = dag_blk_mgr1->sortitionParamsManager().getSortitionParams(proposal_period);
+  const auto sortition_params = dag_mgr1->sortitionParamsManager().getSortitionParams(proposal_period);
   vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
                                   VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash));
   const auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
@@ -126,19 +126,20 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   for (int i = 0; i < 100; ++i) {
     const auto proposal_period = *db1->getProposalPeriodForDagLevel(proposal_level + 1);
     const auto period_block_hash = db1->getPeriodBlockHash(proposal_period);
-    const auto sortition_params = dag_blk_mgr1->sortitionParamsManager().getSortitionParams(proposal_period);
+    const auto sortition_params = dag_mgr1->sortitionParamsManager().getSortitionParams(proposal_period);
     vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
                                     VrfSortitionBase::makeVrfInput(proposal_level + 1, period_block_hash));
-    DagBlock blk(block_hash, proposal_level + 1, {}, trx_hashes, {}, vdf, node1->getSecretKey());
+    DagBlock blk(block_hash, proposal_level + 1, {}, {trxs[i + 1]->getHash()}, {}, vdf, node1->getSecretKey());
     dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
   }
 
   nw1->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->onNewTransactions(
       std::move(verified_transactions));
-  for (auto block : dag_blocks) {
-    dag_blk_mgr1->insertAndVerifyBlock(DagBlock(*block));
+  for (size_t i = 0; i < dag_blocks.size(); i++) {
+    if (dag_mgr1->verifyBlock(*dag_blocks[i]) == DagManager::VerifyBlockReturnType::Verified)
+      dag_mgr1->addDagBlock(DagBlock(*dag_blocks[i]), {trxs[i]});
   }
-  wait({1s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_blk_mgr1->getDagBlock(block_hash), nullptr) });
+  wait({1s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr1->getDagBlock(block_hash), nullptr) });
 
   taraxa::thisThreadSleepForSeconds(1);
   const auto node1_period = node1->getPbftChain()->getPbftChainSize();
@@ -148,7 +149,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
       nw2->getNodeId(), std::move(dag_blocks), {}, node2_period, node1_period);
 
   std::cout << "Waiting Sync ..." << std::endl;
-  wait({30s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_blk_mgr2->getDagBlock(block_hash), nullptr) });
+  wait({30s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr2->getDagBlock(block_hash), nullptr) });
 }
 
 TEST_F(NetworkTest, send_pbft_block) {
@@ -464,8 +465,8 @@ TEST_F(NetworkTest, node_sync) {
 
   for (size_t i = 0; i < blks.size(); ++i) {
     node1->getTransactionManager()->insertValidatedTransactions({{blks[i].second, TransactionStatus::Verified}});
-    EXPECT_EQ(node1->getDagBlockManager()->insertAndVerifyBlock(std::move(blks[i].first)),
-              DagBlockManager::InsertAndVerifyBlockReturnType::InsertedAndVerified);
+    EXPECT_EQ(node1->getDagManager()->verifyBlock(blks[i].first), DagManager::VerifyBlockReturnType::Verified);
+    node1->getDagManager()->addDagBlock(std::move(blks[i].first));
   }
 
   EXPECT_HAPPENS({30s, 500ms}, [&](auto& ctx) {
@@ -515,7 +516,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
       {g_signed_trx_samples[0], TransactionStatus::Verified}, {g_signed_trx_samples[1], TransactionStatus::Verified}};
 
   node1->getTransactionManager()->insertValidatedTransactions(std::move(txs1));
-  node1->getDagBlockManager()->insertAndVerifyBlock(DagBlock(blk1));
+  node1->getDagManager()->verifyBlock(DagBlock(blk1));
+  node1->getDagManager()->addDagBlock(DagBlock(blk1));
 
   dev::RLPStream order_stream(2);
   order_stream.appendList(1);
@@ -569,7 +571,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
       {g_signed_trx_samples[2], TransactionStatus::Verified}, {g_signed_trx_samples[3], TransactionStatus::Verified}};
 
   node1->getTransactionManager()->insertValidatedTransactions(std::move(txs2));
-  node1->getDagBlockManager()->insertAndVerifyBlock(DagBlock(blk2));
+  node1->getDagManager()->verifyBlock(DagBlock(blk2));
+  node1->getDagManager()->addDagBlock(DagBlock(blk2));
 
   batch = db1->createWriteBatch();
   period = 2;
@@ -681,7 +684,8 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
       {g_signed_trx_samples[0], TransactionStatus::Verified}, {g_signed_trx_samples[1], TransactionStatus::Verified}};
 
   node1->getTransactionManager()->insertValidatedTransactions(std::move(tr1));
-  node1->getDagBlockManager()->insertAndVerifyBlock(DagBlock(blk1));
+  node1->getDagManager()->verifyBlock(DagBlock(blk1));
+  node1->getDagManager()->addDagBlock(DagBlock(blk1));
 
   dev::RLPStream order_stream(2);
   order_stream.appendList(1);
@@ -725,7 +729,8 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
       {g_signed_trx_samples[2], TransactionStatus::Verified}, {g_signed_trx_samples[3], TransactionStatus::Verified}};
 
   node1->getTransactionManager()->insertValidatedTransactions(std::move(tr2));
-  node1->getDagBlockManager()->insertAndVerifyBlock(DagBlock(blk2));
+  node1->getDagManager()->verifyBlock(DagBlock(blk2));
+  node1->getDagManager()->addDagBlock(DagBlock(blk2));
 
   batch = db1->createWriteBatch();
   period = 2;
@@ -1065,23 +1070,23 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
       {g_signed_trx_samples[9], TransactionStatus::Verified}};
 
   node1->getTransactionManager()->insertValidatedTransactions(std::move(tr1));
-  EXPECT_EQ(node1->getDagBlockManager()->insertAndVerifyBlock(std::move(blk1)),
-            DagBlockManager::InsertAndVerifyBlockReturnType::InsertedAndVerified);
+  EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk1)), DagManager::VerifyBlockReturnType::Verified);
+  node1->getDagManager()->addDagBlock(DagBlock(blk1));
   node1->getTransactionManager()->insertValidatedTransactions(std::move(tr2));
-  EXPECT_EQ(node1->getDagBlockManager()->insertAndVerifyBlock(std::move(blk2)),
-            DagBlockManager::InsertAndVerifyBlockReturnType::InsertedAndVerified);
+  EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk2)), DagManager::VerifyBlockReturnType::Verified);
+  node1->getDagManager()->addDagBlock(DagBlock(blk2));
   node1->getTransactionManager()->insertValidatedTransactions(std::move(tr3));
-  EXPECT_EQ(node1->getDagBlockManager()->insertAndVerifyBlock(std::move(blk3)),
-            DagBlockManager::InsertAndVerifyBlockReturnType::InsertedAndVerified);
+  EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk3)), DagManager::VerifyBlockReturnType::Verified);
+  node1->getDagManager()->addDagBlock(DagBlock(blk3));
   node1->getTransactionManager()->insertValidatedTransactions(std::move(tr4));
-  EXPECT_EQ(node1->getDagBlockManager()->insertAndVerifyBlock(std::move(blk4)),
-            DagBlockManager::InsertAndVerifyBlockReturnType::InsertedAndVerified);
+  EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk4)), DagManager::VerifyBlockReturnType::Verified);
+  node1->getDagManager()->addDagBlock(DagBlock(blk4));
   node1->getTransactionManager()->insertValidatedTransactions(std::move(tr5));
-  EXPECT_EQ(node1->getDagBlockManager()->insertAndVerifyBlock(std::move(blk5)),
-            DagBlockManager::InsertAndVerifyBlockReturnType::InsertedAndVerified);
+  EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk5)), DagManager::VerifyBlockReturnType::Verified);
+  node1->getDagManager()->addDagBlock(DagBlock(blk5));
   node1->getTransactionManager()->insertValidatedTransactions(std::move(tr6));
-  EXPECT_EQ(node1->getDagBlockManager()->insertAndVerifyBlock(std::move(blk6)),
-            DagBlockManager::InsertAndVerifyBlockReturnType::InsertedAndVerified);
+  EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk6)), DagManager::VerifyBlockReturnType::Verified);
+  node1->getDagManager()->addDagBlock(DagBlock(blk6));
   // To make sure blocks are stored before starting node 2
   taraxa::thisThreadSleepForMilliSeconds(1000);
 
@@ -1243,7 +1248,8 @@ TEST_F(NetworkTest, node_sync2) {
     std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> ver_trxs;
     for (auto t : trxs[i]) ver_trxs.push_back({t, TransactionStatus::Verified});
     node1->getTransactionManager()->insertValidatedTransactions(std::move(ver_trxs));
-    node1->getDagBlockManager()->insertAndVerifyBlock(std::move(blks[i]));
+    node1->getDagManager()->verifyBlock(std::move(blks[i]));
+    node1->getDagManager()->addDagBlock(DagBlock(blks[i]));
   }
 
   auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();

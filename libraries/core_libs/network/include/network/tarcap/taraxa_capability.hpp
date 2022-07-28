@@ -23,7 +23,6 @@ class PbftChain;
 class VoteManager;
 class NextVotesManager;
 class DagManager;
-class DagBlockManager;
 class TransactionManager;
 enum class TransactionStatus;
 }  // namespace taraxa
@@ -49,13 +48,12 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
       unsigned version, std::shared_ptr<DbStorage> db = {}, std::shared_ptr<PbftManager> pbft_mgr = {},
       std::shared_ptr<PbftChain> pbft_chain = {}, std::shared_ptr<VoteManager> vote_mgr = {},
       std::shared_ptr<NextVotesManager> next_votes_mgr = {}, std::shared_ptr<DagManager> dag_mgr = {},
-      std::shared_ptr<DagBlockManager> dag_blk_mgr = {}, std::shared_ptr<TransactionManager> trx_mgr = {});
+      std::shared_ptr<TransactionManager> trx_mgr = {});
   // Init capability. Register packet handlers and periodic events
   virtual void init(const h256 &genesis_hash, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                     std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                     std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
-                    std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-                    const dev::Address &node_addr);
+                    std::shared_ptr<TransactionManager> trx_mgr, const dev::Address &node_addr);
   // CapabilityFace implemented interface
   std::string name() const override;
   unsigned version() const override;
@@ -103,8 +101,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
       const std::shared_ptr<DbStorage> &db, const std::shared_ptr<PbftManager> &pbft_mgr,
       const std::shared_ptr<PbftChain> &pbft_chain, const std::shared_ptr<VoteManager> &vote_mgr,
       const std::shared_ptr<NextVotesManager> &next_votes_mgr, const std::shared_ptr<DagManager> &dag_mgr,
-      const std::shared_ptr<DagBlockManager> &dag_blk_mgr, const std::shared_ptr<TransactionManager> &trx_mgr,
-      addr_t const &node_addr);
+      const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr);
 
  private:
   void initBootNodes(const std::vector<NodeConfig> &network_boot_nodes, const dev::KeyPair &key);

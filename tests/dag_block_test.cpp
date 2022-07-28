@@ -9,6 +9,7 @@
 #include "common/types.hpp"
 #include "common/util.hpp"
 #include "dag/dag.hpp"
+#include "dag/dag_manager.hpp"
 #include "logger/logger.hpp"
 #include "node/node.hpp"
 #include "util_test/samples.hpp"
@@ -175,7 +176,7 @@ TEST_F(DagBlockTest, sign_verify) {
 TEST_F(DagBlockMgrTest, proposal_period) {
   auto node = create_nodes(1).front();
   auto db = node->getDB();
-  auto dag_blk_mgr = node->getDagBlockManager();
+  auto dag_mgr = node->getDagManager();
 
   // Proposal period 0 has in DB already at DAG block manager constructor
   auto proposal_period = db->getProposalPeriodForDagLevel(10);
@@ -209,7 +210,7 @@ TEST_F(DagBlockMgrTest, proposal_period) {
 TEST_F(DagBlockMgrTest, incorrect_tx_estimation) {
   auto node = create_nodes(1).front();
   auto db = node->getDB();
-  auto dag_blk_mgr = node->getDagBlockManager();
+  auto dag_mgr = node->getDagManager();
 
   auto trx = samples::createSignedTrxSamples(0, 1, g_secret).front();
   node->getTransactionManager()->insertTransaction(trx);
@@ -225,15 +226,15 @@ TEST_F(DagBlockMgrTest, incorrect_tx_estimation) {
   // transactions.size and estimations size is not equal
   {
     DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, {}, vdf1, node->getSecretKey());
-    EXPECT_EQ(node->getDagBlockManager()->insertAndVerifyBlock(std::move(blk)),
-              DagBlockManager::InsertAndVerifyBlockReturnType::IncorrectTransactionsEstimation);
+    EXPECT_EQ(node->getDagManager()->verifyBlock(std::move(blk)),
+              DagManager::VerifyBlockReturnType::IncorrectTransactionsEstimation);
   }
 
   // wrong estimated tx
   {
     DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, {100}, vdf1, node->getSecretKey());
-    EXPECT_EQ(node->getDagBlockManager()->insertAndVerifyBlock(std::move(blk)),
-              DagBlockManager::InsertAndVerifyBlockReturnType::IncorrectTransactionsEstimation);
+    EXPECT_EQ(node->getDagManager()->verifyBlock(std::move(blk)),
+              DagManager::VerifyBlockReturnType::IncorrectTransactionsEstimation);
   }
 }
 
@@ -272,8 +273,7 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
 
   {
     DagBlock blk(dag_genesis, propose_level, {}, hashes, estimations, vdf1, node->getSecretKey());
-    EXPECT_EQ(node->getDagBlockManager()->insertAndVerifyBlock(std::move(blk)),
-              DagBlockManager::InsertAndVerifyBlockReturnType::BlockTooBig);
+    EXPECT_EQ(node->getDagManager()->verifyBlock(std::move(blk)), DagManager::VerifyBlockReturnType::BlockTooBig);
   }
 }
 
