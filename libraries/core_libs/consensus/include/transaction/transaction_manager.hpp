@@ -169,13 +169,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::pair<TransactionStatus, std::string> verifyTransaction(const std::shared_ptr<Transaction> &trx) const;
 
  private:
-  /**
-   * @brief Checks if transaction pool is overflowed
-   *
-   * @return true if transaction pool is overflowed, otherwise false
-   */
-  bool checkMemoryPoolOverflow();
-
   addr_t getFullNodeAddress() const;
 
  public:

@@ -90,9 +90,8 @@ struct FullNodeConfig {
   uint32_t dag_expiry_limit = kDagExpiryLevelLimit;      // For unit tests only
   uint32_t max_levels_per_period = kMaxLevelsPerPeriod;  // For unit tests only
 
-  // config values that limits transactions and blocks memory pools
-  uint32_t max_transactions_pool_warn = 0;
-  uint32_t max_transactions_pool_drop = 0;
+  // config values that limits transactions pool
+  uint32_t transactions_pool_size = kMinTransactionPoolSize;
 
   auto net_file_path() const { return data_path / "net"; }
 

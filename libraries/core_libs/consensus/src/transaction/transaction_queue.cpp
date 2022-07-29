@@ -13,7 +13,12 @@ auto priorityComparator = [](const std::shared_ptr<Transaction> &first, const st
   }
 };
 
-TransactionQueue::TransactionQueue() : priority_queue_{priorityComparator} {}
+TransactionQueue::TransactionQueue(size_t max_size) : priority_queue_{priorityComparator}, kMaxSize(max_size) {
+  // There are library limits on multiset size, we need to check if max size is not exceeding it
+  if (kMaxSize > priority_queue_.max_size()) {
+    throw std::invalid_argument("Transaction pool size is too large");
+  }
+}
 
 size_t TransactionQueue::size() const { return hash_queue_.size(); }
 
@@ -76,6 +81,15 @@ bool TransactionQueue::insert(std::pair<std::shared_ptr<Transaction>, Transactio
       // This assert is here to check if priorityComparator works correctly. If object is not inserted, then there could
       // be something wrong with comparator
       assert(it != priority_queue_.end());
+
+      // This check if priority_queue_ is not bigger than max size if so we delete last object
+      // if the last object is also current one we return false
+      if (priority_queue_.size() > kMaxSize) [[unlikely]] {
+        priority_queue_.erase(it);
+        if (it == std::prev(priority_queue_.end())) {
+          return false;
+        }
+      }
       hash_queue_[tx_hash] = it;
     } break;
     case TransactionStatus::LowNonce:

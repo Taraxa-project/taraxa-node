@@ -11,7 +11,8 @@ namespace taraxa {
 TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_ptr<DbStorage> db,
                                        std::shared_ptr<FinalChain> final_chain, addr_t node_addr)
     : conf_(conf),
-      known_txs_(200000 /*capacity*/, 2000 /*delete step*/),
+      transactions_pool_(conf_.transactions_pool_size),
+      known_txs_(conf_.transactions_pool_size * 2, conf_.transactions_pool_size / 5),
       db_(std::move(db)),
       final_chain_(std::move(final_chain)) {
   LOG_OBJECTS_CREATE("TRXMGR");
@@ -85,22 +86,6 @@ std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
   return {TransactionStatus::Verified, ""};
 }
 
-bool TransactionManager::checkMemoryPoolOverflow() {
-  size_t queue_overflow_warn = conf_.max_transactions_pool_warn;
-  size_t queue_overflow_drop = conf_.max_transactions_pool_drop;
-
-  if (queue_overflow_drop && getTransactionPoolSize() >= queue_overflow_drop) {
-    LOG(log_wr_) << "Transaction pool size: " << getTransactionPoolSize()
-                 << " --> New transactions will not be processed !";
-    return true;
-  } else if (queue_overflow_warn && getTransactionPoolSize() >= queue_overflow_warn) {
-    LOG(log_wr_) << "Transaction pool size: " << getTransactionPoolSize()
-                 << " --> Only warning, transactions will bed processed.";
-  }
-
-  return false;
-}
-
 void TransactionManager::markTransactionKnown(const trx_hash_t &trx_hash) { known_txs_.insert(trx_hash); }
 
 bool TransactionManager::isTransactionKnown(const trx_hash_t &trx_hash) { return known_txs_.contains(trx_hash); }
@@ -145,10 +130,6 @@ uint32_t TransactionManager::insertValidatedTransactions(
     return 0;
   }
 
-  if (checkMemoryPoolOverflow()) {
-    LOG(log_er_) << "Pool overflow";
-    return 0;
-  }
   txs_hashes.reserve(txs.size());
   std::transform(txs.begin(), txs.end(), std::back_inserter(txs_hashes),
                  [](const auto &t) { return t.first->getHash(); });
