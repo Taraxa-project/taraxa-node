@@ -502,26 +502,26 @@ jobs:
             git submodule sync
             git submodule update --init --recursive --jobs 8
 
-      # - run:
-      #     name: Build ctest image
-      #     command: |
-      #       docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target build .
+      - run:
+          name: Build ctest image
+          command: |
+            docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target build .
 
       - run:
           name: Build taraxad image
           command: |
             docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
 
-      # - run:
-      #    name: Run Ctest
-      #    command: |
-      #      docker run  --ulimit nofile=4096:4096 \
-      #                  --rm -v $PWD/tmp_docker:/tmp \
-      #                  --name ${IMAGE}-ctest-${DOCKER_BRANCH_TAG} \
-      #                  ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
-      #                   sh -c \
-      #                  'cd cmake-docker-build-debug/bin \
-      #                   && ctest --output-on-failure'
+      - run:
+         name: Run Ctest
+         command: |
+           docker run  --ulimit nofile=4096:4096 \
+                       --rm -v $PWD/tmp_docker:/tmp \
+                       --name ${IMAGE}-ctest-${DOCKER_BRANCH_TAG} \
+                       ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
+                        sh -c \
+                       'cd cmake-docker-build-debug/bin \
+                        && ctest --output-on-failure'
 
       - run:
           name: Chmod core dump if fail
@@ -531,56 +531,56 @@ jobs:
             fi
           when: on_fail
 
-      # - run:
-      #     name: Run SmokeTest
-      #     command: |
-      #       if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoketest-${DOCKER_BRANCH_TAG:0:52})" ]; then
-      #         docker network rm \
-      #         smoketest-${DOCKER_BRANCH_TAG:0:52} >/dev/null;
-      #       fi
+      - run:
+          name: Run SmokeTest
+          command: |
+            if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoketest-${DOCKER_BRANCH_TAG:0:52})" ]; then
+              docker network rm \
+              smoketest-${DOCKER_BRANCH_TAG:0:52} >/dev/null;
+            fi
             
-      #       docker network create --driver=bridge \
-      #         smoketest-${DOCKER_BRANCH_TAG:0:52}
+            docker network create --driver=bridge \
+              smoketest-${DOCKER_BRANCH_TAG:0:52}
             
-      #       docker run -d\
-      #         --name smoketest-${DOCKER_BRANCH_TAG:0:52} \
-      #         --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
-      #         ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
-      #         single
+            docker run -d\
+              --name smoketest-${DOCKER_BRANCH_TAG:0:52} \
+              --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
+              ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
+              single
             
-      #       mkdir -p  $PWD/test_build-d/
+            mkdir -p  $PWD/test_build-d/
             
-      #       sleep 30
+            sleep 30
 
-      #       echo "--- Logs from container ---"
-      #       docker logs smoketest-${DOCKER_BRANCH_TAG:0:52}
-      #       echo "--- Logs from container ---"
+            echo "--- Logs from container ---"
+            docker logs smoketest-${DOCKER_BRANCH_TAG:0:52}
+            echo "--- Logs from container ---"
             
-      #       http_code=$(docker run --rm  -v $PWD/test_build-d:/data \
-      #         --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
-      #         byrnedo/alpine-curl \
-      #         -sS --fail -w '%{http_code}' -o /data/http.out \
-      #         --url smoketest-${DOCKER_BRANCH_TAG:0:52}:7777 \
-      #         -d '{
-      #                 "jsonrpc": "2.0",
-      #                 "id":"0",
-      #                 "method": "send_coin_transaction",
-      #                 "params":[{
-      #                     "nonce": 0,
-      #                     "value": 0,
-      #                     "gas": 0,
-      #                     "gas_price": 1,
-      #                     "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
-      #                     "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
-      #                 }]
-      #             }')
+            http_code=$(docker run --rm  -v $PWD/test_build-d:/data \
+              --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
+              byrnedo/alpine-curl \
+              -sS --fail -w '%{http_code}' -o /data/http.out \
+              --url smoketest-${DOCKER_BRANCH_TAG:0:52}:7777 \
+              -d '{
+                      "jsonrpc": "2.0",
+                      "id":"0",
+                      "method": "send_coin_transaction",
+                      "params":[{
+                          "nonce": 0,
+                          "value": 0,
+                          "gas": 0,
+                          "gas_price": 1,
+                          "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
+                          "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
+                      }]
+                  }')
               
-      #       cat $PWD/test_build-d/http.out || true
-      #       if [[ $http_code -eq 200 ]] ; then
-      #           exit 0
-      #       else
-      #           exit $http_code
-      #       fi
+            cat $PWD/test_build-d/http.out || true
+            if [[ $http_code -eq 200 ]] ; then
+                exit 0
+            else
+                exit $http_code
+            fi
 
       - run:
           name: Cleanup smoke tests
