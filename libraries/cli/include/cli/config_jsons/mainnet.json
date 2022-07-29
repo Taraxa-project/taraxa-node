@@ -68,7 +68,7 @@
   "max_transactions_pool_drop": 0,
   "db_config": {
     "db_snapshot_each_n_pbft_block": 10000,
-    "db_max_snapshots": 5
+    "db_max_snapshots": 1
   },
   "logging": {
     "configurations": [
