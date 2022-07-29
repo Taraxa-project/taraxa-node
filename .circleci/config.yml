@@ -219,7 +219,7 @@ commands:
             sudo chmod +x /usr/local/bin/kubectl
           when: << parameters.when >>
 
-  deploy_prnet_from_helmchart:
+  deploy_prnet_chart:
     description: Deploys taraxa-node chart
     parameters:
       pr-name:
@@ -322,7 +322,7 @@ jobs:
           pr-name: << pipeline.parameters.pr_number >>
       - get_deploy_tools:
           kubeconfig: ${KUBE_CONFIG}
-      - deploy_prnet_from_helmchart:
+      - deploy_prnet_chart:
           pr-name: << pipeline.parameters.pr_number >>
       - pr_comment:
           when: on_success
@@ -372,7 +372,7 @@ jobs:
           kubeconfig: ${KUBE_CONFIG}
       - cleanup_prnet_chart:
           pr-name: << pipeline.parameters.pr_number >>
-      - deploy_prnet_from_helmchart:
+      - deploy_prnet_chart:
           pr-name: << pipeline.parameters.pr_number >>
       - pr_comment:
           when: on_success
