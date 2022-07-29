@@ -414,6 +414,17 @@ bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
     return false;
   }
 
+  // Limit reward_votes_ size by allowing only 1 unique vote per address. Otherwise attacker might send multiple valid
+  // reward votes with different round...
+  if (auto unique_vote_author = reward_votes_unique_authors_.insert({vote->getVoterAddr(), vote->getHash()});
+      !unique_vote_author.second) {
+    if (unique_vote_author.first->second != vote->getHash()) {
+      LOG(log_er_) << "Trying to add second reward vote: " << vote->getHash() << " for author: " << vote->getVoterAddr()
+                   << ", orig. vote: " << unique_vote_author.first->second;
+      return false;
+    }
+  }
+
   return reward_votes_.insert({vote->getHash(), vote}).second;
 }
 
@@ -428,11 +439,21 @@ bool VoteManager::checkRewardVotes(const std::shared_ptr<PbftBlock>& pbft_block)
     return true;
   }
 
+  const auto pbft_block_period = pbft_block->getPeriod();
   const auto& reward_votes_hashes = pbft_block->getRewardVotes();
   std::shared_lock lock(reward_votes_mutex_);
   for (const auto& v : reward_votes_hashes) {
-    if (!reward_votes_.contains(v)) {
+    const auto found_reward_vote = reward_votes_.find(v);
+    if (found_reward_vote == reward_votes_.end()) {
       LOG(log_er_) << "Missing reward vote " << v;
+      return false;
+    }
+
+    // This should never happen
+    if (found_reward_vote->second->getPeriod() + 1 != pbft_block_period) [[unlikely]] {
+      LOG(log_er_) << "Reward vote has wrong period " << found_reward_vote->second->getPeriod()
+                   << ", pbft block period: " << pbft_block_period;
+      assert(true);
       return false;
     }
   }
@@ -444,7 +465,8 @@ void VoteManager::replaceRewardVotes(std::vector<std::shared_ptr<Vote>>&& cert_v
   if (cert_votes.empty()) return;
 
   std::unique_lock lock(reward_votes_mutex_);
-  reward_votes_ = {};
+  reward_votes_.clear();
+  reward_votes_unique_authors_.clear();
   reward_votes_pbft_block_hash_ = cert_votes[0]->getBlockHash();
 
   // It is possible that incoming reward votes might have another round because it is possible that same block was cert

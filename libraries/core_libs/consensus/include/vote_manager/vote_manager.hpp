@@ -324,6 +324,7 @@ class VoteManager {
   blk_hash_t reward_votes_pbft_block_hash_;
   uint64_t last_pbft_block_cert_round_;
   std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> reward_votes_;
+  std::unordered_map<addr_t, vote_hash_t> reward_votes_unique_authors_;
   mutable std::shared_mutex reward_votes_mutex_;
 
   // <PBFT round, <PBFT step, <voter address, pair<vote 1, vote 2>>>>

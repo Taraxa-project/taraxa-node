@@ -43,7 +43,7 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     // we identify it as reward vote and use wrong validation....
     if (vote_round < current_pbft_round) {  // reward vote
       if (vote_mgr_->isInRewardsVotes(vote->getHash())) {
-        LOG(log_dg_) << "Reward vote " << vote_hash.abridged() << " already inserted in reeards votes";
+        LOG(log_dg_) << "Reward vote " << vote_hash.abridged() << " already inserted in rewards votes";
       }
 
       if (auto vote_is_valid = validateRewardVote(vote); vote_is_valid.first == false) {
