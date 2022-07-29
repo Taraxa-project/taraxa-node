@@ -40,6 +40,10 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
           trx->getData(),
       },
       proposal_period);
+
+  if (!result.code_err.empty() || !result.consensus_err.empty()) {
+    return 0;
+  }
   return result.gas_used;
 }
 
