@@ -56,7 +56,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
   std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> new_transactions;
   std::string transactions_to_log;
 
-  for (const auto& tx_rlp : (*it++)) {
+  for (const auto tx_rlp : (*it++)) {
     std::shared_ptr<Transaction> trx;
 
     try {
@@ -96,7 +96,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
 
   trx_mgr_->insertValidatedTransactions(std::move(new_transactions));
 
-  for (const auto& block_rlp : *it) {
+  for (const auto block_rlp : *it) {
     DagBlock block(block_rlp);
     peer->markDagBlockAsKnown(block.getHash());
 

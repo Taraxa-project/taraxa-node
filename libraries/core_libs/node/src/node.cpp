@@ -290,7 +290,7 @@ void FullNode::close() {
 }
 
 void FullNode::rebuildDb() {
-  pbft_mgr_->initialState();
+  pbft_mgr_->initialize();
 
   // Read pbft blocks one by one
   uint64_t period = 1;

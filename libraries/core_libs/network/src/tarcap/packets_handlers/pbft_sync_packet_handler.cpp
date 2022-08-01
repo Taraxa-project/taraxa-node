@@ -132,7 +132,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
     }
   }
 
-  auto order_hash = PbftManager::calculateOrderHash(period_data.dag_blocks, period_data.transactions);
+  auto order_hash = pbft::calculateOrderHash(period_data.dag_blocks, period_data.transactions);
   if (order_hash != period_data.pbft_blk->getOrderHash()) {
     {  // This is just log related stuff
       std::vector<trx_hash_t> trx_order;

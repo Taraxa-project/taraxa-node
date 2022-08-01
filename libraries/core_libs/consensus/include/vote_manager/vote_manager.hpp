@@ -325,7 +325,7 @@ class VoteManager {
    * @brief Retrieve all verified votes from DB to the verified votes map. And broadcast all next voting type votes to
    * peers if node has extended the partition steps (1000). That only happens when nodes start.
    */
-  void retreieveVotes_();
+  void retrieveVotes_();
 
   using UniqueLock = boost::unique_lock<boost::shared_mutex>;
   using SharedLock = boost::shared_lock<boost::shared_mutex>;
