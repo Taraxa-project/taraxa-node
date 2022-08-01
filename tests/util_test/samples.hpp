@@ -85,7 +85,7 @@ class TxGenerator {
     SharedTransactions trxs;
     for (auto i = start_nonce; i < start_nonce + trx_num; ++i) {
       trxs.emplace_back(std::make_shared<Transaction>(i, value, 0, TEST_TX_GAS_LIMIT,
-                                                      str2bytes("00FEDCBA9876543210000000"),
+                                                      dev::fromHex("00FEDCBA9876543210000000"),
                                                       getRandomUniqueSenderSecret(), receiver));
     }
     return trxs;
@@ -168,7 +168,7 @@ inline std::map<int, TestAccount> createTestAccountTable(std::string const &file
 }
 
 inline SharedTransactions createSignedTrxSamples(unsigned start, unsigned num, secret_t const &sk,
-                                                 bytes data = str2bytes("00FEDCBA9876543210000000")) {
+                                                 bytes data = dev::fromHex("00FEDCBA9876543210000000")) {
   assert(start + num < std::numeric_limits<unsigned>::max());
   SharedTransactions trxs;
   for (auto i = start; i < num; ++i) {
