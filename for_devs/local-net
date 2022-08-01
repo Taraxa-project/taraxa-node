@@ -70,7 +70,7 @@ def config(binary, boot_nodes, rpc_nodes):
 
         private_keys[worker_name] = private_key
         vrf_secrets[worker_name] = vrf_secret
-        boot_nodes_public_addresses[worker_name] = {public_address, vrf_public}
+        boot_nodes_public_addresses[worker_name] = [public_address, vrf_public]
 
         boot_nodes_flags.append(
             f'127.0.0.1:10{i+1}02/{public_key}')
