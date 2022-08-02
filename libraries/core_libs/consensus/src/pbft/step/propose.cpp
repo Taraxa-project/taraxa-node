@@ -11,12 +11,8 @@
 namespace taraxa::step {
 
 void Propose::run() {
-  auto pm = node_->pbft_manager_.lock();
-  if (!pm) {
-    return;
-  }
   // Value Proposal
-  auto round = pm->getPbftRound();
+  auto round = round_->getId();
   if (round == 1) {
     // Round 1 cannot propose block. Everyone has to next vote kNullBlockHash in round 1 to make consensus go to next
     // round
@@ -26,11 +22,12 @@ void Propose::run() {
 
   LOG(log_tr_) << "PBFT value propose step in round " << round;
   // Round greater than 1
-  if (node_->next_votes_manager_->haveEnoughVotesForNullBlockHash()) {
+
+  if (round_->previous_round_next_voted_null_block_hash_) {
     LOG(log_nf_) << "Previous round " << round - 1 << " next voted block is kNullBlockHash";
-  } else if (state_->previous_round_next_voted_value_) {
+  } else if (round_->previous_round_next_voted_value_) {
     LOG(log_nf_) << "Previous round " << round - 1 << " next voted block is "
-                 << state_->previous_round_next_voted_value_;
+                 << round_->previous_round_next_voted_value_;
   } else {
     LOG(log_er_) << "Previous round " << round - 1 << " doesn't have enough next votes";
     assert(false);
@@ -43,32 +40,32 @@ void Propose::run() {
     }
     if (proposed_block_hash_) {
       node_->db_->savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, proposed_block_hash_);
-      state_->own_starting_value_for_round_ = proposed_block_hash_;
+      round_->own_starting_value_for_round_ = proposed_block_hash_;
 
-      auto place_votes = placeVote_(state_->own_starting_value_for_round_, propose_vote_type, round);
+      auto place_votes = placeVote_(round_->own_starting_value_for_round_, propose_vote_type, round);
       if (place_votes) {
-        LOG(log_nf_) << "Proposing " << place_votes << " own starting value " << state_->own_starting_value_for_round_
+        LOG(log_nf_) << "Proposing " << place_votes << " own starting value " << round_->own_starting_value_for_round_
                      << " for round " << round;
       }
     }
-  } else if (state_->previous_round_next_voted_value_) {
+  } else if (round_->previous_round_next_voted_value_) {
     node_->db_->savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound,
-                                      state_->previous_round_next_voted_value_);
-    state_->own_starting_value_for_round_ = state_->previous_round_next_voted_value_;
+                                      round_->previous_round_next_voted_value_);
+    round_->own_starting_value_for_round_ = round_->previous_round_next_voted_value_;
 
-    auto pbft_block = node_->pbft_chain_->getUnverifiedPbftBlock(state_->own_starting_value_for_round_);
+    auto pbft_block = node_->pbft_chain_->getUnverifiedPbftBlock(round_->own_starting_value_for_round_);
     if (!pbft_block) {
-      LOG(log_dg_) << "Can't get proposal block " << state_->own_starting_value_for_round_ << " in unverified queue";
-      pbft_block = node_->db_->getPbftCertVotedBlock(state_->own_starting_value_for_round_);
+      LOG(log_dg_) << "Can't get proposal block " << round_->own_starting_value_for_round_ << " in unverified queue";
+      pbft_block = node_->db_->getPbftCertVotedBlock(round_->own_starting_value_for_round_);
       if (!pbft_block) {
-        LOG(log_dg_) << "Can't get proposal block " << state_->own_starting_value_for_round_ << " in database";
+        LOG(log_dg_) << "Can't get proposal block " << round_->own_starting_value_for_round_ << " in database";
       }
     }
     if (pbft_block) {
       // place vote
-      auto place_votes = placeVote_(state_->own_starting_value_for_round_, propose_vote_type, round);
+      auto place_votes = placeVote_(round_->own_starting_value_for_round_, propose_vote_type, round);
       if (place_votes) {
-        LOG(log_nf_) << "Rebroadcast next voted block " << state_->own_starting_value_for_round_ << ", and propose"
+        LOG(log_nf_) << "Rebroadcast next voted block " << round_->own_starting_value_for_round_ << ", and propose"
                      << place_votes << " votes "
                      << " from previous round. In round " << round;
         // broadcast pbft block
@@ -79,6 +76,11 @@ void Propose::run() {
     }
   }
   finish_();
+}
+
+void Propose::finish_() {
+  Step::finish_();
+  round_->sleepUntil(2 * std::chrono::milliseconds(round_->getLambda()));
 }
 
 std::optional<blk_hash_t> findClosestAnchor(const std::vector<blk_hash_t> &ghost,
@@ -96,7 +98,7 @@ blk_hash_t Propose::proposePbftBlock_() {
   if (!pm) {
     return {};
   }
-  auto round = pm->getPbftRound();
+  auto round = round_->getId();
   VrfPbftSortition vrf_sortition(node_->vrf_sk_, {propose_vote_type, round, 1});
   if (pm->weighted_votes_count_ == 0 ||
       !vrf_sortition.calculateWeight(pm->getDposWeightedVotesCount(), pm->getDposTotalVotesCount(),
@@ -137,11 +139,11 @@ blk_hash_t Propose::proposePbftBlock_() {
   }
 
   blk_hash_t dag_block_hash;
-  if (ghost.size() <= pm->config_.dag_blocks_size) {
+  if (ghost.size() <= node_->pbft_config_.dag_blocks_size) {
     // Move back  config_.ghost_path_move_back DAG blocks for DAG sycning
-    auto ghost_index = (ghost.size() < pm->config_.ghost_path_move_back + 1)
+    auto ghost_index = (ghost.size() < node_->pbft_config_.ghost_path_move_back + 1)
                            ? 0
-                           : (ghost.size() - 1 - pm->config_.ghost_path_move_back);
+                           : (ghost.size() - 1 - node_->pbft_config_.ghost_path_move_back);
     while (ghost_index < ghost.size() - 1) {
       if (ghost[ghost_index] != last_period_dag_anchor_block_hash) {
         break;
@@ -150,7 +152,7 @@ blk_hash_t Propose::proposePbftBlock_() {
     }
     dag_block_hash = ghost[ghost_index];
   } else {
-    dag_block_hash = ghost[pm->config_.dag_blocks_size - 1];
+    dag_block_hash = ghost[node_->pbft_config_.dag_blocks_size - 1];
   }
 
   if (dag_block_hash == pm->dag_genesis_block_hash_) {
@@ -199,7 +201,7 @@ blk_hash_t Propose::proposePbftBlock_() {
       }
       i++;
     }
-    if (total_weight + dag_block_weight > pm->config_.gas_limit) {
+    if (total_weight + dag_block_weight > node_->pbft_config_.gas_limit) {
       // we need to form new list of transactions after clipping if block is overweighted
       trx_hashes.clear();
       break;
@@ -256,10 +258,6 @@ blk_hash_t Propose::proposePbftBlock_() {
 
 blk_hash_t Propose::generatePbftBlock(const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
                                       const blk_hash_t &order_hash) {
-  auto pm = node_->pbft_manager_.lock();
-  if (!pm) {
-    return {};
-  }
   const auto propose_period = node_->pbft_chain_->getPbftChainSize() + 1;
   const auto reward_votes = node_->vote_mgr_->getRewardVotes();
   std::vector<vote_hash_t> reward_votes_hashes;
@@ -277,8 +275,8 @@ blk_hash_t Propose::generatePbftBlock(const blk_hash_t &prev_blk_hash, const blk
     net->getSpecificHandler<network::tarcap::PbftBlockPacketHandler>()->onNewPbftBlock(pbft_block);
   }
 
-  LOG(log_dg_) << node_->node_addr_ << " propose PBFT block succussful! in round: " << pm->round_ << " in step: " << id_
-               << " PBFT block: " << pbft_block->getBlockHash();
+  LOG(log_dg_) << node_->node_addr_ << " propose PBFT block succussful! in round: " << round_->getId()
+               << " in step: " << id_ << " PBFT block: " << pbft_block->getBlockHash();
 
   return pbft_block->getBlockHash();
 }

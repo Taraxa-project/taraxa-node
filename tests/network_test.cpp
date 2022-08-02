@@ -797,13 +797,14 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   // Update next votes bundle and set PBFT round
   auto pbft_2t_plus_1 = 1;
   node1->getNextVotesManager()->updateNextVotes(next_votes, pbft_2t_plus_1);
-  pbft_mgr1->setPbftRound(2);  // Make sure node2 PBFT round is less than node1
+  pbft_mgr1->moveToRound_(2);  // Make sure node2 PBFT round is less than node1
+  pbft_mgr1->stop();
 
   auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
   // Stop PBFT manager, that will place vote
   std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
   pbft_mgr2->stop();
-  pbft_mgr2->setPbftRound(1);  // Make sure node2 PBFT round is less than node1
+
   node2->getVoteManager()->clearUnverifiedVotesTable();
 
   // Wait node1 and node2 connect to each other
@@ -875,8 +876,8 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   EXPECT_EQ(node2_next_votes_mgr->getNextVotesWeight(), next_votes2.size());
 
   // Set both node1 and node2 pbft manager round to 2
-  pbft_mgr1->setPbftRound(2);
-  pbft_mgr2->setPbftRound(2);
+  pbft_mgr1->moveToRound_(2);
+  pbft_mgr2->moveToRound_(2);
 
   // Set PBFT previous round 2t+1, sortition threshold, DPOS period and DPOS total votes count for syncing
   auto db = node2->getDB();
@@ -947,8 +948,8 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   EXPECT_EQ(node2_next_votes_mgr->getNextVotesWeight(), next_votes2.size());
 
   // Set both node1 and node2 pbft manager round to 2
-  pbft_mgr1->setPbftRound(2);
-  pbft_mgr2->setPbftRound(2);
+  pbft_mgr1->moveToRound_(2);
+  pbft_mgr2->moveToRound_(2);
 
   // Set node2 PBFT previous round 2t+1, sortition threshold, DPOS period and DPOS total votes count for syncing
   auto node2_db = node2->getDB();

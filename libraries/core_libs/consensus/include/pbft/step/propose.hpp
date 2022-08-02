@@ -6,10 +6,7 @@ namespace taraxa::step {
 
 class Propose : public Step {
  public:
-  Propose(std::shared_ptr<CommonState> state, std::shared_ptr<NodeFace> node)
-      : Step(PbftStates::propose, std::move(state), std::move(node)) {
-    init();
-  }
+  Propose(std::shared_ptr<RoundFace> round) : Step(StepType::propose, std::move(round)) { init(); }
   void run() override;
 
  private:
@@ -30,12 +27,9 @@ class Propose : public Step {
   blk_hash_t generatePbftBlock(const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
                                const blk_hash_t &order_hash);
 
-  void setFinished_();
-
+  void finish_() override;
   // Ensures that only one PBFT block per period can be proposed
   blk_hash_t proposed_block_hash_ = kNullBlockHash;
-
-  bool finished_ = false;
 };
 
 }  // namespace taraxa::step

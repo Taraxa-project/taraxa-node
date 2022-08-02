@@ -257,6 +257,7 @@ void FullNode::start() {
   if (conf_.db_config.rebuild_db) {
     rebuildDb();
     LOG(log_si_) << "Rebuild db completed successfully. Restart node without db_rebuild option";
+    pbft_mgr_->stop();
     started_ = false;
     return;
   } else {

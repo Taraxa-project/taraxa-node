@@ -267,7 +267,7 @@ class VoteManager {
    * @param two_t_plus_one PBFT 2t+1 is 2/3 of PBFT sortition threshold and plus 1
    * @return a new PBFT round number if there are enough next voting type votes. Otherwise return 0
    */
-  uint64_t roundDeterminedFromVotes(size_t two_t_plus_one);
+  std::optional<uint64_t> roundDeterminedFromVotes(size_t two_t_plus_one);
 
   // reward votes
 

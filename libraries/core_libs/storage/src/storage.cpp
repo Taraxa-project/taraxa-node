@@ -724,8 +724,8 @@ void DbStorage::addPbftCertVotedBlockToBatch(PbftBlock const& pbft_block, Batch&
 
 std::optional<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
   auto res = getPeriodFromPbftHash(hash);
-  if (res.first) {
-    return getPbftBlock(res.second);
+  if (res) {
+    return getPbftBlock(res.value());
   }
   return {};
 }
@@ -891,16 +891,16 @@ void DbStorage::addPbftBlockPeriodToBatch(uint64_t period, taraxa::blk_hash_t co
   insert(write_batch, Columns::pbft_block_period, toSlice(pbft_block_hash.asBytes()), toSlice(period));
 }
 
-std::pair<bool, uint64_t> DbStorage::getPeriodFromPbftHash(taraxa::blk_hash_t const& pbft_block_hash) {
+std::optional<uint64_t> DbStorage::getPeriodFromPbftHash(taraxa::blk_hash_t const& pbft_block_hash) {
   auto data = lookup(toSlice(pbft_block_hash.asBytes()), Columns::pbft_block_period);
 
   if (!data.empty()) {
     uint64_t value;
     memcpy(&value, data.data(), sizeof(uint64_t));
-    return {true, value};
+    return value;
   }
 
-  return {false, 0};
+  return std::nullopt;
 }
 
 std::shared_ptr<std::pair<uint32_t, uint32_t>> DbStorage::getDagBlockPeriod(blk_hash_t const& hash) {
@@ -914,6 +914,14 @@ std::shared_ptr<std::pair<uint32_t, uint32_t>> DbStorage::getDagBlockPeriod(blk_
     return std::make_shared<std::pair<uint32_t, uint32_t>>(period, position);
   }
   return nullptr;
+}
+
+std::optional<uint64_t> DbStorage::getDagBlockFinalizationPeriod(blk_hash_t const& hash) {
+  auto value = getDagBlockPeriod(hash);
+  if (value != nullptr) {
+    return value->first;
+  }
+  return std::nullopt;
 }
 
 void DbStorage::addDagBlockPeriodToBatch(blk_hash_t const& hash, uint32_t period, uint32_t position,

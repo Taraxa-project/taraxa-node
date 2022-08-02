@@ -278,7 +278,7 @@ TEST_F(VoteTest, transfer_vote) {
   auto vote = pbft_mgr2->generateVote(propose_block_hash, type, period, step);
 
   nw2->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVotes(nw1->getNodeId(), {vote});
-
+  std::cout << "SENT " << std::endl;
   auto vote_mgr1 = node1->getVoteManager();
   auto vote_mgr2 = node2->getVoteManager();
   EXPECT_HAPPENS({60s, 100ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, vote_mgr1->getUnverifiedVotesSize(), 1) });

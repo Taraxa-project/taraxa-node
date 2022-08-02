@@ -62,9 +62,9 @@ Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash, bool _inc
     auto block = node->getDagBlockManager()->getDagBlock(blk_hash_t(_blockHash));
     if (block) {
       auto block_json = block->getJson();
-      auto period = node->getPbftManager()->getDagBlockPeriod(block->getHash());
-      if (period.first) {
-        block_json["period"] = toJS(period.second);
+      auto period = node->getDB()->getDagBlockFinalizationPeriod(block->getHash());
+      if (period) {
+        block_json["period"] = toJS(period.value());
       } else {
         block_json["period"] = "-0x1";
       }
@@ -103,9 +103,9 @@ Json::Value Taraxa::taraxa_getDagBlockByLevel(string const& _blockLevel, bool _i
     auto res = Json::Value(Json::arrayValue);
     for (auto const& b : blocks) {
       auto block_json = b->getJson();
-      auto period = node->getPbftManager()->getDagBlockPeriod(b->getHash());
-      if (period.first) {
-        block_json["period"] = toJS(period.second);
+      auto period = node->getDB()->getDagBlockFinalizationPeriod(b->getHash());
+      if (period) {
+        block_json["period"] = toJS(period.value());
       } else {
         block_json["period"] = "-0x1";
       }

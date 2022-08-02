@@ -6,8 +6,7 @@ namespace taraxa::step {
 
 class Finish : public Step {
  public:
-  Finish(uint64_t id, std::shared_ptr<CommonState> state, std::shared_ptr<NodeFace> node)
-      : Step(id, std::move(state), std::move(node)) {
+  Finish(uint64_t id, std::shared_ptr<RoundFace> round) : Step(id, std::move(round)) {
     init();
     assert(id % 2 == 0);
   }

@@ -6,10 +6,7 @@ namespace taraxa::step {
 
 class Filter : public Step {
  public:
-  Filter(std::shared_ptr<CommonState> state, std::shared_ptr<NodeFace> node)
-      : Step(PbftStates::filter, std::move(state), std::move(node)) {
-    init();
-  }
+  Filter(std::shared_ptr<RoundFace> round) : Step(StepType::filter, std::move(round)) { init(); }
   void run() override;
 
  private:
@@ -21,6 +18,13 @@ class Filter : public Step {
    * @param new_soft_voted_value soft voting value
    */
   void updateLastSoftVotedValue_(blk_hash_t const new_soft_voted_value);
+
+  /**
+   * @brief Calculate the lowest hash of a vote by vote weight
+   * @param vote vote
+   * @return lowest hash of a vote
+   */
+  h256 getProposal(const std::shared_ptr<Vote> &vote) const;
 };
 
 }  // namespace taraxa::step

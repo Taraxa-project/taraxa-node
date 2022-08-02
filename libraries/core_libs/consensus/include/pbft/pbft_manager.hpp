@@ -7,14 +7,13 @@
 #include "config/config.hpp"
 #include "logger/logger.hpp"
 #include "network/tarcap/taraxa_capability.hpp"
+#include "pbft/node_face.hpp"
 #include "pbft/period_data_queue.hpp"
+#include "pbft/round.hpp"
 #include "pbft/step/step.hpp"
 #include "pbft/utils.hpp"
 
-#define POLLING_INTERVAL_ms 100  // milliseconds...
-#define MAX_STEPS 13             // Need to be a odd number
-#define MAX_WAIT_FOR_SOFT_VOTED_BLOCK_STEPS 20
-#define MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS 20
+// #define MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS 20
 
 namespace taraxa {
 
@@ -108,13 +107,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void pushSyncedPbftBlocksIntoChain();
 
   /**
-   * @brief Get a DAG block period number
-   * @param hash DAG block hash
-   * @return true with DAG block period number if the DAG block has been finalized. Otherwise return false
-   */
-  std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
-
-  /**
    * @brief Get PBFT round number
    * @return PBFT round
    */
@@ -124,7 +116,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Set PBFT round number
    * @param round PBFT round
    */
-  void setPbftRound(uint64_t const round);
+  // void setPbftRound(uint64_t const round);
 
   /**
    * @brief Get PBFT sortition threshold. PBFT sortition threshold is minimum of between PBFT committee size and total
@@ -138,12 +130,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @return 2t+1
    */
   size_t getTwoTPlusOne() const;
-
-  /**
-   * @brief Set PBFT step
-   * @param pbft_step PBFT step
-   */
-  void setPbftStep(size_t const pbft_step);
 
   /**
    * @brief Generate a vote
@@ -295,15 +281,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t dposEligibleVoteCount_(addr_t const &addr);
 
   /**
-   * @brief Reset PBFT step to 1
-   */
-  void resetStep_();
-
-  /**
    * @brief If node receives enough next voting votes on a forward PBFT round, set PBFT round to the round number.
-   * @return true if PBFT sets round to a forward round number
    */
-  bool resetRound_();
+  void moveToRound_(uint64_t round, std::optional<uint64_t> step = {});
+  // bool resetRound_();
 
   /**
    * @brief Time to sleep for PBFT protocol
@@ -318,7 +299,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   /**
    * @brief move to next Step
    */
-  void nextStep_();
+  // void nextStep_();
 
   /**
    * @brief If there are any synced PBFT blocks from peers, push the synced blocks in PBFT chain. Verify all received
@@ -335,31 +316,17 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   uint64_t getThreshold(PbftVoteTypes vote_type) const;
 
   /**
-   * @brief Identify a leader block from all received proposed PBFT blocks for the current period by using minimum
-   * Verifiable Random Function (VRF) output. In filter state, don’t need check vote value correction.
-   * @return PBFT leader block hash
-   */
-  blk_hash_t identifyLeaderBlock_();
-
-  /**
-   * @brief Calculate the lowest hash of a vote by vote weight
-   * @param vote vote
-   * @return lowest hash of a vote
-   */
-  h256 getProposal(const std::shared_ptr<Vote> &vote) const;
-
-  /**
    * @brief Only be able to send a syncing request per each PBFT round and step
    * @return true if the current PBFT round and step has sent a syncing request already
    */
-  bool syncRequestedAlreadyThisStep_() const;
+  // bool syncRequestedAlreadyThisStep_() const;
 
   /**
    * @brief Send a syncing request to peer
    * @param reason syncing request reason
    * @param relevant_blk_hash relevant block hash
    */
-  void syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::blk_hash_t const &relevant_blk_hash);
+  // void syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::blk_hash_t const &relevant_blk_hash);
 
   /**
    * @brief Check that there are all DAG blocks with correct ordering, total gas estimation is not greater than gas
@@ -413,13 +380,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Check PBFT is working on syncing or not
    * @return true if PBFT is working on syncing
    */
-  bool is_syncing_();
-
-  /**
-   * @brief Terminate the soft voting value of the PBFT block hash
-   * @return true if terminate the vote value successfully
-   */
-  bool giveUpSoftVotedBlock_();
+  // bool is_syncing_();
 
   /**
    * @brief Set initial time for voting value
@@ -452,42 +413,22 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   std::atomic<bool> stopped_ = true;
 
-  // Ensures that only one PBFT block per period can be proposed
-  blk_hash_t proposed_block_hash_ = kNullBlockHash;
-
   std::unique_ptr<std::thread> daemon_;
 
-  std::shared_ptr<CommonState> shared_state_;
   std::shared_ptr<NodeFace> node_;
-  addr_t node_addr_;
+  const addr_t node_addr_;
 
-  std::unique_ptr<Step> current_step_;
-
-  uint64_t LAMBDA_ms = 0;
-  uint64_t LAMBDA_backoff_multiple = 1;
-  const uint64_t kMaxLambda = 60000;  // in ms, max lambda is 1 minutes
-
-  std::atomic<uint64_t> round_ = 1;
-  size_t step_ = 1;
-  size_t startingStepInRound_ = 1;
+  std::shared_ptr<Round> round_;
 
   // Period data for pbft block that is being currently cert voted for
   PeriodData period_data_;
-
-  bool previous_round_next_voted_null_block_hash_ = false;
-
-  bool executed_pbft_block_ = false;
-  bool have_executed_this_round_ = false;
-  bool should_have_cert_voted_in_this_round_ = false;
-  bool next_voted_soft_value_ = false;
-  bool next_voted_null_block_hash_ = false;
-  bool polling_state_print_log_ = true;
 
   uint64_t max_wait_for_soft_voted_block_steps_ms_ = 30;
 
   // Was used for 1 unit test
   // uint64_t max_wait_for_next_voted_block_steps_ms_ = 30;
 
+  blk_hash_t last_soft_voted_value_ = kNullBlockHash;
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
 
@@ -510,6 +451,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   const uint32_t max_levels_per_period_;
 
+ private:
   LOG_OBJECTS_DEFINE
 };
 

@@ -415,7 +415,7 @@ std::optional<VotesBundle> VoteManager::getVotesBundleByRoundAndStep(uint64_t ro
           const auto voted_block_hash = voted_value.first;
           size_t count = 0;
 
-          if (step == PbftStates::certify) {
+          if (step == StepType::certify) {
             // Collect all cert votes
             votes.reserve(voted_value.second.second.size());
             for (const auto& v : voted_value.second.second) {
@@ -444,7 +444,7 @@ std::optional<VotesBundle> VoteManager::getVotesBundleByRoundAndStep(uint64_t ro
   return std::nullopt;
 }
 
-uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
+std::optional<uint64_t> VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
   std::vector<std::shared_ptr<Vote>> votes;
 
   SharedLock lock(verified_votes_access_);
@@ -476,7 +476,7 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
     }
   }
 
-  return 0;
+  return std::nullopt;
 }
 
 bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {

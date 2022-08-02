@@ -6,8 +6,7 @@ namespace taraxa::step {
 
 class Polling : public Step {
  public:
-  Polling(uint64_t id, std::shared_ptr<CommonState> state, std::shared_ptr<NodeFace> node)
-      : Step(id, std::move(state), std::move(node)) {
+  Polling(uint64_t id, std::shared_ptr<RoundFace> round) : Step(id, std::move(round)) {
     init();
     assert(id % 2 == 1);
   }
@@ -16,7 +15,6 @@ class Polling : public Step {
 
  private:
   void init() override;
-  bool alreadyBroadcasted_ = false;
 };
 
 }  // namespace taraxa::step

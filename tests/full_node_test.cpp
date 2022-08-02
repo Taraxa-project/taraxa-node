@@ -399,8 +399,8 @@ TEST_F(FullNodeTest, db_test) {
   db.addPbftBlockPeriodToBatch(3, blk_hash_t(1), batch);
   db.addPbftBlockPeriodToBatch(4, blk_hash_t(2), batch);
   db.commitWriteBatch(batch);
-  EXPECT_EQ(db.getPeriodFromPbftHash(blk_hash_t(1)).second, 3);
-  EXPECT_EQ(db.getPeriodFromPbftHash(blk_hash_t(2)).second, 4);
+  EXPECT_EQ(db.getPeriodFromPbftHash(blk_hash_t(1)), 3);
+  EXPECT_EQ(db.getPeriodFromPbftHash(blk_hash_t(2)), 4);
 
   // dag_block_period
   batch = db.createWriteBatch();

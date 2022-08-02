@@ -296,9 +296,20 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // period_pbft_block
   void addPbftBlockPeriodToBatch(uint64_t period, taraxa::blk_hash_t const& pbft_block_hash, Batch& write_batch);
-  std::pair<bool, uint64_t> getPeriodFromPbftHash(taraxa::blk_hash_t const& pbft_block_hash);
+  std::optional<uint64_t> getPeriodFromPbftHash(taraxa::blk_hash_t const& pbft_block_hash);
   // dag_block_period
+  /**
+   * @brief Get a DAG block finalization period number
+   * @param hash DAG block hash
+   * @return optional. if nullopt, then dag block with such hash wasn't finalized yet
+   */
   std::shared_ptr<std::pair<uint32_t, uint32_t>> getDagBlockPeriod(blk_hash_t const& hash);
+  /**
+   * @brief Get a DAG block finalization period number
+   * @param hash DAG block hash
+   * @return optional. if nullopt, then dag block with such hash wasn't finalized yet
+   */
+  std::optional<uint64_t> getDagBlockFinalizationPeriod(blk_hash_t const& hash);
   void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint32_t period, uint32_t position, Batch& write_batch);
 
   uint64_t getDagBlocksCount() const { return dag_blocks_count_.load(); }
