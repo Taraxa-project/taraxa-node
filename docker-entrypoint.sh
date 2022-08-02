@@ -36,14 +36,14 @@ case $1 in
     echo "Starting taraxad..."
     taraxad $FLAGS \
             --config $TARAXA_CONF_PATH \
-            --network-id $2
+            --chain-id $2
 
     ;;
 
   single)
 	  echo "Starting taraxad..."
     taraxad $FLAGS \
-            --config $TARAXA_CONF_PATH 
+            --config $TARAXA_CONF_PATH
 
     ;;
   exec)

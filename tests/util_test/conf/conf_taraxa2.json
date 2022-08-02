@@ -1,4 +1,5 @@
 {
+  "chain_id": 0,
   "data_path": "/tmp/taraxa2",
   "network_listen_ip": "127.0.0.1",
   "network_tcp_port": 10003,

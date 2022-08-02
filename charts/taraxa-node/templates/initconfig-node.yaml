@@ -124,7 +124,7 @@ data:
 
     echo "Generating config"
     taraxad --command config \
-      --network-id {{ .Values.config.network }} \
+      --chain-id {{ .Values.config.network }} \
       --node-secret ${KEY} \
       --vrf-secret ${VRF} \
       {{- if and (ne .Values.config.network "1") (ne .Values.config.network "2") (ne .Values.config.network "3") }}

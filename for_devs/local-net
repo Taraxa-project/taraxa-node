@@ -123,7 +123,7 @@ def config(binary, boot_nodes, rpc_nodes):
                 os.mkdir(f'{local_net}/db-{worker_name}')
 
             cmd = ''
-            cmd += f'{binary} --command config --network-id {chain_id} '
+            cmd += f'{binary} --command config --chain-id {chain_id} '
             cmd += f'--boot-nodes {boot_nodes_flags} '
 
             if type == "boot":

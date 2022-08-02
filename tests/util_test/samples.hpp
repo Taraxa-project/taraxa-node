@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <fstream>
 #include <map>
 #include <string>
@@ -202,29 +203,6 @@ inline std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start, unsig
                  addr_t(12345));                                 // sender
 
     blks.emplace_back(blk);
-  }
-  return blks;
-}
-
-inline std::vector<std::pair<DagBlock, SharedTransactions>> createMockDagBlkSamplesWithSignedTransactions(
-    unsigned pivot_start, unsigned blk_num, unsigned trx_start, unsigned trx_len, unsigned /*trx_overlap*/,
-    secret_t const &sk) {
-  assert(pivot_start + blk_num < std::numeric_limits<unsigned>::max());
-  std::vector<std::pair<DagBlock, SharedTransactions>> blks;
-  for (auto i = pivot_start; i < blk_num; ++i) {
-    auto full_trx = createSignedTrxSamples(trx_start + i * trx_len, trx_len, sk);
-    vec_trx_t trxs;
-    for (auto t : full_trx) trxs.push_back(t->getHash());
-
-    DagBlock blk(blk_hash_t(i),      // pivot
-                 0,                  // level
-                 {},                 // tips
-                 trxs,               // trxs
-                 sig_t(7777),        // sig
-                 blk_hash_t(i + 1),  // hash
-                 addr_t(12345));     // sender
-
-    blks.emplace_back(std::make_pair(blk, full_trx));
   }
   return blks;
 }

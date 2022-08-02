@@ -109,8 +109,7 @@ class NodeTable : UDPSocketEvents {
   /// Constructor requiring host for I/O, credentials, and IP Address, port to
   /// listen on and host ENR.
   NodeTable(ba::io_context& _io, KeyPair const& _alias, NodeIPEndpoint const& _endpoint, ENR const& _enr,
-            bool _enabled = true, bool _allowLocalDiscovery = false, bool is_boot_node = false,
-            unsigned network_id = 0);
+            bool _enabled = true, bool _allowLocalDiscovery = false, bool is_boot_node = false, unsigned chain_id = 0);
 
   ~NodeTable() {
     if (m_socket->isOpen()) {
@@ -386,7 +385,7 @@ class NodeTable : UDPSocketEvents {
   std::shared_ptr<ba::steady_timer> m_endpointTrackingTimer;
 
   const bool is_boot_node_ = false;
-  const uint32_t network_id_ = 0;
+  const uint32_t chain_id_ = 0;
 };
 
 /**
@@ -459,8 +458,8 @@ struct DiscoveryDatagram : public RLPXDatagramFace {
  */
 struct PingNode : DiscoveryDatagram {
   using DiscoveryDatagram::DiscoveryDatagram;
-  PingNode(NodeIPEndpoint const& _src, NodeIPEndpoint const& _dest, unsigned _network_id)
-      : DiscoveryDatagram(_dest), network_id(_network_id), source(_src), destination(_dest) {}
+  PingNode(NodeIPEndpoint const& _src, NodeIPEndpoint const& _dest, unsigned _chain_id)
+      : DiscoveryDatagram(_dest), chain_id(_chain_id), source(_src), destination(_dest) {}
   PingNode(bi::udp::endpoint const& _from, NodeID const& _fromid, h256 const& _echo)
       : DiscoveryDatagram(_from, _fromid, _echo) {}
 
@@ -468,7 +467,7 @@ struct PingNode : DiscoveryDatagram {
   uint8_t packetType() const override { return type; }
 
   unsigned version = 0;
-  unsigned network_id = 0;
+  unsigned chain_id = 0;
   NodeIPEndpoint source;
   NodeIPEndpoint destination;
   boost::optional<uint64_t> seq;
@@ -476,7 +475,7 @@ struct PingNode : DiscoveryDatagram {
   void streamRLP(RLPStream& _s) const override {
     _s.appendList(seq.is_initialized() ? 5 : 4);
     _s << dev::p2p::c_protocolVersion;
-    _s << network_id;
+    _s << chain_id;
     source.streamRLP(_s);
     destination.streamRLP(_s);
     _s << *expiration;
@@ -486,7 +485,7 @@ struct PingNode : DiscoveryDatagram {
   void interpretRLP(bytesConstRef _bytes) override {
     RLP r(_bytes, RLP::AllowNonCanon | RLP::ThrowOnFail);
     version = r[0].toInt<unsigned>();
-    network_id = r[1].toInt<unsigned>();
+    chain_id = r[1].toInt<unsigned>();
     source.interpretRLP(r[2]);
     destination.interpretRLP(r[3]);
     expiration = r[4].toInt<uint32_t>();

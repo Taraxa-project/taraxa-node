@@ -40,7 +40,7 @@ struct NetworkConfig {
   uint16_t network_max_peer_count = 0;
   uint16_t network_transaction_interval = 0;
   uint16_t network_sync_level_size = 0;
-  uint64_t network_id;
+  uint64_t chain_id;
   uint16_t network_performance_log_interval = 0;
   uint16_t network_num_threads = std::max(uint(1), uint(std::thread::hardware_concurrency() / 2));
   uint16_t network_packets_processing_threads = 14;

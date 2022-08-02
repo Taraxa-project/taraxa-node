@@ -21,7 +21,7 @@ Config::Config(int argc, const char* argv[]) {
   boost::program_options::options_description allowed_options("Allowed options");
   string config;
   string wallet;
-  int network_id = static_cast<int>(DEFAULT_NETWORK_ID);
+  int chain_id = static_cast<int>(DEFAULT_CHAIN_ID);
   string data_dir;
   vector<string> command;
   vector<string> boot_nodes;
@@ -83,7 +83,7 @@ Config::Config(int argc, const char* argv[]) {
   node_command_options.add_options()(REVERT_TO_PERIOD, bpo::value<uint64_t>(&revert_to_period),
                                      "Revert db/state to specified "
                                      "period (specify period)");
-  node_command_options.add_options()(NETWORK_ID, bpo::value<int>(&network_id),
+  node_command_options.add_options()(CHAIN_ID, bpo::value<int>(&chain_id),
                                      "Network identifier (integer, 1=Mainnet, 2=Testnet, 3=Devnet) (default: 1)"
                                      "Only used when creating new config file");
 
@@ -153,7 +153,7 @@ Config::Config(int argc, const char* argv[]) {
     // If any of the config files are missing they are generated with default values
     if (!fs::exists(config)) {
       cout << "Configuration file does not exist at: " << config << ". New config file will be generated" << endl;
-      tools::generateConfig(config, (Config::NetworkIdType)network_id);
+      tools::generateConfig(config, (Config::ChainIdType)chain_id);
     }
     if (!fs::exists(wallet)) {
       cout << "Wallet file does not exist at: " << wallet << ". New wallet file will be generated" << endl;
@@ -170,8 +170,7 @@ Config::Config(int argc, const char* argv[]) {
 
     // Check that it is not empty, to not create chain config with just overwritten files
     if (!config_json["chain_config"].isNull()) {
-      network_id = dev::getUInt(config_json["chain_config"]["chain_id"]);
-      auto default_config_json = tools::generateConfig((Config::NetworkIdType)network_id);
+      auto default_config_json = tools::generateConfig((Config::ChainIdType)chain_id);
       // override hardforks data with one from default json
       addNewHardforks(config_json, default_config_json);
       // add vote_eligibility_balance_step field if it is missing in the config
@@ -192,9 +191,8 @@ Config::Config(int argc, const char* argv[]) {
       fs::create_directories(data_dir);
     }
 
-    // if there is not chain id it is a test
-    if (!config_json["chain_config"].isNull() && !config_json["chain_config"]["chain_id"].isNull()) {
-      ConfigUpdater updater{std::stoi(config_json["chain_config"]["chain_id"].asString(), nullptr, 16)};
+    {
+      ConfigUpdater updater{chain_id};
       updater.UpdateConfig(config, config_json);
     }
 

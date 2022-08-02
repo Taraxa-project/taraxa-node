@@ -376,20 +376,20 @@ TEST_F(NetworkTest, save_network) {
 }
 
 // Test creates one node with testnet network ID and one node with main ID and verifies that connection fails
-TEST_F(NetworkTest, node_network_id) {
+TEST_F(NetworkTest, node_chain_id) {
   auto node_cfgs = make_node_cfgs(2);
   {
     auto node_cfgs_ = node_cfgs;
-    node_cfgs_[0].network.network_id = 1;
-    node_cfgs_[1].network.network_id = 1;
+    node_cfgs_[0].network.chain_id = 1;
+    node_cfgs_[1].network.chain_id = 1;
     auto nodes = launch_nodes(node_cfgs_);
   }
-  // we need to cleanup datadirs because we saved previous genesis_hash in db. And it is different after network_id
+  // we need to cleanup datadirs because we saved previous genesis_hash in db. And it is different after chain_id
   // change
   CleanupDirs();
   {
-    node_cfgs[0].network.network_id = 1;
-    node_cfgs[1].network.network_id = 2;
+    node_cfgs[0].network.chain_id = 1;
+    node_cfgs[1].network.chain_id = 2;
 
     auto nodes = create_nodes(node_cfgs, true /*start*/);
 

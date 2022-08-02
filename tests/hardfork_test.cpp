@@ -65,7 +65,7 @@ struct HardforkTest : WithDataDir {
 };
 
 TEST_F(HardforkTest, hardfork_override) {
-  auto default_json = cli::tools::generateConfig(cli::Config::DEFAULT_NETWORK_ID);
+  auto default_json = cli::tools::generateConfig(cli::Config::DEFAULT_CHAIN_ID);
   auto default_hardforks = default_json["chain_config"]["final_chain"]["state"]["hardforks"];
   Json::Value config = default_json;
   auto &state_cfg = config["chain_config"]["final_chain"]["state"];
