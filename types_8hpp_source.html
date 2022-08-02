@@ -166,35 +166,11 @@ $(document).ready(function(){initNavTree('types_8hpp_source.html',''); initResiz
 <div class="line"><a name="l00079"></a><span class="lineno">   79</span>&#160;  <span class="keywordflow">return</span> strm.str();</div>
 <div class="line"><a name="l00080"></a><span class="lineno">   80</span>&#160;}</div>
 <div class="line"><a name="l00081"></a><span class="lineno">   81</span>&#160; </div>
-<div class="line"><a name="l00082"></a><span class="lineno"><a class="line" href="namespacetaraxa.html#a368a828d113238e1c7983d4d7fe2e282">   82</a></span>&#160;<span class="keyword">inline</span> <a class="code" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> <a class="code" href="namespacetaraxa.html#a368a828d113238e1c7983d4d7fe2e282">str2bytes</a>(std::string <span class="keyword">const</span> &amp;str) {</div>
-<div class="line"><a name="l00083"></a><span class="lineno">   83</span>&#160;  assert(str.size() % 2 == 0);</div>
-<div class="line"><a name="l00084"></a><span class="lineno">   84</span>&#160;  <a class="code" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> data;</div>
-<div class="line"><a name="l00085"></a><span class="lineno">   85</span>&#160;  <span class="comment">// convert it to byte stream</span></div>
-<div class="line"><a name="l00086"></a><span class="lineno">   86</span>&#160;  <span class="keywordflow">for</span> (<span class="keywordtype">size_t</span> i = 0; i &lt; str.size(); i += 2) {</div>
-<div class="line"><a name="l00087"></a><span class="lineno">   87</span>&#160;    std::string s = str.substr(i, 2);</div>
-<div class="line"><a name="l00088"></a><span class="lineno">   88</span>&#160;    <span class="keyword">auto</span> t = std::stoul(s, <span class="keyword">nullptr</span>, 16);</div>
-<div class="line"><a name="l00089"></a><span class="lineno">   89</span>&#160;    assert(t &lt; 256);</div>
-<div class="line"><a name="l00090"></a><span class="lineno">   90</span>&#160;    data.push_back(<span class="keyword">static_cast&lt;</span>uint8_t<span class="keyword">&gt;</span>(t));</div>
-<div class="line"><a name="l00091"></a><span class="lineno">   91</span>&#160;  }</div>
-<div class="line"><a name="l00092"></a><span class="lineno">   92</span>&#160;  <span class="keywordflow">return</span> data;</div>
-<div class="line"><a name="l00093"></a><span class="lineno">   93</span>&#160;}</div>
-<div class="line"><a name="l00094"></a><span class="lineno">   94</span>&#160; </div>
-<div class="line"><a name="l00095"></a><span class="lineno"><a class="line" href="namespacetaraxa.html#af2ca1b305283051b7c795a43e75d6aa3">   95</a></span>&#160;<span class="keyword">inline</span> std::string <a class="code" href="namespacetaraxa.html#af2ca1b305283051b7c795a43e75d6aa3">bytes2str</a>(<a class="code" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> <span class="keyword">const</span> &amp;data) {</div>
-<div class="line"><a name="l00096"></a><span class="lineno">   96</span>&#160;  <span class="comment">// convert it to str</span></div>
-<div class="line"><a name="l00097"></a><span class="lineno">   97</span>&#160;  std::stringstream ss;</div>
-<div class="line"><a name="l00098"></a><span class="lineno">   98</span>&#160;  ss &lt;&lt; std::hex &lt;&lt; std::noshowbase &lt;&lt; std::setfill(<span class="charliteral">&#39;0&#39;</span>);</div>
-<div class="line"><a name="l00099"></a><span class="lineno">   99</span>&#160;  <span class="keywordflow">for</span> (<span class="keyword">auto</span> <span class="keyword">const</span> &amp;d : data) {</div>
-<div class="line"><a name="l00100"></a><span class="lineno">  100</span>&#160;    ss &lt;&lt; std::setfill(<span class="charliteral">&#39;0&#39;</span>) &lt;&lt; std::setw(2) &lt;&lt; unsigned(d);</div>
-<div class="line"><a name="l00101"></a><span class="lineno">  101</span>&#160;  }</div>
-<div class="line"><a name="l00102"></a><span class="lineno">  102</span>&#160;  <span class="keywordflow">return</span> ss.str();</div>
-<div class="line"><a name="l00103"></a><span class="lineno">  103</span>&#160;}</div>
-<div class="line"><a name="l00104"></a><span class="lineno">  104</span>&#160; </div>
-<div class="line"><a name="l00105"></a><span class="lineno">  105</span>&#160;}  <span class="comment">// namespace taraxa</span></div>
+<div class="line"><a name="l00082"></a><span class="lineno">   82</span>&#160;}  <span class="comment">// namespace taraxa</span></div>
 </div><!-- fragment --></div><!-- contents -->
 </div><!-- doc-content -->
 <div class="ttc" id="anamespacetaraxa_1_1net_1_1rpc_1_1eth_html_ad1b782697d2ffcfad031bf5ee494afb8"><div class="ttname"><a href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#ad1b782697d2ffcfad031bf5ee494afb8">taraxa::net::rpc::eth::time_point</a></div><div class="ttdeci">std::chrono::system_clock::time_point time_point</div><div class="ttdef"><b>Definition:</b> watches.hpp:12</div></div>
 <div class="ttc" id="anamespacetaraxa_html_a376e12232232a6437159f77ba13e3bf2"><div class="ttname"><a href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">taraxa::EthBlockNumber</a></div><div class="ttdeci">uint64_t EthBlockNumber</div><div class="ttdef"><b>Definition:</b> types.hpp:29</div></div>
-<div class="ttc" id="anamespacetaraxa_html_a368a828d113238e1c7983d4d7fe2e282"><div class="ttname"><a href="namespacetaraxa.html#a368a828d113238e1c7983d4d7fe2e282">taraxa::str2bytes</a></div><div class="ttdeci">bytes str2bytes(std::string const &amp;str)</div><div class="ttdef"><b>Definition:</b> types.hpp:82</div></div>
 <div class="ttc" id="anamespacetaraxa_html_a910fb4a49a7eabbb1365197cb02ae406"><div class="ttname"><a href="namespacetaraxa.html#a910fb4a49a7eabbb1365197cb02ae406">taraxa::resolver_udp_t</a></div><div class="ttdeci">boost::asio::ip::udp::resolver resolver_udp_t</div><div class="ttdef"><b>Definition:</b> types.hpp:43</div></div>
 <div class="ttc" id="anamespacetaraxa_html_ad0d27015d777d709bbfa9046a833ba55"><div class="ttname"><a href="namespacetaraxa.html#ad0d27015d777d709bbfa9046a833ba55">taraxa::vec_trx_t</a></div><div class="ttdeci">std::vector&lt; trx_hash_t &gt; vec_trx_t</div><div class="ttdef"><b>Definition:</b> types.hpp:67</div></div>
 <div class="ttc" id="anamespacetaraxa_html_a4362029670298ec04a67749f557483be"><div class="ttname"><a href="namespacetaraxa.html#a4362029670298ec04a67749f557483be">taraxa::toString</a></div><div class="ttdeci">std::string toString(val_t const &amp;val)</div><div class="ttdef"><b>Definition:</b> types.hpp:76</div></div>
@@ -234,7 +210,6 @@ $(document).ready(function(){initNavTree('types_8hpp_source.html',''); initResiz
 <div class="ttc" id="anamespacetaraxa_html_a8de50f43ce780650bc4a185b970baaa5"><div class="ttname"><a href="namespacetaraxa.html#a8de50f43ce780650bc4a185b970baaa5">taraxa::uint256_t</a></div><div class="ttdeci">boost::multiprecision::uint256_t uint256_t</div><div class="ttdef"><b>Definition:</b> types.hpp:36</div></div>
 <div class="ttc" id="anamespacetaraxa_html_afdbc2bb6877d6ff2055c36afff45899a"><div class="ttname"><a href="namespacetaraxa.html#afdbc2bb6877d6ff2055c36afff45899a">taraxa::uint520_hash_t</a></div><div class="ttdeci">dev::FixedHash&lt; 65 &gt; uint520_hash_t</div><div class="ttdef"><b>Definition:</b> types.hpp:47</div></div>
 <div class="ttc" id="anamespacedev_html_a5f580c536d395535c524e770e9871ebe"><div class="ttname"><a href="namespacedev.html#a5f580c536d395535c524e770e9871ebe">dev::Address</a></div><div class="ttdeci">h160 Address</div><div class="ttdef"><b>Definition:</b> Address.h:17</div></div>
-<div class="ttc" id="anamespacetaraxa_html_af2ca1b305283051b7c795a43e75d6aa3"><div class="ttname"><a href="namespacetaraxa.html#af2ca1b305283051b7c795a43e75d6aa3">taraxa::bytes2str</a></div><div class="ttdeci">std::string bytes2str(bytes const &amp;data)</div><div class="ttdef"><b>Definition:</b> types.hpp:95</div></div>
 <div class="ttc" id="anamespacedev_html_aa5acc12a0b3af6711895a98fd7dc4d7c"><div class="ttname"><a href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">dev::u256</a></div><div class="ttdeci">boost::multiprecision::number&lt; boost::multiprecision::cpp_int_backend&lt; 256, 256, boost::multiprecision::unsigned_magnitude, boost::multiprecision::unchecked, void &gt; &gt; u256</div><div class="ttdef"><b>Definition:</b> Common.h:99</div></div>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->

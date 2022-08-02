@@ -35,8 +35,6 @@ var types_8hpp =
     [ "vec_blk_t", "types_8hpp.html#a3b0dfef1d0e54a4410d95b131a6203b3", null ],
     [ "vec_trx_t", "types_8hpp.html#ad0d27015d777d709bbfa9046a833ba55", null ],
     [ "vote_hash_t", "types_8hpp.html#a4f575bc8f641426bf9abc034436b9083", null ],
-    [ "bytes2str", "types_8hpp.html#af2ca1b305283051b7c795a43e75d6aa3", null ],
     [ "operator+=", "types_8hpp.html#a065268f6e371a32cb5ce8a455b68f0bc", null ],
-    [ "str2bytes", "types_8hpp.html#a368a828d113238e1c7983d4d7fe2e282", null ],
     [ "toString", "types_8hpp.html#a4362029670298ec04a67749f557483be", null ]
 ];

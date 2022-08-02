@@ -69,13 +69,12 @@ var searchData=
   ['bypass_184',['bypass',['../structdev_1_1_stream_out.html#a195da2753b0a25a044da9e847cc3d7c0',1,'dev::StreamOut::bypass()'],['../structdev_1_1_stream_out_3_01uint8__t_01_4.html#a9535cf9033772b97fde60632ed5a9cb3',1,'dev::StreamOut&lt; uint8_t &gt;::bypass()']]],
   ['byte_185',['byte',['../libdevcore_2_common_8h.html#a3eca60932ee4119828944ccd69a6272b',1,'byte():&#160;Common.h'],['../namespacetaraxa.html#a246ff1eeae4d7fef0f54e7384b812bf0',1,'taraxa::byte()']]],
   ['bytes_186',['bytes',['../namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d',1,'dev::bytes()'],['../namespacetaraxa.html#a5b2ee44c8273f8acf25fa5ea657c77fd',1,'taraxa::bytes()']]],
-  ['bytes2str_187',['bytes2str',['../namespacetaraxa.html#af2ca1b305283051b7c795a43e75d6aa3',1,'taraxa']]],
-  ['bytesconstref_188',['bytesConstRef',['../namespacedev.html#ab457e5f6cc31fb60752381cdca22b4c4',1,'dev']]],
-  ['bytesmap_189',['BytesMap',['../namespacedev.html#a241c7f50c7845a238f31f8278078f367',1,'dev']]],
-  ['bytesref_190',['bytesRef',['../namespacedev.html#a3d61e6a69ba214a24a5efb1512748809',1,'dev']]],
-  ['bytesrequired_191',['bytesRequired',['../namespacedev.html#a92951aa87f4ab646aabab8967fbd365f',1,'dev']]],
-  ['bytessec_192',['bytesSec',['../namespacedev.html#a94a2f054ba7d43aff585e8ec7546ad4d',1,'dev']]],
-  ['byzantium_5fblock_193',['byzantium_block',['../namespacetaraxa_1_1state__api.html#ab5bf595e29304fcaae9657c01e4e8158',1,'taraxa::state_api::ETHChainConfig']]],
-  ['log_194',['log',['../namespaceboost_1_1log.html',1,'boost']]],
-  ['building_20taraxa_2dnode_195',['Building taraxa-node',['../md_doc_building.html',1,'']]]
+  ['bytesconstref_187',['bytesConstRef',['../namespacedev.html#ab457e5f6cc31fb60752381cdca22b4c4',1,'dev']]],
+  ['bytesmap_188',['BytesMap',['../namespacedev.html#a241c7f50c7845a238f31f8278078f367',1,'dev']]],
+  ['bytesref_189',['bytesRef',['../namespacedev.html#a3d61e6a69ba214a24a5efb1512748809',1,'dev']]],
+  ['bytesrequired_190',['bytesRequired',['../namespacedev.html#a92951aa87f4ab646aabab8967fbd365f',1,'dev']]],
+  ['bytessec_191',['bytesSec',['../namespacedev.html#a94a2f054ba7d43aff585e8ec7546ad4d',1,'dev']]],
+  ['byzantium_5fblock_192',['byzantium_block',['../namespacetaraxa_1_1state__api.html#ab5bf595e29304fcaae9657c01e4e8158',1,'taraxa::state_api::ETHChainConfig']]],
+  ['log_193',['log',['../namespaceboost_1_1log.html',1,'boost']]],
+  ['building_20taraxa_2dnode_194',['Building taraxa-node',['../md_doc_building.html',1,'']]]
 ];
