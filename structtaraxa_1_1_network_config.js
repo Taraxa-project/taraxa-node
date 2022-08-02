@@ -1,12 +1,12 @@
 var structtaraxa_1_1_network_config =
 [
     [ "validate", "structtaraxa_1_1_network_config.html#a6842ef9818d8bfa2a789ca3afb3b4d22", null ],
+    [ "chain_id", "structtaraxa_1_1_network_config.html#af156df48ef3f926bad4b7686ada76584", null ],
     [ "deep_syncing_threshold", "structtaraxa_1_1_network_config.html#a5c2b116ffa131039491a84f8efbceb1c", null ],
     [ "disable_peer_blacklist", "structtaraxa_1_1_network_config.html#aecd55fa8d7ebec1b3bc00e97cf74119c", null ],
     [ "json_file_name", "structtaraxa_1_1_network_config.html#a75386e6421c5d75980fe9fa0772dc338", null ],
     [ "kBlacklistTimeoutDefaultInSeconds", "structtaraxa_1_1_network_config.html#a51247ea862ddf795e2eaf53c189490c3", null ],
     [ "network_boot_nodes", "structtaraxa_1_1_network_config.html#ad628537c5b9a7f7fdb271619672937d1", null ],
-    [ "network_id", "structtaraxa_1_1_network_config.html#a66050f544d4f02ced80b5859ce46646a", null ],
     [ "network_ideal_peer_count", "structtaraxa_1_1_network_config.html#afd1d391b7e579546b48aec70ea912464", null ],
     [ "network_listen_ip", "structtaraxa_1_1_network_config.html#aa3ad7839efefce3d499ee15993e5f8de", null ],
     [ "network_max_peer_count", "structtaraxa_1_1_network_config.html#a087d6cb34d30e4e3ed8d7962bb432df7", null ],

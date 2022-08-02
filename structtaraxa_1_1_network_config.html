@@ -127,8 +127,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a27db462618790b35b28f6166b5500a2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1867e8e16fdc5212c58105f4162093e5"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a1867e8e16fdc5212c58105f4162093e5">network_sync_level_size</a> = 0</td></tr>
 <tr class="separator:a1867e8e16fdc5212c58105f4162093e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a66050f544d4f02ced80b5859ce46646a"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a66050f544d4f02ced80b5859ce46646a">network_id</a></td></tr>
-<tr class="separator:a66050f544d4f02ced80b5859ce46646a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af156df48ef3f926bad4b7686ada76584"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#af156df48ef3f926bad4b7686ada76584">chain_id</a></td></tr>
+<tr class="separator:af156df48ef3f926bad4b7686ada76584"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac3c9851b66fa4cd33b7bd6c398342e74"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#ac3c9851b66fa4cd33b7bd6c398342e74">network_performance_log_interval</a> = 0</td></tr>
 <tr class="separator:ac3c9851b66fa4cd33b7bd6c398342e74"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a58966c44788bbf33069e2245c3322ead"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a58966c44788bbf33069e2245c3322ead">network_num_threads</a> = std::max(uint(1), uint(std::thread::hardware_concurrency() / 2))</td></tr>
@@ -166,6 +166,20 @@ Static Public Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="af156df48ef3f926bad4b7686ada76584"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af156df48ef3f926bad4b7686ada76584">&#9670;&nbsp;</a></span>chain_id</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t taraxa::NetworkConfig::chain_id</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a5c2b116ffa131039491a84f8efbceb1c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5c2b116ffa131039491a84f8efbceb1c">&#9670;&nbsp;</a></span>deep_syncing_threshold</h2>
 
@@ -238,20 +252,6 @@ Static Public Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::vector&lt;<a class="el" href="namespacetaraxa.html#structtaraxa_1_1_node_config">NodeConfig</a>&gt; taraxa::NetworkConfig::network_boot_nodes</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a66050f544d4f02ced80b5859ce46646a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a66050f544d4f02ced80b5859ce46646a">&#9670;&nbsp;</a></span>network_id</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint64_t taraxa::NetworkConfig::network_id</td>
         </tr>
       </table>
 </div><div class="memdoc">

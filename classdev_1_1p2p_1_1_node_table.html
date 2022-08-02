@@ -125,8 +125,8 @@ Classes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a719a6151ec3c8a4806c38645c621c1d2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#a719a6151ec3c8a4806c38645c621c1d2">NodeTable</a> (ba::io_context &amp;_io, <a class="el" href="classdev_1_1_key_pair.html">KeyPair</a> const &amp;_alias, <a class="el" href="classdev_1_1p2p_1_1_node_i_p_endpoint.html">NodeIPEndpoint</a> const &amp;_endpoint, <a class="el" href="classdev_1_1p2p_1_1_e_n_r.html">ENR</a> const &amp;_enr, bool _enabled=true, bool _allowLocalDiscovery=false, bool is_boot_node=false, unsigned network_id=0)</td></tr>
-<tr class="separator:a719a6151ec3c8a4806c38645c621c1d2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae6be78eae27ea37219e69e649699431b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#ae6be78eae27ea37219e69e649699431b">NodeTable</a> (ba::io_context &amp;_io, <a class="el" href="classdev_1_1_key_pair.html">KeyPair</a> const &amp;_alias, <a class="el" href="classdev_1_1p2p_1_1_node_i_p_endpoint.html">NodeIPEndpoint</a> const &amp;_endpoint, <a class="el" href="classdev_1_1p2p_1_1_e_n_r.html">ENR</a> const &amp;_enr, bool _enabled=true, bool _allowLocalDiscovery=false, bool is_boot_node=false, unsigned chain_id=0)</td></tr>
+<tr class="separator:ae6be78eae27ea37219e69e649699431b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a99398857f494dfdd15d0ee17ac4fb44a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#a99398857f494dfdd15d0ee17ac4fb44a">~NodeTable</a> ()</td></tr>
 <tr class="separator:a99398857f494dfdd15d0ee17ac4fb44a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1c8016d89e5933de76a5a03293dc8f9d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#a1c8016d89e5933de76a5a03293dc8f9d">setEventHandler</a> (<a class="el" href="classdev_1_1p2p_1_1_node_table_event_handler.html">NodeTableEventHandler</a> *_handler)</td></tr>
@@ -291,8 +291,8 @@ Protected Attributes</h2></td></tr>
 <tr class="separator:a8f7cd99a2dbd31b49385afec1cdaef88"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7689da715d506749ce8e308266a1e645"><td class="memItemLeft" align="right" valign="top">const bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#a7689da715d506749ce8e308266a1e645">is_boot_node_</a> = false</td></tr>
 <tr class="separator:a7689da715d506749ce8e308266a1e645"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abad30f08d9ceee559e5bd25f65bbd50f"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#abad30f08d9ceee559e5bd25f65bbd50f">network_id_</a> = 0</td></tr>
-<tr class="separator:abad30f08d9ceee559e5bd25f65bbd50f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a67fe93934e32728b3802154d3129718d"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#a67fe93934e32728b3802154d3129718d">chain_id_</a> = 0</td></tr>
+<tr class="separator:a67fe93934e32728b3802154d3129718d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-static-attribs"></a>
 Static Protected Attributes</h2></td></tr>
@@ -460,8 +460,8 @@ nodes</td>
 </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a719a6151ec3c8a4806c38645c621c1d2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a719a6151ec3c8a4806c38645c621c1d2">&#9670;&nbsp;</a></span>NodeTable()</h2>
+<a id="ae6be78eae27ea37219e69e649699431b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae6be78eae27ea37219e69e649699431b">&#9670;&nbsp;</a></span>NodeTable()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -512,7 +512,7 @@ nodes</td>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">unsigned&#160;</td>
-          <td class="paramname"><em>network_id</em> = <code>0</code>&#160;</td>
+          <td class="paramname"><em>chain_id</em> = <code>0</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -1847,6 +1847,28 @@ nodes</td>
 
 </div>
 </div>
+<a id="a67fe93934e32728b3802154d3129718d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a67fe93934e32728b3802154d3129718d">&#9670;&nbsp;</a></span>chain_id_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const uint32_t dev::p2p::NodeTable::chain_id_ = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a7689da715d506749ce8e308266a1e645"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a7689da715d506749ce8e308266a1e645">&#9670;&nbsp;</a></span>is_boot_node_</h2>
 
@@ -2356,28 +2378,6 @@ nodes</td>
       <table class="memname">
         <tr>
           <td class="memname">std::shared_ptr&lt;ba::steady_timer&gt; dev::p2p::NodeTable::m_timeoutsTimer</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="abad30f08d9ceee559e5bd25f65bbd50f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abad30f08d9ceee559e5bd25f65bbd50f">&#9670;&nbsp;</a></span>network_id_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const uint32_t dev::p2p::NodeTable::network_id_ = 0</td>
         </tr>
       </table>
   </td>

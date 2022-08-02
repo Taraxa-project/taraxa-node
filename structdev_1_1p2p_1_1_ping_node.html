@@ -109,8 +109,8 @@ Collaboration diagram for dev::p2p::PingNode:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a71022d654f5a5053968981bb8830d42b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_ping_node.html#a71022d654f5a5053968981bb8830d42b">PingNode</a> (<a class="el" href="classdev_1_1p2p_1_1_node_i_p_endpoint.html">NodeIPEndpoint</a> const &amp;_src, <a class="el" href="classdev_1_1p2p_1_1_node_i_p_endpoint.html">NodeIPEndpoint</a> const &amp;_dest, unsigned _network_id)</td></tr>
-<tr class="separator:a71022d654f5a5053968981bb8830d42b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abc43437e237ee6b7038ca39e0996ce0a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_ping_node.html#abc43437e237ee6b7038ca39e0996ce0a">PingNode</a> (<a class="el" href="classdev_1_1p2p_1_1_node_i_p_endpoint.html">NodeIPEndpoint</a> const &amp;_src, <a class="el" href="classdev_1_1p2p_1_1_node_i_p_endpoint.html">NodeIPEndpoint</a> const &amp;_dest, unsigned _chain_id)</td></tr>
+<tr class="separator:abc43437e237ee6b7038ca39e0996ce0a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af88cfe9310d8858db4dfc4c6e2fb6d2e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_ping_node.html#af88cfe9310d8858db4dfc4c6e2fb6d2e">PingNode</a> (bi::udp::endpoint const &amp;_from, <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">NodeID</a> const &amp;_fromid, <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> const &amp;_echo)</td></tr>
 <tr class="separator:af88cfe9310d8858db4dfc4c6e2fb6d2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a00201dc4894acd67d7da6a67731d444c"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_ping_node.html#a00201dc4894acd67d7da6a67731d444c">packetType</a> () const override</td></tr>
@@ -155,8 +155,8 @@ Public Member Functions</h2></td></tr>
 Public Attributes</h2></td></tr>
 <tr class="memitem:a99886a78e067ecac1b82cb7d7958f2f4"><td class="memItemLeft" align="right" valign="top">unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_ping_node.html#a99886a78e067ecac1b82cb7d7958f2f4">version</a> = 0</td></tr>
 <tr class="separator:a99886a78e067ecac1b82cb7d7958f2f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a72442899bab7be59c957472ee9bc00d9"><td class="memItemLeft" align="right" valign="top">unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_ping_node.html#a72442899bab7be59c957472ee9bc00d9">network_id</a> = 0</td></tr>
-<tr class="separator:a72442899bab7be59c957472ee9bc00d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afcd5d1239928318043820d5686477567"><td class="memItemLeft" align="right" valign="top">unsigned&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_ping_node.html#afcd5d1239928318043820d5686477567">chain_id</a> = 0</td></tr>
+<tr class="separator:afcd5d1239928318043820d5686477567"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a658e39b82d1ed1c1bf20e0cdbf214f41"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classdev_1_1p2p_1_1_node_i_p_endpoint.html">NodeIPEndpoint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_ping_node.html#a658e39b82d1ed1c1bf20e0cdbf214f41">source</a></td></tr>
 <tr class="separator:a658e39b82d1ed1c1bf20e0cdbf214f41"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a96903ffb0e57ff275c84d6d4b305dcd0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classdev_1_1p2p_1_1_node_i_p_endpoint.html">NodeIPEndpoint</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structdev_1_1p2p_1_1_ping_node.html#a96903ffb0e57ff275c84d6d4b305dcd0">destination</a></td></tr>
@@ -203,8 +203,8 @@ Additional Inherited Members</h2></td></tr>
 <div class="textblock"><p>Ping packet: Sent to check if node is alive. <a class="el" href="structdev_1_1p2p_1_1_ping_node.html">PingNode</a> is cached and regenerated after timestamp + t, where t is timeout.</p>
 <p>Ping is used to implement evict. When a new node is seen for a given bucket which is full, the least-responsive node is pinged. If the pinged node doesn't respond, then it is removed and the new node is inserted. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a71022d654f5a5053968981bb8830d42b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a71022d654f5a5053968981bb8830d42b">&#9670;&nbsp;</a></span>PingNode() <span class="overload">[1/2]</span></h2>
+<a id="abc43437e237ee6b7038ca39e0996ce0a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abc43437e237ee6b7038ca39e0996ce0a">&#9670;&nbsp;</a></span>PingNode() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -228,7 +228,7 @@ Additional Inherited Members</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">unsigned&#160;</td>
-          <td class="paramname"><em>_network_id</em>&#160;</td>
+          <td class="paramname"><em>_chain_id</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -447,6 +447,20 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="afcd5d1239928318043820d5686477567"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afcd5d1239928318043820d5686477567">&#9670;&nbsp;</a></span>chain_id</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned dev::p2p::PingNode::chain_id = 0</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a96903ffb0e57ff275c84d6d4b305dcd0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a96903ffb0e57ff275c84d6d4b305dcd0">&#9670;&nbsp;</a></span>destination</h2>
 
@@ -455,20 +469,6 @@ Additional Inherited Members</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="classdev_1_1p2p_1_1_node_i_p_endpoint.html">NodeIPEndpoint</a> dev::p2p::PingNode::destination</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a72442899bab7be59c957472ee9bc00d9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a72442899bab7be59c957472ee9bc00d9">&#9670;&nbsp;</a></span>network_id</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">unsigned dev::p2p::PingNode::network_id = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">

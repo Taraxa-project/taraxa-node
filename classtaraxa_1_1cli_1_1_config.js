@@ -1,10 +1,10 @@
 var classtaraxa_1_1cli_1_1_config =
 [
-    [ "NetworkIdType", "classtaraxa_1_1cli_1_1_config.html#a34d09cb471a83d4f554042c411e8d417", [
-      [ "Mainnet", "classtaraxa_1_1cli_1_1_config.html#a34d09cb471a83d4f554042c411e8d417a953c0a0c67e864d0f080b5e705f45a81", null ],
-      [ "Testnet", "classtaraxa_1_1cli_1_1_config.html#a34d09cb471a83d4f554042c411e8d417a5c8eec58d9d95f04d258f707d114a8e4", null ],
-      [ "Devnet", "classtaraxa_1_1cli_1_1_config.html#a34d09cb471a83d4f554042c411e8d417a0ec424ed9d3f67c3dd3cbe5f4c61b009", null ],
-      [ "LastNetworkId", "classtaraxa_1_1cli_1_1_config.html#a34d09cb471a83d4f554042c411e8d417a64b6ff4ea8584ef14c950f064e63e6f9", null ]
+    [ "ChainIdType", "classtaraxa_1_1cli_1_1_config.html#abae7b6b0870424c869316e2e105eb3b5", [
+      [ "Mainnet", "classtaraxa_1_1cli_1_1_config.html#abae7b6b0870424c869316e2e105eb3b5a953c0a0c67e864d0f080b5e705f45a81", null ],
+      [ "Testnet", "classtaraxa_1_1cli_1_1_config.html#abae7b6b0870424c869316e2e105eb3b5a5c8eec58d9d95f04d258f707d114a8e4", null ],
+      [ "Devnet", "classtaraxa_1_1cli_1_1_config.html#abae7b6b0870424c869316e2e105eb3b5a0ec424ed9d3f67c3dd3cbe5f4c61b009", null ],
+      [ "LastNetworkId", "classtaraxa_1_1cli_1_1_config.html#abae7b6b0870424c869316e2e105eb3b5a64b6ff4ea8584ef14c950f064e63e6f9", null ]
     ] ],
     [ "Config", "classtaraxa_1_1cli_1_1_config.html#a7b463f3b303b6f6d8c97c7ca92943617", null ],
     [ "addNewHardforks", "classtaraxa_1_1cli_1_1_config.html#ab9b106b6bb9dd1334d6da93e143af4ed", null ],
@@ -14,17 +14,17 @@ var classtaraxa_1_1cli_1_1_config =
     [ "ACCOUNT_COMMAND", "classtaraxa_1_1cli_1_1_config.html#aefd8336821cddd1d12517048cedb73dc", null ],
     [ "BOOT_NODES", "classtaraxa_1_1cli_1_1_config.html#a429389baad782d37e15107c72f3e1eb8", null ],
     [ "BOOT_NODES_APPEND", "classtaraxa_1_1cli_1_1_config.html#aafd8e83fb66d62165e39cdc4941b8033", null ],
+    [ "CHAIN_ID", "classtaraxa_1_1cli_1_1_config.html#ab485108d9e6ed18cf61dc9f515fd8d75", null ],
     [ "COMMAND", "classtaraxa_1_1cli_1_1_config.html#a9c04d754a682827ccc65600bf75735a1", null ],
     [ "CONFIG", "classtaraxa_1_1cli_1_1_config.html#a095c7c1e554607c41443710f97d884a9", null ],
     [ "CONFIG_COMMAND", "classtaraxa_1_1cli_1_1_config.html#aef3b5494e55ee620e239480e158bf2de", null ],
     [ "DATA_DIR", "classtaraxa_1_1cli_1_1_config.html#a5d79b3d22315006055fb798c81c7f338", null ],
-    [ "DEFAULT_NETWORK_ID", "classtaraxa_1_1cli_1_1_config.html#a46d11514184c23522298ab1fff5c4e8c", null ],
+    [ "DEFAULT_CHAIN_ID", "classtaraxa_1_1cli_1_1_config.html#a2ca7d9d2c7c4f6250799199e06c15301", null ],
     [ "DESTROY_DB", "classtaraxa_1_1cli_1_1_config.html#a31fcb2a538b5031bb86c5c1dcdffad6c", null ],
     [ "HELP", "classtaraxa_1_1cli_1_1_config.html#aa731c143ec5fdbb7bb6c770457616c93", null ],
     [ "LOG_CHANNELS", "classtaraxa_1_1cli_1_1_config.html#aab1ed69a5e4fb38e3649fd197dd4d1e6", null ],
     [ "LOG_CHANNELS_APPEND", "classtaraxa_1_1cli_1_1_config.html#a57ec4dc90c87397725129f25e4a5934f", null ],
     [ "LOG_CONFIGURATIONS", "classtaraxa_1_1cli_1_1_config.html#ab9e51cd5f55999a1da8ee99d3255f99a", null ],
-    [ "NETWORK_ID", "classtaraxa_1_1cli_1_1_config.html#ad0f8d3059d8b5a026ff06f6e4b742522", null ],
     [ "NODE_COMMAND", "classtaraxa_1_1cli_1_1_config.html#a94f9809b7efd0a71386655cea49d4ce0", null ],
     [ "node_config_", "classtaraxa_1_1cli_1_1_config.html#ac880d1d588ac08651bce9522e3110451", null ],
     [ "node_configured_", "classtaraxa_1_1cli_1_1_config.html#aad52a2c6f0dbba5387779f2785ab80a5", null ],
