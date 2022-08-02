@@ -315,9 +315,9 @@ TEST_F(TransactionTest, priority_queue) {
   {
     TransactionQueue priority_queue;
     uint32_t nonce = 0;
-    auto trx = std::make_shared<Transaction>(nonce++, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
+    auto trx = std::make_shared<Transaction>(nonce++, 1, 1, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
                                              addr_t::random());
-    auto trx2 = std::make_shared<Transaction>(nonce, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
+    auto trx2 = std::make_shared<Transaction>(nonce, 1, 1, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
                                               addr_t::random());
     const auto trx_hash = trx->getHash();
     priority_queue.insert({trx2, TransactionStatus::Verified}, 1);
@@ -330,7 +330,7 @@ TEST_F(TransactionTest, priority_queue) {
   {
     TransactionQueue priority_queue;
     uint32_t nonce = 0;
-    auto trx = std::make_shared<Transaction>(nonce, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
+    auto trx = std::make_shared<Transaction>(nonce, 1, 1, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
                                              addr_t::random());
     auto trx2 = trx;
     EXPECT_TRUE(priority_queue.insert({trx, TransactionStatus::Verified}, 1));
@@ -342,9 +342,9 @@ TEST_F(TransactionTest, priority_queue) {
   {
     TransactionQueue priority_queue;
     uint32_t nonce = 0;
-    auto trx = std::make_shared<Transaction>(nonce, 1, 10, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
+    auto trx = std::make_shared<Transaction>(nonce, 1, 10, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
                                              addr_t::random());
-    auto trx2 = std::make_shared<Transaction>(nonce, 1, 1, 100, str2bytes("00FEDCBA9876543210000000"), g_secret,
+    auto trx2 = std::make_shared<Transaction>(nonce, 1, 1, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
                                               addr_t::random());
     auto trx_hash = trx->getHash();
     priority_queue.insert({trx2, TransactionStatus::Verified}, 1);
@@ -363,11 +363,11 @@ TEST_F(TransactionTest, priority_queue) {
   */
   {
     TransactionQueue priority_queue;
-    auto trxa1 = std::make_shared<Transaction>(1 /*nonce*/, 1, 5 /*fee*/, 100, str2bytes("00FEDCBA9876543210000000"),
+    auto trxa1 = std::make_shared<Transaction>(1 /*nonce*/, 1, 5 /*fee*/, 100, dev::fromHex("00FEDCBA9876543210000000"),
                                                g_secret, addr_t::random());
-    auto trxa2 = std::make_shared<Transaction>(2 /*nonce*/, 1, 6 /*fee*/, 100, str2bytes("00FEDCBA9876543210000000"),
+    auto trxa2 = std::make_shared<Transaction>(2 /*nonce*/, 1, 6 /*fee*/, 100, dev::fromHex("00FEDCBA9876543210000000"),
                                                g_secret, addr_t::random());
-    auto trxb1 = std::make_shared<Transaction>(1 /*nonce*/, 1, 4 /*fee*/, 100, str2bytes("00FEDCBA9876543210000000"),
+    auto trxb1 = std::make_shared<Transaction>(1 /*nonce*/, 1, 4 /*fee*/, 100, dev::fromHex("00FEDCBA9876543210000000"),
                                                secret_t::random(), addr_t::random());
     auto trxa1_hash = trxa1->getHash();
     auto trxa2_hash = trxa2->getHash();

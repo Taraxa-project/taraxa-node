@@ -1406,7 +1406,7 @@ TEST_F(FullNodeTest, transfer_to_self) {
   uint64_t trx_count(100);
   EXPECT_TRUE(initial_bal.second);
   for (uint64_t i = 0; i < trx_count; ++i) {
-    const auto trx = std::make_shared<Transaction>(i, i * 100, 0, 1000000, str2bytes("00FEDCBA9876543210000000"),
+    const auto trx = std::make_shared<Transaction>(i, i * 100, 0, 1000000, dev::fromHex("00FEDCBA9876543210000000"),
                                                    g_secret, node_addr);
     nodes[0]->getTransactionManager()->insertTransaction(trx);
   }
@@ -1542,34 +1542,34 @@ TEST_F(FullNodeTest, transaction_validation) {
   const uint32_t gasprice = 1;
   const uint32_t gas = 100000;
 
-  auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, str2bytes("00FEDCBA9876543210000000"),
+  auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
                                            nodes[0]->getSecretKey(), addr_t::random());
   // PASS on GAS
   EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
-  trx =
-      std::make_shared<Transaction>(nonce++, 0, gasprice, FinalChain::GAS_LIMIT + 1,
-                                    str2bytes("00FEDCBA9876543210000000"), nodes[0]->getSecretKey(), addr_t::random());
+  trx = std::make_shared<Transaction>(nonce++, 0, gasprice, FinalChain::GAS_LIMIT + 1,
+                                      dev::fromHex("00FEDCBA9876543210000000"), nodes[0]->getSecretKey(),
+                                      addr_t::random());
   // FAIL on GAS
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 
-  trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, str2bytes("00FEDCBA9876543210000000"),
+  trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
                                       nodes[0]->getSecretKey(), addr_t::random());
   // PASS on NONCE
   EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
   wait({60s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), 2) });
-  trx = std::make_shared<Transaction>(0, 0, gasprice, gas, str2bytes("00FEDCBA9876543210000000"),
+  trx = std::make_shared<Transaction>(0, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
                                       nodes[0]->getSecretKey(), addr_t::random());
   // FAIL on NONCE
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 
-  trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, str2bytes("00FEDCBA9876543210000000"),
+  trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
                                       nodes[0]->getSecretKey(), addr_t::random());
   // PASS on BALANCE
   EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 
-  trx =
-      std::make_shared<Transaction>(nonce++, own_effective_genesis_bal(nodes[0]->getConfig()) + 1, 0, gas,
-                                    str2bytes("00FEDCBA9876543210000000"), nodes[0]->getSecretKey(), addr_t::random());
+  trx = std::make_shared<Transaction>(nonce++, own_effective_genesis_bal(nodes[0]->getConfig()) + 1, 0, gas,
+                                      dev::fromHex("00FEDCBA9876543210000000"), nodes[0]->getSecretKey(),
+                                      addr_t::random());
   // FAIL on BALANCE
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 }
