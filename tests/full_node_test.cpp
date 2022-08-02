@@ -1576,12 +1576,12 @@ TEST_F(FullNodeTest, transaction_validation) {
 
 TEST_F(FullNodeTest, light_node) {
   auto node_cfgs = make_node_cfgs<10>(2);
-  node_cfgs[0].is_light_node = true;
-  node_cfgs[0].light_node_history = 10;
   node_cfgs[0].dag_expiry_limit = 5;
   node_cfgs[0].max_levels_per_period = 3;
   node_cfgs[1].dag_expiry_limit = 5;
   node_cfgs[1].max_levels_per_period = 3;
+  node_cfgs[1].is_light_node = true;
+  node_cfgs[1].light_node_history = 10;
   auto nodes = launch_nodes(node_cfgs);
   uint64_t nonce = 0;
   while (nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks() < 20) {
@@ -1597,15 +1597,16 @@ TEST_F(FullNodeTest, light_node) {
                    nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks())
   });
   uint32_t non_empty_counter = 0;
-  for (uint64_t i = 0; i < nodes[0]->getPbftChain()->getPbftChainSize(); i++) {
-    const auto pbft_block = nodes[0]->getDB()->getPbftBlock(i);
+  for (uint64_t i = 0; i < nodes[1]->getPbftChain()->getPbftChainSize(); i++) {
+    const auto pbft_block = nodes[1]->getDB()->getPbftBlock(i);
     if (pbft_block) {
       non_empty_counter++;
     }
   }
   // Verify light node stores only expected number of period_data
-  EXPECT_GE(non_empty_counter, node_cfgs[0].light_node_history);
-  EXPECT_LE(non_empty_counter, node_cfgs[0].light_node_history + 1);
+  // const uint64_t expected_non_emp = std::min(period_ - light_node_history_, *proposal_period);
+  EXPECT_GE(non_empty_counter, node_cfgs[1].light_node_history);
+  EXPECT_LE(non_empty_counter, node_cfgs[1].light_node_history + 2);
 }
 
 TEST_F(FullNodeTest, clear_period_data) {
