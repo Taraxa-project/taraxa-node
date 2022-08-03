@@ -1,5 +1,6 @@
 set(HEADERS
     include/logger/logger.hpp
+    include/logger/shared_logger.hpp
     include/logger/logger_config.hpp
 )
 

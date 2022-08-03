@@ -44,6 +44,6 @@ class Step {
   std::shared_ptr<RoundFace> round_;
   std::shared_ptr<NodeFace> node_;
 
-  LOG_OBJECTS_DEFINE
+  LOG_OBJECTS_REF_DEFINE
 };
 }  // namespace taraxa
