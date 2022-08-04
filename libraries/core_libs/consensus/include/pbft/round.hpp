@@ -57,7 +57,7 @@ class Round : public RoundFace {
 
   void initDbValues();
 
-  LOG_OBJECTS_DEFINE
+  LOG_OBJECTS_REF_DEFINE
 };
 
 }  // namespace taraxa

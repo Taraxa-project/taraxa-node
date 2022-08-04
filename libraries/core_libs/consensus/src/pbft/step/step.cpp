@@ -7,10 +7,12 @@
 namespace taraxa {
 
 Step::Step(uint64_t id, std::shared_ptr<RoundFace> round)
-    : id_(id), type_(stepTypeFromId(id)), round_(std::move(round)), node_(round_->getNode()) {
-  const auto& node_addr = node_->node_addr_;
-  LOG_OBJECTS_CREATE("STEP_" + std::to_string(id_));
-}
+    : id_(id),
+      type_(stepTypeFromId(id)),
+      round_(std::move(round)),
+      node_(round_->getNode()),
+      LOG_OBJECTS_INITIALIZE_FROM_SHARED(node_->step_logger) {}
+
 bool Step::giveUpNextVotedBlock_() {
   auto pm = node_->pbft_manager_.lock();
   if (!pm) {

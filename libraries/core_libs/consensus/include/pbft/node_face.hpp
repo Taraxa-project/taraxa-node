@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/types.hpp"
+#include "logger/shared_logger.hpp"
 #include "network/network.hpp"
 
 namespace taraxa {
@@ -26,7 +27,9 @@ struct NodeFace {
         dag_mgr_(std::move(dm)),
         dag_blk_mgr_(std::move(dbm)),
         trx_mgr_(std::move(tm)),
-        final_chain_(std::move(fc)) {}
+        final_chain_(std::move(fc)),
+        step_logger("STEP", addr),
+        round_logger("ROUND", addr) {}
   // TODO:  circular dependency. should be resolved
   std::weak_ptr<PbftManager> pbft_manager_;
 
@@ -43,6 +46,9 @@ struct NodeFace {
   std::shared_ptr<DagBlockManager> dag_blk_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
+
+  logger::SharedLogger step_logger;
+  logger::SharedLogger round_logger;
 };
 
 }  // namespace taraxa

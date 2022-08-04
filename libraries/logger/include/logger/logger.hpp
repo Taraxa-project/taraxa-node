@@ -66,6 +66,14 @@ void InitLogging(Config& logging_config, const addr_t& node_id);
   mutable taraxa::logger::Logger log_dg_; \
   mutable taraxa::logger::Logger log_tr_;
 
+#define LOG_OBJECTS_REF_DEFINE     \
+  taraxa::logger::Logger& log_si_; \
+  taraxa::logger::Logger& log_er_; \
+  taraxa::logger::Logger& log_wr_; \
+  taraxa::logger::Logger& log_nf_; \
+  taraxa::logger::Logger& log_dg_; \
+  taraxa::logger::Logger& log_tr_;
+
 #define LOG_OBJECTS_DEFINE_SUB(group)               \
   mutable taraxa::logger::Logger log_si_##group##_; \
   mutable taraxa::logger::Logger log_er_##group##_; \
@@ -89,3 +97,7 @@ void InitLogging(Config& logging_config, const addr_t& node_id);
   log_nf_##group##_ = taraxa::logger::createLogger(taraxa::logger::Verbosity::Info, channel, node_addr);    \
   log_tr_##group##_ = taraxa::logger::createLogger(taraxa::logger::Verbosity::Trace, channel, node_addr);   \
   log_dg_##group##_ = taraxa::logger::createLogger(taraxa::logger::Verbosity::Debug, channel, node_addr);
+
+#define LOG_OBJECTS_INITIALIZE_FROM_SHARED(shared)                                                    \
+  log_si_(shared.log_si_), log_er_(shared.log_er_), log_wr_(shared.log_wr_), log_nf_(shared.log_nf_), \
+      log_dg_(shared.log_dg_), log_tr_(shared.log_tr_)

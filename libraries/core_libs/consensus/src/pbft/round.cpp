@@ -11,9 +11,8 @@
 
 namespace taraxa {
 
-Round::Round(uint64_t id, std::shared_ptr<NodeFace> node) : RoundFace(id, std::move(node)) {
-  const auto& node_addr = getNode()->node_addr_;
-  LOG_OBJECTS_CREATE("ROUND_" + std::to_string(getId()));
+Round::Round(uint64_t id, std::shared_ptr<NodeFace> node)
+    : RoundFace(id, std::move(node)), LOG_OBJECTS_INITIALIZE_FROM_SHARED(node_->round_logger) {
   previous_round_next_voted_value_ = node_->next_votes_manager_->getVotedValue();
   previous_round_next_voted_null_block_hash_ = node_->next_votes_manager_->haveEnoughVotesForNullBlockHash();
 }
