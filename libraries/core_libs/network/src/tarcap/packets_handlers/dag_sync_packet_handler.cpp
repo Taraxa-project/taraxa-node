@@ -89,8 +89,14 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
       }
       case TransactionStatus::Verified:
         break;
+      default:
+        assert(false);
     }
-    new_transactions.push_back({std::move(trx), std::move(status)});
+    if (!trx_mgr_->isTransactionPoolFull()) [[likely]] {
+      new_transactions.push_back({std::move(trx), std::move(status)});
+    } else {
+      new_transactions.push_back({std::move(trx), std::move(TransactionStatus::Forced)});
+    }
   }
 
   trx_mgr_->insertValidatedTransactions(std::move(new_transactions));

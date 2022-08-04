@@ -12,7 +12,6 @@ TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_p
                                        std::shared_ptr<FinalChain> final_chain, addr_t node_addr)
     : conf_(conf),
       transactions_pool_(conf_.transactions_pool_size),
-      known_txs_(conf_.transactions_pool_size * 2, conf_.transactions_pool_size / 5),
       db_(std::move(db)),
       final_chain_(std::move(final_chain)) {
   LOG_OBJECTS_CREATE("TRXMGR");
@@ -86,22 +85,13 @@ std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
   return {TransactionStatus::Verified, ""};
 }
 
-void TransactionManager::markTransactionKnown(const trx_hash_t &trx_hash) { known_txs_.insert(trx_hash); }
-
-bool TransactionManager::isTransactionKnown(const trx_hash_t &trx_hash) { return known_txs_.contains(trx_hash); }
+bool TransactionManager::isTransactionKnown(const trx_hash_t &trx_hash) {
+  return transactions_pool_.isTransactionKnown(trx_hash);
+}
 
 std::pair<bool, std::string> TransactionManager::insertTransaction(const std::shared_ptr<Transaction> &trx) {
   if (isTransactionKnown(trx->getHash())) {
     return {false, "Transaction already in transactions pool"};
-  }
-
-  {
-    std::shared_lock transactions_lock(transactions_mutex_);
-    if (transactions_pool_.contains(trx->getHash())) {
-      return {false, "Transaction already in transactions pool"};
-    } else if (nonfinalized_transactions_in_dag_.contains(trx->getHash())) {
-      return {false, "Transaction already included in DAG block"};
-    }
   }
 
   const auto [status, reason] = verifyTransaction(trx);
@@ -147,7 +137,7 @@ uint32_t TransactionManager::insertValidatedTransactions(
       unseen_txs.push_back(std::move(txs[i]));
     } else {
       // In case we received a new tx that is already in db, mark it as known in cache
-      markTransactionKnown(txs[i].first->getHash());
+      transactions_pool_.markTransactionKnown(txs[i].first->getHash());
     }
   }
 
@@ -158,7 +148,6 @@ uint32_t TransactionManager::insertValidatedTransactions(
     LOG(log_dg_) << "Transaction " << tx_hash << " inserted in trx pool";
     if (transactions_pool_.insert(std::move(trx), last_block_number)) {
       trx_inserted_count++;
-      markTransactionKnown(tx_hash);
     }
   }
   return trx_inserted_count;
@@ -254,6 +243,11 @@ void TransactionManager::recoverNonfinalizedTransactions() {
 size_t TransactionManager::getTransactionPoolSize() const {
   std::shared_lock transactions_lock(transactions_mutex_);
   return transactions_pool_.size();
+}
+
+bool TransactionManager::isTransactionPoolFull() const {
+  std::shared_lock transactions_lock(transactions_mutex_);
+  return transactions_pool_.size() >= conf_.transactions_pool_size;
 }
 
 size_t TransactionManager::getNonfinalizedTrxSize() const {

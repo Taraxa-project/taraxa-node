@@ -31,7 +31,7 @@ class TaraxaPeer : public boost::noncopyable {
    * known)
    */
   bool markDagBlockAsKnown(blk_hash_t const &_hash) { return known_dag_blocks_.insert(_hash); }
-  bool isDagBlockKnown(blk_hash_t const &_hash) const { return known_dag_blocks_.count(_hash); }
+  bool isDagBlockKnown(blk_hash_t const &_hash) const { return known_dag_blocks_.contains(_hash); }
 
   /**
    * @brief Mark transaction as known
@@ -41,7 +41,7 @@ class TaraxaPeer : public boost::noncopyable {
    * known)
    */
   bool markTransactionAsKnown(trx_hash_t const &_hash) { return known_transactions_.insert(_hash); }
-  bool isTransactionKnown(trx_hash_t const &_hash) const { return known_transactions_.count(_hash); }
+  bool isTransactionKnown(trx_hash_t const &_hash) const { return known_transactions_.contains(_hash); }
 
   // PBFT
   /**
@@ -51,7 +51,7 @@ class TaraxaPeer : public boost::noncopyable {
    * @return true in case vote was actually marked as known(was not known before), otherwise false (was already known)
    */
   bool markVoteAsKnown(vote_hash_t const &_hash) { return known_votes_.insert(_hash); }
-  bool isVoteKnown(vote_hash_t const &_hash) const { return known_votes_.count(_hash); }
+  bool isVoteKnown(vote_hash_t const &_hash) const { return known_votes_.contains(_hash); }
 
   /**
    * @brief Mark pbft block as known
@@ -61,7 +61,7 @@ class TaraxaPeer : public boost::noncopyable {
    * known)
    */
   bool markPbftBlockAsKnown(blk_hash_t const &_hash) { return known_pbft_blocks_.insert(_hash); }
-  bool isPbftBlockKnown(blk_hash_t const &_hash) const { return known_pbft_blocks_.count(_hash); }
+  bool isPbftBlockKnown(blk_hash_t const &_hash) const { return known_pbft_blocks_.contains(_hash); }
 
   const dev::p2p::NodeID &getId() const { return id_; }
 
