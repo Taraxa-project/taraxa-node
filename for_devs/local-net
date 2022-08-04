@@ -47,13 +47,14 @@ def cli():
 @click.option('--boot-nodes', default=3, help='Number of boot nodes')
 @click.option('--rpc-nodes', default=3, help='Number of RPC nodes')
 @click.option('--tps', default=0, help='Number of transactions per second (if zero the faucet will not start)')
+@click.option('--enable-test-rpc', is_flag=True, default=False, help='Enables Test JsonRPC')
 @click.argument('binary')
-def start(boot_nodes, rpc_nodes, tps, binary):
+def start(boot_nodes, rpc_nodes, tps, enable_test_rpc, binary):
     """Start a local testnet"""
     binary = os.path.realpath(binary)
 
     config(binary, boot_nodes, rpc_nodes)
-    start_workers(binary, boot_nodes, rpc_nodes, tps)
+    start_workers(binary, boot_nodes, rpc_nodes, tps, enable_test_rpc)
 
 
 def config(binary, boot_nodes, rpc_nodes):
@@ -236,7 +237,7 @@ def generate_wallet(binary):
     return (private_key, public_key, public_address, vrf_secret, vrf_key)
 
 
-def start_workers(binary, boot_nodes, rpc_nodes, tps):
+def start_workers(binary, boot_nodes, rpc_nodes, tps, enable_test_rpc):
     c = list(colors.keys())
     for type in ("boot", "rpc"):
         if type == "boot":
@@ -256,7 +257,7 @@ def start_workers(binary, boot_nodes, rpc_nodes, tps):
 
             worker_colors[worker_name] = color
             thread = threading.Thread(
-                target=node_worker, args=(binary, worker_name))
+                target=node_worker, args=(binary, worker_name, enable_test_rpc))
             thread.start()
 
     if tps > 0:
@@ -270,8 +271,11 @@ def start_workers(binary, boot_nodes, rpc_nodes, tps):
         thread.start()
 
 
-def node_worker(binary, worker_name):
-    process = subprocess.Popen(f'{binary} --config ./{data_dir}/conf-{worker_name}.json --wallet ./{data_dir}/wallet-{worker_name}.json',
+def node_worker(binary, worker_name, enable_test_rpc):
+    cmd = f'{binary} --config ./{data_dir}/conf-{worker_name}.json --wallet ./{data_dir}/wallet-{worker_name}.json'
+    if enable_test_rpc:
+        cmd += ' --enable-test-rpc '
+    process = subprocess.Popen(cmd,
                                shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     logs(worker_name, process)
 
