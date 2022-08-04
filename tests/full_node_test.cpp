@@ -9,6 +9,7 @@
 
 #include "cli/config.hpp"
 #include "cli/tools.hpp"
+#include "common/constants.hpp"
 #include "common/static_init.hpp"
 #include "dag/block_proposer.hpp"
 #include "dag/dag_manager.hpp"
@@ -1668,6 +1669,9 @@ TEST_F(FullNodeTest, clear_period_data) {
 
 TEST_F(FullNodeTest, transaction_pool_overflow) {
   auto node_cfgs = make_node_cfgs<5>(2);
+  for (auto &cfg : node_cfgs) {
+    cfg.transactions_pool_size = kMinTransactionPoolSize;
+  }
   auto nodes = launch_nodes(node_cfgs);
   uint32_t nonce = 0;
   const uint32_t gasprice = 5;
