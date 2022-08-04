@@ -28,30 +28,30 @@
 namespace taraxa::network::tarcap {
 
 TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key,
-                                   const NetworkConfig &conf, unsigned version)
+                                   const FullNodeConfig &conf, unsigned version)
     : test_state_(std::make_shared<TestState>()),
       version_(version),
-      net_conf_(conf),
+      kConf(conf),
       peers_state_(nullptr),
-      pbft_syncing_state_(std::make_shared<PbftSyncingState>(conf.deep_syncing_threshold)),
+      pbft_syncing_state_(std::make_shared<PbftSyncingState>(conf.network.deep_syncing_threshold)),
       node_stats_(nullptr),
       packets_handlers_(std::make_shared<PacketsHandler>()),
-      thread_pool_(std::make_shared<TarcapThreadPool>(conf.network_packets_processing_threads, key.address())),
+      thread_pool_(std::make_shared<TarcapThreadPool>(conf.network.network_packets_processing_threads, key.address())),
       periodic_events_tp_(std::make_shared<util::ThreadPool>(kPeriodicEventsThreadCount, false)) {
   const auto &node_addr = key.address();
   LOG_OBJECTS_CREATE("TARCAP");
 
   assert(host.lock());
-  peers_state_ = std::make_shared<PeersState>(host, host.lock()->id(), net_conf_);
+  peers_state_ = std::make_shared<PeersState>(host, host.lock()->id(), kConf);
 
   packets_stats_ = std::make_shared<PacketsStats>(node_addr);
 
   // Inits boot nodes (based on config)
-  initBootNodes(conf.network_boot_nodes, key);
+  initBootNodes(conf.network.network_boot_nodes, key);
 }
 
 std::shared_ptr<TaraxaCapability> TaraxaCapability::make(
-    std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const NetworkConfig &conf, const h256 &genesis_hash,
+    std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const FullNodeConfig &conf, const h256 &genesis_hash,
     unsigned version, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
     std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
     std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
@@ -67,11 +67,11 @@ void TaraxaCapability::init(const h256 &genesis_hash, std::shared_ptr<DbStorage>
                             std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
                             const dev::Address &node_addr) {
   // Creates and registers all packets handlers
-  registerPacketHandlers(net_conf_, genesis_hash, packets_stats_, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr,
+  registerPacketHandlers(kConf, genesis_hash, packets_stats_, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr,
                          dag_mgr, trx_mgr, node_addr);
 
   // Inits periodic events. Must be called after registerHandlers !!!
-  initPeriodicEvents(net_conf_, pbft_mgr, trx_mgr, packets_stats_);
+  initPeriodicEvents(kConf.network, pbft_mgr, trx_mgr, packets_stats_);
 }
 
 void TaraxaCapability::initBootNodes(const std::vector<NodeConfig> &network_boot_nodes, const dev::KeyPair &key) {
@@ -181,7 +181,7 @@ void TaraxaCapability::initPeriodicEvents(const NetworkConfig &conf, const std::
 }
 
 void TaraxaCapability::registerPacketHandlers(
-    const NetworkConfig &conf, const h256 &genesis_hash, const std::shared_ptr<PacketsStats> &packets_stats,
+    const FullNodeConfig &conf, const h256 &genesis_hash, const std::shared_ptr<PacketsStats> &packets_stats,
     const std::shared_ptr<DbStorage> &db, const std::shared_ptr<PbftManager> &pbft_mgr,
     const std::shared_ptr<PbftChain> &pbft_chain, const std::shared_ptr<VoteManager> &vote_mgr,
     const std::shared_ptr<NextVotesManager> &next_votes_mgr, const std::shared_ptr<DagManager> &dag_mgr,
@@ -221,11 +221,12 @@ void TaraxaCapability::registerPacketHandlers(
 
   // TODO there is additional logic, that should be moved outside process function
   packets_handlers_->registerHandler<GetPbftSyncPacketHandler>(peers_state_, packets_stats, pbft_syncing_state_,
-                                                               pbft_chain, db, conf.network_sync_level_size, node_addr);
+                                                               pbft_chain, db, conf.network.network_sync_level_size,
+                                                               node_addr);
 
   packets_handlers_->registerHandler<PbftSyncPacketHandler>(
       peers_state_, packets_stats, pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr, vote_mgr, periodic_events_tp_,
-      db, conf.network_sync_level_size, node_addr);
+      db, conf.network.network_sync_level_size, node_addr);
 
   thread_pool_->setPacketsHandlers(packets_handlers_);
 }

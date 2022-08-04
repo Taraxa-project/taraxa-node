@@ -181,7 +181,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   util::Event<TransactionManager, h256> const transaction_accepted_{};
 
  private:
-  const FullNodeConfig conf_;
+  const FullNodeConfig kConf;
   // Guards updating transaction status
   // Transactions can be in one of three states:
   // 1. In transactions pool; 2. In non-finalized Dag block 3. Executed

@@ -8,6 +8,7 @@
 
 #include "common/lazy.hpp"
 #include "common/static_init.hpp"
+#include "config/config.hpp"
 #include "dag/block_proposer.hpp"
 #include "dag/dag.hpp"
 #include "logger/logger.hpp"
@@ -42,8 +43,8 @@ struct NetworkTest : BaseTest {};
 
 // Test creates two Network setup and verifies sending block between is successfull
 TEST_F(NetworkTest, transfer_block) {
-  auto nw1 = std::make_unique<Network>(g_conf1->network);
-  auto nw2 = std::make_unique<Network>(g_conf2->network);
+  auto nw1 = std::make_unique<Network>(g_conf1);
+  auto nw2 = std::make_unique<Network>(g_conf2);
 
   nw1->start();
   nw2->start();
@@ -170,10 +171,10 @@ TEST_F(NetworkTest, send_pbft_block) {
 }
 
 TEST_F(NetworkTest, malicious_peers) {
-  NetworkConfig conf;
-  conf.network_peer_blacklist_timeout = 2;
+  FullNodeConfig conf;
+  conf.network.network_peer_blacklist_timeout = 2;
   std::shared_ptr<dev::p2p::Host> host;
-  EXPECT_EQ(conf.disable_peer_blacklist, false);
+  EXPECT_EQ(conf.network.disable_peer_blacklist, false);
   network::tarcap::PeersState state1(host, dev::p2p::NodeID(), conf);
   dev::p2p::NodeID id1(1);
   dev::p2p::NodeID id2(2);
@@ -181,21 +182,21 @@ TEST_F(NetworkTest, malicious_peers) {
   EXPECT_EQ(state1.is_peer_malicious(id1), true);
   EXPECT_EQ(state1.is_peer_malicious(id2), false);
 
-  conf.network_peer_blacklist_timeout = 0;
+  conf.network.network_peer_blacklist_timeout = 0;
   network::tarcap::PeersState state2(host, dev::p2p::NodeID(), conf);
   state2.set_peer_malicious(id1);
   EXPECT_EQ(state2.is_peer_malicious(id1), true);
   EXPECT_EQ(state2.is_peer_malicious(id2), false);
 
-  conf.network_peer_blacklist_timeout = 2;
-  conf.disable_peer_blacklist = true;
+  conf.network.network_peer_blacklist_timeout = 2;
+  conf.network.disable_peer_blacklist = true;
   network::tarcap::PeersState state3(host, dev::p2p::NodeID(), conf);
   state1.set_peer_malicious(id1);
   EXPECT_EQ(state3.is_peer_malicious(id1), false);
   EXPECT_EQ(state3.is_peer_malicious(id2), false);
 
-  conf.network_peer_blacklist_timeout = 0;
-  conf.disable_peer_blacklist = true;
+  conf.network.network_peer_blacklist_timeout = 0;
+  conf.network.disable_peer_blacklist = true;
   network::tarcap::PeersState state4(host, dev::p2p::NodeID(), conf);
   state1.set_peer_malicious(id1);
   EXPECT_EQ(state4.is_peer_malicious(id1), false);
@@ -302,8 +303,8 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
 // Test creates two Network setup and verifies sending transaction
 // between is successfull
 TEST_F(NetworkTest, transfer_transaction) {
-  auto nw1 = std::make_unique<Network>(g_conf1->network);
-  auto nw2 = std::make_unique<Network>(g_conf2->network);
+  auto nw1 = std::make_unique<Network>(g_conf1);
+  auto nw2 = std::make_unique<Network>(g_conf2);
   nw1->start();
   nw2->start();
 
@@ -340,11 +341,11 @@ TEST_F(NetworkTest, save_network) {
   h256 genesis_hash;
   {
     std::shared_ptr<Network> nw1 =
-        std::make_shared<taraxa::Network>(g_conf1->network, genesis_hash, Host::CapabilitiesFactory());
-    std::shared_ptr<Network> nw2 = std::make_shared<taraxa::Network>(g_conf2->network, genesis_hash,
-                                                                     Host::CapabilitiesFactory(), "/tmp/nw2", key2);
-    std::shared_ptr<Network> nw3 = std::make_shared<taraxa::Network>(g_conf3->network, genesis_hash,
-                                                                     Host::CapabilitiesFactory(), "/tmp/nw3", key3);
+        std::make_shared<taraxa::Network>(g_conf1, genesis_hash, Host::CapabilitiesFactory());
+    std::shared_ptr<Network> nw2 =
+        std::make_shared<taraxa::Network>(g_conf2, genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw2", key2);
+    std::shared_ptr<Network> nw3 =
+        std::make_shared<taraxa::Network>(g_conf3, genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw3", key3);
 
     nw1->start();
     nw2->start();
@@ -361,9 +362,9 @@ TEST_F(NetworkTest, save_network) {
   }
 
   std::shared_ptr<Network> nw2 =
-      std::make_shared<taraxa::Network>(g_conf2->network, genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw2", key2);
+      std::make_shared<taraxa::Network>(g_conf2, genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw2", key2);
   std::shared_ptr<Network> nw3 =
-      std::make_shared<taraxa::Network>(g_conf3->network, genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw3", key3);
+      std::make_shared<taraxa::Network>(g_conf3, genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw3", key3);
   nw2->start();
   nw3->start();
 
@@ -380,16 +381,16 @@ TEST_F(NetworkTest, node_chain_id) {
   auto node_cfgs = make_node_cfgs(2);
   {
     auto node_cfgs_ = node_cfgs;
-    node_cfgs_[0].network.chain_id = 1;
-    node_cfgs_[1].network.chain_id = 1;
+    node_cfgs_[0].chain_id = 1;
+    node_cfgs_[1].chain_id = 1;
     auto nodes = launch_nodes(node_cfgs_);
   }
   // we need to cleanup datadirs because we saved previous genesis_hash in db. And it is different after chain_id
   // change
   CleanupDirs();
   {
-    node_cfgs[0].network.chain_id = 1;
-    node_cfgs[1].network.chain_id = 2;
+    node_cfgs[0].chain_id = 1;
+    node_cfgs[1].chain_id = 2;
 
     auto nodes = create_nodes(node_cfgs, true /*start*/);
 

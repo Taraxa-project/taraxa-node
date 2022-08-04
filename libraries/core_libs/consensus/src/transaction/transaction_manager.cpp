@@ -10,8 +10,8 @@
 namespace taraxa {
 TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_ptr<DbStorage> db,
                                        std::shared_ptr<FinalChain> final_chain, addr_t node_addr)
-    : conf_(conf),
-      transactions_pool_(conf_.transactions_pool_size),
+    : kConf(conf),
+      transactions_pool_(kConf.transactions_pool_size),
       db_(std::move(db)),
       final_chain_(std::move(final_chain)) {
   LOG_OBJECTS_CREATE("TRXMGR");
@@ -54,7 +54,7 @@ std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
     return {TransactionStatus::Verified, ""};
   }
 
-  if (trx->getChainID() != conf_.network.chain_id) {
+  if (trx->getChainID() != kConf.chain_id) {
     return {TransactionStatus::Invalid, "chain_id mismatch"};
   }
 
@@ -247,7 +247,7 @@ size_t TransactionManager::getTransactionPoolSize() const {
 
 bool TransactionManager::isTransactionPoolFull() const {
   std::shared_lock transactions_lock(transactions_mutex_);
-  return transactions_pool_.size() >= conf_.transactions_pool_size;
+  return transactions_pool_.size() >= kConf.transactions_pool_size;
 }
 
 size_t TransactionManager::getNonfinalizedTrxSize() const {

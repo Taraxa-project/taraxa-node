@@ -40,7 +40,6 @@ struct NetworkConfig {
   uint16_t network_max_peer_count = 0;
   uint16_t network_transaction_interval = 0;
   uint16_t network_sync_level_size = 0;
-  uint64_t chain_id;
   uint16_t network_performance_log_interval = 0;
   uint16_t network_num_threads = std::max(uint(1), uint(std::thread::hardware_concurrency() / 2));
   uint16_t network_packets_processing_threads = 14;
@@ -83,6 +82,7 @@ struct FullNodeConfig {
   std::optional<RpcConfig> rpc;
   DBConfig db_config;
   ChainConfig chain = ChainConfig::predefined();
+  uint64_t chain_id;
   state_api::Opts opts_final_chain;
   std::vector<logger::Config> log_configs;
   bool is_light_node = false;                            // Is light node
@@ -91,7 +91,7 @@ struct FullNodeConfig {
   uint32_t max_levels_per_period = kMaxLevelsPerPeriod;  // For unit tests only
 
   // config values that limits transactions pool
-  uint32_t transactions_pool_size = kMinTransactionPoolSize;
+  uint32_t transactions_pool_size = kDefaultTransactionPoolSize;
 
   auto net_file_path() const { return data_path / "net"; }
 

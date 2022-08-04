@@ -110,7 +110,7 @@ void FullNode::init() {
                                             kp_.secret(), conf_.vrf_secret, conf_.max_levels_per_period);
   blk_proposer_ = std::make_shared<BlockProposer>(conf_.chain.dag.block_proposer, dag_mgr_, trx_mgr_, final_chain_, db_,
                                                   node_addr, getSecretKey(), getVrfSecretKey());
-  network_ = std::make_shared<Network>(conf_.network, genesis_hash, dev::p2p::Host::CapabilitiesFactory(),
+  network_ = std::make_shared<Network>(conf_, genesis_hash, dev::p2p::Host::CapabilitiesFactory(),
                                        conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_, vote_mgr_,
                                        next_votes_mgr_, dag_mgr_, trx_mgr_);
 }
@@ -126,7 +126,7 @@ void FullNode::start() {
     net::rpc::eth::EthParams eth_rpc_params;
     eth_rpc_params.address = getAddress();
     eth_rpc_params.secret = kp_.secret();
-    eth_rpc_params.chain_id = conf_.network.chain_id;
+    eth_rpc_params.chain_id = conf_.chain_id;
     eth_rpc_params.final_chain = final_chain_;
     eth_rpc_params.gas_pricer = [gas_pricer = gas_pricer_]() { return gas_pricer->bid(); };
     eth_rpc_params.get_trx = [db = db_](auto const &trx_hash) { return db->getTransaction(trx_hash); };
