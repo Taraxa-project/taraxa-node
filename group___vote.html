@@ -1015,6 +1015,9 @@ Collaboration diagram for taraxa::VoteManager:</div>
 <tr class="memitem:a5d94b5f604131c9b986840e5a16d433e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a5d94b5f604131c9b986840e5a16d433e">sendRewardVotes</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;pbft_block_hash)</td></tr>
 <tr class="memdesc:a5d94b5f604131c9b986840e5a16d433e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send out all reward votes to peers.  <a href="group___vote.html#a5d94b5f604131c9b986840e5a16d433e">More...</a><br /></td></tr>
 <tr class="separator:a5d94b5f604131c9b986840e5a16d433e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c7381a7c63348288bb4199a611505cb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a3c7381a7c63348288bb4199a611505cb">verifyRewardVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote)</td></tr>
+<tr class="memdesc:a3c7381a7c63348288bb4199a611505cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verify reward vote.  <a href="group___vote.html#a3c7381a7c63348288bb4199a611505cb">More...</a><br /></td></tr>
+<tr class="separator:a3c7381a7c63348288bb4199a611505cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Types</h3></td></tr>
 <tr class="memitem:a007f95fc9afcf66409e13455a77a6508"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a007f95fc9afcf66409e13455a77a6508">UniqueLock</a> = boost::unique_lock&lt; boost::shared_mutex &gt;</td></tr>
 <tr class="separator:a007f95fc9afcf66409e13455a77a6508"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1025,9 +1028,6 @@ Collaboration diagram for taraxa::VoteManager:</div>
 <tr class="memitem:a154b75d8f400bb5b6d6151899e9f0144"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a154b75d8f400bb5b6d6151899e9f0144">UpgradeLock</a> = boost::upgrade_to_unique_lock&lt; boost::shared_mutex &gt;</td></tr>
 <tr class="separator:a154b75d8f400bb5b6d6151899e9f0144"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Member Functions</h3></td></tr>
-<tr class="memitem:a3c7381a7c63348288bb4199a611505cb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a3c7381a7c63348288bb4199a611505cb">verifyRewardVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote)</td></tr>
-<tr class="memdesc:a3c7381a7c63348288bb4199a611505cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verify reward vote.  <a href="group___vote.html#a3c7381a7c63348288bb4199a611505cb">More...</a><br /></td></tr>
-<tr class="separator:a3c7381a7c63348288bb4199a611505cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a335593af04d28ee24d262c401a32f8b0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a335593af04d28ee24d262c401a32f8b0">retreieveVotes_</a> ()</td></tr>
 <tr class="memdesc:a335593af04d28ee24d262c401a32f8b0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieve all verified votes from DB to the verified votes map. And broadcast all next voting type votes to peers if node has extended the partition steps (1000). That only happens when nodes start.  <a href="group___vote.html#a335593af04d28ee24d262c401a32f8b0">More...</a><br /></td></tr>
 <tr class="separator:a335593af04d28ee24d262c401a32f8b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1903,9 +1903,6 @@ Collaboration diagram for taraxa::VoteManager:</div>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">bool taraxa::VoteManager::verifyRewardVote </td>
@@ -1915,11 +1912,6 @@ Collaboration diagram for taraxa::VoteManager:</div>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Verify reward vote. </p>
