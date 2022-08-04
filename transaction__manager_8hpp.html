@@ -146,11 +146,16 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:gae7551c287ae57b46d56d27de67df61e7"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">taraxa::TransactionStatus</a> { <a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a3f68e67dc6c397aaa9d1c24c356f754f">taraxa::TransactionStatus::Verified</a> = 0, 
+<tr class="memitem:gae7551c287ae57b46d56d27de67df61e7"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">taraxa::TransactionStatus</a> { <br />
+&#160;&#160;<a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a3f68e67dc6c397aaa9d1c24c356f754f">taraxa::TransactionStatus::Verified</a> = 0, 
 <a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a4bbb8f967da6d1a610596d7257179c2b">taraxa::TransactionStatus::Invalid</a>, 
 <a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a1329e7699345f6e7d1b9bfb0965a3c03">taraxa::TransactionStatus::LowNonce</a>, 
-<a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7ad10cbf6c0f5918304899ed32d94cb0bf">taraxa::TransactionStatus::InsufficentBalance</a>
+<a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7ad10cbf6c0f5918304899ed32d94cb0bf">taraxa::TransactionStatus::InsufficentBalance</a>, 
+<br />
+&#160;&#160;<a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7adc2eb84d1f952ad0e6b58014aabd616a">taraxa::TransactionStatus::Forced</a>
+<br />
  }</td></tr>
+<tr class="memdesc:gae7551c287ae57b46d56d27de67df61e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">TransactionStatus enum class defines current transaction status. All states except Forced are result of verification. Forced status is used only when our trx pool is full and we need to except this transaction to be able to process DagBlock.  <a href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">More...</a><br /></td></tr>
 <tr class="separator:gae7551c287ae57b46d56d27de67df61e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->

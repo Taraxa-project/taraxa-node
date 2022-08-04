@@ -1,6 +1,6 @@
 var classtaraxa_1_1_network =
 [
-    [ "Network", "classtaraxa_1_1_network.html#acb4daa89b474a922e705a95a9bdf4f1a", null ],
+    [ "Network", "classtaraxa_1_1_network.html#a203e754834eae2ed82205892735269dc", null ],
     [ "~Network", "classtaraxa_1_1_network.html#a82e2d087554fb6a9ad796bf0cdf1306d", null ],
     [ "Network", "classtaraxa_1_1_network.html#a3eca30ac818e799ad5e4908ab6b552d1", null ],
     [ "Network", "classtaraxa_1_1_network.html#ad9faf0457b7ba90aacae80230a744376", null ],
@@ -24,8 +24,8 @@ var classtaraxa_1_1_network =
     [ "setSyncStatePeriod", "classtaraxa_1_1_network.html#a5b3a6b934bf45bee40931e7b2e9b48a6", null ],
     [ "start", "classtaraxa_1_1_network.html#a0f512b48547b33de0e7b03e195d63892", null ],
     [ "syncTimeSeconds", "classtaraxa_1_1_network.html#a6bd999923abfc08d54c1fbb573d0daae", null ],
-    [ "conf_", "classtaraxa_1_1_network.html#a93679e64851fba0a9a165305e1b33f34", null ],
     [ "host_", "classtaraxa_1_1_network.html#a9a17fef921508b0eedf68da85406660a", null ],
+    [ "kConf", "classtaraxa_1_1_network.html#a8d2fcb723cbfe1fe3e74007c8fd147f9", null ],
     [ "taraxa_capability_", "classtaraxa_1_1_network.html#a75305a8d9297b25da2c67004acba5126", null ],
     [ "tp_", "classtaraxa_1_1_network.html#a9b3c20a6c78e8c1fe0d8900b551e309c", null ]
 ];

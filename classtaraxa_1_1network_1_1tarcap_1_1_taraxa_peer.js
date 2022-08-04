@@ -1,7 +1,7 @@
 var classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer =
 [
     [ "TaraxaPeer", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ae9b3def56efaad65ee07dc1090522860", null ],
-    [ "TaraxaPeer", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a2e4f3cdb4f3dc0c747cd4c306e5b425a", null ],
+    [ "TaraxaPeer", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a367c830e803fd80a33ae63551fc37e3f", null ],
     [ "getId", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#aac167e4f756ff33ea8b73709f94c7ebb", null ],
     [ "isDagBlockKnown", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a7314d5de69e76bb266d81a88dc212585", null ],
     [ "isPbftBlockKnown", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a4a9280c100cbd6f847124953cab761f4", null ],

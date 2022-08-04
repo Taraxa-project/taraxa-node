@@ -1,6 +1,6 @@
 var classtaraxa_1_1network_1_1tarcap_1_1_peers_state =
 [
-    [ "PeersState", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ac5ed3db45db0b313972a098165e4101d", null ],
+    [ "PeersState", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a5b4f1e03c32f1a26e41bb914024ec8b7", null ],
     [ "addPendingPeer", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#adea10383cd7e203ced427a0c7c5a75df", null ],
     [ "erasePeer", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a0133cde253f39258728a57ccd59d7524", null ],
     [ "getAllPeers", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#abd9f391d1d61d0441147c2bab3377b5b", null ],
@@ -12,8 +12,8 @@ var classtaraxa_1_1network_1_1tarcap_1_1_peers_state =
     [ "is_peer_malicious", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a9669efd89c04940fbd482d5f2a763a49", null ],
     [ "set_peer_malicious", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a289d872b1d82930d8e896151e3a6b90f", null ],
     [ "setPeerAsReadyToSendMessages", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ad2d210f8cd976c98b1149f1506f0d6aa", null ],
-    [ "conf_", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ab26ec6d206b342122a525e29309a7785", null ],
     [ "host_", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a4cb1c53c949cceb37f64e472058c1493", null ],
+    [ "kConf", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ab052327a21fab01c681f89d615123934", null ],
     [ "malicious_peers_", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a920e985e24c86975431f10868d663ad9", null ],
     [ "node_id_", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a7d5b32c19b286f4ee5d46a2c4fd7a2d7", null ],
     [ "peers_", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a169b35dd8c149448793747ece8f6e0cc", null ],

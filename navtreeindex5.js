@@ -1,5 +1,6 @@
 var NAVTREEINDEX5 =
 {
+"classtaraxa_1_1_db_storage.html#a0ebbb9d49740a23fa2dd0af03e3a9f78":[11,0,3,20,94],
 "classtaraxa_1_1_db_storage.html#a0f5deb58ed3536cd44eb95e205bd7a1c":[11,0,3,20,51],
 "classtaraxa_1_1_db_storage.html#a0f71fda142f1ecfb890e7a4d044f73a4":[11,0,3,20,44],
 "classtaraxa_1_1_db_storage.html#a10c5505812a6967000d4ffe130de72b5":[11,0,3,20,68],
@@ -248,6 +249,5 @@ var NAVTREEINDEX5 =
 "classtaraxa_1_1_full_node.html#structtaraxa_1_1_full_node_1_1_post_destruction_context":[12,0,1,4,2,0,0,0,1],
 "classtaraxa_1_1_full_node.html#structtaraxa_1_1_full_node_1_1_post_destruction_context":[11,0,3,22,0],
 "classtaraxa_1_1_invalid_rlp_items_count_exception.html":[11,0,3,26],
-"classtaraxa_1_1_invalid_rlp_items_count_exception.html#a4d55bcea09672b3eb97c9190c0afee74":[11,0,3,26,0],
-"classtaraxa_1_1_key_manager.html":[11,0,3,27]
+"classtaraxa_1_1_invalid_rlp_items_count_exception.html#a4d55bcea09672b3eb97c9190c0afee74":[11,0,3,26,0]
 };

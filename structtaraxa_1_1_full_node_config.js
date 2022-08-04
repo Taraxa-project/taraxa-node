@@ -6,6 +6,7 @@ var structtaraxa_1_1_full_node_config =
     [ "overwrite_chain_config_in_file", "structtaraxa_1_1_full_node_config.html#a47afb4c0b109d250bda3f1bafc091f1d", null ],
     [ "validate", "structtaraxa_1_1_full_node_config.html#aad4a40f97ab5a5dafcbc5909bd869c4d", null ],
     [ "chain", "structtaraxa_1_1_full_node_config.html#a7742f349891febbc4d6a77cac6703edc", null ],
+    [ "chain_id", "structtaraxa_1_1_full_node_config.html#a53d04d590244c0f8a0c8bf84b54401a8", null ],
     [ "dag_expiry_limit", "structtaraxa_1_1_full_node_config.html#a6eb0f104bf3dcfaead265c1718809d89", null ],
     [ "data_path", "structtaraxa_1_1_full_node_config.html#a864347d8c0df47defc19d10ff4733d21", null ],
     [ "db_config", "structtaraxa_1_1_full_node_config.html#aa39ce68f57655792c78dcdac574bca99", null ],
@@ -17,11 +18,10 @@ var structtaraxa_1_1_full_node_config =
     [ "log_configs", "structtaraxa_1_1_full_node_config.html#a322f6369b84610a65239aeffae42841e", null ],
     [ "log_path", "structtaraxa_1_1_full_node_config.html#a944aff6d1ac6d851475babe34c2cbcea", null ],
     [ "max_levels_per_period", "structtaraxa_1_1_full_node_config.html#a724641b971674ec5052d295a2e2ee5fc", null ],
-    [ "max_transactions_pool_drop", "structtaraxa_1_1_full_node_config.html#ace4eda2108b9591b7b86e61ce850f682", null ],
-    [ "max_transactions_pool_warn", "structtaraxa_1_1_full_node_config.html#a6e4d05173f13b57dc8c0e19450912357", null ],
     [ "network", "structtaraxa_1_1_full_node_config.html#aa92cfdd3c9bc4f4b6411ef9d4a735668", null ],
     [ "node_secret", "structtaraxa_1_1_full_node_config.html#a21a1f640ba90bfeb59c42efa0f0afbe1", null ],
     [ "opts_final_chain", "structtaraxa_1_1_full_node_config.html#a936cfee38f236d99e4505fbff2f40155", null ],
     [ "rpc", "structtaraxa_1_1_full_node_config.html#aaac918474f5387a7733ce3276022499c", null ],
+    [ "transactions_pool_size", "structtaraxa_1_1_full_node_config.html#a183825e3e024b1bf609c24325f01c437", null ],
     [ "vrf_secret", "structtaraxa_1_1_full_node_config.html#a0a81eb125af3592470454f1f932b07fe", null ]
 ];

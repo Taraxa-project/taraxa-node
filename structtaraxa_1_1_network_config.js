@@ -1,7 +1,6 @@
 var structtaraxa_1_1_network_config =
 [
     [ "validate", "structtaraxa_1_1_network_config.html#a6842ef9818d8bfa2a789ca3afb3b4d22", null ],
-    [ "chain_id", "structtaraxa_1_1_network_config.html#af156df48ef3f926bad4b7686ada76584", null ],
     [ "deep_syncing_threshold", "structtaraxa_1_1_network_config.html#a5c2b116ffa131039491a84f8efbceb1c", null ],
     [ "disable_peer_blacklist", "structtaraxa_1_1_network_config.html#aecd55fa8d7ebec1b3bc00e97cf74119c", null ],
     [ "json_file_name", "structtaraxa_1_1_network_config.html#a75386e6421c5d75980fe9fa0772dc338", null ],

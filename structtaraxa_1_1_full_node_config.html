@@ -167,6 +167,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:aa39ce68f57655792c78dcdac574bca99"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7742f349891febbc4d6a77cac6703edc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtaraxa_1_1_chain_config.html">ChainConfig</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#a7742f349891febbc4d6a77cac6703edc">chain</a> = <a class="el" href="structtaraxa_1_1_chain_config.html#ac3830349c3c7cd52bf1ad2a10666d0cb">ChainConfig::predefined</a>()</td></tr>
 <tr class="separator:a7742f349891febbc4d6a77cac6703edc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53d04d590244c0f8a0c8bf84b54401a8"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#a53d04d590244c0f8a0c8bf84b54401a8">chain_id</a></td></tr>
+<tr class="separator:a53d04d590244c0f8a0c8bf84b54401a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a936cfee38f236d99e4505fbff2f40155"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts">state_api::Opts</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#a936cfee38f236d99e4505fbff2f40155">opts_final_chain</a></td></tr>
 <tr class="separator:a936cfee38f236d99e4505fbff2f40155"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a322f6369b84610a65239aeffae42841e"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classtaraxa_1_1logger_1_1_config.html">logger::Config</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#a322f6369b84610a65239aeffae42841e">log_configs</a></td></tr>
@@ -179,10 +181,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a6eb0f104bf3dcfaead265c1718809d89"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a724641b971674ec5052d295a2e2ee5fc"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#a724641b971674ec5052d295a2e2ee5fc">max_levels_per_period</a> = <a class="el" href="namespacetaraxa.html#ab2f5ec0c8b9d91b604a61ca8062d0505">kMaxLevelsPerPeriod</a></td></tr>
 <tr class="separator:a724641b971674ec5052d295a2e2ee5fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6e4d05173f13b57dc8c0e19450912357"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#a6e4d05173f13b57dc8c0e19450912357">max_transactions_pool_warn</a> = 0</td></tr>
-<tr class="separator:a6e4d05173f13b57dc8c0e19450912357"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ace4eda2108b9591b7b86e61ce850f682"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#ace4eda2108b9591b7b86e61ce850f682">max_transactions_pool_drop</a> = 0</td></tr>
-<tr class="separator:ace4eda2108b9591b7b86e61ce850f682"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a183825e3e024b1bf609c24325f01c437"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#a183825e3e024b1bf609c24325f01c437">transactions_pool_size</a> = <a class="el" href="namespacetaraxa.html#a14fc5210f7f52dbf8a90d2a6b6de8f8d">kDefaultTransactionPoolSize</a></td></tr>
+<tr class="separator:a183825e3e024b1bf609c24325f01c437"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-static-attribs"></a>
 Static Public Attributes</h2></td></tr>
@@ -329,6 +329,20 @@ Static Public Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="structtaraxa_1_1_chain_config.html">ChainConfig</a> taraxa::FullNodeConfig::chain = <a class="el" href="structtaraxa_1_1_chain_config.html#ac3830349c3c7cd52bf1ad2a10666d0cb">ChainConfig::predefined</a>()</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a53d04d590244c0f8a0c8bf84b54401a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a53d04d590244c0f8a0c8bf84b54401a8">&#9670;&nbsp;</a></span>chain_id</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t taraxa::FullNodeConfig::chain_id</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -497,34 +511,6 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="ace4eda2108b9591b7b86e61ce850f682"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ace4eda2108b9591b7b86e61ce850f682">&#9670;&nbsp;</a></span>max_transactions_pool_drop</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint32_t taraxa::FullNodeConfig::max_transactions_pool_drop = 0</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a6e4d05173f13b57dc8c0e19450912357"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6e4d05173f13b57dc8c0e19450912357">&#9670;&nbsp;</a></span>max_transactions_pool_warn</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint32_t taraxa::FullNodeConfig::max_transactions_pool_warn = 0</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="aa92cfdd3c9bc4f4b6411ef9d4a735668"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aa92cfdd3c9bc4f4b6411ef9d4a735668">&#9670;&nbsp;</a></span>network</h2>
 
@@ -575,6 +561,20 @@ Static Public Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::optional&lt;<a class="el" href="structtaraxa_1_1_rpc_config.html">RpcConfig</a>&gt; taraxa::FullNodeConfig::rpc</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a183825e3e024b1bf609c24325f01c437"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a183825e3e024b1bf609c24325f01c437">&#9670;&nbsp;</a></span>transactions_pool_size</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t taraxa::FullNodeConfig::transactions_pool_size = <a class="el" href="namespacetaraxa.html#a14fc5210f7f52dbf8a90d2a6b6de8f8d">kDefaultTransactionPoolSize</a></td>
         </tr>
       </table>
 </div><div class="memdoc">

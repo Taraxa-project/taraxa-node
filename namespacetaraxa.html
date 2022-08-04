@@ -357,11 +357,16 @@ Enumerations</h2></td></tr>
 <a class="el" href="group___p_b_f_t.html#ggaa7d94f2f957e0d74251efb2a6b9b64b5a05de694025ef67b5317cfb38956f4870">exceeded_max_steps</a>
  }</td></tr>
 <tr class="separator:gaa7d94f2f957e0d74251efb2a6b9b64b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae7551c287ae57b46d56d27de67df61e7"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">TransactionStatus</a> { <a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a3f68e67dc6c397aaa9d1c24c356f754f">TransactionStatus::Verified</a> = 0, 
+<tr class="memitem:gae7551c287ae57b46d56d27de67df61e7"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">TransactionStatus</a> { <br />
+&#160;&#160;<a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a3f68e67dc6c397aaa9d1c24c356f754f">TransactionStatus::Verified</a> = 0, 
 <a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a4bbb8f967da6d1a610596d7257179c2b">TransactionStatus::Invalid</a>, 
 <a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a1329e7699345f6e7d1b9bfb0965a3c03">TransactionStatus::LowNonce</a>, 
-<a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7ad10cbf6c0f5918304899ed32d94cb0bf">TransactionStatus::InsufficentBalance</a>
+<a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7ad10cbf6c0f5918304899ed32d94cb0bf">TransactionStatus::InsufficentBalance</a>, 
+<br />
+&#160;&#160;<a class="el" href="group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7adc2eb84d1f952ad0e6b58014aabd616a">TransactionStatus::Forced</a>
+<br />
  }</td></tr>
+<tr class="memdesc:gae7551c287ae57b46d56d27de67df61e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">TransactionStatus enum class defines current transaction status. All states except Forced are result of verification. Forced status is used only when our trx pool is full and we need to except this transaction to be able to process DagBlock.  <a href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">More...</a><br /></td></tr>
 <tr class="separator:gae7551c287ae57b46d56d27de67df61e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac3d6a3ed52a696ba79164a87e643e901"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#ac3d6a3ed52a696ba79164a87e643e901">StatusDbField</a> : uint8_t { <br />
 &#160;&#160;<a class="el" href="namespacetaraxa.html#ac3d6a3ed52a696ba79164a87e643e901aa2a2c44ef822e8f4d4fa2fc8b46d4ea4">ExecutedBlkCount</a> = 0, 
@@ -556,6 +561,10 @@ Variables</h2></td></tr>
 <tr class="separator:a7ecb57c956c8d0467fb9514f5e85c005"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a80d7e0bedeecd255ab611e8054073fc5"><td class="memItemLeft" align="right" valign="top">const uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a80d7e0bedeecd255ab611e8054073fc5">kMinTxGas</a> {21000}</td></tr>
 <tr class="separator:a80d7e0bedeecd255ab611e8054073fc5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c4386d0ef4241fe4d08d14e43fbd1f6"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a5c4386d0ef4241fe4d08d14e43fbd1f6">kMinTransactionPoolSize</a> {30000}</td></tr>
+<tr class="separator:a5c4386d0ef4241fe4d08d14e43fbd1f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a14fc5210f7f52dbf8a90d2a6b6de8f8d"><td class="memItemLeft" align="right" valign="top">constexpr uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a14fc5210f7f52dbf8a90d2a6b6de8f8d">kDefaultTransactionPoolSize</a> {200000}</td></tr>
+<tr class="separator:a14fc5210f7f52dbf8a90d2a6b6de8f8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af37c840bbc7870c8fb9f5c878ac55582"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#af37c840bbc7870c8fb9f5c878ac55582">kOneTara</a> = <a class="el" href="namespacedev.html#aaa0b3b33e41c3a8aad65a07acd88a897">dev::exp10</a>&lt;18&gt;()</td></tr>
 <tr class="separator:af37c840bbc7870c8fb9f5c878ac55582"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a10105b152578aaf566cb89722b17385b"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a10105b152578aaf566cb89722b17385b">kEmptyVrfKey</a></td></tr>
@@ -2985,6 +2994,28 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
+<a id="a14fc5210f7f52dbf8a90d2a6b6de8f8d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a14fc5210f7f52dbf8a90d2a6b6de8f8d">&#9670;&nbsp;</a></span>kDefaultTransactionPoolSize</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr uint32_t taraxa::kDefaultTransactionPoolSize {200000}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a10105b152578aaf566cb89722b17385b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a10105b152578aaf566cb89722b17385b">&#9670;&nbsp;</a></span>kEmptyVrfKey</h2>
 
@@ -3053,6 +3084,28 @@ template&lt;typename T &gt; </div>
           <td class="memname">const uint32_t taraxa::kMaxVotesInPacket {1000}</td>
         </tr>
       </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5c4386d0ef4241fe4d08d14e43fbd1f6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5c4386d0ef4241fe4d08d14e43fbd1f6">&#9670;&nbsp;</a></span>kMinTransactionPoolSize</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">constexpr uint32_t taraxa::kMinTransactionPoolSize {30000}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 </div>
