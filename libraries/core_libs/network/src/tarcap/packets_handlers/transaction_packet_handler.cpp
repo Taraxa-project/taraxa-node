@@ -1,5 +1,7 @@
 #include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
 
+#include <cassert>
+
 #include "network/tarcap/shared_states/test_state.hpp"
 #include "transaction/transaction_manager.hpp"
 
@@ -63,6 +65,8 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
         }
         case TransactionStatus::Verified:
           break;
+        default:
+          assert(false);
       }
     }
     received_transactions += transaction->getHash().abridged() + " ";

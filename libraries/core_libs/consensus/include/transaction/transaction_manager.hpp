@@ -14,7 +14,12 @@ namespace taraxa {
  * @{
  */
 
-enum class TransactionStatus { Verified = 0, Invalid, LowNonce, InsufficentBalance };
+/**
+ * @brief TransactionStatus enum class defines current transaction status. All states except Forced are result of
+ * verification. Forced status is used only when our trx pool is full and we need to except this transaction to be able
+ * to process DagBlock
+ */
+enum class TransactionStatus { Verified = 0, Invalid, LowNonce, InsufficentBalance, Forced };
 
 class DagBlock;
 class DagManager;
@@ -97,19 +102,21 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   uint32_t insertValidatedTransactions(std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> &&txs);
 
   /**
-   * @brief Marks transaction as known (was successfully verified and pushed into the tx pool)
-   *
-   * @param trx_hash transaction hash
-   */
-  void markTransactionKnown(const trx_hash_t &trx_hash);
-
-  /**
    * @param trx_hash transaction hash
    * @return Returns true if tx is known (was successfully verified and pushed into the tx pool), oth
    */
   bool isTransactionKnown(const trx_hash_t &trx_hash);
 
   size_t getTransactionPoolSize() const;
+
+  /**
+   * @brief return true if transaction pool is full
+   *
+   * @param precentage defines precentage of fullness
+   * @return true
+   * @return false
+   */
+  bool isTransactionPoolFull(size_t precentage = 100) const;
 
   size_t getNonfinalizedTrxSize() const;
 
@@ -169,20 +176,13 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::pair<TransactionStatus, std::string> verifyTransaction(const std::shared_ptr<Transaction> &trx) const;
 
  private:
-  /**
-   * @brief Checks if transaction pool is overflowed
-   *
-   * @return true if transaction pool is overflowed, otherwise false
-   */
-  bool checkMemoryPoolOverflow();
-
   addr_t getFullNodeAddress() const;
 
  public:
   util::Event<TransactionManager, h256> const transaction_accepted_{};
 
  private:
-  const FullNodeConfig conf_;
+  const FullNodeConfig kConf;
   // Guards updating transaction status
   // Transactions can be in one of three states:
   // 1. In transactions pool; 2. In non-finalized Dag block 3. Executed
@@ -190,8 +190,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   TransactionQueue transactions_pool_;
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> nonfinalized_transactions_in_dag_;
   uint64_t trx_count_ = 0;
-
-  ExpirationCache<trx_hash_t> known_txs_;
 
   std::shared_ptr<DbStorage> db_{nullptr};
   std::shared_ptr<FinalChain> final_chain_{nullptr};

@@ -26,6 +26,9 @@ const uint32_t kPeriodicEventsThreadCount{2};
 
 const uint64_t kMinTxGas{21000};
 
+constexpr uint32_t kMinTransactionPoolSize{30000};
+constexpr uint32_t kDefaultTransactionPoolSize{200000};
+
 // The various denominations; here for ease of use where needed within code.
 static const u256 kOneTara = dev::exp10<18>();
 // static const u256 kFinney = exp10<15>();

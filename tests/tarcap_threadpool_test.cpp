@@ -2,6 +2,7 @@
 
 #include <tuple>
 
+#include "config/config.hpp"
 #include "dag/dag_block.hpp"
 #include "logger/logger.hpp"
 #include "network/tarcap/packets_handler.hpp"
@@ -227,8 +228,8 @@ HandlersInitData createHandlersInitData() {
   ret_init_data.sender_node_id = dev::p2p::NodeID(1);
   ret_init_data.own_node_id = dev::p2p::NodeID(2);
   ret_init_data.own_node_addr = addr_t(2);
-  ret_init_data.peers_state =
-      std::make_shared<tarcap::PeersState>(std::weak_ptr<dev::p2p::Host>(), ret_init_data.own_node_id, NetworkConfig());
+  ret_init_data.peers_state = std::make_shared<tarcap::PeersState>(std::weak_ptr<dev::p2p::Host>(),
+                                                                   ret_init_data.own_node_id, FullNodeConfig());
   ret_init_data.packets_stats = std::make_shared<tarcap::PacketsStats>(ret_init_data.own_node_addr);
   ret_init_data.packets_processing_info = std::make_shared<PacketsProcessingInfo>();
 

@@ -13,7 +13,13 @@ auto priorityComparator = [](const std::shared_ptr<Transaction> &first, const st
   }
 };
 
-TransactionQueue::TransactionQueue() : priority_queue_{priorityComparator} {}
+TransactionQueue::TransactionQueue(size_t max_size)
+    : priority_queue_{priorityComparator}, known_txs_(max_size * 2, max_size / 5), kMaxSize(max_size) {
+  // There are library limits on multiset size, we need to check if max size is not exceeding it
+  if (kMaxSize > priority_queue_.max_size()) {
+    throw std::invalid_argument("Transaction pool size is too large");
+  }
+}
 
 size_t TransactionQueue::size() const { return hash_queue_.size(); }
 
@@ -76,14 +82,30 @@ bool TransactionQueue::insert(std::pair<std::shared_ptr<Transaction>, Transactio
       // This assert is here to check if priorityComparator works correctly. If object is not inserted, then there could
       // be something wrong with comparator
       assert(it != priority_queue_.end());
+
+      // This check if priority_queue_ is not bigger than max size if so we delete last object
+      // if the last object is also current one we return false
+      if (priority_queue_.size() > kMaxSize) [[unlikely]] {
+        const auto last_el = std::prev(priority_queue_.end());
+        priority_queue_.erase(last_el);
+        if (it == last_el) {
+          return false;
+        }
+        known_txs_.erase((*last_el)->getHash());
+        hash_queue_.erase((*last_el)->getHash());
+      }
       hash_queue_[tx_hash] = it;
+      known_txs_.insert(tx_hash);
     } break;
     case TransactionStatus::LowNonce:
     case TransactionStatus::InsufficentBalance:
-      if (non_proposable_transactions_.size() < kNonProposableTransactionsLimit)
+    case TransactionStatus::Forced:
+      if (non_proposable_transactions_.size() < kNonProposableTransactionsLimit) {
         non_proposable_transactions_[tx_hash] = {last_block_number, transaction.first};
-      else
+        known_txs_.insert(tx_hash);
+      } else {
         return false;
+      }
       break;
     default:
       assert(false);
@@ -100,5 +122,9 @@ void TransactionQueue::blockFinalized(uint64_t block_number) {
     }
   }
 }
+
+void TransactionQueue::markTransactionKnown(const trx_hash_t &trx_hash) { known_txs_.insert(trx_hash); }
+
+bool TransactionQueue::isTransactionKnown(const trx_hash_t &trx_hash) const { return known_txs_.contains(trx_hash); }
 
 }  // namespace taraxa

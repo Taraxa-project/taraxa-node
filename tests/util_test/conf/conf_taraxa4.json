@@ -21,8 +21,6 @@
     "ws_port": 8780,
     "threads_num": 2
   },
-  "max_transactions_pool_warn" : 0,
-  "max_transactions_pool_drop" : 0,
   "logging": {
     "configurations": [
       {

@@ -116,7 +116,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   auto const &root = string_or_object.isString() ? parsed_from_file : string_or_object;
   data_path = getConfigDataAsString(root, {"data_path"});
   db_path = data_path / "db";
-  network.chain_id = getConfigDataAsUInt(root, {"chain_id"});
+  chain_id = getConfigDataAsUInt(root, {"chain_id"});
   network.network_listen_ip = getConfigDataAsString(root, {"network_listen_ip"});
   network.network_public_ip = getConfigDataAsString(root, {"network_public_ip"}, true);
   network.network_tcp_port = getConfigDataAsUInt(root, {"network_tcp_port"});
@@ -163,10 +163,9 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
     }
   }
 
-  {  // config values that limits transactions and blocks memory pools
-    max_transactions_pool_warn = getConfigDataAsUInt(root, {"max_transactions_pool_warn"}, true);
-    max_transactions_pool_drop = getConfigDataAsUInt(root, {"max_transactions_pool_drop"}, true);
-  }
+  // config values that limits transactions and blocks memory pools
+  transactions_pool_size = getConfigDataAsUInt(root, {"transactions_pool_size"}, true, kDefaultTransactionPoolSize);
+
   {  // db_config
     // Create db snapshot each N pbft block
     db_config.db_snapshot_each_n_pbft_block =
@@ -303,6 +302,10 @@ void FullNodeConfig::validate() const {
   if (rpc) {
     rpc->validate();
   }
+  if (transactions_pool_size < kMinTransactionPoolSize) {
+    throw ConfigException(std::string("transactions_pool_size cannot be smaller than ") +
+                          std::to_string(kMinTransactionPoolSize) + ".");
+  }
   // TODO: add validation of other config values
 }
 
@@ -330,7 +333,6 @@ std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
   strm << "  network_ideal_peer_count: " << conf.network_ideal_peer_count << std::endl;
   strm << "  network_max_peer_count: " << conf.network_max_peer_count << std::endl;
   strm << "  network_sync_level_size: " << conf.network_sync_level_size << std::endl;
-  strm << "  chain_id: " << conf.chain_id << std::endl;
   strm << "  network_performance_log_interval: " << conf.network_performance_log_interval << std::endl;
   strm << "  network_num_threads: " << conf.network_num_threads << std::endl;
   strm << "  network_packets_processing_threads: " << conf.network_packets_processing_threads << std::endl;

@@ -18,7 +18,7 @@ namespace taraxa::network::tarcap {
  */
 class PeersState {
  public:
-  PeersState(std::weak_ptr<dev::p2p::Host> host, const dev::p2p::NodeID& own_node_id, const NetworkConfig& conf);
+  PeersState(std::weak_ptr<dev::p2p::Host> host, const dev::p2p::NodeID& own_node_id, const FullNodeConfig& conf);
 
   std::shared_ptr<TaraxaPeer> getPeer(const dev::p2p::NodeID& node_id) const;
   std::shared_ptr<TaraxaPeer> getPendingPeer(const dev::p2p::NodeID& node_id) const;
@@ -56,7 +56,7 @@ class PeersState {
   std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> pending_peers_;
 
   ThreadSafeMap<dev::p2p::NodeID, std::chrono::steady_clock::time_point> malicious_peers_;
-  const NetworkConfig conf_;
+  const FullNodeConfig kConf;
 };
 
 }  // namespace taraxa::network::tarcap

@@ -50,8 +50,6 @@
     "ws_port": 8777,
     "threads_num": 10
   },
-  "max_transactions_pool_warn": 0,
-  "max_transactions_pool_drop": 0,
   "db_config": {
     "db_snapshot_each_n_pbft_block": 10000,
     "db_max_snapshots": 1

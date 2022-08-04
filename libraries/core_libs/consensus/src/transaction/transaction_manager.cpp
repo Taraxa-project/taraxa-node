@@ -10,8 +10,8 @@
 namespace taraxa {
 TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_ptr<DbStorage> db,
                                        std::shared_ptr<FinalChain> final_chain, addr_t node_addr)
-    : conf_(conf),
-      known_txs_(200000 /*capacity*/, 2000 /*delete step*/),
+    : kConf(conf),
+      transactions_pool_(kConf.transactions_pool_size),
       db_(std::move(db)),
       final_chain_(std::move(final_chain)) {
   LOG_OBJECTS_CREATE("TRXMGR");
@@ -54,7 +54,7 @@ std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
     return {TransactionStatus::Verified, ""};
   }
 
-  if (trx->getChainID() != conf_.network.chain_id) {
+  if (trx->getChainID() != kConf.chain_id) {
     return {TransactionStatus::Invalid, "chain_id mismatch"};
   }
 
@@ -85,38 +85,13 @@ std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
   return {TransactionStatus::Verified, ""};
 }
 
-bool TransactionManager::checkMemoryPoolOverflow() {
-  size_t queue_overflow_warn = conf_.max_transactions_pool_warn;
-  size_t queue_overflow_drop = conf_.max_transactions_pool_drop;
-
-  if (queue_overflow_drop && getTransactionPoolSize() >= queue_overflow_drop) {
-    LOG(log_wr_) << "Transaction pool size: " << getTransactionPoolSize()
-                 << " --> New transactions will not be processed !";
-    return true;
-  } else if (queue_overflow_warn && getTransactionPoolSize() >= queue_overflow_warn) {
-    LOG(log_wr_) << "Transaction pool size: " << getTransactionPoolSize()
-                 << " --> Only warning, transactions will bed processed.";
-  }
-
-  return false;
+bool TransactionManager::isTransactionKnown(const trx_hash_t &trx_hash) {
+  return transactions_pool_.isTransactionKnown(trx_hash);
 }
-
-void TransactionManager::markTransactionKnown(const trx_hash_t &trx_hash) { known_txs_.insert(trx_hash); }
-
-bool TransactionManager::isTransactionKnown(const trx_hash_t &trx_hash) { return known_txs_.contains(trx_hash); }
 
 std::pair<bool, std::string> TransactionManager::insertTransaction(const std::shared_ptr<Transaction> &trx) {
   if (isTransactionKnown(trx->getHash())) {
     return {false, "Transaction already in transactions pool"};
-  }
-
-  {
-    std::shared_lock transactions_lock(transactions_mutex_);
-    if (transactions_pool_.contains(trx->getHash())) {
-      return {false, "Transaction already in transactions pool"};
-    } else if (nonfinalized_transactions_in_dag_.contains(trx->getHash())) {
-      return {false, "Transaction already included in DAG block"};
-    }
   }
 
   const auto [status, reason] = verifyTransaction(trx);
@@ -145,10 +120,6 @@ uint32_t TransactionManager::insertValidatedTransactions(
     return 0;
   }
 
-  if (checkMemoryPoolOverflow()) {
-    LOG(log_er_) << "Pool overflow";
-    return 0;
-  }
   txs_hashes.reserve(txs.size());
   std::transform(txs.begin(), txs.end(), std::back_inserter(txs_hashes),
                  [](const auto &t) { return t.first->getHash(); });
@@ -166,7 +137,7 @@ uint32_t TransactionManager::insertValidatedTransactions(
       unseen_txs.push_back(std::move(txs[i]));
     } else {
       // In case we received a new tx that is already in db, mark it as known in cache
-      markTransactionKnown(txs[i].first->getHash());
+      transactions_pool_.markTransactionKnown(txs[i].first->getHash());
     }
   }
 
@@ -177,7 +148,6 @@ uint32_t TransactionManager::insertValidatedTransactions(
     LOG(log_dg_) << "Transaction " << tx_hash << " inserted in trx pool";
     if (transactions_pool_.insert(std::move(trx), last_block_number)) {
       trx_inserted_count++;
-      markTransactionKnown(tx_hash);
     }
   }
   return trx_inserted_count;
@@ -273,6 +243,11 @@ void TransactionManager::recoverNonfinalizedTransactions() {
 size_t TransactionManager::getTransactionPoolSize() const {
   std::shared_lock transactions_lock(transactions_mutex_);
   return transactions_pool_.size();
+}
+
+bool TransactionManager::isTransactionPoolFull(size_t precentage) const {
+  std::shared_lock transactions_lock(transactions_mutex_);
+  return transactions_pool_.size() >= (kConf.transactions_pool_size * precentage / 100);
 }
 
 size_t TransactionManager::getNonfinalizedTrxSize() const {

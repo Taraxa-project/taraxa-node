@@ -3,8 +3,8 @@
 namespace taraxa::network::tarcap {
 
 PeersState::PeersState(std::weak_ptr<dev::p2p::Host> host, const dev::p2p::NodeID& own_node_id,
-                       const NetworkConfig& conf)
-    : host_(std::move(host)), node_id_(own_node_id), conf_(conf) {}
+                       const FullNodeConfig& conf)
+    : host_(std::move(host)), node_id_(own_node_id), kConf(conf) {}
 
 std::shared_ptr<TaraxaPeer> PeersState::getPeer(const dev::p2p::NodeID& node_id) const {
   std::shared_lock lock(peers_mutex_);
@@ -60,7 +60,7 @@ std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> PeersState::ge
 
 std::shared_ptr<TaraxaPeer> PeersState::addPendingPeer(const dev::p2p::NodeID& node_id) {
   std::unique_lock lock(peers_mutex_);
-  auto ret = pending_peers_.emplace(node_id, std::make_shared<TaraxaPeer>(node_id));
+  auto ret = pending_peers_.emplace(node_id, std::make_shared<TaraxaPeer>(node_id, kConf.transactions_pool_size));
   if (!ret.second) {
     // LOG(log_er_) << "Peer " << node_id.abridged() << " is already in pending peers list";
   }
@@ -97,15 +97,15 @@ void PeersState::set_peer_malicious(const dev::p2p::NodeID& peer_id) {
 }
 
 bool PeersState::is_peer_malicious(const dev::p2p::NodeID& peer_id) {
-  if (conf_.disable_peer_blacklist) {
+  if (kConf.network.disable_peer_blacklist) {
     return false;
   }
 
   // Peers are marked malicious for the time defined in conf_.network_peer_blacklist_timeout
   if (auto i = malicious_peers_.get(peer_id); i.second) {
-    if (conf_.network_peer_blacklist_timeout == 0 ||
+    if (kConf.network.network_peer_blacklist_timeout == 0 ||
         std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - i.first).count() <=
-            conf_.network_peer_blacklist_timeout) {
+            kConf.network.network_peer_blacklist_timeout) {
       return true;
     } else {
       malicious_peers_.erase(peer_id);
@@ -113,10 +113,10 @@ bool PeersState::is_peer_malicious(const dev::p2p::NodeID& peer_id) {
   }
 
   // Delete any expired item from the list
-  if (conf_.network_peer_blacklist_timeout > 0) {
+  if (kConf.network.network_peer_blacklist_timeout > 0) {
     malicious_peers_.erase([this](const std::chrono::steady_clock::time_point& value) {
       return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - value).count() >
-             conf_.network_peer_blacklist_timeout;
+             kConf.network.network_peer_blacklist_timeout;
     });
   }
 
