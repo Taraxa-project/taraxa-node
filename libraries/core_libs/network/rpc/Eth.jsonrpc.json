@@ -108,14 +108,6 @@
     "returns": ""
   },
   {
-    "name": "eth_sendTransaction",
-    "params": [
-      {}
-    ],
-    "order": [],
-    "returns": ""
-  },
-  {
     "name": "eth_call",
     "params": [
       {},
