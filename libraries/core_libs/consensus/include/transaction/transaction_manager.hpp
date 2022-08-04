@@ -112,10 +112,11 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   /**
    * @brief return true if transaction pool is full
    *
+   * @param precentage defines precentage of fullness
    * @return true
    * @return false
    */
-  bool isTransactionPoolFull() const;
+  bool isTransactionPoolFull(size_t precentage = 100) const;
 
   size_t getNonfinalizedTrxSize() const;
 

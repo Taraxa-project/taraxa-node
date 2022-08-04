@@ -25,7 +25,7 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
                                       [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
   if (peer->peer_requested_dag_syncing_) {
     // If transaction pool is full we need to send missing transactions back to peer
-    if (!trx_mgr_->isTransactionPoolFull()) {
+    if (!trx_mgr_->isTransactionPoolFull(90)) {
       // This should not be possible for honest node
       // Each node should perform dag syncing only once
       std::ostringstream err_msg;

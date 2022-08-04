@@ -245,9 +245,9 @@ size_t TransactionManager::getTransactionPoolSize() const {
   return transactions_pool_.size();
 }
 
-bool TransactionManager::isTransactionPoolFull() const {
+bool TransactionManager::isTransactionPoolFull(size_t precentage) const {
   std::shared_lock transactions_lock(transactions_mutex_);
-  return transactions_pool_.size() >= kConf.transactions_pool_size;
+  return transactions_pool_.size() >= (kConf.transactions_pool_size * precentage / 100);
 }
 
 size_t TransactionManager::getNonfinalizedTrxSize() const {
