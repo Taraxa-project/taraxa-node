@@ -418,6 +418,7 @@ TEST_F(TransactionTest, priority_queue_max_size) {
     EXPECT_TRUE(priority_queue.insert({trx3, TransactionStatus::Verified}, 1));
     EXPECT_EQ(priority_queue.get(trx_hash3), trx3);
     EXPECT_EQ(priority_queue.get(trx_hash2), nullptr);
+    EXPECT_FALSE(priority_queue.isTransactionKnown(trx_hash2));
     EXPECT_EQ(priority_queue.size(), 2);
   }
   // Check if Forced insertion working as expected

@@ -104,7 +104,12 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shar
         throw MaliciousPeerException(err_msg.str());
       }
       case DagManager::VerifyBlockReturnType::MissingTransaction:
-        if (peer->peer_dag_synced_) {
+        if (trx_mgr_->isTransactionPoolFull()) [[unlikely]] {
+          LOG(log_wr_) << "NewBlock " << block_hash.toString() << " from peer " << peer->getId()
+                       << " is missing transaction, but our pool is full so we are requesting it again";
+          peer->peer_dag_synced_ = false;
+          requestPendingDagBlocks(peer);
+        } else if (peer->peer_dag_synced_) {
           std::ostringstream err_msg;
           err_msg << "DagBlock" << block_hash << " is missing a transaction while in a dag synced state";
           throw MaliciousPeerException(err_msg.str());

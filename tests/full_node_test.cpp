@@ -10,6 +10,7 @@
 #include "cli/config.hpp"
 #include "cli/tools.hpp"
 #include "common/static_init.hpp"
+#include "dag/block_proposer.hpp"
 #include "dag/dag_manager.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
@@ -23,6 +24,7 @@
 // TODO rename this namespace to `tests`
 namespace taraxa::core_tests {
 using samples::sendTrx;
+using vrf_wrapper::VrfSortitionBase;
 
 const unsigned NUM_TRX = 200;
 const unsigned SYNC_TIMEOUT = 400;
@@ -1662,6 +1664,57 @@ TEST_F(FullNodeTest, clear_period_data) {
 
   // Verify light node does not delete non expired dag blocks
   EXPECT_TRUE(nodes[0]->getDB()->getPbftBlock(first_over_limit));
+}
+
+TEST_F(FullNodeTest, transaction_pool_overflow) {
+  auto node_cfgs = make_node_cfgs<5>(2);
+  auto nodes = launch_nodes(node_cfgs);
+  uint32_t nonce = 0;
+  const uint32_t gasprice = 5;
+  const uint32_t gas = 100000;
+  for (auto &node : nodes) {
+    node->getBlockProposer()->stop();
+  }
+
+  auto node1 = nodes.front();
+  do {
+    auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
+                                             node1->getSecretKey(), addr_t::random());
+    EXPECT_TRUE(node1->getTransactionManager()->insertTransaction(trx).first);
+  } while (!node1->getTransactionManager()->isTransactionPoolFull());
+
+  // Crate transaction with lower gasprice
+  auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice - 1, gas, dev::fromHex("00FEDCBA9876543210000000"),
+                                           node1->getSecretKey(), addr_t::random());
+  // Should fail as trx pool should be full
+  EXPECT_FALSE(node1->getTransactionManager()->insertTransaction(trx).first);
+
+  // Check if they synced
+  EXPECT_HAPPENS({50s, 100ms}, [&](auto &ctx) {
+    // Check if transactions was propagated to node1
+    WAIT_EXPECT_EQ(ctx, nodes[1]->getTransactionManager()->isTransactionPoolFull(), true)
+  });
+
+  // Add one valid block
+  const auto proposal_level = 1;
+  const auto proposal_period = *node1->getDB()->getProposalPeriodForDagLevel(proposal_level);
+  const auto period_block_hash = node1->getDB()->getPeriodBlockHash(proposal_period);
+  const auto sortition_params =
+      nodes.front()->getDagManager()->sortitionParamsManager().getSortitionParams(proposal_period);
+  vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
+                                  VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash));
+  const auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
+  const auto estimation = node1->getTransactionManager()->estimateTransactionGas(trx, proposal_period);
+  vdf.computeVdfSolution(sortition_params, dag_genesis.asBytes(), false);
+
+  DagBlock blk(dag_genesis, proposal_level, {}, {trx->getHash()}, {estimation}, vdf, node1->getSecretKey());
+  const auto blk_hash = blk.getHash();
+  EXPECT_TRUE(nodes[1]->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
+
+  EXPECT_HAPPENS({120s, 300ms}, [&](auto &ctx) {
+    // Check if transactions and block was propagated to node1
+    WAIT_EXPECT_NE(ctx, node1->getDagManager()->getDagBlock(blk_hash), nullptr);
+  });
 }
 
 }  // namespace taraxa::core_tests
