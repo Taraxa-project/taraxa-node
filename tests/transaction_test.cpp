@@ -383,6 +383,64 @@ TEST_F(TransactionTest, priority_queue) {
   }
 }
 
+TEST_F(TransactionTest, priority_queue_max_size) {
+  // Check if insertion working as expected
+  {
+    TransactionQueue priority_queue(2);
+    uint32_t nonce = 0;
+    auto trx = std::make_shared<Transaction>(nonce++, 1, 2, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
+                                             addr_t::random());
+    auto trx2 = std::make_shared<Transaction>(nonce++, 1, 2, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
+                                              addr_t::random());
+    auto trx3 = std::make_shared<Transaction>(nonce++, 1, 1, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
+                                              addr_t::random());
+    const auto trx_hash = trx3->getHash();
+    EXPECT_TRUE(priority_queue.insert({trx, TransactionStatus::Verified}, 1));
+    EXPECT_TRUE(priority_queue.insert({trx2, TransactionStatus::Verified}, 1));
+    EXPECT_FALSE(priority_queue.insert({trx3, TransactionStatus::Verified}, 1));
+    EXPECT_EQ(priority_queue.get(trx_hash), nullptr);
+    EXPECT_EQ(priority_queue.size(), 2);
+  }
+  // Check if insertion working as expected when trx2 should be removed
+  {
+    TransactionQueue priority_queue(2);
+    uint32_t nonce = 0;
+    auto trx = std::make_shared<Transaction>(nonce++, 1, 2, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
+                                             addr_t::random());
+    auto trx2 = std::make_shared<Transaction>(nonce, 1, 1, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
+                                              addr_t::random());
+    auto trx3 = std::make_shared<Transaction>(nonce, 1, 2, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
+                                              addr_t::random());
+    const auto trx_hash3 = trx3->getHash();
+    const auto trx_hash2 = trx2->getHash();
+    EXPECT_TRUE(priority_queue.insert({trx, TransactionStatus::Verified}, 1));
+    EXPECT_TRUE(priority_queue.insert({trx2, TransactionStatus::Verified}, 1));
+    EXPECT_TRUE(priority_queue.insert({trx3, TransactionStatus::Verified}, 1));
+    EXPECT_EQ(priority_queue.get(trx_hash3), trx3);
+    EXPECT_EQ(priority_queue.get(trx_hash2), nullptr);
+    EXPECT_EQ(priority_queue.size(), 2);
+  }
+  // Check if Forced insertion working as expected
+  {
+    TransactionQueue priority_queue(2);
+    uint32_t nonce = 0;
+    auto trx = std::make_shared<Transaction>(nonce++, 1, 2, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
+                                             addr_t::random());
+    auto trx2 = std::make_shared<Transaction>(nonce, 1, 1, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
+                                              addr_t::random());
+    auto trx3 = std::make_shared<Transaction>(nonce, 1, 1, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
+                                              addr_t::random());
+    const auto trx_hash3 = trx3->getHash();
+    const auto trx_hash2 = trx2->getHash();
+    EXPECT_TRUE(priority_queue.insert({trx, TransactionStatus::Verified}, 1));
+    EXPECT_TRUE(priority_queue.insert({trx2, TransactionStatus::Verified}, 1));
+    EXPECT_TRUE(priority_queue.insert({trx3, TransactionStatus::Forced}, 1));
+    EXPECT_EQ(priority_queue.get(trx_hash3), trx3);
+    EXPECT_EQ(priority_queue.get(trx_hash2), trx2);
+    EXPECT_EQ(priority_queue.size(), 2);
+  }
+}
+
 TEST_F(TransactionTest, typed_deserialization) {
   auto trx_rlp =
       "0x01f88380018203339407a565b7ed7d7a678680a4c162885bedbb695fe080a44401a6e40000000000000000000000000000000000000000"
