@@ -483,6 +483,7 @@ uint64_t VoteManager::roundDeterminedFromVotes(size_t two_t_plus_one) {
 bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
   const auto vote_hash = vote->getHash();
   const auto voted_block_hash = vote->getBlockHash();
+  const auto vote_round = vote->getRound();
   const auto vote_step = vote->getStep();
   const auto vote_type = vote->getType();
 
@@ -497,13 +498,19 @@ bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
   }
 
   {
-    // This lock protects the both reward_votes_pbft_block_hash_ and reward_votes_
+    // This lock protects the reward_votes_pbft_block_hash_, reward_votes_pbft_block_round_ and reward_votes_
     std::shared_lock lock(reward_votes_mutex_);
 
     if (reward_votes_pbft_block_hash_ != voted_block_hash) {
       // Should not happen, reward_votes_pbft_block_hash_ should always equal to last block hash in PBFT chain
       LOG(log_wr_) << "The reward vote voted PBFT block hash " << voted_block_hash << " is different with "
                    << reward_votes_pbft_block_hash_;
+      return false;
+    }
+
+    if (reward_votes_pbft_block_round_ != vote_round) {
+      LOG(log_wr_) << "The reward vote " << vote_hash << " round " << vote_round << " is different than "
+                   << reward_votes_pbft_block_round_;
       return false;
     }
 
@@ -602,6 +609,7 @@ void VoteManager::replaceRewardVotes(std::vector<std::shared_ptr<Vote>>&& cert_v
   std::unique_lock lock(reward_votes_mutex_);
   reward_votes_ = {};
   reward_votes_pbft_block_hash_ = cert_votes[0]->getBlockHash();
+  reward_votes_pbft_block_round_ = cert_votes[0]->getRound();
   for (auto& v : cert_votes) {
     assert(v->getWeight());
     reward_votes_.insert({v->getHash(), std::move(v)});
