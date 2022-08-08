@@ -31,37 +31,28 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     const auto vote_round = vote->getRound();
     const auto current_pbft_round = pbft_mgr_->getPbftRound();
 
-    // Check reward vote
-    if (vote_round < current_pbft_round) {
-      // Synchronization point in case multiple threads are processing the same vote at the same time
-      if (!seen_votes_.insert(vote_hash)) {
-        LOG(log_dg_) << "Received vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
-                     << ") already seen.";
-      } else if (vote_mgr_->addRewardVote(vote)) {
-        // As peers have small caches of known votes. Only mark gossiping votes
-        peer->markVoteAsKnown(vote_hash);
-        votes.push_back(std::move(vote));
-      }
-      continue;
-    }
-
-    // Votes vote_round >= current_pbft_round
     // Synchronization point in case multiple threads are processing the same vote at the same time
     if (!seen_votes_.insert(vote_hash)) {
-      LOG(log_dg_) << "Received PBFT vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
+      LOG(log_dg_) << "Received vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
                    << ") already seen.";
       continue;
     }
-
-    // Adds unverified vote into queue
-    if (vote_mgr_->voteInVerifiedMap(vote) || !vote_mgr_->addUnverifiedVote(vote)) {
-      LOG(log_dg_) << "Received PBFT vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
-                   << ") already saved in (un)verified queues.";
-      continue;
-    }
-
-    // Do not mark it before, as peers have small caches of known votes. Only mark gossiping votes
     peer->markVoteAsKnown(vote_hash);
+
+    // Check reward vote
+    if (vote_round < current_pbft_round) {
+      if (!vote_mgr_->addRewardVote(vote)) {
+        continue;
+      }
+    } else {
+      // Votes vote_round >= current_pbft_round
+      // Adds unverified vote into queue
+      if (vote_mgr_->voteInVerifiedMap(vote) || !vote_mgr_->addUnverifiedVote(vote)) {
+        LOG(log_dg_) << "Received PBFT vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
+                     << ") already saved in (un)verified queues.";
+        continue;
+      }
+    }
     votes.push_back(std::move(vote));
   }
 
