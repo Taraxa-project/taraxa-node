@@ -22,6 +22,7 @@ Config::Config(int argc, const char* argv[]) {
   string config;
   string wallet;
   int chain_id = static_cast<int>(DEFAULT_CHAIN_ID);
+  std::string chain_str;
   string data_dir;
   vector<string> command;
   vector<string> boot_nodes;
@@ -84,9 +85,11 @@ Config::Config(int argc, const char* argv[]) {
                                      "Revert db/state to specified "
                                      "period (specify period)");
   node_command_options.add_options()(CHAIN_ID, bpo::value<int>(&chain_id),
-                                     "Network identifier (integer, 1=Mainnet, 2=Testnet, 3=Devnet) (default: 1)"
+                                     "Chain identifier (integer, 841=Mainnet, 842=Testnet, 843=Devnet) (default: 841) "
                                      "Only used when creating new config file");
-
+  node_command_options.add_options()(CHAIN, bpo::value<std::string>(&chain_str),
+                                     "Chain identifier (string, mainnet, testnet, devnet) (default: mainnet) "
+                                     "Only used when creating new config file");
   node_command_options.add_options()(BOOT_NODES, bpo::value<vector<string>>(&boot_nodes)->multitoken(),
                                      "Boot nodes to connect to: [ip_address:port_number/node_id, ....]");
   node_command_options.add_options()(
@@ -148,6 +151,15 @@ Config::Config(int argc, const char* argv[]) {
     }
     if (!wallet_dir.empty() && !fs::exists(wallet_dir)) {
       fs::create_directories(wallet_dir);
+    }
+
+    // Update chain_id
+    if (!chain_str.empty()) {
+      if (chain_id != static_cast<int>(DEFAULT_CHAIN_ID)) {
+        std::cout << "You can not specify both " << CHAIN_ID << " and " << CHAIN << std::endl;
+        return;
+      }
+      chain_id = tools::getChainIdFromString(chain_str);
     }
 
     // If any of the config files are missing they are generated with default values
