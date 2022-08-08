@@ -79,6 +79,7 @@ var group___vote =
       [ "reward_votes_", "group___vote.html#a3852382974a58a8ed36aa75568fdb2fd", null ],
       [ "reward_votes_mutex_", "group___vote.html#a442ab697e23b80e435620be43b981964", null ],
       [ "reward_votes_pbft_block_hash_", "group___vote.html#a379edd7cbbf1cdf62e91a36fe2c2b94c", null ],
+      [ "reward_votes_pbft_block_round_", "group___vote.html#aaef540ad7604b524f9f56965597e504f", null ],
       [ "unverified_votes_", "group___vote.html#a18303ab915d1cf6c2ba04a070e09658c", null ],
       [ "unverified_votes_access_", "group___vote.html#ae34c28e88d306c6f797402fbbb6c090e", null ],
       [ "verified_votes_", "group___vote.html#aa03d489c439a3dc6062d81cf58176e99", null ],

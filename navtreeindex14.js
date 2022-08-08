@@ -219,7 +219,7 @@ var NAVTREEINDEX14 =
 "group___vote.html#a154b75d8f400bb5b6d6151899e9f0144":[9,4,1,3],
 "group___vote.html#a16c04d38985b7c6786a387b8ab6a999a":[9,4,2,2],
 "group___vote.html#a171d9e415bb9be4ad1d2354bc768a202":[9,4,0,17],
-"group___vote.html#a18303ab915d1cf6c2ba04a070e09658c":[9,4,1,50],
+"group___vote.html#a18303ab915d1cf6c2ba04a070e09658c":[9,4,1,51],
 "group___vote.html#a1d51dade04d2e67bce8147257a1db59b":[9,4,0,18],
 "group___vote.html#a1dcf910e6a0ff63ef8895cbe64446b02":[9,4,2,5],
 "group___vote.html#a2078e19b96d7ca2d0a651d38ed69de2a":[9,4,5,15],
