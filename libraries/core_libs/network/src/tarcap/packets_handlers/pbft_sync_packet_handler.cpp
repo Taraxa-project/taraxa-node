@@ -1,6 +1,5 @@
 #include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
 
-#include "dag/dag_block_manager.hpp"
 #include "network/tarcap/packets_handlers/common/ext_syncing_packet_handler.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
@@ -13,13 +12,12 @@ namespace taraxa::network::tarcap {
 PbftSyncPacketHandler::PbftSyncPacketHandler(
     std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
     std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
-    std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
-    std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<VoteManager> vote_mgr,
+    std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<VoteManager> vote_mgr,
     std::shared_ptr<util::ThreadPool> periodic_events_tp, std::shared_ptr<DbStorage> db, size_t network_sync_level_size,
     const addr_t &node_addr)
     : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
-                              std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(dag_blk_mgr),
-                              std::move(db), node_addr, "PBFT_SYNC_PH"),
+                              std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
+                              "PBFT_SYNC_PH"),
       vote_mgr_(std::move(vote_mgr)),
       periodic_events_tp_(periodic_events_tp),
       network_sync_level_size_(network_sync_level_size) {}

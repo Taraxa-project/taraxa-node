@@ -1,6 +1,6 @@
 #include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
 
-#include "dag/dag.hpp"
+#include "dag/dag_manager.hpp"
 #include "transaction/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {
@@ -8,13 +8,11 @@ namespace taraxa::network::tarcap {
 GetDagSyncPacketHandler::GetDagSyncPacketHandler(std::shared_ptr<PeersState> peers_state,
                                                  std::shared_ptr<PacketsStats> packets_stats,
                                                  std::shared_ptr<TransactionManager> trx_mgr,
-                                                 std::shared_ptr<DagManager> dag_mgr,
-                                                 std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                                                 std::shared_ptr<DbStorage> db, const addr_t &node_addr)
+                                                 std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DbStorage> db,
+                                                 const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_DAG_SYNC_PH"),
       trx_mgr_(std::move(trx_mgr)),
       dag_mgr_(std::move(dag_mgr)),
-      dag_blk_mgr_(std::move(dag_blk_mgr)),
       db_(std::move(db)) {}
 
 void GetDagSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
@@ -26,12 +24,15 @@ void GetDagSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_d
 void GetDagSyncPacketHandler::process(const PacketData &packet_data,
                                       [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
   if (peer->peer_requested_dag_syncing_) {
-    // This should not be possible for honest node
-    // Each node should perform dag syncing only once
-    std::ostringstream err_msg;
-    err_msg << "Received multiple GetDagSyncPackets from " << packet_data.from_node_id_.abridged();
+    // If transaction pool is full we need to send missing transactions back to peer
+    if (!trx_mgr_->isTransactionPoolFull(90)) {
+      // This should not be possible for honest node
+      // Each node should perform dag syncing only once
+      std::ostringstream err_msg;
+      err_msg << "Received multiple GetDagSyncPackets from " << packet_data.from_node_id_.abridged();
 
-    throw MaliciousPeerException(err_msg.str());
+      throw MaliciousPeerException(err_msg.str());
+    }
   }
 
   // This lock prevents race condition between syncing and gossiping dag blocks

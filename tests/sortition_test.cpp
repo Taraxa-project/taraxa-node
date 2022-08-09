@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "common/types.hpp"
+#include "dag/sortition_params_manager.hpp"
 #include "util_test/util.hpp"
 
 namespace taraxa::core_tests {

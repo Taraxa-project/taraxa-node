@@ -53,7 +53,7 @@ struct NodeDagCreationFixture : BaseTest {
   }
 
   void deployContract() {
-    auto trx = std::make_shared<Transaction>(nonce, 100, 0, TEST_TX_GAS_LIMIT,
+    auto trx = std::make_shared<Transaction>(nonce, 0, 0, TEST_TX_GAS_LIMIT,
                                              dev::fromHex(samples::greeter_contract_code), node->getSecretKey());
     auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(trx);
     ASSERT_TRUE(ok);

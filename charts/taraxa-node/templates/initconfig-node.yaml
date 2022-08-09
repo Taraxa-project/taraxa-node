@@ -11,6 +11,86 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 data:
+  genconfig.py: |-
+    import json
+    import sys
+    import subprocess
+
+    def get_vrf_public(vrf_prv_key):
+        process = subprocess.Popen(['taraxad', '--command', 'vrf', vrf_prv_key],stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        for line in process.stdout:
+            l = line.decode("utf-8")
+
+            if "vrf_public" in l:
+                vrf_public = l.split(':')[1].replace("\"", "").strip()
+                return f'0x{vrf_public}'
+
+    def get_addr(prv_key):
+        process = subprocess.Popen(['taraxad', '--command', 'account', prv_key],stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        for line in process.stdout:
+            l = line.decode("utf-8")
+
+            if "node_address" in l:
+                addr = l.split(':')[1].replace("\"", "").strip()
+                return f'0x{addr}'
+
+    def main(config):
+      keys = []
+      vrfs = []
+
+      {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
+      keys = [
+      {{- range $key, $value := .Values.config.node.keys }}
+      "{{ $value }}",
+      {{- end }}
+      ]
+      {{- end }}
+
+      {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
+      vrfs = [
+      {{- range $key, $value := .Values.config.node.vrfs }}
+      "{{ $value }}",
+      {{- end }}
+      ]
+      {{- end }}
+
+      with open(config) as f:
+        data = json.load(f)
+
+        initial_validators = data['chain_config']['final_chain']['state']['dpos']['initial_validators']
+        
+        # get delegations from x1st default validator 
+        delegations = initial_validators[0]['delegations']
+
+        validators = []
+        for idx, key in enumerate(keys):
+
+          validator = {
+              'address': '',
+              'commission': '0x0',
+              'delegations': {},
+              'description': 'Taraxa validator',
+              'endpoint': '',
+              'owner': ''
+          }
+
+          addr = get_addr(key)
+          validator['address'] = addr
+          validator['owner'] = addr
+          validator['delegations'] = delegations
+          validator['vrf_key'] = get_vrf_public(vrfs[idx])
+          validators.append(validator)
+
+        data['chain_config']['final_chain']['state']['dpos']['initial_validators'] = validators
+        print(json.dumps(data))
+
+    if __name__ == "__main__":
+      config_file_name = sys.argv[1]
+      main(config_file_name)
+
+
   entrypoint.sh: |-
     #!/bin/bash
     DATA_PATH=/root/.taraxa
@@ -44,10 +124,10 @@ data:
 
     echo "Generating config"
     taraxad --command config \
-      --network-id {{ .Values.config.network }} \
+      --chain-id {{ .Values.config.network }} \
       --node-secret ${KEY} \
       --vrf-secret ${VRF} \
-      {{- if and (ne .Values.config.network "1") (ne .Values.config.network "2") (ne .Values.config.network "3") }}
+      {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
       {{- $lbEnabled := .Values.bootnode.loadBalancer.enabled -}}
       {{- $lbIPs := .Values.bootnode.loadBalancer.addresses -}}
       {{- range $key, $value := .Values.config.bootnode.addresses }}
@@ -61,19 +141,11 @@ data:
       --wallet $WALLET_PATH \
       --data-dir $DATA_PATH
 
-    {{- if and (ne .Values.config.network "1") (ne .Values.config.network "2") (ne .Values.config.network "3") }}
-    export DELEGATION_ADDRESS=$(cat $CONFIG_PATH | jq -r '.chain_config.final_chain.state.dpos.genesis_state | keys[0]')
-    export FIRST_NODE_ADDRESS=$(cat $CONFIG_PATH | jq -r '.chain_config.final_chain.state.dpos.genesis_state[env.DELEGATION_ADDRESS] | keys[0]')
-    export DELEGATION_VALUE=$(cat $CONFIG_PATH | jq -r '.chain_config.final_chain.state.dpos.genesis_state[env.DELEGATION_ADDRESS][env.FIRST_NODE_ADDRESS]')
-    cat $CONFIG_PATH | jq '.chain_config.final_chain.state.dpos.genesis_state[env.DELEGATION_ADDRESS] = ({})' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
-    {{- range $key, $value := .Values.config.consensusnode.keys }}
-    echo "Adding node {{ $key }} address to the config..."
-    export ADDRESS="0x$(taraxad --command account {{ $value }} | grep "node_address" | awk '{print $3}' | tr -d '"')"
-    cat $CONFIG_PATH | jq '.chain_config.final_chain.state.dpos.genesis_state[env.DELEGATION_ADDRESS] += ({(env.ADDRESS): env.DELEGATION_VALUE})' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
-    {{- end }}
+    {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
+    python3 /bin/genconfig.py $CONFIG_PATH > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
     {{- end }}
 
-    {{- if and (ne .Values.config.network "1") (ne .Values.config.network "2") (ne .Values.config.network "3") }}
+    {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
     {{ if .Values.explorer.enabled }}
     export FAUCET_ADDRESS=$(taraxad --command account ${EXPLORER_FAUCET_PRIVATE_KEY} | grep node_address | cut -d\  -f3 | tr -d \")
     cat $CONFIG_PATH | jq '.chain_config.final_chain.state.genesis_balances += ({("0x"+env.FAUCET_ADDRESS): "0x1027e72f1f12813088000000"})' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH

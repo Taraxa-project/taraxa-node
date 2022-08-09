@@ -10,16 +10,18 @@
 
 namespace taraxa::network::tarcap {
 
-StatusPacketHandler::StatusPacketHandler(
-    std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-    std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
-    std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
-    std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
-    std::shared_ptr<DbStorage> db, uint64_t conf_network_id, h256 genesis_hash, const addr_t& node_addr)
+StatusPacketHandler::StatusPacketHandler(std::shared_ptr<PeersState> peers_state,
+                                         std::shared_ptr<PacketsStats> packets_stats,
+                                         std::shared_ptr<PbftSyncingState> pbft_syncing_state,
+                                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
+                                         std::shared_ptr<DagManager> dag_mgr,
+                                         std::shared_ptr<NextVotesManager> next_votes_mgr,
+                                         std::shared_ptr<DbStorage> db, uint64_t conf_chain_id, h256 genesis_hash,
+                                         const addr_t& node_addr)
     : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
-                              std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(dag_blk_mgr),
-                              std::move(db), node_addr, "STATUS_PH"),
-      conf_network_id_(conf_network_id),
+                              std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
+                              "STATUS_PH"),
+      conf_chain_id_(conf_chain_id),
       genesis_hash_(genesis_hash),
       next_votes_mgr_(std::move(next_votes_mgr)) {}
 
@@ -49,7 +51,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     }
 
     auto it = packet_data.rlp_.begin();
-    auto const peer_network_id = (*it++).toInt<uint64_t>();
+    auto const peer_chain_id = (*it++).toInt<uint64_t>();
     auto const peer_dag_level = (*it++).toInt<uint64_t>();
     auto const genesis_hash = (*it++).toHash<blk_hash_t>();
     auto const peer_pbft_chain_size = (*it++).toInt<uint64_t>();
@@ -74,9 +76,9 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
       }
     }
 
-    if (peer_network_id != conf_network_id_) {
+    if (peer_chain_id != conf_chain_id_) {
       LOG((peers_state_->getPeersCount()) ? log_nf_ : log_er_)
-          << "Incorrect network id " << peer_network_id << ", host " << packet_data.from_node_id_.abridged()
+          << "Incorrect network id " << peer_chain_id << ", host " << packet_data.from_node_id_.abridged()
           << " will be disconnected";
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
@@ -99,7 +101,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     peers_state_->setPeerAsReadyToSendMessages(packet_data.from_node_id_, selected_peer);
 
     LOG(log_dg_) << "Received initial status message from " << packet_data.from_node_id_ << ", network id "
-                 << peer_network_id << ", peer DAG max level " << selected_peer->dag_level_ << ", genesis "
+                 << peer_chain_id << ", peer DAG max level " << selected_peer->dag_level_ << ", genesis "
                  << genesis_hash << ", peer pbft chain size " << selected_peer->pbft_chain_size_ << ", peer syncing "
                  << std::boolalpha << selected_peer->syncing_ << ", peer pbft round " << selected_peer->pbft_round_
                  << ", peer pbft previous round next votes size " << selected_peer->pbft_previous_round_next_votes_size_
@@ -171,7 +173,7 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
     std::string status_packet_type = initial ? "initial" : "standard";
 
     LOG(log_dg_) << "Sending " << status_packet_type << " status message to " << node_id << ", protocol version "
-                 << TARAXA_NET_VERSION << ", network id " << conf_network_id_ << ", genesis " << genesis_hash_
+                 << TARAXA_NET_VERSION << ", network id " << conf_chain_id_ << ", genesis " << genesis_hash_
                  << ", node version " << TARAXA_VERSION;
 
     auto dag_max_level = dag_mgr_->getMaxLevel();
@@ -183,7 +185,7 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
       success =
           sealAndSend(node_id, StatusPacket,
                       std::move(dev::RLPStream(kInitialStatusPacketItemsCount)
-                                << conf_network_id_ << dag_max_level << genesis_hash_ << pbft_chain_size
+                                << conf_chain_id_ << dag_max_level << genesis_hash_ << pbft_chain_size
                                 << pbft_syncing_state_->isPbftSyncing() << pbft_round
                                 << pbft_previous_round_next_votes_size << TARAXA_MAJOR_VERSION << TARAXA_MINOR_VERSION
                                 << TARAXA_PATCH_VERSION << dag_mgr_->isLightNode() << dag_mgr_->getLightNodeHistory()));

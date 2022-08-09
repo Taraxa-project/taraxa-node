@@ -9,8 +9,10 @@
 
 #include "cli/config.hpp"
 #include "cli/tools.hpp"
+#include "common/constants.hpp"
 #include "common/static_init.hpp"
-#include "dag/dag.hpp"
+#include "dag/block_proposer.hpp"
+#include "dag/dag_manager.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "network/rpc/Taraxa.h"
@@ -23,6 +25,7 @@
 // TODO rename this namespace to `tests`
 namespace taraxa::core_tests {
 using samples::sendTrx;
+using vrf_wrapper::VrfSortitionBase;
 
 const unsigned NUM_TRX = 200;
 const unsigned SYNC_TIMEOUT = 400;
@@ -711,7 +714,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       auto dags = getOrderedDagBlocks(node->getDB());
       for (size_t i(0); i < dags.size(); ++i) {
         auto d = dags[i];
-        std::cout << i << " " << d << " trx: " << nodes[0]->getDagBlockManager()->getDagBlock(d)->getTrxs().size()
+        std::cout << i << " " << d << " trx: " << nodes[0]->getDagManager()->getDagBlock(d)->getTrxs().size()
                   << std::endl;
       }
       std::string filename = "debug_dag_" + std::to_string(k);
@@ -1406,7 +1409,7 @@ TEST_F(FullNodeTest, transfer_to_self) {
   uint64_t trx_count(100);
   EXPECT_TRUE(initial_bal.second);
   for (uint64_t i = 0; i < trx_count; ++i) {
-    const auto trx = std::make_shared<Transaction>(i, i * 100, 0, 1000000, str2bytes("00FEDCBA9876543210000000"),
+    const auto trx = std::make_shared<Transaction>(i, i * 100, 0, 1000000, dev::fromHex("00FEDCBA9876543210000000"),
                                                    g_secret, node_addr);
     nodes[0]->getTransactionManager()->insertTransaction(trx);
   }
@@ -1542,46 +1545,46 @@ TEST_F(FullNodeTest, transaction_validation) {
   const uint32_t gasprice = 1;
   const uint32_t gas = 100000;
 
-  auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, str2bytes("00FEDCBA9876543210000000"),
+  auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
                                            nodes[0]->getSecretKey(), addr_t::random());
   // PASS on GAS
   EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
-  trx =
-      std::make_shared<Transaction>(nonce++, 0, gasprice, FinalChain::GAS_LIMIT + 1,
-                                    str2bytes("00FEDCBA9876543210000000"), nodes[0]->getSecretKey(), addr_t::random());
+  trx = std::make_shared<Transaction>(nonce++, 0, gasprice, FinalChain::GAS_LIMIT + 1,
+                                      dev::fromHex("00FEDCBA9876543210000000"), nodes[0]->getSecretKey(),
+                                      addr_t::random());
   // FAIL on GAS
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 
-  trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, str2bytes("00FEDCBA9876543210000000"),
+  trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
                                       nodes[0]->getSecretKey(), addr_t::random());
   // PASS on NONCE
   EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
   wait({60s, 200ms}, [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), 2) });
-  trx = std::make_shared<Transaction>(0, 0, gasprice, gas, str2bytes("00FEDCBA9876543210000000"),
+  trx = std::make_shared<Transaction>(0, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
                                       nodes[0]->getSecretKey(), addr_t::random());
   // FAIL on NONCE
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 
-  trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, str2bytes("00FEDCBA9876543210000000"),
+  trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
                                       nodes[0]->getSecretKey(), addr_t::random());
   // PASS on BALANCE
   EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 
-  trx =
-      std::make_shared<Transaction>(nonce++, own_effective_genesis_bal(nodes[0]->getConfig()) + 1, 0, gas,
-                                    str2bytes("00FEDCBA9876543210000000"), nodes[0]->getSecretKey(), addr_t::random());
+  trx = std::make_shared<Transaction>(nonce++, own_effective_genesis_bal(nodes[0]->getConfig()) + 1, 0, gas,
+                                      dev::fromHex("00FEDCBA9876543210000000"), nodes[0]->getSecretKey(),
+                                      addr_t::random());
   // FAIL on BALANCE
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 }
 
 TEST_F(FullNodeTest, light_node) {
   auto node_cfgs = make_node_cfgs<10>(2);
-  node_cfgs[0].is_light_node = true;
-  node_cfgs[0].light_node_history = 10;
   node_cfgs[0].dag_expiry_limit = 5;
   node_cfgs[0].max_levels_per_period = 3;
   node_cfgs[1].dag_expiry_limit = 5;
   node_cfgs[1].max_levels_per_period = 3;
+  node_cfgs[1].is_light_node = true;
+  node_cfgs[1].light_node_history = 10;
   auto nodes = launch_nodes(node_cfgs);
   uint64_t nonce = 0;
   while (nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks() < 20) {
@@ -1597,15 +1600,16 @@ TEST_F(FullNodeTest, light_node) {
                    nodes[1]->getPbftChain()->getPbftChainSizeExcludingEmptyPbftBlocks())
   });
   uint32_t non_empty_counter = 0;
-  for (uint64_t i = 0; i < nodes[0]->getPbftChain()->getPbftChainSize(); i++) {
-    const auto pbft_block = nodes[0]->getDB()->getPbftBlock(i);
+  for (uint64_t i = 0; i < nodes[1]->getPbftChain()->getPbftChainSize(); i++) {
+    const auto pbft_block = nodes[1]->getDB()->getPbftBlock(i);
     if (pbft_block) {
       non_empty_counter++;
     }
   }
   // Verify light node stores only expected number of period_data
-  EXPECT_GE(non_empty_counter, node_cfgs[0].light_node_history);
-  EXPECT_LE(non_empty_counter, node_cfgs[0].light_node_history + 1);
+  // const uint64_t expected_non_emp = std::min(period_ - light_node_history_, *proposal_period);
+  EXPECT_GE(non_empty_counter, node_cfgs[1].light_node_history);
+  EXPECT_LE(non_empty_counter, node_cfgs[1].light_node_history + 2);
 }
 
 TEST_F(FullNodeTest, clear_period_data) {
@@ -1661,6 +1665,60 @@ TEST_F(FullNodeTest, clear_period_data) {
 
   // Verify light node does not delete non expired dag blocks
   EXPECT_TRUE(nodes[0]->getDB()->getPbftBlock(first_over_limit));
+}
+
+TEST_F(FullNodeTest, transaction_pool_overflow) {
+  auto node_cfgs = make_node_cfgs<5>(2);
+  for (auto &cfg : node_cfgs) {
+    cfg.transactions_pool_size = kMinTransactionPoolSize;
+  }
+  auto nodes = launch_nodes(node_cfgs);
+  uint32_t nonce = 0;
+  const uint32_t gasprice = 5;
+  const uint32_t gas = 100000;
+  for (auto &node : nodes) {
+    node->getBlockProposer()->stop();
+  }
+
+  auto node1 = nodes.front();
+  do {
+    auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
+                                             node1->getSecretKey(), addr_t::random());
+    EXPECT_TRUE(node1->getTransactionManager()->insertTransaction(trx).first);
+  } while (!node1->getTransactionManager()->isTransactionPoolFull());
+
+  // Crate transaction with lower gasprice
+  auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice - 1, gas, dev::fromHex("00FEDCBA9876543210000000"),
+                                           node1->getSecretKey(), addr_t::random());
+  // Should fail as trx pool should be full
+  EXPECT_FALSE(node1->getTransactionManager()->insertTransaction(trx).first);
+
+  // Check if they synced
+  EXPECT_HAPPENS({50s, 100ms}, [&](auto &ctx) {
+    // Check if transactions was propagated to node1
+    WAIT_EXPECT_EQ(ctx, nodes[1]->getTransactionManager()->isTransactionPoolFull(), true)
+  });
+
+  // Add one valid block
+  const auto proposal_level = 1;
+  const auto proposal_period = *node1->getDB()->getProposalPeriodForDagLevel(proposal_level);
+  const auto period_block_hash = node1->getDB()->getPeriodBlockHash(proposal_period);
+  const auto sortition_params =
+      nodes.front()->getDagManager()->sortitionParamsManager().getSortitionParams(proposal_period);
+  vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
+                                  VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash));
+  const auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
+  const auto estimation = node1->getTransactionManager()->estimateTransactionGas(trx, proposal_period);
+  vdf.computeVdfSolution(sortition_params, dag_genesis.asBytes(), false);
+
+  DagBlock blk(dag_genesis, proposal_level, {}, {trx->getHash()}, {estimation}, vdf, node1->getSecretKey());
+  const auto blk_hash = blk.getHash();
+  EXPECT_TRUE(nodes[1]->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
+
+  EXPECT_HAPPENS({120s, 300ms}, [&](auto &ctx) {
+    // Check if transactions and block was propagated to node1
+    WAIT_EXPECT_NE(ctx, node1->getDagManager()->getDagBlock(blk_hash), nullptr);
+  });
 }
 
 }  // namespace taraxa::core_tests

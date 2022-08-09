@@ -1,6 +1,7 @@
 #include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
 
-#include "dag/dag_block_manager.hpp"
+#include <cassert>
+
 #include "network/tarcap/shared_states/test_state.hpp"
 #include "transaction/transaction_manager.hpp"
 
@@ -9,11 +10,9 @@ namespace taraxa::network::tarcap {
 TransactionPacketHandler::TransactionPacketHandler(std::shared_ptr<PeersState> peers_state,
                                                    std::shared_ptr<PacketsStats> packets_stats,
                                                    std::shared_ptr<TransactionManager> trx_mgr,
-                                                   std::shared_ptr<DagBlockManager> dag_blk_mgr,
                                                    std::shared_ptr<TestState> test_state, const addr_t &node_addr)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "TRANSACTION_PH"),
       trx_mgr_(std::move(trx_mgr)),
-      dag_blk_mgr_(std::move(dag_blk_mgr)),
       test_state_(std::move(test_state)) {}
 
 void TransactionPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
@@ -41,7 +40,7 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
 
     TransactionStatus status = TransactionStatus::Verified;
     std::string reason;
-    if (dag_blk_mgr_) [[likely]] {  // ONLY FOR TESTING
+    if (trx_mgr_) [[likely]] {  // ONLY FOR TESTING
       if (trx_mgr_->isTransactionKnown(transaction->getHash())) {
         continue;
       }
@@ -66,6 +65,8 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
         }
         case TransactionStatus::Verified:
           break;
+        default:
+          assert(false);
       }
     }
     received_transactions += transaction->getHash().abridged() + " ";
@@ -86,7 +87,7 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
 
 void TransactionPacketHandler::onNewTransactions(
     std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> &&transactions) {
-  if (dag_blk_mgr_) [[likely]] {
+  if (trx_mgr_) [[likely]] {
     received_trx_count_ += transactions.size();
     unique_received_trx_count_ += trx_mgr_->insertValidatedTransactions(std::move(transactions));
     return;

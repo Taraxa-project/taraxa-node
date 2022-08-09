@@ -40,9 +40,6 @@ bytes GasPriceConfig::rlp() const {
 
 Json::Value enc_json(const ChainConfig& obj) {
   Json::Value json(Json::objectValue);
-  if (obj.chain_id) {
-    json["chain_id"] = dev::toJS(obj.chain_id);
-  }
   json["dag_genesis_block"] = obj.dag_genesis_block.getJson(false);
   json["sortition"] = enc_json(obj.sortition);
   json["pbft"] = enc_json(obj.pbft);
@@ -53,9 +50,6 @@ Json::Value enc_json(const ChainConfig& obj) {
 }
 
 void dec_json(Json::Value const& json, ChainConfig& obj) {
-  if (auto const& e = json["chain_id"]; e.isString()) {
-    obj.chain_id = dev::jsToInt(e.asString());
-  }
   obj.dag_genesis_block = DagBlock(json["dag_genesis_block"]);
   dec_json(json["sortition"], obj.sortition);
   dec_json(json["pbft"], obj.pbft);
@@ -124,7 +118,6 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
   }();
   cfgs["test"] = [&] {
     auto cfg = cfgs["default"];
-    cfg.chain_id = 12345;
     cfg.final_chain.state.genesis_balances[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")] =
         u256(7200999050) * 10000000000000000;  // https://ethereum.stackexchange.com/a/74832
     return cfg;
@@ -136,9 +129,8 @@ void ChainConfig::validate() const { gas_price.validate(); }
 
 bytes ChainConfig::rlp() const {
   dev::RLPStream s;
-  s.appendList(7);
+  s.appendList(6);
 
-  s << chain_id;
   s << dag_genesis_block.rlp(true);
   s << gas_price.rlp();
   s << sortition.rlp();

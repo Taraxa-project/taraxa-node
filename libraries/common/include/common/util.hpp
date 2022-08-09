@@ -246,6 +246,11 @@ class ExpirationCache {
     return cache_.contains(key);
   }
 
+  void erase(Key const &key) {
+    std::unique_lock lck(mtx_);
+    cache_.erase(key);
+  }
+
   std::size_t count(Key const &key) const {
     std::shared_lock lck(mtx_);
     return cache_.count(key);

@@ -6,7 +6,6 @@ namespace taraxa {
 class PbftBlock;
 class PbftChain;
 class PbftManager;
-class DagBlockManager;
 class VoteManager;
 }  // namespace taraxa
 

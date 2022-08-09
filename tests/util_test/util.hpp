@@ -331,7 +331,7 @@ inline auto make_dpos_trx(const FullNodeConfig& sender_node_cfg, const u256& val
       vrf_wrapper::getVrfPublicKey(sender_node_cfg.vrf_secret).asBytes(), 10, dev::asBytes("test"),
       dev::asBytes("test"));
   return std::make_shared<Transaction>(nonce, value, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
-                                       sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.chain.chain_id);
+                                       sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.chain_id);
 }
 
 inline auto own_balance(std::shared_ptr<FullNode> const& node) {

@@ -20,8 +20,8 @@ class Config {
 
   static void addNewHardforks(Json::Value& config, const Json::Value& default_config);
 
-  enum class NetworkIdType { Mainnet = 1, Testnet, Devnet, LastNetworkId };
-  static constexpr NetworkIdType DEFAULT_NETWORK_ID = NetworkIdType::Mainnet;
+  enum class ChainIdType { Mainnet = 841, Testnet, Devnet, LastNetworkId };
+  static constexpr ChainIdType DEFAULT_CHAIN_ID = ChainIdType::Mainnet;
 
  protected:
   FullNodeConfig node_config_;
@@ -29,7 +29,8 @@ class Config {
 
   static constexpr const char* CONFIG = "config";
   static constexpr const char* DATA_DIR = "data-dir";
-  static constexpr const char* NETWORK_ID = "network-id";
+  static constexpr const char* CHAIN_ID = "chain-id";
+  static constexpr const char* CHAIN = "chain";
   static constexpr const char* COMMAND = "command";
   static constexpr const char* DESTROY_DB = "destroy-db";
   static constexpr const char* REBUILD_NETWORK = "rebuild-network";

@@ -13,6 +13,7 @@
 
 #include "common/lazy.hpp"
 #include "common/static_init.hpp"
+#include "config/config.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
@@ -93,23 +94,21 @@ TEST_F(P2PTest, capability_send_block) {
   prefs1.discovery = false;
   dev::p2p::NetworkConfig prefs2(localhost, 10003, false, true);
   prefs2.discovery = false;
-  NetworkConfig network_conf;
-  network_conf.network_transaction_interval = 1000;
+  FullNodeConfig conf;
+  conf.network.network_transaction_interval = 1000;
   h256 genesis;
   std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1, thc2;
   auto host1 = Host::make(
       "Test",
       [&](auto host) {
-        thc1 =
-            network::tarcap::TaraxaCapability::make(host, KeyPair::create(), network_conf, genesis, TARAXA_NET_VERSION);
+        thc1 = network::tarcap::TaraxaCapability::make(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION);
         return Host::CapabilityList{thc1};
       },
       KeyPair::create(), prefs1);
   auto host2 = Host::make(
       "Test",
       [&](auto host) {
-        thc2 =
-            network::tarcap::TaraxaCapability::make(host, KeyPair::create(), network_conf, genesis, TARAXA_NET_VERSION);
+        thc2 = network::tarcap::TaraxaCapability::make(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION);
         return Host::CapabilityList{thc2};
       },
       KeyPair::create(), prefs2);
@@ -185,15 +184,14 @@ TEST_F(P2PTest, block_propagate) {
   }
   TaraxaNetworkConfig taraxa_net_conf_1;
   taraxa_net_conf_1.is_boot_node = true;
-  NetworkConfig network_conf;
-  network_conf.network_transaction_interval = 1000;
+  FullNodeConfig conf;
+  conf.network.network_transaction_interval = 1000;
   h256 genesis;
   std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1;
   auto host1 = Host::make(
       "Test",
       [&](auto host) {
-        thc1 =
-            network::tarcap::TaraxaCapability::make(host, KeyPair::create(), network_conf, genesis, TARAXA_NET_VERSION);
+        thc1 = network::tarcap::TaraxaCapability::make(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION);
         thc1->start();
         return Host::CapabilityList{thc1};
       },
@@ -206,8 +204,8 @@ TEST_F(P2PTest, block_propagate) {
     auto host = vHosts.emplace_back(Host::make(
         "Test",
         [&](auto host) {
-          auto cap = vCapabilities.emplace_back(network::tarcap::TaraxaCapability::make(
-              host, KeyPair::create(), network_conf, genesis, TARAXA_NET_VERSION));
+          auto cap = vCapabilities.emplace_back(
+              network::tarcap::TaraxaCapability::make(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION));
           cap->start();
           return Host::CapabilityList{cap};
         },
@@ -328,16 +326,16 @@ TEST_F(P2PTest, multiple_capabilities) {
   cleanup();
   {
     auto nw1 = std::make_shared<taraxa::Network>(
-        node_cfgs[0].network, genesis_hash,
+        node_cfgs[0], genesis_hash,
         [kp1, &node_cfgs, &genesis_hash](auto host) {
-          auto cap = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0].network, genesis_hash, 3);
+          auto cap = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0], genesis_hash, 3);
           return Host::CapabilityList{cap};
         },
         "/tmp/nw2");
     auto nw2 = std::make_shared<taraxa::Network>(
-        node_cfgs[1].network, genesis_hash,
+        node_cfgs[1], genesis_hash,
         [kp2, &node_cfgs, &genesis_hash](auto host) {
-          auto cap = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1].network, genesis_hash, 3);
+          auto cap = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1], genesis_hash, 3);
           return Host::CapabilityList{cap};
         },
         "/tmp/nw3");
@@ -348,20 +346,20 @@ TEST_F(P2PTest, multiple_capabilities) {
   cleanup();
   {
     auto nw1 = std::make_shared<taraxa::Network>(
-        node_cfgs[0].network, genesis_hash,
+        node_cfgs[0], genesis_hash,
         [kp1, &node_cfgs, &genesis_hash](auto host) {
-          auto cap1 = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0].network, genesis_hash, 1);
-          auto cap2 = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0].network, genesis_hash, 2);
-          auto cap3 = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0].network, genesis_hash, 3);
+          auto cap1 = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0], genesis_hash, 1);
+          auto cap2 = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0], genesis_hash, 2);
+          auto cap3 = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0], genesis_hash, 3);
           return Host::CapabilityList{cap1, cap2, cap3};
         },
         "/tmp/nw2");
     auto nw2 = std::make_shared<taraxa::Network>(
-        node_cfgs[1].network, genesis_hash,
+        node_cfgs[1], genesis_hash,
         [kp2, &node_cfgs, &genesis_hash](auto host) {
-          auto cap1 = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1].network, genesis_hash, 1);
-          auto cap2 = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1].network, genesis_hash, 2);
-          auto cap3 = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1].network, genesis_hash, 3);
+          auto cap1 = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1], genesis_hash, 1);
+          auto cap2 = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1], genesis_hash, 2);
+          auto cap3 = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1], genesis_hash, 3);
           return Host::CapabilityList{cap1, cap2, cap3};
         },
         "/tmp/nw3");
@@ -372,20 +370,20 @@ TEST_F(P2PTest, multiple_capabilities) {
   cleanup();
   {
     auto nw1 = std::make_shared<taraxa::Network>(
-        node_cfgs[0].network, genesis_hash,
+        node_cfgs[0], genesis_hash,
         [kp1, &node_cfgs, &genesis_hash](auto host) {
-          auto cap1 = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0].network, genesis_hash, 1);
-          auto cap2 = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0].network, genesis_hash, 2);
-          auto cap3 = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0].network, genesis_hash, 3);
+          auto cap1 = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0], genesis_hash, 1);
+          auto cap2 = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0], genesis_hash, 2);
+          auto cap3 = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0], genesis_hash, 3);
           return Host::CapabilityList{cap1, cap2, cap3};
         },
         "/tmp/nw2");
     auto nw2 = std::make_shared<taraxa::Network>(
-        node_cfgs[1].network, genesis_hash,
+        node_cfgs[1], genesis_hash,
         [kp2, &node_cfgs, &genesis_hash](auto host) {
-          auto cap2 = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1].network, genesis_hash, 2);
-          auto cap3 = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1].network, genesis_hash, 3);
-          auto cap4 = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1].network, genesis_hash, 4);
+          auto cap2 = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1], genesis_hash, 2);
+          auto cap3 = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1], genesis_hash, 3);
+          auto cap4 = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1], genesis_hash, 4);
           return Host::CapabilityList{cap2, cap3, cap4};
         },
         "/tmp/nw3");
@@ -396,20 +394,20 @@ TEST_F(P2PTest, multiple_capabilities) {
   cleanup();
   {
     auto nw1 = std::make_shared<taraxa::Network>(
-        node_cfgs[0].network, genesis_hash,
+        node_cfgs[0], genesis_hash,
         [kp1, &node_cfgs, &genesis_hash](auto host) {
-          auto cap1 = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0].network, genesis_hash, 1);
-          auto cap2 = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0].network, genesis_hash, 2);
-          auto cap3 = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0].network, genesis_hash, 3);
+          auto cap1 = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0], genesis_hash, 1);
+          auto cap2 = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0], genesis_hash, 2);
+          auto cap3 = network::tarcap::TaraxaCapability::make(host, kp1, node_cfgs[0], genesis_hash, 3);
           return Host::CapabilityList{cap1, cap2, cap3};
         },
         "/tmp/nw2");
     auto nw2 = std::make_shared<taraxa::Network>(
-        node_cfgs[1].network, genesis_hash,
+        node_cfgs[1], genesis_hash,
         [kp2, &node_cfgs, &genesis_hash](auto host) {
-          auto cap4 = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1].network, genesis_hash, 4);
-          auto cap5 = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1].network, genesis_hash, 5);
-          auto cap6 = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1].network, genesis_hash, 6);
+          auto cap4 = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1], genesis_hash, 4);
+          auto cap5 = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1], genesis_hash, 5);
+          auto cap6 = network::tarcap::TaraxaCapability::make(host, kp2, node_cfgs[1], genesis_hash, 6);
           return Host::CapabilityList{cap4, cap5, cap6};
         },
         "/tmp/nw3");

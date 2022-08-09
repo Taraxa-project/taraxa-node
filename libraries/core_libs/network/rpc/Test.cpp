@@ -5,8 +5,7 @@
 #include <libdevcore/CommonJS.h>
 
 #include "common/types.hpp"
-#include "dag/dag.hpp"
-#include "dag/dag_block_manager.hpp"
+#include "dag/dag_manager.hpp"
 #include "network/network.hpp"
 #include "node/node.hpp"
 #include "pbft/pbft_manager.hpp"
@@ -110,7 +109,6 @@ Json::Value Test::get_node_status() {
       res["pbft_sync_queue_size"] = Json::UInt64(node->getPbftManager()->periodDataQueueSize());
       res["trx_pool_size"] = Json::UInt64(node->getTransactionManager()->getTransactionPoolSize());
       res["trx_nonfinalized_size"] = Json::UInt64(node->getTransactionManager()->getNonfinalizedTrxSize());
-      res["blk_queue_size"] = Json::UInt64(node->getDagBlockManager()->getDagBlockQueueSize());
       res["network"] = node->getNetwork()->getStatus();
     }
   } catch (std::exception &e) {

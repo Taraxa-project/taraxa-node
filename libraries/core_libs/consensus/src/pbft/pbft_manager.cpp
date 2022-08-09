@@ -29,16 +29,14 @@ using vrf_output_t = vrf_wrapper::vrf_output_t;
 PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_block_hash, addr_t node_addr,
                          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
-                         std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DagBlockManager> dag_blk_mgr,
-                         std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
-                         std::shared_ptr<KeyManager> key_manager, secret_t node_sk, vrf_sk_t vrf_sk,
-                         uint32_t max_levels_per_period)
+                         std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+                         std::shared_ptr<FinalChain> final_chain, std::shared_ptr<KeyManager> key_manager,
+                         secret_t node_sk, vrf_sk_t vrf_sk, uint32_t max_levels_per_period)
     : db_(std::move(db)),
       next_votes_manager_(std::move(next_votes_mgr)),
       pbft_chain_(std::move(pbft_chain)),
       vote_mgr_(std::move(vote_mgr)),
       dag_mgr_(std::move(dag_mgr)),
-      dag_blk_mgr_(std::move(dag_blk_mgr)),
       trx_mgr_(std::move(trx_mgr)),
       final_chain_(std::move(final_chain)),
       key_manager_(std::move(key_manager)),
@@ -121,12 +119,9 @@ void PbftManager::run() {
     }
     // We need this section because votes need to be verified for reward distribution
     for (const auto &v : period_data.previous_block_cert_votes) {
-      vote_mgr_->addRewardVote(v);
+      vote_mgr_->verifyRewardVote(v);
     }
-    if (!vote_mgr_->checkRewardVotes(period_data.pbft_blk)) {
-      LOG(log_er_) << "Invalid reward votes in block " << period_data.pbft_blk->getBlockHash() << " in DB.";
-      assert(false);
-    }
+
     finalize_(std::move(period_data), db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
   }
 
@@ -1280,7 +1275,7 @@ blk_hash_t PbftManager::proposePbftBlock_() {
   u256 total_weight = 0;
   uint32_t dag_blocks_included = 0;
   for (auto const &blk_hash : dag_block_order) {
-    auto dag_blk = dag_blk_mgr_->getDagBlock(blk_hash);
+    auto dag_blk = dag_mgr_->getDagBlock(blk_hash);
     if (!dag_blk) {
       LOG(log_er_) << "DAG anchor block hash " << dag_block_hash << " getDagBlock failed in propose for block "
                    << blk_hash;
@@ -1321,7 +1316,7 @@ blk_hash_t PbftManager::proposePbftBlock_() {
     std::unordered_set<trx_hash_t> trx_set;
     std::vector<trx_hash_t> transactions_to_query;
     for (auto const &dag_blk_hash : dag_block_order) {
-      auto dag_block = dag_blk_mgr_->getDagBlock(dag_blk_hash);
+      auto dag_block = dag_mgr_->getDagBlock(dag_blk_hash);
       assert(dag_block);
       for (auto const &trx_hash : dag_block->getTrxs()) {
         if (trx_set.insert(trx_hash).second) {
@@ -1495,6 +1490,12 @@ std::pair<vec_blk_t, bool> PbftManager::compareBlocksAndRewardVotes_(std::shared
     return std::make_pair(std::move(dag_blocks_order), true);
   }
 
+  // Check reward votes
+  if (!vote_mgr_->checkRewardVotes(pbft_block)) {
+    LOG(log_er_) << "Failed verifying reward votes for proposed PBFT block " << proposal_block_hash;
+    return {{}, false};
+  }
+
   auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
   if (anchor_hash == NULL_BLOCK_HASH) {
     period_data_.clear();
@@ -1513,7 +1514,7 @@ std::pair<vec_blk_t, bool> PbftManager::compareBlocksAndRewardVotes_(std::shared
   period_data_.clear();
   period_data_.dag_blocks.reserve(dag_blocks_order.size());
   for (auto const &dag_blk_hash : dag_blocks_order) {
-    auto dag_block = dag_blk_mgr_->getDagBlock(dag_blk_hash);
+    auto dag_block = dag_mgr_->getDagBlock(dag_blk_hash);
     assert(dag_block);
     for (auto const &trx_hash : dag_block->getTrxs()) {
       if (trx_set.insert(trx_hash).second) {
@@ -1531,7 +1532,12 @@ std::pair<vec_blk_t, bool> PbftManager::compareBlocksAndRewardVotes_(std::shared
   }
 
   const auto transactions = trx_mgr_->getNonfinalizedTrx(non_finalized_transactions, true /*sorted*/);
+  if (transactions.size() < non_finalized_transactions.size()) {
+    return std::make_pair(std::move(dag_blocks_order), false);
+  }
+
   non_finalized_transactions.clear();
+
   period_data_.transactions.reserve(transactions.size());
   for (const auto &trx : transactions) {
     non_finalized_transactions.push_back(trx->getHash());
@@ -1559,12 +1565,6 @@ std::pair<vec_blk_t, bool> PbftManager::compareBlocksAndRewardVotes_(std::shared
         return std::make_pair(std::move(dag_blocks_order), false);
       }
     }
-  }
-
-  // Check reward votes
-  if (!vote_mgr_->checkRewardVotes(pbft_block)) {
-    LOG(log_er_) << "Failed verifying reward votes for proposed PBFT block " << proposal_block_hash;
-    return {{}, false};
   }
 
   period_data_.pbft_blk = std::move(pbft_block);
@@ -1652,7 +1652,7 @@ void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finali
           return;
         }
 
-        auto anchor = dag_blk_mgr_->getDagBlock(anchor_hash);
+        auto anchor = dag_mgr_->getDagBlock(anchor_hash);
         if (!anchor) {
           LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in DB.";
           assert(false);
@@ -1704,8 +1704,8 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
 
   // pass pbft with dag blocks and transactions to adjust difficulty
   if (period_data.pbft_blk->getPivotDagBlockHash() != NULL_BLOCK_HASH) {
-    dag_blk_mgr_->sortitionParamsManager().pbftBlockPushed(period_data, batch,
-                                                           pbft_chain_->getPbftChainSizeExcludingEmptyPbftBlocks() + 1);
+    dag_mgr_->sortitionParamsManager().pbftBlockPushed(period_data, batch,
+                                                       pbft_chain_->getPbftChainSizeExcludingEmptyPbftBlocks() + 1);
   }
   {
     // This makes sure that no DAG block or transaction can be added or change state in transaction and dag manager when

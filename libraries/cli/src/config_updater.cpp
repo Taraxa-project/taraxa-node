@@ -17,8 +17,8 @@ auto NetworkIPChange = [](Json::Value& old_conf, const Json::Value& new_conf) {
 };
 //// NetworkIPChange
 
-ConfigUpdater::ConfigUpdater(int network_id) {
-  new_conf_ = tools::generateConfig(static_cast<Config::NetworkIdType>(network_id));
+ConfigUpdater::ConfigUpdater(int chain_id) {
+  new_conf_ = tools::generateConfig(static_cast<Config::ChainIdType>(chain_id));
   // Regiser changes that should apply
   config_changes_.emplace_back(NetworkIPChange);
 }

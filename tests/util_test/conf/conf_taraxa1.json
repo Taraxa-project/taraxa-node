@@ -1,4 +1,5 @@
 {
+  "chain_id": 0,
   "data_path": "/tmp/taraxa",
   "network_listen_ip": "0.0.0.0",
   "network_tcp_port": 10007,
@@ -20,9 +21,6 @@
     "ws_port": 8777,
     "threads_num": 2
   },
-  "max_transactions_pool_warn": 0,
-  "max_transactions_pool_drop": 0,
-  "max_block_queue_warn": 0,
   "logging": {
     "configurations": [
       {

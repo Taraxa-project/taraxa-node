@@ -79,27 +79,4 @@ inline std::string toString(val_t const &val) {
   return strm.str();
 }
 
-inline bytes str2bytes(std::string const &str) {
-  assert(str.size() % 2 == 0);
-  bytes data;
-  // convert it to byte stream
-  for (size_t i = 0; i < str.size(); i += 2) {
-    std::string s = str.substr(i, 2);
-    auto t = std::stoul(s, nullptr, 16);
-    assert(t < 256);
-    data.push_back(static_cast<uint8_t>(t));
-  }
-  return data;
-}
-
-inline std::string bytes2str(bytes const &data) {
-  // convert it to str
-  std::stringstream ss;
-  ss << std::hex << std::noshowbase << std::setfill('0');
-  for (auto const &d : data) {
-    ss << std::setfill('0') << std::setw(2) << unsigned(d);
-  }
-  return ss.str();
-}
-
 }  // namespace taraxa

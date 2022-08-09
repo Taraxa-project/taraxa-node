@@ -5,8 +5,7 @@
 #include <libdevcore/CommonJS.h>
 #include <libp2p/Common.h>
 
-#include "dag/dag.hpp"
-#include "dag/dag_block_manager.hpp"
+#include "dag/dag_manager.hpp"
 #include "json/reader.h"
 #include "pbft/pbft_manager.hpp"
 #include "transaction/transaction_manager.hpp"
@@ -59,7 +58,7 @@ Taraxa::NodePtr Taraxa::tryGetNode() {
 Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash, bool _includeTransactions) {
   try {
     auto node = tryGetNode();
-    auto block = node->getDagBlockManager()->getDagBlock(blk_hash_t(_blockHash));
+    auto block = node->getDagManager()->getDagBlock(blk_hash_t(_blockHash));
     if (block) {
       auto block_json = block->getJson();
       auto period = node->getPbftManager()->getDagBlockPeriod(block->getHash());

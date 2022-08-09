@@ -81,14 +81,14 @@ void VdfSortition::verifyVdf(SortitionParams const& config, bytes const& vrf_inp
                              bytes const& vdf_input) const {
   // Verify VRF output
   if (!verifyVrf(pk, vrf_input)) {
-    throw InvalidVdfSortition("VRF verify failed. VRF input " + bytes2str(vrf_input));
+    throw InvalidVdfSortition("VRF verify failed. VRF input " + dev::toHex(vrf_input));
   }
 
   if (!isOmitVdf(config)) {
     const auto expected = calculateDifficulty(config);
     if (difficulty_ != expected) {
       throw InvalidVdfSortition("VDF solution verification failed. Incorrect difficulty. VDF input " +
-                                bytes2str(vdf_input) + ", lambda " + std::to_string(config.vdf.lambda_bound) +
+                                dev::toHex(vdf_input) + ", lambda " + std::to_string(config.vdf.lambda_bound) +
                                 ", difficulty " + std::to_string(getDifficulty()) +
                                 ", expected: " + std::to_string(expected) +
                                 ", vrf_params: ( range: " + std::to_string(config.vrf.threshold_range) +
@@ -99,7 +99,7 @@ void VdfSortition::verifyVdf(SortitionParams const& config, bytes const& vrf_inp
     // Verify VDF solution
     VerifierWesolowski verifier(config.vdf.lambda_bound, getDifficulty(), vdf_input, N);
     if (!verifier(vdf_sol_)) {
-      throw InvalidVdfSortition("VDF solution verification failed. VDF input " + bytes2str(vdf_input) + ", lambda " +
+      throw InvalidVdfSortition("VDF solution verification failed. VDF input " + dev::toHex(vdf_input) + ", lambda " +
                                 std::to_string(config.vdf.lambda_bound) + ", difficulty " +
                                 std::to_string(getDifficulty()));
     }

@@ -70,7 +70,7 @@ def config(binary, boot_nodes, rpc_nodes):
 
         private_keys[worker_name] = private_key
         vrf_secrets[worker_name] = vrf_secret
-        boot_nodes_public_addresses[worker_name] = {public_address, vrf_public}
+        boot_nodes_public_addresses[worker_name] = [public_address, vrf_public]
 
         boot_nodes_flags.append(
             f'127.0.0.1:10{i+1}02/{public_key}')
@@ -123,7 +123,7 @@ def config(binary, boot_nodes, rpc_nodes):
                 os.mkdir(f'{local_net}/db-{worker_name}')
 
             cmd = ''
-            cmd += f'{binary} --command config --network-id {chain_id} '
+            cmd += f'{binary} --command config --chain-id {chain_id} '
             cmd += f'--boot-nodes {boot_nodes_flags} '
 
             if type == "boot":
@@ -283,11 +283,11 @@ def faucet_worker(tps):
     nonce = web3.eth.getTransactionCount(
         Web3.toChecksumAddress(faucet_public_address))
 
-    boot_nodes = list(boot_nodes_public_addresses)
+    boot_nodes = list(boot_nodes_public_addresses.keys())
 
     while True:
         time.sleep(1/tps)
-        to = boot_nodes_public_addresses[boot_nodes[randint(
+        to, _ = boot_nodes_public_addresses[boot_nodes[randint(
             0, len(boot_nodes)-1)]]
         tx = {
             'nonce': nonce,

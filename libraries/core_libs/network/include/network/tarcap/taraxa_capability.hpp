@@ -23,7 +23,6 @@ class PbftChain;
 class VoteManager;
 class NextVotesManager;
 class DagManager;
-class DagBlockManager;
 class TransactionManager;
 enum class TransactionStatus;
 }  // namespace taraxa
@@ -36,7 +35,7 @@ class TaraxaPeer;
 
 class TaraxaCapability : public dev::p2p::CapabilityFace {
  public:
-  TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const NetworkConfig &conf,
+  TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const FullNodeConfig &conf,
                    unsigned version);
 
   virtual ~TaraxaCapability() = default;
@@ -45,17 +44,16 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   TaraxaCapability(TaraxaCapability &&ro) = delete;
   TaraxaCapability &operator=(TaraxaCapability &&ro) = delete;
   static std::shared_ptr<TaraxaCapability> make(
-      std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const NetworkConfig &conf, const h256 &genesis_hash,
+      std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const FullNodeConfig &conf, const h256 &genesis_hash,
       unsigned version, std::shared_ptr<DbStorage> db = {}, std::shared_ptr<PbftManager> pbft_mgr = {},
       std::shared_ptr<PbftChain> pbft_chain = {}, std::shared_ptr<VoteManager> vote_mgr = {},
       std::shared_ptr<NextVotesManager> next_votes_mgr = {}, std::shared_ptr<DagManager> dag_mgr = {},
-      std::shared_ptr<DagBlockManager> dag_blk_mgr = {}, std::shared_ptr<TransactionManager> trx_mgr = {});
+      std::shared_ptr<TransactionManager> trx_mgr = {});
   // Init capability. Register packet handlers and periodic events
   virtual void init(const h256 &genesis_hash, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                     std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                     std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
-                    std::shared_ptr<DagBlockManager> dag_blk_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-                    const dev::Address &node_addr);
+                    std::shared_ptr<TransactionManager> trx_mgr, const dev::Address &node_addr);
   // CapabilityFace implemented interface
   std::string name() const override;
   unsigned version() const override;
@@ -99,12 +97,11 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
                                   std::shared_ptr<TransactionManager> trx_mgr,
                                   std::shared_ptr<PacketsStats> packets_stats);
   virtual void registerPacketHandlers(
-      const NetworkConfig &conf, const h256 &genesis_hash, const std::shared_ptr<PacketsStats> &packets_stats,
+      const FullNodeConfig &conf, const h256 &genesis_hash, const std::shared_ptr<PacketsStats> &packets_stats,
       const std::shared_ptr<DbStorage> &db, const std::shared_ptr<PbftManager> &pbft_mgr,
       const std::shared_ptr<PbftChain> &pbft_chain, const std::shared_ptr<VoteManager> &vote_mgr,
       const std::shared_ptr<NextVotesManager> &next_votes_mgr, const std::shared_ptr<DagManager> &dag_mgr,
-      const std::shared_ptr<DagBlockManager> &dag_blk_mgr, const std::shared_ptr<TransactionManager> &trx_mgr,
-      addr_t const &node_addr);
+      const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr);
 
  private:
   void initBootNodes(const std::vector<NodeConfig> &network_boot_nodes, const dev::KeyPair &key);
@@ -124,7 +121,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   std::shared_ptr<PacketsStats> packets_stats_;
 
   // Network config
-  const NetworkConfig &net_conf_;
+  const FullNodeConfig &kConf;
 
   // Peers state
   std::shared_ptr<PeersState> peers_state_;

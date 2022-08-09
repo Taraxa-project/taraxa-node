@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common/constants.hpp"
+#include "common/util.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
@@ -24,7 +26,7 @@ enum class TransactionStatus;
  */
 class TransactionQueue {
  public:
-  TransactionQueue();
+  TransactionQueue(size_t max_size = kMinTransactionPoolSize);
 
   /**
    * @brief insert a transaction into the queue, sorted by priority
@@ -84,6 +86,20 @@ class TransactionQueue {
    */
   void blockFinalized(uint64_t block_number);
 
+  /**
+   * @brief Marks transaction as known (was successfully pushed into the tx pool)
+   * This call is thread-safe
+   * @param trx_hash transaction hash
+   */
+  void markTransactionKnown(const trx_hash_t& trx_hash);
+
+  /**
+   * @param trx_hash transaction hash
+   * This call is thread-safe
+   * @return Returns true if tx is known (was successfully pushed into the tx pool)
+   */
+  bool isTransactionKnown(const trx_hash_t& trx_hash) const;
+
  private:
   typedef std::function<bool(const std::shared_ptr<Transaction>&, const std::shared_ptr<Transaction>&)> ComperType;
   // It has to be multiset as two trx could have same value (nonce and gas price)
@@ -94,11 +110,16 @@ class TransactionQueue {
   // possible because of dag reordering that some dag block might arrive requiring these transactions.
   std::unordered_map<trx_hash_t, std::pair<uint64_t, std::shared_ptr<Transaction>>> non_proposable_transactions_;
 
+  ExpirationCache<trx_hash_t> known_txs_;
+
   // Limit when non proposable transactions expire
-  const uint64_t kNonProposableTransactionsPeriodExpiryLimit = 10;
+  const size_t kNonProposableTransactionsPeriodExpiryLimit = 10;
 
   // Maximum number of save transactions
-  const uint64_t kNonProposableTransactionsLimit = 1000;
+  const size_t kNonProposableTransactionsLimit = 1000;
+
+  // Maximum size of transactions pool
+  const size_t kMaxSize;
 };
 
 /** @}*/
