@@ -10,6 +10,7 @@ var tools_8hpp =
     [ "generateVrf", "tools_8hpp.html#a95868ba88dd248aca4fe4f8cfbda09a1", null ],
     [ "generateVrfFromKey", "tools_8hpp.html#a72092cff3d233bd496b86bdbe01bac5b", null ],
     [ "generateWallet", "tools_8hpp.html#ae2962f7552a601c30092849e514653be", null ],
+    [ "getChainIdFromString", "tools_8hpp.html#a56a1b406f30af3f7a1e8483886f17d5c", null ],
     [ "getHomeDir", "tools_8hpp.html#a7bea8c0640537805e5ec7c0599d9462b", null ],
     [ "getTaraxaDataDefaultDir", "tools_8hpp.html#a5dcfd9e02330e5c11402248fa850edf4", null ],
     [ "getTaraxaDefaultConfigFile", "tools_8hpp.html#a6bbd495d21ee3a686d5bc8f695270349", null ],

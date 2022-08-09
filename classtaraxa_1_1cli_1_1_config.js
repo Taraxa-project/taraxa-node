@@ -14,6 +14,7 @@ var classtaraxa_1_1cli_1_1_config =
     [ "ACCOUNT_COMMAND", "classtaraxa_1_1cli_1_1_config.html#aefd8336821cddd1d12517048cedb73dc", null ],
     [ "BOOT_NODES", "classtaraxa_1_1cli_1_1_config.html#a429389baad782d37e15107c72f3e1eb8", null ],
     [ "BOOT_NODES_APPEND", "classtaraxa_1_1cli_1_1_config.html#aafd8e83fb66d62165e39cdc4941b8033", null ],
+    [ "CHAIN", "classtaraxa_1_1cli_1_1_config.html#a66c116fd161c185bc71ad861ee5403ad", null ],
     [ "CHAIN_ID", "classtaraxa_1_1cli_1_1_config.html#ab485108d9e6ed18cf61dc9f515fd8d75", null ],
     [ "COMMAND", "classtaraxa_1_1cli_1_1_config.html#a9c04d754a682827ccc65600bf75735a1", null ],
     [ "CONFIG", "classtaraxa_1_1cli_1_1_config.html#a095c7c1e554607c41443710f97d884a9", null ],
