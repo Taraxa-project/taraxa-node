@@ -20,7 +20,7 @@ class Config {
 
   static void addNewHardforks(Json::Value& config, const Json::Value& default_config);
 
-  enum class ChainIdType { Mainnet = 1, Testnet, Devnet, LastNetworkId };
+  enum class ChainIdType { Mainnet = 841, Testnet, Devnet, LastNetworkId };
   static constexpr ChainIdType DEFAULT_CHAIN_ID = ChainIdType::Mainnet;
 
  protected:
@@ -30,6 +30,7 @@ class Config {
   static constexpr const char* CONFIG = "config";
   static constexpr const char* DATA_DIR = "data-dir";
   static constexpr const char* CHAIN_ID = "chain-id";
+  static constexpr const char* CHAIN = "chain";
   static constexpr const char* COMMAND = "command";
   static constexpr const char* DESTROY_DB = "destroy-db";
   static constexpr const char* REBUILD_NETWORK = "rebuild-network";

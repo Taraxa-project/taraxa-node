@@ -19,6 +19,18 @@ void generateConfig(const std::string& config, Config::ChainIdType chain_id) {
   util::writeJsonToFile(config, generateConfig(chain_id));
 }
 
+int getChainIdFromString(std::string& chain_str) {
+  boost::algorithm::to_lower(chain_str);
+  if (chain_str == "mainnet") {
+    return static_cast<int>(Config::ChainIdType::Mainnet);
+  } else if (chain_str == "testnet") {
+    return static_cast<int>(Config::ChainIdType::Testnet);
+  } else if (chain_str == "devnet") {
+    return static_cast<int>(Config::ChainIdType::Devnet);
+  }
+  throw boost::program_options::invalid_option_value(chain_str);
+}
+
 Json::Value generateConfig(Config::ChainIdType chain_id) {
   Json::Value conf;
   switch (chain_id) {

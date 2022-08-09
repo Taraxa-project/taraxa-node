@@ -60,7 +60,7 @@ spec:
             {{- toYaml .Values.bootnode.args | nindent 12 }}
             - --chain-id
             - {{ .Values.config.network | quote }}
-            {{- if eq .Values.config.network "1" }}
+            {{- if eq .Values.config.network "841" }}
             - --deny-local-discovery
             {{- end }}
           env:
