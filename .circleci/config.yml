@@ -191,9 +191,9 @@ commands:
             fi
           when: << parameters.when >>
 
-  get_testnet_chart:
+  get_deploy_tools:
     description: |
-      Gets Testnet chart downloads helm, kubectl and configures it
+      Gets helm, kubectl and configures it
     parameters:
       kubeconfig:
         description: kubeconfig file
@@ -209,9 +209,8 @@ commands:
     steps:
       - checkout
       - run:
-          name: Get repo and install helm/kubectl
+          name: Install helm/kubectl
           command: |
-            git clone --branch development https://github.com/Taraxa-project/taraxa-testnet.git
             mkdir -p $HOME/.kube
             echo -n "<< parameters.kubeconfig >>" | base64 --decode > $HOME/.kube/config
             curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
@@ -220,7 +219,7 @@ commands:
             sudo chmod +x /usr/local/bin/kubectl
           when: << parameters.when >>
 
-  deploy_testnet_chart:
+  deploy_prnet_chart:
     description: Deploys taraxa-node chart
     parameters:
       pr-name:
@@ -241,8 +240,14 @@ commands:
               else
                 echo "export PR_TAG=${PR_TAG}" >> ${BASH_ENV}
               fi
-              cd taraxa-testnet/tests
-              helm upgrade -i pr-<< parameters.pr-name >> taraxa-node/ --namespace blockchain-prnet -f taraxa-node/values.yaml -f taraxa-node/prnet.values.yaml \
+
+              helm plugin install https://github.com/chartmuseum/helm-push.git
+              helm repo add --username ${HELM_REPO_USERNAME} --password ${HELM_REPO_PASSWORD} taraxacharts https://charts.gcp.taraxa.io
+              helm repo update
+
+              echo ${PRNET_HELM_VALUES} | base64 -d > charts/taraxa-node/prnet.values.yaml
+              helm dependency build charts/taraxa-node/
+              helm upgrade -i pr-<< parameters.pr-name >> charts/taraxa-node/ --namespace blockchain-prnet -f charts/taraxa-node/values.yaml -f charts/taraxa-node/prnet.values.yaml \
                 --set image.repository=gcr.io/jovial-meridian-249123/taraxa-node \
                 --set image.tag=${PR_TAG} \
                 --set explorer.configEnvs.rpcHttpProvider="http://pr-<< parameters.pr-name >>-taraxa-node-1.pr-<< parameters.pr-name >>-taraxa-node:7777" \
@@ -254,10 +259,11 @@ commands:
                 --set node.loadBalancer.addresses\[0\]="${PRNET_IPS_RPC_NODES[0]}" \
                 --set node.loadBalancer.addresses\[1\]="${PRNET_IPS_RPC_NODES[1]}" \
                 --set node.loadBalancer.addresses\[2\]="${PRNET_IPS_RPC_NODES[2]}"
+
             fi
 
-  cleanup_testnet_chart:
-    description: Deploys taraxa-node chart
+  cleanup_prnet_chart:
+    description: Cleans deployment of prnet
     parameters:
       pr-name:
         description: PR name
@@ -314,9 +320,9 @@ jobs:
       - get_prnet_ips:
           when: always
           pr-name: << pipeline.parameters.pr_number >>
-      - get_testnet_chart:
+      - get_deploy_tools:
           kubeconfig: ${KUBE_CONFIG}
-      - deploy_testnet_chart:
+      - deploy_prnet_chart:
           pr-name: << pipeline.parameters.pr_number >>
       - pr_comment:
           when: on_success
@@ -341,7 +347,7 @@ jobs:
             <tr><td>RPC Node 3</td><td>${PRNET_IPS_RPC_NODES[2]}</td></tr>\
             </table>"
           pr_number: << pipeline.parameters.pr_number >>
-      - cleanup_testnet_chart:
+      - cleanup_prnet_chart:
           when: on_fail
           pr-name: << pipeline.parameters.pr_number >>
       - cleanup_prnet_ips:
@@ -362,11 +368,11 @@ jobs:
           gcloud-key: ${GCLOUD_KEY}
       - get_prnet_ips:
           pr-name: << pipeline.parameters.pr_number >>
-      - get_testnet_chart:
+      - get_deploy_tools:
           kubeconfig: ${KUBE_CONFIG}
-      - cleanup_testnet_chart:
+      - cleanup_prnet_chart:
           pr-name: << pipeline.parameters.pr_number >>
-      - deploy_testnet_chart:
+      - deploy_prnet_chart:
           pr-name: << pipeline.parameters.pr_number >>
       - pr_comment:
           when: on_success
@@ -391,7 +397,7 @@ jobs:
             <tr><td>RPC Node 3</td><td>${PRNET_IPS_RPC_NODES[2]}</td></tr>\
             </table>"
           pr_number: << pipeline.parameters.pr_number >>
-      - cleanup_testnet_chart:
+      - cleanup_prnet_chart:
           pr-name: << pipeline.parameters.pr_number >>
           when: on_fail
       - cleanup_prnet_ips:
@@ -410,9 +416,9 @@ jobs:
       - gcloud_login:
           gcloud-username: ${GLCOUD_USERNAME}
           gcloud-key: ${GCLOUD_KEY}
-      - get_testnet_chart:
+      - get_deploy_tools:
           kubeconfig: ${KUBE_CONFIG}
-      - cleanup_testnet_chart:
+      - cleanup_prnet_chart:
           pr-name: << pipeline.parameters.pr_number >>
       - cleanup_prnet_ips:
           pr-name: << pipeline.parameters.pr_number >>
@@ -920,6 +926,7 @@ workflows:
             - K8S
             - GCR
             - GITHUB
+            - CHARTSREPO
 
   redeploy-prnet:
     when:
@@ -931,9 +938,11 @@ workflows:
           context:
             - TARAXA
             - GCP
+            - GCR
             - K8S
             - GCR
             - GITHUB
+            - CHARTSREPO
 
   cleanup-prnet:
     when:
@@ -945,9 +954,11 @@ workflows:
           context:
             - TARAXA
             - GCP
+            - GCR
             - K8S
             - GCR
             - GITHUB
+            - CHARTSREPO
 
   build-and-deploy-image:
     when:
