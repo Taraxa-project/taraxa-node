@@ -40,7 +40,7 @@ data:
       keys = []
       vrfs = []
 
-      {{- if and (ne .Values.config.network "1") (ne .Values.config.network "2") (ne .Values.config.network "3") }}
+      {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
       keys = [
       {{- range $key, $value := .Values.config.consensusnode.keys }}
       "{{ $value }}",
@@ -48,7 +48,7 @@ data:
       ]
       {{- end }}
 
-      {{- if and (ne .Values.config.network "1") (ne .Values.config.network "2") (ne .Values.config.network "3") }}
+      {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
       vrfs = [
       {{- range $key, $value := .Values.config.consensusnode.vrfs }}
       "{{ $value }}",
@@ -130,7 +130,7 @@ data:
     fi
 
     {{ if .Values.explorer.enabled }}
-    {{- if and (ne .Values.config.network "1") (ne .Values.config.network "2") (ne .Values.config.network "3") }}
+    {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
     NODE_ADDRESS=$(taraxad --command account ${KEY} | grep node_address | cut -d\  -f3 | tr -d \")
     curl --silent http://{{ .Release.Name }}-explorer/api/faucet/0x${NODE_ADDRESS}
     {{- end }}
@@ -140,7 +140,7 @@ data:
       --chain-id {{ .Values.config.network }} \
       --node-secret ${KEY} \
       --vrf-secret ${VRF} \
-      {{- if and (ne .Values.config.network "1") (ne .Values.config.network "2") (ne .Values.config.network "3") }}
+      {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
       {{- $lbEnabled := .Values.bootnode.loadBalancer.enabled -}}
       {{- $lbIPs := .Values.bootnode.loadBalancer.addresses -}}
       {{- range $key, $value := .Values.config.bootnode.addresses }}
@@ -154,11 +154,11 @@ data:
       --wallet $WALLET_PATH \
       --data-dir $DATA_PATH
 
-    {{- if and (ne .Values.config.network "1") (ne .Values.config.network "2") (ne .Values.config.network "3") }}
+    {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
     python3 /bin/genconfig.py $CONFIG_PATH > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
     {{- end }}
 
-    {{- if and (ne .Values.config.network "1") (ne .Values.config.network "2") (ne .Values.config.network "3") }}
+    {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
     {{ if .Values.explorer.enabled }}
     export FAUCET_ADDRESS=$(taraxad --command account ${EXPLORER_FAUCET_PRIVATE_KEY} | grep node_address | cut -d\  -f3 | tr -d \")
     cat $CONFIG_PATH | jq '.chain_config.final_chain.state.genesis_balances += ({("0x"+env.FAUCET_ADDRESS): "0x1027e72f1f12813088000000"})' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
