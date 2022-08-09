@@ -22,7 +22,7 @@ void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&
     for (const auto &v : votes) {
       if (!peer.second->isVoteKnown(v->getHash()) &&
           (peer.second->pbft_round_ <= v->getRound() ||
-           (v->getType() == cert_vote_type &&
+           (v->getType() == PbftVoteType::cert_vote_type &&
             v->getBlockHash() == pbft_mgr_->getLastPbftBlockHash() /* reward vote */))) {
         send_votes.push_back(v);
       }

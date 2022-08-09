@@ -527,7 +527,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
                         node1->getSecretKey(), {});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
-      node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3));
+      node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), PbftVoteType::cert_vote_type, 1, 3));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
   // Add PBFT block in DB
@@ -583,7 +583,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
                         node1->getSecretKey(), {});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(
-      node1->getPbftManager()->generateVote(pbft_block2.getBlockHash(), cert_vote_type, 2, 3));
+      node1->getPbftManager()->generateVote(pbft_block2.getBlockHash(), PbftVoteType::cert_vote_type, 2, 3));
   std::cout << "Generate 1 vote for second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and store into DB
   // Add cert votes in DB
@@ -693,7 +693,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
                         node1->getSecretKey(), {});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
-      node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), cert_vote_type, 1, 3));
+      node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), PbftVoteType::cert_vote_type, 1, 3));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
   // Add PBFT block in DB
@@ -784,7 +784,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
 
   // Generate 3 next votes
   std::vector<std::shared_ptr<Vote>> next_votes;
-  PbftVoteTypes type = next_vote_type;
+  auto type = PbftVoteType::next_vote_type;
   uint64_t round = 1;
   size_t step = 5;
   for (auto i = 0; i < 3; i++) {
@@ -797,7 +797,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   // Update next votes bundle and set PBFT round
   auto pbft_2t_plus_1 = 1;
   node1->getNextVotesManager()->updateNextVotes(next_votes, pbft_2t_plus_1);
-  pbft_mgr1->moveToRound_(2);  // Make sure node2 PBFT round is less than node1
+  pbft_mgr1->moveToRound(2);  // Make sure node2 PBFT round is less than node1
   pbft_mgr1->stop();
 
   auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
@@ -853,7 +853,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   std::vector<std::shared_ptr<Vote>> next_votes1;
   uint64_t round = 1;
   size_t step = 5;
-  PbftVoteTypes type = next_vote_type;
+  auto type = PbftVoteType::next_vote_type;
   for (uint64_t i = 0; i < 2; i++) {
     blk_hash_t voted_pbft_block_hash1(i);  // Next votes could vote on 2 values
     auto vote = pbft_mgr1->generateVote(voted_pbft_block_hash1, type, round, step);
@@ -876,8 +876,8 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   EXPECT_EQ(node2_next_votes_mgr->getNextVotesWeight(), next_votes2.size());
 
   // Set both node1 and node2 pbft manager round to 2
-  pbft_mgr1->moveToRound_(2);
-  pbft_mgr2->moveToRound_(2);
+  pbft_mgr1->moveToRound(2);
+  pbft_mgr2->moveToRound(2);
 
   // Set PBFT previous round 2t+1, sortition threshold, DPOS period and DPOS total votes count for syncing
   auto db = node2->getDB();
@@ -926,7 +926,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
 
   // Node1 generate 1 next vote voted at kNullBlockHash
   blk_hash_t voted_pbft_block_hash1(blk_hash_t(0));
-  PbftVoteTypes type = next_vote_type;
+  auto type = PbftVoteType::next_vote_type;
   uint64_t round = 1;
   size_t step = 5;
   auto vote1 = pbft_mgr1->generateVote(voted_pbft_block_hash1, type, round, step);
@@ -948,8 +948,8 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   EXPECT_EQ(node2_next_votes_mgr->getNextVotesWeight(), next_votes2.size());
 
   // Set both node1 and node2 pbft manager round to 2
-  pbft_mgr1->moveToRound_(2);
-  pbft_mgr2->moveToRound_(2);
+  pbft_mgr1->moveToRound(2);
+  pbft_mgr2->moveToRound(2);
 
   // Set node2 PBFT previous round 2t+1, sortition threshold, DPOS period and DPOS total votes count for syncing
   auto node2_db = node2->getDB();

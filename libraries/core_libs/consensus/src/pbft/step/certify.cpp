@@ -7,13 +7,6 @@
 
 namespace taraxa::step {
 
-void Certify::init() {}
-
-void Certify::finish_() {
-  Step::finish_();
-  round_->sleepUntil(std::chrono::milliseconds(4 * round_->getLambda()));
-}
-
 void Certify::run() {
   auto pm = node_->pbft_manager_.lock();
   if (!pm) {
@@ -26,22 +19,22 @@ void Certify::run() {
   // Should be moved to FSM step registration
   if (round_->time_from_start_ms_ < 2 * round_->getLambda()) {
     // Should not happen, add log here for safety checking
-    LOG(log_er_) << "PBFT Reached step 3 too quickly after only " << round_->time_from_start_ms_ << " (ms) in round "
-                 << round;
+    LOG(log_er_) << "PBFT Reached step 3 too quickly after only " << round_->time_from_start_ms_.count()
+                 << " (ms) in round " << round;
     return;
   }
 
   auto step_timeout = 4 * round_->getLambda();
   if (round_->time_from_start_ms_ > step_timeout) {
-    finish_();
     LOG(log_dg_) << "Step 3 expired, will go to step 4 in round " << round;
+    finish();
     return;
   }
 
   // remove this check after proper step switching will be done
 
-  if (pm->updateSoftVotedBlockForThisRound_() && pm->compareBlocksAndRewardVotes_(round_->soft_voted_block_)) {
-    LOG(log_tr_) << "Finished compareBlocksAndRewardVotes_";
+  if (pm->updateSoftVotedBlockForThisRound() && pm->compareBlocksAndRewardVotes(round_->soft_voted_block_)) {
+    LOG(log_tr_) << "Finished compareBlocksAndRewardVotes";
 
     // NOTE: If we have already executed this round then block won't be found in unverified queue...
     bool executed_soft_voted_block_for_this_round = false;
@@ -69,9 +62,9 @@ void Certify::run() {
     }
 
     if (executed_soft_voted_block_for_this_round || unverified_soft_vote_block_for_this_round_is_valid) {
-      // compareBlocksAndRewardVotes_ has checked the cert voted block exist
+      // compareBlocksAndRewardVotes has checked the cert voted block exist
       round_->last_cert_voted_value_ = round_->soft_voted_block_;
-      auto cert_voted_block = pm->getUnfinalizedBlock_(round_->last_cert_voted_value_);
+      auto cert_voted_block = pm->getUnfinalizedBlock(round_->last_cert_voted_value_);
 
       auto batch = node_->db_->createWriteBatch();
       node_->db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::LastCertVotedValue, round_->last_cert_voted_value_,
@@ -80,12 +73,12 @@ void Certify::run() {
       node_->db_->commitWriteBatch(batch);
 
       // generate cert vote
-      auto place_votes = placeVote_(round_->soft_voted_block_, cert_vote_type, round);
+      auto place_votes = placeVote(round_->soft_voted_block_, round);
       if (place_votes) {
         LOG(log_nf_) << "Cert votes " << place_votes << " voting " << round_->soft_voted_block_ << " in round "
                      << round;
       }
-      finish_();
+      finish();
     }
   }
 }

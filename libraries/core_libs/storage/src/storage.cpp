@@ -725,7 +725,7 @@ void DbStorage::addPbftCertVotedBlockToBatch(PbftBlock const& pbft_block, Batch&
 std::optional<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
   auto res = getPeriodFromPbftHash(hash);
   if (res) {
-    return getPbftBlock(res.value());
+    return getPbftBlock(*res);
   }
   return {};
 }

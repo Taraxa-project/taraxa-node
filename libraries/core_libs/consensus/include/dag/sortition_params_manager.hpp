@@ -48,7 +48,7 @@ class SortitionParamsManager {
   uint16_t calculateDagEfficiency(const PeriodData& block) const;
 
   /**
-   * Called from PbftManager.pushPbftBlock_()
+   * Called from PbftManager.pushPbftBlock()
    * Calculates and stores needed data on every block.
    * Every `computation_interval` blocks from config launches `recalculate` based on previous data
    * @param block PeriodData to process

@@ -315,7 +315,7 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
     auto it = unverified_votes_.begin();
     while (it != unverified_votes_.end() && it->first < pbft_round) {
       for (const auto& v : it->second) {
-        if (v.second->getType() == cert_vote_type) {
+        if (v.second->getType() == PbftVoteType::cert_vote_type) {
           // The unverified cert vote may be reward vote
           addRewardVote(v.second);
         }
@@ -370,7 +370,7 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
       for (auto const& step : it->second) {
         for (auto const& voted_value : step.second) {
           for (auto const& v : voted_value.second.second) {
-            if (v.second->getType() == cert_vote_type) {
+            if (v.second->getType() == PbftVoteType::cert_vote_type) {
               // The verified cert vote may be reward vote
               addRewardVote(v.second);
             }
@@ -485,8 +485,9 @@ bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
   const auto vote_step = vote->getStep();
   const auto vote_type = vote->getType();
 
-  if (vote_type != cert_vote_type) {
-    LOG(log_dg_) << "Drop vote " << vote_hash << ". The vote type " << vote_type << " is not cert vote type.";
+  if (vote_type != PbftVoteType::cert_vote_type) {
+    LOG(log_dg_) << "Drop vote " << vote_hash << ". The vote type " << std::to_underlying(vote_type)
+                 << " is not cert vote type.";
     return false;
   }
 
@@ -945,7 +946,7 @@ void NextVotesManager::updateWithSyncedVotes(std::vector<std::shared_ptr<Vote>>&
 bool NextVotesManager::voteVerification(std::shared_ptr<Vote>& vote, uint64_t dpos_period,
                                         size_t dpos_total_votes_count, size_t pbft_sortition_threshold) {
   // Voted round has checked in tarcap already
-  if (vote->getType() != next_vote_type) {
+  if (vote->getType() != PbftVoteType::next_vote_type) {
     LOG(log_er_) << "The vote is not at next voting phase." << *vote;
     return false;
   }

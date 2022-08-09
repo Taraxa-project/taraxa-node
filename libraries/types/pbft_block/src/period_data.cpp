@@ -68,10 +68,10 @@ void PeriodData::hasEnoughValidCertVotes(const std::vector<std::shared_ptr<Vote>
   auto first_cert_vote_round = votes[0]->getRound();
   for (auto& v : votes) {
     // Any info is wrong that can determine the synced PBFT block comes from a malicious player
-    if (v->getType() != cert_vote_type) {
+    if (v->getType() != PbftVoteType::cert_vote_type) {
       std::stringstream err;
       err << "For PBFT block " << pbft_blk->getBlockHash() << ", cert vote " << v->getHash() << " has wrong vote type "
-          << v->getType();
+          << std::to_underlying(v->getType());
       throw std::logic_error(err.str());
     } else if (v->getRound() != first_cert_vote_round) {
       std::stringstream err;

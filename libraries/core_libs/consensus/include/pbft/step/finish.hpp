@@ -4,16 +4,17 @@
 
 namespace taraxa::step {
 
+/**
+ * @ingroup PBFT
+ * @brief Finish step class
+ */
 class Finish : public Step {
  public:
-  Finish(uint64_t id, std::shared_ptr<RoundFace> round) : Step(id, std::move(round)) {
-    init();
+  Finish(uint64_t id, std::shared_ptr<RoundFace> round) : Step(id, id * round->getLambda(), std::move(round)) {
     assert(id % 2 == 0);
+    LOG(log_dg_) << "Will go to first finish State";
   }
   void run() override;
-
- private:
-  void init() override;
 };
 
 }  // namespace taraxa::step

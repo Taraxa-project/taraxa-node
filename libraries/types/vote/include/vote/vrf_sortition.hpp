@@ -2,6 +2,7 @@
 #include <libdevcrypto/Common.h>
 
 #include <boost/multiprecision/mpfr.hpp>
+#include <utility>
 
 #include "common/types.hpp"
 #include "common/vrf_wrapper.hpp"
@@ -12,21 +13,21 @@ namespace taraxa {
  * @{
  */
 
-enum PbftVoteTypes : uint8_t { propose_vote_type = 0, soft_vote_type, cert_vote_type, next_vote_type };
+enum class PbftVoteType : uint8_t { propose_vote_type = 0, soft_vote_type, cert_vote_type, next_vote_type };
 
 /**
  * @brief VrfPbftMsg struct uses vote type, PBFT round, and PBFT step to generate a message for doing VRF sortition.
  */
 struct VrfPbftMsg {
   VrfPbftMsg() = default;
-  VrfPbftMsg(PbftVoteTypes type, uint64_t round, size_t step) : type(type), round(round), step(step) {}
+  VrfPbftMsg(PbftVoteType type, uint64_t round, size_t step) : type(type), round(round), step(step) {}
 
   /**
    * @brief Combine vote type, PBFT round, and PBFT step to a string
    * @return a string of vote type, PBFT round, and PBFT step
    */
   std::string toString() const {
-    return std::to_string(type) + "_" + std::to_string(round) + "_" + std::to_string(step);
+    return std::to_string(static_cast<uint8_t>(type)) + "_" + std::to_string(round) + "_" + std::to_string(step);
   }
 
   bool operator==(VrfPbftMsg const& other) const {
@@ -48,13 +49,13 @@ struct VrfPbftMsg {
   bytes getRlpBytes() const {
     dev::RLPStream s;
     s.appendList(3);
-    s << static_cast<uint8_t>(type);
+    s << std::to_underlying(type);
     s << round;
     s << step;
     return s.invalidate();
   }
 
-  PbftVoteTypes type;
+  PbftVoteType type;
   uint64_t round;
   size_t step;
 };

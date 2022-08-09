@@ -14,43 +14,44 @@ const uint64_t kMaxLambda = 60 * 1000;  // in ms, max lambda is 1 minute
 #define MAX_STEPS 13                    // Need to be a odd number
 #define MAX_WAIT_FOR_SOFT_VOTED_BLOCK_STEPS 20
 
-class Step;
-
 enum StepType { propose = 1, filter, certify, finish, polling };
 
 StepType stepTypeFromId(uint32_t id);
 
+/**
+ * @ingroup PBFT
+ * @brief RoundFace class
+ */
 class RoundFace : public std::enable_shared_from_this<RoundFace> {
  public:
   RoundFace(uint64_t id, std::shared_ptr<NodeFace> node)
-      : LAMBDA_ms(node->pbft_config_.lambda_ms_min), id_(id), node_(std::move(node)) {}
+      : LAMBDA_ms(node->pbft_config_.lambda_ms_min), kId_(id), node_(std::move(node)) {}
 
   virtual ~RoundFace() = default;
   virtual void finish() = 0;
 
-  virtual void setStep(std::unique_ptr<Step> step) = 0;
   virtual uint64_t getStepId() = 0;
   virtual void start(std::optional<uint64_t> step = {}) = 0;
   virtual void run() = 0;
   virtual void sleepUntil(const std::chrono::milliseconds& time) = 0;
   virtual StepType getStepType() const = 0;
 
-  const uint64_t& getId() { return id_; }
+  uint64_t getId() { return kId_; }
   const std::shared_ptr<NodeFace>& getNode() { return node_; }
 
-  const uint64_t& getLambda() { return LAMBDA_ms; }
-  const uint64_t& getLambdaBackoff() { return LAMBDA_backoff_multiple; }
+  const std::chrono::milliseconds& getLambda() { return LAMBDA_ms; }
+  uint64_t getLambdaBackoff() { return LAMBDA_backoff_multiple; }
 
-  uint64_t msFromStart() {
+  const std::chrono::milliseconds& msFromStart() {
     auto time_from_round_start = std::chrono::system_clock::now() - start_time_;
-    time_from_start_ms_ = std::chrono::duration_cast<std::chrono::milliseconds>(time_from_round_start).count();
+    time_from_start_ms_ = std::chrono::duration_cast<std::chrono::milliseconds>(time_from_round_start);
     return time_from_start_ms_;
   }
 
   bool next_votes_already_broadcasted_ = false;
 
   time_point start_time_;
-  uint64_t time_from_start_ms_ = 0;
+  std::chrono::milliseconds time_from_start_ms_;
 
   time_point time_began_waiting_next_voted_block_;
   time_point time_began_waiting_soft_voted_block_;
@@ -71,11 +72,10 @@ class RoundFace : public std::enable_shared_from_this<RoundFace> {
   blk_hash_t soft_voted_block_ = kNullBlockHash;
 
  protected:
-  uint64_t LAMBDA_ms = 0;
+  std::chrono::milliseconds LAMBDA_ms;
   uint64_t LAMBDA_backoff_multiple = 1;
 
-  bool finished_ = false;
-  const uint64_t id_;
+  const uint64_t kId_;
   std::shared_ptr<NodeFace> node_;
 };
 

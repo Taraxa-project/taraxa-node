@@ -182,7 +182,7 @@ TEST_F(StateAPITest, DISABLED_dpos_integration) {
   // EXEC_AND_CHECK({});
 }
 
-TEST_F(StateAPITest, DISABLED_eth_mainnet_smoke) {
+TEST_F(StateAPITest, eth_mainnet_smoke) {
   auto test_blocks =
       parse_rlp_file<vector<TestBlock>>(path(__FILE__).parent_path().parent_path() / "submodules" / "taraxa-evm" /
                                         "taraxa" / "data" / "eth_mainnet_blocks_0_300000.rlp");

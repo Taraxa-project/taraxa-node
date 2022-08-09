@@ -19,7 +19,7 @@ set(TARAXA_DB_MINOR_VERSION 0)
 project(taraxa-node VERSION ${TARAXA_VERSION})
 
 # Set project properties like C++ standard, etc...
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 # export compile_commands.json file
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

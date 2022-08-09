@@ -20,20 +20,22 @@ Round::Round(uint64_t id, std::shared_ptr<NodeFace> node)
 Round::~Round() { step_.reset(); }
 
 std::shared_ptr<Round> Round::make(uint64_t id, std::optional<uint64_t> step, std::shared_ptr<NodeFace> node) {
-  auto round = std::make_shared<Round>(id, node);
+  auto round = std::make_shared<Round>(id, std::move(node));
   round->start(step);
 
   return round;
 }
 
 void Round::run() {
-  auto time_from_round_start = std::chrono::system_clock::now() - start_time_;
-  time_from_start_ms_ = std::chrono::duration_cast<std::chrono::milliseconds>(time_from_round_start).count();
-  step_->run();
-  if (!step_->finished()) {
-    sleepUntil(std::chrono::milliseconds(time_from_start_ms_ + getLambda() / 4));
-  } else {
-    nextStep_();
+  while (!finished_) {
+    auto time_from_round_start = std::chrono::system_clock::now() - start_time_;
+    time_from_start_ms_ = std::chrono::duration_cast<std::chrono::milliseconds>(time_from_round_start);
+    step_->run();
+    if (!step_->finished()) {
+      sleepUntil(time_from_start_ms_ + getLambda() / 4);
+    } else {
+      nextStep();
+    }
   }
 }
 
@@ -48,12 +50,9 @@ StepType Round::getStepType() const { return step_->getType(); }
 
 void Round::finish() {
   finished_ = true;
-  {
-    std::unique_lock<std::mutex> lock(stop_mtx_);
-    stop_cv_.notify_all();
-  }
+  stop_cv_.notify_all();
 
-  if (daemon_ && daemon_->joinable()) {
+  if (daemon_) {
     daemon_->join();
   }
   step_.reset();
@@ -67,17 +66,17 @@ void Round::finish() {
 
   auto batch = node_->db_->createWriteBatch();
 
-  node_->db_->addPbft2TPlus1ToBatch(id_, pm->TWO_T_PLUS_ONE, batch);
-  node_->db_->addNextVotesToBatch(id_, next_votes, batch);
-  if (id_ > 1) {
+  node_->db_->addPbft2TPlus1ToBatch(kId_, pm->TWO_T_PLUS_ONE, batch);
+  node_->db_->addNextVotesToBatch(kId_, next_votes, batch);
+  if (kId_ > 1) {
     // Cleanup old previous round next votes
-    node_->db_->removeNextVotesToBatch(id_ - 1, batch);
+    node_->db_->removeNextVotesToBatch(kId_ - 1, batch);
   }
 
   node_->db_->commitWriteBatch(batch);
 
   // Move to a new round, cleanup previous round votes
-  node_->vote_mgr_->cleanupVotes(id_);
+  node_->vote_mgr_->cleanupVotes(kId_);
 
   if (executed_pbft_block_) {
     node_->vote_mgr_->removeVerifiedVotes();
@@ -89,7 +88,7 @@ void Round::start(std::optional<uint64_t> step) {
   if (!step) {
     startStep<step::Propose>();
   } else {
-    if (id_ == 1 && step == 1) {
+    if (kId_ == 1 && step == 1) {
       startStep<step::Propose>();
     } else {
       if (step < 4) {
@@ -109,23 +108,19 @@ void Round::start(std::optional<uint64_t> step) {
 
   initDbValues();
 
-  node_->db_->savePbftMgrField(PbftMgrRoundStep::PbftRound, id_);
+  node_->db_->savePbftMgrField(PbftMgrRoundStep::PbftRound, kId_);
 
-  LAMBDA_ms = node_->pbft_config_.lambda_ms_min;
+  LAMBDA_ms = std::chrono::milliseconds(node_->pbft_config_.lambda_ms_min);
   LAMBDA_backoff_multiple = 1;
 
   // replace starting_step number with round start_time adjusting
-  auto time_difference = std::chrono::milliseconds(step_->getId() * getLambda());
+  auto time_difference = step_->getId() * getLambda();
   if (step_->getId() % 2 == 1) {
-    time_difference -= std::chrono::milliseconds(getLambda());
+    time_difference -= getLambda();
   }
   start_time_ = std::chrono::system_clock::now() - time_difference;
 
-  daemon_ = std::make_unique<std::thread>([this]() {
-    while (!finished_) {
-      run();
-    }
-  });
+  daemon_ = std::make_unique<std::thread>([this]() { run(); });
 }
 
 void Round::initDbValues() {
@@ -136,7 +131,7 @@ void Round::initDbValues() {
   // Update in DB first
   auto batch = node_->db_->createWriteBatch();
   // Update PBFT round and reset step to 1
-  node_->db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftRound, id_, batch);
+  node_->db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftRound, kId_, batch);
   node_->db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftStep, 1, batch);
 
   node_->db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold,
@@ -152,12 +147,12 @@ void Round::initDbValues() {
   node_->db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::SoftVotedBlockHashInRound, kNullBlockHash, batch);
   if (soft_voted_block_) {
     // Cleanup soft votes for previous round
-    node_->db_->removeSoftVotesToBatch(id_, batch);
+    node_->db_->removeSoftVotesToBatch(kId_, batch);
   }
   node_->db_->commitWriteBatch(batch);
 }
 
-void Round::nextStep_() {
+void Round::nextStep() {
   switch (step_->getType()) {
     case StepType::propose:
       startStep<step::Filter>();
@@ -180,6 +175,13 @@ void Round::nextStep_() {
   }
 }
 
+void Round::setStep(std::unique_ptr<Step>&& step) {
+  step_ = std::move(step);
+  if (step_) {
+    updateStepData();
+  }
+}
+
 void Round::updateStepData() {
   static std::default_random_engine random_engine{std::random_device{}()};
   auto step_id = getStepId();
@@ -192,10 +194,10 @@ void Round::updateStepData() {
     std::uniform_int_distribution<u_long> distribution(0, step_id - MAX_STEPS);
     auto lambda_random_count = distribution(random_engine);
     LAMBDA_backoff_multiple = 2 * LAMBDA_backoff_multiple;
-    LAMBDA_ms =
-        std::min(kMaxLambda, node_->pbft_config_.lambda_ms_min * (LAMBDA_backoff_multiple + lambda_random_count));
-    LOG(log_dg_) << "Surpassed max steps, exponentially backing off lambda to " << LAMBDA_ms << " ms in round " << id_
-                 << ", step " << step_id;
+    LAMBDA_ms = std::chrono::milliseconds(
+        std::min(kMaxLambda, node_->pbft_config_.lambda_ms_min * (LAMBDA_backoff_multiple + lambda_random_count)));
+    LOG(log_dg_) << "Surpassed max steps, exponentially backing off lambda to " << LAMBDA_ms.count() << " ms in round "
+                 << kId_ << ", step " << step_id;
   }
 }
 

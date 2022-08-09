@@ -12,7 +12,7 @@ VrfPbftSortition::VrfPbftSortition(bytes const& b) {
 
   uint8_t pbft_msg_type = 0;
   util::rlp_tuple(util::RLPDecoderRef(rlp, true), pk_, pbft_msg_type, pbft_msg_.round, pbft_msg_.step, proof_);
-  pbft_msg_.type = static_cast<PbftVoteTypes>(pbft_msg_type);
+  pbft_msg_.type = PbftVoteType(pbft_msg_type);
 }
 
 bytes VrfPbftSortition::getRlpBytes() const {
@@ -20,7 +20,7 @@ bytes VrfPbftSortition::getRlpBytes() const {
 
   s.appendList(5);
   s << pk_;
-  s << static_cast<uint8_t>(pbft_msg_.type);
+  s << std::to_underlying(pbft_msg_.type);
   s << pbft_msg_.round;
   s << pbft_msg_.step;
   s << proof_;

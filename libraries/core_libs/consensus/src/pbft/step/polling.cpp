@@ -9,8 +9,6 @@
 
 namespace taraxa::step {
 
-void Polling::init() { LOG(log_dg_) << "Will go to first finish State"; }
-
 void Polling::run() {
   auto pm = node_->pbft_manager_.lock();
   if (!pm) {
@@ -18,11 +16,10 @@ void Polling::run() {
   }
   // Odd number steps from 5 are in second finish
   auto round = round_->getId();
-  LOG(log_tr_) << "PBFT second finishing state at step " << id_ << " in round " << round;
-  auto end_time_for_step = (id_ + 1) * round_->getLambda();
-  LOG(log_tr_) << "Step " << id_ << " end time " << end_time_for_step;
+  LOG(log_tr_) << "PBFT second finishing state at step " << kId_ << " in round " << round;
+  LOG(log_tr_) << "Step " << kId_ << " end time " << kFinishTime_.count();
 
-  pm->updateSoftVotedBlockForThisRound_();
+  pm->updateSoftVotedBlockForThisRound();
   if (round_->soft_voted_block_) {
     auto voted_block_hash_with_soft_votes =
         node_->vote_mgr_->getVotesBundleByRoundAndStep(round, 2, pm->TWO_T_PLUS_ONE);
@@ -33,7 +30,7 @@ void Polling::run() {
       net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(
           std::move(voted_block_hash_with_soft_votes->votes));
       LOG(log_dg_) << "Node has seen enough soft votes voted at " << voted_block_hash_with_soft_votes->voted_block_hash
-                   << ", regossip soft votes. In round " << round << " step " << id_;
+                   << ", regossip soft votes. In round " << round << " step " << kId_;
     }
   }
 
@@ -43,14 +40,14 @@ void Polling::run() {
   // 3) we don't have the block or if have block it can't be cert voted (yet)
   bool giveUpSoftVotedBlockInSecondFinish = round_->last_cert_voted_value_ == kNullBlockHash &&
                                             pm->last_soft_voted_value_ == round_->previous_round_next_voted_value_ &&
-                                            giveUpSoftVotedBlock_() &&
-                                            !pm->compareBlocksAndRewardVotes_(round_->soft_voted_block_);
-  giveUpSoftVotedBlock_() && !pm->compareBlocksAndRewardVotes_(round_->soft_voted_block_);
+                                            giveUpSoftVotedBlock() &&
+                                            !pm->compareBlocksAndRewardVotes(round_->soft_voted_block_);
+  giveUpSoftVotedBlock() && !pm->compareBlocksAndRewardVotes(round_->soft_voted_block_);
   if (!round_->next_voted_soft_value_ && round_->soft_voted_block_ && !giveUpSoftVotedBlockInSecondFinish) {
-    auto place_votes = placeVote_(round_->soft_voted_block_, next_vote_type, round);
+    auto place_votes = placeVote(round_->soft_voted_block_, round);
     if (place_votes) {
       LOG(log_nf_) << "Next votes " << place_votes << " voting " << round_->soft_voted_block_ << " for round " << round
-                   << ", at step " << id_;
+                   << ", at step " << kId_;
 
       node_->db_->savePbftMgrStatus(PbftMgrStatus::NextVotedSoftValue, true);
       round_->next_voted_soft_value_ = true;
@@ -58,39 +55,38 @@ void Polling::run() {
   }
 
   if (!round_->next_voted_null_block_hash_ && round >= 2 &&
-      (giveUpSoftVotedBlockInSecondFinish || giveUpNextVotedBlock_())) {
-    auto place_votes = placeVote_(kNullBlockHash, next_vote_type, round);
+      (giveUpSoftVotedBlockInSecondFinish || giveUpNextVotedBlock())) {
+    auto place_votes = placeVote(kNullBlockHash, round);
     if (place_votes) {
-      LOG(log_nf_) << "Next votes " << place_votes << " voting NULL BLOCK for round " << round << ", at step " << id_;
+      LOG(log_nf_) << "Next votes " << place_votes << " voting NULL BLOCK for round " << round << ", at step " << kId_;
 
       node_->db_->savePbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash, true);
       round_->next_voted_null_block_hash_ = true;
     }
   }
 
-  // if (id_ > MAX_STEPS && (id_ - MAX_STEPS - 2) % 100 == 0) {
+  // if (kId_ > MAX_STEPS && (kId_ - MAX_STEPS - 2) % 100 == 0) {
   //   pm->syncPbftChainFromPeers_(exceeded_max_steps, kNullBlockHash);
   // }
 
-  if (id_ > MAX_STEPS && (id_ - MAX_STEPS - 2) % 100 == 0 && !round_->next_votes_already_broadcasted_) {
+  if (kId_ > MAX_STEPS && (kId_ - MAX_STEPS - 2) % 100 == 0 && !round_->next_votes_already_broadcasted_) {
     LOG(log_er_) << "Node " << pm->node_addr_ << " broadcast next votes for previous round. In round " << round
-                 << " step " << id_;
+                 << " step " << kId_;
     if (auto net = node_->network_.lock()) {
       net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->broadcastPreviousRoundNextVotesBundle();
     }
     round_->next_votes_already_broadcasted_ = true;
   }
 
-  if (round_->time_from_start_ms_ > end_time_for_step) {
-    finish_();
+  if (round_->time_from_start_ms_ > kFinishTime_) {
+    finish();
   }
 }
 
-void Polling::finish_() {
-  finished_ = true;
-
+void Polling::finish() {
+  Step::finish();
   auto round = round_->getId();
-  LOG(log_dg_) << "CONSENSUS debug round " << round << " , step " << id_
+  LOG(log_dg_) << "CONSENSUS debug round " << round << " , step " << kId_
                << " | next_voted_soft_value_ = " << round_->next_voted_soft_value_
                << " soft block = " << round_->soft_voted_block_ << " next_voted_null_block_hash_ = "
                << round_->next_voted_null_block_hash_

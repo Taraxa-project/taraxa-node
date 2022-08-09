@@ -64,7 +64,7 @@ Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash, bool _inc
       auto block_json = block->getJson();
       auto period = node->getDB()->getDagBlockFinalizationPeriod(block->getHash());
       if (period) {
-        block_json["period"] = toJS(period.value());
+        block_json["period"] = toJS(*period);
       } else {
         block_json["period"] = "-0x1";
       }

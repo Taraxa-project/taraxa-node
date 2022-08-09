@@ -6,14 +6,15 @@
 
 namespace taraxa {
 
-Step::Step(uint64_t id, std::shared_ptr<RoundFace> round)
-    : id_(id),
-      type_(stepTypeFromId(id)),
+Step::Step(uint64_t id, const std::chrono::milliseconds& finish_time, std::shared_ptr<RoundFace> round)
+    : kId_(id),
+      kType_(stepTypeFromId(id)),
+      kFinishTime_(finish_time),
       round_(std::move(round)),
       node_(round_->getNode()),
       LOG_OBJECTS_INITIALIZE_FROM_SHARED(node_->step_logger) {}
 
-bool Step::giveUpNextVotedBlock_() {
+bool Step::giveUpNextVotedBlock() {
   auto pm = node_->pbft_manager_.lock();
   if (!pm) {
     return false;
@@ -24,7 +25,7 @@ bool Step::giveUpNextVotedBlock_() {
   if (round_->last_cert_voted_value_ != kNullBlockHash) {
     // Last cert voted value should equal to voted value
     if (round_->polling_state_print_log_) {
-      LOG(log_nf_) << "In round " << round << " step " << id_ << ", last cert voted value is "
+      LOG(log_nf_) << "In round " << round << " step " << kId_ << ", last cert voted value is "
                    << round_->last_cert_voted_value_;
       round_->polling_state_print_log_ = false;
     }
@@ -33,24 +34,24 @@ bool Step::giveUpNextVotedBlock_() {
 
   if (round_->previous_round_next_voted_value_ == kNullBlockHash) {
     // In round 1 also return here
-    LOG(log_nf_) << "In round " << round << " step " << id_
+    LOG(log_nf_) << "In round " << round << " step " << kId_
                  << ", have received 2t+1 next votes for kNullBlockHash for previous round.";
     return true;
   } else if (round_->previous_round_next_voted_null_block_hash_) {
     LOG(log_nf_)
-        << "In round " << round << " step " << id_
+        << "In round " << round << " step " << kId_
         << ", There are 2 voted values in previous round, and have received 2t+1 next votes for kNullBlockHash";
     return true;
   }
 
   if (node_->pbft_chain_->findPbftBlockInChain(round_->previous_round_next_voted_value_)) {
-    LOG(log_nf_) << "In round " << round << " step " << id_
+    LOG(log_nf_) << "In round " << round << " step " << kId_
                  << ", find voted value in PBFT chain already. Give up voted value "
                  << round_->previous_round_next_voted_value_;
     return true;
   }
 
-  auto pbft_block = pm->getUnfinalizedBlock_(round_->previous_round_next_voted_value_);
+  auto pbft_block = pm->getUnfinalizedBlock(round_->previous_round_next_voted_value_);
   if (pbft_block) {
     // Have a block, but is it valid?
     if (!node_->pbft_chain_->checkPbftBlockValidation(*pbft_block)) {
@@ -65,7 +66,14 @@ bool Step::giveUpNextVotedBlock_() {
   return false;
 }
 
-size_t Step::placeVote_(const blk_hash_t& blockhash, PbftVoteTypes vote_type, uint64_t round) {
+PbftVoteType Step::getVoteType() const {
+  if (kId_ > StepType::certify) {
+    return PbftVoteType::next_vote_type;
+  }
+  return PbftVoteType(kId_ - 1);
+}
+
+size_t Step::placeVote(const blk_hash_t& blockhash, uint64_t round) {
   auto pm = node_->pbft_manager_.lock();
   if (!pm) {
     return false;
@@ -74,8 +82,8 @@ size_t Step::placeVote_(const blk_hash_t& blockhash, PbftVoteTypes vote_type, ui
     // No delegation
     return 0;
   }
-
-  auto vote = pm->generateVote(blockhash, vote_type, round, id_);
+  auto vote_type = getVoteType();
+  auto vote = pm->generateVote(blockhash, vote_type, round, kId_);
   const auto weight =
       vote->calculateWeight(pm->getDposWeightedVotesCount(), pm->getDposTotalVotesCount(), pm->getThreshold(vote_type));
   if (weight) {
@@ -89,7 +97,7 @@ size_t Step::placeVote_(const blk_hash_t& blockhash, PbftVoteTypes vote_type, ui
   return weight;
 }
 
-bool Step::giveUpSoftVotedBlock_() {
+bool Step::giveUpSoftVotedBlock() {
   auto pm = node_->pbft_manager_.lock();
   if (!pm) {
     return false;
@@ -102,7 +110,7 @@ bool Step::giveUpSoftVotedBlock_() {
   unsigned long elapsed_wait_soft_voted_block_in_ms =
       std::chrono::duration_cast<std::chrono::milliseconds>(soft_voted_block_wait_duration).count();
 
-  auto pbft_block = pm->getUnfinalizedBlock_(round_->previous_round_next_voted_value_);
+  auto pbft_block = pm->getUnfinalizedBlock(round_->previous_round_next_voted_value_);
   if (pbft_block) {
     // Have a block, but is it valid?
     if (!node_->pbft_chain_->checkPbftBlockValidation(*pbft_block)) {

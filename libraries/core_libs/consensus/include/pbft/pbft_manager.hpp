@@ -139,7 +139,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param step PBFT step
    * @return vote
    */
-  std::shared_ptr<Vote> generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t round, size_t step);
+  std::shared_ptr<Vote> generateVote(blk_hash_t const &blockhash, PbftVoteType type, uint64_t round, size_t step);
 
   /**
    * @brief Get total DPOS votes count
@@ -271,30 +271,25 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   /**
    * @brief Update DPOS period, total DPOS votes count, and node DPOS weighted votes count.
    */
-  void updateDposState_();
+  void updateDposState();
 
   /**
    * @brief Get node DPOS eligible votes count
    * @param addr node address
    * @return node DPOS eligible votes count
    */
-  size_t dposEligibleVoteCount_(addr_t const &addr);
+  size_t dposEligibleVoteCount(addr_t const &addr);
 
   /**
    * @brief If node receives enough next voting votes on a forward PBFT round, set PBFT round to the round number.
    */
-  void moveToRound_(uint64_t round, std::optional<uint64_t> step = {});
+  void moveToRound(uint64_t round, std::optional<uint64_t> step = {});
   // bool resetRound_();
-
-  /**
-   * @brief Time to sleep for PBFT protocol
-   */
-  void sleep_();
 
   /**
    * @brief PBFT daemon
    */
-  void continuousOperation_();
+  void continuousOperation();
 
   /**
    * @brief move to next Step
@@ -306,14 +301,14 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * incoming votes. If there are enough certify votes, push voting PBFT block in PBFT chain
    * @return true if there are enough certify votes voting on a new PBFT block, or PBFT goes to a forward round
    */
-  bool stateOperations_();
+  bool stateOperations();
 
   /**
    * @brief Get PBFT sortition threshold
    * @param vote_type vote type
    * @return PBFT sortition threshold
    */
-  uint64_t getThreshold(PbftVoteTypes vote_type) const;
+  uint64_t getThreshold(PbftVoteType vote_type) const;
 
   /**
    * @brief Only be able to send a syncing request per each PBFT round and step
@@ -334,7 +329,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param pbft_block_hash PBFT block hash
    * @return true if pass verification
    */
-  bool compareBlocksAndRewardVotes_(const blk_hash_t &pbft_block_hash);
+  bool compareBlocksAndRewardVotes(const blk_hash_t &pbft_block_hash);
 
   /**
    * @brief Check that there are all DAG blocks with correct ordering, total gas estimation is not greater than gas
@@ -342,7 +337,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param pbft_block PBFT block
    * @return true with DAG blocks hashes in order if passed verification. Otherwise return false
    */
-  std::pair<vec_blk_t, bool> compareBlocksAndRewardVotes_(std::shared_ptr<PbftBlock> pbft_block);
+  std::pair<vec_blk_t, bool> compareBlocksAndRewardVotes(std::shared_ptr<PbftBlock> pbft_block);
 
   /**
    * @brief If there are enough certify votes, push the vote PBFT block in PBFT chain
@@ -350,8 +345,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param current_round_cert_votes certify votes
    * @return true if push a new PBFT block in chain
    */
-  bool pushCertVotedPbftBlockIntoChain_(blk_hash_t const &cert_voted_block_hash,
-                                        std::vector<std::shared_ptr<Vote>> &&current_round_cert_votes);
+  bool pushCertVotedPbftBlockIntoChain(blk_hash_t const &cert_voted_block_hash,
+                                       std::vector<std::shared_ptr<Vote>> &&current_round_cert_votes);
 
   /**
    * @brief Final chain executes a finalized PBFT block
@@ -359,7 +354,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param finalized_dag_blk_hashes DAG blocks hashes
    * @param sync it's true when it's last finalized block
    */
-  void finalize_(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes, bool sync = false);
+  void finalize(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes, bool sync = false);
 
   /**
    * @brief Push a new PBFT block into the PBFT chain
@@ -368,13 +363,13 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param dag_blocks_order DAG blocks hashes
    * @return true if push a new PBFT block into the PBFT chain
    */
-  bool pushPbftBlock_(PeriodData &&period_data, std::vector<std::shared_ptr<Vote>> &&cert_votes,
-                      vec_blk_t &&dag_blocks_order = {});
+  bool pushPbftBlock(PeriodData &&period_data, std::vector<std::shared_ptr<Vote>> &&cert_votes,
+                     vec_blk_t &&dag_blocks_order = {});
 
   /**
    * @brief Update PBFT 2t+1 and PBFT sortition threshold
    */
-  void updateTwoTPlusOneAndThreshold_();
+  void updateTwoTPlusOneAndThreshold();
 
   /**
    * @brief Check PBFT is working on syncing or not
@@ -385,18 +380,18 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   /**
    * @brief Set initial time for voting value
    */
-  void initializeVotedValueTimeouts_();
+  void initializeVotedValueTimeouts();
 
   /**
    * @brief Check if previous round next voting value has been changed
    */
-  void checkPreviousRoundNextVotedValueChange_();
+  void checkPreviousRoundNextVotedValueChange();
 
   /**
    * @brief Update soft voting PBFT block if there are enough soft voting votes
    * @return true if soft voting PBFT block updated
    */
-  bool updateSoftVotedBlockForThisRound_();
+  bool updateSoftVotedBlockForThisRound();
 
   /**
    * @brief Process synced PBFT blocks if PBFT syncing queue is not empty
@@ -409,7 +404,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param block_hash PBFT block hash
    * @return PBFT block
    */
-  std::shared_ptr<PbftBlock> getUnfinalizedBlock_(blk_hash_t const &block_hash);
+  std::shared_ptr<PbftBlock> getUnfinalizedBlock(blk_hash_t const &block_hash);
 
   std::atomic<bool> stopped_ = true;
 

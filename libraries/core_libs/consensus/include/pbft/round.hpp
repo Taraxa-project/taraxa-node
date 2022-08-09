@@ -10,6 +10,10 @@
 
 namespace taraxa {
 
+/**
+ * @ingroup PBFT
+ * @brief Round class
+ */
 class Round : public RoundFace {
  public:
   Round(uint64_t id, std::shared_ptr<NodeFace> node);
@@ -28,12 +32,7 @@ class Round : public RoundFace {
 
   void finish() override;
 
-  void setStep(std::unique_ptr<Step> step) override {
-    step_ = std::move(step);
-    if (step_) {
-      updateStepData();
-    }
-  }
+  void setStep(std::unique_ptr<Step>&& step);
 
   uint64_t getStepId() override { return step_->getId(); }
   StepType getStepType() const override;
@@ -45,17 +44,17 @@ class Round : public RoundFace {
     setStep(std::make_unique<T>(args..., shared_from_this()));
   }
 
-  void nextStep_();
+ private:
+  void initDbValues();
+  void nextStep();
 
+  bool finished_ = false;
   std::unique_ptr<Step> step_;
 
- private:
   std::unique_ptr<std::thread> daemon_;
 
   std::condition_variable stop_cv_;
   std::mutex stop_mtx_;
-
-  void initDbValues();
 
   LOG_OBJECTS_REF_DEFINE
 };

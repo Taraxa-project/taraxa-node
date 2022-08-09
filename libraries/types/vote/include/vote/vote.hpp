@@ -97,7 +97,7 @@ class Vote {
    * @brief Get vote type
    * @return vote type
    */
-  PbftVoteTypes getType() const { return vrf_sortition_.pbft_msg_.type; }
+  PbftVoteType getType() const { return vrf_sortition_.pbft_msg_.type; }
 
   /**
    * @brief Get vote PBFT round

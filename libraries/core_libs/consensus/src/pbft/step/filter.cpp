@@ -7,36 +7,34 @@
 
 namespace taraxa::step {
 
-void Filter::init() {}
-
 void Filter::run() {
   // The Filtering Step
   auto round = round_->getId();
   LOG(log_tr_) << "PBFT filtering state in round " << round;
 
-  if (giveUpNextVotedBlock_()) {
+  if (giveUpNextVotedBlock()) {
     // Identity leader
-    auto leader_block = identifyLeaderBlock_();
+    auto leader_block = identifyLeaderBlock();
     if (leader_block) {
       node_->db_->savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, leader_block);
       round_->own_starting_value_for_round_ = leader_block;
       LOG(log_dg_) << "Identify leader block " << leader_block << " at round " << round;
 
-      auto place_votes = placeVote_(leader_block, soft_vote_type, round);
+      auto place_votes = placeVote(leader_block, round);
 
-      updateLastSoftVotedValue_(leader_block);
+      updateLastSoftVotedValue(leader_block);
 
       if (place_votes) {
         LOG(log_nf_) << "Soft votes " << place_votes << " voting block " << leader_block << " at round " << round;
       }
     }
   } else if (round_->previous_round_next_voted_value_) {
-    auto place_votes = placeVote_(round_->previous_round_next_voted_value_, PbftVoteTypes::soft_vote_type, round);
+    auto place_votes = placeVote(round_->previous_round_next_voted_value_, round);
 
     // Generally this value will either be the same as last soft voted value from previous round
     // but a node could have observed a previous round next voted value that differs from what they
     // soft voted.
-    updateLastSoftVotedValue_(round_->previous_round_next_voted_value_);
+    updateLastSoftVotedValue(round_->previous_round_next_voted_value_);
 
     if (place_votes) {
       LOG(log_nf_) << "Soft votes " << place_votes << " voting block " << round_->previous_round_next_voted_value_
@@ -44,10 +42,10 @@ void Filter::run() {
     }
   }
 
-  finish_();
+  finish();
 }
 
-blk_hash_t Filter::identifyLeaderBlock_() {
+blk_hash_t Filter::identifyLeaderBlock() {
   auto pm = node_->pbft_manager_.lock();
   if (!pm) {
     return {};
@@ -71,7 +69,7 @@ blk_hash_t Filter::identifyLeaderBlock_() {
       LOG(log_er_) << "Vote step is not 1. Vote " << v;
       continue;
     }
-    if (v->getType() != propose_vote_type) {
+    if (v->getType() != PbftVoteType::propose_vote_type) {
       LOG(log_er_) << "Vote type is not propose vote type. Vote " << v;
       continue;
     }
@@ -85,7 +83,7 @@ blk_hash_t Filter::identifyLeaderBlock_() {
       continue;
     }
     // Make sure we don't keep soft voting for soft value we want to give up...
-    if (proposed_block_hash == pm->last_soft_voted_value_ && giveUpSoftVotedBlock_()) {
+    if (proposed_block_hash == pm->last_soft_voted_value_ && giveUpSoftVotedBlock()) {
       continue;
     }
 
@@ -102,7 +100,7 @@ blk_hash_t Filter::identifyLeaderBlock_() {
   return leader.second;
 }
 
-void Filter::updateLastSoftVotedValue_(blk_hash_t const new_soft_voted_value) {
+void Filter::updateLastSoftVotedValue(blk_hash_t const new_soft_voted_value) {
   auto pm = node_->pbft_manager_.lock();
   if (!pm) {
     return;

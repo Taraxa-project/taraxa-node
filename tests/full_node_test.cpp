@@ -221,7 +221,7 @@ TEST_F(FullNodeTest, db_test) {
   // Certified votes
   std::vector<std::shared_ptr<Vote>> cert_votes;
   for (auto i = 0; i < 3; i++) {
-    VrfPbftMsg msg(cert_vote_type, 2, 3);
+    VrfPbftMsg msg(PbftVoteType::cert_vote_type, 2, 3);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -291,7 +291,7 @@ TEST_F(FullNodeTest, db_test) {
   for (auto i = 0; i < 3; i++) {
     auto round = i;
     auto step = i;
-    VrfPbftMsg msg(next_vote_type, round, step);
+    VrfPbftMsg msg(PbftVoteType::next_vote_type, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -319,7 +319,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_TRUE(soft_votes.empty());
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(soft_vote_type, round, step);
+    VrfPbftMsg msg(PbftVoteType::soft_vote_type, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -333,7 +333,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(soft_votes_from_db.size(), 3);
   for (auto i = 3; i < 5; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(soft_vote_type, round, step);
+    VrfPbftMsg msg(PbftVoteType::soft_vote_type, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -359,7 +359,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_TRUE(next_votes.empty());
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(next_vote_type, round, step);
+    VrfPbftMsg msg(PbftVoteType::next_vote_type, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -374,7 +374,7 @@ TEST_F(FullNodeTest, db_test) {
   next_votes.clear();
   for (auto i = 3; i < 5; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(next_vote_type, round, step);
+    VrfPbftMsg msg(PbftVoteType::next_vote_type, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -1203,7 +1203,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   }
 
   std::cout << "Checking all nodes executed transactions at initialization" << std::endl;
-  wait({150s, 2s}, [&](auto &ctx) {
+  wait({20s, 1s}, [&](auto &ctx) {
     for (size_t i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
@@ -1249,9 +1249,9 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   }
   std::cout << "Checking all nodes execute transactions from robin cycle" << std::endl;
 
-  wait({150s, 2s}, [&](auto &ctx) {
+  wait({20s, 1s}, [&](auto &ctx) {
     for (size_t i(0); i < nodes.size(); ++i) {
-      if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
+      if (nodes[i]->getDB()->getNumTransactionExecuted() < trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions, expected " << trxs_count << std::endl;
         if (ctx.fail(); !ctx.is_last_attempt) {
@@ -1266,27 +1266,18 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     }
   });
 
-  wait({30s, 1s}, [&](auto &ctx) {
+  EXPECT_HAPPENS({30s, 200ms}, [&](auto &ctx) {
     auto num_vertices0 = nodes[0]->getDagManager()->getNumVerticesInDag();
     auto num_vertices1 = nodes[1]->getDagManager()->getNumVerticesInDag();
     auto num_vertices2 = nodes[2]->getDagManager()->getNumVerticesInDag();
     auto num_vertices3 = nodes[3]->getDagManager()->getNumVerticesInDag();
     auto num_vertices4 = nodes[4]->getDagManager()->getNumVerticesInDag();
-    if (num_vertices0 != num_vertices1 || num_vertices0 != num_vertices2 || num_vertices0 != num_vertices3 ||
-        num_vertices0 != num_vertices4)
-      ctx.fail();
-  });
 
-  // Check DAG
-  auto num_vertices0 = nodes[0]->getDagManager()->getNumVerticesInDag();
-  auto num_vertices1 = nodes[1]->getDagManager()->getNumVerticesInDag();
-  auto num_vertices2 = nodes[2]->getDagManager()->getNumVerticesInDag();
-  auto num_vertices3 = nodes[3]->getDagManager()->getNumVerticesInDag();
-  auto num_vertices4 = nodes[4]->getDagManager()->getNumVerticesInDag();
-  EXPECT_EQ(num_vertices0, num_vertices1);
-  EXPECT_EQ(num_vertices1, num_vertices2);
-  EXPECT_EQ(num_vertices2, num_vertices3);
-  EXPECT_EQ(num_vertices3, num_vertices4);
+    WAIT_EXPECT_EQ(ctx, num_vertices0, num_vertices1);
+    WAIT_EXPECT_EQ(ctx, num_vertices1, num_vertices2);
+    WAIT_EXPECT_EQ(ctx, num_vertices2, num_vertices3);
+    WAIT_EXPECT_EQ(ctx, num_vertices3, num_vertices4);
+  });
 
   // Check duplicate transactions in single one DAG block
   auto ordered_dag_blocks = getOrderedDagBlocks(nodes[0]->getDB());

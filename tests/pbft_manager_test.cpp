@@ -272,7 +272,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   // Generate bogus vote
   auto round = 1;
   auto step = 4;
-  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step);
+  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, PbftVoteType::next_vote_type, round, step);
   propose_vote->calculateWeight(1, 1, 1);
   vote_mgr->addVerifiedVote(propose_vote);
 
@@ -285,7 +285,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
     blk_hash_t soft_vote_value;
     auto votes = vote_mgr->getVerifiedVotes();
     for (const auto &v : votes) {
-      if (soft_vote_type == v->getType() && v->getBlockHash() == pbft_block_hash) {
+      if (PbftVoteType::soft_vote_type == v->getType() && v->getBlockHash() == pbft_block_hash) {
         soft_vote_value = v->getBlockHash();
         break;
       }
@@ -299,7 +299,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
     auto proposal_value = pbft_block_hash;
     auto votes = vote_mgr->getVerifiedVotes();
     for (const auto &v : votes) {
-      if (propose_vote_type == v->getType() && v->getBlockHash() != pbft_block_hash) {
+      if (PbftVoteType::propose_vote_type == v->getType() && v->getBlockHash() != pbft_block_hash) {
         proposal_value = v->getBlockHash();
         break;
       }
@@ -330,7 +330,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
   auto round = 1;
   auto step = 4;
   auto pbft_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
-  auto next_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step);
+  auto next_vote = pbft_mgr->generateVote(pbft_block_hash, PbftVoteType::next_vote_type, round, step);
   next_vote->calculateWeight(1, 1, 1);
   vote_mgr->addVerifiedVote(next_vote);
 
@@ -343,7 +343,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
     blk_hash_t soft_vote_value;
     auto votes = vote_mgr->getVerifiedVotes();
     for (auto const &v : votes) {
-      if (soft_vote_type == v->getType() && v->getBlockHash() == pbft_block_hash) {
+      if (PbftVoteType::soft_vote_type == v->getType() && v->getBlockHash() == pbft_block_hash) {
         soft_vote_value = v->getBlockHash();
         break;
       }
@@ -359,7 +359,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
     auto votes = vote_mgr->getVerifiedVotes();
 
     for (auto const &v : votes) {
-      if (propose_vote_type == v->getType() && v->getBlockHash() != pbft_block_hash) {
+      if (PbftVoteType::propose_vote_type == v->getType() && v->getBlockHash() != pbft_block_hash) {
         // PBFT has terminated on the missing PBFT block value and propsosed a new block value
         proposal_value = v->getBlockHash();
         break;
@@ -646,7 +646,7 @@ TEST_F(PbftManagerWithDagCreation, initial_dag) {
   });
 }
 
-TEST_F(PbftManagerWithDagCreation, DISABLED_dag_generation) {
+TEST_F(PbftManagerWithDagCreation, dag_generation) {
   makeNode();
   deployContract();
   node->getBlockProposer()->stop();

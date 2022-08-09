@@ -16,7 +16,7 @@ void Propose::run() {
   if (round == 1) {
     // Round 1 cannot propose block. Everyone has to next vote kNullBlockHash in round 1 to make consensus go to next
     // round
-    finish_();
+    finish();
     return;
   }
 
@@ -33,7 +33,7 @@ void Propose::run() {
     assert(false);
   }
 
-  if (giveUpNextVotedBlock_()) {
+  if (giveUpNextVotedBlock()) {
     // PBFT block only be able to propose once in each period
     if (!proposed_block_hash_) {
       proposed_block_hash_ = proposePbftBlock_();
@@ -42,7 +42,7 @@ void Propose::run() {
       node_->db_->savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, proposed_block_hash_);
       round_->own_starting_value_for_round_ = proposed_block_hash_;
 
-      auto place_votes = placeVote_(round_->own_starting_value_for_round_, propose_vote_type, round);
+      auto place_votes = placeVote(round_->own_starting_value_for_round_, round);
       if (place_votes) {
         LOG(log_nf_) << "Proposing " << place_votes << " own starting value " << round_->own_starting_value_for_round_
                      << " for round " << round;
@@ -63,7 +63,7 @@ void Propose::run() {
     }
     if (pbft_block) {
       // place vote
-      auto place_votes = placeVote_(round_->own_starting_value_for_round_, propose_vote_type, round);
+      auto place_votes = placeVote(round_->own_starting_value_for_round_, round);
       if (place_votes) {
         LOG(log_nf_) << "Rebroadcast next voted block " << round_->own_starting_value_for_round_ << ", and propose"
                      << place_votes << " votes "
@@ -75,12 +75,7 @@ void Propose::run() {
       }
     }
   }
-  finish_();
-}
-
-void Propose::finish_() {
-  Step::finish_();
-  round_->sleepUntil(2 * std::chrono::milliseconds(round_->getLambda()));
+  finish();
 }
 
 std::optional<blk_hash_t> findClosestAnchor(const std::vector<blk_hash_t> &ghost,
@@ -99,10 +94,11 @@ blk_hash_t Propose::proposePbftBlock_() {
     return {};
   }
   auto round = round_->getId();
-  VrfPbftSortition vrf_sortition(node_->vrf_sk_, {propose_vote_type, round, 1});
+  VrfPbftSortition vrf_sortition(node_->vrf_sk_, {PbftVoteType::propose_vote_type, round, 1});
   if (pm->weighted_votes_count_ == 0 ||
       !vrf_sortition.calculateWeight(pm->getDposWeightedVotesCount(), pm->getDposTotalVotesCount(),
-                                     pm->getThreshold(propose_vote_type), dev::toPublic(node_->node_sk_))) {
+                                     pm->getThreshold(PbftVoteType::propose_vote_type),
+                                     dev::toPublic(node_->node_sk_))) {
     return kNullBlockHash;
   }
 
@@ -276,7 +272,7 @@ blk_hash_t Propose::generatePbftBlock(const blk_hash_t &prev_blk_hash, const blk
   }
 
   LOG(log_dg_) << node_->node_addr_ << " propose PBFT block succussful! in round: " << round_->getId()
-               << " in step: " << id_ << " PBFT block: " << pbft_block->getBlockHash();
+               << " in step: " << kId_ << " PBFT block: " << pbft_block->getBlockHash();
 
   return pbft_block->getBlockHash();
 }

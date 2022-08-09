@@ -4,17 +4,20 @@
 
 namespace taraxa::step {
 
+/**
+ * @ingroup PBFT
+ * @brief Polling step class
+ */
 class Polling : public Step {
  public:
-  Polling(uint64_t id, std::shared_ptr<RoundFace> round) : Step(id, std::move(round)) {
-    init();
+  Polling(uint64_t id, std::shared_ptr<RoundFace> round) : Step(id, (id + 1) * round->getLambda(), std::move(round)) {
     assert(id % 2 == 1);
+    LOG(log_dg_) << "Will go to second finish State";
   }
   void run() override;
-  void finish_() override;
 
  private:
-  void init() override;
+  void finish() override;
 };
 
 }  // namespace taraxa::step
