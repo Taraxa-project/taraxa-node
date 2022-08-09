@@ -1490,6 +1490,12 @@ std::pair<vec_blk_t, bool> PbftManager::compareBlocksAndRewardVotes_(std::shared
     return std::make_pair(std::move(dag_blocks_order), true);
   }
 
+  // Check reward votes
+  if (!vote_mgr_->checkRewardVotes(pbft_block)) {
+    LOG(log_er_) << "Failed verifying reward votes for proposed PBFT block " << proposal_block_hash;
+    return {{}, false};
+  }
+
   auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
   if (anchor_hash == NULL_BLOCK_HASH) {
     period_data_.clear();
@@ -1559,12 +1565,6 @@ std::pair<vec_blk_t, bool> PbftManager::compareBlocksAndRewardVotes_(std::shared
         return std::make_pair(std::move(dag_blocks_order), false);
       }
     }
-  }
-
-  // Check reward votes
-  if (!vote_mgr_->checkRewardVotes(pbft_block)) {
-    LOG(log_er_) << "Failed verifying reward votes for proposed PBFT block " << proposal_block_hash;
-    return {{}, false};
   }
 
   period_data_.pbft_blk = std::move(pbft_block);
