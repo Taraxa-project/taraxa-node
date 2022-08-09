@@ -119,9 +119,12 @@ void PbftManager::run() {
     }
     // We need this section because votes need to be verified for reward distribution
     for (const auto &v : period_data.previous_block_cert_votes) {
-      vote_mgr_->verifyRewardVote(v);
+      vote_mgr_->addRewardVote(v);
     }
-
+    if (!vote_mgr_->checkRewardVotes(period_data.pbft_blk)) {
+      LOG(log_er_) << "Invalid reward votes in block " << period_data.pbft_blk->getBlockHash() << " in DB.";
+      assert(false);
+    }
     finalize_(std::move(period_data), db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
   }
 

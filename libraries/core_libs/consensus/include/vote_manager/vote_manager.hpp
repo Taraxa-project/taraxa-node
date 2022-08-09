@@ -314,6 +314,7 @@ class VoteManager {
    */
   void sendRewardVotes(const blk_hash_t& pbft_block_hash);
 
+ private:
   /**
    * @brief Verify reward vote
    *
@@ -323,7 +324,6 @@ class VoteManager {
    */
   bool verifyRewardVote(const std::shared_ptr<Vote>& vote);
 
- private:
   /**
    * @brief Retrieve all verified votes from DB to the verified votes map. And broadcast all next voting type votes to
    * peers if node has extended the partition steps (1000). That only happens when nodes start.
