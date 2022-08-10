@@ -121,10 +121,9 @@ void PbftManager::run() {
     for (const auto &v : period_data.previous_block_cert_votes) {
       vote_mgr_->verifyRewardVoteForPeriod(v, period_data.pbft_blk->getPeriod() - 1);
     }
-
     finalize_(std::move(period_data), db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
   }
-
+  vote_mgr_->replaceRewardVotes(db_->getLastBlockCertVotes());
   // Initialize PBFT status
   initialState();
 
