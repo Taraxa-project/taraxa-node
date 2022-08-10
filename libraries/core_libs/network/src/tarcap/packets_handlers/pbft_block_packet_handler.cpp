@@ -76,7 +76,7 @@ void PbftBlockPacketHandler::onNewPbftBlock(const std::shared_ptr<PbftBlock> &pb
     }
   }
 
-  vote_mgr_->sendRewardVotes(pbft_block_hash);
+  vote_mgr_->sendRewardVotes(pbft_block->getPrevBlockHash());
 
   LOG(log_dg_) << "sendPbftBlock " << pbft_block_hash << " to " << peers_to_log;
   for (auto const &peer : peers_to_send) {

@@ -1030,7 +1030,7 @@ void PbftManager::secondFinish_() {
       assert(net);  // Should never happen
       net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(
           std::move(voted_block_hash_with_soft_votes->votes));
-      vote_mgr_->sendRewardVotes(voted_block_hash_with_soft_votes->voted_block_hash);
+      vote_mgr_->sendRewardVotes(getLastPbftBlockHash());
       LOG(log_dg_) << "Node has seen enough soft votes voted at " << voted_block_hash_with_soft_votes->voted_block_hash
                    << ", regossip soft votes. In round " << round << " step " << step_;
     }
@@ -1430,7 +1430,6 @@ void PbftManager::syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::
         case missing_dag_blk:
           LOG(log_nf_) << "DAG blocks have not synced yet, anchor block " << relevant_blk_hash
                        << " not present in DAG.";
-
           break;
         case invalid_cert_voted_block:
           // Get partition, need send request to get missing pbft blocks from peers

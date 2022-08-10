@@ -28,7 +28,7 @@ VoteManager::VoteManager(size_t pbft_committee_size, const addr_t& node_addr, st
 
   // Retrieve votes from DB
   daemon_ = std::make_unique<std::thread>([this]() { retreieveVotes_(); });
-  
+
   current_period_final_chain_block_hash_ = final_chain_->block_header()->hash;
 }
 
