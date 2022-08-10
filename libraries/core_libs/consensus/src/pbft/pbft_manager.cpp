@@ -959,6 +959,8 @@ void PbftManager::firstFinish_() {
       auto pbft_block = db_->getPbftCertVotedBlock(last_cert_voted_value_);
       assert(pbft_block);
       if (auto net = network_.lock()) {
+        LOG(log_nf_) << "Rebroadcasting PBFT block: " << pbft_block->getBlockHash() << " and reward votes "
+                     << pbft_block->getRewardVotes();
         net->getSpecificHandler<network::tarcap::PbftBlockPacketHandler>()->onNewPbftBlock(pbft_block);
       }
     }
@@ -1002,11 +1004,13 @@ void PbftManager::firstFinish_() {
         LOG(log_nf_) << "Next votes " << place_votes << " voting nodes own starting value "
                      << own_starting_value_for_round_ << " for round " << round << ", at step " << step_;
         // Re-broadcast pbft block in case some nodes do not have it
-        if (step_ % 20 == 0) {
-          auto pbft_block = getUnfinalizedBlock_(own_starting_value_for_round_);
-          if (auto net = network_.lock(); net && pbft_block) {
-            net->getSpecificHandler<network::tarcap::PbftBlockPacketHandler>()->onNewPbftBlock(pbft_block);
-          }
+      }
+      if (step_ % 20 == 0) {
+        auto pbft_block = getUnfinalizedBlock_(own_starting_value_for_round_);
+        if (auto net = network_.lock(); net && pbft_block) {
+          LOG(log_nf_) << "Rebroadcasting PBFT block: " << pbft_block->getBlockHash() << " and reward votes "
+                       << pbft_block->getRewardVotes();
+          net->getSpecificHandler<network::tarcap::PbftBlockPacketHandler>()->onNewPbftBlock(pbft_block);
         }
       }
     }
@@ -1030,7 +1034,7 @@ void PbftManager::secondFinish_() {
       assert(net);  // Should never happen
       net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(
           std::move(voted_block_hash_with_soft_votes->votes));
-      vote_mgr_->sendRewardVotes(voted_block_hash_with_soft_votes->voted_block_hash);
+      vote_mgr_->sendRewardVotes(getLastPbftBlockHash());
       LOG(log_dg_) << "Node has seen enough soft votes voted at " << voted_block_hash_with_soft_votes->voted_block_hash
                    << ", regossip soft votes. In round " << round << " step " << step_;
     }
@@ -1430,7 +1434,6 @@ void PbftManager::syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::
         case missing_dag_blk:
           LOG(log_nf_) << "DAG blocks have not synced yet, anchor block " << relevant_blk_hash
                        << " not present in DAG.";
-
           break;
         case invalid_cert_voted_block:
           // Get partition, need send request to get missing pbft blocks from peers
