@@ -323,6 +323,16 @@ class VoteManager {
    */
   bool verifyRewardVote(const std::shared_ptr<Vote>& vote);
 
+  /**
+   * @brief Verify reward vote
+   *
+   * @param cert vote voted to last period PBFT block
+   * @param period period
+   *
+   * @return true if pass vote verification
+   */
+  bool verifyRewardVoteForPeriod(const std::shared_ptr<Vote>& vote, uint64_t period);
+
  private:
   /**
    * @brief Retrieve all verified votes from DB to the verified votes map. And broadcast all next voting type votes to

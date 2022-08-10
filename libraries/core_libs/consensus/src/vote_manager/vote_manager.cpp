@@ -28,10 +28,8 @@ VoteManager::VoteManager(size_t pbft_committee_size, const addr_t& node_addr, st
 
   // Retrieve votes from DB
   daemon_ = std::make_unique<std::thread>([this]() { retreieveVotes_(); });
-
+  
   current_period_final_chain_block_hash_ = final_chain_->block_header()->hash;
-
-  replaceRewardVotes(db_->getLastBlockCertVotes());
 }
 
 VoteManager::~VoteManager() { daemon_->join(); }
@@ -547,7 +545,10 @@ bool VoteManager::verifyRewardVote(const std::shared_ptr<Vote>& vote) {
     return false;
   }
 
-  const uint64_t dpos_period = pbft_chain_->getPbftChainSize() - 1;  // reward period - 1
+  return verifyRewardVoteForPeriod(vote, pbft_chain_->getPbftChainSize() - 1);
+}
+
+bool VoteManager::verifyRewardVoteForPeriod(const std::shared_ptr<Vote>& vote, uint64_t dpos_period) {
   const auto& voter_account_addr = vote->getVoterAddr();
   const auto& pk = key_manager_->get(voter_account_addr);
   if (!pk) {
