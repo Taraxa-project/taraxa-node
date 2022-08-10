@@ -1018,6 +1018,9 @@ Collaboration diagram for taraxa::VoteManager:</div>
 <tr class="memitem:a3c7381a7c63348288bb4199a611505cb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a3c7381a7c63348288bb4199a611505cb">verifyRewardVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote)</td></tr>
 <tr class="memdesc:a3c7381a7c63348288bb4199a611505cb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verify reward vote.  <a href="group___vote.html#a3c7381a7c63348288bb4199a611505cb">More...</a><br /></td></tr>
 <tr class="separator:a3c7381a7c63348288bb4199a611505cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12f60cc44a73b237ecfe08be365bf58f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a12f60cc44a73b237ecfe08be365bf58f">verifyRewardVoteForPeriod</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote, uint64_t period)</td></tr>
+<tr class="memdesc:a12f60cc44a73b237ecfe08be365bf58f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verify reward vote.  <a href="group___vote.html#a12f60cc44a73b237ecfe08be365bf58f">More...</a><br /></td></tr>
+<tr class="separator:a12f60cc44a73b237ecfe08be365bf58f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Types</h3></td></tr>
 <tr class="memitem:a007f95fc9afcf66409e13455a77a6508"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a007f95fc9afcf66409e13455a77a6508">UniqueLock</a> = boost::unique_lock&lt; boost::shared_mutex &gt;</td></tr>
 <tr class="separator:a007f95fc9afcf66409e13455a77a6508"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1920,6 +1923,44 @@ Collaboration diagram for taraxa::VoteManager:</div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">cert</td><td>vote voted to last period PBFT block</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if pass vote verification </dd></dl>
+
+</div>
+</div>
+<a id="a12f60cc44a73b237ecfe08be365bf58f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12f60cc44a73b237ecfe08be365bf58f">&#9670;&nbsp;</a></span>verifyRewardVoteForPeriod()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool taraxa::VoteManager::verifyRewardVoteForPeriod </td>
+          <td>(</td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>vote</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>period</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Verify reward vote. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">cert</td><td>vote voted to last period PBFT block </td></tr>
+    <tr><td class="paramname">period</td><td>period</td></tr>
   </table>
   </dd>
 </dl>

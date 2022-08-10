@@ -33,6 +33,7 @@ var group___vote_classtaraxa_1_1_vote_manager =
     [ "sendRewardVotes", "group___vote.html#a5d94b5f604131c9b986840e5a16d433e", null ],
     [ "setNetwork", "group___vote.html#a4f02ca46c944d4c4b207e249eb4a1621", null ],
     [ "verifyRewardVote", "group___vote.html#a3c7381a7c63348288bb4199a611505cb", null ],
+    [ "verifyRewardVoteForPeriod", "group___vote.html#a12f60cc44a73b237ecfe08be365bf58f", null ],
     [ "verifyVotes", "group___vote.html#a308656efb92aa18fc799ad35930b3a0c", null ],
     [ "voteInUnverifiedMap", "group___vote.html#abe520e33144ec6b950af4af127d3748e", null ],
     [ "voteInVerifiedMap", "group___vote.html#a79f4f3d4a224da9c9cdec9ad390636a7", null ],

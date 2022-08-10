@@ -1,5 +1,6 @@
 var NAVTREEINDEX18 =
 {
+"namespacetaraxa.html#a042f45f490bbf12481a44fbb1629201c":[12,0,1,3,0,0,1,3,6],
 "namespacetaraxa.html#a20a355304a30d8893626b16bf7c78595":[12,0,1,3,0,0,1,3,0],
 "namespacetaraxa.html#a4faf253efde7446f593b1d0a5063bffc":[12,0,1,3,0,0,1,1,0],
 "namespacetaraxa.html#a755e4a0a6744a31b65b04cb9022d6a47":[12,0,1,7,0,0,0,1,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX18 =
 "sortition_8cpp.html":[12,0,1,7,1,1],
 "sortition_8hpp.html":[12,0,1,7,0,0,1],
 "sortition_8hpp_source.html":[12,0,1,7,0,0,1],
-"sortition__params__manager_8cpp.html":[12,0,1,4,0,1,0,3],
-"sortition__params__manager_8cpp.html#aa90c9f0332c5cb6f975c11a607dfcb80":[12,0,1,4,0,1,0,3,1]
+"sortition__params__manager_8cpp.html":[12,0,1,4,0,1,0,3]
 };
