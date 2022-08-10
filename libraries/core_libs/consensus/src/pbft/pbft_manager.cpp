@@ -1432,6 +1432,9 @@ void PbftManager::syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::
                        << " not present in DAG.";
 
           break;
+        case missing_reward_vote:
+          LOG(log_nf_) << "Proposed PBFT block " << relevant_blk_hash << " is missing reward vote. We need to resync";
+          break;
         case invalid_cert_voted_block:
           // Get partition, need send request to get missing pbft blocks from peers
           LOG(log_nf_) << "Cert voted block " << relevant_blk_hash
@@ -1491,7 +1494,7 @@ std::pair<vec_blk_t, bool> PbftManager::compareBlocksAndRewardVotes_(std::shared
 
   // Check reward votes
   if (!vote_mgr_->checkRewardVotes(pbft_block)) {
-    LOG(log_er_) << "Failed verifying reward votes for proposed PBFT block " << proposal_block_hash;
+    syncPbftChainFromPeers_(missing_reward_vote, proposal_block_hash);
     return {{}, false};
   }
 

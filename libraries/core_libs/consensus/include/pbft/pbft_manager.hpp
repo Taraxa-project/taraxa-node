@@ -31,6 +31,7 @@ enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_
 
 enum PbftSyncRequestReason {
   missing_dag_blk = 1,
+  missing_reward_vote,
   invalid_cert_voted_block,
   invalid_soft_voted_block,
   exceeded_max_steps
