@@ -87,12 +87,13 @@ bool TransactionQueue::insert(std::pair<std::shared_ptr<Transaction>, Transactio
       // if the last object is also current one we return false
       if (priority_queue_.size() > kMaxSize) [[unlikely]] {
         const auto last_el = std::prev(priority_queue_.end());
-        priority_queue_.erase(last_el);
         if (it == last_el) {
+          priority_queue_.erase(last_el);
           return false;
         }
         known_txs_.erase((*last_el)->getHash());
         hash_queue_.erase((*last_el)->getHash());
+        priority_queue_.erase(last_el);
       }
       hash_queue_[tx_hash] = it;
       known_txs_.insert(tx_hash);
