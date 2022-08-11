@@ -1089,7 +1089,9 @@ void PbftManager::secondFinish_() {
 blk_hash_t PbftManager::generatePbftBlock(const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
                                           const blk_hash_t &order_hash) {
   const auto propose_period = pbft_chain_->getPbftChainSize() + 1;
-  const auto reward_votes = vote_mgr_->getRewardVotes();
+  // Reward votes should only include those reward votes with the same round as the round last pbft block was pushed
+  // into chain
+  const auto reward_votes = vote_mgr_->getRewardVotesWithLastBlockRound();
   std::vector<vote_hash_t> reward_votes_hashes;
   std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
                  [](const auto &v) { return v->getHash(); });
@@ -1593,7 +1595,11 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
     return false;
   }
 
-  period_data_.previous_block_cert_votes = getRewardVotesInBlock(period_data_.pbft_blk->getRewardVotes());
+  period_data_.previous_block_cert_votes = vote_mgr_->getRewardVotes(period_data_.pbft_blk->getRewardVotes());
+  if (period_data_.previous_block_cert_votes.size() < period_data_.pbft_blk->getRewardVotes().size()) {
+    LOG(log_er_) << "Missing reward votes in " << cert_voted_block_hash;
+    return false;
+  }
 
   if (!pushPbftBlock_(std::move(period_data_), std::move(current_round_cert_votes), std::move(dag_blocks_order))) {
     LOG(log_er_) << "Failed push PBFT block " << pbft_block->getBlockHash() << " into chain";
@@ -1947,7 +1953,14 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
   // pbft_chain_->findPbftBlockInChain(pbft_block_hash) and it's cert votes were not verified here, they are part of
   // vote_manager so we need to replace them as they are not verified period_data structure
   if (period_data.previous_block_cert_votes.size() && !period_data.previous_block_cert_votes.front()->getWeight()) {
-    if (auto votes = getRewardVotesInBlock(period_data.pbft_blk->getRewardVotes()); votes.size()) {
+    if (auto votes = vote_mgr_->getRewardVotes(period_data.pbft_blk->getRewardVotes()); votes.size()) {
+      if (votes.size() < period_data.pbft_blk->getRewardVotes().size()) {
+        LOG(log_er_) << "Failed verifying reward votes. PBFT block " << pbft_block_hash << ".Disconnect malicious peer "
+                     << node_id.abridged();
+        sync_queue_.clear();
+        net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
+        return std::nullopt;
+      }
       period_data.previous_block_cert_votes = std::move(votes);
     }
   }
@@ -2020,22 +2033,5 @@ bool PbftManager::checkBlockWeight(const PeriodData &period_data) const {
 }
 
 blk_hash_t PbftManager::getLastPbftBlockHash() { return pbft_chain_->getLastPbftBlockHash(); }
-
-std::vector<std::shared_ptr<Vote>> PbftManager::getRewardVotesInBlock(
-    const std::vector<vote_hash_t> &reward_votes_hashes) {
-  std::unordered_set<vote_hash_t> reward_votes_hashes_set;
-  for (const auto &v : reward_votes_hashes) reward_votes_hashes_set.insert(v);
-
-  auto reward_votes = vote_mgr_->getRewardVotes();
-  for (auto it = reward_votes.begin(); it != reward_votes.end();) {
-    if (reward_votes_hashes_set.contains((*it)->getHash())) {
-      ++it;
-    } else {
-      it = reward_votes.erase(it);
-    }
-  }
-
-  return reward_votes;
-}
 
 }  // namespace taraxa

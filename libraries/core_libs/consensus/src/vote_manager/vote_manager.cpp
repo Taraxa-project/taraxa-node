@@ -507,9 +507,9 @@ bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
     }
 
     if (reward_votes_pbft_block_round_ != vote_round) {
-      LOG(log_wr_) << "The reward vote " << vote_hash << " round " << vote_round << " is different than "
+      // This can happen if some nodes cert voted previous block in different rounds
+      LOG(log_dg_) << "The reward vote " << vote_hash << " round " << vote_round << " is different than "
                    << reward_votes_pbft_block_round_;
-      return false;
     }
 
     if (reward_votes_.contains(vote_hash)) {
@@ -610,6 +610,10 @@ void VoteManager::replaceRewardVotes(std::vector<std::shared_ptr<Vote>>&& cert_v
   std::unique_lock lock(reward_votes_mutex_);
   reward_votes_ = {};
   reward_votes_pbft_block_hash_ = cert_votes[0]->getBlockHash();
+
+  // It is possible that incoming reward votes might have another round because it is possible that same block was cert
+  // voted in different rounds on different nodes but this is a reference round for any pbft block this node might
+  // propose
   reward_votes_pbft_block_round_ = cert_votes[0]->getRound();
   for (auto& v : cert_votes) {
     assert(v->getWeight());
@@ -623,6 +627,36 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotes() {
   std::shared_lock lock(reward_votes_mutex_);
   for (const auto& v : reward_votes_) {
     reward_votes.push_back(v.second);
+  }
+
+  return reward_votes;
+}
+
+std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotes(const std::vector<vote_hash_t>& vote_hashes) {
+  std::vector<std::shared_ptr<Vote>> reward_votes;
+
+  std::shared_lock lock(reward_votes_mutex_);
+  for (auto vote_hash : vote_hashes) {
+    auto it = reward_votes_.find(vote_hash);
+    if (it != reward_votes_.end()) {
+      reward_votes.emplace_back(it->second);
+    } else {
+      LOG(log_dg_) << "Missing reward vote: " << vote_hash;
+      return {};
+    }
+  }
+
+  return reward_votes;
+}
+
+std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotesWithLastBlockRound() {
+  std::vector<std::shared_ptr<Vote>> reward_votes;
+
+  std::shared_lock lock(reward_votes_mutex_);
+  for (const auto& v : reward_votes_) {
+    if (v.second->getRound() == reward_votes_pbft_block_round_) {
+      reward_votes.push_back(v.second);
+    }
   }
 
   return reward_votes;

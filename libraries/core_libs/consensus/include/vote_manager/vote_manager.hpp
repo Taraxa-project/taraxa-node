@@ -304,8 +304,22 @@ class VoteManager {
    *
    * @return vector of all reward votes
    */
-
   std::vector<std::shared_ptr<Vote>> getRewardVotes();
+
+  /**
+   * @brief Get reward votes from specified hashes
+   *
+   * @param vote_hashes votes hashes to retrieve
+   * @return reward votes, if any of the votes is missing an empty array is returned
+   */
+  std::vector<std::shared_ptr<Vote>> getRewardVotes(const std::vector<vote_hash_t>& vote_hashes);
+
+  /**
+   * @brief Get reward votes from reward_votes_ with the last block round
+   *
+   * @return vector of reward votes
+   */
+  std::vector<std::shared_ptr<Vote>> getRewardVotesWithLastBlockRound();
 
   /**
    * @brief Send out all reward votes to peers
