@@ -47,6 +47,8 @@ var group___vote =
       [ "copyUnverifiedVotes", "group___vote.html#a3f79129a9740f50330585b367df79bd5", null ],
       [ "getProposalVotes", "group___vote.html#aa29f2337837f177f9c0c8c78601faa8d", null ],
       [ "getRewardVotes", "group___vote.html#a25976532fc726c9eaf69ccdd418bdcaa", null ],
+      [ "getRewardVotes", "group___vote.html#a301802dbc378abd235c63861161b8bc3", null ],
+      [ "getRewardVotesWithLastBlockRound", "group___vote.html#a24dbec7b548fd30c6aa835a8b1799151", null ],
       [ "getUnverifiedVotesSize", "group___vote.html#a2f6d8e5d1f78ff17fcef2dbf3c332a4e", null ],
       [ "getVerifiedVotes", "group___vote.html#a278f1df64aee7a872e655f5c3ec491f4", null ],
       [ "getVerifiedVotesSize", "group___vote.html#add0a1c70fc728cdb3ef074330a129060", null ],

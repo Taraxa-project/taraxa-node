@@ -1012,6 +1012,12 @@ Collaboration diagram for taraxa::VoteManager:</div>
 <tr class="memitem:a25976532fc726c9eaf69ccdd418bdcaa"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a25976532fc726c9eaf69ccdd418bdcaa">getRewardVotes</a> ()</td></tr>
 <tr class="memdesc:a25976532fc726c9eaf69ccdd418bdcaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get all reward votes in reward_votes_.  <a href="group___vote.html#a25976532fc726c9eaf69ccdd418bdcaa">More...</a><br /></td></tr>
 <tr class="separator:a25976532fc726c9eaf69ccdd418bdcaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a301802dbc378abd235c63861161b8bc3"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a301802dbc378abd235c63861161b8bc3">getRewardVotes</a> (const std::vector&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &gt; &amp;vote_hashes)</td></tr>
+<tr class="memdesc:a301802dbc378abd235c63861161b8bc3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get reward votes from specified hashes.  <a href="group___vote.html#a301802dbc378abd235c63861161b8bc3">More...</a><br /></td></tr>
+<tr class="separator:a301802dbc378abd235c63861161b8bc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a24dbec7b548fd30c6aa835a8b1799151"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a24dbec7b548fd30c6aa835a8b1799151">getRewardVotesWithLastBlockRound</a> ()</td></tr>
+<tr class="memdesc:a24dbec7b548fd30c6aa835a8b1799151"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get reward votes from reward_votes_ with the last block round.  <a href="group___vote.html#a24dbec7b548fd30c6aa835a8b1799151">More...</a><br /></td></tr>
+<tr class="separator:a24dbec7b548fd30c6aa835a8b1799151"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5d94b5f604131c9b986840e5a16d433e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a5d94b5f604131c9b986840e5a16d433e">sendRewardVotes</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;pbft_block_hash)</td></tr>
 <tr class="memdesc:a5d94b5f604131c9b986840e5a16d433e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send out all reward votes to peers.  <a href="group___vote.html#a5d94b5f604131c9b986840e5a16d433e">More...</a><br /></td></tr>
 <tr class="separator:a5d94b5f604131c9b986840e5a16d433e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1513,7 +1519,7 @@ Collaboration diagram for taraxa::VoteManager:</div>
 </div>
 </div>
 <a id="a25976532fc726c9eaf69ccdd418bdcaa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a25976532fc726c9eaf69ccdd418bdcaa">&#9670;&nbsp;</a></span>getRewardVotes()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a25976532fc726c9eaf69ccdd418bdcaa">&#9670;&nbsp;</a></span>getRewardVotes() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1529,6 +1535,53 @@ Collaboration diagram for taraxa::VoteManager:</div>
 
 <p>Get all reward votes in reward_votes_. </p>
 <dl class="section return"><dt>Returns</dt><dd>vector of all reward votes </dd></dl>
+
+</div>
+</div>
+<a id="a301802dbc378abd235c63861161b8bc3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a301802dbc378abd235c63861161b8bc3">&#9670;&nbsp;</a></span>getRewardVotes() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::VoteManager::getRewardVotes </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>vote_hashes</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get reward votes from specified hashes. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">vote_hashes</td><td>votes hashes to retrieve </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>reward votes, if any of the votes is missing an empty array is returned </dd></dl>
+
+</div>
+</div>
+<a id="a24dbec7b548fd30c6aa835a8b1799151"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a24dbec7b548fd30c6aa835a8b1799151">&#9670;&nbsp;</a></span>getRewardVotesWithLastBlockRound()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::VoteManager::getRewardVotesWithLastBlockRound </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get reward votes from reward_votes_ with the last block round. </p>
+<dl class="section return"><dt>Returns</dt><dd>vector of reward votes </dd></dl>
 
 </div>
 </div>

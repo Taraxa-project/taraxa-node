@@ -1,5 +1,6 @@
 var NAVTREEINDEX17 =
 {
+"md_doc_coding_practices.html#autotoc_md113":[2,0,11],
 "md_doc_coding_practices.html#autotoc_md114":[47],
 "md_doc_coding_practices.html#autotoc_md115":[48],
 "md_doc_coding_practices.html#autotoc_md116":[49],
@@ -248,6 +249,5 @@ var NAVTREEINDEX17 =
 "namespacemembers_y.html":[10,0,23],
 "namespacemembers_z.html":[10,0,24],
 "namespacestd.html":[11,0,2],
-"namespacetaraxa.html":[11,0,3],
-"namespacetaraxa.html#a009be38daa65710a670613c7d9428e76":[12,0,1,7,0,0,0,1,0]
+"namespacetaraxa.html":[11,0,3]
 };
