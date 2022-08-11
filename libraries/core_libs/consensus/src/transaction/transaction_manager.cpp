@@ -332,9 +332,8 @@ void TransactionManager::moveNonFinalizedTransactionsToTransactionsPool(std::uno
     auto trx = nonfinalized_transactions_in_dag_.find(trx_hash);
     if (trx != nonfinalized_transactions_in_dag_.end()) {
       db_->removeTransactionToBatch(trx_hash, write_batch);
-      nonfinalized_transactions_in_dag_.erase(trx_hash);
-      auto transaction = trx->second;
-      transactions_pool_.insert({std::move(transaction), TransactionStatus::Verified});
+      transactions_pool_.insert({std::move(trx->second), TransactionStatus::Verified});
+      nonfinalized_transactions_in_dag_.erase(trx);
     }
   }
   db_->commitWriteBatch(write_batch);
