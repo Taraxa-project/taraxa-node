@@ -161,7 +161,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
       return;
     }
     // And now we need to replace it with verified votes
-    if (auto votes = pbft_mgr_->getRewardVotesInBlock(period_data.pbft_blk->getRewardVotes()); votes.size()) {
+    if (auto votes = vote_mgr_->getRewardVotes(period_data.pbft_blk->getRewardVotes()); votes.size()) {
       period_data.previous_block_cert_votes = std::move(votes);
     }
   }
