@@ -435,7 +435,6 @@ bool DagManager::validateBlockNotExpired(
     LOG(log_nf_) << "Dropping expired block in setDagBlockOrder: " << blk_hash
                  << ". Expiry level: " << dag_expiry_level_ << ". Block level: " << dag_block->getLevel();
     expired_dag_blocks_to_remove[blk_hash] = dag_block;
-    assert(blk_hash != frontier_.pivot);
     return false;
   }
   return true;
