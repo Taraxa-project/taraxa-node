@@ -57,11 +57,6 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
         continue;
       }
 
-      if (!vote_mgr_->insertUniqueVote(vote)) {
-        LOG(log_dg_) << "Non unique vote " << next_vote_hash.abridged() << " (race condition)";
-        continue;
-      }
-
       if (!vote_mgr_->addVerifiedVote(next_vote)) {
         LOG(log_dg_) << "Vote " << next_vote_hash.abridged() << " already inserted in verified queue(race condition)";
         continue;

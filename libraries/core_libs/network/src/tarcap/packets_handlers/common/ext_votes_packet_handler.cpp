@@ -74,14 +74,7 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateNextSyncVote(const s
 }
 
 std::pair<bool, std::string> ExtVotesPacketHandler::validateRewardVote(const std::shared_ptr<Vote> &vote) const {
-  const uint64_t current_pbft_period = pbft_chain_->getPbftChainSize();
   const auto current_pbft_round = pbft_mgr_->getPbftRound();
-
-  if (vote->getPeriod() != current_pbft_period) {
-    std::stringstream err;
-    err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
-    return {false, err.str()};
-  }
 
   if (vote->getRound() >= current_pbft_round) {
     std::stringstream err;
@@ -89,24 +82,8 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateRewardVote(const std
     return {false, err.str()};
   }
 
-  if (vote->getType() != cert_vote_type) {
-    std::stringstream err;
-    err << "Invalid type: " << static_cast<uint64_t>(vote->getType());
-    return {false, err.str()};
-  }
-
-  if (vote->getStep() != 3) {
-    std::stringstream err;
-    err << "Invalid step: " << vote->getStep();
-    return {false, err.str()};
-  }
-
-  if (vote_mgr_->getCurrentRewardsVotesBlock() != vote->getBlockHash()) {
-    std::stringstream err;
-    err << "Invalid PBFT block hash " << vote->getBlockHash().abridged() << " -> different from "
-        << pbft_chain_->getLastPbftBlockHash().abridged();
-    return {false, err.str()};
-  }
+  // TODO[1938]: implement ddos protection so user cannot sent indefinite number of valid reward votes with different
+  // rounds.
 
   return validateVote(vote);
 }
@@ -152,7 +129,7 @@ void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&
     for (const auto &v : votes) {
       if (!peer.second->isVoteKnown(v->getHash()) &&
           (peer.second->pbft_round_ <= v->getRound() ||
-           (v->getType() == cert_vote_type && v->getBlockHash() == rewards_votes_block /* reward vote */))) {
+           (v->getType() == cert_vote_type && v->getBlockHash() == rewards_votes_block.first /* reward vote */))) {
         send_votes.push_back(v);
       }
     }

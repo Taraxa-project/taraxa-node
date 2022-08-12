@@ -19,27 +19,27 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
                  std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                  std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
                  std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr)
-    : kConf(config), tp_(config.network.network_num_threads, false) {
+    : tp_(config.network.network_num_threads, false) {
   auto const &node_addr = key.address();
   LOG_OBJECTS_CREATE("NETWORK");
-  LOG(log_nf_) << "Read Network Config: " << std::endl << kConf.network << std::endl;
+  LOG(log_nf_) << "Read Network Config: " << std::endl << config.network << std::endl;
 
   // TODO make all these properties configurable
   dev::p2p::NetworkConfig net_conf;
-  net_conf.listenIPAddress = kConf.network.network_listen_ip;
-  net_conf.listenPort = kConf.network.network_tcp_port;
+  net_conf.listenIPAddress = config.network.network_listen_ip;
+  net_conf.listenPort = config.network.network_tcp_port;
   net_conf.discovery = true;
   net_conf.allowLocalDiscovery = true;
   net_conf.traverseNAT = false;
-  net_conf.publicIPAddress = kConf.network.network_public_ip;
+  net_conf.publicIPAddress = config.network.network_public_ip;
   net_conf.pin = false;
 
   dev::p2p::TaraxaNetworkConfig taraxa_net_conf;
-  taraxa_net_conf.ideal_peer_count = kConf.network.network_ideal_peer_count;
+  taraxa_net_conf.ideal_peer_count = config.network.network_ideal_peer_count;
 
-  // TODO kConf.network.network_max_peer_count -> kConf.network.peer_count_stretch
-  taraxa_net_conf.peer_stretch = kConf.network.network_max_peer_count / kConf.network.network_ideal_peer_count;
-  taraxa_net_conf.chain_id = kConf.chain_id;
+  // TODO config.network.network_max_peer_count -> config.network.peer_count_stretch
+  taraxa_net_conf.peer_stretch = config.network.network_max_peer_count / config.network.network_ideal_peer_count;
+  taraxa_net_conf.chain_id = config.chain_id;
   taraxa_net_conf.expected_parallelism = tp_.capacity();
 
   string net_version = "TaraxaNode";  // TODO maybe give a proper name?
@@ -48,7 +48,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
       assert(!host.expired());
 
       auto taraxa_capability =
-          network::tarcap::TaraxaCapability::make(host, key, kConf, genesis_hash, TARAXA_NET_VERSION, db, pbft_mgr,
+          network::tarcap::TaraxaCapability::make(host, key, config, genesis_hash, TARAXA_NET_VERSION, db, pbft_mgr,
                                                   pbft_chain, vote_mgr, next_votes_mgr, dag_mgr, trx_mgr);
       return dev::p2p::Host::CapabilityList{taraxa_capability};
     };
@@ -62,7 +62,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
     });
   }
 
-  LOG(log_nf_) << "Configured host. Listening on address: " << kConf.network.network_listen_ip << ":"
+  LOG(log_nf_) << "Configured host. Listening on address: " << config.network.network_listen_ip << ":"
                << config.network.network_tcp_port;
 }
 
@@ -74,9 +74,7 @@ Network::~Network() {
 void Network::start() {
   tp_.start();
   taraxa_capability_->start();
-  LOG(log_nf_) << "Started Network address: " << kConf.network.network_listen_ip << ":"
-               << kConf.network.network_tcp_port << std::endl;
-  LOG(log_nf_) << "Started Node id: " << host_->id();
+  LOG(log_nf_) << "Started Node id: " << host_->id() << ", listening on port " << host_->listenPort();
 }
 
 bool Network::isStarted() { return tp_.is_running(); }

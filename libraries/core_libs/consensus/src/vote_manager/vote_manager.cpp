@@ -24,8 +24,6 @@ VoteManager::VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db,
 
   // Retrieve votes from DB
   daemon_ = std::make_unique<std::thread>([this]() { retreieveVotes_(); });
-
-  current_period_final_chain_block_hash_ = final_chain_->block_header()->hash;
 }
 
 VoteManager::~VoteManager() { daemon_->join(); }
@@ -46,7 +44,7 @@ void VoteManager::retreieveVotes_() {
     }
 
     // Check if votes are unique per round & step & voter
-    if (!insertUniqueVote(v)) {
+    if (auto is_unique_vote = isUniqueVote(v); !is_unique_vote.first) {
       // This should never happen
       assert(false);
     }
@@ -99,6 +97,11 @@ bool VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
   const auto weight = vote->getWeight().value();
   if (!weight) {
     LOG(log_er_) << "Unable to add vote " << hash << " into the verified queue. Invalid vote weight";
+    return false;
+  }
+
+  if (!insertUniqueVote(vote)) {
+    LOG(log_wr_) << "Non unique vote " << vote->getHash().abridged() << " (race condition)";
     return false;
   }
 
@@ -245,9 +248,9 @@ bool VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote) {
 
   // There was already some vote inserted, check if it is the same vote as we are trying to insert
   if (inserted_vote.first->second.first->getHash() != vote->getHash()) {
-    // Next votes are special case, where we allow voting for both NULL_BLOCK_HASH and some other specific block hash
-    // at the same time -> 2 unique votes per round & step & voter
-    if (vote->getType() == PbftVoteTypes::next_vote_type) {
+    // Next votes (second finishing steps) are special case, where we allow voting for both NULL_BLOCK_HASH and
+    // some other specific block hash at the same time -> 2 unique votes per round & step & voter
+    if (vote->getType() == PbftVoteTypes::next_vote_type && vote->getStep() % 2) {
       // New second next vote
       if (inserted_vote.first->second.second == nullptr) {
         // One of the next votes == NULL_BLOCK_HASH -> valid scenario
@@ -459,11 +462,9 @@ std::optional<std::pair<uint64_t, uint64_t>> VoteManager::determineRoundAndPerio
   SharedLock lock(verified_votes_access_);
   for (auto round_rit = verified_votes_.rbegin(); round_rit != verified_votes_.rend(); ++round_rit) {
     for (auto period_it = round_rit->second.begin(); period_it != round_rit->second.end(); ++period_it) {
-      // TODO: was rbegin(), rend()
-      for (auto step_rit = period_it->second.begin(); step_rit != period_it->second.end(); ++step_rit) {
+      for (auto step_rit = period_it->second.rbegin(); step_rit != period_it->second.rend(); ++step_rit) {
         if (step_rit->first <= 3) {
-          // TODO: was break;
-          continue;
+          break;
         }
 
         for (auto const& voted_value : step_rit->second) {
@@ -494,31 +495,46 @@ std::optional<std::pair<uint64_t, uint64_t>> VoteManager::determineRoundAndPerio
   return {};
 }
 
-blk_hash_t VoteManager::getCurrentRewardsVotesBlock() const {
+std::pair<blk_hash_t, uint64_t> VoteManager::getCurrentRewardsVotesBlock() const {
   std::shared_lock lock(reward_votes_mutex_);
-  return reward_votes_pbft_block_hash_;
+  return reward_votes_pbft_block_;
 }
 
 bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
   std::unique_lock lock(reward_votes_mutex_);
-  if (vote->getBlockHash() != reward_votes_pbft_block_hash_) {
+  if (vote->getType() != cert_vote_type) {
+    LOG(log_wr_) << "Invalid type: " << static_cast<uint64_t>(vote->getType());
     return false;
   }
 
-  // TODO: compare vote period with voted block period
-
-  // Limit reward_votes_ size by allowing only 1 unique vote per address. Otherwise attacker might send multiple valid
-  // reward votes with different round...
-  if (auto unique_vote_author = reward_votes_unique_authors_.insert({vote->getVoterAddr(), vote->getHash()});
-      !unique_vote_author.second) {
-    if (unique_vote_author.first->second != vote->getHash()) {
-      LOG(log_er_) << "Trying to add second reward vote: " << vote->getHash() << " for author: " << vote->getVoterAddr()
-                   << ", orig. vote: " << unique_vote_author.first->second;
-      return false;
-    }
+  if (vote->getStep() != 3) {
+    LOG(log_wr_) << "Invalid step: " << vote->getStep();
+    return false;
   }
 
-  db_->saveLastBlockCertVote(vote);
+  const auto [reward_votes_block_hash, reward_votes_block_period] = reward_votes_pbft_block_;
+  if (vote->getBlockHash() != reward_votes_block_hash) {
+    LOG(log_wr_) << "Invalid block hash " << vote->getBlockHash() << " -> different from reward_votes_block_hash "
+                 << reward_votes_block_hash;
+    return false;
+  }
+
+  if (vote->getPeriod() != reward_votes_block_period) {
+    LOG(log_wr_) << "Invalid period " << vote->getPeriod() << " -> different from reward_votes_block_period "
+                 << reward_votes_block_period;
+    return false;
+  }
+
+  if (!insertUniqueVote(vote)) {
+    LOG(log_wr_) << "Non unique vote " << vote->getHash().abridged() << " (race condition)";
+    return false;
+  }
+
+  // If reward vote is from another round it should not be added to last block cert votes which should all be the same
+  // round
+  if (last_pbft_block_cert_round_ == vote->getRound()) {
+    db_->saveLastBlockCertVote(vote);
+  }
 
   return reward_votes_.insert({vote->getHash(), vote}).second;
 }
@@ -561,8 +577,7 @@ void VoteManager::replaceRewardVotes(std::vector<std::shared_ptr<Vote>>&& cert_v
 
   std::unique_lock lock(reward_votes_mutex_);
   reward_votes_.clear();
-  reward_votes_unique_authors_.clear();
-  reward_votes_pbft_block_hash_ = cert_votes[0]->getBlockHash();
+  reward_votes_pbft_block_ = {cert_votes[0]->getBlockHash(), cert_votes[0]->getPeriod()};
 
   // It is possible that incoming reward votes might have another round because it is possible that same block was cert
   // voted in different rounds on different nodes but this is a reference round for any pbft block this node might
@@ -618,7 +633,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotesWithLastBlockRound
 void VoteManager::sendRewardVotes(const blk_hash_t& pbft_block_hash) {
   {
     std::shared_lock lock(reward_votes_mutex_);
-    if (reward_votes_pbft_block_hash_ != pbft_block_hash) return;
+    if (reward_votes_pbft_block_.first != pbft_block_hash) return;
   }
 
   auto reward_votes = getRewardVotes();

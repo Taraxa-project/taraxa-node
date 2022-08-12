@@ -93,15 +93,17 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   // END METHODS USED IN TESTS ONLY
 
  protected:
-  virtual void initPeriodicEvents(const NetworkConfig &conf, const std::shared_ptr<PbftManager> &pbft_mgr,
+  virtual void initPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr,
                                   std::shared_ptr<TransactionManager> trx_mgr,
                                   std::shared_ptr<PacketsStats> packets_stats);
-  virtual void registerPacketHandlers(
-      const FullNodeConfig &conf, const h256 &genesis_hash, const std::shared_ptr<PacketsStats> &packets_stats,
-      const std::shared_ptr<DbStorage> &db, const std::shared_ptr<PbftManager> &pbft_mgr,
-      const std::shared_ptr<PbftChain> &pbft_chain, const std::shared_ptr<VoteManager> &vote_mgr,
-      const std::shared_ptr<NextVotesManager> &next_votes_mgr, const std::shared_ptr<DagManager> &dag_mgr,
-      const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr);
+  virtual void registerPacketHandlers(const h256 &genesis_hash, const std::shared_ptr<PacketsStats> &packets_stats,
+                                      const std::shared_ptr<DbStorage> &db,
+                                      const std::shared_ptr<PbftManager> &pbft_mgr,
+                                      const std::shared_ptr<PbftChain> &pbft_chain,
+                                      const std::shared_ptr<VoteManager> &vote_mgr,
+                                      const std::shared_ptr<NextVotesManager> &next_votes_mgr,
+                                      const std::shared_ptr<DagManager> &dag_mgr,
+                                      const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr);
 
  private:
   void initBootNodes(const std::vector<NodeConfig> &network_boot_nodes, const dev::KeyPair &key);

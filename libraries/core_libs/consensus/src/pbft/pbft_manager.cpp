@@ -119,7 +119,7 @@ void PbftManager::run() {
     }
     // We need this section because votes need to be verified for reward distribution
     for (const auto &v : period_data.previous_block_cert_votes) {
-      vote_mgr_->verifyRewardVoteForPeriod(v, period_data.pbft_blk->getPeriod() - 1);
+      validateVote(v);
     }
     finalize_(std::move(period_data), db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
   }
@@ -690,21 +690,13 @@ bool PbftManager::stateOperations_() {
     // Checks if node is in sync with determined pbft period from votes, if not - do not allow node to place votes
     // This check is done only at the beginning of new round by purpose as chain size might change after cert vote step
     // when new cert voted block is pushed into the chain
-    // TODO: think about this properly - should we allow next voting even if node is out of sync ?
     const auto chain_size = pbft_chain_->getPbftChainSize();
     if (chain_size < previous_round_period - 1) {
       LOG(log_wr_) << "Period determined from next votes: " << previous_round_period
                    << " < chain size + 1: " << chain_size + 1 << ". Wait to get in sync.";
-      // TODO: use some normal sleep time
       using namespace std::chrono_literals;
       std::this_thread::sleep_for(50ms);
       return true;
-    }
-
-    if (chain_size > previous_round_period) {
-      // It should never happen that node has bigger chain size than period determined from the latest next votes,
-      // something is probably seriously wrong in such case
-      assert(true);
     }
 
     // Node is in sync
@@ -1114,8 +1106,8 @@ void PbftManager::firstFinish_() {
         if (step_ % 20 == 0) {
           auto pbft_block = getUnfinalizedBlock_(own_starting_value_for_round_.first);
           if (auto net = network_.lock(); net && pbft_block) {
-          LOG(log_nf_) << "Rebroadcasting PBFT block: " << pbft_block->getBlockHash() << " and reward votes "
-                       << pbft_block->getRewardVotes();
+            LOG(log_nf_) << "Rebroadcasting PBFT block: " << pbft_block->getBlockHash() << " and reward votes "
+                         << pbft_block->getRewardVotes();
             net->getSpecificHandler<network::tarcap::PbftBlockPacketHandler>()->onNewPbftBlock(pbft_block);
           }
         }
@@ -1347,15 +1339,17 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
   const auto weight = vote->calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold);
 
   if (weight) {
-    if (!vote_mgr_->insertUniqueVote(vote)) {
+    if (auto is_unique_vote = vote_mgr_->isUniqueVote(vote); is_unique_vote.first) {
+      db_->saveVerifiedVote(vote);
+      vote_mgr_->addVerifiedVote(vote);
+      if (auto net = network_.lock()) {
+        net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes({std::move(vote)});
+      }
+    } else {
       // This should never happen
+      LOG(log_er_) << "Generated vote " << vote->getHash().abridged()
+                   << " is not unique. Err: " << is_unique_vote.second;
       assert(false);
-    }
-
-    db_->saveVerifiedVote(vote);
-    vote_mgr_->addVerifiedVote(vote);
-    if (auto net = network_.lock()) {
-      net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes({std::move(vote)});
     }
   }
 

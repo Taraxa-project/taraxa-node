@@ -212,9 +212,9 @@ class VoteManager {
 
   // reward votes
   /**
-   * @return current rewards votes pbft block hash
+   * @return current rewards votes <pbft block hash, pbft block period>
    */
-  blk_hash_t getCurrentRewardsVotesBlock() const;
+  std::pair<blk_hash_t, uint64_t> getCurrentRewardsVotesBlock() const;
 
   /**
    * @brief Add last period cert vote to reward_votes_ after the cert vote voted block finalized
@@ -275,25 +275,6 @@ class VoteManager {
    */
   void sendRewardVotes(const blk_hash_t& pbft_block_hash);
 
-  /**
-   * @brief Verify reward vote
-   *
-   * @param cert vote voted to last period PBFT block
-   *
-   * @return true if pass vote verification
-   */
-  bool verifyRewardVote(const std::shared_ptr<Vote>& vote);
-
-  /**
-   * @brief Verify reward vote
-   *
-   * @param cert vote voted to last period PBFT block
-   * @param period period
-   *
-   * @return true if pass vote verification
-   */
-  bool verifyRewardVoteForPeriod(const std::shared_ptr<Vote>& vote, uint64_t period);
-
  private:
   /**
    * @brief Retrieve all verified votes from DB to the verified votes map. And broadcast all next voting type votes to
@@ -332,10 +313,9 @@ class VoteManager {
   // TODO[1907]: end of VerifiedVotes class
 
   // TODO[1907]: this will be part of RewardVotes class
-  blk_hash_t reward_votes_pbft_block_hash_;
+  std::pair<blk_hash_t, uint64_t /* period */> reward_votes_pbft_block_;
   uint64_t last_pbft_block_cert_round_;
   std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> reward_votes_;
-  std::unordered_map<addr_t, vote_hash_t> reward_votes_unique_authors_;
   mutable std::shared_mutex reward_votes_mutex_;
   // TODO[1907]: end of RewardVotes class
 
