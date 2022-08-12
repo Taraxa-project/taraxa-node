@@ -37,7 +37,7 @@ enum PbftMgrPreviousRoundStatus : uint8_t {
   PreviousRoundDposTotalVotesCount
 };
 
-enum PbftMgrRoundStep : uint8_t { PbftRound = 0, PbftStep };
+enum PbftMgrRoundStep : uint8_t { PbftRound = 0, PreviousRoundPbftPeriod, PbftStep };
 
 enum PbftMgrStatus : uint8_t {
   ExecutedBlock = 0,
@@ -46,7 +46,7 @@ enum PbftMgrStatus : uint8_t {
   NextVotedNullBlockHash,
 };
 
-enum PbftMgrVotedValue : uint8_t { OwnStartingValueInRound = 0, SoftVotedBlockHashInRound, LastCertVotedValue };
+enum PbftMgrVotedValue : uint8_t { OwnStartingValueInRound = 0, SoftVotedBlockInRound, CertVotedBlockInRound };
 
 class DbException : public std::exception {
  public:
@@ -243,9 +243,11 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void savePbftMgrStatus(PbftMgrStatus field, bool const& value);
   void addPbftMgrStatusToBatch(PbftMgrStatus field, bool const& value, Batch& write_batch);
 
-  std::shared_ptr<blk_hash_t> getPbftMgrVotedValue(PbftMgrVotedValue field);
-  void savePbftMgrVotedValue(PbftMgrVotedValue field, blk_hash_t const& value);
-  void addPbftMgrVotedValueToBatch(PbftMgrVotedValue field, blk_hash_t const& value, Batch& write_batch);
+  void savePbftMgrVotedValue(PbftMgrVotedValue field, const std::pair<blk_hash_t, uint64_t>& value);
+  void addPbftMgrVotedValueToBatch(PbftMgrVotedValue field, const std::pair<blk_hash_t, uint64_t>& value,
+                                   Batch& write_batch);
+  void removePbftMgrVotedValueToBatch(PbftMgrVotedValue field, Batch& write_batch);
+  std::optional<std::pair<blk_hash_t, uint64_t>> getPbftMgrVotedValue(PbftMgrVotedValue field);
 
   std::shared_ptr<PbftBlock> getPbftCertVotedBlock(blk_hash_t const& block_hash);
   void savePbftCertVotedBlock(PbftBlock const& pbft_block);

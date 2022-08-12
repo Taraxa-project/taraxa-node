@@ -13,7 +13,7 @@ ExtVotesPacketHandler::ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_s
                                              std::shared_ptr<VoteManager> vote_mgr, const uint32_t dpos_delay,
                                              const addr_t &node_addr, const std::string &log_channel_name)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
-      kDposDelay_(dpos_delay),
+      kDposDelay(dpos_delay),
       pbft_mgr_(std::move(pbft_mgr)),
       pbft_chain_(std::move(pbft_chain)),
       vote_mgr_(std::move(vote_mgr)) {}
@@ -25,7 +25,7 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
   // Old vote or vote from too far in the future, can be dropped
   // TODO[1880]: should be vote->getPeriod() <= current_pbft_period - if <=, some tests are failing due to missing
   // reward votes -> whole rewards votes gossiping need to be checked...
-  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() > current_pbft_period + kDposDelay_) {
+  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() > current_pbft_period + kDposDelay) {
     std::stringstream err;
     err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
     return {false, err.str()};
@@ -52,7 +52,7 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateNextSyncVote(const s
   const auto current_pbft_round = pbft_mgr_->getPbftRound();
 
   // Old vote or vote from too far in the future, can be dropped
-  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() > current_pbft_period + kDposDelay_) {
+  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() > current_pbft_period + kDposDelay) {
     std::stringstream err;
     err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
     return {false, err.str()};
@@ -176,6 +176,8 @@ void ExtVotesPacketHandler::sendPbftVotes(const dev::p2p::NodeID &peer_id, std::
     dev::RLPStream s(count);
     for (auto i = index; i < index + count; i++) {
       const auto &v = votes[i];
+      // Withou sending also vote weight,
+      // check_committeeSize_less_or_equal_to_activePlayers & check_committeeSize_greater_than_activePlayers tests fail
       s.appendRaw(v->rlp(true, true));
       LOG(log_dg_) << "Send out vote " << v->getHash() << " to peer " << peer_id;
     }

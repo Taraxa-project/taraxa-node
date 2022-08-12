@@ -17,7 +17,7 @@ enum PbftVoteTypes : uint8_t { propose_vote_type = 0, soft_vote_type, cert_vote_
 /**
  * @brief VrfPbftMsg struct uses vote type, PBFT round, and PBFT step to generate a message for doing VRF sortition.
  */
-class VrfPbftMsg {
+struct VrfPbftMsg {
  public:
   VrfPbftMsg() = default;
   VrfPbftMsg(PbftVoteTypes type, uint64_t period, uint64_t round, size_t step);

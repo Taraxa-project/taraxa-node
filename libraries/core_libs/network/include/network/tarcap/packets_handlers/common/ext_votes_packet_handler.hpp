@@ -81,8 +81,8 @@ class ExtVotesPacketHandler : public PacketHandler {
 
  protected:
   // Dpos contract delay - it is used to validate pbft period in votes -> does not make sense to accept vote
-  // with vote period > current pbft period + kDposDelay_ as the valiation will fail
-  const uint32_t kDposDelay_;
+  // with vote period > current pbft period + kDposDelay as the valiation will fail
+  const uint32_t kDposDelay;
 
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;

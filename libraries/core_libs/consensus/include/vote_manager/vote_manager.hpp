@@ -90,8 +90,6 @@ class NextVotesManager {
  private:
   using UniqueLock = boost::unique_lock<boost::shared_mutex>;
   using SharedLock = boost::shared_lock<boost::shared_mutex>;
-  using UpgradableLock = boost::upgrade_lock<boost::shared_mutex>;
-  using UpgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   /**
    * @brief Assertion happens when there is more than 1 voting value for a non-NULL block hash
@@ -117,6 +115,7 @@ class NextVotesManager {
   LOG_OBJECTS_DEFINE
 };
 
+// TODO[1907]: refactor vote manager
 /**
  * @brief VoteManager class manage votes for PBFT consensus
  */
@@ -170,7 +169,7 @@ class VoteManager {
    * @brief Get all verified votes
    * @return all verified votes
    */
-  std::vector<std::shared_ptr<Vote>> getVerifiedVotes();
+  std::vector<std::shared_ptr<Vote>> getVerifiedVotes() const;
 
   /**
    * @brief Get the total size of all verified votes
@@ -187,26 +186,29 @@ class VoteManager {
   /**
    * @brief Get all verified votes in proposal vote type for the current PBFT round
    * @param pbft_round current PBFT round
+   * @param previous_round_period previous PBFT round period
    * @return all verified votes in proposal vote type for the current PBFT round
    */
-  std::vector<std::shared_ptr<Vote>> getProposalVotes(uint64_t pbft_round);
+  std::vector<std::shared_ptr<Vote>> getProposalVotes(uint64_t pbft_round, uint64_t previous_round_period) const;
 
   /**
    * @brief Get a bunch of votes that vote on the same voting value in the specific PBFT round and step, the total votes
    * weights must be greater or equal to PBFT 2t+1
    * @param round PBFT round
+   * @param previous_round_period previous PBFT round period
    * @param step PBFT step
    * @param two_t_plus_one PBFT 2t+1 is 2/3 of PBFT sortition threshold and plus 1
    * @return VotesBundle a bunch of votes that vote on the same voting value in the specific PBFT round and step
    */
-  std::optional<VotesBundle> getVotesBundleByRoundAndStep(uint64_t round, size_t step, size_t two_t_plus_one);
+  std::optional<VotesBundle> getVotesBundle(uint64_t round, uint64_t previous_round_period, size_t step,
+                                            size_t two_t_plus_one) const;
 
   /**
-   * @brief Check if there are enough next voting type votes to set PBFT to a forward round
+   * @brief Check if there are enough next voting type votes to set PBFT to a forward round & period
    * @param two_t_plus_one PBFT 2t+1 is 2/3 of PBFT sortition threshold and plus 1
-   * @return a new PBFT round number if there are enough next voting type votes. Otherwise return 0
+   * @return pair<new PBFT round, new PBFR period> if there is enough next votes. Otherwise return nullopt
    */
-  uint64_t roundDeterminedFromVotes(size_t two_t_plus_one);
+  std::optional<std::pair<uint64_t, uint64_t>> determineRoundAndPeriodFromVotes(size_t two_t_plus_one);
 
   // reward votes
   /**
@@ -226,7 +228,7 @@ class VoteManager {
    * @param vote_hash
    * @return true if vote_hash is already in rewards_votes, otheriwse false
    */
-  bool isInRewardsVotes(const vote_hash_t& vote_hash);
+  bool isInRewardsVotes(const vote_hash_t& vote_hash) const;
 
   /**
    * @brief Check reward_votes_ if including all reward votes for the PBFT block
@@ -301,19 +303,6 @@ class VoteManager {
 
   using UniqueLock = boost::unique_lock<boost::shared_mutex>;
   using SharedLock = boost::shared_lock<boost::shared_mutex>;
-  using UpgradableLock = boost::upgrade_lock<boost::shared_mutex>;
-  using UpgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
-
-  // <PBFT round, <PBFT step, <voted value, pair<voted weight, <vote hash, vote>>>>
-  std::map<
-      uint64_t,
-      std::map<size_t, std::unordered_map<blk_hash_t,
-                                          std::pair<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>>>>
-      verified_votes_;
-
-  std::unique_ptr<std::thread> daemon_;
-
-  mutable boost::shared_mutex verified_votes_access_;
 
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<PbftChain> pbft_chain_;
@@ -321,11 +310,18 @@ class VoteManager {
   std::shared_ptr<NextVotesManager> next_votes_manager_;
   std::weak_ptr<Network> network_;
 
-  blk_hash_t reward_votes_pbft_block_hash_;
-  uint64_t last_pbft_block_cert_round_;
-  std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> reward_votes_;
-  std::unordered_map<addr_t, vote_hash_t> reward_votes_unique_authors_;
-  mutable std::shared_mutex reward_votes_mutex_;
+  std::unique_ptr<std::thread> daemon_;
+
+  // TODO[1907]: this will be part of VerifiedVotes class
+  // <PBFT round, <PBFT period <PBFT step, <voted value, pair<voted weight, <vote hash, vote>>>>>
+  std::map<uint64_t,
+           std::unordered_map<
+               uint64_t,
+               std::map<size_t,
+                        std::unordered_map<
+                            blk_hash_t, std::pair<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>>>>>
+      verified_votes_;
+  mutable boost::shared_mutex verified_votes_access_;
 
   // <PBFT round, <PBFT step, <voter address, pair<vote 1, vote 2>>>>
   // For next votes we enable 2 votes per round & step, one of which must be vote for NULL_BLOCK_HASH
@@ -333,6 +329,15 @@ class VoteManager {
                          size_t, std::unordered_map<addr_t, std::pair<std::shared_ptr<Vote>, std::shared_ptr<Vote>>>>>
       voters_unique_votes_;
   mutable std::shared_mutex voters_unique_votes_mutex_;
+  // TODO[1907]: end of VerifiedVotes class
+
+  // TODO[1907]: this will be part of RewardVotes class
+  blk_hash_t reward_votes_pbft_block_hash_;
+  uint64_t last_pbft_block_cert_round_;
+  std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> reward_votes_;
+  std::unordered_map<addr_t, vote_hash_t> reward_votes_unique_authors_;
+  mutable std::shared_mutex reward_votes_mutex_;
+  // TODO[1907]: end of RewardVotes class
 
   LOG_OBJECTS_DEFINE
 };

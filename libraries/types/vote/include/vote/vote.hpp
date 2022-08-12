@@ -188,6 +188,7 @@ class Vote {
  */
 struct VotesBundle {
   blk_hash_t voted_block_hash;
+  uint64_t votes_period;
   std::vector<std::shared_ptr<Vote>> votes;  // Greater than 2t+1 votes
 
   VotesBundle() : voted_block_hash(blk_hash_t(0)) {}

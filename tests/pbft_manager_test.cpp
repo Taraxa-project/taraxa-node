@@ -24,7 +24,7 @@ std::pair<size_t, size_t> calculate_2tPuls1_threshold(size_t committee_size, siz
 }
 
 void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_size) {
-  auto node_cfgs = make_node_cfgs<5>(5, 5);
+  auto node_cfgs = make_node_cfgs<5>(5);
   auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
   for (auto &cfg : node_cfgs) {
     cfg.chain.pbft.committee_size = committee_size;
@@ -37,6 +37,23 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   const auto gas_price = val_t(0);
   auto nonce = 1;  // fixme: the following nonce approach is not correct anyway
   uint64_t trxs_count = 0;
+
+  {
+    const auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos->eligibility_balance_threshold;
+    for (size_t i(1); i < node_cfgs.size(); ++i) {
+      std::cout << "Delegating stake of " << min_stake_to_vote << " to node " << i << std::endl;
+      const auto trx = make_dpos_trx(node_cfgs[i], min_stake_to_vote, nonce++, gas_price);
+      nodes[0]->getTransactionManager()->insertTransaction(trx);
+      trxs_count++;
+    }
+    EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
+      for (auto &node : nodes) {
+        if (ctx.fail_if(node->getDB()->getNumTransactionExecuted() != trxs_count)) {
+          return;
+        }
+      }
+    });
+  }
 
   std::vector<u256> balances;
   for (size_t i(0); i < nodes.size(); ++i) {
@@ -333,13 +350,13 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
 
   std::cout << "After some time, terminate voting on the missing proposed block " << pbft_block_hash << std::endl;
   // After some rounds, terminate the bogus PBFT block value and propose PBFT block with NULL anchor
-  EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
+  EXPECT_HAPPENS({20s, 50ms}, [&](auto &ctx) {
     auto proposal_value = pbft_block_hash;
     auto votes = vote_mgr->getVerifiedVotes();
 
     for (auto const &v : votes) {
       if (propose_vote_type == v->getType() && v->getBlockHash() != pbft_block_hash) {
-        // PBFT has terminated on the missing PBFT block value and propsosed a new block value
+        // PBFT has terminated on the missing PBFT block value and proposed a new block value
         proposal_value = v->getBlockHash();
         break;
       }
@@ -362,7 +379,7 @@ TEST_F(PbftManagerTest, full_node_lambda_input_test) {
 }
 
 TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
-  auto node_cfgs = make_node_cfgs<5>(5, 5);
+  auto node_cfgs = make_node_cfgs<5>(5);
   auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
   for (auto &cfg : node_cfgs) {
     cfg.chain.pbft.committee_size = 100;
@@ -375,7 +392,24 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
   const auto gas_price = val_t(0);
   auto nonce = 1;  // fixme: the following nonce approach is not correct anyway
   uint64_t trxs_count = 0;
-  auto expected_eligible_total_vote = 5;
+  auto expected_eligible_total_vote = 1;
+  {
+    const auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos->eligibility_balance_threshold;
+    for (size_t i(1); i < node_cfgs.size(); ++i) {
+      std::cout << "Delegating stake of " << min_stake_to_vote << " to node " << i << std::endl;
+      const auto trx = make_dpos_trx(node_cfgs[i], min_stake_to_vote, nonce++, gas_price);
+      nodes[0]->getTransactionManager()->insertTransaction(trx);
+      trxs_count++;
+      expected_eligible_total_vote++;
+    }
+    EXPECT_HAPPENS({120s, 1s}, [&](auto &ctx) {
+      for (auto &node : nodes) {
+        if (ctx.fail_if(node->getDB()->getNumTransactionExecuted() != trxs_count)) {
+          return;
+        }
+      }
+    });
+  }
 
   std::vector<u256> balances;
   for (size_t i(0); i < nodes.size(); ++i) {

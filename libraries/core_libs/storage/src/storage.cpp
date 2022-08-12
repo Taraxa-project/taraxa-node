@@ -689,20 +689,35 @@ void DbStorage::addPbftMgrStatusToBatch(PbftMgrStatus field, bool const& value, 
   insert(write_batch, DbStorage::Columns::pbft_mgr_status, toSlice(field), toSlice(value));
 }
 
-std::shared_ptr<blk_hash_t> DbStorage::getPbftMgrVotedValue(PbftMgrVotedValue field) {
-  auto hash = asBytes(lookup(toSlice(field), Columns::pbft_mgr_voted_value));
-  if (hash.size() > 0) {
-    return std::make_shared<blk_hash_t>(hash);
+void DbStorage::savePbftMgrVotedValue(PbftMgrVotedValue field, const std::pair<blk_hash_t, uint64_t>& value) {
+  dev::RLPStream s(2);
+  s.append(value.first);
+  s.append(value.second);
+  insert(Columns::pbft_mgr_voted_value, toSlice(field), toSlice(s.out()));
+}
+
+void DbStorage::addPbftMgrVotedValueToBatch(PbftMgrVotedValue field, const std::pair<blk_hash_t, uint64_t>& value,
+                                            Batch& write_batch) {
+  dev::RLPStream s(2);
+  s.append(value.first);
+  s.append(value.second);
+
+  insert(write_batch, Columns::pbft_mgr_voted_value, toSlice(field), toSlice(s.out()));
+}
+
+void DbStorage::removePbftMgrVotedValueToBatch(PbftMgrVotedValue field, Batch& write_batch) {
+  remove(write_batch, Columns::dag_blocks, toSlice(field));
+}
+std::optional<std::pair<blk_hash_t, uint64_t>> DbStorage::getPbftMgrVotedValue(PbftMgrVotedValue field) {
+  auto value = asBytes(lookup(toSlice(field), Columns::pbft_mgr_voted_value));
+  if (value.empty()) {
+    return {};
   }
-  return nullptr;
-}
 
-void DbStorage::savePbftMgrVotedValue(PbftMgrVotedValue field, blk_hash_t const& value) {
-  insert(Columns::pbft_mgr_voted_value, toSlice(field), toSlice(value.asBytes()));
-}
+  auto value_rlp = dev::RLP(value);
+  assert(value_rlp.itemCount() == 2);
 
-void DbStorage::addPbftMgrVotedValueToBatch(PbftMgrVotedValue field, blk_hash_t const& value, Batch& write_batch) {
-  insert(write_batch, Columns::pbft_mgr_voted_value, toSlice(field), toSlice(value.asBytes()));
+  return std::make_pair(value_rlp[0].toHash<blk_hash_t>(), value_rlp[1].toInt<uint64_t>());
 }
 
 std::shared_ptr<PbftBlock> DbStorage::getPbftCertVotedBlock(blk_hash_t const& block_hash) {
