@@ -496,7 +496,7 @@ bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
   }
 
   {
-    // This lock protects the reward_votes_pbft_block_hash_, reward_votes_pbft_block_round_ and reward_votes_
+    // This lock protects the reward_votes_pbft_block_hash_, last_pbft_block_cert_round_ and reward_votes_
     std::shared_lock lock(reward_votes_mutex_);
 
     if (reward_votes_pbft_block_hash_ != voted_block_hash) {
@@ -506,10 +506,10 @@ bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
       return false;
     }
 
-    if (reward_votes_pbft_block_round_ != vote_round) {
+    if (last_pbft_block_cert_round_ != vote_round) {
       // This can happen if some nodes cert voted previous block in different rounds
       LOG(log_dg_) << "The reward vote " << vote_hash << " round " << vote_round << " is different than "
-                   << reward_votes_pbft_block_round_;
+                   << last_pbft_block_cert_round_;
     }
 
     if (reward_votes_.contains(vote_hash)) {
@@ -528,7 +528,11 @@ bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
     reward_votes_.insert({vote_hash, vote});
   }
 
-  db_->saveLastBlockCertVote(vote);
+  // If reward vote is from another round it should not be added to last block cert votes which should all be the same
+  // round
+  if (last_pbft_block_cert_round_ == vote_round) {
+    db_->saveLastBlockCertVote(vote);
+  }
   LOG(log_nf_) << "add reward vote " << vote_hash;
 
   return true;
@@ -614,7 +618,7 @@ void VoteManager::replaceRewardVotes(std::vector<std::shared_ptr<Vote>>&& cert_v
   // It is possible that incoming reward votes might have another round because it is possible that same block was cert
   // voted in different rounds on different nodes but this is a reference round for any pbft block this node might
   // propose
-  reward_votes_pbft_block_round_ = cert_votes[0]->getRound();
+  last_pbft_block_cert_round_ = cert_votes[0]->getRound();
   for (auto& v : cert_votes) {
     assert(v->getWeight());
     reward_votes_.insert({v->getHash(), std::move(v)});
@@ -654,7 +658,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotesWithLastBlockRound
 
   std::shared_lock lock(reward_votes_mutex_);
   for (const auto& v : reward_votes_) {
-    if (v.second->getRound() == reward_votes_pbft_block_round_) {
+    if (v.second->getRound() == last_pbft_block_cert_round_) {
       reward_votes.push_back(v.second);
     }
   }
