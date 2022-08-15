@@ -599,7 +599,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   period_data2.dag_blocks.push_back(blk2);
   period_data2.transactions.push_back(g_signed_trx_samples[2]);
   period_data2.transactions.push_back(g_signed_trx_samples[3]);
-  db1->addLastBlockCertVotesToBatch(votes_for_pbft_blk2, batch);
+  db1->addLastBlockCertVotesToBatch(votes_for_pbft_blk2, {}, batch);
 
   db1->savePeriodData(period_data2, batch);
 
@@ -756,7 +756,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   period_data2.transactions.push_back(g_signed_trx_samples[3]);
 
   db1->savePeriodData(period_data2, batch);
-  db1->addLastBlockCertVotesToBatch(votes_for_pbft_blk1, batch);
+  db1->addLastBlockCertVotesToBatch(votes_for_pbft_blk1, {}, batch);
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
   // Update PBFT chain head block
