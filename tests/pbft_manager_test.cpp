@@ -28,6 +28,11 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
   for (auto &cfg : node_cfgs) {
     cfg.chain.pbft.committee_size = committee_size;
+    // Set delegation delay to zero because:
+    // - let's say delegation_delay is 5 blocks, delegation txs are included in block 10
+    // - if we check number of eligible voters in block 13, delegation txs are not applied yet as we would check block 8
+    // If delegation delay is set to zero, this should not happen
+    cfg.chain.final_chain.state.dpos->delegation_delay = 0;
   }
   auto nodes = launch_nodes(node_cfgs);
 
@@ -41,8 +46,9 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   {
     const auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos->eligibility_balance_threshold;
     for (size_t i(1); i < node_cfgs.size(); ++i) {
-      std::cout << "Delegating stake of " << min_stake_to_vote << " to node " << i << std::endl;
       const auto trx = make_dpos_trx(node_cfgs[i], min_stake_to_vote, nonce++, gas_price);
+      std::cout << "Delegating stake of " << min_stake_to_vote << " to node " << i << ", tx hash: " << trx->getHash()
+                << std::endl;
       nodes[0]->getTransactionManager()->insertTransaction(trx);
       trxs_count++;
     }

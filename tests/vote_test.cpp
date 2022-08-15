@@ -198,7 +198,7 @@ TEST_F(VoteTest, transfer_vote) {
   // generate a vote far ahead (never exist in PBFT manager)
   blk_hash_t propose_block_hash(11);
   PbftVoteTypes type = next_vote_type;
-  uint64_t period = 0;
+  uint64_t period = 1;
   uint64_t round = 1;
   size_t step = 1;
   auto vote = pbft_mgr1->generateVote(propose_block_hash, type, period, round, step);
@@ -231,7 +231,7 @@ TEST_F(VoteTest, vote_broadcast) {
   // generate a vote far ahead (never exist in PBFT manager)
   blk_hash_t propose_block_hash(111);
   PbftVoteTypes type = next_vote_type;
-  uint64_t period = 0;
+  uint64_t period = 1;
   size_t step = 1;
   auto vote = pbft_mgr1->generateVote(propose_block_hash, type, period, round, step);
 
