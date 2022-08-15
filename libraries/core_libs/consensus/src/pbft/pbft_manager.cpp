@@ -1249,9 +1249,10 @@ std::pair<bool, std::string> PbftManager::validateVote(const std::shared_ptr<Vot
 
     // TODO[1896]: final_chain_->dpos... ret values should be cached as it is heavily used and most of the time it
     // returns the same value!
-    const uint64_t voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(vote_period, vote->getVoterAddr());
-    const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(vote_period);
-    const uint64_t pbft_sortition_threshold = getPbftSortitionThreshold(vote->getType(), vote_period);
+    const uint64_t voter_dpos_votes_count =
+        final_chain_->dpos_eligible_vote_count(vote_period - 1, vote->getVoterAddr());
+    const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(vote_period - 1);
+    const uint64_t pbft_sortition_threshold = getPbftSortitionThreshold(vote->getType(), vote_period - 1);
 
     vote->validate(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold, *pk);
   } catch (state_api::ErrFutureBlock &e) {
@@ -1301,11 +1302,6 @@ uint64_t PbftManager::getPbftSortitionThreshold(PbftVoteTypes vote_type, uint64_
 
 size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t period,
                                uint64_t round, size_t step) {
-  if (!weighted_votes_count_) {
-    // No delegation
-    return 0;
-  }
-
   // chain size must be => vote_period, it should be == for propose/soft/cert votes but it can be > for next votes
   // as chain size might be incremented if block was certified during certify step
   if (pbft_chain_->getPbftChainSize() < period - 1) {
@@ -1322,9 +1318,9 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
   try {
     // TODO[1896]: final_chain_->dpos... ret values should be cached as it is heavily used and most of the time it
     // returns the same value!
-    voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(period, node_addr_);
-    total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(period);
-    pbft_sortition_threshold = getPbftSortitionThreshold(vote_type, period);
+    voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(period - 1, node_addr_);
+    total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(period - 1);
+    pbft_sortition_threshold = getPbftSortitionThreshold(vote_type, period - 1);
 
   } catch (state_api::ErrFutureBlock &e) {
     LOG(log_er_) << "Unable to place vote for round: " << round << ", period: " << period << ", step: " << step
@@ -1332,6 +1328,11 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
                  << "Period  is too far ahead of actual finalized pbft chain size ("
                  << final_chain_->last_block_number() << "). Err msg: " << e.what();
 
+    return 0;
+  }
+
+  if (!voter_dpos_votes_count) {
+    // No delegation
     return 0;
   }
 

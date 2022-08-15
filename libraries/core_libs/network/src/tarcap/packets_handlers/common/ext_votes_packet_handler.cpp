@@ -25,7 +25,7 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
   // Old vote or vote from too far in the future, can be dropped
   // TODO[1880]: should be vote->getPeriod() <= current_pbft_period - if <=, some tests are failing due to missing
   // reward votes -> whole rewards votes gossiping need to be checked...
-  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() > current_pbft_period + kDposDelay) {
+  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() - 1 > current_pbft_period + kDposDelay) {
     std::stringstream err;
     err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
     return {false, err.str()};
@@ -52,7 +52,7 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateNextSyncVote(const s
   const auto current_pbft_round = pbft_mgr_->getPbftRound();
 
   // Old vote or vote from too far in the future, can be dropped
-  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() > current_pbft_period + kDposDelay) {
+  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() - 1 > current_pbft_period + kDposDelay) {
     std::stringstream err;
     err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
     return {false, err.str()};
