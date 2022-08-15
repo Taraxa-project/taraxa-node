@@ -83,7 +83,7 @@ void PacketsBlockingMask::setDagBlockLevelBeingProcessed(const PacketData& packe
   // are allowed
   if (const auto smallest_processing_dag_level = getSmallestDagLevelBeingProcessed();
       smallest_processing_dag_level.has_value()) {
-    assert(dag_level <= smallest_processing_dag_level.value());
+    assert(dag_level <= *smallest_processing_dag_level);
   }
 
   auto& processing_dag_level = processing_dag_levels_[dag_level];
@@ -129,7 +129,7 @@ bool PacketsBlockingMask::isDagBlockPacketBlockedByLevel(const PacketData& packe
   }
 
   const auto dag_level = DagBlock::extract_dag_level_from_rlp(packet_data.rlp_);
-  if (dag_level > smallest_processing_dag_level.value()) {
+  if (dag_level > *smallest_processing_dag_level) {
     return true;
   }
 

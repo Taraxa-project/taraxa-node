@@ -155,7 +155,7 @@ void ExtVotesPacketHandler::sendPbftVotes(const dev::p2p::NodeID &peer_id, std::
       const auto &v = votes[i];
       // Withou sending also vote weight,
       // check_committeeSize_less_or_equal_to_activePlayers & check_committeeSize_greater_than_activePlayers tests fail
-      s.appendRaw(v->rlp(true, true));
+      s.appendRaw(v->rlp(true, false));
       LOG(log_dg_) << "Send out vote " << v->getHash() << " to peer " << peer_id;
     }
 

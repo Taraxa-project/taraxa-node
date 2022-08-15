@@ -353,7 +353,7 @@ bool PbftManager::resetRound_() {
     return false;
   }
 
-  auto [determined_round, determined_previous_round_period] = determined_round_and_period.value();
+  auto [determined_round, determined_previous_round_period] = *determined_round_and_period;
 
   // current round
   auto round = getPbftRound();
@@ -526,7 +526,7 @@ void PbftManager::initialState() {
   auto own_starting_value = db_->getPbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound);
   if (own_starting_value.has_value()) {
     // From DB
-    own_starting_value_for_round_ = own_starting_value.value();
+    own_starting_value_for_round_ = *own_starting_value;
   } else {
     // Default value
     assert(previous_round_period == 1);
@@ -556,7 +556,7 @@ void PbftManager::initialState() {
 
   if (auto cert_voted_block = db_->getPbftMgrVotedValue(PbftMgrVotedValue::CertVotedBlockInRound);
       cert_voted_block.has_value()) {
-    cert_voted_block_for_round_ = cert_voted_block.value();
+    cert_voted_block_for_round_ = *cert_voted_block;
     LOG(log_nf_) << "Initialize last cert voted value " << cert_voted_block_for_round_->first;
   }
 
@@ -758,8 +758,7 @@ std::optional<std::pair<blk_hash_t, uint64_t>> PbftManager::getSoftVotedBlockFor
     soft_voted_block_for_round_ = {std::make_pair(voted_block_hash_with_soft_votes->voted_block_hash,
                                                   voted_block_hash_with_soft_votes->votes_period)};
 
-    db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::SoftVotedBlockInRound, soft_voted_block_for_round_.value(),
-                                     batch);
+    db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::SoftVotedBlockInRound, *soft_voted_block_for_round_, batch);
     db_->addSoftVotesToBatch(round, voted_block_hash_with_soft_votes->votes, batch);
     db_->commitWriteBatch(batch);
 
@@ -895,7 +894,7 @@ void PbftManager::identifyBlock_() {
   if (giveUpNextVotedBlock_()) {
     // Identity leader
     if (auto leader_block = identifyLeaderBlock_(round, previous_round_period); leader_block.has_value()) {
-      auto [leader_block_hash, leader_block_period] = leader_block.value();
+      auto [leader_block_hash, leader_block_period] = *leader_block;
       own_starting_value_for_round_ = {leader_block_hash, leader_block_period};
       db_->savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, own_starting_value_for_round_);
       LOG(log_dg_) << "Leader block identified " << leader_block_hash << ", round " << round << ", period "
@@ -965,7 +964,7 @@ void PbftManager::certifyBlock_() {
                  << previous_round_period;
     return;
   }
-  const auto [current_round_soft_voted_block, current_round_soft_votes_period] = soft_voted_block.value();
+  const auto [current_round_soft_voted_block, current_round_soft_votes_period] = *soft_voted_block;
 
   if (!compareBlocksAndRewardVotes_(current_round_soft_voted_block)) {
     LOG(log_dg_) << "Incomplete or invalid soft voted block " << current_round_soft_voted_block << ", round " << round
@@ -1016,8 +1015,7 @@ void PbftManager::certifyBlock_() {
     cert_voted_block_for_round_ = {cert_voted_block->getBlockHash(), cert_voted_block->getPeriod()};
 
     auto batch = db_->createWriteBatch();
-    db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::CertVotedBlockInRound, cert_voted_block_for_round_.value(),
-                                     batch);
+    db_->addPbftMgrVotedValueToBatch(PbftMgrVotedValue::CertVotedBlockInRound, *cert_voted_block_for_round_, batch);
     db_->addPbftCertVotedBlockToBatch(*cert_voted_block, batch);
     db_->commitWriteBatch(batch);
 
@@ -1132,7 +1130,7 @@ void PbftManager::secondFinish_() {
   bool giveUpSoftVotedBlockInSecondFinish = false;
 
   if (const auto soft_voted_block = getSoftVotedBlockForThisRound_(); soft_voted_block.has_value()) {
-    const auto [current_round_soft_voted_block, current_round_soft_votes_period] = soft_voted_block.value();
+    const auto [current_round_soft_voted_block, current_round_soft_votes_period] = *soft_voted_block;
 
     auto soft_voted_block_votes = vote_mgr_->getVotesBundle(round, current_round_soft_votes_period, 2, TWO_T_PLUS_ONE);
     if (soft_voted_block_votes.has_value()) {
@@ -1526,7 +1524,7 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
       assert(false);
     }
 
-    dag_block_hash = closest_anchor.value();
+    dag_block_hash = *closest_anchor;
     dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash, propose_period);
   }
   if (trx_hashes.empty()) {
@@ -1839,7 +1837,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain() {
     while (periodDataQueueSize() > 0) {
       auto period_data_opt = processPeriodData();
       if (!period_data_opt) continue;
-      auto period_data = std::move(period_data_opt.value());
+      auto period_data = std::move(*period_data_opt);
       const auto period = period_data.first.pbft_blk->getPeriod();
       auto pbft_block_hash = period_data.first.pbft_blk->getBlockHash();
       LOG(log_nf_) << "Pick pbft block " << pbft_block_hash << " from synced queue in round " << round;

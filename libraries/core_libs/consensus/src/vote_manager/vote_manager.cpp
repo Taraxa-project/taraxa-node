@@ -94,7 +94,7 @@ uint64_t VoteManager::getVerifiedVotesSize() const {
 bool VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
   assert(vote->getWeight().has_value());
   const auto hash = vote->getHash();
-  const auto weight = vote->getWeight().value();
+  const auto weight = *vote->getWeight();
   if (!weight) {
     LOG(log_er_) << "Unable to add vote " << hash << " into the verified queue. Invalid vote weight";
     return false;
@@ -428,7 +428,7 @@ std::optional<VotesBundle> VoteManager::getVotesBundle(uint64_t round, uint64_t 
       for (const auto& v : voted_value.second.second) {
         assert(v.second->getWeight().has_value());
         votes_bundle.votes.emplace_back(v.second);
-        count += v.second->getWeight().value();
+        count += *v.second->getWeight();
 
         // For certify votes - collect all votes, for all other vote types, collect just 2t+1 votes
         if (step != certify_state && count >= two_t_plus_one) {
