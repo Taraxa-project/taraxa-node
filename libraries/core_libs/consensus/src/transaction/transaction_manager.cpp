@@ -55,7 +55,8 @@ std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
   }
 
   if (trx->getChainID() != kConf.chain_id) {
-    return {TransactionStatus::Invalid, "chain_id mismatch"};
+    return {TransactionStatus::Invalid,
+            "chain_id mismatch" + std::to_string(trx->getChainID()) + " " + std::to_string(kConf.chain_id)};
   }
 
   // Ensure the transaction doesn't exceed the current block limit gas.

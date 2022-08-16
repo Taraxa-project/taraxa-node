@@ -250,6 +250,7 @@ commands:
               helm upgrade -i pr-<< parameters.pr-name >> charts/taraxa-node/ --namespace blockchain-prnet -f charts/taraxa-node/values.yaml -f charts/taraxa-node/prnet.values.yaml \
                 --set image.repository=gcr.io/jovial-meridian-249123/taraxa-node \
                 --set image.tag=${PR_TAG} \
+                --set explorer.configEnvs.faucetEnabled="true" \
                 --set explorer.configEnvs.rpcHttpProvider="http://pr-<< parameters.pr-name >>-taraxa-node-1.pr-<< parameters.pr-name >>-taraxa-node:7777" \
                 --set explorer.configEnvs.rpcWsProvider="http://pr-<< parameters.pr-name >>-taraxa-node-1.pr-<< parameters.pr-name >>-taraxa-node:8777" \
                 --set explorer.configEnvs.wsProvider="wss://explorer-ws-pr-<< parameters.pr-name >>.prnet.taraxa.io" \

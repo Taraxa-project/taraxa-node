@@ -389,7 +389,7 @@ class VoteManager {
   std::weak_ptr<Network> network_;
 
   blk_hash_t reward_votes_pbft_block_hash_;
-  uint64_t reward_votes_pbft_block_round_;
+  uint64_t last_pbft_block_cert_round_;
   std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> reward_votes_;
   mutable std::shared_mutex reward_votes_mutex_;
 
