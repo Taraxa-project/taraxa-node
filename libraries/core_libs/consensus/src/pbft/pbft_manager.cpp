@@ -685,8 +685,7 @@ bool PbftManager::stateOperations_() {
   auto [round, previous_round_period] = getPbftRoundAndPeriod();
   LOG(log_tr_) << "PBFT current round(r): " << round << ", r-1 period: " << previous_round_period << ", step " << step_;
 
-  static bool is_new_round = false;
-  if (is_new_round) {
+  if (!new_round_in_sync_) {
     // Checks if node is in sync with determined pbft period from votes, if not - do not allow node to place votes
     // This check is done only at the beginning of new round by purpose as chain size might change after cert vote step
     // when new cert voted block is pushed into the chain
@@ -700,7 +699,7 @@ bool PbftManager::stateOperations_() {
     }
 
     // Node is in sync
-    is_new_round = false;
+    new_round_in_sync_ = false;
   }
 
   // Remove old votes
@@ -734,7 +733,7 @@ bool PbftManager::stateOperations_() {
   }
 
   if (resetRound_()) {
-    is_new_round = true;
+    new_round_in_sync_ = false;
     return true;
   }
 

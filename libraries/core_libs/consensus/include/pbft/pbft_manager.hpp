@@ -618,6 +618,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   std::default_random_engine random_engine_{std::random_device{}()};
 
+  // Flag that says if node is in sync after it enters new round
+  bool new_round_in_sync_ = false;
+
   const size_t COMMITTEE_SIZE;
   const size_t NUMBER_OF_PROPOSERS;
   const size_t DAG_BLOCKS_SIZE;
