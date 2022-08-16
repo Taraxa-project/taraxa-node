@@ -95,6 +95,9 @@ $(document).ready(function(){initNavTree('functions_func_v.html',''); initResiza
 <li>validateBlockNotExpired()
 : <a class="el" href="group___d_a_g.html#a62e092771ea64e24a726828460fdefd2">taraxa::DagManager</a>
 </li>
+<li>validateNextSyncVote()
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a4ef9284c4b2ce3d23a68be0fd0a69a7d">taraxa::network::tarcap::ExtVotesPacketHandler</a>
+</li>
 <li>validatePacketRlpFormat()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html#a7a60cb7291c34b4a54f2bdf1b09adc05">taraxa::network::tarcap::DagBlockPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_dag_sync_packet_handler.html#a2b27516e09ce4efe4df6a6424389c70c">taraxa::network::tarcap::DagSyncPacketHandler</a>
@@ -109,6 +112,16 @@ $(document).ready(function(){initNavTree('functions_func_v.html',''); initResiza
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a39f18c40280cf0c509a9bc8abcbc254b">taraxa::network::tarcap::VotePacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_votes_sync_packet_handler.html#afdef0229bb5e5675b1bbb5eb57e5175b">taraxa::network::tarcap::VotesSyncPacketHandler</a>
 </li>
+<li>validateRewardVote()
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a5d8c42db5e8cec597750ea98ec46e07e">taraxa::network::tarcap::ExtVotesPacketHandler</a>
+</li>
+<li>validateStandardVote()
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#aeee10a25db4a1422d88172a94841b036">taraxa::network::tarcap::ExtVotesPacketHandler</a>
+</li>
+<li>validateVote()
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#afafdabcd8b16cfb455faa1e2e42df752">taraxa::network::tarcap::ExtVotesPacketHandler</a>
+, <a class="el" href="group___p_b_f_t.html#a97d518c6d3b3a2c618948e7977798ba8">taraxa::PbftManager</a>
+</li>
 <li>validDposProposer()
 : <a class="el" href="group___d_a_g.html#a04621c25e3a89631cbb372f0fe2ff19d">taraxa::BlockProposer</a>
 </li>
@@ -116,7 +129,7 @@ $(document).ready(function(){initNavTree('functions_func_v.html',''); initResiza
 : <a class="el" href="classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a4ec3d80ed191647f2d864f0bd1405fce">taraxa::vdf_sortition::VdfSortition</a>
 </li>
 <li>vector_ref()
-: <a class="el" href="classdev_1_1vector__ref.html#ae9afd87da5edc47bf7c5657d453a287f">dev::vector_ref&lt; _T &gt;</a>
+: <a class="el" href="classdev_1_1vector__ref.html#a8fb5a83dc8ac41f570b26998b6a0e077">dev::vector_ref&lt; _T &gt;</a>
 </li>
 <li>verify()
 : <a class="el" href="classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#aaae23c60b9a2b97c3ec79f0ae7fc90ef">taraxa::vrf_wrapper::VrfSortitionBase</a>
@@ -124,12 +137,6 @@ $(document).ready(function(){initNavTree('functions_func_v.html',''); initResiza
 </li>
 <li>verifyBlock()
 : <a class="el" href="group___d_a_g.html#a2743a075e35d45823238cf5d540e69d1">taraxa::DagManager</a>
-</li>
-<li>verifyRewardVote()
-: <a class="el" href="group___vote.html#a3c7381a7c63348288bb4199a611505cb">taraxa::VoteManager</a>
-</li>
-<li>verifyRewardVoteForPeriod()
-: <a class="el" href="group___vote.html#a12f60cc44a73b237ecfe08be365bf58f">taraxa::VoteManager</a>
 </li>
 <li>verifySig()
 : <a class="el" href="classtaraxa_1_1_dag_block.html#ab28ae9dda4c128c0e90e086f72d823d4">taraxa::DagBlock</a>
@@ -143,9 +150,6 @@ $(document).ready(function(){initNavTree('functions_func_v.html',''); initResiza
 </li>
 <li>verifyVote()
 : <a class="el" href="group___vote.html#a6528bb14bb94e196d5ffb65693acda19">taraxa::Vote</a>
-</li>
-<li>verifyVotes()
-: <a class="el" href="group___vote.html#a308656efb92aa18fc799ad35930b3a0c">taraxa::VoteManager</a>
 </li>
 <li>verifyVrf()
 : <a class="el" href="classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a849bffab40f3fd67575aae3981adbdb9">taraxa::vdf_sortition::VdfSortition</a>
@@ -169,35 +173,29 @@ $(document).ready(function(){initNavTree('functions_func_v.html',''); initResiza
 <li>Vote()
 : <a class="el" href="group___vote.html#a4d6671814c035c1ab8a6544e9c24a76c">taraxa::Vote</a>
 </li>
-<li>voteInUnverifiedMap()
-: <a class="el" href="group___vote.html#abe520e33144ec6b950af4af127d3748e">taraxa::VoteManager</a>
-</li>
 <li>voteInVerifiedMap()
-: <a class="el" href="group___vote.html#a79f4f3d4a224da9c9cdec9ad390636a7">taraxa::VoteManager</a>
+: <a class="el" href="group___vote.html#aa0c587e8e6442373845d257b13fa7813">taraxa::VoteManager</a>
 </li>
 <li>VoteManager()
-: <a class="el" href="group___vote.html#a6c0001e9ef7083cb3038055bcd3d98e5">taraxa::VoteManager</a>
+: <a class="el" href="group___vote.html#acbfe34ee6b9f69c6d9cd94027fa51d82">taraxa::VoteManager</a>
 </li>
 <li>VotePacketHandler()
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a6448b3edc5a7a9cd96ec6c6a7e3861a0">taraxa::network::tarcap::VotePacketHandler</a>
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a2cd370313f6a9d7da275e26fec6ad546">taraxa::network::tarcap::VotePacketHandler</a>
 </li>
 <li>VotesBundle()
 : <a class="el" href="group___vote.html#a81acaad581a3739dbc1b843247b4093b">taraxa::VotesBundle</a>
 </li>
 <li>VotesSyncPacketHandler()
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_votes_sync_packet_handler.html#adfd3ea3e0633e695a4e88408ef0566c9">taraxa::network::tarcap::VotesSyncPacketHandler</a>
-</li>
-<li>voteVerification()
-: <a class="el" href="group___vote.html#a34250eb327b72d5d3831538ae9cafa2b">taraxa::NextVotesManager</a>
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_votes_sync_packet_handler.html#a3547cc12435cb98d4dc41dcca629ab91">taraxa::network::tarcap::VotesSyncPacketHandler</a>
 </li>
 <li>VrfPbftMsg()
-: <a class="el" href="group___vote.html#aea8b00744772196151e1a02a49695799">taraxa::VrfPbftMsg</a>
+: <a class="el" href="group___vote.html#a0c76ca8fc504e3b924fe642c3bb6e902">taraxa::VrfPbftMsg</a>
 </li>
 <li>VrfPbftSortition()
 : <a class="el" href="group___vote.html#af3a5ba8a46579463078b4440813924fc">taraxa::VrfPbftSortition</a>
 </li>
 <li>VrfSortitionBase()
-: <a class="el" href="classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a19ce2bc4c110b4f08fe0727a56ffb974">taraxa::vrf_wrapper::VrfSortitionBase</a>
+: <a class="el" href="classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#aa3acaa623c60611967bbc76e065467f5">taraxa::vrf_wrapper::VrfSortitionBase</a>
 </li>
 </ul>
 </div><!-- contents -->

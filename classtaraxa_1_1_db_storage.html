@@ -250,12 +250,14 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a7b89bb6349af34b6f8a66442c45861b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a21df216baf6c3ac2f01c11cb93b0973c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a21df216baf6c3ac2f01c11cb93b0973c">addPbftMgrStatusToBatch</a> (<a class="el" href="namespacetaraxa.html#ab954ed608508c8193f4517797b4dae8e">PbftMgrStatus</a> field, bool const &amp;value, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:a21df216baf6c3ac2f01c11cb93b0973c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a10c5505812a6967000d4ffe130de72b5"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a10c5505812a6967000d4ffe130de72b5">getPbftMgrVotedValue</a> (<a class="el" href="namespacetaraxa.html#ac2dbdc97d5c79cc3e162083c102499ca">PbftMgrVotedValue</a> field)</td></tr>
-<tr class="separator:a10c5505812a6967000d4ffe130de72b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab752f227bad97c68688d475c3ac49bf9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ab752f227bad97c68688d475c3ac49bf9">savePbftMgrVotedValue</a> (<a class="el" href="namespacetaraxa.html#ac2dbdc97d5c79cc3e162083c102499ca">PbftMgrVotedValue</a> field, <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;value)</td></tr>
-<tr class="separator:ab752f227bad97c68688d475c3ac49bf9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9f494a2cf66c29470310ade973573d9f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a9f494a2cf66c29470310ade973573d9f">addPbftMgrVotedValueToBatch</a> (<a class="el" href="namespacetaraxa.html#ac2dbdc97d5c79cc3e162083c102499ca">PbftMgrVotedValue</a> field, <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;value, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
-<tr class="separator:a9f494a2cf66c29470310ade973573d9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0180d3c7c292e40562795cc195c43662"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a0180d3c7c292e40562795cc195c43662">savePbftMgrVotedValue</a> (<a class="el" href="namespacetaraxa.html#ac2dbdc97d5c79cc3e162083c102499ca">PbftMgrVotedValue</a> field, const std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, uint64_t &gt; &amp;value)</td></tr>
+<tr class="separator:a0180d3c7c292e40562795cc195c43662"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a59e21b4fa13c69076b6da2f0f7833a5f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a59e21b4fa13c69076b6da2f0f7833a5f">addPbftMgrVotedValueToBatch</a> (<a class="el" href="namespacetaraxa.html#ac2dbdc97d5c79cc3e162083c102499ca">PbftMgrVotedValue</a> field, const std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, uint64_t &gt; &amp;value, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="separator:a59e21b4fa13c69076b6da2f0f7833a5f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afc471ae8a7a7c721291d80f699c10410"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#afc471ae8a7a7c721291d80f699c10410">removePbftMgrVotedValueToBatch</a> (<a class="el" href="namespacetaraxa.html#ac2dbdc97d5c79cc3e162083c102499ca">PbftMgrVotedValue</a> field, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="separator:afc471ae8a7a7c721291d80f699c10410"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d93275cd31d25da121752f67c18dda0"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, uint64_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a6d93275cd31d25da121752f67c18dda0">getPbftMgrVotedValue</a> (<a class="el" href="namespacetaraxa.html#ac2dbdc97d5c79cc3e162083c102499ca">PbftMgrVotedValue</a> field)</td></tr>
+<tr class="separator:a6d93275cd31d25da121752f67c18dda0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acedb6f896a4fba53a43906cffc68fdfd"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#acedb6f896a4fba53a43906cffc68fdfd">getPbftCertVotedBlock</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;block_hash)</td></tr>
 <tr class="separator:acedb6f896a4fba53a43906cffc68fdfd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5e205f0319e03dfb180f8dc910d33ca3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a5e205f0319e03dfb180f8dc910d33ca3">savePbftCertVotedBlock</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> const &amp;pbft_block)</td></tr>
@@ -959,8 +961,8 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a9f494a2cf66c29470310ade973573d9f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9f494a2cf66c29470310ade973573d9f">&#9670;&nbsp;</a></span>addPbftMgrVotedValueToBatch()</h2>
+<a id="a59e21b4fa13c69076b6da2f0f7833a5f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a59e21b4fa13c69076b6da2f0f7833a5f">&#9670;&nbsp;</a></span>addPbftMgrVotedValueToBatch()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -974,7 +976,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;&#160;</td>
+          <td class="paramtype">const std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, uint64_t &gt; &amp;&#160;</td>
           <td class="paramname"><em>value</em>, </td>
         </tr>
         <tr>
@@ -2070,14 +2072,14 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
-<a id="a10c5505812a6967000d4ffe130de72b5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a10c5505812a6967000d4ffe130de72b5">&#9670;&nbsp;</a></span>getPbftMgrVotedValue()</h2>
+<a id="a6d93275cd31d25da121752f67c18dda0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6d93275cd31d25da121752f67c18dda0">&#9670;&nbsp;</a></span>getPbftMgrVotedValue()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::shared_ptr&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; taraxa::DbStorage::getPbftMgrVotedValue </td>
+          <td class="memname">std::optional&lt; std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, uint64_t &gt; &gt; taraxa::DbStorage::getPbftMgrVotedValue </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacetaraxa.html#ac2dbdc97d5c79cc3e162083c102499ca">PbftMgrVotedValue</a>&#160;</td>
           <td class="paramname"><em>field</em></td><td>)</td>
@@ -2848,6 +2850,34 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
+<a id="afc471ae8a7a7c721291d80f699c10410"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afc471ae8a7a7c721291d80f699c10410">&#9670;&nbsp;</a></span>removePbftMgrVotedValueToBatch()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::DbStorage::removePbftMgrVotedValueToBatch </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#ac2dbdc97d5c79cc3e162083c102499ca">PbftMgrVotedValue</a>&#160;</td>
+          <td class="paramname"><em>field</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramname"><em>write_batch</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ade3fbe358fb45ff02d64dc4914276c44"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ade3fbe358fb45ff02d64dc4914276c44">&#9670;&nbsp;</a></span>removeSoftVotesToBatch()</h2>
 
@@ -3164,8 +3194,8 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
-<a id="ab752f227bad97c68688d475c3ac49bf9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab752f227bad97c68688d475c3ac49bf9">&#9670;&nbsp;</a></span>savePbftMgrVotedValue()</h2>
+<a id="a0180d3c7c292e40562795cc195c43662"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0180d3c7c292e40562795cc195c43662">&#9670;&nbsp;</a></span>savePbftMgrVotedValue()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3179,7 +3209,7 @@ template&lt;typename K &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;&#160;</td>
+          <td class="paramtype">const std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, uint64_t &gt; &amp;&#160;</td>
           <td class="paramname"><em>value</em>&#160;</td>
         </tr>
         <tr>

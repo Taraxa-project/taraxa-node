@@ -131,6 +131,7 @@ $(document).ready(function(){initNavTree('functions_vars_p.html',''); initResiza
 : <a class="el" href="group___d_a_g.html#a3ad66a8821cad052ce8b4ebb7016e804">taraxa::DagManager</a>
 , <a class="el" href="classtaraxa_1_1_full_node.html#a9c43b8019e96e34ac52f774de78cdd9d">taraxa::FullNode</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a72ca3a5338ab0a35f1cf436af01c582b">taraxa::network::tarcap::ExtSyncingPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a7de70e30de9ba98435660bf5434dbef2">taraxa::network::tarcap::ExtVotesPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a8651276881f357c5053e0cfedc7030d1">taraxa::network::tarcap::GetPbftSyncPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a84eb4ab3fed4f3ed03b293d18aad27bc">taraxa::network::tarcap::NodeStats</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_block_packet_handler.html#a306fc8d5512dfe771988a02091dac84c">taraxa::network::tarcap::PbftBlockPacketHandler</a>
@@ -140,18 +141,12 @@ $(document).ready(function(){initNavTree('functions_vars_p.html',''); initResiza
 <li>pbft_chain_size_
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a7379e84d5060ca4e057f553086698159">taraxa::network::tarcap::TaraxaPeer</a>
 </li>
-<li>pbft_committee_size_
-: <a class="el" href="group___vote.html#a490b77a442d8cd21020c304f7685e76f">taraxa::VoteManager</a>
-</li>
 <li>pbft_mgr_
 : <a class="el" href="classtaraxa_1_1_full_node.html#a88212d5ce635f0355c22ca854648b935">taraxa::FullNode</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a61f3cf44c78a3c59e13a17526c3dad32">taraxa::network::tarcap::ExtSyncingPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a97580e429c37cfb0adb02e1316d1a6f6">taraxa::network::tarcap::ExtVotesPacketHandler</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_votes_sync_packet_handler.html#af3e428977883648b02ad341d0caa3456">taraxa::network::tarcap::GetVotesSyncPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#af6078adea51b53762fed5c0bcb34bdbc">taraxa::network::tarcap::NodeStats</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_block_packet_handler.html#a993ef37f122d90ccca2fc19274daf39b">taraxa::network::tarcap::PbftBlockPacketHandler</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a73fd732b1565502723eaaec23d12dceb">taraxa::network::tarcap::VotePacketHandler</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_votes_sync_packet_handler.html#aa7867128eb7410890b0c5c464218297b">taraxa::network::tarcap::VotesSyncPacketHandler</a>
 </li>
 <li>pbft_msg_
 : <a class="el" href="group___vote.html#a2078e19b96d7ca2d0a651d38ed69de2a">taraxa::VrfPbftSortition</a>
@@ -244,6 +239,7 @@ $(document).ready(function(){initNavTree('functions_vars_p.html',''); initResiza
 </li>
 <li>period
 : <a class="el" href="group___d_a_g.html#a32077a51078b02d085b8bf0bf4cd9184">taraxa::SortitionParamsChange</a>
+, <a class="el" href="group___vote.html#a11dee920aa29251b5733422baeee04c4">taraxa::VrfPbftMsg</a>
 </li>
 <li>period_
 : <a class="el" href="group___d_a_g.html#a5a146cb6f4a63454cf294d68191146c4">taraxa::DagManager</a>
@@ -308,6 +304,9 @@ $(document).ready(function(){initNavTree('functions_vars_p.html',''); initResiza
 <li>previous_round_next_voted_value_
 : <a class="el" href="group___p_b_f_t.html#af19ef59a9ffe562e0ff0f075219be853">taraxa::PbftManager</a>
 </li>
+<li>previous_round_period_
+: <a class="el" href="group___p_b_f_t.html#a8a49e9b983793dfeade9906fa17af2bb">taraxa::PbftManager</a>
+</li>
 <li>price_list_
 : <a class="el" href="group___transaction.html#a5fda2f7af43fa418f5735fe70284a677">taraxa::GasPricer</a>
 </li>
@@ -330,8 +329,8 @@ $(document).ready(function(){initNavTree('functions_vars_p.html',''); initResiza
 <li>propose_model_
 : <a class="el" href="group___d_a_g.html#abb1162a07562575ca76fb6131c2624fe">taraxa::BlockProposer</a>
 </li>
-<li>proposed_block_hash_
-: <a class="el" href="group___p_b_f_t.html#a1bfcc358603fc272d0f20aeb89d52f6d">taraxa::PbftManager</a>
+<li>proposed_block_
+: <a class="el" href="group___p_b_f_t.html#a33461a44a6bfbd1e892fd732d53a190d">taraxa::PbftManager</a>
 </li>
 <li>ProposeModelFace
 : <a class="el" href="group___d_a_g.html#a3f428c9aa82f41ec6498eeb240f2acc0">taraxa::BlockProposer</a>

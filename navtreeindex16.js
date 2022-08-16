@@ -1,11 +1,5 @@
 var NAVTREEINDEX16 =
 {
-"libdevcore_2_exceptions_8h.html#afdbb262900589dda13b53b5b6ab47892":[12,0,1,0,0,12,13],
-"libdevcore_2_exceptions_8h.html#afe355b8bc62d396302fc16b2a0856516":[12,0,1,0,0,12,20],
-"libdevcore_2_exceptions_8h_source.html":[12,0,1,0,0,12],
-"libdevcrypto_2_common_8cpp.html":[12,0,1,0,1,2],
-"libdevcrypto_2_common_8cpp.html#ab309954fe1c9914c26899b796de49926":[12,0,1,0,1,2,0],
-"libdevcrypto_2_common_8h.html":[12,0,1,0,1,3],
 "libdevcrypto_2_common_8h.html#a0266517d70437660a08b9f6166572eb3":[12,0,1,0,1,3,4],
 "libdevcrypto_2_common_8h.html#a04a16f8a4c264a7868151d49e2223f04":[12,0,1,0,1,3,5],
 "libdevcrypto_2_common_8h.html#a0842f17403d63f4a260d5283ae5fb3a7":[12,0,1,0,1,3,28],
@@ -249,5 +243,11 @@ var NAVTREEINDEX16 =
 "md_doc_coding_practices.html#autotoc_md109":[2,0,10],
 "md_doc_coding_practices.html#autotoc_md110":[44],
 "md_doc_coding_practices.html#autotoc_md111":[45],
-"md_doc_coding_practices.html#autotoc_md112":[46]
+"md_doc_coding_practices.html#autotoc_md112":[46],
+"md_doc_coding_practices.html#autotoc_md113":[2,0,11],
+"md_doc_coding_practices.html#autotoc_md114":[47],
+"md_doc_coding_practices.html#autotoc_md115":[48],
+"md_doc_coding_practices.html#autotoc_md116":[49],
+"md_doc_coding_practices.html#autotoc_md117":[2,0,12],
+"md_doc_coding_practices.html#autotoc_md118":[50]
 };

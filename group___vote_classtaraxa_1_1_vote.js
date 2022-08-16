@@ -9,6 +9,7 @@ var group___vote_classtaraxa_1_1_vote =
     [ "getBlockHash", "group___vote.html#aed1c7d1c2547411fa0cca7ec01ada8fe", null ],
     [ "getCredential", "group___vote.html#ad567604816bf023afb0ddf3e2ba9cf45", null ],
     [ "getHash", "group___vote.html#aaaf432cbe858f0ba34e643f9eaf0ebd4", null ],
+    [ "getPeriod", "group___vote.html#aab90b64a354de39a06b83f548aa99ac7", null ],
     [ "getRound", "group___vote.html#a262b1ec37ee009487bcb2829d40bbfc6", null ],
     [ "getSortitionProof", "group___vote.html#a8d8b162010bc979119ccb529d03ce358", null ],
     [ "getStep", "group___vote.html#a4688e5e9f866e5be8b75afdacfb0ddfb", null ],
