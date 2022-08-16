@@ -5,15 +5,13 @@
 
 namespace taraxa::network::tarcap {
 
-VotesSyncPacketHandler::VotesSyncPacketHandler(std::shared_ptr<PeersState> peers_state,
-                                               std::shared_ptr<PacketsStats> packets_stats,
-                                               std::shared_ptr<PbftManager> pbft_mgr,
-                                               std::shared_ptr<VoteManager> vote_mgr,
-                                               std::shared_ptr<NextVotesManager> next_votes_mgr,
-                                               std::shared_ptr<DbStorage> db, const addr_t &node_addr)
-    : ExtVotesPacketHandler(std::move(peers_state), std::move(packets_stats), pbft_mgr, node_addr, "VOTES_SYNC_PH"),
-      pbft_mgr_(std::move(pbft_mgr)),
-      vote_mgr_(std::move(vote_mgr)),
+VotesSyncPacketHandler::VotesSyncPacketHandler(
+    std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
+    std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+    std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DbStorage> db, const uint32_t dpos_delay,
+    const addr_t &node_addr)
+    : ExtVotesPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
+                            std::move(pbft_chain), std::move(vote_mgr), dpos_delay, node_addr, "VOTES_SYNC_PH"),
       next_votes_mgr_(std::move(next_votes_mgr)),
       db_(std::move(db)) {}
 
@@ -30,19 +28,55 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
   const auto pbft_current_round = pbft_mgr_->getPbftRound();
   const auto peer_pbft_round = vote->getRound() + 1;
 
+  // Next votes are from too old
+  if (pbft_current_round > peer_pbft_round) {
+    LOG(log_dg_) << "Dropping votes sync packet due to round. Votes round: " << peer_pbft_round
+                 << ", current pbft round: " << pbft_current_round;
+    return;
+  }
+
   std::vector<std::shared_ptr<Vote>> next_votes;
   const auto next_votes_count = packet_data.rlp_.itemCount();
   for (size_t i = 0; i < next_votes_count; i++) {
     auto next_vote = std::make_shared<Vote>(packet_data.rlp_[i].data().toBytes());
+    const auto next_vote_hash = next_vote->getHash();
     if (next_vote->getRound() != peer_pbft_round - 1) {
       LOG(log_er_) << "Received next votes bundle with unmatched rounds from " << packet_data.from_node_id_
-                   << ". The peer may be a malicous player, will be disconnected";
+                   << ". The peer may be a malicious player, will be disconnected";
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
-    const auto next_vote_hash = next_vote->getHash();
-    LOG(log_nf_) << "Received PBFT next vote " << next_vote_hash;
+    if (pbft_current_round < peer_pbft_round) {
+      if (vote_mgr_->voteInVerifiedMap(next_vote)) {
+        LOG(log_dg_) << "Vote " << next_vote_hash.abridged() << " already inserted in verified queue";
+      }
+
+      if (auto vote_is_valid = validateStandardVote(next_vote); vote_is_valid.first == false) {
+        LOG(log_wr_) << "Vote " << next_vote_hash.abridged() << " validation failed. Err: " << vote_is_valid.second;
+        continue;
+      }
+
+      if (!vote_mgr_->addVerifiedVote(next_vote)) {
+        LOG(log_dg_) << "Vote " << next_vote_hash.abridged() << " already inserted in verified queue(race condition)";
+        continue;
+      }
+
+      setVoterMaxRound(vote->getVoterAddr(), vote->getRound());
+    } else {  // pbft_current_round == peer_pbft_round
+      if (auto vote_is_valid = validateNextSyncVote(next_vote); vote_is_valid.first == false) {
+        LOG(log_wr_) << "Next vote " << next_vote_hash.abridged()
+                     << " validation failed. Err: " << vote_is_valid.second;
+        continue;
+      }
+
+      if (!vote_mgr_->insertUniqueVote(vote)) {
+        LOG(log_dg_) << "Non unique vote " << next_vote_hash.abridged() << " (race condition)";
+        continue;
+      }
+    }
+
+    LOG(log_dg_) << "Received PBFT next vote " << next_vote_hash.abridged();
     peer->markVoteAsKnown(next_vote_hash);
     next_votes.push_back(std::move(next_vote));
   }
@@ -51,32 +85,8 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
                << " node current round " << pbft_current_round << ", peer pbft round " << peer_pbft_round;
 
   if (pbft_current_round < peer_pbft_round) {
-    // Add into votes unverified queue
-    for (auto it = next_votes.begin(); it != next_votes.end();) {
-      auto vote_hash = (*it)->getHash();
-      auto vote_round = (*it)->getRound();
-
-      if (vote_mgr_->voteInUnverifiedMap(vote_round, vote_hash) || vote_mgr_->voteInVerifiedMap(*it)) {
-        LOG(log_dg_) << "Received PBFT next vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
-                     << ") already saved in queue.";
-        it = next_votes.erase(it);
-        continue;
-      }
-
-      // Synchronization point in case multiple threads are processing the same vote at the same time
-      // Adds unverified vote into local structure + database
-      if (!vote_mgr_->addUnverifiedVote(*it)) {
-        LOG(log_dg_) << "Received PBFT next vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
-                     << ") already saved in unverified queue by a different thread(race condition).";
-        it = next_votes.erase(it);
-        continue;
-      }
-      ++it;
-    }
-
     onNewPbftVotes(std::move(next_votes));
-
-  } else if (pbft_current_round == peer_pbft_round) {
+  } else {  // pbft_current_round == peer_pbft_round
     // Update previous round next votes
     const auto pbft_2t_plus_1 = db_->getPbft2TPlus1(pbft_current_round - 1);
     if (!pbft_2t_plus_1) {

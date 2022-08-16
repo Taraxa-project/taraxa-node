@@ -110,7 +110,7 @@ void PeriodData::hasEnoughValidCertVotes(
     }
 
     assert(v->getWeight());
-    total_votes += v->getWeight().value();
+    total_votes += *v->getWeight();
   }
 
   if (total_votes < pbft_2t_plus_1) {

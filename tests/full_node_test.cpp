@@ -178,23 +178,32 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
 
   // PBFT manager voted value
-  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound), nullptr);
-  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockHashInRound), nullptr);
-  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::LastCertVotedValue), nullptr);
-  db.savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, blk_hash_t(1));
-  db.savePbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockHashInRound, blk_hash_t(2));
-  db.savePbftMgrVotedValue(PbftMgrVotedValue::LastCertVotedValue, blk_hash_t(3));
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound), blk_hash_t(1));
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockHashInRound), blk_hash_t(2));
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::LastCertVotedValue), blk_hash_t(3));
+  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound), std::nullopt);
+  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockInRound), std::nullopt);
+  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::CertVotedBlockInRound), std::nullopt);
+  db.savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, {blk_hash_t(1), uint64_t(0)});
+  db.savePbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockInRound, {blk_hash_t(2), uint64_t(0)});
+  db.savePbftMgrVotedValue(PbftMgrVotedValue::CertVotedBlockInRound, {blk_hash_t(3), uint64_t(0)});
+  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound),
+            std::make_pair(blk_hash_t(1), uint64_t(0)));
+  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockInRound),
+            std::make_pair(blk_hash_t(2), uint64_t(0)));
+  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::CertVotedBlockInRound),
+            std::make_pair(blk_hash_t(3), uint64_t(0)));
   batch = db.createWriteBatch();
-  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::OwnStartingValueInRound, blk_hash_t(4), batch);
-  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::SoftVotedBlockHashInRound, blk_hash_t(5), batch);
-  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::LastCertVotedValue, blk_hash_t(6), batch);
+  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::OwnStartingValueInRound, std::make_pair(blk_hash_t(4), uint64_t(0)),
+                                 batch);
+  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::SoftVotedBlockInRound, std::make_pair(blk_hash_t(5), uint64_t(0)),
+                                 batch);
+  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::CertVotedBlockInRound, std::make_pair(blk_hash_t(6), uint64_t(0)),
+                                 batch);
   db.commitWriteBatch(batch);
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound), blk_hash_t(4));
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockHashInRound), blk_hash_t(5));
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::LastCertVotedValue), blk_hash_t(6));
+  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound),
+            std::make_pair(blk_hash_t(4), uint64_t(0)));
+  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockInRound),
+            std::make_pair(blk_hash_t(5), uint64_t(0)));
+  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::CertVotedBlockInRound),
+            std::make_pair(blk_hash_t(6), uint64_t(0)));
 
   // PBFT cert voted block
   auto pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 1);
@@ -224,7 +233,7 @@ TEST_F(FullNodeTest, db_test) {
   // Certified votes
   std::vector<std::shared_ptr<Vote>> cert_votes;
   for (auto i = 0; i < 3; i++) {
-    VrfPbftMsg msg(cert_vote_type, 2, 3);
+    VrfPbftMsg msg(cert_vote_type, 2, 2, 3);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -292,9 +301,10 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_TRUE(verified_votes.empty());
   auto voted_pbft_block_hash = blk_hash_t(2);
   for (auto i = 0; i < 3; i++) {
+    auto period = i;
     auto round = i;
     auto step = i;
-    VrfPbftMsg msg(next_vote_type, round, step);
+    VrfPbftMsg msg(next_vote_type, period, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -317,12 +327,12 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_TRUE(db.getVerifiedVotes().empty());
 
   // Soft votes
-  auto round = 1, step = 2;
+  auto period = 1, round = 1, step = 2;
   auto soft_votes = db.getSoftVotes(round);
   EXPECT_TRUE(soft_votes.empty());
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(soft_vote_type, round, step);
+    VrfPbftMsg msg(soft_vote_type, period, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -336,7 +346,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(soft_votes_from_db.size(), 3);
   for (auto i = 3; i < 5; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(soft_vote_type, round, step);
+    VrfPbftMsg msg(soft_vote_type, period, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -357,12 +367,12 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_TRUE(soft_votes_from_db.empty());
 
   // Next votes
-  round = 3, step = 5;
+  period = 3, round = 3, step = 5;
   auto next_votes = db.getNextVotes(round);
   EXPECT_TRUE(next_votes.empty());
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(next_vote_type, round, step);
+    VrfPbftMsg msg(next_vote_type, period, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -377,7 +387,7 @@ TEST_F(FullNodeTest, db_test) {
   next_votes.clear();
   for (auto i = 3; i < 5; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(next_vote_type, round, step);
+    VrfPbftMsg msg(next_vote_type, period, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");

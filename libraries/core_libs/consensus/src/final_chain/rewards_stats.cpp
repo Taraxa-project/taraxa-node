@@ -96,7 +96,7 @@ std::vector<addr_t> RewardsStats::processStats(const PeriodData& block, uint64_t
     auto tx_validator = getTransactionValidator(tx->getHash());
     assert(tx_validator.has_value());
 
-    txs_validators.push_back(tx_validator.value());
+    txs_validators.push_back(*tx_validator);
   }
 
   return txs_validators;

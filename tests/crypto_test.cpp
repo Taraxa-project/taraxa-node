@@ -95,7 +95,7 @@ TEST_F(CryptoTest, vrf_sortition) {
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-  VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, 2, 3);
+  VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, 2, 2, 3);
   VrfPbftSortition sortition(sk, msg);
   VrfPbftSortition sortition2(sk, msg);
 
@@ -296,18 +296,18 @@ TEST_F(CryptoTest, sortition_rate) {
   // Sortition rate THRESHOLD / PLAYERS = 5%
   size_t pbft_step = 3;
   for (int i = 0; i < round; i++) {
-    VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, i, pbft_step);
+    VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, i, i, pbft_step);
     VrfPbftSortition sortition(sk, msg);
     count += sortition.calculateWeight(1, valid_sortition_players, sortition_threshold, sk);
   }
-  EXPECT_EQ(count, 48);  // Test experience
+  EXPECT_EQ(count, 45);  // Test experience
 
   count = 0;
   sortition_threshold = valid_sortition_players;
   // Test for one player sign round messages to get sortition
   // Sortition rate THRESHOLD / PLAYERS = 100%
   for (int i = 0; i < round; i++) {
-    VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, i, pbft_step);
+    VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, i, i, pbft_step);
     VrfPbftSortition sortition(sk, msg);
     count += sortition.calculateWeight(1, valid_sortition_players, sortition_threshold, dev::FixedHash<64>::random());
   }
@@ -323,7 +323,7 @@ TEST_F(CryptoTest, sortition_rate) {
     dev::KeyPair key_pair = dev::KeyPair::create();
     for (int j = 0; j < round; j++) {
       auto [pk, sk] = getVrfKeyPair();
-      VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, i, pbft_step);
+      VrfPbftMsg msg(PbftVoteTypes::cert_vote_type, i, i, pbft_step);
       VrfPbftSortition sortition(sk, msg);
       count += sortition.calculateWeight(1, valid_sortition_players, sortition_threshold, dev::FixedHash<64>::random());
     }
@@ -385,7 +385,7 @@ TEST_F(CryptoTest, leader_selection) {
   };
 
   for (uint64_t i = 0; i < rounds; i++) {
-    const VrfPbftMsg msg(propose_vote_type, i, 1);
+    const VrfPbftMsg msg(propose_vote_type, i, i, 1);
     std::unordered_map<uint64_t, dev::h256> outputs;
 
     selector(outputs, msg, high_stake_nodes, high_stake_nodes_power);

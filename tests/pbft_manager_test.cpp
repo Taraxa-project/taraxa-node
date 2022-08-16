@@ -28,6 +28,11 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
   for (auto &cfg : node_cfgs) {
     cfg.chain.pbft.committee_size = committee_size;
+    // Set delegation delay to zero because:
+    // - let's say delegation_delay is 5 blocks, delegation txs are included in block 10
+    // - if we check number of eligible voters in block 13, delegation txs are not applied yet as we would check block 8
+    // If delegation delay is set to zero, this should not happen
+    cfg.chain.final_chain.state.dpos->delegation_delay = 0;
   }
   auto nodes = launch_nodes(node_cfgs);
 
@@ -41,8 +46,9 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   {
     const auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos->eligibility_balance_threshold;
     for (size_t i(1); i < node_cfgs.size(); ++i) {
-      std::cout << "Delegating stake of " << min_stake_to_vote << " to node " << i << std::endl;
       const auto trx = make_dpos_trx(node_cfgs[i], min_stake_to_vote, nonce++, gas_price);
+      std::cout << "Delegating stake of " << min_stake_to_vote << " to node " << i << ", tx hash: " << trx->getHash()
+                << std::endl;
       nodes[0]->getTransactionManager()->insertTransaction(trx);
       trxs_count++;
     }
@@ -54,6 +60,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
       }
     });
   }
+
   std::vector<u256> balances;
   for (size_t i(0); i < nodes.size(); ++i) {
     balances.push_back(std::move(nodes[i]->getFinalChain()->getBalance(nodes[i]->getAddress()).first));
@@ -186,7 +193,7 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
 
   // Generate bogus votes
   auto stale_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
-  auto propose_vote = pbft_mgr->generateVote(stale_block_hash, propose_vote_type, 2, 1);
+  auto propose_vote = pbft_mgr->generateVote(stale_block_hash, propose_vote_type, 2, 2, 1);
   propose_vote->calculateWeight(1, 1, 1);
   vote_mgr->addVerifiedVote(propose_vote);
 
@@ -261,9 +268,10 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   pbft_chain->pushUnverifiedPbftBlock(propose_pbft_block);
 
   // Generate bogus vote
+  auto period = 1;
   auto round = 1;
   auto step = 4;
-  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step);
+  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, period, round, step);
   propose_vote->calculateWeight(1, 1, 1);
   vote_mgr->addVerifiedVote(propose_vote);
 
@@ -319,10 +327,11 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
   auto node_sk = nodes[0]->getSecretKey();
 
   // Generate bogus vote
+  auto period = 1;
   auto round = 1;
   auto step = 4;
   auto pbft_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
-  auto next_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, round, step);
+  auto next_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, period, round, step);
   next_vote->calculateWeight(1, 1, 1);
   vote_mgr->addVerifiedVote(next_vote);
 
@@ -347,13 +356,13 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
 
   std::cout << "After some time, terminate voting on the missing proposed block " << pbft_block_hash << std::endl;
   // After some rounds, terminate the bogus PBFT block value and propose PBFT block with NULL anchor
-  EXPECT_HAPPENS({10s, 50ms}, [&](auto &ctx) {
+  EXPECT_HAPPENS({20s, 50ms}, [&](auto &ctx) {
     auto proposal_value = pbft_block_hash;
     auto votes = vote_mgr->getVerifiedVotes();
 
     for (auto const &v : votes) {
       if (propose_vote_type == v->getType() && v->getBlockHash() != pbft_block_hash) {
-        // PBFT has terminated on the missing PBFT block value and propsosed a new block value
+        // PBFT has terminated on the missing PBFT block value and proposed a new block value
         proposal_value = v->getBlockHash();
         break;
       }
@@ -407,6 +416,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
       }
     });
   }
+
   std::vector<u256> balances;
   for (size_t i(0); i < nodes.size(); ++i) {
     balances.push_back(std::move(nodes[i]->getFinalChain()->getBalance(nodes[i]->getAddress()).first));

@@ -91,6 +91,7 @@ struct Config {
   ExecutionOptions execution_options;
   BlockRewardsOptions block_rewards_options;
   BalanceMap genesis_balances;
+  // TODO[1899]: dpos confing should not be optional
   std::optional<DPOSConfig> dpos;
   // Hardforks hardforks;
 

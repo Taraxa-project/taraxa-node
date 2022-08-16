@@ -151,7 +151,6 @@ void NodeStats::logNodeStats() {
   LOG(log_nf_) << "Node elligible vote count:       " << local_weighted_votes;
 
   LOG(log_dg_) << "****** Memory structures sizes ******";
-  LOG(log_dg_) << "Unverified votes size:           " << vote_mgr_->getUnverifiedVotesSize();
   LOG(log_dg_) << "Verified votes size:             " << vote_mgr_->getVerifiedVotesSize();
 
   LOG(log_dg_) << "Non finalized txs size:          " << trx_mgr_->getNonfinalizedTrxSize();

@@ -7,19 +7,42 @@
 
 namespace taraxa {
 
+VrfPbftMsg::VrfPbftMsg(PbftVoteTypes type, uint64_t period, uint64_t round, size_t step)
+    : type(type), period(period), round(round), step(step) {}
+
+std::string VrfPbftMsg::toString() const {
+  return std::to_string(type) + "_" + std::to_string(period) + "_" + std::to_string(round) + "_" + std::to_string(step);
+}
+
+bool VrfPbftMsg::operator==(VrfPbftMsg const& other) const {
+  return type == other.type && period == other.period && round == other.round && step == other.step;
+}
+
+bytes VrfPbftMsg::getRlpBytes() const {
+  dev::RLPStream s;
+  s.appendList(4);
+  s << static_cast<uint8_t>(type);
+  s << period;
+  s << round;
+  s << step;
+  return s.invalidate();
+}
+
 VrfPbftSortition::VrfPbftSortition(bytes const& b) {
   dev::RLP const rlp(b);
 
   uint8_t pbft_msg_type = 0;
-  util::rlp_tuple(util::RLPDecoderRef(rlp, true), pbft_msg_type, pbft_msg_.round, pbft_msg_.step, proof_);
+  util::rlp_tuple(util::RLPDecoderRef(rlp, true), pbft_msg_type, pbft_msg_.period, pbft_msg_.round, pbft_msg_.step,
+                  proof_);
   pbft_msg_.type = static_cast<PbftVoteTypes>(pbft_msg_type);
 }
 
 bytes VrfPbftSortition::getRlpBytes() const {
   dev::RLPStream s;
 
-  s.appendList(4);
+  s.appendList(5);
   s << static_cast<uint8_t>(pbft_msg_.type);
+  s << pbft_msg_.period;
   s << pbft_msg_.round;
   s << pbft_msg_.step;
   s << proof_;

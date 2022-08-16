@@ -104,7 +104,7 @@ void TarcapThreadPool::processPacket(size_t worker_id) {
     LOG(log_dg_) << "Worker (" << worker_id << ") process packet: " << packet->type_str_ << ", id(" << packet->id_
                  << ")";
 
-    queue_.updateDependenciesStart(packet.value());
+    queue_.updateDependenciesStart(*packet);
     lock.unlock();
 
     try {
@@ -112,7 +112,7 @@ void TarcapThreadPool::processPacket(size_t worker_id) {
       auto& handler = packets_handlers_->getSpecificHandler(packet->type_);
 
       // Process packet by specific packet type handler
-      handler->processPacket(packet.value());
+      handler->processPacket(*packet);
     } catch (const std::exception& e) {
       LOG(log_er_) << "Worker (" << worker_id << ") packet: " << packet->type_str_ << ", id(" << packet->id_
                    << ") processing exception caught: " << e.what();
@@ -122,7 +122,7 @@ void TarcapThreadPool::processPacket(size_t worker_id) {
     }
 
     // Once packet handler is done with processing, update priority queue dependencies
-    queue_.updateDependenciesFinish(packet.value(), queue_mutex_, cond_var_);
+    queue_.updateDependenciesFinish(*packet, queue_mutex_, cond_var_);
   }
 }
 

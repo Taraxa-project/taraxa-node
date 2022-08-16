@@ -65,7 +65,7 @@ PbftBlock PbftChain::getPbftBlockInChain(const taraxa::blk_hash_t& pbft_block_ha
     LOG(log_er_) << "Cannot find PBFT block hash " << pbft_block_hash << " in DB";
     assert(false);
   }
-  return pbft_block.value();
+  return *pbft_block;
 }
 
 std::shared_ptr<PbftBlock> PbftChain::getUnverifiedPbftBlock(const taraxa::blk_hash_t& pbft_block_hash) {

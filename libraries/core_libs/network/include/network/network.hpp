@@ -27,7 +27,7 @@ class PacketHandler;
 // TODO merge with TaraxaCapability, and then split the result in reasonable components
 class Network {
  public:
-  Network(FullNodeConfig const &config, const h256 &genesis_hash = {},
+  Network(const FullNodeConfig &config, const h256 &genesis_hash = {},
           dev::p2p::Host::CapabilitiesFactory construct_capabilities = {},
           std::filesystem::path const &network_file_path = {}, dev::KeyPair const &key = dev::KeyPair::create(),
           std::shared_ptr<DbStorage> db = {}, std::shared_ptr<PbftManager> pbft_mgr = {},
@@ -69,7 +69,6 @@ class Network {
   // END METHODS USED IN TESTS ONLY
 
  private:
-  FullNodeConfig kConf;
   util::ThreadPool tp_;
   std::shared_ptr<dev::p2p::Host> host_;
   std::shared_ptr<network::tarcap::TaraxaCapability> taraxa_capability_;

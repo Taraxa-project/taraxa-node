@@ -142,62 +142,69 @@ inline bool wait(wait_opts const& opts, std::function<void(wait_ctx&)> const& po
   }
 
 template <uint tests_speed = 1, bool enable_rpc_http = false, bool enable_rpc_ws = false>
-inline auto make_node_cfgs(uint count) {
-  static auto const ret = [] {
-    auto ret = *node_cfgs_original;
-    if constexpr (tests_speed == 1 && enable_rpc_http && enable_rpc_ws) {
-      return ret;
+inline auto make_node_cfgs(size_t total_count, size_t validators_count = 1) {
+  auto default_configs = *node_cfgs_original;
+  assert(total_count <= default_configs.size());
+  assert(validators_count <= total_count);
+
+  // Prepare genesis balances & initial validators
+  state_api::BalanceMap genesis_balances;
+  std::vector<state_api::ValidatorInfo> initial_validators;
+
+  for (size_t idx = 0; idx < total_count; idx++) {
+    const auto& cfg = default_configs[idx];
+    const auto& node_addr = dev::toAddress(cfg.node_secret);
+    genesis_balances[node_addr] = 9007199254740991;
+
+    if (idx >= validators_count) {
+      continue;
     }
-    for (auto& cfg : ret) {
-      addr_t root_node_addr("de2b1203d72d3549ee2f733b00b2789414c7cea5");
-      vrf_wrapper::vrf_pk_t root_node_vrf_key("d05dc12c1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-      cfg.chain.final_chain.state.genesis_balances[root_node_addr] = 9007199254740991;
-      cfg.chain.final_chain.state.genesis_balances[addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0")] =
-          9007199254740991;
-      cfg.chain.final_chain.state.genesis_balances[addr_t("4fae949ac2b72960fbe857b56532e2d3c8418d5e")] =
-          9007199254740991;
-      cfg.chain.final_chain.state.genesis_balances[addr_t("415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0")] =
-          9007199254740991;
-      cfg.chain.final_chain.state.genesis_balances[addr_t("b770f7a99d0b7ad9adf6520be77ca20ee99b0858")] =
-          9007199254740991;
-      auto& dpos = *cfg.chain.final_chain.state.dpos;
 
-      state_api::BalanceMap delegations;
-      delegations.emplace(root_node_addr, dpos.eligibility_balance_threshold);
-
-      auto initial_validator =
-          state_api::ValidatorInfo{root_node_addr, root_node_addr, root_node_vrf_key, 100, "", "", delegations};
-      dpos.initial_validators.emplace_back(initial_validator);
-
-      // As test are badly written let's disable it for now
-      cfg.chain.final_chain.state.execution_options.disable_nonce_check = true;
-      cfg.chain.final_chain.state.block_rewards_options.disable_block_rewards = true;
-      cfg.chain.final_chain.state.block_rewards_options.disable_contract_distribution = true;
-      if constexpr (tests_speed != 1) {
-        // VDF config
-        cfg.chain.sortition.vrf.threshold_upper = 0xffff;
-        cfg.chain.sortition.vrf.threshold_range = 0x199a;
-        cfg.chain.sortition.vdf.difficulty_min = 0;
-        cfg.chain.sortition.vdf.difficulty_max = 5;
-        cfg.chain.sortition.vdf.difficulty_stale = 5;
-        cfg.chain.sortition.vdf.lambda_bound = 100;
-        // PBFT config
-        cfg.chain.pbft.lambda_ms_min /= tests_speed;
-        cfg.network.network_transaction_interval /= tests_speed;
-      }
-      if constexpr (!enable_rpc_http) {
-        cfg.rpc->http_port = std::nullopt;
-      }
-      if constexpr (!enable_rpc_ws) {
-        cfg.rpc->ws_port = std::nullopt;
-      }
-    }
-    return ret;
-  }();
-  if (count == ret.size()) {
-    return ret;
+    state_api::BalanceMap delegations;
+    delegations.emplace(node_addr, cfg.chain.final_chain.state.dpos->eligibility_balance_threshold);
+    initial_validators.emplace_back(state_api::ValidatorInfo{
+        node_addr, node_addr, vrf_wrapper::getVrfPublicKey(cfg.vrf_secret), 100, "", "", delegations});
   }
-  return slice(ret, 0, count);
+
+  std::vector<taraxa::FullNodeConfig> ret_configs;
+
+  for (size_t idx = 0; idx < total_count; idx++) {
+    auto& cfg = ret_configs.emplace_back(default_configs[idx]);
+    if constexpr (tests_speed == 1 && enable_rpc_http && enable_rpc_ws) {
+      continue;
+    }
+
+    cfg.chain.final_chain.state.genesis_balances = genesis_balances;
+    cfg.chain.final_chain.state.dpos->initial_validators = initial_validators;
+
+    cfg.chain.final_chain.state.dpos->delegation_delay = 5;
+    cfg.chain.final_chain.state.dpos->delegation_locking_period = 5;
+
+    // As test are badly written let's disable it for now
+    cfg.chain.final_chain.state.execution_options.disable_nonce_check = true;
+    cfg.chain.final_chain.state.block_rewards_options.disable_block_rewards = true;
+    cfg.chain.final_chain.state.block_rewards_options.disable_contract_distribution = true;
+    if constexpr (tests_speed != 1) {
+      // VDF config
+      cfg.chain.sortition.vrf.threshold_upper = 0xffff;
+      cfg.chain.sortition.vrf.threshold_range = 0x199a;
+      cfg.chain.sortition.vdf.difficulty_min = 0;
+      cfg.chain.sortition.vdf.difficulty_max = 5;
+      cfg.chain.sortition.vdf.difficulty_stale = 5;
+      cfg.chain.sortition.vdf.lambda_bound = 100;
+      // PBFT config
+      cfg.chain.pbft.lambda_ms_min /= tests_speed;
+      cfg.network.network_transaction_interval /= tests_speed;
+    }
+    if constexpr (!enable_rpc_http) {
+      cfg.rpc->http_port = std::nullopt;
+    }
+    if constexpr (!enable_rpc_ws) {
+      cfg.rpc->ws_port = std::nullopt;
+    }
+  }
+
+  return ret_configs;
 }
 
 inline auto wait_connect(std::vector<std::shared_ptr<FullNode>> const& nodes) {

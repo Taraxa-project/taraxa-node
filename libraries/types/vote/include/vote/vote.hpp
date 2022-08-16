@@ -101,6 +101,12 @@ class Vote {
   PbftVoteTypes getType() const { return vrf_sortition_.pbft_msg_.type; }
 
   /**
+   * @brief Get vote PBFT period
+   * @return vote PBFT period
+   */
+  uint64_t getPeriod() const { return vrf_sortition_.pbft_msg_.period; }
+
+  /**
    * @brief Get vote PBFT round
    * @return vote PBFT round
    */
@@ -182,6 +188,7 @@ class Vote {
  */
 struct VotesBundle {
   blk_hash_t voted_block_hash;
+  uint64_t votes_period;
   std::vector<std::shared_ptr<Vote>> votes;  // Greater than 2t+1 votes
 
   VotesBundle() : voted_block_hash(blk_hash_t(0)) {}

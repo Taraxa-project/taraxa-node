@@ -2,7 +2,6 @@
 
 #include "common/util.hpp"
 #include "final_chain/final_chain.hpp"
-#include "key_manager/key_manager.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "vote/vote.hpp"
 
@@ -23,8 +22,7 @@ class Network;
  */
 class NextVotesManager {
  public:
-  NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
-                   std::shared_ptr<KeyManager> key_manager);
+  NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain);
 
   /**
    * @brief Clear previous PBFT round next voting type votes
@@ -89,23 +87,9 @@ class NextVotesManager {
    */
   void updateWithSyncedVotes(std::vector<std::shared_ptr<Vote>>& votes, size_t pbft_2t_plus_1);
 
-  /**
-   * @brief Verify vote validation
-   * @param vote vote
-   * @param dpos_period DPOS period
-   * @param dpos_total_votes_count total DPOS votes count
-   * @param pbft_sortition_threshold PBFT sortition threshold is minimum of between PBFT committee size and total DPOS
-   * votes count
-   * @return true if passed validation
-   */
-  bool voteVerification(std::shared_ptr<Vote>& vote, uint64_t dpos_period, size_t dpos_total_votes_count,
-                        size_t pbft_sortition_threshold);
-
  private:
   using UniqueLock = boost::unique_lock<boost::shared_mutex>;
   using SharedLock = boost::shared_lock<boost::shared_mutex>;
-  using UpgradableLock = boost::upgrade_lock<boost::shared_mutex>;
-  using UpgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
   /**
    * @brief Assertion happens when there is more than 1 voting value for a non-NULL block hash
@@ -119,7 +103,6 @@ class NextVotesManager {
 
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<FinalChain> final_chain_;
-  std::shared_ptr<KeyManager> key_manager_;
 
   bool enough_votes_for_null_block_hash_;
   blk_hash_t voted_value_;  // For value is not null block hash
@@ -132,14 +115,14 @@ class NextVotesManager {
   LOG_OBJECTS_DEFINE
 };
 
+// TODO[1907]: refactor vote manager
 /**
  * @brief VoteManager class manage votes for PBFT consensus
  */
 class VoteManager {
  public:
-  VoteManager(size_t pbft_committee_size, const addr_t& node_addr, std::shared_ptr<DbStorage> db,
-              std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
-              std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<KeyManager> key_manager);
+  VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
+              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<NextVotesManager> next_votes_mgr);
   ~VoteManager();
   VoteManager(const VoteManager&) = delete;
   VoteManager(VoteManager&&) = delete;
@@ -152,95 +135,47 @@ class VoteManager {
    */
   void setNetwork(std::weak_ptr<Network> network);
 
-  // Unverified votes
-  /**
-   * @brief Add a vote to the unverified votes map
-   * @param vote vote
-   * @return true if added
-   */
-  bool addUnverifiedVote(std::shared_ptr<Vote> const& vote);
-
-  /**
-   * @brief Add verified votes to the unverified votes map
-   * @param votes verified votes
-   */
-  void moveVerifyToUnverify(std::vector<std::shared_ptr<Vote>> const& votes);
-
-  /**
-   * @brief Remove an unverified vote
-   * @param pbft_round vote PBFT round
-   * @param vote_hash vote hash
-   */
-  void removeUnverifiedVote(uint64_t pbft_round, vote_hash_t const& vote_hash);
-
-  /**
-   * @brief Check if the vote has been in the unverified votes map
-   * @param pbft_round vote PBFT round
-   * @param vote_hash vote hash
-   * @return true if exist
-   */
-  bool voteInUnverifiedMap(uint64_t pbft_round, vote_hash_t const& vote_hash);
-
-  /**
-   * @brief Get all unverified votes
-   * @return all unverified votes
-   */
-  std::vector<std::shared_ptr<Vote>> copyUnverifiedVotes();
-
-  /**
-   * @brief Clear the unverified votes map
-   */
-  void clearUnverifiedVotesTable();
-
-  /**
-   * @brief Get the total size of all unverified votes
-   * @return the total size of all unverified votes
-   */
-  uint64_t getUnverifiedVotesSize() const;
-
   // Verified votes
   /**
    * @brief Add a vote to the verified votes map
    * @param vote vote
+   *
+   * @return true if vote was successfully added, otherwise false
    */
-  void addVerifiedVote(std::shared_ptr<Vote> const& vote);
+  bool addVerifiedVote(std::shared_ptr<Vote> const& vote);
 
   /**
    * @brief Check if the vote has been in the verified votes map
    * @param vote vote
    * @return true if exist
    */
-  bool voteInVerifiedMap(std::shared_ptr<Vote> const& vote);
+  bool voteInVerifiedMap(std::shared_ptr<Vote> const& vote) const;
 
   /**
-   * @brief Clear the verified votes map
+   * @brief Inserts unique vote
+   * @param vote
+   * @return true if vote was successfully inserted(it was unique) or this specific vote was already inserted, otherwise
+   * false
    */
-  void clearVerifiedVotesTable();
+  bool insertUniqueVote(const std::shared_ptr<Vote>& vote);
+
+  /**
+   * @param vote
+   * @return <true, ""> if vote is unique per round & step & voter, otherwise <false, "err msg">
+   */
+  std::pair<bool, std::string> isUniqueVote(const std::shared_ptr<Vote>& vote) const;
 
   /**
    * @brief Get all verified votes
    * @return all verified votes
    */
-  std::vector<std::shared_ptr<Vote>> getVerifiedVotes();
+  std::vector<std::shared_ptr<Vote>> getVerifiedVotes() const;
 
   /**
    * @brief Get the total size of all verified votes
    * @return the total size of all verified votes
    */
   uint64_t getVerifiedVotesSize() const;
-
-  /**
-   * @brief Move all verified votes to the unverified map. Since PBFT chain has pushed new blocks, that will affect DPOS
-   * eligible votes count and players' eligibility
-   */
-  void removeVerifiedVotes();
-
-  /**
-   * @brief Cleanup votes for previous PBFT rounds and verify all unverified votes
-   * @param pbft_round current PBFT round
-   * @param is_valid vote validation function
-   */
-  void verifyVotes(uint64_t pbft_round, std::function<bool(std::shared_ptr<Vote> const&)> const& is_valid);
 
   /**
    * @brief Cleanup votes for previous PBFT rounds
@@ -251,37 +186,49 @@ class VoteManager {
   /**
    * @brief Get all verified votes in proposal vote type for the current PBFT round
    * @param pbft_round current PBFT round
+   * @param previous_round_period previous PBFT round period
    * @return all verified votes in proposal vote type for the current PBFT round
    */
-  std::vector<std::shared_ptr<Vote>> getProposalVotes(uint64_t pbft_round);
+  std::vector<std::shared_ptr<Vote>> getProposalVotes(uint64_t pbft_round, uint64_t previous_round_period) const;
 
   /**
    * @brief Get a bunch of votes that vote on the same voting value in the specific PBFT round and step, the total votes
    * weights must be greater or equal to PBFT 2t+1
    * @param round PBFT round
+   * @param previous_round_period previous PBFT round period
    * @param step PBFT step
    * @param two_t_plus_one PBFT 2t+1 is 2/3 of PBFT sortition threshold and plus 1
    * @return VotesBundle a bunch of votes that vote on the same voting value in the specific PBFT round and step
    */
-  std::optional<VotesBundle> getVotesBundleByRoundAndStep(uint64_t round, size_t step, size_t two_t_plus_one);
+  std::optional<VotesBundle> getVotesBundle(uint64_t round, uint64_t previous_round_period, size_t step,
+                                            size_t two_t_plus_one) const;
 
   /**
-   * @brief Check if there are enough next voting type votes to set PBFT to a forward round
+   * @brief Check if there are enough next voting type votes to set PBFT to a forward round & period
    * @param two_t_plus_one PBFT 2t+1 is 2/3 of PBFT sortition threshold and plus 1
-   * @return a new PBFT round number if there are enough next voting type votes. Otherwise return 0
+   * @return pair<new PBFT round, new PBFR period> if there is enough next votes. Otherwise return nullopt
    */
-  uint64_t roundDeterminedFromVotes(size_t two_t_plus_one);
+  std::optional<std::pair<uint64_t, uint64_t>> determineRoundAndPeriodFromVotes(size_t two_t_plus_one);
 
   // reward votes
+  /**
+   * @return current rewards votes <pbft block hash, pbft block period>
+   */
+  std::pair<blk_hash_t, uint64_t> getCurrentRewardsVotesBlock() const;
 
   /**
    * @brief Add last period cert vote to reward_votes_ after the cert vote voted block finalized
-   *
    * @param cert vote voted to last period PBFT block
    *
-   * @return true if add successful
+   * @return true if vote was successfully added, otherwise false
    */
   bool addRewardVote(const std::shared_ptr<Vote>& vote);
+
+  /**
+   * @param vote_hash
+   * @return true if vote_hash is already in rewards_votes, otheriwse false
+   */
+  bool isInRewardsVotes(const vote_hash_t& vote_hash) const;
 
   /**
    * @brief Check reward_votes_ if including all reward votes for the PBFT block
@@ -328,25 +275,6 @@ class VoteManager {
    */
   void sendRewardVotes(const blk_hash_t& pbft_block_hash);
 
-  /**
-   * @brief Verify reward vote
-   *
-   * @param cert vote voted to last period PBFT block
-   *
-   * @return true if pass vote verification
-   */
-  bool verifyRewardVote(const std::shared_ptr<Vote>& vote);
-
-  /**
-   * @brief Verify reward vote
-   *
-   * @param cert vote voted to last period PBFT block
-   * @param period period
-   *
-   * @return true if pass vote verification
-   */
-  bool verifyRewardVoteForPeriod(const std::shared_ptr<Vote>& vote, uint64_t period);
-
  private:
   /**
    * @brief Retrieve all verified votes from DB to the verified votes map. And broadcast all next voting type votes to
@@ -356,42 +284,40 @@ class VoteManager {
 
   using UniqueLock = boost::unique_lock<boost::shared_mutex>;
   using SharedLock = boost::shared_lock<boost::shared_mutex>;
-  using UpgradableLock = boost::upgrade_lock<boost::shared_mutex>;
-  using UpgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
-
-  // <pbft round, <vote hash, vote>>
-  std::map<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>> unverified_votes_;
-
-  // <PBFT round, <PBFT step, <voted value, pair<voted weight, <vote hash, vote>>>>
-  std::map<
-      uint64_t,
-      std::map<size_t, std::unordered_map<blk_hash_t,
-                                          std::pair<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>>>>
-      verified_votes_;
-
-  std::unordered_set<vote_hash_t> votes_invalid_in_current_final_chain_period_;
-  blk_hash_t current_period_final_chain_block_hash_;
-  std::unordered_map<addr_t, uint64_t> max_received_round_for_address_;
-
-  std::unique_ptr<std::thread> daemon_;
-
-  mutable boost::shared_mutex unverified_votes_access_;
-  mutable boost::shared_mutex verified_votes_access_;
-
-  const size_t pbft_committee_size_;
-  const addr_t node_addr_;
 
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<NextVotesManager> next_votes_manager_;
-  std::shared_ptr<KeyManager> key_manager_;
   std::weak_ptr<Network> network_;
 
-  blk_hash_t reward_votes_pbft_block_hash_;
+  std::unique_ptr<std::thread> daemon_;
+
+  // TODO[1907]: this will be part of VerifiedVotes class
+  // <PBFT round, <PBFT period <PBFT step, <voted value, pair<voted weight, <vote hash, vote>>>>>
+  std::map<uint64_t,
+           std::unordered_map<
+               uint64_t,
+               std::map<size_t,
+                        std::unordered_map<
+                            blk_hash_t, std::pair<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>>>>>
+      verified_votes_;
+  mutable boost::shared_mutex verified_votes_access_;
+
+  // <PBFT round, <PBFT step, <voter address, pair<vote 1, vote 2>>>>
+  // For next votes we enable 2 votes per round & step, one of which must be vote for NULL_BLOCK_HASH
+  std::map<uint64_t, std::unordered_map<
+                         size_t, std::unordered_map<addr_t, std::pair<std::shared_ptr<Vote>, std::shared_ptr<Vote>>>>>
+      voters_unique_votes_;
+  mutable std::shared_mutex voters_unique_votes_mutex_;
+  // TODO[1907]: end of VerifiedVotes class
+
+  // TODO[1907]: this will be part of RewardVotes class
+  std::pair<blk_hash_t, uint64_t /* period */> reward_votes_pbft_block_;
   uint64_t last_pbft_block_cert_round_;
   std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> reward_votes_;
   mutable std::shared_mutex reward_votes_mutex_;
+  // TODO[1907]: end of RewardVotes class
 
   LOG_OBJECTS_DEFINE
 };
