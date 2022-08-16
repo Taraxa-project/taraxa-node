@@ -966,10 +966,11 @@ void PbftManager::firstFinish_() {
     }
   } else {
     // We only want to give up soft voted value IF:
-    // 1) haven't cert voted it
-    // 2) we are looking at value that was next voted in previous round
-    // 3) we don't have the block or if have block it can't be cert voted (yet)
-    bool giveUpSoftVotedBlockInFirstFinish = last_cert_voted_value_ == NULL_BLOCK_HASH &&
+    // 1) haven't been pushed/executed
+    // 2) haven't cert voted it
+    // 3) we are looking at value that was next voted in previous round
+    // 4) we don't have the block or if have block it can't be cert voted (yet)
+    bool giveUpSoftVotedBlockInFirstFinish = !have_executed_this_round_ && last_cert_voted_value_ == NULL_BLOCK_HASH &&
                                              own_starting_value_for_round_ == previous_round_next_voted_value_ &&
                                              giveUpSoftVotedBlock_() &&
                                              !compareBlocksAndRewardVotes_(own_starting_value_for_round_);
@@ -1041,12 +1042,14 @@ void PbftManager::secondFinish_() {
   }
 
   // We only want to give up soft voted value IF:
-  // 1) haven't cert voted it
-  // 2) we are looking at value that was next voted in previous round
-  // 3) we don't have the block or if have block it can't be cert voted (yet)
-  bool giveUpSoftVotedBlockInSecondFinish =
-      last_cert_voted_value_ == NULL_BLOCK_HASH && last_soft_voted_value_ == previous_round_next_voted_value_ &&
-      giveUpSoftVotedBlock_() && !compareBlocksAndRewardVotes_(soft_voted_block_for_this_round_);
+  // 1) haven't been pushed/executed
+  // 2) haven't cert voted it
+  // 3) we are looking at value that was next voted in previous round
+  // 4) we don't have the block or if have block it can't be cert voted (yet)
+  bool giveUpSoftVotedBlockInSecondFinish = !have_executed_this_round_ && last_cert_voted_value_ == NULL_BLOCK_HASH &&
+                                            last_soft_voted_value_ == previous_round_next_voted_value_ &&
+                                            giveUpSoftVotedBlock_() &&
+                                            !compareBlocksAndRewardVotes_(soft_voted_block_for_this_round_);
 
   if (!next_voted_soft_value_ && soft_voted_block_for_this_round_ && !giveUpSoftVotedBlockInSecondFinish) {
     auto place_votes = placeVote_(soft_voted_block_for_this_round_, next_vote_type, round, step_);
