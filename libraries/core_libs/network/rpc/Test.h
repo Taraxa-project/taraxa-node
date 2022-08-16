@@ -3,20 +3,18 @@
 #include <future>
 
 #include "TestFace.h"
+#include "node/node.hpp"
 
 namespace dev::eth {
 class Client;
-}
-
-namespace taraxa {
-class FullNode;
 }
 
 namespace taraxa::net {
 
 class Test : public TestFace {
  public:
-  explicit Test(std::shared_ptr<taraxa::FullNode> const& _full_node) : full_node_(_full_node) {}
+  explicit Test(const std::shared_ptr<taraxa::FullNode>& _full_node)
+      : full_node_(_full_node), kChainId(_full_node->getConfig().chain_id) {}
   virtual RPCModules implementedModules() const override { return RPCModules{RPCModule{"test", "1.0"}}; }
 
   virtual Json::Value get_sortition_change(const Json::Value& param1) override;
@@ -29,6 +27,7 @@ class Test : public TestFace {
 
  private:
   std::weak_ptr<taraxa::FullNode> full_node_;
+  const uint64_t kChainId;
 };
 
 }  // namespace taraxa::net
