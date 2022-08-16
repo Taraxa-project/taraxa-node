@@ -53,7 +53,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
       }
 
       if (auto vote_is_valid = validateStandardVote(next_vote); vote_is_valid.first == false) {
-        LOG(log_er_) << "Vote " << next_vote_hash.abridged() << " validation failed. Err: " << vote_is_valid.second;
+        LOG(log_wr_) << "Vote " << next_vote_hash.abridged() << " validation failed. Err: " << vote_is_valid.second;
         continue;
       }
 
@@ -65,7 +65,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
       setVoterMaxRound(vote->getVoterAddr(), vote->getRound());
     } else {  // pbft_current_round == peer_pbft_round
       if (auto vote_is_valid = validateNextSyncVote(next_vote); vote_is_valid.first == false) {
-        LOG(log_er_) << "Next vote " << next_vote_hash.abridged()
+        LOG(log_wr_) << "Next vote " << next_vote_hash.abridged()
                      << " validation failed. Err: " << vote_is_valid.second;
         continue;
       }

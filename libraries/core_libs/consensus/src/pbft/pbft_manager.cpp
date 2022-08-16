@@ -683,7 +683,7 @@ bool PbftManager::stateOperations_() {
   elapsed_time_in_round_ms_ = std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
 
   auto [round, previous_round_period] = getPbftRoundAndPeriod();
-  LOG(log_dg_) << "PBFT current round(r): " << round << ", r-1 period: " << previous_round_period << ", step " << step_;
+  LOG(log_tr_) << "PBFT current round(r): " << round << ", r-1 period: " << previous_round_period << ", step " << step_;
 
   static bool is_new_round = false;
   if (is_new_round) {
@@ -1300,15 +1300,6 @@ uint64_t PbftManager::getPbftSortitionThreshold(PbftVoteTypes vote_type, uint64_
 
 size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t period,
                                uint64_t round, size_t step) {
-  // chain size must be => vote_period, it should be == for propose/soft/cert votes but it can be > for next votes
-  // as chain size might be incremented if block was certified during certify step
-  if (pbft_chain_->getPbftChainSize() < period - 1) {
-    LOG(log_dg_) << "Cannot place vote if out of sync. Chain size " << pbft_chain_->getPbftChainSize()
-                 << ", voted block " << blockhash << ", vote round " << round << ", vote period " << period
-                 << ", vote step " << step;
-    return 0;
-  }
-
   uint64_t voter_dpos_votes_count = 0;
   uint64_t total_dpos_votes_count = 0;
   uint64_t pbft_sortition_threshold = 0;
@@ -1349,6 +1340,7 @@ size_t PbftManager::placeVote_(taraxa::blk_hash_t const &blockhash, PbftVoteType
       LOG(log_er_) << "Generated vote " << vote->getHash().abridged()
                    << " is not unique. Err: " << is_unique_vote.second;
       assert(false);
+      return 0;
     }
   }
 

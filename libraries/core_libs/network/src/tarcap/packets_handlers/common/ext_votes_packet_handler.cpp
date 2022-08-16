@@ -94,7 +94,12 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateVote(const std::shar
     return unique_vote_validation;
   }
 
-  return pbft_mgr_->validateVote(vote);
+  const auto vote_valid = pbft_mgr_->validateVote(vote);
+  if (!vote_valid.first) {
+    LOG(log_er_) << "Vote \"dpos\" validation failed: " << vote_valid.second;
+  }
+
+  return vote_valid;
 }
 
 void ExtVotesPacketHandler::setVoterMaxRound(const addr_t &voter, uint64_t round) {

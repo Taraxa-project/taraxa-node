@@ -46,7 +46,7 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
       }
 
       if (auto vote_is_valid = validateRewardVote(vote); vote_is_valid.first == false) {
-        LOG(log_er_) << "Reward vote " << vote_hash.abridged() << " validation failed. Err: \"" << vote_is_valid.second
+        LOG(log_wr_) << "Reward vote " << vote_hash.abridged() << " validation failed. Err: \"" << vote_is_valid.second
                      << "\", vote round " << vote->getRound() << ", current round: " << current_pbft_round
                      << ", vote type: " << static_cast<uint64_t>(vote->getType());
         continue;
@@ -62,7 +62,7 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
       }
 
       if (auto vote_is_valid = validateStandardVote(vote); vote_is_valid.first == false) {
-        LOG(log_er_) << "Vote " << vote_hash.abridged() << " validation failed. Err: " << vote_is_valid.second;
+        LOG(log_wr_) << "Vote " << vote_hash.abridged() << " validation failed. Err: " << vote_is_valid.second;
         continue;
       }
 
