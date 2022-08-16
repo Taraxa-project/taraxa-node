@@ -59,7 +59,7 @@ void PacketsStats::logAndUpdateStats() {
   };
 
   auto tmp_received_packets_stats = received_packets_stats_.getStatsCopy();
-  auto tmp_sent_packets_stats = received_packets_stats_.getStatsCopy();
+  auto tmp_sent_packets_stats = sent_packets_stats_.getStatsCopy();
 
   auto period_received_packets_stats = tmp_received_packets_stats - previous_received_packets_stats;
   auto period_sent_packets_stats = tmp_sent_packets_stats - previous_sent_packets_stats;
