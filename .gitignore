@@ -4,6 +4,9 @@ compile_commands.json
 # clangd indexer cache
 .cache
 
+# ccls indexer cache 
+.ccls-cache
+
 .idea
 *.iml
 
