@@ -1033,6 +1033,7 @@ void PbftManager::certifyBlock_() {
 void PbftManager::firstFinish_() {
   // Even number steps from 4 are in first finish
   auto [round, previous_round_period] = getPbftRoundAndPeriod();
+  const auto propose_period = pbft_chain_->getPbftChainSize() + 1;
   LOG(log_dg_) << "PBFT first finishing state in round(r): " << round << ", r-1 period: " << previous_round_period;
 
   if (cert_voted_block_for_round_.has_value()) {
@@ -1068,10 +1069,9 @@ void PbftManager::firstFinish_() {
                                              !compareBlocksAndRewardVotes_(own_starting_value_for_round_.first);
 
     if (round >= 2 && (giveUpNextVotedBlock_() || giveUpSoftVotedBlockInFirstFinish)) {
-      if (auto vote_weight = placeVote_(NULL_BLOCK_HASH, next_vote_type, previous_round_period, round, step_);
-          vote_weight) {
+      if (auto vote_weight = placeVote_(NULL_BLOCK_HASH, next_vote_type, propose_period, round, step_); vote_weight) {
         LOG(log_nf_) << "Placed first finish next vote for " << NULL_BLOCK_HASH << ", vote weight " << vote_weight
-                     << ", round " << round << ", period " << previous_round_period << ", step " << step_;
+                     << ", round " << round << ", period " << propose_period << ", step " << step_;
       }
     } else {
       if (own_starting_value_for_round_.first != previous_round_next_voted_value_ &&
@@ -1116,6 +1116,7 @@ void PbftManager::firstFinish_() {
 void PbftManager::secondFinish_() {
   // Odd number steps from 5 are in second finish
   auto [round, previous_round_period] = getPbftRoundAndPeriod();
+  const auto propose_period = pbft_chain_->getPbftChainSize() + 1;
   LOG(log_dg_) << "PBFT second finishing state in round(r): " << round << ", r-1 period: " << previous_round_period;
 
   assert(step_ >= startingStepInRound_);
@@ -1172,10 +1173,9 @@ void PbftManager::secondFinish_() {
   }
 
   if (!next_voted_null_block_hash_ && round >= 2 && (giveUpSoftVotedBlockInSecondFinish || giveUpNextVotedBlock_())) {
-    if (auto vote_weight = placeVote_(NULL_BLOCK_HASH, next_vote_type, previous_round_period, round, step_);
-        vote_weight) {
+    if (auto vote_weight = placeVote_(NULL_BLOCK_HASH, next_vote_type, propose_period, round, step_); vote_weight) {
       LOG(log_nf_) << "Placed second finish vote for " << NULL_BLOCK_HASH << ", vote weight " << vote_weight
-                   << ", round " << round << ", period " << previous_round_period << ", step " << step_;
+                   << ", round " << round << ", period " << propose_period << ", step " << step_;
 
       db_->savePbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash, true);
       next_voted_null_block_hash_ = true;
