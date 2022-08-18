@@ -85,7 +85,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
 }
 
 TEST_F(PbftChainTest, proposal_block_broadcast) {
-  auto node_cfgs = make_node_cfgs<5>(3);
+  auto node_cfgs = make_node_cfgs<1>(3);
   auto nodes = launch_nodes(node_cfgs);
   auto &node1 = nodes[0];
   auto &node2 = nodes[1];
