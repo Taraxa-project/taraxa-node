@@ -1175,7 +1175,9 @@ void PbftManager::secondFinish_() {
                                          giveUpSoftVotedBlock_();
   }
 
-  if (!next_voted_null_block_hash_ && round >= 2 && (giveUpSoftVotedBlockInSecondFinish || giveUpNextVotedBlock_())) {
+  if (!next_voted_null_block_hash_ && round >= 2 &&
+      (giveUpSoftVotedBlockInSecondFinish || giveUpNextVotedBlock_() ||
+       (cert_voted_block_for_round_.has_value() && cert_voted_block_for_round_->second < propose_period))) {
     if (auto vote_weight = placeVote_(NULL_BLOCK_HASH, next_vote_type, propose_period, round, step_); vote_weight) {
       LOG(log_nf_) << "Placed second finish vote for " << NULL_BLOCK_HASH << ", vote weight " << vote_weight
                    << ", round " << round << ", period " << propose_period << ", step " << step_;
