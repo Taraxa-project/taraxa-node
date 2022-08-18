@@ -422,7 +422,10 @@ bool PbftManager::resetRound_() {
 
   // Reset soft voting leader & cert voted block values in the new upcoming round
   soft_voted_block_for_round_.reset();
-  cert_voted_block_for_round_.reset();
+  if (cert_voted_block_for_round_.has_value() &&
+      cert_voted_block_for_round_->second <= pbft_chain_->getPbftChainSize()) {
+    cert_voted_block_for_round_.reset();
+  }
 
   // Move to a new round, cleanup previous round votes
   vote_mgr_->cleanupVotes(determined_round);
@@ -1998,6 +2001,16 @@ bool PbftManager::giveUpSoftVotedBlock_() {
 
 bool PbftManager::giveUpNextVotedBlock_() {
   auto round = getPbftRound();
+
+  if (cert_voted_block_for_round_.has_value()) {
+    // Last cert voted value should equal to voted value
+    if (polling_state_print_log_) {
+      LOG(log_nf_) << "In round " << round << " step " << step_ << ", last cert voted value is "
+                   << cert_voted_block_for_round_->first;
+      polling_state_print_log_ = false;
+    }
+    return false;
+  }
 
   if (previous_round_next_voted_value_ == NULL_BLOCK_HASH) {
     // In round 1 also return here
