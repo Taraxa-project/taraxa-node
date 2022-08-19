@@ -50,9 +50,9 @@ class NextVotesManager {
 
   /**
    * @brief Get next voting type votes vote value
-   * @return next voting type votes vote value
+   * @return next voting type votes vote value and it's period
    */
-  blk_hash_t getVotedValue() const;
+  std::pair<blk_hash_t, uint64_t> getVotedValue() const;
 
   /**
    * @brief Get previous PBFT round all next voting type votes
@@ -106,6 +106,7 @@ class NextVotesManager {
 
   bool enough_votes_for_null_block_hash_;
   blk_hash_t voted_value_;  // For value is not null block hash
+  uint64_t voted_period_;
   // <voted PBFT block hash, next votes list that have exactly 2t+1 votes voted at the PBFT block hash>
   // only save votes == 2t+1 voted at same value in map and set
   std::unordered_map<blk_hash_t, std::vector<std::shared_ptr<Vote>>> next_votes_;

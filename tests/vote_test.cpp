@@ -297,7 +297,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount, 1, batch);
   db->commitWriteBatch(batch);
   next_votes_mgr->updateWithSyncedVotes(next_votes_2, pbft_2t_plus_1);
-  EXPECT_EQ(next_votes_mgr->getVotedValue(), voted_pbft_block_hash);
+  EXPECT_EQ(next_votes_mgr->getVotedValue().first, voted_pbft_block_hash);
   EXPECT_TRUE(next_votes_mgr->enoughNextVotes());
   auto expect_size = next_votes_1.size() + next_votes_2.size();
   EXPECT_EQ(expect_size, 2);
@@ -331,7 +331,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
 
   next_votes_mgr->updateNextVotes(next_votes_4, pbft_2t_plus_1);
   EXPECT_FALSE(next_votes_mgr->haveEnoughVotesForNullBlockHash());
-  EXPECT_EQ(next_votes_mgr->getVotedValue(), voted_pbft_block_hash);
+  EXPECT_EQ(next_votes_mgr->getVotedValue().first, voted_pbft_block_hash);
   EXPECT_FALSE(next_votes_mgr->enoughNextVotes());
   EXPECT_EQ(next_votes_mgr->getNextVotes().size(), next_votes_4.size());
   EXPECT_EQ(next_votes_mgr->getNextVotesWeight(), next_votes_4.size());

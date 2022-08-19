@@ -619,7 +619,8 @@ NextVotesManager::NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> 
     : db_(std::move(db)),
       final_chain_(std::move(final_chain)),
       enough_votes_for_null_block_hash_(false),
-      voted_value_(NULL_BLOCK_HASH) {
+      voted_value_(NULL_BLOCK_HASH),
+      voted_period_(0) {
   LOG_OBJECTS_CREATE("NEXT_VOTES");
 }
 
@@ -627,6 +628,7 @@ void NextVotesManager::clear() {
   UniqueLock lock(access_);
   enough_votes_for_null_block_hash_ = false;
   voted_value_ = NULL_BLOCK_HASH;
+  voted_period_ = 0;
   next_votes_.clear();
   next_votes_weight_.clear();
   next_votes_set_.clear();
@@ -647,9 +649,9 @@ bool NextVotesManager::haveEnoughVotesForNullBlockHash() const {
   return enough_votes_for_null_block_hash_;
 }
 
-blk_hash_t NextVotesManager::getVotedValue() const {
+std::pair<blk_hash_t, uint64_t> NextVotesManager::getVotedValue() const {
   SharedLock lock(access_);
-  return voted_value_;
+  return {voted_value_, voted_period_};
 }
 
 std::vector<std::shared_ptr<Vote>> NextVotesManager::getNextVotes() {
@@ -742,6 +744,7 @@ void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& ne
         }
 
         voted_value_ = voted_value;
+        voted_period_ = next_votes[0]->getPeriod();
       }
     } else {
       // Should not happen here, have checked at updateWithSyncedVotes. For safe
@@ -809,6 +812,7 @@ void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const&
         }
 
         voted_value_ = it->first;
+        voted_period_ = it->second[0]->getPeriod();
       }
 
       it++;
