@@ -785,12 +785,11 @@ void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const&
 
     next_votes_set_.insert(v->getHash());
     auto voted_block_hash = v->getBlockHash();
-    if (next_votes_.count(voted_block_hash)) {
+    if (next_votes_.contains(voted_block_hash)) {
       next_votes_[voted_block_hash].emplace_back(v);
       next_votes_weight_[voted_block_hash] += v->getWeight().value();
     } else {
-      std::vector<std::shared_ptr<Vote>> votes{v};
-      next_votes_[voted_block_hash] = std::move(votes);
+      next_votes_[voted_block_hash] = {v};
       next_votes_weight_[voted_block_hash] = v->getWeight().value();
     }
   }
@@ -886,11 +885,17 @@ void NextVotesManager::updateWithSyncedVotes(std::vector<std::shared_ptr<Vote>>&
 
   // Next votes for same voted value should be in the same step
   for (auto const& voted_value_and_votes : synced_next_votes) {
-    auto votes = voted_value_and_votes.second;
-    auto voted_step = votes[0]->getStep();
+    const auto& votes = voted_value_and_votes.second;
+    const auto voted_step = votes[0]->getStep();
+    const auto voted_period = votes[0]->getPeriod();
     for (size_t i = 1; i < votes.size(); i++) {
       if (votes[i]->getStep() != voted_step) {
         LOG(log_er_) << "Synced next votes have a different voted PBFT step. Vote1 " << *votes[0] << ", Vote2 "
+                     << *votes[i];
+        return;
+      }
+      if (votes[i]->getPeriod() != voted_period) {
+        LOG(log_er_) << "Synced next votes have a different voted PBFT period. Vote1 " << *votes[0] << ", Vote2 "
                      << *votes[i];
         return;
       }
