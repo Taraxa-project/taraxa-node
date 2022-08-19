@@ -693,7 +693,7 @@ bool PbftManager::stateOperations_() {
     // This check is done only at the beginning of new round by purpose as chain size might change after cert vote step
     // when new cert voted block is pushed into the chain
     const auto chain_size = pbft_chain_->getPbftChainSize();
-    if (chain_size + 1 != period) {
+    if (chain_size + 1 < period) {
       LOG(log_wr_) << "Period determined from next votes: " << period << " != chain size + 1: " << chain_size + 1
                    << ". Wait to get in sync.";
       using namespace std::chrono_literals;
@@ -816,7 +816,7 @@ void PbftManager::proposeBlock_() {
   // Round greater than 1
   if (next_votes_manager_->haveEnoughVotesForNullBlockHash()) {
     LOG(log_nf_) << "Previous round " << round - 1 << " next voted block is NULL_BLOCK_HASH";
-  } else if (previous_round_next_voted_value_) {
+  } else if (previous_round_next_voted_value_.first) {
     LOG(log_nf_) << "Previous round " << round - 1 << " next voted block is " << previous_round_next_voted_value_;
   } else {
     LOG(log_er_) << "Previous round " << round - 1 << " doesn't have enough next votes";
@@ -846,13 +846,12 @@ void PbftManager::proposeBlock_() {
   }
 
   // Re-propose block from previous round
-  if (!previous_round_next_voted_value_) {
+  if (!previous_round_next_voted_value_.first) {
     // There is no block from previous round, return
     return;
   }
 
-  // TODO: we dont need period for own starting value anymore
-  own_starting_value_for_round_ = {previous_round_next_voted_value_, 1};
+  own_starting_value_for_round_ = previous_round_next_voted_value_;
   db_->savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, own_starting_value_for_round_);
 
   auto pbft_block = pbft_chain_->getUnverifiedPbftBlock(own_starting_value_for_round_.first);
@@ -865,6 +864,13 @@ void PbftManager::proposeBlock_() {
                    << " from previous round in database";
       return;
     }
+  }
+
+  if (pbft_block->getPeriod() != own_starting_value_for_round_.second) {
+    LOG(log_er_) << "Previous round next voted block: " << pbft_block->getBlockHash()
+                 << " period: " << pbft_block->getPeriod()
+                 << " != previous round next votes pbft period: " << own_starting_value_for_round_.second;
+    return;
   }
 
   // place vote
@@ -908,13 +914,13 @@ void PbftManager::identifyBlock_() {
   }
 
   // Soft vote for block from previous round
-  if (!previous_round_next_voted_value_) {
+  if (!previous_round_next_voted_value_.first) {
     // There is no block from previous round, return
     return;
   }
 
-  // TODO: get also period from previous round next_voted_value
-  if (auto vote_weight = placeVote_(previous_round_next_voted_value_, soft_vote_type, period - 1, round, step_);
+  if (auto vote_weight = placeVote_(previous_round_next_voted_value_.first, soft_vote_type,
+                                    previous_round_next_voted_value_.second, round, step_);
       vote_weight) {
     LOG(log_nf_) << "Placed soft vote for block from previous round " << previous_round_next_voted_value_
                  << ", vote weight " << vote_weight << ", round " << round << ", period " << period - 1 << ", step "
@@ -924,7 +930,7 @@ void PbftManager::identifyBlock_() {
   // Generally this value will either be the same as last soft voted value from previous round
   // but a node could have observed a previous round next voted value that differs from what they
   // soft voted.
-  updateLastSoftVotedValue_(previous_round_next_voted_value_);
+  updateLastSoftVotedValue_(previous_round_next_voted_value_.first);
 }
 
 void PbftManager::certifyBlock_() {
@@ -1058,10 +1064,9 @@ void PbftManager::firstFinish_() {
     // 1) haven't cert voted it
     // 2) we are looking at value that was next voted in previous round
     // 3) we don't have the block or if have block it can't be cert voted (yet)
-    bool giveUpSoftVotedBlockInFirstFinish = !cert_voted_block_for_round_.has_value() &&
-                                             own_starting_value_for_round_.first == previous_round_next_voted_value_ &&
-                                             giveUpSoftVotedBlock_() &&
-                                             !compareBlocksAndRewardVotes_(own_starting_value_for_round_.first);
+    bool giveUpSoftVotedBlockInFirstFinish =
+        !cert_voted_block_for_round_.has_value() && own_starting_value_for_round_ == previous_round_next_voted_value_ &&
+        giveUpSoftVotedBlock_() && !compareBlocksAndRewardVotes_(own_starting_value_for_round_.first);
 
     if (round >= 2 && (giveUpNextVotedBlock_() || giveUpSoftVotedBlockInFirstFinish)) {
       if (auto vote_weight = placeVote_(NULL_BLOCK_HASH, next_vote_type, next_round_period, round, step_);
@@ -1070,20 +1075,18 @@ void PbftManager::firstFinish_() {
                      << ", round " << round << ", period " << next_round_period << ", step " << step_;
       }
     } else {
-      if (own_starting_value_for_round_.first != previous_round_next_voted_value_ &&
-          previous_round_next_voted_value_ != NULL_BLOCK_HASH &&
-          !pbft_chain_->findPbftBlockInChain(previous_round_next_voted_value_)) {
+      if (own_starting_value_for_round_ != previous_round_next_voted_value_ &&
+          previous_round_next_voted_value_.first != NULL_BLOCK_HASH &&
+          !pbft_chain_->findPbftBlockInChain(previous_round_next_voted_value_.first)) {
         if (own_starting_value_for_round_.first == NULL_BLOCK_HASH) {
-          // TODO: we dont need period for own_starting_value_for_round_ anymore
-          own_starting_value_for_round_ = {previous_round_next_voted_value_, 1};
+          own_starting_value_for_round_ = previous_round_next_voted_value_;
           db_->savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, own_starting_value_for_round_);
           LOG(log_dg_) << "Updating own starting value of NULL BLOCK HASH to previous round next voted value of "
                        << previous_round_next_voted_value_;
-        } else if (compareBlocksAndRewardVotes_(previous_round_next_voted_value_)) {
+        } else if (compareBlocksAndRewardVotes_(previous_round_next_voted_value_.first)) {
           // Check if we have received the previous round next voted value and its a viable value...
           // IF it is viable then reset own starting value to it...
-          // TODO: we dont need period for own_starting_value_for_round_ anymore
-          own_starting_value_for_round_ = {previous_round_next_voted_value_, 1};
+          own_starting_value_for_round_ = previous_round_next_voted_value_;
           db_->savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, own_starting_value_for_round_);
           LOG(log_dg_) << "Updating own starting value of " << own_starting_value_for_round_
                        << " to previous round next voted value of " << previous_round_next_voted_value_;
@@ -1144,7 +1147,7 @@ void PbftManager::secondFinish_() {
 
     // we did not cert vote
     giveUpSoftVotedBlockInSecondFinish =
-        !cert_voted_block_for_round_.has_value() && last_soft_voted_value_ == previous_round_next_voted_value_ &&
+        !cert_voted_block_for_round_.has_value() && last_soft_voted_value_ == previous_round_next_voted_value_.first &&
         giveUpSoftVotedBlock_() && !compareBlocksAndRewardVotes_(current_round_soft_voted_block);
 
     if (!next_voted_soft_value_ && !giveUpSoftVotedBlockInSecondFinish) {
@@ -1164,7 +1167,7 @@ void PbftManager::secondFinish_() {
 
     // we did not cert vote
     giveUpSoftVotedBlockInSecondFinish = !cert_voted_block_for_round_.has_value() &&
-                                         last_soft_voted_value_ == previous_round_next_voted_value_ &&
+                                         last_soft_voted_value_ == previous_round_next_voted_value_.first &&
                                          giveUpSoftVotedBlock_();
   }
 
@@ -1968,7 +1971,7 @@ bool PbftManager::giveUpSoftVotedBlock_() {
   unsigned long elapsed_wait_soft_voted_block_in_ms =
       std::chrono::duration_cast<std::chrono::milliseconds>(soft_voted_block_wait_duration).count();
 
-  auto pbft_block = getUnfinalizedBlock_(previous_round_next_voted_value_);
+  auto pbft_block = getUnfinalizedBlock_(previous_round_next_voted_value_.first);
   if (pbft_block) {
     // Have a block, but is it valid?
     if (!pbft_chain_->checkPbftBlockValidation(*pbft_block)) {
@@ -2003,7 +2006,7 @@ bool PbftManager::giveUpNextVotedBlock_() {
     return false;
   }
 
-  if (previous_round_next_voted_value_ == NULL_BLOCK_HASH) {
+  if (previous_round_next_voted_value_.first == NULL_BLOCK_HASH) {
     // In round 1 also return here
     LOG(log_nf_) << "In round " << round << " step " << step_
                  << ", have received 2t+1 next votes for NULL_BLOCK_HASH for previous round.";
@@ -2015,14 +2018,14 @@ bool PbftManager::giveUpNextVotedBlock_() {
     return true;
   }
 
-  if (pbft_chain_->findPbftBlockInChain(previous_round_next_voted_value_)) {
+  if (pbft_chain_->findPbftBlockInChain(previous_round_next_voted_value_.first)) {
     LOG(log_nf_) << "In round " << round << " step " << step_
                  << ", find voted value in PBFT chain already. Give up voted value "
                  << previous_round_next_voted_value_;
     return true;
   }
 
-  auto pbft_block = getUnfinalizedBlock_(previous_round_next_voted_value_);
+  auto pbft_block = getUnfinalizedBlock_(previous_round_next_voted_value_.first);
   if (pbft_block) {
     // Have a block, but is it valid?
     if (!pbft_chain_->checkPbftBlockValidation(*pbft_block)) {
