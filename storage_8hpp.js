@@ -14,7 +14,7 @@ var storage_8hpp =
     ] ],
     [ "PbftMgrRoundStep", "storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224", [
       [ "PbftRound", "storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224a368025ae02d047204ec026bff0232090", null ],
-      [ "PreviousRoundPbftPeriod", "storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224aa9a764a4355ce665a6880f77da2827b0", null ],
+      [ "PbftPeriod", "storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224ab13e6c9bd72b53e7746f31c3b932df8f", null ],
       [ "PbftStep", "storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224ab2b75dec75a0f988aec09198090e6e88", null ]
     ] ],
     [ "PbftMgrStatus", "storage_8hpp.html#ab954ed608508c8193f4517797b4dae8e", [

@@ -1,5 +1,6 @@
 var NAVTREEINDEX19 =
 {
+"sortition__params__manager_8hpp_source.html":[12,0,1,4,0,0,0,3],
 "state__api_8cpp.html":[12,0,1,4,0,1,1,4],
 "state__api_8cpp.html#a170ab0e9bbb9e6facc0e57e972d8231f":[12,0,1,4,0,1,1,4,10],
 "state__api_8cpp.html#a21f5167bc7fd439ed8b01d89c1bd814e":[12,0,1,4,0,1,1,4,4],
@@ -78,7 +79,7 @@ var NAVTREEINDEX19 =
 "storage_8hpp.html#a32216cff36a3565783afe8fa0099ae89":[12,0,1,4,3,0,0,1,6],
 "storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224":[12,0,1,4,3,0,0,1,8],
 "storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224a368025ae02d047204ec026bff0232090":[12,0,1,4,3,0,0,1,8,0],
-"storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224aa9a764a4355ce665a6880f77da2827b0":[12,0,1,4,3,0,0,1,8,1],
+"storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224ab13e6c9bd72b53e7746f31c3b932df8f":[12,0,1,4,3,0,0,1,8,1],
 "storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224ab2b75dec75a0f988aec09198090e6e88":[12,0,1,4,3,0,0,1,8,2],
 "storage_8hpp.html#a8e508ba78029ac1c479821219bebc249":[12,0,1,4,3,0,0,1,7],
 "storage_8hpp.html#a8e508ba78029ac1c479821219bebc249a461b57f71ed39e1f41cefd2a353d634c":[12,0,1,4,3,0,0,1,7,1],
@@ -220,8 +221,8 @@ var NAVTREEINDEX19 =
 "structdev_1_1p2p_1_1_find_node.html#aa2d6118a2ade86aa6b464dba3d61f08a":[11,0,1,1,8,1],
 "structdev_1_1p2p_1_1_find_node.html#ae786f2d5f11db32aa749fd8e846a3dcf":[11,0,1,1,8,4],
 "structdev_1_1p2p_1_1_host.html":[11,0,1,1,9],
-"structdev_1_1p2p_1_1_host.html#a02347e7bf3c420974812af9b3e701737":[11,0,1,1,9,1,2],
 "structdev_1_1p2p_1_1_host.html#a02347e7bf3c420974812af9b3e701737":[12,0,1,0,2,9,4,2],
+"structdev_1_1p2p_1_1_host.html#a02347e7bf3c420974812af9b3e701737":[11,0,1,1,9,1,2],
 "structdev_1_1p2p_1_1_host.html#a071593a39c481a0cad338c976fe39786":[11,0,1,1,9,66],
 "structdev_1_1p2p_1_1_host.html#a0e538e8d25bf6374eed667d53698fecd":[11,0,1,1,9,28],
 "structdev_1_1p2p_1_1_host.html#a0ffacbabf44a7843d24d6831f6fb7c63":[11,0,1,1,9,67],
@@ -248,6 +249,5 @@ var NAVTREEINDEX19 =
 "structdev_1_1p2p_1_1_host.html#a4f170aae51e527db4605ddc4097a9e62":[11,0,1,1,9,44],
 "structdev_1_1p2p_1_1_host.html#a51239084dd8d29c8adbf725c4aee5208":[11,0,1,1,9,8],
 "structdev_1_1p2p_1_1_host.html#a58f9bae75580d1d522fd3b0300949615":[11,0,1,1,9,58],
-"structdev_1_1p2p_1_1_host.html#a5a61db7ee55fff50544cdcfa7b913e0e":[11,0,1,1,9,74],
-"structdev_1_1p2p_1_1_host.html#a5bfc3d72250374fcc0273b355a23b8e3":[11,0,1,1,9,36]
+"structdev_1_1p2p_1_1_host.html#a5a61db7ee55fff50544cdcfa7b913e0e":[11,0,1,1,9,74]
 };
