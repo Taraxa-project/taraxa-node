@@ -460,10 +460,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Identify a leader block from all received proposed PBFT blocks for the current round by using minimum
    * Verifiable Random Function (VRF) output. In filter state, don’t need check vote value correction.
    * @param round current pbft round
-   * @param previous_round_period previous pbft round period
+   * @param period new pbft period (perriod == chain_size + 1)
    * @return optional(pair<PBFT leader block hash, PBFT leader period>)
    */
-  std::optional<std::pair<blk_hash_t, uint64_t>> identifyLeaderBlock_(uint64_t round, uint64_t previous_round_period);
+  std::optional<std::pair<blk_hash_t, uint64_t>> identifyLeaderBlock_(uint64_t round, uint64_t period);
 
   /**
    * @brief Calculate the lowest hash of a vote by vote weight
@@ -630,7 +630,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   PbftStates state_ = value_proposal_state;
 
   std::atomic<uint64_t> round_ = 1;
-  std::atomic<uint64_t> previous_round_period_ = 1;
+  std::atomic<uint64_t> period_ = 1;
   size_t step_ = 1;
   size_t startingStepInRound_ = 1;
 
@@ -640,6 +640,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   // TODO: was blk_hash_t last_cert_voted_value_ = NULL_BLOCK_HASH; and it was set to NULL_BLOCK_HASH in pushBlock
   std::optional<std::pair<blk_hash_t, uint64_t /* period */>> cert_voted_block_for_round_{};
 
+  std::pair<blk_hash_t, uint64_t /* period */> previous_round_next_voted_value_{NULL_BLOCK_HASH, 0};
+  bool previous_round_next_voted_null_block_hash_ = false;
+
   // Period data for pbft block that is being currently cert voted for
   PeriodData period_data_;
 
@@ -648,8 +651,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   time_point time_began_waiting_next_voted_block_;
   time_point time_began_waiting_soft_voted_block_;
-  blk_hash_t previous_round_next_voted_value_ = NULL_BLOCK_HASH;
-  bool previous_round_next_voted_null_block_hash_ = false;
 
   blk_hash_t last_soft_voted_value_ = NULL_BLOCK_HASH;
 

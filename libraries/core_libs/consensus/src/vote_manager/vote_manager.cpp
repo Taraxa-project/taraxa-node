@@ -326,11 +326,9 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
   db_->commitWriteBatch(batch);
 }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t pbft_round,
-                                                                 uint64_t previous_round_period) const {
+std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t round, uint64_t period) const {
   SharedLock lock(verified_votes_access_);
-  // For each proposed value should only have one vote(except NULL_BLOCK_HASH)
-  const auto found_round_it = verified_votes_.find(pbft_round);
+  const auto found_round_it = verified_votes_.find(round);
   if (found_round_it == verified_votes_.end()) {
     return {};
   }
@@ -338,45 +336,31 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t pbft_r
   // There is multiple different periods in propose votes for the same round
   if (found_round_it->second.size() > 1) {
     LOG(log_wr_) << "There is multiple different periods in propose votes for the same round. Num of periods: "
-                 << found_round_it->second.size() << ", round " << pbft_round;
+                 << found_round_it->second.size() << ", round " << round;
   }
 
-  const auto chain_size = pbft_chain_->getPbftChainSize();
+  const auto found_period_it = found_round_it->second.find(period);
+  if (found_period_it == found_round_it->second.end()) {
+    return {};
+  }
+
+  const auto found_proposal_step_it = found_period_it->second.find(1);
+  if (found_proposal_step_it == found_period_it->second.end()) {
+    return {};
+  }
 
   std::vector<std::shared_ptr<Vote>> proposal_votes;
-  for (const auto& period_votes : found_round_it->second) {
-    // If previous_round_period is N, then proposed blocks should have only
-    // - period == previous_round_period(re-proposed blocks from previous round)
-    // - or period == previous_round_period + 1 (newly proposed blocks)
-    if (period_votes.first < previous_round_period || period_votes.first > previous_round_period + 1) {
-      LOG(log_wr_) << "Propose votes period " << period_votes.first << ", previous_round_period "
-                   << previous_round_period;
-      continue;
-    }
-
-    // If current chain size is N, then then proposed blocks should have only N + 1 period
-    if (period_votes.first <= chain_size) {
-      LOG(log_wr_) << "Propose votes period " << period_votes.first << ", chain size " << chain_size;
-      continue;
-    }
-
-    const auto found_proposal_step_it = period_votes.second.find(1);
-    if (found_proposal_step_it == period_votes.second.end()) {
-      continue;
-    }
-
-    for (const auto& voted_value : found_proposal_step_it->second) {
-      // Multiple nodes might re-propose the same block from previous round
-      for (const auto& vote_pair : voted_value.second.second) {
-        proposal_votes.emplace_back(vote_pair.second);
-      }
+  for (const auto& voted_value : found_proposal_step_it->second) {
+    // Multiple nodes might re-propose the same block from previous round
+    for (const auto& vote_pair : voted_value.second.second) {
+      proposal_votes.emplace_back(vote_pair.second);
     }
   }
 
   return proposal_votes;
 }
 
-std::optional<VotesBundle> VoteManager::getVotesBundle(uint64_t round, uint64_t previous_round_period, size_t step,
+std::optional<VotesBundle> VoteManager::getVotesBundle(uint64_t round, uint64_t period, size_t step,
                                                        size_t two_t_plus_one) const {
   SharedLock lock(verified_votes_access_);
   const auto found_round_it = verified_votes_.find(round);
@@ -390,62 +374,48 @@ std::optional<VotesBundle> VoteManager::getVotesBundle(uint64_t round, uint64_t 
                  << found_round_it->second.size() << ", round " << round << ", step " << step;
   }
 
-  const auto chain_size = pbft_chain_->getPbftChainSize();
+  const auto found_period_it = found_round_it->second.find(period);
+  if (found_period_it == found_round_it->second.end()) {
+    return {};
+  }
+
+  const auto found_step_it = found_period_it->second.find(step);
+  if (found_step_it == found_period_it->second.end()) {
+    return {};
+  }
 
   VotesBundle votes_bundle;
-  for (const auto& period_votes : found_round_it->second) {
-    // If previous_round_period is N, then proposed blocks should have only
-    // - period == previous_round_period(re-proposed blocks from previous round)
-    // - or period == previous_round_period + 1 (newly proposed blocks)
-    if (period_votes.first < previous_round_period || period_votes.first > previous_round_period + 1) {
-      LOG(log_wr_) << "Propose votes period " << period_votes.first << ", previous_round_period "
-                   << previous_round_period;
+  for (const auto& voted_value : found_step_it->second) {
+    if (voted_value.second.first < two_t_plus_one) {
       continue;
     }
 
-    // If current chain size is N, then then proposed blocks should have only N + 1 period
-    if (period_votes.first <= chain_size) {
-      LOG(log_wr_) << "Propose votes period " << period_votes.first << ", chain size " << chain_size;
-      continue;
-    }
+    // It should never happen that there is 2t+1 votes for the same round and possibly different period or different
+    // voted value
+    assert(votes_bundle.votes.empty());
 
-    const auto found_step_it = period_votes.second.find(step);
-    if (found_step_it == period_votes.second.end()) {
-      continue;
-    }
+    size_t count = 0;
+    votes_bundle.votes.reserve(voted_value.second.second.size());
+    for (const auto& v : voted_value.second.second) {
+      assert(v.second->getWeight().has_value());
+      votes_bundle.votes.emplace_back(v.second);
+      count += *v.second->getWeight();
 
-    for (const auto& voted_value : found_step_it->second) {
-      if (voted_value.second.first < two_t_plus_one) {
-        continue;
+      // For certify votes - collect all votes, for all other vote types, collect just 2t+1 votes
+      if (step != certify_state && count >= two_t_plus_one) {
+        break;
       }
-
-      // It should never happen that there is 2t+1 votes for the same round and possibly different period or different
-      // voted value
-      assert(votes_bundle.votes.empty());
-
-      size_t count = 0;
-      votes_bundle.votes.reserve(voted_value.second.second.size());
-      for (const auto& v : voted_value.second.second) {
-        assert(v.second->getWeight().has_value());
-        votes_bundle.votes.emplace_back(v.second);
-        count += *v.second->getWeight();
-
-        // For certify votes - collect all votes, for all other vote types, collect just 2t+1 votes
-        if (step != certify_state && count >= two_t_plus_one) {
-          break;
-        }
-      }
-
-      votes_bundle.voted_block_hash = voted_value.first;
-      votes_bundle.votes_period = period_votes.first;
-      LOG(log_nf_) << "Found enough " << count << " votes at voted value " << votes_bundle.voted_block_hash
-                   << ", round: " << round << ", period: " << period_votes.first << ", step " << step;
-
-      // TODO: use "return votes_bundle;" here ?
-      // We could return here "return votes_bundle;", continue here is just to check if there is not any other period or
-      // voted value with 2t+1 votes, which would mean consensus is broken
-      continue;
     }
+
+    votes_bundle.voted_block_hash = voted_value.first;
+    votes_bundle.votes_period = period;
+    LOG(log_nf_) << "Found enough " << count << " votes at voted value " << votes_bundle.voted_block_hash
+                 << ", round: " << round << ", period: " << period << ", step " << step;
+
+    // TODO: use "return votes_bundle;" here ?
+    // We could return here "return votes_bundle;", continue here is just to check if there is not any other period or
+    // voted value with 2t+1 votes, which would mean consensus is broken
+    continue;
   }
 
   // Not enough votes were found
@@ -649,7 +619,8 @@ NextVotesManager::NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> 
     : db_(std::move(db)),
       final_chain_(std::move(final_chain)),
       enough_votes_for_null_block_hash_(false),
-      voted_value_(NULL_BLOCK_HASH) {
+      voted_value_(NULL_BLOCK_HASH),
+      voted_period_(0) {
   LOG_OBJECTS_CREATE("NEXT_VOTES");
 }
 
@@ -657,6 +628,7 @@ void NextVotesManager::clear() {
   UniqueLock lock(access_);
   enough_votes_for_null_block_hash_ = false;
   voted_value_ = NULL_BLOCK_HASH;
+  voted_period_ = 0;
   next_votes_.clear();
   next_votes_weight_.clear();
   next_votes_set_.clear();
@@ -677,9 +649,9 @@ bool NextVotesManager::haveEnoughVotesForNullBlockHash() const {
   return enough_votes_for_null_block_hash_;
 }
 
-blk_hash_t NextVotesManager::getVotedValue() const {
+std::pair<blk_hash_t, uint64_t> NextVotesManager::getVotedValue() const {
   SharedLock lock(access_);
-  return voted_value_;
+  return {voted_value_, voted_period_};
 }
 
 std::vector<std::shared_ptr<Vote>> NextVotesManager::getNextVotes() {
@@ -772,6 +744,7 @@ void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& ne
         }
 
         voted_value_ = voted_value;
+        voted_period_ = next_votes[0]->getPeriod();
       }
     } else {
       // Should not happen here, have checked at updateWithSyncedVotes. For safe
@@ -812,12 +785,11 @@ void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const&
 
     next_votes_set_.insert(v->getHash());
     auto voted_block_hash = v->getBlockHash();
-    if (next_votes_.count(voted_block_hash)) {
+    if (next_votes_.contains(voted_block_hash)) {
       next_votes_[voted_block_hash].emplace_back(v);
       next_votes_weight_[voted_block_hash] += v->getWeight().value();
     } else {
-      std::vector<std::shared_ptr<Vote>> votes{v};
-      next_votes_[voted_block_hash] = std::move(votes);
+      next_votes_[voted_block_hash] = {v};
       next_votes_weight_[voted_block_hash] = v->getWeight().value();
     }
   }
@@ -839,6 +811,7 @@ void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const&
         }
 
         voted_value_ = it->first;
+        voted_period_ = it->second[0]->getPeriod();
       }
 
       it++;
@@ -912,11 +885,17 @@ void NextVotesManager::updateWithSyncedVotes(std::vector<std::shared_ptr<Vote>>&
 
   // Next votes for same voted value should be in the same step
   for (auto const& voted_value_and_votes : synced_next_votes) {
-    auto votes = voted_value_and_votes.second;
-    auto voted_step = votes[0]->getStep();
+    const auto& votes = voted_value_and_votes.second;
+    const auto voted_step = votes[0]->getStep();
+    const auto voted_period = votes[0]->getPeriod();
     for (size_t i = 1; i < votes.size(); i++) {
       if (votes[i]->getStep() != voted_step) {
         LOG(log_er_) << "Synced next votes have a different voted PBFT step. Vote1 " << *votes[0] << ", Vote2 "
+                     << *votes[i];
+        return;
+      }
+      if (votes[i]->getPeriod() != voted_period) {
+        LOG(log_er_) << "Synced next votes have a different voted PBFT period. Vote1 " << *votes[0] << ", Vote2 "
                      << *votes[i];
         return;
       }
