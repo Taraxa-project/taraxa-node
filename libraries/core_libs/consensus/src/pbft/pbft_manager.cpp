@@ -922,8 +922,8 @@ void PbftManager::identifyBlock_() {
   if (auto vote_weight = placeVote_(previous_round_next_voted_value_.first, soft_vote_type,
                                     previous_round_next_voted_value_.second, round, step_);
       vote_weight) {
-    LOG(log_nf_) << "Placed soft vote for block from previous round " << previous_round_next_voted_value_
-                 << ", vote weight " << vote_weight << ", round " << round << ", period " << period - 1 << ", step "
+    LOG(log_nf_) << "Placed soft vote for block from previous round " << previous_round_next_voted_value_.first
+                 << ", vote weight " << vote_weight << ", round " << round << ", period " << previous_round_next_voted_value_.second << ", step "
                  << step_;
   }
 
@@ -971,8 +971,6 @@ void PbftManager::certifyBlock_() {
                  << ", period " << period;
     return;
   }
-
-  // TODO: we are not checking if new cert voted block previous block hash exists ?
 
   LOG(log_tr_) << "Finished compareBlocksAndRewardVotes_";
 
