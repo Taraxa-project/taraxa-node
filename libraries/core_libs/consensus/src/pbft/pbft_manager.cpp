@@ -693,7 +693,7 @@ bool PbftManager::stateOperations_() {
     // This check is done only at the beginning of new round by purpose as chain size might change after cert vote step
     // when new cert voted block is pushed into the chain
     const auto chain_size = pbft_chain_->getPbftChainSize();
-    if (chain_size + 1 != period) {
+    if (chain_size + 1 < period) {
       LOG(log_wr_) << "Period determined from next votes: " << period << " != chain size + 1: " << chain_size + 1
                    << ". Wait to get in sync.";
       using namespace std::chrono_literals;
