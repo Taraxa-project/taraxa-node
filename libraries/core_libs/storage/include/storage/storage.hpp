@@ -37,7 +37,7 @@ enum PbftMgrPreviousRoundStatus : uint8_t {
   PreviousRoundDposTotalVotesCount
 };
 
-enum PbftMgrRoundStep : uint8_t { PbftRound = 0, PreviousRoundPbftPeriod, PbftStep };
+enum PbftMgrRoundStep : uint8_t { PbftRound = 0, PbftPeriod, PbftStep };
 
 enum PbftMgrStatus : uint8_t {
   ExecutedBlock = 0,

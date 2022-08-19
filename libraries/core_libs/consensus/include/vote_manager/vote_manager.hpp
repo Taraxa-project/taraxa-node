@@ -185,23 +185,22 @@ class VoteManager {
 
   /**
    * @brief Get all verified votes in proposal vote type for the current PBFT round
-   * @param pbft_round current PBFT round
-   * @param previous_round_period previous PBFT round period
+   * @param round current PBFT round
+   * @param period new PBFT period (period == chain_size + 1)
    * @return all verified votes in proposal vote type for the current PBFT round
    */
-  std::vector<std::shared_ptr<Vote>> getProposalVotes(uint64_t pbft_round, uint64_t previous_round_period) const;
+  std::vector<std::shared_ptr<Vote>> getProposalVotes(uint64_t round, uint64_t period) const;
 
   /**
    * @brief Get a bunch of votes that vote on the same voting value in the specific PBFT round and step, the total votes
    * weights must be greater or equal to PBFT 2t+1
    * @param round PBFT round
-   * @param previous_round_period previous PBFT round period
+   * @param period PBFT period
    * @param step PBFT step
    * @param two_t_plus_one PBFT 2t+1 is 2/3 of PBFT sortition threshold and plus 1
    * @return VotesBundle a bunch of votes that vote on the same voting value in the specific PBFT round and step
    */
-  std::optional<VotesBundle> getVotesBundle(uint64_t round, uint64_t previous_round_period, size_t step,
-                                            size_t two_t_plus_one) const;
+  std::optional<VotesBundle> getVotesBundle(uint64_t round, uint64_t period, size_t step, size_t two_t_plus_one) const;
 
   /**
    * @brief Check if there are enough next voting type votes to set PBFT to a forward round & period
