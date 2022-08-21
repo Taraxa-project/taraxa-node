@@ -234,21 +234,21 @@ TEST_F(TransactionTest, transaction_low_nonce) {
                                                          secret_t::random());
 
   // Verify dag blocks will pass verification if contain low nonce or insufficient balance transactions
-  EXPECT_FALSE(trx_mgr.checkBlockTransactions(dag_blk_with_low_nonce_transaction));
+  EXPECT_FALSE(trx_mgr.getBlockTransactions(dag_blk_with_low_nonce_transaction).has_value());
   trx_mgr.insertValidatedTransactions({{trx_low_nonce, TransactionStatus::LowNonce}});
-  EXPECT_TRUE(trx_mgr.checkBlockTransactions(dag_blk_with_low_nonce_transaction));
-  EXPECT_FALSE(trx_mgr.checkBlockTransactions(dag_blk_with_insufficient_balance_transaction));
+  EXPECT_TRUE(trx_mgr.getBlockTransactions(dag_blk_with_low_nonce_transaction).has_value());
+  EXPECT_FALSE(trx_mgr.getBlockTransactions(dag_blk_with_insufficient_balance_transaction).has_value());
   trx_mgr.insertValidatedTransactions({{trx_insufficient_balance, TransactionStatus::InsufficentBalance}});
-  EXPECT_TRUE(trx_mgr.checkBlockTransactions(dag_blk_with_insufficient_balance_transaction));
+  EXPECT_TRUE(trx_mgr.getBlockTransactions(dag_blk_with_insufficient_balance_transaction).has_value());
 
   trx_mgr.blockFinalized(11);
-  EXPECT_TRUE(trx_mgr.checkBlockTransactions(dag_blk_with_low_nonce_transaction));
-  EXPECT_TRUE(trx_mgr.checkBlockTransactions(dag_blk_with_insufficient_balance_transaction));
+  EXPECT_TRUE(trx_mgr.getBlockTransactions(dag_blk_with_low_nonce_transaction).has_value());
+  EXPECT_TRUE(trx_mgr.getBlockTransactions(dag_blk_with_insufficient_balance_transaction).has_value());
 
   // Verify that after 10 executed blocks transactions expire
   trx_mgr.blockFinalized(12);
-  EXPECT_FALSE(trx_mgr.checkBlockTransactions(dag_blk_with_low_nonce_transaction));
-  EXPECT_FALSE(trx_mgr.checkBlockTransactions(dag_blk_with_insufficient_balance_transaction));
+  EXPECT_FALSE(trx_mgr.getBlockTransactions(dag_blk_with_low_nonce_transaction).has_value());
+  EXPECT_FALSE(trx_mgr.getBlockTransactions(dag_blk_with_insufficient_balance_transaction).has_value());
 }
 
 TEST_F(TransactionTest, transaction_concurrency) {

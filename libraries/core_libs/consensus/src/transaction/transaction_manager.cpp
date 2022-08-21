@@ -21,12 +21,6 @@ TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_p
   }
 }
 
-uint64_t TransactionManager::estimateTransactionGasByHash(const trx_hash_t &hash,
-                                                          std::optional<uint64_t> proposal_period) const {
-  const auto &trx = getTransaction(hash);
-  return estimateTransactionGas(trx, proposal_period);
-}
-
 uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction> trx,
                                                     std::optional<uint64_t> proposal_period) const {
   const auto &result = final_chain_->call(
@@ -313,7 +307,9 @@ SharedTransactions TransactionManager::getAllPoolTrxs() {
  */
 void TransactionManager::updateFinalizedTransactionsStatus(PeriodData const &period_data) {
   // !!! There is no lock because it is called under std::unique_lock trx_lock(trx_mgr_->getTransactionsMutex());
+  last_finalized_block_transactions_.clear();
   for (auto const &trx : period_data.transactions) {
+    last_finalized_block_transactions_[trx->getHash()] = trx;
     if (!nonfinalized_transactions_in_dag_.erase(trx->getHash())) {
       trx_count_++;
     } else {
@@ -341,24 +337,48 @@ void TransactionManager::moveNonFinalizedTransactionsToTransactionsPool(std::uno
 }
 
 // Verify all block transactions are present
-bool TransactionManager::checkBlockTransactions(DagBlock const &blk) {
+std::optional<std::map<trx_hash_t, std::shared_ptr<Transaction>>> TransactionManager::getBlockTransactions(
+    DagBlock const &blk) {
+  vec_trx_t finalized_trx_hashes;
   vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
   if (all_block_trx_hashes.empty()) {
     LOG(log_er_) << "Ignore block " << blk.getHash() << " since it has no transactions";
-    return false;
+    return std::nullopt;
   }
+
+  std::map<trx_hash_t, std::shared_ptr<Transaction>> transactions;
   {
     std::shared_lock transactions_lock(transactions_mutex_);
-    for (auto const &tx_hash : blk.getTrxs()) {
-      if (!transactions_pool_.contains(tx_hash) && !nonfinalized_transactions_in_dag_.contains(tx_hash) &&
-          !db_->transactionFinalized(tx_hash)) {
-        LOG(log_er_) << "Block " << blk.getHash() << " has missing transaction " << tx_hash;
-        return false;
+    for (auto const &tx_hash : all_block_trx_hashes) {
+      auto trx = transactions_pool_.get(tx_hash);
+      if (trx != nullptr) {
+        transactions.emplace(tx_hash, std::move(trx));
+      } else {
+        auto trx_it = nonfinalized_transactions_in_dag_.find(tx_hash);
+        if (trx_it != nonfinalized_transactions_in_dag_.end()) {
+          transactions.emplace(tx_hash, trx_it->second);
+        } else {
+          trx_it = last_finalized_block_transactions_.find(tx_hash);
+          if (trx_it != last_finalized_block_transactions_.end()) {
+            transactions.emplace(tx_hash, trx_it->second);
+          } else {
+            finalized_trx_hashes.emplace_back(tx_hash);
+          }
+        }
       }
+    }
+    auto finalizedTransactions = db_->getFinalizedTransactions(finalized_trx_hashes);
+    if (finalizedTransactions.first.has_value()) {
+      for (auto trx : *finalizedTransactions.first) {
+        transactions.emplace(trx->getHash(), trx);
+      }
+    } else {
+      LOG(log_er_) << "Block " << blk.getHash() << " has missing transaction " << finalizedTransactions.second;
+      return std::nullopt;
     }
   }
 
-  return true;
+  return transactions;
 }
 
 void TransactionManager::blockFinalized(uint64_t block_number) {

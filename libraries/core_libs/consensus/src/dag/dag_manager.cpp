@@ -556,7 +556,8 @@ std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {
 DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
   const auto &block_hash = blk.getHash();
   // Verify transactions
-  if (!trx_mgr_->checkBlockTransactions(blk)) {
+  auto transactions = trx_mgr_->getBlockTransactions(blk);
+  if (!transactions.has_value()) {
     LOG(log_nf_) << "Ignore block " << block_hash << " since it has missing transactions";
     // This can be a valid block so just remove it from the seen list
     seen_blocks_.erase(block_hash);
@@ -611,13 +612,13 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
   }
   {
     u256 total_block_weight = 0;
-    const auto &trxs = blk.getTrxs();
+    const auto &trxs_hashes = blk.getTrxs();
     const auto &trxs_gas_estimations = blk.getTrxsGasEstimations();
-    if (trxs.size() != trxs_gas_estimations.size()) {
+    if (trxs_hashes.size() != trxs_gas_estimations.size()) {
       return VerifyBlockReturnType::IncorrectTransactionsEstimation;
     }
-    for (size_t i = 0; i < trxs.size(); ++i) {
-      const auto &e = trx_mgr_->estimateTransactionGasByHash(trxs[i], propose_period);
+    for (size_t i = 0; i < trxs_hashes.size(); ++i) {
+      const auto &e = trx_mgr_->estimateTransactionGas((*transactions)[trxs_hashes[i]], propose_period);
       if (e != trxs_gas_estimations[i]) {
         return VerifyBlockReturnType::IncorrectTransactionsEstimation;
       }

@@ -56,7 +56,6 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
                      addr_t node_addr);
 
   uint64_t estimateTransactionGas(std::shared_ptr<Transaction> trx, std::optional<uint64_t> proposal_period) const;
-  uint64_t estimateTransactionGasByHash(const trx_hash_t &hash, std::optional<uint64_t> proposal_period) const;
 
   /**
    * @brief Gets transactions from pool to include in the block with specified weight limit
@@ -130,8 +129,13 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::vector<std::shared_ptr<Transaction>> getNonfinalizedTrx(const std::vector<trx_hash_t> &hashes,
                                                                bool sorted = false);
 
-  // Check transactions are present in broadcasted blocks
-  bool checkBlockTransactions(DagBlock const &blk);
+  /**
+   * @brief Get the block transactions
+   *
+   * @param blk
+   * @return transactions retrieved from pool/db
+   */
+  std::optional<std::map<trx_hash_t, std::shared_ptr<Transaction>>> getBlockTransactions(DagBlock const &blk);
 
   /**
    * @brief Updates the status of transactions to finalized
@@ -189,6 +193,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   mutable std::shared_mutex transactions_mutex_;
   TransactionQueue transactions_pool_;
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> nonfinalized_transactions_in_dag_;
+  std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> last_finalized_block_transactions_;
   uint64_t trx_count_ = 0;
 
   std::shared_ptr<DbStorage> db_{nullptr};

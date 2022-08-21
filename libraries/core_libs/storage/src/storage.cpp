@@ -482,7 +482,7 @@ void DbStorage::addTransactionPeriodToBatch(Batch& write_batch, trx_hash_t const
   insert(write_batch, Columns::trx_period, toSlice(trx.asBytes()), toSlice(s.out()));
 }
 
-std::optional<std::pair<uint32_t, uint32_t>> DbStorage::getTransactionPeriod(trx_hash_t const& hash) {
+std::optional<std::pair<uint32_t, uint32_t>> DbStorage::getTransactionPeriod(trx_hash_t const& hash) const {
   auto data = lookup(toSlice(hash.asBytes()), Columns::trx_period);
   if (!data.empty()) {
     std::pair<uint32_t, uint32_t> res;
@@ -550,6 +550,35 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
     }
   }
   return nullptr;
+}
+
+std::pair<std::optional<SharedTransactions>, trx_hash_t> DbStorage::getFinalizedTransactions(
+    std::vector<trx_hash_t> const& trx_hashes) const {
+  // Map of period to position of transactions within a period
+  std::map<uint64_t, std::set<uint32_t>> period_map;
+  SharedTransactions transactions;
+  for (auto const& tx_hash : trx_hashes) {
+    auto trx_period = getTransactionPeriod(tx_hash);
+    if (trx_period.has_value()) {
+      period_map[trx_period->first].insert(trx_period->second);
+    } else {
+      return {std::nullopt, tx_hash};
+    }
+  }
+  for (auto it : period_map) {
+    const auto period_data = getPeriodDataRaw(it.first);
+    if (!period_data.size()) {
+      assert(false);
+    }
+
+    auto period_data_rlp = dev::RLP(period_data);
+
+    SharedTransactions ret(period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA].size());
+    for (auto pos : it.second) {
+      transactions.emplace_back(std::make_shared<Transaction>(period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA][pos]));
+    }
+  }
+  return {transactions, {}};
 }
 
 std::optional<SharedTransactions> DbStorage::getPeriodTransactions(uint64_t period) const {

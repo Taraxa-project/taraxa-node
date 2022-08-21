@@ -254,7 +254,7 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
     auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(create_trx);
     EXPECT_EQ(ok, true);
     hashes.emplace_back(create_trx->getHash());
-    const auto& e = node->getTransactionManager()->estimateTransactionGasByHash(create_trx->getHash(), std::nullopt);
+    const auto& e = node->getTransactionManager()->estimateTransactionGas(create_trx, std::nullopt);
     estimations.emplace_back(e);
   }
 
