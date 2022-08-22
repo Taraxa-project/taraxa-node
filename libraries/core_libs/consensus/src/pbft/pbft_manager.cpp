@@ -923,8 +923,8 @@ void PbftManager::identifyBlock_() {
                                     previous_round_next_voted_value_.second, round, step_);
       vote_weight) {
     LOG(log_nf_) << "Placed soft vote for block from previous round " << previous_round_next_voted_value_.first
-                 << ", vote weight " << vote_weight << ", round " << round << ", period " << previous_round_next_voted_value_.second << ", step "
-                 << step_;
+                 << ", vote weight " << vote_weight << ", round " << round << ", period "
+                 << previous_round_next_voted_value_.second << ", step " << step_;
   }
 
   // Generally this value will either be the same as last soft voted value from previous round
@@ -1039,12 +1039,15 @@ void PbftManager::firstFinish_() {
     auto last_cert_voted_block = getUnfinalizedBlock_(cert_voted_block_for_round_->first);
     assert(last_cert_voted_block != nullptr);
 
-    if (auto vote_weight =
-            placeVote_(last_cert_voted_block->getBlockHash(), next_vote_type, next_round_period, round, step_);
-        vote_weight) {
-      LOG(log_nf_) << "Placed first finish next vote for " << last_cert_voted_block->getBlockHash() << ", vote weight "
-                   << vote_weight << ", round " << round << ", period " << last_cert_voted_block->getPeriod()
-                   << ", step " << step_;
+    blk_hash_t vote_value = last_cert_voted_block->getBlockHash();
+    // If cert_voted_block_for_round_ pushed into chain vote for NULL value
+    if (cert_voted_block_for_round_->second < next_round_period) {
+      vote_value = NULL_BLOCK_HASH;
+    }
+
+    if (auto vote_weight = placeVote_(vote_value, next_vote_type, next_round_period, round, step_); vote_weight) {
+      LOG(log_nf_) << "Placed first finish next vote for " << vote_value << ", vote weight " << vote_weight
+                   << ", round " << round << ", period " << next_round_period << ", step " << step_;
     }
 
     // Re-broadcast pbft block in case some nodes do not have it
