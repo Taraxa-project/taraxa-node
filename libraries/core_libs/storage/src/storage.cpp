@@ -877,10 +877,11 @@ void DbStorage::saveLastBlockCertVote(const std::shared_ptr<Vote>& cert_vote) {
   insert(Columns::last_block_cert_votes, toSlice(cert_vote->getHash()), toSlice(cert_vote->rlp(true, true)));
 }
 
-void DbStorage::addLastBlockCertVotesToBatch(std::vector<std::shared_ptr<Vote>> const& cert_votes, Batch& write_batch) {
-  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::last_block_cert_votes)));
-  for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    remove(write_batch, Columns::last_block_cert_votes, it->key());
+void DbStorage::addLastBlockCertVotesToBatch(std::vector<std::shared_ptr<Vote>> const& cert_votes,
+                                             std::vector<std::shared_ptr<Vote>> const& old_cert_votes,
+                                             Batch& write_batch) {
+  for (auto const& v : old_cert_votes) {
+    remove(write_batch, Columns::last_block_cert_votes, toSlice(v->getHash()));
   }
 
   dev::RLPStream s(cert_votes.size());

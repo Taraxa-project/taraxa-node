@@ -1912,7 +1912,7 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   }
 
   db_->savePeriodData(period_data, batch);
-  db_->addLastBlockCertVotesToBatch(cert_votes, batch);
+  db_->addLastBlockCertVotesToBatch(cert_votes, vote_mgr_->getRewardVotes(), batch);
 
   // pass pbft with dag blocks and transactions to adjust difficulty
   if (period_data.pbft_blk->getPivotDagBlockHash() != NULL_BLOCK_HASH) {
