@@ -144,7 +144,6 @@ var NAVTREEINDEX7 =
 "classtaraxa_1_1net_1_1_taraxa_face.html#af856f2964c09994f403c0606a31e697d":[11,0,3,3,10,7],
 "classtaraxa_1_1net_1_1_test.html":[11,0,3,3,11],
 "classtaraxa_1_1net_1_1_test.html#a29083f08b8d5e211c948277d11d76bf4":[11,0,3,3,11,5],
-"classtaraxa_1_1net_1_1_test.html#a6fb47f69b0cbd3154126f2b297854ef8":[11,0,3,3,11,0],
 "classtaraxa_1_1net_1_1_test.html#a81dd0add4f2682cd7e2c05d72b0bfe66":[11,0,3,3,11,4],
 "classtaraxa_1_1net_1_1_test.html#aa2e35e470fe73d47a969267f686ed913":[11,0,3,3,11,1],
 "classtaraxa_1_1net_1_1_test.html#aa5517b71d08fb6be33a06c886a5d434c":[11,0,3,3,11,7],
@@ -152,7 +151,9 @@ var NAVTREEINDEX7 =
 "classtaraxa_1_1net_1_1_test.html#abcdda53d66baf3a0834f143a36522c38":[11,0,3,3,11,6],
 "classtaraxa_1_1net_1_1_test.html#ac558c4b5db9f2c2e7b1cc2bb09341903":[11,0,3,3,11,9],
 "classtaraxa_1_1net_1_1_test.html#ade7dc30e591a60d65f3519f53fd005a9":[11,0,3,3,11,2],
+"classtaraxa_1_1net_1_1_test.html#aeb3970c4e66fcb8fc1c39fd5fc611067":[11,0,3,3,11,10],
 "classtaraxa_1_1net_1_1_test.html#af8a2316ab4922ce3f8ff768e279fbf24":[11,0,3,3,11,3],
+"classtaraxa_1_1net_1_1_test.html#afed4e122b8680fd345f9ebdb5043f434":[11,0,3,3,11,0],
 "classtaraxa_1_1net_1_1_test_client.html":[11,0,3,3,12],
 "classtaraxa_1_1net_1_1_test_client.html#a014de636e220f91c6086d4fe71e6a080":[11,0,3,3,12,3],
 "classtaraxa_1_1net_1_1_test_client.html#a899c1fd89ae299155a39df95453585d6":[11,0,3,3,12,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX7 =
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a3784c14e0331c576b4b0d95a391dd4fd":[11,0,3,3,0,0,1,21],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a38884697778ea5c0383f7c5d7dcb61f2":[11,0,3,3,0,0,1,28],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a3f48b5e406a9ff0ebc21962a3d7c729c":[11,0,3,3,0,0,1,25],
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a40444c0def4a2085c7d05d9836d8a6e9":[11,0,3,3,0,0,1,16],
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a47b33945bba1ae52ba7402d2a6f3042f":[11,0,3,3,0,0,1,37]
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a40444c0def4a2085c7d05d9836d8a6e9":[11,0,3,3,0,0,1,16]
 };
