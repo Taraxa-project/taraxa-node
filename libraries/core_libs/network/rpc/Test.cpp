@@ -47,8 +47,7 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
       val_t gas_price = val_t(param1["gas_price"].asString());
       auto gas = dev::jsToInt(param1["gas"].asString());
       addr_t receiver = addr_t(param1["receiver"].asString());
-      bytes data;
-      auto trx = std::make_shared<Transaction>(nonce, value, gas_price, gas, data, sk, receiver);
+      auto trx = std::make_shared<Transaction>(nonce, value, gas_price, gas, bytes(), sk, receiver, kChainId);
       if (auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(trx); !ok) {
         res["status"] = err_msg;
       } else {
