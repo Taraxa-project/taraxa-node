@@ -10,7 +10,7 @@ var classtaraxa_1_1_db_storage =
     [ "DbStorage", "classtaraxa_1_1_db_storage.html#af1708845f17561a106abe94391a964f7", null ],
     [ "DbStorage", "classtaraxa_1_1_db_storage.html#a79a9960113464b742cc432cd57415486", null ],
     [ "addDagBlockPeriodToBatch", "classtaraxa_1_1_db_storage.html#a9285939697067bcae79b60b9a87bcd9e", null ],
-    [ "addLastBlockCertVotesToBatch", "classtaraxa_1_1_db_storage.html#ac2eb7086bafafa631605fde134bc26ca", null ],
+    [ "addLastBlockCertVotesToBatch", "classtaraxa_1_1_db_storage.html#a5004cd51857106a9109122bfd6927d33", null ],
     [ "addNextVotesToBatch", "classtaraxa_1_1_db_storage.html#abd92965252a3a057dba928e717721e31", null ],
     [ "addPbft2TPlus1ToBatch", "classtaraxa_1_1_db_storage.html#a8a8bf9dbeec756e538689f3a2a5ba966", null ],
     [ "addPbftBlockPeriodToBatch", "classtaraxa_1_1_db_storage.html#a1f5776b29da26401a98398909c01dc2a", null ],

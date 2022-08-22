@@ -11,7 +11,7 @@ var searchData=
   ['addendpointstatement_3963',['addEndpointStatement',['../classdev_1_1p2p_1_1_endpoint_tracker.html#a22d8fae1aa65aa79abadba1b89a03b54',1,'dev::p2p::EndpointTracker']]],
   ['addknownnode_3964',['addKnownNode',['../classdev_1_1p2p_1_1_node_table.html#a97075d7b503ade4e8b87a14627f1b1ef',1,'dev::p2p::NodeTable']]],
   ['addknownnodetonodetable_3965',['addKnownNodeToNodeTable',['../structdev_1_1p2p_1_1_host.html#a843c7d676f420f50ca75b8a7ef30d5f7',1,'dev::p2p::Host']]],
-  ['addlastblockcertvotestobatch_3966',['addLastBlockCertVotesToBatch',['../classtaraxa_1_1_db_storage.html#ac2eb7086bafafa631605fde134bc26ca',1,'taraxa::DbStorage']]],
+  ['addlastblockcertvotestobatch_3966',['addLastBlockCertVotesToBatch',['../classtaraxa_1_1_db_storage.html#a5004cd51857106a9109122bfd6927d33',1,'taraxa::DbStorage']]],
   ['addnewhardforks_3967',['addNewHardforks',['../classtaraxa_1_1cli_1_1_config.html#ab9b106b6bb9dd1334d6da93e143af4ed',1,'taraxa::cli::Config']]],
   ['addnextvotes_3968',['addNextVotes',['../group___vote.html#ab334217f2be3892a93f269c82f3c2e18',1,'taraxa::NextVotesManager']]],
   ['addnextvotestobatch_3969',['addNextVotesToBatch',['../classtaraxa_1_1_db_storage.html#abd92965252a3a057dba928e717721e31',1,'taraxa::DbStorage']]],

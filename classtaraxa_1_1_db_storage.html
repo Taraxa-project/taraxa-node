@@ -310,8 +310,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:af9b58c8fecfb4a464220d4ef9c3262a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1af48648a3a24253c85a679ebc13c394"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a1af48648a3a24253c85a679ebc13c394">saveLastBlockCertVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;cert_vote)</td></tr>
 <tr class="separator:a1af48648a3a24253c85a679ebc13c394"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac2eb7086bafafa631605fde134bc26ca"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ac2eb7086bafafa631605fde134bc26ca">addLastBlockCertVotesToBatch</a> (std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; const &amp;cert_votes, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
-<tr class="separator:ac2eb7086bafafa631605fde134bc26ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5004cd51857106a9109122bfd6927d33"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a5004cd51857106a9109122bfd6927d33">addLastBlockCertVotesToBatch</a> (std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; const &amp;cert_votes, std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; const &amp;old_cert_votes, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="separator:a5004cd51857106a9109122bfd6927d33"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0f5deb58ed3536cd44eb95e205bd7a1c"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a0f5deb58ed3536cd44eb95e205bd7a1c">getLastBlockCertVotes</a> ()</td></tr>
 <tr class="separator:a0f5deb58ed3536cd44eb95e205bd7a1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1f5776b29da26401a98398909c01dc2a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a1f5776b29da26401a98398909c01dc2a">addPbftBlockPeriodToBatch</a> (uint64_t period, <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">taraxa::blk_hash_t</a> const &amp;pbft_block_hash, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
@@ -667,8 +667,8 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="ac2eb7086bafafa631605fde134bc26ca"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac2eb7086bafafa631605fde134bc26ca">&#9670;&nbsp;</a></span>addLastBlockCertVotesToBatch()</h2>
+<a id="a5004cd51857106a9109122bfd6927d33"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5004cd51857106a9109122bfd6927d33">&#9670;&nbsp;</a></span>addLastBlockCertVotesToBatch()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -678,6 +678,12 @@ Private Attributes</h2></td></tr>
           <td>(</td>
           <td class="paramtype">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; const &amp;&#160;</td>
           <td class="paramname"><em>cert_votes</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; const &amp;&#160;</td>
+          <td class="paramname"><em>old_cert_votes</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
