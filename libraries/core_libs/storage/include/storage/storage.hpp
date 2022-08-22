@@ -105,7 +105,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(status);
     COLUMN(pbft_mgr_previous_round_status);
     COLUMN(pbft_mgr_round_step);
-    COLUMN(pbft_round_2t_plus_1);
+    COLUMN(pbft_period_2t_plus_1);
     COLUMN(pbft_mgr_status);
     COLUMN(pbft_mgr_voted_value);
     COLUMN(pbft_cert_voted_block);
@@ -235,9 +235,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void savePbftMgrField(PbftMgrRoundStep field, uint64_t value);
   void addPbftMgrFieldToBatch(PbftMgrRoundStep field, uint64_t value, Batch& write_batch);
 
-  size_t getPbft2TPlus1(uint64_t pbft_round);
-  void savePbft2TPlus1(uint64_t pbft_round, size_t pbft_2t_plus_1);
-  void addPbft2TPlus1ToBatch(uint64_t pbft_round, size_t pbft_2t_plus_1, Batch& write_batch);
+  // CONCERN: These need to be by period not round now!
+  size_t getPbft2TPlus1ForPeriod(uint64_t pbft_period);
+  void savePbft2TPlus1ForPeriod(uint64_t pbft_period, size_t pbft_2t_plus_1);
+  void addPbft2TPlus1ToBatchForPeriod(uint64_t pbft_period, size_t pbft_2t_plus_1, Batch& write_batch);
 
   bool getPbftMgrStatus(PbftMgrStatus field);
   void savePbftMgrStatus(PbftMgrStatus field, bool const& value);

@@ -23,12 +23,17 @@ auto g_sk = Lazy([] {
 });
 struct VoteTest : BaseTest {};
 
-uint64_t clearAllVotes(const std::vector<std::shared_ptr<FullNode>> &nodes) {
+std::pair<uint64_t, uint64_t> clearAllVotes(const std::vector<std::shared_ptr<FullNode>> &nodes) {
   // Get highest round from all nodes
-  uint64_t max_round = 0;
+  uint64_t max_period = 0;
+  uint64_t max_round = 1;
   for (const auto &node : nodes) {
-    if (node->getPbftManager()->getPbftRound() > max_round) {
-      max_round = node->getPbftManager()->getPbftRound();
+    auto [node_round, node_period] = node->getPbftManager()->getPbftRoundAndPeriod();
+    if (node_period > max_period) {
+      max_period = node_period;
+    }
+    if (node_period == max_period && node_round > max_round ) {
+      max_round = node_round;
     }
   }
 
@@ -45,10 +50,10 @@ uint64_t clearAllVotes(const std::vector<std::shared_ptr<FullNode>> &nodes) {
     }
     db->commitWriteBatch(batch);
 
-    vote_mgr->cleanupVotes(max_round + 1);
+    vote_mgr->cleanupVotes(max_period, max_round + 1);
   }
 
-  return max_round;
+  return {max_period, max_round};
 }
 
 TEST_F(VoteTest, verified_votes) {
@@ -58,12 +63,11 @@ TEST_F(VoteTest, verified_votes) {
   auto pbft_mgr = node->getPbftManager();
   pbft_mgr->stop();
 
-  auto round = clearAllVotes({node});
+  auto [period, round] = clearAllVotes({node});
 
   // Generate a vote
   blk_hash_t blockhash(1);
   PbftVoteTypes type = soft_vote_type;
-  auto period = round;
   auto step = 2;
   auto vote = pbft_mgr->generateVote(blockhash, type, period, round, step);
   vote->calculateWeight(1, 1, 1);
@@ -82,6 +86,8 @@ TEST_F(VoteTest, verified_votes) {
   EXPECT_EQ(vote_mgr->getVerifiedVotes().size(), 0);
 }
 
+// CONCERN TODO This test does not test period and round based cleanup differences at all..
+
 // Add votes round 1, 2 and 3 into unverified vote table
 // Verify votes by round 2, will remove round 1 in the table, and keep round 2 & 3 votes
 TEST_F(VoteTest, add_cleanup_get_votes) {
@@ -93,14 +99,14 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
 
   clearAllVotes({node});
 
-  // generate 6 votes, each round has 2 votes
+  // generate 6 votes, 3 periods, 2 votes in round 1 each
   auto vote_mgr = node->getVoteManager();
   blk_hash_t voted_block_hash(1);
   PbftVoteTypes type = next_vote_type;
   for (int i = 1; i <= 3; i++) {
     for (int j = 1; j <= 2; j++) {
       uint64_t period = i;
-      uint64_t round = i;
+      uint64_t round = 1;
       size_t step = 3 + j;
       auto vote = pbft_mgr->generateVote(voted_block_hash, type, period, round, step);
       vote->calculateWeight(1, 1, 1);
@@ -113,16 +119,16 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
   EXPECT_EQ(votes_size, 6);
 
   // Test cleanup votes
-  vote_mgr->cleanupVotes(2);  // cleanup round 1
+  vote_mgr->cleanupVotes(1, 2);  // cleanup more
   auto verified_votes_size = vote_mgr->getVerifiedVotesSize();
-  EXPECT_EQ(verified_votes_size, 4);
+  EXPECT_EQ(verified_votes_size, 3);
   auto votes = vote_mgr->getVerifiedVotes();
-  EXPECT_EQ(votes.size(), 4);
+  EXPECT_EQ(votes.size(), 3);
   for (auto const &v : votes) {
     EXPECT_GT(v->getRound(), 1);
   }
 
-  vote_mgr->cleanupVotes(4);  // cleanup round 2 & 3
+  vote_mgr->cleanupVotes(2,2);  // cleanup more
   verified_votes_size = vote_mgr->getVerifiedVotesSize();
   EXPECT_EQ(verified_votes_size, 0);
   votes = vote_mgr->getVerifiedVotes();
@@ -155,9 +161,9 @@ TEST_F(VoteTest, round_determine_from_next_votes) {
     }
   }
 
-  auto [new_round, new_period] = vote_mgr->determineRoundAndPeriodFromVotes(two_t_plus_one).value();
+  auto new_round = vote_mgr->determineRoundFromPeriodAndVotes(12, two_t_plus_one);
   EXPECT_EQ(new_round, 13);
-  EXPECT_EQ(new_period, 12);
+  //EXPECT_EQ(new_period, 12);
 }
 
 TEST_F(VoteTest, reconstruct_votes) {
@@ -226,12 +232,11 @@ TEST_F(VoteTest, vote_broadcast) {
   pbft_mgr2->stop();
   pbft_mgr3->stop();
 
-  uint64_t round = clearAllVotes({node1, node2, node3});
+  auto [period, round] = clearAllVotes({node1, node2, node3});
 
   // generate a vote far ahead (never exist in PBFT manager)
   blk_hash_t propose_block_hash(111);
   PbftVoteTypes type = next_vote_type;
-  uint64_t period = 1;
   size_t step = 1;
   auto vote = pbft_mgr1->generateVote(propose_block_hash, type, period, round, step);
 

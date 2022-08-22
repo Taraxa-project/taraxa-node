@@ -652,8 +652,8 @@ void DbStorage::addPbftMgrFieldToBatch(PbftMgrRoundStep field, uint64_t value, B
   insert(write_batch, DbStorage::Columns::pbft_mgr_round_step, toSlice(field), toSlice(value));
 }
 
-size_t DbStorage::getPbft2TPlus1(uint64_t round) {
-  auto status = lookup(toSlice(round), Columns::pbft_round_2t_plus_1);
+size_t DbStorage::getPbft2TPlus1ForPeriod(uint64_t period) {
+  auto status = lookup(toSlice(period), Columns::pbft_period_2t_plus_1);
 
   if (!status.empty()) {
     size_t value;
@@ -665,12 +665,12 @@ size_t DbStorage::getPbft2TPlus1(uint64_t round) {
 }
 
 // Only for test
-void DbStorage::savePbft2TPlus1(uint64_t pbft_round, size_t pbft_2t_plus_1) {
-  insert(Columns::pbft_round_2t_plus_1, toSlice(pbft_round), toSlice(pbft_2t_plus_1));
+void DbStorage::savePbft2TPlus1ForPeriod(uint64_t pbft_period, size_t pbft_2t_plus_1) {
+  insert(Columns::pbft_period_2t_plus_1, toSlice(pbft_period), toSlice(pbft_2t_plus_1));
 }
 
-void DbStorage::addPbft2TPlus1ToBatch(uint64_t pbft_round, size_t pbft_2t_plus_1, Batch& write_batch) {
-  insert(write_batch, DbStorage::Columns::pbft_round_2t_plus_1, toSlice(pbft_round), toSlice(pbft_2t_plus_1));
+void DbStorage::addPbft2TPlus1ToBatchForPeriod(uint64_t pbft_period, size_t pbft_2t_plus_1, Batch& write_batch) {
+  insert(write_batch, Columns::pbft_period_2t_plus_1, toSlice(pbft_period), toSlice(pbft_2t_plus_1));
 }
 
 bool DbStorage::getPbftMgrStatus(PbftMgrStatus field) {
