@@ -1,5 +1,6 @@
 var NAVTREEINDEX17 =
 {
+"md_doc_coding_practices.html#autotoc_md116":[49],
 "md_doc_coding_practices.html#autotoc_md117":[2,0,12],
 "md_doc_coding_practices.html#autotoc_md118":[50],
 "md_doc_coding_practices.html#autotoc_md119":[51],
@@ -191,8 +192,8 @@ var NAVTREEINDEX17 =
 "namespacedev_1_1p2p.html#af43282a970fe54591278ceb38be2590b":[12,0,1,0,2,24,0,5],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_peer_session_info":[12,0,1,0,2,3,4],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_taraxa_network_config":[12,0,1,0,2,24,0],
-"namespacemembers.html":[10,0,0],
 "namespacemembers.html":[10,0],
+"namespacemembers.html":[10,0,0],
 "namespacemembers_a.html":[10,0,1],
 "namespacemembers_b.html":[10,0,2],
 "namespacemembers_c.html":[10,0,3],
@@ -201,8 +202,8 @@ var NAVTREEINDEX17 =
 "namespacemembers_enum.html":[10,4],
 "namespacemembers_eval.html":[10,5],
 "namespacemembers_f.html":[10,0,6],
-"namespacemembers_func.html":[10,1],
 "namespacemembers_func.html":[10,1,0],
+"namespacemembers_func.html":[10,1],
 "namespacemembers_func_a.html":[10,1,1],
 "namespacemembers_func_b.html":[10,1,2],
 "namespacemembers_func_c.html":[10,1,3],
@@ -248,6 +249,5 @@ var NAVTREEINDEX17 =
 "namespacetaraxa.html":[11,0,3],
 "namespacetaraxa.html#a009be38daa65710a670613c7d9428e76":[12,0,1,7,0,0,0,1,0],
 "namespacetaraxa.html#a042f45f490bbf12481a44fbb1629201c":[12,0,1,3,0,0,1,3,6],
-"namespacetaraxa.html#a20a355304a30d8893626b16bf7c78595":[12,0,1,3,0,0,1,3,0],
-"namespacetaraxa.html#a4faf253efde7446f593b1d0a5063bffc":[12,0,1,3,0,0,1,1,0]
+"namespacetaraxa.html#a20a355304a30d8893626b16bf7c78595":[12,0,1,3,0,0,1,3,0]
 };

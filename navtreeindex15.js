@@ -1,5 +1,6 @@
 var NAVTREEINDEX15 =
 {
+"group___vote.html#a356555b45b7147c880deb51575917d9e":[9,4,1,24],
 "group___vote.html#a3852382974a58a8ed36aa75568fdb2fd":[9,4,1,36],
 "group___vote.html#a38bd14449af576be965293785cc4d8ac":[9,4,1,22],
 "group___vote.html#a39c274e4d78d8ecb24036ef6d3393190":[9,4,0,4],
@@ -248,6 +249,5 @@ var NAVTREEINDEX15 =
 "libdevcore_2_exceptions_8h.html#afd962456a6abb45c1c538d576df76a06":[12,0,1,0,0,12,7],
 "libdevcore_2_exceptions_8h.html#afdbb262900589dda13b53b5b6ab47892":[12,0,1,0,0,12,13],
 "libdevcore_2_exceptions_8h.html#afe355b8bc62d396302fc16b2a0856516":[12,0,1,0,0,12,20],
-"libdevcore_2_exceptions_8h_source.html":[12,0,1,0,0,12],
-"libdevcrypto_2_common_8cpp.html":[12,0,1,0,1,2]
+"libdevcore_2_exceptions_8h_source.html":[12,0,1,0,0,12]
 };

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['vote_6948',['Vote',['../group___vote.html',1,'']]]
+  ['vote_6950',['Vote',['../group___vote.html',1,'']]]
 ];
