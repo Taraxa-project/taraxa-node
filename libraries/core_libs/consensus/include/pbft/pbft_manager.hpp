@@ -267,18 +267,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void resumeSingleState();
 
   /**
-   * @brief Set maximum waiting time for soft vote value. Only to be used for unit tests
-   * @param wait_ms waiting time in milisecond
-   */
-  void setMaxWaitForSoftVotedBlock_ms(uint64_t wait_ms);
-
-  /**
-   * @brief Set maximum waiting time for next vote value. Only to be used for unit tests
-   * @param wait_ms waiting time in milisecond
-   */
-  void setMaxWaitForNextVotedBlock_ms(uint64_t wait_ms);
-
-  /**
    * @brief Calculate DAG blocks ordering hash
    * @param dag_block_hashes DAG blocks hashes
    * @param trx_hashes transactions hashes
@@ -342,6 +330,12 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @return true if PBFT sets round to a forward round number
    */
   bool resetRound_();
+
+  /**
+   * @brief When a node executes a block, having received 2t+1 cert votes or a bundle of cert votes, 
+   *        then advances to next round
+   */
+  void advancePeriod_();
 
   /**
    * @brief Time to sleep for PBFT protocol
@@ -546,18 +540,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool is_syncing_();
 
   /**
-   * @brief Terminate the next voting value of the PBFT block hash
-   * @return true if terminate the vote value successfully
-   */
-  bool giveUpNextVotedBlock_();
-
-  /**
-   * @brief Terminate the soft voting value of the PBFT block hash
-   * @return true if terminate the vote value successfully
-   */
-  bool giveUpSoftVotedBlock_();
-
-  /**
    * @brief Set initial time for voting value
    */
   void initializeVotedValueTimeouts_();
@@ -619,7 +601,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::default_random_engine random_engine_{std::random_device{}()};
 
   // Flag that says if node is in sync after it enters new round
-  bool new_round_in_sync_ = false;
+  //bool new_round_in_sync_ = false;
 
   const size_t COMMITTEE_SIZE;
   const size_t NUMBER_OF_PROPOSERS;
@@ -634,7 +616,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t step_ = 1;
   size_t startingStepInRound_ = 1;
 
-  std::pair<blk_hash_t, uint64_t /* period */> own_starting_value_for_round_{NULL_BLOCK_HASH, 1};
   std::optional<std::pair<blk_hash_t, uint64_t /* period */>> soft_voted_block_for_round_{};
 
   // TODO: was blk_hash_t last_cert_voted_value_ = NULL_BLOCK_HASH; and it was set to NULL_BLOCK_HASH in pushBlock
@@ -659,16 +640,12 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   u_long elapsed_time_in_round_ms_ = 0;
 
   bool executed_pbft_block_ = false;
-  bool have_executed_this_round_ = false;
   bool should_have_cert_voted_in_this_round_ = false;
   bool next_voted_soft_value_ = false;
   bool next_voted_null_block_hash_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
   bool polling_state_print_log_ = true;
-
-  uint64_t max_wait_for_soft_voted_block_steps_ms_ = 30;
-  uint64_t max_wait_for_next_voted_block_steps_ms_ = 30;
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;

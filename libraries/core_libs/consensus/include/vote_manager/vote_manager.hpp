@@ -40,6 +40,8 @@ class NextVotesManager {
    * @brief Check if exist enough next voting type votes
    * @return true if there are enough next voting type votes
    */
+  // CONCERN: This is only used in tests, and doesn't make any sense to me to have in general
+  //          because "enough next votes" is a totally undefined concept in the protocol...
   bool enoughNextVotes() const;
 
   /**
@@ -182,7 +184,7 @@ class VoteManager {
    * @brief Cleanup votes for previous PBFT rounds
    * @param pbft_round current PBFT round
    */
-  void cleanupVotes(uint64_t pbft_round);
+  void cleanupVotes(uint64_t pbft_period, uint64_t pbft_round);
 
   /**
    * @brief Get all verified votes in proposal vote type for the current PBFT round
@@ -204,11 +206,13 @@ class VoteManager {
   std::optional<VotesBundle> getVotesBundle(uint64_t round, uint64_t period, size_t step, size_t two_t_plus_one) const;
 
   /**
-   * @brief Check if there are enough next voting type votes to set PBFT to a forward round & period
+   * @brief Check if there are enough next voting type votes to set PBFT to a forward round within period
+   * @param period is current pbft period
    * @param two_t_plus_one PBFT 2t+1 is 2/3 of PBFT sortition threshold and plus 1
-   * @return pair<new PBFT round, new PBFR period> if there is enough next votes. Otherwise return nullopt
+   * @return new round if there is enough next votes from prior round, otherwise returns 1 for being in initial round
+   * CONCERN: Was a std::optional, but why not just return 1 if we don't have any votes?  Now that we pass in period
    */
-  std::optional<std::pair<uint64_t, uint64_t>> determineRoundAndPeriodFromVotes(size_t two_t_plus_one);
+  uint64_t determineRoundFromPeriodAndVotes(uint64_t period, size_t two_t_plus_one);
 
   // reward votes
   /**
@@ -297,9 +301,9 @@ class VoteManager {
   std::unique_ptr<std::thread> daemon_;
 
   // TODO[1907]: this will be part of VerifiedVotes class
-  // <PBFT round, <PBFT period <PBFT step, <voted value, pair<voted weight, <vote hash, vote>>>>>
+  // <PBFT period, <PBFT round, <PBFT step, <voted value, pair<voted weight, <vote hash, vote>>>>>
   std::map<uint64_t,
-           std::unordered_map<
+           std::map<
                uint64_t,
                std::map<size_t,
                         std::unordered_map<
@@ -307,10 +311,11 @@ class VoteManager {
       verified_votes_;
   mutable boost::shared_mutex verified_votes_access_;
 
-  // <PBFT round, <PBFT step, <voter address, pair<vote 1, vote 2>>>>
+  // <PBFT period, <PBFT round, <PBFT step, <voter address, pair<vote 1, vote 2>>><>
   // For next votes we enable 2 votes per round & step, one of which must be vote for NULL_BLOCK_HASH
-  std::map<uint64_t, std::unordered_map<
-                         size_t, std::unordered_map<addr_t, std::pair<std::shared_ptr<Vote>, std::shared_ptr<Vote>>>>>
+  std::map<uint64_t,
+            std::map<uint64_t, std::unordered_map<
+                         size_t, std::unordered_map<addr_t, std::pair<std::shared_ptr<Vote>, std::shared_ptr<Vote>>>>>>
       voters_unique_votes_;
   mutable std::shared_mutex voters_unique_votes_mutex_;
   // TODO[1907]: end of VerifiedVotes class
