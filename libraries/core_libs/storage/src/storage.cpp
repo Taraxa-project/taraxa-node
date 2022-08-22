@@ -557,6 +557,7 @@ std::pair<std::optional<SharedTransactions>, trx_hash_t> DbStorage::getFinalized
   // Map of period to position of transactions within a period
   std::map<uint64_t, std::set<uint32_t>> period_map;
   SharedTransactions transactions;
+  transactions.reserve(trx_hashes.size());
   for (auto const& tx_hash : trx_hashes) {
     auto trx_period = getTransactionPeriod(tx_hash);
     if (trx_period.has_value()) {

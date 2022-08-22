@@ -370,7 +370,7 @@ std::optional<std::map<trx_hash_t, std::shared_ptr<Transaction>>> TransactionMan
     auto finalizedTransactions = db_->getFinalizedTransactions(finalized_trx_hashes);
     if (finalizedTransactions.first.has_value()) {
       for (auto trx : *finalizedTransactions.first) {
-        transactions.emplace(trx->getHash(), trx);
+        transactions.emplace(trx->getHash(), std::move(trx));
       }
     } else {
       LOG(log_er_) << "Block " << blk.getHash() << " has missing transaction " << finalizedTransactions.second;
