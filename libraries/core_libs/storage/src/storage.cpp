@@ -572,13 +572,12 @@ std::pair<std::optional<SharedTransactions>, trx_hash_t> DbStorage::getFinalized
       assert(false);
     }
 
-    auto period_data_rlp = dev::RLP(period_data);
-
-    SharedTransactions ret(period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA].size());
+    auto const transactions_rlp = dev::RLP(period_data)[TRANSACTIONS_POS_IN_PERIOD_DATA];
     for (auto pos : it.second) {
-      transactions.emplace_back(std::make_shared<Transaction>(period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA][pos]));
+      transactions.emplace_back(std::make_shared<Transaction>(transactions_rlp[pos]));
     }
   }
+
   return {transactions, {}};
 }
 
