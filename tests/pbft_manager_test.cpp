@@ -779,19 +779,27 @@ TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
   node->getBlockProposer()->stop();
   generateAndApplyInitialDag();
 
-  const auto trxs_before = node->getTransactionManager()->getTransactionCount();
+  auto trx_count = node->getTransactionManager()->getTransactionCount();
   EXPECT_HAPPENS({10s, 500ms},
-                 [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, trxs_before, node->getDB()->getNumTransactionExecuted()); });
+                 [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, trx_count, node->getDB()->getNumTransactionExecuted()); });
 
-  const auto starting_block_number = node->getFinalChain()->last_block_number();
+  auto starting_block_number = node->getFinalChain()->last_block_number();
   const auto trx_in_block = dag_gas_limit / trxEstimation() + 2;
   insertBlocks(generateDagBlocks(1, 5, trx_in_block));
 
-  uint64_t tx_count = 5 * trx_in_block;
+  // We need to move one block forward when we will start applying those generated DAGs and transactions
+  EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->last_block_number(), starting_block_number + 1);
+  });
+  // check that new created transaction wasn't executed in that previous block
+  ASSERT_EQ(trx_count, node->getDB()->getNumTransactionExecuted());
+  ++starting_block_number;
 
-  EXPECT_HAPPENS({60s, 500ms}, [&](auto &ctx) {
+  trx_count += 5 * trx_in_block;
+  // We are starting to process new dag blocks only from the next period(block), so add 1
+  EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
     // all transactions should be included in 2 blocks
-    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), trxs_before + tx_count);
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), trx_count);
     WAIT_EXPECT_EQ(ctx, node->getFinalChain()->last_block_number(), starting_block_number + 2);
   });
 
