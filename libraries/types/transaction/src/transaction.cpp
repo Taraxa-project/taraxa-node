@@ -95,11 +95,11 @@ addr_t const &Transaction::get_sender_() const {
   if (!sender_initialized_.load()) {
     std::unique_lock l(sender_mu_);
     if (!sender_initialized_.load()) {
-      sender_initialized_ = true;
       if (auto pubkey = recover(vrs_, hash_for_signature()); pubkey) {
         sender_ = toAddress(pubkey);
         sender_valid_ = true;
       }
+      sender_initialized_ = true;
     }
   }
   return sender_;
