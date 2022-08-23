@@ -29,9 +29,15 @@ class DagBlockPacketHandler final : public ExtSyncingPacketHandler {
   void validatePacketRlpFormat(const PacketData &packet_data) const override;
   void process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) override;
 
+  void waitIfAlreadyProcessing(const blk_hash_t &hash);
+  void processingComplete(const blk_hash_t &hash);
+
   std::shared_ptr<TestState> test_state_;
   std::shared_ptr<TransactionManager> trx_mgr_{nullptr};
   ExpirationCache<blk_hash_t> seen_dags_;
+  mutable std::mutex dag_processing_mutex_;
+  std::condition_variable dag_processing_cv_;
+  std::unordered_set<blk_hash_t> blocks_in_processing_;
 };
 
 }  // namespace taraxa::network::tarcap

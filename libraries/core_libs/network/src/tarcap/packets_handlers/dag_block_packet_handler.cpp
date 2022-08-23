@@ -32,6 +32,12 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
   DagBlock block(packet_data.rlp_);
   blk_hash_t const hash = block.getHash();
 
+  // This prevents multiple threads from verifying the same block at the same time while at the same time allows
+  // parallel verifying of different blocks. If another thread is already verifying this block, this thread needs to
+  // wait until the processing is complete and dag block is inserted in DAG. Returning before verification is complete
+  // can corrupt the correct ordering of processing dag blocks
+  waitIfAlreadyProcessing(hash);
+
   peer->markDagBlockAsKnown(hash);
 
   if (block.getLevel() > peer->dag_level_) {
@@ -42,11 +48,33 @@ void DagBlockPacketHandler::process(const PacketData &packet_data, const std::sh
     // Do not process this block in case we already have it
     if (dag_mgr_->isDagBlockKnown(block.getHash())) {
       LOG(log_tr_) << "Received known DagBlockPacket " << hash << "from: " << peer->getId();
+      processingComplete(hash);
       return;
     }
   }
 
   onNewBlockReceived(std::move(block), peer);
+  processingComplete(hash);
+}
+
+void DagBlockPacketHandler::waitIfAlreadyProcessing(const blk_hash_t &hash) {
+  std::unique_lock u_lock(dag_processing_mutex_);
+  if (blocks_in_processing_.contains(hash)) {
+    dag_processing_cv_.wait(u_lock, [this, hash] {
+      if (blocks_in_processing_.contains(hash)) {
+        return false;
+      } else {
+        blocks_in_processing_.insert(hash);
+        return true;
+      }
+    });
+  }
+}
+
+void DagBlockPacketHandler::processingComplete(const blk_hash_t &hash) {
+  std::unique_lock u_lock(dag_processing_mutex_);
+  blocks_in_processing_.erase(hash);
+  dag_processing_cv_.notify_all();
 }
 
 void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::DagBlock block,
