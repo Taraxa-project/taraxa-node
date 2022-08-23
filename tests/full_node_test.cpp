@@ -144,14 +144,14 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftStep), pbft_step);
 
   // PBFT 2t+1
-  db.savePbft2TPlus1(10, 3);
-  EXPECT_EQ(db.getPbft2TPlus1(10), 3);
+  db.savePbft2TPlus1ForPeriod(10, 3);
+  EXPECT_EQ(db.getPbft2TPlus1ForPeriod(10), 3);
   batch = db.createWriteBatch();
-  db.addPbft2TPlus1ToBatch(10, 6, batch);
-  db.addPbft2TPlus1ToBatch(11, 3, batch);
+  db.addPbft2TPlus1ToBatchForPeriod(10, 6, batch);
+  db.addPbft2TPlus1ToBatchForPeriod(11, 3, batch);
   db.commitWriteBatch(batch);
-  EXPECT_EQ(db.getPbft2TPlus1(10), 6);
-  EXPECT_EQ(db.getPbft2TPlus1(11), 3);
+  EXPECT_EQ(db.getPbft2TPlus1ForPeriod(10), 6);
+  EXPECT_EQ(db.getPbft2TPlus1ForPeriod(11), 3);
 
   // PBFT manager status
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
@@ -178,28 +178,20 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
 
   // PBFT manager voted value
-  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound), std::nullopt);
   EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockInRound), std::nullopt);
   EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::CertVotedBlockInRound), std::nullopt);
-  db.savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, {blk_hash_t(1), uint64_t(0)});
   db.savePbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockInRound, {blk_hash_t(2), uint64_t(0)});
   db.savePbftMgrVotedValue(PbftMgrVotedValue::CertVotedBlockInRound, {blk_hash_t(3), uint64_t(0)});
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound),
-            std::make_pair(blk_hash_t(1), uint64_t(0)));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockInRound),
             std::make_pair(blk_hash_t(2), uint64_t(0)));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::CertVotedBlockInRound),
             std::make_pair(blk_hash_t(3), uint64_t(0)));
   batch = db.createWriteBatch();
-  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::OwnStartingValueInRound, std::make_pair(blk_hash_t(4), uint64_t(0)),
-                                 batch);
   db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::SoftVotedBlockInRound, std::make_pair(blk_hash_t(5), uint64_t(0)),
                                  batch);
   db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::CertVotedBlockInRound, std::make_pair(blk_hash_t(6), uint64_t(0)),
                                  batch);
   db.commitWriteBatch(batch);
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound),
-            std::make_pair(blk_hash_t(4), uint64_t(0)));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockInRound),
             std::make_pair(blk_hash_t(5), uint64_t(0)));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::CertVotedBlockInRound),

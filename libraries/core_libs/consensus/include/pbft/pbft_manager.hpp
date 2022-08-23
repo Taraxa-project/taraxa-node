@@ -323,19 +323,27 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   /**
    * @brief Reset PBFT step to 1
    */
-  void resetStep_();
+  void resetStep();
 
   /**
-   * @brief If node receives enough next voting votes on a forward PBFT round, set PBFT round to the round number.
-   * @return true if PBFT sets round to a forward round number
+   * @brief If node receives 2t+1 next votes for some block(including NULL_BLOCK_HASH), advance round to + 1.
+   * @return true if PBFT round advanced, otherwise false
    */
-  bool resetRound_();
+  bool advanceRound();
 
   /**
-   * @brief When a node executes a block, having received 2t+1 cert votes or a bundle of cert votes, 
-   *        then advances to next round
+   * @brief If node receives 2t+1 cert votes for some valid block and pushes it to the chain, advance period to + 1.
+   * @return true if PBFT period advanced, otherwise false
    */
-  void advancePeriod_();
+  bool advancePeriod();
+
+  /**
+   * @brief Resets pbft consensus: current pbft round is set to round, step is set to the beginning value, in case
+   * period is provided, it is reset to the provided value
+   * @param round
+   * @param period
+   */
+  void resetPbftConsensus(uint64_t round, std::optional<u_int64_t> period = {});
 
   /**
    * @brief Time to sleep for PBFT protocol
@@ -601,7 +609,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::default_random_engine random_engine_{std::random_device{}()};
 
   // Flag that says if node is in sync after it enters new round
-  //bool new_round_in_sync_ = false;
+  // bool new_round_in_sync_ = false;
 
   const size_t COMMITTEE_SIZE;
   const size_t NUMBER_OF_PROPOSERS;

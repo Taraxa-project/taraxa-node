@@ -199,10 +199,10 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
 
   pbft_mgr->setLastSoftVotedValue(stale_block_hash);
 
-  //uint64_t time_till_stale_ms = 1000;
-  //std::cout << "Set max wait for soft voted value to " << time_till_stale_ms << "ms..." << std::endl;
-  //pbft_mgr->setMaxWaitForSoftVotedBlock_ms(time_till_stale_ms);
-  //pbft_mgr->setMaxWaitForNextVotedBlock_ms(std::numeric_limits<uint64_t>::max());
+  // uint64_t time_till_stale_ms = 1000;
+  // std::cout << "Set max wait for soft voted value to " << time_till_stale_ms << "ms..." << std::endl;
+  // pbft_mgr->setMaxWaitForSoftVotedBlock_ms(time_till_stale_ms);
+  // pbft_mgr->setMaxWaitForNextVotedBlock_ms(std::numeric_limits<uint64_t>::max());
 
   auto sleep_time = 1100;
   std::cout << "Sleep " << sleep_time << "ms so that last soft voted value of " << stale_block_hash.abridged()
