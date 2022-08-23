@@ -151,7 +151,7 @@ bool VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
 
 bool VoteManager::voteInVerifiedMap(const std::shared_ptr<Vote>& vote) const {
   SharedLock lock(verified_votes_access_);
-  
+
   const auto found_period_it = verified_votes_.find(vote->getPeriod());
   if (found_period_it == verified_votes_.end()) {
     return false;
@@ -290,7 +290,8 @@ bool VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote) {
       err << ", orig. vote 2 hash (voted value): " << inserted_vote.first->second.second->getHash().abridged() << " ("
           << inserted_vote.first->second.second->getBlockHash().abridged() << ")";
     }
-    err << ", period: " << vote->getPeriod() << ", round: " << vote->getRound() << ", step: " << vote->getStep() << ", voter: " << vote->getVoterAddr();
+    err << ", period: " << vote->getPeriod() << ", round: " << vote->getRound() << ", step: " << vote->getStep()
+        << ", voter: " << vote->getVoterAddr();
     LOG(log_er_) << err.str();
 
     return false;
@@ -300,8 +301,55 @@ bool VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote) {
 }
 
 // cleanup votes < pbft_round
-void VoteManager::cleanupVotes(uint64_t pbft_period, uint64_t pbft_round) {
- 
+void VoteManager::cleanupVotesByRound(uint64_t pbft_period, uint64_t pbft_round) {
+  // Clean up cache with unique votes per period, round & step & voter
+  {
+    std::unique_lock unique_votes_lock(voters_unique_votes_mutex_);
+
+    auto found_period_it = voters_unique_votes_.find(pbft_period);
+    if (found_period_it != voters_unique_votes_.end()) {
+      auto it = found_period_it->second.begin();
+      while (it != found_period_it->second.end() && it->first < pbft_round) {
+        it = found_period_it->second.erase(it);
+      }
+    }
+  }
+
+  // Remove verified votes
+  auto batch = db_->createWriteBatch();
+  {
+    UniqueLock lock(verified_votes_access_);
+    auto found_period_it = verified_votes_.find(pbft_period);
+
+    // cleanupVotesByRound should not be called in case there are not votes for previous round
+    if (found_period_it == verified_votes_.end()) {
+      assert(false);
+      return;
+    }
+
+    auto round_it = found_period_it->second.begin();
+    while (round_it != found_period_it->second.end() && round_it->first < pbft_round) {
+      for (const auto& step : round_it->second) {
+        for (const auto& voted_value : step.second) {
+          for (const auto& v : voted_value.second.second) {
+            if (v.second->getType() == cert_vote_type) {
+              // The verified cert vote may be reward vote
+              addRewardVote(v.second);
+            }
+            db_->removeVerifiedVoteToBatch(v.first, batch);
+            LOG(log_dg_) << "Remove verified vote " << v.first << " for period, round = " << v.second->getPeriod()
+                         << ", " << v.second->getRound() << ". PBFT round " << pbft_round;
+          }
+        }
+      }
+      round_it = found_period_it->second.erase(round_it);
+    }
+
+  }  // verified_votes_access_
+  db_->commitWriteBatch(batch);
+}
+
+void VoteManager::cleanupVotesByPeriod(uint64_t pbft_period) {
   // Clean up cache with unique votes per period, round & step & voter
   {
     std::unique_lock unique_votes_lock(voters_unique_votes_mutex_);
@@ -310,15 +358,6 @@ void VoteManager::cleanupVotes(uint64_t pbft_period, uint64_t pbft_round) {
     auto it = voters_unique_votes_.begin();
     while (it != voters_unique_votes_.end() && it->first < pbft_period) {
       it = voters_unique_votes_.erase(it);
-    }
-
-    // Prior roounds within current period...
-    auto found_period_it = voters_unique_votes_.find(pbft_period);
-    if (found_period_it != voters_unique_votes_.end()) {
-      auto it = found_period_it->second.begin();
-      while (it != found_period_it->second.end() && it->first < pbft_round) {
-        it = found_period_it->second.erase(it);
-      }
     }
   }
 
@@ -336,42 +375,23 @@ void VoteManager::cleanupVotes(uint64_t pbft_period, uint64_t pbft_round) {
                 // The verified cert vote may be reward vote
                 addRewardVote(v.second);
               }
+
               db_->removeVerifiedVoteToBatch(v.first, batch);
-              LOG(log_dg_) << "Remove verified vote " << v.first << " for period, round = " << v.second->getPeriod() << ", " << v.second->getRound()
-                           << ". PBFT round " << pbft_round;
+              LOG(log_dg_) << "Remove verified vote " << v.first << " vote period " << v.second->getPeriod()
+                           << ", vote round " << v.second->getRound() << ". new PBFT period " << pbft_period;
             }
           }
         }
       }
+
       it = verified_votes_.erase(it);
     }
-
-    // Prior roounds within current period...
-    auto found_period_it = verified_votes_.find(pbft_period);
-    if (found_period_it != verified_votes_.end()) {
-      auto it = found_period_it->second.begin();
-      while (it != found_period_it->second.end() && it->first < pbft_round) {
-        for (const auto& step : it->second) {
-          for (const auto& voted_value : step.second) {
-            for (const auto& v : voted_value.second.second) {
-              if (v.second->getType() == cert_vote_type) {
-                // The verified cert vote may be reward vote
-                addRewardVote(v.second);
-              }
-              db_->removeVerifiedVoteToBatch(v.first, batch);
-              LOG(log_dg_) << "Remove verified vote " << v.first << " for period, round = " << v.second->getPeriod() << ", " << v.second->getRound()
-                           << ". PBFT round " << pbft_round;
-            }
-          }
-        }
-        it = found_period_it->second.erase(it);
-      }
-    }
   }
+
   db_->commitWriteBatch(batch);
 }
 
-//TODO: Refactor call to put period before round
+// TODO: Refactor call to put period before round
 std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t round, uint64_t period) const {
   SharedLock lock(verified_votes_access_);
 
@@ -379,7 +399,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t round,
   if (found_period_it == verified_votes_.end()) {
     return {};
   }
-  
+
   const auto found_round_it = found_period_it->second.find(round);
   if (found_round_it == found_period_it->second.end()) {
     return {};
@@ -401,11 +421,11 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t round,
   return proposal_votes;
 }
 
-//TODO: Refactor call to put period before round
+// TODO: Refactor call to put period before round
 std::optional<VotesBundle> VoteManager::getVotesBundle(uint64_t round, uint64_t period, size_t step,
                                                        size_t two_t_plus_one) const {
   SharedLock lock(verified_votes_access_);
-  
+
   const auto found_period_it = verified_votes_.find(period);
   if (found_period_it == verified_votes_.end()) {
     return {};
@@ -467,7 +487,7 @@ uint64_t VoteManager::determineRoundFromPeriodAndVotes(uint64_t period, size_t t
   std::vector<std::shared_ptr<Vote>> votes;
 
   SharedLock lock(verified_votes_access_);
-  
+
   const auto found_period_it = verified_votes_.find(period);
   if (found_period_it == verified_votes_.end()) {
     return 1;

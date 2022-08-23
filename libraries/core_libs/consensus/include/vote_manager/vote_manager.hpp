@@ -182,9 +182,16 @@ class VoteManager {
 
   /**
    * @brief Cleanup votes for previous PBFT rounds
+   * @param pbft_period current PBFT period
    * @param pbft_round current PBFT round
    */
-  void cleanupVotes(uint64_t pbft_period, uint64_t pbft_round);
+  void cleanupVotesByRound(uint64_t pbft_period, uint64_t pbft_round);
+
+  /**
+   * @brief Cleanup votes for previous PBFT periods
+   * @param pbft_period current PBFT period
+   */
+  void cleanupVotesByPeriod(uint64_t pbft_period);
 
   /**
    * @brief Get all verified votes in proposal vote type for the current PBFT round
@@ -303,19 +310,18 @@ class VoteManager {
   // TODO[1907]: this will be part of VerifiedVotes class
   // <PBFT period, <PBFT round, <PBFT step, <voted value, pair<voted weight, <vote hash, vote>>>>>
   std::map<uint64_t,
-           std::map<
-               uint64_t,
-               std::map<size_t,
-                        std::unordered_map<
-                            blk_hash_t, std::pair<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>>>>>
+           std::map<uint64_t,
+                    std::map<size_t, std::unordered_map<
+                                         blk_hash_t,
+                                         std::pair<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>>>>>
       verified_votes_;
   mutable boost::shared_mutex verified_votes_access_;
 
   // <PBFT period, <PBFT round, <PBFT step, <voter address, pair<vote 1, vote 2>>><>
   // For next votes we enable 2 votes per round & step, one of which must be vote for NULL_BLOCK_HASH
   std::map<uint64_t,
-            std::map<uint64_t, std::unordered_map<
-                         size_t, std::unordered_map<addr_t, std::pair<std::shared_ptr<Vote>, std::shared_ptr<Vote>>>>>>
+           std::map<uint64_t, std::unordered_map<size_t, std::unordered_map<addr_t, std::pair<std::shared_ptr<Vote>,
+                                                                                              std::shared_ptr<Vote>>>>>>
       voters_unique_votes_;
   mutable std::shared_mutex voters_unique_votes_mutex_;
   // TODO[1907]: end of VerifiedVotes class

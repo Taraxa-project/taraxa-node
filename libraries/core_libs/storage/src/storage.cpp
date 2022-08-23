@@ -735,7 +735,7 @@ void DbStorage::addPbftMgrVotedValueToBatch(PbftMgrVotedValue field, const std::
 }
 
 void DbStorage::removePbftMgrVotedValueToBatch(PbftMgrVotedValue field, Batch& write_batch) {
-  remove(write_batch, Columns::dag_blocks, toSlice(field));
+  remove(write_batch, Columns::pbft_mgr_voted_value, toSlice(field));
 }
 std::optional<std::pair<blk_hash_t, uint64_t>> DbStorage::getPbftMgrVotedValue(PbftMgrVotedValue field) {
   auto value = asBytes(lookup(toSlice(field), Columns::pbft_mgr_voted_value));

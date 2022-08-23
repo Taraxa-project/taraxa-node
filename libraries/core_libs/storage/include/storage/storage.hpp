@@ -46,7 +46,7 @@ enum PbftMgrStatus : uint8_t {
   NextVotedNullBlockHash,
 };
 
-enum PbftMgrVotedValue : uint8_t { OwnStartingValueInRound = 0, SoftVotedBlockInRound, CertVotedBlockInRound };
+enum PbftMgrVotedValue : uint8_t { SoftVotedBlockInRound, CertVotedBlockInRound };
 
 class DbException : public std::exception {
  public:
@@ -246,7 +246,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void savePbftMgrField(PbftMgrRoundStep field, uint64_t value);
   void addPbftMgrFieldToBatch(PbftMgrRoundStep field, uint64_t value, Batch& write_batch);
 
-  // CONCERN: These need to be by period not round now!
   size_t getPbft2TPlus1ForPeriod(uint64_t pbft_period);
   void savePbft2TPlus1ForPeriod(uint64_t pbft_period, size_t pbft_2t_plus_1);
   void addPbft2TPlus1ToBatchForPeriod(uint64_t pbft_period, size_t pbft_2t_plus_1, Batch& write_batch);

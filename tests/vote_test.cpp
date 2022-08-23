@@ -32,7 +32,7 @@ std::pair<uint64_t, uint64_t> clearAllVotes(const std::vector<std::shared_ptr<Fu
     if (node_period > max_period) {
       max_period = node_period;
     }
-    if (node_period == max_period && node_round > max_round ) {
+    if (node_period == max_period && node_round > max_round) {
       max_round = node_round;
     }
   }
@@ -50,7 +50,8 @@ std::pair<uint64_t, uint64_t> clearAllVotes(const std::vector<std::shared_ptr<Fu
     }
     db->commitWriteBatch(batch);
 
-    vote_mgr->cleanupVotes(max_period, max_round + 1);
+    vote_mgr->cleanupVotesByPeriod(max_period);
+    vote_mgr->cleanupVotesByRound(max_period, max_round + 1);
   }
 
   return {max_period, max_round};
@@ -119,7 +120,7 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
   EXPECT_EQ(votes_size, 6);
 
   // Test cleanup votes
-  vote_mgr->cleanupVotes(1, 2);  // cleanup more
+  vote_mgr->cleanupVotesByRound(1, 2);  // cleanup more
   auto verified_votes_size = vote_mgr->getVerifiedVotesSize();
   EXPECT_EQ(verified_votes_size, 3);
   auto votes = vote_mgr->getVerifiedVotes();
@@ -128,7 +129,7 @@ TEST_F(VoteTest, add_cleanup_get_votes) {
     EXPECT_GT(v->getRound(), 1);
   }
 
-  vote_mgr->cleanupVotes(2,2);  // cleanup more
+  vote_mgr->cleanupVotesByRound(2, 2);  // cleanup more
   verified_votes_size = vote_mgr->getVerifiedVotesSize();
   EXPECT_EQ(verified_votes_size, 0);
   votes = vote_mgr->getVerifiedVotes();
@@ -163,7 +164,7 @@ TEST_F(VoteTest, round_determine_from_next_votes) {
 
   auto new_round = vote_mgr->determineRoundFromPeriodAndVotes(12, two_t_plus_one);
   EXPECT_EQ(new_round, 13);
-  //EXPECT_EQ(new_period, 12);
+  // EXPECT_EQ(new_period, 12);
 }
 
 TEST_F(VoteTest, reconstruct_votes) {
