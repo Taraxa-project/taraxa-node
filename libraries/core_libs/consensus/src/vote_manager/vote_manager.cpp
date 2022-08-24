@@ -373,6 +373,7 @@ void VoteManager::cleanupVotesByPeriod(uint64_t pbft_period) {
             for (const auto& v : voted_value.second.second) {
               if (v.second->getType() == cert_vote_type) {
                 // The verified cert vote may be reward vote
+                // TODO: would be nice to get rid of this...
                 addRewardVote(v.second);
               }
 
@@ -562,7 +563,7 @@ bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
 
   // If reward vote is from another round it should not be added to last block cert votes which should all be the same
   // round
-  if (last_pbft_block_cert_round_ == vote->getRound()) {
+  if (reward_votes_round_ == vote->getRound()) {
     db_->saveLastBlockCertVote(vote);
   }
 
@@ -612,14 +613,14 @@ void VoteManager::replaceRewardVotes(std::vector<std::shared_ptr<Vote>>&& cert_v
   // It is possible that incoming reward votes might have another round because it is possible that same block was cert
   // voted in different rounds on different nodes but this is a reference round for any pbft block this node might
   // propose
-  last_pbft_block_cert_round_ = cert_votes[0]->getRound();
+  reward_votes_round_ = cert_votes[0]->getRound();
   for (auto& v : cert_votes) {
     assert(v->getWeight());
     reward_votes_.insert({v->getHash(), std::move(v)});
   }
 }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotes() {
+std::vector<std::shared_ptr<Vote>> VoteManager::getAllRewardVotes() {
   std::vector<std::shared_ptr<Vote>> reward_votes;
 
   std::shared_lock lock(reward_votes_mutex_);
@@ -630,7 +631,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotes() {
   return reward_votes;
 }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotes(const std::vector<vote_hash_t>& vote_hashes) {
+std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotesByHashes(const std::vector<vote_hash_t>& vote_hashes) {
   std::vector<std::shared_ptr<Vote>> reward_votes;
 
   std::shared_lock lock(reward_votes_mutex_);
@@ -647,12 +648,13 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotes(const std::vector
   return reward_votes;
 }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotesWithLastBlockRound() {
+std::vector<std::shared_ptr<Vote>> VoteManager::getProposeRewardVotes() {
   std::vector<std::shared_ptr<Vote>> reward_votes;
 
   std::shared_lock lock(reward_votes_mutex_);
   for (const auto& v : reward_votes_) {
-    if (v.second->getRound() == last_pbft_block_cert_round_) {
+    // Select only reward votes with round == round during which node pushed previous block into the chain
+    if (v.second->getRound() == reward_votes_round_) {
       reward_votes.push_back(v.second);
     }
   }
@@ -666,7 +668,7 @@ void VoteManager::sendRewardVotes(const blk_hash_t& pbft_block_hash) {
     if (reward_votes_pbft_block_.first != pbft_block_hash) return;
   }
 
-  auto reward_votes = getRewardVotes();
+  auto reward_votes = getAllRewardVotes();
   if (reward_votes.empty()) return;
 
   auto net = network_.lock();

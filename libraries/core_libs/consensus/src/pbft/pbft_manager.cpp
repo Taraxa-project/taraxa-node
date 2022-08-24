@@ -1079,7 +1079,7 @@ std::shared_ptr<PbftBlock> PbftManager::generatePbftBlock(const blk_hash_t &prev
   const auto propose_period = pbft_chain_->getPbftChainSize() + 1;
   // Reward votes should only include those reward votes with the same round as the round last pbft block was pushed
   // into chain
-  const auto reward_votes = vote_mgr_->getRewardVotesWithLastBlockRound();
+  const auto reward_votes = vote_mgr_->getProposeRewardVotes();
   std::vector<vote_hash_t> reward_votes_hashes;
   std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
                  [](const auto &v) { return v->getHash(); });
@@ -1695,7 +1695,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
     return false;
   }
 
-  period_data_.previous_block_cert_votes = vote_mgr_->getRewardVotes(period_data_.pbft_blk->getRewardVotes());
+  period_data_.previous_block_cert_votes = vote_mgr_->getRewardVotesByHashes(period_data_.pbft_blk->getRewardVotes());
   if (period_data_.previous_block_cert_votes.size() < period_data_.pbft_blk->getRewardVotes().size()) {
     LOG(log_er_) << "Missing reward votes in cert voted block " << cert_voted_block_hash;
     return false;
@@ -1808,7 +1808,7 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   }
 
   db_->savePeriodData(period_data, batch);
-  db_->addLastBlockCertVotesToBatch(cert_votes, vote_mgr_->getRewardVotes(), batch);
+  db_->addLastBlockCertVotesToBatch(cert_votes, vote_mgr_->getAllRewardVotes(), batch);
 
   // pass pbft with dag blocks and transactions to adjust difficulty
   if (period_data.pbft_blk->getPivotDagBlockHash() != NULL_BLOCK_HASH) {
@@ -1969,7 +1969,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
   // pbft_chain_->findPbftBlockInChain(pbft_block_hash) and it's cert votes were not verified here, they are part of
   // vote_manager so we need to replace them as they are not verified period_data structure
   if (period_data.previous_block_cert_votes.size() && !period_data.previous_block_cert_votes.front()->getWeight()) {
-    if (auto votes = vote_mgr_->getRewardVotes(period_data.pbft_blk->getRewardVotes()); votes.size()) {
+    if (auto votes = vote_mgr_->getRewardVotesByHashes(period_data.pbft_blk->getRewardVotes()); votes.size()) {
       if (votes.size() < period_data.pbft_blk->getRewardVotes().size()) {
         LOG(log_er_) << "Failed verifying reward votes. PBFT block " << pbft_block_hash << ".Disconnect malicious peer "
                      << node_id.abridged();
