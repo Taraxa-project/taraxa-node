@@ -70,7 +70,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
         continue;
       }
 
-      setVoterMaxRound(vote->getVoterAddr(), vote->getRound());
+      setVoterMaxPeriodAndRound(vote->getVoterAddr(), vote->getPeriod(), vote->getRound());
     } else {  // pbft_current_round == peer_pbft_round
       if (auto vote_is_valid = validateNextSyncVote(next_vote); vote_is_valid.first == false) {
         LOG(log_wr_) << "Next vote " << next_vote_hash.abridged()
