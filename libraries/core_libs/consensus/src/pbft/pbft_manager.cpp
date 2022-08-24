@@ -696,6 +696,7 @@ void PbftManager::loopBackFinishState_() {
 }
 
 bool PbftManager::stateOperations_() {
+  
   pushSyncedPbftBlocksIntoChain();
 
   checkPreviousRoundNextVotedValueChange_();
@@ -2019,11 +2020,6 @@ void PbftManager::periodDataQueuePush(PeriodData &&period_data, dev::p2p::NodeID
     LOG(log_er_) << "Trying to push period data with " << period << " period, but current period is "
                  << sync_queue_.getPeriod();
   }
-
-  // CONCERN: Added this here to make PbftChainTest.proposal_block_broadcast pass
-  //          Unsure how we expected the pbft chain size to sync with pbft mgr stopped
-  //          in that test.  But do we really want to call this here?
-  pushSyncedPbftBlocksIntoChain();
 }
 
 size_t PbftManager::periodDataQueueSize() const { return sync_queue_.size(); }
