@@ -26,12 +26,13 @@ class StatusPacketHandler final : public ExtSyncingPacketHandler {
   void validatePacketRlpFormat(const PacketData& packet_data) const override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
-  void requestPbftNextVotes(dev::p2p::NodeID const& peerID, uint64_t pbft_round,
-                            size_t pbft_previous_round_next_votes_size);
-  void syncPbftNextVotes(uint64_t pbft_round, size_t pbft_previous_round_next_votes_size);
+  void requestPbftNextVotesAtPeriodRound(dev::p2p::NodeID const& peerID, uint64_t pbft_period, uint64_t pbft_round,
+                                         size_t pbft_previous_round_next_votes_size);
+  void syncPbftNextVotesAtPeriodRound(uint64_t pbft_period, uint64_t pbft_round,
+                                      size_t pbft_previous_round_next_votes_size);
 
-  static constexpr uint16_t kInitialStatusPacketItemsCount = 12;
-  static constexpr uint16_t kStandardStatusPacketItemsCount = 5;
+  static constexpr uint16_t kInitialStatusPacketItemsCount = 13;
+  static constexpr uint16_t kStandardStatusPacketItemsCount = 6;
   const uint64_t conf_chain_id_;
   const h256 genesis_hash_;
 

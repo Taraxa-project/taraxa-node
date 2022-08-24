@@ -251,12 +251,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   u_long getPbftInitialLambda() const { return LAMBDA_ms_MIN; }
 
   /**
-   * @brief Set last soft vote value of PBFT block hash
-   * @param soft_voted_value soft vote value of PBFT block hash
-   */
-  void setLastSoftVotedValue(blk_hash_t soft_voted_value);
-
-  /**
    * @brief Resume PBFT daemon. Only to be used for unit tests
    */
   void resume();
@@ -548,17 +542,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool is_syncing_();
 
   /**
-   * @brief Set initial time for voting value
-   */
-  void initializeVotedValueTimeouts_();
-
-  /**
-   * @brief Update last soft voting value
-   * @param new_soft_voted_value soft voting value
-   */
-  void updateLastSoftVotedValue_(blk_hash_t const new_soft_voted_value);
-
-  /**
    * @brief Check if previous round next voting value has been changed
    */
   void checkPreviousRoundNextVotedValueChange_();
@@ -637,11 +620,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   time_point round_clock_initial_datetime_;
   time_point now_;
-
-  time_point time_began_waiting_next_voted_block_;
-  time_point time_began_waiting_soft_voted_block_;
-
-  blk_hash_t last_soft_voted_value_ = NULL_BLOCK_HASH;
 
   std::chrono::duration<double> duration_;
   u_long next_step_time_ms_ = 0;

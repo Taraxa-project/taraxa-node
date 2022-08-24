@@ -21,7 +21,7 @@ void VotePacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketDat
 }
 
 void VotePacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
-  const auto current_pbft_round = pbft_mgr_->getPbftRound();
+  const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
   std::vector<std::shared_ptr<Vote>> votes;
   const auto count = packet_data.rlp_.itemCount();
@@ -40,7 +40,8 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
 
     // TODO[1880]: We identify vote as reward vote based on round, but if some out of sync node sends us standard vote
     // we identify it as reward vote and use wrong validation....
-    if (vote->getRound() < current_pbft_round) {  // reward vote
+    if (vote->getPeriod() < current_pbft_period ||
+        (vote->getPeriod() == current_pbft_round && vote->getRound() < current_pbft_round)) {  // reward vote
       if (vote_mgr_->isInRewardsVotes(vote->getHash())) {
         LOG(log_dg_) << "Reward vote " << vote_hash.abridged() << " already inserted in rewards votes";
       }
@@ -48,6 +49,7 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
       if (auto vote_is_valid = validateRewardVote(vote); vote_is_valid.first == false) {
         LOG(log_wr_) << "Reward vote " << vote_hash.abridged() << " validation failed. Err: \"" << vote_is_valid.second
                      << "\", vote round " << vote->getRound() << ", current round: " << current_pbft_round
+                     << ", vote period: " << vote->getPeriod() << ", current period: " << current_pbft_period
                      << ", vote type: " << static_cast<uint64_t>(vote->getType());
         continue;
       }
@@ -71,7 +73,7 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
         continue;
       }
 
-      setVoterMaxRound(vote->getVoterAddr(), vote->getRound());
+      setVoterMaxPeriodAndRound(vote->getVoterAddr(), vote->getPeriod(), vote->getRound());
     }
 
     // Do not mark it before, as peers have small caches of known votes. Only mark gossiping votes

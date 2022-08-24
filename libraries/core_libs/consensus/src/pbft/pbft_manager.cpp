@@ -351,10 +351,9 @@ bool PbftManager::advancePeriod() {
       auto execute_trxs_in_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
       LOG(log_dg_) << "PBFT block " << certified_block->voted_block_hash << " certified and pushed into chain in round "
                    << current_pbft_round << ". Execution time " << execute_trxs_in_ms << " [ms]";
-    } else {
-      LOG(log_er_) << "PBFT block " << certified_block->voted_block_hash
-                   << " certified but not pushed into chain in round " << current_pbft_round;
     }
+    // Moved error message that was here to be more specific and in pushCertVotedPbftBlockIntoChain_, as it has multiple
+    // reasons it can fail.
   }
 
   // Even if node did not see 2t+1 cert votes, chain size might be increased through syncing
@@ -579,11 +578,6 @@ void PbftManager::initialState() {
     soft_voted_block_for_round_.reset();
   }
 
-  // Used for detecting timeout due to malicious node
-  // failing to gossip PBFT block or DAG blocks
-  // Requires that soft_voted_block_for_round_ already be initialized from db
-  initializeVotedValueTimeouts_();
-
   if (auto cert_voted_block = db_->getPbftMgrVotedValue(PbftMgrVotedValue::CertVotedBlockInRound);
       cert_voted_block.has_value()) {
     cert_voted_block_for_round_ = *cert_voted_block;
@@ -683,8 +677,7 @@ void PbftManager::loopBackFinishState_() {
   LOG(log_dg_) << "CONSENSUS debug round " << round << " , step " << step_
                << " | next_voted_soft_value_ = " << next_voted_soft_value_ << " soft_voted_value_for_round = "
                << (soft_voted_block_for_round_.has_value() ? soft_voted_block_for_round_->first.abridged() : "no value")
-               << " next_voted_null_block_hash_ = " << next_voted_null_block_hash_
-               << " last_soft_voted_value_ = " << last_soft_voted_value_ << " cert_voted_value_for_round = "
+               << " next_voted_null_block_hash_ = " << next_voted_null_block_hash_ << " cert_voted_value_for_round = "
                << (cert_voted_block_for_round_.has_value() ? cert_voted_block_for_round_->first.abridged() : "no value")
                << " previous_round_next_voted_value_ = " << previous_round_next_voted_value_;
   state_ = finish_state;
@@ -753,40 +746,9 @@ std::optional<std::pair<blk_hash_t, uint64_t>> PbftManager::getSoftVotedBlockFor
   return {};
 }
 
-void PbftManager::initializeVotedValueTimeouts_() {
-  time_began_waiting_next_voted_block_ = std::chrono::system_clock::now();
-  time_began_waiting_soft_voted_block_ = std::chrono::system_clock::now();
-
-  // Concern: Requires that soft_voted_block_for_round_ already be initialized from db
-  if (soft_voted_block_for_round_.has_value()) {
-    last_soft_voted_value_ = soft_voted_block_for_round_->first;
-  }
-
-  // CONCERN Do we still need any of this functionality?
-  LOG(log_er_) << "initializeVotedValueTimeouts_ being called but no longer needed";
-}
-
-// Only for test
-void PbftManager::setLastSoftVotedValue(blk_hash_t soft_voted_value) { updateLastSoftVotedValue_(soft_voted_value); }
-
-void PbftManager::updateLastSoftVotedValue_(blk_hash_t const new_soft_voted_value) {
-  if (new_soft_voted_value != last_soft_voted_value_) {
-    time_began_waiting_soft_voted_block_ = std::chrono::system_clock::now();
-  }
-  last_soft_voted_value_ = new_soft_voted_value;
-}
-
 void PbftManager::checkPreviousRoundNextVotedValueChange_() {
-  auto previous_round_next_voted_value = next_votes_manager_->getVotedValue();
-  auto previous_round_next_voted_null_block_hash = next_votes_manager_->haveEnoughVotesForNullBlockHash();
-
-  if (previous_round_next_voted_value != previous_round_next_voted_value_) {
-    time_began_waiting_next_voted_block_ = std::chrono::system_clock::now();
-    previous_round_next_voted_value_ = previous_round_next_voted_value;
-  } else if (previous_round_next_voted_null_block_hash != previous_round_next_voted_null_block_hash_) {
-    time_began_waiting_next_voted_block_ = std::chrono::system_clock::now();
-    previous_round_next_voted_null_block_hash_ = previous_round_next_voted_null_block_hash;
-  }
+  previous_round_next_voted_value_ = next_votes_manager_->getVotedValue();
+  previous_round_next_voted_null_block_hash_ = next_votes_manager_->haveEnoughVotesForNullBlockHash();
 }
 
 void PbftManager::proposeBlock_() {
@@ -871,8 +833,6 @@ void PbftManager::identifyBlock_() {
         LOG(log_nf_) << "Placed soft vote for " << leader_block_hash << ", vote weight " << vote_weight << ", round "
                      << round << ", period " << leader_block_period << ", step " << step_;
       }
-
-      updateLastSoftVotedValue_(leader_block->first);
     }
 
     return;
@@ -891,11 +851,6 @@ void PbftManager::identifyBlock_() {
                  << ", vote weight " << vote_weight << ", round " << round << ", period "
                  << previous_round_next_voted_value_.second << ", step " << step_;
   }
-
-  // Generally this value will either be the same as last soft voted value from previous round
-  // but a node could have observed a previous round next voted value that differs from what they
-  // soft voted.
-  updateLastSoftVotedValue_(previous_round_next_voted_value_.first);
 }
 
 void PbftManager::certifyBlock_() {
@@ -1723,29 +1678,31 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
                                                    std::vector<std::shared_ptr<Vote>> &&current_round_cert_votes) {
   auto pbft_block = getUnfinalizedBlock_(cert_voted_block_hash);
   if (!pbft_block) {
-    LOG(log_nf_) << "Can not find the cert voted block hash " << cert_voted_block_hash << " in both pbft queue and DB";
+    LOG(log_er_) << "Can not find the cert voted block hash " << cert_voted_block_hash << " in both pbft queue and DB";
     return false;
   }
 
   if (!pbft_chain_->checkPbftBlockValidation(*pbft_block)) {
+    LOG(log_er_) << "Failed pbft chain validation for cert voted block " << cert_voted_block_hash
+                 << ", will call sync pbft chain from peers";
     syncPbftChainFromPeers_(invalid_cert_voted_block, cert_voted_block_hash);
     return false;
   }
 
   auto [dag_blocks_order, ok] = compareBlocksAndRewardVotes_(pbft_block);
   if (!ok) {
-    LOG(log_nf_) << "Failed compare DAG blocks or reward votes with PBFT block " << cert_voted_block_hash;
+    LOG(log_er_) << "Failed compare DAG blocks or reward votes with cert voted block " << cert_voted_block_hash;
     return false;
   }
 
   period_data_.previous_block_cert_votes = vote_mgr_->getRewardVotes(period_data_.pbft_blk->getRewardVotes());
   if (period_data_.previous_block_cert_votes.size() < period_data_.pbft_blk->getRewardVotes().size()) {
-    LOG(log_er_) << "Missing reward votes in " << cert_voted_block_hash;
+    LOG(log_er_) << "Missing reward votes in cert voted block " << cert_voted_block_hash;
     return false;
   }
 
   if (!pushPbftBlock_(std::move(period_data_), std::move(current_round_cert_votes), std::move(dag_blocks_order))) {
-    LOG(log_er_) << "Failed push PBFT block " << pbft_block->getBlockHash() << " into chain";
+    LOG(log_er_) << "Failed push cert voted block " << pbft_block->getBlockHash() << " into PBFT chain";
     return false;
   }
 
@@ -1770,7 +1727,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain() {
         LOG(log_nf_) << node_addr_ << " push synced PBFT block " << pbft_block_hash << " in period " << period
                      << ", round " << round;
       } else {
-        LOG(log_er_) << "Failed push PBFT block " << pbft_block_hash << " into chain";
+        LOG(log_si_) << "Failed push PBFT block " << pbft_block_hash << " into chain";
         break;
       }
 
@@ -2062,6 +2019,11 @@ void PbftManager::periodDataQueuePush(PeriodData &&period_data, dev::p2p::NodeID
     LOG(log_er_) << "Trying to push period data with " << period << " period, but current period is "
                  << sync_queue_.getPeriod();
   }
+
+  // CONCERN: Added this here to make PbftChainTest.proposal_block_broadcast pass
+  //          Unsure how we expected the pbft chain size to sync with pbft mgr stopped
+  //          in that test.  But do we really want to call this here?
+  pushSyncedPbftBlocksIntoChain();
 }
 
 size_t PbftManager::periodDataQueueSize() const { return sync_queue_.size(); }
