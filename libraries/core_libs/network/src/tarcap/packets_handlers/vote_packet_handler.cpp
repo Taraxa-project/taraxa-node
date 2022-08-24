@@ -38,10 +38,25 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     }
     peer->markVoteAsKnown(vote_hash);
 
-    // TODO[1880]: We identify vote as reward vote based on round, but if some out of sync node sends us standard vote
-    // we identify it as reward vote and use wrong validation....
-    if (vote->getPeriod() < current_pbft_period ||
-        (vote->getPeriod() == current_pbft_round && vote->getRound() < current_pbft_round)) {  // reward vote
+    // Standard vote
+    if (vote->getPeriod() >= current_pbft_period) {
+      if (vote_mgr_->voteInVerifiedMap(vote)) {
+        LOG(log_dg_) << "Vote " << vote_hash.abridged() << " already inserted in verified queue";
+      }
+
+      if (auto vote_is_valid = validateStandardVote(vote); vote_is_valid.first == false) {
+        LOG(log_wr_) << "Vote " << vote_hash.abridged() << " validation failed. Err: " << vote_is_valid.second;
+        continue;
+      }
+
+      if (!vote_mgr_->addVerifiedVote(vote)) {
+        LOG(log_dg_) << "Vote " << vote_hash << " already inserted in verified queue(race condition)";
+        continue;
+      }
+
+      setVoterMaxPeriodAndRound(vote->getVoterAddr(), vote->getPeriod(), vote->getRound());
+    } else if (vote->getPeriod() == current_pbft_period - 1 && vote->getType() == PbftVoteTypes::cert_vote_type) {
+      // potential reward vote
       if (vote_mgr_->isInRewardsVotes(vote->getHash())) {
         LOG(log_dg_) << "Reward vote " << vote_hash.abridged() << " already inserted in rewards votes";
       }
@@ -58,22 +73,11 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
         LOG(log_dg_) << "Reward vote " << vote_hash.abridged() << " already inserted in reward votes(race condition)";
         continue;
       }
-    } else {  // standard vote -> vote_round >= current_pbft_round
-      if (vote_mgr_->voteInVerifiedMap(vote)) {
-        LOG(log_dg_) << "Vote " << vote_hash.abridged() << " already inserted in verified queue";
-      }
-
-      if (auto vote_is_valid = validateStandardVote(vote); vote_is_valid.first == false) {
-        LOG(log_wr_) << "Vote " << vote_hash.abridged() << " validation failed. Err: " << vote_is_valid.second;
-        continue;
-      }
-
-      if (!vote_mgr_->addVerifiedVote(vote)) {
-        LOG(log_dg_) << "Vote " << vote_hash << " already inserted in verified queue(race condition)";
-        continue;
-      }
-
-      setVoterMaxPeriodAndRound(vote->getVoterAddr(), vote->getPeriod(), vote->getRound());
+    } else {
+      // Too old vote
+      LOG(log_dg_) << "Drop vote " << vote_hash.abridged() << ". Vote period " << vote->getPeriod()
+                   << " too old. current_pbft_period " << current_pbft_period;
+      continue;
     }
 
     // Do not mark it before, as peers have small caches of known votes. Only mark gossiping votes

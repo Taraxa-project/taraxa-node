@@ -78,10 +78,9 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateNextSyncVote(const s
 std::pair<bool, std::string> ExtVotesPacketHandler::validateRewardVote(const std::shared_ptr<Vote> &vote) const {
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
-  if (vote->getPeriod() < current_pbft_period - 1 || vote->getPeriod() > current_pbft_period ||
-      vote->getRound() >= current_pbft_round) {
+  if (vote->getPeriod() != current_pbft_period - 1) {
     std::stringstream err;
-    err << "Invalid round: Vote round: " << vote->getRound() << ", current pbft round: " << current_pbft_round;
+    err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
     return {false, err.str()};
   }
 
