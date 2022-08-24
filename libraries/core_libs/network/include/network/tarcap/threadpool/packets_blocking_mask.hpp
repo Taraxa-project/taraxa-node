@@ -22,12 +22,16 @@ class PacketsBlockingMask {
   void setDagBlockLevelBeingProcessed(const PacketData& packet);
   void unsetDagBlockLevelBeingProcessed(const PacketData& packet);
 
+  void setDagBlockBeingProcessed(const PacketData& packet);
+  void unsetDagBlockBeingProcessed(const PacketData& packet);
+
   bool isPacketBlocked(const PacketData& packet_data) const;
 
  private:
   bool isPacketHardBlocked(const PacketData& packet_data) const;
   bool isPacketPeerOrderBlocked(const PacketData& packet_data) const;
   bool isDagBlockPacketBlockedByLevel(const PacketData& packet_data) const;
+  bool isDagBlockPacketBlockedBySameDagBlock(const PacketData& packet_data) const;
 
   std::optional<taraxa::level_t> getSmallestDagLevelBeingProcessed() const;
 
@@ -58,6 +62,11 @@ class PacketsBlockingMask {
   //    concurrently
   // Order of levels must be preserved, therefore using std::map
   std::map<taraxa::level_t, std::unordered_set<PacketData::PacketId>> processing_dag_levels_;
+
+  // This "blocking dependency" is specific just for DagBlockPacket. Multiple nodes can send same dag blocks
+  // concurrently, to reduce perofrmance impact only one packet/block will be processsed and others will be waiting.
+  //  This map contains dag blocks that are currently processed with the associated packet id
+  std::map<taraxa::sig_t, PacketData::PacketId> processing_dag_blocks_;
 };
 
 }  // namespace taraxa::network::tarcap

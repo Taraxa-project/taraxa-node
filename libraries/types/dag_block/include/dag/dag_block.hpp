@@ -33,6 +33,8 @@ class DagBlock {
   vdf_sortition::VdfSortition vdf_;
   mutable addr_t cached_sender_;  // block creater
   mutable util::DefaultConstructCopyableMovable<std::mutex> cached_sender_mu_;
+  static const size_t kLevelPosInRlp{1};
+  static const size_t kSigPosInRlp{6};
 
  public:
   DagBlock() = default;
@@ -57,6 +59,14 @@ class DagBlock {
    * @return
    */
   static level_t extract_dag_level_from_rlp(const dev::RLP &rlp);
+
+  /**
+   * @brief Extracts signature from rlp representation
+   *
+   * @param rlp
+   * @return signature
+   */
+  static sig_t extract_signature_from_rlp(const dev::RLP &rlp);
 
   friend std::ostream &operator<<(std::ostream &str, DagBlock const &u) {
     str << "	pivot		= " << u.pivot_.abridged() << std::endl;

@@ -75,7 +75,8 @@ DagBlock::DagBlock(dev::RLP const &rlp) {
   vdf_ = vdf_sortition::VdfSortition(vdf_bytes);
 }
 
-level_t DagBlock::extract_dag_level_from_rlp(const dev::RLP &rlp) { return rlp[1].toInt<level_t>(); }
+level_t DagBlock::extract_dag_level_from_rlp(const dev::RLP &rlp) { return rlp[kLevelPosInRlp].toInt<level_t>(); }
+sig_t DagBlock::extract_signature_from_rlp(const dev::RLP &rlp) { return rlp[kSigPosInRlp].toHash<sig_t>(); }
 
 Json::Value DagBlock::getJson(bool with_derived_fields) const {
   Json::Value res;
