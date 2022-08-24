@@ -1,5 +1,8 @@
 var NAVTREEINDEX5 =
 {
+"classtaraxa_1_1_db_storage.html#a05bfb47eb886c66db3ebafe4dc3b773d":[11,0,3,20,35],
+"classtaraxa_1_1_db_storage.html#a08e047fd250cb0d786c208eddb78fdd6":[11,0,3,20,137],
+"classtaraxa_1_1_db_storage.html#a0d46bd5104681a4a92a96870f275f8fa":[11,0,3,20,131],
 "classtaraxa_1_1_db_storage.html#a0e7339685ce0f30cb9186ccec58709fa":[11,0,3,20,33],
 "classtaraxa_1_1_db_storage.html#a0ebbb9d49740a23fa2dd0af03e3a9f78":[11,0,3,20,95],
 "classtaraxa_1_1_db_storage.html#a0f5deb58ed3536cd44eb95e205bd7a1c":[11,0,3,20,52],
@@ -246,8 +249,5 @@ var NAVTREEINDEX5 =
 "classtaraxa_1_1_full_node.html#acd9c6b5ca7ab7b27e0f1f438bcbe98c9":[11,0,3,22,44],
 "classtaraxa_1_1_full_node.html#ad6ee8cc463be28c15f19be9839a964fd":[11,0,3,22,38],
 "classtaraxa_1_1_full_node.html#ae37eb71bc5ec5cd0201e5442ce1bfa01":[11,0,3,22,54],
-"classtaraxa_1_1_full_node.html#ae45cc36c776223184ab797fcecebc3df":[11,0,3,22,26],
-"classtaraxa_1_1_full_node.html#af336b43e37cc96080c62f10de5682886":[11,0,3,22,36],
-"classtaraxa_1_1_full_node.html#structtaraxa_1_1_full_node_1_1_post_destruction_context":[12,0,1,4,2,0,0,0,1],
-"classtaraxa_1_1_full_node.html#structtaraxa_1_1_full_node_1_1_post_destruction_context":[11,0,3,22,0]
+"classtaraxa_1_1_full_node.html#ae45cc36c776223184ab797fcecebc3df":[11,0,3,22,26]
 };

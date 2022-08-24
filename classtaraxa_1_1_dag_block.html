@@ -86,6 +86,7 @@ $(document).ready(function(){initNavTree('classtaraxa_1_1_dag_block.html',''); i
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
 <a href="#pri-methods">Private Member Functions</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
+<a href="#pri-static-attribs">Static Private Attributes</a> &#124;
 <a href="#friends">Friends</a> &#124;
 <a href="classtaraxa_1_1_dag_block-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -102,7 +103,7 @@ Collaboration diagram for taraxa::DagBlock:</div>
 <div class="dyncontent">
 <div class="center"><img src="classtaraxa_1_1_dag_block__coll__graph.png" border="0" usemap="#taraxa_1_1_dag_block_coll__map" alt="Collaboration graph"/></div>
 <map name="taraxa_1_1_dag_block_coll__map" id="taraxa_1_1_dag_block_coll__map">
-<area shape="rect" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b..." alt="" coords="927,73,1061,99"/>
+<area shape="rect" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b..." alt="" coords="927,118,1061,145"/>
 <area shape="rect" href="structtaraxa_1_1util_1_1_default_construct_copyable_movable.html" title=" " alt="" coords="507,5,745,47"/>
 <area shape="rect" title=" " alt="" coords="326,13,390,39"/>
 <area shape="rect" href="classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html" title=" " alt="" coords="549,71,703,112"/>
@@ -110,6 +111,7 @@ Collaboration diagram for taraxa::DagBlock:</div>
 <area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,37,181,79"/>
 <area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,103,181,144"/>
 <area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="546,162,706,189"/>
+<area shape="rect" title=" " alt="" coords="596,222,656,249"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -174,6 +176,9 @@ Static Public Member Functions</h2></td></tr>
 <tr class="memitem:a4dbf3ebcaff09990ade62f9c7945b470"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacetaraxa.html#ac29ce7c6f0fae63e548b523170910526">level_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#a4dbf3ebcaff09990ade62f9c7945b470">extract_dag_level_from_rlp</a> (const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;<a class="el" href="classtaraxa_1_1_dag_block.html#ad56b5133c0560c42278111eb4f0033bd">rlp</a>)</td></tr>
 <tr class="memdesc:a4dbf3ebcaff09990ade62f9c7945b470"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts dag level from rlp representation.  <a href="classtaraxa_1_1_dag_block.html#a4dbf3ebcaff09990ade62f9c7945b470">More...</a><br /></td></tr>
 <tr class="separator:a4dbf3ebcaff09990ade62f9c7945b470"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae3f897fa4553f5fcfb08c4973bcf91f5"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacetaraxa.html#ac413a96709236ee8b2a47c019f83ce37">sig_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#ae3f897fa4553f5fcfb08c4973bcf91f5">extract_signature_from_rlp</a> (const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;<a class="el" href="classtaraxa_1_1_dag_block.html#ad56b5133c0560c42278111eb4f0033bd">rlp</a>)</td></tr>
+<tr class="memdesc:ae3f897fa4553f5fcfb08c4973bcf91f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Extracts signature from rlp representation.  <a href="classtaraxa_1_1_dag_block.html#ae3f897fa4553f5fcfb08c4973bcf91f5">More...</a><br /></td></tr>
+<tr class="separator:ae3f897fa4553f5fcfb08c4973bcf91f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
@@ -208,6 +213,13 @@ Private Attributes</h2></td></tr>
 <tr class="separator:ab804781e239bdde16f10ea8ca3d57bd3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7d720be5c72f9251679df8ed5b92339c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtaraxa_1_1util_1_1_default_construct_copyable_movable.html">util::DefaultConstructCopyableMovable</a>&lt; std::mutex &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#a7d720be5c72f9251679df8ed5b92339c">cached_sender_mu_</a></td></tr>
 <tr class="separator:a7d720be5c72f9251679df8ed5b92339c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-static-attribs"></a>
+Static Private Attributes</h2></td></tr>
+<tr class="memitem:a318413c5369c15dc8eeb91a573e971b1"><td class="memItemLeft" align="right" valign="top">static const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#a318413c5369c15dc8eeb91a573e971b1">kLevelPosInRlp</a> {1}</td></tr>
+<tr class="separator:a318413c5369c15dc8eeb91a573e971b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe7ebe238d3b5cf6a0f90f40486961f8"><td class="memItemLeft" align="right" valign="top">static const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#abe7ebe238d3b5cf6a0f90f40486961f8">kSigPosInRlp</a> {6}</td></tr>
+<tr class="separator:abe7ebe238d3b5cf6a0f90f40486961f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="friends"></a>
 Friends</h2></td></tr>
@@ -605,6 +617,41 @@ Friends</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd></dd></dl>
+
+</div>
+</div>
+<a id="ae3f897fa4553f5fcfb08c4973bcf91f5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae3f897fa4553f5fcfb08c4973bcf91f5">&#9670;&nbsp;</a></span>extract_signature_from_rlp()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#ac413a96709236ee8b2a47c019f83ce37">sig_t</a> taraxa::DagBlock::extract_signature_from_rlp </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;&#160;</td>
+          <td class="paramname"><em>rlp</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Extracts signature from rlp representation. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">rlp</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>signature </dd></dl>
 
 </div>
 </div>
@@ -1167,6 +1214,50 @@ Friends</h2></td></tr>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">mutable</span><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a318413c5369c15dc8eeb91a573e971b1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a318413c5369c15dc8eeb91a573e971b1">&#9670;&nbsp;</a></span>kLevelPosInRlp</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const size_t taraxa::DagBlock::kLevelPosInRlp {1}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abe7ebe238d3b5cf6a0f90f40486961f8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe7ebe238d3b5cf6a0f90f40486961f8">&#9670;&nbsp;</a></span>kSigPosInRlp</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const size_t taraxa::DagBlock::kSigPosInRlp {6}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span><span class="mlabel">private</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
