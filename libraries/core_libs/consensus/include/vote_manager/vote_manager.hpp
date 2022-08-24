@@ -265,7 +265,7 @@ class VoteManager {
    *
    * @return vector of all reward votes
    */
-  std::vector<std::shared_ptr<Vote>> getRewardVotes();
+  std::vector<std::shared_ptr<Vote>> getAllRewardVotes();
 
   /**
    * @brief Get reward votes from specified hashes
@@ -273,14 +273,14 @@ class VoteManager {
    * @param vote_hashes votes hashes to retrieve
    * @return reward votes, if any of the votes is missing an empty array is returned
    */
-  std::vector<std::shared_ptr<Vote>> getRewardVotes(const std::vector<vote_hash_t>& vote_hashes);
+  std::vector<std::shared_ptr<Vote>> getRewardVotesByHashes(const std::vector<vote_hash_t>& vote_hashes);
 
   /**
-   * @brief Get reward votes from reward_votes_ with the last block round
+   * @brief Get reward votes from reward_votes_ with the round during which was the previous block pushed
    *
    * @return vector of reward votes
    */
-  std::vector<std::shared_ptr<Vote>> getRewardVotesWithLastBlockRound();
+  std::vector<std::shared_ptr<Vote>> getProposeRewardVotes();
 
   /**
    * @brief Send out all reward votes to peers
@@ -328,7 +328,7 @@ class VoteManager {
 
   // TODO[1907]: this will be part of RewardVotes class
   std::pair<blk_hash_t, uint64_t /* period */> reward_votes_pbft_block_;
-  uint64_t last_pbft_block_cert_round_;
+  uint64_t reward_votes_round_;  // round, during which was the block pushed into the chain
   std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> reward_votes_;
   mutable std::shared_mutex reward_votes_mutex_;
   // TODO[1907]: end of RewardVotes class
