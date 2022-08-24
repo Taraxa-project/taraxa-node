@@ -21,6 +21,7 @@ install(TARGETS cli
 
 set(JSONS_DIRECTIORY ${CMAKE_CURRENT_SOURCE_DIR}/include/cli/config_jsons)
 
+file(READ ${JSONS_DIRECTIORY}/default.json DEFAULT_CONFIG_JSON)
 file(READ ${JSONS_DIRECTIORY}/mainnet.json MAINNET_CONFIG_JSON)
 file(READ ${JSONS_DIRECTIORY}/testnet.json TESTNET_CONFIG_JSON)
 file(READ ${JSONS_DIRECTIORY}/devnet.json DEVNET_CONFIG_JSON)
@@ -38,6 +39,9 @@ set(config_files
     ${JSONS_DIRECTIORY}/testnet.json
     ${JSONS_DIRECTIORY}/devnet.json
 )
+
+# this helps to trigger configuration step after change of JSON conffiguration files 
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${config_files})
 
 list(LENGTH configs configs_count)
 # length should be less by 1 for foreach
