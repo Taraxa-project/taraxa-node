@@ -76,6 +76,27 @@ std::optional<taraxa::level_t> PacketsBlockingMask::getSmallestDagLevelBeingProc
   return {};
 }
 
+void PacketsBlockingMask::setDagBlockBeingProcessed(const PacketData& packet) {
+  // Signature is used as id for the dag block since it is cheaper to get signature than to calculate hash at this point
+  // and signature should be unique per dag block
+  sig_t sig = DagBlock::extract_signature_from_rlp(packet.rlp_);
+
+  // If blocking is working correctly it should not be possible that we already are processing the same block
+  assert(processing_dag_blocks_.find(sig) == processing_dag_blocks_.end());
+
+  processing_dag_blocks_.emplace(std::move(sig), packet.id_);
+}
+
+void PacketsBlockingMask::unsetDagBlockBeingProcessed(const PacketData& packet) {
+  sig_t sig = DagBlock::extract_signature_from_rlp(packet.rlp_);
+
+  // There must be existing block inside processing_dag_blocks_
+  const auto processing_dag_block = processing_dag_blocks_.find(sig);
+  assert(processing_dag_block != processing_dag_blocks_.end());
+
+  processing_dag_blocks_.erase(processing_dag_block);
+}
+
 void PacketsBlockingMask::setDagBlockLevelBeingProcessed(const PacketData& packet) {
   level_t dag_level = DagBlock::extract_dag_level_from_rlp(packet.rlp_);
 
@@ -119,6 +140,11 @@ void PacketsBlockingMask::unsetDagBlockLevelBeingProcessed(const PacketData& pac
 bool PacketsBlockingMask::isPacketHardBlocked(const PacketData& packet_data) const {
   // There is no peers_time block for packet_data.type_ packet type
   return hard_blocked_packet_types_.count(packet_data.type_);
+}
+
+bool PacketsBlockingMask::isDagBlockPacketBlockedBySameDagBlock(const PacketData& packet_data) const {
+  sig_t sig = DagBlock::extract_signature_from_rlp(packet_data.rlp_);
+  return processing_dag_blocks_.find(sig) != processing_dag_blocks_.end();
 }
 
 bool PacketsBlockingMask::isDagBlockPacketBlockedByLevel(const PacketData& packet_data) const {
@@ -170,7 +196,8 @@ bool PacketsBlockingMask::isPacketBlocked(const PacketData& packet_data) const {
 
   // Custom blocks for specific packet types...
   // Check if DagBlockPacket is blocked by processing some dag blocks with <= dag level
-  if (packet_data.type_ == SubprotocolPacketType::DagBlockPacket && isDagBlockPacketBlockedByLevel(packet_data)) {
+  if (packet_data.type_ == SubprotocolPacketType::DagBlockPacket &&
+      (isDagBlockPacketBlockedByLevel(packet_data) || isDagBlockPacketBlockedBySameDagBlock(packet_data))) {
     return true;
   }
 

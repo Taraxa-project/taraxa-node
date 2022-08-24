@@ -250,10 +250,10 @@ tarcap::PacketData createPacket(const dev::p2p::NodeID& sender_node_id, tarcap::
   return {packet_type, sender_node_id, s.invalidate()};
 }
 
-bytes createDagBlockRlp(level_t level) {
+bytes createDagBlockRlp(level_t level, uint32_t sig = 777) {
   // Creates dag block rlp as it is required for blocking mask to extract dag block level
-  DagBlock blk(blk_hash_t(10), level, {}, {}, sig_t(777), blk_hash_t(1), addr_t(15));
-  return blk.rlp(false);
+  DagBlock blk(blk_hash_t(10), level, {}, {}, sig_t(sig), blk_hash_t(1), addr_t(15));
+  return blk.rlp(true);
 }
 
 /**
@@ -275,6 +275,26 @@ void checkConcurrentProcessing(
           << packet_l.second << ".start_time < " << packet_r.second << ".finish_time";
       EXPECT_LT(packet_r.first.start_time_, packet_l.first.finish_time_)
           << packet_r.second << ".start_time < " << packet_l.second << ".finish_time";
+    }
+  }
+}
+
+/**
+ * @brief Check all combinations(without repetition) of provided packets that they were processed serial:
+ *          - packet1.finish_time < packet2.start_time
+ *
+ * @param packets
+ */
+void checkSerialProcessing(
+    const std::vector<std::pair<PacketsProcessingInfo::PacketProcessingTimes, std::string>>& packets) {
+  assert(packets.size() >= 2);
+
+  for (size_t i = 0; i < packets.size(); i++) {
+    const auto& packet_l = packets[0];
+    for (size_t j = i + 1; j < packets.size(); j++) {
+      const auto& packet_r = packets[j];
+      EXPECT_LT(packet_l.first.finish_time_, packet_r.first.start_time_)
+          << packet_l.second << ".finish_time < " << packet_r.second << ".start_time";
     }
   }
 }
@@ -328,11 +348,11 @@ TEST_F(TarcapTpTest, block_free_packets) {
 
   const auto packet4_dag_block_id =
       tp.push(createPacket(dev::p2p::NodeID(sender2), tarcap::SubprotocolPacketType::DagBlockPacket,
-                           {createDagBlockRlp(0)}))
+                           {createDagBlockRlp(0, 1)}))
           .value();
   const auto packet5_dag_block_id =
       tp.push(createPacket(dev::p2p::NodeID(sender2), tarcap::SubprotocolPacketType::DagBlockPacket,
-                           {createDagBlockRlp(0)}))
+                           {createDagBlockRlp(0, 2)}))
           .value();
 
   const auto packet8_status_id =
@@ -632,6 +652,61 @@ TEST_F(TarcapTpTest, peer_order_blocking_deps) {
   EXPECT_GT(packet4_dag_block_proc_info.start_time_, packet2_dag_sync_proc_info.finish_time_);
 }
 
+// Test "dag-block blocking dependencies" related to dag blocks:
+//
+// Same dag blocks should not be processed at the same time
+TEST_F(TarcapTpTest, same_dag_blks_ordering) {
+  HandlersInitData init_data = createHandlersInitData();
+
+  auto packets_handler = std::make_shared<tarcap::PacketsHandler>();
+  packets_handler->registerHandler<DummyDagBlockPacketHandler>(init_data, "DAG_BLOCK_PH", 20);
+
+  // Creates threadpool
+  tarcap::TarcapThreadPool tp(10);
+  tp.setPacketsHandlers(packets_handler);
+
+  auto dag_block = createDagBlockRlp(0);
+
+  // Pushes packets to the tp
+  const auto blk0_id =
+      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket, {dag_block})).value();
+  const auto blk1_id =
+      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket, {dag_block})).value();
+  const auto blk2_id =
+      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket, {dag_block})).value();
+  const auto blk3_id =
+      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket, {dag_block})).value();
+  const auto blk4_id =
+      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket, {dag_block})).value();
+
+  tp.startProcessing();
+
+  // How should dag blocks packets be processed:
+  // Same dag blocks should not be processed concurrently but one after another
+
+  // Wait specific amount of time during which all packets should be already processed as
+  // it is supposed to
+  std::this_thread::sleep_for(std::chrono::milliseconds(200 + WAIT_TRESHOLD_MS));
+  EXPECT_EQ(queuesSize(tp), 0);
+
+  // Check order of packets how they were processed
+  const auto packets_proc_info = init_data.packets_processing_info;
+
+  const auto blk0_proc_info = packets_proc_info->getPacketProcessingTimes(blk0_id);
+  const auto blk1_proc_info = packets_proc_info->getPacketProcessingTimes(blk1_id);
+  const auto blk2_proc_info = packets_proc_info->getPacketProcessingTimes(blk2_id);
+  const auto blk3_proc_info = packets_proc_info->getPacketProcessingTimes(blk3_id);
+  const auto blk4_proc_info = packets_proc_info->getPacketProcessingTimes(blk4_id);
+
+  checkSerialProcessing({
+      {blk0_proc_info, "blk0"},
+      {blk1_proc_info, "blk1"},
+      {blk2_proc_info, "blk2"},
+      {blk3_proc_info, "blk3"},
+      {blk4_proc_info, "blk4"},
+  });
+}
+
 // Test "dag-level blocking dependencies" related to dag blocks levels:
 //
 // Ideally only dag blocks with the same level should be processed. In reality there are situation when node receives
@@ -650,22 +725,22 @@ TEST_F(TarcapTpTest, dag_blks_lvls_ordering) {
 
   // Pushes packets to the tp
   const auto blk0_lvl1_id = tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket,
-                                                 {createDagBlockRlp(1)}))
+                                                 {createDagBlockRlp(1, 1)}))
                                 .value();
   const auto blk1_lvl1_id = tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket,
-                                                 {createDagBlockRlp(1)}))
+                                                 {createDagBlockRlp(1, 2)}))
                                 .value();
   const auto blk2_lvl0_id = tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket,
-                                                 {createDagBlockRlp(0)}))
+                                                 {createDagBlockRlp(0, 3)}))
                                 .value();
   const auto blk3_lvl1_id = tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket,
-                                                 {createDagBlockRlp(1)}))
+                                                 {createDagBlockRlp(1, 4)}))
                                 .value();
   const auto blk4_lvl2_id = tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket,
-                                                 {createDagBlockRlp(2)}))
+                                                 {createDagBlockRlp(2, 5)}))
                                 .value();
   const auto blk5_lvl3_id = tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket,
-                                                 {createDagBlockRlp(3)}))
+                                                 {createDagBlockRlp(3, 6)}))
                                 .value();
 
   tp.startProcessing();

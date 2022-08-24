@@ -161,6 +161,7 @@ void PriorityQueue::updateDependenciesStart(const PacketData& packet) {
 
     case SubprotocolPacketType::DagBlockPacket:
       blocked_packets_mask_.setDagBlockLevelBeingProcessed(packet);
+      blocked_packets_mask_.setDagBlockBeingProcessed(packet);
       break;
 
     default:
@@ -203,6 +204,7 @@ void PriorityQueue::updateDependenciesFinish(const PacketData& packet, std::mute
     case SubprotocolPacketType::DagBlockPacket: {
       std::unique_lock<std::mutex> lock(queue_mutex);
       blocked_packets_mask_.unsetDagBlockLevelBeingProcessed(packet);
+      blocked_packets_mask_.unsetDagBlockBeingProcessed(packet);
       cond_var.notify_all();
       break;
     }
