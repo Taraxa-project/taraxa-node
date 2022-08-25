@@ -196,14 +196,13 @@ void TaraxaCapability::registerPacketHandlers(
 
   // Consensus packets with high processing priority
   packets_handlers_->registerHandler<VotePacketHandler>(peers_state_, packets_stats, pbft_mgr, pbft_chain, vote_mgr,
-                                                        kConf.chain.final_chain.state.dpos->delegation_delay,
-                                                        node_addr);
-  packets_handlers_->registerHandler<GetVotesSyncPacketHandler>(
-      peers_state_, packets_stats, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr,
-      kConf.chain.final_chain.state.dpos->delegation_delay, node_addr);
-  packets_handlers_->registerHandler<VotesSyncPacketHandler>(
-      peers_state_, packets_stats, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, db,
-      kConf.chain.final_chain.state.dpos->delegation_delay, node_addr);
+                                                        kConf.network, node_addr);
+  packets_handlers_->registerHandler<GetVotesSyncPacketHandler>(peers_state_, packets_stats, pbft_mgr, pbft_chain,
+                                                                vote_mgr, next_votes_mgr,
+                                                                kConf.network.vote_accepting_periods, node_addr);
+  packets_handlers_->registerHandler<VotesSyncPacketHandler>(peers_state_, packets_stats, pbft_mgr, pbft_chain,
+                                                             vote_mgr, next_votes_mgr, db,
+                                                             kConf.network.vote_accepting_periods, node_addr);
 
   // Standard packets with mid processing priority
   packets_handlers_->registerHandler<PbftBlockPacketHandler>(peers_state_, packets_stats, pbft_chain, pbft_mgr,

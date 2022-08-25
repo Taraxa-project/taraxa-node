@@ -302,6 +302,11 @@ void FullNodeConfig::validate() const {
   if (rpc) {
     rpc->validate();
   }
+  if (network.vote_accepting_periods > chain.final_chain.state.dpos->delegation_delay) {
+    throw ConfigException(std::string(
+        "network.vote_accepting_periods(" + std::to_string(network.vote_accepting_periods) +
+        ") must be <= DPOS.delegation_delay(" + std::to_string(chain.final_chain.state.dpos->delegation_delay) + ")"));
+  }
   if (transactions_pool_size < kMinTransactionPoolSize) {
     throw ConfigException(std::string("transactions_pool_size cannot be smaller than ") +
                           std::to_string(kMinTransactionPoolSize) + ".");

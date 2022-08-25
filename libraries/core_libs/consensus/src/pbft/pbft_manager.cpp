@@ -707,7 +707,6 @@ void PbftManager::loopBackFinishState_() {
 }
 
 bool PbftManager::stateOperations_() {
-  
   pushSyncedPbftBlocksIntoChain();
 
   checkPreviousRoundNextVotedValueChange_();
