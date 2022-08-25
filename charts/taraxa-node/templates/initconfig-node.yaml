@@ -42,7 +42,7 @@ data:
 
       {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
       keys = [
-      {{- range $key, $value := .Values.config.node.keys }}
+      {{- range $key, $value := .Values.config.consensusnode.keys }}
       "{{ $value }}",
       {{- end }}
       ]
@@ -50,7 +50,7 @@ data:
 
       {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
       vrfs = [
-      {{- range $key, $value := .Values.config.node.vrfs }}
+      {{- range $key, $value := .Values.config.consensusnode.vrfs }}
       "{{ $value }}",
       {{- end }}
       ]
