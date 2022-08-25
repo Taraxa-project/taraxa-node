@@ -56,7 +56,6 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     auto const genesis_hash = (*it++).toHash<blk_hash_t>();
     auto const peer_pbft_chain_size = (*it++).toInt<uint64_t>();
     auto const peer_syncing = (*it++).toInt();
-    auto const peer_pbft_period = (*it++).toInt<uint64_t>();
     auto const peer_pbft_round = (*it++).toInt<uint64_t>();
     auto const peer_pbft_previous_round_next_votes_size = (*it++).toInt<unsigned>();
     auto const node_major_version = (*it++).toInt<unsigned>();
@@ -96,7 +95,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     selected_peer->dag_level_ = peer_dag_level;
     selected_peer->pbft_chain_size_ = peer_pbft_chain_size;
     selected_peer->syncing_ = peer_syncing;
-    selected_peer->pbft_period_ = peer_pbft_period;
+    selected_peer->pbft_period_ = peer_pbft_chain_size + 1;
     selected_peer->pbft_round_ = peer_pbft_round;
     selected_peer->pbft_previous_round_next_votes_size_ = peer_pbft_previous_round_next_votes_size;
 
@@ -122,8 +121,8 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     auto it = packet_data.rlp_.begin();
     selected_peer->dag_level_ = (*it++).toInt<uint64_t>();
     selected_peer->pbft_chain_size_ = (*it++).toInt<uint64_t>();
+    selected_peer->pbft_period_ = selected_peer->pbft_chain_size_ + 1;
     selected_peer->syncing_ = (*it++).toInt();
-    selected_peer->pbft_period_ = (*it++).toInt<uint64_t>();
     selected_peer->pbft_round_ = (*it++).toInt<uint64_t>();
     selected_peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
 
@@ -184,7 +183,7 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
 
     auto dag_max_level = dag_mgr_->getMaxLevel();
     auto pbft_chain_size = pbft_chain_->getPbftChainSize();
-    const auto [pbft_round, pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
+    const auto pbft_round = pbft_mgr_->getPbftRound();
     auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();
 
     if (initial) {
@@ -192,14 +191,14 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
           sealAndSend(node_id, StatusPacket,
                       std::move(dev::RLPStream(kInitialStatusPacketItemsCount)
                                 << conf_chain_id_ << dag_max_level << genesis_hash_ << pbft_chain_size
-                                << pbft_syncing_state_->isPbftSyncing() << pbft_period << pbft_round
+                                << pbft_syncing_state_->isPbftSyncing() << pbft_round
                                 << pbft_previous_round_next_votes_size << TARAXA_MAJOR_VERSION << TARAXA_MINOR_VERSION
                                 << TARAXA_PATCH_VERSION << dag_mgr_->isLightNode() << dag_mgr_->getLightNodeHistory()));
     } else {
       success = sealAndSend(node_id, StatusPacket,
                             std::move(dev::RLPStream(kStandardStatusPacketItemsCount)
                                       << dag_max_level << pbft_chain_size << pbft_syncing_state_->isDeepPbftSyncing()
-                                      << pbft_period << pbft_round << pbft_previous_round_next_votes_size));
+                                      << pbft_round << pbft_previous_round_next_votes_size));
     }
   }
 

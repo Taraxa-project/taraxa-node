@@ -31,8 +31,8 @@ class StatusPacketHandler final : public ExtSyncingPacketHandler {
   void syncPbftNextVotesAtPeriodRound(uint64_t pbft_period, uint64_t pbft_round,
                                       size_t pbft_previous_round_next_votes_size);
 
-  static constexpr uint16_t kInitialStatusPacketItemsCount = 13;
-  static constexpr uint16_t kStandardStatusPacketItemsCount = 6;
+  static constexpr uint16_t kInitialStatusPacketItemsCount = 12;
+  static constexpr uint16_t kStandardStatusPacketItemsCount = 5;
   const uint64_t conf_chain_id_;
   const h256 genesis_hash_;
 

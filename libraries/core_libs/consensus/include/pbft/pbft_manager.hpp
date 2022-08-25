@@ -121,8 +121,14 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
 
   /**
-   * @brief Get PBFT round number
-   * @return PBFT round
+   * @brief Get current PBFT period number
+   * @return current PBFT period
+   */
+  uint64_t getPbftPeriod() const;
+
+  /**
+   * @brief Get current PBFT round number
+   * @return current PBFT round
    */
   uint64_t getPbftRound() const;
 
@@ -332,12 +338,16 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool advancePeriod();
 
   /**
-   * @brief Resets pbft consensus: current pbft round is set to round, step is set to the beginning value, in case
-   * period is provided, it is reset to the provided value
-   * @param round
-   * @param period
+   * @brief Check if there is 2t+1 cert votes for some valid block, if yes - push it into the chain
+   * @return true if new cert voted block was pushed into the chain, otheriwse false
    */
-  void resetPbftConsensus(uint64_t round, std::optional<u_int64_t> period = {});
+  bool tryPushCertVotesBlock();
+
+  /**
+   * @brief Resets pbft consensus: current pbft round is set to round, step is set to the beginning value
+   * @param round
+   */
+  void resetPbftConsensus(uint64_t round);
 
   /**
    * @brief Time to sleep for PBFT protocol
@@ -603,7 +613,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   PbftStates state_ = value_proposal_state;
 
   std::atomic<uint64_t> round_ = 1;
-  std::atomic<uint64_t> period_ = 1;
   size_t step_ = 1;
   size_t startingStepInRound_ = 1;
 
