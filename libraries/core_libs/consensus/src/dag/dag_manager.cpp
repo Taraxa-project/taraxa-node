@@ -618,11 +618,17 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
       return VerifyBlockReturnType::IncorrectTransactionsEstimation;
     }
     for (size_t i = 0; i < trxs_hashes.size(); ++i) {
-      const auto &e = trx_mgr_->estimateTransactionGas((*transactions)[trxs_hashes[i]], propose_period);
-      if (e != trxs_gas_estimations[i]) {
-        return VerifyBlockReturnType::IncorrectTransactionsEstimation;
+      const auto trx = (*transactions)[trxs_hashes[i]];
+      // Transaction estimation should be either the transactions gas limit or the estimate
+      if (trx->getGas() != trxs_gas_estimations[i]) {
+        const auto &e = trx_mgr_->estimateTransactionGas(trx, propose_period);
+        if (e != trxs_gas_estimations[i]) {
+          return VerifyBlockReturnType::IncorrectTransactionsEstimation;
+        }
+        total_block_weight += e;
+      } else {
+        total_block_weight += trx->getGas();
       }
-      total_block_weight += e;
     }
     if (total_block_weight > getDagConfig().gas_limit) {
       return VerifyBlockReturnType::BlockTooBig;

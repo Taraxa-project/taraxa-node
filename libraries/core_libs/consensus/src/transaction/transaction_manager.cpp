@@ -286,7 +286,12 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
     trxs = transactions_pool_.get(max_transactions_in_block);
   }
   for (uint64_t i = 0; i < trxs.size(); i++) {
-    uint64_t weight = estimateTransactionGas(trxs[i], proposal_period);
+    uint64_t weight;
+    if (trxs[i]->getGas() > kEstimateGasLimit) {
+      weight = estimateTransactionGas(trxs[i], proposal_period);
+    } else {
+      weight = trxs[i]->getGas();
+    }
     total_weight += weight;
     if (total_weight > weight_limit) {
       trxs.resize(i);
