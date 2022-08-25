@@ -10,9 +10,12 @@
   "network_max_peer_count": 50,
   "network_sync_level_size": 10,
   "network_packets_processing_threads": 14,
-  "network_peer_blacklist_timeout" : 600,
-  "is_light_node" : false,
-  "deep_syncing_threshold" : 10,
+  "network_peer_blacklist_timeout": 600,
+  "is_light_node": false,
+  "deep_syncing_threshold": 10,
+  "vote_accepting_periods": 5,
+  "vote_accepting_rounds": 5,
+  "vote_accepting_steps": 25,
   "network_boot_nodes": [
     {
       "id": "d063098ceca0f5ea06f9455debffe6f6d5b2efdeb179215877e356cf8154afad99f058214bd25d8198a3854a4ed8f7ef97af59b0441a7d30bc4b3918c42764ef",

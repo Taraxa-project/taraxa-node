@@ -19,7 +19,7 @@ class ExtVotesPacketHandler : public PacketHandler {
  public:
   ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                         std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
-                        std::shared_ptr<VoteManager> vote_mgr, const uint32_t dpos_delay, const addr_t& node_addr,
+                        std::shared_ptr<VoteManager> vote_mgr, uint32_t vote_accepting_periods, const addr_t& node_addr,
                         const std::string& log_channel_name);
 
   virtual ~ExtVotesPacketHandler() = default;
@@ -68,12 +68,11 @@ class ExtVotesPacketHandler : public PacketHandler {
  protected:
   // Dpos contract delay - it is used to validate pbft period in votes -> does not make sense to accept vote
   // with vote period > current pbft period + kDposDelay as the valiation will fail
-  const uint32_t kDposDelay;
+  const uint32_t kVoteAcceptingPeriods;
 
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<VoteManager> vote_mgr_;
-
 };
 
 }  // namespace taraxa::network::tarcap

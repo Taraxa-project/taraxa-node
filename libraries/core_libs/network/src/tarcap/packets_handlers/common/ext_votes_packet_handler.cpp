@@ -10,10 +10,10 @@ ExtVotesPacketHandler::ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_s
                                              std::shared_ptr<PacketsStats> packets_stats,
                                              std::shared_ptr<PbftManager> pbft_mgr,
                                              std::shared_ptr<PbftChain> pbft_chain,
-                                             std::shared_ptr<VoteManager> vote_mgr, const uint32_t dpos_delay,
+                                             std::shared_ptr<VoteManager> vote_mgr, uint32_t vote_accepting_periods,
                                              const addr_t &node_addr, const std::string &log_channel_name)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
-      kDposDelay(dpos_delay),
+      kVoteAcceptingPeriods(vote_accepting_periods),
       pbft_mgr_(std::move(pbft_mgr)),
       pbft_chain_(std::move(pbft_chain)),
       vote_mgr_(std::move(vote_mgr)) {}
@@ -26,7 +26,7 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
   // reward votes -> whole rewards votes gossiping need to be checked...
 
   // CONCERN: Why the minus one on the vote period?
-  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() - 1 > current_pbft_period + kDposDelay) {
+  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() - 1 > current_pbft_period + kVoteAcceptingPeriods) {
     std::stringstream err;
     err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
     return {false, err.str()};
@@ -46,7 +46,7 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateNextSyncVote(const s
 
   // Old vote or vote from too far in the future, can be dropped
   // CONCERN: Why the minus one on the vote period?
-  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() - 1 > current_pbft_period + kDposDelay) {
+  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() - 1 > current_pbft_period + kVoteAcceptingPeriods) {
     std::stringstream err;
     err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
     return {false, err.str()};
