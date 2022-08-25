@@ -31,15 +31,15 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
 
   // Accept only votes, which period is >= current pbft period
   if (peer_pbft_period < pbft_current_period) {
-    LOG(log_dg_) << "Dropping votes sync packet due to period. Votes period: " << peer_pbft_period
+    LOG(log_er_) << "Dropping votes sync packet due to period. Votes period: " << peer_pbft_period
                  << ", current pbft period: " << peer_pbft_period;
     return;
   }
 
   // Accept only votes, which round is >= previous round(current pbft round - 1) in case their period == current pbft
   // period
-  if (peer_pbft_period == pbft_current_period && (pbft_current_round - 1) < peer_pbft_round) {
-    LOG(log_dg_) << "Dropping votes sync packet due to round. Votes round: " << peer_pbft_round
+  if (peer_pbft_period == pbft_current_period && peer_pbft_round < pbft_current_round - 1) {
+    LOG(log_er_) << "Dropping votes sync packet due to round. Votes round: " << peer_pbft_round
                  << ", current pbft round: " << pbft_current_round;
     return;
   }
