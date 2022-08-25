@@ -54,7 +54,6 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
         continue;
       }
 
-      setVoterMaxPeriodAndRound(vote->getVoterAddr(), vote->getPeriod(), vote->getRound());
     } else if (vote->getPeriod() == current_pbft_period - 1 && vote->getType() == PbftVoteTypes::cert_vote_type) {
       // potential reward vote
       if (vote_mgr_->isInRewardsVotes(vote->getHash())) {
