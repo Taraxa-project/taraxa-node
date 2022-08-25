@@ -437,9 +437,16 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param period PBFT period
    * @param round PBFT round
    * @param step PBFT step
-   * @return vote weight
+   * @param step PBFT step
    */
-  size_t placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t period, uint64_t round, size_t step);
+  std::shared_ptr<Vote> generateVoteWithWeight(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t period,
+                                               uint64_t round, size_t step);
+
+  /**
+   * @brief Place (gossip) vote
+   * @param vote
+   */
+  void placeVote(std::shared_ptr<Vote> &&vote);
 
   /**
    * @brief Get current (based on the latest finalized block) PBFT sortition threshold
