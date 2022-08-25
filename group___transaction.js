@@ -45,6 +45,7 @@ var group___transaction =
       [ "db_", "group___transaction.html#ad9d3ab9b5e4d2baaa4e672a15bb81dec", null ],
       [ "final_chain_", "group___transaction.html#a2f95db203650edcd773cc2bbbcf0574f", null ],
       [ "kConf", "group___transaction.html#a6834f70d8689221cac865bf82f79891a", null ],
+      [ "kEstimateGasLimit", "group___transaction.html#a73ff8227a0b64365c57f054016400e6b", null ],
       [ "last_finalized_block_transactions_", "group___transaction.html#a336ea930e4f318ad9d3df4809f804a1b", null ],
       [ "nonfinalized_transactions_in_dag_", "group___transaction.html#a16c4d3c1bfe64a804a3478319e77a2cf", null ],
       [ "transaction_accepted_", "group___transaction.html#a5fb06f1acad0ea15eb66b43d46a0f3f8", null ],
