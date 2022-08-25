@@ -246,10 +246,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void savePbftMgrField(PbftMgrRoundStep field, uint64_t value);
   void addPbftMgrFieldToBatch(PbftMgrRoundStep field, uint64_t value, Batch& write_batch);
 
-  size_t getPbft2TPlus1ForPeriod(uint64_t pbft_period);
-  void savePbft2TPlus1ForPeriod(uint64_t pbft_period, size_t pbft_2t_plus_1);
-  void addPbft2TPlus1ToBatchForPeriod(uint64_t pbft_period, size_t pbft_2t_plus_1, Batch& write_batch);
-
   bool getPbftMgrStatus(PbftMgrStatus field);
   void savePbftMgrStatus(PbftMgrStatus field, bool const& value);
   void addPbftMgrStatusToBatch(PbftMgrStatus field, bool const& value, Batch& write_batch);

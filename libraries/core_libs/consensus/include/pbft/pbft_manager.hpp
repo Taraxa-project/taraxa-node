@@ -660,7 +660,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   size_t sortition_threshold_ = 0;
   // 2t+1 minimum number of votes for consensus
-  size_t TWO_T_PLUS_ONE = 0;
+  size_t two_t_plus_one_ = 0;
 
   const blk_hash_t dag_genesis_block_hash_;
 
