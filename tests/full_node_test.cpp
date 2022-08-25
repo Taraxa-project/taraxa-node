@@ -143,16 +143,6 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftRound), pbft_round);
   EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftStep), pbft_step);
 
-  // PBFT 2t+1
-  db.savePbft2TPlus1ForPeriod(10, 3);
-  EXPECT_EQ(db.getPbft2TPlus1ForPeriod(10), 3);
-  batch = db.createWriteBatch();
-  db.addPbft2TPlus1ToBatchForPeriod(10, 6, batch);
-  db.addPbft2TPlus1ToBatchForPeriod(11, 3, batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(db.getPbft2TPlus1ForPeriod(10), 6);
-  EXPECT_EQ(db.getPbft2TPlus1ForPeriod(11), 3);
-
   // PBFT manager status
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
