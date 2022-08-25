@@ -93,7 +93,6 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
         continue;
       }
 
-      setVoterMaxPeriodAndRound(vote->getVoterAddr(), vote->getPeriod(), vote->getRound());
     }
 
     LOG(log_dg_) << "Received PBFT next vote " << next_vote_hash.abridged();

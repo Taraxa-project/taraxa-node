@@ -38,14 +38,6 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
     return {false, err.str()};
   }
 
-  if (const auto [voter_max_period, voter_max_round] = getVoterMaxPeriodAndRound(vote->getVoterAddr());
-      vote->getPeriod() < voter_max_period || vote->getRound() + 1 < voter_max_round) {
-    std::stringstream err;
-    err << "Invalid voute period, round: Vote period, round: {" << vote->getPeriod() << ", " << vote->getRound()
-        << "}, voter current max received period, round: {" << voter_max_period << ", " << voter_max_round << "}";
-    return {false, err.str()};
-  }
-
   return validateVote(vote);
 }
 
@@ -103,29 +95,6 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateVote(const std::shar
   }
 
   return vote_valid;
-}
-
-void ExtVotesPacketHandler::setVoterMaxPeriodAndRound(const addr_t &voter, uint64_t period, uint64_t round) {
-  if (const auto [voter_max_period, voter_max_round] = getVoterMaxPeriodAndRound(voter);
-      period < voter_max_period || (period == voter_max_period && voter_max_round >= round)) {
-    return;
-  }
-
-  std::unique_lock lock(voters_max_periodround_mutex_);
-  if (auto inserted_value = voters_max_periodound_.insert({voter, {period, round}}); !inserted_value.second) {
-    if (period > inserted_value.first->second.first ||
-        (period == inserted_value.first->second.first && round > inserted_value.first->second.second)) {
-      inserted_value.first->second = {period, round};
-    }
-  }
-}
-
-std::pair<uint64_t, uint64_t> ExtVotesPacketHandler::getVoterMaxPeriodAndRound(const addr_t &voter) const {
-  std::shared_lock lock(voters_max_periodround_mutex_);
-
-  auto voter_max_periodround = voters_max_periodound_.find(voter);
-  return voter_max_periodround == voters_max_periodound_.end() ? std::make_pair<uint64_t, uint64_t>(1, 0)
-                                                               : voter_max_periodround->second;
 }
 
 void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes) {
