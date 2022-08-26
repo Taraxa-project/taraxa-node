@@ -21,7 +21,7 @@ class VotePacketHandler final : public ExtVotesPacketHandler {
  private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
-  bool shouldProcessVote(const std::shared_ptr<Vote>& vote, const std::shared_ptr<TaraxaPeer>& peer);
+  bool checkVoteMaxPeriodRoundStep(const std::shared_ptr<Vote>& vote, const std::shared_ptr<TaraxaPeer>& peer);
 
   const uint16_t kVoteAcceptingRounds;
   const uint16_t kVoteAcceptingSteps;

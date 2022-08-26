@@ -96,10 +96,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
       }
     } else {
       // Standard vote -> peer_pbft_period > pbft_current_period || (pbft_current_round - 1) > peer_pbft_round
-      if (vote_mgr_->voteInVerifiedMap(next_vote)) {
-        LOG(log_dg_) << "Vote " << next_vote_hash.abridged() << " already inserted in verified queue";
-        // We don't need to perform other checks, but it shouldn't be removed as it is used for next calls
-      } else {
+      if (!vote_mgr_->voteInVerifiedMap(next_vote)) {
         if (auto vote_is_valid = validateStandardVote(next_vote); vote_is_valid.first == false) {
           LOG(log_wr_) << "Vote " << next_vote_hash.abridged() << " validation failed. Err: " << vote_is_valid.second;
           continue;
