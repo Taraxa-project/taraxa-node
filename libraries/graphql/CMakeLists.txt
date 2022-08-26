@@ -55,7 +55,7 @@ set(HEADERS
     # include/graphql/ws_server.hpp
     # include/graphql/http_processor.hpp
     # include/graphql/subscription.hpp
-    # include/graphql/types/dag_block.hpp
+    include/graphql/types/dag_block.hpp
     # include/graphql/types/current_state.hpp
 )
 
@@ -70,7 +70,7 @@ set(SOURCES
     # src/ws_server.cpp
     # src/http_processor.cpp
     # src/subscription.cpp
-    # src/types/dag_block.cpp
+    src/types/dag_block.cpp
     # src/types/current_state.cpp
 )
 

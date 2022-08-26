@@ -28,13 +28,16 @@ std::vector<response::Value> DagBlock::getTips() const noexcept {
   return tips_result;
 }
 
-response::Value DagBlock::getLevel() const noexcept { return response::Value(dag_block_->getLevel()); }
+response::Value DagBlock::getLevel() const noexcept {
+  return response::Value(static_cast<int>(dag_block_->getLevel()));
+}
 
 std::optional<response::Value> DagBlock::getPbftPeriod() const noexcept {
-  auto period = pbft_manager_->getDagBlockPeriod(::taraxa::blk_hash_t(dag_block_->getHash()));
-
-  // TODO: casting uint64_t to int -> should be string used instead ?
-  return response::Value(period.first ? period.second : -1);
+  const auto [has_period, period] = pbft_manager_->getDagBlockPeriod(::taraxa::blk_hash_t(dag_block_->getHash()));
+  if (has_period) {
+    return {response::Value(static_cast<int>(period))};
+  }
+  return std::nullopt;
 }
 
 std::shared_ptr<object::Account> DagBlock::getAuthor() const noexcept {
@@ -42,23 +45,14 @@ std::shared_ptr<object::Account> DagBlock::getAuthor() const noexcept {
 }
 
 response::Value DagBlock::getTimestamp() const noexcept {
-  // TODO: casting uint64_t to int -> should be string used instead ?
-  return response::Value(dag_block_->getTimestamp());
+  return response::Value(static_cast<int>(dag_block_->getTimestamp()));
 }
 
 std::optional<std::vector<std::shared_ptr<object::Transaction>>> DagBlock::getTransactions() const noexcept {
   std::vector<std::shared_ptr<object::Transaction>> transactions_result;
   for (const auto& trx_hash : dag_block_->getTrxs()) {
-    // TODO: which form to choose ?
-    // 1.
-    //    const auto trx =
-    //    std::make_shared<dev::eth::Transaction>(transaction_manager_->getTransaction(trx_hash)->second,
-    //    dev::eth::CheckTransaction::None,
-    //                                                             true, trx_hash);
-    // 2.
-    const auto trx = std::make_shared<dev::eth::Transaction>(transaction_manager_->getTransaction(trx_hash)->second);
-
-    transactions_result.push_back(std::make_shared<Transaction>(final_chain_, trx));
+    transactions_result.push_back(std::make_shared<object::Transaction>(std::make_shared<Transaction>(
+        final_chain_, transaction_manager_, transaction_manager_->getTransaction(trx_hash))));
   }
 
   return transactions_result;
