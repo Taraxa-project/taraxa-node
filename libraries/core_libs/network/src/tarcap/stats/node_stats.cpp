@@ -28,14 +28,6 @@ NodeStats::NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<Pb
       packets_stats_(std::move(packets_stats)),
       thread_pool_(std::move(thread_pool)) {
   LOG_OBJECTS_CREATE("SUMMARY");
-
-  local_pbft_step_prev_interval_ = pbft_mgr_->getPbftStep();
-  const auto [local_pbft_round, local_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
-  local_pbft_round_prev_interval_ = local_pbft_round;
-  local_pbft_period_prev_interval_ = local_pbft_period;
-  local_chain_size_prev_interval_ = pbft_chain_->getPbftChainSize();
-  local_pbft_sync_period_prev_interval_ = pbft_mgr_->pbftSyncingPeriod();
-  local_max_level_in_dag_prev_interval_ = dag_mgr_->getMaxLevel();
 }
 
 uint64_t NodeStats::syncTimeSeconds() const { return syncing_duration_seconds; }
@@ -80,7 +72,6 @@ void NodeStats::logNodeStats() {
 
   // Local pbft info...
   const auto [local_pbft_round, local_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
-  const auto local_pbft_step = pbft_mgr_->getPbftStep();
   const auto local_chain_size = pbft_chain_->getPbftChainSize();
   const auto local_chain_size_without_empty_blocks = pbft_chain_->getPbftChainSizeExcludingEmptyPbftBlocks();
 
@@ -92,15 +83,12 @@ void NodeStats::logNodeStats() {
   const auto local_pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
 
   // Decide if making progress...
-  const auto pbft_consensus_periods_advanced = local_pbft_period - local_pbft_period_prev_interval_;
-  const auto pbft_consensus_rounds_advanced =
-      pbft_consensus_periods_advanced > 0 ? 0 : local_pbft_round - local_pbft_round_prev_interval_;
+  const auto pbft_consensus_rounds_advanced = local_pbft_round - local_pbft_round_prev_interval_;
   const auto pbft_chain_size_growth = local_chain_size - local_chain_size_prev_interval_;
   const auto pbft_sync_period_progress = local_pbft_sync_period - local_pbft_sync_period_prev_interval_;
   const auto dag_level_growh = local_max_level_in_dag - local_max_level_in_dag_prev_interval_;
 
-  const bool making_pbft_consensus_progress =
-      (pbft_consensus_periods_advanced > 0) || (pbft_consensus_rounds_advanced > 0);
+  const bool making_pbft_consensus_progress = (pbft_consensus_rounds_advanced > 0);
   const bool making_pbft_chain_progress = (pbft_chain_size_growth > 0);
   const bool making_pbft_sync_period_progress = (pbft_sync_period_progress > 0);
   const bool making_dag_progress = (dag_level_growh > 0);
@@ -159,7 +147,6 @@ void NodeStats::logNodeStats() {
                << local_chain_size_without_empty_blocks << ")";
   LOG(log_nf_) << "Current PBFT period:             " << local_pbft_period;
   LOG(log_nf_) << "Current PBFT round:              " << local_pbft_round;
-  LOG(log_nf_) << "Current PBFT step:               " << local_pbft_step;
   LOG(log_nf_) << "DPOS total votes count:          " << local_dpos_total_votes_count;
   LOG(log_nf_) << "PBFT consensus 2t+1 threshold:   " << local_twotplusone;
   LOG(log_nf_) << "Node elligible vote count:       " << local_weighted_votes;
@@ -219,18 +206,14 @@ void NodeStats::logNodeStats() {
   }
 
   LOG(log_nf_) << "PBFT chain blocks added:        " << pbft_chain_size_growth;
-  LOG(log_nf_) << "PBFT (period, round, step):     (" << local_pbft_period_prev_interval_ << ", "
-               << local_pbft_round_prev_interval_ << ", " << local_pbft_step_prev_interval_ << ") -> ("
-               << local_pbft_period << ", " << local_pbft_round << ", " << local_pbft_step << ")";
+  LOG(log_nf_) << "PBFT rounds advanced:           " << pbft_consensus_rounds_advanced;
   LOG(log_nf_) << "DAG level growth:               " << dag_level_growh;
 
   LOG(log_nf_) << "##################################";
 
   // Node stats info history
   local_max_level_in_dag_prev_interval_ = local_max_level_in_dag;
-  local_pbft_period_prev_interval_ = local_pbft_period;
   local_pbft_round_prev_interval_ = local_pbft_round;
-  local_pbft_step_prev_interval_ = local_pbft_step;
   local_chain_size_prev_interval_ = local_chain_size;
   local_pbft_sync_period_prev_interval_ = local_pbft_sync_period;
 }
