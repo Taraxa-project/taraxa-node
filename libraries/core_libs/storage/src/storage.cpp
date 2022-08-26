@@ -822,9 +822,9 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getCertVotes(uint64_t period) {
   return cert_votes;
 }
 
-std::vector<std::shared_ptr<Vote>> DbStorage::getNextVotes(uint64_t pbft_round) {
+std::vector<std::shared_ptr<Vote>> DbStorage::getPreviousRoundNextVotes() {
   std::vector<std::shared_ptr<Vote>> next_votes;
-  auto next_votes_raw = asBytes(lookup(toSlice(pbft_round), Columns::next_votes));
+  auto next_votes_raw = asBytes(lookup(0, Columns::next_votes));
   auto next_votes_rlp = dev::RLP(next_votes_raw);
   next_votes.reserve(next_votes_rlp.size());
 
@@ -835,22 +835,15 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getNextVotes(uint64_t pbft_round) 
   return next_votes;
 }
 
-void DbStorage::saveNextVotes(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& next_votes) {
+void DbStorage::savePreviousRoundNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes) {
   dev::RLPStream s(next_votes.size());
   for (auto const& v : next_votes) {
     s.appendRaw(v->rlp(true, true));
   }
-  insert(Columns::next_votes, toSlice(pbft_round), toSlice(s.out()));
+  insert(Columns::next_votes, 0, toSlice(s.out()));
 }
 
-void DbStorage::addNextVotesToBatch(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& next_votes,
-                                    Batch& write_batch) {
-  dev::RLPStream s(next_votes.size());
-  for (auto const& v : next_votes) {
-    s.appendRaw(v->rlp(true, true));
-  }
-  insert(write_batch, Columns::next_votes, toSlice(pbft_round), toSlice(s.out()));
-}
+void DbStorage::removePreviousRoundNextVotes() { remove(Columns::next_votes, 0); }
 
 void DbStorage::saveLastBlockCertVote(const std::shared_ptr<Vote>& cert_vote) {
   insert(Columns::last_block_cert_votes, toSlice(cert_vote->getHash()), toSlice(cert_vote->rlp(true, true)));
@@ -876,10 +869,6 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getLastBlockCertVotes() {
     votes.emplace_back(std::make_shared<Vote>(asBytes(it->value().ToString())));
   }
   return votes;
-}
-
-void DbStorage::removeNextVotesToBatch(uint64_t pbft_round, Batch& write_batch) {
-  remove(write_batch, Columns::next_votes, toSlice(pbft_round));
 }
 
 void DbStorage::addPbftBlockPeriodToBatch(uint64_t period, taraxa::blk_hash_t const& pbft_block_hash,

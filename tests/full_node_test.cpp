@@ -350,7 +350,7 @@ TEST_F(FullNodeTest, db_test) {
 
   // Next votes
   period = 3, round = 3, step = 5;
-  auto next_votes = db.getNextVotes(round);
+  auto next_votes = db.getPreviousRoundNextVotes();
   EXPECT_TRUE(next_votes.empty());
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i);
@@ -362,8 +362,8 @@ TEST_F(FullNodeTest, db_test) {
     Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
     next_votes.emplace_back(std::make_shared<Vote>(vote));
   }
-  db.saveNextVotes(round, next_votes);
-  auto next_votes_from_db = db.getNextVotes(round);
+  db.savePreviousRoundNextVotes(next_votes);
+  auto next_votes_from_db = db.getPreviousRoundNextVotes();
   EXPECT_EQ(next_votes.size(), next_votes_from_db.size());
   EXPECT_EQ(next_votes_from_db.size(), 3);
   next_votes.clear();
@@ -377,16 +377,14 @@ TEST_F(FullNodeTest, db_test) {
     Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
     next_votes.emplace_back(std::make_shared<Vote>(vote));
   }
-  batch = db.createWriteBatch();
-  db.addNextVotesToBatch(round, next_votes, batch);
-  db.commitWriteBatch(batch);
-  next_votes_from_db = db.getNextVotes(round);
+  db.savePreviousRoundNextVotes(next_votes);
+  next_votes_from_db = db.getPreviousRoundNextVotes();
   EXPECT_EQ(next_votes.size(), next_votes_from_db.size());
   EXPECT_EQ(next_votes_from_db.size(), 2);
   batch = db.createWriteBatch();
-  db.removeNextVotesToBatch(round, batch);
+  db.removePreviousRoundNextVotes();
   db.commitWriteBatch(batch);
-  next_votes_from_db = db.getNextVotes(round);
+  next_votes_from_db = db.getPreviousRoundNextVotes();
   EXPECT_TRUE(next_votes_from_db.empty());
 
   // period_pbft_block

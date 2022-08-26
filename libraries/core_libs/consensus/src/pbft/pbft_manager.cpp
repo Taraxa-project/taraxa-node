@@ -399,33 +399,16 @@ void PbftManager::resetPbftConsensus(uint64_t round) {
                << ", step 1, and resetting clock.";
   round_clock_initial_datetime_ = now_;
 
-  auto batch = db_->createWriteBatch();
-
-  // Round is set to 1 if period advanced - clean all next votes
-  if (round == 1) {
-    const uint64_t previous_period_last_round = round_;
-    db_->removeNextVotesToBatch(previous_period_last_round - 1, batch);
-  } else if (round > 1) { // save previous round votes
-    // Save previous rounf next votes
-    auto next_votes = next_votes_manager_->getNextVotes();
-    db_->addNextVotesToBatch(round - 1, next_votes, batch);
-
-    // Cleanup old previous previous round next votes
-    if (round > 2) {
-      db_->removeNextVotesToBatch(round - 2, batch);
-    }
-  }
-
   // Update current round and reset step to 1
   round_ = round;
   resetStep();
   state_ = value_proposal_state;
 
+  auto batch = db_->createWriteBatch();
+
   // Update in DB first
   db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftRound, round, batch);
   db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftStep, 1, batch);
-
-
 
   db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold, sortition_threshold_,
                                      batch);
@@ -566,10 +549,7 @@ void PbftManager::initialState() {
 
   if (round > 1) {
     // Get next votes for previous round from DB
-
-    // CONCERN: Cleanup of next votes from previous rounds and periods?
-    //          Since we reset round now back to 1, we need to be sure we clean them up!
-    auto next_votes_in_previous_round = db_->getNextVotes(round - 1);
+    auto next_votes_in_previous_round = db_->getPreviousRoundNextVotes();
     if (next_votes_in_previous_round.empty()) {
       LOG(log_er_) << "Cannot get any next votes in previous round " << round - 1 << ". For period " << getPbftPeriod()
                    << " step " << step;
