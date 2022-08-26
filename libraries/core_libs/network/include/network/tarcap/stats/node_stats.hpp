@@ -45,7 +45,9 @@ class NodeStats {
   std::shared_ptr<const TarcapThreadPool> thread_pool_;
 
   level_t local_max_level_in_dag_prev_interval_{0};
+  uint64_t local_pbft_period_prev_interval_{0};
   uint64_t local_pbft_round_prev_interval_{0};
+  uint64_t local_pbft_step_prev_interval_{0};
   uint64_t local_chain_size_prev_interval_{0};
   uint64_t local_pbft_sync_period_prev_interval_{0};
   uint64_t intervals_in_sync_since_launch_{0};
