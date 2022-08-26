@@ -1,14 +1,14 @@
 #pragma once
 
-#include "TaraxaSchema.h"
+#include "SubscriptionObject.h"
 
 namespace graphql::taraxa {
 
-class Subscription : public object::Subscription {
+class Subscription {
  public:
-  explicit Subscription() = default;
+  explicit Subscription() noexcept = default;
 
-  virtual service::FieldResult<response::Value> getTestSubscription(service::FieldParams&& params) const override;
+  response::Value getTestSubscription() const noexcept;
 };
 
 }  // namespace graphql::taraxa
