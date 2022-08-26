@@ -906,11 +906,11 @@ void DbStorage::saveLastBlockCertVote(const std::shared_ptr<Vote>& cert_vote) {
   insert(Columns::last_block_cert_votes, toSlice(cert_vote->getHash()), toSlice(cert_vote->rlp(true, true)));
 }
 
-void DbStorage::addLastBlockCertVotesToBatch(std::vector<std::shared_ptr<Vote>> const& cert_votes,
-                                             std::vector<std::shared_ptr<Vote>> const& old_cert_votes,
-                                             Batch& write_batch) {
+void DbStorage::addLastBlockCertVotesToBatch(
+    std::vector<std::shared_ptr<Vote>> const& cert_votes,
+    std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> const& old_cert_votes, Batch& write_batch) {
   for (auto const& v : old_cert_votes) {
-    remove(write_batch, Columns::last_block_cert_votes, toSlice(v->getHash()));
+    remove(write_batch, Columns::last_block_cert_votes, toSlice(v.second->getHash()));
   }
 
   dev::RLPStream s(cert_votes.size());
@@ -927,6 +927,8 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getLastBlockCertVotes() {
   }
   return votes;
 }
+
+void DbStorage::removeLastBlockCertVotes(const vote_hash_t& hash) { remove(Columns::next_votes, toSlice(hash)); }
 
 void DbStorage::removeNextVotesToBatch(uint64_t pbft_round, Batch& write_batch) {
   remove(write_batch, Columns::next_votes, toSlice(pbft_round));

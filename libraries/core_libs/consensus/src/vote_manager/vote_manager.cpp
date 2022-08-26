@@ -542,10 +542,12 @@ bool VoteManager::checkRewardVotes(const std::shared_ptr<PbftBlock>& pbft_block)
   return true;
 }
 
-void VoteManager::replaceRewardVotes(std::vector<std::shared_ptr<Vote>>&& cert_votes) {
-  if (cert_votes.empty()) return;
+std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> VoteManager::replaceRewardVotes(
+    const std::vector<std::shared_ptr<Vote>>& cert_votes) {
+  if (cert_votes.empty()) return {};
 
   std::unique_lock lock(reward_votes_mutex_);
+  auto reward_votes = std::move(reward_votes_);
   reward_votes_.clear();
   reward_votes_pbft_block_ = {cert_votes[0]->getBlockHash(), cert_votes[0]->getPeriod()};
 
@@ -557,6 +559,7 @@ void VoteManager::replaceRewardVotes(std::vector<std::shared_ptr<Vote>>&& cert_v
     assert(v->getWeight());
     reward_votes_.insert({v->getHash(), std::move(v)});
   }
+  return reward_votes;
 }
 
 std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotes() {
