@@ -23,12 +23,13 @@ void VotePacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketDat
   }
 }
 
-bool VotePacketHandler::shouldProcessVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<TaraxaPeer> &peer) {
+bool VotePacketHandler::checkVoteMaxPeriodRoundStep(const std::shared_ptr<Vote> &vote,
+                                                    const std::shared_ptr<TaraxaPeer> &peer) {
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
   const auto current_pbft_step = pbft_mgr_->getPbftStep();
   const auto vote_hash = vote->getHash();
 
-  if (vote->getPeriod() - 1 > pbft_chain_->getPbftChainSize() + kVoteAcceptingPeriods) {
+  if (vote->getPeriod() > current_pbft_period + kVoteAcceptingPeriods) {
     // Do not request round sync too often here
     if (std::chrono::system_clock::now() - round_sync_request_time_ > kSyncRequestInterval) {
       // request PBFT chain sync from this node
@@ -103,11 +104,8 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
 
     // Standard vote
     if (vote->getPeriod() >= current_pbft_period) {
-      if (vote_mgr_->voteInVerifiedMap(vote)) {
-        LOG(log_dg_) << "Vote " << vote_hash.abridged() << " already inserted in verified queue";
-        // We don't need to validate and process it, but should add to votes for gossiping
-      } else {
-        if (!shouldProcessVote(vote, peer)) {
+      if (!vote_mgr_->voteInVerifiedMap(vote)) {
+        if (!checkVoteMaxPeriodRoundStep(vote, peer)) {
           continue;
         }
 
@@ -121,24 +119,22 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
           continue;
         }
       }
-
     } else if (vote->getPeriod() == current_pbft_period - 1 && vote->getType() == PbftVoteTypes::cert_vote_type) {
       // potential reward vote
-      if (vote_mgr_->isInRewardsVotes(vote->getHash())) {
-        LOG(log_dg_) << "Reward vote " << vote_hash.abridged() << " already inserted in rewards votes";
-      }
+      if (!vote_mgr_->isInRewardsVotes(vote->getHash())) {
+        if (auto vote_is_valid = validateRewardVote(vote); vote_is_valid.first == false) {
+          LOG(log_wr_) << "Reward vote " << vote_hash.abridged() << " validation failed. Err: \""
+                       << vote_is_valid.second << "\", vote round " << vote->getRound()
+                       << ", current round: " << current_pbft_round << ", vote period: " << vote->getPeriod()
+                       << ", current period: " << current_pbft_period
+                       << ", vote type: " << static_cast<uint64_t>(vote->getType());
+          continue;
+        }
 
-      if (auto vote_is_valid = validateRewardVote(vote); vote_is_valid.first == false) {
-        LOG(log_wr_) << "Reward vote " << vote_hash.abridged() << " validation failed. Err: \"" << vote_is_valid.second
-                     << "\", vote round " << vote->getRound() << ", current round: " << current_pbft_round
-                     << ", vote period: " << vote->getPeriod() << ", current period: " << current_pbft_period
-                     << ", vote type: " << static_cast<uint64_t>(vote->getType());
-        continue;
-      }
-
-      if (!vote_mgr_->addRewardVote(vote)) {
-        LOG(log_dg_) << "Reward vote " << vote_hash.abridged() << " already inserted in reward votes(race condition)";
-        continue;
+        if (!vote_mgr_->addRewardVote(vote)) {
+          LOG(log_dg_) << "Reward vote " << vote_hash.abridged() << " already inserted in reward votes(race condition)";
+          continue;
+        }
       }
     } else {
       // Too old vote
