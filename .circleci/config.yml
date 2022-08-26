@@ -249,7 +249,19 @@ commands:
 
               echo ${PRNET_HELM_VALUES} | base64 -d > charts/taraxa-node/prnet.values.yaml
               helm dependency build charts/taraxa-node/
-              helm upgrade -i pr-<< parameters.pr-name >> charts/taraxa-node/ --namespace blockchain-prnet -f charts/taraxa-node/values.yaml -f charts/taraxa-node/prnet.values.yaml \
+
+              # install ipfs node
+              helm repo add stakewise https://charts.stakewise.io
+              helm upgrade -i ipfs-pr-<< parameters.pr-name >> stakewise/ipfs \
+                --version 1.0.1 \
+                --namespace blockchain-prnet \
+                --set image.tag=v0.7.0 \
+                --set nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet
+
+              helm upgrade -i pr-<< parameters.pr-name >> charts/taraxa-node/ --namespace blockchain-prnet \
+                -f charts/taraxa-node/values.yaml \
+                -f charts/taraxa-node/prnet.values.yaml \
+                -f charts/taraxa-node/snapshot.values.yaml \
                 --set image.repository=gcr.io/jovial-meridian-249123/taraxa-node \
                 --set image.tag=${PR_TAG} \
                 --set explorer.configEnvs.faucetEnabled="true" \
@@ -285,9 +297,12 @@ commands:
           command: |
             if [[ $(helm list --namespace blockchain-prnet -f "pr-<< parameters.pr-name >>" -o json) != '[]' ]] ; then
               helm delete pr-<< parameters.pr-name >> --namespace blockchain-prnet
-              kubectl -n blockchain-prnet delete pvc $(kubectl -n blockchain-prnet get pvc | grep taraxa-data-pr-<<parameters.pr-name>>-boot-node | awk '{print $1}')
-              kubectl -n blockchain-prnet delete pvc $(kubectl -n blockchain-prnet get pvc | grep taraxa-data-pr-<<parameters.pr-name>>-consensus-node | awk '{print $1}')
-              kubectl -n blockchain-prnet delete pvc $(kubectl -n blockchain-prnet get pvc | grep taraxa-data-pr-<<parameters.pr-name>>-taraxa-node | awk '{print $1}')
+
+              helm uninstall ipfs-pr-<< parameters.pr-name >> --namespace blockchain-prnet
+              
+              # delete pvc by label corresponding to PR
+              kubectl -n blockchain-prnet delete pvc -l app.kubernetes.io/instance=pr-<< parameters.pr-name >>
+
               for i in {1..50}
               do
                 GETALL=$(kubectl get all -n blockchain-prnet | grep pr-"<< parameters.pr-name >>") || true
@@ -680,23 +695,273 @@ jobs:
       - store_artifacts:
           path: tmp_docker
 
-  release-docker-image:
-      environment:
-        - IMAGE: taraxa-node
-        - CONAN_REVISIONS_ENABLED: 1
-      machine:
-        image: ubuntu-2204:2022.04.2
-        docker_layer_caching: true
-      resource_class: large
-      steps:
-        - checkout
-        - prepare
-        - build
-        - test
-        - tag
-        - push_dockerhub
-        - store_artifacts:
-            path: tmp_docker
+      - run:
+          name: Prepare Environment
+          command: |
+            if [[ ${CIRCLE_SHELL_ENV} =~ "localbuild" ]]; then
+              export CIRCLE_BRANCH=circleci
+              export CIRCLE_BUILD_NUM=300
+            fi
+            echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >>$BASH_ENV
+            echo "export START_TIME=$(date +%Y%m%d-%Hh%Mm%Ss)" >>$BASH_ENV
+            echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
+            echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >>$BASH_ENV
+            export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )
+            echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
+            sudo service apport stop
+            curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
+            sudo apt-get install apt-transport-https --yes
+            echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+            sudo apt-get update
+            sudo apt-get install helm
+            helm plugin install https://github.com/chartmuseum/helm-push.git
+            helm repo add --username ${HELM_REPO_USERNAME} --password ${HELM_REPO_PASSWORD} taraxacharts https://charts.gcp.taraxa.io
+            helm repo add bitnami https://charts.bitnami.com/bitnami
+            helm repo update
+            mkdir -p $HOME/.kube
+            echo -n "${KUBE_CONFIG}" | base64 --decode > $HOME/.kube/config
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            sudo cp kubectl /usr/local/bin 
+            sudo chmod +x /usr/local/bin/kubectl
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            sudo chmod a+x /usr/local/bin/yq
+
+      - run:
+          name: Login into gcr
+          command: |
+            echo ${GCLOUD_SERVICE_KEY} | docker login -u _json_key --password-stdin https://gcr.io
+
+      - run:
+          name: Build docker builder image
+          command: |
+            docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target builder .
+
+      - run:
+          name: Checkout Submodules
+          command: |
+            git submodule sync
+            git submodule update --init --recursive --jobs 8
+
+      - run:
+          name: Build ctest image
+          command: |
+            docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target build .
+
+      - run:
+          name: Build taraxad image
+          command: |
+            docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
+
+      - run:
+         name: Run Ctest
+         command: |
+           docker run  --ulimit nofile=4096:4096 \
+                       --rm -v $PWD/tmp_docker:/tmp \
+                       --name ${IMAGE}-ctest-${DOCKER_BRANCH_TAG} \
+                       ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
+                        sh -c \
+                       'cd cmake-docker-build-debug/bin \
+                        && ctest --output-on-failure'
+
+      - run:
+          name: Chmod core dump if fail
+          command: |
+            if [ -f tmp_docker/core* ];then
+              sudo chmod 777 tmp_docker/core*
+            fi
+          when: on_fail
+
+      - run:
+          name: Run SmokeTest
+          command: |
+            if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoketest-${DOCKER_BRANCH_TAG:0:52})" ]; then
+              docker network rm \
+              smoketest-${DOCKER_BRANCH_TAG:0:52} >/dev/null;
+            fi
+            
+            docker network create --driver=bridge \
+              smoketest-${DOCKER_BRANCH_TAG:0:52}
+            
+            docker run -d\
+              --name smoketest-${DOCKER_BRANCH_TAG:0:52} \
+              --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
+              ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
+              single
+            
+            mkdir -p  $PWD/test_build-d/
+            
+            sleep 30
+
+            echo "--- Logs from container ---"
+            docker logs smoketest-${DOCKER_BRANCH_TAG:0:52}
+            echo "--- Logs from container ---"
+            
+            http_code=$(docker run --rm  -v $PWD/test_build-d:/data \
+              --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
+              byrnedo/alpine-curl \
+              -sS --fail -w '%{http_code}' -o /data/http.out \
+              --url smoketest-${DOCKER_BRANCH_TAG:0:52}:7777 \
+              -d '{
+                      "jsonrpc": "2.0",
+                      "id":"0",
+                      "method": "send_coin_transaction",
+                      "params":[{
+                          "nonce": 0,
+                          "value": 0,
+                          "gas": 0,
+                          "gas_price": 1,
+                          "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
+                          "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
+                      }]
+                  }')
+              
+            cat $PWD/test_build-d/http.out || true
+            if [[ $http_code -eq 200 ]] ; then
+                exit 0
+            else
+                exit $http_code
+            fi
+
+      - run:
+          name: Cleanup smoke tests
+          when: always
+          command: |
+            docker kill smoketest-${DOCKER_BRANCH_TAG:0:52} || true
+            docker rm smoketest-${DOCKER_BRANCH_TAG:0:52} || true
+            docker network rm smoketest-${DOCKER_BRANCH_TAG:0:52} || true
+
+      - run:
+          name: Tag images
+          command: |
+            if [[ ${CIRCLE_BRANCH} == "develop" ]]; then
+               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
+               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${START_TIME}
+               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${START_TIME}-${CIRCLE_SHA1}
+               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:latest
+            fi
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${CIRCLE_SHA1}
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:latest
+
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${CIRCLE_SHA1}
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${START_TIME}
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:latest
+            if [[ ${PR} != "false" ]];then
+               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
+            fi
+
+
+      - run:
+          name: Push Images
+          command: |
+            if [[ ${CIRCLE_BRANCH} == "develop"   ]];then
+               docker push ${GCP_IMAGE}-develop:latest
+               docker push ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+               docker push ${GCP_IMAGE}-develop:${START_TIME}
+               docker push ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
+               docker push ${GCP_IMAGE}-develop:${START_TIME}-${CIRCLE_SHA1}
+            fi
+            if [[ ${PR} != "false" ]];then
+               docker push ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
+            fi
+            if [[ ${CIRCLE_BRANCH} == "master" ]];then
+               docker push ${GCP_IMAGE}:latest
+               docker push ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+               docker push ${GCP_IMAGE}:${START_TIME}
+               docker push ${GCP_IMAGE}:${CIRCLE_SHA1}
+               docker push ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+            fi
+            if [[ ${CIRCLE_BRANCH} == "testnet" ]];then
+               echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
+               docker push taraxa/${IMAGE}:${CIRCLE_SHA1}
+               docker push taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+               docker push taraxa/${IMAGE}:${START_TIME}
+               docker push taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+               docker push taraxa/${IMAGE}:latest
+            fi
+
+      - run:
+          name: Verify Helm chart with linter
+          command: |
+            helm lint charts/${HELMCHART}/
+
+      - run:
+          name: Generate Helm chart and output yaml manifests for verification
+          command: |
+            helm dependency build charts/${HELMCHART}/
+            helm template charts/${HELMCHART}/ --values charts/${HELMCHART}/values.yaml
+
+      - run:
+          name: Deploy helm chart
+          no_output_timeout: 15m
+          command: |
+
+            if [[ ${PR} != "false" ]];then
+              helm install ${HELM_TEST_NAME:0:40} charts/${HELMCHART}/ \
+                --wait \
+                --atomic \
+                --timeout 600s \
+                --create-namespace \
+                --namespace ${HELM_TEST_NAME:0:40} \
+                --set node.replicaCount=1 \
+                --set bootnode.replicaCount=1 \
+                --set consensusnode.replicaCount=1 \
+                --set node.resources.limits.memory=64Mi \
+                --set bootnode.resources.limits.memory=64Mi \
+                --set consensusnode.resources.limits.memory=64Mi \
+                --set node.resources.limits.cpu=100m \
+                --set bootnode.resources.limits.cpu=100m \
+                --set consensusnode.resources.limits.cpu=100m \
+                --set node.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
+                --set bootnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
+                --set consensusnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
+                --set test.pythontester.script=jenkins.py \
+                --set image.repository=${GCP_IMAGE} \
+                --set image.tag=pr-${PR}-${CIRCLE_BUILD_NUM} \
+                -f charts/${HELMCHART}/values.yaml
+            fi
+
+      - run:
+          name: Run helm tests
+          no_output_timeout: 15m
+          command: |
+            if [[ ${PR} != "false" ]];then
+              helm test ${HELM_TEST_NAME:0:40} \
+                --timeout 600s \
+                --namespace ${HELM_TEST_NAME:0:40}
+              ./scripts/kibana-url.sh || true
+            fi
+
+      - run:
+          name: Cleanup helm tests
+          when: always
+          command: |
+            if [[ ${PR} != "false" ]];then
+               helm -n ${HELM_TEST_NAME:0:40} delete ${HELM_TEST_NAME:0:40} || true
+               kubectl delete ns ${HELM_TEST_NAME:0:40} || true
+            fi
+
+      - run:
+          name: Publish chart to Taraxa's repository
+          command: |
+            HELMCHART_VERSION=$(yq .version charts/${HELMCHART}/Chart.yaml | tr -d \")
+            if [[ ${CIRCLE_BRANCH} == "develop"   ]]; then
+              helm cm-push -f charts/${HELMCHART}/ --version="${HELMCHART_VERSION}-dev" taraxacharts
+            fi
+            if [[ ${CIRCLE_BRANCH} == "master" ]]; then
+              helm cm-push -f charts/${HELMCHART}/ taraxacharts
+            fi
+            if [[ ${PR} != "false" ]]; then
+              helm cm-push -f charts/${HELMCHART}/ --version="${HELMCHART_VERSION}-pr${PR}" taraxacharts
+            fi
+
+      - store_artifacts:
+          path: tmp_docker
 
   create-and-push-builder:
     docker:
