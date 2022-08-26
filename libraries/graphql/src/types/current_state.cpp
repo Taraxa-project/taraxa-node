@@ -7,13 +7,15 @@ CurrentState::CurrentState(std::shared_ptr<::taraxa::final_chain::FinalChain> fi
     : final_chain_(std::move(final_chain)), dag_manager_(std::move(dag_manager)) {}
 
 response::Value CurrentState::getFinalBlock() const noexcept {
-  return response::Value(final_chain_->last_block_number());
+  return response::Value(static_cast<int>(final_chain_->last_block_number()));
 }
 
-response::Value CurrentState::getDagBlockLevel() const noexcept { return response::Value(dag_manager_->getMaxLevel()); }
+response::Value CurrentState::getDagBlockLevel() const noexcept {
+  return response::Value(static_cast<int>(dag_manager_->getMaxLevel()));
+}
 
 response::Value CurrentState::getDagBlockPeriod() const noexcept {
-  return response::Value(dag_manager_->getLatestPeriod());
+  return response::Value(static_cast<int>(dag_manager_->getLatestPeriod()));
 }
 
 }  // namespace graphql::taraxa

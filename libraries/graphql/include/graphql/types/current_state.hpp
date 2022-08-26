@@ -3,7 +3,7 @@
 #include <memory>
 
 #include "CurrentStateObject.h"
-#include "dag/dag.hpp"
+#include "dag/dag_manager.hpp"
 #include "final_chain/final_chain.hpp"
 
 namespace graphql::taraxa {
