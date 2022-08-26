@@ -69,13 +69,6 @@ class NextVotesManager {
   size_t getNextVotesWeight() const;
 
   /**
-   * @brief Add a bunch of next voting type votes to the map
-   * @param next_votes next voting type votes
-   * @param pbft_2t_plus_1 PBFT 2t+1 is 2/3 of PBFT sortition threshold and plus 1
-   */
-  void addNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes, size_t pbft_2t_plus_1);
-
-  /**
    * @brief Update a bunch of next voting type votes to the map
    * @param next_votes next voting type votes
    * @param pbft_2t_plus_1 PBFT 2t+1 is 2/3 of PBFT sortition threshold and plus 1
@@ -88,6 +81,13 @@ class NextVotesManager {
    * @param pbft_2t_plus_1 PBFT 2t+1 is 2/3 of PBFT sortition threshold and plus 1
    */
   void updateWithSyncedVotes(std::vector<std::shared_ptr<Vote>>& votes, size_t pbft_2t_plus_1);
+
+  /**
+   * @brief Add a bunch of next voting type votes to the map
+   * @param next_votes next voting type votes
+   * @param pbft_2t_plus_1 PBFT 2t+1 is 2/3 of PBFT sortition threshold and plus 1
+   */
+  void addNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes, size_t pbft_2t_plus_1);
 
  private:
   using UniqueLock = boost::unique_lock<boost::shared_mutex>;

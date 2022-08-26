@@ -292,11 +292,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::vector<std::shared_ptr<Vote>> getCertVotes(uint64_t period);
 
   // Next votes
-  std::vector<std::shared_ptr<Vote>> getNextVotes(uint64_t pbft_round);
-  void saveNextVotes(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& next_votes);
-  void addNextVotesToBatch(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& next_votes,
-                           Batch& write_batch);
-  void removeNextVotesToBatch(uint64_t pbft_round, Batch& write_batch);
+  std::vector<std::shared_ptr<Vote>> getPreviousRoundNextVotes();
+  void savePreviousRoundNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes);
+  void removePreviousRoundNextVotes();
 
   // last block cert votes
   void saveLastBlockCertVote(const std::shared_ptr<Vote>& cert_vote);

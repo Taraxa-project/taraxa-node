@@ -765,7 +765,15 @@ void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& ne
 
   UniqueLock lock(access_);
 
-  auto next_votes_in_db = db_->getNextVotes(sync_voted_round);
+  auto next_votes_in_db = db_->getPreviousRoundNextVotes();
+  if (!next_votes_in_db.empty()) {
+    const auto db_next_votes_round = next_votes_in_db[0]->getRound();
+    if (db_next_votes_round != sync_voted_round) {
+      LOG(log_dg_) << "Drop next votes. db next votes round " << db_next_votes_round << ", received next votes round "
+                   << sync_voted_round;
+      return;
+    }
+  }
 
   // Add all next votes
   std::unordered_set<blk_hash_t> voted_values;
@@ -773,7 +781,7 @@ void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& ne
     LOG(log_dg_) << "Add next vote: " << *v;
 
     auto vote_hash = v->getHash();
-    if (next_votes_set_.count(vote_hash)) {
+    if (next_votes_set_.contains(vote_hash)) {
       continue;
     }
 
@@ -792,7 +800,7 @@ void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& ne
   }
 
   // Update list of next votes in database by new unique votes
-  db_->saveNextVotes(sync_voted_round, next_votes_in_db);
+  db_->savePreviousRoundNextVotes(next_votes_in_db);
 
   LOG(log_dg_) << "PBFT 2t+1 is " << pbft_2t_plus_1 << " in round " << next_votes[0]->getRound();
   for (auto const& voted_value : voted_values) {
@@ -839,10 +847,14 @@ void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const&
     return;
   }
 
+  // updateNextVotes is called when new round is determined based on current next votes
+  // Deletes current previous round next votes
   clear();
+  db_->removePreviousRoundNextVotes();
 
   UniqueLock lock(access_);
 
+  // TODO: refactor this as we know most of the required info in place where updateNextVotes is called
   // Copy all next votes
   for (auto const& v : next_votes) {
     LOG(log_dg_) << "Add next vote: " << *v;
@@ -890,6 +902,7 @@ void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const&
       it = next_votes_.erase(it);
     }
   }
+
   if (next_votes_.size() != 1 && next_votes_.size() != 2) {
     LOG(log_er_) << "There are " << next_votes_.size() << " voted values.";
     for (auto const& voted_value : next_votes_) {
@@ -897,6 +910,15 @@ void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const&
     }
     assert(next_votes_.size() == 1 || next_votes_.size() == 2);
   }
+
+  // Save new selected next votes into db
+  std::vector<std::shared_ptr<Vote>> db_next_votes;
+  for (const auto& voted_block_votes : next_votes_) {
+    for (const auto& vote : voted_block_votes.second) {
+      db_next_votes.emplace_back(vote);
+    }
+  }
+  db_->savePreviousRoundNextVotes(db_next_votes);
 }
 
 // Assumption is that all synced votes are in next voting phase, in the same round.
