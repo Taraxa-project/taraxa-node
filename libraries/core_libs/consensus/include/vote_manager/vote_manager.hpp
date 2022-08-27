@@ -243,8 +243,11 @@ class VoteManager {
    * @brief When finalize a new PBFT block, clear reward_votes_ and add the new cert votes to reward_votes_
    *
    * @param cert votes for last finalized PBFT block
+   *
+   * @return old reward votes
    */
-  void replaceRewardVotes(std::vector<std::shared_ptr<Vote>>&& cert_votes);
+  std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> replaceRewardVotes(
+      const std::vector<std::shared_ptr<Vote>>& cert_votes);
 
   /**
    * @brief Get all reward votes in reward_votes_

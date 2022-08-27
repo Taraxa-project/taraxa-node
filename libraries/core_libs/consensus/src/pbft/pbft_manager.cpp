@@ -123,7 +123,18 @@ void PbftManager::run() {
     }
     finalize_(std::move(period_data), db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
   }
-  vote_mgr_->replaceRewardVotes(db_->getLastBlockCertVotes());
+  // Verify that last block cert votes point to the last block hash
+  auto last_block_cert_votes = db_->getLastBlockCertVotes();
+  for (auto it = last_block_cert_votes.begin(); it != last_block_cert_votes.end();) {
+    if ((*it)->getBlockHash() != pbft_chain_->getLastPbftBlockHash()) {
+      LOG(log_er_) << "Found invalid last block cert vote: " << **it;
+      db_->removeLastBlockCertVotes((*it)->getHash());
+      it = last_block_cert_votes.erase(it);
+    } else {
+      ++it;
+    }
+  }
+  vote_mgr_->replaceRewardVotes(last_block_cert_votes);
   // Initialize PBFT status
   initialState();
 
@@ -1915,7 +1926,8 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   }
 
   db_->savePeriodData(period_data, batch);
-  db_->addLastBlockCertVotesToBatch(cert_votes, vote_mgr_->getRewardVotes(), batch);
+  auto reward_votes = vote_mgr_->replaceRewardVotes(cert_votes);
+  db_->addLastBlockCertVotesToBatch(cert_votes, reward_votes, batch);
 
   // pass pbft with dag blocks and transactions to adjust difficulty
   if (period_data.pbft_blk->getPivotDagBlockHash() != NULL_BLOCK_HASH) {
@@ -1940,8 +1952,6 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
     // update PBFT chain size
     pbft_chain_->updatePbftChain(pbft_block_hash, null_anchor);
   }
-
-  vote_mgr_->replaceRewardVotes(std::move(cert_votes));
 
   LOG(log_nf_) << "Pushed new PBFT block " << pbft_block_hash << " into chain. Period: " << pbft_period
                << ", round: " << getPbftRound();

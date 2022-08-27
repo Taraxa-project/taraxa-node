@@ -305,8 +305,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   // last block cert votes
   void saveLastBlockCertVote(const std::shared_ptr<Vote>& cert_vote);
   void addLastBlockCertVotesToBatch(std::vector<std::shared_ptr<Vote>> const& cert_votes,
-                                    std::vector<std::shared_ptr<Vote>> const& old_cert_votes, Batch& write_batch);
+                                    std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> const& old_cert_votes,
+                                    Batch& write_batch);
   std::vector<std::shared_ptr<Vote>> getLastBlockCertVotes();
+  void removeLastBlockCertVotes(const vote_hash_t& hash);
 
   // period_pbft_block
   void addPbftBlockPeriodToBatch(uint64_t period, taraxa::blk_hash_t const& pbft_block_hash, Batch& write_batch);
