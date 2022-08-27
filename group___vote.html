@@ -866,9 +866,9 @@ Collaboration diagram for taraxa::NextVotesManager:</div>
 <tr class="memitem:a46247b6596c46711ea4144a83f01c399"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a46247b6596c46711ea4144a83f01c399">checkRewardVotes</a> (const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;pbft_block)</td></tr>
 <tr class="memdesc:a46247b6596c46711ea4144a83f01c399"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check reward_votes_ if including all reward votes for the PBFT block.  <a href="group___vote.html#a46247b6596c46711ea4144a83f01c399">More...</a><br /></td></tr>
 <tr class="separator:a46247b6596c46711ea4144a83f01c399"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a356555b45b7147c880deb51575917d9e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a356555b45b7147c880deb51575917d9e">replaceRewardVotes</a> (std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&amp;cert_votes)</td></tr>
-<tr class="memdesc:a356555b45b7147c880deb51575917d9e"><td class="mdescLeft">&#160;</td><td class="mdescRight">When finalize a new PBFT block, clear reward_votes_ and add the new cert votes to reward_votes_.  <a href="group___vote.html#a356555b45b7147c880deb51575917d9e">More...</a><br /></td></tr>
-<tr class="separator:a356555b45b7147c880deb51575917d9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a750e2aa711ea10b8a13b91a309a99631"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a>, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a750e2aa711ea10b8a13b91a309a99631">replaceRewardVotes</a> (const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;cert_votes)</td></tr>
+<tr class="memdesc:a750e2aa711ea10b8a13b91a309a99631"><td class="mdescLeft">&#160;</td><td class="mdescRight">When finalize a new PBFT block, clear reward_votes_ and add the new cert votes to reward_votes_.  <a href="group___vote.html#a750e2aa711ea10b8a13b91a309a99631">More...</a><br /></td></tr>
+<tr class="separator:a750e2aa711ea10b8a13b91a309a99631"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a25976532fc726c9eaf69ccdd418bdcaa"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a25976532fc726c9eaf69ccdd418bdcaa">getRewardVotes</a> ()</td></tr>
 <tr class="memdesc:a25976532fc726c9eaf69ccdd418bdcaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get all reward votes in reward_votes_.  <a href="group___vote.html#a25976532fc726c9eaf69ccdd418bdcaa">More...</a><br /></td></tr>
 <tr class="separator:a25976532fc726c9eaf69ccdd418bdcaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1560,16 +1560,16 @@ Collaboration diagram for taraxa::NextVotesManager:</div>
 
 </div>
 </div>
-<a id="a356555b45b7147c880deb51575917d9e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a356555b45b7147c880deb51575917d9e">&#9670;&nbsp;</a></span>replaceRewardVotes()</h2>
+<a id="a750e2aa711ea10b8a13b91a309a99631"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a750e2aa711ea10b8a13b91a309a99631">&#9670;&nbsp;</a></span>replaceRewardVotes()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void taraxa::VoteManager::replaceRewardVotes </td>
+          <td class="memname">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a>, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::VoteManager::replaceRewardVotes </td>
           <td>(</td>
-          <td class="paramtype">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&amp;&#160;</td>
+          <td class="paramtype">const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&#160;</td>
           <td class="paramname"><em>cert_votes</em></td><td>)</td>
           <td></td>
         </tr>
@@ -1579,10 +1579,11 @@ Collaboration diagram for taraxa::NextVotesManager:</div>
 <p>When finalize a new PBFT block, clear reward_votes_ and add the new cert votes to reward_votes_. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">cert</td><td>votes for last finalized PBFT block </td></tr>
+    <tr><td class="paramname">cert</td><td>votes for last finalized PBFT block</td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>old reward votes </dd></dl>
 
 </div>
 </div>

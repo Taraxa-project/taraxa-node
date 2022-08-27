@@ -101,7 +101,7 @@ var searchData=
   ['nodebucket_1974',['NodeBucket',['../classdev_1_1p2p_1_1_node_table.html#structdev_1_1p2p_1_1_node_table_1_1_node_bucket',1,'dev::p2p::NodeTable']]],
   ['nodeconfig_1975',['NodeConfig',['../namespacetaraxa.html#structtaraxa_1_1_node_config',1,'taraxa']]],
   ['nodeconfigured_1976',['nodeConfigured',['../classtaraxa_1_1cli_1_1_config.html#ac39b3fa325ebfd964fb752af045f9dd0',1,'taraxa::cli::Config']]],
-  ['nodeentry_1977',['NodeEntry',['../structdev_1_1p2p_1_1_node_entry.html',1,'dev::p2p::NodeEntry'],['../structdev_1_1p2p_1_1_node_entry.html#a8776ac2bfd6d7a7a6076b027414921ef',1,'dev::p2p::NodeEntry::NodeEntry()'],['../classdev_1_1p2p_1_1_node_table.html#a8d69847fabec1444cfb91f4b7371a37b',1,'dev::p2p::NodeTable::nodeEntry()']]],
+  ['nodeentry_1977',['NodeEntry',['../structdev_1_1p2p_1_1_node_entry.html',1,'dev::p2p::NodeEntry'],['../classdev_1_1p2p_1_1_node_table.html#a8d69847fabec1444cfb91f4b7371a37b',1,'dev::p2p::NodeTable::nodeEntry()'],['../structdev_1_1p2p_1_1_node_entry.html#a8776ac2bfd6d7a7a6076b027414921ef',1,'dev::p2p::NodeEntry::NodeEntry()']]],
   ['nodeentryadded_1978',['NodeEntryAdded',['../namespacedev_1_1p2p.html#ad922460547e7c7fea21b60dbfae9f8dca5a452fcac90c53a368e7c92342920e09',1,'dev::p2p']]],
   ['nodeentrydropped_1979',['NodeEntryDropped',['../namespacedev_1_1p2p.html#ad922460547e7c7fea21b60dbfae9f8dcae081f19e2ec4dec1716755f0551f787b',1,'dev::p2p']]],
   ['nodeentryscheduledforeviction_1980',['NodeEntryScheduledForEviction',['../namespacedev_1_1p2p.html#ad922460547e7c7fea21b60dbfae9f8dcaaaef79d3342f622cebd80dda52f2112f',1,'dev::p2p']]],

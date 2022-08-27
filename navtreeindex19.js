@@ -1,5 +1,6 @@
 var NAVTREEINDEX19 =
 {
+"rpc__error__handler_8hpp.html":[12,0,1,4,1,1,8],
 "rpc__error__handler_8hpp.html#addc8ea7a95b1b5bcc33b970b5d118a8c":[12,0,1,4,1,1,8,0],
 "rpc__error__handler_8hpp_source.html":[12,0,1,4,1,1,8],
 "sortition_8cpp.html":[12,0,1,7,1,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX19 =
 "structdev_1_1p2p_1_1_host.html#a28def719762dcd876de26abf88a54623":[11,0,1,1,9,80],
 "structdev_1_1p2p_1_1_host.html#a2a5364b0c6d1c7fd2793f15774e084a4":[11,0,1,1,9,11],
 "structdev_1_1p2p_1_1_host.html#a2d1ef71cbab758a65c3b57956f172850":[11,0,1,1,9,4],
-"structdev_1_1p2p_1_1_host.html#a2d1ef71cbab758a65c3b57956f172850a1d51bb435beb4bedb43cf53ad15388cb":[11,0,1,1,9,4,0],
-"structdev_1_1p2p_1_1_host.html#a2d1ef71cbab758a65c3b57956f172850a2bec2b51432f10cbd92135d22dba98d8":[11,0,1,1,9,4,1]
+"structdev_1_1p2p_1_1_host.html#a2d1ef71cbab758a65c3b57956f172850a1d51bb435beb4bedb43cf53ad15388cb":[11,0,1,1,9,4,0]
 };

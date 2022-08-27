@@ -24,7 +24,7 @@ var group___vote_classtaraxa_1_1_vote_manager =
     [ "isUniqueVote", "group___vote.html#a657bbf95ad1866cbf01a6f170998bce2", null ],
     [ "operator=", "group___vote.html#a38bd14449af576be965293785cc4d8ac", null ],
     [ "operator=", "group___vote.html#a71368f8f7056743c74eb64be733d4e5a", null ],
-    [ "replaceRewardVotes", "group___vote.html#a356555b45b7147c880deb51575917d9e", null ],
+    [ "replaceRewardVotes", "group___vote.html#a750e2aa711ea10b8a13b91a309a99631", null ],
     [ "retreieveVotes_", "group___vote.html#a335593af04d28ee24d262c401a32f8b0", null ],
     [ "sendRewardVotes", "group___vote.html#a5d94b5f604131c9b986840e5a16d433e", null ],
     [ "setNetwork", "group___vote.html#a4f02ca46c944d4c4b207e249eb4a1621", null ],

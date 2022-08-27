@@ -248,6 +248,6 @@ var NAVTREEINDEX4 =
 "classtaraxa_1_1_db_exception.html#afe83e8ae220204a577fceeef18d5eb2a":[11,0,3,19,6],
 "classtaraxa_1_1_db_storage.html":[11,0,3,20],
 "classtaraxa_1_1_db_storage.html#a0093c29ef1e270e9200a112453790b1c":[11,0,3,20,22],
-"classtaraxa_1_1_db_storage.html#a0180d3c7c292e40562795cc195c43662":[11,0,3,20,113],
-"classtaraxa_1_1_db_storage.html#a029990e648b1a374b6a01ad1dfb1ea16":[11,0,3,20,130]
+"classtaraxa_1_1_db_storage.html#a0180d3c7c292e40562795cc195c43662":[11,0,3,20,114],
+"classtaraxa_1_1_db_storage.html#a029990e648b1a374b6a01ad1dfb1ea16":[11,0,3,20,131]
 };
