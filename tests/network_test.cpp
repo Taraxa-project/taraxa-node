@@ -796,6 +796,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   size_t step = 5;
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i % 2);  // Next votes could vote on 2 values
+    std::cout << voted_pbft_block_hash << std::endl;
     auto vote = pbft_mgr1->generateVote(voted_pbft_block_hash, type, period, round, step + i);
     vote->calculateWeight(1, 1, 1);
     next_votes.push_back(std::move(vote));

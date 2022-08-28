@@ -538,7 +538,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
   std::cout << "Waiting until transactions are executed" << std::endl;
   const auto trx_count = context.getIssuedTrxCount();
-  EXPECT_HAPPENS({60s, 200ms}, [&](auto &ctx) {
+  ASSERT_HAPPENS({20s, 500ms}, [&](auto &ctx) {
     for (size_t i = 0; i < nodes.size(); ++i)
       WAIT_EXPECT_EQ(ctx, nodes[i]->getDB()->getNumTransactionExecuted(), trx_count)
   });
@@ -593,16 +593,6 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
-
-  auto num_proposed_blocks = nodes[0]->getNumProposedBlocks();
-  // wait for next block
-  wait({20s, 500ms}, [&](auto &ctx) {
-    if (nodes[0]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
-    if (nodes[1]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
-    if (nodes[2]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
-    if (nodes[3]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
-    if (nodes[4]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
-  });
 
   ASSERT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
   ASSERT_EQ(nodes[1]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
@@ -1448,8 +1438,8 @@ TEST_F(FullNodeTest, chain_config_json) {
     },
     "state": {
       "dpos": {
-        "delegation_delay": "0x0",
-        "delegation_locking_period": "0x0",
+        "delegation_delay": "0x5",
+        "delegation_locking_period": "0x5",
         "eligibility_balance_threshold": "0x3b9aca00",
         "vote_eligibility_balance_step": "0x3b9aca00",
         "validator_maximum_stake":"0x84595161401484a000000",

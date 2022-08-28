@@ -195,6 +195,7 @@ inline auto make_node_cfgs(size_t total_count, size_t validators_count = 1) {
       // PBFT config
       cfg.chain.pbft.lambda_ms_min /= tests_speed;
       cfg.network.network_transaction_interval /= tests_speed;
+      cfg.network.vote_accepting_rounds *= tests_speed;
     }
     if constexpr (!enable_rpc_http) {
       cfg.rpc->http_port = std::nullopt;

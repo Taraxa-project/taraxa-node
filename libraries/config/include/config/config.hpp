@@ -46,6 +46,9 @@ struct NetworkConfig {
   uint16_t network_peer_blacklist_timeout = kBlacklistTimeoutDefaultInSeconds;
   bool disable_peer_blacklist = false;
   uint16_t deep_syncing_threshold = 10;
+  uint16_t vote_accepting_periods = 5;
+  uint16_t vote_accepting_rounds = 5;
+  uint16_t vote_accepting_steps = 25;
 
   void validate() const;
 };
