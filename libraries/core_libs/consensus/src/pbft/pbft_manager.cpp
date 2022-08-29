@@ -952,7 +952,6 @@ void PbftManager::certifyBlock_() {
 void PbftManager::firstFinish_() {
   // Even number steps from 4 are in first finish
   auto [round, period] = getPbftRoundAndPeriod();
-  const auto next_round_period = pbft_chain_->getPbftChainSize() + 1;
   LOG(log_dg_) << "PBFT first finishing state in round: " << round << ", period: " << period;
 
   if (cert_voted_block_for_round_.has_value()) {
@@ -961,13 +960,13 @@ void PbftManager::firstFinish_() {
 
     blk_hash_t vote_value = last_cert_voted_block->getBlockHash();
     // If cert_voted_block_for_round_ pushed into chain vote for NULL value
-    if (cert_voted_block_for_round_->second < next_round_period) {
+    if (cert_voted_block_for_round_->second < period) {
       vote_value = NULL_BLOCK_HASH;
     }
 
-    if (auto vote = generateVoteWithWeight(vote_value, next_vote_type, next_round_period, round, step_); vote) {
+    if (auto vote = generateVoteWithWeight(vote_value, next_vote_type, period, round, step_); vote) {
       LOG(log_nf_) << "Placed first finish next vote for " << vote_value << ", vote weight " << *vote->getWeight()
-                   << ", round " << round << ", period " << next_round_period << ", step " << step_;
+                   << ", round " << round << ", period " << period << ", step " << step_;
       placeVote(std::move(vote));
     }
 
@@ -984,17 +983,17 @@ void PbftManager::firstFinish_() {
   } else if (round == 1 || (round >= 2 && (previous_round_next_voted_value_.first == NULL_BLOCK_HASH))) {
     // Starting value in round 1 is always null block hash... So combined with other condition for next
     // voting null block hash...
-    if (auto vote = generateVoteWithWeight(NULL_BLOCK_HASH, next_vote_type, next_round_period, round, step_); vote) {
+    if (auto vote = generateVoteWithWeight(NULL_BLOCK_HASH, next_vote_type, period, round, step_); vote) {
       LOG(log_nf_) << "Placed first finish next vote for " << NULL_BLOCK_HASH << ", vote weight " << *vote->getWeight()
-                   << ", round " << round << ", period " << next_round_period << ", step " << step_;
+                   << ", round " << round << ", period " << period << ", step " << step_;
       placeVote(std::move(vote));
     }
   } else {
-    if (auto vote = generateVoteWithWeight(previous_round_next_voted_value_.first, next_vote_type, next_round_period,
+    if (auto vote = generateVoteWithWeight(previous_round_next_voted_value_.first, next_vote_type, period,
                                            round, step_);
         vote) {
       LOG(log_nf_) << "Placed first finish next vote for " << previous_round_next_voted_value_.first.abridged()
-                   << ", vote weight " << *vote->getWeight() << ", round " << round << ", period " << next_round_period
+                   << ", vote weight " << *vote->getWeight() << ", round " << round << ", period " << period
                    << ", step " << step_;
       placeVote(std::move(vote));
     }
@@ -1004,7 +1003,6 @@ void PbftManager::firstFinish_() {
 void PbftManager::secondFinish_() {
   // Odd number steps from 5 are in second finish
   auto [round, period] = getPbftRoundAndPeriod();
-  const auto next_round_period = pbft_chain_->getPbftChainSize() + 1;
   LOG(log_dg_) << "PBFT second finishing state in round: " << round << ", period: " << period;
 
   assert(step_ >= startingStepInRound_);
@@ -1045,9 +1043,9 @@ void PbftManager::secondFinish_() {
     }
   } else if (!next_voted_null_block_hash_ && round >= 2 &&
              (previous_round_next_voted_value_.first == NULL_BLOCK_HASH) && !cert_voted_block_for_round_.has_value()) {
-    if (auto vote = generateVoteWithWeight(NULL_BLOCK_HASH, next_vote_type, next_round_period, round, step_); vote) {
+    if (auto vote = generateVoteWithWeight(NULL_BLOCK_HASH, next_vote_type, period, round, step_); vote) {
       LOG(log_nf_) << "Placed second finish next vote for " << NULL_BLOCK_HASH << ", vote weight " << *vote->getWeight()
-                   << ", period " << next_round_period << ", round " << round << ", step " << step_;
+                   << ", period " << period << ", round " << round << ", step " << step_;
       placeVote(std::move(vote));
       db_->savePbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash, true);
       next_voted_null_block_hash_ = true;
@@ -1058,7 +1056,7 @@ void PbftManager::secondFinish_() {
     syncPbftChainFromPeers_(exceeded_max_steps, NULL_BLOCK_HASH);
   }
 
-  if (step_ > MAX_STEPS && (step_ - MAX_STEPS - 2) % 100 == 0 && !broadcastAlreadyThisStep_()) {
+  if (round > 1 && step_ > MAX_STEPS && (step_ - MAX_STEPS - 2) % 100 == 0 && !broadcastAlreadyThisStep_()) {
     LOG(log_dg_) << "Node " << node_addr_ << " broadcast next votes for previous round. In period " << period
                  << ", round " << round << " step " << step_;
     if (auto net = network_.lock()) {
