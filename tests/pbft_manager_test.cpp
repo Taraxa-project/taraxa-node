@@ -28,11 +28,6 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
   for (auto &cfg : node_cfgs) {
     cfg.chain.pbft.committee_size = committee_size;
-    // Set delegation delay to zero because:
-    // - let's say delegation_delay is 5 blocks, delegation txs are included in block 10
-    // - if we check number of eligible voters in block 13, delegation txs are not applied yet as we would check block 8
-    // If delegation delay is set to zero, this should not happen
-    cfg.chain.final_chain.state.dpos->delegation_delay = 0;
   }
   auto nodes = launch_nodes(node_cfgs);
 
@@ -61,6 +56,13 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     });
   }
 
+  // If previous check passed, delegations txs must have been finalized in block -> take any node's chain size and
+  // save it as approx. block number, in which delegation txs were included
+  size_t delegations_block = nodes[0]->getPbftChain()->getPbftChainSize();
+  ASSERT_GE(delegations_block, 0);
+  // Block, in which delegations should be already applied (due to delegation delay)
+  size_t delegations_applied_block = delegations_block + node_cfgs[0].chain.final_chain.state.dpos->delegation_delay;
+
   std::vector<u256> balances;
   for (size_t i(0); i < nodes.size(); ++i) {
     balances.push_back(std::move(nodes[i]->getFinalChain()->getBalance(nodes[i]->getAddress()).first));
@@ -79,9 +81,12 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   std::cout << "Checking all nodes executed transactions from master boot node" << std::endl;
   EXPECT_HAPPENS({80s, 8s}, [&](auto &ctx) {
     for (size_t i(0); i < nodes.size(); ++i) {
-      if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
+      if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count ||
+          nodes[i]->getPbftChain()->getPbftChainSize() < delegations_applied_block) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
-                  << " transactions, expected " << trxs_count << std::endl;
+                  << " transactions, expected " << trxs_count << ", current chain size "
+                  << nodes[i]->getPbftChain()->getPbftChainSize() << ", expected at least " << delegations_applied_block
+                  << std::endl;
         auto dummy_trx = std::make_shared<Transaction>(nonce++, 0, gas_price, TEST_TX_GAS_LIMIT, bytes(),
                                                        nodes[0]->getSecretKey(), nodes[0]->getAddress());
         // broadcast dummy transaction
