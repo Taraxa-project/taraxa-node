@@ -12,13 +12,13 @@ namespace taraxa::network::tarcap {
 enum SubprotocolPacketType : uint32_t {
   // Consensus packets with high processing priority
   HighPriorityPackets = 0,
+  PbftBlockPacket,
   VotePacket,
   GetVotesSyncPacket,
   VotesSyncPacket,
 
   // Standard packets with mid processing priority
   MidPriorityPackets,
-  PbftBlockPacket,
   DagBlockPacket,
   // DagSyncPacket has mid priority as it is also used for ad-hoc syncing in case new dag blocks miss tips/pivot
   DagSyncPacket,

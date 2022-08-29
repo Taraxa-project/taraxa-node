@@ -71,7 +71,7 @@ void NodeStats::logNodeStats() {
   const auto local_max_level_in_dag = dag_mgr_->getMaxLevel();
 
   // Local pbft info...
-  uint64_t local_pbft_round = pbft_mgr_->getPbftRound();
+  const auto [local_pbft_round, local_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
   const auto local_chain_size = pbft_chain_->getPbftChainSize();
   const auto local_chain_size_without_empty_blocks = pbft_chain_->getPbftChainSizeExcludingEmptyPbftBlocks();
 
@@ -133,8 +133,8 @@ void NodeStats::logNodeStats() {
     LOG(log_nf_) << "Currently syncing from node " << pbft_syncing_state_->syncingPeer();
     LOG(log_nf_) << "Max peer PBFT chain size:       " << peer_max_pbft_chain_size << " (peer "
                  << max_pbft_chain_node_id << ")";
-    LOG(log_nf_) << "Max peer PBFT consensus round:  " << peer_max_pbft_round << " (peer " << max_pbft_round_node_id
-                 << ")";
+    LOG(log_nf_) << "Max peer PBFT consensus round FOR SYNCING:  " << peer_max_pbft_round << " (peer "
+                 << max_pbft_round_node_id << ")";
     LOG(log_nf_) << "Max peer DAG level:             " << peer_max_node_dag_level << " (peer "
                  << max_node_dag_level_node_id << ")";
   } else {
@@ -145,6 +145,7 @@ void NodeStats::logNodeStats() {
   LOG(log_nf_) << "Max DAG block level in DAG:      " << local_max_level_in_dag;
   LOG(log_nf_) << "PBFT chain size:                 " << local_chain_size << " ("
                << local_chain_size_without_empty_blocks << ")";
+  LOG(log_nf_) << "Current PBFT period:             " << local_pbft_period;
   LOG(log_nf_) << "Current PBFT round:              " << local_pbft_round;
   LOG(log_nf_) << "DPOS total votes count:          " << local_dpos_total_votes_count;
   LOG(log_nf_) << "PBFT consensus 2t+1 threshold:   " << local_twotplusone;

@@ -105,11 +105,17 @@ TEST_F(PbftChainTest, proposal_block_broadcast) {
   std::shared_ptr<Network> nw3 = node3->getNetwork();
 
   // Check all 3 nodes PBFT chain synced
-  EXPECT_HAPPENS({30s, 200ms}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, pbft_chain1->getPbftChainSize(), pbft_chain2->getPbftChainSize())
-    WAIT_EXPECT_EQ(ctx, pbft_chain1->getPbftChainSize(), pbft_chain3->getPbftChainSize())
-    WAIT_EXPECT_EQ(ctx, pbft_chain2->getPbftChainSize(), pbft_chain3->getPbftChainSize())
+  EXPECT_HAPPENS({300s, 200ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, node1->getPbftManager()->pbftSyncingPeriod(), node2->getPbftManager()->pbftSyncingPeriod())
+    WAIT_EXPECT_EQ(ctx, node1->getPbftManager()->pbftSyncingPeriod(), node3->getPbftManager()->pbftSyncingPeriod())
+    WAIT_EXPECT_EQ(ctx, node2->getPbftManager()->pbftSyncingPeriod(), node3->getPbftManager()->pbftSyncingPeriod())
   });
+
+  // EXPECT_HAPPENS({300s, 200ms}, [&](auto &ctx) {
+  //   WAIT_EXPECT_EQ(ctx, pbft_chain1->getPbftChainSize(), pbft_chain2->getPbftChainSize())
+  //   WAIT_EXPECT_EQ(ctx, pbft_chain1->getPbftChainSize(), pbft_chain3->getPbftChainSize())
+  //   WAIT_EXPECT_EQ(ctx, pbft_chain2->getPbftChainSize(), pbft_chain3->getPbftChainSize())
+  // });
 
   auto node1_pbft_chain_size = pbft_chain1->getPbftChainSize();
 

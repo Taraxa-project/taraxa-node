@@ -121,8 +121,14 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
 
   /**
-   * @brief Get PBFT round number
-   * @return PBFT round
+   * @brief Get current PBFT period number
+   * @return current PBFT period
+   */
+  uint64_t getPbftPeriod() const;
+
+  /**
+   * @brief Get current PBFT round number
+   * @return current PBFT round
    */
   uint64_t getPbftRound() const;
 
@@ -251,12 +257,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   u_long getPbftInitialLambda() const { return LAMBDA_ms_MIN; }
 
   /**
-   * @brief Set last soft vote value of PBFT block hash
-   * @param soft_voted_value soft vote value of PBFT block hash
-   */
-  void setLastSoftVotedValue(blk_hash_t soft_voted_value);
-
-  /**
    * @brief Resume PBFT daemon. Only to be used for unit tests
    */
   void resume();
@@ -265,18 +265,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Resume PBFT daemon on single state. Only to be used for unit tests
    */
   void resumeSingleState();
-
-  /**
-   * @brief Set maximum waiting time for soft vote value. Only to be used for unit tests
-   * @param wait_ms waiting time in milisecond
-   */
-  void setMaxWaitForSoftVotedBlock_ms(uint64_t wait_ms);
-
-  /**
-   * @brief Set maximum waiting time for next vote value. Only to be used for unit tests
-   * @param wait_ms waiting time in milisecond
-   */
-  void setMaxWaitForNextVotedBlock_ms(uint64_t wait_ms);
 
   /**
    * @brief Calculate DAG blocks ordering hash
@@ -335,13 +323,31 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   /**
    * @brief Reset PBFT step to 1
    */
-  void resetStep_();
+  void resetStep();
 
   /**
-   * @brief If node receives enough next voting votes on a forward PBFT round, set PBFT round to the round number.
-   * @return true if PBFT sets round to a forward round number
+   * @brief If node receives 2t+1 next votes for some block(including NULL_BLOCK_HASH), advance round to + 1.
+   * @return true if PBFT round advanced, otherwise false
    */
-  bool resetRound_();
+  bool advanceRound();
+
+  /**
+   * @brief If node receives 2t+1 cert votes for some valid block and pushes it to the chain, advance period to + 1.
+   * @return true if PBFT period advanced, otherwise false
+   */
+  bool advancePeriod();
+
+  /**
+   * @brief Check if there is 2t+1 cert votes for some valid block, if yes - push it into the chain
+   * @return true if new cert voted block was pushed into the chain, otheriwse false
+   */
+  bool tryPushCertVotesBlock();
+
+  /**
+   * @brief Resets pbft consensus: current pbft round is set to round, step is set to the beginning value
+   * @param round
+   */
+  void resetPbftConsensus(uint64_t round);
 
   /**
    * @brief Time to sleep for PBFT protocol
@@ -431,9 +437,16 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param period PBFT period
    * @param round PBFT round
    * @param step PBFT step
-   * @return vote weight
+   * @param step PBFT step
    */
-  size_t placeVote_(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t period, uint64_t round, size_t step);
+  std::shared_ptr<Vote> generateVoteWithWeight(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t period,
+                                               uint64_t round, size_t step);
+
+  /**
+   * @brief Place (gossip) vote
+   * @param vote
+   */
+  void placeVote(std::shared_ptr<Vote> &&vote);
 
   /**
    * @brief Get current (based on the latest finalized block) PBFT sortition threshold
@@ -546,29 +559,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool is_syncing_();
 
   /**
-   * @brief Terminate the next voting value of the PBFT block hash
-   * @return true if terminate the vote value successfully
-   */
-  bool giveUpNextVotedBlock_();
-
-  /**
-   * @brief Terminate the soft voting value of the PBFT block hash
-   * @return true if terminate the vote value successfully
-   */
-  bool giveUpSoftVotedBlock_();
-
-  /**
-   * @brief Set initial time for voting value
-   */
-  void initializeVotedValueTimeouts_();
-
-  /**
-   * @brief Update last soft voting value
-   * @param new_soft_voted_value soft voting value
-   */
-  void updateLastSoftVotedValue_(blk_hash_t const new_soft_voted_value);
-
-  /**
    * @brief Check if previous round next voting value has been changed
    */
   void checkPreviousRoundNextVotedValueChange_();
@@ -619,7 +609,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::default_random_engine random_engine_{std::random_device{}()};
 
   // Flag that says if node is in sync after it enters new round
-  bool new_round_in_sync_ = false;
+  // bool new_round_in_sync_ = false;
 
   const size_t COMMITTEE_SIZE;
   const size_t NUMBER_OF_PROPOSERS;
@@ -630,11 +620,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   PbftStates state_ = value_proposal_state;
 
   std::atomic<uint64_t> round_ = 1;
-  std::atomic<uint64_t> period_ = 1;
   size_t step_ = 1;
   size_t startingStepInRound_ = 1;
 
-  std::pair<blk_hash_t, uint64_t /* period */> own_starting_value_for_round_{NULL_BLOCK_HASH, 1};
   std::optional<std::pair<blk_hash_t, uint64_t /* period */>> soft_voted_block_for_round_{};
 
   // TODO: was blk_hash_t last_cert_voted_value_ = NULL_BLOCK_HASH; and it was set to NULL_BLOCK_HASH in pushBlock
@@ -649,26 +637,17 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   time_point round_clock_initial_datetime_;
   time_point now_;
 
-  time_point time_began_waiting_next_voted_block_;
-  time_point time_began_waiting_soft_voted_block_;
-
-  blk_hash_t last_soft_voted_value_ = NULL_BLOCK_HASH;
-
   std::chrono::duration<double> duration_;
   u_long next_step_time_ms_ = 0;
   u_long elapsed_time_in_round_ms_ = 0;
 
   bool executed_pbft_block_ = false;
-  bool have_executed_this_round_ = false;
   bool should_have_cert_voted_in_this_round_ = false;
   bool next_voted_soft_value_ = false;
   bool next_voted_null_block_hash_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
   bool polling_state_print_log_ = true;
-
-  uint64_t max_wait_for_soft_voted_block_steps_ms_ = 30;
-  uint64_t max_wait_for_next_voted_block_steps_ms_ = 30;
 
   uint64_t pbft_round_last_requested_sync_ = 0;
   size_t pbft_step_last_requested_sync_ = 0;
@@ -681,7 +660,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   size_t sortition_threshold_ = 0;
   // 2t+1 minimum number of votes for consensus
-  size_t TWO_T_PLUS_ONE = 0;
+  size_t two_t_plus_one_ = 0;
 
   const blk_hash_t dag_genesis_block_hash_;
 

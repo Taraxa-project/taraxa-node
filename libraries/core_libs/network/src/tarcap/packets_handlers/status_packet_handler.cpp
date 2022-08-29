@@ -95,6 +95,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     selected_peer->dag_level_ = peer_dag_level;
     selected_peer->pbft_chain_size_ = peer_pbft_chain_size;
     selected_peer->syncing_ = peer_syncing;
+    selected_peer->pbft_period_ = peer_pbft_chain_size + 1;
     selected_peer->pbft_round_ = peer_pbft_round;
     selected_peer->pbft_previous_round_next_votes_size_ = peer_pbft_previous_round_next_votes_size;
 
@@ -103,10 +104,10 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     LOG(log_dg_) << "Received initial status message from " << packet_data.from_node_id_ << ", network id "
                  << peer_chain_id << ", peer DAG max level " << selected_peer->dag_level_ << ", genesis "
                  << genesis_hash << ", peer pbft chain size " << selected_peer->pbft_chain_size_ << ", peer syncing "
-                 << std::boolalpha << selected_peer->syncing_ << ", peer pbft round " << selected_peer->pbft_round_
-                 << ", peer pbft previous round next votes size " << selected_peer->pbft_previous_round_next_votes_size_
-                 << ", node major version" << node_major_version << ", node minor version" << node_minor_version
-                 << ", node patch version" << node_patch_version;
+                 << std::boolalpha << selected_peer->syncing_ << ", peer pbft period " << selected_peer->pbft_period_
+                 << ", peer pbft round " << selected_peer->pbft_round_ << ", peer pbft previous round next votes size "
+                 << selected_peer->pbft_previous_round_next_votes_size_ << ", node major version" << node_major_version
+                 << ", node minor version" << node_minor_version << ", node patch version" << node_patch_version;
 
   } else {  // Standard status packet
     // TODO: initial and standard status packet could be separated...
@@ -120,6 +121,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     auto it = packet_data.rlp_.begin();
     selected_peer->dag_level_ = (*it++).toInt<uint64_t>();
     selected_peer->pbft_chain_size_ = (*it++).toInt<uint64_t>();
+    selected_peer->pbft_period_ = selected_peer->pbft_chain_size_ + 1;
     selected_peer->syncing_ = (*it++).toInt();
     selected_peer->pbft_round_ = (*it++).toInt<uint64_t>();
     selected_peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
@@ -142,17 +144,20 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
         // if not syncing and the peer period is matching our period request any pending dag blocks
         requestPendingDagBlocks(selected_peer);
       }
-      const auto pbft_current_round = pbft_mgr_->getPbftRound();
+      const auto [pbft_current_round, pbft_current_period] = pbft_mgr_->getPbftRoundAndPeriod();
       const auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();
-      if (pbft_current_round < selected_peer->pbft_round_) {
-        syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
-      } else if (pbft_current_round == selected_peer->pbft_round_) {
-        const auto two_times_2t_plus_1 = pbft_mgr_->getTwoTPlusOne() * 2;
-        // Node at lease have one next vote value for previoud PBFT round. There may have 2 next vote values for
-        // previous PBFT round. If node own have one next vote value and peer have two, need sync here.
-        if (pbft_previous_round_next_votes_size < two_times_2t_plus_1 &&
-            selected_peer->pbft_previous_round_next_votes_size_ >= two_times_2t_plus_1) {
-          syncPbftNextVotes(pbft_current_round, pbft_previous_round_next_votes_size);
+      if (pbft_current_period == selected_peer->pbft_period_) {
+        if (pbft_current_round < selected_peer->pbft_round_) {
+          syncPbftNextVotesAtPeriodRound(pbft_current_period, pbft_current_round, pbft_previous_round_next_votes_size);
+        } else if (pbft_current_round == selected_peer->pbft_round_) {
+          const auto two_times_2t_plus_1 = pbft_mgr_->getTwoTPlusOne() * 2;
+          // Node at lease have one next vote value for previoud PBFT round. There may have 2 next vote values for
+          // previous PBFT round. If node own have one next vote value and peer have two, need sync here.
+          if (pbft_previous_round_next_votes_size < two_times_2t_plus_1 &&
+              selected_peer->pbft_previous_round_next_votes_size_ >= two_times_2t_plus_1) {
+            syncPbftNextVotesAtPeriodRound(pbft_current_period, pbft_current_round,
+                                           pbft_previous_round_next_votes_size);
+          }
         }
       }
     }
@@ -178,7 +183,7 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
 
     auto dag_max_level = dag_mgr_->getMaxLevel();
     auto pbft_chain_size = pbft_chain_->getPbftChainSize();
-    auto pbft_round = pbft_mgr_->getPbftRound();
+    const auto pbft_round = pbft_mgr_->getPbftRound();
     auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();
 
     if (initial) {
@@ -212,21 +217,25 @@ void StatusPacketHandler::sendStatusToPeers() {
   }
 }
 
-void StatusPacketHandler::syncPbftNextVotes(uint64_t pbft_round, size_t pbft_previous_round_next_votes_size) {
+void StatusPacketHandler::syncPbftNextVotesAtPeriodRound(uint64_t pbft_period, uint64_t pbft_round,
+                                                         size_t pbft_previous_round_next_votes_size) {
   dev::p2p::NodeID peer_node_ID;
+  uint64_t peer_max_pbft_period = 1;
   uint64_t peer_max_pbft_round = 1;
   size_t peer_max_previous_round_next_votes_size = 0;
 
   auto peers = peers_state_->getAllPeers();
-  // Find max peer PBFT round
+  // Find max peer PBFT period, round...
   for (auto const& peer : peers) {
-    if (peer.second->pbft_round_ > peer_max_pbft_round) {
+    if ((peer.second->pbft_period_ > peer_max_pbft_period) ||
+        (peer.second->pbft_period_ == peer_max_pbft_period && peer.second->pbft_round_ > peer_max_pbft_round)) {
+      peer_max_pbft_period = peer.second->pbft_period_;
       peer_max_pbft_round = peer.second->pbft_round_;
       peer_node_ID = peer.first;
     }
   }
 
-  if (pbft_round == peer_max_pbft_round) {
+  if (pbft_period == peer_max_pbft_period && pbft_round == peer_max_pbft_round) {
     // No peers ahead, find peer PBFT previous round max next votes size
     for (auto const& peer : peers) {
       if (peer.second->pbft_previous_round_next_votes_size_ > peer_max_previous_round_next_votes_size) {
@@ -236,23 +245,27 @@ void StatusPacketHandler::syncPbftNextVotes(uint64_t pbft_round, size_t pbft_pre
     }
   }
 
-  if (pbft_round < peer_max_pbft_round ||
-      (pbft_round == peer_max_pbft_round &&
-       pbft_previous_round_next_votes_size < peer_max_previous_round_next_votes_size)) {
-    LOG(log_dg_) << "Syncing PBFT next votes. Current PBFT round " << pbft_round << ", previous round next votes size "
-                 << pbft_previous_round_next_votes_size << ". Peer " << peer_node_ID << " is in PBFT round "
-                 << peer_max_pbft_round << ", previous round next votes size "
+  if (peer_max_pbft_period != pbft_period) {
+    LOG(log_dg_) << "Syncing PBFT next votes not needed. Current PBFT period " << pbft_period
+                 << ". Peer with max period: " << peer_node_ID << ", is in PBFT period: " << peer_max_pbft_period;
+  } else if (pbft_round < peer_max_pbft_round ||
+             (pbft_round == peer_max_pbft_round &&
+              pbft_previous_round_next_votes_size < peer_max_previous_round_next_votes_size)) {
+    LOG(log_dg_) << "Syncing PBFT next votes. In period " << pbft_period << ", current PBFT round " << pbft_round
+                 << ", previous round next votes size " << pbft_previous_round_next_votes_size << ". Peer "
+                 << peer_node_ID << " is in PBFT round " << peer_max_pbft_round << ", previous round next votes size "
                  << peer_max_previous_round_next_votes_size;
-    requestPbftNextVotes(peer_node_ID, pbft_round, pbft_previous_round_next_votes_size);
+    requestPbftNextVotesAtPeriodRound(peer_node_ID, pbft_period, pbft_round, pbft_previous_round_next_votes_size);
   }
 }
 
-void StatusPacketHandler::requestPbftNextVotes(dev::p2p::NodeID const& peerID, uint64_t pbft_round,
-                                               size_t pbft_previous_round_next_votes_size) {
+void StatusPacketHandler::requestPbftNextVotesAtPeriodRound(dev::p2p::NodeID const& peerID, uint64_t pbft_period,
+                                                            uint64_t pbft_round,
+                                                            size_t pbft_previous_round_next_votes_size) {
   LOG(log_dg_) << "Sending GetVotesSyncPacket with round " << pbft_round << " previous round next votes size "
                << pbft_previous_round_next_votes_size;
   sealAndSend(peerID, GetVotesSyncPacket,
-              std::move(dev::RLPStream(2) << pbft_round << pbft_previous_round_next_votes_size));
+              std::move(dev::RLPStream(3) << pbft_period << pbft_round << pbft_previous_round_next_votes_size));
 }
 
 }  // namespace taraxa::network::tarcap

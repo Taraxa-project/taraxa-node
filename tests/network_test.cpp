@@ -796,6 +796,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   size_t step = 5;
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i % 2);  // Next votes could vote on 2 values
+    std::cout << voted_pbft_block_hash << std::endl;
     auto vote = pbft_mgr1->generateVote(voted_pbft_block_hash, type, period, round, step + i);
     vote->calculateWeight(1, 1, 1);
     next_votes.push_back(std::move(vote));
@@ -826,8 +827,6 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
 
 // Test PBFT next votes sycning when nodes stay at same PBFT round, but node2 has less previous round next votes size
 TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
-  auto pbft_previous_round = 1;
-
   auto node_cfgs = make_node_cfgs<20>(2);
   std::vector<std::shared_ptr<FullNode>> nodes;
   for (auto i(0); i < 2; i++) {
@@ -888,7 +887,6 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   // Set PBFT previous round 2t+1, sortition threshold, DPOS period and DPOS total votes count for syncing
   auto db = node2->getDB();
   auto batch = db->createWriteBatch();
-  db->addPbft2TPlus1ToBatch(pbft_previous_round, node2_pbft_2t_plus_1, batch);
   db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold, 1, batch);
   db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, 0, batch);
   db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount, 1, batch);
@@ -902,8 +900,6 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
 // Test PBFT next votes sycning when nodes stay at same PBFT round, node1 and node2 have different previous round next
 // votes set
 TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
-  auto pbft_previous_round = 1;
-
   auto node_cfgs = make_node_cfgs<20>(2);
   std::vector<std::shared_ptr<FullNode>> nodes;
   for (auto i(0); i < 2; i++) {
@@ -961,7 +957,6 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   // Set node2 PBFT previous round 2t+1, sortition threshold, DPOS period and DPOS total votes count for syncing
   auto node2_db = node2->getDB();
   auto batch = node2_db->createWriteBatch();
-  node2_db->addPbft2TPlus1ToBatch(pbft_previous_round, node2_pbft_2t_plus_1, batch);
   node2_db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold, 1, batch);
   node2_db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, 0, batch);
   node2_db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount, 1, batch);
@@ -983,7 +978,6 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   // Set node1 PBFT previous round 2t+1, sortition threshold, DPOS period and DPOS total votes count for syncing
   auto node1_db = node1->getDB();
   batch = node1_db->createWriteBatch();
-  node1_db->addPbft2TPlus1ToBatch(pbft_previous_round, node1_pbft_2t_plus_1, batch);
   node1_db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold, 1, batch);
   node1_db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, 0, batch);
   node1_db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount, 1, batch);

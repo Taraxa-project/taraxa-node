@@ -28,11 +28,6 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
   for (auto &cfg : node_cfgs) {
     cfg.chain.pbft.committee_size = committee_size;
-    // Set delegation delay to zero because:
-    // - let's say delegation_delay is 5 blocks, delegation txs are included in block 10
-    // - if we check number of eligible voters in block 13, delegation txs are not applied yet as we would check block 8
-    // If delegation delay is set to zero, this should not happen
-    cfg.chain.final_chain.state.dpos->delegation_delay = 0;
   }
   auto nodes = launch_nodes(node_cfgs);
 
@@ -61,6 +56,13 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
     });
   }
 
+  // If previous check passed, delegations txs must have been finalized in block -> take any node's chain size and
+  // save it as approx. block number, in which delegation txs were included
+  size_t delegations_block = nodes[0]->getPbftChain()->getPbftChainSize();
+  ASSERT_GE(delegations_block, 0);
+  // Block, in which delegations should be already applied (due to delegation delay)
+  size_t delegations_applied_block = delegations_block + node_cfgs[0].chain.final_chain.state.dpos->delegation_delay;
+
   std::vector<u256> balances;
   for (size_t i(0); i < nodes.size(); ++i) {
     balances.push_back(std::move(nodes[i]->getFinalChain()->getBalance(nodes[i]->getAddress()).first));
@@ -79,9 +81,12 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   std::cout << "Checking all nodes executed transactions from master boot node" << std::endl;
   EXPECT_HAPPENS({80s, 8s}, [&](auto &ctx) {
     for (size_t i(0); i < nodes.size(); ++i) {
-      if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
+      if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count ||
+          nodes[i]->getPbftChain()->getPbftChainSize() < delegations_applied_block) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
-                  << " transactions, expected " << trxs_count << std::endl;
+                  << " transactions, expected " << trxs_count << ", current chain size "
+                  << nodes[i]->getPbftChain()->getPbftChainSize() << ", expected at least " << delegations_applied_block
+                  << std::endl;
         auto dummy_trx = std::make_shared<Transaction>(nonce++, 0, gas_price, TEST_TX_GAS_LIMIT, bytes(),
                                                        nodes[0]->getSecretKey(), nodes[0]->getAddress());
         // broadcast dummy transaction
@@ -197,14 +202,12 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
   propose_vote->calculateWeight(1, 1, 1);
   vote_mgr->addVerifiedVote(propose_vote);
 
-  pbft_mgr->setLastSoftVotedValue(stale_block_hash);
+  // uint64_t time_till_stale_ms = 1000;
+  // std::cout << "Set max wait for soft voted value to " << time_till_stale_ms << "ms..." << std::endl;
+  // pbft_mgr->setMaxWaitForSoftVotedBlock_ms(time_till_stale_ms);
+  // pbft_mgr->setMaxWaitForNextVotedBlock_ms(std::numeric_limits<uint64_t>::max());
 
-  uint64_t time_till_stale_ms = 1000;
-  std::cout << "Set max wait for soft voted value to " << time_till_stale_ms << "ms..." << std::endl;
-  pbft_mgr->setMaxWaitForSoftVotedBlock_ms(time_till_stale_ms);
-  pbft_mgr->setMaxWaitForNextVotedBlock_ms(std::numeric_limits<uint64_t>::max());
-
-  auto sleep_time = time_till_stale_ms + 100;
+  auto sleep_time = 1100;
   std::cout << "Sleep " << sleep_time << "ms so that last soft voted value of " << stale_block_hash.abridged()
             << " becomes stale..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(sleep_time);
@@ -240,6 +243,10 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
 
 // Test that after some amount of elapsed time will give up on the next voting value if corresponding DAG blocks can't
 // be found
+
+// TODO: Replace with test that we won't soft vote and invalid block...
+
+/*
 TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   auto node_cfgs = make_node_cfgs<20>(1);
   auto nodes = launch_nodes(node_cfgs);
@@ -375,6 +382,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
   auto start_round = pbft_mgr->getPbftRound();
   EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) { WAIT_EXPECT_NE(ctx, start_round, pbft_mgr->getPbftRound()) });
 }
+*/
 
 TEST_F(PbftManagerTest, full_node_lambda_input_test) {
   auto node = create_nodes(1, true).front();
@@ -774,19 +782,27 @@ TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
   node->getBlockProposer()->stop();
   generateAndApplyInitialDag();
 
-  const auto trxs_before = node->getTransactionManager()->getTransactionCount();
+  auto trx_count = node->getTransactionManager()->getTransactionCount();
   EXPECT_HAPPENS({10s, 500ms},
-                 [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, trxs_before, node->getDB()->getNumTransactionExecuted()); });
+                 [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, trx_count, node->getDB()->getNumTransactionExecuted()); });
 
-  const auto starting_block_number = node->getFinalChain()->last_block_number();
+  auto starting_block_number = node->getFinalChain()->last_block_number();
   const auto trx_in_block = dag_gas_limit / trxEstimation() + 2;
   insertBlocks(generateDagBlocks(1, 5, trx_in_block));
 
-  uint64_t tx_count = 5 * trx_in_block;
+  // We need to move one block forward when we will start applying those generated DAGs and transactions
+  EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->last_block_number(), starting_block_number + 1);
+  });
+  // check that new created transaction wasn't executed in that previous block
+  ASSERT_EQ(trx_count, node->getDB()->getNumTransactionExecuted());
+  ++starting_block_number;
 
-  EXPECT_HAPPENS({60s, 500ms}, [&](auto &ctx) {
+  trx_count += 5 * trx_in_block;
+  // We are starting to process new dag blocks only from the next period(block), so add 1
+  EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
     // all transactions should be included in 2 blocks
-    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), trxs_before + tx_count);
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), trx_count);
     WAIT_EXPECT_EQ(ctx, node->getFinalChain()->last_block_number(), starting_block_number + 2);
   });
 

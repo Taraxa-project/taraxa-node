@@ -106,22 +106,23 @@ bool VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
   }
 
   UniqueLock lock(verified_votes_access_);
-  auto found_round_it = verified_votes_.find(vote->getRound());
-  // Add round
-  if (found_round_it == verified_votes_.end()) {
-    found_round_it = verified_votes_.insert({vote->getRound(), {}}).first;
-  }
 
-  auto found_period_it = found_round_it->second.find(vote->getPeriod());
+  auto found_period_it = verified_votes_.find(vote->getPeriod());
   // Add period
-  if (found_period_it == found_round_it->second.end()) {
-    found_period_it = found_round_it->second.insert({vote->getPeriod(), {}}).first;
+  if (found_period_it == verified_votes_.end()) {
+    found_period_it = verified_votes_.insert({vote->getPeriod(), {}}).first;
   }
 
-  auto found_step_it = found_period_it->second.find(vote->getStep());
+  auto found_round_it = found_period_it->second.find(vote->getRound());
+  // Add round
+  if (found_round_it == found_period_it->second.end()) {
+    found_round_it = found_period_it->second.insert({vote->getRound(), {}}).first;
+  }
+
+  auto found_step_it = found_round_it->second.find(vote->getStep());
   // Add step
-  if (found_step_it == found_period_it->second.end()) {
-    found_step_it = found_period_it->second.insert({vote->getStep(), {}}).first;
+  if (found_step_it == found_round_it->second.end()) {
+    found_step_it = found_round_it->second.insert({vote->getStep(), {}}).first;
   }
 
   auto found_voted_value_it = found_step_it->second.find(vote->getBlockHash());
@@ -150,18 +151,19 @@ bool VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
 
 bool VoteManager::voteInVerifiedMap(const std::shared_ptr<Vote>& vote) const {
   SharedLock lock(verified_votes_access_);
-  const auto found_round_it = verified_votes_.find(vote->getRound());
-  if (found_round_it == verified_votes_.end()) {
+
+  const auto found_period_it = verified_votes_.find(vote->getPeriod());
+  if (found_period_it == verified_votes_.end()) {
     return false;
   }
 
-  const auto found_period_it = found_round_it->second.find(vote->getPeriod());
-  if (found_period_it == found_round_it->second.end()) {
+  const auto found_round_it = found_period_it->second.find(vote->getRound());
+  if (found_round_it == found_period_it->second.end()) {
     return false;
   }
 
-  const auto found_step_it = found_period_it->second.find(vote->getStep());
-  if (found_step_it == found_period_it->second.end()) {
+  const auto found_step_it = found_round_it->second.find(vote->getStep());
+  if (found_step_it == found_round_it->second.end()) {
     return false;
   }
 
@@ -176,8 +178,13 @@ bool VoteManager::voteInVerifiedMap(const std::shared_ptr<Vote>& vote) const {
 std::pair<bool, std::string> VoteManager::isUniqueVote(const std::shared_ptr<Vote>& vote) const {
   std::shared_lock lock(voters_unique_votes_mutex_);
 
-  const auto found_round_it = voters_unique_votes_.find(vote->getRound());
-  if (found_round_it == voters_unique_votes_.end()) {
+  const auto found_period_it = voters_unique_votes_.find(vote->getPeriod());
+  if (found_period_it == voters_unique_votes_.end()) {
+    return {true, ""};
+  }
+
+  const auto found_round_it = found_period_it->second.find(vote->getRound());
+  if (found_round_it == found_period_it->second.end()) {
     return {true, ""};
   }
 
@@ -229,9 +236,14 @@ std::pair<bool, std::string> VoteManager::isUniqueVote(const std::shared_ptr<Vot
 bool VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote) {
   std::unique_lock lock(voters_unique_votes_mutex_);
 
-  auto found_round_it = voters_unique_votes_.find(vote->getRound());
-  if (found_round_it == voters_unique_votes_.end()) {
-    found_round_it = voters_unique_votes_.insert({vote->getRound(), {}}).first;
+  auto found_period_it = voters_unique_votes_.find(vote->getPeriod());
+  if (found_period_it == voters_unique_votes_.end()) {
+    found_period_it = voters_unique_votes_.insert({vote->getPeriod(), {}}).first;
+  }
+
+  auto found_round_it = found_period_it->second.find(vote->getRound());
+  if (found_round_it == found_period_it->second.end()) {
+    found_round_it = found_period_it->second.insert({vote->getRound(), {}}).first;
   }
 
   auto found_step_it = found_round_it->second.find(vote->getStep());
@@ -278,7 +290,8 @@ bool VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote) {
       err << ", orig. vote 2 hash (voted value): " << inserted_vote.first->second.second->getHash().abridged() << " ("
           << inserted_vote.first->second.second->getBlockHash().abridged() << ")";
     }
-    err << ", round: " << vote->getRound() << ", step: " << vote->getStep() << ", voter: " << vote->getVoterAddr();
+    err << ", period: " << vote->getPeriod() << ", round: " << vote->getRound() << ", step: " << vote->getStep()
+        << ", voter: " << vote->getVoterAddr();
     LOG(log_er_) << err.str();
 
     return false;
@@ -288,13 +301,62 @@ bool VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote) {
 }
 
 // cleanup votes < pbft_round
-void VoteManager::cleanupVotes(uint64_t pbft_round) {
-  // Clean up cache with unique votes per round & step & voter
+void VoteManager::cleanupVotesByRound(uint64_t pbft_period, uint64_t pbft_round) {
+  // Clean up cache with unique votes per period, round & step & voter
   {
     std::unique_lock unique_votes_lock(voters_unique_votes_mutex_);
 
+    auto found_period_it = voters_unique_votes_.find(pbft_period);
+    if (found_period_it != voters_unique_votes_.end()) {
+      auto it = found_period_it->second.begin();
+      while (it != found_period_it->second.end() && it->first < pbft_round) {
+        it = found_period_it->second.erase(it);
+      }
+    }
+  }
+
+  // Remove verified votes
+  auto batch = db_->createWriteBatch();
+  {
+    UniqueLock lock(verified_votes_access_);
+    auto found_period_it = verified_votes_.find(pbft_period);
+
+    // cleanupVotesByRound should not be called in case there are not votes for previous round
+    if (found_period_it == verified_votes_.end()) {
+      assert(false);
+      return;
+    }
+
+    auto round_it = found_period_it->second.begin();
+    while (round_it != found_period_it->second.end() && round_it->first < pbft_round) {
+      for (const auto& step : round_it->second) {
+        for (const auto& voted_value : step.second) {
+          for (const auto& v : voted_value.second.second) {
+            if (v.second->getType() == cert_vote_type) {
+              // The verified cert vote may be reward vote
+              addRewardVote(v.second);
+            }
+            db_->removeVerifiedVoteToBatch(v.first, batch);
+            LOG(log_dg_) << "Remove verified vote " << v.first << " for period, round = " << v.second->getPeriod()
+                         << ", " << v.second->getRound() << ". PBFT round " << pbft_round;
+          }
+        }
+      }
+      round_it = found_period_it->second.erase(round_it);
+    }
+
+  }  // verified_votes_access_
+  db_->commitWriteBatch(batch);
+}
+
+void VoteManager::cleanupVotesByPeriod(uint64_t pbft_period) {
+  // Clean up cache with unique votes per period, round & step & voter
+  {
+    std::unique_lock unique_votes_lock(voters_unique_votes_mutex_);
+
+    // Prior periods...
     auto it = voters_unique_votes_.begin();
-    while (it != voters_unique_votes_.end() && it->first < pbft_round) {
+    while (it != voters_unique_votes_.end() && it->first < pbft_period) {
       it = voters_unique_votes_.erase(it);
     }
   }
@@ -304,48 +366,48 @@ void VoteManager::cleanupVotes(uint64_t pbft_round) {
   {
     UniqueLock lock(verified_votes_access_);
     auto it = verified_votes_.begin();
-    while (it != verified_votes_.end() && it->first < pbft_round) {
-      for (const auto& period : it->second) {
-        for (const auto& step : period.second) {
+    while (it != verified_votes_.end() && it->first < pbft_period) {
+      for (const auto& round : it->second) {
+        for (const auto& step : round.second) {
           for (const auto& voted_value : step.second) {
             for (const auto& v : voted_value.second.second) {
               if (v.second->getType() == cert_vote_type) {
                 // The verified cert vote may be reward vote
+                // TODO: would be nice to get rid of this...
                 addRewardVote(v.second);
               }
+
               db_->removeVerifiedVoteToBatch(v.first, batch);
-              LOG(log_dg_) << "Remove verified vote " << v.first << " for round " << v.second->getRound()
-                           << ". PBFT round " << pbft_round;
+              LOG(log_dg_) << "Remove verified vote " << v.first << " vote period " << v.second->getPeriod()
+                           << ", vote round " << v.second->getRound() << ". new PBFT period " << pbft_period;
             }
           }
         }
       }
+
       it = verified_votes_.erase(it);
     }
   }
+
   db_->commitWriteBatch(batch);
 }
 
+// TODO: Refactor call to put period before round
 std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t round, uint64_t period) const {
   SharedLock lock(verified_votes_access_);
-  const auto found_round_it = verified_votes_.find(round);
-  if (found_round_it == verified_votes_.end()) {
+
+  const auto found_period_it = verified_votes_.find(period);
+  if (found_period_it == verified_votes_.end()) {
     return {};
   }
 
-  // There is multiple different periods in propose votes for the same round
-  if (found_round_it->second.size() > 1) {
-    LOG(log_wr_) << "There is multiple different periods in propose votes for the same round. Num of periods: "
-                 << found_round_it->second.size() << ", round " << round;
-  }
-
-  const auto found_period_it = found_round_it->second.find(period);
-  if (found_period_it == found_round_it->second.end()) {
+  const auto found_round_it = found_period_it->second.find(round);
+  if (found_round_it == found_period_it->second.end()) {
     return {};
   }
 
-  const auto found_proposal_step_it = found_period_it->second.find(1);
-  if (found_proposal_step_it == found_period_it->second.end()) {
+  const auto found_proposal_step_it = found_round_it->second.find(1);
+  if (found_proposal_step_it == found_round_it->second.end()) {
     return {};
   }
 
@@ -360,27 +422,23 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t round,
   return proposal_votes;
 }
 
+// TODO: Refactor call to put period before round
 std::optional<VotesBundle> VoteManager::getVotesBundle(uint64_t round, uint64_t period, size_t step,
                                                        size_t two_t_plus_one) const {
   SharedLock lock(verified_votes_access_);
-  const auto found_round_it = verified_votes_.find(round);
-  if (found_round_it == verified_votes_.end()) {
+
+  const auto found_period_it = verified_votes_.find(period);
+  if (found_period_it == verified_votes_.end()) {
     return {};
   }
 
-  // There is multiple different periods in propose votes for the same round
-  if (found_round_it->second.size() > 1) {
-    LOG(log_wr_) << "There is multiple different periods in votes for the same round. Num of periods: "
-                 << found_round_it->second.size() << ", round " << round << ", step " << step;
-  }
-
-  const auto found_period_it = found_round_it->second.find(period);
-  if (found_period_it == found_round_it->second.end()) {
+  const auto found_round_it = found_period_it->second.find(round);
+  if (found_round_it == found_period_it->second.end()) {
     return {};
   }
 
-  const auto found_step_it = found_period_it->second.find(step);
-  if (found_step_it == found_period_it->second.end()) {
+  const auto found_step_it = found_round_it->second.find(step);
+  if (found_step_it == found_round_it->second.end()) {
     return {};
   }
 
@@ -410,7 +468,7 @@ std::optional<VotesBundle> VoteManager::getVotesBundle(uint64_t round, uint64_t 
     votes_bundle.voted_block_hash = voted_value.first;
     votes_bundle.votes_period = period;
     LOG(log_nf_) << "Found enough " << count << " votes at voted value " << votes_bundle.voted_block_hash
-                 << ", round: " << round << ", period: " << period << ", step " << step;
+                 << ", period: " << period << ", round: " << round << ", step " << step;
 
     // TODO: use "return votes_bundle;" here ?
     // We could return here "return votes_bundle;", continue here is just to check if there is not any other period or
@@ -426,43 +484,46 @@ std::optional<VotesBundle> VoteManager::getVotesBundle(uint64_t round, uint64_t 
   return votes_bundle;
 }
 
-std::optional<std::pair<uint64_t, uint64_t>> VoteManager::determineRoundAndPeriodFromVotes(size_t two_t_plus_one) {
+uint64_t VoteManager::determineRoundFromPeriodAndVotes(uint64_t period, size_t two_t_plus_one) {
   std::vector<std::shared_ptr<Vote>> votes;
 
   SharedLock lock(verified_votes_access_);
-  for (auto round_rit = verified_votes_.rbegin(); round_rit != verified_votes_.rend(); ++round_rit) {
-    for (auto period_it = round_rit->second.begin(); period_it != round_rit->second.end(); ++period_it) {
-      for (auto step_rit = period_it->second.rbegin(); step_rit != period_it->second.rend(); ++step_rit) {
-        if (step_rit->first <= 3) {
-          break;
+
+  const auto found_period_it = verified_votes_.find(period);
+  if (found_period_it == verified_votes_.end()) {
+    return 1;
+  }
+
+  for (auto round_rit = found_period_it->second.rbegin(); round_rit != found_period_it->second.rend(); ++round_rit) {
+    for (auto step_rit = round_rit->second.rbegin(); step_rit != round_rit->second.rend(); ++step_rit) {
+      if (step_rit->first <= 3) {
+        break;
+      }
+
+      for (auto const& voted_value : step_rit->second) {
+        if (voted_value.second.first < two_t_plus_one) {
+          continue;
         }
 
-        for (auto const& voted_value : step_rit->second) {
-          if (voted_value.second.first < two_t_plus_one) {
-            continue;
-          }
+        auto it = voted_value.second.second.begin();
+        size_t count = 0;
 
-          auto it = voted_value.second.second.begin();
-          size_t count = 0;
-
-          // Copy at least 2t+1 votes
-          while (count < two_t_plus_one) {
-            votes.emplace_back(it->second);
-            count += it->second->getWeight().value();
-            it++;
-          }
-          LOG(log_nf_) << "Round & period determined. Found enough " << count << " votes at voted value "
-                       << voted_value.first << " for round " << round_rit->first << ", period " << period_it->first
-                       << ", step " << step_rit->first;
-
-          next_votes_manager_->updateNextVotes(votes, two_t_plus_one);
-          return {std::make_pair(round_rit->first + 1, period_it->first)};
+        // Copy at least 2t+1 votes
+        while (count < two_t_plus_one) {
+          votes.emplace_back(it->second);
+          count += it->second->getWeight().value();
+          it++;
         }
+        LOG(log_nf_) << "Round determined for period " << period << ". Found " << count << " votes for voted value "
+                     << voted_value.first << " for round " << round_rit->first << ", step " << step_rit->first;
+
+        next_votes_manager_->updateNextVotes(votes, two_t_plus_one);
+        return round_rit->first + 1;
       }
     }
   }
 
-  return {};
+  return 1;
 }
 
 std::pair<blk_hash_t, uint64_t> VoteManager::getCurrentRewardsVotesBlock() const {
@@ -502,7 +563,7 @@ bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
 
   // If reward vote is from another round it should not be added to last block cert votes which should all be the same
   // round
-  if (last_pbft_block_cert_round_ == vote->getRound()) {
+  if (reward_votes_round_ == vote->getRound()) {
     db_->saveLastBlockCertVote(vote);
   }
 
@@ -554,7 +615,7 @@ std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> VoteManager::replaceRewar
   // It is possible that incoming reward votes might have another round because it is possible that same block was cert
   // voted in different rounds on different nodes but this is a reference round for any pbft block this node might
   // propose
-  last_pbft_block_cert_round_ = cert_votes[0]->getRound();
+  reward_votes_round_ = cert_votes[0]->getRound();
   for (auto& v : cert_votes) {
     assert(v->getWeight());
     reward_votes_.insert({v->getHash(), std::move(v)});
@@ -562,7 +623,7 @@ std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> VoteManager::replaceRewar
   return reward_votes;
 }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotes() {
+std::vector<std::shared_ptr<Vote>> VoteManager::getAllRewardVotes() {
   std::vector<std::shared_ptr<Vote>> reward_votes;
 
   std::shared_lock lock(reward_votes_mutex_);
@@ -573,7 +634,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotes() {
   return reward_votes;
 }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotes(const std::vector<vote_hash_t>& vote_hashes) {
+std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotesByHashes(const std::vector<vote_hash_t>& vote_hashes) {
   std::vector<std::shared_ptr<Vote>> reward_votes;
 
   std::shared_lock lock(reward_votes_mutex_);
@@ -590,12 +651,13 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotes(const std::vector
   return reward_votes;
 }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotesWithLastBlockRound() {
+std::vector<std::shared_ptr<Vote>> VoteManager::getProposeRewardVotes() {
   std::vector<std::shared_ptr<Vote>> reward_votes;
 
   std::shared_lock lock(reward_votes_mutex_);
   for (const auto& v : reward_votes_) {
-    if (v.second->getRound() == last_pbft_block_cert_round_) {
+    // Select only reward votes with round == round during which node pushed previous block into the chain
+    if (v.second->getRound() == reward_votes_round_) {
       reward_votes.push_back(v.second);
     }
   }
@@ -609,7 +671,7 @@ void VoteManager::sendRewardVotes(const blk_hash_t& pbft_block_hash) {
     if (reward_votes_pbft_block_.first != pbft_block_hash) return;
   }
 
-  auto reward_votes = getRewardVotes();
+  auto reward_votes = getAllRewardVotes();
   if (reward_votes.empty()) return;
 
   auto net = network_.lock();
@@ -703,7 +765,15 @@ void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& ne
 
   UniqueLock lock(access_);
 
-  auto next_votes_in_db = db_->getNextVotes(sync_voted_round);
+  auto next_votes_in_db = db_->getPreviousRoundNextVotes();
+  if (!next_votes_in_db.empty()) {
+    const auto db_next_votes_round = next_votes_in_db[0]->getRound();
+    if (db_next_votes_round != sync_voted_round) {
+      LOG(log_dg_) << "Drop next votes. db next votes round " << db_next_votes_round << ", received next votes round "
+                   << sync_voted_round;
+      return;
+    }
+  }
 
   // Add all next votes
   std::unordered_set<blk_hash_t> voted_values;
@@ -711,7 +781,7 @@ void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& ne
     LOG(log_dg_) << "Add next vote: " << *v;
 
     auto vote_hash = v->getHash();
-    if (next_votes_set_.count(vote_hash)) {
+    if (next_votes_set_.contains(vote_hash)) {
       continue;
     }
 
@@ -730,7 +800,7 @@ void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& ne
   }
 
   // Update list of next votes in database by new unique votes
-  db_->saveNextVotes(sync_voted_round, next_votes_in_db);
+  db_->savePreviousRoundNextVotes(next_votes_in_db);
 
   LOG(log_dg_) << "PBFT 2t+1 is " << pbft_2t_plus_1 << " in round " << next_votes[0]->getRound();
   for (auto const& voted_value : voted_values) {
@@ -777,10 +847,14 @@ void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const&
     return;
   }
 
+  // updateNextVotes is called when new round is determined based on current next votes
+  // Deletes current previous round next votes
   clear();
+  db_->removePreviousRoundNextVotes();
 
   UniqueLock lock(access_);
 
+  // TODO: refactor this as we know most of the required info in place where updateNextVotes is called
   // Copy all next votes
   for (auto const& v : next_votes) {
     LOG(log_dg_) << "Add next vote: " << *v;
@@ -828,6 +902,7 @@ void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const&
       it = next_votes_.erase(it);
     }
   }
+
   if (next_votes_.size() != 1 && next_votes_.size() != 2) {
     LOG(log_er_) << "There are " << next_votes_.size() << " voted values.";
     for (auto const& voted_value : next_votes_) {
@@ -835,6 +910,15 @@ void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const&
     }
     assert(next_votes_.size() == 1 || next_votes_.size() == 2);
   }
+
+  // Save new selected next votes into db
+  std::vector<std::shared_ptr<Vote>> db_next_votes;
+  for (const auto& voted_block_votes : next_votes_) {
+    for (const auto& vote : voted_block_votes.second) {
+      db_next_votes.emplace_back(vote);
+    }
+  }
+  db_->savePreviousRoundNextVotes(db_next_votes);
 }
 
 // Assumption is that all synced votes are in next voting phase, in the same round.

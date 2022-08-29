@@ -143,16 +143,6 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftRound), pbft_round);
   EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftStep), pbft_step);
 
-  // PBFT 2t+1
-  db.savePbft2TPlus1(10, 3);
-  EXPECT_EQ(db.getPbft2TPlus1(10), 3);
-  batch = db.createWriteBatch();
-  db.addPbft2TPlus1ToBatch(10, 6, batch);
-  db.addPbft2TPlus1ToBatch(11, 3, batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(db.getPbft2TPlus1(10), 6);
-  EXPECT_EQ(db.getPbft2TPlus1(11), 3);
-
   // PBFT manager status
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedInRound));
@@ -178,28 +168,20 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
 
   // PBFT manager voted value
-  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound), std::nullopt);
   EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockInRound), std::nullopt);
   EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::CertVotedBlockInRound), std::nullopt);
-  db.savePbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound, {blk_hash_t(1), uint64_t(0)});
   db.savePbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockInRound, {blk_hash_t(2), uint64_t(0)});
   db.savePbftMgrVotedValue(PbftMgrVotedValue::CertVotedBlockInRound, {blk_hash_t(3), uint64_t(0)});
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound),
-            std::make_pair(blk_hash_t(1), uint64_t(0)));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockInRound),
             std::make_pair(blk_hash_t(2), uint64_t(0)));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::CertVotedBlockInRound),
             std::make_pair(blk_hash_t(3), uint64_t(0)));
   batch = db.createWriteBatch();
-  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::OwnStartingValueInRound, std::make_pair(blk_hash_t(4), uint64_t(0)),
-                                 batch);
   db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::SoftVotedBlockInRound, std::make_pair(blk_hash_t(5), uint64_t(0)),
                                  batch);
   db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::CertVotedBlockInRound, std::make_pair(blk_hash_t(6), uint64_t(0)),
                                  batch);
   db.commitWriteBatch(batch);
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::OwnStartingValueInRound),
-            std::make_pair(blk_hash_t(4), uint64_t(0)));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockInRound),
             std::make_pair(blk_hash_t(5), uint64_t(0)));
   EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::CertVotedBlockInRound),
@@ -368,7 +350,7 @@ TEST_F(FullNodeTest, db_test) {
 
   // Next votes
   period = 3, round = 3, step = 5;
-  auto next_votes = db.getNextVotes(round);
+  auto next_votes = db.getPreviousRoundNextVotes();
   EXPECT_TRUE(next_votes.empty());
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i);
@@ -380,8 +362,8 @@ TEST_F(FullNodeTest, db_test) {
     Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
     next_votes.emplace_back(std::make_shared<Vote>(vote));
   }
-  db.saveNextVotes(round, next_votes);
-  auto next_votes_from_db = db.getNextVotes(round);
+  db.savePreviousRoundNextVotes(next_votes);
+  auto next_votes_from_db = db.getPreviousRoundNextVotes();
   EXPECT_EQ(next_votes.size(), next_votes_from_db.size());
   EXPECT_EQ(next_votes_from_db.size(), 3);
   next_votes.clear();
@@ -395,16 +377,14 @@ TEST_F(FullNodeTest, db_test) {
     Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
     next_votes.emplace_back(std::make_shared<Vote>(vote));
   }
-  batch = db.createWriteBatch();
-  db.addNextVotesToBatch(round, next_votes, batch);
-  db.commitWriteBatch(batch);
-  next_votes_from_db = db.getNextVotes(round);
+  db.savePreviousRoundNextVotes(next_votes);
+  next_votes_from_db = db.getPreviousRoundNextVotes();
   EXPECT_EQ(next_votes.size(), next_votes_from_db.size());
   EXPECT_EQ(next_votes_from_db.size(), 2);
   batch = db.createWriteBatch();
-  db.removeNextVotesToBatch(round, batch);
+  db.removePreviousRoundNextVotes();
   db.commitWriteBatch(batch);
-  next_votes_from_db = db.getNextVotes(round);
+  next_votes_from_db = db.getPreviousRoundNextVotes();
   EXPECT_TRUE(next_votes_from_db.empty());
 
   // period_pbft_block
@@ -546,7 +526,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
   std::cout << "Waiting until transactions are executed" << std::endl;
   const auto trx_count = context.getIssuedTrxCount();
-  EXPECT_HAPPENS({60s, 200ms}, [&](auto &ctx) {
+  ASSERT_HAPPENS({20s, 500ms}, [&](auto &ctx) {
     for (size_t i = 0; i < nodes.size(); ++i)
       WAIT_EXPECT_EQ(ctx, nodes[i]->getDB()->getNumTransactionExecuted(), trx_count)
   });
@@ -601,16 +581,6 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
-
-  auto num_proposed_blocks = nodes[0]->getNumProposedBlocks();
-  // wait for next block
-  wait({20s, 500ms}, [&](auto &ctx) {
-    if (nodes[0]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
-    if (nodes[1]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
-    if (nodes[2]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
-    if (nodes[3]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
-    if (nodes[4]->getNumProposedBlocks() == num_proposed_blocks + 1) ctx.fail();
-  });
 
   ASSERT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
   ASSERT_EQ(nodes[1]->getTransactionManager()->getTransactionCount(), context.getIssuedTrxCount());
@@ -1456,8 +1426,8 @@ TEST_F(FullNodeTest, chain_config_json) {
     },
     "state": {
       "dpos": {
-        "delegation_delay": "0x0",
-        "delegation_locking_period": "0x0",
+        "delegation_delay": "0x5",
+        "delegation_locking_period": "0x5",
         "eligibility_balance_threshold": "0x3b9aca00",
         "vote_eligibility_balance_step": "0x3b9aca00",
         "validator_maximum_stake":"0x84595161401484a000000",
@@ -1587,7 +1557,8 @@ TEST_F(FullNodeTest, transaction_validation) {
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 }
 
-TEST_F(FullNodeTest, light_node) {
+// TODO[1908]: fix and enable this test again
+TEST_F(FullNodeTest, DISABLED_light_node) {
   auto node_cfgs = make_node_cfgs<10>(2);
   node_cfgs[0].dag_expiry_limit = 5;
   node_cfgs[0].max_levels_per_period = 3;
@@ -1678,7 +1649,8 @@ TEST_F(FullNodeTest, clear_period_data) {
 }
 
 TEST_F(FullNodeTest, transaction_pool_overflow) {
-  auto node_cfgs = make_node_cfgs<5>(2);
+  // make 2 node verifiers to avoid out of sync state
+  auto node_cfgs = make_node_cfgs<5>(2, 2);
   for (auto &cfg : node_cfgs) {
     cfg.transactions_pool_size = kMinTransactionPoolSize;
   }
@@ -1690,44 +1662,44 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
     node->getBlockProposer()->stop();
   }
 
-  auto node1 = nodes.front();
+  auto node0 = nodes.front();
   do {
     auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
-                                             node1->getSecretKey(), addr_t::random());
-    EXPECT_TRUE(node1->getTransactionManager()->insertTransaction(trx).first);
-  } while (!node1->getTransactionManager()->isTransactionPoolFull());
+                                             node0->getSecretKey(), addr_t::random());
+    EXPECT_TRUE(node0->getTransactionManager()->insertTransaction(trx).first);
+  } while (!node0->getTransactionManager()->isTransactionPoolFull());
 
   // Crate transaction with lower gasprice
   auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice - 1, gas, dev::fromHex("00FEDCBA9876543210000000"),
-                                           node1->getSecretKey(), addr_t::random());
+                                           node0->getSecretKey(), addr_t::random());
   // Should fail as trx pool should be full
-  EXPECT_FALSE(node1->getTransactionManager()->insertTransaction(trx).first);
+  EXPECT_FALSE(node0->getTransactionManager()->insertTransaction(trx).first);
 
   // Check if they synced
-  EXPECT_HAPPENS({50s, 100ms}, [&](auto &ctx) {
-    // Check if transactions was propagated to node1
+  EXPECT_HAPPENS({10s, 200ms}, [&](auto &ctx) {
+    // Check if transactions was propagated to node0
     WAIT_EXPECT_EQ(ctx, nodes[1]->getTransactionManager()->isTransactionPoolFull(), true)
   });
 
   // Add one valid block
   const auto proposal_level = 1;
-  const auto proposal_period = *node1->getDB()->getProposalPeriodForDagLevel(proposal_level);
-  const auto period_block_hash = node1->getDB()->getPeriodBlockHash(proposal_period);
+  const auto proposal_period = *node0->getDB()->getProposalPeriodForDagLevel(proposal_level);
+  const auto period_block_hash = node0->getDB()->getPeriodBlockHash(proposal_period);
   const auto sortition_params =
       nodes.front()->getDagManager()->sortitionParamsManager().getSortitionParams(proposal_period);
-  vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
+  vdf_sortition::VdfSortition vdf(sortition_params, node0->getVrfSecretKey(),
                                   VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash));
-  const auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
-  const auto estimation = node1->getTransactionManager()->estimateTransactionGas(trx, proposal_period);
+  const auto dag_genesis = node0->getConfig().chain.dag_genesis_block.getHash();
+  const auto estimation = node0->getTransactionManager()->estimateTransactionGas(trx, proposal_period);
   vdf.computeVdfSolution(sortition_params, dag_genesis.asBytes(), false);
 
-  DagBlock blk(dag_genesis, proposal_level, {}, {trx->getHash()}, {estimation}, vdf, node1->getSecretKey());
+  DagBlock blk(dag_genesis, proposal_level, {}, {trx->getHash()}, {estimation}, vdf, node0->getSecretKey());
   const auto blk_hash = blk.getHash();
   EXPECT_TRUE(nodes[1]->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
 
-  EXPECT_HAPPENS({120s, 300ms}, [&](auto &ctx) {
-    // Check if transactions and block was propagated to node1
-    WAIT_EXPECT_NE(ctx, node1->getDagManager()->getDagBlock(blk_hash), nullptr);
+  EXPECT_HAPPENS({20s, 500ms}, [&](auto &ctx) {
+    // Check if transactions and block was propagated to node0
+    WAIT_EXPECT_NE(ctx, node0->getDagManager()->getDagBlock(blk_hash), nullptr);
   });
 }
 

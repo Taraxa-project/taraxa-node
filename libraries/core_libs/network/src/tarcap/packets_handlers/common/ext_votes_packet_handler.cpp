@@ -10,22 +10,23 @@ ExtVotesPacketHandler::ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_s
                                              std::shared_ptr<PacketsStats> packets_stats,
                                              std::shared_ptr<PbftManager> pbft_mgr,
                                              std::shared_ptr<PbftChain> pbft_chain,
-                                             std::shared_ptr<VoteManager> vote_mgr, const uint32_t dpos_delay,
+                                             std::shared_ptr<VoteManager> vote_mgr, uint32_t vote_accepting_periods,
                                              const addr_t &node_addr, const std::string &log_channel_name)
     : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
-      kDposDelay(dpos_delay),
+      kVoteAcceptingPeriods(vote_accepting_periods),
       pbft_mgr_(std::move(pbft_mgr)),
       pbft_chain_(std::move(pbft_chain)),
       vote_mgr_(std::move(vote_mgr)) {}
 
 std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const std::shared_ptr<Vote> &vote) const {
-  const uint64_t current_pbft_period = pbft_chain_->getPbftChainSize();
-  const auto current_pbft_round = pbft_mgr_->getPbftRound();
+  const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
   // Old vote or vote from too far in the future, can be dropped
   // TODO[1880]: should be vote->getPeriod() <= current_pbft_period - if <=, some tests are failing due to missing
   // reward votes -> whole rewards votes gossiping need to be checked...
-  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() - 1 > current_pbft_period + kDposDelay) {
+
+  // CONCERN: Why the minus one on the vote period?
+  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() - 1 > current_pbft_period + kVoteAcceptingPeriods) {
     std::stringstream err;
     err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
     return {false, err.str()};
@@ -37,22 +38,15 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
     return {false, err.str()};
   }
 
-  if (auto voter_max_round = getVoterMaxRound(vote->getVoterAddr()); vote->getRound() + 1 < voter_max_round) {
-    std::stringstream err;
-    err << "Invalid round: Vote round: " << vote->getRound()
-        << ", voter current max received round: " << voter_max_round;
-    return {false, err.str()};
-  }
-
   return validateVote(vote);
 }
 
 std::pair<bool, std::string> ExtVotesPacketHandler::validateNextSyncVote(const std::shared_ptr<Vote> &vote) const {
-  const uint64_t current_pbft_period = pbft_chain_->getPbftChainSize();
-  const auto current_pbft_round = pbft_mgr_->getPbftRound();
+  const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
   // Old vote or vote from too far in the future, can be dropped
-  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() - 1 > current_pbft_period + kDposDelay) {
+  // CONCERN: Why the minus one on the vote period?
+  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() - 1 > current_pbft_period + kVoteAcceptingPeriods) {
     std::stringstream err;
     err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
     return {false, err.str()};
@@ -74,11 +68,11 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateNextSyncVote(const s
 }
 
 std::pair<bool, std::string> ExtVotesPacketHandler::validateRewardVote(const std::shared_ptr<Vote> &vote) const {
-  const auto current_pbft_round = pbft_mgr_->getPbftRound();
+  const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
-  if (vote->getRound() >= current_pbft_round) {
+  if (vote->getPeriod() != current_pbft_period - 1) {
     std::stringstream err;
-    err << "Invalid round: Vote round: " << vote->getRound() << ", current pbft round: " << current_pbft_round;
+    err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
     return {false, err.str()};
   }
 
@@ -89,7 +83,8 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateRewardVote(const std
 }
 
 std::pair<bool, std::string> ExtVotesPacketHandler::validateVote(const std::shared_ptr<Vote> &vote) const {
-  // Check is vote is unique per round & step & voter -> each address can generate just 1 vote per round & step
+  // Check is vote is unique per period, round & step & voter -> each address can generate just 1 vote
+  // (for a value that isn't NBH) per period, round & step
   if (auto unique_vote_validation = vote_mgr_->isUniqueVote(vote); !unique_vote_validation.first) {
     return unique_vote_validation;
   }
@@ -100,26 +95,6 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateVote(const std::shar
   }
 
   return vote_valid;
-}
-
-void ExtVotesPacketHandler::setVoterMaxRound(const addr_t &voter, uint64_t round) {
-  if (getVoterMaxRound(voter) >= round) {
-    return;
-  }
-
-  std::unique_lock lock(voters_max_rounds_mutex_);
-  if (auto inserted_value = voters_max_rounds_.insert({voter, round}); !inserted_value.second) {
-    if (round > inserted_value.first->second) {
-      inserted_value.first->second = round;
-    }
-  }
-}
-
-uint64_t ExtVotesPacketHandler::getVoterMaxRound(const addr_t &voter) const {
-  std::shared_lock lock(voters_max_rounds_mutex_);
-
-  auto voter_max_round = voters_max_rounds_.find(voter);
-  return voter_max_round == voters_max_rounds_.end() ? 0 : voter_max_round->second;
 }
 
 void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes) {
@@ -133,7 +108,8 @@ void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&
     std::vector<std::shared_ptr<Vote>> send_votes;
     for (const auto &v : votes) {
       if (!peer.second->isVoteKnown(v->getHash()) &&
-          (peer.second->pbft_round_ <= v->getRound() ||
+          // CONCERN ... should we be using a period stored in peer state?
+          (peer.second->pbft_chain_size_ <= v->getPeriod() - 1 || peer.second->pbft_round_ <= v->getRound() ||
            (v->getType() == cert_vote_type && v->getBlockHash() == rewards_votes_block.first /* reward vote */))) {
         send_votes.push_back(v);
       }

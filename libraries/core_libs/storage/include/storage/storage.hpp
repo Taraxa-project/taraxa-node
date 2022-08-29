@@ -37,7 +37,7 @@ enum PbftMgrPreviousRoundStatus : uint8_t {
   PreviousRoundDposTotalVotesCount
 };
 
-enum PbftMgrRoundStep : uint8_t { PbftRound = 0, PbftPeriod, PbftStep };
+enum PbftMgrRoundStep : uint8_t { PbftRound = 0, PbftStep };
 
 enum PbftMgrStatus : uint8_t {
   ExecutedBlock = 0,
@@ -46,7 +46,7 @@ enum PbftMgrStatus : uint8_t {
   NextVotedNullBlockHash,
 };
 
-enum PbftMgrVotedValue : uint8_t { OwnStartingValueInRound = 0, SoftVotedBlockInRound, CertVotedBlockInRound };
+enum PbftMgrVotedValue : uint8_t { SoftVotedBlockInRound, CertVotedBlockInRound };
 
 class DbException : public std::exception {
  public:
@@ -105,7 +105,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(status);
     COLUMN(pbft_mgr_previous_round_status);
     COLUMN(pbft_mgr_round_step);
-    COLUMN(pbft_round_2t_plus_1);
+    COLUMN(pbft_period_2t_plus_1);
     COLUMN(pbft_mgr_status);
     COLUMN(pbft_mgr_voted_value);
     COLUMN(pbft_cert_voted_block);
@@ -246,10 +246,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void savePbftMgrField(PbftMgrRoundStep field, uint64_t value);
   void addPbftMgrFieldToBatch(PbftMgrRoundStep field, uint64_t value, Batch& write_batch);
 
-  size_t getPbft2TPlus1(uint64_t pbft_round);
-  void savePbft2TPlus1(uint64_t pbft_round, size_t pbft_2t_plus_1);
-  void addPbft2TPlus1ToBatch(uint64_t pbft_round, size_t pbft_2t_plus_1, Batch& write_batch);
-
   bool getPbftMgrStatus(PbftMgrStatus field);
   void savePbftMgrStatus(PbftMgrStatus field, bool const& value);
   void addPbftMgrStatusToBatch(PbftMgrStatus field, bool const& value, Batch& write_batch);
@@ -296,11 +292,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::vector<std::shared_ptr<Vote>> getCertVotes(uint64_t period);
 
   // Next votes
-  std::vector<std::shared_ptr<Vote>> getNextVotes(uint64_t pbft_round);
-  void saveNextVotes(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& next_votes);
-  void addNextVotesToBatch(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& next_votes,
-                           Batch& write_batch);
-  void removeNextVotesToBatch(uint64_t pbft_round, Batch& write_batch);
+  std::vector<std::shared_ptr<Vote>> getPreviousRoundNextVotes();
+  void savePreviousRoundNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes);
+  void removePreviousRoundNextVotes();
 
   // last block cert votes
   void saveLastBlockCertVote(const std::shared_ptr<Vote>& cert_vote);

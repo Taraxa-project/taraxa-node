@@ -681,27 +681,6 @@ void DbStorage::addPbftMgrFieldToBatch(PbftMgrRoundStep field, uint64_t value, B
   insert(write_batch, DbStorage::Columns::pbft_mgr_round_step, toSlice(field), toSlice(value));
 }
 
-size_t DbStorage::getPbft2TPlus1(uint64_t round) {
-  auto status = lookup(toSlice(round), Columns::pbft_round_2t_plus_1);
-
-  if (!status.empty()) {
-    size_t value;
-    memcpy(&value, status.data(), sizeof(size_t));
-    return value;
-  }
-
-  return 0;
-}
-
-// Only for test
-void DbStorage::savePbft2TPlus1(uint64_t pbft_round, size_t pbft_2t_plus_1) {
-  insert(Columns::pbft_round_2t_plus_1, toSlice(pbft_round), toSlice(pbft_2t_plus_1));
-}
-
-void DbStorage::addPbft2TPlus1ToBatch(uint64_t pbft_round, size_t pbft_2t_plus_1, Batch& write_batch) {
-  insert(write_batch, DbStorage::Columns::pbft_round_2t_plus_1, toSlice(pbft_round), toSlice(pbft_2t_plus_1));
-}
-
 bool DbStorage::getPbftMgrStatus(PbftMgrStatus field) {
   auto status = lookup(toSlice(field), Columns::pbft_mgr_status);
   if (!status.empty()) {
@@ -735,7 +714,7 @@ void DbStorage::addPbftMgrVotedValueToBatch(PbftMgrVotedValue field, const std::
 }
 
 void DbStorage::removePbftMgrVotedValueToBatch(PbftMgrVotedValue field, Batch& write_batch) {
-  remove(write_batch, Columns::dag_blocks, toSlice(field));
+  remove(write_batch, Columns::pbft_mgr_voted_value, toSlice(field));
 }
 std::optional<std::pair<blk_hash_t, uint64_t>> DbStorage::getPbftMgrVotedValue(PbftMgrVotedValue field) {
   auto value = asBytes(lookup(toSlice(field), Columns::pbft_mgr_voted_value));
@@ -872,9 +851,9 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getCertVotes(uint64_t period) {
   return cert_votes;
 }
 
-std::vector<std::shared_ptr<Vote>> DbStorage::getNextVotes(uint64_t pbft_round) {
+std::vector<std::shared_ptr<Vote>> DbStorage::getPreviousRoundNextVotes() {
   std::vector<std::shared_ptr<Vote>> next_votes;
-  auto next_votes_raw = asBytes(lookup(toSlice(pbft_round), Columns::next_votes));
+  auto next_votes_raw = asBytes(lookup(0, Columns::next_votes));
   auto next_votes_rlp = dev::RLP(next_votes_raw);
   next_votes.reserve(next_votes_rlp.size());
 
@@ -885,22 +864,15 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getNextVotes(uint64_t pbft_round) 
   return next_votes;
 }
 
-void DbStorage::saveNextVotes(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& next_votes) {
+void DbStorage::savePreviousRoundNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes) {
   dev::RLPStream s(next_votes.size());
   for (auto const& v : next_votes) {
     s.appendRaw(v->rlp(true, true));
   }
-  insert(Columns::next_votes, toSlice(pbft_round), toSlice(s.out()));
+  insert(Columns::next_votes, 0, toSlice(s.out()));
 }
 
-void DbStorage::addNextVotesToBatch(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& next_votes,
-                                    Batch& write_batch) {
-  dev::RLPStream s(next_votes.size());
-  for (auto const& v : next_votes) {
-    s.appendRaw(v->rlp(true, true));
-  }
-  insert(write_batch, Columns::next_votes, toSlice(pbft_round), toSlice(s.out()));
-}
+void DbStorage::removePreviousRoundNextVotes() { remove(Columns::next_votes, 0); }
 
 void DbStorage::saveLastBlockCertVote(const std::shared_ptr<Vote>& cert_vote) {
   insert(Columns::last_block_cert_votes, toSlice(cert_vote->getHash()), toSlice(cert_vote->rlp(true, true)));
@@ -930,10 +902,6 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getLastBlockCertVotes() {
 
 void DbStorage::removeLastBlockCertVotes(const vote_hash_t& hash) {
   remove(Columns::last_block_cert_votes, toSlice(hash));
-}
-
-void DbStorage::removeNextVotesToBatch(uint64_t pbft_round, Batch& write_batch) {
-  remove(write_batch, Columns::next_votes, toSlice(pbft_round));
 }
 
 void DbStorage::addPbftBlockPeriodToBatch(uint64_t period, taraxa::blk_hash_t const& pbft_block_hash,
