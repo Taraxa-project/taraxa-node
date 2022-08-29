@@ -695,12 +695,14 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 <tr class="separator:a7fd9dcd6c2f9c35d33bafafe740973cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a16c4d3c1bfe64a804a3478319e77a2cf"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a16c4d3c1bfe64a804a3478319e77a2cf">nonfinalized_transactions_in_dag_</a></td></tr>
 <tr class="separator:a16c4d3c1bfe64a804a3478319e77a2cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a336ea930e4f318ad9d3df4809f804a1b"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a336ea930e4f318ad9d3df4809f804a1b">last_finalized_block_transactions_</a></td></tr>
-<tr class="separator:a336ea930e4f318ad9d3df4809f804a1b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c55e3c5cdcbd8c82eaa772e2f85bbe1"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a8c55e3c5cdcbd8c82eaa772e2f85bbe1">recently_finalized_transactions_</a></td></tr>
+<tr class="separator:a8c55e3c5cdcbd8c82eaa772e2f85bbe1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a023cf1c70f9a5851ed9e1f2054da01f2"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a023cf1c70f9a5851ed9e1f2054da01f2">trx_count_</a> = 0</td></tr>
 <tr class="separator:a023cf1c70f9a5851ed9e1f2054da01f2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a73ff8227a0b64365c57f054016400e6b"><td class="memItemLeft" align="right" valign="top">const uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a73ff8227a0b64365c57f054016400e6b">kEstimateGasLimit</a> = 200000</td></tr>
 <tr class="separator:a73ff8227a0b64365c57f054016400e6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4a14493411b6e059a45ed8ae906a23d5"><td class="memItemLeft" align="right" valign="top">const uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a4a14493411b6e059a45ed8ae906a23d5">kRecentlyFinalizedTransactionsMax</a> = 50000</td></tr>
+<tr class="separator:a4a14493411b6e059a45ed8ae906a23d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad9d3ab9b5e4d2baaa4e672a15bb81dec"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#ad9d3ab9b5e4d2baaa4e672a15bb81dec">db_</a> {nullptr}</td></tr>
 <tr class="separator:ad9d3ab9b5e4d2baaa4e672a15bb81dec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2f95db203650edcd773cc2bbbcf0574f"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">FinalChain</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a2f95db203650edcd773cc2bbbcf0574f">final_chain_</a> {nullptr}</td></tr>
@@ -1399,8 +1401,8 @@ false </dd></dl>
 
 </div>
 </div>
-<a id="a336ea930e4f318ad9d3df4809f804a1b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a336ea930e4f318ad9d3df4809f804a1b">&#9670;&nbsp;</a></span>last_finalized_block_transactions_</h2>
+<a id="a4a14493411b6e059a45ed8ae906a23d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4a14493411b6e059a45ed8ae906a23d5">&#9670;&nbsp;</a></span>kRecentlyFinalizedTransactionsMax</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1409,7 +1411,7 @@ false </dd></dl>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a>&gt; &gt; taraxa::TransactionManager::last_finalized_block_transactions_</td>
+          <td class="memname">const uint64_t taraxa::TransactionManager::kRecentlyFinalizedTransactionsMax = 50000</td>
         </tr>
       </table>
   </td>
@@ -1432,6 +1434,28 @@ false </dd></dl>
       <table class="memname">
         <tr>
           <td class="memname">std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a>&gt; &gt; taraxa::TransactionManager::nonfinalized_transactions_in_dag_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8c55e3c5cdcbd8c82eaa772e2f85bbe1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c55e3c5cdcbd8c82eaa772e2f85bbe1">&#9670;&nbsp;</a></span>recently_finalized_transactions_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a>&gt; &gt; taraxa::TransactionManager::recently_finalized_transactions_</td>
         </tr>
       </table>
   </td>
