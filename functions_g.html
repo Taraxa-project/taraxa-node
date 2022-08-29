@@ -133,6 +133,9 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 <li>generateVote()
 : <a class="el" href="group___p_b_f_t.html#aea0d2ddeaa7f4de875554f800319adbc">taraxa::PbftManager</a>
 </li>
+<li>generateVoteWithWeight()
+: <a class="el" href="group___p_b_f_t.html#affd1030a7ba70ac5333bb60b96a8d384">taraxa::PbftManager</a>
+</li>
 <li>GenericGuardBool()
 : <a class="el" href="structdev_1_1_generic_guard_bool.html#a094757d358b87eb4fc99e89163722819">dev::GenericGuardBool&lt; GuardType, MutexType &gt;</a>
 </li>
@@ -294,6 +297,9 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 </li>
 <li>getAllPoolTrxs()
 : <a class="el" href="group___transaction.html#a95f1a661d89b6da9a05cd13213bd8fc5">taraxa::TransactionManager</a>
+</li>
+<li>getAllRewardVotes()
+: <a class="el" href="group___vote.html#a12170a06162047464992f9d915ebfd78">taraxa::VoteManager</a>
 </li>
 <li>getAllTransactionPeriod()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a82eba762347a2c6ec8c6b63ba84e9795">taraxa::DbStorage</a>
@@ -521,8 +527,7 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 : <a class="el" href="group___d_a_g.html#a51f92bbc51d4495b915b48458f580169">taraxa::SortitionParamsManager</a>
 </li>
 <li>getNextVotes()
-: <a class="el" href="classtaraxa_1_1_db_storage.html#a710f70cb2f1ba9325d9be109c0fdbecc">taraxa::DbStorage</a>
-, <a class="el" href="group___vote.html#aaa5728ba952edaee3c56f9371a3d253d">taraxa::NextVotesManager</a>
+: <a class="el" href="group___vote.html#aaa5728ba952edaee3c56f9371a3d253d">taraxa::NextVotesManager</a>
 </li>
 <li>getNextVotesManager()
 : <a class="el" href="classtaraxa_1_1_full_node.html#a75b7a730f10844a633724b6694a29403">taraxa::FullNode</a>
@@ -617,9 +622,6 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 <li>getParamsChanges()
 : <a class="el" href="group___d_a_g.html#a4a999528259fcdb861b9e8388cc550df">taraxa::SortitionParamsManager</a>
 </li>
-<li>getPbft2TPlus1()
-: <a class="el" href="classtaraxa_1_1_db_storage.html#a14227efd7202b4d0d8c02486ad817a3f">taraxa::DbStorage</a>
-</li>
 <li>getPbftBlock()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a7b42f08e7be82a334247e92f782c00ff">taraxa::DbStorage</a>
 </li>
@@ -661,6 +663,9 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 </li>
 <li>getPbftMgrVotedValue()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a6d93275cd31d25da121752f67c18dda0">taraxa::DbStorage</a>
+</li>
+<li>getPbftPeriod()
+: <a class="el" href="group___p_b_f_t.html#aac05047ebcb60d8a0a52ff708f678b51">taraxa::PbftManager</a>
 </li>
 <li>getPbftRound()
 : <a class="el" href="group___p_b_f_t.html#a27789d4ef3a51bb8ba56c289fe7ecb1c">taraxa::PbftManager</a>
@@ -725,6 +730,9 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 <li>getPrevBlockHash()
 : <a class="el" href="group___p_b_f_t.html#a6e8501884b3ee9a0e4b3b71dc0d66e60">taraxa::PbftBlock</a>
 </li>
+<li>getPreviousRoundNextVotes()
+: <a class="el" href="classtaraxa_1_1_db_storage.html#a1312b50eb81508f71fe1398e56a9275a">taraxa::DbStorage</a>
+</li>
 <li>getPrirotityQueueSize()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_priority_queue.html#a06feb6466f64e9bbeed19d17ab857fe0">taraxa::network::tarcap::PriorityQueue</a>
 </li>
@@ -739,6 +747,9 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 </li>
 <li>getProposeLevel()
 : <a class="el" href="group___d_a_g.html#a65049d7c6d06d4dafcd21fc4be034520">taraxa::BlockProposer</a>
+</li>
+<li>getProposeRewardVotes()
+: <a class="el" href="group___vote.html#a2d8c8ac3185a149796a99dff63b29c60">taraxa::VoteManager</a>
 </li>
 <li>getPublicKey()
 : <a class="el" href="classtaraxa_1_1_full_node.html#a783753307ef86ced20dd40334940e46e">taraxa::FullNode</a>
@@ -765,10 +776,9 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 </li>
 <li>getRewardVotes()
 : <a class="el" href="group___p_b_f_t.html#a3495e3adf8b3ea6c3d9b8a60960c2124">taraxa::PbftBlock</a>
-, <a class="el" href="group___vote.html#a301802dbc378abd235c63861161b8bc3">taraxa::VoteManager</a>
 </li>
-<li>getRewardVotesWithLastBlockRound()
-: <a class="el" href="group___vote.html#a24dbec7b548fd30c6aa835a8b1799151">taraxa::VoteManager</a>
+<li>getRewardVotesByHashes()
+: <a class="el" href="group___vote.html#ad9635a251ff42dd65fe79bd8e03d928f">taraxa::VoteManager</a>
 </li>
 <li>getRlpBytes()
 : <a class="el" href="group___vote.html#a51f80fc70a2cc67a05d57cb7cc9f4a29">taraxa::VrfPbftMsg</a>
@@ -824,7 +834,7 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 </li>
 <li>getSpecificHandler()
 : <a class="el" href="classtaraxa_1_1_network.html#a35dc353c28031b64a7a826c477cb55fd">taraxa::Network</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html#ac2844a94c2dc829d234e72b14ffe7feb">taraxa::network::tarcap::PacketsHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html#a89ef34d040a5c2c69c7b3cfc0e026475">taraxa::network::tarcap::PacketsHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ab9cc01fbd4061a7fe9c5981a3825502a">taraxa::network::tarcap::TaraxaCapability</a>
 </li>
 <li>getStatsCopy()
@@ -933,9 +943,6 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 <li>getVoterAddr()
 : <a class="el" href="group___vote.html#a845dac056e44382a69b07c7fb718450c">taraxa::Vote</a>
 </li>
-<li>getVoterMaxRound()
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a62148d8825a1f6388c86472c11a96357">taraxa::network::tarcap::ExtVotesPacketHandler</a>
-</li>
 <li>getVotesBundle()
 : <a class="el" href="group___vote.html#a281cac5bf2c222e57660159ec2a1fa3d">taraxa::VoteManager</a>
 </li>
@@ -943,7 +950,7 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 : <a class="el" href="group___vote.html#ad678ca6dfa8fb660e9e724faa4670913">taraxa::Vote</a>
 </li>
 <li>GetVotesSyncPacketHandler()
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_votes_sync_packet_handler.html#a31c854fefe7df35a0d2ae4ba03297724">taraxa::network::tarcap::GetVotesSyncPacketHandler</a>
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_votes_sync_packet_handler.html#a1aaf8cb8a7093a828f9bbaa655ca379f">taraxa::network::tarcap::GetVotesSyncPacketHandler</a>
 </li>
 <li>getVrfSecretKey()
 : <a class="el" href="classtaraxa_1_1_full_node.html#a0a0c42337b7d42d58c8dbc6c910a6fa5">taraxa::FullNode</a>
@@ -962,12 +969,6 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 </li>
 <li>GHOST_PATH_MOVE_BACK
 : <a class="el" href="group___p_b_f_t.html#aab6b88deb03507066408686f792f3074">taraxa::PbftManager</a>
-</li>
-<li>giveUpNextVotedBlock_()
-: <a class="el" href="group___p_b_f_t.html#a05b2cb27abc411ce52a06f516debc9d0">taraxa::PbftManager</a>
-</li>
-<li>giveUpSoftVotedBlock_()
-: <a class="el" href="group___p_b_f_t.html#a0657aefab4a26d2fff73be40e891b18a">taraxa::PbftManager</a>
 </li>
 <li>go_finish_state_
 : <a class="el" href="group___p_b_f_t.html#a3e19126cae83075ff10f088e155bc7f8">taraxa::PbftManager</a>

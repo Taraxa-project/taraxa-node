@@ -163,11 +163,11 @@ $(document).ready(function(){initNavTree('functions_func_r.html',''); initResiza
 <li>removeLastBlockCertVotes()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a69732c30c6bb6fd497fd4819c3178ce7">taraxa::DbStorage</a>
 </li>
-<li>removeNextVotesToBatch()
-: <a class="el" href="classtaraxa_1_1_db_storage.html#af9b58c8fecfb4a464220d4ef9c3262a1">taraxa::DbStorage</a>
-</li>
 <li>removePbftMgrVotedValueToBatch()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#afc471ae8a7a7c721291d80f699c10410">taraxa::DbStorage</a>
+</li>
+<li>removePreviousRoundNextVotes()
+: <a class="el" href="classtaraxa_1_1_db_storage.html#ae96c77411c262273b0e1763e481db01c">taraxa::DbStorage</a>
 </li>
 <li>removeRedirect()
 : <a class="el" href="classdev_1_1p2p_1_1_u_pn_p.html#abfb3e9d6159bdcfb900c51ec99cf51e7">dev::p2p::UPnP</a>
@@ -202,8 +202,8 @@ $(document).ready(function(){initNavTree('functions_func_r.html',''); initResiza
 <li>requestDagBlocks()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a64cb065df2a5761288ff58e0f4bfdf3f">taraxa::network::tarcap::ExtSyncingPacketHandler</a>
 </li>
-<li>requestPbftNextVotes()
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#ac9fa1b9feca7de864a8599027d0e61f9">taraxa::network::tarcap::StatusPacketHandler</a>
+<li>requestPbftNextVotesAtPeriodRound()
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#a6bfcec11827b08d0e7ae9f3df87ea130">taraxa::network::tarcap::StatusPacketHandler</a>
 </li>
 <li>requestPendingDagBlocks()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a93bf11331e6e0f5cea4153292a8ed23b">taraxa::network::tarcap::ExtSyncingPacketHandler</a>
@@ -217,11 +217,11 @@ $(document).ready(function(){initNavTree('functions_func_r.html',''); initResiza
 <li>reset()
 : <a class="el" href="classdev_1_1vector__ref.html#a53c5ac55f4c1796850f5ee75e6b64bd4">dev::vector_ref&lt; _T &gt;</a>
 </li>
-<li>resetRound_()
-: <a class="el" href="group___p_b_f_t.html#a9d5a0f3cd0b1545dedaf3ebcc2115c9c">taraxa::PbftManager</a>
+<li>resetPbftConsensus()
+: <a class="el" href="group___p_b_f_t.html#a4506f9d1647c40601f27cab0a6276e0b">taraxa::PbftManager</a>
 </li>
-<li>resetStep_()
-: <a class="el" href="group___p_b_f_t.html#abc3e5e2247d3f2a7b933450f0a0985db">taraxa::PbftManager</a>
+<li>resetStep()
+: <a class="el" href="group___p_b_f_t.html#ab73326ab27d582aff6c83adb1a02b536">taraxa::PbftManager</a>
 </li>
 <li>resolveHost()
 : <a class="el" href="classdev_1_1p2p_1_1_network.html#a647912e734af23479acfa81c85c34243">dev::p2p::Network</a>
@@ -291,7 +291,7 @@ $(document).ready(function(){initNavTree('functions_func_r.html',''); initResiza
 : <a class="el" href="structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a3893d2b12f8307aadb69b0744f778639">dev::p2p::RLPXHandshake</a>
 </li>
 <li>RLPXPacket()
-: <a class="el" href="classdev_1_1p2p_1_1_r_l_p_x_packet.html#a5f28eaaa04fddf191934475d193e9ddf">dev::p2p::RLPXPacket</a>
+: <a class="el" href="classdev_1_1p2p_1_1_r_l_p_x_packet.html#aa0e1544c65cbedd17d44d3e6553bc63d">dev::p2p::RLPXPacket</a>
 </li>
 <li>RLPXSocket()
 : <a class="el" href="classdev_1_1p2p_1_1_r_l_p_x_socket.html#a6afc2cb2b3fcf6d922038756f592893b">dev::p2p::RLPXSocket</a>
@@ -300,7 +300,7 @@ $(document).ready(function(){initNavTree('functions_func_r.html',''); initResiza
 : <a class="el" href="classtaraxa_1_1net_1_1_rpc_connection.html#af92d2afe37f0bb3a7b48fbae6f9e5a80">taraxa::net::RpcConnection</a>
 </li>
 <li>RpcServer()
-: <a class="el" href="structtaraxa_1_1net_1_1_rpc_server.html#aab2707875d45d224d2ab4e9e7e2ae032">taraxa::net::RpcServer</a>
+: <a class="el" href="structtaraxa_1_1net_1_1_rpc_server.html#a5b77413dbb212f4d3295ea70a6d1eb0e">taraxa::net::RpcServer</a>
 </li>
 <li>run()
 : <a class="el" href="classtaraxa_1_1net_1_1_w_s_server.html#a804672081d467b4f61a24de60daca78b">taraxa::net::WSServer</a>

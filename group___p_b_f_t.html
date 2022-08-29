@@ -959,7 +959,7 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <div class="dyncontent">
 <div class="center"><img src="classtaraxa_1_1_pbft_manager__coll__graph.png" border="0" usemap="#taraxa_1_1_pbft_manager_coll__map" alt="Collaboration graph"/></div>
 <map name="taraxa_1_1_pbft_manager_coll__map" id="taraxa_1_1_pbft_manager_coll__map">
-<area shape="rect" title="PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks..." alt="" coords="711,419,865,446"/>
+<area shape="rect" title="PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks..." alt="" coords="729,419,884,446"/>
 <area shape="rect" title=" " alt="" coords="313,5,516,47"/>
 <area shape="rect" href="group___p_b_f_t.html#classtaraxa_1_1_period_data" title="PeriodData class is for block execution, that includes PBFT block, certify votes, DAG blocks,..." alt="" coords="343,339,487,366"/>
 <area shape="rect" title=" " alt="" coords="55,295,115,322"/>
@@ -968,7 +968,7 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,449,164,475"/>
 <area shape="rect" href="group___p_b_f_t.html#classtaraxa_1_1_period_data_queue" title="PeriodDataQueue class is a syncing queue, the queue stores blocks synced from peers." alt="" coords="321,507,508,534"/>
 <area shape="rect" href="structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="345,558,484,585"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="335,674,495,701"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="335,645,495,671"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -1011,8 +1011,11 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:ab3ce68e566ff343e864a51a882155fb2"><td class="memItemLeft" align="right" valign="top">std::pair&lt; bool, uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ab3ce68e566ff343e864a51a882155fb2">getDagBlockPeriod</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;hash)</td></tr>
 <tr class="memdesc:ab3ce68e566ff343e864a51a882155fb2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a DAG block period number.  <a href="group___p_b_f_t.html#ab3ce68e566ff343e864a51a882155fb2">More...</a><br /></td></tr>
 <tr class="separator:ab3ce68e566ff343e864a51a882155fb2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac05047ebcb60d8a0a52ff708f678b51"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aac05047ebcb60d8a0a52ff708f678b51">getPbftPeriod</a> () const</td></tr>
+<tr class="memdesc:aac05047ebcb60d8a0a52ff708f678b51"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get current PBFT period number.  <a href="group___p_b_f_t.html#aac05047ebcb60d8a0a52ff708f678b51">More...</a><br /></td></tr>
+<tr class="separator:aac05047ebcb60d8a0a52ff708f678b51"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a27789d4ef3a51bb8ba56c289fe7ecb1c"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a27789d4ef3a51bb8ba56c289fe7ecb1c">getPbftRound</a> () const</td></tr>
-<tr class="memdesc:a27789d4ef3a51bb8ba56c289fe7ecb1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get PBFT round number.  <a href="group___p_b_f_t.html#a27789d4ef3a51bb8ba56c289fe7ecb1c">More...</a><br /></td></tr>
+<tr class="memdesc:a27789d4ef3a51bb8ba56c289fe7ecb1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get current PBFT round number.  <a href="group___p_b_f_t.html#a27789d4ef3a51bb8ba56c289fe7ecb1c">More...</a><br /></td></tr>
 <tr class="separator:a27789d4ef3a51bb8ba56c289fe7ecb1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7a8a0a49fd3958286ac41e331c6a0d45"><td class="memItemLeft" align="right" valign="top">std::pair&lt; uint64_t, uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a7a8a0a49fd3958286ac41e331c6a0d45">getPbftRoundAndPeriod</a> () const</td></tr>
 <tr class="memdesc:a7a8a0a49fd3958286ac41e331c6a0d45"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get PBFT round &amp; period number.  <a href="group___p_b_f_t.html#a7a8a0a49fd3958286ac41e331c6a0d45">More...</a><br /></td></tr>
@@ -1068,21 +1071,12 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:a5e2a2ebeb183adf4157444010fcafc08"><td class="memItemLeft" align="right" valign="top">u_long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a5e2a2ebeb183adf4157444010fcafc08">getPbftInitialLambda</a> () const</td></tr>
 <tr class="memdesc:a5e2a2ebeb183adf4157444010fcafc08"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get PBFT lambda. PBFT lambda is a timer clock.  <a href="group___p_b_f_t.html#a5e2a2ebeb183adf4157444010fcafc08">More...</a><br /></td></tr>
 <tr class="separator:a5e2a2ebeb183adf4157444010fcafc08"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0b1cda6c9b50180dd747f71540c5b7d7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a0b1cda6c9b50180dd747f71540c5b7d7">setLastSoftVotedValue</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> soft_voted_value)</td></tr>
-<tr class="memdesc:a0b1cda6c9b50180dd747f71540c5b7d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set last soft vote value of PBFT block hash.  <a href="group___p_b_f_t.html#a0b1cda6c9b50180dd747f71540c5b7d7">More...</a><br /></td></tr>
-<tr class="separator:a0b1cda6c9b50180dd747f71540c5b7d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad13b43c3f0bd4d1a94ea942f98765779"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ad13b43c3f0bd4d1a94ea942f98765779">resume</a> ()</td></tr>
 <tr class="memdesc:ad13b43c3f0bd4d1a94ea942f98765779"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resume PBFT daemon. Only to be used for unit tests.  <a href="group___p_b_f_t.html#ad13b43c3f0bd4d1a94ea942f98765779">More...</a><br /></td></tr>
 <tr class="separator:ad13b43c3f0bd4d1a94ea942f98765779"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1b31eca2289f31a475f14033a3c59e4e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a1b31eca2289f31a475f14033a3c59e4e">resumeSingleState</a> ()</td></tr>
 <tr class="memdesc:a1b31eca2289f31a475f14033a3c59e4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resume PBFT daemon on single state. Only to be used for unit tests.  <a href="group___p_b_f_t.html#a1b31eca2289f31a475f14033a3c59e4e">More...</a><br /></td></tr>
 <tr class="separator:a1b31eca2289f31a475f14033a3c59e4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a01aa3501b60870aa626ecf88048e5a29"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a01aa3501b60870aa626ecf88048e5a29">setMaxWaitForSoftVotedBlock_ms</a> (uint64_t wait_ms)</td></tr>
-<tr class="memdesc:a01aa3501b60870aa626ecf88048e5a29"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set maximum waiting time for soft vote value. Only to be used for unit tests.  <a href="group___p_b_f_t.html#a01aa3501b60870aa626ecf88048e5a29">More...</a><br /></td></tr>
-<tr class="separator:a01aa3501b60870aa626ecf88048e5a29"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a166fce1287c903d723fd68339c364aba"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a166fce1287c903d723fd68339c364aba">setMaxWaitForNextVotedBlock_ms</a> (uint64_t wait_ms)</td></tr>
-<tr class="memdesc:a166fce1287c903d723fd68339c364aba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set maximum waiting time for next vote value. Only to be used for unit tests.  <a href="group___p_b_f_t.html#a166fce1287c903d723fd68339c364aba">More...</a><br /></td></tr>
-<tr class="separator:a166fce1287c903d723fd68339c364aba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af4354bc62d13355fc53742f5a250fe96"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#af4354bc62d13355fc53742f5a250fe96">checkBlockWeight</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;period_data) const</td></tr>
 <tr class="memdesc:af4354bc62d13355fc53742f5a250fe96"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check a block weight of gas estimation.  <a href="group___p_b_f_t.html#af4354bc62d13355fc53742f5a250fe96">More...</a><br /></td></tr>
 <tr class="separator:af4354bc62d13355fc53742f5a250fe96"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1108,12 +1102,21 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:a234f1b78d5615f2cef4de3a49e3640a7"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a234f1b78d5615f2cef4de3a49e3640a7">dposEligibleVoteCount_</a> (<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;addr)</td></tr>
 <tr class="memdesc:a234f1b78d5615f2cef4de3a49e3640a7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get node DPOS eligible votes count.  <a href="group___p_b_f_t.html#a234f1b78d5615f2cef4de3a49e3640a7">More...</a><br /></td></tr>
 <tr class="separator:a234f1b78d5615f2cef4de3a49e3640a7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abc3e5e2247d3f2a7b933450f0a0985db"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#abc3e5e2247d3f2a7b933450f0a0985db">resetStep_</a> ()</td></tr>
-<tr class="memdesc:abc3e5e2247d3f2a7b933450f0a0985db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset PBFT step to 1.  <a href="group___p_b_f_t.html#abc3e5e2247d3f2a7b933450f0a0985db">More...</a><br /></td></tr>
-<tr class="separator:abc3e5e2247d3f2a7b933450f0a0985db"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9d5a0f3cd0b1545dedaf3ebcc2115c9c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a9d5a0f3cd0b1545dedaf3ebcc2115c9c">resetRound_</a> ()</td></tr>
-<tr class="memdesc:a9d5a0f3cd0b1545dedaf3ebcc2115c9c"><td class="mdescLeft">&#160;</td><td class="mdescRight">If node receives enough next voting votes on a forward PBFT round, set PBFT round to the round number.  <a href="group___p_b_f_t.html#a9d5a0f3cd0b1545dedaf3ebcc2115c9c">More...</a><br /></td></tr>
-<tr class="separator:a9d5a0f3cd0b1545dedaf3ebcc2115c9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab73326ab27d582aff6c83adb1a02b536"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ab73326ab27d582aff6c83adb1a02b536">resetStep</a> ()</td></tr>
+<tr class="memdesc:ab73326ab27d582aff6c83adb1a02b536"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reset PBFT step to 1.  <a href="group___p_b_f_t.html#ab73326ab27d582aff6c83adb1a02b536">More...</a><br /></td></tr>
+<tr class="separator:ab73326ab27d582aff6c83adb1a02b536"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a49a5ce8214c9a8234f04f1b1d845d025"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a49a5ce8214c9a8234f04f1b1d845d025">advanceRound</a> ()</td></tr>
+<tr class="memdesc:a49a5ce8214c9a8234f04f1b1d845d025"><td class="mdescLeft">&#160;</td><td class="mdescRight">If node receives 2t+1 next votes for some block(including NULL_BLOCK_HASH), advance round to + 1.  <a href="group___p_b_f_t.html#a49a5ce8214c9a8234f04f1b1d845d025">More...</a><br /></td></tr>
+<tr class="separator:a49a5ce8214c9a8234f04f1b1d845d025"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad42526b3c04825b6cf99b36ffbb51787"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ad42526b3c04825b6cf99b36ffbb51787">advancePeriod</a> ()</td></tr>
+<tr class="memdesc:ad42526b3c04825b6cf99b36ffbb51787"><td class="mdescLeft">&#160;</td><td class="mdescRight">If node receives 2t+1 cert votes for some valid block and pushes it to the chain, advance period to + 1.  <a href="group___p_b_f_t.html#ad42526b3c04825b6cf99b36ffbb51787">More...</a><br /></td></tr>
+<tr class="separator:ad42526b3c04825b6cf99b36ffbb51787"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ada3b947a91cf04d2474cfb1cc4a84bdd"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ada3b947a91cf04d2474cfb1cc4a84bdd">tryPushCertVotesBlock</a> ()</td></tr>
+<tr class="memdesc:ada3b947a91cf04d2474cfb1cc4a84bdd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if there is 2t+1 cert votes for some valid block, if yes - push it into the chain.  <a href="group___p_b_f_t.html#ada3b947a91cf04d2474cfb1cc4a84bdd">More...</a><br /></td></tr>
+<tr class="separator:ada3b947a91cf04d2474cfb1cc4a84bdd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4506f9d1647c40601f27cab0a6276e0b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a4506f9d1647c40601f27cab0a6276e0b">resetPbftConsensus</a> (uint64_t round)</td></tr>
+<tr class="memdesc:a4506f9d1647c40601f27cab0a6276e0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resets pbft consensus: current pbft round is set to round, step is set to the beginning value.  <a href="group___p_b_f_t.html#a4506f9d1647c40601f27cab0a6276e0b">More...</a><br /></td></tr>
+<tr class="separator:a4506f9d1647c40601f27cab0a6276e0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a355dc38048bc6bb88bc63d0271bc8026"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a355dc38048bc6bb88bc63d0271bc8026">sleep_</a> ()</td></tr>
 <tr class="memdesc:a355dc38048bc6bb88bc63d0271bc8026"><td class="mdescLeft">&#160;</td><td class="mdescRight">Time to sleep for PBFT protocol.  <a href="group___p_b_f_t.html#a355dc38048bc6bb88bc63d0271bc8026">More...</a><br /></td></tr>
 <tr class="separator:a355dc38048bc6bb88bc63d0271bc8026"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1159,9 +1162,12 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:a13caf4d2fb3f8f32c5e9cbc1b4faff09"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a13caf4d2fb3f8f32c5e9cbc1b4faff09">secondFinish_</a> ()</td></tr>
 <tr class="memdesc:a13caf4d2fb3f8f32c5e9cbc1b4faff09"><td class="mdescLeft">&#160;</td><td class="mdescRight">PBFT finish polling state: Happens at odd number steps from step 5. Place a next vote at finishing value for the current PBFT round.  <a href="group___p_b_f_t.html#a13caf4d2fb3f8f32c5e9cbc1b4faff09">More...</a><br /></td></tr>
 <tr class="separator:a13caf4d2fb3f8f32c5e9cbc1b4faff09"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9834fe1d5e9afd712fe874da2a160dbf"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a9834fe1d5e9afd712fe874da2a160dbf">placeVote_</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;blockhash, <a class="el" href="group___vote.html#ga8a0770e242b649865f15f20a405507cc">PbftVoteTypes</a> vote_type, uint64_t period, uint64_t round, size_t step)</td></tr>
-<tr class="memdesc:a9834fe1d5e9afd712fe874da2a160dbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Place a vote, save it in the verified votes queue, and gossip to peers.  <a href="group___p_b_f_t.html#a9834fe1d5e9afd712fe874da2a160dbf">More...</a><br /></td></tr>
-<tr class="separator:a9834fe1d5e9afd712fe874da2a160dbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:affd1030a7ba70ac5333bb60b96a8d384"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#affd1030a7ba70ac5333bb60b96a8d384">generateVoteWithWeight</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;blockhash, <a class="el" href="group___vote.html#ga8a0770e242b649865f15f20a405507cc">PbftVoteTypes</a> vote_type, uint64_t period, uint64_t round, size_t step)</td></tr>
+<tr class="memdesc:affd1030a7ba70ac5333bb60b96a8d384"><td class="mdescLeft">&#160;</td><td class="mdescRight">Place a vote, save it in the verified votes queue, and gossip to peers.  <a href="group___p_b_f_t.html#affd1030a7ba70ac5333bb60b96a8d384">More...</a><br /></td></tr>
+<tr class="separator:affd1030a7ba70ac5333bb60b96a8d384"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aed342d02d7ec34340e14720b05bdfc4a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aed342d02d7ec34340e14720b05bdfc4a">placeVote</a> (std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;&amp;vote)</td></tr>
+<tr class="memdesc:aed342d02d7ec34340e14720b05bdfc4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Place (gossip) vote.  <a href="group___p_b_f_t.html#aed342d02d7ec34340e14720b05bdfc4a">More...</a><br /></td></tr>
+<tr class="separator:aed342d02d7ec34340e14720b05bdfc4a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad79efe4c8011fe00f0a82012686ecd66"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ad79efe4c8011fe00f0a82012686ecd66">getCurrentPbftSortitionThreshold</a> (<a class="el" href="group___vote.html#ga8a0770e242b649865f15f20a405507cc">PbftVoteTypes</a> vote_type) const</td></tr>
 <tr class="memdesc:ad79efe4c8011fe00f0a82012686ecd66"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get current (based on the latest finalized block) PBFT sortition threshold.  <a href="group___p_b_f_t.html#ad79efe4c8011fe00f0a82012686ecd66">More...</a><br /></td></tr>
 <tr class="separator:ad79efe4c8011fe00f0a82012686ecd66"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1207,18 +1213,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:a8f9f20846d03ccaeed07a402834d0641"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a8f9f20846d03ccaeed07a402834d0641">is_syncing_</a> ()</td></tr>
 <tr class="memdesc:a8f9f20846d03ccaeed07a402834d0641"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check PBFT is working on syncing or not.  <a href="group___p_b_f_t.html#a8f9f20846d03ccaeed07a402834d0641">More...</a><br /></td></tr>
 <tr class="separator:a8f9f20846d03ccaeed07a402834d0641"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a05b2cb27abc411ce52a06f516debc9d0"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a05b2cb27abc411ce52a06f516debc9d0">giveUpNextVotedBlock_</a> ()</td></tr>
-<tr class="memdesc:a05b2cb27abc411ce52a06f516debc9d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Terminate the next voting value of the PBFT block hash.  <a href="group___p_b_f_t.html#a05b2cb27abc411ce52a06f516debc9d0">More...</a><br /></td></tr>
-<tr class="separator:a05b2cb27abc411ce52a06f516debc9d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0657aefab4a26d2fff73be40e891b18a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a0657aefab4a26d2fff73be40e891b18a">giveUpSoftVotedBlock_</a> ()</td></tr>
-<tr class="memdesc:a0657aefab4a26d2fff73be40e891b18a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Terminate the soft voting value of the PBFT block hash.  <a href="group___p_b_f_t.html#a0657aefab4a26d2fff73be40e891b18a">More...</a><br /></td></tr>
-<tr class="separator:a0657aefab4a26d2fff73be40e891b18a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4643fcb542532d3705fb1a61679204eb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a4643fcb542532d3705fb1a61679204eb">initializeVotedValueTimeouts_</a> ()</td></tr>
-<tr class="memdesc:a4643fcb542532d3705fb1a61679204eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Set initial time for voting value.  <a href="group___p_b_f_t.html#a4643fcb542532d3705fb1a61679204eb">More...</a><br /></td></tr>
-<tr class="separator:a4643fcb542532d3705fb1a61679204eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1bd7b89cb5209db067773d579d12510c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a1bd7b89cb5209db067773d579d12510c">updateLastSoftVotedValue_</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const new_soft_voted_value)</td></tr>
-<tr class="memdesc:a1bd7b89cb5209db067773d579d12510c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update last soft voting value.  <a href="group___p_b_f_t.html#a1bd7b89cb5209db067773d579d12510c">More...</a><br /></td></tr>
-<tr class="separator:a1bd7b89cb5209db067773d579d12510c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac4f19ded8ce9d9b0ddbf3a00126c77bc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ac4f19ded8ce9d9b0ddbf3a00126c77bc">checkPreviousRoundNextVotedValueChange_</a> ()</td></tr>
 <tr class="memdesc:ac4f19ded8ce9d9b0ddbf3a00126c77bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if previous round next voting value has been changed.  <a href="group___p_b_f_t.html#ac4f19ded8ce9d9b0ddbf3a00126c77bc">More...</a><br /></td></tr>
 <tr class="separator:ac4f19ded8ce9d9b0ddbf3a00126c77bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1274,8 +1268,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="separator:a04b7b13e9fb8dbb5bfca8595f742adce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a690a15a5242c8ef514bf95e711d004bf"><td class="memItemLeft" align="right" valign="top">std::default_random_engine&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a690a15a5242c8ef514bf95e711d004bf">random_engine_</a> {std::random_device{}()}</td></tr>
 <tr class="separator:a690a15a5242c8ef514bf95e711d004bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a86aa605c3361089c03c9a93e1c65c555"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a86aa605c3361089c03c9a93e1c65c555">new_round_in_sync_</a> = false</td></tr>
-<tr class="separator:a86aa605c3361089c03c9a93e1c65c555"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a73a2970d49e8fed6e25e8550be1fc0ca"><td class="memItemLeft" align="right" valign="top">const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a73a2970d49e8fed6e25e8550be1fc0ca">COMMITTEE_SIZE</a></td></tr>
 <tr class="separator:a73a2970d49e8fed6e25e8550be1fc0ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2e38bc0d57e9b5d96b306d3504365fd1"><td class="memItemLeft" align="right" valign="top">const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a2e38bc0d57e9b5d96b306d3504365fd1">NUMBER_OF_PROPOSERS</a></td></tr>
@@ -1290,14 +1282,10 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="separator:a4d3ab20a116f88b6621ff48b0af60e57"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0d2720a707dd407e5db0e3de47d7f2b8"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a0d2720a707dd407e5db0e3de47d7f2b8">round_</a> = 1</td></tr>
 <tr class="separator:a0d2720a707dd407e5db0e3de47d7f2b8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab32133be5bd8a89ceabf0be7fa66a70d"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ab32133be5bd8a89ceabf0be7fa66a70d">period_</a> = 1</td></tr>
-<tr class="separator:ab32133be5bd8a89ceabf0be7fa66a70d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac9131c68097d5a1d589fb2768a800637"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ac9131c68097d5a1d589fb2768a800637">step_</a> = 1</td></tr>
 <tr class="separator:ac9131c68097d5a1d589fb2768a800637"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abea84a668c159505b7e453db0df192d8"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#abea84a668c159505b7e453db0df192d8">startingStepInRound_</a> = 1</td></tr>
 <tr class="separator:abea84a668c159505b7e453db0df192d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a847472e6e1b7ae5583829837848b1c1a"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a847472e6e1b7ae5583829837848b1c1a">own_starting_value_for_round_</a> {<a class="el" href="dag__manager_8cpp.html#aaa323b57ca01d7fc92ef5329a97a19c8">NULL_BLOCK_HASH</a>, 1}</td></tr>
-<tr class="separator:a847472e6e1b7ae5583829837848b1c1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a06a2de49df6d5b401378a87e998e464f"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, uint64_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a06a2de49df6d5b401378a87e998e464f">soft_voted_block_for_round_</a> {}</td></tr>
 <tr class="separator:a06a2de49df6d5b401378a87e998e464f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d086faf37a2de3c5e7bf20f03efe6a1"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, uint64_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a4d086faf37a2de3c5e7bf20f03efe6a1">cert_voted_block_for_round_</a> {}</td></tr>
@@ -1312,12 +1300,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="separator:ab7b8cf334ef26a6cb3f5edb11f58e20a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a04a5b403a5ebed8dec1b768d94226b07"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___p_b_f_t.html#a0aab8b19e04b0d0100d6ae93c3b170b8">time_point</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a04a5b403a5ebed8dec1b768d94226b07">now_</a></td></tr>
 <tr class="separator:a04a5b403a5ebed8dec1b768d94226b07"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4c42ae982119ffa8578683b2464b8825"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___p_b_f_t.html#a0aab8b19e04b0d0100d6ae93c3b170b8">time_point</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a4c42ae982119ffa8578683b2464b8825">time_began_waiting_next_voted_block_</a></td></tr>
-<tr class="separator:a4c42ae982119ffa8578683b2464b8825"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae87377698b13a05110debcdf668017db"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___p_b_f_t.html#a0aab8b19e04b0d0100d6ae93c3b170b8">time_point</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ae87377698b13a05110debcdf668017db">time_began_waiting_soft_voted_block_</a></td></tr>
-<tr class="separator:ae87377698b13a05110debcdf668017db"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa3a6e9bd132b23588a52c1df492b6ae7"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aa3a6e9bd132b23588a52c1df492b6ae7">last_soft_voted_value_</a> = <a class="el" href="dag__manager_8cpp.html#aaa323b57ca01d7fc92ef5329a97a19c8">NULL_BLOCK_HASH</a></td></tr>
-<tr class="separator:aa3a6e9bd132b23588a52c1df492b6ae7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e77a1c4e499b1498c11e1c0878ee57f"><td class="memItemLeft" align="right" valign="top">std::chrono::duration&lt; double &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a7e77a1c4e499b1498c11e1c0878ee57f">duration_</a></td></tr>
 <tr class="separator:a7e77a1c4e499b1498c11e1c0878ee57f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab29e96c85ccf9fb1835ab746b8b16e7d"><td class="memItemLeft" align="right" valign="top">u_long&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ab29e96c85ccf9fb1835ab746b8b16e7d">next_step_time_ms_</a> = 0</td></tr>
@@ -1326,8 +1308,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="separator:a4f9ad5119af63a0c993d9c59e0d22d4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a248c0e6239aabf0a0f030965dbb6db41"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a248c0e6239aabf0a0f030965dbb6db41">executed_pbft_block_</a> = false</td></tr>
 <tr class="separator:a248c0e6239aabf0a0f030965dbb6db41"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afa5a5c1c218637b61c18f7c5b6b6787f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#afa5a5c1c218637b61c18f7c5b6b6787f">have_executed_this_round_</a> = false</td></tr>
-<tr class="separator:afa5a5c1c218637b61c18f7c5b6b6787f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a73b6aef014684024efe428c37740090a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a73b6aef014684024efe428c37740090a">should_have_cert_voted_in_this_round_</a> = false</td></tr>
 <tr class="separator:a73b6aef014684024efe428c37740090a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a778034d0d7c5d12067c8ec6f355fd3ac"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a778034d0d7c5d12067c8ec6f355fd3ac">next_voted_soft_value_</a> = false</td></tr>
@@ -1340,10 +1320,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="separator:ac223cb71b31a508a0be870366c48b877"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aba83f15ed5ff4177ea29828391147b8b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aba83f15ed5ff4177ea29828391147b8b">polling_state_print_log_</a> = true</td></tr>
 <tr class="separator:aba83f15ed5ff4177ea29828391147b8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5f3ecfc5bf1631f7a1eaf0101dac6bb6"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a5f3ecfc5bf1631f7a1eaf0101dac6bb6">max_wait_for_soft_voted_block_steps_ms_</a> = 30</td></tr>
-<tr class="separator:a5f3ecfc5bf1631f7a1eaf0101dac6bb6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5583520db804275b4ae4fb283dcb93e9"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a5583520db804275b4ae4fb283dcb93e9">max_wait_for_next_voted_block_steps_ms_</a> = 30</td></tr>
-<tr class="separator:a5583520db804275b4ae4fb283dcb93e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a90db578579f54856518a60f110b8241d"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a90db578579f54856518a60f110b8241d">pbft_round_last_requested_sync_</a> = 0</td></tr>
 <tr class="separator:a90db578579f54856518a60f110b8241d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0f8b5a1ebfd7488f1d3c1b20214d2a5d"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a0f8b5a1ebfd7488f1d3c1b20214d2a5d">pbft_step_last_requested_sync_</a> = 0</td></tr>
@@ -1360,8 +1336,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="separator:a79927ca643f205c9540d22cf4d3c4718"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a53fe40f58e69c874a64d6ee20be4cc7c"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a53fe40f58e69c874a64d6ee20be4cc7c">sortition_threshold_</a> = 0</td></tr>
 <tr class="separator:a53fe40f58e69c874a64d6ee20be4cc7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0108bfae9505efc902c1e8e70c377ec0"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a0108bfae9505efc902c1e8e70c377ec0">TWO_T_PLUS_ONE</a> = 0</td></tr>
-<tr class="separator:a0108bfae9505efc902c1e8e70c377ec0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7ed2ef5784f61a64c41e098f8cc57976"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a7ed2ef5784f61a64c41e098f8cc57976">two_t_plus_one_</a> = 0</td></tr>
+<tr class="separator:a7ed2ef5784f61a64c41e098f8cc57976"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a213b6246edf1fbff391d04acb13f37eb"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a213b6246edf1fbff391d04acb13f37eb">dag_genesis_block_hash_</a></td></tr>
 <tr class="separator:a213b6246edf1fbff391d04acb13f37eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af527c9f71edcd69538edcfe26608ab2d"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="structtaraxa_1_1_pbft_config.html">PbftConfig</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#af527c9f71edcd69538edcfe26608ab2d">config_</a></td></tr>
@@ -1587,6 +1563,62 @@ Collaboration diagram for taraxa::PbftManager:</div>
 </div>
 </div>
 <h4 class="groupheader">Member Function Documentation</h4>
+<a id="ad42526b3c04825b6cf99b36ffbb51787"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad42526b3c04825b6cf99b36ffbb51787">&#9670;&nbsp;</a></span>advancePeriod()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool taraxa::PbftManager::advancePeriod </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>If node receives 2t+1 cert votes for some valid block and pushes it to the chain, advance period to + 1. </p>
+<dl class="section return"><dt>Returns</dt><dd>true if PBFT period advanced, otherwise false </dd></dl>
+
+</div>
+</div>
+<a id="a49a5ce8214c9a8234f04f1b1d845d025"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a49a5ce8214c9a8234f04f1b1d845d025">&#9670;&nbsp;</a></span>advanceRound()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool taraxa::PbftManager::advanceRound </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>If node receives 2t+1 next votes for some block(including NULL_BLOCK_HASH), advance round to + 1. </p>
+<dl class="section return"><dt>Returns</dt><dd>true if PBFT round advanced, otherwise false </dd></dl>
+
+</div>
+</div>
 <a id="a11990d3392300e6a0ac2eed429550d85"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a11990d3392300e6a0ac2eed429550d85">&#9670;&nbsp;</a></span>broadcastAlreadyThisStep_()</h2>
 
@@ -2157,6 +2189,73 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
+<a id="affd1030a7ba70ac5333bb60b96a8d384"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#affd1030a7ba70ac5333bb60b96a8d384">&#9670;&nbsp;</a></span>generateVoteWithWeight()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; taraxa::PbftManager::generateVoteWithWeight </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">taraxa::blk_hash_t</a> const &amp;&#160;</td>
+          <td class="paramname"><em>blockhash</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group___vote.html#ga8a0770e242b649865f15f20a405507cc">PbftVoteTypes</a>&#160;</td>
+          <td class="paramname"><em>vote_type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>period</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>round</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>step</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Place a vote, save it in the verified votes queue, and gossip to peers. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">blockhash</td><td>vote on PBFT block hash </td></tr>
+    <tr><td class="paramname">vote_type</td><td>vote type </td></tr>
+    <tr><td class="paramname">period</td><td>PBFT period </td></tr>
+    <tr><td class="paramname">round</td><td>PBFT round </td></tr>
+    <tr><td class="paramname">step</td><td>PBFT step </td></tr>
+    <tr><td class="paramname">step</td><td>PBFT step </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="ad79efe4c8011fe00f0a82012686ecd66"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad79efe4c8011fe00f0a82012686ecd66">&#9670;&nbsp;</a></span>getCurrentPbftSortitionThreshold()</h2>
 
@@ -2360,6 +2459,26 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
+<a id="aac05047ebcb60d8a0a52ff708f678b51"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac05047ebcb60d8a0a52ff708f678b51">&#9670;&nbsp;</a></span>getPbftPeriod()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t taraxa::PbftManager::getPbftPeriod </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get current PBFT period number. </p>
+<dl class="section return"><dt>Returns</dt><dd>current PBFT period </dd></dl>
+
+</div>
+</div>
 <a id="a27789d4ef3a51bb8ba56c289fe7ecb1c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a27789d4ef3a51bb8ba56c289fe7ecb1c">&#9670;&nbsp;</a></span>getPbftRound()</h2>
 
@@ -2375,8 +2494,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Get PBFT round number. </p>
-<dl class="section return"><dt>Returns</dt><dd>PBFT round </dd></dl>
+<p>Get current PBFT round number. </p>
+<dl class="section return"><dt>Returns</dt><dd>current PBFT round </dd></dl>
 
 </div>
 </div>
@@ -2602,62 +2721,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="a05b2cb27abc411ce52a06f516debc9d0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a05b2cb27abc411ce52a06f516debc9d0">&#9670;&nbsp;</a></span>giveUpNextVotedBlock_()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool taraxa::PbftManager::giveUpNextVotedBlock_ </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Terminate the next voting value of the PBFT block hash. </p>
-<dl class="section return"><dt>Returns</dt><dd>true if terminate the vote value successfully </dd></dl>
-
-</div>
-</div>
-<a id="a0657aefab4a26d2fff73be40e891b18a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0657aefab4a26d2fff73be40e891b18a">&#9670;&nbsp;</a></span>giveUpSoftVotedBlock_()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool taraxa::PbftManager::giveUpSoftVotedBlock_ </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Terminate the soft voting value of the PBFT block hash. </p>
-<dl class="section return"><dt>Returns</dt><dd>true if terminate the vote value successfully </dd></dl>
-
-</div>
-</div>
 <a id="a4e2dc0b0fdd0e68a9ffac002daa6486d"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4e2dc0b0fdd0e68a9ffac002daa6486d">&#9670;&nbsp;</a></span>identifyBlock_()</h2>
 
@@ -2728,33 +2791,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>optional(pair&lt;PBFT leader block hash, PBFT leader period&gt;) </dd></dl>
-
-</div>
-</div>
-<a id="a4643fcb542532d3705fb1a61679204eb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4643fcb542532d3705fb1a61679204eb">&#9670;&nbsp;</a></span>initializeVotedValueTimeouts_()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::PbftManager::initializeVotedValueTimeouts_ </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Set initial time for voting value. </p>
 
 </div>
 </div>
@@ -3008,8 +3044,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="a9834fe1d5e9afd712fe874da2a160dbf"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9834fe1d5e9afd712fe874da2a160dbf">&#9670;&nbsp;</a></span>placeVote_()</h2>
+<a id="aed342d02d7ec34340e14720b05bdfc4a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aed342d02d7ec34340e14720b05bdfc4a">&#9670;&nbsp;</a></span>placeVote()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3018,39 +3054,11 @@ Collaboration diagram for taraxa::PbftManager:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">size_t taraxa::PbftManager::placeVote_ </td>
+          <td class="memname">void taraxa::PbftManager::placeVote </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">taraxa::blk_hash_t</a> const &amp;&#160;</td>
-          <td class="paramname"><em>blockhash</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"><em>vote</em></td><td>)</td>
           <td></td>
-          <td class="paramtype"><a class="el" href="group___vote.html#ga8a0770e242b649865f15f20a405507cc">PbftVoteTypes</a>&#160;</td>
-          <td class="paramname"><em>vote_type</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>period</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>round</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>step</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -3060,18 +3068,13 @@ Collaboration diagram for taraxa::PbftManager:</div>
 </table>
 </div><div class="memdoc">
 
-<p>Place a vote, save it in the verified votes queue, and gossip to peers. </p>
+<p>Place (gossip) vote. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">blockhash</td><td>vote on PBFT block hash </td></tr>
-    <tr><td class="paramname">vote_type</td><td>vote type </td></tr>
-    <tr><td class="paramname">period</td><td>PBFT period </td></tr>
-    <tr><td class="paramname">round</td><td>PBFT round </td></tr>
-    <tr><td class="paramname">step</td><td>PBFT step </td></tr>
+    <tr><td class="paramname">vote</td><td></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>vote weight </dd></dl>
 
 </div>
 </div>
@@ -3276,8 +3279,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="a9d5a0f3cd0b1545dedaf3ebcc2115c9c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9d5a0f3cd0b1545dedaf3ebcc2115c9c">&#9670;&nbsp;</a></span>resetRound_()</h2>
+<a id="a4506f9d1647c40601f27cab0a6276e0b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4506f9d1647c40601f27cab0a6276e0b">&#9670;&nbsp;</a></span>resetPbftConsensus()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3286,9 +3289,10 @@ Collaboration diagram for taraxa::PbftManager:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool taraxa::PbftManager::resetRound_ </td>
+          <td class="memname">void taraxa::PbftManager::resetPbftConsensus </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>round</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -3299,13 +3303,18 @@ Collaboration diagram for taraxa::PbftManager:</div>
 </table>
 </div><div class="memdoc">
 
-<p>If node receives enough next voting votes on a forward PBFT round, set PBFT round to the round number. </p>
-<dl class="section return"><dt>Returns</dt><dd>true if PBFT sets round to a forward round number </dd></dl>
+<p>Resets pbft consensus: current pbft round is set to round, step is set to the beginning value. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">round</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
-<a id="abc3e5e2247d3f2a7b933450f0a0985db"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abc3e5e2247d3f2a7b933450f0a0985db">&#9670;&nbsp;</a></span>resetStep_()</h2>
+<a id="ab73326ab27d582aff6c83adb1a02b536"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab73326ab27d582aff6c83adb1a02b536">&#9670;&nbsp;</a></span>resetStep()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3314,7 +3323,7 @@ Collaboration diagram for taraxa::PbftManager:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">void taraxa::PbftManager::resetStep_ </td>
+          <td class="memname">void taraxa::PbftManager::resetStep </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -3520,84 +3529,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 </div><div class="memdoc">
 
 <p>Set PBFT finish state. </p>
-
-</div>
-</div>
-<a id="a0b1cda6c9b50180dd747f71540c5b7d7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0b1cda6c9b50180dd747f71540c5b7d7">&#9670;&nbsp;</a></span>setLastSoftVotedValue()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::PbftManager::setLastSoftVotedValue </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&#160;</td>
-          <td class="paramname"><em>soft_voted_value</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Set last soft vote value of PBFT block hash. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">soft_voted_value</td><td>soft vote value of PBFT block hash </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a166fce1287c903d723fd68339c364aba"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a166fce1287c903d723fd68339c364aba">&#9670;&nbsp;</a></span>setMaxWaitForNextVotedBlock_ms()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::PbftManager::setMaxWaitForNextVotedBlock_ms </td>
-          <td>(</td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>wait_ms</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Set maximum waiting time for next vote value. Only to be used for unit tests. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">wait_ms</td><td>waiting time in milisecond </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="a01aa3501b60870aa626ecf88048e5a29"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a01aa3501b60870aa626ecf88048e5a29">&#9670;&nbsp;</a></span>setMaxWaitForSoftVotedBlock_ms()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::PbftManager::setMaxWaitForSoftVotedBlock_ms </td>
-          <td>(</td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>wait_ms</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Set maximum waiting time for soft vote value. Only to be used for unit tests. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">wait_ms</td><td>waiting time in milisecond </td></tr>
-  </table>
-  </dd>
-</dl>
 
 </div>
 </div>
@@ -3898,6 +3829,34 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
+<a id="ada3b947a91cf04d2474cfb1cc4a84bdd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ada3b947a91cf04d2474cfb1cc4a84bdd">&#9670;&nbsp;</a></span>tryPushCertVotesBlock()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool taraxa::PbftManager::tryPushCertVotesBlock </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Check if there is 2t+1 cert votes for some valid block, if yes - push it into the chain. </p>
+<dl class="section return"><dt>Returns</dt><dd>true if new cert voted block was pushed into the chain, otheriwse false </dd></dl>
+
+</div>
+</div>
 <a id="abf233be73a4e02fb4f260cb7684cd977"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abf233be73a4e02fb4f260cb7684cd977">&#9670;&nbsp;</a></span>updateDposState_()</h2>
 
@@ -3922,40 +3881,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 </div><div class="memdoc">
 
 <p>Update DPOS period, total DPOS votes count, and node DPOS weighted votes count. </p>
-
-</div>
-</div>
-<a id="a1bd7b89cb5209db067773d579d12510c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1bd7b89cb5209db067773d579d12510c">&#9670;&nbsp;</a></span>updateLastSoftVotedValue_()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::PbftManager::updateLastSoftVotedValue_ </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const&#160;</td>
-          <td class="paramname"><em>new_soft_voted_value</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Update last soft voting value. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">new_soft_voted_value</td><td>soft voting value </td></tr>
-  </table>
-  </dd>
-</dl>
 
 </div>
 </div>
@@ -4388,28 +4313,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="afa5a5c1c218637b61c18f7c5b6b6787f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afa5a5c1c218637b61c18f7c5b6b6787f">&#9670;&nbsp;</a></span>have_executed_this_round_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool taraxa::PbftManager::have_executed_this_round_ = false</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a07cd83fb15922aa8cd8d6d6f2cebfb71"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a07cd83fb15922aa8cd8d6d6f2cebfb71">&#9670;&nbsp;</a></span>key_manager_</h2>
 
@@ -4509,28 +4412,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
       <table class="memname">
         <tr>
           <td class="memname">const u_long taraxa::PbftManager::LAMBDA_ms_MIN</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aa3a6e9bd132b23588a52c1df492b6ae7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa3a6e9bd132b23588a52c1df492b6ae7">&#9670;&nbsp;</a></span>last_soft_voted_value_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> taraxa::PbftManager::last_soft_voted_value_ = <a class="el" href="dag__manager_8cpp.html#aaa323b57ca01d7fc92ef5329a97a19c8">NULL_BLOCK_HASH</a></td>
         </tr>
       </table>
   </td>
@@ -4652,50 +4533,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="a5583520db804275b4ae4fb283dcb93e9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5583520db804275b4ae4fb283dcb93e9">&#9670;&nbsp;</a></span>max_wait_for_next_voted_block_steps_ms_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint64_t taraxa::PbftManager::max_wait_for_next_voted_block_steps_ms_ = 30</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a5f3ecfc5bf1631f7a1eaf0101dac6bb6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5f3ecfc5bf1631f7a1eaf0101dac6bb6">&#9670;&nbsp;</a></span>max_wait_for_soft_voted_block_steps_ms_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint64_t taraxa::PbftManager::max_wait_for_soft_voted_block_steps_ms_ = 30</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a0e0c84acf1890bf380374f1325e9dd68"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a0e0c84acf1890bf380374f1325e9dd68">&#9670;&nbsp;</a></span>monitor_stop_</h2>
 
@@ -4751,28 +4588,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
       <table class="memname">
         <tr>
           <td class="memname">std::weak_ptr&lt;<a class="el" href="classtaraxa_1_1_network.html">Network</a>&gt; taraxa::PbftManager::network_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a86aa605c3361089c03c9a93e1c65c555"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a86aa605c3361089c03c9a93e1c65c555">&#9670;&nbsp;</a></span>new_round_in_sync_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool taraxa::PbftManager::new_round_in_sync_ = false</td>
         </tr>
       </table>
   </td>
@@ -4960,28 +4775,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="a847472e6e1b7ae5583829837848b1c1a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a847472e6e1b7ae5583829837848b1c1a">&#9670;&nbsp;</a></span>own_starting_value_for_round_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::pair&lt;<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, uint64_t &gt; taraxa::PbftManager::own_starting_value_for_round_ {<a class="el" href="dag__manager_8cpp.html#aaa323b57ca01d7fc92ef5329a97a19c8">NULL_BLOCK_HASH</a>, 1}</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a1e9e7a70164863ccdae42357a4f58846"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1e9e7a70164863ccdae42357a4f58846">&#9670;&nbsp;</a></span>pbft_chain_</h2>
 
@@ -5081,28 +4874,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
       <table class="memname">
         <tr>
           <td class="memname">size_t taraxa::PbftManager::pbft_step_last_requested_sync_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ab32133be5bd8a89ceabf0be7fa66a70d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab32133be5bd8a89ceabf0be7fa66a70d">&#9670;&nbsp;</a></span>period_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::atomic&lt;uint64_t&gt; taraxa::PbftManager::period_ = 1</td>
         </tr>
       </table>
   </td>
@@ -5532,50 +5303,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="a4c42ae982119ffa8578683b2464b8825"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4c42ae982119ffa8578683b2464b8825">&#9670;&nbsp;</a></span>time_began_waiting_next_voted_block_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group___p_b_f_t.html#a0aab8b19e04b0d0100d6ae93c3b170b8">time_point</a> taraxa::PbftManager::time_began_waiting_next_voted_block_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ae87377698b13a05110debcdf668017db"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae87377698b13a05110debcdf668017db">&#9670;&nbsp;</a></span>time_began_waiting_soft_voted_block_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group___p_b_f_t.html#a0aab8b19e04b0d0100d6ae93c3b170b8">time_point</a> taraxa::PbftManager::time_began_waiting_soft_voted_block_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a30d700e5010e0eff63950310a1934e2f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a30d700e5010e0eff63950310a1934e2f">&#9670;&nbsp;</a></span>trx_mgr_</h2>
 
@@ -5598,8 +5325,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="a0108bfae9505efc902c1e8e70c377ec0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0108bfae9505efc902c1e8e70c377ec0">&#9670;&nbsp;</a></span>TWO_T_PLUS_ONE</h2>
+<a id="a7ed2ef5784f61a64c41e098f8cc57976"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7ed2ef5784f61a64c41e098f8cc57976">&#9670;&nbsp;</a></span>two_t_plus_one_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -5608,7 +5335,7 @@ Collaboration diagram for taraxa::PbftManager:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">size_t taraxa::PbftManager::TWO_T_PLUS_ONE = 0</td>
+          <td class="memname">size_t taraxa::PbftManager::two_t_plus_one_ = 0</td>
         </tr>
       </table>
   </td>

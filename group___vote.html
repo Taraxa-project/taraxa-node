@@ -175,15 +175,15 @@ Collaboration diagram for taraxa::NextVotesManager:</div>
 <tr class="memitem:a3ec737f1bfb33528da98f2c57965e2ce"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a3ec737f1bfb33528da98f2c57965e2ce">getNextVotesWeight</a> () const</td></tr>
 <tr class="memdesc:a3ec737f1bfb33528da98f2c57965e2ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get total weight of previous PBFT round all next voting type votes.  <a href="group___vote.html#a3ec737f1bfb33528da98f2c57965e2ce">More...</a><br /></td></tr>
 <tr class="separator:a3ec737f1bfb33528da98f2c57965e2ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab334217f2be3892a93f269c82f3c2e18"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ab334217f2be3892a93f269c82f3c2e18">addNextVotes</a> (std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; const &amp;next_votes, size_t pbft_2t_plus_1)</td></tr>
-<tr class="memdesc:ab334217f2be3892a93f269c82f3c2e18"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a bunch of next voting type votes to the map.  <a href="group___vote.html#ab334217f2be3892a93f269c82f3c2e18">More...</a><br /></td></tr>
-<tr class="separator:ab334217f2be3892a93f269c82f3c2e18"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4180fe23a4d734529377f3b9bb72ad8d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a4180fe23a4d734529377f3b9bb72ad8d">updateNextVotes</a> (std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; const &amp;next_votes, size_t pbft_2t_plus_1)</td></tr>
 <tr class="memdesc:a4180fe23a4d734529377f3b9bb72ad8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update a bunch of next voting type votes to the map.  <a href="group___vote.html#a4180fe23a4d734529377f3b9bb72ad8d">More...</a><br /></td></tr>
 <tr class="separator:a4180fe23a4d734529377f3b9bb72ad8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acfcd6c6f02954a974fc0fa3698d24f44"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#acfcd6c6f02954a974fc0fa3698d24f44">updateWithSyncedVotes</a> (std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;votes, size_t pbft_2t_plus_1)</td></tr>
 <tr class="memdesc:acfcd6c6f02954a974fc0fa3698d24f44"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update a bunch of next voting type votes that synced from peers to the map.  <a href="group___vote.html#acfcd6c6f02954a974fc0fa3698d24f44">More...</a><br /></td></tr>
 <tr class="separator:acfcd6c6f02954a974fc0fa3698d24f44"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab334217f2be3892a93f269c82f3c2e18"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ab334217f2be3892a93f269c82f3c2e18">addNextVotes</a> (std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; const &amp;next_votes, size_t pbft_2t_plus_1)</td></tr>
+<tr class="memdesc:ab334217f2be3892a93f269c82f3c2e18"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add a bunch of next voting type votes to the map.  <a href="group___vote.html#ab334217f2be3892a93f269c82f3c2e18">More...</a><br /></td></tr>
+<tr class="separator:ab334217f2be3892a93f269c82f3c2e18"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Types</h3></td></tr>
 <tr class="memitem:a91aee94f4fc13f0e4673e4d5b1e25c02"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a91aee94f4fc13f0e4673e4d5b1e25c02">UniqueLock</a> = boost::unique_lock&lt; boost::shared_mutex &gt;</td></tr>
 <tr class="separator:a91aee94f4fc13f0e4673e4d5b1e25c02"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -844,18 +844,21 @@ Collaboration diagram for taraxa::NextVotesManager:</div>
 <tr class="memitem:add0a1c70fc728cdb3ef074330a129060"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#add0a1c70fc728cdb3ef074330a129060">getVerifiedVotesSize</a> () const</td></tr>
 <tr class="memdesc:add0a1c70fc728cdb3ef074330a129060"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the total size of all verified votes.  <a href="group___vote.html#add0a1c70fc728cdb3ef074330a129060">More...</a><br /></td></tr>
 <tr class="separator:add0a1c70fc728cdb3ef074330a129060"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa1acd61f6d8fde344499d8417ea2ba0e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#aa1acd61f6d8fde344499d8417ea2ba0e">cleanupVotes</a> (uint64_t pbft_round)</td></tr>
-<tr class="memdesc:aa1acd61f6d8fde344499d8417ea2ba0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cleanup votes for previous PBFT rounds.  <a href="group___vote.html#aa1acd61f6d8fde344499d8417ea2ba0e">More...</a><br /></td></tr>
-<tr class="separator:aa1acd61f6d8fde344499d8417ea2ba0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a53271651c0428cfa75fb6415b2e8f77f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a53271651c0428cfa75fb6415b2e8f77f">cleanupVotesByRound</a> (uint64_t pbft_period, uint64_t pbft_round)</td></tr>
+<tr class="memdesc:a53271651c0428cfa75fb6415b2e8f77f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cleanup votes for previous PBFT rounds.  <a href="group___vote.html#a53271651c0428cfa75fb6415b2e8f77f">More...</a><br /></td></tr>
+<tr class="separator:a53271651c0428cfa75fb6415b2e8f77f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a590cece4de025f23d29dd793f958f622"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a590cece4de025f23d29dd793f958f622">cleanupVotesByPeriod</a> (uint64_t pbft_period)</td></tr>
+<tr class="memdesc:a590cece4de025f23d29dd793f958f622"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cleanup votes for previous PBFT periods.  <a href="group___vote.html#a590cece4de025f23d29dd793f958f622">More...</a><br /></td></tr>
+<tr class="separator:a590cece4de025f23d29dd793f958f622"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8f632f02b4061972c741b87ba4d49756"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a8f632f02b4061972c741b87ba4d49756">getProposalVotes</a> (uint64_t round, uint64_t period) const</td></tr>
 <tr class="memdesc:a8f632f02b4061972c741b87ba4d49756"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get all verified votes in proposal vote type for the current PBFT round.  <a href="group___vote.html#a8f632f02b4061972c741b87ba4d49756">More...</a><br /></td></tr>
 <tr class="separator:a8f632f02b4061972c741b87ba4d49756"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a281cac5bf2c222e57660159ec2a1fa3d"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group___vote.html#structtaraxa_1_1_votes_bundle">VotesBundle</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a281cac5bf2c222e57660159ec2a1fa3d">getVotesBundle</a> (uint64_t round, uint64_t period, size_t step, size_t two_t_plus_one) const</td></tr>
 <tr class="memdesc:a281cac5bf2c222e57660159ec2a1fa3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a bunch of votes that vote on the same voting value in the specific PBFT round and step, the total votes weights must be greater or equal to PBFT 2t+1.  <a href="group___vote.html#a281cac5bf2c222e57660159ec2a1fa3d">More...</a><br /></td></tr>
 <tr class="separator:a281cac5bf2c222e57660159ec2a1fa3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acb6654e9f9fcef3a72ab9d3e4de1cae4"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::pair&lt; uint64_t, uint64_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#acb6654e9f9fcef3a72ab9d3e4de1cae4">determineRoundAndPeriodFromVotes</a> (size_t two_t_plus_one)</td></tr>
-<tr class="memdesc:acb6654e9f9fcef3a72ab9d3e4de1cae4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if there are enough next voting type votes to set PBFT to a forward round &amp; period.  <a href="group___vote.html#acb6654e9f9fcef3a72ab9d3e4de1cae4">More...</a><br /></td></tr>
-<tr class="separator:acb6654e9f9fcef3a72ab9d3e4de1cae4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a250954e685751cc0cc48d87304cef288"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a250954e685751cc0cc48d87304cef288">determineRoundFromPeriodAndVotes</a> (uint64_t period, size_t two_t_plus_one)</td></tr>
+<tr class="memdesc:a250954e685751cc0cc48d87304cef288"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if there are enough next voting type votes to set PBFT to a forward round within period.  <a href="group___vote.html#a250954e685751cc0cc48d87304cef288">More...</a><br /></td></tr>
+<tr class="separator:a250954e685751cc0cc48d87304cef288"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2444297487931952a959dcb2e6580ba5"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a2444297487931952a959dcb2e6580ba5">getCurrentRewardsVotesBlock</a> () const</td></tr>
 <tr class="separator:a2444297487931952a959dcb2e6580ba5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a73a6fa0a508154918b806266e11a8a4d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a73a6fa0a508154918b806266e11a8a4d">addRewardVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote)</td></tr>
@@ -869,15 +872,15 @@ Collaboration diagram for taraxa::NextVotesManager:</div>
 <tr class="memitem:a750e2aa711ea10b8a13b91a309a99631"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a>, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a750e2aa711ea10b8a13b91a309a99631">replaceRewardVotes</a> (const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;cert_votes)</td></tr>
 <tr class="memdesc:a750e2aa711ea10b8a13b91a309a99631"><td class="mdescLeft">&#160;</td><td class="mdescRight">When finalize a new PBFT block, clear reward_votes_ and add the new cert votes to reward_votes_.  <a href="group___vote.html#a750e2aa711ea10b8a13b91a309a99631">More...</a><br /></td></tr>
 <tr class="separator:a750e2aa711ea10b8a13b91a309a99631"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a25976532fc726c9eaf69ccdd418bdcaa"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a25976532fc726c9eaf69ccdd418bdcaa">getRewardVotes</a> ()</td></tr>
-<tr class="memdesc:a25976532fc726c9eaf69ccdd418bdcaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get all reward votes in reward_votes_.  <a href="group___vote.html#a25976532fc726c9eaf69ccdd418bdcaa">More...</a><br /></td></tr>
-<tr class="separator:a25976532fc726c9eaf69ccdd418bdcaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a301802dbc378abd235c63861161b8bc3"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a301802dbc378abd235c63861161b8bc3">getRewardVotes</a> (const std::vector&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &gt; &amp;vote_hashes)</td></tr>
-<tr class="memdesc:a301802dbc378abd235c63861161b8bc3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get reward votes from specified hashes.  <a href="group___vote.html#a301802dbc378abd235c63861161b8bc3">More...</a><br /></td></tr>
-<tr class="separator:a301802dbc378abd235c63861161b8bc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a24dbec7b548fd30c6aa835a8b1799151"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a24dbec7b548fd30c6aa835a8b1799151">getRewardVotesWithLastBlockRound</a> ()</td></tr>
-<tr class="memdesc:a24dbec7b548fd30c6aa835a8b1799151"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get reward votes from reward_votes_ with the last block round.  <a href="group___vote.html#a24dbec7b548fd30c6aa835a8b1799151">More...</a><br /></td></tr>
-<tr class="separator:a24dbec7b548fd30c6aa835a8b1799151"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12170a06162047464992f9d915ebfd78"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a12170a06162047464992f9d915ebfd78">getAllRewardVotes</a> ()</td></tr>
+<tr class="memdesc:a12170a06162047464992f9d915ebfd78"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get all reward votes in reward_votes_.  <a href="group___vote.html#a12170a06162047464992f9d915ebfd78">More...</a><br /></td></tr>
+<tr class="separator:a12170a06162047464992f9d915ebfd78"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad9635a251ff42dd65fe79bd8e03d928f"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ad9635a251ff42dd65fe79bd8e03d928f">getRewardVotesByHashes</a> (const std::vector&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &gt; &amp;vote_hashes)</td></tr>
+<tr class="memdesc:ad9635a251ff42dd65fe79bd8e03d928f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get reward votes from specified hashes.  <a href="group___vote.html#ad9635a251ff42dd65fe79bd8e03d928f">More...</a><br /></td></tr>
+<tr class="separator:ad9635a251ff42dd65fe79bd8e03d928f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2d8c8ac3185a149796a99dff63b29c60"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a2d8c8ac3185a149796a99dff63b29c60">getProposeRewardVotes</a> ()</td></tr>
+<tr class="memdesc:a2d8c8ac3185a149796a99dff63b29c60"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get reward votes from reward_votes_ with the round during which was the previous block pushed.  <a href="group___vote.html#a2d8c8ac3185a149796a99dff63b29c60">More...</a><br /></td></tr>
+<tr class="separator:a2d8c8ac3185a149796a99dff63b29c60"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5d94b5f604131c9b986840e5a16d433e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a5d94b5f604131c9b986840e5a16d433e">sendRewardVotes</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;pbft_block_hash)</td></tr>
 <tr class="memdesc:a5d94b5f604131c9b986840e5a16d433e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send out all reward votes to peers.  <a href="group___vote.html#a5d94b5f604131c9b986840e5a16d433e">More...</a><br /></td></tr>
 <tr class="separator:a5d94b5f604131c9b986840e5a16d433e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -903,18 +906,18 @@ Collaboration diagram for taraxa::NextVotesManager:</div>
 <tr class="separator:ab33a27ab32527293d1ce811318e68ae9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab3d6b865164f9444e6b7f0d81aafa1ba"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; std::thread &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ab3d6b865164f9444e6b7f0d81aafa1ba">daemon_</a></td></tr>
 <tr class="separator:ab3d6b865164f9444e6b7f0d81aafa1ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a67feae24f6ea4aaf3faa0d811ae92de3"><td class="memItemLeft" align="right" valign="top">std::map&lt; uint64_t, std::unordered_map&lt; uint64_t, std::map&lt; size_t, std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::pair&lt; uint64_t, std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a>, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; &gt; &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a67feae24f6ea4aaf3faa0d811ae92de3">verified_votes_</a></td></tr>
-<tr class="separator:a67feae24f6ea4aaf3faa0d811ae92de3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7f92ec53fec9e7f31ed873a99e0899d7"><td class="memItemLeft" align="right" valign="top">std::map&lt; uint64_t, std::map&lt; uint64_t, std::map&lt; size_t, std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::pair&lt; uint64_t, std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a>, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; &gt; &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a7f92ec53fec9e7f31ed873a99e0899d7">verified_votes_</a></td></tr>
+<tr class="separator:a7f92ec53fec9e7f31ed873a99e0899d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8312e54a75ef210afb068021aafd1301"><td class="memItemLeft" align="right" valign="top">boost::shared_mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a8312e54a75ef210afb068021aafd1301">verified_votes_access_</a></td></tr>
 <tr class="separator:a8312e54a75ef210afb068021aafd1301"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad9e455ff8c44f0970bd4edd71308c8ba"><td class="memItemLeft" align="right" valign="top">std::map&lt; uint64_t, std::unordered_map&lt; size_t, std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>, std::pair&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ad9e455ff8c44f0970bd4edd71308c8ba">voters_unique_votes_</a></td></tr>
-<tr class="separator:ad9e455ff8c44f0970bd4edd71308c8ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2071019e18617857904d2b2e99c3745"><td class="memItemLeft" align="right" valign="top">std::map&lt; uint64_t, std::map&lt; uint64_t, std::unordered_map&lt; size_t, std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>, std::pair&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ad2071019e18617857904d2b2e99c3745">voters_unique_votes_</a></td></tr>
+<tr class="separator:ad2071019e18617857904d2b2e99c3745"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec129bb65b9cade515975988b15038c9"><td class="memItemLeft" align="right" valign="top">std::shared_mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#aec129bb65b9cade515975988b15038c9">voters_unique_votes_mutex_</a></td></tr>
 <tr class="separator:aec129bb65b9cade515975988b15038c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a16a55c8f6e48cd9dbe215dea2badb1aa"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a16a55c8f6e48cd9dbe215dea2badb1aa">reward_votes_pbft_block_</a></td></tr>
 <tr class="separator:a16a55c8f6e48cd9dbe215dea2badb1aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a964edbd0fbc8db7bcfa9fc3b3d5b7e65"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a964edbd0fbc8db7bcfa9fc3b3d5b7e65">last_pbft_block_cert_round_</a></td></tr>
-<tr class="separator:a964edbd0fbc8db7bcfa9fc3b3d5b7e65"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a86616b953b03eeb00c30bc207cc603b4"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a86616b953b03eeb00c30bc207cc603b4">reward_votes_round_</a></td></tr>
+<tr class="separator:a86616b953b03eeb00c30bc207cc603b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3852382974a58a8ed36aa75568fdb2fd"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a>, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a3852382974a58a8ed36aa75568fdb2fd">reward_votes_</a></td></tr>
 <tr class="separator:a3852382974a58a8ed36aa75568fdb2fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a442ab697e23b80e435620be43b981964"><td class="memItemLeft" align="right" valign="top">std::shared_mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a442ab697e23b80e435620be43b981964">reward_votes_mutex_</a></td></tr>
@@ -1163,18 +1166,54 @@ Collaboration diagram for taraxa::NextVotesManager:</div>
 
 </div>
 </div>
-<a id="aa1acd61f6d8fde344499d8417ea2ba0e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa1acd61f6d8fde344499d8417ea2ba0e">&#9670;&nbsp;</a></span>cleanupVotes()</h2>
+<a id="a590cece4de025f23d29dd793f958f622"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a590cece4de025f23d29dd793f958f622">&#9670;&nbsp;</a></span>cleanupVotesByPeriod()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void taraxa::VoteManager::cleanupVotes </td>
+          <td class="memname">void taraxa::VoteManager::cleanupVotesByPeriod </td>
           <td>(</td>
           <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>pbft_round</em></td><td>)</td>
+          <td class="paramname"><em>pbft_period</em></td><td>)</td>
           <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Cleanup votes for previous PBFT periods. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pbft_period</td><td>current PBFT period </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a53271651c0428cfa75fb6415b2e8f77f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a53271651c0428cfa75fb6415b2e8f77f">&#9670;&nbsp;</a></span>cleanupVotesByRound()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::VoteManager::cleanupVotesByRound </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>pbft_period</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>pbft_round</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1182,6 +1221,7 @@ Collaboration diagram for taraxa::NextVotesManager:</div>
 <p>Cleanup votes for previous PBFT rounds. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
+    <tr><td class="paramname">pbft_period</td><td>current PBFT period </td></tr>
     <tr><td class="paramname">pbft_round</td><td>current PBFT round </td></tr>
   </table>
   </dd>
@@ -1189,30 +1229,61 @@ Collaboration diagram for taraxa::NextVotesManager:</div>
 
 </div>
 </div>
-<a id="acb6654e9f9fcef3a72ab9d3e4de1cae4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acb6654e9f9fcef3a72ab9d3e4de1cae4">&#9670;&nbsp;</a></span>determineRoundAndPeriodFromVotes()</h2>
+<a id="a250954e685751cc0cc48d87304cef288"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a250954e685751cc0cc48d87304cef288">&#9670;&nbsp;</a></span>determineRoundFromPeriodAndVotes()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::optional&lt; std::pair&lt; uint64_t, uint64_t &gt; &gt; taraxa::VoteManager::determineRoundAndPeriodFromVotes </td>
+          <td class="memname">uint64_t taraxa::VoteManager::determineRoundFromPeriodAndVotes </td>
           <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>period</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>two_t_plus_one</em></td><td>)</td>
+          <td class="paramname"><em>two_t_plus_one</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Check if there are enough next voting type votes to set PBFT to a forward round within period. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">period</td><td>is current pbft period </td></tr>
+    <tr><td class="paramname">two_t_plus_one</td><td>PBFT 2t+1 is 2/3 of PBFT sortition threshold and plus 1 </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>new round if there is enough next votes from prior round, otherwise returns 1 for being in initial round CONCERN: Was a std::optional, but why not just return 1 if we don't have any votes? Now that we pass in period </dd></dl>
+
+</div>
+</div>
+<a id="a12170a06162047464992f9d915ebfd78"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12170a06162047464992f9d915ebfd78">&#9670;&nbsp;</a></span>getAllRewardVotes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::VoteManager::getAllRewardVotes </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Check if there are enough next voting type votes to set PBFT to a forward round &amp; period. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">two_t_plus_one</td><td>PBFT 2t+1 is 2/3 of PBFT sortition threshold and plus 1 </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>pair&lt;new PBFT round, new PBFR period&gt; if there is enough next votes. Otherwise return nullopt </dd></dl>
+<p>Get all reward votes in reward_votes_. </p>
+<dl class="section return"><dt>Returns</dt><dd>vector of all reward votes </dd></dl>
 
 </div>
 </div>
@@ -1272,14 +1343,14 @@ Collaboration diagram for taraxa::NextVotesManager:</div>
 
 </div>
 </div>
-<a id="a25976532fc726c9eaf69ccdd418bdcaa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a25976532fc726c9eaf69ccdd418bdcaa">&#9670;&nbsp;</a></span>getRewardVotes() <span class="overload">[1/2]</span></h2>
+<a id="a2d8c8ac3185a149796a99dff63b29c60"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2d8c8ac3185a149796a99dff63b29c60">&#9670;&nbsp;</a></span>getProposeRewardVotes()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::VoteManager::getRewardVotes </td>
+          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::VoteManager::getProposeRewardVotes </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td></td>
@@ -1287,19 +1358,19 @@ Collaboration diagram for taraxa::NextVotesManager:</div>
       </table>
 </div><div class="memdoc">
 
-<p>Get all reward votes in reward_votes_. </p>
-<dl class="section return"><dt>Returns</dt><dd>vector of all reward votes </dd></dl>
+<p>Get reward votes from reward_votes_ with the round during which was the previous block pushed. </p>
+<dl class="section return"><dt>Returns</dt><dd>vector of reward votes </dd></dl>
 
 </div>
 </div>
-<a id="a301802dbc378abd235c63861161b8bc3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a301802dbc378abd235c63861161b8bc3">&#9670;&nbsp;</a></span>getRewardVotes() <span class="overload">[2/2]</span></h2>
+<a id="ad9635a251ff42dd65fe79bd8e03d928f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad9635a251ff42dd65fe79bd8e03d928f">&#9670;&nbsp;</a></span>getRewardVotesByHashes()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::VoteManager::getRewardVotes </td>
+          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::VoteManager::getRewardVotesByHashes </td>
           <td>(</td>
           <td class="paramtype">const std::vector&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>vote_hashes</em></td><td>)</td>
@@ -1316,26 +1387,6 @@ Collaboration diagram for taraxa::NextVotesManager:</div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>reward votes, if any of the votes is missing an empty array is returned </dd></dl>
-
-</div>
-</div>
-<a id="a24dbec7b548fd30c6aa835a8b1799151"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a24dbec7b548fd30c6aa835a8b1799151">&#9670;&nbsp;</a></span>getRewardVotesWithLastBlockRound()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::VoteManager::getRewardVotesWithLastBlockRound </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Get reward votes from reward_votes_ with the last block round. </p>
-<dl class="section return"><dt>Returns</dt><dd>vector of reward votes </dd></dl>
 
 </div>
 </div>
@@ -1760,28 +1811,6 @@ Collaboration diagram for taraxa::NextVotesManager:</div>
 
 </div>
 </div>
-<a id="a964edbd0fbc8db7bcfa9fc3b3d5b7e65"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a964edbd0fbc8db7bcfa9fc3b3d5b7e65">&#9670;&nbsp;</a></span>last_pbft_block_cert_round_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint64_t taraxa::VoteManager::last_pbft_block_cert_round_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="ab33a27ab32527293d1ce811318e68ae9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab33a27ab32527293d1ce811318e68ae9">&#9670;&nbsp;</a></span>network_</h2>
 
@@ -1914,8 +1943,8 @@ Collaboration diagram for taraxa::NextVotesManager:</div>
 
 </div>
 </div>
-<a id="a67feae24f6ea4aaf3faa0d811ae92de3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a67feae24f6ea4aaf3faa0d811ae92de3">&#9670;&nbsp;</a></span>verified_votes_</h2>
+<a id="a86616b953b03eeb00c30bc207cc603b4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a86616b953b03eeb00c30bc207cc603b4">&#9670;&nbsp;</a></span>reward_votes_round_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1924,7 +1953,29 @@ Collaboration diagram for taraxa::NextVotesManager:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::map&lt;uint64_t, std::unordered_map&lt; uint64_t, std::map&lt;size_t, std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::pair&lt;uint64_t, std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a>, std::shared_ptr&lt;<a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a>&gt; &gt; &gt; &gt; &gt; &gt; &gt; taraxa::VoteManager::verified_votes_</td>
+          <td class="memname">uint64_t taraxa::VoteManager::reward_votes_round_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7f92ec53fec9e7f31ed873a99e0899d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7f92ec53fec9e7f31ed873a99e0899d7">&#9670;&nbsp;</a></span>verified_votes_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::map&lt;uint64_t, std::map&lt;uint64_t, std::map&lt;size_t, std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::pair&lt;uint64_t, std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a>, std::shared_ptr&lt;<a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a>&gt; &gt; &gt; &gt; &gt; &gt; &gt; taraxa::VoteManager::verified_votes_</td>
         </tr>
       </table>
   </td>
@@ -1958,8 +2009,8 @@ Collaboration diagram for taraxa::NextVotesManager:</div>
 
 </div>
 </div>
-<a id="ad9e455ff8c44f0970bd4edd71308c8ba"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad9e455ff8c44f0970bd4edd71308c8ba">&#9670;&nbsp;</a></span>voters_unique_votes_</h2>
+<a id="ad2071019e18617857904d2b2e99c3745"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad2071019e18617857904d2b2e99c3745">&#9670;&nbsp;</a></span>voters_unique_votes_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1968,7 +2019,7 @@ Collaboration diagram for taraxa::NextVotesManager:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::map&lt;uint64_t, std::unordered_map&lt; size_t, std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>, std::pair&lt;std::shared_ptr&lt;<a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a>&gt;, std::shared_ptr&lt;<a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a>&gt; &gt; &gt; &gt; &gt; taraxa::VoteManager::voters_unique_votes_</td>
+          <td class="memname">std::map&lt;uint64_t, std::map&lt;uint64_t, std::unordered_map&lt;size_t, std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>, std::pair&lt;std::shared_ptr&lt;<a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a>&gt;, std::shared_ptr&lt;<a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a>&gt; &gt; &gt; &gt; &gt; &gt; taraxa::VoteManager::voters_unique_votes_</td>
         </tr>
       </table>
   </td>

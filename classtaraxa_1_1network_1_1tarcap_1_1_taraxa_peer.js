@@ -22,6 +22,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer =
     [ "last_status_pbft_chain_size_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#aa94ea01a64c33aa9586b793f6570e481", null ],
     [ "mutex_for_sending_dag_blocks_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ad4f58e3c7594a6599eff8cb450355a9a", null ],
     [ "pbft_chain_size_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a7379e84d5060ca4e057f553086698159", null ],
+    [ "pbft_period_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#af5e897fa87cdb337e918a20553ee4d17", null ],
     [ "pbft_previous_round_next_votes_size_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a11dc9f40e928841ac4e1978afc31c40f", null ],
     [ "pbft_round_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a9470853132f63d8074c95327f8541d4d", null ],
     [ "peer_dag_synced_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a5867b0ef3cbf587fb14b0d052a1c7930", null ],

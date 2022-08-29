@@ -1,17 +1,5 @@
 var NAVTREEINDEX17 =
 {
-"md_doc_coding_practices.html#autotoc_md106":[41],
-"md_doc_coding_practices.html#autotoc_md107":[42],
-"md_doc_coding_practices.html#autotoc_md108":[43],
-"md_doc_coding_practices.html#autotoc_md109":[2,0,10],
-"md_doc_coding_practices.html#autotoc_md110":[44],
-"md_doc_coding_practices.html#autotoc_md111":[45],
-"md_doc_coding_practices.html#autotoc_md112":[46],
-"md_doc_coding_practices.html#autotoc_md113":[2,0,11],
-"md_doc_coding_practices.html#autotoc_md114":[47],
-"md_doc_coding_practices.html#autotoc_md115":[48],
-"md_doc_coding_practices.html#autotoc_md116":[49],
-"md_doc_coding_practices.html#autotoc_md117":[2,0,12],
 "md_doc_coding_practices.html#autotoc_md118":[50],
 "md_doc_coding_practices.html#autotoc_md119":[51],
 "md_doc_coding_practices.html#autotoc_md120":[52],
@@ -249,5 +237,17 @@ var NAVTREEINDEX17 =
 "namespacemembers_s.html":[10,0,18],
 "namespacemembers_t.html":[10,0,19],
 "namespacemembers_type.html":[10,3],
-"namespacemembers_u.html":[10,0,20]
+"namespacemembers_u.html":[10,0,20],
+"namespacemembers_v.html":[10,0,21],
+"namespacemembers_vars.html":[10,2],
+"namespacemembers_w.html":[10,0,22],
+"namespacemembers_y.html":[10,0,23],
+"namespacemembers_z.html":[10,0,24],
+"namespacestd.html":[11,0,2],
+"namespacetaraxa.html":[11,0,3],
+"namespacetaraxa.html#a009be38daa65710a670613c7d9428e76":[12,0,1,7,0,0,0,1,0],
+"namespacetaraxa.html#a042f45f490bbf12481a44fbb1629201c":[12,0,1,3,0,0,1,3,6],
+"namespacetaraxa.html#a20a355304a30d8893626b16bf7c78595":[12,0,1,3,0,0,1,3,0],
+"namespacetaraxa.html#a4faf253efde7446f593b1d0a5063bffc":[12,0,1,3,0,0,1,1,0],
+"namespacetaraxa.html#a755e4a0a6744a31b65b04cb9022d6a47":[12,0,1,7,0,0,0,1,2]
 };

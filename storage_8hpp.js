@@ -14,7 +14,6 @@ var storage_8hpp =
     ] ],
     [ "PbftMgrRoundStep", "storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224", [
       [ "PbftRound", "storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224a368025ae02d047204ec026bff0232090", null ],
-      [ "PbftPeriod", "storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224ab13e6c9bd72b53e7746f31c3b932df8f", null ],
       [ "PbftStep", "storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224ab2b75dec75a0f988aec09198090e6e88", null ]
     ] ],
     [ "PbftMgrStatus", "storage_8hpp.html#ab954ed608508c8193f4517797b4dae8e", [
@@ -24,7 +23,6 @@ var storage_8hpp =
       [ "NextVotedNullBlockHash", "storage_8hpp.html#ab954ed608508c8193f4517797b4dae8ea3bf690f31dab9e5d4906ca934adbee6c", null ]
     ] ],
     [ "PbftMgrVotedValue", "storage_8hpp.html#ac2dbdc97d5c79cc3e162083c102499ca", [
-      [ "OwnStartingValueInRound", "storage_8hpp.html#ac2dbdc97d5c79cc3e162083c102499caa52d1c67ef710583932920bc233cabe4c", null ],
       [ "SoftVotedBlockInRound", "storage_8hpp.html#ac2dbdc97d5c79cc3e162083c102499caa616f37a723cd302a144ecaf91094b88f", null ],
       [ "CertVotedBlockInRound", "storage_8hpp.html#ac2dbdc97d5c79cc3e162083c102499caa94aaa540a03e4e7f7f726dda5579e8f4", null ]
     ] ],

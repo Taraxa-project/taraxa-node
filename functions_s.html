@@ -114,12 +114,6 @@ $(document).ready(function(){initNavTree('functions_s.html',''); initResizable()
 <li>saveLastBlockCertVote()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a1af48648a3a24253c85a679ebc13c394">taraxa::DbStorage</a>
 </li>
-<li>saveNextVotes()
-: <a class="el" href="classtaraxa_1_1_db_storage.html#af8941db6112df6f4213ca003562d261b">taraxa::DbStorage</a>
-</li>
-<li>savePbft2TPlus1()
-: <a class="el" href="classtaraxa_1_1_db_storage.html#aee8eadfbe2ddd92311ff955ebe6c778d">taraxa::DbStorage</a>
-</li>
 <li>savePbftCertVotedBlock()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a5e205f0319e03dfb180f8dc910d33ca3">taraxa::DbStorage</a>
 </li>
@@ -140,6 +134,9 @@ $(document).ready(function(){initNavTree('functions_s.html',''); initResizable()
 </li>
 <li>savePeriodData()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a55029b172261c0dc91da128fef909e06">taraxa::DbStorage</a>
+</li>
+<li>savePreviousRoundNextVotes()
+: <a class="el" href="classtaraxa_1_1_db_storage.html#a1c8cb2ba703ad25973e763cfe52bb9f3">taraxa::DbStorage</a>
 </li>
 <li>saveProposalPeriodDagLevelsMap()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a928b917ce6ab723d0d0dfa6f0725e604">taraxa::DbStorage</a>
@@ -353,17 +350,8 @@ $(document).ready(function(){initNavTree('functions_s.html',''); initResizable()
 <li>setGenesisHash()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a996ba68dcc57852ac1e84bb712da079f">taraxa::DbStorage</a>
 </li>
-<li>setLastSoftVotedValue()
-: <a class="el" href="group___p_b_f_t.html#a0b1cda6c9b50180dd747f71540c5b7d7">taraxa::PbftManager</a>
-</li>
 <li>setLastSyncPacketTime()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a70dd4fb7b012f4d931f7f806c8bfff51">taraxa::network::tarcap::PbftSyncingState</a>
-</li>
-<li>setMaxWaitForNextVotedBlock_ms()
-: <a class="el" href="group___p_b_f_t.html#a166fce1287c903d723fd68339c364aba">taraxa::PbftManager</a>
-</li>
-<li>setMaxWaitForSoftVotedBlock_ms()
-: <a class="el" href="group___p_b_f_t.html#a01aa3501b60870aa626ecf88048e5a29">taraxa::PbftManager</a>
 </li>
 <li>setMaxWorkersCount()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_queue.html#a6e4a95fa57f72c8ba447a105548c82b2">taraxa::network::tarcap::PacketsQueue</a>
@@ -417,9 +405,6 @@ $(document).ready(function(){initNavTree('functions_s.html',''); initResizable()
 </li>
 <li>setup()
 : <a class="el" href="classdev_1_1p2p_1_1_r_l_p_x_frame_coder.html#a3c57b70966c481a281c4f81d66e83a47">dev::p2p::RLPXFrameCoder</a>
-</li>
-<li>setVoterMaxRound()
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a35c98703a1b21fba99393fa8a07033c8">taraxa::network::tarcap::ExtVotesPacketHandler</a>
 </li>
 <li>sha3()
 : <a class="el" href="classtaraxa_1_1_dag_block.html#a8d35045f23d40d390546972399f08255">taraxa::DagBlock</a>
@@ -623,7 +608,7 @@ $(document).ready(function(){initNavTree('functions_s.html',''); initResizable()
 , <a class="el" href="group___final_chain.html#a4e0da8f4c2b7479c611b4666c3602270">taraxa::state_api::StateTransitionResult</a>
 </li>
 <li>StateAPI()
-: <a class="el" href="group___final_chain.html#a6b8e0c5638773e72d4ce19745165e0e0">taraxa::state_api::StateAPI</a>
+: <a class="el" href="group___final_chain.html#a5dfe1f47f0ebe2356a2620d0a212e5ef">taraxa::state_api::StateAPI</a>
 </li>
 <li>stateDbStoragePath()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a3dc4827d96659dc2ea04610a6e31216c">taraxa::DbStorage</a>
@@ -773,8 +758,8 @@ $(document).ready(function(){initNavTree('functions_s.html',''); initResizable()
 <li>syncPbftChainFromPeers_()
 : <a class="el" href="group___p_b_f_t.html#ac3b27ff13663f656adc80fecc15db6d1">taraxa::PbftManager</a>
 </li>
-<li>syncPbftNextVotes()
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#ae27623d793a9f1d1cf1a190bc92b894d">taraxa::network::tarcap::StatusPacketHandler</a>
+<li>syncPbftNextVotesAtPeriodRound()
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#ae93d0cd018cefa3445639940e38636d8">taraxa::network::tarcap::StatusPacketHandler</a>
 </li>
 <li>syncPeerPbft()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a17b4574c996a06893686c92ae43444fc">taraxa::network::tarcap::ExtSyncingPacketHandler</a>

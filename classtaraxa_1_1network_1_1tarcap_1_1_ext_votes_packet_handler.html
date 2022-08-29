@@ -107,8 +107,8 @@ Collaboration diagram for taraxa::network::tarcap::ExtVotesPacketHandler:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a3ccc66a38814a67944aee4f1511476b0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a3ccc66a38814a67944aee4f1511476b0">ExtVotesPacketHandler</a> (std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt; peers_state, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html">PacketsStats</a> &gt; packets_stats, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">PbftManager</a> &gt; pbft_mgr, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt; pbft_chain, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote_manager">VoteManager</a> &gt; vote_mgr, const uint32_t dpos_delay, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr, const std::string &amp;log_channel_name)</td></tr>
-<tr class="separator:a3ccc66a38814a67944aee4f1511476b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab6006f0a00fb2e8417c78ebf989052ce"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#ab6006f0a00fb2e8417c78ebf989052ce">ExtVotesPacketHandler</a> (std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt; peers_state, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html">PacketsStats</a> &gt; packets_stats, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">PbftManager</a> &gt; pbft_mgr, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt; pbft_chain, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote_manager">VoteManager</a> &gt; vote_mgr, uint32_t vote_accepting_periods, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr, const std::string &amp;log_channel_name)</td></tr>
+<tr class="separator:ab6006f0a00fb2e8417c78ebf989052ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6093dfd3a55632fcd05c2e4c3da06956"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a6093dfd3a55632fcd05c2e4c3da06956">~ExtVotesPacketHandler</a> ()=default</td></tr>
 <tr class="separator:a6093dfd3a55632fcd05c2e4c3da06956"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a24a19569eb088bd75f9fb3a10c589998"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a24a19569eb088bd75f9fb3a10c589998">ExtVotesPacketHandler</a> (const <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html">ExtVotesPacketHandler</a> &amp;)=delete</td></tr>
@@ -154,11 +154,6 @@ Protected Member Functions</h2></td></tr>
 <tr class="memitem:afafdabcd8b16cfb455faa1e2e42df752"><td class="memItemLeft" align="right" valign="top">std::pair&lt; bool, std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#afafdabcd8b16cfb455faa1e2e42df752">validateVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote) const</td></tr>
 <tr class="memdesc:afafdabcd8b16cfb455faa1e2e42df752"><td class="mdescLeft">&#160;</td><td class="mdescRight">Common validation for all types of votes.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#afafdabcd8b16cfb455faa1e2e42df752">More...</a><br /></td></tr>
 <tr class="separator:afafdabcd8b16cfb455faa1e2e42df752"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a35c98703a1b21fba99393fa8a07033c8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a35c98703a1b21fba99393fa8a07033c8">setVoterMaxRound</a> (const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;voter, uint64_t round)</td></tr>
-<tr class="memdesc:a35c98703a1b21fba99393fa8a07033c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets voter max round.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a35c98703a1b21fba99393fa8a07033c8">More...</a><br /></td></tr>
-<tr class="separator:a35c98703a1b21fba99393fa8a07033c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a62148d8825a1f6388c86472c11a96357"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a62148d8825a1f6388c86472c11a96357">getVoterMaxRound</a> (const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;voter) const</td></tr>
-<tr class="separator:a62148d8825a1f6388c86472c11a96357"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_methods_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a></td></tr>
 <tr class="memitem:a4396eb612d9521d9a4591b0afff1e51c inherit pro_methods_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a4396eb612d9521d9a4591b0afff1e51c">checkPacketRlpIsList</a> (const <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_data.html">PacketData</a> &amp;packet_data) const</td></tr>
 <tr class="memdesc:a4396eb612d9521d9a4591b0afff1e51c inherit pro_methods_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks if packet rlp is a list, if not it throws <a class="el" href="classtaraxa_1_1_invalid_rlp_items_count_exception.html" title="Exception thrown in case basic rlp format validation fails - number of rlp items.">InvalidRlpItemsCountException</a>.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a4396eb612d9521d9a4591b0afff1e51c">More...</a><br /></td></tr>
@@ -170,18 +165,14 @@ Protected Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
-<tr class="memitem:af4e5212aba972e86a071b292f7a8f9eb"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#af4e5212aba972e86a071b292f7a8f9eb">kDposDelay</a></td></tr>
-<tr class="separator:af4e5212aba972e86a071b292f7a8f9eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5841c32aeeac87fbf9e92f5c8a6b1dfe"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a5841c32aeeac87fbf9e92f5c8a6b1dfe">kVoteAcceptingPeriods</a></td></tr>
+<tr class="separator:a5841c32aeeac87fbf9e92f5c8a6b1dfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a97580e429c37cfb0adb02e1316d1a6f6"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">PbftManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a97580e429c37cfb0adb02e1316d1a6f6">pbft_mgr_</a></td></tr>
 <tr class="separator:a97580e429c37cfb0adb02e1316d1a6f6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7de70e30de9ba98435660bf5434dbef2"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a7de70e30de9ba98435660bf5434dbef2">pbft_chain_</a></td></tr>
 <tr class="separator:a7de70e30de9ba98435660bf5434dbef2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa0ce7112166f06d6060124360492323"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote_manager">VoteManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#afa0ce7112166f06d6060124360492323">vote_mgr_</a></td></tr>
 <tr class="separator:afa0ce7112166f06d6060124360492323"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aeeaa16a3aac0e83c7a0a3c207e850f4e"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>, uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#aeeaa16a3aac0e83c7a0a3c207e850f4e">voters_max_rounds_</a></td></tr>
-<tr class="separator:aeeaa16a3aac0e83c7a0a3c207e850f4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab6ced230cb7ac6ed84e35e11a0140e3f"><td class="memItemLeft" align="right" valign="top">std::shared_mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#ab6ced230cb7ac6ed84e35e11a0140e3f">voters_max_rounds_mutex_</a></td></tr>
-<tr class="separator:ab6ced230cb7ac6ed84e35e11a0140e3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pro_attribs_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler"><td colspan="2" onclick="javascript:toggleInherit('pro_attribs_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler')"><img src="closed.png" alt="-"/>&#160;Protected Attributes inherited from <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a></td></tr>
 <tr class="memitem:a9543214a6d87aeb9dbb1902fa2aa5ccf inherit pro_attribs_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a9543214a6d87aeb9dbb1902fa2aa5ccf">peers_state_</a> {nullptr}</td></tr>
 <tr class="separator:a9543214a6d87aeb9dbb1902fa2aa5ccf inherit pro_attribs_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -191,8 +182,8 @@ Protected Attributes</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html" title="ExtVotesPacketHandler is extended abstract PacketHandler with added functions that are used in packet...">ExtVotesPacketHandler</a> is extended abstract <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html" title="Packet handler base class that consists of shared state and some commonly used functions.">PacketHandler</a> with added functions that are used in packet handlers that process pbft votes. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a3ccc66a38814a67944aee4f1511476b0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3ccc66a38814a67944aee4f1511476b0">&#9670;&nbsp;</a></span>ExtVotesPacketHandler() <span class="overload">[1/3]</span></h2>
+<a id="ab6006f0a00fb2e8417c78ebf989052ce"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab6006f0a00fb2e8417c78ebf989052ce">&#9670;&nbsp;</a></span>ExtVotesPacketHandler() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -230,8 +221,8 @@ Protected Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const uint32_t&#160;</td>
-          <td class="paramname"><em>dpos_delay</em>, </td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>vote_accepting_periods</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -333,39 +324,6 @@ Protected Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a62148d8825a1f6388c86472c11a96357"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a62148d8825a1f6388c86472c11a96357">&#9670;&nbsp;</a></span>getVoterMaxRound()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint64_t taraxa::network::tarcap::ExtVotesPacketHandler::getVoterMaxRound </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>voter</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">voter</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>voter max round based on received votes from him </dd></dl>
-
-</div>
-</div>
 <a id="a3b4b80ae392c60fed182ed8249b0a0b8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3b4b80ae392c60fed182ed8249b0a0b8">&#9670;&nbsp;</a></span>onNewPbftVotes()</h2>
 
@@ -467,51 +425,6 @@ Protected Attributes</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-
-</div>
-</div>
-<a id="a35c98703a1b21fba99393fa8a07033c8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a35c98703a1b21fba99393fa8a07033c8">&#9670;&nbsp;</a></span>setVoterMaxRound()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::network::tarcap::ExtVotesPacketHandler::setVoterMaxRound </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>voter</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>round</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Sets voter max round. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">voter</td><td></td></tr>
-    <tr><td class="paramname">round</td><td></td></tr>
-  </table>
-  </dd>
-</dl>
 
 </div>
 </div>
@@ -632,8 +545,8 @@ Protected Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="af4e5212aba972e86a071b292f7a8f9eb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af4e5212aba972e86a071b292f7a8f9eb">&#9670;&nbsp;</a></span>kDposDelay</h2>
+<a id="a5841c32aeeac87fbf9e92f5c8a6b1dfe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5841c32aeeac87fbf9e92f5c8a6b1dfe">&#9670;&nbsp;</a></span>kVoteAcceptingPeriods</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -642,7 +555,7 @@ Protected Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const uint32_t taraxa::network::tarcap::ExtVotesPacketHandler::kDposDelay</td>
+          <td class="memname">const uint32_t taraxa::network::tarcap::ExtVotesPacketHandler::kVoteAcceptingPeriods</td>
         </tr>
       </table>
   </td>
@@ -714,50 +627,6 @@ Protected Attributes</h2></td></tr>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aeeaa16a3aac0e83c7a0a3c207e850f4e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aeeaa16a3aac0e83c7a0a3c207e850f4e">&#9670;&nbsp;</a></span>voters_max_rounds_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>, uint64_t&gt; taraxa::network::tarcap::ExtVotesPacketHandler::voters_max_rounds_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ab6ced230cb7ac6ed84e35e11a0140e3f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab6ced230cb7ac6ed84e35e11a0140e3f">&#9670;&nbsp;</a></span>voters_max_rounds_mutex_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::shared_mutex taraxa::network::tarcap::ExtVotesPacketHandler::voters_max_rounds_mutex_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">mutable</span><span class="mlabel">protected</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
