@@ -1557,7 +1557,8 @@ TEST_F(FullNodeTest, transaction_validation) {
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 }
 
-TEST_F(FullNodeTest, light_node) {
+// TODO[1908]: fix and enable this test again
+TEST_F(FullNodeTest, DISABLED_light_node) {
   auto node_cfgs = make_node_cfgs<10>(2);
   node_cfgs[0].dag_expiry_limit = 5;
   node_cfgs[0].max_levels_per_period = 3;
