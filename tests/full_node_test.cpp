@@ -1648,7 +1648,8 @@ TEST_F(FullNodeTest, clear_period_data) {
 }
 
 TEST_F(FullNodeTest, transaction_pool_overflow) {
-  auto node_cfgs = make_node_cfgs<5>(2);
+  // make 2 node verifiers to avoid out of sync state
+  auto node_cfgs = make_node_cfgs<5>(2, 2);
   for (auto &cfg : node_cfgs) {
     cfg.transactions_pool_size = kMinTransactionPoolSize;
   }
@@ -1660,44 +1661,44 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
     node->getBlockProposer()->stop();
   }
 
-  auto node1 = nodes.front();
+  auto node0 = nodes.front();
   do {
     auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice, gas, dev::fromHex("00FEDCBA9876543210000000"),
-                                             node1->getSecretKey(), addr_t::random());
-    EXPECT_TRUE(node1->getTransactionManager()->insertTransaction(trx).first);
-  } while (!node1->getTransactionManager()->isTransactionPoolFull());
+                                             node0->getSecretKey(), addr_t::random());
+    EXPECT_TRUE(node0->getTransactionManager()->insertTransaction(trx).first);
+  } while (!node0->getTransactionManager()->isTransactionPoolFull());
 
   // Crate transaction with lower gasprice
   auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice - 1, gas, dev::fromHex("00FEDCBA9876543210000000"),
-                                           node1->getSecretKey(), addr_t::random());
+                                           node0->getSecretKey(), addr_t::random());
   // Should fail as trx pool should be full
-  EXPECT_FALSE(node1->getTransactionManager()->insertTransaction(trx).first);
+  EXPECT_FALSE(node0->getTransactionManager()->insertTransaction(trx).first);
 
   // Check if they synced
-  EXPECT_HAPPENS({50s, 100ms}, [&](auto &ctx) {
-    // Check if transactions was propagated to node1
+  EXPECT_HAPPENS({10s, 200ms}, [&](auto &ctx) {
+    // Check if transactions was propagated to node0
     WAIT_EXPECT_EQ(ctx, nodes[1]->getTransactionManager()->isTransactionPoolFull(), true)
   });
 
   // Add one valid block
   const auto proposal_level = 1;
-  const auto proposal_period = *node1->getDB()->getProposalPeriodForDagLevel(proposal_level);
-  const auto period_block_hash = node1->getDB()->getPeriodBlockHash(proposal_period);
+  const auto proposal_period = *node0->getDB()->getProposalPeriodForDagLevel(proposal_level);
+  const auto period_block_hash = node0->getDB()->getPeriodBlockHash(proposal_period);
   const auto sortition_params =
       nodes.front()->getDagManager()->sortitionParamsManager().getSortitionParams(proposal_period);
-  vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
+  vdf_sortition::VdfSortition vdf(sortition_params, node0->getVrfSecretKey(),
                                   VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash));
-  const auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
-  const auto estimation = node1->getTransactionManager()->estimateTransactionGas(trx, proposal_period);
+  const auto dag_genesis = node0->getConfig().chain.dag_genesis_block.getHash();
+  const auto estimation = node0->getTransactionManager()->estimateTransactionGas(trx, proposal_period);
   vdf.computeVdfSolution(sortition_params, dag_genesis.asBytes(), false);
 
-  DagBlock blk(dag_genesis, proposal_level, {}, {trx->getHash()}, {estimation}, vdf, node1->getSecretKey());
+  DagBlock blk(dag_genesis, proposal_level, {}, {trx->getHash()}, {estimation}, vdf, node0->getSecretKey());
   const auto blk_hash = blk.getHash();
   EXPECT_TRUE(nodes[1]->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
 
-  EXPECT_HAPPENS({120s, 300ms}, [&](auto &ctx) {
-    // Check if transactions and block was propagated to node1
-    WAIT_EXPECT_NE(ctx, node1->getDagManager()->getDagBlock(blk_hash), nullptr);
+  EXPECT_HAPPENS({20s, 500ms}, [&](auto &ctx) {
+    // Check if transactions and block was propagated to node0
+    WAIT_EXPECT_NE(ctx, node0->getDagManager()->getDagBlock(blk_hash), nullptr);
   });
 }
 
