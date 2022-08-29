@@ -904,7 +904,6 @@ void DbStorage::removeLastBlockCertVotes(const vote_hash_t& hash) {
   remove(Columns::last_block_cert_votes, toSlice(hash));
 }
 
-
 void DbStorage::addPbftBlockPeriodToBatch(uint64_t period, taraxa::blk_hash_t const& pbft_block_hash,
                                           Batch& write_batch) {
   insert(write_batch, Columns::pbft_block_period, toSlice(pbft_block_hash.asBytes()), toSlice(period));

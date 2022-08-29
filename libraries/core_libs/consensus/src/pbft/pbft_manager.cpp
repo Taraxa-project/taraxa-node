@@ -965,12 +965,9 @@ void PbftManager::firstFinish_() {
       vote_value = NULL_BLOCK_HASH;
     }
 
-    if (auto vote = generateVoteWithWeight(vote_value, next_vote_type, next_round_period,
-                                           round, step_);
-        vote) {
-      LOG(log_nf_) << "Placed first finish next vote for " << vote_value << ", vote weight "
-                   << *vote->getWeight() << ", round " << round << ", period " << next_round_period
-                   << ", step " << step_;
+    if (auto vote = generateVoteWithWeight(vote_value, next_vote_type, next_round_period, round, step_); vote) {
+      LOG(log_nf_) << "Placed first finish next vote for " << vote_value << ", vote weight " << *vote->getWeight()
+                   << ", round " << round << ", period " << next_round_period << ", step " << step_;
       placeVote(std::move(vote));
     }
 
