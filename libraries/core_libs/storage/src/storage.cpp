@@ -928,7 +928,9 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getLastBlockCertVotes() {
   return votes;
 }
 
-void DbStorage::removeLastBlockCertVotes(const vote_hash_t& hash) { remove(Columns::next_votes, toSlice(hash)); }
+void DbStorage::removeLastBlockCertVotes(const vote_hash_t& hash) {
+  remove(Columns::last_block_cert_votes, toSlice(hash));
+}
 
 void DbStorage::removeNextVotesToBatch(uint64_t pbft_round, Batch& write_batch) {
   remove(write_batch, Columns::next_votes, toSlice(pbft_round));
