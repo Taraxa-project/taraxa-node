@@ -555,7 +555,7 @@ void PbftManager::initialState() {
   next_step_time_ms_ = 0;
 
   updateDposState_();
-  // Initializetwo_t_plus_one_and sortition_threshold
+  // Initialize two_t_plus_one_and sortition_threshold
   updateTwoTPlusOneAndThreshold_();
 
   if (round > 1) {
