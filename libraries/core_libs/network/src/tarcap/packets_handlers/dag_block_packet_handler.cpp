@@ -162,7 +162,7 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shar
 
 void DagBlockPacketHandler::onNewBlockVerified(DagBlock &&block, bool proposed, SharedTransactions &&trxs) {
   // If node is pbft syncing and block is not proposed by us, this is an old block that has been verified - no block
-  // goosip is needed
+  // gossip is needed
   if (!proposed && pbft_syncing_state_->isDeepPbftSyncing()) {
     return;
   }
