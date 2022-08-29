@@ -312,19 +312,23 @@ SharedTransactions TransactionManager::getAllPoolTrxs() {
  */
 void TransactionManager::updateFinalizedTransactionsStatus(PeriodData const &period_data) {
   // !!! There is no lock because it is called under std::unique_lock trx_lock(trx_mgr_->getTransactionsMutex());
-  last_finalized_block_transactions_.clear();
-  for (auto const &trx : period_data.transactions) {
-    last_finalized_block_transactions_[trx->getHash()] = trx;
-    if (!nonfinalized_transactions_in_dag_.erase(trx->getHash())) {
-      trx_count_++;
-    } else {
-      LOG(log_dg_) << "Transaction " << trx->getHash() << " removed from nonfinalized transactions";
+  if (period_data.transactions.size() > 0) {
+    if (period_data.transactions.size() + recently_finalized_transactions_.size() > kRecentlyFinalizedTransactionsMax) {
+      recently_finalized_transactions_.clear();
     }
-    if (transactions_pool_.erase(trx->getHash())) {
-      LOG(log_dg_) << "Transaction " << trx->getHash() << " removed from transactions_pool_";
+    for (auto const &trx : period_data.transactions) {
+      recently_finalized_transactions_[trx->getHash()] = trx;
+      if (!nonfinalized_transactions_in_dag_.erase(trx->getHash())) {
+        trx_count_++;
+      } else {
+        LOG(log_dg_) << "Transaction " << trx->getHash() << " removed from nonfinalized transactions";
+      }
+      if (transactions_pool_.erase(trx->getHash())) {
+        LOG(log_dg_) << "Transaction " << trx->getHash() << " removed from transactions_pool_";
+      }
     }
+    db_->saveStatusField(StatusDbField::TrxCount, trx_count_);
   }
-  db_->saveStatusField(StatusDbField::TrxCount, trx_count_);
 }
 
 void TransactionManager::moveNonFinalizedTransactionsToTransactionsPool(std::unordered_set<trx_hash_t> &&transactions) {
@@ -363,8 +367,8 @@ std::optional<std::map<trx_hash_t, std::shared_ptr<Transaction>>> TransactionMan
         if (trx_it != nonfinalized_transactions_in_dag_.end()) {
           transactions.emplace(tx_hash, trx_it->second);
         } else {
-          trx_it = last_finalized_block_transactions_.find(tx_hash);
-          if (trx_it != last_finalized_block_transactions_.end()) {
+          trx_it = recently_finalized_transactions_.find(tx_hash);
+          if (trx_it != recently_finalized_transactions_.end()) {
             transactions.emplace(tx_hash, trx_it->second);
           } else {
             finalized_trx_hashes.emplace_back(tx_hash);
@@ -372,15 +376,15 @@ std::optional<std::map<trx_hash_t, std::shared_ptr<Transaction>>> TransactionMan
         }
       }
     }
-    auto finalizedTransactions = db_->getFinalizedTransactions(finalized_trx_hashes);
-    if (finalizedTransactions.first.has_value()) {
-      for (auto trx : *finalizedTransactions.first) {
-        transactions.emplace(trx->getHash(), std::move(trx));
-      }
-    } else {
-      LOG(log_er_) << "Block " << blk.getHash() << " has missing transaction " << finalizedTransactions.second;
-      return std::nullopt;
+  }
+  auto finalizedTransactions = db_->getFinalizedTransactions(finalized_trx_hashes);
+  if (finalizedTransactions.first.has_value()) {
+    for (auto trx : *finalizedTransactions.first) {
+      transactions.emplace(trx->getHash(), std::move(trx));
     }
+  } else {
+    LOG(log_er_) << "Block " << blk.getHash() << " has missing transaction " << finalizedTransactions.second;
+    return std::nullopt;
   }
 
   return transactions;
