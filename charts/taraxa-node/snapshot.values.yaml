@@ -1,0 +1,24 @@
+explorer:
+  configEnvs:
+    faucetEnabled: true
+
+snapshotnode:
+  fullnode:
+    enabled: true
+    nodeSelector:
+      cloud.google.com/gke-nodepool: blockchain-prnet
+
+snapshotter:
+  env:
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      value: /var/secrets/gcp/artifacts-service-account-credentials.json
+    - name: TARAXA_NODE_SNAPSHOTTER_IPFS_MULTIADDR
+      value: "/dns4/snapshots-ipfs/tcp/5001/http/"
+  extraVolumes:
+    - name: artifacts-service-account-credentials
+      secret:
+        secretName: artifacts-service-account-credentials
+  extraVolumeMounts:
+    - name: artifacts-service-account-credentials
+      mountPath: "/var/secrets/gcp/"
+      readOnly: true

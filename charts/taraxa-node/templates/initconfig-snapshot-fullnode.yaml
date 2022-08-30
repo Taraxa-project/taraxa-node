@@ -1,12 +1,12 @@
-{{ if .Values.node.enabled }}
+{{ if .Values.snapshotnode.fullnode.enabled }}
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-node-init-script
+  name: {{ .Release.Name }}-snapshot-fullnode-init-script
   labels:
-    app: node
-    app.kubernetes.io/name: node
+    app: snapshot-fullnode
+    app.kubernetes.io/name: snapshot-fullnode
     helm.sh/chart: {{ include "taraxa-node.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
@@ -61,7 +61,7 @@ data:
 
         initial_validators = data['chain_config']['final_chain']['state']['dpos']['initial_validators']
         
-        # get delegations from 1st default validator
+        # get delegations from 1st default validator 
         delegations = initial_validators[0]['delegations']
 
         validators = []
@@ -90,7 +90,6 @@ data:
       config_file_name = sys.argv[1]
       main(config_file_name)
 
-
   entrypoint.sh: |-
     #!/bin/bash
     DATA_PATH=/root/.taraxa
@@ -102,8 +101,8 @@ data:
 
     echo "Generating config"
     INDEX=${HOSTNAME##*-}
-    KEY="TARAXA_NODE_KEY_${INDEX}"
-    VRF="TARAXA_NODE_VRF_${INDEX}"
+    KEY="SNAPSHOT_FULLNODE_KEY_${INDEX}"
+    VRF="SNAPSHOT_FULLNODE_VRF_${INDEX}"
 
     KEY="${!KEY}"
     VRF="${!VRF}"

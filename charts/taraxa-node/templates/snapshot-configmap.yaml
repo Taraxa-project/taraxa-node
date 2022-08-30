@@ -1,0 +1,16 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-snapshot-repo-config
+data:
+  .pypirc: |-
+    [distutils]
+    index-servers =
+        pypi-release
+
+    [pypi-release]
+    repository: https://us-central1-python.pkg.dev/jovial-meridian-249123/pypi-release/
+  pip.conf: |-
+    [global]
+    extra-index-url = https://us-central1-python.pkg.dev/jovial-meridian-249123/pypi-release/simple/
