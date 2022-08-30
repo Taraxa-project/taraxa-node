@@ -533,9 +533,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Final chain executes a finalized PBFT block
    * @param period_data PBFT block, cert votes, DAG blocks, and transactions
    * @param finalized_dag_blk_hashes DAG blocks hashes
-   * @param sync it's true when it's last finalized block
+   * @param synchronous_processing wait for block finalization to finish
    */
-  void finalize_(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes, bool sync = false);
+  void finalize_(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes,
+                 bool synchronous_processing = false);
 
   /**
    * @brief Push a new PBFT block into the PBFT chain
