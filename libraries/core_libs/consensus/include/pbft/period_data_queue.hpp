@@ -67,6 +67,12 @@ class PeriodDataQueue {
    */
   std::shared_ptr<PbftBlock> lastPbftBlock() const;
 
+  /**
+   * @brief Clean any old blocks below current period
+   * @param period current period
+   */
+  void cleanOldData(uint64_t period);
+
  private:
   std::deque<std::pair<PeriodData, dev::p2p::NodeID>> queue_;
   // We need this variable as for small amount of time block is not part of queue but still being processed

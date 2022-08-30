@@ -1715,6 +1715,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(taraxa::blk_hash_t const &cer
 void PbftManager::pushSyncedPbftBlocksIntoChain() {
   if (auto net = network_.lock()) {
     auto round = getPbftRound();
+    sync_queue_.cleanOldData(getPbftPeriod());
     while (periodDataQueueSize() > 0) {
       auto period_data_opt = processPeriodData();
       if (!period_data_opt) continue;
@@ -2001,7 +2002,9 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
 
 blk_hash_t PbftManager::lastPbftBlockHashFromQueueOrChain() {
   auto pbft_block = sync_queue_.lastPbftBlock();
-  if (pbft_block) return pbft_block->getBlockHash();
+  if (pbft_block && pbft_block->getPeriod() >= getPbftPeriod()) {
+    return pbft_block->getBlockHash();
+  }
   return pbft_chain_->getLastPbftBlockHash();
 }
 
