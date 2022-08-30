@@ -188,6 +188,7 @@ var group___p_b_f_t =
     ] ],
     [ "PeriodDataQueue", "group___p_b_f_t.html#classtaraxa_1_1_period_data_queue", [
       [ "PeriodDataQueue", "group___p_b_f_t.html#a31dd69567432d7f00aebdbf984d0e9c8", null ],
+      [ "cleanOldData", "group___p_b_f_t.html#a8d79d23ef300f120ac5a365f79092952", null ],
       [ "clear", "group___p_b_f_t.html#a04f1f4514d95643b359fadbde0242d8c", null ],
       [ "empty", "group___p_b_f_t.html#a17b94e3a1433be93abb38abe082407a9", null ],
       [ "getPeriod", "group___p_b_f_t.html#afaca3f57b144e8058c7fab897407749c", null ],

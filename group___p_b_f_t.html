@@ -5453,6 +5453,9 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:ad2cf3c010649e8a6224a7fc5416471f4"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ad2cf3c010649e8a6224a7fc5416471f4">lastPbftBlock</a> () const</td></tr>
 <tr class="memdesc:ad2cf3c010649e8a6224a7fc5416471f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get last pbft block from queue.  <a href="group___p_b_f_t.html#ad2cf3c010649e8a6224a7fc5416471f4">More...</a><br /></td></tr>
 <tr class="separator:ad2cf3c010649e8a6224a7fc5416471f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8d79d23ef300f120ac5a365f79092952"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a8d79d23ef300f120ac5a365f79092952">cleanOldData</a> (uint64_t period)</td></tr>
+<tr class="memdesc:a8d79d23ef300f120ac5a365f79092952"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clean any old blocks below current period.  <a href="group___p_b_f_t.html#a8d79d23ef300f120ac5a365f79092952">More...</a><br /></td></tr>
+<tr class="separator:a8d79d23ef300f120ac5a365f79092952"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Attributes</h3></td></tr>
 <tr class="memitem:a15c8d823e9eb09891952583759285a1e"><td class="memItemLeft" align="right" valign="top">std::deque&lt; std::pair&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a>, <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a15c8d823e9eb09891952583759285a1e">queue_</a></td></tr>
 <tr class="separator:a15c8d823e9eb09891952583759285a1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -5490,6 +5493,32 @@ Collaboration diagram for taraxa::PbftManager:</div>
 </div>
 </div>
 <h4 class="groupheader">Member Function Documentation</h4>
+<a id="a8d79d23ef300f120ac5a365f79092952"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8d79d23ef300f120ac5a365f79092952">&#9670;&nbsp;</a></span>cleanOldData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::PeriodDataQueue::cleanOldData </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>period</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Clean any old blocks below current period. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">period</td><td>current period </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="a04f1f4514d95643b359fadbde0242d8c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a04f1f4514d95643b359fadbde0242d8c">&#9670;&nbsp;</a></span>clear()</h2>
 
