@@ -66,4 +66,11 @@ std::shared_ptr<PbftBlock> PeriodDataQueue::lastPbftBlock() const {
   return nullptr;
 }
 
+void PeriodDataQueue::cleanOldData(uint64_t period) {
+  std::unique_lock lock(queue_access_);
+  while (queue_.size() > 0 && queue_.front().first.pbft_blk->getPeriod() < period) {
+    queue_.pop_front();
+  }
+}
+
 }  // namespace taraxa
