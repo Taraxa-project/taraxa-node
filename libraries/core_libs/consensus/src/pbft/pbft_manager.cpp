@@ -989,8 +989,8 @@ void PbftManager::firstFinish_() {
       placeVote(std::move(vote));
     }
   } else {
-    if (auto vote = generateVoteWithWeight(previous_round_next_voted_value_.first, next_vote_type, period,
-                                           round, step_);
+    if (auto vote =
+            generateVoteWithWeight(previous_round_next_voted_value_.first, next_vote_type, period, round, step_);
         vote) {
       LOG(log_nf_) << "Placed first finish next vote for " << previous_round_next_voted_value_.first.abridged()
                    << ", vote weight " << *vote->getWeight() << ", round " << round << ", period " << period
@@ -1732,19 +1732,12 @@ void PbftManager::pushSyncedPbftBlocksIntoChain() {
       }
 
       net->setSyncStatePeriod(period);
-
-      if (executed_pbft_block_) {
-        updateDposState_();
-        // update sortition_threshold and TWO_T_PLUS_ONE
-        updateTwoTPlusOneAndThreshold_();
-        db_->savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, false);
-        executed_pbft_block_ = false;
-      }
     }
   }
 }
 
-void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes, bool sync) {
+void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes,
+                            bool synchronous_processing) {
   const auto anchor = period_data.pbft_blk->getPivotDagBlockHash();
 
   auto result = final_chain_->finalize(
@@ -1769,7 +1762,7 @@ void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finali
         db_->addProposalPeriodDagLevelsMapToBatch(anchor->getLevel() + max_levels_per_period_, period, batch);
       });
 
-  if (sync) {
+  if (synchronous_processing) {
     result.wait();
   }
 }
@@ -1835,9 +1828,6 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
     pbft_chain_->updatePbftChain(pbft_block_hash, null_anchor);
   }
 
-  // Advance pbft consensus period
-  advancePeriod();
-
   LOG(log_nf_) << "Pushed new PBFT block " << pbft_block_hash << " into chain. Period: " << pbft_period
                << ", round: " << getPbftRound();
 
@@ -1845,6 +1835,10 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
 
   db_->savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, true);
   executed_pbft_block_ = true;
+
+  // Advance pbft consensus period
+  advancePeriod();
+
   return true;
 }
 
