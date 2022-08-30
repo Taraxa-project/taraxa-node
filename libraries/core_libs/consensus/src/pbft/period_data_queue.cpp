@@ -60,7 +60,8 @@ std::tuple<PeriodData, std::vector<std::shared_ptr<Vote>>, dev::p2p::NodeID> Per
 
 std::shared_ptr<PbftBlock> PeriodDataQueue::lastPbftBlock() const {
   std::shared_lock lock(queue_access_);
-  if (queue_.size() > 0) {
+  // using modified size method to not return potentially incorrect block
+  if (size() > 0) {
     return queue_.back().first.pbft_blk;
   }
   return nullptr;

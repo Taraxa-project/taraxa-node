@@ -989,8 +989,8 @@ void PbftManager::firstFinish_() {
       placeVote(std::move(vote));
     }
   } else {
-    if (auto vote = generateVoteWithWeight(previous_round_next_voted_value_.first, next_vote_type, period,
-                                           round, step_);
+    if (auto vote =
+            generateVoteWithWeight(previous_round_next_voted_value_.first, next_vote_type, period, round, step_);
         vote) {
       LOG(log_nf_) << "Placed first finish next vote for " << previous_round_next_voted_value_.first.abridged()
                    << ", vote weight " << *vote->getWeight() << ", round " << round << ", period " << period
@@ -2007,7 +2007,9 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
 
 blk_hash_t PbftManager::lastPbftBlockHashFromQueueOrChain() {
   auto pbft_block = sync_queue_.lastPbftBlock();
-  if (pbft_block) return pbft_block->getBlockHash();
+  if (pbft_block && pbft_block->getPeriod() >= getPbftPeriod()) {
+    return pbft_block->getBlockHash();
+  }
   return pbft_chain_->getLastPbftBlockHash();
 }
 
