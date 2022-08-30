@@ -1201,9 +1201,9 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:acf16b37b9e008a70a8ae23ddfcbf5d51"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#acf16b37b9e008a70a8ae23ddfcbf5d51">pushCertVotedPbftBlockIntoChain_</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;cert_voted_block_hash, std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&amp;current_round_cert_votes)</td></tr>
 <tr class="memdesc:acf16b37b9e008a70a8ae23ddfcbf5d51"><td class="mdescLeft">&#160;</td><td class="mdescRight">If there are enough certify votes, push the vote PBFT block in PBFT chain.  <a href="group___p_b_f_t.html#acf16b37b9e008a70a8ae23ddfcbf5d51">More...</a><br /></td></tr>
 <tr class="separator:acf16b37b9e008a70a8ae23ddfcbf5d51"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a60e41e8bc4ac1571a0fd3716b1cbaf6c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a60e41e8bc4ac1571a0fd3716b1cbaf6c">finalize_</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&amp;period_data, std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt; &amp;&amp;finalized_dag_blk_hashes, bool sync=false)</td></tr>
-<tr class="memdesc:a60e41e8bc4ac1571a0fd3716b1cbaf6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Final chain executes a finalized PBFT block.  <a href="group___p_b_f_t.html#a60e41e8bc4ac1571a0fd3716b1cbaf6c">More...</a><br /></td></tr>
-<tr class="separator:a60e41e8bc4ac1571a0fd3716b1cbaf6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac1d71b10c49fd1e56ec7348377040b64"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ac1d71b10c49fd1e56ec7348377040b64">finalize_</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&amp;period_data, std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt; &amp;&amp;finalized_dag_blk_hashes, bool synchronous_processing=false)</td></tr>
+<tr class="memdesc:ac1d71b10c49fd1e56ec7348377040b64"><td class="mdescLeft">&#160;</td><td class="mdescRight">Final chain executes a finalized PBFT block.  <a href="group___p_b_f_t.html#ac1d71b10c49fd1e56ec7348377040b64">More...</a><br /></td></tr>
+<tr class="separator:ac1d71b10c49fd1e56ec7348377040b64"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8132b54aca664bd3fb441e22d8cd5826"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a8132b54aca664bd3fb441e22d8cd5826">pushPbftBlock_</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&amp;period_data, std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&amp;cert_votes, <a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a> &amp;&amp;dag_blocks_order={})</td></tr>
 <tr class="memdesc:a8132b54aca664bd3fb441e22d8cd5826"><td class="mdescLeft">&#160;</td><td class="mdescRight">Push a new PBFT block into the PBFT chain.  <a href="group___p_b_f_t.html#a8132b54aca664bd3fb441e22d8cd5826">More...</a><br /></td></tr>
 <tr class="separator:a8132b54aca664bd3fb441e22d8cd5826"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2006,8 +2006,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="a60e41e8bc4ac1571a0fd3716b1cbaf6c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a60e41e8bc4ac1571a0fd3716b1cbaf6c">&#9670;&nbsp;</a></span>finalize_()</h2>
+<a id="ac1d71b10c49fd1e56ec7348377040b64"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac1d71b10c49fd1e56ec7348377040b64">&#9670;&nbsp;</a></span>finalize_()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2031,7 +2031,7 @@ Collaboration diagram for taraxa::PbftManager:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>sync</em> = <code>false</code>&#160;</td>
+          <td class="paramname"><em>synchronous_processing</em> = <code>false</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2051,7 +2051,7 @@ Collaboration diagram for taraxa::PbftManager:</div>
   <table class="params">
     <tr><td class="paramname">period_data</td><td>PBFT block, cert votes, DAG blocks, and transactions </td></tr>
     <tr><td class="paramname">finalized_dag_blk_hashes</td><td>DAG blocks hashes </td></tr>
-    <tr><td class="paramname">sync</td><td>it's true when it's last finalized block </td></tr>
+    <tr><td class="paramname">synchronous_processing</td><td>wait for block finalization to finish </td></tr>
   </table>
   </dd>
 </dl>

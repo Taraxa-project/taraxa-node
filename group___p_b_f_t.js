@@ -51,7 +51,7 @@ var group___p_b_f_t =
       [ "countVotes_", "group___p_b_f_t.html#a5a518a3d602960194b8f9b2aac1bcc8d", null ],
       [ "doNextState_", "group___p_b_f_t.html#a1dd40ea7c26c6ecfe49ffd38e5dd0d8f", null ],
       [ "dposEligibleVoteCount_", "group___p_b_f_t.html#a234f1b78d5615f2cef4de3a49e3640a7", null ],
-      [ "finalize_", "group___p_b_f_t.html#a60e41e8bc4ac1571a0fd3716b1cbaf6c", null ],
+      [ "finalize_", "group___p_b_f_t.html#ac1d71b10c49fd1e56ec7348377040b64", null ],
       [ "firstFinish_", "group___p_b_f_t.html#a79eb344fe5773f2e7a1d024163d50836", null ],
       [ "generatePbftBlock", "group___p_b_f_t.html#abb0a0d8711ca0eefae4dc0a58499bc84", null ],
       [ "generateVote", "group___p_b_f_t.html#aea0d2ddeaa7f4de875554f800319adbc", null ],

@@ -291,7 +291,7 @@ var NAVTREEINDEX =
 "dir_56fb3dd690715c43355ba0c78ac963cf.html",
 "group___d_a_g.html#a24126b789e44798ff62e6f7504ee659f",
 "group___final_chain.html#a5dfe1f47f0ebe2356a2620d0a212e5ef",
-"group___p_b_f_t.html#a7578b1566e5fc13098ced3a5684bf0fb",
+"group___p_b_f_t.html#a7597210c35d856e95c4bab8d8cb88fa7",
 "group___vote.html#a3d581667afe8b9d385a343ff663e3881",
 "libdevcrypto_2_common_8h.html",
 "md_doc_coding_practices.html#autotoc_md118",
