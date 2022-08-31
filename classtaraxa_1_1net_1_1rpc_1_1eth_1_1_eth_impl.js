@@ -37,7 +37,6 @@ var classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl =
     [ "eth_newPendingTransactionFilter", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a0d93c2520c0f7bd1dd93db03a40b1055", null ],
     [ "eth_protocolVersion", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#aed25c24afb16b1e10f8fe4a708a2e138", null ],
     [ "eth_sendRawTransaction", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#af0ccfddd4846c6ce16ebaf11db0d45e3", null ],
-    [ "eth_sendTransaction", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a47b33945bba1ae52ba7402d2a6f3042f", null ],
     [ "eth_syncing", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#aada6e5a4520fce674416a0f0cf465389", null ],
     [ "eth_uninstallFilter", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a4f9802c0eebce11d875c0a07efdd459d", null ],
     [ "get_block_by_number", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a5f9330c07426ac45073e6cbf973293cf", null ],

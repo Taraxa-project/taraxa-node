@@ -134,7 +134,7 @@ var searchData=
   ['difficulty_5fmax_548',['difficulty_max',['../namespacetaraxa.html#a009be38daa65710a670613c7d9428e76',1,'taraxa::VdfParams']]],
   ['difficulty_5fmin_549',['difficulty_min',['../namespacetaraxa.html#aae336b6b543c9febf3efb2a8065d0a06',1,'taraxa::VdfParams']]],
   ['difficulty_5fstale_550',['difficulty_stale',['../namespacetaraxa.html#a755e4a0a6744a31b65b04cb9022d6a47',1,'taraxa::VdfParams']]],
-  ['dirnamefromfile_551',['dirNameFromFile',['../classtaraxa_1_1cli_1_1_config.html#a58f78c09ac4e1a13f4abcc9b0e7683a7',1,'taraxa::cli::Config']]],
+  ['dirnamefromfile_551',['dirNameFromFile',['../classtaraxa_1_1cli_1_1_config.html#a34933d60f04538b88a80bccff8f95bff',1,'taraxa::cli::Config']]],
   ['disable_5fblock_5frewards_552',['disable_block_rewards',['../namespacetaraxa_1_1state__api.html#aff6119dea4bee1b8391ecd7d7406b18a',1,'taraxa::state_api::BlockRewardsOptions']]],
   ['disable_5fcontract_5fdistribution_553',['disable_contract_distribution',['../namespacetaraxa_1_1state__api.html#abe0fd99d8fdc2e0d8a7257051d3226ee',1,'taraxa::state_api::BlockRewardsOptions']]],
   ['disable_5fmost_5frecent_5ftrie_5fvalue_5fviews_554',['disable_most_recent_trie_value_views',['../namespacetaraxa_1_1state__api.html#a1a9997e4f7fcc0fd915039afd6a5c31d',1,'taraxa::state_api::OptsDB']]],

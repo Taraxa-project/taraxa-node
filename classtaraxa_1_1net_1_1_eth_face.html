@@ -132,8 +132,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a81559391da1727b5b1820c1857a1c6bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a20cc5a5eca3ac1a90198507649fa0540"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_eth_face.html#a20cc5a5eca3ac1a90198507649fa0540">eth_getCodeI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
 <tr class="separator:a20cc5a5eca3ac1a90198507649fa0540"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a59e92e4d2d2ab560fd33a1e8c5df0689"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_eth_face.html#a59e92e4d2d2ab560fd33a1e8c5df0689">eth_sendTransactionI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
-<tr class="separator:a59e92e4d2d2ab560fd33a1e8c5df0689"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a30f6f05b3431ca28fc96bf23647cd02f"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_eth_face.html#a30f6f05b3431ca28fc96bf23647cd02f">eth_callI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
 <tr class="separator:a30f6f05b3431ca28fc96bf23647cd02f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a78f8ac3dd995e559701b5cd8685f981e"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_eth_face.html#a78f8ac3dd995e559701b5cd8685f981e">eth_getBlockByHashI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
@@ -202,8 +200,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a5814e3b3a65702b5757cfdb09bdcb932"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a931d33160d3b31dde99f6bacfc2adb9e"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_eth_face.html#a931d33160d3b31dde99f6bacfc2adb9e">eth_getCode</a> (const std::string &amp;param1, const std::string &amp;param2)=0</td></tr>
 <tr class="separator:a931d33160d3b31dde99f6bacfc2adb9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa8bd8002dfc72cc39f28ad807c5d8418"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_eth_face.html#aa8bd8002dfc72cc39f28ad807c5d8418">eth_sendTransaction</a> (const Json::Value &amp;param1)=0</td></tr>
-<tr class="separator:aa8bd8002dfc72cc39f28ad807c5d8418"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3e740297bce7064f37e1474b42d676ef"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_eth_face.html#a3e740297bce7064f37e1474b42d676ef">eth_call</a> (const Json::Value &amp;param1, const std::string &amp;param2)=0</td></tr>
 <tr class="separator:a3e740297bce7064f37e1474b42d676ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a316c9a59c7e8fcd1cd71e3fbb30897f5"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_eth_face.html#a316c9a59c7e8fcd1cd71e3fbb30897f5">eth_getBlockByHash</a> (const std::string &amp;param1, bool param2)=0</td></tr>
@@ -2403,70 +2399,6 @@ Additional Inherited Members</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">virtual void taraxa::net::EthFace::eth_sendRawTransactionI </td>
-          <td>(</td>
-          <td class="paramtype">const Json::Value &amp;&#160;</td>
-          <td class="paramname"><em>request</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Json::Value &amp;&#160;</td>
-          <td class="paramname"><em>response</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aa8bd8002dfc72cc39f28ad807c5d8418"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa8bd8002dfc72cc39f28ad807c5d8418">&#9670;&nbsp;</a></span>eth_sendTransaction()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual std::string taraxa::net::EthFace::eth_sendTransaction </td>
-          <td>(</td>
-          <td class="paramtype">const Json::Value &amp;&#160;</td>
-          <td class="paramname"><em>param1</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Implemented in <a class="el" href="classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a47b33945bba1ae52ba7402d2a6f3042f">taraxa::net::rpc::eth::EthImpl</a>.</p>
-
-</div>
-</div>
-<a id="a59e92e4d2d2ab560fd33a1e8c5df0689"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a59e92e4d2d2ab560fd33a1e8c5df0689">&#9670;&nbsp;</a></span>eth_sendTransactionI()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual void taraxa::net::EthFace::eth_sendTransactionI </td>
           <td>(</td>
           <td class="paramtype">const Json::Value &amp;&#160;</td>
           <td class="paramname"><em>request</em>, </td>

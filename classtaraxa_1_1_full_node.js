@@ -4,7 +4,7 @@ var classtaraxa_1_1_full_node =
       [ "have_leaked_shared_pointers", "classtaraxa_1_1_full_node.html#a9efe1ddf03968fdd27cf3f7695f0e51e", null ],
       [ "num_shared_pointers_to_check", "classtaraxa_1_1_full_node.html#a83af79dc95fcb4157054733caef7ab04", null ]
     ] ],
-    [ "jsonrpc_server_t", "classtaraxa_1_1_full_node.html#ac891a58548db8eea1e30d30d90f1fd83", null ],
+    [ "jsonrpc_server_t", "classtaraxa_1_1_full_node.html#a37e0e5f8aa698447bd1124d02c704d5b", null ],
     [ "shared_ptr_t", "classtaraxa_1_1_full_node.html#a243e55d1062eab5e66312cc71150892d", null ],
     [ "vrf_pk_t", "classtaraxa_1_1_full_node.html#a4ba9752006be512bfb5f14cce67f2288", null ],
     [ "vrf_proof_t", "classtaraxa_1_1_full_node.html#aaae8fc6f9aa9118f929d217258c62a27", null ],

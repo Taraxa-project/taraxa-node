@@ -11,6 +11,7 @@ var structtaraxa_1_1_full_node_config =
     [ "data_path", "structtaraxa_1_1_full_node_config.html#a864347d8c0df47defc19d10ff4733d21", null ],
     [ "db_config", "structtaraxa_1_1_full_node_config.html#aa39ce68f57655792c78dcdac574bca99", null ],
     [ "db_path", "structtaraxa_1_1_full_node_config.html#acffae136a1a4516b1e8935af67d63aa8", null ],
+    [ "enable_test_rpc", "structtaraxa_1_1_full_node_config.html#a249ce0e41d9efaeb1029617408c63c13", null ],
     [ "is_light_node", "structtaraxa_1_1_full_node_config.html#ad1e384f37a3fbb2470149c985e458e1f", null ],
     [ "json_file_name", "structtaraxa_1_1_full_node_config.html#ad62102338c52adccaa31fab23541fd68", null ],
     [ "kDefaultLightNodeHistoryDays", "structtaraxa_1_1_full_node_config.html#ae1416aa694548186e6ffa95dbf85d05a", null ],

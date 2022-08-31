@@ -65,8 +65,6 @@ var classtaraxa_1_1net_1_1_eth_face =
     [ "eth_protocolVersionI", "classtaraxa_1_1net_1_1_eth_face.html#aabd36d16c7ab40880242ea07fe613c27", null ],
     [ "eth_sendRawTransaction", "classtaraxa_1_1net_1_1_eth_face.html#a0c2b89cdfc863f189cecb992a5230826", null ],
     [ "eth_sendRawTransactionI", "classtaraxa_1_1net_1_1_eth_face.html#aca99ce9f8290b6901160afcba6caa0e3", null ],
-    [ "eth_sendTransaction", "classtaraxa_1_1net_1_1_eth_face.html#aa8bd8002dfc72cc39f28ad807c5d8418", null ],
-    [ "eth_sendTransactionI", "classtaraxa_1_1net_1_1_eth_face.html#a59e92e4d2d2ab560fd33a1e8c5df0689", null ],
     [ "eth_syncing", "classtaraxa_1_1net_1_1_eth_face.html#aaf914196bd6399b63207ec64827d7b9a", null ],
     [ "eth_syncingI", "classtaraxa_1_1net_1_1_eth_face.html#a0a677fb66daf13833a5417588178abb6", null ],
     [ "eth_uninstallFilter", "classtaraxa_1_1net_1_1_eth_face.html#a7e4fe638e397607a4470fa291f46deaa", null ],
