@@ -27,7 +27,7 @@ class NextVotesManager {
   /**
    * @brief Clear previous PBFT round next voting type votes
    */
-  void clear();
+  void clearVotes();
 
   /**
    * @brief Check if the vote has been in the map
@@ -54,7 +54,7 @@ class NextVotesManager {
    * @brief Get next voting type votes vote value
    * @return next voting type votes vote value and it's period
    */
-  std::pair<blk_hash_t, uint64_t> getVotedValue() const;
+  std::optional<std::pair<blk_hash_t, uint64_t>> getVotedValue() const;
 
   /**
    * @brief Get previous PBFT round all next voting type votes
@@ -107,8 +107,8 @@ class NextVotesManager {
   std::shared_ptr<FinalChain> final_chain_;
 
   bool enough_votes_for_null_block_hash_;
-  blk_hash_t voted_value_;  // For value is not null block hash
-  uint64_t voted_period_;
+  std::optional<std::pair<blk_hash_t, uint64_t /* period */>> voted_value_;
+
   // <voted PBFT block hash, next votes list that have exactly 2t+1 votes voted at the PBFT block hash>
   // only save votes == 2t+1 voted at same value in map and set
   std::unordered_map<blk_hash_t, std::vector<std::shared_ptr<Vote>>> next_votes_;
@@ -216,10 +216,11 @@ class VoteManager {
    * @brief Check if there are enough next voting type votes to set PBFT to a forward round within period
    * @param period is current pbft period
    * @param two_t_plus_one PBFT 2t+1 is 2/3 of PBFT sortition threshold and plus 1
-   * @return new round if there is enough next votes from prior round, otherwise returns 1 for being in initial round
-   * CONCERN: Was a std::optional, but why not just return 1 if we don't have any votes?  Now that we pass in period
+   * @return optional<pair<new round, 2t+1 next votes>> if there is enough next votes from prior round, otherwise
+   * returns empty optional
    */
-  uint64_t determineRoundFromPeriodAndVotes(uint64_t period, size_t two_t_plus_one);
+  std::optional<std::pair<uint64_t, std::vector<std::shared_ptr<Vote>>>> determineRoundFromPeriodAndVotes(
+      uint64_t period, size_t two_t_plus_one);
 
   // reward votes
   /**

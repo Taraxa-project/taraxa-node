@@ -843,8 +843,8 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   // Clear next votes components
   auto node1_next_votes_mgr = node1->getNextVotesManager();
   auto node2_next_votes_mgr = node2->getNextVotesManager();
-  node1_next_votes_mgr->clear();
-  node2_next_votes_mgr->clear();
+  node1_next_votes_mgr->clearVotes();
+  node2_next_votes_mgr->clearVotes();
 
   auto pbft_mgr1 = node1->getPbftManager();
   auto pbft_mgr2 = node2->getPbftManager();
@@ -916,8 +916,8 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   // Clear next votes components
   auto node1_next_votes_mgr = node1->getNextVotesManager();
   auto node2_next_votes_mgr = node2->getNextVotesManager();
-  node1_next_votes_mgr->clear();
-  node2_next_votes_mgr->clear();
+  node1_next_votes_mgr->clearVotes();
+  node2_next_votes_mgr->clearVotes();
 
   auto pbft_mgr1 = node1->getPbftManager();
   auto pbft_mgr2 = node2->getPbftManager();

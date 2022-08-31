@@ -626,10 +626,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   std::optional<std::pair<blk_hash_t, uint64_t /* period */>> soft_voted_block_for_round_{};
 
-  // TODO: was blk_hash_t last_cert_voted_value_ = NULL_BLOCK_HASH; and it was set to NULL_BLOCK_HASH in pushBlock
   std::optional<std::pair<blk_hash_t, uint64_t /* period */>> cert_voted_block_for_round_{};
 
-  std::pair<blk_hash_t, uint64_t /* period */> previous_round_next_voted_value_{NULL_BLOCK_HASH, 0};
+  std::optional<std::pair<blk_hash_t, uint64_t /* period */>> previous_round_next_voted_value_{};
   bool previous_round_next_voted_null_block_hash_ = false;
 
   // Period data for pbft block that is being currently cert voted for
