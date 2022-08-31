@@ -131,15 +131,15 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   /**
    * @brief Retrieves ghost path which is ordered list of non finalized pivot blocks for a specific source block
    * @param source source block
-   * @param ghost returned ordered blocks
+   * @return returned ordered blocks
    */
-  void getGhostPath(blk_hash_t const &source, std::vector<blk_hash_t> &ghost) const;
+  std::vector<blk_hash_t> getGhostPath(const blk_hash_t &source) const;
 
   /**
    * @brief Retrieves ghost path which is ordered list of non finalized pivot blocks for last anchor
-   * @param ghost returned ordered blocks
+   * @return returned ordered blocks
    */
-  void getGhostPath(std::vector<blk_hash_t> &ghost) const;  // get ghost path from last anchor
+  std::vector<blk_hash_t> getGhostPath() const;  // get ghost path from last anchor
 
   // ----- Total graph
   void drawTotalGraph(std::string const &str) const;

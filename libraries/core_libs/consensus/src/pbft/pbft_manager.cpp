@@ -353,7 +353,8 @@ void PbftManager::resetStep() {
 bool PbftManager::tryPushCertVotesBlock() {
   const auto [current_pbft_round, current_pbft_period] = getPbftRoundAndPeriod();
 
-  auto certified_block = vote_mgr_->getVotesBundle(current_pbft_round, current_pbft_period, 3, two_t_plus_one_);
+  auto certified_block =
+      vote_mgr_->getVotesBundle(current_pbft_round, current_pbft_period, certify_state, two_t_plus_one_);
   // Not enough cert votes found yet
   if (!certified_block.has_value()) {
     return false;
@@ -713,7 +714,7 @@ std::optional<std::pair<blk_hash_t, uint64_t>> PbftManager::getSoftVotedBlockFor
 
   auto [round, period] = getPbftRoundAndPeriod();
 
-  const auto voted_block_hash_with_soft_votes = vote_mgr_->getVotesBundle(round, period, 2, two_t_plus_one_);
+  const auto voted_block_hash_with_soft_votes = vote_mgr_->getVotesBundle(round, period, filter_state, two_t_plus_one_);
   if (voted_block_hash_with_soft_votes.has_value()) {
     // Have enough soft votes for a voted value
     auto batch = db_->createWriteBatch();
@@ -1019,7 +1020,7 @@ void PbftManager::secondFinish_() {
 
     assert(current_round_soft_votes_period == period);
 
-    auto soft_voted_block_votes = vote_mgr_->getVotesBundle(round, period, 2, two_t_plus_one_);
+    auto soft_voted_block_votes = vote_mgr_->getVotesBundle(round, period, filter_state, two_t_plus_one_);
     if (soft_voted_block_votes.has_value()) {
       // Have enough soft votes for a voting value
       auto net = network_.lock();
@@ -1302,8 +1303,7 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
     last_period_dag_anchor_block_hash = dag_genesis_block_hash_;
   }
 
-  std::vector<blk_hash_t> ghost;
-  dag_mgr_->getGhostPath(last_period_dag_anchor_block_hash, ghost);
+  auto ghost = dag_mgr_->getGhostPath(last_period_dag_anchor_block_hash);
   LOG(log_dg_) << "GHOST size " << ghost.size();
   // Looks like ghost never empty, at least include the last period dag anchor block
   if (ghost.empty()) {
@@ -1658,12 +1658,10 @@ std::pair<vec_blk_t, bool> PbftManager::compareBlocksAndRewardVotes_(std::shared
   auto last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   if (last_pbft_block_hash) {
     auto prev_pbft_block = pbft_chain_->getPbftBlockInChain(last_pbft_block_hash);
-
-    std::vector<blk_hash_t> ghost;
-    dag_mgr_->getGhostPath(prev_pbft_block.getPivotDagBlockHash(), ghost);
+    auto ghost = dag_mgr_->getGhostPath(prev_pbft_block.getPivotDagBlockHash());
     if (ghost.size() > 1 && anchor_hash != ghost[1]) {
       if (!checkBlockWeight(period_data_)) {
-        LOG(log_er_) << "PBFT block " << proposal_block_hash << " is overweighted";
+        LOG(log_er_) << "PBFT block " << proposal_block_hash << " weight exceeded max limit";
         return std::make_pair(std::move(dag_blocks_order), false);
       }
     }

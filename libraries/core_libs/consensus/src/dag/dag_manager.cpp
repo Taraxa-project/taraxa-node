@@ -215,10 +215,9 @@ std::optional<std::pair<blk_hash_t, std::vector<blk_hash_t>>> DagManager::getLat
 std::pair<blk_hash_t, std::vector<blk_hash_t>> DagManager::getFrontier() const {
   blk_hash_t pivot;
   std::vector<blk_hash_t> tips;
-  std::vector<blk_hash_t> pivot_chain;
 
   auto last_pivot = anchor_;
-  pivot_tree_->getGhostPath(last_pivot, pivot_chain);
+  auto pivot_chain = pivot_tree_->getGhostPath(last_pivot);
   if (!pivot_chain.empty()) {
     pivot = pivot_chain.back();
     total_dag_->getLeaves(tips);
@@ -238,16 +237,20 @@ void DagManager::updateFrontier() {
   }
 }
 
-void DagManager::getGhostPath(blk_hash_t const &source, std::vector<blk_hash_t> &ghost) const {
+std::vector<blk_hash_t> DagManager::getGhostPath(const blk_hash_t &source) const {
+  // No need to check ghost path for NULL_BLOCK_HASH
+  if (source == NULL_BLOCK_HASH) {
+    return {};
+  }
+
   SharedLock lock(mutex_);
-  pivot_tree_->getGhostPath(source, ghost);
+  return pivot_tree_->getGhostPath(source);
 }
 
-void DagManager::getGhostPath(std::vector<blk_hash_t> &ghost) const {
+std::vector<blk_hash_t> DagManager::getGhostPath() const {
   SharedLock lock(mutex_);
   auto last_pivot = anchor_;
-  ghost.clear();
-  pivot_tree_->getGhostPath(last_pivot, ghost);
+  return pivot_tree_->getGhostPath(last_pivot);
 }
 
 // return {block order}, for pbft-pivot-blk proposing
