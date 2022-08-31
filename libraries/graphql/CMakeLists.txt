@@ -80,7 +80,6 @@ add_dependencies(graphql regenerate_schema_files)
 target_include_directories(graphql PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/gen)
 target_include_directories(graphql PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
 
-
 target_link_libraries(graphql PUBLIC cppgraphqlgen::graphqlservice cppgraphqlgen::graphqljson core_libs)
 
 install(TARGETS graphql

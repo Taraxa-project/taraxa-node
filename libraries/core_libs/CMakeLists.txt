@@ -33,11 +33,13 @@ target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/network/
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/node/include)
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/storage/include)
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+
 target_link_libraries(core_libs PUBLIC
     cli
     pbft_block
     taraxa-evm
     p2p
+    graphql
     CONAN_PKG::libjson-rpc-cpp
     CONAN_PKG::rocksdb
 )

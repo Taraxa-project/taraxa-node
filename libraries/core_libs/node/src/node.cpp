@@ -6,6 +6,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
 #include <chrono>
+#include <graphql/ws_server.hpp>
 #include <stdexcept>
 
 #include "dag/block_proposer.hpp"
@@ -213,6 +214,13 @@ void FullNode::start() {
           }
         },
         *rpc_thread_pool_);
+  }
+
+  if (conf_.rpc->gql_ws_port) {
+    graphql_ws_ = std::make_shared<net::GraphQlWsServer>(
+        rpc_thread_pool_->unsafe_get_io_context(),
+        boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->gql_ws_port}, getAddress());
+    // graphql_ws_->run();
   }
 
   // GasPricer updater
