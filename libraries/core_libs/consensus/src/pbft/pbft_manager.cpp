@@ -1618,23 +1618,12 @@ std::pair<vec_blk_t, bool> PbftManager::compareBlocksAndRewardVotes_(std::shared
     }
     period_data_.dag_blocks.emplace_back(std::move(*dag_block));
   }
+
+  const auto transactions = trx_mgr_->getNonfinalizedTrx(transactions_to_query, true /*sorted*/);
+
   std::vector<trx_hash_t> non_finalized_transactions;
-  auto trx_finalized = db_->transactionsFinalized(transactions_to_query);
-  for (uint32_t i = 0; i < trx_finalized.size(); i++) {
-    if (!trx_finalized[i]) {
-      non_finalized_transactions.emplace_back(transactions_to_query[i]);
-    }
-  }
-
-  const auto transactions = trx_mgr_->getNonfinalizedTrx(non_finalized_transactions, true /*sorted*/);
-  if (transactions.size() < non_finalized_transactions.size()) {
-    LOG(log_er_) << "Missing transactions for proposed PBFT block " << proposal_block_hash;
-    return std::make_pair(std::move(dag_blocks_order), false);
-  }
-
-  non_finalized_transactions.clear();
-
   period_data_.transactions.reserve(transactions.size());
+  non_finalized_transactions.reserve(transactions.size());
   for (const auto &trx : transactions) {
     non_finalized_transactions.push_back(trx->getHash());
     period_data_.transactions.push_back(trx);
