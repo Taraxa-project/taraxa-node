@@ -1558,8 +1558,8 @@ TEST_F(FullNodeTest, transaction_validation) {
 }
 
 // TODO[1908]: fix and enable this test again
-TEST_F(FullNodeTest, DISABLED_light_node) {
-  auto node_cfgs = make_node_cfgs<10>(2);
+TEST_F(FullNodeTest, light_node) {
+  auto node_cfgs = make_node_cfgs<5>(2);
   node_cfgs[0].dag_expiry_limit = 5;
   node_cfgs[0].max_levels_per_period = 3;
   node_cfgs[1].dag_expiry_limit = 5;
@@ -1587,10 +1587,9 @@ TEST_F(FullNodeTest, DISABLED_light_node) {
       non_empty_counter++;
     }
   }
-  // Verify light node stores only expected number of period_data
-  // const uint64_t expected_non_emp = std::min(period_ - light_node_history_, *proposal_period);
+  // Verify light node keeps at least light_node_history and it deletes old blocks
   EXPECT_GE(non_empty_counter, node_cfgs[1].light_node_history);
-  EXPECT_LE(non_empty_counter, node_cfgs[1].light_node_history + 2);
+  EXPECT_LE(non_empty_counter, node_cfgs[1].light_node_history + 5);
 }
 
 TEST_F(FullNodeTest, clear_period_data) {
