@@ -2589,8 +2589,8 @@ Collaboration diagram for taraxa::PivotTree:</div>
 <tr class="separator:ad44986e7a4cd61e1aa2d8a20b4b34938"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1c835de4baaf2489806fdfb6fb57b959"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___d_a_g.html#classtaraxa_1_1_pivot_tree">PivotTree</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a1c835de4baaf2489806fdfb6fb57b959">operator=</a> (<a class="el" href="group___d_a_g.html#classtaraxa_1_1_pivot_tree">PivotTree</a> &amp;&amp;)=default</td></tr>
 <tr class="separator:a1c835de4baaf2489806fdfb6fb57b959"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4265c0e66e044eadf25a80c5a02f53ea"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a4265c0e66e044eadf25a80c5a02f53ea">getGhostPath</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;vertex, std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &amp;pivot_chain) const</td></tr>
-<tr class="separator:a4265c0e66e044eadf25a80c5a02f53ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a39272d0b73b50342006e8599b580ecef"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a39272d0b73b50342006e8599b580ecef">getGhostPath</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;vertex) const</td></tr>
+<tr class="separator:a39272d0b73b50342006e8599b580ecef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_group___d_a_g"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_group___d_a_g')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag">taraxa::Dag</a></td></tr>
 <tr class="memitem:a7def37042439fa3c713ea8861d40b199 inherit pub_methods_group___d_a_g"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a7def37042439fa3c713ea8861d40b199">Dag</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;dag_genesis_block_hash, <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> node_addr)</td></tr>
 <tr class="separator:a7def37042439fa3c713ea8861d40b199 inherit pub_methods_group___d_a_g"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2796,28 +2796,18 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h4 class="groupheader">Member Function Documentation</h4>
-<a id="a4265c0e66e044eadf25a80c5a02f53ea"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4265c0e66e044eadf25a80c5a02f53ea">&#9670;&nbsp;</a></span>getGhostPath()</h2>
+<a id="a39272d0b73b50342006e8599b580ecef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a39272d0b73b50342006e8599b580ecef">&#9670;&nbsp;</a></span>getGhostPath()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void taraxa::PivotTree::getGhostPath </td>
+          <td class="memname">std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; taraxa::PivotTree::getGhostPath </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;&#160;</td>
-          <td class="paramname"><em>vertex</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>pivot_chain</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>vertex</em></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3244,12 +3234,12 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr class="separator:a94f485fa25235a24f8ce24aaf061fa6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aff9a70ff9192904a1c033c6ecb3c89c6"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aff9a70ff9192904a1c033c6ecb3c89c6">getLatestPivotAndTips</a> () const</td></tr>
 <tr class="separator:aff9a70ff9192904a1c033c6ecb3c89c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1fd6e17ecfef8a80f9c0d6b9629229c9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a1fd6e17ecfef8a80f9c0d6b9629229c9">getGhostPath</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;source, std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &amp;ghost) const</td></tr>
-<tr class="memdesc:a1fd6e17ecfef8a80f9c0d6b9629229c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves ghost path which is ordered list of non finalized pivot blocks for a specific source block.  <a href="group___d_a_g.html#a1fd6e17ecfef8a80f9c0d6b9629229c9">More...</a><br /></td></tr>
-<tr class="separator:a1fd6e17ecfef8a80f9c0d6b9629229c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a51b9b81163cb9058c9303e2833b70b3a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a51b9b81163cb9058c9303e2833b70b3a">getGhostPath</a> (std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &amp;ghost) const</td></tr>
-<tr class="memdesc:a51b9b81163cb9058c9303e2833b70b3a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves ghost path which is ordered list of non finalized pivot blocks for last anchor.  <a href="group___d_a_g.html#a51b9b81163cb9058c9303e2833b70b3a">More...</a><br /></td></tr>
-<tr class="separator:a51b9b81163cb9058c9303e2833b70b3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8c17782f68f11b4d687028612dbc4ae8"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a8c17782f68f11b4d687028612dbc4ae8">getGhostPath</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;source) const</td></tr>
+<tr class="memdesc:a8c17782f68f11b4d687028612dbc4ae8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves ghost path which is ordered list of non finalized pivot blocks for a specific source block.  <a href="group___d_a_g.html#a8c17782f68f11b4d687028612dbc4ae8">More...</a><br /></td></tr>
+<tr class="separator:a8c17782f68f11b4d687028612dbc4ae8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acce75815fdea5fbf172cc96103c517ad"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#acce75815fdea5fbf172cc96103c517ad">getGhostPath</a> () const</td></tr>
+<tr class="memdesc:acce75815fdea5fbf172cc96103c517ad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves ghost path which is ordered list of non finalized pivot blocks for last anchor.  <a href="group___d_a_g.html#acce75815fdea5fbf172cc96103c517ad">More...</a><br /></td></tr>
+<tr class="separator:acce75815fdea5fbf172cc96103c517ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4ab4fb411fe6447b8a556a53c1ea700c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a4ab4fb411fe6447b8a556a53c1ea700c">drawTotalGraph</a> (std::string const &amp;str) const</td></tr>
 <tr class="separator:a4ab4fb411fe6447b8a556a53c1ea700c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6358aeccb8b0ed554c321dda03a02768"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a6358aeccb8b0ed554c321dda03a02768">drawPivotGraph</a> (std::string const &amp;str) const</td></tr>
@@ -4011,28 +4001,38 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
-<a id="a1fd6e17ecfef8a80f9c0d6b9629229c9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1fd6e17ecfef8a80f9c0d6b9629229c9">&#9670;&nbsp;</a></span>getGhostPath() <span class="overload">[1/2]</span></h2>
+<a id="acce75815fdea5fbf172cc96103c517ad"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acce75815fdea5fbf172cc96103c517ad">&#9670;&nbsp;</a></span>getGhostPath() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void taraxa::DagManager::getGhostPath </td>
+          <td class="memname">std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; taraxa::DagManager::getGhostPath </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;&#160;</td>
-          <td class="paramname"><em>source</em>, </td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
         </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Retrieves ghost path which is ordered list of non finalized pivot blocks for last anchor. </p>
+<dl class="section return"><dt>Returns</dt><dd>returned ordered blocks </dd></dl>
+
+</div>
+</div>
+<a id="a8c17782f68f11b4d687028612dbc4ae8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8c17782f68f11b4d687028612dbc4ae8">&#9670;&nbsp;</a></span>getGhostPath() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
         <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>ghost</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
+          <td class="memname">std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; taraxa::DagManager::getGhostPath </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>source</em></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -4041,36 +4041,10 @@ Collaboration diagram for taraxa::DagManager:</div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">source</td><td>source block </td></tr>
-    <tr><td class="paramname">ghost</td><td>returned ordered blocks </td></tr>
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a id="a51b9b81163cb9058c9303e2833b70b3a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a51b9b81163cb9058c9303e2833b70b3a">&#9670;&nbsp;</a></span>getGhostPath() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::DagManager::getGhostPath </td>
-          <td>(</td>
-          <td class="paramtype">std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>ghost</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Retrieves ghost path which is ordered list of non finalized pivot blocks for last anchor. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">ghost</td><td>returned ordered blocks </td></tr>
-  </table>
-  </dd>
-</dl>
+<dl class="section return"><dt>Returns</dt><dd>returned ordered blocks </dd></dl>
 
 </div>
 </div>
