@@ -229,6 +229,8 @@ void TransactionManager::recoverNonfinalizedTransactions() {
       // line can be removed or replaced with an assert
       db_->removeTransactionToBatch(trx_hash, write_batch);
     } else {
+      // Cache sender now by caling getSender since getting sender later on proposing blocks can affect performance
+      trxs[i]->getSender();
       nonfinalized_transactions_in_dag_.emplace(trx_hash, std::move(trxs[i]));
     }
   }
