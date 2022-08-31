@@ -22,7 +22,7 @@
 #include "network/rpc/RpcServer.h"
 #include "network/rpc/TaraxaFace.h"
 #include "network/rpc/TestFace.h"
-#include "network/rpc/WSServer.h"
+#include "network/ws_server.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "storage/storage.hpp"
 #include "transaction/transaction.hpp"

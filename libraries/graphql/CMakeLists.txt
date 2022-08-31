@@ -52,7 +52,7 @@ set(HEADERS
     include/graphql/query.hpp
     include/graphql/transaction.hpp
     include/graphql/mutation.hpp
-    # include/graphql/ws_server.hpp
+    include/graphql/ws_server.hpp
     # include/graphql/http_processor.hpp
     include/graphql/subscription.hpp
     include/graphql/types/dag_block.hpp
@@ -67,7 +67,7 @@ set(SOURCES
     src/query.cpp
     src/transaction.cpp
     src/mutation.cpp
-    # src/ws_server.cpp
+    src/ws_server.cpp
     # src/http_processor.cpp
     src/subscription.cpp
     src/types/dag_block.cpp

@@ -1,4 +1,4 @@
-#include "WSServer.h"
+#include "network/ws_server.hpp"
 
 #include <json/value.h>
 #include <json/writer.h>
@@ -7,7 +7,7 @@
 #include "common/jsoncpp.hpp"
 #include "common/util.hpp"
 #include "config/config.hpp"
-#include "eth/Eth.h"
+#include "network/rpc/eth/Eth.h"
 
 namespace taraxa::net {
 
@@ -52,58 +52,16 @@ void WSSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
 
   LOG(log_tr_) << "WS READ " << ((char *)buffer_.data().data());
 
-  Json::Value json;
-  try {
-    json = util::parse_json({(char *)buffer_.data().data(), buffer_.data().size()});
-  } catch (Json::Exception const &e) {
-    LOG(log_er_) << "Failed to parse" << e.what();
-    closed_ = true;
-    return;
-  }
+  const std::string_view str_view(static_cast<const char *>(buffer_.data().data()), buffer_.size());
+  const auto response = processRequest(str_view);
 
-  auto id = json.get("id", 0);
-  Json::Value json_response;
-  auto method = json.get("method", "");
-  std::string response;
-  if (method == "eth_subscribe") {
-    auto params = json.get("params", Json::Value(Json::Value(Json::arrayValue)));
-    json_response["id"] = id;
-    json_response["jsonrpc"] = "2.0";
-    subscription_id_++;
-    if (params.size() > 0) {
-      if (params[0].asString() == "newHeads") {
-        new_heads_subscription_ = subscription_id_;
-      } else if (params[0].asString() == "newPendingTransactions") {
-        new_transactions_subscription_ = subscription_id_;
-      } else if (params[0].asString() == "newDagBlocks") {
-        new_dag_blocks_subscription_ = subscription_id_;
-      } else if (params[0].asString() == "newDagBlocksFinalized") {
-        new_dag_block_finalized_subscription_ = subscription_id_;
-      } else if (params[0].asString() == "newPbftBlocks") {
-        new_pbft_block_executed_subscription_ = subscription_id_;
-      }
-    }
-    json_response["result"] = dev::toJS(subscription_id_);
-    response = util::to_string(json_response);
-    ws_.text(ws_.got_text());
-    LOG(log_tr_) << "WS WRITE " << response.c_str();
-  } else {
-    auto ws_server = ws_server_.lock();
-    if (ws_server) {
-      auto handler = ws_server->GetHandler();
-      if (handler != NULL) {
-        LOG(log_tr_) << "WS Read: " << (char *)buffer_.data().data();
-        handler->HandleRequest((char *)buffer_.data().data(), response);
-      }
-      LOG(log_tr_) << "WS Write: " << response;
-    }
-  }
   auto executor = ws_.get_executor();
   if (!executor) {
     LOG(log_tr_) << "Executor missing - WS closed";
     closed_ = true;
     return;
   }
+
   boost::asio::post(executor, boost::bind(&WSSession::writeImpl, this, response));
   // Clear the buffer
   buffer_.consume(buffer_.size());
@@ -264,7 +222,7 @@ void WSSession::close() {
 }
 
 WSServer::WSServer(boost::asio::io_context &ioc, tcp::endpoint endpoint, addr_t node_addr)
-    : ioc_(ioc), acceptor_(ioc), node_addr_(node_addr) {
+    : ioc_(ioc), acceptor_(ioc), node_addr_(std::move(node_addr)) {
   LOG_OBJECTS_CREATE("RPC");
   beast::error_code ec;
 
@@ -336,7 +294,7 @@ void WSServer::on_accept(beast::error_code ec, tcp::socket socket) {
       }
     }
     // Create the session and run it
-    sessions.push_back(std::make_shared<WSSession>(std::move(socket), node_addr_, shared_from_this()));
+    sessions.push_back(createSession(std::move(socket)));
     sessions.back()->run();
   }
 

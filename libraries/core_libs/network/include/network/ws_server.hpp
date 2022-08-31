@@ -46,6 +46,9 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   void do_read();
   void on_read(beast::error_code ec, std::size_t bytes_transferred);
   void on_write_no_read(beast::error_code ec, std::size_t bytes_transferred);
+
+  virtual std::string processRequest(const std::string_view& request) = 0;
+
   void newEthBlock(::taraxa::final_chain::BlockHeader const& payload);
   void newDagBlock(DagBlock const& blk);
   void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
@@ -54,7 +57,7 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
   bool is_closed() { return closed_; }
   LOG_OBJECTS_DEFINE
 
- private:
+ protected:
   void writeImpl(const std::string& message);
   void write(const std::string& message);
   std::deque<std::string> queue_messages_;
@@ -77,7 +80,7 @@ class WSSession : public std::enable_shared_from_this<WSSession> {
 class WSServer : public std::enable_shared_from_this<WSServer>, public jsonrpc::AbstractServerConnector {
  public:
   WSServer(boost::asio::io_context& ioc, tcp::endpoint endpoint, addr_t node_addr);
-  ~WSServer();
+  virtual ~WSServer();
 
   WSServer(const WSServer&) = delete;
   WSServer(WSServer&&) = delete;
@@ -92,6 +95,8 @@ class WSServer : public std::enable_shared_from_this<WSServer>, public jsonrpc::
   void newPbftBlockExecuted(PbftBlock const& sche_blk, std::vector<blk_hash_t> const& finalized_dag_blk_hashes);
   void newPendingTransaction(trx_hash_t const& trx_hash);
 
+  virtual std::shared_ptr<WSSession> createSession(tcp::socket&& socket) = 0;
+
   virtual bool StartListening() { return true; }
   virtual bool StopListening() { return true; }
 
@@ -104,6 +109,8 @@ class WSServer : public std::enable_shared_from_this<WSServer>, public jsonrpc::
   std::list<std::shared_ptr<WSSession>> sessions;
   std::atomic<bool> stopped_ = false;
   boost::shared_mutex sessions_mtx_;
+
+ protected:
   addr_t node_addr_;
 };
 

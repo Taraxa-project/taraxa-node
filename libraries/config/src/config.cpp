@@ -157,6 +157,16 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
       rpc->ws_port = ws_port.asUInt();
     }
 
+    // graphql http port
+    if (auto http_port = getConfigData(rpc_config, {"gql_http_port"}, true); !http_port.isNull()) {
+      rpc->gql_http_port = http_port.asUInt();
+    }
+
+    // graphql websocket port
+    if (auto ws_port = getConfigData(rpc_config, {"gql_ws_port"}, true); !ws_port.isNull()) {
+      rpc->gql_ws_port = ws_port.asUInt();
+    }
+
     // number of threads processing rpc calls
     if (auto threads_num = getConfigData(rpc_config, {"threads_num"}, true); !threads_num.isNull()) {
       rpc->threads_num = threads_num.asUInt();

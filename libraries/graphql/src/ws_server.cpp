@@ -5,19 +5,19 @@
 #include <json/value.h>
 #include <json/writer.h>
 #include <libdevcore/CommonJS.h>
-#include <libweb3jsonrpc/JsonHelper.h>
 
+#include "common/jsoncpp.hpp"
+#include "common/util.hpp"
 #include "config/config.hpp"
 #include "graphql/mutation.hpp"
 #include "graphql/query.hpp"
 #include "graphql/subscription.hpp"
 #include "graphqlservice/GraphQLService.h"
 #include "graphqlservice/JSONResponse.h"
-#include "util/util.hpp"
 
 namespace taraxa::net {
 
-std::string GraphQlWSSession::processRequest(const std::string& request) {
+std::string GraphQlWSSession::processRequest(const std::string_view& /*request*/) {
   //  static auto q = std::make_shared<graphql::taraxa::Query>(ws_server_.lock()->getFinalChain(), nullptr, 0);
   //  static auto mutation = std::make_shared<graphql::taraxa::Mutation>();
   //  static auto subscription = std::make_shared<graphql::taraxa::Subscription>();
@@ -79,8 +79,7 @@ void GraphQlWSSession::triggerTestSubscribtion(unsigned int number) {
   params["result"] = Json::Value(number);
   params["subscription"] = dev::toJS(0);
   res["params"] = params;
-  Json::FastWriter fastWriter;
-  std::string response = fastWriter.write(res);
+  const auto response = util::to_string(res);
   ws_.text(ws_.got_text());
   LOG(log_tr_) << "triggerTestSubscribtion: WS WRITE " << response.c_str();
   auto executor = ws_.get_executor();
@@ -91,11 +90,11 @@ void GraphQlWSSession::triggerTestSubscribtion(unsigned int number) {
   }
 
   LOG(log_tr_) << "***triggerTestSubscribtion: Before executor.post ";
-  executor.post(boost::bind(&GraphQlWSSession::writeImpl, this, response), std::allocator<void>());
+  boost::asio::post(executor, boost::bind(&GraphQlWSSession::writeImpl, this, response));
   LOG(log_tr_) << "***triggerTestSubscribtion: After executors.post ";
 }
 
-std::shared_ptr<WSSession> GraphQlWsServer::createSession(tcp::socket& socket) {
+std::shared_ptr<WSSession> GraphQlWsServer::createSession(tcp::socket&& socket) {
   return std::make_shared<GraphQlWSSession>(std::move(socket), node_addr_, shared_from_this());
 }
 

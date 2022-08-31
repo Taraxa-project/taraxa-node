@@ -16,6 +16,7 @@
 #include "network/rpc/Taraxa.h"
 #include "network/rpc/Test.h"
 #include "network/rpc/eth/Eth.h"
+#include "network/rpc/jsonrpc_ws_server.hpp"
 #include "network/rpc/rpc_error_handler.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "transaction/gas_pricer.hpp"
@@ -173,7 +174,7 @@ void FullNode::start() {
       jsonrpc_http_->StartListening();
     }
     if (conf_.rpc->ws_port) {
-      jsonrpc_ws_ = std::make_shared<net::WSServer>(
+      jsonrpc_ws_ = std::make_shared<net::JsonRpcWsServer>(
           rpc_thread_pool_->unsafe_get_io_context(),
           boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->ws_port}, getAddress());
       jsonrpc_api_->addConnector(jsonrpc_ws_);
