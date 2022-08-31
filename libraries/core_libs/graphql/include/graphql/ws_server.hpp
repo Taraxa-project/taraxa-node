@@ -4,18 +4,17 @@
 
 namespace taraxa::net {
 
-class GraphQlWSSession final : public WSSession {
+class GraphQlWsSession final : public WsSession {
  public:
-  using WSSession::WSSession;
+  using WsSession::WsSession;
   std::string processRequest(const std::string_view& request) override;
-
   void triggerTestSubscribtion(unsigned int number);
 };
 
-class GraphQlWsServer final : public WSServer {
+class GraphQlWsServer final : public WsServer {
  public:
-  using WSServer::WSServer;
-  std::shared_ptr<WSSession> createSession(tcp::socket&& socket) override;
+  using WsServer::WsServer;
+  std::shared_ptr<WsSession> createSession(tcp::socket&& socket) override;
 };
 
 }  // namespace taraxa::net

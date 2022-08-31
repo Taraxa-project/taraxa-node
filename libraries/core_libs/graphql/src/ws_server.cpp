@@ -17,7 +17,7 @@
 
 namespace taraxa::net {
 
-std::string GraphQlWSSession::processRequest(const std::string_view& /*request*/) {
+std::string GraphQlWsSession::processRequest(const std::string_view& /*request*/) {
   //  static auto q = std::make_shared<graphql::taraxa::Query>(ws_server_.lock()->getFinalChain(), nullptr, 0);
   //  static auto mutation = std::make_shared<graphql::taraxa::Mutation>();
   //  static auto subscription = std::make_shared<graphql::taraxa::Subscription>();
@@ -72,7 +72,7 @@ std::string GraphQlWSSession::processRequest(const std::string_view& /*request*/
   return graphql::response::toJSON(graphql::response::Value("unimplemented"));
 }
 
-void GraphQlWSSession::triggerTestSubscribtion(unsigned int number) {
+void GraphQlWsSession::triggerTestSubscribtion(unsigned int number) {
   Json::Value res, params;
   res["graphql"] = "2.0";
   res["method"] = "graphql_subscription";
@@ -90,12 +90,12 @@ void GraphQlWSSession::triggerTestSubscribtion(unsigned int number) {
   }
 
   LOG(log_tr_) << "***triggerTestSubscribtion: Before executor.post ";
-  boost::asio::post(executor, boost::bind(&GraphQlWSSession::writeImpl, this, response));
+  boost::asio::post(executor, boost::bind(&GraphQlWsSession::writeImpl, this, response));
   LOG(log_tr_) << "***triggerTestSubscribtion: After executors.post ";
 }
 
-std::shared_ptr<WSSession> GraphQlWsServer::createSession(tcp::socket&& socket) {
-  return std::make_shared<GraphQlWSSession>(std::move(socket), node_addr_, shared_from_this());
+std::shared_ptr<WsSession> GraphQlWsServer::createSession(tcp::socket&& socket) {
+  return std::make_shared<GraphQlWsSession>(std::move(socket), node_addr_, shared_from_this());
 }
 
 }  // namespace taraxa::net

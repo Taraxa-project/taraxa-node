@@ -7,5 +7,3 @@ add_subdirectory(types)
 add_subdirectory(vdf)
 
 add_subdirectory(aleth)
-
-add_subdirectory(graphql)

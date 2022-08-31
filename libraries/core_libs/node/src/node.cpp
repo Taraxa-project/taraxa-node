@@ -6,12 +6,12 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/filesystem.hpp>
 #include <chrono>
-#include <graphql/ws_server.hpp>
 #include <stdexcept>
 
 #include "dag/block_proposer.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block.hpp"
+#include "graphql/ws_server.hpp"
 #include "key_manager/key_manager.hpp"
 #include "network/rpc/Net.h"
 #include "network/rpc/Taraxa.h"

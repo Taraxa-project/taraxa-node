@@ -14,7 +14,7 @@
 
 namespace taraxa::net {
 
-std::string JsonRpcWSSession::processRequest(const std::string_view &request) {
+std::string JsonRpcWsSession::processRequest(const std::string_view &request) {
   Json::Value json;
   try {
     json = util::parse_json(request);
@@ -64,8 +64,8 @@ std::string JsonRpcWSSession::processRequest(const std::string_view &request) {
   return response;
 }
 
-std::shared_ptr<WSSession> JsonRpcWsServer::createSession(tcp::socket &&socket) {
-  return std::make_shared<JsonRpcWSSession>(std::move(socket), node_addr_, shared_from_this());
+std::shared_ptr<WsSession> JsonRpcWsServer::createSession(tcp::socket &&socket) {
+  return std::make_shared<JsonRpcWsSession>(std::move(socket), node_addr_, shared_from_this());
 }
 
 }  // namespace taraxa::net

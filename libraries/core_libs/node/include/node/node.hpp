@@ -78,8 +78,8 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<KeyManager> key_manager_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<net::RpcServer> jsonrpc_http_;
-  std::shared_ptr<net::WSServer> jsonrpc_ws_;
-  std::shared_ptr<net::WSServer> graphql_ws_;
+  std::shared_ptr<net::WsServer> jsonrpc_ws_;
+  std::shared_ptr<net::WsServer> graphql_ws_;
   std::unique_ptr<jsonrpc_server_t> jsonrpc_api_;
 
   // logging

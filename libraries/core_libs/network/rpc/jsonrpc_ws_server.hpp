@@ -4,16 +4,16 @@
 
 namespace taraxa::net {
 
-class JsonRpcWSSession final : public WSSession {
+class JsonRpcWsSession final : public WsSession {
  public:
-  using WSSession::WSSession;
+  using WsSession::WsSession;
   std::string processRequest(const std::string_view& request) override;
 };
 
-class JsonRpcWsServer final : public WSServer {
+class JsonRpcWsServer final : public WsServer {
  public:
-  using WSServer::WSServer;
-  std::shared_ptr<WSSession> createSession(tcp::socket&& socket) override;
+  using WsServer::WsServer;
+  std::shared_ptr<WsSession> createSession(tcp::socket&& socket) override;
 };
 
 }  // namespace taraxa::net
