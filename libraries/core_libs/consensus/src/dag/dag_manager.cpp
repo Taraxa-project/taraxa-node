@@ -161,8 +161,8 @@ std::pair<bool, std::vector<blk_hash_t>> DagManager::addDagBlock(DagBlock &&blk,
         trx_mgr_->saveTransactionsFromDagBlock(trxs);
         // Save the dag block
         db_->saveDagBlock(blk);
-        seen_blocks_.insert(blk.getHash(), blk);
       }
+      seen_blocks_.insert(blk.getHash(), blk);
       auto pivot_hash = blk.getPivot();
 
       std::vector<blk_hash_t> tips = blk.getTips();

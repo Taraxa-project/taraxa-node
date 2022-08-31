@@ -1404,16 +1404,10 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
       }
     }
   }
-  std::vector<trx_hash_t> non_finalized_transactions;
-  auto trx_finalized = db_->transactionsFinalized(trx_hashes);
-  for (uint32_t i = 0; i < trx_finalized.size(); i++) {
-    if (!trx_finalized[i]) {
-      non_finalized_transactions.emplace_back(trx_hashes[i]);
-    }
-  }
 
-  const auto transactions = trx_mgr_->getNonfinalizedTrx(non_finalized_transactions, true /*sorted*/);
-  non_finalized_transactions.clear();
+  std::vector<trx_hash_t> non_finalized_transactions;
+  non_finalized_transactions.reserve(trx_hashes.size());
+  const auto transactions = trx_mgr_->getNonfinalizedTrx(trx_hashes, true /*sorted*/);
   std::transform(transactions.begin(), transactions.end(), std::back_inserter(non_finalized_transactions),
                  [](const auto &t) { return t->getHash(); });
 
