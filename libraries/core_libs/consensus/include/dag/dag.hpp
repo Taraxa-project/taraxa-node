@@ -117,7 +117,7 @@ class PivotTree : public Dag {
   using Dag::vertex_index_map_const_t;
   using Dag::vertex_t;
 
-  void getGhostPath(blk_hash_t const &vertex, std::vector<blk_hash_t> &pivot_chain) const;
+  std::vector<blk_hash_t> getGhostPath(const blk_hash_t &vertex) const;
 };
 class DagBuffer;
 class FullNode;

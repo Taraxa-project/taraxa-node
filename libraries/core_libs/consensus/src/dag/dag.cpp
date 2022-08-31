@@ -208,15 +208,16 @@ bool Dag::reachable(vertex_t const &from, vertex_t const &to) const {
  * 3. collect path
  */
 
-void PivotTree::getGhostPath(blk_hash_t const &vertex, std::vector<blk_hash_t> &pivot_chain) const {
-  std::vector<vertex_t> post_order;
+std::vector<blk_hash_t> PivotTree::getGhostPath(const blk_hash_t &vertex) const {
   vertex_t root = graph_.vertex(vertex);
 
   if (root == graph_.null_vertex()) {
     LOG(log_wr_) << "Cannot find vertex (getGhostPath) " << vertex << std::endl;
-    return;
+    return {};
   }
-  pivot_chain.clear();
+
+  std::vector<blk_hash_t> pivot_chain;
+  std::vector<vertex_t> post_order;
 
   // first step: post order traversal
   std::stack<vertex_t> st;
@@ -273,5 +274,7 @@ void PivotTree::getGhostPath(blk_hash_t const &vertex, std::vector<blk_hash_t> &
     else
       root = next;
   }
+
+  return pivot_chain;
 }
 }  // namespace taraxa

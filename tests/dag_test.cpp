@@ -124,8 +124,8 @@ TEST_F(DagTest, genesis_get_pivot) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");
   taraxa::PivotTree graph(GENESIS, addr_t());
 
-  std::vector<blk_hash_t> pivot_chain, leaves;
-  graph.getGhostPath(GENESIS, pivot_chain);
+  std::vector<blk_hash_t> leaves;
+  auto pivot_chain = graph.getGhostPath(GENESIS);
   EXPECT_EQ(pivot_chain.size(), 1);
   graph.getLeaves(leaves);
   EXPECT_EQ(leaves.size(), 1);
