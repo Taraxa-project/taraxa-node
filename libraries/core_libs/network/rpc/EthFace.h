@@ -53,9 +53,6 @@ class EthFace : public ServerInterface<EthFace> {
     this->bindAndAddMethod(jsonrpc::Procedure("eth_getCode", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,
                                               "param1", jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_STRING, NULL),
                            &taraxa::net::EthFace::eth_getCodeI);
-    this->bindAndAddMethod(jsonrpc::Procedure("eth_sendTransaction", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,
-                                              "param1", jsonrpc::JSON_OBJECT, NULL),
-                           &taraxa::net::EthFace::eth_sendTransactionI);
     this->bindAndAddMethod(jsonrpc::Procedure("eth_call", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1",
                                               jsonrpc::JSON_OBJECT, "param2", jsonrpc::JSON_STRING, NULL),
                            &taraxa::net::EthFace::eth_callI);
@@ -167,9 +164,6 @@ class EthFace : public ServerInterface<EthFace> {
   inline virtual void eth_getCodeI(const Json::Value &request, Json::Value &response) {
     response = this->eth_getCode(request[0u].asString(), request[1u].asString());
   }
-  inline virtual void eth_sendTransactionI(const Json::Value &request, Json::Value &response) {
-    response = this->eth_sendTransaction(request[0u]);
-  }
   inline virtual void eth_callI(const Json::Value &request, Json::Value &response) {
     response = this->eth_call(request[0u], request[1u].asString());
   }
@@ -249,7 +243,6 @@ class EthFace : public ServerInterface<EthFace> {
   virtual Json::Value eth_getUncleCountByBlockHash(const std::string &param1) = 0;
   virtual Json::Value eth_getUncleCountByBlockNumber(const std::string &param1) = 0;
   virtual std::string eth_getCode(const std::string &param1, const std::string &param2) = 0;
-  virtual std::string eth_sendTransaction(const Json::Value &param1) = 0;
   virtual std::string eth_call(const Json::Value &param1, const std::string &param2) = 0;
   virtual Json::Value eth_getBlockByHash(const std::string &param1, bool param2) = 0;
   virtual Json::Value eth_getBlockByNumber(const std::string &param1, bool param2) = 0;

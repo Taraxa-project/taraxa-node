@@ -8,7 +8,6 @@ namespace taraxa::net::rpc::eth {
 
 struct EthParams {
   Address address;
-  Secret secret;
   uint64_t chain_id = 0;
   std::shared_ptr<FinalChain> final_chain;
   std::function<std::shared_ptr<Transaction>(h256 const&)> get_trx;

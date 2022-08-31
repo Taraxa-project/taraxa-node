@@ -81,16 +81,6 @@ class EthImpl : public Eth, EthParams {
 
   Json::Value eth_getUncleCountByBlockNumber(string const&) override { return toJS(0); }
 
-  string eth_sendTransaction(Json::Value const& _json) override {
-    auto t = toTransactionSkeleton(_json);
-    set_transaction_defaults(t, final_chain->last_block_number());
-    auto trx = std::make_shared<Transaction>(t.nonce.value_or(0), t.value, t.gas_price.value_or(0), t.gas.value_or(0),
-                                             t.data, secret, t.to ? optional(t.to) : nullopt, chain_id);
-    send_trx(trx);
-    trx->rlp();
-    return toJS(trx->getHash());
-  }
-
   string eth_sendRawTransaction(string const& _rlp) override {
     auto trx = std::make_shared<Transaction>(jsToBytes(_rlp, OnFailed::Throw), true);
     send_trx(trx);

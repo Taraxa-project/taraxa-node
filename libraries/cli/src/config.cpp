@@ -9,8 +9,6 @@
 #include "common/jsoncpp.hpp"
 #include "config/version.hpp"
 
-using namespace std;
-
 namespace bpo = boost::program_options;
 
 namespace taraxa::cli {
@@ -19,20 +17,20 @@ Config::Config(int argc, const char* argv[]) {
   boost::program_options::options_description main_options("OPTIONS");
   boost::program_options::options_description node_command_options("NODE COMMAND OPTIONS");
   boost::program_options::options_description allowed_options("Allowed options");
-  string config;
-  string wallet;
+  std::string config;
+  std::string wallet;
   int chain_id = static_cast<int>(DEFAULT_CHAIN_ID);
   std::string chain_str;
-  string data_dir;
-  vector<string> command;
-  vector<string> boot_nodes;
-  string public_ip;
-  vector<string> log_channels;
-  vector<string> log_configurations;
-  vector<string> boot_nodes_append;
-  vector<string> log_channels_append;
-  string node_secret;
-  string vrf_secret;
+  std::string data_dir;
+  std::vector<std::string> command;
+  std::vector<std::string> boot_nodes;
+  std::string public_ip;
+  std::vector<std::string> log_channels;
+  std::vector<std::string> log_configurations;
+  std::vector<std::string> boot_nodes_append;
+  std::vector<std::string> log_channels_append;
+  std::string node_secret;
+  std::string vrf_secret;
   bool overwrite_config;
 
   bool destroy_db = false;
@@ -42,6 +40,9 @@ Config::Config(int argc, const char* argv[]) {
   bool version = false;
   uint64_t rebuild_db_period = 0;
   uint64_t revert_to_period = 0;
+
+  bool enable_test_rpc = false;
+
   // Set node as default command
   command.push_back(NODE_COMMAND);
 
@@ -52,18 +53,18 @@ Config::Config(int argc, const char* argv[]) {
   // Define all the command line options and descriptions
   main_options.add_options()(HELP, "Print this help message and exit");
   main_options.add_options()(VERSION, bpo::bool_switch(&version), "Print version of taraxad");
-  main_options.add_options()(COMMAND, bpo::value<vector<string>>(&command)->multitoken(),
+  main_options.add_options()(COMMAND, bpo::value<std::vector<std::string>>(&command)->multitoken(),
                              "Command arg:"
                              "\nnode                  Runs the actual node (default)"
                              "\nconfig       Only generate/overwrite config file with provided node command "
                              "option without starting the node"
                              "\naccount key           Generate new account or restore from a key (key is optional)"
                              "\nvrf key               Generate new VRF or restore from a key (key is optional)");
-  node_command_options.add_options()(WALLET, bpo::value<string>(&wallet),
+  node_command_options.add_options()(WALLET, bpo::value<std::string>(&wallet),
                                      "JSON wallet file (default: \"~/.taraxa/wallet.json\")");
-  node_command_options.add_options()(CONFIG, bpo::value<string>(&config),
+  node_command_options.add_options()(CONFIG, bpo::value<std::string>(&config),
                                      "JSON configuration file (default: \"~/.taraxa/config.json\")");
-  node_command_options.add_options()(DATA_DIR, bpo::value<string>(&data_dir),
+  node_command_options.add_options()(DATA_DIR, bpo::value<std::string>(&data_dir),
                                      "Data directory for the databases, logs ... (default: \"~/.taraxa/data\")");
   node_command_options.add_options()(DESTROY_DB, bpo::bool_switch(&destroy_db),
                                      "Destroys all the existing data in the database");
@@ -90,23 +91,25 @@ Config::Config(int argc, const char* argv[]) {
   node_command_options.add_options()(CHAIN, bpo::value<std::string>(&chain_str),
                                      "Chain identifier (string, mainnet, testnet, devnet) (default: mainnet) "
                                      "Only used when creating new config file");
-  node_command_options.add_options()(BOOT_NODES, bpo::value<vector<string>>(&boot_nodes)->multitoken(),
+
+  node_command_options.add_options()(BOOT_NODES, bpo::value<std::vector<std::string>>(&boot_nodes)->multitoken(),
                                      "Boot nodes to connect to: [ip_address:port_number/node_id, ....]");
   node_command_options.add_options()(
-      BOOT_NODES_APPEND, bpo::value<vector<string>>(&boot_nodes_append)->multitoken(),
+      BOOT_NODES_APPEND, bpo::value<std::vector<std::string>>(&boot_nodes_append)->multitoken(),
       "Boot nodes to connect to in addition to boot nodes defined in config: [ip_address:port_number/node_id, ....]");
-  node_command_options.add_options()(PUBLIC_IP, bpo::value<string>(&public_ip),
+  node_command_options.add_options()(PUBLIC_IP, bpo::value<std::string>(&public_ip),
                                      "Force advertised public IP to the given IP (default: auto)");
-  node_command_options.add_options()(LOG_CHANNELS, bpo::value<vector<string>>(&log_channels)->multitoken(),
+  node_command_options.add_options()(LOG_CHANNELS, bpo::value<std::vector<std::string>>(&log_channels)->multitoken(),
                                      "Log channels to log: [channel:level, ....]");
   node_command_options.add_options()(
-      LOG_CHANNELS_APPEND, bpo::value<vector<string>>(&log_channels_append)->multitoken(),
+      LOG_CHANNELS_APPEND, bpo::value<std::vector<std::string>>(&log_channels_append)->multitoken(),
       "Log channels to log in addition to log channels defined in config: [channel:level, ....]");
-  node_command_options.add_options()(LOG_CONFIGURATIONS, bpo::value<vector<string>>(&log_configurations)->multitoken(),
+  node_command_options.add_options()(LOG_CONFIGURATIONS,
+                                     bpo::value<std::vector<std::string>>(&log_configurations)->multitoken(),
                                      "Log confifugrations to use: [configuration_name, ....]");
-  node_command_options.add_options()(NODE_SECRET, bpo::value<string>(&node_secret), "Nose secret key to use");
+  node_command_options.add_options()(NODE_SECRET, bpo::value<std::string>(&node_secret), "Nose secret key to use");
 
-  node_command_options.add_options()(VRF_SECRET, bpo::value<string>(&vrf_secret), "Vrf secret key to use");
+  node_command_options.add_options()(VRF_SECRET, bpo::value<std::string>(&vrf_secret), "Vrf secret key to use");
 
   node_command_options.add_options()(
       OVERWRITE_CONFIG, bpo::bool_switch(&overwrite_config),
@@ -114,6 +117,9 @@ Config::Config(int argc, const char* argv[]) {
       "Options data-dir, boot-nodes, log-channels, node-secret and vrf-secret are always used in running a node but "
       "only written to config file if overwrite-config flag is set. \n"
       "WARNING: Overwrite-config set can override/delete current secret keys in the wallet");
+
+  node_command_options.add_options()(ENABLE_TEST_RPC, bpo::bool_switch(&enable_test_rpc),
+                                     "Enables Test JsonRPC. Disabled by default");
 
   allowed_options.add(main_options);
 
@@ -125,18 +131,18 @@ Config::Config(int argc, const char* argv[]) {
   bpo::store(parsed_line, option_vars);
   bpo::notify(option_vars);
   if (option_vars.count(HELP)) {
-    cout << "NAME:\n  "
-            "taraxad - Taraxa blockchain full node implementation\n"
-            "VERSION:\n  "
-         << TARAXA_VERSION << "\nUSAGE:\n  taraxad [options]\n";
-    cout << main_options << endl;
-    cout << node_command_options << endl;
+    std::cout << "NAME:\n  "
+                 "taraxad - Taraxa blockchain full node implementation\n"
+                 "VERSION:\n  "
+              << TARAXA_VERSION << "\nUSAGE:\n  taraxad [options]\n";
+    std::cout << main_options << std::endl;
+    std::cout << node_command_options << std::endl;
     // If help message requested, ignore any additional commands
     command.clear();
     return;
   }
   if (version) {
-    std::cout << kVersionJson << endl;
+    std::cout << kVersionJson << std::endl;
     // If version requested, ignore any additional commands
     command.clear();
     return;
@@ -164,11 +170,12 @@ Config::Config(int argc, const char* argv[]) {
 
     // If any of the config files are missing they are generated with default values
     if (!fs::exists(config)) {
-      cout << "Configuration file does not exist at: " << config << ". New config file will be generated" << endl;
+      std::cout << "Configuration file does not exist at: " << config << ". New config file will be generated"
+                << std::endl;
       tools::generateConfig(config, (Config::ChainIdType)chain_id);
     }
     if (!fs::exists(wallet)) {
-      cout << "Wallet file does not exist at: " << wallet << ". New wallet file will be generated" << endl;
+      std::cout << "Wallet file does not exist at: " << wallet << ". New wallet file will be generated" << std::endl;
       tools::generateWallet(wallet);
     }
 
@@ -235,6 +242,9 @@ Config::Config(int argc, const char* argv[]) {
     node_config_.db_config.rebuild_db = rebuild_db;
     node_config_.db_config.rebuild_db_columns = rebuild_db_columns;
     node_config_.db_config.rebuild_db_period = rebuild_db_period;
+
+    node_config_.enable_test_rpc = enable_test_rpc;
+
     if (command[0] == NODE_COMMAND) node_configured_ = true;
   } else if (command[0] == ACCOUNT_COMMAND) {
     if (command.size() == 1)
@@ -271,7 +281,7 @@ void Config::addNewHardforks(Json::Value& config, const Json::Value& default_con
   }
 }
 
-string Config::dirNameFromFile(const string& file) {
+std::string Config::dirNameFromFile(const string& file) {
   size_t pos = file.find_last_of("\\/");
   return (string::npos == pos) ? "" : file.substr(0, pos);
 }

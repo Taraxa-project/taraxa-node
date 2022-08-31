@@ -203,6 +203,7 @@ inline auto make_node_cfgs(size_t total_count, size_t validators_count = 1) {
     if constexpr (!enable_rpc_ws) {
       cfg.rpc->ws_port = std::nullopt;
     }
+    cfg.enable_test_rpc = true;
   }
 
   return ret_configs;

@@ -124,7 +124,6 @@ void FullNode::start() {
     rpc_thread_pool_ = std::make_unique<util::ThreadPool>(conf_.rpc->threads_num);
     net::rpc::eth::EthParams eth_rpc_params;
     eth_rpc_params.address = getAddress();
-    eth_rpc_params.secret = kp_.secret();
     eth_rpc_params.chain_id = conf_.chain_id;
     eth_rpc_params.final_chain = final_chain_;
     eth_rpc_params.gas_pricer = [gas_pricer = gas_pricer_]() { return gas_pricer->bid(); };
@@ -150,15 +149,21 @@ void FullNode::start() {
       status.highest_block = pbft_mgr->pbftSyncingPeriod();
       return ret;
     };
+
     auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
+    std::shared_ptr<net::Test> test_json_rpc;
+    if (conf_.enable_test_rpc) {
+      // TODO Because this object refers to FullNode, the lifecycle/dependency management is more complicated);
+      test_json_rpc = std::make_shared<net::Test>(shared_from_this());
+    }
+
     jsonrpc_api_ = std::make_unique<jsonrpc_server_t>(
-        make_shared<net::Test>(shared_from_this()),    // TODO Because this object refers to FullNode, the
-                                                       // lifecycle/dependency management is more complicated
-        make_shared<net::Taraxa>(shared_from_this()),  // TODO Because this object refers to FullNode, the
-                                                       // lifecycle/dependency management is more complicated
-        make_shared<net::Net>(shared_from_this()),     // TODO Because this object refers to FullNode, the
-                                                       // lifecycle/dependency management is more complicated
-        eth_json_rpc);
+        std::make_shared<net::Taraxa>(shared_from_this()),  // TODO Because this object refers to FullNode, the
+                                                            // lifecycle/dependency management is more complicated
+        std::make_shared<net::Net>(shared_from_this()),     // TODO Because this object refers to FullNode, the
+                                                            // lifecycle/dependency management is more complicated
+        eth_json_rpc, test_json_rpc);
+
     if (conf_.rpc->http_port) {
       jsonrpc_http_ =
           std::make_shared<net::RpcServer>(rpc_thread_pool_->unsafe_get_io_context(),

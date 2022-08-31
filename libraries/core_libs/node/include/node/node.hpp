@@ -46,7 +46,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   using vrf_pk_t = vrf_wrapper::vrf_pk_t;
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;
   using vrf_proof_t = vrf_wrapper::vrf_proof_t;
-  using jsonrpc_server_t = ModularServer<net::TestFace, net::TaraxaFace, net::NetFace, net::EthFace>;
+  using jsonrpc_server_t = ModularServer<net::TaraxaFace, net::NetFace, net::EthFace, net::TestFace>;
 
   struct PostDestructionContext {
     uint num_shared_pointers_to_check = 0;
