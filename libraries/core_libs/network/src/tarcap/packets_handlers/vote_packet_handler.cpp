@@ -105,9 +105,9 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     // Standard vote
     if (vote->getPeriod() >= current_pbft_period) {
       if (!vote_mgr_->voteInVerifiedMap(vote)) {
-        // if (!checkVoteMaxPeriodRoundStep(vote, peer)) {
-        //   continue;
-        // }
+        if (!checkVoteMaxPeriodRoundStep(vote, peer)) {
+          continue;
+        }
 
         if (auto vote_is_valid = validateStandardVote(vote); vote_is_valid.first == false) {
           LOG(log_wr_) << "Vote " << vote_hash.abridged() << " validation failed. Err: " << vote_is_valid.second;
