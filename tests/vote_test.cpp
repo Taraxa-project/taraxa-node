@@ -169,8 +169,7 @@ TEST_F(VoteTest, round_determine_from_next_votes) {
   }
 
   auto new_round = vote_mgr->determineRoundFromPeriodAndVotes(12, two_t_plus_one);
-  EXPECT_EQ(new_round, 13);
-  // EXPECT_EQ(new_period, 12);
+  EXPECT_EQ(new_round->first, 13);
 }
 
 TEST_F(VoteTest, reconstruct_votes) {
@@ -273,7 +272,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
 
   // Clear next votes structure
   auto next_votes_mgr = node->getNextVotesManager();
-  next_votes_mgr->clear();
+  next_votes_mgr->clearVotes();
 
   auto pbft_2t_plus_1 = pbft_mgr->getTwoTPlusOne();
   EXPECT_EQ(pbft_2t_plus_1, 1);
@@ -309,7 +308,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount, 1, batch);
   db->commitWriteBatch(batch);
   next_votes_mgr->updateWithSyncedVotes(next_votes_2, pbft_2t_plus_1);
-  EXPECT_EQ(next_votes_mgr->getVotedValue().first, voted_pbft_block_hash);
+  EXPECT_EQ(next_votes_mgr->getVotedValue()->first, voted_pbft_block_hash);
   EXPECT_TRUE(next_votes_mgr->enoughNextVotes());
   auto expect_size = next_votes_1.size() + next_votes_2.size();
   EXPECT_EQ(expect_size, 2);
@@ -343,7 +342,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
 
   next_votes_mgr->updateNextVotes(next_votes_4, pbft_2t_plus_1);
   EXPECT_FALSE(next_votes_mgr->haveEnoughVotesForNullBlockHash());
-  EXPECT_EQ(next_votes_mgr->getVotedValue().first, voted_pbft_block_hash);
+  EXPECT_EQ(next_votes_mgr->getVotedValue()->first, voted_pbft_block_hash);
   EXPECT_FALSE(next_votes_mgr->enoughNextVotes());
   EXPECT_EQ(next_votes_mgr->getNextVotes().size(), next_votes_4.size());
   EXPECT_EQ(next_votes_mgr->getNextVotesWeight(), next_votes_4.size());

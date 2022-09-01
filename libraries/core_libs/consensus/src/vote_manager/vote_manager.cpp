@@ -484,14 +484,15 @@ std::optional<VotesBundle> VoteManager::getVotesBundle(uint64_t round, uint64_t 
   return votes_bundle;
 }
 
-uint64_t VoteManager::determineRoundFromPeriodAndVotes(uint64_t period, size_t two_t_plus_one) {
+std::optional<std::pair<uint64_t, std::vector<std::shared_ptr<Vote>>>> VoteManager::determineRoundFromPeriodAndVotes(
+    uint64_t period, size_t two_t_plus_one) {
   std::vector<std::shared_ptr<Vote>> votes;
 
   SharedLock lock(verified_votes_access_);
 
   const auto found_period_it = verified_votes_.find(period);
   if (found_period_it == verified_votes_.end()) {
-    return 1;
+    return {};
   }
 
   for (auto round_rit = found_period_it->second.rbegin(); round_rit != found_period_it->second.rend(); ++round_rit) {
@@ -517,13 +518,12 @@ uint64_t VoteManager::determineRoundFromPeriodAndVotes(uint64_t period, size_t t
         LOG(log_nf_) << "Round determined for period " << period << ". Found " << count << " votes for voted value "
                      << voted_value.first << " for round " << round_rit->first << ", step " << step_rit->first;
 
-        next_votes_manager_->updateNextVotes(votes, two_t_plus_one);
-        return round_rit->first + 1;
+        return {std::make_pair(round_rit->first + 1, std::move(votes))};
       }
     }
   }
 
-  return 1;
+  return {};
 }
 
 std::pair<blk_hash_t, uint64_t> VoteManager::getCurrentRewardsVotesBlock() const {
@@ -681,22 +681,19 @@ void VoteManager::sendRewardVotes(const blk_hash_t& pbft_block_hash) {
 
 NextVotesManager::NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db,
                                    std::shared_ptr<FinalChain> final_chain)
-    : db_(std::move(db)),
-      final_chain_(std::move(final_chain)),
-      enough_votes_for_null_block_hash_(false),
-      voted_value_(NULL_BLOCK_HASH),
-      voted_period_(0) {
+    : db_(std::move(db)), final_chain_(std::move(final_chain)), enough_votes_for_null_block_hash_(false) {
   LOG_OBJECTS_CREATE("NEXT_VOTES");
 }
 
-void NextVotesManager::clear() {
+void NextVotesManager::clearVotes() {
   UniqueLock lock(access_);
   enough_votes_for_null_block_hash_ = false;
-  voted_value_ = NULL_BLOCK_HASH;
-  voted_period_ = 0;
+  voted_value_.reset();
   next_votes_.clear();
   next_votes_weight_.clear();
   next_votes_set_.clear();
+
+  db_->removePreviousRoundNextVotes();
 }
 
 bool NextVotesManager::find(vote_hash_t next_vote_hash) {
@@ -706,7 +703,7 @@ bool NextVotesManager::find(vote_hash_t next_vote_hash) {
 
 bool NextVotesManager::enoughNextVotes() const {
   SharedLock lock(access_);
-  return enough_votes_for_null_block_hash_ && (voted_value_ != NULL_BLOCK_HASH);
+  return enough_votes_for_null_block_hash_ && voted_value_.has_value();
 }
 
 bool NextVotesManager::haveEnoughVotesForNullBlockHash() const {
@@ -714,9 +711,9 @@ bool NextVotesManager::haveEnoughVotesForNullBlockHash() const {
   return enough_votes_for_null_block_hash_;
 }
 
-std::pair<blk_hash_t, uint64_t> NextVotesManager::getVotedValue() const {
+std::optional<std::pair<blk_hash_t, uint64_t>> NextVotesManager::getVotedValue() const {
   SharedLock lock(access_);
-  return {voted_value_, voted_period_};
+  return voted_value_;
 }
 
 std::vector<std::shared_ptr<Vote>> NextVotesManager::getNextVotes() {
@@ -812,12 +809,11 @@ void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& ne
       if (voted_value == NULL_BLOCK_HASH) {
         enough_votes_for_null_block_hash_ = true;
       } else {
-        if (voted_value_ != NULL_BLOCK_HASH && voted_value != voted_value_) {
-          assertError_(next_votes_.at(voted_value), next_votes_.at(voted_value_));
+        if (voted_value_.has_value() && voted_value != voted_value_->first) {
+          assertError_(next_votes_.at(voted_value), next_votes_.at(voted_value_->first));
         }
 
-        voted_value_ = voted_value;
-        voted_period_ = next_votes[0]->getPeriod();
+        voted_value_ = std::make_pair(voted_value, next_votes[0]->getPeriod());
       }
     } else {
       // Should not happen here, have checked at updateWithSyncedVotes. For safe
@@ -847,10 +843,8 @@ void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const&
     return;
   }
 
-  // updateNextVotes is called when new round is determined based on current next votes
   // Deletes current previous round next votes
-  clear();
-  db_->removePreviousRoundNextVotes();
+  clearVotes();
 
   UniqueLock lock(access_);
 
@@ -883,12 +877,11 @@ void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const&
       if (it->first == NULL_BLOCK_HASH) {
         enough_votes_for_null_block_hash_ = true;
       } else {
-        if (voted_value_ != NULL_BLOCK_HASH) {
-          assertError_(it->second, next_votes_.at(voted_value_));
+        if (voted_value_.has_value()) {
+          assertError_(it->second, next_votes_.at(voted_value_->first));
         }
 
-        voted_value_ = it->first;
-        voted_period_ = it->second[0]->getPeriod();
+        voted_value_ = std::make_pair(it->first, it->second[0]->getPeriod());
       }
 
       it++;
