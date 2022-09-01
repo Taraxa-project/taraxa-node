@@ -291,16 +291,16 @@ var NAVTREEINDEX =
 "dir_619017460b6a47a62dcf0948c8b7d59a.html",
 "group___d_a_g.html#a262ea0431771b3a8e17b14d4639bb43c",
 "group___final_chain.html#a69bbe62bb85c685861fa39df13226a2e",
-"group___p_b_f_t.html#a778034d0d7c5d12067c8ec6f355fd3ac",
-"group___vote.html#a4336a403a91fd97ab23a8124c79c98e4",
-"libdevcrypto_2_common_8h.html#a0842f17403d63f4a260d5283ae5fb3a7",
-"md_doc_coding_practices.html#autotoc_md121",
-"namespacetaraxa.html#acb88135b62c8aadb5c6636e1796ec016",
-"state__api_8cpp.html#a21f5167bc7fd439ed8b01d89c1bd814e",
-"structdev_1_1p2p_1_1_host.html#a7551c55d8bface84e5f697e558a4a694",
-"structdev_1_1p2p_1_1_session.html#a01416d8957bb4ce1e009e37ba5c3f092",
-"structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#a926619a4b5a506e7326bd3cb09cc70f7",
-"types_8hpp.html#a2009f620364dde3e3bdc3fec4c9be5c9"
+"group___p_b_f_t.html#a768f92917004384adb070a4aa99df3ca",
+"group___vote.html#a4180fe23a4d734529377f3b9bb72ad8d",
+"libdevcrypto_2_common_8h.html#a04a16f8a4c264a7868151d49e2223f04",
+"md_doc_coding_practices.html#autotoc_md120",
+"namespacetaraxa.html#aae336b6b543c9febf3efb2a8065d0a06",
+"state__api_8cpp.html#a170ab0e9bbb9e6facc0e57e972d8231f",
+"structdev_1_1p2p_1_1_host.html#a6eb46b9c7133fb57be418f84396db369",
+"structdev_1_1p2p_1_1_session.html",
+"structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#a916ebbd89892ee9ef6b2e1d448c99992",
+"types_8hpp.html#a16fb91a724410e8b1a1174d9dbabec33"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

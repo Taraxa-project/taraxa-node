@@ -652,9 +652,12 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 <tr class="separator:a9b610f1286b3267c6bb36fcac2c76819"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2d7f41e217bf4f6084556eb64ba60192"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a2d7f41e217bf4f6084556eb64ba60192">getNonfinalizedTrxSize</a> () const</td></tr>
 <tr class="separator:a2d7f41e217bf4f6084556eb64ba60192"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3ee587760633681c1fd24d5bfe79ff12"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a3ee587760633681c1fd24d5bfe79ff12">getNonfinalizedTrx</a> (const std::vector&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt; &amp;hashes, bool sorted=false)</td></tr>
-<tr class="memdesc:a3ee587760633681c1fd24d5bfe79ff12"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the Nonfinalized Trx objects from cache.  <a href="group___transaction.html#a3ee587760633681c1fd24d5bfe79ff12">More...</a><br /></td></tr>
-<tr class="separator:a3ee587760633681c1fd24d5bfe79ff12"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4653d2e1d13e18462cdf95c66392a5e3"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a4653d2e1d13e18462cdf95c66392a5e3">getNonfinalizedTrx</a> (const std::vector&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt; &amp;hashes)</td></tr>
+<tr class="memdesc:a4653d2e1d13e18462cdf95c66392a5e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the Nonfinalized Trx objects from cache.  <a href="group___transaction.html#a4653d2e1d13e18462cdf95c66392a5e3">More...</a><br /></td></tr>
+<tr class="separator:a4653d2e1d13e18462cdf95c66392a5e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5da7437f892b260470d686a0c3c2ed58"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a5da7437f892b260470d686a0c3c2ed58">excludeFinalizedTransactions</a> (const std::vector&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt; &amp;hashes)</td></tr>
+<tr class="memdesc:a5da7437f892b260470d686a0c3c2ed58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exclude Finalized transactions.  <a href="group___transaction.html#a5da7437f892b260470d686a0c3c2ed58">More...</a><br /></td></tr>
+<tr class="separator:a5da7437f892b260470d686a0c3c2ed58"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aee68601c7d39b61b9b1c6d6390a837ed"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#aee68601c7d39b61b9b1c6d6390a837ed">getBlockTransactions</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;blk)</td></tr>
 <tr class="memdesc:aee68601c7d39b61b9b1c6d6390a837ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the block transactions.  <a href="group___transaction.html#aee68601c7d39b61b9b1c6d6390a837ed">More...</a><br /></td></tr>
 <tr class="separator:aee68601c7d39b61b9b1c6d6390a837ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -804,6 +807,33 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 
 </div>
 </div>
+<a id="a5da7437f892b260470d686a0c3c2ed58"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5da7437f892b260470d686a0c3c2ed58">&#9670;&nbsp;</a></span>excludeFinalizedTransactions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt; taraxa::TransactionManager::excludeFinalizedTransactions </td>
+          <td>(</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>hashes</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Exclude Finalized transactions. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">hashes</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Only transactions that are not finalized </dd></dl>
+
+</div>
+</div>
 <a id="a95f1a661d89b6da9a05cd13213bd8fc5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a95f1a661d89b6da9a05cd13213bd8fc5">&#9670;&nbsp;</a></span>getAllPoolTrxs()</h2>
 
@@ -894,8 +924,8 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 
 </div>
 </div>
-<a id="a3ee587760633681c1fd24d5bfe79ff12"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3ee587760633681c1fd24d5bfe79ff12">&#9670;&nbsp;</a></span>getNonfinalizedTrx()</h2>
+<a id="a4653d2e1d13e18462cdf95c66392a5e3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4653d2e1d13e18462cdf95c66392a5e3">&#9670;&nbsp;</a></span>getNonfinalizedTrx()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -904,18 +934,8 @@ Collaboration diagram for taraxa::TransactionManager:</div>
           <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt; taraxa::TransactionManager::getNonfinalizedTrx </td>
           <td>(</td>
           <td class="paramtype">const std::vector&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>hashes</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramname"><em>hashes</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>sorted</em> = <code>false</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -924,7 +944,6 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">hashes</td><td></td></tr>
-    <tr><td class="paramname">sorted</td><td></td></tr>
   </table>
   </dd>
 </dl>
