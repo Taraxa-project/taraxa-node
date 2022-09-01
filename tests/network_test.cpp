@@ -520,11 +520,9 @@ TEST_F(NetworkTest, node_pbft_sync) {
   node1->getDagManager()->verifyBlock(DagBlock(blk1));
   node1->getDagManager()->addDagBlock(DagBlock(blk1));
 
-  dev::RLPStream order_stream(2);
+  dev::RLPStream order_stream(1);
   order_stream.appendList(1);
   order_stream << blk1.getHash();
-  order_stream.appendList(2);
-  order_stream << g_signed_trx_samples[0]->getHash() << g_signed_trx_samples[1]->getHash();
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), period, beneficiary,
                         node1->getSecretKey(), {});
@@ -578,11 +576,9 @@ TEST_F(NetworkTest, node_pbft_sync) {
   batch = db1->createWriteBatch();
   period = 2;
   beneficiary = addr_t(654);
-  dev::RLPStream order_stream2(2);
+  dev::RLPStream order_stream2(1);
   order_stream2.appendList(1);
   order_stream2 << blk2.getHash();
-  order_stream2.appendList(2);
-  order_stream2 << g_signed_trx_samples[2]->getHash() << g_signed_trx_samples[3]->getHash();
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), period, beneficiary,
                         node1->getSecretKey(), {});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk2;
@@ -688,11 +684,9 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   node1->getDagManager()->verifyBlock(DagBlock(blk1));
   node1->getDagManager()->addDagBlock(DagBlock(blk1));
 
-  dev::RLPStream order_stream(2);
+  dev::RLPStream order_stream(1);
   order_stream.appendList(1);
   order_stream << blk1.getHash();
-  order_stream.appendList(2);
-  order_stream << g_signed_trx_samples[0]->getHash() << g_signed_trx_samples[1]->getHash();
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), period, beneficiary,
                         node1->getSecretKey(), {});
@@ -737,11 +731,9 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   period = 2;
   beneficiary = addr_t(654);
 
-  dev::RLPStream order_stream2(2);
+  dev::RLPStream order_stream2(1);
   order_stream2.appendList(1);
   order_stream2 << blk2.getHash();
-  order_stream2.appendList(2);
-  order_stream2 << g_signed_trx_samples[2]->getHash() << g_signed_trx_samples[3]->getHash();
 
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), period, beneficiary,
                         node1->getSecretKey(), {});

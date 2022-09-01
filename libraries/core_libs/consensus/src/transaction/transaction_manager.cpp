@@ -252,8 +252,8 @@ size_t TransactionManager::getNonfinalizedTrxSize() const {
   return nonfinalized_transactions_in_dag_.size();
 }
 
-std::vector<std::shared_ptr<Transaction>> TransactionManager::getNonfinalizedTrx(const std::vector<trx_hash_t> &hashes,
-                                                                                 bool sorted) {
+std::vector<std::shared_ptr<Transaction>> TransactionManager::getNonfinalizedTrx(
+    const std::vector<trx_hash_t> &hashes) {
   std::vector<std::shared_ptr<Transaction>> ret;
   ret.reserve(hashes.size());
   std::shared_lock transactions_lock(transactions_mutex_);
@@ -262,14 +262,19 @@ std::vector<std::shared_ptr<Transaction>> TransactionManager::getNonfinalizedTrx
       ret.push_back(nonfinalized_transactions_in_dag_[hash]);
     }
   }
-  if (sorted) {
-    std::stable_sort(ret.begin(), ret.end(), [](const auto &t1, const auto &t2) {
-      if (t1->getSender() == t2->getSender()) {
-        return t1->getNonce() < t2->getNonce() ||
-               (t1->getNonce() == t2->getNonce() && t1->getGasPrice() > t2->getGasPrice());
+  return ret;
+}
+
+std::vector<trx_hash_t> TransactionManager::excludeFinalizedTransactions(const std::vector<trx_hash_t> &hashes) {
+  std::vector<trx_hash_t> ret;
+  ret.reserve(hashes.size());
+  std::shared_lock transactions_lock(transactions_mutex_);
+  for (const auto &hash : hashes) {
+    if (!recently_finalized_transactions_.contains(hash)) {
+      if (!db_->transactionFinalized(hash)) {
+        ret.push_back(hash);
       }
-      return true;
-    });
+    }
   }
   return ret;
 }

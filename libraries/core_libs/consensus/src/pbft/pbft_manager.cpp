@@ -121,6 +121,17 @@ void PbftManager::run() {
     for (const auto &v : period_data.previous_block_cert_votes) {
       validateVote(v);
     }
+
+    // Sort transactions
+    std::stable_sort(period_data.transactions.begin(), period_data.transactions.end(),
+                     [](const auto &t1, const auto &t2) {
+                       if (t1->getSender() == t2->getSender()) {
+                         return t1->getNonce() < t2->getNonce() ||
+                                (t1->getNonce() == t2->getNonce() && t1->getGasPrice() > t2->getGasPrice());
+                       }
+                       return true;
+                     });
+
     finalize_(std::move(period_data), db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
   }
   // Verify that last block cert votes point to the last block hash
@@ -1247,35 +1258,26 @@ void PbftManager::placeVote(std::shared_ptr<Vote> &&vote) {
   }
 }
 
-blk_hash_t PbftManager::calculateOrderHash(const std::vector<blk_hash_t> &dag_block_hashes,
-                                           const std::vector<trx_hash_t> &trx_hashes) {
+blk_hash_t PbftManager::calculateOrderHash(const std::vector<blk_hash_t> &dag_block_hashes) {
   if (dag_block_hashes.empty()) {
     return NULL_BLOCK_HASH;
   }
-  dev::RLPStream order_stream(2);
+  dev::RLPStream order_stream(1);
   order_stream.appendList(dag_block_hashes.size());
   for (auto const &blk_hash : dag_block_hashes) {
     order_stream << blk_hash;
   }
-  order_stream.appendList(trx_hashes.size());
-  for (auto const &trx_hash : trx_hashes) {
-    order_stream << trx_hash;
-  }
   return dev::sha3(order_stream.out());
 }
 
-blk_hash_t PbftManager::calculateOrderHash(const std::vector<DagBlock> &dag_blocks, const SharedTransactions &trxs) {
+blk_hash_t PbftManager::calculateOrderHash(const std::vector<DagBlock> &dag_blocks) {
   if (dag_blocks.empty()) {
     return NULL_BLOCK_HASH;
   }
-  dev::RLPStream order_stream(2);
+  dev::RLPStream order_stream(1);
   order_stream.appendList(dag_blocks.size());
   for (auto const &blk : dag_blocks) {
     order_stream << blk.getHash();
-  }
-  order_stream.appendList(trxs.size());
-  for (auto const &trx : trxs) {
-    order_stream << trx->getHash();
   }
   return dev::sha3(order_stream.out());
 }
@@ -1418,31 +1420,11 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
     dag_block_hash = *closest_anchor;
     dag_block_order = dag_mgr_->getDagBlockOrder(dag_block_hash, propose_period);
   }
-  if (trx_hashes.empty()) {
-    std::unordered_set<trx_hash_t> trx_set;
-    std::vector<trx_hash_t> transactions_to_query;
-    for (auto const &dag_blk_hash : dag_block_order) {
-      auto dag_block = dag_mgr_->getDagBlock(dag_blk_hash);
-      assert(dag_block);
-      for (auto const &trx_hash : dag_block->getTrxs()) {
-        if (trx_set.insert(trx_hash).second) {
-          trx_hashes.emplace_back(trx_hash);
-        }
-      }
-    }
-  }
 
-  std::vector<trx_hash_t> non_finalized_transactions;
-  non_finalized_transactions.reserve(trx_hashes.size());
-  const auto transactions = trx_mgr_->getNonfinalizedTrx(trx_hashes, true /*sorted*/);
-  std::transform(transactions.begin(), transactions.end(), std::back_inserter(non_finalized_transactions),
-                 [](const auto &t) { return t->getHash(); });
-
-  auto order_hash = calculateOrderHash(dag_block_order, non_finalized_transactions);
+  auto order_hash = calculateOrderHash(dag_block_order);
   auto pbft_block_hash = generatePbftBlock(last_pbft_block_hash, dag_block_hash, order_hash);
   LOG(log_nf_) << "Proposed Pbft block: " << pbft_block_hash << ". Order hash:" << order_hash
-               << ". DAG order for proposed block" << dag_block_order << ". Transaction order for proposed block"
-               << non_finalized_transactions;
+               << ". DAG order for proposed block" << dag_block_order;
 
   return pbft_block_hash;
 }
@@ -1646,21 +1628,13 @@ std::pair<vec_blk_t, bool> PbftManager::compareBlocksAndRewardVotes_(std::shared
     period_data_.dag_blocks.emplace_back(std::move(*dag_block));
   }
 
-  const auto transactions = trx_mgr_->getNonfinalizedTrx(transactions_to_query, true /*sorted*/);
+  period_data_.transactions = trx_mgr_->getNonfinalizedTrx(transactions_to_query);
 
-  std::vector<trx_hash_t> non_finalized_transactions;
-  period_data_.transactions.reserve(transactions.size());
-  non_finalized_transactions.reserve(transactions.size());
-  for (const auto &trx : transactions) {
-    non_finalized_transactions.push_back(trx->getHash());
-    period_data_.transactions.push_back(trx);
-  }
-
-  auto calculated_order_hash = calculateOrderHash(dag_blocks_order, non_finalized_transactions);
+  auto calculated_order_hash = calculateOrderHash(dag_blocks_order);
   if (calculated_order_hash != pbft_block->getOrderHash()) {
     LOG(log_er_) << "Order hash incorrect. Pbft block: " << proposal_block_hash
                  << ". Order hash: " << pbft_block->getOrderHash() << " . Calculated hash:" << calculated_order_hash
-                 << ". Dag order: " << dag_blocks_order << ". Trx order: " << non_finalized_transactions;
+                 << ". Dag order: " << dag_blocks_order;
     dag_blocks_order.clear();
     return std::make_pair(std::move(dag_blocks_order), false);
   }
@@ -2002,6 +1976,36 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
     sync_queue_.clear();
     net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
     return std::nullopt;
+  }
+
+  // Get all the ordered unique non-finalized transactions which should match period_data.transactions
+  std::unordered_set<trx_hash_t> trx_set;
+  std::vector<trx_hash_t> transactions_to_query;
+  for (auto const &dag_block : period_data.dag_blocks) {
+    for (auto const &trx_hash : dag_block.getTrxs()) {
+      if (trx_set.insert(trx_hash).second) {
+        transactions_to_query.emplace_back(trx_hash);
+      }
+    }
+  }
+  auto non_finalized_transactions = trx_mgr_->excludeFinalizedTransactions(transactions_to_query);
+
+  if (non_finalized_transactions.size() != period_data.transactions.size()) {
+    LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << " transactions count " << period_data.transactions.size()
+                 << " incorrect, expected: " << non_finalized_transactions.size();
+    sync_queue_.clear();
+    net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
+    return std::nullopt;
+  }
+  for (uint32_t i = 0; i < non_finalized_transactions.size(); i++) {
+    if (non_finalized_transactions[i] != period_data.transactions[i]->getHash()) {
+      LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << " transaction mismatch "
+                   << non_finalized_transactions[i]
+                   << " incorrect, expected: " << period_data.transactions[i]->getHash();
+      sync_queue_.clear();
+      net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
+      return std::nullopt;
+    }
   }
 
   return std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>>(
