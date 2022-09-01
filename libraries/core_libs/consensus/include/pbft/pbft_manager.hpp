@@ -269,19 +269,16 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   /**
    * @brief Calculate DAG blocks ordering hash
    * @param dag_block_hashes DAG blocks hashes
-   * @param trx_hashes transactions hashes
    * @return DAG blocks ordering hash
    */
-  static blk_hash_t calculateOrderHash(const std::vector<blk_hash_t> &dag_block_hashes,
-                                       const std::vector<trx_hash_t> &trx_hashes);
+  static blk_hash_t calculateOrderHash(const std::vector<blk_hash_t> &dag_block_hashes);
 
   /**
    * @brief Calculate DAG blocks ordering hash
    * @param dag_blocks DAG blocks
-   * @param transactions transactions
    * @return DAG blocks ordering hash
    */
-  static blk_hash_t calculateOrderHash(const std::vector<DagBlock> &dag_blocks, const SharedTransactions &transactions);
+  static blk_hash_t calculateOrderHash(const std::vector<DagBlock> &dag_blocks);
 
   /**
    * @brief Check a block weight of gas estimation

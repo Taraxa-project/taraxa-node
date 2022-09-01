@@ -123,11 +123,17 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @brief Get the Nonfinalized Trx objects from cache
    *
    * @param hashes
-   * @param sorted
    * @return std::vector<std::shared_ptr<Transaction>>
    */
-  std::vector<std::shared_ptr<Transaction>> getNonfinalizedTrx(const std::vector<trx_hash_t> &hashes,
-                                                               bool sorted = false);
+  std::vector<std::shared_ptr<Transaction>> getNonfinalizedTrx(const std::vector<trx_hash_t> &hashes);
+
+  /**
+   * @brief Exclude Finalized transactions
+   *
+   * @param hashes
+   * @return Only transactions that are not finalized
+   */
+  std::vector<trx_hash_t> excludeFinalizedTransactions(const std::vector<trx_hash_t> &hashes);
 
   /**
    * @brief Get the block transactions

@@ -844,12 +844,7 @@ TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
       std::transform(bt.trxs.begin(), bt.trxs.end(), std::back_inserter(trx_hashes),
                      [](const auto &t) { return t->getHash(); });
     }
-    const auto transactions = node->getTransactionManager()->getNonfinalizedTrx(trx_hashes, true /*sorted*/);
-    trx_hashes.clear();
-    std::transform(transactions.begin(), transactions.end(), std::back_inserter(trx_hashes),
-                   [](const auto &t) { return t->getHash(); });
-
-    auto order_hash = node->getPbftManager()->calculateOrderHash(dag_block_order, trx_hashes);
+    auto order_hash = node->getPbftManager()->calculateOrderHash(dag_block_order);
 
     const auto &last_hash = node->getPbftChain()->getLastPbftBlockHash();
     auto reward_votes = node->getDB()->getLastBlockCertVotes();
