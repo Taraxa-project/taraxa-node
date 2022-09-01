@@ -6,12 +6,12 @@ var group___vote =
       [ "NextVotesManager", "group___vote.html#a352f2439db5907bfb52580e2e736ba0f", null ],
       [ "addNextVotes", "group___vote.html#ab334217f2be3892a93f269c82f3c2e18", null ],
       [ "assertError_", "group___vote.html#a39c274e4d78d8ecb24036ef6d3393190", null ],
-      [ "clear", "group___vote.html#a5243ca6d27ec0063ded241f9295d3496", null ],
+      [ "clearVotes", "group___vote.html#a610b26e9e0c08e26983bc20c05ab00d2", null ],
       [ "enoughNextVotes", "group___vote.html#aa2aaa643998fcc89fc338bff48ee3d68", null ],
       [ "find", "group___vote.html#a255f331ea1d86c6dbd00f81c003ab3ea", null ],
       [ "getNextVotes", "group___vote.html#aaa5728ba952edaee3c56f9371a3d253d", null ],
       [ "getNextVotesWeight", "group___vote.html#a3ec737f1bfb33528da98f2c57965e2ce", null ],
-      [ "getVotedValue", "group___vote.html#a41d9ddd35a0cee61a3fdd623b73dc059", null ],
+      [ "getVotedValue", "group___vote.html#ab265b52efc3d9cbba4310f5bebe4eedd", null ],
       [ "haveEnoughVotesForNullBlockHash", "group___vote.html#ab41014529564c900dd46a10b675f4881", null ],
       [ "updateNextVotes", "group___vote.html#a4180fe23a4d734529377f3b9bb72ad8d", null ],
       [ "updateWithSyncedVotes", "group___vote.html#acfcd6c6f02954a974fc0fa3698d24f44", null ],
@@ -22,8 +22,7 @@ var group___vote =
       [ "next_votes_", "group___vote.html#ab749d4c76cae7d3e7f54ebe20a1c3b66", null ],
       [ "next_votes_set_", "group___vote.html#ad6afb5dd3e61d145dfec3f02d333a93c", null ],
       [ "next_votes_weight_", "group___vote.html#a54d61a5f0afb0ffa643f73c6f8477466", null ],
-      [ "voted_period_", "group___vote.html#ad838927b6f10687d42187ffb47724019", null ],
-      [ "voted_value_", "group___vote.html#af726fd08456518423d01be4b64b20a1d", null ]
+      [ "voted_value_", "group___vote.html#ac8bee3bf5417e3b8c7a7545042b77049", null ]
     ] ],
     [ "VoteManager", "group___vote.html#classtaraxa_1_1_vote_manager", [
       [ "SharedLock", "group___vote.html#a7213db2bd4160b4f2c5e8607bdc5d0a2", null ],
@@ -37,7 +36,7 @@ var group___vote =
       [ "checkRewardVotes", "group___vote.html#a46247b6596c46711ea4144a83f01c399", null ],
       [ "cleanupVotesByPeriod", "group___vote.html#a590cece4de025f23d29dd793f958f622", null ],
       [ "cleanupVotesByRound", "group___vote.html#a53271651c0428cfa75fb6415b2e8f77f", null ],
-      [ "determineRoundFromPeriodAndVotes", "group___vote.html#a250954e685751cc0cc48d87304cef288", null ],
+      [ "determineRoundFromPeriodAndVotes", "group___vote.html#a4459080eb4d299121fe8dc15a6f0ed60", null ],
       [ "getAllRewardVotes", "group___vote.html#a12170a06162047464992f9d915ebfd78", null ],
       [ "getCurrentRewardsVotesBlock", "group___vote.html#a2444297487931952a959dcb2e6580ba5", null ],
       [ "getProposalVotes", "group___vote.html#a8f632f02b4061972c741b87ba4d49756", null ],

@@ -1,9 +1,8 @@
 var NAVTREEINDEX15 =
 {
-"group___vote.html#a4180fe23a4d734529377f3b9bb72ad8d":[9,4,0,12],
-"group___vote.html#a41d9ddd35a0cee61a3fdd623b73dc059":[9,4,0,10],
 "group___vote.html#a4336a403a91fd97ab23a8124c79c98e4":[9,4,2,19],
 "group___vote.html#a442ab697e23b80e435620be43b981964":[9,4,1,37],
+"group___vote.html#a4459080eb4d299121fe8dc15a6f0ed60":[9,4,1,11],
 "group___vote.html#a46247b6596c46711ea4144a83f01c399":[9,4,1,8],
 "group___vote.html#a4688e5e9f866e5be8b75afdacfb0ddfb":[9,4,2,12],
 "group___vote.html#a487a45c3807de23f9efd2797ed7da376":[9,4,1,31],
@@ -13,7 +12,6 @@ var NAVTREEINDEX15 =
 "group___vote.html#a4f64c16b2011b06a4cc02d12958c8f69":[9,4,0,0],
 "group___vote.html#a4fe01779abbd1540565fcee9fb77896c":[9,4,5,7],
 "group___vote.html#a51f80fc70a2cc67a05d57cb7cc9f4a29":[9,4,4,2],
-"group___vote.html#a5243ca6d27ec0063ded241f9295d3496":[9,4,0,5],
 "group___vote.html#a53271651c0428cfa75fb6415b2e8f77f":[9,4,1,10],
 "group___vote.html#a54d61a5f0afb0ffa643f73c6f8477466":[9,4,0,20],
 "group___vote.html#a5778529b1a6b677dafb00cdefa2d8446":[9,4,1,20],
@@ -21,6 +19,7 @@ var NAVTREEINDEX15 =
 "group___vote.html#a59225772466fd9824448a4ff11ff7d05":[9,4,1,3],
 "group___vote.html#a5a9524665903c1186005956de19f7fd2":[9,4,5,12],
 "group___vote.html#a5d94b5f604131c9b986840e5a16d433e":[9,4,1,27],
+"group___vote.html#a610b26e9e0c08e26983bc20c05ab00d2":[9,4,0,5],
 "group___vote.html#a6528bb14bb94e196d5ffb65693acda19":[9,4,2,23],
 "group___vote.html#a657bbf95ad1866cbf01a6f170998bce2":[9,4,1,22],
 "group___vote.html#a6632aae1ac76d6d6d4d40ec4bd2b8d42":[9,4,4,7],
@@ -59,6 +58,7 @@ var NAVTREEINDEX15 =
 "group___vote.html#aab74f44a9dd90bcb7719cb75fab97877":[9,4,2,3],
 "group___vote.html#aab90b64a354de39a06b83f548aa99ac7":[9,4,2,9],
 "group___vote.html#aaf9d334119e08a3083eae8be3725dbfd":[9,4,1,32],
+"group___vote.html#ab265b52efc3d9cbba4310f5bebe4eedd":[9,4,0,10],
 "group___vote.html#ab334217f2be3892a93f269c82f3c2e18":[9,4,0,3],
 "group___vote.html#ab33a27ab32527293d1ce811318e68ae9":[9,4,1,33],
 "group___vote.html#ab3d6b865164f9444e6b7f0d81aafa1ba":[9,4,1,30],
@@ -68,6 +68,7 @@ var NAVTREEINDEX15 =
 "group___vote.html#abf2c94ac49b9b5930dd0fcd2581d5335":[9,4,2,13],
 "group___vote.html#ac62f2f618205d20b430c4609c8c73373":[9,4,2,29],
 "group___vote.html#ac78ef9dfd827f78306480e741808ba91":[9,4,2,26],
+"group___vote.html#ac8bee3bf5417e3b8c7a7545042b77049":[9,4,0,21],
 "group___vote.html#acba0f5fe7ab3479d8b622b013ee6b7cf":[9,4,2,20],
 "group___vote.html#acbfe34ee6b9f69c6d9cd94027fa51d82":[9,4,1,2],
 "group___vote.html#accdd1eb1fa9ffa965c31dc6a5fe61602":[9,4,5,9],
@@ -77,7 +78,6 @@ var NAVTREEINDEX15 =
 "group___vote.html#ad567604816bf023afb0ddf3e2ba9cf45":[9,4,2,7],
 "group___vote.html#ad678ca6dfa8fb660e9e724faa4670913":[9,4,2,16],
 "group___vote.html#ad6afb5dd3e61d145dfec3f02d333a93c":[9,4,0,19],
-"group___vote.html#ad838927b6f10687d42187ffb47724019":[9,4,0,21],
 "group___vote.html#ad9635a251ff42dd65fe79bd8e03d928f":[9,4,1,16],
 "group___vote.html#adb609ddffdb2ee906e405a7e141bc16a":[9,4,4,0],
 "group___vote.html#add0a1c70fc728cdb3ef074330a129060":[9,4,1,18],
@@ -96,7 +96,6 @@ var NAVTREEINDEX15 =
 "group___vote.html#af1c99f17c0c7180d510a385e18291f6c":[9,4,3,4],
 "group___vote.html#af3a5ba8a46579463078b4440813924fc":[9,4,5,4],
 "group___vote.html#af65bbaffa56b19c113245ec277599fce":[9,4,0,17],
-"group___vote.html#af726fd08456518423d01be4b64b20a1d":[9,4,0,22],
 "group___vote.html#af8fbe3c4b695c519a9dc239b05823b89":[9,4,1,17],
 "group___vote.html#afd43da336fbf99a0727bdddd9f654cf7":[9,4,5,10],
 "group___vote.html#classtaraxa_1_1_next_votes_manager":[9,4,0],
@@ -249,5 +248,6 @@ var NAVTREEINDEX15 =
 "libdevcrypto_2_common_8cpp.html":[12,0,1,0,1,2],
 "libdevcrypto_2_common_8cpp.html#ab309954fe1c9914c26899b796de49926":[12,0,1,0,1,2,0],
 "libdevcrypto_2_common_8h.html":[12,0,1,0,1,3],
-"libdevcrypto_2_common_8h.html#a0266517d70437660a08b9f6166572eb3":[12,0,1,0,1,3,4]
+"libdevcrypto_2_common_8h.html#a0266517d70437660a08b9f6166572eb3":[12,0,1,0,1,3,4],
+"libdevcrypto_2_common_8h.html#a04a16f8a4c264a7868151d49e2223f04":[12,0,1,0,1,3,5]
 };

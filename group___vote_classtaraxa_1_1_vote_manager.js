@@ -11,7 +11,7 @@ var group___vote_classtaraxa_1_1_vote_manager =
     [ "checkRewardVotes", "group___vote.html#a46247b6596c46711ea4144a83f01c399", null ],
     [ "cleanupVotesByPeriod", "group___vote.html#a590cece4de025f23d29dd793f958f622", null ],
     [ "cleanupVotesByRound", "group___vote.html#a53271651c0428cfa75fb6415b2e8f77f", null ],
-    [ "determineRoundFromPeriodAndVotes", "group___vote.html#a250954e685751cc0cc48d87304cef288", null ],
+    [ "determineRoundFromPeriodAndVotes", "group___vote.html#a4459080eb4d299121fe8dc15a6f0ed60", null ],
     [ "getAllRewardVotes", "group___vote.html#a12170a06162047464992f9d915ebfd78", null ],
     [ "getCurrentRewardsVotesBlock", "group___vote.html#a2444297487931952a959dcb2e6580ba5", null ],
     [ "getProposalVotes", "group___vote.html#a8f632f02b4061972c741b87ba4d49756", null ],

@@ -164,7 +164,7 @@ var group___p_b_f_t =
       [ "period_data_", "group___p_b_f_t.html#a3bc8579fe23998a9792e6e1fa53e3696", null ],
       [ "polling_state_print_log_", "group___p_b_f_t.html#aba83f15ed5ff4177ea29828391147b8b", null ],
       [ "previous_round_next_voted_null_block_hash_", "group___p_b_f_t.html#a5ee8283e2abebcbe3372fb1d76ca40bc", null ],
-      [ "previous_round_next_voted_value_", "group___p_b_f_t.html#a802e862ed22cc66023255c64e1e49491", null ],
+      [ "previous_round_next_voted_value_", "group___p_b_f_t.html#a4688af1a33b8737564fe3377c3b3bc55", null ],
       [ "proposed_block_", "group___p_b_f_t.html#a33461a44a6bfbd1e892fd732d53a190d", null ],
       [ "random_engine_", "group___p_b_f_t.html#a690a15a5242c8ef514bf95e711d004bf", null ],
       [ "round_", "group___p_b_f_t.html#a0d2720a707dd407e5db0e3de47d7f2b8", null ],

@@ -1,6 +1,5 @@
 var NAVTREEINDEX19 =
 {
-"state__api_8cpp.html#a170ab0e9bbb9e6facc0e57e972d8231f":[12,0,1,4,0,1,1,4,10],
 "state__api_8cpp.html#a21f5167bc7fd439ed8b01d89c1bd814e":[12,0,1,4,0,1,1,4,4],
 "state__api_8cpp.html#a342fbbc3197381abbe76fecb6a04410a":[12,0,1,4,0,1,1,4,7],
 "state__api_8cpp.html#a3b0957049e793929bf52844d0530f177":[12,0,1,4,0,1,1,4,2],
@@ -217,8 +216,8 @@ var NAVTREEINDEX19 =
 "structdev_1_1p2p_1_1_find_node.html#aa2d6118a2ade86aa6b464dba3d61f08a":[11,0,1,1,8,1],
 "structdev_1_1p2p_1_1_find_node.html#ae786f2d5f11db32aa749fd8e846a3dcf":[11,0,1,1,8,4],
 "structdev_1_1p2p_1_1_host.html":[11,0,1,1,9],
-"structdev_1_1p2p_1_1_host.html#a02347e7bf3c420974812af9b3e701737":[11,0,1,1,9,1,2],
 "structdev_1_1p2p_1_1_host.html#a02347e7bf3c420974812af9b3e701737":[12,0,1,0,2,9,4,2],
+"structdev_1_1p2p_1_1_host.html#a02347e7bf3c420974812af9b3e701737":[11,0,1,1,9,1,2],
 "structdev_1_1p2p_1_1_host.html#a071593a39c481a0cad338c976fe39786":[11,0,1,1,9,66],
 "structdev_1_1p2p_1_1_host.html#a0e538e8d25bf6374eed667d53698fecd":[11,0,1,1,9,28],
 "structdev_1_1p2p_1_1_host.html#a0ffacbabf44a7843d24d6831f6fb7c63":[11,0,1,1,9,67],
@@ -249,5 +248,6 @@ var NAVTREEINDEX19 =
 "structdev_1_1p2p_1_1_host.html#a5bfc3d72250374fcc0273b355a23b8e3":[11,0,1,1,9,36],
 "structdev_1_1p2p_1_1_host.html#a635530337ad0e62f0d65da4379f609a4":[11,0,1,1,9,23],
 "structdev_1_1p2p_1_1_host.html#a6b5e61650bac9f96af5f50f05920d7e2":[11,0,1,1,9,31],
-"structdev_1_1p2p_1_1_host.html#a6c14f16c39ae6bc5db2672e0141adccd":[11,0,1,1,9,6]
+"structdev_1_1p2p_1_1_host.html#a6c14f16c39ae6bc5db2672e0141adccd":[11,0,1,1,9,6],
+"structdev_1_1p2p_1_1_host.html#a6eb46b9c7133fb57be418f84396db369":[11,0,1,1,9,79]
 };
