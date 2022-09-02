@@ -102,6 +102,15 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
       continue;
     }
 
+    if (vote->getPeriod() == current_pbft_period && (current_pbft_round - 1) == vote->getRound()) {
+      if (auto vote_is_valid = validateNextSyncVote(vote); vote_is_valid.first == false) {
+        LOG(log_wr_) << "Vote " << vote->getHash()
+                     << " from previous round validation failed. Err: " << vote_is_valid.second;
+      } else if (!vote_mgr_->insertUniqueVote(vote)) {
+        LOG(log_dg_) << "Non unique vote " << vote->getHash() << " (race condition)";
+      }
+      continue;
+    }
     // Standard vote
     if (vote->getPeriod() >= current_pbft_period) {
       if (!vote_mgr_->voteInVerifiedMap(vote)) {

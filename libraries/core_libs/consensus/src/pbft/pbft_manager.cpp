@@ -1087,7 +1087,7 @@ void PbftManager::secondFinish_() {
     syncPbftChainFromPeers_(exceeded_max_steps, NULL_BLOCK_HASH);
   }
 
-  if (round > 1 && step_ > MAX_STEPS && (step_ - MAX_STEPS - 2) % 100 == 0 && !broadcastAlreadyThisStep_()) {
+  if (round > 1 && step_ > MAX_STEPS && (step_ - MAX_STEPS - 2) % 20 == 0 && !broadcastAlreadyThisStep_()) {
     LOG(log_dg_) << "Node " << node_addr_ << " broadcast next votes for previous round. In period " << period
                  << ", round " << round << " step " << step_;
     if (auto net = network_.lock()) {
