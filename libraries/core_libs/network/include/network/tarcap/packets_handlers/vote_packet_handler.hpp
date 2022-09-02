@@ -5,6 +5,7 @@
 namespace taraxa {
 class PbftManager;
 class VoteManager;
+class NextVotesManager;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {
@@ -13,7 +14,8 @@ class VotePacketHandler final : public ExtVotesPacketHandler {
  public:
   VotePacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                     std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
-                    std::shared_ptr<VoteManager> vote_mgr, const NetworkConfig& net_config, const addr_t& node_addr);
+                    std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
+                    const NetworkConfig& net_config, const addr_t& node_addr);
 
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::VotePacket;
@@ -28,6 +30,7 @@ class VotePacketHandler final : public ExtVotesPacketHandler {
   constexpr static std::chrono::seconds kSyncRequestInterval = std::chrono::seconds(10);
   ExpirationCache<vote_hash_t> seen_votes_;
   std::chrono::system_clock::time_point round_sync_request_time_;
+  std::shared_ptr<NextVotesManager> next_votes_mgr_;
 };
 
 }  // namespace taraxa::network::tarcap
