@@ -8,13 +8,15 @@ namespace taraxa::network::tarcap {
 VotePacketHandler::VotePacketHandler(std::shared_ptr<PeersState> peers_state,
                                      std::shared_ptr<PacketsStats> packets_stats, std::shared_ptr<PbftManager> pbft_mgr,
                                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-                                     const NetworkConfig &net_config, const addr_t &node_addr)
+                                     std::shared_ptr<NextVotesManager> next_vote_mgr, const NetworkConfig &net_config,
+                                     const addr_t &node_addr)
     : ExtVotesPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
                             std::move(pbft_chain), std::move(vote_mgr), net_config.vote_accepting_periods, node_addr,
                             "PBFT_VOTE_PH"),
       kVoteAcceptingRounds(net_config.vote_accepting_rounds),
       kVoteAcceptingSteps(net_config.vote_accepting_steps),
-      seen_votes_(1000000, 1000) {}
+      seen_votes_(1000000, 1000),
+      next_votes_mgr_(next_vote_mgr) {}
 
 void VotePacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketData &packet_data) const {
   auto items = packet_data.rlp_.itemCount();
@@ -89,6 +91,7 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
   std::vector<std::shared_ptr<Vote>> votes;
+  std::vector<std::shared_ptr<Vote>> previous_next_votes;
   const auto count = packet_data.rlp_.itemCount();
   for (size_t i = 0; i < count; i++) {
     auto vote = std::make_shared<Vote>(packet_data.rlp_[i].data().toBytes());
@@ -102,15 +105,23 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
       continue;
     }
 
+    // We could switch round before other nodes, so we need to process previous round next votes here./bi
     if (vote->getPeriod() == current_pbft_period && (current_pbft_round - 1) == vote->getRound()) {
       if (auto vote_is_valid = validateNextSyncVote(vote); vote_is_valid.first == false) {
         LOG(log_wr_) << "Vote " << vote->getHash()
                      << " from previous round validation failed. Err: " << vote_is_valid.second;
-      } else if (!vote_mgr_->insertUniqueVote(vote)) {
-        LOG(log_dg_) << "Non unique vote " << vote->getHash() << " (race condition)";
+        continue;
       }
+      if (!vote_mgr_->insertUniqueVote(vote)) {
+        LOG(log_dg_) << "Non unique vote " << vote->getHash() << " (race condition)";
+        continue;
+      }
+      // Not perfect way to to do this, but this whole process could be possibly refactored
+      peer->markVoteAsKnown(vote_hash);
+      previous_next_votes.push_back(std::move(vote));
       continue;
     }
+
     // Standard vote
     if (vote->getPeriod() >= current_pbft_period) {
       if (!vote_mgr_->voteInVerifiedMap(vote)) {
@@ -156,7 +167,9 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     peer->markVoteAsKnown(vote_hash);
     votes.push_back(std::move(vote));
   }
-
+  if (!previous_next_votes.empty()) {
+    next_votes_mgr_->updateWithSyncedVotes(previous_next_votes, pbft_mgr_->getTwoTPlusOne());
+  }
   onNewPbftVotes(std::move(votes));
 }
 
