@@ -11,14 +11,15 @@
 #include "dag/block_proposer.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block.hpp"
+#include "graphql/http_processor.hpp"
 #include "graphql/ws_server.hpp"
 #include "key_manager/key_manager.hpp"
 #include "network/rpc/Net.h"
 #include "network/rpc/Taraxa.h"
 #include "network/rpc/Test.h"
 #include "network/rpc/eth/Eth.h"
+#include "network/rpc/jsonrpc_http_processor.hpp"
 #include "network/rpc/jsonrpc_ws_server.hpp"
-#include "network/rpc/rpc_error_handler.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "transaction/gas_pricer.hpp"
 #include "transaction/transaction_manager.hpp"
@@ -167,11 +168,11 @@ void FullNode::start() {
         eth_json_rpc, test_json_rpc);
 
     if (conf_.rpc->http_port) {
-      jsonrpc_http_ =
-          std::make_shared<net::RpcServer>(rpc_thread_pool_->unsafe_get_io_context(),
-                                           boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port},
-                                           getAddress(), net::handle_rpc_error);
-      jsonrpc_api_->addConnector(jsonrpc_http_);
+      auto json_rpc_processor = std::make_shared<net::JsonRpcHttpProcessor>();
+      jsonrpc_http_ = std::make_shared<net::HttpServer>(
+          rpc_thread_pool_->unsafe_get_io_context(),
+          boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port}, getAddress(), json_rpc_processor);
+      jsonrpc_api_->addConnector(json_rpc_processor);
       jsonrpc_http_->StartListening();
     }
     if (conf_.rpc->ws_port) {
@@ -221,6 +222,14 @@ void FullNode::start() {
         rpc_thread_pool_->unsafe_get_io_context(),
         boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->gql_ws_port}, getAddress());
     // graphql_ws_->run();
+  }
+
+  if (conf_.rpc->gql_http_port) {
+    graphql_http_ = std::make_shared<net::HttpServer>(
+        rpc_thread_pool_->unsafe_get_io_context(),
+        boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->gql_http_port}, getAddress(),
+        std::make_shared<net::GraphQlHttpProcessor>(final_chain_, dag_mgr_, pbft_mgr_, trx_mgr_, db_, conf_.chain_id));
+    graphql_http_->StartListening();
   }
 
   // GasPricer updater

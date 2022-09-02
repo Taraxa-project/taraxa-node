@@ -43,7 +43,7 @@ target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/storage/
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 # GraphQL
-target_include_directories(core_libs PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/graphql/gen)
+target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/graphql/gen)
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/graphql/include)
 
 add_dependencies(core_libs regenerate_schema_files)

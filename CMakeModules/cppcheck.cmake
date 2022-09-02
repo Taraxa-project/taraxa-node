@@ -27,9 +27,6 @@ else ()
             --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/replay_protection_service.cpp
             # TODO remove this when we solve correct exit of programs
             --suppress=localMutex:${PROJECT_SOURCE_DIR}/*/main.cpp
-            # error: Rethrowing current exception with 'throw;', it seems there is no current exception to rethrow.
-            # false positive
-            --suppress=rethrowNoCurrentException:${PROJECT_SOURCE_DIR}/*/rpc_error_handler.cpp
             # Just style warning
             --suppress=virtualCallInConstructor:${PROJECT_SOURCE_DIR}/*/final_chain.cpp
 
