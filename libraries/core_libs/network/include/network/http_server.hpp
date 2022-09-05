@@ -15,9 +15,6 @@ class HttpProcessor {
   using Response = boost::beast::http::response<boost::beast::http::string_body>;
 
   virtual Response process(const Request& request) = 0;
-
- protected:
-  boost::beast::http::response<boost::beast::http::string_body> response_;
 };
 
 class HttpConnection;
@@ -28,10 +25,10 @@ class HttpServer : public std::enable_shared_from_this<HttpServer> {
   HttpServer(boost::asio::io_context& io, boost::asio::ip::tcp::endpoint ep, const addr_t& node_addr,
              const std::shared_ptr<HttpProcessor>& request_processor);
 
-  virtual ~HttpServer() { HttpServer::StopListening(); }
+  virtual ~HttpServer() { HttpServer::stop(); }
 
-  bool StartListening();
-  bool StopListening();
+  bool start();
+  bool stop();
 
   void accept();
   boost::asio::io_context& getIoContext() { return io_context_; }
@@ -73,6 +70,7 @@ class HttpConnection : public std::enable_shared_from_this<HttpConnection> {
   boost::asio::ip::tcp::socket socket_;
   boost::beast::flat_buffer buffer_;
   boost::beast::http::request<boost::beast::http::string_body> request_;
+  boost::beast::http::response<boost::beast::http::string_body> response_;
 };
 
 }  // namespace taraxa::net

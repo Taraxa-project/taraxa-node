@@ -100,15 +100,16 @@ HttpProcessor::Response GraphQlHttpProcessor::createErrResponse(response::Value&
 }
 
 HttpProcessor::Response GraphQlHttpProcessor::createOkResponse(std::string&& response_body) {
-  response_.set("Content-Type", "application/json");
-  response_.set("Access-Control-Allow-Origin", "*");
-  response_.set("Access-Control-Allow-Headers", "Accept, Accept-Language, Content-Language, Content-Type");
-  response_.set("Connection", "close");
-  response_.result(boost::beast::http::status::ok);
-  response_.body() = std::move(response_body);
-  response_.prepare_payload();
+  Response response;
+  response.set("Content-Type", "application/json");
+  response.set("Access-Control-Allow-Origin", "*");
+  response.set("Access-Control-Allow-Headers", "Accept, Accept-Language, Content-Language, Content-Type");
+  response.set("Connection", "close");
+  response.result(boost::beast::http::status::ok);
+  response.body() = std::move(response_body);
+  response.prepare_payload();
 
-  return response_;
+  return response;
 }
 
 }  // namespace taraxa::net

@@ -173,7 +173,7 @@ void FullNode::start() {
           rpc_thread_pool_->unsafe_get_io_context(),
           boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port}, getAddress(), json_rpc_processor);
       jsonrpc_api_->addConnector(json_rpc_processor);
-      jsonrpc_http_->StartListening();
+      jsonrpc_http_->start();
     }
     if (conf_.rpc->ws_port) {
       jsonrpc_ws_ = std::make_shared<net::JsonRpcWsServer>(
@@ -229,7 +229,7 @@ void FullNode::start() {
         rpc_thread_pool_->unsafe_get_io_context(),
         boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->gql_http_port}, getAddress(),
         std::make_shared<net::GraphQlHttpProcessor>(final_chain_, dag_mgr_, pbft_mgr_, trx_mgr_, db_, conf_.chain_id));
-    graphql_http_->StartListening();
+    graphql_http_->start();
   }
 
   // GasPricer updater

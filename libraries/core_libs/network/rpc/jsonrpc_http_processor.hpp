@@ -20,7 +20,6 @@ class JsonRpcHttpProcessor final : public HttpProcessor, public jsonrpc::Abstrac
 
   bool StartListening() override { return true; }
   bool StopListening() override { return true; }
-  bool SendResponse(const std::string&, void*) { return true; }
 };
 
 }  // namespace taraxa::net
