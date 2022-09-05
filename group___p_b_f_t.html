@@ -1230,6 +1230,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr><td colspan="2"><h3>Private Attributes</h3></td></tr>
 <tr class="memitem:a59a9a8bd086c2f5ed76c823635475ab2"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a59a9a8bd086c2f5ed76c823635475ab2">stopped_</a> = true</td></tr>
 <tr class="separator:a59a9a8bd086c2f5ed76c823635475ab2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a94603d3c04f67af47c2416dcda151546"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, <a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a94603d3c04f67af47c2416dcda151546">anchor_dag_block_order_cache</a></td></tr>
+<tr class="separator:a94603d3c04f67af47c2416dcda151546"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a33461a44a6bfbd1e892fd732d53a190d"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a33461a44a6bfbd1e892fd732d53a190d">proposed_block_</a> = nullptr</td></tr>
 <tr class="separator:a33461a44a6bfbd1e892fd732d53a190d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adcd7ff1c28e3c0b6b0a0108118b479fa"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; std::thread &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#adcd7ff1c28e3c0b6b0a0108118b479fa">daemon_</a></td></tr>
@@ -3917,6 +3919,28 @@ Collaboration diagram for taraxa::PbftManager:</div>
 </div>
 </div>
 <h4 class="groupheader">Member Data Documentation</h4>
+<a id="a94603d3c04f67af47c2416dcda151546"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a94603d3c04f67af47c2416dcda151546">&#9670;&nbsp;</a></span>anchor_dag_block_order_cache</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, <a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a>&gt; taraxa::PbftManager::anchor_dag_block_order_cache</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a4d086faf37a2de3c5e7bf20f03efe6a1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a4d086faf37a2de3c5e7bf20f03efe6a1">&#9670;&nbsp;</a></span>cert_voted_block_for_round_</h2>
 

@@ -87,6 +87,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_manager =
     [ "updateDposState_", "group___p_b_f_t.html#abf233be73a4e02fb4f260cb7684cd977", null ],
     [ "updateTwoTPlusOneAndThreshold_", "group___p_b_f_t.html#a25633a0de0001ab35e875b35834b26e4", null ],
     [ "validateVote", "group___p_b_f_t.html#a97d518c6d3b3a2c618948e7977798ba8", null ],
+    [ "anchor_dag_block_order_cache", "group___p_b_f_t.html#a94603d3c04f67af47c2416dcda151546", null ],
     [ "cert_voted_block_for_round_", "group___p_b_f_t.html#a4d086faf37a2de3c5e7bf20f03efe6a1", null ],
     [ "COMMITTEE_SIZE", "group___p_b_f_t.html#a73a2970d49e8fed6e25e8550be1fc0ca", null ],
     [ "config_", "group___p_b_f_t.html#af527c9f71edcd69538edcfe26608ab2d", null ],
