@@ -1447,7 +1447,7 @@ std::optional<std::pair<blk_hash_t, uint64_t>> PbftManager::identifyLeaderBlock_
   auto votes = vote_mgr_->getProposalVotes(round, period);
 
   // Each leader candidate with <vote_signature_hash, vote>
-  std::vector<std::pair<h256, std::shared_ptr<Vote>>> leader_candidates;
+  std::map<h256, std::shared_ptr<Vote>> leader_candidates;
 
   for (auto const &v : votes) {
     if (v->getRound() != round) {
@@ -1476,6 +1476,12 @@ std::optional<std::pair<blk_hash_t, uint64_t>> PbftManager::identifyLeaderBlock_
       continue;
     }
 
+    leader_candidates[getProposal(v)] = v;
+  }
+
+  for (auto const &leader : leader_candidates) {
+    const auto proposed_block_hash = leader.second->getBlockHash();
+
     if (pbft_chain_->findPbftBlockInChain(proposed_block_hash)) {
       continue;
     }
@@ -1498,18 +1504,11 @@ std::optional<std::pair<blk_hash_t, uint64_t>> PbftManager::identifyLeaderBlock_
       continue;
     }
 
-    leader_candidates.emplace_back(std::make_pair(getProposal(v), v));
+    return {std::make_pair(leader.second->getBlockHash(), leader.second->getPeriod())};
   }
 
-  if (leader_candidates.empty()) {
-    // no eligible leader
-    return {};
-  }
-
-  const auto leader = *std::min_element(leader_candidates.begin(), leader_candidates.end(),
-                                        [](const auto &i, const auto &j) { return i.first < j.first; });
-
-  return {std::make_pair(leader.second->getBlockHash(), leader.second->getPeriod())};
+  // no eligible leader
+  return {};
 }
 
 bool PbftManager::syncRequestedAlreadyThisStep_() const {
@@ -1606,6 +1605,11 @@ std::pair<vec_blk_t, bool> PbftManager::compareBlocksAndRewardVotes_(std::shared
     return std::make_pair(std::move(dag_blocks_order), true);
   }
 
+  auto dag_order_it = anchor_dag_block_order_cache.find(anchor_hash);
+  if (dag_order_it != anchor_dag_block_order_cache.end()) {
+    return std::make_pair(dag_order_it->second, true);
+  }
+
   dag_blocks_order = dag_mgr_->getDagBlockOrder(anchor_hash, pbft_block->getPeriod());
   if (dag_blocks_order.empty()) {
     LOG(log_er_) << "Missing dag blocks for proposed PBFT block " << proposal_block_hash;
@@ -1653,6 +1657,7 @@ std::pair<vec_blk_t, bool> PbftManager::compareBlocksAndRewardVotes_(std::shared
 
   period_data_.pbft_blk = std::move(pbft_block);
 
+  anchor_dag_block_order_cache[anchor_hash] = dag_blocks_order;
   return std::make_pair(std::move(dag_blocks_order), true);
 }
 
@@ -1810,6 +1815,9 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
     // update PBFT chain size
     pbft_chain_->updatePbftChain(pbft_block_hash, null_anchor);
   }
+
+  // anchor_dag_block_order_cache is valid in one period, clear when period changes
+  anchor_dag_block_order_cache.clear();
 
   LOG(log_nf_) << "Pushed new PBFT block " << pbft_block_hash << " into chain. Period: " << pbft_period
                << ", round: " << getPbftRound();
