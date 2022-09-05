@@ -615,28 +615,26 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
   }
   {
     u256 total_block_weight = 0;
-    const auto &trxs_hashes = blk.getTrxs();
-    const auto &trxs_gas_estimations = blk.getTrxsGasEstimations();
-    if (trxs_hashes.size() != trxs_gas_estimations.size()) {
+    const auto &block_gas_estimation = blk.getGasEstimation();
+    for (const auto &trx : *transactions) {
+      total_block_weight += trx_mgr_->estimateTransactionGas(trx, propose_period);
+    }
+
+    if (total_block_weight != block_gas_estimation) {
+      LOG(log_er_) << "Invalid block_gas_estimation. DAG block " << blk.getHash()
+                   << " block_gas_estimation: " << block_gas_estimation << " total_block_weight " << total_block_weight
+                   << " current period " << final_chain_->last_block_number();
       return VerifyBlockReturnType::IncorrectTransactionsEstimation;
     }
-    for (size_t i = 0; i < trxs_hashes.size(); ++i) {
-      const auto trx = (*transactions)[trxs_hashes[i]];
-      // Transaction estimation should be either the transactions gas limit or the estimate
-      if (trx->getGas() != trxs_gas_estimations[i]) {
-        const auto &e = trx_mgr_->estimateTransactionGas(trx, propose_period);
-        if (e != trxs_gas_estimations[i]) {
-          return VerifyBlockReturnType::IncorrectTransactionsEstimation;
-        }
-        total_block_weight += e;
-      } else {
-        total_block_weight += trx->getGas();
-      }
-    }
+
     if (total_block_weight > getDagConfig().gas_limit) {
+      LOG(log_er_) << "BlockTooBig. DAG block " << blk.getHash() << " gas_limit: " << getDagConfig().gas_limit
+                   << " total_block_weight " << total_block_weight << " current period "
+                   << final_chain_->last_block_number();
       return VerifyBlockReturnType::BlockTooBig;
     }
   }
+
   LOG(log_dg_) << "Verified DAG block " << blk.getHash();
 
   return VerifyBlockReturnType::Verified;

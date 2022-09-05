@@ -141,7 +141,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @param blk
    * @return transactions retrieved from pool/db
    */
-  std::optional<std::map<trx_hash_t, std::shared_ptr<Transaction>>> getBlockTransactions(DagBlock const &blk);
+  std::optional<SharedTransactions> getBlockTransactions(DagBlock const &blk);
 
   /**
    * @brief Updates the status of transactions to finalized

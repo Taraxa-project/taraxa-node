@@ -24,7 +24,7 @@ class DagBlock {
   level_t level_ = 0;
   vec_blk_t tips_;
   vec_trx_t trxs_;  // transactions
-  std::vector<uint64_t> trxs_gas_estimations_;
+  uint64_t gas_estimation_;
   sig_t sig_;
   u256 block_weight_;
   mutable blk_hash_t hash_;
@@ -39,14 +39,14 @@ class DagBlock {
  public:
   DagBlock() = default;
   // fixme: This constructor is bogus, used only in tests. Eliminate it
-  DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, std::vector<uint64_t> est, sig_t signature,
+  DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, uint64_t est, sig_t signature,
            blk_hash_t hash, addr_t sender);
   DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, sig_t signature, blk_hash_t hash,
            addr_t sender);
   // fixme: used only in tests, Eliminate it
   DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, secret_t const &sk);
-  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, std::vector<uint64_t> est,
-           VdfSortition vdf, secret_t const &sk);
+  DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, uint64_t est, VdfSortition vdf,
+           secret_t const &sk);
   explicit DagBlock(Json::Value const &doc);
   explicit DagBlock(string const &json);
   explicit DagBlock(dev::RLP const &_rlp);
@@ -90,7 +90,7 @@ class DagBlock {
   auto getTimestamp() const { return timestamp_; }
   auto const &getTips() const { return tips_; }
   auto const &getTrxs() const { return trxs_; }
-  auto const &getTrxsGasEstimations() const { return trxs_gas_estimations_; }
+  auto const &getGasEstimation() const { return gas_estimation_; }
   auto const &getSig() const { return sig_; }
   blk_hash_t const &getHash() const;
   uint16_t getDifficulty() const { return vdf_.getDifficulty(); }

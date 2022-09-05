@@ -23,6 +23,9 @@ TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_p
 
 uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction> trx,
                                                     std::optional<uint64_t> proposal_period) const {
+  if (trx->getGas() <= kEstimateGasLimit) {
+    return trx->getGas();
+  }
   const auto &result = final_chain_->call(
       state_api::EVMTransaction{
           trx->getSender(),
@@ -294,11 +297,7 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
   }
   for (uint64_t i = 0; i < trxs.size(); i++) {
     uint64_t weight;
-    if (trxs[i]->getGas() > kEstimateGasLimit) {
-      weight = estimateTransactionGas(trxs[i], proposal_period);
-    } else {
-      weight = trxs[i]->getGas();
-    }
+    weight = estimateTransactionGas(trxs[i], proposal_period);
     total_weight += weight;
     if (total_weight > weight_limit) {
       trxs.resize(i);
@@ -353,8 +352,7 @@ void TransactionManager::moveNonFinalizedTransactionsToTransactionsPool(std::uno
 }
 
 // Verify all block transactions are present
-std::optional<std::map<trx_hash_t, std::shared_ptr<Transaction>>> TransactionManager::getBlockTransactions(
-    DagBlock const &blk) {
+std::optional<SharedTransactions> TransactionManager::getBlockTransactions(DagBlock const &blk) {
   vec_trx_t finalized_trx_hashes;
   vec_trx_t const &all_block_trx_hashes = blk.getTrxs();
   if (all_block_trx_hashes.empty()) {
@@ -362,21 +360,22 @@ std::optional<std::map<trx_hash_t, std::shared_ptr<Transaction>>> TransactionMan
     return std::nullopt;
   }
 
-  std::map<trx_hash_t, std::shared_ptr<Transaction>> transactions;
+  SharedTransactions transactions;
+  transactions.reserve(all_block_trx_hashes.size());
   {
     std::shared_lock transactions_lock(transactions_mutex_);
     for (auto const &tx_hash : all_block_trx_hashes) {
       auto trx = transactions_pool_.get(tx_hash);
       if (trx != nullptr) {
-        transactions.emplace(tx_hash, std::move(trx));
+        transactions.emplace_back(std::move(trx));
       } else {
         auto trx_it = nonfinalized_transactions_in_dag_.find(tx_hash);
         if (trx_it != nonfinalized_transactions_in_dag_.end()) {
-          transactions.emplace(tx_hash, trx_it->second);
+          transactions.emplace_back(trx_it->second);
         } else {
           trx_it = recently_finalized_transactions_.find(tx_hash);
           if (trx_it != recently_finalized_transactions_.end()) {
-            transactions.emplace(tx_hash, trx_it->second);
+            transactions.emplace_back(trx_it->second);
           } else {
             finalized_trx_hashes.emplace_back(tx_hash);
           }
@@ -387,7 +386,7 @@ std::optional<std::map<trx_hash_t, std::shared_ptr<Transaction>>> TransactionMan
   auto finalizedTransactions = db_->getFinalizedTransactions(finalized_trx_hashes);
   if (finalizedTransactions.first.has_value()) {
     for (auto trx : *finalizedTransactions.first) {
-      transactions.emplace(trx->getHash(), std::move(trx));
+      transactions.emplace_back(std::move(trx));
     }
   } else {
     LOG(log_er_) << "Block " << blk.getHash() << " has missing transaction " << finalizedTransactions.second;

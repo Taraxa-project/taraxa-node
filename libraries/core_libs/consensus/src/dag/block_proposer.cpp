@@ -221,8 +221,10 @@ void BlockProposer::proposeBlock(DagFrontier&& frontier, level_t level, SharedTr
   for (const auto& trx : trxs) {
     trx_hashes.push_back(trx->getHash());
   }
-  DagBlock blk(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes),
-               std::move(estimations), std::move(vdf), node_sk_);
+  uint64_t block_estimation = 0;
+  for (const auto& e : estimations) block_estimation += e;
+  DagBlock blk(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes), block_estimation,
+               std::move(vdf), node_sk_);
 
   LOG(log_nf_) << "Add proposed DAG block " << blk.getHash() << ", pivot " << blk.getPivot() << " , number of trx ("
                << blk.getTrxs().size() << ")";

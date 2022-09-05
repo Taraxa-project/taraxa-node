@@ -1417,7 +1417,7 @@ TEST_F(FullNodeTest, chain_config_json) {
     "timestamp": "0x5d422b80",
     "tips": [],
     "transactions": [],
-    "trx_estimations" : []
+    "trx_estimations" : "0x0"
   },
   "final_chain": {
     "genesis_block_fields": {
@@ -1692,7 +1692,7 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
   const auto estimation = node0->getTransactionManager()->estimateTransactionGas(trx, proposal_period);
   vdf.computeVdfSolution(sortition_params, dag_genesis.asBytes(), false);
 
-  DagBlock blk(dag_genesis, proposal_level, {}, {trx->getHash()}, {estimation}, vdf, node0->getSecretKey());
+  DagBlock blk(dag_genesis, proposal_level, {}, {trx->getHash()}, estimation, vdf, node0->getSecretKey());
   const auto blk_hash = blk.getHash();
   EXPECT_TRUE(nodes[1]->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
 

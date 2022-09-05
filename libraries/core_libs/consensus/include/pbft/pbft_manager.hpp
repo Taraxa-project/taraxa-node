@@ -282,10 +282,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   /**
    * @brief Check a block weight of gas estimation
-   * @param period_data period data
+   * @param dag_blocks dag blocks
    * @return true if total weight of gas estimation is less or equal to gas limit. Otherwise return false
    */
-  bool checkBlockWeight(const PeriodData &period_data) const;
+  bool checkBlockWeight(const std::vector<DagBlock> &dag_blocks) const;
 
   /**
    * @brief Get finalized DPOS period
@@ -504,18 +504,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   /**
    * @brief Check that there are all DAG blocks with correct ordering, total gas estimation is not greater than gas
    * limit, and PBFT block includes all reward votes.
-   * @param pbft_block_hash PBFT block hash
+   * @param pbft_block PBFT block
    * @return true if pass verification
    */
-  bool compareBlocksAndRewardVotes_(const blk_hash_t &pbft_block_hash);
-
-  /**
-   * @brief Check that there are all DAG blocks with correct ordering, total gas estimation is not greater than gas
-   * limit, and PBFT block include all reward votes.
-   * @param pbft_block PBFT block
-   * @return true with DAG blocks hashes in order if passed verification. Otherwise return false
-   */
-  std::pair<vec_blk_t, bool> compareBlocksAndRewardVotes_(std::shared_ptr<PbftBlock> pbft_block);
+  bool compareBlocksAndRewardVotes_(const std::shared_ptr<PbftBlock> &pbft_block);
 
   /**
    * @brief If there are enough certify votes, push the vote PBFT block in PBFT chain
@@ -539,11 +531,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Push a new PBFT block into the PBFT chain
    * @param period_data PBFT block, cert votes for previous period, DAG blocks, and transactions
    * @param cert_votes cert votes for pbft block period
-   * @param dag_blocks_order DAG blocks hashes
    * @return true if push a new PBFT block into the PBFT chain
    */
-  bool pushPbftBlock_(PeriodData &&period_data, std::vector<std::shared_ptr<Vote>> &&cert_votes,
-                      vec_blk_t &&dag_blocks_order = {});
+  bool pushPbftBlock_(PeriodData &&period_data, std::vector<std::shared_ptr<Vote>> &&cert_votes);
 
   /**
    * @brief Update PBFT 2t+1 and PBFT sortition threshold
@@ -583,7 +573,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   // Multiple proposed pbft blocks could have same dag block anchor at same period so this cache improves retrieval of
   // dag block order for specific anchor
-  std::unordered_map<blk_hash_t, vec_blk_t> anchor_dag_block_order_cache;
+  std::unordered_map<blk_hash_t, std::vector<DagBlock>> anchor_dag_block_order_cache_;
 
   // Ensures that only one PBFT block per period can be proposed
   std::shared_ptr<PbftBlock> proposed_block_ = nullptr;
@@ -631,9 +621,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   std::optional<std::pair<blk_hash_t, uint64_t /* period */>> previous_round_next_voted_value_{};
   bool previous_round_next_voted_null_block_hash_ = false;
-
-  // Period data for pbft block that is being currently cert voted for
-  PeriodData period_data_;
 
   time_point round_clock_initial_datetime_;
   time_point now_;
