@@ -581,6 +581,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   std::atomic<bool> stopped_ = true;
 
+  // Multiple proposed pbft blocks could have same dag block anchor at same period so this cache improves retrieval of
+  // dag block order for specific anchor
+  std::unordered_map<blk_hash_t, vec_blk_t> anchor_dag_block_order_cache;
+
   // Ensures that only one PBFT block per period can be proposed
   std::shared_ptr<PbftBlock> proposed_block_ = nullptr;
 
