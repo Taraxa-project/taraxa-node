@@ -1486,12 +1486,6 @@ std::optional<std::pair<blk_hash_t, uint64_t>> PbftManager::identifyLeaderBlock_
       continue;
     }
 
-    if (!compareBlocksAndRewardVotes_(pbft_block->getBlockHash())) {
-      LOG(log_er_) << "Incomplete or invalid proposed block " << pbft_block->getBlockHash() << ", period " << period
-                   << ", round " << round;
-      continue;
-    }
-
     if (!pbft_chain_->checkPbftBlockValidation(*pbft_block)) {
       LOG(log_er_) << "Proposed block " << pbft_block->getBlockHash() << " failed validation, period " << period
                    << ", round " << round;
@@ -1506,10 +1500,22 @@ std::optional<std::pair<blk_hash_t, uint64_t>> PbftManager::identifyLeaderBlock_
     return {};
   }
 
-  const auto leader = *std::min_element(leader_candidates.begin(), leader_candidates.end(),
-                                        [](const auto &i, const auto &j) { return i.first < j.first; });
+  // Sort leader candidates
+  std::sort(leader_candidates.begin(), leader_candidates.end(),
+            [](const auto &i, const auto &j) { return i.first < j.first; });
 
-  return {std::make_pair(leader.second->getBlockHash(), leader.second->getPeriod())};
+  // Select first valid block from sorted leader candidates
+  for (auto block_it = leader_candidates.begin(); block_it != leader_candidates.end(); block_it++) {
+    if (compareBlocksAndRewardVotes_(block_it->second->getBlockHash())) {
+      return {std::make_pair(block_it->second->getBlockHash(), block_it->second->getPeriod())};
+    }
+
+    LOG(log_er_) << "Incomplete or invalid proposed block " << block_it->second->getBlockHash() << ", period " << period
+                 << ", round " << round;
+  }
+
+  LOG(log_er_) << "No valid leader candidate in period " << period << ", round " << round;
+  return {};
 }
 
 bool PbftManager::syncRequestedAlreadyThisStep_() const {
