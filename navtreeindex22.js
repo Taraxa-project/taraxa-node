@@ -1,8 +1,5 @@
 var NAVTREEINDEX22 =
 {
-"structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#a20ae0df7b61567032daaf88d695dcf8b":[9,1,6,0,3],
-"structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#a8c8c1eb76733ce32ca17551bebe65230":[9,1,6,0,7],
-"structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#a916ebbd89892ee9ef6b2e1d448c99992":[9,1,6,0,6],
 "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#a926619a4b5a506e7326bd3cb09cc70f7":[9,1,6,0,5],
 "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#aa177ec7b244ca3e259c00fa92d3107cb":[9,1,6,0,4],
 "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#add6167a0b2b26619da96337a1c664fee":[9,1,6,0,2],
@@ -36,8 +33,8 @@ var NAVTREEINDEX22 =
 "structtaraxa_1_1net_1_1_rpc_server.html#a1d6e4c66f3b89b37e43c967b285268dd":[11,0,3,3,7,11],
 "structtaraxa_1_1net_1_1_rpc_server.html#a2e1be133e3bde7b50a96dddba7f6bdc1":[11,0,3,3,7,1],
 "structtaraxa_1_1net_1_1_rpc_server.html#a3967f237e151a42d7e3a3b4dc647ac73":[11,0,3,3,7,10],
-"structtaraxa_1_1net_1_1_rpc_server.html#a3b924a02732d21cda03c1c58f3e832f4":[11,0,3,3,7,0,2],
 "structtaraxa_1_1net_1_1_rpc_server.html#a3b924a02732d21cda03c1c58f3e832f4":[12,0,1,4,1,1,10,1,2],
+"structtaraxa_1_1net_1_1_rpc_server.html#a3b924a02732d21cda03c1c58f3e832f4":[11,0,3,3,7,0,2],
 "structtaraxa_1_1net_1_1_rpc_server.html#a5b77413dbb212f4d3295ea70a6d1eb0e":[11,0,3,3,7,5],
 "structtaraxa_1_1net_1_1_rpc_server.html#a97e487e12a7912a747e36d57ae2f3b8a":[11,0,3,3,7,16],
 "structtaraxa_1_1net_1_1_rpc_server.html#a9a7af1a4149389e6bb8603b82cecbc6e":[11,0,3,3,7,13],
@@ -249,5 +246,8 @@ var NAVTREEINDEX22 =
 "trie__common_8hpp.html#a41b2ec28d1ad728e6c4d190795391e6e":[12,0,1,4,0,0,1,7,0],
 "trie__common_8hpp_source.html":[12,0,1,4,0,0,1,7],
 "types_8hpp.html":[12,0,1,2,0,0,12],
-"types_8hpp.html#a065268f6e371a32cb5ce8a455b68f0bc":[12,0,1,2,0,0,12,35]
+"types_8hpp.html#a065268f6e371a32cb5ce8a455b68f0bc":[12,0,1,2,0,0,12,35],
+"types_8hpp.html#a0826926ee3a622c25c010d9004097ef8":[12,0,1,2,0,0,12,13],
+"types_8hpp.html#a0e17edf3c338f0a2d6ff3d3cd2d05a95":[12,0,1,2,0,0,12,5],
+"types_8hpp.html#a16fb91a724410e8b1a1174d9dbabec33":[12,0,1,2,0,0,12,28]
 };

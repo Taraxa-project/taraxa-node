@@ -658,9 +658,9 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 <tr class="memitem:a5da7437f892b260470d686a0c3c2ed58"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a5da7437f892b260470d686a0c3c2ed58">excludeFinalizedTransactions</a> (const std::vector&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt; &amp;hashes)</td></tr>
 <tr class="memdesc:a5da7437f892b260470d686a0c3c2ed58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exclude Finalized transactions.  <a href="group___transaction.html#a5da7437f892b260470d686a0c3c2ed58">More...</a><br /></td></tr>
 <tr class="separator:a5da7437f892b260470d686a0c3c2ed58"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aee68601c7d39b61b9b1c6d6390a837ed"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#aee68601c7d39b61b9b1c6d6390a837ed">getBlockTransactions</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;blk)</td></tr>
-<tr class="memdesc:aee68601c7d39b61b9b1c6d6390a837ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the block transactions.  <a href="group___transaction.html#aee68601c7d39b61b9b1c6d6390a837ed">More...</a><br /></td></tr>
-<tr class="separator:aee68601c7d39b61b9b1c6d6390a837ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aacee98f4d1a3c0cc4757bab605518fd2"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#aacee98f4d1a3c0cc4757bab605518fd2">getBlockTransactions</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;blk)</td></tr>
+<tr class="memdesc:aacee98f4d1a3c0cc4757bab605518fd2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the block transactions.  <a href="group___transaction.html#aacee98f4d1a3c0cc4757bab605518fd2">More...</a><br /></td></tr>
+<tr class="separator:aacee98f4d1a3c0cc4757bab605518fd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a593e70106cf0a36f54792117b42a7d2a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a593e70106cf0a36f54792117b42a7d2a">updateFinalizedTransactionsStatus</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> const &amp;period_data)</td></tr>
 <tr class="memdesc:a593e70106cf0a36f54792117b42a7d2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Updates the status of transactions to finalized IMPORTANT: This method is invoked on finalizing a pbft block, it needs to be protected with transactions_mutex_ but the mutex is locked from pbft manager for the entire pbft finalization process to make the finalization atomic.  <a href="group___transaction.html#a593e70106cf0a36f54792117b42a7d2a">More...</a><br /></td></tr>
 <tr class="separator:a593e70106cf0a36f54792117b42a7d2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -854,14 +854,14 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 
 </div>
 </div>
-<a id="aee68601c7d39b61b9b1c6d6390a837ed"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aee68601c7d39b61b9b1c6d6390a837ed">&#9670;&nbsp;</a></span>getBlockTransactions()</h2>
+<a id="aacee98f4d1a3c0cc4757bab605518fd2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aacee98f4d1a3c0cc4757bab605518fd2">&#9670;&nbsp;</a></span>getBlockTransactions()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::optional&lt; std::map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt; &gt; taraxa::TransactionManager::getBlockTransactions </td>
+          <td class="memname">std::optional&lt; <a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &gt; taraxa::TransactionManager::getBlockTransactions </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;&#160;</td>
           <td class="paramname"><em>blk</em></td><td>)</td>

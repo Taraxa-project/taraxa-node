@@ -80,7 +80,7 @@ var searchData=
   ['alt_5fbn128_5fg1_5fmul_79',['alt_bn128_G1_mul',['../namespacedev_1_1crypto.html#ae38a014b174e70cbc70ad3db764c5f92',1,'dev::crypto']]],
   ['alt_5fbn128_5fpairing_5fproduct_80',['alt_bn128_pairing_product',['../namespacedev_1_1crypto.html#a04a8bdb6090ea1f0c0ae4d3dfb8229e9',1,'dev::crypto']]],
   ['anchor_5f_81',['anchor_',['../group___d_a_g.html#a56e52dad59ae0107beb964b6d7fe857a',1,'taraxa::DagManager']]],
-  ['anchor_5fdag_5fblock_5forder_5fcache_82',['anchor_dag_block_order_cache',['../group___p_b_f_t.html#a94603d3c04f67af47c2416dcda151546',1,'taraxa::PbftManager']]],
+  ['anchor_5fdag_5fblock_5forder_5fcache_5f_82',['anchor_dag_block_order_cache_',['../group___p_b_f_t.html#a337d6322baecf4ad6ee958c4cc447f30',1,'taraxa::PbftManager']]],
   ['any_83',['any',['../namespacedev.html#aad96800d822f47b289077fd0238ccda7a5f8083279470300313955812da77d90d',1,'dev']]],
   ['api_5fex_5fhandler_5f_84',['api_ex_handler_',['../structtaraxa_1_1net_1_1_rpc_server.html#ac8ad8c34221019a8b9ef057707d90719',1,'taraxa::net::RpcServer']]],
   ['apiexceptionhandler_85',['ApiExceptionHandler',['../structtaraxa_1_1net_1_1_rpc_server.html#a2e1be133e3bde7b50a96dddba7f6bdc1',1,'taraxa::net::RpcServer']]],

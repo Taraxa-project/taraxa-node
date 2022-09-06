@@ -959,16 +959,15 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <div class="dyncontent">
 <div class="center"><img src="classtaraxa_1_1_pbft_manager__coll__graph.png" border="0" usemap="#taraxa_1_1_pbft_manager_coll__map" alt="Collaboration graph"/></div>
 <map name="taraxa_1_1_pbft_manager_coll__map" id="taraxa_1_1_pbft_manager_coll__map">
-<area shape="rect" title="PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks..." alt="" coords="729,419,884,446"/>
-<area shape="rect" title=" " alt="" coords="313,5,516,47"/>
-<area shape="rect" href="group___p_b_f_t.html#classtaraxa_1_1_period_data" title="PeriodData class is for block execution, that includes PBFT block, certify votes, DAG blocks,..." alt="" coords="343,339,487,366"/>
-<area shape="rect" title=" " alt="" coords="55,295,115,322"/>
-<area shape="rect" title=" " alt="" coords="383,390,447,417"/>
-<area shape="rect" href="classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="333,441,497,483"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,449,164,475"/>
-<area shape="rect" href="group___p_b_f_t.html#classtaraxa_1_1_period_data_queue" title="PeriodDataQueue class is a syncing queue, the queue stores blocks synced from peers." alt="" coords="321,507,508,534"/>
-<area shape="rect" href="structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="345,558,484,585"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="335,645,495,671"/>
+<area shape="rect" title="PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks..." alt="" coords="640,189,795,215"/>
+<area shape="rect" title=" " alt="" coords="213,5,416,47"/>
+<area shape="rect" title=" " alt="" coords="283,71,347,98"/>
+<area shape="rect" href="classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="233,123,397,164"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,130,164,157"/>
+<area shape="rect" href="group___p_b_f_t.html#classtaraxa_1_1_period_data_queue" title="PeriodDataQueue class is a syncing queue, the queue stores blocks synced from peers." alt="" coords="221,189,408,215"/>
+<area shape="rect" href="structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="245,239,384,266"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="235,323,395,350"/>
+<area shape="rect" title=" " alt="" coords="285,574,345,601"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -1077,9 +1076,9 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:a1b31eca2289f31a475f14033a3c59e4e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a1b31eca2289f31a475f14033a3c59e4e">resumeSingleState</a> ()</td></tr>
 <tr class="memdesc:a1b31eca2289f31a475f14033a3c59e4e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resume PBFT daemon on single state. Only to be used for unit tests.  <a href="group___p_b_f_t.html#a1b31eca2289f31a475f14033a3c59e4e">More...</a><br /></td></tr>
 <tr class="separator:a1b31eca2289f31a475f14033a3c59e4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af4354bc62d13355fc53742f5a250fe96"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#af4354bc62d13355fc53742f5a250fe96">checkBlockWeight</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;period_data) const</td></tr>
-<tr class="memdesc:af4354bc62d13355fc53742f5a250fe96"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check a block weight of gas estimation.  <a href="group___p_b_f_t.html#af4354bc62d13355fc53742f5a250fe96">More...</a><br /></td></tr>
-<tr class="separator:af4354bc62d13355fc53742f5a250fe96"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9a86f8a8a8cbe402fa70288aaab538d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aa9a86f8a8a8cbe402fa70288aaab538d">checkBlockWeight</a> (const std::vector&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &amp;dag_blocks) const</td></tr>
+<tr class="memdesc:aa9a86f8a8a8cbe402fa70288aaab538d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check a block weight of gas estimation.  <a href="group___p_b_f_t.html#aa9a86f8a8a8cbe402fa70288aaab538d">More...</a><br /></td></tr>
+<tr class="separator:aa9a86f8a8a8cbe402fa70288aaab538d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4b041e54ffc037ab9ac0cdcea7b35824"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a4b041e54ffc037ab9ac0cdcea7b35824">getFinalizedDPOSPeriod</a> () const</td></tr>
 <tr class="memdesc:a4b041e54ffc037ab9ac0cdcea7b35824"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get finalized DPOS period.  <a href="group___p_b_f_t.html#a4b041e54ffc037ab9ac0cdcea7b35824">More...</a><br /></td></tr>
 <tr class="separator:a4b041e54ffc037ab9ac0cdcea7b35824"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1192,21 +1191,18 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:a11990d3392300e6a0ac2eed429550d85"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a11990d3392300e6a0ac2eed429550d85">broadcastAlreadyThisStep_</a> () const</td></tr>
 <tr class="memdesc:a11990d3392300e6a0ac2eed429550d85"><td class="mdescLeft">&#160;</td><td class="mdescRight">Only be able to broadcast one time of previous round next voting votes per each PBFT round and step.  <a href="group___p_b_f_t.html#a11990d3392300e6a0ac2eed429550d85">More...</a><br /></td></tr>
 <tr class="separator:a11990d3392300e6a0ac2eed429550d85"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a90157aa8ed168303bc0511689bdb2b46"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a90157aa8ed168303bc0511689bdb2b46">compareBlocksAndRewardVotes_</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;pbft_block_hash)</td></tr>
-<tr class="memdesc:a90157aa8ed168303bc0511689bdb2b46"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check that there are all DAG blocks with correct ordering, total gas estimation is not greater than gas limit, and PBFT block includes all reward votes.  <a href="group___p_b_f_t.html#a90157aa8ed168303bc0511689bdb2b46">More...</a><br /></td></tr>
-<tr class="separator:a90157aa8ed168303bc0511689bdb2b46"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a35a60f0b1093bf1e97a3755ce06e3283"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a>, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a35a60f0b1093bf1e97a3755ce06e3283">compareBlocksAndRewardVotes_</a> (std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; pbft_block)</td></tr>
-<tr class="memdesc:a35a60f0b1093bf1e97a3755ce06e3283"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check that there are all DAG blocks with correct ordering, total gas estimation is not greater than gas limit, and PBFT block include all reward votes.  <a href="group___p_b_f_t.html#a35a60f0b1093bf1e97a3755ce06e3283">More...</a><br /></td></tr>
-<tr class="separator:a35a60f0b1093bf1e97a3755ce06e3283"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb53714693195c52b08a5b4e299a048c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aeb53714693195c52b08a5b4e299a048c">compareBlocksAndRewardVotes_</a> (const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;pbft_block)</td></tr>
+<tr class="memdesc:aeb53714693195c52b08a5b4e299a048c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check that there are all DAG blocks with correct ordering, total gas estimation is not greater than gas limit, and PBFT block includes all reward votes.  <a href="group___p_b_f_t.html#aeb53714693195c52b08a5b4e299a048c">More...</a><br /></td></tr>
+<tr class="separator:aeb53714693195c52b08a5b4e299a048c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acf16b37b9e008a70a8ae23ddfcbf5d51"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#acf16b37b9e008a70a8ae23ddfcbf5d51">pushCertVotedPbftBlockIntoChain_</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;cert_voted_block_hash, std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&amp;current_round_cert_votes)</td></tr>
 <tr class="memdesc:acf16b37b9e008a70a8ae23ddfcbf5d51"><td class="mdescLeft">&#160;</td><td class="mdescRight">If there are enough certify votes, push the vote PBFT block in PBFT chain.  <a href="group___p_b_f_t.html#acf16b37b9e008a70a8ae23ddfcbf5d51">More...</a><br /></td></tr>
 <tr class="separator:acf16b37b9e008a70a8ae23ddfcbf5d51"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac1d71b10c49fd1e56ec7348377040b64"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ac1d71b10c49fd1e56ec7348377040b64">finalize_</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&amp;period_data, std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt; &amp;&amp;finalized_dag_blk_hashes, bool synchronous_processing=false)</td></tr>
 <tr class="memdesc:ac1d71b10c49fd1e56ec7348377040b64"><td class="mdescLeft">&#160;</td><td class="mdescRight">Final chain executes a finalized PBFT block.  <a href="group___p_b_f_t.html#ac1d71b10c49fd1e56ec7348377040b64">More...</a><br /></td></tr>
 <tr class="separator:ac1d71b10c49fd1e56ec7348377040b64"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8132b54aca664bd3fb441e22d8cd5826"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a8132b54aca664bd3fb441e22d8cd5826">pushPbftBlock_</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&amp;period_data, std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&amp;cert_votes, <a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a> &amp;&amp;dag_blocks_order={})</td></tr>
-<tr class="memdesc:a8132b54aca664bd3fb441e22d8cd5826"><td class="mdescLeft">&#160;</td><td class="mdescRight">Push a new PBFT block into the PBFT chain.  <a href="group___p_b_f_t.html#a8132b54aca664bd3fb441e22d8cd5826">More...</a><br /></td></tr>
-<tr class="separator:a8132b54aca664bd3fb441e22d8cd5826"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aecaca14186b3a9e8d6ccb9fe341d5d5b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aecaca14186b3a9e8d6ccb9fe341d5d5b">pushPbftBlock_</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&amp;period_data, std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&amp;cert_votes)</td></tr>
+<tr class="memdesc:aecaca14186b3a9e8d6ccb9fe341d5d5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Push a new PBFT block into the PBFT chain.  <a href="group___p_b_f_t.html#aecaca14186b3a9e8d6ccb9fe341d5d5b">More...</a><br /></td></tr>
+<tr class="separator:aecaca14186b3a9e8d6ccb9fe341d5d5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a25633a0de0001ab35e875b35834b26e4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a25633a0de0001ab35e875b35834b26e4">updateTwoTPlusOneAndThreshold_</a> ()</td></tr>
 <tr class="memdesc:a25633a0de0001ab35e875b35834b26e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update PBFT 2t+1 and PBFT sortition threshold.  <a href="group___p_b_f_t.html#a25633a0de0001ab35e875b35834b26e4">More...</a><br /></td></tr>
 <tr class="separator:a25633a0de0001ab35e875b35834b26e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1230,8 +1226,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr><td colspan="2"><h3>Private Attributes</h3></td></tr>
 <tr class="memitem:a59a9a8bd086c2f5ed76c823635475ab2"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a59a9a8bd086c2f5ed76c823635475ab2">stopped_</a> = true</td></tr>
 <tr class="separator:a59a9a8bd086c2f5ed76c823635475ab2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a94603d3c04f67af47c2416dcda151546"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, <a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a94603d3c04f67af47c2416dcda151546">anchor_dag_block_order_cache</a></td></tr>
-<tr class="separator:a94603d3c04f67af47c2416dcda151546"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a337d6322baecf4ad6ee958c4cc447f30"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::vector&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a337d6322baecf4ad6ee958c4cc447f30">anchor_dag_block_order_cache_</a></td></tr>
+<tr class="separator:a337d6322baecf4ad6ee958c4cc447f30"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a33461a44a6bfbd1e892fd732d53a190d"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a33461a44a6bfbd1e892fd732d53a190d">proposed_block_</a> = nullptr</td></tr>
 <tr class="separator:a33461a44a6bfbd1e892fd732d53a190d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adcd7ff1c28e3c0b6b0a0108118b479fa"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; std::thread &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#adcd7ff1c28e3c0b6b0a0108118b479fa">daemon_</a></td></tr>
@@ -1296,8 +1292,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="separator:a4688af1a33b8737564fe3377c3b3bc55"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5ee8283e2abebcbe3372fb1d76ca40bc"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a5ee8283e2abebcbe3372fb1d76ca40bc">previous_round_next_voted_null_block_hash_</a> = false</td></tr>
 <tr class="separator:a5ee8283e2abebcbe3372fb1d76ca40bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3bc8579fe23998a9792e6e1fa53e3696"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a3bc8579fe23998a9792e6e1fa53e3696">period_data_</a></td></tr>
-<tr class="separator:a3bc8579fe23998a9792e6e1fa53e3696"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab7b8cf334ef26a6cb3f5edb11f58e20a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___p_b_f_t.html#a0aab8b19e04b0d0100d6ae93c3b170b8">time_point</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ab7b8cf334ef26a6cb3f5edb11f58e20a">round_clock_initial_datetime_</a></td></tr>
 <tr class="separator:ab7b8cf334ef26a6cb3f5edb11f58e20a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a04a5b403a5ebed8dec1b768d94226b07"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___p_b_f_t.html#a0aab8b19e04b0d0100d6ae93c3b170b8">time_point</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a04a5b403a5ebed8dec1b768d94226b07">now_</a></td></tr>
@@ -1746,8 +1740,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="af4354bc62d13355fc53742f5a250fe96"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af4354bc62d13355fc53742f5a250fe96">&#9670;&nbsp;</a></span>checkBlockWeight()</h2>
+<a id="aa9a86f8a8a8cbe402fa70288aaab538d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9a86f8a8a8cbe402fa70288aaab538d">&#9670;&nbsp;</a></span>checkBlockWeight()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1755,8 +1749,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
         <tr>
           <td class="memname">bool taraxa::PbftManager::checkBlockWeight </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&#160;</td>
-          <td class="paramname"><em>period_data</em></td><td>)</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>dag_blocks</em></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
@@ -1765,7 +1759,7 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <p>Check a block weight of gas estimation. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">period_data</td><td>period data </td></tr>
+    <tr><td class="paramname">dag_blocks</td><td>dag blocks </td></tr>
   </table>
   </dd>
 </dl>
@@ -1800,8 +1794,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="a90157aa8ed168303bc0511689bdb2b46"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a90157aa8ed168303bc0511689bdb2b46">&#9670;&nbsp;</a></span>compareBlocksAndRewardVotes_() <span class="overload">[1/2]</span></h2>
+<a id="aeb53714693195c52b08a5b4e299a048c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb53714693195c52b08a5b4e299a048c">&#9670;&nbsp;</a></span>compareBlocksAndRewardVotes_()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1812,8 +1806,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
         <tr>
           <td class="memname">bool taraxa::PbftManager::compareBlocksAndRewardVotes_ </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>pbft_block_hash</em></td><td>)</td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>pbft_block</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -1827,46 +1821,11 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <p>Check that there are all DAG blocks with correct ordering, total gas estimation is not greater than gas limit, and PBFT block includes all reward votes. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">pbft_block_hash</td><td>PBFT block hash </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>true if pass verification </dd></dl>
-
-</div>
-</div>
-<a id="a35a60f0b1093bf1e97a3755ce06e3283"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a35a60f0b1093bf1e97a3755ce06e3283">&#9670;&nbsp;</a></span>compareBlocksAndRewardVotes_() <span class="overload">[2/2]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::pair&lt; <a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a>, bool &gt; taraxa::PbftManager::compareBlocksAndRewardVotes_ </td>
-          <td>(</td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;&#160;</td>
-          <td class="paramname"><em>pbft_block</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Check that there are all DAG blocks with correct ordering, total gas estimation is not greater than gas limit, and PBFT block include all reward votes. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
     <tr><td class="paramname">pbft_block</td><td>PBFT block </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>true with DAG blocks hashes in order if passed verification. Otherwise return false </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>true if pass verification </dd></dl>
 
 </div>
 </div>
@@ -3187,8 +3146,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="a8132b54aca664bd3fb441e22d8cd5826"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8132b54aca664bd3fb441e22d8cd5826">&#9670;&nbsp;</a></span>pushPbftBlock_()</h2>
+<a id="aecaca14186b3a9e8d6ccb9fe341d5d5b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aecaca14186b3a9e8d6ccb9fe341d5d5b">&#9670;&nbsp;</a></span>pushPbftBlock_()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3206,13 +3165,7 @@ Collaboration diagram for taraxa::PbftManager:</div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&amp;&#160;</td>
-          <td class="paramname"><em>cert_votes</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a> &amp;&amp;&#160;</td>
-          <td class="paramname"><em>dag_blocks_order</em> = <code>{}</code>&#160;</td>
+          <td class="paramname"><em>cert_votes</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -3232,7 +3185,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
   <table class="params">
     <tr><td class="paramname">period_data</td><td>PBFT block, cert votes for previous period, DAG blocks, and transactions </td></tr>
     <tr><td class="paramname">cert_votes</td><td>cert votes for pbft block period </td></tr>
-    <tr><td class="paramname">dag_blocks_order</td><td>DAG blocks hashes </td></tr>
   </table>
   </dd>
 </dl>
@@ -3919,8 +3871,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 </div>
 </div>
 <h4 class="groupheader">Member Data Documentation</h4>
-<a id="a94603d3c04f67af47c2416dcda151546"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a94603d3c04f67af47c2416dcda151546">&#9670;&nbsp;</a></span>anchor_dag_block_order_cache</h2>
+<a id="a337d6322baecf4ad6ee958c4cc447f30"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a337d6322baecf4ad6ee958c4cc447f30">&#9670;&nbsp;</a></span>anchor_dag_block_order_cache_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3929,7 +3881,7 @@ Collaboration diagram for taraxa::PbftManager:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, <a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a>&gt; taraxa::PbftManager::anchor_dag_block_order_cache</td>
+          <td class="memname">std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::vector&lt;<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a>&gt; &gt; taraxa::PbftManager::anchor_dag_block_order_cache_</td>
         </tr>
       </table>
   </td>
@@ -4876,28 +4828,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
       <table class="memname">
         <tr>
           <td class="memname">size_t taraxa::PbftManager::pbft_step_last_requested_sync_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a3bc8579fe23998a9792e6e1fa53e3696"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3bc8579fe23998a9792e6e1fa53e3696">&#9670;&nbsp;</a></span>period_data_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> taraxa::PbftManager::period_data_</td>
         </tr>
       </table>
   </td>

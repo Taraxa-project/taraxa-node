@@ -1,10 +1,10 @@
 var classtaraxa_1_1_dag_block =
 [
     [ "DagBlock", "classtaraxa_1_1_dag_block.html#a14040cdc9db1c166b9c0d021ce9bf15d", null ],
-    [ "DagBlock", "classtaraxa_1_1_dag_block.html#a2e28683654556a09f7eb03cbea599e56", null ],
+    [ "DagBlock", "classtaraxa_1_1_dag_block.html#ad178f6fc15e23d4486dbfcaa5dc12136", null ],
     [ "DagBlock", "classtaraxa_1_1_dag_block.html#acfc470101e8d0dcdc4e1ed2f7e3f755e", null ],
     [ "DagBlock", "classtaraxa_1_1_dag_block.html#a00e51bfd48cfa3dab7357938cb4e65b0", null ],
-    [ "DagBlock", "classtaraxa_1_1_dag_block.html#adca93197a7e1c800402e31bbcfd5e1f6", null ],
+    [ "DagBlock", "classtaraxa_1_1_dag_block.html#a5918ea1955486417267213c3e9a12a74", null ],
     [ "DagBlock", "classtaraxa_1_1_dag_block.html#ad780ba7392776f8e2c1c8b80c414cc82", null ],
     [ "DagBlock", "classtaraxa_1_1_dag_block.html#a1f73650dd7f598ac35927a145f8a81a3", null ],
     [ "DagBlock", "classtaraxa_1_1_dag_block.html#afb5a52db03e70fafdb1d35d56e972806", null ],
@@ -12,6 +12,7 @@ var classtaraxa_1_1_dag_block =
     [ "extract_dag_level_from_rlp", "classtaraxa_1_1_dag_block.html#a4dbf3ebcaff09990ade62f9c7945b470", null ],
     [ "extract_signature_from_rlp", "classtaraxa_1_1_dag_block.html#ae3f897fa4553f5fcfb08c4973bcf91f5", null ],
     [ "getDifficulty", "classtaraxa_1_1_dag_block.html#ab5000039e1270206b704b94f8c846c6f", null ],
+    [ "getGasEstimation", "classtaraxa_1_1_dag_block.html#a062ce9dcad21b99efabcaf4e0fd976a0", null ],
     [ "getHash", "classtaraxa_1_1_dag_block.html#a5e395b544d9532aaa894a97529325b09", null ],
     [ "getJson", "classtaraxa_1_1_dag_block.html#a73cf7dc96d3a69148d6c23ad654ab822", null ],
     [ "getJsonStr", "classtaraxa_1_1_dag_block.html#aefa0ca80a85ad18d89e4133f27c884d7", null ],
@@ -22,7 +23,6 @@ var classtaraxa_1_1_dag_block =
     [ "getTimestamp", "classtaraxa_1_1_dag_block.html#a85554354d04ad4a13ddb667446ae9fc6", null ],
     [ "getTips", "classtaraxa_1_1_dag_block.html#a4b05fe8b3f15dd48d4d13fe625783b88", null ],
     [ "getTrxs", "classtaraxa_1_1_dag_block.html#a9b2c0e7fd9da76eb70a9402c8831062a", null ],
-    [ "getTrxsGasEstimations", "classtaraxa_1_1_dag_block.html#afaf32b20a84dc3cd3ff3ffeae7ffb16d", null ],
     [ "operator==", "classtaraxa_1_1_dag_block.html#a0189199e34da23df74249b38d7891c78", null ],
     [ "rlp", "classtaraxa_1_1_dag_block.html#ad56b5133c0560c42278111eb4f0033bd", null ],
     [ "sha3", "classtaraxa_1_1_dag_block.html#a8d35045f23d40d390546972399f08255", null ],
@@ -33,6 +33,7 @@ var classtaraxa_1_1_dag_block =
     [ "block_weight_", "classtaraxa_1_1_dag_block.html#ad833bf9bd0f3861242fca4906fbe1679", null ],
     [ "cached_sender_", "classtaraxa_1_1_dag_block.html#ab804781e239bdde16f10ea8ca3d57bd3", null ],
     [ "cached_sender_mu_", "classtaraxa_1_1_dag_block.html#a7d720be5c72f9251679df8ed5b92339c", null ],
+    [ "gas_estimation_", "classtaraxa_1_1_dag_block.html#a3bd2fb9bbae416f60532e4815a19af4b", null ],
     [ "hash_", "classtaraxa_1_1_dag_block.html#ad053650234b92e86832a79f42a731a78", null ],
     [ "hash_mu_", "classtaraxa_1_1_dag_block.html#ac3fee1611ecdde1dd78b99e4f7856fc4", null ],
     [ "kLevelPosInRlp", "classtaraxa_1_1_dag_block.html#a318413c5369c15dc8eeb91a573e971b1", null ],
@@ -43,6 +44,5 @@ var classtaraxa_1_1_dag_block =
     [ "timestamp_", "classtaraxa_1_1_dag_block.html#a5f15cddbcf721096cbe447b21a2a6181", null ],
     [ "tips_", "classtaraxa_1_1_dag_block.html#af395245caa92a39392ae04faeee3e280", null ],
     [ "trxs_", "classtaraxa_1_1_dag_block.html#a6fb4b847c340e67f91df874f041ba97a", null ],
-    [ "trxs_gas_estimations_", "classtaraxa_1_1_dag_block.html#a3742dd9d12769df9567a8ad2a8481f9a", null ],
     [ "vdf_", "classtaraxa_1_1_dag_block.html#aa25bdd39683371e4b4ee9c76e2e8645a", null ]
 ];

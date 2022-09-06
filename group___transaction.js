@@ -23,7 +23,7 @@ var group___transaction =
       [ "estimateTransactionGas", "group___transaction.html#a1f4fa39fe43953d543ff6099c21e5eb8", null ],
       [ "excludeFinalizedTransactions", "group___transaction.html#a5da7437f892b260470d686a0c3c2ed58", null ],
       [ "getAllPoolTrxs", "group___transaction.html#a95f1a661d89b6da9a05cd13213bd8fc5", null ],
-      [ "getBlockTransactions", "group___transaction.html#aee68601c7d39b61b9b1c6d6390a837ed", null ],
+      [ "getBlockTransactions", "group___transaction.html#aacee98f4d1a3c0cc4757bab605518fd2", null ],
       [ "getFullNodeAddress", "group___transaction.html#ac0ec8a96421d83cc3b8bfad7943c10bc", null ],
       [ "getNonFinalizedTransaction", "group___transaction.html#a6c29826fbd5fd549cdc7c946e94f7256", null ],
       [ "getNonfinalizedTrx", "group___transaction.html#a4653d2e1d13e18462cdf95c66392a5e3", null ],
