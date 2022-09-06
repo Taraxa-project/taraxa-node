@@ -259,13 +259,4 @@ void StatusPacketHandler::syncPbftNextVotesAtPeriodRound(uint64_t pbft_period, u
   }
 }
 
-void StatusPacketHandler::requestPbftNextVotesAtPeriodRound(dev::p2p::NodeID const& peerID, uint64_t pbft_period,
-                                                            uint64_t pbft_round,
-                                                            size_t pbft_previous_round_next_votes_size) {
-  LOG(log_dg_) << "Sending GetVotesSyncPacket with round " << pbft_round << " previous round next votes size "
-               << pbft_previous_round_next_votes_size;
-  sealAndSend(peerID, GetVotesSyncPacket,
-              std::move(dev::RLPStream(3) << pbft_period << pbft_round << pbft_previous_round_next_votes_size));
-}
-
 }  // namespace taraxa::network::tarcap

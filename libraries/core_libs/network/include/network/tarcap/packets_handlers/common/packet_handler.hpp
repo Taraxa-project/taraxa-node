@@ -39,6 +39,9 @@ class PacketHandler {
    */
   void processPacket(const PacketData& packet_data);
 
+  void requestPbftNextVotesAtPeriodRound(dev::p2p::NodeID const& peerID, uint64_t pbft_period, uint64_t pbft_round,
+                                         size_t pbft_previous_round_next_votes_size);
+
  private:
   void handle_caught_exception(std::string_view exception_msg, const PacketData& packet_data,
                                dev::p2p::DisconnectReason disconnect_reason = dev::p2p::DisconnectReason::UserReason,

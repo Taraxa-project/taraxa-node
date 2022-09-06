@@ -29,6 +29,14 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
     return;
   }
 
+  if (!peer->votes_sync_requested_) {
+    LOG(log_er_) << "Received VotesSyncPacket from peer(" << packet_data.from_node_id_
+                 << ") we did not request. The peer may be a malicious player, will be disconnected";
+    disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
+    return;
+  }
+  peer->votes_sync_requested_ = false;
+
   auto reference_vote = std::make_shared<Vote>(packet_data.rlp_[0].data().toBytes());
 
   const auto [pbft_current_round, pbft_current_period] = pbft_mgr_->getPbftRoundAndPeriod();
@@ -152,27 +160,6 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
     // Standard votes -> peer_pbft_period > pbft_current_period || (peer_pbft_period == pbft_current_period &&
     // peer_pbft_round > pbft_current_round - 1)
     onNewPbftVotes(std::move(next_votes));
-  }
-}
-
-void VotesSyncPacketHandler::broadcastPreviousRoundNextVotesBundle() {
-  auto next_votes_bundle = next_votes_mgr_->getNextVotes();
-  if (next_votes_bundle.empty()) {
-    LOG(log_er_) << "There are empty next votes for previous PBFT round";
-    return;
-  }
-
-  const auto pbft_current_round = pbft_mgr_->getPbftRound();
-
-  for (auto const &peer : peers_state_->getAllPeers()) {
-    // Nodes may vote at different values at previous round, so need less or equal
-    if (!peer.second->syncing_ && peer.second->pbft_round_ <= pbft_current_round) {
-      std::vector<std::shared_ptr<Vote>> send_next_votes_bundle;
-      for (const auto &v : next_votes_bundle) {
-        send_next_votes_bundle.push_back(v);
-      }
-      sendPbftVotes(peer.first, std::move(send_next_votes_bundle), true);
-    }
   }
 }
 

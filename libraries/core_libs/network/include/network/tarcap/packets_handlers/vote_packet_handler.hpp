@@ -20,6 +20,8 @@ class VotePacketHandler final : public ExtVotesPacketHandler {
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::VotePacket;
 
+  void broadcastNextVotesBundle(const std::vector<std::shared_ptr<Vote>>& next_votes_bundle);
+
  private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
