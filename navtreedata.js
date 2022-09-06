@@ -296,11 +296,11 @@ var NAVTREEINDEX =
 "libdevcrypto_2_common_8h.html#a04a16f8a4c264a7868151d49e2223f04",
 "md_doc_coding_practices.html#autotoc_md120",
 "namespacetaraxa.html#aae336b6b543c9febf3efb2a8065d0a06",
-"state__api_8cpp.html#a21f5167bc7fd439ed8b01d89c1bd814e",
+"state__api_8cpp.html#a342fbbc3197381abbe76fecb6a04410a",
 "structdev_1_1p2p_1_1_host.html#a7551c55d8bface84e5f697e558a4a694",
 "structdev_1_1p2p_1_1_session.html#a01416d8957bb4ce1e009e37ba5c3f092",
-"structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#a926619a4b5a506e7326bd3cb09cc70f7",
-"types_8hpp.html#a2009f620364dde3e3bdc3fec4c9be5c9"
+"structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#aa177ec7b244ca3e259c00fa92d3107cb",
+"types_8hpp.html#a246ff1eeae4d7fef0f54e7384b812bf0"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

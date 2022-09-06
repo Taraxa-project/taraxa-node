@@ -14,7 +14,7 @@ var state__api__config_8cpp =
     [ "enc_json", "state__api__config_8cpp.html#ae2900ab0e408d3411fd87eee505a91c2", null ],
     [ "enc_json", "state__api__config_8cpp.html#abff670846df801b24fdfb9530c95a53f", null ],
     [ "enc_json", "state__api__config_8cpp.html#a15046280f6cced1ba188ecded81bb15f", null ],
-    [ "RLP_FIELDS_DEFINE", "state__api__config_8cpp.html#a87690d5b1af7d1b2a7715e08fcfa25d6", null ],
+    [ "RLP_FIELDS_DEFINE", "state__api__config_8cpp.html#a5bcde0c9c8c9fd27551b677587528381", null ],
     [ "blocks_per_year", "state__api__config_8cpp.html#a2075e04ce1188d88b9b34434d6ea40ad", null ],
     [ "commission_change_delta", "state__api__config_8cpp.html#a344e95a80f2468a5d361dd0344a3b347", null ],
     [ "commission_change_frequency", "state__api__config_8cpp.html#a7c00c63852de970de6c87fcc59404454", null ],
