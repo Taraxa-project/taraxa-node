@@ -11,7 +11,6 @@ namespace taraxa::state_api {
 Json::Value enc_json(const ETHChainConfig& obj) {
   Json::Value json(Json::objectValue);
   json["homestead_block"] = dev::toJS(obj.homestead_block);
-  json["dao_fork_block"] = dev::toJS(obj.dao_fork_block);
   json["eip_150_block"] = dev::toJS(obj.eip_150_block);
   json["eip_158_block"] = dev::toJS(obj.eip_158_block);
   json["byzantium_block"] = dev::toJS(obj.byzantium_block);
@@ -22,7 +21,6 @@ Json::Value enc_json(const ETHChainConfig& obj) {
 
 void dec_json(const Json::Value& json, ETHChainConfig& obj) {
   obj.homestead_block = dev::jsToInt(json["homestead_block"].asString());
-  obj.dao_fork_block = dev::jsToInt(json["dao_fork_block"].asString());
   obj.eip_150_block = dev::jsToInt(json["eip_150_block"].asString());
   obj.eip_158_block = dev::jsToInt(json["eip_158_block"].asString());
   obj.byzantium_block = dev::jsToInt(json["byzantium_block"].asString());
@@ -162,8 +160,8 @@ void dec_json(Json::Value const& json, BlockRewardsOptions& obj) {
 
 RLP_FIELDS_DEFINE(ExecutionOptions, disable_nonce_check, enable_nonce_skipping)
 RLP_FIELDS_DEFINE(BlockRewardsOptions, disable_block_rewards, disable_contract_distribution)
-RLP_FIELDS_DEFINE(ETHChainConfig, homestead_block, dao_fork_block, eip_150_block, eip_158_block, byzantium_block,
-                  constantinople_block, petersburg_block)
+RLP_FIELDS_DEFINE(ETHChainConfig, homestead_block, eip_150_block, eip_158_block, byzantium_block, constantinople_block,
+                  petersburg_block)
 RLP_FIELDS_DEFINE(ValidatorInfo, address, owner, vrf_key, commission, endpoint, description, delegations)
 RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, vote_eligibility_balance_step, validator_maximum_stake,
                   minimum_deposit, max_block_author_reward, commission_change_delta, commission_change_frequency,

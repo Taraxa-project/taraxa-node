@@ -14,7 +14,6 @@ static constexpr auto BlockNumberNIL = std::numeric_limits<EthBlockNumber>::max(
 
 struct ETHChainConfig {
   EthBlockNumber homestead_block = 0;
-  EthBlockNumber dao_fork_block = 0;
   EthBlockNumber eip_150_block = 0;
   EthBlockNumber eip_158_block = 0;
   EthBlockNumber byzantium_block = 0;
