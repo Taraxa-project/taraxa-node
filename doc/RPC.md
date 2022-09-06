@@ -1,6 +1,6 @@
 # Taraxa RPC
 
-## Ethereum compatibility 
+## Ethereum compatibility
 
 ### Quirks
 
@@ -9,7 +9,7 @@
 
 ### Not implemented
 
-Taraxa protocol supports all Ethereum methods described on [this page](https://eth.wiki/json-rpc/API#json-rpc-methods) except: 
+Taraxa protocol supports all Ethereum methods described on [this page](https://eth.wiki/json-rpc/API#json-rpc-methods) except:
 
 - web3_clientVersion
 - web3_sha3
@@ -53,7 +53,7 @@ none
 
 `QUANTITY` - The current network protocol version
 
-#### Example 
+#### Example
 
 ```json
 // Request
@@ -79,12 +79,12 @@ none
 
 `OBJECT`, An object with info about current version
 * `version`: `STRING` - Triplet describing full version of node in format `MAJOR.MINOR.PATCH`
-* `git_branch`: `STRING` - Name of the branch node was built from 
-* `git_commit_hash`: `DATA`, 20 Bytes - Hash of the commit node was built from 
-* `git_commit_date`: `STRING` - Date of the commit node was built from 
+* `git_branch`: `STRING` - Name of the branch node was built from
+* `git_commit_hash`: `DATA`, 20 Bytes - Hash of the commit node was built from
+* `git_commit_date`: `STRING` - Date of the commit node was built from
 * `git_description`: `STRING` - Git description of commit node was built from
 
-#### Example 
+#### Example
 
 ```json
 // Request
@@ -117,24 +117,24 @@ Returns information about DAG block by hash
 
 `OBJECT` - A DAG block object, or null when no block was found:
 
-* `pivot`: `DATA`, 32 Bytes - 
+* `pivot`: `DATA`, 32 Bytes -
 * `level`: `QUANTITY` - Level at which block was produced
-* `period`: `QUANTITY` - Finalization period of this block 
-* `tips`: `ARRAY` - List of tips 
+* `period`: `QUANTITY` - Finalization period of this block
+* `tips`: `ARRAY` - List of tips
 * `transactions`: `ARRAY` - Array of transaction objects, or 32 Bytes transaction hashes depending on the last given parameter.
 * `trx_estimations`: `ARRAY` - Array of `QUANTITIES` that means transaction gas estimation for corresponding transaction. For example `trx_estimations[0]` is for `transactions[0]`
 * `sig`: `DATA`, 65 Bytes - Signature of block creator
 * `hash`: `DATA`, 32 Bytes - Hash of this block
-* `sender`: `DATA`, 20 Bytes - Address of block creator 
-* `timestamp`: `QUANTITY` - Time of block creation 
+* `sender`: `DATA`, 20 Bytes - Address of block creator
+* `timestamp`: `QUANTITY` - Time of block creation
 * `vdf`: `OBJECT` - vdf proof for this block
   * `pk`: `DATA`, 32 Bytes - Public key
-  * `proof`: `DATA`, 80 Bytes - Bytes of proof 
+  * `proof`: `DATA`, 80 Bytes - Bytes of proof
   * `sol1`: `DATA` - First part of solution
   * `sol1`: `DATA` - Second part of solution
   * `difficulty`: `QUANTITY` - Difficulty with which block was produced
 
-#### Example 
+#### Example
 
 ```json
 // Request
@@ -184,24 +184,24 @@ Returns information about DAG blocks for specified level
 #### Returns
 
 `ARRAY` of `OBJECT` - A DAG block object, or null when no block was found:
-* `pivot`: `DATA`, 32 Bytes - 
+* `pivot`: `DATA`, 32 Bytes -
 * `level`: `QUANTITY` - Level at which block was produced
-* `period`: `QUANTITY` - Finalization period of this block 
-* `tips`: `ARRAY` - List of tips 
+* `period`: `QUANTITY` - Finalization period of this block
+* `tips`: `ARRAY` - List of tips
 * `transactions`: `ARRAY` - Array of transaction objects, or 32 Bytes transaction hashes depending on the last given parameter.
 * `trx_estimations`: `ARRAY` - Array of `QUANTITIES` that means transaction gas estimation for corresponding transaction. For example `trx_estimations[0]` is for `transactions[0]`
 * `sig`: `DATA`, 65 Bytes - Signature of block creator
 * `hash`: `DATA`, 32 Bytes - Hash of this block
-* `sender`: `DATA`, 20 Bytes - Address of block creator 
-* `timestamp`: `QUANTITY` - Time of block creation 
+* `sender`: `DATA`, 20 Bytes - Address of block creator
+* `timestamp`: `QUANTITY` - Time of block creation
 * `vdf`: `OBJECT` - vdf proof for this block
   * `pk`: `DATA`, 32 Bytes - Public key
-  * `proof`: `DATA`, 80 Bytes - Bytes of proof 
+  * `proof`: `DATA`, 80 Bytes - Bytes of proof
   * `sol1`: `DATA` - First part of solution
   * `sol1`: `DATA` - Second part of solution
   * `difficulty`: `QUANTITY` - Difficulty with which block was produced
 
-#### Example 
+#### Example
 
 ```json
 // Request
@@ -251,7 +251,7 @@ none
 
 `QUANTITY` - The current maximum DAG level
 
-#### Example 
+#### Example
 
 ```json
 // Request
@@ -277,7 +277,7 @@ none
 
 `String` - The current protocol version
 
-#### Example 
+#### Example
 
 ```json
 // Request
@@ -293,7 +293,7 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_dagBlockPeriod","params":
 
 ### taraxa_getScheduleBlockByPeriod
 
-Returns PBFT block info with DAG block schedule for period 
+Returns PBFT block info with DAG block schedule for period
 
 #### Parameters
 
@@ -313,7 +313,7 @@ Returns PBFT block info with DAG block schedule for period
 * `signature`: `DATA`, 65 Bytes - Beneficiary signature of the block
 * `timestamp`: `QUANTITY` - Time of block generation
 
-#### Example 
+#### Example
 
 ```json
 // Request
@@ -370,14 +370,14 @@ none
 
 #### Returns
 
-`OBJECT` - config object 
+`OBJECT` - config object
 * `chain_id`: `QUANTITY` - chain id. Different between networks
 * `dag_genesis_block`: `OBJECT` - DAG genesis block
-* `final_chain`: `OBJECT` - FinalChain config object 
-* `pbft`: `OBJECT` - PBFT configuration object 
-* `sortition`: `OBJECT` - Sortition configuration object 
+* `final_chain`: `OBJECT` - FinalChain config object
+* `pbft`: `OBJECT` - PBFT configuration object
+* `sortition`: `OBJECT` - Sortition configuration object
 
-#### Example 
+#### Example
 
 ```json
 // Request
@@ -425,7 +425,6 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getConfig","params":[],"i
         "eth_chain_config": {
           "byzantium_block": "0x0",
           "constantinople_block": "0x0",
-          "dao_fork_block": "0xffffffffffffffff",
           "eip_150_block": "0x0",
           "eip_158_block": "0x0",
           "homestead_block": "0x0",
@@ -486,18 +485,18 @@ Get sortition params changes for closest smaller period to specified
 #### Parameters
 
 `OBJECT` - param is wrapped into object
-* `period`: QUANTITY` - period number to get sortition parameters for 
+* `period`: QUANTITY` - period number to get sortition parameters for
 
 #### Returns
 
 `OBJECT` - sortition parameters
 * `interval_efficiency`: `QUANTITY` - efficiency of interval
-* `period`: `QUANTITY` - number of period when closest smaller change happened 
+* `period`: `QUANTITY` - number of period when closest smaller change happened
 * `threshold_range`: `QUANTITY` - range of normal selection
 * `threshold_upper`: `QUANTITY` - upper bound of normal selection
 * `kThresholdUpperMinValue`: `QUANTITY` - const that represents minimum value of `threshold_upper`
 
-#### Example 
+#### Example
 
 ```json
 // Request
@@ -524,7 +523,7 @@ Method to create and send transfer transaction. Used in some tests and CI
 #### Parameters
 
 `OBJECT` - block json to insert
-* `secret`: `DATA`, 32 Bytes - Secret key for account to send transaction from 
+* `secret`: `DATA`, 32 Bytes - Secret key for account to send transaction from
 * `nonce`: `QUANTITY` - Nonce to send transaction with
 * `value`: `QUANTITY` - Value to specify in created transaction
 * `gas_price`: `QUANTITY` - Gas price to specify in created transaction
@@ -535,7 +534,7 @@ Method to create and send transfer transaction. Used in some tests and CI
 
 none
 
-#### Example 
+#### Example
 
 ```json
 // Request
@@ -561,7 +560,7 @@ none
 
 `DATA`, 20 Bytes - address of account on current node
 
-#### Example 
+#### Example
 
 ```json
 // Request
@@ -589,7 +588,7 @@ none
 
 `QUANTITY` - count of peers that node is connected to
 
-#### Example 
+#### Example
 
 ```json
 // Request
@@ -617,7 +616,7 @@ none
 
 `OBJECT` - with a lot of info about node status including networking. See Example
 
-#### Example 
+#### Example
 
 ```json
 // Request
@@ -679,23 +678,23 @@ none
 
 `OBJECT` - with info about packets statistic
 * `received_packets`: `ARRAY` of `PACKET_STATS_OBJECT`
-* `received_packets_period_max_stats`: `OBJECT` 
+* `received_packets_period_max_stats`: `OBJECT`
   * `period_max_counts_stats`: `ARRAY` of `PACKET_STATS_OBJECT`
   * `period_max_sizes_stats`: `ARRAY` of `PACKET_STATS_OBJECT`
 * `sent_packets`: `ARRAY` of `PACKET_STATS_OBJECT`
-* `sent_packets_period_max_stats`: `OBJECT` 
+* `sent_packets_period_max_stats`: `OBJECT`
   * `period_max_counts_stats`: `ARRAY` of `PACKET_STATS_OBJECT`
   * `period_max_sizes_stats`: `ARRAY` of `PACKET_STATS_OBJECT`
 
-`PACKET_STATS_OBJECT`: 
-* `avg_processing_duration`: `QUANTITY` - average processing time of one packet 
-* `avg_size`: `QUANTITY` - average packet size 
-* `avg_tp_wait_duration`: `QUANTITY` - Average ThreadPool waiting time for 1 packet 
-* `total_count`: `QUANTITY` - total count of processed packets  
-* `total_processing_duration`: `QUANTITY` - total processing time for all packets 
-* `total_size`: `QUANTITY` - sum of size of all processed packets 
+`PACKET_STATS_OBJECT`:
+* `avg_processing_duration`: `QUANTITY` - average processing time of one packet
+* `avg_size`: `QUANTITY` - average packet size
+* `avg_tp_wait_duration`: `QUANTITY` - Average ThreadPool waiting time for 1 packet
+* `total_count`: `QUANTITY` - total count of processed packets
+* `total_processing_duration`: `QUANTITY` - total processing time for all packets
+* `total_size`: `QUANTITY` - sum of size of all processed packets
 * `total_tp_wait_duration`: `QUANTITY` - Total ThreadPool waiting time
-* `type`: `STRING` - Type of packet data related to. List of packet types: 
+* `type`: `STRING` - Type of packet data related to. List of packet types:
   ```
   VotePacket
   GetVotesSyncPacket
@@ -710,7 +709,7 @@ none
   GetDagSyncPacket
   ```
 
-#### Example 
+#### Example
 
 ```json
 // Request
@@ -749,7 +748,7 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"get_packets_stats","params":[],"
 
 ### get_all_nodes
 
-Returns info of current connected nodes including its id, ip_address and port 
+Returns info of current connected nodes including its id, ip_address and port
 
 #### Parameters
 
@@ -759,7 +758,7 @@ none
 
 `STRING` - string that contains info about peer if format `id ip_address:port` separated with `\n`.
 
-#### Example 
+#### Example
 
 ```json
 // Request

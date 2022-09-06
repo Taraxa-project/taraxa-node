@@ -25,7 +25,6 @@ static auto const base_taraxa_chain_cfg = [] {
   ret.execution_options.disable_nonce_check = true;
   ret.block_rewards_options.disable_block_rewards = true;
   ret.block_rewards_options.disable_contract_distribution = true;
-  ret.eth_chain_config.dao_fork_block = BlockNumberNIL;
 
   return ret;
 }();
@@ -182,7 +181,7 @@ TEST_F(StateAPITest, DISABLED_dpos_integration) {
   // EXEC_AND_CHECK({});
 }
 
-TEST_F(StateAPITest, eth_mainnet_smoke) {
+TEST_F(StateAPITest, DISABLED_eth_mainnet_smoke) {
   auto test_blocks =
       parse_rlp_file<vector<TestBlock>>(path(__FILE__).parent_path().parent_path() / "submodules" / "taraxa-evm" /
                                         "taraxa" / "data" / "eth_mainnet_blocks_0_300000.rlp");
@@ -193,7 +192,6 @@ TEST_F(StateAPITest, eth_mainnet_smoke) {
 
   auto& eth_cfg = chain_config.eth_chain_config;
   eth_cfg.homestead_block = 1150000;
-  eth_cfg.dao_fork_block = 1920000;
   eth_cfg.eip_150_block = 2463000;
   eth_cfg.eip_158_block = 2675000;
   eth_cfg.byzantium_block = 4370000;

@@ -1442,7 +1442,6 @@ TEST_F(FullNodeTest, chain_config_json) {
       "eth_chain_config": {
         "byzantium_block": "0x0",
         "constantinople_block": "0x0",
-        "dao_fork_block": "0xffffffffffffffff",
         "eip_150_block": "0x0",
         "eip_158_block": "0x0",
         "homestead_block": "0x0",

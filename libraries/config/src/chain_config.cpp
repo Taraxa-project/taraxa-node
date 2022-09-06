@@ -83,7 +83,6 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
 
     cfg.final_chain.state.block_rewards_options.disable_block_rewards = true;
     cfg.final_chain.state.block_rewards_options.disable_contract_distribution = true;
-    cfg.final_chain.state.eth_chain_config.dao_fork_block = state_api::BlockNumberNIL;
 
     // VDF config
     cfg.sortition.vrf.threshold_upper = 0xafff;
