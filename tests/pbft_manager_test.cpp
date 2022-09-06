@@ -811,7 +811,7 @@ TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
   auto period_raw = node->getDB()->getPeriodDataRaw(period);
   ASSERT_FALSE(period_raw.empty());
   PeriodData period_data(period_raw);
-  EXPECT_FALSE(node->getPbftManager()->checkBlockWeight(period_data));
+  EXPECT_FALSE(node->getPbftManager()->checkBlockWeight(period_data.dag_blocks));
 }
 
 TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {

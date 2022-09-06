@@ -14,13 +14,13 @@ namespace taraxa {
 using std::to_string;
 using vrf_wrapper::VrfSortitionBase;
 
-DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, std::vector<uint64_t> est,
-                   sig_t sig, blk_hash_t hash, addr_t sender)
+DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, uint64_t est, sig_t sig,
+                   blk_hash_t hash, addr_t sender)
     : pivot_(std::move(pivot)),
       level_(level),
       tips_(std::move(tips)),
       trxs_(std::move(trxs)),
-      trxs_gas_estimations_(std::move(est)),
+      gas_estimation_(std::move(est)),
       sig_(std::move(sig)),
       hash_(std::move(hash)),
       cached_sender_(std::move(sender)) {}
@@ -33,13 +33,13 @@ DagBlock::DagBlock(blk_hash_t pivot, level_t level, vec_blk_t tips, vec_trx_t tr
 DagBlock::DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, secret_t const &sk)
     : DagBlock(pivot, level, std::move(tips), std::move(trxs), {}, VdfSortition(), sk) {}
 
-DagBlock::DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, std::vector<uint64_t> est,
+DagBlock::DagBlock(blk_hash_t const &pivot, level_t level, vec_blk_t tips, vec_trx_t trxs, uint64_t est,
                    VdfSortition vdf, secret_t const &sk)
     : pivot_(pivot),
       level_(level),
       tips_(std::move(tips)),
       trxs_(std::move(trxs)),
-      trxs_gas_estimations_(std::move(est)),
+      gas_estimation_(std::move(est)),
       timestamp_(dev::utcTime()),
       vdf_(std::move(vdf)) {
   sig_ = dev::sign(sk, sha3(false));
@@ -57,7 +57,7 @@ DagBlock::DagBlock(Json::Value const &doc) {
 
   tips_ = asVector<blk_hash_t>(doc["tips"]);
   trxs_ = asVector<trx_hash_t>(doc["trxs"]);
-  trxs_gas_estimations_ = asUInt64Vector(doc["trx_estimations"]);
+  gas_estimation_ = doc["gas_estimation"].asUInt64();
   sig_ = sig_t(doc["sig"].asString());
   pivot_ = blk_hash_t(doc["pivot"].asString());
   timestamp_ = dev::getUInt(doc["timestamp"]);
@@ -71,7 +71,7 @@ DagBlock::DagBlock(Json::Value const &doc) {
 DagBlock::DagBlock(dev::RLP const &rlp) {
   dev::bytes vdf_bytes;
   util::rlp_tuple(util::RLPDecoderRef(rlp, true), pivot_, level_, timestamp_, vdf_bytes, tips_, trxs_, sig_,
-                  trxs_gas_estimations_);
+                  gas_estimation_);
   vdf_ = vdf_sortition::VdfSortition(vdf_bytes);
 }
 
@@ -90,10 +90,7 @@ Json::Value DagBlock::getJson(bool with_derived_fields) const {
   for (auto const &t : trxs_) {
     res["transactions"].append(dev::toJS(t));
   }
-  res["trx_estimations"] = Json::Value(Json::arrayValue);
-  for (auto const &t : trxs_gas_estimations_) {
-    res["trx_estimations"].append(dev::toJS(t));
-  }
+  res["trx_estimations"] = dev::toJS(gas_estimation_);
   res["sig"] = dev::toJS(sig_);
   if (with_derived_fields) {
     res["hash"] = dev::toJS(getHash());
@@ -168,7 +165,7 @@ dev::RLPStream DagBlock::streamRLP(bool include_sig) const {
   if (include_sig) {
     s << sig_;
   }
-  s.appendVector(trxs_gas_estimations_);
+  s << gas_estimation_;
 
   return s;
 }

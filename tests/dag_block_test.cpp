@@ -232,7 +232,7 @@ TEST_F(DagBlockMgrTest, incorrect_tx_estimation) {
 
   // wrong estimated tx
   {
-    DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, {100}, vdf1, node->getSecretKey());
+    DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, 100, vdf1, node->getSecretKey());
     EXPECT_EQ(node->getDagManager()->verifyBlock(std::move(blk)),
               DagManager::VerifyBlockReturnType::IncorrectTransactionsEstimation);
   }
@@ -247,19 +247,19 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
   auto db = node->getDB();
 
   std::vector<trx_hash_t> hashes;
-  std::vector<uint64_t> estimations;
+  uint64_t estimations = 0;
   for (size_t i = 0; i < 5; ++i) {
-    auto create_trx =
-        std::make_shared<Transaction>(i, 100, 0, 0, dev::fromHex(samples::greeter_contract_code), node->getSecretKey());
+    auto create_trx = std::make_shared<Transaction>(i, 100, 0, 200001, dev::fromHex(samples::greeter_contract_code),
+                                                    node->getSecretKey());
     auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(create_trx);
     EXPECT_EQ(ok, true);
     hashes.emplace_back(create_trx->getHash());
     const auto& e = node->getTransactionManager()->estimateTransactionGas(create_trx, std::nullopt);
-    estimations.emplace_back(e);
+    estimations += e;
   }
 
   for (size_t i = 0; i < hashes.size(); ++i) {
-    std::cout << hashes[i] << ": " << estimations[i] << std::endl;
+    std::cout << hashes[i] << ": " << estimations << std::endl;
   }
 
   // Generate DAG block
