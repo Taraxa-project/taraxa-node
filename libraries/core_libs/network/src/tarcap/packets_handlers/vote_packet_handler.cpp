@@ -33,12 +33,6 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     const auto vote_hash = vote->getHash();
     LOG(log_dg_) << "Received PBFT vote " << vote_hash;
 
-    //    if (vote->getType() == PbftVoteTypes::propose_vote_type) {
-    //      LOG(log_er_) << "Invalid propose vote " << vote_hash << ". Proposed votes are sent & received only through
-    //      ProposeVoteAndBlock";
-    //
-    //    }
-
     // Synchronization point in case multiple threads are processing the same vote at the same time
     if (!seen_votes_.insert(vote_hash)) {
       LOG(log_dg_) << "Received vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
