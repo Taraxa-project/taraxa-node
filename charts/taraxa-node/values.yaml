@@ -91,6 +91,8 @@ node:
     enabled: false
     annotationsRpc: {}
     annotationsRpcWS: {}
+    annotationsGraphQl: {}
+    annotationsGraphQlWS: {}
     hosts: []
     tls: []
   ports:
@@ -98,6 +100,10 @@ node:
       containerPort: 7777
     - name: ws
       containerPort: 8777
+    - name: graphql
+      containerPort: 9777
+    - name: graphql-ws
+      containerPort: 6777
     - name: tcp-listen-port
       containerPort: 10002
       protocol: TCP
@@ -110,6 +116,10 @@ node:
           port: 7777
         - name: ws
           port: 8777
+        - name: graphql
+          port: 9777
+        - name: graphql-ws
+          port: 6777
         - name: tcp-listen-port
           port: 10002
           protocol: TCP
