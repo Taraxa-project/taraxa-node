@@ -18,43 +18,41 @@ ExtVotesPacketHandler::ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_s
       pbft_chain_(std::move(pbft_chain)),
       vote_mgr_(std::move(vote_mgr)) {}
 
-std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const std::shared_ptr<Vote> &vote) const {
-  const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
-
+std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const std::shared_ptr<Vote> &vote,
+                                                                         uint64_t period, uint64_t round) const {
   // Old vote or vote from too far in the future, can be dropped
   // TODO[1880]: should be vote->getPeriod() <= current_pbft_period - if <=, some tests are failing due to missing
   // reward votes -> whole rewards votes gossiping need to be checked...
 
   // CONCERN: Why the minus one on the vote period?
-  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() - 1 > current_pbft_period + kVoteAcceptingPeriods) {
+  if (vote->getPeriod() < period || vote->getPeriod() - 1 > period + kVoteAcceptingPeriods) {
     std::stringstream err;
-    err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
+    err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << period;
     return {false, err.str()};
   }
 
-  if (vote->getRound() < current_pbft_round) {
+  if (vote->getRound() < round) {
     std::stringstream err;
-    err << "Invalid round: Vote round: " << vote->getRound() << ", current pbft round: " << current_pbft_round;
+    err << "Invalid round: Vote round: " << vote->getRound() << ", current pbft round: " << round;
     return {false, err.str()};
   }
 
   return validateVote(vote);
 }
 
-std::pair<bool, std::string> ExtVotesPacketHandler::validateNextSyncVote(const std::shared_ptr<Vote> &vote) const {
-  const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
-
+std::pair<bool, std::string> ExtVotesPacketHandler::validateNextSyncVote(const std::shared_ptr<Vote> &vote,
+                                                                         uint64_t period, uint64_t round) const {
   // Old vote or vote from too far in the future, can be dropped
   // CONCERN: Why the minus one on the vote period?
-  if (vote->getPeriod() < current_pbft_period || vote->getPeriod() - 1 > current_pbft_period + kVoteAcceptingPeriods) {
+  if (vote->getPeriod() < period || vote->getPeriod() - 1 > period + kVoteAcceptingPeriods) {
     std::stringstream err;
-    err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
+    err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << period;
     return {false, err.str()};
   }
 
-  if (vote->getRound() < current_pbft_round - 1) {
+  if (vote->getRound() < round - 1) {
     std::stringstream err;
-    err << "Invalid round: Vote round: " << vote->getRound() << ", current pbft round: " << current_pbft_round;
+    err << "Invalid round: Vote round: " << vote->getRound() << ", current pbft round: " << round;
     return {false, err.str()};
   }
 
@@ -67,12 +65,11 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateNextSyncVote(const s
   return validateVote(vote);
 }
 
-std::pair<bool, std::string> ExtVotesPacketHandler::validateRewardVote(const std::shared_ptr<Vote> &vote) const {
-  const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
-
-  if (vote->getPeriod() != current_pbft_period - 1) {
+std::pair<bool, std::string> ExtVotesPacketHandler::validateRewardVote(const std::shared_ptr<Vote> &vote,
+                                                                       uint64_t period) const {
+  if (vote->getPeriod() != period - 1) {
     std::stringstream err;
-    err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
+    err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << period;
     return {false, err.str()};
   }
 

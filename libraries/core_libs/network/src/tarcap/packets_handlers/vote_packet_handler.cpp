@@ -107,7 +107,8 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
 
     // We could switch round before other nodes, so we need to process previous round next votes here./bi
     if (vote->getPeriod() == current_pbft_period && (current_pbft_round - 1) == vote->getRound()) {
-      if (auto vote_is_valid = validateNextSyncVote(vote); vote_is_valid.first == false) {
+      if (auto vote_is_valid = validateNextSyncVote(vote, current_pbft_period, current_pbft_round);
+          vote_is_valid.first == false) {
         LOG(log_wr_) << "Vote " << vote->getHash()
                      << " from previous round validation failed. Err: " << vote_is_valid.second;
         continue;
@@ -129,7 +130,8 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
           continue;
         }
 
-        if (auto vote_is_valid = validateStandardVote(vote); vote_is_valid.first == false) {
+        if (auto vote_is_valid = validateStandardVote(vote, current_pbft_period, current_pbft_round);
+            vote_is_valid.first == false) {
           LOG(log_wr_) << "Vote " << vote_hash.abridged() << " validation failed. Err: " << vote_is_valid.second;
           continue;
         }
@@ -142,7 +144,7 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     } else if (vote->getPeriod() == current_pbft_period - 1 && vote->getType() == PbftVoteTypes::cert_vote_type) {
       // potential reward vote
       if (!vote_mgr_->isInRewardsVotes(vote->getHash())) {
-        if (auto vote_is_valid = validateRewardVote(vote); vote_is_valid.first == false) {
+        if (auto vote_is_valid = validateRewardVote(vote, current_pbft_period); vote_is_valid.first == false) {
           LOG(log_wr_) << "Reward vote " << vote_hash.abridged() << " validation failed. Err: \""
                        << vote_is_valid.second << "\", vote round " << vote->getRound()
                        << ", current round: " << current_pbft_round << ", vote period: " << vote->getPeriod()

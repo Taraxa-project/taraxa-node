@@ -316,6 +316,8 @@ class VoteManager {
                                          blk_hash_t,
                                          std::pair<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>>>>>
       verified_votes_;
+  // Current period, it should only be used under verified_votes_access_ mutex
+  uint64_t period_;
   mutable boost::shared_mutex verified_votes_access_;
 
   // <PBFT period, <PBFT round, <PBFT step, <voter address, pair<vote 1, vote 2>>><>

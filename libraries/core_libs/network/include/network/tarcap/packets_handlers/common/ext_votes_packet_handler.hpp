@@ -32,25 +32,32 @@ class ExtVotesPacketHandler : public PacketHandler {
    * @brief Validates standard vote
    *
    * @param vote to be validated
+   * @param period
+   * @param round
    * @return <true, ""> vote validation passed, otherwise <false, "err msg">
    */
-  std::pair<bool, std::string> validateStandardVote(const std::shared_ptr<Vote>& vote) const;
+  std::pair<bool, std::string> validateStandardVote(const std::shared_ptr<Vote>& vote, uint64_t period,
+                                                    uint64_t round) const;
 
   /**
    * @brief Validates reward vote
    *
    * @param vote to be validated
+   * @param period
    * @return <true, ""> vote validation passed, otherwise <false, "err msg">
    */
-  std::pair<bool, std::string> validateRewardVote(const std::shared_ptr<Vote>& vote) const;
+  std::pair<bool, std::string> validateRewardVote(const std::shared_ptr<Vote>& vote, uint64_t period) const;
 
   /**
    * @brief Validates next vote
    *
    * @param vote to be validated
+   * @param period
+   * @param round
    * @return <true, ""> vote validation passed, otherwise <false, "err msg">
    */
-  std::pair<bool, std::string> validateNextSyncVote(const std::shared_ptr<Vote>& vote) const;
+  std::pair<bool, std::string> validateNextSyncVote(const std::shared_ptr<Vote>& vote, uint64_t period,
+                                                    uint64_t round) const;
 
   void onNewPbftVotes(std::vector<std::shared_ptr<Vote>>&& votes);
   void sendPbftVotes(const dev::p2p::NodeID& peer_id, std::vector<std::shared_ptr<Vote>>&& votes,

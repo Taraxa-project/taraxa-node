@@ -92,6 +92,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
     if (pbft_chain_synced) {
       pbftSyncComplete();
     }
+    restartSyncingPbft(true);
     return;
   }
 
