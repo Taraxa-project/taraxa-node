@@ -2,6 +2,7 @@ var annotated_dup =
 [
     [ "boost", "namespaceboost.html", null ],
     [ "dev", "namespacedev.html", "namespacedev" ],
+    [ "graphql", "namespacegraphql.html", "namespacegraphql" ],
     [ "std", "namespacestd.html", "namespacestd" ],
     [ "taraxa", "namespacetaraxa.html", "namespacetaraxa" ],
     [ "ExpirationCache", "class_expiration_cache.html", "class_expiration_cache" ],

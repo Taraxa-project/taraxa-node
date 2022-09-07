@@ -1,6 +1,6 @@
 var config_2include_2config_2config_8hpp =
 [
-    [ "RpcConfig", "structtaraxa_1_1_rpc_config.html", "structtaraxa_1_1_rpc_config" ],
+    [ "ConnectionConfig", "structtaraxa_1_1_connection_config.html", "structtaraxa_1_1_connection_config" ],
     [ "NodeConfig", "namespacetaraxa.html#structtaraxa_1_1_node_config", [
       [ "id", "namespacetaraxa.html#a4faf253efde7446f593b1d0a5063bffc", null ],
       [ "ip", "namespacetaraxa.html#ace279b5bb50e6cdeb99932ac0a0f3416", null ],

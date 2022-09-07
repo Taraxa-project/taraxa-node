@@ -12,6 +12,7 @@ var structtaraxa_1_1_full_node_config =
     [ "db_config", "structtaraxa_1_1_full_node_config.html#aa39ce68f57655792c78dcdac574bca99", null ],
     [ "db_path", "structtaraxa_1_1_full_node_config.html#acffae136a1a4516b1e8935af67d63aa8", null ],
     [ "enable_test_rpc", "structtaraxa_1_1_full_node_config.html#a249ce0e41d9efaeb1029617408c63c13", null ],
+    [ "graphql", "structtaraxa_1_1_full_node_config.html#a738818b1d823cf335816bc9dffec0e82", null ],
     [ "is_light_node", "structtaraxa_1_1_full_node_config.html#ad1e384f37a3fbb2470149c985e458e1f", null ],
     [ "json_file_name", "structtaraxa_1_1_full_node_config.html#ad62102338c52adccaa31fab23541fd68", null ],
     [ "kDefaultLightNodeHistoryDays", "structtaraxa_1_1_full_node_config.html#ae1416aa694548186e6ffa95dbf85d05a", null ],
@@ -22,7 +23,7 @@ var structtaraxa_1_1_full_node_config =
     [ "network", "structtaraxa_1_1_full_node_config.html#aa92cfdd3c9bc4f4b6411ef9d4a735668", null ],
     [ "node_secret", "structtaraxa_1_1_full_node_config.html#a21a1f640ba90bfeb59c42efa0f0afbe1", null ],
     [ "opts_final_chain", "structtaraxa_1_1_full_node_config.html#a936cfee38f236d99e4505fbff2f40155", null ],
-    [ "rpc", "structtaraxa_1_1_full_node_config.html#aaac918474f5387a7733ce3276022499c", null ],
+    [ "rpc", "structtaraxa_1_1_full_node_config.html#af23b7e59048274c07e11226d3baa8009", null ],
     [ "transactions_pool_size", "structtaraxa_1_1_full_node_config.html#a183825e3e024b1bf609c24325f01c437", null ],
     [ "vrf_secret", "structtaraxa_1_1_full_node_config.html#a0a81eb125af3592470454f1f932b07fe", null ]
 ];

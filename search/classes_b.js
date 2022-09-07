@@ -1,7 +1,11 @@
 var searchData=
 [
-  ['maliciouspeerexception_3502',['MaliciousPeerException',['../classtaraxa_1_1_malicious_peer_exception.html',1,'taraxa']]],
-  ['modularserver_3503',['ModularServer',['../class_modular_server.html',1,'']]],
-  ['modularserver_3c_20i_2c_20is_2e_2e_2e_20_3e_3504',['ModularServer&lt; I, Is... &gt;',['../class_modular_server_3_01_i_00_01_is_8_8_8_01_4.html',1,'']]],
-  ['modularserver_3c_20is_2e_2e_2e_20_3e_3505',['ModularServer&lt; Is... &gt;',['../class_modular_server.html',1,'']]]
+  ['lazy_3605',['Lazy',['../classtaraxa_1_1util_1_1lazy_1_1_lazy.html',1,'taraxa::util::lazy']]],
+  ['localisedlogentry_3606',['LocalisedLogEntry',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_localised_log_entry',1,'taraxa::net::rpc::eth']]],
+  ['localisedtransaction_3607',['LocalisedTransaction',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_localised_transaction',1,'taraxa::net::rpc::eth']]],
+  ['localisedtransactionreceipt_3608',['LocalisedTransactionReceipt',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_localised_transaction_receipt',1,'taraxa::net::rpc::eth']]],
+  ['log_3609',['Log',['../classgraphql_1_1taraxa_1_1_log.html',1,'graphql::taraxa']]],
+  ['logentry_3610',['LogEntry',['../group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry',1,'taraxa::final_chain']]],
+  ['logfilter_3611',['LogFilter',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html',1,'taraxa::net::rpc::eth']]],
+  ['logrecord_3612',['LogRecord',['../group___final_chain.html#structtaraxa_1_1state__api_1_1_log_record',1,'taraxa::state_api']]]
 ];

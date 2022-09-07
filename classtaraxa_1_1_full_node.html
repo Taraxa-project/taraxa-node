@@ -223,6 +223,8 @@ Private Member Functions</h2></td></tr>
 Private Attributes</h2></td></tr>
 <tr class="memitem:a934126a5a59c1f4061d7b7829ae7273e"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a934126a5a59c1f4061d7b7829ae7273e">rpc_thread_pool_</a></td></tr>
 <tr class="separator:a934126a5a59c1f4061d7b7829ae7273e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9be7d833ab947cf35d93d197d243169"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#aa9be7d833ab947cf35d93d197d243169">graphql_thread_pool_</a></td></tr>
+<tr class="separator:aa9be7d833ab947cf35d93d197d243169"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9d4364249663e0bba6eabe62f3063c7a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a9d4364249663e0bba6eabe62f3063c7a">subscription_pool_</a></td></tr>
 <tr class="separator:a9d4364249663e0bba6eabe62f3063c7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a46ac9d4da6feca8bfb18e371e948844a"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a46ac9d4da6feca8bfb18e371e948844a">stopped_</a> = true</td></tr>
@@ -257,10 +259,14 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a9718bf42b46b6db94ab5565aa34c9b93"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad6ee8cc463be28c15f19be9839a964fd"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">FinalChain</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#ad6ee8cc463be28c15f19be9839a964fd">final_chain_</a></td></tr>
 <tr class="separator:ad6ee8cc463be28c15f19be9839a964fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaf9a564df808c0675b6da0c9f18a1e7f"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1net_1_1_rpc_server.html">net::RpcServer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#aaf9a564df808c0675b6da0c9f18a1e7f">jsonrpc_http_</a></td></tr>
-<tr class="separator:aaf9a564df808c0675b6da0c9f18a1e7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6b5a6c69b2c1566cb75efe494d2de5fe"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1net_1_1_w_s_server.html">net::WSServer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a6b5a6c69b2c1566cb75efe494d2de5fe">jsonrpc_ws_</a></td></tr>
-<tr class="separator:a6b5a6c69b2c1566cb75efe494d2de5fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b501c2a030eb6b5e966dd6d98e5c7ba"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1net_1_1_http_server.html">net::HttpServer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a4b501c2a030eb6b5e966dd6d98e5c7ba">jsonrpc_http_</a></td></tr>
+<tr class="separator:a4b501c2a030eb6b5e966dd6d98e5c7ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb50a34ae5f18c072debdbeeeea16bef"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1net_1_1_http_server.html">net::HttpServer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#aeb50a34ae5f18c072debdbeeeea16bef">graphql_http_</a></td></tr>
+<tr class="separator:aeb50a34ae5f18c072debdbeeeea16bef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5cbcacb9b58ceb549fdc308778db23ef"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1net_1_1_ws_server.html">net::WsServer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a5cbcacb9b58ceb549fdc308778db23ef">jsonrpc_ws_</a></td></tr>
+<tr class="separator:a5cbcacb9b58ceb549fdc308778db23ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21f8494e94903bc42fc8fc4b55875892"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1net_1_1_ws_server.html">net::WsServer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a21f8494e94903bc42fc8fc4b55875892">graphql_ws_</a></td></tr>
+<tr class="separator:a21f8494e94903bc42fc8fc4b55875892"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae46eb02fbf66cc65d4d1bbddc02ac1f"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="classtaraxa_1_1_full_node.html#a37e0e5f8aa698447bd1124d02c704d5b">jsonrpc_server_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#aae46eb02fbf66cc65d4d1bbddc02ac1f">jsonrpc_api_</a></td></tr>
 <tr class="separator:aae46eb02fbf66cc65d4d1bbddc02ac1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a324cf17816fc78dafaf48adaa39bebac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="logger_8hpp.html#a41399a11426ea3272948aca283625fb5">LOG_OBJECTS_DEFINE</a> std::atomic_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a324cf17816fc78dafaf48adaa39bebac">started_</a> = 0</td></tr>
@@ -1215,6 +1221,72 @@ num_shared_pointers_to_check</td>
 
 </div>
 </div>
+<a id="aeb50a34ae5f18c072debdbeeeea16bef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aeb50a34ae5f18c072debdbeeeea16bef">&#9670;&nbsp;</a></span>graphql_http_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1net_1_1_http_server.html">net::HttpServer</a>&gt; taraxa::FullNode::graphql_http_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa9be7d833ab947cf35d93d197d243169"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9be7d833ab947cf35d93d197d243169">&#9670;&nbsp;</a></span>graphql_thread_pool_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unique_ptr&lt;<a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a>&gt; taraxa::FullNode::graphql_thread_pool_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a21f8494e94903bc42fc8fc4b55875892"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a21f8494e94903bc42fc8fc4b55875892">&#9670;&nbsp;</a></span>graphql_ws_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1net_1_1_ws_server.html">net::WsServer</a>&gt; taraxa::FullNode::graphql_ws_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="aae46eb02fbf66cc65d4d1bbddc02ac1f"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aae46eb02fbf66cc65d4d1bbddc02ac1f">&#9670;&nbsp;</a></span>jsonrpc_api_</h2>
 
@@ -1237,8 +1309,8 @@ num_shared_pointers_to_check</td>
 
 </div>
 </div>
-<a id="aaf9a564df808c0675b6da0c9f18a1e7f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaf9a564df808c0675b6da0c9f18a1e7f">&#9670;&nbsp;</a></span>jsonrpc_http_</h2>
+<a id="a4b501c2a030eb6b5e966dd6d98e5c7ba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b501c2a030eb6b5e966dd6d98e5c7ba">&#9670;&nbsp;</a></span>jsonrpc_http_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1247,7 +1319,7 @@ num_shared_pointers_to_check</td>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1net_1_1_rpc_server.html">net::RpcServer</a>&gt; taraxa::FullNode::jsonrpc_http_</td>
+          <td class="memname">std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1net_1_1_http_server.html">net::HttpServer</a>&gt; taraxa::FullNode::jsonrpc_http_</td>
         </tr>
       </table>
   </td>
@@ -1259,8 +1331,8 @@ num_shared_pointers_to_check</td>
 
 </div>
 </div>
-<a id="a6b5a6c69b2c1566cb75efe494d2de5fe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6b5a6c69b2c1566cb75efe494d2de5fe">&#9670;&nbsp;</a></span>jsonrpc_ws_</h2>
+<a id="a5cbcacb9b58ceb549fdc308778db23ef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5cbcacb9b58ceb549fdc308778db23ef">&#9670;&nbsp;</a></span>jsonrpc_ws_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1269,7 +1341,7 @@ num_shared_pointers_to_check</td>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1net_1_1_w_s_server.html">net::WSServer</a>&gt; taraxa::FullNode::jsonrpc_ws_</td>
+          <td class="memname">std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1net_1_1_ws_server.html">net::WsServer</a>&gt; taraxa::FullNode::jsonrpc_ws_</td>
         </tr>
       </table>
   </td>

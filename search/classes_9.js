@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['keymanager_3492',['KeyManager',['../classtaraxa_1_1_key_manager.html',1,'taraxa']]],
-  ['keypair_3493',['KeyPair',['../classdev_1_1_key_pair.html',1,'dev']]],
-  ['knownnode_3494',['KnownNode',['../structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_known_node',1,'dev::p2p::Host']]]
+  ['jsonrpchttpprocessor_3599',['JsonRpcHttpProcessor',['../classtaraxa_1_1net_1_1_json_rpc_http_processor.html',1,'taraxa::net']]],
+  ['jsonrpcwsserver_3600',['JsonRpcWsServer',['../classtaraxa_1_1net_1_1_json_rpc_ws_server.html',1,'taraxa::net']]],
+  ['jsonrpcwssession_3601',['JsonRpcWsSession',['../classtaraxa_1_1net_1_1_json_rpc_ws_session.html',1,'taraxa::net']]]
 ];

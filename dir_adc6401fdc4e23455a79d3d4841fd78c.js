@@ -7,6 +7,20 @@ var dir_adc6401fdc4e23455a79d3d4841fd78c =
     [ "EthFace.h", "_eth_face_8h.html", [
       [ "EthFace", "classtaraxa_1_1net_1_1_eth_face.html", "classtaraxa_1_1net_1_1_eth_face" ]
     ] ],
+    [ "jsonrpc_http_processor.cpp", "jsonrpc__http__processor_8cpp.html", null ],
+    [ "jsonrpc_http_processor.hpp", "jsonrpc__http__processor_8hpp.html", [
+      [ "JsonRpcHttpProcessor", "classtaraxa_1_1net_1_1_json_rpc_http_processor.html", "classtaraxa_1_1net_1_1_json_rpc_http_processor" ],
+      [ "Error", "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#structtaraxa_1_1net_1_1_json_rpc_http_processor_1_1_error", [
+        [ "code", "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#aaa3e76fccc149b228a74e00ff0cb36fe", null ],
+        [ "data", "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#a5e509823886f8e7e8257b8a055528ade", null ],
+        [ "message", "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#aa43810058fbe282f0e5cdf465fa06646", null ]
+      ] ]
+    ] ],
+    [ "jsonrpc_ws_server.cpp", "jsonrpc__ws__server_8cpp.html", null ],
+    [ "jsonrpc_ws_server.hpp", "jsonrpc__ws__server_8hpp.html", [
+      [ "JsonRpcWsSession", "classtaraxa_1_1net_1_1_json_rpc_ws_session.html", "classtaraxa_1_1net_1_1_json_rpc_ws_session" ],
+      [ "JsonRpcWsServer", "classtaraxa_1_1net_1_1_json_rpc_ws_server.html", "classtaraxa_1_1net_1_1_json_rpc_ws_server" ]
+    ] ],
     [ "Net.cpp", "_net_8cpp.html", null ],
     [ "Net.h", "_net_8h.html", [
       [ "Net", "classtaraxa_1_1net_1_1_net.html", "classtaraxa_1_1net_1_1_net" ]
@@ -16,18 +30,6 @@ var dir_adc6401fdc4e23455a79d3d4841fd78c =
     ] ],
     [ "NetFace.h", "_net_face_8h.html", [
       [ "NetFace", "classtaraxa_1_1net_1_1_net_face.html", "classtaraxa_1_1net_1_1_net_face" ]
-    ] ],
-    [ "rpc_error_handler.cpp", "rpc__error__handler_8cpp.html", "rpc__error__handler_8cpp" ],
-    [ "rpc_error_handler.hpp", "rpc__error__handler_8hpp.html", "rpc__error__handler_8hpp" ],
-    [ "RpcServer.cpp", "_rpc_server_8cpp.html", null ],
-    [ "RpcServer.h", "_rpc_server_8h.html", [
-      [ "RpcServer", "structtaraxa_1_1net_1_1_rpc_server.html", "structtaraxa_1_1net_1_1_rpc_server" ],
-      [ "Error", "structtaraxa_1_1net_1_1_rpc_server.html#structtaraxa_1_1net_1_1_rpc_server_1_1_error", [
-        [ "code", "structtaraxa_1_1net_1_1_rpc_server.html#a07556e2e3c8c3fbb99c285278c1e815d", null ],
-        [ "data", "structtaraxa_1_1net_1_1_rpc_server.html#a9e1d71ecafa47620a50a7aea5da0cadb", null ],
-        [ "message", "structtaraxa_1_1net_1_1_rpc_server.html#a3b924a02732d21cda03c1c58f3e832f4", null ]
-      ] ],
-      [ "RpcConnection", "classtaraxa_1_1net_1_1_rpc_connection.html", "classtaraxa_1_1net_1_1_rpc_connection" ]
     ] ],
     [ "Taraxa.cpp", "_taraxa_8cpp.html", null ],
     [ "Taraxa.h", "_taraxa_8h.html", [
@@ -48,7 +50,5 @@ var dir_adc6401fdc4e23455a79d3d4841fd78c =
     ] ],
     [ "TestFace.h", "_test_face_8h.html", [
       [ "TestFace", "classtaraxa_1_1net_1_1_test_face.html", "classtaraxa_1_1net_1_1_test_face" ]
-    ] ],
-    [ "WSServer.cpp", "_w_s_server_8cpp.html", null ],
-    [ "WSServer.h", "_w_s_server_8h.html", "_w_s_server_8h" ]
+    ] ]
 ];

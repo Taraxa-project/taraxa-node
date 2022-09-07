@@ -5,7 +5,7 @@
 <area shape="rect" id="node4" href="$libp2p_2_common_8h.html" title=" " alt="" coords="1611,102,1767,143"/>
 <area shape="rect" id="node35" href="$_u_d_p_8h.html" title=" " alt="" coords="5,213,161,255"/>
 <area shape="rect" id="node45" href="$_u_pn_p_8cpp.html" title=" " alt="" coords="1791,102,1947,143"/>
-<area shape="rect" id="node46" href="$consensus_2include_2final__chain_2data_8hpp.html" title=" " alt="" coords="4043,95,4220,151"/>
+<area shape="rect" id="node46" href="$consensus_2include_2final__chain_2data_8hpp.html" title=" " alt="" coords="4051,95,4228,151"/>
 <area shape="rect" id="node5" href="$_capability_8h.html" title=" " alt="" coords="3605,213,3761,255"/>
 <area shape="rect" id="node6" href="$_all_8h.html" title=" " alt="" coords="3121,555,3277,596"/>
 <area shape="rect" id="node7" href="$_session_8h.html" title=" " alt="" coords="2460,332,2616,373"/>
@@ -45,8 +45,8 @@
 <area shape="rect" id="node27" href="$_endpoint_tracker_8cpp.html" title=" " alt="" coords="519,332,675,373"/>
 <area shape="rect" id="node29" href="$_peer_8cpp.html" title=" " alt="" coords="1920,332,2076,373"/>
 <area shape="rect" id="node36" href="$_u_d_p_8cpp.html" title=" " alt="" coords="5,332,161,373"/>
-<area shape="rect" id="node47" href="$final__chain_8hpp.html" title=" " alt="" coords="4043,206,4220,262"/>
-<area shape="rect" id="node48" href="$data_8cpp.html" title=" " alt="" coords="4245,206,4394,262"/>
-<area shape="rect" id="node49" href="$network_2rpc_2eth_2data_8hpp.html" title=" " alt="" coords="4418,213,4607,255"/>
-<area shape="rect" id="node50" href="$_w_s_server_8h.html" title=" " alt="" coords="3837,213,4018,255"/>
+<area shape="rect" id="node47" href="$final__chain_8hpp.html" title=" " alt="" coords="4051,206,4228,262"/>
+<area shape="rect" id="node48" href="$data_8cpp.html" title=" " alt="" coords="4253,206,4402,262"/>
+<area shape="rect" id="node49" href="$include_2network_2ws__server_8hpp.html" title=" " alt="" coords="4426,206,4613,262"/>
+<area shape="rect" id="node50" href="$network_2rpc_2eth_2data_8hpp.html" title=" " alt="" coords="3837,213,4026,255"/>
 </map>
