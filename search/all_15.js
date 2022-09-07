@@ -30,7 +30,7 @@ var searchData=
   ['uint520_5fhash_5ft_3163',['uint520_hash_t',['../namespacetaraxa.html#afdbc2bb6877d6ff2055c36afff45899a',1,'taraxa']]],
   ['uint_5fcomparator_2ehpp_3164',['uint_comparator.hpp',['../uint__comparator_8hpp.html',1,'']]],
   ['uintcomparator_3165',['UintComparator',['../classtaraxa_1_1_uint_comparator.html',1,'taraxa']]],
-  ['ulock_3166',['ULock',['../group___d_a_g.html#aed1bf9463f3f5dd18f46ead7f1323fc1',1,'taraxa::DagManager::ULock()'],['../classtaraxa_1_1_status_table.html#ab862e80b30523df74ebf4ddedfe96ace',1,'taraxa::StatusTable::uLock()']]],
+  ['ulock_3166',['uLock',['../classtaraxa_1_1_status_table.html#ab862e80b30523df74ebf4ddedfe96ace',1,'taraxa::StatusTable::uLock()'],['../group___d_a_g.html#aed1bf9463f3f5dd18f46ead7f1323fc1',1,'taraxa::DagManager::ULock()']]],
   ['uncleblock_3167',['UncleBlock',['../group___final_chain.html#structtaraxa_1_1state__api_1_1_uncle_block',1,'taraxa::state_api']]],
   ['uncles_5fhash_3168',['uncles_hash',['../group___final_chain.html#a6a5d6a5e6a93b99e15cacd49fd76b546',1,'taraxa::final_chain::BlockHeader']]],
   ['undefmacros_2eh_3169',['UndefMacros.h',['../_undef_macros_8h.html',1,'']]],

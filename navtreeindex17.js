@@ -1,5 +1,6 @@
 var NAVTREEINDEX17 =
 {
+"libdevcrypto_2_exceptions_8h.html":[12,0,1,0,1,6],
 "libdevcrypto_2_exceptions_8h.html#af2a12478709295407ccc4d93a073bdfc":[12,0,1,0,1,6,0],
 "libdevcrypto_2_exceptions_8h_source.html":[12,0,1,0,1,6],
 "libp2p_2_common_8cpp.html":[12,0,1,0,2,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX17 =
 "md_doc_coding_practices.html#autotoc_md144":[2,0,17],
 "md_doc_coding_practices.html#autotoc_md145":[72],
 "md_doc_coding_practices.html#autotoc_md146":[73],
-"md_doc_coding_practices.html#autotoc_md147":[74],
-"md_doc_coding_practices.html#autotoc_md148":[75]
+"md_doc_coding_practices.html#autotoc_md147":[74]
 };

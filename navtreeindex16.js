@@ -20,6 +20,7 @@ var NAVTREEINDEX16 =
 "group___vote.html#ab749d4c76cae7d3e7f54ebe20a1c3b66":[9,4,0,18],
 "group___vote.html#abdfa19572d7e63d2eed1bb5d13fdaae7":[9,4,3,3],
 "group___vote.html#abf2c94ac49b9b5930dd0fcd2581d5335":[9,4,2,13],
+"group___vote.html#ac0581a71d17ccc6accb419fef31cc6eb":[9,4,1,42],
 "group___vote.html#ac62f2f618205d20b430c4609c8c73373":[9,4,2,29],
 "group___vote.html#ac78ef9dfd827f78306480e741808ba91":[9,4,2,26],
 "group___vote.html#ac8bee3bf5417e3b8c7a7545042b77049":[9,4,0,21],
@@ -28,7 +29,7 @@ var NAVTREEINDEX16 =
 "group___vote.html#accdd1eb1fa9ffa965c31dc6a5fe61602":[9,4,5,9],
 "group___vote.html#acfcd6c6f02954a974fc0fa3698d24f44":[9,4,0,13],
 "group___vote.html#ad1ee3c8e4288b4e166d2aedd9ee325b6":[9,4,2,21],
-"group___vote.html#ad2071019e18617857904d2b2e99c3745":[9,4,1,42],
+"group___vote.html#ad2071019e18617857904d2b2e99c3745":[9,4,1,43],
 "group___vote.html#ad567604816bf023afb0ddf3e2ba9cf45":[9,4,2,7],
 "group___vote.html#ad678ca6dfa8fb660e9e724faa4670913":[9,4,2,16],
 "group___vote.html#ad6afb5dd3e61d145dfec3f02d333a93c":[9,4,0,19],
@@ -42,7 +43,7 @@ var NAVTREEINDEX16 =
 "group___vote.html#ae886085d9c19fde043aa457a302b4541":[9,4,1,7],
 "group___vote.html#aeaa1d4836ba3a2ce8243b4dc939e3028":[9,4,2,30],
 "group___vote.html#aeace6c1f91a27b4dfedf2d1146fd5406":[9,4,3,2],
-"group___vote.html#aec129bb65b9cade515975988b15038c9":[9,4,1,43],
+"group___vote.html#aec129bb65b9cade515975988b15038c9":[9,4,1,44],
 "group___vote.html#aed1745d8a9bffdabdfcd83465cf6a002":[9,4,5,13],
 "group___vote.html#aed1c7d1c2547411fa0cca7ec01ada8fe":[9,4,2,6],
 "group___vote.html#aefde342066c89afbca4816de0e7985b7":[9,4,4,9],
@@ -248,6 +249,5 @@ var NAVTREEINDEX16 =
 "libdevcrypto_2_common_8h.html#ae408882163090035b90cc4762d14380f":[12,0,1,0,1,3,8],
 "libdevcrypto_2_common_8h.html#aee620ae231fcdf5cf1901b3f2c3897c3":[12,0,1,0,1,3,18],
 "libdevcrypto_2_common_8h.html#afc103d384dd092231d29dde772ac5b9f":[12,0,1,0,1,3,24],
-"libdevcrypto_2_common_8h_source.html":[12,0,1,0,1,3],
-"libdevcrypto_2_exceptions_8h.html":[12,0,1,0,1,6]
+"libdevcrypto_2_common_8h_source.html":[12,0,1,0,1,3]
 };

@@ -67,6 +67,7 @@ var group___vote =
       [ "reward_votes_round_", "group___vote.html#a86616b953b03eeb00c30bc207cc603b4", null ],
       [ "verified_votes_", "group___vote.html#a7f92ec53fec9e7f31ed873a99e0899d7", null ],
       [ "verified_votes_access_", "group___vote.html#a8312e54a75ef210afb068021aafd1301", null ],
+      [ "verified_votes_last_period_", "group___vote.html#ac0581a71d17ccc6accb419fef31cc6eb", null ],
       [ "voters_unique_votes_", "group___vote.html#ad2071019e18617857904d2b2e99c3745", null ],
       [ "voters_unique_votes_mutex_", "group___vote.html#aec129bb65b9cade515975988b15038c9", null ]
     ] ],

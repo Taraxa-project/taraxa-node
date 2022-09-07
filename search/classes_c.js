@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['maliciouspeerexception_3613',['MaliciousPeerException',['../classtaraxa_1_1_malicious_peer_exception.html',1,'taraxa']]],
-  ['modularserver_3614',['ModularServer',['../class_modular_server.html',1,'']]],
-  ['modularserver_3c_20i_2c_20is_2e_2e_2e_20_3e_3615',['ModularServer&lt; I, Is... &gt;',['../class_modular_server_3_01_i_00_01_is_8_8_8_01_4.html',1,'']]],
-  ['modularserver_3c_20is_2e_2e_2e_20_3e_3616',['ModularServer&lt; Is... &gt;',['../class_modular_server.html',1,'']]],
-  ['mutation_3617',['Mutation',['../classgraphql_1_1taraxa_1_1_mutation.html',1,'graphql::taraxa']]]
+  ['maliciouspeerexception_3614',['MaliciousPeerException',['../classtaraxa_1_1_malicious_peer_exception.html',1,'taraxa']]],
+  ['modularserver_3615',['ModularServer',['../class_modular_server.html',1,'']]],
+  ['modularserver_3c_20i_2c_20is_2e_2e_2e_20_3e_3616',['ModularServer&lt; I, Is... &gt;',['../class_modular_server_3_01_i_00_01_is_8_8_8_01_4.html',1,'']]],
+  ['modularserver_3c_20is_2e_2e_2e_20_3e_3617',['ModularServer&lt; Is... &gt;',['../class_modular_server.html',1,'']]],
+  ['mutation_3618',['Mutation',['../classgraphql_1_1taraxa_1_1_mutation.html',1,'graphql::taraxa']]]
 ];
