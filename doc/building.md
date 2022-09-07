@@ -26,7 +26,8 @@ will build out of the box without further effort:
         python3-pip \
         # this libs are required for arm build by go part. you can skip it for amd64 build
         libzstd-dev \
-        libsnappy-dev
+        libsnappy-dev \
+        rapidjson-dev
 
     # Optional. Needed to run py_test. This won't install on arm64 OS because package is missing in apt
     sudo add-apt-repository ppa:ethereum/ethereum
@@ -84,7 +85,8 @@ will build out of the box without further effort:
         libgflags-dev\
         libjsoncpp-dev \
         libjsonrpccpp-dev \
-        python3-pip
+        python3-pip \
+        rapidjson-dev
 
 
     # Install conan package manager
@@ -166,7 +168,7 @@ And optional:
 First you need to get (Brew)[https://brew.sh/] package manager. After that you need tot install dependencies with it. Currently there is no llvm-14 in brew, but it works well with llvm-13
 
     brew update
-    brew install coreutils go autoconf automake gflags git libtool llvm@13 make pkg-config cmake conan snappy zstd
+    brew install coreutils go autoconf automake gflags git libtool llvm@13 make pkg-config cmake conan snappy zstd rapidjson
 
 ### Clone the Repository
 
@@ -258,7 +260,7 @@ You should be able to build project following default MacOS building process. Bu
 
 ### Install dependencies 
 
-    /usr/local/bin/brew install coreutils go autoconf automake gflags git libtool llvm@13 make pkg-config cmake conan snappy zstd
+    /usr/local/bin/brew install coreutils go autoconf automake gflags git libtool llvm@13 make pkg-config cmake conan snappy zstd rapidjson
 
 ### Clone the Repository
 
