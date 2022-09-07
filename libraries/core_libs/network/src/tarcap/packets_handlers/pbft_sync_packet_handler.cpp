@@ -91,6 +91,8 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
                  << " already present in chain";
     if (pbft_chain_synced) {
       pbftSyncComplete();
+    } else {
+      restartSyncingPbft(true);
     }
     return;
   }
