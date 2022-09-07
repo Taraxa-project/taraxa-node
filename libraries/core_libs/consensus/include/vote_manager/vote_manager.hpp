@@ -63,8 +63,8 @@ class NextVotesManager {
   std::vector<std::shared_ptr<Vote>> getNextVotes();
 
   /**
-   * @brief Get total weight of previous PBFT round all next voting type votes
-   * @return total weight of previous PBFT round all next voting type votes
+   * @brief Get total weight of all previous PBFT round next votes
+   * @return total weight of all previous PBFT round all next votes
    */
   size_t getNextVotesWeight() const;
 
@@ -109,6 +109,7 @@ class NextVotesManager {
   bool enough_votes_for_null_block_hash_;
   std::optional<std::pair<blk_hash_t, uint64_t /* period */>> voted_value_;
 
+  // TODO[2000]: merge these structures into one
   // <voted PBFT block hash, next votes list that have exactly 2t+1 votes voted at the PBFT block hash>
   // only save votes == 2t+1 voted at same value in map and set
   std::unordered_map<blk_hash_t, std::vector<std::shared_ptr<Vote>>> next_votes_;

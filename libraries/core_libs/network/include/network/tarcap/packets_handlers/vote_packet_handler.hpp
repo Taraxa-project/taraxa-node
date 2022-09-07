@@ -23,13 +23,8 @@ class VotePacketHandler final : public ExtVotesPacketHandler {
  private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
-  bool checkVoteMaxPeriodRoundStep(const std::shared_ptr<Vote>& vote, const std::shared_ptr<TaraxaPeer>& peer);
 
-  const uint16_t kVoteAcceptingRounds;
-  const uint16_t kVoteAcceptingSteps;
-  constexpr static std::chrono::seconds kSyncRequestInterval = std::chrono::seconds(10);
   ExpirationCache<vote_hash_t> seen_votes_;
-  std::chrono::system_clock::time_point round_sync_request_time_;
   std::shared_ptr<NextVotesManager> next_votes_mgr_;
 };
 

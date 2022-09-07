@@ -19,7 +19,7 @@ class ExtVotesPacketHandler : public PacketHandler {
  public:
   ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                         std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
-                        std::shared_ptr<VoteManager> vote_mgr, uint32_t vote_accepting_periods, const addr_t& node_addr,
+                        std::shared_ptr<VoteManager> vote_mgr, const NetworkConfig& net_config, const addr_t& node_addr,
                         const std::string& log_channel_name);
 
   virtual ~ExtVotesPacketHandler() = default;
@@ -29,12 +29,48 @@ class ExtVotesPacketHandler : public PacketHandler {
   ExtVotesPacketHandler& operator=(ExtVotesPacketHandler&&) = delete;
 
   /**
+   * @brief Process standard vote
+   *
+   * @param vote
+   * @param peer
+   * @param validate_max_round_step
+   * @return if vote was successfully processed, otherwise false
+   */
+  bool processStandardVote(const std::shared_ptr<Vote>& vote, const std::shared_ptr<TaraxaPeer>& peer,
+                           bool validate_max_round_step);
+
+  /**
+   * @brief Process reward vote
+   *
+   * @param vote
+   * @return if vote was successfully processed, otherwise false
+   */
+  bool processRewardVote(const std::shared_ptr<Vote>& vote) const;
+
+  /**
+   * @brief Process next sync vote
+   *
+   * @param vote
+   * @return if vote was successfully processed, otherwise false
+   */
+  bool processNextSyncVote(const std::shared_ptr<Vote>& vote) const;
+
+  void onNewPbftVotes(std::vector<std::shared_ptr<Vote>>&& votes);
+  void sendPbftVotes(const dev::p2p::NodeID& peer_id, std::vector<std::shared_ptr<Vote>>&& votes,
+                     bool is_next_votes = false);
+
+ private:
+  /**
    * @brief Validates standard vote
    *
    * @param vote to be validated
+   * @param peer
+   * @param validate_max_round_step validate also max round and step
    * @return <true, ""> vote validation passed, otherwise <false, "err msg">
    */
-  std::pair<bool, std::string> validateStandardVote(const std::shared_ptr<Vote>& vote) const;
+  std::pair<bool, std::string> validateStandardVote(const std::shared_ptr<Vote>& vote,
+                                                    const std::shared_ptr<TaraxaPeer>& peer,
+                                                    bool validate_max_round_step);
 
   /**
    * @brief Validates reward vote
@@ -52,10 +88,6 @@ class ExtVotesPacketHandler : public PacketHandler {
    */
   std::pair<bool, std::string> validateNextSyncVote(const std::shared_ptr<Vote>& vote) const;
 
-  void onNewPbftVotes(std::vector<std::shared_ptr<Vote>>&& votes);
-  void sendPbftVotes(const dev::p2p::NodeID& peer_id, std::vector<std::shared_ptr<Vote>>&& votes,
-                     bool is_next_votes = false);
-
  protected:
   /**
    * @brief Common validation for all types of votes
@@ -69,6 +101,12 @@ class ExtVotesPacketHandler : public PacketHandler {
   // Dpos contract delay - it is used to validate pbft period in votes -> does not make sense to accept vote
   // with vote period > current pbft period + kDposDelay as the valiation will fail
   const uint32_t kVoteAcceptingPeriods;
+  const uint16_t kVoteAcceptingRounds;
+  const uint16_t kVoteAcceptingSteps;
+  constexpr static std::chrono::seconds kSyncRequestInterval = std::chrono::seconds(10);
+
+  mutable std::chrono::system_clock::time_point last_votes_sync_request_time_;
+  mutable std::chrono::system_clock::time_point last_pbft_block_sync_request_time_;
 
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;

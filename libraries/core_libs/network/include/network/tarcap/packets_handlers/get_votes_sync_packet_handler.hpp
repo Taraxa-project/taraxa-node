@@ -15,7 +15,7 @@ class GetVotesSyncPacketHandler final : public ExtVotesPacketHandler {
   GetVotesSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                             std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                             std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
-                            uint32_t vote_accepting_periods, const addr_t& node_addr);
+                            const NetworkConfig& net_config, const addr_t& node_addr);
 
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetVotesSyncPacket;
