@@ -21,6 +21,7 @@ VoteManager::VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db,
       final_chain_(std::move(final_chain)),
       next_votes_manager_(std::move(next_votes_mgr)) {
   LOG_OBJECTS_CREATE("VOTE_MGR");
+  verified_votes_last_period_ = pbft_chain_->getPbftChainSize() + 1;
 
   // Retrieve votes from DB
   daemon_ = std::make_unique<std::thread>([this]() { retreieveVotes_(); });
@@ -106,6 +107,19 @@ bool VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
   }
 
   UniqueLock lock(verified_votes_access_);
+
+  // It is possible that period just changed and validated vote is now a round behind and possibly a reward vote
+  if (vote->getPeriod() < verified_votes_last_period_) {
+    // Old vote, ignore unless it is a reward vote
+    if (vote->getPeriod() == verified_votes_last_period_ - 1 && vote->getType() == cert_vote_type) {
+      addRewardVote(vote);
+      return true;
+    }
+    // Old vote, ignore it
+    LOG(log_tr_) << "Old vote " << vote->getHash().abridged() << " vote period" << vote->getPeriod()
+                 << " current period " << verified_votes_last_period_;
+    return false;
+  }
 
   auto found_period_it = verified_votes_.find(vote->getPeriod());
   // Add period
@@ -387,6 +401,7 @@ void VoteManager::cleanupVotesByPeriod(uint64_t pbft_period) {
 
       it = verified_votes_.erase(it);
     }
+    verified_votes_last_period_ = pbft_period;
   }
 
   db_->commitWriteBatch(batch);
