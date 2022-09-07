@@ -4,7 +4,7 @@ compile_commands.json
 # clangd indexer cache
 .cache
 
-# ccls indexer cache 
+# ccls indexer cache
 .ccls-cache
 
 .idea
@@ -28,6 +28,9 @@ libraries/config/include/config/version.hpp
 
 # cmake generated header with configs
 libraries/cli/include/cli/configs.hpp
+
+# graphql files
+libraries/core_libs/network/graphql/gen/
 
 # python test related folders
 __pycache__/

@@ -88,6 +88,19 @@ If release name contains chart name it will be used as a full name.
 {{- end -}}
 
 {{/*
+Create a default fully qualified graphql websocket.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+If release name contains chart name it will be used as a full name.
+*/}}
+{{- define "taraxa-node.graphQlWsName" -}}
+{{- if .Values.graphQlWsNameOverride -}}
+{{- .Values.graphQlWsNameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s.%s" "graphql-ws" .Release.Name .Values.domain | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Create a default fully qualified rpc.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
@@ -100,6 +113,18 @@ If release name contains chart name it will be used as a full name.
 {{- end -}}
 {{- end -}}
 
+{{/*
+Create a default fully qualified graphql.
+We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
+If release name contains chart name it will be used as a full name.
+*/}}
+{{- define "taraxa-node.graphQlName" -}}
+{{- if .Values.graphQlNameOverride -}}
+{{- .Values.graphQlNameOverride | trunc 63 | trimSuffix "-" -}}
+{{- else -}}
+{{- printf "%s-%s.%s" "graphql" .Release.Name .Values.domain | trunc 63 | trimSuffix "-" -}}
+{{- end -}}
+{{- end -}}
 
 {{/* Allow KubeVersion to be overridden. */}}
 {{- define "taraxa-node.kubeVersion" -}}

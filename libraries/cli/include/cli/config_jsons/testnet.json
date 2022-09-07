@@ -50,8 +50,11 @@
   ],
   "rpc": {
     "http_port": 7777,
-    "ws_port": 8777,
-    "threads_num": 10
+    "ws_port": 8777
+  },
+  "graphql": {
+    "http_port": 9777,
+    "ws_port": 6777
   },
   "db_config": {
     "db_snapshot_each_n_pbft_block": 10000,

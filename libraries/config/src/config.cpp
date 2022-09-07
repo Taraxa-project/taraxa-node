@@ -142,7 +142,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
 
   // Rpc config
   if (auto rpc_config = getConfigData(root, {"rpc"}, true); !rpc_config.isNull()) {
-    rpc = RpcConfig();
+    rpc = ConnectionConfig();
 
     // ip address
     rpc->address = boost::asio::ip::address::from_string(network.network_listen_ip);
@@ -160,6 +160,29 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
     // number of threads processing rpc calls
     if (auto threads_num = getConfigData(rpc_config, {"threads_num"}, true); !threads_num.isNull()) {
       rpc->threads_num = threads_num.asUInt();
+    }
+  }
+
+  // GraphQL config
+  if (auto graphql_config = getConfigData(root, {"graphql"}, true); !graphql_config.isNull()) {
+    graphql = ConnectionConfig();
+
+    // ip address
+    graphql->address = boost::asio::ip::address::from_string(network.network_listen_ip);
+
+    // graphql http port
+    if (auto http_port = getConfigData(graphql_config, {"http_port"}, true); !http_port.isNull()) {
+      graphql->http_port = http_port.asUInt();
+    }
+
+    // graphql websocket port
+    if (auto ws_port = getConfigData(graphql_config, {"ws_port"}, true); !ws_port.isNull()) {
+      graphql->ws_port = ws_port.asUInt();
+    }
+
+    // number of threads processing rpc calls
+    if (auto threads_num = getConfigData(graphql_config, {"threads_num"}, true); !threads_num.isNull()) {
+      graphql->threads_num = threads_num.asUInt();
     }
   }
 
@@ -284,15 +307,15 @@ void NetworkConfig::validate() const {
   }
 }
 
-void RpcConfig::validate() const {
+void ConnectionConfig::validate() const {
   if (!http_port && !ws_port) {
-    throw ConfigException("Either rpc::http_port or rpc::ws_port post must be specified for rpc");
+    throw ConfigException("Either http_port or ws_port post must be specified for connection config");
   }
 
   // Max enabled number of threads for processing rpc requests
   constexpr uint16_t MAX_RPC_THREADS_NUM = 10;
   if (threads_num <= 0 || threads_num > MAX_RPC_THREADS_NUM) {
-    throw ConfigException(string("rpc::threads_num must be in range (0, ") + std::to_string(MAX_RPC_THREADS_NUM) + "]");
+    throw ConfigException(string("threads_num must be in range (0, ") + std::to_string(MAX_RPC_THREADS_NUM) + "]");
   }
 }
 

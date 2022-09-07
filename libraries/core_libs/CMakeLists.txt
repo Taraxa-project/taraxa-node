@@ -5,6 +5,9 @@ file(GLOB_RECURSE CONSENSUS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/consensus/*.cpp)
 
 file(GLOB_RECURSE NETWORK_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/network/*.hpp)
 file(GLOB_RECURSE NETWORK_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/network/*.cpp)
+# GraphQL
+include(${PROJECT_SOURCE_DIR}/CMakeModules/cpp_graphql_gen.cmake)
+file(GLOB_RECURSE NETWORK_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/network/*.h)
 
 file(GLOB_RECURSE STORAGE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/storage/*.hpp)
 file(GLOB_RECURSE STORAGE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/storage/*.cpp)
@@ -24,6 +27,7 @@ set(SOURCES
     ${NETWORK_SOURCES}
     ${STORAGE_SOURCES}
     ${NODE_SOURCES}
+    ${GRAPHQL_GENERATED_SOURCES}
 )
 
 add_library(core_libs ${SOURCES} ${HEADERS})
@@ -33,6 +37,10 @@ target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/network/
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/node/include)
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/storage/include)
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+# GraphQL
+target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/network/graphql/gen)
+target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/network/graphql/include)
+
 target_link_libraries(core_libs PUBLIC
     cli
     pbft_block
@@ -40,6 +48,9 @@ target_link_libraries(core_libs PUBLIC
     p2p
     CONAN_PKG::libjson-rpc-cpp
     CONAN_PKG::rocksdb
+# GraphQL
+    cppgraphqlgen::graphqlservice
+    cppgraphqlgen::graphqljson
 )
 
 

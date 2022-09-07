@@ -17,12 +17,12 @@
 #include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
 #include "config/version.hpp"
+#include "network/http_server.hpp"
 #include "network/rpc/EthFace.h"
 #include "network/rpc/NetFace.h"
-#include "network/rpc/RpcServer.h"
 #include "network/rpc/TaraxaFace.h"
 #include "network/rpc/TestFace.h"
-#include "network/rpc/WSServer.h"
+#include "network/ws_server.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "storage/storage.hpp"
 #include "transaction/transaction.hpp"
@@ -55,6 +55,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   // should be destroyed after all components, since they may depend on it through unsafe pointers
   std::unique_ptr<util::ThreadPool> rpc_thread_pool_;
+  std::unique_ptr<util::ThreadPool> graphql_thread_pool_;
   // In cae we will you config for this TP, it needs to be unique_ptr !!!
   util::ThreadPool subscription_pool_;
 
@@ -77,8 +78,10 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<KeyManager> key_manager_;
   std::shared_ptr<FinalChain> final_chain_;
-  std::shared_ptr<net::RpcServer> jsonrpc_http_;
-  std::shared_ptr<net::WSServer> jsonrpc_ws_;
+  std::shared_ptr<net::HttpServer> jsonrpc_http_;
+  std::shared_ptr<net::HttpServer> graphql_http_;
+  std::shared_ptr<net::WsServer> jsonrpc_ws_;
+  std::shared_ptr<net::WsServer> graphql_ws_;
   std::unique_ptr<jsonrpc_server_t> jsonrpc_api_;
 
   // logging

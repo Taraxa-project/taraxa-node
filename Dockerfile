@@ -23,19 +23,19 @@ RUN apt-get update \
     software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
-# install solc for py_test if arch is not arm64 because it is not availiable 
+# install solc for py_test if arch is not arm64 because it is not availiable
 RUN \
 if [ `arch` != "aarch64" ]; \
 then  \
     add-apt-repository ppa:ethereum/ethereum \
     && apt-get update \
     && apt install solc; \
-fi 
+fi
 
 # install standart tools
 RUN add-apt-repository ppa:ethereum/ethereum \
     && apt-get update \
-    && apt-get install -y \ 
+    && apt-get install -y \
     clang-format-$LLVM_VERSION \
     clang-tidy-$LLVM_VERSION \
     llvm-$LLVM_VERSION \
@@ -43,12 +43,14 @@ RUN add-apt-repository ppa:ethereum/ethereum \
     ca-certificates \
     libtool \
     autoconf \
-    binutils \ 
+    binutils \
     cmake \
     ccache \
     # this libs are required for arm build by go part
     libzstd-dev \
     libsnappy-dev \
+    # replace this with conan dependency
+    rapidjson-dev \
     && rm -rf /var/lib/apt/lists/*
 
 ENV CXX="clang++-${LLVM_VERSION}"

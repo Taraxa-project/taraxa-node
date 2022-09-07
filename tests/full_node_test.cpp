@@ -1,4 +1,6 @@
 
+#include <graphqlservice/GraphQLService.h>
+#include <graphqlservice/JSONResponse.h>
 #include <gtest/gtest.h>
 
 #include <atomic>
@@ -13,6 +15,9 @@
 #include "common/static_init.hpp"
 #include "dag/block_proposer.hpp"
 #include "dag/dag_manager.hpp"
+#include "graphql/mutation.hpp"
+#include "graphql/query.hpp"
+#include "graphql/subscription.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "network/rpc/Taraxa.h"
@@ -1699,6 +1704,80 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
     // Check if transactions and block was propagated to node0
     WAIT_EXPECT_NE(ctx, node0->getDagManager()->getDagBlock(blk_hash), nullptr);
   });
+}
+
+TEST_F(FullNodeTest, GraphQLTest) {
+  // Create a node with 5 pbft/eth blocks
+  auto node_cfgs = make_node_cfgs<20>(1);
+  auto nodes = launch_nodes(node_cfgs);
+
+  for (auto &trx : samples::createSignedTrxSamples(0, 100, g_secret)) {
+    nodes[0]->getTransactionManager()->insertTransaction(std::move(trx));
+    thisThreadSleepForMilliSeconds(100);
+    if (nodes[0]->getPbftChain()->getPbftChainSize() >= 5) {
+      break;
+    }
+  }
+
+  // Objects needed to run the query
+  auto q = std::make_shared<graphql::taraxa::Query>(nodes[0]->getFinalChain(), nodes[0]->getDagManager(),
+                                                    nodes[0]->getPbftManager(), nodes[0]->getTransactionManager(),
+                                                    nodes[0]->getDB(), nodes[0]->getConfig().chain_id);
+  auto mutation = std::make_shared<graphql::taraxa::Mutation>(nodes[0]->getTransactionManager());
+  auto subscription = std::make_shared<graphql::taraxa::Subscription>();
+  auto _service = std::make_shared<graphql::taraxa::Operations>(q, mutation, subscription);
+
+  // Get latest block number with query
+  using namespace graphql;
+  auto query = R"({ block { number } })"_graphql;
+  response::Value variables(response::Type::Map);
+  auto state = std::make_shared<graphql::service::RequestState>();
+  auto result = _service->resolve({query, "", std::move(variables), std::launch::async, state}).get();
+
+  // Verify the result of the query
+  ASSERT_TRUE(result.type() == response::Type::Map);
+  auto errorsItr = result.find("errors");
+  if (errorsItr != result.get<response::MapType>().cend()) {
+    FAIL() << response::toJSON(response::Value(errorsItr->second));
+  }
+  std::cout << response::toJSON(response::Value(result)) << std::endl;
+  auto data = service::ScalarArgument::require("data", result);
+  auto block = service::ScalarArgument::require("block", data);
+  auto number = std::stoi(service::StringArgument::require("number", block), 0, 16);
+  EXPECT_EQ(nodes[0]->getPbftChain()->getPbftChainSize(), (int)number);
+
+  // Get block hash by number
+  query = R"({ block(number:3) { hash } })"_graphql;
+  result = _service->resolve({query, "", std::move(variables), std::launch::async, state}).get();
+
+  // Verify the result of the query
+  ASSERT_TRUE(result.type() == response::Type::Map);
+  errorsItr = result.find("errors");
+  if (errorsItr != result.get<response::MapType>().cend()) {
+    FAIL() << response::toJSON(response::Value(errorsItr->second));
+  }
+  std::cout << response::toJSON(response::Value(result)) << std::endl;
+  data = service::ScalarArgument::require("data", result);
+  block = service::ScalarArgument::require("block", data);
+  const auto hash = service::StringArgument::require("hash", block);
+  EXPECT_EQ(nodes[0]->getFinalChain()->block_header(3)->hash.toString(), hash);
+
+  // Get block hash by number
+  query = R"({ block(number: 2) { transactionAt(index: 0) { hash } } })"_graphql;
+  result = _service->resolve({query, "", std::move(variables), std::launch::async, state}).get();
+
+  // Verify the result of the query
+  ASSERT_TRUE(result.type() == response::Type::Map);
+  errorsItr = result.find("errors");
+  if (errorsItr != result.get<response::MapType>().cend()) {
+    FAIL() << response::toJSON(response::Value(errorsItr->second));
+  }
+  std::cout << response::toJSON(response::Value(result)) << std::endl;
+  data = service::ScalarArgument::require("data", result);
+  block = service::ScalarArgument::require("block", data);
+  auto transactionAt = service::ScalarArgument::require("transactionAt", block);
+  const auto hash2 = service::StringArgument::require("hash", transactionAt);
+  EXPECT_EQ(nodes[0]->getFinalChain()->transaction_hashes(2)->get(0).toString(), hash2);
 }
 
 }  // namespace taraxa::core_tests
