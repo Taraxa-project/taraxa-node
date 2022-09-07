@@ -16,9 +16,9 @@ GraphQlHttpProcessor::GraphQlHttpProcessor(std::shared_ptr<::taraxa::final_chain
                                            std::shared_ptr<::taraxa::DbStorage> db, uint64_t chain_id)
     : HttpProcessor(),
       query_(std::make_shared<graphql::taraxa::Query>(std::move(final_chain), std::move(dag_manager),
-                                                      std::move(pbft_manager), std::move(transaction_manager),
-                                                      std::move(db), chain_id)),
-      mutation_(std::make_shared<graphql::taraxa::Mutation>()),
+                                                      std::move(pbft_manager), transaction_manager, std::move(db),
+                                                      chain_id)),
+      mutation_(std::make_shared<graphql::taraxa::Mutation>(transaction_manager)),
       subscription_(std::make_shared<graphql::taraxa::Subscription>()),
       operations_(query_, mutation_, subscription_) {}
 

@@ -351,8 +351,6 @@ type Query {
 type Mutation {
     # SendRawTransaction sends an RLP-encoded transaction to the network.
     sendRawTransaction(data: Bytes!): Bytes32!
-    testMutation(data: Long!): Long!
-    testMutation2: Long!
 }
 
 type Subscription {

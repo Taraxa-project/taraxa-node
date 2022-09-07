@@ -3,23 +3,19 @@
 #include <memory>
 
 #include "MutationObject.h"
-#include "network/rpc/eth/Eth.h"
+#include "transaction/transaction_manager.hpp"
 
 namespace graphql::taraxa {
 
 class Mutation {
  public:
   Mutation() = default;
-  explicit Mutation(std::shared_ptr<::taraxa::net::rpc::eth::Eth> node_api) noexcept;
+  explicit Mutation(std::shared_ptr<::taraxa::TransactionManager> trx_manager) noexcept;
 
-  response::Value applySendRawTransaction(response::Value&& dataArg) const noexcept;
-
-  response::Value applyTestMutation(response::Value&& dataArg) const noexcept;
-
-  response::Value applyTestMutation2() const noexcept;
+  response::Value applySendRawTransaction(response::Value&& dataArg) const;
 
  private:
-  std::shared_ptr<::taraxa::net::rpc::eth::Eth> node_api_;
+  std::shared_ptr<::taraxa::TransactionManager> trx_manager_;
 };
 
 }  // namespace graphql::taraxa

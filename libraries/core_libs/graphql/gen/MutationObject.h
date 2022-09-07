@@ -26,30 +26,6 @@ concept applySendRawTransaction = requires (TImpl impl, response::Value dataArg)
 };
 
 template <class TImpl>
-concept applyTestMutationWithParams = requires (TImpl impl, service::FieldParams params, response::Value dataArg)
-{
-	{ service::AwaitableScalar<response::Value> { impl.applyTestMutation(std::move(params), std::move(dataArg)) } };
-};
-
-template <class TImpl>
-concept applyTestMutation = requires (TImpl impl, response::Value dataArg)
-{
-	{ service::AwaitableScalar<response::Value> { impl.applyTestMutation(std::move(dataArg)) } };
-};
-
-template <class TImpl>
-concept applyTestMutation2WithParams = requires (TImpl impl, service::FieldParams params)
-{
-	{ service::AwaitableScalar<response::Value> { impl.applyTestMutation2(std::move(params)) } };
-};
-
-template <class TImpl>
-concept applyTestMutation2 = requires (TImpl impl)
-{
-	{ service::AwaitableScalar<response::Value> { impl.applyTestMutation2() } };
-};
-
-template <class TImpl>
 concept beginSelectionSet = requires (TImpl impl, const service::SelectionSetParams params)
 {
 	{ impl.beginSelectionSet(params) };
@@ -68,8 +44,6 @@ class [[nodiscard]] Mutation final
 {
 private:
 	[[nodiscard]] service::AwaitableResolver resolveSendRawTransaction(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveTestMutation(service::ResolverParams&& params) const;
-	[[nodiscard]] service::AwaitableResolver resolveTestMutation2(service::ResolverParams&& params) const;
 
 	[[nodiscard]] service::AwaitableResolver resolve_typename(service::ResolverParams&& params) const;
 
@@ -81,8 +55,6 @@ private:
 		virtual void endSelectionSet(const service::SelectionSetParams& params) const = 0;
 
 		[[nodiscard]] virtual service::AwaitableScalar<response::Value> applySendRawTransaction(service::FieldParams&& params, response::Value&& dataArg) const = 0;
-		[[nodiscard]] virtual service::AwaitableScalar<response::Value> applyTestMutation(service::FieldParams&& params, response::Value&& dataArg) const = 0;
-		[[nodiscard]] virtual service::AwaitableScalar<response::Value> applyTestMutation2(service::FieldParams&& params) const = 0;
 	};
 
 	template <class T>
@@ -104,32 +76,6 @@ private:
 			{
 				static_assert(methods::MutationHas::applySendRawTransaction<T>, R"msg(Mutation::applySendRawTransaction is not implemented)msg");
 				return { _pimpl->applySendRawTransaction(std::move(dataArg)) };
-			}
-		}
-
-		[[nodiscard]] service::AwaitableScalar<response::Value> applyTestMutation(service::FieldParams&& params, response::Value&& dataArg) const final
-		{
-			if constexpr (methods::MutationHas::applyTestMutationWithParams<T>)
-			{
-				return { _pimpl->applyTestMutation(std::move(params), std::move(dataArg)) };
-			}
-			else
-			{
-				static_assert(methods::MutationHas::applyTestMutation<T>, R"msg(Mutation::applyTestMutation is not implemented)msg");
-				return { _pimpl->applyTestMutation(std::move(dataArg)) };
-			}
-		}
-
-		[[nodiscard]] service::AwaitableScalar<response::Value> applyTestMutation2(service::FieldParams&& params) const final
-		{
-			if constexpr (methods::MutationHas::applyTestMutation2WithParams<T>)
-			{
-				return { _pimpl->applyTestMutation2(std::move(params)) };
-			}
-			else
-			{
-				static_assert(methods::MutationHas::applyTestMutation2<T>, R"msg(Mutation::applyTestMutation2 is not implemented)msg");
-				return { _pimpl->applyTestMutation2() };
 			}
 		}
 

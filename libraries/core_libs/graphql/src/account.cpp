@@ -8,7 +8,7 @@ namespace graphql::taraxa {
 
 Account::Account(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain, dev::Address address) noexcept
     : kAddress(std::move(address)), final_chain_(std::move(final_chain)) {
-  account_ = final_chain->get_account(kAddress, final_chain->last_block_number());
+  account_ = final_chain_->get_account(kAddress, final_chain->last_block_number());
 }
 
 response::Value Account::getAddress() const noexcept { return response::Value(kAddress.toString()); }

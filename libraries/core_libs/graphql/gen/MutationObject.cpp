@@ -37,8 +37,6 @@ service::ResolverMap Mutation::getResolvers() const noexcept
 {
 	return {
 		{ R"gql(__typename)gql"sv, [this](service::ResolverParams&& params) { return resolve_typename(std::move(params)); } },
-		{ R"gql(testMutation)gql"sv, [this](service::ResolverParams&& params) { return resolveTestMutation(std::move(params)); } },
-		{ R"gql(testMutation2)gql"sv, [this](service::ResolverParams&& params) { return resolveTestMutation2(std::move(params)); } },
 		{ R"gql(sendRawTransaction)gql"sv, [this](service::ResolverParams&& params) { return resolveSendRawTransaction(std::move(params)); } }
 	};
 }
@@ -64,27 +62,6 @@ service::AwaitableResolver Mutation::resolveSendRawTransaction(service::Resolver
 	return service::ModifiedResult<response::Value>::convert(std::move(result), std::move(params));
 }
 
-service::AwaitableResolver Mutation::resolveTestMutation(service::ResolverParams&& params) const
-{
-	auto argData = service::ModifiedArgument<response::Value>::require("data", params.arguments);
-	std::unique_lock resolverLock(_resolverMutex);
-	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->applyTestMutation(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)), std::move(argData));
-	resolverLock.unlock();
-
-	return service::ModifiedResult<response::Value>::convert(std::move(result), std::move(params));
-}
-
-service::AwaitableResolver Mutation::resolveTestMutation2(service::ResolverParams&& params) const
-{
-	std::unique_lock resolverLock(_resolverMutex);
-	auto directives = std::move(params.fieldDirectives);
-	auto result = _pimpl->applyTestMutation2(service::FieldParams(service::SelectionSetParams{ params }, std::move(directives)));
-	resolverLock.unlock();
-
-	return service::ModifiedResult<response::Value>::convert(std::move(result), std::move(params));
-}
-
 service::AwaitableResolver Mutation::resolve_typename(service::ResolverParams&& params) const
 {
 	return service::Result<std::string>::convert(std::string{ R"gql(Mutation)gql" }, std::move(params));
@@ -97,11 +74,7 @@ void AddMutationDetails(const std::shared_ptr<schema::ObjectType>& typeMutation,
 	typeMutation->AddFields({
 		schema::Field::Make(R"gql(sendRawTransaction)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(Bytes32)gql"sv)), {
 			schema::InputValue::Make(R"gql(data)gql"sv, R"md()md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(Bytes)gql"sv)), R"gql()gql"sv)
-		}),
-		schema::Field::Make(R"gql(testMutation)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(Long)gql"sv)), {
-			schema::InputValue::Make(R"gql(data)gql"sv, R"md()md"sv, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(Long)gql"sv)), R"gql()gql"sv)
-		}),
-		schema::Field::Make(R"gql(testMutation2)gql"sv, R"md()md"sv, std::nullopt, schema->WrapType(introspection::TypeKind::NON_NULL, schema->LookupType(R"gql(Long)gql"sv)))
+		})
 	});
 }
 

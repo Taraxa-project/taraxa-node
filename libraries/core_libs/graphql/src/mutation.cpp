@@ -1,29 +1,28 @@
 #include "graphql/mutation.hpp"
 
-#include "graphql/account.hpp"
-#include "graphql/transaction.hpp"
+#include <stdexcept>
+
+#include "common/util.hpp"
 #include "libdevcore/CommonJS.h"
 
 using namespace std::literals;
 
 namespace graphql::taraxa {
 
-Mutation::Mutation(std::shared_ptr<::taraxa::net::rpc::eth::Eth> node_api) noexcept : node_api_(std::move(node_api)) {}
+Mutation::Mutation(std::shared_ptr<::taraxa::TransactionManager> trx_manager) noexcept
+    : trx_manager_(std::move(trx_manager)) {}
 
-response::Value Mutation::applySendRawTransaction(response::Value&&) const noexcept {
-  // return response::Value(
-  //     dev::toJS(node_api_->importTransaction(jsToBytes(transaction.get<std::string>(), dev::OnFailed::Throw))));
-  return response::Value(666);
-}
-
-response::Value Mutation::applyTestMutation(response::Value&&) const noexcept {
-  std::cout << "applyTestMutation invoked" << std::endl;
-  return response::Value(122);
-}
-
-response::Value Mutation::applyTestMutation2() const noexcept {
-  std::cout << "applyTestMutation2 invoked" << std::endl;
-  return response::Value(999);
+response::Value Mutation::applySendRawTransaction(response::Value&& dataArg) const {
+  const auto trx =
+      std::make_shared<::taraxa::Transaction>(jsToBytes(dataArg.get<std::string>(), dev::OnFailed::Throw), true);
+  if (auto [ok, err_msg] = trx_manager_->insertTransaction(trx); !ok) {
+    throw(
+        std::runtime_error(::taraxa::fmt("Transaction is rejected.\n"
+                                         "RLP: %s\n"
+                                         "Reason: %s",
+                                         dev::toJS(trx->rlp()), err_msg)));
+  }
+  return response::Value(dev::toJS(trx->getHash()));
 }
 
 }  // namespace graphql::taraxa
