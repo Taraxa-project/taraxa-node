@@ -216,20 +216,23 @@ void FullNode::start() {
         },
         *rpc_thread_pool_);
   }
+  if (conf_.graphql) {
+    graphql_thread_pool_ = std::make_unique<util::ThreadPool>(conf_.graphql->threads_num);
+    if (conf_.graphql->ws_port) {
+      graphql_ws_ = std::make_shared<net::GraphQlWsServer>(
+          graphql_thread_pool_->unsafe_get_io_context(),
+          boost::asio::ip::tcp::endpoint{conf_.graphql->address, *conf_.graphql->ws_port}, getAddress());
+      // graphql_ws_->run();
+    }
 
-  if (conf_.rpc->gql_ws_port) {
-    graphql_ws_ = std::make_shared<net::GraphQlWsServer>(
-        rpc_thread_pool_->unsafe_get_io_context(),
-        boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->gql_ws_port}, getAddress());
-    // graphql_ws_->run();
-  }
-
-  if (conf_.rpc->gql_http_port) {
-    graphql_http_ = std::make_shared<net::HttpServer>(
-        rpc_thread_pool_->unsafe_get_io_context(),
-        boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->gql_http_port}, getAddress(),
-        std::make_shared<net::GraphQlHttpProcessor>(final_chain_, dag_mgr_, pbft_mgr_, trx_mgr_, db_, conf_.chain_id));
-    graphql_http_->start();
+    if (conf_.graphql->http_port) {
+      graphql_http_ = std::make_shared<net::HttpServer>(
+          graphql_thread_pool_->unsafe_get_io_context(),
+          boost::asio::ip::tcp::endpoint{conf_.graphql->address, *conf_.graphql->http_port}, getAddress(),
+          std::make_shared<net::GraphQlHttpProcessor>(final_chain_, dag_mgr_, pbft_mgr_, trx_mgr_, db_,
+                                                      conf_.chain_id));
+      graphql_http_->start();
+    }
   }
 
   // GasPricer updater
