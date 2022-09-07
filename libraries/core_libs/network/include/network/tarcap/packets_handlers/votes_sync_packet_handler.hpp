@@ -16,7 +16,7 @@ class VotesSyncPacketHandler final : public ExtVotesPacketHandler {
   VotesSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
                          std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
-                         std::shared_ptr<DbStorage> db, uint32_t vote_accepting_periods, const addr_t& node_addr);
+                         std::shared_ptr<DbStorage> db, const NetworkConfig& net_config, const addr_t& node_addr);
 
   void broadcastPreviousRoundNextVotesBundle();
 

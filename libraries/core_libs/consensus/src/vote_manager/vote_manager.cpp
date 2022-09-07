@@ -744,7 +744,7 @@ void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& ne
   }
 
   if (enoughNextVotes()) {
-    LOG(log_dg_) << "Have enough next votes for prevous PBFT round.";
+    LOG(log_dg_) << "Have enough next votes for previous PBFT round.";
     return;
   }
 
@@ -817,7 +817,7 @@ void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& ne
       }
     } else {
       // Should not happen here, have checked at updateWithSyncedVotes. For safe
-      LOG(log_dg_) << "Shoud not happen here. Voted PBFT block hash " << voted_value << " has "
+      LOG(log_dg_) << "Should not happen. Voted PBFT block hash " << voted_value << " has "
                    << voted_value_next_votes_size << " next votes. Not enough, removed!";
       for (auto const& v : next_votes_.at(voted_value)) {
         next_votes_set_.erase(v->getHash());
@@ -983,7 +983,7 @@ void NextVotesManager::updateWithSyncedVotes(std::vector<std::shared_ptr<Vote>>&
   }
 
   if (synced_next_votes.size() != 1 && synced_next_votes.size() != 2) {
-    LOG(log_er_) << "Synced next votes voted " << synced_next_votes.size() << " values";
+    LOG(log_er_) << "Synced next contain more than 2 voted values " << synced_next_votes.size();
     for (auto const& voted_value_and_votes : synced_next_votes) {
       LOG(log_er_) << "Synced next votes voted value " << voted_value_and_votes.first;
     }
