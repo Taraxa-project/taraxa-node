@@ -75,6 +75,8 @@ struct FullNodeConfig {
   // the contents
   explicit FullNodeConfig(Json::Value const &file_name_str_or_json_object, Json::Value const &wallet,
                           const std::string &config_file_path = "");
+
+  explicit FullNodeConfig(const std::string &chain_config_name) : chain(ChainConfig::predefined(chain_config_name)) {}
   std::string json_file_name;
   dev::Secret node_secret;
   vrf_wrapper::vrf_sk_t vrf_secret;
@@ -87,13 +89,13 @@ struct FullNodeConfig {
   DBConfig db_config;
   ChainConfig chain = ChainConfig::predefined();
   uint64_t chain_id;
-  state_api::Opts opts_final_chain;
   std::vector<logger::Config> log_configs;
   bool is_light_node = false;                            // Is light node
   uint64_t light_node_history = 0;                       // Number of periods to keep in history for a light node
   uint32_t dag_expiry_limit = kDagExpiryLevelLimit;      // For unit tests only
   uint32_t max_levels_per_period = kMaxLevelsPerPeriod;  // For unit tests only
   bool enable_test_rpc = false;
+  uint32_t final_chain_cache_in_blocks = 5;
 
   // config values that limits transactions pool
   uint32_t transactions_pool_size = kDefaultTransactionPoolSize;

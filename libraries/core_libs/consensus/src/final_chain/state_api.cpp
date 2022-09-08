@@ -239,12 +239,4 @@ vrf_wrapper::vrf_pk_t StateAPI::get_vrf_key(EthBlockNumber blk_num, const addr_t
       c_method_args_rlp<bytes, to_bytes, taraxa_evm_state_api_dpos_get_vrf_key>(this_c_, blk_num, addr));
 }
 
-addr_t const& StateAPI::dpos_contract_addr() {
-  static auto const ret = [] {
-    auto ret_c = taraxa_evm_state_api_dpos_contract_addr();
-    return addr_t(ret_c.Val, addr_t::ConstructFromPointer);
-  }();
-  return ret;
-}
-
 }  // namespace taraxa::state_api

@@ -117,6 +117,9 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   data_path = getConfigDataAsString(root, {"data_path"});
   db_path = data_path / "db";
   chain_id = getConfigDataAsUInt(root, {"chain_id"});
+  final_chain_cache_in_blocks =
+      getConfigDataAsUInt(root, {"final_chain_cache_in_blocks"}, true, final_chain_cache_in_blocks);
+
   network.network_listen_ip = getConfigDataAsString(root, {"network_listen_ip"});
   network.network_public_ip = getConfigDataAsString(root, {"network_public_ip"}, true);
   network.network_tcp_port = getConfigDataAsUInt(root, {"network_tcp_port"});
@@ -280,9 +283,6 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   } catch (const dev::Exception &e) {
     throw ConfigException(std::string("Could not parse vrf_secret: ") + e.what());
   }
-  // TODO configurable
-  opts_final_chain.expected_max_trx_per_block = 1000;
-  opts_final_chain.max_trie_full_node_levels_to_cache = 4;
 }
 
 void NetworkConfig::validate() const {

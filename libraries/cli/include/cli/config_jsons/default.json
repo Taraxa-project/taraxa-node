@@ -16,6 +16,7 @@
   "vote_accepting_periods": 5,
   "vote_accepting_rounds": 5,
   "vote_accepting_steps": 25,
+  "final_chain_cache_in_blocks": 5,
   "network_boot_nodes": [
   ],
   "rpc": {
