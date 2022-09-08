@@ -1158,6 +1158,16 @@ std::pair<bool, std::string> PbftManager::validateVote(const std::shared_ptr<Vot
   return {true, ""};
 }
 
+bool PbftManager::pushProposedBlock(const std::shared_ptr<PbftBlock>& proposed_block, const std::shared_ptr<Vote>& propose_vote) {
+  auto res = proposed_blocks_.pushProposedPbftBlock(proposed_block, propose_vote);
+  if (!res.first) {
+    LOG(log_er_) << "Unable to push proposed block " << proposed_block->getBlockHash() << ". Err: " << res.second;
+    return false;
+  }
+
+  return true;
+}
+
 uint64_t PbftManager::getPbftSortitionThreshold(PbftVoteTypes vote_type, uint64_t pbft_period) const {
   const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(pbft_period);
 

@@ -12,6 +12,7 @@
 #include "network/network.hpp"
 #include "network/tarcap/taraxa_capability.hpp"
 #include "pbft/period_data_queue.hpp"
+#include "pbft/proposed_blocks.hpp"
 
 #define NULL_BLOCK_HASH blk_hash_t(0)
 #define POLLING_INTERVAL_ms 100  // milliseconds...
@@ -303,6 +304,15 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    */
   std::pair<bool, std::string> validateVote(const std::shared_ptr<Vote> &vote) const;
 
+  /**
+   * @brief Push propose vote and block
+   *
+   * @param proposed_block
+   * @param propose_vote
+   * @return is successful, otherwise false
+   */
+  bool pushProposedBlock(const std::shared_ptr<PbftBlock>& proposed_block, const std::shared_ptr<Vote>& propose_vote);
+
  private:
   // DPOS
   /**
@@ -555,6 +565,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    */
   std::shared_ptr<PbftBlock> getUnfinalizedBlock_(blk_hash_t const &block_hash);
 
+  /**
+   * @brief Count how many votes in the current PBFT round and step. This is only for testing purpose
+   */
+  void countVotes_() const;
+
   std::atomic<bool> stopped_ = true;
 
   // Multiple proposed pbft blocks could have same dag block anchor at same period so this cache improves retrieval of
@@ -643,12 +658,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   PeriodDataQueue sync_queue_;
 
-  const uint32_t max_levels_per_period_;
+  // Proposed blocks based on received propose votes
+  ProposedBlocks proposed_blocks_;
 
-  /**
-   * @brief Count how many votes in the current PBFT round and step. This is only for testing purpose
-   */
-  void countVotes_() const;
+  const uint32_t max_levels_per_period_;
 
   std::shared_ptr<std::thread> monitor_votes_ = nullptr;
   std::atomic<bool> monitor_stop_ = true;
@@ -658,6 +671,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   // END TEST CODE
 
   LOG_OBJECTS_DEFINE
+  // TODO: remove this logger + countVotes functionality if we dont need it anymore...
   mutable logger::Logger log_nf_test_{logger::createLogger(taraxa::logger::Verbosity::Info, "PBFT_TEST", node_addr_)};
 };
 
