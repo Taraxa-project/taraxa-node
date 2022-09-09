@@ -705,13 +705,13 @@ jobs:
           command: |
             HELMCHART_VERSION=$(yq .version charts/${HELMCHART}/Chart.yaml | tr -d \")
             if [[ ${CIRCLE_BRANCH} == "develop"   ]]; then
-              helm cm-push -f charts/${HELMCHART}/ --version="${HELMCHART_VERSION}-dev" taraxacharts
+              helm cm-push charts/${HELMCHART}/ --version="${HELMCHART_VERSION}-dev" taraxacharts || true
             fi
             if [[ ${CIRCLE_BRANCH} == "master" ]]; then
-              helm cm-push -f charts/${HELMCHART}/ taraxacharts
+              helm cm-push charts/${HELMCHART}/ taraxacharts || true
             fi
             if [[ ${PR} != "false" ]]; then
-              helm cm-push -f charts/${HELMCHART}/ --version="${HELMCHART_VERSION}-pr${PR}" taraxacharts
+              helm cm-push charts/${HELMCHART}/ --version="${HELMCHART_VERSION}-pr${PR}" taraxacharts || true
             fi
 
       - store_artifacts:
