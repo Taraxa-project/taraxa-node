@@ -258,14 +258,7 @@ void PbftSyncPacketHandler::delayedPbftSync(int counter) {
 }
 
 void PbftSyncPacketHandler::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) {
-  peers_state_->set_peer_malicious(id);
-
-  if (auto host = peers_state_->host_.lock(); host) {
-    LOG(log_nf_) << "Disconnect peer " << id;
-    host->disconnect(id, dev::p2p::UserReason);
-  } else {
-    LOG(log_er_) << "Unable to handleMaliciousSyncPeer, host == nullptr";
-  }
+  handleMaliciousPeer(id);
   restartSyncingPbft(true);
 }
 

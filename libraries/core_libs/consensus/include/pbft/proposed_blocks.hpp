@@ -3,7 +3,6 @@
 #include <shared_mutex>
 #include <map>
 #include <optional>
-#include <pair>
 #include "common/types.hpp"
 
 namespace taraxa {
@@ -25,20 +24,13 @@ class ProposedBlocks {
   std::pair<bool, std::string> pushProposedPbftBlock(const std::shared_ptr<PbftBlock>& proposed_block, const std::shared_ptr<Vote>& propose_vote);
 
   /**
-   * @brief Get a proposed PBFT block based on propose vote
-   * @param propose_vote PBFT propose vote
-   * @return optional<pair<propose ote hash, proposed PBFT block>>
-   */
-  std::optional<std::shared_ptr<PbftBlock>> getProposedPbftBlock(const std::shared_ptr<Vote>& propose_vote) const;
-
-  /**
    * @brief Get a proposed PBFT block and vote based on specified period, round and block hash
    * @param period
    * @param round
    * @param block_hash
-   * @return optional<pair<propose ote hash, proposed PBFT block>>
+   * @return proposed PBFT block
    */
-  std::optional<std::pair<vote_hash_t, std::shared_ptr<PbftBlock>>> getPbftProposeBlockAndVote(uint64_t period, uint64_t round, const blk_hash_t& block_hash) const;
+  std::shared_ptr<PbftBlock> getPbftProposedBlock(uint64_t period, uint64_t round, const blk_hash_t& block_hash) const;
 
   /**
    * @brief Cleanup all proposed PBFT blocks for the finalized period
@@ -47,7 +39,8 @@ class ProposedBlocks {
   void cleanupProposedPbftBlocksByPeriod(uint64_t period);
 
   /**
-   * @brief Cleanup all proposed PBFT blocks for the finalized round
+   * @brief Cleanup all proposed PBFT blocks for the finalized round - 1. We must keep previous round proposed blocks
+   *        for voting purposes
    * @param period
    * @param round
    */

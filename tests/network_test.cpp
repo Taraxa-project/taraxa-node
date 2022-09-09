@@ -164,7 +164,7 @@ TEST_F(NetworkTest, send_pbft_block) {
   auto pbft_block = make_simple_pbft_block(blk_hash_t(1), 2, node_cfgs[0].chain.dag_genesis_block.getHash());
   uint64_t chain_size = 111;
 
-  nw2->getSpecificHandler<network::tarcap::PbftBlockPacketHandler>()->sendPbftBlock(nw1->getNodeId(), pbft_block,
+  nw2->getSpecificHandler<network::tarcap::ProposeBlockAndVotePacketHandler>()->sendProposeBlockAndVote(nw1->getNodeId(), pbft_block,
                                                                                     chain_size);
 
   auto node2_id = nw2->getNodeId();

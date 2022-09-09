@@ -26,7 +26,7 @@ bool ExtVotesPacketHandler::processStandardVote(const std::shared_ptr<Vote> &vot
                                                 const std::shared_ptr<TaraxaPeer> &peer, bool validate_max_round_step) {
   if (vote_mgr_->voteInVerifiedMap(vote)) {
     LOG(log_dg_) << "Vote " << vote->getHash() << " already inserted in verified queue";
-    return true;
+    return false;
   }
 
   if (auto vote_is_valid = validateStandardVote(vote, peer, validate_max_round_step); !vote_is_valid.first) {
@@ -57,7 +57,7 @@ bool ExtVotesPacketHandler::processStandardVote(const std::shared_ptr<Vote> &vot
 bool ExtVotesPacketHandler::processRewardVote(const std::shared_ptr<Vote> &vote) const {
   if (vote_mgr_->isInRewardsVotes(vote->getHash())) {
     LOG(log_dg_) << "Reward vote " << vote->getHash() << " already inserted in reward votes";
-    return true;
+    return false;
   }
 
   if (auto vote_is_valid = validateRewardVote(vote); !vote_is_valid.first) {

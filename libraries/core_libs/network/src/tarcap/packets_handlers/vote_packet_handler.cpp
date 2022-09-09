@@ -33,6 +33,13 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     const auto vote_hash = vote->getHash();
     LOG(log_dg_) << "Received PBFT vote " << vote_hash;
 
+    // Propose votes are handled exclusively in ProposeBlockAndVotePacket
+    if (vote->getType() == PbftVoteTypes::propose_vote_type || vote->getStep() == PbftStates::value_proposal_state) {
+      LOG(log_er_) << "Propose vote received in VotePacket. Set peer " << packet_data.from_node_id_.abridged() << " as malicious";
+      handleMaliciousPeer(packet_data.from_node_id_);
+      return;
+    }
+
     // Synchronization point in case multiple threads are processing the same vote at the same time
     if (!seen_votes_.insert(vote_hash)) {
       LOG(log_dg_) << "Received vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()

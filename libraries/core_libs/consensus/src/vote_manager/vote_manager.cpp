@@ -157,6 +157,7 @@ bool VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
   }
 
   found_voted_value_it->second.first += weight;
+  db_->saveVerifiedVote(vote);
 
   LOG(log_nf_) << "Added verified vote: " << hash;
   LOG(log_dg_) << "Added verified vote: " << *vote;
@@ -407,8 +408,40 @@ void VoteManager::cleanupVotesByPeriod(uint64_t pbft_period) {
   db_->commitWriteBatch(batch);
 }
 
-// TODO: Refactor call to put period before round
-std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t round, uint64_t period) const {
+std::shared_ptr<Vote> VoteManager::getProposalVote(uint64_t period, uint64_t round, const blk_hash_t& voted_block_hash) const {
+  SharedLock lock(verified_votes_access_);
+
+  const auto found_period_it = verified_votes_.find(period);
+  if (found_period_it == verified_votes_.end()) {
+    return nullptr;
+  }
+
+  const auto found_round_it = found_period_it->second.find(round);
+  if (found_round_it == found_period_it->second.end()) {
+    return nullptr;
+  }
+
+  const auto found_proposal_step_it = found_round_it->second.find(PbftStates::value_proposal_state);
+  if (found_proposal_step_it == found_round_it->second.end()) {
+    return nullptr;
+  }
+
+  const auto found_voted_block_it = found_proposal_step_it->second.find(voted_block_hash);
+  if (found_voted_block_it == found_proposal_step_it->second.end()) {
+    return nullptr;
+  }
+
+  if (found_voted_block_it->second.second.empty()) {
+    // This should never happen
+    assert(false);
+    return nullptr;
+  }
+
+  // Return first found propose vote for specified voted block
+  return found_voted_block_it->second.second.begin()->second;
+}
+
+std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t period, uint64_t round) const {
   SharedLock lock(verified_votes_access_);
 
   const auto found_period_it = verified_votes_.find(period);
@@ -421,7 +454,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t round,
     return {};
   }
 
-  const auto found_proposal_step_it = found_round_it->second.find(1);
+  const auto found_proposal_step_it = found_round_it->second.find(PbftStates::value_proposal_state);
   if (found_proposal_step_it == found_round_it->second.end()) {
     return {};
   }

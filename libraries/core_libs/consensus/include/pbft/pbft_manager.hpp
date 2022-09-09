@@ -172,13 +172,14 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   /**
    * @brief Generate PBFT block, push into unverified queue, and broadcast to peers
+   * @param propose_period
    * @param prev_blk_hash previous PBFT block hash
    * @param anchor_hash proposed DAG pivot block hash for finalization
    * @param order_hash the hash of all DAG blocks include in the PBFT block
    * @return PBFT block
    */
-  std::shared_ptr<PbftBlock> generatePbftBlock(const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
-                                               const blk_hash_t &order_hash);
+  std::shared_ptr<PbftBlock> generatePbftBlock(uint64_t propose_period, const blk_hash_t &prev_blk_hash,
+                                               const blk_hash_t &anchor_hash, const blk_hash_t &order_hash);
 
   /**
    * @brief Generate a vote
@@ -445,8 +446,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   /**
    * @brief Place (gossip) vote
    * @param vote
+   * @param log_vote_id vote identifier for log msg
    */
-  void placeVote(std::shared_ptr<Vote> &&vote);
+  bool placeVote(std::shared_ptr<Vote> &&vote, std::string_view log_vote_id);
 
   /**
    * @brief Get PBFT sortition threshold for specific period
@@ -463,13 +465,21 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::shared_ptr<PbftBlock> proposePbftBlock_();
 
   /**
+   * @brief Generate propose vote for provided block and send it
+   *
+   * @param proposed_block
+   * @return true if successful, otherwise false
+   */
+  bool placeProposeVoteAndBlock(const std::shared_ptr<PbftBlock>& proposed_block);
+
+  /**
    * @brief Identify a leader block from all received proposed PBFT blocks for the current round by using minimum
    * Verifiable Random Function (VRF) output. In filter state, don’t need check vote value correction.
    * @param round current pbft round
    * @param period new pbft period (perriod == chain_size + 1)
-   * @return optional(pair<PBFT leader block hash, PBFT leader period>)
+   * @return shared_ptr to leader identified leader block
    */
-  std::optional<std::pair<blk_hash_t, uint64_t>> identifyLeaderBlock_(uint64_t round, uint64_t period);
+  std::shared_ptr<PbftBlock> identifyLeaderBlock_(uint64_t round, uint64_t period);
 
   /**
    * @brief Calculate the lowest hash of a vote by vote weight
@@ -507,11 +517,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   /**
    * @brief If there are enough certify votes, push the vote PBFT block in PBFT chain
-   * @param cert_voted_block_hash PBFT block hash
+   * @param pbft_block PBFT block
    * @param current_round_cert_votes certify votes
    * @return true if push a new PBFT block in chain
    */
-  bool pushCertVotedPbftBlockIntoChain_(blk_hash_t const &cert_voted_block_hash,
+  bool pushCertVotedPbftBlockIntoChain_(const std::shared_ptr<PbftBlock>& pbft_block,
                                         std::vector<std::shared_ptr<Vote>> &&current_round_cert_votes);
 
   /**
@@ -557,13 +567,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @return period data with cert votes for the current period
    */
   std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> processPeriodData();
-
-  /**
-   * @brief Get the unfinalized PBFT block for current period
-   * @param block_hash PBFT block hash
-   * @return PBFT block
-   */
-  std::shared_ptr<PbftBlock> getUnfinalizedBlock_(blk_hash_t const &block_hash);
 
   /**
    * @brief Count how many votes in the current PBFT round and step. This is only for testing purpose

@@ -699,7 +699,7 @@ none
   VotePacket
   GetVotesSyncPacket
   VotesSyncPacket
-  PbftBlockPacket
+  ProposeVoteAndBlockPacket
   DagBlockPacket
   DagSyncPacket
   TransactionPacket

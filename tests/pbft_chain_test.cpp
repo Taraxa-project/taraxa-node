@@ -9,7 +9,7 @@
 #include "common/static_init.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
-#include "network/tarcap/packets_handlers/pbft_block_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/propose_block_and_vote_packet_handler.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
@@ -158,7 +158,7 @@ TEST_F(PbftChainTest, proposal_block_broadcast) {
   bool find_erased_block = pbft_chain1->findUnverifiedPbftBlock(pbft_block->getBlockHash());
   ASSERT_FALSE(find_erased_block);
 
-  nw1->getSpecificHandler<network::tarcap::PbftBlockPacketHandler>()->onNewPbftBlock(pbft_block);
+  nw1->getSpecificHandler<network::tarcap::ProposeVoteAndBlockPacketHandler>()->onNewProposeBlockAndVote(pbft_block);
 
   // Check node2 and node3 receive the PBFT block
   EXPECT_HAPPENS({20s, 200ms}, [&](auto &ctx) {

@@ -9,7 +9,7 @@
 #include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/get_pbft_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/get_votes_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/pbft_block_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/propose_block_and_vote_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/status_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
@@ -203,7 +203,7 @@ void TaraxaCapability::registerPacketHandlers(
                                                              vote_mgr, next_votes_mgr, db, kConf.network, node_addr);
 
   // Standard packets with mid processing priority
-  packets_handlers_->registerHandler<PbftBlockPacketHandler>(peers_state_, packets_stats, pbft_chain, pbft_mgr,
+  packets_handlers_->registerHandler<ProposeBlockAndVotePacketHandler>(peers_state_, packets_stats, pbft_chain, pbft_mgr,
                                                              vote_mgr, node_addr);
 
   packets_handlers_->registerHandler<DagBlockPacketHandler>(peers_state_, packets_stats, pbft_syncing_state_,

@@ -31,16 +31,7 @@ std::pair<bool, std::string> ProposedBlocks::pushProposedPbftBlock(const std::sh
   return {true, ""};
 }
 
-std::optional<std::shared_ptr<PbftBlock>> ProposedBlocks::getProposedPbftBlock(const std::shared_ptr<Vote>& propose_vote) const {
-  const auto& propose_vote_and_block = getPbftProposeBlockAndVote(propose_vote->getPeriod(), propose_vote->getRound(), propose_vote->getBlockHash());
-  if (propose_vote_and_block.has_value()) {
-    return {propose_vote_and_block->second};
-  }
-
-  return {};
-}
-
-std::optional<std::pair<vote_hash_t, std::shared_ptr<PbftBlock>>> ProposedBlocks::getPbftProposeBlockAndVote(uint64_t period, uint64_t round, const blk_hash_t& block_hash) const {
+std::shared_ptr<PbftBlock> ProposedBlocks::getPbftProposedBlock(uint64_t period, uint64_t round, const blk_hash_t& block_hash) const {
   std::shared_lock lock(proposed_blocks_mutex_);
 
   auto found_period_it = proposed_blocks_.find(period);
@@ -58,7 +49,7 @@ std::optional<std::pair<vote_hash_t, std::shared_ptr<PbftBlock>>> ProposedBlocks
     return {};
   }
 
-  return {found_block_it->second};
+  return found_block_it->second.second;
 }
 
 void ProposedBlocks::cleanupProposedPbftBlocksByPeriod(uint64_t period) {
@@ -71,6 +62,11 @@ void ProposedBlocks::cleanupProposedPbftBlocksByPeriod(uint64_t period) {
 }
 
 void ProposedBlocks::cleanupProposedPbftBlocksByRound(uint64_t period, uint64_t round) {
+  // We must keep previous round proposed blocks for voting purposes
+  if (round < 3) {
+    return;
+  }
+
   std::unique_lock lock(proposed_blocks_mutex_);
   auto found_period_it = proposed_blocks_.find(period);
 
@@ -79,7 +75,7 @@ void ProposedBlocks::cleanupProposedPbftBlocksByRound(uint64_t period, uint64_t 
   }
 
   for (auto round_it = found_period_it->second.begin();
-       round_it != found_period_it->second.end() && round_it->first < round; round_it++) {
+       round_it != found_period_it->second.end() && round_it->first < round - 1; round_it++) {
     round_it = found_period_it->second.erase(round_it);
   }
 }

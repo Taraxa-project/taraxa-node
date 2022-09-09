@@ -59,7 +59,7 @@ class ExtVotesPacketHandler : public PacketHandler {
   void sendPbftVotes(const dev::p2p::NodeID& peer_id, std::vector<std::shared_ptr<Vote>>&& votes,
                      bool is_next_votes = false);
 
- private:
+ protected:
   /**
    * @brief Validates standard vote
    *
@@ -88,7 +88,6 @@ class ExtVotesPacketHandler : public PacketHandler {
    */
   std::pair<bool, std::string> validateNextSyncVote(const std::shared_ptr<Vote>& vote) const;
 
- protected:
   /**
    * @brief Common validation for all types of votes
    *

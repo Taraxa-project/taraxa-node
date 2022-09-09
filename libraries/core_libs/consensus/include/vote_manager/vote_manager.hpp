@@ -195,12 +195,21 @@ class VoteManager {
   void cleanupVotesByPeriod(uint64_t pbft_period);
 
   /**
+   * @brief Get single propose vote for specified voted block
+   * @param period
+   * @param round
+   * @param voted_block_hash
+   * @return single propose vote for specified voted block
+   */
+  std::shared_ptr<Vote> getProposalVote(uint64_t period, uint64_t round, const blk_hash_t& voted_block_hash) const;
+
+  /**
    * @brief Get all verified votes in proposal vote type for the current PBFT round
-   * @param round current PBFT round
    * @param period new PBFT period (period == chain_size + 1)
+   * @param round current PBFT round
    * @return all verified votes in proposal vote type for the current PBFT round
    */
-  std::vector<std::shared_ptr<Vote>> getProposalVotes(uint64_t round, uint64_t period) const;
+  std::vector<std::shared_ptr<Vote>> getProposalVotes(uint64_t period, uint64_t round) const;
 
   /**
    * @brief Get a bunch of votes that vote on the same voting value in the specific PBFT round and step, the total votes
