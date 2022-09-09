@@ -291,6 +291,13 @@ class VoteManager {
    */
   void sendRewardVotes(const blk_hash_t& pbft_block_hash);
 
+  /**
+   * @brief Get current reward votes pbft block period
+   *
+   * @return period
+   */
+  uint64_t getRewardVotesPbftBlockPeriod();
+
  private:
   /**
    * @brief Retrieve all verified votes from DB to the verified votes map. And broadcast all next voting type votes to

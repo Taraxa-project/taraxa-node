@@ -546,6 +546,11 @@ std::pair<blk_hash_t, uint64_t> VoteManager::getCurrentRewardsVotesBlock() const
   return reward_votes_pbft_block_;
 }
 
+uint64_t VoteManager::getRewardVotesPbftBlockPeriod() {
+  std::shared_lock lock(reward_votes_mutex_);
+  return reward_votes_pbft_block_.second;
+}
+
 bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote) {
   std::unique_lock lock(reward_votes_mutex_);
   if (vote->getType() != cert_vote_type) {
