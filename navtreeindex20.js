@@ -1,5 +1,7 @@
 var NAVTREEINDEX20 =
 {
+"state__api__config_8cpp.html#a7c00c63852de970de6c87fcc59404454":[12,0,1,3,1,6,17],
+"state__api__config_8cpp.html#a8120db572d6a00ddd5c494e256bc814f":[12,0,1,3,1,6,19],
 "state__api__config_8cpp.html#a8430d4247900167bc1ac842c70484cc3":[12,0,1,3,1,6,2],
 "state__api__config_8cpp.html#a84cc6631d476124c36cc92189e325e6c":[12,0,1,3,1,6,6],
 "state__api__config_8cpp.html#a88679bd672ad12f8a2517728f1c1109f":[12,0,1,3,1,6,5],
@@ -247,7 +249,5 @@ var NAVTREEINDEX20 =
 "structdev_1_1p2p_1_1_host.html#a9a37597abfbd9f52329f1ffe1d8508e6":[11,0,1,1,9,48],
 "structdev_1_1p2p_1_1_host.html#aa3d58b92362bb3b3fdf99fee37f0003c":[11,0,1,1,9,9],
 "structdev_1_1p2p_1_1_host.html#aa6b4e7837bfc00372faf05eb794f07dd":[11,0,1,1,9,49],
-"structdev_1_1p2p_1_1_host.html#aa933e4971277ca0f189da7a34a4e6e04":[11,0,1,1,9,47],
-"structdev_1_1p2p_1_1_host.html#aaaf8a3794157f1b39beafb26b6149fd1":[11,0,1,1,9,42],
-"structdev_1_1p2p_1_1_host.html#aacc8759b9c06dd3ef87c9aa52d784380":[11,0,1,1,9,50]
+"structdev_1_1p2p_1_1_host.html#aa933e4971277ca0f189da7a34a4e6e04":[11,0,1,1,9,47]
 };

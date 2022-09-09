@@ -155,7 +155,7 @@ Collaboration diagram for taraxa::PbftChain:</div>
 <div class="dyncontent">
 <div class="center"><img src="classtaraxa_1_1_pbft_chain__coll__graph.png" border="0" usemap="#taraxa_1_1_pbft_chain_coll__map" alt="Collaboration graph"/></div>
 <map name="taraxa_1_1_pbft_chain_coll__map" id="taraxa_1_1_pbft_chain_coll__map">
-<area shape="rect" title="PbftChain class is a single linked list that contains finalized PBFT blocks." alt="" coords="18,124,153,151"/>
+<area shape="rect" title="PbftChain class is a single linked list that contains finalized PBFT blocks." alt="" coords="18,153,153,180"/>
 <area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,165,32"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
@@ -175,6 +175,9 @@ Collaboration diagram for taraxa::PbftChain:</div>
 <tr class="memitem:ae536513a88a0a306ef40e9af6a85cb76"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ae536513a88a0a306ef40e9af6a85cb76">getLastPbftBlockHash</a> () const</td></tr>
 <tr class="memdesc:ae536513a88a0a306ef40e9af6a85cb76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get last PBFT block hash.  <a href="group___p_b_f_t.html#ae536513a88a0a306ef40e9af6a85cb76">More...</a><br /></td></tr>
 <tr class="separator:ae536513a88a0a306ef40e9af6a85cb76"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af5a9bba08171e719cef0161abb9eefd1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#af5a9bba08171e719cef0161abb9eefd1">getLastNonNullPbftBlockAnchor</a> () const</td></tr>
+<tr class="memdesc:af5a9bba08171e719cef0161abb9eefd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get last non null PBFT block anchor.  <a href="group___p_b_f_t.html#af5a9bba08171e719cef0161abb9eefd1">More...</a><br /></td></tr>
+<tr class="separator:af5a9bba08171e719cef0161abb9eefd1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acd48a78dbe8d552be5f35b0ba4795ed9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#acd48a78dbe8d552be5f35b0ba4795ed9">getPbftBlockInChain</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;pbft_block_hash)</td></tr>
 <tr class="memdesc:acd48a78dbe8d552be5f35b0ba4795ed9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a PBFT block in chain.  <a href="group___p_b_f_t.html#acd48a78dbe8d552be5f35b0ba4795ed9">More...</a><br /></td></tr>
 <tr class="separator:acd48a78dbe8d552be5f35b0ba4795ed9"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -199,9 +202,9 @@ Collaboration diagram for taraxa::PbftChain:</div>
 <tr class="memitem:aaedba5e66602270968dcabc5d38b7525"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aaedba5e66602270968dcabc5d38b7525">pushUnverifiedPbftBlock</a> (std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; const &amp;pbft_block)</td></tr>
 <tr class="memdesc:aaedba5e66602270968dcabc5d38b7525"><td class="mdescLeft">&#160;</td><td class="mdescRight">Push unfinalized PBFT block in PBFT unverified queue.  <a href="group___p_b_f_t.html#aaedba5e66602270968dcabc5d38b7525">More...</a><br /></td></tr>
 <tr class="separator:aaedba5e66602270968dcabc5d38b7525"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9a07a26035e779cacd8a20ddae75c4c9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a9a07a26035e779cacd8a20ddae75c4c9">updatePbftChain</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;pbft_block_hash, bool null_anchor=false)</td></tr>
-<tr class="memdesc:a9a07a26035e779cacd8a20ddae75c4c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update PBFT chain size, non empty chain size, and last PBFT block hash.  <a href="group___p_b_f_t.html#a9a07a26035e779cacd8a20ddae75c4c9">More...</a><br /></td></tr>
-<tr class="separator:a9a07a26035e779cacd8a20ddae75c4c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a81c9c909dc98960eae42e6b6d3126013"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a81c9c909dc98960eae42e6b6d3126013">updatePbftChain</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;pbft_block_hash, <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;anchor_hash)</td></tr>
+<tr class="memdesc:a81c9c909dc98960eae42e6b6d3126013"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update PBFT chain size, non empty chain size, and last PBFT block hash.  <a href="group___p_b_f_t.html#a81c9c909dc98960eae42e6b6d3126013">More...</a><br /></td></tr>
+<tr class="separator:a81c9c909dc98960eae42e6b6d3126013"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9fe36ea0c64687ca1af6f3b4cd52180e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a9fe36ea0c64687ca1af6f3b4cd52180e">checkPbftBlockValidation</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">taraxa::PbftBlock</a> const &amp;pbft_block) const</td></tr>
 <tr class="memdesc:a9fe36ea0c64687ca1af6f3b4cd52180e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verify a PBFT block.  <a href="group___p_b_f_t.html#a9fe36ea0c64687ca1af6f3b4cd52180e">More...</a><br /></td></tr>
 <tr class="separator:a9fe36ea0c64687ca1af6f3b4cd52180e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -227,6 +230,8 @@ Collaboration diagram for taraxa::PbftChain:</div>
 <tr class="separator:a0cd5b97edcb0b000163c24ae1e8b94bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a05fc8279766fa92c2acef6397068635b"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a05fc8279766fa92c2acef6397068635b">last_pbft_block_hash_</a></td></tr>
 <tr class="separator:a05fc8279766fa92c2acef6397068635b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b78847ba76f5d5060265adf8798a91c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a8b78847ba76f5d5060265adf8798a91c">last_non_null_pbft_dag_anchor_hash_</a></td></tr>
+<tr class="separator:a8b78847ba76f5d5060265adf8798a91c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a54320bf3e4e774ee45eda5e56aa9440c"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a54320bf3e4e774ee45eda5e56aa9440c">db_</a> = nullptr</td></tr>
 <tr class="separator:a54320bf3e4e774ee45eda5e56aa9440c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a38927d0586f4f52a3ead6506318e013b"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a38927d0586f4f52a3ead6506318e013b">unverified_blocks_map_</a></td></tr>
@@ -546,6 +551,26 @@ Collaboration diagram for taraxa::PbftChain:</div>
 
 </div>
 </div>
+<a id="af5a9bba08171e719cef0161abb9eefd1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af5a9bba08171e719cef0161abb9eefd1">&#9670;&nbsp;</a></span>getLastNonNullPbftBlockAnchor()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> taraxa::PbftChain::getLastNonNullPbftBlockAnchor </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get last non null PBFT block anchor. </p>
+<dl class="section return"><dt>Returns</dt><dd>anchor hash </dd></dl>
+
+</div>
+</div>
 <a id="ae536513a88a0a306ef40e9af6a85cb76"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae536513a88a0a306ef40e9af6a85cb76">&#9670;&nbsp;</a></span>getLastPbftBlockHash()</h2>
 
@@ -687,8 +712,8 @@ Collaboration diagram for taraxa::PbftChain:</div>
 
 </div>
 </div>
-<a id="a9a07a26035e779cacd8a20ddae75c4c9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9a07a26035e779cacd8a20ddae75c4c9">&#9670;&nbsp;</a></span>updatePbftChain()</h2>
+<a id="a81c9c909dc98960eae42e6b6d3126013"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a81c9c909dc98960eae42e6b6d3126013">&#9670;&nbsp;</a></span>updatePbftChain()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -702,8 +727,8 @@ Collaboration diagram for taraxa::PbftChain:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">bool&#160;</td>
-          <td class="paramname"><em>null_anchor</em> = <code>false</code>&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;&#160;</td>
+          <td class="paramname"><em>anchor_hash</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -717,7 +742,7 @@ Collaboration diagram for taraxa::PbftChain:</div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">pbft_block_hash</td><td>last PBFT block hash </td></tr>
-    <tr><td class="paramname">null_anchor</td><td>if the PBFT block include an empty DAG anchor </td></tr>
+    <tr><td class="paramname">anchor</td><td>DAG anchor hash </td></tr>
   </table>
   </dd>
 </dl>
@@ -780,6 +805,28 @@ Collaboration diagram for taraxa::PbftChain:</div>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> taraxa::PbftChain::head_hash_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8b78847ba76f5d5060265adf8798a91c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b78847ba76f5d5060265adf8798a91c">&#9670;&nbsp;</a></span>last_non_null_pbft_dag_anchor_hash_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> taraxa::PbftChain::last_non_null_pbft_dag_anchor_hash_</td>
         </tr>
       </table>
   </td>
