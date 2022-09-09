@@ -53,6 +53,12 @@ class PbftChain {
   blk_hash_t getLastPbftBlockHash() const;
 
   /**
+   * @brief Get last non null PBFT block anchor
+   * @return anchor hash
+   */
+  blk_hash_t getLastNonNullPbftBlockAnchor() const;
+
+  /**
    * @brief Get a PBFT block in chain
    * @param pbft_block_hash PBFT block hash
    * @return PBFT block
@@ -110,9 +116,9 @@ class PbftChain {
   /**
    * @brief Update PBFT chain size, non empty chain size, and last PBFT block hash
    * @param pbft_block_hash last PBFT block hash
-   * @param null_anchor if the PBFT block include an empty DAG anchor
+   * @param anchor DAG anchor hash
    */
-  void updatePbftChain(blk_hash_t const& pbft_block_hash, bool null_anchor = false);
+  void updatePbftChain(blk_hash_t const& pbft_block_hash, blk_hash_t const& anchor_hash);
 
   /**
    * @brief Verify a PBFT block
@@ -134,7 +140,8 @@ class PbftChain {
   uint64_t size_;            // PBFT chain size, includes both executed and unexecuted PBFT blocks
   uint64_t non_empty_size_;  // PBFT chain size excluding blocks with null anchor, includes both executed and unexecuted
                              // PBFT blocks
-  blk_hash_t last_pbft_block_hash_;  // last PBFT block hash in PBFT chain, may not execute yet
+  blk_hash_t last_pbft_block_hash_;                // last PBFT block hash in PBFT chain, may not execute yet
+  blk_hash_t last_non_null_pbft_dag_anchor_hash_;  // last dag block anchor which is not null
 
   std::shared_ptr<DbStorage> db_ = nullptr;
 

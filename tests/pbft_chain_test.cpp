@@ -69,7 +69,7 @@ TEST_F(PbftChainTest, pbft_db_test) {
   db->savePeriodData(period_data, batch);
 
   // Update PBFT chain
-  pbft_chain->updatePbftChain(pbft_block.getBlockHash());
+  pbft_chain->updatePbftChain(pbft_block.getBlockHash(), pbft_block.getPivotDagBlockHash());
   // Update PBFT chain head block
   std::string pbft_chain_head_str = pbft_chain->getJsonStr();
   db->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
@@ -148,7 +148,7 @@ TEST_F(PbftChainTest, proposal_block_broadcast) {
   db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
   db1->commitWriteBatch(batch);
   // Update pbft chain
-  pbft_chain1->updatePbftChain(pbft_block->getBlockHash(), true);
+  pbft_chain1->updatePbftChain(pbft_block->getBlockHash(), blk_hash_t(0));
 
   EXPECT_EQ(pbft_chain1->getPbftChainSize(), node1_pbft_chain_size + 1);
   EXPECT_EQ(pbft_chain1->getPbftChainSizeExcludingEmptyPbftBlocks(), 0);
