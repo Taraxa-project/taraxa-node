@@ -541,7 +541,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   db1->savePeriodData(period_data1, batch);
   // Update period_pbft_block in DB
   // Update pbft chain
-  pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
+  pbft_chain1->updatePbftChain(pbft_block1.getBlockHash(), pbft_block1.getPivotDagBlockHash());
   // Update PBFT chain head block
   blk_hash_t pbft_chain_head_hash = pbft_chain1->getHeadHash();
   std::string pbft_chain_head_str = pbft_chain1->getJsonStr();
@@ -600,7 +600,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   db1->savePeriodData(period_data2, batch);
 
   // Update pbft chain
-  pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
+  pbft_chain1->updatePbftChain(pbft_block2.getBlockHash(), pbft_block2.getPivotDagBlockHash());
   // Update PBFT chain head block
   pbft_chain_head_hash = pbft_chain1->getHeadHash();
   pbft_chain_head_str = pbft_chain1->getJsonStr();
@@ -704,7 +704,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   db1->savePeriodData(period_data1, batch);
   // Update pbft chain
-  pbft_chain1->updatePbftChain(pbft_block1.getBlockHash());
+  pbft_chain1->updatePbftChain(pbft_block1.getBlockHash(), pbft_block1.getPivotDagBlockHash());
   // Update PBFT chain head block
   blk_hash_t pbft_chain_head_hash = pbft_chain1->getHeadHash();
   std::string pbft_chain_head_str = pbft_chain1->getJsonStr();
@@ -750,7 +750,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   db1->savePeriodData(period_data2, batch);
   db1->addLastBlockCertVotesToBatch(votes_for_pbft_blk1, {}, batch);
   // Update pbft chain
-  pbft_chain1->updatePbftChain(pbft_block2.getBlockHash());
+  pbft_chain1->updatePbftChain(pbft_block2.getBlockHash(), pbft_block2.getPivotDagBlockHash());
   // Update PBFT chain head block
   pbft_chain_head_hash = pbft_chain1->getHeadHash();
   pbft_chain_head_str = pbft_chain1->getJsonStr();

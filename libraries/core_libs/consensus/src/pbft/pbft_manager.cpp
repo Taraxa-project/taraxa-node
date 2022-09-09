@@ -1303,32 +1303,9 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
   }
 
   LOG(log_dg_) << "Into propose PBFT block";
-  blk_hash_t last_period_dag_anchor_block_hash;
   auto last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
-  if (last_pbft_block_hash) {
-    auto prev_block_hash = last_pbft_block_hash;
-    auto prev_pbft_block = pbft_chain_->getPbftBlockInChain(prev_block_hash);
-
-    if (prev_pbft_block.getPeriod() != propose_period - 1) [[unlikely]] {
-      LOG(log_er_) << "Last pbft block " << prev_block_hash.abridged() << " period " << prev_pbft_block.getPeriod()
-                   << " differs from chain size " << propose_period << ". Possible reason - race condition";
-      return nullptr;
-    }
-
-    last_period_dag_anchor_block_hash = prev_pbft_block.getPivotDagBlockHash();
-    while (!last_period_dag_anchor_block_hash) {
-      // The anchor is NULL BLOCK HASH
-      prev_block_hash = prev_pbft_block.getPrevBlockHash();
-      if (!prev_block_hash) {
-        // The genesis PBFT block head
-        last_period_dag_anchor_block_hash = dag_genesis_block_hash_;
-        break;
-      }
-      prev_pbft_block = pbft_chain_->getPbftBlockInChain(prev_block_hash);
-      last_period_dag_anchor_block_hash = prev_pbft_block.getPivotDagBlockHash();
-    }
-  } else {
-    // First PBFT block
+  auto last_period_dag_anchor_block_hash = pbft_chain_->getLastNonNullPbftBlockAnchor();
+  if (last_period_dag_anchor_block_hash == NULL_BLOCK_HASH) {
     last_period_dag_anchor_block_hash = dag_genesis_block_hash_;
   }
 
@@ -1786,7 +1763,7 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
     trx_mgr_->updateFinalizedTransactionsStatus(period_data);
 
     // update PBFT chain size
-    pbft_chain_->updatePbftChain(pbft_block_hash, null_anchor);
+    pbft_chain_->updatePbftChain(pbft_block_hash, anchor_hash);
   }
 
   // anchor_dag_block_order_cache_ is valid in one period, clear when period changes
