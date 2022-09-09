@@ -851,6 +851,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a5d94b5f604131c9b986840e5a16d433e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a5d94b5f604131c9b986840e5a16d433e">sendRewardVotes</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;pbft_block_hash)</td></tr>
 <tr class="memdesc:a5d94b5f604131c9b986840e5a16d433e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send out all reward votes to peers.  <a href="group___vote.html#a5d94b5f604131c9b986840e5a16d433e">More...</a><br /></td></tr>
 <tr class="separator:a5d94b5f604131c9b986840e5a16d433e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a397053232a3751a07f2888fad97b0d50"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a397053232a3751a07f2888fad97b0d50">getRewardVotesPbftBlockPeriod</a> ()</td></tr>
+<tr class="memdesc:a397053232a3751a07f2888fad97b0d50"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get current reward votes pbft block period.  <a href="group___vote.html#a397053232a3751a07f2888fad97b0d50">More...</a><br /></td></tr>
+<tr class="separator:a397053232a3751a07f2888fad97b0d50"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Types</h3></td></tr>
 <tr class="memitem:a007f95fc9afcf66409e13455a77a6508"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a007f95fc9afcf66409e13455a77a6508">UniqueLock</a> = boost::unique_lock&lt; boost::shared_mutex &gt;</td></tr>
 <tr class="separator:a007f95fc9afcf66409e13455a77a6508"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1356,6 +1359,26 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>reward votes, if any of the votes is missing an empty array is returned </dd></dl>
+
+</div>
+</div>
+<a id="a397053232a3751a07f2888fad97b0d50"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a397053232a3751a07f2888fad97b0d50">&#9670;&nbsp;</a></span>getRewardVotesPbftBlockPeriod()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t taraxa::VoteManager::getRewardVotesPbftBlockPeriod </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get current reward votes pbft block period. </p>
+<dl class="section return"><dt>Returns</dt><dd>period </dd></dl>
 
 </div>
 </div>

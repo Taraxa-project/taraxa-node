@@ -42,6 +42,7 @@ var group___vote =
       [ "getProposalVotes", "group___vote.html#a8f632f02b4061972c741b87ba4d49756", null ],
       [ "getProposeRewardVotes", "group___vote.html#a2d8c8ac3185a149796a99dff63b29c60", null ],
       [ "getRewardVotesByHashes", "group___vote.html#ad9635a251ff42dd65fe79bd8e03d928f", null ],
+      [ "getRewardVotesPbftBlockPeriod", "group___vote.html#a397053232a3751a07f2888fad97b0d50", null ],
       [ "getVerifiedVotes", "group___vote.html#af8fbe3c4b695c519a9dc239b05823b89", null ],
       [ "getVerifiedVotesSize", "group___vote.html#add0a1c70fc728cdb3ef074330a129060", null ],
       [ "getVotesBundle", "group___vote.html#a281cac5bf2c222e57660159ec2a1fa3d", null ],

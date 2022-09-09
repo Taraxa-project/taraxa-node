@@ -1,5 +1,6 @@
 var NAVTREEINDEX23 =
 {
+"structtaraxa_1_1logger_1_1_config_1_1_output_config.html#a966a510d3ed19503d6659f4eb951b6d3":[11,0,4,2,0,0,3],
 "structtaraxa_1_1logger_1_1_config_1_1_output_config.html#ac1e990580bc7708a9ea99e8f52cf686f":[11,0,4,2,0,0,1],
 "structtaraxa_1_1logger_1_1_config_1_1_output_config.html#ac3467085bcc738c351a4bf9124bbfc9d":[11,0,4,2,0,0,2],
 "structtaraxa_1_1logger_1_1_config_1_1_output_config.html#ac49a5af2f110ae39825286f42b3627d1":[11,0,4,2,0,0,5],
@@ -248,6 +249,5 @@ var NAVTREEINDEX23 =
 "uint__comparator_8hpp.html#aced41bb0204474f3fd03a0aac32a126c":[12,0,1,4,3,0,0,2,1],
 "uint__comparator_8hpp_source.html":[12,0,1,4,3,0,0,2],
 "util_8cpp.html":[12,0,1,2,1,3],
-"util_8cpp.html#a189bc62cac4f668ce50dd1ead597ca19":[12,0,1,2,1,3,4],
-"util_8cpp.html#a2bfde68181da38aa0394ff705af9996c":[12,0,1,2,1,3,5]
+"util_8cpp.html#a189bc62cac4f668ce50dd1ead597ca19":[12,0,1,2,1,3,4]
 };
