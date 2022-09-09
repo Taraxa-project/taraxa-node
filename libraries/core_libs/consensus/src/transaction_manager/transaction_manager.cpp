@@ -20,7 +20,7 @@ auto trxComp = [](std::shared_ptr<Transaction> const &t1, std::shared_ptr<Transa
 
 TransactionManager::TransactionManager(FullNodeConfig const &conf, addr_t node_addr, std::shared_ptr<DbStorage> db,
                                        VerifyMode mode)
-    : mode_(mode), conf_(conf), seen_txs_(200000 /*capacity*/, 2000 /*delete step*/), db_(db) {
+    : mode_(mode), conf_(conf), seen_txs_(300000 /*capacity*/, 2000 /*delete step*/), db_(db) {
   LOG_OBJECTS_CREATE("TRXMGR");
   trx_count_ = db_->getStatusField(taraxa::StatusDbField::TrxCount);
 }
