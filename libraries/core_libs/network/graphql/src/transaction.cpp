@@ -52,18 +52,28 @@ std::shared_ptr<object::Block> Transaction::getBlock() const noexcept {
       std::make_shared<Block>(final_chain_, trx_manager_, final_chain_->block_header(location->blk_n)));
 }
 
-std::optional<response::Value> Transaction::getStatus() const noexcept { return std::nullopt; }
+std::optional<response::Value> Transaction::getStatus() const noexcept {
+  if (!receipt_) {
+    receipt_ = final_chain_->transaction_receipt(transaction_->getHash());
+    if (!receipt_) return std::nullopt;
+  }
+  return response::Value(dev::toJS(receipt_->status_code));
+}
 
 std::optional<response::Value> Transaction::getGasUsed() const noexcept {
-  const auto recipe = final_chain_->transaction_receipt(transaction_->getHash());
-  if (!recipe) return std::nullopt;
-  return response::Value(dev::toJS(recipe->gas_used));
+  if (!receipt_) {
+    receipt_ = final_chain_->transaction_receipt(transaction_->getHash());
+    if (!receipt_) return std::nullopt;
+  }
+  return response::Value(dev::toJS(receipt_->gas_used));
 }
 
 std::optional<response::Value> Transaction::getCumulativeGasUsed() const noexcept {
-  const auto recipe = final_chain_->transaction_receipt(transaction_->getHash());
-  if (!recipe) return std::nullopt;
-  return response::Value(dev::toJS(recipe->cumulative_gas_used));
+  if (!receipt_) {
+    receipt_ = final_chain_->transaction_receipt(transaction_->getHash());
+    if (!receipt_) return std::nullopt;
+  }
+  return response::Value(dev::toJS(receipt_->cumulative_gas_used));
 }
 
 std::shared_ptr<object::Account> Transaction::getCreatedContract(std::optional<response::Value>&&) const noexcept {
@@ -72,9 +82,11 @@ std::shared_ptr<object::Account> Transaction::getCreatedContract(std::optional<r
 
 std::optional<std::vector<std::shared_ptr<object::Log>>> Transaction::getLogs() const noexcept {
   std::vector<std::shared_ptr<object::Log>> logs;
-  const auto recipe = final_chain_->transaction_receipt(transaction_->getHash());
-  if (!recipe) return std::nullopt;
-  for (auto& log : recipe->logs)
+  if (!receipt_) {
+    receipt_ = final_chain_->transaction_receipt(transaction_->getHash());
+    if (!receipt_) return std::nullopt;
+  }
+  for (auto& log : receipt_->logs)
     logs.push_back(std::make_shared<object::Log>(std::make_shared<Log>(final_chain_, trx_manager_, std::move(log))));
   return logs;
 }

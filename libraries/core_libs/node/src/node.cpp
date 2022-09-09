@@ -229,8 +229,8 @@ void FullNode::start() {
       graphql_http_ = std::make_shared<net::HttpServer>(
           graphql_thread_pool_->unsafe_get_io_context(),
           boost::asio::ip::tcp::endpoint{conf_.graphql->address, *conf_.graphql->http_port}, getAddress(),
-          std::make_shared<net::GraphQlHttpProcessor>(final_chain_, dag_mgr_, pbft_mgr_, trx_mgr_, db_,
-                                                      conf_.chain_id));
+          std::make_shared<net::GraphQlHttpProcessor>(final_chain_, dag_mgr_, pbft_mgr_, trx_mgr_, db_, gas_pricer_,
+                                                      as_weak(network_), conf_.chain_id));
       graphql_http_->start();
     }
   }

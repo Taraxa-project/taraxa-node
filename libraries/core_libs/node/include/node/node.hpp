@@ -116,6 +116,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto const &getFinalChain() const { return final_chain_; }
   // used only in tests
   auto &getBlockProposer() { return blk_proposer_; }
+  auto const &getGasPricer() const { return gas_pricer_; }
 
   auto const &getAddress() const { return kp_.address(); }
   auto const &getPublicKey() const { return kp_.pub(); }

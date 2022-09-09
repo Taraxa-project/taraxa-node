@@ -39,6 +39,8 @@ class Transaction {
   std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain_;
   std::shared_ptr<::taraxa::TransactionManager> trx_manager_;
   std::shared_ptr<::taraxa::Transaction> transaction_;
+  // Caching for performance
+  mutable std::optional<::taraxa::final_chain::TransactionReceipt> receipt_;
 };
 
 }  // namespace graphql::taraxa
