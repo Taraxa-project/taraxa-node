@@ -605,6 +605,11 @@ jobs:
             docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${START_TIME}
             docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
             docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:latest
+
+            if [[ ${CIRCLE_TAG} != "" ]];then
+              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${CIRCLE_TAG}
+            fi
+            
             if [[ ${PR} != "false" ]];then
                docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
             fi
@@ -629,6 +634,9 @@ jobs:
                docker push ${GCP_IMAGE}:${START_TIME}
                docker push ${GCP_IMAGE}:${CIRCLE_SHA1}
                docker push ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+            fi
+            if [[ ${CIRCLE_TAG} != "" ]];then
+              docker push taraxa/${IMAGE}:${CIRCLE_TAG}
             fi
             if [[ ${CIRCLE_BRANCH} == "testnet" ]];then
                echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
