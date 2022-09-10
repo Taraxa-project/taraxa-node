@@ -636,6 +636,7 @@ jobs:
                docker push ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
             fi
             if [[ ${CIRCLE_TAG} != "" ]];then
+              echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
               docker push taraxa/${IMAGE}:${CIRCLE_TAG}
             fi
             if [[ ${CIRCLE_BRANCH} == "testnet" ]];then
