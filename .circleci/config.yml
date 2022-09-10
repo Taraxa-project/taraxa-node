@@ -957,6 +957,9 @@ workflows:
         - not: << pipeline.parameters.cleanup_prnet >>
     jobs:
       - build-and-push-docker-image:
+          filters:
+            tags:
+              only: /^v?\d+\.\d+\.\d+(?:-.*)?$/
           context:
             - TARAXA
             - GCP
