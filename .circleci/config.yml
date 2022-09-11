@@ -457,6 +457,7 @@ jobs:
               export CIRCLE_BUILD_NUM=300
             fi
             echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >>$BASH_ENV
+            echo "export VERSION=$(git rev-parse --short HEAD)" >> $BASH_ENV
             echo "export START_TIME=$(date +%Y%m%d-%Hh%Mm%Ss)" >>$BASH_ENV
             echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
             echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >>$BASH_ENV
@@ -488,7 +489,7 @@ jobs:
       - run:
           name: Build docker builder image
           command: |
-            docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target builder .
+            docker build -t ${IMAGE}:${VERSION} --target builder .
 
       - run:
           name: Checkout Submodules
@@ -499,20 +500,20 @@ jobs:
       - run:
           name: Build ctest image
           command: |
-            docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target build .
+            docker build -t ${IMAGE}-ctest:${VERSION} --target build .
 
       - run:
           name: Build taraxad image
           command: |
-            docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
+            docker build -t ${IMAGE}:${VERSION} .
 
       - run:
          name: Run Ctest
          command: |
            docker run  --ulimit nofile=4096:4096 \
                        --rm -v $PWD/tmp_docker:/tmp \
-                       --name ${IMAGE}-ctest-${DOCKER_BRANCH_TAG} \
-                       ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
+                       --name ${IMAGE}-ctest-${VERSION} \
+                       ${IMAGE}-ctest:${VERSION}\
                         sh -c \
                        'cd cmake-docker-build-debug/bin \
                         && ctest --output-on-failure'
@@ -528,18 +529,18 @@ jobs:
       - run:
           name: Run SmokeTest
           command: |
-            if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoketest-${DOCKER_BRANCH_TAG:0:52})" ]; then
+            if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoketest-${VERSION})" ]; then
               docker network rm \
-              smoketest-${DOCKER_BRANCH_TAG:0:52} >/dev/null;
+              smoketest-${VERSION} >/dev/null;
             fi
             
             docker network create --driver=bridge \
-              smoketest-${DOCKER_BRANCH_TAG:0:52}
+              smoketest-${VERSION}
             
             docker run -d\
-              --name smoketest-${DOCKER_BRANCH_TAG:0:52} \
-              --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
-              ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
+              --name smoketest-${VERSION} \
+              --net smoketest-${VERSION} \
+              ${IMAGE}:${VERSION} \
               single
             
             mkdir -p  $PWD/test_build-d/
@@ -547,14 +548,14 @@ jobs:
             sleep 30
 
             echo "--- Logs from container ---"
-            docker logs smoketest-${DOCKER_BRANCH_TAG:0:52}
+            docker logs smoketest-${VERSION}
             echo "--- Logs from container ---"
             
             http_code=$(docker run --rm  -v $PWD/test_build-d:/data \
-              --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
+              --net smoketest-${VERSION} \
               byrnedo/alpine-curl \
               -sS --fail -w '%{http_code}' -o /data/http.out \
-              --url smoketest-${DOCKER_BRANCH_TAG:0:52}:7777 \
+              --url smoketest-${VERSION}:7777 \
               -d '{
                       "jsonrpc": "2.0",
                       "id":"0",
@@ -580,38 +581,43 @@ jobs:
           name: Cleanup smoke tests
           when: always
           command: |
-            docker kill smoketest-${DOCKER_BRANCH_TAG:0:52} || true
-            docker rm smoketest-${DOCKER_BRANCH_TAG:0:52} || true
-            docker network rm smoketest-${DOCKER_BRANCH_TAG:0:52} || true
+            docker kill smoketest-${VERSION} || true
+            docker rm smoketest-${VERSION} || true
+            docker network rm smoketest-${VERSION} || true
 
       - run:
           name: Tag images
           command: |
             if [[ ${CIRCLE_BRANCH} == "develop" ]]; then
-               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
-               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${START_TIME}
-               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${START_TIME}-${CIRCLE_SHA1}
-               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:latest
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:${START_TIME}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:${START_TIME}-${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:latest
             fi
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${CIRCLE_SHA1}
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:latest
 
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${CIRCLE_SHA1}
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${START_TIME}
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:latest
+            if [[ ${CIRCLE_BRANCH} == "master" ]];then
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:${START_TIME}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:latest
+            fi
+
+            if [[ ${CIRCLE_BRANCH} == "testnet" ]];then
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${VERSION}
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${START_TIME}
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:latest
+            fi
 
             if [[ ${CIRCLE_TAG} != "" ]];then
-              docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${CIRCLE_TAG}
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${CIRCLE_TAG}
             fi
             
             if [[ ${PR} != "false" ]];then
-               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
+               docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
             fi
 
 
@@ -642,7 +648,7 @@ jobs:
             if [[ ${CIRCLE_BRANCH} == "testnet" ]];then
                echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
                docker push taraxa/${IMAGE}:${CIRCLE_SHA1}
-               docker push taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+               docker push taraxa/${IMAGE}:${VERSION}
                docker push taraxa/${IMAGE}:${START_TIME}
                docker push taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
                docker push taraxa/${IMAGE}:latest
