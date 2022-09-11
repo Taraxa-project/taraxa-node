@@ -614,6 +614,7 @@ jobs:
 
             if [[ ${CIRCLE_TAG} != "" ]];then
               docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${CIRCLE_TAG}
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:latest
             fi
             
             if [[ ${PR} != "false" ]];then
@@ -644,6 +645,7 @@ jobs:
             if [[ ${CIRCLE_TAG} != "" ]];then
               echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
               docker push taraxa/${IMAGE}:${CIRCLE_TAG}
+              docker push taraxa/${IMAGE}:latest
             fi
             if [[ ${CIRCLE_BRANCH} == "testnet" ]];then
                echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
