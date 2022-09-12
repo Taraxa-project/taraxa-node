@@ -175,6 +175,8 @@ def config(binary, boot_nodes, rpc_nodes):
             config['network_tcp_port'] = int(f'1{port_prefix}{i+1}02')
             config['rpc']['http_port'] = int(f'7{port_prefix}{i+1}7')
             config['rpc']['ws_port'] = int(f'8{port_prefix}{i+1}7')
+            config['graphql']['http_port'] = int(f'2{port_prefix}{i+1}7')
+            config['graphql']['ws_port'] = int(f'3{port_prefix}{i+1}7')
 
             with open(config_path, 'w') as json_file:
                 json.dump(config, json_file, indent=2)
