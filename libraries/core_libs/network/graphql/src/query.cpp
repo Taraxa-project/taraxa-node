@@ -29,13 +29,20 @@ Query::Query(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain,
 std::shared_ptr<object::Block> Query::getBlock(std::optional<response::Value>&& number,
                                                std::optional<response::Value>&& hash) const noexcept {
   if (number) {
-    return std::make_shared<object::Block>(
-        std::make_shared<Block>(final_chain_, transaction_manager_, final_chain_->block_header(number->get<int>())));
+    if (auto block_header = final_chain_->block_header(number->get<int>())) {
+      return std::make_shared<object::Block>(
+          std::make_shared<Block>(final_chain_, transaction_manager_, std::move(block_header)));
+    }
+    return nullptr;
   }
   if (hash) {
-    return std::make_shared<object::Block>(std::make_shared<Block>(
-        final_chain_, transaction_manager_,
-        final_chain_->block_header(final_chain_->block_number(dev::h256(hash->get<std::string>())))));
+    if (auto block_number = final_chain_->block_number(dev::h256(hash->get<std::string>()))) {
+      if (auto block_header = final_chain_->block_header(block_number)) {
+        return std::make_shared<object::Block>(
+            std::make_shared<Block>(final_chain_, transaction_manager_, std::move(block_header)));
+      }
+    }
+    return nullptr;
   }
   return std::make_shared<object::Block>(
       std::make_shared<Block>(final_chain_, transaction_manager_, final_chain_->block_header()));
@@ -45,18 +52,21 @@ std::vector<std::shared_ptr<object::Block>> Query::getBlocks(response::Value&& f
                                                              std::optional<response::Value>&& toArg) const noexcept {
   std::vector<std::shared_ptr<object::Block>> blocks;
 
-  // TODO: use pagination limit for all "list" queries
-  uint64_t start_block_num = fromArg.get<int>();
-  uint64_t end_block_num = toArg ? toArg->get<int>() : Query::kMaxPropagationLimit;
+  const uint64_t start_block_num = fromArg.get<int>();
+  uint64_t end_block_num = toArg ? toArg->get<int>() : start_block_num + Query::kMaxPropagationLimit;
 
   if (end_block_num - start_block_num > Query::kMaxPropagationLimit) {
     end_block_num = start_block_num + Query::kMaxPropagationLimit;
   }
 
   const auto last_block_number = final_chain_->last_block_number();
-  if (last_block_number > end_block_num) {
+  if (start_block_num > last_block_number) {
+    return blocks;
+  } else if (end_block_num > last_block_number) {
     end_block_num = last_block_number;
   }
+
+  blocks.reserve(end_block_num - start_block_num);
 
   for (uint64_t block_num = start_block_num; block_num <= end_block_num; block_num++) {
     blocks.emplace_back(std::make_shared<object::Block>(
@@ -67,9 +77,11 @@ std::vector<std::shared_ptr<object::Block>> Query::getBlocks(response::Value&& f
 }
 
 std::shared_ptr<object::Transaction> Query::getTransaction(response::Value&& hashArg) const noexcept {
-  return std::make_shared<object::Transaction>(std::make_shared<Transaction>(
-      final_chain_, transaction_manager_,
-      transaction_manager_->getTransaction(::taraxa::trx_hash_t(hashArg.get<std::string>()))));
+  if (auto transaction = transaction_manager_->getTransaction(::taraxa::trx_hash_t(hashArg.get<std::string>()))) {
+    return std::make_shared<object::Transaction>(
+        std::make_shared<Transaction>(final_chain_, transaction_manager_, std::move(transaction)));
+  }
+  return nullptr;
 }
 
 response::Value Query::getGasPrice() const noexcept { return response::Value(dev::toJS(gas_pricer_->bid())); }
@@ -85,10 +97,7 @@ std::shared_ptr<object::DagBlock> Query::getDagBlock(std::optional<response::Val
 
   if (hashArg) {
     taraxa_dag_block = dag_manager_->getDagBlock(::taraxa::blk_hash_t(hashArg->get<response::StringType>()));
-  }
-  // TODO: might be deleted - no need to return latest block in case no hash specified... for now it serves testing
-  // purposes
-  else {
+  } else {
     auto dag_blocks = db_->getDagBlocksAtLevel(dag_manager_->getMaxLevel(), 1);
 
     if (dag_blocks.size() > 0) {

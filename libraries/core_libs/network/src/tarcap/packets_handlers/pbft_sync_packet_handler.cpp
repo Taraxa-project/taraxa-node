@@ -165,6 +165,12 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
       vote_mgr_->addRewardVote(v);
     }
     if (!vote_mgr_->checkRewardVotes(period_data.pbft_blk)) {
+      // checkRewardVotes could fail because we just cert voted this block and moved to next period, in that case we
+      // might even be fully synced so call restartSyncingPbft to verify
+      if (period_data.pbft_blk->getPeriod() <= vote_mgr_->getRewardVotesPbftBlockPeriod()) {
+        restartSyncingPbft(true);
+        return;
+      }
       LOG(log_er_) << "Invalid reward votes in block " << period_data.pbft_blk->getBlockHash() << " from peer "
                    << packet_data.from_node_id_.abridged() << " received, stop syncing.";
       handleMaliciousSyncPeer(packet_data.from_node_id_);

@@ -27,6 +27,19 @@ PbftChain::PbftChain(addr_t node_addr, std::shared_ptr<DbStorage> db)
   size_ = doc["size"].asUInt64();
   non_empty_size_ = doc["non_empty_size"].asUInt64();
   last_pbft_block_hash_ = blk_hash_t(doc["last_pbft_block_hash"].asString());
+  // Retrieve last_non_null_pbft_dag_anchor_hash_ from chain
+  if (last_pbft_block_hash_) {
+    auto prev_pbft_block = getPbftBlockInChain(last_pbft_block_hash_);
+    last_non_null_pbft_dag_anchor_hash_ = prev_pbft_block.getPivotDagBlockHash();
+    while (!last_non_null_pbft_dag_anchor_hash_) {
+      auto prev_block_hash = prev_pbft_block.getPrevBlockHash();
+      if (!prev_block_hash) {
+        break;
+      }
+      prev_pbft_block = getPbftBlockInChain(prev_block_hash);
+      last_non_null_pbft_dag_anchor_hash_ = prev_pbft_block.getPivotDagBlockHash();
+    }
+  }
   LOG(log_nf_) << "Retrieve from DB, PBFT chain head " << getJsonStr();
 }
 
@@ -48,6 +61,11 @@ uint64_t PbftChain::getPbftChainSizeExcludingEmptyPbftBlocks() const {
 blk_hash_t PbftChain::getLastPbftBlockHash() const {
   SharedLock lock(chain_head_access_);
   return last_pbft_block_hash_;
+}
+
+blk_hash_t PbftChain::getLastNonNullPbftBlockAnchor() const {
+  SharedLock lock(chain_head_access_);
+  return last_non_null_pbft_dag_anchor_hash_;
 }
 
 bool PbftChain::findPbftBlockInChain(taraxa::blk_hash_t const& pbft_block_hash) {
@@ -78,11 +96,12 @@ std::shared_ptr<PbftBlock> PbftChain::getUnverifiedPbftBlock(const taraxa::blk_h
   return found_block->second;
 }
 
-void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash, bool null_anchor) {
+void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash, blk_hash_t const& anchor_hash) {
   UniqueLock lock(chain_head_access_);
   size_++;
-  if (!null_anchor) {
+  if (anchor_hash != NULL_BLOCK_HASH) {
     non_empty_size_++;
+    last_non_null_pbft_dag_anchor_hash_ = anchor_hash;
   }
   last_pbft_block_hash_ = pbft_block_hash;
 }
