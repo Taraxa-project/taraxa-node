@@ -120,7 +120,8 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 : <a class="el" href="structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a62aeb6d36e6c6df101ce8065ccf2e8ff">taraxa::net::rpc::eth::EthParams</a>
 </li>
 <li>gas_pricer_
-: <a class="el" href="classtaraxa_1_1_full_node.html#a8a8e4e25ccbe61db16e27ee4ce062e4a">taraxa::FullNode</a>
+: <a class="el" href="classgraphql_1_1taraxa_1_1_query.html#a66829d45205106022a778f4e9e753ff0">graphql::taraxa::Query</a>
+, <a class="el" href="classtaraxa_1_1_full_node.html#a8a8e4e25ccbe61db16e27ee4ce062e4a">taraxa::FullNode</a>
 </li>
 <li>gas_used
 : <a class="el" href="group___final_chain.html#adb132d664d6d9c27c0968ca4f5f5caab">taraxa::final_chain::BlockHeader</a>
@@ -387,6 +388,9 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 <li>getCumulativeGasUsed()
 : <a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html#a56f34404b5c5a3be4ca74e173dcd3736">graphql::taraxa::Transaction</a>
 </li>
+<li>getCurrentBlock()
+: <a class="el" href="classgraphql_1_1taraxa_1_1_sync_state.html#ab58303f4533ca91e568d4c452ad5f8da">graphql::taraxa::SyncState</a>
+</li>
 <li>getCurrentPbftSortitionThreshold()
 : <a class="el" href="group___p_b_f_t.html#ad79efe4c8011fe00f0a82012686ecd66">taraxa::PbftManager</a>
 </li>
@@ -514,6 +518,9 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 , <a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html#a96cfc97277d8240bc18b1897c9048e0f">graphql::taraxa::Transaction</a>
 , <a class="el" href="structtaraxa_1_1_transaction.html#a99afe7d871bbb84a7d8d5c948c090985">taraxa::Transaction</a>
 </li>
+<li>getGasPricer()
+: <a class="el" href="classtaraxa_1_1_full_node.html#a6abd814606f767e1fe79d9b748655d1c">taraxa::FullNode</a>
+</li>
 <li>getGasUsed()
 : <a class="el" href="classgraphql_1_1taraxa_1_1_block.html#a0472e13b69d27b8be7dead8714f3cf67">graphql::taraxa::Block</a>
 , <a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html#a58e40b25ba3e4e0f887db3ca600e9481">graphql::taraxa::Transaction</a>
@@ -535,6 +542,9 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 </li>
 <li>getHeadHash()
 : <a class="el" href="group___p_b_f_t.html#a665045b58c58cf6a8d43ecb9b983d8ad">taraxa::PbftChain</a>
+</li>
+<li>getHighestBlock()
+: <a class="el" href="classgraphql_1_1taraxa_1_1_sync_state.html#a9e833da28779f3a2f835021ae13fc478">graphql::taraxa::SyncState</a>
 </li>
 <li>getId()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#aac167e4f756ff33ea8b73709f94c7ebb">taraxa::network::tarcap::TaraxaPeer</a>
@@ -564,6 +574,9 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 </li>
 <li>getJsonStrForBlock()
 : <a class="el" href="group___p_b_f_t.html#a66dedbe500e68fb2526e7c960cb1482e">taraxa::PbftChain</a>
+</li>
+<li>getKnownStates()
+: <a class="el" href="classgraphql_1_1taraxa_1_1_sync_state.html#a1a92b94c766cdc58975ebf35b393d3e2">graphql::taraxa::SyncState</a>
 </li>
 <li>getLastBlockCertVotes()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a0f5deb58ed3536cd44eb95e205bd7a1c">taraxa::DbStorage</a>
@@ -872,6 +885,9 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 <li>getPublicKey()
 : <a class="el" href="classtaraxa_1_1_full_node.html#a783753307ef86ced20dd40334940e46e">taraxa::FullNode</a>
 </li>
+<li>getPulledStates()
+: <a class="el" href="classgraphql_1_1taraxa_1_1_sync_state.html#aafe108e4a951136a5f5d1f4561e1464c">graphql::taraxa::SyncState</a>
+</li>
 <li>getQueueSize()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#acea58027aa9794c5bfe2a7a973bb8c54">taraxa::network::tarcap::TarcapThreadPool</a>
 </li>
@@ -969,6 +985,9 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html#ac2844a94c2dc829d234e72b14ffe7feb">taraxa::network::tarcap::PacketsHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ab9cc01fbd4061a7fe9c5981a3825502a">taraxa::network::tarcap::TaraxaCapability</a>
 </li>
+<li>getStartingBlock()
+: <a class="el" href="classgraphql_1_1taraxa_1_1_sync_state.html#a26870d7eae42e08e80c0c451fb45157b">graphql::taraxa::SyncState</a>
+</li>
 <li>getStateRoot()
 : <a class="el" href="classgraphql_1_1taraxa_1_1_block.html#a7fe0eeb2e4ace49b8f09cdde51107154">graphql::taraxa::Block</a>
 </li>
@@ -996,6 +1015,9 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 </li>
 <li>getStorage()
 : <a class="el" href="classgraphql_1_1taraxa_1_1_account.html#ad2dc7de93a6b3ac94175878b4a1373e3">graphql::taraxa::Account</a>
+</li>
+<li>getSyncing()
+: <a class="el" href="classgraphql_1_1taraxa_1_1_query.html#a6c0fd8e1ce6e5ebfd8bea0eed12a9316">graphql::taraxa::Query</a>
 </li>
 <li>getTestSubscription()
 : <a class="el" href="classgraphql_1_1taraxa_1_1_subscription.html#abb0b2da97ac1c45ffeaaeb07d8570f72">graphql::taraxa::Subscription</a>
@@ -1159,7 +1181,7 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 : <a class="el" href="classtaraxa_1_1_full_node.html#a21f8494e94903bc42fc8fc4b55875892">taraxa::FullNode</a>
 </li>
 <li>GraphQlHttpProcessor()
-: <a class="el" href="classtaraxa_1_1net_1_1_graph_ql_http_processor.html#ab6417f1e5bdd9dc8467e5be848ae022f">taraxa::net::GraphQlHttpProcessor</a>
+: <a class="el" href="classtaraxa_1_1net_1_1_graph_ql_http_processor.html#a17508f1a4cc9decbcb85d6fc20bacffe">taraxa::net::GraphQlHttpProcessor</a>
 </li>
 </ul>
 </div><!-- contents -->

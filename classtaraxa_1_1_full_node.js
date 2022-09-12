@@ -20,6 +20,7 @@ var classtaraxa_1_1_full_node =
     [ "getDagManager", "classtaraxa_1_1_full_node.html#ac4953f7f3365013c8648b1b8e9959cee", null ],
     [ "getDB", "classtaraxa_1_1_full_node.html#a7ec3ef473eba09bc877aa7f613a13935", null ],
     [ "getFinalChain", "classtaraxa_1_1_full_node.html#a79c2562e957494e7076e348d1bc9afd2", null ],
+    [ "getGasPricer", "classtaraxa_1_1_full_node.html#a6abd814606f767e1fe79d9b748655d1c", null ],
     [ "getNetwork", "classtaraxa_1_1_full_node.html#a01443cab61827b203891f57df669d34c", null ],
     [ "getNextVotesManager", "classtaraxa_1_1_full_node.html#a75b7a730f10844a633724b6694a29403", null ],
     [ "getNumProposedBlocks", "classtaraxa_1_1_full_node.html#a4d55c6a5d0e5ad9c257f04b4bb51894e", null ],

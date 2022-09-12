@@ -8,5 +8,6 @@ var namespacegraphql_1_1taraxa =
     [ "Mutation", "classgraphql_1_1taraxa_1_1_mutation.html", "classgraphql_1_1taraxa_1_1_mutation" ],
     [ "Query", "classgraphql_1_1taraxa_1_1_query.html", "classgraphql_1_1taraxa_1_1_query" ],
     [ "Subscription", "classgraphql_1_1taraxa_1_1_subscription.html", "classgraphql_1_1taraxa_1_1_subscription" ],
+    [ "SyncState", "classgraphql_1_1taraxa_1_1_sync_state.html", "classgraphql_1_1taraxa_1_1_sync_state" ],
     [ "Transaction", "classgraphql_1_1taraxa_1_1_transaction.html", "classgraphql_1_1taraxa_1_1_transaction" ]
 ];

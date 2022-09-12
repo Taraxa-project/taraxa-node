@@ -22,6 +22,9 @@ var dir_71a8b0f7c1b0a7f3167681b4db4994a3 =
     [ "subscription.hpp", "subscription_8hpp.html", [
       [ "Subscription", "classgraphql_1_1taraxa_1_1_subscription.html", "classgraphql_1_1taraxa_1_1_subscription" ]
     ] ],
+    [ "sync_state.hpp", "sync__state_8hpp.html", [
+      [ "SyncState", "classgraphql_1_1taraxa_1_1_sync_state.html", "classgraphql_1_1taraxa_1_1_sync_state" ]
+    ] ],
     [ "transaction.hpp", "core__libs_2network_2graphql_2include_2graphql_2transaction_8hpp.html", [
       [ "Transaction", "classgraphql_1_1taraxa_1_1_transaction.html", "classgraphql_1_1taraxa_1_1_transaction" ]
     ] ],
