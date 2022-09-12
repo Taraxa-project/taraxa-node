@@ -3,6 +3,7 @@
 #include "graphql/account.hpp"
 #include "graphql/block.hpp"
 #include "graphql/log.hpp"
+#include "graphql/sync_state.hpp"
 #include "graphql/transaction.hpp"
 #include "graphql/types/current_state.hpp"
 #include "graphql/types/dag_block.hpp"
@@ -14,12 +15,15 @@ namespace graphql::taraxa {
 Query::Query(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain,
              std::shared_ptr<::taraxa::DagManager> dag_manager, std::shared_ptr<::taraxa::PbftManager> pbft_manager,
              std::shared_ptr<::taraxa::TransactionManager> transaction_manager, std::shared_ptr<::taraxa::DbStorage> db,
+             std::shared_ptr<::taraxa::GasPricer> gas_pricer, std::weak_ptr<::taraxa::Network> network,
              uint64_t chain_id) noexcept
     : final_chain_(std::move(final_chain)),
       dag_manager_(std::move(dag_manager)),
       pbft_manager_(std::move(pbft_manager)),
       transaction_manager_(std::move(transaction_manager)),
       db_(std::move(db)),
+      gas_pricer_(std::move(gas_pricer)),
+      network_(std::move(network)),
       kChainId(chain_id) {}
 
 std::shared_ptr<object::Block> Query::getBlock(std::optional<response::Value>&& number,
@@ -80,7 +84,11 @@ std::shared_ptr<object::Transaction> Query::getTransaction(response::Value&& has
   return nullptr;
 }
 
-response::Value Query::getGasPrice() const noexcept { return response::Value(0); }
+response::Value Query::getGasPrice() const noexcept { return response::Value(dev::toJS(gas_pricer_->bid())); }
+
+std::shared_ptr<object::SyncState> Query::getSyncing() const noexcept {
+  return std::make_shared<object::SyncState>(std::make_shared<SyncState>(final_chain_, network_));
+}
 
 response::Value Query::getChainID() const noexcept { return response::Value(dev::toJS(kChainId)); }
 

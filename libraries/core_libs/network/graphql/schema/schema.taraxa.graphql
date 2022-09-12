@@ -331,7 +331,7 @@ type Query {
     # ensure a transaction is mined in a timely fashion.
     gasPrice: BigInt!
     # Syncing returns information on the current synchronisation state.
-    # syncing: SyncState
+    syncing: SyncState
     # ChainID returns the current chain ID for transaction replay protection.
     chainID: BigInt!
 

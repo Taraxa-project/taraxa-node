@@ -3,17 +3,19 @@
 #include "QueryObject.h"
 #include "dag/dag_manager.hpp"
 #include "final_chain/final_chain.hpp"
+#include "network/network.hpp"
 #include "pbft/pbft_manager.hpp"
+#include "transaction/gas_pricer.hpp"
 #include "transaction/transaction_manager.hpp"
 
 namespace graphql::taraxa {
-
 class Query {
  public:
   explicit Query(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain,
                  std::shared_ptr<::taraxa::DagManager> dag_manager, std::shared_ptr<::taraxa::PbftManager> pbft_manager,
                  std::shared_ptr<::taraxa::TransactionManager> transaction_manager,
-                 std::shared_ptr<::taraxa::DbStorage> db, uint64_t chain_id) noexcept;
+                 std::shared_ptr<::taraxa::DbStorage> db, std::shared_ptr<::taraxa::GasPricer> gas_pricer,
+                 std::weak_ptr<::taraxa::Network> network, uint64_t chain_id) noexcept;
 
   std::shared_ptr<object::Block> getBlock(std::optional<response::Value>&& numberArg,
                                           std::optional<response::Value>&& hashArg) const noexcept;
@@ -21,6 +23,7 @@ class Query {
                                                         std::optional<response::Value>&& toArg) const noexcept;
   std::shared_ptr<object::Transaction> getTransaction(response::Value&& hashArg) const noexcept;
   response::Value getGasPrice() const noexcept;
+  std::shared_ptr<object::SyncState> getSyncing() const noexcept;
   response::Value getChainID() const noexcept;
   std::shared_ptr<object::DagBlock> getDagBlock(std::optional<response::Value>&& hashArg) const noexcept;
   std::vector<std::shared_ptr<object::DagBlock>> getDagBlocks(std::optional<response::Value>&& dagLevelArg,
@@ -37,6 +40,8 @@ class Query {
   std::shared_ptr<::taraxa::PbftManager> pbft_manager_;
   std::shared_ptr<::taraxa::TransactionManager> transaction_manager_;
   std::shared_ptr<::taraxa::DbStorage> db_;
+  std::shared_ptr<::taraxa::GasPricer> gas_pricer_;
+  std::weak_ptr<::taraxa::Network> network_;
   const uint64_t kChainId;
 };
 
