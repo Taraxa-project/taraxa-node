@@ -17,12 +17,12 @@ response::Value Account::getBalance() const noexcept {
   if (account_) {
     return response::Value(dev::toJS(account_->balance));
   }
-  return response::Value(0);
+  return response::Value(dev::toJS(0));
 }
 
 response::Value Account::getTransactionCount() const noexcept {
   if (account_) {
-    return response::Value(dev::toJS(account_->nonce));
+    return response::Value(static_cast<int>(account_->nonce));
   }
   return response::Value(0);
 }

@@ -1744,8 +1744,8 @@ TEST_F(FullNodeTest, GraphQLTest) {
   std::cout << response::toJSON(response::Value(result)) << std::endl;
   auto data = service::ScalarArgument::require("data", result);
   auto block = service::ScalarArgument::require("block", data);
-  auto number = std::stoi(service::StringArgument::require("number", block), 0, 16);
-  EXPECT_EQ(nodes[0]->getPbftChain()->getPbftChainSize(), (int)number);
+  auto number = service::IntArgument::require("number", block);
+  EXPECT_EQ(nodes[0]->getPbftChain()->getPbftChainSize(), number);
 
   // Get block hash by number
   query = R"({ block(number:3) { hash } })"_graphql;
