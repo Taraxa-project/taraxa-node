@@ -2,7 +2,6 @@ var classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler =
 [
     [ "StatusPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#a39b26146f6db6d8802fd5647410f9008", null ],
     [ "process", "classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#a8d89a8521a95d98722dca9dbd1e64e28", null ],
-    [ "requestPbftNextVotesAtPeriodRound", "classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#a6bfcec11827b08d0e7ae9f3df87ea130", null ],
     [ "sendStatus", "classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#a6aba7f16e36428ad0d91fbe6ee7eb455", null ],
     [ "sendStatusToPeers", "classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#aacf2facbe8a9d30f8b2b01e435535b09", null ],
     [ "syncPbftNextVotesAtPeriodRound", "classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#ae93d0cd018cefa3445639940e38636d8", null ],

@@ -145,7 +145,7 @@ var searchData=
   ['tools_2ehpp_3051',['tools.hpp',['../tools_8hpp.html',1,'']]],
   ['toomanypeers_3052',['TooManyPeers',['../namespacedev_1_1p2p.html#ab97a033c9bbe0fb22e2b4f093593f276aa8e445746634e990a98cd1b879574f71',1,'dev::p2p']]],
   ['topair_3053',['toPair',['../classdev_1_1_r_l_p.html#abf1709fbf94bc604367b1d06978103a8',1,'dev::RLP']]],
-  ['topics_3054',['Topics',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a4b4f0d090a7ad2094e9c003c44b84166',1,'taraxa::net::rpc::eth::LogFilter::Topics()'],['../group___final_chain.html#a1d8ca5785c8af2536b1790f68b89b76b',1,'taraxa::final_chain::LogEntry::topics()'],['../group___final_chain.html#a04a27839cd89baf8ffe24a67e9524f37',1,'taraxa::state_api::LogRecord::topics()']]],
+  ['topics_3054',['topics',['../group___final_chain.html#a1d8ca5785c8af2536b1790f68b89b76b',1,'taraxa::final_chain::LogEntry::topics()'],['../group___final_chain.html#a04a27839cd89baf8ffe24a67e9524f37',1,'taraxa::state_api::LogRecord::topics()'],['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a4b4f0d090a7ad2094e9c003c44b84166',1,'taraxa::net::rpc::eth::LogFilter::Topics()']]],
   ['topics_5f_3055',['topics_',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a722f9cbe314611e4adc3b73b29ab9520',1,'taraxa::net::rpc::eth::LogFilter']]],
   ['topositiveint64_3056',['toPositiveInt64',['../classdev_1_1_r_l_p.html#aaa30b57b01383d1b7e5c9ca52daf0988',1,'dev::RLP']]],
   ['topublic_3057',['toPublic',['../namespacedev.html#a7556242b570406ec30178110e9b8b9db',1,'dev::toPublic(Secret const &amp;_secret)'],['../namespacedev.html#a74930f3576b278df0a1602f6529793fa',1,'dev::toPublic(PublicCompressed const &amp;_publicCompressed)']]],

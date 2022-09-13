@@ -1,5 +1,6 @@
 var NAVTREEINDEX16 =
 {
+"group___vote.html#a6b7f4bfc16fbdca70a9764b61e7df31a":[9,4,4,4],
 "group___vote.html#a6dee428599ec5049386c46ef14fc404e":[9,4,2,31],
 "group___vote.html#a71368f8f7056743c74eb64be733d4e5a":[9,4,1,25],
 "group___vote.html#a7213db2bd4160b4f2c5e8607bdc5d0a2":[9,4,1,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX16 =
 "libdevcrypto_2_common_8h.html#a25b0f2e01e17a47cb6d3b6c5fba30232":[12,0,1,0,1,3,25],
 "libdevcrypto_2_common_8h.html#a33b08ec2e2db2674c10581cc2677054d":[12,0,1,0,1,3,3],
 "libdevcrypto_2_common_8h.html#a34883d4634f53e77a0e2f6c2cd7281ed":[12,0,1,0,1,3,13],
-"libdevcrypto_2_common_8h.html#a3b4ed97e50a391bf2cc939fb7016141e":[12,0,1,0,1,3,32],
-"libdevcrypto_2_common_8h.html#a3bef0b6d00f9f9b2b3a558e51cb9d81d":[12,0,1,0,1,3,14]
+"libdevcrypto_2_common_8h.html#a3b4ed97e50a391bf2cc939fb7016141e":[12,0,1,0,1,3,32]
 };

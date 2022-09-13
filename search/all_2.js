@@ -65,7 +65,7 @@ var searchData=
   ['boot_5fnodes_5fappend_182',['BOOT_NODES_APPEND',['../classtaraxa_1_1cli_1_1_config.html#aafd8e83fb66d62165e39cdc4941b8033',1,'taraxa::cli::Config']]],
   ['bp_5fconfig_5f_183',['bp_config_',['../group___d_a_g.html#ab896afad4e45abbcd4e5c5e4f53d3bd9',1,'taraxa::BlockProposer']]],
   ['broadcastalreadythisstep_5f_184',['broadcastAlreadyThisStep_',['../group___p_b_f_t.html#a11990d3392300e6a0ac2eed429550d85',1,'taraxa::PbftManager']]],
-  ['broadcastpreviousroundnextvotesbundle_185',['broadcastPreviousRoundNextVotesBundle',['../classtaraxa_1_1network_1_1tarcap_1_1_votes_sync_packet_handler.html#a7ef286e98741180bad62c92c15f9e03e',1,'taraxa::network::tarcap::VotesSyncPacketHandler']]],
+  ['broadcastpreviousroundnextvotesbundle_185',['broadcastPreviousRoundNextVotesBundle',['../classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#abcab56ad5d5d721260a4710856881b28',1,'taraxa::network::tarcap::VotePacketHandler']]],
   ['bucket_5funsafe_186',['bucket_UNSAFE',['../classdev_1_1p2p_1_1_node_table.html#acc79fb500db389c4480534a9c316e8ee',1,'dev::p2p::NodeTable']]],
   ['buffer_5f_187',['buffer_',['../classtaraxa_1_1net_1_1_http_connection.html#a806de76133a77b6846791b480539cb67',1,'taraxa::net::HttpConnection::buffer_()'],['../classtaraxa_1_1net_1_1_ws_session.html#ac146bb8339a9c34f6eb3c21a1dcea299',1,'taraxa::net::WsSession::buffer_()']]],
   ['bufferstream_188',['bufferstream',['../namespacetaraxa.html#aeb47aa16a952529daae6e4e22c6e54ff',1,'taraxa']]],
