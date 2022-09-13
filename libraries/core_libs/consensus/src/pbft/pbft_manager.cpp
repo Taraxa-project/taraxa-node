@@ -900,7 +900,8 @@ void PbftManager::certifyBlock_() {
   }
   const auto [current_round_soft_voted_block, current_round_soft_votes_period] = *soft_voted_block;
 
-  auto block = pbft_chain_->getUnverifiedPbftBlock(current_round_soft_voted_block);
+  auto block = getUnfinalizedBlock_(current_round_soft_voted_block);
+
   if (!compareBlocksAndRewardVotes_(block)) {
     LOG(log_dg_) << "Incomplete or invalid soft voted block " << current_round_soft_voted_block << ", round " << round
                  << ", period " << period;
