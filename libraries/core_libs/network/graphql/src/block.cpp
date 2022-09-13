@@ -18,7 +18,7 @@ Block::Block(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain,
       trx_manager_(std::move(trx_manager)),
       block_header_(std::move(block_header)) {}
 
-response::Value Block::getNumber() const noexcept { return response::Value(dev::toJS(block_header_->number)); }
+response::Value Block::getNumber() const noexcept { return response::Value(static_cast<int>(block_header_->number)); }
 
 response::Value Block::getHash() const noexcept { return response::Value(block_header_->hash.toString()); }
 
@@ -35,7 +35,11 @@ response::Value Block::getTransactionsRoot() const noexcept {
 }
 
 std::optional<int> Block::getTransactionCount() const noexcept {
-  return std::optional<int>(final_chain_->transactionCount(block_header_->number));
+  if (!transactions_.size()) {
+    return std::optional<int>(final_chain_->transactionCount(block_header_->number));
+  } else {
+    return std::optional<int>(transactions_.size());
+  }
 }
 
 response::Value Block::getStateRoot() const noexcept { return response::Value(block_header_->state_root.toString()); }
@@ -84,18 +88,28 @@ response::Value Block::getOmmerHash() const noexcept {
 
 std::optional<std::vector<std::shared_ptr<object::Transaction>>> Block::getTransactions() const noexcept {
   std::vector<std::shared_ptr<object::Transaction>> ret;
-  auto trxs = final_chain_->transactions(block_header_->number);
-  ret.reserve(trxs.size());
-  for (auto& t : trxs) {
+  if (!transactions_.size()) {
+    transactions_ = final_chain_->transactions(block_header_->number);
+    if (!transactions_.size()) return std::nullopt;
+  }
+  ret.reserve(transactions_.size());
+  for (auto& t : transactions_) {
     ret.emplace_back(
-        std::make_shared<object::Transaction>(std::make_shared<Transaction>(final_chain_, trx_manager_, std::move(t))));
+        std::make_shared<object::Transaction>(std::make_shared<Transaction>(final_chain_, trx_manager_, t)));
   }
   return ret;
 }
 
 std::shared_ptr<object::Transaction> Block::getTransactionAt(response::IntType&& index) const noexcept {
-  return std::make_shared<object::Transaction>(std::make_shared<Transaction>(
-      final_chain_, trx_manager_, final_chain_->transactions(block_header_->number)[index]));
+  if (!transactions_.size()) {
+    transactions_ = final_chain_->transactions(block_header_->number);
+    if (!transactions_.size()) return nullptr;
+  }
+  if (transactions_.size() < static_cast<size_t>(index)) {
+    return nullptr;
+  }
+  return std::make_shared<object::Transaction>(
+      std::make_shared<Transaction>(final_chain_, trx_manager_, transactions_[index]));
 }
 
 std::vector<std::shared_ptr<object::Log>> Block::getLogs(BlockFilterCriteria&&) const noexcept {
