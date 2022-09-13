@@ -14,9 +14,11 @@
 #include "logger/logger.hpp"
 #include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/get_votes_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/pbft_block_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/status_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
@@ -958,7 +960,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   std::shared_ptr<Network> nw2 = node2->getNetwork();
 
   // Node1 broadcast next votes1 to node2
-  nw1->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->broadcastPreviousRoundNextVotesBundle();
+  nw1->getSpecificHandler<network::tarcap::VotePacketHandler>()->broadcastPreviousRoundNextVotesBundle();
 
   auto node2_expect_size = next_votes1.size() + next_votes2.size();
   EXPECT_HAPPENS({5s, 100ms},
@@ -976,7 +978,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   node1_db->commitWriteBatch(batch);
 
   // Node2 broadcast updated next votes to node1
-  nw2->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->broadcastPreviousRoundNextVotesBundle();
+  nw2->getSpecificHandler<network::tarcap::VotePacketHandler>()->broadcastPreviousRoundNextVotesBundle();
 
   auto node1_expect_size = next_votes1.size() + next_votes2.size();
   EXPECT_HAPPENS({5s, 100ms},
@@ -1463,6 +1465,106 @@ TEST_F(NetworkTest, suspicious_packets) {
     EXPECT_FALSE(peer.reportSuspiciousPacket());
   }
   EXPECT_TRUE(peer.reportSuspiciousPacket());*/
+}
+
+TEST_F(NetworkTest, unexpected_votes_sync_packet) {
+  auto node_cfgs = make_node_cfgs<20>(2);
+  std::vector<std::shared_ptr<FullNode>> nodes;
+  for (const auto& cfg : node_cfgs) {
+    nodes.emplace_back(std::make_shared<FullNode>(cfg));
+    nodes.back()->start();
+    // Stop PBFT manager, that will place vote
+    nodes.back()->getPbftManager()->stop();
+  }
+  EXPECT_TRUE(wait_connect(nodes));
+
+  // Clear next votes components
+  auto node0_next_votes_mgr = nodes[0]->getNextVotesManager();
+  auto node1_next_votes_mgr = nodes[1]->getNextVotesManager();
+  node0_next_votes_mgr->clearVotes();
+  node1_next_votes_mgr->clearVotes();
+
+  auto pbft_mgr0 = nodes[0]->getPbftManager();
+
+  // Node1 generate 1 next vote voted at NULL_BLOCK_HASH
+  blk_hash_t voted_pbft_block_hash1(blk_hash_t(0));
+  auto vote = pbft_mgr0->generateVote(voted_pbft_block_hash1, next_vote_type, 1, 1, 5);
+  vote->calculateWeight(1, 1, 1);
+
+  // Set both node1 and node2 pbft manager round to 2
+  std::shared_ptr<Network> nw0 = nodes[0]->getNetwork();
+  std::shared_ptr<Network> nw1 = nodes[1]->getNetwork();
+
+  EXPECT_EQ(nw0->getPeerCount(), 1);
+  EXPECT_EQ(nw1->getPeerCount(), 1);
+  // Node1 broadcast next votes1 to node2
+  std::cout << "Node1 broadcast VotesSyncPacket to Node2" << std::endl;
+  nw0->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVotes(nw1->getNodeId(), {vote}, true);
+
+  EXPECT_HAPPENS({5s, 100ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, nw0->getPeerCount(), 0);
+    WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 0);
+  });
+}
+
+TEST_F(NetworkTest, request_and_get_votes_sync_packet) {
+  auto node_cfgs = make_node_cfgs<20>(2);
+  std::vector<std::shared_ptr<FullNode>> nodes;
+  for (const auto& cfg : node_cfgs) {
+    nodes.emplace_back(std::make_shared<FullNode>(cfg));
+    nodes.back()->start();
+    // Stop PBFT manager, that will place vote
+    nodes.back()->getPbftManager()->stop();
+  }
+  EXPECT_TRUE(wait_connect(nodes));
+
+  auto pbft_mgr0 = nodes[0]->getPbftManager();
+  auto pbft_mgr1 = nodes[1]->getPbftManager();
+  pbft_mgr0->setPbftRound(2);
+  pbft_mgr1->setPbftRound(2);
+
+  // Clear next votes components
+  auto node0_next_votes_mgr = nodes[0]->getNextVotesManager();
+  auto node1_next_votes_mgr = nodes[1]->getNextVotesManager();
+  node0_next_votes_mgr->clearVotes();
+  node1_next_votes_mgr->clearVotes();
+
+  // Node1 generate 1 next vote voted at NULL_BLOCK_HASH
+  blk_hash_t voted_pbft_block_hash1(blk_hash_t(0));
+  PbftVoteTypes type = next_vote_type;
+  uint64_t period = 1;
+  uint64_t round = 1;
+  size_t step = 5;
+  auto vote0 = pbft_mgr0->generateVote(voted_pbft_block_hash1, type, period, round, step);
+  vote0->calculateWeight(1, 1, 1);
+  std::vector<std::shared_ptr<Vote>> next_votes0{vote0};
+
+  // Update node1 next votes bundle
+  node0_next_votes_mgr->updateNextVotes(next_votes0, pbft_mgr0->getTwoTPlusOne());
+  EXPECT_EQ(node0_next_votes_mgr->getNextVotesWeight(), next_votes0.size());
+
+  // Node1 generate 1 different next vote for node2, because node2 is not delegated
+  blk_hash_t voted_pbft_block_hash2("1234567890000000000000000000000000000000000000000000000000000000");
+  auto vote1 = pbft_mgr1->generateVote(voted_pbft_block_hash2, type, period, round, step);
+  vote1->calculateWeight(1, 1, 1);
+  std::vector<std::shared_ptr<Vote>> next_votes1{vote1};
+
+  // Update node1 next votes bundle
+  node1_next_votes_mgr->updateNextVotes(next_votes1, pbft_mgr1->getTwoTPlusOne());
+  EXPECT_EQ(node1_next_votes_mgr->getNextVotesWeight(), next_votes1.size());
+
+  // Set both node1 and node2 pbft manager round to 2
+  std::shared_ptr<Network> nw0 = nodes[0]->getNetwork();
+  std::shared_ptr<Network> nw1 = nodes[1]->getNetwork();
+
+  // Node1 broadcast next votes1 to node2
+  std::cout << "Node1 broadcast VotesSyncPacket to Node2" << std::endl;
+  nw1->getSpecificHandler<network::tarcap::StatusPacketHandler>()->requestPbftNextVotesAtPeriodRound(nw0->getNodeId(),
+                                                                                                     1, 1, 0);
+
+  ASSERT_HAPPENS({5s, 200ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, node1_next_votes_mgr->getNextVotesWeight(), next_votes0.size() + next_votes1.size());
+  });
 }
 
 }  // namespace taraxa::core_tests

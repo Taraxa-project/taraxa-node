@@ -109,12 +109,21 @@ bool PacketHandler::sealAndSend(const dev::p2p::NodeID& node_id, SubprotocolPack
   return true;
 }
 
-void PacketHandler::disconnect(dev::p2p::NodeID const& node_id, dev::p2p::DisconnectReason reason) {
+void PacketHandler::disconnect(const dev::p2p::NodeID& node_id, dev::p2p::DisconnectReason reason) {
   if (auto host = peers_state_->host_.lock(); host) {
     host->disconnect(node_id, reason);
   } else {
     LOG(log_er_) << "Unable to disconnect node " << node_id.abridged() << " due to invalid host.";
   }
+}
+
+void PacketHandler::requestPbftNextVotesAtPeriodRound(const dev::p2p::NodeID& peerID, uint64_t pbft_period,
+                                                      uint64_t pbft_round, size_t pbft_previous_round_next_votes_size) {
+  LOG(log_nf_) << "Sending GetVotesSyncPacket with period:" << pbft_period << ", round:" << pbft_round
+               << ", previous_round_next_votes_size:" << pbft_previous_round_next_votes_size;
+  peers_state_->getPeer(peerID)->votes_sync_requested_ = true;
+  sealAndSend(peerID, GetVotesSyncPacket,
+              std::move(dev::RLPStream(3) << pbft_period << pbft_round << pbft_previous_round_next_votes_size));
 }
 
 }  // namespace taraxa::network::tarcap

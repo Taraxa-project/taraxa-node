@@ -39,6 +39,9 @@ class PacketHandler {
    */
   void processPacket(const PacketData& packet_data);
 
+  void requestPbftNextVotesAtPeriodRound(const dev::p2p::NodeID& peerID, uint64_t pbft_period, uint64_t pbft_round,
+                                         size_t pbft_previous_round_next_votes_size);
+
  private:
   void handle_caught_exception(std::string_view exception_msg, const PacketData& packet_data,
                                dev::p2p::DisconnectReason disconnect_reason = dev::p2p::DisconnectReason::UserReason,
@@ -66,7 +69,7 @@ class PacketHandler {
   void checkPacketRlpIsList(const PacketData& packet_data) const;
 
   bool sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacketType packet_type, dev::RLPStream&& rlp);
-  void disconnect(dev::p2p::NodeID const& node_id, dev::p2p::DisconnectReason reason);
+  void disconnect(const dev::p2p::NodeID& node_id, dev::p2p::DisconnectReason reason);
 
  protected:
   std::shared_ptr<PeersState> peers_state_{nullptr};

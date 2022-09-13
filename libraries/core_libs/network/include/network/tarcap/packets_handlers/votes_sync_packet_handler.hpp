@@ -18,8 +18,6 @@ class VotesSyncPacketHandler final : public ExtVotesPacketHandler {
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
                          std::shared_ptr<DbStorage> db, const NetworkConfig& net_config, const addr_t& node_addr);
 
-  void broadcastPreviousRoundNextVotesBundle();
-
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::VotesSyncPacket;
 
