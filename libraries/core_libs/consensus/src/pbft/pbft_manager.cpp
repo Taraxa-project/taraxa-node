@@ -1092,8 +1092,7 @@ void PbftManager::secondFinish_() {
                  << ", round " << round << " step " << step_;
     if (auto net = network_.lock()) {
       // Broadcast previous round next votes
-      net->getSpecificHandler<network::tarcap::VotePacketHandler>()->broadcastNextVotesBundle(
-          next_votes_manager_->getNextVotes());
+      net->getSpecificHandler<network::tarcap::VotePacketHandler>()->broadcastPreviousRoundNextVotesBundle();
     }
     pbft_round_last_broadcast_ = round;
     pbft_step_last_broadcast_ = step_;

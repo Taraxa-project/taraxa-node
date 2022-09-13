@@ -23,19 +23,20 @@ void VotesSyncPacketHandler::validatePacketRlpFormat([[maybe_unused]] const Pack
 }
 
 void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
+  if (!peer->votes_sync_requested_) {
+    LOG(log_er_) << "Received VotesSyncPacket from peer(" << packet_data.from_node_id_
+                 << ") we did not request. Mark a peer malicious and disconnect.";
+    peers_state_->set_peer_malicious(packet_data.from_node_id_);
+    disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
+    return;
+  }
+  peer->votes_sync_requested_ = false;
+
   // We already have 2t+1 votes for both NULL_BLOCK_HASH as well as some specific block hash
   if (next_votes_mgr_->enoughNextVotes()) {
     LOG(log_nf_) << "Already have enought next votes for perevious round.";
     return;
   }
-
-  if (!peer->votes_sync_requested_) {
-    LOG(log_er_) << "Received VotesSyncPacket from peer(" << packet_data.from_node_id_
-                 << ") we did not request. The peer may be a malicious player, will be disconnected";
-    disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
-    return;
-  }
-  peer->votes_sync_requested_ = false;
 
   auto reference_vote = std::make_shared<Vote>(packet_data.rlp_[0].data().toBytes());
 

@@ -960,8 +960,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   std::shared_ptr<Network> nw2 = node2->getNetwork();
 
   // Node1 broadcast next votes1 to node2
-  nw1->getSpecificHandler<network::tarcap::VotePacketHandler>()->broadcastNextVotesBundle(
-      node1_next_votes_mgr->getNextVotes());
+  nw1->getSpecificHandler<network::tarcap::VotePacketHandler>()->broadcastPreviousRoundNextVotesBundle();
 
   auto node2_expect_size = next_votes1.size() + next_votes2.size();
   EXPECT_HAPPENS({5s, 100ms},
@@ -979,8 +978,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   node1_db->commitWriteBatch(batch);
 
   // Node2 broadcast updated next votes to node1
-  nw2->getSpecificHandler<network::tarcap::VotePacketHandler>()->broadcastNextVotesBundle(
-      node2_next_votes_mgr->getNextVotes());
+  nw2->getSpecificHandler<network::tarcap::VotePacketHandler>()->broadcastPreviousRoundNextVotesBundle();
 
   auto node1_expect_size = next_votes1.size() + next_votes2.size();
   EXPECT_HAPPENS({5s, 100ms},
