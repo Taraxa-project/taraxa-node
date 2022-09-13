@@ -10,7 +10,7 @@
 
 namespace graphql::taraxa {
 
-class Transaction {
+class Transaction final : public std::enable_shared_from_this<Transaction> {
  public:
   explicit Transaction(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain,
                        std::shared_ptr<::taraxa::TransactionManager> trx_manager,
@@ -41,6 +41,7 @@ class Transaction {
   std::shared_ptr<::taraxa::Transaction> transaction_;
   // Caching for performance
   mutable std::optional<::taraxa::final_chain::TransactionReceipt> receipt_;
+  mutable std::optional<::taraxa::final_chain::TransactionLocation> location_;
 };
 
 }  // namespace graphql::taraxa

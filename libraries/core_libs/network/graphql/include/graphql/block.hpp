@@ -47,6 +47,7 @@ class Block {
   std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain_;
   std::shared_ptr<::taraxa::TransactionManager> trx_manager_;
   std::shared_ptr<const ::taraxa::final_chain::BlockHeader> block_header_;
+  mutable std::vector<std::shared_ptr<::taraxa::Transaction>> transactions_;
 };
 
 }  // namespace graphql::taraxa
