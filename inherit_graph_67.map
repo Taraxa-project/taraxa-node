@@ -4,24 +4,25 @@
 <area shape="rect" id="node3" href="$classtaraxa_1_1net_1_1_ws_server.html" title=" " alt="" coords="279,137,442,163"/>
 <area shape="rect" id="node4" href="$classtaraxa_1_1net_1_1_graph_ql_ws_server.html" title=" " alt="" coords="528,111,744,138"/>
 <area shape="rect" id="node5" href="$classtaraxa_1_1net_1_1_json_rpc_ws_server.html" title=" " alt="" coords="529,162,743,189"/>
-<area shape="rect" id="node6" title=" " alt="" coords="8,507,195,534"/>
+<area shape="rect" id="node6" title=" " alt="" coords="8,533,195,559"/>
 <area shape="rect" id="node7" href="$structdev_1_1p2p_1_1_host.html" title="The Host class Capabilities should be registered prior to startNetwork, since m_capabilities is not t..." alt="" coords="303,862,418,889"/>
-<area shape="rect" id="node8" href="$structdev_1_1p2p_1_1_r_l_p_x_handshake.html" title="Setup inbound or outbound connection for communication over RLPXFrameCoder. RLPx Spec: https://github..." alt="" coords="265,254,456,281"/>
-<area shape="rect" id="node9" href="$structdev_1_1p2p_1_1_session.html" title="The Session class." alt="" coords="293,305,428,331"/>
+<area shape="rect" id="node8" href="$structdev_1_1p2p_1_1_r_l_p_x_handshake.html" title="Setup inbound or outbound connection for communication over RLPXFrameCoder. RLPx Spec: https://github..." alt="" coords="265,913,456,939"/>
+<area shape="rect" id="node9" href="$structdev_1_1p2p_1_1_session.html" title="The Session class." alt="" coords="293,254,428,281"/>
 <area shape="rect" id="node10" href="$classdev_1_1p2p_1_1_u_d_p_socket.html" title="UDP Interface Handler must implement UDPSocketEvents." alt="" coords="245,188,476,229"/>
-<area shape="rect" id="node11" href="$group___d_a_g.html#classtaraxa_1_1_block_proposer" title="BlockProposer class proposes new DAG blocks using transactions retrieved from TransactionManager." alt="" coords="278,355,443,382"/>
-<area shape="rect" id="node12" href="$group___d_a_g.html#classtaraxa_1_1_dag_manager" title="DagManager class contains in memory representation of part of the DAG that is not yet finalized in a ..." alt="" coords="283,406,438,433"/>
-<area shape="rect" id="node13" href="$classtaraxa_1_1_db_storage.html" title=" " alt="" coords="291,457,431,483"/>
-<area shape="rect" id="node14" href="$classtaraxa_1_1_full_node.html" title=" " alt="" coords="296,507,425,534"/>
-<area shape="rect" id="node15" href="$classtaraxa_1_1net_1_1_http_connection.html" title=" " alt="" coords="259,558,462,585"/>
-<area shape="rect" id="node16" href="$classtaraxa_1_1net_1_1_http_server.html" title=" " alt="" coords="275,609,446,635"/>
-<area shape="rect" id="node17" href="$classtaraxa_1_1net_1_1_ws_session.html" title=" " alt="" coords="275,659,446,686"/>
-<area shape="rect" id="node20" href="$group___p_b_f_t.html#classtaraxa_1_1_pbft_manager" title="PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks..." alt="" coords="283,710,438,737"/>
-<area shape="rect" id="node21" href="$group___transaction.html#classtaraxa_1_1_transaction_manager" title="TransactionManager class verifies and inserts incoming transactions in memory pool and handles saving..." alt="" coords="259,761,462,787"/>
-<area shape="rect" id="node22" href="$classtaraxa_1_1util_1_1_thread_pool.html" title=" " alt="" coords="273,811,448,838"/>
-<area shape="rect" id="node18" href="$classtaraxa_1_1net_1_1_graph_ql_ws_session.html" title=" " alt="" coords="524,634,748,661"/>
-<area shape="rect" id="node19" href="$classtaraxa_1_1net_1_1_json_rpc_ws_session.html" title=" " alt="" coords="525,685,747,711"/>
-<area shape="rect" id="node23" href="$classtaraxa_1_1net_1_1_http_processor.html" title=" " alt="" coords="5,46,197,73"/>
-<area shape="rect" id="node24" href="$classtaraxa_1_1net_1_1_graph_ql_http_processor.html" title=" " alt="" coords="269,5,452,47"/>
-<area shape="rect" id="node25" href="$structdev_1_1p2p_1_1_u_d_p_socket_face.html" title="Interface which UDPSocket will implement." alt="" coords="9,195,194,222"/>
+<area shape="rect" id="node11" href="$classgraphql_1_1taraxa_1_1_transaction.html" title=" " alt="" coords="259,305,462,331"/>
+<area shape="rect" id="node12" href="$group___d_a_g.html#classtaraxa_1_1_block_proposer" title="BlockProposer class proposes new DAG blocks using transactions retrieved from TransactionManager." alt="" coords="278,355,443,382"/>
+<area shape="rect" id="node13" href="$group___d_a_g.html#classtaraxa_1_1_dag_manager" title="DagManager class contains in memory representation of part of the DAG that is not yet finalized in a ..." alt="" coords="283,406,438,433"/>
+<area shape="rect" id="node14" href="$classtaraxa_1_1_db_storage.html" title=" " alt="" coords="291,457,431,483"/>
+<area shape="rect" id="node15" href="$classtaraxa_1_1_full_node.html" title=" " alt="" coords="296,507,425,534"/>
+<area shape="rect" id="node16" href="$classtaraxa_1_1net_1_1_http_connection.html" title=" " alt="" coords="259,558,462,585"/>
+<area shape="rect" id="node17" href="$classtaraxa_1_1net_1_1_http_server.html" title=" " alt="" coords="275,609,446,635"/>
+<area shape="rect" id="node18" href="$classtaraxa_1_1net_1_1_ws_session.html" title=" " alt="" coords="275,659,446,686"/>
+<area shape="rect" id="node21" href="$group___p_b_f_t.html#classtaraxa_1_1_pbft_manager" title="PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks..." alt="" coords="283,710,438,737"/>
+<area shape="rect" id="node22" href="$group___transaction.html#classtaraxa_1_1_transaction_manager" title="TransactionManager class verifies and inserts incoming transactions in memory pool and handles saving..." alt="" coords="259,761,462,787"/>
+<area shape="rect" id="node23" href="$classtaraxa_1_1util_1_1_thread_pool.html" title=" " alt="" coords="273,811,448,838"/>
+<area shape="rect" id="node19" href="$classtaraxa_1_1net_1_1_graph_ql_ws_session.html" title=" " alt="" coords="524,634,748,661"/>
+<area shape="rect" id="node20" href="$classtaraxa_1_1net_1_1_json_rpc_ws_session.html" title=" " alt="" coords="525,685,747,711"/>
+<area shape="rect" id="node24" href="$classtaraxa_1_1net_1_1_http_processor.html" title=" " alt="" coords="5,46,197,73"/>
+<area shape="rect" id="node25" href="$classtaraxa_1_1net_1_1_graph_ql_http_processor.html" title=" " alt="" coords="269,5,452,47"/>
+<area shape="rect" id="node26" href="$structdev_1_1p2p_1_1_u_d_p_socket_face.html" title="Interface which UDPSocket will implement." alt="" coords="9,195,194,222"/>
 </map>

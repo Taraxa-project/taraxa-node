@@ -104,8 +104,8 @@ Collaboration diagram for graphql::taraxa::Log:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ae08073d92b9305066fbbec0ebcfb33ed"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_log.html#ae08073d92b9305066fbbec0ebcfb33ed">Log</a> (std::shared_ptr&lt;::<a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">taraxa::final_chain::FinalChain</a> &gt; final_chain, std::shared_ptr&lt;::<a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">taraxa::TransactionManager</a> &gt; trx_manager, ::<a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry">taraxa::final_chain::LogEntry</a> log) noexcept</td></tr>
-<tr class="separator:ae08073d92b9305066fbbec0ebcfb33ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6269ad12b925b282d72ec95ed1205ba1"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_log.html#a6269ad12b925b282d72ec95ed1205ba1">Log</a> (std::shared_ptr&lt;::<a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">taraxa::final_chain::FinalChain</a> &gt; final_chain, std::shared_ptr&lt;::<a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">taraxa::TransactionManager</a> &gt; trx_manager, std::shared_ptr&lt; const <a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html">Transaction</a> &gt; transaction, ::<a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry">taraxa::final_chain::LogEntry</a> log, int index) noexcept</td></tr>
+<tr class="separator:a6269ad12b925b282d72ec95ed1205ba1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa9e797bdc5928b64c7ef2822a231cde5"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_log.html#aa9e797bdc5928b64c7ef2822a231cde5">getIndex</a> () const noexcept</td></tr>
 <tr class="separator:aa9e797bdc5928b64c7ef2822a231cde5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4f2a7d4f858f6b96ad07c632d8deda09"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; object::Account &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_log.html#a4f2a7d4f858f6b96ad07c632d8deda09">getAccount</a> (std::optional&lt; response::Value &gt; &amp;&amp;blockArg) const noexcept</td></tr>
@@ -123,12 +123,16 @@ Private Attributes</h2></td></tr>
 <tr class="separator:abafc100162bb7836ea7dd5afa849de4d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae2ba397029b180d86329ccd500b44272"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt;::<a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">taraxa::TransactionManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_log.html#ae2ba397029b180d86329ccd500b44272">trx_manager_</a></td></tr>
 <tr class="separator:ae2ba397029b180d86329ccd500b44272"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa0db30fc193713525f75810157cdc5a4"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html">Transaction</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_log.html#aa0db30fc193713525f75810157cdc5a4">kTransaction</a></td></tr>
+<tr class="separator:aa0db30fc193713525f75810157cdc5a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5581c79cf1e6dc043e9809c5d4589243"><td class="memItemLeft" align="right" valign="top">const ::<a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry">taraxa::final_chain::LogEntry</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_log.html#a5581c79cf1e6dc043e9809c5d4589243">kLog</a></td></tr>
 <tr class="separator:a5581c79cf1e6dc043e9809c5d4589243"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a62c2c2baa256f97cf82eca6bb7d220be"><td class="memItemLeft" align="right" valign="top">const int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_log.html#a62c2c2baa256f97cf82eca6bb7d220be">kIndex</a></td></tr>
+<tr class="separator:a62c2c2baa256f97cf82eca6bb7d220be"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="ae08073d92b9305066fbbec0ebcfb33ed"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae08073d92b9305066fbbec0ebcfb33ed">&#9670;&nbsp;</a></span>Log()</h2>
+<a id="a6269ad12b925b282d72ec95ed1205ba1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6269ad12b925b282d72ec95ed1205ba1">&#9670;&nbsp;</a></span>Log()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -151,8 +155,20 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">std::shared_ptr&lt; const <a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html">Transaction</a> &gt;&#160;</td>
+          <td class="paramname"><em>transaction</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
           <td class="paramtype">::<a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry">taraxa::final_chain::LogEntry</a>&#160;</td>
-          <td class="paramname"><em>log</em>&#160;</td>
+          <td class="paramname"><em>log</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>index</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -319,6 +335,28 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a62c2c2baa256f97cf82eca6bb7d220be"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a62c2c2baa256f97cf82eca6bb7d220be">&#9670;&nbsp;</a></span>kIndex</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const int graphql::taraxa::Log::kIndex</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a5581c79cf1e6dc043e9809c5d4589243"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5581c79cf1e6dc043e9809c5d4589243">&#9670;&nbsp;</a></span>kLog</h2>
 
@@ -330,6 +368,28 @@ Private Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">const ::<a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry">taraxa::final_chain::LogEntry</a> graphql::taraxa::Log::kLog</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa0db30fc193713525f75810157cdc5a4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa0db30fc193713525f75810157cdc5a4">&#9670;&nbsp;</a></span>kTransaction</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt;const <a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html">Transaction</a>&gt; graphql::taraxa::Log::kTransaction</td>
         </tr>
       </table>
   </td>

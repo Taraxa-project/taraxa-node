@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['transactionstatus_6925',['TransactionStatus',['../group___transaction.html#gae7551c287ae57b46d56d27de67df61e7',1,'taraxa']]]
+  ['transactionstatus_6933',['TransactionStatus',['../group___transaction.html#gae7551c287ae57b46d56d27de67df61e7',1,'taraxa']]]
 ];

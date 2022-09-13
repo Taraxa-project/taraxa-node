@@ -76,6 +76,7 @@ var hierarchy =
       [ "dev::p2p::RLPXHandshake", "structdev_1_1p2p_1_1_r_l_p_x_handshake.html", null ],
       [ "dev::p2p::Session", "structdev_1_1p2p_1_1_session.html", null ],
       [ "dev::p2p::UDPSocket< Handler, MaxDatagramSize >", "classdev_1_1p2p_1_1_u_d_p_socket.html", null ],
+      [ "graphql::taraxa::Transaction", "classgraphql_1_1taraxa_1_1_transaction.html", null ],
       [ "taraxa::BlockProposer", "group___d_a_g.html#classtaraxa_1_1_block_proposer", null ],
       [ "taraxa::DagManager", "group___d_a_g.html#classtaraxa_1_1_dag_manager", null ],
       [ "taraxa::DbStorage", "classtaraxa_1_1_db_storage.html", null ],
@@ -362,7 +363,6 @@ var hierarchy =
     [ "dev::Timer", "classdev_1_1_timer.html", null ],
     [ "dev::TimerHelper", "classdev_1_1_timer_helper.html", null ],
     [ "taraxa::Transaction", "structtaraxa_1_1_transaction.html", null ],
-    [ "graphql::taraxa::Transaction", "classgraphql_1_1taraxa_1_1_transaction.html", null ],
     [ "TransactionHashes", null, [
       [ "taraxa::final_chain::FinalChainImpl::TransactionHashesImpl", "structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl.html", null ]
     ] ],

@@ -1,5 +1,9 @@
 var NAVTREEINDEX19 =
 {
+"namespacetaraxa.html#ace279b5bb50e6cdeb99932ac0a0f3416":[12,0,1,3,0,0,1,1,1],
+"namespacetaraxa.html#ad15c710db5fa1c1a877c1b95d8dab462":[12,0,1,3,0,0,1,3,2],
+"namespacetaraxa.html#ae0cd39b43c10f421e537483bfec486f7":[12,0,1,3,0,0,1,1,2],
+"namespacetaraxa.html#af3c4e725bf6e47b5496a0dc02c820a39":[12,0,1,3,0,0,1,3,3],
 "namespacetaraxa.html#afe98d31404ee192f56b630ef745af1ce":[12,0,1,3,0,0,1,3,4],
 "namespacetaraxa.html#structtaraxa_1_1_d_b_config":[12,0,1,3,0,0,1,3],
 "namespacetaraxa.html#structtaraxa_1_1_node_config":[12,0,1,3,0,0,1,1],
@@ -245,9 +249,5 @@ var NAVTREEINDEX19 =
 "state__api_8cpp.html#a21f5167bc7fd439ed8b01d89c1bd814e":[12,0,1,4,0,1,1,4,4],
 "state__api_8cpp.html#a342fbbc3197381abbe76fecb6a04410a":[12,0,1,4,0,1,1,4,7],
 "state__api_8cpp.html#a3b0957049e793929bf52844d0530f177":[12,0,1,4,0,1,1,4,2],
-"state__api_8cpp.html#a698f30640a046758c890185d71ac9148":[12,0,1,4,0,1,1,4,5],
-"state__api_8cpp.html#a96ca88c5edfe67b4b7624d297d659c94":[12,0,1,4,0,1,1,4,9],
-"state__api_8cpp.html#aacb7a63a99bffc003180b478f68e6a3a":[12,0,1,4,0,1,1,4,6],
-"state__api_8cpp.html#ac94cd4bbd15ad6efa51e4fe747388701":[12,0,1,4,0,1,1,4,8],
-"state__api_8cpp.html#ad644166892934a1c30438faa288b5784":[12,0,1,4,0,1,1,4,3]
+"state__api_8cpp.html#a698f30640a046758c890185d71ac9148":[12,0,1,4,0,1,1,4,5]
 };

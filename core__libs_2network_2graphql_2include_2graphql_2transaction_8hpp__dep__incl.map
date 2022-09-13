@@ -1,8 +1,9 @@
 <map id="libraries/core_libs/network/graphql/include/graphql/transaction.hpp" name="libraries/core_libs/network/graphql/include/graphql/transaction.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="349,5,531,61"/>
-<area shape="rect" id="node2" href="$block_8cpp.html" title=" " alt="" coords="5,109,160,165"/>
-<area shape="rect" id="node3" href="$log_8cpp.html" title=" " alt="" coords="184,109,339,165"/>
-<area shape="rect" id="node4" href="$query_8cpp.html" title=" " alt="" coords="363,109,517,165"/>
-<area shape="rect" id="node5" href="$core__libs_2network_2graphql_2src_2transaction_8cpp.html" title=" " alt="" coords="541,109,696,165"/>
-<area shape="rect" id="node6" href="$core__libs_2network_2graphql_2src_2types_2dag__block_8cpp.html" title=" " alt="" coords="721,109,879,165"/>
+<area shape="rect" id="node1" title=" " alt="" coords="299,5,482,61"/>
+<area shape="rect" id="node2" href="$log_8hpp.html" title=" " alt="" coords="170,109,353,165"/>
+<area shape="rect" id="node4" href="$query_8cpp.html" title=" " alt="" coords="5,213,160,269"/>
+<area shape="rect" id="node5" href="$core__libs_2network_2graphql_2src_2transaction_8cpp.html" title=" " alt="" coords="363,213,517,269"/>
+<area shape="rect" id="node6" href="$block_8cpp.html" title=" " alt="" coords="428,109,583,165"/>
+<area shape="rect" id="node7" href="$core__libs_2network_2graphql_2src_2types_2dag__block_8cpp.html" title=" " alt="" coords="607,109,766,165"/>
+<area shape="rect" id="node3" href="$log_8cpp.html" title=" " alt="" coords="184,213,339,269"/>
 </map>
