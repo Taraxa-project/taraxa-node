@@ -65,8 +65,7 @@ HttpProcessor::Response GraphQlHttpProcessor::process(const Request& request) {
       }
     }
 
-    auto result =
-        operations_.resolve({query_ast, operation_name, std::move(variables), std::launch::async, nullptr}).get();
+    auto result = operations_.resolve({query_ast, operation_name, std::move(variables), {}, nullptr}).get();
     return createOkResponse(response::toJSON(std::move(result)));
 
   } catch (const Json::Exception& e) {
