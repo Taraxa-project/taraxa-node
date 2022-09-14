@@ -65,7 +65,7 @@ class FinalChain {
    * @param n block number of header to get. If not specified then it returns latest
    * @return BlockHeader
    */
-  virtual std::shared_ptr<BlockHeader> block_header(std::optional<EthBlockNumber> n = {}) const = 0;
+  virtual std::shared_ptr<const BlockHeader> block_header(std::optional<EthBlockNumber> n = {}) const = 0;
 
   /**
    * @brief Method to get last block number(chain size)
@@ -111,14 +111,14 @@ class FinalChain {
    * @param n EthBlockNumber
    * @return TransactionHashes list if transaction hashes
    */
-  virtual std::shared_ptr<TransactionHashes> transaction_hashes(std::optional<EthBlockNumber> n = {}) const = 0;
+  virtual std::shared_ptr<const TransactionHashes> transaction_hashes(std::optional<EthBlockNumber> n = {}) const = 0;
 
   /**
    * @brief Method to get all transactions from the block
    * @param n EthBlockNumber
    * @return SharedTransactions vector of shared_ptrs to Transaction
    */
-  virtual SharedTransactions transactions(std::optional<EthBlockNumber> n = {}) const = 0;
+  virtual const SharedTransactions transactions(std::optional<EthBlockNumber> n = {}) const = 0;
 
   /**
    * @brief Method to get transaction location by hash

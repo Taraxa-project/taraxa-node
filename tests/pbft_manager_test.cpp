@@ -115,7 +115,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   for (size_t i(0); i < nodes.size(); ++i) {
     auto pbft_mgr = nodes[i]->getPbftManager();
     committee = pbft_mgr->getPbftCommitteeSize();
-    valid_voting_players = pbft_mgr->getDposTotalVotesCount();
+    valid_voting_players = pbft_mgr->currentTotalVotesCount();
     two_t_plus_one = pbft_mgr->getTwoTPlusOne();
     threshold = pbft_mgr->getSortitionThreshold();
     std::cout << "Node" << i << " committee " << committee << ", valid voting players " << valid_voting_players
@@ -171,7 +171,7 @@ void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_s
   for (size_t i(0); i < nodes.size(); ++i) {
     auto pbft_mgr = nodes[i]->getPbftManager();
     committee = pbft_mgr->getPbftCommitteeSize();
-    valid_voting_players = pbft_mgr->getDposTotalVotesCount();
+    valid_voting_players = pbft_mgr->currentTotalVotesCount();
     two_t_plus_one = pbft_mgr->getTwoTPlusOne();
     threshold = pbft_mgr->getSortitionThreshold();
     std::cout << "Node" << i << " committee " << committee << ", valid voting players " << valid_voting_players
@@ -516,7 +516,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
   for (size_t i(0); i < nodes.size(); ++i) {
     auto pbft_mgr = nodes[i]->getPbftManager();
     committee = pbft_mgr->getPbftCommitteeSize();
-    eligible_total_vote_count = pbft_mgr->getDposTotalVotesCount();
+    eligible_total_vote_count = pbft_mgr->currentTotalVotesCount();
     two_t_plus_one = pbft_mgr->getTwoTPlusOne();
     threshold = pbft_mgr->getSortitionThreshold();
     std::cout << "Node" << i << " committee " << committee << ", eligible total vote count "

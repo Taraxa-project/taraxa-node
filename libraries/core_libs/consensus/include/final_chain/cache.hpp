@@ -39,32 +39,33 @@ class MapByBlockCache {
   MapByBlockCache &operator=(const MapByBlockCache &) = delete;
   MapByBlockCache &operator=(MapByBlockCache &&) = delete;
 
-  MapByBlockCache(uint64_t blocks_to_save, GetterFn getter_fn) : kBlocksToKeep(blocks_to_save), getter_fn_(getter_fn) {}
+  MapByBlockCache(uint64_t blocks_to_save, GetterFn &&getter_fn)
+      : kBlocksToKeep(blocks_to_save), getter_fn_(std::move(getter_fn)) {}
 
-  void cleanup() {
-    if (data_by_block_.size() > kBlocksToKeep) {
-      data_by_block_.erase(data_by_block_.begin());
+  void append(uint64_t block_num, const Key &key, const Value &value) const {
+    std::unique_lock lock(mutex_);
+
+    auto blk_entry = data_by_block_.find(block_num);
+    if (blk_entry == data_by_block_.end()) {
+      blk_entry = data_by_block_.emplace(block_num, ValueMap()).first;
     }
-  }
-
-  typename DataMap::iterator newBlockEntry(uint64_t block_num) const {
-    auto emplace_res = data_by_block_.emplace(block_num, ValueMap());
+    blk_entry->second.emplace(key, value);
 
     // Remove older element after we added one more
     if (data_by_block_.size() > kBlocksToKeep) {
       data_by_block_.erase(data_by_block_.begin());
     }
-
-    return emplace_res.first;
   }
 
   Value get(uint64_t blk_num, const Key &key) const {
-    auto blk_entry = data_by_block_.find(blk_num);
-    if (blk_entry != data_by_block_.end()) {
+    {
       std::shared_lock lock(mutex_);
-      auto e = blk_entry->second.find(key);
-      if (e != blk_entry->second.end()) {
-        return e->second;
+      auto blk_entry = data_by_block_.find(blk_num);
+      if (blk_entry != data_by_block_.end()) {
+        auto e = blk_entry->second.find(key);
+        if (e != blk_entry->second.end()) {
+          return e->second;
+        }
       }
     }
 
@@ -75,9 +76,7 @@ class MapByBlockCache {
     // Not save old values in cache
     auto last_num = lastBlockNum();
     if (last_num < kBlocksToKeep || blk_num >= last_num - kBlocksToKeep) {
-      std::unique_lock lock(mutex_);
-      auto blk_entry = newBlockEntry(blk_num);
-      blk_entry->second.emplace(key, value);
+      append(blk_num, key, value);
     }
     return value;
   }
@@ -110,8 +109,8 @@ class ValueByBlockCache {
   ValueByBlockCache &operator=(const ValueByBlockCache &) = delete;
   ValueByBlockCache &operator=(ValueByBlockCache &&) = delete;
 
-  ValueByBlockCache(uint64_t blocks_to_save, GetterFn getter_fn)
-      : kBlocksToKeep(blocks_to_save), getter_fn_(getter_fn) {}
+  ValueByBlockCache(uint64_t blocks_to_save, GetterFn &&getter_fn)
+      : kBlocksToKeep(blocks_to_save), getter_fn_(std::move(getter_fn)) {}
 
   void append(uint64_t block_num, Value value) const {
     std::unique_lock lock(mutex_);

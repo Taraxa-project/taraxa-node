@@ -75,8 +75,8 @@ void NodeStats::logNodeStats() {
   const auto local_chain_size = pbft_chain_->getPbftChainSize();
   const auto local_chain_size_without_empty_blocks = pbft_chain_->getPbftChainSizeExcludingEmptyPbftBlocks();
 
-  const auto local_dpos_total_votes_count = pbft_mgr_->getDposTotalVotesCount();
-  const auto local_weighted_votes = pbft_mgr_->getDposWeightedVotesCount();
+  const auto local_dpos_total_votes_count = pbft_mgr_->currentTotalVotesCount();
+  const auto local_weighted_votes = pbft_mgr_->currentWeightedVotesCount();
   const auto local_twotplusone = pbft_mgr_->getTwoTPlusOne();
 
   // Syncing period...

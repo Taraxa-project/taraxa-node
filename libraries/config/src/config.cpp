@@ -283,6 +283,9 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   } catch (const dev::Exception &e) {
     throw ConfigException(std::string("Could not parse vrf_secret: ") + e.what());
   }
+  // TODO configurable
+  opts_final_chain.expected_max_trx_per_block = 1000;
+  opts_final_chain.max_trie_full_node_levels_to_cache = 4;
 }
 
 void NetworkConfig::validate() const {

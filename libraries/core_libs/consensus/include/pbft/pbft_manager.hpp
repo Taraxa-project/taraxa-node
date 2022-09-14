@@ -195,13 +195,13 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Get total DPOS votes count
    * @return total DPOS votes count
    */
-  size_t getDposTotalVotesCount() const;
+  uint64_t currentTotalVotesCount() const;
 
   /**
    * @brief Get node DPOS weighted votes count
    * @return node DPOS weighted votes count
    */
-  size_t getDposWeightedVotesCount() const;
+  uint64_t currentWeightedVotesCount() const;
 
   /**
    * @brief Get PBFT blocks synced period
@@ -306,16 +306,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
  private:
   // DPOS
   /**
-   * @brief Update DPOS period, total DPOS votes count, and node DPOS weighted votes count.
+   * @brief wait for DPOS period finalization
    */
-  void updateDposState_();
-
-  /**
-   * @brief Get node DPOS eligible votes count
-   * @param addr node address
-   * @return node DPOS eligible votes count
-   */
-  size_t dposEligibleVoteCount_(addr_t const &addr);
+  void waitForPeriodFinalization();
 
   /**
    * @brief Reset PBFT step to 1
@@ -444,13 +437,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param vote
    */
   void placeVote(std::shared_ptr<Vote> &&vote);
-
-  /**
-   * @brief Get current (based on the latest finalized block) PBFT sortition threshold
-   * @param vote_type vote type
-   * @return PBFT sortition threshold
-   */
-  uint64_t getCurrentPbftSortitionThreshold(PbftVoteTypes vote_type) const;
 
   /**
    * @brief Get PBFT sortition threshold for specific period
@@ -643,8 +629,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t pbft_step_last_broadcast_ = 0;
 
   std::atomic<uint64_t> dpos_period_;
-  std::atomic<size_t> dpos_votes_count_;
-  std::atomic<size_t> weighted_votes_count_;
 
   size_t sortition_threshold_ = 0;
   // 2t+1 minimum number of votes for consensus

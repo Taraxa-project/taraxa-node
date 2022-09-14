@@ -89,6 +89,7 @@ struct FullNodeConfig {
   DBConfig db_config;
   ChainConfig chain = ChainConfig::predefined();
   uint64_t chain_id;
+  state_api::Opts opts_final_chain;
   std::vector<logger::Config> log_configs;
   bool is_light_node = false;                            // Is light node
   uint64_t light_node_history = 0;                       // Number of periods to keep in history for a light node

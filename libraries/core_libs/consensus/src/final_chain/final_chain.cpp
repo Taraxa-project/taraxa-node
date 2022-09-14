@@ -31,11 +31,11 @@ class FinalChainImpl final : public FinalChain {
   }();
   EthBlockNumber delegation_delay_;
 
-  ValueByBlockCache<std::shared_ptr<BlockHeader>> block_headers_cache_;
-  ValueByBlockCache<std::optional<h256>> block_hashes_cache_;
-  ValueByBlockCache<SharedTransactions> transactions_cache_;
-  ValueByBlockCache<std::shared_ptr<TransactionHashes>> transaction_hashes_cache_;
-  MapByBlockCache<addr_t, std::optional<state_api::Account>> accounts_cache_;
+  ValueByBlockCache<std::shared_ptr<const BlockHeader>> block_headers_cache_;
+  ValueByBlockCache<std::optional<const h256>> block_hashes_cache_;
+  ValueByBlockCache<const SharedTransactions> transactions_cache_;
+  ValueByBlockCache<std::shared_ptr<const TransactionHashes>> transaction_hashes_cache_;
+  MapByBlockCache<addr_t, std::optional<const state_api::Account>> accounts_cache_;
 
   ValueByBlockCache<uint64_t> total_vote_count_cache_;
   MapByBlockCache<addr_t, uint64_t> dpos_vote_count_cache_;
@@ -49,11 +49,7 @@ class FinalChainImpl final : public FinalChain {
         commitee_size_(config.chain.pbft.committee_size),
         // replay_protection_service_(NewReplayProtectionService({}, db)),
         state_api_([this](auto n) { return block_hash(n).value_or(ZeroHash()); },  //
-                   config.chain.final_chain.state,
-                   {
-                       1500,
-                       4,
-                   },
+                   config.chain.final_chain.state, config.opts_final_chain,
                    {
                        db->stateDbStoragePath().string(),
                    }),
@@ -67,12 +63,13 @@ class FinalChainImpl final : public FinalChain {
                         [this](uint64_t blk, const addr_t& addr) { return state_api_.get_account(blk, addr); }),
 
         total_vote_count_cache_(config.final_chain_cache_in_blocks,
-                                [this](uint64_t blk) { return get_dpos_eligible_total_vote_count(blk); }),
+                                [this](uint64_t blk) { return state_api_.dpos_eligible_total_vote_count(blk); }),
         dpos_vote_count_cache_(
             config.final_chain_cache_in_blocks,
-            [this](uint64_t blk, const addr_t& addr) { return get_dpos_eligible_vote_count(blk, addr); }),
-        dpos_is_eligible_cache_(config.final_chain_cache_in_blocks,
-                                [this](uint64_t blk, const addr_t& addr) { return get_dpos_is_eligible(blk, addr); }) {
+            [this](uint64_t blk, const addr_t& addr) { return state_api_.dpos_eligible_vote_count(blk, addr); }),
+        dpos_is_eligible_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk, const addr_t& addr) {
+          return state_api_.dpos_is_eligible(blk, addr);
+        }) {
     LOG_OBJECTS_CREATE("EXECUTOR");
     num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
     num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
@@ -294,7 +291,7 @@ class FinalChainImpl final : public FinalChain {
     return block_hashes_cache_.get(last_if_absent(n));
   }
 
-  std::shared_ptr<BlockHeader> block_header(std::optional<EthBlockNumber> n = {}) const override {
+  std::shared_ptr<const BlockHeader> block_header(std::optional<EthBlockNumber> n = {}) const override {
     if (!n) {
       return block_headers_cache_.last();
     }
@@ -326,11 +323,11 @@ class FinalChainImpl final : public FinalChain {
         .value_or(0);
   }
 
-  std::shared_ptr<TransactionHashes> transaction_hashes(std::optional<EthBlockNumber> n = {}) const override {
+  std::shared_ptr<const TransactionHashes> transaction_hashes(std::optional<EthBlockNumber> n = {}) const override {
     return transaction_hashes_cache_.get(last_if_absent(n));
   }
 
-  SharedTransactions transactions(std::optional<EthBlockNumber> n = {}) const override {
+  const SharedTransactions transactions(std::optional<EthBlockNumber> n = {}) const override {
     return transactions_cache_.get(last_if_absent(n));
   }
 
@@ -394,12 +391,12 @@ class FinalChainImpl final : public FinalChain {
   }
 
  private:
-  std::shared_ptr<TransactionHashes> get_transaction_hashes(std::optional<EthBlockNumber> n = {}) const {
+  std::shared_ptr<const TransactionHashes> get_transaction_hashes(std::optional<EthBlockNumber> n = {}) const {
     return make_shared<TransactionHashesImpl>(
         db_->lookup(last_if_absent(n), DB::Columns::final_chain_transaction_hashes_by_blk_number));
   }
 
-  SharedTransactions get_transactions(std::optional<EthBlockNumber> n = {}) const {
+  const SharedTransactions get_transactions(std::optional<EthBlockNumber> n = {}) const {
     SharedTransactions ret;
     auto hashes = transaction_hashes(n);
     ret.reserve(hashes->count());
@@ -411,25 +408,13 @@ class FinalChainImpl final : public FinalChain {
     return ret;
   }
 
-  std::shared_ptr<BlockHeader> get_block_header(EthBlockNumber n) const {
+  std::shared_ptr<const BlockHeader> get_block_header(EthBlockNumber n) const {
     if (auto raw = db_->lookup(n, DB::Columns::final_chain_blk_by_number); !raw.empty()) {
       auto ret = std::make_shared<BlockHeader>();
       ret->rlp(dev::RLP(raw));
       return ret;
     }
     return {};
-  }
-
-  uint64_t get_dpos_eligible_total_vote_count(EthBlockNumber blk_num) const {
-    return state_api_.dpos_eligible_total_vote_count(blk_num);
-  }
-
-  uint64_t get_dpos_eligible_vote_count(EthBlockNumber blk_num, addr_t const& addr) const {
-    return state_api_.dpos_eligible_vote_count(blk_num, addr);
-  }
-
-  bool get_dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const {
-    return state_api_.dpos_is_eligible(blk_num, addr);
   }
 
   std::optional<h256> get_block_hash(EthBlockNumber n) const {

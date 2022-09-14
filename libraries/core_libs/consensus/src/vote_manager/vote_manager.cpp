@@ -694,8 +694,7 @@ void VoteManager::sendRewardVotes(const blk_hash_t& pbft_block_hash) {
   auto reward_votes = getAllRewardVotes();
   if (reward_votes.empty()) return;
 
-  auto net = network_.lock();
-  if (net) {
+  if (auto net = network_.lock()) {
     net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(std::move(reward_votes));
   }
 }

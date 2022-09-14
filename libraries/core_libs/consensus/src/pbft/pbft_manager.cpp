@@ -298,38 +298,26 @@ void PbftManager::setSortitionThreshold(size_t const sortition_threshold) {
   sortition_threshold_ = sortition_threshold;
 }
 
-void PbftManager::updateDposState_() {
-  dpos_period_ = pbft_chain_->getPbftChainSize();
+void PbftManager::waitForPeriodFinalization() {
   do {
-    try {
-      dpos_votes_count_ = final_chain_->dpos_eligible_total_vote_count(dpos_period_);
-      weighted_votes_count_ = final_chain_->dpos_eligible_vote_count(dpos_period_, node_addr_);
+    // we still need to wait for block finalization?
+    if (pbft_chain_->getPbftChainSize() == final_chain_->last_block_number()) {
       break;
-    } catch (state_api::ErrFutureBlock &c) {
-      LOG(log_nf_) << c.what();
-      LOG(log_nf_) << "PBFT period " << dpos_period_ << " is too far ahead of DPOS, need wait! PBFT chain size "
-                   << pbft_chain_->getPbftChainSize() << ", have executed chain size "
-                   << final_chain_->last_block_number();
-      // Sleep one PBFT lambda time
-      thisThreadSleepForMilliSeconds(POLLING_INTERVAL_ms);
     }
+    thisThreadSleepForMilliSeconds(POLLING_INTERVAL_ms);
   } while (!stopped_);
 
-  LOG(log_nf_) << "DPOS total votes count is " << dpos_votes_count_ << " for period " << dpos_period_ << ". Account "
-               << node_addr_ << " has " << weighted_votes_count_ << " weighted votes";
+  dpos_period_ = pbft_chain_->getPbftChainSize();
+  LOG(log_nf_) << "DPOS total votes count is " << currentTotalVotesCount() << " for period " << dpos_period_
+               << ". Account " << node_addr_ << " has " << currentWeightedVotesCount() << " weighted votes";
 }
 
-size_t PbftManager::getDposTotalVotesCount() const { return dpos_votes_count_.load(); }
+uint64_t PbftManager::currentTotalVotesCount() const {
+  return final_chain_->dpos_eligible_total_vote_count(dpos_period_);
+}
 
-size_t PbftManager::getDposWeightedVotesCount() const { return weighted_votes_count_.load(); }
-
-size_t PbftManager::dposEligibleVoteCount_(addr_t const &addr) {
-  try {
-    return final_chain_->dpos_eligible_vote_count(dpos_period_, addr);
-  } catch (state_api::ErrFutureBlock &c) {
-    LOG(log_er_) << c.what() << ". Period " << dpos_period_ << " is too far ahead of DPOS";
-    return 0;
-  }
+uint64_t PbftManager::currentWeightedVotesCount() const {
+  return final_chain_->dpos_eligible_vote_count(dpos_period_, node_addr_);
 }
 
 void PbftManager::setPbftStep(size_t const pbft_step) {
@@ -448,7 +436,7 @@ void PbftManager::resetPbftConsensus(uint64_t round) {
                                      batch);
   db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, dpos_period_.load(), batch);
   db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount,
-                                     getDposTotalVotesCount(), batch);
+                                     currentTotalVotesCount(), batch);
   db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedNullBlockHash, false, batch);
   db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedSoftValue, false, batch);
 
@@ -482,7 +470,7 @@ void PbftManager::resetPbftConsensus(uint64_t round) {
   polling_state_print_log_ = true;
 
   if (executed_pbft_block_) {
-    updateDposState_();
+    waitForPeriodFinalization();
     // reset sortition_threshold and TWO_T_PLUS_ONE
     updateTwoTPlusOneAndThreshold_();
     db_->savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, false);
@@ -577,7 +565,7 @@ void PbftManager::initialState() {
   last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
   next_step_time_ms_ = 0;
 
-  updateDposState_();
+  waitForPeriodFinalization();
   // Initialize two_t_plus_one_and sortition_threshold
   updateTwoTPlusOneAndThreshold_();
 
@@ -1147,8 +1135,6 @@ std::pair<bool, std::string> PbftManager::validateVote(const std::shared_ptr<Vot
       return {false, err.str()};
     }
 
-    // TODO[1896]: final_chain_->dpos... ret values should be cached as it is heavily used and most of the time it
-    // returns the same value!
     const uint64_t voter_dpos_votes_count =
         final_chain_->dpos_eligible_vote_count(vote_period - 1, vote->getVoterAddr());
     const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(vote_period - 1);
@@ -1172,21 +1158,7 @@ std::pair<bool, std::string> PbftManager::validateVote(const std::shared_ptr<Vot
   return {true, ""};
 }
 
-uint64_t PbftManager::getCurrentPbftSortitionThreshold(PbftVoteTypes vote_type) const {
-  switch (vote_type) {
-    case propose_vote_type:
-      return std::min<uint64_t>(NUMBER_OF_PROPOSERS, getDposTotalVotesCount());
-    case soft_vote_type:
-    case cert_vote_type:
-    case next_vote_type:
-    default:
-      return sortition_threshold_;
-  }
-}
-
 uint64_t PbftManager::getPbftSortitionThreshold(PbftVoteTypes vote_type, uint64_t pbft_period) const {
-  // TODO[1896]: final_chain_->dpos... ret values should be cached as it is heavily used and most of the time it
-  // returns the same value!
   const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(pbft_period);
 
   switch (vote_type) {
@@ -1215,8 +1187,6 @@ std::shared_ptr<Vote> PbftManager::generateVoteWithWeight(taraxa::blk_hash_t con
   uint64_t pbft_sortition_threshold = 0;
 
   try {
-    // TODO[1896]: final_chain_->dpos... ret values should be cached as it is heavily used and most of the time it
-    // returns the same value!
     voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(period - 1, node_addr_);
     total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(period - 1);
     pbft_sortition_threshold = getPbftSortitionThreshold(vote_type, period - 1);
@@ -1298,9 +1268,10 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
   auto round = getPbftRound();
   const auto propose_period = pbft_chain_->getPbftChainSize() + 1;
   VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, propose_period, round, 1});
-  if (weighted_votes_count_ == 0 ||
-      !vrf_sortition.calculateWeight(getDposWeightedVotesCount(), getDposTotalVotesCount(),
-                                     getCurrentPbftSortitionThreshold(propose_vote_type), dev::toPublic(node_sk_))) {
+  if (currentWeightedVotesCount() == 0 ||
+      !vrf_sortition.calculateWeight(currentWeightedVotesCount(), currentTotalVotesCount(),
+                                     getPbftSortitionThreshold(propose_vote_type, dpos_period_),
+                                     dev::toPublic(node_sk_))) {
     return nullptr;
   }
 
@@ -1787,7 +1758,7 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
 
 void PbftManager::updateTwoTPlusOneAndThreshold_() {
   // Update 2t+1 and threshold
-  auto dpos_total_votes_count = getDposTotalVotesCount();
+  auto dpos_total_votes_count = currentTotalVotesCount();
   sortition_threshold_ = std::min<size_t>(COMMITTEE_SIZE, dpos_total_votes_count);
   two_t_plus_one_ = sortition_threshold_ * 2 / 3 + 1;
   LOG(log_nf_) << "Committee size " << COMMITTEE_SIZE << ", DPOS total votes count " << dpos_total_votes_count
@@ -1923,8 +1894,8 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
   // Check cert votes validation
   try {
     period_data.hasEnoughValidCertVotes(
-        cert_votes, getDposTotalVotesCount(), getCurrentPbftSortitionThreshold(cert_vote_type), getTwoTPlusOne(),
-        [this](auto const &addr) { return dposEligibleVoteCount_(addr); },
+        cert_votes, currentTotalVotesCount(), getPbftSortitionThreshold(cert_vote_type, dpos_period_), getTwoTPlusOne(),
+        [this](auto const &addr) { return final_chain_->dpos_eligible_vote_count(dpos_period_, addr); },
         [this](auto const &addr) { return key_manager_->get(addr); });
   } catch (const std::logic_error &e) {
     // Failed cert votes validation, flush synced PBFT queue and set since
@@ -1932,7 +1903,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
     LOG(log_er_) << e.what();  // log exception text from hasEnoughValidCertVotes
     LOG(log_er_) << "Synced PBFT block " << pbft_block_hash
                  << " doesn't have enough valid cert votes. Clear synced PBFT blocks! DPOS total votes count: "
-                 << getDposTotalVotesCount();
+                 << currentTotalVotesCount();
     sync_queue_.clear();
     net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
     return std::nullopt;
