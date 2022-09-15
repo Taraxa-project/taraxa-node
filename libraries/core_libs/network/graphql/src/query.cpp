@@ -52,8 +52,15 @@ std::vector<std::shared_ptr<object::Block>> Query::getBlocks(response::Value&& f
                                                              std::optional<response::Value>&& toArg) const noexcept {
   std::vector<std::shared_ptr<object::Block>> blocks;
 
-  const uint64_t start_block_num = fromArg.get<int>();
-  uint64_t end_block_num = toArg ? toArg->get<int>() : start_block_num + Query::kMaxPropagationLimit;
+  uint64_t start_block_num = fromArg.get<int>();
+  uint64_t end_block_num = toArg ? toArg->get<int>() : (start_block_num + Query::kMaxPropagationLimit);
+
+  // Incase of reverse order of blocks
+  if (start_block_num > end_block_num) {
+    auto tmp = start_block_num;
+    start_block_num = end_block_num;
+    end_block_num = tmp;
+  }
 
   if (end_block_num - start_block_num > Query::kMaxPropagationLimit) {
     end_block_num = start_block_num + Query::kMaxPropagationLimit;
