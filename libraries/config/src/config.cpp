@@ -132,6 +132,12 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   network.disable_peer_blacklist = getConfigDataAsBoolean(root, {"disable_peer_blacklist"}, true, false);
   network.deep_syncing_threshold =
       getConfigDataAsUInt(root, {"deep_syncing_threshold"}, true, network.deep_syncing_threshold);
+  network.vote_accepting_periods =
+      getConfigDataAsUInt(root, {"vote_accepting_periods"}, true, network.vote_accepting_periods);
+  network.vote_accepting_rounds =
+      getConfigDataAsUInt(root, {"vote_accepting_rounds"}, true, network.vote_accepting_rounds);
+  network.vote_accepting_steps =
+      getConfigDataAsUInt(root, {"vote_accepting_steps"}, true, network.vote_accepting_steps);
   for (auto &item : root["network_boot_nodes"]) {
     NodeConfig node;
     node.id = getConfigDataAsString(item, {"id"});
