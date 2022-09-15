@@ -1047,3 +1047,5 @@ workflows:
           filters:
             tags:
               ignore: /.*/
+            branches:
+              only: chore/issue-2030-redesign-releasing-helm-charts
