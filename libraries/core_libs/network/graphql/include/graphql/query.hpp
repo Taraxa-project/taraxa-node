@@ -18,18 +18,18 @@ class Query {
                  std::weak_ptr<::taraxa::Network> network, uint64_t chain_id) noexcept;
 
   std::shared_ptr<object::Block> getBlock(std::optional<response::Value>&& numberArg,
-                                          std::optional<response::Value>&& hashArg) const noexcept;
+                                          std::optional<response::Value>&& hashArg) const;
   std::vector<std::shared_ptr<object::Block>> getBlocks(response::Value&& fromArg,
-                                                        std::optional<response::Value>&& toArg) const noexcept;
-  std::shared_ptr<object::Transaction> getTransaction(response::Value&& hashArg) const noexcept;
-  response::Value getGasPrice() const noexcept;
-  std::shared_ptr<object::SyncState> getSyncing() const noexcept;
-  response::Value getChainID() const noexcept;
-  std::shared_ptr<object::DagBlock> getDagBlock(std::optional<response::Value>&& hashArg) const noexcept;
+                                                        std::optional<response::Value>&& toArg) const;
+  std::shared_ptr<object::Transaction> getTransaction(response::Value&& hashArg) const;
+  response::Value getGasPrice() const;
+  std::shared_ptr<object::SyncState> getSyncing() const;
+  response::Value getChainID() const;
+  std::shared_ptr<object::DagBlock> getDagBlock(std::optional<response::Value>&& hashArg) const;
   std::vector<std::shared_ptr<object::DagBlock>> getDagBlocks(std::optional<response::Value>&& dagLevelArg,
                                                               std::optional<int>&& countArg,
-                                                              std::optional<bool>&& reverseArg) const noexcept;
-  std::shared_ptr<object::CurrentState> getNodeState() const noexcept;
+                                                              std::optional<bool>&& reverseArg) const;
+  std::shared_ptr<object::CurrentState> getNodeState() const;
 
  private:
   // TODO: use pagination limit for all "list" queries

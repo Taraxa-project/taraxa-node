@@ -31,7 +31,7 @@ response::Value Account::getCode() const noexcept {
   return response::Value(dev::toJS(final_chain_->get_code(kAddress, final_chain_->last_block_number())));
 }
 
-response::Value Account::getStorage(response::Value&& slotArg) const noexcept {
+response::Value Account::getStorage(response::Value&& slotArg) const {
   return response::Value(dev::toJS(final_chain_->get_account_storage(kAddress, dev::u256(slotArg.get<std::string>()))));
 }
 
