@@ -1043,7 +1043,7 @@ workflows:
   helm-chart:
     jobs:
       - helm/lint-chart:
-          chart-path: charts/taraxa-node
+          charts-dir: charts/taraxa-node
           filters:
             tags:
               ignore: /.*/
