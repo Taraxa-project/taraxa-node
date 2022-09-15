@@ -1042,7 +1042,7 @@ workflows:
             - build-linux
             - build-mac
 
-  helm-chart:
+  helm-chart-release:
     jobs:
       - helm/lint-chart:
           charts-dir: charts/taraxa-node
