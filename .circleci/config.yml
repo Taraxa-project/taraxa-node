@@ -1044,6 +1044,7 @@ workflows:
 
   helm-chart-release:
     jobs:
+
       - helm/lint-chart:
           charts-dir: charts/taraxa-node
           filters:
@@ -1051,3 +1052,14 @@ workflows:
               ignore: /.*/
             branches:
               only: chore/issue-2030-redesign-releasing-helm-charts
+
+      - helm/publish-chart:
+          context:
+            - CHARTSREPO
+          charts-dir: charts/taraxa-node
+          chartmuseum-url: https://charts.gcp.taraxa.io
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /chart\/logging-operator\/\d+.\d+.\d+/
