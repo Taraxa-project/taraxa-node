@@ -118,7 +118,7 @@ TEST_F(TransactionTest, sig) {
 
 TEST_F(TransactionTest, verifiers) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  auto final_chain = NewFinalChain(db, ChainConfig::predefined("test"));
+  auto final_chain = NewFinalChain(db, FullNodeConfig("test"));
   TransactionManager trx_mgr(FullNodeConfig(), db, final_chain, addr_t());
   // insert trx
   std::thread t([&trx_mgr]() {
@@ -138,7 +138,7 @@ TEST_F(TransactionTest, verifiers) {
 
 TEST_F(TransactionTest, transaction_limit) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  TransactionManager trx_mgr(FullNodeConfig(), db, NewFinalChain(db, ChainConfig::predefined("test")), addr_t());
+  TransactionManager trx_mgr(FullNodeConfig(), db, NewFinalChain(db, FullNodeConfig("test")), addr_t());
   // insert trx
   std::thread t([&trx_mgr]() {
     for (auto const& t : *g_signed_trx_samples) {
@@ -159,7 +159,7 @@ TEST_F(TransactionTest, transaction_limit) {
 
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  TransactionManager trx_mgr(FullNodeConfig(), db, NewFinalChain(db, ChainConfig::predefined("test")), addr_t());
+  TransactionManager trx_mgr(FullNodeConfig(), db, NewFinalChain(db, FullNodeConfig("test")), addr_t());
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : *g_signed_trx_samples) {
       trx_mgr.insertTransaction(t);
@@ -186,8 +186,8 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
 
 TEST_F(TransactionTest, transaction_low_nonce) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  taraxa::ChainConfig cfg = ChainConfig::predefined("test");
-  cfg.final_chain.state.execution_options.enable_nonce_skipping = true;
+  taraxa::FullNodeConfig cfg = FullNodeConfig("test");
+  cfg.chain.final_chain.state.execution_options.enable_nonce_skipping = true;
   auto final_chain = NewFinalChain(db, cfg);
   TransactionManager trx_mgr(FullNodeConfig(), db, final_chain, addr_t());
   const auto& trx_nonce_2 = g_signed_trx_samples[1];
@@ -253,7 +253,7 @@ TEST_F(TransactionTest, transaction_low_nonce) {
 
 TEST_F(TransactionTest, transaction_concurrency) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  TransactionManager trx_mgr(FullNodeConfig(), db, NewFinalChain(db, ChainConfig::predefined("test")), addr_t());
+  TransactionManager trx_mgr(FullNodeConfig(), db, NewFinalChain(db, FullNodeConfig("test")), addr_t());
   bool stopped = false;
   // Insert transactions to memory pool and keep trying to insert them again on separate thread, it should always fail
   std::thread insertTrx([&trx_mgr, &stopped]() {

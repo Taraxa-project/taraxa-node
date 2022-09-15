@@ -694,9 +694,9 @@ void VoteManager::sendRewardVotes(const blk_hash_t& pbft_block_hash) {
   auto reward_votes = getAllRewardVotes();
   if (reward_votes.empty()) return;
 
-  auto net = network_.lock();
-  assert(net);
-  net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(std::move(reward_votes));
+  if (auto net = network_.lock()) {
+    net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(std::move(reward_votes));
+  }
 }
 
 NextVotesManager::NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db,

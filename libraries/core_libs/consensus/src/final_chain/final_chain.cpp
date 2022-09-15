@@ -4,6 +4,7 @@
 
 #include "common/constants.hpp"
 #include "common/thread_pool.hpp"
+#include "final_chain/cache.hpp"
 #include "final_chain/replay_protection_service.hpp"
 #include "final_chain/rewards_stats.hpp"
 #include "final_chain/trie_common.hpp"
@@ -17,9 +18,6 @@ class FinalChainImpl final : public FinalChain {
   std::unique_ptr<ReplayProtectionService> replay_protection_service_;
   StateAPI state_api_;
 
-  mutable std::shared_mutex last_block_mu_;
-  mutable std::shared_ptr<BlockHeader> last_block_;
-
   // It is not prepared to use more then 1 thread. Examine it if you want to change threads count
   util::ThreadPool executor_thread_{1};
 
@@ -32,62 +30,98 @@ class FinalChainImpl final : public FinalChain {
     return ret;
   }();
   EthBlockNumber delegation_delay_;
+
+  ValueByBlockCache<std::shared_ptr<const BlockHeader>> block_headers_cache_;
+  ValueByBlockCache<std::optional<const h256>> block_hashes_cache_;
+  ValueByBlockCache<const SharedTransactions> transactions_cache_;
+  ValueByBlockCache<std::shared_ptr<const TransactionHashes>> transaction_hashes_cache_;
+  MapByBlockCache<addr_t, std::optional<const state_api::Account>> accounts_cache_;
+
+  ValueByBlockCache<uint64_t> total_vote_count_cache_;
+  MapByBlockCache<addr_t, uint64_t> dpos_vote_count_cache_;
+  MapByBlockCache<addr_t, uint64_t> dpos_is_eligible_cache_;
+
   LOG_OBJECTS_DEFINE
 
  public:
-  FinalChainImpl(const std::shared_ptr<DB>& db, const taraxa::ChainConfig& config, const addr_t& node_addr)
+  FinalChainImpl(const std::shared_ptr<DB>& db, const taraxa::FullNodeConfig& config, const addr_t& node_addr)
       : db_(db),
-        commitee_size_(config.pbft.committee_size),
+        commitee_size_(config.chain.pbft.committee_size),
         // replay_protection_service_(NewReplayProtectionService({}, db)),
         state_api_([this](auto n) { return block_hash(n).value_or(ZeroHash()); },  //
-                   config.final_chain.state,
-                   {
-                       1500,
-                       4,
-                   },
+                   config.chain.final_chain.state, config.opts_final_chain,
                    {
                        db->stateDbStoragePath().string(),
-                   }) {
+                   }),
+        block_headers_cache_(config.final_chain_cache_in_blocks,
+                             [this](uint64_t blk) { return get_block_header(blk); }),
+        block_hashes_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return get_block_hash(blk); }),
+        transactions_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return get_transactions(blk); }),
+        transaction_hashes_cache_(config.final_chain_cache_in_blocks,
+                                  [this](uint64_t blk) { return get_transaction_hashes(blk); }),
+        accounts_cache_(config.final_chain_cache_in_blocks,
+                        [this](uint64_t blk, const addr_t& addr) { return state_api_.get_account(blk, addr); }),
+
+        total_vote_count_cache_(config.final_chain_cache_in_blocks,
+                                [this](uint64_t blk) { return state_api_.dpos_eligible_total_vote_count(blk); }),
+        dpos_vote_count_cache_(
+            config.final_chain_cache_in_blocks,
+            [this](uint64_t blk, const addr_t& addr) { return state_api_.dpos_eligible_vote_count(blk, addr); }),
+        dpos_is_eligible_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk, const addr_t& addr) {
+          return state_api_.dpos_is_eligible(blk, addr);
+        }) {
     LOG_OBJECTS_CREATE("EXECUTOR");
     num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
     num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
     auto state_db_descriptor = state_api_.get_last_committed_state_descriptor();
-    if (auto last_blk_num = db_->lookup_int<EthBlockNumber>(DBMetaKeys::LAST_NUMBER, DB::Columns::final_chain_meta);
-        last_blk_num) {
-      last_block_ = std::make_shared<BlockHeader>();
-      last_block_->rlp(dev::RLP(db_->lookup(*last_blk_num, DB::Columns::final_chain_blk_by_number)));
-      if (last_block_->number != state_db_descriptor.blk_num) {
-        assert(state_db_descriptor.blk_num < last_block_->number);
-        for (auto n = state_db_descriptor.blk_num + 1; n <= last_block_->number; ++n) {
-          auto blk = n == last_block_->number ? last_block_ : FinalChainImpl::block_header(n);
-
-          auto raw_period_data = db_->getPeriodDataRaw(blk->number);
-          assert(raw_period_data.size() > 0);
-
-          PeriodData period_data(raw_period_data);
-
-          // Creates rewards stats
-          RewardsStats rewards_stats;
-          std::vector<addr_t> txs_validators = rewards_stats.processStats(
-              period_data, dpos_eligible_total_vote_count(period_data.pbft_blk->getPeriod() - 1), commitee_size_);
-
-          auto res = state_api_.transition_state(
-              {blk->author, blk->gas_limit, blk->timestamp, BlockHeader::difficulty()},
-              to_state_api_transactions(period_data.transactions), txs_validators, {}, rewards_stats);
-
-          assert(res.state_root == blk->state_root);
-          state_api_.transition_state_commit();
-        }
-      }
-    } else {
-      assert(state_db_descriptor.blk_num == 0);
+    auto last_blk_num = db_->lookup_int<EthBlockNumber>(DBMetaKeys::LAST_NUMBER, DB::Columns::final_chain_meta);
+    // If we don't have genesis block in db then create and push it
+    if (!last_blk_num) {
       auto batch = db_->createWriteBatch();
-      last_block_ =
-          append_block(batch, config.final_chain.genesis_block_fields.author,
-                       config.final_chain.genesis_block_fields.timestamp, GAS_LIMIT, state_db_descriptor.state_root);
+      auto header = append_block(batch, config.chain.final_chain.genesis_block_fields.author,
+                                 config.chain.final_chain.genesis_block_fields.timestamp, GAS_LIMIT,
+                                 state_db_descriptor.state_root);
+
+      block_headers_cache_.append(header->number, header);
       db_->commitWriteBatch(batch, db_opts_w_);
     }
-    delegation_delay_ = config.final_chain.state.dpos->delegation_delay;
+
+    if (last_blk_num) {
+      int64_t start = 0;
+      if (*last_blk_num > 5) {
+        start = *last_blk_num - 5;
+      }
+      for (uint64_t num = start; num <= *last_blk_num; ++num) {
+        block_headers_cache_.get(num);
+      }
+    }
+
+    auto last_block = block_headers_cache_.last();
+    if (last_block->number != state_db_descriptor.blk_num) {
+      assert(state_db_descriptor.blk_num < last_block->number);
+      for (auto n = state_db_descriptor.blk_num + 1; n <= last_block->number; ++n) {
+        auto blk = block_headers_cache_.get(n);
+
+        auto raw_period_data = db_->getPeriodDataRaw(blk->number);
+        assert(raw_period_data.size() > 0);
+
+        PeriodData period_data(raw_period_data);
+
+        // Creates rewards stats
+        RewardsStats rewards_stats;
+        std::vector<addr_t> txs_validators = rewards_stats.processStats(
+            period_data, dpos_eligible_total_vote_count(period_data.pbft_blk->getPeriod() - 1), commitee_size_);
+
+        auto res = state_api_.transition_state({blk->author, blk->gas_limit, blk->timestamp, BlockHeader::difficulty()},
+                                               to_state_api_transactions(period_data.transactions), txs_validators, {},
+                                               rewards_stats);
+
+        assert(res.state_root == blk->state_root);
+        state_api_.transition_state_commit();
+      }
+    }
+
+    delegation_delay_ = config.chain.final_chain.state.dpos->delegation_delay;
   }
 
   void stop() override { executor_thread_.stop(); }
@@ -174,14 +208,11 @@ class FinalChainImpl final : public FinalChain {
 
     db_->commitWriteBatch(batch, db_opts_w_);
     state_api_.transition_state_commit();
-    {
-      std::unique_lock l(last_block_mu_);
-      last_block_ = blk_header;
-    }
 
     num_executed_dag_blk_ = num_executed_dag_blk;
     num_executed_trx_ = num_executed_trx;
     block_finalized_emitter_.emit(result);
+    block_headers_cache_.append(blk_header->number, blk_header);
     LOG(log_nf_) << " successful finalize block " << result->hash << " with number " << blk_header->number;
 
     // Creates snapshot if needed
@@ -246,42 +277,25 @@ class FinalChainImpl final : public FinalChain {
     db_->insert(batch, DB::Columns::final_chain_blk_hash_by_number, blk_header.number, blk_header.hash);
     db_->insert(batch, DB::Columns::final_chain_blk_number_by_hash, blk_header.hash, blk_header.number);
     db_->insert(batch, DB::Columns::final_chain_meta, DBMetaKeys::LAST_NUMBER, blk_header.number);
+
     return blk_header_ptr;
   }
 
-  std::shared_ptr<BlockHeader const> block_header(std::optional<EthBlockNumber> n = {}) const override {
-    if (!n) {
-      std::shared_lock l(last_block_mu_);
-      return last_block_;
-    }
-    if (auto raw = db_->lookup(*n, DB::Columns::final_chain_blk_by_number); !raw.empty()) {
-      auto ret = std::make_shared<BlockHeader>();
-      ret->rlp(dev::RLP(raw));
-      return ret;
-    }
-    return {};
-  }
-
-  EthBlockNumber last_block_number() const override { return block_header()->number; }
+  EthBlockNumber last_block_number() const override { return block_headers_cache_.last()->number; }
 
   std::optional<EthBlockNumber> block_number(h256 const& h) const override {
     return db_->lookup_int<EthBlockNumber>(h, DB::Columns::final_chain_blk_number_by_hash);
   }
 
   std::optional<h256> block_hash(std::optional<EthBlockNumber> n = {}) const override {
-    if (!n) {
-      return block_header()->hash;
-    }
-    auto raw = db_->lookup(*n, DB::Columns::final_chain_blk_hash_by_number);
-    if (raw.empty()) {
-      return {};
-    }
-    return h256(raw, h256::FromBinary);
+    return block_hashes_cache_.get(last_if_absent(n));
   }
 
-  std::shared_ptr<TransactionHashes> transaction_hashes(std::optional<EthBlockNumber> n = {}) const override {
-    return make_shared<TransactionHashesImpl>(
-        db_->lookup(last_if_absent(n), DB::Columns::final_chain_transaction_hashes_by_blk_number));
+  std::shared_ptr<const BlockHeader> block_header(std::optional<EthBlockNumber> n = {}) const override {
+    if (!n) {
+      return block_headers_cache_.last();
+    }
+    return block_headers_cache_.get(*n);
   }
 
   std::optional<TransactionLocation> transaction_location(h256 const& trx_hash) const override {
@@ -309,16 +323,12 @@ class FinalChainImpl final : public FinalChain {
         .value_or(0);
   }
 
-  SharedTransactions transactions(std::optional<EthBlockNumber> n = {}) const override {
-    SharedTransactions ret;
-    auto hashes = transaction_hashes(n);
-    ret.reserve(hashes->count());
-    for (size_t i = 0; i < ret.capacity(); ++i) {
-      auto trx = db_->getTransaction(hashes->get(i));
-      assert(trx);
-      ret.emplace_back(trx);
-    }
-    return ret;
+  std::shared_ptr<const TransactionHashes> transaction_hashes(std::optional<EthBlockNumber> n = {}) const override {
+    return transaction_hashes_cache_.get(last_if_absent(n));
+  }
+
+  const SharedTransactions transactions(std::optional<EthBlockNumber> n = {}) const override {
+    return transactions_cache_.get(last_if_absent(n));
   }
 
   std::vector<EthBlockNumber> withBlockBloom(LogBloom const& b, EthBlockNumber from, EthBlockNumber to) const override {
@@ -334,11 +344,7 @@ class FinalChainImpl final : public FinalChain {
 
   std::optional<state_api::Account> get_account(addr_t const& addr,
                                                 std::optional<EthBlockNumber> blk_n = {}) const override {
-    return state_api_.get_account(last_if_absent(blk_n), addr);
-  }
-
-  virtual u256 get_staking_balance(addr_t const& addr, std::optional<EthBlockNumber> blk_n = {}) const override {
-    return state_api_.get_staking_balance(last_if_absent(blk_n), addr);
+    return accounts_cache_.get(last_if_absent(blk_n), addr);
   }
 
   vrf_wrapper::vrf_pk_t get_vrf_key(addr_t const& addr, std::optional<EthBlockNumber> blk_n = {}) const override {
@@ -373,15 +379,50 @@ class FinalChainImpl final : public FinalChain {
   }
 
   uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const override {
-    return state_api_.dpos_eligible_total_vote_count(blk_num);
+    return total_vote_count_cache_.get(blk_num);
   }
 
   uint64_t dpos_eligible_vote_count(EthBlockNumber blk_num, addr_t const& addr) const override {
-    return state_api_.dpos_eligible_vote_count(blk_num, addr);
+    return dpos_vote_count_cache_.get(blk_num, addr);
   }
 
   bool dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const override {
-    return state_api_.dpos_is_eligible(blk_num, addr);
+    return dpos_is_eligible_cache_.get(blk_num, addr);
+  }
+
+ private:
+  std::shared_ptr<const TransactionHashes> get_transaction_hashes(std::optional<EthBlockNumber> n = {}) const {
+    return make_shared<TransactionHashesImpl>(
+        db_->lookup(last_if_absent(n), DB::Columns::final_chain_transaction_hashes_by_blk_number));
+  }
+
+  const SharedTransactions get_transactions(std::optional<EthBlockNumber> n = {}) const {
+    SharedTransactions ret;
+    auto hashes = transaction_hashes(n);
+    ret.reserve(hashes->count());
+    for (size_t i = 0; i < ret.capacity(); ++i) {
+      auto trx = db_->getTransaction(hashes->get(i));
+      assert(trx);
+      ret.emplace_back(trx);
+    }
+    return ret;
+  }
+
+  std::shared_ptr<const BlockHeader> get_block_header(EthBlockNumber n) const {
+    if (auto raw = db_->lookup(n, DB::Columns::final_chain_blk_by_number); !raw.empty()) {
+      auto ret = std::make_shared<BlockHeader>();
+      ret->rlp(dev::RLP(raw));
+      return ret;
+    }
+    return {};
+  }
+
+  std::optional<h256> get_block_hash(EthBlockNumber n) const {
+    auto raw = db_->lookup(n, DB::Columns::final_chain_blk_hash_by_number);
+    if (raw.empty()) {
+      return {};
+    }
+    return h256(raw, h256::FromBinary);
   }
 
   EthBlockNumber last_if_absent(std::optional<EthBlockNumber> const& client_blk_n) const {
@@ -453,7 +494,7 @@ class FinalChainImpl final : public FinalChain {
   };
 };
 
-std::shared_ptr<FinalChain> NewFinalChain(const std::shared_ptr<DB>& db, const taraxa::ChainConfig& config,
+std::shared_ptr<FinalChain> NewFinalChain(const std::shared_ptr<DB>& db, const taraxa::FullNodeConfig& config,
                                           const addr_t& node_addr) {
   return make_shared<FinalChainImpl>(db, config, node_addr);
 }

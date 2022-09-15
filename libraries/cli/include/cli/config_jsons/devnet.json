@@ -16,6 +16,7 @@
   "vote_accepting_periods": 5,
   "vote_accepting_rounds": 5,
   "vote_accepting_steps": 25,
+  "final_chain_cache_in_blocks": 5,
   "network_boot_nodes": [
     {
       "id": "fdcf4c860d9bb1f17608cbf2dd10ac3ae8d0ba41aa20b3e43fb85a72617a356f8609475d68b44e25dd508a0e5b36da75e7ae9aaf93360f4f002464d1d75fd353",

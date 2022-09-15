@@ -5,7 +5,7 @@
 #include "common/event.hpp"
 #include "common/range_view.hpp"
 #include "common/types.hpp"
-#include "config/chain_config.hpp"
+#include "config/config.hpp"
 #include "final_chain/data.hpp"
 #include "final_chain/state_api.hpp"
 #include "storage/storage.hpp"
@@ -65,7 +65,7 @@ class FinalChain {
    * @param n block number of header to get. If not specified then it returns latest
    * @return BlockHeader
    */
-  virtual std::shared_ptr<BlockHeader const> block_header(std::optional<EthBlockNumber> n = {}) const = 0;
+  virtual std::shared_ptr<const BlockHeader> block_header(std::optional<EthBlockNumber> n = {}) const = 0;
 
   /**
    * @brief Method to get last block number(chain size)
@@ -111,14 +111,14 @@ class FinalChain {
    * @param n EthBlockNumber
    * @return TransactionHashes list if transaction hashes
    */
-  virtual std::shared_ptr<TransactionHashes> transaction_hashes(std::optional<EthBlockNumber> n = {}) const = 0;
+  virtual std::shared_ptr<const TransactionHashes> transaction_hashes(std::optional<EthBlockNumber> n = {}) const = 0;
 
   /**
    * @brief Method to get all transactions from the block
    * @param n EthBlockNumber
    * @return SharedTransactions vector of shared_ptrs to Transaction
    */
-  virtual SharedTransactions transactions(std::optional<EthBlockNumber> n = {}) const = 0;
+  virtual const SharedTransactions transactions(std::optional<EthBlockNumber> n = {}) const = 0;
 
   /**
    * @brief Method to get transaction location by hash
@@ -160,13 +160,6 @@ class FinalChain {
    */
   virtual std::optional<state_api::Account> get_account(addr_t const& addr,
                                                         std::optional<EthBlockNumber> blk_n = {}) const = 0;
-  /**
-   * @brief Method to get staking balance from DPOS precompiled contract
-   * @param addr account address
-   * @param blk_n number of block we are getting state from
-   * @return staking balance
-   */
-  virtual u256 get_staking_balance(addr_t const& addr, std::optional<EthBlockNumber> blk_n = {}) const = 0;
 
   /**
    * @brief Get the vrf key object from DPOS state
@@ -237,7 +230,7 @@ class FinalChain {
   }
 };
 
-std::shared_ptr<FinalChain> NewFinalChain(const std::shared_ptr<DB>& db, const taraxa::ChainConfig& config,
+std::shared_ptr<FinalChain> NewFinalChain(const std::shared_ptr<DB>& db, const taraxa::FullNodeConfig& config,
                                           const addr_t& node_addr = {});
 /** @} */
 
