@@ -30,7 +30,7 @@ class FullNode;
  * transactions and all transactions state change
  *
  * Incoming new transactions can be verified with verifyTransaction functions and than inserted in the transaction pool
- * with insertValidatedTransactions. Transactions are kept in transactions memory pool until they are included in a
+ * with insertValidatedTransaction. Transactions are kept in transactions memory pool until they are included in a
  * proposed dag block or received in an incoming dag block. Transaction verification consist of:
  * - Verifying the format
  * - Verifying signature
@@ -92,13 +92,14 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   void blockFinalized(uint64_t block_number);
 
   /**
-   * @brief Inserts batch of verified transactions to transaction pool
+   * @brief Inserts verified transaction to transaction pool
    *
-   * @note Some of the transactions might be already processed -> they are not processed and inserted again
-   * @param txs transactions to be processed
-   * @return number of successfully inserted unseen transactions
+   * @note transaction might be already processed -> they are not processed and inserted again
+   * @param tx transaction to be processed
+   * @param status transaction status
+   * @return true if successfully inserted unseen transactions
    */
-  uint32_t insertValidatedTransactions(std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> &&txs);
+  bool insertValidatedTransaction(std::shared_ptr<Transaction> &&tx, const TransactionStatus status);
 
   /**
    * @param trx_hash transaction hash

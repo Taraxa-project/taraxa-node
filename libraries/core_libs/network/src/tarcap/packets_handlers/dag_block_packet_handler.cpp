@@ -1,6 +1,7 @@
 #include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 
 #include "dag/dag_manager.hpp"
+#include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
 #include "transaction/transaction_manager.hpp"
@@ -65,12 +66,17 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
   while (index < trxs.size()) {
     const uint32_t trx_count_to_send = std::min(static_cast<size_t>(kMaxTransactionsInPacket), trxs.size() - index);
 
-    dev::RLPStream s(trx_count_to_send);
+    dev::RLPStream s(TransactionPacketHandler::kTransactionPacketItemCount);
+    s.appendList(trx_count_to_send);
+
     taraxa::bytes trx_bytes;
     for (uint32_t i = index; i < index + trx_count_to_send; i++) {
       auto &trx_data = trxs[i]->rlp();
+      s << trxs[i]->getHash();
       trx_bytes.insert(trx_bytes.end(), std::begin(trx_data), std::end(trx_data));
     }
+
+    s.appendList(trx_count_to_send);
     s.appendRaw(trx_bytes, trx_count_to_send);
     sealAndSend(peer_id, TransactionPacket, std::move(s));
 

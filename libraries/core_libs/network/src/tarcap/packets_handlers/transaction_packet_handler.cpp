@@ -17,36 +17,57 @@ TransactionPacketHandler::TransactionPacketHandler(std::shared_ptr<PeersState> p
 
 void TransactionPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
   auto items = packet_data.rlp_.itemCount();
-  if (items == 0 || items > kMaxTransactionsInPacket) {
-    throw InvalidRlpItemsCountException(packet_data.type_str_, items, kMaxTransactionsInPacket);
+  if (items != kTransactionPacketItemCount) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, items, kTransactionPacketItemCount);
+  }
+  auto hashes_count = packet_data.rlp_[0].itemCount();
+  auto trx_count = packet_data.rlp_[1].itemCount();
+
+  if (hashes_count != trx_count) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, hashes_count, trx_count);
+  }
+  if (hashes_count == 0 || hashes_count > kMaxTransactionsInPacket) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, hashes_count, kMaxTransactionsInPacket);
   }
 }
 
 inline void TransactionPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
-  std::string received_transactions;
-  const auto transaction_count = packet_data.rlp_.itemCount();
+  std::vector<trx_hash_t> received_transactions;
 
-  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> transactions;
-  transactions.reserve(transaction_count);
+  const auto transaction_count = packet_data.rlp_[0].itemCount();
+  received_transactions.reserve(transaction_count);
+
+  std::vector<trx_hash_t> trx_hashes;
+  trx_hashes.reserve(transaction_count);
+
+  // First extract only transaction hashes
+  for (const auto &trx_hash_rlp : packet_data.rlp_[0]) {
+    auto trx_hash = trx_hash_rlp.toHash<trx_hash_t>();
+    peer->markTransactionAsKnown(trx_hash);
+    trx_hashes.emplace_back(std::move(trx_hash));
+  }
 
   for (size_t tx_idx = 0; tx_idx < transaction_count; tx_idx++) {
-    std::shared_ptr<Transaction> transaction;
+    const auto &trx_hash = trx_hashes[tx_idx];
 
-    try {
-      transaction = std::make_shared<Transaction>(packet_data.rlp_[tx_idx].data().toBytes());
-    } catch (const Transaction::InvalidSignature &e) {
-      throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
-    }
-
-    TransactionStatus status = TransactionStatus::Verified;
-    std::string reason;
     if (trx_mgr_) [[likely]] {  // ONLY FOR TESTING
-      if (trx_mgr_->isTransactionKnown(transaction->getHash())) {
+      // Skip any transactions that are already known to the trx mgr
+      if (trx_mgr_->isTransactionKnown(trx_hash)) {
         continue;
       }
 
-      std::tie(status, reason) = trx_mgr_->verifyTransaction(transaction);
+      std::shared_ptr<Transaction> transaction;
+      // Deserialization is expensive, do it only for the transactions we are about to process
+      try {
+        transaction = std::make_shared<Transaction>(packet_data.rlp_[1][tx_idx].data().toBytes());
+        received_transactions.emplace_back(trx_hash);
+      } catch (const Transaction::InvalidSignature &e) {
+        throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
+      }
 
+      TransactionStatus status;
+      std::string reason;
+      std::tie(status, reason) = trx_mgr_->verifyTransaction(transaction);
       switch (status) {
         case TransactionStatus::Invalid: {
           std::ostringstream err_msg;
@@ -68,36 +89,30 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
         default:
           assert(false);
       }
+
+      received_trx_count_++;
+      if (trx_mgr_->insertValidatedTransaction(std::move(transaction), std::move(status))) {
+        unique_received_trx_count_++;
+      }
+    } else {
+      // Only for unit tests
+      onNewTransactions({std::make_shared<Transaction>(packet_data.rlp_[1][tx_idx].data().toBytes())});
     }
-    received_transactions += transaction->getHash().abridged() + " ";
-    peer->markTransactionAsKnown(transaction->getHash());
-    transactions.push_back({std::move(transaction), std::move(status)});
   }
 
   if (transaction_count > 0) {
     LOG(log_tr_) << "Received TransactionPacket with " << packet_data.rlp_.itemCount() << " transactions";
-    if (transactions.size() > 0) {
-      LOG(log_dg_) << "Received TransactionPacket with " << transactions.size()
-                   << " unseen transactions:" << received_transactions << " from: " << peer->getId().abridged();
-    }
-
-    onNewTransactions(std::move(transactions));
+    LOG(log_dg_) << "Received TransactionPacket with " << received_transactions.size()
+                 << " unseen transactions:" << received_transactions << " from: " << peer->getId().abridged();
   }
 }
 
-void TransactionPacketHandler::onNewTransactions(
-    std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> &&transactions) {
-  if (trx_mgr_) [[likely]] {
-    received_trx_count_ += transactions.size();
-    unique_received_trx_count_ += trx_mgr_->insertValidatedTransactions(std::move(transactions));
-    return;
-  }
-
+void TransactionPacketHandler::onNewTransactions(const SharedTransactions &transactions) {
   // Only for testing
   for (auto const &trx : transactions) {
-    auto trx_hash = trx.first->getHash();
+    auto trx_hash = trx->getHash();
     if (!test_state_->hasTransaction(trx_hash)) {
-      test_state_->insertTransaction(trx.first);
+      test_state_->insertTransaction(trx);
       LOG(log_tr_) << "Received New Transaction " << trx_hash;
     } else {
       LOG(log_tr_) << "Received New Transaction" << trx_hash << "that is already known";
@@ -106,8 +121,7 @@ void TransactionPacketHandler::onNewTransactions(
 }
 
 void TransactionPacketHandler::periodicSendTransactions(SharedTransactions &&transactions) {
-  std::unordered_map<dev::p2p::NodeID, std::vector<taraxa::bytes>> transactions_to_send;
-  std::unordered_map<dev::p2p::NodeID, std::vector<trx_hash_t>> transactions_hash_to_send;
+  std::unordered_map<dev::p2p::NodeID, SharedTransactions> transactions_to_send;
 
   auto peers = peers_state_->getAllPeers();
   std::string transactions_to_log;
@@ -126,8 +140,7 @@ void TransactionPacketHandler::periodicSendTransactions(SharedTransactions &&tra
           continue;
         }
 
-        transactions_to_send[peer.first].push_back(trx->rlp());
-        transactions_hash_to_send[peer.first].push_back(trx_hash);
+        transactions_to_send[peer.first].push_back(trx);
       }
     }
   }
@@ -135,31 +148,36 @@ void TransactionPacketHandler::periodicSendTransactions(SharedTransactions &&tra
   LOG(log_tr_) << "Sending Transactions " << transactions_to_log << " to " << peers_to_log;
 
   for (auto &it : transactions_to_send) {
-    sendTransactions(it.first, it.second);
-  }
-  for (auto &it : transactions_hash_to_send) {
-    for (auto &it2 : it.second) {
-      peers[it.first]->markTransactionAsKnown(it2);
-    }
+    sendTransactions(peers[it.first], std::move(it.second));
   }
 }
 
-void TransactionPacketHandler::sendTransactions(dev::p2p::NodeID const &peer_id,
-                                                std::vector<taraxa::bytes> const &transactions) {
+void TransactionPacketHandler::sendTransactions(std::shared_ptr<TaraxaPeer> const &peer,
+                                                std::vector<std::shared_ptr<Transaction>> &&transactions) {
+  const auto peer_id = peer->getId();
   LOG(log_tr_) << "sendTransactions " << transactions.size() << " to " << peer_id;
 
   uint32_t index = 0;
   while (index < transactions.size()) {
     uint32_t trx_count_to_send = std::min(static_cast<size_t>(kMaxTransactionsInPacket), transactions.size() - index);
 
-    dev::RLPStream s(trx_count_to_send);
-    taraxa::bytes trx_bytes;
+    dev::RLPStream s(kTransactionPacketItemCount);
+    s.appendList(trx_count_to_send);
+    for (uint32_t i = index; i < index + trx_count_to_send; i++) {
+      s << transactions[i]->getHash();
+    }
+    s.appendList(trx_count_to_send);
+
     for (uint32_t i = index; i < index + trx_count_to_send; i++) {
       const auto &transaction = transactions[i];
-      trx_bytes.insert(trx_bytes.end(), std::begin(transaction), std::end(transaction));
+      s.appendRaw(transaction->rlp());
     }
-    s.appendRaw(trx_bytes, trx_count_to_send);
-    sealAndSend(peer_id, TransactionPacket, std::move(s));
+
+    if (sealAndSend(peer_id, TransactionPacket, std::move(s))) {
+      for (auto &trx : transactions) {
+        peer->markTransactionAsKnown(trx->getHash());
+      }
+    }
 
     index += trx_count_to_send;
   }
