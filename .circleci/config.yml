@@ -27,6 +27,7 @@ orbs:
   gcp-gcr: circleci/gcp-gcr@0.13.0
   gcp-cli: circleci/gcp-cli@1.0.0
   docker-cache: cci-x/docker-registry-image-cache@0.2.12
+  helm: banzaicloud/helm@0.0.8
 
 commands:
   pr_comment:
@@ -1038,3 +1039,11 @@ workflows:
           requires:
             - build-linux
             - build-mac
+
+  helm-chart:
+    jobs:
+      - helm/lint-chart:
+          chart-path: charts/taraxa-node
+          filters:
+            tags:
+              ignore: /.*/
