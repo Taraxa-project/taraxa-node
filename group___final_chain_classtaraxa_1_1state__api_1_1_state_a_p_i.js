@@ -5,7 +5,6 @@ var group___final_chain_classtaraxa_1_1state__api_1_1_state_a_p_i =
     [ "StateAPI", "group___final_chain.html#a332877b929b0fd7ec175d35324cb4502", null ],
     [ "StateAPI", "group___final_chain.html#a5dfe1f47f0ebe2356a2620d0a212e5ef", null ],
     [ "create_snapshot", "group___final_chain.html#a57479a161b10fa3e43da6919c0ae18e0", null ],
-    [ "dpos_contract_addr", "group___final_chain.html#a08051cf5358f178a09049d5f4dbf9ee4", null ],
     [ "dpos_eligible_total_vote_count", "group___final_chain.html#a4f67cd91d38cc3f873506b94d66ee916", null ],
     [ "dpos_eligible_vote_count", "group___final_chain.html#ab8dd595fb0433091673aff5e21413d31", null ],
     [ "dpos_is_eligible", "group___final_chain.html#a743c319b56438591e3d53f3a0f1ea8d8", null ],

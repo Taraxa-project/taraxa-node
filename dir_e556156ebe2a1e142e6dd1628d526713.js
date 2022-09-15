@@ -1,5 +1,9 @@
 var dir_e556156ebe2a1e142e6dd1628d526713 =
 [
+    [ "cache.hpp", "cache_8hpp.html", [
+      [ "MapByBlockCache", "classtaraxa_1_1_map_by_block_cache.html", "classtaraxa_1_1_map_by_block_cache" ],
+      [ "ValueByBlockCache", "classtaraxa_1_1_value_by_block_cache.html", "classtaraxa_1_1_value_by_block_cache" ]
+    ] ],
     [ "contract_interface.hpp", "contract__interface_8hpp.html", [
       [ "ContractInterface", "classtaraxa_1_1final__chain_1_1_contract_interface.html", "classtaraxa_1_1final__chain_1_1_contract_interface" ]
     ] ],

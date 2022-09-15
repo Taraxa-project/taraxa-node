@@ -138,6 +138,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a335a372211671d427c5fd18ea0b390cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adca8845b02f3a019182a1a3d20b4f5f5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#adca8845b02f3a019182a1a3d20b4f5f5">FullNodeConfig</a> (Json::Value const &amp;file_name_str_or_json_object, Json::Value const &amp;wallet, const std::string &amp;config_file_path=&quot;&quot;)</td></tr>
 <tr class="separator:adca8845b02f3a019182a1a3d20b4f5f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3b650cc79dd88410fe31af5722ef7501"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#a3b650cc79dd88410fe31af5722ef7501">FullNodeConfig</a> (const std::string &amp;chain_config_name)</td></tr>
+<tr class="separator:a3b650cc79dd88410fe31af5722ef7501"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae79d1a5da89550572a64d0850f9bc845"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#ae79d1a5da89550572a64d0850f9bc845">net_file_path</a> () const</td></tr>
 <tr class="separator:ae79d1a5da89550572a64d0850f9bc845"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aad4a40f97ab5a5dafcbc5909bd869c4d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#aad4a40f97ab5a5dafcbc5909bd869c4d">validate</a> () const</td></tr>
@@ -186,6 +188,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a724641b971674ec5052d295a2e2ee5fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a249ce0e41d9efaeb1029617408c63c13"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#a249ce0e41d9efaeb1029617408c63c13">enable_test_rpc</a> = false</td></tr>
 <tr class="separator:a249ce0e41d9efaeb1029617408c63c13"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aadf5b6df40359f749209e30e8a3d4f5b"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#aadf5b6df40359f749209e30e8a3d4f5b">final_chain_cache_in_blocks</a> = 5</td></tr>
+<tr class="separator:aadf5b6df40359f749209e30e8a3d4f5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a183825e3e024b1bf609c24325f01c437"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#a183825e3e024b1bf609c24325f01c437">transactions_pool_size</a> = <a class="el" href="namespacetaraxa.html#a14fc5210f7f52dbf8a90d2a6b6de8f8d">kDefaultTransactionPoolSize</a></td></tr>
 <tr class="separator:a183825e3e024b1bf609c24325f01c437"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -196,7 +200,7 @@ Static Public Attributes</h2></td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a335a372211671d427c5fd18ea0b390cd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a335a372211671d427c5fd18ea0b390cd">&#9670;&nbsp;</a></span>FullNodeConfig() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a335a372211671d427c5fd18ea0b390cd">&#9670;&nbsp;</a></span>FullNodeConfig() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -221,7 +225,7 @@ Static Public Attributes</h2></td></tr>
 </div>
 </div>
 <a id="adca8845b02f3a019182a1a3d20b4f5f5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adca8845b02f3a019182a1a3d20b4f5f5">&#9670;&nbsp;</a></span>FullNodeConfig() <span class="overload">[2/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#adca8845b02f3a019182a1a3d20b4f5f5">&#9670;&nbsp;</a></span>FullNodeConfig() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -256,6 +260,32 @@ Static Public Attributes</h2></td></tr>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">explicit</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3b650cc79dd88410fe31af5722ef7501"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3b650cc79dd88410fe31af5722ef7501">&#9670;&nbsp;</a></span>FullNodeConfig() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">taraxa::FullNodeConfig::FullNodeConfig </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>chain_config_name</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -418,6 +448,20 @@ Static Public Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">bool taraxa::FullNodeConfig::enable_test_rpc = false</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aadf5b6df40359f749209e30e8a3d4f5b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aadf5b6df40359f749209e30e8a3d4f5b">&#9670;&nbsp;</a></span>final_chain_cache_in_blocks</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t taraxa::FullNodeConfig::final_chain_cache_in_blocks = 5</td>
         </tr>
       </table>
 </div><div class="memdoc">

@@ -168,9 +168,11 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 , <a class="el" href="structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#a926619a4b5a506e7326bd3cb09cc70f7">taraxa::final_chain::FinalChain::TransactionHashes</a>
 , <a class="el" href="structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl.html#a8c3efd05796946600fa98ae9d43ba040">taraxa::final_chain::FinalChainImpl::TransactionHashesImpl</a>
 , <a class="el" href="classtaraxa_1_1_key_manager.html#a04c6ba2b7922f8b602015fc7cd4d6cfa">taraxa::KeyManager</a>
+, <a class="el" href="classtaraxa_1_1_map_by_block_cache.html#a03bcac8d758b8c08588c6d282fc16fb1">taraxa::MapByBlockCache&lt; Key, Value &gt;</a>
 , <a class="el" href="classtaraxa_1_1_status_table.html#a116dfaccc8e77bacb79acd78deb8bb26">taraxa::StatusTable&lt; K, V &gt;</a>
 , <a class="el" href="group___transaction.html#aec44e28210d47f379b6f01532b77945b">taraxa::TransactionQueue</a>
 , <a class="el" href="classtaraxa_1_1util_1_1lazy_1_1_lazy.html#a23d79cdd985b83f662e75c60c4786472">taraxa::util::lazy::Lazy&lt; Provider &gt;</a>
+, <a class="el" href="classtaraxa_1_1_value_by_block_cache.html#a0a28b1c85d345912fa296dc8931eedaf">taraxa::ValueByBlockCache&lt; Value &gt;</a>
 , <a class="el" href="class_thread_safe_map.html#ac25d2cdd138bd681c2d76170e7b52754">ThreadSafeMap&lt; Key, Value &gt;</a>
 </li>
 <li>get_account()
@@ -207,6 +209,12 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 </li>
 <li>get_block_by_number()
 : <a class="el" href="classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a5f9330c07426ac45073e6cbf973293cf">taraxa::net::rpc::eth::EthImpl</a>
+</li>
+<li>get_block_hash()
+: <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a42dd6f267b93490439d3df4fafc6839c">taraxa::final_chain::FinalChainImpl</a>
+</li>
+<li>get_block_header()
+: <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a8c390a30ad0d8014c9028a18903d3bde">taraxa::final_chain::FinalChainImpl</a>
 </li>
 <li>get_code()
 : <a class="el" href="group___final_chain.html#aa66ce3061b2e802f2bd08e6428fb2159">taraxa::final_chain::FinalChain</a>
@@ -260,15 +268,19 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 : <a class="el" href="classtaraxa_1_1net_1_1_test_face.html#a1d5f6d6f5dcd4e1871ddfb758adea14f">taraxa::net::TestFace</a>
 </li>
 <li>get_staking_balance()
-: <a class="el" href="group___final_chain.html#af48fcb40611583ab8f628376b40fae72">taraxa::final_chain::FinalChain</a>
-, <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ae4ca8097009913b97ea8bf21c148ae40">taraxa::final_chain::FinalChainImpl</a>
-, <a class="el" href="group___final_chain.html#a95c64474d9b590c0a57755f8a486a7d1">taraxa::state_api::StateAPI</a>
+: <a class="el" href="group___final_chain.html#a95c64474d9b590c0a57755f8a486a7d1">taraxa::state_api::StateAPI</a>
 </li>
 <li>get_transaction()
 : <a class="el" href="classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a024bc1741caf80c48b9de33438f51bec">taraxa::net::rpc::eth::EthImpl</a>
 </li>
+<li>get_transaction_hashes()
+: <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a819013f13368c7cc04d84b9c8cbf1191">taraxa::final_chain::FinalChainImpl</a>
+</li>
 <li>get_transaction_receipt()
 : <a class="el" href="classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a80b47958d84f030a61233915d7edec3e">taraxa::net::rpc::eth::EthImpl</a>
+</li>
+<li>get_transactions()
+: <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ac242d93a5ae3335158271f3679fab674">taraxa::final_chain::FinalChainImpl</a>
 </li>
 <li>get_trx
 : <a class="el" href="structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a287d618eaca0c9a96d6d75c9af34b9cc">taraxa::net::rpc::eth::EthParams</a>
@@ -391,9 +403,6 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 <li>getCurrentBlock()
 : <a class="el" href="classgraphql_1_1taraxa_1_1_sync_state.html#ab58303f4533ca91e568d4c452ad5f8da">graphql::taraxa::SyncState</a>
 </li>
-<li>getCurrentPbftSortitionThreshold()
-: <a class="el" href="group___p_b_f_t.html#ad79efe4c8011fe00f0a82012686ecd66">taraxa::PbftManager</a>
-</li>
 <li>getCurrentRewardsVotesBlock()
 : <a class="el" href="group___vote.html#a2444297487931952a959dcb2e6580ba5">taraxa::VoteManager</a>
 </li>
@@ -460,12 +469,6 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 </li>
 <li>getDisconnectReason()
 : <a class="el" href="classtaraxa_1_1_packet_processing_exception.html#ac21e7ffb13b25f5146f3f8115f196792">taraxa::PacketProcessingException</a>
-</li>
-<li>getDposTotalVotesCount()
-: <a class="el" href="group___p_b_f_t.html#a3c0899f34b7190bd92e851ad75438f23">taraxa::PbftManager</a>
-</li>
-<li>getDposWeightedVotesCount()
-: <a class="el" href="group___p_b_f_t.html#a3dcee17a6a58ee95490eecd735e409d7">taraxa::PbftManager</a>
 </li>
 <li>getEfficienciesToUpperRange()
 : <a class="el" href="group___d_a_g.html#af7c7cd8dca0441085bdabcc06d72f236">taraxa::SortitionParamsManager</a>
@@ -1018,6 +1021,14 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 </li>
 <li>getSyncing()
 : <a class="el" href="classgraphql_1_1taraxa_1_1_query.html#a6c0fd8e1ce6e5ebfd8bea0eed12a9316">graphql::taraxa::Query</a>
+</li>
+<li>getter_fn_
+: <a class="el" href="classtaraxa_1_1_map_by_block_cache.html#abff4af9bc60011f77f99175f7e431892">taraxa::MapByBlockCache&lt; Key, Value &gt;</a>
+, <a class="el" href="classtaraxa_1_1_value_by_block_cache.html#ac2a63cbf612c374b1a65d0b648404e08">taraxa::ValueByBlockCache&lt; Value &gt;</a>
+</li>
+<li>GetterFn
+: <a class="el" href="classtaraxa_1_1_map_by_block_cache.html#a871b7a8ad8aed1959c053998a3d3f63f">taraxa::MapByBlockCache&lt; Key, Value &gt;</a>
+, <a class="el" href="classtaraxa_1_1_value_by_block_cache.html#a948b2315fcd060cb169ce44701a965af">taraxa::ValueByBlockCache&lt; Value &gt;</a>
 </li>
 <li>getTestSubscription()
 : <a class="el" href="classgraphql_1_1taraxa_1_1_subscription.html#abb0b2da97ac1c45ffeaaeb07d8570f72">graphql::taraxa::Subscription</a>

@@ -130,11 +130,11 @@ var hierarchy =
         [ "dev::p2p::NetworkStartRequired", "structdev_1_1p2p_1_1_network_start_required.html", null ],
         [ "dev::p2p::RLPXInvalidPacket", "structdev_1_1p2p_1_1_r_l_p_x_invalid_packet.html", null ],
         [ "dev::RLPException", "structdev_1_1_r_l_p_exception.html", null ]
-      ] ]
+      ] ],
+      [ "taraxa::DbException", "classtaraxa_1_1_db_exception.html", null ]
     ] ],
     [ "exception", null, [
-      [ "dev::Exception", "structdev_1_1_exception.html", null ],
-      [ "taraxa::DbException", "classtaraxa_1_1_db_exception.html", null ]
+      [ "dev::Exception", "structdev_1_1_exception.html", null ]
     ] ],
     [ "taraxa::state_api::ExecutionOptions", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_execution_options", null ],
     [ "taraxa::state_api::ExecutionResult", "group___final_chain.html#structtaraxa_1_1state__api_1_1_execution_result", null ],
@@ -166,12 +166,10 @@ var hierarchy =
       [ "dev::GenericGuardBool< GuardType, MutexType >", "structdev_1_1_generic_guard_bool.html", null ]
     ] ],
     [ "Hardforks", "hardfork_8hpp.html#struct_hardforks", null ],
-    [ "hash", null, [
-      [ "std::hash< dev::h256 >", "structstd_1_1hash_3_01dev_1_1h256_01_4.html", null ]
-    ] ],
     [ "dev::FixedHash< N >::hash", "structdev_1_1_fixed_hash_1_1hash.html", [
       [ "std::hash< dev::h128 >", "structstd_1_1hash_3_01dev_1_1h128_01_4.html", null ],
       [ "std::hash< dev::h160 >", "structstd_1_1hash_3_01dev_1_1h160_01_4.html", null ],
+      [ "std::hash< dev::h256 >", "structstd_1_1hash_3_01dev_1_1h256_01_4.html", null ],
       [ "std::hash< dev::h512 >", "structstd_1_1hash_3_01dev_1_1h512_01_4.html", null ],
       [ "std::hash< dev::h64 >", "structstd_1_1hash_3_01dev_1_1h64_01_4.html", null ]
     ] ],
@@ -208,6 +206,9 @@ var hierarchy =
     [ "taraxa::final_chain::LogEntry", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry", null ],
     [ "taraxa::net::rpc::eth::LogFilter", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html", null ],
     [ "taraxa::state_api::LogRecord", "group___final_chain.html#structtaraxa_1_1state__api_1_1_log_record", null ],
+    [ "taraxa::MapByBlockCache< Key, Value >", "classtaraxa_1_1_map_by_block_cache.html", null ],
+    [ "taraxa::MapByBlockCache< dev::FixedHash, std::optional< const taraxa::state_api::Account > >", "classtaraxa_1_1_map_by_block_cache.html", null ],
+    [ "taraxa::MapByBlockCache< dev::FixedHash, uint64_t >", "classtaraxa_1_1_map_by_block_cache.html", null ],
     [ "graphql::taraxa::Mutation", "classgraphql_1_1taraxa_1_1_mutation.html", null ],
     [ "dev::p2p::Neighbours::Neighbour", "structdev_1_1p2p_1_1_neighbours_1_1_neighbour.html", null ],
     [ "dev::p2p::Network", "classdev_1_1p2p_1_1_network.html", null ],
@@ -363,10 +364,10 @@ var hierarchy =
     [ "dev::Timer", "classdev_1_1_timer.html", null ],
     [ "dev::TimerHelper", "classdev_1_1_timer_helper.html", null ],
     [ "taraxa::Transaction", "structtaraxa_1_1_transaction.html", null ],
+    [ "taraxa::final_chain::FinalChain::TransactionHashes", "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html", null ],
     [ "TransactionHashes", null, [
       [ "taraxa::final_chain::FinalChainImpl::TransactionHashesImpl", "structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl.html", null ]
     ] ],
-    [ "taraxa::final_chain::FinalChain::TransactionHashes", "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html", null ],
     [ "taraxa::final_chain::ReplayProtectionService::TransactionInfo", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_transaction_info", null ],
     [ "taraxa::final_chain::TransactionLocation", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location", [
       [ "taraxa::net::rpc::eth::TransactionLocationWithBlockHash", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html", [
@@ -399,6 +400,12 @@ var hierarchy =
     [ "dev::p2p::UPnP", "classdev_1_1p2p_1_1_u_pn_p.html", null ],
     [ "taraxa::state_api::ValidatorInfo", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_validator_info", null ],
     [ "taraxa::RewardsStats::ValidatorStats", "classtaraxa_1_1_rewards_stats.html#structtaraxa_1_1_rewards_stats_1_1_validator_stats", null ],
+    [ "taraxa::ValueByBlockCache< Value >", "classtaraxa_1_1_value_by_block_cache.html", null ],
+    [ "taraxa::ValueByBlockCache< const SharedTransactions >", "classtaraxa_1_1_value_by_block_cache.html", null ],
+    [ "taraxa::ValueByBlockCache< std::optional< const dev::FixedHash > >", "classtaraxa_1_1_value_by_block_cache.html", null ],
+    [ "taraxa::ValueByBlockCache< std::shared_ptr< const taraxa::final_chain::BlockHeader > >", "classtaraxa_1_1_value_by_block_cache.html", null ],
+    [ "taraxa::ValueByBlockCache< std::shared_ptr< const TransactionHashes > >", "classtaraxa_1_1_value_by_block_cache.html", null ],
+    [ "taraxa::ValueByBlockCache< uint64_t >", "classtaraxa_1_1_value_by_block_cache.html", null ],
     [ "taraxa::VdfParams", "namespacetaraxa.html#structtaraxa_1_1_vdf_params", null ],
     [ "dev::vector_ref< _T >", "classdev_1_1vector__ref.html", null ],
     [ "dev::vector_ref<::byte const >", "classdev_1_1vector__ref.html", null ],

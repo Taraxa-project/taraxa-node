@@ -1,12 +1,12 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" title=" " alt="" coords="5,144,92,171"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,195,92,221"/>
 <area shape="rect" id="node2" href="$structdev_1_1_exception.html" title="Base class for all exceptions." alt="" coords="159,144,276,171"/>
+<area shape="rect" id="node9" href="$classtaraxa_1_1_db_exception.html" title=" " alt="" coords="140,195,295,221"/>
 <area shape="rect" id="node3" href="$structdev_1_1p2p_1_1_e_c_d_h_e_error.html" title="The ECDHE agreement failed during RLPx handshake." alt="" coords="377,5,539,32"/>
 <area shape="rect" id="node4" href="$structdev_1_1p2p_1_1_invalid_public_i_p_address.html" title=" " alt="" coords="343,56,573,83"/>
 <area shape="rect" id="node5" href="$structdev_1_1p2p_1_1_network_restart_not_supported.html" title=" " alt="" coords="365,107,551,149"/>
 <area shape="rect" id="node6" href="$structdev_1_1p2p_1_1_network_start_required.html" title=" " alt="" coords="343,173,573,200"/>
 <area shape="rect" id="node7" href="$structdev_1_1p2p_1_1_r_l_p_x_invalid_packet.html" title=" " alt="" coords="356,224,560,251"/>
 <area shape="rect" id="node8" href="$structdev_1_1_r_l_p_exception.html" title="Base class for all RLP exceptions." alt="" coords="387,275,529,301"/>
-<area shape="rect" id="node9" title=" " alt="" coords="5,195,92,221"/>
-<area shape="rect" id="node10" href="$classtaraxa_1_1_db_exception.html" title=" " alt="" coords="140,195,295,221"/>
+<area shape="rect" id="node10" title=" " alt="" coords="5,144,92,171"/>
 </map>

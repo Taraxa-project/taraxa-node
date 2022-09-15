@@ -2,6 +2,7 @@ var structtaraxa_1_1_full_node_config =
 [
     [ "FullNodeConfig", "structtaraxa_1_1_full_node_config.html#a335a372211671d427c5fd18ea0b390cd", null ],
     [ "FullNodeConfig", "structtaraxa_1_1_full_node_config.html#adca8845b02f3a019182a1a3d20b4f5f5", null ],
+    [ "FullNodeConfig", "structtaraxa_1_1_full_node_config.html#a3b650cc79dd88410fe31af5722ef7501", null ],
     [ "net_file_path", "structtaraxa_1_1_full_node_config.html#ae79d1a5da89550572a64d0850f9bc845", null ],
     [ "overwrite_chain_config_in_file", "structtaraxa_1_1_full_node_config.html#a47afb4c0b109d250bda3f1bafc091f1d", null ],
     [ "validate", "structtaraxa_1_1_full_node_config.html#aad4a40f97ab5a5dafcbc5909bd869c4d", null ],
@@ -12,6 +13,7 @@ var structtaraxa_1_1_full_node_config =
     [ "db_config", "structtaraxa_1_1_full_node_config.html#aa39ce68f57655792c78dcdac574bca99", null ],
     [ "db_path", "structtaraxa_1_1_full_node_config.html#acffae136a1a4516b1e8935af67d63aa8", null ],
     [ "enable_test_rpc", "structtaraxa_1_1_full_node_config.html#a249ce0e41d9efaeb1029617408c63c13", null ],
+    [ "final_chain_cache_in_blocks", "structtaraxa_1_1_full_node_config.html#aadf5b6df40359f749209e30e8a3d4f5b", null ],
     [ "graphql", "structtaraxa_1_1_full_node_config.html#a738818b1d823cf335816bc9dffec0e82", null ],
     [ "is_light_node", "structtaraxa_1_1_full_node_config.html#ad1e384f37a3fbb2470149c985e458e1f", null ],
     [ "json_file_name", "structtaraxa_1_1_full_node_config.html#ad62102338c52adccaa31fab23541fd68", null ],
