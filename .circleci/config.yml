@@ -1060,6 +1060,6 @@ workflows:
           chartmuseum-url: https://charts.gcp.taraxa.io
           filters:
             branches:
-              ignore: /.*/
+              only: chore/issue-2030-redesign-releasing-helm-charts
             tags:
               only: /chart\/logging-operator\/\d+.\d+.\d+/
