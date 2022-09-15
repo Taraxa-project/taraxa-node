@@ -16,17 +16,6 @@ void PacketHandler::checkPacketRlpIsList(const PacketData& packet_data) const {
   }
 }
 
-void PacketHandler::handleMaliciousPeer(const dev::p2p::NodeID& peer_id) {
-  peers_state_->set_peer_malicious(peer_id);
-
-  if (auto host = peers_state_->host_.lock(); host) {
-    LOG(log_nf_) << "Disconnect peer " << peer_id;
-    host->disconnect(peer_id, dev::p2p::UserReason);
-  } else {
-    LOG(log_er_) << "Unable to handleMaliciousSyncPeer, host == nullptr";
-  }
-}
-
 void PacketHandler::processPacket(const PacketData& packet_data) {
   try {
     SinglePacketStats packet_stats{packet_data.from_node_id_, packet_data.rlp_.data().size(),

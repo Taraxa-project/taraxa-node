@@ -12,8 +12,7 @@ namespace taraxa::network::tarcap {
 enum SubprotocolPacketType : uint32_t {
   // Consensus packets with high processing priority
   HighPriorityPackets = 0,
-  ProposeBlockAndVotePacket, // Propose votes are in this packet, all other vote types are in VotePacket
-  VotePacket,
+  VotePacket,  // Vote packer can contain (optional) also pbft block
   GetVotesSyncPacket,
   VotesSyncPacket,
 
@@ -56,8 +55,6 @@ inline std::string convertPacketTypeToString(SubprotocolPacketType packet_type) 
       return "GetVotesSyncPacket";
     case VotesSyncPacket:
       return "VotesSyncPacket";
-    case ProposeBlockAndVotePacket:
-      return "ProposeBlockAndVotePacket";
     case GetPbftSyncPacket:
       return "GetPbftSyncPacket";
     case PbftSyncPacket:

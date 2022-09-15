@@ -222,6 +222,7 @@ inline auto wait_connect(std::vector<std::shared_ptr<FullNode>> const& nodes) {
 
 inline auto create_nodes(uint count, bool start = false) {
   auto cfgs = make_node_cfgs(count);
+  // TODO: call create_nodes(cfgs) instead of this...
   auto node_count = cfgs.size();
   std::vector<std::shared_ptr<FullNode>> nodes;
   for (uint j = 0; j < node_count; ++j) {
@@ -242,7 +243,10 @@ inline auto create_nodes(std::vector<FullNodeConfig> const& cfgs, bool start = f
       std::this_thread::sleep_for(500ms);
     }
     nodes.emplace_back(std::make_shared<FullNode>(cfgs[j]));
-    if (start) nodes.back()->start();
+
+    if (start) {
+      nodes.back()->start();
+    }
   }
   return nodes;
 }
@@ -259,6 +263,7 @@ inline auto launch_nodes(std::vector<FullNodeConfig> const& cfgs) {
       std::cout << "Nodes connected and initial status packets passed" << std::endl;
       return nodes;
     }
+
     if (i == 0) {
       EXPECT_TRUE(false) << "nodes didn't connect properly";
       return nodes;

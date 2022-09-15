@@ -81,8 +81,8 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
 
     // VotesSyncPacket is only for next votes
     if (vote->getType() != PbftVoteTypes::next_vote_type || vote->getStep() < PbftStates::finish_state) {
-      LOG(log_er_) << "Received next votes bundle with non \"next_votes\" from "
-                   << packet_data.from_node_id_ << ". The peer may be a malicious player, will be disconnected";
+      LOG(log_er_) << "Received next votes bundle with non \"next_votes\" from " << packet_data.from_node_id_
+                   << ". The peer may be a malicious player, will be disconnected";
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
@@ -105,14 +105,14 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
 
     // Previous round vote
     if (peer_pbft_period == pbft_current_period && (pbft_current_round - 1) == peer_pbft_round) {
-      if (!processNextSyncVote(vote)) {
+      if (!processNextSyncVote(vote, nullptr)) {
         continue;
       }
     } else {
       // Standard vote -> peer_pbft_period > pbft_current_period || pbft_current_round >= peer_pbft_round
       // Process processStandardVote is called with false -> does not check max boundaries for round and step to
       // actually being able to sync the current round in case network is stalled
-      if (!processStandardVote(vote, peer, false)) {
+      if (!processStandardVote(vote, nullptr, peer, false)) {
         continue;
       }
     }
@@ -155,7 +155,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
           send_next_votes_bundle.push_back(v);
         }
       }
-      sendPbftVotes(peer_to_share_to.first, std::move(send_next_votes_bundle), true);
+      sendPbftVotes(peer_to_share_to.second, std::move(send_next_votes_bundle), true);
     }
   } else {
     // Standard votes -> peer_pbft_period > pbft_current_period || (peer_pbft_period == pbft_current_period &&

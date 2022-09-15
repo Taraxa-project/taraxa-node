@@ -19,7 +19,6 @@ constexpr uint16_t kOnePercent = 100;
 constexpr uint16_t kMaxLevelsPerPeriod = 100;
 constexpr uint32_t kDagExpiryLevelLimit = 1000;
 
-const uint32_t kMaxVotesInPacket{1000};
 const uint32_t kMaxTransactionsInPacket{1000};
 
 const uint32_t kPeriodicEventsThreadCount{2};

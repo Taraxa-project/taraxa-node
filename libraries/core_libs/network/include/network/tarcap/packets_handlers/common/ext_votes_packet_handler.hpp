@@ -6,6 +6,7 @@ namespace taraxa {
 class Vote;
 class PbftManager;
 class PbftChain;
+class PbftBlock;
 class VoteManager;
 }  // namespace taraxa
 
@@ -32,12 +33,13 @@ class ExtVotesPacketHandler : public PacketHandler {
    * @brief Process standard vote
    *
    * @param vote
+   * @param pbft_block
    * @param peer
    * @param validate_max_round_step
    * @return if vote was successfully processed, otherwise false
    */
-  bool processStandardVote(const std::shared_ptr<Vote>& vote, const std::shared_ptr<TaraxaPeer>& peer,
-                           bool validate_max_round_step);
+  bool processStandardVote(const std::shared_ptr<Vote>& vote, const std::shared_ptr<PbftBlock>& pbft_block,
+                           const std::shared_ptr<TaraxaPeer>& peer, bool validate_max_round_step);
 
   /**
    * @brief Process reward vote
@@ -51,13 +53,18 @@ class ExtVotesPacketHandler : public PacketHandler {
    * @brief Process next sync vote
    *
    * @param vote
+   * @param pbft_block
    * @return if vote was successfully processed, otherwise false
    */
-  bool processNextSyncVote(const std::shared_ptr<Vote>& vote) const;
+  bool processNextSyncVote(const std::shared_ptr<Vote>& vote, const std::shared_ptr<PbftBlock>& pbft_block) const;
 
   void onNewPbftVotes(std::vector<std::shared_ptr<Vote>>&& votes);
-  void sendPbftVotes(const dev::p2p::NodeID& peer_id, std::vector<std::shared_ptr<Vote>>&& votes,
+  void sendPbftVotes(const std::shared_ptr<TaraxaPeer>& peer, std::vector<std::shared_ptr<Vote>>&& votes,
                      bool is_next_votes = false);
+
+  void onNewPbftVote(const std::shared_ptr<Vote>& vote, const std::shared_ptr<PbftBlock>& block);
+  void sendPbftVote(const std::shared_ptr<TaraxaPeer>& peer, const std::shared_ptr<Vote>& vote,
+                    const std::shared_ptr<PbftBlock>& block);
 
  protected:
   /**
@@ -96,7 +103,19 @@ class ExtVotesPacketHandler : public PacketHandler {
    */
   std::pair<bool, std::string> validateVote(const std::shared_ptr<Vote>& vote) const;
 
+  /**
+   * @brief Validates provided vote if voted value == provided block
+   *
+   * @param vote
+   * @param pbft_block
+   * @return true if validation successful, otherwise false
+   */
+  bool validateVoteAndBlock(const std::shared_ptr<Vote>& vote, const std::shared_ptr<PbftBlock>& pbft_block) const;
+
  protected:
+  const size_t kMaxVotesInPacket{1000};
+  const size_t kVotePacketWithBlockSize{3};
+
   // Dpos contract delay - it is used to validate pbft period in votes -> does not make sense to accept vote
   // with vote period > current pbft period + kDposDelay as the valiation will fail
   const uint32_t kVoteAcceptingPeriods;

@@ -52,9 +52,9 @@ class NextVotesManager {
 
   /**
    * @brief Get next voting type votes vote value
-   * @return next voting type votes vote value and it's period
+   * @return next voting type votes vote value
    */
-  std::optional<std::pair<blk_hash_t, uint64_t>> getVotedValue() const;
+  std::optional<blk_hash_t> getVotedValue() const;
 
   /**
    * @brief Get previous PBFT round all next voting type votes
@@ -107,7 +107,7 @@ class NextVotesManager {
   std::shared_ptr<FinalChain> final_chain_;
 
   bool enough_votes_for_null_block_hash_;
-  std::optional<std::pair<blk_hash_t, uint64_t /* period */>> voted_value_;
+  std::optional<blk_hash_t> voted_value_;
 
   // TODO[2000]: merge these structures into one
   // <voted PBFT block hash, next votes list that have exactly 2t+1 votes voted at the PBFT block hash>

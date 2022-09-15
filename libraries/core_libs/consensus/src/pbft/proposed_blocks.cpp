@@ -1,62 +1,78 @@
 #include "pbft/proposed_blocks.hpp"
+
 #include "pbft/pbft_block.hpp"
 #include "vote/vote.hpp"
 
 namespace taraxa {
 
-std::pair<bool, std::string> ProposedBlocks::pushProposedPbftBlock(const std::shared_ptr<PbftBlock>& proposed_block, const std::shared_ptr<Vote>& propose_vote) {
-  if (propose_vote->getBlockHash() != proposed_block->getBlockHash()) {
-    return {false, "Propose vote block hash " + propose_vote->getBlockHash().abridged() + " != actual block hash " + proposed_block->getBlockHash().abridged()};
-  }
+bool ProposedBlocks::pushProposedPbftBlock(const std::shared_ptr<PbftBlock>& proposed_block,
+                                           const std::shared_ptr<Vote>& propose_vote) {
+  assert(propose_vote->getBlockHash() == proposed_block->getBlockHash());
+  assert(propose_vote->getPeriod() == proposed_block->getPeriod());
+  return pushProposedPbftBlock(propose_vote->getRound(), proposed_block);
+}
 
+bool ProposedBlocks::pushProposedPbftBlock(uint64_t round, const std::shared_ptr<PbftBlock>& proposed_block) {
   std::unique_lock lock(proposed_blocks_mutex_);
 
-  auto found_period_it = proposed_blocks_.find(propose_vote->getPeriod());
+  auto found_period_it = proposed_blocks_.find(proposed_block->getPeriod());
   // Add period
   if (found_period_it == proposed_blocks_.end()) {
-    found_period_it = proposed_blocks_.insert({propose_vote->getPeriod(), {}}).first;
+    found_period_it = proposed_blocks_.insert({proposed_block->getPeriod(), {}}).first;
   }
 
-  auto found_round_it = found_period_it->second.find(propose_vote->getRound());
+  auto found_round_it = found_period_it->second.find(round);
   // Add round
   if (found_round_it == found_period_it->second.end()) {
-    found_round_it = found_period_it->second.insert({propose_vote->getRound(), {}}).first;
+    found_round_it = found_period_it->second.insert({round, {}}).first;
   }
 
   // Add propose vote & block
-  if (!found_round_it->second.insert({proposed_block->getBlockHash(), std::make_pair(propose_vote->getHash(), proposed_block)}).second) {
-    return {false, "Proposed block " + proposed_block->getBlockHash().abridged() + " already inserted(race condition)"};
-  }
-
-  return {true, ""};
+  return found_round_it->second.insert({proposed_block->getBlockHash(), proposed_block}).second;
 }
 
-std::shared_ptr<PbftBlock> ProposedBlocks::getPbftProposedBlock(uint64_t period, uint64_t round, const blk_hash_t& block_hash) const {
+std::shared_ptr<PbftBlock> ProposedBlocks::getPbftProposedBlock(uint64_t period, uint64_t round,
+                                                                const blk_hash_t& block_hash) const {
   std::shared_lock lock(proposed_blocks_mutex_);
 
   auto found_period_it = proposed_blocks_.find(period);
   if (found_period_it == proposed_blocks_.end()) {
-    return {};
+    return nullptr;
   }
 
   auto found_round_it = found_period_it->second.find(round);
   if (found_round_it == found_period_it->second.end()) {
-    return {};
+    return nullptr;
   }
 
   auto found_block_it = found_round_it->second.find(block_hash);
   if (found_block_it == found_round_it->second.end()) {
-    return {};
+    return nullptr;
   }
 
-  return found_block_it->second.second;
+  return found_block_it->second;
+}
+
+bool ProposedBlocks::isInProposedBlocks(uint64_t period, uint64_t round, const blk_hash_t& block_hash) const {
+  std::shared_lock lock(proposed_blocks_mutex_);
+
+  auto found_period_it = proposed_blocks_.find(period);
+  if (found_period_it == proposed_blocks_.end()) {
+    return false;
+  }
+
+  auto found_round_it = found_period_it->second.find(round);
+  if (found_round_it == found_period_it->second.end()) {
+    return false;
+  }
+
+  return found_round_it->second.contains(block_hash);
 }
 
 void ProposedBlocks::cleanupProposedPbftBlocksByPeriod(uint64_t period) {
   std::unique_lock lock(proposed_blocks_mutex_);
 
-  for (auto period_it = proposed_blocks_.begin();
-       period_it != proposed_blocks_.end() && period_it->first < period; period_it++) {
+  for (auto period_it = proposed_blocks_.begin(); period_it != proposed_blocks_.end() && period_it->first < period;) {
     period_it = proposed_blocks_.erase(period_it);
   }
 }
@@ -75,7 +91,7 @@ void ProposedBlocks::cleanupProposedPbftBlocksByRound(uint64_t period, uint64_t 
   }
 
   for (auto round_it = found_period_it->second.begin();
-       round_it != found_period_it->second.end() && round_it->first < round - 1; round_it++) {
+       round_it != found_period_it->second.end() && round_it->first < round - 1;) {
     round_it = found_period_it->second.erase(round_it);
   }
 }

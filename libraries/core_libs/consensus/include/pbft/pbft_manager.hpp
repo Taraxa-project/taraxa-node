@@ -238,35 +238,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    */
   blk_hash_t lastPbftBlockHashFromQueueOrChain();
 
-  // Notice: Test purpose
-  // TODO: Add a check for some kind of guards to ensure these are only called from within a test
-  /**
-   * @brief Set PBFT sortition threshold
-   * @param sortition_threshold PBFT sortition threshold
-   */
-  void setSortitionThreshold(size_t const sortition_threshold);
-
-  /**
-   * @brief Get PBFT committee size
-   * @return PBFT committee size
-   */
-  size_t getPbftCommitteeSize() const { return COMMITTEE_SIZE; }
-
   /**
    * @brief Get PBFT lambda. PBFT lambda is a timer clock
    * @return PBFT lambda
    */
   u_long getPbftInitialLambda() const { return LAMBDA_ms_MIN; }
-
-  /**
-   * @brief Resume PBFT daemon. Only to be used for unit tests
-   */
-  void resume();
-
-  /**
-   * @brief Resume PBFT daemon on single state. Only to be used for unit tests
-   */
-  void resumeSingleState();
 
   /**
    * @brief Calculate DAG blocks ordering hash
@@ -289,12 +265,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    */
   bool checkBlockWeight(const std::vector<DagBlock> &dag_blocks) const;
 
-  /**
-   * @brief Get finalized DPOS period
-   * @return DPOS period
-   */
-  uint64_t getFinalizedDPOSPeriod() const { return dpos_period_; }
-
   blk_hash_t getLastPbftBlockHash();
 
   /**
@@ -306,13 +276,36 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::pair<bool, std::string> validateVote(const std::shared_ptr<Vote> &vote) const;
 
   /**
-   * @brief Push propose vote and block
+   * @brief Push proposed block into the proposed_blocks_ in case it is not there yet
    *
    * @param proposed_block
    * @param propose_vote
-   * @return is successful, otherwise false
    */
-  bool pushProposedBlock(const std::shared_ptr<PbftBlock>& proposed_block, const std::shared_ptr<Vote>& propose_vote);
+  void processProposedBlock(const std::shared_ptr<PbftBlock> &proposed_block,
+                            const std::shared_ptr<Vote> &propose_vote);
+
+  // **** Notice: functions used only in tests ****
+  // TODO: Add a check for some kind of guards to ensure these are only called from within a test
+  /**
+   * @brief Resume PBFT daemon. Only to be used for unit tests
+   */
+  void resume();
+
+  /**
+   * @brief Resume PBFT daemon on single state. Only to be used for unit tests
+   */
+  void resumeSingleState();
+
+  /**
+   * @return ProposedBlocks structure
+   */
+  const ProposedBlocks &getProposedBlocksSt() const;
+
+  /**
+   * @brief Get PBFT committee size
+   * @return PBFT committee size
+   */
+  size_t getPbftCommitteeSize() const { return COMMITTEE_SIZE; }
 
  private:
   // DPOS
@@ -447,8 +440,28 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Place (gossip) vote
    * @param vote
    * @param log_vote_id vote identifier for log msg
+   * @param voted_block voted block object - should be == vote->voted_block. In case we dont have block object, nullptr
+   *                    is provided
    */
-  bool placeVote(std::shared_ptr<Vote> &&vote, std::string_view log_vote_id);
+  bool placeVote(std::shared_ptr<Vote> &&vote, std::string_view log_vote_id,
+                 const std::shared_ptr<PbftBlock> &voted_block);
+
+  /**
+   * @brief Generate propose vote for provided block place (gossip) it
+   *
+   * @param proposed_block
+   * @return true if successful, otherwise false
+   */
+  bool genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &proposed_block);
+
+  /**
+   * @brief Gossips newly generated vote to the other peers
+   *
+   * @param vote
+   * @param voted_block
+   * @return true if successful, otherwise false
+   */
+  void gossipNewVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &voted_block);
 
   /**
    * @brief Get PBFT sortition threshold for specific period
@@ -463,14 +476,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @return proposed PBFT block
    */
   std::shared_ptr<PbftBlock> proposePbftBlock_();
-
-  /**
-   * @brief Generate propose vote for provided block and send it
-   *
-   * @param proposed_block
-   * @return true if successful, otherwise false
-   */
-  bool placeProposeVoteAndBlock(const std::shared_ptr<PbftBlock>& proposed_block);
 
   /**
    * @brief Identify a leader block from all received proposed PBFT blocks for the current round by using minimum
@@ -521,7 +526,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param current_round_cert_votes certify votes
    * @return true if push a new PBFT block in chain
    */
-  bool pushCertVotedPbftBlockIntoChain_(const std::shared_ptr<PbftBlock>& pbft_block,
+  bool pushCertVotedPbftBlockIntoChain_(const std::shared_ptr<PbftBlock> &pbft_block,
                                         std::vector<std::shared_ptr<Vote>> &&current_round_cert_votes);
 
   /**
@@ -560,7 +565,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   /**
    * @return soft voted PBFT block if there is enough (2t+1) soft votes + it's period, otherwise returns empty optional
    */
-  std::optional<std::pair<blk_hash_t, uint64_t>> getSoftVotedBlockForThisRound_();
+  std::optional<std::pair<blk_hash_t, std::shared_ptr<PbftBlock>>> getSoftVotedBlockForThisRound_();
 
   /**
    * @brief Process synced PBFT blocks if PBFT syncing queue is not empty
@@ -619,11 +624,13 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t step_ = 1;
   size_t startingStepInRound_ = 1;
 
-  std::optional<std::pair<blk_hash_t, uint64_t /* period */>> soft_voted_block_for_round_{};
+  // Block that node saw 2t+1 soft votes for
+  std::optional<std::pair<blk_hash_t, std::shared_ptr<PbftBlock>>> soft_voted_block_for_round_{};
 
-  std::optional<std::pair<blk_hash_t, uint64_t /* period */>> cert_voted_block_for_round_{};
+  // Block that node cert voted
+  std::optional<std::shared_ptr<PbftBlock>> cert_voted_block_for_round_{};
 
-  std::optional<std::pair<blk_hash_t, uint64_t /* period */>> previous_round_next_voted_value_{};
+  std::optional<blk_hash_t> previous_round_next_voted_value_{};
   bool previous_round_next_voted_null_block_hash_ = false;
 
   time_point round_clock_initial_datetime_;

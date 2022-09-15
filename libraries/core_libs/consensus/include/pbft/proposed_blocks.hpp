@@ -1,8 +1,9 @@
 #pragma once
 
-#include <shared_mutex>
 #include <map>
 #include <optional>
+#include <shared_mutex>
+
 #include "common/types.hpp"
 
 namespace taraxa {
@@ -16,12 +17,21 @@ class Vote;
 class ProposedBlocks {
  public:
   /**
-   * @brief Push proposed PBFT block in PBFT unverified queue
+   * @brief Push proposed PBFT block into the proposed blocks
    * @param proposed_block proposed PBFT block
    * @param propose_vote propose PBFT vote
-   * @return <true, ""> if block was successfully pushed, otherwise <false, "err msg">
+   * @return true if block was successfully pushed, otherwise false
    */
-  std::pair<bool, std::string> pushProposedPbftBlock(const std::shared_ptr<PbftBlock>& proposed_block, const std::shared_ptr<Vote>& propose_vote);
+  bool pushProposedPbftBlock(const std::shared_ptr<PbftBlock>& proposed_block,
+                             const std::shared_ptr<Vote>& propose_vote);
+
+  /**
+   * @brief Push proposed PBFT block into the proposed blocks
+   * @param round
+   * @param proposed_block
+   * @return true if block was successfully pushed, otherwise false
+   */
+  bool pushProposedPbftBlock(uint64_t round, const std::shared_ptr<PbftBlock>& proposed_block);
 
   /**
    * @brief Get a proposed PBFT block and vote based on specified period, round and block hash
@@ -31,6 +41,15 @@ class ProposedBlocks {
    * @return proposed PBFT block
    */
   std::shared_ptr<PbftBlock> getPbftProposedBlock(uint64_t period, uint64_t round, const blk_hash_t& block_hash) const;
+
+  /**
+   * @brief Check if specified block is already in proposed blocks
+   * @param period
+   * @param round
+   * @param block_hash
+   * @return true if block is present, otherwise false
+   */
+  bool isInProposedBlocks(uint64_t period, uint64_t round, const blk_hash_t& block_hash) const;
 
   /**
    * @brief Cleanup all proposed PBFT blocks for the finalized period
@@ -47,13 +66,8 @@ class ProposedBlocks {
   void cleanupProposedPbftBlocksByRound(uint64_t period, uint64_t round);
 
  private:
-
-  // <PBFT period, <PBFT round, <block hash, pair<propose vote hash, propose block>>>
-  std::map<uint64_t,
-           std::map<uint64_t,
-                    std::unordered_map<blk_hash_t,
-                                         std::pair<vote_hash_t, std::shared_ptr<PbftBlock>>>>>
-      proposed_blocks_;
+  // <PBFT period, <PBFT round, <block hash, block>>>
+  std::map<uint64_t, std::map<uint64_t, std::unordered_map<blk_hash_t, std::shared_ptr<PbftBlock>>>> proposed_blocks_;
   mutable std::shared_mutex proposed_blocks_mutex_;
 };
 

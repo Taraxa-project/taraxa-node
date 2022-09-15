@@ -68,12 +68,6 @@ class PacketHandler {
    */
   void checkPacketRlpIsList(const PacketData& packet_data) const;
 
-  /**
-   * @brief Set peer as malicious and disconnect
-   * @param peer_id
-   */
-  void handleMaliciousPeer(const dev::p2p::NodeID& peer_id);
-
   bool sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacketType packet_type, dev::RLPStream&& rlp);
   void disconnect(const dev::p2p::NodeID& node_id, dev::p2p::DisconnectReason reason);
 

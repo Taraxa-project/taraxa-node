@@ -112,16 +112,6 @@ class DummyPacketHandler : public tarcap::PacketHandler {
   std::shared_ptr<PacketsProcessingInfo> packets_proc_info_;
 };
 
-class DummyProposeBlockAndVotePacketHandler : public DummyPacketHandler {
- public:
-  DummyProposeBlockAndVotePacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
-                              uint32_t processing_delay_ms)
-      : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
-
-  // Packet type that is processed by this handler
-  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::ProposeBlockAndVotePacket;
-};
-
 class DummyTransactionPacketHandler : public DummyPacketHandler {
  public:
   DummyTransactionPacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
@@ -321,7 +311,6 @@ TEST_F(TarcapTpTest, block_free_packets) {
 
   auto packets_handler = std::make_shared<tarcap::PacketsHandler>();
 
-  packets_handler->registerHandler<DummyProposeBlockAndVotePacketHandler>(init_data, "PBFT_BLOCK_PH", 20);
   packets_handler->registerHandler<DummyTransactionPacketHandler>(init_data, "TX_PH", 20);
   packets_handler->registerHandler<DummyDagBlockPacketHandler>(init_data, "DAG_BLOCK_PH", 20);
   packets_handler->registerHandler<DummyStatusPacketHandler>(init_data, "STATUS_PH", 20);
@@ -336,11 +325,10 @@ TEST_F(TarcapTpTest, block_free_packets) {
   tp.setPacketsHandlers(packets_handler);
 
   // Pushes packets to the tp
-  const auto packet0_pbft_block_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::ProposeBlockAndVotePacket, {})).value();
-  const auto packet1_pbft_block_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::ProposeBlockAndVotePacket, {})).value();
-
+  const auto packet0_tx_id =
+      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TransactionPacket, {})).value();
+  const auto packet1_tx_id =
+      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TransactionPacket, {})).value();
   const auto packet2_tx_id =
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TransactionPacket, {})).value();
   const auto packet3_tx_id =
@@ -383,10 +371,10 @@ TEST_F(TarcapTpTest, block_free_packets) {
   // PriorityQueue::updateDependenciesStart
   /*
     ----------------------
-    - packet0_pbft_block -
+    - packet0_transaction -
     ----------------------
     ----------------------
-    - packet1_pbft_block -
+    - packet1_transaction -
     ----------------------
     -----------------------
     - packet2_transaction -
@@ -409,9 +397,8 @@ TEST_F(TarcapTpTest, block_free_packets) {
   // Check order of packets how they were processed
   const auto packets_proc_info = init_data.packets_processing_info;
 
-  const auto packet0_pbft_block_proc_info = packets_proc_info->getPacketProcessingTimes(packet0_pbft_block_id);
-  const auto packet1_pbft_block_proc_info = packets_proc_info->getPacketProcessingTimes(packet1_pbft_block_id);
-
+  const auto packet0_tx_proc_info = packets_proc_info->getPacketProcessingTimes(packet0_tx_id);
+  const auto packet1_tx_proc_info = packets_proc_info->getPacketProcessingTimes(packet1_tx_id);
   const auto packet2_tx_proc_info = packets_proc_info->getPacketProcessingTimes(packet2_tx_id);
   const auto packet3_tx_proc_info = packets_proc_info->getPacketProcessingTimes(packet3_tx_id);
 
@@ -435,8 +422,8 @@ TEST_F(TarcapTpTest, block_free_packets) {
       packets_proc_info->getPacketProcessingTimes(packet17_pbft_next_votes_id);
 
   checkConcurrentProcessing({
-      {packet0_pbft_block_proc_info, "packet0_pbft_block"},
-      {packet1_pbft_block_proc_info, "packet1_pbft_block"},
+      {packet0_tx_proc_info, "packet0_tx"},
+      {packet1_tx_proc_info, "packet1_tx"},
       {packet2_tx_proc_info, "packet2_tx"},
       {packet3_tx_proc_info, "packet3_tx"},
       {packet4_dag_block_proc_info, "packet4_dag_block"},
