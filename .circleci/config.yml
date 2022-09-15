@@ -1063,3 +1063,5 @@ workflows:
               only: chore/issue-2030-redesign-releasing-helm-charts
             tags:
               only: /chart\/logging-operator\/\d+.\d+.\d+/
+          requires:
+            - helm/lint-chart
