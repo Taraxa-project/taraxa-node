@@ -154,7 +154,6 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   wait({30s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr2->getDagBlock(block_hash), nullptr) });
 }
 
-
 // TODO[2033]: enable this test
 TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
   auto node_cfgs = make_node_cfgs<5>(2);
@@ -170,20 +169,20 @@ TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
   auto nw2 = nodes[1]->getNetwork();
 
   std::vector<vote_hash_t> reward_votes{};
-  auto pbft_block = std::make_shared<PbftBlock>(blk_hash_t(1), blk_hash_t(0), blk_hash_t(0),
-                                                         node1->getPbftManager()->getPbftPeriod(), node1->getAddress(),
-                                                         node1->getSecretKey(), std::move(reward_votes));
-  auto vote =
-      node1_pbft_mgr->generateVote(pbft_block->getBlockHash(), propose_vote_type, pbft_block->getPeriod(),
-                                   node1_pbft_mgr->getPbftRound() + 1, value_proposal_state);
+  auto pbft_block =
+      std::make_shared<PbftBlock>(blk_hash_t(1), blk_hash_t(0), blk_hash_t(0), node1->getPbftManager()->getPbftPeriod(),
+                                  node1->getAddress(), node1->getSecretKey(), std::move(reward_votes));
+  auto vote = node1_pbft_mgr->generateVote(pbft_block->getBlockHash(), propose_vote_type, pbft_block->getPeriod(),
+                                           node1_pbft_mgr->getPbftRound() + 1, value_proposal_state);
 
   auto node2_id = nw2->getNodeId();
   ASSERT_NE(node1->getPbftChain()->getPbftChainSize(), nw1->getPeer(node2_id)->pbft_chain_size_);
 
-   nw2->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVote(nw1->getPeer(node2_id), vote, pbft_block);
+  nw2->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVote(nw1->getPeer(node2_id), vote, pbft_block);
 
-  EXPECT_HAPPENS({10s, 200ms},
-                 [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, nw1->getPeer(node2_id)->pbft_chain_size_, node1->getPbftChain()->getPbftChainSize()) });
+  EXPECT_HAPPENS({10s, 200ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, nw1->getPeer(node2_id)->pbft_chain_size_, node1->getPbftChain()->getPbftChainSize())
+  });
 }
 
 TEST_F(NetworkTest, malicious_peers) {
