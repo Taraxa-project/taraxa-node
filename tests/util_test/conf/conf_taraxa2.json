@@ -27,7 +27,12 @@
         "name": "standard",
         "on": true,
         "verbosity": "ERROR",
-        "channels": [],
+        "channels": [
+          {
+            "name": "PBFT_VOTE_PH",
+            "verbosity": "DEBUG"
+          }
+        ],
         "outputs": [
           {
             "type": "console",

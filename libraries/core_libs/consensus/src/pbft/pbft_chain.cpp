@@ -72,11 +72,6 @@ bool PbftChain::findPbftBlockInChain(taraxa::blk_hash_t const& pbft_block_hash) 
   return db_->pbftBlockInDb(pbft_block_hash);
 }
 
-bool PbftChain::findUnverifiedPbftBlock(taraxa::blk_hash_t const& pbft_block_hash) const {
-  SharedLock lock(unverified_access_);
-  return unverified_blocks_.find(pbft_block_hash) != unverified_blocks_.end();
-}
-
 PbftBlock PbftChain::getPbftBlockInChain(const taraxa::blk_hash_t& pbft_block_hash) {
   auto pbft_block = db_->getPbftBlock(pbft_block_hash);
   if (!pbft_block.has_value()) {
@@ -84,16 +79,6 @@ PbftBlock PbftChain::getPbftBlockInChain(const taraxa::blk_hash_t& pbft_block_ha
     assert(false);
   }
   return *pbft_block;
-}
-
-std::shared_ptr<PbftBlock> PbftChain::getUnverifiedPbftBlock(const taraxa::blk_hash_t& pbft_block_hash) {
-  SharedLock lock(unverified_access_);
-  auto found_block = unverified_blocks_.find(pbft_block_hash);
-  if (found_block == unverified_blocks_.end()) {
-    return nullptr;
-  }
-
-  return found_block->second;
 }
 
 void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash, blk_hash_t const& anchor_hash) {
@@ -120,55 +105,6 @@ bool PbftChain::checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) co
     return false;
   }
 
-  return true;
-}
-
-void PbftChain::cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block) {
-  blk_hash_t prev_block_hash = pbft_block.getPrevBlockHash();
-  UpgradableLock lock(unverified_access_);
-  if (unverified_blocks_map_.find(prev_block_hash) == unverified_blocks_map_.end()) {
-    LOG(log_er_) << "Cannot find the prev PBFT block hash " << prev_block_hash;
-    assert(false);
-    return;
-  }
-
-  // cleanup PBFT blocks in unverified_blocks_ table
-  UpgradeLock locked(lock);
-  for (blk_hash_t const& block_hash : unverified_blocks_map_[prev_block_hash]) {
-    unverified_blocks_.erase(block_hash);
-  }
-  // cleanup PBFT blocks hash in unverified_blocks_map_ table
-  unverified_blocks_map_.erase(prev_block_hash);
-}
-
-bool PbftChain::pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_block) {
-  blk_hash_t block_hash = pbft_block->getBlockHash();
-  blk_hash_t prev_block_hash = pbft_block->getPrevBlockHash();
-  if (prev_block_hash != getLastPbftBlockHash()) {
-    if (findPbftBlockInChain(block_hash)) {
-      // The block comes from slow node, drop
-      LOG(log_dg_) << "Cannot add the PBFT block " << block_hash << " since it's in chain already";
-      return false;
-    } else {
-      // TODO: The block comes from fast node that should insert.
-      //  Or comes from malicious node, need check
-    }
-  }
-
-  {
-    // Store in unverified_blocks_ table
-    UniqueLock lock(unverified_access_);
-    if (!unverified_blocks_.insert({block_hash, pbft_block}).second) {
-      LOG(log_dg_) << "Pbft block " << block_hash.abridged() << " already in unverified queue";
-      return false;
-    }
-
-    // Store in unverified_blocks_map_ for cleaning later
-    unverified_blocks_map_[prev_block_hash].emplace_back(block_hash);
-  }
-
-  LOG(log_dg_) << "Push unverified block " << block_hash
-               << ". Pbft unverified blocks size: " << unverified_blocks_.size();
   return true;
 }
 

@@ -37,6 +37,7 @@ void GetVotesSyncPacketHandler::process(const PacketData &packet_data, const std
                  << ", and peer PBFT round is " << peer_pbft_round << " previous round next votes size "
                  << peer_pbft_previous_round_next_votes_size << ". Will send out bundle of next votes";
 
+    // TODO: send also a block
     auto next_votes_bundle = next_votes_mgr_->getNextVotes();
     std::vector<std::shared_ptr<Vote>> send_next_votes_bundle;
     for (auto &v : next_votes_bundle) {
@@ -44,7 +45,7 @@ void GetVotesSyncPacketHandler::process(const PacketData &packet_data, const std
         send_next_votes_bundle.push_back(std::move(v));
       }
     }
-    sendPbftVotes(packet_data.from_node_id_, std::move(send_next_votes_bundle), true);
+    sendPbftVotes(peer, std::move(send_next_votes_bundle), true);
   }
 }
 

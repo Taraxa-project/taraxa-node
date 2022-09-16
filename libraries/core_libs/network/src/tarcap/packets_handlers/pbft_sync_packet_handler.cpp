@@ -266,6 +266,7 @@ void PbftSyncPacketHandler::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) 
   } else {
     LOG(log_er_) << "Unable to handleMaliciousSyncPeer, host == nullptr";
   }
+
   restartSyncingPbft(true);
 }
 

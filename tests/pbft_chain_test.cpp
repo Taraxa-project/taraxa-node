@@ -9,7 +9,6 @@
 #include "common/static_init.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
-#include "network/tarcap/packets_handlers/pbft_block_packet_handler.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
@@ -82,91 +81,6 @@ TEST_F(PbftChainTest, pbft_db_test) {
   // check pbft genesis update in DB
   pbft_head_from_db = db->getPbftHead(pbft_chain_head_hash);
   EXPECT_EQ(pbft_head_from_db, pbft_chain->getJsonStr());
-}
-
-TEST_F(PbftChainTest, proposal_block_broadcast) {
-  auto node_cfgs = make_node_cfgs<1>(3);
-  auto nodes = launch_nodes(node_cfgs);
-  auto &node1 = nodes[0];
-  auto &node2 = nodes[1];
-  auto &node3 = nodes[2];
-
-  // Stop PBFT manager and executor to test networking
-  node1->getPbftManager()->stop();
-  node2->getPbftManager()->stop();
-  node3->getPbftManager()->stop();
-
-  std::shared_ptr<PbftChain> pbft_chain1 = node1->getPbftChain();
-  std::shared_ptr<PbftChain> pbft_chain2 = node2->getPbftChain();
-  std::shared_ptr<PbftChain> pbft_chain3 = node3->getPbftChain();
-
-  std::shared_ptr<Network> nw1 = node1->getNetwork();
-  std::shared_ptr<Network> nw2 = node2->getNetwork();
-  std::shared_ptr<Network> nw3 = node3->getNetwork();
-
-  // Check all 3 nodes PBFT chain synced
-  EXPECT_HAPPENS({300s, 200ms}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node1->getPbftManager()->pbftSyncingPeriod(), node2->getPbftManager()->pbftSyncingPeriod())
-    WAIT_EXPECT_EQ(ctx, node1->getPbftManager()->pbftSyncingPeriod(), node3->getPbftManager()->pbftSyncingPeriod())
-    WAIT_EXPECT_EQ(ctx, node2->getPbftManager()->pbftSyncingPeriod(), node3->getPbftManager()->pbftSyncingPeriod())
-  });
-
-  // EXPECT_HAPPENS({300s, 200ms}, [&](auto &ctx) {
-  //   WAIT_EXPECT_EQ(ctx, pbft_chain1->getPbftChainSize(), pbft_chain2->getPbftChainSize())
-  //   WAIT_EXPECT_EQ(ctx, pbft_chain1->getPbftChainSize(), pbft_chain3->getPbftChainSize())
-  //   WAIT_EXPECT_EQ(ctx, pbft_chain2->getPbftChainSize(), pbft_chain3->getPbftChainSize())
-  // });
-
-  auto node1_pbft_chain_size = pbft_chain1->getPbftChainSize();
-
-  // Node1 generate a PBFT block sample
-  blk_hash_t prev_block_hash = pbft_chain1->getLastPbftBlockHash();
-  uint64_t propose_period = node1_pbft_chain_size + 1;
-  auto reward_votes = node1->getDB()->getLastBlockCertVotes();
-  std::vector<vote_hash_t> reward_votes_hashes;
-  std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
-                 [](const auto &v) { return v->getHash(); });
-  auto pbft_block =
-      std::make_shared<PbftBlock>(prev_block_hash, blk_hash_t(0), blk_hash_t(0), propose_period, node1->getAddress(),
-                                  node1->getSecretKey(), std::move(reward_votes_hashes));
-
-  pbft_chain1->pushUnverifiedPbftBlock(pbft_block);
-  auto block1_from_node1 = pbft_chain1->getUnverifiedPbftBlock(pbft_block->getBlockHash());
-  ASSERT_TRUE(block1_from_node1);
-  EXPECT_EQ(block1_from_node1->getJsonStr(), pbft_block->getJsonStr());
-
-  // node1 put block into pbft chain and store into DB
-  auto db1 = node1->getDB();
-  auto batch = db1->createWriteBatch();
-  // Add PBFT block in DB
-  std::vector<std::shared_ptr<Vote>> votes;
-  PeriodData period_data(pbft_block, votes);
-  db1->savePeriodData(period_data, batch);
-  // Update PBFT chain head block
-  blk_hash_t pbft_chain_head_hash = pbft_chain1->getHeadHash();
-  std::string pbft_chain_head_str = pbft_chain1->getJsonStrForBlock(pbft_block->getBlockHash(), true);
-  db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
-  db1->commitWriteBatch(batch);
-  // Update pbft chain
-  pbft_chain1->updatePbftChain(pbft_block->getBlockHash(), blk_hash_t(0));
-
-  EXPECT_EQ(pbft_chain1->getPbftChainSize(), node1_pbft_chain_size + 1);
-  EXPECT_EQ(pbft_chain1->getPbftChainSizeExcludingEmptyPbftBlocks(), 0);
-
-  // node1 cleanup block1 in PBFT unverified blocks table
-  pbft_chain1->cleanupUnverifiedPbftBlocks(*pbft_block);
-  bool find_erased_block = pbft_chain1->findUnverifiedPbftBlock(pbft_block->getBlockHash());
-  ASSERT_FALSE(find_erased_block);
-
-  nw1->getSpecificHandler<network::tarcap::PbftBlockPacketHandler>()->onNewPbftBlock(pbft_block);
-
-  // Check node2 and node3 receive the PBFT block
-  EXPECT_HAPPENS({20s, 200ms}, [&](auto &ctx) {
-    WAIT_EXPECT_TRUE(ctx, pbft_chain2->getUnverifiedPbftBlock(pbft_block->getBlockHash()))
-    WAIT_EXPECT_TRUE(ctx, pbft_chain3->getUnverifiedPbftBlock(pbft_block->getBlockHash()))
-  });
-  EXPECT_EQ(pbft_chain2->getUnverifiedPbftBlock(pbft_block->getBlockHash())->getJsonStr(), pbft_block->getJsonStr());
-  EXPECT_EQ(pbft_chain3->getUnverifiedPbftBlock(pbft_block->getBlockHash())->getJsonStr(), pbft_block->getJsonStr());
 }
 
 }  // namespace taraxa::core_tests
