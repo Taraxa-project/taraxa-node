@@ -294,16 +294,17 @@ size_t PbftManager::getTwoTPlusOne() const { return two_t_plus_one_; }
 
 void PbftManager::waitForPeriodFinalization() {
   do {
-    // we still need to wait for block finalization?
-    if (pbft_chain_->getPbftChainSize() == final_chain_->last_block_number()) {
+    // we need to be sure we finalized at least block block with num lower by delegation_delay
+    if (pbft_chain_->getPbftChainSize() <= final_chain_->last_block_number() + final_chain_->delegation_delay()) {
       break;
     }
     thisThreadSleepForMilliSeconds(POLLING_INTERVAL_ms);
   } while (!stopped_);
 
   dpos_period_ = pbft_chain_->getPbftChainSize();
-  LOG(log_nf_) << "DPOS total votes count is " << currentTotalVotesCount() << " for period " << dpos_period_
-               << ". Account " << node_addr_ << " has " << currentWeightedVotesCount() << " weighted votes";
+  LOG(log_nf_) << "DPOS total votes count is " << currentTotalVotesCount() << " for period "
+               << pbft_chain_->getPbftChainSize() << ". Account " << node_addr_ << " has "
+               << currentWeightedVotesCount() << " weighted votes";
 }
 
 uint64_t PbftManager::currentTotalVotesCount() const {
@@ -445,7 +446,7 @@ void PbftManager::resetPbftConsensus(uint64_t round) {
   // with periods
   db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold, sortition_threshold_,
                                      batch);
-  db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, dpos_period_.load(), batch);
+  db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, dpos_period_, batch);
   db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount,
                                      currentTotalVotesCount(), batch);
 
