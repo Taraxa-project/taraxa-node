@@ -48,6 +48,10 @@ response::Value DagBlock::getTimestamp() const noexcept {
   return response::Value(static_cast<int>(dag_block_->getTimestamp()));
 }
 
+int DagBlock::getTransactionCount() const noexcept {
+  return static_cast<int>(dag_block_->getTrxs().size());
+}
+
 std::optional<std::vector<std::shared_ptr<object::Transaction>>> DagBlock::getTransactions() const noexcept {
   std::vector<std::shared_ptr<object::Transaction>> transactions_result;
   for (const auto& trx_hash : dag_block_->getTrxs()) {

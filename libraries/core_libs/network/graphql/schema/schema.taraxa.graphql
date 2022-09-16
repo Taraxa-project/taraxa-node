@@ -148,6 +148,10 @@ input BlockFilterCriteria {
     # Timestamp is the unix timestamp at which this block was mined.
     timestamp: Long!
 
+    # TransactionCount is the number of transactions in this block. if
+    # transactions are not available for this block, this field will be 0.
+    transactionCount: Int!
+
     # Transactions is a list of transactions associated with this block. If
     # transactions are unavailable for this block, this field will be null.
     transactions: [Transaction!]
