@@ -43,6 +43,7 @@ var namespacetaraxa =
     [ "PeriodData", "group___p_b_f_t.html#classtaraxa_1_1_period_data", "group___p_b_f_t_classtaraxa_1_1_period_data" ],
     [ "PeriodDataQueue", "group___p_b_f_t.html#classtaraxa_1_1_period_data_queue", "group___p_b_f_t_classtaraxa_1_1_period_data_queue" ],
     [ "PivotTree", "group___d_a_g.html#classtaraxa_1_1_pivot_tree", "group___d_a_g_classtaraxa_1_1_pivot_tree" ],
+    [ "ProposedBlocks", "classtaraxa_1_1_proposed_blocks.html", "classtaraxa_1_1_proposed_blocks" ],
     [ "ProposeModelFace", "group___d_a_g.html#classtaraxa_1_1_propose_model_face", "group___d_a_g_classtaraxa_1_1_propose_model_face" ],
     [ "RewardsStats", "classtaraxa_1_1_rewards_stats.html", "classtaraxa_1_1_rewards_stats" ],
     [ "SortitionConfig", "structtaraxa_1_1_sortition_config.html", "structtaraxa_1_1_sortition_config" ],

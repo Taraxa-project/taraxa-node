@@ -1,5 +1,6 @@
 <map id="taraxa::network::tarcap::VotesSyncPacketHandler" name="taraxa::network::tarcap::VotesSyncPacketHandler">
-<area shape="rect" id="node1" title=" " alt="" coords="5,184,196,225"/>
-<area shape="rect" id="node2" href="$classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html" title="ExtVotesPacketHandler is extended abstract PacketHandler with added functions that are used in packet..." alt="" coords="11,95,191,136"/>
-<area shape="rect" id="node3" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html" title="Packet handler base class that consists of shared state and some commonly used functions." alt="" coords="13,5,188,47"/>
+<area shape="rect" id="node1" title=" " alt="" coords="68,215,259,256"/>
+<area shape="rect" id="node2" href="$classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html" title="ExtVotesPacketHandler is extended abstract PacketHandler with added functions that are used in packet..." alt="" coords="73,124,253,165"/>
+<area shape="rect" id="node3" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html" title="Packet handler base class that consists of shared state and some commonly used functions." alt="" coords="5,5,180,47"/>
+<area shape="rect" id="node4" title=" " alt="" coords="204,13,264,39"/>
 </map>

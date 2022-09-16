@@ -254,7 +254,6 @@ var hierarchy =
       ] ],
       [ "taraxa::network::tarcap::GetDagSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html", null ],
       [ "taraxa::network::tarcap::GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html", null ],
-      [ "taraxa::network::tarcap::PbftBlockPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_block_packet_handler.html", null ],
       [ "taraxa::network::tarcap::TransactionPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html", null ]
     ] ],
     [ "taraxa::network::tarcap::PacketsBlockingMask", "classtaraxa_1_1network_1_1tarcap_1_1_packets_blocking_mask.html", null ],
@@ -276,6 +275,7 @@ var hierarchy =
     [ "taraxa::FullNode::PostDestructionContext", "classtaraxa_1_1_full_node.html#structtaraxa_1_1_full_node_1_1_post_destruction_context", null ],
     [ "taraxa::network::tarcap::PriorityQueue", "classtaraxa_1_1network_1_1tarcap_1_1_priority_queue.html", null ],
     [ "taraxa::state_api::Proof", "group___final_chain.html#structtaraxa_1_1state__api_1_1_proof", null ],
+    [ "taraxa::ProposedBlocks", "classtaraxa_1_1_proposed_blocks.html", null ],
     [ "taraxa::ProposeModelFace", "group___d_a_g.html#classtaraxa_1_1_propose_model_face", [
       [ "taraxa::SortitionPropose", "group___d_a_g.html#classtaraxa_1_1_sortition_propose", null ]
     ] ],

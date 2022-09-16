@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.17"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TARAXA: libraries/core_libs/network/src/tarcap/packets_handlers/pbft_block_packet_handler.cpp File Reference</title>
+<title>TARAXA: libraries/core_libs/consensus/src/pbft/proposed_blocks.cpp File Reference</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -62,7 +62,7 @@ $(function() {
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
-$(document).ready(function(){initNavTree('pbft__block__packet__handler_8cpp.html',''); initResizable(); });
+$(document).ready(function(){initNavTree('proposed__blocks_8cpp.html',''); initResizable(); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -84,23 +84,16 @@ $(document).ready(function(){initNavTree('pbft__block__packet__handler_8cpp.html
   <div class="summary">
 <a href="#namespaces">Namespaces</a>  </div>
   <div class="headertitle">
-<div class="title">pbft_block_packet_handler.cpp File Reference</div>  </div>
+<div class="title">proposed_blocks.cpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="pbft__block__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/pbft_block_packet_handler.hpp</a>&quot;</code><br />
-<code>#include &lt;<a class="el" href="libp2p_2_common_8h_source.html">libp2p/Common.h</a>&gt;</code><br />
-<code>#include &quot;<a class="el" href="pbft__syncing__state_8hpp_source.html">network/tarcap/shared_states/pbft_syncing_state.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="pbft__chain_8hpp_source.html">pbft/pbft_chain.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="pbft__manager_8hpp_source.html">pbft/pbft_manager.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="vote__manager_8hpp_source.html">vote_manager/vote_manager.hpp</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="proposed__blocks_8hpp_source.html">pbft/proposed_blocks.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="pbft__block_8hpp_source.html">pbft/pbft_block.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="vote_8hpp_source.html">vote/vote.hpp</a>&quot;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
 Namespaces</h2></td></tr>
 <tr class="memitem:namespacetaraxa"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html">taraxa</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:namespacetaraxa_1_1network"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1network.html">taraxa::network</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:namespacetaraxa_1_1network_1_1tarcap"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html">taraxa::network::tarcap</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
@@ -108,7 +101,7 @@ Namespaces</h2></td></tr>
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_bc0718b08fb2015b8e59c47b2805f60c.html">libraries</a></li><li class="navelem"><a class="el" href="dir_26a07acc86f96606533d32694b27ad6e.html">core_libs</a></li><li class="navelem"><a class="el" href="dir_8674271c498d921231015373c94f828f.html">network</a></li><li class="navelem"><a class="el" href="dir_082b103f59cff91bfb399cd9b4f404e3.html">src</a></li><li class="navelem"><a class="el" href="dir_f0a9d803e2389a89dc70d4681c28fef3.html">tarcap</a></li><li class="navelem"><a class="el" href="dir_d25346373f96d9f55810c97f842c9c77.html">packets_handlers</a></li><li class="navelem"><a class="el" href="pbft__block__packet__handler_8cpp.html">pbft_block_packet_handler.cpp</a></li>
+    <li class="navelem"><a class="el" href="dir_bc0718b08fb2015b8e59c47b2805f60c.html">libraries</a></li><li class="navelem"><a class="el" href="dir_26a07acc86f96606533d32694b27ad6e.html">core_libs</a></li><li class="navelem"><a class="el" href="dir_cfe3fd7e5f3bdd0f5dfa2b6860f93e94.html">consensus</a></li><li class="navelem"><a class="el" href="dir_4805b6acfd5fffc5e179e9c9cb76b961.html">src</a></li><li class="navelem"><a class="el" href="dir_04722538dfecff0f34a91172ea4fb1e3.html">pbft</a></li><li class="navelem"><a class="el" href="proposed__blocks_8cpp.html">proposed_blocks.cpp</a></li>
     <li class="footer">Generated by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>

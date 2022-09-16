@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=9"/>
 <meta name="generator" content="Doxygen 1.8.17"/>
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>TARAXA: libraries/core_libs/network/src/tarcap/packets_handlers -&gt; aleth Relation</title>
+<title>TARAXA: Member List</title>
 <link href="tabs.css" rel="stylesheet" type="text/css"/>
 <script type="text/javascript" src="jquery.js"></script>
 <script type="text/javascript" src="dynsections.js"></script>
@@ -62,7 +62,7 @@ $(function() {
 </div>
 <script type="text/javascript">
 /* @license magnet:?xt=urn:btih:cf05388f2679ee054f2beb29a391d25f4e673ac3&amp;dn=gpl-2.0.txt GPL-v2 */
-$(document).ready(function(){initNavTree('dir_d25346373f96d9f55810c97f842c9c77.html',''); initResizable(); });
+$(document).ready(function(){initNavTree('classtaraxa_1_1_proposed_blocks.html',''); initResizable(); });
 /* @license-end */
 </script>
 <div id="doc-content">
@@ -80,13 +80,27 @@ $(document).ready(function(){initNavTree('dir_d25346373f96d9f55810c97f842c9c77.h
 </iframe>
 </div>
 
+<div class="header">
+  <div class="headertitle">
+<div class="title">taraxa::ProposedBlocks Member List</div>  </div>
+</div><!--header-->
 <div class="contents">
-<h3>packets_handlers &rarr; aleth Relation</h3><table class="dirtab"><tr class="dirtab"><th class="dirtab">File in libraries/core_libs/network/src/tarcap/packets_handlers</th><th class="dirtab">Includes file in libraries/aleth</th></tr><tr class="dirtab"><td class="dirtab"><a class="el" href="pbft__block__packet__handler_8cpp.html">pbft_block_packet_handler.cpp</a></td><td class="dirtab"><a class="el" href="dir_59155f4a0f275549a8e15d23ee67ff9f.html">libp2p</a>&#160;/&#160;<a class="el" href="libp2p_2_common_8h.html">Common.h</a></td></tr></table></div><!-- contents -->
+
+<p>This is the complete list of members for <a class="el" href="classtaraxa_1_1_proposed_blocks.html">taraxa::ProposedBlocks</a>, including all inherited members.</p>
+<table class="directory">
+  <tr class="even"><td class="entry"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#a3ea7e486274dc532098e9551a6b08a68">cleanupProposedPbftBlocksByPeriod</a>(uint64_t period)</td><td class="entry"><a class="el" href="classtaraxa_1_1_proposed_blocks.html">taraxa::ProposedBlocks</a></td><td class="entry"></td></tr>
+  <tr><td class="entry"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#acf1d6b824d87a512cd6c3c1402a4b1f7">cleanupProposedPbftBlocksByRound</a>(uint64_t period, uint64_t round)</td><td class="entry"><a class="el" href="classtaraxa_1_1_proposed_blocks.html">taraxa::ProposedBlocks</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#aafdf0dc1d6208d7df1abc789d5cbcabc">getPbftProposedBlock</a>(uint64_t period, uint64_t round, const blk_hash_t &amp;block_hash) const</td><td class="entry"><a class="el" href="classtaraxa_1_1_proposed_blocks.html">taraxa::ProposedBlocks</a></td><td class="entry"></td></tr>
+  <tr><td class="entry"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#ad488ad846e60d10bab9766ed6ea76363">isInProposedBlocks</a>(uint64_t period, uint64_t round, const blk_hash_t &amp;block_hash) const</td><td class="entry"><a class="el" href="classtaraxa_1_1_proposed_blocks.html">taraxa::ProposedBlocks</a></td><td class="entry"></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#aab357e73c061c7a5e62a100f6b77d604">proposed_blocks_</a></td><td class="entry"><a class="el" href="classtaraxa_1_1_proposed_blocks.html">taraxa::ProposedBlocks</a></td><td class="entry"><span class="mlabel">private</span></td></tr>
+  <tr><td class="entry"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#aba4756331e897c3d5f5c470583fcd1eb">proposed_blocks_mutex_</a></td><td class="entry"><a class="el" href="classtaraxa_1_1_proposed_blocks.html">taraxa::ProposedBlocks</a></td><td class="entry"><span class="mlabel">mutable</span><span class="mlabel">private</span></td></tr>
+  <tr class="even"><td class="entry"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#ad6830bace51fe075498d6a7dfb6299e3">pushProposedPbftBlock</a>(const std::shared_ptr&lt; PbftBlock &gt; &amp;proposed_block, const std::shared_ptr&lt; Vote &gt; &amp;propose_vote)</td><td class="entry"><a class="el" href="classtaraxa_1_1_proposed_blocks.html">taraxa::ProposedBlocks</a></td><td class="entry"></td></tr>
+  <tr><td class="entry"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#a504f652d7cd27d0dbe860ceeb40a2e93">pushProposedPbftBlock</a>(uint64_t round, const std::shared_ptr&lt; PbftBlock &gt; &amp;proposed_block)</td><td class="entry"><a class="el" href="classtaraxa_1_1_proposed_blocks.html">taraxa::ProposedBlocks</a></td><td class="entry"></td></tr>
+</table></div><!-- contents -->
 </div><!-- doc-content -->
 <!-- start footer part -->
 <div id="nav-path" class="navpath"><!-- id is needed for treeview function! -->
   <ul>
-    <li class="navelem"><a class="el" href="dir_bc0718b08fb2015b8e59c47b2805f60c.html">libraries</a></li><li class="navelem"><a class="el" href="dir_26a07acc86f96606533d32694b27ad6e.html">core_libs</a></li><li class="navelem"><a class="el" href="dir_8674271c498d921231015373c94f828f.html">network</a></li><li class="navelem"><a class="el" href="dir_082b103f59cff91bfb399cd9b4f404e3.html">src</a></li><li class="navelem"><a class="el" href="dir_f0a9d803e2389a89dc70d4681c28fef3.html">tarcap</a></li><li class="navelem"><a class="el" href="dir_d25346373f96d9f55810c97f842c9c77.html">packets_handlers</a></li>
     <li class="footer">Generated by
     <a href="http://www.doxygen.org/index.html">
     <img class="footer" src="doxygen.png" alt="doxygen"/></a> 1.8.17 </li>

@@ -129,8 +129,6 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html">PacketsStats</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Stats for all received and sent packets of all types.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_block_packet_handler.html">PbftBlockPacketHandler</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html">PbftSyncingState</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html" title="PbftSyncingState contains common members and functions related to syncing that are shared among multi...">PbftSyncingState</a> contains common members and functions related to syncing that are shared among multiple classes.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -166,22 +164,21 @@ Classes</h2></td></tr>
 Enumerations</h2></td></tr>
 <tr class="memitem:ab9638975c8f96ddde1ef012aa4a10368"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368">SubprotocolPacketType</a> : uint32_t { <br />
 &#160;&#160;<a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368ae314ae2149a2c255085a02e1ae5400e2">HighPriorityPackets</a> = 0, 
-<a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368af3ff2cf598a483eea1487c3dfe76eea3">PbftBlockPacket</a>, 
 <a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a6ee4a9d5f1977759fc31f9b29174a955">VotePacket</a>, 
 <a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368afd0edaff753fefc0f7a58a0e7d29158f">GetVotesSyncPacket</a>, 
+<a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a7e829bf318188d49a8f5c5a2fa95a49d">VotesSyncPacket</a>, 
 <br />
-&#160;&#160;<a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a7e829bf318188d49a8f5c5a2fa95a49d">VotesSyncPacket</a>, 
-<a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368af6f1a52f4463133828df300c73f6e173">MidPriorityPackets</a>, 
+&#160;&#160;<a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368af6f1a52f4463133828df300c73f6e173">MidPriorityPackets</a>, 
 <a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a0e8670743447b0cf6432e3c88423de7b">DagBlockPacket</a>, 
 <a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a0ce9d5a18caa09cb82dedcc9bcfb43f1">DagSyncPacket</a>, 
+<a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a049a87329edf74127177b73734ae94be">TransactionPacket</a>, 
 <br />
-&#160;&#160;<a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a049a87329edf74127177b73734ae94be">TransactionPacket</a>, 
-<a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368ac43926954c33e3ba01c5f524a42550a7">LowPriorityPackets</a>, 
+&#160;&#160;<a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368ac43926954c33e3ba01c5f524a42550a7">LowPriorityPackets</a>, 
 <a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a964ef71b1e63338eee1b80b5563fd00e">StatusPacket</a>, 
 <a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a60757b3d3f158be85f51bdda0a051c1f">GetPbftSyncPacket</a>, 
+<a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a80e1379043ac60fc04c1dbe99068f50a">PbftSyncPacket</a>, 
 <br />
-&#160;&#160;<a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a80e1379043ac60fc04c1dbe99068f50a">PbftSyncPacket</a>, 
-<a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a734888f76772d0d0db9a033fe0ff91aa">GetDagSyncPacket</a>, 
+&#160;&#160;<a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a734888f76772d0d0db9a033fe0ff91aa">GetDagSyncPacket</a>, 
 <a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368ac2c272f148d638892c41195d88536974">PacketCount</a>
 <br />
  }</td></tr>
@@ -216,7 +213,6 @@ Variables</h2></td></tr>
 <p>SubprotocolPacketType is used in networking layer to differentiate packet types. </p>
 <table class="fieldtable">
 <tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ab9638975c8f96ddde1ef012aa4a10368ae314ae2149a2c255085a02e1ae5400e2"></a>HighPriorityPackets&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ab9638975c8f96ddde1ef012aa4a10368af3ff2cf598a483eea1487c3dfe76eea3"></a>PbftBlockPacket&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="ab9638975c8f96ddde1ef012aa4a10368a6ee4a9d5f1977759fc31f9b29174a955"></a>VotePacket&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="ab9638975c8f96ddde1ef012aa4a10368afd0edaff753fefc0f7a58a0e7d29158f"></a>GetVotesSyncPacket&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="ab9638975c8f96ddde1ef012aa4a10368a7e829bf318188d49a8f5c5a2fa95a49d"></a>VotesSyncPacket&#160;</td><td class="fielddoc"></td></tr>

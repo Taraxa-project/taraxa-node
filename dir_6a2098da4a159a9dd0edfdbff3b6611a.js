@@ -16,9 +16,6 @@ var dir_6a2098da4a159a9dd0edfdbff3b6611a =
     [ "get_votes_sync_packet_handler.hpp", "get__votes__sync__packet__handler_8hpp.html", [
       [ "GetVotesSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_votes_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_get_votes_sync_packet_handler" ]
     ] ],
-    [ "pbft_block_packet_handler.hpp", "pbft__block__packet__handler_8hpp.html", [
-      [ "PbftBlockPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_block_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_block_packet_handler" ]
-    ] ],
     [ "pbft_sync_packet_handler.hpp", "pbft__sync__packet__handler_8hpp.html", [
       [ "PbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler" ]
     ] ],

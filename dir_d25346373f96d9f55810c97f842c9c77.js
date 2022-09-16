@@ -6,7 +6,6 @@ var dir_d25346373f96d9f55810c97f842c9c77 =
     [ "get_dag_sync_packet_handler.cpp", "get__dag__sync__packet__handler_8cpp.html", null ],
     [ "get_pbft_sync_packet_handler.cpp", "get__pbft__sync__packet__handler_8cpp.html", null ],
     [ "get_votes_sync_packet_handler.cpp", "get__votes__sync__packet__handler_8cpp.html", null ],
-    [ "pbft_block_packet_handler.cpp", "pbft__block__packet__handler_8cpp.html", null ],
     [ "pbft_sync_packet_handler.cpp", "pbft__sync__packet__handler_8cpp.html", null ],
     [ "status_packet_handler.cpp", "status__packet__handler_8cpp.html", null ],
     [ "transaction_packet_handler.cpp", "transaction__packet__handler_8cpp.html", null ],

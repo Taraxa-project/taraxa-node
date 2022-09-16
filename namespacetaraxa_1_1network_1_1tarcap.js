@@ -15,7 +15,6 @@ var namespacetaraxa_1_1network_1_1tarcap =
     [ "PacketsHandler", "classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_packets_handler" ],
     [ "PacketsQueue", "classtaraxa_1_1network_1_1tarcap_1_1_packets_queue.html", "classtaraxa_1_1network_1_1tarcap_1_1_packets_queue" ],
     [ "PacketsStats", "classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html", "classtaraxa_1_1network_1_1tarcap_1_1_packets_stats" ],
-    [ "PbftBlockPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_block_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_block_packet_handler" ],
     [ "PbftSyncingState", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state" ],
     [ "PbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler" ],
     [ "PeersState", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state" ],

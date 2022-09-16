@@ -90,8 +90,11 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 <li>GasPricer()
 : <a class="el" href="group___transaction.html#a99a05636013d8f46d9eeb908a44b4ee3">taraxa::GasPricer</a>
 </li>
+<li>genAndPlaceProposeVote()
+: <a class="el" href="group___p_b_f_t.html#a237f81f49358c6f702be6e8dd8e84da7">taraxa::PbftManager</a>
+</li>
 <li>generatePbftBlock()
-: <a class="el" href="group___p_b_f_t.html#abb0a0d8711ca0eefae4dc0a58499bc84">taraxa::PbftManager</a>
+: <a class="el" href="group___p_b_f_t.html#ae5ca7722aaae48827950f8a1b9805d03">taraxa::PbftManager</a>
 </li>
 <li>generateVote()
 : <a class="el" href="group___p_b_f_t.html#aea0d2ddeaa7f4de875554f800319adbc">taraxa::PbftManager</a>
@@ -121,7 +124,7 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 , <a class="el" href="classtaraxa_1_1_map_by_block_cache.html#a03bcac8d758b8c08588c6d282fc16fb1">taraxa::MapByBlockCache&lt; Key, Value &gt;</a>
 , <a class="el" href="classtaraxa_1_1_status_table.html#a116dfaccc8e77bacb79acd78deb8bb26">taraxa::StatusTable&lt; K, V &gt;</a>
 , <a class="el" href="group___transaction.html#aec44e28210d47f379b6f01532b77945b">taraxa::TransactionQueue</a>
-, <a class="el" href="classtaraxa_1_1util_1_1lazy_1_1_lazy.html#a23d79cdd985b83f662e75c60c4786472">taraxa::util::lazy::Lazy&lt; Provider &gt;</a>
+, <a class="el" href="classtaraxa_1_1util_1_1lazy_1_1_lazy.html#aa35d7ff15743bc5a1459e8bd065cb60e">taraxa::util::lazy::Lazy&lt; Provider &gt;</a>
 , <a class="el" href="classtaraxa_1_1_value_by_block_cache.html#a0a28b1c85d345912fa296dc8931eedaf">taraxa::ValueByBlockCache&lt; Value &gt;</a>
 , <a class="el" href="class_thread_safe_map.html#ac25d2cdd138bd681c2d76170e7b52754">ThreadSafeMap&lt; Key, Value &gt;</a>
 </li>
@@ -428,9 +431,6 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 </li>
 <li>getFinalizedDagBlockHashesByPeriod()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#ad99e02baba9bc0949e7b91bb9e9e1743">taraxa::DbStorage</a>
-</li>
-<li>getFinalizedDPOSPeriod()
-: <a class="el" href="group___p_b_f_t.html#a4b041e54ffc037ab9ac0cdcea7b35824">taraxa::PbftManager</a>
 </li>
 <li>getFinalizedTransactions()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#ad797fc9c28e52d355aae1ca7bd5b79d8">taraxa::DbStorage</a>
@@ -741,6 +741,9 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 : <a class="el" href="classgraphql_1_1taraxa_1_1_dag_block.html#a19cea62dc4902352c6ad11eeb1ebf261">graphql::taraxa::DagBlock</a>
 , <a class="el" href="group___p_b_f_t.html#aac05047ebcb60d8a0a52ff708f678b51">taraxa::PbftManager</a>
 </li>
+<li>getPbftProposedBlock()
+: <a class="el" href="classtaraxa_1_1_proposed_blocks.html#aafdf0dc1d6208d7df1abc789d5cbcabc">taraxa::ProposedBlocks</a>
+</li>
 <li>getPbftRound()
 : <a class="el" href="group___p_b_f_t.html#a27789d4ef3a51bb8ba56c289fe7ecb1c">taraxa::PbftManager</a>
 </li>
@@ -817,8 +820,14 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 <li>getProposalPeriodForDagLevel()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#ab95bebf862d9745adbbf656562ccae63">taraxa::DbStorage</a>
 </li>
+<li>getProposalVote()
+: <a class="el" href="group___vote.html#a5f3b1435fe7f3c80cfe891b865944680">taraxa::VoteManager</a>
+</li>
 <li>getProposalVotes()
-: <a class="el" href="group___vote.html#a8f632f02b4061972c741b87ba4d49756">taraxa::VoteManager</a>
+: <a class="el" href="group___vote.html#a417d4bb4c0052d5e05945af77c735dc6">taraxa::VoteManager</a>
+</li>
+<li>getProposedBlocksSt()
+: <a class="el" href="group___p_b_f_t.html#a3abf3e606917590b8e9e9bcf873ec962">taraxa::PbftManager</a>
 </li>
 <li>getProposeLevel()
 : <a class="el" href="group___d_a_g.html#a65049d7c6d06d4dafcd21fc4be034520">taraxa::BlockProposer</a>
@@ -907,7 +916,7 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 : <a class="el" href="classtaraxa_1_1net_1_1_http_connection.html#a5bec84d7447d85a63eaa31f1dbff6843">taraxa::net::HttpConnection</a>
 </li>
 <li>getSoftVotedBlockForThisRound_()
-: <a class="el" href="group___p_b_f_t.html#a40bfbebc3cc4fec7070583e5302cdf5d">taraxa::PbftManager</a>
+: <a class="el" href="group___p_b_f_t.html#a67f3ee423bf34b356799c6a9062f198f">taraxa::PbftManager</a>
 </li>
 <li>getSoftVotes()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a12d4c77985eb5aafd1535d613501f3aa">taraxa::DbStorage</a>
@@ -1038,12 +1047,6 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 <li>getType()
 : <a class="el" href="group___vote.html#abf2c94ac49b9b5930dd0fcd2581d5335">taraxa::Vote</a>
 </li>
-<li>getUnfinalizedBlock_()
-: <a class="el" href="group___p_b_f_t.html#a9f072050236e2b71acb9e831a8f016a9">taraxa::PbftManager</a>
-</li>
-<li>getUnverifiedPbftBlock()
-: <a class="el" href="group___p_b_f_t.html#acb30f318cdecfdecd8b0745629b42f47">taraxa::PbftChain</a>
-</li>
 <li>getV()
 : <a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html#a98f7316ba927906ea251d40bd903b366">graphql::taraxa::Transaction</a>
 </li>
@@ -1065,7 +1068,7 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 : <a class="el" href="group___vote.html#add0a1c70fc728cdb3ef074330a129060">taraxa::VoteManager</a>
 </li>
 <li>getVotedValue()
-: <a class="el" href="group___vote.html#ab265b52efc3d9cbba4310f5bebe4eedd">taraxa::NextVotesManager</a>
+: <a class="el" href="group___vote.html#ac9f87f7cb2d2b1725f2b3a0e04f0a321">taraxa::NextVotesManager</a>
 </li>
 <li>getVoteManager()
 : <a class="el" href="classtaraxa_1_1_full_node.html#ae45cc36c776223184ab797fcecebc3df">taraxa::FullNode</a>
@@ -1096,6 +1099,9 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 </li>
 <li>getWeight()
 : <a class="el" href="group___vote.html#a8f1b2a30b92abba46e614f51f6433e0d">taraxa::Vote</a>
+</li>
+<li>gossipNewVote()
+: <a class="el" href="group___p_b_f_t.html#ae52a0b2ffa15e8b7fc1c4732ece5eaa0">taraxa::PbftManager</a>
 </li>
 <li>GraphQlHttpProcessor()
 : <a class="el" href="classtaraxa_1_1net_1_1_graph_ql_http_processor.html#a17508f1a4cc9decbcb85d6fc20bacffe">taraxa::net::GraphQlHttpProcessor</a>
