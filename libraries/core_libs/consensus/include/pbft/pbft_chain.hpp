@@ -106,7 +106,6 @@ class PbftChain {
   using UpgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using UpgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
-  mutable boost::shared_mutex unverified_access_;
   mutable boost::shared_mutex chain_head_access_;
 
   blk_hash_t head_hash_;     // PBFT head hash

@@ -144,7 +144,7 @@ void VotePacketHandler::broadcastPreviousRoundNextVotesBundle() {
       for (const auto &v : next_votes_bundle) {
         send_next_votes_bundle.push_back(v);
       }
-      sendPbftVotes(peer.first, std::move(send_next_votes_bundle));
+      sendPbftVotes(peer.second, std::move(send_next_votes_bundle));
     }
   }
 }

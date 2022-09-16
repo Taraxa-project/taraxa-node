@@ -441,11 +441,14 @@ void PbftManager::resetPbftConsensus(uint64_t round) {
   db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftRound, round, batch);
   db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftStep, 1, batch);
 
+  // TODO[2032]: PreviousRound... values probably dont make sense anymore as votesCOunt, threshold, etc... change only
+  // with periods
   db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold, sortition_threshold_,
                                      batch);
   db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, dpos_period_.load(), batch);
   db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount,
                                      currentTotalVotesCount(), batch);
+
   db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedNullBlockHash, false, batch);
   db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedSoftValue, false, batch);
 
@@ -1239,7 +1242,7 @@ std::optional<blk_hash_t> findClosestAnchor(const std::vector<blk_hash_t> &ghost
 
 std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
   const auto [current_pbft_round, current_pbft_period] = getPbftRoundAndPeriod();
-  VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, propose_period, round, 1});
+  VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, current_pbft_period, current_pbft_round, 1});
   if (currentWeightedVotesCount() == 0 ||
       !vrf_sortition.calculateWeight(currentWeightedVotesCount(), currentTotalVotesCount(),
                                      getPbftSortitionThreshold(propose_vote_type, dpos_period_),

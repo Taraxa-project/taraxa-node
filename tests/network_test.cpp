@@ -15,7 +15,6 @@
 #include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/get_votes_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/pbft_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/status_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
@@ -1500,7 +1499,8 @@ TEST_F(NetworkTest, unexpected_votes_sync_packet) {
   EXPECT_EQ(nw1->getPeerCount(), 1);
   // Node1 broadcast next votes1 to node2
   std::cout << "Node1 broadcast VotesSyncPacket to Node2" << std::endl;
-  nw0->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVotes(nw1->getNodeId(), {vote}, true);
+  nw0->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVotes(nw0->getPeer(nw1->getNodeId()), {vote},
+                                                                               true);
 
   EXPECT_HAPPENS({5s, 100ms}, [&](auto& ctx) {
     WAIT_EXPECT_EQ(ctx, nw0->getPeerCount(), 0);
