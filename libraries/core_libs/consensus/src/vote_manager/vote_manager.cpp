@@ -158,7 +158,6 @@ bool VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
   }
 
   found_voted_value_it->second.first += weight;
-  db_->saveVerifiedVote(vote);
 
   LOG(log_nf_) << "Added verified vote: " << hash;
   LOG(log_dg_) << "Added verified vote: " << *vote;

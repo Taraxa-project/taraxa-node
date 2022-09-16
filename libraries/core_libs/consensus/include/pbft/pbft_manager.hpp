@@ -443,7 +443,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param voted_block voted block object - should be == vote->voted_block. In case we dont have block object, nullptr
    *                    is provided
    */
-  bool placeVote(std::shared_ptr<Vote> &&vote, std::string_view log_vote_id,
+  bool placeVote(const std::shared_ptr<Vote> &, std::string_view log_vote_id,
                  const std::shared_ptr<PbftBlock> &voted_block);
 
   /**

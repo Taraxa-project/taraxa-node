@@ -778,12 +778,13 @@ void PbftManager::checkPreviousRoundNextVotedValueChange_() {
   previous_round_next_voted_null_block_hash_ = next_votes_manager_->haveEnoughVotesForNullBlockHash();
 }
 
-bool PbftManager::placeVote(std::shared_ptr<Vote> &&vote, std::string_view log_vote_id,
+bool PbftManager::placeVote(const std::shared_ptr<Vote> &vote, std::string_view log_vote_id,
                             const std::shared_ptr<PbftBlock> &voted_block) {
   if (!vote_mgr_->addVerifiedVote(vote)) {
     LOG(log_er_) << "Unable to place vote " << vote->getHash().abridged();
     return false;
   }
+  db_->saveVerifiedVote(vote);
 
   gossipNewVote(vote, voted_block);
 
@@ -811,15 +812,13 @@ bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &propo
     return false;
   }
 
-  if (!vote_mgr_->addVerifiedVote(propose_vote)) {
-    LOG(log_er_) << "Unable to push generated propose vote";
+  if (!placeVote(propose_vote, "propose vote", proposed_block)) {
+    LOG(log_er_) << "Unable place propose vote";
     return false;
   }
 
   proposed_blocks_.pushProposedPbftBlock(proposed_block, propose_vote);
-
   vote_mgr_->sendRewardVotes(proposed_block->getPrevBlockHash());
-  gossipNewVote(propose_vote, proposed_block);
 
   LOG(log_nf_) << "Placed propose vote " << propose_vote->getHash() << " for proposed block "
                << proposed_block->getBlockHash() << ", vote weight " << *propose_vote->getWeight() << ", period "
@@ -895,7 +894,7 @@ void PbftManager::identifyBlock_() {
       if (auto vote = generateVoteWithWeight(leader_block->getBlockHash(), soft_vote_type, leader_block->getPeriod(),
                                              round, step_);
           vote) {
-        placeVote(std::move(vote), "soft vote", leader_block);
+        placeVote(vote, "soft vote", leader_block);
       }
     }
   } else if (previous_round_next_voted_value_.has_value()) {
@@ -904,7 +903,7 @@ void PbftManager::identifyBlock_() {
     if (auto vote = generateVoteWithWeight(next_voted_block_hash, soft_vote_type, period, round, step_); vote) {
       auto previous_round_next_voted_block =
           proposed_blocks_.getPbftProposedBlock(period, round - 1, next_voted_block_hash);
-      placeVote(std::move(vote), "previous round next voted block soft vote", previous_round_next_voted_block);
+      placeVote(vote, "previous round next voted block soft vote", previous_round_next_voted_block);
     }
   }
 }
@@ -967,7 +966,7 @@ void PbftManager::certifyBlock_() {
     return;
   }
 
-  if (!placeVote(std::move(vote), "cert vote", current_round_soft_voted_block)) {
+  if (!placeVote(vote, "cert vote", current_round_soft_voted_block)) {
     LOG(log_er_) << "Failed to place cert vote for " << current_round_soft_voted_block->getBlockHash();
     return;
   }
@@ -999,13 +998,13 @@ void PbftManager::firstFinish_() {
     if (auto vote = generateVoteWithWeight(cert_voted_block->getBlockHash(), next_vote_type,
                                            cert_voted_block->getPeriod(), round, step_);
         vote) {
-      placeVote(std::move(vote), "first finish next vote", cert_voted_block);
+      placeVote(vote, "first finish next vote", cert_voted_block);
     }
   } else if (round >= 2 && previous_round_next_voted_null_block_hash_) {
     // Starting value in round 1 is always null block hash... So combined with other condition for next
     // voting null block hash...
     if (auto vote = generateVoteWithWeight(NULL_BLOCK_HASH, next_vote_type, period, round, step_); vote) {
-      placeVote(std::move(vote), "first finish next vote", nullptr);
+      placeVote(vote, "first finish next vote", nullptr);
     }
   } else {
     // TODO: We should vote for any value that we first saw 2t+1 next votes for in previous round -> in current design
@@ -1023,7 +1022,7 @@ void PbftManager::firstFinish_() {
     }
 
     if (auto vote = generateVoteWithWeight(starting_value.first, next_vote_type, period, round, step_); vote) {
-      placeVote(std::move(vote), "starting value first finish next vote", starting_value.second);
+      placeVote(vote, "starting value first finish next vote", starting_value.second);
     }
   }
 }
@@ -1053,7 +1052,7 @@ void PbftManager::secondFinish_() {
 
     if (!next_voted_soft_value_) {
       if (auto vote = generateVoteWithWeight(soft_voted_block->first, next_vote_type, period, round, step_); vote) {
-        if (placeVote(std::move(vote), "second finish vote", soft_voted_block->second)) {
+        if (placeVote(vote, "second finish vote", soft_voted_block->second)) {
           db_->savePbftMgrStatus(PbftMgrStatus::NextVotedSoftValue, true);
           next_voted_soft_value_ = true;
         }
@@ -1064,7 +1063,7 @@ void PbftManager::secondFinish_() {
   if (!next_voted_null_block_hash_ && round >= 2 && previous_round_next_voted_null_block_hash_ &&
       !cert_voted_block_for_round_.has_value()) {
     if (auto vote = generateVoteWithWeight(NULL_BLOCK_HASH, next_vote_type, period, round, step_); vote) {
-      if (placeVote(std::move(vote), "second finish next vote", nullptr)) {
+      if (placeVote(vote, "second finish next vote", nullptr)) {
         db_->savePbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash, true);
         next_voted_null_block_hash_ = true;
       }
