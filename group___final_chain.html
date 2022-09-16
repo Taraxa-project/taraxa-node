@@ -1033,6 +1033,8 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <tr class="separator:a417ad359468f6932de665cb660c505e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a91ede0e4ca9b7b7c75b474756ab4c2a6"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a91ede0e4ca9b7b7c75b474756ab4c2a6">stop</a> ()=0</td></tr>
 <tr class="separator:a91ede0e4ca9b7b7c75b474756ab4c2a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aef937c32fc1f575e0607b4df4d8a1436"><td class="memItemLeft" align="right" valign="top">virtual uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#aef937c32fc1f575e0607b4df4d8a1436">delegation_delay</a> () const =0</td></tr>
+<tr class="separator:aef937c32fc1f575e0607b4df4d8a1436"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a266e83f473963f7ab585279f6e50d835"><td class="memItemLeft" align="right" valign="top">virtual std::future&lt; std::shared_ptr&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result">FinalizationResult</a> const  &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a266e83f473963f7ab585279f6e50d835">finalize</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&amp;period_data, std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt; &amp;&amp;finalized_dag_blk_hashes, <a class="el" href="group___final_chain.html#a85c2c0863dab085cd063aac9b6886d51">finalize_precommit_ext</a>={})=0</td></tr>
 <tr class="memdesc:a266e83f473963f7ab585279f6e50d835"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method which finalizes a block and executes it in EVM.  <a href="group___final_chain.html#a266e83f473963f7ab585279f6e50d835">More...</a><br /></td></tr>
 <tr class="separator:a266e83f473963f7ab585279f6e50d835"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1391,6 +1393,33 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <dl class="section return"><dt>Returns</dt><dd><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_execution_result">state_api::ExecutionResult</a> </dd></dl>
 
 <p>Implemented in <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ac559db7495084949f824d861fed8eeaa">taraxa::final_chain::FinalChainImpl</a>.</p>
+
+</div>
+</div>
+<a id="aef937c32fc1f575e0607b4df4d8a1436"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aef937c32fc1f575e0607b4df4d8a1436">&#9670;&nbsp;</a></span>delegation_delay()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual uint64_t taraxa::final_chain::FinalChain::delegation_delay </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab1058e7aadbd94a03a934f55ce235802">taraxa::final_chain::FinalChainImpl</a>.</p>
 
 </div>
 </div>

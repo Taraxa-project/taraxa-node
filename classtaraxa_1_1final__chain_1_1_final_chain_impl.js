@@ -9,6 +9,7 @@ var classtaraxa_1_1final__chain_1_1_final_chain_impl =
     [ "block_header", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ad77ddf550cf1467219c4e75d961fdd89", null ],
     [ "block_number", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a9ae38294720931d04a90be5464185a87", null ],
     [ "call", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ac559db7495084949f824d861fed8eeaa", null ],
+    [ "delegation_delay", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab1058e7aadbd94a03a934f55ce235802", null ],
     [ "dpos_eligible_total_vote_count", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#afd9369027b9b22c13e82d22ac9f07686", null ],
     [ "dpos_eligible_vote_count", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a7935a9e52c1d4ae3ae791c1be0a2e936", null ],
     [ "dpos_is_eligible", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab3d690c5e49bc20d724a4f041aa9e6f9", null ],

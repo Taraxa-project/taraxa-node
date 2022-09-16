@@ -1,5 +1,7 @@
 var NAVTREEINDEX23 =
 {
+"structtaraxa_1_1_transaction.html#ac01847a061aae8c94391cc9a0a50333e":[11,0,4,52,19],
+"structtaraxa_1_1_transaction.html#ac16ab2ed11f0b89d883898909fc0d278":[11,0,4,52,39],
 "structtaraxa_1_1_transaction.html#ac301484d7f4753401a9047b4d45da113":[11,0,4,52,12],
 "structtaraxa_1_1_transaction.html#ac5bdaadddf2d6e481380da8db04e863d":[11,0,4,52,29],
 "structtaraxa_1_1_transaction.html#ac9757f51915ac63d923b4d58d06f4f29":[11,0,4,52,34],
@@ -22,11 +24,11 @@ var NAVTREEINDEX23 =
 "structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html#af274264ac77157fb818ea58119e24999":[11,0,4,0,1,0,0],
 "structtaraxa_1_1final__chain_1_1_config.html":[11,0,4,1,1],
 "structtaraxa_1_1final__chain_1_1_config.html#a53b3e0a21dd9bb563f3837959b9cb8c3":[11,0,4,1,1,3],
-"structtaraxa_1_1final__chain_1_1_config.html#a955c880531dc4addb9d4c9e44022d843":[12,0,1,3,0,0,3,1,0],
 "structtaraxa_1_1final__chain_1_1_config.html#a955c880531dc4addb9d4c9e44022d843":[11,0,4,1,1,0,0],
+"structtaraxa_1_1final__chain_1_1_config.html#a955c880531dc4addb9d4c9e44022d843":[12,0,1,3,0,0,3,1,0],
 "structtaraxa_1_1final__chain_1_1_config.html#aaf85cbc4d2d04c3d5f30645a755eef60":[11,0,4,1,1,2],
-"structtaraxa_1_1final__chain_1_1_config.html#ada8d5e73db5ef864faa4aa45da49abb0":[12,0,1,3,0,0,3,1,1],
 "structtaraxa_1_1final__chain_1_1_config.html#ada8d5e73db5ef864faa4aa45da49abb0":[11,0,4,1,1,0,1],
+"structtaraxa_1_1final__chain_1_1_config.html#ada8d5e73db5ef864faa4aa45da49abb0":[12,0,1,3,0,0,3,1,1],
 "structtaraxa_1_1final__chain_1_1_config.html#aeb06d5eff71102bb3eb858ee7dcfc6cb":[11,0,4,1,1,1],
 "structtaraxa_1_1final__chain_1_1_config.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields":[12,0,1,3,0,0,3,1],
 "structtaraxa_1_1final__chain_1_1_config.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields":[11,0,4,1,1,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX23 =
 "transaction__queue_8cpp.html#a1fa88bf5efbccea9145c3998fc8092ea":[12,0,1,4,0,1,4,2,0],
 "transaction__queue_8hpp.html":[12,0,1,4,0,0,4,2],
 "transaction__queue_8hpp_source.html":[12,0,1,4,0,0,4,2],
-"trie__common_8cpp.html":[12,0,1,4,0,1,1,6],
-"trie__common_8cpp.html#a31a1e83861e1b14e99841d137c2da0a1":[12,0,1,4,0,1,1,6,2],
-"trie__common_8cpp.html#a41b2ec28d1ad728e6c4d190795391e6e":[12,0,1,4,0,1,1,6,0]
+"trie__common_8cpp.html":[12,0,1,4,0,1,1,6]
 };
