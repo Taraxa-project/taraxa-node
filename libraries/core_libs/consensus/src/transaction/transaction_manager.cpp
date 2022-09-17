@@ -97,7 +97,8 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const std::sh
     return {false, reason};
   }
 
-  if (insertValidatedTransactions({{trx, status}})) {
+  auto transaction = trx;
+  if (insertValidatedTransaction(std::move(transaction), status)) {
     return {true, "Can not insert transactions"};
   } else {
     const auto period = db_->getTransactionPeriod(trx->getHash());
@@ -109,18 +110,8 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const std::sh
   }
 }
 
-uint32_t TransactionManager::insertValidatedTransactions(
-    std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> &&txs) {
-  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> unseen_txs;
-  std::vector<trx_hash_t> txs_hashes;
-
-  if (txs.empty()) {
-    return 0;
-  }
-
-  txs_hashes.reserve(txs.size());
-  std::transform(txs.begin(), txs.end(), std::back_inserter(txs_hashes),
-                 [](const auto &t) { return t.first->getHash(); });
+bool TransactionManager::insertValidatedTransaction(std::shared_ptr<Transaction> &&tx, const TransactionStatus status) {
+  const auto trx_hash = tx->getHash();
 
   // This lock synchronizes inserting and removing transactions from transactions memory pool with database insertion.
   // It is very important to lock checking the db state of transaction together with transaction pool checking to be
@@ -128,27 +119,14 @@ uint32_t TransactionManager::insertValidatedTransactions(
   std::unique_lock transactions_lock(transactions_mutex_);
   const auto last_block_number = final_chain_->last_block_number();
 
-  // Check the db with a multiquery if transactions are really new
-  auto db_seen = db_->transactionsInDb(txs_hashes);
-  for (uint32_t i = 0; i < txs_hashes.size(); i++) {
-    if (!db_seen[i]) {
-      unseen_txs.push_back(std::move(txs[i]));
-    } else {
-      // In case we received a new tx that is already in db, mark it as known in cache
-      transactions_pool_.markTransactionKnown(txs[i].first->getHash());
-    }
+  // Check the db with if transaction is really new
+  if (db_->transactionInDb(trx_hash)) {
+    transactions_pool_.markTransactionKnown(trx_hash);
+    return false;
   }
 
-  size_t trx_inserted_count = 0;
-  // Save transactions in memory pool
-  for (auto &trx : unseen_txs) {
-    auto tx_hash = trx.first->getHash();
-    LOG(log_dg_) << "Transaction " << tx_hash << " inserted in trx pool";
-    if (transactions_pool_.insert(std::move(trx), last_block_number)) {
-      trx_inserted_count++;
-    }
-  }
-  return trx_inserted_count;
+  LOG(log_dg_) << "Transaction " << trx_hash << " inserted in trx pool";
+  return transactions_pool_.insert(std::move(tx), status, last_block_number);
 }
 
 unsigned long TransactionManager::getTransactionCount() const {
@@ -344,7 +322,7 @@ void TransactionManager::moveNonFinalizedTransactionsToTransactionsPool(std::uno
     auto trx = nonfinalized_transactions_in_dag_.find(trx_hash);
     if (trx != nonfinalized_transactions_in_dag_.end()) {
       db_->removeTransactionToBatch(trx_hash, write_batch);
-      transactions_pool_.insert({std::move(trx->second), TransactionStatus::Verified});
+      transactions_pool_.insert(std::move(trx->second), TransactionStatus::Verified);
       nonfinalized_transactions_in_dag_.erase(trx);
     }
   }

@@ -68,16 +68,16 @@ bool TransactionQueue::erase(const trx_hash_t &hash) {
   return true;
 }
 
-bool TransactionQueue::insert(std::pair<std::shared_ptr<Transaction>, TransactionStatus> &&transaction,
+bool TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction, const TransactionStatus status,
                               uint64_t last_block_number) {
-  assert(transaction.first);
-  const auto tx_hash = transaction.first->getHash();
+  assert(transaction);
+  const auto tx_hash = transaction->getHash();
 
   if (contains(tx_hash)) return false;
 
-  switch (transaction.second) {
+  switch (status) {
     case TransactionStatus::Verified: {
-      const auto it = priority_queue_.insert(std::move(transaction.first));
+      const auto it = priority_queue_.insert(std::move(transaction));
 
       // This assert is here to check if priorityComparator works correctly. If object is not inserted, then there could
       // be something wrong with comparator
@@ -102,7 +102,7 @@ bool TransactionQueue::insert(std::pair<std::shared_ptr<Transaction>, Transactio
     case TransactionStatus::InsufficentBalance:
     case TransactionStatus::Forced:
       if (non_proposable_transactions_.size() < kNonProposableTransactionsLimit) {
-        non_proposable_transactions_[tx_hash] = {last_block_number, transaction.first};
+        non_proposable_transactions_[tx_hash] = {last_block_number, transaction};
         known_txs_.insert(tx_hash);
       } else {
         return false;

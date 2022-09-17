@@ -173,7 +173,7 @@ inline SharedTransactions createSignedTrxSamples(unsigned start, unsigned num, s
   assert(start + num < std::numeric_limits<unsigned>::max());
   SharedTransactions trxs;
   for (auto i = start; i < num; ++i) {
-    trxs.emplace_back(std::make_shared<Transaction>(i, i * 100, 0, 1000000, data, sk, addr_t::random()));
+    trxs.emplace_back(std::make_shared<Transaction>(i, i * 100, 0, 100000, data, sk, addr_t::random()));
   }
   return trxs;
 }

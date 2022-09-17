@@ -191,9 +191,9 @@ TEST_F(TransactionTest, transaction_low_nonce) {
   auto final_chain = NewFinalChain(db, cfg);
   TransactionManager trx_mgr(FullNodeConfig(), db, final_chain, addr_t());
   const auto& trx_nonce_2 = g_signed_trx_samples[1];
-  const auto& trx_low_nonce = g_signed_trx_samples[0];
+  auto& trx_low_nonce = g_signed_trx_samples[0];
   auto trx_samples = samples::createSignedTrxSamples(1, 2, dev::KeyPair::create().secret());
-  const auto& trx_insufficient_balance = trx_samples[0];
+  auto& trx_insufficient_balance = trx_samples[0];
 
   // Insert and execute transaction with nonce 2
   EXPECT_TRUE(trx_mgr.insertTransaction(trx_nonce_2).first);
@@ -235,10 +235,10 @@ TEST_F(TransactionTest, transaction_low_nonce) {
 
   // Verify dag blocks will pass verification if contain low nonce or insufficient balance transactions
   EXPECT_FALSE(trx_mgr.getBlockTransactions(dag_blk_with_low_nonce_transaction).has_value());
-  trx_mgr.insertValidatedTransactions({{trx_low_nonce, TransactionStatus::LowNonce}});
+  trx_mgr.insertValidatedTransaction(std::move(trx_low_nonce), TransactionStatus::LowNonce);
   EXPECT_TRUE(trx_mgr.getBlockTransactions(dag_blk_with_low_nonce_transaction).has_value());
   EXPECT_FALSE(trx_mgr.getBlockTransactions(dag_blk_with_insufficient_balance_transaction).has_value());
-  trx_mgr.insertValidatedTransactions({{trx_insufficient_balance, TransactionStatus::InsufficentBalance}});
+  trx_mgr.insertValidatedTransaction(std::move(trx_insufficient_balance), TransactionStatus::InsufficentBalance);
   EXPECT_TRUE(trx_mgr.getBlockTransactions(dag_blk_with_insufficient_balance_transaction).has_value());
 
   trx_mgr.blockFinalized(11);
@@ -320,8 +320,8 @@ TEST_F(TransactionTest, priority_queue) {
     auto trx2 = std::make_shared<Transaction>(nonce, 1, 1, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
                                               addr_t::random());
     const auto trx_hash = trx->getHash();
-    priority_queue.insert({trx2, TransactionStatus::Verified}, 1);
-    priority_queue.insert({trx, TransactionStatus::Verified}, 1);
+    priority_queue.insert(std::move(trx2), TransactionStatus::Verified, 1);
+    priority_queue.insert(std::move(trx), TransactionStatus::Verified, 1);
     EXPECT_EQ(priority_queue.get(1)[0]->getHash(), trx_hash);
     EXPECT_EQ(priority_queue.size(), 2);
   }
@@ -333,8 +333,8 @@ TEST_F(TransactionTest, priority_queue) {
     auto trx = std::make_shared<Transaction>(nonce, 1, 1, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
                                              addr_t::random());
     auto trx2 = trx;
-    EXPECT_TRUE(priority_queue.insert({trx, TransactionStatus::Verified}, 1));
-    EXPECT_FALSE(priority_queue.insert({trx2, TransactionStatus::Verified}, 1));
+    EXPECT_TRUE(priority_queue.insert(std::move(trx), TransactionStatus::Verified, 1));
+    EXPECT_FALSE(priority_queue.insert(std::move(trx2), TransactionStatus::Verified, 1));
     EXPECT_EQ(priority_queue.size(), 1);
   }
 
@@ -347,8 +347,8 @@ TEST_F(TransactionTest, priority_queue) {
     auto trx2 = std::make_shared<Transaction>(nonce, 1, 1, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
                                               addr_t::random());
     auto trx_hash = trx->getHash();
-    priority_queue.insert({trx2, TransactionStatus::Verified}, 1);
-    priority_queue.insert({trx, TransactionStatus::Verified}, 1);
+    priority_queue.insert(std::move(trx2), TransactionStatus::Verified, 1);
+    priority_queue.insert(std::move(trx), TransactionStatus::Verified, 1);
     EXPECT_EQ(priority_queue.get(1)[0]->getHash(), trx_hash);
     EXPECT_EQ(priority_queue.size(), 2);
   }
@@ -373,9 +373,9 @@ TEST_F(TransactionTest, priority_queue) {
     auto trxa2_hash = trxa2->getHash();
     auto trxb1_hash = trxb1->getHash();
 
-    priority_queue.insert({trxb1, TransactionStatus::Verified}, 1);
-    priority_queue.insert({trxa2, TransactionStatus::Verified}, 1);
-    priority_queue.insert({trxa1, TransactionStatus::Verified}, 1);
+    priority_queue.insert(std::move(trxb1), TransactionStatus::Verified, 1);
+    priority_queue.insert(std::move(trxa2), TransactionStatus::Verified, 1);
+    priority_queue.insert(std::move(trxa1), TransactionStatus::Verified, 1);
     EXPECT_EQ(priority_queue.size(), 3);
     EXPECT_EQ(priority_queue.get(3)[0]->getHash(), trxa1_hash);
     EXPECT_EQ(priority_queue.get(3)[1]->getHash(), trxa2_hash);
@@ -395,9 +395,9 @@ TEST_F(TransactionTest, priority_queue_max_size) {
     auto trx3 = std::make_shared<Transaction>(nonce++, 1, 1, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
                                               addr_t::random());
     const auto trx_hash = trx3->getHash();
-    EXPECT_TRUE(priority_queue.insert({trx, TransactionStatus::Verified}, 1));
-    EXPECT_TRUE(priority_queue.insert({trx2, TransactionStatus::Verified}, 1));
-    EXPECT_FALSE(priority_queue.insert({trx3, TransactionStatus::Verified}, 1));
+    EXPECT_TRUE(priority_queue.insert(std::move(trx), TransactionStatus::Verified, 1));
+    EXPECT_TRUE(priority_queue.insert(std::move(trx2), TransactionStatus::Verified, 1));
+    EXPECT_FALSE(priority_queue.insert(std::move(trx3), TransactionStatus::Verified, 1));
     EXPECT_EQ(priority_queue.get(trx_hash), nullptr);
     EXPECT_EQ(priority_queue.size(), 2);
   }
@@ -413,10 +413,10 @@ TEST_F(TransactionTest, priority_queue_max_size) {
                                               addr_t::random());
     const auto trx_hash3 = trx3->getHash();
     const auto trx_hash2 = trx2->getHash();
-    EXPECT_TRUE(priority_queue.insert({trx, TransactionStatus::Verified}, 1));
-    EXPECT_TRUE(priority_queue.insert({trx2, TransactionStatus::Verified}, 1));
-    EXPECT_TRUE(priority_queue.insert({trx3, TransactionStatus::Verified}, 1));
-    EXPECT_EQ(priority_queue.get(trx_hash3), trx3);
+    EXPECT_TRUE(priority_queue.insert(std::move(trx), TransactionStatus::Verified, 1));
+    EXPECT_TRUE(priority_queue.insert(std::move(trx2), TransactionStatus::Verified, 1));
+    EXPECT_TRUE(priority_queue.insert(std::move(trx3), TransactionStatus::Verified, 1));
+    EXPECT_EQ(priority_queue.get(trx_hash3)->getHash(), trx_hash3);
     EXPECT_EQ(priority_queue.get(trx_hash2), nullptr);
     EXPECT_FALSE(priority_queue.isTransactionKnown(trx_hash2));
     EXPECT_EQ(priority_queue.size(), 2);
@@ -433,11 +433,11 @@ TEST_F(TransactionTest, priority_queue_max_size) {
                                               addr_t::random());
     const auto trx_hash3 = trx3->getHash();
     const auto trx_hash2 = trx2->getHash();
-    EXPECT_TRUE(priority_queue.insert({trx, TransactionStatus::Verified}, 1));
-    EXPECT_TRUE(priority_queue.insert({trx2, TransactionStatus::Verified}, 1));
-    EXPECT_TRUE(priority_queue.insert({trx3, TransactionStatus::Forced}, 1));
-    EXPECT_EQ(priority_queue.get(trx_hash3), trx3);
-    EXPECT_EQ(priority_queue.get(trx_hash2), trx2);
+    EXPECT_TRUE(priority_queue.insert(std::move(trx), TransactionStatus::Verified, 1));
+    EXPECT_TRUE(priority_queue.insert(std::move(trx2), TransactionStatus::Verified, 1));
+    EXPECT_TRUE(priority_queue.insert(std::move(trx3), TransactionStatus::Forced, 1));
+    EXPECT_EQ(priority_queue.get(trx_hash3)->getHash(), trx_hash3);
+    EXPECT_EQ(priority_queue.get(trx_hash2)->getHash(), trx_hash2);
     EXPECT_EQ(priority_queue.size(), 2);
   }
 }
