@@ -8,7 +8,7 @@ var group___transaction_classtaraxa_1_1_transaction_queue =
     [ "erase", "group___transaction.html#af14c7d11cc715eb2f9ff782d48f04c97", null ],
     [ "get", "group___transaction.html#aec44e28210d47f379b6f01532b77945b", null ],
     [ "get", "group___transaction.html#a3fe4774e5ef6011818ee0b472b22e366", null ],
-    [ "insert", "group___transaction.html#aa2955a714eff5db636b213de65cca41b", null ],
+    [ "insert", "group___transaction.html#afe4936719f494b3bd461fd509bf9f0a5", null ],
     [ "isTransactionKnown", "group___transaction.html#a75da70a3a6f464bad8fb3a520dbfd3b2", null ],
     [ "markTransactionKnown", "group___transaction.html#af2a0432eba39e9f7ca898b0d82faf390", null ],
     [ "size", "group___transaction.html#a9e914abebe36a40abaa78fec71c16eaa", null ],

@@ -558,7 +558,7 @@ Enumerations</h2></td></tr>
       </table>
 </div><div class="memdoc">
 <div class="textblock"><p><a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager" title="TransactionManager class verifies and inserts incoming transactions in memory pool and handles saving...">TransactionManager</a> class verifies and inserts incoming transactions in memory pool and handles saving transactions and all transactions state change. </p>
-<p>Incoming new transactions can be verified with verifyTransaction functions and than inserted in the transaction pool with insertValidatedTransactions. Transactions are kept in transactions memory pool until they are included in a proposed dag block or received in an incoming dag block. <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> verification consist of:</p><ul>
+<p>Incoming new transactions can be verified with verifyTransaction functions and than inserted in the transaction pool with insertValidatedTransaction. Transactions are kept in transactions memory pool until they are included in a proposed dag block or received in an incoming dag block. <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> verification consist of:</p><ul>
 <li>Verifying the format</li>
 <li>Verifying signature</li>
 <li>Verifying chan id</li>
@@ -640,9 +640,9 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 <tr class="memitem:a8659b0f7d1a61bb2bc890336355e69e9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a8659b0f7d1a61bb2bc890336355e69e9">blockFinalized</a> (uint64_t block_number)</td></tr>
 <tr class="memdesc:a8659b0f7d1a61bb2bc890336355e69e9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Invoked when block finalized in final chain.  <a href="group___transaction.html#a8659b0f7d1a61bb2bc890336355e69e9">More...</a><br /></td></tr>
 <tr class="separator:a8659b0f7d1a61bb2bc890336355e69e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a32a4fce679c1cf185ef7dc7bec17bff9"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a32a4fce679c1cf185ef7dc7bec17bff9">insertValidatedTransactions</a> (std::vector&lt; std::pair&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;, <a class="el" href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">TransactionStatus</a> &gt;&gt; &amp;&amp;txs)</td></tr>
-<tr class="memdesc:a32a4fce679c1cf185ef7dc7bec17bff9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts batch of verified transactions to transaction pool.  <a href="group___transaction.html#a32a4fce679c1cf185ef7dc7bec17bff9">More...</a><br /></td></tr>
-<tr class="separator:a32a4fce679c1cf185ef7dc7bec17bff9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6fe144ea7c16a7bc8f0c77b7e08f459b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a6fe144ea7c16a7bc8f0c77b7e08f459b">insertValidatedTransaction</a> (std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &amp;&amp;tx, const <a class="el" href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">TransactionStatus</a> status)</td></tr>
+<tr class="memdesc:a6fe144ea7c16a7bc8f0c77b7e08f459b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Inserts verified transaction to transaction pool.  <a href="group___transaction.html#a6fe144ea7c16a7bc8f0c77b7e08f459b">More...</a><br /></td></tr>
+<tr class="separator:a6fe144ea7c16a7bc8f0c77b7e08f459b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a588755a2ff79905c2e8a88cec3cd56ee"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a588755a2ff79905c2e8a88cec3cd56ee">isTransactionKnown</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;trx_hash)</td></tr>
 <tr class="separator:a588755a2ff79905c2e8a88cec3cd56ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a642117752a03190dcf801b18b8c4639d"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a642117752a03190dcf801b18b8c4639d">getTransactionPoolSize</a> () const</td></tr>
@@ -1102,31 +1102,42 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 
 </div>
 </div>
-<a id="a32a4fce679c1cf185ef7dc7bec17bff9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a32a4fce679c1cf185ef7dc7bec17bff9">&#9670;&nbsp;</a></span>insertValidatedTransactions()</h2>
+<a id="a6fe144ea7c16a7bc8f0c77b7e08f459b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6fe144ea7c16a7bc8f0c77b7e08f459b">&#9670;&nbsp;</a></span>insertValidatedTransaction()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">uint32_t taraxa::TransactionManager::insertValidatedTransactions </td>
+          <td class="memname">bool taraxa::TransactionManager::insertValidatedTransaction </td>
           <td>(</td>
-          <td class="paramtype">std::vector&lt; std::pair&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;, <a class="el" href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">TransactionStatus</a> &gt;&gt; &amp;&amp;&#160;</td>
-          <td class="paramname"><em>txs</em></td><td>)</td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"><em>tx</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const <a class="el" href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">TransactionStatus</a>&#160;</td>
+          <td class="paramname"><em>status</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Inserts batch of verified transactions to transaction pool. </p>
-<dl class="section note"><dt>Note</dt><dd>Some of the transactions might be already processed -&gt; they are not processed and inserted again </dd></dl>
+<p>Inserts verified transaction to transaction pool. </p>
+<dl class="section note"><dt>Note</dt><dd>transaction might be already processed -&gt; they are not processed and inserted again </dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">txs</td><td>transactions to be processed </td></tr>
+    <tr><td class="paramname">tx</td><td>transaction to be processed </td></tr>
+    <tr><td class="paramname">status</td><td>transaction status </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>number of successfully inserted unseen transactions </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>true if successfully inserted unseen transactions </dd></dl>
 
 </div>
 </div>
@@ -1597,9 +1608,9 @@ Collaboration diagram for taraxa::TransactionQueue:</div>
 <tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
 <tr class="memitem:aaef247ec66131dcba0844c5f41b4ccb5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#aaef247ec66131dcba0844c5f41b4ccb5">TransactionQueue</a> (size_t max_size=<a class="el" href="namespacetaraxa.html#a5c4386d0ef4241fe4d08d14e43fbd1f6">kMinTransactionPoolSize</a>)</td></tr>
 <tr class="separator:aaef247ec66131dcba0844c5f41b4ccb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa2955a714eff5db636b213de65cca41b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#aa2955a714eff5db636b213de65cca41b">insert</a> (std::pair&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;, <a class="el" href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">TransactionStatus</a> &gt; &amp;&amp;transaction, uint64_t last_block_number=0)</td></tr>
-<tr class="memdesc:aa2955a714eff5db636b213de65cca41b"><td class="mdescLeft">&#160;</td><td class="mdescRight">insert a transaction into the queue, sorted by priority  <a href="group___transaction.html#aa2955a714eff5db636b213de65cca41b">More...</a><br /></td></tr>
-<tr class="separator:aa2955a714eff5db636b213de65cca41b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afe4936719f494b3bd461fd509bf9f0a5"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#afe4936719f494b3bd461fd509bf9f0a5">insert</a> (std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &amp;&amp;transaction, const <a class="el" href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">TransactionStatus</a> status, uint64_t last_block_number=0)</td></tr>
+<tr class="memdesc:afe4936719f494b3bd461fd509bf9f0a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">insert a transaction into the queue, sorted by priority  <a href="group___transaction.html#afe4936719f494b3bd461fd509bf9f0a5">More...</a><br /></td></tr>
+<tr class="separator:afe4936719f494b3bd461fd509bf9f0a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af14c7d11cc715eb2f9ff782d48f04c97"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#af14c7d11cc715eb2f9ff782d48f04c97">erase</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;hash)</td></tr>
 <tr class="memdesc:af14c7d11cc715eb2f9ff782d48f04c97"><td class="mdescLeft">&#160;</td><td class="mdescRight">remove transaction from queue  <a href="group___transaction.html#af14c7d11cc715eb2f9ff782d48f04c97">More...</a><br /></td></tr>
 <tr class="separator:af14c7d11cc715eb2f9ff782d48f04c97"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1847,8 +1858,8 @@ false </dd></dl>
 
 </div>
 </div>
-<a id="aa2955a714eff5db636b213de65cca41b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa2955a714eff5db636b213de65cca41b">&#9670;&nbsp;</a></span>insert()</h2>
+<a id="afe4936719f494b3bd461fd509bf9f0a5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afe4936719f494b3bd461fd509bf9f0a5">&#9670;&nbsp;</a></span>insert()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1856,8 +1867,14 @@ false </dd></dl>
         <tr>
           <td class="memname">bool taraxa::TransactionQueue::insert </td>
           <td>(</td>
-          <td class="paramtype">std::pair&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;, <a class="el" href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">TransactionStatus</a> &gt; &amp;&amp;&#160;</td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &amp;&amp;&#160;</td>
           <td class="paramname"><em>transaction</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">TransactionStatus</a>&#160;</td>
+          <td class="paramname"><em>status</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>

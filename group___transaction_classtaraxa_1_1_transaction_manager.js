@@ -16,7 +16,7 @@ var group___transaction_classtaraxa_1_1_transaction_manager =
     [ "getTransactionPoolSize", "group___transaction.html#a642117752a03190dcf801b18b8c4639d", null ],
     [ "getTransactionsMutex", "group___transaction.html#ab957aa8d2336b9ec20909110910bf5f3", null ],
     [ "insertTransaction", "group___transaction.html#aa6c21279f3fc5b78d7eb29ab6de28a1d", null ],
-    [ "insertValidatedTransactions", "group___transaction.html#a32a4fce679c1cf185ef7dc7bec17bff9", null ],
+    [ "insertValidatedTransaction", "group___transaction.html#a6fe144ea7c16a7bc8f0c77b7e08f459b", null ],
     [ "isTransactionKnown", "group___transaction.html#a588755a2ff79905c2e8a88cec3cd56ee", null ],
     [ "isTransactionPoolFull", "group___transaction.html#a9b610f1286b3267c6bb36fcac2c76819", null ],
     [ "moveNonFinalizedTransactionsToTransactionsPool", "group___transaction.html#a165c1f695b5681e65ae25296a04e2c65", null ],

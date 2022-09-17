@@ -1,5 +1,6 @@
 var NAVTREEINDEX15 =
 {
+"group___p_b_f_t.html#a690a15a5242c8ef514bf95e711d004bf":[9,2,1,133],
 "group___p_b_f_t.html#a6d5f9246e611add87a88fff9891f5121":[9,2,4,0],
 "group___p_b_f_t.html#a6d73425783d2dff2cc3dc85eae6cfd7e":[9,2,1,47],
 "group___p_b_f_t.html#a6e8501884b3ee9a0e4b3b71dc0d66e60":[9,2,3,11],
@@ -164,7 +165,6 @@ var NAVTREEINDEX15 =
 "group___transaction.html#a2d7f41e217bf4f6084556eb64ba60192":[9,3,1,9],
 "group___transaction.html#a2f95db203650edcd773cc2bbbcf0574f":[9,3,1,26],
 "group___transaction.html#a30842e7297b1138e6b33aa4a97361237":[9,3,2,4],
-"group___transaction.html#a32a4fce679c1cf185ef7dc7bec17bff9":[9,3,1,16],
 "group___transaction.html#a37a2d427f8032d0bdf7dc120b356fcc7":[9,3,1,21],
 "group___transaction.html#a3fe4774e5ef6011818ee0b472b22e366":[9,3,2,7],
 "group___transaction.html#a4653d2e1d13e18462cdf95c66392a5e3":[9,3,1,8],
@@ -187,6 +187,7 @@ var NAVTREEINDEX15 =
 "group___transaction.html#a6c29826fbd5fd549cdc7c946e94f7256":[9,3,1,7],
 "group___transaction.html#a6d547434ddff79ee175dc2cccbe9593c":[9,3,2,18],
 "group___transaction.html#a6f7a9741bb3e3c0367bd4a4e469976e1":[9,3,0,11],
+"group___transaction.html#a6fe144ea7c16a7bc8f0c77b7e08f459b":[9,3,1,16],
 "group___transaction.html#a73ff8227a0b64365c57f054016400e6b":[9,3,1,28],
 "group___transaction.html#a75da70a3a6f464bad8fb3a520dbfd3b2":[9,3,2,9],
 "group___transaction.html#a7fd9dcd6c2f9c35d33bafafe740973cf":[9,3,1,34],
@@ -199,7 +200,6 @@ var NAVTREEINDEX15 =
 "group___transaction.html#a9b610f1286b3267c6bb36fcac2c76819":[9,3,1,18],
 "group___transaction.html#a9e21e9d0a1092268ad012a590ae9697b":[9,3,2,14],
 "group___transaction.html#a9e914abebe36a40abaa78fec71c16eaa":[9,3,2,11],
-"group___transaction.html#aa2955a714eff5db636b213de65cca41b":[9,3,2,8],
 "group___transaction.html#aa6c21279f3fc5b78d7eb29ab6de28a1d":[9,3,1,15],
 "group___transaction.html#aacee98f4d1a3c0cc4757bab605518fd2":[9,3,1,5],
 "group___transaction.html#aaef247ec66131dcba0844c5f41b4ccb5":[9,3,2,2],
@@ -220,6 +220,7 @@ var NAVTREEINDEX15 =
 "group___transaction.html#af6cf507c6f362165b87ca5abd3f13dce":[9,3,1,24],
 "group___transaction.html#afc9f2c8a2cb05322ddc8226301341f85":[9,3,1,22],
 "group___transaction.html#afddcd300c382363d24312db01b456b5a":[9,3,0,7],
+"group___transaction.html#afe4936719f494b3bd461fd509bf9f0a5":[9,3,2,8],
 "group___transaction.html#classtaraxa_1_1_gas_pricer":[9,3,0],
 "group___transaction.html#classtaraxa_1_1_transaction_manager":[9,3,1],
 "group___transaction.html#classtaraxa_1_1_transaction_queue":[9,3,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX15 =
 "group___vote.html#a2444297487931952a959dcb2e6580ba5":[9,4,1,13],
 "group___vote.html#a255f331ea1d86c6dbd00f81c003ab3ea":[9,4,0,7],
 "group___vote.html#a25def29b02c4c9e2adcde735d8136c48":[9,4,2,32],
-"group___vote.html#a262b1ec37ee009487bcb2829d40bbfc6":[9,4,2,10],
-"group___vote.html#a281cac5bf2c222e57660159ec2a1fa3d":[9,4,1,21]
+"group___vote.html#a262b1ec37ee009487bcb2829d40bbfc6":[9,4,2,10]
 };
