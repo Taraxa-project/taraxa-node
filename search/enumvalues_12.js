@@ -1,14 +1,14 @@
 var searchData=
 [
-  ['value_5fproposal_5fstate_7133',['value_proposal_state',['../group___p_b_f_t.html#ggaa671924d435517347832c7f40f1f6cfcaac67fcdf2515b0a2fcc7747d14b52ce3',1,'taraxa']]],
-  ['verbositydebug_7134',['VerbosityDebug',['../namespacedev.html#a7fc4649ee123b939f2786c757b3d4491a73f1cfe530632048dd623729258af859',1,'dev']]],
-  ['verbosityerror_7135',['VerbosityError',['../namespacedev.html#a7fc4649ee123b939f2786c757b3d4491ad34e7c25a1eca0c9a429e86f99363ab5',1,'dev']]],
-  ['verbosityinfo_7136',['VerbosityInfo',['../namespacedev.html#a7fc4649ee123b939f2786c757b3d4491a2101288a737776d2e6eb89d324e0ae23',1,'dev']]],
-  ['verbositysilent_7137',['VerbositySilent',['../namespacedev.html#a7fc4649ee123b939f2786c757b3d4491a18df1ec4871620ede2a0dcd3e457f9f8',1,'dev']]],
-  ['verbositytrace_7138',['VerbosityTrace',['../namespacedev.html#a7fc4649ee123b939f2786c757b3d4491ab8ef256fd47f32f6f85121f0058147b0',1,'dev']]],
-  ['verbositywarning_7139',['VerbosityWarning',['../namespacedev.html#a7fc4649ee123b939f2786c757b3d4491aa0644f9863e14d5a1b502c5a8d235bf3',1,'dev']]],
-  ['verified_7140',['Verified',['../group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a3f68e67dc6c397aaa9d1c24c356f754f',1,'taraxa::DagManager::Verified()'],['../group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a3f68e67dc6c397aaa9d1c24c356f754f',1,'taraxa::Verified()']]],
-  ['verystrict_7141',['VeryStrict',['../classdev_1_1_r_l_p.html#ad78f238eadd089bb76e63b4559b27b76aa4af5d94ee2b4056c85b4119a98e2a96',1,'dev::RLP']]],
-  ['votepacket_7142',['VotePacket',['../namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a6ee4a9d5f1977759fc31f9b29174a955',1,'taraxa::network::tarcap']]],
-  ['votessyncpacket_7143',['VotesSyncPacket',['../namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a7e829bf318188d49a8f5c5a2fa95a49d',1,'taraxa::network::tarcap']]]
+  ['value_5fproposal_5fstate_7131',['value_proposal_state',['../group___p_b_f_t.html#ggaa671924d435517347832c7f40f1f6cfcaac67fcdf2515b0a2fcc7747d14b52ce3',1,'taraxa']]],
+  ['verbositydebug_7132',['VerbosityDebug',['../namespacedev.html#a7fc4649ee123b939f2786c757b3d4491a73f1cfe530632048dd623729258af859',1,'dev']]],
+  ['verbosityerror_7133',['VerbosityError',['../namespacedev.html#a7fc4649ee123b939f2786c757b3d4491ad34e7c25a1eca0c9a429e86f99363ab5',1,'dev']]],
+  ['verbosityinfo_7134',['VerbosityInfo',['../namespacedev.html#a7fc4649ee123b939f2786c757b3d4491a2101288a737776d2e6eb89d324e0ae23',1,'dev']]],
+  ['verbositysilent_7135',['VerbositySilent',['../namespacedev.html#a7fc4649ee123b939f2786c757b3d4491a18df1ec4871620ede2a0dcd3e457f9f8',1,'dev']]],
+  ['verbositytrace_7136',['VerbosityTrace',['../namespacedev.html#a7fc4649ee123b939f2786c757b3d4491ab8ef256fd47f32f6f85121f0058147b0',1,'dev']]],
+  ['verbositywarning_7137',['VerbosityWarning',['../namespacedev.html#a7fc4649ee123b939f2786c757b3d4491aa0644f9863e14d5a1b502c5a8d235bf3',1,'dev']]],
+  ['verified_7138',['Verified',['../group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a3f68e67dc6c397aaa9d1c24c356f754f',1,'taraxa::DagManager::Verified()'],['../group___transaction.html#ggae7551c287ae57b46d56d27de67df61e7a3f68e67dc6c397aaa9d1c24c356f754f',1,'taraxa::Verified()']]],
+  ['verystrict_7139',['VeryStrict',['../classdev_1_1_r_l_p.html#ad78f238eadd089bb76e63b4559b27b76aa4af5d94ee2b4056c85b4119a98e2a96',1,'dev::RLP']]],
+  ['votepacket_7140',['VotePacket',['../namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a6ee4a9d5f1977759fc31f9b29174a955',1,'taraxa::network::tarcap']]],
+  ['votessyncpacket_7141',['VotesSyncPacket',['../namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a7e829bf318188d49a8f5c5a2fa95a49d',1,'taraxa::network::tarcap']]]
 ];

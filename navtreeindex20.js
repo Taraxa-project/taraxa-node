@@ -1,6 +1,5 @@
 var NAVTREEINDEX20 =
 {
-"proposed__blocks_8hpp_source.html":[12,0,1,4,0,0,3,3],
 "query_8cpp.html":[12,0,1,4,1,0,1,6],
 "query_8hpp.html":[12,0,1,4,1,0,0,0,6],
 "query_8hpp_source.html":[12,0,1,4,1,0,0,0,6],
@@ -249,5 +248,6 @@ var NAVTREEINDEX20 =
 "structdev_1_1p2p_1_1_find_node.html#a89ef3983552b7ea68aaa66330383af83":[11,0,1,1,8,6],
 "structdev_1_1p2p_1_1_find_node.html#a9cca501ff23bbf3d87a8a2daf89f5744":[11,0,1,1,8,2],
 "structdev_1_1p2p_1_1_find_node.html#aa2d6118a2ade86aa6b464dba3d61f08a":[11,0,1,1,8,1],
-"structdev_1_1p2p_1_1_find_node.html#ae786f2d5f11db32aa749fd8e846a3dcf":[11,0,1,1,8,4]
+"structdev_1_1p2p_1_1_find_node.html#ae786f2d5f11db32aa749fd8e846a3dcf":[11,0,1,1,8,4],
+"structdev_1_1p2p_1_1_host.html":[11,0,1,1,9]
 };

@@ -32,6 +32,5 @@ var classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer =
     [ "peer_requested_dag_syncing_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#aa4b339531b799941bc20d6bcba0199f7", null ],
     [ "suspicious_packet_count_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a2ed69c0f95a95ce97ea3d7d672add234", null ],
     [ "syncing_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a81b321b8b08cea0c9b38ac19bac01cca", null ],
-    [ "timestamp_suspicious_packet_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ad372951c7af1d56b57d278f2e232d0ad", null ],
-    [ "votes_sync_requested_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#aba7b3abe0e6d917016af127e93fa0fc7", null ]
+    [ "timestamp_suspicious_packet_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ad372951c7af1d56b57d278f2e232d0ad", null ]
 ];
