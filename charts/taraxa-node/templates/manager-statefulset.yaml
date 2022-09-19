@@ -33,6 +33,7 @@ spec:
     spec:
       containers:
         - name: manager
+          serviceAccountName: "{{ include "taraxa-node.fullname" . }}-manager"
           image: "python:3.8"
           imagePullPolicy: IfNotPresent
           command: ["/bin/bash", "-c", "--"]
