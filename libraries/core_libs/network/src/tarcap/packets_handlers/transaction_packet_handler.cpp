@@ -41,7 +41,7 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
   trx_hashes.reserve(transaction_count);
 
   // First extract only transaction hashes
-  for (const auto &trx_hash_rlp : packet_data.rlp_[0]) {
+  for (const auto trx_hash_rlp : packet_data.rlp_[0]) {
     auto trx_hash = trx_hash_rlp.toHash<trx_hash_t>();
     peer->markTransactionAsKnown(trx_hash);
     trx_hashes.emplace_back(std::move(trx_hash));

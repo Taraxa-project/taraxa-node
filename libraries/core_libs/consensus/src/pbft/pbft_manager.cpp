@@ -1079,8 +1079,7 @@ void PbftManager::secondFinish_() {
     LOG(log_dg_) << "Node " << node_addr_ << " broadcast next votes for previous round. In period " << period
                  << ", round " << round << " step " << step_;
     if (auto net = network_.lock()) {
-      // Broadcast previous round next votes
-      net->getSpecificHandler<network::tarcap::VotePacketHandler>()->broadcastPreviousRoundNextVotesBundle();
+      net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->broadcastPreviousRoundNextVotesBundle();
     }
     pbft_round_last_broadcast_ = round;
     pbft_step_last_broadcast_ = step_;

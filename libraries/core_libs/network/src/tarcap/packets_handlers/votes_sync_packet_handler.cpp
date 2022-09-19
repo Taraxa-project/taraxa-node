@@ -23,15 +23,6 @@ void VotesSyncPacketHandler::validatePacketRlpFormat([[maybe_unused]] const Pack
 }
 
 void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
-  if (!peer->votes_sync_requested_) {
-    LOG(log_er_) << "Received VotesSyncPacket from peer(" << packet_data.from_node_id_
-                 << ") we did not request. Mark a peer malicious and disconnect.";
-    peers_state_->set_peer_malicious(packet_data.from_node_id_);
-    disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
-    return;
-  }
-  peer->votes_sync_requested_ = false;
-
   // We already have 2t+1 votes for both NULL_BLOCK_HASH as well as some specific block hash
   if (next_votes_mgr_->enoughNextVotes()) {
     LOG(log_nf_) << "Already have enought next votes for perevious round.";
@@ -161,6 +152,27 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
     // Standard votes -> peer_pbft_period > pbft_current_period || (peer_pbft_period == pbft_current_period &&
     // peer_pbft_round > pbft_current_round - 1)
     onNewPbftVotes(std::move(next_votes));
+  }
+}
+
+void VotesSyncPacketHandler::broadcastPreviousRoundNextVotesBundle() {
+  auto next_votes_bundle = next_votes_mgr_->getNextVotes();
+  if (next_votes_bundle.empty()) {
+    LOG(log_er_) << "There are empty next votes for previous PBFT round";
+    return;
+  }
+
+  const auto pbft_current_round = pbft_mgr_->getPbftRound();
+
+  for (auto const &peer : peers_state_->getAllPeers()) {
+    // Nodes may vote at different values at previous round, so need less or equal
+    if (!peer.second->syncing_ && peer.second->pbft_round_ <= pbft_current_round) {
+      std::vector<std::shared_ptr<Vote>> send_next_votes_bundle;
+      for (const auto &v : next_votes_bundle) {
+        send_next_votes_bundle.push_back(v);
+      }
+      sendPbftVotes(peer.second, std::move(send_next_votes_bundle), true);
+    }
   }
 }
 
