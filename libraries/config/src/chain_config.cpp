@@ -111,7 +111,8 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
 
     uint64_t year_ms = 365 * 24 * 60 * 60;
     year_ms *= 1000;
-    dpos.blocks_per_year = year_ms / (4 * cfg.pbft.lambda_ms_min);
+    const uint32_t expected_block_time = 3.5 * cfg.pbft.lambda_ms_min;
+    dpos.blocks_per_year = year_ms / expected_block_time;
 
     return cfg;
   }();
