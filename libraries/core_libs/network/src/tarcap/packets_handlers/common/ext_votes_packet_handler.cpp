@@ -287,8 +287,10 @@ void ExtVotesPacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, con
       }
     }
 
-    // Peer already has pbft block, do not send it
-    if (peer.second->isPbftBlockKnown(vote->getBlockHash())) {
+    // Peer already has pbft block, do not send it (do not check it for propose votes as it could happen that nodes
+    // re-propose the same block for new round, in which case we need to send the block again
+    if (vote->getType() != PbftVoteTypes::propose_vote_type && vote->getStep() != PbftStates::value_proposal_state &&
+        peer.second->isPbftBlockKnown(vote->getBlockHash())) {
       sendPbftVote(peer.second, vote, nullptr);
     } else {
       sendPbftVote(peer.second, vote, block);
