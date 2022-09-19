@@ -33,6 +33,7 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
 
   std::vector<std::shared_ptr<Vote>> votes;
   std::vector<std::shared_ptr<Vote>> previous_next_votes;
+  vote_hash_t vote_hash;
   for (size_t i = 0; i < packet_data.rlp_.itemCount(); i++) {
     // TODO[2031]: the way we differentiate now between receiving single vote with some optional data vs
     //             batch of simple votes is ugly now. We could change the way we use VotePacket vs VotesSyncPacket to
@@ -49,6 +50,15 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
       }
 
       vote = std::make_shared<Vote>(vote_with_block_rlp[0]);
+      vote_hash = vote->getHash();
+
+      // Synchronization point in case multiple threads are processing the same vote at the same time
+      if (!seen_votes_.insert(vote_hash)) {
+        LOG(log_tr_) << "Received vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
+                     << ") already seen.";
+        continue;
+      }
+
       pbft_block = std::make_shared<PbftBlock>(vote_with_block_rlp[1]);
       peer_chain_size = vote_with_block_rlp[2].toInt();
       single_vote_with_block = vote;
@@ -64,18 +74,17 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
       LOG(log_dg_) << "Received PBFT vote " << vote->getHash() << " with PBFT block " << pbft_block->getBlockHash();
     } else {
       vote = std::make_shared<Vote>(packet_data.rlp_[i]);
+      vote_hash = vote->getHash();
+
+      // Synchronization point in case multiple threads are processing the same vote at the same time
+      if (!seen_votes_.insert(vote_hash)) {
+        LOG(log_tr_) << "Received vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
+                     << ") already seen.";
+        continue;
+      }
       pbft_block = nullptr;
       peer_chain_size = 0;
       LOG(log_dg_) << "Received PBFT vote " << vote->getHash();
-    }
-
-    const auto vote_hash = vote->getHash();
-
-    // Synchronization point in case multiple threads are processing the same vote at the same time
-    if (!seen_votes_.insert(vote_hash)) {
-      LOG(log_dg_) << "Received vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
-                   << ") already seen.";
-      continue;
     }
 
     if (vote->getPeriod() == current_pbft_period && (current_pbft_round - 1) == vote->getRound() &&

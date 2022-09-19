@@ -268,6 +268,7 @@ void ExtVotesPacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, con
 
   for (const auto &peer : peers_state_->getAllPeers()) {
     if (peer.second->syncing_) {
+      LOG(log_dg_) << " PBFT vote " << vote->getHash() << " not sent to " << peer.first << " peer syncing";
       continue;
     }
 
@@ -279,10 +280,14 @@ void ExtVotesPacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, con
     if (!(vote->getType() == cert_vote_type && vote->getBlockHash() == rewards_votes_block.first)) {
       // CONCERN ... should we be using a period stored in peer state?
       if (peer.second->pbft_chain_size_ > vote->getPeriod() - 1) {
+        LOG(log_dg_) << " PBFT vote " << vote->getHash() << " not sent to " << peer.first
+                     << " peer chain size: " << peer.second->pbft_chain_size_;
         continue;
       }
 
       if (peer.second->pbft_round_ > vote->getRound()) {
+        LOG(log_dg_) << " PBFT vote " << vote->getHash() << " not sent to " << peer.first
+                     << " peer round: " << peer.second->pbft_round_;
         continue;
       }
     }
