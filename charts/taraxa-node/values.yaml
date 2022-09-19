@@ -40,8 +40,8 @@ config:
     addresses:
       - "31a472957604e93a77144b434162410f173f3962c950d7b8f9145a42254310db8244383d03f759159092232e8ef85f73806b0380a5e520e536158bb11037ec56"
 
-  delegationPrivateKey: ""
-  faucetPrivateKey: ""
+  delegationPrivateKey: "0x485239d3ebb537c0f40e0aa6c9996a8b988225616c83d1404398319b1523fc41"
+  faucetPrivateKey: "0x156f02048b31e2203ab87fc901e900b3f8cd942460c4c321532ad3dc27752718"
 
 secrets:
   enabled: true
