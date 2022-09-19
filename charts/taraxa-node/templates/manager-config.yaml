@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: "{{ include "taraxa-node.fullname" . }}-manager"
+  labels:
+    app: manager
+    app.kubernetes.io/name: {{ include "taraxa-node.name" . }}
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+data:
+  manager.py: |-
+    #!/usr/bin/python3
+    while True:
+      time.sleep(1)
