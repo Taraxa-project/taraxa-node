@@ -145,12 +145,5 @@ data:
     python3 /bin/genconfig.py $CONFIG_PATH > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
     {{- end }}
 
-    {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
-    {{ if .Values.explorer.enabled }}
-    export FAUCET_ADDRESS=$(taraxad --command account ${EXPLORER_FAUCET_PRIVATE_KEY} | grep node_address | cut -d\  -f3 | tr -d \")
-    cat $CONFIG_PATH | jq '.chain_config.final_chain.state.genesis_balances += ({("0x"+env.FAUCET_ADDRESS): "0x1027e72f1f12813088000000"})' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
-    {{- end }}
-    {{- end }}
-
     cat $CONFIG_PATH
 {{- end }}

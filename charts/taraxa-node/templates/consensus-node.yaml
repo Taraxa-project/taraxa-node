@@ -33,16 +33,6 @@ spec:
         kubernetes.io/change-cause: "Configuration through configmaps."
     spec:
       initContainers:
-        {{ if .Values.explorer.enabled }}
-        - name: wait-for-explorer
-          image: dwdraju/alpine-curl-jq:latest
-          command: ["/bin/entrypoint.sh"]
-          volumeMounts:
-            - name: explorer-check
-              mountPath: /bin/entrypoint.sh
-              readOnly: true
-              subPath: entrypoint.sh
-        {{- end }}
         - name: config-adapter
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -160,12 +150,6 @@ spec:
           configMap:
             defaultMode: 0700
             name: {{ .Release.Name }}-consensus-node-init-script
-        {{ if .Values.explorer.enabled }}
-        - name: explorer-check
-          configMap:
-            defaultMode: 0700
-            name: {{ include "taraxa-node.fullname" . }}-explorer-check
-        {{- end }}
         {{- if .Values.slack.enabled }}
         - name: status-requirements
           configMap:

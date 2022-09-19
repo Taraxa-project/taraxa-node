@@ -3,12 +3,12 @@
 This file documents all notable changes to `taraxa-node` Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
-
-## v0.1.10
+## v0.2.0
 
 ### Major changes
 
-* Change in prefix for chain IDs
+* Removes explorer dependancy
+
 
 ## v0.2.0
 
@@ -23,3 +23,10 @@ numbering uses [semantic versioning](http://semver.org).
 ### Patches
 
 * Fixes RPC nodes initconfig wrong validators
+
+
+## v0.1.10
+
+### Major changes
+
+* Change in prefix for chain IDs

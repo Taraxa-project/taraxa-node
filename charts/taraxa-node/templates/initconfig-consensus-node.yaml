@@ -114,27 +114,12 @@ data:
         echo "No predifined keys. Generating new wallet..."
         KEY=$(taraxad --command account | grep node_secret | cut -d\  -f3- | tr -d \")
         VRF=$(taraxad --command vrf | grep vrf_secret | cut -d\  -f3 | tr -d \")
-        {{ if .Values.explorer.enabled }}
-        NODE_ADDRESS=$(taraxad --command account ${KEY} | grep node_address | cut -d\  -f3 | tr -d \")
-        echo "New wallet: 0x${NODE_ADDRESS}"
-
-        SIG=$(taraxa-sign sign --key 0x${EXPLORER_DELEGATION_PRIVATE_KEY} 0x${NODE_ADDRESS})
-
-        curl --silent http://{{ .Release.Name }}-explorer/api/delegate/0x${NODE_ADDRESS}?sig=${SIG}
-        {{- end }}
       else
         echo "Found wallet file."
         KEY=$(cat "$WALLET_PATH" | jq -r .node_secret)
         VRF=$(cat "$WALLET_PATH" | jq -r .vrf_secret)
       fi
     fi
-
-    {{ if .Values.explorer.enabled }}
-    {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
-    NODE_ADDRESS=$(taraxad --command account ${KEY} | grep node_address | cut -d\  -f3 | tr -d \")
-    curl --silent http://{{ .Release.Name }}-explorer/api/faucet/0x${NODE_ADDRESS}
-    {{- end }}
-    {{- end }}
 
     taraxad --command config \
       --chain-id {{ .Values.config.network }} \
@@ -156,13 +141,6 @@ data:
 
     {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
     python3 /bin/genconfig.py $CONFIG_PATH > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
-    {{- end }}
-
-    {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
-    {{ if .Values.explorer.enabled }}
-    export FAUCET_ADDRESS=$(taraxad --command account ${EXPLORER_FAUCET_PRIVATE_KEY} | grep node_address | cut -d\  -f3 | tr -d \")
-    cat $CONFIG_PATH | jq '.chain_config.final_chain.state.genesis_balances += ({("0x"+env.FAUCET_ADDRESS): "0x1027e72f1f12813088000000"})' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
-    {{- end }}
     {{- end }}
 
     cat $CONFIG_PATH
