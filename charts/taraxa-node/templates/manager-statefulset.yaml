@@ -36,7 +36,7 @@ spec:
           image: "python:3.8"
           imagePullPolicy: IfNotPresent
           command: ["/bin/bash", "-c", "--"]
-          args: [ "chmod +x /usr/local/bin/manager.py && ./usr/local/bin/manager.py" ]
+          args: [ "python3 /usr/local/bin/manager.py" ]
           volumeMounts:
             - name: script
               mountPath: /usr/local/bin/manager.py
