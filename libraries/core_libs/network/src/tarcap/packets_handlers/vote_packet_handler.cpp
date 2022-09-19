@@ -128,24 +128,4 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
   }
 }
 
-void VotePacketHandler::broadcastPreviousRoundNextVotesBundle() {
-  auto next_votes_bundle = next_votes_mgr_->getNextVotes();
-  if (next_votes_bundle.empty()) {
-    LOG(log_er_) << "There are empty next votes for previous PBFT round";
-    return;
-  }
-
-  const auto [pbft_current_round, pbft_current_period] = pbft_mgr_->getPbftRoundAndPeriod();
-
-  for (const auto &peer : peers_state_->getAllPeers()) {
-    // Nodes may vote at different values at previous round, so need less or equal. Also check that period is the same
-    // TODO[2035]: send votes to nodes that can process it. Not only to the nodes that are in the same period
-    if (!peer.second->syncing_ && peer.second->pbft_period_ == pbft_current_period &&
-        peer.second->pbft_round_ <= pbft_current_round) {
-      std::vector<std::shared_ptr<Vote>> send_next_votes_bundle(next_votes_bundle);
-      sendPbftVotes(peer.second, std::move(send_next_votes_bundle));
-    }
-  }
-}
-
 }  // namespace taraxa::network::tarcap
