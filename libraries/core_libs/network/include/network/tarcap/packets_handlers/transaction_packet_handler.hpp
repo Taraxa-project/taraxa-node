@@ -19,8 +19,15 @@ class TransactionPacketHandler final : public PacketHandler {
                            std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<TestState> test_state,
                            const addr_t& node_addr);
 
-  void onNewTransactions(std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>>&& transactions);
-  void sendTransactions(dev::p2p::NodeID const& peer_id, std::vector<taraxa::bytes> const& transactions);
+  /**
+   * @brief Send transactions
+   *
+   * @param peer peer to send transactions to
+   * @param transactions serialized transactions
+   *
+   */
+  void sendTransactions(std::shared_ptr<TaraxaPeer> const& peer,
+                        std::vector<std::shared_ptr<Transaction>>&& transactions);
 
   /**
    * @brief Sends batch of transactions to all connected peers
@@ -32,6 +39,12 @@ class TransactionPacketHandler final : public PacketHandler {
 
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::TransactionPacket;
+
+  // 2 items: hashes and transactions
+  static constexpr uint32_t kTransactionPacketItemCount = 2;
+
+  // Used only for unit tests
+  void onNewTransactions(const SharedTransactions& transactions);
 
  private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;

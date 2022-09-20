@@ -4,6 +4,7 @@
 #include "common/static_init.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
+#include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
 #include "util_test/node_dag_creation_fixture.hpp"
 #include "vdf/sortition.hpp"
 
@@ -612,6 +613,73 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   wait_for_balances(nodes, expected_balances2, {100s, 500ms});
 }
 
+TEST_F(PbftManagerTest, propose_block_and_vote_broadcast) {
+  auto node_cfgs = make_node_cfgs<1>(3);
+
+  auto nodes = launch_nodes(node_cfgs);
+  auto &node1 = nodes[0];
+  auto &node2 = nodes[1];
+  auto &node3 = nodes[2];
+
+  // Stop PBFT manager and executor to test networking
+  node1->getPbftManager()->stop();
+  node2->getPbftManager()->stop();
+  node3->getPbftManager()->stop();
+
+  auto pbft_mgr1 = node1->getPbftManager();
+  auto pbft_mgr2 = node2->getPbftManager();
+  auto pbft_mgr3 = node3->getPbftManager();
+
+  auto nw1 = node1->getNetwork();
+  auto nw2 = node2->getNetwork();
+  auto nw3 = node3->getNetwork();
+
+  // Check all 3 nodes PBFT chain synced
+  EXPECT_HAPPENS({300s, 200ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, pbft_mgr1->pbftSyncingPeriod(), pbft_mgr2->pbftSyncingPeriod())
+    WAIT_EXPECT_EQ(ctx, pbft_mgr1->pbftSyncingPeriod(), pbft_mgr3->pbftSyncingPeriod())
+    WAIT_EXPECT_EQ(ctx, pbft_mgr2->pbftSyncingPeriod(), pbft_mgr3->pbftSyncingPeriod())
+  });
+
+  blk_hash_t prev_block_hash = node1->getPbftChain()->getLastPbftBlockHash();
+
+  // Node1 generate a PBFT block sample
+  auto reward_votes = node1->getDB()->getLastBlockCertVotes();
+  std::vector<vote_hash_t> reward_votes_hashes;
+  std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
+                 [](const auto &v) { return v->getHash(); });
+  auto proposed_pbft_block = std::make_shared<PbftBlock>(prev_block_hash, blk_hash_t(0), blk_hash_t(0),
+                                                         node1->getPbftManager()->getPbftPeriod(), node1->getAddress(),
+                                                         node1->getSecretKey(), std::move(reward_votes_hashes));
+  auto propose_vote =
+      pbft_mgr1->generateVote(proposed_pbft_block->getBlockHash(), propose_vote_type, proposed_pbft_block->getPeriod(),
+                              node1->getPbftManager()->getPbftRound() + 1, value_proposal_state);
+  pbft_mgr1->processProposedBlock(proposed_pbft_block, propose_vote);
+
+  auto block1_from_node1 = pbft_mgr1->getProposedBlocksSt().getPbftProposedBlock(
+      propose_vote->getPeriod(), propose_vote->getRound(), propose_vote->getBlockHash());
+  ASSERT_TRUE(block1_from_node1);
+  EXPECT_EQ(block1_from_node1->getJsonStr(), proposed_pbft_block->getJsonStr());
+
+  nw1->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(propose_vote, proposed_pbft_block);
+
+  // Check node2 and node3 receive the PBFT block
+  std::shared_ptr<PbftBlock> node2_synced_proposed_block_and_vote = nullptr;
+  std::shared_ptr<PbftBlock> node3_synced_proposed_block_and_vote = nullptr;
+
+  EXPECT_HAPPENS({20s, 200ms}, [&](auto &ctx) {
+    node2_synced_proposed_block_and_vote = pbft_mgr2->getProposedBlocksSt().getPbftProposedBlock(
+        propose_vote->getPeriod(), propose_vote->getRound(), propose_vote->getBlockHash());
+    node3_synced_proposed_block_and_vote = pbft_mgr3->getProposedBlocksSt().getPbftProposedBlock(
+        propose_vote->getPeriod(), propose_vote->getRound(), propose_vote->getBlockHash());
+
+    WAIT_EXPECT_TRUE(ctx, node2_synced_proposed_block_and_vote)
+    WAIT_EXPECT_TRUE(ctx, node3_synced_proposed_block_and_vote)
+  });
+  EXPECT_EQ(node2_synced_proposed_block_and_vote->getJsonStr(), proposed_pbft_block->getJsonStr());
+  EXPECT_EQ(node3_synced_proposed_block_and_vote->getJsonStr(), proposed_pbft_block->getJsonStr());
+}
+
 TEST_F(PbftManagerTest, check_committeeSize_less_or_equal_to_activePlayers) {
   // Set committee size to 5, make sure to be committee <= active_players
   check_2tPlus1_validVotingPlayers_activePlayers_threshold(5);
@@ -854,7 +922,7 @@ TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
     const auto pbft_block =
         std::make_shared<PbftBlock>(last_hash, dag_block_hash, order_hash, propose_period, node->getAddress(),
                                     node->getSecretKey(), std::move(reward_votes_hashes));
-    node->getPbftChain()->pushUnverifiedPbftBlock(pbft_block);
+    // node->getPbftChain()->pushUnverifiedPbftBlock(pbft_block);
   }
 
   EXPECT_HAPPENS({60s, 500ms}, [&](auto &ctx) {

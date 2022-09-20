@@ -52,9 +52,9 @@ class NextVotesManager {
 
   /**
    * @brief Get next voting type votes vote value
-   * @return next voting type votes vote value and it's period
+   * @return next voting type votes vote value
    */
-  std::optional<std::pair<blk_hash_t, uint64_t>> getVotedValue() const;
+  std::optional<blk_hash_t> getVotedValue() const;
 
   /**
    * @brief Get previous PBFT round all next voting type votes
@@ -107,7 +107,7 @@ class NextVotesManager {
   std::shared_ptr<FinalChain> final_chain_;
 
   bool enough_votes_for_null_block_hash_;
-  std::optional<std::pair<blk_hash_t, uint64_t /* period */>> voted_value_;
+  std::optional<blk_hash_t> voted_value_;
 
   // TODO[2000]: merge these structures into one
   // <voted PBFT block hash, next votes list that have exactly 2t+1 votes voted at the PBFT block hash>
@@ -195,12 +195,21 @@ class VoteManager {
   void cleanupVotesByPeriod(uint64_t pbft_period);
 
   /**
+   * @brief Get single propose vote for specified voted block
+   * @param period
+   * @param round
+   * @param voted_block_hash
+   * @return single propose vote for specified voted block
+   */
+  std::shared_ptr<Vote> getProposalVote(uint64_t period, uint64_t round, const blk_hash_t& voted_block_hash) const;
+
+  /**
    * @brief Get all verified votes in proposal vote type for the current PBFT round
-   * @param round current PBFT round
    * @param period new PBFT period (period == chain_size + 1)
+   * @param round current PBFT round
    * @return all verified votes in proposal vote type for the current PBFT round
    */
-  std::vector<std::shared_ptr<Vote>> getProposalVotes(uint64_t round, uint64_t period) const;
+  std::vector<std::shared_ptr<Vote>> getProposalVotes(uint64_t period, uint64_t round) const;
 
   /**
    * @brief Get a bunch of votes that vote on the same voting value in the specific PBFT round and step, the total votes

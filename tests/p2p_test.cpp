@@ -144,15 +144,17 @@ TEST_F(P2PTest, capability_send_block) {
                {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, sig_t(7777), blk_hash_t(888),
                addr_t(999));
 
-  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> transactions{
-      {g_signed_trx_samples[0], TransactionStatus::Verified}, {g_signed_trx_samples[1], TransactionStatus::Verified}};
+  SharedTransactions transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
   thc2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->onNewTransactions(
-      std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>>(transactions));
-  std::vector<taraxa::bytes> transactions_raw;
-  transactions_raw.push_back(g_signed_trx_samples[0]->rlp());
-  transactions_raw.push_back(g_signed_trx_samples[1]->rlp());
-  thc2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(host1->id(),
-                                                                                          transactions_raw);
+      SharedTransactions(transactions));
+  SharedTransactions transactions_to_send;
+  transactions_to_send.push_back(g_signed_trx_samples[0]);
+  transactions_to_send.push_back(g_signed_trx_samples[1]);
+  std::vector<trx_hash_t> transactions_hashes;
+  transactions_hashes.push_back(g_signed_trx_samples[0]->getHash());
+  transactions_hashes.push_back(g_signed_trx_samples[1]->getHash());
+  thc2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(
+      thc2->getPeersState()->getPeer(host1->id()), std::move(transactions_to_send));
   thc2->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->sendBlock(host1->id(), blk, {});
 
   std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -164,8 +166,8 @@ TEST_F(P2PTest, capability_send_block) {
   }
   EXPECT_EQ(rtransactions.size(), 2);
   if (rtransactions.size() == 2) {
-    EXPECT_EQ(*transactions[0].first, *rtransactions[g_signed_trx_samples[0]->getHash()]);
-    EXPECT_EQ(*transactions[1].first, *rtransactions[g_signed_trx_samples[1]->getHash()]);
+    EXPECT_EQ(*transactions[0], *rtransactions[g_signed_trx_samples[0]->getHash()]);
+    EXPECT_EQ(*transactions[1], *rtransactions[g_signed_trx_samples[1]->getHash()]);
   }
 }
 
@@ -262,20 +264,19 @@ TEST_F(P2PTest, block_propagate) {
                {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, sig_t(7777), blk_hash_t(0),
                addr_t(999));
 
-  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> transactions{
-      {g_signed_trx_samples[0], TransactionStatus::Verified}, {g_signed_trx_samples[1], TransactionStatus::Verified}};
+  SharedTransactions transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};
   thc1->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->onNewTransactions(
-      std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>>(transactions));
-  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> transactions2;
+      SharedTransactions(transactions));
+  SharedTransactions transactions2;
   thc1->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->onNewTransactions(std::move(transactions2));
   thc1->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->onNewBlockReceived(DagBlock(blk));
 
-  std::vector<taraxa::bytes> transactions_raw;
-  transactions_raw.push_back(g_signed_trx_samples[0]->rlp());
-  transactions_raw.push_back(g_signed_trx_samples[1]->rlp());
+  SharedTransactions transactions_to_send;
+  transactions_to_send.push_back(g_signed_trx_samples[0]);
+  transactions_to_send.push_back(g_signed_trx_samples[1]);
   for (int i = 0; i < nodeCount; i++) {
-    thc1->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(vHosts[i]->id(),
-                                                                                            transactions_raw);
+    thc1->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(
+        thc1->getPeersState()->getPeer(vHosts[i]->id()), std::move(transactions_to_send));
   }
   for (int i = 0; i < 50; i++) {
     std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -296,8 +297,8 @@ TEST_F(P2PTest, block_propagate) {
     auto rtransactions = vCapabilities[i]->test_state_->getTransactions();
     EXPECT_EQ(rtransactions.size(), 2);
     if (rtransactions.size() == 2) {
-      EXPECT_EQ(*transactions[0].first, *rtransactions[g_signed_trx_samples[0]->getHash()]);
-      EXPECT_EQ(*transactions[1].first, *rtransactions[g_signed_trx_samples[1]->getHash()]);
+      EXPECT_EQ(*transactions[0], *rtransactions[g_signed_trx_samples[0]->getHash()]);
+      EXPECT_EQ(*transactions[1], *rtransactions[g_signed_trx_samples[1]->getHash()]);
     }
   }
   EXPECT_EQ(blocks1.size(), 1);

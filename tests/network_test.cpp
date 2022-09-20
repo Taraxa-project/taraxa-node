@@ -15,10 +15,9 @@
 #include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/get_votes_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/pbft_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/status_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "util_test/samples.hpp"
 #include "util_test/util.hpp"
@@ -54,8 +53,7 @@ TEST_F(NetworkTest, transfer_block) {
                {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, sig_t(7777), blk_hash_t(888),
                addr_t(999));
 
-  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> transactions{
-      {g_signed_trx_samples[0], TransactionStatus::Verified}, {g_signed_trx_samples[1], TransactionStatus::Verified}};
+  SharedTransactions transactions({g_signed_trx_samples[0], g_signed_trx_samples[1]});
   nw2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->onNewTransactions(std::move(transactions));
 
   EXPECT_HAPPENS({10s, 200ms}, [&](auto& ctx) {
@@ -117,13 +115,13 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
 
   // creating lot of blocks just for size
   std::vector<trx_hash_t> trx_hashes;
-  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> verified_transactions;
+  std::vector<std::shared_ptr<Transaction>> verified_transactions;
   trx_hashes.reserve(trxs.size());
   verified_transactions.reserve(trxs.size());
 
   for (const auto& trx : trxs) {
     trx_hashes.push_back(trx->getHash());
-    verified_transactions.push_back({trx, TransactionStatus::Verified});
+    verified_transactions.push_back(trx);
   }
 
   for (int i = 0; i < 100; ++i) {
@@ -136,8 +134,8 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
     dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
   }
 
-  nw1->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->onNewTransactions(
-      std::move(verified_transactions));
+  for (auto trx : verified_transactions)
+    node1->getTransactionManager()->insertValidatedTransaction(std::move(trx), TransactionStatus::Verified);
   for (size_t i = 0; i < dag_blocks.size(); i++) {
     if (dag_mgr1->verifyBlock(*dag_blocks[i]) == DagManager::VerifyBlockReturnType::Verified)
       dag_mgr1->addDagBlock(DagBlock(*dag_blocks[i]), {trxs[i]});
@@ -155,21 +153,36 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   wait({30s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr2->getDagBlock(block_hash), nullptr) });
 }
 
-TEST_F(NetworkTest, send_pbft_block) {
+// TODO[2033]: enable this test
+TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
   auto node_cfgs = make_node_cfgs<5>(2);
   auto nodes = launch_nodes(node_cfgs);
+
+  const auto& node1 = nodes[0];
+  const auto node1_pbft_mgr = node1->getPbftManager();
+
+  nodes[0]->getPbftManager()->stop();
+  nodes[1]->getPbftManager()->stop();
+
   auto nw1 = nodes[0]->getNetwork();
   auto nw2 = nodes[1]->getNetwork();
 
-  auto pbft_block = make_simple_pbft_block(blk_hash_t(1), 2, node_cfgs[0].chain.dag_genesis_block.getHash());
-  uint64_t chain_size = 111;
-
-  nw2->getSpecificHandler<network::tarcap::PbftBlockPacketHandler>()->sendPbftBlock(nw1->getNodeId(), pbft_block,
-                                                                                    chain_size);
+  std::vector<vote_hash_t> reward_votes{};
+  auto pbft_block =
+      std::make_shared<PbftBlock>(blk_hash_t(1), blk_hash_t(0), blk_hash_t(0), node1->getPbftManager()->getPbftPeriod(),
+                                  node1->getAddress(), node1->getSecretKey(), std::move(reward_votes));
+  auto vote = node1_pbft_mgr->generateVote(pbft_block->getBlockHash(), propose_vote_type, pbft_block->getPeriod(),
+                                           node1_pbft_mgr->getPbftRound() + 1, value_proposal_state);
 
   auto node2_id = nw2->getNodeId();
-  EXPECT_HAPPENS({10s, 200ms},
-                 [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, nw1->getPeer(node2_id)->pbft_chain_size_, chain_size) });
+  ASSERT_NE(node1->getPbftChain()->getPbftChainSize(), nw1->getPeer(node2_id)->pbft_chain_size_);
+
+  nw2->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->sendPbftVote(nw1->getPeer(node2_id), vote,
+                                                                                   pbft_block);
+
+  EXPECT_HAPPENS({10s, 200ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, nw1->getPeer(node2_id)->pbft_chain_size_, node1->getPbftChain()->getPbftChainSize())
+  });
 }
 
 TEST_F(NetworkTest, malicious_peers) {
@@ -322,12 +335,13 @@ TEST_F(NetworkTest, transfer_transaction) {
   EXPECT_NE(nw1->getPeer(nw2_nodeid), nullptr);
   EXPECT_NE(nw2->getPeer(nw1_nodeid), nullptr);
 
-  std::vector<taraxa::bytes> transactions;
-  transactions.push_back(g_signed_trx_samples[0]->rlp());
-  transactions.push_back(g_signed_trx_samples[1]->rlp());
-  transactions.push_back(g_signed_trx_samples[2]->rlp());
+  SharedTransactions transactions;
+  transactions.push_back(g_signed_trx_samples[0]);
+  transactions.push_back(g_signed_trx_samples[1]);
+  transactions.push_back(g_signed_trx_samples[2]);
 
-  nw2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(nw1_nodeid, transactions);
+  nw2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(nw2->getPeer(nw1_nodeid),
+                                                                                         std::move(transactions));
 
   EXPECT_HAPPENS({2s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, nw1->getReceivedTransactionsCount(), 3) });
 }
@@ -467,7 +481,7 @@ TEST_F(NetworkTest, node_sync) {
   blks.push_back(std::make_pair(blk6, g_signed_trx_samples[6]));
 
   for (size_t i = 0; i < blks.size(); ++i) {
-    node1->getTransactionManager()->insertValidatedTransactions({{blks[i].second, TransactionStatus::Verified}});
+    node1->getTransactionManager()->insertValidatedTransaction(std::move(blks[i].second), TransactionStatus::Verified);
     EXPECT_EQ(node1->getDagManager()->verifyBlock(blks[i].first), DagManager::VerifyBlockReturnType::Verified);
     node1->getDagManager()->addDagBlock(std::move(blks[i].first));
   }
@@ -515,10 +529,10 @@ TEST_F(NetworkTest, node_pbft_sync) {
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
   DagBlock blk1(dag_genesis, 1, {}, {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, 0, vdf1,
                 sk);
-  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> txs1{
-      {g_signed_trx_samples[0], TransactionStatus::Verified}, {g_signed_trx_samples[1], TransactionStatus::Verified}};
-
-  node1->getTransactionManager()->insertValidatedTransactions(std::move(txs1));
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr<Transaction>(g_signed_trx_samples[0]),
+                                                             TransactionStatus::Verified);
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr<Transaction>(g_signed_trx_samples[1]),
+                                                             TransactionStatus::Verified);
   node1->getDagManager()->verifyBlock(DagBlock(blk1));
   node1->getDagManager()->addDagBlock(DagBlock(blk1));
 
@@ -568,10 +582,10 @@ TEST_F(NetworkTest, node_pbft_sync) {
   vdf2.computeVdfSolution(vdf_config, blk1.getHash().asBytes(), false);
   DagBlock blk2(blk1.getHash(), 2, {}, {g_signed_trx_samples[2]->getHash(), g_signed_trx_samples[3]->getHash()}, 0,
                 vdf2, sk);
-  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> txs2{
-      {g_signed_trx_samples[2], TransactionStatus::Verified}, {g_signed_trx_samples[3], TransactionStatus::Verified}};
-
-  node1->getTransactionManager()->insertValidatedTransactions(std::move(txs2));
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[2]),
+                                                             TransactionStatus::Verified);
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[3]),
+                                                             TransactionStatus::Verified);
   node1->getDagManager()->verifyBlock(DagBlock(blk2));
   node1->getDagManager()->addDagBlock(DagBlock(blk2));
 
@@ -679,10 +693,10 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
   DagBlock blk1(dag_genesis, 1, {}, {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, 0, vdf1,
                 sk);
-  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> tr1{
-      {g_signed_trx_samples[0], TransactionStatus::Verified}, {g_signed_trx_samples[1], TransactionStatus::Verified}};
-
-  node1->getTransactionManager()->insertValidatedTransactions(std::move(tr1));
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[0]),
+                                                             TransactionStatus::Verified);
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[1]),
+                                                             TransactionStatus::Verified);
   node1->getDagManager()->verifyBlock(DagBlock(blk1));
   node1->getDagManager()->addDagBlock(DagBlock(blk1));
 
@@ -722,10 +736,10 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   vdf2.computeVdfSolution(vdf_config, blk1.getHash().asBytes(), false);
   DagBlock blk2(blk1.getHash(), 2, {}, {g_signed_trx_samples[2]->getHash(), g_signed_trx_samples[3]->getHash()}, 0,
                 vdf2, sk);
-  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> tr2{
-      {g_signed_trx_samples[2], TransactionStatus::Verified}, {g_signed_trx_samples[3], TransactionStatus::Verified}};
-
-  node1->getTransactionManager()->insertValidatedTransactions(std::move(tr2));
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[2]),
+                                                             TransactionStatus::Verified);
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[3]),
+                                                             TransactionStatus::Verified);
   node1->getDagManager()->verifyBlock(DagBlock(blk2));
   node1->getDagManager()->addDagBlock(DagBlock(blk2));
 
@@ -960,7 +974,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   std::shared_ptr<Network> nw2 = node2->getNetwork();
 
   // Node1 broadcast next votes1 to node2
-  nw1->getSpecificHandler<network::tarcap::VotePacketHandler>()->broadcastPreviousRoundNextVotesBundle();
+  nw1->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->broadcastPreviousRoundNextVotesBundle();
 
   auto node2_expect_size = next_votes1.size() + next_votes2.size();
   EXPECT_HAPPENS({5s, 100ms},
@@ -978,7 +992,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   node1_db->commitWriteBatch(batch);
 
   // Node2 broadcast updated next votes to node1
-  nw2->getSpecificHandler<network::tarcap::VotePacketHandler>()->broadcastPreviousRoundNextVotesBundle();
+  nw2->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->broadcastPreviousRoundNextVotesBundle();
 
   auto node1_expect_size = next_votes1.size() + next_votes2.size();
   EXPECT_HAPPENS({5s, 100ms},
@@ -1059,22 +1073,36 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> tr6{
       {g_signed_trx_samples[9], TransactionStatus::Verified}};
 
-  node1->getTransactionManager()->insertValidatedTransactions(std::move(tr1));
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[0]),
+                                                             TransactionStatus::Verified);
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[1]),
+                                                             TransactionStatus::Verified);
   EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk1)), DagManager::VerifyBlockReturnType::Verified);
   node1->getDagManager()->addDagBlock(DagBlock(blk1));
-  node1->getTransactionManager()->insertValidatedTransactions(std::move(tr2));
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[2]),
+                                                             TransactionStatus::Verified);
   EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk2)), DagManager::VerifyBlockReturnType::Verified);
   node1->getDagManager()->addDagBlock(DagBlock(blk2));
-  node1->getTransactionManager()->insertValidatedTransactions(std::move(tr3));
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[3]),
+                                                             TransactionStatus::Verified);
   EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk3)), DagManager::VerifyBlockReturnType::Verified);
   node1->getDagManager()->addDagBlock(DagBlock(blk3));
-  node1->getTransactionManager()->insertValidatedTransactions(std::move(tr4));
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[4]),
+                                                             TransactionStatus::Verified);
   EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk4)), DagManager::VerifyBlockReturnType::Verified);
   node1->getDagManager()->addDagBlock(DagBlock(blk4));
-  node1->getTransactionManager()->insertValidatedTransactions(std::move(tr5));
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[5]),
+                                                             TransactionStatus::Verified);
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[6]),
+                                                             TransactionStatus::Verified);
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[7]),
+                                                             TransactionStatus::Verified);
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[8]),
+                                                             TransactionStatus::Verified);
   EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk5)), DagManager::VerifyBlockReturnType::Verified);
   node1->getDagManager()->addDagBlock(DagBlock(blk5));
-  node1->getTransactionManager()->insertValidatedTransactions(std::move(tr6));
+  node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(g_signed_trx_samples[9]),
+                                                             TransactionStatus::Verified);
   EXPECT_EQ(node1->getDagManager()->verifyBlock(std::move(blk6)), DagManager::VerifyBlockReturnType::Verified);
   node1->getDagManager()->addDagBlock(DagBlock(blk6));
   // To make sure blocks are stored before starting node 2
@@ -1234,9 +1262,8 @@ TEST_F(NetworkTest, node_sync2) {
   trxs.push_back(tr12);
 
   for (size_t i = 0; i < blks.size(); ++i) {
-    std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> ver_trxs;
-    for (auto t : trxs[i]) ver_trxs.push_back({t, TransactionStatus::Verified});
-    node1->getTransactionManager()->insertValidatedTransactions(std::move(ver_trxs));
+    for (auto t : trxs[i])
+      node1->getTransactionManager()->insertValidatedTransaction(std::move(t), TransactionStatus::Verified);
     node1->getDagManager()->verifyBlock(std::move(blks[i]));
     node1->getDagManager()->addDagBlock(DagBlock(blks[i]));
   }
@@ -1264,9 +1291,8 @@ TEST_F(NetworkTest, node_transaction_sync) {
   auto& node1 = nodes[0];
   auto& node2 = nodes[1];
 
-  std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> ver_trxs;
-  for (auto t : *g_signed_trx_samples) ver_trxs.push_back({t, TransactionStatus::Verified});
-  node1->getTransactionManager()->insertValidatedTransactions(std::move(ver_trxs));
+  for (auto t : *g_signed_trx_samples)
+    node1->getTransactionManager()->insertValidatedTransaction(std::shared_ptr(t), TransactionStatus::Verified);
 
   std::cout << "Waiting Sync for 2000 milliseconds ..." << std::endl;
   taraxa::thisThreadSleepForMilliSeconds(2000);
@@ -1294,10 +1320,10 @@ TEST_F(NetworkTest, node_full_sync) {
   std::uniform_int_distribution<std::mt19937::result_type> distNodes(0, numberOfNodes - 2);  // range [0, 3]
 
   int num_of_trxs = 50;
-  const auto trxs = samples::createSignedTrxSamples(0, num_of_trxs, g_secret);
+  auto trxs = samples::createSignedTrxSamples(0, num_of_trxs, g_secret);
   for (auto i = 0; i < num_of_trxs; ++i) {
-    nodes[distNodes(rng)]->getTransactionManager()->insertValidatedTransactions(
-        {{trxs[i], TransactionStatus::Verified}});
+    nodes[distNodes(rng)]->getTransactionManager()->insertValidatedTransaction(std::move(trxs[i]),
+                                                                               TransactionStatus::Verified);
     thisThreadSleepForMilliSeconds(distTransactions(rng));
   }
   ASSERT_EQ(num_of_trxs, 50);  // 50 transactions
@@ -1457,114 +1483,14 @@ TEST_F(NetworkTest, suspicious_packets) {
   }
   EXPECT_TRUE(peer.reportSuspiciousPacket());
 
-  // This part of unit tests is commented out since it takes about one minute to actually test, run it if there are any
-  // issues with this functionality
+  // This part of unit tests is commented out since it takes about one minute to actually test, run it if there are
+  // any issues with this functionality
 
   /*thisThreadSleepForSeconds(60);
   for (int i = 0; i < 1000; i++) {
     EXPECT_FALSE(peer.reportSuspiciousPacket());
   }
   EXPECT_TRUE(peer.reportSuspiciousPacket());*/
-}
-
-TEST_F(NetworkTest, unexpected_votes_sync_packet) {
-  auto node_cfgs = make_node_cfgs<20>(2);
-  std::vector<std::shared_ptr<FullNode>> nodes;
-  for (const auto& cfg : node_cfgs) {
-    nodes.emplace_back(std::make_shared<FullNode>(cfg));
-    nodes.back()->start();
-    // Stop PBFT manager, that will place vote
-    nodes.back()->getPbftManager()->stop();
-  }
-  EXPECT_TRUE(wait_connect(nodes));
-
-  // Clear next votes components
-  auto node0_next_votes_mgr = nodes[0]->getNextVotesManager();
-  auto node1_next_votes_mgr = nodes[1]->getNextVotesManager();
-  node0_next_votes_mgr->clearVotes();
-  node1_next_votes_mgr->clearVotes();
-
-  auto pbft_mgr0 = nodes[0]->getPbftManager();
-
-  // Node1 generate 1 next vote voted at NULL_BLOCK_HASH
-  blk_hash_t voted_pbft_block_hash1(blk_hash_t(0));
-  auto vote = pbft_mgr0->generateVote(voted_pbft_block_hash1, next_vote_type, 1, 1, 5);
-  vote->calculateWeight(1, 1, 1);
-
-  // Set both node1 and node2 pbft manager round to 2
-  std::shared_ptr<Network> nw0 = nodes[0]->getNetwork();
-  std::shared_ptr<Network> nw1 = nodes[1]->getNetwork();
-
-  EXPECT_EQ(nw0->getPeerCount(), 1);
-  EXPECT_EQ(nw1->getPeerCount(), 1);
-  // Node1 broadcast next votes1 to node2
-  std::cout << "Node1 broadcast VotesSyncPacket to Node2" << std::endl;
-  nw0->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVotes(nw1->getNodeId(), {vote}, true);
-
-  EXPECT_HAPPENS({5s, 100ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, nw0->getPeerCount(), 0);
-    WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 0);
-  });
-}
-
-TEST_F(NetworkTest, request_and_get_votes_sync_packet) {
-  auto node_cfgs = make_node_cfgs<20>(2);
-  std::vector<std::shared_ptr<FullNode>> nodes;
-  for (const auto& cfg : node_cfgs) {
-    nodes.emplace_back(std::make_shared<FullNode>(cfg));
-    nodes.back()->start();
-    // Stop PBFT manager, that will place vote
-    nodes.back()->getPbftManager()->stop();
-  }
-  EXPECT_TRUE(wait_connect(nodes));
-
-  auto pbft_mgr0 = nodes[0]->getPbftManager();
-  auto pbft_mgr1 = nodes[1]->getPbftManager();
-  pbft_mgr0->setPbftRound(2);
-  pbft_mgr1->setPbftRound(2);
-
-  // Clear next votes components
-  auto node0_next_votes_mgr = nodes[0]->getNextVotesManager();
-  auto node1_next_votes_mgr = nodes[1]->getNextVotesManager();
-  node0_next_votes_mgr->clearVotes();
-  node1_next_votes_mgr->clearVotes();
-
-  // Node1 generate 1 next vote voted at NULL_BLOCK_HASH
-  blk_hash_t voted_pbft_block_hash1(blk_hash_t(0));
-  PbftVoteTypes type = next_vote_type;
-  uint64_t period = 1;
-  uint64_t round = 1;
-  size_t step = 5;
-  auto vote0 = pbft_mgr0->generateVote(voted_pbft_block_hash1, type, period, round, step);
-  vote0->calculateWeight(1, 1, 1);
-  std::vector<std::shared_ptr<Vote>> next_votes0{vote0};
-
-  // Update node1 next votes bundle
-  node0_next_votes_mgr->updateNextVotes(next_votes0, pbft_mgr0->getTwoTPlusOne());
-  EXPECT_EQ(node0_next_votes_mgr->getNextVotesWeight(), next_votes0.size());
-
-  // Node1 generate 1 different next vote for node2, because node2 is not delegated
-  blk_hash_t voted_pbft_block_hash2("1234567890000000000000000000000000000000000000000000000000000000");
-  auto vote1 = pbft_mgr1->generateVote(voted_pbft_block_hash2, type, period, round, step);
-  vote1->calculateWeight(1, 1, 1);
-  std::vector<std::shared_ptr<Vote>> next_votes1{vote1};
-
-  // Update node1 next votes bundle
-  node1_next_votes_mgr->updateNextVotes(next_votes1, pbft_mgr1->getTwoTPlusOne());
-  EXPECT_EQ(node1_next_votes_mgr->getNextVotesWeight(), next_votes1.size());
-
-  // Set both node1 and node2 pbft manager round to 2
-  std::shared_ptr<Network> nw0 = nodes[0]->getNetwork();
-  std::shared_ptr<Network> nw1 = nodes[1]->getNetwork();
-
-  // Node1 broadcast next votes1 to node2
-  std::cout << "Node1 broadcast VotesSyncPacket to Node2" << std::endl;
-  nw1->getSpecificHandler<network::tarcap::StatusPacketHandler>()->requestPbftNextVotesAtPeriodRound(nw0->getNodeId(),
-                                                                                                     1, 1, 0);
-
-  ASSERT_HAPPENS({5s, 200ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, node1_next_votes_mgr->getNextVotesWeight(), next_votes0.size() + next_votes1.size());
-  });
 }
 
 }  // namespace taraxa::core_tests

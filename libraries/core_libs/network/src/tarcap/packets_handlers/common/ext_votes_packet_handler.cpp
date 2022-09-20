@@ -23,15 +23,20 @@ ExtVotesPacketHandler::ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_s
       vote_mgr_(std::move(vote_mgr)) {}
 
 bool ExtVotesPacketHandler::processStandardVote(const std::shared_ptr<Vote> &vote,
+                                                const std::shared_ptr<PbftBlock> &pbft_block,
                                                 const std::shared_ptr<TaraxaPeer> &peer, bool validate_max_round_step) {
+  if (pbft_block && !validateVoteAndBlock(vote, pbft_block)) {
+    throw MaliciousPeerException("Received vote's voted value != received pbft block");
+  }
+
   if (vote_mgr_->voteInVerifiedMap(vote)) {
     LOG(log_dg_) << "Vote " << vote->getHash() << " already inserted in verified queue";
-    return true;
+    return false;
   }
 
   if (auto vote_is_valid = validateStandardVote(vote, peer, validate_max_round_step); !vote_is_valid.first) {
     // There is a possible race condition:
-    // 1) vote is evaluated as standard vote during processing vote packet based on current_pbft_period == vote_period
+    // 1) vote is evaluated as standard vote during vote packet processing based on current_pbft_period == vote_period
     // 2) In the meantime new block is pushed
     // 3) Standard vote validation then fails due to invalid period
     // -> If this happens, try to process this vote as reward vote
@@ -51,13 +56,17 @@ bool ExtVotesPacketHandler::processStandardVote(const std::shared_ptr<Vote> &vot
     return false;
   }
 
+  if (pbft_block) {
+    pbft_mgr_->processProposedBlock(pbft_block, vote);
+  }
+
   return true;
 }
 
 bool ExtVotesPacketHandler::processRewardVote(const std::shared_ptr<Vote> &vote) const {
   if (vote_mgr_->isInRewardsVotes(vote->getHash())) {
     LOG(log_dg_) << "Reward vote " << vote->getHash() << " already inserted in reward votes";
-    return true;
+    return false;
   }
 
   if (auto vote_is_valid = validateRewardVote(vote); !vote_is_valid.first) {
@@ -73,8 +82,13 @@ bool ExtVotesPacketHandler::processRewardVote(const std::shared_ptr<Vote> &vote)
   return true;
 }
 
-bool ExtVotesPacketHandler::processNextSyncVote(const std::shared_ptr<Vote> &vote) const {
+bool ExtVotesPacketHandler::processNextSyncVote(const std::shared_ptr<Vote> &vote,
+                                                const std::shared_ptr<PbftBlock> &pbft_block) const {
   // TODO: add check if next vote is already in next votes
+
+  if (pbft_block && !validateVoteAndBlock(vote, pbft_block)) {
+    throw MaliciousPeerException("Received vote's voted value != received pbft block");
+  }
 
   if (auto vote_is_valid = validateNextSyncVote(vote); !vote_is_valid.first) {
     LOG(log_wr_) << "Vote " << vote->getHash()
@@ -85,6 +99,10 @@ bool ExtVotesPacketHandler::processNextSyncVote(const std::shared_ptr<Vote> &vot
   if (!vote_mgr_->insertUniqueVote(vote)) {
     LOG(log_dg_) << "Non unique next vote " << vote->getHash() << " (race condition)";
     return false;
+  }
+
+  if (pbft_block) {
+    pbft_mgr_->processProposedBlock(pbft_block, vote);
   }
 
   return true;
@@ -234,6 +252,87 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateVote(const std::shar
   return vote_valid;
 }
 
+bool ExtVotesPacketHandler::validateVoteAndBlock(const std::shared_ptr<Vote> &vote,
+                                                 const std::shared_ptr<PbftBlock> &pbft_block) const {
+  if (pbft_block->getBlockHash() != vote->getBlockHash()) {
+    LOG(log_er_) << "Vote " << vote->getHash() << " voted block " << vote->getBlockHash() << " != actual block "
+                 << pbft_block->getBlockHash();
+    return false;
+  }
+
+  return true;
+}
+
+void ExtVotesPacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &block) {
+  const auto rewards_votes_block = vote_mgr_->getCurrentRewardsVotesBlock();
+
+  for (const auto &peer : peers_state_->getAllPeers()) {
+    if (peer.second->syncing_) {
+      LOG(log_dg_) << " PBFT vote " << vote->getHash() << " not sent to " << peer.first << " peer syncing";
+      continue;
+    }
+
+    if (peer.second->isVoteKnown(vote->getHash())) {
+      continue;
+    }
+
+    // If it is not current reward vote, validate vote's period and round against peer's max chain size and round
+    if (!(vote->getType() == cert_vote_type && vote->getBlockHash() == rewards_votes_block.first)) {
+      // CONCERN ... should we be using a period stored in peer state?
+      if (peer.second->pbft_chain_size_ > vote->getPeriod() - 1) {
+        LOG(log_dg_) << " PBFT vote " << vote->getHash() << " not sent to " << peer.first
+                     << " peer chain size: " << peer.second->pbft_chain_size_;
+        continue;
+      }
+
+      if (peer.second->pbft_round_ > vote->getRound()) {
+        LOG(log_dg_) << " PBFT vote " << vote->getHash() << " not sent to " << peer.first
+                     << " peer round: " << peer.second->pbft_round_;
+        continue;
+      }
+    }
+
+    // Peer already has pbft block, do not send it (do not check it for propose votes as it could happen that nodes
+    // re-propose the same block for new round, in which case we need to send the block again
+    if (vote->getType() != PbftVoteTypes::propose_vote_type && vote->getStep() != PbftStates::value_proposal_state &&
+        peer.second->isPbftBlockKnown(vote->getBlockHash())) {
+      sendPbftVote(peer.second, vote, nullptr);
+    } else {
+      sendPbftVote(peer.second, vote, block);
+    }
+  }
+}
+
+void ExtVotesPacketHandler::sendPbftVote(const std::shared_ptr<TaraxaPeer> &peer, const std::shared_ptr<Vote> &vote,
+                                         const std::shared_ptr<PbftBlock> &block) {
+  if (block && block->getBlockHash() != vote->getBlockHash()) {
+    LOG(log_er_) << "Vote " << vote->getHash().abridged() << " voted block " << vote->getBlockHash().abridged()
+                 << " != actual block " << block->getBlockHash().abridged();
+    return;
+  }
+
+  dev::RLPStream s(1);
+  if (block) {
+    s.appendList(kVotePacketWithBlockSize);
+    s.appendRaw(vote->rlp(true, false));
+    s.appendRaw(block->rlp(true));
+    s.append(pbft_chain_->getPbftChainSize());
+  } else {
+    s.appendRaw(vote->rlp(true, false));
+  }
+
+  if (sealAndSend(peer->getId(), SubprotocolPacketType::VotePacket, std::move(s))) {
+    peer->markVoteAsKnown(vote->getHash());
+    if (block) {
+      peer->markPbftBlockAsKnown(block->getBlockHash());
+      LOG(log_dg_) << " PBFT vote " << vote->getHash() << " together with block " << block->getBlockHash()
+                   << " sent to " << peer->getId();
+    } else {
+      LOG(log_dg_) << " PBFT vote " << vote->getHash() << " sent to " << peer->getId();
+    }
+  }
+}
+
 void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes) {
   const auto rewards_votes_block = vote_mgr_->getCurrentRewardsVotesBlock();
 
@@ -242,26 +341,38 @@ void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&
       continue;
     }
 
-    std::vector<std::shared_ptr<Vote>> send_votes;
-    for (const auto &v : votes) {
-      if (!peer.second->isVoteKnown(v->getHash()) &&
-          // CONCERN ... should we be using a period stored in peer state?
-          (peer.second->pbft_chain_size_ <= v->getPeriod() - 1 || peer.second->pbft_round_ <= v->getRound() ||
-           (v->getType() == cert_vote_type && v->getBlockHash() == rewards_votes_block.first /* reward vote */))) {
-        send_votes.push_back(v);
+    std::vector<std::shared_ptr<Vote>> peer_votes;
+    for (const auto &vote : votes) {
+      if (peer.second->isVoteKnown(vote->getHash())) {
+        continue;
       }
+
+      // If it is not current reward vote, validate vote's period and round against peer's max chain size and round
+      if (!(vote->getType() == cert_vote_type && vote->getBlockHash() == rewards_votes_block.first)) {
+        // CONCERN ... should we be using a period stored in peer state?
+        if (peer.second->pbft_chain_size_ > vote->getPeriod() - 1) {
+          continue;
+        }
+
+        if (peer.second->pbft_round_ > vote->getRound()) {
+          continue;
+        }
+      }
+
+      peer_votes.push_back(vote);
     }
-    sendPbftVotes(peer.first, std::move(send_votes));
+
+    sendPbftVotes(peer.second, std::move(peer_votes));
   }
 }
 
-void ExtVotesPacketHandler::sendPbftVotes(const dev::p2p::NodeID &peer_id, std::vector<std::shared_ptr<Vote>> &&votes,
-                                          bool is_next_votes) {
+void ExtVotesPacketHandler::sendPbftVotes(const std::shared_ptr<TaraxaPeer> &peer,
+                                          std::vector<std::shared_ptr<Vote>> &&votes, bool is_next_votes) {
   if (votes.empty()) {
     return;
   }
 
-  LOG(log_nf_) << "Will send next votes type " << std::boolalpha << is_next_votes;
+  LOG(log_nf_) << "Send next votes type " << std::boolalpha << is_next_votes;
   auto subprotocol_packet_type =
       is_next_votes ? SubprotocolPacketType::VotesSyncPacket : SubprotocolPacketType::VotePacket;
 
@@ -270,24 +381,19 @@ void ExtVotesPacketHandler::sendPbftVotes(const dev::p2p::NodeID &peer_id, std::
     const size_t count = std::min(static_cast<size_t>(kMaxVotesInPacket), votes.size() - index);
     dev::RLPStream s(count);
     for (auto i = index; i < index + count; i++) {
-      const auto &v = votes[i];
-      // Withou sending also vote weight,
-      // check_committeeSize_less_or_equal_to_activePlayers & check_committeeSize_greater_than_activePlayers tests fail
-      s.appendRaw(v->rlp(true, false));
-      LOG(log_dg_) << "Send out vote " << v->getHash() << " to peer " << peer_id;
+      const auto &vote = votes[i];
+      s.appendRaw(vote->rlp(true, false));
+      LOG(log_dg_) << "Send vote " << vote->getHash() << " to peer " << peer->getId();
     }
 
-    if (sealAndSend(peer_id, subprotocol_packet_type, std::move(s))) {
-      LOG(log_nf_) << "Send out size of " << count << " PBFT votes to " << peer_id;
+    if (sealAndSend(peer->getId(), subprotocol_packet_type, std::move(s))) {
+      LOG(log_dg_) << count << " PBFT votes to were sent to " << peer->getId();
+      for (auto i = index; i < index + count; i++) {
+        peer->markVoteAsKnown(votes[i]->getHash());
+      }
     }
 
     index += count;
-  }
-
-  if (const auto peer = peers_state_->getPeer(peer_id)) {
-    for (const auto &v : votes) {
-      peer->markVoteAsKnown(v->getHash());
-    }
   }
 }
 

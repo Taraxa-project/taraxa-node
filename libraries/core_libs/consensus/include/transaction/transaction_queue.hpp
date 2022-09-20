@@ -36,7 +36,8 @@ class TransactionQueue {
    * @return true
    * @return false
    */
-  bool insert(std::pair<std::shared_ptr<Transaction>, TransactionStatus>&& transaction, uint64_t last_block_number = 0);
+  bool insert(std::shared_ptr<Transaction>&& transaction, const TransactionStatus status,
+              uint64_t last_block_number = 0);
 
   /**
    * @brief remove transaction from queue

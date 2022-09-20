@@ -1353,6 +1353,10 @@ TEST_F(FullNodeTest, db_rebuild) {
     auto node_cfgs = make_node_cfgs<5>(1);
     node_cfgs[0].db_config.rebuild_db = true;
     auto nodes = launch_nodes(node_cfgs);
+    ASSERT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
+      WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count)
+      WAIT_EXPECT_EQ(ctx, nodes[0]->getFinalChain()->last_block_number(), executed_chain_size)
+    });
   }
 
   {
@@ -1441,7 +1445,7 @@ TEST_F(FullNodeTest, chain_config_json) {
         "commission_change_delta":"0x0",
         "commission_change_frequency":"0x0",
         "yield_percentage":"0x14",
-        "blocks_per_year":"0x3c2670",
+        "blocks_per_year":"0x44be36",
         "initial_validators": []
       },
       "eth_chain_config": {

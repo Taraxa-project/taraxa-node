@@ -38,9 +38,8 @@ void VoteManager::retreieveVotes_() {
   for (auto const& v : verified_votes) {
     // Rebroadcast our own next votes in case we were partitioned...
     if (v->getStep() >= FIRST_FINISH_STEP && pbft_step > EXTENDED_PARTITION_STEPS) {
-      std::vector<std::shared_ptr<Vote>> votes = {v};
       if (auto net = network_.lock()) {
-        net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(std::move(votes));
+        net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(v, nullptr);
       }
     }
 
@@ -112,9 +111,11 @@ bool VoteManager::addVerifiedVote(std::shared_ptr<Vote> const& vote) {
   if (vote->getPeriod() < verified_votes_last_period_) {
     // Old vote, ignore unless it is a reward vote
     if (vote->getPeriod() == verified_votes_last_period_ - 1 && vote->getType() == cert_vote_type) {
+      LOG(log_dg_) << "Add vote " << vote->getHash().abridged() << " into the reward votes instead of verified votes";
       addRewardVote(vote);
-      return true;
+      return false;
     }
+
     // Old vote, ignore it
     LOG(log_tr_) << "Old vote " << vote->getHash().abridged() << " vote period" << vote->getPeriod()
                  << " current period " << verified_votes_last_period_;
@@ -407,8 +408,41 @@ void VoteManager::cleanupVotesByPeriod(uint64_t pbft_period) {
   db_->commitWriteBatch(batch);
 }
 
-// TODO: Refactor call to put period before round
-std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t round, uint64_t period) const {
+std::shared_ptr<Vote> VoteManager::getProposalVote(uint64_t period, uint64_t round,
+                                                   const blk_hash_t& voted_block_hash) const {
+  SharedLock lock(verified_votes_access_);
+
+  const auto found_period_it = verified_votes_.find(period);
+  if (found_period_it == verified_votes_.end()) {
+    return nullptr;
+  }
+
+  const auto found_round_it = found_period_it->second.find(round);
+  if (found_round_it == found_period_it->second.end()) {
+    return nullptr;
+  }
+
+  const auto found_proposal_step_it = found_round_it->second.find(PbftStates::value_proposal_state);
+  if (found_proposal_step_it == found_round_it->second.end()) {
+    return nullptr;
+  }
+
+  const auto found_voted_block_it = found_proposal_step_it->second.find(voted_block_hash);
+  if (found_voted_block_it == found_proposal_step_it->second.end()) {
+    return nullptr;
+  }
+
+  if (found_voted_block_it->second.second.empty()) {
+    // This should never happen
+    assert(false);
+    return nullptr;
+  }
+
+  // Return first found propose vote for specified voted block
+  return found_voted_block_it->second.second.begin()->second;
+}
+
+std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t period, uint64_t round) const {
   SharedLock lock(verified_votes_access_);
 
   const auto found_period_it = verified_votes_.find(period);
@@ -421,7 +455,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t round,
     return {};
   }
 
-  const auto found_proposal_step_it = found_round_it->second.find(1);
+  const auto found_proposal_step_it = found_round_it->second.find(PbftStates::value_proposal_state);
   if (found_proposal_step_it == found_round_it->second.end()) {
     return {};
   }
@@ -731,7 +765,7 @@ bool NextVotesManager::haveEnoughVotesForNullBlockHash() const {
   return enough_votes_for_null_block_hash_;
 }
 
-std::optional<std::pair<blk_hash_t, uint64_t>> NextVotesManager::getVotedValue() const {
+std::optional<blk_hash_t> NextVotesManager::getVotedValue() const {
   SharedLock lock(access_);
   return voted_value_;
 }
@@ -829,11 +863,11 @@ void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& ne
       if (voted_value == NULL_BLOCK_HASH) {
         enough_votes_for_null_block_hash_ = true;
       } else {
-        if (voted_value_.has_value() && voted_value != voted_value_->first) {
-          assertError_(next_votes_.at(voted_value), next_votes_.at(voted_value_->first));
+        if (voted_value_.has_value() && voted_value != *voted_value_) {
+          assertError_(next_votes_.at(voted_value), next_votes_.at(*voted_value_));
         }
 
-        voted_value_ = std::make_pair(voted_value, next_votes[0]->getPeriod());
+        voted_value_ = voted_value;
       }
     } else {
       // Should not happen here, have checked at updateWithSyncedVotes. For safe
@@ -898,10 +932,10 @@ void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const&
         enough_votes_for_null_block_hash_ = true;
       } else {
         if (voted_value_.has_value()) {
-          assertError_(it->second, next_votes_.at(voted_value_->first));
+          assertError_(it->second, next_votes_.at(*voted_value_));
         }
 
-        voted_value_ = std::make_pair(it->first, it->second[0]->getPeriod());
+        voted_value_ = it->first;
       }
 
       it++;

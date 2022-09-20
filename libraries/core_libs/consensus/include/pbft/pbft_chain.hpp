@@ -66,13 +66,6 @@ class PbftChain {
   PbftBlock getPbftBlockInChain(blk_hash_t const& pbft_block_hash);
 
   /**
-   * @brief Get a unverified PBFT block
-   * @param pbft_block_hash PBFT block hash
-   * @return a unverified PBFT block
-   */
-  std::shared_ptr<PbftBlock> getUnverifiedPbftBlock(blk_hash_t const& pbft_block_hash);
-
-  /**
    * @brief Get PBFT chain head block in JSON string
    * @return PBFT chain head block in string
    */
@@ -94,26 +87,6 @@ class PbftChain {
   bool findPbftBlockInChain(blk_hash_t const& pbft_block_hash);
 
   /**
-   * @brief Find a unverified PBFT block
-   * @param pbft_block_hash PBFT block hash
-   * @return true if found
-   */
-  bool findUnverifiedPbftBlock(blk_hash_t const& pbft_block_hash) const;
-
-  /**
-   * @brief Cleanup all proposed PBFT blocks for the finalized period
-   * @param pbft_block last finalized PBFT block
-   */
-  void cleanupUnverifiedPbftBlocks(taraxa::PbftBlock const& pbft_block);
-
-  /**
-   * @brief Push unfinalized PBFT block in PBFT unverified queue
-   * @param pbft_block an unfinalized PBFT block
-   * @return true if pushed
-   */
-  bool pushUnverifiedPbftBlock(std::shared_ptr<PbftBlock> const& pbft_block);
-
-  /**
    * @brief Update PBFT chain size, non empty chain size, and last PBFT block hash
    * @param pbft_block_hash last PBFT block hash
    * @param anchor DAG anchor hash
@@ -133,7 +106,6 @@ class PbftChain {
   using UpgradableLock = boost::upgrade_lock<boost::shared_mutex>;
   using UpgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
 
-  mutable boost::shared_mutex unverified_access_;
   mutable boost::shared_mutex chain_head_access_;
 
   blk_hash_t head_hash_;     // PBFT head hash
@@ -144,10 +116,6 @@ class PbftChain {
   blk_hash_t last_non_null_pbft_dag_anchor_hash_;  // last dag block anchor which is not null
 
   std::shared_ptr<DbStorage> db_ = nullptr;
-
-  // <prev block hash, vector<PBFT proposed blocks waiting for vote>>
-  std::unordered_map<blk_hash_t, std::vector<blk_hash_t>> unverified_blocks_map_;
-  std::unordered_map<blk_hash_t, std::shared_ptr<PbftBlock>> unverified_blocks_;
 
   LOG_OBJECTS_DEFINE
 };
