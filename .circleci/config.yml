@@ -1046,7 +1046,7 @@ workflows:
   helm-chart-release:
     jobs:
       - helm-release/chart-publish:
-          charts-dir: charts/taraxa-node
+          charts-dir: charts
           chartmuseum-url: https://charts.gcp.taraxa.io
           chartmuseum_username: HELM_REPO_USERNAME
           chartmuseum_password: HELM_REPO_PASSWORD
