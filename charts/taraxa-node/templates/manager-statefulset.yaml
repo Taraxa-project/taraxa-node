@@ -31,9 +31,9 @@ spec:
         app.kubernetes.io/managed-by: {{ .Release.Service }}
         release: {{ .Release.Name }}
     spec:
+      serviceAccountName: "{{ include "taraxa-node.fullname" . }}-manager"
       containers:
         - name: manager
-          serviceAccountName: "{{ include "taraxa-node.fullname" . }}-manager"
           image: "python:3.8"
           imagePullPolicy: IfNotPresent
           command: ["/bin/bash", "-c", "--"]
