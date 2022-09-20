@@ -127,31 +127,27 @@ input BlockFilterCriteria {
  type DagBlock {
     # Hash is the block hash of this block.
     hash: Bytes32!
-
     # Pivot is hash of the dag block that this block points to as a pivot
     # Pivot is ghost pointer ???
     pivot: Bytes32!
-
     # Tips are hashes of dag blocks that this block points to
     tips: [Bytes32!]!
-
     # Level is dag level, on which this block exists in dag structure
     level: Long!
-
     # PbftPeriod, in which dag block is included.
     # null in case it was not yet processed by pbft consensus
     pbftPeriod: Long
-
     # Author is the account that created this block.
     author: Account!
-
     # Timestamp is the unix timestamp at which this block was mined.
     timestamp: Long!
-
+    # Signature of the block
+    signature: Bytes!
+    # VDF difficulty
+    vdf: Int!
     # TransactionCount is the number of transactions in this block. if
     # transactions are not available for this block, this field will be 0.
     transactionCount: Int!
-
     # Transactions is a list of transactions associated with this block. If
     # transactions are unavailable for this block, this field will be null.
     transactions: [Transaction!]
