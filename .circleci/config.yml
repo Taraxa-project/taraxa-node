@@ -28,7 +28,7 @@ orbs:
   gcp-cli: circleci/gcp-cli@1.0.0
   docker-cache: cci-x/docker-registry-image-cache@0.2.12
   helm: banzaicloud/helm@0.0.8
-  helm-release: taraxa/helm-release@dev:84fd252d6af85d97fd7501991d44d5386e6f4f34
+  helm-release: taraxa/helm-release@dev:877afab78a3cb1fb37e6103f8b7f3e927d730a33
 
 commands:
   pr_comment:
