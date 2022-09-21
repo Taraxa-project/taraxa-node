@@ -615,7 +615,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   u_long elapsed_time_in_round_ms_ = 0;
 
   bool executed_pbft_block_ = false;
-  bool should_have_cert_voted_in_this_round_ = false;
   bool next_voted_soft_value_ = false;
   bool next_voted_null_block_hash_ = false;
   bool go_finish_state_ = false;

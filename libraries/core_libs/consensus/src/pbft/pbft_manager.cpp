@@ -444,10 +444,8 @@ void PbftManager::resetPbftConsensus(uint64_t round) {
   db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedSoftValue, false, batch);
 
   // Reset cert voted block in the new upcoming round
-  if (cert_voted_block_for_round_.has_value() &&
-      (*cert_voted_block_for_round_)->getPeriod() <= pbft_chain_->getPbftChainSize()) {
+  if (cert_voted_block_for_round_.has_value()) {
     db_->removePbftMgrVotedValueToBatch(PbftMgrVotedValue::CertVotedBlockInRound, batch);
-
     cert_voted_block_for_round_.reset();
   }
 
@@ -460,8 +458,6 @@ void PbftManager::resetPbftConsensus(uint64_t round) {
     soft_voted_block_for_round_.reset();
   }
   db_->commitWriteBatch(batch);
-
-  should_have_cert_voted_in_this_round_ = false;
 
   // reset next voted value since start a new round
   // these are used to prevent voting multiple times while polling through the step
@@ -923,9 +919,9 @@ void PbftManager::certifyBlock_() {
     return;
   }
 
-  // Already sent (or should have) cert voted in this round
-  if (should_have_cert_voted_in_this_round_) {
-    LOG(log_dg_) << "Already did (or should have) cert vote in this round " << round;
+  // Already sent cert voted in this round
+  if (cert_voted_block_for_round_.has_value()) {
+    LOG(log_dg_) << "Already did cert vote in this round " << round;
     return;
   }
 
@@ -975,8 +971,6 @@ void PbftManager::certifyBlock_() {
       {current_round_soft_voted_block->getBlockHash(), current_round_soft_voted_block->getPeriod()}, batch);
   db_->addPbftCertVotedBlockToBatch(*current_round_soft_voted_block, batch);
   db_->commitWriteBatch(batch);
-
-  should_have_cert_voted_in_this_round_ = true;
 }
 
 void PbftManager::firstFinish_() {
