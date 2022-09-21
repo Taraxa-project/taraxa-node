@@ -1028,8 +1028,10 @@ void PbftManager::secondFinish_() {
   LOG(log_dg_) << "PBFT second finishing state in round: " << round << ", period: " << period;
 
   assert(step_ >= startingStepInRound_);
-  auto end_time_for_step = (2 + step_ - startingStepInRound_) * LAMBDA_ms - POLLING_INTERVAL_ms;
-  LOG(log_tr_) << "Step " << step_ << " end time " << end_time_for_step;
+
+  auto elapsed_time_in_step = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                  std::chrono::system_clock::now() - current_step_clock_initial_datetime_)
+                                  .count();
 
   if (const auto soft_voted_block = getSoftVotedBlockForThisRound_(); soft_voted_block.has_value()) {
     // TODO: this same call is performed also inside getSoftVotedBlockForThisRound_() -> refactor this
@@ -1075,7 +1077,7 @@ void PbftManager::secondFinish_() {
     pbft_step_last_broadcast_ = step_;
   }
 
-  loop_back_finish_state_ = elapsed_time_in_round_ms_ > end_time_for_step;
+  loop_back_finish_state_ = elapsed_time_in_step > (int64_t)(2 * (LAMBDA_ms - POLLING_INTERVAL_ms));
 }
 
 std::shared_ptr<PbftBlock> PbftManager::generatePbftBlock(uint64_t propose_period, const blk_hash_t &prev_blk_hash,
