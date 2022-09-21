@@ -60,16 +60,33 @@ bool RewardsStats::addVote(const std::shared_ptr<Vote>& vote) {
   return true;
 }
 
+std::set<trx_hash_t> toTrxHashesSet(const SharedTransactions& transactions) {
+  std::set<trx_hash_t> block_transactions_hashes_;
+  std::transform(transactions.begin(), transactions.end(),
+                 std::inserter(block_transactions_hashes_, block_transactions_hashes_.begin()),
+                 [](const auto& trx) { return trx->getHash(); });
+
+  return block_transactions_hashes_;
+}
+
 void RewardsStats::initStats(const PeriodData& sync_blk, uint64_t dpos_vote_count, uint32_t committee_size) {
   txs_validators_.reserve(sync_blk.transactions.size());
   validators_stats_.reserve(std::max(sync_blk.dag_blocks.size(), sync_blk.previous_block_cert_votes.size()));
+  auto block_transactions_hashes_ = toTrxHashesSet(sync_blk.transactions);
 
   for (const auto& dag_block : sync_blk.dag_blocks) {
     const addr_t& dag_block_author = dag_block.getSender();
     for (const auto& tx_hash : dag_block.getTrxs()) {
-      addTransaction(tx_hash, dag_block_author);
+      // we should also check that we have transactions in pbft block(period data). Because in dag blocks could be
+      // included transaction that was finalized in previous blocks
+      if (block_transactions_hashes_.contains(tx_hash)) {
+        addTransaction(tx_hash, dag_block_author);
+      }
     }
   }
+  // total_unique_txs_count_ should be always equal to transactions count in block
+  assert(total_unique_txs_count_ == sync_blk.transactions.size());
+
   max_votes_weight_ = std::min<uint64_t>(committee_size, dpos_vote_count);
   for (const auto& vote : sync_blk.previous_block_cert_votes) {
     addVote(vote);
