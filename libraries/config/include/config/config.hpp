@@ -48,7 +48,7 @@ struct NetworkConfig {
   uint16_t deep_syncing_threshold = 10;
   uint16_t vote_accepting_periods = 5;
   uint16_t vote_accepting_rounds = 5;
-  uint16_t vote_accepting_steps = 100;
+  uint16_t vote_accepting_steps = 0;
 
   void validate() const;
 };
