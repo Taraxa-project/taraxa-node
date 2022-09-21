@@ -264,8 +264,6 @@ bool ExtVotesPacketHandler::validateVoteAndBlock(const std::shared_ptr<Vote> &vo
 }
 
 void ExtVotesPacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &block) {
-  const auto rewards_votes_block = vote_mgr_->getCurrentRewardsVotesBlock();
-
   for (const auto &peer : peers_state_->getAllPeers()) {
     if (peer.second->syncing_) {
       LOG(log_dg_) << " PBFT vote " << vote->getHash() << " not sent to " << peer.first << " peer syncing";
@@ -274,22 +272,6 @@ void ExtVotesPacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, con
 
     if (peer.second->isVoteKnown(vote->getHash())) {
       continue;
-    }
-
-    // If it is not current reward vote, validate vote's period and round against peer's max chain size and round
-    if (!(vote->getType() == cert_vote_type && vote->getBlockHash() == rewards_votes_block.first)) {
-      // CONCERN ... should we be using a period stored in peer state?
-      if (peer.second->pbft_chain_size_ > vote->getPeriod() - 1) {
-        LOG(log_dg_) << " PBFT vote " << vote->getHash() << " not sent to " << peer.first
-                     << " peer chain size: " << peer.second->pbft_chain_size_;
-        continue;
-      }
-
-      if (peer.second->pbft_round_ > vote->getRound()) {
-        LOG(log_dg_) << " PBFT vote " << vote->getHash() << " not sent to " << peer.first
-                     << " peer round: " << peer.second->pbft_round_;
-        continue;
-      }
     }
 
     // Peer already has pbft block, do not send it (do not check it for propose votes as it could happen that nodes
@@ -334,8 +316,6 @@ void ExtVotesPacketHandler::sendPbftVote(const std::shared_ptr<TaraxaPeer> &peer
 }
 
 void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes) {
-  const auto rewards_votes_block = vote_mgr_->getCurrentRewardsVotesBlock();
-
   for (const auto &peer : peers_state_->getAllPeers()) {
     if (peer.second->syncing_) {
       continue;
@@ -345,18 +325,6 @@ void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&
     for (const auto &vote : votes) {
       if (peer.second->isVoteKnown(vote->getHash())) {
         continue;
-      }
-
-      // If it is not current reward vote, validate vote's period and round against peer's max chain size and round
-      if (!(vote->getType() == cert_vote_type && vote->getBlockHash() == rewards_votes_block.first)) {
-        // CONCERN ... should we be using a period stored in peer state?
-        if (peer.second->pbft_chain_size_ > vote->getPeriod() - 1) {
-          continue;
-        }
-
-        if (peer.second->pbft_round_ > vote->getRound()) {
-          continue;
-        }
       }
 
       peer_votes.push_back(vote);
