@@ -35,14 +35,20 @@ bool ExtVotesPacketHandler::processStandardVote(const std::shared_ptr<Vote> &vot
   }
 
   if (auto vote_is_valid = validateStandardVote(vote, peer, validate_max_round_step); !vote_is_valid.first) {
+    const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
     // There is a possible race condition:
     // 1) vote is evaluated as standard vote during vote packet processing based on current_pbft_period == vote_period
     // 2) In the meantime new block is pushed
     // 3) Standard vote validation then fails due to invalid period
     // -> If this happens, try to process this vote as reward vote
-    if (vote->getType() == PbftVoteTypes::cert_vote_type && vote->getPeriod() == pbft_mgr_->getPbftPeriod() - 1) {
+    if (vote->getType() == PbftVoteTypes::cert_vote_type && vote->getPeriod() == current_pbft_period - 1) {
       LOG(log_dg_) << "Process standard cert vote as reward vote " << vote->getHash();
       if (processRewardVote(vote)) {
+        return true;
+      }
+    } else if (vote->getType() == PbftVoteTypes::next_vote_type && vote->getPeriod() == current_pbft_period &&
+               vote->getRound() == current_pbft_round - 1) {
+      if (processNextSyncVote(vote, nullptr)) {
         return true;
       }
     }
