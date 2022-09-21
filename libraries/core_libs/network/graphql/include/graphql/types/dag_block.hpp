@@ -31,6 +31,8 @@ class DagBlock {
   std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain_;
   std::shared_ptr<::taraxa::PbftManager> pbft_manager_;
   std::shared_ptr<::taraxa::TransactionManager> transaction_manager_;
+
+  mutable std::optional<uint64_t> period_;
 };
 
 }  // namespace graphql::taraxa

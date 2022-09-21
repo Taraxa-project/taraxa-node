@@ -33,14 +33,26 @@ response::Value DagBlock::getLevel() const noexcept {
 }
 
 std::optional<response::Value> DagBlock::getPbftPeriod() const noexcept {
+  if (period_) {
+    return response::Value(static_cast<int>(*period_));
+  }
   const auto [has_period, period] = pbft_manager_->getDagBlockPeriod(::taraxa::blk_hash_t(dag_block_->getHash()));
   if (has_period) {
-    return {response::Value(static_cast<int>(period))};
+    period_ = period;
+    return {response::Value(static_cast<int>(*period_))};
   }
   return std::nullopt;
 }
 
 std::shared_ptr<object::Account> DagBlock::getAuthor() const noexcept {
+  if (!period_) {
+    const auto [has_period, period] = pbft_manager_->getDagBlockPeriod(::taraxa::blk_hash_t(dag_block_->getHash()));
+    if (has_period) {
+      period_ = period;
+      return std::make_shared<object::Account>(
+          std::make_shared<Account>(final_chain_, dag_block_->getSender(), *period_));
+    }
+  }
   return std::make_shared<object::Account>(std::make_shared<Account>(final_chain_, dag_block_->getSender()));
 }
 

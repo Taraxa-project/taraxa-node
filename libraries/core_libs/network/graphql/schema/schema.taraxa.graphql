@@ -325,6 +325,8 @@ type Query {
     # pending: Pending!
     # Transaction returns a transaction specified by its hash.
     transaction(hash: Bytes32!): Transaction
+    # Account returns account at specific block number or if not specified, on the latest block
+    account(address: Address!, block: Long): Account
     # Logs returns log entries matching the provided filter.
     # logs(filter: FilterCriteria!): [Log!]!
     # GasPrice returns the node's estimate of a gas price sufficient to

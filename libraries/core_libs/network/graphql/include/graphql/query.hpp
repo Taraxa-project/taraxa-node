@@ -22,6 +22,8 @@ class Query {
   std::vector<std::shared_ptr<object::Block>> getBlocks(response::Value&& fromArg,
                                                         std::optional<response::Value>&& toArg) const;
   std::shared_ptr<object::Transaction> getTransaction(response::Value&& hashArg) const;
+  std::shared_ptr<object::Account> getAccount(response::Value&& addressArg,
+                                              std::optional<response::Value>&& blockArg) const;
   response::Value getGasPrice() const;
   std::shared_ptr<object::SyncState> getSyncing() const;
   response::Value getChainID() const;

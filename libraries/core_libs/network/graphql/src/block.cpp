@@ -118,7 +118,8 @@ std::vector<std::shared_ptr<object::Log>> Block::getLogs(BlockFilterCriteria&&) 
 }
 
 std::shared_ptr<object::Account> Block::getAccount(response::Value&&) const noexcept {
-  return std::make_shared<object::Account>(std::make_shared<Account>(final_chain_, block_header_->author));
+  return std::make_shared<object::Account>(
+      std::make_shared<Account>(final_chain_, block_header_->author, block_header_->number));
 }
 
 std::shared_ptr<object::CallResult> Block::getCall(CallData&&) const noexcept { return nullptr; }

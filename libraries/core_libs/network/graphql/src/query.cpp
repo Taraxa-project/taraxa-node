@@ -91,6 +91,17 @@ std::shared_ptr<object::Transaction> Query::getTransaction(response::Value&& has
   return nullptr;
 }
 
+std::shared_ptr<object::Account> Query::getAccount(response::Value&& addressArg,
+                                                   std::optional<response::Value>&& blockArg) const {
+  const auto address = ::taraxa::addr_t(addressArg.get<std::string>());
+  if (blockArg) {
+    const auto block_number = blockArg->get<int>();
+    return std::make_shared<object::Account>(std::make_shared<Account>(final_chain_, address, block_number));
+  } else {
+    return std::make_shared<object::Account>(std::make_shared<Account>(final_chain_, address));
+  }
+}
+
 response::Value Query::getGasPrice() const { return response::Value(dev::toJS(gas_pricer_->bid())); }
 
 std::shared_ptr<object::SyncState> Query::getSyncing() const {
