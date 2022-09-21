@@ -298,7 +298,7 @@ class VoteManager {
    *
    * @param PBFT block hash
    */
-  void sendRewardVotes(const blk_hash_t& pbft_block_hash);
+  bool sendRewardVotes(const blk_hash_t& pbft_block_hash);
 
   /**
    * @brief Get current reward votes pbft block period

@@ -494,6 +494,46 @@ void PbftManager::resetPbftConsensus(uint64_t round) {
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
 
+// TODO: revisit this
+void PbftManager::rebroadcastVotesIfStalled() {
+  // Rebroadcast only if we are stalled
+  if (step_ < MAX_STEPS || (step_ - MAX_STEPS - 2) % 20 != 0 || broadcastAlreadyThisStep_()) {
+    return;
+  }
+
+  auto [round, period] = getPbftRoundAndPeriod();
+
+  if (round > 1) {
+    if (auto net = network_.lock()) {
+      net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->broadcastPreviousRoundNextVotesBundle();
+      LOG(log_dg_) << "Rebroadcast next votes for previous round, period " << period << ", round " << round << " step "
+                   << step_;
+    }
+  }
+
+  // TODO: is this really needed ???
+  auto soft_voted_block_votes = vote_mgr_->getVotesBundle(round, period, filter_state, two_t_plus_one_);
+  if (soft_voted_block_votes.has_value()) {
+    // Have enough soft votes for a voting value
+    auto net = network_.lock();
+    assert(net);  // Should never happen
+
+    net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(
+        std::move(soft_voted_block_votes->votes));
+    LOG(log_dg_) << "Rebroadcast 2t+1 soft votes for " << soft_voted_block_votes->voted_block_hash << ", period "
+                 << period << ", round " << round << " step " << step_;
+
+    const auto last_pbft_block_hash = getLastPbftBlockHash();
+    if (vote_mgr_->sendRewardVotes(last_pbft_block_hash)) {
+      LOG(log_dg_) << "Rebroadcast cert votes for " << last_pbft_block_hash << ", period " << period << ", round "
+                   << round << " step " << step_;
+    }
+  }
+
+  pbft_round_last_broadcast_ = round;
+  pbft_step_last_broadcast_ = step_;
+}
+
 void PbftManager::sleep_() {
   now_ = std::chrono::system_clock::now();
   duration_ = now_ - round_clock_initial_datetime_;
@@ -1049,19 +1089,6 @@ void PbftManager::secondFinish_() {
                                   .count();
 
   if (const auto soft_voted_block = getSoftVotedBlockForThisRound_(); soft_voted_block.has_value()) {
-    // TODO: this same call is performed also inside getSoftVotedBlockForThisRound_() -> refactor this
-    auto soft_voted_block_votes = vote_mgr_->getVotesBundle(round, period, filter_state, two_t_plus_one_);
-    if (soft_voted_block_votes.has_value()) {
-      // Have enough soft votes for a voting value
-      auto net = network_.lock();
-      assert(net);  // Should never happen
-      net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(
-          std::move(soft_voted_block_votes->votes));
-      vote_mgr_->sendRewardVotes(getLastPbftBlockHash());
-      LOG(log_dg_) << "Node has seen enough soft votes for " << soft_voted_block_votes->voted_block_hash
-                   << ", regossip soft votes. Period " << period << ", round " << round << " step " << step_;
-    }
-
     if (!next_voted_soft_value_) {
       if (auto vote = generateVoteWithWeight(soft_voted_block->first, next_vote_type, period, round, step_); vote) {
         if (placeVote(vote, "second finish vote", soft_voted_block->second)) {
@@ -1084,16 +1111,6 @@ void PbftManager::secondFinish_() {
 
   if (step_ > MAX_STEPS && (step_ - MAX_STEPS - 2) % 100 == 0) {
     syncPbftChainFromPeers_(exceeded_max_steps, NULL_BLOCK_HASH);
-  }
-
-  if (round > 1 && step_ > MAX_STEPS && (step_ - MAX_STEPS - 2) % 20 == 0 && !broadcastAlreadyThisStep_()) {
-    LOG(log_dg_) << "Node " << node_addr_ << " broadcast next votes for previous round. In period " << period
-                 << ", round " << round << " step " << step_;
-    if (auto net = network_.lock()) {
-      net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->broadcastPreviousRoundNextVotesBundle();
-    }
-    pbft_round_last_broadcast_ = round;
-    pbft_step_last_broadcast_ = step_;
   }
 
   loop_back_finish_state_ = elapsed_time_in_step > (int64_t)(2 * (LAMBDA_ms - POLLING_INTERVAL_ms));

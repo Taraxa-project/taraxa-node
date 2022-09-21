@@ -344,6 +344,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void resetPbftConsensus(uint64_t round);
 
   /**
+   * @brief Rebroadcasts next votes in case we are stalled
+   */
+  void rebroadcastVotesIfStalled();
+
+  /**
    * @brief Time to sleep for PBFT protocol
    */
   void sleep_();

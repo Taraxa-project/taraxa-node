@@ -719,18 +719,21 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getProposeRewardVotes() {
   return reward_votes;
 }
 
-void VoteManager::sendRewardVotes(const blk_hash_t& pbft_block_hash) {
+bool VoteManager::sendRewardVotes(const blk_hash_t& pbft_block_hash) {
   {
     std::shared_lock lock(reward_votes_mutex_);
-    if (reward_votes_pbft_block_.first != pbft_block_hash) return;
+    if (reward_votes_pbft_block_.first != pbft_block_hash) return false;
   }
 
   auto reward_votes = getAllRewardVotes();
-  if (reward_votes.empty()) return;
+  if (reward_votes.empty()) return false;
 
   if (auto net = network_.lock()) {
     net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(std::move(reward_votes));
+    return true;
   }
+
+  return false;
 }
 
 NextVotesManager::NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db,
