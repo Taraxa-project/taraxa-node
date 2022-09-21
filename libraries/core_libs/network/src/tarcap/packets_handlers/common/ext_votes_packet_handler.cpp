@@ -125,7 +125,8 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
   // Period validation
   if (vote->getPeriod() < current_pbft_period) {
     return {false, "Invalid period(too small): " + genErrMsg(vote)};
-  } else if (vote->getPeriod() - 1 > current_pbft_period + kVoteAcceptingPeriods) {
+  } else if (kVoteAcceptingPeriods && vote->getPeriod() - 1 > current_pbft_period + kVoteAcceptingPeriods) {
+    // skip this check if kVoteAcceptingPeriods == 0
     // vote->getPeriod() - 1 is here because votes are validated against vote_period - 1 in dpos contract
     // Do not request round sync too often here
     if (std::chrono::system_clock::now() - last_pbft_block_sync_request_time_ > kSyncRequestInterval) {
@@ -148,7 +149,9 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
 
   if (vote->getRound() < checking_round) {
     return {false, "Invalid round(too small): " + genErrMsg(vote)};
-  } else if (validate_max_round_step && vote->getRound() >= checking_round + kVoteAcceptingRounds) {
+  } else if (validate_max_round_step && kVoteAcceptingRounds &&
+             vote->getRound() >= checking_round + kVoteAcceptingRounds) {
+    // skip this check if kVoteAcceptingRounds == 0
     // Trigger votes(round) syncing only if we are in sync in terms of period
     if (current_pbft_period == vote->getPeriod()) {
       // Do not request round sync too often here
@@ -170,7 +173,8 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
     checking_step = 1;
   }
 
-  if (validate_max_round_step && vote->getStep() >= checking_step + kVoteAcceptingSteps) {
+  // skip check if kVoteAcceptingSteps == 0
+  if (validate_max_round_step && kVoteAcceptingSteps && vote->getStep() >= checking_step + kVoteAcceptingSteps) {
     return {false, "Invalid step(too big): " + genErrMsg(vote)};
   }
 
