@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: "{{ include "taraxa-node.fullname" . }}-service-registry"
+  annotations:
+    checksum/config: {{ include (print $.Template.BasePath "/service-registry-config.yaml") . | sha256sum }}
+  labels:
+    app: service-registry
+    app.kubernetes.io/name: {{ include "taraxa-node.name" . }}
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    release: {{ .Release.Name }}
+spec:
+  replicas: 1
+  serviceName: "{{ include "taraxa-node.fullname" . }}-service-registry"
+  selector:
+    matchLabels:
+      app: service-registry
+      app.kubernetes.io/name: {{ include "taraxa-node.name" . }}
+      helm.sh/chart: {{ include "taraxa-node.chart" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+      app.kubernetes.io/managed-by: {{ .Release.Service }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      name: "{{ include "taraxa-node.fullname" . }}-service-registry"
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/service-registry-config.yaml") . | sha256sum }}
+      labels:
+        app: service-registry
+        app.kubernetes.io/name: {{ include "taraxa-node.name" . }}
+        helm.sh/chart: {{ include "taraxa-node.chart" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+        release: {{ .Release.Name }}
+    spec:
+      serviceAccountName: "{{ include "taraxa-node.fullname" . }}-service-registry"
+      containers:
+        - name: service-registry
+          image: "python:3.8"
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/bash", "-c", "--"]
+          args: [ "cd /app; pip install -r ./requirements.txt; python app.py" ]
+          volumeMounts:
+            - name: requirements
+              mountPath: /app/requirements.txt
+              readOnly: true
+              subPath: requirements.txt
+            - name: app
+              mountPath: /app/app.py
+              readOnly: true
+              subPath: app.py
+      volumes:
+        - name: requirements
+          configMap:
+            defaultMode: 0700
+            name: "{{ include "taraxa-node.fullname" . }}-service-registry"
+        - name: app
+          configMap:
+            defaultMode: 0700
+            name: "{{ include "taraxa-node.fullname" . }}-service-registry"

@@ -1,9 +1,9 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: "{{ include "taraxa-node.fullname" . }}-manager"
+  name: "{{ include "taraxa-node.fullname" . }}-service-registry"
   labels:
-    app: manager
+    app: service-registry
     app.kubernetes.io/name: {{ include "taraxa-node.name" . }}
     helm.sh/chart: {{ include "taraxa-node.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
@@ -11,9 +11,9 @@ metadata:
     release: {{ .Release.Name }}
 subjects:
   - kind: ServiceAccount
-    name: "{{ include "taraxa-node.fullname" . }}-manager"
+    name: "{{ include "taraxa-node.fullname" . }}-service-registry"
     namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: "{{ include "taraxa-node.fullname" . }}-manager"
+  name: "{{ include "taraxa-node.fullname" . }}-service-registry"
