@@ -66,6 +66,41 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
   return res;
 }
 
+Json::Value Test::send_coin_transactions(const Json::Value &param1) {
+  Json::Value res;
+  try {
+    uint32_t inserted = 0;
+    if (auto node = full_node_.lock()) {
+      secret_t sk = secret_t(param1["secret"].asString());
+      auto nonce = param1["nonce"].asUInt64();
+      val_t value = val_t(param1["value"].asString());
+      val_t gas_price = val_t(param1["gas_price"].asString());
+      auto gas = dev::jsToInt(param1["gas"].asString());
+      auto transactions_count = param1["transaction_count"].asUInt64();
+      std::vector<addr_t> receivers;
+      for (auto rec : param1["receiver"]) {
+        receivers.emplace_back(addr_t(rec.asString()));
+      }
+      for (uint32_t i = 0; i < transactions_count; i++) {
+        auto trx = std::make_shared<Transaction>(nonce, value, gas_price, gas, bytes(), sk,
+                                                 receivers[i % receivers.size()], kChainId);
+        nonce++;
+        if (auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(trx); !ok) {
+          res["err"] = err_msg;
+          break;
+        } else {
+          inserted++;
+        }
+      }
+    }
+    res["status"] = Json::UInt64(inserted);
+  } catch (std::exception &e) {
+    res["status"] = e.what();
+  }
+
+  return res;
+}
+
 Json::Value Test::get_account_address() {
   Json::Value res;
   try {
