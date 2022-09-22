@@ -28,7 +28,7 @@ class Query {
   std::shared_ptr<object::SyncState> getSyncing() const;
   response::Value getChainID() const;
   std::shared_ptr<object::DagBlock> getDagBlock(std::optional<response::Value>&& hashArg) const;
-  std::vector<std::shared_ptr<object::DagBlock>> getPeriodDagBlocks(response::Value&& periodArg) const;
+  std::vector<std::shared_ptr<object::DagBlock>> getPeriodDagBlocks(std::optional<response::Value>&& periodArg) const;
   std::vector<std::shared_ptr<object::DagBlock>> getDagBlocks(std::optional<response::Value>&& dagLevelArg,
                                                               std::optional<int>&& countArg,
                                                               std::optional<bool>&& reverseArg) const;

@@ -347,7 +347,8 @@ type Query {
     dagBlocks(dagLevel: Long, count: Int, reverse: Boolean): [DagBlock!]!
 
     # DagBlocks returns dag blocks at provided PBFT period
-    periodDagBlocks(period: Long!): [DagBlock]!
+    # if period is not specified, lates one is used
+    periodDagBlocks(period: Long): [DagBlock]!
 
     # Current node state
     nodeState: CurrentState

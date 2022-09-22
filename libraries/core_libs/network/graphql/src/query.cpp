@@ -127,9 +127,16 @@ std::shared_ptr<object::DagBlock> Query::getDagBlock(std::optional<response::Val
                           : nullptr;
 }
 
-std::vector<std::shared_ptr<object::DagBlock>> Query::getPeriodDagBlocks(response::Value&& periodArg) const {
+std::vector<std::shared_ptr<object::DagBlock>> Query::getPeriodDagBlocks(
+    std::optional<response::Value>&& periodArg) const {
   std::vector<std::shared_ptr<object::DagBlock>> blocks;
-  auto dag_blocks = db_->getFinalizedDagBlockByPeriod(periodArg.get<int>());
+  uint32_t period;
+  if (periodArg) {
+    period = periodArg->get<int>();
+  } else {
+    period = final_chain_->last_block_number();
+  }
+  auto dag_blocks = db_->getFinalizedDagBlockByPeriod(period);
   if (dag_blocks.size()) {
     blocks.reserve(dag_blocks.size());
     for (auto block : dag_blocks) {
