@@ -715,15 +715,6 @@ bool PbftManager::stateOperations_() {
     return true;
   }
 
-  // If node is not eligible to vote, always return true so pbft state machine never enters specific consensus steps
-  // (propose, soft-vote, cert-vote, next-vote). Nodes that have no delegation should just observe 2t+1 cert votes
-  // to move to the next period or 2t+1 next votes to move to the next round
-  if (!final_chain_->dpos_eligible_vote_count(period - 1, node_addr_)) {
-    // Check 2t+1 cert/next votes every 20ms
-    std::this_thread::sleep_for(std::chrono::milliseconds(20));
-    return true;
-  }
-
   return false;
 }
 
