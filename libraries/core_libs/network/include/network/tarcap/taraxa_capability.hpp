@@ -106,7 +106,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
                                       const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr);
 
  private:
-  void initBootNodes(const std::vector<NodeConfig> &network_boot_nodes, const dev::KeyPair &key);
+  void addBootNodes(bool initial = false);
 
   bool filterSyncIrrelevantPackets(SubprotocolPacketType packet_type) const;
 
@@ -131,9 +131,6 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   // Syncing state + syncing handler
   std::shared_ptr<PbftSyncingState> pbft_syncing_state_;
 
-  // List of boot nodes (from config)
-  std::map<dev::Public, dev::p2p::NodeIPEndpoint> boot_nodes_;
-
   // Node stats
   std::shared_ptr<NodeStats> node_stats_;
 
@@ -145,6 +142,9 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
 
   // Threadpool for periodic and delayed events
   std::shared_ptr<util::ThreadPool> periodic_events_tp_;
+
+  // Node public key
+  const dev::Public pub_key_;
 
   LOG_OBJECTS_DEFINE
 };
