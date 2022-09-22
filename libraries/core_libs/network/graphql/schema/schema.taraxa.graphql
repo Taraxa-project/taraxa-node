@@ -346,6 +346,9 @@ type Query {
     # If reverse flag is specified, complement blocks are fetched from dagLevel - n, otherwise dagLevel + n
     dagBlocks(dagLevel: Long, count: Int, reverse: Boolean): [DagBlock!]!
 
+    # DagBlocks returns dag blocks at provided PBFT period
+    periodDagBlocks(period: Long!): [DagBlock]!
+
     # Current node state
     nodeState: CurrentState
 }
