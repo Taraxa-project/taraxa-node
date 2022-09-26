@@ -292,7 +292,7 @@ struct TransactionClient {
 
  public:
   explicit TransactionClient(decltype(node_) node, wait_opts const& wait_opts = {60s, 1s})
-      : node_(move(node)), wait_opts_(wait_opts) {}
+      : node_(std::move(node)), wait_opts_(wait_opts) {}
 
   void must_process_sync(std::shared_ptr<Transaction> const& trx) const {
     ASSERT_EQ(process(trx, true).stage, TransactionStage::executed);

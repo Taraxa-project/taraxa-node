@@ -1,4 +1,3 @@
-
 #include <graphqlservice/GraphQLService.h>
 #include <graphqlservice/JSONResponse.h>
 #include <gtest/gtest.h>
@@ -49,7 +48,6 @@ void send_dummy_trx() {
                                         "value": 0,
                                         "gas_price": 1,
                                         "gas": 100000,
-                                        "nonce": 2004,
                                         "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7782 > /dev/null)";
 
   std::cout << "Send dummy transaction ..." << std::endl;
@@ -395,7 +393,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_FALSE(db.getProposalPeriodForDagLevel(107));
 }
 
-TEST_F(FullNodeTest, sync_five_nodes) {
+TEST_F(FullNodeTest, DISABLED_sync_five_nodes) {
   using namespace std;
 
   auto node_cfgs = make_node_cfgs<20>(5);
@@ -878,10 +876,10 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
   auto nodes = launch_nodes(node_cfgs);
 
   // send 1000 trxs
-  for (const auto &trx : samples::createSignedTrxSamples(0, 400, g_secret)) {
+  for (const auto &trx : samples::createSignedTrxSamples(1, 400, g_secret)) {
     nodes[0]->getTransactionManager()->insertTransaction(trx);
   }
-  for (const auto &trx : samples::createSignedTrxSamples(400, 1000, g_secret)) {
+  for (const auto &trx : samples::createSignedTrxSamples(401, 1000, g_secret)) {
     nodes[1]->getTransactionManager()->insertTransaction(trx);
   }
 
@@ -918,10 +916,10 @@ TEST_F(FullNodeTest, persist_counter) {
     auto nodes = launch_nodes(node_cfgs);
 
     // send 1000 trxs
-    for (const auto &trx : samples::createSignedTrxSamples(0, 400, g_secret)) {
+    for (const auto &trx : samples::createSignedTrxSamples(1, 400, g_secret)) {
       nodes[0]->getTransactionManager()->insertTransaction(trx);
     }
-    for (const auto &trx : samples::createSignedTrxSamples(400, 1000, g_secret)) {
+    for (const auto &trx : samples::createSignedTrxSamples(401, 1000, g_secret)) {
       nodes[1]->getTransactionManager()->insertTransaction(trx);
     }
 
@@ -1155,7 +1153,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   }
 
   std::cout << "Checking all nodes executed transactions at initialization" << std::endl;
-  wait({150s, 2s}, [&](auto &ctx) {
+  wait({50s, 3s}, [&](auto &ctx) {
     for (size_t i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
@@ -1171,6 +1169,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
       }
     }
   });
+  ASSERT_EQ(nodes.back()->getDB()->getNumTransactionExecuted(), trxs_count);
   // Check account balance for each node
   for (size_t i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..." << std::endl;
@@ -1185,13 +1184,15 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
 
   // Sending coins in Robin Cycle
   auto send_coins = 1;
+  std::vector<uint64_t> nonces{nodes.size(), 1};
+  nonces[0] = nonce;
   for (size_t i(0); i < nodes.size(); ++i) {
     auto receiver_index = (i + 1) % nodes.size();
     // Each node sends 500 transactions
     auto j = 0;
     for (; j < 500; j++) {
       auto send_coins_in_robin_cycle =
-          std::make_shared<Transaction>(nonce++, send_coins, gas_price, 100000, bytes(), nodes[i]->getSecretKey(),
+          std::make_shared<Transaction>(nonces[i]++, send_coins, gas_price, 100000, bytes(), nodes[i]->getSecretKey(),
                                         nodes[receiver_index]->getAddress());
       // broadcast trx and insert
       nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle);
@@ -1199,9 +1200,10 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     }
     std::cout << "Node" << i << " sends " << j << " transactions to Node" << receiver_index << std::endl;
   }
+  nonce = nonces[0];
   std::cout << "Checking all nodes execute transactions from robin cycle" << std::endl;
 
-  wait({150s, 2s}, [&](auto &ctx) {
+  wait({50s, 3s}, [&](auto &ctx) {
     for (size_t i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
