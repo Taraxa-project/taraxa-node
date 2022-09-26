@@ -28,7 +28,7 @@ orbs:
   gcp-cli: circleci/gcp-cli@1.0.0
   docker-cache: cci-x/docker-registry-image-cache@0.2.12
   helm: banzaicloud/helm@0.0.8
-  helm-release: taraxa/helm-release@dev:78a25dedcf6bc5e2229f9b6b8a9754fefa2c8141
+  helm-release: taraxa/helm-release@dev:6a70c7d871b28e5fa6d935b64c2754a842d55302
 
 commands:
   pr_comment:
@@ -1047,13 +1047,14 @@ workflows:
     jobs:
       - helm-release/chart-publish:
           charts-dir: charts
+          chart-name: taraxa-node
           chartmuseum-url: https://charts.gcp.taraxa.io
-          chartmuseum_username: HELM_REPO_USERNAME
-          chartmuseum_password: HELM_REPO_PASSWORD
+          chartmuseum-username: HELM_REPO_USERNAME
+          chartmuseum-password: HELM_REPO_PASSWORD
           context:
             - CHARTSREPO
           filters:
             branches:
-              only: chore/issue-2030-redesign-releasing-helm-charts
+              ignore: /.*/
             tags:
-              only: /chart-\d+.\d+.\d+/
+              only: /chart-v\d+.\d+.\d+/
