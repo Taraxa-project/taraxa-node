@@ -76,7 +76,7 @@ class FinalChainImpl final : public FinalChain {
     auto state_db_descriptor = state_api_.get_last_committed_state_descriptor();
     auto last_blk_num = db_->lookup_int<EthBlockNumber>(DBMetaKeys::LAST_NUMBER, DB::Columns::final_chain_meta);
     // If we don't have genesis block in db then create and push it
-    if (!last_blk_num) {
+    if (!last_blk_num) [[unlikely]] {
       auto batch = db_->createWriteBatch();
       auto header = append_block(batch, config.chain.final_chain.genesis_block_fields.author,
                                  config.chain.final_chain.genesis_block_fields.timestamp, GAS_LIMIT,
@@ -84,40 +84,33 @@ class FinalChainImpl final : public FinalChain {
 
       block_headers_cache_.append(header->number, header);
       db_->commitWriteBatch(batch, db_opts_w_);
-    }
+    } else {
+      // We need to recover latest changes as there was shutdown inside finalize function
+      if (*last_blk_num != state_db_descriptor.blk_num) [[unlikely]] {
+        assert(state_db_descriptor.blk_num + 1 == *last_blk_num);
+        auto raw_period_data = db_->getPeriodDataRaw(*last_blk_num);
+        assert(raw_period_data.size() > 0);
 
-    if (last_blk_num) {
+        const PeriodData period_data(raw_period_data);
+
+        if (period_data.transactions.size()) {
+          auto batch = db_->createWriteBatch();
+          num_executed_dag_blk_ -= period_data.dag_blocks.size();
+          num_executed_trx_ -= period_data.transactions.size();
+          db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk_.load());
+          db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx_.load());
+          db_->insert(batch, DB::Columns::final_chain_meta, DBMetaKeys::LAST_NUMBER, state_db_descriptor.blk_num);
+          db_->commitWriteBatch(batch, db_opts_w_);
+          last_blk_num = state_db_descriptor.blk_num;
+        }
+      }
+
       int64_t start = 0;
       if (*last_blk_num > 5) {
         start = *last_blk_num - 5;
       }
       for (uint64_t num = start; num <= *last_blk_num; ++num) {
         block_headers_cache_.get(num);
-      }
-    }
-
-    auto last_block = block_headers_cache_.last();
-    if (last_block->number != state_db_descriptor.blk_num) {
-      assert(state_db_descriptor.blk_num < last_block->number);
-      for (auto n = state_db_descriptor.blk_num + 1; n <= last_block->number; ++n) {
-        auto blk = block_headers_cache_.get(n);
-
-        auto raw_period_data = db_->getPeriodDataRaw(blk->number);
-        assert(raw_period_data.size() > 0);
-
-        PeriodData period_data(raw_period_data);
-
-        // Creates rewards stats
-        RewardsStats rewards_stats;
-        std::vector<addr_t> txs_validators = rewards_stats.processStats(
-            period_data, dpos_eligible_total_vote_count(period_data.pbft_blk->getPeriod() - 1), commitee_size_);
-
-        auto res = state_api_.transition_state({blk->author, blk->gas_limit, blk->timestamp, BlockHeader::difficulty()},
-                                               to_state_api_transactions(period_data.transactions), txs_validators, {},
-                                               rewards_stats);
-
-        assert(res.state_root == blk->state_root);
-        state_api_.transition_state_commit();
       }
     }
 
