@@ -959,7 +959,7 @@ void PbftManager::certifyBlock_() {
   auto vote = generateVoteWithWeight(current_round_soft_voted_block->getBlockHash(), cert_vote_type,
                                      current_round_soft_voted_block->getPeriod(), round, step_);
   if (!vote) {
-    LOG(log_er_) << "Failed to generate cert vote for " << current_round_soft_voted_block->getBlockHash();
+    LOG(log_dg_) << "Failed to generate cert vote for " << current_round_soft_voted_block->getBlockHash();
     return;
   }
 
