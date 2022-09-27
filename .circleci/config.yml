@@ -1051,7 +1051,7 @@ workflows:
         - not: << pipeline.parameters.redeploy_prnet >>
         - not: << pipeline.parameters.cleanup_prnet >>
     jobs:
-      - build-image:
+      - build-docker-image:
           filters:
             tags:
               only: /^v?\d+\.\d+\.\d+(?:-.*)?$/    # hmmm, we probabls want to separate this release into separate workflow, would be cleaner
