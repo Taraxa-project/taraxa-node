@@ -1077,7 +1077,7 @@ workflows:
             - CHARTSREPO
           filters:
             branches:
-              # ignore: /.*/
-              only: chore/issue-2030-redesign-releasing-helm-charts
+              ignore: /.*/
+              # only: chore/issue-2030-redesign-releasing-helm-charts
             tags:
               only: /^chart-v\d+.\d+.\d+/
