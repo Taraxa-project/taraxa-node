@@ -1080,4 +1080,4 @@ workflows:
               # ignore: /.*/
               only: chore/issue-2030-redesign-releasing-helm-charts
             tags:
-              only: /chart-v\d+.\d+.\d+/
+              only: /^chart-v\d+.\d+.\d+/
