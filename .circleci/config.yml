@@ -427,7 +427,7 @@ jobs:
           comment: "Failed to Clean up prnet"
           pr_number: << pipeline.parameters.pr_number >>
 
-  build-helm-chart-pr:
+  build-helm-chart:
     environment:
       - IMAGE: taraxa-node
       - HELMCHART: taraxa-node
