@@ -525,7 +525,7 @@ jobs:
                kubectl delete ns ${HELM_TEST_NAME:0:40} || true
             fi
 
-  build-and-push-docker-image:
+  build-docker-image:
     environment:
       - IMAGE: taraxa-node
       - HELMCHART: taraxa-node
