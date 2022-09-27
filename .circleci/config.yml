@@ -996,27 +996,6 @@ workflows:
             - GCR
             - GITHUB
 
-  build-and-deploy-image:
-    when:
-      and:
-        - not: << pipeline.parameters.deploy_prnet >>
-        - not: << pipeline.parameters.redeploy_prnet >>
-        - not: << pipeline.parameters.cleanup_prnet >>
-    jobs:
-      - build-and-push-docker-image:
-          filters:
-            tags:
-              only: /^v?\d+\.\d+\.\d+(?:-.*)?$/
-            branches:
-              ignore: chore/issue-2030-redesign-releasing-helm-charts
-          context:
-            - TARAXA
-            - GCP
-            - K8S
-            - GCR
-            - DOCKERHUB
-            - CHARTSREPO
-
   create-builder-image:
     jobs:
       - create-and-push-builder:
@@ -1064,6 +1043,42 @@ workflows:
           requires:
             - build-linux
             - build-mac
+
+  build-docker-image:
+    when:
+      and:
+        - not: << pipeline.parameters.deploy_prnet >>
+        - not: << pipeline.parameters.redeploy_prnet >>
+        - not: << pipeline.parameters.cleanup_prnet >>
+    jobs:
+      - build-image:
+          filters:
+            tags:
+              only: /^v?\d+\.\d+\.\d+(?:-.*)?$/    # hmmm, we probabls want to separate this release into separate workflow, would be cleaner
+            branches:
+              ignore: ^chart.*                     # ignore building image for branches starting with "chart"
+          context:
+            - TARAXA
+            - GCP
+            - K8S
+            - GCR
+            - DOCKERHUB
+            - CHARTSREPO
+
+  build-helm-chart:
+    when:
+      and:
+        - not: << pipeline.parameters.deploy_prnet >>
+        - not: << pipeline.parameters.redeploy_prnet >>
+        - not: << pipeline.parameters.cleanup_prnet >>
+    jobs:
+      - build-helm-chart:
+          filters:
+            branches:
+              only: ^chart.*                       # run this job only for branches starting with "chart"
+          context:
+            - K8S
+            - CHARTSREPO
 
   helm-chart-release:
     jobs:
