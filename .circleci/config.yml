@@ -427,6 +427,104 @@ jobs:
           comment: "Failed to Clean up prnet"
           pr_number: << pipeline.parameters.pr_number >>
 
+  build-helm-chart-pr:
+    environment:
+      - IMAGE: taraxa-node
+      - HELMCHART: taraxa-node
+    machine:
+      image: ubuntu-2204:2022.04.2
+      docker_layer_caching: true
+    resource_class: small
+    steps:
+      - checkout
+
+      - run:
+          name: Prepare Environment
+          command: |
+            echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >> $BASH_ENV
+            echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
+            curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
+            sudo apt-get install apt-transport-https --yes
+            echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
+            sudo apt-get update
+            sudo apt-get install helm
+            helm plugin install https://github.com/chartmuseum/helm-push.git
+            helm repo add --username ${HELM_REPO_USERNAME} --password ${HELM_REPO_PASSWORD} taraxacharts https://charts.gcp.taraxa.io
+            helm repo add bitnami https://charts.bitnami.com/bitnami
+            helm repo update
+            mkdir -p $HOME/.kube
+            echo -n "${KUBE_CONFIG}" | base64 --decode > $HOME/.kube/config
+            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+            sudo cp kubectl /usr/local/bin 
+            sudo chmod +x /usr/local/bin/kubectl
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            sudo chmod a+x /usr/local/bin/yq
+
+      - run:
+          name: Verify Helm chart with linter
+          command: |
+            if [[ ${PR} != "false" ]]; then
+              helm lint charts/${HELMCHART}/
+            fi
+
+      - run:
+          name: Generate Helm chart and output yaml manifests for verification
+          command: |
+            if [[ ${PR} != "false" ]]; then
+              helm dependency build charts/${HELMCHART}/
+              helm template charts/${HELMCHART}/ --values charts/${HELMCHART}/values.yaml
+            fi
+
+      - run:
+          name: Deploy helm chart
+          no_output_timeout: 15m
+          command: |
+
+            if [[ ${PR} != "false" ]]; then
+              helm install ${HELM_TEST_NAME:0:40} charts/${HELMCHART}/ \
+                --wait \
+                --atomic \
+                --timeout 600s \
+                --create-namespace \
+                --namespace ${HELM_TEST_NAME:0:40} \
+                --set node.replicaCount=1 \
+                --set bootnode.replicaCount=1 \
+                --set consensusnode.replicaCount=1 \
+                --set node.resources.limits.memory=64Mi \
+                --set bootnode.resources.limits.memory=64Mi \
+                --set consensusnode.resources.limits.memory=64Mi \
+                --set node.resources.limits.cpu=100m \
+                --set bootnode.resources.limits.cpu=100m \
+                --set consensusnode.resources.limits.cpu=100m \
+                --set node.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
+                --set bootnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
+                --set consensusnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
+                --set test.pythontester.script=jenkins.py \
+                --set image.repository=${GCP_IMAGE} \
+                --set image.tag=pr-${PR}-${CIRCLE_BUILD_NUM} \
+                -f charts/${HELMCHART}/values.yaml
+            fi
+
+      - run:
+          name: Run helm tests
+          no_output_timeout: 15m
+          command: |
+            if [[ ${PR} != "false" ]]; then
+              helm test ${HELM_TEST_NAME:0:40} \
+                --timeout 600s \
+                --namespace ${HELM_TEST_NAME:0:40}
+              ./scripts/kibana-url.sh || true
+            fi
+
+      - run:
+          name: Cleanup helm tests
+          when: always
+          command: |
+            if [[ ${PR} != "false" ]];then
+               helm -n ${HELM_TEST_NAME:0:40} delete ${HELM_TEST_NAME:0:40} || true
+               kubectl delete ns ${HELM_TEST_NAME:0:40} || true
+            fi
+
   build-and-push-docker-image:
     environment:
       - IMAGE: taraxa-node
@@ -463,7 +561,6 @@ jobs:
             echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
             echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >>$BASH_ENV
             export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )
-            echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
             sudo service apport stop
             curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
             sudo apt-get install apt-transport-https --yes
@@ -661,66 +758,6 @@ jobs:
                docker push ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
             fi
 
-      - run:
-          name: Verify Helm chart with linter
-          command: |
-            helm lint charts/${HELMCHART}/
-
-      - run:
-          name: Generate Helm chart and output yaml manifests for verification
-          command: |
-            helm dependency build charts/${HELMCHART}/
-            helm template charts/${HELMCHART}/ --values charts/${HELMCHART}/values.yaml
-
-      - run:
-          name: Deploy helm chart
-          no_output_timeout: 15m
-          command: |
-
-            if [[ ${PR} != "false" ]];then
-              helm install ${HELM_TEST_NAME:0:40} charts/${HELMCHART}/ \
-                --wait \
-                --atomic \
-                --timeout 600s \
-                --create-namespace \
-                --namespace ${HELM_TEST_NAME:0:40} \
-                --set node.replicaCount=1 \
-                --set bootnode.replicaCount=1 \
-                --set consensusnode.replicaCount=1 \
-                --set node.resources.limits.memory=64Mi \
-                --set bootnode.resources.limits.memory=64Mi \
-                --set consensusnode.resources.limits.memory=64Mi \
-                --set node.resources.limits.cpu=100m \
-                --set bootnode.resources.limits.cpu=100m \
-                --set consensusnode.resources.limits.cpu=100m \
-                --set node.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
-                --set bootnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
-                --set consensusnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
-                --set test.pythontester.script=jenkins.py \
-                --set image.repository=${GCP_IMAGE} \
-                --set image.tag=pr-${PR}-${CIRCLE_BUILD_NUM} \
-                -f charts/${HELMCHART}/values.yaml
-            fi
-
-      - run:
-          name: Run helm tests
-          no_output_timeout: 15m
-          command: |
-            if [[ ${PR} != "false" ]];then
-              helm test ${HELM_TEST_NAME:0:40} \
-                --timeout 600s \
-                --namespace ${HELM_TEST_NAME:0:40}
-              ./scripts/kibana-url.sh || true
-            fi
-
-      - run:
-          name: Cleanup helm tests
-          when: always
-          command: |
-            if [[ ${PR} != "false" ]];then
-               helm -n ${HELM_TEST_NAME:0:40} delete ${HELM_TEST_NAME:0:40} || true
-               kubectl delete ns ${HELM_TEST_NAME:0:40} || true
-            fi
 
       - store_artifacts:
           path: tmp_docker
@@ -1040,6 +1077,7 @@ workflows:
             - CHARTSREPO
           filters:
             branches:
-              ignore: /.*/
+              # ignore: /.*/
+              only: chore/issue-2030-redesign-releasing-helm-charts
             tags:
               only: /chart-v\d+.\d+.\d+/
