@@ -108,7 +108,7 @@ inline bool sendTrx(uint64_t count, unsigned port) {
         "id": "0",
         "params": [
           {
-            "nonce": 0,
+            "nonce": %d,
             "value": 0,
             "gas": "%s",
             "gas_price": "%s",
@@ -119,7 +119,7 @@ inline bool sendTrx(uint64_t count, unsigned port) {
       }' 0.0.0.0:%s
     )";
   for (uint64_t i = 0; i < count; ++i) {
-    auto retcode = system(fmt(pattern, val_t(TEST_TX_GAS_LIMIT), val_t(0), addr_t::random(),
+    auto retcode = system(fmt(pattern, i + 1, val_t(TEST_TX_GAS_LIMIT), val_t(0), addr_t::random(),
                               samples::TX_GEN->getRandomUniqueSenderSecret().makeInsecure(), port)
                               .c_str());
     if (retcode != 0) {
