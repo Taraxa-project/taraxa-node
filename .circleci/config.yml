@@ -434,7 +434,7 @@ jobs:
     machine:
       image: ubuntu-2204:2022.04.2
       docker_layer_caching: true
-    resource_class: small
+    resource_class: medium
     steps:
       - checkout
 
@@ -442,6 +442,7 @@ jobs:
           name: Prepare Environment
           command: |
             echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >> $BASH_ENV
+            export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )
             echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
             curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
             sudo apt-get install apt-transport-https --yes
@@ -479,7 +480,6 @@ jobs:
           name: Deploy helm chart
           no_output_timeout: 15m
           command: |
-
             if [[ ${PR} != "false" ]]; then
               helm install ${HELM_TEST_NAME:0:40} charts/${HELMCHART}/ \
                 --wait \
@@ -500,8 +500,6 @@ jobs:
                 --set bootnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set consensusnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set test.pythontester.script=jenkins.py \
-                --set image.repository=${GCP_IMAGE} \
-                --set image.tag=pr-${PR}-${CIRCLE_BUILD_NUM} \
                 -f charts/${HELMCHART}/values.yaml
             fi
 
@@ -513,16 +511,23 @@ jobs:
               helm test ${HELM_TEST_NAME:0:40} \
                 --timeout 600s \
                 --namespace ${HELM_TEST_NAME:0:40}
-              ./scripts/kibana-url.sh || true
+            fi
+
+      - run:
+          name: Publish chart to Taraxa's repository
+          command: |
+            HELMCHART_VERSION=$(yq .version charts/${HELMCHART}/Chart.yaml | tr -d \")
+            if [[ ${PR} != "false" ]]; then
+              helm cm-push charts/${HELMCHART}/ --version="${HELMCHART_VERSION}-pr${PR}" taraxacharts || true
             fi
 
       - run:
           name: Cleanup helm tests
           when: always
           command: |
-            if [[ ${PR} != "false" ]];then
-               helm -n ${HELM_TEST_NAME:0:40} delete ${HELM_TEST_NAME:0:40} || true
-               kubectl delete ns ${HELM_TEST_NAME:0:40} || true
+            if [[ ${PR} != "false" ]]; then
+              helm -n ${HELM_TEST_NAME:0:40} delete ${HELM_TEST_NAME:0:40} || true
+              kubectl delete ns ${HELM_TEST_NAME:0:40} || true
             fi
 
   build-docker-image:
@@ -1077,7 +1082,11 @@ workflows:
             branches:
               only: /^chart\/.*/                       # run this job only for branches starting with "chart"
           context:
+            - TARAXA
+            - GCP
             - K8S
+            - GCR
+            - DOCKERHUB
             - CHARTSREPO
 
   release-helm-chart:
