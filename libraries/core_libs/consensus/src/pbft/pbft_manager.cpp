@@ -436,20 +436,10 @@ void PbftManager::resetPbftConsensus(uint64_t round) {
   resetStep();
   state_ = value_proposal_state;
 
-  auto batch = db_->createWriteBatch();
-
   // Update in DB first
+  auto batch = db_->createWriteBatch();
   db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftRound, round, batch);
   db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftStep, 1, batch);
-
-  // TODO[2032]: PreviousRound... values probably dont make sense anymore as votes count, threshold, etc... change only
-  // with periods
-  db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold, sortition_threshold_,
-                                     batch);
-  db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, dpos_period_, batch);
-  db_->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount,
-                                     currentTotalVotesCount(), batch);
-
   db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedNullBlockHash, false, batch);
   db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedSoftValue, false, batch);
 
