@@ -512,7 +512,6 @@ jobs:
               helm test ${HELM_TEST_NAME:0:40} \
                 --timeout 600s \
                 --namespace ${HELM_TEST_NAME:0:40}
-              ./scripts/kibana-url.sh || true
             fi
 
       - run:
