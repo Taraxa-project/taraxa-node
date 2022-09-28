@@ -533,10 +533,6 @@ void PbftManager::initialState() {
   setPbftStep(step);
   round_ = round;
 
-  // Initial last sync request
-  pbft_round_last_requested_sync_ = 0;
-  pbft_step_last_requested_sync_ = 0;
-
   auto soft_voted_block = db_->getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockInRound);
   if (soft_voted_block.has_value()) {
     // From DB
@@ -948,7 +944,6 @@ void PbftManager::certifyBlock_() {
   }
 
   if (!pbft_chain_->checkPbftBlockValidation(*current_round_soft_voted_block)) {
-    syncPbftChainFromPeers_(invalid_soft_voted_block, current_round_soft_voted_block->getBlockHash());
     return;
   }
 
@@ -1068,10 +1063,6 @@ void PbftManager::secondFinish_() {
         next_voted_null_block_hash_ = true;
       }
     }
-  }
-
-  if (step_ > MAX_STEPS && (step_ - MAX_STEPS - 2) % 100 == 0) {
-    syncPbftChainFromPeers_(exceeded_max_steps, NULL_BLOCK_HASH);
   }
 
   if (round > 1 && step_ > MAX_STEPS && (step_ - MAX_STEPS - 2) % 20 == 0 && !broadcastAlreadyThisStep_()) {
@@ -1422,63 +1413,6 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(uint64_t round, uin
   return nullptr;
 }
 
-bool PbftManager::syncRequestedAlreadyThisStep_() const {
-  return getPbftRound() == pbft_round_last_requested_sync_ && step_ == pbft_step_last_requested_sync_;
-}
-
-void PbftManager::syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::blk_hash_t const &relevant_blk_hash) {
-  if (stopped_) {
-    return;
-  }
-  if (auto net = network_.lock()) {
-    if (periodDataQueueSize()) {
-      LOG(log_tr_) << "PBFT synced queue is still processing so skip syncing. Synced queue size "
-                   << periodDataQueueSize();
-
-      return;
-    }
-
-    if (!is_syncing_() && !syncRequestedAlreadyThisStep_()) {
-      auto round = getPbftRound();
-
-      switch (reason) {
-        case missing_dag_blk:
-          LOG(log_nf_) << "DAG blocks have not synced yet, anchor block " << relevant_blk_hash
-                       << " not present in DAG.";
-          break;
-        case invalid_cert_voted_block:
-          // Get partition, need send request to get missing pbft blocks from peers
-          LOG(log_nf_) << "Cert voted block " << relevant_blk_hash
-                       << " is invalid, we must be out of sync with pbft chain.";
-          break;
-        case invalid_soft_voted_block:
-          // TODO: Address CONCERN of should we sync here?  Any malicious player can propose an invalid soft voted
-          // block... Honest nodes will soft vote for any malicious block before receiving it and verifying it.
-          LOG(log_nf_) << "Soft voted block for this round appears to be invalid, perhaps node out of sync";
-          break;
-        case exceeded_max_steps:
-          LOG(log_nf_) << "Suspect consensus is partitioned, reached step " << step_ << " in round " << round
-                       << " without advancing.";
-          // We want to force sycning the DAG...
-          break;
-        default:
-          LOG(log_er_) << "Unknown PBFT sync request reason " << reason;
-          assert(false);
-
-          LOG(log_nf_) << "Restarting sync in round " << round << ", step " << step_;
-      }
-
-      // TODO: Is there any need to sync here???
-      // If we detect some stalled situation, a better step would be to disconnect/reconnect to nodes to try to get
-      // network unstuck since reconnecting both shuffles the nodes and invokes pbft/dag syncing if needed
-      // net->restartSyncingPbft();
-
-      pbft_round_last_requested_sync_ = round;
-      pbft_step_last_requested_sync_ = step_;
-    }
-  }
-}
-
 bool PbftManager::broadcastAlreadyThisStep_() const {
   return getPbftRound() == pbft_round_last_broadcast_ && step_ == pbft_step_last_broadcast_;
 }
@@ -1507,7 +1441,6 @@ bool PbftManager::compareBlocksAndRewardVotes_(const std::shared_ptr<PbftBlock> 
   auto dag_blocks_order = dag_mgr_->getDagBlockOrder(anchor_hash, pbft_block->getPeriod());
   if (dag_blocks_order.empty()) {
     LOG(log_er_) << "Missing dag blocks for proposed PBFT block " << pbft_block_hash;
-    syncPbftChainFromPeers_(missing_dag_blk, anchor_hash);
     return false;
   }
 
@@ -1547,7 +1480,6 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(const std::shared_ptr<PbftBlo
   if (!pbft_chain_->checkPbftBlockValidation(*pbft_block)) {
     LOG(log_er_) << "Failed pbft chain validation for cert voted block " << pbft_block->getBlockHash()
                  << ", will call sync pbft chain from peers";
-    syncPbftChainFromPeers_(invalid_cert_voted_block, pbft_block->getBlockHash());
     return false;
   }
 
@@ -1774,13 +1706,6 @@ void PbftManager::countVotes_() const {
                       << "(ms) has " << current_step_votes << " votes";
     thisThreadSleepForMilliSeconds(POLLING_INTERVAL_ms / 2);
   }
-}
-
-bool PbftManager::is_syncing_() {
-  if (auto net = network_.lock()) {
-    return net->pbft_syncing();
-  }
-  return false;
 }
 
 uint64_t PbftManager::pbftSyncingPeriod() const {
