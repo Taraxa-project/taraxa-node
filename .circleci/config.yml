@@ -514,6 +514,14 @@ jobs:
             fi
 
       - run:
+          name: Publish chart to Taraxa's repository
+          command: |
+            HELMCHART_VERSION=$(yq .version charts/${HELMCHART}/Chart.yaml | tr -d \")
+            if [[ ${PR} != "false" ]]; then
+              helm cm-push charts/${HELMCHART}/ --version="${HELMCHART_VERSION}-pr${PR}" taraxacharts || true
+            fi
+
+      - run:
           name: Cleanup helm tests
           when: always
           command: |
