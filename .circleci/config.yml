@@ -444,8 +444,6 @@ jobs:
             echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >> $BASH_ENV
             export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )
             echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
-            echo ${PR}
-            echo ${HELM_TEST_NAME}
             curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
             sudo apt-get install apt-transport-https --yes
             echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
@@ -503,8 +501,6 @@ jobs:
                 --set bootnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set consensusnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set test.pythontester.script=jenkins.py \
-                --set image.repository=${GCP_IMAGE} \
-                --set image.tag=pr-${PR}-${CIRCLE_BUILD_NUM} \
                 -f charts/${HELMCHART}/values.yaml
             fi
 
