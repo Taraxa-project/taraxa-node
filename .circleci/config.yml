@@ -1056,7 +1056,7 @@ workflows:
             tags:
               only: /^v?\d+\.\d+\.\d+(?:-.*)?$/    # hmmm, we probabls want to separate this release into separate workflow, would be cleaner
             branches:
-              ignore: ^chart.*                     # ignore building image for branches starting with "chart"
+              ignore: /^chart\/.*/                     # ignore building image for branches starting with "chart"
           context:
             - TARAXA
             - GCP
@@ -1075,7 +1075,7 @@ workflows:
       - build-helm-chart:
           filters:
             branches:
-              only: ^chart.*                       # run this job only for branches starting with "chart"
+              only: /^chart\/.*/                       # run this job only for branches starting with "chart"
           context:
             - K8S
             - CHARTSREPO
