@@ -1080,7 +1080,7 @@ workflows:
             - K8S
             - CHARTSREPO
 
-  helm-chart-release:
+  release-helm-chart:
     jobs:
       - helm-release/chart-publish:
           charts-dir: charts
