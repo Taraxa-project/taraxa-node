@@ -1077,7 +1077,11 @@ workflows:
             branches:
               only: /^chart\/.*/                       # run this job only for branches starting with "chart"
           context:
+            - TARAXA
+            - GCP
             - K8S
+            - GCR
+            - DOCKERHUB
             - CHARTSREPO
 
   release-helm-chart:
