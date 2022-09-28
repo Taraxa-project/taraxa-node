@@ -520,9 +520,9 @@ jobs:
           name: Cleanup helm tests
           when: always
           command: |
-            if [[ ${PR} != "false" ]];then
-               helm -n ${HELM_TEST_NAME:0:40} delete ${HELM_TEST_NAME:0:40} || true
-               kubectl delete ns ${HELM_TEST_NAME:0:40} || true
+            if [[ ${PR} != "false" ]]; then
+              helm -n ${HELM_TEST_NAME:0:40} delete ${HELM_TEST_NAME:0:40} || true
+              kubectl delete ns ${HELM_TEST_NAME:0:40} || true
             fi
 
   build-docker-image:
