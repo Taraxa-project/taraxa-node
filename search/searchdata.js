@@ -12,7 +12,7 @@ var indexSectionsWithContent =
   9: "enors",
   10: "acdeghlmnpr",
   11: "dfptv",
-  12: "bcdgiqt"
+  12: "bcdgiqrst"
 };
 
 var indexSectionNames =
