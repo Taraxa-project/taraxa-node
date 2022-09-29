@@ -120,12 +120,6 @@ Enumerations</h2></td></tr>
 <br />
  }</td></tr>
 <tr class="separator:gaa671924d435517347832c7f40f1f6cfc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa7d94f2f957e0d74251efb2a6b9b64b5"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#gaa7d94f2f957e0d74251efb2a6b9b64b5">taraxa::PbftSyncRequestReason</a> { <a class="el" href="group___p_b_f_t.html#ggaa7d94f2f957e0d74251efb2a6b9b64b5a31485ca08ef579636947975dd1e51ddf">taraxa::missing_dag_blk</a> = 1, 
-<a class="el" href="group___p_b_f_t.html#ggaa7d94f2f957e0d74251efb2a6b9b64b5a402a59434e3797e4e667a4053532ab37">taraxa::invalid_cert_voted_block</a>, 
-<a class="el" href="group___p_b_f_t.html#ggaa7d94f2f957e0d74251efb2a6b9b64b5a052d8f09337e08c9e7f3a36e2b26d0ee">taraxa::invalid_soft_voted_block</a>, 
-<a class="el" href="group___p_b_f_t.html#ggaa7d94f2f957e0d74251efb2a6b9b64b5a05de694025ef67b5317cfb38956f4870">taraxa::exceeded_max_steps</a>
- }</td></tr>
-<tr class="separator:gaa7d94f2f957e0d74251efb2a6b9b64b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
@@ -815,7 +809,7 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <div class="dyncontent">
 <div class="center"><img src="classtaraxa_1_1_pbft_manager__coll__graph.png" border="0" usemap="#taraxa_1_1_pbft_manager_coll__map" alt="Collaboration graph"/></div>
 <map name="taraxa_1_1_pbft_manager_coll__map" id="taraxa_1_1_pbft_manager_coll__map">
-<area shape="rect" title="PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks..." alt="" coords="640,211,795,238"/>
+<area shape="rect" title="PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks..." alt="" coords="633,211,788,238"/>
 <area shape="rect" title=" " alt="" coords="213,5,416,47"/>
 <area shape="rect" title=" " alt="" coords="283,71,347,98"/>
 <area shape="rect" href="classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="233,123,397,164"/>
@@ -824,7 +818,7 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <area shape="rect" href="structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="245,239,384,266"/>
 <area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="235,322,395,349"/>
 <area shape="rect" href="classtaraxa_1_1_proposed_blocks.html" title="class ProposedBlocks holds proposed pbft blocks together with propose votes hashes per period &amp; round" alt="" coords="227,373,402,399"/>
-<area shape="rect" title=" " alt="" coords="285,622,345,649"/>
+<area shape="rect" title=" " alt="" coords="285,637,345,663"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -1038,12 +1032,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:a394608bc4ad9141050f584735c3e3ecb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a394608bc4ad9141050f584735c3e3ecb">getProposal</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote) const</td></tr>
 <tr class="memdesc:a394608bc4ad9141050f584735c3e3ecb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculate the lowest hash of a vote by vote weight.  <a href="group___p_b_f_t.html#a394608bc4ad9141050f584735c3e3ecb">More...</a><br /></td></tr>
 <tr class="separator:a394608bc4ad9141050f584735c3e3ecb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af7b448ccc0705493b3d405540950c0e2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#af7b448ccc0705493b3d405540950c0e2">syncRequestedAlreadyThisStep_</a> () const</td></tr>
-<tr class="memdesc:af7b448ccc0705493b3d405540950c0e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Only be able to send a syncing request per each PBFT round and step.  <a href="group___p_b_f_t.html#af7b448ccc0705493b3d405540950c0e2">More...</a><br /></td></tr>
-<tr class="separator:af7b448ccc0705493b3d405540950c0e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac3b27ff13663f656adc80fecc15db6d1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ac3b27ff13663f656adc80fecc15db6d1">syncPbftChainFromPeers_</a> (<a class="el" href="group___p_b_f_t.html#gaa7d94f2f957e0d74251efb2a6b9b64b5">PbftSyncRequestReason</a> reason, <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">taraxa::blk_hash_t</a> const &amp;relevant_blk_hash)</td></tr>
-<tr class="memdesc:ac3b27ff13663f656adc80fecc15db6d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send a syncing request to peer.  <a href="group___p_b_f_t.html#ac3b27ff13663f656adc80fecc15db6d1">More...</a><br /></td></tr>
-<tr class="separator:ac3b27ff13663f656adc80fecc15db6d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a11990d3392300e6a0ac2eed429550d85"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a11990d3392300e6a0ac2eed429550d85">broadcastAlreadyThisStep_</a> () const</td></tr>
 <tr class="memdesc:a11990d3392300e6a0ac2eed429550d85"><td class="mdescLeft">&#160;</td><td class="mdescRight">Only be able to broadcast one time of previous round next voting votes per each PBFT round and step.  <a href="group___p_b_f_t.html#a11990d3392300e6a0ac2eed429550d85">More...</a><br /></td></tr>
 <tr class="separator:a11990d3392300e6a0ac2eed429550d85"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1062,9 +1050,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:a25633a0de0001ab35e875b35834b26e4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a25633a0de0001ab35e875b35834b26e4">updateTwoTPlusOneAndThreshold_</a> ()</td></tr>
 <tr class="memdesc:a25633a0de0001ab35e875b35834b26e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update PBFT 2t+1 and PBFT sortition threshold.  <a href="group___p_b_f_t.html#a25633a0de0001ab35e875b35834b26e4">More...</a><br /></td></tr>
 <tr class="separator:a25633a0de0001ab35e875b35834b26e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8f9f20846d03ccaeed07a402834d0641"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a8f9f20846d03ccaeed07a402834d0641">is_syncing_</a> ()</td></tr>
-<tr class="memdesc:a8f9f20846d03ccaeed07a402834d0641"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check PBFT is working on syncing or not.  <a href="group___p_b_f_t.html#a8f9f20846d03ccaeed07a402834d0641">More...</a><br /></td></tr>
-<tr class="separator:a8f9f20846d03ccaeed07a402834d0641"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac4f19ded8ce9d9b0ddbf3a00126c77bc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ac4f19ded8ce9d9b0ddbf3a00126c77bc">checkPreviousRoundNextVotedValueChange_</a> ()</td></tr>
 <tr class="memdesc:ac4f19ded8ce9d9b0ddbf3a00126c77bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if previous round next voting value has been changed.  <a href="group___p_b_f_t.html#ac4f19ded8ce9d9b0ddbf3a00126c77bc">More...</a><br /></td></tr>
 <tr class="separator:ac4f19ded8ce9d9b0ddbf3a00126c77bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1169,10 +1154,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="separator:ac223cb71b31a508a0be870366c48b877"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aba83f15ed5ff4177ea29828391147b8b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aba83f15ed5ff4177ea29828391147b8b">polling_state_print_log_</a> = true</td></tr>
 <tr class="separator:aba83f15ed5ff4177ea29828391147b8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a90db578579f54856518a60f110b8241d"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a90db578579f54856518a60f110b8241d">pbft_round_last_requested_sync_</a> = 0</td></tr>
-<tr class="separator:a90db578579f54856518a60f110b8241d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0f8b5a1ebfd7488f1d3c1b20214d2a5d"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a0f8b5a1ebfd7488f1d3c1b20214d2a5d">pbft_step_last_requested_sync_</a> = 0</td></tr>
-<tr class="separator:a0f8b5a1ebfd7488f1d3c1b20214d2a5d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7597210c35d856e95c4bab8d8cb88fa7"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a7597210c35d856e95c4bab8d8cb88fa7">pbft_round_last_broadcast_</a> = 0</td></tr>
 <tr class="separator:a7597210c35d856e95c4bab8d8cb88fa7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a70cece1cf71f1968e7db4b5e0ef8688c"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a70cece1cf71f1968e7db4b5e0ef8688c">pbft_step_last_broadcast_</a> = 0</td></tr>
@@ -2576,34 +2557,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="a8f9f20846d03ccaeed07a402834d0641"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8f9f20846d03ccaeed07a402834d0641">&#9670;&nbsp;</a></span>is_syncing_()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool taraxa::PbftManager::is_syncing_ </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Check PBFT is working on syncing or not. </p>
-<dl class="section return"><dt>Returns</dt><dd>true if PBFT is working on syncing </dd></dl>
-
-</div>
-</div>
 <a id="ad15bdf09ea608848208827e1d05795d1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad15bdf09ea608848208827e1d05795d1">&#9670;&nbsp;</a></span>lastPbftBlockHashFromQueueOrChain()</h2>
 
@@ -3538,79 +3491,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 </div><div class="memdoc">
 
 <p>Stop PBFT daemon. </p>
-
-</div>
-</div>
-<a id="ac3b27ff13663f656adc80fecc15db6d1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac3b27ff13663f656adc80fecc15db6d1">&#9670;&nbsp;</a></span>syncPbftChainFromPeers_()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::PbftManager::syncPbftChainFromPeers_ </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group___p_b_f_t.html#gaa7d94f2f957e0d74251efb2a6b9b64b5">PbftSyncRequestReason</a>&#160;</td>
-          <td class="paramname"><em>reason</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">taraxa::blk_hash_t</a> const &amp;&#160;</td>
-          <td class="paramname"><em>relevant_blk_hash</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Send a syncing request to peer. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">reason</td><td>syncing request reason </td></tr>
-    <tr><td class="paramname">relevant_blk_hash</td><td>relevant block hash </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a id="af7b448ccc0705493b3d405540950c0e2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af7b448ccc0705493b3d405540950c0e2">&#9670;&nbsp;</a></span>syncRequestedAlreadyThisStep_()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool taraxa::PbftManager::syncRequestedAlreadyThisStep_ </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Only be able to send a syncing request per each PBFT round and step. </p>
-<dl class="section return"><dt>Returns</dt><dd>true if the current PBFT round and step has sent a syncing request already </dd></dl>
 
 </div>
 </div>
@@ -4604,28 +4484,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="a90db578579f54856518a60f110b8241d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a90db578579f54856518a60f110b8241d">&#9670;&nbsp;</a></span>pbft_round_last_requested_sync_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint64_t taraxa::PbftManager::pbft_round_last_requested_sync_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a70cece1cf71f1968e7db4b5e0ef8688c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a70cece1cf71f1968e7db4b5e0ef8688c">&#9670;&nbsp;</a></span>pbft_step_last_broadcast_</h2>
 
@@ -4637,28 +4495,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
       <table class="memname">
         <tr>
           <td class="memname">size_t taraxa::PbftManager::pbft_step_last_broadcast_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a0f8b5a1ebfd7488f1d3c1b20214d2a5d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0f8b5a1ebfd7488f1d3c1b20214d2a5d">&#9670;&nbsp;</a></span>pbft_step_last_requested_sync_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">size_t taraxa::PbftManager::pbft_step_last_requested_sync_ = 0</td>
         </tr>
       </table>
   </td>
@@ -6741,26 +6577,6 @@ Collaboration diagram for taraxa::PeriodData:</div>
 <tr><td class="fieldname"><a id="ggaa671924d435517347832c7f40f1f6cfca86ef818379572b2425cfa5bfa5380594"></a>certify_state&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="ggaa671924d435517347832c7f40f1f6cfca7ce24ff54c8269d225c50cf8efff00cf"></a>finish_state&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="ggaa671924d435517347832c7f40f1f6cfcab30f0b5d1d37bed7deae36af1d8b3d14"></a>finish_polling_state&#160;</td><td class="fielddoc"></td></tr>
-</table>
-
-</div>
-</div>
-<a id="gaa7d94f2f957e0d74251efb2a6b9b64b5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#gaa7d94f2f957e0d74251efb2a6b9b64b5">&#9670;&nbsp;</a></span>PbftSyncRequestReason</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="group___p_b_f_t.html#gaa7d94f2f957e0d74251efb2a6b9b64b5">taraxa::PbftSyncRequestReason</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ggaa7d94f2f957e0d74251efb2a6b9b64b5a31485ca08ef579636947975dd1e51ddf"></a>missing_dag_blk&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ggaa7d94f2f957e0d74251efb2a6b9b64b5a402a59434e3797e4e667a4053532ab37"></a>invalid_cert_voted_block&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ggaa7d94f2f957e0d74251efb2a6b9b64b5a052d8f09337e08c9e7f3a36e2b26d0ee"></a>invalid_soft_voted_block&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ggaa7d94f2f957e0d74251efb2a6b9b64b5a05de694025ef67b5317cfb38956f4870"></a>exceeded_max_steps&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
 </div>
