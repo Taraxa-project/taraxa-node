@@ -114,10 +114,6 @@
           {
             "name": "DAGMGR",
             "verbosity": "INFO"
-          },
-          {
-            "name": "HTTP",
-            "verbosity": "DEBUG"
           }
         ],
         "outputs": [
