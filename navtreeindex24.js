@@ -1,13 +1,5 @@
 var NAVTREEINDEX24 =
 {
-"transaction__manager_8hpp_source.html":[14,0,1,4,0,0,4,1],
-"transaction__packet__handler_8cpp.html":[14,0,1,4,1,3,0,0,8],
-"transaction__packet__handler_8hpp.html":[14,0,1,4,1,1,0,0,0,8],
-"transaction__packet__handler_8hpp_source.html":[14,0,1,4,1,1,0,0,0,8],
-"transaction__queue_8cpp.html":[14,0,1,4,0,1,4,2],
-"transaction__queue_8cpp.html#a1fa88bf5efbccea9145c3998fc8092ea":[14,0,1,4,0,1,4,2,0],
-"transaction__queue_8hpp.html":[14,0,1,4,0,0,4,2],
-"transaction__queue_8hpp_source.html":[14,0,1,4,0,0,4,2],
 "trie__common_8cpp.html":[14,0,1,4,0,1,1,6],
 "trie__common_8cpp.html#a31a1e83861e1b14e99841d137c2da0a1":[14,0,1,4,0,1,1,6,2],
 "trie__common_8cpp.html#a41b2ec28d1ad728e6c4d190795391e6e":[14,0,1,4,0,1,1,6,0],

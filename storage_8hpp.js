@@ -7,11 +7,6 @@ var storage_8hpp =
     [ "COLUMN", "storage_8hpp.html#a2eaa50d8ab492e7c148571d65b81f7d9", null ],
     [ "COLUMN_W_COMP", "storage_8hpp.html#ac9945ca6fe197b285226f1698ce8a202", null ],
     [ "DB", "storage_8hpp.html#a32216cff36a3565783afe8fa0099ae89", null ],
-    [ "PbftMgrPreviousRoundStatus", "storage_8hpp.html#a8e508ba78029ac1c479821219bebc249", [
-      [ "PreviousRoundSortitionThreshold", "storage_8hpp.html#a8e508ba78029ac1c479821219bebc249a639d445a527ae39a767474b55921fdef", null ],
-      [ "PreviousRoundDposPeriod", "storage_8hpp.html#a8e508ba78029ac1c479821219bebc249a461b57f71ed39e1f41cefd2a353d634c", null ],
-      [ "PreviousRoundDposTotalVotesCount", "storage_8hpp.html#a8e508ba78029ac1c479821219bebc249a82a7e6aa3ec6615c655c5924b545647e", null ]
-    ] ],
     [ "PbftMgrRoundStep", "storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224", [
       [ "PbftRound", "storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224a368025ae02d047204ec026bff0232090", null ],
       [ "PbftStep", "storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224ab2b75dec75a0f988aec09198090e6e88", null ]

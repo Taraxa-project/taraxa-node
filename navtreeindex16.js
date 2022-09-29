@@ -1,9 +1,5 @@
 var NAVTREEINDEX16 =
 {
-"group___vote.html#a281cac5bf2c222e57660159ec2a1fa3d":[11,4,1,21],
-"group___vote.html#a2d6aa993f05aa2cbdd2558faf40e9fa4":[11,4,3,0],
-"group___vote.html#a2d8c8ac3185a149796a99dff63b29c60":[11,4,1,16],
-"group___vote.html#a2f609a3b7a3ea1f5adb0e026abad8246":[11,4,1,4],
 "group___vote.html#a3269ce0796ba7a4db4c1d7a1a14d38c2":[11,4,5,2],
 "group___vote.html#a335593af04d28ee24d262c401a32f8b0":[11,4,1,28],
 "group___vote.html#a352f2439db5907bfb52580e2e736ba0f":[11,4,0,2],
@@ -145,8 +141,8 @@ var NAVTREEINDEX16 =
 "include_2network_2ws__server_8hpp.html":[14,0,1,4,1,1,0,3],
 "include_2network_2ws__server_8hpp.html#a87adc53071ba8ddc553c84e894a4accc":[14,0,1,4,1,1,0,3,2],
 "include_2network_2ws__server_8hpp_source.html":[14,0,1,4,1,1,0,3],
-"index.html":[0],
 "index.html":[],
+"index.html":[0],
 "index.html#autotoc_md1":[0,0],
 "index.html#autotoc_md10":[0,5],
 "index.html#autotoc_md11":[0,6],
@@ -249,5 +245,9 @@ var NAVTREEINDEX16 =
 "libdevcore_2_exceptions_8h.html#a284d5976ac6f74a28637a11ff0471120":[14,0,1,0,0,12,35],
 "libdevcore_2_exceptions_8h.html#a28d0d371bcd53a79ec6e025388dfaf26":[14,0,1,0,0,12,28],
 "libdevcore_2_exceptions_8h.html#a327de80dab18a48aa368ab844bc395b5":[14,0,1,0,0,12,25],
-"libdevcore_2_exceptions_8h.html#a3bc6cd2e673d17317a6f9ad877f33f23":[14,0,1,0,0,12,21]
+"libdevcore_2_exceptions_8h.html#a3bc6cd2e673d17317a6f9ad877f33f23":[14,0,1,0,0,12,21],
+"libdevcore_2_exceptions_8h.html#a42421a095739d04b06a70136fe7d5b78":[14,0,1,0,0,12,16],
+"libdevcore_2_exceptions_8h.html#a44ea2523d657094dd61589093b5a04bb":[14,0,1,0,0,12,23],
+"libdevcore_2_exceptions_8h.html#a4b4b10242be59dd68c1749205272e2ec":[14,0,1,0,0,12,14],
+"libdevcore_2_exceptions_8h.html#a502ea1315515149073c33d6ade682886":[14,0,1,0,0,12,32]
 };

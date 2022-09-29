@@ -229,12 +229,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a593108837fdc2059b6c341f0c1a825a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a82eba762347a2c6ec8c6b63ba84e9795"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, uint32_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a82eba762347a2c6ec8c6b63ba84e9795">getAllTransactionPeriod</a> ()</td></tr>
 <tr class="separator:a82eba762347a2c6ec8c6b63ba84e9795"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3d88935eb111cfd5a3b1a9bcc48599fc"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a3d88935eb111cfd5a3b1a9bcc48599fc">getPbftMgrPreviousRoundStatus</a> (<a class="el" href="namespacetaraxa.html#a8e508ba78029ac1c479821219bebc249">PbftMgrPreviousRoundStatus</a> field)</td></tr>
-<tr class="separator:a3d88935eb111cfd5a3b1a9bcc48599fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a35199701ac15324800ca10aa8509dbeb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a35199701ac15324800ca10aa8509dbeb">savePbftMgrPreviousRoundStatus</a> (<a class="el" href="namespacetaraxa.html#a8e508ba78029ac1c479821219bebc249">PbftMgrPreviousRoundStatus</a> field, uint64_t value)</td></tr>
-<tr class="separator:a35199701ac15324800ca10aa8509dbeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af68dd2da7119021a886a328c113be699"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#af68dd2da7119021a886a328c113be699">addPbftMgrPreviousRoundStatus</a> (<a class="el" href="namespacetaraxa.html#a8e508ba78029ac1c479821219bebc249">PbftMgrPreviousRoundStatus</a> field, uint64_t value, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
-<tr class="separator:af68dd2da7119021a886a328c113be699"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2a88fa118a19e2cc0c741a74ffc8f0df"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a2a88fa118a19e2cc0c741a74ffc8f0df">getPbftMgrField</a> (<a class="el" href="namespacetaraxa.html#a46213d22e59ab0eed2ab18aa75799224">PbftMgrRoundStep</a> field)</td></tr>
 <tr class="separator:a2a88fa118a19e2cc0c741a74ffc8f0df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b4d1205d437d478237d122937262403"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a9b4d1205d437d478237d122937262403">savePbftMgrField</a> (<a class="el" href="namespacetaraxa.html#a46213d22e59ab0eed2ab18aa75799224">PbftMgrRoundStep</a> field, uint64_t value)</td></tr>
@@ -804,40 +798,6 @@ Private Attributes</h2></td></tr>
           <td class="memname">void taraxa::DbStorage::addPbftMgrFieldToBatch </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacetaraxa.html#a46213d22e59ab0eed2ab18aa75799224">PbftMgrRoundStep</a>&#160;</td>
-          <td class="paramname"><em>field</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>value</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
-          <td class="paramname"><em>write_batch</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="af68dd2da7119021a886a328c113be699"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af68dd2da7119021a886a328c113be699">&#9670;&nbsp;</a></span>addPbftMgrPreviousRoundStatus()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::DbStorage::addPbftMgrPreviousRoundStatus </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a8e508ba78029ac1c479821219bebc249">PbftMgrPreviousRoundStatus</a>&#160;</td>
           <td class="paramname"><em>field</em>, </td>
         </tr>
         <tr>
@@ -1962,24 +1922,6 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
-<a id="a3d88935eb111cfd5a3b1a9bcc48599fc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3d88935eb111cfd5a3b1a9bcc48599fc">&#9670;&nbsp;</a></span>getPbftMgrPreviousRoundStatus()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint64_t taraxa::DbStorage::getPbftMgrPreviousRoundStatus </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a8e508ba78029ac1c479821219bebc249">PbftMgrPreviousRoundStatus</a>&#160;</td>
-          <td class="paramname"><em>field</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a68ce2eeb6453524622f4673bc4db166a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a68ce2eeb6453524622f4673bc4db166a">&#9670;&nbsp;</a></span>getPbftMgrStatus()</h2>
 
@@ -3014,34 +2956,6 @@ template&lt;typename K &gt; </div>
           <td class="memname">void taraxa::DbStorage::savePbftMgrField </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacetaraxa.html#a46213d22e59ab0eed2ab18aa75799224">PbftMgrRoundStep</a>&#160;</td>
-          <td class="paramname"><em>field</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>value</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a35199701ac15324800ca10aa8509dbeb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a35199701ac15324800ca10aa8509dbeb">&#9670;&nbsp;</a></span>savePbftMgrPreviousRoundStatus()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::DbStorage::savePbftMgrPreviousRoundStatus </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a8e508ba78029ac1c479821219bebc249">PbftMgrPreviousRoundStatus</a>&#160;</td>
           <td class="paramname"><em>field</em>, </td>
         </tr>
         <tr>
