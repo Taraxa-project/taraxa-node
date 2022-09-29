@@ -302,12 +302,6 @@ TEST_F(VoteTest, previous_round_next_votes) {
   std::vector<std::shared_ptr<Vote>> next_votes_2{vote2};
 
   // Enough votes for blk_hash_t(1)
-  auto db = node->getDB();
-  auto batch = db->createWriteBatch();
-  db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundSortitionThreshold, 1, batch);
-  db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposPeriod, 0, batch);
-  db->addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus::PreviousRoundDposTotalVotesCount, 1, batch);
-  db->commitWriteBatch(batch);
   next_votes_mgr->updateWithSyncedVotes(next_votes_2, pbft_2t_plus_1);
   EXPECT_EQ(next_votes_mgr->getVotedValue(), voted_pbft_block_hash);
   EXPECT_TRUE(next_votes_mgr->enoughNextVotes());
