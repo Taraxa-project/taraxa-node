@@ -444,10 +444,8 @@ void PbftManager::resetPbftConsensus(uint64_t round) {
   db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedSoftValue, false, batch);
 
   // Reset cert voted block in the new upcoming round
-  if (cert_voted_block_for_round_.has_value() &&
-      (*cert_voted_block_for_round_)->getPeriod() <= pbft_chain_->getPbftChainSize()) {
+  if (cert_voted_block_for_round_.has_value()) {
     db_->removePbftMgrVotedValueToBatch(PbftMgrVotedValue::CertVotedBlockInRound, batch);
-
     cert_voted_block_for_round_.reset();
   }
 
@@ -460,8 +458,6 @@ void PbftManager::resetPbftConsensus(uint64_t round) {
     soft_voted_block_for_round_.reset();
   }
   db_->commitWriteBatch(batch);
-
-  should_have_cert_voted_in_this_round_ = false;
 
   // reset next voted value since start a new round
   // these are used to prevent voting multiple times while polling through the step
@@ -719,15 +715,6 @@ bool PbftManager::stateOperations_() {
     return true;
   }
 
-  // If node is not eligible to vote, always return true so pbft state machine never enters specific consensus steps
-  // (propose, soft-vote, cert-vote, next-vote). Nodes that have no delegation should just observe 2t+1 cert votes
-  // to move to the next period or 2t+1 next votes to move to the next round
-  if (!final_chain_->dpos_eligible_vote_count(period - 1, node_addr_)) {
-    // Check 2t+1 cert/next votes every 20ms
-    std::this_thread::sleep_for(std::chrono::milliseconds(20));
-    return true;
-  }
-
   return false;
 }
 
@@ -923,9 +910,9 @@ void PbftManager::certifyBlock_() {
     return;
   }
 
-  // Already sent (or should have) cert voted in this round
-  if (should_have_cert_voted_in_this_round_) {
-    LOG(log_dg_) << "Already did (or should have) cert vote in this round " << round;
+  // Already sent cert voted in this round
+  if (cert_voted_block_for_round_.has_value()) {
+    LOG(log_dg_) << "Already did cert vote in this round " << round;
     return;
   }
 
@@ -957,7 +944,7 @@ void PbftManager::certifyBlock_() {
   auto vote = generateVoteWithWeight(current_round_soft_voted_block->getBlockHash(), cert_vote_type,
                                      current_round_soft_voted_block->getPeriod(), round, step_);
   if (!vote) {
-    LOG(log_er_) << "Failed to generate cert vote for " << current_round_soft_voted_block->getBlockHash();
+    LOG(log_dg_) << "Failed to generate cert vote for " << current_round_soft_voted_block->getBlockHash();
     return;
   }
 
@@ -975,8 +962,6 @@ void PbftManager::certifyBlock_() {
       {current_round_soft_voted_block->getBlockHash(), current_round_soft_voted_block->getPeriod()}, batch);
   db_->addPbftCertVotedBlockToBatch(*current_round_soft_voted_block, batch);
   db_->commitWriteBatch(batch);
-
-  should_have_cert_voted_in_this_round_ = true;
 }
 
 void PbftManager::firstFinish_() {
@@ -1028,8 +1013,10 @@ void PbftManager::secondFinish_() {
   LOG(log_dg_) << "PBFT second finishing state in round: " << round << ", period: " << period;
 
   assert(step_ >= startingStepInRound_);
-  auto end_time_for_step = (2 + step_ - startingStepInRound_) * LAMBDA_ms - POLLING_INTERVAL_ms;
-  LOG(log_tr_) << "Step " << step_ << " end time " << end_time_for_step;
+
+  auto elapsed_time_in_step = std::chrono::duration_cast<std::chrono::milliseconds>(
+                                  std::chrono::system_clock::now() - current_step_clock_initial_datetime_)
+                                  .count();
 
   if (const auto soft_voted_block = getSoftVotedBlockForThisRound_(); soft_voted_block.has_value()) {
     // TODO: this same call is performed also inside getSoftVotedBlockForThisRound_() -> refactor this
@@ -1075,7 +1062,7 @@ void PbftManager::secondFinish_() {
     pbft_step_last_broadcast_ = step_;
   }
 
-  loop_back_finish_state_ = elapsed_time_in_round_ms_ > end_time_for_step;
+  loop_back_finish_state_ = elapsed_time_in_step > (int64_t)(2 * (LAMBDA_ms - POLLING_INTERVAL_ms));
 }
 
 std::shared_ptr<PbftBlock> PbftManager::generatePbftBlock(uint64_t propose_period, const blk_hash_t &prev_blk_hash,
