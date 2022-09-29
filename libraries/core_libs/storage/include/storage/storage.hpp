@@ -31,12 +31,6 @@ enum StatusDbField : uint8_t {
   DbMinorVersion
 };
 
-enum PbftMgrPreviousRoundStatus : uint8_t {
-  PreviousRoundSortitionThreshold = 0,
-  PreviousRoundDposPeriod,
-  PreviousRoundDposTotalVotesCount
-};
-
 enum PbftMgrRoundStep : uint8_t { PbftRound = 0, PbftStep };
 
 enum PbftMgrStatus : uint8_t {
@@ -103,7 +97,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(transactions);
     COLUMN(trx_period);
     COLUMN(status);
-    COLUMN(pbft_mgr_previous_round_status);
     COLUMN(pbft_mgr_round_step);
     COLUMN(pbft_period_2t_plus_1);
     COLUMN(pbft_mgr_status);
@@ -238,10 +231,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::unordered_map<trx_hash_t, uint32_t> getAllTransactionPeriod();
 
   // PBFT manager
-  uint64_t getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field);
-  void savePbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field, uint64_t value);
-  void addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field, uint64_t value, Batch& write_batch);
-
   uint64_t getPbftMgrField(PbftMgrRoundStep field);
   void savePbftMgrField(PbftMgrRoundStep field, uint64_t value);
   void addPbftMgrFieldToBatch(PbftMgrRoundStep field, uint64_t value, Batch& write_batch);

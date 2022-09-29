@@ -644,24 +644,6 @@ void DbStorage::addStatusFieldToBatch(StatusDbField const& field, uint64_t value
 }
 
 // PBFT
-uint64_t DbStorage::getPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field) {
-  auto status = lookup(toSlice(field), Columns::pbft_mgr_previous_round_status);
-  if (!status.empty()) {
-    size_t value;
-    memcpy(&value, status.data(), sizeof(uint64_t));
-    return value;
-  }
-
-  return 0;
-}
-
-void DbStorage::savePbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field, uint64_t value) {
-  insert(Columns::pbft_mgr_previous_round_status, toSlice(field), toSlice(value));
-}
-
-void DbStorage::addPbftMgrPreviousRoundStatus(PbftMgrPreviousRoundStatus field, uint64_t value, Batch& write_batch) {
-  insert(write_batch, Columns::pbft_mgr_previous_round_status, toSlice(field), toSlice(value));
-}
 
 uint64_t DbStorage::getPbftMgrField(PbftMgrRoundStep field) {
   auto status = lookup(toSlice(field), Columns::pbft_mgr_round_step);
