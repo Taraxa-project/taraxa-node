@@ -36,7 +36,8 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
       node_stats_(nullptr),
       packets_handlers_(std::make_shared<PacketsHandler>()),
       thread_pool_(std::make_shared<TarcapThreadPool>(conf.network.network_packets_processing_threads, key.address())),
-      periodic_events_tp_(std::make_shared<util::ThreadPool>(kPeriodicEventsThreadCount, false)) {
+      periodic_events_tp_(std::make_shared<util::ThreadPool>(kPeriodicEventsThreadCount, false)),
+      pub_key_(key.pub()) {
   const auto &node_addr = key.address();
   LOG_OBJECTS_CREATE("TARCAP");
 
@@ -46,7 +47,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
   packets_stats_ = std::make_shared<PacketsStats>(node_addr);
 
   // Inits boot nodes (based on config)
-  initBootNodes(conf.network.network_boot_nodes, key);
+  addBootNodes(true);
 }
 
 std::shared_ptr<TaraxaCapability> TaraxaCapability::make(
@@ -73,7 +74,7 @@ void TaraxaCapability::init(const h256 &genesis_hash, std::shared_ptr<DbStorage>
   initPeriodicEvents(pbft_mgr, trx_mgr, packets_stats_);
 }
 
-void TaraxaCapability::initBootNodes(const std::vector<NodeConfig> &network_boot_nodes, const dev::KeyPair &key) {
+void TaraxaCapability::addBootNodes(bool initial) {
   auto resolveHost = [](const std::string &addr, uint16_t port) {
     static boost::asio::io_context s_resolverIoService;
     boost::system::error_code ec;
@@ -94,19 +95,28 @@ void TaraxaCapability::initBootNodes(const std::vector<NodeConfig> &network_boot
     return std::make_pair(true, ep);
   };
 
-  for (auto const &node : network_boot_nodes) {
+  auto host = peers_state_->host_.lock();
+  if (!host) {
+    LOG(log_er_) << "Unable to obtain host in addBootNodes";
+    return;
+  }
+
+  for (auto const &node : kConf.network.network_boot_nodes) {
     dev::Public pub(node.id);
-    if (pub == key.pub()) {
+    if (pub == pub_key_) {
       LOG(log_wr_) << "not adding self to the boot node list";
       continue;
     }
 
-    LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.udp_port;
     auto ip = resolveHost(node.ip, node.udp_port);
-    boot_nodes_[pub] = dev::p2p::NodeIPEndpoint(ip.second.address(), node.udp_port, node.udp_port);
+    LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.udp_port << " " << ip.second.address().to_string();
+    dev::p2p::Node boot_node(pub, dev::p2p::NodeIPEndpoint(ip.second.address(), node.udp_port, node.udp_port),
+                             dev::p2p::PeerType::Required);
+    host->addNode(boot_node);
+    if (!initial) {
+      host->invalidateNode(boot_node.id);
+    }
   }
-
-  LOG(log_nf_) << " Number of boot node added: " << boot_nodes_.size() << std::endl;
 }
 
 void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr,
@@ -145,38 +155,18 @@ void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pb
   periodic_events_tp_->post_loop({node_stats_log_interval},
                                  [node_stats = node_stats_]() mutable { node_stats->logNodeStats(); });
 
-  // Boot nodes checkup periodic event
-  if (!boot_nodes_.empty()) {
-    auto tmp_host = peers_state_->host_.lock();
-
-    // Something is wrong if host cannot be obtained during tarcap construction
-    assert(tmp_host);
-
-    for (auto const &[k, v] : boot_nodes_) {
-      tmp_host->addNode(dev::p2p::Node(k, v, dev::p2p::PeerType::Required));
+  // Every 30 seconds check if connected to another node and refresh boot nodes
+  periodic_events_tp_->post_loop({30000}, [this] {
+    auto host = peers_state_->host_.lock();
+    if (!host) {
+      LOG(log_er_) << "Unable to obtain host in initPeriodicEvents";
+      return;
     }
-
-    // Every 30 seconds check if connected to another node and refresh boot nodes
-    periodic_events_tp_->post_loop({30000}, [this] {
-      auto host = peers_state_->host_.lock();
-      if (!host) {
-        LOG(log_er_) << "Unable to obtain host in periodic boot nodes checkup!";
-        return;
-      }
-
-      // If node count drops to zero add boot nodes again and retry
-      if (host->getNodeCount() == 0) {
-        for (auto const &[k, v] : boot_nodes_) {
-          host->addNode(dev::p2p::Node(k, v, dev::p2p::PeerType::Required));
-        }
-      }
-      if (host->peer_count() == 0) {
-        for (auto const &[k, _] : boot_nodes_) {
-          host->invalidateNode(k);
-        }
-      }
-    });
-  }
+    // If node count drops to zero add boot nodes again and retry
+    if (host->peer_count() == 0) {
+      addBootNodes();
+    }
+  });
 }
 
 void TaraxaCapability::registerPacketHandlers(

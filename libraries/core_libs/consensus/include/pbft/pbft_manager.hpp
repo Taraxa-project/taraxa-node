@@ -30,13 +30,6 @@ class FullNode;
 
 enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_state, finish_polling_state };
 
-enum PbftSyncRequestReason {
-  missing_dag_blk = 1,
-  invalid_cert_voted_block,
-  invalid_soft_voted_block,
-  exceeded_max_steps
-};
-
 /**
  * @brief PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks by using
  * Practical Byzantine Fault Tolerance (PBFT) protocol
@@ -494,19 +487,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   h256 getProposal(const std::shared_ptr<Vote> &vote) const;
 
   /**
-   * @brief Only be able to send a syncing request per each PBFT round and step
-   * @return true if the current PBFT round and step has sent a syncing request already
-   */
-  bool syncRequestedAlreadyThisStep_() const;
-
-  /**
-   * @brief Send a syncing request to peer
-   * @param reason syncing request reason
-   * @param relevant_blk_hash relevant block hash
-   */
-  void syncPbftChainFromPeers_(PbftSyncRequestReason reason, taraxa::blk_hash_t const &relevant_blk_hash);
-
-  /**
    * @brief Only be able to broadcast one time of previous round next voting votes per each PBFT round and step
    * @return true if the current PBFT round and step has broadcasted previous round next voting votes already
    */
@@ -550,12 +530,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Update PBFT 2t+1 and PBFT sortition threshold
    */
   void updateTwoTPlusOneAndThreshold_();
-
-  /**
-   * @brief Check PBFT is working on syncing or not
-   * @return true if PBFT is working on syncing
-   */
-  bool is_syncing_();
 
   /**
    * @brief Check if previous round next voting value has been changed
@@ -641,15 +615,12 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   u_long elapsed_time_in_round_ms_ = 0;
 
   bool executed_pbft_block_ = false;
-  bool should_have_cert_voted_in_this_round_ = false;
   bool next_voted_soft_value_ = false;
   bool next_voted_null_block_hash_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
   bool polling_state_print_log_ = true;
 
-  uint64_t pbft_round_last_requested_sync_ = 0;
-  size_t pbft_step_last_requested_sync_ = 0;
   uint64_t pbft_round_last_broadcast_ = 0;
   size_t pbft_step_last_broadcast_ = 0;
 

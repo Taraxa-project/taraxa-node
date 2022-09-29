@@ -35,14 +35,20 @@ bool ExtVotesPacketHandler::processStandardVote(const std::shared_ptr<Vote> &vot
   }
 
   if (auto vote_is_valid = validateStandardVote(vote, peer, validate_max_round_step); !vote_is_valid.first) {
+    const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
     // There is a possible race condition:
     // 1) vote is evaluated as standard vote during vote packet processing based on current_pbft_period == vote_period
     // 2) In the meantime new block is pushed
     // 3) Standard vote validation then fails due to invalid period
     // -> If this happens, try to process this vote as reward vote
-    if (vote->getType() == PbftVoteTypes::cert_vote_type && vote->getPeriod() == pbft_mgr_->getPbftPeriod() - 1) {
+    if (vote->getType() == PbftVoteTypes::cert_vote_type && vote->getPeriod() == current_pbft_period - 1) {
       LOG(log_dg_) << "Process standard cert vote as reward vote " << vote->getHash();
       if (processRewardVote(vote)) {
+        return true;
+      }
+    } else if (vote->getType() == PbftVoteTypes::next_vote_type && vote->getPeriod() == current_pbft_period &&
+               vote->getRound() == current_pbft_round - 1) {
+      if (processNextSyncVote(vote, nullptr)) {
         return true;
       }
     }
@@ -125,7 +131,8 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
   // Period validation
   if (vote->getPeriod() < current_pbft_period) {
     return {false, "Invalid period(too small): " + genErrMsg(vote)};
-  } else if (vote->getPeriod() - 1 > current_pbft_period + kVoteAcceptingPeriods) {
+  } else if (kVoteAcceptingPeriods && vote->getPeriod() - 1 > current_pbft_period + kVoteAcceptingPeriods) {
+    // skip this check if kVoteAcceptingPeriods == 0
     // vote->getPeriod() - 1 is here because votes are validated against vote_period - 1 in dpos contract
     // Do not request round sync too often here
     if (std::chrono::system_clock::now() - last_pbft_block_sync_request_time_ > kSyncRequestInterval) {
@@ -148,7 +155,9 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
 
   if (vote->getRound() < checking_round) {
     return {false, "Invalid round(too small): " + genErrMsg(vote)};
-  } else if (validate_max_round_step && vote->getRound() >= checking_round + kVoteAcceptingRounds) {
+  } else if (validate_max_round_step && kVoteAcceptingRounds &&
+             vote->getRound() >= checking_round + kVoteAcceptingRounds) {
+    // skip this check if kVoteAcceptingRounds == 0
     // Trigger votes(round) syncing only if we are in sync in terms of period
     if (current_pbft_period == vote->getPeriod()) {
       // Do not request round sync too often here
@@ -170,7 +179,8 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
     checking_step = 1;
   }
 
-  if (validate_max_round_step && vote->getStep() >= checking_step + kVoteAcceptingSteps) {
+  // skip check if kVoteAcceptingSteps == 0
+  if (validate_max_round_step && kVoteAcceptingSteps && vote->getStep() >= checking_step + kVoteAcceptingSteps) {
     return {false, "Invalid step(too big): " + genErrMsg(vote)};
   }
 
@@ -264,8 +274,6 @@ bool ExtVotesPacketHandler::validateVoteAndBlock(const std::shared_ptr<Vote> &vo
 }
 
 void ExtVotesPacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &block) {
-  const auto rewards_votes_block = vote_mgr_->getCurrentRewardsVotesBlock();
-
   for (const auto &peer : peers_state_->getAllPeers()) {
     if (peer.second->syncing_) {
       LOG(log_dg_) << " PBFT vote " << vote->getHash() << " not sent to " << peer.first << " peer syncing";
@@ -274,22 +282,6 @@ void ExtVotesPacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, con
 
     if (peer.second->isVoteKnown(vote->getHash())) {
       continue;
-    }
-
-    // If it is not current reward vote, validate vote's period and round against peer's max chain size and round
-    if (!(vote->getType() == cert_vote_type && vote->getBlockHash() == rewards_votes_block.first)) {
-      // CONCERN ... should we be using a period stored in peer state?
-      if (peer.second->pbft_chain_size_ > vote->getPeriod() - 1) {
-        LOG(log_dg_) << " PBFT vote " << vote->getHash() << " not sent to " << peer.first
-                     << " peer chain size: " << peer.second->pbft_chain_size_;
-        continue;
-      }
-
-      if (peer.second->pbft_round_ > vote->getRound()) {
-        LOG(log_dg_) << " PBFT vote " << vote->getHash() << " not sent to " << peer.first
-                     << " peer round: " << peer.second->pbft_round_;
-        continue;
-      }
     }
 
     // Peer already has pbft block, do not send it (do not check it for propose votes as it could happen that nodes
@@ -334,8 +326,6 @@ void ExtVotesPacketHandler::sendPbftVote(const std::shared_ptr<TaraxaPeer> &peer
 }
 
 void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes) {
-  const auto rewards_votes_block = vote_mgr_->getCurrentRewardsVotesBlock();
-
   for (const auto &peer : peers_state_->getAllPeers()) {
     if (peer.second->syncing_) {
       continue;
@@ -345,18 +335,6 @@ void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&
     for (const auto &vote : votes) {
       if (peer.second->isVoteKnown(vote->getHash())) {
         continue;
-      }
-
-      // If it is not current reward vote, validate vote's period and round against peer's max chain size and round
-      if (!(vote->getType() == cert_vote_type && vote->getBlockHash() == rewards_votes_block.first)) {
-        // CONCERN ... should we be using a period stored in peer state?
-        if (peer.second->pbft_chain_size_ > vote->getPeriod() - 1) {
-          continue;
-        }
-
-        if (peer.second->pbft_round_ > vote->getRound()) {
-          continue;
-        }
       }
 
       peer_votes.push_back(vote);
