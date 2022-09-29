@@ -299,20 +299,6 @@ TEST_F(FinalChainTest, initial_validators) {
   }
 }
 
-TEST_F(FinalChainTest, initial_validator_exceed_maximum_stake) {
-  const dev::KeyPair key = dev::KeyPair::create();
-  const dev::KeyPair validator_key = dev::KeyPair::create();
-  const auto [vrf_key, _] = taraxa::vrf_wrapper::getVrfKeyPair();
-  fillConfigForGenesisTests(key.address());
-
-  state_api::ValidatorInfo validator{validator_key.address(), key.address(), vrf_key, 0, "", "", {}};
-  validator.delegations.emplace(key.address(), cfg.chain.final_chain.state.dpos->validator_maximum_stake);
-  validator.delegations.emplace(validator_key.address(), cfg.chain.final_chain.state.dpos->minimum_deposit);
-  cfg.chain.final_chain.state.dpos->initial_validators.emplace_back(validator);
-
-  EXPECT_THROW(init(), std::exception);
-}
-
 TEST_F(FinalChainTest, nonce_test) {
   auto sender_keys = dev::KeyPair::create();
   const auto& addr = sender_keys.address();
@@ -389,6 +375,20 @@ TEST_F(FinalChainTest, failed_transaction_fee) {
   advance({trx2}, {false, false, true});
   auto receipt = SUT->transaction_receipt(trx2->getHash());
   ASSERT_EQ(receipt->gas_used, 0);
+}
+
+TEST_F(FinalChainTest, initial_validator_exceed_maximum_stake) {
+  const dev::KeyPair key = dev::KeyPair::create();
+  const dev::KeyPair validator_key = dev::KeyPair::create();
+  const auto [vrf_key, _] = taraxa::vrf_wrapper::getVrfKeyPair();
+  fillConfigForGenesisTests(key.address());
+
+  state_api::ValidatorInfo validator{validator_key.address(), key.address(), vrf_key, 0, "", "", {}};
+  validator.delegations.emplace(key.address(), cfg.chain.final_chain.state.dpos->validator_maximum_stake);
+  validator.delegations.emplace(validator_key.address(), cfg.chain.final_chain.state.dpos->minimum_deposit);
+  cfg.chain.final_chain.state.dpos->initial_validators.emplace_back(validator);
+
+  EXPECT_THROW(init(), std::exception);
 }
 
 }  // namespace taraxa::final_chain
