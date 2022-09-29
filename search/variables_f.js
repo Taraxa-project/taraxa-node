@@ -81,6 +81,7 @@ var searchData=
   ['proposer_5fworker_5f_6459',['proposer_worker_',['../group___d_a_g.html#ad19aa2c75fb75e747197ad06f9f7c279',1,'taraxa::BlockProposer']]],
   ['protocolid_6460',['protocolId',['../structdev_1_1p2p_1_1_r_l_p_x_frame_info.html#af0e1f19d2ea909e64cb527ca4ed29c6e',1,'dev::p2p::RLPXFrameInfo']]],
   ['provider_5f_6461',['provider_',['../classtaraxa_1_1util_1_1lazy_1_1_lazy.html#a347f8adc03302c21b1375ddb6853fbc4',1,'taraxa::util::lazy::Lazy']]],
-  ['public_5fip_6462',['PUBLIC_IP',['../classtaraxa_1_1cli_1_1_config.html#aac8aa3b99f73aa16fac59fa9990dd30a',1,'taraxa::cli::Config']]],
-  ['publicipaddress_6463',['publicIPAddress',['../structdev_1_1p2p_1_1_network_config.html#a307da441278a1eeaa417d47809fca66c',1,'dev::p2p::NetworkConfig']]]
+  ['pub_5fkey_5f_6462',['pub_key_',['../classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ac15c4a80ecbd80dfc698fb0b0fc92ff3',1,'taraxa::network::tarcap::TaraxaCapability']]],
+  ['public_5fip_6463',['PUBLIC_IP',['../classtaraxa_1_1cli_1_1_config.html#aac8aa3b99f73aa16fac59fa9990dd30a',1,'taraxa::cli::Config']]],
+  ['publicipaddress_6464',['publicIPAddress',['../structdev_1_1p2p_1_1_network_config.html#a307da441278a1eeaa417d47809fca66c',1,'dev::p2p::NetworkConfig']]]
 ];

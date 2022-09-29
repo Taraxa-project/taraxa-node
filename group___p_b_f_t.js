@@ -158,7 +158,6 @@ var group___p_b_f_t =
       [ "round_", "group___p_b_f_t.html#a0d2720a707dd407e5db0e3de47d7f2b8", null ],
       [ "round_clock_initial_datetime_", "group___p_b_f_t.html#ab7b8cf334ef26a6cb3f5edb11f58e20a", null ],
       [ "RUN_COUNT_VOTES", "group___p_b_f_t.html#a675bed2a96b5b7e629d862373469bc5c", null ],
-      [ "should_have_cert_voted_in_this_round_", "group___p_b_f_t.html#a73b6aef014684024efe428c37740090a", null ],
       [ "soft_voted_block_for_round_", "group___p_b_f_t.html#acb6b6b782b0fb03444e8e857120e4746", null ],
       [ "sortition_threshold_", "group___p_b_f_t.html#a53fe40f58e69c874a64d6ee20be4cc7c", null ],
       [ "startingStepInRound_", "group___p_b_f_t.html#abea84a668c159505b7e453db0df192d8", null ],

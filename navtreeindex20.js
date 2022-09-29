@@ -1,6 +1,5 @@
 var NAVTREEINDEX20 =
 {
-"replay__protection__service_8cpp.html#ad1be358f581db25ea2d0bd5d210df000":[14,0,1,4,0,1,1,2,5],
 "replay__protection__service_8cpp.html#ga25455681de21efb73c8696f632a83919":[14,0,1,4,0,1,1,2,3],
 "replay__protection__service_8cpp.html#ga616e43c45af4a2d35b2b752f1b51b68f":[14,0,1,4,0,1,1,2,6],
 "replay__protection__service_8cpp.html#gac7d6f6aea359f528d0f3f10e32bad1e3":[14,0,1,4,0,1,1,2,4],
@@ -10,6 +9,7 @@ var NAVTREEINDEX20 =
 "replay__protection__service_8hpp.html#gac7d6f6aea359f528d0f3f10e32bad1e3":[14,0,1,4,0,0,1,4,3],
 "replay__protection__service_8hpp_source.html":[14,0,1,4,0,0,1,4],
 "rewards__stats_8cpp.html":[14,0,1,4,0,1,1,3],
+"rewards__stats_8cpp.html#a8a4de82a5682e63b73fae50e9f0d23ac":[14,0,1,4,0,1,1,3,0],
 "rewards__stats_8hpp.html":[14,0,1,4,0,0,1,5],
 "rewards__stats_8hpp_source.html":[14,0,1,4,0,0,1,5],
 "sortition_8cpp.html":[14,0,1,7,1,1],
