@@ -13,12 +13,11 @@
 #include "network/tarcap/taraxa_capability.hpp"
 #include "pbft/period_data_queue.hpp"
 #include "pbft/proposed_blocks.hpp"
+#include "pbft/soft_voted_block_data.hpp"
 
 #define NULL_BLOCK_HASH blk_hash_t(0)
 #define POLLING_INTERVAL_ms 100  // milliseconds...
 #define MAX_STEPS 13             // Need to be a odd number
-#define MAX_WAIT_FOR_SOFT_VOTED_BLOCK_STEPS 20
-#define MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS 20
 
 namespace taraxa {
 
@@ -537,9 +536,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void checkPreviousRoundNextVotedValueChange_();
 
   /**
-   * @return soft voted PBFT block if there is enough (2t+1) soft votes + it's period, otherwise returns empty optional
+   * @param period
+   * @param round
+   * @return Soft voted block data if there is enough (2t+1) soft votes, otherwise returns empty optional
    */
-  std::optional<std::pair<blk_hash_t, std::shared_ptr<PbftBlock>>> getSoftVotedBlockForThisRound_();
+  std::optional<TwoTPlusOneSoftVotedBlockData> getTwoTPlusOneSoftVotedBlockData(uint64_t period, uint64_t round);
 
   /**
    * @brief Process synced PBFT blocks if PBFT syncing queue is not empty
@@ -597,8 +598,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t step_ = 1;
   size_t startingStepInRound_ = 1;
 
-  // Block that node saw 2t+1 soft votes for
-  std::optional<std::pair<blk_hash_t, std::shared_ptr<PbftBlock>>> soft_voted_block_for_round_{};
+  // 2t+1 soft voted block related data
+  std::optional<TwoTPlusOneSoftVotedBlockData> soft_voted_block_for_round_{};
 
   // Block that node cert voted
   std::optional<std::shared_ptr<PbftBlock>> cert_voted_block_for_round_{};
@@ -618,7 +619,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool next_voted_null_block_hash_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
-  bool polling_state_print_log_ = true;
 
   uint64_t pbft_round_last_broadcast_ = 0;
   size_t pbft_step_last_broadcast_ = 0;
