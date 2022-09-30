@@ -127,27 +127,27 @@ input BlockFilterCriteria {
  type DagBlock {
     # Hash is the block hash of this block.
     hash: Bytes32!
-
     # Pivot is hash of the dag block that this block points to as a pivot
     # Pivot is ghost pointer ???
     pivot: Bytes32!
-
     # Tips are hashes of dag blocks that this block points to
     tips: [Bytes32!]!
-
     # Level is dag level, on which this block exists in dag structure
     level: Long!
-
     # PbftPeriod, in which dag block is included.
     # null in case it was not yet processed by pbft consensus
     pbftPeriod: Long
-
     # Author is the account that created this block.
     author: Account!
-
     # Timestamp is the unix timestamp at which this block was mined.
     timestamp: Long!
-
+    # Signature of the block
+    signature: Bytes!
+    # VDF difficulty
+    vdf: Int!
+    # TransactionCount is the number of transactions in this block. if
+    # transactions are not available for this block, this field will be 0.
+    transactionCount: Int!
     # Transactions is a list of transactions associated with this block. If
     # transactions are unavailable for this block, this field will be null.
     transactions: [Transaction!]
@@ -325,6 +325,8 @@ type Query {
     # pending: Pending!
     # Transaction returns a transaction specified by its hash.
     transaction(hash: Bytes32!): Transaction
+    # Account returns account at specific block number or if not specified, on the latest block
+    account(address: Address!, block: Long): Account
     # Logs returns log entries matching the provided filter.
     # logs(filter: FilterCriteria!): [Log!]!
     # GasPrice returns the node's estimate of a gas price sufficient to
@@ -343,6 +345,10 @@ type Query {
     # If count is specified, complement blocks to dag level blocks are fetched so there is count blocks returned in total
     # If reverse flag is specified, complement blocks are fetched from dagLevel - n, otherwise dagLevel + n
     dagBlocks(dagLevel: Long, count: Int, reverse: Boolean): [DagBlock!]!
+
+    # DagBlocks returns dag blocks at provided PBFT period
+    # if period is not specified, lates one is used
+    periodDagBlocks(period: Long): [DagBlock]!
 
     # Current node state
     nodeState: CurrentState

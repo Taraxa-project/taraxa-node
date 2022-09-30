@@ -23,7 +23,7 @@ class Block {
   std::optional<int> getTransactionCount() const noexcept;
   response::Value getStateRoot() const noexcept;
   response::Value getReceiptsRoot() const noexcept;
-  std::shared_ptr<object::Account> getMiner(std::optional<response::Value>&& blockArg) const noexcept;
+  std::shared_ptr<object::Account> getMiner(std::optional<response::Value>&& blockArg) const;
   response::Value getExtraData() const noexcept;
   response::Value getGasLimit() const noexcept;
   response::Value getGasUsed() const noexcept;
@@ -39,7 +39,7 @@ class Block {
   std::optional<std::vector<std::shared_ptr<object::Transaction>>> getTransactions() const noexcept;
   std::shared_ptr<object::Transaction> getTransactionAt(response::IntType&& indexArg) const noexcept;
   std::vector<std::shared_ptr<object::Log>> getLogs(BlockFilterCriteria&& filterArg) const noexcept;
-  std::shared_ptr<object::Account> getAccount(response::Value&& addressArg) const noexcept;
+  std::shared_ptr<object::Account> getAccount(response::Value&& addressArg) const;
   std::shared_ptr<object::CallResult> getCall(CallData&& dataArg) const noexcept;
   response::Value getEstimateGas(CallData&& dataArg) const noexcept;
 

@@ -2,6 +2,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <memory>
 
 #include "config/version.hpp"
 #include "dag/sortition_params_manager.hpp"
@@ -934,6 +935,18 @@ std::vector<blk_hash_t> DbStorage::getFinalizedDagBlockHashesByPeriod(uint32_t p
                    [](const auto& dag_block) { return DagBlock(dag_block).getHash(); });
   }
 
+  return ret;
+}
+
+std::vector<std::shared_ptr<DagBlock>> DbStorage::getFinalizedDagBlockByPeriod(uint32_t period) {
+  std::vector<std::shared_ptr<DagBlock>> ret;
+  if (auto period_data = getPeriodDataRaw(period); period_data.size() > 0) {
+    auto dag_blocks_data = dev::RLP(period_data)[DAG_BLOCKS_POS_IN_PERIOD_DATA];
+    ret.reserve(dag_blocks_data.size());
+    for (auto const block : dag_blocks_data) {
+      ret.emplace_back(std::make_shared<DagBlock>(block));
+    }
+  }
   return ret;
 }
 

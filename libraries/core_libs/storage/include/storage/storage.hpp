@@ -309,6 +309,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   uint64_t getNumDagBlocks() { return getDagBlocksCount(); }
 
   std::vector<blk_hash_t> getFinalizedDagBlockHashesByPeriod(uint32_t period);
+  std::vector<std::shared_ptr<DagBlock>> getFinalizedDagBlockByPeriod(uint32_t period);
 
   // DPOS level to proposal period map
   std::optional<uint64_t> getProposalPeriodForDagLevel(uint64_t level);

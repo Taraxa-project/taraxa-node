@@ -48,8 +48,13 @@ response::Value Block::getReceiptsRoot() const noexcept {
   return response::Value(block_header_->receipts_root.toString());
 }
 
-std::shared_ptr<object::Account> Block::getMiner(std::optional<response::Value>&&) const noexcept {
-  return std::make_shared<object::Account>(std::make_shared<Account>(final_chain_, block_header_->author));
+std::shared_ptr<object::Account> Block::getMiner(std::optional<response::Value>&& blockArg) const {
+  if (blockArg) {
+    return std::make_shared<object::Account>(
+        std::make_shared<Account>(final_chain_, block_header_->author, blockArg->get<int>()));
+  } else {
+    return std::make_shared<object::Account>(std::make_shared<Account>(final_chain_, block_header_->author));
+  }
 }
 
 response::Value Block::getExtraData() const noexcept { return response::Value(dev::toHex(block_header_->extra_data)); }
@@ -117,8 +122,9 @@ std::vector<std::shared_ptr<object::Log>> Block::getLogs(BlockFilterCriteria&&) 
   return ret;
 }
 
-std::shared_ptr<object::Account> Block::getAccount(response::Value&&) const noexcept {
-  return std::make_shared<object::Account>(std::make_shared<Account>(final_chain_, block_header_->author));
+std::shared_ptr<object::Account> Block::getAccount(response::Value&& addressArg) const {
+  return std::make_shared<object::Account>(
+      std::make_shared<Account>(final_chain_, ::taraxa::addr_t(addressArg.get<std::string>()), block_header_->number));
 }
 
 std::shared_ptr<object::CallResult> Block::getCall(CallData&&) const noexcept { return nullptr; }

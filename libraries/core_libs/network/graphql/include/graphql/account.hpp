@@ -11,13 +11,15 @@ namespace graphql::taraxa {
 
 class Account {
  public:
+  explicit Account(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain, dev::Address address,
+                   ::taraxa::EthBlockNumber blk_n) noexcept;
   explicit Account(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain, dev::Address address) noexcept;
 
   response::Value getAddress() const noexcept;
   response::Value getBalance() const noexcept;
   response::Value getTransactionCount() const noexcept;
   response::Value getCode() const noexcept;
-  response::Value getStorage(response::Value&& slotArg) const noexcept;
+  response::Value getStorage(response::Value&& slotArg) const;
 
  private:
   const dev::Address kAddress;

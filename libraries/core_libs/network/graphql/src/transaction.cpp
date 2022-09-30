@@ -31,12 +31,26 @@ std::optional<int> Transaction::getIndex() const noexcept {
 }
 
 std::shared_ptr<object::Account> Transaction::getFrom(std::optional<response::Value>&&) const noexcept {
-  return std::make_shared<object::Account>(std::make_shared<Account>(final_chain_, transaction_->getSender()));
+  if (!location_) {
+    location_ = final_chain_->transaction_location(transaction_->getHash());
+    if (!location_) {
+      return std::make_shared<object::Account>(std::make_shared<Account>(final_chain_, transaction_->getSender()));
+    }
+  }
+  return std::make_shared<object::Account>(
+      std::make_shared<Account>(final_chain_, transaction_->getSender(), location_->blk_n));
 }
 
 std::shared_ptr<object::Account> Transaction::getTo(std::optional<response::Value>&&) const noexcept {
   if (!transaction_->getReceiver()) return nullptr;
-  return std::make_shared<object::Account>(std::make_shared<Account>(final_chain_, *transaction_->getReceiver()));
+  if (!location_) {
+    location_ = final_chain_->transaction_location(transaction_->getHash());
+    if (!location_) {
+      return std::make_shared<object::Account>(std::make_shared<Account>(final_chain_, *transaction_->getReceiver()));
+    }
+  }
+  return std::make_shared<object::Account>(
+      std::make_shared<Account>(final_chain_, *transaction_->getReceiver(), location_->blk_n));
 }
 
 response::Value Transaction::getValue() const noexcept { return response::Value(transaction_->getValue().str()); }

@@ -27,7 +27,7 @@ Query::Query(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain,
       kChainId(chain_id) {}
 
 std::shared_ptr<object::Block> Query::getBlock(std::optional<response::Value>&& number,
-                                               std::optional<response::Value>&& hash) const noexcept {
+                                               std::optional<response::Value>&& hash) const {
   if (number) {
     if (auto block_header = final_chain_->block_header(number->get<int>())) {
       return std::make_shared<object::Block>(
@@ -49,11 +49,18 @@ std::shared_ptr<object::Block> Query::getBlock(std::optional<response::Value>&& 
 }
 
 std::vector<std::shared_ptr<object::Block>> Query::getBlocks(response::Value&& fromArg,
-                                                             std::optional<response::Value>&& toArg) const noexcept {
+                                                             std::optional<response::Value>&& toArg) const {
   std::vector<std::shared_ptr<object::Block>> blocks;
 
-  const uint64_t start_block_num = fromArg.get<int>();
-  uint64_t end_block_num = toArg ? toArg->get<int>() : start_block_num + Query::kMaxPropagationLimit;
+  uint64_t start_block_num = fromArg.get<int>();
+  uint64_t end_block_num = toArg ? toArg->get<int>() : (start_block_num + Query::kMaxPropagationLimit);
+
+  // Incase of reverse order of blocks
+  if (start_block_num > end_block_num) {
+    auto tmp = start_block_num;
+    start_block_num = end_block_num;
+    end_block_num = tmp;
+  }
 
   if (end_block_num - start_block_num > Query::kMaxPropagationLimit) {
     end_block_num = start_block_num + Query::kMaxPropagationLimit;
@@ -76,7 +83,7 @@ std::vector<std::shared_ptr<object::Block>> Query::getBlocks(response::Value&& f
   return blocks;
 }
 
-std::shared_ptr<object::Transaction> Query::getTransaction(response::Value&& hashArg) const noexcept {
+std::shared_ptr<object::Transaction> Query::getTransaction(response::Value&& hashArg) const {
   if (auto transaction = transaction_manager_->getTransaction(::taraxa::trx_hash_t(hashArg.get<std::string>()))) {
     return std::make_shared<object::Transaction>(
         std::make_shared<Transaction>(final_chain_, transaction_manager_, std::move(transaction)));
@@ -84,15 +91,25 @@ std::shared_ptr<object::Transaction> Query::getTransaction(response::Value&& has
   return nullptr;
 }
 
-response::Value Query::getGasPrice() const noexcept { return response::Value(dev::toJS(gas_pricer_->bid())); }
+std::shared_ptr<object::Account> Query::getAccount(response::Value&& addressArg,
+                                                   std::optional<response::Value>&& blockArg) const {
+  const auto address = ::taraxa::addr_t(addressArg.get<std::string>());
+  if (blockArg) {
+    return std::make_shared<object::Account>(std::make_shared<Account>(final_chain_, address, blockArg->get<int>()));
+  } else {
+    return std::make_shared<object::Account>(std::make_shared<Account>(final_chain_, address));
+  }
+}
 
-std::shared_ptr<object::SyncState> Query::getSyncing() const noexcept {
+response::Value Query::getGasPrice() const { return response::Value(dev::toJS(gas_pricer_->bid())); }
+
+std::shared_ptr<object::SyncState> Query::getSyncing() const {
   return std::make_shared<object::SyncState>(std::make_shared<SyncState>(final_chain_, network_));
 }
 
-response::Value Query::getChainID() const noexcept { return response::Value(dev::toJS(kChainId)); }
+response::Value Query::getChainID() const { return response::Value(dev::toJS(kChainId)); }
 
-std::shared_ptr<object::DagBlock> Query::getDagBlock(std::optional<response::Value>&& hashArg) const noexcept {
+std::shared_ptr<object::DagBlock> Query::getDagBlock(std::optional<response::Value>&& hashArg) const {
   std::shared_ptr<::taraxa::DagBlock> taraxa_dag_block = nullptr;
 
   if (hashArg) {
@@ -110,9 +127,29 @@ std::shared_ptr<object::DagBlock> Query::getDagBlock(std::optional<response::Val
                           : nullptr;
 }
 
+std::vector<std::shared_ptr<object::DagBlock>> Query::getPeriodDagBlocks(
+    std::optional<response::Value>&& periodArg) const {
+  std::vector<std::shared_ptr<object::DagBlock>> blocks;
+  uint32_t period;
+  if (periodArg) {
+    period = periodArg->get<int>();
+  } else {
+    period = final_chain_->last_block_number();
+  }
+  auto dag_blocks = db_->getFinalizedDagBlockByPeriod(period);
+  if (dag_blocks.size()) {
+    blocks.reserve(dag_blocks.size());
+    for (auto block : dag_blocks) {
+      blocks.emplace_back(std::make_shared<object::DagBlock>(
+          std::make_shared<DagBlock>(std::move(block), final_chain_, pbft_manager_, transaction_manager_)));
+    }
+  }
+  return blocks;
+}
+
 std::vector<std::shared_ptr<object::DagBlock>> Query::getDagBlocks(std::optional<response::Value>&& dagLevelArg,
                                                                    std::optional<int>&& countArg,
-                                                                   std::optional<bool>&& reverseArg) const noexcept {
+                                                                   std::optional<bool>&& reverseArg) const {
   std::vector<std::shared_ptr<object::DagBlock>> dag_blocks_result;
   ::taraxa::level_t act_dag_level = dag_manager_->getMaxLevel();
 
@@ -158,7 +195,7 @@ std::vector<std::shared_ptr<object::DagBlock>> Query::getDagBlocks(std::optional
   return dag_blocks_result;
 }
 
-std::shared_ptr<object::CurrentState> Query::getNodeState() const noexcept {
+std::shared_ptr<object::CurrentState> Query::getNodeState() const {
   return std::make_shared<object::CurrentState>(std::make_shared<CurrentState>(final_chain_, dag_manager_));
 }
 

@@ -21,6 +21,9 @@ class DagBlock {
   std::optional<response::Value> getPbftPeriod() const noexcept;
   std::shared_ptr<object::Account> getAuthor() const noexcept;
   response::Value getTimestamp() const noexcept;
+  response::Value getSignature() const noexcept;
+  int getVdf() const noexcept;
+  int getTransactionCount() const noexcept;
   std::optional<std::vector<std::shared_ptr<object::Transaction>>> getTransactions() const noexcept;
 
  private:
@@ -28,6 +31,8 @@ class DagBlock {
   std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain_;
   std::shared_ptr<::taraxa::PbftManager> pbft_manager_;
   std::shared_ptr<::taraxa::TransactionManager> transaction_manager_;
+
+  mutable std::optional<uint64_t> period_;
 };
 
 }  // namespace graphql::taraxa
