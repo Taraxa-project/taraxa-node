@@ -1,7 +1,7 @@
 var classgraphql_1_1taraxa_1_1_block =
 [
     [ "Block", "classgraphql_1_1taraxa_1_1_block.html#ae1967a17731e63316a0f4adedb2d4099", null ],
-    [ "getAccount", "classgraphql_1_1taraxa_1_1_block.html#a079959c0e578f5fa54d1c912d2ebf896", null ],
+    [ "getAccount", "classgraphql_1_1taraxa_1_1_block.html#a96060ecd589e9063f14095009b9b05fd", null ],
     [ "getCall", "classgraphql_1_1taraxa_1_1_block.html#a668c11a020987bc2c1b4ff1fad9041b0", null ],
     [ "getDifficulty", "classgraphql_1_1taraxa_1_1_block.html#a0abb206a60b4509eb2396eface8b8314", null ],
     [ "getEstimateGas", "classgraphql_1_1taraxa_1_1_block.html#a5ad0ef6cdfd900b343e449d3856e3595", null ],
@@ -11,7 +11,7 @@ var classgraphql_1_1taraxa_1_1_block =
     [ "getHash", "classgraphql_1_1taraxa_1_1_block.html#a293165b68a9b9c0aad2d8f3d188aa793", null ],
     [ "getLogs", "classgraphql_1_1taraxa_1_1_block.html#a1955f1cc6bea232b44585a8360aa2af3", null ],
     [ "getLogsBloom", "classgraphql_1_1taraxa_1_1_block.html#ad68e31fa27230a47c1a7a64c42ad666f", null ],
-    [ "getMiner", "classgraphql_1_1taraxa_1_1_block.html#a0c65038494aecb2446377c77caa3c5fc", null ],
+    [ "getMiner", "classgraphql_1_1taraxa_1_1_block.html#acfef67a9d1511dee99f559cad35000c0", null ],
     [ "getMixHash", "classgraphql_1_1taraxa_1_1_block.html#a24e3d44b7192f7867823006b98737c31", null ],
     [ "getNonce", "classgraphql_1_1taraxa_1_1_block.html#a1342af6b0407f01412b0b1188b5a9525", null ],
     [ "getNumber", "classgraphql_1_1taraxa_1_1_block.html#a3ecfb3bf226f40dd7313b1fa918a2204", null ],

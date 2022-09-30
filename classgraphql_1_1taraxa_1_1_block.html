@@ -112,8 +112,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a7fe0eeb2e4ace49b8f09cdde51107154"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a37dcf952bdafc69a4e5c4728d3504f31"><td class="memItemLeft" align="right" valign="top">response::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_block.html#a37dcf952bdafc69a4e5c4728d3504f31">getReceiptsRoot</a> () const noexcept</td></tr>
 <tr class="separator:a37dcf952bdafc69a4e5c4728d3504f31"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0c65038494aecb2446377c77caa3c5fc"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; object::Account &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_block.html#a0c65038494aecb2446377c77caa3c5fc">getMiner</a> (std::optional&lt; response::Value &gt; &amp;&amp;blockArg) const noexcept</td></tr>
-<tr class="separator:a0c65038494aecb2446377c77caa3c5fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acfef67a9d1511dee99f559cad35000c0"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; object::Account &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_block.html#acfef67a9d1511dee99f559cad35000c0">getMiner</a> (std::optional&lt; response::Value &gt; &amp;&amp;blockArg) const</td></tr>
+<tr class="separator:acfef67a9d1511dee99f559cad35000c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aad38071c41a1d22744f216911d20fba0"><td class="memItemLeft" align="right" valign="top">response::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_block.html#aad38071c41a1d22744f216911d20fba0">getExtraData</a> () const noexcept</td></tr>
 <tr class="separator:aad38071c41a1d22744f216911d20fba0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6d87121eb06333d7c5a34f36e5efbcc3"><td class="memItemLeft" align="right" valign="top">response::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_block.html#a6d87121eb06333d7c5a34f36e5efbcc3">getGasLimit</a> () const noexcept</td></tr>
@@ -144,8 +144,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a12d7406de9675e226d7dfa612183b699"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1955f1cc6bea232b44585a8360aa2af3"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; object::Log &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_block.html#a1955f1cc6bea232b44585a8360aa2af3">getLogs</a> (BlockFilterCriteria &amp;&amp;filterArg) const noexcept</td></tr>
 <tr class="separator:a1955f1cc6bea232b44585a8360aa2af3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a079959c0e578f5fa54d1c912d2ebf896"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; object::Account &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_block.html#a079959c0e578f5fa54d1c912d2ebf896">getAccount</a> (response::Value &amp;&amp;addressArg) const noexcept</td></tr>
-<tr class="separator:a079959c0e578f5fa54d1c912d2ebf896"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a96060ecd589e9063f14095009b9b05fd"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; object::Account &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_block.html#a96060ecd589e9063f14095009b9b05fd">getAccount</a> (response::Value &amp;&amp;addressArg) const</td></tr>
+<tr class="separator:a96060ecd589e9063f14095009b9b05fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a668c11a020987bc2c1b4ff1fad9041b0"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; object::CallResult &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_block.html#a668c11a020987bc2c1b4ff1fad9041b0">getCall</a> (CallData &amp;&amp;dataArg) const noexcept</td></tr>
 <tr class="separator:a668c11a020987bc2c1b4ff1fad9041b0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5ad0ef6cdfd900b343e449d3856e3595"><td class="memItemLeft" align="right" valign="top">response::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_block.html#a5ad0ef6cdfd900b343e449d3856e3595">getEstimateGas</a> (CallData &amp;&amp;dataArg) const noexcept</td></tr>
@@ -206,14 +206,11 @@ Private Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a079959c0e578f5fa54d1c912d2ebf896"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a079959c0e578f5fa54d1c912d2ebf896">&#9670;&nbsp;</a></span>getAccount()</h2>
+<a id="a96060ecd589e9063f14095009b9b05fd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a96060ecd589e9063f14095009b9b05fd">&#9670;&nbsp;</a></span>getAccount()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">std::shared_ptr&lt; object::Account &gt; graphql::taraxa::Block::getAccount </td>
@@ -223,11 +220,6 @@ Private Attributes</h2></td></tr>
           <td> const</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 </div>
@@ -460,14 +452,11 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a0c65038494aecb2446377c77caa3c5fc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0c65038494aecb2446377c77caa3c5fc">&#9670;&nbsp;</a></span>getMiner()</h2>
+<a id="acfef67a9d1511dee99f559cad35000c0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acfef67a9d1511dee99f559cad35000c0">&#9670;&nbsp;</a></span>getMiner()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">std::shared_ptr&lt; object::Account &gt; graphql::taraxa::Block::getMiner </td>
@@ -477,11 +466,6 @@ Private Attributes</h2></td></tr>
           <td> const</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 </div>

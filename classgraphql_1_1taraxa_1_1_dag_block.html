@@ -110,6 +110,12 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a791e59af327bace06becde62ad59ea6d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a77ba05ccdedf027940bf5a26e821637b"><td class="memItemLeft" align="right" valign="top">response::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_dag_block.html#a77ba05ccdedf027940bf5a26e821637b">getTimestamp</a> () const noexcept</td></tr>
 <tr class="separator:a77ba05ccdedf027940bf5a26e821637b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac2303722b0e509e22ade4720b113d467"><td class="memItemLeft" align="right" valign="top">response::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_dag_block.html#ac2303722b0e509e22ade4720b113d467">getSignature</a> () const noexcept</td></tr>
+<tr class="separator:ac2303722b0e509e22ade4720b113d467"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa93de8b3a8af3da82d2150f25eec0d7e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_dag_block.html#aa93de8b3a8af3da82d2150f25eec0d7e">getVdf</a> () const noexcept</td></tr>
+<tr class="separator:aa93de8b3a8af3da82d2150f25eec0d7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f6138a2169e7ec5f5a03462eef34094"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_dag_block.html#a1f6138a2169e7ec5f5a03462eef34094">getTransactionCount</a> () const noexcept</td></tr>
+<tr class="separator:a1f6138a2169e7ec5f5a03462eef34094"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8019a272aa3cee961810b82b13f0e8c6"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::vector&lt; std::shared_ptr&lt; object::Transaction &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_dag_block.html#a8019a272aa3cee961810b82b13f0e8c6">getTransactions</a> () const noexcept</td></tr>
 <tr class="separator:a8019a272aa3cee961810b82b13f0e8c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -123,6 +129,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a4ca8c98fa0895a2d468b3dbc22f835f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a62db2b51be5f3c8941927e095d7b9076"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt;::<a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">taraxa::TransactionManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_dag_block.html#a62db2b51be5f3c8941927e095d7b9076">transaction_manager_</a></td></tr>
 <tr class="separator:a62db2b51be5f3c8941927e095d7b9076"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a02d9fa9864ec9276255f0d99f1830110"><td class="memItemLeft" align="right" valign="top">std::optional&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_dag_block.html#a02d9fa9864ec9276255f0d99f1830110">period_</a></td></tr>
+<tr class="separator:a02d9fa9864ec9276255f0d99f1830110"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="adca4dbb4250b88dbfc86d405be7060b9"></a>
@@ -299,6 +307,31 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="ac2303722b0e509e22ade4720b113d467"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac2303722b0e509e22ade4720b113d467">&#9670;&nbsp;</a></span>getSignature()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">response::Value graphql::taraxa::DagBlock::getSignature </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a77ba05ccdedf027940bf5a26e821637b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a77ba05ccdedf027940bf5a26e821637b">&#9670;&nbsp;</a></span>getTimestamp()</h2>
 
@@ -349,6 +382,31 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a1f6138a2169e7ec5f5a03462eef34094"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1f6138a2169e7ec5f5a03462eef34094">&#9670;&nbsp;</a></span>getTransactionCount()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int graphql::taraxa::DagBlock::getTransactionCount </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a8019a272aa3cee961810b82b13f0e8c6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8019a272aa3cee961810b82b13f0e8c6">&#9670;&nbsp;</a></span>getTransactions()</h2>
 
@@ -360,6 +418,31 @@ Private Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::optional&lt; std::vector&lt; std::shared_ptr&lt; object::Transaction &gt; &gt; &gt; graphql::taraxa::DagBlock::getTransactions </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">noexcept</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa93de8b3a8af3da82d2150f25eec0d7e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa93de8b3a8af3da82d2150f25eec0d7e">&#9670;&nbsp;</a></span>getVdf()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">int graphql::taraxa::DagBlock::getVdf </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -435,6 +518,28 @@ Private Attributes</h2></td></tr>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a02d9fa9864ec9276255f0d99f1830110"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a02d9fa9864ec9276255f0d99f1830110">&#9670;&nbsp;</a></span>period_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt;uint64_t&gt; graphql::taraxa::DagBlock::period_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">mutable</span><span class="mlabel">private</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
