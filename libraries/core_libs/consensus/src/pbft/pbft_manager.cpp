@@ -47,7 +47,6 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
       NUMBER_OF_PROPOSERS(conf.number_of_proposers),
       DAG_BLOCKS_SIZE(conf.dag_blocks_size),
       GHOST_PATH_MOVE_BACK(conf.ghost_path_move_back),
-      RUN_COUNT_VOTES(false),  // this field is for tests only and almost the time is disabled
       dag_genesis_block_hash_(dag_genesis_block_hash),
       config_(conf),
       max_levels_per_period_(max_levels_per_period) {
@@ -65,11 +64,6 @@ void PbftManager::start() {
 
   daemon_ = std::make_unique<std::thread>([this]() { run(); });
   LOG(log_dg_) << "PBFT daemon initiated ...";
-  if (RUN_COUNT_VOTES) {
-    monitor_stop_ = false;
-    monitor_votes_ = std::make_shared<std::thread>([this]() { countVotes_(); });
-    LOG(log_nf_test_) << "PBFT monitor vote logs initiated";
-  }
 }
 
 void PbftManager::stop() {
@@ -77,15 +71,11 @@ void PbftManager::stop() {
     return;
   }
 
-  if (RUN_COUNT_VOTES) {
-    monitor_stop_ = true;
-    monitor_votes_->join();
-    LOG(log_nf_test_) << "PBFT monitor vote logs terminated";
-  }
   {
     std::unique_lock<std::mutex> lock(stop_mtx_);
     stop_cv_.notify_all();
   }
+
   daemon_->join();
   final_chain_->stop();
 
@@ -1647,52 +1637,6 @@ void PbftManager::updateTwoTPlusOneAndThreshold_() {
   two_t_plus_one_ = sortition_threshold_ * 2 / 3 + 1;
   LOG(log_nf_) << "Committee size " << COMMITTEE_SIZE << ", DPOS total votes count " << dpos_total_votes_count
                << ". Update 2t+1 " << two_t_plus_one_ << ", Threshold " << sortition_threshold_;
-}
-
-void PbftManager::countVotes_() const {
-  auto round = getPbftRound();
-  while (!monitor_stop_) {
-    auto verified_votes = vote_mgr_->getVerifiedVotes();
-    std::vector<std::shared_ptr<Vote>> votes;
-    votes.reserve(verified_votes.size());
-    votes.insert(votes.end(), std::make_move_iterator(verified_votes.begin()),
-                 std::make_move_iterator(verified_votes.end()));
-
-    size_t last_step_votes = 0;
-    size_t current_step_votes = 0;
-    for (auto const &v : votes) {
-      if (step_ == 1) {
-        if (v->getRound() == round - 1 && v->getStep() == last_step_) {
-          last_step_votes++;
-        } else if (v->getRound() == round && v->getStep() == step_) {
-          current_step_votes++;
-        }
-      } else {
-        if (v->getRound() == round) {
-          if (v->getStep() == step_ - 1) {
-            last_step_votes++;
-          } else if (v->getStep() == step_) {
-            current_step_votes++;
-          }
-        }
-      }
-    }
-
-    auto now = std::chrono::system_clock::now();
-    auto last_step_duration = now - last_step_clock_initial_datetime_;
-    auto elapsed_last_step_time_in_ms =
-        std::chrono::duration_cast<std::chrono::milliseconds>(last_step_duration).count();
-
-    auto current_step_duration = now - current_step_clock_initial_datetime_;
-    auto elapsed_current_step_time_in_ms =
-        std::chrono::duration_cast<std::chrono::milliseconds>(current_step_duration).count();
-
-    LOG(log_nf_test_) << "Round " << round << " step " << last_step_ << " time " << elapsed_last_step_time_in_ms
-                      << "(ms) has " << last_step_votes << " votes";
-    LOG(log_nf_test_) << "Round " << round << " step " << step_ << " time " << elapsed_current_step_time_in_ms
-                      << "(ms) has " << current_step_votes << " votes";
-    thisThreadSleepForMilliSeconds(POLLING_INTERVAL_ms / 2);
-  }
 }
 
 uint64_t PbftManager::pbftSyncingPeriod() const {

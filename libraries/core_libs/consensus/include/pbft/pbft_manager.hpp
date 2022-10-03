@@ -590,7 +590,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   const size_t NUMBER_OF_PROPOSERS;
   const size_t DAG_BLOCKS_SIZE;
   const size_t GHOST_PATH_MOVE_BACK;
-  bool RUN_COUNT_VOTES;  // TODO: Only for test, need remove later
 
   PbftStates state_ = value_proposal_state;
 
@@ -644,16 +643,12 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   const uint32_t max_levels_per_period_;
 
-  std::shared_ptr<std::thread> monitor_votes_ = nullptr;
-  std::atomic<bool> monitor_stop_ = true;
   size_t last_step_ = 0;
   time_point last_step_clock_initial_datetime_;
   time_point current_step_clock_initial_datetime_;
   // END TEST CODE
 
   LOG_OBJECTS_DEFINE
-  // TODO: remove this logger + countVotes functionality if we dont need it anymore...
-  mutable logger::Logger log_nf_test_{logger::createLogger(taraxa::logger::Verbosity::Info, "PBFT_TEST", node_addr_)};
 };
 
 /** @}*/
