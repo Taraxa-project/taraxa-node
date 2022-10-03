@@ -532,7 +532,7 @@ void PbftManager::initialState() {
     }
 
     // Use period from votes as soft_voted_block_data->block is optional
-    auto votes_period = soft_voted_block_data->soft_votes[0]->getPeriod();
+    const auto votes_period = soft_voted_block_data->soft_votes[0]->getPeriod();
 
     // Set soft_voted_block_for_round_ only if round and period match. Note: could differ in edge case when node crashed,
     // new period/round was already saved in db but soft voted block data was not cleared yet
@@ -735,7 +735,7 @@ std::optional<TwoTPlusOneSoftVotedBlockData> PbftManager::getTwoTPlusOneSoftVote
     if (!soft_voted_block_for_round_->block) {
       auto block = proposed_blocks_.getPbftProposedBlock(period, round, soft_voted_block_for_round_->block_hash);
       if (block) {
-        soft_voted_block_for_round_->block = block;
+        soft_voted_block_for_round_->block = std::move(block);
         db_->saveSoftVotedBlockDataInRound(*soft_voted_block_for_round_);
       }
     }
@@ -753,8 +753,8 @@ std::optional<TwoTPlusOneSoftVotedBlockData> PbftManager::getTwoTPlusOneSoftVote
     soft_voted_block_data.block =
         proposed_blocks_.getPbftProposedBlock(period, round, soft_votes_bundle->voted_block_hash);
 
-    soft_voted_block_for_round_ = soft_voted_block_data;
     db_->saveSoftVotedBlockDataInRound(soft_voted_block_data);
+    soft_voted_block_for_round_ = std::move(soft_voted_block_data);
 
     return soft_voted_block_for_round_;
   }
