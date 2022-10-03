@@ -16,8 +16,6 @@
 #include "pbft/soft_voted_block_data.hpp"
 
 #define NULL_BLOCK_HASH blk_hash_t(0)
-#define POLLING_INTERVAL_ms 100  // milliseconds...
-#define MAX_STEPS 13             // Need to be a odd number
 
 namespace taraxa {
 
@@ -223,7 +221,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Get PBFT lambda. PBFT lambda is a timer clock
    * @return PBFT lambda
    */
-  u_long getPbftInitialLambda() const { return LAMBDA_ms_MIN; }
+  std::chrono::milliseconds getPbftInitialLambda() const { return LAMBDA_ms_MIN; }
 
   /**
    * @brief Calculate DAG blocks ordering hash
@@ -337,6 +335,12 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param round
    */
   void resetPbftConsensus(uint64_t round);
+
+  /**
+   * @param start_time
+   * @return elapsed time in ms from provided start_time
+   */
+  std::chrono::milliseconds elapsedTimeInMs(const time_point &start_time);
 
   /**
    * @brief Time to sleep for PBFT protocol
@@ -587,10 +591,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   const dev::Public node_pub_;
   const vrf_sk_t vrf_sk_;
 
-  u_long const LAMBDA_ms_MIN;
-  u_long LAMBDA_ms = 0;
-  u_long LAMBDA_backoff_multiple = 1;
-  const u_long kMaxLambda = 60000;  // in ms, max lambda is 1 minutes
+  const std::chrono::milliseconds LAMBDA_ms_MIN;
+  std::chrono::milliseconds LAMBDA_ms{0};
+  uint64_t LAMBDA_backoff_multiple = 1;
+  const std::chrono::milliseconds kMaxLambda{60000};  // in ms, max lambda is 1 minutes
 
   const uint32_t kBroadcastVotesLambdaTime = 20;
   const uint32_t kRebroadcastVotesLambdaTime = 60;
@@ -598,9 +602,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   uint32_t rebroadcast_votes_counter_ = 1;
 
   std::default_random_engine random_engine_{std::random_device{}()};
-
-  // Flag that says if node is in sync after it enters new round
-  // bool new_round_in_sync_ = false;
 
   const size_t COMMITTEE_SIZE;
   const size_t NUMBER_OF_PROPOSERS;
@@ -622,12 +623,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::optional<blk_hash_t> previous_round_next_voted_value_{};
   bool previous_round_next_voted_null_block_hash_ = false;
 
-  time_point round_clock_initial_datetime_;
-  time_point now_;
-
-  std::chrono::duration<double> duration_;
-  u_long next_step_time_ms_ = 0;
-  u_long elapsed_time_in_round_ms_ = 0;
+  time_point current_round_start_datetime_;
+  time_point second_finish_step_start_datetime_;
+  std::chrono::milliseconds next_step_time_ms_{0};
 
   bool executed_pbft_block_ = false;
   bool next_voted_soft_value_ = false;
@@ -653,11 +651,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   ProposedBlocks proposed_blocks_;
 
   const uint32_t max_levels_per_period_;
-
-  size_t last_step_ = 0;
-  time_point last_step_clock_initial_datetime_;
-  time_point current_step_clock_initial_datetime_;
-  // END TEST CODE
 
   LOG_OBJECTS_DEFINE
 };

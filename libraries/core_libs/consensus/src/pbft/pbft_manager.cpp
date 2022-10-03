@@ -25,6 +25,9 @@
 namespace taraxa {
 using vrf_output_t = vrf_wrapper::vrf_output_t;
 
+constexpr std::chrono::milliseconds kPollingIntervalMs{100};
+constexpr size_t kMaxSteps{13};  // Need to be a odd number
+
 PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_block_hash, addr_t node_addr,
                          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
@@ -275,7 +278,7 @@ void PbftManager::waitForPeriodFinalization() {
     if (pbft_chain_->getPbftChainSize() <= final_chain_->last_block_number() + final_chain_->delegation_delay()) {
       break;
     }
-    thisThreadSleepForMilliSeconds(POLLING_INTERVAL_ms);
+    thisThreadSleepForMilliSeconds(kPollingIntervalMs.count());
   } while (!stopped_);
 }
 
@@ -304,18 +307,21 @@ std::optional<uint64_t> PbftManager::getCurrentNodeVotesCount() const {
 }
 
 void PbftManager::setPbftStep(size_t const pbft_step) {
-  last_step_ = step_;
   db_->savePbftMgrField(PbftMgrRoundStep::PbftStep, pbft_step);
   step_ = pbft_step;
 
-  if (step_ > MAX_STEPS && LAMBDA_backoff_multiple < 8) {
+  if (step_ > kMaxSteps && LAMBDA_backoff_multiple < 8) {
     // Note: We calculate the lambda for a step independently of prior steps
     //       in case missed earlier steps.
-    std::uniform_int_distribution<u_long> distribution(0, step_ - MAX_STEPS);
+    std::uniform_int_distribution<uint64_t> distribution(0, step_ - kMaxSteps);
     auto lambda_random_count = distribution(random_engine_);
     LAMBDA_backoff_multiple = 2 * LAMBDA_backoff_multiple;
-    LAMBDA_ms = std::min(kMaxLambda, LAMBDA_ms_MIN * (LAMBDA_backoff_multiple + lambda_random_count));
-    LOG(log_dg_) << "Surpassed max steps, exponentially backing off lambda to " << LAMBDA_ms << " ms in round "
+    LAMBDA_ms = LAMBDA_ms_MIN * (LAMBDA_backoff_multiple + lambda_random_count);
+    if (LAMBDA_ms > kMaxLambda) {
+      LAMBDA_ms = kMaxLambda;
+    }
+
+    LOG(log_dg_) << "Surpassed max steps, exponentially backing off lambda to " << LAMBDA_ms.count() << " ms in round "
                  << getPbftRound() << ", step " << step_;
   } else {
     LAMBDA_ms = LAMBDA_ms_MIN;
@@ -324,7 +330,6 @@ void PbftManager::setPbftStep(size_t const pbft_step) {
 }
 
 void PbftManager::resetStep() {
-  last_step_ = step_;
   step_ = 1;
   startingStepInRound_ = 1;
 
@@ -362,10 +367,6 @@ bool PbftManager::tryPushCertVotesBlock() {
     return false;
   }
 
-  duration_ = std::chrono::system_clock::now() - now_;
-  auto execute_trxs_in_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
-  LOG(log_dg_) << "PBFT block " << certified_block->voted_block_hash << " certified and pushed into chain in round "
-               << current_pbft_round << ". Execution time " << execute_trxs_in_ms << " [ms]";
   return true;
 }
 
@@ -427,7 +428,6 @@ bool PbftManager::advanceRound() {
 void PbftManager::resetPbftConsensus(uint64_t round) {
   LOG(log_dg_) << "Reset PBFT consensus to: period " << getPbftPeriod() << ", round " << round
                << ", step 1, and resetting clock.";
-  round_clock_initial_datetime_ = now_;
 
   // Reset broadcast counters
   broadcast_votes_counter_ = 1;
@@ -472,24 +472,27 @@ void PbftManager::resetPbftConsensus(uint64_t round) {
     executed_pbft_block_ = false;
   }
 
-  last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
-  current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+  current_round_start_datetime_ = std::chrono::system_clock::now();
+}
+
+std::chrono::milliseconds PbftManager::elapsedTimeInMs(const time_point &start_time) {
+  return std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time);
 }
 
 void PbftManager::sleep_() {
-  now_ = std::chrono::system_clock::now();
-  duration_ = now_ - round_clock_initial_datetime_;
-  elapsed_time_in_round_ms_ = std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
-  LOG(log_tr_) << "elapsed time in round(ms): " << elapsed_time_in_round_ms_ << ", step " << step_;
-  // Add 25ms for practical reality that a thread will not stall for less than 10-25 ms...
-  if (next_step_time_ms_ > elapsed_time_in_round_ms_ + 25) {
-    auto time_to_sleep_for_ms = next_step_time_ms_ - elapsed_time_in_round_ms_;
-    LOG(log_tr_) << "Time to sleep(ms): " << time_to_sleep_for_ms << " in round " << getPbftRound() << ", step "
-                 << step_;
+  // Run "wait_for" sleep in loop due to potential spurious wakeup on lock
+  while (true) {
+    const auto round_elapsed_time = elapsedTimeInMs(current_round_start_datetime_);
+    if (next_step_time_ms_ <= round_elapsed_time) {
+      return;
+    }
+
+    const auto time_to_sleep_for_ms = next_step_time_ms_ - round_elapsed_time;
+    const auto [round, period] = getPbftRoundAndPeriod();
+    LOG(log_tr_) << "Sleep " << time_to_sleep_for_ms.count() << " [ms] before going into the next step. Period "
+                 << period << ", round " << round << ", step " << step_;
     std::unique_lock<std::mutex> lock(stop_mtx_);
-    stop_cv_.wait_for(lock, std::chrono::milliseconds(time_to_sleep_for_ms));
-  } else {
-    LOG(log_tr_) << "Skipping sleep, running late...";
+    stop_cv_.wait_for(lock, time_to_sleep_for_ms);
   }
 }
 
@@ -502,6 +505,7 @@ void PbftManager::initialState() {
   const auto current_pbft_period = getPbftPeriod();
   const auto current_pbft_round = db_->getPbftMgrField(PbftMgrRoundStep::PbftRound);
   auto current_pbft_step = db_->getPbftMgrField(PbftMgrRoundStep::PbftStep);
+  const auto now = std::chrono::system_clock::now();
 
   if (current_pbft_round == 1 && current_pbft_step == 1) {
     // Node start from scratch
@@ -516,6 +520,7 @@ void PbftManager::initialState() {
   } else if (current_pbft_step % 2 == 1) {
     // Node start from DB in second finishing state
     state_ = finish_polling_state;
+    second_finish_step_start_datetime_ = now;
   } else {
     LOG(log_er_) << "Unexpected condition at round " << current_pbft_round << " step " << current_pbft_step;
     assert(false);
@@ -575,10 +580,8 @@ void PbftManager::initialState() {
   next_voted_soft_value_ = db_->getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue);
   next_voted_null_block_hash_ = db_->getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash);
 
-  round_clock_initial_datetime_ = std::chrono::system_clock::now();
-  current_step_clock_initial_datetime_ = round_clock_initial_datetime_;
-  last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
-  next_step_time_ms_ = 0;
+  current_round_start_datetime_ = now;
+  next_step_time_ms_ = std::chrono::milliseconds(0);
 
   waitForPeriodFinalization();
 
@@ -619,7 +622,7 @@ void PbftManager::setNextState_() {
       if (go_finish_state_) {
         setFinishState_();
       } else {
-        next_step_time_ms_ += POLLING_INTERVAL_ms;
+        next_step_time_ms_ += kPollingIntervalMs;
       }
       break;
     case finish_state:
@@ -629,30 +632,26 @@ void PbftManager::setNextState_() {
       if (loop_back_finish_state_) {
         loopBackFinishState_();
       } else {
-        next_step_time_ms_ += POLLING_INTERVAL_ms;
+        next_step_time_ms_ += kPollingIntervalMs;
       }
       break;
     default:
       LOG(log_er_) << "Unknown PBFT state " << state_;
       assert(false);
   }
-  LOG(log_tr_) << "next step time(ms): " << next_step_time_ms_ << ", step " << step_;
+  LOG(log_tr_) << "next step time(ms): " << next_step_time_ms_.count() << ", step " << step_;
 }
 
 void PbftManager::setFilterState_() {
   state_ = filter_state;
   setPbftStep(step_ + 1);
   next_step_time_ms_ = 2 * LAMBDA_ms;
-  last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
-  current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
 
 void PbftManager::setCertifyState_() {
   state_ = certify_state;
   setPbftStep(step_ + 1);
   next_step_time_ms_ = 2 * LAMBDA_ms;
-  last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
-  current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
 
 void PbftManager::setFinishState_() {
@@ -660,8 +659,6 @@ void PbftManager::setFinishState_() {
   state_ = finish_state;
   setPbftStep(step_ + 1);
   next_step_time_ms_ = 4 * LAMBDA_ms;
-  last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
-  current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
 
 void PbftManager::setFinishPollingState_() {
@@ -673,8 +670,7 @@ void PbftManager::setFinishPollingState_() {
   db_->commitWriteBatch(batch);
   next_voted_soft_value_ = false;
   next_voted_null_block_hash_ = false;
-  last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
-  current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+  second_finish_step_start_datetime_ = std::chrono::system_clock::now();
 }
 
 void PbftManager::loopBackFinishState_() {
@@ -699,9 +695,7 @@ void PbftManager::loopBackFinishState_() {
   next_voted_soft_value_ = false;
   next_voted_null_block_hash_ = false;
   assert(step_ >= startingStepInRound_);
-  next_step_time_ms_ += POLLING_INTERVAL_ms;
-  last_step_clock_initial_datetime_ = current_step_clock_initial_datetime_;
-  current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
+  next_step_time_ms_ += kPollingIntervalMs;
 }
 
 void PbftManager::broadcastVotes(bool rebroadcast) {
@@ -725,19 +719,16 @@ void PbftManager::broadcastVotes(bool rebroadcast) {
 
 bool PbftManager::stateOperations_() {
   pushSyncedPbftBlocksIntoChain();
-
   checkPreviousRoundNextVotedValueChange_();
 
-  now_ = std::chrono::system_clock::now();
-  duration_ = now_ - round_clock_initial_datetime_;
-  elapsed_time_in_round_ms_ = std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
+  const auto round_elapsed_time = elapsedTimeInMs(current_round_start_datetime_);
 
-  if (elapsed_time_in_round_ms_ / LAMBDA_ms_MIN > kRebroadcastVotesLambdaTime * rebroadcast_votes_counter_) {
+  if (round_elapsed_time / LAMBDA_ms_MIN > kRebroadcastVotesLambdaTime * rebroadcast_votes_counter_) {
     broadcastVotes(true);
     rebroadcast_votes_counter_++;
     // If there was a rebroadcast no need to do next broadcast either
     broadcast_votes_counter_++;
-  } else if (elapsed_time_in_round_ms_ / LAMBDA_ms_MIN > kBroadcastVotesLambdaTime * broadcast_votes_counter_) {
+  } else if (round_elapsed_time / LAMBDA_ms_MIN > kBroadcastVotesLambdaTime * broadcast_votes_counter_) {
     broadcastVotes(false);
     broadcast_votes_counter_++;
   }
@@ -759,8 +750,8 @@ bool PbftManager::stateOperations_() {
   // consensus steps (propose, soft-vote, cert-vote, next-vote). Nodes that have no delegation should just
   // observe 2t+1 cert votes to move to the next period or 2t+1 next votes to move to the next round
   if (!canParticipateInConsensus(period - 1)) {
-    // Check 2t+1 cert/next votes every POLLING_INTERVAL_ms
-    std::this_thread::sleep_for(std::chrono::milliseconds(POLLING_INTERVAL_ms));
+    // Check 2t+1 cert/next votes every kPollingIntervalMs
+    std::this_thread::sleep_for(std::chrono::milliseconds(kPollingIntervalMs));
     return true;
   }
 
@@ -944,17 +935,17 @@ void PbftManager::certifyBlock_() {
   auto [round, period] = getPbftRoundAndPeriod();
   LOG(log_dg_) << "PBFT certifying state in round: " << round << ", period: " << period;
 
-  go_finish_state_ = elapsed_time_in_round_ms_ > 4 * LAMBDA_ms - POLLING_INTERVAL_ms;
-
-  if (elapsed_time_in_round_ms_ < 2 * LAMBDA_ms) {
-    // Should not happen, add log here for safety checking
-    LOG(log_er_) << "PBFT Reached step 3 too quickly after only " << elapsed_time_in_round_ms_ << " (ms) in round "
-                 << round;
+  const auto elapsed_time_in_round = elapsedTimeInMs(current_round_start_datetime_);
+  go_finish_state_ = elapsed_time_in_round > 4 * LAMBDA_ms - kPollingIntervalMs;
+  if (go_finish_state_) {
+    LOG(log_dg_) << "Step 3 expired, will go to step 4 in round " << round;
     return;
   }
 
-  if (go_finish_state_) {
-    LOG(log_dg_) << "Step 3 expired, will go to step 4 in round " << round;
+  // Should not happen, add log here for safety checking
+  if (elapsed_time_in_round < 2 * LAMBDA_ms) {
+    LOG(log_er_) << "PBFT Reached step 3 too quickly after only " << elapsed_time_in_round.count() << " [ms] in round "
+                 << round;
     return;
   }
 
@@ -1054,10 +1045,6 @@ void PbftManager::secondFinish_() {
 
   assert(step_ >= startingStepInRound_);
 
-  auto elapsed_time_in_step = std::chrono::duration_cast<std::chrono::milliseconds>(
-                                  std::chrono::system_clock::now() - current_step_clock_initial_datetime_)
-                                  .count();
-
   // Have 2t+1 soft votes for some block
   if (auto soft_voted_block_data = getTwoTPlusOneSoftVotedBlockData(period, round); soft_voted_block_data.has_value()) {
     LOG(log_dg_) << "Regossip 2t+1 soft votes for " << soft_voted_block_data->block_hash_;
@@ -1084,7 +1071,7 @@ void PbftManager::secondFinish_() {
     }
   }
 
-  loop_back_finish_state_ = elapsed_time_in_step > (int64_t)(2 * (LAMBDA_ms - POLLING_INTERVAL_ms));
+  loop_back_finish_state_ = elapsedTimeInMs(second_finish_step_start_datetime_) > 2 * (LAMBDA_ms - kPollingIntervalMs);
 }
 
 std::shared_ptr<PbftBlock> PbftManager::generatePbftBlock(uint64_t propose_period, const blk_hash_t &prev_blk_hash,

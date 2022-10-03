@@ -396,7 +396,7 @@ TEST_F(PbftManagerTest, full_node_lambda_input_test) {
   node->start();
 
   auto pbft_mgr = node->getPbftManager();
-  EXPECT_EQ(pbft_mgr->getPbftInitialLambda(), 2000);
+  EXPECT_EQ(pbft_mgr->getPbftInitialLambda().count(), 2000);
 }
 
 TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
