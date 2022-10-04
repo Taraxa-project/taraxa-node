@@ -1674,7 +1674,7 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
   });
 }
 
-TEST_F(FullNodeTest, DISABLED_GraphQLTest) {
+TEST_F(FullNodeTest, graphql_test) {
   // Create a node with 5 pbft/eth blocks
   auto node_cfgs = make_node_cfgs<20>(1);
   auto nodes = launch_nodes(node_cfgs);
@@ -1713,7 +1713,7 @@ TEST_F(FullNodeTest, DISABLED_GraphQLTest) {
   auto data = service::ScalarArgument::require("data", result);
   auto block = service::ScalarArgument::require("block", data);
   auto number = service::IntArgument::require("number", block);
-  EXPECT_EQ(nodes[0]->getPbftChain()->getPbftChainSize(), number);
+  EXPECT_GE(nodes[0]->getPbftChain()->getPbftChainSize(), number);
 
   // Get block hash by number
   query = R"({ block(number:3) { hash } })"_graphql;
