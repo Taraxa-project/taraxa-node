@@ -220,7 +220,8 @@ class VoteManager {
    * @param two_t_plus_one PBFT 2t+1 is 2/3 of PBFT sortition threshold and plus 1
    * @return VotesBundle a bunch of votes that vote on the same voting value in the specific PBFT round and step
    */
-  std::optional<VotesBundle> getVotesBundle(uint64_t round, uint64_t period, size_t step, size_t two_t_plus_one) const;
+  std::optional<VotesBundle> getTwoTPlusOneVotesBundle(uint64_t round, uint64_t period, size_t step,
+                                                       size_t two_t_plus_one) const;
 
   /**
    * @brief Check if there are enough next voting type votes to set PBFT to a forward round within period

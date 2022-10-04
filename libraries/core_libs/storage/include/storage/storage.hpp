@@ -14,6 +14,7 @@
 #include "logger/logger.hpp"
 #include "pbft/pbft_block.hpp"
 #include "pbft/period_data.hpp"
+#include "pbft/soft_voted_block_data.hpp"
 #include "storage/uint_comparator.hpp"
 #include "transaction/transaction.hpp"
 
@@ -39,8 +40,6 @@ enum PbftMgrStatus : uint8_t {
   NextVotedSoftValue,
   NextVotedNullBlockHash,
 };
-
-enum PbftMgrVotedValue : uint8_t { SoftVotedBlockInRound, CertVotedBlockInRound };
 
 class DbException : public std::exception {
  public:
@@ -100,11 +99,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(pbft_mgr_round_step);
     COLUMN(pbft_period_2t_plus_1);
     COLUMN(pbft_mgr_status);
-    COLUMN(pbft_mgr_voted_value);
-    COLUMN(pbft_cert_voted_block);
+    COLUMN(soft_voted_block_in_round);  // Soft voted block + votes + round -> node saw 2t+1 soft votes for this block
+    COLUMN(cert_voted_block_in_round);  // Cert voted block + round -> node voted for this block
     COLUMN(pbft_head);
     COLUMN(verified_votes);
-    COLUMN(soft_votes);             // only for current PBFT round
     COLUMN(next_votes);             // only for previous PBFT round
     COLUMN(last_block_cert_votes);  // cert votes for last block in pbft chain
     COLUMN(pbft_block_period);
@@ -239,25 +237,23 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void savePbftMgrStatus(PbftMgrStatus field, bool const& value);
   void addPbftMgrStatusToBatch(PbftMgrStatus field, bool const& value, Batch& write_batch);
 
-  void savePbftMgrVotedValue(PbftMgrVotedValue field, const std::pair<blk_hash_t, uint64_t>& value);
-  void addPbftMgrVotedValueToBatch(PbftMgrVotedValue field, const std::pair<blk_hash_t, uint64_t>& value,
-                                   Batch& write_batch);
-  void removePbftMgrVotedValueToBatch(PbftMgrVotedValue field, Batch& write_batch);
-  std::optional<std::pair<blk_hash_t, uint64_t>> getPbftMgrVotedValue(PbftMgrVotedValue field);
+  void saveCertVotedBlockInRound(uint64_t round, const std::shared_ptr<PbftBlock>& block);
+  std::optional<std::pair<uint64_t /* round */, std::shared_ptr<PbftBlock>>> getCertVotedBlockInRound() const;
+  void removeCertVotedBlockInRound(Batch& write_batch);
 
-  std::shared_ptr<PbftBlock> getPbftCertVotedBlock(blk_hash_t const& block_hash);
-  void savePbftCertVotedBlock(PbftBlock const& pbft_block);
-  void addPbftCertVotedBlockToBatch(PbftBlock const& pbft_block, Batch& write_batch);
+  void saveSoftVotedBlockDataInRound(const TwoTPlusOneSoftVotedBlockData& soft_voted_block_data);
+  std::optional<TwoTPlusOneSoftVotedBlockData> getSoftVotedBlockDataInRound() const;
+  void removeSoftVotedBlockDataInRound(Batch& write_batch);
 
   // pbft_blocks
   std::optional<PbftBlock> getPbftBlock(blk_hash_t const& hash);
   bool pbftBlockInDb(blk_hash_t const& hash);
+
   // pbft_blocks (head)
-  // TODO: I would recommend storing this differently and not in the same db as
-  // regular blocks with real hashes. Need remove from DB
   string getPbftHead(blk_hash_t const& hash);
   void savePbftHead(blk_hash_t const& hash, string const& pbft_chain_head_str);
   void addPbftHeadToBatch(taraxa::blk_hash_t const& head_hash, std::string const& head_str, Batch& write_batch);
+
   // status
   uint64_t getStatusField(StatusDbField const& field);
   void saveStatusField(StatusDbField const& field, uint64_t value);
@@ -269,13 +265,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void saveVerifiedVote(std::shared_ptr<Vote> const& vote);
   void addVerifiedVoteToBatch(std::shared_ptr<Vote> const& vote, Batch& write_batch);
   void removeVerifiedVoteToBatch(vote_hash_t const& vote_hash, Batch& write_batch);
-
-  // Soft votes
-  std::vector<std::shared_ptr<Vote>> getSoftVotes(uint64_t pbft_round);
-  void saveSoftVotes(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& soft_votes);
-  void addSoftVotesToBatch(uint64_t pbft_round, std::vector<std::shared_ptr<Vote>> const& soft_votes,
-                           Batch& write_batch);
-  void removeSoftVotesToBatch(uint64_t pbft_round, Batch& write_batch);
 
   // Certified votes
   std::vector<std::shared_ptr<Vote>> getCertVotes(uint64_t period);

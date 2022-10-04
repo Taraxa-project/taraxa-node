@@ -98,7 +98,7 @@ class PbftChain {
    * @param pbft_block PBFT block
    * @return true if passed verification
    */
-  bool checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) const;
+  bool checkPbftBlockValidation(const std::shared_ptr<PbftBlock>& pbft_block) const;
 
  private:
   using UniqueLock = boost::unique_lock<boost::shared_mutex>;

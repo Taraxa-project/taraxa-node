@@ -472,8 +472,8 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t period
 }
 
 // TODO: Refactor call to put period before round
-std::optional<VotesBundle> VoteManager::getVotesBundle(uint64_t round, uint64_t period, size_t step,
-                                                       size_t two_t_plus_one) const {
+std::optional<VotesBundle> VoteManager::getTwoTPlusOneVotesBundle(uint64_t round, uint64_t period, size_t step,
+                                                                  size_t two_t_plus_one) const {
   SharedLock lock(verified_votes_access_);
 
   const auto found_period_it = verified_votes_.find(period);

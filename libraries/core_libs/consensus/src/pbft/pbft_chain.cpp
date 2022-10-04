@@ -91,17 +91,17 @@ void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash, blk_hash_t co
   last_pbft_block_hash_ = pbft_block_hash;
 }
 
-bool PbftChain::checkPbftBlockValidation(taraxa::PbftBlock const& pbft_block) const {
-  if (getPbftChainSize() + 1 != pbft_block.getPeriod()) {
+bool PbftChain::checkPbftBlockValidation(const std::shared_ptr<PbftBlock>& pbft_block) const {
+  if (getPbftChainSize() + 1 != pbft_block->getPeriod()) {
     LOG(log_er_) << "Pbft validation failed. PBFT chain size " << getPbftChainSize()
-                 << ". Pbft block period: " << pbft_block.getPeriod() << " for block " << pbft_block.getBlockHash();
+                 << ". Pbft block period: " << pbft_block->getPeriod() << " for block " << pbft_block->getBlockHash();
     return false;
   }
 
   auto last_pbft_block_hash = getLastPbftBlockHash();
-  if (pbft_block.getPrevBlockHash() != last_pbft_block_hash) {
+  if (pbft_block->getPrevBlockHash() != last_pbft_block_hash) {
     LOG(log_er_) << "PBFT chain last block hash " << last_pbft_block_hash << " Invalid PBFT prev block hash "
-                 << pbft_block.getPrevBlockHash() << " in block " << pbft_block.getBlockHash();
+                 << pbft_block->getPrevBlockHash() << " in block " << pbft_block->getBlockHash();
     return false;
   }
 
