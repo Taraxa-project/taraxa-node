@@ -1519,14 +1519,7 @@ void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finali
   const auto anchor = period_data.pbft_blk->getPivotDagBlockHash();
 
   // Sort transactions
-  std::stable_sort(period_data.transactions.begin(), period_data.transactions.end(),
-                   [](const auto &t1, const auto &t2) {
-                     if (t1->getSender() == t2->getSender()) {
-                       return t1->getNonce() < t2->getNonce() ||
-                              (t1->getNonce() == t2->getNonce() && t1->getGasPrice() > t2->getGasPrice());
-                     }
-                     return true;
-                   });
+  std::stable_sort(period_data.transactions.begin(), period_data.transactions.end(), transaction::priorityComparator);
 
   auto result = final_chain_->finalize(
       std::move(period_data), std::move(finalized_dag_blk_hashes),
