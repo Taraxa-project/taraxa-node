@@ -151,11 +151,16 @@ class FinalChainImpl final : public FinalChain {
     TransactionReceipts receipts;
     receipts.reserve(exec_results.size());
     gas_t cumulative_gas_used = 0;
+    uint64_t index = 0;
     for (auto const& r : exec_results) {
       LogEntries logs;
       logs.reserve(r.logs.size());
       for (auto const& l : r.logs) {
         logs.emplace_back(LogEntry{l.address, l.topics, l.data});
+      }
+      if (r.code_err.size() || r.consensus_err.size()) {
+        LOG(log_er_) << "Transaction: " << new_blk.transactions[index]->getHash() << " #code_err: " << r.code_err
+                     << " , #consensus_err: " << r.consensus_err;
       }
       receipts.emplace_back(TransactionReceipt{
           r.code_err.empty() && r.consensus_err.empty(),
@@ -164,6 +169,7 @@ class FinalChainImpl final : public FinalChain {
           std::move(logs),
           r.new_contract_addr ? std::optional(r.new_contract_addr) : std::nullopt,
       });
+      index++;
     }
     auto blk_header = append_block(batch, new_blk.pbft_blk->getBeneficiary(), new_blk.pbft_blk->getTimestamp(),
                                    GAS_LIMIT, state_root, new_blk.transactions, receipts);
