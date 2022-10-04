@@ -7,7 +7,7 @@
 namespace taraxa::core_tests {
 
 struct NodeDagCreationFixture : BaseTest {
-  uint64_t nonce = 0;
+  uint64_t nonce = 1;
   uint64_t dummy_nonce = 0;
   std::shared_ptr<FullNode> node;
   dev::KeyPair dummy = dev::KeyPair::create();
@@ -125,7 +125,7 @@ struct NodeDagCreationFixture : BaseTest {
     auto dag_genesis = node->getConfig().chain.dag_genesis_block.getHash();
     SortitionConfig vdf_config(node->getConfig().chain.sortition);
 
-    auto transactions = makeTransactions(levels * blocks_per_level * trx_per_block);
+    auto transactions = makeTransactions(levels * blocks_per_level * trx_per_block + 1);
     auto trx_estimation = node->getTransactionManager()->estimateTransactionGas(transactions.front(), {});
 
     blk_hash_t pivot = dag_genesis;
@@ -177,6 +177,7 @@ struct NodeDagCreationFixture : BaseTest {
       tips = {blk.getHash()};
     }
 
+    trx_itr_next++;
     EXPECT_EQ(trx_itr_next, transactions.end());
 
     return result;

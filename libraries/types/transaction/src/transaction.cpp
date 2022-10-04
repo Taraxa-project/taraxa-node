@@ -25,7 +25,7 @@ Transaction::Transaction(const trx_nonce_t &nonce, const val_t &value, const val
       value_(value),
       gas_price_(gas_price),
       gas_(gas),
-      data_(move(data)),
+      data_(std::move(data)),
       receiver_(receiver),
       chain_id_(chain_id),
       vrs_(sign(sk, hash_for_signature())),

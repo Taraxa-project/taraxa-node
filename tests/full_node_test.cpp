@@ -1,4 +1,3 @@
-
 #include <graphqlservice/GraphQLService.h>
 #include <graphqlservice/JSONResponse.h>
 #include <gtest/gtest.h>
@@ -49,7 +48,6 @@ void send_dummy_trx() {
                                         "value": 0,
                                         "gas_price": 1,
                                         "gas": 100000,
-                                        "nonce": 2004,
                                         "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7782 > /dev/null)";
 
   std::cout << "Send dummy transaction ..." << std::endl;
@@ -878,10 +876,10 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
   auto nodes = launch_nodes(node_cfgs);
 
   // send 1000 trxs
-  for (const auto &trx : samples::createSignedTrxSamples(0, 400, g_secret)) {
+  for (const auto &trx : samples::createSignedTrxSamples(1, 400, g_secret)) {
     nodes[0]->getTransactionManager()->insertTransaction(trx);
   }
-  for (const auto &trx : samples::createSignedTrxSamples(400, 1000, g_secret)) {
+  for (const auto &trx : samples::createSignedTrxSamples(401, 1000, g_secret)) {
     nodes[1]->getTransactionManager()->insertTransaction(trx);
   }
 
@@ -918,10 +916,10 @@ TEST_F(FullNodeTest, persist_counter) {
     auto nodes = launch_nodes(node_cfgs);
 
     // send 1000 trxs
-    for (const auto &trx : samples::createSignedTrxSamples(0, 400, g_secret)) {
+    for (const auto &trx : samples::createSignedTrxSamples(1, 400, g_secret)) {
       nodes[0]->getTransactionManager()->insertTransaction(trx);
     }
-    for (const auto &trx : samples::createSignedTrxSamples(400, 1000, g_secret)) {
+    for (const auto &trx : samples::createSignedTrxSamples(401, 1000, g_secret)) {
       nodes[1]->getTransactionManager()->insertTransaction(trx);
     }
 
@@ -1017,13 +1015,13 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
 "eth_sendRawTransaction", "params":
-["0xf868808502540be40082520894cb36e7dc45bdf421f6b6f64a75a3760393d3cf598401312d00801ba07659e8c7207a4b2cd96488108fed54c463b1719b438add1159beed04f6660da8a028feb0a3b44bd34e0dd608f82aeeb2cd70d1305653b5dc33678be2ffcfcac997"
+["0xf86c0180830186a0948a73eb33a449c5875c6f22afbe3f666606c27bb6648c00fedcba98765432100000001ca0b8c05088645fdce361cbef72c304fb7bef72baef0396743aec9ea19bf258bd3da037154cf300f768d06f24189d4cf4f23921d696973b3fb23a5950da5ca1ca0f7c"
                                       ]}' 0.0.0.0:7782)";
 
   std::string send_raw_trx2 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
 "eth_sendRawTransaction", "params":
-["0xf868018502540be40082520894cb36e7dc45bdf421f6b6f64a75a3760393d3cf598401312d00801ba05256492dd60623ab5a403ed1b508f845f87f631d2c2e7acd4357cd83ef5b6540a042def7cd4f3c25ce67ee25911740dab47161e096f1dd024badecec58888a890b"
+["0xf86d0280830186a094cad9ed1711133943b1a6ca50d3741f871c07991281c88c00fedcba98765432100000001ca0ab735dbf255a3ac9fb1680272583a47397569ece015a12d2e1d955db429c9c69a05430325ef3b098d36673467661610d884e72efc46a6588f81f237dcecc841520"
                                       ]}' 0.0.0.0:7782)";
 
   std::cout << "Send first trx ..." << std::endl;
@@ -1055,13 +1053,13 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
 "eth_sendRawTransaction", "params":
-["0xf86b808502540be40082520894973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b087038d7ea4c68000801ca04cef8610e05b4476673c369204899da747a9b32b0ad3769814b620281c900408a0130499a83d0b56c184c6ac518f6bbe2f8f946b65bf42b08cfc9b4dfbe2ebfd04"
+["0xf86c0180830186a0948a73eb33a449c5875c6f22afbe3f666606c27bb6648c00fedcba98765432100000001ca0b8c05088645fdce361cbef72c304fb7bef72baef0396743aec9ea19bf258bd3da037154cf300f768d06f24189d4cf4f23921d696973b3fb23a5950da5ca1ca0f7c"
                                       ]}' 0.0.0.0:7782)";
 
   std::string send_raw_trx2 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
 "eth_sendRawTransaction", "params":
-["0xf86b018502540be40082520894973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b087038d7ea4c68000801ca06644c30a23286d0de8fa107f1bded3a7a214004042b2007b2a9a62c8b313cf79a06cbb522856838b107542d8213286928500b2822584d6c7c6fee3a2c348cade4a"
+["0xf86d0280830186a094cad9ed1711133943b1a6ca50d3741f871c07991281c88c00fedcba98765432100000001ca0ab735dbf255a3ac9fb1680272583a47397569ece015a12d2e1d955db429c9c69a05430325ef3b098d36673467661610d884e72efc46a6588f81f237dcecc841520"
                                       ]}' 0.0.0.0:7782)";
 
   std::cout << "Send first trx ..." << std::endl;
@@ -1155,7 +1153,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   }
 
   std::cout << "Checking all nodes executed transactions at initialization" << std::endl;
-  wait({150s, 2s}, [&](auto &ctx) {
+  wait({50s, 3s}, [&](auto &ctx) {
     for (size_t i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
@@ -1171,6 +1169,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
       }
     }
   });
+  ASSERT_EQ(nodes.back()->getDB()->getNumTransactionExecuted(), trxs_count);
   // Check account balance for each node
   for (size_t i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..." << std::endl;
@@ -1185,13 +1184,15 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
 
   // Sending coins in Robin Cycle
   auto send_coins = 1;
+  std::vector<uint64_t> nonces(nodes.size(), 1);
+  nonces[0] = nonce;
   for (size_t i(0); i < nodes.size(); ++i) {
     auto receiver_index = (i + 1) % nodes.size();
     // Each node sends 500 transactions
     auto j = 0;
     for (; j < 500; j++) {
       auto send_coins_in_robin_cycle =
-          std::make_shared<Transaction>(nonce++, send_coins, gas_price, 100000, bytes(), nodes[i]->getSecretKey(),
+          std::make_shared<Transaction>(nonces[i]++, send_coins, gas_price, 100000, bytes(), nodes[i]->getSecretKey(),
                                         nodes[receiver_index]->getAddress());
       // broadcast trx and insert
       nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle);
@@ -1199,9 +1200,10 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     }
     std::cout << "Node" << i << " sends " << j << " transactions to Node" << receiver_index << std::endl;
   }
+  nonce = nonces[0];
   std::cout << "Checking all nodes execute transactions from robin cycle" << std::endl;
 
-  wait({150s, 2s}, [&](auto &ctx) {
+  wait({50s, 3s}, [&](auto &ctx) {
     for (size_t i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
@@ -1212,6 +1214,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
           // broadcast dummy transaction
           nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
           trxs_count++;
+          thisThreadSleepForMilliSeconds(100);
           return;
         }
       }

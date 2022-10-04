@@ -707,7 +707,7 @@ TEST_F(PbftManagerWithDagCreation, trx_generation) {
     insertTransactions(trxs);
 
     EXPECT_HAPPENS({10s, 500ms},
-                   [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce); });
+                   [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce - 1); });
     std::cout << "Creation and applying of " << count << " transactions is ok" << std::endl;
   }
 }
@@ -731,7 +731,7 @@ TEST_F(PbftManagerWithDagCreation, dag_generation) {
   generateAndApplyInitialDag();
 
   EXPECT_HAPPENS({10s, 250ms}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce);
+    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce - 1);
   });
 
   auto nonce_before = nonce;
@@ -740,12 +740,12 @@ TEST_F(PbftManagerWithDagCreation, dag_generation) {
     insertBlocks(std::move(blocks));
   }
 
-  auto tx_count = 20 * 5 * 5;
+  auto tx_count = 20 * 5 * 5 + 1;
   EXPECT_EQ(nonce, nonce_before + tx_count);
 
   EXPECT_HAPPENS({20s, 250ms}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce);
-    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce);
+    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce - 1);
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce - 1);
   });
 }
 
@@ -823,7 +823,7 @@ TEST_F(PbftManagerWithDagCreation, limit_pbft_block) {
   auto trx_in_block = 5;
   insertBlocks(generateDagBlocks(20, 5, trx_in_block));
 
-  uint64_t tx_count = 20 * 5 * 5;
+  uint64_t tx_count = 20 * 5 * 5 + 1;
 
   EXPECT_HAPPENS({60s, 500ms}, [&](auto &ctx) {
     WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), trxs_before + tx_count);
@@ -866,7 +866,7 @@ TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
   ASSERT_EQ(trx_count, node->getDB()->getNumTransactionExecuted());
   ++starting_block_number;
 
-  trx_count += 5 * trx_in_block;
+  trx_count += 5 * trx_in_block + 1;
   // We are starting to process new dag blocks only from the next period(block), so add 1
   EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
     // all transactions should be included in 2 blocks
