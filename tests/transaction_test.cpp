@@ -187,18 +187,15 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
 TEST_F(TransactionTest, transaction_low_nonce) {
   auto db = std::make_shared<DbStorage>(data_dir);
   taraxa::FullNodeConfig cfg = FullNodeConfig("test");
-  cfg.chain.final_chain.state.execution_options.enable_nonce_skipping = true;
   auto final_chain = NewFinalChain(db, cfg);
   TransactionManager trx_mgr(FullNodeConfig(), db, final_chain, addr_t());
-  const auto& trx_nonce_2 = g_signed_trx_samples[1];
-  auto& trx_low_nonce = g_signed_trx_samples[0];
-  auto trx_samples = samples::createSignedTrxSamples(1, 2, dev::KeyPair::create().secret());
-  auto& trx_insufficient_balance = trx_samples[0];
+  const auto& trx_2 = g_signed_trx_samples[1];
+  auto& trx_1 = g_signed_trx_samples[0];
 
-  // Insert and execute transaction with nonce 2
-  EXPECT_TRUE(trx_mgr.insertTransaction(trx_nonce_2).first);
-  std::vector<trx_hash_t> trx_hashes;
-  trx_hashes.emplace_back(trx_nonce_2->getHash());
+  // Insert and execute transaction with nonce 1, 2
+  EXPECT_TRUE(trx_mgr.insertTransaction(trx_1).first);
+  EXPECT_TRUE(trx_mgr.insertTransaction(trx_2).first);
+  std::vector<trx_hash_t> trx_hashes{trx_1->getHash(), trx_2->getHash()};
   DagBlock dag_blk({}, {}, {}, trx_hashes, secret_t::random());
   db->saveDagBlock(dag_blk);
   std::vector<vote_hash_t> reward_votes_hashes;
@@ -206,37 +203,38 @@ TEST_F(TransactionTest, transaction_low_nonce) {
                                                 dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
   PeriodData period_data(pbft_block, {});
   period_data.dag_blocks.push_back(dag_blk);
-  SharedTransactions trxs{trx_nonce_2};
+  SharedTransactions trxs{trx_1, trx_2};
   period_data.transactions = trxs;
   auto batch = db->createWriteBatch();
-  db->saveTransactionPeriod(trx_nonce_2->getHash(), 1, 0);
+  db->saveTransactionPeriod(trx_1->getHash(), 1, 0);
+  db->saveTransactionPeriod(trx_2->getHash(), 1, 0);
   db->savePeriodData(period_data, batch);
   db->commitWriteBatch(batch);
   final_chain->finalize(std::move(period_data), {dag_blk.getHash()}).get();
 
   // Verify low nonce transaction is detected in verification
-  auto result = trx_mgr.verifyTransaction(trx_low_nonce);
+  auto low_nonce_trx = std::make_shared<Transaction>(1, 101, 0, 100000, dev::bytes(), g_secret, addr_t::random());
+  auto result = trx_mgr.verifyTransaction(low_nonce_trx);
   EXPECT_EQ(result.first, TransactionStatus::LowNonce);
-  EXPECT_FALSE(trx_mgr.insertTransaction(trx_low_nonce).first);
+  EXPECT_FALSE(trx_mgr.insertTransaction(low_nonce_trx).first);
+
+  // Verify dag blocks will pass verification if contain low nonce transactions
+  DagBlock dag_blk_with_low_nonce_transaction({}, {}, {}, {low_nonce_trx->getHash()}, secret_t::random());
+  EXPECT_FALSE(trx_mgr.getBlockTransactions(dag_blk_with_low_nonce_transaction).has_value());
+  trx_mgr.insertValidatedTransaction(std::move(low_nonce_trx), TransactionStatus::LowNonce);
+  EXPECT_TRUE(trx_mgr.getBlockTransactions(dag_blk_with_low_nonce_transaction).has_value());
 
   // Verify insufficient balance transaction is detected in verification
+  auto trx_insufficient_balance =
+      std::make_shared<Transaction>(3, final_chain->get_account(dev::toAddress(g_secret))->balance + 1, 0, 100000,
+                                    dev::bytes(), g_secret, addr_t::random());
   result = trx_mgr.verifyTransaction(trx_insufficient_balance);
   EXPECT_EQ(result.first, TransactionStatus::InsufficentBalance);
   EXPECT_FALSE(trx_mgr.insertTransaction(trx_insufficient_balance).first);
 
-  std::vector<trx_hash_t> trx_hashes_low_nonce;
-  trx_hashes_low_nonce.push_back(trx_low_nonce->getHash());
-  DagBlock dag_blk_with_low_nonce_transaction({}, {}, {}, trx_hashes_low_nonce, secret_t::random());
-
-  std::vector<trx_hash_t> trx_hashes_insufficient_balance;
-  trx_hashes_insufficient_balance.push_back(trx_insufficient_balance->getHash());
-  DagBlock dag_blk_with_insufficient_balance_transaction({}, {}, {}, trx_hashes_insufficient_balance,
+  // Verify dag blocks will pass verification if contain insufficient balance transactions
+  DagBlock dag_blk_with_insufficient_balance_transaction({}, {}, {}, {trx_insufficient_balance->getHash()},
                                                          secret_t::random());
-
-  // Verify dag blocks will pass verification if contain low nonce or insufficient balance transactions
-  EXPECT_FALSE(trx_mgr.getBlockTransactions(dag_blk_with_low_nonce_transaction).has_value());
-  trx_mgr.insertValidatedTransaction(std::move(trx_low_nonce), TransactionStatus::LowNonce);
-  EXPECT_TRUE(trx_mgr.getBlockTransactions(dag_blk_with_low_nonce_transaction).has_value());
   EXPECT_FALSE(trx_mgr.getBlockTransactions(dag_blk_with_insufficient_balance_transaction).has_value());
   trx_mgr.insertValidatedTransaction(std::move(trx_insufficient_balance), TransactionStatus::InsufficentBalance);
   EXPECT_TRUE(trx_mgr.getBlockTransactions(dag_blk_with_insufficient_balance_transaction).has_value());

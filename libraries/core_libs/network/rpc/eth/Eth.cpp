@@ -266,7 +266,7 @@ class EthImpl : public Eth, EthParams {
             trx.gas.value_or(0),
             trx.data,
         },
-        blk_n, state_api::ExecutionOptions{true, false});
+        blk_n);
   }
 
   void set_transaction_defaults(TransactionSkeleton& t, EthBlockNumber blk_n) {

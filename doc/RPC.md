@@ -430,12 +430,9 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getConfig","params":[],"i
           "homestead_block": "0x0",
           "petersburg_block": "0x0"
         },
-        "execution_options": {
-          "disable_block_rewards": true,
-          "disable_gas_fee": false,
-          "disable_nonce_check": true,
-          "enable_nonce_skipping" : true,
-          "disable_stats_rewards": true
+        "block_rewards_options": {
+          "disable_block_rewards": false,
+          "disable_contract_distribution": false
         },
         "genesis_balances": {
           "0x0274cfffea9fa850e54c93a23042f12a87358a82": "0x141e8d17",

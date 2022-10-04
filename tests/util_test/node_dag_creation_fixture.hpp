@@ -35,8 +35,8 @@ struct NodeDagCreationFixture : BaseTest {
     modifyConfig(cfgs.front());
     node = create_nodes(cfgs, start).front();
 
-    auto trx =
-        std::make_shared<Transaction>(0, 1000000, 0, TEST_TX_GAS_LIMIT, bytes(), node->getSecretKey(), dummy.address());
+    auto trx = std::make_shared<Transaction>(nonce, 1000000, 0, TEST_TX_GAS_LIMIT, bytes(), node->getSecretKey(),
+                                             dummy.address());
     auto [ok, _] = node->getTransactionManager()->insertTransaction(trx);
     ASSERT_TRUE(ok);
     nonce++;
@@ -87,6 +87,7 @@ struct NodeDagCreationFixture : BaseTest {
     SharedTransactions result;
     auto _nonce = nonce;
     for (auto i = _nonce; i < _nonce + count; ++i) {
+      std::cout << "make transaction with nonce " << i << std::endl;
       result.emplace_back(
           std::make_shared<Transaction>(i, 11, 0, TEST_TX_GAS_LIMIT,
                                         // setGreeting("Hola")
@@ -154,6 +155,8 @@ struct NodeDagCreationFixture : BaseTest {
         std::transform(trx_itr, trx_itr_next, std::back_inserter(trx_hashes),
                        [](std::shared_ptr<Transaction> trx) { return trx->getHash(); });
         DagBlock blk(pivot, level, tips, trx_hashes, trx_per_block * trx_estimation, vdf, node->getSecretKey());
+        std::cout << "creating dag block " << blk.getHash() << " with [" << (*trx_itr)->getNonce() << ", "
+                  << (*trx_itr_next)->getNonce() << "]\n";
         this_level_blocks.push_back(blk.getHash());
         result.emplace_back(DagBlockWithTxs{blk, SharedTransactions(trx_itr, trx_itr_next)});
         trx_itr = trx_itr_next;
@@ -162,20 +165,18 @@ struct NodeDagCreationFixture : BaseTest {
       pivot = this_level_blocks.front();
     }
 
-    // create more dag blocks to finalize all previous
+    // create one more dag block to finalize all previous
     const auto proposal_period = db->getProposalPeriodForDagLevel(start_level + levels);
     const auto period_block_hash = db->getPeriodBlockHash(*proposal_period);
-    for (auto i = 0; i < 1; ++i) {
-      auto level = start_level + levels + i;
-      vdf_sortition::VdfSortition vdf(vdf_config, node->getVrfSecretKey(),
-                                      vrf_wrapper::VrfSortitionBase::makeVrfInput(level, period_block_hash));
-      vdf.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
-      DagBlock blk(pivot, level + i, tips, {transactions.rbegin()->get()->getHash()}, trx_per_block * trx_estimation,
-                   vdf, node->getSecretKey());
-      result.emplace_back(DagBlockWithTxs{blk, SharedTransactions(transactions.rbegin(), transactions.rbegin() + 1)});
-      pivot = blk.getHash();
-      tips = {blk.getHash()};
-    }
+    auto level = start_level + levels;
+    vdf_sortition::VdfSortition vdf(vdf_config, node->getVrfSecretKey(),
+                                    vrf_wrapper::VrfSortitionBase::makeVrfInput(level, period_block_hash));
+    vdf.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
+    DagBlock blk(pivot, level, tips, {transactions.rbegin()->get()->getHash()}, trx_per_block * trx_estimation, vdf,
+                 node->getSecretKey());
+    result.emplace_back(DagBlockWithTxs{blk, SharedTransactions(transactions.rbegin(), transactions.rbegin() + 1)});
+    pivot = blk.getHash();
+    tips = {blk.getHash()};
 
     trx_itr_next++;
     EXPECT_EQ(trx_itr_next, transactions.end());

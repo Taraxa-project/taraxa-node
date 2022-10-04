@@ -215,10 +215,6 @@
           "homestead_block": "0x0",
           "petersburg_block": "0x0"
         },
-        "execution_options": {
-          "disable_nonce_check": false,
-          "enable_nonce_skipping": true
-        },
         "block_rewards_options": {
           "disable_block_rewards": false,
           "disable_contract_distribution": false

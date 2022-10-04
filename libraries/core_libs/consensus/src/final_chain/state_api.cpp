@@ -159,10 +159,10 @@ bytes StateAPI::get_code_by_address(EthBlockNumber blk_num, addr_t const& addr) 
   return c_method_args_rlp<bytes, to_bytes, taraxa_evm_state_api_get_code_by_address>(this_c_, blk_num, addr);
 }
 
-ExecutionResult StateAPI::dry_run_transaction(EthBlockNumber blk_num, EVMBlock const& blk, EVMTransaction const& trx,
-                                              std::optional<ExecutionOptions> const& opts) const {
+ExecutionResult StateAPI::dry_run_transaction(EthBlockNumber blk_num, EVMBlock const& blk,
+                                              EVMTransaction const& trx) const {
   return c_method_args_rlp<ExecutionResult, from_rlp, taraxa_evm_state_api_dry_run_transaction>(this_c_, blk_num, blk,
-                                                                                                trx, opts);
+                                                                                                trx);
 }
 
 StateDescriptor StateAPI::get_last_committed_state_descriptor() const {

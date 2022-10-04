@@ -39,8 +39,7 @@ class StateAPI {
   std::optional<Account> get_account(EthBlockNumber blk_num, addr_t const& addr) const;
   u256 get_account_storage(EthBlockNumber blk_num, addr_t const& addr, u256 const& key) const;
   bytes get_code_by_address(EthBlockNumber blk_num, addr_t const& addr) const;
-  ExecutionResult dry_run_transaction(EthBlockNumber blk_num, EVMBlock const& blk, EVMTransaction const& trx,
-                                      std::optional<ExecutionOptions> const& opts = std::nullopt) const;
+  ExecutionResult dry_run_transaction(EthBlockNumber blk_num, EVMBlock const& blk, EVMTransaction const& trx) const;
   StateDescriptor get_last_committed_state_descriptor() const;
   StateTransitionResult const& transition_state(const EVMBlock& block,
                                                 const util::RangeView<EVMTransaction>& transactions,

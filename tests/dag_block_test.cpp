@@ -212,7 +212,7 @@ TEST_F(DagBlockMgrTest, incorrect_tx_estimation) {
   auto db = node->getDB();
   auto dag_mgr = node->getDagManager();
 
-  auto trx = samples::createSignedTrxSamples(0, 1, g_secret).front();
+  auto trx = samples::createSignedTrxSamples(1, 1, g_secret).front();
   node->getTransactionManager()->insertTransaction(trx);
   // Generate DAG blocks
   auto dag_genesis = node->getConfig().chain.dag_genesis_block.getHash();
@@ -248,7 +248,7 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
 
   std::vector<trx_hash_t> hashes;
   uint64_t estimations = 0;
-  for (size_t i = 0; i < 5; ++i) {
+  for (size_t i = 1; i <= 5; ++i) {
     auto create_trx = std::make_shared<Transaction>(i, 100, 0, 200001, dev::fromHex(samples::greeter_contract_code),
                                                     node->getSecretKey());
     auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(create_trx);

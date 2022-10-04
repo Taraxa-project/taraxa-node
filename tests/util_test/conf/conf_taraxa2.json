@@ -28,10 +28,6 @@
         "on": true,
         "verbosity": "ERROR",
         "channels": [
-          {
-            "name": "PBFT_VOTE_PH",
-            "verbosity": "DEBUG"
-          }
         ],
         "outputs": [
           {
