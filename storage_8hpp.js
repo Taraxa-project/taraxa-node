@@ -17,10 +17,6 @@ var storage_8hpp =
       [ "NextVotedSoftValue", "storage_8hpp.html#ab954ed608508c8193f4517797b4dae8eab4a0efd597ecd89350bff9384a8998e6", null ],
       [ "NextVotedNullBlockHash", "storage_8hpp.html#ab954ed608508c8193f4517797b4dae8ea3bf690f31dab9e5d4906ca934adbee6c", null ]
     ] ],
-    [ "PbftMgrVotedValue", "storage_8hpp.html#ac2dbdc97d5c79cc3e162083c102499ca", [
-      [ "SoftVotedBlockInRound", "storage_8hpp.html#ac2dbdc97d5c79cc3e162083c102499caa616f37a723cd302a144ecaf91094b88f", null ],
-      [ "CertVotedBlockInRound", "storage_8hpp.html#ac2dbdc97d5c79cc3e162083c102499caa94aaa540a03e4e7f7f726dda5579e8f4", null ]
-    ] ],
     [ "StatusDbField", "storage_8hpp.html#ac3d6a3ed52a696ba79164a87e643e901", [
       [ "ExecutedBlkCount", "storage_8hpp.html#ac3d6a3ed52a696ba79164a87e643e901aa2a2c44ef822e8f4d4fa2fc8b46d4ea4", null ],
       [ "ExecutedTrxCount", "storage_8hpp.html#ac3d6a3ed52a696ba79164a87e643e901a8a20ac8bbd519c242e59b667dbd99d94", null ],

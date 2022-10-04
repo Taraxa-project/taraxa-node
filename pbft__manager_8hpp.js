@@ -1,8 +1,6 @@
 var pbft__manager_8hpp =
 [
     [ "MAX_STEPS", "pbft__manager_8hpp.html#aa0414caef00a64a51d4c6c0711d9e70a", null ],
-    [ "MAX_WAIT_FOR_NEXT_VOTED_BLOCK_STEPS", "pbft__manager_8hpp.html#acfe33df5bb21b9d84d0ce915df7e32fa", null ],
-    [ "MAX_WAIT_FOR_SOFT_VOTED_BLOCK_STEPS", "pbft__manager_8hpp.html#a4507b38e5077b66f24b50819540ca02b", null ],
     [ "NULL_BLOCK_HASH", "pbft__manager_8hpp.html#aaa323b57ca01d7fc92ef5329a97a19c8", null ],
     [ "POLLING_INTERVAL_ms", "pbft__manager_8hpp.html#ad5ef49e4379dc8e1a94bcd2ca078e61e", null ],
     [ "PbftStates", "pbft__manager_8hpp.html#gaa671924d435517347832c7f40f1f6cfc", [

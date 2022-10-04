@@ -5,7 +5,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_chain =
     [ "UpgradableLock", "group___p_b_f_t.html#a977daad4b43b9a2846eaef0d0eaa4840", null ],
     [ "UpgradeLock", "group___p_b_f_t.html#a313d6072fe4c81808aa397a025e79946", null ],
     [ "PbftChain", "group___p_b_f_t.html#a9437dee7bab66a6671a3baabfaa5d177", null ],
-    [ "checkPbftBlockValidation", "group___p_b_f_t.html#a9fe36ea0c64687ca1af6f3b4cd52180e", null ],
+    [ "checkPbftBlockValidation", "group___p_b_f_t.html#a2c802f09565e3c42412e2c6d04105517", null ],
     [ "findPbftBlockInChain", "group___p_b_f_t.html#a068a96e0b08ed10fc6a08f412da6dd63", null ],
     [ "getHeadHash", "group___p_b_f_t.html#a665045b58c58cf6a8d43ecb9b983d8ad", null ],
     [ "getJsonStr", "group___p_b_f_t.html#aebf71150397fd977ca00618d1162de92", null ],

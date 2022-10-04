@@ -108,14 +108,14 @@ $(document).ready(function(){initNavTree('functions_s.html',''); initResizable()
 <li>save_state()
 : <a class="el" href="structdev_1_1p2p_1_1_host.html#aa933e4971277ca0f189da7a34a4e6e04">dev::p2p::Host</a>
 </li>
+<li>saveCertVotedBlockInRound()
+: <a class="el" href="classtaraxa_1_1_db_storage.html#ab6025f2871f7a7a73bfd539a39625c52">taraxa::DbStorage</a>
+</li>
 <li>saveDagBlock()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a78da78cc5c8beadb10b5884f848403ee">taraxa::DbStorage</a>
 </li>
 <li>saveLastBlockCertVote()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a1af48648a3a24253c85a679ebc13c394">taraxa::DbStorage</a>
-</li>
-<li>savePbftCertVotedBlock()
-: <a class="el" href="classtaraxa_1_1_db_storage.html#a5e205f0319e03dfb180f8dc910d33ca3">taraxa::DbStorage</a>
 </li>
 <li>savePbftHead()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#af69f3e7594f36c9d4ea2884bec31fa0f">taraxa::DbStorage</a>
@@ -126,9 +126,6 @@ $(document).ready(function(){initNavTree('functions_s.html',''); initResizable()
 <li>savePbftMgrStatus()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a7b89bb6349af34b6f8a66442c45861b8">taraxa::DbStorage</a>
 </li>
-<li>savePbftMgrVotedValue()
-: <a class="el" href="classtaraxa_1_1_db_storage.html#a0180d3c7c292e40562795cc195c43662">taraxa::DbStorage</a>
-</li>
 <li>savePeriodData()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a55029b172261c0dc91da128fef909e06">taraxa::DbStorage</a>
 </li>
@@ -138,8 +135,8 @@ $(document).ready(function(){initNavTree('functions_s.html',''); initResizable()
 <li>saveProposalPeriodDagLevelsMap()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a928b917ce6ab723d0d0dfa6f0725e604">taraxa::DbStorage</a>
 </li>
-<li>saveSoftVotes()
-: <a class="el" href="classtaraxa_1_1_db_storage.html#afff1302a87e700e5f3d6364e5369aa53">taraxa::DbStorage</a>
+<li>saveSoftVotedBlockDataInRound()
+: <a class="el" href="classtaraxa_1_1_db_storage.html#a3abac7baa21e35036831d2d496b6034a">taraxa::DbStorage</a>
 </li>
 <li>saveSortitionParamsChange()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a6ffcf411d0399678cef3f57e523365b9">taraxa::DbStorage</a>
@@ -503,7 +500,10 @@ $(document).ready(function(){initNavTree('functions_s.html',''); initResizable()
 : <a class="el" href="classtaraxa_1_1net_1_1_http_connection.html#a720c951f3f4e820fc7449cf5922a85af">taraxa::net::HttpConnection</a>
 </li>
 <li>soft_voted_block_for_round_
-: <a class="el" href="group___p_b_f_t.html#acb6b6b782b0fb03444e8e857120e4746">taraxa::PbftManager</a>
+: <a class="el" href="group___p_b_f_t.html#a3ca42f360bd8e0649a95f726678f5ede">taraxa::PbftManager</a>
+</li>
+<li>soft_votes_
+: <a class="el" href="classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html#a129eef2a43a256ad2cdf7202886c2425">taraxa::TwoTPlusOneSoftVotedBlockData</a>
 </li>
 <li>sortition
 : <a class="el" href="structtaraxa_1_1_chain_config.html#adfac0f5f9cf366ca338cefde6b630a54">taraxa::ChainConfig</a>
@@ -602,7 +602,7 @@ $(document).ready(function(){initNavTree('functions_s.html',''); initResizable()
 , <a class="el" href="group___final_chain.html#a4e0da8f4c2b7479c611b4666c3602270">taraxa::state_api::StateTransitionResult</a>
 </li>
 <li>StateAPI()
-: <a class="el" href="group___final_chain.html#a6b8e0c5638773e72d4ce19745165e0e0">taraxa::state_api::StateAPI</a>
+: <a class="el" href="group___final_chain.html#a332877b929b0fd7ec175d35324cb4502">taraxa::state_api::StateAPI</a>
 </li>
 <li>stateDbStoragePath()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a3dc4827d96659dc2ea04610a6e31216c">taraxa::DbStorage</a>

@@ -227,6 +227,9 @@ Classes</h2></td></tr>
 <tr class="memitem:classtaraxa_1_1_transaction_queue"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_queue">TransactionQueue</a></td></tr>
 <tr class="memdesc:classtaraxa_1_1_transaction_queue"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_queue" title="TransactionQueue keeps transactions in memory sorted by priority to be included in a proposed DAG blo...">TransactionQueue</a> keeps transactions in memory sorted by priority to be included in a proposed DAG block or which might be required by an incoming DAG block.  <a href="group___transaction.html#classtaraxa_1_1_transaction_queue">More...</a><br /></td></tr>
 <tr class="separator:classtaraxa_1_1_transaction_queue"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html">TwoTPlusOneSoftVotedBlockData</a></td></tr>
+<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html" title="TwoTPlusOneSoftVotedBlockData holds data related to observed 2t+1 soft voted block.">TwoTPlusOneSoftVotedBlockData</a> holds data related to observed 2t+1 soft voted block.  <a href="classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_uint_comparator.html">UintComparator</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_value_by_block_cache.html">ValueByBlockCache</a></td></tr>
@@ -391,10 +394,6 @@ Enumerations</h2></td></tr>
 <a class="el" href="namespacetaraxa.html#ab954ed608508c8193f4517797b4dae8ea3bf690f31dab9e5d4906ca934adbee6c">NextVotedNullBlockHash</a>
  }</td></tr>
 <tr class="separator:ab954ed608508c8193f4517797b4dae8e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac2dbdc97d5c79cc3e162083c102499ca"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#ac2dbdc97d5c79cc3e162083c102499ca">PbftMgrVotedValue</a> : uint8_t { <a class="el" href="namespacetaraxa.html#ac2dbdc97d5c79cc3e162083c102499caa616f37a723cd302a144ecaf91094b88f">SoftVotedBlockInRound</a>, 
-<a class="el" href="namespacetaraxa.html#ac2dbdc97d5c79cc3e162083c102499caa94aaa540a03e4e7f7f726dda5579e8f4">CertVotedBlockInRound</a>
- }</td></tr>
-<tr class="separator:ac2dbdc97d5c79cc3e162083c102499ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga8a0770e242b649865f15f20a405507cc"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ga8a0770e242b649865f15f20a405507cc">PbftVoteTypes</a> : uint8_t { <a class="el" href="group___vote.html#gga8a0770e242b649865f15f20a405507cca6b855bb8e616fa447b785fb292d1109a">propose_vote_type</a> = 0, 
 <a class="el" href="group___vote.html#gga8a0770e242b649865f15f20a405507cca768869c1324abe06dbd686da61e578e9">soft_vote_type</a>, 
 <a class="el" href="group___vote.html#gga8a0770e242b649865f15f20a405507ccaf71b2848e2805b713a2343ad6d134b65">cert_vote_type</a>, 
@@ -1372,24 +1371,6 @@ lambda_bound</td>
 <tr><td class="fieldname"><a id="ab954ed608508c8193f4517797b4dae8ea4d5e05892ed34868d4df2e9d43bf5ebf"></a>ExecutedInRound&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="ab954ed608508c8193f4517797b4dae8eab4a0efd597ecd89350bff9384a8998e6"></a>NextVotedSoftValue&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="ab954ed608508c8193f4517797b4dae8ea3bf690f31dab9e5d4906ca934adbee6c"></a>NextVotedNullBlockHash&#160;</td><td class="fielddoc"></td></tr>
-</table>
-
-</div>
-</div>
-<a id="ac2dbdc97d5c79cc3e162083c102499ca"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac2dbdc97d5c79cc3e162083c102499ca">&#9670;&nbsp;</a></span>PbftMgrVotedValue</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">enum <a class="el" href="namespacetaraxa.html#ac2dbdc97d5c79cc3e162083c102499ca">taraxa::PbftMgrVotedValue</a> : uint8_t</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<table class="fieldtable">
-<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="ac2dbdc97d5c79cc3e162083c102499caa616f37a723cd302a144ecaf91094b88f"></a>SoftVotedBlockInRound&#160;</td><td class="fielddoc"></td></tr>
-<tr><td class="fieldname"><a id="ac2dbdc97d5c79cc3e162083c102499caa94aaa540a03e4e7f7f726dda5579e8f4"></a>CertVotedBlockInRound&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
 </div>

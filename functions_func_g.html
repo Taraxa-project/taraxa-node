@@ -317,6 +317,9 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 <li>getCall()
 : <a class="el" href="classgraphql_1_1taraxa_1_1_block.html#a668c11a020987bc2c1b4ff1fad9041b0">graphql::taraxa::Block</a>
 </li>
+<li>getCertVotedBlockInRound()
+: <a class="el" href="classtaraxa_1_1_db_storage.html#a03a84cd03372e233a4bb05e6737bed05">taraxa::DbStorage</a>
+</li>
 <li>getCertVotes()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a553ddbb3e81a7ec650d582bfd19ef04a">taraxa::DbStorage</a>
 </li>
@@ -705,9 +708,6 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 <li>getPbftBlockInChain()
 : <a class="el" href="group___p_b_f_t.html#acd48a78dbe8d552be5f35b0ba4795ed9">taraxa::PbftChain</a>
 </li>
-<li>getPbftCertVotedBlock()
-: <a class="el" href="classtaraxa_1_1_db_storage.html#acedb6f896a4fba53a43906cffc68fdfd">taraxa::DbStorage</a>
-</li>
 <li>getPbftChain()
 : <a class="el" href="classtaraxa_1_1_full_node.html#a8411ff2ff03a2a59a4477e53d16d11fc">taraxa::FullNode</a>
 </li>
@@ -734,9 +734,6 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 </li>
 <li>getPbftMgrStatus()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a68ce2eeb6453524622f4673bc4db166a">taraxa::DbStorage</a>
-</li>
-<li>getPbftMgrVotedValue()
-: <a class="el" href="classtaraxa_1_1_db_storage.html#a6d93275cd31d25da121752f67c18dda0">taraxa::DbStorage</a>
 </li>
 <li>getPbftPeriod()
 : <a class="el" href="classgraphql_1_1taraxa_1_1_dag_block.html#a19cea62dc4902352c6ad11eeb1ebf261">graphql::taraxa::DagBlock</a>
@@ -922,11 +919,8 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 <li>getSocket()
 : <a class="el" href="classtaraxa_1_1net_1_1_http_connection.html#a5bec84d7447d85a63eaa31f1dbff6843">taraxa::net::HttpConnection</a>
 </li>
-<li>getSoftVotedBlockForThisRound_()
-: <a class="el" href="group___p_b_f_t.html#a67f3ee423bf34b356799c6a9062f198f">taraxa::PbftManager</a>
-</li>
-<li>getSoftVotes()
-: <a class="el" href="classtaraxa_1_1_db_storage.html#a12d4c77985eb5aafd1535d613501f3aa">taraxa::DbStorage</a>
+<li>getSoftVotedBlockDataInRound()
+: <a class="el" href="classtaraxa_1_1_db_storage.html#a8fcf6eaa95c4b83ee265fc493727bed9">taraxa::DbStorage</a>
 </li>
 <li>getSortitionParams()
 : <a class="el" href="group___d_a_g.html#a6492214527dfe34bc89397f847bac40d">taraxa::SortitionParamsManager</a>
@@ -942,7 +936,7 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 </li>
 <li>getSpecificHandler()
 : <a class="el" href="classtaraxa_1_1_network.html#a35dc353c28031b64a7a826c477cb55fd">taraxa::Network</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html#a89ef34d040a5c2c69c7b3cfc0e026475">taraxa::network::tarcap::PacketsHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html#ac2844a94c2dc829d234e72b14ffe7feb">taraxa::network::tarcap::PacketsHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ab9cc01fbd4061a7fe9c5981a3825502a">taraxa::network::tarcap::TaraxaCapability</a>
 </li>
 <li>getStartingBlock()
@@ -1052,6 +1046,12 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 <li>getTwoTPlusOne()
 : <a class="el" href="group___p_b_f_t.html#a07a1394d6cd2a629a4e272201000d8fc">taraxa::PbftManager</a>
 </li>
+<li>getTwoTPlusOneSoftVotedBlockData()
+: <a class="el" href="group___p_b_f_t.html#a9e5ab75571f52611d37325f74412624c">taraxa::PbftManager</a>
+</li>
+<li>getTwoTPlusOneVotesBundle()
+: <a class="el" href="group___vote.html#a5bf3b02943b17dcfa99e6df3dd77212f">taraxa::VoteManager</a>
+</li>
 <li>getType()
 : <a class="el" href="group___vote.html#abf2c94ac49b9b5930dd0fcd2581d5335">taraxa::Vote</a>
 </li>
@@ -1089,9 +1089,6 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 </li>
 <li>getVoterAddr()
 : <a class="el" href="group___vote.html#a845dac056e44382a69b07c7fb718450c">taraxa::Vote</a>
-</li>
-<li>getVotesBundle()
-: <a class="el" href="group___vote.html#a281cac5bf2c222e57660159ec2a1fa3d">taraxa::VoteManager</a>
 </li>
 <li>getVoteSignature()
 : <a class="el" href="group___vote.html#ad678ca6dfa8fb660e9e724faa4670913">taraxa::Vote</a>

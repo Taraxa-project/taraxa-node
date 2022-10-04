@@ -1,5 +1,11 @@
 var NAVTREEINDEX16 =
 {
+"group___vote.html#a335593af04d28ee24d262c401a32f8b0":[11,4,1,28],
+"group___vote.html#a352f2439db5907bfb52580e2e736ba0f":[11,4,0,2],
+"group___vote.html#a3852382974a58a8ed36aa75568fdb2fd":[11,4,1,38],
+"group___vote.html#a38bd14449af576be965293785cc4d8ac":[11,4,1,25],
+"group___vote.html#a397053232a3751a07f2888fad97b0d50":[11,4,1,18],
+"group___vote.html#a39c274e4d78d8ecb24036ef6d3393190":[11,4,0,4],
 "group___vote.html#a3d581667afe8b9d385a343ff663e3881":[11,4,5,0],
 "group___vote.html#a3ec737f1bfb33528da98f2c57965e2ce":[11,4,0,9],
 "group___vote.html#a417d4bb4c0052d5e05945af77c735dc6":[11,4,1,15],
@@ -22,6 +28,7 @@ var NAVTREEINDEX16 =
 "group___vote.html#a590cece4de025f23d29dd793f958f622":[11,4,1,9],
 "group___vote.html#a59225772466fd9824448a4ff11ff7d05":[11,4,1,3],
 "group___vote.html#a5a9524665903c1186005956de19f7fd2":[11,4,5,12],
+"group___vote.html#a5bf3b02943b17dcfa99e6df3dd77212f":[11,4,1,19],
 "group___vote.html#a5d94b5f604131c9b986840e5a16d433e":[11,4,1,29],
 "group___vote.html#a5f3b1435fe7f3c80cfe891b865944680":[11,4,1,14],
 "group___vote.html#a610b26e9e0c08e26983bc20c05ab00d2":[11,4,0,5],
@@ -84,7 +91,7 @@ var NAVTREEINDEX16 =
 "group___vote.html#ad6afb5dd3e61d145dfec3f02d333a93c":[11,4,0,19],
 "group___vote.html#ad9635a251ff42dd65fe79bd8e03d928f":[11,4,1,17],
 "group___vote.html#adb609ddffdb2ee906e405a7e141bc16a":[11,4,4,0],
-"group___vote.html#add0a1c70fc728cdb3ef074330a129060":[11,4,1,20],
+"group___vote.html#add0a1c70fc728cdb3ef074330a129060":[11,4,1,21],
 "group___vote.html#ae02d0c331e26ccd85568ed2b7ecc13d2":[11,4,2,28],
 "group___vote.html#ae25944089b11af1b3ef37dff72b8c86b":[11,4,5,14],
 "group___vote.html#ae3345fa449b38a914532c5ec2822d0d3":[11,4,5,8],
@@ -101,7 +108,7 @@ var NAVTREEINDEX16 =
 "group___vote.html#af1c99f17c0c7180d510a385e18291f6c":[11,4,3,4],
 "group___vote.html#af3a5ba8a46579463078b4440813924fc":[11,4,5,4],
 "group___vote.html#af65bbaffa56b19c113245ec277599fce":[11,4,0,17],
-"group___vote.html#af8fbe3c4b695c519a9dc239b05823b89":[11,4,1,19],
+"group___vote.html#af8fbe3c4b695c519a9dc239b05823b89":[11,4,1,20],
 "group___vote.html#afd43da336fbf99a0727bdddd9f654cf7":[11,4,5,10],
 "group___vote.html#classtaraxa_1_1_next_votes_manager":[11,4,0],
 "group___vote.html#classtaraxa_1_1_vote":[11,4,2],
@@ -242,12 +249,5 @@ var NAVTREEINDEX16 =
 "libdevcore_2_exceptions_8h.html#a42421a095739d04b06a70136fe7d5b78":[14,0,1,0,0,12,16],
 "libdevcore_2_exceptions_8h.html#a44ea2523d657094dd61589093b5a04bb":[14,0,1,0,0,12,23],
 "libdevcore_2_exceptions_8h.html#a4b4b10242be59dd68c1749205272e2ec":[14,0,1,0,0,12,14],
-"libdevcore_2_exceptions_8h.html#a502ea1315515149073c33d6ade682886":[14,0,1,0,0,12,32],
-"libdevcore_2_exceptions_8h.html#a5f310013fd2491ad3a83068b8c1cf0b1":[14,0,1,0,0,12,18],
-"libdevcore_2_exceptions_8h.html#a66c3ce4791f34cf1418a1b570de74328":[14,0,1,0,0,12,15],
-"libdevcore_2_exceptions_8h.html#a7142a9d865619e40e469bf11236a2813":[14,0,1,0,0,12,36],
-"libdevcore_2_exceptions_8h.html#a82395d09737f9b495da8df93b67054e9":[14,0,1,0,0,12,2],
-"libdevcore_2_exceptions_8h.html#a83f076111496c324f745edb92ca32773":[14,0,1,0,0,12,29],
-"libdevcore_2_exceptions_8h.html#a8bd5764483662329f2f83dccc90bb13a":[14,0,1,0,0,12,22],
-"libdevcore_2_exceptions_8h.html#a926847180de7bc693356b6c9eea6fff0":[14,0,1,0,0,12,38]
+"libdevcore_2_exceptions_8h.html#a502ea1315515149073c33d6ade682886":[14,0,1,0,0,12,32]
 };

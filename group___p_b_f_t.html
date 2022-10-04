@@ -187,9 +187,9 @@ Collaboration diagram for taraxa::PbftChain:</div>
 <tr class="memitem:a81c9c909dc98960eae42e6b6d3126013"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a81c9c909dc98960eae42e6b6d3126013">updatePbftChain</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;pbft_block_hash, <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;anchor_hash)</td></tr>
 <tr class="memdesc:a81c9c909dc98960eae42e6b6d3126013"><td class="mdescLeft">&#160;</td><td class="mdescRight">Update PBFT chain size, non empty chain size, and last PBFT block hash.  <a href="group___p_b_f_t.html#a81c9c909dc98960eae42e6b6d3126013">More...</a><br /></td></tr>
 <tr class="separator:a81c9c909dc98960eae42e6b6d3126013"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9fe36ea0c64687ca1af6f3b4cd52180e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a9fe36ea0c64687ca1af6f3b4cd52180e">checkPbftBlockValidation</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">taraxa::PbftBlock</a> const &amp;pbft_block) const</td></tr>
-<tr class="memdesc:a9fe36ea0c64687ca1af6f3b4cd52180e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verify a PBFT block.  <a href="group___p_b_f_t.html#a9fe36ea0c64687ca1af6f3b4cd52180e">More...</a><br /></td></tr>
-<tr class="separator:a9fe36ea0c64687ca1af6f3b4cd52180e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2c802f09565e3c42412e2c6d04105517"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a2c802f09565e3c42412e2c6d04105517">checkPbftBlockValidation</a> (const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;pbft_block) const</td></tr>
+<tr class="memdesc:a2c802f09565e3c42412e2c6d04105517"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verify a PBFT block.  <a href="group___p_b_f_t.html#a2c802f09565e3c42412e2c6d04105517">More...</a><br /></td></tr>
+<tr class="separator:a2c802f09565e3c42412e2c6d04105517"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Types</h3></td></tr>
 <tr class="memitem:a97e5ea36ac983f27a42c941bb185d398"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a97e5ea36ac983f27a42c941bb185d398">UniqueLock</a> = boost::unique_lock&lt; boost::shared_mutex &gt;</td></tr>
 <tr class="separator:a97e5ea36ac983f27a42c941bb185d398"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -342,8 +342,8 @@ Collaboration diagram for taraxa::PbftChain:</div>
 </div>
 </div>
 <h4 class="groupheader">Member Function Documentation</h4>
-<a id="a9fe36ea0c64687ca1af6f3b4cd52180e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9fe36ea0c64687ca1af6f3b4cd52180e">&#9670;&nbsp;</a></span>checkPbftBlockValidation()</h2>
+<a id="a2c802f09565e3c42412e2c6d04105517"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2c802f09565e3c42412e2c6d04105517">&#9670;&nbsp;</a></span>checkPbftBlockValidation()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -351,7 +351,7 @@ Collaboration diagram for taraxa::PbftChain:</div>
         <tr>
           <td class="memname">bool taraxa::PbftChain::checkPbftBlockValidation </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">taraxa::PbftBlock</a> const &amp;&#160;</td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>pbft_block</em></td><td>)</td>
           <td> const</td>
         </tr>
@@ -1053,8 +1053,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:ac4f19ded8ce9d9b0ddbf3a00126c77bc"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ac4f19ded8ce9d9b0ddbf3a00126c77bc">checkPreviousRoundNextVotedValueChange_</a> ()</td></tr>
 <tr class="memdesc:ac4f19ded8ce9d9b0ddbf3a00126c77bc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if previous round next voting value has been changed.  <a href="group___p_b_f_t.html#ac4f19ded8ce9d9b0ddbf3a00126c77bc">More...</a><br /></td></tr>
 <tr class="separator:ac4f19ded8ce9d9b0ddbf3a00126c77bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a67f3ee423bf34b356799c6a9062f198f"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a67f3ee423bf34b356799c6a9062f198f">getSoftVotedBlockForThisRound_</a> ()</td></tr>
-<tr class="separator:a67f3ee423bf34b356799c6a9062f198f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e5ab75571f52611d37325f74412624c"><td class="memItemLeft" align="right" valign="top">const std::optional&lt; <a class="el" href="classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html">TwoTPlusOneSoftVotedBlockData</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a9e5ab75571f52611d37325f74412624c">getTwoTPlusOneSoftVotedBlockData</a> (uint64_t period, uint64_t round)</td></tr>
+<tr class="separator:a9e5ab75571f52611d37325f74412624c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a98aa2d65de6a6448020cf06ccd14e972"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::pair&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a>, std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a98aa2d65de6a6448020cf06ccd14e972">processPeriodData</a> ()</td></tr>
 <tr class="memdesc:a98aa2d65de6a6448020cf06ccd14e972"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process synced PBFT blocks if PBFT syncing queue is not empty.  <a href="group___p_b_f_t.html#a98aa2d65de6a6448020cf06ccd14e972">More...</a><br /></td></tr>
 <tr class="separator:a98aa2d65de6a6448020cf06ccd14e972"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1120,8 +1120,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="separator:ac9131c68097d5a1d589fb2768a800637"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abea84a668c159505b7e453db0df192d8"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#abea84a668c159505b7e453db0df192d8">startingStepInRound_</a> = 1</td></tr>
 <tr class="separator:abea84a668c159505b7e453db0df192d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acb6b6b782b0fb03444e8e857120e4746"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#acb6b6b782b0fb03444e8e857120e4746">soft_voted_block_for_round_</a> {}</td></tr>
-<tr class="separator:acb6b6b782b0fb03444e8e857120e4746"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3ca42f360bd8e0649a95f726678f5ede"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html">TwoTPlusOneSoftVotedBlockData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a3ca42f360bd8e0649a95f726678f5ede">soft_voted_block_for_round_</a> {}</td></tr>
+<tr class="separator:a3ca42f360bd8e0649a95f726678f5ede"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af78617ef126150e3287eedfef1ee5289"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#af78617ef126150e3287eedfef1ee5289">cert_voted_block_for_round_</a> {}</td></tr>
 <tr class="separator:af78617ef126150e3287eedfef1ee5289"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7a71b846bc1fc98bfde06f4bc3e60da9"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a7a71b846bc1fc98bfde06f4bc3e60da9">previous_round_next_voted_value_</a> {}</td></tr>
@@ -1148,8 +1148,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="separator:a3e19126cae83075ff10f088e155bc7f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac223cb71b31a508a0be870366c48b877"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ac223cb71b31a508a0be870366c48b877">loop_back_finish_state_</a> = false</td></tr>
 <tr class="separator:ac223cb71b31a508a0be870366c48b877"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aba83f15ed5ff4177ea29828391147b8b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aba83f15ed5ff4177ea29828391147b8b">polling_state_print_log_</a> = true</td></tr>
-<tr class="separator:aba83f15ed5ff4177ea29828391147b8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7597210c35d856e95c4bab8d8cb88fa7"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a7597210c35d856e95c4bab8d8cb88fa7">pbft_round_last_broadcast_</a> = 0</td></tr>
 <tr class="separator:a7597210c35d856e95c4bab8d8cb88fa7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a70cece1cf71f1968e7db4b5e0ef8688c"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a70cece1cf71f1968e7db4b5e0ef8688c">pbft_step_last_broadcast_</a> = 0</td></tr>
@@ -2343,32 +2341,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="a67f3ee423bf34b356799c6a9062f198f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a67f3ee423bf34b356799c6a9062f198f">&#9670;&nbsp;</a></span>getSoftVotedBlockForThisRound_()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::optional&lt; std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &gt; &gt; taraxa::PbftManager::getSoftVotedBlockForThisRound_ </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-<dl class="section return"><dt>Returns</dt><dd>soft voted PBFT block if there is enough (2t+1) soft votes + it's period, otherwise returns empty optional </dd></dl>
-
-</div>
-</div>
 <a id="abee65cb73c7432eb31eadce9f69d3853"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abee65cb73c7432eb31eadce9f69d3853">&#9670;&nbsp;</a></span>getSortitionThreshold()</h2>
 
@@ -2406,6 +2378,50 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 <p>Get 2t+1. 2t+1 is 2/3 of PBFT sortition threshold and plus 1. </p>
 <dl class="section return"><dt>Returns</dt><dd>2t+1 </dd></dl>
+
+</div>
+</div>
+<a id="a9e5ab75571f52611d37325f74412624c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9e5ab75571f52611d37325f74412624c">&#9670;&nbsp;</a></span>getTwoTPlusOneSoftVotedBlockData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::optional&lt; <a class="el" href="classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html">TwoTPlusOneSoftVotedBlockData</a> &gt; &amp; taraxa::PbftManager::getTwoTPlusOneSoftVotedBlockData </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>period</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>round</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">period</td><td></td></tr>
+    <tr><td class="paramname">round</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>Soft voted block data if there is enough (2t+1) soft votes, otherwise returns empty optional </dd></dl>
 
 </div>
 </div>
@@ -4430,28 +4446,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="aba83f15ed5ff4177ea29828391147b8b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aba83f15ed5ff4177ea29828391147b8b">&#9670;&nbsp;</a></span>polling_state_print_log_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool taraxa::PbftManager::polling_state_print_log_ = true</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a5ee8283e2abebcbe3372fb1d76ca40bc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5ee8283e2abebcbe3372fb1d76ca40bc">&#9670;&nbsp;</a></span>previous_round_next_voted_null_block_hash_</h2>
 
@@ -4606,8 +4600,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="acb6b6b782b0fb03444e8e857120e4746"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acb6b6b782b0fb03444e8e857120e4746">&#9670;&nbsp;</a></span>soft_voted_block_for_round_</h2>
+<a id="a3ca42f360bd8e0649a95f726678f5ede"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3ca42f360bd8e0649a95f726678f5ede">&#9670;&nbsp;</a></span>soft_voted_block_for_round_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -4616,7 +4610,7 @@ Collaboration diagram for taraxa::PbftManager:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::optional&lt;std::pair&lt;<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::shared_ptr&lt;<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a>&gt; &gt; &gt; taraxa::PbftManager::soft_voted_block_for_round_ {}</td>
+          <td class="memname">std::optional&lt;<a class="el" href="classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html">TwoTPlusOneSoftVotedBlockData</a>&gt; taraxa::PbftManager::soft_voted_block_for_round_ {}</td>
         </tr>
       </table>
   </td>

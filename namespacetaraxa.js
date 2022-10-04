@@ -55,6 +55,7 @@ var namespacetaraxa =
     [ "Transaction", "structtaraxa_1_1_transaction.html", "structtaraxa_1_1_transaction" ],
     [ "TransactionManager", "group___transaction.html#classtaraxa_1_1_transaction_manager", "group___transaction_classtaraxa_1_1_transaction_manager" ],
     [ "TransactionQueue", "group___transaction.html#classtaraxa_1_1_transaction_queue", "group___transaction_classtaraxa_1_1_transaction_queue" ],
+    [ "TwoTPlusOneSoftVotedBlockData", "classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html", "classtaraxa_1_1_two_t_plus_one_soft_voted_block_data" ],
     [ "UintComparator", "classtaraxa_1_1_uint_comparator.html", "classtaraxa_1_1_uint_comparator" ],
     [ "ValueByBlockCache", "classtaraxa_1_1_value_by_block_cache.html", "classtaraxa_1_1_value_by_block_cache" ],
     [ "VdfParams", "namespacetaraxa.html#structtaraxa_1_1_vdf_params", "namespacetaraxa_structtaraxa_1_1_vdf_params_dup" ],

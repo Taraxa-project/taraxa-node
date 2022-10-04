@@ -823,9 +823,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a417d4bb4c0052d5e05945af77c735dc6"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a417d4bb4c0052d5e05945af77c735dc6">getProposalVotes</a> (uint64_t period, uint64_t round) const</td></tr>
 <tr class="memdesc:a417d4bb4c0052d5e05945af77c735dc6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get all verified votes in proposal vote type for the current PBFT round.  <a href="group___vote.html#a417d4bb4c0052d5e05945af77c735dc6">More...</a><br /></td></tr>
 <tr class="separator:a417d4bb4c0052d5e05945af77c735dc6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a281cac5bf2c222e57660159ec2a1fa3d"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group___vote.html#structtaraxa_1_1_votes_bundle">VotesBundle</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a281cac5bf2c222e57660159ec2a1fa3d">getVotesBundle</a> (uint64_t round, uint64_t period, size_t step, size_t two_t_plus_one) const</td></tr>
-<tr class="memdesc:a281cac5bf2c222e57660159ec2a1fa3d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a bunch of votes that vote on the same voting value in the specific PBFT round and step, the total votes weights must be greater or equal to PBFT 2t+1.  <a href="group___vote.html#a281cac5bf2c222e57660159ec2a1fa3d">More...</a><br /></td></tr>
-<tr class="separator:a281cac5bf2c222e57660159ec2a1fa3d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5bf3b02943b17dcfa99e6df3dd77212f"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group___vote.html#structtaraxa_1_1_votes_bundle">VotesBundle</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a5bf3b02943b17dcfa99e6df3dd77212f">getTwoTPlusOneVotesBundle</a> (uint64_t round, uint64_t period, size_t step, size_t two_t_plus_one) const</td></tr>
+<tr class="memdesc:a5bf3b02943b17dcfa99e6df3dd77212f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a bunch of votes that vote on the same voting value in the specific PBFT round and step, the total votes weights must be greater or equal to PBFT 2t+1.  <a href="group___vote.html#a5bf3b02943b17dcfa99e6df3dd77212f">More...</a><br /></td></tr>
+<tr class="separator:a5bf3b02943b17dcfa99e6df3dd77212f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4459080eb4d299121fe8dc15a6f0ed60"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::pair&lt; uint64_t, std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a4459080eb4d299121fe8dc15a6f0ed60">determineRoundFromPeriodAndVotes</a> (uint64_t period, size_t two_t_plus_one)</td></tr>
 <tr class="memdesc:a4459080eb4d299121fe8dc15a6f0ed60"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if there are enough next voting type votes to set PBFT to a forward round within period.  <a href="group___vote.html#a4459080eb4d299121fe8dc15a6f0ed60">More...</a><br /></td></tr>
 <tr class="separator:a4459080eb4d299121fe8dc15a6f0ed60"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1430,54 +1430,14 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="af8fbe3c4b695c519a9dc239b05823b89"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af8fbe3c4b695c519a9dc239b05823b89">&#9670;&nbsp;</a></span>getVerifiedVotes()</h2>
+<a id="a5bf3b02943b17dcfa99e6df3dd77212f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5bf3b02943b17dcfa99e6df3dd77212f">&#9670;&nbsp;</a></span>getTwoTPlusOneVotesBundle()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::VoteManager::getVerifiedVotes </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Get all verified votes. </p>
-<dl class="section return"><dt>Returns</dt><dd>all verified votes </dd></dl>
-
-</div>
-</div>
-<a id="add0a1c70fc728cdb3ef074330a129060"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#add0a1c70fc728cdb3ef074330a129060">&#9670;&nbsp;</a></span>getVerifiedVotesSize()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint64_t taraxa::VoteManager::getVerifiedVotesSize </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Get the total size of all verified votes. </p>
-<dl class="section return"><dt>Returns</dt><dd>the total size of all verified votes </dd></dl>
-
-</div>
-</div>
-<a id="a281cac5bf2c222e57660159ec2a1fa3d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a281cac5bf2c222e57660159ec2a1fa3d">&#9670;&nbsp;</a></span>getVotesBundle()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::optional&lt; <a class="el" href="group___vote.html#structtaraxa_1_1_votes_bundle">VotesBundle</a> &gt; taraxa::VoteManager::getVotesBundle </td>
+          <td class="memname">std::optional&lt; <a class="el" href="group___vote.html#structtaraxa_1_1_votes_bundle">VotesBundle</a> &gt; taraxa::VoteManager::getTwoTPlusOneVotesBundle </td>
           <td>(</td>
           <td class="paramtype">uint64_t&#160;</td>
           <td class="paramname"><em>round</em>, </td>
@@ -1519,6 +1479,46 @@ Functions</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd><a class="el" href="group___vote.html#structtaraxa_1_1_votes_bundle" title="VotesBundle struct stores a bunch of votes that vote on the same voting value in the specific PBFT ro...">VotesBundle</a> a bunch of votes that vote on the same voting value in the specific PBFT round and step </dd></dl>
+
+</div>
+</div>
+<a id="af8fbe3c4b695c519a9dc239b05823b89"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af8fbe3c4b695c519a9dc239b05823b89">&#9670;&nbsp;</a></span>getVerifiedVotes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::VoteManager::getVerifiedVotes </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get all verified votes. </p>
+<dl class="section return"><dt>Returns</dt><dd>all verified votes </dd></dl>
+
+</div>
+</div>
+<a id="add0a1c70fc728cdb3ef074330a129060"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add0a1c70fc728cdb3ef074330a129060">&#9670;&nbsp;</a></span>getVerifiedVotesSize()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t taraxa::VoteManager::getVerifiedVotesSize </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Get the total size of all verified votes. </p>
+<dl class="section return"><dt>Returns</dt><dd>the total size of all verified votes </dd></dl>
 
 </div>
 </div>

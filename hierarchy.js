@@ -378,6 +378,7 @@ var hierarchy =
     [ "taraxa::final_chain::TransactionReceipt", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt", null ],
     [ "taraxa::net::rpc::eth::TransactionSkeleton", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_skeleton", null ],
     [ "taraxa::state_api::TrieProof", "group___final_chain.html#structtaraxa_1_1state__api_1_1_trie_proof", null ],
+    [ "taraxa::TwoTPlusOneSoftVotedBlockData", "classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html", null ],
     [ "dev::p2p::UDPDatagram", "classdev_1_1p2p_1_1_u_d_p_datagram.html", [
       [ "dev::p2p::RLPXDatagramFace", "structdev_1_1p2p_1_1_r_l_p_x_datagram_face.html", [
         [ "dev::p2p::DiscoveryDatagram", "structdev_1_1p2p_1_1_discovery_datagram.html", [
