@@ -53,10 +53,6 @@
     "http_port": 7777,
     "ws_port": 8777
   },
-  "graphql": {
-    "http_port": 9777,
-    "ws_port": 6777
-  },
   "db_config": {
     "db_snapshot_each_n_pbft_block": 10000,
     "db_max_snapshots": 1
@@ -282,8 +278,8 @@
           "petersburg_block": "0x0"
         },
         "block_rewards_options": {
-          "disable_block_rewards": true,
-          "disable_contract_distribution": true
+          "disable_block_rewards": false,
+          "disable_contract_distribution": false
         },
         "genesis_balances": {
           "76870407332398322576505f3c5423d0a71af296": "0x117364175f2cb0e1dfc0000",
@@ -301,13 +297,13 @@
       "dag_blocks_size": "0x32",
       "ghost_path_move_back": "0x0",
       "lambda_ms_min": "0x5dc",
-      "gas_limit": "0x3938700"
+      "gas_limit": "0x7d2b7500"
     },
     "dag": {
       "block_proposer": {
         "shard": 1
       },
-      "gas_limit": "0x989680"
+      "gas_limit": "0xc845880"
     },
     "replay_protection_service": {
       "range": "0xa"
@@ -322,7 +318,7 @@
       "computation_interval": 50,
       "vrf": {
         "threshold_upper": "0xafff",
-        "threshold_range": 90
+        "threshold_range": 80
       },
       "vdf": {
         "difficulty_max": 21,
