@@ -540,7 +540,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param round
    * @return Soft voted block data if there is enough (2t+1) soft votes, otherwise returns empty optional
    */
-  std::optional<TwoTPlusOneSoftVotedBlockData> getTwoTPlusOneSoftVotedBlockData(uint64_t period, uint64_t round);
+  const std::optional<TwoTPlusOneSoftVotedBlockData> &getTwoTPlusOneSoftVotedBlockData(uint64_t period, uint64_t round);
 
   /**
    * @brief Process synced PBFT blocks if PBFT syncing queue is not empty

@@ -710,31 +710,7 @@ void DbStorage::removeCertVotedBlockInRound(Batch& write_batch) {
 }
 
 void DbStorage::saveSoftVotedBlockDataInRound(const TwoTPlusOneSoftVotedBlockData& soft_voted_block_data) {
-  dev::RLPStream s;
-  // block is optional as node might not had the actual block when it observed 2t+1 soft votes and saved it
-  if (soft_voted_block_data.block) {
-    assert(soft_voted_block_data.block->getBlockHash() == soft_voted_block_data.block_hash);
-    s.appendList(TwoTPlusOneSoftVotedBlockData::kExtendedDataItemCount);  // block + round + block_hash + votes
-    s.appendRaw(soft_voted_block_data.block->rlp(true));
-  } else {
-    s.appendList(TwoTPlusOneSoftVotedBlockData::kStandardDataItemCount);  // round + block_hash + votes
-  }
-
-  s.append(soft_voted_block_data.round);
-  s.append(soft_voted_block_data.block_hash);
-  s.appendList(soft_voted_block_data.soft_votes.size());
-  for (auto const& vote : soft_voted_block_data.soft_votes) {
-    assert(vote->getType() == PbftVoteTypes::soft_vote_type);
-    assert(vote->getRound() == soft_voted_block_data.round);
-    assert(vote->getBlockHash() == soft_voted_block_data.block_hash);
-    if (soft_voted_block_data.block) {
-      assert(vote->getPeriod() == soft_voted_block_data.block->getPeriod());
-    }
-
-    s.appendRaw(vote->rlp(true, true));
-  }
-
-  insert(Columns::soft_voted_block_in_round, 0, toSlice(s.out()));
+  insert(Columns::soft_voted_block_in_round, 0, toSlice(soft_voted_block_data.rlp()));
 }
 
 std::optional<TwoTPlusOneSoftVotedBlockData> DbStorage::getSoftVotedBlockDataInRound() const {
@@ -742,46 +718,8 @@ std::optional<TwoTPlusOneSoftVotedBlockData> DbStorage::getSoftVotedBlockDataInR
   if (value.empty()) {
     return {};
   }
-  auto value_rlp = dev::RLP(value);
-  assert(value_rlp.itemCount() == TwoTPlusOneSoftVotedBlockData::kStandardDataItemCount ||
-         value_rlp.itemCount() == TwoTPlusOneSoftVotedBlockData::kExtendedDataItemCount);
 
-  auto it = value_rlp.begin();
-
-  TwoTPlusOneSoftVotedBlockData ret;
-
-  // Parse block if present
-  ret.block = nullptr;
-  // block is optional as node might not had the actual block when it observed 2t+1 soft votes and saved it
-  if (value_rlp.itemCount() == TwoTPlusOneSoftVotedBlockData::kExtendedDataItemCount) {
-    ret.block = std::make_shared<PbftBlock>(*it++);
-  }
-
-  // Parse round
-  ret.round = (*it++).toInt<uint64_t>();
-
-  // Parse block hash
-  ret.block_hash = (*it++).toHash<blk_hash_t>();
-  if (ret.block) {
-    assert(ret.block->getBlockHash() == ret.block_hash);
-  }
-
-  // Parse votes
-  ret.soft_votes.reserve((*it).itemCount());
-  for (auto const vote_rlp : *it) {
-    auto vote = std::make_shared<Vote>(vote_rlp);
-    assert(vote->getType() == PbftVoteTypes::soft_vote_type);
-    assert(vote->getRound() == ret.round);
-    assert(vote->getBlockHash() == ret.block_hash);
-    if (ret.block) {
-      assert(vote->getPeriod() == ret.block->getPeriod());
-    }
-
-    ret.soft_votes.push_back(std::move(vote));
-  }
-
-  assert(!ret.soft_votes.empty());
-  return ret;
+  return TwoTPlusOneSoftVotedBlockData(dev::RLP(value));
 }
 
 void DbStorage::removeSoftVotedBlockDataInRound(Batch& write_batch) {
