@@ -719,7 +719,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getProposeRewardVotes() {
   return reward_votes;
 }
 
-void VoteManager::sendRewardVotes(const blk_hash_t& pbft_block_hash) {
+void VoteManager::sendRewardVotes(const blk_hash_t& pbft_block_hash, bool rebroadcast) {
   {
     std::shared_lock lock(reward_votes_mutex_);
     if (reward_votes_pbft_block_.first != pbft_block_hash) return;
@@ -729,7 +729,7 @@ void VoteManager::sendRewardVotes(const blk_hash_t& pbft_block_hash) {
   if (reward_votes.empty()) return;
 
   if (auto net = network_.lock()) {
-    net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(std::move(reward_votes));
+    net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(std::move(reward_votes), rebroadcast);
   }
 }
 

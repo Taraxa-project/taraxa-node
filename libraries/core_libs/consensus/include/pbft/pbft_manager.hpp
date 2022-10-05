@@ -486,12 +486,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   h256 getProposal(const std::shared_ptr<Vote> &vote) const;
 
   /**
-   * @brief Only be able to broadcast one time of previous round next voting votes per each PBFT round and step
-   * @return true if the current PBFT round and step has broadcasted previous round next voting votes already
-   */
-  bool broadcastAlreadyThisStep_() const;
-
-  /**
    * @brief Check that there are all DAG blocks with correct ordering, total gas estimation is not greater than gas
    * limit, and PBFT block includes all reward votes.
    * @param pbft_block PBFT block
@@ -563,6 +557,12 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    */
   void countVotes_() const;
 
+  /**
+   * @brief Broadcast or rebroadcast current round soft votes, previous round next votes and reward votes
+   * @param rebroadcast
+   */
+  void broadcastVotes(bool rebroadcast);
+
   std::atomic<bool> stopped_ = true;
 
   // Multiple proposed pbft blocks could have same dag block anchor at same period so this cache improves retrieval of
@@ -591,6 +591,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   u_long LAMBDA_ms = 0;
   u_long LAMBDA_backoff_multiple = 1;
   const u_long kMaxLambda = 60000;  // in ms, max lambda is 1 minutes
+
+  const uint32_t kBroadcastVotesLambdaTime = 20;
+  const uint32_t kRebroadcastVotesLambdaTime = 60;
+  uint32_t broadcast_votes_counter_ = 1;
+  uint32_t rebroadcast_votes_counter_ = 1;
 
   std::default_random_engine random_engine_{std::random_device{}()};
 
@@ -629,9 +634,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool next_voted_null_block_hash_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
-
-  uint64_t pbft_round_last_broadcast_ = 0;
-  size_t pbft_step_last_broadcast_ = 0;
 
   std::atomic<uint64_t> dpos_period_;
 
