@@ -1,5 +1,6 @@
 var group___transaction =
 [
+    [ "transaction", "namespacetaraxa_1_1transaction.html", null ],
     [ "GasPricer", "group___transaction.html#classtaraxa_1_1_gas_pricer", [
       [ "GasPricer", "group___transaction.html#a99a05636013d8f46d9eeb908a44b4ee3", null ],
       [ "~GasPricer", "group___transaction.html#acfb284f68bfcc72821afdd157be739ab", null ],
