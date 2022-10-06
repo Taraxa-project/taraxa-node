@@ -9,6 +9,17 @@ namespace taraxa {
 /** @addtogroup Transaction
  * @{
  */
+namespace transaction {
+const auto priorityComparator = [](const std::shared_ptr<Transaction>& first,
+                                   const std::shared_ptr<Transaction>& second) {
+  if (first->getSender() == second->getSender()) {
+    return first->getNonce() < second->getNonce() ||
+           (first->getNonce() == second->getNonce() && first->getGasPrice() > second->getGasPrice());
+  } else {
+    return first->getGasPrice() > second->getGasPrice();
+  }
+};
+}
 
 enum class TransactionStatus;
 /**

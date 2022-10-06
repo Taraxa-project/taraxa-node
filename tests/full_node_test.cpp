@@ -1,4 +1,3 @@
-
 #include <graphqlservice/GraphQLService.h>
 #include <graphqlservice/JSONResponse.h>
 #include <gtest/gtest.h>
@@ -23,7 +22,6 @@
 #include "network/rpc/Taraxa.h"
 #include "node/node.hpp"
 #include "pbft/pbft_manager.hpp"
-#include "string"
 #include "transaction/transaction_manager.hpp"
 #include "util_test/samples.hpp"
 
@@ -49,7 +47,6 @@ void send_dummy_trx() {
                                         "value": 0,
                                         "gas_price": 1,
                                         "gas": 100000,
-                                        "nonce": 2004,
                                         "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7782 > /dev/null)";
 
   std::cout << "Send dummy transaction ..." << std::endl;
@@ -136,50 +133,80 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
 
-  // PBFT manager voted value
-  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockInRound), std::nullopt);
-  EXPECT_EQ(db.getPbftMgrVotedValue(PbftMgrVotedValue::CertVotedBlockInRound), std::nullopt);
-  db.savePbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockInRound, {blk_hash_t(2), uint64_t(0)});
-  db.savePbftMgrVotedValue(PbftMgrVotedValue::CertVotedBlockInRound, {blk_hash_t(3), uint64_t(0)});
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockInRound),
-            std::make_pair(blk_hash_t(2), uint64_t(0)));
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::CertVotedBlockInRound),
-            std::make_pair(blk_hash_t(3), uint64_t(0)));
-  batch = db.createWriteBatch();
-  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::SoftVotedBlockInRound, std::make_pair(blk_hash_t(5), uint64_t(0)),
-                                 batch);
-  db.addPbftMgrVotedValueToBatch(PbftMgrVotedValue::CertVotedBlockInRound, std::make_pair(blk_hash_t(6), uint64_t(0)),
-                                 batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::SoftVotedBlockInRound),
-            std::make_pair(blk_hash_t(5), uint64_t(0)));
-  EXPECT_EQ(*db.getPbftMgrVotedValue(PbftMgrVotedValue::CertVotedBlockInRound),
-            std::make_pair(blk_hash_t(6), uint64_t(0)));
+  // PBFT soft voted block data in round
+  EXPECT_EQ(db.getSoftVotedBlockDataInRound(), std::nullopt);
+  uint64_t soft_voted_block_period_and_round = 123;
+  TwoTPlusOneSoftVotedBlockData soft_voted_block_data_with_block;
+  soft_voted_block_data_with_block.round_ = soft_voted_block_period_and_round;
+  soft_voted_block_data_with_block.block_ =
+      make_simple_pbft_block(soft_voted_block_data_with_block.block_hash_, soft_voted_block_period_and_round);
+  soft_voted_block_data_with_block.block_hash_ = soft_voted_block_data_with_block.block_->getBlockHash();
+  std::vector<std::shared_ptr<Vote>> soft_votes;
+  for (auto i = 0; i < 3; i++) {
+    blk_hash_t voted_pbft_block_hash(i);
+    VrfPbftMsg msg(soft_vote_type, soft_voted_block_period_and_round, soft_voted_block_period_and_round, filter_state);
+    vrf_wrapper::vrf_sk_t vrf_sk(
+        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+    VrfPbftSortition vrf_sortition(vrf_sk, msg);
+    Vote vote(g_secret, vrf_sortition, soft_voted_block_data_with_block.block_hash_);
+    soft_votes.emplace_back(std::make_shared<Vote>(vote));
+  }
+  soft_voted_block_data_with_block.soft_votes_ = soft_votes;
 
-  // PBFT cert voted block
-  auto pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 1);
-  auto pbft_block2 = make_simple_pbft_block(blk_hash_t(2), 2);
-  auto pbft_block3 = make_simple_pbft_block(blk_hash_t(3), 3);
-  auto pbft_block4 = make_simple_pbft_block(blk_hash_t(4), 4);
-  EXPECT_EQ(db.getPbftCertVotedBlock(blk_hash_t(1)), nullptr);
-  db.savePbftCertVotedBlock(*pbft_block1);
-  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block1->getBlockHash())->rlp(false), pbft_block1->rlp(false));
+  db.saveSoftVotedBlockDataInRound(soft_voted_block_data_with_block);
+  auto soft_voted_block_data_with_block_db = db.getSoftVotedBlockDataInRound();
+  EXPECT_EQ(soft_voted_block_data_with_block_db->round_, soft_voted_block_data_with_block.round_);
+  EXPECT_EQ(soft_voted_block_data_with_block_db->block_hash_, soft_voted_block_data_with_block.block_hash_);
+  EXPECT_EQ(soft_voted_block_data_with_block_db->soft_votes_.size(),
+            soft_voted_block_data_with_block.soft_votes_.size());
+  for (size_t idx = 0; idx < soft_voted_block_data_with_block.soft_votes_.size(); idx++) {
+    const auto &db_vote = soft_voted_block_data_with_block_db->soft_votes_[idx];
+    const auto &orig_vote = soft_voted_block_data_with_block.soft_votes_[idx];
+    EXPECT_EQ(db_vote->rlp(true, true), orig_vote->rlp(true, true));
+  }
+  EXPECT_EQ(soft_voted_block_data_with_block_db->block_->rlp(true), soft_voted_block_data_with_block.block_->rlp(true));
+
   batch = db.createWriteBatch();
-  db.addPbftCertVotedBlockToBatch(*pbft_block2, batch);
-  db.addPbftCertVotedBlockToBatch(*pbft_block3, batch);
-  db.addPbftCertVotedBlockToBatch(*pbft_block4, batch);
+  db.removeSoftVotedBlockDataInRound(batch);
   db.commitWriteBatch(batch);
-  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block2->getBlockHash())->rlp(false), pbft_block2->rlp(false));
-  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block3->getBlockHash())->rlp(false), pbft_block3->rlp(false));
-  EXPECT_EQ(db.getPbftCertVotedBlock(pbft_block4->getBlockHash())->rlp(false), pbft_block4->rlp(false));
+  EXPECT_EQ(db.getSoftVotedBlockDataInRound(), std::nullopt);
+
+  TwoTPlusOneSoftVotedBlockData soft_voted_block_data_no_block = soft_voted_block_data_with_block;
+  soft_voted_block_data_no_block.block_ = nullptr;
+  db.saveSoftVotedBlockDataInRound(soft_voted_block_data_no_block);
+  auto soft_voted_block_data_no_block_db = db.getSoftVotedBlockDataInRound();
+  EXPECT_EQ(soft_voted_block_data_no_block_db->round_, soft_voted_block_data_no_block.round_);
+  EXPECT_EQ(soft_voted_block_data_no_block_db->block_hash_, soft_voted_block_data_no_block.block_hash_);
+  EXPECT_EQ(soft_voted_block_data_no_block_db->soft_votes_.size(), soft_voted_block_data_no_block.soft_votes_.size());
+  for (size_t idx = 0; idx < soft_voted_block_data_with_block.soft_votes_.size(); idx++) {
+    const auto &db_vote = soft_voted_block_data_with_block_db->soft_votes_[idx];
+    const auto &orig_vote = soft_voted_block_data_with_block.soft_votes_[idx];
+    EXPECT_EQ(db_vote->rlp(true, true), orig_vote->rlp(true, true));
+  }
+  EXPECT_EQ(soft_voted_block_data_no_block_db->block_, soft_voted_block_data_no_block.block_);
+
+  // PBFT cert voted block in round
+  EXPECT_EQ(db.getCertVotedBlockInRound(), std::nullopt);
+
+  auto cert_voted_block_in_round = make_simple_pbft_block(blk_hash_t(1), 1);
+  db.saveCertVotedBlockInRound(1, cert_voted_block_in_round);
+  auto cert_voted_block_in_round_db = db.getCertVotedBlockInRound();
+  EXPECT_EQ(cert_voted_block_in_round_db->second->rlp(true), cert_voted_block_in_round->rlp(true));
+  EXPECT_EQ(cert_voted_block_in_round_db->first, 1);
+
+  batch = db.createWriteBatch();
+  db.removeCertVotedBlockInRound(batch);
+  db.commitWriteBatch(batch);
+  EXPECT_EQ(db.getCertVotedBlockInRound(), std::nullopt);
 
   // pbft_blocks and cert votes
   EXPECT_FALSE(db.pbftBlockInDb(blk_hash_t(0)));
   EXPECT_FALSE(db.pbftBlockInDb(blk_hash_t(1)));
-  pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 2);
-  pbft_block2 = make_simple_pbft_block(blk_hash_t(2), 3);
-  pbft_block3 = make_simple_pbft_block(blk_hash_t(3), 4);
-  pbft_block4 = make_simple_pbft_block(blk_hash_t(4), 5);
+  auto pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 2);
+  auto pbft_block2 = make_simple_pbft_block(blk_hash_t(2), 3);
+  auto pbft_block3 = make_simple_pbft_block(blk_hash_t(3), 4);
+  auto pbft_block4 = make_simple_pbft_block(blk_hash_t(4), 5);
 
   // Certified votes
   std::vector<std::shared_ptr<Vote>> cert_votes;
@@ -277,48 +304,8 @@ TEST_F(FullNodeTest, db_test) {
   db.commitWriteBatch(batch);
   EXPECT_TRUE(db.getVerifiedVotes().empty());
 
-  // Soft votes
-  auto period = 1, round = 1, step = 2;
-  auto soft_votes = db.getSoftVotes(round);
-  EXPECT_TRUE(soft_votes.empty());
-  for (auto i = 0; i < 3; i++) {
-    blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(soft_vote_type, period, round, step);
-    vrf_wrapper::vrf_sk_t vrf_sk(
-        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
-        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-    VrfPbftSortition vrf_sortition(vrf_sk, msg);
-    Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
-    soft_votes.emplace_back(std::make_shared<Vote>(vote));
-  }
-  db.saveSoftVotes(round, soft_votes);
-  auto soft_votes_from_db = db.getSoftVotes(round);
-  EXPECT_EQ(soft_votes.size(), soft_votes_from_db.size());
-  EXPECT_EQ(soft_votes_from_db.size(), 3);
-  for (auto i = 3; i < 5; i++) {
-    blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(soft_vote_type, period, round, step);
-    vrf_wrapper::vrf_sk_t vrf_sk(
-        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
-        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-    VrfPbftSortition vrf_sortition(vrf_sk, msg);
-    Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
-    soft_votes.emplace_back(std::make_shared<Vote>(vote));
-  }
-  batch = db.createWriteBatch();
-  db.addSoftVotesToBatch(round, soft_votes, batch);
-  db.commitWriteBatch(batch);
-  soft_votes_from_db = db.getSoftVotes(round);
-  EXPECT_EQ(soft_votes.size(), soft_votes_from_db.size());
-  EXPECT_EQ(soft_votes_from_db.size(), 5);
-  batch = db.createWriteBatch();
-  db.removeSoftVotesToBatch(round, batch);
-  db.commitWriteBatch(batch);
-  soft_votes_from_db = db.getSoftVotes(round);
-  EXPECT_TRUE(soft_votes_from_db.empty());
-
   // Next votes
-  period = 3, round = 3, step = 5;
+  uint64_t period = 3, round = 3, step = 5;
   auto next_votes = db.getPreviousRoundNextVotes();
   EXPECT_TRUE(next_votes.empty());
   for (auto i = 0; i < 3; i++) {
@@ -878,10 +865,10 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
   auto nodes = launch_nodes(node_cfgs);
 
   // send 1000 trxs
-  for (const auto &trx : samples::createSignedTrxSamples(0, 400, g_secret)) {
+  for (const auto &trx : samples::createSignedTrxSamples(1, 400, g_secret)) {
     nodes[0]->getTransactionManager()->insertTransaction(trx);
   }
-  for (const auto &trx : samples::createSignedTrxSamples(400, 1000, g_secret)) {
+  for (const auto &trx : samples::createSignedTrxSamples(401, 1000, g_secret)) {
     nodes[1]->getTransactionManager()->insertTransaction(trx);
   }
 
@@ -918,10 +905,10 @@ TEST_F(FullNodeTest, persist_counter) {
     auto nodes = launch_nodes(node_cfgs);
 
     // send 1000 trxs
-    for (const auto &trx : samples::createSignedTrxSamples(0, 400, g_secret)) {
+    for (const auto &trx : samples::createSignedTrxSamples(1, 400, g_secret)) {
       nodes[0]->getTransactionManager()->insertTransaction(trx);
     }
-    for (const auto &trx : samples::createSignedTrxSamples(400, 1000, g_secret)) {
+    for (const auto &trx : samples::createSignedTrxSamples(401, 1000, g_secret)) {
       nodes[1]->getTransactionManager()->insertTransaction(trx);
     }
 
@@ -1017,13 +1004,13 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
 "eth_sendRawTransaction", "params":
-["0xf868808502540be40082520894cb36e7dc45bdf421f6b6f64a75a3760393d3cf598401312d00801ba07659e8c7207a4b2cd96488108fed54c463b1719b438add1159beed04f6660da8a028feb0a3b44bd34e0dd608f82aeeb2cd70d1305653b5dc33678be2ffcfcac997"
+["0xf86c0180830186a0948a73eb33a449c5875c6f22afbe3f666606c27bb6648c00fedcba98765432100000001ca0b8c05088645fdce361cbef72c304fb7bef72baef0396743aec9ea19bf258bd3da037154cf300f768d06f24189d4cf4f23921d696973b3fb23a5950da5ca1ca0f7c"
                                       ]}' 0.0.0.0:7782)";
 
   std::string send_raw_trx2 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
 "eth_sendRawTransaction", "params":
-["0xf868018502540be40082520894cb36e7dc45bdf421f6b6f64a75a3760393d3cf598401312d00801ba05256492dd60623ab5a403ed1b508f845f87f631d2c2e7acd4357cd83ef5b6540a042def7cd4f3c25ce67ee25911740dab47161e096f1dd024badecec58888a890b"
+["0xf86d0280830186a094cad9ed1711133943b1a6ca50d3741f871c07991281c88c00fedcba98765432100000001ca0ab735dbf255a3ac9fb1680272583a47397569ece015a12d2e1d955db429c9c69a05430325ef3b098d36673467661610d884e72efc46a6588f81f237dcecc841520"
                                       ]}' 0.0.0.0:7782)";
 
   std::cout << "Send first trx ..." << std::endl;
@@ -1055,13 +1042,13 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
 "eth_sendRawTransaction", "params":
-["0xf86b808502540be40082520894973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b087038d7ea4c68000801ca04cef8610e05b4476673c369204899da747a9b32b0ad3769814b620281c900408a0130499a83d0b56c184c6ac518f6bbe2f8f946b65bf42b08cfc9b4dfbe2ebfd04"
+["0xf86c0180830186a0948a73eb33a449c5875c6f22afbe3f666606c27bb6648c00fedcba98765432100000001ca0b8c05088645fdce361cbef72c304fb7bef72baef0396743aec9ea19bf258bd3da037154cf300f768d06f24189d4cf4f23921d696973b3fb23a5950da5ca1ca0f7c"
                                       ]}' 0.0.0.0:7782)";
 
   std::string send_raw_trx2 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
 "eth_sendRawTransaction", "params":
-["0xf86b018502540be40082520894973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b087038d7ea4c68000801ca06644c30a23286d0de8fa107f1bded3a7a214004042b2007b2a9a62c8b313cf79a06cbb522856838b107542d8213286928500b2822584d6c7c6fee3a2c348cade4a"
+["0xf86d0280830186a094cad9ed1711133943b1a6ca50d3741f871c07991281c88c00fedcba98765432100000001ca0ab735dbf255a3ac9fb1680272583a47397569ece015a12d2e1d955db429c9c69a05430325ef3b098d36673467661610d884e72efc46a6588f81f237dcecc841520"
                                       ]}' 0.0.0.0:7782)";
 
   std::cout << "Send first trx ..." << std::endl;
@@ -1155,7 +1142,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
   }
 
   std::cout << "Checking all nodes executed transactions at initialization" << std::endl;
-  wait({150s, 2s}, [&](auto &ctx) {
+  wait({50s, 3s}, [&](auto &ctx) {
     for (size_t i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
@@ -1171,6 +1158,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
       }
     }
   });
+  ASSERT_EQ(nodes.back()->getDB()->getNumTransactionExecuted(), trxs_count);
   // Check account balance for each node
   for (size_t i(0); i < nodes.size(); ++i) {
     std::cout << "Checking account balances on node " << i << " ..." << std::endl;
@@ -1185,13 +1173,15 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
 
   // Sending coins in Robin Cycle
   auto send_coins = 1;
+  std::vector<uint64_t> nonces(nodes.size(), 1);
+  nonces[0] = nonce;
   for (size_t i(0); i < nodes.size(); ++i) {
     auto receiver_index = (i + 1) % nodes.size();
     // Each node sends 500 transactions
     auto j = 0;
     for (; j < 500; j++) {
       auto send_coins_in_robin_cycle =
-          std::make_shared<Transaction>(nonce++, send_coins, gas_price, 100000, bytes(), nodes[i]->getSecretKey(),
+          std::make_shared<Transaction>(nonces[i]++, send_coins, gas_price, 100000, bytes(), nodes[i]->getSecretKey(),
                                         nodes[receiver_index]->getAddress());
       // broadcast trx and insert
       nodes[i]->getTransactionManager()->insertTransaction(send_coins_in_robin_cycle);
@@ -1199,9 +1189,10 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
     }
     std::cout << "Node" << i << " sends " << j << " transactions to Node" << receiver_index << std::endl;
   }
+  nonce = nonces[0];
   std::cout << "Checking all nodes execute transactions from robin cycle" << std::endl;
 
-  wait({150s, 2s}, [&](auto &ctx) {
+  wait({50s, 3s}, [&](auto &ctx) {
     for (size_t i(0); i < nodes.size(); ++i) {
       if (nodes[i]->getDB()->getNumTransactionExecuted() != trxs_count) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
@@ -1212,6 +1203,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
           // broadcast dummy transaction
           nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
           trxs_count++;
+          thisThreadSleepForMilliSeconds(100);
           return;
         }
       }
@@ -1674,7 +1666,7 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
   });
 }
 
-TEST_F(FullNodeTest, DISABLED_GraphQLTest) {
+TEST_F(FullNodeTest, graphql_test) {
   // Create a node with 5 pbft/eth blocks
   auto node_cfgs = make_node_cfgs<20>(1);
   auto nodes = launch_nodes(node_cfgs);
@@ -1713,7 +1705,7 @@ TEST_F(FullNodeTest, DISABLED_GraphQLTest) {
   auto data = service::ScalarArgument::require("data", result);
   auto block = service::ScalarArgument::require("block", data);
   auto number = service::IntArgument::require("number", block);
-  EXPECT_EQ(nodes[0]->getPbftChain()->getPbftChainSize(), number);
+  EXPECT_GE(nodes[0]->getPbftChain()->getPbftChainSize(), number);
 
   // Get block hash by number
   query = R"({ block(number:3) { hash } })"_graphql;

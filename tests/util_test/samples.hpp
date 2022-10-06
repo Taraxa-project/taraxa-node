@@ -108,7 +108,7 @@ inline bool sendTrx(uint64_t count, unsigned port) {
         "id": "0",
         "params": [
           {
-            "nonce": 0,
+            "nonce": %d,
             "value": 0,
             "gas": "%s",
             "gas_price": "%s",
@@ -119,7 +119,7 @@ inline bool sendTrx(uint64_t count, unsigned port) {
       }' 0.0.0.0:%s
     )";
   for (uint64_t i = 0; i < count; ++i) {
-    auto retcode = system(fmt(pattern, val_t(TEST_TX_GAS_LIMIT), val_t(0), addr_t::random(),
+    auto retcode = system(fmt(pattern, i + 1, val_t(TEST_TX_GAS_LIMIT), val_t(0), addr_t::random(),
                               samples::TX_GEN->getRandomUniqueSenderSecret().makeInsecure(), port)
                               .c_str());
     if (retcode != 0) {
@@ -172,7 +172,7 @@ inline SharedTransactions createSignedTrxSamples(unsigned start, unsigned num, s
                                                  bytes data = dev::fromHex("00FEDCBA9876543210000000")) {
   assert(start + num < std::numeric_limits<unsigned>::max());
   SharedTransactions trxs;
-  for (auto i = start; i < num; ++i) {
+  for (auto i = start; i <= num; ++i) {
     trxs.emplace_back(std::make_shared<Transaction>(i, i * 100, 0, 100000, data, sk, addr_t::random()));
   }
   return trxs;

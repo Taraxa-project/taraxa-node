@@ -23,3 +23,9 @@ numbering uses [semantic versioning](http://semver.org).
 ### Patches
 
 * Fixes RPC nodes initconfig wrong validators
+
+## v0.2.1
+
+### Patches
+
+* Updates explorer dep version
