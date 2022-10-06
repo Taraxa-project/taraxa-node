@@ -1060,7 +1060,11 @@ workflows:
       - build-docker-image:
           filters:
             branches:
-              ignore: /^chart\/.*/
+              ignore:
+                - /^chart\/.*/
+                - /^chore\/chart-.*/
+                - /^fix\/chart-.*/
+                - /^feature\/chart-.*/
           context:
             - TARAXA
             - GCP
