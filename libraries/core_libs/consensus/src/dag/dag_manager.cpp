@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "dag/dag.hpp"
-#include "key_manager/key_manager.hpp"
 #include "network/network.hpp"
 #include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 #include "transaction/transaction_manager.hpp"
@@ -23,15 +22,13 @@ namespace taraxa {
 DagManager::DagManager(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr,
                        const SortitionConfig &sortition_config, const DagConfig &dag_config,
                        std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<PbftChain> pbft_chain,
-                       std::shared_ptr<FinalChain> final_chain, std::shared_ptr<DbStorage> db,
-                       std::shared_ptr<KeyManager> key_manager, bool is_light_node, uint64_t light_node_history,
-                       uint32_t max_levels_per_period, uint32_t dag_expiry_limit) try
+                       std::shared_ptr<FinalChain> final_chain, std::shared_ptr<DbStorage> db, bool is_light_node,
+                       uint64_t light_node_history, uint32_t max_levels_per_period, uint32_t dag_expiry_limit) try
     : pivot_tree_(std::make_shared<PivotTree>(dag_genesis_block_hash, node_addr)),
       total_dag_(std::make_shared<Dag>(dag_genesis_block_hash, node_addr)),
       trx_mgr_(trx_mgr),
       pbft_chain_(pbft_chain),
       db_(db),
-      key_manager_(std::move(key_manager)),
       anchor_(dag_genesis_block_hash),
       period_(0),
       sortition_params_manager_(node_addr, sortition_config, db_),
@@ -482,7 +479,7 @@ void DagManager::recoverDag() {
         break;
       } else {
         auto propose_period = db_->getProposalPeriodForDagLevel(blk.getLevel());
-        const auto pk = key_manager_->get(blk.getSender());
+        const auto pk = final_chain_->get_vrf_key(blk.getSender());
         if (!pk) {
           LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
                        << " level is missing VRF key for sender " << blk.getSender();
@@ -491,7 +488,7 @@ void DagManager::recoverDag() {
         // Verify VDF solution
         try {
           blk.verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period),
-                        db_->getPeriodBlockHash(*propose_period), *pk);
+                        db_->getPeriodBlockHash(*propose_period), pk);
         } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
           LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
                        << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason "
@@ -583,7 +580,7 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
 
   // Verify VDF solution
   const auto proposal_period_hash = db_->getPeriodBlockHash(*propose_period);
-  const auto pk = key_manager_->get(blk.getSender());
+  const auto pk = final_chain_->get_vrf_key(blk.getSender());
   if (!pk) {
     LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
                  << " level is missing VRF key for sender " << blk.getSender();
@@ -591,7 +588,7 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
   }
 
   try {
-    blk.verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period), proposal_period_hash, *pk);
+    blk.verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period), proposal_period_hash, pk);
   } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
     LOG(log_er_) << "DAG block " << block_hash << " with " << blk.getLevel()
                  << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason " << e.what();

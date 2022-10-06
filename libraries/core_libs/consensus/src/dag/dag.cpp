@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "dag/dag.hpp"
-#include "key_manager/key_manager.hpp"
 #include "network/network.hpp"
 #include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 #include "transaction/transaction_manager.hpp"
