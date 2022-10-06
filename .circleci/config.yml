@@ -442,6 +442,7 @@ jobs:
           name: Prepare Environment
           command: |
             echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >> $BASH_ENV
+            echo "export SHORT_GIT_HASH=$(echo $CIRCLE_SHA1 | cut -c -7)" >> $BASH_ENV
             export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )
             echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
             curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
@@ -518,7 +519,7 @@ jobs:
           command: |
             HELMCHART_VERSION=$(yq .version charts/${HELMCHART}/Chart.yaml | tr -d \")
             if [[ ${PR} != "false" ]]; then
-              helm cm-push charts/${HELMCHART}/ --version="${HELMCHART_VERSION}-pr${PR}" taraxacharts || true
+              helm cm-push charts/${HELMCHART}/ --version="${HELMCHART_VERSION}-sha.${SHORT_GIT_HASH}" taraxacharts || true
             fi
 
       - run:
