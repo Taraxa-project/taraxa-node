@@ -13,13 +13,17 @@ std::shared_ptr<vrf_wrapper::vrf_pk_t> KeyManager::get(const addr_t& addr, std::
       return it->second;
     }
   }
-  {
+
+  try {
     std::unique_lock lock(mutex_);
     if (auto key = final_chain_->get_vrf_key(addr, std::move(blk_n)); key != kEmptyVrfKey) {
       const auto [it, _] = key_map_.insert_or_assign(addr, std::make_shared<vrf_wrapper::vrf_pk_t>(std::move(key)));
       return it->second;
     }
+  } catch (state_api::ErrFutureBlock& e) {
     return nullptr;
   }
+
+  return nullptr;
 }
 }  // namespace taraxa
