@@ -1049,6 +1049,7 @@ workflows:
             - build-linux
             - build-mac
 
+  # run this workflow for all branches apart those reserved for chart
   build-docker-image:
     when:
       and:
@@ -1058,10 +1059,52 @@ workflows:
     jobs:
       - build-docker-image:
           filters:
-            tags:
-              only: /^v?\d+\.\d+\.\d+(?:-.*)?$/    # hmmm, we probabls want to separate this release into separate workflow, would be cleaner
             branches:
-              ignore: /^chart\/.*/                     # ignore building image for branches starting with "chart"
+              ignore: /^chart\/.*/
+          context:
+            - TARAXA
+            - GCP
+            - K8S
+            - GCR
+            - DOCKERHUB
+            - CHARTSREPO
+
+  # run this workflow for tags, like vX.Y.Z-beta
+  prerelease-docker-image:
+    when:
+      and:
+        - not: << pipeline.parameters.deploy_prnet >>
+        - not: << pipeline.parameters.redeploy_prnet >>
+        - not: << pipeline.parameters.cleanup_prnet >>
+    jobs:
+      - build-docker-image:
+          filters:
+            tags:
+              only: /^v?\d+\.\d+\.\d+-beta$/
+            branches:
+              ignore: /.*/
+          context:
+            - TARAXA
+            - GCP
+            - K8S
+            - GCR
+            - DOCKERHUB
+            - CHARTSREPO
+
+  # run this workflow for tags, like vX.Y.Z
+  release-docker-image:
+    when:
+      and:
+        - not: << pipeline.parameters.deploy_prnet >>
+        - not: << pipeline.parameters.redeploy_prnet >>
+        - not: << pipeline.parameters.cleanup_prnet >>
+    jobs:
+      - build-docker-image:
+          filters:
+            tags:
+              only: /^v?\d+\.\d+\.\d+$/
+            branches:
+              ignore: /.*/
           context:
             - TARAXA
             - GCP
@@ -1080,7 +1123,11 @@ workflows:
       - build-helm-chart:
           filters:
             branches:
-              only: /^chart\/.*/                       # run this job only for branches starting with "chart"
+              only: 
+              - /^chart\/.*/
+              - /^chore\/chart-.*/
+              - /^fix\/chart-.*/
+              - /^feature\/chart-.*/
           context:
             - TARAXA
             - GCP
