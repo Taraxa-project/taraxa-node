@@ -40,6 +40,7 @@ class FinalChainImpl final : public FinalChain {
   ValueByBlockCache<uint64_t> total_vote_count_cache_;
   MapByBlockCache<addr_t, uint64_t> dpos_vote_count_cache_;
   MapByBlockCache<addr_t, uint64_t> dpos_is_eligible_cache_;
+  MapByBlockCache<addr_t, vrf_wrapper::vrf_pk_t> vrf_keys_cache_;
 
   LOG_OBJECTS_DEFINE
 
@@ -67,9 +68,11 @@ class FinalChainImpl final : public FinalChain {
         dpos_vote_count_cache_(
             config.final_chain_cache_in_blocks,
             [this](uint64_t blk, const addr_t& addr) { return state_api_.dpos_eligible_vote_count(blk, addr); }),
-        dpos_is_eligible_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk, const addr_t& addr) {
-          return state_api_.dpos_is_eligible(blk, addr);
-        }) {
+        dpos_is_eligible_cache_(
+            config.final_chain_cache_in_blocks,
+            [this](uint64_t blk, const addr_t& addr) { return state_api_.dpos_is_eligible(blk, addr); }),
+        vrf_keys_cache_(config.final_chain_cache_in_blocks,
+                        [this](uint64_t blk, const addr_t& addr) { return state_api_.get_vrf_key(blk, addr); }) {
     LOG_OBJECTS_CREATE("EXECUTOR");
     num_executed_dag_blk_ = db_->getStatusField(taraxa::StatusDbField::ExecutedBlkCount);
     num_executed_trx_ = db_->getStatusField(taraxa::StatusDbField::ExecutedTrxCount);
@@ -343,7 +346,7 @@ class FinalChainImpl final : public FinalChain {
   }
 
   vrf_wrapper::vrf_pk_t get_vrf_key(addr_t const& addr, std::optional<EthBlockNumber> blk_n = {}) const override {
-    return state_api_.get_vrf_key(last_if_absent(blk_n), addr);
+    return vrf_keys_cache_.get(last_if_absent(blk_n), addr);
   }
 
   void update_state_config(const state_api::Config& new_config) override {

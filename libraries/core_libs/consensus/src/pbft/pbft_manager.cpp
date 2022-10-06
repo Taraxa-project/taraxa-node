@@ -29,8 +29,8 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
                          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
                          std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-                         std::shared_ptr<FinalChain> final_chain, std::shared_ptr<KeyManager> key_manager,
-                         secret_t node_sk, vrf_sk_t vrf_sk, uint32_t max_levels_per_period)
+                         std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk,
+                         uint32_t max_levels_per_period)
     : db_(std::move(db)),
       next_votes_manager_(std::move(next_votes_mgr)),
       pbft_chain_(std::move(pbft_chain)),
@@ -38,7 +38,6 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
       dag_mgr_(std::move(dag_mgr)),
       trx_mgr_(std::move(trx_mgr)),
       final_chain_(std::move(final_chain)),
-      key_manager_(std::move(key_manager)),
       node_addr_(std::move(node_addr)),
       node_sk_(std::move(node_sk)),
       vrf_sk_(std::move(vrf_sk)),
@@ -1070,8 +1069,7 @@ std::pair<bool, std::string> PbftManager::validateVote(const std::shared_ptr<Vot
 
   // Validate vote against dpos contract
   try {
-    // TODO: use vote period here !!!
-    const auto pk = key_manager_->get(vote->getVoterAddr());
+    const auto pk = final_chain_->get_vrf_key(vote->getVoterAddr(), vote_period - 1);
     if (!pk) {
       std::stringstream err;
       err << "No vrf key mapped for vote author " << vote->getVoterAddr();
@@ -1083,18 +1081,16 @@ std::pair<bool, std::string> PbftManager::validateVote(const std::shared_ptr<Vot
     const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(vote_period - 1);
     const uint64_t pbft_sortition_threshold = getPbftSortitionThreshold(vote->getType(), vote_period - 1);
 
-    vote->validate(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold, *pk);
+    vote->validate(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold, pk);
   } catch (state_api::ErrFutureBlock &e) {
     std::stringstream err;
     err << "Unable to validate vote " << vote->getHash() << " against dpos contract. It's period (" << vote_period
         << ") is too far ahead of actual finalized pbft chain size (" << final_chain_->last_block_number()
         << "). Err msg: " << e.what();
-
     return {false, err.str()};
   } catch (const std::logic_error &e) {
     std::stringstream err;
     err << "Vote " << vote->getHash() << " validation failed. Err: " << e.what();
-
     return {false, err.str()};
   }
 
