@@ -138,6 +138,13 @@ target_link_libraries(gas_pricer_test
 )
 add_test(gas_pricer_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gas_pricer_test)
 
+add_executable(rpc_test rpc_test.cpp)
+target_link_libraries(rpc_test
+    core_libs
+    CONAN_PKG::gtest
+)
+add_test(rpc_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gas_pricer_test)
+
 add_custom_target(py_test)
 
 add_custom_command(
