@@ -49,8 +49,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
                       const SortitionConfig &sortition_config, const DagConfig &dag_config,
                       std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<PbftChain> pbft_chain,
                       std::shared_ptr<FinalChain> final_chain, std::shared_ptr<DbStorage> db,
-                      bool is_light_node = false, uint64_t light_node_history = 0,
-                      uint32_t max_levels_per_period = kMaxLevelsPerPeriod,
+                      std::shared_ptr<KeyManager> key_manager, bool is_light_node = false,
+                      uint64_t light_node_history = 0, uint32_t max_levels_per_period = kMaxLevelsPerPeriod,
                       uint32_t dag_expiry_limit = kDagExpiryLevelLimit);
 
   DagManager(const DagManager &) = delete;
@@ -239,6 +239,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::shared_ptr<PbftChain> pbft_chain_;
   std::weak_ptr<Network> network_;
   std::shared_ptr<DbStorage> db_;
+  std::shared_ptr<KeyManager> key_manager_;
   blk_hash_t anchor_;      // anchor of the last period
   blk_hash_t old_anchor_;  // anchor of the second to last period
   uint64_t period_;        // last period
