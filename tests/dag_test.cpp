@@ -138,7 +138,7 @@ TEST_F(DagTest, compute_epoch) {
   auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   const blk_hash_t GENESIS = node_cfgs[0].chain.dag_genesis_block.getHash();
   auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), node_cfgs[0].chain.sortition, node_cfgs[0].chain.dag,
-                                          trx_mgr, pbft_chain, nullptr, db_ptr);
+                                          trx_mgr, pbft_chain, nullptr, db_ptr, nullptr);
   db_ptr->saveDagBlock(node_cfgs[0].chain.dag_genesis_block);
   DagBlock blkA(GENESIS, 1, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkB(GENESIS, 1, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
@@ -230,7 +230,7 @@ TEST_F(DagTest, dag_expiry) {
   auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   const blk_hash_t GENESIS = node_cfgs[0].chain.dag_genesis_block.getHash();
   auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), node_cfgs[0].chain.sortition, node_cfgs[0].chain.dag,
-                                          trx_mgr, pbft_chain, nullptr, db_ptr, false, 0, 3, EXPIRY_LIMIT);
+                                          trx_mgr, pbft_chain, nullptr, db_ptr, nullptr, false, 0, 3, EXPIRY_LIMIT);
   db_ptr->saveDagBlock(node_cfgs[0].chain.dag_genesis_block);
   DagBlock blkA(GENESIS, 1, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkB(GENESIS, 1, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
@@ -305,7 +305,7 @@ TEST_F(DagTest, receive_block_in_order) {
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   const blk_hash_t GENESIS = node_cfgs[0].chain.dag_genesis_block.getHash();
   auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), node_cfgs[0].chain.sortition, node_cfgs[0].chain.dag,
-                                          trx_mgr, pbft_chain, nullptr, db_ptr);
+                                          trx_mgr, pbft_chain, nullptr, db_ptr, nullptr);
 
   db_ptr->saveDagBlock(node_cfgs[0].chain.dag_genesis_block);
   DagBlock blk1(GENESIS, 1, {}, {}, sig_t(777), blk_hash_t(1), addr_t(15));
@@ -338,7 +338,7 @@ TEST_F(DagTest, compute_epoch_2) {
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   const blk_hash_t GENESIS = node_cfgs[0].chain.dag_genesis_block.getHash();
   auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), node_cfgs[0].chain.sortition, node_cfgs[0].chain.dag,
-                                          trx_mgr, pbft_chain, nullptr, db_ptr);
+                                          trx_mgr, pbft_chain, nullptr, db_ptr, nullptr);
 
   db_ptr->saveDagBlock(node_cfgs[0].chain.dag_genesis_block);
   DagBlock blkA(GENESIS, 1, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
@@ -421,7 +421,7 @@ TEST_F(DagTest, get_latest_pivot_tips) {
   auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   const blk_hash_t GENESIS = node_cfgs[0].chain.dag_genesis_block.getHash();
   auto mgr = std::make_shared<DagManager>(GENESIS, addr_t(), node_cfgs[0].chain.sortition, node_cfgs[0].chain.dag,
-                                          trx_mgr, pbft_chain, nullptr, db_ptr);
+                                          trx_mgr, pbft_chain, nullptr, db_ptr, nullptr);
 
   db_ptr->saveDagBlock(node_cfgs[0].chain.dag_genesis_block);
   DagBlock blk2(GENESIS, 1, {}, {}, sig_t(1), blk_hash_t(2), addr_t(15));

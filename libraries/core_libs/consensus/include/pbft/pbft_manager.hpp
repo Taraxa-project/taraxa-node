@@ -7,6 +7,7 @@
 #include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
 #include "final_chain/final_chain.hpp"
+#include "key_manager/key_manager.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "network/tarcap/taraxa_capability.hpp"
@@ -66,8 +67,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
               std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
               std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
               std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-              std::shared_ptr<FinalChain> final_chain, secret_t node_sk, vrf_sk_t vrf_sk,
-              uint32_t max_levels_per_period = kMaxLevelsPerPeriod);
+              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<KeyManager> key_manager, secret_t node_sk,
+              vrf_sk_t vrf_sk, uint32_t max_levels_per_period = kMaxLevelsPerPeriod);
   ~PbftManager();
   PbftManager(const PbftManager &) = delete;
   PbftManager(PbftManager &&) = delete;
@@ -580,6 +581,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::weak_ptr<Network> network_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
+  std::shared_ptr<KeyManager> key_manager_;
 
   addr_t node_addr_;
   secret_t node_sk_;

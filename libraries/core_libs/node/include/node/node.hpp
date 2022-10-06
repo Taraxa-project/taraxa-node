@@ -76,6 +76,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<NextVotesManager> next_votes_mgr_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
+  std::shared_ptr<KeyManager> key_manager_;
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<net::HttpServer> jsonrpc_http_;
   std::shared_ptr<net::HttpServer> graphql_http_;
