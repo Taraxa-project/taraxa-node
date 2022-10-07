@@ -4,8 +4,17 @@
 
 namespace taraxa {
 
+auto priorityComparator = [](const std::shared_ptr<Transaction> &first, const std::shared_ptr<Transaction> &second) {
+  if (first->getSender() == second->getSender()) {
+    return first->getNonce() < second->getNonce() ||
+           (first->getNonce() == second->getNonce() && first->getGasPrice() > second->getGasPrice());
+  } else {
+    return first->getGasPrice() > second->getGasPrice();
+  }
+};
+
 TransactionQueue::TransactionQueue(size_t max_size)
-    : priority_queue_{transaction::priorityComparator}, known_txs_(max_size * 2, max_size / 5), kMaxSize(max_size) {
+    : priority_queue_{priorityComparator}, known_txs_(max_size * 2, max_size / 5), kMaxSize(max_size) {
   // There are library limits on multiset size, we need to check if max size is not exceeding it
   if (kMaxSize > priority_queue_.max_size()) {
     throw std::invalid_argument("Transaction pool size is too large");
@@ -70,8 +79,8 @@ bool TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction, const 
     case TransactionStatus::Verified: {
       const auto it = priority_queue_.insert(std::move(transaction));
 
-      // This assert is here to check if transaction::priorityComparator works correctly. If object is not inserted,
-      // then there could be something wrong with comparator
+      // This assert is here to check if priorityComparator works correctly. If object is not inserted, then there could
+      // be something wrong with comparator
       assert(it != priority_queue_.end());
 
       // This check if priority_queue_ is not bigger than max size if so we delete last object
