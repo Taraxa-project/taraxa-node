@@ -1160,6 +1160,11 @@ std::shared_ptr<Vote> PbftManager::generateVoteWithWeight(taraxa::blk_hash_t con
   auto vote = generateVote(blockhash, vote_type, period, round, step);
   vote->calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold);
 
+  if (*vote->getWeight() == 0) {
+    // zero weight vote
+    return nullptr;
+  }
+
   return vote;
 }
 
