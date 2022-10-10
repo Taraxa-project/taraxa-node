@@ -5,7 +5,6 @@ var group___p_b_f_t_classtaraxa_1_1_period_data =
     [ "PeriodData", "group___p_b_f_t.html#a1e68bfb6f2d9043c0337a65d7c3b450a", null ],
     [ "PeriodData", "group___p_b_f_t.html#a9b9c16bebdd27999339ad6634e2b3155", null ],
     [ "clear", "group___p_b_f_t.html#a0dc7de87bfa14bd2ce793c19790ec0e6", null ],
-    [ "hasEnoughValidCertVotes", "group___p_b_f_t.html#a53a2a7a87176be69c381236882d50211", null ],
     [ "rlp", "group___p_b_f_t.html#af3ec0d4c489b9f9ebcc8bed828c59ed9", null ],
     [ "dag_blocks", "group___p_b_f_t.html#a544fd1d4f13335c23f2febe112855a1f", null ],
     [ "kRlpItemCount", "group___p_b_f_t.html#ad42ae0e5c2dd9645414f9257916680b2", null ],

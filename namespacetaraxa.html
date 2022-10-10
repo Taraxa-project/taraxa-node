@@ -107,8 +107,6 @@ Namespaces</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespacetaraxa_1_1state__api"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html">state_api</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:namespacetaraxa_1_1transaction"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1transaction.html">transaction</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespacetaraxa_1_1util"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html">util</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespacetaraxa_1_1vdf__sortition"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1vdf__sortition.html">vdf_sortition</a></td></tr>
@@ -565,6 +563,8 @@ Variables</h2></td></tr>
 <tr class="separator:af37c840bbc7870c8fb9f5c878ac55582"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a10105b152578aaf566cb89722b17385b"><td class="memItemLeft" align="right" valign="top">static const <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a10105b152578aaf566cb89722b17385b">kEmptyVrfKey</a></td></tr>
 <tr class="separator:a10105b152578aaf566cb89722b17385b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1fa88bf5efbccea9145c3998fc8092ea"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a1fa88bf5efbccea9145c3998fc8092ea">priorityComparator</a></td></tr>
+<tr class="separator:a1fa88bf5efbccea9145c3998fc8092ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68e682168971290c106a9d9792a973cf"><td class="memItemLeft" align="right" valign="top">static constexpr uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a68e682168971290c106a9d9792a973cf">PBFT_BLOCK_POS_IN_PERIOD_DATA</a> = 0</td></tr>
 <tr class="separator:a68e682168971290c106a9d9792a973cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae2f5fd388cce3480b1f74c81569cc50d"><td class="memItemLeft" align="right" valign="top">static constexpr uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#ae2f5fd388cce3480b1f74c81569cc50d">CERT_VOTES_POS_IN_PERIOD_DATA</a> = 1</td></tr>
@@ -3180,6 +3180,28 @@ template&lt;typename T &gt; </div>
 </table>
 </div><div class="memdoc">
 
+</div>
+</div>
+<a id="a1fa88bf5efbccea9145c3998fc8092ea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1fa88bf5efbccea9145c3998fc8092ea">&#9670;&nbsp;</a></span>priorityComparator</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto taraxa::priorityComparator</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<b>Initial value:</b><div class="fragment"><div class="line">= [](<span class="keyword">const</span> std::shared_ptr&lt;Transaction&gt; &amp;first, <span class="keyword">const</span> std::shared_ptr&lt;Transaction&gt; &amp;second) {</div>
+<div class="line">  <span class="keywordflow">if</span> (first-&gt;getSender() == second-&gt;getSender()) {</div>
+<div class="line">    <span class="keywordflow">return</span> first-&gt;getNonce() &lt; second-&gt;getNonce() ||</div>
+<div class="line">           (first-&gt;getNonce() == second-&gt;getNonce() &amp;&amp; first-&gt;getGasPrice() &gt; second-&gt;getGasPrice());</div>
+<div class="line">  } <span class="keywordflow">else</span> {</div>
+<div class="line">    <span class="keywordflow">return</span> first-&gt;getGasPrice() &gt; second-&gt;getGasPrice();</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment -->
 </div>
 </div>
 <a id="a43ba02b53dd89ed2d602d846af2a64cc"></a>

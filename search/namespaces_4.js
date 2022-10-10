@@ -15,8 +15,7 @@ var searchData=
   ['taraxa_3850',['taraxa',['../namespacetaraxa.html',1,'']]],
   ['tarcap_3851',['tarcap',['../namespacetaraxa_1_1network_1_1tarcap.html',1,'taraxa::network']]],
   ['tools_3852',['tools',['../namespacetaraxa_1_1cli_1_1tools.html',1,'taraxa::cli']]],
-  ['transaction_3853',['transaction',['../namespacetaraxa_1_1transaction.html',1,'taraxa']]],
-  ['util_3854',['util',['../namespacetaraxa_1_1util.html',1,'taraxa']]],
-  ['vdf_5fsortition_3855',['vdf_sortition',['../namespacetaraxa_1_1vdf__sortition.html',1,'taraxa']]],
-  ['vrf_5fwrapper_3856',['vrf_wrapper',['../namespacetaraxa_1_1vrf__wrapper.html',1,'taraxa']]]
+  ['util_3853',['util',['../namespacetaraxa_1_1util.html',1,'taraxa']]],
+  ['vdf_5fsortition_3854',['vdf_sortition',['../namespacetaraxa_1_1vdf__sortition.html',1,'taraxa']]],
+  ['vrf_5fwrapper_3855',['vrf_wrapper',['../namespacetaraxa_1_1vrf__wrapper.html',1,'taraxa']]]
 ];

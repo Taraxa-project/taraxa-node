@@ -1058,6 +1058,9 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:a98aa2d65de6a6448020cf06ccd14e972"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::pair&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a>, std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a98aa2d65de6a6448020cf06ccd14e972">processPeriodData</a> ()</td></tr>
 <tr class="memdesc:a98aa2d65de6a6448020cf06ccd14e972"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process synced PBFT blocks if PBFT syncing queue is not empty.  <a href="group___p_b_f_t.html#a98aa2d65de6a6448020cf06ccd14e972">More...</a><br /></td></tr>
 <tr class="separator:a98aa2d65de6a6448020cf06ccd14e972"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab98c1841139d0440c38fac78d97ee438"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ab98c1841139d0440c38fac78d97ee438">validatePbftBlockCertVotes</a> (const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; pbft_block, const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;cert_votes) const</td></tr>
+<tr class="memdesc:ab98c1841139d0440c38fac78d97ee438"><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates PBFT block cert votes.  <a href="group___p_b_f_t.html#ab98c1841139d0440c38fac78d97ee438">More...</a><br /></td></tr>
+<tr class="separator:ab98c1841139d0440c38fac78d97ee438"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5a518a3d602960194b8f9b2aac1bcc8d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a5a518a3d602960194b8f9b2aac1bcc8d">countVotes_</a> () const</td></tr>
 <tr class="memdesc:a5a518a3d602960194b8f9b2aac1bcc8d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Count how many votes in the current PBFT round and step. This is only for testing purpose.  <a href="group___p_b_f_t.html#a5a518a3d602960194b8f9b2aac1bcc8d">More...</a><br /></td></tr>
 <tr class="separator:a5a518a3d602960194b8f9b2aac1bcc8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -3552,6 +3555,52 @@ Collaboration diagram for taraxa::PbftManager:</div>
 </div><div class="memdoc">
 
 <p>Update PBFT 2t+1 and PBFT sortition threshold. </p>
+
+</div>
+</div>
+<a id="ab98c1841139d0440c38fac78d97ee438"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab98c1841139d0440c38fac78d97ee438">&#9670;&nbsp;</a></span>validatePbftBlockCertVotes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool taraxa::PbftManager::validatePbftBlockCertVotes </td>
+          <td>(</td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;&#160;</td>
+          <td class="paramname"><em>pbft_block</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&#160;</td>
+          <td class="paramname"><em>cert_votes</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Validates PBFT block cert votes. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pbft_block</td><td></td></tr>
+    <tr><td class="paramname">cert_votes</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if there is enough(2t+1) votes and all of them are valid, otherwise false </dd></dl>
 
 </div>
 </div>
@@ -6126,9 +6175,6 @@ Collaboration diagram for taraxa::PeriodData:</div>
 <tr class="memitem:a0dc7de87bfa14bd2ce793c19790ec0e6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a0dc7de87bfa14bd2ce793c19790ec0e6">clear</a> ()</td></tr>
 <tr class="memdesc:a0dc7de87bfa14bd2ce793c19790ec0e6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear PBFT block, certify votes, DAG blocks, and transactions.  <a href="group___p_b_f_t.html#a0dc7de87bfa14bd2ce793c19790ec0e6">More...</a><br /></td></tr>
 <tr class="separator:a0dc7de87bfa14bd2ce793c19790ec0e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a53a2a7a87176be69c381236882d50211"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a53a2a7a87176be69c381236882d50211">hasEnoughValidCertVotes</a> (const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;votes, size_t valid_sortition_players, size_t sortition_threshold, size_t pbft_2t_plus_1, std::function&lt; size_t(<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;)&gt; const &amp;dpos_eligible_vote_count, std::function&lt; std::shared_ptr&lt; <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a> &gt;(<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;)&gt; const &amp;get_vrf_key) const</td></tr>
-<tr class="memdesc:a53a2a7a87176be69c381236882d50211"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verify there are enough valid certify votes.  <a href="group___p_b_f_t.html#a53a2a7a87176be69c381236882d50211">More...</a><br /></td></tr>
-<tr class="separator:a53a2a7a87176be69c381236882d50211"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Public Attributes</h3></td></tr>
 <tr class="memitem:a65b044ffd5778ee985dd4fdff34b5d0d"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a65b044ffd5778ee985dd4fdff34b5d0d">pbft_blk</a></td></tr>
 <tr class="separator:a65b044ffd5778ee985dd4fdff34b5d0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -6265,69 +6311,6 @@ Collaboration diagram for taraxa::PeriodData:</div>
 </div><div class="memdoc">
 
 <p>Clear PBFT block, certify votes, DAG blocks, and transactions. </p>
-
-</div>
-</div>
-<a id="a53a2a7a87176be69c381236882d50211"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a53a2a7a87176be69c381236882d50211">&#9670;&nbsp;</a></span>hasEnoughValidCertVotes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::PeriodData::hasEnoughValidCertVotes </td>
-          <td>(</td>
-          <td class="paramtype">const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&#160;</td>
-          <td class="paramname"><em>votes</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>valid_sortition_players</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>sortition_threshold</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>pbft_2t_plus_1</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::function&lt; size_t(<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;)&gt; const &amp;&#160;</td>
-          <td class="paramname"><em>dpos_eligible_vote_count</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::function&lt; std::shared_ptr&lt; <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a> &gt;(<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;)&gt; const &amp;&#160;</td>
-          <td class="paramname"><em>get_vrf_key</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Verify there are enough valid certify votes. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">valid_sortition_players</td><td>total DPOS votes count </td></tr>
-    <tr><td class="paramname">sortition_threshold</td><td>PBFT sortition threshold </td></tr>
-    <tr><td class="paramname">pbft_2t_plus_1</td><td>PBFT 2t+1 </td></tr>
-    <tr><td class="paramname">dpos_eligible_vote_count</td><td>function of getting voter DPOS eligible votes count </td></tr>
-  </table>
-  </dd>
-</dl>
 
 </div>
 </div>
