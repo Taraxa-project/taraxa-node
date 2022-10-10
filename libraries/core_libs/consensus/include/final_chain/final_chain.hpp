@@ -193,12 +193,10 @@ class FinalChain {
    * state would be reverted and not saved anywhere
    * @param trx state_api::EVMTransaction
    * @param blk_n EthBlockNumber number of block we are getting state from
-   * @param opts state_api::ExecutionOptions
    * @return state_api::ExecutionResult
    */
   virtual state_api::ExecutionResult call(state_api::EVMTransaction const& trx,
-                                          std::optional<EthBlockNumber> blk_n = {},
-                                          std::optional<state_api::ExecutionOptions> const& opts = {}) const = 0;
+                                          std::optional<EthBlockNumber> blk_n = {}) const = 0;
 
   /**
    * @brief total count of eligible votes are in DPOS precompiled contract

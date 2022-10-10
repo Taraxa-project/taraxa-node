@@ -59,7 +59,7 @@ class CoinTxExtraParams:
 class DefaultNonceStrategy:
 
     def __init__(self):
-        self.i = 0
+        self.i = 1
 
     def __call__(self, addr):
         prev, self.i = self.i, self.i + 1

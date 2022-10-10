@@ -360,8 +360,8 @@ class FinalChainImpl final : public FinalChain {
     return state_api_.get_code_by_address(last_if_absent(blk_n), addr);
   }
 
-  state_api::ExecutionResult call(state_api::EVMTransaction const& trx, std::optional<EthBlockNumber> blk_n = {},
-                                  std::optional<state_api::ExecutionOptions> const& opts = {}) const override {
+  state_api::ExecutionResult call(state_api::EVMTransaction const& trx,
+                                  std::optional<EthBlockNumber> blk_n = {}) const override {
     auto const blk_header = block_header(last_if_absent(blk_n));
     return state_api_.dry_run_transaction(blk_header->number,
                                           {
@@ -370,7 +370,7 @@ class FinalChainImpl final : public FinalChain {
                                               blk_header->timestamp,
                                               BlockHeader::difficulty(),
                                           },
-                                          trx, opts);
+                                          trx);
   }
 
   uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const override {

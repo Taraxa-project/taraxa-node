@@ -62,16 +62,6 @@ struct DPOSConfig {
 Json::Value enc_json(const DPOSConfig& obj);
 void dec_json(const Json::Value& json, DPOSConfig& obj);
 
-// This struct has strict ordering, do not change it
-struct ExecutionOptions {
-  bool disable_nonce_check = false;
-  bool enable_nonce_skipping = false;
-
-  HAS_RLP_FIELDS
-};
-Json::Value enc_json(const ExecutionOptions& obj);
-void dec_json(const Json::Value& json, ExecutionOptions& obj);
-
 struct BlockRewardsOptions {
   // Disables new tokens generation as block reward
   bool disable_block_rewards = false;
@@ -87,7 +77,6 @@ void dec_json(Json::Value const& json, BlockRewardsOptions& obj);
 
 struct Config {
   ETHChainConfig eth_chain_config;
-  ExecutionOptions execution_options;
   BlockRewardsOptions block_rewards_options;
   BalanceMap genesis_balances;
   // TODO[1899]: dpos confing should not be optional

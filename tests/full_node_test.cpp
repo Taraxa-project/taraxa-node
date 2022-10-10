@@ -389,15 +389,16 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   auto nodes = launch_nodes(node_cfgs);
 
   class context {
-    decltype(nodes) &nodes_;
-    vector<TransactionClient> trx_clients;
+    decltype(nodes) nodes_;
+    std::vector<TransactionClient> trx_clients;
     uint64_t issued_trx_count = 0;
-    unordered_map<addr_t, val_t> expected_balances;
-    shared_mutex m;
+    std::unordered_map<addr_t, val_t> expected_balances;
+    std::shared_mutex m;
     std::unordered_set<trx_hash_t> transactions;
+    TransactionClient dummy_client;
 
    public:
-    context(decltype(nodes_) nodes) : nodes_(nodes) {
+    context(decltype(nodes_) nodes) : nodes_(nodes), dummy_client(nodes_[0], KeyPair::create().secret()) {
       for (auto const &node : nodes_) {
         trx_clients.emplace_back(node);
         expected_balances[node->getAddress()] = node->getFinalChain()->getBalance(node->getAddress()).first;
@@ -414,7 +415,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         unique_lock l(m);
         ++issued_trx_count;
       }
-      auto result = trx_clients[0].coinTransfer(KeyPair::create().address(), 0, KeyPair::create(), false);
+      auto result = dummy_client.coinTransfer(KeyPair::create().address(), 0, false);
       EXPECT_NE(result.stage, TransactionClient::TransactionStage::created);
       transactions.emplace(result.trx->getHash());
     }
@@ -426,7 +427,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         expected_balances[to] += amount;
         expected_balances[nodes_[sender_node_i]->getAddress()] -= amount;
       }
-      auto result = trx_clients[sender_node_i].coinTransfer(to, amount, {}, verify_executed);
+      auto result = trx_clients[sender_node_i].coinTransfer(to, amount, verify_executed);
       EXPECT_NE(result.stage, TransactionClient::TransactionStage::created);
       transactions.emplace(result.trx->getHash());
       if (verify_executed)
@@ -449,6 +450,20 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         for (auto &t : transactions) {
           auto location = n->getFinalChain()->transaction_location(t);
           ASSERT_EQ(location.has_value(), true);
+        }
+      }
+    }
+
+    void assert_all_transactions_success() {
+      for (auto &n : nodes_) {
+        for (auto &t : transactions) {
+          auto receipt = n->getFinalChain()->transaction_receipt(t);
+          if (receipt->status_code != 1) {
+            auto trx = n->getTransactionManager()->getTransaction(t);
+            std::cout << "failed: " << t.toString() << " sender: " << trx->getSender() << " nonce: " << trx->getNonce()
+                      << " value: " << trx->getValue() << std::endl;
+          }
+          ASSERT_EQ(receipt->status_code, 1);
         }
       }
     }
@@ -683,6 +698,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
     EXPECT_EQ(node->getDB()->getNumTransactionInDag(), issued_trx_count);
   }
 
+  context.assert_all_transactions_success();
   context.assert_all_transactions_known();
   context.assert_balances_synced();
 }
@@ -793,7 +809,7 @@ TEST_F(FullNodeTest, reconstruct_anchors) {
     TransactionClient trx_client(node);
 
     for (auto i = 0; i < 3; i++) {
-      auto result = trx_client.coinTransfer(KeyPair::create().address(), 10, {}, false);
+      auto result = trx_client.coinTransfer(KeyPair::create().address(), 10, false);
     }
 
     taraxa::thisThreadSleepForMilliSeconds(500);
@@ -1271,7 +1287,7 @@ TEST_F(FullNodeTest, db_rebuild) {
 
     auto gas_price = val_t(2);
     auto data = bytes();
-    auto nonce = 0;
+    auto nonce = 1;
 
     // Issue dummy trx until at least 10 pbft blocks created
     while (executed_chain_size < 10) {
@@ -1353,7 +1369,7 @@ TEST_F(FullNodeTest, transfer_to_self) {
   auto initial_bal = nodes[0]->getFinalChain()->getBalance(node_addr);
   uint64_t trx_count(100);
   EXPECT_TRUE(initial_bal.second);
-  for (uint64_t i = 0; i < trx_count; ++i) {
+  for (uint64_t i = 1; i <= trx_count; ++i) {
     const auto trx = std::make_shared<Transaction>(i, i * 100, 0, 1000000, dev::fromHex("00FEDCBA9876543210000000"),
                                                    g_secret, node_addr);
     nodes[0]->getTransactionManager()->insertTransaction(trx);
@@ -1411,10 +1427,6 @@ TEST_F(FullNodeTest, chain_config_json) {
         "eip_158_block": "0x0",
         "homestead_block": "0x0",
         "petersburg_block": "0x0"
-      },
-      "execution_options": {
-        "disable_nonce_check": false,
-        "enable_nonce_skipping": false
       },
       "block_rewards_options": {
         "disable_block_rewards": true,
@@ -1485,7 +1497,7 @@ TEST_F(FullNodeTest, chain_config_json) {
 TEST_F(FullNodeTest, transaction_validation) {
   auto node_cfgs = make_node_cfgs<5>(1);
   auto nodes = launch_nodes(node_cfgs);
-  uint32_t nonce = 0;
+  uint32_t nonce = 1;
   const uint32_t gasprice = 1;
   const uint32_t gas = 100000;
 
@@ -1618,7 +1630,7 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
     cfg.transactions_pool_size = kMinTransactionPoolSize;
   }
   auto nodes = launch_nodes(node_cfgs);
-  uint32_t nonce = 0;
+  uint32_t nonce = 1;
   const uint32_t gasprice = 5;
   const uint32_t gas = 100000;
   for (auto &node : nodes) {

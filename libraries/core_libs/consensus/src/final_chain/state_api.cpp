@@ -12,9 +12,9 @@ static_assert(sizeof(char) == sizeof(uint8_t));
 
 namespace taraxa::state_api {
 
-bytesConstRef map_bytes(taraxa_evm_Bytes const& b) { return {b.Data, b.Len}; }
+bytesConstRef map_bytes(const taraxa_evm_Bytes& b) { return {b.Data, b.Len}; }
 
-taraxa_evm_Bytes map_bytes(bytes const& b) { return {const_cast<uint8_t*>(b.data()), b.size()}; }
+taraxa_evm_Bytes map_bytes(const bytes& b) { return {const_cast<uint8_t*>(b.data()), b.size()}; }
 
 template <typename Result>
 void from_rlp(taraxa_evm_Bytes b, Result& result) {
@@ -77,7 +77,7 @@ template <typename Result,                            //
           void (*fn)(taraxa_evm_state_API_ptr, taraxa_evm_Bytes, taraxa_evm_BytesCallback,
                      taraxa_evm_BytesCallback),  //
           typename... Params>
-void c_method_args_rlp(taraxa_evm_state_API_ptr this_c, dev::RLPStream& encoding, Result& ret, Params const&... args) {
+void c_method_args_rlp(taraxa_evm_state_API_ptr this_c, dev::RLPStream& encoding, Result& ret, const Params&... args) {
   util::rlp_tuple(encoding, args...);
   ErrorHandler err_h;
   fn(this_c, map_bytes(encoding.out()), decoder_cb_c<Result, decode>(ret), err_h.cgo_part_);
@@ -89,7 +89,7 @@ template <typename Result,                            //
           void (*fn)(taraxa_evm_state_API_ptr, taraxa_evm_Bytes, taraxa_evm_BytesCallback,
                      taraxa_evm_BytesCallback),  //
           typename... Params>
-Result c_method_args_rlp(taraxa_evm_state_API_ptr this_c, Params const&... args) {
+Result c_method_args_rlp(taraxa_evm_state_API_ptr this_c, const Params&... args) {
   dev::RLPStream encoding;
   Result ret;
   c_method_args_rlp<Result, decode, fn, Params...>(this_c, encoding, ret, args...);
@@ -97,7 +97,7 @@ Result c_method_args_rlp(taraxa_evm_state_API_ptr this_c, Params const&... args)
 }
 
 template <void (*fn)(taraxa_evm_state_API_ptr, taraxa_evm_Bytes, taraxa_evm_BytesCallback), typename... Params>
-void c_method_args_rlp(taraxa_evm_state_API_ptr this_c, Params const&... args) {
+void c_method_args_rlp(taraxa_evm_state_API_ptr this_c, const Params&... args) {
   dev::RLPStream encoding;
   rlp_tuple(encoding, args...);
   ErrorHandler err_h;
@@ -105,13 +105,13 @@ void c_method_args_rlp(taraxa_evm_state_API_ptr this_c, Params const&... args) {
   err_h.check();
 }
 
-StateAPI::StateAPI(decltype(get_blk_hash_) get_blk_hash, Config const& chain_config, Opts const& opts,
-                   OptsDB const& opts_db)
-    : get_blk_hash_(move(get_blk_hash)),
+StateAPI::StateAPI(decltype(get_blk_hash_) get_blk_hash, const Config& chain_config, const Opts& opts,
+                   const OptsDB& opts_db)
+    : get_blk_hash_(std::move(get_blk_hash)),
       get_blk_hash_c_{
           this,
           [](auto receiver, auto arg) {
-            auto const& ret = decltype(this)(receiver)->get_blk_hash_(arg);
+            const auto& ret = decltype(this)(receiver)->get_blk_hash_(arg);
             taraxa_evm_Hash ret_c;
             std::copy_n(ret.data(), 32, std::begin(ret_c.Val));
             return ret_c;
@@ -142,27 +142,27 @@ void StateAPI::update_state_config(const Config& new_config) {
   err_h.check();
 }
 
-Proof StateAPI::prove(EthBlockNumber blk_num, root_t const& state_root, addr_t const& addr,
-                      std::vector<h256> const& keys) const {
+Proof StateAPI::prove(EthBlockNumber blk_num, const root_t& state_root, const addr_t& addr,
+                      const std::vector<h256>& keys) const {
   return c_method_args_rlp<Proof, from_rlp, taraxa_evm_state_api_prove>(this_c_, blk_num, state_root, addr, keys);
 }
 
-std::optional<Account> StateAPI::get_account(EthBlockNumber blk_num, addr_t const& addr) const {
+std::optional<Account> StateAPI::get_account(EthBlockNumber blk_num, const addr_t& addr) const {
   return c_method_args_rlp<std::optional<Account>, from_rlp, taraxa_evm_state_api_get_account>(this_c_, blk_num, addr);
 }
 
-u256 StateAPI::get_account_storage(EthBlockNumber blk_num, addr_t const& addr, u256 const& key) const {
+u256 StateAPI::get_account_storage(EthBlockNumber blk_num, const addr_t& addr, const u256& key) const {
   return c_method_args_rlp<u256, to_u256, taraxa_evm_state_api_get_account_storage>(this_c_, blk_num, addr, key);
 }
 
-bytes StateAPI::get_code_by_address(EthBlockNumber blk_num, addr_t const& addr) const {
+bytes StateAPI::get_code_by_address(EthBlockNumber blk_num, const addr_t& addr) const {
   return c_method_args_rlp<bytes, to_bytes, taraxa_evm_state_api_get_code_by_address>(this_c_, blk_num, addr);
 }
 
-ExecutionResult StateAPI::dry_run_transaction(EthBlockNumber blk_num, EVMBlock const& blk, EVMTransaction const& trx,
-                                              std::optional<ExecutionOptions> const& opts) const {
+ExecutionResult StateAPI::dry_run_transaction(EthBlockNumber blk_num, const EVMBlock& blk,
+                                              const EVMTransaction& trx) const {
   return c_method_args_rlp<ExecutionResult, from_rlp, taraxa_evm_state_api_dry_run_transaction>(this_c_, blk_num, blk,
-                                                                                                trx, opts);
+                                                                                                trx);
 }
 
 StateDescriptor StateAPI::get_last_committed_state_descriptor() const {
@@ -174,7 +174,7 @@ StateDescriptor StateAPI::get_last_committed_state_descriptor() const {
   return ret;
 }
 
-StateTransitionResult const& StateAPI::transition_state(const EVMBlock& block,
+const StateTransitionResult& StateAPI::transition_state(const EVMBlock& block,
                                                         const util::RangeView<EVMTransaction>& transactions,
                                                         const util::RangeView<addr_t>& transactions_validators,
                                                         const util::RangeView<UncleBlock>& uncles,
@@ -210,7 +210,7 @@ uint64_t StateAPI::dpos_eligible_total_vote_count(EthBlockNumber blk_num) const 
   return ret;
 }
 
-uint64_t StateAPI::dpos_eligible_vote_count(EthBlockNumber blk_num, addr_t const& addr) const {
+uint64_t StateAPI::dpos_eligible_vote_count(EthBlockNumber blk_num, const addr_t& addr) const {
   dev::RLPStream encoding;
   encoding.reserve(sizeof(EthBlockNumber) + sizeof(addr_t) + 8, 1);
   util::rlp_tuple(encoding, blk_num, addr);
@@ -220,7 +220,7 @@ uint64_t StateAPI::dpos_eligible_vote_count(EthBlockNumber blk_num, addr_t const
   return ret;
 }
 
-bool StateAPI::dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const {
+bool StateAPI::dpos_is_eligible(EthBlockNumber blk_num, const addr_t& addr) const {
   dev::RLPStream encoding;
   encoding.reserve(sizeof(EthBlockNumber) + sizeof(addr_t) + 8, 1);
   util::rlp_tuple(encoding, blk_num, addr);

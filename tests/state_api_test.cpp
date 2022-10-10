@@ -22,7 +22,6 @@ struct StateAPITest : WithDataDir {};
 
 static auto const base_taraxa_chain_cfg = [] {
   Config ret;
-  ret.execution_options.disable_nonce_check = true;
   ret.block_rewards_options.disable_block_rewards = true;
   ret.block_rewards_options.disable_contract_distribution = true;
 
