@@ -136,7 +136,6 @@ var hierarchy =
     [ "exception", null, [
       [ "dev::Exception", "structdev_1_1_exception.html", null ]
     ] ],
-    [ "taraxa::state_api::ExecutionOptions", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_execution_options", null ],
     [ "taraxa::state_api::ExecutionResult", "group___final_chain.html#structtaraxa_1_1state__api_1_1_execution_result", null ],
     [ "ExpirationCache< Key >", "class_expiration_cache.html", null ],
     [ "ExpirationCache< dev::FixedHash >", "class_expiration_cache.html", null ],

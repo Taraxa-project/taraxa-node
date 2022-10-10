@@ -110,10 +110,10 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a5f7de89d122bca14cfbaa4fce0ad5a63"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a5f7de89d122bca14cfbaa4fce0ad5a63">sendTransactions</a> (std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt; const &amp;peer, std::vector&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;&gt; &amp;&amp;transactions)</td></tr>
 <tr class="memdesc:a5f7de89d122bca14cfbaa4fce0ad5a63"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send transactions.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a5f7de89d122bca14cfbaa4fce0ad5a63">More...</a><br /></td></tr>
 <tr class="separator:a5f7de89d122bca14cfbaa4fce0ad5a63"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1592657752e99a1a4136d559cb7fb1e0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a1592657752e99a1a4136d559cb7fb1e0">periodicSendTransactions</a> (<a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;&amp;transactions)</td></tr>
+<tr class="memitem:a1592657752e99a1a4136d559cb7fb1e0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a1592657752e99a1a4136d559cb7fb1e0">periodicSendTransactions</a> (<a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> &amp;&amp;transactions)</td></tr>
 <tr class="memdesc:a1592657752e99a1a4136d559cb7fb1e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends batch of transactions to all connected peers.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a1592657752e99a1a4136d559cb7fb1e0">More...</a><br /></td></tr>
 <tr class="separator:a1592657752e99a1a4136d559cb7fb1e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab1924f15c010ee9e6b575c316779d626"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#ab1924f15c010ee9e6b575c316779d626">onNewTransactions</a> (const <a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;transactions)</td></tr>
+<tr class="memitem:ab1924f15c010ee9e6b575c316779d626"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#ab1924f15c010ee9e6b575c316779d626">onNewTransactions</a> (const <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> &amp;transactions)</td></tr>
 <tr class="separator:ab1924f15c010ee9e6b575c316779d626"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a></td></tr>
 <tr class="memitem:a135175443974061bfa21e9dcb9e2293b inherit pub_methods_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a135175443974061bfa21e9dcb9e2293b">PacketHandler</a> (std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt; peers_state, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html">PacketsStats</a> &gt; packets_stats, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr, const std::string &amp;log_channel_name)</td></tr>
@@ -234,7 +234,7 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">void taraxa::network::tarcap::TransactionPacketHandler::onNewTransactions </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> &amp;&#160;</td>
           <td class="paramname"><em>transactions</em></td><td>)</td>
           <td></td>
         </tr>
@@ -252,7 +252,7 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">void taraxa::network::tarcap::TransactionPacketHandler::periodicSendTransactions </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;&amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> &amp;&amp;&#160;</td>
           <td class="paramname"><em>transactions</em></td><td>)</td>
           <td></td>
         </tr>

@@ -9,7 +9,6 @@ var namespacetaraxa_1_1state__api =
     [ "ETHChainConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_t_h_chain_config", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_e_t_h_chain_config_dup" ],
     [ "EVMBlock", "group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_block", "group___final_chain_structtaraxa_1_1state__api_1_1_e_v_m_block" ],
     [ "EVMTransaction", "group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction", "group___final_chain_structtaraxa_1_1state__api_1_1_e_v_m_transaction" ],
-    [ "ExecutionOptions", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_execution_options", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_execution_options_dup" ],
     [ "ExecutionResult", "group___final_chain.html#structtaraxa_1_1state__api_1_1_execution_result", "group___final_chain_structtaraxa_1_1state__api_1_1_execution_result" ],
     [ "LogRecord", "group___final_chain.html#structtaraxa_1_1state__api_1_1_log_record", "group___final_chain_structtaraxa_1_1state__api_1_1_log_record" ],
     [ "Opts", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_opts_dup" ],

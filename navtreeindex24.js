@@ -1,14 +1,7 @@
 var NAVTREEINDEX24 =
 {
-"trie__common_8hpp.html#a41b2ec28d1ad728e6c4d190795391e6e":[14,0,1,4,0,0,1,8,0],
-"trie__common_8hpp_source.html":[14,0,1,4,0,0,1,8],
-"types_2dag__block_2include_2dag_2dag__block_8hpp.html":[14,0,1,6,0,0,0,0],
-"types_2dag__block_2include_2dag_2dag__block_8hpp.html#a6dbfbca5858f7b6fc55b134c217fa3bc":[14,0,1,6,0,0,0,0,2],
-"types_2dag__block_2include_2dag_2dag__block_8hpp_source.html":[14,0,1,6,0,0,0,0],
-"types_2dag__block_2src_2dag__block_8cpp.html":[14,0,1,6,0,1,0],
-"types_2transaction_2include_2transaction_2transaction_8hpp.html":[14,0,1,6,2,0,0,0],
-"types_2transaction_2include_2transaction_2transaction_8hpp.html#a18f2be82043dcbbfbeacec4cf953366e":[14,0,1,6,2,0,0,0,2],
-"types_2transaction_2include_2transaction_2transaction_8hpp.html#a5d2fdd8504e96d91288cf77b7462dd2a":[14,0,1,6,2,0,0,0,3],
+"types_2transaction_2include_2transaction_2transaction_8hpp.html#a5d2fdd8504e96d91288cf77b7462dd2a":[14,0,1,6,2,0,0,0,4],
+"types_2transaction_2include_2transaction_2transaction_8hpp.html#a8dfebedf195293ea340d4b7413c2af0b":[14,0,1,6,2,0,0,0,3],
 "types_2transaction_2include_2transaction_2transaction_8hpp_source.html":[14,0,1,6,2,0,0,0],
 "types_2transaction_2src_2transaction_8cpp.html":[14,0,1,6,2,1,0],
 "types_2transaction_2src_2transaction_8cpp.html#a3cd3b87ceb0a32085afc746f2821e9e3":[14,0,1,6,2,1,0,0],

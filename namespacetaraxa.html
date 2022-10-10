@@ -346,10 +346,12 @@ Typedefs</h2></td></tr>
 <tr class="separator:a32216cff36a3565783afe8fa0099ae89"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6dbfbca5858f7b6fc55b134c217fa3bc"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a6dbfbca5858f7b6fc55b134c217fa3bc">VdfSortition</a> = <a class="el" href="classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html">vdf_sortition::VdfSortition</a></td></tr>
 <tr class="separator:a6dbfbca5858f7b6fc55b134c217fa3bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b37b05665a051ae2ceda7a2607c8e36"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a1b37b05665a051ae2ceda7a2607c8e36">SharedTransaction</a> = std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;</td></tr>
+<tr class="separator:a1b37b05665a051ae2ceda7a2607c8e36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5d2fdd8504e96d91288cf77b7462dd2a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a5d2fdd8504e96d91288cf77b7462dd2a">Transactions</a> = ::std::vector&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;</td></tr>
 <tr class="separator:a5d2fdd8504e96d91288cf77b7462dd2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a18f2be82043dcbbfbeacec4cf953366e"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> = ::std::vector&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt;</td></tr>
-<tr class="separator:a18f2be82043dcbbfbeacec4cf953366e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8dfebedf195293ea340d4b7413c2af0b"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> = ::std::vector&lt; <a class="el" href="namespacetaraxa.html#a1b37b05665a051ae2ceda7a2607c8e36">SharedTransaction</a> &gt;</td></tr>
+<tr class="separator:a8dfebedf195293ea340d4b7413c2af0b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -501,7 +503,7 @@ Functions</h2></td></tr>
 <tr class="separator:aa90c9f0332c5cb6f975c11a607dfcb80"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ada5bb0a560627ca344997d1e5b52c415"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#ada5bb0a560627ca344997d1e5b52c415">getClosestThreshold</a> (const <a class="el" href="namespacetaraxa.html#a71602624ba20127eaf3822a710e52dae">EfficienciesMap</a> &amp;efficiencies, uint16_t target, bool is_over_target)</td></tr>
 <tr class="separator:ada5bb0a560627ca344997d1e5b52c415"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8a4de82a5682e63b73fae50e9f0d23ac"><td class="memItemLeft" align="right" valign="top">std::set&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a8a4de82a5682e63b73fae50e9f0d23ac">toTrxHashesSet</a> (const <a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;transactions)</td></tr>
+<tr class="memitem:a8a4de82a5682e63b73fae50e9f0d23ac"><td class="memItemLeft" align="right" valign="top">std::set&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a8a4de82a5682e63b73fae50e9f0d23ac">toTrxHashesSet</a> (const <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> &amp;transactions)</td></tr>
 <tr class="separator:a8a4de82a5682e63b73fae50e9f0d23ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a403dbfa46218932b1d7b59d85197f847"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a403dbfa46218932b1d7b59d85197f847">findClosestAnchor</a> (const std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &amp;ghost, const std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &amp;dag_order, uint32_t included)</td></tr>
 <tr class="separator:a403dbfa46218932b1d7b59d85197f847"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -972,14 +974,28 @@ lambda_bound</td>
 
 </div>
 </div>
-<a id="a18f2be82043dcbbfbeacec4cf953366e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a18f2be82043dcbbfbeacec4cf953366e">&#9670;&nbsp;</a></span>SharedTransactions</h2>
+<a id="a1b37b05665a051ae2ceda7a2607c8e36"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1b37b05665a051ae2ceda7a2607c8e36">&#9670;&nbsp;</a></span>SharedTransaction</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">using <a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">taraxa::SharedTransactions</a> = typedef ::std::vector&lt;std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a>&gt; &gt;</td>
+          <td class="memname">using <a class="el" href="namespacetaraxa.html#a1b37b05665a051ae2ceda7a2607c8e36">taraxa::SharedTransaction</a> = typedef std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a>&gt;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8dfebedf195293ea340d4b7413c2af0b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8dfebedf195293ea340d4b7413c2af0b">&#9670;&nbsp;</a></span>SharedTransactions</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">taraxa::SharedTransactions</a> = typedef ::std::vector&lt;<a class="el" href="namespacetaraxa.html#a1b37b05665a051ae2ceda7a2607c8e36">SharedTransaction</a>&gt;</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -2842,7 +2858,7 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="memname">std::set&lt;<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>&gt; taraxa::toTrxHashesSet </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a18f2be82043dcbbfbeacec4cf953366e">SharedTransactions</a> &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> &amp;&#160;</td>
           <td class="paramname"><em>transactions</em></td><td>)</td>
           <td></td>
         </tr>

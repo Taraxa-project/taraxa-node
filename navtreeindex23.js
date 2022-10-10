@@ -1,13 +1,5 @@
 var NAVTREEINDEX23 =
 {
-"structtaraxa_1_1_transaction.html#ad6c585a19b58ad9b3ff3cc21d73495cd":[13,0,4,52,14],
-"structtaraxa_1_1_transaction.html#ae2d6301c8b44e9ff093bc7bdeb625422":[13,0,4,52,3],
-"structtaraxa_1_1_transaction.html#af2673ba70c888218de98485d5018af0f":[13,0,4,52,35],
-"structtaraxa_1_1_transaction.html#af492cd79a6fcf8ff4403062401e10ae2":[13,0,4,52,18],
-"structtaraxa_1_1_transaction.html#af8a7c8df007e8ef709eaf6a55f557593":[13,0,4,52,42],
-"structtaraxa_1_1_transaction_1_1_invalid_signature.html":[13,0,4,52,0],
-"structtaraxa_1_1_transaction_1_1_invalid_signature.html#a7974a0937e6fff51c0ff13f9e57b238f":[13,0,4,52,0,0],
-"structtaraxa_1_1_vrf_params.html":[13,0,4,63],
 "structtaraxa_1_1_vrf_params.html#a0a13eb6eb58b66ec417e67862f01ccfe":[13,0,4,63,3],
 "structtaraxa_1_1_vrf_params.html#a0fa7b78e010d7e0b3e19ff13e02bd1f2":[13,0,4,63,1],
 "structtaraxa_1_1_vrf_params.html#a3b2c4911216aaa18cf7eaf517312fed6":[13,0,4,63,0],
@@ -22,11 +14,11 @@ var NAVTREEINDEX23 =
 "structtaraxa_1_1final__chain_1_1_config.html#a955c880531dc4addb9d4c9e44022d843":[13,0,4,1,1,0,0],
 "structtaraxa_1_1final__chain_1_1_config.html#a955c880531dc4addb9d4c9e44022d843":[14,0,1,3,0,0,3,1,0],
 "structtaraxa_1_1final__chain_1_1_config.html#aaf85cbc4d2d04c3d5f30645a755eef60":[13,0,4,1,1,2],
-"structtaraxa_1_1final__chain_1_1_config.html#ada8d5e73db5ef864faa4aa45da49abb0":[13,0,4,1,1,0,1],
 "structtaraxa_1_1final__chain_1_1_config.html#ada8d5e73db5ef864faa4aa45da49abb0":[14,0,1,3,0,0,3,1,1],
+"structtaraxa_1_1final__chain_1_1_config.html#ada8d5e73db5ef864faa4aa45da49abb0":[13,0,4,1,1,0,1],
 "structtaraxa_1_1final__chain_1_1_config.html#aeb06d5eff71102bb3eb858ee7dcfc6cb":[13,0,4,1,1,1],
-"structtaraxa_1_1final__chain_1_1_config.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields":[14,0,1,3,0,0,3,1],
 "structtaraxa_1_1final__chain_1_1_config.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields":[13,0,4,1,1,0],
+"structtaraxa_1_1final__chain_1_1_config.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields":[14,0,1,3,0,0,3,1],
 "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html":[11,1,6,0],
 "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#a09820dc8d12ecec7986747838f146ad8":[11,1,6,0,1],
 "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#a20ae0df7b61567032daaf88d695dcf8b":[11,1,6,0,3],
@@ -249,5 +241,13 @@ var NAVTREEINDEX23 =
 "trie__common_8cpp.html#a41b2ec28d1ad728e6c4d190795391e6e":[14,0,1,4,0,1,1,6,0],
 "trie__common_8cpp.html#aa0b5a88e3d820936d80621999c99726c":[14,0,1,4,0,1,1,6,3],
 "trie__common_8cpp.html#aaaba8929089b332775874032190fb5e6":[14,0,1,4,0,1,1,6,1],
-"trie__common_8hpp.html":[14,0,1,4,0,0,1,8]
+"trie__common_8hpp.html":[14,0,1,4,0,0,1,8],
+"trie__common_8hpp.html#a41b2ec28d1ad728e6c4d190795391e6e":[14,0,1,4,0,0,1,8,0],
+"trie__common_8hpp_source.html":[14,0,1,4,0,0,1,8],
+"types_2dag__block_2include_2dag_2dag__block_8hpp.html":[14,0,1,6,0,0,0,0],
+"types_2dag__block_2include_2dag_2dag__block_8hpp.html#a6dbfbca5858f7b6fc55b134c217fa3bc":[14,0,1,6,0,0,0,0,2],
+"types_2dag__block_2include_2dag_2dag__block_8hpp_source.html":[14,0,1,6,0,0,0,0],
+"types_2dag__block_2src_2dag__block_8cpp.html":[14,0,1,6,0,1,0],
+"types_2transaction_2include_2transaction_2transaction_8hpp.html":[14,0,1,6,2,0,0,0],
+"types_2transaction_2include_2transaction_2transaction_8hpp.html#a1b37b05665a051ae2ceda7a2607c8e36":[14,0,1,6,2,0,0,0,2]
 };

@@ -165,8 +165,6 @@ Classes</h2></td></tr>
 <tr class="separator:structtaraxa_1_1state__api_1_1_validator_info"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:structtaraxa_1_1state__api_1_1_d_p_o_s_config"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config">taraxa::state_api::DPOSConfig</a></td></tr>
 <tr class="separator:structtaraxa_1_1state__api_1_1_d_p_o_s_config"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:structtaraxa_1_1state__api_1_1_execution_options"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_execution_options">taraxa::state_api::ExecutionOptions</a></td></tr>
-<tr class="separator:structtaraxa_1_1state__api_1_1_execution_options"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:structtaraxa_1_1state__api_1_1_block_rewards_options"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_block_rewards_options">taraxa::state_api::BlockRewardsOptions</a></td></tr>
 <tr class="separator:structtaraxa_1_1state__api_1_1_block_rewards_options"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:structtaraxa_1_1state__api_1_1_config"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config">taraxa::state_api::Config</a></td></tr>
@@ -206,10 +204,6 @@ Functions</h2></td></tr>
 <tr class="separator:adc935939acc39b6b0cba881e134b1fa0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8430d4247900167bc1ac842c70484cc3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#a8430d4247900167bc1ac842c70484cc3">taraxa::state_api::dec_json</a> (const Json::Value &amp;json, DPOSConfig &amp;obj)</td></tr>
 <tr class="separator:a8430d4247900167bc1ac842c70484cc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abff670846df801b24fdfb9530c95a53f"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#abff670846df801b24fdfb9530c95a53f">taraxa::state_api::enc_json</a> (const ExecutionOptions &amp;obj)</td></tr>
-<tr class="separator:abff670846df801b24fdfb9530c95a53f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a466f95f447e6bfa7a5d0a1342eaac796"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#a466f95f447e6bfa7a5d0a1342eaac796">taraxa::state_api::dec_json</a> (const Json::Value &amp;json, ExecutionOptions &amp;obj)</td></tr>
-<tr class="separator:a466f95f447e6bfa7a5d0a1342eaac796"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae22eaa229bb6f367f792ca1a29832f7a"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#ae22eaa229bb6f367f792ca1a29832f7a">taraxa::state_api::enc_json</a> (BlockRewardsOptions const &amp;obj)</td></tr>
 <tr class="separator:ae22eaa229bb6f367f792ca1a29832f7a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a84cc6631d476124c36cc92189e325e6c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#a84cc6631d476124c36cc92189e325e6c">taraxa::state_api::dec_json</a> (Json::Value const &amp;json, BlockRewardsOptions &amp;obj)</td></tr>
@@ -437,35 +431,6 @@ yield_percentage</td>
 
 </div>
 </div>
-<a name="structtaraxa_1_1state__api_1_1_execution_options" id="structtaraxa_1_1state__api_1_1_execution_options"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#structtaraxa_1_1state__api_1_1_execution_options">&#9670;&nbsp;</a></span>taraxa::state_api::ExecutionOptions</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">struct taraxa::state_api::ExecutionOptions</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="textblock"></div><table class="fieldtable">
-<tr><th colspan="3">Class Members</th></tr>
-<tr><td class="fieldtype">
-<a id="a60455991a86f4f72163c18b13f142cb0"></a>bool</td>
-<td class="fieldname">
-disable_nonce_check</td>
-<td class="fielddoc">
-</td></tr>
-<tr><td class="fieldtype">
-<a id="a8c9a9f6e4017927d3fd461fe7f0e6a78"></a>bool</td>
-<td class="fieldname">
-enable_nonce_skipping</td>
-<td class="fielddoc">
-</td></tr>
-</table>
-
-</div>
-</div>
 <a name="structtaraxa_1_1state__api_1_1_block_rewards_options" id="structtaraxa_1_1state__api_1_1_block_rewards_options"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#structtaraxa_1_1state__api_1_1_block_rewards_options">&#9670;&nbsp;</a></span>taraxa::state_api::BlockRewardsOptions</h2>
 
@@ -511,10 +476,9 @@ Collaboration diagram for taraxa::state_api::Config:</div>
 <div class="dyncontent">
 <div class="center"><img src="structtaraxa_1_1state__api_1_1_config__coll__graph.png" border="0" usemap="#taraxa_1_1state__api_1_1_config_coll__map" alt="Collaboration graph"/></div>
 <map name="taraxa_1_1state__api_1_1_config_coll__map" id="taraxa_1_1state__api_1_1_config_coll__map">
-<area shape="rect" title=" " alt="" coords="371,71,511,112"/>
+<area shape="rect" title=" " alt="" coords="109,109,249,151"/>
 <area shape="rect" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_block_rewards_options" title=" " alt="" coords="5,5,169,47"/>
-<area shape="rect" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_execution_options" title=" " alt="" coords="17,71,157,112"/>
-<area shape="rect" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_t_h_chain_config" title=" " alt="" coords="17,136,157,177"/>
+<area shape="rect" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_t_h_chain_config" title=" " alt="" coords="201,5,341,47"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="fieldtable">
@@ -535,12 +499,6 @@ dpos</td>
 <a id="af57fed8c0b8fb07b99ce8a363540d5f0"></a><a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_t_h_chain_config">ETHChainConfig</a></td>
 <td class="fieldname">
 eth_chain_config</td>
-<td class="fielddoc">
-</td></tr>
-<tr><td class="fieldtype">
-<a id="a70365806e97556c7ba15c6ae44811d3f"></a><a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_execution_options">ExecutionOptions</a></td>
-<td class="fieldname">
-execution_options</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">

@@ -31,10 +31,6 @@ var state__api__config_8hpp =
       [ "vote_eligibility_balance_step", "namespacetaraxa_1_1state__api.html#a9d7316cafe803848e671557efb79b754", null ],
       [ "yield_percentage", "namespacetaraxa_1_1state__api.html#affb25c212fee2a8eeed95be39a47f163", null ]
     ] ],
-    [ "ExecutionOptions", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_execution_options", [
-      [ "disable_nonce_check", "namespacetaraxa_1_1state__api.html#a60455991a86f4f72163c18b13f142cb0", null ],
-      [ "enable_nonce_skipping", "namespacetaraxa_1_1state__api.html#a8c9a9f6e4017927d3fd461fe7f0e6a78", null ]
-    ] ],
     [ "BlockRewardsOptions", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_block_rewards_options", [
       [ "disable_block_rewards", "namespacetaraxa_1_1state__api.html#aff6119dea4bee1b8391ecd7d7406b18a", null ],
       [ "disable_contract_distribution", "namespacetaraxa_1_1state__api.html#abe0fd99d8fdc2e0d8a7257051d3226ee", null ]
@@ -43,7 +39,6 @@ var state__api__config_8hpp =
       [ "block_rewards_options", "namespacetaraxa_1_1state__api.html#a8a026f23355b4b2a7ad58042d4d8f354", null ],
       [ "dpos", "namespacetaraxa_1_1state__api.html#a2041eaccdc0eb98c32298010ec3bed89", null ],
       [ "eth_chain_config", "namespacetaraxa_1_1state__api.html#af57fed8c0b8fb07b99ce8a363540d5f0", null ],
-      [ "execution_options", "namespacetaraxa_1_1state__api.html#a70365806e97556c7ba15c6ae44811d3f", null ],
       [ "genesis_balances", "namespacetaraxa_1_1state__api.html#a3bcde365c2d9232c1285b87ee428ec4b", null ]
     ] ],
     [ "Opts", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts", [
@@ -59,7 +54,6 @@ var state__api__config_8hpp =
     [ "dec_json", "state__api__config_8hpp.html#a71678cb3f5feb67a738df3d7d2f45270", null ],
     [ "dec_json", "state__api__config_8hpp.html#a8430d4247900167bc1ac842c70484cc3", null ],
     [ "dec_json", "state__api__config_8hpp.html#a5317339747dfef713124ea43da1c9529", null ],
-    [ "dec_json", "state__api__config_8hpp.html#a466f95f447e6bfa7a5d0a1342eaac796", null ],
     [ "dec_json", "state__api__config_8hpp.html#a88679bd672ad12f8a2517728f1c1109f", null ],
     [ "dec_json", "state__api__config_8hpp.html#a84cc6631d476124c36cc92189e325e6c", null ],
     [ "enc_json", "state__api__config_8hpp.html#ae22eaa229bb6f367f792ca1a29832f7a", null ],
@@ -67,7 +61,6 @@ var state__api__config_8hpp =
     [ "enc_json", "state__api__config_8hpp.html#aaa629d0b31821a230776d4a94bcfe1e6", null ],
     [ "enc_json", "state__api__config_8hpp.html#adc935939acc39b6b0cba881e134b1fa0", null ],
     [ "enc_json", "state__api__config_8hpp.html#ae2900ab0e408d3411fd87eee505a91c2", null ],
-    [ "enc_json", "state__api__config_8hpp.html#abff670846df801b24fdfb9530c95a53f", null ],
     [ "enc_json", "state__api__config_8hpp.html#a15046280f6cced1ba188ecded81bb15f", null ],
     [ "BlockNumberNIL", "state__api__config_8hpp.html#a9aa3f912b525631665f9049907d9001f", null ]
 ];
