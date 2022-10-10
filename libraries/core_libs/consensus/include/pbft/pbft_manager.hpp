@@ -240,6 +240,13 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   static blk_hash_t calculateOrderHash(const std::vector<DagBlock> &dag_blocks);
 
   /**
+   * @brief Reorder transactions data if DAG reordering caused transactions with same sender to have nonce in incorrect
+   * order. Reordering is deterministic so that same order is produced on any node on any platform
+   * @param transactions transactions to reorder
+   */
+  static void reorderTransactions(SharedTransactions &transactions);
+
+  /**
    * @brief Check a block weight of gas estimation
    * @param dag_blocks dag blocks
    * @return true if total weight of gas estimation is less or equal to gas limit. Otherwise return false

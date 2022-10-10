@@ -57,12 +57,20 @@ class TransactionQueue {
   std::shared_ptr<Transaction> get(const trx_hash_t& hash) const;
 
   /**
-   * @brief returns up to the number of requested transaction sorted by priority
+   * @brief returns up to the number of requested transaction sorted by priority. This call actually sorts the
+   * transaction so it is expensive and should be used only when needed
    *
    * @param count
    * @return std::vector<std::shared_ptr<Transaction>>
    */
-  std::vector<std::shared_ptr<Transaction>> get(uint64_t count = 0) const;
+  std::vector<std::shared_ptr<Transaction>> getOrderedTransactions(uint64_t count) const;
+
+  /**
+   * @brief returns all transactions
+   *
+   * @return std::vector<std::shared_ptr<Transaction>>
+   */
+  std::vector<std::shared_ptr<Transaction>> getAllTransactions() const;
 
   /**
    * @brief returns true/false if the transaction is in the queue
@@ -102,11 +110,12 @@ class TransactionQueue {
   bool isTransactionKnown(const trx_hash_t& trx_hash) const;
 
  private:
-  typedef std::function<bool(const std::shared_ptr<Transaction>&, const std::shared_ptr<Transaction>&)> ComperType;
-  // It has to be multiset as two trx could have same value (nonce and gas price)
-  using PriorityQueue = std::multiset<std::shared_ptr<Transaction>, ComperType>;
-  PriorityQueue priority_queue_;
-  std::unordered_map<trx_hash_t, PriorityQueue::iterator> hash_queue_;
+  // Transactions in the queue per account ordered by nonce
+  std::unordered_map<addr_t, std::map<val_t, std::shared_ptr<Transaction>>> account_nonce_transactions_;
+
+  // Transactions in the queue per trx hash
+  std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> queue_transactions_;
+
   // Low nonce and insufficient balance transactions which should not be included in proposed dag blocks but it is
   // possible because of dag reordering that some dag block might arrive requiring these transactions.
   std::unordered_map<trx_hash_t, std::pair<uint64_t, std::shared_ptr<Transaction>>> non_proposable_transactions_;
