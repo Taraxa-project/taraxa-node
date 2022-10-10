@@ -23,7 +23,6 @@
 #include "network/rpc/Taraxa.h"
 #include "node/node.hpp"
 #include "pbft/pbft_manager.hpp"
-#include "string"
 #include "transaction/transaction_manager.hpp"
 #include "util_test/samples.hpp"
 

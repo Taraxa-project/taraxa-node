@@ -1098,7 +1098,7 @@ std::pair<bool, std::string> PbftManager::validateVote(const std::shared_ptr<Vot
 
   // Validate vote against dpos contract
   try {
-    const auto pk = key_manager_->get(vote->getVoterAddr());
+    const auto pk = key_manager_->get(vote->getVoterAddr(), vote_period - 1);
     if (!pk) {
       std::stringstream err;
       err << "No vrf key mapped for vote author " << vote->getVoterAddr();
@@ -1187,6 +1187,11 @@ std::shared_ptr<Vote> PbftManager::generateVoteWithWeight(taraxa::blk_hash_t con
 
   auto vote = generateVote(blockhash, vote_type, period, round, step);
   vote->calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold);
+
+  if (*vote->getWeight() == 0) {
+    // zero weight vote
+    return nullptr;
+  }
 
   return vote;
 }
@@ -1605,16 +1610,6 @@ void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finali
                             bool synchronous_processing) {
   const auto anchor = period_data.pbft_blk->getPivotDagBlockHash();
 
-  // Sort transactions
-  std::stable_sort(period_data.transactions.begin(), period_data.transactions.end(),
-                   [](const auto &t1, const auto &t2) {
-                     if (t1->getSender() == t2->getSender()) {
-                       return t1->getNonce() < t2->getNonce() ||
-                              (t1->getNonce() == t2->getNonce() && t1->getGasPrice() > t2->getGasPrice());
-                     }
-                     return true;
-                   });
-
   auto result = final_chain_->finalize(
       std::move(period_data), std::move(finalized_dag_blk_hashes),
       [this, weak_ptr = weak_from_this(), anchor_hash = anchor, period = period_data.pbft_blk->getPeriod()](
@@ -1840,19 +1835,10 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
     }
   }
 
-  // Check cert votes validation
-  try {
-    period_data.hasEnoughValidCertVotes(
-        cert_votes, currentTotalVotesCount(), getPbftSortitionThreshold(cert_vote_type, dpos_period_), getTwoTPlusOne(),
-        [this](auto const &addr) { return final_chain_->dpos_eligible_vote_count(dpos_period_, addr); },
-        [this](auto const &addr) { return key_manager_->get(addr); });
-  } catch (const std::logic_error &e) {
-    // Failed cert votes validation, flush synced PBFT queue and set since
-    // next block validation depends on the current one
-    LOG(log_er_) << e.what();  // log exception text from hasEnoughValidCertVotes
+  // Validate cert votes
+  if (!validatePbftBlockCertVotes(period_data.pbft_blk, cert_votes)) {
     LOG(log_er_) << "Synced PBFT block " << pbft_block_hash
-                 << " doesn't have enough valid cert votes. Clear synced PBFT blocks! DPOS total votes count: "
-                 << currentTotalVotesCount();
+                 << " doesn't have enough valid cert votes. Clear synced PBFT blocks!";
     sync_queue_.clear();
     net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
     return std::nullopt;
@@ -1890,6 +1876,77 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
 
   return std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>>(
       {std::move(period_data), std::move(cert_votes)});
+}
+
+bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pbft_block,
+                                             const std::vector<std::shared_ptr<Vote>> &cert_votes) const {
+  if (cert_votes.empty()) {
+    LOG(log_er_) << "No cert votes provided! The synced PBFT block comes from a malicious player";
+    return false;
+  }
+
+  size_t votes_weight = 0;
+  auto first_vote_round = cert_votes[0]->getRound();
+  auto first_vote_period = cert_votes[0]->getPeriod();
+  for (const auto &v : cert_votes) {
+    // Any info is wrong that can determine the synced PBFT block comes from a malicious player
+    if (v->getPeriod() != first_vote_period) {
+      LOG(log_er_) << "Invalid cert vote " << v->getHash() << " period " << v->getPeriod() << ", PBFT block "
+                   << pbft_block->getBlockHash() << ", first_vote_period " << first_vote_period;
+      return false;
+    }
+
+    if (v->getRound() != first_vote_round) {
+      LOG(log_er_) << "Invalid cert vote " << v->getHash() << " round " << v->getRound() << ", PBFT block "
+                   << pbft_block->getBlockHash() << ", first_vote_round " << first_vote_round;
+      return false;
+    }
+
+    if (v->getType() != cert_vote_type) {
+      LOG(log_er_) << "Invalid cert vote " << v->getHash() << " type " << v->getType() << ", PBFT block "
+                   << pbft_block->getBlockHash();
+      return false;
+    }
+
+    if (v->getStep() != PbftStates::certify_state) {
+      LOG(log_er_) << "Invalid cert vote " << v->getHash() << " step " << v->getStep() << ", PBFT block "
+                   << pbft_block->getBlockHash();
+      return false;
+    }
+
+    if (v->getBlockHash() != pbft_block->getBlockHash()) {
+      LOG(log_er_) << "Invalid cert vote " << v->getHash() << " block hash " << v->getBlockHash() << ", PBFT block "
+                   << pbft_block->getBlockHash();
+      return false;
+    }
+
+    if (const auto ret = validateVote(v); !ret.first) {
+      LOG(log_er_) << "Cert vote " << v->getHash() << " validation failed. Err: " << ret.second << ", pbft block "
+                   << pbft_block->getBlockHash();
+      return false;
+    }
+
+    assert(v->getWeight());
+    votes_weight += *v->getWeight();
+  }
+
+  try {
+    const auto sortition_threshold = getPbftSortitionThreshold(PbftVoteTypes::cert_vote_type, first_vote_period - 1);
+    const auto two_t_plus_one = (sortition_threshold * 2 / 3) + 1;
+
+    if (votes_weight < two_t_plus_one) {
+      LOG(log_er_) << "Invalid votes weight " << votes_weight << " < two_t_plus_one " << two_t_plus_one
+                   << ", pbft block " << pbft_block->getBlockHash();
+      return false;
+    }
+  } catch (state_api::ErrFutureBlock &e) {
+    LOG(log_er_) << "Unable to get sortition threshold from dpos contract. Period (" << first_vote_period - 1
+                 << ") is too far ahead of actual finalized pbft chain size (" << final_chain_->last_block_number()
+                 << "). Err msg: " << e.what() << ", pbft block " << pbft_block->getBlockHash();
+    return false;
+  }
+
+  return true;
 }
 
 blk_hash_t PbftManager::lastPbftBlockHashFromQueueOrChain() {
