@@ -111,16 +111,6 @@ void PbftManager::run() {
       validateVote(v);
     }
 
-    // Sort transactions
-    std::stable_sort(period_data.transactions.begin(), period_data.transactions.end(),
-                     [](const auto &t1, const auto &t2) {
-                       if (t1->getSender() == t2->getSender()) {
-                         return t1->getNonce() < t2->getNonce() ||
-                                (t1->getNonce() == t2->getNonce() && t1->getGasPrice() > t2->getGasPrice());
-                       }
-                       return true;
-                     });
-
     finalize_(std::move(period_data), db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
   }
   // Verify that last block cert votes point to the last block hash
