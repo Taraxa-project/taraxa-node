@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.20)
 # Set current version of the project
 set(TARAXA_MAJOR_VERSION 1)
 set(TARAXA_MINOR_VERSION 1)
-set(TARAXA_PATCH_VERSION 0)
+set(TARAXA_PATCH_VERSION 1)
 set(TARAXA_VERSION ${TARAXA_MAJOR_VERSION}.${TARAXA_MINOR_VERSION}.${TARAXA_PATCH_VERSION})
 
 # Any time a change in the network protocol is introduced this version should be increased
@@ -74,7 +74,7 @@ message(STATUS "TARAXA_STATIC_BUILD: ${TARAXA_STATIC_BUILD}")
 # enable sanitizers
 option(TARAXA_ENABLE_SANITIZERS "Enable sanitizers (ON or OFF)" OFF)
 if (TARAXA_ENABLE_SANITIZERS)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=undefined")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -fsanitize=undeficned")
 endif()
 message(STATUS "TARAXA_ENABLE_SANITIZERS: ${TARAXA_ENABLE_SANITIZERS}")
 
