@@ -549,6 +549,16 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> processPeriodData();
 
   /**
+   * @brief Validates PBFT block cert votes
+   * @param pbft_block
+   * @param cert_votes
+   *
+   * @return true if there is enough(2t+1) votes and all of them are valid, otherwise false
+   */
+  bool validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pbft_block,
+                                  const std::vector<std::shared_ptr<Vote>> &cert_votes) const;
+
+  /**
    * @brief Count how many votes in the current PBFT round and step. This is only for testing purpose
    */
   void countVotes_() const;
