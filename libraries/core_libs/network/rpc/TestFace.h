@@ -18,6 +18,9 @@ class TestFace : public ServerInterface<TestFace> {
     this->bindAndAddMethod(jsonrpc::Procedure("send_coin_transaction", jsonrpc::PARAMS_BY_POSITION,
                                               jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::TestFace::send_coin_transactionI);
+    this->bindAndAddMethod(jsonrpc::Procedure("send_coin_transactions", jsonrpc::PARAMS_BY_POSITION,
+                                              jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_OBJECT, NULL),
+                           &taraxa::net::TestFace::send_coin_transactionsI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("get_account_address", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
         &taraxa::net::TestFace::get_account_addressI);
@@ -39,6 +42,9 @@ class TestFace : public ServerInterface<TestFace> {
   }
   inline virtual void send_coin_transactionI(const Json::Value &request, Json::Value &response) {
     response = this->send_coin_transaction(request[0u]);
+  }
+  inline virtual void send_coin_transactionsI(const Json::Value &request, Json::Value &response) {
+    response = this->send_coin_transactions(request[0u]);
   }
   inline virtual void get_account_addressI(const Json::Value &request, Json::Value &response) {
     (void)request;
@@ -62,6 +68,7 @@ class TestFace : public ServerInterface<TestFace> {
   }
   virtual Json::Value get_sortition_change(const Json::Value &param1) = 0;
   virtual Json::Value send_coin_transaction(const Json::Value &param1) = 0;
+  virtual Json::Value send_coin_transactions(const Json::Value &param1) = 0;
   virtual Json::Value get_account_address() = 0;
   virtual Json::Value get_peer_count() = 0;
   virtual Json::Value get_node_status() = 0;
