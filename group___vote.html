@@ -851,9 +851,9 @@ Functions</h2></td></tr>
 <tr class="memitem:a2d8c8ac3185a149796a99dff63b29c60"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a2d8c8ac3185a149796a99dff63b29c60">getProposeRewardVotes</a> ()</td></tr>
 <tr class="memdesc:a2d8c8ac3185a149796a99dff63b29c60"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get reward votes from reward_votes_ with the round during which was the previous block pushed.  <a href="group___vote.html#a2d8c8ac3185a149796a99dff63b29c60">More...</a><br /></td></tr>
 <tr class="separator:a2d8c8ac3185a149796a99dff63b29c60"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5d94b5f604131c9b986840e5a16d433e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a5d94b5f604131c9b986840e5a16d433e">sendRewardVotes</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;pbft_block_hash)</td></tr>
-<tr class="memdesc:a5d94b5f604131c9b986840e5a16d433e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send out all reward votes to peers.  <a href="group___vote.html#a5d94b5f604131c9b986840e5a16d433e">More...</a><br /></td></tr>
-<tr class="separator:a5d94b5f604131c9b986840e5a16d433e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa7b030390e0402e2e7f498e2dbb4b8a9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#aa7b030390e0402e2e7f498e2dbb4b8a9">sendRewardVotes</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;pbft_block_hash, bool rebroadcast=false)</td></tr>
+<tr class="memdesc:aa7b030390e0402e2e7f498e2dbb4b8a9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send out all reward votes to peers.  <a href="group___vote.html#aa7b030390e0402e2e7f498e2dbb4b8a9">More...</a><br /></td></tr>
+<tr class="separator:aa7b030390e0402e2e7f498e2dbb4b8a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a397053232a3751a07f2888fad97b0d50"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a397053232a3751a07f2888fad97b0d50">getRewardVotesPbftBlockPeriod</a> ()</td></tr>
 <tr class="memdesc:a397053232a3751a07f2888fad97b0d50"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get current reward votes pbft block period.  <a href="group___vote.html#a397053232a3751a07f2888fad97b0d50">More...</a><br /></td></tr>
 <tr class="separator:a397053232a3751a07f2888fad97b0d50"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1705,8 +1705,8 @@ Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a5d94b5f604131c9b986840e5a16d433e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5d94b5f604131c9b986840e5a16d433e">&#9670;&nbsp;</a></span>sendRewardVotes()</h2>
+<a id="aa7b030390e0402e2e7f498e2dbb4b8a9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa7b030390e0402e2e7f498e2dbb4b8a9">&#9670;&nbsp;</a></span>sendRewardVotes()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1715,8 +1715,18 @@ Functions</h2></td></tr>
           <td class="memname">void taraxa::VoteManager::sendRewardVotes </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>pbft_block_hash</em></td><td>)</td>
+          <td class="paramname"><em>pbft_block_hash</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>rebroadcast</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1725,6 +1735,7 @@ Functions</h2></td></tr>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">PBFT</td><td>block hash </td></tr>
+    <tr><td class="paramname">rebroadcast</td><td>if rebroadcast is true, all votes are resent to all peers </td></tr>
   </table>
   </dd>
 </dl>

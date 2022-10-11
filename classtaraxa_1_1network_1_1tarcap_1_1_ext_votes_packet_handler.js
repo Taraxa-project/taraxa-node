@@ -5,7 +5,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler =
     [ "ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a24a19569eb088bd75f9fb3a10c589998", null ],
     [ "ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a63b09171549b48e930977951c574c15e", null ],
     [ "onNewPbftVote", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#aa99c782cfea77d2cb03c3d179e3c6ac2", null ],
-    [ "onNewPbftVotes", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a3b4b80ae392c60fed182ed8249b0a0b8", null ],
+    [ "onNewPbftVotes", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#aa9fec2e5ad14c3eed23631941e23ed4c", null ],
     [ "operator=", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a576e7e7276216b78fe630c364c3f5d39", null ],
     [ "operator=", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#aeb67be35c0774ae2710779d4fcec787f", null ],
     [ "processNextSyncVote", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#aca282ca2712f1d1e99a6614c5ddd7646", null ],

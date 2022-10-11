@@ -1,5 +1,7 @@
 var NAVTREEINDEX16 =
 {
+"group___vote.html#a2f609a3b7a3ea1f5adb0e026abad8246":[11,4,1,4],
+"group___vote.html#a3269ce0796ba7a4db4c1d7a1a14d38c2":[11,4,5,2],
 "group___vote.html#a335593af04d28ee24d262c401a32f8b0":[11,4,1,28],
 "group___vote.html#a352f2439db5907bfb52580e2e736ba0f":[11,4,0,2],
 "group___vote.html#a3852382974a58a8ed36aa75568fdb2fd":[11,4,1,38],
@@ -29,7 +31,6 @@ var NAVTREEINDEX16 =
 "group___vote.html#a59225772466fd9824448a4ff11ff7d05":[11,4,1,3],
 "group___vote.html#a5a9524665903c1186005956de19f7fd2":[11,4,5,12],
 "group___vote.html#a5bf3b02943b17dcfa99e6df3dd77212f":[11,4,1,19],
-"group___vote.html#a5d94b5f604131c9b986840e5a16d433e":[11,4,1,29],
 "group___vote.html#a5f3b1435fe7f3c80cfe891b865944680":[11,4,1,14],
 "group___vote.html#a610b26e9e0c08e26983bc20c05ab00d2":[11,4,0,5],
 "group___vote.html#a6528bb14bb94e196d5ffb65693acda19":[11,4,2,23],
@@ -64,6 +65,7 @@ var NAVTREEINDEX16 =
 "group___vote.html#aa0c587e8e6442373845d257b13fa7813":[11,4,1,31],
 "group___vote.html#aa2aaa643998fcc89fc338bff48ee3d68":[11,4,0,6],
 "group___vote.html#aa56af23e580a04c94c8f1a1c05adb7d8":[11,4,2,17],
+"group___vote.html#aa7b030390e0402e2e7f498e2dbb4b8a9":[11,4,1,29],
 "group___vote.html#aaa5728ba952edaee3c56f9371a3d253d":[11,4,0,8],
 "group___vote.html#aaaf432cbe858f0ba34e643f9eaf0ebd4":[11,4,2,8],
 "group___vote.html#aab74f44a9dd90bcb7719cb75fab97877":[11,4,2,3],
@@ -141,8 +143,8 @@ var NAVTREEINDEX16 =
 "include_2network_2ws__server_8hpp.html":[14,0,1,4,1,1,0,3],
 "include_2network_2ws__server_8hpp.html#a87adc53071ba8ddc553c84e894a4accc":[14,0,1,4,1,1,0,3,2],
 "include_2network_2ws__server_8hpp_source.html":[14,0,1,4,1,1,0,3],
-"index.html":[0],
 "index.html":[],
+"index.html":[0],
 "index.html#autotoc_md1":[0,0],
 "index.html#autotoc_md10":[0,5],
 "index.html#autotoc_md11":[0,6],
@@ -247,7 +249,5 @@ var NAVTREEINDEX16 =
 "libdevcore_2_exceptions_8h.html#a327de80dab18a48aa368ab844bc395b5":[14,0,1,0,0,12,25],
 "libdevcore_2_exceptions_8h.html#a3bc6cd2e673d17317a6f9ad877f33f23":[14,0,1,0,0,12,21],
 "libdevcore_2_exceptions_8h.html#a42421a095739d04b06a70136fe7d5b78":[14,0,1,0,0,12,16],
-"libdevcore_2_exceptions_8h.html#a44ea2523d657094dd61589093b5a04bb":[14,0,1,0,0,12,23],
-"libdevcore_2_exceptions_8h.html#a4b4b10242be59dd68c1749205272e2ec":[14,0,1,0,0,12,14],
-"libdevcore_2_exceptions_8h.html#a502ea1315515149073c33d6ade682886":[14,0,1,0,0,12,32]
+"libdevcore_2_exceptions_8h.html#a44ea2523d657094dd61589093b5a04bb":[14,0,1,0,0,12,23]
 };
