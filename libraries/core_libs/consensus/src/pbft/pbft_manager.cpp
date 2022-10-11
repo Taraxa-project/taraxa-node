@@ -1083,7 +1083,7 @@ std::pair<bool, std::string> PbftManager::validateVote(const std::shared_ptr<Vot
 
   // Validate vote against dpos contract
   try {
-    const auto pk = key_manager_->get(vote->getVoterAddr(), vote_period - 1);
+    const auto pk = key_manager_->get(vote_period - 1, vote->getVoterAddr());
     if (!pk) {
       std::stringstream err;
       err << "No vrf key mapped for vote author " << vote->getVoterAddr();

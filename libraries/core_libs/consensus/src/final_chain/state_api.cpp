@@ -234,7 +234,7 @@ u256 StateAPI::get_staking_balance(EthBlockNumber blk_num, const addr_t& addr) c
   return c_method_args_rlp<u256, to_u256, taraxa_evm_state_api_dpos_get_staking_balance>(this_c_, blk_num, addr);
 }
 
-vrf_wrapper::vrf_pk_t StateAPI::get_vrf_key(EthBlockNumber blk_num, const addr_t& addr) const {
+vrf_wrapper::vrf_pk_t StateAPI::dpos_get_vrf_key(EthBlockNumber blk_num, const addr_t& addr) const {
   return vrf_wrapper::vrf_pk_t(
       c_method_args_rlp<bytes, to_bytes, taraxa_evm_state_api_dpos_get_vrf_key>(this_c_, blk_num, addr));
 }
