@@ -145,8 +145,8 @@ Json::Value Test::get_node_status() {
       res["pbft_size"] = Json::UInt64(chain_size);
       res["pbft_sync_period"] = Json::UInt64(node->getPbftManager()->pbftSyncingPeriod());
       res["pbft_round"] = Json::UInt64(node->getPbftManager()->getPbftRound());
-      res["dpos_total_votes"] = Json::UInt64(node->getPbftManager()->currentTotalVotesCount());
-      res["dpos_node_votes"] = Json::UInt64(node->getPbftManager()->currentWeightedVotesCount());
+      res["dpos_total_votes"] = Json::UInt64(node->getPbftManager()->getCurrentDposTotalVotesCount());
+      res["dpos_node_votes"] = Json::UInt64(node->getPbftManager()->getCurrentNodeVotesCount());
       res["dpos_quorum"] = Json::UInt64(node->getPbftManager()->getPbftTwoTPlusOne(chain_size));
       res["pbft_sync_queue_size"] = Json::UInt64(node->getPbftManager()->periodDataQueueSize());
       res["trx_pool_size"] = Json::UInt64(node->getTransactionManager()->getTransactionPoolSize());

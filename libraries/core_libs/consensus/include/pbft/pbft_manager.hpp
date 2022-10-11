@@ -173,16 +173,16 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
                                      size_t step);
 
   /**
-   * @brief Get total DPOS votes count
-   * @return total DPOS votes count
+   * @brief Get current total DPOS votes count
+   * @return current total DPOS votes count
    */
-  uint64_t currentTotalVotesCount() const;
+  uint64_t getCurrentDposTotalVotesCount() const;
 
   /**
-   * @brief Get node DPOS weighted votes count
-   * @return node DPOS weighted votes count
+   * @brief Get current node DPOS votes count
+   * @return node current DPOS votes count
    */
-  uint64_t currentWeightedVotesCount() const;
+  uint64_t getCurrentNodeVotesCount() const;
 
   /**
    * @brief Get PBFT blocks synced period

@@ -278,11 +278,11 @@ void PbftManager::waitForPeriodFinalization() {
   } while (!stopped_);
 }
 
-uint64_t PbftManager::currentTotalVotesCount() const {
+uint64_t PbftManager::getCurrentDposTotalVotesCount() const {
   return final_chain_->dpos_eligible_total_vote_count(pbft_chain_->getPbftChainSize());
 }
 
-uint64_t PbftManager::currentWeightedVotesCount() const {
+uint64_t PbftManager::getCurrentNodeVotesCount() const {
   return final_chain_->dpos_eligible_vote_count(pbft_chain_->getPbftChainSize(), node_addr_);
 }
 
