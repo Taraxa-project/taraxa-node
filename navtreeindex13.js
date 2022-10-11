@@ -1,5 +1,9 @@
 var NAVTREEINDEX13 =
 {
+"globals_defs.html":[14,1,4],
+"globals_func.html":[14,1,1],
+"globals_type.html":[14,1,3],
+"globals_vars.html":[14,1,2],
 "graphql_2include_2graphql_2ws__server_8hpp.html":[14,0,1,4,1,0,0,0,10],
 "graphql_2include_2graphql_2ws__server_8hpp_source.html":[14,0,1,4,1,0,0,0,10],
 "graphql_2src_2ws__server_8cpp.html":[14,0,1,4,1,0,1,10],
@@ -22,16 +26,16 @@ var NAVTREEINDEX13 =
 "group___d_a_g.html#a189e1c73a17f9a4af9707ab45c929569":[11,0,6,0],
 "group___d_a_g.html#a1a319a60241e118bb0c0982c41c04619":[11,0,2,23],
 "group___d_a_g.html#a1a957529304d407e997ca611b4530ab7":[11,0,7,5],
-"group___d_a_g.html#a1b2178eac432bfa3c314f03d8e603542":[11,0,4,1],
 "group___d_a_g.html#a1b2178eac432bfa3c314f03d8e603542":[11,0,3,8],
+"group___d_a_g.html#a1b2178eac432bfa3c314f03d8e603542":[11,0,4,1],
 "group___d_a_g.html#a1c835de4baaf2489806fdfb6fb57b959":[11,0,4,9],
 "group___d_a_g.html#a1f6e18555f5e2ced0d3d3ab64d8b0065":[11,0,7,8],
 "group___d_a_g.html#a2029a37ed4094c2993e7c68918b14059":[11,0,8,0],
 "group___d_a_g.html#a21b48c7f4566760b546838933a004a96":[11,0,3,4],
 "group___d_a_g.html#a23675378f56c0682bf619875e3d1e338":[11,0,7,68],
 "group___d_a_g.html#a24126b789e44798ff62e6f7504ee659f":[11,0,7,57],
-"group___d_a_g.html#a25673c13616627747de49dfc52659715":[11,0,4,0],
 "group___d_a_g.html#a25673c13616627747de49dfc52659715":[11,0,3,7],
+"group___d_a_g.html#a25673c13616627747de49dfc52659715":[11,0,4,0],
 "group___d_a_g.html#a25d4ac6600e09fa527043359cf174af6":[11,0,3,22],
 "group___d_a_g.html#a262ea0431771b3a8e17b14d4639bb43c":[11,0,3,12],
 "group___d_a_g.html#a26e0a681af13a71389017ec973237625":[11,0,7,27],
@@ -245,9 +249,5 @@ var NAVTREEINDEX13 =
 "group___final_chain.html#a2957c56a6f21565db24b76bee4ccc1d4":[11,1,17,5],
 "group___final_chain.html#a2a3ec3216af93a45e94965c03a967bf0":[11,1,15,5],
 "group___final_chain.html#a2af8c575511f01b9254f45021a135657":[11,1,2,3],
-"group___final_chain.html#a2b3252e16df6a6f84933725efaa423dc":[11,1,3,0],
-"group___final_chain.html#a2cf4e96ebcafa2e30fdbdf692ae05b44":[11,1,6,24],
-"group___final_chain.html#a2e621698a6b854047e645f21cd7f9c38":[11,1,6,33],
-"group___final_chain.html#a2e7fd611f3cc2fcc8a6a3cfbaa858cc0":[11,1,8,21],
-"group___final_chain.html#a2ef92fcd4156622aa3dfe52a9f0a4f12":[11,1,8,16]
+"group___final_chain.html#a2b3252e16df6a6f84933725efaa423dc":[11,1,3,0]
 };

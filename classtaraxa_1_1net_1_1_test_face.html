@@ -108,6 +108,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a1d5f6d6f5dcd4e1871ddfb758adea14f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af6aea1d434b20cf0cadd3add2d17cd09"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#af6aea1d434b20cf0cadd3add2d17cd09">send_coin_transactionI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
 <tr class="separator:af6aea1d434b20cf0cadd3add2d17cd09"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af23c7c7051e0e394e8c1b3ba616cdb00"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#af23c7c7051e0e394e8c1b3ba616cdb00">send_coin_transactionsI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
+<tr class="separator:af23c7c7051e0e394e8c1b3ba616cdb00"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3888f944740293d511ee6a3761eb5443"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#a3888f944740293d511ee6a3761eb5443">get_account_addressI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
 <tr class="separator:a3888f944740293d511ee6a3761eb5443"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a408774c2df482b4dac82bb6e9823218b"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#a408774c2df482b4dac82bb6e9823218b">get_peer_countI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
@@ -122,6 +124,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ac9d42b2533b483bf1af667b9eed697a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a582c5b117827cf6360c616068dfa0004"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#a582c5b117827cf6360c616068dfa0004">send_coin_transaction</a> (const Json::Value &amp;param1)=0</td></tr>
 <tr class="separator:a582c5b117827cf6360c616068dfa0004"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a93aa38e5acea8eb6bd8caa4e27f720a8"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#a93aa38e5acea8eb6bd8caa4e27f720a8">send_coin_transactions</a> (const Json::Value &amp;param1)=0</td></tr>
+<tr class="separator:a93aa38e5acea8eb6bd8caa4e27f720a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae9cd78fb8bf0014da9a2c7a5768f4530"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#ae9cd78fb8bf0014da9a2c7a5768f4530">get_account_address</a> ()=0</td></tr>
 <tr class="separator:ae9cd78fb8bf0014da9a2c7a5768f4530"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a18064861df173d5669b2409ac339ce0d"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#a18064861df173d5669b2409ac339ce0d">get_peer_count</a> ()=0</td></tr>
@@ -610,6 +614,70 @@ Additional Inherited Members</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">virtual void taraxa::net::TestFace::send_coin_transactionI </td>
+          <td>(</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>request</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>response</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a93aa38e5acea8eb6bd8caa4e27f720a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a93aa38e5acea8eb6bd8caa4e27f720a8">&#9670;&nbsp;</a></span>send_coin_transactions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual Json::Value taraxa::net::TestFace::send_coin_transactions </td>
+          <td>(</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>param1</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classtaraxa_1_1net_1_1_test.html#ad745df88a747fb09b362f6cb6be3663b">taraxa::net::Test</a>.</p>
+
+</div>
+</div>
+<a id="af23c7c7051e0e394e8c1b3ba616cdb00"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af23c7c7051e0e394e8c1b3ba616cdb00">&#9670;&nbsp;</a></span>send_coin_transactionsI()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void taraxa::net::TestFace::send_coin_transactionsI </td>
           <td>(</td>
           <td class="paramtype">const Json::Value &amp;&#160;</td>
           <td class="paramname"><em>request</em>, </td>

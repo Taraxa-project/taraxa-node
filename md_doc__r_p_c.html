@@ -589,15 +589,32 @@ Example</h3>
 <div class="line">  &quot;result&quot;: null</div>
 <div class="line">}</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md290"></a>
-get_account_address</h2>
-<p>Returns address of account on current node</p>
+send_coin_transactions</h2>
+<p>Method to create and send multiple transaction. Used to create high transactions load in tests</p>
 <h3><a class="anchor" id="autotoc_md291"></a>
 Parameters</h3>
-<p>none</p>
+<p><code>OBJECT</code> - block json to insert</p><ul>
+<li><code>secret</code>: <code>DATA</code>, 32 Bytes - Secret key for account to send transactions from</li>
+<li><code>nonce</code>: <code>QUANTITY</code> - Nonce to start sending transaction with</li>
+<li><code>value</code>: <code>QUANTITY</code> - Value to specify in created transaction</li>
+<li><code>gas_price</code>: <code>QUANTITY</code> - Gas price to specify in created transaction</li>
+<li><code>gas</code>: <code>QUANTITY</code> - Amount of gas transaction can use</li>
+<li><code>receiver</code>: <code>DATA</code>, 20 Bytes - Array of Addresses of receiver account</li>
+<li><code>transaction_count</code>: <code>QUANTITY</code>, - Number of transactions to create</li>
+</ul>
 <h3><a class="anchor" id="autotoc_md292"></a>
 Returns</h3>
+<p>Number of transactions inserted successfuly, in case of transaction insertion failure, error message is returned</p>
+<h2><a class="anchor" id="autotoc_md293"></a>
+get_account_address</h2>
+<p>Returns address of account on current node</p>
+<h3><a class="anchor" id="autotoc_md294"></a>
+Parameters</h3>
+<p>none</p>
+<h3><a class="anchor" id="autotoc_md295"></a>
+Returns</h3>
 <p><code>DATA</code>, 20 Bytes - address of account on current node</p>
-<h3><a class="anchor" id="autotoc_md293"></a>
+<h3><a class="anchor" id="autotoc_md296"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_account_address&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -610,16 +627,16 @@ Example</h3>
 <div class="line">    &quot;value&quot;: &quot;b3888b0bafcf1f9481a0ec97ff032d84f22254ec&quot;</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md294"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md297"></a>
 get_peer_count</h2>
 <p>Returns count of peers that node is connected to</p>
-<h3><a class="anchor" id="autotoc_md295"></a>
+<h3><a class="anchor" id="autotoc_md298"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md296"></a>
+<h3><a class="anchor" id="autotoc_md299"></a>
 Returns</h3>
 <p><code>QUANTITY</code> - count of peers that node is connected to</p>
-<h3><a class="anchor" id="autotoc_md297"></a>
+<h3><a class="anchor" id="autotoc_md300"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_peer_count&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -632,16 +649,16 @@ Example</h3>
 <div class="line">    &quot;value&quot;: 50</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md298"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md301"></a>
 get_node_status</h2>
 <p>Returns current taraxa network protocol version</p>
-<h3><a class="anchor" id="autotoc_md299"></a>
+<h3><a class="anchor" id="autotoc_md302"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md300"></a>
+<h3><a class="anchor" id="autotoc_md303"></a>
 Returns</h3>
 <p><code>OBJECT</code> - with a lot of info about node status including networking. See Example</p>
-<h3><a class="anchor" id="autotoc_md301"></a>
+<h3><a class="anchor" id="autotoc_md304"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_node_status&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -688,13 +705,13 @@ Example</h3>
 <div class="line">    &quot;trx_pool_size&quot;: 7</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md302"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md305"></a>
 get_packets_stats</h2>
 <p>Returns current taraxa network protocol version</p>
-<h3><a class="anchor" id="autotoc_md303"></a>
+<h3><a class="anchor" id="autotoc_md306"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md304"></a>
+<h3><a class="anchor" id="autotoc_md307"></a>
 Returns</h3>
 <p><code>OBJECT</code> - with info about packets statistic</p><ul>
 <li><code>received_packets</code>: <code>ARRAY</code> of <code>PACKET_STATS_OBJECT</code></li>
@@ -730,7 +747,7 @@ Returns</h3>
 <div class="line">GetDagSyncPacket</div>
 </div><!-- fragment --></li>
 </ul>
-<h3><a class="anchor" id="autotoc_md305"></a>
+<h3><a class="anchor" id="autotoc_md308"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_packets_stats&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -764,16 +781,16 @@ Example</h3>
 <div class="line">    }</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md306"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md309"></a>
 get_all_nodes</h2>
 <p>Returns info of current connected nodes including its id, ip_address and port</p>
-<h3><a class="anchor" id="autotoc_md307"></a>
+<h3><a class="anchor" id="autotoc_md310"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md308"></a>
+<h3><a class="anchor" id="autotoc_md311"></a>
 Returns</h3>
 <p><code>STRING</code> - string that contains info about peer if format <code>id ip_address:port</code> separated with <code>\n</code>.</p>
-<h3><a class="anchor" id="autotoc_md309"></a>
+<h3><a class="anchor" id="autotoc_md312"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_all_nodes&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>

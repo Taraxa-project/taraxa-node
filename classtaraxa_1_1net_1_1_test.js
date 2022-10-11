@@ -9,6 +9,7 @@ var classtaraxa_1_1net_1_1_test =
     [ "get_sortition_change", "classtaraxa_1_1net_1_1_test.html#abcdda53d66baf3a0834f143a36522c38", null ],
     [ "implementedModules", "classtaraxa_1_1net_1_1_test.html#aa5517b71d08fb6be33a06c886a5d434c", null ],
     [ "send_coin_transaction", "classtaraxa_1_1net_1_1_test.html#aa7646922e4023bfd4836e013863cf300", null ],
+    [ "send_coin_transactions", "classtaraxa_1_1net_1_1_test.html#ad745df88a747fb09b362f6cb6be3663b", null ],
     [ "full_node_", "classtaraxa_1_1net_1_1_test.html#ac558c4b5db9f2c2e7b1cc2bb09341903", null ],
     [ "kChainId", "classtaraxa_1_1net_1_1_test.html#aeb3970c4e66fcb8fc1c39fd5fc611067", null ]
 ];

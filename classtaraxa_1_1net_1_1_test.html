@@ -112,6 +112,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:abcdda53d66baf3a0834f143a36522c38"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa7646922e4023bfd4836e013863cf300"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test.html#aa7646922e4023bfd4836e013863cf300">send_coin_transaction</a> (const Json::Value &amp;param1) override</td></tr>
 <tr class="separator:aa7646922e4023bfd4836e013863cf300"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad745df88a747fb09b362f6cb6be3663b"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test.html#ad745df88a747fb09b362f6cb6be3663b">send_coin_transactions</a> (const Json::Value &amp;param1) override</td></tr>
+<tr class="separator:ad745df88a747fb09b362f6cb6be3663b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa2e35e470fe73d47a969267f686ed913"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test.html#aa2e35e470fe73d47a969267f686ed913">get_account_address</a> () override</td></tr>
 <tr class="separator:aa2e35e470fe73d47a969267f686ed913"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a29083f08b8d5e211c948277d11d76bf4"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test.html#a29083f08b8d5e211c948277d11d76bf4">get_peer_count</a> () override</td></tr>
@@ -129,6 +131,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a1d5f6d6f5dcd4e1871ddfb758adea14f inherit pub_methods_classtaraxa_1_1net_1_1_test_face"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af6aea1d434b20cf0cadd3add2d17cd09 inherit pub_methods_classtaraxa_1_1net_1_1_test_face"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#af6aea1d434b20cf0cadd3add2d17cd09">send_coin_transactionI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
 <tr class="separator:af6aea1d434b20cf0cadd3add2d17cd09 inherit pub_methods_classtaraxa_1_1net_1_1_test_face"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af23c7c7051e0e394e8c1b3ba616cdb00 inherit pub_methods_classtaraxa_1_1net_1_1_test_face"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#af23c7c7051e0e394e8c1b3ba616cdb00">send_coin_transactionsI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
+<tr class="separator:af23c7c7051e0e394e8c1b3ba616cdb00 inherit pub_methods_classtaraxa_1_1net_1_1_test_face"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3888f944740293d511ee6a3761eb5443 inherit pub_methods_classtaraxa_1_1net_1_1_test_face"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#a3888f944740293d511ee6a3761eb5443">get_account_addressI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
 <tr class="separator:a3888f944740293d511ee6a3761eb5443 inherit pub_methods_classtaraxa_1_1net_1_1_test_face"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a408774c2df482b4dac82bb6e9823218b inherit pub_methods_classtaraxa_1_1net_1_1_test_face"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#a408774c2df482b4dac82bb6e9823218b">get_peer_countI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
@@ -420,6 +424,34 @@ Additional Inherited Members</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Implements <a class="el" href="classtaraxa_1_1net_1_1_test_face.html#a582c5b117827cf6360c616068dfa0004">taraxa::net::TestFace</a>.</p>
+
+</div>
+</div>
+<a id="ad745df88a747fb09b362f6cb6be3663b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad745df88a747fb09b362f6cb6be3663b">&#9670;&nbsp;</a></span>send_coin_transactions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">Json::Value taraxa::net::Test::send_coin_transactions </td>
+          <td>(</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>param1</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implements <a class="el" href="classtaraxa_1_1net_1_1_test_face.html#a93aa38e5acea8eb6bd8caa4e27f720a8">taraxa::net::TestFace</a>.</p>
 
 </div>
 </div>

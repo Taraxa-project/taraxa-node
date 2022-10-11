@@ -14,5 +14,7 @@ var classtaraxa_1_1net_1_1_test_face =
     [ "get_sortition_change", "classtaraxa_1_1net_1_1_test_face.html#ac9d42b2533b483bf1af667b9eed697a5", null ],
     [ "get_sortition_changeI", "classtaraxa_1_1net_1_1_test_face.html#a1d5f6d6f5dcd4e1871ddfb758adea14f", null ],
     [ "send_coin_transaction", "classtaraxa_1_1net_1_1_test_face.html#a582c5b117827cf6360c616068dfa0004", null ],
-    [ "send_coin_transactionI", "classtaraxa_1_1net_1_1_test_face.html#af6aea1d434b20cf0cadd3add2d17cd09", null ]
+    [ "send_coin_transactionI", "classtaraxa_1_1net_1_1_test_face.html#af6aea1d434b20cf0cadd3add2d17cd09", null ],
+    [ "send_coin_transactions", "classtaraxa_1_1net_1_1_test_face.html#a93aa38e5acea8eb6bd8caa4e27f720a8", null ],
+    [ "send_coin_transactionsI", "classtaraxa_1_1net_1_1_test_face.html#af23c7c7051e0e394e8c1b3ba616cdb00", null ]
 ];

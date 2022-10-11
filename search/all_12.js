@@ -26,7 +26,7 @@ var searchData=
   ['rebroadcast_5fvotes_5fcounter_5f_2503',['rebroadcast_votes_counter_',['../group___p_b_f_t.html#a2edc67c93cc214ad06a8b25d2a494210',1,'taraxa::PbftManager']]],
   ['rebuild_5fdb_2504',['rebuild_db',['../namespacetaraxa.html#afe98d31404ee192f56b630ef745af1ce',1,'taraxa::DBConfig::rebuild_db()'],['../classtaraxa_1_1cli_1_1_config.html#a49b02410c933fd30782ed56128b2d8d5',1,'taraxa::cli::Config::REBUILD_DB()']]],
   ['rebuild_5fdb_5fcolumns_2505',['REBUILD_DB_COLUMNS',['../classtaraxa_1_1cli_1_1_config.html#a8a141f341e460ea81774eda03ec94986',1,'taraxa::cli::Config::REBUILD_DB_COLUMNS()'],['../namespacetaraxa.html#a7cf61447587eb8da03bc489b7867ba30',1,'taraxa::DBConfig::rebuild_db_columns()']]],
-  ['rebuild_5fdb_5fperiod_2506',['REBUILD_DB_PERIOD',['../classtaraxa_1_1cli_1_1_config.html#a055baabafb12296fe6274e8fd075a0dd',1,'taraxa::cli::Config::REBUILD_DB_PERIOD()'],['../namespacetaraxa.html#a042f45f490bbf12481a44fbb1629201c',1,'taraxa::DBConfig::rebuild_db_period()']]],
+  ['rebuild_5fdb_5fperiod_2506',['rebuild_db_period',['../namespacetaraxa.html#a042f45f490bbf12481a44fbb1629201c',1,'taraxa::DBConfig::rebuild_db_period()'],['../classtaraxa_1_1cli_1_1_config.html#a055baabafb12296fe6274e8fd075a0dd',1,'taraxa::cli::Config::REBUILD_DB_PERIOD()']]],
   ['rebuild_5fnetwork_2507',['REBUILD_NETWORK',['../classtaraxa_1_1cli_1_1_config.html#a6f9c5fc5b5fe88a2a6e71fe4e589caf6',1,'taraxa::cli::Config']]],
   ['rebuildcolumns_2508',['rebuildColumns',['../classtaraxa_1_1_db_storage.html#a236300c02e7ccfd1946b2788efa005aa',1,'taraxa::DbStorage']]],
   ['rebuilddb_2509',['rebuildDb',['../classtaraxa_1_1_full_node.html#a7181214abb558c6453f1b91c9e1e33fa',1,'taraxa::FullNode']]],
