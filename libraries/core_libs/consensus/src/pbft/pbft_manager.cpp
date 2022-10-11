@@ -268,10 +268,6 @@ void PbftManager::setPbftRound(uint64_t const round) {
   round_ = round;
 }
 
-size_t PbftManager::getSortitionThreshold() const { return sortition_threshold_; }
-
-size_t PbftManager::getTwoTPlusOne() const { return two_t_plus_one_; }
-
 void PbftManager::waitForPeriodFinalization() {
   do {
     // we need to be sure we finalized at least block block with num lower by delegation_delay
@@ -322,8 +318,8 @@ void PbftManager::resetStep() {
 bool PbftManager::tryPushCertVotesBlock() {
   const auto [current_pbft_round, current_pbft_period] = getPbftRoundAndPeriod();
 
-  auto certified_block =
-      vote_mgr_->getTwoTPlusOneVotesBundle(current_pbft_round, current_pbft_period, certify_state, two_t_plus_one_);
+  auto certified_block = vote_mgr_->getTwoTPlusOneVotesBundle(current_pbft_round, current_pbft_period, certify_state,
+                                                              getPbftTwoTPlusOne(current_pbft_period - 1));
   // Not enough cert votes found yet
   if (!certified_block.has_value()) {
     return false;
@@ -373,8 +369,9 @@ bool PbftManager::advancePeriod() {
 bool PbftManager::advanceRound() {
   const auto [current_pbft_round, current_pbft_period] = getPbftRoundAndPeriod();
 
+  const auto two_t_plus_one = getPbftTwoTPlusOne(current_pbft_period - 1);
   const auto determined_round_with_votes =
-      vote_mgr_->determineRoundFromPeriodAndVotes(current_pbft_period, two_t_plus_one_);
+      vote_mgr_->determineRoundFromPeriodAndVotes(current_pbft_period, two_t_plus_one);
   if (!determined_round_with_votes.has_value()) {
     return false;
   }
@@ -393,7 +390,7 @@ bool PbftManager::advanceRound() {
   }
 
   // Cleanup previous round next votes & set new previous round 2t+1 next votes in next vote manager
-  next_votes_manager_->updateNextVotes(determined_round_with_votes->second, two_t_plus_one_);
+  next_votes_manager_->updateNextVotes(determined_round_with_votes->second, two_t_plus_one);
 
   LOG(log_nf_) << "Round advanced to: " << determined_round_with_votes->first << ", period " << current_pbft_period;
 
@@ -445,8 +442,6 @@ void PbftManager::resetPbftConsensus(uint64_t round) {
 
   if (executed_pbft_block_) {
     waitForPeriodFinalization();
-    // reset sortition_threshold and TWO_T_PLUS_ONE
-    updateTwoTPlusOneAndThreshold_();
     db_->savePbftMgrStatus(PbftMgrStatus::ExecutedBlock, false);
     executed_pbft_block_ = false;
   }
@@ -478,32 +473,32 @@ void PbftManager::initialState() {
   // Time constants...
   LAMBDA_ms = LAMBDA_ms_MIN;
 
-  const auto period = getPbftPeriod();
-  const auto round = db_->getPbftMgrField(PbftMgrRoundStep::PbftRound);
-  auto step = db_->getPbftMgrField(PbftMgrRoundStep::PbftStep);
+  const auto current_pbft_period = getPbftPeriod();
+  const auto current_pbft_round = db_->getPbftMgrField(PbftMgrRoundStep::PbftRound);
+  auto current_pbft_step = db_->getPbftMgrField(PbftMgrRoundStep::PbftStep);
 
-  if (round == 1 && step == 1) {
+  if (current_pbft_round == 1 && current_pbft_step == 1) {
     // Node start from scratch
     state_ = value_proposal_state;
-  } else if (step < 4) {
+  } else if (current_pbft_step < 4) {
     // Node start from DB, skip step 1 or 2 or 3
-    step = 4;
+    current_pbft_step = 4;
     state_ = finish_state;
-  } else if (step % 2 == 0) {
+  } else if (current_pbft_step % 2 == 0) {
     // Node start from DB in first finishing state
     state_ = finish_state;
-  } else if (step % 2 == 1) {
+  } else if (current_pbft_step % 2 == 1) {
     // Node start from DB in second finishing state
     state_ = finish_polling_state;
   } else {
-    LOG(log_er_) << "Unexpected condition at round " << round << " step " << step;
+    LOG(log_er_) << "Unexpected condition at round " << current_pbft_round << " step " << current_pbft_step;
     assert(false);
   }
 
   // This is used to offset endtime for second finishing step...
-  startingStepInRound_ = step;
-  setPbftStep(step);
-  round_ = round;
+  startingStepInRound_ = current_pbft_step;
+  setPbftStep(current_pbft_step);
+  round_ = current_pbft_round;
 
   // Process saved soft voted block + votes from db
   if (auto soft_voted_block_data = db_->getSoftVotedBlockDataInRound(); soft_voted_block_data.has_value()) {
@@ -525,10 +520,10 @@ void PbftManager::initialState() {
 
     // Set soft_voted_block_for_round_ only if round and period match. Note: could differ in edge case when node
     // crashed, new period/round was already saved in db but soft voted block data was not cleared yet
-    if (period == votes_period && round == soft_voted_block_data->round_) {
+    if (current_pbft_period == votes_period && current_pbft_round == soft_voted_block_data->round_) {
       soft_voted_block_for_round_ = *soft_voted_block_data;
       LOG(log_nf_) << "Init last observed 2t+1 soft voted block to " << soft_voted_block_data->block_hash_
-                   << ", period " << period << ", round " << round;
+                   << ", period " << current_pbft_period << ", round " << current_pbft_round;
     }
   }
 
@@ -543,10 +538,10 @@ void PbftManager::initialState() {
 
     // Set cert_voted_block_for_round_ only if round and period match. Note: could differ in edge case when node
     // crashed, new period/round was already saved in db but cert voted block was not cleared yet
-    if (period == cert_voted_block->getPeriod() && round == cert_voted_block_round) {
+    if (current_pbft_period == cert_voted_block->getPeriod() && current_pbft_round == cert_voted_block_round) {
       cert_voted_block_for_round_ = cert_voted_block;
       LOG(log_nf_) << "Init last cert voted block in round to " << cert_voted_block->getBlockHash() << ", period "
-                   << period << ", round " << round;
+                   << current_pbft_period << ", round " << current_pbft_round;
     }
   }
 
@@ -560,28 +555,23 @@ void PbftManager::initialState() {
   next_step_time_ms_ = 0;
 
   waitForPeriodFinalization();
-  // Initialize two_t_plus_one_and sortition_threshold
-  updateTwoTPlusOneAndThreshold_();
 
-  if (round > 1) {
+  if (current_pbft_round > 1) {
     // Get next votes for previous round from DB
     auto next_votes_in_previous_round = db_->getPreviousRoundNextVotes();
     if (next_votes_in_previous_round.empty()) {
-      LOG(log_er_) << "Cannot get any next votes in previous round " << round - 1 << ". For period " << getPbftPeriod()
-                   << " step " << step;
+      LOG(log_er_) << "Cannot get any next votes in previous round " << current_pbft_round - 1 << ". For period "
+                   << getPbftPeriod() << " step " << current_pbft_step;
       assert(false);
     }
-
-    // !!! Important: call only after updateTwoTPlusOneAndThreshold_()
-    const auto two_t_plus_one = getTwoTPlusOne();
-    next_votes_manager_->updateNextVotes(next_votes_in_previous_round, two_t_plus_one);
+    next_votes_manager_->updateNextVotes(next_votes_in_previous_round, getPbftTwoTPlusOne(current_pbft_period - 1));
   }
 
   previous_round_next_voted_value_ = next_votes_manager_->getVotedValue();
   previous_round_next_voted_null_block_hash_ = next_votes_manager_->haveEnoughVotesForNullBlockHash();
 
-  LOG(log_nf_) << "Node initialize at round " << round << ", period " << getPbftPeriod() << ", step " << step
-               << ". Previous round has enough next votes for NULL_BLOCK_HASH: " << std::boolalpha
+  LOG(log_nf_) << "Node initialize at round " << current_pbft_round << ", period " << getPbftPeriod() << ", step "
+               << current_pbft_step << ". Previous round has enough next votes for NULL_BLOCK_HASH: " << std::boolalpha
                << previous_round_next_voted_null_block_hash_ << ", voted value "
                << (previous_round_next_voted_value_.has_value() ? previous_round_next_voted_value_->abridged()
                                                                 : "no value")
@@ -768,7 +758,8 @@ const std::optional<TwoTPlusOneSoftVotedBlockData> &PbftManager::getTwoTPlusOneS
     }
   } else {
     // Try to get 2t+1 soft votes for some block
-    const auto soft_votes_bundle = vote_mgr_->getTwoTPlusOneVotesBundle(round, period, filter_state, two_t_plus_one_);
+    const auto soft_votes_bundle =
+        vote_mgr_->getTwoTPlusOneVotesBundle(round, period, filter_state, getPbftTwoTPlusOne(period - 1));
     if (soft_votes_bundle.has_value()) {
       TwoTPlusOneSoftVotedBlockData soft_voted_block_data;
       soft_voted_block_data.round_ = round;
@@ -1136,14 +1127,34 @@ uint64_t PbftManager::getPbftSortitionThreshold(PbftVoteTypes vote_type, uint64_
   const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(pbft_period);
 
   switch (vote_type) {
-    case propose_vote_type:
+    case PbftVoteTypes::propose_vote_type:
       return std::min<uint64_t>(NUMBER_OF_PROPOSERS, total_dpos_votes_count);
-    case soft_vote_type:
-    case cert_vote_type:
-    case next_vote_type:
+    case PbftVoteTypes::soft_vote_type:
+    case PbftVoteTypes::cert_vote_type:
+    case PbftVoteTypes::next_vote_type:
     default:
       return std::min<uint64_t>(COMMITTEE_SIZE, total_dpos_votes_count);
   }
+}
+
+uint64_t PbftManager::getPbftTwoTPlusOne(uint64_t pbft_period) const {
+  // Check cache first
+  {
+    std::shared_lock lock(current_two_t_plus_one_mutex_);
+    if (pbft_period == current_two_t_plus_one_.first && current_two_t_plus_one_.second) {
+      return current_two_t_plus_one_.second;
+    }
+  }
+
+  const auto two_t_plus_one = getPbftSortitionThreshold(PbftVoteTypes::cert_vote_type, pbft_period) * 2 / 3 + 1;
+
+  // Cache is only for current pbft period
+  if (pbft_period == pbft_chain_->getPbftChainSize()) {
+    std::unique_lock lock(current_two_t_plus_one_mutex_);
+    current_two_t_plus_one_ = std::make_pair(pbft_period, two_t_plus_one);
+  }
+
+  return two_t_plus_one;
 }
 
 std::shared_ptr<Vote> PbftManager::generateVoteWithWeight(taraxa::blk_hash_t const &blockhash, PbftVoteTypes vote_type,
@@ -1229,18 +1240,19 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
   VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, current_pbft_period, current_pbft_round, 1});
 
   try {
-    const uint64_t voter_dpos_votes_count =
-      final_chain_->dpos_eligible_vote_count(current_pbft_period - 1, node_addr_);
+    const uint64_t voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(current_pbft_period - 1, node_addr_);
     const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(current_pbft_period - 1);
-    const uint64_t pbft_sortition_threshold = getPbftSortitionThreshold(PbftVoteTypes::propose_vote_type, current_pbft_period - 1);
+    const uint64_t pbft_sortition_threshold =
+        getPbftSortitionThreshold(PbftVoteTypes::propose_vote_type, current_pbft_period - 1);
 
-    if (voter_dpos_votes_count) {
+    if (!voter_dpos_votes_count) {
       LOG(log_er_) << "Unable to propose block for period " << current_pbft_period << ", round " << current_pbft_round
-                   << ". Voter dpos vote count " << voter_dpos_votes_count << " is zero";
+                   << ". Voter dpos vote count is zero";
       return nullptr;
     }
 
-    if (!vrf_sortition.calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold, dev::toPublic(node_sk_))) {
+    if (!vrf_sortition.calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold,
+                                       dev::toPublic(node_sk_))) {
       LOG(log_dg_) << "Unable to propose block for period " << current_pbft_period << ", round " << current_pbft_round
                    << ". vrf sortition is zero";
       return nullptr;
@@ -1661,15 +1673,6 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   return true;
 }
 
-void PbftManager::updateTwoTPlusOneAndThreshold_() {
-  // Update 2t+1 and threshold
-  auto dpos_total_votes_count = currentTotalVotesCount();
-  sortition_threshold_ = std::min<size_t>(COMMITTEE_SIZE, dpos_total_votes_count);
-  two_t_plus_one_ = sortition_threshold_ * 2 / 3 + 1;
-  LOG(log_nf_) << "Committee size " << COMMITTEE_SIZE << ", DPOS total votes count " << dpos_total_votes_count
-               << ". Update 2t+1 " << two_t_plus_one_ << ", Threshold " << sortition_threshold_;
-}
-
 uint64_t PbftManager::pbftSyncingPeriod() const {
   return std::max(sync_queue_.getPeriod(), pbft_chain_->getPbftChainSize());
 }
@@ -1832,8 +1835,7 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
   }
 
   try {
-    const auto sortition_threshold = getPbftSortitionThreshold(PbftVoteTypes::cert_vote_type, first_vote_period - 1);
-    const auto two_t_plus_one = (sortition_threshold * 2 / 3) + 1;
+    const auto two_t_plus_one = getPbftTwoTPlusOne(first_vote_period - 1);
 
     if (votes_weight < two_t_plus_one) {
       LOG(log_er_) << "Invalid votes weight " << votes_weight << " < two_t_plus_one " << two_t_plus_one

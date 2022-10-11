@@ -275,7 +275,8 @@ TEST_F(VoteTest, previous_round_next_votes) {
   auto next_votes_mgr = node->getNextVotesManager();
   next_votes_mgr->clearVotes();
 
-  auto pbft_2t_plus_1 = pbft_mgr->getTwoTPlusOne();
+  const auto chain_size = node->getPbftChain()->getPbftChainSize();
+  auto pbft_2t_plus_1 = pbft_mgr->getPbftTwoTPlusOne(chain_size);
   EXPECT_EQ(pbft_2t_plus_1, 1);
 
   // Generate a vote voted at NULL_BLOCK_HASH

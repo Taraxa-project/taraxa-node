@@ -126,10 +126,12 @@ struct PbftManagerTest : BaseTest {
     size_t committee, two_t_plus_one, threshold, expected_2tPlus1, expected_threshold;
     for (size_t i(0); i < nodes.size(); ++i) {
       auto pbft_mgr = nodes[i]->getPbftManager();
+      const auto chain_size = nodes[i]->getPbftChain()->getPbftChainSize();
+      two_t_plus_one = pbft_mgr->getPbftTwoTPlusOne(chain_size);
+      threshold = pbft_mgr->getPbftSortitionThreshold(PbftVoteTypes::cert_vote_type, chain_size);
+
       committee = pbft_mgr->getPbftCommitteeSize();
       valid_voting_players = pbft_mgr->currentTotalVotesCount();
-      two_t_plus_one = pbft_mgr->getTwoTPlusOne();
-      threshold = pbft_mgr->getSortitionThreshold();
       std::cout << "Node" << i << " committee " << committee << ", valid voting players " << valid_voting_players
                 << ", 2t+1 " << two_t_plus_one << ", sortition threshold " << threshold << std::endl;
       EXPECT_EQ(valid_voting_players, nodes.size());
@@ -179,10 +181,11 @@ struct PbftManagerTest : BaseTest {
 
     for (size_t i(0); i < nodes.size(); ++i) {
       auto pbft_mgr = nodes[i]->getPbftManager();
+      const auto chain_size = nodes[i]->getPbftChain()->getPbftChainSize();
+      two_t_plus_one = pbft_mgr->getPbftTwoTPlusOne(chain_size);
+      threshold = pbft_mgr->getPbftSortitionThreshold(PbftVoteTypes::cert_vote_type, chain_size);
       committee = pbft_mgr->getPbftCommitteeSize();
       valid_voting_players = pbft_mgr->currentTotalVotesCount();
-      two_t_plus_one = pbft_mgr->getTwoTPlusOne();
-      threshold = pbft_mgr->getSortitionThreshold();
       std::cout << "Node" << i << " committee " << committee << ", valid voting players " << valid_voting_players
                 << ", 2t+1 " << two_t_plus_one << ", sortition threshold " << threshold << std::endl;
       EXPECT_EQ(valid_voting_players, nodes.size());
@@ -516,10 +519,11 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
   size_t committee, two_t_plus_one, threshold, expected_2tPlus1, expected_threshold;
   for (size_t i(0); i < nodes.size(); ++i) {
     auto pbft_mgr = nodes[i]->getPbftManager();
+    const auto chain_size = nodes[i]->getPbftChain()->getPbftChainSize();
+    two_t_plus_one = pbft_mgr->getPbftTwoTPlusOne(chain_size);
+    threshold = pbft_mgr->getPbftSortitionThreshold(PbftVoteTypes::cert_vote_type, chain_size);
     committee = pbft_mgr->getPbftCommitteeSize();
     eligible_total_vote_count = pbft_mgr->currentTotalVotesCount();
-    two_t_plus_one = pbft_mgr->getTwoTPlusOne();
-    threshold = pbft_mgr->getSortitionThreshold();
     std::cout << "Node" << i << " committee " << committee << ", eligible total vote count "
               << eligible_total_vote_count << ", 2t+1 " << two_t_plus_one << ", sortition threshold " << threshold
               << std::endl;

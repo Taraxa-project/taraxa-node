@@ -144,19 +144,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void setPbftRound(uint64_t const round);
 
   /**
-   * @brief Get PBFT sortition threshold. PBFT sortition threshold is minimum of between PBFT committee size and total
-   * DPOS votes count
-   * @return PBFT sortition threshold
-   */
-  size_t getSortitionThreshold() const;
-
-  /**
-   * @brief Get 2t+1. 2t+1 is 2/3 of PBFT sortition threshold and plus 1
-   * @return 2t+1
-   */
-  size_t getTwoTPlusOne() const;
-
-  /**
    * @brief Set PBFT step
    * @param pbft_step PBFT step
    */
@@ -298,6 +285,21 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @return PBFT committee size
    */
   size_t getPbftCommitteeSize() const { return COMMITTEE_SIZE; }
+
+  /**
+   * @brief Get PBFT sortition threshold for specific period
+   * @param vote_type vote type
+   * @param pbft_period pbft period
+   * @return PBFT sortition threshold
+   */
+  uint64_t getPbftSortitionThreshold(PbftVoteTypes vote_type, uint64_t pbft_period) const;
+
+  /**
+   * @brief Get 2t+1. 2t+1 is 2/3 of PBFT sortition threshold and plus 1 for a specific period
+   * @param pbft_period pbft period
+   * @return PBFT 2T + 1
+   */
+  uint64_t getPbftTwoTPlusOne(uint64_t pbft_period) const;
 
  private:
   // DPOS
@@ -456,14 +458,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void gossipNewVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &voted_block);
 
   /**
-   * @brief Get PBFT sortition threshold for specific period
-   * @param vote_type vote type
-   * @param pbft_period pbft period
-   * @return PBFT sortition threshold
-   */
-  uint64_t getPbftSortitionThreshold(PbftVoteTypes vote_type, uint64_t pbft_period) const;
-
-  /**
    * @brief Propose a new PBFT block
    * @return proposed PBFT block
    */
@@ -520,11 +514,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool pushPbftBlock_(PeriodData &&period_data, std::vector<std::shared_ptr<Vote>> &&cert_votes);
 
   /**
-   * @brief Update PBFT 2t+1 and PBFT sortition threshold
-   */
-  void updateTwoTPlusOneAndThreshold_();
-
-  /**
    * @brief Check if previous round next voting value has been changed
    */
   void checkPreviousRoundNextVotedValueChange_();
@@ -551,11 +540,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    */
   bool validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pbft_block,
                                   const std::vector<std::shared_ptr<Vote>> &cert_votes) const;
-
-  /**
-   * @brief Count how many votes in the current PBFT round and step. This is only for testing purpose
-   */
-  void countVotes_() const;
 
   /**
    * @brief Broadcast or rebroadcast current round soft votes, previous round next votes and reward votes
@@ -635,12 +619,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
 
-  uint64_t pbft_round_last_broadcast_ = 0;
-  size_t pbft_step_last_broadcast_ = 0;
-
-  size_t sortition_threshold_ = 0;
-  // 2t+1 minimum number of votes for consensus
-  size_t two_t_plus_one_ = 0;
+  // Cache for current 2T+1 - do not access it directly as it is not updated automatically,
+  // always call getPbftTwoTPlusOne instead !!!
+  mutable std::pair<uint64_t /* period */, uint64_t /* two_t_plus_one for period */> current_two_t_plus_one_;
+  mutable std::shared_mutex current_two_t_plus_one_mutex_;
 
   const blk_hash_t dag_genesis_block_hash_;
 

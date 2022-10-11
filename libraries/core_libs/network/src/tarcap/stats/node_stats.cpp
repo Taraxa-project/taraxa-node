@@ -77,7 +77,7 @@ void NodeStats::logNodeStats() {
 
   const auto local_dpos_total_votes_count = pbft_mgr_->currentTotalVotesCount();
   const auto local_weighted_votes = pbft_mgr_->currentWeightedVotesCount();
-  const auto local_twotplusone = pbft_mgr_->getTwoTPlusOne();
+  const auto local_twotplusone = pbft_mgr_->getPbftTwoTPlusOne(local_pbft_period - 1);
 
   // Syncing period...
   const auto local_pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
