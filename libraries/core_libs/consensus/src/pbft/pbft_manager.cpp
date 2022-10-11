@@ -411,6 +411,10 @@ void PbftManager::resetPbftConsensus(uint64_t round) {
                << ", step 1, and resetting clock.";
   round_clock_initial_datetime_ = now_;
 
+  // Reset broadcast counters
+  broadcast_votes_counter_ = 1;
+  rebroadcast_votes_counter_ = 1;
+
   // Update current round and reset step to 1
   round_ = round;
   resetStep();
@@ -686,6 +690,25 @@ void PbftManager::loopBackFinishState_() {
   current_step_clock_initial_datetime_ = std::chrono::system_clock::now();
 }
 
+void PbftManager::broadcastVotes(bool rebroadcast) {
+  auto [round, period] = getPbftRoundAndPeriod();
+  auto net = network_.lock();
+  if (!net) {
+    return;
+  }
+
+  if (auto soft_voted_block_data = getTwoTPlusOneSoftVotedBlockData(period, round); soft_voted_block_data.has_value()) {
+    net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(
+        std::move(soft_voted_block_data->soft_votes_), rebroadcast);
+    vote_mgr_->sendRewardVotes(getLastPbftBlockHash(), rebroadcast);
+  }
+
+  LOG(log_dg_) << "Broadcast next votes for previous round. In period " << period << ", round " << round << " step "
+               << step_;
+  net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->broadcastPreviousRoundNextVotesBundle(
+      rebroadcast);
+}
+
 bool PbftManager::stateOperations_() {
   pushSyncedPbftBlocksIntoChain();
 
@@ -694,6 +717,16 @@ bool PbftManager::stateOperations_() {
   now_ = std::chrono::system_clock::now();
   duration_ = now_ - round_clock_initial_datetime_;
   elapsed_time_in_round_ms_ = std::chrono::duration_cast<std::chrono::milliseconds>(duration_).count();
+
+  if (elapsed_time_in_round_ms_ / LAMBDA_ms_MIN > kRebroadcastVotesLambdaTime * rebroadcast_votes_counter_) {
+    broadcastVotes(true);
+    rebroadcast_votes_counter_++;
+    // If there was a rebroadcast no need to do next broadcast either
+    broadcast_votes_counter_++;
+  } else if (elapsed_time_in_round_ms_ / LAMBDA_ms_MIN > kBroadcastVotesLambdaTime * broadcast_votes_counter_) {
+    broadcastVotes(false);
+    broadcast_votes_counter_++;
+  }
 
   auto [round, period] = getPbftRoundAndPeriod();
   LOG(log_tr_) << "PBFT current round: " << round << ", period: " << period << ", step " << step_;
@@ -705,6 +738,15 @@ bool PbftManager::stateOperations_() {
 
   // 2t+1 next votes were seen
   if (advanceRound()) {
+    return true;
+  }
+
+  // If node is not eligible to vote, always return true so pbft state machine never enters specific consensus steps
+  // (propose, soft-vote, cert-vote, next-vote). Nodes that have no delegation should just observe 2t+1 cert votes
+  // to move to the next period or 2t+1 next votes to move to the next round
+  if (!final_chain_->dpos_eligible_vote_count(period - 1, node_addr_)) {
+    // Check 2t+1 cert/next votes every POLLING_INTERVAL_ms
+    std::this_thread::sleep_for(std::chrono::milliseconds(POLLING_INTERVAL_ms));
     return true;
   }
 
@@ -1004,11 +1046,6 @@ void PbftManager::secondFinish_() {
 
   // Have 2t+1 soft votes for some block
   if (auto soft_voted_block_data = getTwoTPlusOneSoftVotedBlockData(period, round); soft_voted_block_data.has_value()) {
-    auto net = network_.lock();
-    assert(net);  // Should never happen
-    net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(
-        std::move(soft_voted_block_data->soft_votes_));
-    vote_mgr_->sendRewardVotes(getLastPbftBlockHash());
     LOG(log_dg_) << "Regossip 2t+1 soft votes for " << soft_voted_block_data->block_hash_;
 
     if (!next_voted_soft_value_) {
@@ -1031,16 +1068,6 @@ void PbftManager::secondFinish_() {
         next_voted_null_block_hash_ = true;
       }
     }
-  }
-
-  if (round > 1 && step_ > MAX_STEPS && (step_ - MAX_STEPS - 2) % 20 == 0 && !broadcastAlreadyThisStep_()) {
-    LOG(log_dg_) << "Node " << node_addr_ << " broadcast next votes for previous round. In period " << period
-                 << ", round " << round << " step " << step_;
-    if (auto net = network_.lock()) {
-      net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->broadcastPreviousRoundNextVotesBundle();
-    }
-    pbft_round_last_broadcast_ = round;
-    pbft_step_last_broadcast_ = step_;
   }
 
   loop_back_finish_state_ = elapsed_time_in_step > (int64_t)(2 * (LAMBDA_ms - POLLING_INTERVAL_ms));
@@ -1384,10 +1411,6 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(uint64_t round, uin
 
   // no eligible leader
   return nullptr;
-}
-
-bool PbftManager::broadcastAlreadyThisStep_() const {
-  return getPbftRound() == pbft_round_last_broadcast_ && step_ == pbft_step_last_broadcast_;
 }
 
 bool PbftManager::compareBlocksAndRewardVotes_(const std::shared_ptr<PbftBlock> &pbft_block) {

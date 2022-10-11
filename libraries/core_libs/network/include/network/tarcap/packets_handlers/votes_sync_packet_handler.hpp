@@ -18,7 +18,12 @@ class VotesSyncPacketHandler final : public ExtVotesPacketHandler {
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
                          std::shared_ptr<DbStorage> db, const NetworkConfig& net_config, const addr_t& node_addr);
 
-  void broadcastPreviousRoundNextVotesBundle();
+  /**
+   * @brief Send all previous round next votes
+   *
+   * @param rebroadcast if rebroadcast is true, all votes are resent to all peers
+   */
+  void broadcastPreviousRoundNextVotesBundle(bool rebroadcast = false);
 
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::VotesSyncPacket;
