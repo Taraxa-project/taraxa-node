@@ -280,19 +280,14 @@ void PbftManager::waitForPeriodFinalization() {
     }
     thisThreadSleepForMilliSeconds(POLLING_INTERVAL_ms);
   } while (!stopped_);
-
-  dpos_period_ = pbft_chain_->getPbftChainSize();
-  LOG(log_nf_) << "DPOS total votes count is " << currentTotalVotesCount() << " for period "
-               << pbft_chain_->getPbftChainSize() << ". Account " << node_addr_ << " has "
-               << currentWeightedVotesCount() << " weighted votes";
 }
 
 uint64_t PbftManager::currentTotalVotesCount() const {
-  return final_chain_->dpos_eligible_total_vote_count(dpos_period_);
+  return final_chain_->dpos_eligible_total_vote_count(pbft_chain_->getPbftChainSize());
 }
 
 uint64_t PbftManager::currentWeightedVotesCount() const {
-  return final_chain_->dpos_eligible_vote_count(dpos_period_, node_addr_);
+  return final_chain_->dpos_eligible_vote_count(pbft_chain_->getPbftChainSize(), node_addr_);
 }
 
 void PbftManager::setPbftStep(size_t const pbft_step) {
@@ -1232,14 +1227,31 @@ std::optional<blk_hash_t> findClosestAnchor(const std::vector<blk_hash_t> &ghost
 std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
   const auto [current_pbft_round, current_pbft_period] = getPbftRoundAndPeriod();
   VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, current_pbft_period, current_pbft_round, 1});
-  if (currentWeightedVotesCount() == 0 ||
-      !vrf_sortition.calculateWeight(currentWeightedVotesCount(), currentTotalVotesCount(),
-                                     getPbftSortitionThreshold(propose_vote_type, dpos_period_),
-                                     dev::toPublic(node_sk_))) {
+
+  try {
+    const uint64_t voter_dpos_votes_count =
+      final_chain_->dpos_eligible_vote_count(current_pbft_period - 1, node_addr_);
+    const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(current_pbft_period - 1);
+    const uint64_t pbft_sortition_threshold = getPbftSortitionThreshold(PbftVoteTypes::propose_vote_type, current_pbft_period - 1);
+
+    if (voter_dpos_votes_count) {
+      LOG(log_er_) << "Unable to propose block for period " << current_pbft_period << ", round " << current_pbft_round
+                   << ". Voter dpos vote count " << voter_dpos_votes_count << " is zero";
+      return nullptr;
+    }
+
+    if (!vrf_sortition.calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold, dev::toPublic(node_sk_))) {
+      LOG(log_dg_) << "Unable to propose block for period " << current_pbft_period << ", round " << current_pbft_round
+                   << ". vrf sortition is zero";
+      return nullptr;
+    }
+  } catch (state_api::ErrFutureBlock &e) {
+    LOG(log_er_) << "Unable to propose block for period " << current_pbft_period << ", round " << current_pbft_round
+                 << ". Period  is too far ahead of actual finalized pbft chain size ("
+                 << final_chain_->last_block_number() << "). Err msg: " << e.what();
     return nullptr;
   }
 
-  LOG(log_dg_) << "Into propose PBFT block";
   auto last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   auto last_period_dag_anchor_block_hash = pbft_chain_->getLastNonNullPbftBlockAnchor();
   if (last_period_dag_anchor_block_hash == NULL_BLOCK_HASH) {
@@ -1771,6 +1783,12 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
   size_t votes_weight = 0;
   auto first_vote_round = cert_votes[0]->getRound();
   auto first_vote_period = cert_votes[0]->getPeriod();
+
+  if (pbft_block->getPeriod() != first_vote_period) {
+    LOG(log_er_) << "pbft block period " << pbft_block->getPeriod() << " != first_vote_period " << first_vote_period;
+    return false;
+  }
+
   for (const auto &v : cert_votes) {
     // Any info is wrong that can determine the synced PBFT block comes from a malicious player
     if (v->getPeriod() != first_vote_period) {

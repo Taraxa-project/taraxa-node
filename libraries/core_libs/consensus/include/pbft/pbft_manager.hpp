@@ -635,7 +635,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
 
-  std::atomic<uint64_t> dpos_period_;
+  uint64_t pbft_round_last_broadcast_ = 0;
+  size_t pbft_step_last_broadcast_ = 0;
 
   size_t sortition_threshold_ = 0;
   // 2t+1 minimum number of votes for consensus
