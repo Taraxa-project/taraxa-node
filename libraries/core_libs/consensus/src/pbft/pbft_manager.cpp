@@ -726,10 +726,10 @@ bool PbftManager::stateOperations_() {
     return true;
   }
 
-  // If node is not eligible to vote, always return true so pbft state machine never enters specific consensus steps
-  // (propose, soft-vote, cert-vote, next-vote). Nodes that have no delegation should just observe 2t+1 cert votes
-  // to move to the next period or 2t+1 next votes to move to the next round
-  if (!final_chain_->dpos_eligible_vote_count(period - 1, node_addr_)) {
+  // If node is not eligible to vote and create block, always return true so pbft state machine never enters specific
+  // consensus steps (propose, soft-vote, cert-vote, next-vote). Nodes that have no delegation should just
+  // observe 2t+1 cert votes to move to the next period or 2t+1 next votes to move to the next round
+  if (!canParticipateInConsensus(period - 1)) {
     // Check 2t+1 cert/next votes every POLLING_INTERVAL_ms
     std::this_thread::sleep_for(std::chrono::milliseconds(POLLING_INTERVAL_ms));
     return true;
@@ -1850,6 +1850,18 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
   }
 
   return true;
+}
+
+bool PbftManager::canParticipateInConsensus(uint64_t period) const {
+  try {
+    return final_chain_->dpos_is_eligible(period, node_addr_);
+  } catch (state_api::ErrFutureBlock &e) {
+    LOG(log_er_) << "Unable to decide if node is consensus node or not for period: " << period
+                 << ". Period  is too far ahead of actual finalized pbft chain size ("
+                 << final_chain_->last_block_number() << "). Err msg: " << e.what();
+  }
+
+  return false;
 }
 
 blk_hash_t PbftManager::lastPbftBlockHashFromQueueOrChain() {

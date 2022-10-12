@@ -542,6 +542,12 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
                                   const std::vector<std::shared_ptr<Vote>> &cert_votes) const;
 
   /**
+   * @param period
+   * @return true if node can participate in consensus - is dpos eligible to vote and create blocks for specified period
+   */
+  bool canParticipateInConsensus(uint64_t period) const;
+
+  /**
    * @brief Broadcast or rebroadcast current round soft votes, previous round next votes and reward votes
    * @param rebroadcast
    */
