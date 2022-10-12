@@ -288,11 +288,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   /**
    * @brief Get PBFT sortition threshold for specific period
-   * @param vote_type vote type
    * @param pbft_period pbft period
+   * @param vote_type vote type
    * @return PBFT sortition threshold
    */
-  uint64_t getPbftSortitionThreshold(PbftVoteTypes vote_type, uint64_t pbft_period) const;
+  uint64_t getPbftSortitionThreshold(uint64_t pbft_period, PbftVoteTypes vote_type) const;
 
   /**
    * @brief Get 2t+1. 2t+1 is 2/3 of PBFT sortition threshold and plus 1 for a specific period
