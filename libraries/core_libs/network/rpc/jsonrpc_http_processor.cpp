@@ -20,7 +20,7 @@ HttpProcessor::Response JsonRpcHttpProcessor::process(const Request &request) {
       handler->HandleRequest(request.body(), response.body());
     } catch (std::exception const &e) {
       err.emplace();
-      err->message << "Uncaught API exception: " << e.what();
+      err->message << e.what();
     }
     if (err) {
       auto const &err_msg = err->message.str();

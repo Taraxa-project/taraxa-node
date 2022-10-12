@@ -4,6 +4,8 @@
 #include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
 
+#include <stdexcept>
+
 #include "LogFilter.hpp"
 
 namespace taraxa::net::rpc::eth {
@@ -256,7 +258,7 @@ class EthImpl : public Eth, EthParams {
   }
 
   state_api::ExecutionResult call(EthBlockNumber blk_n, TransactionSkeleton const& trx) {
-    return final_chain->call(
+    const auto result = final_chain->call(
         {
             trx.from,
             trx.gas_price.value_or(0),
@@ -267,6 +269,11 @@ class EthImpl : public Eth, EthParams {
             trx.data,
         },
         blk_n);
+
+    if (result.consensus_err.empty() && result.code_err.empty()) {
+      return result;
+    }
+    throw std::runtime_error(result.consensus_err.empty() ? result.code_err : result.consensus_err);
   }
 
   void set_transaction_defaults(TransactionSkeleton& t, EthBlockNumber blk_n) {
