@@ -1110,7 +1110,7 @@ std::pair<bool, std::string> PbftManager::validateVote(const std::shared_ptr<Vot
     const uint64_t voter_dpos_votes_count =
         final_chain_->dpos_eligible_vote_count(vote_period - 1, vote->getVoterAddr());
     const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(vote_period - 1);
-    const uint64_t pbft_sortition_threshold = getPbftSortitionThreshold(vote_period - 1, vote->getType());
+    const uint64_t pbft_sortition_threshold = getPbftSortitionThreshold(total_dpos_votes_count, vote->getType());
 
     vote->validate(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold, *pk);
   } catch (state_api::ErrFutureBlock &e) {
@@ -1140,9 +1140,7 @@ void PbftManager::processProposedBlock(const std::shared_ptr<PbftBlock> &propose
   proposed_blocks_.pushProposedPbftBlock(proposed_block, propose_vote);
 }
 
-uint64_t PbftManager::getPbftSortitionThreshold(uint64_t pbft_period, PbftVoteTypes vote_type) const {
-  const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(pbft_period);
-
+uint64_t PbftManager::getPbftSortitionThreshold(uint64_t total_dpos_votes_count, PbftVoteTypes vote_type) const {
   switch (vote_type) {
     case PbftVoteTypes::propose_vote_type:
       return std::min<uint64_t>(NUMBER_OF_PROPOSERS, total_dpos_votes_count);
@@ -1163,7 +1161,9 @@ uint64_t PbftManager::getPbftTwoTPlusOne(uint64_t pbft_period) const {
     }
   }
 
-  const auto two_t_plus_one = getPbftSortitionThreshold(pbft_period, PbftVoteTypes::cert_vote_type) * 2 / 3 + 1;
+  const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(pbft_period);
+  const auto two_t_plus_one =
+      getPbftSortitionThreshold(total_dpos_votes_count, PbftVoteTypes::cert_vote_type) * 2 / 3 + 1;
 
   // Cache is only for current pbft period
   if (pbft_period == pbft_chain_->getPbftChainSize()) {
@@ -1191,7 +1191,7 @@ std::shared_ptr<Vote> PbftManager::generateVoteWithWeight(taraxa::blk_hash_t con
   try {
     voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(period - 1, node_addr_);
     total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(period - 1);
-    pbft_sortition_threshold = getPbftSortitionThreshold(period - 1, vote_type);
+    pbft_sortition_threshold = getPbftSortitionThreshold(total_dpos_votes_count, vote_type);
 
   } catch (state_api::ErrFutureBlock &e) {
     LOG(log_er_) << "Unable to place vote for round: " << round << ", period: " << period << ", step: " << step
@@ -1260,7 +1260,7 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
     const uint64_t voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(current_pbft_period - 1, node_addr_);
     const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(current_pbft_period - 1);
     const uint64_t pbft_sortition_threshold =
-        getPbftSortitionThreshold(current_pbft_period - 1, PbftVoteTypes::propose_vote_type);
+        getPbftSortitionThreshold(total_dpos_votes_count, PbftVoteTypes::propose_vote_type);
 
     if (!voter_dpos_votes_count) {
       LOG(log_er_) << "Unable to propose block for period " << current_pbft_period << ", round " << current_pbft_round

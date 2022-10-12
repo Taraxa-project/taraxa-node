@@ -287,14 +287,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t getPbftCommitteeSize() const { return COMMITTEE_SIZE; }
 
   /**
-   * @brief Get PBFT sortition threshold for specific period
-   * @param pbft_period pbft period
-   * @param vote_type vote type
-   * @return PBFT sortition threshold
-   */
-  uint64_t getPbftSortitionThreshold(uint64_t pbft_period, PbftVoteTypes vote_type) const;
-
-  /**
    * @brief Get 2t+1. 2t+1 is 2/3 of PBFT sortition threshold and plus 1 for a specific period
    * @param pbft_period pbft period
    * @return PBFT 2T + 1
@@ -546,6 +538,14 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @return true if node can participate in consensus - is dpos eligible to vote and create blocks for specified period
    */
   bool canParticipateInConsensus(uint64_t period) const;
+
+  /**
+   * @brief Get PBFT sortition threshold for specific period
+   * @param total_dpos_votes_count total votes count
+   * @param vote_type vote type
+   * @return PBFT sortition threshold
+   */
+  uint64_t getPbftSortitionThreshold(uint64_t total_dpos_votes_count, PbftVoteTypes vote_type) const;
 
   /**
    * @brief Broadcast or rebroadcast current round soft votes, previous round next votes and reward votes
