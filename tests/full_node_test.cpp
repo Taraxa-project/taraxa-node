@@ -1414,6 +1414,7 @@ TEST_F(FullNodeTest, chain_config_json) {
         "validator_maximum_stake":"0x84595161401484a000000",
         "minimum_deposit":"0x0",
         "max_block_author_reward": "0x0",
+        "dag_proposers_reward": "0x0",
         "commission_change_delta":"0x0",
         "commission_change_frequency":"0x0",
         "yield_percentage":"0x14",
