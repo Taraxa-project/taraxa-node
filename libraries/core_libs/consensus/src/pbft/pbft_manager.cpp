@@ -41,6 +41,7 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
       key_manager_(std::move(key_manager)),
       node_addr_(std::move(node_addr)),
       node_sk_(std::move(node_sk)),
+      node_pub_(dev::toPublic(node_sk_)),
       vrf_sk_(std::move(vrf_sk)),
       LAMBDA_ms_MIN(conf.lambda_ms_min),
       COMMITTEE_SIZE(conf.committee_size),
@@ -1268,7 +1269,7 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
     }
 
     if (!vrf_sortition.calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold,
-                                       dev::toPublic(node_sk_))) {
+                                       node_pub_)) {
       LOG(log_dg_) << "Unable to propose block for period " << current_pbft_period << ", round " << current_pbft_round
                    << ". vrf sortition is zero";
       return nullptr;

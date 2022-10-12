@@ -573,9 +573,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<KeyManager> key_manager_;
 
-  addr_t node_addr_;
-  secret_t node_sk_;
-  vrf_sk_t vrf_sk_;
+  const addr_t node_addr_;
+  const secret_t node_sk_;
+  const dev::Public node_pub_;
+  const vrf_sk_t vrf_sk_;
 
   u_long const LAMBDA_ms_MIN;
   u_long LAMBDA_ms = 0;
