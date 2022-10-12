@@ -33,6 +33,7 @@ TEST_F(RPCTest, eth_estimateGas) {
     Json::Value trx(Json::objectValue);
     trx["value"] = 1;
     trx["to"] = dev::toHex(addr_t::random());
+    EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5208");  // 21k
     trx["from"] = from;
     EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5208");  // 21k
   }
