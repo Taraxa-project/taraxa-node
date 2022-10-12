@@ -147,13 +147,16 @@ void NodeStats::logNodeStats() {
                << local_chain_size_without_empty_blocks << ")";
   LOG(log_nf_) << "Current PBFT period:             " << local_pbft_period;
   LOG(log_nf_) << "Current PBFT round:              " << local_pbft_round;
-  LOG(log_nf_) << "DPOS total votes count:          " << local_dpos_total_votes_count;
+  LOG(log_nf_) << "DPOS total votes count:          "
+               << (local_dpos_total_votes_count.has_value() ? std::to_string(*local_dpos_total_votes_count)
+                                                            : "Info not available");
   LOG(log_nf_) << "PBFT consensus 2t+1 threshold:   " << local_twotplusone;
-  LOG(log_nf_) << "Node elligible vote count:       " << local_dpos_node_votes_count;
+  LOG(log_nf_) << "Node eligible vote count:        "
+               << (local_dpos_node_votes_count.has_value() ? std::to_string(*local_dpos_node_votes_count)
+                                                           : "Info not available");
 
   LOG(log_dg_) << "****** Memory structures sizes ******";
   LOG(log_dg_) << "Verified votes size:             " << vote_mgr_->getVerifiedVotesSize();
-
   LOG(log_dg_) << "Non finalized txs size:          " << trx_mgr_->getNonfinalizedTrxSize();
   LOG(log_dg_) << "Txs pool size:                   " << trx_mgr_->getTransactionPoolSize();
 
