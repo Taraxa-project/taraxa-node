@@ -481,7 +481,7 @@ std::chrono::milliseconds PbftManager::elapsedTimeInMs(const time_point &start_t
 
 void PbftManager::sleep_() {
   // Run "wait_for" sleep in loop due to potential spurious wakeup on lock
-  while (true) {
+  while (!stopped_) {
     const auto round_elapsed_time = elapsedTimeInMs(current_round_start_datetime_);
     if (next_step_time_ms_ <= round_elapsed_time) {
       return;
