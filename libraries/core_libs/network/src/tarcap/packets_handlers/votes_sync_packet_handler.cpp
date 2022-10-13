@@ -118,10 +118,12 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
 
   // Previous round votes
   if (peer_pbft_period == pbft_current_period && (pbft_current_round - 1) == peer_pbft_round) {
-    // CONCERN... quite unsure about the following modification...
+    const auto two_t_plus_one = pbft_mgr_->getPbftTwoTPlusOne(pbft_current_period - 1);
+    if (two_t_plus_one.has_value()) {
+      // Update our previous round next vote bundles...
+      next_votes_mgr_->updateWithSyncedVotes(next_votes, *two_t_plus_one);
+    }
 
-    // Update our previous round next vote bundles...
-    next_votes_mgr_->updateWithSyncedVotes(next_votes, pbft_mgr_->getTwoTPlusOne());
     // Pass them on to our peers...
     const auto updated_next_votes_size = next_votes_mgr_->getNextVotesWeight();
     for (auto const &peer_to_share_to : peers_state_->getAllPeers()) {

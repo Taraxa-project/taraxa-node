@@ -15,7 +15,7 @@ class KeyManager {
   KeyManager &operator=(const KeyManager &) = delete;
   KeyManager &operator=(KeyManager &&) = delete;
 
-  std::shared_ptr<vrf_wrapper::vrf_pk_t> get(const addr_t &addr, std::optional<EthBlockNumber> blk_n = {});
+  std::shared_ptr<vrf_wrapper::vrf_pk_t> get(EthBlockNumber blk_n, const addr_t &addr);
 
  private:
   std::shared_mutex mutex_;

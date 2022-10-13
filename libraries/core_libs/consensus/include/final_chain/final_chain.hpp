@@ -164,14 +164,6 @@ class FinalChain {
                                                         std::optional<EthBlockNumber> blk_n = {}) const = 0;
 
   /**
-   * @brief Get the vrf key object from DPOS state
-   * @param addr account address
-   * @param blk_n number of block we are getting state from
-   * @return vrf_wrapper::vrf_pk_t
-   */
-  virtual vrf_wrapper::vrf_pk_t get_vrf_key(const addr_t& addr, std::optional<EthBlockNumber> blk_n = {}) const = 0;
-
-  /**
    * @brief Returns the value from a storage position at a given address.
    * @param addr account address
    * @param key position in the storage
@@ -220,6 +212,15 @@ class FinalChain {
    * @return is address eligible
    */
   virtual bool dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const = 0;
+
+  /**
+   * @brief Get the vrf key object from DPOS state
+   * @param addr account address
+   * @param blk_n number of block we are getting state from
+   * @return vrf_wrapper::vrf_pk_t
+   */
+  virtual vrf_wrapper::vrf_pk_t dpos_get_vrf_key(EthBlockNumber blk_n, const addr_t& addr) const = 0;
+
   // TODO move out of here:
 
   std::pair<val_t, bool> getBalance(addr_t const& addr) const {

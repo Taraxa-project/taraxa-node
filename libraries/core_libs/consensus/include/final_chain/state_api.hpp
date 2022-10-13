@@ -48,13 +48,13 @@ class StateAPI {
                                                 const RewardsStats& rewards_stats = {});
   void transition_state_commit();
   void create_snapshot(uint64_t period);
+
   // DPOS
   uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const;
   uint64_t dpos_eligible_vote_count(EthBlockNumber blk_num, const addr_t& addr) const;
-
   bool dpos_is_eligible(EthBlockNumber blk_num, const addr_t& addr) const;
   u256 get_staking_balance(EthBlockNumber blk_num, const addr_t& addr) const;
-  vrf_wrapper::vrf_pk_t get_vrf_key(EthBlockNumber blk_num, const addr_t& addr) const;
+  vrf_wrapper::vrf_pk_t dpos_get_vrf_key(EthBlockNumber blk_num, const addr_t& addr) const;
 };
 /** @} */
 

@@ -482,7 +482,13 @@ void DagManager::recoverDag() {
         break;
       } else {
         auto propose_period = db_->getProposalPeriodForDagLevel(blk.getLevel());
-        const auto pk = key_manager_->get(blk.getSender());
+        if (!propose_period.has_value()) {
+          LOG(log_er_) << "No propose period for dag level " << blk.getLevel() << " found";
+          assert(false);
+          break;
+        }
+
+        const auto pk = key_manager_->get(*propose_period, blk.getSender());
         if (!pk) {
           LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
                        << " level is missing VRF key for sender " << blk.getSender();
@@ -569,12 +575,13 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
 
   auto propose_period = db_->getProposalPeriodForDagLevel(blk.getLevel());
   // Verify DPOS
-  if (!propose_period) {
+  if (!propose_period.has_value()) {
     // Cannot find the proposal period in DB yet. The slow node gets an ahead block, remove from seen_blocks
     LOG(log_nf_) << "Cannot find proposal period in DB for DAG block " << blk.getHash();
     seen_blocks_.erase(block_hash);
     return VerifyBlockReturnType::AheadBlock;
   }
+
   if (blk.getLevel() < dag_expiry_level_) {
     LOG(log_nf_) << "Dropping old block: " << blk.getHash() << ". Expiry level: " << dag_expiry_level_
                  << ". Block level: " << blk.getLevel();
@@ -582,8 +589,7 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
   }
 
   // Verify VDF solution
-  const auto proposal_period_hash = db_->getPeriodBlockHash(*propose_period);
-  const auto pk = key_manager_->get(blk.getSender());
+  const auto pk = key_manager_->get(*propose_period, blk.getSender());
   if (!pk) {
     LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
                  << " level is missing VRF key for sender " << blk.getSender();
@@ -591,6 +597,7 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
   }
 
   try {
+    const auto proposal_period_hash = db_->getPeriodBlockHash(*propose_period);
     blk.verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period), proposal_period_hash, *pk);
   } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
     LOG(log_er_) << "DAG block " << block_hash << " with " << blk.getLevel()

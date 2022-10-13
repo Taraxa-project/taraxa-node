@@ -131,6 +131,11 @@ Json::Value Test::get_node_status() {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
+      const auto chain_size = node->getPbftChain()->getPbftChainSize();
+      const auto dpos_total_votes_opt = node->getPbftManager()->getCurrentDposTotalVotesCount();
+      const auto dpos_node_votes_opt = node->getPbftManager()->getCurrentNodeVotesCount();
+      const auto two_t_plus_one_opt = node->getPbftManager()->getPbftTwoTPlusOne(chain_size);
+
       res["synced"] = !node->getNetwork()->pbft_syncing();
       res["syncing_seconds"] = Json::UInt64(node->getNetwork()->syncTimeSeconds());
       res["peer_count"] = Json::UInt64(node->getNetwork()->getPeerCount());
@@ -140,12 +145,12 @@ Json::Value Test::get_node_status() {
       res["trx_executed"] = Json::UInt64(node->getDB()->getNumTransactionExecuted());
       res["trx_count"] = Json::UInt64(node->getTransactionManager()->getTransactionCount());
       res["dag_level"] = Json::UInt64(node->getDagManager()->getMaxLevel());
-      res["pbft_size"] = Json::UInt64(node->getPbftChain()->getPbftChainSize());
+      res["pbft_size"] = Json::UInt64(chain_size);
       res["pbft_sync_period"] = Json::UInt64(node->getPbftManager()->pbftSyncingPeriod());
       res["pbft_round"] = Json::UInt64(node->getPbftManager()->getPbftRound());
-      res["dpos_total_votes"] = Json::UInt64(node->getPbftManager()->currentTotalVotesCount());
-      res["dpos_node_votes"] = Json::UInt64(node->getPbftManager()->currentWeightedVotesCount());
-      res["dpos_quorum"] = Json::UInt64(node->getPbftManager()->getTwoTPlusOne());
+      res["dpos_total_votes"] = Json::UInt64(dpos_total_votes_opt.has_value() ? *dpos_total_votes_opt : 0);
+      res["dpos_node_votes"] = Json::UInt64(dpos_node_votes_opt ? *dpos_node_votes_opt : 0);
+      res["dpos_quorum"] = Json::UInt64(two_t_plus_one_opt ? *two_t_plus_one_opt : 0);
       res["pbft_sync_queue_size"] = Json::UInt64(node->getPbftManager()->periodDataQueueSize());
       res["trx_pool_size"] = Json::UInt64(node->getTransactionManager()->getTransactionPoolSize());
       res["trx_nonfinalized_size"] = Json::UInt64(node->getTransactionManager()->getNonfinalizedTrxSize());

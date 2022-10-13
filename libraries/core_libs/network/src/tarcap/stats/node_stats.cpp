@@ -75,9 +75,9 @@ void NodeStats::logNodeStats() {
   const auto local_chain_size = pbft_chain_->getPbftChainSize();
   const auto local_chain_size_without_empty_blocks = pbft_chain_->getPbftChainSizeExcludingEmptyPbftBlocks();
 
-  const auto local_dpos_total_votes_count = pbft_mgr_->currentTotalVotesCount();
-  const auto local_weighted_votes = pbft_mgr_->currentWeightedVotesCount();
-  const auto local_twotplusone = pbft_mgr_->getTwoTPlusOne();
+  const auto local_dpos_total_votes_count = pbft_mgr_->getCurrentDposTotalVotesCount();
+  const auto local_dpos_node_votes_count = pbft_mgr_->getCurrentNodeVotesCount();
+  const auto local_twotplusone = pbft_mgr_->getPbftTwoTPlusOne(local_pbft_period - 1);
 
   // Syncing period...
   const auto local_pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
@@ -147,13 +147,17 @@ void NodeStats::logNodeStats() {
                << local_chain_size_without_empty_blocks << ")";
   LOG(log_nf_) << "Current PBFT period:             " << local_pbft_period;
   LOG(log_nf_) << "Current PBFT round:              " << local_pbft_round;
-  LOG(log_nf_) << "DPOS total votes count:          " << local_dpos_total_votes_count;
-  LOG(log_nf_) << "PBFT consensus 2t+1 threshold:   " << local_twotplusone;
-  LOG(log_nf_) << "Node elligible vote count:       " << local_weighted_votes;
+  LOG(log_nf_) << "DPOS total votes count:          "
+               << (local_dpos_total_votes_count.has_value() ? std::to_string(*local_dpos_total_votes_count)
+                                                            : "Info not available");
+  LOG(log_nf_) << "PBFT consensus 2t+1 threshold:   "
+               << (local_twotplusone.has_value() ? std::to_string(*local_twotplusone) : "Info not available");
+  LOG(log_nf_) << "Node eligible vote count:        "
+               << (local_dpos_node_votes_count.has_value() ? std::to_string(*local_dpos_node_votes_count)
+                                                           : "Info not available");
 
   LOG(log_dg_) << "****** Memory structures sizes ******";
   LOG(log_dg_) << "Verified votes size:             " << vote_mgr_->getVerifiedVotesSize();
-
   LOG(log_dg_) << "Non finalized txs size:          " << trx_mgr_->getNonfinalizedTrxSize();
   LOG(log_dg_) << "Txs pool size:                   " << trx_mgr_->getTransactionPoolSize();
 
@@ -172,7 +176,7 @@ void NodeStats::logNodeStats() {
   if (making_pbft_chain_progress) {
     if (is_pbft_syncing) {
       LOG(log_nf_) << "STATUS: GOOD. ACTIVELY SYNCING";
-    } else if (local_weighted_votes) {
+    } else if (local_dpos_node_votes_count) {
       LOG(log_nf_) << "STATUS: GOOD. NODE SYNCED AND PARTICIPATING IN CONSENSUS";
     } else {
       LOG(log_nf_) << "STATUS: GOOD. NODE SYNCED";
@@ -180,7 +184,7 @@ void NodeStats::logNodeStats() {
   } else if (is_pbft_syncing && (making_pbft_sync_period_progress || making_dag_progress)) {
     LOG(log_nf_) << "STATUS: PENDING SYNCED DATA";
   } else if (!is_pbft_syncing && making_pbft_consensus_progress) {
-    if (local_weighted_votes) {
+    if (local_dpos_node_votes_count) {
       LOG(log_nf_) << "STATUS: PARTICIPATING IN CONSENSUS BUT NO NEW FINALIZED BLOCKS";
     } else {
       LOG(log_nf_) << "STATUS: NODE SYNCED BUT NO NEW FINALIZED BLOCKS";

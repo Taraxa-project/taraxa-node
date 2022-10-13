@@ -342,10 +342,6 @@ class FinalChainImpl final : public FinalChain {
     return accounts_cache_.get(last_if_absent(blk_n), addr);
   }
 
-  vrf_wrapper::vrf_pk_t get_vrf_key(addr_t const& addr, std::optional<EthBlockNumber> blk_n = {}) const override {
-    return state_api_.get_vrf_key(last_if_absent(blk_n), addr);
-  }
-
   void update_state_config(const state_api::Config& new_config) override {
     delegation_delay_ = new_config.dpos->delegation_delay;
     state_api_.update_state_config(new_config);
@@ -383,6 +379,10 @@ class FinalChainImpl final : public FinalChain {
 
   bool dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const override {
     return dpos_is_eligible_cache_.get(blk_num, addr);
+  }
+
+  vrf_wrapper::vrf_pk_t dpos_get_vrf_key(EthBlockNumber blk_n, const addr_t& addr) const override {
+    return state_api_.dpos_get_vrf_key(blk_n, addr);
   }
 
  private:
