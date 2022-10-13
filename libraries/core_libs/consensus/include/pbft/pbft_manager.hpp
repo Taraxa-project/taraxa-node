@@ -174,13 +174,15 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   /**
    * @brief Get current total DPOS votes count
-   * @return current total DPOS votes count
+   * @return current total DPOS votes count if successful, otherwise (due to non-existent data for pbft_period) empty
+   * optional
    */
   std::optional<uint64_t> getCurrentDposTotalVotesCount() const;
 
   /**
    * @brief Get current node DPOS votes count
-   * @return node current DPOS votes count
+   * @return node current DPOS votes count if successful, otherwise (due to non-existent data for pbft_period) empty
+   * optional
    */
   std::optional<uint64_t> getCurrentNodeVotesCount() const;
 
@@ -289,9 +291,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   /**
    * @brief Get 2t+1. 2t+1 is 2/3 of PBFT sortition threshold and plus 1 for a specific period
    * @param pbft_period pbft period
-   * @return PBFT 2T + 1
+   * @return PBFT 2T + 1 if successful, otherwise (due to non-existent data for pbft_period) empty optional
    */
-  uint64_t getPbftTwoTPlusOne(uint64_t pbft_period) const;
+  std::optional<uint64_t> getPbftTwoTPlusOne(uint64_t pbft_period) const;
 
  private:
   // DPOS

@@ -150,7 +150,8 @@ void NodeStats::logNodeStats() {
   LOG(log_nf_) << "DPOS total votes count:          "
                << (local_dpos_total_votes_count.has_value() ? std::to_string(*local_dpos_total_votes_count)
                                                             : "Info not available");
-  LOG(log_nf_) << "PBFT consensus 2t+1 threshold:   " << local_twotplusone;
+  LOG(log_nf_) << "PBFT consensus 2t+1 threshold:   "
+               << (local_twotplusone.has_value() ? std::to_string(*local_twotplusone) : "Info not available");
   LOG(log_nf_) << "Node eligible vote count:        "
                << (local_dpos_node_votes_count.has_value() ? std::to_string(*local_dpos_node_votes_count)
                                                            : "Info not available");

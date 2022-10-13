@@ -284,7 +284,7 @@ std::optional<uint64_t> PbftManager::getCurrentDposTotalVotesCount() const {
     return final_chain_->dpos_eligible_total_vote_count(pbft_chain_->getPbftChainSize());
   } catch (state_api::ErrFutureBlock &e) {
     LOG(log_er_) << "Unable to get CurrentDposTotalVotesCount for period: " << pbft_chain_->getPbftChainSize()
-                 << ". Period  is too far ahead of actual finalized pbft chain size ("
+                 << ". Period is too far ahead of actual finalized pbft chain size ("
                  << final_chain_->last_block_number() << "). Err msg: " << e.what();
   }
 
@@ -296,7 +296,7 @@ std::optional<uint64_t> PbftManager::getCurrentNodeVotesCount() const {
     return final_chain_->dpos_eligible_vote_count(pbft_chain_->getPbftChainSize(), node_addr_);
   } catch (state_api::ErrFutureBlock &e) {
     LOG(log_er_) << "Unable to get CurrentNodeVotesCount for period: " << pbft_chain_->getPbftChainSize()
-                 << ". Period  is too far ahead of actual finalized pbft chain size ("
+                 << ". Period is too far ahead of actual finalized pbft chain size ("
                  << final_chain_->last_block_number() << "). Err msg: " << e.what();
   }
 
@@ -335,8 +335,13 @@ void PbftManager::resetStep() {
 bool PbftManager::tryPushCertVotesBlock() {
   const auto [current_pbft_round, current_pbft_period] = getPbftRoundAndPeriod();
 
-  auto certified_block = vote_mgr_->getTwoTPlusOneVotesBundle(current_pbft_round, current_pbft_period, certify_state,
-                                                              getPbftTwoTPlusOne(current_pbft_period - 1));
+  const auto two_t_plus_one = getPbftTwoTPlusOne(current_pbft_period - 1);
+  if (!two_t_plus_one.has_value()) {
+    return false;
+  }
+
+  auto certified_block =
+      vote_mgr_->getTwoTPlusOneVotesBundle(current_pbft_round, current_pbft_period, certify_state, *two_t_plus_one);
   // Not enough cert votes found yet
   if (!certified_block.has_value()) {
     return false;
@@ -387,8 +392,12 @@ bool PbftManager::advanceRound() {
   const auto [current_pbft_round, current_pbft_period] = getPbftRoundAndPeriod();
 
   const auto two_t_plus_one = getPbftTwoTPlusOne(current_pbft_period - 1);
+  if (!two_t_plus_one.has_value()) {
+    return false;
+  }
+
   const auto determined_round_with_votes =
-      vote_mgr_->determineRoundFromPeriodAndVotes(current_pbft_period, two_t_plus_one);
+      vote_mgr_->determineRoundFromPeriodAndVotes(current_pbft_period, *two_t_plus_one);
   if (!determined_round_with_votes.has_value()) {
     return false;
   }
@@ -407,7 +416,7 @@ bool PbftManager::advanceRound() {
   }
 
   // Cleanup previous round next votes & set new previous round 2t+1 next votes in next vote manager
-  next_votes_manager_->updateNextVotes(determined_round_with_votes->second, two_t_plus_one);
+  next_votes_manager_->updateNextVotes(determined_round_with_votes->second, *two_t_plus_one);
 
   LOG(log_nf_) << "Round advanced to: " << determined_round_with_votes->first << ", period " << current_pbft_period;
 
@@ -581,7 +590,10 @@ void PbftManager::initialState() {
                    << getPbftPeriod() << " step " << current_pbft_step;
       assert(false);
     }
-    next_votes_manager_->updateNextVotes(next_votes_in_previous_round, getPbftTwoTPlusOne(current_pbft_period - 1));
+
+    const auto two_t_plus_one = getPbftTwoTPlusOne(current_pbft_period - 1);
+    assert(two_t_plus_one.has_value());
+    next_votes_manager_->updateNextVotes(next_votes_in_previous_round, *two_t_plus_one);
   }
 
   previous_round_next_voted_value_ = next_votes_manager_->getVotedValue();
@@ -773,10 +785,9 @@ const std::optional<TwoTPlusOneSoftVotedBlockData> &PbftManager::getTwoTPlusOneS
         db_->saveSoftVotedBlockDataInRound(*soft_voted_block_for_round_);
       }
     }
-  } else {
+  } else if (const auto two_t_plus_one = getPbftTwoTPlusOne(period - 1); two_t_plus_one.has_value()) {
     // Try to get 2t+1 soft votes for some block
-    const auto soft_votes_bundle =
-        vote_mgr_->getTwoTPlusOneVotesBundle(round, period, filter_state, getPbftTwoTPlusOne(period - 1));
+    const auto soft_votes_bundle = vote_mgr_->getTwoTPlusOneVotesBundle(round, period, filter_state, *two_t_plus_one);
     if (soft_votes_bundle.has_value()) {
       TwoTPlusOneSoftVotedBlockData soft_voted_block_data;
       soft_voted_block_data.round_ = round;
@@ -1152,7 +1163,7 @@ uint64_t PbftManager::getPbftSortitionThreshold(uint64_t total_dpos_votes_count,
   }
 }
 
-uint64_t PbftManager::getPbftTwoTPlusOne(uint64_t pbft_period) const {
+std::optional<uint64_t> PbftManager::getPbftTwoTPlusOne(uint64_t pbft_period) const {
   // Check cache first
   {
     std::shared_lock lock(current_two_t_plus_one_mutex_);
@@ -1161,7 +1172,16 @@ uint64_t PbftManager::getPbftTwoTPlusOne(uint64_t pbft_period) const {
     }
   }
 
-  const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(pbft_period);
+  uint64_t total_dpos_votes_count = 0;
+  try {
+    total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(pbft_period);
+  } catch (state_api::ErrFutureBlock &e) {
+    LOG(log_er_) << "Unable to calculate 2t + 1 for period: " << pbft_period
+                 << ". Period is too far ahead of actual finalized pbft chain size ("
+                 << final_chain_->last_block_number() << "). Err msg: " << e.what();
+    return {};
+  }
+
   const auto two_t_plus_one =
       getPbftSortitionThreshold(total_dpos_votes_count, PbftVoteTypes::cert_vote_type) * 2 / 3 + 1;
 
@@ -1194,10 +1214,10 @@ std::shared_ptr<Vote> PbftManager::generateVoteWithWeight(taraxa::blk_hash_t con
     pbft_sortition_threshold = getPbftSortitionThreshold(total_dpos_votes_count, vote_type);
 
   } catch (state_api::ErrFutureBlock &e) {
-    LOG(log_er_) << "Unable to place vote for round: " << round << ", period: " << period << ", step: " << step
+    LOG(log_er_) << "Unable to place vote for period: " << period << ", round: " << round << ", step: " << step
                  << ", voted block hash: " << blockhash.abridged() << ". "
-                 << "Period  is too far ahead of actual finalized pbft chain size ("
-                 << final_chain_->last_block_number() << "). Err msg: " << e.what();
+                 << "Period is too far ahead of actual finalized pbft chain size (" << final_chain_->last_block_number()
+                 << "). Err msg: " << e.what();
 
     return nullptr;
   }
@@ -1276,7 +1296,7 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
     }
   } catch (state_api::ErrFutureBlock &e) {
     LOG(log_er_) << "Unable to propose block for period " << current_pbft_period << ", round " << current_pbft_round
-                 << ". Period  is too far ahead of actual finalized pbft chain size ("
+                 << ". Period is too far ahead of actual finalized pbft chain size ("
                  << final_chain_->last_block_number() << "). Err msg: " << e.what();
     return nullptr;
   }
@@ -1851,18 +1871,14 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
     votes_weight += *v->getWeight();
   }
 
-  try {
-    const auto two_t_plus_one = getPbftTwoTPlusOne(first_vote_period - 1);
+  const auto two_t_plus_one = getPbftTwoTPlusOne(first_vote_period - 1);
+  if (!two_t_plus_one.has_value()) {
+    return false;
+  }
 
-    if (votes_weight < two_t_plus_one) {
-      LOG(log_er_) << "Invalid votes weight " << votes_weight << " < two_t_plus_one " << two_t_plus_one
-                   << ", pbft block " << pbft_block->getBlockHash();
-      return false;
-    }
-  } catch (state_api::ErrFutureBlock &e) {
-    LOG(log_er_) << "Unable to get sortition threshold from dpos contract. Period (" << first_vote_period - 1
-                 << ") is too far ahead of actual finalized pbft chain size (" << final_chain_->last_block_number()
-                 << "). Err msg: " << e.what() << ", pbft block " << pbft_block->getBlockHash();
+  if (votes_weight < *two_t_plus_one) {
+    LOG(log_er_) << "Invalid votes weight " << votes_weight << " < two_t_plus_one " << *two_t_plus_one
+                 << ", pbft block " << pbft_block->getBlockHash();
     return false;
   }
 
@@ -1874,7 +1890,7 @@ bool PbftManager::canParticipateInConsensus(uint64_t period) const {
     return final_chain_->dpos_is_eligible(period, node_addr_);
   } catch (state_api::ErrFutureBlock &e) {
     LOG(log_er_) << "Unable to decide if node is consensus node or not for period: " << period
-                 << ". Period  is too far ahead of actual finalized pbft chain size ("
+                 << ". Period is too far ahead of actual finalized pbft chain size ("
                  << final_chain_->last_block_number() << "). Err msg: " << e.what()
                  << ". Node is considered as not eligible to participate in consensus for period " << period;
   }

@@ -123,7 +123,10 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
   }
 
   if (!previous_next_votes.empty()) {
-    next_votes_mgr_->updateWithSyncedVotes(previous_next_votes, pbft_mgr_->getPbftTwoTPlusOne(current_pbft_period - 1));
+    if (const auto two_t_plus_one = pbft_mgr_->getPbftTwoTPlusOne(current_pbft_period - 1);
+        two_t_plus_one.has_value()) {
+      next_votes_mgr_->updateWithSyncedVotes(previous_next_votes, *two_t_plus_one);
+    }
   }
 
   if (single_vote_with_block && !votes.empty()) {
