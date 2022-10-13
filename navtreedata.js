@@ -315,7 +315,7 @@ var NAVTREEINDEX =
 "structdev_1_1p2p_1_1_host.html#a16903fc724197c3fcd2410f2d9f4e657",
 "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a9db3c189417d47cb18ba72c2626b3849",
 "structtaraxa_1_1_transaction.html#ae2d6301c8b44e9ff093bc7bdeb625422",
-"trie__common_8hpp_source.html"
+"types_2dag__block_2include_2dag_2dag__block_8hpp.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

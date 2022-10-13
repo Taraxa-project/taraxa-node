@@ -1616,9 +1616,12 @@ Collaboration diagram for taraxa::TransactionQueue:</div>
 <tr class="memitem:aec44e28210d47f379b6f01532b77945b"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#aec44e28210d47f379b6f01532b77945b">get</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;hash) const</td></tr>
 <tr class="memdesc:aec44e28210d47f379b6f01532b77945b"><td class="mdescLeft">&#160;</td><td class="mdescRight">returns the transaction or null  <a href="group___transaction.html#aec44e28210d47f379b6f01532b77945b">More...</a><br /></td></tr>
 <tr class="separator:aec44e28210d47f379b6f01532b77945b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3fe4774e5ef6011818ee0b472b22e366"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a3fe4774e5ef6011818ee0b472b22e366">get</a> (uint64_t count=0) const</td></tr>
-<tr class="memdesc:a3fe4774e5ef6011818ee0b472b22e366"><td class="mdescLeft">&#160;</td><td class="mdescRight">returns up to the number of requested transaction sorted by priority  <a href="group___transaction.html#a3fe4774e5ef6011818ee0b472b22e366">More...</a><br /></td></tr>
-<tr class="separator:a3fe4774e5ef6011818ee0b472b22e366"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5a7dad897350041d7a5a11579666d666"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a5a7dad897350041d7a5a11579666d666">getOrderedTransactions</a> (uint64_t count) const</td></tr>
+<tr class="memdesc:a5a7dad897350041d7a5a11579666d666"><td class="mdescLeft">&#160;</td><td class="mdescRight">returns up to the number of requested transaction sorted by priority. This call actually sorts the transaction so it is expensive and should be used only when needed  <a href="group___transaction.html#a5a7dad897350041d7a5a11579666d666">More...</a><br /></td></tr>
+<tr class="separator:a5a7dad897350041d7a5a11579666d666"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae188b97ffc94538934badec19f99f48c"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#ae188b97ffc94538934badec19f99f48c">getAllTransactions</a> () const</td></tr>
+<tr class="memdesc:ae188b97ffc94538934badec19f99f48c"><td class="mdescLeft">&#160;</td><td class="mdescRight">returns all transactions  <a href="group___transaction.html#ae188b97ffc94538934badec19f99f48c">More...</a><br /></td></tr>
+<tr class="separator:ae188b97ffc94538934badec19f99f48c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a30842e7297b1138e6b33aa4a97361237"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a30842e7297b1138e6b33aa4a97361237">contains</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;hash) const</td></tr>
 <tr class="memdesc:a30842e7297b1138e6b33aa4a97361237"><td class="mdescLeft">&#160;</td><td class="mdescRight">returns true/false if the transaction is in the queue  <a href="group___transaction.html#a30842e7297b1138e6b33aa4a97361237">More...</a><br /></td></tr>
 <tr class="separator:a30842e7297b1138e6b33aa4a97361237"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1633,16 +1636,11 @@ Collaboration diagram for taraxa::TransactionQueue:</div>
 <tr class="separator:af2a0432eba39e9f7ca898b0d82faf390"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a75da70a3a6f464bad8fb3a520dbfd3b2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a75da70a3a6f464bad8fb3a520dbfd3b2">isTransactionKnown</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;trx_hash) const</td></tr>
 <tr class="separator:a75da70a3a6f464bad8fb3a520dbfd3b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><h3>Private Types</h3></td></tr>
-<tr class="memitem:a6269817707baa2b16a749aa842c75cfa"><td class="memItemLeft" align="right" valign="top">typedef std::function&lt; bool(const std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &amp;, const std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &amp;)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a6269817707baa2b16a749aa842c75cfa">ComperType</a></td></tr>
-<tr class="separator:a6269817707baa2b16a749aa842c75cfa"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adf6c06957a644c57859b4490944ced6f"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#adf6c06957a644c57859b4490944ced6f">PriorityQueue</a> = std::multiset&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;, <a class="el" href="group___transaction.html#a6269817707baa2b16a749aa842c75cfa">ComperType</a> &gt;</td></tr>
-<tr class="separator:adf6c06957a644c57859b4490944ced6f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Attributes</h3></td></tr>
-<tr class="memitem:a6d547434ddff79ee175dc2cccbe9593c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___transaction.html#adf6c06957a644c57859b4490944ced6f">PriorityQueue</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a6d547434ddff79ee175dc2cccbe9593c">priority_queue_</a></td></tr>
-<tr class="separator:a6d547434ddff79ee175dc2cccbe9593c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a27aa6547fefe919b3ca104d931209d7c"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, PriorityQueue::iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a27aa6547fefe919b3ca104d931209d7c">hash_queue_</a></td></tr>
-<tr class="separator:a27aa6547fefe919b3ca104d931209d7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad5ce6ffcfbe1569aaed07c45936c60d8"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>, std::map&lt; <a class="el" href="namespacetaraxa.html#aad3ca55780e79a029c6a1ccf43f66e67">val_t</a>, std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#ad5ce6ffcfbe1569aaed07c45936c60d8">account_nonce_transactions_</a></td></tr>
+<tr class="separator:ad5ce6ffcfbe1569aaed07c45936c60d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afc551595eb3423e40a3837ec25764c66"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#afc551595eb3423e40a3837ec25764c66">queue_transactions_</a></td></tr>
+<tr class="separator:afc551595eb3423e40a3837ec25764c66"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a25bb53f8bb74f9d2619667c5b9701f7c"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::pair&lt; uint64_t, std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a25bb53f8bb74f9d2619667c5b9701f7c">non_proposable_transactions_</a></td></tr>
 <tr class="separator:a25bb53f8bb74f9d2619667c5b9701f7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a29d5993a87536850600f144c4b2206a4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a29d5993a87536850600f144c4b2206a4">known_txs_</a></td></tr>
@@ -1654,51 +1652,6 @@ Collaboration diagram for taraxa::TransactionQueue:</div>
 <tr class="memitem:a4cd27f99d369af399f855725adfccbe6"><td class="memItemLeft" align="right" valign="top">const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a4cd27f99d369af399f855725adfccbe6">kMaxSize</a></td></tr>
 <tr class="separator:a4cd27f99d369af399f855725adfccbe6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h4 class="groupheader">Member Typedef Documentation</h4>
-<a id="a6269817707baa2b16a749aa842c75cfa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6269817707baa2b16a749aa842c75cfa">&#9670;&nbsp;</a></span>ComperType</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">typedef std::function&lt;bool(const std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a>&gt;&amp;, const std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a>&gt;&amp;)&gt; <a class="el" href="group___transaction.html#a6269817707baa2b16a749aa842c75cfa">taraxa::TransactionQueue::ComperType</a></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="adf6c06957a644c57859b4490944ced6f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adf6c06957a644c57859b4490944ced6f">&#9670;&nbsp;</a></span>PriorityQueue</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="group___transaction.html#adf6c06957a644c57859b4490944ced6f">taraxa::TransactionQueue::PriorityQueue</a> =  std::multiset&lt;std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a>&gt;, <a class="el" href="group___transaction.html#a6269817707baa2b16a749aa842c75cfa">ComperType</a>&gt;</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
 <a id="aaef247ec66131dcba0844c5f41b4ccb5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aaef247ec66131dcba0844c5f41b4ccb5">&#9670;&nbsp;</a></span>TransactionQueue()</h2>
@@ -1804,7 +1757,7 @@ false </dd></dl>
 </div>
 </div>
 <a id="aec44e28210d47f379b6f01532b77945b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aec44e28210d47f379b6f01532b77945b">&#9670;&nbsp;</a></span>get() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aec44e28210d47f379b6f01532b77945b">&#9670;&nbsp;</a></span>get()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1830,23 +1783,43 @@ false </dd></dl>
 
 </div>
 </div>
-<a id="a3fe4774e5ef6011818ee0b472b22e366"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3fe4774e5ef6011818ee0b472b22e366">&#9670;&nbsp;</a></span>get() <span class="overload">[2/2]</span></h2>
+<a id="ae188b97ffc94538934badec19f99f48c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae188b97ffc94538934badec19f99f48c">&#9670;&nbsp;</a></span>getAllTransactions()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt; taraxa::TransactionQueue::get </td>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> taraxa::TransactionQueue::getAllTransactions </td>
           <td>(</td>
-          <td class="paramtype">uint64_t&#160;</td>
-          <td class="paramname"><em>count</em> = <code>0</code></td><td>)</td>
+          <td class="paramname"></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>returns up to the number of requested transaction sorted by priority </p>
+<p>returns all transactions </p>
+<dl class="section return"><dt>Returns</dt><dd>std::vector&lt;std::shared_ptr&lt;Transaction&gt;&gt; </dd></dl>
+
+</div>
+</div>
+<a id="a5a7dad897350041d7a5a11579666d666"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5a7dad897350041d7a5a11579666d666">&#9670;&nbsp;</a></span>getOrderedTransactions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> taraxa::TransactionQueue::getOrderedTransactions </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>count</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>returns up to the number of requested transaction sorted by priority. This call actually sorts the transaction so it is expensive and should be used only when needed </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">count</td><td></td></tr>
@@ -1975,8 +1948,8 @@ false </dd></dl>
 </div>
 </div>
 <h4 class="groupheader">Member Data Documentation</h4>
-<a id="a27aa6547fefe919b3ca104d931209d7c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a27aa6547fefe919b3ca104d931209d7c">&#9670;&nbsp;</a></span>hash_queue_</h2>
+<a id="ad5ce6ffcfbe1569aaed07c45936c60d8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad5ce6ffcfbe1569aaed07c45936c60d8">&#9670;&nbsp;</a></span>account_nonce_transactions_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1985,7 +1958,7 @@ false </dd></dl>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, PriorityQueue::iterator&gt; taraxa::TransactionQueue::hash_queue_</td>
+          <td class="memname">std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>, std::map&lt;<a class="el" href="namespacetaraxa.html#aad3ca55780e79a029c6a1ccf43f66e67">val_t</a>, std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a>&gt; &gt; &gt; taraxa::TransactionQueue::account_nonce_transactions_</td>
         </tr>
       </table>
   </td>
@@ -2107,8 +2080,8 @@ false </dd></dl>
 
 </div>
 </div>
-<a id="a6d547434ddff79ee175dc2cccbe9593c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6d547434ddff79ee175dc2cccbe9593c">&#9670;&nbsp;</a></span>priority_queue_</h2>
+<a id="afc551595eb3423e40a3837ec25764c66"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afc551595eb3423e40a3837ec25764c66">&#9670;&nbsp;</a></span>queue_transactions_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2117,7 +2090,7 @@ false </dd></dl>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="group___transaction.html#adf6c06957a644c57859b4490944ced6f">PriorityQueue</a> taraxa::TransactionQueue::priority_queue_</td>
+          <td class="memname">std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a>&gt; &gt; taraxa::TransactionQueue::queue_transactions_</td>
         </tr>
       </table>
   </td>

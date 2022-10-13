@@ -941,6 +941,9 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:ab3a32c0c69364afc33b544b21204f5d7"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ab3a32c0c69364afc33b544b21204f5d7">calculateOrderHash</a> (const std::vector&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &amp;dag_blocks)</td></tr>
 <tr class="memdesc:ab3a32c0c69364afc33b544b21204f5d7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Calculate DAG blocks ordering hash.  <a href="group___p_b_f_t.html#ab3a32c0c69364afc33b544b21204f5d7">More...</a><br /></td></tr>
 <tr class="separator:ab3a32c0c69364afc33b544b21204f5d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac56a08de3cdfb214776b6c10f9f03ac4"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ac56a08de3cdfb214776b6c10f9f03ac4">reorderTransactions</a> (<a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> &amp;transactions)</td></tr>
+<tr class="memdesc:ac56a08de3cdfb214776b6c10f9f03ac4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reorder transactions data if DAG reordering caused transactions with same sender to have nonce in incorrect order. Reordering is deterministic so that same order is produced on any node on any platform.  <a href="group___p_b_f_t.html#ac56a08de3cdfb214776b6c10f9f03ac4">More...</a><br /></td></tr>
+<tr class="separator:ac56a08de3cdfb214776b6c10f9f03ac4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Member Functions</h3></td></tr>
 <tr class="memitem:aeb681d02abbfcf938cb5ceca9ab34419"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aeb681d02abbfcf938cb5ceca9ab34419">waitForPeriodFinalization</a> ()</td></tr>
 <tr class="memdesc:aeb681d02abbfcf938cb5ceca9ab34419"><td class="mdescLeft">&#160;</td><td class="mdescRight">wait for DPOS period finalization  <a href="group___p_b_f_t.html#aeb681d02abbfcf938cb5ceca9ab34419">More...</a><br /></td></tr>
@@ -3045,6 +3048,40 @@ Collaboration diagram for taraxa::PbftManager:</div>
 </div><div class="memdoc">
 
 <p>Check PBFT blocks syncing queue. If there are synced PBFT blocks in queue, push it to PBFT chain. </p>
+
+</div>
+</div>
+<a id="ac56a08de3cdfb214776b6c10f9f03ac4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac56a08de3cdfb214776b6c10f9f03ac4">&#9670;&nbsp;</a></span>reorderTransactions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::PbftManager::reorderTransactions </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> &amp;&#160;</td>
+          <td class="paramname"><em>transactions</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Reorder transactions data if DAG reordering caused transactions with same sender to have nonce in incorrect order. Reordering is deterministic so that same order is produced on any node on any platform. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">transactions</td><td>transactions to reorder </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
