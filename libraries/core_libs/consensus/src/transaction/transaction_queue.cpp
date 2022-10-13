@@ -4,32 +4,17 @@
 
 namespace taraxa {
 
-auto priorityComparator = [](const std::shared_ptr<Transaction> &first, const std::shared_ptr<Transaction> &second) {
-  if (first->getSender() == second->getSender()) {
-    return first->getNonce() < second->getNonce() ||
-           (first->getNonce() == second->getNonce() && first->getGasPrice() > second->getGasPrice());
-  } else {
-    return first->getGasPrice() > second->getGasPrice();
-  }
-};
+TransactionQueue::TransactionQueue(size_t max_size) : known_txs_(max_size * 2, max_size / 5), kMaxSize(max_size) {}
 
-TransactionQueue::TransactionQueue(size_t max_size)
-    : priority_queue_{priorityComparator}, known_txs_(max_size * 2, max_size / 5), kMaxSize(max_size) {
-  // There are library limits on multiset size, we need to check if max size is not exceeding it
-  if (kMaxSize > priority_queue_.max_size()) {
-    throw std::invalid_argument("Transaction pool size is too large");
-  }
-}
-
-size_t TransactionQueue::size() const { return hash_queue_.size(); }
+size_t TransactionQueue::size() const { return queue_transactions_.size(); }
 
 bool TransactionQueue::contains(const trx_hash_t &hash) const {
-  return hash_queue_.contains(hash) || non_proposable_transactions_.contains(hash);
+  return queue_transactions_.contains(hash) || non_proposable_transactions_.contains(hash);
 }
 
 std::shared_ptr<Transaction> TransactionQueue::get(const trx_hash_t &hash) const {
-  if (const auto it = hash_queue_.find(hash); it != hash_queue_.end()) {
-    return *(it->second);
+  if (const auto it = queue_transactions_.find(hash); it != queue_transactions_.end()) {
+    return it->second;
   }
 
   if (const auto transaction = non_proposable_transactions_.find(hash);
@@ -40,31 +25,73 @@ std::shared_ptr<Transaction> TransactionQueue::get(const trx_hash_t &hash) const
   return nullptr;
 }
 
-std::vector<std::shared_ptr<Transaction>> TransactionQueue::get(uint64_t count) const {
-  if (count == 0 || priority_queue_.size() <= count) {
-    std::vector<std::shared_ptr<Transaction>> ret(priority_queue_.begin(), priority_queue_.end());
-    return ret;
+SharedTransactions TransactionQueue::getOrderedTransactions(uint64_t count) const {
+  SharedTransactions ret;
+  ret.reserve(count);
+
+  std::multimap<val_t, std::shared_ptr<Transaction>, std::greater<val_t>> head_transactions;
+  std::unordered_map<addr_t, std::pair<std::map<val_t, std::shared_ptr<Transaction>>::const_iterator,
+                                       std::map<val_t, std::shared_ptr<Transaction>>::const_iterator>>
+      iterators;
+
+  // For accounts with multiple transactions we will iterate one level at a time
+  for (const auto &account : account_nonce_transactions_) {
+    iterators.insert({account.first, {account.second.begin(), account.second.end()}});
   }
 
-  std::vector<std::shared_ptr<Transaction>> ret;
-  ret.reserve(count);
-  size_t counter = 0;
-  for (const auto &trx : priority_queue_) {
-    if (counter == count) break;
-    ret.push_back(trx);
-    counter++;
+  for (auto it = iterators.begin(); it != iterators.end(); it++) {
+    head_transactions.insert({it->second.first->second->getGasPrice(), it->second.first->second});
+    // Increase iterator for an account
+    it->second.first++;
   }
+  while (true) {
+    // Take transactions with highest gas and put it in ordered transactions
+    auto head_trx = head_transactions.begin();
+    ret.push_back(head_trx->second);
+    // If there is next nonce transaction of same account put it in head transactions
+    auto &it = iterators[head_trx->second->getSender()];
+    head_transactions.erase(head_trx);
+    if (it.first != it.second) {
+      head_transactions.insert({it.first->second->getGasPrice(), it.first->second});
+      it.first++;
+    }
+    if (head_transactions.empty()) {
+      break;
+    }
+  }
+
+  return ret;
+}
+
+SharedTransactions TransactionQueue::getAllTransactions() const {
+  SharedTransactions ret;
+  ret.reserve(queue_transactions_.size());
+  for (const auto &t : queue_transactions_) ret.push_back(t.second);
   return ret;
 }
 
 bool TransactionQueue::erase(const trx_hash_t &hash) {
   // Find the hash
-  const auto it = hash_queue_.find(hash);
-  if (it == hash_queue_.end()) return false;
+  const auto it = queue_transactions_.find(hash);
+  if (it == queue_transactions_.end()) return false;
+  queue_transactions_.erase(it);
 
-  // Clean the rest
-  priority_queue_.erase(it->second);
-  hash_queue_.erase(it);
+  const auto &account_it = account_nonce_transactions_.find(it->second->getSender());
+  if (account_it == account_nonce_transactions_.end()) {
+    return false;
+  }
+  const auto &nonce_it = account_it->second.find(it->second->getNonce());
+  if (nonce_it == account_it->second.end()) {
+    return false;
+  }
+
+  if (hash == nonce_it->second->getHash()) {
+    account_it->second.erase(nonce_it);
+    if (account_it->second.size() == 0) {
+      account_nonce_transactions_.erase(account_it);
+    }
+  }
+
   return true;
 }
 
@@ -77,25 +104,45 @@ bool TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction, const 
 
   switch (status) {
     case TransactionStatus::Verified: {
-      const auto it = priority_queue_.insert(std::move(transaction));
+      const auto &account_it = account_nonce_transactions_.find(transaction->getSender());
+      if (account_it == account_nonce_transactions_.end()) {
+        account_nonce_transactions_[transaction->getSender()][transaction->getNonce()] = transaction;
+        queue_transactions_[tx_hash] = transaction;
+      } else {
+        const auto &nonce_it = account_it->second.find(transaction->getNonce());
+        if (nonce_it == account_it->second.end()) {
+          account_nonce_transactions_[transaction->getSender()][transaction->getNonce()] = transaction;
+          queue_transactions_[tx_hash] = transaction;
+        } else {
+          // It should not be possible that transaction is already inside due to verification done before
+          assert(nonce_it->second->getHash() != tx_hash);
+          // Replace transaction if gas price higher
+          if (transaction->getGasPrice() > nonce_it->second->getGasPrice()) {
+            // Place same nonce transaction with lower gas price in non propsable transactions since it could be
+            // possible that some dag block might contain it
+            non_proposable_transactions_[nonce_it->second->getHash()] = {last_block_number, nonce_it->second};
+            queue_transactions_.erase(nonce_it->second->getHash());
+            account_nonce_transactions_[transaction->getSender()][transaction->getNonce()] = transaction;
+            queue_transactions_[tx_hash] = transaction;
+          }
+        }
+      }
 
-      // This assert is here to check if priorityComparator works correctly. If object is not inserted, then there could
-      // be something wrong with comparator
-      assert(it != priority_queue_.end());
-
-      // This check if priority_queue_ is not bigger than max size if so we delete last object
-      // if the last object is also current one we return false
-      if (priority_queue_.size() > kMaxSize) [[unlikely]] {
-        const auto last_el = std::prev(priority_queue_.end());
-        if (it == last_el) {
-          priority_queue_.erase(last_el);
+      auto queue_size = size();
+      // This check if priority_queue_ is not bigger than max size if so we delete 1% of transactions
+      if (size() > kMaxSize) [[unlikely]] {
+        auto ordered_transactions = getOrderedTransactions(queue_size);
+        uint32_t counter = 0;
+        for (auto it = ordered_transactions.rbegin(); it != ordered_transactions.rend(); it++) {
+          erase((*it)->getHash());
+          known_txs_.erase((*it)->getHash());
+          counter++;
+          if (counter >= queue_size / 100) break;
+        }
+        if (!queue_transactions_.contains(tx_hash)) {
           return false;
         }
-        known_txs_.erase((*last_el)->getHash());
-        hash_queue_.erase((*last_el)->getHash());
-        priority_queue_.erase(last_el);
       }
-      hash_queue_[tx_hash] = it;
       known_txs_.insert(tx_hash);
     } break;
     case TransactionStatus::LowNonce:

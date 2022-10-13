@@ -271,7 +271,7 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
   const uint64_t max_transactions_in_block = weight_limit / kMinTxGas;
   {
     std::shared_lock transactions_lock(transactions_mutex_);
-    trxs = transactions_pool_.get(max_transactions_in_block);
+    trxs = transactions_pool_.getOrderedTransactions(max_transactions_in_block);
   }
   for (uint64_t i = 0; i < trxs.size(); i++) {
     uint64_t weight;
@@ -288,7 +288,7 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
 
 SharedTransactions TransactionManager::getAllPoolTrxs() {
   std::shared_lock transactions_lock(transactions_mutex_);
-  return transactions_pool_.get();
+  return transactions_pool_.getAllTransactions();
 }
 
 /**

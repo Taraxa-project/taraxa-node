@@ -1603,9 +1603,63 @@ void PbftManager::pushSyncedPbftBlocksIntoChain() {
   }
 }
 
+void PbftManager::reorderTransactions(SharedTransactions &transactions) {
+  // DAG reordering can cause transactions from same sender to be reordered by nonce. If this is the case only
+  // transactions from these accounts are sorted and reordered, all other transactions keep the order
+  SharedTransactions ordered_transactions;
+
+  // Account with reverse order nonce, the value in a map is a position of last instance
+  // of transaction with this account
+  std::unordered_map<addr_t, uint32_t> account_reverse_order;
+
+  // While iterating over transactions, account_nonce will keep the last nonce for the account
+  std::unordered_map<addr_t, val_t> account_nonce;
+  std::unordered_map<addr_t, std::multimap<val_t, std::shared_ptr<Transaction>>> account_nonce_transactions;
+
+  // Find accounts that need reordering and place in account_reverse_order set
+  for (uint32_t i = 0; i < transactions.size(); i++) {
+    const auto &t = transactions[i];
+    auto ro_it = account_reverse_order.find(t->getSender());
+    if (ro_it == account_reverse_order.end()) {
+      auto it = account_nonce.find(t->getSender());
+      if (it == account_nonce.end() || it->second < t->getNonce()) {
+        account_nonce[t->getSender()] = t->getNonce();
+      } else if (it->second > t->getNonce()) {
+        // Nonce of the transaction is smaller than previous nonce, this account transactions will need reordering
+        account_reverse_order.insert({t->getSender(), i});
+      }
+    } else {
+      ro_it->second = i;
+    }
+  }
+
+  // If account_reverse_order size is 0, there is no need to reorder transactions
+  if (account_reverse_order.size() > 0) {
+    // Keep the order for all transactions that do not need reordering
+    for (uint32_t i = 0; i < transactions.size(); i++) {
+      const auto &t = transactions[i];
+      auto ro_it = account_reverse_order.find(t->getSender());
+      if (ro_it != account_reverse_order.end()) {
+        account_nonce_transactions[t->getSender()].insert({t->getNonce(), t});
+        if (ro_it->second == i) {
+          // This is the last instance of transaction for this account, place all the reordered transactions for this
+          // account at this position
+          for (const auto &nonce : account_nonce_transactions[t->getSender()]) {
+            ordered_transactions.push_back(nonce.second);
+          }
+        }
+      } else {
+        ordered_transactions.push_back(t);
+      }
+    }
+    transactions = ordered_transactions;
+  }
+}
+
 void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes,
                             bool synchronous_processing) {
   const auto anchor = period_data.pbft_blk->getPivotDagBlockHash();
+  reorderTransactions(period_data.transactions);
 
   auto result = final_chain_->finalize(
       std::move(period_data), std::move(finalized_dag_blk_hashes),
@@ -1675,8 +1729,8 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
                                                        pbft_chain_->getPbftChainSizeExcludingEmptyPbftBlocks() + 1);
   }
   {
-    // This makes sure that no DAG block or transaction can be added or change state in transaction and dag manager when
-    // finalizing pbft block with dag blocks and transactions
+    // This makes sure that no DAG block or transaction can be added or change state in transaction and dag manager
+    // when finalizing pbft block with dag blocks and transactions
     std::unique_lock dag_lock(dag_mgr_->getDagMutex());
     std::unique_lock trx_lock(trx_mgr_->getTransactionsMutex());
 

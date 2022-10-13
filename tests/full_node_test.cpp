@@ -1647,14 +1647,15 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
   // Crate transaction with lower gasprice
   auto trx = std::make_shared<Transaction>(nonce++, 0, gasprice - 1, gas, dev::fromHex("00FEDCBA9876543210000000"),
                                            node0->getSecretKey(), addr_t::random());
-  // Should fail as trx pool should be full
-  EXPECT_FALSE(node0->getTransactionManager()->insertTransaction(trx).first);
 
   // Check if they synced
   EXPECT_HAPPENS({10s, 200ms}, [&](auto &ctx) {
     // Check if transactions was propagated to node0
     WAIT_EXPECT_EQ(ctx, nodes[1]->getTransactionManager()->isTransactionPoolFull(), true)
   });
+
+  // Should fail as trx pool should be full
+  EXPECT_FALSE(node0->getTransactionManager()->insertTransaction(trx).first);
 
   // Add one valid block
   const auto proposal_level = 1;
