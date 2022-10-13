@@ -28,6 +28,14 @@ TEST_F(RPCTest, eth_estimateGas) {
     EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5ca85");
   }
 
+  // Contract creation with value
+  {
+    Json::Value trx(Json::objectValue);
+    trx["value"] = 1;
+    trx["data"] = samples::greeter_contract_code;
+    EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5ca85");
+  }
+
   // Simple transfer estimations with author + without author
   {
     Json::Value trx(Json::objectValue);
