@@ -419,10 +419,11 @@ commands:
 
             ### soon obsolete ###
             if [[ ${CIRCLE_BRANCH} == "testnet" ]];then
-               echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
-               docker push taraxa/${IMAGE}:${CIRCLE_SHA1}
-               docker push taraxa/${IMAGE}:${VERSION}
-               docker push taraxa/${IMAGE}:latest
+              echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
+              docker push taraxa/${IMAGE}:${CIRCLE_SHA1}
+              docker push taraxa/${IMAGE}:${SHORT_GIT_HASH}
+              docker push taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker push taraxa/${IMAGE}:latest
             fi
             ### soon obsolete ###
 
