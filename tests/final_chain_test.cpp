@@ -29,6 +29,7 @@ struct FinalChainTest : WithDataDir {
   std::unordered_map<addr_t, u256> expected_balances;
   uint64_t expected_blk_num = 0;
   void init() {
+    cfg.chain.final_chain.state.block_rewards_options.disable_block_rewards = true;
     SUT = NewFinalChain(db, cfg);
     const auto& effective_balances = effective_genesis_balances(cfg.chain.final_chain.state);
     for (const auto& [addr, _] : cfg.chain.final_chain.state.genesis_balances) {
@@ -108,16 +109,17 @@ struct FinalChainTest : WithDataDir {
       cumulative_gas_used_actual += r.gas_used;
       if (assume_only_toplevel_transfers && trx->getValue() != 0 && r.status_code == 1) {
         const auto& sender = trx->getSender();
-        const auto& sender_bal = expected_balances[sender] -= trx->getValue();
+        expected_balances[sender] -= trx->getValue();
+        expected_balances[sender] -= r.gas_used * trx->getGasPrice();
         const auto& receiver = !trx->getReceiver() ? *r.new_contract_address : *trx->getReceiver();
         all_addrs_w_changed_balance.insert(sender);
         all_addrs_w_changed_balance.insert(receiver);
-        const auto& receiver_bal = expected_balances[receiver] += trx->getValue();
+        expected_balances[receiver] += trx->getValue();
         if (SUT->get_account(sender)->code_size == 0) {
-          expected_balance_changes[sender] = sender_bal;
+          expected_balance_changes[sender] = expected_balances[sender];
         }
         if (SUT->get_account(receiver)->code_size == 0) {
-          expected_balance_changes[receiver] = receiver_bal;
+          expected_balance_changes[receiver] = expected_balances[receiver];
         }
       }
       if (opts.expect_to_fail) {
@@ -366,22 +368,44 @@ TEST_F(FinalChainTest, nonce_skipping) {
 
 TEST_F(FinalChainTest, failed_transaction_fee) {
   auto sender_keys = dev::KeyPair::create();
+  auto gas = 30000;
+
+  const auto& receiver = dev::KeyPair::create().address();
   const auto& addr = sender_keys.address();
   const auto& sk = sender_keys.secret();
   cfg.chain.final_chain.state.genesis_balances = {};
   cfg.chain.final_chain.state.genesis_balances[addr] = 100000;
   init();
-
-  auto trx1 = std::make_shared<Transaction>(1, 100, 0, 100000, dev::bytes(), sk);
-  auto trx2 = std::make_shared<Transaction>(2, 100, 0, 100000, dev::bytes(), sk);
-  auto trx3 = std::make_shared<Transaction>(3, 100, 0, 100000, dev::bytes(), sk);
+  auto trx1 = std::make_shared<Transaction>(1, 100, 1, gas, dev::bytes(), sk, receiver);
+  auto trx2 = std::make_shared<Transaction>(2, 100, 1, gas, dev::bytes(), sk, receiver);
+  auto trx3 = std::make_shared<Transaction>(3, 100, 1, gas, dev::bytes(), sk, receiver);
+  auto trx2_1 = std::make_shared<Transaction>(2, 101, 1, gas, dev::bytes(), sk, receiver);
 
   advance({trx1});
   advance({trx2});
   advance({trx3});
-  advance({trx2}, {false, false, true});
-  auto receipt = SUT->transaction_receipt(trx2->getHash());
-  ASSERT_EQ(receipt->gas_used, 0);
+
+  {
+    // low nonce trx should fail and consume all gas
+    auto balance_before = SUT->get_account(addr)->balance;
+    advance({trx2_1}, {false, false, true});
+    auto receipt = SUT->transaction_receipt(trx2_1->getHash());
+    EXPECT_EQ(receipt->gas_used, gas);
+    EXPECT_EQ(balance_before - SUT->get_account(addr)->balance, receipt->gas_used * trx2_1->getGasPrice());
+  }
+  {
+    // transaction gas is bigger then current account balance. Use closest int as gas used and decrease sender balance
+    // by gas_used * gas_price
+    ASSERT_GE(gas, SUT->get_account(addr)->balance);
+    auto balance_before = SUT->get_account(addr)->balance;
+    auto gas_price = 3;
+    auto trx4 = std::make_shared<Transaction>(4, 100, gas_price, gas, dev::bytes(), sk, receiver);
+    advance({trx4}, {false, false, true});
+    auto receipt = SUT->transaction_receipt(trx4->getHash());
+    EXPECT_GT(balance_before % gas_price, 0);
+    EXPECT_EQ(receipt->gas_used, balance_before / gas_price);
+    EXPECT_EQ(SUT->get_account(addr)->balance, balance_before % gas_price);
+  }
 }
 
 TEST_F(FinalChainTest, initial_validator_exceed_maximum_stake) {

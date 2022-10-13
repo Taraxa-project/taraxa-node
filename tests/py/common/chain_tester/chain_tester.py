@@ -286,6 +286,7 @@ class ChainTester:
         tx = dict(**tx)
         if 'nonce' not in tx:
             if send_signed:
+                tx['from'] = signer.address
                 tx['nonce'] = self._get_correct_nonce(node, signer.address)
             else:
                 if 'from' in tx:
