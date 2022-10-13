@@ -1,8 +1,6 @@
 var pbft__manager_8hpp =
 [
-    [ "MAX_STEPS", "pbft__manager_8hpp.html#aa0414caef00a64a51d4c6c0711d9e70a", null ],
     [ "NULL_BLOCK_HASH", "pbft__manager_8hpp.html#aaa323b57ca01d7fc92ef5329a97a19c8", null ],
-    [ "POLLING_INTERVAL_ms", "pbft__manager_8hpp.html#ad5ef49e4379dc8e1a94bcd2ca078e61e", null ],
     [ "PbftStates", "pbft__manager_8hpp.html#gaa671924d435517347832c7f40f1f6cfc", [
       [ "value_proposal_state", "pbft__manager_8hpp.html#ggaa671924d435517347832c7f40f1f6cfcaac67fcdf2515b0a2fcc7747d14b52ce3", null ],
       [ "filter_state", "pbft__manager_8hpp.html#ggaa671924d435517347832c7f40f1f6cfcae76bdf33130e12b48f02714bdbfee1b5", null ],

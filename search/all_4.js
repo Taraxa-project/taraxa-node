@@ -182,10 +182,9 @@ var searchData=
   ['dry_5frun_5ftransaction_615',['dry_run_transaction',['../group___final_chain.html#ae8310bd008463bad92c1fa31849e8d2a',1,'taraxa::state_api::StateAPI']]],
   ['duplicatepeer_616',['DuplicatePeer',['../namespacedev_1_1p2p.html#ab97a033c9bbe0fb22e2b4f093593f276a7fe779ca2982f389ebaec860bcb0cb0f',1,'dev::p2p']]],
   ['duration_617',['duration',['../classdev_1_1_timer.html#a7094444ed85065f0e8db6226f11b108a',1,'dev::Timer']]],
-  ['duration_5f_618',['duration_',['../group___p_b_f_t.html#a7e77a1c4e499b1498c11e1c0878ee57f',1,'taraxa::PbftManager']]],
-  ['ecdh_619',['ecdh',['../namespacedev_1_1crypto_1_1ecdh.html',1,'dev::crypto']]],
-  ['ecies_620',['ecies',['../namespacedev_1_1crypto_1_1ecies.html',1,'dev::crypto']]],
-  ['eth_621',['eth',['../namespacedev_1_1eth.html',1,'dev']]],
-  ['doxygen_622',['Doxygen',['../md_doc_doxygen.html',1,'']]],
-  ['p2p_623',['p2p',['../namespacedev_1_1p2p.html',1,'dev']]]
+  ['ecdh_618',['ecdh',['../namespacedev_1_1crypto_1_1ecdh.html',1,'dev::crypto']]],
+  ['ecies_619',['ecies',['../namespacedev_1_1crypto_1_1ecies.html',1,'dev::crypto']]],
+  ['eth_620',['eth',['../namespacedev_1_1eth.html',1,'dev']]],
+  ['doxygen_621',['Doxygen',['../md_doc_doxygen.html',1,'']]],
+  ['p2p_622',['p2p',['../namespacedev_1_1p2p.html',1,'dev']]]
 ];
