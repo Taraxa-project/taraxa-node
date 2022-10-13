@@ -1,12 +1,12 @@
 <map id="taraxa::PbftManager" name="taraxa::PbftManager">
-<area shape="rect" id="node1" title="PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks..." alt="" coords="633,211,788,238"/>
+<area shape="rect" id="node1" title="PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks..." alt="" coords="640,211,795,238"/>
 <area shape="rect" id="node2" title=" " alt="" coords="213,5,416,47"/>
 <area shape="rect" id="node3" title=" " alt="" coords="283,71,347,98"/>
 <area shape="rect" id="node4" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="233,123,397,164"/>
 <area shape="rect" id="node5" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,130,164,157"/>
 <area shape="rect" id="node6" href="$group___p_b_f_t.html#classtaraxa_1_1_period_data_queue" title="PeriodDataQueue class is a syncing queue, the queue stores blocks synced from peers." alt="" coords="221,189,408,215"/>
 <area shape="rect" id="node7" href="$structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="245,239,384,266"/>
-<area shape="rect" id="node8" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="235,322,395,349"/>
-<area shape="rect" id="node9" href="$classtaraxa_1_1_proposed_blocks.html" title="class ProposedBlocks holds proposed pbft blocks together with propose votes hashes per period &amp; round" alt="" coords="227,373,402,399"/>
-<area shape="rect" id="node10" title=" " alt="" coords="285,593,345,619"/>
+<area shape="rect" id="node8" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="235,337,395,363"/>
+<area shape="rect" id="node9" href="$classtaraxa_1_1_proposed_blocks.html" title="class ProposedBlocks holds proposed pbft blocks together with propose votes hashes per period &amp; round" alt="" coords="227,387,402,414"/>
+<area shape="rect" id="node10" title=" " alt="" coords="285,534,345,561"/>
 </map>

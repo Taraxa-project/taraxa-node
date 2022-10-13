@@ -171,9 +171,6 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a16089dcea8f2bcd095345a241121f32b"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_account">state_api::Account</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a16089dcea8f2bcd095345a241121f32b">get_account</a> (<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;addr, std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; blk_n={}) const override</td></tr>
 <tr class="memdesc:a16089dcea8f2bcd095345a241121f32b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method to get account information.  <a href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a16089dcea8f2bcd095345a241121f32b">More...</a><br /></td></tr>
 <tr class="separator:a16089dcea8f2bcd095345a241121f32b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6aadc3605d713e6a120bca740591f26c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a6aadc3605d713e6a120bca740591f26c">get_vrf_key</a> (<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;addr, std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; blk_n={}) const override</td></tr>
-<tr class="memdesc:a6aadc3605d713e6a120bca740591f26c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the vrf key object from DPOS state.  <a href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a6aadc3605d713e6a120bca740591f26c">More...</a><br /></td></tr>
-<tr class="separator:a6aadc3605d713e6a120bca740591f26c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7a2b85b63424ab773bdfa6d36ddfc77d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a7a2b85b63424ab773bdfa6d36ddfc77d">update_state_config</a> (const <a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config">state_api::Config</a> &amp;new_config) override</td></tr>
 <tr class="memdesc:a7a2b85b63424ab773bdfa6d36ddfc77d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Needed if we are changing params with hardfork and it affects Go part of code. For example DPOS contract.  <a href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a7a2b85b63424ab773bdfa6d36ddfc77d">More...</a><br /></td></tr>
 <tr class="separator:a7a2b85b63424ab773bdfa6d36ddfc77d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -195,6 +192,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ab3d690c5e49bc20d724a4f041aa9e6f9"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab3d690c5e49bc20d724a4f041aa9e6f9">dpos_is_eligible</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num, <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;addr) const override</td></tr>
 <tr class="memdesc:ab3d690c5e49bc20d724a4f041aa9e6f9"><td class="mdescLeft">&#160;</td><td class="mdescRight">method to check if address have enough votes to participate in consensus  <a href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab3d690c5e49bc20d724a4f041aa9e6f9">More...</a><br /></td></tr>
 <tr class="separator:ab3d690c5e49bc20d724a4f041aa9e6f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9ff1eeb365ce30d17f259213df2e72d4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a9ff1eeb365ce30d17f259213df2e72d4">dpos_get_vrf_key</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_n, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;addr) const override</td></tr>
+<tr class="memdesc:a9ff1eeb365ce30d17f259213df2e72d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the vrf key object from DPOS state.  <a href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a9ff1eeb365ce30d17f259213df2e72d4">More...</a><br /></td></tr>
+<tr class="separator:a9ff1eeb365ce30d17f259213df2e72d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_group___final_chain"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_group___final_chain')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">taraxa::final_chain::FinalChain</a></td></tr>
 <tr class="memitem:ababdb83aed2fc614d815944b986a60ed inherit pub_methods_group___final_chain"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#ababdb83aed2fc614d815944b986a60ed">FinalChain</a> ()=default</td></tr>
 <tr class="separator:ababdb83aed2fc614d815944b986a60ed inherit pub_methods_group___final_chain"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -734,6 +734,54 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="a9ff1eeb365ce30d17f259213df2e72d4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9ff1eeb365ce30d17f259213df2e72d4">&#9670;&nbsp;</a></span>dpos_get_vrf_key()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a> taraxa::final_chain::FinalChainImpl::dpos_get_vrf_key </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td>
+          <td class="paramname"><em>blk_n</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>addr</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get the vrf key object from DPOS state. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">addr</td><td>account address </td></tr>
+    <tr><td class="paramname">blk_n</td><td>number of block we are getting state from </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd><a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a> </dd></dl>
+
+<p>Implements <a class="el" href="group___final_chain.html#ab193319e8081030abcfa62a172ab6cfd">taraxa::final_chain::FinalChain</a>.</p>
+
+</div>
+</div>
 <a id="ab3d690c5e49bc20d724a4f041aa9e6f9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab3d690c5e49bc20d724a4f041aa9e6f9">&#9670;&nbsp;</a></span>dpos_is_eligible()</h2>
 
@@ -1132,54 +1180,6 @@ Additional Inherited Members</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
-
-</div>
-</div>
-<a id="a6aadc3605d713e6a120bca740591f26c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6aadc3605d713e6a120bca740591f26c">&#9670;&nbsp;</a></span>get_vrf_key()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a> taraxa::final_chain::FinalChainImpl::get_vrf_key </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;&#160;</td>
-          <td class="paramname"><em>addr</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt;&#160;</td>
-          <td class="paramname"><em>blk_n</em> = <code>{}</code>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Get the vrf key object from DPOS state. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">addr</td><td>account address </td></tr>
-    <tr><td class="paramname">blk_n</td><td>number of block we are getting state from </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd><a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a> </dd></dl>
-
-<p>Implements <a class="el" href="group___final_chain.html#ac48978307495d0525138c32dc6564da6">taraxa::final_chain::FinalChain</a>.</p>
 
 </div>
 </div>

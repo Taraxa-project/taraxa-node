@@ -120,7 +120,7 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 , <a class="el" href="class_expiration_cache_map.html#aa2d33dec3a8ecf677fb5d6171d458a64">ExpirationCacheMap&lt; Key, Value &gt;</a>
 , <a class="el" href="structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#a926619a4b5a506e7326bd3cb09cc70f7">taraxa::final_chain::FinalChain::TransactionHashes</a>
 , <a class="el" href="structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl.html#a8c3efd05796946600fa98ae9d43ba040">taraxa::final_chain::FinalChainImpl::TransactionHashesImpl</a>
-, <a class="el" href="classtaraxa_1_1_key_manager.html#a61b2a249710c2a5a7f9a468ca6763026">taraxa::KeyManager</a>
+, <a class="el" href="classtaraxa_1_1_key_manager.html#a742670e0276829e3f3d2aa31ec7f29cd">taraxa::KeyManager</a>
 , <a class="el" href="classtaraxa_1_1_map_by_block_cache.html#a03bcac8d758b8c08588c6d282fc16fb1">taraxa::MapByBlockCache&lt; Key, Value &gt;</a>
 , <a class="el" href="classtaraxa_1_1_status_table.html#a116dfaccc8e77bacb79acd78deb8bb26">taraxa::StatusTable&lt; K, V &gt;</a>
 , <a class="el" href="group___transaction.html#aec44e28210d47f379b6f01532b77945b">taraxa::TransactionQueue</a>
@@ -228,11 +228,6 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 </li>
 <li>get_transactions()
 : <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ac242d93a5ae3335158271f3679fab674">taraxa::final_chain::FinalChainImpl</a>
-</li>
-<li>get_vrf_key()
-: <a class="el" href="group___final_chain.html#ac48978307495d0525138c32dc6564da6">taraxa::final_chain::FinalChain</a>
-, <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a6aadc3605d713e6a120bca740591f26c">taraxa::final_chain::FinalChainImpl</a>
-, <a class="el" href="group___final_chain.html#ab2a1a35595d01eb6a026033a93e9822a">taraxa::state_api::StateAPI</a>
 </li>
 <li>get_watch_params()
 : <a class="el" href="classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#afa9b19f9509543c932b6901c6723bf77">taraxa::net::rpc::eth::WatchGroup&lt; type_, InputType_, OutputType_, Params &gt;</a>
@@ -350,6 +345,12 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 </li>
 <li>getCurrentBlock()
 : <a class="el" href="classgraphql_1_1taraxa_1_1_sync_state.html#ab58303f4533ca91e568d4c452ad5f8da">graphql::taraxa::SyncState</a>
+</li>
+<li>getCurrentDposTotalVotesCount()
+: <a class="el" href="group___p_b_f_t.html#a855f5bd423b3d34db9aca2b732752574">taraxa::PbftManager</a>
+</li>
+<li>getCurrentNodeVotesCount()
+: <a class="el" href="group___p_b_f_t.html#a4f9508762a6fcd8aaca6aca905abacf4">taraxa::PbftManager</a>
 </li>
 <li>getCurrentRewardsVotesBlock()
 : <a class="el" href="group___vote.html#a2444297487931952a959dcb2e6580ba5">taraxa::VoteManager</a>
@@ -749,13 +750,16 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 : <a class="el" href="group___p_b_f_t.html#a7a8a0a49fd3958286ac41e331c6a0d45">taraxa::PbftManager</a>
 </li>
 <li>getPbftSortitionThreshold()
-: <a class="el" href="group___p_b_f_t.html#a4292951b39f3f9d857195c078ad94bc6">taraxa::PbftManager</a>
+: <a class="el" href="group___p_b_f_t.html#a7b277699663a2d5ed3f0ab18b0fac0c3">taraxa::PbftManager</a>
 </li>
 <li>getPbftStep()
 : <a class="el" href="group___p_b_f_t.html#a9cdb786d4c11e3e086439715310f844b">taraxa::PbftManager</a>
 </li>
 <li>GetPbftSyncPacketHandler()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a8c34d098cbcd61d97a96ba80b5d39111">taraxa::network::tarcap::GetPbftSyncPacketHandler</a>
+</li>
+<li>getPbftTwoTPlusOne()
+: <a class="el" href="group___p_b_f_t.html#a4d4c97bb783f63e886a1bd24f4dceef7">taraxa::PbftManager</a>
 </li>
 <li>getPeer()
 : <a class="el" href="classtaraxa_1_1_network.html#a3bc79d60649800d199a090d11c213e55">taraxa::Network</a>
@@ -928,9 +932,6 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 <li>getSortitionProof()
 : <a class="el" href="group___vote.html#a8d8b162010bc979119ccb529d03ce358">taraxa::Vote</a>
 </li>
-<li>getSortitionThreshold()
-: <a class="el" href="group___p_b_f_t.html#abee65cb73c7432eb31eadce9f69d3853">taraxa::PbftManager</a>
-</li>
 <li>getSourceEndpoint()
 : <a class="el" href="classdev_1_1p2p_1_1_node_table.html#acc947166ab0d0d53c0ae82e050d14301">dev::p2p::NodeTable</a>
 </li>
@@ -1042,9 +1043,6 @@ $(document).ready(function(){initNavTree('functions_func_g.html',''); initResiza
 </li>
 <li>getTrxs()
 : <a class="el" href="classtaraxa_1_1_dag_block.html#a9b2c0e7fd9da76eb70a9402c8831062a">taraxa::DagBlock</a>
-</li>
-<li>getTwoTPlusOne()
-: <a class="el" href="group___p_b_f_t.html#a07a1394d6cd2a629a4e272201000d8fc">taraxa::PbftManager</a>
 </li>
 <li>getTwoTPlusOneSoftVotedBlockData()
 : <a class="el" href="group___p_b_f_t.html#a9e5ab75571f52611d37325f74412624c">taraxa::PbftManager</a>

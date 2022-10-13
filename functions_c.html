@@ -169,6 +169,9 @@ $(document).ready(function(){initNavTree('functions_c.html',''); initResizable()
 <li>cancelTimer()
 : <a class="el" href="classdev_1_1p2p_1_1_node_table.html#a3ccec904eb8e4cb99ff1f8046620dc91">dev::p2p::NodeTable</a>
 </li>
+<li>canParticipateInConsensus()
+: <a class="el" href="group___p_b_f_t.html#ac9525355c905267b457222a7ee20f960">taraxa::PbftManager</a>
+</li>
 <li>cap()
 : <a class="el" href="classdev_1_1p2p_1_1_r_l_p_x_packet.html#ac7628f80190f6fd3854b8b8ec8c74fd2">dev::p2p::RLPXPacket</a>
 </li>
@@ -362,10 +365,10 @@ $(document).ready(function(){initNavTree('functions_c.html',''); initResizable()
 : <a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html#a3c5a396918dac709dd6b6667063c36e3">taraxa::DbStorage::Column</a>
 </li>
 <li>COLUMN()
-: <a class="el" href="classtaraxa_1_1_db_storage_1_1_columns.html#a5019f5267141ee0b4437f3e27f0c6704">taraxa::DbStorage::Columns</a>
+: <a class="el" href="classtaraxa_1_1_db_storage_1_1_columns.html#a56cbf3033e3613f76a4934c58ecc5ede">taraxa::DbStorage::Columns</a>
 </li>
 <li>COLUMN_W_COMP()
-: <a class="el" href="classtaraxa_1_1_db_storage_1_1_columns.html#ad4a5ae9c5d13ad0db08a7611b0cc713d">taraxa::DbStorage::Columns</a>
+: <a class="el" href="classtaraxa_1_1_db_storage_1_1_columns.html#ac376bb51365919ccb71f1b7518b03cee">taraxa::DbStorage::Columns</a>
 </li>
 <li>COMMAND
 : <a class="el" href="classtaraxa_1_1cli_1_1_config.html#a9c04d754a682827ccc65600bf75735a1">taraxa::cli::Config</a>
@@ -442,7 +445,7 @@ $(document).ready(function(){initNavTree('functions_c.html',''); initResizable()
 : <a class="el" href="classtaraxa_1_1cli_1_1_config.html#aef3b5494e55ee620e239480e158bf2de">taraxa::cli::Config</a>
 </li>
 <li>ConfigChange()
-: <a class="el" href="structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html#a37fe4b527fe5485e0e734970cf59a0a6">taraxa::cli::ConfigUpdater::ConfigChange</a>
+: <a class="el" href="structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html#a1abf81dc0e54c7375b70c6f7915a446d">taraxa::cli::ConfigUpdater::ConfigChange</a>
 </li>
 <li>ConfigUpdater()
 : <a class="el" href="classtaraxa_1_1cli_1_1_config_updater.html#a432bb7eba9672762dd168d8ca17ab8da">taraxa::cli::ConfigUpdater</a>
@@ -542,9 +545,6 @@ $(document).ready(function(){initNavTree('functions_c.html',''); initResizable()
 : <a class="el" href="structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl.html#a82591e2ff39c29877bf33416ba0aa643">taraxa::final_chain::FinalChainImpl::TransactionHashesImpl</a>
 , <a class="el" href="structtaraxa_1_1network_1_1tarcap_1_1_all_packet_types_stats_1_1_packet_type_stats.html#aafb8fc93d5c7afdaaccff8eae6f4415e">taraxa::network::tarcap::AllPacketTypesStats::PacketTypeStats</a>
 </li>
-<li>countVotes_()
-: <a class="el" href="group___p_b_f_t.html#a5a518a3d602960194b8f9b2aac1bcc8d">taraxa::PbftManager</a>
-</li>
 <li>create()
 : <a class="el" href="classdev_1_1_key_pair.html#a933354382c7c4c7db05dc5e8b1c0d84d">dev::KeyPair</a>
 </li>
@@ -558,7 +558,7 @@ $(document).ready(function(){initNavTree('functions_c.html',''); initResizable()
 : <a class="el" href="classdev_1_1p2p_1_1_identity_scheme_v4.html#a540d6ec70964877722a86e1760d5b4a3">dev::p2p::IdentitySchemeV4</a>
 </li>
 <li>createErrResponse()
-: <a class="el" href="classtaraxa_1_1net_1_1_graph_ql_http_processor.html#ad8ea4a1923cf1bb22126bc0b0390aba6">taraxa::net::GraphQlHttpProcessor</a>
+: <a class="el" href="classtaraxa_1_1net_1_1_graph_ql_http_processor.html#aa4653e8c5527d9fa1b4dbd094fd13775">taraxa::net::GraphQlHttpProcessor</a>
 </li>
 <li>createKeyValuePairs()
 : <a class="el" href="classdev_1_1p2p_1_1_identity_scheme_v4.html#ab606eeb93725ba73f11ced52b7ed8580">dev::p2p::IdentitySchemeV4</a>
@@ -589,14 +589,14 @@ $(document).ready(function(){initNavTree('functions_c.html',''); initResizable()
 <li>current_step_clock_initial_datetime_
 : <a class="el" href="group___p_b_f_t.html#a748072e6c04ffd40a9a91c6090d0512a">taraxa::PbftManager</a>
 </li>
+<li>current_two_t_plus_one_
+: <a class="el" href="group___p_b_f_t.html#a37774bce4fdf4f5d9064aa09d41eef5e">taraxa::PbftManager</a>
+</li>
+<li>current_two_t_plus_one_mutex_
+: <a class="el" href="group___p_b_f_t.html#a3c34b5582e73f68da126a68189c40607">taraxa::PbftManager</a>
+</li>
 <li>CurrentState()
 : <a class="el" href="classgraphql_1_1taraxa_1_1_current_state.html#a0457adfdf60a20d4c28500fcbfbc587d">graphql::taraxa::CurrentState</a>
-</li>
-<li>currentTotalVotesCount()
-: <a class="el" href="group___p_b_f_t.html#a3658d4f6e2add18d8a45f9330dfa5abb">taraxa::PbftManager</a>
-</li>
-<li>currentWeightedVotesCount()
-: <a class="el" href="group___p_b_f_t.html#a079a02dcc4c93f4d66bb355ff0fcdec7">taraxa::PbftManager</a>
 </li>
 </ul>
 </div><!-- contents -->
