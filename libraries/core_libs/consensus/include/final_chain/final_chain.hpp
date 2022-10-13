@@ -27,7 +27,6 @@ enum class DBMetaKeys { LAST_NUMBER = 1 };
  */
 class FinalChain {
  public:
-  static constexpr auto GAS_LIMIT = ((uint64_t)1 << 53) - 1;
   using finalize_precommit_ext = std::function<void(FinalizationResult const&, DB::Batch&)>;
 
  protected:

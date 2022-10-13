@@ -128,6 +128,7 @@ void FullNode::start() {
     net::rpc::eth::EthParams eth_rpc_params;
     eth_rpc_params.address = getAddress();
     eth_rpc_params.chain_id = conf_.chain_id;
+    eth_rpc_params.gas_limit = conf_.chain.dag.gas_limit;
     eth_rpc_params.final_chain = final_chain_;
     eth_rpc_params.gas_pricer = [gas_pricer = gas_pricer_]() { return gas_pricer->bid(); };
     eth_rpc_params.get_trx = [db = db_](auto const &trx_hash) { return db->getTransaction(trx_hash); };

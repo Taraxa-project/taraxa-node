@@ -12,6 +12,7 @@ TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_p
                                        std::shared_ptr<FinalChain> final_chain, addr_t node_addr)
     : kConf(conf),
       transactions_pool_(kConf.transactions_pool_size),
+      kDagBlockGasLimit(kConf.chain.dag.gas_limit),
       db_(std::move(db)),
       final_chain_(std::move(final_chain)) {
   LOG_OBJECTS_CREATE("TRXMGR");
@@ -33,7 +34,7 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
           trx->getReceiver(),
           trx->getNonce(),
           trx->getValue(),
-          FinalChain::GAS_LIMIT,
+          kDagBlockGasLimit,
           trx->getData(),
       },
       proposal_period);
@@ -57,7 +58,7 @@ std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
   }
 
   // Ensure the transaction doesn't exceed the current block limit gas.
-  if (FinalChain::GAS_LIMIT < trx->getGas()) {
+  if (kDagBlockGasLimit < trx->getGas()) {
     return {TransactionStatus::Invalid, "invalid gas"};
   }
 
