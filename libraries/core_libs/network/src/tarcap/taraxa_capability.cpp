@@ -126,7 +126,7 @@ void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pb
   //       1. Most of time is this single threaded thread pool doing nothing...
   //       2. These periodic events are sending packets - that might be processed by main thread_pool ???
   // Creates periodic events
-  const auto lambda_ms_min = pbft_mgr ? pbft_mgr->getPbftInitialLambda() : 2000;
+  uint64_t lambda_ms_min = pbft_mgr ? pbft_mgr->getPbftInitialLambda().count() : 2000;
 
   // Send new txs periodic event
   auto tx_packet_handler = packets_handlers_->getSpecificHandler<TransactionPacketHandler>();
