@@ -356,8 +356,6 @@ commands:
               docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
               docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:${SHORT_GIT_HASH}
               docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:${START_TIME}
-              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:${START_TIME}-${CIRCLE_SHA1}
               docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:latest
             fi
 
@@ -366,8 +364,6 @@ commands:
               docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-release:${CIRCLE_SHA1}
               docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-release:${SHORT_GIT_HASH}
               docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-release:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-release:${START_TIME}
-              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-release:${START_TIME}-${CIRCLE_SHA1}
               docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-release:latest
             fi
 
@@ -376,8 +372,6 @@ commands:
               docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${CIRCLE_SHA1}
               docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${SHORT_GIT_HASH}
               docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${START_TIME}
-              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
               docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:latest
             fi
             ### soon obsolete ###
@@ -412,8 +406,6 @@ commands:
               docker push ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
               docker push ${GCP_IMAGE}-develop:${SHORT_GIT_HASH}
               docker push ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-              docker push ${GCP_IMAGE}-develop:${START_TIME}
-              docker push ${GCP_IMAGE}-develop:${START_TIME}-${CIRCLE_SHA1}
               docker push ${GCP_IMAGE}-develop:latest
             fi
 
@@ -422,19 +414,16 @@ commands:
               docker push ${GCP_IMAGE}-release:${CIRCLE_SHA1}
               docker push ${GCP_IMAGE}-release:${SHORT_GIT_HASH}
               docker push ${GCP_IMAGE}-release:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-              docker push ${GCP_IMAGE}-release:${START_TIME}
-              docker push ${GCP_IMAGE}-release:${START_TIME}-${CIRCLE_SHA1}
               docker push ${GCP_IMAGE}-release:latest
             fi
 
             ### soon obsolete ###
             if [[ ${CIRCLE_BRANCH} == "testnet" ]];then
-               echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
-               docker push taraxa/${IMAGE}:${CIRCLE_SHA1}
-               docker push taraxa/${IMAGE}:${VERSION}
-               docker push taraxa/${IMAGE}:${START_TIME}
-               docker push taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
-               docker push taraxa/${IMAGE}:latest
+              echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
+              docker push taraxa/${IMAGE}:${CIRCLE_SHA1}
+              docker push taraxa/${IMAGE}:${SHORT_GIT_HASH}
+              docker push taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker push taraxa/${IMAGE}:latest
             fi
             ### soon obsolete ###
 
