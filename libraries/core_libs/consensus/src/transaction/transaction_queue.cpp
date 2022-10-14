@@ -47,7 +47,7 @@ SharedTransactions TransactionQueue::getOrderedTransactions(uint64_t count) cons
     // Increase iterator for an account
     it->second.first++;
   }
-  while (true) {
+  while (!head_transactions.empty()) {
     // Take transactions with highest gas and put it in ordered transactions
     auto head_trx = head_transactions.begin();
     ret.push_back(head_trx->second);
@@ -60,9 +60,6 @@ SharedTransactions TransactionQueue::getOrderedTransactions(uint64_t count) cons
     if (it.first != it.second) {
       head_transactions.insert({it.first->second->getGasPrice(), it.first->second});
       it.first++;
-    }
-    if (head_transactions.empty()) {
-      break;
     }
   }
 
