@@ -231,7 +231,8 @@ commands:
           name: Get Latest image for PR and deploy chart
           command: |
             if [ ${PRNET_IPS_BOOT_NODES} ];then
-              PR_TAG=$(gcloud container images list-tags gcr.io/jovial-meridian-249123/taraxa-node      --filter="tags:pr-<< parameters.pr-name >>-*" \
+              PR_TAG=$(gcloud container images list-tags gcr.io/jovial-meridian-249123/taraxa-node \
+                --filter="tags:pr-<< parameters.pr-name >>-*" \
                 --sort-by="~timestamp" \
                 --limit 1 \
                 --format="value(tags[0])" )
