@@ -4,7 +4,9 @@
 
 namespace taraxa {
 
-TransactionQueue::TransactionQueue(size_t max_size) : known_txs_(max_size * 2, max_size / 5), kMaxSize(max_size) {}
+TransactionQueue::TransactionQueue(size_t max_size) : known_txs_(max_size * 2, max_size / 5), kMaxSize(max_size) {
+  queue_transactions_.reserve(max_size);
+}
 
 size_t TransactionQueue::size() const { return queue_transactions_.size(); }
 
@@ -34,6 +36,7 @@ SharedTransactions TransactionQueue::getOrderedTransactions(uint64_t count) cons
                                        std::map<val_t, std::shared_ptr<Transaction>>::const_iterator>>
       iterators;
 
+  iterators.reserve(account_nonce_transactions_.size());
   // For accounts with multiple transactions we will iterate one level at a time
   for (const auto &account : account_nonce_transactions_) {
     iterators.insert({account.first, {account.second.begin(), account.second.end()}});
@@ -48,6 +51,9 @@ SharedTransactions TransactionQueue::getOrderedTransactions(uint64_t count) cons
     // Take transactions with highest gas and put it in ordered transactions
     auto head_trx = head_transactions.begin();
     ret.push_back(head_trx->second);
+    if (ret.size() == count) {
+      break;
+    }
     // If there is next nonce transaction of same account put it in head transactions
     auto &it = iterators[head_trx->second->getSender()];
     head_transactions.erase(head_trx);
@@ -77,19 +83,14 @@ bool TransactionQueue::erase(const trx_hash_t &hash) {
   queue_transactions_.erase(it);
 
   const auto &account_it = account_nonce_transactions_.find(it->second->getSender());
-  if (account_it == account_nonce_transactions_.end()) {
-    return false;
-  }
+  assert(account_it != account_nonce_transactions_.end());
   const auto &nonce_it = account_it->second.find(it->second->getNonce());
-  if (nonce_it == account_it->second.end()) {
-    return false;
-  }
+  assert(nonce_it != account_it->second.end());
+  assert(hash == nonce_it->second->getHash());
 
-  if (hash == nonce_it->second->getHash()) {
-    account_it->second.erase(nonce_it);
-    if (account_it->second.size() == 0) {
-      account_nonce_transactions_.erase(account_it);
-    }
+  account_it->second.erase(nonce_it);
+  if (account_it->second.size() == 0) {
+    account_nonce_transactions_.erase(account_it);
   }
 
   return true;
@@ -128,9 +129,9 @@ bool TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction, const 
         }
       }
 
-      auto queue_size = size();
+      const auto queue_size = size();
       // This check if priority_queue_ is not bigger than max size if so we delete 1% of transactions
-      if (size() > kMaxSize) [[unlikely]] {
+      if (queue_size > kMaxSize) [[unlikely]] {
         auto ordered_transactions = getOrderedTransactions(queue_size);
         uint32_t counter = 0;
         for (auto it = ordered_transactions.rbegin(); it != ordered_transactions.rend(); it++) {
