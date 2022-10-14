@@ -203,6 +203,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::unordered_map<trx_hash_t, std::shared_ptr<Transaction>> recently_finalized_transactions_;
   uint64_t trx_count_ = 0;
 
+  const uint64_t kDagBlockGasLimit;
   const uint64_t kEstimateGasLimit = 200000;
   const uint64_t kRecentlyFinalizedTransactionsMax = 50000;
 

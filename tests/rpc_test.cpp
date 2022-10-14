@@ -15,6 +15,7 @@ TEST_F(RPCTest, eth_estimateGas) {
   auto nodes = launch_nodes(node_cfg);
   net::rpc::eth::EthParams eth_rpc_params;
   eth_rpc_params.chain_id = node_cfg.front().chain_id;
+  eth_rpc_params.gas_limit = node_cfg.front().chain.dag.gas_limit;
   eth_rpc_params.final_chain = nodes.front()->getFinalChain();
   auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
 

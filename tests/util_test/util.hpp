@@ -4,6 +4,7 @@
 #include <libdevcrypto/Common.h>
 
 #include <array>
+#include <cstdint>
 #include <cstdio>
 #include <filesystem>
 #include <iostream>
@@ -31,7 +32,8 @@ using std::filesystem::recursive_directory_iterator;
 using std::filesystem::remove_all;
 using namespace std::chrono;
 
-inline const uint64_t TEST_TX_GAS_LIMIT = 1000000;
+const uint64_t TEST_TX_GAS_LIMIT = 500000;
+const uint64_t TEST_BLOCK_GAS_LIMIT = ((uint64_t)1 << 53) - 1;
 const auto kContractAddress = addr_t("0x00000000000000000000000000000000000000FE");
 
 struct wait_opts {

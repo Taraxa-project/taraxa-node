@@ -1505,7 +1505,7 @@ TEST_F(FullNodeTest, transaction_validation) {
                                            nodes[0]->getSecretKey(), addr_t::random());
   // PASS on GAS
   EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
-  trx = std::make_shared<Transaction>(nonce++, 0, gasprice, FinalChain::GAS_LIMIT + 1,
+  trx = std::make_shared<Transaction>(nonce++, 0, gasprice, node_cfgs.front().chain.dag.gas_limit + 1,
                                       dev::fromHex("00FEDCBA9876543210000000"), nodes[0]->getSecretKey(),
                                       addr_t::random());
   // FAIL on GAS

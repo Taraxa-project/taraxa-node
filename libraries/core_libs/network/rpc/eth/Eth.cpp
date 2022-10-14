@@ -62,7 +62,7 @@ class EthImpl : public Eth, EthParams {
   string eth_estimateGas(Json::Value const& _json) override {
     auto t = toTransactionSkeleton(_json);
     if (!t.gas) {
-      t.gas = FinalChain::GAS_LIMIT;
+      t.gas = gas_limit;
     }
     auto blk_n = final_chain->last_block_number();
     set_transaction_defaults(t, blk_n);

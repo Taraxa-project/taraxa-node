@@ -79,7 +79,7 @@ struct NodeDagCreationFixture : BaseTest {
   uint64_t trxEstimation() {
     const auto &transactions = makeTransactions(1);
     static auto estimation = node->getTransactionManager()->estimateTransactionGas(transactions.front(), {});
-
+    assert(estimation);
     return estimation;
   }
 

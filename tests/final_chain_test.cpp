@@ -88,7 +88,7 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(blk_h.receipts_root, trieRootOver(
                                        trxs.size(), [&](auto i) { return dev::rlp(i); },
                                        [&](auto i) { return util::rlp_enc(receipts[i]); }));
-    EXPECT_EQ(blk_h.gas_limit, FinalChain::GAS_LIMIT);
+    EXPECT_EQ(blk_h.gas_limit, cfg.chain.pbft.gas_limit);
     EXPECT_EQ(blk_h.extra_data, bytes());
     EXPECT_EQ(blk_h.nonce(), Nonce());
     EXPECT_EQ(blk_h.difficulty(), 0);

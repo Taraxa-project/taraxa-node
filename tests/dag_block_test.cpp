@@ -241,15 +241,16 @@ TEST_F(DagBlockMgrTest, incorrect_tx_estimation) {
 TEST_F(DagBlockMgrTest, too_big_dag_block) {
   // make config
   auto node_cfgs = make_node_cfgs<20>(1);
-  node_cfgs.front().chain.dag.gas_limit = 250000;
+  node_cfgs.front().chain.dag.gas_limit = 500000;
 
   auto node = create_nodes(node_cfgs).front();
   auto db = node->getDB();
 
   std::vector<trx_hash_t> hashes;
   uint64_t estimations = 0;
-  for (size_t i = 1; i <= 5; ++i) {
-    auto create_trx = std::make_shared<Transaction>(i, 100, 0, 200001, dev::fromHex(samples::greeter_contract_code),
+  const size_t count = 5;
+  for (size_t i = 0; i <= count; ++i) {
+    auto create_trx = std::make_shared<Transaction>(i + 1, 100, 0, 200001, dev::fromHex(samples::greeter_contract_code),
                                                     node->getSecretKey());
     auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(create_trx);
     EXPECT_EQ(ok, true);
@@ -259,7 +260,7 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
   }
 
   for (size_t i = 0; i < hashes.size(); ++i) {
-    std::cout << hashes[i] << ": " << estimations << std::endl;
+    std::cout << hashes[i] << ": " << estimations / count << std::endl;
   }
 
   // Generate DAG block
