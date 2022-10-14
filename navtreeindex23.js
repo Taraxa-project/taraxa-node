@@ -1,5 +1,6 @@
 var NAVTREEINDEX23 =
 {
+"structtaraxa_1_1_transaction.html#af8a7c8df007e8ef709eaf6a55f557593":[13,0,4,52,42],
 "structtaraxa_1_1_transaction_1_1_invalid_signature.html":[13,0,4,52,0],
 "structtaraxa_1_1_transaction_1_1_invalid_signature.html#a7974a0937e6fff51c0ff13f9e57b238f":[13,0,4,52,0,0],
 "structtaraxa_1_1_vrf_params.html":[13,0,4,63],
@@ -17,8 +18,8 @@ var NAVTREEINDEX23 =
 "structtaraxa_1_1final__chain_1_1_config.html#a955c880531dc4addb9d4c9e44022d843":[14,0,1,3,0,0,3,1,0],
 "structtaraxa_1_1final__chain_1_1_config.html#a955c880531dc4addb9d4c9e44022d843":[13,0,4,1,1,0,0],
 "structtaraxa_1_1final__chain_1_1_config.html#aaf85cbc4d2d04c3d5f30645a755eef60":[13,0,4,1,1,2],
-"structtaraxa_1_1final__chain_1_1_config.html#ada8d5e73db5ef864faa4aa45da49abb0":[14,0,1,3,0,0,3,1,1],
 "structtaraxa_1_1final__chain_1_1_config.html#ada8d5e73db5ef864faa4aa45da49abb0":[13,0,4,1,1,0,1],
+"structtaraxa_1_1final__chain_1_1_config.html#ada8d5e73db5ef864faa4aa45da49abb0":[14,0,1,3,0,0,3,1,1],
 "structtaraxa_1_1final__chain_1_1_config.html#aeb06d5eff71102bb3eb858ee7dcfc6cb":[13,0,4,1,1,1],
 "structtaraxa_1_1final__chain_1_1_config.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields":[13,0,4,1,1,0],
 "structtaraxa_1_1final__chain_1_1_config.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields":[14,0,1,3,0,0,3,1],
@@ -64,12 +65,13 @@ var NAVTREEINDEX23 =
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth.html#aea1f096c5150497b4d099bb716c9e86a":[13,0,4,3,0,0,0,0],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html":[13,0,4,3,0,0,2],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a0d18ec3580ee276d2329cde2b29d251c":[13,0,4,3,0,0,2,0],
-"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a287d618eaca0c9a96d6d75c9af34b9cc":[13,0,4,3,0,0,2,4],
-"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a5775f2bf4ec958168564a14c020ca343":[13,0,4,3,0,0,2,6],
-"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a62aeb6d36e6c6df101ce8065ccf2e8ff":[13,0,4,3,0,0,2,3],
-"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a85a5d2743fba4d57429002bbba9b1f75":[13,0,4,3,0,0,2,5],
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a287d618eaca0c9a96d6d75c9af34b9cc":[13,0,4,3,0,0,2,5],
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a5775f2bf4ec958168564a14c020ca343":[13,0,4,3,0,0,2,7],
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a62aeb6d36e6c6df101ce8065ccf2e8ff":[13,0,4,3,0,0,2,4],
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a85a5d2743fba4d57429002bbba9b1f75":[13,0,4,3,0,0,2,6],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#aa435c9b4e8826afd763e7d6f2e0368a3":[13,0,4,3,0,0,2,2],
-"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#adf4c926338f30990776ef3ceeda26d8d":[13,0,4,3,0,0,2,7],
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#acb03b669b1e474b1068baf3df6d36e1c":[13,0,4,3,0,0,2,3],
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#adf4c926338f30990776ef3ceeda26d8d":[13,0,4,3,0,0,2,8],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#afb89235aa014f0696f703080a83fa35f":[13,0,4,3,0,0,2,1],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_extended_transaction_location.html":[13,0,4,3,0,0,3],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_extended_transaction_location.html#ad0807ea5975d5ea3c46849623dd5e472":[13,0,4,3,0,0,3,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX23 =
 "trie__common_8hpp.html#a41b2ec28d1ad728e6c4d190795391e6e":[14,0,1,4,0,0,1,8,0],
 "trie__common_8hpp_source.html":[14,0,1,4,0,0,1,8],
 "types_2dag__block_2include_2dag_2dag__block_8hpp.html":[14,0,1,6,0,0,0,0],
-"types_2dag__block_2include_2dag_2dag__block_8hpp.html#a6dbfbca5858f7b6fc55b134c217fa3bc":[14,0,1,6,0,0,0,0,2],
-"types_2dag__block_2include_2dag_2dag__block_8hpp_source.html":[14,0,1,6,0,0,0,0],
-"types_2dag__block_2src_2dag__block_8cpp.html":[14,0,1,6,0,1,0]
+"types_2dag__block_2include_2dag_2dag__block_8hpp.html#a6dbfbca5858f7b6fc55b134c217fa3bc":[14,0,1,6,0,0,0,0,2]
 };

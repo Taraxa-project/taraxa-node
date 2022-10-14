@@ -1,5 +1,7 @@
 var NAVTREEINDEX24 =
 {
+"types_2dag__block_2include_2dag_2dag__block_8hpp_source.html":[14,0,1,6,0,0,0,0],
+"types_2dag__block_2src_2dag__block_8cpp.html":[14,0,1,6,0,1,0],
 "types_2transaction_2include_2transaction_2transaction_8hpp.html":[14,0,1,6,2,0,0,0],
 "types_2transaction_2include_2transaction_2transaction_8hpp.html#a1b37b05665a051ae2ceda7a2607c8e36":[14,0,1,6,2,0,0,0,2],
 "types_2transaction_2include_2transaction_2transaction_8hpp.html#a5d2fdd8504e96d91288cf77b7462dd2a":[14,0,1,6,2,0,0,0,4],

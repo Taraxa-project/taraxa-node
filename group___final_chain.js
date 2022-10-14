@@ -93,8 +93,7 @@ var group___final_chain =
       [ "block_applying_", "group___final_chain.html#a34e1f0898ade4066d3047e079e77d191", null ],
       [ "block_applying_emitter_", "group___final_chain.html#a69bbe62bb85c685861fa39df13226a2e", null ],
       [ "block_finalized_", "group___final_chain.html#a2e621698a6b854047e645f21cd7f9c38", null ],
-      [ "block_finalized_emitter_", "group___final_chain.html#a9d96fe095fcf303295edb569fb8e8499", null ],
-      [ "GAS_LIMIT", "group___final_chain.html#a9effc3e3e7b71a08b89ceb9dab8b5fa1", null ]
+      [ "block_finalized_emitter_", "group___final_chain.html#a9d96fe095fcf303295edb569fb8e8499", null ]
     ] ],
     [ "ReplayProtectionService", "group___final_chain.html#classtaraxa_1_1final__chain_1_1_replay_protection_service", [
       [ "Config", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_config", [

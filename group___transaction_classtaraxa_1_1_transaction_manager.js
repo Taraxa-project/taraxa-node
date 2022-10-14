@@ -28,6 +28,7 @@ var group___transaction_classtaraxa_1_1_transaction_manager =
     [ "db_", "group___transaction.html#ad9d3ab9b5e4d2baaa4e672a15bb81dec", null ],
     [ "final_chain_", "group___transaction.html#a2f95db203650edcd773cc2bbbcf0574f", null ],
     [ "kConf", "group___transaction.html#a6834f70d8689221cac865bf82f79891a", null ],
+    [ "kDagBlockGasLimit", "group___transaction.html#acea2679465eaa2198cf68212c3626936", null ],
     [ "kEstimateGasLimit", "group___transaction.html#a73ff8227a0b64365c57f054016400e6b", null ],
     [ "kRecentlyFinalizedTransactionsMax", "group___transaction.html#a4a14493411b6e059a45ed8ae906a23d5", null ],
     [ "nonfinalized_transactions_in_dag_", "group___transaction.html#a16c4d3c1bfe64a804a3478319e77a2cf", null ],
