@@ -40,12 +40,12 @@ class RewardsStats {
    */
   bool addTransaction(const trx_hash_t& tx_hash, const addr_t& validator);
 
-  /**
-   * @brief Remove tx from statistics
-   *
-   * @param tx_hash
-   */
-  void removeTransaction(const trx_hash_t& tx_hash);
+  // /**
+  //  * @brief Remove tx from statistics
+  //  *
+  //  * @param tx_hash
+  //  */
+  // void removeTransaction(const trx_hash_t& tx_hash);
 
   /**
    * @param tx_hash
@@ -74,10 +74,8 @@ class RewardsStats {
 
  private:
   struct ValidatorStats {
-    // How many unique txs validator included in his dag blocks
-    // Unique txs is what defines quality of block -> block with 10 unique transactions is 10 times more valuable
-    // than block with single unique transaction
-    uint32_t unique_txs_count_ = 0;
+    // count of rewardable(with 1 or more unique transactions) DAG blocks produced by this validator
+    uint32_t dag_blocks_count_ = 0;
 
     // Validator cert voted block weight
     uint64_t vote_weight_ = 0;
@@ -91,8 +89,8 @@ class RewardsStats {
   // Txs stats: validator -> ValidatorStats
   std::unordered_map<addr_t, ValidatorStats> validators_stats_;
 
-  // Total unique txs counter
-  uint32_t total_unique_txs_count_{0};
+  // Total rewardable(with 1 or more unique transactions) DAG blocks count
+  uint32_t total_dag_blocks_count_{0};
 
   // Total weight of votes in block
   uint64_t total_votes_weight_{0};

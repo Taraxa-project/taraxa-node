@@ -127,7 +127,7 @@ class FinalChainImpl final : public FinalChain {
     auto p = std::make_shared<std::promise<std::shared_ptr<FinalizationResult const>>>();
     executor_thread_.post([this, new_blk = std::move(new_blk),
                            finalized_dag_blk_hashes = std::move(finalized_dag_blk_hashes),
-                           precommit_ext = move(precommit_ext), p]() mutable {
+                           precommit_ext = std::move(precommit_ext), p]() mutable {
       p->set_value(finalize_(std::move(new_blk), std::move(finalized_dag_blk_hashes), precommit_ext));
     });
     return p->get_future();
@@ -471,7 +471,7 @@ class FinalChainImpl final : public FinalChain {
     size_t count_;
 
     explicit TransactionHashesImpl(string serialized)
-        : serialized_(move(serialized)), count_(serialized_.size() / h256::size) {}
+        : serialized_(std::move(serialized)), count_(serialized_.size() / h256::size) {}
 
     static bytes serialize_from_transactions(SharedTransactions const& transactions) {
       bytes serialized;
