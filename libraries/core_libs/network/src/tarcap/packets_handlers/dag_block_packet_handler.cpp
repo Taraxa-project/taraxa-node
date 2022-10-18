@@ -183,19 +183,45 @@ void DagBlockPacketHandler::onNewBlockVerified(DagBlock &&block, bool proposed, 
     }
   }
 
+  // trxs contains only transaction that were not already in some previous DAG block,
+  // block_trxs will contain hashes of transactions which were already in DAG
+  std::unordered_set<trx_hash_t> block_trxs;
+  block_trxs.reserve(block.getTrxs().size());
+  for (const auto &trx_hash : block.getTrxs()) {
+    block_trxs.insert(trx_hash);
+  }
+  // Exclude transactions from trxs
+  for (const auto &trx : trxs) {
+    block_trxs.erase(trx->getHash());
+  }
+
   std::string peer_and_transactions_to_log;
   for (dev::p2p::NodeID const &peer_id : peers_to_send) {
     dev::RLPStream ts;
     auto peer = peers_state_->getPeer(peer_id);
     if (peer && !peer->syncing_) {
       peer_and_transactions_to_log += " Peer: " + peer->getId().abridged() + " Trxs: ";
+
       SharedTransactions transactions_to_send;
       for (const auto &trx : trxs) {
-        if (peer->isTransactionKnown(trx->getHash())) {
+        const auto &trx_hash = trx->getHash();
+        if (peer->isTransactionKnown(trx_hash)) {
           continue;
         }
         transactions_to_send.push_back(trx);
-        peer_and_transactions_to_log += trx->getHash().abridged();
+        peer_and_transactions_to_log += trx_hash.abridged();
+      }
+      for (const auto &trx_hash : block_trxs) {
+        if (peer->isTransactionKnown(trx_hash)) {
+          continue;
+        }
+        // Db can be nullptr in some unit tests
+        if (db_ != nullptr) {
+          auto trx = db_->getTransaction(trx_hash);
+          assert(trx != nullptr);
+          transactions_to_send.push_back(trx);
+          peer_and_transactions_to_log += trx_hash.abridged();
+        }
       }
 
       sendBlock(peer_id, block, transactions_to_send);
