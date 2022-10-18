@@ -80,14 +80,15 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
       peer->dag_level_ = block.getLevel();
     }
   }
+  const auto pbft_block_period = period_data.pbft_blk->getPeriod();
 
-  LOG(log_dg_) << "PbftSyncPacket received. Period: " << period_data.pbft_blk->getPeriod()
+  LOG(log_dg_) << "PbftSyncPacket received. Period: " << pbft_block_period
                << ", dag Blocks: " << received_dag_blocks_str << " from " << packet_data.from_node_id_;
 
   peer->markPbftBlockAsKnown(pbft_blk_hash);
   // Update peer's pbft period if outdated
-  if (peer->pbft_chain_size_ < period_data.pbft_blk->getPeriod()) {
-    peer->pbft_chain_size_ = period_data.pbft_blk->getPeriod();
+  if (peer->pbft_chain_size_ < pbft_block_period) {
+    peer->pbft_chain_size_ = pbft_block_period;
   }
 
   LOG(log_tr_) << "Processing pbft block: " << pbft_blk_hash;
@@ -96,8 +97,8 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
     LOG(log_wr_) << "PBFT block " << pbft_blk_hash << " from " << packet_data.from_node_id_
                  << " already present in chain";
   } else {
-    if (period_data.pbft_blk->getPeriod() != pbft_mgr_->pbftSyncingPeriod() + 1) {
-      LOG(log_wr_) << "Block " << pbft_blk_hash << " period unexpected: " << period_data.pbft_blk->getPeriod()
+    if (pbft_block_period != pbft_mgr_->pbftSyncingPeriod() + 1) {
+      LOG(log_wr_) << "Block " << pbft_blk_hash << " period unexpected: " << pbft_block_period
                    << ". Expected period: " << pbft_mgr_->pbftSyncingPeriod() + 1;
       restartSyncingPbft(true);
       return;
@@ -167,7 +168,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
       if (!vote_mgr_->checkRewardVotes(period_data.pbft_blk)) {
         // checkRewardVotes could fail because we just cert voted this block and moved to next period, in that case we
         // might even be fully synced so call restartSyncingPbft to verify
-        if (period_data.pbft_blk->getPeriod() <= vote_mgr_->getRewardVotesPbftBlockPeriod()) {
+        if (pbft_block_period <= vote_mgr_->getRewardVotesPbftBlockPeriod()) {
           restartSyncingPbft(true);
           return;
         }
@@ -200,6 +201,11 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   }
 
   if (last_block) {
+    // If current sync period is actually bigger than the block we just received we are probably synced but verify with
+    // calling restartSyncingPbft
+    if (pbft_sync_period > pbft_block_period) {
+      return restartSyncingPbft(true);
+    }
     if (pbft_syncing_state_->isPbftSyncing()) {
       if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * network_sync_level_size_)) {
         LOG(log_tr_) << "Syncing pbft blocks too fast than processing. Has synced period " << pbft_sync_period
