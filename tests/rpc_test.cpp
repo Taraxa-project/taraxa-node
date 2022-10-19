@@ -57,6 +57,164 @@ TEST_F(RPCTest, eth_estimateGas) {
   }
 }
 
+#define EXPECT_THROW_WITH(statement, expected_exception, msg) \
+  try {                                                       \
+    statement;                                                \
+  } catch (const expected_exception& e) {                     \
+    ASSERT_EQ(std::string(msg), std::string(e.what()));       \
+  }
+
+TEST_F(RPCTest, eth_call) {
+  auto node_cfg = make_node_cfgs(1);
+  auto nodes = launch_nodes(node_cfg);
+  const auto final_chain = nodes.front()->getFinalChain();
+
+  net::rpc::eth::EthParams eth_rpc_params;
+  eth_rpc_params.chain_id = node_cfg.front().chain_id;
+  eth_rpc_params.gas_limit = node_cfg.front().chain.dag.gas_limit;
+  eth_rpc_params.final_chain = final_chain;
+  auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
+
+  const auto last_block_num = final_chain->last_block_number();
+  const u256 total_eligible = final_chain->dpos_eligible_total_vote_count(last_block_num);
+  const auto total_eligible_str = dev::toHexPrefixed(dev::toBigEndian(total_eligible));
+
+  const auto empty_address = dev::KeyPair::create().address().toString();
+  // check that balance of empty_address is 0
+  ASSERT_EQ(eth_json_rpc->eth_getBalance(empty_address, dev::toCompactHexPrefixed(last_block_num)), "0x0");
+
+  const std::string get_total_eligible_method("0xde8e4b50");
+  const auto dpos_contract("0x00000000000000000000000000000000000000FE");
+  {
+    // Tested on Ethereum mainnet node. OK.
+    // Sending some value to random address(not contract). from == zeroAddress
+    // '{"method":"eth_call","params":[{"to":"0xeEA2524616B61E12c0Cb00a41dA78Ded1635F566","value":"0x100"},"latest"]}'
+    Json::Value trx(Json::objectValue);
+    trx["to"] = empty_address;
+    trx["value"] = "0x100";
+    EXPECT_EQ(eth_json_rpc->eth_call(trx, "latest"), "0x");
+  }
+
+  {
+    // Tested on Ethereum mainnet node.
+    // ERROR: insufficient funds for gas * price + value.
+    // Sending some value from account with no funds to other address.
+    // '{"method":"eth_call","params":[{"from":"0x46dE41a622e679B8CDa5B76942a2e3Df5Ba023db","to":"0xeEA2524616B61E12c0Cb00a41dA78Ded1635F566","value":"0x100"},"latest"]}'
+    Json::Value trx(Json::objectValue);
+    trx["from"] = empty_address;
+    trx["to"] = dev::KeyPair::create().address().toString();
+    trx["value"] = "0x100";
+    EXPECT_THROW_WITH(eth_json_rpc->eth_call(trx, "latest"), std::runtime_error, "insufficient balance for transfer");
+  }
+
+  {
+    // Tested on Ethereum mainnet node. OK
+    // '{"method":"eth_call","params":[{"to":"0xdac17f958d2ee523a2206206994597c13d831ec7","data":"0x3eaaf86b"},"latest"]}'
+    Json::Value trx(Json::objectValue);
+    trx["to"] = dpos_contract;
+    trx["data"] = get_total_eligible_method;
+    EXPECT_EQ(eth_json_rpc->eth_call(trx, "latest"), total_eligible_str);
+  }
+
+  {
+    // Tested on Ethereum mainnet node. OK
+    // '{"method":"eth_call","params":[{"to":"0xdac17f958d2ee523a2206206994597c13d831ec7","gas":"0x100000","data":"0x3eaaf86b"},"latest"]}'
+    Json::Value trx(Json::objectValue);
+    trx["to"] = dpos_contract;
+    trx["gas"] = "0x100000";
+    trx["data"] = get_total_eligible_method;
+    EXPECT_EQ(eth_json_rpc->eth_call(trx, "latest"), total_eligible_str);
+  }
+
+  {
+    // Tested on Ethereum mainnet node. OK.
+    // gas * gasPrice balance check eliminated for `from == ZeroAddress`.
+    // '{"method":"eth_call","params":[{"to":"0xdac17f958d2ee523a2206206994597c13d831ec7","gas":"0x100000","gasPrice":"0x241268485270","data":"0x3eaaf86b"},"latest"]}'
+    Json::Value trx(Json::objectValue);
+    trx["to"] = dpos_contract;
+    trx["gas"] = "0x100000";
+    trx["gasPrice"] = "0x241268485270";
+    trx["data"] = get_total_eligible_method;
+    EXPECT_EQ(eth_json_rpc->eth_call(trx, "latest"), total_eligible_str);
+  }
+
+  {
+    // Tested on Ethereum mainnet node.
+    // ERROR: insufficient funds for gas * price + value.
+    // Sending from address with no funds, so can't pay gas * gas_price
+    // '{"method":"eth_call","params":[{"from":"0xeEA2524616B61E12c0Cb00a41dA78Ded1635F566","to":"0xdac17f958d2ee523a2206206994597c13d831ec7","gas":"0x100000","gasPrice":"0x241268485270","data":"0x3eaaf86b"},"latest"]}'
+    Json::Value trx(Json::objectValue);
+    trx["from"] = empty_address;
+    trx["to"] = dpos_contract;
+    trx["gas"] = "0x100000";
+    trx["gasPrice"] = "0x241268485270";
+    trx["data"] = get_total_eligible_method;
+    EXPECT_THROW_WITH(eth_json_rpc->eth_call(trx, "latest"), std::runtime_error, "insufficient balance to pay for gas");
+  }
+
+  {
+    // Tested on Ethereum mainnet node. OK.
+    // Sending from address with no funds. Default `gasPrice == 0`, no funds needed
+    // '{"method":"eth_call","params":[{"from":"0xeEA2524616B61E12c0Cb00a41dA78Ded1635F566","to":"0xdac17f958d2ee523a2206206994597c13d831ec7","data":"0x3eaaf86b"},"latest"]}'
+    Json::Value trx(Json::objectValue);
+    trx["from"] = empty_address;
+    trx["to"] = dpos_contract;
+    trx["data"] = get_total_eligible_method;
+    EXPECT_EQ(eth_json_rpc->eth_call(trx, "latest"), total_eligible_str);
+  }
+
+  {
+    // Tested on Ethereum mainnet node. OK.
+    // Sending from address with no funds. Default `gasPrice == 0`, no funds needed. Custom sufficient gas value is ok
+    // '{"method":"eth_call","params":[{"from":"0xeEA2524616B61E12c0Cb00a41dA78Ded1635F566","to":"0xdac17f958d2ee523a2206206994597c13d831ec7","gas":"0x100000","data":"0x3eaaf86b"},"latest"]}'
+    Json::Value trx(Json::objectValue);
+    trx["from"] = empty_address;
+    trx["to"] = dpos_contract;
+    trx["gas"] = "0x100000";
+    trx["data"] = get_total_eligible_method;
+    EXPECT_EQ(eth_json_rpc->eth_call(trx, "latest"), total_eligible_str);
+  }
+
+  {
+    // Tested on Ethereum mainnet node.
+    // ERROR: intrinsic gas too low
+    // Sending from address with no funds. Default `gasPrice == 0`, no funds needed. Gas value lower then intrinsic gas
+    // '{"method":"eth_call","params":[{"from":"0xeEA2524616B61E12c0Cb00a41dA78Ded1635F566","to":"0xdac17f958d2ee523a2206206994597c13d831ec7","gas":"0x1000","data":"0x3eaaf86b"},"latest"]}'
+    Json::Value trx(Json::objectValue);
+    trx["from"] = empty_address;
+    trx["to"] = dpos_contract;
+    trx["gas"] = "0x1000";
+    trx["data"] = get_total_eligible_method;
+    EXPECT_THROW_WITH(eth_json_rpc->eth_call(trx, "latest"), std::runtime_error, "intrinsic gas too low");
+  }
+
+  {
+    // Tested on Ethereum mainnet node.
+    // ERROR: out of gas
+    // Sending from address with no funds. Default `gasPrice == 0`, no funds needed.
+    // Gas value lower then needed intrinsic gas, but lower then total required gas
+    // '{"method":"eth_call","params":[{"from":"0xeEA2524616B61E12c0Cb00a41dA78Ded1635F566","to":"0xdac17f958d2ee523a2206206994597c13d831ec7","gas":"0x5250","data":"0x3eaaf86b"},"latest"]}'
+    Json::Value trx(Json::objectValue);
+    trx["from"] = empty_address;
+    trx["to"] = dpos_contract;
+    trx["gas"] = "0x5330";
+    trx["data"] = get_total_eligible_method;
+    EXPECT_THROW_WITH(eth_json_rpc->eth_call(trx, "latest"), std::runtime_error, "out of gas");
+  }
+
+  {
+    // Tested on Ethereum mainnet node. OK.
+    // Sending from address with no funds. default `gasPrice == 0`, so no funds needed. Ok with custom gas value
+    // '{"method":"eth_call","params":[{"from":"0xeEA2524616B61E12c0Cb00a41dA78Ded1635F566","to":"0xdac17f958d2ee523a2206206994597c13d831ec7","gas":"0x100000","data":"0x3eaaf86b"},"latest"]}'
+    Json::Value trx(Json::objectValue);
+    trx["from"] = empty_address;
+    trx["to"] = dpos_contract;
+    trx["gas"] = "0x100000";
+    trx["data"] = get_total_eligible_method;
+    EXPECT_EQ(eth_json_rpc->eth_call(trx, "latest"), total_eligible_str);
+  }
+}
+
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;
