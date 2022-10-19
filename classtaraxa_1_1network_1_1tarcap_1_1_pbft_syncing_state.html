@@ -118,9 +118,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a13878e8297cd51306acab4b36ca8b2ae"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a13878e8297cd51306acab4b36ca8b2ae">isPbftSyncing</a> ()</td></tr>
 <tr class="memdesc:a13878e8297cd51306acab4b36ca8b2ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if PBFT is in syncing. If not in active syncing, set PBFT syncing to false.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a13878e8297cd51306acab4b36ca8b2ae">More...</a><br /></td></tr>
 <tr class="separator:a13878e8297cd51306acab4b36ca8b2ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a74de454c2032e469becc0c61dd1459a6"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a74de454c2032e469becc0c61dd1459a6">syncingPeer</a> () const</td></tr>
-<tr class="memdesc:a74de454c2032e469becc0c61dd1459a6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the peer ID that own is syncing with.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a74de454c2032e469becc0c61dd1459a6">More...</a><br /></td></tr>
-<tr class="separator:a74de454c2032e469becc0c61dd1459a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4473eb570d4506ed5ed356927f6296ea"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a4473eb570d4506ed5ed356927f6296ea">syncingPeer</a> () const</td></tr>
+<tr class="memdesc:a4473eb570d4506ed5ed356927f6296ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the peer that our node is syncing with.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a4473eb570d4506ed5ed356927f6296ea">More...</a><br /></td></tr>
+<tr class="separator:a4473eb570d4506ed5ed356927f6296ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -309,14 +309,14 @@ Static Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a74de454c2032e469becc0c61dd1459a6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a74de454c2032e469becc0c61dd1459a6">&#9670;&nbsp;</a></span>syncingPeer()</h2>
+<a id="a4473eb570d4506ed5ed356927f6296ea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4473eb570d4506ed5ed356927f6296ea">&#9670;&nbsp;</a></span>syncingPeer()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> taraxa::network::tarcap::PbftSyncingState::syncingPeer </td>
+          <td class="memname">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt; taraxa::network::tarcap::PbftSyncingState::syncingPeer </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -324,8 +324,8 @@ Static Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Get the peer ID that own is syncing with. </p>
-<dl class="section return"><dt>Returns</dt><dd>peer ID if has a peer that own is syncing with </dd></dl>
+<p>Get the peer that our node is syncing with. </p>
+<dl class="section return"><dt>Returns</dt><dd>syncing peer, in case there is none - nullptr is returned </dd></dl>
 
 </div>
 </div>

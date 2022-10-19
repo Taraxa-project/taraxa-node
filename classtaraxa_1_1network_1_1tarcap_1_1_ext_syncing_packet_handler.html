@@ -121,8 +121,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:af65a39e11ac6b202d8db3d5f2755b9ba"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#af65a39e11ac6b202d8db3d5f2755b9ba">restartSyncingPbft</a> (bool force=false)</td></tr>
 <tr class="memdesc:af65a39e11ac6b202d8db3d5f2755b9ba"><td class="mdescLeft">&#160;</td><td class="mdescRight">Restart syncing.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#af65a39e11ac6b202d8db3d5f2755b9ba">More...</a><br /></td></tr>
 <tr class="separator:af65a39e11ac6b202d8db3d5f2755b9ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a17b4574c996a06893686c92ae43444fc"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a17b4574c996a06893686c92ae43444fc">syncPeerPbft</a> (unsigned long height_to_sync)</td></tr>
-<tr class="separator:a17b4574c996a06893686c92ae43444fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aacafc02a68c727e7e3114e6c0e455a2a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#aacafc02a68c727e7e3114e6c0e455a2a">syncPeerPbft</a> (uint64_t request_period, bool ignore_chain_size_check=false)</td></tr>
+<tr class="memdesc:aacafc02a68c727e7e3114e6c0e455a2a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send sync request to the current syncing peer with specified request_period.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#aacafc02a68c727e7e3114e6c0e455a2a">More...</a><br /></td></tr>
+<tr class="separator:aacafc02a68c727e7e3114e6c0e455a2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a64cb065df2a5761288ff58e0f4bfdf3f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a64cb065df2a5761288ff58e0f4bfdf3f">requestDagBlocks</a> (const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;_nodeID, const std::unordered_set&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &amp;blocks, uint64_t period)</td></tr>
 <tr class="separator:a64cb065df2a5761288ff58e0f4bfdf3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a93bf11331e6e0f5cea4153292a8ed23b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a93bf11331e6e0f5cea4153292a8ed23b">requestPendingDagBlocks</a> (std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt; peer=nullptr)</td></tr>
@@ -476,8 +477,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="a17b4574c996a06893686c92ae43444fc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a17b4574c996a06893686c92ae43444fc">&#9670;&nbsp;</a></span>syncPeerPbft()</h2>
+<a id="aacafc02a68c727e7e3114e6c0e455a2a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aacafc02a68c727e7e3114e6c0e455a2a">&#9670;&nbsp;</a></span>syncPeerPbft()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -485,12 +486,32 @@ Additional Inherited Members</h2></td></tr>
         <tr>
           <td class="memname">bool taraxa::network::tarcap::ExtSyncingPacketHandler::syncPeerPbft </td>
           <td>(</td>
-          <td class="paramtype">unsigned long&#160;</td>
-          <td class="paramname"><em>height_to_sync</em></td><td>)</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>request_period</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>ignore_chain_size_check</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>Send sync request to the current syncing peer with specified request_period. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">request_period</td><td></td></tr>
+    <tr><td class="paramname">ignore_chain_size_check</td><td>ignore peer's chain size check - it is used when processing sync packet from current syncing peer as he specifies in packet if he already send his last block or not. This info is more up to date then peer-&gt;chain_size that might have been saved in the past and it is not valid anymore</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if sync request was sent, otherwise false </dd></dl>
 
 </div>
 </div>
