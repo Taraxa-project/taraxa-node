@@ -263,7 +263,7 @@ Json::Value NodeStats::getStatus() const {
 
   if (const auto syncing_peer = pbft_syncing_state_->syncingPeer();
       syncing_peer && pbft_syncing_state_->isPbftSyncing()) {
-    res["syncing_from_node_id"] = pbft_syncing_state_->syncingPeer()->getId().toString();
+    res["syncing_from_node_id"] = syncing_peer->getId().toString();
   }
 
   res["peer_max_pbft_round"] = Json::UInt64(peer_max_pbft_round);

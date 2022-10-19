@@ -69,20 +69,20 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
 }
 
 bool ExtSyncingPacketHandler::syncPeerPbft(uint64_t request_period, bool ignore_chain_size_check) {
-  const auto sync_peer = pbft_syncing_state_->syncingPeer();
-  if (!sync_peer) {
+  const auto syncing_peer = pbft_syncing_state_->syncingPeer();
+  if (!syncing_peer) {
     LOG(log_er_) << "Unable to send GetPbftSyncPacket. No syncing peer set.";
     return false;
   }
 
-  if (!ignore_chainsize_check && request_period > sync_peer->pbft_chain_size_) {
-    LOG(log_er_) << "Invalid syncPeerPbft argument. Node " << sync_peer->getId() << " chain size "
-                 << sync_peer->pbft_chain_size_ << ", requested period " << request_period;
+  if (!ignore_chain_size_check && request_period > syncing_peer->pbft_chain_size_) {
+    LOG(log_er_) << "Invalid syncPeerPbft argument. Node " << syncing_peer->getId() << " chain size "
+                 << syncing_peer->pbft_chain_size_ << ", requested period " << request_period;
     return false;
   }
 
-  LOG(log_nf_) << "Send GetPbftSyncPacket with period " << request_period << " to node " << sync_peer->getId();
-  return sealAndSend(sync_peer->getId(), SubprotocolPacketType::GetPbftSyncPacket,
+  LOG(log_nf_) << "Send GetPbftSyncPacket with period " << request_period << " to node " << syncing_peer->getId();
+  return sealAndSend(syncing_peer->getId(), SubprotocolPacketType::GetPbftSyncPacket,
                      std::move(dev::RLPStream(1) << request_period));
 }
 
