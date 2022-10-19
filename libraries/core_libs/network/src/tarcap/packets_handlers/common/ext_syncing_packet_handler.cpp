@@ -68,14 +68,14 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
   }
 }
 
-bool ExtSyncingPacketHandler::syncPeerPbft(uint64_t request_period) {
+bool ExtSyncingPacketHandler::syncPeerPbft(uint64_t request_period, bool ignore_chain_size_check) {
   const auto sync_peer = pbft_syncing_state_->syncingPeer();
   if (!sync_peer) {
     LOG(log_er_) << "Unable to send GetPbftSyncPacket. No syncing peer set.";
     return false;
   }
 
-  if (request_period > sync_peer->pbft_chain_size_) {
+  if (!ignore_chainsize_check && request_period > sync_peer->pbft_chain_size_) {
     LOG(log_er_) << "Invalid syncPeerPbft argument. Node " << sync_peer->getId() << " chain size "
                  << sync_peer->pbft_chain_size_ << ", requested period " << request_period;
     return false;

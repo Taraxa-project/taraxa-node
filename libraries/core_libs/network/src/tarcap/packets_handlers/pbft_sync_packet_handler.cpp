@@ -207,7 +207,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
         if (auto periodic_events_tp = periodic_events_tp_.lock())
           periodic_events_tp->post(1000, [this] { delayedPbftSync(1); });
       } else {
-        if (!syncPeerPbft(pbft_sync_period + 1)) {
+        if (!syncPeerPbft(pbft_sync_period + 1, true)) {
           return restartSyncingPbft(true);
         }
       }
