@@ -129,8 +129,10 @@ void NodeStats::logNodeStats() {
     // Syncing...
     const auto percent_synced = (local_pbft_sync_period * 100) / peer_max_pbft_chain_size;
     const auto syncing_time_sec = syncTimeSeconds();
+    const auto syncing_peer = pbft_syncing_state_->syncingPeer();
+
     LOG(log_nf_) << "Syncing for " << syncing_time_sec << " seconds, " << percent_synced << "% synced";
-    LOG(log_nf_) << "Currently syncing from node " << pbft_syncing_state_->syncingPeer();
+    LOG(log_nf_) << "Currently syncing from node " << (syncing_peer ? syncing_peer->getId().abridged() : "None");
     LOG(log_nf_) << "Max peer PBFT chain size:       " << peer_max_pbft_chain_size << " (peer "
                  << max_pbft_chain_node_id << ")";
     LOG(log_nf_) << "Max peer PBFT consensus round FOR SYNCING:  " << peer_max_pbft_round << " (peer "
@@ -259,8 +261,9 @@ Json::Value NodeStats::getStatus() const {
     }
   }
 
-  if (pbft_syncing_state_->isPbftSyncing()) {
-    res["syncing_from_node_id"] = pbft_syncing_state_->syncingPeer().toString();
+  if (const auto syncing_peer = pbft_syncing_state_->syncingPeer();
+      syncing_peer && pbft_syncing_state_->isPbftSyncing()) {
+    res["syncing_from_node_id"] = syncing_peer->getId().toString();
   }
 
   res["peer_max_pbft_round"] = Json::UInt64(peer_max_pbft_round);
