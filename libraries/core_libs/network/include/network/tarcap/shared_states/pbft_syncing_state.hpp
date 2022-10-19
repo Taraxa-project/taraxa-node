@@ -58,11 +58,11 @@ class PbftSyncingState {
   bool isPbftSyncing();
 
   /**
-   * @brief Get the peer ID that own is syncing with
+   * @brief Get the peer that our node is syncing with
    *
-   * @return peer ID if has a peer that own is syncing with
+   * @return syncing peer, in case there is none - nullptr is returned
    */
-  const dev::p2p::NodeID syncingPeer() const;
+  std::shared_ptr<TaraxaPeer> syncingPeer() const;
 
  private:
   std::atomic<bool> deep_pbft_syncing_{false};
