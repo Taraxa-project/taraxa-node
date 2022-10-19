@@ -7,13 +7,9 @@ namespace taraxa::network::tarcap {
 
 PbftSyncingState::PbftSyncingState(uint16_t deep_syncing_threshold) : kDeepSyncingThreshold(deep_syncing_threshold) {}
 
-const dev::p2p::NodeID PbftSyncingState::syncingPeer() const {
+std::shared_ptr<TaraxaPeer> PbftSyncingState::syncingPeer() const {
   std::shared_lock lock(peer_mutex_);
-  if (peer_) {
-    return peer_->getId();
-  }
-
-  return dev::p2p::NodeID();
+  return peer_;
 }
 
 void PbftSyncingState::setSyncStatePeriod(uint64_t period) {

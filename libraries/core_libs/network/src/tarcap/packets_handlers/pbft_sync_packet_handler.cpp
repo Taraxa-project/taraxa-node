@@ -38,10 +38,16 @@ void PbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_dat
 void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   // Note: no need to consider possible race conditions due to concurrent processing as it is
   // disabled on priority_queue blocking dependencies level
-
-  if (pbft_syncing_state_->syncingPeer() != packet_data.from_node_id_) {
+  const auto syncing_peer = pbft_syncing_state_->syncingPeer();
+  if (!syncing_peer) {
     LOG(log_wr_) << "PbftSyncPacket received from unexpected peer " << packet_data.from_node_id_.abridged()
-                 << " current syncing peer " << pbft_syncing_state_->syncingPeer().abridged();
+                 << " but there is no current syncing peer set";
+    return;
+  }
+
+  if (syncing_peer->getId() != packet_data.from_node_id_) {
+    LOG(log_wr_) << "PbftSyncPacket received from unexpected peer " << packet_data.from_node_id_.abridged()
+                 << " current syncing peer " << syncing_peer->getId().abridged();
     return;
   }
 

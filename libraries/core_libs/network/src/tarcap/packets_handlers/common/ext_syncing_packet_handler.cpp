@@ -68,10 +68,22 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
   }
 }
 
-bool ExtSyncingPacketHandler::syncPeerPbft(unsigned long height_to_sync) {
-  const auto node_id = pbft_syncing_state_->syncingPeer();
-  LOG(log_nf_) << "Sync peer node " << node_id << " from pbft chain height " << height_to_sync;
-  return sealAndSend(node_id, SubprotocolPacketType::GetPbftSyncPacket, std::move(dev::RLPStream(1) << height_to_sync));
+bool ExtSyncingPacketHandler::syncPeerPbft(uint64_t request_period) {
+  const auto sync_peer = pbft_syncing_state_->syncingPeer();
+  if (!sync_peer) {
+    LOG(log_er_) << "Unable to send GetPbftSyncPacket. No syncing peer set.";
+    return false;
+  }
+
+  if (request_period > sync_peer->pbft_chain_size_) {
+    LOG(log_er_) << "Invalid syncPeerPbft argument. Node " << sync_peer->getId() << " chain size "
+                 << sync_peer->pbft_chain_size_ << ", requested period " << request_period;
+    return false;
+  }
+
+  LOG(log_nf_) << "Send GetPbftSyncPacket with period " << request_period << " to node " << sync_peer->getId();
+  return sealAndSend(sync_peer->getId(), SubprotocolPacketType::GetPbftSyncPacket,
+                     std::move(dev::RLPStream(1) << request_period));
 }
 
 std::shared_ptr<TaraxaPeer> ExtSyncingPacketHandler::getMaxChainPeer() {

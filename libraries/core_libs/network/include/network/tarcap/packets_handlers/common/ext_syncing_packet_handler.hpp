@@ -40,7 +40,7 @@ class ExtSyncingPacketHandler : public PacketHandler {
    */
   void restartSyncingPbft(bool force = false);
 
-  bool syncPeerPbft(unsigned long height_to_sync);
+  bool syncPeerPbft(uint64_t request_period);
   void requestDagBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks, uint64_t period);
   void requestPendingDagBlocks(std::shared_ptr<TaraxaPeer> peer = nullptr);
 
