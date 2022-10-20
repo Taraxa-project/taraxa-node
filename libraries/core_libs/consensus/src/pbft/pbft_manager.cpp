@@ -889,12 +889,11 @@ void PbftManager::proposeBlock_() {
     // Round greater than 1 and next voted some value that is not null block hash
     const auto &next_voted_block_hash = *previous_round_next_voted_value_;
 
-    LOG(log_nf_) << "Previous round " << round - 1 << " next voted block is " << next_voted_block_hash;
-
-    // auto next_voted_block = proposed_blocks_->get ->getUnverifiedPbftBlock(next_voted_block_hash);
-    auto next_voted_block = proposed_blocks_.getPbftProposedBlock(period, round - 1, next_voted_block_hash);
+    const auto next_voted_block = proposed_blocks_.getPbftProposedBlock(period, round - 1, next_voted_block_hash);
     if (!next_voted_block) {
-      LOG(log_wr_) << "Unable to find previous round next voted block " << next_voted_block_hash;
+      // This should never happen - if so, we probably have a bug in storing the blocks in proposed_blocks_
+      LOG(log_er_) << "Unable to re-propose previous round next voted block " << next_voted_block_hash
+                   << ". Block is missing. round " << round << ", period " << period;
       return;
     }
 
@@ -913,24 +912,33 @@ void PbftManager::identifyBlock_() {
 
   if (round == 1 || previous_round_next_voted_null_block_hash_) {
     // Identity leader
-    if (auto leader_block = identifyLeaderBlock_(round, period); leader_block) {
-      assert(leader_block->getPeriod() == period);
-      LOG(log_dg_) << "Leader block identified " << leader_block->getBlockHash() << ", round " << round << ", period "
-                   << period;
+    const auto leader_block = identifyLeaderBlock_(round, period);
+    if (!leader_block) {
+      LOG(log_dg_) << "No leader block identified. Round " << round << ", period " << period;
+      return;
+    }
 
-      if (auto vote = generateVoteWithWeight(leader_block->getBlockHash(), soft_vote_type, leader_block->getPeriod(),
-                                             round, step_);
-          vote) {
-        placeVote(vote, "soft vote", leader_block);
-      }
+    assert(leader_block->getPeriod() == period);
+    LOG(log_dg_) << "Leader block identified " << leader_block->getBlockHash() << ", round " << round << ", period "
+                 << period;
+
+    if (auto vote = generateVoteWithWeight(leader_block->getBlockHash(), soft_vote_type, leader_block->getPeriod(),
+                                           round, step_);
+      vote) {
+      placeVote(vote, "soft vote", leader_block);
     }
   } else if (previous_round_next_voted_value_.has_value()) {
     const auto &next_voted_block_hash = *previous_round_next_voted_value_;
+    const auto next_voted_block = proposed_blocks_.getPbftProposedBlock(period, round - 1, next_voted_block_hash);
+    if (!next_voted_block) {
+      // This should never happen - if so, we probably have a bug in storing the blocks in proposed_blocks_
+      LOG(log_er_) << "Unable to soft-vote previous round next voted block " << next_voted_block_hash
+                   << ". Block is missing. round " << round << ", period " << period;
+      return;
+    }
 
     if (auto vote = generateVoteWithWeight(next_voted_block_hash, soft_vote_type, period, round, step_); vote) {
-      auto previous_round_next_voted_block =
-          proposed_blocks_.getPbftProposedBlock(period, round - 1, next_voted_block_hash);
-      placeVote(vote, "previous round next voted block soft vote", previous_round_next_voted_block);
+      placeVote(vote, "previous round next voted block soft vote", next_voted_block);
     }
   }
 }
@@ -1028,6 +1036,13 @@ void PbftManager::firstFinish_() {
     std::pair<blk_hash_t, std::shared_ptr<PbftBlock>> starting_value;
     if (previous_round_next_voted_value_.has_value()) {
       auto block = proposed_blocks_.getPbftProposedBlock(period, round - 1, *previous_round_next_voted_value_);
+      if (!block) {
+        // This should never happen - if so, we probably have a bug in storing the blocks in proposed_blocks_
+        LOG(log_er_) << "Unable to first finish next-vote starting value " << *previous_round_next_voted_value_
+                     << ". Block is missing. round " << round << ", period " << period;
+        return;
+      }
+
       starting_value = {*previous_round_next_voted_value_, std::move(block)};
     } else {  // for round == 1, starting value is always NULL_BLOCK_HASH and previous_round_next_voted_null_block_hash_
               // should be == false
