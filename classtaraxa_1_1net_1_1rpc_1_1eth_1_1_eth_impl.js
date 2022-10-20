@@ -50,7 +50,7 @@ var classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl =
     [ "parse_blk_num", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#adc4a18aff1f8bd175b398604af9dce65", null ],
     [ "parse_blk_num_specific", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#ade3c5d654e5838bed8adcd2722629ea6", null ],
     [ "parse_log_filter", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a2cac604ead6058d9fd7370f1d9b4ab68", null ],
-    [ "set_transaction_defaults", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#ae7981513fdf0088e390a03da36133623", null ],
+    [ "prepare_transaction_for_call", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a81ac46039a6652d55cf81bc72e6d66c5", null ],
     [ "toAddress", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a7b02f72b61212a6f399563a8ffbcc41e", null ],
     [ "toJson", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#aad2447ae38ba415e5a8f35077bfafa14", null ],
     [ "toJson", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a33b1eb30d14d6c11511bd495feb46df5", null ],
