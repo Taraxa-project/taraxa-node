@@ -55,17 +55,14 @@ class EthImpl : public Eth, EthParams {
   string eth_call(Json::Value const& _json, string const& _blockNumber) override {
     auto t = toTransactionSkeleton(_json);
     auto blk_n = parse_blk_num(_blockNumber);
-    set_transaction_defaults(t, blk_n);
+    prepare_transaction_for_call(t, blk_n);
     return toJS(call(blk_n, t).code_retval);
   }
 
   string eth_estimateGas(Json::Value const& _json) override {
     auto t = toTransactionSkeleton(_json);
-    if (!t.gas) {
-      t.gas = gas_limit;
-    }
     auto blk_n = final_chain->last_block_number();
-    set_transaction_defaults(t, blk_n);
+    prepare_transaction_for_call(t, blk_n);
     return toJS(call(blk_n, t).gas_used);
   }
 
@@ -276,7 +273,8 @@ class EthImpl : public Eth, EthParams {
     throw std::runtime_error(result.consensus_err.empty() ? result.code_err : result.consensus_err);
   }
 
-  void set_transaction_defaults(TransactionSkeleton& t, EthBlockNumber blk_n) {
+  // this should be used only in eth_call and eth_estimateGas
+  void prepare_transaction_for_call(TransactionSkeleton& t, EthBlockNumber blk_n) {
     if (!t.from) {
       t.from = ZeroAddress;
     }
@@ -284,10 +282,10 @@ class EthImpl : public Eth, EthParams {
       t.nonce = transaction_count(blk_n, t.from);
     }
     if (!t.gas_price) {
-      t.gas_price = gas_pricer();
+      t.gas_price = 0;
     }
     if (!t.gas) {
-      t.gas = 90000;
+      t.gas = gas_limit;
     }
   }
 
