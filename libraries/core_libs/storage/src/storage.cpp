@@ -726,6 +726,23 @@ void DbStorage::removeSoftVotedBlockDataInRound(Batch& write_batch) {
   remove(write_batch, Columns::soft_voted_block_in_round, 0);
 }
 
+void DbStorage::savePreviousRoundNextVotedBlock(const PbftBlock& block) {
+  insert(Columns::previous_round_next_voted_block, 0, toSlice(block.rlp(true)));
+}
+
+std::optional<PbftBlock> DbStorage::getPreviousRoundNextVotedBlock() const {
+  auto value = asBytes(lookup(0, Columns::previous_round_next_voted_block));
+  if (value.empty()) {
+    return {};
+  }
+
+  return PbftBlock(dev::RLP(value));
+}
+
+void DbStorage::removePreviousRoundNextVotedBlock(Batch& write_batch) {
+  remove(write_batch, Columns::previous_round_next_voted_block, 0);
+}
+
 std::optional<PbftBlock> DbStorage::getPbftBlock(blk_hash_t const& hash) {
   auto res = getPeriodFromPbftHash(hash);
   if (res.first) {

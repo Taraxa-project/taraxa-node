@@ -602,6 +602,19 @@ void PbftManager::initialState() {
   previous_round_next_voted_value_ = next_votes_manager_->getVotedValue();
   previous_round_next_voted_null_block_hash_ = next_votes_manager_->haveEnoughVotesForNullBlockHash();
 
+  if (previous_round_next_voted_value_.has_value()) {
+    if (auto previous_round_next_voted_block = db_->getPreviousRoundNextVotedBlock();
+        previous_round_next_voted_block.has_value() &&
+        previous_round_next_voted_block->getBlockHash() == *previous_round_next_voted_value_) {
+      if (proposed_blocks_.pushProposedPbftBlock(current_pbft_round - 1,
+                                                 std::make_shared<PbftBlock>(*previous_round_next_voted_block))) {
+        LOG(log_nf_) << "Last round next voted block " << previous_round_next_voted_block->getBlockHash()
+                     << " with period " << previous_round_next_voted_block->getPeriod() << ", round "
+                     << current_pbft_round - 1 << " pushed into proposed blocks";
+      }
+    }
+  }
+
   LOG(log_nf_) << "Node initialize at round " << current_pbft_round << ", period " << getPbftPeriod() << ", step "
                << current_pbft_step << ". Previous round has enough next votes for NULL_BLOCK_HASH: " << std::boolalpha
                << previous_round_next_voted_null_block_hash_ << ", voted value "
@@ -796,7 +809,17 @@ const std::optional<TwoTPlusOneSoftVotedBlockData> &PbftManager::getTwoTPlusOneS
 }
 
 void PbftManager::checkPreviousRoundNextVotedValueChange_() {
+  const auto [current_pbft_round, current_pbft_period] = getPbftRoundAndPeriod();
+  auto old_previous_round_next_voted_value = previous_round_next_voted_value_;
   previous_round_next_voted_value_ = next_votes_manager_->getVotedValue();
+  if (previous_round_next_voted_value_.has_value() &&
+      previous_round_next_voted_value_ != old_previous_round_next_voted_value) {
+    auto block = proposed_blocks_.getPbftProposedBlock(current_pbft_period, current_pbft_round - 1,
+                                                       *previous_round_next_voted_value_);
+    if (block != nullptr) {
+      db_->savePreviousRoundNextVotedBlock(*block);
+    }
+  }
   previous_round_next_voted_null_block_hash_ = next_votes_manager_->haveEnoughVotesForNullBlockHash();
 }
 
