@@ -58,7 +58,13 @@ class ExtVotesPacketHandler : public PacketHandler {
    */
   bool processNextSyncVote(const std::shared_ptr<Vote>& vote, const std::shared_ptr<PbftBlock>& pbft_block) const;
 
-  void onNewPbftVotes(std::vector<std::shared_ptr<Vote>>&& votes);
+  /**
+   * @brief Sends pbft votes to connected peers
+   *
+   * @param votes Votes to send
+   * @param rebroadcast if rebroadcast is true, all votes are resent to all peers
+   */
+  void onNewPbftVotes(std::vector<std::shared_ptr<Vote>>&& votes, bool rebroadcast = false);
   void sendPbftVotes(const std::shared_ptr<TaraxaPeer>& peer, std::vector<std::shared_ptr<Vote>>&& votes,
                      bool is_next_votes = false);
 

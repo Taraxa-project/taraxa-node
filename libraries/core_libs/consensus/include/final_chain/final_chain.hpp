@@ -27,7 +27,6 @@ enum class DBMetaKeys { LAST_NUMBER = 1 };
  */
 class FinalChain {
  public:
-  static constexpr auto GAS_LIMIT = ((uint64_t)1 << 53) - 1;
   using finalize_precommit_ext = std::function<void(FinalizationResult const&, DB::Batch&)>;
 
  protected:
@@ -164,14 +163,6 @@ class FinalChain {
                                                         std::optional<EthBlockNumber> blk_n = {}) const = 0;
 
   /**
-   * @brief Get the vrf key object from DPOS state
-   * @param addr account address
-   * @param blk_n number of block we are getting state from
-   * @return vrf_wrapper::vrf_pk_t
-   */
-  virtual vrf_wrapper::vrf_pk_t get_vrf_key(const addr_t& addr, std::optional<EthBlockNumber> blk_n = {}) const = 0;
-
-  /**
    * @brief Returns the value from a storage position at a given address.
    * @param addr account address
    * @param key position in the storage
@@ -193,12 +184,10 @@ class FinalChain {
    * state would be reverted and not saved anywhere
    * @param trx state_api::EVMTransaction
    * @param blk_n EthBlockNumber number of block we are getting state from
-   * @param opts state_api::ExecutionOptions
    * @return state_api::ExecutionResult
    */
   virtual state_api::ExecutionResult call(state_api::EVMTransaction const& trx,
-                                          std::optional<EthBlockNumber> blk_n = {},
-                                          std::optional<state_api::ExecutionOptions> const& opts = {}) const = 0;
+                                          std::optional<EthBlockNumber> blk_n = {}) const = 0;
 
   /**
    * @brief total count of eligible votes are in DPOS precompiled contract
@@ -222,6 +211,15 @@ class FinalChain {
    * @return is address eligible
    */
   virtual bool dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const = 0;
+
+  /**
+   * @brief Get the vrf key object from DPOS state
+   * @param addr account address
+   * @param blk_n number of block we are getting state from
+   * @return vrf_wrapper::vrf_pk_t
+   */
+  virtual vrf_wrapper::vrf_pk_t dpos_get_vrf_key(EthBlockNumber blk_n, const addr_t& addr) const = 0;
+
   // TODO move out of here:
 
   std::pair<val_t, bool> getBalance(addr_t const& addr) const {

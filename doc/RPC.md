@@ -430,12 +430,9 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getConfig","params":[],"i
           "homestead_block": "0x0",
           "petersburg_block": "0x0"
         },
-        "execution_options": {
-          "disable_block_rewards": true,
-          "disable_gas_fee": false,
-          "disable_nonce_check": true,
-          "enable_nonce_skipping" : true,
-          "disable_stats_rewards": true
+        "block_rewards_options": {
+          "disable_block_rewards": false,
+          "disable_contract_distribution": false
         },
         "genesis_balances": {
           "0x0274cfffea9fa850e54c93a23042f12a87358a82": "0x141e8d17",
@@ -547,6 +544,26 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"send_coin_transaction","params":
   "result": null
 }
 ```
+### send_coin_transactions
+
+Method to create and send multiple transaction. Used to create high transactions load in tests
+
+#### Parameters
+
+`OBJECT` - block json to insert
+* `secret`: `DATA`, 32 Bytes - Secret key for account to send transactions from
+* `nonce`: `QUANTITY` - Nonce to start sending transaction with
+* `value`: `QUANTITY` - Value to specify in created transaction
+* `gas_price`: `QUANTITY` - Gas price to specify in created transaction
+* `gas`: `QUANTITY` - Amount of gas transaction can use
+* `receiver`: `DATA`, 20 Bytes - Array of Addresses of receiver account
+* `transaction_count`: `QUANTITY`, - Number of transactions to create
+
+#### Returns
+
+Number of transactions inserted successfuly, in case of transaction insertion failure, error message is returned
+
+
 
 ### get_account_address
 

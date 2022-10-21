@@ -235,8 +235,8 @@ TEST_F(NetworkTest, malicious_peers) {
 TEST_F(NetworkTest, sync_large_pbft_block) {
   const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
   auto node_cfgs = make_node_cfgs<5>(2);
-  node_cfgs[0].chain.pbft.gas_limit = FinalChain::GAS_LIMIT;
-  node_cfgs[1].chain.pbft.gas_limit = FinalChain::GAS_LIMIT;
+  node_cfgs[0].chain.pbft.gas_limit = TEST_BLOCK_GAS_LIMIT;
+  node_cfgs[1].chain.pbft.gas_limit = TEST_BLOCK_GAS_LIMIT;
   auto nodes = launch_nodes({node_cfgs[0]});
 
   // Create 250 transactions, each one has 10k dummy data
@@ -856,9 +856,9 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
 
   auto pbft_mgr1 = node1->getPbftManager();
   auto pbft_mgr2 = node2->getPbftManager();
-  auto node1_pbft_2t_plus_1 = pbft_mgr1->getTwoTPlusOne();
+  auto node1_pbft_2t_plus_1 = pbft_mgr1->getPbftTwoTPlusOne(node1->getPbftChain()->getPbftChainSize()).value();
   EXPECT_EQ(node1_pbft_2t_plus_1, 1);
-  auto node2_pbft_2t_plus_1 = pbft_mgr2->getTwoTPlusOne();
+  auto node2_pbft_2t_plus_1 = pbft_mgr2->getPbftTwoTPlusOne(node2->getPbftChain()->getPbftChainSize()).value();
   EXPECT_EQ(node2_pbft_2t_plus_1, 1);
 
   // Generate 2 next votes for node1
@@ -921,9 +921,9 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
 
   auto pbft_mgr1 = node1->getPbftManager();
   auto pbft_mgr2 = node2->getPbftManager();
-  auto node1_pbft_2t_plus_1 = pbft_mgr1->getTwoTPlusOne();
+  auto node1_pbft_2t_plus_1 = pbft_mgr1->getPbftTwoTPlusOne(node1->getPbftChain()->getPbftChainSize()).value();
   EXPECT_EQ(node1_pbft_2t_plus_1, 1);
-  auto node2_pbft_2t_plus_1 = pbft_mgr2->getTwoTPlusOne();
+  auto node2_pbft_2t_plus_1 = pbft_mgr2->getPbftTwoTPlusOne(node2->getPbftChain()->getPbftChainSize()).value();
   EXPECT_EQ(node2_pbft_2t_plus_1, 1);
 
   // Node1 generate 1 next vote voted at NULL_BLOCK_HASH

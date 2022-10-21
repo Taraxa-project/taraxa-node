@@ -16,8 +16,6 @@
 #include "pbft/soft_voted_block_data.hpp"
 
 #define NULL_BLOCK_HASH blk_hash_t(0)
-#define POLLING_INTERVAL_ms 100  // milliseconds...
-#define MAX_STEPS 13             // Need to be a odd number
 
 namespace taraxa {
 
@@ -144,19 +142,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void setPbftRound(uint64_t const round);
 
   /**
-   * @brief Get PBFT sortition threshold. PBFT sortition threshold is minimum of between PBFT committee size and total
-   * DPOS votes count
-   * @return PBFT sortition threshold
-   */
-  size_t getSortitionThreshold() const;
-
-  /**
-   * @brief Get 2t+1. 2t+1 is 2/3 of PBFT sortition threshold and plus 1
-   * @return 2t+1
-   */
-  size_t getTwoTPlusOne() const;
-
-  /**
    * @brief Set PBFT step
    * @param pbft_step PBFT step
    */
@@ -186,16 +171,18 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
                                      size_t step);
 
   /**
-   * @brief Get total DPOS votes count
-   * @return total DPOS votes count
+   * @brief Get current total DPOS votes count
+   * @return current total DPOS votes count if successful, otherwise (due to non-existent data for pbft_period) empty
+   * optional
    */
-  uint64_t currentTotalVotesCount() const;
+  std::optional<uint64_t> getCurrentDposTotalVotesCount() const;
 
   /**
-   * @brief Get node DPOS weighted votes count
-   * @return node DPOS weighted votes count
+   * @brief Get current node DPOS votes count
+   * @return node current DPOS votes count if successful, otherwise (due to non-existent data for pbft_period) empty
+   * optional
    */
-  uint64_t currentWeightedVotesCount() const;
+  std::optional<uint64_t> getCurrentNodeVotesCount() const;
 
   /**
    * @brief Get PBFT blocks synced period
@@ -234,7 +221,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Get PBFT lambda. PBFT lambda is a timer clock
    * @return PBFT lambda
    */
-  u_long getPbftInitialLambda() const { return LAMBDA_ms_MIN; }
+  std::chrono::milliseconds getPbftInitialLambda() const { return LAMBDA_ms_MIN; }
 
   /**
    * @brief Calculate DAG blocks ordering hash
@@ -249,6 +236,13 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @return DAG blocks ordering hash
    */
   static blk_hash_t calculateOrderHash(const std::vector<DagBlock> &dag_blocks);
+
+  /**
+   * @brief Reorder transactions data if DAG reordering caused transactions with same sender to have nonce in incorrect
+   * order. Reordering is deterministic so that same order is produced on any node on any platform
+   * @param transactions transactions to reorder
+   */
+  static void reorderTransactions(SharedTransactions &transactions);
 
   /**
    * @brief Check a block weight of gas estimation
@@ -299,6 +293,13 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    */
   size_t getPbftCommitteeSize() const { return COMMITTEE_SIZE; }
 
+  /**
+   * @brief Get 2t+1. 2t+1 is 2/3 of PBFT sortition threshold and plus 1 for a specific period
+   * @param pbft_period pbft period
+   * @return PBFT 2T + 1 if successful, otherwise (due to non-existent data for pbft_period) empty optional
+   */
+  std::optional<uint64_t> getPbftTwoTPlusOne(uint64_t pbft_period) const;
+
  private:
   // DPOS
   /**
@@ -334,6 +335,12 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param round
    */
   void resetPbftConsensus(uint64_t round);
+
+  /**
+   * @param start_time
+   * @return elapsed time in ms from provided start_time
+   */
+  std::chrono::milliseconds elapsedTimeInMs(const time_point &start_time);
 
   /**
    * @brief Time to sleep for PBFT protocol
@@ -456,14 +463,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void gossipNewVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &voted_block);
 
   /**
-   * @brief Get PBFT sortition threshold for specific period
-   * @param vote_type vote type
-   * @param pbft_period pbft period
-   * @return PBFT sortition threshold
-   */
-  uint64_t getPbftSortitionThreshold(PbftVoteTypes vote_type, uint64_t pbft_period) const;
-
-  /**
    * @brief Propose a new PBFT block
    * @return proposed PBFT block
    */
@@ -484,12 +483,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @return lowest hash of a vote
    */
   h256 getProposal(const std::shared_ptr<Vote> &vote) const;
-
-  /**
-   * @brief Only be able to broadcast one time of previous round next voting votes per each PBFT round and step
-   * @return true if the current PBFT round and step has broadcasted previous round next voting votes already
-   */
-  bool broadcastAlreadyThisStep_() const;
 
   /**
    * @brief Check that there are all DAG blocks with correct ordering, total gas estimation is not greater than gas
@@ -526,11 +519,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool pushPbftBlock_(PeriodData &&period_data, std::vector<std::shared_ptr<Vote>> &&cert_votes);
 
   /**
-   * @brief Update PBFT 2t+1 and PBFT sortition threshold
-   */
-  void updateTwoTPlusOneAndThreshold_();
-
-  /**
    * @brief Check if previous round next voting value has been changed
    */
   void checkPreviousRoundNextVotedValueChange_();
@@ -549,9 +537,34 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> processPeriodData();
 
   /**
-   * @brief Count how many votes in the current PBFT round and step. This is only for testing purpose
+   * @brief Validates PBFT block cert votes
+   * @param pbft_block
+   * @param cert_votes
+   *
+   * @return true if there is enough(2t+1) votes and all of them are valid, otherwise false
    */
-  void countVotes_() const;
+  bool validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pbft_block,
+                                  const std::vector<std::shared_ptr<Vote>> &cert_votes) const;
+
+  /**
+   * @param period
+   * @return true if node can participate in consensus - is dpos eligible to vote and create blocks for specified period
+   */
+  bool canParticipateInConsensus(uint64_t period) const;
+
+  /**
+   * @brief Get PBFT sortition threshold for specific period
+   * @param total_dpos_votes_count total votes count
+   * @param vote_type vote type
+   * @return PBFT sortition threshold
+   */
+  uint64_t getPbftSortitionThreshold(uint64_t total_dpos_votes_count, PbftVoteTypes vote_type) const;
+
+  /**
+   * @brief Broadcast or rebroadcast current round soft votes, previous round next votes and reward votes
+   * @param rebroadcast
+   */
+  void broadcastVotes(bool rebroadcast);
 
   std::atomic<bool> stopped_ = true;
 
@@ -573,19 +586,22 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<KeyManager> key_manager_;
 
-  addr_t node_addr_;
-  secret_t node_sk_;
-  vrf_sk_t vrf_sk_;
+  const addr_t node_addr_;
+  const secret_t node_sk_;
+  const dev::Public node_pub_;
+  const vrf_sk_t vrf_sk_;
 
-  u_long const LAMBDA_ms_MIN;
-  u_long LAMBDA_ms = 0;
-  u_long LAMBDA_backoff_multiple = 1;
-  const u_long kMaxLambda = 60000;  // in ms, max lambda is 1 minutes
+  const std::chrono::milliseconds LAMBDA_ms_MIN;
+  std::chrono::milliseconds LAMBDA_ms{0};
+  uint64_t LAMBDA_backoff_multiple = 1;
+  const std::chrono::milliseconds kMaxLambda{60000};  // in ms, max lambda is 1 minutes
+
+  const uint32_t kBroadcastVotesLambdaTime = 20;
+  const uint32_t kRebroadcastVotesLambdaTime = 60;
+  uint32_t broadcast_votes_counter_ = 1;
+  uint32_t rebroadcast_votes_counter_ = 1;
 
   std::default_random_engine random_engine_{std::random_device{}()};
-
-  // Flag that says if node is in sync after it enters new round
-  // bool new_round_in_sync_ = false;
 
   const size_t COMMITTEE_SIZE;
   const size_t NUMBER_OF_PROPOSERS;
@@ -607,12 +623,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::optional<blk_hash_t> previous_round_next_voted_value_{};
   bool previous_round_next_voted_null_block_hash_ = false;
 
-  time_point round_clock_initial_datetime_;
-  time_point now_;
-
-  std::chrono::duration<double> duration_;
-  u_long next_step_time_ms_ = 0;
-  u_long elapsed_time_in_round_ms_ = 0;
+  time_point current_round_start_datetime_;
+  time_point second_finish_step_start_datetime_;
+  std::chrono::milliseconds next_step_time_ms_{0};
 
   bool executed_pbft_block_ = false;
   bool next_voted_soft_value_ = false;
@@ -620,14 +633,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
 
-  uint64_t pbft_round_last_broadcast_ = 0;
-  size_t pbft_step_last_broadcast_ = 0;
-
-  std::atomic<uint64_t> dpos_period_;
-
-  size_t sortition_threshold_ = 0;
-  // 2t+1 minimum number of votes for consensus
-  size_t two_t_plus_one_ = 0;
+  // Cache for current 2T+1 - do not access it directly as it is not updated automatically,
+  // always call getPbftTwoTPlusOne instead !!!
+  mutable std::pair<uint64_t /* period */, uint64_t /* two_t_plus_one for period */> current_two_t_plus_one_;
+  mutable std::shared_mutex current_two_t_plus_one_mutex_;
 
   const blk_hash_t dag_genesis_block_hash_;
 
@@ -642,11 +651,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   ProposedBlocks proposed_blocks_;
 
   const uint32_t max_levels_per_period_;
-
-  size_t last_step_ = 0;
-  time_point last_step_clock_initial_datetime_;
-  time_point current_step_clock_initial_datetime_;
-  // END TEST CODE
 
   LOG_OBJECTS_DEFINE
 };

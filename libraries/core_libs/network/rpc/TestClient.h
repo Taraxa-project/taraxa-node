@@ -32,6 +32,15 @@ class TestClient : public jsonrpc::Client {
     else
       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
+  Json::Value send_coin_transactions(const Json::Value& param1) throw(jsonrpc::JsonRpcException) {
+    Json::Value p;
+    p.append(param1);
+    Json::Value result = this->CallMethod("send_coin_transactions", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+  }
   Json::Value get_account_address() throw(jsonrpc::JsonRpcException) {
     Json::Value p;
     p = Json::nullValue;

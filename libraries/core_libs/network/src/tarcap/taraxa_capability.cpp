@@ -126,7 +126,7 @@ void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pb
   //       1. Most of time is this single threaded thread pool doing nothing...
   //       2. These periodic events are sending packets - that might be processed by main thread_pool ???
   // Creates periodic events
-  const auto lambda_ms_min = pbft_mgr ? pbft_mgr->getPbftInitialLambda() : 2000;
+  uint64_t lambda_ms_min = pbft_mgr ? pbft_mgr->getPbftInitialLambda().count() : 2000;
 
   // Send new txs periodic event
   auto tx_packet_handler = packets_handlers_->getSpecificHandler<TransactionPacketHandler>();
@@ -253,7 +253,8 @@ void TaraxaCapability::onDisconnect(dev::p2p::NodeID const &_nodeID) {
   LOG(log_nf_) << "Node " << _nodeID << " disconnected";
   peers_state_->erasePeer(_nodeID);
 
-  if (pbft_syncing_state_->isPbftSyncing() && pbft_syncing_state_->syncingPeer() == _nodeID) {
+  const auto syncing_peer = pbft_syncing_state_->syncingPeer();
+  if (pbft_syncing_state_->isPbftSyncing() && syncing_peer && syncing_peer->getId() == _nodeID) {
     if (peers_state_->getPeersCount() > 0) {
       LOG(log_dg_) << "Restart PBFT/DAG syncing due to syncing peer disconnect.";
       packets_handlers_->getSpecificHandler<PbftSyncPacketHandler>()->restartSyncingPbft(true);

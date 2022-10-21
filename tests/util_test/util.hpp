@@ -4,6 +4,7 @@
 #include <libdevcrypto/Common.h>
 
 #include <array>
+#include <cstdint>
 #include <cstdio>
 #include <filesystem>
 #include <iostream>
@@ -31,7 +32,8 @@ using std::filesystem::recursive_directory_iterator;
 using std::filesystem::remove_all;
 using namespace std::chrono;
 
-inline const uint64_t TEST_TX_GAS_LIMIT = 1000000;
+const uint64_t TEST_TX_GAS_LIMIT = 500000;
+const uint64_t TEST_BLOCK_GAS_LIMIT = ((uint64_t)1 << 53) - 1;
 const auto kContractAddress = addr_t("0x00000000000000000000000000000000000000FE");
 
 struct wait_opts {
@@ -181,7 +183,6 @@ inline auto make_node_cfgs(size_t total_count, size_t validators_count = 1) {
     cfg.chain.final_chain.state.dpos->delegation_locking_period = 5;
 
     // As test are badly written let's disable it for now
-    cfg.chain.final_chain.state.execution_options.disable_nonce_check = true;
     cfg.chain.final_chain.state.block_rewards_options.disable_block_rewards = true;
     cfg.chain.final_chain.state.block_rewards_options.disable_contract_distribution = true;
     if constexpr (tests_speed != 1) {
@@ -289,10 +290,13 @@ struct TransactionClient {
  private:
   std::shared_ptr<FullNode> node_;
   wait_opts wait_opts_;
+  uint64_t nonce_{1};
+  Secret secret_;
 
  public:
-  explicit TransactionClient(decltype(node_) node, wait_opts const& wait_opts = {60s, 1s})
-      : node_(std::move(node)), wait_opts_(wait_opts) {}
+  explicit TransactionClient(decltype(node_) node, std::optional<Secret> secret = {},
+                             wait_opts const& wait_opts = {60s, 1s})
+      : node_(std::move(node)), wait_opts_(wait_opts), secret_(secret.has_value() ? *secret : node_->getSecretKey()) {}
 
   void must_process_sync(std::shared_ptr<Transaction> const& trx) const {
     ASSERT_EQ(process(trx, true).stage, TransactionStage::executed);
@@ -318,18 +322,8 @@ struct TransactionClient {
     return ctx;
   }
 
-  Context coinTransfer(addr_t const& to, val_t const& val, std::optional<KeyPair> const& from_k = {},
-                       bool wait_executed = true) const {
-    // As long as nonce rules are completely disabled, this hack allows to
-    // generate unique nonces that contribute to transaction uniqueness.
-    // Without this, it's very possible in these tests to have hash collisions,
-    // if you just use a constant value like 0 or even get the nonce from the
-    // account state. The latter won't work in general because in some tests
-    // we don't wait for previous transactions for a sender to complete before
-    // sending a new one
-    static std::atomic<uint64_t> nonce = 100000;
-    return process(std::make_shared<Transaction>(++nonce, val, 0, TEST_TX_GAS_LIMIT, bytes(),
-                                                 from_k ? from_k->secret() : node_->getSecretKey(), to),
+  Context coinTransfer(addr_t const& to, val_t const& val, bool wait_executed = true) {
+    return process(std::make_shared<Transaction>(nonce_++, val, 0, TEST_TX_GAS_LIMIT, bytes(), secret_, to),
                    wait_executed);
   }
 };
@@ -402,14 +396,12 @@ inline auto make_addr(uint8_t i) {
 using expected_balances_map_t = std::map<addr_t, u256>;
 inline void wait_for_balances(const std::vector<std::shared_ptr<FullNode>>& nodes,
                               const expected_balances_map_t& balances, wait_opts to_wait = {10s, 500ms}) {
-  auto sendDummyTransaction = [&](const auto& trx_client) {
-    trx_client.coinTransfer(KeyPair::create().address(), 0, KeyPair::create(), false);
-  };
   wait(to_wait, [&](auto& ctx) {
     for (const auto& node : nodes) {
       for (const auto& b : balances) {
         if (node->getFinalChain()->getBalance(b.first).first != b.second) {
-          sendDummyTransaction(TransactionClient(node));
+          auto trx_client = TransactionClient(node);
+          trx_client.coinTransfer(KeyPair::create().address(), 0, false);
           WAIT_EXPECT_EQ(ctx, node->getFinalChain()->getBalance(b.first).first, b.second);
         }
       }

@@ -325,7 +325,7 @@ void ExtVotesPacketHandler::sendPbftVote(const std::shared_ptr<TaraxaPeer> &peer
   }
 }
 
-void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes) {
+void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes, bool rebroadcast) {
   for (const auto &peer : peers_state_->getAllPeers()) {
     if (peer.second->syncing_) {
       continue;
@@ -333,7 +333,7 @@ void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&
 
     std::vector<std::shared_ptr<Vote>> peer_votes;
     for (const auto &vote : votes) {
-      if (peer.second->isVoteKnown(vote->getHash())) {
+      if (!rebroadcast && peer.second->isVoteKnown(vote->getHash())) {
         continue;
       }
 

@@ -31,7 +31,6 @@ void dec_json(const Json::Value& json, ETHChainConfig& obj) {
 Json::Value enc_json(const Config& obj) {
   Json::Value json(Json::objectValue);
   json["eth_chain_config"] = enc_json(obj.eth_chain_config);
-  json["execution_options"] = enc_json(obj.execution_options);
   json["block_rewards_options"] = enc_json(obj.block_rewards_options);
   json["genesis_balances"] = enc_json(obj.genesis_balances);
   // json["hardforks"] = enc_json(obj.hardforks);
@@ -43,7 +42,6 @@ Json::Value enc_json(const Config& obj) {
 
 void dec_json(const Json::Value& json, Config& obj) {
   dec_json(json["eth_chain_config"], obj.eth_chain_config);
-  dec_json(json["execution_options"], obj.execution_options);
   dec_json(json["block_rewards_options"], obj.block_rewards_options);
   dec_json(json["genesis_balances"], obj.genesis_balances);
   // dec_json(json["hardforks"], obj.hardforks);
@@ -132,19 +130,6 @@ void dec_json(const Json::Value& json, DPOSConfig& obj) {
   }
 }
 
-Json::Value enc_json(const ExecutionOptions& obj) {
-  Json::Value json(Json::objectValue);
-  json["disable_nonce_check"] = obj.disable_nonce_check;
-  json["enable_nonce_skipping"] = obj.enable_nonce_skipping;
-
-  return json;
-}
-
-void dec_json(const Json::Value& json, ExecutionOptions& obj) {
-  obj.disable_nonce_check = json["disable_nonce_check"].asBool();
-  obj.enable_nonce_skipping = json["enable_nonce_skipping"].asBool();
-}
-
 Json::Value enc_json(BlockRewardsOptions const& obj) {
   Json::Value json(Json::objectValue);
   json["disable_block_rewards"] = obj.disable_block_rewards;
@@ -158,7 +143,6 @@ void dec_json(Json::Value const& json, BlockRewardsOptions& obj) {
   obj.disable_contract_distribution = json["disable_contract_distribution"].asBool();
 }
 
-RLP_FIELDS_DEFINE(ExecutionOptions, disable_nonce_check, enable_nonce_skipping)
 RLP_FIELDS_DEFINE(BlockRewardsOptions, disable_block_rewards, disable_contract_distribution)
 RLP_FIELDS_DEFINE(ETHChainConfig, homestead_block, eip_150_block, eip_158_block, byzantium_block, constantinople_block,
                   petersburg_block)
@@ -166,7 +150,7 @@ RLP_FIELDS_DEFINE(ValidatorInfo, address, owner, vrf_key, commission, endpoint, 
 RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, vote_eligibility_balance_step, validator_maximum_stake,
                   minimum_deposit, max_block_author_reward, commission_change_delta, commission_change_frequency,
                   delegation_delay, delegation_locking_period, blocks_per_year, yield_percentage, initial_validators)
-RLP_FIELDS_DEFINE(Config, eth_chain_config, execution_options, block_rewards_options, genesis_balances, dpos)
+RLP_FIELDS_DEFINE(Config, eth_chain_config, block_rewards_options, genesis_balances, dpos)
 RLP_FIELDS_DEFINE(Opts, expected_max_trx_per_block, max_trie_full_node_levels_to_cache)
 RLP_FIELDS_DEFINE(OptsDB, db_path, disable_most_recent_trie_value_views)
 

@@ -27,6 +27,7 @@ orbs:
   gcp-gcr: circleci/gcp-gcr@0.13.0
   gcp-cli: circleci/gcp-cli@1.0.0
   docker-cache: cci-x/docker-registry-image-cache@0.2.12
+  helm-release: taraxa/helm-release@0.1.0
 
 commands:
   pr_comment:
@@ -230,7 +231,8 @@ commands:
           name: Get Latest image for PR and deploy chart
           command: |
             if [ ${PRNET_IPS_BOOT_NODES} ];then
-              PR_TAG=$(gcloud container images list-tags gcr.io/jovial-meridian-249123/taraxa-node      --filter="tags:pr-<< parameters.pr-name >>-*" \
+              PR_TAG=$(gcloud container images list-tags gcr.io/jovial-meridian-249123/taraxa-node \
+                --filter="tags:pr-<< parameters.pr-name >>-*" \
                 --sort-by="~timestamp" \
                 --limit 1 \
                 --format="value(tags[0])" )
@@ -303,6 +305,233 @@ commands:
               fi
             fi
           when: << parameters.when >>
+
+  prepare:
+    description: Prepares environment
+    steps:
+      - run:
+          name: Prepare env variables
+          command: | 
+            echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >> $BASH_ENV
+            export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )
+            echo "export SHORT_GIT_HASH=$(echo $CIRCLE_SHA1 | cut -c -7)" >> $BASH_ENV
+            echo "export VERSION=$(git rev-parse --short HEAD)" >> $BASH_ENV
+            echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
+            echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >> $BASH_ENV
+            echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
+      - run:
+          name: Clean old Images if disk available is lower than 15G
+          command: |
+            for time in 120 96 72 48 24 12 6 3 1 0
+            do
+              if [ $(df  /var/lib/docker --block-size=1073741824 --output=avail|grep -v Avail) -lt 15 ]; then 
+                 df  /var/lib/docker --block-size=1073741824 --output=avail
+                 echo "Pruning images older than ${time}h"
+                 docker image prune -a --force --filter "until=${time}h"
+               fi
+            done
+
+  build:
+    description: Builds docker images
+    steps:
+      - run:
+          name: Build builder image
+          command: |
+            docker build -t ${IMAGE}:${VERSION} --target builder .
+      - run:
+          name: Checkout Submodules
+          command: |
+            git submodule sync
+            git submodule update --init --recursive --jobs 8
+      - run:
+          name: Build ctest image
+          command: |
+            docker build -t ${IMAGE}-ctest:${VERSION} --target build .
+      - run:
+          name: Build taraxad image
+          command: |
+            docker build -t ${IMAGE}:${VERSION} .
+
+  tag:
+    description: Tags docker images
+    steps:
+      - run:
+          name: Tag images
+          command: |
+
+            # tag images for 'develop' branch
+            if [[ ${CIRCLE_BRANCH} == "develop" ]]; then
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:${SHORT_GIT_HASH}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:latest
+            fi
+
+            # tag images for 'release' branches
+            if [[ ${CIRCLE_BRANCH} =~ ^release.* ]]; then
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-release:${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-release:${SHORT_GIT_HASH}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-release:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-release:latest
+            fi
+
+            ### soon obsolete ###
+            if [[ ${CIRCLE_BRANCH} == "testnet" ]]; then
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${SHORT_GIT_HASH}
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:latest
+            fi
+            ### soon obsolete ###
+
+            # tag images for 'feature' branches (based on PRs)
+            if [[ ${PR} != "false" ]]; then
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${SHORT_GIT_HASH}
+            fi
+
+            # tag images for release (based on tag)
+            if [[ ${CIRCLE_TAG} != "" ]];then
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${CIRCLE_TAG}
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:latest
+            fi
+
+  push_gcr:
+    description: Push images to GCR registry
+    steps:
+      - run:
+          name: Login into GCR
+          command: |
+            echo ${GCLOUD_SERVICE_KEY} | docker login -u _json_key --password-stdin https://gcr.io
+
+      - run:
+          name: Push Images to GCR
+          command: |
+
+            # push images for 'develop' branch
+            if [[ ${CIRCLE_BRANCH} == "develop" ]];then
+              docker push ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
+              docker push ${GCP_IMAGE}-develop:${SHORT_GIT_HASH}
+              docker push ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker push ${GCP_IMAGE}-develop:latest
+            fi
+
+            # push images for 'release' branches
+            if [[ ${CIRCLE_BRANCH} =~ ^release.* ]]; then
+              docker push ${GCP_IMAGE}-release:${CIRCLE_SHA1}
+              docker push ${GCP_IMAGE}-release:${SHORT_GIT_HASH}
+              docker push ${GCP_IMAGE}-release:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker push ${GCP_IMAGE}-release:latest
+            fi
+
+            ### soon obsolete ###
+            if [[ ${CIRCLE_BRANCH} == "testnet" ]];then
+              echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
+              docker push taraxa/${IMAGE}:${CIRCLE_SHA1}
+              docker push taraxa/${IMAGE}:${SHORT_GIT_HASH}
+              docker push taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker push taraxa/${IMAGE}:latest
+            fi
+            ### soon obsolete ###
+
+            # push images for 'feature' branches (based on PRs)
+            if [[ ${PR} != "false" ]]; then
+              docker push ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
+              docker push ${GCP_IMAGE}:pr-${PR}-${CIRCLE_SHA1}
+              docker push ${GCP_IMAGE}:pr-${PR}-${SHORT_GIT_HASH}
+            fi
+
+  push_dockerhub:
+    description: Push images to Docker Hub
+    steps:
+      - run:
+          name: Login into Docker Hub
+          command: |
+            echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
+
+      - run:
+          name: Push Images
+          command: |
+            docker push taraxa/${IMAGE}:${CIRCLE_TAG}
+            docker push taraxa/${IMAGE}:latest
+
+  test:
+    description: Run tests
+    steps:
+      - run:
+          name: Run Ctest
+          # move this to script
+          command: |
+            docker run  --ulimit nofile=4096:4096 \
+              --rm -v $PWD/tmp_docker:/tmp \
+              --name ${IMAGE}-ctest-${VERSION} \
+              ${IMAGE}-ctest:${VERSION} \
+              sh -c 'cd cmake-docker-build-debug/bin && ctest --output-on-failure'
+      - run:
+          name: Chmod core dump if fail
+          command: |
+            if [ -f tmp_docker/core* ];then
+              sudo chmod 777 tmp_docker/core*
+            fi
+          when: on_fail
+      # move this to script
+      - run:
+          name: Run SmokeTest
+          command: |
+            if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoketest-${VERSION})" ]; then
+              docker network rm smoketest-${VERSION} >/dev/null;
+            fi
+            
+            docker network create --driver=bridge \
+              smoketest-${VERSION}
+            
+            docker run -d\
+              --name smoketest-${VERSION} \
+              --net smoketest-${VERSION} \
+              ${IMAGE}:${VERSION} \
+              single
+            
+            mkdir -p  $PWD/test_build-d/
+            
+            sleep 30
+
+            echo "--- Logs from container ---"
+            docker logs smoketest-${VERSION}
+            echo "--- Logs from container ---"
+            
+            http_code=$(docker run --rm  -v $PWD/test_build-d:/data \
+              --net smoketest-${VERSION} \
+              byrnedo/alpine-curl \
+              -sS --fail -w '%{http_code}' -o /data/http.out \
+              --url smoketest-${VERSION}:7777 \
+              -d '{
+                      "jsonrpc": "2.0",
+                      "id":"0",
+                      "method": "send_coin_transaction",
+                      "params":[{
+                          "nonce": 0,
+                          "value": 0,
+                          "gas": 0,
+                          "gas_price": 1,
+                          "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
+                          "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
+                      }]
+                  }')
+              
+            cat $PWD/test_build-d/http.out || true
+            if [[ $http_code -eq 200 ]] ; then
+                exit 0
+            else
+                exit $http_code
+            fi
+      - run:
+          name: Cleanup smoke tests
+          when: always
+          command: |
+            docker kill smoketest-${VERSION} || true
+            docker rm smoketest-${VERSION} || true
+            docker network rm smoketest-${VERSION} || true
 
 jobs:
   deploy-prnet:
@@ -433,296 +662,41 @@ jobs:
           comment: "Failed to Clean up prnet"
           pr_number: << pipeline.parameters.pr_number >>
 
-  build-and-push-docker-image:
+  build-docker-image:
     environment:
       - IMAGE: taraxa-node
-      - HELMCHART: taraxa-node
       - CONAN_REVISIONS_ENABLED: 1
     machine:
       image: ubuntu-2204:2022.04.2
       docker_layer_caching: true
-    resource_class: xlarge
+    resource_class: large
     steps:
       - checkout
-      - run:
-          name: Clean old Images if disk available is lower than 15G
-          command: |
-            for time in 120 96 72 48 24 12 6 3 1 0
-            do
-              if [ $(df  /var/lib/docker --block-size=1073741824 --output=avail|grep -v Avail) -lt 15 ]; then 
-                 df  /var/lib/docker --block-size=1073741824 --output=avail
-                 echo "Pruning images older than ${time}h"
-                 docker image prune -a --force --filter "until=${time}h"
-               fi
-            done
-
-      - run:
-          name: Prepare Environment
-          command: |
-            if [[ ${CIRCLE_SHELL_ENV} =~ "localbuild" ]]; then
-              export CIRCLE_BRANCH=circleci
-              export CIRCLE_BUILD_NUM=300
-            fi
-            echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >>$BASH_ENV
-            echo "export START_TIME=$(date +%Y%m%d-%Hh%Mm%Ss)" >>$BASH_ENV
-            echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
-            echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >>$BASH_ENV
-            export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )
-            echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
-            sudo service apport stop
-            curl https://baltocdn.com/helm/signing.asc | sudo apt-key add -
-            sudo apt-get install apt-transport-https --yes
-            echo "deb https://baltocdn.com/helm/stable/debian/ all main" | sudo tee /etc/apt/sources.list.d/helm-stable-debian.list
-            sudo apt-get update
-            sudo apt-get install helm
-            helm plugin install https://github.com/chartmuseum/helm-push.git
-            helm repo add --username ${HELM_REPO_USERNAME} --password ${HELM_REPO_PASSWORD} taraxacharts https://charts.gcp.taraxa.io
-            helm repo add bitnami https://charts.bitnami.com/bitnami
-            helm repo update
-            mkdir -p $HOME/.kube
-            echo -n "${KUBE_CONFIG}" | base64 --decode > $HOME/.kube/config
-            curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            sudo cp kubectl /usr/local/bin 
-            sudo chmod +x /usr/local/bin/kubectl
-            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-            sudo chmod a+x /usr/local/bin/yq
-
-      - run:
-          name: Login into gcr
-          command: |
-            echo ${GCLOUD_SERVICE_KEY} | docker login -u _json_key --password-stdin https://gcr.io
-
-      - run:
-          name: Build docker builder image
-          command: |
-            docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target builder .
-
-      - run:
-          name: Checkout Submodules
-          command: |
-            git submodule sync
-            git submodule update --init --recursive --jobs 8
-
-      - run:
-          name: Build ctest image
-          command: |
-            docker build -t ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} --target build .
-
-      - run:
-          name: Build taraxad image
-          command: |
-            docker build -t ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} .
-
-      - run:
-         name: Run Ctest
-         command: |
-           docker run  --ulimit nofile=4096:4096 \
-                       --rm -v $PWD/tmp_docker:/tmp \
-                       --name ${IMAGE}-ctest-${DOCKER_BRANCH_TAG} \
-                       ${IMAGE}-ctest:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}\
-                        sh -c \
-                       'cd cmake-docker-build-debug/bin \
-                        && ctest --output-on-failure'
-
-      - run:
-          name: Chmod core dump if fail
-          command: |
-            if [ -f tmp_docker/core* ];then
-              sudo chmod 777 tmp_docker/core*
-            fi
-          when: on_fail
-
-      - run:
-          name: Run SmokeTest
-          command: |
-            if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoketest-${DOCKER_BRANCH_TAG:0:52})" ]; then
-              docker network rm \
-              smoketest-${DOCKER_BRANCH_TAG:0:52} >/dev/null;
-            fi
-            
-            docker network create --driver=bridge \
-              smoketest-${DOCKER_BRANCH_TAG:0:52}
-            
-            docker run -d\
-              --name smoketest-${DOCKER_BRANCH_TAG:0:52} \
-              --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
-              ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} \
-              single
-            
-            mkdir -p  $PWD/test_build-d/
-            
-            sleep 30
-
-            echo "--- Logs from container ---"
-            docker logs smoketest-${DOCKER_BRANCH_TAG:0:52}
-            echo "--- Logs from container ---"
-            
-            http_code=$(docker run --rm  -v $PWD/test_build-d:/data \
-              --net smoketest-${DOCKER_BRANCH_TAG:0:52} \
-              byrnedo/alpine-curl \
-              -sS --fail -w '%{http_code}' -o /data/http.out \
-              --url smoketest-${DOCKER_BRANCH_TAG:0:52}:7777 \
-              -d '{
-                      "jsonrpc": "2.0",
-                      "id":"0",
-                      "method": "send_coin_transaction",
-                      "params":[{
-                          "nonce": 0,
-                          "value": 0,
-                          "gas": 0,
-                          "gas_price": 1,
-                          "receiver": "973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0",
-                          "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
-                      }]
-                  }')
-              
-            cat $PWD/test_build-d/http.out || true
-            if [[ $http_code -eq 200 ]] ; then
-                exit 0
-            else
-                exit $http_code
-            fi
-
-      - run:
-          name: Cleanup smoke tests
-          when: always
-          command: |
-            docker kill smoketest-${DOCKER_BRANCH_TAG:0:52} || true
-            docker rm smoketest-${DOCKER_BRANCH_TAG:0:52} || true
-            docker network rm smoketest-${DOCKER_BRANCH_TAG:0:52} || true
-
-      - run:
-          name: Tag images
-          command: |
-            if [[ ${CIRCLE_BRANCH} == "develop" ]]; then
-               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
-               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${START_TIME}
-               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:${START_TIME}-${CIRCLE_SHA1}
-               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}-develop:latest
-            fi
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${CIRCLE_SHA1}
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:latest
-
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${CIRCLE_SHA1}
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${START_TIME}
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
-            docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} taraxa/${IMAGE}:latest
-            if [[ ${PR} != "false" ]];then
-               docker tag ${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
-            fi
-
-
-      - run:
-          name: Push Images
-          command: |
-            if [[ ${CIRCLE_BRANCH} == "develop"   ]];then
-               docker push ${GCP_IMAGE}-develop:latest
-               docker push ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-               docker push ${GCP_IMAGE}-develop:${START_TIME}
-               docker push ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
-               docker push ${GCP_IMAGE}-develop:${START_TIME}-${CIRCLE_SHA1}
-            fi
-            if [[ ${PR} != "false" ]];then
-               docker push ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
-            fi
-            if [[ ${CIRCLE_BRANCH} == "master" ]];then
-               docker push ${GCP_IMAGE}:latest
-               docker push ${GCP_IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-               docker push ${GCP_IMAGE}:${START_TIME}
-               docker push ${GCP_IMAGE}:${CIRCLE_SHA1}
-               docker push ${GCP_IMAGE}:${START_TIME}-${CIRCLE_SHA1}
-            fi
-            if [[ ${CIRCLE_BRANCH} == "testnet" ]];then
-               echo ${DOCKERHUB_PASS} | docker login -u taraxa --password-stdin
-               docker push taraxa/${IMAGE}:${CIRCLE_SHA1}
-               docker push taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
-               docker push taraxa/${IMAGE}:${START_TIME}
-               docker push taraxa/${IMAGE}:${START_TIME}-${CIRCLE_SHA1}
-               docker push taraxa/${IMAGE}:latest
-            fi
-
-      - run:
-          name: Verify Helm chart with linter
-          command: |
-            helm lint charts/${HELMCHART}/
-
-      - run:
-          name: Generate Helm chart and output yaml manifests for verification
-          command: |
-            helm dependency build charts/${HELMCHART}/
-            helm template charts/${HELMCHART}/ --values charts/${HELMCHART}/values.yaml
-
-      - run:
-          name: Deploy helm chart
-          no_output_timeout: 15m
-          command: |
-
-            if [[ ${PR} != "false" ]];then
-              helm install ${HELM_TEST_NAME:0:40} charts/${HELMCHART}/ \
-                --wait \
-                --atomic \
-                --timeout 600s \
-                --create-namespace \
-                --namespace ${HELM_TEST_NAME:0:40} \
-                --set node.replicaCount=1 \
-                --set bootnode.replicaCount=1 \
-                --set consensusnode.replicaCount=1 \
-                --set node.resources.limits.memory=64Mi \
-                --set bootnode.resources.limits.memory=64Mi \
-                --set consensusnode.resources.limits.memory=64Mi \
-                --set node.resources.limits.cpu=100m \
-                --set bootnode.resources.limits.cpu=100m \
-                --set consensusnode.resources.limits.cpu=100m \
-                --set node.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
-                --set bootnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
-                --set consensusnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
-                --set test.pythontester.script=jenkins.py \
-                --set image.repository=${GCP_IMAGE} \
-                --set image.tag=pr-${PR}-${CIRCLE_BUILD_NUM} \
-                -f charts/${HELMCHART}/values.yaml
-            fi
-
-      - run:
-          name: Run helm tests
-          no_output_timeout: 15m
-          command: |
-            if [[ ${PR} != "false" ]];then
-              helm test ${HELM_TEST_NAME:0:40} \
-                --timeout 600s \
-                --namespace ${HELM_TEST_NAME:0:40}
-              ./scripts/kibana-url.sh || true
-            fi
-
-      - run:
-          name: Cleanup helm tests
-          when: always
-          command: |
-            if [[ ${PR} != "false" ]];then
-               helm -n ${HELM_TEST_NAME:0:40} delete ${HELM_TEST_NAME:0:40} || true
-               kubectl delete ns ${HELM_TEST_NAME:0:40} || true
-            fi
-
-      - run:
-          name: Publish chart to Taraxa's repository
-          command: |
-            HELMCHART_VERSION=$(yq .version charts/${HELMCHART}/Chart.yaml | tr -d \")
-            if [[ ${CIRCLE_BRANCH} == "develop"   ]]; then
-              helm cm-push charts/${HELMCHART}/ --version="${HELMCHART_VERSION}-dev" taraxacharts || true
-            fi
-            if [[ ${CIRCLE_BRANCH} == "master" ]]; then
-              helm cm-push charts/${HELMCHART}/ taraxacharts || true
-            fi
-            if [[ ${PR} != "false" ]]; then
-              helm cm-push charts/${HELMCHART}/ --version="${HELMCHART_VERSION}-pr${PR}" taraxacharts || true
-            fi
-
+      - prepare
+      - build
+      - test
+      - tag
+      - push_gcr
       - store_artifacts:
           path: tmp_docker
+
+  release-docker-image:
+      environment:
+        - IMAGE: taraxa-node
+        - CONAN_REVISIONS_ENABLED: 1
+      machine:
+        image: ubuntu-2204:2022.04.2
+        docker_layer_caching: true
+      resource_class: large
+      steps:
+        - checkout
+        - prepare
+        - build
+        - test
+        - tag
+        - push_dockerhub
+        - store_artifacts:
+            path: tmp_docker
 
   create-and-push-builder:
     docker:
@@ -749,6 +723,7 @@ jobs:
           image: taraxa-node/builder
       - gcp-gcr/push-image:
           image: taraxa-node/builder
+
   build-mac:
     macos:
       xcode: 12.0.0
@@ -774,7 +749,7 @@ jobs:
           name: Install Tools
           command: |
             brew install coreutils llvm@$LLVM_VERSION go \
-                         ccache gflags libtool cmake conan clang-format
+                        ccache gflags libtool cmake conan clang-format
       - run:
           name: Setup Environment
           command: |
@@ -817,10 +792,10 @@ jobs:
           command: |
             cd cmake-build
             cmake \
-               -DCONAN_PROFILE=clang \
-               -DCMAKE_BUILD_TYPE=RelWithDebInfo \
-               -DTARAXA_ENABLE_LTO=ON \
-               -DTARAXA_STATIC_BUILD=ON ../ &&
+              -DCONAN_PROFILE=clang \
+              -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+              -DTARAXA_ENABLE_LTO=ON \
+              -DTARAXA_STATIC_BUILD=ON ../ &&
             make -j 6 &&
             mkdir $HOME/project/release &&
             cp bin/taraxad $HOME/project/release/taraxad-macos
@@ -834,6 +809,7 @@ jobs:
       - persist_to_workspace:
           root: release
           paths: [taraxad-macos]
+
   build-linux:
     environment:
       CONAN_REVISIONS_ENABLED: true
@@ -961,22 +937,6 @@ workflows:
             - GITHUB
             - CHARTSREPO
 
-  build-and-deploy-image:
-    when:
-      and:
-        - not: << pipeline.parameters.deploy_prnet >>
-        - not: << pipeline.parameters.redeploy_prnet >>
-        - not: << pipeline.parameters.cleanup_prnet >>
-    jobs:
-      - build-and-push-docker-image:
-          context:
-            - TARAXA
-            - GCP
-            - K8S
-            - GCR
-            - DOCKERHUB
-            - CHARTSREPO
-
   create-builder-image:
     jobs:
       - create-and-push-builder:
@@ -985,25 +945,24 @@ workflows:
             - GCR
           filters:
             branches:
-              only:
-                #  - develop
-                - cirleci
-
+              ignore: /.*/     # so far not working, so do not run (revisit at some point)
+            tags:
+              ignore: /.*/     # so far not working, so do not run (revisit at some point)
       - build-linux:
           filters:
             branches:
-              ignore: /.*/
+              ignore: /.*/     # so far not working, so do not run (revisit at some point)
             tags:
-              only: /^v?\d+\.\d+\.\d+(?:-.*)?$/
+              ignore: /.*/     # so far not working, so do not run (revisit at some point)
           context:
             - TARAXA
             - GCR
       - build-mac:
           filters:
             branches:
-              ignore: /.*/
+              ignore: /.*/     # so far not working, so do not run (revisit at some point)
             tags:
-              only: /^v?\d+\.\d+\.\d+(?:-.*)?$/
+              ignore: /.*/     # so far not working, so do not run (revisit at some point)
           context:
             - TARAXA
             - GCR
@@ -1018,9 +977,83 @@ workflows:
           path: release
           filters:
             branches:
-              ignore: /.*/
+              ignore: /.*/     # so far not working, so do not run (revisit at some point)
             tags:
-              only: /^v?\d+\.\d+\.\d+(?:-.*)?$/
+              ignore: /.*/     # so far not working, so do not run (revisit at some point)
           requires:
             - build-linux
             - build-mac
+
+  # run this workflow for all branches apart those reserved for chart
+  build-docker-image:
+    jobs:
+      - build-docker-image:
+          filters:
+            branches:
+              ignore:
+                - /^chart\/.*/
+                - /^chore\/chart-.*/
+                - /^fix\/chart-.*/
+                - /^feature\/chart-.*/
+          context:
+            - TARAXA
+            - GCP
+            - K8S
+            - GCR
+            - DOCKERHUB
+
+  # run this workflow for tags, like vX.Y.Z and vX.Y.Z-beta
+  release-docker-image:
+    jobs:
+      - release-docker-image:
+          filters:
+            tags:
+              only: 
+              - /^v?\d+\.\d+\.\d+$/
+              - /^v?\d+\.\d+\.\d+-beta$/
+            branches:
+              ignore: /.*/
+          context:
+            - TARAXA
+            - GCP
+            - K8S
+            - GCR
+            - DOCKERHUB
+
+  # run this workflow for branches specified below
+  build-helm-chart:
+    jobs:
+      - helm-release/chart-publish:
+          develop: true # means, that this is development release, no-verify and artifact -> ${HELMCHART_VERSION}-sha.${SHORT_GIT_HASH}
+          charts-dir: charts
+          chart-name: taraxa-node
+          chartmuseum-url: https://charts.gcp.taraxa.io
+          chartmuseum-username: HELM_REPO_USERNAME
+          chartmuseum-password: HELM_REPO_PASSWORD
+          context:
+            - CHARTSREPO
+          filters:
+            branches:
+              only: 
+              - /^chart\/.*/
+              - /^chore\/chart-.*/
+              - /^fix\/chart-.*/
+              - /^feature\/chart-.*/
+
+
+  # run this workflow for tags, like chart-vX.Y.Z
+  release-helm-chart:
+    jobs:
+      - helm-release/chart-publish:
+          charts-dir: charts
+          chart-name: taraxa-node
+          chartmuseum-url: https://charts.gcp.taraxa.io
+          chartmuseum-username: HELM_REPO_USERNAME
+          chartmuseum-password: HELM_REPO_PASSWORD
+          context:
+            - CHARTSREPO
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^chart-v\d+.\d+.\d+/

@@ -12,6 +12,7 @@ TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_p
                                        std::shared_ptr<FinalChain> final_chain, addr_t node_addr)
     : kConf(conf),
       transactions_pool_(kConf.transactions_pool_size),
+      kDagBlockGasLimit(kConf.chain.dag.gas_limit),
       db_(std::move(db)),
       final_chain_(std::move(final_chain)) {
   LOG_OBJECTS_CREATE("TRXMGR");
@@ -33,7 +34,7 @@ uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction>
           trx->getReceiver(),
           trx->getNonce(),
           trx->getValue(),
-          FinalChain::GAS_LIMIT,
+          kDagBlockGasLimit,
           trx->getData(),
       },
       proposal_period);
@@ -57,7 +58,7 @@ std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
   }
 
   // Ensure the transaction doesn't exceed the current block limit gas.
-  if (FinalChain::GAS_LIMIT < trx->getGas()) {
+  if (kDagBlockGasLimit < trx->getGas()) {
     return {TransactionStatus::Invalid, "invalid gas"};
   }
 
@@ -70,7 +71,7 @@ std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
   const auto account = final_chain_->get_account(trx->getSender()).value_or(taraxa::state_api::ZeroAccount);
 
   // Ensure the transaction adheres to nonce ordering
-  if (account.nonce && account.nonce >= trx->getNonce()) {
+  if (account.nonce >= trx->getNonce()) {
     return {TransactionStatus::LowNonce, "nonce too low"};
   }
 
@@ -271,7 +272,7 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
   const uint64_t max_transactions_in_block = weight_limit / kMinTxGas;
   {
     std::shared_lock transactions_lock(transactions_mutex_);
-    trxs = transactions_pool_.get(max_transactions_in_block);
+    trxs = transactions_pool_.getOrderedTransactions(max_transactions_in_block);
   }
   for (uint64_t i = 0; i < trxs.size(); i++) {
     uint64_t weight;
@@ -288,7 +289,7 @@ std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrx
 
 SharedTransactions TransactionManager::getAllPoolTrxs() {
   std::shared_lock transactions_lock(transactions_mutex_);
-  return transactions_pool_.get();
+  return transactions_pool_.getAllTransactions();
 }
 
 /**

@@ -14,7 +14,8 @@ namespace taraxa::final_chain {
 
 class FinalChainImpl final : public FinalChain {
   std::shared_ptr<DB> db_;
-  const uint32_t commitee_size_;
+  const uint32_t kCommiteeSize;
+  const uint64_t kBlockGasLimit;
   std::unique_ptr<ReplayProtectionService> replay_protection_service_;
   StateAPI state_api_;
 
@@ -46,7 +47,8 @@ class FinalChainImpl final : public FinalChain {
  public:
   FinalChainImpl(const std::shared_ptr<DB>& db, const taraxa::FullNodeConfig& config, const addr_t& node_addr)
       : db_(db),
-        commitee_size_(config.chain.pbft.committee_size),
+        kCommiteeSize(config.chain.pbft.committee_size),
+        kBlockGasLimit(config.chain.pbft.gas_limit),
         // replay_protection_service_(NewReplayProtectionService({}, db)),
         state_api_([this](auto n) { return block_hash(n).value_or(ZeroHash()); },  //
                    config.chain.final_chain.state, config.opts_final_chain,
@@ -79,7 +81,7 @@ class FinalChainImpl final : public FinalChain {
     if (!last_blk_num) [[unlikely]] {
       auto batch = db_->createWriteBatch();
       auto header = append_block(batch, config.chain.final_chain.genesis_block_fields.author,
-                                 config.chain.final_chain.genesis_block_fields.timestamp, GAS_LIMIT,
+                                 config.chain.final_chain.genesis_block_fields.timestamp, kBlockGasLimit,
                                  state_db_descriptor.state_root);
 
       block_headers_cache_.append(header->number, header);
@@ -140,13 +142,14 @@ class FinalChainImpl final : public FinalChain {
     RewardsStats rewards_stats;
     // returns list of validators for new_blk.transactions
     std::vector<addr_t> txs_validators = rewards_stats.processStats(
-        new_blk, dpos_eligible_total_vote_count(new_blk.pbft_blk->getPeriod() - 1), commitee_size_);
+        new_blk, dpos_eligible_total_vote_count(new_blk.pbft_blk->getPeriod() - 1), kCommiteeSize);
 
     block_applying_emitter_.emit(block_header()->number + 1);
 
-    auto const& [exec_results, state_root] = state_api_.transition_state(
-        {new_blk.pbft_blk->getBeneficiary(), GAS_LIMIT, new_blk.pbft_blk->getTimestamp(), BlockHeader::difficulty()},
-        to_state_api_transactions(new_blk.transactions), txs_validators, {}, rewards_stats);
+    auto const& [exec_results, state_root] =
+        state_api_.transition_state({new_blk.pbft_blk->getBeneficiary(), kBlockGasLimit,
+                                     new_blk.pbft_blk->getTimestamp(), BlockHeader::difficulty()},
+                                    to_state_api_transactions(new_blk.transactions), txs_validators, {}, rewards_stats);
 
     TransactionReceipts receipts;
     receipts.reserve(exec_results.size());
@@ -172,7 +175,7 @@ class FinalChainImpl final : public FinalChain {
       index++;
     }
     auto blk_header = append_block(batch, new_blk.pbft_blk->getBeneficiary(), new_blk.pbft_blk->getTimestamp(),
-                                   GAS_LIMIT, state_root, new_blk.transactions, receipts);
+                                   kBlockGasLimit, state_root, new_blk.transactions, receipts);
     //    if (replay_protection_service_) {
     //      // Update replay protection service, like nonce watermark. Nonce watermark has been disabled
     //      replay_protection_service_->update(
@@ -348,10 +351,6 @@ class FinalChainImpl final : public FinalChain {
     return accounts_cache_.get(last_if_absent(blk_n), addr);
   }
 
-  vrf_wrapper::vrf_pk_t get_vrf_key(addr_t const& addr, std::optional<EthBlockNumber> blk_n = {}) const override {
-    return state_api_.get_vrf_key(last_if_absent(blk_n), addr);
-  }
-
   void update_state_config(const state_api::Config& new_config) override {
     delegation_delay_ = new_config.dpos->delegation_delay;
     state_api_.update_state_config(new_config);
@@ -366,8 +365,8 @@ class FinalChainImpl final : public FinalChain {
     return state_api_.get_code_by_address(last_if_absent(blk_n), addr);
   }
 
-  state_api::ExecutionResult call(state_api::EVMTransaction const& trx, std::optional<EthBlockNumber> blk_n = {},
-                                  std::optional<state_api::ExecutionOptions> const& opts = {}) const override {
+  state_api::ExecutionResult call(state_api::EVMTransaction const& trx,
+                                  std::optional<EthBlockNumber> blk_n = {}) const override {
     auto const blk_header = block_header(last_if_absent(blk_n));
     return state_api_.dry_run_transaction(blk_header->number,
                                           {
@@ -376,7 +375,7 @@ class FinalChainImpl final : public FinalChain {
                                               blk_header->timestamp,
                                               BlockHeader::difficulty(),
                                           },
-                                          trx, opts);
+                                          trx);
   }
 
   uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const override {
@@ -389,6 +388,10 @@ class FinalChainImpl final : public FinalChain {
 
   bool dpos_is_eligible(EthBlockNumber blk_num, addr_t const& addr) const override {
     return dpos_is_eligible_cache_.get(blk_num, addr);
+  }
+
+  vrf_wrapper::vrf_pk_t dpos_get_vrf_key(EthBlockNumber blk_n, const addr_t& addr) const override {
+    return state_api_.dpos_get_vrf_key(blk_n, addr);
   }
 
  private:

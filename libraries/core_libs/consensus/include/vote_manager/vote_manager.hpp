@@ -298,8 +298,9 @@ class VoteManager {
    * @brief Send out all reward votes to peers
    *
    * @param PBFT block hash
+   * @param rebroadcast if rebroadcast is true, all votes are resent to all peers
    */
-  void sendRewardVotes(const blk_hash_t& pbft_block_hash);
+  void sendRewardVotes(const blk_hash_t& pbft_block_hash, bool rebroadcast = false);
 
   /**
    * @brief Get current reward votes pbft block period

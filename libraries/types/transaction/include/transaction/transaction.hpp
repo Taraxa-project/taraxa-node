@@ -69,7 +69,8 @@ struct Transaction {
   Json::Value toJSON() const;
 };
 
+using SharedTransaction = std::shared_ptr<Transaction>;
 using Transactions = ::std::vector<Transaction>;
-using SharedTransactions = ::std::vector<std::shared_ptr<Transaction>>;
+using SharedTransactions = ::std::vector<SharedTransaction>;
 
 }  // namespace taraxa

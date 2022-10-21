@@ -14,6 +14,13 @@
     "returns": {}
   },
   {
+    "name": "send_coin_transactions",
+    "params": [
+      {}
+    ],
+    "returns": {}
+  },
+  {
     "name": "get_account_address",
     "params": [],
     "returns": {}
