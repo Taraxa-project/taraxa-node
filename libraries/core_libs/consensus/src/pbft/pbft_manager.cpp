@@ -53,6 +53,7 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
       GHOST_PATH_MOVE_BACK(conf.ghost_path_move_back),
       dag_genesis_block_hash_(dag_genesis_block_hash),
       config_(conf),
+      proposed_blocks_(db_),
       max_levels_per_period_(max_levels_per_period) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
 }
@@ -524,6 +525,10 @@ void PbftManager::initialState() {
   } else {
     LOG(log_er_) << "Unexpected condition at round " << current_pbft_round << " step " << current_pbft_step;
     assert(false);
+  }
+
+  for (const auto &block : db_->getProposedPbftBlocks()) {
+    proposed_blocks_.pushProposedPbftBlock(block.first, block.second, false);
   }
 
   // This is used to offset endtime for second finishing step...
