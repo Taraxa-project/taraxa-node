@@ -15,7 +15,7 @@ var searchData=
   ['dag_5fblock_5fpacket_5fhandler_2ecpp_447',['dag_block_packet_handler.cpp',['../dag__block__packet__handler_8cpp.html',1,'']]],
   ['dag_5fblock_5fpacket_5fhandler_2ehpp_448',['dag_block_packet_handler.hpp',['../dag__block__packet__handler_8hpp.html',1,'']]],
   ['dag_5fblocks_449',['dag_blocks',['../group___p_b_f_t.html#a544fd1d4f13335c23f2febe112855a1f',1,'taraxa::PeriodData']]],
-  ['dag_5fblocks_5fcount_5f_450',['dag_blocks_count_',['../classtaraxa_1_1_db_storage.html#a08e047fd250cb0d786c208eddb78fdd6',1,'taraxa::DbStorage']]],
+  ['dag_5fblocks_5fcount_5f_450',['dag_blocks_count_',['../classtaraxa_1_1_rewards_stats.html#ac0bdcada17880f9f28168dadbffcf9ea',1,'taraxa::RewardsStats::ValidatorStats::dag_blocks_count_()'],['../classtaraxa_1_1_db_storage.html#a08e047fd250cb0d786c208eddb78fdd6',1,'taraxa::DbStorage::dag_blocks_count_()']]],
   ['dag_5fblocks_5fmutex_5f_451',['dag_blocks_mutex_',['../classtaraxa_1_1_db_storage.html#a15486ac2fabf4c44484ca52c44bf667e',1,'taraxa::DbStorage']]],
   ['dag_5fblocks_5fpos_5fin_5fperiod_5fdata_452',['DAG_BLOCKS_POS_IN_PERIOD_DATA',['../namespacetaraxa.html#a2ff7d24b0b2af2d725815c2514048460',1,'taraxa']]],
   ['dag_5fblocks_5fsize_453',['dag_blocks_size',['../structtaraxa_1_1_pbft_config.html#a7e39443d0fc1ebb69bf890db5e6f1968',1,'taraxa::PbftConfig::dag_blocks_size()'],['../group___p_b_f_t.html#a768f92917004384adb070a4aa99df3ca',1,'taraxa::PbftManager::DAG_BLOCKS_SIZE()']]],

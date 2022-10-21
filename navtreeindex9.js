@@ -1,6 +1,5 @@
 var NAVTREEINDEX9 =
 {
-"classtaraxa_1_1net_1_1_ws_session.html#af54dde7e17a487cd1505576fd4e6e90b":[13,0,4,3,22,4],
 "classtaraxa_1_1net_1_1_ws_session.html#af98f801e0394f62d5a270f9c77e03d8f":[13,0,4,3,22,22],
 "classtaraxa_1_1net_1_1_ws_session.html#affee269e7b9e5a39d328a181fc3eb997":[13,0,4,3,22,0],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html":[13,0,4,3,0,0,1],
@@ -86,8 +85,8 @@ var NAVTREEINDEX9 =
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a8e2d0ba3b0ca4fa77081d5aaaaa9a84b":[13,0,4,3,0,0,13,13],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a90dacc58edfeb95d91304ed5e48c12e9":[13,0,4,3,0,0,13,0,0],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#a90dacc58edfeb95d91304ed5e48c12e9":[14,0,1,4,1,2,0,6,3,0],
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#aa0eceed2ad9fa81979e15b2e212c186c":[13,0,4,3,0,0,13,0,1],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#aa0eceed2ad9fa81979e15b2e212c186c":[14,0,1,4,1,2,0,6,3,1],
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#aa0eceed2ad9fa81979e15b2e212c186c":[13,0,4,3,0,0,13,0,1],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#aa29445224d1bf2dd33b911ee05ec2c0f":[13,0,4,3,0,0,13,15],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#aa39c84e43ff08f5c12487171d8112b67":[13,0,4,3,0,0,13,7],
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_watch_group.html#ac34a827a152f72bbe6f9a24ca820a8ed":[13,0,4,3,0,0,13,5],
@@ -249,5 +248,6 @@ var NAVTREEINDEX9 =
 "classtaraxa_1_1network_1_1tarcap_1_1_packet_data.html#a0fdfaaaea018f6bc8f894e726cddb751":[13,0,4,4,0,9,3],
 "classtaraxa_1_1network_1_1tarcap_1_1_packet_data.html#a25adcfbbc52bf3f9576dd63aa636e27e":[13,0,4,4,0,9,14],
 "classtaraxa_1_1network_1_1tarcap_1_1_packet_data.html#a2c3c08a7b718f876310dcc122472a438":[13,0,4,4,0,9,17],
-"classtaraxa_1_1network_1_1tarcap_1_1_packet_data.html#a49000d9a5736f73284ce98c61688596f":[13,0,4,4,0,9,5]
+"classtaraxa_1_1network_1_1tarcap_1_1_packet_data.html#a49000d9a5736f73284ce98c61688596f":[13,0,4,4,0,9,5],
+"classtaraxa_1_1network_1_1tarcap_1_1_packet_data.html#a72226f0737859bf3bce92f03b375e8ef":[13,0,4,4,0,9,16]
 };
