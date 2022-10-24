@@ -50,7 +50,7 @@ spec:
               mountPath: /bin/entrypoint.sh
               readOnly: true
               subPath: entrypoint.sh
-            - name: {{ .Values.persistence.name }}
+            - name: {{ .Values.bootnode.persistence.name }}
               mountPath: /root/.taraxa
       containers:
         - name: boot-node
@@ -95,7 +95,7 @@ spec:
           resources:
             {{- toYaml .Values.bootnode.resources | nindent 12 }}
           volumeMounts:
-            - name: {{ .Values.persistence.name }}
+            - name: {{ .Values.bootnode.persistence.name }}
               mountPath: /root/.taraxa
           securityContext:
             capabilities:
@@ -118,26 +118,26 @@ spec:
           configMap:
             defaultMode: 0700
             name: {{ .Release.Name }}-boot-node-init-script
-       {{- if not .Values.persistence.enabled }}
-        - name: {{ .Values.persistence.name }}
+       {{- if not .Values.bootnode.persistence.enabled }}
+        - name: {{ .Values.bootnode.persistence.name }}
           emptyDir: {}
        {{- end }}
-  {{- if .Values.persistence.enabled }}
+  {{- if .Values.bootnode.persistence.enabled }}
   volumeClaimTemplates:
   - metadata:
-      name: {{ .Values.persistence.name }}
+      name: {{ .Values.bootnode.persistence.name }}
     spec:
       accessModes:
-        - {{ .Values.persistence.accessMode | quote }}
-    {{- if .Values.persistence.storageClass }}
-    {{- if (eq "-" .Values.persistence.storageClass) }}
+        - {{ .Values.bootnode.persistence.accessMode | quote }}
+    {{- if .Values.bootnode.persistence.storageClass }}
+    {{- if (eq "-" .Values.bootnode.persistence.storageClass) }}
       storageClassName: ""
     {{- else }}
-      storageClassName: "{{ .Values.persistence.storageClass }}"
+      storageClassName: "{{ .Values.bootnode.persistence.storageClass }}"
     {{- end }}
     {{- end }}
       resources:
         requests:
-          storage: "{{ .Values.persistence.size }}"
+          storage: "{{ .Values.bootnode.persistence.size }}"
   {{- end }}
 {{- end }}

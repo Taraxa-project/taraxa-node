@@ -16,7 +16,7 @@ image:
   pullPolicy: IfNotPresent
 
 config:
-  # integer, 1=Mainnet, 2=Testnet, 3=Devnet)
+  # integer, 841=Mainnet, 842=Testnet, 843=Devnet)
   # 100 for default helm test
   network: "100"
   extraArgs: []
@@ -62,13 +62,6 @@ nodeSelector: {}
 tolerations: []
 
 affinity: {}
-
-persistence:
-  enabled: false
-  accessMode: ReadWriteOnce
-  name: taraxa-data
-  size: "30Gi"
-  storageClass: "fast"
 
 node:
   enabled: true
@@ -128,6 +121,12 @@ node:
           protocol: UDP
   resources: {}
   nodeSelector: {}
+  persistence:
+    enabled: false
+    # accessMode: ReadWriteOnce
+    # name: taraxa-node-data
+    # size: "30Gi"
+    # storageClass: "fast"
 
 bootnode:
   enabled: true
@@ -160,6 +159,12 @@ bootnode:
         protocol: UDP
   resources: {}
   nodeSelector: {}
+  persistence:
+    enabled: false
+    # accessMode: ReadWriteOnce
+    # name: taraxa-bootnode-data
+    # size: "30Gi"
+    # storageClass: "fast"
 
 consensusnode:
   enabled: true
@@ -198,6 +203,12 @@ consensusnode:
         protocol: UDP
   resources: {}
   nodeSelector: {}
+  persistence:
+    enabled: false
+    # accessMode: ReadWriteOnce
+    # name: taraxa-consensusnode-data
+    # size: "30Gi"
+    # storageClass: "fast"
 
 
 explorer:
