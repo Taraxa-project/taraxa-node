@@ -50,8 +50,10 @@ spec:
               mountPath: /bin/entrypoint.sh
               readOnly: true
               subPath: entrypoint.sh
+            {{- if .Values.bootnode.persistence.enabled }}
             - name: {{ .Values.bootnode.persistence.name }}
               mountPath: /root/.taraxa
+            {{- end }}
       containers:
         - name: boot-node
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
@@ -95,8 +97,10 @@ spec:
           resources:
             {{- toYaml .Values.bootnode.resources | nindent 12 }}
           volumeMounts:
+            {{- if .Values.bootnode.persistence.enabled }}
             - name: {{ .Values.bootnode.persistence.name }}
               mountPath: /root/.taraxa
+            {{- end }}
           securityContext:
             capabilities:
               add:

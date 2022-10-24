@@ -64,8 +64,10 @@ spec:
               mountPath: /bin/genconfig.py
               readOnly: true
               subPath: genconfig.py
+            {{- if .Values.consensusnode.persistence.enabled }}
             - name: {{ .Values.consensusnode.persistence.name }}
               mountPath: /root/.taraxa
+            {{- end }}
       containers:
         {{- if .Values.slack.enabled }}
         - name: status
@@ -137,8 +139,10 @@ spec:
           resources:
             {{- toYaml .Values.consensusnode.resources | nindent 12 }}
           volumeMounts:
+            {{- if .Values.consensusnode.persistence.enabled }}
             - name: {{ .Values.consensusnode.persistence.name }}
               mountPath: /root/.taraxa
+            {{- end }}
           securityContext:
             capabilities:
               add:
