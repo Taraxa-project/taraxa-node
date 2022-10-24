@@ -800,6 +800,24 @@ const std::optional<TwoTPlusOneSoftVotedBlockData> &PbftManager::getTwoTPlusOneS
   return soft_voted_block_for_round_;
 }
 
+std::shared_ptr<PbftBlock> PbftManager::getValidPbftProposedBlock(uint64_t period, uint64_t round,
+                                                                  const blk_hash_t& block_hash) const {
+  auto block = proposed_blocks_.getPbftProposedBlock(period, round, block_hash);
+  if (!block) {
+    LOG(log_er_) << "Unable to find proposed block " << block_hash << ", period " << period << ", round " << round;
+    return nullptr;
+  }
+
+  if (!validatePbftBlock(block)) {
+    LOG(log_er_) << "Proposed block " << block_hash << " failed validation, period " << period << ", round " << round;
+    return nullptr;
+  }
+
+  // TODO: save validation flag in proposed_blocks_
+
+  return block;
+}
+
 void PbftManager::checkPreviousRoundNextVotedValueChange_() {
   previous_round_next_voted_value_ = next_votes_manager_->getVotedValue();
   previous_round_next_voted_null_block_hash_ = next_votes_manager_->haveEnoughVotesForNullBlockHash();

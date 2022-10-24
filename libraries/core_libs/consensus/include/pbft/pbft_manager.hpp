@@ -534,6 +534,16 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   const std::optional<TwoTPlusOneSoftVotedBlockData> &getTwoTPlusOneSoftVotedBlockData(uint64_t period, uint64_t round);
 
   /**
+   * @brief Get valid proposed pbft block. It will retrieved block from proposed_blocks and then validate it
+   *
+   * @param period
+   * @param round
+   * @param block_hash
+   * @return valid proposed pbft block or nullptr
+   */
+  std::shared_ptr<PbftBlock> getValidPbftProposedBlock(uint64_t period, uint64_t round, const blk_hash_t& block_hash) const;
+
+  /**
    * @brief Process synced PBFT blocks if PBFT syncing queue is not empty
    * @return period data with cert votes for the current period
    */
