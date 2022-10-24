@@ -925,6 +925,40 @@ TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
   });
 }
 
+TEST_F(PbftManagerWithDagCreation, proposed_blocks) {
+  auto db = std::make_shared<DbStorage>(data_dir);
+  ProposedBlocks proposed_blocks(db);
+
+  std::map<blk_hash_t, std::shared_ptr<PbftBlock>> blocks;
+  const uint32_t block_count = 100;
+  // Create blocks
+  for (uint32_t i = 1; i <= block_count; i++) {
+    std::vector<vote_hash_t> reward_votes_hashes;
+    auto block = std::make_shared<PbftBlock>(blk_hash_t(1), blk_hash_t(0), blk_hash_t(0), 2, addr_t(),
+                                             dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
+    blocks.insert({block->getBlockHash(), block});
+  }
+  auto now = std::chrono::steady_clock::now();
+  for (auto b : blocks) {
+    proposed_blocks.pushProposedPbftBlock(1, b.second);
+  }
+  std::cout << "Time to push " << block_count
+            << " blocks: " << duration_cast<microseconds>(std::chrono::steady_clock::now() - now).count()
+            << " microseconds" << std::endl;
+  auto blocks_from_db = db->getProposedPbftBlocks();
+  EXPECT_EQ(blocks_from_db.size(), blocks.size());
+  for (auto b : blocks_from_db) {
+    EXPECT_TRUE(blocks.find(b.second->getBlockHash()) != blocks.end());
+  }
+  now = std::chrono::steady_clock::now();
+  proposed_blocks.cleanupProposedPbftBlocksByPeriod(3);
+  std::cout << "Time to erase " << block_count
+            << " blocks: " << duration_cast<microseconds>(std::chrono::steady_clock::now() - now).count()
+            << " microseconds" << std::endl;
+  blocks_from_db = db->getProposedPbftBlocks();
+  EXPECT_EQ(blocks_from_db.size(), 0);
+}
+
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;

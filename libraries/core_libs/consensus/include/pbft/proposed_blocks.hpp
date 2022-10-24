@@ -5,6 +5,7 @@
 #include <shared_mutex>
 
 #include "common/types.hpp"
+#include "storage/storage.hpp"
 
 namespace taraxa {
 
@@ -16,6 +17,8 @@ class Vote;
  */
 class ProposedBlocks {
  public:
+  ProposedBlocks(std::shared_ptr<DbStorage> db) : db_(db) {}
+
   /**
    * @brief Push proposed PBFT block into the proposed blocks
    * @param proposed_block proposed PBFT block
@@ -29,9 +32,10 @@ class ProposedBlocks {
    * @brief Push proposed PBFT block into the proposed blocks
    * @param round
    * @param proposed_block
+   * @param save_to_db if true save to db
    * @return true if block was successfully pushed, otherwise false
    */
-  bool pushProposedPbftBlock(uint64_t round, const std::shared_ptr<PbftBlock>& proposed_block);
+  bool pushProposedPbftBlock(uint64_t round, const std::shared_ptr<PbftBlock>& proposed_block, bool save_to_db = true);
 
   /**
    * @brief Get a proposed PBFT block and vote based on specified period, round and block hash
@@ -69,6 +73,7 @@ class ProposedBlocks {
   // <PBFT period, <PBFT round, <block hash, block>>>
   std::map<uint64_t, std::map<uint64_t, std::unordered_map<blk_hash_t, std::shared_ptr<PbftBlock>>>> proposed_blocks_;
   mutable std::shared_mutex proposed_blocks_mutex_;
+  std::shared_ptr<DbStorage> db_;
 };
 
 }  // namespace taraxa
