@@ -34,9 +34,7 @@ Json::Value enc_json(const Config& obj) {
   json["block_rewards_options"] = enc_json(obj.block_rewards_options);
   json["genesis_balances"] = enc_json(obj.genesis_balances);
   // json["hardforks"] = enc_json(obj.hardforks);
-  if (obj.dpos) {
-    json["dpos"] = enc_json(*obj.dpos);
-  }
+  json["dpos"] = enc_json(obj.dpos);
   return json;
 }
 
@@ -45,9 +43,7 @@ void dec_json(const Json::Value& json, Config& obj) {
   dec_json(json["block_rewards_options"], obj.block_rewards_options);
   dec_json(json["genesis_balances"], obj.genesis_balances);
   // dec_json(json["hardforks"], obj.hardforks);
-  if (const auto& dpos = json["dpos"]; !dpos.isNull()) {
-    dec_json(dpos, obj.dpos.emplace());
-  }
+  dec_json(json["dpos"], obj.dpos);
 }
 
 Json::Value enc_json(const BalanceMap& obj) {

@@ -79,8 +79,7 @@ struct Config {
   ETHChainConfig eth_chain_config;
   BlockRewardsOptions block_rewards_options;
   BalanceMap genesis_balances;
-  // TODO[1899]: dpos confing should not be optional
-  std::optional<DPOSConfig> dpos;
+  DPOSConfig dpos;
   // Hardforks hardforks;
 
   HAS_RLP_FIELDS

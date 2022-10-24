@@ -53,7 +53,7 @@ struct PbftManagerTest : BaseTest {
     uint64_t trxs_count = 0;
 
     {
-      const auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos->eligibility_balance_threshold;
+      const auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos.eligibility_balance_threshold;
       for (size_t i(1); i < node_cfgs.size(); ++i) {
         const auto trx = make_dpos_trx(node_cfgs[i], min_stake_to_vote, nonces[i]++, gas_price);
         std::cout << "Delegating stake of " << min_stake_to_vote << " to node " << i << ", tx hash: " << trx->getHash()
@@ -75,7 +75,7 @@ struct PbftManagerTest : BaseTest {
     size_t delegations_block = nodes[0]->getPbftChain()->getPbftChainSize();
     ASSERT_GE(delegations_block, 0);
     // Block, in which delegations should be already applied (due to delegation delay)
-    size_t delegations_applied_block = delegations_block + node_cfgs[0].chain.final_chain.state.dpos->delegation_delay;
+    size_t delegations_applied_block = delegations_block + node_cfgs[0].chain.final_chain.state.dpos.delegation_delay;
 
     std::vector<u256> balances;
     for (size_t i(0); i < nodes.size(); ++i) {
@@ -413,7 +413,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
   uint64_t trxs_count = 0;
   auto expected_eligible_total_vote = 1;
   {
-    const auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos->eligibility_balance_threshold;
+    const auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos.eligibility_balance_threshold;
     for (size_t i(1); i < node_cfgs.size(); ++i) {
       std::cout << "Delegating stake of " << min_stake_to_vote << " to node " << i << std::endl;
       const auto trx = make_dpos_trx(node_cfgs[i], min_stake_to_vote, nonces[i]++, gas_price);

@@ -261,7 +261,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   uint64_t year_ms = 365 * 24 * 60 * 60;
   year_ms *= 1000;
   const uint32_t expected_block_time = 3.5 * chain.pbft.lambda_ms_min;
-  chain.final_chain.state.dpos->blocks_per_year = year_ms / expected_block_time;
+  chain.final_chain.state.dpos.blocks_per_year = year_ms / expected_block_time;
 
   is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, false);
   if (is_light_node) {
@@ -335,10 +335,10 @@ void FullNodeConfig::validate() const {
   if (rpc) {
     rpc->validate();
   }
-  if (network.vote_accepting_periods > chain.final_chain.state.dpos->delegation_delay) {
+  if (network.vote_accepting_periods > chain.final_chain.state.dpos.delegation_delay) {
     throw ConfigException(std::string(
         "network.vote_accepting_periods(" + std::to_string(network.vote_accepting_periods) +
-        ") must be <= DPOS.delegation_delay(" + std::to_string(chain.final_chain.state.dpos->delegation_delay) + ")"));
+        ") must be <= DPOS.delegation_delay(" + std::to_string(chain.final_chain.state.dpos.delegation_delay) + ")"));
   }
   if (transactions_pool_size < kMinTransactionPoolSize) {
     throw ConfigException(std::string("transactions_pool_size cannot be smaller than ") +
