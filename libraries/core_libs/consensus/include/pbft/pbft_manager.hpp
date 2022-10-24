@@ -485,12 +485,15 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   h256 getProposal(const std::shared_ptr<Vote> &vote) const;
 
   /**
-   * @brief Check that there are all DAG blocks with correct ordering, total gas estimation is not greater than gas
-   * limit, and PBFT block includes all reward votes.
+   * @brief Validates pbft block. It checks if:
+   *        - pbft_block's previous pbft block hash == node's latest finalized pbft block
+   *        - node has all DAG blocks with correct ordering,
+   *        - node has all reward votes
+   *        - total gas estimation is not greater than gas limit
    * @param pbft_block PBFT block
-   * @return true if pass verification
+   * @return true if pbft block is valid, otherwise false
    */
-  bool compareBlocksAndRewardVotes_(const std::shared_ptr<PbftBlock> &pbft_block);
+  bool validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block) const;
 
   /**
    * @brief If there are enough certify votes, push the vote PBFT block in PBFT chain
@@ -570,7 +573,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   // Multiple proposed pbft blocks could have same dag block anchor at same period so this cache improves retrieval of
   // dag block order for specific anchor
-  std::unordered_map<blk_hash_t, std::vector<DagBlock>> anchor_dag_block_order_cache_;
+  mutable std::unordered_map<blk_hash_t, std::vector<DagBlock>> anchor_dag_block_order_cache_;
 
   // Ensures that only one PBFT block per period can be proposed
   std::shared_ptr<PbftBlock> proposed_block_ = nullptr;

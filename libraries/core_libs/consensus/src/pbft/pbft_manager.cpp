@@ -924,7 +924,7 @@ void PbftManager::identifyBlock_() {
 
     if (auto vote = generateVoteWithWeight(leader_block->getBlockHash(), soft_vote_type, leader_block->getPeriod(),
                                            round, step_);
-      vote) {
+        vote) {
       placeVote(vote, "soft vote", leader_block);
     }
   } else if (previous_round_next_voted_value_.has_value()) {
@@ -981,11 +981,7 @@ void PbftManager::certifyBlock_() {
     return;
   }
 
-  if (!pbft_chain_->checkPbftBlockValidation(soft_voted_block_data->block_)) {
-    return;
-  }
-
-  if (!compareBlocksAndRewardVotes_(soft_voted_block_data->block_)) {
+  if (!validatePbftBlock(soft_voted_block_data->block_)) {
     LOG(log_dg_) << "Incomplete or invalid soft voted block " << soft_voted_block_data->block_->getBlockHash()
                  << ", period " << period << ", round " << round;
     return;
@@ -1462,13 +1458,7 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(uint64_t round, uin
       continue;
     }
 
-    if (!compareBlocksAndRewardVotes_(leader_block)) {
-      LOG(log_er_) << "Incomplete or invalid proposed block " << leader_block->getBlockHash() << ", period " << period
-                   << ", round " << round;
-      continue;
-    }
-
-    if (!pbft_chain_->checkPbftBlockValidation(leader_block)) {
+    if (!validatePbftBlock(leader_block)) {
       LOG(log_er_) << "Proposed block " << leader_block->getBlockHash() << " failed validation, period " << period
                    << ", round " << round;
       continue;
@@ -1481,12 +1471,20 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(uint64_t round, uin
   return nullptr;
 }
 
-bool PbftManager::compareBlocksAndRewardVotes_(const std::shared_ptr<PbftBlock> &pbft_block) {
+bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block) const {
   if (!pbft_block) {
+    LOG(log_er_) << "Unable to validate pbft block - no block provided";
     return false;
   }
+
+  // Validates pbft_block's previous block hash against pbft chain
+  if (!pbft_chain_->checkPbftBlockValidation(pbft_block)) {
+    return false;
+  }
+
   auto const &pbft_block_hash = pbft_block->getBlockHash();
-  // Check reward votes
+
+  // Vadliates reward votes
   if (!vote_mgr_->checkRewardVotes(pbft_block)) {
     LOG(log_er_) << "Failed verifying reward votes for proposed PBFT block " << pbft_block_hash;
     return false;
@@ -1541,13 +1539,7 @@ bool PbftManager::compareBlocksAndRewardVotes_(const std::shared_ptr<PbftBlock> 
 
 bool PbftManager::pushCertVotedPbftBlockIntoChain_(const std::shared_ptr<PbftBlock> &pbft_block,
                                                    std::vector<std::shared_ptr<Vote>> &&current_round_cert_votes) {
-  if (!pbft_chain_->checkPbftBlockValidation(pbft_block)) {
-    LOG(log_er_) << "Failed pbft chain validation for cert voted block " << pbft_block->getBlockHash()
-                 << ", will call sync pbft chain from peers";
-    return false;
-  }
-
-  if (!compareBlocksAndRewardVotes_(pbft_block)) {
+  if (!validatePbftBlock(pbft_block)) {
     LOG(log_er_) << "Failed compare DAG blocks or reward votes with cert voted block " << pbft_block->getBlockHash();
     return false;
   }
@@ -1560,13 +1552,13 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(const std::shared_ptr<PbftBlo
     std::unordered_set<trx_hash_t> trx_set;
     std::vector<trx_hash_t> transactions_to_query;
     period_data.dag_blocks.reserve(dag_order_it->second.size());
-    for (auto const &dag_blk : dag_order_it->second) {
-      for (auto const &trx_hash : dag_blk.getTrxs()) {
+    for (const auto &dag_blk : dag_order_it->second) {
+      for (const auto &trx_hash : dag_blk.getTrxs()) {
         if (trx_set.insert(trx_hash).second) {
           transactions_to_query.emplace_back(trx_hash);
         }
       }
-      period_data.dag_blocks.emplace_back(std::move(dag_blk));
+      period_data.dag_blocks.emplace_back(dag_blk);
     }
     period_data.transactions = trx_mgr_->getNonfinalizedTrx(transactions_to_query);
   }
