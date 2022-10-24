@@ -57,6 +57,10 @@ spec:
               mountPath: /bin/entrypoint.sh
               readOnly: true
               subPath: entrypoint.sh
+            - name: initconfig
+              mountPath: /bin/genconfig.py
+              readOnly: true
+              subPath: genconfig.py
             - name: {{ .Values.persistence.name }}
               mountPath: /root/.taraxa
       containers:
