@@ -21,8 +21,7 @@ class TransactionManager;
 class FullNode;
 class BlockProposer;
 class DagBlock;
-
-using vrf_sk_t = vrf_wrapper::vrf_sk_t;
+class KeyManager;
 
 class ProposeModelFace {
  public:
@@ -35,25 +34,30 @@ class ProposeModelFace {
 
   virtual bool propose() = 0;
   void setProposer(std::shared_ptr<BlockProposer> proposer, addr_t node_addr, secret_t const& sk,
-                   vrf_sk_t const& vrf_sk) {
+                   vrf_wrapper::vrf_sk_t const& vrf_sk) {
     proposer_ = proposer;
     node_addr_ = node_addr;
     sk_ = sk;
     vrf_sk_ = vrf_sk;
+    vrf_pk_ = vrf_wrapper::getVrfPublicKey(vrf_sk);
   }
 
  protected:
   std::weak_ptr<BlockProposer> proposer_;
   addr_t node_addr_;
   secret_t sk_;
-  vrf_sk_t vrf_sk_;
+  vrf_wrapper::vrf_sk_t vrf_sk_;
+  vrf_wrapper::vrf_pk_t vrf_pk_;
 };
 
 class SortitionPropose : public ProposeModelFace {
  public:
   SortitionPropose(addr_t node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<DagManager> dag_mgr,
-                   std::shared_ptr<TransactionManager> trx_mgr)
-      : db_(std::move(db)), dag_mgr_(std::move(dag_mgr)), trx_mgr_(std::move(trx_mgr)) {
+                   std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<KeyManager> key_manager)
+      : db_(std::move(db)),
+        dag_mgr_(std::move(dag_mgr)),
+        trx_mgr_(std::move(trx_mgr)),
+        key_manager_(std::move(key_manager)) {
     LOG_OBJECTS_CREATE("PR_MDL");
     LOG(log_nf_) << "Set sortition DAG block proposal" << dag_mgr_->sortitionParamsManager().getSortitionParams();
     // Add a random component in proposing stale blocks so that not all nodes propose stale blocks at the same time
@@ -73,6 +77,7 @@ class SortitionPropose : public ProposeModelFace {
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
+  std::shared_ptr<KeyManager> key_manager_;
 
   LOG_OBJECTS_DEFINE
 };
@@ -90,7 +95,8 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
  public:
   BlockProposer(BlockProposerConfig const& bp_config, std::shared_ptr<DagManager> dag_mgr,
                 std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
-                std::shared_ptr<DbStorage> db, addr_t node_addr, secret_t node_sk, vrf_sk_t vrf_sk)
+                std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager, addr_t node_addr,
+                secret_t node_sk, vrf_wrapper::vrf_sk_t vrf_sk)
       : bp_config_(bp_config),
         dag_mgr_(std::move(dag_mgr)),
         trx_mgr_(std::move(trx_mgr)),
@@ -100,7 +106,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
         node_sk_(node_sk),
         vrf_sk_(vrf_sk) {
     LOG_OBJECTS_CREATE("PR_MDL");
-    propose_model_ = std::make_unique<SortitionPropose>(node_addr, db_, dag_mgr_, trx_mgr_);
+    propose_model_ = std::make_unique<SortitionPropose>(node_addr, db_, dag_mgr_, trx_mgr_, std::move(key_manager));
     total_trx_shards_ = std::max((unsigned int)bp_config_.shard, 1u);
     auto addr = std::stoull(node_addr.toString().substr(0, 6).c_str(), NULL, 16);
     my_trx_shard_ = addr % bp_config_.shard;
@@ -180,7 +186,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   std::weak_ptr<Network> network_;
   addr_t node_addr_;
   secret_t node_sk_;
-  vrf_sk_t vrf_sk_;
+  vrf_wrapper::vrf_sk_t vrf_sk_;
   LOG_OBJECTS_DEFINE
 };
 
