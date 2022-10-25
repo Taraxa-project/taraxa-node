@@ -163,7 +163,7 @@ inline auto make_node_cfgs(size_t total_count, size_t validators_count = 1) {
     }
 
     state_api::BalanceMap delegations;
-    delegations.emplace(node_addr, cfg.chain.final_chain.state.dpos->eligibility_balance_threshold);
+    delegations.emplace(node_addr, cfg.chain.final_chain.state.dpos.eligibility_balance_threshold);
     initial_validators.emplace_back(state_api::ValidatorInfo{
         node_addr, node_addr, vrf_wrapper::getVrfPublicKey(cfg.vrf_secret), 100, "", "", delegations});
   }
@@ -177,10 +177,10 @@ inline auto make_node_cfgs(size_t total_count, size_t validators_count = 1) {
     }
 
     cfg.chain.final_chain.state.genesis_balances = genesis_balances;
-    cfg.chain.final_chain.state.dpos->initial_validators = initial_validators;
+    cfg.chain.final_chain.state.dpos.initial_validators = initial_validators;
 
-    cfg.chain.final_chain.state.dpos->delegation_delay = 5;
-    cfg.chain.final_chain.state.dpos->delegation_locking_period = 5;
+    cfg.chain.final_chain.state.dpos.delegation_delay = 5;
+    cfg.chain.final_chain.state.dpos.delegation_locking_period = 5;
 
     // As test are badly written let's disable it for now
     cfg.chain.final_chain.state.block_rewards_options.disable_block_rewards = true;
@@ -347,12 +347,8 @@ inline auto own_balance(std::shared_ptr<FullNode> const& node) {
 }
 
 inline state_api::BalanceMap effective_genesis_balances(const state_api::Config& cfg) {
-  if (!cfg.dpos) {
-    return cfg.genesis_balances;
-  }
-
   state_api::BalanceMap effective_balances = cfg.genesis_balances;
-  for (const auto& validator_info : cfg.dpos->initial_validators) {
+  for (const auto& validator_info : cfg.dpos.initial_validators) {
     for (const auto& [delegator, amount] : validator_info.delegations) {
       effective_balances[delegator] -= amount;
     }

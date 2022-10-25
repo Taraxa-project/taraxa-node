@@ -103,7 +103,7 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     cfg.dag.gas_limit = 10000000;
 
     // DPOS config
-    auto& dpos = cfg.final_chain.state.dpos.emplace();
+    auto& dpos = cfg.final_chain.state.dpos;
     dpos.eligibility_balance_threshold = 1000000000;
     dpos.vote_eligibility_balance_step = 1000000000;
     dpos.validator_maximum_stake = dev::jsToU256("0x84595161401484A000000");

@@ -116,7 +116,7 @@ class FinalChainImpl final : public FinalChain {
       }
     }
 
-    delegation_delay_ = config.chain.final_chain.state.dpos->delegation_delay;
+    delegation_delay_ = config.chain.final_chain.state.dpos.delegation_delay;
   }
 
   void stop() override { executor_thread_.stop(); }
@@ -346,7 +346,7 @@ class FinalChainImpl final : public FinalChain {
   }
 
   void update_state_config(const state_api::Config& new_config) override {
-    delegation_delay_ = new_config.dpos->delegation_delay;
+    delegation_delay_ = new_config.dpos.delegation_delay;
     state_api_.update_state_config(new_config);
   }
 

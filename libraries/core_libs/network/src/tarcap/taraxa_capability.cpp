@@ -178,9 +178,6 @@ void TaraxaCapability::registerPacketHandlers(
   node_stats_ = std::make_shared<NodeStats>(peers_state_, pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr, vote_mgr,
                                             trx_mgr, packets_stats, thread_pool_, node_addr);
 
-  // TODO[1899]: dpos config should not be optional !
-  assert(kConf.chain.final_chain.state.dpos.has_value());
-
   // Register all packet handlers
 
   // Consensus packets with high processing priority
