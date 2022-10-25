@@ -16,6 +16,7 @@ var state__api__config_8cpp =
     [ "blocks_per_year", "state__api__config_8cpp.html#a2075e04ce1188d88b9b34434d6ea40ad", null ],
     [ "commission_change_delta", "state__api__config_8cpp.html#a344e95a80f2468a5d361dd0344a3b347", null ],
     [ "commission_change_frequency", "state__api__config_8cpp.html#a7c00c63852de970de6c87fcc59404454", null ],
+    [ "dag_proposers_reward", "state__api__config_8cpp.html#a222405ee877ab022ce0ab60290df5de5", null ],
     [ "delegation_delay", "state__api__config_8cpp.html#aa52ebe83d5b7679c9a5bb13f60d4f5c0", null ],
     [ "delegation_locking_period", "state__api__config_8cpp.html#a8120db572d6a00ddd5c494e256bc814f", null ],
     [ "eligibility_balance_threshold", "state__api__config_8cpp.html#aafa8b77e0045f2d6b5ff357da833db7d", null ],

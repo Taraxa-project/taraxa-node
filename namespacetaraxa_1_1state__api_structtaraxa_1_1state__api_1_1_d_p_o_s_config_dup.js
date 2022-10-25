@@ -3,6 +3,7 @@ var namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_d_p_o_s_config_
     [ "blocks_per_year", "namespacetaraxa_1_1state__api.html#ac4aaee6dbf60f4917c72a4d660a6c576", null ],
     [ "commission_change_delta", "namespacetaraxa_1_1state__api.html#a7335fd9b4fd13740b7db232bb3093501", null ],
     [ "commission_change_frequency", "namespacetaraxa_1_1state__api.html#ab2b4c9752dae77c339d0c5d2d51fced5", null ],
+    [ "dag_proposers_reward", "namespacetaraxa_1_1state__api.html#a5568229f7e6ebff75a5c9f59d5bed351", null ],
     [ "delegation_delay", "namespacetaraxa_1_1state__api.html#a675ca6539814532483aef9cb91caf8a1", null ],
     [ "delegation_locking_period", "namespacetaraxa_1_1state__api.html#a8c3b02a035312481a460ddce3d2ad06a", null ],
     [ "eligibility_balance_threshold", "namespacetaraxa_1_1state__api.html#aef9819bc22722fa155b8f2980a7847f4", null ],
