@@ -2,8 +2,12 @@
 
 namespace taraxa {
 
-GasPricer::GasPricer(uint64_t percentile, uint64_t number_of_blocks, bool is_light_node, std::shared_ptr<DbStorage> db)
-    : kPercentile_(percentile), kIsLightNode_(is_light_node), price_list_(number_of_blocks) {
+GasPricer::GasPricer(const GasPriceConfig& config, bool is_light_node, std::shared_ptr<DbStorage> db)
+    : kPercentile_(config.percentile),
+      kMinimumPrice(config.minimum_price),
+      kIsLightNode_(is_light_node),
+      latest_price_(kMinimumPrice),
+      price_list_(config.blocks) {
   assert(kPercentile_ <= 100);
   if (db) {
     init_daemon_ = std::make_unique<std::thread>([this, db_ = std::move(db)]() { init(db_); });
@@ -16,7 +20,7 @@ GasPricer::~GasPricer() {
 
 u256 GasPricer::bid() const {
   std::shared_lock lock(mutex_);
-  return latest_price_;
+  return std::max(latest_price_, kMinimumPrice);
 }
 
 void GasPricer::init(const std::shared_ptr<DbStorage>& db) {

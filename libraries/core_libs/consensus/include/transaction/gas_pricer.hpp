@@ -2,6 +2,7 @@
 
 #include <boost/circular_buffer.hpp>
 
+#include "config/chain_config.hpp"
 #include "final_chain/final_chain.hpp"
 
 namespace taraxa {
@@ -12,13 +13,12 @@ namespace taraxa {
 
 /**
  * @brief Basic gas price calculator. We calculate the gas price based on the lowest price in last number_of_blocks
- * blocks. Then all of those values are sorted and currnet price is selected based on percentile
+ * blocks. Then all of those values are sorted and current price is selected based on percentile
  *
  */
 class GasPricer {
  public:
-  GasPricer(uint64_t percentile = 60, uint64_t number_of_blocks = 200, bool is_light_node = false,
-            std::shared_ptr<DbStorage> db = {});
+  GasPricer(const GasPriceConfig &config, bool is_light_node = false, std::shared_ptr<DbStorage> db = {});
   ~GasPricer();
 
   GasPricer(const GasPricer &) = delete;
@@ -49,10 +49,11 @@ class GasPricer {
   void init(const std::shared_ptr<DbStorage> &db);
 
   const uint64_t kPercentile_;
+  const u256 kMinimumPrice;
   const bool kIsLightNode_;
 
   mutable std::shared_mutex mutex_;
-  u256 latest_price_ = 1;
+  u256 latest_price_;
   boost::circular_buffer<u256> price_list_;
 
   std::unique_ptr<std::thread> init_daemon_;

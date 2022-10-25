@@ -52,9 +52,15 @@ class FullNode;
  */
 class TransactionManager : public std::enable_shared_from_this<TransactionManager> {
  public:
-  TransactionManager(FullNodeConfig const &conf, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
+  TransactionManager(const FullNodeConfig &conf, std::shared_ptr<DbStorage> db, std::shared_ptr<FinalChain> final_chain,
                      addr_t node_addr);
 
+  /**
+   * @brief Estimates required gas value to execute transaction
+   * @param trx transaction
+   * @param proposal_period proposal period
+   * @return estimated gas value for transaction
+   */
   uint64_t estimateTransactionGas(std::shared_ptr<Transaction> trx, std::optional<uint64_t> proposal_period) const;
 
   /**
@@ -74,7 +80,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   /**
    * Saves transactions from dag block which was added to the DAG. Removes transactions from memory pool
    */
-  void saveTransactionsFromDagBlock(SharedTransactions const &trxs);
+  void saveTransactionsFromDagBlock(const SharedTransactions &trxs);
 
   /**
    * @brief Inserts and verify new transaction to transaction pool
@@ -142,7 +148,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @param blk
    * @return transactions retrieved from pool/db
    */
-  std::optional<SharedTransactions> getBlockTransactions(DagBlock const &blk);
+  std::optional<SharedTransactions> getBlockTransactions(const DagBlock &blk);
 
   /**
    * @brief Updates the status of transactions to finalized
@@ -152,7 +158,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @param period_data period data
    * @return number of dag blocks finalized
    */
-  void updateFinalizedTransactionsStatus(PeriodData const &period_data);
+  void updateFinalizedTransactionsStatus(const PeriodData &period_data);
 
   /**
    * @brief Moves non-finalized transactions from discarded old dag blocks back to transactions pool
@@ -180,8 +186,8 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::pair<std::vector<std::shared_ptr<Transaction>>, std::vector<trx_hash_t>> getPoolTransactions(
       const std::vector<trx_hash_t> &trx_to_query) const;
 
-  std::shared_ptr<Transaction> getTransaction(trx_hash_t const &hash) const;
-  std::shared_ptr<Transaction> getNonFinalizedTransaction(trx_hash_t const &hash) const;
+  std::shared_ptr<Transaction> getTransaction(const trx_hash_t &hash) const;
+  std::shared_ptr<Transaction> getNonFinalizedTransaction(const trx_hash_t &hash) const;
   unsigned long getTransactionCount() const;
   void recoverNonfinalizedTransactions();
   std::pair<TransactionStatus, std::string> verifyTransaction(const std::shared_ptr<Transaction> &trx) const;

@@ -463,7 +463,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
           if (receipt->status_code != 1) {
             auto trx = n->getTransactionManager()->getTransaction(t);
             std::cout << "failed: " << t.toString() << " sender: " << trx->getSender() << " nonce: " << trx->getNonce()
-                      << " value: " << trx->getValue() << std::endl;
+                      << " value: " << trx->getValue() << " gas: " << trx->getGas()
+                      << " gasPrice: " << trx->getGasPrice() << std::endl;
           }
           ASSERT_EQ(receipt->status_code, 1);
         }
@@ -1441,7 +1442,8 @@ TEST_F(FullNodeTest, chain_config_json) {
   },
   "gas_price": {
     "blocks": 200,
-    "percentile": 60
+    "percentile": 60,
+    "minimum_price": 1
   },
   "pbft": {
     "committee_size": "0x5",

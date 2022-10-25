@@ -23,7 +23,7 @@ struct GasPricerTest : BaseTest {};
 const auto secret = secret_t::random();
 
 TEST_F(GasPricerTest, basic_test) {
-  GasPricer gp;
+  GasPricer gp(GasPriceConfig{});
   EXPECT_EQ(gp.bid(), 1);
 
   gp.update({std::make_shared<Transaction>(0, 0, 1 /*gas_price*/, 0, bytes(), secret)});
@@ -50,7 +50,7 @@ TEST_F(GasPricerTest, random_test) {
   std::vector<size_t> prices;
   prices.reserve(number_of_blocks);
 
-  GasPricer gp(percentile, number_of_blocks);
+  GasPricer gp({percentile, number_of_blocks, 0});
 
   for (size_t i = 0; i < number_of_blocks; ++i) {
     const size_t gas_price = 1 + std::rand() % 1000;
