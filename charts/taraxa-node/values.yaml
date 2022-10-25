@@ -123,10 +123,10 @@ node:
   nodeSelector: {}
   persistence:
     enabled: false
-    # accessMode: ReadWriteOnce
-    # name: taraxa-node-data
-    # size: "30Gi"
-    # storageClass: "fast"
+    name: taraxa-node-data
+    accessMode: ReadWriteOnce
+    size: "30Gi"
+    storageClass: "fast"
 
 bootnode:
   enabled: true
@@ -161,10 +161,10 @@ bootnode:
   nodeSelector: {}
   persistence:
     enabled: false
-    # accessMode: ReadWriteOnce
-    # name: taraxa-bootnode-data
-    # size: "30Gi"
-    # storageClass: "fast"
+    name: taraxa-bootnode-data
+    accessMode: ReadWriteOnce
+    size: "30Gi"
+    storageClass: "fast"
 
 consensusnode:
   enabled: true
@@ -205,10 +205,10 @@ consensusnode:
   nodeSelector: {}
   persistence:
     enabled: false
-    # accessMode: ReadWriteOnce
-    # name: taraxa-consensusnode-data
-    # size: "30Gi"
-    # storageClass: "fast"
+    name: taraxa-consensusnode-data
+    accessMode: ReadWriteOnce
+    size: "30Gi"
+    storageClass: "fast"
 
 
 explorer:
