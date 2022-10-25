@@ -1,5 +1,6 @@
 <map id="taraxa::state_api::Config" name="taraxa::state_api::Config">
-<area shape="rect" id="node1" title=" " alt="" coords="109,109,249,151"/>
-<area shape="rect" id="node2" href="$namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_block_rewards_options" title=" " alt="" coords="5,5,169,47"/>
-<area shape="rect" id="node3" href="$namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_t_h_chain_config" title=" " alt="" coords="201,5,341,47"/>
+<area shape="rect" id="node1" title=" " alt="" coords="371,71,511,112"/>
+<area shape="rect" id="node2" href="$namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config" title=" " alt="" coords="17,5,157,47"/>
+<area shape="rect" id="node3" href="$namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_block_rewards_options" title=" " alt="" coords="5,71,169,112"/>
+<area shape="rect" id="node4" href="$namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_t_h_chain_config" title=" " alt="" coords="17,136,157,177"/>
 </map>
