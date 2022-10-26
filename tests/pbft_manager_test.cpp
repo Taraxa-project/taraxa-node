@@ -654,13 +654,13 @@ TEST_F(PbftManagerTest, propose_block_and_vote_broadcast) {
   auto block1_from_node1 = pbft_mgr1->getProposedBlocksSt().getPbftProposedBlock(
       propose_vote->getPeriod(), propose_vote->getRound(), propose_vote->getBlockHash());
   ASSERT_TRUE(block1_from_node1);
-  EXPECT_EQ(block1_from_node1->getJsonStr(), proposed_pbft_block->getJsonStr());
+  EXPECT_EQ(block1_from_node1->first->getJsonStr(), proposed_pbft_block->getJsonStr());
 
   nw1->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(propose_vote, proposed_pbft_block);
 
   // Check node2 and node3 receive the PBFT block
-  std::shared_ptr<PbftBlock> node2_synced_proposed_block_and_vote = nullptr;
-  std::shared_ptr<PbftBlock> node3_synced_proposed_block_and_vote = nullptr;
+  std::optional<std::pair<std::shared_ptr<PbftBlock>, bool>> node2_synced_proposed_block_and_vote = std::nullopt;
+  std::optional<std::pair<std::shared_ptr<PbftBlock>, bool>> node3_synced_proposed_block_and_vote = std::nullopt;
 
   EXPECT_HAPPENS({20s, 200ms}, [&](auto &ctx) {
     node2_synced_proposed_block_and_vote = pbft_mgr2->getProposedBlocksSt().getPbftProposedBlock(
@@ -671,8 +671,8 @@ TEST_F(PbftManagerTest, propose_block_and_vote_broadcast) {
     WAIT_EXPECT_TRUE(ctx, node2_synced_proposed_block_and_vote)
     WAIT_EXPECT_TRUE(ctx, node3_synced_proposed_block_and_vote)
   });
-  EXPECT_EQ(node2_synced_proposed_block_and_vote->getJsonStr(), proposed_pbft_block->getJsonStr());
-  EXPECT_EQ(node3_synced_proposed_block_and_vote->getJsonStr(), proposed_pbft_block->getJsonStr());
+  EXPECT_EQ(node2_synced_proposed_block_and_vote->first->getJsonStr(), proposed_pbft_block->getJsonStr());
+  EXPECT_EQ(node3_synced_proposed_block_and_vote->first->getJsonStr(), proposed_pbft_block->getJsonStr());
 }
 
 TEST_F(PbftManagerTest, check_committeeSize_less_or_equal_to_activePlayers) {
