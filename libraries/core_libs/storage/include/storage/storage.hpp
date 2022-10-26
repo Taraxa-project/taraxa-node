@@ -101,6 +101,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(pbft_mgr_status);
     COLUMN(soft_voted_block_in_round);  // Soft voted block + votes + round -> node saw 2t+1 soft votes for this block
     COLUMN(cert_voted_block_in_round);  // Cert voted block + round -> node voted for this block
+    COLUMN(proposed_pbft_blocks);       // Proposed pbft blocks
     COLUMN(pbft_head);
     COLUMN(verified_votes);
     COLUMN(next_votes);             // only for previous PBFT round
@@ -248,6 +249,11 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   // pbft_blocks
   std::optional<PbftBlock> getPbftBlock(blk_hash_t const& hash);
   bool pbftBlockInDb(blk_hash_t const& hash);
+
+  // Proposed pbft blocks
+  void saveProposedPbftBlock(const std::shared_ptr<PbftBlock>& block, uint64_t round);
+  void removeProposedPbftBlock(const blk_hash_t& block_hash, Batch& write_batch);
+  std::vector<std::pair<uint64_t, std::shared_ptr<PbftBlock>>> getProposedPbftBlocks();
 
   // pbft_blocks (head)
   string getPbftHead(blk_hash_t const& hash);
