@@ -534,14 +534,15 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   const std::optional<TwoTPlusOneSoftVotedBlockData> &getTwoTPlusOneSoftVotedBlockData(uint64_t period, uint64_t round);
 
   /**
-   * @brief Get valid proposed pbft block. It will retrieved block from proposed_blocks and then validate it
+   * @brief Get valid proposed pbft block. It will retrieve block from proposed_blocks and then validate it if not
+   *        already validated
    *
    * @param period
    * @param round
    * @param block_hash
    * @return valid proposed pbft block or nullptr
    */
-  std::shared_ptr<PbftBlock> getValidPbftProposedBlock(uint64_t period, uint64_t round, const blk_hash_t& block_hash) const;
+  std::shared_ptr<PbftBlock> getValidPbftProposedBlock(uint64_t period, uint64_t round, const blk_hash_t &block_hash);
 
   /**
    * @brief Process synced PBFT blocks if PBFT syncing queue is not empty
@@ -641,8 +642,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::chrono::milliseconds next_step_time_ms_{0};
 
   bool executed_pbft_block_ = false;
-  bool next_voted_soft_value_ = false;
-  bool next_voted_null_block_hash_ = false;
+  bool already_next_voted_value_ = false;
+  bool already_next_voted_null_block_hash_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
 

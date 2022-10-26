@@ -33,26 +33,40 @@ bool ProposedBlocks::pushProposedPbftBlock(uint64_t round, const std::shared_ptr
   }
 
   // Add propose vote & block
-  return found_round_it->second.insert({proposed_block->getBlockHash(), proposed_block}).second;
+  return found_round_it->second.insert({proposed_block->getBlockHash(), {proposed_block, false}}).second;
 }
 
-std::shared_ptr<PbftBlock> ProposedBlocks::getPbftProposedBlock(uint64_t period, uint64_t round,
-                                                                const blk_hash_t& block_hash) const {
+void ProposedBlocks::markBlockAsValid(uint64_t round, const std::shared_ptr<PbftBlock>& proposed_block) {
+  std::unique_lock lock(proposed_blocks_mutex_);
+
+  const auto found_period_it = proposed_blocks_.find(proposed_block->getPeriod());
+  assert(found_period_it != proposed_blocks_.end());
+
+  const auto found_round_it = found_period_it->second.find(round);
+  assert(found_round_it != found_period_it->second.end());
+
+  auto found_block_it = found_round_it->second.find(proposed_block->getBlockHash());
+  // Set validation flag to true
+  found_block_it->second.second = true;
+}
+
+std::optional<std::pair<std::shared_ptr<PbftBlock>, bool>> ProposedBlocks::getPbftProposedBlock(
+    uint64_t period, uint64_t round, const blk_hash_t& block_hash) const {
   std::shared_lock lock(proposed_blocks_mutex_);
 
   auto found_period_it = proposed_blocks_.find(period);
   if (found_period_it == proposed_blocks_.end()) {
-    return nullptr;
+    return {};
   }
 
   auto found_round_it = found_period_it->second.find(round);
   if (found_round_it == found_period_it->second.end()) {
-    return nullptr;
+    return {};
   }
 
   auto found_block_it = found_round_it->second.find(block_hash);
   if (found_block_it == found_round_it->second.end()) {
-    return nullptr;
+    return {};
   }
 
   return found_block_it->second;

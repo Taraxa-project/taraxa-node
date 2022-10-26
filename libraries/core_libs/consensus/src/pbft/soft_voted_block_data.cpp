@@ -12,10 +12,10 @@ TwoTPlusOneSoftVotedBlockData::TwoTPlusOneSoftVotedBlockData(dev::RLP const& rlp
   auto it = rlp.begin();
 
   // Parse block if present
-  block_ = nullptr;
+  block_data_ = std::nullopt;
   // block is optional as node might not had the actual block when it observed 2t+1 soft votes and saved it
   if (rlp.itemCount() == TwoTPlusOneSoftVotedBlockData::kExtendedDataItemCount) {
-    block_ = std::make_shared<PbftBlock>(*it++);
+    block_data_ = {std::make_shared<PbftBlock>(*it++), false};
   }
 
   // Parse round
@@ -23,8 +23,8 @@ TwoTPlusOneSoftVotedBlockData::TwoTPlusOneSoftVotedBlockData(dev::RLP const& rlp
 
   // Parse block hash
   block_hash_ = (*it++).toHash<blk_hash_t>();
-  if (block_) {
-    assert(block_->getBlockHash() == block_hash_);
+  if (block_data_.has_value()) {
+    assert(block_data_->first->getBlockHash() == block_hash_);
   }
 
   // Parse votes
@@ -34,8 +34,8 @@ TwoTPlusOneSoftVotedBlockData::TwoTPlusOneSoftVotedBlockData(dev::RLP const& rlp
     assert(vote->getType() == PbftVoteTypes::soft_vote_type);
     assert(vote->getRound() == round_);
     assert(vote->getBlockHash() == block_hash_);
-    if (block_) {
-      assert(vote->getPeriod() == block_->getPeriod());
+    if (block_data_.has_value()) {
+      assert(vote->getPeriod() == block_data_->first->getPeriod());
     }
 
     soft_votes_.push_back(std::move(vote));
@@ -47,10 +47,11 @@ TwoTPlusOneSoftVotedBlockData::TwoTPlusOneSoftVotedBlockData(dev::RLP const& rlp
 bytes TwoTPlusOneSoftVotedBlockData::rlp() const {
   dev::RLPStream s;
   // block is optional as node might not had the actual block when it observed 2t+1 soft votes and saved it
-  if (block_) {
-    assert(block_->getBlockHash() == block_hash_);
+  if (block_data_.has_value()) {
+    assert(block_data_->first != nullptr);
+    assert(block_data_->first->getBlockHash() == block_hash_);
     s.appendList(TwoTPlusOneSoftVotedBlockData::kExtendedDataItemCount);  // block + round + block_hash + votes
-    s.appendRaw(block_->rlp(true));
+    s.appendRaw(block_data_->first->rlp(true));
   } else {
     s.appendList(TwoTPlusOneSoftVotedBlockData::kStandardDataItemCount);  // round + block_hash + votes
   }
@@ -62,8 +63,8 @@ bytes TwoTPlusOneSoftVotedBlockData::rlp() const {
     assert(vote->getType() == PbftVoteTypes::soft_vote_type);
     assert(vote->getRound() == round_);
     assert(vote->getBlockHash() == block_hash_);
-    if (block_) {
-      assert(vote->getPeriod() == block_->getPeriod());
+    if (block_data_.has_value()) {
+      assert(vote->getPeriod() == block_data_->first->getPeriod());
     }
 
     s.appendRaw(vote->rlp(true, true));
