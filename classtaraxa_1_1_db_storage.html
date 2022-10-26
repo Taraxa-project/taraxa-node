@@ -257,6 +257,12 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a7b42f08e7be82a334247e92f782c00ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae173b51945d0eb5e71d9d8040de88553"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ae173b51945d0eb5e71d9d8040de88553">pbftBlockInDb</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;hash)</td></tr>
 <tr class="separator:ae173b51945d0eb5e71d9d8040de88553"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6971e1e6319d4ab7319977af04fd2808"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a6971e1e6319d4ab7319977af04fd2808">saveProposedPbftBlock</a> (const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;block, uint64_t round)</td></tr>
+<tr class="separator:a6971e1e6319d4ab7319977af04fd2808"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17e5a0c8f762f8fc9d1220c67d58fa03"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a17e5a0c8f762f8fc9d1220c67d58fa03">removeProposedPbftBlock</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;block_hash, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="separator:a17e5a0c8f762f8fc9d1220c67d58fa03"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a888b53ddd659b759d3fdfdee4d75857c"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::pair&lt; uint64_t, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a888b53ddd659b759d3fdfdee4d75857c">getProposedPbftBlocks</a> ()</td></tr>
+<tr class="separator:a888b53ddd659b759d3fdfdee4d75857c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b535601fbd1922f61a5a85ac19531c6"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a7b535601fbd1922f61a5a85ac19531c6">getPbftHead</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;hash)</td></tr>
 <tr class="separator:a7b535601fbd1922f61a5a85ac19531c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af69f3e7594f36c9d4ea2884bec31fa0f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#af69f3e7594f36c9d4ea2884bec31fa0f">savePbftHead</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;hash, string const &amp;pbft_chain_head_str)</td></tr>
@@ -1960,6 +1966,23 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
+<a id="a888b53ddd659b759d3fdfdee4d75857c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a888b53ddd659b759d3fdfdee4d75857c">&#9670;&nbsp;</a></span>getProposedPbftBlocks()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::pair&lt; uint64_t, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &gt; &gt; taraxa::DbStorage::getProposedPbftBlocks </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a8fcf6eaa95c4b83ee265fc493727bed9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8fcf6eaa95c4b83ee265fc493727bed9">&#9670;&nbsp;</a></span>getSoftVotedBlockDataInRound()</h2>
 
@@ -2654,6 +2677,34 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
+<a id="a17e5a0c8f762f8fc9d1220c67d58fa03"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17e5a0c8f762f8fc9d1220c67d58fa03">&#9670;&nbsp;</a></span>removeProposedPbftBlock()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::DbStorage::removeProposedPbftBlock </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>block_hash</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramname"><em>write_batch</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a973c9d1fd7045a99186eaee18fc4037c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a973c9d1fd7045a99186eaee18fc4037c">&#9670;&nbsp;</a></span>removeSoftVotedBlockDataInRound()</h2>
 
@@ -2949,6 +3000,34 @@ template&lt;typename K &gt; </div>
           <td></td>
           <td class="paramtype">uint64_t&#160;</td>
           <td class="paramname"><em>period</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6971e1e6319d4ab7319977af04fd2808"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6971e1e6319d4ab7319977af04fd2808">&#9670;&nbsp;</a></span>saveProposedPbftBlock()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::DbStorage::saveProposedPbftBlock </td>
+          <td>(</td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>block</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>round</em>&#160;</td>
         </tr>
         <tr>
           <td></td>

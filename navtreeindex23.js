@@ -1,5 +1,11 @@
 var NAVTREEINDEX23 =
 {
+"structtaraxa_1_1_transaction.html#a590dd0e853b205dc0713a456c46fbb58":[14,0,4,52,9],
+"structtaraxa_1_1_transaction.html#a5becd18abbf7c55be3380009e310c7a6":[14,0,4,52,23],
+"structtaraxa_1_1_transaction.html#a5dece3e8614eccb82bd10d5739200065":[14,0,4,52,2],
+"structtaraxa_1_1_transaction.html#a6792b0d7d82e86fb23e986e9fa602379":[14,0,4,52,6],
+"structtaraxa_1_1_transaction.html#a751515286e21c26714170baea23742a9":[14,0,4,52,5],
+"structtaraxa_1_1_transaction.html#a75ca1b1824b133c6e887eea54c1fcc26":[14,0,4,52,4],
 "structtaraxa_1_1_transaction.html#a798255ffdb21876ddd0f6b6cb208c60d":[14,0,4,52,10],
 "structtaraxa_1_1_transaction.html#a7b82e66ad83dcbd693e9ad4638a95884":[14,0,4,52,7],
 "structtaraxa_1_1_transaction.html#a7dabdd6bd1f4499c4a3c04af0a3df65d":[14,0,4,52,17],
@@ -32,8 +38,8 @@ var NAVTREEINDEX23 =
 "structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html#af274264ac77157fb818ea58119e24999":[14,0,4,0,1,0,0],
 "structtaraxa_1_1final__chain_1_1_config.html":[14,0,4,1,1],
 "structtaraxa_1_1final__chain_1_1_config.html#a53b3e0a21dd9bb563f3837959b9cb8c3":[14,0,4,1,1,3],
-"structtaraxa_1_1final__chain_1_1_config.html#a955c880531dc4addb9d4c9e44022d843":[14,0,4,1,1,0,0],
 "structtaraxa_1_1final__chain_1_1_config.html#a955c880531dc4addb9d4c9e44022d843":[15,0,1,3,0,0,3,1,0],
+"structtaraxa_1_1final__chain_1_1_config.html#a955c880531dc4addb9d4c9e44022d843":[14,0,4,1,1,0,0],
 "structtaraxa_1_1final__chain_1_1_config.html#aaf85cbc4d2d04c3d5f30645a755eef60":[14,0,4,1,1,2],
 "structtaraxa_1_1final__chain_1_1_config.html#ada8d5e73db5ef864faa4aa45da49abb0":[15,0,1,3,0,0,3,1,1],
 "structtaraxa_1_1final__chain_1_1_config.html#ada8d5e73db5ef864faa4aa45da49abb0":[14,0,4,1,1,0,1],
@@ -243,11 +249,5 @@ var NAVTREEINDEX23 =
 "tools_8hpp.html#af025832254c59368104f4122b217b190":[15,0,1,1,0,0,2,14],
 "tools_8hpp_source.html":[15,0,1,1,0,0,2],
 "transaction__manager_8cpp.html":[15,0,1,4,0,1,4,1],
-"transaction__manager_8hpp.html":[15,0,1,4,0,0,4,1],
-"transaction__manager_8hpp.html#gae7551c287ae57b46d56d27de67df61e7":[15,0,1,4,0,0,4,1,0],
-"transaction__manager_8hpp.html#ggae7551c287ae57b46d56d27de67df61e7a1329e7699345f6e7d1b9bfb0965a3c03":[15,0,1,4,0,0,4,1,0,2],
-"transaction__manager_8hpp.html#ggae7551c287ae57b46d56d27de67df61e7a3f68e67dc6c397aaa9d1c24c356f754f":[15,0,1,4,0,0,4,1,0,0],
-"transaction__manager_8hpp.html#ggae7551c287ae57b46d56d27de67df61e7a4bbb8f967da6d1a610596d7257179c2b":[15,0,1,4,0,0,4,1,0,1],
-"transaction__manager_8hpp.html#ggae7551c287ae57b46d56d27de67df61e7ad10cbf6c0f5918304899ed32d94cb0bf":[15,0,1,4,0,0,4,1,0,3],
-"transaction__manager_8hpp.html#ggae7551c287ae57b46d56d27de67df61e7adc2eb84d1f952ad0e6b58014aabd616a":[15,0,1,4,0,0,4,1,0,4]
+"transaction__manager_8hpp.html":[15,0,1,4,0,0,4,1]
 };

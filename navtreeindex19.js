@@ -1,6 +1,12 @@
 var NAVTREEINDEX19 =
 {
+"namespacedev_1_1p2p.html#af43282a970fe54591278ceb38be2590b":[15,0,1,0,2,24,0,5],
+"namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_peer_session_info":[15,0,1,0,2,3,4],
+"namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_taraxa_network_config":[15,0,1,0,2,24,0],
+"namespacegraphql.html":[14,0,2],
+"namespacegraphql_1_1taraxa.html":[14,0,2,0],
 "namespacemembers.html":[13,0],
+"namespacemembers.html":[13,0,0],
 "namespacemembers_a.html":[13,0,1],
 "namespacemembers_b.html":[13,0,2],
 "namespacemembers_c.html":[13,0,3],
@@ -243,11 +249,5 @@ var NAVTREEINDEX19 =
 "pbft__manager_8hpp_source.html":[15,0,1,4,0,0,3,1],
 "pbft__sync__packet__handler_8cpp.html":[15,0,1,4,1,3,0,0,6],
 "pbft__sync__packet__handler_8hpp.html":[15,0,1,4,1,1,0,0,0,6],
-"pbft__sync__packet__handler_8hpp_source.html":[15,0,1,4,1,1,0,0,0,6],
-"pbft__syncing__state_8cpp.html":[15,0,1,4,1,3,0,1,0],
-"pbft__syncing__state_8hpp.html":[15,0,1,4,1,1,0,0,1,0],
-"pbft__syncing__state_8hpp_source.html":[15,0,1,4,1,1,0,0,1,0],
-"peers__state_8cpp.html":[15,0,1,4,1,3,0,1,1],
-"peers__state_8hpp.html":[15,0,1,4,1,1,0,0,1,1],
-"peers__state_8hpp_source.html":[15,0,1,4,1,1,0,0,1,1]
+"pbft__sync__packet__handler_8hpp_source.html":[15,0,1,4,1,1,0,0,0,6]
 };
