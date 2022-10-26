@@ -9,6 +9,7 @@ numbering uses [semantic versioning](http://semver.org).
 
 * Uses new explorer chart (v0.2.1)
 * Allows to specify PVC per node type
+* Enables snapshots (on separate snapshot node)
 
 ## v0.2.1
 
