@@ -64,18 +64,6 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     auto const is_light_node = (*it++).toInt();
     auto const node_history = (*it++).toInt<uint64_t>();
 
-    // If this is a light node and it cannot serve our sync request disconnect from it
-    if (is_light_node) {
-      selected_peer->peer_light_node = true;
-      selected_peer->peer_light_node_history = node_history;
-      if (pbft_synced_period + node_history < peer_pbft_chain_size) {
-        LOG(log_er_) << "Light node is not able to serve our syncing request. " << packet_data.from_node_id_.abridged()
-                     << " peer will be disconnected";
-        disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
-        return;
-      }
-    }
-
     if (peer_chain_id != conf_chain_id_) {
       LOG((peers_state_->getPeersCount()) ? log_nf_ : log_er_)
           << "Incorrect network id " << peer_chain_id << ", host " << packet_data.from_node_id_.abridged()
@@ -90,6 +78,19 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
           << " will be disconnected";
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
+    }
+
+    // If this is a light node and it cannot serve our sync request disconnect from it
+    if (is_light_node) {
+      selected_peer->peer_light_node = true;
+      selected_peer->peer_light_node_history = node_history;
+      if (pbft_synced_period + node_history < peer_pbft_chain_size) {
+        LOG((peers_state_->getPeersCount()) ? log_nf_ : log_er_)
+            << "Light node is not able to serve our syncing request. " << packet_data.from_node_id_.abridged()
+            << " peer will be disconnected";
+        disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
+        return;
+      }
     }
 
     selected_peer->dag_level_ = peer_dag_level;
