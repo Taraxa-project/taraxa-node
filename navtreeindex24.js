@@ -1,5 +1,7 @@
 var NAVTREEINDEX24 =
 {
+"transaction__manager_8cpp.html":[15,0,1,4,0,1,4,1],
+"transaction__manager_8hpp.html":[15,0,1,4,0,0,4,1],
 "transaction__manager_8hpp.html#gae7551c287ae57b46d56d27de67df61e7":[15,0,1,4,0,0,4,1,0],
 "transaction__manager_8hpp.html#ggae7551c287ae57b46d56d27de67df61e7a1329e7699345f6e7d1b9bfb0965a3c03":[15,0,1,4,0,0,4,1,0,2],
 "transaction__manager_8hpp.html#ggae7551c287ae57b46d56d27de67df61e7a3f68e67dc6c397aaa9d1c24c356f754f":[15,0,1,4,0,0,4,1,0,0],

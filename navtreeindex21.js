@@ -1,5 +1,7 @@
 var NAVTREEINDEX21 =
 {
+"structdev_1_1p2p_1_1_e_n_r_response.html#a28bc0920237296fcc94cfbbc6c37b042":[14,0,1,1,7,0],
+"structdev_1_1p2p_1_1_e_n_r_response.html#a373a02078410d60bf222c6e81210d923":[14,0,1,1,7,4],
 "structdev_1_1p2p_1_1_e_n_r_response.html#a5004a7db495c0ffecc709b7eec21ef29":[14,0,1,1,7,2],
 "structdev_1_1p2p_1_1_e_n_r_response.html#a692c90947ce33dd43490820974b9aac8":[14,0,1,1,7,6],
 "structdev_1_1p2p_1_1_e_n_r_response.html#ad0400c492095597e98295cbdae70c32a":[14,0,1,1,7,5],
@@ -110,8 +112,8 @@ var NAVTREEINDEX21 =
 "structdev_1_1p2p_1_1_host.html#af5f30d38696533a1f32dcd4433ccb91d":[14,0,1,1,9,38],
 "structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_known_node":[14,0,1,1,9,0],
 "structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_known_node":[15,0,1,0,2,9,3],
-"structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_persistent_state":[14,0,1,1,9,1],
 "structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_persistent_state":[15,0,1,0,2,9,4],
+"structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_persistent_state":[14,0,1,1,9,1],
 "structdev_1_1p2p_1_1_invalid_public_i_p_address.html":[14,0,1,1,11],
 "structdev_1_1p2p_1_1_neighbours.html":[14,0,1,1,12],
 "structdev_1_1p2p_1_1_neighbours.html#a1d87a065819d2e4065e48a1695f77a62":[14,0,1,1,12,9],
@@ -247,7 +249,5 @@ var NAVTREEINDEX21 =
 "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a3893d2b12f8307aadb69b0744f778639":[14,0,1,1,32,3],
 "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a475d630017de7095c6b825bf58599a41":[14,0,1,1,32,36],
 "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a4b0e936deed37aaf1d2e93f946816c44":[14,0,1,1,32,7],
-"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a4e8ba825add826a7b2ac872dd3adb7e9":[14,0,1,1,32,40],
-"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a4f6b68053dd730dc8fcc8021e8f00caa":[14,0,1,1,32,24],
-"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a5b1fc77d6a5fe8c90fbb4e5eba40c21b":[14,0,1,1,32,37]
+"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#a4e8ba825add826a7b2ac872dd3adb7e9":[14,0,1,1,32,40]
 };

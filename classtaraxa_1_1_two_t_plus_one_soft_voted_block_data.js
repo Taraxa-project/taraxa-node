@@ -7,7 +7,7 @@ var classtaraxa_1_1_two_t_plus_one_soft_voted_block_data =
     [ "operator=", "classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html#ab68605aa209c0f61430d98a8b88582c5", null ],
     [ "operator=", "classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html#aa5e988759c69659989da181b7bc8db33", null ],
     [ "rlp", "classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html#a23c16bf09f99e29d4525f351be880faa", null ],
-    [ "block_", "classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html#a552567bd560987d3941247ca4bd4ee21", null ],
+    [ "block_data_", "classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html#ad7d443598e5cc95eec00c7f7b22cd63a", null ],
     [ "block_hash_", "classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html#a66e30c09f2ad2bba60f063188ec3f1fc", null ],
     [ "kExtendedDataItemCount", "classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html#af7e97c62bfe70e5abf829e047cd50833", null ],
     [ "kStandardDataItemCount", "classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html#a30b6d0225fd59a5fd36ee2f1c1cdfa32", null ],

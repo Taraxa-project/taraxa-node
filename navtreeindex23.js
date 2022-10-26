@@ -1,5 +1,7 @@
 var NAVTREEINDEX23 =
 {
+"structtaraxa_1_1_transaction.html#a4e8f91f7dec8e84dc51f046f4b4ef41c":[14,0,4,52,33],
+"structtaraxa_1_1_transaction.html#a50c87de18de516593e6175bafc19edc7":[14,0,4,52,25],
 "structtaraxa_1_1_transaction.html#a590dd0e853b205dc0713a456c46fbb58":[14,0,4,52,9],
 "structtaraxa_1_1_transaction.html#a5becd18abbf7c55be3380009e310c7a6":[14,0,4,52,23],
 "structtaraxa_1_1_transaction.html#a5dece3e8614eccb82bd10d5739200065":[14,0,4,52,2],
@@ -41,11 +43,11 @@ var NAVTREEINDEX23 =
 "structtaraxa_1_1final__chain_1_1_config.html#a955c880531dc4addb9d4c9e44022d843":[15,0,1,3,0,0,3,1,0],
 "structtaraxa_1_1final__chain_1_1_config.html#a955c880531dc4addb9d4c9e44022d843":[14,0,4,1,1,0,0],
 "structtaraxa_1_1final__chain_1_1_config.html#aaf85cbc4d2d04c3d5f30645a755eef60":[14,0,4,1,1,2],
-"structtaraxa_1_1final__chain_1_1_config.html#ada8d5e73db5ef864faa4aa45da49abb0":[15,0,1,3,0,0,3,1,1],
 "structtaraxa_1_1final__chain_1_1_config.html#ada8d5e73db5ef864faa4aa45da49abb0":[14,0,4,1,1,0,1],
+"structtaraxa_1_1final__chain_1_1_config.html#ada8d5e73db5ef864faa4aa45da49abb0":[15,0,1,3,0,0,3,1,1],
 "structtaraxa_1_1final__chain_1_1_config.html#aeb06d5eff71102bb3eb858ee7dcfc6cb":[14,0,4,1,1,1],
-"structtaraxa_1_1final__chain_1_1_config.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields":[15,0,1,3,0,0,3,1],
 "structtaraxa_1_1final__chain_1_1_config.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields":[14,0,4,1,1,0],
+"structtaraxa_1_1final__chain_1_1_config.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields":[15,0,1,3,0,0,3,1],
 "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html":[12,1,6,0],
 "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#a09820dc8d12ecec7986747838f146ad8":[12,1,6,0,1],
 "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#a20ae0df7b61567032daaf88d695dcf8b":[12,1,6,0,3],
@@ -247,7 +249,5 @@ var NAVTREEINDEX23 =
 "tools_8hpp.html#ae5c482ddd216cb03e9ec4ea09c49bd7b":[15,0,1,1,0,0,2,5],
 "tools_8hpp.html#af0044276a518251783f0ae2eb6906929":[15,0,1,1,0,0,2,22],
 "tools_8hpp.html#af025832254c59368104f4122b217b190":[15,0,1,1,0,0,2,14],
-"tools_8hpp_source.html":[15,0,1,1,0,0,2],
-"transaction__manager_8cpp.html":[15,0,1,4,0,1,4,1],
-"transaction__manager_8hpp.html":[15,0,1,4,0,0,4,1]
+"tools_8hpp_source.html":[15,0,1,1,0,0,2]
 };

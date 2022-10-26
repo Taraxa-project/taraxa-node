@@ -105,9 +105,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a4cf94010a52f338cac0429b747a6de27"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#a4cf94010a52f338cac0429b747a6de27">pushProposedPbftBlock</a> (uint64_t round, const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;proposed_block, bool save_to_db=true)</td></tr>
 <tr class="memdesc:a4cf94010a52f338cac0429b747a6de27"><td class="mdescLeft">&#160;</td><td class="mdescRight">Push proposed PBFT block into the proposed blocks.  <a href="classtaraxa_1_1_proposed_blocks.html#a4cf94010a52f338cac0429b747a6de27">More...</a><br /></td></tr>
 <tr class="separator:a4cf94010a52f338cac0429b747a6de27"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aafdf0dc1d6208d7df1abc789d5cbcabc"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#aafdf0dc1d6208d7df1abc789d5cbcabc">getPbftProposedBlock</a> (uint64_t period, uint64_t round, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;block_hash) const</td></tr>
-<tr class="memdesc:aafdf0dc1d6208d7df1abc789d5cbcabc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a proposed PBFT block and vote based on specified period, round and block hash.  <a href="classtaraxa_1_1_proposed_blocks.html#aafdf0dc1d6208d7df1abc789d5cbcabc">More...</a><br /></td></tr>
-<tr class="separator:aafdf0dc1d6208d7df1abc789d5cbcabc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa31beaea11a7c6d7a273ed7605dadd8b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#aa31beaea11a7c6d7a273ed7605dadd8b">markBlockAsValid</a> (uint64_t round, const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;proposed_block)</td></tr>
+<tr class="memdesc:aa31beaea11a7c6d7a273ed7605dadd8b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark block as valid - no need to validate it again.  <a href="classtaraxa_1_1_proposed_blocks.html#aa31beaea11a7c6d7a273ed7605dadd8b">More...</a><br /></td></tr>
+<tr class="separator:aa31beaea11a7c6d7a273ed7605dadd8b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a64d0adcd1b7c61e24fb5fbfb859cd7d4"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::pair&lt; std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;, bool &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#a64d0adcd1b7c61e24fb5fbfb859cd7d4">getPbftProposedBlock</a> (uint64_t period, uint64_t round, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;block_hash) const</td></tr>
+<tr class="memdesc:a64d0adcd1b7c61e24fb5fbfb859cd7d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a proposed PBFT block based on specified period, round and block hash.  <a href="classtaraxa_1_1_proposed_blocks.html#a64d0adcd1b7c61e24fb5fbfb859cd7d4">More...</a><br /></td></tr>
+<tr class="separator:a64d0adcd1b7c61e24fb5fbfb859cd7d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad488ad846e60d10bab9766ed6ea76363"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#ad488ad846e60d10bab9766ed6ea76363">isInProposedBlocks</a> (uint64_t period, uint64_t round, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;block_hash) const</td></tr>
 <tr class="memdesc:ad488ad846e60d10bab9766ed6ea76363"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if specified block is already in proposed blocks.  <a href="classtaraxa_1_1_proposed_blocks.html#ad488ad846e60d10bab9766ed6ea76363">More...</a><br /></td></tr>
 <tr class="separator:ad488ad846e60d10bab9766ed6ea76363"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -120,8 +123,8 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
-<tr class="memitem:aab357e73c061c7a5e62a100f6b77d604"><td class="memItemLeft" align="right" valign="top">std::map&lt; uint64_t, std::map&lt; uint64_t, std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#aab357e73c061c7a5e62a100f6b77d604">proposed_blocks_</a></td></tr>
-<tr class="separator:aab357e73c061c7a5e62a100f6b77d604"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae610b5523651179456e572a98d3f6821"><td class="memItemLeft" align="right" valign="top">std::map&lt; uint64_t, std::map&lt; uint64_t, std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::pair&lt; std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;, bool &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#ae610b5523651179456e572a98d3f6821">proposed_blocks_</a></td></tr>
+<tr class="separator:ae610b5523651179456e572a98d3f6821"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aba4756331e897c3d5f5c470583fcd1eb"><td class="memItemLeft" align="right" valign="top">std::shared_mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#aba4756331e897c3d5f5c470583fcd1eb">proposed_blocks_mutex_</a></td></tr>
 <tr class="separator:aba4756331e897c3d5f5c470583fcd1eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afbc5e57d6c46b54fe2a8ccdcb0fc7cb4"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#afbc5e57d6c46b54fe2a8ccdcb0fc7cb4">db_</a></td></tr>
@@ -220,14 +223,14 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="aafdf0dc1d6208d7df1abc789d5cbcabc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aafdf0dc1d6208d7df1abc789d5cbcabc">&#9670;&nbsp;</a></span>getPbftProposedBlock()</h2>
+<a id="a64d0adcd1b7c61e24fb5fbfb859cd7d4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a64d0adcd1b7c61e24fb5fbfb859cd7d4">&#9670;&nbsp;</a></span>getPbftProposedBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; taraxa::ProposedBlocks::getPbftProposedBlock </td>
+          <td class="memname">std::optional&lt; std::pair&lt; std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;, bool &gt; &gt; taraxa::ProposedBlocks::getPbftProposedBlock </td>
           <td>(</td>
           <td class="paramtype">uint64_t&#160;</td>
           <td class="paramname"><em>period</em>, </td>
@@ -252,7 +255,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Get a proposed PBFT block and vote based on specified period, round and block hash. </p>
+<p>Get a proposed PBFT block based on specified period, round and block hash. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">period</td><td></td></tr>
@@ -261,7 +264,7 @@ Private Attributes</h2></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>proposed PBFT block </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>optional&lt;pair&lt;block, is_valid flag&gt;&gt; </dd></dl>
 
 </div>
 </div>
@@ -307,6 +310,43 @@ Private Attributes</h2></td></tr>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>true if block is present, otherwise false </dd></dl>
+
+</div>
+</div>
+<a id="aa31beaea11a7c6d7a273ed7605dadd8b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa31beaea11a7c6d7a273ed7605dadd8b">&#9670;&nbsp;</a></span>markBlockAsValid()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::ProposedBlocks::markBlockAsValid </td>
+          <td>(</td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>round</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>proposed_block</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Mark block as valid - no need to validate it again. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">round</td><td></td></tr>
+    <tr><td class="paramname">proposed_block</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -416,8 +456,8 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="aab357e73c061c7a5e62a100f6b77d604"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aab357e73c061c7a5e62a100f6b77d604">&#9670;&nbsp;</a></span>proposed_blocks_</h2>
+<a id="ae610b5523651179456e572a98d3f6821"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae610b5523651179456e572a98d3f6821">&#9670;&nbsp;</a></span>proposed_blocks_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -426,7 +466,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::map&lt;uint64_t, std::map&lt;uint64_t, std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::shared_ptr&lt;<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a>&gt; &gt; &gt; &gt; taraxa::ProposedBlocks::proposed_blocks_</td>
+          <td class="memname">std::map&lt;uint64_t, std::map&lt;uint64_t, std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::pair&lt;std::shared_ptr&lt;<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a>&gt;, bool&gt; &gt; &gt; &gt; taraxa::ProposedBlocks::proposed_blocks_</td>
         </tr>
       </table>
   </td>

@@ -1,5 +1,6 @@
 var NAVTREEINDEX10 =
 {
+"classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#afe3b1759755fb264173dbb7db41b366c":[14,0,4,4,0,8,6],
 "classtaraxa_1_1network_1_1tarcap_1_1_packet_data.html":[14,0,4,4,0,9],
 "classtaraxa_1_1network_1_1tarcap_1_1_packet_data.html#a0fdfaaaea018f6bc8f894e726cddb751":[14,0,4,4,0,9,3],
 "classtaraxa_1_1network_1_1tarcap_1_1_packet_data.html#a25adcfbbc52bf3f9576dd63aa636e27e":[14,0,4,4,0,9,14],
@@ -248,6 +249,5 @@ var NAVTREEINDEX10 =
 "classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#a5ae47684ee7284a37a5002b7616f4482":[14,0,4,4,0,23,15],
 "classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#a5c0459ec8bdef971af92e03005f3111b":[14,0,4,4,0,23,0],
 "classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#a6fdcaa650524ce8823eb3bcf63b0605f":[14,0,4,4,0,23,6],
-"classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#a70977ed1a727fd8d850d2df3f1b8e749":[14,0,4,4,0,23,10],
-"classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#a7e2afdd92c69b9a9bab4498115998e02":[14,0,4,4,0,23,19]
+"classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#a70977ed1a727fd8d850d2df3f1b8e749":[14,0,4,4,0,23,10]
 };

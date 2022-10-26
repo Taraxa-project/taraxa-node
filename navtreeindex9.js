@@ -1,5 +1,6 @@
 var NAVTREEINDEX9 =
 {
+"classtaraxa_1_1net_1_1_ws_session.html#ad49c48881ae9e0916b597243cb904877":[14,0,4,3,22,20],
 "classtaraxa_1_1net_1_1_ws_session.html#adab966a3da09dca80949abb17b9cc9cc":[14,0,4,3,22,27],
 "classtaraxa_1_1net_1_1_ws_session.html#ade2a9505b2928baac661fede47833433":[14,0,4,3,22,7],
 "classtaraxa_1_1net_1_1_ws_session.html#adf9279d9c2df9ee81e582c917ccc4170":[14,0,4,3,22,21],
@@ -248,6 +249,5 @@ var NAVTREEINDEX9 =
 "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#ac6f46e20d6b707c66ca7a0b184c00d28":[14,0,4,4,0,8,2],
 "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#adee217df8afd195899bbfc8f4fc3f5e3":[14,0,4,4,0,8,1],
 "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#aeb19852ece458f1bdf5b8c1a0b0b855b":[14,0,4,4,0,8,9],
-"classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#af6078adea51b53762fed5c0bcb34bdbc":[14,0,4,4,0,8,14],
-"classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#afe3b1759755fb264173dbb7db41b366c":[14,0,4,4,0,8,6]
+"classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#af6078adea51b53762fed5c0bcb34bdbc":[14,0,4,4,0,8,14]
 };
