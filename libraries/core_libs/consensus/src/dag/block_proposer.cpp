@@ -4,6 +4,7 @@
 
 #include "common/util.hpp"
 #include "dag/dag.hpp"
+#include "key_manager/key_manager.hpp"
 #include "transaction/transaction.hpp"
 #include "transaction/transaction_manager.hpp"
 
@@ -36,6 +37,13 @@ bool SortitionPropose::propose() {
     LOG(log_er_) << "No proposal period for propose_level " << propose_level << " found";
     assert(false);
   }
+
+  auto pk = key_manager_->get(*proposal_period, node_addr_);
+  if (pk && *pk != vrf_pk_) {
+    LOG(log_er_) << "VRF public key mismatch " << *pk << " - " << vrf_pk_;
+    return false;
+  }
+
   const auto period_block_hash = db_->getPeriodBlockHash(*proposal_period);
   // get sortition
   const auto sortition_params = dag_mgr_->sortitionParamsManager().getSortitionParams(*proposal_period);
@@ -107,6 +115,7 @@ bool SortitionPropose::propose() {
     return false;
   }
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
+
   last_frontier_ = frontier;
   proposer->proposeBlock(std::move(frontier), propose_level, std::move(transactions), std::move(estimations),
                          std::move(vdf));

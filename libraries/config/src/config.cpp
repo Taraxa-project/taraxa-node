@@ -275,6 +275,19 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
 
   try {
     node_secret = dev::Secret(wallet["node_secret"].asString(), dev::Secret::ConstructFromStringType::FromHex);
+    if (!wallet["node_public"].isNull()) {
+      auto node_public = dev::Public(wallet["node_public"].asString(), dev::Public::ConstructFromStringType::FromHex);
+      if (node_public != dev::KeyPair(node_secret).pub()) {
+        throw ConfigException(std::string("Node secret key and public key in wallet do not match"));
+      }
+    }
+    if (!wallet["node_address"].isNull()) {
+      auto node_address =
+          dev::Address(wallet["node_address"].asString(), dev::Address::ConstructFromStringType::FromHex);
+      if (node_address != dev::KeyPair(node_secret).address()) {
+        throw ConfigException(std::string("Node secret key and address in wallet do not match"));
+      }
+    }
   } catch (const dev::Exception &e) {
     throw ConfigException(std::string("Could not parse node_secret: ") + e.what());
   }
@@ -283,6 +296,17 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
     vrf_secret = vrf_wrapper::vrf_sk_t(wallet["vrf_secret"].asString());
   } catch (const dev::Exception &e) {
     throw ConfigException(std::string("Could not parse vrf_secret: ") + e.what());
+  }
+
+  try {
+    if (!wallet["vrf_public"].isNull()) {
+      auto vrf_public = vrf_wrapper::vrf_pk_t(wallet["vrf_public"].asString());
+      if (vrf_public != taraxa::vrf_wrapper::getVrfPublicKey(vrf_secret)) {
+        throw ConfigException(std::string("Vrf secret key and public key in wallet do not match"));
+      }
+    }
+  } catch (const dev::Exception &e) {
+    throw ConfigException(std::string("Could not parse vrf_public: ") + e.what());
   }
   // TODO configurable
   opts_final_chain.expected_max_trx_per_block = 1000;
