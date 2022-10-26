@@ -1,6 +1,5 @@
 var NAVTREEINDEX5 =
 {
-"classgraphql_1_1taraxa_1_1_dag_block.html#a62db2b51be5f3c8941927e095d7b9076":[14,0,2,0,3,16],
 "classgraphql_1_1taraxa_1_1_dag_block.html#a77ba05ccdedf027940bf5a26e821637b":[14,0,2,0,3,7],
 "classgraphql_1_1taraxa_1_1_dag_block.html#a791e59af327bace06becde62ad59ea6d":[14,0,2,0,3,1],
 "classgraphql_1_1taraxa_1_1_dag_block.html#a8019a272aa3cee961810b82b13f0e8c6":[14,0,2,0,3,10],
@@ -249,5 +248,6 @@ var NAVTREEINDEX5 =
 "classtaraxa_1_1_db_storage.html#a9b3cbfc1c55197bafc743ffc9f886ab5":[14,0,4,21,28],
 "classtaraxa_1_1_db_storage.html#a9b4d1205d437d478237d122937262403":[14,0,4,21,103],
 "classtaraxa_1_1_db_storage.html#a9b657786cf22bbe144c57dbfb4d79cca":[14,0,4,21,79],
-"classtaraxa_1_1_db_storage.html#aa1e26b8951b25a1af8cdb312a2b36919":[14,0,4,21,6]
+"classtaraxa_1_1_db_storage.html#aa1e26b8951b25a1af8cdb312a2b36919":[14,0,4,21,6],
+"classtaraxa_1_1_db_storage.html#aadb4fcfd61b844896ad61ac66b4fe6e3":[14,0,4,21,57]
 };

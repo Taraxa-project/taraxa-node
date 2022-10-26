@@ -8,26 +8,28 @@ var group___d_a_g =
       [ "operator=", "group___d_a_g.html#ac8cc9887407a639faf404f6083b2cdbd", null ],
       [ "operator=", "group___d_a_g.html#a930fc53bfeceac2c1a056b61d966507e", null ],
       [ "propose", "group___d_a_g.html#aa89616ed1bd976bdb8321b605228c791", null ],
-      [ "setProposer", "group___d_a_g.html#a996f5b6978e3762aa78724ac8dd9ecb8", null ],
+      [ "setProposer", "group___d_a_g.html#afa9e35e9c79397bf7a48c3fde03c30d0", null ],
       [ "node_addr_", "group___d_a_g.html#a96cbaf3265e081eca89d836d2a62b975", null ],
       [ "proposer_", "group___d_a_g.html#af49c9b6ea8c699e6953129f302c31fad", null ],
       [ "sk_", "group___d_a_g.html#a76cf63630306baeabb9030031da7b7ed", null ],
-      [ "vrf_sk_", "group___d_a_g.html#ab655682c0c19dc934bf9b2fffac9d019", null ]
+      [ "vrf_pk_", "group___d_a_g.html#a5c1f2cc6016f4adc857f4cca515c8362", null ],
+      [ "vrf_sk_", "group___d_a_g.html#aef63ace1848393c915e0c88f65d70fbf", null ]
     ] ],
     [ "SortitionPropose", "group___d_a_g.html#classtaraxa_1_1_sortition_propose", [
-      [ "SortitionPropose", "group___d_a_g.html#ad10321974adc640c27d55f0591ab9fa1", null ],
+      [ "SortitionPropose", "group___d_a_g.html#a77dbe436ece4685d14a75680d6dc9a4d", null ],
       [ "~SortitionPropose", "group___d_a_g.html#adba632348f69df65960098fc0efb5eb7", null ],
       [ "propose", "group___d_a_g.html#addeec0eeb2caa6b651d3a9e9e136e1ed", null ],
       [ "dag_mgr_", "group___d_a_g.html#ab2ea22f5c74c111431955cbaeced65e7", null ],
       [ "db_", "group___d_a_g.html#a35a01524cd913a3c6109def68b32f842", null ],
       [ "executor_", "group___d_a_g.html#a7ac36f60bce997dbb4f952aaa0b1e22a", null ],
+      [ "key_manager_", "group___d_a_g.html#a1adea10b5c0d6646f18ef7d4f710af9d", null ],
       [ "last_frontier_", "group___d_a_g.html#a3dd257da790b6978fd814dcce1785c5a", null ],
       [ "max_num_tries_", "group___d_a_g.html#aae1e3fb89b672481721fd3bc4180d3f9", null ],
       [ "num_tries_", "group___d_a_g.html#a0120111247e61dad6da6541c54fc47d9", null ],
       [ "trx_mgr_", "group___d_a_g.html#ab211aaaf09fe7fd2602ee0b35f86b9e8", null ]
     ] ],
     [ "BlockProposer", "group___d_a_g.html#classtaraxa_1_1_block_proposer", [
-      [ "BlockProposer", "group___d_a_g.html#add82cb3831ea49bd87d42f06802116e0", null ],
+      [ "BlockProposer", "group___d_a_g.html#ac96e96038b286db4e015dd248569ef4d", null ],
       [ "~BlockProposer", "group___d_a_g.html#a29b47a9568c03f74069b3ccc74552e9d", null ],
       [ "BlockProposer", "group___d_a_g.html#a35133cb239cf48be8199dafa95d019dc", null ],
       [ "BlockProposer", "group___d_a_g.html#a9e793aa0e34e450d4d6e8beb37974d8e", null ],
@@ -58,7 +60,7 @@ var group___d_a_g =
       [ "stopped_", "group___d_a_g.html#ae41b702223e04325b2ebbb9b11941dd6", null ],
       [ "total_trx_shards_", "group___d_a_g.html#a6d3fe81d8d5bc0da7fd10144a390adb3", null ],
       [ "trx_mgr_", "group___d_a_g.html#a17c4083039acb260cf25ab7eaee459b6", null ],
-      [ "vrf_sk_", "group___d_a_g.html#a74f727be66398e1242da44e0165b04e7", null ]
+      [ "vrf_sk_", "group___d_a_g.html#a8b59faa501624dcd69eed76bfb1a04b5", null ]
     ] ],
     [ "Dag", "group___d_a_g.html#classtaraxa_1_1_dag", [
       [ "adj_list_t", "group___d_a_g.html#aebe0629679ef96c6a242faeded09311e", null ],
@@ -348,6 +350,5 @@ var group___d_a_g =
       [ "db_", "group___d_a_g.html#a7d2d20da7fc504c22810038aa83cd5db", null ],
       [ "ignored_efficiency_counter_", "group___d_a_g.html#ab62614d14c2cef62ba1ab1b82c0b68fb", null ],
       [ "params_changes_", "group___d_a_g.html#a819aa6076a9305d48ec7e18c2912a4c5", null ]
-    ] ],
-    [ "vrf_sk_t", "group___d_a_g.html#ga56857ded49ffece37a7424664c2ea093", null ]
+    ] ]
 ];

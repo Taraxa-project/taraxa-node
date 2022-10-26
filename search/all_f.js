@@ -83,7 +83,7 @@ var searchData=
   ['overridewallet_2225',['overrideWallet',['../namespacetaraxa_1_1cli_1_1tools.html#ad371a9212bbd71daca16a2683eca248d',1,'taraxa::cli::tools::overrideWallet(Json::Value &amp;wallet, const std::string &amp;node_key, const std::string &amp;vrf_key)'],['../namespacetaraxa_1_1cli_1_1tools.html#a6faa605dc03f24fc87bfd798e42bacc8',1,'taraxa::cli::tools::overrideWallet(Json::Value &amp;wallet, const string &amp;node_key, const string &amp;vrf_key)']]],
   ['overwrite_5fchain_5fconfig_5fin_5ffile_2226',['overwrite_chain_config_in_file',['../structtaraxa_1_1_full_node_config.html#a47afb4c0b109d250bda3f1bafc091f1d',1,'taraxa::FullNodeConfig']]],
   ['overwrite_5fconfig_2227',['OVERWRITE_CONFIG',['../classtaraxa_1_1cli_1_1_config.html#a0e57340cfbb66133f07943f856a74814',1,'taraxa::cli::Config']]],
-  ['owner_2228',['owner',['../namespacetaraxa_1_1state__api.html#acf8492fa86e6ac73c82ae55d9db33c2e',1,'taraxa::state_api::ValidatorInfo::owner()'],['../classtaraxa_1_1util_1_1event_1_1_event.html#a469cd772a6e2826427f8b6e2af03f64f',1,'taraxa::util::event::Event::Owner()']]],
+  ['owner_2228',['Owner',['../classtaraxa_1_1util_1_1event_1_1_event.html#a469cd772a6e2826427f8b6e2af03f64f',1,'taraxa::util::event::Event::Owner()'],['../namespacetaraxa_1_1state__api.html#acf8492fa86e6ac73c82ae55d9db33c2e',1,'taraxa::state_api::ValidatorInfo::owner()']]],
   ['pair_3c_20t_2c_20u_20_3e_2229',['pair&lt; T, U &gt;',['../classdev_1_1_r_l_p.html#a625235b730ffcc549d3a0854e6868dfd',1,'dev::RLP']]],
   ['set_3c_20t_20_3e_2230',['set&lt; T &gt;',['../classdev_1_1_r_l_p.html#a4302105f4156da4d37496eeb986ee9b2',1,'dev::RLP']]],
   ['string_2231',['string',['../classdev_1_1_r_l_p.html#a282059f163dc3bb98acba60f39ce3cb3',1,'dev::RLP']]],

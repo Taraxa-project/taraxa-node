@@ -1,6 +1,6 @@
 var group___d_a_g_classtaraxa_1_1_block_proposer =
 [
-    [ "BlockProposer", "group___d_a_g.html#add82cb3831ea49bd87d42f06802116e0", null ],
+    [ "BlockProposer", "group___d_a_g.html#ac96e96038b286db4e015dd248569ef4d", null ],
     [ "~BlockProposer", "group___d_a_g.html#a29b47a9568c03f74069b3ccc74552e9d", null ],
     [ "BlockProposer", "group___d_a_g.html#a35133cb239cf48be8199dafa95d019dc", null ],
     [ "BlockProposer", "group___d_a_g.html#a9e793aa0e34e450d4d6e8beb37974d8e", null ],
@@ -31,5 +31,5 @@ var group___d_a_g_classtaraxa_1_1_block_proposer =
     [ "stopped_", "group___d_a_g.html#ae41b702223e04325b2ebbb9b11941dd6", null ],
     [ "total_trx_shards_", "group___d_a_g.html#a6d3fe81d8d5bc0da7fd10144a390adb3", null ],
     [ "trx_mgr_", "group___d_a_g.html#a17c4083039acb260cf25ab7eaee459b6", null ],
-    [ "vrf_sk_", "group___d_a_g.html#a74f727be66398e1242da44e0165b04e7", null ]
+    [ "vrf_sk_", "group___d_a_g.html#a8b59faa501624dcd69eed76bfb1a04b5", null ]
 ];

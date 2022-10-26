@@ -1,10 +1,12 @@
 <map id="taraxa::SortitionPropose" name="taraxa::SortitionPropose">
-<area shape="rect" id="node1" title=" " alt="" coords="868,118,1047,145"/>
-<area shape="rect" id="node2" href="$group___d_a_g.html#classtaraxa_1_1_propose_model_face" title=" " alt="" coords="536,67,729,94"/>
-<area shape="rect" id="node3" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="229,5,393,47"/>
-<area shape="rect" id="node4" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,13,164,39"/>
-<area shape="rect" id="node5" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="231,91,391,118"/>
-<area shape="rect" id="node8" href="$structtaraxa_1_1_dag_frontier.html" title=" " alt="" coords="559,118,707,145"/>
-<area shape="rect" id="node6" href="$classtaraxa_1_1util_1_1_thread_pool.html" title=" " alt="" coords="545,169,720,195"/>
-<area shape="rect" id="node7" title=" " alt="" coords="213,161,408,203"/>
+<area shape="rect" id="node1" title=" " alt="" coords="868,213,1047,239"/>
+<area shape="rect" id="node2" href="$group___d_a_g.html#classtaraxa_1_1_propose_model_face" title=" " alt="" coords="536,123,729,150"/>
+<area shape="rect" id="node3" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="220,5,401,47"/>
+<area shape="rect" id="node4" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="219,71,403,112"/>
+<area shape="rect" id="node5" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="229,136,393,177"/>
+<area shape="rect" id="node6" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,143,164,170"/>
+<area shape="rect" id="node7" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="231,203,391,230"/>
+<area shape="rect" id="node10" href="$structtaraxa_1_1_dag_frontier.html" title=" " alt="" coords="559,213,707,239"/>
+<area shape="rect" id="node8" href="$classtaraxa_1_1util_1_1_thread_pool.html" title=" " alt="" coords="545,263,720,290"/>
+<area shape="rect" id="node9" title=" " alt="" coords="213,256,408,297"/>
 </map>

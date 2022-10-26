@@ -7,9 +7,10 @@ var group___d_a_g_classtaraxa_1_1_propose_model_face =
     [ "operator=", "group___d_a_g.html#ac8cc9887407a639faf404f6083b2cdbd", null ],
     [ "operator=", "group___d_a_g.html#a930fc53bfeceac2c1a056b61d966507e", null ],
     [ "propose", "group___d_a_g.html#aa89616ed1bd976bdb8321b605228c791", null ],
-    [ "setProposer", "group___d_a_g.html#a996f5b6978e3762aa78724ac8dd9ecb8", null ],
+    [ "setProposer", "group___d_a_g.html#afa9e35e9c79397bf7a48c3fde03c30d0", null ],
     [ "node_addr_", "group___d_a_g.html#a96cbaf3265e081eca89d836d2a62b975", null ],
     [ "proposer_", "group___d_a_g.html#af49c9b6ea8c699e6953129f302c31fad", null ],
     [ "sk_", "group___d_a_g.html#a76cf63630306baeabb9030031da7b7ed", null ],
-    [ "vrf_sk_", "group___d_a_g.html#ab655682c0c19dc934bf9b2fffac9d019", null ]
+    [ "vrf_pk_", "group___d_a_g.html#a5c1f2cc6016f4adc857f4cca515c8362", null ],
+    [ "vrf_sk_", "group___d_a_g.html#aef63ace1848393c915e0c88f65d70fbf", null ]
 ];
