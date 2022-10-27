@@ -262,13 +262,13 @@ std::pair<bool, uint64_t> PbftManager::getDagBlockPeriod(blk_hash_t const &hash)
 
 uint64_t PbftManager::getPbftPeriod() const { return pbft_chain_->getPbftChainSize() + 1; }
 
-uint64_t PbftManager::getPbftRound() const { return round_; }
+uint32_t PbftManager::getPbftRound() const { return round_; }
 
-std::pair<uint64_t, uint64_t> PbftManager::getPbftRoundAndPeriod() const { return {getPbftRound(), getPbftPeriod()}; }
+std::pair<uint32_t, uint64_t> PbftManager::getPbftRoundAndPeriod() const { return {getPbftRound(), getPbftPeriod()}; }
 
-uint64_t PbftManager::getPbftStep() const { return step_; }
+uint32_t PbftManager::getPbftStep() const { return step_; }
 
-void PbftManager::setPbftRound(uint64_t const round) {
+void PbftManager::setPbftRound(uint32_t round) {
   db_->savePbftMgrField(PbftMgrRoundStep::PbftRound, round);
   round_ = round;
 }
@@ -307,7 +307,7 @@ std::optional<uint64_t> PbftManager::getCurrentNodeVotesCount() const {
   return {};
 }
 
-void PbftManager::setPbftStep(size_t const pbft_step) {
+void PbftManager::setPbftStep(uint32_t pbft_step) {
   db_->savePbftMgrField(PbftMgrRoundStep::PbftStep, pbft_step);
   step_ = pbft_step;
 
@@ -347,7 +347,7 @@ bool PbftManager::tryPushCertVotesBlock() {
   }
 
   auto certified_block =
-      vote_mgr_->getTwoTPlusOneVotesBundle(current_pbft_round, current_pbft_period, certify_state, *two_t_plus_one);
+      vote_mgr_->getTwoTPlusOneVotesBundle(current_pbft_period, current_pbft_round, certify_state, *two_t_plus_one);
   // Not enough cert votes found yet
   if (!certified_block.has_value()) {
     return false;
@@ -785,7 +785,7 @@ const std::optional<TwoTPlusOneSoftVotedBlockData> &PbftManager::getTwoTPlusOneS
     }
   } else if (const auto two_t_plus_one = getPbftTwoTPlusOne(period - 1); two_t_plus_one.has_value()) {
     // Try to get 2t+1 soft votes for some block
-    const auto soft_votes_bundle = vote_mgr_->getTwoTPlusOneVotesBundle(round, period, filter_state, *two_t_plus_one);
+    const auto soft_votes_bundle = vote_mgr_->getTwoTPlusOneVotesBundle(period, round, filter_state, *two_t_plus_one);
     if (soft_votes_bundle.has_value()) {
       TwoTPlusOneSoftVotedBlockData soft_voted_block_data;
       soft_voted_block_data.round_ = round;
@@ -867,8 +867,8 @@ bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &propo
     return false;
   }
 
-  auto propose_vote = generateVoteWithWeight(proposed_block->getBlockHash(), propose_vote_type, current_pbft_period,
-                                             current_pbft_round, current_pbft_step);
+  auto propose_vote = generateVoteWithWeight(proposed_block->getBlockHash(), PbftVoteTypes::propose_vote,
+                                             current_pbft_period, current_pbft_round, current_pbft_step);
   if (!propose_vote) {
     LOG(log_er_) << "Unable to generate propose vote";
     return false;
@@ -957,8 +957,8 @@ void PbftManager::identifyBlock_() {
     LOG(log_dg_) << "Leader block identified " << leader_block->getBlockHash() << ", period " << period << ", round "
                  << round;
 
-    if (auto vote = generateVoteWithWeight(leader_block->getBlockHash(), soft_vote_type, leader_block->getPeriod(),
-                                           round, step_);
+    if (auto vote = generateVoteWithWeight(leader_block->getBlockHash(), PbftVoteTypes::soft_vote,
+                                           leader_block->getPeriod(), round, step_);
         vote) {
       placeVote(vote, "soft vote", leader_block);
     }
@@ -972,7 +972,8 @@ void PbftManager::identifyBlock_() {
       return;
     }
 
-    if (auto vote = generateVoteWithWeight(next_voted_block_hash, soft_vote_type, period, round, step_); vote) {
+    if (auto vote = generateVoteWithWeight(next_voted_block_hash, PbftVoteTypes::soft_vote, period, round, step_);
+        vote) {
       placeVote(vote, "previous round next voted block soft vote", next_voted_block);
     }
   }
@@ -1025,8 +1026,8 @@ void PbftManager::certifyBlock_() {
   const auto soft_voted_block = soft_voted_block_data->block_data_->first;
 
   // generate cert vote
-  auto vote = generateVoteWithWeight(soft_voted_block->getBlockHash(), cert_vote_type, soft_voted_block->getPeriod(),
-                                     round, step_);
+  auto vote = generateVoteWithWeight(soft_voted_block->getBlockHash(), PbftVoteTypes::cert_vote,
+                                     soft_voted_block->getPeriod(), round, step_);
   if (!vote) {
     LOG(log_dg_) << "Failed to generate cert vote for " << soft_voted_block->getBlockHash();
     return;
@@ -1052,7 +1053,7 @@ void PbftManager::firstFinish_() {
     // It should never happen that node moved to the next period without cert_voted_block_for_round_ reset
     assert(cert_voted_block->getPeriod() == period);
 
-    if (auto vote = generateVoteWithWeight(cert_voted_block->getBlockHash(), next_vote_type,
+    if (auto vote = generateVoteWithWeight(cert_voted_block->getBlockHash(), PbftVoteTypes::next_vote,
                                            cert_voted_block->getPeriod(), round, step_);
         vote) {
       placeVote(vote, "first finish next vote", cert_voted_block);
@@ -1060,7 +1061,7 @@ void PbftManager::firstFinish_() {
   } else if (round >= 2 && previous_round_next_voted_null_block_hash_) {
     // Starting value in round 1 is always null block hash... So combined with other condition for next
     // voting null block hash...
-    if (auto vote = generateVoteWithWeight(NULL_BLOCK_HASH, next_vote_type, period, round, step_); vote) {
+    if (auto vote = generateVoteWithWeight(NULL_BLOCK_HASH, PbftVoteTypes::next_vote, period, round, step_); vote) {
       placeVote(vote, "first finish next vote", nullptr);
     }
   } else {
@@ -1085,7 +1086,8 @@ void PbftManager::firstFinish_() {
       starting_value = {NULL_BLOCK_HASH, nullptr};
     }
 
-    if (auto vote = generateVoteWithWeight(starting_value.first, next_vote_type, period, round, step_); vote) {
+    if (auto vote = generateVoteWithWeight(starting_value.first, PbftVoteTypes::next_vote, period, round, step_);
+        vote) {
       placeVote(vote, "starting value first finish next vote", starting_value.second);
     }
   }
@@ -1120,7 +1122,7 @@ void PbftManager::secondFinish_() {
 
       if (block_is_valid) {
         const auto vote =
-            generateVoteWithWeight(soft_voted_block_data->block_hash_, next_vote_type, period, round, step_);
+            generateVoteWithWeight(soft_voted_block_data->block_hash_, PbftVoteTypes::next_vote, period, round, step_);
         if (vote && placeVote(vote, "second finish vote", soft_voted_block_data->block_data_->first)) {
           db_->savePbftMgrStatus(PbftMgrStatus::NextVotedSoftValue, true);
           already_next_voted_value_ = true;
@@ -1131,7 +1133,7 @@ void PbftManager::secondFinish_() {
 
   if (!already_next_voted_null_block_hash_ && round >= 2 && previous_round_next_voted_null_block_hash_ &&
       !cert_voted_block_for_round_.has_value()) {
-    if (auto vote = generateVoteWithWeight(NULL_BLOCK_HASH, next_vote_type, period, round, step_); vote) {
+    if (auto vote = generateVoteWithWeight(NULL_BLOCK_HASH, PbftVoteTypes::next_vote, period, round, step_); vote) {
       if (placeVote(vote, "second finish next vote", nullptr)) {
         db_->savePbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash, true);
         already_next_voted_null_block_hash_ = true;
@@ -1155,7 +1157,7 @@ std::shared_ptr<PbftBlock> PbftManager::generatePbftBlock(uint64_t propose_perio
 }
 
 std::shared_ptr<Vote> PbftManager::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t period,
-                                                uint64_t round, size_t step) {
+                                                uint32_t round, uint32_t step) {
   // sortition proof
   VrfPbftSortition vrf_sortition(vrf_sk_, {type, period, round, step});
   return std::make_shared<Vote>(node_sk_, std::move(vrf_sortition), blockhash);
@@ -1208,11 +1210,11 @@ void PbftManager::processProposedBlock(const std::shared_ptr<PbftBlock> &propose
 
 uint64_t PbftManager::getPbftSortitionThreshold(uint64_t total_dpos_votes_count, PbftVoteTypes vote_type) const {
   switch (vote_type) {
-    case PbftVoteTypes::propose_vote_type:
+    case PbftVoteTypes::propose_vote:
       return std::min<uint64_t>(NUMBER_OF_PROPOSERS, total_dpos_votes_count);
-    case PbftVoteTypes::soft_vote_type:
-    case PbftVoteTypes::cert_vote_type:
-    case PbftVoteTypes::next_vote_type:
+    case PbftVoteTypes::soft_vote:
+    case PbftVoteTypes::cert_vote:
+    case PbftVoteTypes::next_vote:
     default:
       return std::min<uint64_t>(COMMITTEE_SIZE, total_dpos_votes_count);
   }
@@ -1237,8 +1239,7 @@ std::optional<uint64_t> PbftManager::getPbftTwoTPlusOne(uint64_t pbft_period) co
     return {};
   }
 
-  const auto two_t_plus_one =
-      getPbftSortitionThreshold(total_dpos_votes_count, PbftVoteTypes::cert_vote_type) * 2 / 3 + 1;
+  const auto two_t_plus_one = getPbftSortitionThreshold(total_dpos_votes_count, PbftVoteTypes::cert_vote) * 2 / 3 + 1;
 
   // Cache is only for current pbft period
   if (pbft_period == pbft_chain_->getPbftChainSize()) {
@@ -1250,12 +1251,12 @@ std::optional<uint64_t> PbftManager::getPbftTwoTPlusOne(uint64_t pbft_period) co
 }
 
 std::shared_ptr<Vote> PbftManager::generateVoteWithWeight(taraxa::blk_hash_t const &blockhash, PbftVoteTypes vote_type,
-                                                          uint64_t period, uint64_t round, size_t step) {
+                                                          uint64_t period, uint32_t round, uint32_t step) {
   const auto current_pbft_period = getPbftPeriod();
   if (period != current_pbft_period) {
     LOG(log_er_) << "Unable to generate vote for block " << blockhash << ", period " << period << ", round " << round
-                 << ", step " << step << ", type " << vote_type << " as current pbft period is different "
-                 << current_pbft_period;
+                 << ", step " << step << ", type " << static_cast<uint8_t>(vote_type)
+                 << " as current pbft period is different " << current_pbft_period;
     return nullptr;
   }
 
@@ -1329,13 +1330,13 @@ std::optional<blk_hash_t> findClosestAnchor(const std::vector<blk_hash_t> &ghost
 
 std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
   const auto [current_pbft_round, current_pbft_period] = getPbftRoundAndPeriod();
-  VrfPbftSortition vrf_sortition(vrf_sk_, {propose_vote_type, current_pbft_period, current_pbft_round, 1});
+  VrfPbftSortition vrf_sortition(vrf_sk_, {PbftVoteTypes::propose_vote, current_pbft_period, current_pbft_round, 1});
 
   try {
     const uint64_t voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(current_pbft_period - 1, node_addr_);
     const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(current_pbft_period - 1);
     const uint64_t pbft_sortition_threshold =
-        getPbftSortitionThreshold(total_dpos_votes_count, PbftVoteTypes::propose_vote_type);
+        getPbftSortitionThreshold(total_dpos_votes_count, PbftVoteTypes::propose_vote);
 
     if (!voter_dpos_votes_count) {
       LOG(log_er_) << "Unable to propose block for period " << current_pbft_period << ", round " << current_pbft_round
@@ -1482,7 +1483,7 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(uint64_t round, uin
       continue;
     }
 
-    if (v->getType() != propose_vote_type) {
+    if (v->getType() != PbftVoteTypes::propose_vote) {
       LOG(log_er_) << "Vote type is not propose vote type. Vote " << v;
       continue;
     }
@@ -1937,9 +1938,9 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
       return false;
     }
 
-    if (v->getType() != cert_vote_type) {
-      LOG(log_er_) << "Invalid cert vote " << v->getHash() << " type " << v->getType() << ", PBFT block "
-                   << pbft_block->getBlockHash();
+    if (v->getType() != PbftVoteTypes::cert_vote) {
+      LOG(log_er_) << "Invalid cert vote " << v->getHash() << " type " << static_cast<uint8_t>(v->getType())
+                   << ", PBFT block " << pbft_block->getBlockHash();
       return false;
     }
 

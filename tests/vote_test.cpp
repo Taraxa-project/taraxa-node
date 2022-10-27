@@ -72,7 +72,7 @@ TEST_F(VoteTest, verified_votes) {
 
   // Generate a vote
   blk_hash_t blockhash(1);
-  PbftVoteTypes type = soft_vote_type;
+  PbftVoteTypes type = PbftVoteTypes::soft_vote;
   auto step = 2;
   auto vote = pbft_mgr->generateVote(blockhash, type, period, round, step);
   vote->calculateWeight(1, 1, 1);
@@ -109,7 +109,7 @@ TEST_F(VoteTest, DISABLED_add_cleanup_get_votes) {
   // generate 6 votes, 3 periods, 2 votes in round 1 each
   auto vote_mgr = node->getVoteManager();
   blk_hash_t voted_block_hash(1);
-  PbftVoteTypes type = next_vote_type;
+  PbftVoteTypes type = PbftVoteTypes::next_vote;
   for (int i = 1; i <= 3; i++) {
     for (int j = 1; j <= 2; j++) {
       uint64_t period = i;
@@ -156,7 +156,7 @@ TEST_F(VoteTest, round_determine_from_next_votes) {
 
   // Generate votes in 3 rounds, 2 steps, each step have 3 votes
   blk_hash_t voted_block_hash(1);
-  PbftVoteTypes type = next_vote_type;
+  PbftVoteTypes type = PbftVoteTypes::next_vote;
   for (int i = 10; i <= 12; i++) {
     for (int j = 4; j <= 5; j++) {
       uint64_t period = i;
@@ -177,7 +177,7 @@ TEST_F(VoteTest, reconstruct_votes) {
   sig_t sortition_sig(1234567);
   sig_t vote_sig(9878766);
   blk_hash_t propose_blk_hash(111111);
-  PbftVoteTypes type(propose_vote_type);
+  PbftVoteTypes type(PbftVoteTypes::propose_vote);
   uint64_t period(999);
   uint64_t round(999);
   size_t step(2);
@@ -209,7 +209,7 @@ TEST_F(VoteTest, transfer_vote) {
 
   // generate a vote far ahead (never exist in PBFT manager)
   blk_hash_t propose_block_hash(11);
-  PbftVoteTypes type = next_vote_type;
+  PbftVoteTypes type = PbftVoteTypes::next_vote;
   uint64_t period = 1;
   uint64_t round = 1;
   size_t step = 1;
@@ -243,7 +243,7 @@ TEST_F(VoteTest, vote_broadcast) {
 
   // generate a vote far ahead (never exist in PBFT manager)
   blk_hash_t propose_block_hash(111);
-  PbftVoteTypes type = next_vote_type;
+  PbftVoteTypes type = PbftVoteTypes::next_vote;
   size_t step = 1;
   auto vote = pbft_mgr1->generateVote(propose_block_hash, type, period, round, step);
 
@@ -280,7 +280,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   EXPECT_EQ(pbft_2t_plus_1, 1);
 
   // Generate a vote voted at NULL_BLOCK_HASH
-  PbftVoteTypes type = next_vote_type;
+  PbftVoteTypes type = PbftVoteTypes::next_vote;
   auto period = 1;
   auto round = 1;
   auto step = 4;

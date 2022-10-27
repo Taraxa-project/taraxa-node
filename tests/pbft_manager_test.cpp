@@ -205,7 +205,7 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
 
   // Generate bogus votes
   auto stale_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
-  auto propose_vote = pbft_mgr->generateVote(stale_block_hash, propose_vote_type, 2, 2, 1);
+  auto propose_vote = pbft_mgr->generateVote(stale_block_hash, PbftVoteTypes::propose_vote, 2, 2, 1);
   propose_vote->calculateWeight(1, 1, 1);
   vote_mgr->addVerifiedVote(propose_vote);
 
@@ -232,7 +232,7 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
   bool skipped_soft_voting = true;
   auto votes = vote_mgr->getVerifiedVotes();
   for (const auto &v : votes) {
-    if (soft_vote_type == v->getType()) {
+    if (PbftVoteTypes::soft_vote == v->getType()) {
       if (v->getBlockHash() == stale_block_hash) {
         skipped_soft_voting = false;
       }
@@ -285,7 +285,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   auto period = 1;
   auto round = 1;
   auto step = 4;
-  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, period, round, step);
+  auto propose_vote = pbft_mgr->generateVote(pbft_block_hash, PbftVoteTypes::next_vote, period, round, step);
   propose_vote->calculateWeight(1, 1, 1);
   vote_mgr->addVerifiedVote(propose_vote);
 
@@ -299,7 +299,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
     blk_hash_t soft_vote_value;
     auto votes = vote_mgr->getVerifiedVotes();
     for (const auto &v : votes) {
-      if (soft_vote_type == v->getType() && v->getBlockHash() == pbft_block_hash) {
+      if (PbftVoteTypes::soft_vote == v->getType() && v->getBlockHash() == pbft_block_hash) {
         soft_vote_value = v->getBlockHash();
         break;
       }
@@ -313,7 +313,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
     auto proposal_value = pbft_block_hash;
     auto votes = vote_mgr->getVerifiedVotes();
     for (const auto &v : votes) {
-      if (propose_vote_type == v->getType() && v->getBlockHash() != pbft_block_hash) {
+      if (PbftVoteTypes::propose_vote == v->getType() && v->getBlockHash() != pbft_block_hash) {
         proposal_value = v->getBlockHash();
         break;
       }
@@ -345,7 +345,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
   auto round = 1;
   auto step = 4;
   auto pbft_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
-  auto next_vote = pbft_mgr->generateVote(pbft_block_hash, next_vote_type, period, round, step);
+  auto next_vote = pbft_mgr->generateVote(pbft_block_hash, PbftVoteTypes::next_vote, period, round, step);
   next_vote->calculateWeight(1, 1, 1);
   vote_mgr->addVerifiedVote(next_vote);
 
@@ -359,7 +359,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
     blk_hash_t soft_vote_value;
     auto votes = vote_mgr->getVerifiedVotes();
     for (auto const &v : votes) {
-      if (soft_vote_type == v->getType() && v->getBlockHash() == pbft_block_hash) {
+      if (PbftVoteTypes::soft_vote == v->getType() && v->getBlockHash() == pbft_block_hash) {
         soft_vote_value = v->getBlockHash();
         break;
       }
@@ -375,7 +375,7 @@ TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
     auto votes = vote_mgr->getVerifiedVotes();
 
     for (auto const &v : votes) {
-      if (propose_vote_type == v->getType() && v->getBlockHash() != pbft_block_hash) {
+      if (PbftVoteTypes::propose_vote == v->getType() && v->getBlockHash() != pbft_block_hash) {
         // PBFT has terminated on the missing PBFT block value and proposed a new block value
         proposal_value = v->getBlockHash();
         break;
@@ -646,9 +646,9 @@ TEST_F(PbftManagerTest, propose_block_and_vote_broadcast) {
   auto proposed_pbft_block = std::make_shared<PbftBlock>(prev_block_hash, blk_hash_t(0), blk_hash_t(0),
                                                          node1->getPbftManager()->getPbftPeriod(), node1->getAddress(),
                                                          node1->getSecretKey(), std::move(reward_votes_hashes));
-  auto propose_vote =
-      pbft_mgr1->generateVote(proposed_pbft_block->getBlockHash(), propose_vote_type, proposed_pbft_block->getPeriod(),
-                              node1->getPbftManager()->getPbftRound() + 1, value_proposal_state);
+  auto propose_vote = pbft_mgr1->generateVote(proposed_pbft_block->getBlockHash(), PbftVoteTypes::propose_vote,
+                                              proposed_pbft_block->getPeriod(),
+                                              node1->getPbftManager()->getPbftRound() + 1, value_proposal_state);
   pbft_mgr1->processProposedBlock(proposed_pbft_block, propose_vote);
 
   auto block1_from_node1 = pbft_mgr1->getProposedBlocksSt().getPbftProposedBlock(

@@ -71,7 +71,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
     }
 
     // VotesSyncPacket is only for next votes
-    if (vote->getType() != PbftVoteTypes::next_vote_type || vote->getStep() < PbftStates::finish_state) {
+    if (vote->getType() != PbftVoteTypes::next_vote) {
       LOG(log_er_) << "Received next votes bundle with non \"next_votes\" from " << packet_data.from_node_id_
                    << ". The peer may be a malicious player, will be disconnected";
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);

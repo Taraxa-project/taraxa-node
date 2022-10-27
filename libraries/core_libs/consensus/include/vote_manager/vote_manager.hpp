@@ -186,7 +186,7 @@ class VoteManager {
    * @param pbft_period current PBFT period
    * @param pbft_round current PBFT round
    */
-  void cleanupVotesByRound(uint64_t pbft_period, uint64_t pbft_round);
+  void cleanupVotesByRound(uint64_t pbft_period, uint32_t pbft_round);
 
   /**
    * @brief Cleanup votes for previous PBFT periods
@@ -201,7 +201,7 @@ class VoteManager {
    * @param voted_block_hash
    * @return single propose vote for specified voted block
    */
-  std::shared_ptr<Vote> getProposalVote(uint64_t period, uint64_t round, const blk_hash_t& voted_block_hash) const;
+  std::shared_ptr<Vote> getProposalVote(uint64_t period, uint32_t round, const blk_hash_t& voted_block_hash) const;
 
   /**
    * @brief Get all verified votes in proposal vote type for the current PBFT round
@@ -209,19 +209,19 @@ class VoteManager {
    * @param round current PBFT round
    * @return all verified votes in proposal vote type for the current PBFT round
    */
-  std::vector<std::shared_ptr<Vote>> getProposalVotes(uint64_t period, uint64_t round) const;
+  std::vector<std::shared_ptr<Vote>> getProposalVotes(uint64_t period, uint32_t round) const;
 
   /**
    * @brief Get a bunch of votes that vote on the same voting value in the specific PBFT round and step, the total votes
    * weights must be greater or equal to PBFT 2t+1
-   * @param round PBFT round
    * @param period PBFT period
+   * @param round PBFT round
    * @param step PBFT step
    * @param two_t_plus_one PBFT 2t+1 is 2/3 of PBFT sortition threshold and plus 1
    * @return VotesBundle a bunch of votes that vote on the same voting value in the specific PBFT round and step
    */
-  std::optional<VotesBundle> getTwoTPlusOneVotesBundle(uint64_t round, uint64_t period, size_t step,
-                                                       size_t two_t_plus_one) const;
+  std::optional<VotesBundle> getTwoTPlusOneVotesBundle(uint64_t period, uint32_t round, uint32_t step,
+                                                       uint64_t two_t_plus_one) const;
 
   /**
    * @brief Check if there are enough next voting type votes to set PBFT to a forward round within period
@@ -230,8 +230,8 @@ class VoteManager {
    * @return optional<pair<new round, 2t+1 next votes>> if there is enough next votes from prior round, otherwise
    * returns empty optional
    */
-  std::optional<std::pair<uint64_t, std::vector<std::shared_ptr<Vote>>>> determineRoundFromPeriodAndVotes(
-      uint64_t period, size_t two_t_plus_one);
+  std::optional<std::pair<uint32_t, std::vector<std::shared_ptr<Vote>>>> determineRoundFromPeriodAndVotes(
+      uint64_t period, uint64_t two_t_plus_one);
 
   // reward votes
   /**
@@ -329,11 +329,12 @@ class VoteManager {
 
   // TODO[1907]: this will be part of VerifiedVotes class
   // <PBFT period, <PBFT round, <PBFT step, <voted value, pair<voted weight, <vote hash, vote>>>>>
-  std::map<uint64_t,
-           std::map<uint64_t,
-                    std::map<size_t, std::unordered_map<
-                                         blk_hash_t,
-                                         std::pair<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>>>>>
+  std::map<
+      uint64_t,
+      std::map<uint32_t,
+               std::map<uint32_t,
+                        std::unordered_map<
+                            blk_hash_t, std::pair<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>>>>>
       verified_votes_;
   // Current period, it should only be used under verified_votes_access_ mutex
   uint64_t verified_votes_last_period_;
@@ -342,8 +343,9 @@ class VoteManager {
   // <PBFT period, <PBFT round, <PBFT step, <voter address, pair<vote 1, vote 2>>><>
   // For next votes we enable 2 votes per round & step, one of which must be vote for NULL_BLOCK_HASH
   std::map<uint64_t,
-           std::map<uint64_t, std::unordered_map<size_t, std::unordered_map<addr_t, std::pair<std::shared_ptr<Vote>,
-                                                                                              std::shared_ptr<Vote>>>>>>
+           std::map<uint32_t,
+                    std::unordered_map<
+                        uint32_t, std::unordered_map<addr_t, std::pair<std::shared_ptr<Vote>, std::shared_ptr<Vote>>>>>>
       voters_unique_votes_;
   mutable std::shared_mutex voters_unique_votes_mutex_;
   // TODO[1907]: end of VerifiedVotes class

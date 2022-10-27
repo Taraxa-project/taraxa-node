@@ -121,31 +121,31 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Get current PBFT round number
    * @return current PBFT round
    */
-  uint64_t getPbftRound() const;
+  uint32_t getPbftRound() const;
 
   /**
    * @brief Get PBFT round & period number
    * @return <PBFT round, PBFT period>
    */
-  std::pair<uint64_t, uint64_t> getPbftRoundAndPeriod() const;
+  std::pair<uint32_t, uint64_t> getPbftRoundAndPeriod() const;
 
   /**
    * @brief Get PBFT step number
    * @return PBFT step
    */
-  uint64_t getPbftStep() const;
+  uint32_t getPbftStep() const;
 
   /**
    * @brief Set PBFT round number
    * @param round PBFT round
    */
-  void setPbftRound(uint64_t const round);
+  void setPbftRound(uint32_t round);
 
   /**
    * @brief Set PBFT step
    * @param pbft_step PBFT step
    */
-  void setPbftStep(size_t const pbft_step);
+  void setPbftStep(uint32_t pbft_step);
 
   /**
    * @brief Generate PBFT block, push into unverified queue, and broadcast to peers
@@ -167,8 +167,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param step PBFT step
    * @return vote
    */
-  std::shared_ptr<Vote> generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t period, uint64_t round,
-                                     size_t step);
+  std::shared_ptr<Vote> generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t period, uint32_t round,
+                                     uint32_t step);
 
   /**
    * @brief Get current total DPOS votes count
@@ -433,7 +433,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param step PBFT step
    */
   std::shared_ptr<Vote> generateVoteWithWeight(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t period,
-                                               uint64_t round, size_t step);
+                                               uint32_t round, uint32_t step);
 
   /**
    * @brief Place (gossip) vote
@@ -624,8 +624,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   PbftStates state_ = value_proposal_state;
 
-  std::atomic<uint64_t> round_ = 1;
-  size_t step_ = 1;
+  std::atomic<uint32_t> round_ = 1;
+  uint32_t step_ = 1;
   size_t startingStepInRound_ = 1;
 
   // 2t+1 soft voted block related data

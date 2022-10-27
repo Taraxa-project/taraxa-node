@@ -144,7 +144,8 @@ TEST_F(FullNodeTest, db_test) {
   std::vector<std::shared_ptr<Vote>> soft_votes;
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(soft_vote_type, soft_voted_block_period_and_round, soft_voted_block_period_and_round, filter_state);
+    VrfPbftMsg msg(PbftVoteTypes::soft_vote, soft_voted_block_period_and_round, soft_voted_block_period_and_round,
+                   filter_state);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -213,7 +214,7 @@ TEST_F(FullNodeTest, db_test) {
   // Certified votes
   std::vector<std::shared_ptr<Vote>> cert_votes;
   for (auto i = 0; i < 3; i++) {
-    VrfPbftMsg msg(cert_vote_type, 2, 2, 3);
+    VrfPbftMsg msg(PbftVoteTypes::cert_vote, 2, 2, 3);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -284,7 +285,7 @@ TEST_F(FullNodeTest, db_test) {
     auto period = i;
     auto round = i;
     auto step = i;
-    VrfPbftMsg msg(next_vote_type, period, round, step);
+    VrfPbftMsg msg(PbftVoteTypes::next_vote, period, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -312,7 +313,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_TRUE(next_votes.empty());
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(next_vote_type, period, round, step);
+    VrfPbftMsg msg(PbftVoteTypes::next_vote, period, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -327,7 +328,7 @@ TEST_F(FullNodeTest, db_test) {
   next_votes.clear();
   for (auto i = 3; i < 5; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(next_vote_type, period, round, step);
+    VrfPbftMsg msg(PbftVoteTypes::next_vote, period, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");

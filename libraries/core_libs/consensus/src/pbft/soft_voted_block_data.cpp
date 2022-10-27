@@ -31,7 +31,7 @@ TwoTPlusOneSoftVotedBlockData::TwoTPlusOneSoftVotedBlockData(dev::RLP const& rlp
   soft_votes_.reserve((*it).itemCount());
   for (auto const vote_rlp : *it) {
     auto vote = std::make_shared<Vote>(vote_rlp);
-    assert(vote->getType() == PbftVoteTypes::soft_vote_type);
+    assert(vote->getType() == PbftVoteTypes::soft_vote);
     assert(vote->getRound() == round_);
     assert(vote->getBlockHash() == block_hash_);
     if (block_data_.has_value()) {
@@ -60,7 +60,7 @@ bytes TwoTPlusOneSoftVotedBlockData::rlp() const {
   s.append(block_hash_);
   s.appendList(soft_votes_.size());
   for (auto const& vote : soft_votes_) {
-    assert(vote->getType() == PbftVoteTypes::soft_vote_type);
+    assert(vote->getType() == PbftVoteTypes::soft_vote);
     assert(vote->getRound() == round_);
     assert(vote->getBlockHash() == block_hash_);
     if (block_data_.has_value()) {

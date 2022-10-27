@@ -98,25 +98,25 @@ class Vote {
    * @brief Get vote type
    * @return vote type
    */
-  PbftVoteTypes getType() const { return vrf_sortition_.pbft_msg_.type; }
+  PbftVoteTypes getType() const { return vrf_sortition_.pbft_msg_.getType(); }
 
   /**
    * @brief Get vote PBFT period
    * @return vote PBFT period
    */
-  uint64_t getPeriod() const { return vrf_sortition_.pbft_msg_.period; }
+  uint64_t getPeriod() const { return vrf_sortition_.pbft_msg_.period_; }
 
   /**
    * @brief Get vote PBFT round
    * @return vote PBFT round
    */
-  uint64_t getRound() const { return vrf_sortition_.pbft_msg_.round; }
+  uint32_t getRound() const { return vrf_sortition_.pbft_msg_.round_; }
 
   /**
    * @brief Get vote PBFT step
    * @return vote PBFT step
    */
-  size_t getStep() const { return vrf_sortition_.pbft_msg_.step; }
+  uint32_t getStep() const { return vrf_sortition_.pbft_msg_.step_; }
 
   /**
    * @brief Recursive Length Prefix
