@@ -57,15 +57,10 @@ domain: "default.example.com"
 # Add wild certs for this
 # wildCertDomainSecret: ""
 
-nodeSelector: {}
-
-tolerations: []
-
-affinity: {}
-
+# Default values for node (rpc node)
 node:
   enabled: true
-  replicaCount: 20
+  replicaCount: 1
   loadBalancer:
     enabled: false
   probes:
@@ -128,6 +123,7 @@ node:
     size: "30Gi"
     storageClass: "fast"
 
+# Default values for bootnode
 bootnode:
   enabled: true
   replicaCount: 1
@@ -166,106 +162,7 @@ bootnode:
     size: "30Gi"
     storageClass: "fast"
 
-snapshotter:
-  image:
-    repository: "gcr.io/jovial-meridian-249123/taraxa-node-snapshotter"
-    tag: "latest"
-    pullPolicy: IfNotPresent
-  env: []
-  extraVolumes: []
-  extraVolumeMounts: []
-
-snapshotnode:
-  fullnode:
-    enabled: false
-    replicaCount: 1
-    probes:
-      enabled: true
-    debug: 0
-    args:
-      - "taraxad"
-      - "--config"
-      - "/root/.taraxa/conf_taraxa.json"
-      - "--wallet"
-      - "/root/.taraxa/wallet_taraxa.json"
-    ports:
-      - name: rest
-        containerPort: 7777
-      - name: ws
-        containerPort: 8777
-      - name: tcp-listen-port
-        containerPort: 10002
-        protocol: TCP
-      - name: udp-listen-port
-        containerPort: 10002
-        protocol: UDP
-    service:
-      ports:
-        - name: rest
-          port: 7777
-        - name: ws
-          port: 8777
-        - name: tcp-listen-port
-          port: 10002
-          protocol: TCP
-        - name: udp-listen-port
-          port: 10002
-          protocol: UDP
-    resources:
-      requests:
-        memory: "8Gi"
-        cpu: 3.5
-      limits:
-        memory: "8Gi"
-        cpu: 3.5
-    nodeSelector: {}
-  lightnode:
-    enabled: false
-    replicaCount: 1
-    probes:
-      enabled: true
-    debug: 0
-    args:
-      - "taraxad"
-      - "--config"
-      - "/root/.taraxa/conf_taraxa.json"
-      - "--wallet"
-      - "/root/.taraxa/wallet_taraxa.json"
-    ports:
-      - name: rest
-        containerPort: 7777
-      - name: ws
-        containerPort: 8777
-      - name: tcp-listen-port
-        containerPort: 10002
-        protocol: TCP
-      - name: udp-listen-port
-        containerPort: 10002
-        protocol: UDP
-    service:
-      ports:
-        - name: rest
-          port: 7777
-        - name: ws
-          port: 8777
-        - name: tcp-listen-port
-          port: 10002
-          protocol: TCP
-        - name: udp-listen-port
-          port: 10002
-          protocol: UDP
-    resources:
-      requests:
-        memory: "8Gi"
-        cpu: 3.5
-      limits:
-        memory: "8Gi"
-        cpu: 3.5
-    nodeSelector: {}
-
-
-
-
+# Default values for consensusnode
 consensusnode:
   enabled: true
   replicaCount: 1
@@ -310,7 +207,108 @@ consensusnode:
     size: "30Gi"
     storageClass: "fast"
 
+# Default values for snapshotnode (fullnode and lightnode)
+snapshotnode:
+  fullnode:
+    enabled: false
+    replicaCount: 1
+    probes:
+      enabled: true
+    debug: 0
+    args:
+      - "taraxad"
+      - "--config"
+      - "/root/.taraxa/conf_taraxa.json"
+      - "--wallet"
+      - "/root/.taraxa/wallet_taraxa.json"
+    ports:
+      - name: rest
+        containerPort: 7777
+      - name: ws
+        containerPort: 8777
+      - name: tcp-listen-port
+        containerPort: 10002
+        protocol: TCP
+      - name: udp-listen-port
+        containerPort: 10002
+        protocol: UDP
+    service:
+      ports:
+        - name: rest
+          port: 7777
+        - name: ws
+          port: 8777
+        - name: tcp-listen-port
+          port: 10002
+          protocol: TCP
+        - name: udp-listen-port
+          port: 10002
+          protocol: UDP
+    resources:
+      requests:
+        memory: "8Gi"
+        cpu: 3.5
+      limits:
+        memory: "8Gi"
+        cpu: 3.5
+    nodeSelector: {}
+    persistence:
+      enabled: false
+      name: taraxa-snapshotnode-fullnode-data
+      accessMode: ReadWriteOnce
+      size: "30Gi"
+      storageClass: "fast"
+  lightnode:
+    enabled: false
+    replicaCount: 1
+    probes:
+      enabled: true
+    debug: 0
+    args:
+      - "taraxad"
+      - "--config"
+      - "/root/.taraxa/conf_taraxa.json"
+      - "--wallet"
+      - "/root/.taraxa/wallet_taraxa.json"
+    ports:
+      - name: rest
+        containerPort: 7777
+      - name: ws
+        containerPort: 8777
+      - name: tcp-listen-port
+        containerPort: 10002
+        protocol: TCP
+      - name: udp-listen-port
+        containerPort: 10002
+        protocol: UDP
+    service:
+      ports:
+        - name: rest
+          port: 7777
+        - name: ws
+          port: 8777
+        - name: tcp-listen-port
+          port: 10002
+          protocol: TCP
+        - name: udp-listen-port
+          port: 10002
+          protocol: UDP
+    resources:
+      requests:
+        memory: "8Gi"
+        cpu: 3.5
+      limits:
+        memory: "8Gi"
+        cpu: 3.5
+    nodeSelector: {}
+    persistence:
+      enabled: false
+      name: taraxa-snapshotnode-lightnode-data
+      accessMode: ReadWriteOnce
+      size: "30Gi"
+      storageClass: "fast"
 
+# Default values for explorer
 explorer:
   enabled: false
   configEnvs:
@@ -328,6 +326,16 @@ explorer:
   sandbox:
     enabled: true
   nodeSelector: {}
+
+# Default values for snapshotter tool
+snapshotter:
+  image:
+    repository: "gcr.io/jovial-meridian-249123/taraxa-node-snapshotter"
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  env: []
+  extraVolumes: []
+  extraVolumeMounts: []
 
 test:
   image:
