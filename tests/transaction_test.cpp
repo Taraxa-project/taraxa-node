@@ -163,7 +163,6 @@ TEST_F(TransactionTest, transaction_limit) {
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   auto db = std::make_shared<DbStorage>(data_dir);
   auto cfg = FullNodeConfig("test");
-  cfg.chain_id = 0;
   TransactionManager trx_mgr(cfg, db, NewFinalChain(db, cfg), addr_t());
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : *g_signed_trx_samples) {
@@ -192,7 +191,6 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
 TEST_F(TransactionTest, transaction_low_nonce) {
   auto db = std::make_shared<DbStorage>(data_dir);
   taraxa::FullNodeConfig cfg = FullNodeConfig("test");
-  cfg.chain_id = 0;
   auto final_chain = NewFinalChain(db, cfg);
   TransactionManager trx_mgr(cfg, db, final_chain, addr_t());
   const auto& trx_2 = g_signed_trx_samples[1];

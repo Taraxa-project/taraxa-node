@@ -62,6 +62,12 @@ std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
     return {TransactionStatus::Invalid, "invalid gas"};
   }
 
+  try {
+    trx->getSender();
+  } catch (Transaction::InvalidSignature const &) {
+    return {TransactionStatus::Invalid, "invalid signature"};
+  }
+
   // gas_price in transaction must be greater than or equal to minimum value from config
   if (kConf.chain.gas_price.minimum_price > trx->getGasPrice()) {
     return {TransactionStatus::Invalid, "gas_price too low"};
@@ -78,13 +84,6 @@ std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
   // cost == V + GP * GL
   if (account.balance < trx->getCost()) {
     return {TransactionStatus::InsufficentBalance, "insufficient balance"};
-  }
-
-  // this is most costly check, so it moved to the bottom of this method
-  try {
-    trx->getSender();
-  } catch (Transaction::InvalidSignature const &) {
-    return {TransactionStatus::Invalid, "invalid signature"};
   }
 
   return {TransactionStatus::Verified, ""};

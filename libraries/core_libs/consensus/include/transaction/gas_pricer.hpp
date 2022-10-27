@@ -48,9 +48,9 @@ class GasPricer {
    */
   void init(const std::shared_ptr<DbStorage> &db);
 
-  const uint64_t kPercentile_;
+  const uint64_t kPercentile;
   const u256 kMinimumPrice;
-  const bool kIsLightNode_;
+  const bool kIsLightNode;
 
   mutable std::shared_mutex mutex_;
   u256 latest_price_;
