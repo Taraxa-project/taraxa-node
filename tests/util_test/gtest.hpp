@@ -65,6 +65,7 @@ inline auto const node_cfgs_original = Lazy([] {
     Json::Value test_node_wallet_json;
     std::ifstream(w.string(), std::ifstream::binary) >> test_node_wallet_json;
     ret.emplace_back(p.string(), test_node_wallet_json);
+    ret.back().chain.gas_price.minimum_price = 0;
   }
   return ret;
 });

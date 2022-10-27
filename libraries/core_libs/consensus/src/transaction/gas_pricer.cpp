@@ -2,9 +2,13 @@
 
 namespace taraxa {
 
-GasPricer::GasPricer(uint64_t percentile, uint64_t number_of_blocks, bool is_light_node, std::shared_ptr<DbStorage> db)
-    : kPercentile_(percentile), kIsLightNode_(is_light_node), price_list_(number_of_blocks) {
-  assert(kPercentile_ <= 100);
+GasPricer::GasPricer(const GasPriceConfig& config, bool is_light_node, std::shared_ptr<DbStorage> db)
+    : kPercentile(config.percentile),
+      kMinimumPrice(config.minimum_price),
+      kIsLightNode(is_light_node),
+      latest_price_(kMinimumPrice),
+      price_list_(config.blocks) {
+  assert(kPercentile <= 100);
   if (db) {
     init_daemon_ = std::make_unique<std::thread>([this, db_ = std::move(db)]() { init(db_); });
   }
@@ -16,7 +20,7 @@ GasPricer::~GasPricer() {
 
 u256 GasPricer::bid() const {
   std::shared_lock lock(mutex_);
-  return latest_price_;
+  return std::max(latest_price_, kMinimumPrice);
 }
 
 void GasPricer::init(const std::shared_ptr<DbStorage>& db) {
@@ -31,10 +35,10 @@ void GasPricer::init(const std::shared_ptr<DbStorage>& db) {
     auto trxs = db->getPeriodTransactions(block_num);
     block_num--;
 
-    assert(kIsLightNode_ || trxs);
+    assert(kIsLightNode || trxs);
 
     // Light node
-    if (kIsLightNode_ && !trxs) {
+    if (kIsLightNode && !trxs) {
       break;
     }
 
@@ -58,7 +62,7 @@ void GasPricer::init(const std::shared_ptr<DbStorage>& db) {
   std::copy(price_list_.begin(), price_list_.end(), std::back_inserter(sorted_prices));
   std::sort(sorted_prices.begin(), sorted_prices.end());
 
-  if (auto new_price = sorted_prices[(sorted_prices.size() - 1) * kPercentile_ / 100]) {
+  if (auto new_price = sorted_prices[(sorted_prices.size() - 1) * kPercentile / 100]) {
     latest_price_ = std::move(new_price);
   }
 }
@@ -79,7 +83,7 @@ void GasPricer::update(const SharedTransactions& trxs) {
     std::copy(price_list_.begin(), price_list_.end(), std::back_inserter(sorted_prices));
     std::sort(sorted_prices.begin(), sorted_prices.end());
 
-    if (auto new_price = sorted_prices[(sorted_prices.size() - 1) * kPercentile_ / 100]) {
+    if (auto new_price = sorted_prices[(sorted_prices.size() - 1) * kPercentile / 100]) {
       latest_price_ = std::move(new_price);
     }
   }

@@ -14,12 +14,14 @@ Json::Value enc_json(GasPriceConfig const& obj) {
   Json::Value json(Json::objectValue);
   json["percentile"] = obj.percentile;
   json["blocks"] = obj.blocks;
+  json["minimum_price"] = obj.minimum_price;
   return json;
 }
 
 void dec_json(Json::Value const& json, GasPriceConfig& obj) {
   obj.percentile = json["percentile"].asUInt64();
   obj.blocks = json["blocks"].asUInt64();
+  obj.minimum_price = json["minimum_price"].asUInt64();
 }
 
 void GasPriceConfig::validate() const {
@@ -34,6 +36,7 @@ bytes GasPriceConfig::rlp() const {
 
   s << percentile;
   s << blocks;
+  s << minimum_price;
 
   return s.out();
 }
@@ -118,6 +121,7 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
   }();
   cfgs["test"] = [&] {
     auto cfg = cfgs["default"];
+    cfg.gas_price.minimum_price = 0;
     cfg.final_chain.state.genesis_balances[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")] =
         u256(7200999050) * 10000000000000000;  // https://ethereum.stackexchange.com/a/74832
     return cfg;

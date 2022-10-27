@@ -68,6 +68,11 @@ std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
     return {TransactionStatus::Invalid, "invalid signature"};
   }
 
+  // gas_price in transaction must be greater than or equal to minimum value from config
+  if (kConf.chain.gas_price.minimum_price > trx->getGasPrice()) {
+    return {TransactionStatus::Invalid, "gas_price too low"};
+  }
+
   const auto account = final_chain_->get_account(trx->getSender()).value_or(taraxa::state_api::ZeroAccount);
 
   // Ensure the transaction adheres to nonce ordering
@@ -100,7 +105,7 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const std::sh
 
   auto transaction = trx;
   if (insertValidatedTransaction(std::move(transaction), status)) {
-    return {true, "Can not insert transactions"};
+    return {true, ""};
   } else {
     const auto period = db_->getTransactionPeriod(trx->getHash());
     if (period != std::nullopt) {

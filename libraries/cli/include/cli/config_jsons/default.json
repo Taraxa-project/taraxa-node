@@ -228,7 +228,8 @@
     },
     "gas_price" : {
       "blocks" : 200,
-      "percentile" : 60
+      "percentile" : 60,
+      "minimum_price" : 1
     },
     "pbft": {
       "committee_size": "0x3e8",

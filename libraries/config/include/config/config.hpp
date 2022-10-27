@@ -88,7 +88,7 @@ struct FullNodeConfig {
   std::optional<ConnectionConfig> graphql;
   DBConfig db_config;
   ChainConfig chain = ChainConfig::predefined();
-  uint64_t chain_id;
+  uint64_t chain_id = 0;
   state_api::Opts opts_final_chain;
   std::vector<logger::Config> log_configs;
   bool is_light_node = false;                            // Is light node

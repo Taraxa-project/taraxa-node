@@ -81,8 +81,7 @@ void FullNode::init() {
   }
   LOG(log_nf_) << "DB initialized ...";
 
-  gas_pricer_ = std::make_shared<GasPricer>(conf_.chain.gas_price.percentile, conf_.chain.gas_price.blocks,
-                                            conf_.is_light_node, db_);
+  gas_pricer_ = std::make_shared<GasPricer>(conf_.chain.gas_price, conf_.is_light_node, db_);
   final_chain_ = NewFinalChain(db_, conf_, node_addr);
   key_manager_ = std::make_shared<KeyManager>(final_chain_);
   trx_mgr_ = std::make_shared<TransactionManager>(conf_, db_, final_chain_, node_addr);
