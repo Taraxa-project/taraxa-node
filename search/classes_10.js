@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['query_3712',['Query',['../classgraphql_1_1taraxa_1_1_query.html',1,'graphql::taraxa']]]
+  ['query_3714',['Query',['../classgraphql_1_1taraxa_1_1_query.html',1,'graphql::taraxa']]]
 ];
