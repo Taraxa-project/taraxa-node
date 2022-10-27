@@ -431,7 +431,10 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       }
       auto result = trx_clients[sender_node_i].coinTransfer(to, amount, verify_executed);
       EXPECT_NE(result.stage, TransactionClient::TransactionStage::created);
-      transactions.emplace(result.trx->getHash());
+      {
+        unique_lock l(m);
+        transactions.emplace(result.trx->getHash());
+      }
       if (verify_executed)
         EXPECT_EQ(result.stage, TransactionClient::TransactionStage::executed);
       else
@@ -508,12 +511,19 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   std::cout << "Initial coin transfers from node 0 issued ... " << std::endl;
 
   {
+    std::vector<std::thread> runners;
     for (size_t i(0); i < nodes.size(); ++i) {
-      auto to = i < nodes.size() - 1 ? nodes[i + 1]->getAddress() : addr_t("d79b2575d932235d87ea2a08387ae489c31aa2c9");
-      for (auto _(0); _ < 10; ++_) {
-        // we shouldn't wait for transaction execution because it could be in alternative dag
-        context.coin_transfer(i, to, 100, false);
-      }
+      // make transactions from different senders in different threads to speed up
+      runners.emplace_back(std::thread([&, i]() {
+        auto to = i < nodes.size() - 1 ? nodes[i + 1]->getAddress() : nodes[0]->getAddress();
+        for (auto _(0); _ < 10; ++_) {
+          // transactions from 1 sender should be send in series to avoid failing because of dag reordering
+          context.coin_transfer(i, to, 100, true);
+        }
+      }));
+    }
+    for (auto &t : runners) {
+      t.join();
     }
     context.wait_all_transactions_known();
   }
