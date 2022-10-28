@@ -26,7 +26,7 @@ namespace taraxa {
 using vrf_output_t = vrf_wrapper::vrf_output_t;
 
 constexpr std::chrono::milliseconds kPollingIntervalMs{100};
-constexpr size_t kMaxSteps{13};  // Need to be a odd number
+constexpr PbftStep kMaxSteps{13};  // Need to be a odd number
 
 PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_block_hash, addr_t node_addr,
                          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
@@ -248,7 +248,7 @@ void PbftManager::continuousOperation_() {
   }
 }
 
-std::pair<bool, uint64_t> PbftManager::getDagBlockPeriod(blk_hash_t const &hash) {
+std::pair<bool, PbftPeriod> PbftManager::getDagBlockPeriod(const blk_hash_t &hash) {
   std::pair<bool, uint64_t> res;
   auto value = db_->getDagBlockPeriod(hash);
   if (value == nullptr) {
@@ -260,16 +260,18 @@ std::pair<bool, uint64_t> PbftManager::getDagBlockPeriod(blk_hash_t const &hash)
   return res;
 }
 
-uint64_t PbftManager::getPbftPeriod() const { return pbft_chain_->getPbftChainSize() + 1; }
+PbftPeriod PbftManager::getPbftPeriod() const { return pbft_chain_->getPbftChainSize() + 1; }
 
-uint32_t PbftManager::getPbftRound() const { return round_; }
+PbftRound PbftManager::getPbftRound() const { return round_; }
 
-std::pair<uint32_t, uint64_t> PbftManager::getPbftRoundAndPeriod() const { return {getPbftRound(), getPbftPeriod()}; }
+std::pair<PbftRound, PbftPeriod> PbftManager::getPbftRoundAndPeriod() const {
+  return {getPbftRound(), getPbftPeriod()};
+}
 
-uint32_t PbftManager::getPbftStep() const { return step_; }
+PbftStep PbftManager::getPbftStep() const { return step_; }
 
-void PbftManager::setPbftRound(uint32_t round) {
-  db_->savePbftMgrField(PbftMgrRoundStep::PbftRound, round);
+void PbftManager::setPbftRound(PbftRound round) {
+  db_->savePbftMgrField(PbftMgrField::Round, round);
   round_ = round;
 }
 
@@ -307,8 +309,8 @@ std::optional<uint64_t> PbftManager::getCurrentNodeVotesCount() const {
   return {};
 }
 
-void PbftManager::setPbftStep(uint32_t pbft_step) {
-  db_->savePbftMgrField(PbftMgrRoundStep::PbftStep, pbft_step);
+void PbftManager::setPbftStep(PbftStep pbft_step) {
+  db_->savePbftMgrField(PbftMgrField::Step, pbft_step);
   step_ = pbft_step;
 
   if (step_ > kMaxSteps && LAMBDA_backoff_multiple < 8) {
@@ -426,7 +428,7 @@ bool PbftManager::advanceRound() {
   return true;
 }
 
-void PbftManager::resetPbftConsensus(uint64_t round) {
+void PbftManager::resetPbftConsensus(PbftRound round) {
   LOG(log_dg_) << "Reset PBFT consensus to: period " << getPbftPeriod() << ", round " << round
                << ", step 1, and resetting clock.";
 
@@ -441,8 +443,8 @@ void PbftManager::resetPbftConsensus(uint64_t round) {
 
   // Update in DB first
   auto batch = db_->createWriteBatch();
-  db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftRound, round, batch);
-  db_->addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftStep, 1, batch);
+  db_->addPbftMgrFieldToBatch(PbftMgrField::Round, round, batch);
+  db_->addPbftMgrFieldToBatch(PbftMgrField::Step, 1, batch);
   db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedNullBlockHash, false, batch);
   db_->addPbftMgrStatusToBatch(PbftMgrStatus::NextVotedSoftValue, false, batch);
 
@@ -504,8 +506,8 @@ void PbftManager::initialState() {
   LAMBDA_ms = LAMBDA_ms_MIN;
 
   const auto current_pbft_period = getPbftPeriod();
-  const auto current_pbft_round = db_->getPbftMgrField(PbftMgrRoundStep::PbftRound);
-  auto current_pbft_step = db_->getPbftMgrField(PbftMgrRoundStep::PbftStep);
+  const auto current_pbft_round = db_->getPbftMgrField(PbftMgrField::Round);
+  auto current_pbft_step = db_->getPbftMgrField(PbftMgrField::Step);
   const auto now = std::chrono::system_clock::now();
 
   if (current_pbft_round == 1 && current_pbft_step == 1) {
@@ -765,8 +767,8 @@ bool PbftManager::stateOperations_() {
   return false;
 }
 
-const std::optional<TwoTPlusOneSoftVotedBlockData> &PbftManager::getTwoTPlusOneSoftVotedBlockData(uint64_t period,
-                                                                                                  uint64_t round) {
+const std::optional<TwoTPlusOneSoftVotedBlockData> &PbftManager::getTwoTPlusOneSoftVotedBlockData(PbftPeriod period,
+                                                                                                  PbftRound round) {
   // Have 2t+1 soft votes for some block for current round already
   if (soft_voted_block_for_round_.has_value()) {
     // soft_voted_block_for_round_ should be reset every time period or round is incremented and we should never request
@@ -811,7 +813,7 @@ const std::optional<TwoTPlusOneSoftVotedBlockData> &PbftManager::getTwoTPlusOneS
   return soft_voted_block_for_round_;
 }
 
-std::shared_ptr<PbftBlock> PbftManager::getValidPbftProposedBlock(uint64_t period, uint64_t round,
+std::shared_ptr<PbftBlock> PbftManager::getValidPbftProposedBlock(PbftPeriod period, PbftRound round,
                                                                   const blk_hash_t &block_hash) {
   const auto block_data = proposed_blocks_.getPbftProposedBlock(period, round, block_hash);
   if (!block_data.has_value()) {
@@ -1144,7 +1146,7 @@ void PbftManager::secondFinish_() {
   loop_back_finish_state_ = elapsedTimeInMs(second_finish_step_start_datetime_) > 2 * (LAMBDA_ms - kPollingIntervalMs);
 }
 
-std::shared_ptr<PbftBlock> PbftManager::generatePbftBlock(uint64_t propose_period, const blk_hash_t &prev_blk_hash,
+std::shared_ptr<PbftBlock> PbftManager::generatePbftBlock(PbftPeriod propose_period, const blk_hash_t &prev_blk_hash,
                                                           const blk_hash_t &anchor_hash, const blk_hash_t &order_hash) {
   // Reward votes should only include those reward votes with the same round as the round last pbft block was pushed
   // into chain
@@ -1156,8 +1158,8 @@ std::shared_ptr<PbftBlock> PbftManager::generatePbftBlock(uint64_t propose_perio
                                      std::move(reward_votes_hashes));
 }
 
-std::shared_ptr<Vote> PbftManager::generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t period,
-                                                uint32_t round, uint32_t step) {
+std::shared_ptr<Vote> PbftManager::generateVote(const blk_hash_t &blockhash, PbftVoteTypes type, PbftPeriod period,
+                                                PbftRound round, PbftStep step) {
   // sortition proof
   VrfPbftSortition vrf_sortition(vrf_sk_, {type, period, round, step});
   return std::make_shared<Vote>(node_sk_, std::move(vrf_sortition), blockhash);
@@ -1220,7 +1222,7 @@ uint64_t PbftManager::getPbftSortitionThreshold(uint64_t total_dpos_votes_count,
   }
 }
 
-std::optional<uint64_t> PbftManager::getPbftTwoTPlusOne(uint64_t pbft_period) const {
+std::optional<uint64_t> PbftManager::getPbftTwoTPlusOne(PbftPeriod pbft_period) const {
   // Check cache first
   {
     std::shared_lock lock(current_two_t_plus_one_mutex_);
@@ -1251,7 +1253,7 @@ std::optional<uint64_t> PbftManager::getPbftTwoTPlusOne(uint64_t pbft_period) co
 }
 
 std::shared_ptr<Vote> PbftManager::generateVoteWithWeight(taraxa::blk_hash_t const &blockhash, PbftVoteTypes vote_type,
-                                                          uint64_t period, uint32_t round, uint32_t step) {
+                                                          PbftPeriod period, PbftRound round, PbftStep step) {
   const auto current_pbft_period = getPbftPeriod();
   if (period != current_pbft_period) {
     LOG(log_er_) << "Unable to generate vote for block " << blockhash << ", period " << period << ", round " << round
@@ -1458,7 +1460,8 @@ h256 PbftManager::getProposal(const std::shared_ptr<Vote> &vote) const {
   return lowest_hash;
 }
 
-std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(uint64_t round, uint64_t period) {
+// TODO: exchange round <-> period
+std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(PbftRound round, PbftPeriod period) {
   LOG(log_tr_) << "Identify leader block, in period " << period << ", round " << round;
 
   // Get all proposal votes in the round
@@ -1805,7 +1808,7 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   return true;
 }
 
-uint64_t PbftManager::pbftSyncingPeriod() const {
+PbftPeriod PbftManager::pbftSyncingPeriod() const {
   return std::max(sync_queue_.getPeriod(), pbft_chain_->getPbftChainSize());
 }
 
@@ -1980,7 +1983,7 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
   return true;
 }
 
-bool PbftManager::canParticipateInConsensus(uint64_t period) const {
+bool PbftManager::canParticipateInConsensus(PbftPeriod period) const {
   try {
     return final_chain_->dpos_is_eligible(period, node_addr_);
   } catch (state_api::ErrFutureBlock &e) {

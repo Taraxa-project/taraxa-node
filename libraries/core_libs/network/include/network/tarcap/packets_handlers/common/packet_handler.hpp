@@ -39,7 +39,7 @@ class PacketHandler {
    */
   void processPacket(const PacketData& packet_data);
 
-  void requestPbftNextVotesAtPeriodRound(const dev::p2p::NodeID& peerID, uint64_t pbft_period, uint64_t pbft_round,
+  void requestPbftNextVotesAtPeriodRound(const dev::p2p::NodeID& peerID, PbftPeriod pbft_period, PbftRound pbft_round,
                                          size_t pbft_previous_round_next_votes_size);
 
  private:

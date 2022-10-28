@@ -35,7 +35,7 @@ class ProposedBlocks {
    * @param save_to_db if true save to db
    * @return true if block was successfully pushed, otherwise false
    */
-  bool pushProposedPbftBlock(uint32_t round, const std::shared_ptr<PbftBlock>& proposed_block, bool save_to_db = true);
+  bool pushProposedPbftBlock(PbftRound round, const std::shared_ptr<PbftBlock>& proposed_block, bool save_to_db = true);
 
   /**
    * @brief Mark block as valid - no need to validate it again
@@ -43,7 +43,7 @@ class ProposedBlocks {
    * @param round
    * @param proposed_block
    */
-  void markBlockAsValid(uint32_t round, const std::shared_ptr<PbftBlock>& proposed_block);
+  void markBlockAsValid(PbftRound round, const std::shared_ptr<PbftBlock>& proposed_block);
 
   /**
    * @brief Get a proposed PBFT block based on specified period, round and block hash
@@ -52,7 +52,7 @@ class ProposedBlocks {
    * @param block_hash
    * @return optional<pair<block, is_valid flag>>
    */
-  std::optional<std::pair<std::shared_ptr<PbftBlock>, bool>> getPbftProposedBlock(uint64_t period, uint32_t round,
+  std::optional<std::pair<std::shared_ptr<PbftBlock>, bool>> getPbftProposedBlock(PbftPeriod period, PbftRound round,
                                                                                   const blk_hash_t& block_hash) const;
 
   /**
@@ -62,13 +62,13 @@ class ProposedBlocks {
    * @param block_hash
    * @return true if block is present, otherwise false
    */
-  bool isInProposedBlocks(uint64_t period, uint32_t round, const blk_hash_t& block_hash) const;
+  bool isInProposedBlocks(PbftPeriod period, PbftRound round, const blk_hash_t& block_hash) const;
 
   /**
    * @brief Cleanup all proposed PBFT blocks for the finalized period
    * @param period
    */
-  void cleanupProposedPbftBlocksByPeriod(uint64_t period);
+  void cleanupProposedPbftBlocksByPeriod(PbftPeriod period);
 
   /**
    * @brief Cleanup all proposed PBFT blocks for the finalized round - 1. We must keep previous round proposed blocks
@@ -76,11 +76,11 @@ class ProposedBlocks {
    * @param period
    * @param round
    */
-  void cleanupProposedPbftBlocksByRound(uint64_t period, uint32_t round);
+  void cleanupProposedPbftBlocksByRound(PbftPeriod period, PbftRound round);
 
  private:
   // <PBFT period, <PBFT round, <block hash, [block, is_valid_flag]>>>
-  std::map<uint64_t, std::map<uint32_t, std::unordered_map<blk_hash_t, std::pair<std::shared_ptr<PbftBlock>, bool>>>>
+  std::map<PbftPeriod, std::map<PbftRound, std::unordered_map<blk_hash_t, std::pair<std::shared_ptr<PbftBlock>, bool>>>>
       proposed_blocks_;
   mutable std::shared_mutex proposed_blocks_mutex_;
   std::shared_ptr<DbStorage> db_;

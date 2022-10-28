@@ -108,7 +108,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    * @param period period
    * @return ordered blocks
    */
-  vec_blk_t getDagBlockOrder(blk_hash_t const &anchor, uint64_t period);
+  vec_blk_t getDagBlockOrder(blk_hash_t const &anchor, PbftPeriod period);
 
   /**
    * @brief Sets the dag block order on finalizing PBFT block
@@ -121,7 +121,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    *
    * @return number of dag blocks finalized
    */
-  uint setDagBlockOrder(blk_hash_t const &anchor, uint64_t period, vec_blk_t const &dag_order);
+  uint setDagBlockOrder(blk_hash_t const &anchor, PbftPeriod period, vec_blk_t const &dag_order);
 
   uint64_t getLightNodeHistory() const { return light_node_history_; }
   bool isLightNode() const { return is_light_node_; }
@@ -154,7 +154,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   level_t getMaxLevel() const { return max_level_; }
 
   // DAG anchors
-  uint64_t getLatestPeriod() const {
+  PbftPeriod getLatestPeriod() const {
     SharedLock lock(mutex_);
     return period_;
   }
@@ -170,7 +170,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    */
   uint32_t getDagExpiryLimit() const { return dag_expiry_limit_; }
 
-  const std::pair<uint64_t, std::map<uint64_t, std::unordered_set<blk_hash_t>>> getNonFinalizedBlocks() const;
+  const std::pair<PbftPeriod, std::map<uint64_t, std::unordered_set<blk_hash_t>>> getNonFinalizedBlocks() const;
 
   /**
    * @brief Retrieves current period together with non finalized blocks with the unique list of non finalized
@@ -179,7 +179,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    * @param known_hashes excludes known hashes from result
    * @return Period, blocks and transactions
    */
-  const std::tuple<uint64_t, std::vector<std::shared_ptr<DagBlock>>, SharedTransactions>
+  const std::tuple<PbftPeriod, std::vector<std::shared_ptr<DagBlock>>, SharedTransactions>
   getNonFinalizedBlocksWithTransactions(const std::unordered_set<blk_hash_t> &known_hashes) const;
 
   DagFrontier getDagFrontier();
@@ -242,7 +242,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   std::shared_ptr<KeyManager> key_manager_;
   blk_hash_t anchor_;      // anchor of the last period
   blk_hash_t old_anchor_;  // anchor of the second to last period
-  uint64_t period_;        // last period
+  PbftPeriod period_;      // last period
   std::map<uint64_t, std::unordered_set<blk_hash_t>> non_finalized_blks_;
   DagFrontier frontier_;
   SortitionParamsManager sortition_params_manager_;

@@ -17,7 +17,7 @@ class GetDagSyncPacketHandler final : public PacketHandler {
                           std::shared_ptr<DbStorage> db, const addr_t& node_addr);
 
   void sendBlocks(const dev::p2p::NodeID& peer_id, std::vector<std::shared_ptr<DagBlock>>&& blocks,
-                  SharedTransactions&& transactions, uint64_t request_period, uint64_t period);
+                  SharedTransactions&& transactions, PbftPeriod request_period, PbftPeriod period);
 
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetDagSyncPacket;

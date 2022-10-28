@@ -85,7 +85,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   const std::shared_ptr<NodeStats> &getNodeStats();
 
   bool pbft_syncing() const;
-  void setSyncStatePeriod(uint64_t period);
+  void setSyncStatePeriod(PbftPeriod period);
 
   // METHODS USED IN TESTS ONLY
   size_t getReceivedBlocksCount() const;

@@ -104,19 +104,19 @@ class Vote {
    * @brief Get vote PBFT period
    * @return vote PBFT period
    */
-  uint64_t getPeriod() const { return vrf_sortition_.pbft_msg_.period_; }
+  PbftPeriod getPeriod() const { return vrf_sortition_.pbft_msg_.period_; }
 
   /**
    * @brief Get vote PBFT round
    * @return vote PBFT round
    */
-  uint32_t getRound() const { return vrf_sortition_.pbft_msg_.round_; }
+  PbftRound getRound() const { return vrf_sortition_.pbft_msg_.round_; }
 
   /**
    * @brief Get vote PBFT step
    * @return vote PBFT step
    */
-  uint32_t getStep() const { return vrf_sortition_.pbft_msg_.step_; }
+  PbftStep getStep() const { return vrf_sortition_.pbft_msg_.step_; }
 
   /**
    * @brief Recursive Length Prefix
@@ -188,7 +188,7 @@ class Vote {
  */
 struct VotesBundle {
   blk_hash_t voted_block_hash{blk_hash_t(0)};
-  uint64_t votes_period{0};
+  PbftPeriod votes_period{0};
   std::vector<std::shared_ptr<Vote>> votes;  // Greater than 2t+1 votes
 
   VotesBundle() : voted_block_hash(blk_hash_t(0)) {}

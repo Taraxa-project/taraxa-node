@@ -163,7 +163,7 @@ void BlockProposer::stop() {
   proposer_worker_->join();
 }
 
-std::pair<SharedTransactions, std::vector<uint64_t>> BlockProposer::getShardedTrxs(uint64_t proposal_period,
+std::pair<SharedTransactions, std::vector<uint64_t>> BlockProposer::getShardedTrxs(PbftPeriod proposal_period,
                                                                                    uint64_t weight_limit) {
   // If syncing return empty list
   auto syncing = false;

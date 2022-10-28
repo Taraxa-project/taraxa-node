@@ -10,10 +10,11 @@
 #include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
 #include "pbft/pbft_manager.hpp"
 
-constexpr size_t EXTENDED_PARTITION_STEPS = 1000;
-constexpr size_t FIRST_FINISH_STEP = 4;
-
 namespace taraxa {
+
+constexpr PbftStep kExtendedPartionSteps = 1000;
+constexpr PbftStep kFirstFinishStep = 4;
+
 VoteManager::VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
                          std::shared_ptr<FinalChain> final_chain, std::shared_ptr<NextVotesManager> next_votes_mgr)
     : db_(std::move(db)),
@@ -34,10 +35,10 @@ void VoteManager::setNetwork(std::weak_ptr<Network> network) { network_ = std::m
 void VoteManager::retreieveVotes_() {
   LOG(log_si_) << "Retrieve verified votes from DB";
   auto verified_votes = db_->getVerifiedVotes();
-  const auto pbft_step = db_->getPbftMgrField(PbftMgrRoundStep::PbftStep);
+  const auto pbft_step = db_->getPbftMgrField(PbftMgrField::Step);
   for (auto const& v : verified_votes) {
     // Rebroadcast our own next votes in case we were partitioned...
-    if (v->getStep() >= FIRST_FINISH_STEP && pbft_step > EXTENDED_PARTITION_STEPS) {
+    if (v->getStep() >= kFirstFinishStep && pbft_step > kExtendedPartionSteps) {
       if (auto net = network_.lock()) {
         net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(v, nullptr);
       }
@@ -59,9 +60,9 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getVerifiedVotes() const {
   votes.reserve(getVerifiedVotesSize());
 
   SharedLock lock(verified_votes_access_);
-  for (const auto& round : verified_votes_) {
-    for (const auto& period : round.second) {
-      for (const auto& step : period.second) {
+  for (const auto& period : verified_votes_) {
+    for (const auto& round : period.second) {
+      for (const auto& step : round.second) {
         for (const auto& voted_value : step.second) {
           for (const auto& v : voted_value.second.second) {
             votes.emplace_back(v.second);
@@ -78,9 +79,9 @@ uint64_t VoteManager::getVerifiedVotesSize() const {
   uint64_t size = 0;
 
   SharedLock lock(verified_votes_access_);
-  for (auto const& round : verified_votes_) {
-    for (auto const& period : round.second) {
-      for (auto const& step : period.second) {
+  for (auto const& period : verified_votes_) {
+    for (auto const& round : period.second) {
+      for (auto const& step : round.second) {
         for (auto const& voted_value : step.second) {
           size += voted_value.second.second.size();
         }
@@ -316,7 +317,7 @@ bool VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote) {
 }
 
 // cleanup votes < pbft_round
-void VoteManager::cleanupVotesByRound(uint64_t pbft_period, uint32_t pbft_round) {
+void VoteManager::cleanupVotesByRound(PbftPeriod pbft_period, PbftRound pbft_round) {
   // Clean up cache with unique votes per period, round & step & voter
   {
     std::unique_lock unique_votes_lock(voters_unique_votes_mutex_);
@@ -364,7 +365,7 @@ void VoteManager::cleanupVotesByRound(uint64_t pbft_period, uint32_t pbft_round)
   db_->commitWriteBatch(batch);
 }
 
-void VoteManager::cleanupVotesByPeriod(uint64_t pbft_period) {
+void VoteManager::cleanupVotesByPeriod(PbftPeriod pbft_period) {
   // Clean up cache with unique votes per period, round & step & voter
   {
     std::unique_lock unique_votes_lock(voters_unique_votes_mutex_);
@@ -408,7 +409,7 @@ void VoteManager::cleanupVotesByPeriod(uint64_t pbft_period) {
   db_->commitWriteBatch(batch);
 }
 
-std::shared_ptr<Vote> VoteManager::getProposalVote(uint64_t period, uint32_t round,
+std::shared_ptr<Vote> VoteManager::getProposalVote(PbftPeriod period, PbftRound round,
                                                    const blk_hash_t& voted_block_hash) const {
   SharedLock lock(verified_votes_access_);
 
@@ -442,7 +443,7 @@ std::shared_ptr<Vote> VoteManager::getProposalVote(uint64_t period, uint32_t rou
   return found_voted_block_it->second.second.begin()->second;
 }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t period, uint32_t round) const {
+std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(PbftPeriod period, PbftRound round) const {
   SharedLock lock(verified_votes_access_);
 
   const auto found_period_it = verified_votes_.find(period);
@@ -471,7 +472,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(uint64_t period
   return proposal_votes;
 }
 
-std::optional<VotesBundle> VoteManager::getTwoTPlusOneVotesBundle(uint64_t period, uint32_t round, uint32_t step,
+std::optional<VotesBundle> VoteManager::getTwoTPlusOneVotesBundle(PbftPeriod period, PbftRound round, PbftStep step,
                                                                   uint64_t two_t_plus_one) const {
   SharedLock lock(verified_votes_access_);
 
@@ -532,8 +533,8 @@ std::optional<VotesBundle> VoteManager::getTwoTPlusOneVotesBundle(uint64_t perio
   return votes_bundle;
 }
 
-std::optional<std::pair<uint32_t, std::vector<std::shared_ptr<Vote>>>> VoteManager::determineRoundFromPeriodAndVotes(
-    uint64_t period, uint64_t two_t_plus_one) {
+std::optional<std::pair<PbftRound, std::vector<std::shared_ptr<Vote>>>> VoteManager::determineRoundFromPeriodAndVotes(
+    PbftPeriod period, uint64_t two_t_plus_one) {
   std::vector<std::shared_ptr<Vote>> votes;
 
   SharedLock lock(verified_votes_access_);
@@ -574,7 +575,7 @@ std::optional<std::pair<uint32_t, std::vector<std::shared_ptr<Vote>>>> VoteManag
   return {};
 }
 
-std::pair<blk_hash_t, uint64_t> VoteManager::getCurrentRewardsVotesBlock() const {
+std::pair<blk_hash_t, PbftPeriod> VoteManager::getCurrentRewardsVotesBlock() const {
   std::shared_lock lock(reward_votes_mutex_);
   return reward_votes_pbft_block_;
 }

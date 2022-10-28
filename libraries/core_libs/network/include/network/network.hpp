@@ -55,7 +55,7 @@ class Network {
   void restartSyncingPbft(bool force = false);
   bool pbft_syncing();
   uint64_t syncTimeSeconds() const;
-  void setSyncStatePeriod(uint64_t period);
+  void setSyncStatePeriod(PbftPeriod period);
 
   template <typename PacketHandlerType>
   std::shared_ptr<PacketHandlerType> getSpecificHandler() const;

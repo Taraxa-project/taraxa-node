@@ -48,11 +48,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   using vrf_proof_t = vrf_wrapper::vrf_proof_t;
   using jsonrpc_server_t = ModularServer<net::TaraxaFace, net::NetFace, net::EthFace, net::TestFace>;
 
-  struct PostDestructionContext {
-    uint num_shared_pointers_to_check = 0;
-    bool have_leaked_shared_pointers = false;
-  };
-
   // should be destroyed after all components, since they may depend on it through unsafe pointers
   std::unique_ptr<util::ThreadPool> rpc_thread_pool_;
   std::unique_ptr<util::ThreadPool> graphql_thread_pool_;

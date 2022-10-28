@@ -61,7 +61,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @param proposal_period proposal period
    * @return estimated gas value for transaction
    */
-  uint64_t estimateTransactionGas(std::shared_ptr<Transaction> trx, std::optional<uint64_t> proposal_period) const;
+  uint64_t estimateTransactionGas(std::shared_ptr<Transaction> trx, std::optional<PbftPeriod> proposal_period) const;
 
   /**
    * @brief Gets transactions from pool to include in the block with specified weight limit
@@ -69,7 +69,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @param weight_limit weight limit
    * @return transactions and weight estimations
    */
-  std::pair<SharedTransactions, std::vector<uint64_t>> packTrxs(uint64_t proposal_period, uint64_t weight_limit);
+  std::pair<SharedTransactions, std::vector<uint64_t>> packTrxs(PbftPeriod proposal_period, uint64_t weight_limit);
 
   /**
    * @brief Gets all transactions from pool
@@ -95,7 +95,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    *
    * @param block_number block number finalized
    */
-  void blockFinalized(uint64_t block_number);
+  void blockFinalized(EthBlockNumber block_number);
 
   /**
    * @brief Inserts verified transaction to transaction pool

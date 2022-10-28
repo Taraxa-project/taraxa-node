@@ -40,7 +40,7 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
 
   std::unordered_set<blk_hash_t> blocks_hashes;
   auto it = packet_data.rlp_.begin();
-  const auto peer_period = (*it++).toInt<uint64_t>();
+  const auto peer_period = (*it++).toInt<PbftPeriod>();
 
   std::string blocks_hashes_to_log;
   for (const auto block_hash_rlp : *it) {
@@ -65,7 +65,8 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
 
 void GetDagSyncPacketHandler::sendBlocks(const dev::p2p::NodeID &peer_id,
                                          std::vector<std::shared_ptr<DagBlock>> &&blocks,
-                                         SharedTransactions &&transactions, uint64_t request_period, uint64_t period) {
+                                         SharedTransactions &&transactions, PbftPeriod request_period,
+                                         PbftPeriod period) {
   auto peer = peers_state_->getPeer(peer_id);
   if (!peer) return;
 

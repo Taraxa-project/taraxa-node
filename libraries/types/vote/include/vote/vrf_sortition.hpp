@@ -25,7 +25,7 @@ enum class PbftVoteTypes : uint8_t { invalid_vote = 0, propose_vote, soft_vote, 
 class VrfPbftMsg {
  public:
   VrfPbftMsg() = default;
-  VrfPbftMsg(PbftVoteTypes type, uint64_t period, uint32_t round, uint32_t step);
+  VrfPbftMsg(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step);
 
   /**
    * @brief Get v type based on vote step
@@ -55,9 +55,9 @@ class VrfPbftMsg {
     return strm;
   }
 
-  uint64_t period_;
-  uint32_t round_;
-  uint32_t step_;
+  PbftPeriod period_;
+  PbftRound round_;
+  PbftStep step_;
 };
 
 /**
@@ -124,7 +124,7 @@ class VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
    * @param address voter public key
    * @return vote weight
    */
-  uint64_t calculateWeight(uint64_t stake, double dpos_total_votes_count, double threshold,
+  uint64_t calculateWeight(uint64_t stake, uint64_t dpos_total_votes_count, uint64_t threshold,
                            const public_t& address) const;
 
   friend std::ostream& operator<<(std::ostream& strm, const VrfPbftSortition& vrf_sortition) {

@@ -22,8 +22,8 @@ void GetVotesSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet
 void GetVotesSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   LOG(log_dg_) << "Received GetVotesSyncPacket request";
 
-  const uint64_t peer_pbft_period = packet_data.rlp_[0].toPositiveInt64();
-  const uint64_t peer_pbft_round = packet_data.rlp_[1].toPositiveInt64();
+  const PbftPeriod peer_pbft_period = packet_data.rlp_[0].toInt<PbftPeriod>();
+  const PbftRound peer_pbft_round = packet_data.rlp_[1].toInt<PbftRound>();
   const size_t peer_pbft_previous_round_next_votes_size = packet_data.rlp_[2].toInt<unsigned>();
   const auto [pbft_round, pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
   const size_t pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();

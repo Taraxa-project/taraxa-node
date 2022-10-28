@@ -46,7 +46,7 @@ class FinalChain {
 
   virtual void stop() = 0;
 
-  virtual uint64_t delegation_delay() const = 0;
+  virtual EthBlockNumber delegation_delay() const = 0;
 
   /**
    * @brief Method which finalizes a block and executes it in EVM

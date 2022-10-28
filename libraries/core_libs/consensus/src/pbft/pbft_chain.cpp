@@ -48,12 +48,12 @@ blk_hash_t PbftChain::getHeadHash() const {
   return head_hash_;
 }
 
-uint64_t PbftChain::getPbftChainSize() const {
+PbftPeriod PbftChain::getPbftChainSize() const {
   SharedLock lock(chain_head_access_);
   return size_;
 }
 
-uint64_t PbftChain::getPbftChainSizeExcludingEmptyPbftBlocks() const {
+PbftPeriod PbftChain::getPbftChainSizeExcludingEmptyPbftBlocks() const {
   SharedLock lock(chain_head_access_);
   return non_empty_size_;
 }

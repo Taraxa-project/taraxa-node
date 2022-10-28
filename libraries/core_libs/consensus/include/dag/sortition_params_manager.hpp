@@ -16,12 +16,12 @@ using EfficienciesMap = std::map<uint16_t, int32_t>;
  * @brief Changing vrf params for DAG blocks generation
  */
 struct SortitionParamsChange {
-  uint64_t period = 0;
+  PbftPeriod period = 0;
   VrfParams vrf_params;
   uint16_t interval_efficiency = 0;
 
   SortitionParamsChange() = default;
-  SortitionParamsChange(uint64_t period, uint16_t efficiency, const VrfParams& vrf);
+  SortitionParamsChange(PbftPeriod period, uint16_t efficiency, const VrfParams& vrf);
   static SortitionParamsChange from_rlp(const dev::RLP& rlp);
   bytes rlp() const;
 };
@@ -36,7 +36,7 @@ struct SortitionParamsChange {
 class SortitionParamsManager {
  public:
   SortitionParamsManager(const addr_t& node_addr, SortitionConfig sort_conf, std::shared_ptr<DbStorage> db);
-  SortitionParams getSortitionParams(std::optional<uint64_t> for_period = {}) const;
+  SortitionParams getSortitionParams(std::optional<PbftPeriod> for_period = {}) const;
 
   /**
    * Calculating DAG efficiency in passed PeriodData(PBFT)
@@ -55,7 +55,7 @@ class SortitionParamsManager {
    * @param batch DB batch in which all changes  will be added
    * @param non_empty_pbft_chain_size PBFT chain size excluding pbft blocks with null anchor
    */
-  void pbftBlockPushed(const PeriodData& block, DbStorage::Batch& batch, size_t non_empty_pbft_chain_size);
+  void pbftBlockPushed(const PeriodData& block, DbStorage::Batch& batch, PbftPeriod non_empty_pbft_chain_size);
 
   /**
    * Calculate average DAG efficiency from dag_efficiencies_. Used at the end of interval.
@@ -75,7 +75,7 @@ class SortitionParamsManager {
   std::deque<uint16_t> dag_efficiencies_;
   uint32_t ignored_efficiency_counter_ = 0;
   std::deque<SortitionParamsChange> params_changes_;
-  SortitionParamsChange calculateChange(uint64_t period);
+  SortitionParamsChange calculateChange(PbftPeriod period);
   EfficienciesMap getEfficienciesToUpperRange(uint16_t efficiency, int32_t threshold) const;
   int32_t getNewUpperRange(uint16_t efficiency) const;
   void cleanup();

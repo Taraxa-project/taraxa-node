@@ -38,13 +38,13 @@ class PbftChain {
    * @brief Get PBFT chain size
    * @return PBFT chain size
    */
-  uint64_t getPbftChainSize() const;
+  PbftPeriod getPbftChainSize() const;
 
   /**
    * @brief Get PBFT chain size excluding empty PBFT blocks
    * @return PBFT chain size excluding empty PBFT blocks
    */
-  uint64_t getPbftChainSizeExcludingEmptyPbftBlocks() const;
+  PbftPeriod getPbftChainSizeExcludingEmptyPbftBlocks() const;
 
   /**
    * @brief Get last PBFT block hash
@@ -108,11 +108,11 @@ class PbftChain {
 
   mutable boost::shared_mutex chain_head_access_;
 
-  blk_hash_t head_hash_;     // PBFT head hash
-  uint64_t size_;            // PBFT chain size, includes both executed and unexecuted PBFT blocks
-  uint64_t non_empty_size_;  // PBFT chain size excluding blocks with null anchor, includes both executed and unexecuted
-                             // PBFT blocks
-  blk_hash_t last_pbft_block_hash_;                // last PBFT block hash in PBFT chain, may not execute yet
+  blk_hash_t head_hash_;             // PBFT head hash
+  PbftPeriod size_;                  // PBFT chain size, includes both executed and unexecuted PBFT blocks
+  PbftPeriod non_empty_size_;        // PBFT chain size excluding blocks with null anchor, includes both executed and
+                                     // unexecuted PBFT blocks
+  blk_hash_t last_pbft_block_hash_;  // last PBFT block hash in PBFT chain, may not execute yet
   blk_hash_t last_non_null_pbft_dag_anchor_hash_;  // last dag block anchor which is not null
 
   std::shared_ptr<DbStorage> db_ = nullptr;

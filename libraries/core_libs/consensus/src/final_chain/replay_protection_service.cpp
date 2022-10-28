@@ -19,9 +19,9 @@ using namespace std;
 
 string senderStateKey(string const& sender_addr_hex) { return "sender_" + sender_addr_hex; }
 
-string periodDataKeysKey(uint64_t period) { return "data_keys_at_" + to_string(period); }
+string periodDataKeysKey(PbftPeriod period) { return "data_keys_at_" + to_string(period); }
 
-string maxNonceAtRoundKey(uint64_t period, string const& sender_addr_hex) {
+string maxNonceAtRoundKey(PbftPeriod period, string const& sender_addr_hex) {
   return "max_nonce_at_" + to_string(period) + "_" + sender_addr_hex;
 }
 
@@ -63,7 +63,7 @@ class ReplayProtectionServiceImpl : public virtual ReplayProtectionService {
   }
 
   // TODO use binary types instead of hex strings
-  void update(DB::Batch& batch, uint64_t period, RangeView<TransactionInfo> const& trxs) override {
+  void update(DB::Batch& batch, PbftPeriod period, RangeView<TransactionInfo> const& trxs) override {
     unique_lock l(mu_);
     unordered_map<string, shared_ptr<SenderState>> sender_states;
     sender_states.reserve(trxs.size);

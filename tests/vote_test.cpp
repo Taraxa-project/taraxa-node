@@ -23,10 +23,10 @@ auto g_sk = Lazy([] {
 });
 struct VoteTest : BaseTest {};
 
-std::pair<uint64_t, uint64_t> clearAllVotes(const std::vector<std::shared_ptr<FullNode>> &nodes) {
+std::pair<PbftPeriod, PbftRound> clearAllVotes(const std::vector<std::shared_ptr<FullNode>> &nodes) {
   // Get highest round from all nodes
-  uint64_t max_period = 0;
-  uint64_t max_round = 1;
+  PbftPeriod max_period = 0;
+  PbftRound max_round = 1;
   for (const auto &node : nodes) {
     auto [node_round, node_period] = node->getPbftManager()->getPbftRoundAndPeriod();
     if (node_period > max_period) {
@@ -73,7 +73,7 @@ TEST_F(VoteTest, verified_votes) {
   // Generate a vote
   blk_hash_t blockhash(1);
   PbftVoteTypes type = PbftVoteTypes::soft_vote;
-  auto step = 2;
+  PbftStep step = 2;
   auto vote = pbft_mgr->generateVote(blockhash, type, period, round, step);
   vote->calculateWeight(1, 1, 1);
 
@@ -112,9 +112,9 @@ TEST_F(VoteTest, DISABLED_add_cleanup_get_votes) {
   PbftVoteTypes type = PbftVoteTypes::next_vote;
   for (int i = 1; i <= 3; i++) {
     for (int j = 1; j <= 2; j++) {
-      uint64_t period = i;
-      uint64_t round = 1;
-      size_t step = 3 + j;
+      PbftPeriod period = i;
+      PbftRound round = 1;
+      PbftStep step = 3 + j;
       auto vote = pbft_mgr->generateVote(voted_block_hash, type, period, round, step);
       vote->calculateWeight(1, 1, 1);
       vote_mgr->addVerifiedVote(vote);
@@ -159,9 +159,9 @@ TEST_F(VoteTest, round_determine_from_next_votes) {
   PbftVoteTypes type = PbftVoteTypes::next_vote;
   for (int i = 10; i <= 12; i++) {
     for (int j = 4; j <= 5; j++) {
-      uint64_t period = i;
-      uint64_t round = i;
-      size_t step = j;
+      PbftPeriod period = i;
+      PbftRound round = i;
+      PbftStep step = j;
       auto vote = pbft_mgr->generateVote(voted_block_hash, type, period, round, step);
       vote->calculateWeight(3, 3, 3);
       vote_mgr->addVerifiedVote(vote);
@@ -178,9 +178,9 @@ TEST_F(VoteTest, reconstruct_votes) {
   sig_t vote_sig(9878766);
   blk_hash_t propose_blk_hash(111111);
   PbftVoteTypes type(PbftVoteTypes::propose_vote);
-  uint64_t period(999);
-  uint64_t round(999);
-  size_t step(2);
+  PbftPeriod period(999);
+  PbftRound round(999);
+  PbftStep step(1);
   VrfPbftMsg msg(type, period, round, step);
   VrfPbftSortition vrf_sortition(g_vrf_sk, msg);
   Vote vote1(g_sk, vrf_sortition, propose_blk_hash);
@@ -209,10 +209,10 @@ TEST_F(VoteTest, transfer_vote) {
 
   // generate a vote far ahead (never exist in PBFT manager)
   blk_hash_t propose_block_hash(11);
-  PbftVoteTypes type = PbftVoteTypes::next_vote;
-  uint64_t period = 1;
-  uint64_t round = 1;
-  size_t step = 1;
+  PbftVoteTypes type = PbftVoteTypes::propose_vote;
+  PbftPeriod period = 1;
+  PbftRound round = 1;
+  PbftStep step = 1;
   auto vote = pbft_mgr1->generateVote(propose_block_hash, type, period, round, step);
 
   nw1->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVote(nw1->getPeer(nw2->getNodeId()), vote,
@@ -243,8 +243,8 @@ TEST_F(VoteTest, vote_broadcast) {
 
   // generate a vote far ahead (never exist in PBFT manager)
   blk_hash_t propose_block_hash(111);
-  PbftVoteTypes type = PbftVoteTypes::next_vote;
-  size_t step = 1;
+  PbftVoteTypes type = PbftVoteTypes::propose_vote;
+  PbftStep step = 1;
   auto vote = pbft_mgr1->generateVote(propose_block_hash, type, period, round, step);
 
   node1->getNetwork()->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(vote, nullptr);
@@ -281,9 +281,9 @@ TEST_F(VoteTest, previous_round_next_votes) {
 
   // Generate a vote voted at NULL_BLOCK_HASH
   PbftVoteTypes type = PbftVoteTypes::next_vote;
-  auto period = 1;
-  auto round = 1;
-  auto step = 4;
+  PbftPeriod period = 1;
+  PbftRound round = 1;
+  PbftStep step = 4;
   blk_hash_t voted_pbft_block_hash(0);
   auto vote1 = pbft_mgr->generateVote(voted_pbft_block_hash, type, period, round, step);
   vote1->calculateWeight(1, 1, 1);

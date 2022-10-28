@@ -149,7 +149,8 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
    * @param weight_limit weight limit
    * @return transactions and weight estimations
    */
-  std::pair<SharedTransactions, std::vector<uint64_t>> getShardedTrxs(uint64_t proposal_period, uint64_t weight_limit);
+  std::pair<SharedTransactions, std::vector<uint64_t>> getShardedTrxs(PbftPeriod proposal_period,
+                                                                      uint64_t weight_limit);
 
   /**
    * @brief Gets current propose level for provided pivot and tips

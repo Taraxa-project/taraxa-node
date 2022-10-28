@@ -18,7 +18,7 @@ vec_trx_t generateTrxHashes(size_t count) {
   return res;
 }
 
-PeriodData createBlock(uint64_t period, uint16_t efficiency, size_t dag_blocks_count = 5,
+PeriodData createBlock(PbftPeriod period, uint16_t efficiency, size_t dag_blocks_count = 5,
                        blk_hash_t anchor_hash = blk_hash_t(1)) {
   // produced transactions count should be equal to or multiple of this value to produce block with accurate enough
   // efficiency

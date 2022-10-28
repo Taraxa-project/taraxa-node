@@ -23,7 +23,7 @@ TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_p
 }
 
 uint64_t TransactionManager::estimateTransactionGas(std::shared_ptr<Transaction> trx,
-                                                    std::optional<uint64_t> proposal_period) const {
+                                                    std::optional<PbftPeriod> proposal_period) const {
   if (trx->getGas() <= kEstimateGasLimit) {
     return trx->getGas();
   }
@@ -269,7 +269,7 @@ std::vector<trx_hash_t> TransactionManager::excludeFinalizedTransactions(const s
 /**
  * Retrieve transactions to be included in proposed block
  */
-std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrxs(uint64_t proposal_period,
+std::pair<SharedTransactions, std::vector<uint64_t>> TransactionManager::packTrxs(PbftPeriod proposal_period,
                                                                                   uint64_t weight_limit) {
   SharedTransactions trxs;
   std::vector<uint64_t> estimations;
@@ -380,7 +380,7 @@ std::optional<SharedTransactions> TransactionManager::getBlockTransactions(DagBl
   return transactions;
 }
 
-void TransactionManager::blockFinalized(uint64_t block_number) {
+void TransactionManager::blockFinalized(EthBlockNumber block_number) {
   std::unique_lock transactions_lock(transactions_mutex_);
   transactions_pool_.blockFinalized(block_number);
 }

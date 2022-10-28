@@ -117,8 +117,9 @@ void PacketHandler::disconnect(const dev::p2p::NodeID& node_id, dev::p2p::Discon
   }
 }
 
-void PacketHandler::requestPbftNextVotesAtPeriodRound(const dev::p2p::NodeID& peerID, uint64_t pbft_period,
-                                                      uint64_t pbft_round, size_t pbft_previous_round_next_votes_size) {
+void PacketHandler::requestPbftNextVotesAtPeriodRound(const dev::p2p::NodeID& peerID, PbftPeriod pbft_period,
+                                                      PbftRound pbft_round,
+                                                      size_t pbft_previous_round_next_votes_size) {
   LOG(log_nf_) << "Sending GetVotesSyncPacket with period:" << pbft_period << ", round:" << pbft_round
                << ", previous_round_next_votes_size:" << pbft_previous_round_next_votes_size;
   sealAndSend(peerID, GetVotesSyncPacket,

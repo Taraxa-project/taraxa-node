@@ -54,15 +54,15 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     auto const peer_chain_id = (*it++).toInt<uint64_t>();
     auto const peer_dag_level = (*it++).toInt<uint64_t>();
     auto const genesis_hash = (*it++).toHash<blk_hash_t>();
-    auto const peer_pbft_chain_size = (*it++).toInt<uint64_t>();
+    auto const peer_pbft_chain_size = (*it++).toInt<PbftPeriod>();
     auto const peer_syncing = (*it++).toInt();
-    auto const peer_pbft_round = (*it++).toInt<uint64_t>();
+    auto const peer_pbft_round = (*it++).toInt<PbftRound>();
     auto const peer_pbft_previous_round_next_votes_size = (*it++).toInt<unsigned>();
     auto const node_major_version = (*it++).toInt<unsigned>();
     auto const node_minor_version = (*it++).toInt<unsigned>();
     auto const node_patch_version = (*it++).toInt<unsigned>();
     auto const is_light_node = (*it++).toInt();
-    auto const node_history = (*it++).toInt<uint64_t>();
+    auto const node_history = (*it++).toInt<PbftPeriod>();
 
     if (peer_chain_id != conf_chain_id_) {
       LOG((peers_state_->getPeersCount()) ? log_nf_ : log_er_)
@@ -121,11 +121,11 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
 
     auto it = packet_data.rlp_.begin();
     selected_peer->dag_level_ = (*it++).toInt<uint64_t>();
-    selected_peer->pbft_chain_size_ = (*it++).toInt<uint64_t>();
+    selected_peer->pbft_chain_size_ = (*it++).toInt<PbftPeriod>();
     selected_peer->pbft_period_ = selected_peer->pbft_chain_size_ + 1;
     selected_peer->syncing_ = (*it++).toInt();
-    selected_peer->pbft_round_ = (*it++).toInt<uint64_t>();
-    selected_peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<unsigned>();
+    selected_peer->pbft_round_ = (*it++).toInt<PbftRound>();
+    selected_peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<size_t>();
 
     // TODO: Address malicious status
     if (!pbft_syncing_state_->isPbftSyncing()) {
@@ -221,11 +221,11 @@ void StatusPacketHandler::sendStatusToPeers() {
   }
 }
 
-void StatusPacketHandler::syncPbftNextVotesAtPeriodRound(uint64_t pbft_period, uint64_t pbft_round,
+void StatusPacketHandler::syncPbftNextVotesAtPeriodRound(PbftPeriod pbft_period, PbftRound pbft_round,
                                                          size_t pbft_previous_round_next_votes_size) {
   dev::p2p::NodeID peer_node_ID;
-  uint64_t peer_max_pbft_period = 1;
-  uint64_t peer_max_pbft_round = 1;
+  PbftPeriod peer_max_pbft_period = 1;
+  PbftRound peer_max_pbft_round = 1;
   size_t peer_max_previous_round_next_votes_size = 0;
 
   auto peers = peers_state_->getAllPeers();

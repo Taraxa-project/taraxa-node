@@ -314,7 +314,7 @@ void FullNode::rebuildDb() {
   pbft_mgr_->initialState();
 
   // Read pbft blocks one by one
-  uint64_t period = 1;
+  PbftPeriod period = 1;
   std::shared_ptr<PeriodData> period_data, next_period_data;
   std::vector<std::shared_ptr<Vote>> cert_votes;
   while (true) {

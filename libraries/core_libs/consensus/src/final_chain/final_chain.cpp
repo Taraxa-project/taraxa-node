@@ -133,7 +133,7 @@ class FinalChainImpl final : public FinalChain {
     return p->get_future();
   }
 
-  uint64_t delegation_delay() const override { return delegation_delay_; }
+  EthBlockNumber delegation_delay() const override { return delegation_delay_; }
 
   std::shared_ptr<FinalizationResult> finalize_(PeriodData&& new_blk, std::vector<h256>&& finalized_dag_blk_hashes,
                                                 finalize_precommit_ext const& precommit_ext) {

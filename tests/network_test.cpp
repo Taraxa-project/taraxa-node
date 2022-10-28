@@ -522,7 +522,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
 
   // generate first PBFT block sample
   blk_hash_t prev_block_hash(0);
-  uint64_t period = 1;
+  PbftPeriod period = 1;
   addr_t beneficiary(987);
 
   level_t level = 1;
@@ -687,7 +687,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   // generate first PBFT block sample
   blk_hash_t prev_block_hash(0);
-  uint64_t period = 1;
+  PbftPeriod period = 1;
   addr_t beneficiary(876);
   level_t level = 1;
   vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(level));
@@ -800,9 +800,9 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   // Generate 3 next votes
   std::vector<std::shared_ptr<Vote>> next_votes;
   PbftVoteTypes type = PbftVoteTypes::next_vote;
-  uint64_t period = 1;
-  uint64_t round = 1;
-  size_t step = 5;
+  PbftPeriod period = 1;
+  PbftRound round = 1;
+  PbftStep step = 5;
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i % 2);  // Next votes could vote on 2 values
     std::cout << voted_pbft_block_hash << std::endl;
@@ -864,9 +864,9 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
 
   // Generate 2 next votes for node1
   std::vector<std::shared_ptr<Vote>> next_votes1;
-  uint64_t period = 1;
-  uint64_t round = 1;
-  size_t step = 5;
+  PbftPeriod period = 1;
+  PbftRound round = 1;
+  PbftStep step = 5;
   PbftVoteTypes type = PbftVoteTypes::next_vote;
   for (uint64_t i = 0; i < 2; i++) {
     blk_hash_t voted_pbft_block_hash1(i);  // Next votes could vote on 2 values
@@ -930,9 +930,9 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   // Node1 generate 1 next vote voted at NULL_BLOCK_HASH
   blk_hash_t voted_pbft_block_hash1(blk_hash_t(0));
   PbftVoteTypes type = PbftVoteTypes::next_vote;
-  uint64_t period = 1;
-  uint64_t round = 1;
-  size_t step = 5;
+  PbftPeriod period = 1;
+  PbftRound round = 1;
+  PbftStep step = 5;
   auto vote1 = pbft_mgr1->generateVote(voted_pbft_block_hash1, type, period, round, step);
   vote1->calculateWeight(1, 1, 1);
   std::vector<std::shared_ptr<Vote>> next_votes1{vote1};

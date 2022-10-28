@@ -68,7 +68,7 @@ void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
   }
 }
 
-bool ExtSyncingPacketHandler::syncPeerPbft(uint64_t request_period, bool ignore_chain_size_check) {
+bool ExtSyncingPacketHandler::syncPeerPbft(PbftPeriod request_period, bool ignore_chain_size_check) {
   const auto syncing_peer = pbft_syncing_state_->syncingPeer();
   if (!syncing_peer) {
     LOG(log_er_) << "Unable to send GetPbftSyncPacket. No syncing peer set.";
@@ -88,7 +88,7 @@ bool ExtSyncingPacketHandler::syncPeerPbft(uint64_t request_period, bool ignore_
 
 std::shared_ptr<TaraxaPeer> ExtSyncingPacketHandler::getMaxChainPeer() {
   std::shared_ptr<TaraxaPeer> max_pbft_chain_peer;
-  uint64_t max_pbft_chain_size = 0;
+  PbftPeriod max_pbft_chain_size = 0;
   uint64_t max_node_dag_level = 0;
 
   // Find peer with max pbft chain and dag level
@@ -151,9 +151,9 @@ void ExtSyncingPacketHandler::requestPendingDagBlocks(std::shared_ptr<TaraxaPeer
 }
 
 void ExtSyncingPacketHandler::requestDagBlocks(const dev::p2p::NodeID &_nodeID,
-                                               const std::unordered_set<blk_hash_t> &blocks, uint64_t period) {
+                                               const std::unordered_set<blk_hash_t> &blocks, PbftPeriod period) {
   dev::RLPStream s(2);  // Period + blocks list
-  s.append(static_cast<uint64_t>(period));
+  s.append(period);
   s.append(blocks);
 
   sealAndSend(_nodeID, SubprotocolPacketType::GetDagSyncPacket, std::move(s));

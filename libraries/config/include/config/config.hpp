@@ -46,9 +46,9 @@ struct NetworkConfig {
   uint16_t network_peer_blacklist_timeout = kBlacklistTimeoutDefaultInSeconds;
   bool disable_peer_blacklist = false;
   uint16_t deep_syncing_threshold = 10;
-  uint16_t vote_accepting_periods = 5;
-  uint16_t vote_accepting_rounds = 5;
-  uint16_t vote_accepting_steps = 0;
+  PbftPeriod vote_accepting_periods = 5;
+  PbftRound vote_accepting_rounds = 5;
+  PbftStep vote_accepting_steps = 0;
 
   void validate() const;
 };
@@ -57,9 +57,9 @@ struct DBConfig {
   uint32_t db_snapshot_each_n_pbft_block = 0;
   uint32_t db_max_snapshots = 0;
   uint32_t db_max_open_files = 0;
-  uint32_t db_revert_to_period = 0;
+  PbftPeriod db_revert_to_period = 0;
   bool rebuild_db = false;
-  uint64_t rebuild_db_period = 0;
+  PbftPeriod rebuild_db_period = 0;
   bool rebuild_db_columns = false;
 };
 

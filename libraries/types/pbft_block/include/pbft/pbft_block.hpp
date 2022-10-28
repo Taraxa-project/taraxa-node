@@ -25,7 +25,7 @@ class PbftBlock {
   blk_hash_t prev_block_hash_;
   blk_hash_t dag_block_hash_as_pivot_;
   blk_hash_t order_hash_;
-  uint64_t period_;  // Block index, PBFT head block is period 0, first PBFT block is period 1
+  PbftPeriod period_;  // Block index, PBFT head block is period 0, first PBFT block is period 1
   uint64_t timestamp_;
   addr_t beneficiary_;
   sig_t signature_;
@@ -33,7 +33,7 @@ class PbftBlock {
 
  public:
   PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_hash_as_pivot, const blk_hash_t& order_hash,
-            uint64_t period, const addr_t& beneficiary, const secret_t& sk, std::vector<vote_hash_t>&& reward_votes_);
+            PbftPeriod period, const addr_t& beneficiary, const secret_t& sk, std::vector<vote_hash_t>&& reward_votes_);
   explicit PbftBlock(dev::RLP const& rlp);
   explicit PbftBlock(bytes const& RLP);
 
@@ -106,7 +106,7 @@ class PbftBlock {
    * @brief Get period number
    * @return period number
    */
-  auto getPeriod() const { return period_; }
+  PbftPeriod getPeriod() const { return period_; }
 
   /**
    * @brief Get timestamp

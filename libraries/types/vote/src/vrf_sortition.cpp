@@ -7,7 +7,7 @@
 
 namespace taraxa {
 
-VrfPbftMsg::VrfPbftMsg(PbftVoteTypes type, uint64_t period, uint32_t round, uint32_t step)
+VrfPbftMsg::VrfPbftMsg(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step)
     : period_(period), round_(round), step_(step) {
   // Just to make sure developers dont try to create vote type with step that does not correspond to the type
   assert(type == getType());
@@ -91,7 +91,7 @@ uint64_t VrfPbftSortition::getBinominalDistribution(uint64_t stake, double dpos_
   return stake;
 }
 
-uint64_t VrfPbftSortition::calculateWeight(uint64_t stake, double dpos_total_votes_count, double threshold,
+uint64_t VrfPbftSortition::calculateWeight(uint64_t stake, uint64_t dpos_total_votes_count, uint64_t threshold,
                                            const public_t& address) const {
   // Also hash in the address. This is necessary to decorrelate the selection of different accounts that have the same
   // VRF key.

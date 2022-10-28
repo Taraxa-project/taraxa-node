@@ -99,7 +99,7 @@ bool Network::pbft_syncing() { return taraxa_capability_->pbft_syncing(); }
 
 uint64_t Network::syncTimeSeconds() const { return taraxa_capability_->getNodeStats()->syncTimeSeconds(); }
 
-void Network::setSyncStatePeriod(uint64_t period) { taraxa_capability_->setSyncStatePeriod(period); }
+void Network::setSyncStatePeriod(PbftPeriod period) { taraxa_capability_->setSyncStatePeriod(period); }
 
 // Only for test
 void Network::setPendingPeersToReady() {

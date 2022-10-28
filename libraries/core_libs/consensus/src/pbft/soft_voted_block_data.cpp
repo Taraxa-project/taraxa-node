@@ -19,7 +19,7 @@ TwoTPlusOneSoftVotedBlockData::TwoTPlusOneSoftVotedBlockData(dev::RLP const& rlp
   }
 
   // Parse round
-  round_ = (*it++).toInt<uint64_t>();
+  round_ = (*it++).toInt<PbftRound>();
 
   // Parse block hash
   block_hash_ = (*it++).toHash<blk_hash_t>();
