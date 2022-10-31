@@ -7,9 +7,9 @@ var storage_8hpp =
     [ "COLUMN", "storage_8hpp.html#a2eaa50d8ab492e7c148571d65b81f7d9", null ],
     [ "COLUMN_W_COMP", "storage_8hpp.html#ac9945ca6fe197b285226f1698ce8a202", null ],
     [ "DB", "storage_8hpp.html#a32216cff36a3565783afe8fa0099ae89", null ],
-    [ "PbftMgrRoundStep", "storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224", [
-      [ "PbftRound", "storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224a368025ae02d047204ec026bff0232090", null ],
-      [ "PbftStep", "storage_8hpp.html#a46213d22e59ab0eed2ab18aa75799224ab2b75dec75a0f988aec09198090e6e88", null ]
+    [ "PbftMgrField", "storage_8hpp.html#aee6857336aadf37a8ece8a666a2ca161", [
+      [ "Round", "storage_8hpp.html#aee6857336aadf37a8ece8a666a2ca161ab7f41fc1412ad2ee75e9b2635d3b9d5c", null ],
+      [ "Step", "storage_8hpp.html#aee6857336aadf37a8ece8a666a2ca161a48c7c41b72e1d678923ce3571aa65b2d", null ]
     ] ],
     [ "PbftMgrStatus", "storage_8hpp.html#ab954ed608508c8193f4517797b4dae8e", [
       [ "ExecutedBlock", "storage_8hpp.html#ab954ed608508c8193f4517797b4dae8eaf080f4976d2161c58453ee7ae449bb55", null ],

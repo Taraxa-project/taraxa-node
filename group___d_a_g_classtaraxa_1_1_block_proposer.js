@@ -6,7 +6,7 @@ var group___d_a_g_classtaraxa_1_1_block_proposer =
     [ "BlockProposer", "group___d_a_g.html#a9e793aa0e34e450d4d6e8beb37974d8e", null ],
     [ "getNumProposedBlocks", "group___d_a_g.html#a94ba0a1b88decc0742d6ec97f611aa78", null ],
     [ "getProposeLevel", "group___d_a_g.html#a65049d7c6d06d4dafcd21fc4be034520", null ],
-    [ "getShardedTrxs", "group___d_a_g.html#a6f607da040c0f33dc48a6c4624340d88", null ],
+    [ "getShardedTrxs", "group___d_a_g.html#a493fd313c47b24ee3c9cd588b1d90b93", null ],
     [ "getShared", "group___d_a_g.html#aab264e4d9ace503123f82f79af7b6ba6", null ],
     [ "operator=", "group___d_a_g.html#a547e350e8b1b2409f109ea59cc0f2a33", null ],
     [ "operator=", "group___d_a_g.html#a7cc34f64e2a78a710e6bcc636676f684", null ],

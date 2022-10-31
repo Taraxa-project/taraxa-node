@@ -132,8 +132,8 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a2fe52fd61d922049681db39a41bff8c8"><td class="memItemLeft" align="right" valign="top">std::future&lt; std::shared_ptr&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result">FinalizationResult</a> const  &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a2fe52fd61d922049681db39a41bff8c8">finalize</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&amp;new_blk, std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt; &amp;&amp;finalized_dag_blk_hashes, <a class="el" href="group___final_chain.html#a85c2c0863dab085cd063aac9b6886d51">finalize_precommit_ext</a> precommit_ext={}) override</td></tr>
 <tr class="memdesc:a2fe52fd61d922049681db39a41bff8c8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method which finalizes a block and executes it in EVM.  <a href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a2fe52fd61d922049681db39a41bff8c8">More...</a><br /></td></tr>
 <tr class="separator:a2fe52fd61d922049681db39a41bff8c8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab1058e7aadbd94a03a934f55ce235802"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab1058e7aadbd94a03a934f55ce235802">delegation_delay</a> () const override</td></tr>
-<tr class="separator:ab1058e7aadbd94a03a934f55ce235802"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4b8f0831630b3578c70f4e67a4f97ef6"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a4b8f0831630b3578c70f4e67a4f97ef6">delegation_delay</a> () const override</td></tr>
+<tr class="separator:a4b8f0831630b3578c70f4e67a4f97ef6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af3ebecbbfceac79a89dded0526d83f31"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result">FinalizationResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#af3ebecbbfceac79a89dded0526d83f31">finalize_</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&amp;new_blk, std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt; &amp;&amp;finalized_dag_blk_hashes, <a class="el" href="group___final_chain.html#a85c2c0863dab085cd063aac9b6886d51">finalize_precommit_ext</a> const &amp;precommit_ext)</td></tr>
 <tr class="separator:af3ebecbbfceac79a89dded0526d83f31"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4384eacfe6e7156f105d208d5dcc0de9"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header">BlockHeader</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a4384eacfe6e7156f105d208d5dcc0de9">append_block</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DB::Batch</a> &amp;batch, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;author, uint64_t timestamp, uint64_t gas_limit, const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &amp;state_root, const <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> &amp;<a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab54243b01846a87cd31281089389b3ae">transactions</a>={}, const <a class="el" href="group___final_chain.html#gafa74492224d3e9c12af3c0f31e9c7afb">TransactionReceipts</a> &amp;receipts={})</td></tr>
@@ -621,8 +621,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="ab1058e7aadbd94a03a934f55ce235802"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab1058e7aadbd94a03a934f55ce235802">&#9670;&nbsp;</a></span>delegation_delay()</h2>
+<a id="a4b8f0831630b3578c70f4e67a4f97ef6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4b8f0831630b3578c70f4e67a4f97ef6">&#9670;&nbsp;</a></span>delegation_delay()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -631,7 +631,7 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">uint64_t taraxa::final_chain::FinalChainImpl::delegation_delay </td>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> taraxa::final_chain::FinalChainImpl::delegation_delay </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -644,7 +644,7 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Implements <a class="el" href="group___final_chain.html#aef937c32fc1f575e0607b4df4d8a1436">taraxa::final_chain::FinalChain</a>.</p>
+<p>Implements <a class="el" href="group___final_chain.html#aac2506da98467db60ef3751c2eab1391">taraxa::final_chain::FinalChain</a>.</p>
 
 </div>
 </div>

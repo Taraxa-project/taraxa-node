@@ -45,7 +45,7 @@ var searchData=
   ['block_5fverified_5f_163',['block_verified_',['../group___d_a_g.html#a3935e897459f808552ad22fa79fdae84',1,'taraxa::DagManager']]],
   ['block_5fweight_5f_164',['block_weight_',['../classtaraxa_1_1_dag_block.html#ad833bf9bd0f3861242fca4906fbe1679',1,'taraxa::DagBlock']]],
   ['blocked_5fpackets_5fmask_5f_165',['blocked_packets_mask_',['../classtaraxa_1_1network_1_1tarcap_1_1_priority_queue.html#af6b90d362cba12b86466d64e51880ff1',1,'taraxa::network::tarcap::PriorityQueue']]],
-  ['blockfinalized_166',['blockFinalized',['../group___transaction.html#a8659b0f7d1a61bb2bc890336355e69e9',1,'taraxa::TransactionManager::blockFinalized()'],['../group___transaction.html#a9086c3a4e98c6b190c4d02815acb58e4',1,'taraxa::TransactionQueue::blockFinalized()']]],
+  ['blockfinalized_166',['blockFinalized',['../group___transaction.html#a5518e05109ea6a098343f4e2a0f58711',1,'taraxa::TransactionManager::blockFinalized()'],['../group___transaction.html#a9086c3a4e98c6b190c4d02815acb58e4',1,'taraxa::TransactionQueue::blockFinalized()']]],
   ['blockhash_5f_167',['blockhash_',['../group___vote.html#ac78ef9dfd827f78306480e741808ba91',1,'taraxa::Vote']]],
   ['blockheader_168',['BlockHeader',['../group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header',1,'taraxa::final_chain']]],
   ['blocknumbernil_169',['BlockNumberNIL',['../namespacetaraxa_1_1state__api.html#a9aa3f912b525631665f9049907d9001f',1,'taraxa::state_api']]],

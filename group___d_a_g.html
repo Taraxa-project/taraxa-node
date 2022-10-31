@@ -942,9 +942,9 @@ Collaboration diagram for taraxa::BlockProposer:</div>
 <tr class="memitem:ac33953697d8542c2987b789ab08b701c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ac33953697d8542c2987b789ab08b701c">proposeBlock</a> (<a class="el" href="structtaraxa_1_1_dag_frontier.html">DagFrontier</a> &amp;&amp;frontier, <a class="el" href="namespacetaraxa.html#ac29ce7c6f0fae63e548b523170910526">level_t</a> level, <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> &amp;&amp;trxs, std::vector&lt; uint64_t &gt; &amp;&amp;estimations, <a class="el" href="classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html">VdfSortition</a> &amp;&amp;vdf)</td></tr>
 <tr class="memdesc:ac33953697d8542c2987b789ab08b701c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates/proposes a new block with provided data.  <a href="group___d_a_g.html#ac33953697d8542c2987b789ab08b701c">More...</a><br /></td></tr>
 <tr class="separator:ac33953697d8542c2987b789ab08b701c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6f607da040c0f33dc48a6c4624340d88"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a>, std::vector&lt; uint64_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a6f607da040c0f33dc48a6c4624340d88">getShardedTrxs</a> (uint64_t proposal_period, uint64_t weight_limit)</td></tr>
-<tr class="memdesc:a6f607da040c0f33dc48a6c4624340d88"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets transactions to include in the block - sharding not supported yet.  <a href="group___d_a_g.html#a6f607da040c0f33dc48a6c4624340d88">More...</a><br /></td></tr>
-<tr class="separator:a6f607da040c0f33dc48a6c4624340d88"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a493fd313c47b24ee3c9cd588b1d90b93"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a>, std::vector&lt; uint64_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a493fd313c47b24ee3c9cd588b1d90b93">getShardedTrxs</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> proposal_period, uint64_t weight_limit)</td></tr>
+<tr class="memdesc:a493fd313c47b24ee3c9cd588b1d90b93"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets transactions to include in the block - sharding not supported yet.  <a href="group___d_a_g.html#a493fd313c47b24ee3c9cd588b1d90b93">More...</a><br /></td></tr>
+<tr class="separator:a493fd313c47b24ee3c9cd588b1d90b93"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a65049d7c6d06d4dafcd21fc4be034520"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#ac29ce7c6f0fae63e548b523170910526">level_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a65049d7c6d06d4dafcd21fc4be034520">getProposeLevel</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;pivot, <a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a> const &amp;tips)</td></tr>
 <tr class="memdesc:a65049d7c6d06d4dafcd21fc4be034520"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets current propose level for provided pivot and tips.  <a href="group___d_a_g.html#a65049d7c6d06d4dafcd21fc4be034520">More...</a><br /></td></tr>
 <tr class="separator:a65049d7c6d06d4dafcd21fc4be034520"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1212,8 +1212,8 @@ Collaboration diagram for taraxa::BlockProposer:</div>
 
 </div>
 </div>
-<a id="a6f607da040c0f33dc48a6c4624340d88"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6f607da040c0f33dc48a6c4624340d88">&#9670;&nbsp;</a></span>getShardedTrxs()</h2>
+<a id="a493fd313c47b24ee3c9cd588b1d90b93"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a493fd313c47b24ee3c9cd588b1d90b93">&#9670;&nbsp;</a></span>getShardedTrxs()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1221,7 +1221,7 @@ Collaboration diagram for taraxa::BlockProposer:</div>
         <tr>
           <td class="memname">std::pair&lt; <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a>, std::vector&lt; uint64_t &gt; &gt; taraxa::BlockProposer::getShardedTrxs </td>
           <td>(</td>
-          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
           <td class="paramname"><em>proposal_period</em>, </td>
         </tr>
         <tr>
@@ -3282,12 +3282,12 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr class="memitem:af03ed62a5da2149160bf80318f94fc17"><td class="memItemLeft" align="right" valign="top">std::pair&lt; bool, std::vector&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#af03ed62a5da2149160bf80318f94fc17">addDagBlock</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&amp;blk, <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> &amp;&amp;trxs={}, bool proposed=false, bool save=true)</td></tr>
 <tr class="memdesc:af03ed62a5da2149160bf80318f94fc17"><td class="mdescLeft">&#160;</td><td class="mdescRight">adds verified DAG block in the DAG  <a href="group___d_a_g.html#af03ed62a5da2149160bf80318f94fc17">More...</a><br /></td></tr>
 <tr class="separator:af03ed62a5da2149160bf80318f94fc17"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af0b8ed0231d112b87ebde613de0d53c9"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#af0b8ed0231d112b87ebde613de0d53c9">getDagBlockOrder</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;anchor, uint64_t period)</td></tr>
-<tr class="memdesc:af0b8ed0231d112b87ebde613de0d53c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves DAG block order for specified anchor. Order should always be the same for the same anchor in the same period.  <a href="group___d_a_g.html#af0b8ed0231d112b87ebde613de0d53c9">More...</a><br /></td></tr>
-<tr class="separator:af0b8ed0231d112b87ebde613de0d53c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a49f52344243b58d06c2a21f59c19788d"><td class="memItemLeft" align="right" valign="top">uint&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a49f52344243b58d06c2a21f59c19788d">setDagBlockOrder</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;anchor, uint64_t period, <a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a> const &amp;dag_order)</td></tr>
-<tr class="memdesc:a49f52344243b58d06c2a21f59c19788d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the dag block order on finalizing PBFT block IMPORTANT: This method is invoked on finalizing a pbft block, it needs to be protected with mutex_ but the mutex is locked from pbft manager for the entire pbft finalization to make the finalization atomic.  <a href="group___d_a_g.html#a49f52344243b58d06c2a21f59c19788d">More...</a><br /></td></tr>
-<tr class="separator:a49f52344243b58d06c2a21f59c19788d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae097c5c6e1c0a4c9aca61c59e6b8e289"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ae097c5c6e1c0a4c9aca61c59e6b8e289">getDagBlockOrder</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;anchor, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
+<tr class="memdesc:ae097c5c6e1c0a4c9aca61c59e6b8e289"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves DAG block order for specified anchor. Order should always be the same for the same anchor in the same period.  <a href="group___d_a_g.html#ae097c5c6e1c0a4c9aca61c59e6b8e289">More...</a><br /></td></tr>
+<tr class="separator:ae097c5c6e1c0a4c9aca61c59e6b8e289"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0445b2d60e11c70ab92a20351c30888a"><td class="memItemLeft" align="right" valign="top">uint&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a0445b2d60e11c70ab92a20351c30888a">setDagBlockOrder</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;anchor, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, <a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a> const &amp;dag_order)</td></tr>
+<tr class="memdesc:a0445b2d60e11c70ab92a20351c30888a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the dag block order on finalizing PBFT block IMPORTANT: This method is invoked on finalizing a pbft block, it needs to be protected with mutex_ but the mutex is locked from pbft manager for the entire pbft finalization to make the finalization atomic.  <a href="group___d_a_g.html#a0445b2d60e11c70ab92a20351c30888a">More...</a><br /></td></tr>
+<tr class="separator:a0445b2d60e11c70ab92a20351c30888a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:accce6887253aa2f9c2dbf966249d1c1e"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#accce6887253aa2f9c2dbf966249d1c1e">getLightNodeHistory</a> () const</td></tr>
 <tr class="separator:accce6887253aa2f9c2dbf966249d1c1e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a94f485fa25235a24f8ce24aaf061fa6f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a94f485fa25235a24f8ce24aaf061fa6f">isLightNode</a> () const</td></tr>
@@ -3312,18 +3312,18 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr class="separator:a45ba709af4dcfcac0d71bc458f407a2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab633081885d6c5821e3517ca150e575d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#ac29ce7c6f0fae63e548b523170910526">level_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ab633081885d6c5821e3517ca150e575d">getMaxLevel</a> () const</td></tr>
 <tr class="separator:ab633081885d6c5821e3517ca150e575d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af7d366daea2ee9fd3672a7d8b149d76d"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#af7d366daea2ee9fd3672a7d8b149d76d">getLatestPeriod</a> () const</td></tr>
-<tr class="separator:af7d366daea2ee9fd3672a7d8b149d76d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac45ee3d2eeaab76374e1277f4fb02b1f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ac45ee3d2eeaab76374e1277f4fb02b1f">getLatestPeriod</a> () const</td></tr>
+<tr class="separator:ac45ee3d2eeaab76374e1277f4fb02b1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a99448cc8bd26b6cb6493f4167a8d45e5"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a99448cc8bd26b6cb6493f4167a8d45e5">getAnchors</a> () const</td></tr>
 <tr class="separator:a99448cc8bd26b6cb6493f4167a8d45e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad4d06db8dc0082eb99625e3fe763a90d"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ad4d06db8dc0082eb99625e3fe763a90d">getDagExpiryLimit</a> () const</td></tr>
 <tr class="memdesc:ad4d06db8dc0082eb99625e3fe763a90d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag" title="Thread safe. Labelled graph.">Dag</a> expiry limit.  <a href="group___d_a_g.html#ad4d06db8dc0082eb99625e3fe763a90d">More...</a><br /></td></tr>
 <tr class="separator:ad4d06db8dc0082eb99625e3fe763a90d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a26e0a681af13a71389017ec973237625"><td class="memItemLeft" align="right" valign="top">const std::pair&lt; uint64_t, std::map&lt; uint64_t, std::unordered_set&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a26e0a681af13a71389017ec973237625">getNonFinalizedBlocks</a> () const</td></tr>
-<tr class="separator:a26e0a681af13a71389017ec973237625"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8656ca582249ed982d06e8d640b9f55a"><td class="memItemLeft" align="right" valign="top">const std::tuple&lt; uint64_t, std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt;, <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a8656ca582249ed982d06e8d640b9f55a">getNonFinalizedBlocksWithTransactions</a> (const std::unordered_set&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &amp;known_hashes) const</td></tr>
-<tr class="memdesc:a8656ca582249ed982d06e8d640b9f55a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves current period together with non finalized blocks with the unique list of non finalized transactions from these blocks.  <a href="group___d_a_g.html#a8656ca582249ed982d06e8d640b9f55a">More...</a><br /></td></tr>
-<tr class="separator:a8656ca582249ed982d06e8d640b9f55a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afa1c50323757b77190341dc3d4ff01d5"><td class="memItemLeft" align="right" valign="top">const std::pair&lt; <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>, std::map&lt; uint64_t, std::unordered_set&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#afa1c50323757b77190341dc3d4ff01d5">getNonFinalizedBlocks</a> () const</td></tr>
+<tr class="separator:afa1c50323757b77190341dc3d4ff01d5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adb365d2833220da49328246bde503bcd"><td class="memItemLeft" align="right" valign="top">const std::tuple&lt; <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>, std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt;, <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#adb365d2833220da49328246bde503bcd">getNonFinalizedBlocksWithTransactions</a> (const std::unordered_set&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &amp;known_hashes) const</td></tr>
+<tr class="memdesc:adb365d2833220da49328246bde503bcd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves current period together with non finalized blocks with the unique list of non finalized transactions from these blocks.  <a href="group___d_a_g.html#adb365d2833220da49328246bde503bcd">More...</a><br /></td></tr>
+<tr class="separator:adb365d2833220da49328246bde503bcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb2407e8a252a080510732b64195c1ce"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtaraxa_1_1_dag_frontier.html">DagFrontier</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#acb2407e8a252a080510732b64195c1ce">getDagFrontier</a> ()</td></tr>
 <tr class="separator:acb2407e8a252a080510732b64195c1ce"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a847af2af7e5e6f9b2e09ad71d21e92ad"><td class="memItemLeft" align="right" valign="top">std::pair&lt; size_t, size_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a847af2af7e5e6f9b2e09ad71d21e92ad">getNonFinalizedBlocksSize</a> () const</td></tr>
@@ -3383,8 +3383,8 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr class="separator:a56e52dad59ae0107beb964b6d7fe857a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a002e408df78fc5e7e744ba1bc2d0e819"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a002e408df78fc5e7e744ba1bc2d0e819">old_anchor_</a></td></tr>
 <tr class="separator:a002e408df78fc5e7e744ba1bc2d0e819"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5a146cb6f4a63454cf294d68191146c4"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a5a146cb6f4a63454cf294d68191146c4">period_</a></td></tr>
-<tr class="separator:a5a146cb6f4a63454cf294d68191146c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad8c75d1639c45ed23ddb17da5401e03"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aad8c75d1639c45ed23ddb17da5401e03">period_</a></td></tr>
+<tr class="separator:aad8c75d1639c45ed23ddb17da5401e03"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b4105dc415f6f1169f537a9c662c914"><td class="memItemLeft" align="right" valign="top">std::map&lt; uint64_t, std::unordered_set&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a9b4105dc415f6f1169f537a9c662c914">non_finalized_blks_</a></td></tr>
 <tr class="separator:a9b4105dc415f6f1169f537a9c662c914"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa8ecef50260ac0b2b2da330f53fb42c2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtaraxa_1_1_dag_frontier.html">DagFrontier</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aa8ecef50260ac0b2b2da330f53fb42c2">frontier_</a></td></tr>
@@ -3869,8 +3869,8 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
-<a id="af0b8ed0231d112b87ebde613de0d53c9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af0b8ed0231d112b87ebde613de0d53c9">&#9670;&nbsp;</a></span>getDagBlockOrder()</h2>
+<a id="ae097c5c6e1c0a4c9aca61c59e6b8e289"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae097c5c6e1c0a4c9aca61c59e6b8e289">&#9670;&nbsp;</a></span>getDagBlockOrder()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3884,7 +3884,7 @@ Collaboration diagram for taraxa::DagManager:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
           <td class="paramname"><em>period</em>&#160;</td>
         </tr>
         <tr>
@@ -4108,8 +4108,8 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
-<a id="af7d366daea2ee9fd3672a7d8b149d76d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af7d366daea2ee9fd3672a7d8b149d76d">&#9670;&nbsp;</a></span>getLatestPeriod()</h2>
+<a id="ac45ee3d2eeaab76374e1277f4fb02b1f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac45ee3d2eeaab76374e1277f4fb02b1f">&#9670;&nbsp;</a></span>getLatestPeriod()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -4118,7 +4118,7 @@ Collaboration diagram for taraxa::DagManager:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">uint64_t taraxa::DagManager::getLatestPeriod </td>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> taraxa::DagManager::getLatestPeriod </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -4200,14 +4200,14 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
-<a id="a26e0a681af13a71389017ec973237625"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a26e0a681af13a71389017ec973237625">&#9670;&nbsp;</a></span>getNonFinalizedBlocks()</h2>
+<a id="afa1c50323757b77190341dc3d4ff01d5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afa1c50323757b77190341dc3d4ff01d5">&#9670;&nbsp;</a></span>getNonFinalizedBlocks()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const std::pair&lt; uint64_t, std::map&lt; uint64_t, std::unordered_set&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt; &gt; taraxa::DagManager::getNonFinalizedBlocks </td>
+          <td class="memname">const std::pair&lt; <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>, std::map&lt; uint64_t, std::unordered_set&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &gt; &gt; taraxa::DagManager::getNonFinalizedBlocks </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -4235,14 +4235,14 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
-<a id="a8656ca582249ed982d06e8d640b9f55a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8656ca582249ed982d06e8d640b9f55a">&#9670;&nbsp;</a></span>getNonFinalizedBlocksWithTransactions()</h2>
+<a id="adb365d2833220da49328246bde503bcd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adb365d2833220da49328246bde503bcd">&#9670;&nbsp;</a></span>getNonFinalizedBlocksWithTransactions()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">const std::tuple&lt; uint64_t, std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt;, <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> &gt; taraxa::DagManager::getNonFinalizedBlocksWithTransactions </td>
+          <td class="memname">const std::tuple&lt; <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>, std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt;, <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> &gt; taraxa::DagManager::getNonFinalizedBlocksWithTransactions </td>
           <td>(</td>
           <td class="paramtype">const std::unordered_set&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>known_hashes</em></td><td>)</td>
@@ -4493,8 +4493,8 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
-<a id="a49f52344243b58d06c2a21f59c19788d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a49f52344243b58d06c2a21f59c19788d">&#9670;&nbsp;</a></span>setDagBlockOrder()</h2>
+<a id="a0445b2d60e11c70ab92a20351c30888a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0445b2d60e11c70ab92a20351c30888a">&#9670;&nbsp;</a></span>setDagBlockOrder()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -4508,7 +4508,7 @@ Collaboration diagram for taraxa::DagManager:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
           <td class="paramname"><em>period</em>, </td>
         </tr>
         <tr>
@@ -5137,8 +5137,8 @@ Collaboration diagram for taraxa::DagManager:</div>
 
 </div>
 </div>
-<a id="a5a146cb6f4a63454cf294d68191146c4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5a146cb6f4a63454cf294d68191146c4">&#9670;&nbsp;</a></span>period_</h2>
+<a id="aad8c75d1639c45ed23ddb17da5401e03"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aad8c75d1639c45ed23ddb17da5401e03">&#9670;&nbsp;</a></span>period_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -5147,7 +5147,7 @@ Collaboration diagram for taraxa::DagManager:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">uint64_t taraxa::DagManager::period_</td>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> taraxa::DagManager::period_</td>
         </tr>
       </table>
   </td>
@@ -5297,16 +5297,16 @@ Collaboration diagram for taraxa::SortitionParamsChange:</div>
 <tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
 <tr class="memitem:a2029a37ed4094c2993e7c68918b14059"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a2029a37ed4094c2993e7c68918b14059">SortitionParamsChange</a> ()=default</td></tr>
 <tr class="separator:a2029a37ed4094c2993e7c68918b14059"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaeae6dbe53a2eca7a40cef5cb767bf69"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aaeae6dbe53a2eca7a40cef5cb767bf69">SortitionParamsChange</a> (uint64_t <a class="el" href="group___d_a_g.html#a32077a51078b02d085b8bf0bf4cd9184">period</a>, uint16_t efficiency, const <a class="el" href="structtaraxa_1_1_vrf_params.html">VrfParams</a> &amp;vrf)</td></tr>
-<tr class="separator:aaeae6dbe53a2eca7a40cef5cb767bf69"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1fbd7276d81170a89f95c8d7988a76c7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a1fbd7276d81170a89f95c8d7988a76c7">SortitionParamsChange</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> <a class="el" href="group___d_a_g.html#ac66f690ce0d6fedf07bde818821d7dda">period</a>, uint16_t efficiency, const <a class="el" href="structtaraxa_1_1_vrf_params.html">VrfParams</a> &amp;vrf)</td></tr>
+<tr class="separator:a1fbd7276d81170a89f95c8d7988a76c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aab6593d0e2a0ce945f22bcd91243137c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aab6593d0e2a0ce945f22bcd91243137c">rlp</a> () const</td></tr>
 <tr class="separator:aab6593d0e2a0ce945f22bcd91243137c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Static Public Member Functions</h3></td></tr>
 <tr class="memitem:aca6c41512a681ab0047a31c71e791921"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="group___d_a_g.html#structtaraxa_1_1_sortition_params_change">SortitionParamsChange</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aca6c41512a681ab0047a31c71e791921">from_rlp</a> (const <a class="el" href="classdev_1_1_r_l_p.html">dev::RLP</a> &amp;<a class="el" href="group___d_a_g.html#aab6593d0e2a0ce945f22bcd91243137c">rlp</a>)</td></tr>
 <tr class="separator:aca6c41512a681ab0047a31c71e791921"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Public Attributes</h3></td></tr>
-<tr class="memitem:a32077a51078b02d085b8bf0bf4cd9184"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a32077a51078b02d085b8bf0bf4cd9184">period</a> = 0</td></tr>
-<tr class="separator:a32077a51078b02d085b8bf0bf4cd9184"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac66f690ce0d6fedf07bde818821d7dda"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ac66f690ce0d6fedf07bde818821d7dda">period</a> = 0</td></tr>
+<tr class="separator:ac66f690ce0d6fedf07bde818821d7dda"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3f2a1470b5f24f2fc6bdf52b0dac9497"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtaraxa_1_1_vrf_params.html">VrfParams</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a3f2a1470b5f24f2fc6bdf52b0dac9497">vrf_params</a></td></tr>
 <tr class="separator:a3f2a1470b5f24f2fc6bdf52b0dac9497"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a82fda6692132d23ca947de8dbc3ad1ac"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a82fda6692132d23ca947de8dbc3ad1ac">interval_efficiency</a> = 0</td></tr>
@@ -5338,8 +5338,8 @@ Collaboration diagram for taraxa::SortitionParamsChange:</div>
 
 </div>
 </div>
-<a id="aaeae6dbe53a2eca7a40cef5cb767bf69"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaeae6dbe53a2eca7a40cef5cb767bf69">&#9670;&nbsp;</a></span>SortitionParamsChange() <span class="overload">[2/2]</span></h2>
+<a id="a1fbd7276d81170a89f95c8d7988a76c7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1fbd7276d81170a89f95c8d7988a76c7">&#9670;&nbsp;</a></span>SortitionParamsChange() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -5347,7 +5347,7 @@ Collaboration diagram for taraxa::SortitionParamsChange:</div>
         <tr>
           <td class="memname">taraxa::SortitionParamsChange::SortitionParamsChange </td>
           <td>(</td>
-          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
           <td class="paramname"><em>period</em>, </td>
         </tr>
         <tr>
@@ -5431,14 +5431,14 @@ Collaboration diagram for taraxa::SortitionParamsChange:</div>
 
 </div>
 </div>
-<a id="a32077a51078b02d085b8bf0bf4cd9184"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a32077a51078b02d085b8bf0bf4cd9184">&#9670;&nbsp;</a></span>period</h2>
+<a id="ac66f690ce0d6fedf07bde818821d7dda"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac66f690ce0d6fedf07bde818821d7dda">&#9670;&nbsp;</a></span>period</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">uint64_t taraxa::SortitionParamsChange::period = 0</td>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> taraxa::SortitionParamsChange::period = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -5491,19 +5491,19 @@ Collaboration diagram for taraxa::SortitionParamsManager:</div>
 <tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
 <tr class="memitem:a01f7049f14fca2abe48f308af342e5e6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a01f7049f14fca2abe48f308af342e5e6">SortitionParamsManager</a> (const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr, <a class="el" href="structtaraxa_1_1_sortition_config.html">SortitionConfig</a> sort_conf, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db)</td></tr>
 <tr class="separator:a01f7049f14fca2abe48f308af342e5e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6492214527dfe34bc89397f847bac40d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtaraxa_1_1_sortition_params.html">SortitionParams</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a6492214527dfe34bc89397f847bac40d">getSortitionParams</a> (std::optional&lt; uint64_t &gt; for_period={}) const</td></tr>
-<tr class="separator:a6492214527dfe34bc89397f847bac40d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ca51512dc39ce724673d66bda3ded32"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtaraxa_1_1_sortition_params.html">SortitionParams</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a0ca51512dc39ce724673d66bda3ded32">getSortitionParams</a> (std::optional&lt; <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> &gt; for_period={}) const</td></tr>
+<tr class="separator:a0ca51512dc39ce724673d66bda3ded32"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a35fef01437cc79fc14367aa1682ab841"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a35fef01437cc79fc14367aa1682ab841">calculateDagEfficiency</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;block) const</td></tr>
 <tr class="separator:a35fef01437cc79fc14367aa1682ab841"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acc1c01af0006bac79483bb3adbf3f764"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#acc1c01af0006bac79483bb3adbf3f764">pbftBlockPushed</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;block, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DbStorage::Batch</a> &amp;batch, size_t non_empty_pbft_chain_size)</td></tr>
-<tr class="separator:acc1c01af0006bac79483bb3adbf3f764"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:add3f6cbfe7dc61c09e9843c1d05c41cd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#add3f6cbfe7dc61c09e9843c1d05c41cd">pbftBlockPushed</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;block, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DbStorage::Batch</a> &amp;batch, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> non_empty_pbft_chain_size)</td></tr>
+<tr class="separator:add3f6cbfe7dc61c09e9843c1d05c41cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad5f6eb4c57da4b322cf14c6b519a2764"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#ad5f6eb4c57da4b322cf14c6b519a2764">averageDagEfficiency</a> ()</td></tr>
 <tr class="separator:ad5f6eb4c57da4b322cf14c6b519a2764"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4a999528259fcdb861b9e8388cc550df"><td class="memItemLeft" align="right" valign="top">const std::deque&lt; <a class="el" href="group___d_a_g.html#structtaraxa_1_1_sortition_params_change">SortitionParamsChange</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a4a999528259fcdb861b9e8388cc550df">getParamsChanges</a> () const</td></tr>
 <tr class="separator:a4a999528259fcdb861b9e8388cc550df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Protected Member Functions</h3></td></tr>
-<tr class="memitem:a100bcdee78cad40bd64f861a624ed825"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___d_a_g.html#structtaraxa_1_1_sortition_params_change">SortitionParamsChange</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a100bcdee78cad40bd64f861a624ed825">calculateChange</a> (uint64_t period)</td></tr>
-<tr class="separator:a100bcdee78cad40bd64f861a624ed825"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f98a899beb3f25d6df4a4ed95836545"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___d_a_g.html#structtaraxa_1_1_sortition_params_change">SortitionParamsChange</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a2f98a899beb3f25d6df4a4ed95836545">calculateChange</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
+<tr class="separator:a2f98a899beb3f25d6df4a4ed95836545"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af7c7cd8dca0441085bdabcc06d72f236"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a71602624ba20127eaf3822a710e52dae">EfficienciesMap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#af7c7cd8dca0441085bdabcc06d72f236">getEfficienciesToUpperRange</a> (uint16_t efficiency, int32_t threshold) const</td></tr>
 <tr class="separator:af7c7cd8dca0441085bdabcc06d72f236"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a51f92bbc51d4495b915b48458f580169"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a51f92bbc51d4495b915b48458f580169">getNewUpperRange</a> (uint16_t efficiency) const</td></tr>
@@ -5576,8 +5576,8 @@ Collaboration diagram for taraxa::SortitionParamsManager:</div>
 
 </div>
 </div>
-<a id="a100bcdee78cad40bd64f861a624ed825"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a100bcdee78cad40bd64f861a624ed825">&#9670;&nbsp;</a></span>calculateChange()</h2>
+<a id="a2f98a899beb3f25d6df4a4ed95836545"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f98a899beb3f25d6df4a4ed95836545">&#9670;&nbsp;</a></span>calculateChange()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -5588,7 +5588,7 @@ Collaboration diagram for taraxa::SortitionParamsManager:</div>
         <tr>
           <td class="memname"><a class="el" href="group___d_a_g.html#structtaraxa_1_1_sortition_params_change">SortitionParamsChange</a> taraxa::SortitionParamsManager::calculateChange </td>
           <td>(</td>
-          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
           <td class="paramname"><em>period</em></td><td>)</td>
           <td></td>
         </tr>
@@ -5740,8 +5740,8 @@ Collaboration diagram for taraxa::SortitionParamsManager:</div>
 
 </div>
 </div>
-<a id="a6492214527dfe34bc89397f847bac40d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6492214527dfe34bc89397f847bac40d">&#9670;&nbsp;</a></span>getSortitionParams()</h2>
+<a id="a0ca51512dc39ce724673d66bda3ded32"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0ca51512dc39ce724673d66bda3ded32">&#9670;&nbsp;</a></span>getSortitionParams()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -5749,7 +5749,7 @@ Collaboration diagram for taraxa::SortitionParamsManager:</div>
         <tr>
           <td class="memname"><a class="el" href="structtaraxa_1_1_sortition_params.html">SortitionParams</a> taraxa::SortitionParamsManager::getSortitionParams </td>
           <td>(</td>
-          <td class="paramtype">std::optional&lt; uint64_t &gt;&#160;</td>
+          <td class="paramtype">std::optional&lt; <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> &gt;&#160;</td>
           <td class="paramname"><em>for_period</em> = <code>{}</code></td><td>)</td>
           <td> const</td>
         </tr>
@@ -5758,8 +5758,8 @@ Collaboration diagram for taraxa::SortitionParamsManager:</div>
 
 </div>
 </div>
-<a id="acc1c01af0006bac79483bb3adbf3f764"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acc1c01af0006bac79483bb3adbf3f764">&#9670;&nbsp;</a></span>pbftBlockPushed()</h2>
+<a id="add3f6cbfe7dc61c09e9843c1d05c41cd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#add3f6cbfe7dc61c09e9843c1d05c41cd">&#9670;&nbsp;</a></span>pbftBlockPushed()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -5779,7 +5779,7 @@ Collaboration diagram for taraxa::SortitionParamsManager:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">size_t&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
           <td class="paramname"><em>non_empty_pbft_chain_size</em>&#160;</td>
         </tr>
         <tr>

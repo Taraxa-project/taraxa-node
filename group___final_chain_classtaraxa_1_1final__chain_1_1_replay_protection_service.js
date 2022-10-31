@@ -14,5 +14,5 @@ var group___final_chain_classtaraxa_1_1final__chain_1_1_replay_protection_servic
     [ "is_nonce_stale", "group___final_chain.html#a6ae965b0db74c6238279531a47963e4e", null ],
     [ "operator=", "group___final_chain.html#ad5f13710ead7f2a8331ff9330804af50", null ],
     [ "operator=", "group___final_chain.html#a8e5967154748d35cba2fee3f88c41af8", null ],
-    [ "update", "group___final_chain.html#ae3041aa6d939c07a8a8513404743e192", null ]
+    [ "update", "group___final_chain.html#aba5f961220c25c53932aff8ee4deb474", null ]
 ];

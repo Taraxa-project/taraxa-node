@@ -157,9 +157,9 @@ This graph shows which files directly or indirectly include this file:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:structtaraxa_1_1_vrf_pbft_msg"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#structtaraxa_1_1_vrf_pbft_msg">taraxa::VrfPbftMsg</a></td></tr>
-<tr class="memdesc:structtaraxa_1_1_vrf_pbft_msg"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___vote.html#structtaraxa_1_1_vrf_pbft_msg" title="VrfPbftMsg struct uses vote type, PBFT round, and PBFT step to generate a message for doing VRF sorti...">VrfPbftMsg</a> struct uses vote type, PBFT round, and PBFT step to generate a message for doing VRF sortition.  <a href="group___vote.html#structtaraxa_1_1_vrf_pbft_msg">More...</a><br /></td></tr>
-<tr class="separator:structtaraxa_1_1_vrf_pbft_msg"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:classtaraxa_1_1_vrf_pbft_msg"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#classtaraxa_1_1_vrf_pbft_msg">taraxa::VrfPbftMsg</a></td></tr>
+<tr class="memdesc:classtaraxa_1_1_vrf_pbft_msg"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___vote.html#classtaraxa_1_1_vrf_pbft_msg" title="VrfPbftMsg class uses PBFT period, round and step to generate a message for doing VRF sortition.">VrfPbftMsg</a> class uses PBFT period, round and step to generate a message for doing VRF sortition.  <a href="group___vote.html#classtaraxa_1_1_vrf_pbft_msg">More...</a><br /></td></tr>
+<tr class="separator:classtaraxa_1_1_vrf_pbft_msg"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:classtaraxa_1_1_vrf_pbft_sortition"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#classtaraxa_1_1_vrf_pbft_sortition">taraxa::VrfPbftSortition</a></td></tr>
 <tr class="memdesc:classtaraxa_1_1_vrf_pbft_sortition"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___vote.html#classtaraxa_1_1_vrf_pbft_sortition" title="VrfPbftSortition class used for doing VRF sortition to place a vote or to propose a new PBFT block.">VrfPbftSortition</a> class used for doing VRF sortition to place a vote or to propose a new PBFT block.  <a href="group___vote.html#classtaraxa_1_1_vrf_pbft_sortition">More...</a><br /></td></tr>
 <tr class="separator:classtaraxa_1_1_vrf_pbft_sortition"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -171,10 +171,14 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
-<tr class="memitem:ga8a0770e242b649865f15f20a405507cc"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ga8a0770e242b649865f15f20a405507cc">taraxa::PbftVoteTypes</a> : uint8_t { <a class="el" href="group___vote.html#gga8a0770e242b649865f15f20a405507cca6b855bb8e616fa447b785fb292d1109a">taraxa::propose_vote_type</a> = 0, 
-<a class="el" href="group___vote.html#gga8a0770e242b649865f15f20a405507cca768869c1324abe06dbd686da61e578e9">taraxa::soft_vote_type</a>, 
-<a class="el" href="group___vote.html#gga8a0770e242b649865f15f20a405507ccaf71b2848e2805b713a2343ad6d134b65">taraxa::cert_vote_type</a>, 
-<a class="el" href="group___vote.html#gga8a0770e242b649865f15f20a405507cca45551cf975f0ce273a2e1abca68ba8dc">taraxa::next_vote_type</a>
+<tr class="memitem:ga8a0770e242b649865f15f20a405507cc"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ga8a0770e242b649865f15f20a405507cc">taraxa::PbftVoteTypes</a> : uint8_t { <br />
+&#160;&#160;<a class="el" href="group___vote.html#gga8a0770e242b649865f15f20a405507ccac0f90f4138d33e1cf7eac17f81962061">taraxa::PbftVoteTypes::invalid_vote</a> = 0, 
+<a class="el" href="group___vote.html#gga8a0770e242b649865f15f20a405507ccac21763d55850e64ff753fdcd72ef2c45">taraxa::PbftVoteTypes::propose_vote</a>, 
+<a class="el" href="group___vote.html#gga8a0770e242b649865f15f20a405507cca2b4d6980ef2c92a18002aa6d7a57a33e">taraxa::PbftVoteTypes::soft_vote</a>, 
+<a class="el" href="group___vote.html#gga8a0770e242b649865f15f20a405507cca15e81b6e3979738b87e59b040d2c9b53">taraxa::PbftVoteTypes::cert_vote</a>, 
+<br />
+&#160;&#160;<a class="el" href="group___vote.html#gga8a0770e242b649865f15f20a405507cca95aebab4b899f9fad597abfc4d9be96b">taraxa::PbftVoteTypes::next_vote</a>
+<br />
  }</td></tr>
 <tr class="separator:ga8a0770e242b649865f15f20a405507cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">

@@ -17,7 +17,7 @@ var structtaraxa_1_1_network_config =
     [ "network_sync_level_size", "structtaraxa_1_1_network_config.html#a1867e8e16fdc5212c58105f4162093e5", null ],
     [ "network_tcp_port", "structtaraxa_1_1_network_config.html#aaad3cbd2728066d65de5ce6eb341f62f", null ],
     [ "network_transaction_interval", "structtaraxa_1_1_network_config.html#a27db462618790b35b28f6166b5500a2b", null ],
-    [ "vote_accepting_periods", "structtaraxa_1_1_network_config.html#ab67b14c582caeb4b64ee478f8d1c6cdd", null ],
-    [ "vote_accepting_rounds", "structtaraxa_1_1_network_config.html#ac87dacc7d7caae1a16c291b5e82ce833", null ],
-    [ "vote_accepting_steps", "structtaraxa_1_1_network_config.html#abf2e2fbbc51de1fbab2b0c82cf6c307c", null ]
+    [ "vote_accepting_periods", "structtaraxa_1_1_network_config.html#a5d27c222be533f358fac47af131741ad", null ],
+    [ "vote_accepting_rounds", "structtaraxa_1_1_network_config.html#aaac462d426577862ef36fe63755cf380", null ],
+    [ "vote_accepting_steps", "structtaraxa_1_1_network_config.html#a54fbceae5cffabdd771f43301c841362", null ]
 ];

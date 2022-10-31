@@ -24,7 +24,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability =
     [ "packetTypeToString", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a019cad08c10ef2af5b9e2bd639f2de00", null ],
     [ "pbft_syncing", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ab71e9b2ef6327eff94d08d79c6f64d7f", null ],
     [ "registerPacketHandlers", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a83f1d45fb0bc0807d1128f51a80c387b", null ],
-    [ "setSyncStatePeriod", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#aa4e7a03cb7c16c501c0cdf41de4ff931", null ],
+    [ "setSyncStatePeriod", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a3da15eb2f9e5592ad30ed2d22695b0cf", null ],
     [ "start", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a181e668c6780223c8ebb7e5146b5f112", null ],
     [ "stop", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ab5bd0602ac45c2d8e38dc74efe280a20", null ],
     [ "version", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a5a5451fe55de0d5d27334e4d89ea47a9", null ],

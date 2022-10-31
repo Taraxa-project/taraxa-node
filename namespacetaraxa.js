@@ -64,6 +64,6 @@ var namespacetaraxa =
     [ "VoteManager", "group___vote.html#classtaraxa_1_1_vote_manager", "group___vote_classtaraxa_1_1_vote_manager" ],
     [ "VotesBundle", "group___vote.html#structtaraxa_1_1_votes_bundle", "group___vote_structtaraxa_1_1_votes_bundle" ],
     [ "VrfParams", "structtaraxa_1_1_vrf_params.html", "structtaraxa_1_1_vrf_params" ],
-    [ "VrfPbftMsg", "group___vote.html#structtaraxa_1_1_vrf_pbft_msg", "group___vote_structtaraxa_1_1_vrf_pbft_msg" ],
+    [ "VrfPbftMsg", "group___vote.html#classtaraxa_1_1_vrf_pbft_msg", "group___vote_classtaraxa_1_1_vrf_pbft_msg" ],
     [ "VrfPbftSortition", "group___vote.html#classtaraxa_1_1_vrf_pbft_sortition", "group___vote_classtaraxa_1_1_vrf_pbft_sortition" ]
 ];

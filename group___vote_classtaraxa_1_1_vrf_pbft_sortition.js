@@ -7,7 +7,7 @@ var group___vote_classtaraxa_1_1_vrf_pbft_sortition =
     [ "VrfPbftSortition", "group___vote.html#af3a5ba8a46579463078b4440813924fc", null ],
     [ "VrfPbftSortition", "group___vote.html#a20938e045130449e05407e01f7f82f5b", null ],
     [ "VrfPbftSortition", "group___vote.html#a08ba8186689a8e3621443397e2a4866b", null ],
-    [ "calculateWeight", "group___vote.html#a4fe01779abbd1540565fcee9fb77896c", null ],
+    [ "calculateWeight", "group___vote.html#a9823bda267e7ea61b6622af6e14dd37e", null ],
     [ "getBinominalDistribution", "group___vote.html#ae3345fa449b38a914532c5ec2822d0d3", null ],
     [ "getRlpBytes", "group___vote.html#accdd1eb1fa9ffa965c31dc6a5fe61602", null ],
     [ "operator==", "group___vote.html#afd43da336fbf99a0727bdddd9f654cf7", null ],

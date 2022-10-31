@@ -21,7 +21,7 @@ var classtaraxa_1_1_network =
     [ "resolveHost", "classtaraxa_1_1_network.html#af124cdbf5349f09740c52d12db45ee7d", null ],
     [ "restartSyncingPbft", "classtaraxa_1_1_network.html#a03f6a57216449ef19820aee28ec38253", null ],
     [ "setPendingPeersToReady", "classtaraxa_1_1_network.html#afc615dfd48254b3ab628ff78bad2d9b6", null ],
-    [ "setSyncStatePeriod", "classtaraxa_1_1_network.html#a5b3a6b934bf45bee40931e7b2e9b48a6", null ],
+    [ "setSyncStatePeriod", "classtaraxa_1_1_network.html#af42c6f99348955b2beb1461abbd6d729", null ],
     [ "start", "classtaraxa_1_1_network.html#a0f512b48547b33de0e7b03e195d63892", null ],
     [ "syncTimeSeconds", "classtaraxa_1_1_network.html#a6bd999923abfc08d54c1fbb573d0daae", null ],
     [ "host_", "classtaraxa_1_1_network.html#a9a17fef921508b0eedf68da85406660a", null ],

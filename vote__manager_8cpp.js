@@ -1,5 +1,5 @@
 var vote__manager_8cpp =
 [
-    [ "EXTENDED_PARTITION_STEPS", "vote__manager_8cpp.html#ae11955e783843962a781891899231520", null ],
-    [ "FIRST_FINISH_STEP", "vote__manager_8cpp.html#a84ca30cb1ce8b6f8bc122235f853df72", null ]
+    [ "kExtendedPartionSteps", "vote__manager_8cpp.html#ad6812ddc0d9686f50218e26b6d0cc8a4", null ],
+    [ "kFirstFinishStep", "vote__manager_8cpp.html#aa34ec6dca30450f8966fa61256052a2a", null ]
 ];

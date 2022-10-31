@@ -1,6 +1,6 @@
 var group___p_b_f_t_classtaraxa_1_1_pbft_block =
 [
-    [ "PbftBlock", "group___p_b_f_t.html#ac83e1136c4e49c9c0d4022b60942617b", null ],
+    [ "PbftBlock", "group___p_b_f_t.html#a36f2babbee42e1ebf9e8d23d92f2146a", null ],
     [ "PbftBlock", "group___p_b_f_t.html#aee0c137aa382c405740c0f1a6c9d90c3", null ],
     [ "PbftBlock", "group___p_b_f_t.html#aa7b0decfa810c255b6a75a4053b1fb29", null ],
     [ "calculateHash_", "group___p_b_f_t.html#a2faa8e8207dbf6a67be09f98ceefd9f4", null ],
@@ -9,7 +9,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_block =
     [ "getJson", "group___p_b_f_t.html#a8aef5ed309007cb074784b667c0ed548", null ],
     [ "getJsonStr", "group___p_b_f_t.html#ac534b99d6508a4559f83e6decbfc4447", null ],
     [ "getOrderHash", "group___p_b_f_t.html#a7001c7c67303eca16c8b2debb41ccd06", null ],
-    [ "getPeriod", "group___p_b_f_t.html#aa99d8f1d2ce5f7cdc496f950f77f1bee", null ],
+    [ "getPeriod", "group___p_b_f_t.html#a0819b5d19aea0bf8ea3c8c3bebf8d2b0", null ],
     [ "getPivotDagBlockHash", "group___p_b_f_t.html#a726ccb0f775ed6d6f0ef0648ec5b0c0c", null ],
     [ "getPrevBlockHash", "group___p_b_f_t.html#a6e8501884b3ee9a0e4b3b71dc0d66e60", null ],
     [ "getRewardVotes", "group___p_b_f_t.html#a3495e3adf8b3ea6c3d9b8a60960c2124", null ],
@@ -22,7 +22,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_block =
     [ "block_hash_", "group___p_b_f_t.html#aadb9f72a5f6d7fc39f882143d1dd5f0d", null ],
     [ "dag_block_hash_as_pivot_", "group___p_b_f_t.html#a3f62783c3acffc0c3c51f48b703675b3", null ],
     [ "order_hash_", "group___p_b_f_t.html#a1a06c26808dcf0c8c997c896aa682c65", null ],
-    [ "period_", "group___p_b_f_t.html#abfe2c34106f0f7c4250e92f7fe6cc095", null ],
+    [ "period_", "group___p_b_f_t.html#a88ab9f3501538d572e1a582a031ca4cf", null ],
     [ "prev_block_hash_", "group___p_b_f_t.html#af03389b53718e15a31c0da5a22411b22", null ],
     [ "reward_votes_", "group___p_b_f_t.html#a248fb35d65b886baed84bbb5d623c7c2", null ],
     [ "signature_", "group___p_b_f_t.html#aa89c0cf004ce3cafd5382b7421e5e0bd", null ],

@@ -112,8 +112,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a50af6266d8b552f5df72d2d114649b5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a031dd3302cf42909cc3de984972ab2c0"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_replay_protection_service_impl.html#a031dd3302cf42909cc3de984972ab2c0">is_nonce_stale</a> (const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;addr, const <a class="el" href="namespacetaraxa.html#a73873ff077f3a9470e522a373eba9200">trx_nonce_t</a> &amp;nonce) const override</td></tr>
 <tr class="separator:a031dd3302cf42909cc3de984972ab2c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7b6615bd4b9f601bb4587b9e0387617b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_replay_protection_service_impl.html#a7b6615bd4b9f601bb4587b9e0387617b">update</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DB::Batch</a> &amp;batch, uint64_t period, RangeView&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_transaction_info">TransactionInfo</a> &gt; const &amp;trxs) override</td></tr>
-<tr class="separator:a7b6615bd4b9f601bb4587b9e0387617b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a86db95a4313c78ee6e115f7cdb680bef"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_replay_protection_service_impl.html#a86db95a4313c78ee6e115f7cdb680bef">update</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DB::Batch</a> &amp;batch, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, RangeView&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_transaction_info">TransactionInfo</a> &gt; const &amp;trxs) override</td></tr>
+<tr class="separator:a86db95a4313c78ee6e115f7cdb680bef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae29ec6e95ecb660bbacd2ef69acfd94f"><td class="memItemLeft" align="right" valign="top">shared_ptr&lt; <a class="el" href="structtaraxa_1_1final__chain_1_1_sender_state.html">SenderState</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_replay_protection_service_impl.html#ae29ec6e95ecb660bbacd2ef69acfd94f">loadSenderState</a> (string const &amp;key) const</td></tr>
 <tr class="separator:ae29ec6e95ecb660bbacd2ef69acfd94f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_group___final_chain"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_group___final_chain')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_replay_protection_service">taraxa::final_chain::ReplayProtectionService</a></td></tr>
@@ -129,8 +129,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ad5f13710ead7f2a8331ff9330804af50 inherit pub_methods_group___final_chain"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8e5967154748d35cba2fee3f88c41af8 inherit pub_methods_group___final_chain"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_replay_protection_service">ReplayProtectionService</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a8e5967154748d35cba2fee3f88c41af8">operator=</a> (<a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_replay_protection_service">ReplayProtectionService</a> &amp;&amp;)=default</td></tr>
 <tr class="separator:a8e5967154748d35cba2fee3f88c41af8 inherit pub_methods_group___final_chain"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae3041aa6d939c07a8a8513404743e192 inherit pub_methods_group___final_chain"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#ae3041aa6d939c07a8a8513404743e192">update</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DB::Batch</a> &amp;, uint64_t, <a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">util::RangeView</a>&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_transaction_info">TransactionInfo</a> &gt; const &amp;)=0</td></tr>
-<tr class="separator:ae3041aa6d939c07a8a8513404743e192 inherit pub_methods_group___final_chain"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aba5f961220c25c53932aff8ee4deb474 inherit pub_methods_group___final_chain"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#aba5f961220c25c53932aff8ee4deb474">update</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DB::Batch</a> &amp;, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>, <a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">util::RangeView</a>&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_transaction_info">TransactionInfo</a> &gt; const &amp;)=0</td></tr>
+<tr class="separator:aba5f961220c25c53932aff8ee4deb474 inherit pub_methods_group___final_chain"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -243,8 +243,8 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a7b6615bd4b9f601bb4587b9e0387617b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7b6615bd4b9f601bb4587b9e0387617b">&#9670;&nbsp;</a></span>update()</h2>
+<a id="a86db95a4313c78ee6e115f7cdb680bef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a86db95a4313c78ee6e115f7cdb680bef">&#9670;&nbsp;</a></span>update()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -261,7 +261,7 @@ Private Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
           <td class="paramname"><em>period</em>, </td>
         </tr>
         <tr>

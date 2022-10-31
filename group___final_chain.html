@@ -1033,8 +1033,8 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <tr class="separator:a417ad359468f6932de665cb660c505e1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a91ede0e4ca9b7b7c75b474756ab4c2a6"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a91ede0e4ca9b7b7c75b474756ab4c2a6">stop</a> ()=0</td></tr>
 <tr class="separator:a91ede0e4ca9b7b7c75b474756ab4c2a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aef937c32fc1f575e0607b4df4d8a1436"><td class="memItemLeft" align="right" valign="top">virtual uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#aef937c32fc1f575e0607b4df4d8a1436">delegation_delay</a> () const =0</td></tr>
-<tr class="separator:aef937c32fc1f575e0607b4df4d8a1436"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aac2506da98467db60ef3751c2eab1391"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#aac2506da98467db60ef3751c2eab1391">delegation_delay</a> () const =0</td></tr>
+<tr class="separator:aac2506da98467db60ef3751c2eab1391"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a266e83f473963f7ab585279f6e50d835"><td class="memItemLeft" align="right" valign="top">virtual std::future&lt; std::shared_ptr&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result">FinalizationResult</a> const  &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a266e83f473963f7ab585279f6e50d835">finalize</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&amp;period_data, std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt; &amp;&amp;finalized_dag_blk_hashes, <a class="el" href="group___final_chain.html#a85c2c0863dab085cd063aac9b6886d51">finalize_precommit_ext</a>={})=0</td></tr>
 <tr class="memdesc:a266e83f473963f7ab585279f6e50d835"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method which finalizes a block and executes it in EVM.  <a href="group___final_chain.html#a266e83f473963f7ab585279f6e50d835">More...</a><br /></td></tr>
 <tr class="separator:a266e83f473963f7ab585279f6e50d835"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1386,8 +1386,8 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 
 </div>
 </div>
-<a id="aef937c32fc1f575e0607b4df4d8a1436"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aef937c32fc1f575e0607b4df4d8a1436">&#9670;&nbsp;</a></span>delegation_delay()</h2>
+<a id="aac2506da98467db60ef3751c2eab1391"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aac2506da98467db60ef3751c2eab1391">&#9670;&nbsp;</a></span>delegation_delay()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1396,7 +1396,7 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual uint64_t taraxa::final_chain::FinalChain::delegation_delay </td>
+          <td class="memname">virtual <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> taraxa::final_chain::FinalChain::delegation_delay </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -1409,7 +1409,7 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 </table>
 </div><div class="memdoc">
 
-<p>Implemented in <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab1058e7aadbd94a03a934f55ce235802">taraxa::final_chain::FinalChainImpl</a>.</p>
+<p>Implemented in <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a4b8f0831630b3578c70f4e67a4f97ef6">taraxa::final_chain::FinalChainImpl</a>.</p>
 
 </div>
 </div>
@@ -2315,8 +2315,8 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <tr class="separator:a8e5967154748d35cba2fee3f88c41af8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6ae965b0db74c6238279531a47963e4e"><td class="memItemLeft" align="right" valign="top">virtual bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a6ae965b0db74c6238279531a47963e4e">is_nonce_stale</a> (const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;addr, const <a class="el" href="namespacetaraxa.html#a73873ff077f3a9470e522a373eba9200">trx_nonce_t</a> &amp;nonce) const =0</td></tr>
 <tr class="separator:a6ae965b0db74c6238279531a47963e4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae3041aa6d939c07a8a8513404743e192"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#ae3041aa6d939c07a8a8513404743e192">update</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DB::Batch</a> &amp;, uint64_t, <a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">util::RangeView</a>&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_transaction_info">TransactionInfo</a> &gt; const &amp;)=0</td></tr>
-<tr class="separator:ae3041aa6d939c07a8a8513404743e192"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aba5f961220c25c53932aff8ee4deb474"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#aba5f961220c25c53932aff8ee4deb474">update</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DB::Batch</a> &amp;, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>, <a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">util::RangeView</a>&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_transaction_info">TransactionInfo</a> &gt; const &amp;)=0</td></tr>
+<tr class="separator:aba5f961220c25c53932aff8ee4deb474"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
 <a id="acdb51fcb069afab0cdab44c481b4289b"></a>
@@ -2512,8 +2512,8 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 
 </div>
 </div>
-<a id="ae3041aa6d939c07a8a8513404743e192"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae3041aa6d939c07a8a8513404743e192">&#9670;&nbsp;</a></span>update()</h2>
+<a id="aba5f961220c25c53932aff8ee4deb474"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aba5f961220c25c53932aff8ee4deb474">&#9670;&nbsp;</a></span>update()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2530,7 +2530,7 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
           <td class="paramname">, </td>
         </tr>
         <tr>
@@ -2612,8 +2612,8 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
 <tr class="separator:a4fc5b10de077e2e5310d23978d3c9882"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b5dc95d0aa9a90b7fd37fd3e0593cff"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a7b5dc95d0aa9a90b7fd37fd3e0593cff">transition_state_commit</a> ()</td></tr>
 <tr class="separator:a7b5dc95d0aa9a90b7fd37fd3e0593cff"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57479a161b10fa3e43da6919c0ae18e0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a57479a161b10fa3e43da6919c0ae18e0">create_snapshot</a> (uint64_t period)</td></tr>
-<tr class="separator:a57479a161b10fa3e43da6919c0ae18e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abd94382ec0e65196486c46500019bf33"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#abd94382ec0e65196486c46500019bf33">create_snapshot</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
+<tr class="separator:abd94382ec0e65196486c46500019bf33"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4f67cd91d38cc3f873506b94d66ee916"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a4f67cd91d38cc3f873506b94d66ee916">dpos_eligible_total_vote_count</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num) const</td></tr>
 <tr class="separator:a4f67cd91d38cc3f873506b94d66ee916"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a954304ae0af99b51d175d9ba4a09a976"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a954304ae0af99b51d175d9ba4a09a976">dpos_eligible_vote_count</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;addr) const</td></tr>
@@ -2749,8 +2749,8 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
 </div>
 </div>
 <h4 class="groupheader">Member Function Documentation</h4>
-<a id="a57479a161b10fa3e43da6919c0ae18e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a57479a161b10fa3e43da6919c0ae18e0">&#9670;&nbsp;</a></span>create_snapshot()</h2>
+<a id="abd94382ec0e65196486c46500019bf33"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abd94382ec0e65196486c46500019bf33">&#9670;&nbsp;</a></span>create_snapshot()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2758,7 +2758,7 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
         <tr>
           <td class="memname">void taraxa::state_api::StateAPI::create_snapshot </td>
           <td>(</td>
-          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
           <td class="paramname"><em>period</em></td><td>)</td>
           <td></td>
         </tr>

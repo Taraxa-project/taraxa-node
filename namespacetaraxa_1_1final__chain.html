@@ -165,10 +165,10 @@ Functions</h2></td></tr>
 <tr class="separator:a41b2ec28d1ad728e6c4d190795391e6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8a0c1d818c6c0f61342371d65d730cba"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1final__chain.html#a8a0c1d818c6c0f61342371d65d730cba">senderStateKey</a> (string const &amp;sender_addr_hex)</td></tr>
 <tr class="separator:a8a0c1d818c6c0f61342371d65d730cba"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a174ba3b7afae407c18401e45bfd18060"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1final__chain.html#a174ba3b7afae407c18401e45bfd18060">periodDataKeysKey</a> (uint64_t period)</td></tr>
-<tr class="separator:a174ba3b7afae407c18401e45bfd18060"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad1be358f581db25ea2d0bd5d210df000"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1final__chain.html#ad1be358f581db25ea2d0bd5d210df000">maxNonceAtRoundKey</a> (uint64_t period, string const &amp;sender_addr_hex)</td></tr>
-<tr class="separator:ad1be358f581db25ea2d0bd5d210df000"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1cdc628dc2ccaf5ef1419198afc43a9b"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1final__chain.html#a1cdc628dc2ccaf5ef1419198afc43a9b">periodDataKeysKey</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
+<tr class="separator:a1cdc628dc2ccaf5ef1419198afc43a9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a28000461b1ae66a881577ccfdc602b8c"><td class="memItemLeft" align="right" valign="top">string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1final__chain.html#a28000461b1ae66a881577ccfdc602b8c">maxNonceAtRoundKey</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, string const &amp;sender_addr_hex)</td></tr>
+<tr class="separator:a28000461b1ae66a881577ccfdc602b8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac9b263a2cf2c5724d0465ef82dfdd0e0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1_db_storage.html#a19955d5978b5029bda2397466bd296e0">DB::Slice</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1final__chain.html#ac9b263a2cf2c5724d0465ef82dfdd0e0">db_slice</a> (<a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a> const &amp;b)</td></tr>
 <tr class="separator:ac9b263a2cf2c5724d0465ef82dfdd0e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa0b5a88e3d820936d80621999c99726c"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1final__chain.html#aa0b5a88e3d820936d80621999c99726c">hexPrefixEncode</a> (<a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> const &amp;_hexVector, bool _leaf, int _begin=0, int _end=-1)</td></tr>
@@ -446,8 +446,8 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="ad1be358f581db25ea2d0bd5d210df000"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad1be358f581db25ea2d0bd5d210df000">&#9670;&nbsp;</a></span>maxNonceAtRoundKey()</h2>
+<a id="a28000461b1ae66a881577ccfdc602b8c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a28000461b1ae66a881577ccfdc602b8c">&#9670;&nbsp;</a></span>maxNonceAtRoundKey()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -455,7 +455,7 @@ Variables</h2></td></tr>
         <tr>
           <td class="memname">string taraxa::final_chain::maxNonceAtRoundKey </td>
           <td>(</td>
-          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
           <td class="paramname"><em>period</em>, </td>
         </tr>
         <tr>
@@ -474,8 +474,8 @@ Variables</h2></td></tr>
 
 </div>
 </div>
-<a id="a174ba3b7afae407c18401e45bfd18060"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a174ba3b7afae407c18401e45bfd18060">&#9670;&nbsp;</a></span>periodDataKeysKey()</h2>
+<a id="a1cdc628dc2ccaf5ef1419198afc43a9b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1cdc628dc2ccaf5ef1419198afc43a9b">&#9670;&nbsp;</a></span>periodDataKeysKey()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -483,7 +483,7 @@ Variables</h2></td></tr>
         <tr>
           <td class="memname">string taraxa::final_chain::periodDataKeysKey </td>
           <td>(</td>
-          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
           <td class="paramname"><em>period</em></td><td>)</td>
           <td></td>
         </tr>

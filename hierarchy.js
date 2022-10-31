@@ -271,7 +271,6 @@ var hierarchy =
     [ "taraxa::util::ThreadPool::Periodicity", "classtaraxa_1_1util_1_1_thread_pool.html#structtaraxa_1_1util_1_1_thread_pool_1_1_periodicity", null ],
     [ "dev::p2p::Host::PersistentState", "structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_persistent_state", null ],
     [ "taraxa::net::rpc::eth::placeholder_t", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1placeholder__t", null ],
-    [ "taraxa::FullNode::PostDestructionContext", "classtaraxa_1_1_full_node.html#structtaraxa_1_1_full_node_1_1_post_destruction_context", null ],
     [ "taraxa::network::tarcap::PriorityQueue", "classtaraxa_1_1network_1_1tarcap_1_1_priority_queue.html", null ],
     [ "taraxa::state_api::Proof", "group___final_chain.html#structtaraxa_1_1state__api_1_1_proof", null ],
     [ "taraxa::ProposedBlocks", "classtaraxa_1_1_proposed_blocks.html", null ],
@@ -363,10 +362,10 @@ var hierarchy =
     [ "dev::Timer", "classdev_1_1_timer.html", null ],
     [ "dev::TimerHelper", "classdev_1_1_timer_helper.html", null ],
     [ "taraxa::Transaction", "structtaraxa_1_1_transaction.html", null ],
-    [ "taraxa::final_chain::FinalChain::TransactionHashes", "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html", null ],
     [ "TransactionHashes", null, [
       [ "taraxa::final_chain::FinalChainImpl::TransactionHashesImpl", "structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl.html", null ]
     ] ],
+    [ "taraxa::final_chain::FinalChain::TransactionHashes", "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html", null ],
     [ "taraxa::final_chain::ReplayProtectionService::TransactionInfo", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_transaction_info", null ],
     [ "taraxa::final_chain::TransactionLocation", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location", [
       [ "taraxa::net::rpc::eth::TransactionLocationWithBlockHash", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html", [
@@ -414,7 +413,7 @@ var hierarchy =
     [ "taraxa::VoteManager", "group___vote.html#classtaraxa_1_1_vote_manager", null ],
     [ "taraxa::VotesBundle", "group___vote.html#structtaraxa_1_1_votes_bundle", null ],
     [ "taraxa::VrfParams", "structtaraxa_1_1_vrf_params.html", null ],
-    [ "taraxa::VrfPbftMsg", "group___vote.html#structtaraxa_1_1_vrf_pbft_msg", null ],
+    [ "taraxa::VrfPbftMsg", "group___vote.html#classtaraxa_1_1_vrf_pbft_msg", null ],
     [ "taraxa::vrf_wrapper::VrfSortitionBase", "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html", [
       [ "taraxa::vdf_sortition::VdfSortition", "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html", null ],
       [ "taraxa::VrfPbftSortition", "group___vote.html#classtaraxa_1_1_vrf_pbft_sortition", null ]

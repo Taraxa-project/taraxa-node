@@ -69,7 +69,7 @@ var group___final_chain =
       [ "block_header", "group___final_chain.html#ae36baa84c36579d3f2c1b0b3dc676488", null ],
       [ "block_number", "group___final_chain.html#a96393c7f8fe11059bd68708eb7e6f59f", null ],
       [ "call", "group___final_chain.html#a3681f2fc87600ce90484dacfe07a14c6", null ],
-      [ "delegation_delay", "group___final_chain.html#aef937c32fc1f575e0607b4df4d8a1436", null ],
+      [ "delegation_delay", "group___final_chain.html#aac2506da98467db60ef3751c2eab1391", null ],
       [ "dpos_eligible_total_vote_count", "group___final_chain.html#afa0df0c96982e3fb920fae205e3ef0d9", null ],
       [ "dpos_eligible_vote_count", "group___final_chain.html#a92cea442deb2f451264773571de49e06", null ],
       [ "dpos_get_vrf_key", "group___final_chain.html#ab193319e8081030abcfa62a172ab6cfd", null ],
@@ -110,14 +110,14 @@ var group___final_chain =
       [ "is_nonce_stale", "group___final_chain.html#a6ae965b0db74c6238279531a47963e4e", null ],
       [ "operator=", "group___final_chain.html#ad5f13710ead7f2a8331ff9330804af50", null ],
       [ "operator=", "group___final_chain.html#a8e5967154748d35cba2fee3f88c41af8", null ],
-      [ "update", "group___final_chain.html#ae3041aa6d939c07a8a8513404743e192", null ]
+      [ "update", "group___final_chain.html#aba5f961220c25c53932aff8ee4deb474", null ]
     ] ],
     [ "StateAPI", "group___final_chain.html#classtaraxa_1_1state__api_1_1_state_a_p_i", [
       [ "StateAPI", "group___final_chain.html#a3659b64d4106129d81228d72c2b96101", null ],
       [ "~StateAPI", "group___final_chain.html#a96bc22686a2b7500cf6cdf657ced3858", null ],
       [ "StateAPI", "group___final_chain.html#a332877b929b0fd7ec175d35324cb4502", null ],
       [ "StateAPI", "group___final_chain.html#a5dfe1f47f0ebe2356a2620d0a212e5ef", null ],
-      [ "create_snapshot", "group___final_chain.html#a57479a161b10fa3e43da6919c0ae18e0", null ],
+      [ "create_snapshot", "group___final_chain.html#abd94382ec0e65196486c46500019bf33", null ],
       [ "dpos_eligible_total_vote_count", "group___final_chain.html#a4f67cd91d38cc3f873506b94d66ee916", null ],
       [ "dpos_eligible_vote_count", "group___final_chain.html#a954304ae0af99b51d175d9ba4a09a976", null ],
       [ "dpos_get_vrf_key", "group___final_chain.html#a36c579a28c11da0a88eabf8cbf601770", null ],
