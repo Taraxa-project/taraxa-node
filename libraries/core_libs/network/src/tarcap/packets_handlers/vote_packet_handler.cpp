@@ -88,7 +88,7 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     }
 
     if (vote->getPeriod() == current_pbft_period && (current_pbft_round - 1) == vote->getRound() &&
-        vote->getType() == PbftVoteTypes::next_vote_type) {
+        vote->getType() == PbftVoteTypes::next_vote) {
       // Previous round next vote
       // We could switch round before other nodes, so we need to process also previous round next votes
       if (!processNextSyncVote(vote, pbft_block)) {
@@ -104,7 +104,7 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
         continue;
       }
 
-    } else if (vote->getPeriod() == current_pbft_period - 1 && vote->getType() == PbftVoteTypes::cert_vote_type) {
+    } else if (vote->getPeriod() == current_pbft_period - 1 && vote->getType() == PbftVoteTypes::cert_vote) {
       // potential reward vote
       if (!processRewardVote(vote)) {
         continue;

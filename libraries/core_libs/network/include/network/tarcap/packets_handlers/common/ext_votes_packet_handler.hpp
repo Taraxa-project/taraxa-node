@@ -124,9 +124,9 @@ class ExtVotesPacketHandler : public PacketHandler {
 
   // Dpos contract delay - it is used to validate pbft period in votes -> does not make sense to accept vote
   // with vote period > current pbft period + kDposDelay as the valiation will fail
-  const uint32_t kVoteAcceptingPeriods;
-  const uint16_t kVoteAcceptingRounds;
-  const uint16_t kVoteAcceptingSteps;
+  const PbftPeriod kVoteAcceptingPeriods;
+  const PbftRound kVoteAcceptingRounds;
+  const PbftStep kVoteAcceptingSteps;
   constexpr static std::chrono::seconds kSyncRequestInterval = std::chrono::seconds(10);
 
   mutable std::chrono::system_clock::time_point last_votes_sync_request_time_;

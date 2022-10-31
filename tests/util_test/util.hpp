@@ -367,7 +367,7 @@ inline auto make_simple_pbft_block(h256 const& hash, uint64_t period, h256 const
 }
 
 inline std::vector<blk_hash_t> getOrderedDagBlocks(std::shared_ptr<DbStorage> const& db) {
-  uint64_t period = 1;
+  PbftPeriod period = 1;
   std::vector<blk_hash_t> res;
   while (true) {
     auto pbft_block = db->getPbftBlock(period);

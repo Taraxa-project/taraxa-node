@@ -12,7 +12,7 @@ std::shared_ptr<TaraxaPeer> PbftSyncingState::syncingPeer() const {
   return peer_;
 }
 
-void PbftSyncingState::setSyncStatePeriod(uint64_t period) {
+void PbftSyncingState::setSyncStatePeriod(PbftPeriod period) {
   if (pbft_syncing_) {
     std::shared_lock lock(peer_mutex_);
     deep_pbft_syncing_ = (peer_->pbft_chain_size_ - period >= kDeepSyncingThreshold);
@@ -21,7 +21,7 @@ void PbftSyncingState::setSyncStatePeriod(uint64_t period) {
   }
 }
 
-void PbftSyncingState::setPbftSyncing(bool syncing, uint64_t current_period,
+void PbftSyncingState::setPbftSyncing(bool syncing, PbftPeriod current_period,
                                       std::shared_ptr<TaraxaPeer> peer /*=nullptr*/) {
   assert((syncing && peer) || !syncing);
   pbft_syncing_ = syncing;

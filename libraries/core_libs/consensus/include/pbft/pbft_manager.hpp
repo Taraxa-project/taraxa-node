@@ -109,43 +109,44 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param hash DAG block hash
    * @return true with DAG block period number if the DAG block has been finalized. Otherwise return false
    */
-  std::pair<bool, uint64_t> getDagBlockPeriod(blk_hash_t const &hash);
+  std::pair<bool, PbftPeriod> getDagBlockPeriod(const blk_hash_t &hash);
 
   /**
    * @brief Get current PBFT period number
    * @return current PBFT period
    */
-  uint64_t getPbftPeriod() const;
+  PbftPeriod getPbftPeriod() const;
 
   /**
    * @brief Get current PBFT round number
    * @return current PBFT round
    */
-  uint64_t getPbftRound() const;
+  PbftRound getPbftRound() const;
 
   /**
    * @brief Get PBFT round & period number
    * @return <PBFT round, PBFT period>
    */
-  std::pair<uint64_t, uint64_t> getPbftRoundAndPeriod() const;
+  // TODO: exchange round <-> period
+  std::pair<PbftRound, PbftPeriod> getPbftRoundAndPeriod() const;
 
   /**
    * @brief Get PBFT step number
    * @return PBFT step
    */
-  uint64_t getPbftStep() const;
+  PbftStep getPbftStep() const;
 
   /**
    * @brief Set PBFT round number
    * @param round PBFT round
    */
-  void setPbftRound(uint64_t const round);
+  void setPbftRound(PbftRound round);
 
   /**
    * @brief Set PBFT step
    * @param pbft_step PBFT step
    */
-  void setPbftStep(size_t const pbft_step);
+  void setPbftStep(PbftStep pbft_step);
 
   /**
    * @brief Generate PBFT block, push into unverified queue, and broadcast to peers
@@ -155,7 +156,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param order_hash the hash of all DAG blocks include in the PBFT block
    * @return PBFT block
    */
-  std::shared_ptr<PbftBlock> generatePbftBlock(uint64_t propose_period, const blk_hash_t &prev_blk_hash,
+  std::shared_ptr<PbftBlock> generatePbftBlock(PbftPeriod propose_period, const blk_hash_t &prev_blk_hash,
                                                const blk_hash_t &anchor_hash, const blk_hash_t &order_hash);
 
   /**
@@ -167,8 +168,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param step PBFT step
    * @return vote
    */
-  std::shared_ptr<Vote> generateVote(blk_hash_t const &blockhash, PbftVoteTypes type, uint64_t period, uint64_t round,
-                                     size_t step);
+  std::shared_ptr<Vote> generateVote(const blk_hash_t &blockhash, PbftVoteTypes type, PbftPeriod period,
+                                     PbftRound round, PbftStep step);
 
   /**
    * @brief Get current total DPOS votes count
@@ -188,7 +189,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Get PBFT blocks synced period
    * @return PBFT blocks synced period
    */
-  uint64_t pbftSyncingPeriod() const;
+  PbftPeriod pbftSyncingPeriod() const;
 
   /**
    * @brief Get PBFT blocks syncing queue size
@@ -298,7 +299,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param pbft_period pbft period
    * @return PBFT 2T + 1 if successful, otherwise (due to non-existent data for pbft_period) empty optional
    */
-  std::optional<uint64_t> getPbftTwoTPlusOne(uint64_t pbft_period) const;
+  std::optional<uint64_t> getPbftTwoTPlusOne(PbftPeriod pbft_period) const;
 
  private:
   // DPOS
@@ -334,7 +335,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Resets pbft consensus: current pbft round is set to round, step is set to the beginning value
    * @param round
    */
-  void resetPbftConsensus(uint64_t round);
+  void resetPbftConsensus(PbftRound round);
 
   /**
    * @param start_time
@@ -432,8 +433,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param step PBFT step
    * @param step PBFT step
    */
-  std::shared_ptr<Vote> generateVoteWithWeight(blk_hash_t const &blockhash, PbftVoteTypes vote_type, uint64_t period,
-                                               uint64_t round, size_t step);
+  std::shared_ptr<Vote> generateVoteWithWeight(blk_hash_t const &blockhash, PbftVoteTypes vote_type, PbftPeriod period,
+                                               PbftRound round, PbftStep step);
 
   /**
    * @brief Place (gossip) vote
@@ -442,7 +443,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param voted_block voted block object - should be == vote->voted_block. In case we dont have block object, nullptr
    *                    is provided
    */
-  bool placeVote(const std::shared_ptr<Vote> &, std::string_view log_vote_id,
+  bool placeVote(const std::shared_ptr<Vote> &vote, std::string_view log_vote_id,
                  const std::shared_ptr<PbftBlock> &voted_block);
 
   /**
@@ -475,7 +476,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param period new pbft period (perriod == chain_size + 1)
    * @return shared_ptr to leader identified leader block
    */
-  std::shared_ptr<PbftBlock> identifyLeaderBlock_(uint64_t round, uint64_t period);
+  // TODO: exchange round <-> period
+  std::shared_ptr<PbftBlock> identifyLeaderBlock_(PbftRound round, PbftPeriod period);
 
   /**
    * @brief Calculate the lowest hash of a vote by vote weight
@@ -531,7 +533,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param round
    * @return Soft voted block data if there is enough (2t+1) soft votes, otherwise returns empty optional
    */
-  const std::optional<TwoTPlusOneSoftVotedBlockData> &getTwoTPlusOneSoftVotedBlockData(uint64_t period, uint64_t round);
+  const std::optional<TwoTPlusOneSoftVotedBlockData> &getTwoTPlusOneSoftVotedBlockData(PbftPeriod period,
+                                                                                       PbftRound round);
 
   /**
    * @brief Get valid proposed pbft block. It will retrieve block from proposed_blocks and then validate it if not
@@ -542,7 +545,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param block_hash
    * @return valid proposed pbft block or nullptr
    */
-  std::shared_ptr<PbftBlock> getValidPbftProposedBlock(uint64_t period, uint64_t round, const blk_hash_t &block_hash);
+  std::shared_ptr<PbftBlock> getValidPbftProposedBlock(PbftPeriod period, PbftRound round,
+                                                       const blk_hash_t &block_hash);
 
   /**
    * @brief Process synced PBFT blocks if PBFT syncing queue is not empty
@@ -564,7 +568,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param period
    * @return true if node can participate in consensus - is dpos eligible to vote and create blocks for specified period
    */
-  bool canParticipateInConsensus(uint64_t period) const;
+  bool canParticipateInConsensus(PbftPeriod period) const;
 
   /**
    * @brief Get PBFT sortition threshold for specific period
@@ -624,9 +628,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   PbftStates state_ = value_proposal_state;
 
-  std::atomic<uint64_t> round_ = 1;
-  size_t step_ = 1;
-  size_t startingStepInRound_ = 1;
+  std::atomic<PbftRound> round_ = 1;
+  PbftStep step_ = 1;
+  PbftStep startingStepInRound_ = 1;
 
   // 2t+1 soft voted block related data
   std::optional<TwoTPlusOneSoftVotedBlockData> soft_voted_block_for_round_{};
@@ -649,7 +653,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   // Cache for current 2T+1 - do not access it directly as it is not updated automatically,
   // always call getPbftTwoTPlusOne instead !!!
-  mutable std::pair<uint64_t /* period */, uint64_t /* two_t_plus_one for period */> current_two_t_plus_one_;
+  mutable std::pair<PbftPeriod, uint64_t /* two_t_plus_one for period */> current_two_t_plus_one_;
   mutable std::shared_mutex current_two_t_plus_one_mutex_;
 
   const blk_hash_t dag_genesis_block_hash_;

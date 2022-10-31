@@ -41,12 +41,12 @@ bool ExtVotesPacketHandler::processStandardVote(const std::shared_ptr<Vote> &vot
     // 2) In the meantime new block is pushed
     // 3) Standard vote validation then fails due to invalid period
     // -> If this happens, try to process this vote as reward vote
-    if (vote->getType() == PbftVoteTypes::cert_vote_type && vote->getPeriod() == current_pbft_period - 1) {
+    if (vote->getType() == PbftVoteTypes::cert_vote && vote->getPeriod() == current_pbft_period - 1) {
       LOG(log_dg_) << "Process standard cert vote as reward vote " << vote->getHash();
       if (processRewardVote(vote)) {
         return true;
       }
-    } else if (vote->getType() == PbftVoteTypes::next_vote_type && vote->getPeriod() == current_pbft_period &&
+    } else if (vote->getType() == PbftVoteTypes::next_vote && vote->getPeriod() == current_pbft_period &&
                vote->getRound() == current_pbft_round - 1) {
       if (processNextSyncVote(vote, nullptr)) {
         return true;
@@ -190,7 +190,7 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
 std::pair<bool, std::string> ExtVotesPacketHandler::validateNextSyncVote(const std::shared_ptr<Vote> &vote) const {
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
-  if (vote->getType() != PbftVoteTypes::next_vote_type) {
+  if (vote->getType() != PbftVoteTypes::next_vote) {
     std::stringstream err;
     err << "Invalid type: " << static_cast<uint64_t>(vote->getType());
     return {false, err.str()};
@@ -223,7 +223,7 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateNextSyncVote(const s
 std::pair<bool, std::string> ExtVotesPacketHandler::validateRewardVote(const std::shared_ptr<Vote> &vote) const {
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
-  if (vote->getType() != PbftVoteTypes::cert_vote_type) {
+  if (vote->getType() != PbftVoteTypes::cert_vote) {
     std::stringstream err;
     err << "Invalid type: " << static_cast<uint64_t>(vote->getType());
     return {false, err.str()};
@@ -286,8 +286,7 @@ void ExtVotesPacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, con
 
     // Peer already has pbft block, do not send it (do not check it for propose votes as it could happen that nodes
     // re-propose the same block for new round, in which case we need to send the block again
-    if (vote->getType() != PbftVoteTypes::propose_vote_type && vote->getStep() != PbftStates::value_proposal_state &&
-        peer.second->isPbftBlockKnown(vote->getBlockHash())) {
+    if (vote->getType() != PbftVoteTypes::propose_vote && peer.second->isPbftBlockKnown(vote->getBlockHash())) {
       sendPbftVote(peer.second, vote, nullptr);
     } else {
       sendPbftVote(peer.second, vote, block);

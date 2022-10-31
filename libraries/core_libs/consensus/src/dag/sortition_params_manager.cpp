@@ -4,7 +4,7 @@
 
 namespace taraxa {
 
-SortitionParamsChange::SortitionParamsChange(uint64_t period, uint16_t efficiency, const VrfParams& vrf)
+SortitionParamsChange::SortitionParamsChange(PbftPeriod period, uint16_t efficiency, const VrfParams& vrf)
     : period(period), vrf_params(vrf), interval_efficiency(efficiency) {}
 
 bytes SortitionParamsChange::rlp() const {
@@ -23,7 +23,7 @@ SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
 
   p.vrf_params.threshold_range = rlp[0].toInt<uint16_t>();
   p.vrf_params.threshold_upper = rlp[1].toInt<uint16_t>();
-  p.period = rlp[2].toInt<uint64_t>();
+  p.period = rlp[2].toInt<PbftPeriod>();
   p.interval_efficiency = rlp[3].toInt<uint16_t>();
 
   return p;
@@ -65,7 +65,7 @@ SortitionParamsManager::SortitionParamsManager(const addr_t& node_addr, Sortitio
   }
 }
 
-SortitionParams SortitionParamsManager::getSortitionParams(std::optional<uint64_t> period) const {
+SortitionParams SortitionParamsManager::getSortitionParams(std::optional<PbftPeriod> period) const {
   if (!period || (config_.changing_interval == 0)) {
     return config_;
   }
@@ -220,7 +220,7 @@ int32_t SortitionParamsManager::getNewUpperRange(uint16_t efficiency) const {
   assert(false);
 }
 
-SortitionParamsChange SortitionParamsManager::calculateChange(uint64_t period) {
+SortitionParamsChange SortitionParamsManager::calculateChange(PbftPeriod period) {
   const auto average_dag_efficiency = averageDagEfficiency();
 
   int32_t new_upper_range = getNewUpperRange(average_dag_efficiency);

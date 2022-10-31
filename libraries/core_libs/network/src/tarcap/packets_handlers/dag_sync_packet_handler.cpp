@@ -29,8 +29,8 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
   std::string received_dag_blocks_str;
 
   auto it = packet_data.rlp_.begin();
-  const auto request_period = (*it++).toInt<uint64_t>();
-  const auto response_period = (*it++).toInt<uint64_t>();
+  const auto request_period = (*it++).toInt<PbftPeriod>();
+  const auto response_period = (*it++).toInt<PbftPeriod>();
 
   // If the periods did not match restart syncing
   if (response_period > request_period) {

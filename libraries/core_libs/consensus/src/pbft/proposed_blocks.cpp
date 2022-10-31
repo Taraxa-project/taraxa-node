@@ -12,7 +12,7 @@ bool ProposedBlocks::pushProposedPbftBlock(const std::shared_ptr<PbftBlock>& pro
   return pushProposedPbftBlock(propose_vote->getRound(), proposed_block);
 }
 
-bool ProposedBlocks::pushProposedPbftBlock(uint64_t round, const std::shared_ptr<PbftBlock>& proposed_block,
+bool ProposedBlocks::pushProposedPbftBlock(PbftRound round, const std::shared_ptr<PbftBlock>& proposed_block,
                                            bool save_to_db) {
   std::unique_lock lock(proposed_blocks_mutex_);
 
@@ -36,7 +36,7 @@ bool ProposedBlocks::pushProposedPbftBlock(uint64_t round, const std::shared_ptr
   return found_round_it->second.insert({proposed_block->getBlockHash(), {proposed_block, false}}).second;
 }
 
-void ProposedBlocks::markBlockAsValid(uint64_t round, const std::shared_ptr<PbftBlock>& proposed_block) {
+void ProposedBlocks::markBlockAsValid(PbftRound round, const std::shared_ptr<PbftBlock>& proposed_block) {
   std::unique_lock lock(proposed_blocks_mutex_);
 
   const auto found_period_it = proposed_blocks_.find(proposed_block->getPeriod());
@@ -51,7 +51,7 @@ void ProposedBlocks::markBlockAsValid(uint64_t round, const std::shared_ptr<Pbft
 }
 
 std::optional<std::pair<std::shared_ptr<PbftBlock>, bool>> ProposedBlocks::getPbftProposedBlock(
-    uint64_t period, uint64_t round, const blk_hash_t& block_hash) const {
+    PbftPeriod period, PbftRound round, const blk_hash_t& block_hash) const {
   std::shared_lock lock(proposed_blocks_mutex_);
 
   auto found_period_it = proposed_blocks_.find(period);
@@ -72,7 +72,7 @@ std::optional<std::pair<std::shared_ptr<PbftBlock>, bool>> ProposedBlocks::getPb
   return found_block_it->second;
 }
 
-bool ProposedBlocks::isInProposedBlocks(uint64_t period, uint64_t round, const blk_hash_t& block_hash) const {
+bool ProposedBlocks::isInProposedBlocks(PbftPeriod period, PbftRound round, const blk_hash_t& block_hash) const {
   std::shared_lock lock(proposed_blocks_mutex_);
 
   auto found_period_it = proposed_blocks_.find(period);
@@ -88,7 +88,7 @@ bool ProposedBlocks::isInProposedBlocks(uint64_t period, uint64_t round, const b
   return found_round_it->second.contains(block_hash);
 }
 
-void ProposedBlocks::cleanupProposedPbftBlocksByPeriod(uint64_t period) {
+void ProposedBlocks::cleanupProposedPbftBlocksByPeriod(PbftPeriod period) {
   std::unique_lock lock(proposed_blocks_mutex_);
 
   for (auto period_it = proposed_blocks_.begin(); period_it != proposed_blocks_.end() && period_it->first < period;) {
@@ -103,7 +103,7 @@ void ProposedBlocks::cleanupProposedPbftBlocksByPeriod(uint64_t period) {
   }
 }
 
-void ProposedBlocks::cleanupProposedPbftBlocksByRound(uint64_t period, uint64_t round) {
+void ProposedBlocks::cleanupProposedPbftBlocksByRound(PbftPeriod period, PbftRound round) {
   // We must keep previous round proposed blocks for voting purposes
   if (round < 3) {
     return;

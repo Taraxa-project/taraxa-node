@@ -51,9 +51,10 @@ class ExtSyncingPacketHandler : public PacketHandler {
    *
    * @return true if sync request was sent, otherwise false
    */
-  bool syncPeerPbft(uint64_t request_period, bool ignore_chain_size_check = false);
+  bool syncPeerPbft(PbftPeriod request_period, bool ignore_chain_size_check = false);
 
-  void requestDagBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks, uint64_t period);
+  void requestDagBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks,
+                        PbftPeriod period);
   void requestPendingDagBlocks(std::shared_ptr<TaraxaPeer> peer = nullptr);
 
   std::shared_ptr<TaraxaPeer> getMaxChainPeer();

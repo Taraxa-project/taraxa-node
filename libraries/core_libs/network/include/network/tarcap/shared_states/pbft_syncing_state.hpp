@@ -24,7 +24,7 @@ class PbftSyncingState {
    * @param current_period
    * @param peer used in case syncing flag == true to set which peer is the node syncing with
    */
-  void setPbftSyncing(bool syncing, uint64_t current_period = 0, std::shared_ptr<TaraxaPeer> peer = nullptr);
+  void setPbftSyncing(bool syncing, PbftPeriod current_period = 0, std::shared_ptr<TaraxaPeer> peer = nullptr);
 
   /**
    * @brief Set current time as last received sync packet time
@@ -34,7 +34,7 @@ class PbftSyncingState {
   /**
    * @brief Set current pbft period
    */
-  void setSyncStatePeriod(uint64_t period);
+  void setSyncStatePeriod(PbftPeriod period);
 
   /**
    * @brief Check if syncing is active

@@ -193,7 +193,7 @@ void StateAPI::transition_state_commit() {
   err_h.check();
 }
 
-void StateAPI::create_snapshot(uint64_t period) {
+void StateAPI::create_snapshot(PbftPeriod period) {
   auto path = db_path_ + std::to_string(period);
   GoString go_path;
   go_path.p = path.c_str();

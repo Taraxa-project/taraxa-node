@@ -64,13 +64,13 @@ void GetPbftSyncPacketHandler::process(const PacketData &packet_data,
 }
 
 // api for pbft syncing
-void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, size_t height_to_sync,
+void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, PbftPeriod from_period,
                                               size_t blocks_to_transfer, bool pbft_chain_synced) {
-  LOG(log_tr_) << "sendPbftBlocks: peer want to sync from pbft chain height " << height_to_sync
-               << ", will send at most " << blocks_to_transfer << " pbft blocks to " << peer_id;
+  LOG(log_tr_) << "sendPbftBlocks: peer want to sync from pbft chain height " << from_period << ", will send at most "
+               << blocks_to_transfer << " pbft blocks to " << peer_id;
 
-  for (auto block_period = height_to_sync; block_period < height_to_sync + blocks_to_transfer; block_period++) {
-    bool last_block = (block_period == height_to_sync + blocks_to_transfer - 1);
+  for (auto block_period = from_period; block_period < from_period + blocks_to_transfer; block_period++) {
+    bool last_block = (block_period == from_period + blocks_to_transfer - 1);
     auto data = db_->getPeriodDataRaw(block_period);
 
     if (data.size() == 0) {

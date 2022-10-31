@@ -32,7 +32,7 @@ enum StatusDbField : uint8_t {
   DbMinorVersion
 };
 
-enum PbftMgrRoundStep : uint8_t { PbftRound = 0, PbftStep };
+enum class PbftMgrField : uint8_t { Round = 0, Step };
 
 enum PbftMgrStatus : uint8_t {
   ExecutedBlock = 0,
@@ -141,7 +141,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   const uint32_t kDbSnapshotsEachNblock_ = 0;
   std::atomic<bool> snapshots_enabled_ = true;
   const uint32_t kDbSnapshotsMaxCount_ = 0;
-  std::set<uint64_t> snapshots_;
+  std::set<PbftPeriod> snapshots_;
 
   bool minor_version_changed_ = false;
 
@@ -151,7 +151,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
  public:
   explicit DbStorage(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block = 0, uint32_t max_open_files = 0,
-                     uint32_t db_max_snapshots = 0, uint32_t db_revert_to_period = 0, addr_t node_addr = addr_t(),
+                     uint32_t db_max_snapshots = 0, PbftPeriod db_revert_to_period = 0, addr_t node_addr = addr_t(),
                      bool rebuild = false, bool rebuild_columns = false);
   ~DbStorage();
 
@@ -168,9 +168,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void commitWriteBatch(Batch& write_batch) { commitWriteBatch(write_batch, write_options_); }
 
   void rebuildColumns(const rocksdb::Options& options);
-  bool createSnapshot(uint64_t period);
-  void deleteSnapshot(uint64_t period);
-  void recoverToPeriod(uint64_t period);
+  bool createSnapshot(PbftPeriod period);
+  void deleteSnapshot(PbftPeriod period);
+  void recoverToPeriod(PbftPeriod period);
   void loadSnapshots();
   void disableSnapshots();
   void enableSnapshots();
@@ -181,11 +181,11 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // Period data
   void savePeriodData(const PeriodData& period_data, Batch& write_batch);
-  void clearPeriodDataHistory(uint64_t period);
-  dev::bytes getPeriodDataRaw(uint64_t period) const;
-  std::optional<PbftBlock> getPbftBlock(uint64_t period) const;
-  blk_hash_t getPeriodBlockHash(uint64_t period) const;
-  std::optional<SharedTransactions> getPeriodTransactions(uint64_t period) const;
+  void clearPeriodDataHistory(PbftPeriod period);
+  dev::bytes getPeriodDataRaw(PbftPeriod period) const;
+  std::optional<PbftBlock> getPbftBlock(PbftPeriod period) const;
+  blk_hash_t getPeriodBlockHash(PbftPeriod period) const;
+  std::optional<SharedTransactions> getPeriodTransactions(PbftPeriod period) const;
 
   /**
    * @brief Gets finalized transactions from provided hashes
@@ -209,9 +209,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void removeDagBlockBatch(Batch& write_batch, blk_hash_t const& hash);
   void removeDagBlock(blk_hash_t const& hash);
   // Sortition params
-  void saveSortitionParamsChange(uint64_t period, const SortitionParamsChange& params, DbStorage::Batch& batch);
+  void saveSortitionParamsChange(PbftPeriod period, const SortitionParamsChange& params, DbStorage::Batch& batch);
   std::deque<SortitionParamsChange> getLastSortitionParams(size_t count);
-  std::optional<SortitionParamsChange> getParamsChangeForPeriod(uint64_t period);
+  std::optional<SortitionParamsChange> getParamsChangeForPeriod(PbftPeriod period);
 
   // Transaction
   void saveTransaction(Transaction const& trx);
@@ -224,22 +224,22 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void addTransactionToBatch(Transaction const& trx, Batch& write_batch);
   void removeTransactionToBatch(trx_hash_t const& trx, Batch& write_batch);
 
-  void saveTransactionPeriod(trx_hash_t const& trx, uint32_t period, uint32_t position);
-  void addTransactionPeriodToBatch(Batch& write_batch, trx_hash_t const& trx, uint32_t period, uint32_t position);
-  std::optional<std::pair<uint32_t, uint32_t>> getTransactionPeriod(trx_hash_t const& hash) const;
-  std::unordered_map<trx_hash_t, uint32_t> getAllTransactionPeriod();
+  void saveTransactionPeriod(trx_hash_t const& trx, PbftPeriod period, uint32_t position);
+  void addTransactionPeriodToBatch(Batch& write_batch, trx_hash_t const& trx, PbftPeriod period, uint32_t position);
+  std::optional<std::pair<PbftPeriod, uint32_t>> getTransactionPeriod(trx_hash_t const& hash) const;
+  std::unordered_map<trx_hash_t, PbftPeriod> getAllTransactionPeriod();
 
   // PBFT manager
-  uint64_t getPbftMgrField(PbftMgrRoundStep field);
-  void savePbftMgrField(PbftMgrRoundStep field, uint64_t value);
-  void addPbftMgrFieldToBatch(PbftMgrRoundStep field, uint64_t value, Batch& write_batch);
+  uint32_t getPbftMgrField(PbftMgrField field);
+  void savePbftMgrField(PbftMgrField field, uint32_t value);
+  void addPbftMgrFieldToBatch(PbftMgrField field, uint32_t value, Batch& write_batch);
 
   bool getPbftMgrStatus(PbftMgrStatus field);
   void savePbftMgrStatus(PbftMgrStatus field, bool const& value);
   void addPbftMgrStatusToBatch(PbftMgrStatus field, bool const& value, Batch& write_batch);
 
-  void saveCertVotedBlockInRound(uint64_t round, const std::shared_ptr<PbftBlock>& block);
-  std::optional<std::pair<uint64_t /* round */, std::shared_ptr<PbftBlock>>> getCertVotedBlockInRound() const;
+  void saveCertVotedBlockInRound(PbftRound round, const std::shared_ptr<PbftBlock>& block);
+  std::optional<std::pair<PbftRound, std::shared_ptr<PbftBlock>>> getCertVotedBlockInRound() const;
   void removeCertVotedBlockInRound(Batch& write_batch);
 
   void saveSoftVotedBlockDataInRound(const TwoTPlusOneSoftVotedBlockData& soft_voted_block_data);
@@ -251,7 +251,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   bool pbftBlockInDb(blk_hash_t const& hash);
 
   // Proposed pbft blocks
-  void saveProposedPbftBlock(const std::shared_ptr<PbftBlock>& block, uint64_t round);
+  void saveProposedPbftBlock(const std::shared_ptr<PbftBlock>& block, PbftRound round);
   void removeProposedPbftBlock(const blk_hash_t& block_hash, Batch& write_batch);
   std::vector<std::pair<uint64_t, std::shared_ptr<PbftBlock>>> getProposedPbftBlocks();
 
@@ -273,7 +273,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void removeVerifiedVoteToBatch(vote_hash_t const& vote_hash, Batch& write_batch);
 
   // Certified votes
-  std::vector<std::shared_ptr<Vote>> getCertVotes(uint64_t period);
+  std::vector<std::shared_ptr<Vote>> getCertVotes(PbftPeriod period);
 
   // Next votes
   std::vector<std::shared_ptr<Vote>> getPreviousRoundNextVotes();
@@ -289,11 +289,11 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void removeLastBlockCertVotes(const vote_hash_t& hash);
 
   // period_pbft_block
-  void addPbftBlockPeriodToBatch(uint64_t period, taraxa::blk_hash_t const& pbft_block_hash, Batch& write_batch);
-  std::pair<bool, uint64_t> getPeriodFromPbftHash(taraxa::blk_hash_t const& pbft_block_hash);
+  void addPbftBlockPeriodToBatch(PbftPeriod period, taraxa::blk_hash_t const& pbft_block_hash, Batch& write_batch);
+  std::pair<bool, PbftPeriod> getPeriodFromPbftHash(taraxa::blk_hash_t const& pbft_block_hash);
   // dag_block_period
-  std::shared_ptr<std::pair<uint32_t, uint32_t>> getDagBlockPeriod(blk_hash_t const& hash);
-  void addDagBlockPeriodToBatch(blk_hash_t const& hash, uint32_t period, uint32_t position, Batch& write_batch);
+  std::shared_ptr<std::pair<PbftPeriod, uint32_t>> getDagBlockPeriod(blk_hash_t const& hash);
+  void addDagBlockPeriodToBatch(blk_hash_t const& hash, PbftPeriod period, uint32_t position, Batch& write_batch);
 
   uint64_t getDagBlocksCount() const { return dag_blocks_count_.load(); }
   uint64_t getDagEdgeCount() const { return dag_edge_count_.load(); }
@@ -303,13 +303,13 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   auto getNumBlockExecuted() { return getStatusField(StatusDbField::ExecutedBlkCount); }
   uint64_t getNumDagBlocks() { return getDagBlocksCount(); }
 
-  std::vector<blk_hash_t> getFinalizedDagBlockHashesByPeriod(uint32_t period);
-  std::vector<std::shared_ptr<DagBlock>> getFinalizedDagBlockByPeriod(uint32_t period);
+  std::vector<blk_hash_t> getFinalizedDagBlockHashesByPeriod(PbftPeriod period);
+  std::vector<std::shared_ptr<DagBlock>> getFinalizedDagBlockByPeriod(PbftPeriod period);
 
   // DPOS level to proposal period map
   std::optional<uint64_t> getProposalPeriodForDagLevel(uint64_t level);
-  void saveProposalPeriodDagLevelsMap(uint64_t level, uint64_t period);
-  void addProposalPeriodDagLevelsMapToBatch(uint64_t level, uint64_t period, Batch& write_batch);
+  void saveProposalPeriodDagLevelsMap(uint64_t level, PbftPeriod period);
+  void addProposalPeriodDagLevelsMapToBatch(uint64_t level, PbftPeriod period, Batch& write_batch);
 
   bool hasMinorVersionChanged() { return minor_version_changed_; }
 

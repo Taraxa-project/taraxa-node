@@ -30,7 +30,7 @@ class ReplayProtectionService {
     addr_t sender;
     trx_nonce_t nonce = 0;
   };
-  virtual void update(DB::Batch &, uint64_t, util::RangeView<TransactionInfo> const &) = 0;
+  virtual void update(DB::Batch &, PbftPeriod, util::RangeView<TransactionInfo> const &) = 0;
 };
 
 std::unique_ptr<ReplayProtectionService> NewReplayProtectionService(ReplayProtectionService::Config,

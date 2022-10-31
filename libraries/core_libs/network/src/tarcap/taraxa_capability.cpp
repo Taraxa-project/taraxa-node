@@ -337,7 +337,7 @@ const std::shared_ptr<NodeStats> &TaraxaCapability::getNodeStats() { return node
 
 bool TaraxaCapability::pbft_syncing() const { return pbft_syncing_state_->isPbftSyncing(); }
 
-void TaraxaCapability::setSyncStatePeriod(uint64_t period) { pbft_syncing_state_->setSyncStatePeriod(period); }
+void TaraxaCapability::setSyncStatePeriod(PbftPeriod period) { pbft_syncing_state_->setSyncStatePeriod(period); }
 
 // METHODS USED IN TESTS ONLY
 size_t TaraxaCapability::getReceivedBlocksCount() const { return test_state_->getBlocksSize(); }

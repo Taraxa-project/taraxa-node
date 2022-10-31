@@ -254,7 +254,7 @@ std::vector<blk_hash_t> DagManager::getGhostPath() const {
 }
 
 // return {block order}, for pbft-pivot-blk proposing
-std::vector<blk_hash_t> DagManager::getDagBlockOrder(blk_hash_t const &anchor, uint64_t period) {
+std::vector<blk_hash_t> DagManager::getDagBlockOrder(blk_hash_t const &anchor, PbftPeriod period) {
   SharedLock lock(mutex_);
   std::vector<blk_hash_t> blk_orders;
 
@@ -301,7 +301,7 @@ void DagManager::clearLightNodeHistory() {
   }
 }
 
-uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, uint64_t period, vec_blk_t const &dag_order) {
+uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, PbftPeriod period, vec_blk_t const &dag_order) {
   LOG(log_dg_) << "setDagBlockOrder called with anchor " << new_anchor << " and period " << period;
   if (period != period_ + 1) {
     LOG(log_er_) << " Inserting period (" << period << ") anchor " << new_anchor
@@ -516,13 +516,13 @@ void DagManager::recoverDag() {
   trx_mgr_->recoverNonfinalizedTransactions();
 }
 
-const std::pair<uint64_t, std::map<uint64_t, std::unordered_set<blk_hash_t>>> DagManager::getNonFinalizedBlocks()
+const std::pair<PbftPeriod, std::map<uint64_t, std::unordered_set<blk_hash_t>>> DagManager::getNonFinalizedBlocks()
     const {
   SharedLock lock(mutex_);
   return {period_, non_finalized_blks_};
 }
 
-const std::tuple<uint64_t, std::vector<std::shared_ptr<DagBlock>>, SharedTransactions>
+const std::tuple<PbftPeriod, std::vector<std::shared_ptr<DagBlock>>, SharedTransactions>
 DagManager::getNonFinalizedBlocksWithTransactions(const std::unordered_set<blk_hash_t> &known_hashes) const {
   SharedLock lock(mutex_);
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;

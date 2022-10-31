@@ -26,7 +26,7 @@ class TwoTPlusOneSoftVotedBlockData {
   TwoTPlusOneSoftVotedBlockData(dev::RLP const& rlp);
   bytes rlp() const;
 
-  uint64_t round_;
+  PbftRound round_;
   blk_hash_t block_hash_;
   std::vector<std::shared_ptr<Vote>> soft_votes_;
   // node might not have the actual block even though it saw 2t+1 soft votes

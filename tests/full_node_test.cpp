@@ -92,22 +92,22 @@ TEST_F(FullNodeTest, db_test) {
   ASSERT_EQ(*g_trx_signed_samples[3], *db.getTransaction(g_trx_signed_samples[3]->getHash()));
 
   // PBFT manager round and step
-  EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftRound), 1);
-  EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftStep), 1);
+  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Round), 1);
+  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Step), 1);
   uint64_t pbft_round = 30;
   size_t pbft_step = 31;
-  db.savePbftMgrField(PbftMgrRoundStep::PbftRound, pbft_round);
-  db.savePbftMgrField(PbftMgrRoundStep::PbftStep, pbft_step);
-  EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftRound), pbft_round);
-  EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftStep), pbft_step);
+  db.savePbftMgrField(PbftMgrField::Round, pbft_round);
+  db.savePbftMgrField(PbftMgrField::Step, pbft_step);
+  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Round), pbft_round);
+  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Step), pbft_step);
   pbft_round = 90;
   pbft_step = 91;
   batch = db.createWriteBatch();
-  db.addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftRound, pbft_round, batch);
-  db.addPbftMgrFieldToBatch(PbftMgrRoundStep::PbftStep, pbft_step, batch);
+  db.addPbftMgrFieldToBatch(PbftMgrField::Round, pbft_round, batch);
+  db.addPbftMgrFieldToBatch(PbftMgrField::Step, pbft_step, batch);
   db.commitWriteBatch(batch);
-  EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftRound), pbft_round);
-  EXPECT_EQ(db.getPbftMgrField(PbftMgrRoundStep::PbftStep), pbft_step);
+  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Round), pbft_round);
+  EXPECT_EQ(db.getPbftMgrField(PbftMgrField::Step), pbft_step);
 
   // PBFT manager status
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::ExecutedBlock));
@@ -135,7 +135,7 @@ TEST_F(FullNodeTest, db_test) {
 
   // PBFT soft voted block data in round
   EXPECT_EQ(db.getSoftVotedBlockDataInRound(), std::nullopt);
-  uint64_t soft_voted_block_period_and_round = 123;
+  PbftRound soft_voted_block_period_and_round = 123;
   TwoTPlusOneSoftVotedBlockData soft_voted_block_data_with_block;
   soft_voted_block_data_with_block.round_ = soft_voted_block_period_and_round;
   soft_voted_block_data_with_block.block_data_ = {
@@ -144,7 +144,8 @@ TEST_F(FullNodeTest, db_test) {
   std::vector<std::shared_ptr<Vote>> soft_votes;
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(soft_vote_type, soft_voted_block_period_and_round, soft_voted_block_period_and_round, filter_state);
+    VrfPbftMsg msg(PbftVoteTypes::soft_vote, soft_voted_block_period_and_round, soft_voted_block_period_and_round,
+                   filter_state);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -213,7 +214,7 @@ TEST_F(FullNodeTest, db_test) {
   // Certified votes
   std::vector<std::shared_ptr<Vote>> cert_votes;
   for (auto i = 0; i < 3; i++) {
-    VrfPbftMsg msg(cert_vote_type, 2, 2, 3);
+    VrfPbftMsg msg(PbftVoteTypes::cert_vote, 2, 2, 3);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -281,10 +282,9 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_TRUE(verified_votes.empty());
   auto voted_pbft_block_hash = blk_hash_t(2);
   for (auto i = 0; i < 3; i++) {
-    auto period = i;
-    auto round = i;
-    auto step = i;
-    VrfPbftMsg msg(next_vote_type, period, round, step);
+    PbftPeriod period = i;
+    PbftRound round = i;
+    VrfPbftMsg msg(PbftVoteTypes::next_vote, period, round, 4);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -307,12 +307,14 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_TRUE(db.getVerifiedVotes().empty());
 
   // Next votes
-  uint64_t period = 3, round = 3, step = 5;
+  PbftPeriod period = 3;
+  PbftRound round = 3;
+  PbftStep step = 5;
   auto next_votes = db.getPreviousRoundNextVotes();
   EXPECT_TRUE(next_votes.empty());
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(next_vote_type, period, round, step);
+    VrfPbftMsg msg(PbftVoteTypes::next_vote, period, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -327,7 +329,7 @@ TEST_F(FullNodeTest, db_test) {
   next_votes.clear();
   for (auto i = 3; i < 5; i++) {
     blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(next_vote_type, period, round, step);
+    VrfPbftMsg msg(PbftVoteTypes::next_vote, period, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -729,7 +731,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   // -------- first period ----------
 
   auto ret = node->getDagManager()->getLatestPivotAndTips();
-  uint64_t period = 1;
+  PbftPeriod period = 1;
   vec_blk_t order;
   order = node->getDagManager()->getDagBlockOrder(ret->first, period);
   EXPECT_EQ(order.size(), 6);

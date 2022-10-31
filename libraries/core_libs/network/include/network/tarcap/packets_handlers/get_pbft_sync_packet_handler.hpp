@@ -18,7 +18,7 @@ class GetPbftSyncPacketHandler final : public PacketHandler {
                            std::shared_ptr<DbStorage> db, size_t network_sync_level_size, const addr_t& node_addr,
                            bool is_light_node = false, uint64_t light_node_history = 0);
 
-  void sendPbftBlocks(dev::p2p::NodeID const& peer_id, size_t height_to_sync, size_t blocks_to_transfer,
+  void sendPbftBlocks(dev::p2p::NodeID const& peer_id, PbftPeriod from_period, size_t blocks_to_transfer,
                       bool pbft_chain_synced);
 
   // Packet type that is processed by this handler

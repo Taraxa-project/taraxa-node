@@ -12,15 +12,27 @@ namespace taraxa {
  * @{
  */
 
-enum PbftVoteTypes : uint8_t { propose_vote_type = 0, soft_vote_type, cert_vote_type, next_vote_type };
+// PbftVoteTypes are equal to step numbers, e.g.
+// - "propose_vote" type can be created only in step 1
+// - "soft_vote" type can be created only in step 2
+// - "cert_vote" type can be created only in step 3
+// - "next_vote" type can be created only in step 4 or more
+enum class PbftVoteTypes : uint8_t { invalid_vote = 0, propose_vote, soft_vote, cert_vote, next_vote };
 
 /**
- * @brief VrfPbftMsg struct uses vote type, PBFT round, and PBFT step to generate a message for doing VRF sortition.
+ * @brief VrfPbftMsg class uses PBFT period, round and step to generate a message for doing VRF sortition.
  */
-struct VrfPbftMsg {
+class VrfPbftMsg {
  public:
   VrfPbftMsg() = default;
-  VrfPbftMsg(PbftVoteTypes type, uint64_t period, uint64_t round, size_t step);
+  VrfPbftMsg(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step);
+
+  /**
+   * @brief Get v type based on vote step
+   *
+   * @return PbftVoteTypes based on vote step
+   */
+  PbftVoteTypes getType() const;
 
   /**
    * @brief Combine vote type, PBFT period, round and step to a string
@@ -37,17 +49,15 @@ struct VrfPbftMsg {
   bool operator==(VrfPbftMsg const& other) const;
   friend std::ostream& operator<<(std::ostream& strm, VrfPbftMsg const& pbft_msg) {
     strm << "  [Vrf Pbft Msg] " << std::endl;
-    strm << "    type: " << static_cast<uint32_t>(pbft_msg.type) << std::endl;
-    strm << "    period: " << pbft_msg.period << std::endl;
-    strm << "    round: " << pbft_msg.round << std::endl;
-    strm << "    step: " << pbft_msg.step << std::endl;
+    strm << "    period: " << pbft_msg.period_ << std::endl;
+    strm << "    round: " << pbft_msg.round_ << std::endl;
+    strm << "    step: " << pbft_msg.step_ << std::endl;
     return strm;
   }
 
-  PbftVoteTypes type;
-  uint64_t period;
-  uint64_t round;
-  size_t step;
+  PbftPeriod period_;
+  PbftRound round_;
+  PbftStep step_;
 };
 
 /**
@@ -114,7 +124,7 @@ class VrfPbftSortition : public vrf_wrapper::VrfSortitionBase {
    * @param address voter public key
    * @return vote weight
    */
-  uint64_t calculateWeight(uint64_t stake, double dpos_total_votes_count, double threshold,
+  uint64_t calculateWeight(uint64_t stake, uint64_t dpos_total_votes_count, uint64_t threshold,
                            const public_t& address) const;
 
   friend std::ostream& operator<<(std::ostream& strm, const VrfPbftSortition& vrf_sortition) {

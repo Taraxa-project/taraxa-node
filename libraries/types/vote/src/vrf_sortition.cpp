@@ -7,44 +7,58 @@
 
 namespace taraxa {
 
-VrfPbftMsg::VrfPbftMsg(PbftVoteTypes type, uint64_t period, uint64_t round, size_t step)
-    : type(type), period(period), round(round), step(step) {}
+VrfPbftMsg::VrfPbftMsg(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step)
+    : period_(period), round_(round), step_(step) {
+  // Just to make sure developers dont try to create vote type with step that does not correspond to the type
+  assert(type == getType());
+  assert(type != PbftVoteTypes::invalid_vote);
+}
+
+PbftVoteTypes VrfPbftMsg::getType() const {
+  switch (step_) {
+    case 0:
+      return PbftVoteTypes::invalid_vote;
+    case 1:
+      return PbftVoteTypes::propose_vote;
+    case 2:
+      return PbftVoteTypes::soft_vote;
+    case 3:
+      return PbftVoteTypes::cert_vote;
+    default:
+      // Vote with step >= 4 is next vote
+      return PbftVoteTypes::next_vote;
+  }
+}
 
 std::string VrfPbftMsg::toString() const {
-  return std::to_string(type) + "_" + std::to_string(period) + "_" + std::to_string(round) + "_" + std::to_string(step);
+  return std::to_string(period_) + "_" + std::to_string(round_) + "_" + std::to_string(step_);
 }
 
 bool VrfPbftMsg::operator==(VrfPbftMsg const& other) const {
-  return type == other.type && period == other.period && round == other.round && step == other.step;
+  return period_ == other.period_ && round_ == other.round_ && step_ == other.step_;
 }
 
 bytes VrfPbftMsg::getRlpBytes() const {
   dev::RLPStream s;
-  s.appendList(4);
-  s << static_cast<uint8_t>(type);
-  s << period;
-  s << round;
-  s << step;
+  s.appendList(3);
+  s << period_;
+  s << round_;
+  s << step_;
   return s.invalidate();
 }
 
 VrfPbftSortition::VrfPbftSortition(bytes const& b) {
   dev::RLP const rlp(b);
-
-  uint8_t pbft_msg_type = 0;
-  util::rlp_tuple(util::RLPDecoderRef(rlp, true), pbft_msg_type, pbft_msg_.period, pbft_msg_.round, pbft_msg_.step,
-                  proof_);
-  pbft_msg_.type = static_cast<PbftVoteTypes>(pbft_msg_type);
+  util::rlp_tuple(util::RLPDecoderRef(rlp, true), pbft_msg_.period_, pbft_msg_.round_, pbft_msg_.step_, proof_);
 }
 
 bytes VrfPbftSortition::getRlpBytes() const {
   dev::RLPStream s;
 
-  s.appendList(5);
-  s << static_cast<uint8_t>(pbft_msg_.type);
-  s << pbft_msg_.period;
-  s << pbft_msg_.round;
-  s << pbft_msg_.step;
+  s.appendList(4);
+  s << pbft_msg_.period_;
+  s << pbft_msg_.round_;
+  s << pbft_msg_.step_;
   s << proof_;
 
   return s.invalidate();
@@ -77,7 +91,7 @@ uint64_t VrfPbftSortition::getBinominalDistribution(uint64_t stake, double dpos_
   return stake;
 }
 
-uint64_t VrfPbftSortition::calculateWeight(uint64_t stake, double dpos_total_votes_count, double threshold,
+uint64_t VrfPbftSortition::calculateWeight(uint64_t stake, uint64_t dpos_total_votes_count, uint64_t threshold,
                                            const public_t& address) const {
   // Also hash in the address. This is necessary to decorrelate the selection of different accounts that have the same
   // VRF key.

@@ -173,7 +173,7 @@ TEST_F(DagTest, compute_epoch) {
   taraxa::thisThreadSleepForMilliSeconds(100);
 
   vec_blk_t orders;
-  uint64_t period;
+  PbftPeriod period;
 
   // Test that with incorrect period, order is not returned
   orders = mgr->getDagBlockOrder(blkA_hash, 2);
@@ -374,7 +374,7 @@ TEST_F(DagTest, compute_epoch_2) {
   taraxa::thisThreadSleepForMilliSeconds(100);
 
   vec_blk_t orders;
-  uint64_t period = 1;
+  PbftPeriod period = 1;
   orders = mgr->getDagBlockOrder(blkA_hash, period);
   EXPECT_EQ(orders.size(), 1);
   // repeat, should not change

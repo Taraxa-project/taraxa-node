@@ -27,21 +27,14 @@ using dev::Secret;
 using dev::u256;
 
 using EthBlockNumber = uint64_t;
+using PbftPeriod = EthBlockNumber;
+using PbftRound = uint32_t;
+using PbftStep = uint32_t;
 
 // time related
-using time_point_t = std::chrono::system_clock::time_point;
-using time_stamp_t = unsigned long;
-
-using uint128_t = boost::multiprecision::uint128_t;
 using uint256_t = boost::multiprecision::uint256_t;
-using uint512_t = boost::multiprecision::uint512_t;
-using uint1024_t = boost::multiprecision::uint1024_t;
 
-// newtork related
-using end_point_udp_t = boost::asio::ip::udp::endpoint;
-using socket_udp_t = boost::asio::ip::udp::socket;
-using resolver_udp_t = boost::asio::ip::udp::resolver;
-
+// network related
 using uint256_hash_t = dev::FixedHash<32>;
 using uint512_hash_t = dev::FixedHash<64>;
 using uint520_hash_t = dev::FixedHash<65>;
@@ -54,26 +47,21 @@ using sig_t = uint520_hash_t;
 using vote_hash_t = uint256_hash_t;
 using blk_hash_t = uint256_hash_t;
 using trx_hash_t = uint256_hash_t;
-using sig_hash_t = uint256_hash_t;
 
 using gas_t = uint64_t;
-using key_t = std::string;
 using level_t = uint64_t;
 using val_t = dev::u256;
 using root_t = dev::h256;
-using dag_blk_num_t = uint64_t;
 
 using vec_blk_t = std::vector<blk_hash_t>;
 using vec_trx_t = std::vector<trx_hash_t>;
-using trx_num_t = vec_trx_t::size_type;
 using byte = uint8_t;
 using bytes = std::vector<byte>;
-using node_id_t = uint512_hash_t;
 using trx_nonce_t = val_t;
 
 // val_t type related helper functions
-inline val_t operator+=(val_t const &val, val_t const &other) { return val + other; }
-inline std::string toString(val_t const &val) {
+inline val_t operator+=(const val_t &val, const val_t &other) { return val + other; }
+inline std::string toString(const val_t &val) {
   std::stringstream strm;
   strm << val;
   return strm.str();
