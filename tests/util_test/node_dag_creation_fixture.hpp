@@ -7,7 +7,7 @@
 namespace taraxa::core_tests {
 
 struct NodeDagCreationFixture : BaseTest {
-  uint64_t nonce = 1;
+  uint64_t nonce = 0;
   uint64_t dummy_nonce = 0;
   std::shared_ptr<FullNode> node;
   dev::KeyPair dummy = dev::KeyPair::create();
@@ -87,7 +87,6 @@ struct NodeDagCreationFixture : BaseTest {
     SharedTransactions result;
     auto _nonce = nonce;
     for (auto i = _nonce; i < _nonce + count; ++i) {
-      std::cout << "make transaction with nonce " << i << std::endl;
       result.emplace_back(
           std::make_shared<Transaction>(i, 11, 0, TEST_TX_GAS_LIMIT,
                                         // setGreeting("Hola")
@@ -155,8 +154,6 @@ struct NodeDagCreationFixture : BaseTest {
         std::transform(trx_itr, trx_itr_next, std::back_inserter(trx_hashes),
                        [](std::shared_ptr<Transaction> trx) { return trx->getHash(); });
         DagBlock blk(pivot, level, tips, trx_hashes, trx_per_block * trx_estimation, vdf, node->getSecretKey());
-        std::cout << "creating dag block " << blk.getHash() << " with [" << (*trx_itr)->getNonce() << ", "
-                  << (*trx_itr_next)->getNonce() << "]\n";
         this_level_blocks.push_back(blk.getHash());
         result.emplace_back(DagBlockWithTxs{blk, SharedTransactions(trx_itr, trx_itr_next)});
         trx_itr = trx_itr_next;

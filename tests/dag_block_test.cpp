@@ -213,7 +213,8 @@ TEST_F(DagBlockMgrTest, incorrect_tx_estimation) {
   auto dag_mgr = node->getDagManager();
 
   auto trx = samples::createSignedTrxSamples(1, 1, g_secret).front();
-  node->getTransactionManager()->insertTransaction(trx);
+  auto insert_result = node->getTransactionManager()->insertTransaction(trx);
+  ASSERT_EQ(insert_result.second, "");
   // Generate DAG blocks
   auto dag_genesis = node->getConfig().chain.dag_genesis_block.getHash();
   SortitionConfig vdf_config(node->getConfig().chain.sortition);
@@ -257,10 +258,6 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
     hashes.emplace_back(create_trx->getHash());
     const auto& e = node->getTransactionManager()->estimateTransactionGas(create_trx, std::nullopt);
     estimations += e;
-  }
-
-  for (size_t i = 0; i < hashes.size(); ++i) {
-    std::cout << hashes[i] << ": " << estimations / count << std::endl;
   }
 
   // Generate DAG block

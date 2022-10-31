@@ -193,7 +193,7 @@ TEST_F(FinalChainTest, contract) {
   cfg.chain.final_chain.state.genesis_balances = {};
   cfg.chain.final_chain.state.genesis_balances[addr] = 100000;
   init();
-  auto nonce = 1;
+  auto nonce = 0;
   auto trx = std::make_shared<Transaction>(nonce++, 0, 0, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
   auto result = advance({trx});
   auto contract_addr = result->trx_receipts[0].new_contract_address;
@@ -309,10 +309,10 @@ TEST_F(FinalChainTest, nonce_test) {
   cfg.chain.final_chain.state.genesis_balances[addr] = 100000;
   init();
 
-  auto trx1 = std::make_shared<Transaction>(1, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
-  auto trx2 = std::make_shared<Transaction>(2, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
-  auto trx3 = std::make_shared<Transaction>(3, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
-  auto trx4 = std::make_shared<Transaction>(4, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
+  auto trx1 = std::make_shared<Transaction>(0, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
+  auto trx2 = std::make_shared<Transaction>(1, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
+  auto trx3 = std::make_shared<Transaction>(2, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
+  auto trx4 = std::make_shared<Transaction>(3, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
 
   advance({trx1});
   advance({trx2});
@@ -321,13 +321,13 @@ TEST_F(FinalChainTest, nonce_test) {
 
   ASSERT_EQ(SUT->get_account(addr)->nonce.convert_to<uint64_t>(), 4);
 
-  // nonce_skipping is enabled, so should pass
+  // nonce_skipping is enabled, ok
   auto trx6 = std::make_shared<Transaction>(6, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
   advance({trx6});
 
-  ASSERT_EQ(SUT->get_account(addr)->nonce.convert_to<uint64_t>(), 6);
+  ASSERT_EQ(SUT->get_account(addr)->nonce.convert_to<uint64_t>(), 7);
 
-  // nonce is lower, so should fail
+  // nonce is lower, fail
   auto trx5 = std::make_shared<Transaction>(5, 101, 0, 100000, dev::bytes(), sk, receiver_addr);
   advance({trx5}, {false, false, true});
 }
@@ -341,10 +341,10 @@ TEST_F(FinalChainTest, nonce_skipping) {
   cfg.chain.final_chain.state.genesis_balances[addr] = 100000;
   init();
 
-  auto trx1 = std::make_shared<Transaction>(1, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
-  auto trx2 = std::make_shared<Transaction>(2, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
-  auto trx3 = std::make_shared<Transaction>(3, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
-  auto trx4 = std::make_shared<Transaction>(4, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
+  auto trx1 = std::make_shared<Transaction>(0, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
+  auto trx2 = std::make_shared<Transaction>(1, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
+  auto trx3 = std::make_shared<Transaction>(2, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
+  auto trx4 = std::make_shared<Transaction>(3, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
 
   advance({trx1});
   ASSERT_EQ(SUT->get_account(addr)->nonce.convert_to<uint64_t>(), 1);
@@ -362,6 +362,80 @@ TEST_F(FinalChainTest, nonce_skipping) {
 
   advance({trx4});
   ASSERT_EQ(SUT->get_account(addr)->nonce.convert_to<uint64_t>(), 4);
+}
+
+TEST_F(FinalChainTest, exec_trx_with_nonce_from_api) {
+  auto sender_keys = dev::KeyPair::create();
+  const auto& addr = sender_keys.address();
+  const auto& sk = sender_keys.secret();
+  cfg.chain.final_chain.state.genesis_balances = {};
+  cfg.chain.final_chain.state.genesis_balances[addr] = 100000;
+  init();
+
+  // exec trx with nonce 5 to skip some
+  auto nonce = 5;
+  {
+    auto trx = std::make_shared<Transaction>(nonce, 0, 0, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
+    auto result = advance({trx});
+  }
+  // fail second trx with same nonce
+  {
+    auto trx = std::make_shared<Transaction>(nonce, 1, 0, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
+    auto result = advance({trx}, {false, false, true});
+  }
+  auto account = SUT->get_account(addr);
+  ASSERT_EQ(account->nonce, nonce + 1);
+  auto trx =
+      std::make_shared<Transaction>(account->nonce, 1, 0, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
+  auto result = advance({trx});
+}
+
+TEST_F(FinalChainTest, new_contract_address) {
+  auto new_contract_address = [](u256 nonce, const addr_t& sender) {
+    return dev::right160(dev::sha3(dev::rlpList(sender, nonce)));
+  };
+  {
+    const auto& sender = addr_t("0xbc3f916f3384eb088b2c662f59aca594a5b25b02");
+    // https://rinkeby.etherscan.io/tx/0x2c4d922f7031584ade06b04aa661c6d045482450c36c1c844848adafca29c026
+    // from: 0xbc3f916f3384eb088b2c662f59aca594a5b25b02 nonce:58 created: 0x313312e14cbdad86d616debd37e0ecf0b3dfef03
+    // https://rinkeby.etherscan.io/tx/0x0923ba99c0839b9ef761e1e61b7b7f20eb9d3fd48a955ae34e591c9e27e0dcce
+    // from: 0xbc3f916f3384eb088b2c662f59aca594a5b25b02 nonce:59 created: 0x22f95efe25ff7dce8ed5066acff5572f9f1683e8
+    // https://rinkeby.etherscan.io/tx/0x555b5fa200f768da0df1c7141321b76251c45d63aeba8d2c840fa046128d92a6
+    // from: 0xbc3f916f3384eb088b2c662f59aca594a5b25b02 nonce:60 created: 0x2109b75cca2094f5df48a7a2f8a4514b521038bc
+    std::map<uint8_t, addr_t> nonce_and_address = {
+        {58, addr_t("0x313312e14cbdad86d616debd37e0ecf0b3dfef03")},
+        {59, addr_t("0x22f95efe25ff7dce8ed5066acff5572f9f1683e8")},
+        {60, addr_t("0x2109b75cca2094f5df48a7a2f8a4514b521038bc")},
+    };
+
+    for (const auto& p : nonce_and_address) {
+      ASSERT_EQ(new_contract_address(p.first, sender), p.second);
+    }
+  }
+
+  auto sender_keys = dev::KeyPair::create();
+  const auto& addr = sender_keys.address();
+  const auto& sk = sender_keys.secret();
+  cfg.chain.final_chain.state.genesis_balances = {};
+  cfg.chain.final_chain.state.genesis_balances[addr] = 100000;
+  init();
+
+  auto nonce = 0;
+  {
+    auto trx = std::make_shared<Transaction>(nonce++, 0, 0, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
+    auto result = advance({trx});
+    auto contract_addr = result->trx_receipts[0].new_contract_address;
+    ASSERT_EQ(contract_addr, new_contract_address(trx->getNonce(), addr));
+  }
+
+  // skip few transactions, but new contract address should be still correct
+  {
+    nonce = 5;
+    auto trx = std::make_shared<Transaction>(nonce++, 0, 0, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
+    auto result = advance({trx});
+    auto contract_addr = result->trx_receipts[0].new_contract_address;
+    ASSERT_EQ(contract_addr, new_contract_address(trx->getNonce(), addr));
+  }
 }
 
 TEST_F(FinalChainTest, failed_transaction_fee) {
