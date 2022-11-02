@@ -27,7 +27,7 @@ void WsSession::run() {
 void WsSession::on_accept(beast::error_code ec) {
   if (ec) {
     if (!closed_) LOG(log_er_) << ec << " accept";
-    return;
+    return close();
   }
 
   // Read a message
@@ -45,9 +45,8 @@ void WsSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
 
   // For any error close the connection
   if (ec) {
-    LOG(log_tr_) << "WS closed in on_read " << ec;
-    closed_ = true;
-    return;
+    LOG(log_nf_) << "WS closed in on_read " << ec;
+    return close();
   }
 
   LOG(log_tr_) << "WS READ " << ((char *)buffer_.data().data());
@@ -58,8 +57,7 @@ void WsSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
   auto executor = ws_.get_executor();
   if (!executor) {
     LOG(log_tr_) << "Executor missing - WS closed";
-    closed_ = true;
-    return;
+    return close();
   }
 
   boost::asio::post(executor, boost::bind(&WsSession::writeImpl, this, response));
@@ -77,18 +75,13 @@ void WsSession::on_write_no_read(beast::error_code ec, std::size_t bytes_transfe
 
   // For any error close the connection
   if (ec) {
-    LOG(log_tr_) << "WS closed in on_write " << ec;
-    closed_ = true;
-    return;
+    LOG(log_nf_) << "WS closed in on_write " << ec;
+    return close();
   }
 
   boost::ignore_unused(bytes_transferred);
 
   queue_messages_.pop_front();
-  if (ec) {
-    if (!closed_) LOG(log_er_) << ec << " write";
-    return;
-  }
   // Clear the buffer
   buffer_.consume(buffer_.size());
 
@@ -112,8 +105,7 @@ void WsSession::newEthBlock(::taraxa::final_chain::BlockHeader const &payload) {
     auto executor = ws_.get_executor();
     if (!executor) {
       LOG(log_tr_) << "Executor missing - WS closed";
-      closed_ = true;
-      return;
+      return close();
     }
     boost::asio::post(executor, boost::bind(&WsSession::writeImpl, this, response));
   }
@@ -149,8 +141,7 @@ void WsSession::newDagBlock(DagBlock const &blk) {
     auto executor = ws_.get_executor();
     if (!executor) {
       LOG(log_tr_) << "Executor missing - WS closed";
-      closed_ = true;
-      return;
+      return close();
     }
     boost::asio::post(executor, boost::bind(&WsSession::writeImpl, this, response));
   }
@@ -170,8 +161,7 @@ void WsSession::newDagBlockFinalized(blk_hash_t const &blk, uint64_t period) {
     auto executor = ws_.get_executor();
     if (!executor) {
       LOG(log_tr_) << "Executor missing - WS closed";
-      closed_ = true;
-      return;
+      return close();
     }
     boost::asio::post(executor, boost::bind(&WsSession::writeImpl, this, response));
   }
@@ -190,8 +180,7 @@ void WsSession::newPbftBlockExecuted(Json::Value const &payload) {
     auto executor = ws_.get_executor();
     if (!executor) {
       LOG(log_tr_) << "Executor missing - WS closed";
-      closed_ = true;
-      return;
+      return close();
     }
     boost::asio::post(executor, boost::bind(&WsSession::writeImpl, this, response));
   }
@@ -209,8 +198,7 @@ void WsSession::newPendingTransaction(trx_hash_t const &trx_hash) {
     auto executor = ws_.get_executor();
     if (!executor) {
       LOG(log_tr_) << "Executor missing - WS closed";
-      closed_ = true;
-      return;
+      return close();
     }
     boost::asio::post(executor, boost::bind(&WsSession::writeImpl, this, response));
   }
@@ -223,7 +211,7 @@ void WsSession::close() {
 
 WsServer::WsServer(boost::asio::io_context &ioc, tcp::endpoint endpoint, addr_t node_addr)
     : ioc_(ioc), acceptor_(ioc), node_addr_(std::move(node_addr)) {
-  LOG_OBJECTS_CREATE("RPC");
+  LOG_OBJECTS_CREATE("WS_SERVER");
   beast::error_code ec;
 
   // Open the acceptor
