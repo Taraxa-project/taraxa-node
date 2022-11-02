@@ -186,6 +186,13 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
   std::pair<std::vector<std::shared_ptr<Transaction>>, std::vector<trx_hash_t>> getPoolTransactions(
       const std::vector<trx_hash_t> &trx_to_query) const;
 
+  /**
+   * @brief Have transactions been recently dropped due to queue reaching max size
+   * This call is thread-safe
+   * @return Returns true if txs were dropped
+   */
+  bool transactionsDropped() const;
+
   std::shared_ptr<Transaction> getTransaction(const trx_hash_t &hash) const;
   std::shared_ptr<Transaction> getNonFinalizedTransaction(const trx_hash_t &hash) const;
   unsigned long getTransactionCount() const;

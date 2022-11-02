@@ -385,4 +385,9 @@ void TransactionManager::blockFinalized(EthBlockNumber block_number) {
   transactions_pool_.blockFinalized(block_number);
 }
 
+bool TransactionManager::transactionsDropped() const {
+  std::shared_lock transactions_lock(transactions_mutex_);
+  return transactions_pool_.transactionsDropped();
+}
+
 }  // namespace taraxa

@@ -109,6 +109,15 @@ class TransactionQueue {
    */
   bool isTransactionKnown(const trx_hash_t& trx_hash) const;
 
+  /**
+   * @brief Have transactions been recently dropped due to queue reaching max size
+   * This call is thread-safe
+   * @return Returns true if txs were dropped
+   */
+  bool transactionsDropped() const {
+    return std::chrono::system_clock::now() - transaction_overflow_time_ < kTransactionOverflowTimeLimit;
+  }
+
  private:
   // Transactions in the queue per account ordered by nonce
   std::unordered_map<addr_t, std::map<val_t, std::shared_ptr<Transaction>>> account_nonce_transactions_;
@@ -121,6 +130,13 @@ class TransactionQueue {
   std::unordered_map<trx_hash_t, std::pair<uint64_t, std::shared_ptr<Transaction>>> non_proposable_transactions_;
 
   ExpirationCache<trx_hash_t> known_txs_;
+
+  // Last time transactions were dropped due to queue reaching max size
+  std::chrono::system_clock::time_point transaction_overflow_time_;
+
+  // If transactions are dropped within last kTransactionOverflowTimeLimit seconds, dag blocks with missing transactions
+  // will not be treated as malicious
+  const std::chrono::seconds kTransactionOverflowTimeLimit{300};
 
   // Limit when non proposable transactions expire
   const size_t kNonProposableTransactionsPeriodExpiryLimit = 10;
