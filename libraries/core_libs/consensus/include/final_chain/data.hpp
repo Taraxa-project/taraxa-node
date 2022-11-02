@@ -41,8 +41,6 @@ struct BlockHeader {
   uint64_t timestamp = 0;
   Address author;
 
-  uint64_t ethereum_rlp_size = 0;
-
   HAS_RLP_FIELDS
 
   static h256 const& uncles_hash();
