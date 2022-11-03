@@ -165,6 +165,7 @@ bool TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction, const 
 void TransactionQueue::blockFinalized(uint64_t block_number) {
   for (auto it = non_proposable_transactions_.begin(); it != non_proposable_transactions_.end();) {
     if (it->second.first + kNonProposableTransactionsPeriodExpiryLimit < block_number) {
+      known_txs_.erase(it->first);
       it = non_proposable_transactions_.erase(it);
     } else {
       ++it;

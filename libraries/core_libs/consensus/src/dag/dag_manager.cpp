@@ -370,6 +370,7 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, PbftPeriod perio
         addToDag(blk_hash, pivot_hash, dag_block->getTips(), dag_block->getLevel(), false);
       } else {
         db_->removeDagBlock(blk_hash);
+        seen_blocks_.erase(blk_hash);
         for (const auto &trx : dag_block->getTrxs()) expired_dag_blocks_transactions.emplace_back(trx);
       }
     }
@@ -507,8 +508,15 @@ void DagManager::recoverDag() {
       }
 
       // In case an invalid block somehow ended in DAG db, remove it
-      if (!addDagBlock(std::move(blk), {}, false, false).first) {
-        LOG(log_er_) << "DAG block " << blk.getHash() << " could not be added to DAG on startup, removing from db";
+      auto res = pivotAndTipsAvailable(blk);
+      if (res.first) {
+        if (!addDagBlock(std::move(blk), {}, false, false).first) {
+          LOG(log_er_) << "DAG block " << blk.getHash() << " could not be added to DAG on startup, removing from db";
+          db_->removeDagBlock(blk.getHash());
+        }
+      } else {
+        LOG(log_er_) << "DAG block " << blk.getHash()
+                     << " could not be added to DAG on startup since it has missing tip/pivot";
         db_->removeDagBlock(blk.getHash());
       }
     }
