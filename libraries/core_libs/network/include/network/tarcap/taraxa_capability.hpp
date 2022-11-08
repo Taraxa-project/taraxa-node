@@ -76,9 +76,6 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
    */
   void stop();
 
-  // TODO: tarcap threadpool might be responsible for verifying, putting objects into internal structures, etc... and in
-  //       such case we would not need to broadcast packets from outside of packet handlers (except very few cases)
-  //       and most of these methods could be deleted
   // Interface required in network class to access packets handlers functionality
   // METHODS USED IN REAL CODE
   const std::shared_ptr<PeersState> &getPeersState();
