@@ -231,7 +231,7 @@ SortitionParamsChange SortitionParamsManager::calculateChange(PbftPeriod period)
   }
 
   config_.vrf.threshold_upper = new_upper_range;
-  LOG(log_si_) << "Average interval efficiency: " << average_dag_efficiency / 100. << "% . Changing VRF params on "
+  LOG(log_nf_) << "Average interval efficiency: " << average_dag_efficiency / 100. << "%. Changing VRF params on "
                << period << " period to (" << config_.vrf.threshold_upper << ")";
 
   return SortitionParamsChange{period, average_dag_efficiency, config_.vrf};
