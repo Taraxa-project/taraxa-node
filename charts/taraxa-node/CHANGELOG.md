@@ -5,11 +5,15 @@ numbering uses [semantic versioning](http://semver.org).
 
 ## v0.2.2
 
+### Major changes
+
+* Allows to specify PVC per node type
+* Enables snapshots (on separate snapshot node)
+* Adds light node
+
 ### Minor changes
 
 * Uses new explorer chart (v0.2.1)
-* Allows to specify PVC per node type
-* Enables snapshots (on separate snapshot node)
 
 ## v0.2.1
 
