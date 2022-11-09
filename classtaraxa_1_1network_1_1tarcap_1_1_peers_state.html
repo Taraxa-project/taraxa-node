@@ -145,9 +145,9 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a177225ece939d698b0669ba4015546d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac25194f31a099d18fbd164110072454d"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ac25194f31a099d18fbd164110072454d">getPendingPeer</a> (const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;node_id) const</td></tr>
 <tr class="separator:ac25194f31a099d18fbd164110072454d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad5b741c861068c4dae781c5723e3184d"><td class="memItemLeft" align="right" valign="top">std::pair&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt;, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ad5b741c861068c4dae781c5723e3184d">getAnyPeer</a> (const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;node_id) const</td></tr>
-<tr class="memdesc:ad5b741c861068c4dae781c5723e3184d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> object for specified node_id and bool value that indicates if peer was still pending.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ad5b741c861068c4dae781c5723e3184d">More...</a><br /></td></tr>
-<tr class="separator:ad5b741c861068c4dae781c5723e3184d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9678bce18100cde3672663029dac82e7"><td class="memItemLeft" align="right" valign="top">std::pair&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt;, std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a9678bce18100cde3672663029dac82e7">getPacketSenderPeer</a> (const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;node_id, <a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368">SubprotocolPacketType</a> packet_type) const</td></tr>
+<tr class="memdesc:a9678bce18100cde3672663029dac82e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get known peer based on packet sender and packet type. For StatusPacket peer can be obtained from pending_peers, for all other packet types peer can be obtained only from peers map, in which are only peers that already sent initial StatusPacket.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a9678bce18100cde3672663029dac82e7">More...</a><br /></td></tr>
+<tr class="separator:a9678bce18100cde3672663029dac82e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abd9f391d1d61d0441147c2bab3377b5b"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a>, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#abd9f391d1d61d0441147c2bab3377b5b">getAllPeers</a> () const</td></tr>
 <tr class="separator:abd9f391d1d61d0441147c2bab3377b5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acfa1218ef9093b6e09d3610a77d86e72"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#acfa1218ef9093b6e09d3610a77d86e72">getAllPendingPeersIDs</a> () const</td></tr>
@@ -295,23 +295,34 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="ad5b741c861068c4dae781c5723e3184d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad5b741c861068c4dae781c5723e3184d">&#9670;&nbsp;</a></span>getAnyPeer()</h2>
+<a id="a9678bce18100cde3672663029dac82e7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9678bce18100cde3672663029dac82e7">&#9670;&nbsp;</a></span>getPacketSenderPeer()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::pair&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt;, bool &gt; taraxa::network::tarcap::PeersState::getAnyPeer </td>
+          <td class="memname">std::pair&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt;, std::string &gt; taraxa::network::tarcap::PeersState::getPacketSenderPeer </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;&#160;</td>
-          <td class="paramname"><em>node_id</em></td><td>)</td>
-          <td> const</td>
+          <td class="paramname"><em>node_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368">SubprotocolPacketType</a>&#160;</td>
+          <td class="paramname"><em>packet_type</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
-<p>Returns <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> object for specified node_id and bool value that indicates if peer was still pending. </p>
+<p>Get known peer based on packet sender and packet type. For StatusPacket peer can be obtained from pending_peers, for all other packet types peer can be obtained only from peers map, in which are only peers that already sent initial StatusPacket. </p>
+<dl class="section return"><dt>Returns</dt><dd>&lt;std::shared_ptr&lt;TaraxaPeer&gt;, ""&gt; if packet sender is known peer, otherwise &lt;nullptr, "err message"&gt; </dd></dl>
 
 </div>
 </div>
