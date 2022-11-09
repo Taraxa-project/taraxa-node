@@ -22,10 +22,17 @@ class PeersState {
 
   std::shared_ptr<TaraxaPeer> getPeer(const dev::p2p::NodeID& node_id) const;
   std::shared_ptr<TaraxaPeer> getPendingPeer(const dev::p2p::NodeID& node_id) const;
+
   /**
-   * @brief Returns TaraxaPeer object for specified node_id and bool value that indicates if peer was still pending
+   * @brief Get known peer based on packet sender and packet type. For StatusPacket peer can be obtained from
+   *        pending_peers, for all other packet types peer can be obtained only from peers map, in which are only
+   *        peers that already sent initial StatusPacket
+   *
+   * @return <std::shared_ptr<TaraxaPeer>, ""> if packet sender is known peer, otherwise <nullptr, "err message">
    */
-  std::pair<std::shared_ptr<TaraxaPeer>, bool> getAnyPeer(const dev::p2p::NodeID& node_id) const;
+  std::pair<std::shared_ptr<TaraxaPeer>, std::string> getPacketSenderPeer(const dev::p2p::NodeID& node_id,
+                                                                          SubprotocolPacketType packet_type) const;
+
   std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> getAllPeers() const;
   std::vector<dev::p2p::NodeID> getAllPendingPeersIDs() const;
   size_t getPeersCount() const;

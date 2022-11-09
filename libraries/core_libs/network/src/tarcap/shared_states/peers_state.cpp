@@ -28,18 +28,32 @@ std::shared_ptr<TaraxaPeer> PeersState::getPendingPeer(const dev::p2p::NodeID& n
   return nullptr;
 }
 
-std::pair<std::shared_ptr<TaraxaPeer>, bool> PeersState::getAnyPeer(const dev::p2p::NodeID& node_id) const {
+std::pair<std::shared_ptr<TaraxaPeer>, std::string> PeersState::getPacketSenderPeer(
+    const dev::p2p::NodeID& node_id, SubprotocolPacketType packet_type) const {
   std::shared_lock lock(peers_mutex_);
 
+  // If peer is in peers_, it means he already sent us initial status packet and
+  // we can receive/send any kind of packet from/to him
   if (const auto it_peer = peers_.find(node_id); it_peer != peers_.end()) {
-    return {it_peer->second, false};
+    return {it_peer->second, ""};
   }
 
+  // If peer is in pending_peers_, it means he has not yet sent us initial status packet and
+  // we can receive/send only StatusPacket from/to him
   if (const auto it_peer = pending_peers_.find(node_id); it_peer != pending_peers_.end()) {
-    return {it_peer->second, true};
+    if (packet_type == SubprotocolPacketType::StatusPacket) {
+      return {it_peer->second, ""};
+    } else {
+      std::ostringstream error;
+      error << "Peer " << node_id.abridged()
+            << " is only in pending peers - probably did not send initial status packet yet";
+      return {nullptr, error.str()};
+    }
   }
 
-  return {nullptr, false};
+  std::ostringstream error;
+  error << "Peer " << node_id.abridged() << " is not in peers map anymore - probably lost connection";
+  return {nullptr, error.str()};
 }
 
 std::vector<dev::p2p::NodeID> PeersState::getAllPendingPeersIDs() const {
