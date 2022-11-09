@@ -40,7 +40,7 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
 
   // Start the asynchronous operation
   void run();
-  void close();
+  void close(bool normal = true);
 
   void on_accept(beast::error_code ec);
   void do_read();
@@ -54,7 +54,8 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
   void newPbftBlockExecuted(Json::Value const& payload);
   void newPendingTransaction(trx_hash_t const& trx_hash);
-  bool is_closed() { return closed_; }
+  bool is_closed() const { return closed_; }
+  bool is_normal(const beast::error_code& ec) const;
   LOG_OBJECTS_DEFINE
 
  protected:
