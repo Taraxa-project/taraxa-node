@@ -276,35 +276,27 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
 
   auto node_id = session.lock()->id();
 
-  // Drop any packet (except StatusPacket) that comes before the connection between nodes is initialized by sending
-  // and received initial status packet
-  // TODO: this logic is duplicated in PacketHandler::processPacket function...
   auto host = peers_state_->host_.lock();
   if (!host) {
     LOG(log_er_) << "Unable to process packet, host == nullptr";
     return;
   }
 
-  const auto [peer, is_pending] = peers_state_->getAnyPeer(node_id);
-  if (!peer) [[unlikely]] {
-    // It should not be possible to get here but log it just in case
-    LOG(log_wr_) << "Peer missing in peers map, peer " << node_id.abridged() << " will be disconnected";
+  const SubprotocolPacketType packet_type = static_cast<SubprotocolPacketType>(_id);
+
+  // Drop any packet (except StatusPacket) that comes before the connection between nodes is initialized by sending
+  // and received initial status packet
+  if (const auto peer = peers_state_->getPacketSenderPeer(node_id, packet_type); !peer.first) [[unlikely]] {
+    LOG(log_er_) << "Unable to push packet into queue. Reason: " << peer.second;
     host->disconnect(node_id, dev::p2p::UserReason);
     return;
   }
 
-  if (is_pending && _id != SubprotocolPacketType::StatusPacket) [[unlikely]] {
-    LOG(log_wr_) << "Connected peer did not send status message, peer " << node_id.abridged()
-                 << " will be disconnected";
-    host->disconnect(node_id, dev::p2p::UserReason);
-    return;
-  }
-
-  SubprotocolPacketType packet_type = static_cast<SubprotocolPacketType>(_id);
   if (pbft_syncing_state_->isDeepPbftSyncing() && filterSyncIrrelevantPackets(packet_type)) {
     LOG(log_dg_) << "Ignored " << convertPacketTypeToString(packet_type) << " because we are still syncing";
     return;
   }
+
   // TODO: we are making a copy here for each packet bytes(toBytes()), which is pretty significant. Check why RLP does
   //       not support move semantics so we can take advantage of it...
   thread_pool_->push(PacketData(packet_type, node_id, _r.data().toBytes()));
