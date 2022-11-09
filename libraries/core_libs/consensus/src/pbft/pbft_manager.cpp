@@ -289,7 +289,7 @@ std::optional<uint64_t> PbftManager::getCurrentDposTotalVotesCount() const {
   try {
     return final_chain_->dpos_eligible_total_vote_count(pbft_chain_->getPbftChainSize());
   } catch (state_api::ErrFutureBlock &e) {
-    LOG(log_er_) << "Unable to get CurrentDposTotalVotesCount for period: " << pbft_chain_->getPbftChainSize()
+    LOG(log_wr_) << "Unable to get CurrentDposTotalVotesCount for period: " << pbft_chain_->getPbftChainSize()
                  << ". Period is too far ahead of actual finalized pbft chain size ("
                  << final_chain_->last_block_number() << "). Err msg: " << e.what();
   }
@@ -301,7 +301,7 @@ std::optional<uint64_t> PbftManager::getCurrentNodeVotesCount() const {
   try {
     return final_chain_->dpos_eligible_vote_count(pbft_chain_->getPbftChainSize(), node_addr_);
   } catch (state_api::ErrFutureBlock &e) {
-    LOG(log_er_) << "Unable to get CurrentNodeVotesCount for period: " << pbft_chain_->getPbftChainSize()
+    LOG(log_wr_) << "Unable to get CurrentNodeVotesCount for period: " << pbft_chain_->getPbftChainSize()
                  << ". Period is too far ahead of actual finalized pbft chain size ("
                  << final_chain_->last_block_number() << "). Err msg: " << e.what();
   }
@@ -1235,7 +1235,7 @@ std::optional<uint64_t> PbftManager::getPbftTwoTPlusOne(PbftPeriod pbft_period) 
   try {
     total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(pbft_period);
   } catch (state_api::ErrFutureBlock &e) {
-    LOG(log_er_) << "Unable to calculate 2t + 1 for period: " << pbft_period
+    LOG(log_wr_) << "Unable to calculate 2t + 1 for period: " << pbft_period
                  << ". Period is too far ahead of actual finalized pbft chain size ("
                  << final_chain_->last_block_number() << "). Err msg: " << e.what();
     return {};
