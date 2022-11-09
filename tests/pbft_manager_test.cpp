@@ -702,7 +702,7 @@ TEST_F(PbftManagerWithDagCreation, trx_generation) {
     insertTransactions(trxs);
 
     EXPECT_HAPPENS({10s, 500ms},
-                   [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce - 1); });
+                   [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce); });
     std::cout << "Creation and applying of " << count << " transactions is ok" << std::endl;
   }
 }
@@ -726,7 +726,7 @@ TEST_F(PbftManagerWithDagCreation, dag_generation) {
   generateAndApplyInitialDag();
 
   EXPECT_HAPPENS({10s, 250ms}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce - 1);
+    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce);
   });
 
   auto nonce_before = nonce;
@@ -739,8 +739,8 @@ TEST_F(PbftManagerWithDagCreation, dag_generation) {
   EXPECT_EQ(nonce, nonce_before + tx_count);
 
   EXPECT_HAPPENS({60s, 250ms}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce - 1);
-    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce - 1);
+    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce);
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce);
   });
 }
 

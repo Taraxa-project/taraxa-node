@@ -103,7 +103,7 @@ void SortitionParamsManager::cleanup() {
 }
 
 void SortitionParamsManager::pbftBlockPushed(const PeriodData& block, DbStorage::Batch& batch,
-                                             size_t non_empty_pbft_chain_size) {
+                                             PbftPeriod non_empty_pbft_chain_size) {
   if (config_.changing_interval == 0) {
     return;
   }
