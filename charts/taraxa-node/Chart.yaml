@@ -9,6 +9,6 @@ keywords:
   - node
 dependencies:
   - name: explorer
-    version: 0.2.2-sha.0c47bb5
+    version: 0.2.2-sha.abe3a4a
     condition: explorer.enabled
     repository: https://charts.gcp.taraxa.io
