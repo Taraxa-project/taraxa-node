@@ -8,10 +8,10 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <cstdlib>
-#include <deque>
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <queue>
 #include <string>
 #include <thread>
 #include <vector>
@@ -58,9 +58,9 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   LOG_OBJECTS_DEFINE
 
  protected:
-  void writeImpl(const std::string& message);
-  void write(const std::string& message);
-  std::deque<std::string> queue_messages_;
+  void writeImpl(std::string&& message);
+  void write(std::string&& message);
+  std::queue<std::string> queue_messages_;
   websocket::stream<beast::tcp_stream> ws_;
   beast::flat_buffer buffer_;
   std::string write_buffer_;
