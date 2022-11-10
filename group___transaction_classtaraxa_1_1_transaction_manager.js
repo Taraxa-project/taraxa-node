@@ -23,6 +23,7 @@ var group___transaction_classtaraxa_1_1_transaction_manager =
     [ "packTrxs", "group___transaction.html#aa21565b601af18b18f86f91858ec1aba", null ],
     [ "recoverNonfinalizedTransactions", "group___transaction.html#a37a2d427f8032d0bdf7dc120b356fcc7", null ],
     [ "saveTransactionsFromDagBlock", "group___transaction.html#ae1e584cde38667d050293b51af85553d", null ],
+    [ "transactionsDropped", "group___transaction.html#a9e1c50b1b2119fc0ddce1be200315aaa", null ],
     [ "updateFinalizedTransactionsStatus", "group___transaction.html#a8039ea2ebadfc5b9e21bb4b845bfc939", null ],
     [ "verifyTransaction", "group___transaction.html#af6cf507c6f362165b87ca5abd3f13dce", null ],
     [ "db_", "group___transaction.html#ad9d3ab9b5e4d2baaa4e672a15bb81dec", null ],

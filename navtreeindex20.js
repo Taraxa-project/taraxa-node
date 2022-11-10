@@ -1,5 +1,14 @@
 var NAVTREEINDEX20 =
 {
+"pbft__manager_8hpp.html#ggaa671924d435517347832c7f40f1f6cfcaac67fcdf2515b0a2fcc7747d14b52ce3":[15,0,1,4,0,0,3,1,1,0],
+"pbft__manager_8hpp.html#ggaa671924d435517347832c7f40f1f6cfcab30f0b5d1d37bed7deae36af1d8b3d14":[15,0,1,4,0,0,3,1,1,4],
+"pbft__manager_8hpp.html#ggaa671924d435517347832c7f40f1f6cfcae76bdf33130e12b48f02714bdbfee1b5":[15,0,1,4,0,0,3,1,1,1],
+"pbft__manager_8hpp_source.html":[15,0,1,4,0,0,3,1],
+"pbft__sync__packet__handler_8cpp.html":[15,0,1,4,1,3,0,0,6],
+"pbft__sync__packet__handler_8hpp.html":[15,0,1,4,1,1,0,0,0,6],
+"pbft__sync__packet__handler_8hpp_source.html":[15,0,1,4,1,1,0,0,0,6],
+"pbft__syncing__state_8cpp.html":[15,0,1,4,1,3,0,1,0],
+"pbft__syncing__state_8hpp.html":[15,0,1,4,1,1,0,0,1,0],
 "pbft__syncing__state_8hpp_source.html":[15,0,1,4,1,1,0,0,1,0],
 "peers__state_8cpp.html":[15,0,1,4,1,3,0,1,1],
 "peers__state_8hpp.html":[15,0,1,4,1,1,0,0,1,1],
@@ -240,14 +249,5 @@ var NAVTREEINDEX20 =
 "structdev_1_1p2p_1_1_e_n_r_request.html#a3d159fad406d3588fce999ab57eca0ea":[14,0,1,1,6,2],
 "structdev_1_1p2p_1_1_e_n_r_request.html#a4b2c39a87136db4a47df3dd044e2a592":[14,0,1,1,6,3],
 "structdev_1_1p2p_1_1_e_n_r_request.html#a4cfbd21568690a7d44b5b328f18e661d":[14,0,1,1,6,6],
-"structdev_1_1p2p_1_1_e_n_r_request.html#a745f2805f7c5224d13c4a3bcf2dfbc39":[14,0,1,1,6,4],
-"structdev_1_1p2p_1_1_e_n_r_request.html#a8ef3ec3f78e539f49c51c0a2f5cfa06a":[14,0,1,1,6,1],
-"structdev_1_1p2p_1_1_e_n_r_request.html#ab6d419b2199de5e7f93c6b4ce90872c4":[14,0,1,1,6,5],
-"structdev_1_1p2p_1_1_e_n_r_response.html":[14,0,1,1,7],
-"structdev_1_1p2p_1_1_e_n_r_response.html#a0e610cd22bdd8fb31d9675eafe704df1":[14,0,1,1,7,7],
-"structdev_1_1p2p_1_1_e_n_r_response.html#a1001d86d7da7d7e86c127214c3939504":[14,0,1,1,7,1],
-"structdev_1_1p2p_1_1_e_n_r_response.html#a28bc0920237296fcc94cfbbc6c37b042":[14,0,1,1,7,0],
-"structdev_1_1p2p_1_1_e_n_r_response.html#a373a02078410d60bf222c6e81210d923":[14,0,1,1,7,4],
-"structdev_1_1p2p_1_1_e_n_r_response.html#a5004a7db495c0ffecc709b7eec21ef29":[14,0,1,1,7,2],
-"structdev_1_1p2p_1_1_e_n_r_response.html#a692c90947ce33dd43490820974b9aac8":[14,0,1,1,7,6]
+"structdev_1_1p2p_1_1_e_n_r_request.html#a745f2805f7c5224d13c4a3bcf2dfbc39":[14,0,1,1,6,4]
 };

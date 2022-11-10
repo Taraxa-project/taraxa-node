@@ -1,5 +1,14 @@
 var NAVTREEINDEX16 =
 {
+"group___vote.html#a2078e19b96d7ca2d0a651d38ed69de2a":[12,4,5,15],
+"group___vote.html#a20938e045130449e05407e01f7f82f5b":[12,4,5,5],
+"group___vote.html#a255f331ea1d86c6dbd00f81c003ab3ea":[12,4,0,7],
+"group___vote.html#a25def29b02c4c9e2adcde735d8136c48":[12,4,2,32],
+"group___vote.html#a28e5eae91b656c76cbbaad73927c6c8e":[12,4,1,42],
+"group___vote.html#a2d6aa993f05aa2cbdd2558faf40e9fa4":[12,4,3,0],
+"group___vote.html#a2d8c8ac3185a149796a99dff63b29c60":[12,4,1,16],
+"group___vote.html#a2d8ffd998d5b4ec5eb7e7477211d9cb8":[12,4,1,45],
+"group___vote.html#a2f609a3b7a3ea1f5adb0e026abad8246":[12,4,1,4],
 "group___vote.html#a3269ce0796ba7a4db4c1d7a1a14d38c2":[12,4,5,2],
 "group___vote.html#a335593af04d28ee24d262c401a32f8b0":[12,4,1,28],
 "group___vote.html#a352f2439db5907bfb52580e2e736ba0f":[12,4,0,2],
@@ -240,14 +249,5 @@ var NAVTREEINDEX16 =
 "libdevcore_2_exceptions_8h.html#a0abd1e289895c041811e1476d306ece1":[15,0,1,0,0,12,26],
 "libdevcore_2_exceptions_8h.html#a0b68bc35f453b1ed62a9976f05cddad0":[15,0,1,0,0,12,8],
 "libdevcore_2_exceptions_8h.html#a0b8085cfa4ce4c6d2dbe50a8d2bd458a":[15,0,1,0,0,12,34],
-"libdevcore_2_exceptions_8h.html#a0ec8a6a96f1b00a388296a2b515118c4":[15,0,1,0,0,12,37],
-"libdevcore_2_exceptions_8h.html#a0fce2e8d2a40506fc15e2ce75792e580":[15,0,1,0,0,12,19],
-"libdevcore_2_exceptions_8h.html#a1bde550ecbaebfe3bc6075909cde28cf":[15,0,1,0,0,12,17],
-"libdevcore_2_exceptions_8h.html#a1c4cad491ccea98485acd91f7d80c264":[15,0,1,0,0,12,3],
-"libdevcore_2_exceptions_8h.html#a1eec65a70ee38e4e2715844253809228":[15,0,1,0,0,12,31],
-"libdevcore_2_exceptions_8h.html#a26d6030caa188d3e8d7dfe9994e11814":[15,0,1,0,0,12,12],
-"libdevcore_2_exceptions_8h.html#a284d5976ac6f74a28637a11ff0471120":[15,0,1,0,0,12,35],
-"libdevcore_2_exceptions_8h.html#a28d0d371bcd53a79ec6e025388dfaf26":[15,0,1,0,0,12,28],
-"libdevcore_2_exceptions_8h.html#a327de80dab18a48aa368ab844bc395b5":[15,0,1,0,0,12,25],
-"libdevcore_2_exceptions_8h.html#a3bc6cd2e673d17317a6f9ad877f33f23":[15,0,1,0,0,12,21]
+"libdevcore_2_exceptions_8h.html#a0ec8a6a96f1b00a388296a2b515118c4":[15,0,1,0,0,12,37]
 };

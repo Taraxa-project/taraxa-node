@@ -692,6 +692,9 @@ Collaboration diagram for taraxa::TransactionManager:</div>
 <tr class="memitem:a557720dd0574c559a4646436601f39af"><td class="memItemLeft" align="right" valign="top">std::pair&lt; std::vector&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt;, std::vector&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a557720dd0574c559a4646436601f39af">getPoolTransactions</a> (const std::vector&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt; &amp;trx_to_query) const</td></tr>
 <tr class="memdesc:a557720dd0574c559a4646436601f39af"><td class="mdescLeft">&#160;</td><td class="mdescRight">Gets transactions from transactions pool.  <a href="group___transaction.html#a557720dd0574c559a4646436601f39af">More...</a><br /></td></tr>
 <tr class="separator:a557720dd0574c559a4646436601f39af"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e1c50b1b2119fc0ddce1be200315aaa"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a9e1c50b1b2119fc0ddce1be200315aaa">transactionsDropped</a> () const</td></tr>
+<tr class="memdesc:a9e1c50b1b2119fc0ddce1be200315aaa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Have transactions been recently dropped due to queue reaching max size This call is thread-safe.  <a href="group___transaction.html#a9e1c50b1b2119fc0ddce1be200315aaa">More...</a><br /></td></tr>
+<tr class="separator:a9e1c50b1b2119fc0ddce1be200315aaa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2d3caf313f51c016ec84786eb9e16f45"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a2d3caf313f51c016ec84786eb9e16f45">getTransaction</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;hash) const</td></tr>
 <tr class="separator:a2d3caf313f51c016ec84786eb9e16f45"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3bb14b400de3fe08557ad736bb8d4939"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a3bb14b400de3fe08557ad736bb8d4939">getNonFinalizedTransaction</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;hash) const</td></tr>
@@ -1327,6 +1330,26 @@ false </dd></dl>
 
 </div>
 </div>
+<a id="a9e1c50b1b2119fc0ddce1be200315aaa"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9e1c50b1b2119fc0ddce1be200315aaa">&#9670;&nbsp;</a></span>transactionsDropped()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool taraxa::TransactionManager::transactionsDropped </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Have transactions been recently dropped due to queue reaching max size This call is thread-safe. </p>
+<dl class="section return"><dt>Returns</dt><dd>Returns true if txs were dropped </dd></dl>
+
+</div>
+</div>
 <a id="a8039ea2ebadfc5b9e21bb4b845bfc939"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a8039ea2ebadfc5b9e21bb4b845bfc939">&#9670;&nbsp;</a></span>updateFinalizedTransactionsStatus()</h2>
 
@@ -1690,6 +1713,9 @@ Collaboration diagram for taraxa::TransactionQueue:</div>
 <tr class="separator:af2a0432eba39e9f7ca898b0d82faf390"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a75da70a3a6f464bad8fb3a520dbfd3b2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a75da70a3a6f464bad8fb3a520dbfd3b2">isTransactionKnown</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;trx_hash) const</td></tr>
 <tr class="separator:a75da70a3a6f464bad8fb3a520dbfd3b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a97b3c81228ecef80592f62c3ad528bb6"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a97b3c81228ecef80592f62c3ad528bb6">transactionsDropped</a> () const</td></tr>
+<tr class="memdesc:a97b3c81228ecef80592f62c3ad528bb6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Have transactions been recently dropped due to queue reaching max size This call is thread-safe.  <a href="group___transaction.html#a97b3c81228ecef80592f62c3ad528bb6">More...</a><br /></td></tr>
+<tr class="separator:a97b3c81228ecef80592f62c3ad528bb6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Attributes</h3></td></tr>
 <tr class="memitem:ad5ce6ffcfbe1569aaed07c45936c60d8"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>, std::map&lt; <a class="el" href="namespacetaraxa.html#aad3ca55780e79a029c6a1ccf43f66e67">val_t</a>, std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#ad5ce6ffcfbe1569aaed07c45936c60d8">account_nonce_transactions_</a></td></tr>
 <tr class="separator:ad5ce6ffcfbe1569aaed07c45936c60d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1699,6 +1725,10 @@ Collaboration diagram for taraxa::TransactionQueue:</div>
 <tr class="separator:a25bb53f8bb74f9d2619667c5b9701f7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a29d5993a87536850600f144c4b2206a4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a29d5993a87536850600f144c4b2206a4">known_txs_</a></td></tr>
 <tr class="separator:a29d5993a87536850600f144c4b2206a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b25b8fff8d69dc48c82acc6a7c0015d"><td class="memItemLeft" align="right" valign="top">std::chrono::system_clock::time_point&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a1b25b8fff8d69dc48c82acc6a7c0015d">transaction_overflow_time_</a></td></tr>
+<tr class="separator:a1b25b8fff8d69dc48c82acc6a7c0015d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a969d168f23a648fe477f5709f86b2279"><td class="memItemLeft" align="right" valign="top">const std::chrono::seconds&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a969d168f23a648fe477f5709f86b2279">kTransactionOverflowTimeLimit</a> {300}</td></tr>
+<tr class="separator:a969d168f23a648fe477f5709f86b2279"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a47a93f25cc92d16f1cf91a29ef0d39fa"><td class="memItemLeft" align="right" valign="top">const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a47a93f25cc92d16f1cf91a29ef0d39fa">kNonProposableTransactionsPeriodExpiryLimit</a> = 10</td></tr>
 <tr class="separator:a47a93f25cc92d16f1cf91a29ef0d39fa"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9e21e9d0a1092268ad012a590ae9697b"><td class="memItemLeft" align="right" valign="top">const size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#a9e21e9d0a1092268ad012a590ae9697b">kNonProposableTransactionsLimit</a> = 1000</td></tr>
@@ -2001,6 +2031,34 @@ false </dd></dl>
 
 </div>
 </div>
+<a id="a97b3c81228ecef80592f62c3ad528bb6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a97b3c81228ecef80592f62c3ad528bb6">&#9670;&nbsp;</a></span>transactionsDropped()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool taraxa::TransactionQueue::transactionsDropped </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Have transactions been recently dropped due to queue reaching max size This call is thread-safe. </p>
+<dl class="section return"><dt>Returns</dt><dd>Returns true if txs were dropped </dd></dl>
+
+</div>
+</div>
 <h4 class="groupheader">Member Data Documentation</h4>
 <a id="ad5ce6ffcfbe1569aaed07c45936c60d8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad5ce6ffcfbe1569aaed07c45936c60d8">&#9670;&nbsp;</a></span>account_nonce_transactions_</h2>
@@ -2112,6 +2170,28 @@ false </dd></dl>
 
 </div>
 </div>
+<a id="a969d168f23a648fe477f5709f86b2279"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a969d168f23a648fe477f5709f86b2279">&#9670;&nbsp;</a></span>kTransactionOverflowTimeLimit</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const std::chrono::seconds taraxa::TransactionQueue::kTransactionOverflowTimeLimit {300}</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a25bb53f8bb74f9d2619667c5b9701f7c"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a25bb53f8bb74f9d2619667c5b9701f7c">&#9670;&nbsp;</a></span>non_proposable_transactions_</h2>
 
@@ -2145,6 +2225,28 @@ false </dd></dl>
       <table class="memname">
         <tr>
           <td class="memname">std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a>&gt; &gt; taraxa::TransactionQueue::queue_transactions_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1b25b8fff8d69dc48c82acc6a7c0015d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1b25b8fff8d69dc48c82acc6a7c0015d">&#9670;&nbsp;</a></span>transaction_overflow_time_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::chrono::system_clock::time_point taraxa::TransactionQueue::transaction_overflow_time_</td>
         </tr>
       </table>
   </td>
