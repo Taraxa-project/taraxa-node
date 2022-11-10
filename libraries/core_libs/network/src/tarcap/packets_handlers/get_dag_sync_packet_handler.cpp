@@ -23,16 +23,13 @@ void GetDagSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_d
 
 void GetDagSyncPacketHandler::process(const PacketData &packet_data,
                                       [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
-  if (peer->peer_requested_dag_syncing_) {
-    // If transaction pool is full we need to send missing transactions back to peer
-    if (!trx_mgr_->isTransactionPoolFull(50)) {
-      // This should not be possible for honest node
-      // Each node should perform dag syncing only once
-      std::ostringstream err_msg;
-      err_msg << "Received multiple GetDagSyncPackets from " << packet_data.from_node_id_.abridged();
+  if (!peer->requestDagSyncingAllowed()) {
+    // This should not be possible for honest node
+    // Each node should perform dag syncing only when allowed
+    std::ostringstream err_msg;
+    err_msg << "Received multiple GetDagSyncPackets from " << packet_data.from_node_id_.abridged();
 
-      throw MaliciousPeerException(err_msg.str());
-    }
+    throw MaliciousPeerException(err_msg.str());
   }
 
   // This lock prevents race condition between syncing and gossiping dag blocks
@@ -55,6 +52,8 @@ void GetDagSyncPacketHandler::process(const PacketData &packet_data,
   if (peer_period == period) {
     peer->syncing_ = false;
     peer->peer_requested_dag_syncing_ = true;
+    peer->peer_requested_dag_syncing_time_ =
+        std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
   } else {
     // There is no point in sending blocks if periods do not match, but an empty packet should be sent
     blocks.clear();

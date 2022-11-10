@@ -83,6 +83,30 @@ class TaraxaPeer : public boost::noncopyable {
     return suspicious_packet_count_ > kMaxSuspiciousPacketPerMinute;
   }
 
+  /**
+   * @brief Check if it is allowed to send dag syncing request
+   *
+   * @return true if allowed
+   */
+  bool dagSyncingAllowed() {
+    return !peer_dag_synced_ ||
+           (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())
+                .count() -
+            peer_dag_synced_time_) > kDagSyncingLimit;
+  }
+
+  /**
+   * @brief Check if it is allowed to receive dag syncing request
+   *
+   * @return true if allowed
+   */
+  bool requestDagSyncingAllowed() {
+    return !peer_requested_dag_syncing_ ||
+           (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())
+                .count() -
+            peer_requested_dag_syncing_time_) > kDagSyncingLimit;
+  }
+
   std::atomic<bool> syncing_ = false;
   std::atomic<uint64_t> dag_level_ = 0;
   std::atomic<PbftPeriod> pbft_chain_size_ = 0;
@@ -91,8 +115,10 @@ class TaraxaPeer : public boost::noncopyable {
   std::atomic<size_t> pbft_previous_round_next_votes_size_ = 0;
   std::atomic<PbftPeriod> last_status_pbft_chain_size_ = 0;
   std::atomic_bool peer_dag_synced_ = false;
+  std::atomic_uint64_t peer_dag_synced_time_ = 0;
   std::atomic_bool peer_dag_syncing_ = false;
   std::atomic_bool peer_requested_dag_syncing_ = false;
+  std::atomic_uint64_t peer_requested_dag_syncing_time_ = 0;
   std::atomic_bool peer_light_node = false;
   std::atomic<PbftPeriod> peer_light_node_history = 0;
 
@@ -111,6 +137,9 @@ class TaraxaPeer : public boost::noncopyable {
   std::atomic<uint64_t> timestamp_suspicious_packet_ = 0;
   std::atomic<uint64_t> suspicious_packet_count_ = 0;
   const uint64_t kMaxSuspiciousPacketPerMinute = 1000;
+
+  // Performance extensive dag syncing is only allowed to be requested once each kDagSyncingLimit seconds
+  const uint64_t kDagSyncingLimit = 300;
 };
 
 }  // namespace taraxa::network::tarcap

@@ -134,6 +134,7 @@ bool TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction, const 
         auto ordered_transactions = getOrderedTransactions(queue_size);
         uint32_t counter = 0;
         for (auto it = ordered_transactions.rbegin(); it != ordered_transactions.rend(); it++) {
+          transaction_overflow_time_ = std::chrono::system_clock::now();
           erase((*it)->getHash());
           known_txs_.erase((*it)->getHash());
           counter++;

@@ -110,15 +110,27 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shar
         throw MaliciousPeerException(err_msg.str());
       }
       case DagManager::VerifyBlockReturnType::MissingTransaction:
-        if (trx_mgr_->isTransactionPoolFull(50)) [[unlikely]] {
-          LOG(log_wr_) << "NewBlock " << block_hash.toString() << " from peer " << peer->getId()
-                       << " is missing transaction, but our pool is full so we are requesting it again";
+        if (peer->dagSyncingAllowed()) {
+          if (trx_mgr_->transactionsDropped()) [[unlikely]] {
+            LOG(log_nf_) << "NewBlock " << block_hash.toString() << " from peer " << peer->getId()
+                         << " is missing transaction, our pool recently dropped transactions, requesting dag sync";
+          } else {
+            LOG(log_wr_) << "NewBlock " << block_hash.toString() << " from peer " << peer->getId()
+                         << " is missing transaction, requesting dag sync";
+          }
           peer->peer_dag_synced_ = false;
           requestPendingDagBlocks(peer);
-        } else if (peer->peer_dag_synced_) {
-          std::ostringstream err_msg;
-          err_msg << "DagBlock" << block_hash << " is missing a transaction while in a dag synced state";
-          throw MaliciousPeerException(err_msg.str());
+        } else {
+          if (trx_mgr_->transactionsDropped()) [[unlikely]] {
+            // Disconnecting since anything after will also contain missing pivot/tips ...
+            LOG(log_nf_) << "NewBlock " << block_hash.toString() << " from peer " << peer->getId()
+                         << " is missing transaction, but our pool recently dropped transactions, disconnecting";
+            disconnect(peer->getId(), dev::p2p::UserReason);
+          } else {
+            std::ostringstream err_msg;
+            err_msg << "DagBlock" << block_hash << " is missing a transaction while in a dag synced state";
+            throw MaliciousPeerException(err_msg.str());
+          }
         }
         break;
       case DagManager::VerifyBlockReturnType::AheadBlock:
