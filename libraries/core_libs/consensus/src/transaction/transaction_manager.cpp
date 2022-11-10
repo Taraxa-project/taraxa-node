@@ -71,7 +71,7 @@ std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
   const auto account = final_chain_->get_account(trx->getSender()).value_or(taraxa::state_api::ZeroAccount);
 
   // Ensure the transaction adheres to nonce ordering
-  if (account.nonce >= trx->getNonce()) {
+  if (account.nonce > trx->getNonce()) {
     return {TransactionStatus::LowNonce, "nonce too low"};
   }
 
@@ -100,7 +100,7 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const std::sh
 
   auto transaction = trx;
   if (insertValidatedTransaction(std::move(transaction), status)) {
-    return {true, "Can not insert transactions"};
+    return {true, ""};
   } else {
     const auto period = db_->getTransactionPeriod(trx->getHash());
     if (period != std::nullopt) {

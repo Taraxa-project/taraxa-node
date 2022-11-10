@@ -251,7 +251,7 @@ class EthImpl : public Eth, EthParams {
   }
 
   trx_nonce_t transaction_count(EthBlockNumber n, Address const& addr) {
-    return final_chain->get_account(addr, n).value_or(ZeroAccount).nonce + 1;
+    return final_chain->get_account(addr, n).value_or(ZeroAccount).nonce;
   }
 
   state_api::ExecutionResult call(EthBlockNumber blk_n, TransactionSkeleton const& trx) {
