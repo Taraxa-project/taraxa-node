@@ -1500,6 +1500,7 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(PbftRound round, Pb
     leader_candidates[getProposal(v)] = v;
   }
 
+  std::shared_ptr<PbftBlock> empty_leader_block;
   for (auto const &leader_vote : leader_candidates) {
     const auto proposed_block_hash = leader_vote.second->getBlockHash();
 
@@ -1514,11 +1515,15 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(PbftRound round, Pb
       continue;
     }
 
+    if (leader_block->getPivotDagBlockHash() == NULL_BLOCK_HASH && empty_leader_block == nullptr) {
+      empty_leader_block = leader_block;
+      continue;
+    }
     return leader_block;
   }
 
   // no eligible leader
-  return nullptr;
+  return empty_leader_block;
 }
 
 bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block) const {
