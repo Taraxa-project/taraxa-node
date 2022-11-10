@@ -73,6 +73,8 @@ void WsSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
 void WsSession::on_write_no_read(beast::error_code ec, std::size_t bytes_transferred) {
   LOG(log_tr_) << "WS ASYNC WRITE COMPLETE"
                << " " << &ws_;
+  // Pop on successful write
+  queue_messages_.pop();
   if (is_closed()) return;
 
   // For any error close the connection
@@ -83,8 +85,7 @@ void WsSession::on_write_no_read(beast::error_code ec, std::size_t bytes_transfe
 
   boost::ignore_unused(bytes_transferred);
   if (queue_messages_.size() > 0) {
-    write(std::move(queue_messages_.front()));
-    queue_messages_.pop();
+    write();
   }
 }
 
@@ -107,21 +108,21 @@ void WsSession::newEthBlock(::taraxa::final_chain::BlockHeader const &payload) {
   }
 }
 
-void WsSession::write(std::string &&message) {
-  write_buffer_ = message;
+void WsSession::write() {
+  write_buffer_ = std::move(queue_messages_.front());
   ws_.text(true);  // as we are using text msg here
-  LOG(log_tr_) << "WS ASYNC WRITE " << message.c_str() << " " << &ws_;
+  LOG(log_tr_) << "WS ASYNC WRITE " << write_buffer_.c_str() << " " << &ws_;
   ws_.async_write(boost::asio::buffer(write_buffer_),
                   beast::bind_front_handler(&WsSession::on_write_no_read, shared_from_this()));
 }
 
 void WsSession::writeImpl(std::string &&message) {
+  queue_messages_.push(std::move(message));
   if (queue_messages_.size() > 1) {
     // outstanding async_write
-    queue_messages_.push(std::move(message));
     return;
   }
-  write(std::move(message));
+  write();
 }
 
 void WsSession::newDagBlock(DagBlock const &blk) {

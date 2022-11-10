@@ -60,7 +60,7 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
 
  protected:
   void writeImpl(std::string&& message);
-  void write(std::string&& message);
+  void write();
   std::queue<std::string> queue_messages_;
   websocket::stream<beast::tcp_stream> ws_;
   beast::flat_buffer buffer_;
