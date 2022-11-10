@@ -45,6 +45,11 @@ void NodeStats::logNodeStats() {
   const size_t peers_size = peers_state_->getPeersCount();
   std::string connected_peers_str{""};
 
+  size_t number_of_discov_peers = 0;
+  if (const auto host = peers_state_->host_.lock()) {
+    number_of_discov_peers = host->getNodeCount();
+  }
+
   for (auto const &peer : peers_state_->getAllPeers()) {
     // Find max pbft chain size
     if (peer.second->pbft_chain_size_ > peer_max_pbft_chain_size) {
@@ -124,6 +129,7 @@ void NodeStats::logNodeStats() {
                << " dag levels)";
 
   LOG(log_nf_) << "Connected to " << peers_size << " peers: [ " << connected_peers_str << "]";
+  LOG(log_nf_) << "Number of discovered peers: " << number_of_discov_peers;
 
   if (is_pbft_syncing) {
     // Syncing...
