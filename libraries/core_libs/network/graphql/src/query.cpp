@@ -113,7 +113,10 @@ std::shared_ptr<object::DagBlock> Query::getDagBlock(std::optional<response::Val
   std::shared_ptr<::taraxa::DagBlock> taraxa_dag_block = nullptr;
 
   if (hashArg) {
-    taraxa_dag_block = dag_manager_->getDagBlock(::taraxa::blk_hash_t(hashArg->get<response::StringType>()));
+    if (const auto hash = ::taraxa::blk_hash_t(hashArg->get<response::StringType>());
+        hash != ::taraxa::kNullBlockHash) {
+      taraxa_dag_block = dag_manager_->getDagBlock(hash);
+    }
   } else {
     auto dag_blocks = db_->getDagBlocksAtLevel(dag_manager_->getMaxLevel(), 1);
 

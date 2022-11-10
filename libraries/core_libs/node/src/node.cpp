@@ -8,6 +8,7 @@
 #include <chrono>
 #include <stdexcept>
 
+#include "common/constants.hpp"
 #include "dag/block_proposer.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block.hpp"
@@ -192,7 +193,9 @@ void FullNode::start() {
             _ws->newEthBlock(*res->final_chain_blk);
             if (auto _db = db.lock()) {
               auto pbft_blk = _db->getPbftBlock(res->hash);
-              _ws->newDagBlockFinalized(pbft_blk->getPivotDagBlockHash(), pbft_blk->getPeriod());
+              if (const auto &hash = pbft_blk->getPivotDagBlockHash(); hash != kNullBlockHash) {
+                _ws->newDagBlockFinalized(hash, pbft_blk->getPeriod());
+              }
               _ws->newPbftBlockExecuted(*pbft_blk, res->dag_blk_hashes);
             }
           }
