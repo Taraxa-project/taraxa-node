@@ -1,5 +1,6 @@
 var NAVTREEINDEX12 =
 {
+"dir_09afb69cf3f50004f558d1b5bd58d008.html":[15,0,1,2,0],
 "dir_09dd6a089b30e1a573a85a200966bea6.html":[15,0,1,4,0,1,5],
 "dir_0ae317e4801725dded36efefc6dc4f8a.html":[15,0,1,6,1,1],
 "dir_0ee91262d8ec7dcba86dfcc3f95ef4d0.html":[15,0,1,4,0,1,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX12 =
 "get__pbft__sync__packet__handler_8hpp.html":[15,0,1,4,1,1,0,0,0,4],
 "get__pbft__sync__packet__handler_8hpp_source.html":[15,0,1,4,1,1,0,0,0,4],
 "get__votes__sync__packet__handler_8cpp.html":[15,0,1,4,1,3,0,0,5],
-"get__votes__sync__packet__handler_8hpp.html":[15,0,1,4,1,1,0,0,0,5],
-"get__votes__sync__packet__handler_8hpp_source.html":[15,0,1,4,1,1,0,0,0,5]
+"get__votes__sync__packet__handler_8hpp.html":[15,0,1,4,1,1,0,0,0,5]
 };

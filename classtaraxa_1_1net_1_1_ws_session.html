@@ -109,8 +109,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:affee269e7b9e5a39d328a181fc3eb997"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af2f566ba5cf0a3ded131a8c93742c332"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#af2f566ba5cf0a3ded131a8c93742c332">run</a> ()</td></tr>
 <tr class="separator:af2f566ba5cf0a3ded131a8c93742c332"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9237cc337dff3687abde587f992529ff"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a9237cc337dff3687abde587f992529ff">close</a> ()</td></tr>
-<tr class="separator:a9237cc337dff3687abde587f992529ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a955653b45ce6279ae2bcab5b0046d73d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a955653b45ce6279ae2bcab5b0046d73d">close</a> (bool normal=true)</td></tr>
+<tr class="separator:a955653b45ce6279ae2bcab5b0046d73d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae4b9cf496dddd2135d1c8f4584170421"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#ae4b9cf496dddd2135d1c8f4584170421">on_accept</a> (beast::error_code ec)</td></tr>
 <tr class="separator:ae4b9cf496dddd2135d1c8f4584170421"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a72434d357dad6f1b9446f46110afe6bf"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a72434d357dad6f1b9446f46110afe6bf">do_read</a> ()</td></tr>
@@ -131,20 +131,22 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ade2a9505b2928baac661fede47833433"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1aeea5ac874e5a459d3acb9cc9805024"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a1aeea5ac874e5a459d3acb9cc9805024">newPendingTransaction</a> (<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> const &amp;trx_hash)</td></tr>
 <tr class="separator:a1aeea5ac874e5a459d3acb9cc9805024"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a57ca51109cac4bbe04bad70e197ef5f7"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a57ca51109cac4bbe04bad70e197ef5f7">is_closed</a> ()</td></tr>
-<tr class="separator:a57ca51109cac4bbe04bad70e197ef5f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5621bdc44b6ed090bc4c8e19c7042837"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a5621bdc44b6ed090bc4c8e19c7042837">is_closed</a> () const</td></tr>
+<tr class="separator:a5621bdc44b6ed090bc4c8e19c7042837"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0ac5a482061fe062756b2fc12f710a4e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a0ac5a482061fe062756b2fc12f710a4e">is_normal</a> (const beast::error_code &amp;ec) const</td></tr>
+<tr class="separator:a0ac5a482061fe062756b2fc12f710a4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
-<tr class="memitem:a66145ace5d77ce4df430969210ab99eb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a66145ace5d77ce4df430969210ab99eb">writeImpl</a> (const std::string &amp;message)</td></tr>
-<tr class="separator:a66145ace5d77ce4df430969210ab99eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a27bde24965f8429049944c8853ed5fd5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a27bde24965f8429049944c8853ed5fd5">write</a> (const std::string &amp;message)</td></tr>
-<tr class="separator:a27bde24965f8429049944c8853ed5fd5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a855fdd14c23599064d85994039e4ada9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a855fdd14c23599064d85994039e4ada9">writeImpl</a> (std::string &amp;&amp;message)</td></tr>
+<tr class="separator:a855fdd14c23599064d85994039e4ada9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a214d65d28b9468b01995f79cb4e2d957"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a214d65d28b9468b01995f79cb4e2d957">write</a> ()</td></tr>
+<tr class="separator:a214d65d28b9468b01995f79cb4e2d957"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
-<tr class="memitem:ace13979f5f99db8816cadfcfcf5c774f"><td class="memItemLeft" align="right" valign="top">std::deque&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#ace13979f5f99db8816cadfcfcf5c774f">queue_messages_</a></td></tr>
-<tr class="separator:ace13979f5f99db8816cadfcfcf5c774f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a745bc2e39198aaacb51eddd7b9340f34"><td class="memItemLeft" align="right" valign="top">std::queue&lt; std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a745bc2e39198aaacb51eddd7b9340f34">queue_messages_</a></td></tr>
+<tr class="separator:a745bc2e39198aaacb51eddd7b9340f34"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4ac54513fb8ab785257e0b9036d24586"><td class="memItemLeft" align="right" valign="top">websocket::stream&lt; beast::tcp_stream &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a4ac54513fb8ab785257e0b9036d24586">ws_</a></td></tr>
 <tr class="separator:a4ac54513fb8ab785257e0b9036d24586"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac146bb8339a9c34f6eb3c21a1dcea299"><td class="memItemLeft" align="right" valign="top">beast::flat_buffer&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#ac146bb8339a9c34f6eb3c21a1dcea299">buffer_</a></td></tr>
@@ -212,8 +214,8 @@ Protected Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a9237cc337dff3687abde587f992529ff"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9237cc337dff3687abde587f992529ff">&#9670;&nbsp;</a></span>close()</h2>
+<a id="a955653b45ce6279ae2bcab5b0046d73d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a955653b45ce6279ae2bcab5b0046d73d">&#9670;&nbsp;</a></span>close()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -221,7 +223,8 @@ Protected Attributes</h2></td></tr>
         <tr>
           <td class="memname">void taraxa::net::WsSession::close </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>normal</em> = <code>true</code></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -246,8 +249,8 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a57ca51109cac4bbe04bad70e197ef5f7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a57ca51109cac4bbe04bad70e197ef5f7">&#9670;&nbsp;</a></span>is_closed()</h2>
+<a id="a5621bdc44b6ed090bc4c8e19c7042837"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5621bdc44b6ed090bc4c8e19c7042837">&#9670;&nbsp;</a></span>is_closed()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -259,7 +262,7 @@ Protected Attributes</h2></td></tr>
           <td class="memname">bool taraxa::net::WsSession::is_closed </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td></td>
+          <td> const</td>
         </tr>
       </table>
   </td>
@@ -267,6 +270,24 @@ Protected Attributes</h2></td></tr>
 <span class="mlabels"><span class="mlabel">inline</span></span>  </td>
   </tr>
 </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0ac5a482061fe062756b2fc12f710a4e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0ac5a482061fe062756b2fc12f710a4e">&#9670;&nbsp;</a></span>is_normal()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool taraxa::net::WsSession::is_normal </td>
+          <td>(</td>
+          <td class="paramtype">const beast::error_code &amp;&#160;</td>
+          <td class="paramname"><em>ec</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
 </div><div class="memdoc">
 
 </div>
@@ -490,8 +511,8 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a27bde24965f8429049944c8853ed5fd5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a27bde24965f8429049944c8853ed5fd5">&#9670;&nbsp;</a></span>write()</h2>
+<a id="a214d65d28b9468b01995f79cb4e2d957"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a214d65d28b9468b01995f79cb4e2d957">&#9670;&nbsp;</a></span>write()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -502,8 +523,7 @@ Protected Attributes</h2></td></tr>
         <tr>
           <td class="memname">void taraxa::net::WsSession::write </td>
           <td>(</td>
-          <td class="paramtype">const std::string &amp;&#160;</td>
-          <td class="paramname"><em>message</em></td><td>)</td>
+          <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -516,8 +536,8 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a66145ace5d77ce4df430969210ab99eb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a66145ace5d77ce4df430969210ab99eb">&#9670;&nbsp;</a></span>writeImpl()</h2>
+<a id="a855fdd14c23599064d85994039e4ada9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a855fdd14c23599064d85994039e4ada9">&#9670;&nbsp;</a></span>writeImpl()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -528,7 +548,7 @@ Protected Attributes</h2></td></tr>
         <tr>
           <td class="memname">void taraxa::net::WsSession::writeImpl </td>
           <td>(</td>
-          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramtype">std::string &amp;&amp;&#160;</td>
           <td class="paramname"><em>message</em></td><td>)</td>
           <td></td>
         </tr>
@@ -697,8 +717,8 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="ace13979f5f99db8816cadfcfcf5c774f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ace13979f5f99db8816cadfcfcf5c774f">&#9670;&nbsp;</a></span>queue_messages_</h2>
+<a id="a745bc2e39198aaacb51eddd7b9340f34"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a745bc2e39198aaacb51eddd7b9340f34">&#9670;&nbsp;</a></span>queue_messages_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -707,7 +727,7 @@ Protected Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::deque&lt;std::string&gt; taraxa::net::WsSession::queue_messages_</td>
+          <td class="memname">std::queue&lt;std::string&gt; taraxa::net::WsSession::queue_messages_</td>
         </tr>
       </table>
   </td>

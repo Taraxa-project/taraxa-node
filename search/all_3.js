@@ -107,7 +107,7 @@ var searchData=
   ['clientquit_309',['ClientQuit',['../namespacedev_1_1p2p.html#ab97a033c9bbe0fb22e2b4f093593f276a9ba229099ac02e85a42e45ce321d87ce',1,'dev::p2p']]],
   ['clientversion_310',['clientVersion',['../namespacedev_1_1p2p.html#a13a222f19e9973a5cbd3085955ba2e51',1,'dev::p2p::PeerSessionInfo']]],
   ['clog_311',['clog',['../_log_8h.html#a7ddacfef5f8ebc130dad55bf1a579177',1,'Log.h']]],
-  ['close_312',['close',['../classdev_1_1p2p_1_1_r_l_p_x_socket.html#a508cb1cf6247c562b065b8fba910e455',1,'dev::p2p::RLPXSocket::close()'],['../classtaraxa_1_1net_1_1_ws_session.html#a9237cc337dff3687abde587f992529ff',1,'taraxa::net::WsSession::close()'],['../classtaraxa_1_1_full_node.html#a2c03d09773ffe43be703a1118e2e58e8',1,'taraxa::FullNode::close()']]],
+  ['close_312',['close',['../classdev_1_1p2p_1_1_r_l_p_x_socket.html#a508cb1cf6247c562b065b8fba910e455',1,'dev::p2p::RLPXSocket::close()'],['../classtaraxa_1_1net_1_1_ws_session.html#a955653b45ce6279ae2bcab5b0046d73d',1,'taraxa::net::WsSession::close()'],['../classtaraxa_1_1_full_node.html#a2c03d09773ffe43be703a1118e2e58e8',1,'taraxa::FullNode::close()']]],
   ['closed_5f_313',['closed_',['../classtaraxa_1_1net_1_1_ws_session.html#a610cdf6736bacbe9a0997d1496d70685',1,'taraxa::net::WsSession']]],
   ['cnetdetails_314',['cnetdetails',['../libp2p_2_common_8h.html#acf8a99e82c7f19f577df3ef7a0ead94b',1,'Common.h']]],
   ['cnetlog_315',['cnetlog',['../libp2p_2_common_8h.html#a18279f287548e238f7c79b8a3fc7b149',1,'Common.h']]],

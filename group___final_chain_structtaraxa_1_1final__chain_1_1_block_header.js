@@ -6,7 +6,6 @@ var group___final_chain_structtaraxa_1_1final__chain_1_1_block_header =
     [ "nonce", "group___final_chain.html#a39e0181dc461b55c6a329146170d0760", null ],
     [ "uncles_hash", "group___final_chain.html#a6a5d6a5e6a93b99e15cacd49fd76b546", null ],
     [ "author", "group___final_chain.html#ab5a06871a68dbf272adee45dfe15e985", null ],
-    [ "ethereum_rlp_size", "group___final_chain.html#affff8273ee52011a364f276b8d83921c", null ],
     [ "extra_data", "group___final_chain.html#a7a31c3f1a5eb98a23e37b51b783e2466", null ],
     [ "gas_limit", "group___final_chain.html#ad038301b98381c50d7ca2a09609e1506", null ],
     [ "gas_used", "group___final_chain.html#adb132d664d6d9c27c0968ca4f5f5caab", null ],
