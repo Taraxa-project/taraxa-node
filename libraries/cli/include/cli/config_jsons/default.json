@@ -255,7 +255,7 @@
       "computation_interval": 50,
       "vrf": {
         "threshold_upper": "0xafff",
-        "threshold_range": 80
+        "threshold_range": 95
       },
       "vdf": {
         "difficulty_max": 21,
