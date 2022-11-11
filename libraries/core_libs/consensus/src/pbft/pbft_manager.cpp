@@ -355,7 +355,7 @@ bool PbftManager::tryPushCertVotesBlock() {
     return false;
   }
 
-  LOG(log_dg_) << "Found enough cert votes for PBFT block " << certified_block->voted_block_hash << ", period "
+  LOG(log_nf_) << "Found enough cert votes for PBFT block " << certified_block->voted_block_hash << ", period "
                << current_pbft_period << ", round " << current_pbft_round;
 
   auto pbft_block =
@@ -386,7 +386,7 @@ bool PbftManager::advancePeriod() {
   // Cleanup previous round next votes in next votes manager
   next_votes_manager_->clearVotes();
 
-  LOG(log_nf_) << "Period advanced to: " << new_period << ", round reset to 1";
+  LOG(log_nf_) << "Period advanced to: " << new_period << ", round and step reset to 1";
 
   // Restart while loop...
   return true;
@@ -422,15 +422,14 @@ bool PbftManager::advanceRound() {
   // Cleanup previous round next votes & set new previous round 2t+1 next votes in next vote manager
   next_votes_manager_->updateNextVotes(determined_round_with_votes->second, *two_t_plus_one);
 
-  LOG(log_nf_) << "Round advanced to: " << determined_round_with_votes->first << ", period " << current_pbft_period;
+  LOG(log_nf_) << "Round advanced to: " << determined_round_with_votes->first << ", period " << current_pbft_period << ", step " << step_;
 
   // Restart while loop...
   return true;
 }
 
 void PbftManager::resetPbftConsensus(PbftRound round) {
-  LOG(log_dg_) << "Reset PBFT consensus to: period " << getPbftPeriod() << ", round " << round
-               << ", step 1, and resetting clock.";
+  LOG(log_dg_) << "Reset PBFT consensus to: period " << getPbftPeriod() << ", round " << round << ", step 1";
 
   // Reset broadcast counters
   broadcast_votes_counter_ = 1;
@@ -845,16 +844,17 @@ void PbftManager::checkPreviousRoundNextVotedValueChange_() {
 bool PbftManager::placeVote(const std::shared_ptr<Vote> &vote, std::string_view log_vote_id,
                             const std::shared_ptr<PbftBlock> &voted_block) {
   if (!vote_mgr_->addVerifiedVote(vote)) {
-    LOG(log_er_) << "Unable to place vote " << vote->getHash().abridged();
+    LOG(log_er_) << "Unable to place vote " << vote->getHash() << " for block " << vote->getBlockHash()
+                 << ", period " << vote->getPeriod() << ", round " << vote->getRound() << ", step " << vote->getStep();
     return false;
   }
   db_->saveVerifiedVote(vote);
 
   gossipNewVote(vote, voted_block);
 
-  LOG(log_nf_) << "Placed " << log_vote_id << " " << vote->getHash() << " for " << vote->getBlockHash()
-               << ", vote weight " << *vote->getWeight() << ", round " << vote->getRound() << ", period "
-               << vote->getPeriod() << ", step " << vote->getStep();
+  LOG(log_nf_) << "Placed " << log_vote_id << " " << vote->getHash() << " for block " << vote->getBlockHash()
+               << ", vote weight " << *vote->getWeight() << ", period " << vote->getPeriod()
+               << ", round " << vote->getRound() << ", step " << vote->getStep();
 
   return true;
 }
@@ -883,10 +883,6 @@ bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &propo
 
   proposed_blocks_.pushProposedPbftBlock(proposed_block, propose_vote);
   vote_mgr_->sendRewardVotes(proposed_block->getPrevBlockHash());
-
-  LOG(log_nf_) << "Placed propose vote " << propose_vote->getHash() << " for proposed block "
-               << proposed_block->getBlockHash() << ", vote weight " << *propose_vote->getWeight() << ", period "
-               << current_pbft_period << ", round " << current_pbft_round << ", step " << current_pbft_step;
 
   return true;
 }
@@ -1442,11 +1438,11 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
   }
 
   auto order_hash = calculateOrderHash(dag_block_order);
-  auto pbft_block_hash = generatePbftBlock(current_pbft_period, last_pbft_block_hash, dag_block_hash, order_hash);
-  LOG(log_nf_) << "Proposed Pbft block: " << pbft_block_hash << ". Order hash:" << order_hash
+  auto pbft_block = generatePbftBlock(current_pbft_period, last_pbft_block_hash, dag_block_hash, order_hash);
+  LOG(log_nf_) << "Proposed PBFT block: " << pbft_block->getBlockHash() << ". Order hash:" << order_hash
                << ". DAG order for proposed block" << dag_block_order;
 
-  return pbft_block_hash;
+  return pbft_block;
 }
 
 h256 PbftManager::getProposal(const std::shared_ptr<Vote> &vote) const {
@@ -1628,26 +1624,28 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(const std::shared_ptr<PbftBlo
 }
 
 void PbftManager::pushSyncedPbftBlocksIntoChain() {
-  if (auto net = network_.lock()) {
-    auto round = getPbftRound();
-    sync_queue_.cleanOldData(getPbftPeriod());
-    while (periodDataQueueSize() > 0) {
-      auto period_data_opt = processPeriodData();
-      if (!period_data_opt) continue;
-      auto period_data = std::move(*period_data_opt);
-      const auto period = period_data.first.pbft_blk->getPeriod();
-      auto pbft_block_hash = period_data.first.pbft_blk->getBlockHash();
-      LOG(log_nf_) << "Pick pbft block " << pbft_block_hash << " from synced queue in round " << round;
+  auto net = network_.lock();
+  if (!net) {
+    LOG(log_er_) << "Failed to obtain net !";
+    return;
+  }
 
-      if (pushPbftBlock_(std::move(period_data.first), std::move(period_data.second))) {
-        LOG(log_nf_) << node_addr_ << " push synced PBFT block " << pbft_block_hash << " in period " << period
-                     << ", round " << round;
-      } else {
-        LOG(log_si_) << "Failed push PBFT block " << pbft_block_hash << " into chain";
-        break;
-      }
+  sync_queue_.cleanOldData(getPbftPeriod());
+  while (periodDataQueueSize() > 0) {
+    auto period_data_opt = processPeriodData();
+    if (!period_data_opt) continue;
 
-      net->setSyncStatePeriod(period);
+    auto period_data = std::move(*period_data_opt);
+    const auto pbft_block_period = period_data.first.pbft_blk->getPeriod();
+    const auto pbft_block_hash = period_data.first.pbft_blk->getBlockHash();
+    LOG(log_nf_) << "Picked sync block " << pbft_block_hash << " with period " << pbft_block_period;
+
+    if (pushPbftBlock_(std::move(period_data.first), std::move(period_data.second))) {
+      LOG(log_dg_) << "Pushed synced PBFT block " << pbft_block_hash << " with period " << pbft_block_period;
+      net->setSyncStatePeriod(pbft_block_period);
+    } else {
+      LOG(log_er_) << "Failed push PBFT block " << pbft_block_hash << " with period " << pbft_block_period;
+      break;
     }
   }
 }
@@ -1757,8 +1755,7 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
 
   auto batch = db_->createWriteBatch();
 
-  LOG(log_nf_) << "Storing cert votes of pbft blk " << pbft_block_hash;
-  LOG(log_dg_) << "Stored following cert votes:\n" << cert_votes;
+  LOG(log_dg_) << "Storing pbft blk " << pbft_block_hash << " cert votes: " << cert_votes;
   // Update PBFT chain head block
   db_->addPbftHeadToBatch(pbft_chain_->getHeadHash(), pbft_chain_->getJsonStrForBlock(pbft_block_hash, null_anchor),
                           batch);
@@ -1820,7 +1817,7 @@ PbftPeriod PbftManager::pbftSyncingPeriod() const {
 std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftManager::processPeriodData() {
   auto [period_data, cert_votes, node_id] = sync_queue_.pop();
   auto pbft_block_hash = period_data.pbft_blk->getBlockHash();
-  LOG(log_nf_) << "Pop pbft block " << pbft_block_hash << " from synced queue";
+  LOG(log_dg_) << "Pop pbft block " << pbft_block_hash << " from synced queue";
 
   if (pbft_chain_->findPbftBlockInChain(pbft_block_hash)) {
     LOG(log_dg_) << "PBFT block " << pbft_block_hash << " already present in chain.";
