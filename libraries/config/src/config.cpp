@@ -265,11 +265,12 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
 
   is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, false);
   if (is_light_node) {
-    uint64_t min_light_node_history =
-        (uint64_t)kDefaultLightNodeHistoryDays * 24 * 60 * 60000 / (chain.pbft.lambda_ms_min * 6);
+    const auto min_light_node_history =
+        (chain.final_chain.state.dpos.blocks_per_year * kDefaultLightNodeHistoryDays) / 365;
     light_node_history = getConfigDataAsUInt(root, {"light_node_history"}, true, min_light_node_history);
     if (light_node_history < min_light_node_history) {
-      light_node_history = min_light_node_history;
+      throw ConfigException("Min. required light node history is " + std::to_string(min_light_node_history) +
+                            " blocks (" + std::to_string(kDefaultLightNodeHistoryDays) + " days)");
     }
   }
 
@@ -359,15 +360,17 @@ void FullNodeConfig::validate() const {
   if (rpc) {
     rpc->validate();
   }
+
   if (network.vote_accepting_periods > chain.final_chain.state.dpos.delegation_delay) {
-    throw ConfigException(std::string(
-        "network.vote_accepting_periods(" + std::to_string(network.vote_accepting_periods) +
-        ") must be <= DPOS.delegation_delay(" + std::to_string(chain.final_chain.state.dpos.delegation_delay) + ")"));
+    throw ConfigException("network.vote_accepting_periods(" + std::to_string(network.vote_accepting_periods) +
+                          ") must be <= DPOS.delegation_delay(" +
+                          std::to_string(chain.final_chain.state.dpos.delegation_delay) + ")");
   }
   if (transactions_pool_size < kMinTransactionPoolSize) {
-    throw ConfigException(std::string("transactions_pool_size cannot be smaller than ") +
-                          std::to_string(kMinTransactionPoolSize) + ".");
+    throw ConfigException("transactions_pool_size cannot be smaller than " + std::to_string(kMinTransactionPoolSize) +
+                          ".");
   }
+
   // TODO: add validation of other config values
 }
 
