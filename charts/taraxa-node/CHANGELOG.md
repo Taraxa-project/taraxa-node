@@ -3,7 +3,7 @@
 This file documents all notable changes to `taraxa-node` Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
-## v0.2.2
+## v0.3.0
 
 ### Major changes
 
