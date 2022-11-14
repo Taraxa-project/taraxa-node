@@ -25,7 +25,7 @@ orbs:
   git: opuscapita/git@0.0.3
   github-release: izumin5210/github-release@0.1.1
   gcp-gcr: circleci/gcp-gcr@0.13.0
-  gcp-cli: circleci/gcp-cli@1.0.0
+  gcp-cli: circleci/gcp-cli@2.4.1
   docker-cache: cci-x/docker-registry-image-cache@0.2.12
   helm-release: taraxa/helm-release@0.1.1
 
@@ -986,6 +986,11 @@ workflows:
 
   # run this workflow for all branches apart those reserved for chart
   build-docker-image:
+    when:
+      and:
+        - not: << pipeline.parameters.deploy_prnet >>
+        - not: << pipeline.parameters.redeploy_prnet >>
+        - not: << pipeline.parameters.cleanup_prnet >>
     jobs:
       - build-docker-image:
           filters:
@@ -1022,6 +1027,11 @@ workflows:
 
   # run this workflow for branches specified below
   build-helm-chart:
+    when:
+      and:
+        - not: << pipeline.parameters.deploy_prnet >>
+        - not: << pipeline.parameters.redeploy_prnet >>
+        - not: << pipeline.parameters.cleanup_prnet >>
     jobs:
       - helm-release/chart-publish:
           develop: true # means, that this is development release, no-verify and artifact -> ${HELMCHART_VERSION}-sha.${SHORT_GIT_HASH}
