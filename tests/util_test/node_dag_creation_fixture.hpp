@@ -24,7 +24,6 @@ struct NodeDagCreationFixture : BaseTest {
     vdf_config.difficulty_min = 1;
     vdf_config.difficulty_max = 3;
     vdf_config.difficulty_stale = 4;
-    cfg.chain.pbft.ghost_path_move_back = 0;
   }
   void makeNode(bool start = true) {
     auto cfgs = make_node_cfgs<5, true>(1);

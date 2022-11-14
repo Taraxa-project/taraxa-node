@@ -623,8 +623,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   const size_t COMMITTEE_SIZE;
   const size_t NUMBER_OF_PROPOSERS;
-  const size_t DAG_BLOCKS_SIZE;
-  const size_t GHOST_PATH_MOVE_BACK;
 
   PbftStates state_ = value_proposal_state;
 
