@@ -1027,6 +1027,11 @@ workflows:
 
   # run this workflow for branches specified below
   build-helm-chart:
+    when:
+      and:
+        - not: << pipeline.parameters.deploy_prnet >>
+        - not: << pipeline.parameters.redeploy_prnet >>
+        - not: << pipeline.parameters.cleanup_prnet >>
     jobs:
       - helm-release/chart-publish:
           develop: true # means, that this is development release, no-verify and artifact -> ${HELMCHART_VERSION}-sha.${SHORT_GIT_HASH}
