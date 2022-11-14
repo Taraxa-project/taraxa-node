@@ -48,7 +48,6 @@ std::string JsonRpcWsSession::processRequest(const std::string_view &request) {
     }
     json_response["result"] = dev::toJS(subscription_id_);
     response = util::to_string(json_response);
-    ws_.text(ws_.got_text());
     LOG(log_tr_) << "WS WRITE " << response.c_str();
   } else {
     auto ws_server = ws_server_.lock();

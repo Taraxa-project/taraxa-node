@@ -195,7 +195,9 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
     db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count_, write_batch);
     db_->commitWriteBatch(write_batch);
   }
-  for (auto &trx_hash : accepted_transactions) transaction_accepted_.emit(trx_hash);
+  for (const auto &trx_hash : accepted_transactions) {
+    transaction_accepted_.emit(trx_hash);
+  }
 }
 
 void TransactionManager::recoverNonfinalizedTransactions() {
@@ -383,6 +385,11 @@ std::optional<SharedTransactions> TransactionManager::getBlockTransactions(DagBl
 void TransactionManager::blockFinalized(EthBlockNumber block_number) {
   std::unique_lock transactions_lock(transactions_mutex_);
   transactions_pool_.blockFinalized(block_number);
+}
+
+bool TransactionManager::transactionsDropped() const {
+  std::shared_lock transactions_lock(transactions_mutex_);
+  return transactions_pool_.transactionsDropped();
 }
 
 }  // namespace taraxa

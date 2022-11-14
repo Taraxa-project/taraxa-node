@@ -69,7 +69,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
       continue;
     }
 
-    const auto [status, reason] = trx_mgr_->verifyTransaction(trx);
+    auto [status, reason] = trx_mgr_->verifyTransaction(trx);
     switch (status) {
       case TransactionStatus::Invalid: {
         std::ostringstream err_msg;
@@ -87,15 +87,13 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
         break;
       }
       case TransactionStatus::Verified:
+        // Any transaction received in dag sync packet handler should be force inserted in the pool
+        status = TransactionStatus::Forced;
         break;
       default:
         assert(false);
     }
-    if (!trx_mgr_->isTransactionPoolFull()) [[likely]] {
-      trx_mgr_->insertValidatedTransaction(std::move(trx), std::move(status));
-    } else {
-      trx_mgr_->insertValidatedTransaction(std::move(trx), std::move(TransactionStatus::Forced));
-    }
+    trx_mgr_->insertValidatedTransaction(std::move(trx), std::move(status));
   }
 
   for (const auto block_rlp : *it) {
@@ -127,6 +125,8 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
   }
 
   peer->peer_dag_synced_ = true;
+  peer->peer_dag_synced_time_ =
+      std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
   peer->peer_dag_syncing_ = false;
 
   LOG(log_dg_) << "Received DagSyncPacket with blocks: " << received_dag_blocks_str

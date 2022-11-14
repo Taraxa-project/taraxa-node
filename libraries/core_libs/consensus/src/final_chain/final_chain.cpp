@@ -250,7 +250,6 @@ class FinalChainImpl final : public FinalChain {
     blk_header.transactions_root = hash256(trxs_trie);
     blk_header.receipts_root = hash256(receipts_trie);
     rlp_strm.clear(), blk_header.ethereum_rlp(rlp_strm);
-    blk_header.ethereum_rlp_size = rlp_strm.out().size();
     blk_header.hash = dev::sha3(rlp_strm.out());
     db_->insert(batch, DB::Columns::final_chain_blk_by_number, blk_header.number, util::rlp_enc(rlp_strm, blk_header));
     auto log_bloom_for_index = blk_header.log_bloom;

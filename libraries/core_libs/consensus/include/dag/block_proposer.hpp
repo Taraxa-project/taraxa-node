@@ -72,7 +72,7 @@ class SortitionPropose : public ProposeModelFace {
  private:
   int num_tries_ = 0;
   int max_num_tries_ = 20;  // Wait 2000(ms)
-  DagFrontier last_frontier_;
+  uint64_t last_propose_level_ = 0;
   util::ThreadPool executor_{1};
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<DagManager> dag_mgr_;

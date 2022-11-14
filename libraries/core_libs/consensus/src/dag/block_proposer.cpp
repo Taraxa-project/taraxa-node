@@ -50,7 +50,7 @@ bool SortitionPropose::propose() {
   vdf_sortition::VdfSortition vdf(sortition_params, vrf_sk_,
                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
   if (vdf.isStale(sortition_params)) {
-    if (last_frontier_.isEqual(frontier)) {
+    if (last_propose_level_ == propose_level) {
       if (num_tries_ < max_num_tries_) {
         LOG(log_dg_) << "Will not propose DAG block. Get difficulty at stale, tried " << num_tries_ << " times.";
         num_tries_++;
@@ -60,7 +60,7 @@ bool SortitionPropose::propose() {
       LOG(log_dg_) << "Will not propose DAG block, will reset number of tries. Get difficulty at stale , current "
                       "propose level "
                    << propose_level;
-      last_frontier_ = frontier;
+      last_propose_level_ = propose_level;
       num_tries_ = 0;
       return false;
     }
@@ -74,22 +74,15 @@ bool SortitionPropose::propose() {
   std::future<void> result = sync.get_future();
   while (result.wait_for(std::chrono::milliseconds(100)) != std::future_status::ready) {
     auto latest_frontier = dag_mgr_->getDagFrontier();
-    if (!latest_frontier.isEqual(frontier)) {
-      if (vdf.isStale(sortition_params)) {
-        cancellation_token = true;
-        break;
-      } else {
-        const auto latest_level = proposer->getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
-        if (latest_level > propose_level) {
-          cancellation_token = true;
-          break;
-        }
-      }
+    const auto latest_level = proposer->getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
+    if (latest_level > propose_level) {
+      cancellation_token = true;
+      break;
     }
   }
 
   if (cancellation_token) {
-    last_frontier_ = frontier;
+    last_propose_level_ = propose_level;
     num_tries_ = 0;
     result.wait();
     // Since compute was canceled there is a chance to propose a new block immediately, return true to skip sleep
@@ -101,8 +94,9 @@ bool SortitionPropose::propose() {
     // give it a second to process these dag blocks
     thisThreadSleepForSeconds(1);
     auto latest_frontier = dag_mgr_->getDagFrontier();
-    if (!latest_frontier.isEqual(frontier)) {
-      last_frontier_ = frontier;
+    const auto latest_level = proposer->getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
+    if (latest_level > propose_level) {
+      last_propose_level_ = propose_level;
       num_tries_ = 0;
       return false;
     }
@@ -110,13 +104,12 @@ bool SortitionPropose::propose() {
 
   auto [transactions, estimations] = proposer->getShardedTrxs(*proposal_period, dag_mgr_->getDagConfig().gas_limit);
   if (transactions.empty()) {
-    last_frontier_ = frontier;
+    last_propose_level_ = propose_level;
     num_tries_ = 0;
     return false;
   }
   LOG(log_nf_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
-
-  last_frontier_ = frontier;
+  last_propose_level_ = propose_level;
   proposer->proposeBlock(std::move(frontier), propose_level, std::move(transactions), std::move(estimations),
                          std::move(vdf));
   num_tries_ = 0;

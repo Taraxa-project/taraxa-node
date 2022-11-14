@@ -79,7 +79,7 @@ void GraphQlWsSession::triggerTestSubscribtion(unsigned int number) {
   params["result"] = Json::Value(number);
   params["subscription"] = dev::toJS(0);
   res["params"] = params;
-  const auto response = util::to_string(res);
+  auto response = util::to_string(res);
   ws_.text(ws_.got_text());
   LOG(log_tr_) << "triggerTestSubscribtion: WS WRITE " << response.c_str();
   auto executor = ws_.get_executor();
@@ -90,7 +90,7 @@ void GraphQlWsSession::triggerTestSubscribtion(unsigned int number) {
   }
 
   LOG(log_tr_) << "***triggerTestSubscribtion: Before executor.post ";
-  boost::asio::post(executor, boost::bind(&GraphQlWsSession::writeImpl, this, response));
+  boost::asio::post(executor, [this, response = std::move(response)]() mutable { writeImpl(std::move(response)); });
   LOG(log_tr_) << "***triggerTestSubscribtion: After executors.post ";
 }
 

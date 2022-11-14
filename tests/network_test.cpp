@@ -1470,6 +1470,43 @@ TEST_F(NetworkTest, suspicious_packets) {
   EXPECT_TRUE(peer.reportSuspiciousPacket());*/
 }
 
+TEST_F(NetworkTest, dag_syncing_limit) {
+  network::tarcap::TaraxaPeer peer1, peer2;
+  const uint64_t dag_sync_limit = 300;
+
+  EXPECT_TRUE(peer1.dagSyncingAllowed());
+  peer1.peer_dag_synced_ = true;
+  peer1.peer_dag_synced_time_ =
+      std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+  EXPECT_FALSE(peer1.dagSyncingAllowed());
+  peer1.peer_dag_synced_time_ =
+      std::chrono::duration_cast<std::chrono::seconds>(
+          (std::chrono::system_clock::now() - std::chrono::seconds(dag_sync_limit - 1)).time_since_epoch())
+          .count();
+  EXPECT_FALSE(peer1.dagSyncingAllowed());
+  peer1.peer_dag_synced_time_ =
+      std::chrono::duration_cast<std::chrono::seconds>(
+          (std::chrono::system_clock::now() - std::chrono::seconds(dag_sync_limit + 1)).time_since_epoch())
+          .count();
+  EXPECT_TRUE(peer1.dagSyncingAllowed());
+
+  EXPECT_TRUE(peer2.requestDagSyncingAllowed());
+  peer2.peer_requested_dag_syncing_ = true;
+  peer2.peer_requested_dag_syncing_time_ =
+      std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+  EXPECT_FALSE(peer2.requestDagSyncingAllowed());
+  peer2.peer_requested_dag_syncing_time_ =
+      std::chrono::duration_cast<std::chrono::seconds>(
+          (std::chrono::system_clock::now() - std::chrono::seconds(dag_sync_limit - 1)).time_since_epoch())
+          .count();
+  EXPECT_FALSE(peer2.requestDagSyncingAllowed());
+  peer2.peer_requested_dag_syncing_time_ =
+      std::chrono::duration_cast<std::chrono::seconds>(
+          (std::chrono::system_clock::now() - std::chrono::seconds(dag_sync_limit + 1)).time_since_epoch())
+          .count();
+  EXPECT_TRUE(peer2.requestDagSyncingAllowed());
+}
+
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;
