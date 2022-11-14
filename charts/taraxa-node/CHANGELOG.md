@@ -3,12 +3,25 @@
 This file documents all notable changes to `taraxa-node` Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
-
-## v0.1.10
+## v0.3.0
 
 ### Major changes
 
-* Change in prefix for chain IDs
+* Allows to specify PVC per node type
+* Enables snapshots (on separate snapshot node)
+* Adds light node
+
+## v0.2.2
+
+### Minor changes
+
+* Uses new explorer chart (v0.2.3)
+
+## v0.2.1
+
+### Patches
+
+* Updates explorer dep version
 
 ## v0.2.0
 
@@ -24,8 +37,3 @@ numbering uses [semantic versioning](http://semver.org).
 
 * Fixes RPC nodes initconfig wrong validators
 
-## v0.2.1
-
-### Patches
-
-* Updates explorer dep version

@@ -1,0 +1,143 @@
+{{ if .Values.bootnode.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "taraxa-boot-node.fullname" . }}
+  labels:
+    app: boot-node
+    app.kubernetes.io/name: boot-node
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.bootnode.replicaCount }}
+  serviceName: {{ include "taraxa-boot-node.fullname" . }}
+  # to launch or terminate all Pods in parallel.
+  # https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#parallel-pod-management
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: boot-node
+      partition: a
+      app.kubernetes.io/name: {{ .Release.Name }}-boot-node
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      name: boot-node
+      labels:
+        app: boot-node
+        partition: a
+        app.kubernetes.io/name: {{ .Release.Name }}-boot-node
+        app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        kubernetes.io/change-cause: "Configuration through configmaps."
+    spec:
+      initContainers:
+        - name: config-adapter
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            - secretRef:
+                name: {{ .Release.Name }}
+          env:
+          - name: HOST
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          command: ["/bin/entrypoint.sh"]
+          volumeMounts:
+            - name: initconfig
+              mountPath: /bin/entrypoint.sh
+              readOnly: true
+              subPath: entrypoint.sh
+            - name: {{ .Values.bootnode.persistence.name }}
+              mountPath: /root/.taraxa
+      containers:
+        - name: boot-node
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            {{- toYaml .Values.bootnode.args | nindent 12 }}
+            - --chain-id
+            - {{ .Values.config.network | quote }}
+            {{- if eq .Values.config.network "841" }}
+            - --deny-local-discovery
+            {{- end }}
+          env:
+            - name: DEBUG
+              value: "{{ .Values.bootnode.debug }}"
+            - name: HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          {{- if not .Values.bootnode.probes.enabled }}
+            - name: TARAXA_SLEEP_DIAGNOSE
+              value: "true"
+          {{- end }}
+          {{ if .Values.bootnode.loadBalancer.enabled }}
+          {{- range $key, $value := .Values.bootnode.loadBalancer.addresses }}
+            - name: ADVERTISED_IP_{{ $key }}
+              value: "{{ $value }}"
+          {{- end }}
+          {{- end }}
+          ports:
+            {{- toYaml .Values.bootnode.ports | nindent 12 }}
+          {{- if .Values.bootnode.probes.enabled }}
+          livenessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - "ps -A | grep taraxa-bootnode"
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          {{- end }}
+          resources:
+            {{- toYaml .Values.bootnode.resources | nindent 12 }}
+          volumeMounts:
+            - name: {{ .Values.bootnode.persistence.name }}
+              mountPath: /root/.taraxa
+          securityContext:
+            capabilities:
+              add:
+              - SYS_PTRACE
+      {{- with .Values.bootnode.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+        - name: initconfig
+          configMap:
+            defaultMode: 0700
+            name: {{ .Release.Name }}-boot-node-init-script
+       {{- if not .Values.bootnode.persistence.enabled }}
+        - name: {{ .Values.bootnode.persistence.name }}
+          emptyDir: {}
+       {{- end }}
+  {{- if .Values.bootnode.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: {{ .Values.bootnode.persistence.name }}
+    spec:
+      accessModes:
+        - {{ .Values.bootnode.persistence.accessMode | quote }}
+    {{- if .Values.bootnode.persistence.storageClass }}
+    {{- if (eq "-" .Values.bootnode.persistence.storageClass) }}
+      storageClassName: ""
+    {{- else }}
+      storageClassName: "{{ .Values.bootnode.persistence.storageClass }}"
+    {{- end }}
+    {{- end }}
+      resources:
+        requests:
+          storage: "{{ .Values.bootnode.persistence.size }}"
+  {{- end }}
+{{- end }}
