@@ -429,6 +429,12 @@ bool PbftManager::advanceRound() {
 }
 
 void PbftManager::resetPbftConsensus(PbftRound round) {
+  // Print node's broadcasted votes for current round
+  printVotingSummary();
+
+  // Cleanup saved broadcasted votes for current round
+  current_round_broadcasted_votes_.clear();
+
   LOG(log_dg_) << "Reset PBFT consensus to: period " << getPbftPeriod() << ", round " << round << ", step 1";
 
   // Reset broadcast counters
@@ -681,19 +687,6 @@ void PbftManager::setFinishPollingState_() {
 }
 
 void PbftManager::loopBackFinishState_() {
-  auto round = getPbftRound();
-  LOG(log_dg_) << "CONSENSUS debug round " << round << " , step " << step_
-               << " | next_voted_soft_value_ = " << already_next_voted_value_ << " soft_voted_value_for_round = "
-               << (soft_voted_block_for_round_.has_value() ? soft_voted_block_for_round_->block_hash_.abridged()
-                                                           : "no value")
-               << " next_voted_null_block_hash_ = " << already_next_voted_null_block_hash_
-               << " cert_voted_value_for_round = "
-               << (cert_voted_block_for_round_.has_value() ? (*cert_voted_block_for_round_)->getBlockHash().abridged()
-                                                           : "no value")
-               << " previous round next voted NULL_BLOCK_HASH = " << std::boolalpha
-               << previous_round_next_voted_null_block_hash_ << " previous_round_next_voted_value_ = "
-               << (previous_round_next_voted_value_.has_value() ? previous_round_next_voted_value_->abridged()
-                                                                : "no value");
   state_ = finish_state;
   setPbftStep(step_ + 1);
   auto batch = db_->createWriteBatch();
@@ -704,6 +697,9 @@ void PbftManager::loopBackFinishState_() {
   already_next_voted_null_block_hash_ = false;
   assert(step_ >= startingStepInRound_);
   next_step_time_ms_ += kPollingIntervalMs;
+
+  // Print voting summary for current round
+  printVotingSummary();
 }
 
 void PbftManager::broadcastVotes(bool rebroadcast) {
@@ -723,6 +719,29 @@ void PbftManager::broadcastVotes(bool rebroadcast) {
                << step_;
   net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->broadcastPreviousRoundNextVotesBundle(
       rebroadcast);
+}
+
+void PbftManager::printVotingSummary() const {
+  const auto [round, period] = getPbftRoundAndPeriod();
+  Json::Value json_obj;
+
+  json_obj["period"] = Json::UInt64(period - 1);
+  json_obj["round"] = Json::UInt64(round);
+  auto& steps_voted_blocks_json = json_obj["voted_blocks_steps"] = Json::Value(Json::arrayValue);
+
+  for (const auto& voted_blocks_steps : current_round_broadcasted_votes_) {
+    const auto voted_block_hash = voted_blocks_steps.first;
+    auto& voted_blocks_steps_json = steps_voted_blocks_json.append(Json::Value(Json::objectValue));
+    auto& steps_json = voted_blocks_steps_json[voted_block_hash.toString()] = Json::Value(Json::arrayValue);
+    for (const auto& step : voted_blocks_steps.second) {
+      steps_json.append(step);
+    }
+  }
+
+  blk_hash_t lol;
+  LOG(log_nf_) << lol;
+
+  LOG(log_nf_) << "Voting summary: " << jsonToUnstyledString(json_obj);
 }
 
 bool PbftManager::stateOperations_() {
@@ -898,6 +917,13 @@ void PbftManager::gossipNewVote(const std::shared_ptr<Vote> &vote, const std::sh
   }
 
   net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(vote, voted_block);
+
+  auto found_voted_block_it = current_round_broadcasted_votes_.find(vote->getBlockHash());
+  if (found_voted_block_it == current_round_broadcasted_votes_.end()) {
+    found_voted_block_it = current_round_broadcasted_votes_.insert({vote->getBlockHash(), {}}).first;
+  }
+
+  found_voted_block_it->second.emplace_back(vote->getStep());
 }
 
 void PbftManager::proposeBlock_() {
