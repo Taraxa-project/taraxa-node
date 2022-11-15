@@ -228,7 +228,7 @@
               "endpoint": "",
               "description": "Taraxa mainnet validator 1",
               "delegations": {
-                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
               }
             },
             {
@@ -238,7 +238,7 @@
               "endpoint": "",
               "description": "Taraxa mainnet validator 2",
               "delegations": {
-                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
               }
             },
             {
@@ -248,7 +248,7 @@
               "endpoint": "",
               "description": "Taraxa mainnet validator 3",
               "delegations": {
-                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
               }
             },
             {
@@ -258,7 +258,7 @@
               "endpoint": "",
               "description": "Taraxa mainnet validator 4",
               "delegations": {
-                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
               }
             },
             {
@@ -268,7 +268,7 @@
               "endpoint": "",
               "description": "Taraxa mainnet validator 5",
               "delegations": {
-                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
               }
             },
             {
@@ -278,7 +278,7 @@
               "endpoint": "",
               "description": "Taraxa mainnet validator 6",
               "delegations": {
-                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
               }
             },
             {
@@ -288,7 +288,7 @@
               "endpoint": "",
               "description": "Taraxa mainnet validator 7",
               "delegations": {
-                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
               }
             },
             {
@@ -298,7 +298,7 @@
               "endpoint": "",
               "description": "Taraxa mainnet validator 8",
               "delegations": {
-                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
               }
             },
             {
@@ -308,7 +308,7 @@
               "endpoint": "",
               "description": "Taraxa mainnet validator 9",
               "delegations": {
-                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x989680"
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
               }
             }
           ]
@@ -326,8 +326,8 @@
           "disable_contract_distribution": false
         },
         "genesis_balances": {
-          "0274cfffea9fa850e54c93a23042f12a87358a82": "0x141e8d17",
-          "111f91441efc8c6c0edf6534970cc887e2fabaa8": "0x24048ce3d",
+          "0274cfffea9fa850e54c93a23042f12a87358a82": "0x52b7d2dcc80cd2e4000000",
+          "111f91441efc8c6c0edf6534970cc887e2fabaa8": "0x52b7d2dcc80cd2e4000000",
           "ee1326fbf7d9322e5ea02c6fe5eb63535fceccd1": "0x52b7d2dcc80cd2e4000000"
         }
       }
