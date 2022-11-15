@@ -211,13 +211,13 @@
         "dpos": {
           "delegation_delay": "0x5",
           "delegation_locking_period": "0x5",
-          "eligibility_balance_threshold": "0x186A0",
-          "vote_eligibility_balance_step": "0x186A0",
-          "validator_maximum_stake":"0x84595161401484A000000",
-          "minimum_deposit":"0x0",
+          "eligibility_balance_threshold": "0x69E10DE76676D0800000",
+          "vote_eligibility_balance_step": "0x3635C9ADC5DEA00000",
+          "validator_maximum_stake":"0x422CA8B0A00A4250000000",
+          "minimum_deposit":"0x3635C9ADC5DEA00000",
           "max_block_author_reward": "0x5",
           "dag_proposers_reward": "0x32",
-          "commission_change_delta":"0x0",
+          "commission_change_delta":"0x1F4",
           "commission_change_frequency":"0x0",
           "yield_percentage":"0x14",
           "initial_validators": [
@@ -322,12 +322,13 @@
           "petersburg_block": "0x0"
         },
         "block_rewards_options": {
-          "disable_block_rewards": true,
-          "disable_contract_distribution": true
+          "disable_block_rewards": false,
+          "disable_contract_distribution": false
         },
         "genesis_balances": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x141e8d17",
-          "111f91441efc8c6c0edf6534970cc887e2fabaa8": "0x24048ce3d"
+          "111f91441efc8c6c0edf6534970cc887e2fabaa8": "0x24048ce3d",
+          "ee1326fbf7d9322e5ea02c6fe5eb63535fceccd1": "0x52b7d2dcc80cd2e4000000"
         }
       }
     },
@@ -338,16 +339,16 @@
     "pbft": {
       "committee_size": "0x3e8",
       "number_of_proposers": "0x14",
-      "dag_blocks_size": "0xa",
+      "dag_blocks_size": "0x32",
       "ghost_path_move_back": "0x0",
       "lambda_ms_min": "0x5dc",
-      "gas_limit": "0x3938700"
+      "gas_limit": "0x7d2b7500"
     },
     "dag": {
       "block_proposer": {
         "shard": 1
       },
-      "gas_limit": "0x989680"
+      "gas_limit": "0xc845880"
     },
     "replay_protection_service": {
       "range": "0xa"
