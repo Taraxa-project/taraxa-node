@@ -14,26 +14,22 @@ bool RewardsStats::addTransaction(const trx_hash_t& tx_hash, const addr_t& valid
 
   // New tx
   txs_validators_[tx_hash] = validator;
-  total_unique_txs_count_++;
-
-  // Increment validator's unique txs count
-  validators_stats_[validator].unique_txs_count_++;
 
   return true;
 }
 
-void RewardsStats::removeTransaction(const trx_hash_t& tx_hash) {
-  auto found_tx = txs_validators_.find(tx_hash);
-  assert(found_tx != txs_validators_.end());
+// void RewardsStats::removeTransaction(const trx_hash_t& tx_hash) {
+//   auto found_tx = txs_validators_.find(tx_hash);
+//   assert(found_tx != txs_validators_.end());
 
-  auto found_validator = validators_stats_.find(found_tx->second);
-  assert(found_validator != validators_stats_.end());
+//   auto found_validator = validators_stats_.find(found_tx->second);
+//   assert(found_validator != validators_stats_.end());
 
-  assert(found_validator->second.unique_txs_count_);
+//   assert(found_validator->second.unique_txs_count_);
 
-  found_validator->second.unique_txs_count_--;
-  total_unique_txs_count_--;
-}
+//   found_validator->second.unique_txs_count_--;
+//   total_unique_txs_count_--;
+// }
 
 std::optional<addr_t> RewardsStats::getTransactionValidator(const trx_hash_t& tx_hash) {
   auto found_tx = txs_validators_.find(tx_hash);
@@ -76,16 +72,26 @@ void RewardsStats::initStats(const PeriodData& sync_blk, uint64_t dpos_vote_coun
 
   for (const auto& dag_block : sync_blk.dag_blocks) {
     const addr_t& dag_block_author = dag_block.getSender();
+    bool has_unique_transactions = false;
     for (const auto& tx_hash : dag_block.getTrxs()) {
       // we should also check that we have transactions in pbft block(period data). Because in dag blocks could be
       // included transaction that was finalized in previous blocks
-      if (block_transactions_hashes_.contains(tx_hash)) {
-        addTransaction(tx_hash, dag_block_author);
+      if (!block_transactions_hashes_.contains(tx_hash)) {
+        continue;
       }
+
+      // returns is transactions was inserted to txs_validators_(its first including into blockchain)
+      if (addTransaction(tx_hash, dag_block_author)) {
+        has_unique_transactions = true;
+      }
+    }
+    if (has_unique_transactions) {
+      validators_stats_[dag_block_author].dag_blocks_count_ += 1;
+      total_dag_blocks_count_ += 1;
     }
   }
   // total_unique_txs_count_ should be always equal to transactions count in block
-  assert(total_unique_txs_count_ == sync_blk.transactions.size());
+  assert(txs_validators_.size() == sync_blk.transactions.size());
 
   max_votes_weight_ = std::min<uint64_t>(committee_size, dpos_vote_count);
   for (const auto& vote : sync_blk.previous_block_cert_votes) {
@@ -119,7 +125,7 @@ std::vector<addr_t> RewardsStats::processStats(const PeriodData& block, uint64_t
   return txs_validators;
 }
 
-RLP_FIELDS_DEFINE(RewardsStats::ValidatorStats, unique_txs_count_, vote_weight_)
-RLP_FIELDS_DEFINE(RewardsStats, validators_stats_, total_unique_txs_count_, total_votes_weight_, max_votes_weight_)
+RLP_FIELDS_DEFINE(RewardsStats::ValidatorStats, dag_blocks_count_, vote_weight_)
+RLP_FIELDS_DEFINE(RewardsStats, validators_stats_, total_dag_blocks_count_, total_votes_weight_, max_votes_weight_)
 
 }  // namespace taraxa
