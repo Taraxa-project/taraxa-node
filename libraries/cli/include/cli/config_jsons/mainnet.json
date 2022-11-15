@@ -223,93 +223,223 @@
           "initial_validators": [
             {
               "address": "0x1f8333245650a19a0683891b7afe7787a3ce9f00",
-              "owner": "0x1f8333245650a19a0683891b7afe7787a3ce9f00",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
               "commission": 0,
               "endpoint": "",
               "description": "Taraxa mainnet validator 1",
               "delegations": {
-                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
-              }
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
+              },
+              "vrf_key": "ec9ffc3c5ce9c570954d8c22341c9da62926d20802854a06b9508773c78007c4"
             },
             {
               "address": "0xd4e4728bea5a67dd70dccb742bdc9c3a48465bec",
-              "owner": "0xd4e4728bea5a67dd70dccb742bdc9c3a48465bec",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
               "commission": 0,
               "endpoint": "",
               "description": "Taraxa mainnet validator 2",
               "delegations": {
-                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
-              }
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
+              },
+              "vrf_key": "3258951e738ca5322b25f929f2c4bbbd1ebcef9acbf306a38ab9f1a5264af0eb"
             },
             {
               "address": "0xec591a85f613fe98f057dc09712a9b22cdd05845",
-              "owner": "0xec591a85f613fe98f057dc09712a9b22cdd05845",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
               "commission": 0,
               "endpoint": "",
               "description": "Taraxa mainnet validator 3",
               "delegations": {
-                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
-              }
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
+              },
+              "vrf_key": "1c15fcd1c47970d57e46938a1af612244d2c680be052be6a8c22a1860ab1834d"
             },
             {
               "address": "0x267e780b7843992e57f52e13018f0f97467ac06e",
-              "owner": "0x267e780b7843992e57f52e13018f0f97467ac06e",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
               "commission": 0,
               "endpoint": "",
               "description": "Taraxa mainnet validator 4",
               "delegations": {
-                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
-              }
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
+              },
+              "vrf_key": "5debe334c8f77c7517fea348ce0ed77791bf27ee96270555627405d71ca801a2"
             },
             {
               "address": "0x9d047654e55248ec38aa6723a5ab36d171008584",
-              "owner": "0x9d047654e55248ec38aa6723a5ab36d171008584",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
               "commission": 0,
               "endpoint": "",
               "description": "Taraxa mainnet validator 5",
               "delegations": {
-                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
-              }
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
+              },
+              "vrf_key": "81452dc66d1255c9793c27ff1be58e27b43153841e80228c287ea871963a1888"
             },
             {
               "address": "0x0d149e61cc02b5893ef6fc33bc7d67ff13eeeee0",
-              "owner": "0x0d149e61cc02b5893ef6fc33bc7d67ff13eeeee0",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
               "commission": 0,
               "endpoint": "",
               "description": "Taraxa mainnet validator 6",
               "delegations": {
-                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
-              }
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
+              },
+              "vrf_key": "981179ea25cee52379e55682572abffb78a7ca3eab28f98ea4b4dbe16b422d3e"
             },
             {
               "address": "0x00ccd0de0809ac03fd292036ee1544185583cd88",
-              "owner": "0x00ccd0de0809ac03fd292036ee1544185583cd88",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
               "commission": 0,
               "endpoint": "",
               "description": "Taraxa mainnet validator 7",
               "delegations": {
-                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
-              }
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
+              },
+              "vrf_key": "17b80677162309fa25c3aca5f853ee6d4c13012b34733e3151751996b788c581"
             },
             {
               "address": "0x6f96be7626a74e86c76e65ccbccf0a38e2b62fc5",
-              "owner": "0x6f96be7626a74e86c76e65ccbccf0a38e2b62fc5",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
               "commission": 0,
               "endpoint": "",
               "description": "Taraxa mainnet validator 8",
               "delegations": {
-                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
-              }
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
+              },
+              "vrf_key": "a72833d53c67e6b460cec4e13b83de94f76f3f97c43d21608ccfabde89523912"
             },
             {
               "address": "0xd20131f980c9932b1df31cf3aafeecfb1d504381",
-              "owner": "0xd20131f980c9932b1df31cf3aafeecfb1d504381",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
               "commission": 0,
               "endpoint": "",
               "description": "Taraxa mainnet validator 9",
               "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
+              },
+              "vrf_key": "a416ee332d5b66151099b801fa3408e4e4b4602511150a4d89cb085a5a33031c"
+            },
+            {
+              "address": "0xdb4c007e7e6bbb009709006a445a4835fe229ad8",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 10",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
+              },
+              "vrf_key": "71310846d8d49ee88b59b31636aac9e3faa6bf67affb0158e09e6fb900675f44"
+            },
+            {
+              "address": "0x6816653dee09e9a85551f30a0a917cf66b8db9a2",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 11",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
+              },
+              "vrf_key": "9b60c98a38c73074c06ef824070a9a4cdc364fc306782a2a05ce61fc8b557e78"
+            },
+            {
+              "address": "0x36f060efe036c6a9c54dfc95d5eaa4885134b785",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 12",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
+              },
+              "vrf_key": "0f68e9d6851501af6effc5c90b1d56be28e1de49b8bf53c1a2f3327deeb6e6ad"
+            },
+            {
+              "address": "0x42d481f54c09fd3011cf3915a45e975caacc89aa",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 13",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
+              },
+              "vrf_key": "e73a0b05d3e276796c8597aec4442fbb7f5b54f5f26c301bda087f4a58f58186"
+            },
+            {
+              "address": "0x6bf36050bd656d4c23df9d9e0561a7348a6e6516",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 14",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
+              },
+              "vrf_key": "7fa06b39dea1b8943f39650196bf977c893617fb04cd233c9d926ff5bfdc6a06"
+            },
+            {
+              "address": "0x2654030981f0c741de3b1ad5dad7a34fb1f3c09e",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
+              "commission": 0,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 15",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
+              },
+              "vrf_key": "27ce22e9e1bcb1ae1afb1c77b9fd0b90e3a2e1cfce0589c3c4b8dad168472a7a"
+            },
+            {
+              "address": "0x6a6edbd858634c1fc4ca361bb9732a652c3e72e4",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
+              "commission": 1000,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 16",
+              "delegations": {
                 "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
-              }
+              },
+              "vrf_key": "fa5fc8f130f1dab9cd6c15d73c502b25b1e03ab15c9947248cf99e26f9d13fee"
+            },
+            {
+              "address": "0x137f75bfc36399e8f6b9873e1a1137a27f847d48",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
+              "commission": 1000,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 17",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
+              },
+              "vrf_key": "8d4368458989265fdc1a1f18120af47290cc3c50e41585ed07516cd988283e1d"
+            },
+            {
+              "address": "0x49a415346973c216a702c333322e4ce79c77f494",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
+              "commission": 1000,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 18",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
+              },
+              "vrf_key": "cf611e1301254ac66d18a1b4bd046fbd3881235ef3b260b672ba5c306465a639"
+            },
+            {
+              "address": "0xc61bd82f46463b5dad3f73a565fb9f02cce69108",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
+              "commission": 1000,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 19",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
+              },
+              "vrf_key": "bc06ba2e7e42353dd80dae23f31e3f3d49e6aa1d76e52adb1397f03ce8a9c9f3"
+            },
+            {
+              "address": "0x2c126e4e40cc83359ab988b98cf94b20651a4c47",
+              "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
+              "commission": 1000,
+              "endpoint": "",
+              "description": "Taraxa mainnet validator 20",
+              "delegations": {
+                "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
+              },
+              "vrf_key": "23d57d3731f0eab13f642c6b41f8039a2ce2fd907d207f67d83cc6d20ba3c429"
             }
           ]
         },
@@ -326,8 +456,9 @@
           "disable_contract_distribution": false
         },
         "genesis_balances": {
-          "0274cfffea9fa850e54c93a23042f12a87358a82": "0x52b7d2dcc80cd2e4000000",
+          "0274cfffea9fa850e54c93a23042f12a87358a82": "0x76e83f1d5f926f27c000000",
           "111f91441efc8c6c0edf6534970cc887e2fabaa8": "0x52b7d2dcc80cd2e4000000",
+          "5d3c9cf9141b768e75f2453cf62c1aa512abe2e1": "0x84595161401484a000000",
           "ee1326fbf7d9322e5ea02c6fe5eb63535fceccd1": "0x52b7d2dcc80cd2e4000000"
         }
       }
