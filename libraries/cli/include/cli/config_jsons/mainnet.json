@@ -210,7 +210,7 @@
       "state": {
         "dpos": {
           "delegation_delay": "0x5",
-          "delegation_locking_period": "0x5",
+          "delegation_locking_period": "0xEA600",
           "eligibility_balance_threshold": "0x69E10DE76676D0800000",
           "vote_eligibility_balance_step": "0x3635C9ADC5DEA00000",
           "validator_maximum_stake":"0x422CA8B0A00A4250000000",
@@ -218,7 +218,7 @@
           "max_block_author_reward": "0x5",
           "dag_proposers_reward": "0x32",
           "commission_change_delta":"0x1F4",
-          "commission_change_frequency":"0x0",
+          "commission_change_frequency":"0x27100",
           "yield_percentage":"0x14",
           "initial_validators": [
             {
