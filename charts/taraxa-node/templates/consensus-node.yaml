@@ -64,7 +64,7 @@ spec:
               mountPath: /bin/genconfig.py
               readOnly: true
               subPath: genconfig.py
-            - name: {{ .Values.persistence.name }}
+            - name: {{ .Values.consensusnode.persistence.name }}
               mountPath: /root/.taraxa
       containers:
         {{- if .Values.slack.enabled }}
@@ -137,7 +137,7 @@ spec:
           resources:
             {{- toYaml .Values.consensusnode.resources | nindent 12 }}
           volumeMounts:
-            - name: {{ .Values.persistence.name }}
+            - name: {{ .Values.consensusnode.persistence.name }}
               mountPath: /root/.taraxa
           securityContext:
             capabilities:
@@ -176,26 +176,26 @@ spec:
             defaultMode: 0700
             name: {{ .Release.Name }}-node-status-script
         {{- end }}
-       {{- if not .Values.persistence.enabled }}
-        - name: {{ .Values.persistence.name }}
+       {{- if not .Values.consensusnode.persistence.enabled }}
+        - name: {{ .Values.consensusnode.persistence.name }}
           emptyDir: {}
        {{- end }}
-  {{- if .Values.persistence.enabled }}
+  {{- if .Values.consensusnode.persistence.enabled }}
   volumeClaimTemplates:
   - metadata:
-      name: {{ .Values.persistence.name }}
+      name: {{ .Values.consensusnode.persistence.name }}
     spec:
       accessModes:
-        - {{ .Values.persistence.accessMode | quote }}
-    {{- if .Values.persistence.storageClass }}
-    {{- if (eq "-" .Values.persistence.storageClass) }}
+        - {{ .Values.consensusnode.persistence.accessMode | quote }}
+    {{- if .Values.consensusnode.persistence.storageClass }}
+    {{- if (eq "-" .Values.consensusnode.persistence.storageClass) }}
       storageClassName: ""
     {{- else }}
-      storageClassName: "{{ .Values.persistence.storageClass }}"
+      storageClassName: "{{ .Values.consensusnode.persistence.storageClass }}"
     {{- end }}
     {{- end }}
       resources:
         requests:
-          storage: "{{ .Values.persistence.size }}"
+          storage: "{{ .Values.consensusnode.persistence.size }}"
   {{- end }}
 {{- end }}
