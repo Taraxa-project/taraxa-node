@@ -6,9 +6,9 @@
   "network_listen_ip": "0.0.0.0",
   "network_tcp_port": 10002,
   "network_transaction_interval": 100,
-  "network_ideal_peer_count": 15,
-  "network_max_peer_count": 30,
-  "network_sync_level_size": 25,
+  "network_ideal_peer_count": 10,
+  "network_max_peer_count": 50,
+  "network_sync_level_size": 10,
   "network_packets_processing_threads": 14,
   "network_peer_blacklist_timeout": 600,
   "is_light_node": false,
@@ -44,7 +44,7 @@
   },
   "db_config": {
     "db_snapshot_each_n_pbft_block": 10000,
-    "db_max_snapshots": 5
+    "db_max_snapshots": 1
   },
   "logging": {
     "configurations": [
@@ -180,16 +180,16 @@
       "state": {
         "dpos": {
           "delegation_delay": "0x5",
-          "delegation_locking_period": "0x5",
-          "eligibility_balance_threshold": "0xd3c21bcecceda1000000",
-          "vote_eligibility_balance_step": "0x152d02c7e14af6800000",
-          "validator_maximum_stake": "0x84595161401484A000000",
-          "minimum_deposit": "0x0",
+          "delegation_locking_period": "0xAB07C",
+          "eligibility_balance_threshold": "0x69E10DE76676D0800000",
+          "vote_eligibility_balance_step": "0x3635C9ADC5DEA00000",
+          "validator_maximum_stake":"0x422CA8B0A00A4250000000",
+          "minimum_deposit":"0x3635C9ADC5DEA00000",
           "max_block_author_reward": "0x5",
           "dag_proposers_reward": "0x32",
-          "commission_change_delta": "0x0",
-          "commission_change_frequency": "0x0",
-          "yield_percentage": "0x14",
+          "commission_change_delta":"0x1F4",
+          "commission_change_frequency":"0x1C814",
+          "yield_percentage":"0x14",
           "initial_validators": [
             {
               "address": "0x780fe8b2226cf212c55635de399ee4c2a860810c",
@@ -198,7 +198,7 @@
               "endpoint": "",
               "description": "Taraxa devnet validator 1",
               "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x422CA8B0A00A4250000000"
               },
               "vrf_key": "05fe580fd2d461ee5f762a33bbe669403bb04a851f2e9ed8d2579a9c9b77c3ec"
             },
@@ -209,7 +209,7 @@
               "endpoint": "",
               "description": "Taraxa devnet validator 2",
               "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x422CA8B0A00A4250000000"
               },
               "vrf_key": "70d34c86787e5f7bd0f266cad291cb521e23176fa37c6efc034858a1620ac69e"
             },
@@ -220,7 +220,7 @@
               "endpoint": "",
               "description": "Taraxa devnet validator 3",
               "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x422CA8B0A00A4250000000"
               },
               "vrf_key": "f8d5c00ce9fa3058341e051b36a1e6ccf69df81fb865568b2bf1507d085691e2"
             },
@@ -231,7 +231,7 @@
               "endpoint": "",
               "description": "Taraxa devnet validator 4",
               "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x422CA8B0A00A4250000000"
               },
               "vrf_key": "aa12507d00c992b95e65d80b21fd2db5b48c4f7ff4393064828d1adc930710b4"
             },
@@ -242,7 +242,7 @@
               "endpoint": "",
               "description": "Taraxa devnet validator 5",
               "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x422CA8B0A00A4250000000"
               },
               "vrf_key": "bd34898ae0080187c408b5724f05682855c4425fda61d332f5f9d746d4eb753a"
             },
@@ -253,7 +253,7 @@
               "endpoint": "",
               "description": "Taraxa devnet validator 6",
               "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x422CA8B0A00A4250000000"
               },
               "vrf_key": "25d35fed93989c40b4e8685d9d7ee02213230221ea9efcbe8cfccfc788670dba"
             },
@@ -264,7 +264,7 @@
               "endpoint": "",
               "description": "Taraxa devnet validator 7",
               "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x422CA8B0A00A4250000000"
               },
               "vrf_key": "55c0bd1af84fb793a5dd7b960e330248d8a0acde566922b3e210f43592700dad"
             },
@@ -275,7 +275,7 @@
               "endpoint": "",
               "description": "Taraxa devnet validator 8",
               "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x422CA8B0A00A4250000000"
               },
               "vrf_key": "33131367e7279ee51c0f26c6f9b6627848f822d134abef21a88be467dfbaae7b"
             },
@@ -286,7 +286,7 @@
               "endpoint": "",
               "description": "Taraxa devnet validator 9",
               "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x422CA8B0A00A4250000000"
               },
               "vrf_key": "da63de37c69a59cb3ebbcfb79ef8d561b18b448b544a14438c62cd56bc0a29f5"
             },
@@ -297,7 +297,7 @@
               "endpoint": "",
               "description": "Taraxa devnet validator 10",
               "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x422CA8B0A00A4250000000"
               },
               "vrf_key": "337178752602a5ca38928bf0d8d434ec653505c92b280b0edab6c39d5e79f4fd"
             },
@@ -308,7 +308,7 @@
               "endpoint": "",
               "description": "Taraxa devnet validator 11",
               "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x422CA8B0A00A4250000000"
               },
               "vrf_key": "ac08e4ca5f1bcdd61dbefa7551ab839bdd4545e59ee8a4ab5d3aabb71104ab73"
             },
@@ -319,7 +319,7 @@
               "endpoint": "",
               "description": "Taraxa devnet validator 12",
               "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x422CA8B0A00A4250000000"
               },
               "vrf_key": "189b05cca0a816a36f977f0541ef7585218b2087f04b23444ab58d0c755adecc"
             },
@@ -330,7 +330,7 @@
               "endpoint": "",
               "description": "Taraxa devnet validator 13",
               "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x422CA8B0A00A4250000000"
               },
               "vrf_key": "8e95172f90b68ee753132bf6342ee00b398e2417312f610d58c34729ab0608ee"
             },
@@ -341,7 +341,7 @@
               "endpoint": "",
               "description": "Taraxa devnet validator 14",
               "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x69E10DE76676D0800000"
               },
               "vrf_key": "959551740ff948d9714f15a2bfb2183c4ead897dd79775a0a18488aa8936e2ba"
             },
@@ -352,7 +352,7 @@
               "endpoint": "",
               "description": "Taraxa devnet validator 15",
               "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x69E10DE76676D0800000"
               },
               "vrf_key": "56b7831cb3e35c1d6d1e3f661de2068d6feeaa54074b3e02709a87d7f0d6c72a"
             },
@@ -363,7 +363,7 @@
               "endpoint": "",
               "description": "Taraxa devnet validator 16",
               "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x69E10DE76676D0800000"
               },
               "vrf_key": "e774c519814cbc04008aa958932e7adb82ebbbd6ca69089c0a1458ea34fb4299"
             },
@@ -374,7 +374,7 @@
               "endpoint": "",
               "description": "Taraxa devnet validator 17",
               "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x69E10DE76676D0800000"
               },
               "vrf_key": "1b15b7bef6a1dbe9aeb2792f2e38d6222d31f8c6c15cff1152f258013d70d933"
             },
@@ -385,7 +385,7 @@
               "endpoint": "",
               "description": "Taraxa devnet validator 18",
               "delegations": {
-                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x84595161401484a000000"
+                "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x69E10DE76676D0800000"
               },
               "vrf_key": "37bf145ac98e7de7db6e5b933e72737fbf190fd4fb1d193b15cf8b00db30ba30"
             }
@@ -406,7 +406,10 @@
         "genesis_balances": {
           "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027e72f1f12813088000000",
           "7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x1027e72f1f12813088000000",
-          "ee1326fbf7d9322e5ea02c6fe5eb63535fceccd1": "0x52b7d2dcc80cd2e4000000"
+          "ee1326fbf7d9322e5ea02c6fe5eb63535fceccd1": "0x52b7d2dcc80cd2e4000000",
+          "0274cfffea9fa850e54c93a23042f12a87358a82": "0x76e83f1d5f926f27c000000",
+          "111f91441efc8c6c0edf6534970cc887e2fabaa8": "0x52b7d2dcc80cd2e4000000",
+          "5d3c9cf9141b768e75f2453cf62c1aa512abe2e1": "0x84595161401484a000000"
         }
       }
     },
