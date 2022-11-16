@@ -447,7 +447,7 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getConfig","params":[],"i
       "committee_size": "0x3e8",
       "dag_blocks_size": "0xa",
       "ghost_path_move_back": "0x0",
-      "lambda_ms_min": "0x3E8",
+      "lambda_ms_min": "0x5dc",
     },
     "sortition": {
       "changes_count_for_average": "0x5",
