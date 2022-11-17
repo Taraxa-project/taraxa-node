@@ -61,7 +61,7 @@ spec:
               mountPath: /bin/genconfig.py
               readOnly: true
               subPath: genconfig.py
-            - name: {{ .Values.node.persistence.name }}
+            - name: data
               mountPath: /root/.taraxa
       containers:
         {{- if .Values.slack.enabled }}
@@ -144,7 +144,7 @@ spec:
           resources:
             {{- toYaml .Values.node.resources | nindent 12 }}
           volumeMounts:
-            - name: {{ .Values.node.persistence.name }}
+            - name: data
               mountPath: /root/.taraxa
           securityContext:
             capabilities:
@@ -178,13 +178,13 @@ spec:
             name: {{ .Release.Name }}-node-status-script
         {{- end }}
         {{- if not .Values.node.persistence.enabled }}
-        - name: {{ .Values.node.persistence.name }}
+        - name: data
           emptyDir: {}
         {{- end }}
   {{- if .Values.node.persistence.enabled }}
   volumeClaimTemplates:
   - metadata:
-      name: {{ .Values.node.persistence.name }}
+      name: data
       annotations:
         {{- if .Values.node.persistence.annotations}}
         {{- toYaml .Values.node.persistence.annotations | nindent 4 }}

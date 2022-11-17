@@ -50,7 +50,7 @@ spec:
               mountPath: /bin/entrypoint.sh
               readOnly: true
               subPath: entrypoint.sh
-            - name: {{ .Values.bootnode.persistence.name }}
+            - name: data
               mountPath: /root/.taraxa
       containers:
         - name: boot-node
@@ -95,7 +95,7 @@ spec:
           resources:
             {{- toYaml .Values.bootnode.resources | nindent 12 }}
           volumeMounts:
-            - name: {{ .Values.bootnode.persistence.name }}
+            - name: data
               mountPath: /root/.taraxa
           securityContext:
             capabilities:
@@ -119,13 +119,13 @@ spec:
             defaultMode: 0700
             name: {{ .Release.Name }}-boot-node-init-script
        {{- if not .Values.bootnode.persistence.enabled }}
-        - name: {{ .Values.bootnode.persistence.name }}
+        - name: data
           emptyDir: {}
        {{- end }}
   {{- if .Values.bootnode.persistence.enabled }}
   volumeClaimTemplates:
   - metadata:
-      name: {{ .Values.bootnode.persistence.name }}
+      name: data
       annotations:
         {{- if .Values.bootnode.persistence.annotations}}
         {{- toYaml .Values.bootnode.persistence.annotations | nindent 4 }}
