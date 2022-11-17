@@ -264,7 +264,7 @@ commands:
                 --set node.loadBalancer.addresses\[1\]="${PRNET_IPS_RPC_NODES[1]}" \
                 --set node.loadBalancer.addresses\[2\]="${PRNET_IPS_RPC_NODES[2]}" \
                 --set node.persistence.enabled=true \
-                --set bootnode.persistence.enabled=true \
+                --set bootnode.persistence.enabled=false \
                 --set consensusnode.persistence.enabled=true
             fi
 
