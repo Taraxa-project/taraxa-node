@@ -32,7 +32,7 @@ struct EventSubscriber {
   auto subscribe(Handler &&handler, task_executor_t &&execution_context = current_thread_executor()) const {
     std::unique_lock l(state_.mu_);
     auto subscription_id = ++state_.next_subscription_id_;
-    state_.subs_[subscription_id] = [exec = move(execution_context), h = move(handler)](auto const &payload) {
+    state_.subs_[subscription_id] = [exec = std::move(execution_context), h = std::move(handler)](auto const &payload) {
       exec([&h, payload] { h(payload); });
     };
     return subscription_id;

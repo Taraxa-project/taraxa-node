@@ -61,7 +61,7 @@ struct Session final : std::enable_shared_from_this<Session> {
                bytes msg(1 + payload.size());
                msg[0] = header;
                memmove(msg.data() + 1, payload.data(), payload.size());
-               send_(move(msg), std::move(on_done));
+               send_(std::move(msg), std::move(on_done));
              });
   }
 

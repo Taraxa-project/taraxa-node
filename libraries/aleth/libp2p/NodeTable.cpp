@@ -103,7 +103,7 @@ bool NodeTable::addKnownNode(Node const& _node, uint32_t _lastPongReceivedTime, 
 
   if (entry->hasValidEndpointProof()) {
     LOG(m_logger) << "Known " << _node;
-    noteActiveNode(move(entry));
+    noteActiveNode(std::move(entry));
   } else {
     LOG(m_logger) << "Pending " << _node;
     schedulePing(_node);
@@ -243,7 +243,7 @@ vector<shared_ptr<NodeEntry>> NodeTable::nearestNodeEntries(NodeID const& _targe
       }
 
   vector<shared_ptr<NodeEntry>> ret;
-  for (auto& distanceAndNode : nodesByDistanceToTarget) ret.emplace_back(move(distanceAndNode.second));
+  for (auto& distanceAndNode : nodesByDistanceToTarget) ret.emplace_back(std::move(distanceAndNode.second));
 
   return ret;
 }
@@ -276,7 +276,7 @@ void NodeTable::schedulePing(Node const& _node) {
 void NodeTable::evict(NodeEntry const& _leastSeen, shared_ptr<NodeEntry> _replacement) {
   if (!m_socket->isOpen()) return;
   LOG(m_logger) << "Evicting node " << _leastSeen.node;
-  ping(_leastSeen.node, move(_replacement));
+  ping(_leastSeen.node, std::move(_replacement));
 
   if (m_nodeEventHandler) m_nodeEventHandler->appendEvent(_leastSeen.id(), NodeEntryScheduledForEviction);
 }
@@ -411,7 +411,7 @@ void NodeTable::onPacketReceived(UDPSocketFace*, bi::udp::endpoint const& _from,
         break;
     }
 
-    if (sourceNodeEntry) noteActiveNode(move(sourceNodeEntry));
+    if (sourceNodeEntry) noteActiveNode(std::move(sourceNodeEntry));
   } catch (exception const& _e) {
     LOG(m_logger) << "Exception processing message from " << node_ip.address().to_string() << ":" << node_ip.port()
                   << ": " << _e.what();
@@ -440,7 +440,7 @@ shared_ptr<NodeEntry> NodeTable::handlePong(bi::udp::endpoint const& _from, Disc
   auto const& sourceId = pong.sourceid;
   if (sourceId != nodeValidation.nodeID) {
     LOG(m_logger) << "Node " << _from << " changed public key from " << nodeValidation.nodeID << " to " << sourceId;
-    if (auto node = nodeEntry(nodeValidation.nodeID)) dropNode(move(node));
+    if (auto node = nodeEntry(nodeValidation.nodeID)) dropNode(std::move(node));
   }
 
   // create or update nodeEntry with new Pong received time
@@ -575,13 +575,13 @@ std::shared_ptr<NodeEntry> NodeTable::handlePingNode(bi::udp::endpoint const& _f
 
   if (in.version != dev::p2p::c_protocolVersion) {
     LOG(m_logger) << "Received a ping from a different protocol version node " << in.version << " from: " << _from;
-    if (auto node = nodeEntry(_packet.sourceid)) dropNode(move(node));
+    if (auto node = nodeEntry(_packet.sourceid)) dropNode(std::move(node));
     return nullptr;
   }
 
   if (in.chain_id != chain_id_) {
     LOG(m_logger) << "Received a ping from a different network node " << in.chain_id << " from: " << _from;
-    if (auto node = nodeEntry(_packet.sourceid)) dropNode(move(node));
+    if (auto node = nodeEntry(_packet.sourceid)) dropNode(std::move(node));
     return nullptr;
   }
 
@@ -695,10 +695,10 @@ void NodeTable::doHandleTimeouts() {
     for (auto it = m_sentPings.begin(); it != m_sentPings.end();) {
       if (chrono::steady_clock::now() > it->second.pingSentTime + m_requestTimeToLive) {
         if (auto node = nodeEntry(it->second.nodeID)) {
-          dropNode(move(node));
+          dropNode(std::move(node));
 
           // save the replacement node that should be activated
-          if (it->second.replacementNodeEntry) nodesToActivate.emplace_back(move(it->second.replacementNodeEntry));
+          if (it->second.replacementNodeEntry) nodesToActivate.emplace_back(std::move(it->second.replacementNodeEntry));
         }
 
         it = m_sentPings.erase(it);
@@ -732,7 +732,7 @@ void NodeTable::runBackgroundTask(std::chrono::milliseconds const& _period, std:
 
     _f();
 
-    runBackgroundTask(_period, move(_timer), move(_f));
+    runBackgroundTask(_period, std::move(_timer), std::move(_f));
   }));
 }
 

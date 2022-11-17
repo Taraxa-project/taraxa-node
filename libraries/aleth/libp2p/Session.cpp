@@ -22,11 +22,11 @@ static constexpr uint32_t MIN_COMPRESSION_SIZE = 500;
 Session::Session(SessionCapabilities caps, unique_ptr<RLPXFrameCoder> _io, std::shared_ptr<RLPXSocket> _s,
                  std::shared_ptr<Peer> _n, PeerSessionInfo _info,
                  std::optional<DisconnectReason> immediate_disconnect_reason)
-    : m_capabilities(move(caps)),
-      m_io(move(_io)),
-      m_socket(move(_s)),
-      m_peer(move(_n)),
-      m_info(move(_info)),
+    : m_capabilities(std::move(caps)),
+      m_io(std::move(_io)),
+      m_socket(std::move(_s)),
+      m_peer(std::move(_n)),
+      m_info(std::move(_info)),
       m_ping(chrono::steady_clock::time_point::max()),
       immediate_disconnect_reason_(immediate_disconnect_reason) {
   stringstream remoteInfoStream;
@@ -45,8 +45,8 @@ Session::Session(SessionCapabilities caps, unique_ptr<RLPXFrameCoder> _io, std::
 std::shared_ptr<Session> Session::make(SessionCapabilities caps, std::unique_ptr<RLPXFrameCoder> _io,
                                        std::shared_ptr<RLPXSocket> _s, std::shared_ptr<Peer> _n, PeerSessionInfo _info,
                                        std::optional<DisconnectReason> immediate_disconnect_reason) {
-  shared_ptr<Session> ret(
-      new Session(move(caps), move(_io), move(_s), move(_n), move(_info), immediate_disconnect_reason));
+  shared_ptr<Session> ret(new Session(std::move(caps), std::move(_io), std::move(_s), std::move(_n), std::move(_info),
+                                      immediate_disconnect_reason));
   if (immediate_disconnect_reason) {
     ret->disconnect_(*immediate_disconnect_reason);
     return ret;
@@ -148,7 +148,7 @@ RLPStream& Session::prep(RLPStream& _s, P2pPacketType _id, unsigned _args) {
 void Session::sealAndSend_(RLPStream& _s) {
   bytes b;
   _s.swapOut(b);
-  send_(move(b));
+  send_(std::move(b));
 }
 
 bool Session::checkPacket(bytesConstRef _msg) {

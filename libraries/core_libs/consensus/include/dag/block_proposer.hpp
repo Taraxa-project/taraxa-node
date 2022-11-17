@@ -130,7 +130,7 @@ class BlockProposer : public std::enable_shared_from_this<BlockProposer> {
   void stop();
 
   std::shared_ptr<BlockProposer> getShared();
-  void setNetwork(std::weak_ptr<Network> network) { network_ = move(network); }
+  void setNetwork(std::weak_ptr<Network> network) { network_ = std::move(network); }
 
   /**
    * @brief Creates/proposes a new block with provided data

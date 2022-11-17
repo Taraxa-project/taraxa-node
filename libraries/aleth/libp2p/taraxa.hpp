@@ -23,7 +23,7 @@ struct Capability {
   unsigned const message_count = 0;
 
   Capability(std::shared_ptr<CapabilityFace> ref, unsigned message_count)
-      : ref(move(ref)), message_count(message_count) {}
+      : ref(std::move(ref)), message_count(message_count) {}
 };
 
 struct SessionCapability : Capability {
