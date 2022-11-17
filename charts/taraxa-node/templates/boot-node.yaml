@@ -126,6 +126,10 @@ spec:
   volumeClaimTemplates:
   - metadata:
       name: {{ .Values.bootnode.persistence.name }}
+      annotations:
+        {{- if .Values.bootnode.persistence.annotations}}
+        {{- toYaml .Values.bootnode.persistence.annotations | nindent 4 }}
+        {{- end }}
     spec:
       accessModes:
         - {{ .Values.bootnode.persistence.accessMode | quote }}

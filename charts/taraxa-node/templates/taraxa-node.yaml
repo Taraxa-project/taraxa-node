@@ -185,6 +185,10 @@ spec:
   volumeClaimTemplates:
   - metadata:
       name: {{ .Values.node.persistence.name }}
+      annotations:
+        {{- if .Values.node.persistence.annotations}}
+        {{- toYaml .Values.node.persistence.annotations | nindent 4 }}
+        {{- end }}
     spec:
       accessModes:
         - {{ .Values.node.persistence.accessMode | quote }}

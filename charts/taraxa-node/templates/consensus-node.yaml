@@ -184,6 +184,10 @@ spec:
   volumeClaimTemplates:
   - metadata:
       name: {{ .Values.consensusnode.persistence.name }}
+      annotations:
+        {{- if .Values.consensusnode.persistence.annotations}}
+        {{- toYaml .Values.consensusnode.persistence.annotations | nindent 4 }}
+        {{- end }}
     spec:
       accessModes:
         - {{ .Values.consensusnode.persistence.accessMode | quote }}
