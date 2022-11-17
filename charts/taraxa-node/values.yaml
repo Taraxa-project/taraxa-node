@@ -125,8 +125,10 @@ node:
     enabled: false
     name: taraxa-node-data
     accessMode: ReadWriteOnce
-    size: "30Gi"
-    storageClass: "fast"
+    size: 30Gi
+    storageClass: 
+    annotations: {}
+
 
 bootnode:
   enabled: true
@@ -163,8 +165,9 @@ bootnode:
     enabled: false
     name: taraxa-bootnode-data
     accessMode: ReadWriteOnce
-    size: "30Gi"
-    storageClass: "fast"
+    size: 30Gi
+    storageClass: 
+    annotations: {}
 
 consensusnode:
   enabled: true
@@ -207,8 +210,9 @@ consensusnode:
     enabled: false
     name: taraxa-consensusnode-data
     accessMode: ReadWriteOnce
-    size: "30Gi"
-    storageClass: "fast"
+    size: 30Gi
+    storageClass: 
+    annotations: {}
 
 
 explorer:
