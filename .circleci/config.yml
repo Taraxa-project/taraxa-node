@@ -238,8 +238,7 @@ commands:
                 --format="value(tags[0])" )
               if [ -z ${PR_TAG} ]; then
                 echo "No images for PR pr-<< parameters.pr-name >>"
-                PR_TAG=pr-2208-8916
-                # exit 1 # FIXME: TEMP CHANGE
+                exit 1
               else
                 echo "export PR_TAG=${PR_TAG}" >> ${BASH_ENV}
               fi
