@@ -137,7 +137,7 @@ spec:
     {{- if (eq "-" .Values.bootnode.persistence.storageClass) }}
       storageClassName: ""
     {{- else }}
-      storageClassName: "{{ .Values.bootnodepersistence.storageClass }}"
+      storageClassName: "{{ .Values.bootnode.persistence.storageClass }}"
     {{- end }}
     {{- end }}
       resources:
