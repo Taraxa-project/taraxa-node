@@ -261,8 +261,10 @@ commands:
                 --set bootnode.loadBalancer.addresses\[2\]="${PRNET_IPS_BOOT_NODES[2]}" \
                 --set node.loadBalancer.addresses\[0\]="${PRNET_IPS_RPC_NODES[0]}" \
                 --set node.loadBalancer.addresses\[1\]="${PRNET_IPS_RPC_NODES[1]}" \
-                --set node.loadBalancer.addresses\[2\]="${PRNET_IPS_RPC_NODES[2]}"
-
+                --set node.loadBalancer.addresses\[2\]="${PRNET_IPS_RPC_NODES[2]}" \
+                --set node.persistence.enabled=true \
+                --set bootnode.persistence.enabled=false \
+                --set consensusnode.persistence.enabled=true
             fi
 
   cleanup_prnet_chart:
@@ -285,9 +287,8 @@ commands:
           command: |
             if [[ $(helm list --namespace blockchain-prnet -f "pr-<< parameters.pr-name >>" -o json) != '[]' ]] ; then
               helm delete pr-<< parameters.pr-name >> --namespace blockchain-prnet
-              kubectl -n blockchain-prnet delete pvc $(kubectl -n blockchain-prnet get pvc | grep taraxa-data-pr-<<parameters.pr-name>>-boot-node | awk '{print $1}')
-              kubectl -n blockchain-prnet delete pvc $(kubectl -n blockchain-prnet get pvc | grep taraxa-data-pr-<<parameters.pr-name>>-consensus-node | awk '{print $1}')
-              kubectl -n blockchain-prnet delete pvc $(kubectl -n blockchain-prnet get pvc | grep taraxa-data-pr-<<parameters.pr-name>>-taraxa-node | awk '{print $1}')
+              kubectl -n blockchain-prnet delete pvc -l app.kubernetes.io/instance=pr-<< parameters.pr-name >>
+
               for i in {1..50}
               do
                 GETALL=$(kubectl get all -n blockchain-prnet | grep pr-"<< parameters.pr-name >>") || true

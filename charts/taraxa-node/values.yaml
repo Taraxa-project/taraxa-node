@@ -63,13 +63,6 @@ tolerations: []
 
 affinity: {}
 
-persistence:
-  enabled: false
-  accessMode: ReadWriteOnce
-  name: taraxa-data
-  size: "30Gi"
-  storageClass: "fast"
-
 node:
   enabled: true
   replicaCount: 20
@@ -128,6 +121,13 @@ node:
           protocol: UDP
   resources: {}
   nodeSelector: {}
+  persistence:
+    enabled: false
+    accessMode: ReadWriteOnce
+    size: 30Gi
+    storageClass: 
+    annotations: {}
+
 
 bootnode:
   enabled: true
@@ -160,6 +160,12 @@ bootnode:
         protocol: UDP
   resources: {}
   nodeSelector: {}
+  persistence:
+    enabled: false
+    accessMode: ReadWriteOnce
+    size: 30Gi
+    storageClass: 
+    annotations: {}
 
 consensusnode:
   enabled: true
@@ -198,6 +204,12 @@ consensusnode:
         protocol: UDP
   resources: {}
   nodeSelector: {}
+  persistence:
+    enabled: false
+    accessMode: ReadWriteOnce
+    size: 30Gi
+    storageClass: 
+    annotations: {}
 
 
 explorer:
