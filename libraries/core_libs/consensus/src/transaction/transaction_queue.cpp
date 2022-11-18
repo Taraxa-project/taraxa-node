@@ -4,7 +4,10 @@
 
 namespace taraxa {
 
-TransactionQueue::TransactionQueue(size_t max_size) : known_txs_(max_size * 2, max_size / 5), kMaxSize(max_size) {
+TransactionQueue::TransactionQueue(size_t max_size)
+    : known_txs_(max_size * 2, max_size / 5),
+      kNonProposableTransactionsMaxSize(max_size * kNonProposableTransactionsLimitPercentage / 100),
+      kMaxSize(max_size) {
   queue_transactions_.reserve(max_size);
 }
 
@@ -148,13 +151,17 @@ bool TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction, const 
     } break;
     case TransactionStatus::LowNonce:
     case TransactionStatus::InsufficentBalance:
-    case TransactionStatus::Forced:
-      if (non_proposable_transactions_.size() < kNonProposableTransactionsLimit) {
+      if (non_proposable_transactions_.size() <= kNonProposableTransactionsMaxSize) {
         non_proposable_transactions_[tx_hash] = {last_block_number, transaction};
         known_txs_.insert(tx_hash);
       } else {
+        transaction_overflow_time_ = std::chrono::system_clock::now();
         return false;
       }
+      break;
+    case TransactionStatus::Forced:
+      non_proposable_transactions_[tx_hash] = {last_block_number, transaction};
+      known_txs_.insert(tx_hash);
       break;
     default:
       assert(false);
@@ -171,6 +178,10 @@ void TransactionQueue::blockFinalized(uint64_t block_number) {
       ++it;
     }
   }
+}
+
+bool TransactionQueue::nonProposableTransactionsOverTheLimit() const {
+  return non_proposable_transactions_.size() >= kNonProposableTransactionsMaxSize;
 }
 
 void TransactionQueue::markTransactionKnown(const trx_hash_t &trx_hash) { known_txs_.insert(trx_hash); }

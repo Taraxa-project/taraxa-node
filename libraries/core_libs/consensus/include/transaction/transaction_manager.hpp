@@ -16,8 +16,7 @@ namespace taraxa {
 
 /**
  * @brief TransactionStatus enum class defines current transaction status. All states except Forced are result of
- * verification. Forced status is used only when our trx pool is full and we need to except this transaction to be able
- * to process DagBlock
+ * verification. Forced status is used when trx is part of synced dag block which is about to be added to DAG
  */
 enum class TransactionStatus { Verified = 0, Invalid, LowNonce, InsufficentBalance, Forced };
 
@@ -123,6 +122,14 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @return false
    */
   bool isTransactionPoolFull(size_t precentage = 100) const;
+
+  /**
+   * @brief return true if non proposable transactions are over the limit
+   *
+   * @return true
+   * @return false
+   */
+  bool nonProposableTransactionsOverTheLimit() const;
 
   size_t getNonfinalizedTrxSize() const;
 

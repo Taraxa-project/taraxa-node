@@ -231,6 +231,11 @@ size_t TransactionManager::getTransactionPoolSize() const {
   return transactions_pool_.size();
 }
 
+bool TransactionManager::nonProposableTransactionsOverTheLimit() const {
+  std::shared_lock transactions_lock(transactions_mutex_);
+  return transactions_pool_.nonProposableTransactionsOverTheLimit();
+}
+
 bool TransactionManager::isTransactionPoolFull(size_t precentage) const {
   std::shared_lock transactions_lock(transactions_mutex_);
   return transactions_pool_.size() >= (kConf.transactions_pool_size * precentage / 100);
