@@ -1433,7 +1433,7 @@ TEST_F(FullNodeTest, chain_config_json) {
         "commission_change_delta":"0x0",
         "commission_change_frequency":"0x0",
         "yield_percentage":"0x14",
-        "blocks_per_year":"0x44be36",
+        "blocks_per_year":"0x66621b",
         "initial_validators": []
       },
       "eth_chain_config": {

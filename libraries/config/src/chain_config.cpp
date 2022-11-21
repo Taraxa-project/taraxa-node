@@ -114,7 +114,8 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
 
     uint64_t year_ms = 365 * 24 * 60 * 60;
     year_ms *= 1000;
-    const uint32_t expected_block_time = 3.5 * cfg.pbft.lambda_ms_min;
+    // we have fixed 2*lambda time for proposing step and adding some expecting value for filter and certify steps
+    const uint32_t expected_block_time = 2 * cfg.pbft.lambda_ms_min + 700;
     dpos.blocks_per_year = year_ms / expected_block_time;
 
     return cfg;
