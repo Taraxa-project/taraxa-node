@@ -15,7 +15,7 @@ struct RangeView {
   for_each_t const for_each_f = [](auto) {};
 
   RangeView() = default;
-  RangeView(size_t size, for_each_t &&for_each_f) : size(size), for_each_f(move(for_each_f)) {}
+  RangeView(size_t size, for_each_t &&for_each_f) : size(size), for_each_f(std::move(for_each_f)) {}
   template <typename Seq, typename = std::enable_if_t<!std::is_convertible<Seq, for_each_t>::value>>
   RangeView(Seq const &seq)
       : RangeView(seq.size(), [&seq](auto const &iteration) {
@@ -60,7 +60,7 @@ struct RangeView {
   auto map(Mapper &&mapper) const -> RangeView<decltype(mapper(std::declval<Element>(), size_t{}))> {
     return {
         size,
-        [mapper = move(mapper), for_each_base = for_each_f](auto const &iteration) {
+        [mapper = std::move(mapper), for_each_base = for_each_f](auto const &iteration) {
           for_each_base([&, i = size_t(0)](auto const &el_base) mutable { return iteration(mapper(el_base, i++)); });
         },
     };

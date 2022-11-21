@@ -193,7 +193,7 @@ template <typename T>
 bytes rlp_enc(T const& obj) {
   dev::RLPStream s;
   rlp(s, obj);
-  return move(s.invalidate());
+  return std::move(s.invalidate());
 }
 
 }  // namespace taraxa::util::encoding_rlp

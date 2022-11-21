@@ -18,7 +18,7 @@ class EthImpl : public Eth, EthParams {
   Watches watches_;
 
  public:
-  EthImpl(EthParams&& prerequisites) : EthParams(move(prerequisites)), watches_(watches_cfg) {}
+  EthImpl(EthParams&& prerequisites) : EthParams(std::move(prerequisites)), watches_(watches_cfg) {}
 
   virtual RPCModules implementedModules() const override { return RPCModules{RPCModule{"eth", "1.0"}}; }
 
@@ -380,7 +380,7 @@ class EthImpl : public Eth, EthParams {
         }
       }
     }
-    return LogFilter(from_block, to_block, move(addresses), move(topics));
+    return LogFilter(from_block, to_block, std::move(addresses), std::move(topics));
   }
 
   static void add(Json::Value& obj, optional<TransactionLocationWithBlockHash> const& info) {
@@ -499,6 +499,6 @@ class EthImpl : public Eth, EthParams {
 
 Json::Value toJson(BlockHeader const& obj) { return EthImpl::toJson(obj); }
 
-shared_ptr<Eth> NewEth(EthParams&& prerequisites) { return make_shared<EthImpl>(move(prerequisites)); }
+shared_ptr<Eth> NewEth(EthParams&& prerequisites) { return make_shared<EthImpl>(std::move(prerequisites)); }
 
 }  // namespace taraxa::net::rpc::eth

@@ -62,7 +62,7 @@ class WatchGroup {
 
  public:
   explicit WatchGroup(WatchesConfig const& cfg = {}, Updater&& updater = {})
-      : cfg_(cfg[type]), updater_(move(updater)) {
+      : cfg_(cfg[type]), updater_(std::move(updater)) {
     assert(cfg_.idle_timeout.count() != 0);
     if constexpr (std::is_same_v<InputType, OutputType>) {
       if (!updater_) {

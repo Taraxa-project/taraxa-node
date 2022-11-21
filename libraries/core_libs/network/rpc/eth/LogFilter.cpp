@@ -4,7 +4,7 @@ namespace taraxa::net::rpc::eth {
 
 LogFilter::LogFilter(EthBlockNumber from_block, std::optional<EthBlockNumber> to_block, AddressSet addresses,
                      LogFilter::Topics topics)
-    : from_block_(from_block), to_block_(to_block), addresses_(move(addresses)), topics_(move(topics)) {
+    : from_block_(from_block), to_block_(to_block), addresses_(std::move(addresses)), topics_(std::move(topics)) {
   if (!addresses_.empty()) {
     return;
   }

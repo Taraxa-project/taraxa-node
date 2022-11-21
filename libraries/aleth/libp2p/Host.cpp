@@ -36,10 +36,10 @@ Host::Host(std::string _clientVersion, KeyPair const& kp, NetworkConfig _n, Tara
       strand_(ioc_),
       m_tcp4Acceptor(session_ioc_),
       m_runTimer(ioc_),
-      state_file_path_(move(state_file_path)),
-      m_clientVersion(move(_clientVersion)),
-      m_netConfig(move(_n)),
-      taraxa_conf_(taraxa_conf),
+      state_file_path_(std::move(state_file_path)),
+      m_clientVersion(std::move(_clientVersion)),
+      m_netConfig(std::move(_n)),
+      taraxa_conf_(std::move(taraxa_conf)),
       m_idealPeerCount(taraxa_conf_.ideal_peer_count),
       m_stretchPeers(taraxa_conf_.peer_stretch),
       m_listenPort(m_netConfig.listenPort),
@@ -56,8 +56,8 @@ Host::Host(std::string _clientVersion, KeyPair const& kp, NetworkConfig _n, Tara
   handshake_ctx.client_version = m_clientVersion;
   handshake_ctx.on_success = [this](auto const& id, auto const& rlp, auto frame_coder, auto socket) {
     ba::post(strand_, [=, this, _ = shared_from_this(), rlp = rlp.data().cropped(0, rlp.actualSize()).toBytes(),
-                       frame_coder = move(frame_coder)]() mutable {
-      startPeerSession(id, RLP(rlp), move(frame_coder), socket);
+                       frame_coder = std::move(frame_coder)]() mutable {
+      startPeerSession(id, RLP(rlp), std::move(frame_coder), socket);
     });
   };
   handshake_ctx.on_failure = [this](auto const& id, auto reason) {
@@ -67,7 +67,7 @@ Host::Host(std::string _clientVersion, KeyPair const& kp, NetworkConfig _n, Tara
       }
     });
   };
-  handshake_ctx_ = make_shared<decltype(handshake_ctx)>(move(handshake_ctx));
+  handshake_ctx_ = make_shared<decltype(handshake_ctx)>(std::move(handshake_ctx));
   auto restored_state = restore_state();
   auto const& enr = restored_state ? restored_state->enr
                                    : IdentitySchemeV4::createENR(m_alias.secret(),
@@ -104,7 +104,8 @@ Host::Host(std::string _clientVersion, KeyPair const& kp, NetworkConfig _n, Tara
 std::shared_ptr<Host> Host::make(std::string _clientVersion, CapabilitiesFactory const& cap_factory, KeyPair const& kp,
                                  NetworkConfig _n, TaraxaNetworkConfig taraxa_conf,
                                  std::filesystem::path state_file_path) {
-  shared_ptr<Host> self(new Host(move(_clientVersion), kp, move(_n), taraxa_conf, move(state_file_path)));
+  shared_ptr<Host> self(
+      new Host(std::move(_clientVersion), kp, std::move(_n), taraxa_conf, std::move(state_file_path)));
   for (const auto& cap : cap_factory(self)) {
     CapabilityNameAndVersion cap_id{cap->name(), cap->version()};
     self->m_capabilities.emplace(cap_id, Capability(cap, cap->messageCount()));
@@ -223,7 +224,7 @@ void Host::startPeerSession(Public const& _id, RLP const& _hello, unique_ptr<RLP
   {
     auto endpoint = peer->get_endpoint();
     endpoint.setAddress(_s->remoteEndpoint().address());
-    peer->set_endpoint(move(endpoint));
+    peer->set_endpoint(std::move(endpoint));
   }
   auto const protocolVersion = _hello[0].toInt<unsigned>();
   auto const clientVersion = _hello[1].toString();
@@ -294,7 +295,7 @@ void Host::startPeerSession(Public const& _id, RLP const& _hello, unique_ptr<RLP
                 << " pending peers: " << m_pendingPeerConns.size();
     disconnect_reason = TooManyPeers;
   }
-  auto session = Session::make(session_caps, move(_io), _s, peer,
+  auto session = Session::make(session_caps, std::move(_io), _s, peer,
                                PeerSessionInfo{
                                    _id,
                                    clientVersion,
@@ -651,7 +652,7 @@ std::optional<Host::PersistentState> Host::restore_state() {
   }
   auto [restored_secret, restored_enr] = restoreENR(state_file_contents, m_netConfig);
   assert(restored_secret == m_alias.secret());
-  PersistentState ret{move(restored_enr), {}, {}};
+  PersistentState ret{std::move(restored_enr), {}, {}};
   RLP r(state_file_contents);
   auto const protocolVersion = r[0].toInt<unsigned>();
   if (r.itemCount() > 0 && r[0].isInt() && protocolVersion >= dev::p2p::c_protocolVersion) {
@@ -683,7 +684,7 @@ std::optional<Host::PersistentState> Host::restore_state() {
         peer->m_lastAttempted = chrono::system_clock::time_point(chrono::seconds(nodeRLP[6].toInt<unsigned>()));
         peer->m_failedAttempts = nodeRLP[7].toInt<unsigned>();
         peer->m_lastDisconnect = (DisconnectReason)nodeRLP[8].toInt<unsigned>();
-        ret.peers.emplace_back(move(peer));
+        ret.peers.emplace_back(std::move(peer));
       }
     }
   }

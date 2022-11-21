@@ -21,11 +21,11 @@ constexpr size_t c_authCipherSizeBytes = 307;
 }  // namespace
 
 RLPXHandshake::RLPXHandshake(shared_ptr<HostContext const> ctx, std::shared_ptr<RLPXSocket> const& _socket)
-    : RLPXHandshake(move(ctx), _socket, {}) {}
+    : RLPXHandshake(std::move(ctx), _socket, {}) {}
 
 RLPXHandshake::RLPXHandshake(shared_ptr<HostContext const> ctx, std::shared_ptr<RLPXSocket> const& _socket,
                              NodeID _remote)
-    : host_ctx_(move(ctx)),
+    : host_ctx_(std::move(ctx)),
       m_remote(_remote),
       m_originated(_remote),
       m_socket(_socket),
@@ -413,7 +413,7 @@ void RLPXHandshake::transition(boost::system::error_code _ech) {
                     LOG(m_logger) << p2pPacketTypeToString(HelloPacket) << " verified. Starting session with";
                     try {
                       RLP rlp(frame.cropped(1), RLP::ThrowOnFail | RLP::FailIfTooSmall);
-                      host_ctx_->on_success(m_remote, rlp, move(m_io), m_socket);
+                      host_ctx_->on_success(m_remote, rlp, std::move(m_io), m_socket);
                     } catch (std::exception const& _e) {
                       LOG(m_errorLogger) << "Handshake causing an exception: " << _e.what();
                       m_failureReason = HandshakeFailureReason::UnknownFailure;
