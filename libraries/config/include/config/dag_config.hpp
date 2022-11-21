@@ -6,17 +6,17 @@
 
 namespace taraxa {
 
-struct BlockProposerConfig {
+struct DagBlockProposerConfig {
   uint16_t shard = 1;
 
   bytes rlp() const;
 };
-Json::Value enc_json(const BlockProposerConfig& obj);
-void dec_json(const Json::Value& json, BlockProposerConfig& obj);
+Json::Value enc_json(const DagBlockProposerConfig& obj);
+void dec_json(const Json::Value& json, DagBlockProposerConfig& obj);
 
 struct DagConfig {
   uint64_t gas_limit = 0;
-  BlockProposerConfig block_proposer;
+  DagBlockProposerConfig block_proposer;
 
   bytes rlp() const;
 };

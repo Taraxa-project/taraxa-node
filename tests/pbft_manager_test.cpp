@@ -722,7 +722,7 @@ TEST_F(PbftManagerWithDagCreation, initial_dag) {
 TEST_F(PbftManagerWithDagCreation, dag_generation) {
   makeNode();
   deployContract();
-  node->getBlockProposer()->stop();
+  node->getDagBlockProposer()->stop();
   generateAndApplyInitialDag();
 
   EXPECT_HAPPENS({10s, 250ms}, [&](auto &ctx) {
@@ -807,7 +807,7 @@ TEST_F(PbftManagerWithDagCreation, limit_pbft_block) {
   makeNodeFromConfig(node_cfgs);
 
   deployContract();
-  node->getBlockProposer()->stop();
+  node->getDagBlockProposer()->stop();
   generateAndApplyInitialDag();
 
   auto trxs_before = node->getTransactionManager()->getTransactionCount();
@@ -842,7 +842,7 @@ TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
   makeNodeFromConfig(node_cfgs);
 
   deployContract();
-  node->getBlockProposer()->stop();
+  node->getDagBlockProposer()->stop();
   generateAndApplyInitialDag();
 
   auto trx_count = node->getTransactionManager()->getTransactionCount();
@@ -883,7 +883,7 @@ TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
   node_cfgs.front().chain.pbft.gas_limit = 600000;
   makeNode();
   deployContract();
-  node->getBlockProposer()->stop();
+  node->getDagBlockProposer()->stop();
   generateAndApplyInitialDag();
 
   EXPECT_HAPPENS({10s, 500ms},

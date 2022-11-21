@@ -422,7 +422,8 @@ bool PbftManager::advanceRound() {
   // Cleanup previous round next votes & set new previous round 2t+1 next votes in next vote manager
   next_votes_manager_->updateNextVotes(determined_round_with_votes->second, *two_t_plus_one);
 
-  LOG(log_nf_) << "Round advanced to: " << determined_round_with_votes->first << ", period " << current_pbft_period << ", step " << step_;
+  LOG(log_nf_) << "Round advanced to: " << determined_round_with_votes->first << ", period " << current_pbft_period
+               << ", step " << step_;
 
   // Restart while loop...
   return true;
@@ -727,13 +728,13 @@ void PbftManager::printVotingSummary() const {
 
   json_obj["period"] = Json::UInt64(period - 1);
   json_obj["round"] = Json::UInt64(round);
-  auto& steps_voted_blocks_json = json_obj["voted_blocks_steps"] = Json::Value(Json::arrayValue);
+  auto &steps_voted_blocks_json = json_obj["voted_blocks_steps"] = Json::Value(Json::arrayValue);
 
-  for (const auto& voted_blocks_steps : current_round_broadcasted_votes_) {
+  for (const auto &voted_blocks_steps : current_round_broadcasted_votes_) {
     const auto voted_block_hash = voted_blocks_steps.first;
-    auto& voted_blocks_steps_json = steps_voted_blocks_json.append(Json::Value(Json::objectValue));
-    auto& steps_json = voted_blocks_steps_json[voted_block_hash.toString()] = Json::Value(Json::arrayValue);
-    for (const auto& step : voted_blocks_steps.second) {
+    auto &voted_blocks_steps_json = steps_voted_blocks_json.append(Json::Value(Json::objectValue));
+    auto &steps_json = voted_blocks_steps_json[voted_block_hash.toString()] = Json::Value(Json::arrayValue);
+    for (const auto &step : voted_blocks_steps.second) {
       steps_json.append(step);
     }
   }
@@ -863,8 +864,8 @@ void PbftManager::checkPreviousRoundNextVotedValueChange_() {
 bool PbftManager::placeVote(const std::shared_ptr<Vote> &vote, std::string_view log_vote_id,
                             const std::shared_ptr<PbftBlock> &voted_block) {
   if (!vote_mgr_->addVerifiedVote(vote)) {
-    LOG(log_er_) << "Unable to place vote " << vote->getHash() << " for block " << vote->getBlockHash()
-                 << ", period " << vote->getPeriod() << ", round " << vote->getRound() << ", step " << vote->getStep();
+    LOG(log_er_) << "Unable to place vote " << vote->getHash() << " for block " << vote->getBlockHash() << ", period "
+                 << vote->getPeriod() << ", round " << vote->getRound() << ", step " << vote->getStep();
     return false;
   }
   db_->saveVerifiedVote(vote);
@@ -872,8 +873,8 @@ bool PbftManager::placeVote(const std::shared_ptr<Vote> &vote, std::string_view 
   gossipNewVote(vote, voted_block);
 
   LOG(log_nf_) << "Placed " << log_vote_id << " " << vote->getHash() << " for block " << vote->getBlockHash()
-               << ", vote weight " << *vote->getWeight() << ", period " << vote->getPeriod()
-               << ", round " << vote->getRound() << ", step " << vote->getStep();
+               << ", vote weight " << *vote->getWeight() << ", period " << vote->getPeriod() << ", round "
+               << vote->getRound() << ", step " << vote->getStep();
 
   return true;
 }

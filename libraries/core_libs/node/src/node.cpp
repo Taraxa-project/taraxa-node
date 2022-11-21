@@ -8,10 +8,9 @@
 #include <chrono>
 #include <stdexcept>
 
-#include "common/constants.hpp"
-#include "dag/block_proposer.hpp"
 #include "dag/dag.hpp"
 #include "dag/dag_block.hpp"
+#include "dag/dag_block_proposer.hpp"
 #include "graphql/http_processor.hpp"
 #include "graphql/ws_server.hpp"
 #include "key_manager/key_manager.hpp"
@@ -110,8 +109,9 @@ void FullNode::init() {
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.chain.pbft, dag_genesis_block_hash, node_addr, db_, pbft_chain_,
                                             vote_mgr_, next_votes_mgr_, dag_mgr_, trx_mgr_, final_chain_, key_manager_,
                                             kp_.secret(), conf_.vrf_secret, conf_.max_levels_per_period);
-  blk_proposer_ = std::make_shared<BlockProposer>(conf_.chain.dag.block_proposer, dag_mgr_, trx_mgr_, final_chain_, db_,
-                                                  key_manager_, node_addr, getSecretKey(), getVrfSecretKey());
+  dag_block_proposer_ =
+      std::make_shared<DagBlockProposer>(conf_.chain.dag.block_proposer, dag_mgr_, trx_mgr_, final_chain_, db_,
+                                         key_manager_, node_addr, getSecretKey(), getVrfSecretKey());
   network_ = std::make_shared<Network>(conf_, genesis_hash, dev::p2p::Host::CapabilitiesFactory(),
                                        conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_, vote_mgr_,
                                        next_votes_mgr_, dag_mgr_, trx_mgr_);
@@ -289,8 +289,8 @@ void FullNode::start() {
     return;
   } else {
     network_->start();
-    blk_proposer_->setNetwork(network_);
-    blk_proposer_->start();
+    dag_block_proposer_->setNetwork(network_);
+    dag_block_proposer_->start();
   }
 
   pbft_mgr_->start();
@@ -308,7 +308,7 @@ void FullNode::close() {
                            // This line is needed because jsonrpc_api_ indirectly refers to FullNode (produces
                            // self-reference from FullNode to FullNode).
 
-  blk_proposer_->stop();
+  dag_block_proposer_->stop();
   pbft_mgr_->stop();
   LOG(log_nf_) << "Node stopped ... ";
 }
@@ -356,6 +356,6 @@ void FullNode::rebuildDb() {
   }
 }
 
-uint64_t FullNode::getNumProposedBlocks() const { return BlockProposer::getNumProposedBlocks(); }
+uint64_t FullNode::getProposedBlocksCount() const { return dag_block_proposer_->getProposedBlocksCount(); }
 
 }  // namespace taraxa
