@@ -197,7 +197,7 @@ TEST_F(StateAPITest, DISABLED_eth_mainnet_smoke) {
   eth_cfg.constantinople_block = 7280000;
   eth_cfg.petersburg_block = 7280000;
 
-  auto genesis_balances_rlp_hex_c = taraxa_evm_mainnet_genesis_balances();
+  auto genesis_balances_rlp_hex_c = taraxa_evm_mainnet_initial_balances();
   auto genesis_balances_rlp =
       dev::jsToBytes(string((char*)genesis_balances_rlp_hex_c.Data, genesis_balances_rlp_hex_c.Len));
   util::rlp(dev::RLP(genesis_balances_rlp), chain_config.genesis_balances);
