@@ -262,7 +262,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   year_ms *= 1000;
   // we have fixed 2*lambda time for proposing step and adding some expecting value for filter and certify steps
   const uint32_t expected_block_time = 2 * chain.pbft.lambda_ms_min + 700;
-  chain.final_chain.state.dpos->blocks_per_year = year_ms / expected_block_time;
+  chain.final_chain.state.dpos.blocks_per_year = year_ms / expected_block_time;
 
   is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, false);
   if (is_light_node) {
