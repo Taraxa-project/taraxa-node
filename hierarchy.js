@@ -35,7 +35,6 @@ var hierarchy =
     [ "taraxa::final_chain::Config", "structtaraxa_1_1final__chain_1_1_config.html", null ],
     [ "taraxa::state_api::Config", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config", null ],
     [ "taraxa::logger::Config", "classtaraxa_1_1logger_1_1_config.html", null ],
-    [ "taraxa::final_chain::ReplayProtectionService::Config", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_config", null ],
     [ "taraxa::cli::Config", "classtaraxa_1_1cli_1_1_config.html", null ],
     [ "taraxa::cli::ConfigUpdater::ConfigChange", "structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html", null ],
     [ "taraxa::cli::ConfigUpdater", "classtaraxa_1_1cli_1_1_config_updater.html", null ],
@@ -165,10 +164,12 @@ var hierarchy =
       [ "dev::GenericGuardBool< GuardType, MutexType >", "structdev_1_1_generic_guard_bool.html", null ]
     ] ],
     [ "Hardforks", "hardfork_8hpp.html#struct_hardforks", null ],
+    [ "hash", null, [
+      [ "std::hash< dev::h256 >", "structstd_1_1hash_3_01dev_1_1h256_01_4.html", null ]
+    ] ],
     [ "dev::FixedHash< N >::hash", "structdev_1_1_fixed_hash_1_1hash.html", [
       [ "std::hash< dev::h128 >", "structstd_1_1hash_3_01dev_1_1h128_01_4.html", null ],
       [ "std::hash< dev::h160 >", "structstd_1_1hash_3_01dev_1_1h160_01_4.html", null ],
-      [ "std::hash< dev::h256 >", "structstd_1_1hash_3_01dev_1_1h256_01_4.html", null ],
       [ "std::hash< dev::h512 >", "structstd_1_1hash_3_01dev_1_1h512_01_4.html", null ],
       [ "std::hash< dev::h64 >", "structstd_1_1hash_3_01dev_1_1h64_01_4.html", null ]
     ] ],
@@ -212,8 +213,8 @@ var hierarchy =
     [ "dev::p2p::Neighbours::Neighbour", "structdev_1_1p2p_1_1_neighbours_1_1_neighbour.html", null ],
     [ "dev::p2p::Network", "classdev_1_1p2p_1_1_network.html", null ],
     [ "taraxa::Network", "classtaraxa_1_1_network.html", null ],
-    [ "taraxa::NetworkConfig", "structtaraxa_1_1_network_config.html", null ],
     [ "dev::p2p::NetworkConfig", "structdev_1_1p2p_1_1_network_config.html", null ],
+    [ "taraxa::NetworkConfig", "structtaraxa_1_1_network_config.html", null ],
     [ "taraxa::final_chain::NewBlock", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_new_block", [
       [ "taraxa::final_chain::FinalizationResult", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result", null ]
     ] ],
@@ -279,9 +280,6 @@ var hierarchy =
     ] ],
     [ "graphql::taraxa::Query", "classgraphql_1_1taraxa_1_1_query.html", null ],
     [ "taraxa::util::range_view::RangeView< Element >", "structtaraxa_1_1util_1_1range__view_1_1_range_view.html", null ],
-    [ "taraxa::final_chain::ReplayProtectionService", "group___final_chain.html#classtaraxa_1_1final__chain_1_1_replay_protection_service", [
-      [ "taraxa::final_chain::ReplayProtectionServiceImpl", "classtaraxa_1_1final__chain_1_1_replay_protection_service_impl.html", null ]
-    ] ],
     [ "taraxa::RewardsStats", "classtaraxa_1_1_rewards_stats.html", null ],
     [ "dev::RLP", "classdev_1_1_r_l_p.html", null ],
     [ "taraxa::util::encoding_rlp::RLPDecoderRef", "structtaraxa_1_1util_1_1encoding__rlp_1_1_r_l_p_decoder_ref.html", null ],
@@ -309,7 +307,6 @@ var hierarchy =
     [ "dev::ScopeGuard", "classdev_1_1_scope_guard.html", null ],
     [ "dev::crypto::Secp256k1PP", "classdev_1_1crypto_1_1_secp256k1_p_p.html", null ],
     [ "dev::secure_vector< T >", "classdev_1_1secure__vector.html", null ],
-    [ "taraxa::final_chain::SenderState", "structtaraxa_1_1final__chain_1_1_sender_state.html", null ],
     [ "dev::p2p::Session::SendRequest", "structdev_1_1p2p_1_1_session.html#structdev_1_1p2p_1_1_session_1_1_send_request", null ],
     [ "ServerInterface< I >", "class_server_interface.html", null ],
     [ "ServerInterface< EthFace >", "class_server_interface.html", [
@@ -362,11 +359,10 @@ var hierarchy =
     [ "dev::Timer", "classdev_1_1_timer.html", null ],
     [ "dev::TimerHelper", "classdev_1_1_timer_helper.html", null ],
     [ "taraxa::Transaction", "structtaraxa_1_1_transaction.html", null ],
+    [ "taraxa::final_chain::FinalChain::TransactionHashes", "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html", null ],
     [ "TransactionHashes", null, [
       [ "taraxa::final_chain::FinalChainImpl::TransactionHashesImpl", "structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl.html", null ]
     ] ],
-    [ "taraxa::final_chain::FinalChain::TransactionHashes", "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html", null ],
-    [ "taraxa::final_chain::ReplayProtectionService::TransactionInfo", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_replay_protection_service_1_1_transaction_info", null ],
     [ "taraxa::final_chain::TransactionLocation", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location", [
       [ "taraxa::net::rpc::eth::TransactionLocationWithBlockHash", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html", [
         [ "taraxa::net::rpc::eth::ExtendedTransactionLocation", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_extended_transaction_location.html", null ]

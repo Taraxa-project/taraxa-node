@@ -1,7 +1,3 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" title=" " alt="" coords="5,81,65,108"/>
-<area shape="rect" id="node2" href="$classtaraxa_1_1net_1_1_eth_client.html" title=" " alt="" coords="125,5,285,32"/>
-<area shape="rect" id="node3" href="$classtaraxa_1_1net_1_1_net_client.html" title=" " alt="" coords="123,56,286,83"/>
-<area shape="rect" id="node4" href="$classtaraxa_1_1net_1_1_taraxa_client.html" title=" " alt="" coords="113,107,296,133"/>
-<area shape="rect" id="node5" href="$classtaraxa_1_1net_1_1_test_client.html" title=" " alt="" coords="122,157,287,184"/>
+<area shape="rect" id="node1" href="$namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_localised_transaction" title=" " alt="" coords="5,5,171,47"/>
 </map>

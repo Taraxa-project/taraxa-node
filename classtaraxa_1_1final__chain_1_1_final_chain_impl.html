@@ -239,12 +239,10 @@ Static Private Member Functions</h2></td></tr>
 Private Attributes</h2></td></tr>
 <tr class="memitem:a73eff020d0822578989e0b8baed42091"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="namespacetaraxa.html#a32216cff36a3565783afe8fa0099ae89">DB</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a73eff020d0822578989e0b8baed42091">db_</a></td></tr>
 <tr class="separator:a73eff020d0822578989e0b8baed42091"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab91c22847a3a1f9f765dbe006bc61b39"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab91c22847a3a1f9f765dbe006bc61b39">kCommiteeSize</a></td></tr>
-<tr class="separator:ab91c22847a3a1f9f765dbe006bc61b39"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab658e585b3b1c7139880c73f3b25a5c1"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab658e585b3b1c7139880c73f3b25a5c1">kCommitteeSize</a></td></tr>
+<tr class="separator:ab658e585b3b1c7139880c73f3b25a5c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abc398fa9c008b4001bcc78bbfb1040c1"><td class="memItemLeft" align="right" valign="top">const uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#abc398fa9c008b4001bcc78bbfb1040c1">kBlockGasLimit</a></td></tr>
 <tr class="separator:abc398fa9c008b4001bcc78bbfb1040c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a603e75098c6c8f63e42e392b8ef8fd76"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_replay_protection_service">ReplayProtectionService</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a603e75098c6c8f63e42e392b8ef8fd76">replay_protection_service_</a></td></tr>
-<tr class="separator:a603e75098c6c8f63e42e392b8ef8fd76"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8dc59861e1ecd2ad92e753bab9cf13bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___final_chain.html#classtaraxa_1_1state__api_1_1_state_a_p_i">StateAPI</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a8dc59861e1ecd2ad92e753bab9cf13bd">state_api_</a></td></tr>
 <tr class="separator:a8dc59861e1ecd2ad92e753bab9cf13bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a49057cbf347c291a51a87d399c93bbf4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">util::ThreadPool</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a49057cbf347c291a51a87d399c93bbf4">executor_thread_</a> {1}</td></tr>
@@ -1847,8 +1845,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="ab91c22847a3a1f9f765dbe006bc61b39"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab91c22847a3a1f9f765dbe006bc61b39">&#9670;&nbsp;</a></span>kCommiteeSize</h2>
+<a id="ab658e585b3b1c7139880c73f3b25a5c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab658e585b3b1c7139880c73f3b25a5c1">&#9670;&nbsp;</a></span>kCommitteeSize</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1857,7 +1855,7 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const uint32_t taraxa::final_chain::FinalChainImpl::kCommiteeSize</td>
+          <td class="memname">const uint32_t taraxa::final_chain::FinalChainImpl::kCommitteeSize</td>
         </tr>
       </table>
   </td>
@@ -1902,28 +1900,6 @@ Additional Inherited Members</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::atomic&lt;uint64_t&gt; taraxa::final_chain::FinalChainImpl::num_executed_trx_ = 0</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a603e75098c6c8f63e42e392b8ef8fd76"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a603e75098c6c8f63e42e392b8ef8fd76">&#9670;&nbsp;</a></span>replay_protection_service_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::unique_ptr&lt;<a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_replay_protection_service">ReplayProtectionService</a>&gt; taraxa::final_chain::FinalChainImpl::replay_protection_service_</td>
         </tr>
       </table>
   </td>
