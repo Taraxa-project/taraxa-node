@@ -5,7 +5,6 @@
 #include <thread>
 #include <vector>
 
-#include "boost/thread.hpp"
 #include "config/config.hpp"
 #include "dag/dag_block.hpp"
 #include "logger/logger.hpp"
@@ -114,7 +113,6 @@ class DagBlockProposer {
   uint16_t max_num_tries_{20};  // Wait 2000(ms)
   uint16_t num_tries_{0};
   uint64_t last_propose_level_{0};
-  util::ThreadPool executor_{1};
 
   std::atomic<uint64_t> proposed_blocks_count_{0};
   std::atomic<bool> stopped_{true};
