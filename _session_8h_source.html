@@ -144,7 +144,7 @@ $(document).ready(function(){initNavTree('_session_8h_source.html',''); initResi
 <div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;               <a class="code" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> msg(1 + payload.size());</div>
 <div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;               msg[0] = header;</div>
 <div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;               memmove(msg.data() + 1, payload.data(), payload.size());</div>
-<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;               <a class="code" href="structdev_1_1p2p_1_1_session.html#acbd0c5326fd76291e27095db7fdca161">send_</a>(move(msg), std::move(on_done));</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;               <a class="code" href="structdev_1_1p2p_1_1_session.html#acbd0c5326fd76291e27095db7fdca161">send_</a>(std::move(msg), std::move(on_done));</div>
 <div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;             });</div>
 <div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;  }</div>
 <div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160; </div>

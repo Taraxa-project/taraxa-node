@@ -280,7 +280,7 @@ $(document).ready(function(){initNavTree('encoding__rlp_8hpp_source.html',''); i
 <div class="line"><a name="l00193"></a><span class="lineno"><a class="line" href="namespacetaraxa_1_1util_1_1encoding__rlp.html#ac4fe5238d98076ccef82d203cfabc37d">  193</a></span>&#160;<a class="code" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> <a class="code" href="namespacetaraxa_1_1util_1_1encoding__rlp.html#a81a62796af0f85a1c4cbf63d09517bec">rlp_enc</a>(T <span class="keyword">const</span>&amp; obj) {</div>
 <div class="line"><a name="l00194"></a><span class="lineno">  194</span>&#160;  <a class="code" href="classdev_1_1_r_l_p_stream.html">dev::RLPStream</a> s;</div>
 <div class="line"><a name="l00195"></a><span class="lineno">  195</span>&#160;  <a class="code" href="namespacetaraxa_1_1util_1_1encoding__rlp.html#a1b808d296ba2dce7c9911a7a92ffd109">rlp</a>(s, obj);</div>
-<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;  <span class="keywordflow">return</span> move(s.<a class="code" href="classdev_1_1_r_l_p_stream.html#ac8eb3fe628f61f13d7fc02d0633ad53a">invalidate</a>());</div>
+<div class="line"><a name="l00196"></a><span class="lineno">  196</span>&#160;  <span class="keywordflow">return</span> std::move(s.<a class="code" href="classdev_1_1_r_l_p_stream.html#ac8eb3fe628f61f13d7fc02d0633ad53a">invalidate</a>());</div>
 <div class="line"><a name="l00197"></a><span class="lineno">  197</span>&#160;}</div>
 <div class="line"><a name="l00198"></a><span class="lineno">  198</span>&#160; </div>
 <div class="line"><a name="l00199"></a><span class="lineno">  199</span>&#160;}  <span class="comment">// namespace taraxa::util::encoding_rlp</span></div>

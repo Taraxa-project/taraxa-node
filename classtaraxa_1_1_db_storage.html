@@ -401,10 +401,10 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a10e7214c85169ada7891f8722e956395"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5f93131f687e3a7bccc09f266ab6ae90"><td class="memItemLeft" align="right" valign="top">fs::path&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a5f93131f687e3a7bccc09f266ab6ae90">state_db_path_</a></td></tr>
 <tr class="separator:a5f93131f687e3a7bccc09f266ab6ae90"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a6eaada1c4736910adaeb8a1485e68046"><td class="memItemLeft" align="right" valign="top">const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a6eaada1c4736910adaeb8a1485e68046">kDbDir_</a> = &quot;db&quot;</td></tr>
-<tr class="separator:a6eaada1c4736910adaeb8a1485e68046"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ac240174178e3d0c5214fb6bb536625d8"><td class="memItemLeft" align="right" valign="top">const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ac240174178e3d0c5214fb6bb536625d8">kStateDbDir_</a> = &quot;state_db&quot;</td></tr>
-<tr class="separator:ac240174178e3d0c5214fb6bb536625d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa9dd4b83bf63d1e9c9d1a2e295def926"><td class="memItemLeft" align="right" valign="top">const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#aa9dd4b83bf63d1e9c9d1a2e295def926">kDbDir</a> = &quot;db&quot;</td></tr>
+<tr class="separator:aa9dd4b83bf63d1e9c9d1a2e295def926"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9eada0d4c8d369f4259bd90dfaf008de"><td class="memItemLeft" align="right" valign="top">const std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a9eada0d4c8d369f4259bd90dfaf008de">kStateDbDir</a> = &quot;state_db&quot;</td></tr>
+<tr class="separator:a9eada0d4c8d369f4259bd90dfaf008de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4d892dd07605cbedaf998abd5765a26b"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; rocksdb::DB &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a4d892dd07605cbedaf998abd5765a26b">db_</a></td></tr>
 <tr class="separator:a4d892dd07605cbedaf998abd5765a26b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac4f74c663fa2d966d6ffdded1b90a146"><td class="memItemLeft" align="right" valign="top">std::vector&lt; rocksdb::ColumnFamilyHandle * &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ac4f74c663fa2d966d6ffdded1b90a146">handles_</a></td></tr>
@@ -419,12 +419,12 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a08e047fd250cb0d786c208eddb78fdd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac3ae348d98de4c56703b03a442d7b9f9"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ae348d98de4c56703b03a442d7b9f9">dag_edge_count_</a></td></tr>
 <tr class="separator:ac3ae348d98de4c56703b03a442d7b9f9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abab77eeb791418f048beb70e8db140e2"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#abab77eeb791418f048beb70e8db140e2">kDbSnapshotsEachNblock_</a> = 0</td></tr>
-<tr class="separator:abab77eeb791418f048beb70e8db140e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af99fc0900f48d4e3ccd2238798ff80ba"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#af99fc0900f48d4e3ccd2238798ff80ba">kDbSnapshotsEachNblock</a> = 0</td></tr>
+<tr class="separator:af99fc0900f48d4e3ccd2238798ff80ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a35667480664c002f235a9636f0e914d7"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a35667480664c002f235a9636f0e914d7">snapshots_enabled_</a> = true</td></tr>
 <tr class="separator:a35667480664c002f235a9636f0e914d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3b0e2d335498e464b7c480652475c271"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a3b0e2d335498e464b7c480652475c271">kDbSnapshotsMaxCount_</a> = 0</td></tr>
-<tr class="separator:a3b0e2d335498e464b7c480652475c271"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38f8ba07d58403570c8fd6f319142e96"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a38f8ba07d58403570c8fd6f319142e96">kDbSnapshotsMaxCount</a> = 0</td></tr>
+<tr class="separator:a38f8ba07d58403570c8fd6f319142e96"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a79f683cf51d266e66208086af806fa55"><td class="memItemLeft" align="right" valign="top">std::set&lt; <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a79f683cf51d266e66208086af806fa55">snapshots_</a></td></tr>
 <tr class="separator:a79f683cf51d266e66208086af806fa55"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a436aff92256ca1bb93c76443efaa7c10"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a436aff92256ca1bb93c76443efaa7c10">minor_version_changed_</a> = false</td></tr>
@@ -3669,8 +3669,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a6eaada1c4736910adaeb8a1485e68046"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6eaada1c4736910adaeb8a1485e68046">&#9670;&nbsp;</a></span>kDbDir_</h2>
+<a id="aa9dd4b83bf63d1e9c9d1a2e295def926"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa9dd4b83bf63d1e9c9d1a2e295def926">&#9670;&nbsp;</a></span>kDbDir</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3679,7 +3679,7 @@ template&lt;typename T &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const std::string taraxa::DbStorage::kDbDir_ = &quot;db&quot;</td>
+          <td class="memname">const std::string taraxa::DbStorage::kDbDir = &quot;db&quot;</td>
         </tr>
       </table>
   </td>
@@ -3691,8 +3691,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="abab77eeb791418f048beb70e8db140e2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abab77eeb791418f048beb70e8db140e2">&#9670;&nbsp;</a></span>kDbSnapshotsEachNblock_</h2>
+<a id="af99fc0900f48d4e3ccd2238798ff80ba"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af99fc0900f48d4e3ccd2238798ff80ba">&#9670;&nbsp;</a></span>kDbSnapshotsEachNblock</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3701,7 +3701,7 @@ template&lt;typename T &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const uint32_t taraxa::DbStorage::kDbSnapshotsEachNblock_ = 0</td>
+          <td class="memname">const uint32_t taraxa::DbStorage::kDbSnapshotsEachNblock = 0</td>
         </tr>
       </table>
   </td>
@@ -3713,8 +3713,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a3b0e2d335498e464b7c480652475c271"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3b0e2d335498e464b7c480652475c271">&#9670;&nbsp;</a></span>kDbSnapshotsMaxCount_</h2>
+<a id="a38f8ba07d58403570c8fd6f319142e96"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a38f8ba07d58403570c8fd6f319142e96">&#9670;&nbsp;</a></span>kDbSnapshotsMaxCount</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3723,7 +3723,7 @@ template&lt;typename T &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const uint32_t taraxa::DbStorage::kDbSnapshotsMaxCount_ = 0</td>
+          <td class="memname">const uint32_t taraxa::DbStorage::kDbSnapshotsMaxCount = 0</td>
         </tr>
       </table>
   </td>
@@ -3735,8 +3735,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="ac240174178e3d0c5214fb6bb536625d8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ac240174178e3d0c5214fb6bb536625d8">&#9670;&nbsp;</a></span>kStateDbDir_</h2>
+<a id="a9eada0d4c8d369f4259bd90dfaf008de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9eada0d4c8d369f4259bd90dfaf008de">&#9670;&nbsp;</a></span>kStateDbDir</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3745,7 +3745,7 @@ template&lt;typename T &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const std::string taraxa::DbStorage::kStateDbDir_ = &quot;state_db&quot;</td>
+          <td class="memname">const std::string taraxa::DbStorage::kStateDbDir = &quot;state_db&quot;</td>
         </tr>
       </table>
   </td>

@@ -1,5 +1,6 @@
 var NAVTREEINDEX13 =
 {
+"globals_type.html":[15,1,3],
 "globals_vars.html":[15,1,2],
 "graphql_2include_2graphql_2ws__server_8hpp.html":[15,0,1,4,1,0,0,0,10],
 "graphql_2include_2graphql_2ws__server_8hpp_source.html":[15,0,1,4,1,0,0,0,10],
@@ -248,6 +249,5 @@ var NAVTREEINDEX13 =
 "group___final_chain.html#a2a3ec3216af93a45e94965c03a967bf0":[12,1,14,5],
 "group___final_chain.html#a2af8c575511f01b9254f45021a135657":[12,1,2,3],
 "group___final_chain.html#a2b3252e16df6a6f84933725efaa423dc":[12,1,3,0],
-"group___final_chain.html#a2cf4e96ebcafa2e30fdbdf692ae05b44":[12,1,6,24],
-"group___final_chain.html#a2e621698a6b854047e645f21cd7f9c38":[12,1,6,33]
+"group___final_chain.html#a2cf4e96ebcafa2e30fdbdf692ae05b44":[12,1,6,24]
 };

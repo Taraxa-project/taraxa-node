@@ -1,5 +1,6 @@
 var NAVTREEINDEX12 =
 {
+"dir_1ca9ccfb116222db9f6425522db16f45.html":[15,0,1,4,1,1,0,0],
 "dir_1e7614e87d9cc41c07aad71889b0ced0.html":[15,0,1,4,1,0,1],
 "dir_1e80da6770b7154a4f5e1b5fe61458cc.html":[15,0,1,3],
 "dir_1f6c68d65043d7deff49c45d2a106ca8.html":[15,0,1,0,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX12 =
 "global__const_8hpp_source.html":[15,0,1,2,0,0,6],
 "globals.html":[15,1,0],
 "globals_defs.html":[15,1,4],
-"globals_func.html":[15,1,1],
-"globals_type.html":[15,1,3]
+"globals_func.html":[15,1,1]
 };

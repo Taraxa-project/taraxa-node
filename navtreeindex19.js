@@ -1,5 +1,6 @@
 var NAVTREEINDEX19 =
 {
+"namespacemembers_func_g.html":[13,1,7],
 "namespacemembers_func_h.html":[13,1,8],
 "namespacemembers_func_i.html":[13,1,9],
 "namespacemembers_func_j.html":[13,1,10],
@@ -248,6 +249,5 @@ var NAVTREEINDEX19 =
 "proposed__blocks_8hpp_source.html":[15,0,1,4,0,0,3,3],
 "query_8cpp.html":[15,0,1,4,1,0,1,6],
 "query_8hpp.html":[15,0,1,4,1,0,0,0,6],
-"query_8hpp_source.html":[15,0,1,4,1,0,0,0,6],
-"range__view_8hpp.html":[15,0,1,2,0,0,9]
+"query_8hpp_source.html":[15,0,1,4,1,0,0,0,6]
 };
