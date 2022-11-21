@@ -350,9 +350,6 @@
       },
       "gas_limit": "0x989680"
     },
-    "replay_protection_service": {
-      "range": "0xa"
-    },
     "sortition": {
       "changes_count_for_average": 10,
       "dag_efficiency_targets": [6900, 7100],

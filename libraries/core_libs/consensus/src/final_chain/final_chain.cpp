@@ -5,7 +5,6 @@
 #include "common/constants.hpp"
 #include "common/thread_pool.hpp"
 #include "final_chain/cache.hpp"
-#include "final_chain/replay_protection_service.hpp"
 #include "final_chain/rewards_stats.hpp"
 #include "final_chain/trie_common.hpp"
 #include "vote/vote.hpp"
@@ -14,9 +13,8 @@ namespace taraxa::final_chain {
 
 class FinalChainImpl final : public FinalChain {
   std::shared_ptr<DB> db_;
-  const uint32_t kCommiteeSize;
+  const uint32_t kCommitteeSize;
   const uint64_t kBlockGasLimit;
-  std::unique_ptr<ReplayProtectionService> replay_protection_service_;
   StateAPI state_api_;
 
   // It is not prepared to use more then 1 thread. Examine it if you want to change threads count
@@ -47,9 +45,8 @@ class FinalChainImpl final : public FinalChain {
  public:
   FinalChainImpl(const std::shared_ptr<DB>& db, const taraxa::FullNodeConfig& config, const addr_t& node_addr)
       : db_(db),
-        kCommiteeSize(config.chain.pbft.committee_size),
+        kCommitteeSize(config.chain.pbft.committee_size),
         kBlockGasLimit(config.chain.pbft.gas_limit),
-        // replay_protection_service_(NewReplayProtectionService({}, db)),
         state_api_([this](auto n) { return block_hash(n).value_or(ZeroHash()); },  //
                    config.chain.final_chain.state, config.opts_final_chain,
                    {
@@ -142,7 +139,7 @@ class FinalChainImpl final : public FinalChain {
     RewardsStats rewards_stats;
     // returns list of validators for new_blk.transactions
     std::vector<addr_t> txs_validators = rewards_stats.processStats(
-        new_blk, dpos_eligible_total_vote_count(new_blk.pbft_blk->getPeriod() - 1), kCommiteeSize);
+        new_blk, dpos_eligible_total_vote_count(new_blk.pbft_blk->getPeriod() - 1), kCommitteeSize);
 
     block_applying_emitter_.emit(block_header()->number + 1);
 
@@ -170,14 +167,6 @@ class FinalChainImpl final : public FinalChain {
     }
     auto blk_header = append_block(batch, new_blk.pbft_blk->getBeneficiary(), new_blk.pbft_blk->getTimestamp(),
                                    kBlockGasLimit, state_root, new_blk.transactions, receipts);
-    //    if (replay_protection_service_) {
-    //      // Update replay protection service, like nonce watermark. Nonce watermark has been disabled
-    //      replay_protection_service_->update(
-    //          batch, blk_header->number, util::make_range_view(txs_to_execute).map([](auto const& trx) {
-    //            return ReplayProtectionService::TransactionInfo{trx->getSender(), trx->getNonce()};
-    //          }));
-    //    }
-
     // Update number of executed DAG blocks and transactions
     auto num_executed_dag_blk = num_executed_dag_blk_ + finalized_dag_blk_hashes.size();
     auto num_executed_trx = num_executed_trx_ + new_blk.transactions.size();
