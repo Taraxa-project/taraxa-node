@@ -16,7 +16,7 @@ var searchData=
   ['kdbsnapshotseachnblock_5f_6042',['kDbSnapshotsEachNblock_',['../classtaraxa_1_1_db_storage.html#abab77eeb791418f048beb70e8db140e2',1,'taraxa::DbStorage']]],
   ['kdbsnapshotsmaxcount_5f_6043',['kDbSnapshotsMaxCount_',['../classtaraxa_1_1_db_storage.html#a3b0e2d335498e464b7c480652475c271',1,'taraxa::DbStorage']]],
   ['kdeepsyncingthreshold_6044',['kDeepSyncingThreshold',['../classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#ac7448156587d0050497196ede930d62d',1,'taraxa::network::tarcap::PbftSyncingState']]],
-  ['kdefaultlightnodehistorydays_6045',['kDefaultLightNodeHistoryDays',['../structtaraxa_1_1_full_node_config.html#ae1416aa694548186e6ffa95dbf85d05a',1,'taraxa::FullNodeConfig']]],
+  ['kdefaultlightnodehistorydays_6045',['kDefaultLightNodeHistoryDays',['../structtaraxa_1_1_full_node_config.html#a2a2df98d69082e74987ce56b36e7dad9',1,'taraxa::FullNodeConfig']]],
   ['kdefaulttransactionpoolsize_6046',['kDefaultTransactionPoolSize',['../namespacetaraxa.html#a14fc5210f7f52dbf8a90d2a6b6de8f8d',1,'taraxa']]],
   ['kemptyvrfkey_6047',['kEmptyVrfKey',['../namespacetaraxa.html#a10105b152578aaf566cb89722b17385b',1,'taraxa']]],
   ['kestimategaslimit_6048',['kEstimateGasLimit',['../group___transaction.html#a73ff8227a0b64365c57f054016400e6b',1,'taraxa::TransactionManager']]],

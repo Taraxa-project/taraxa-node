@@ -17,7 +17,7 @@ var structtaraxa_1_1_full_node_config =
     [ "graphql", "structtaraxa_1_1_full_node_config.html#a738818b1d823cf335816bc9dffec0e82", null ],
     [ "is_light_node", "structtaraxa_1_1_full_node_config.html#ad1e384f37a3fbb2470149c985e458e1f", null ],
     [ "json_file_name", "structtaraxa_1_1_full_node_config.html#ad62102338c52adccaa31fab23541fd68", null ],
-    [ "kDefaultLightNodeHistoryDays", "structtaraxa_1_1_full_node_config.html#ae1416aa694548186e6ffa95dbf85d05a", null ],
+    [ "kDefaultLightNodeHistoryDays", "structtaraxa_1_1_full_node_config.html#a2a2df98d69082e74987ce56b36e7dad9", null ],
     [ "light_node_history", "structtaraxa_1_1_full_node_config.html#aac2f32b6354412297072e81cb9b0c828", null ],
     [ "log_configs", "structtaraxa_1_1_full_node_config.html#a322f6369b84610a65239aeffae42841e", null ],
     [ "log_path", "structtaraxa_1_1_full_node_config.html#a944aff6d1ac6d851475babe34c2cbcea", null ],
