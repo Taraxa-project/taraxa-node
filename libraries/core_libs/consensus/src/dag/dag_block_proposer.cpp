@@ -138,11 +138,11 @@ bool DagBlockProposer::proposeDagBlock() {
       createDagBlock(std::move(frontier), propose_level, transactions, std::move(estimations), std::move(vdf));
 
   if (dag_mgr_->addDagBlock(std::move(dag_block), std::move(transactions), true).first) {
-    LOG(log_er_) << "Failed to add newly proposed dag block into dag";
-    proposed_blocks_count_ += 1;
-  } else {
     LOG(log_nf_) << "Proposed new DAG block " << dag_block.getHash() << ", pivot " << dag_block.getPivot()
                  << " , txs num " << dag_block.getTrxs().size();
+    proposed_blocks_count_ += 1;
+  } else {
+    LOG(log_er_) << "Failed to add newly proposed dag block " << dag_block.getHash() << " into dag";
   }
 
   last_propose_level_ = propose_level;
@@ -265,7 +265,7 @@ DagBlock DagBlockProposer::createDagBlock(DagFrontier&& frontier, level_t level,
 
 bool DagBlockProposer::isValidDposProposer(PbftPeriod propose_period) const {
   if (final_chain_->last_block_number() < propose_period) {
-    LOG(log_dg_) << "Last finalized block period " << final_chain_->last_block_number() << " < propose_period "
+    LOG(log_wr_) << "Last finalized block period " << final_chain_->last_block_number() << " < propose_period "
                  << propose_period;
     return false;
   }
@@ -273,7 +273,7 @@ bool DagBlockProposer::isValidDposProposer(PbftPeriod propose_period) const {
   try {
     return final_chain_->dpos_is_eligible(propose_period, node_addr_);
   } catch (state_api::ErrFutureBlock& c) {
-    LOG(log_dg_) << "Proposal period " << propose_period << " is too far ahead of DPOS. " << c.what();
+    LOG(log_wr_) << "Proposal period " << propose_period << " is too far ahead of DPOS. " << c.what();
     return false;
   }
 }

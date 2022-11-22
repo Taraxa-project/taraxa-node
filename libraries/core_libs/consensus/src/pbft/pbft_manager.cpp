@@ -733,14 +733,12 @@ void PbftManager::printVotingSummary() const {
   for (const auto &voted_blocks_steps : current_round_broadcasted_votes_) {
     const auto voted_block_hash = voted_blocks_steps.first;
     auto &voted_blocks_steps_json = steps_voted_blocks_json.append(Json::Value(Json::objectValue));
-    auto &steps_json = voted_blocks_steps_json[voted_block_hash.toString()] = Json::Value(Json::arrayValue);
+    auto &steps_json = voted_blocks_steps_json[voted_block_hash.abridged().substr(0, 8)] =
+        Json::Value(Json::arrayValue);
     for (const auto &step : voted_blocks_steps.second) {
       steps_json.append(step);
     }
   }
-
-  blk_hash_t lol;
-  LOG(log_nf_) << lol;
 
   LOG(log_nf_) << "Voting summary: " << jsonToUnstyledString(json_obj);
 }
