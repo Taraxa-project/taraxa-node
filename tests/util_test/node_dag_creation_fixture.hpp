@@ -1,6 +1,5 @@
 #include "dag/dag.hpp"
 #include "dag/dag_block_proposer.hpp"
-#include "dag/dag_manager.hpp"
 #include "gtest.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "samples.hpp"

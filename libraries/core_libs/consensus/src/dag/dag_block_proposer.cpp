@@ -88,29 +88,34 @@ bool DagBlockProposer::proposeDagBlock() {
       return false;
     }
   }
-
   std::atomic_bool cancellation_token = false;
-  auto vdf_result = std::async(std::launch::async, &VdfSortition::computeVdfSolution, &vdf, std::ref(sortition_params),
-                               frontier.pivot.asBytes(), std::ref(cancellation_token));
-  while (vdf_result.wait_for(std::chrono::milliseconds(100)) != std::future_status::ready) {
+  std::promise<void> sync;
+  executor_.post([&vdf, &sortition_params, &frontier, cancel = std::ref(cancellation_token), &sync]() mutable {
+    vdf.computeVdfSolution(sortition_params, frontier.pivot.asBytes(), cancel);
+    sync.set_value();
+  });
+
+  std::future<void> result = sync.get_future();
+  while (result.wait_for(std::chrono::milliseconds(100)) != std::future_status::ready) {
     auto latest_frontier = dag_mgr_->getDagFrontier();
     const auto latest_level = getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
-
-    // Stop computation in case there is already higher level in dag than level we are currently computing vdf for
     if (latest_level > propose_level) {
       cancellation_token = true;
-      last_propose_level_ = propose_level;
-      num_tries_ = 0;
-      vdf_result.wait();
-      // Since compute was canceled there is a chance to propose a new block immediately, return true to skip sleep
-      return true;
+      break;
     }
+  }
+
+  if (cancellation_token) {
+    last_propose_level_ = propose_level;
+    num_tries_ = 0;
+    result.wait();
+    // Since compute was canceled there is a chance to propose a new block immediately, return true to skip sleep
+    return true;
   }
 
   if (vdf.isStale(sortition_params)) {
     // Computing VDF for a stale block is CPU extensive, there is a possibility that some dag blocks are in a queue,
     // give it a second to process these dag blocks
-    // TODO: remove thisThreadSleepForSeconds
     thisThreadSleepForSeconds(1);
     auto latest_frontier = dag_mgr_->getDagFrontier();
     const auto latest_level = getProposeLevel(latest_frontier.pivot, latest_frontier.tips) + 1;
@@ -193,16 +198,14 @@ std::pair<SharedTransactions, std::vector<uint64_t>> DagBlockProposer::getSharde
     return {};
   }
 
-  if (total_trx_shards_ == 1) {
-    return trx_mgr_->packTrxs(proposal_period, weight_limit);
-  }
+  if (total_trx_shards_ == 1) return trx_mgr_->packTrxs(proposal_period, weight_limit);
 
   auto [transactions, estimations] = trx_mgr_->packTrxs(proposal_period, weight_limit);
+
   if (transactions.empty()) {
     LOG(log_tr_) << "Skip block proposer, zero unpacked transactions ..." << std::endl;
     return {};
   }
-
   SharedTransactions sharded_trxs;
   std::vector<uint64_t> sharded_estimations;
   for (uint32_t i = 0; i < transactions.size(); i++) {
@@ -212,12 +215,10 @@ std::pair<SharedTransactions, std::vector<uint64_t>> DagBlockProposer::getSharde
       estimations.emplace_back(estimations[i]);
     }
   }
-
   if (sharded_trxs.empty()) {
     LOG(log_tr_) << "Skip block proposer, zero sharded transactions ..." << std::endl;
     return {};
   }
-
   return {sharded_trxs, sharded_estimations};
 }
 
