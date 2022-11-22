@@ -101,7 +101,9 @@ bool TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction, const 
   assert(transaction);
   const auto tx_hash = transaction->getHash();
 
-  if (contains(tx_hash)) return false;
+  if (contains(tx_hash)) {
+    return false;
+  }
 
   switch (status) {
     case TransactionStatus::Verified: {

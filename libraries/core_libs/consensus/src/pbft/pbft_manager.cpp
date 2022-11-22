@@ -60,7 +60,7 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
 
 PbftManager::~PbftManager() { stop(); }
 
-void PbftManager::setNetwork(std::weak_ptr<Network> network) { network_ = move(network); }
+void PbftManager::setNetwork(std::weak_ptr<Network> network) { network_ = std::move(network); }
 
 void PbftManager::start() {
   if (bool b = true; !stopped_.compare_exchange_strong(b, !b)) {

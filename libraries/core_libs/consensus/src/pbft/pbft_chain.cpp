@@ -10,7 +10,11 @@ using namespace std;
 namespace taraxa {
 
 PbftChain::PbftChain(addr_t node_addr, std::shared_ptr<DbStorage> db)
-    : head_hash_(blk_hash_t(0)), size_(0), non_empty_size_(0), last_pbft_block_hash_(blk_hash_t(0)), db_(move(db)) {
+    : head_hash_(blk_hash_t(0)),
+      size_(0),
+      non_empty_size_(0),
+      last_pbft_block_hash_(blk_hash_t(0)),
+      db_(std::move(db)) {
   LOG_OBJECTS_CREATE("PBFT_CHAIN");
   // Get PBFT head from DB
   auto pbft_head_str = db_->getPbftHead(head_hash_);

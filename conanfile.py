@@ -14,13 +14,13 @@ class TaraxaConan(ConanFile):
 
     def requirements(self):
         self.requires("mpfr/4.1.0")
-        self.requires("boost/1.79.0")
+        self.requires("boost/1.80.0")
         self.requires("cppcheck/2.7.5")
-        self.requires("openssl/1.1.1o")
-        self.requires("cryptopp/8.6.0")
-        self.requires("gtest/1.11.0")
-        self.requires("lz4/1.9.3")
-        self.requires("rocksdb/6.20.3")
+        self.requires("openssl/1.1.1s")
+        self.requires("cryptopp/8.7.0")
+        self.requires("gtest/1.12.1")
+        self.requires("lz4/1.9.4")
+        self.requires("rocksdb/6.29.5")
         self.requires("gmp/6.2.1")
         self.requires("libjson-rpc-cpp/1.3.0@bincrafters/stable")
 
@@ -63,7 +63,9 @@ class TaraxaConan(ConanFile):
         # this links cppcheck to prce library
         self.options["cppcheck"].have_rules = False
         self.options["rocksdb"].use_rtti = True
-        self.options["rocksdb"].with_lz4= True
+        self.options["rocksdb"].with_lz4 = True
+        if (self.settings.arch == "x86_64"):
+            self.options["rocksdb"].enable_sse = "avx2"
         self.options["libjson-rpc-cpp"].shared = False
         # mpir is required by cppcheck and it causing gmp confict
         self.options["mpir"].enable_gmpcompat = False

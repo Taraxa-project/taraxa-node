@@ -70,8 +70,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     size_t const ordinal_;
     const rocksdb::Comparator* comparator_;
 
-    Column(string name, size_t ordinal, const rocksdb::Comparator* comparator = nullptr)
+    Column(string name, size_t ordinal, const rocksdb::Comparator* comparator)
         : name_(std::move(name)), ordinal_(ordinal), comparator_(comparator) {}
+
+    Column(string name, size_t ordinal) : name_(std::move(name)), ordinal_(ordinal), comparator_(nullptr) {}
 
     auto const& name() const { return ordinal_ ? name_ : rocksdb::kDefaultColumnFamilyName; }
   };
@@ -129,8 +131,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   fs::path path_;
   fs::path db_path_;
   fs::path state_db_path_;
-  const std::string kDbDir_ = "db";
-  const std::string kStateDbDir_ = "state_db";
+  const std::string kDbDir = "db";
+  const std::string kStateDbDir = "state_db";
   std::unique_ptr<rocksdb::DB> db_;
   std::vector<rocksdb::ColumnFamilyHandle*> handles_;
   rocksdb::ReadOptions read_options_;
@@ -138,9 +140,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::mutex dag_blocks_mutex_;
   std::atomic<uint64_t> dag_blocks_count_;
   std::atomic<uint64_t> dag_edge_count_;
-  const uint32_t kDbSnapshotsEachNblock_ = 0;
+  const uint32_t kDbSnapshotsEachNblock = 0;
   std::atomic<bool> snapshots_enabled_ = true;
-  const uint32_t kDbSnapshotsMaxCount_ = 0;
+  const uint32_t kDbSnapshotsMaxCount = 0;
   std::set<PbftPeriod> snapshots_;
 
   bool minor_version_changed_ = false;

@@ -24,7 +24,6 @@ else ()
             --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/vrf_wrapper.cpp
             --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/UPnP.cpp
             --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/logger.cpp
-            --suppress=unusedFunction:${PROJECT_SOURCE_DIR}/*/replay_protection_service.cpp
             # TODO remove this when we solve correct exit of programs
             --suppress=localMutex:${PROJECT_SOURCE_DIR}/*/main.cpp
             # Just style warning

@@ -18,19 +18,6 @@ bool RewardsStats::addTransaction(const trx_hash_t& tx_hash, const addr_t& valid
   return true;
 }
 
-// void RewardsStats::removeTransaction(const trx_hash_t& tx_hash) {
-//   auto found_tx = txs_validators_.find(tx_hash);
-//   assert(found_tx != txs_validators_.end());
-
-//   auto found_validator = validators_stats_.find(found_tx->second);
-//   assert(found_validator != validators_stats_.end());
-
-//   assert(found_validator->second.unique_txs_count_);
-
-//   found_validator->second.unique_txs_count_--;
-//   total_unique_txs_count_--;
-// }
-
 std::optional<addr_t> RewardsStats::getTransactionValidator(const trx_hash_t& tx_hash) {
   auto found_tx = txs_validators_.find(tx_hash);
   if (found_tx == txs_validators_.end()) {
@@ -108,13 +95,6 @@ std::vector<addr_t> RewardsStats::processStats(const PeriodData& block, uint64_t
   txs_validators.reserve(block.transactions.size());
 
   for (const auto& tx : block.transactions) {
-    // TODO: if enabled, it would break current implementation of RewardsStats
-    // if (replay_protection_service_ && replay_protection_service_->is_nonce_stale(trx->getSender(),
-    //   trx->getNonce())) {
-    //   removeTransaction(tx.getHash());
-    //   continue;
-    // }
-
     // Non-executed trxs
     auto tx_validator = getTransactionValidator(tx->getHash());
     assert(tx_validator.has_value());

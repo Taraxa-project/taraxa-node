@@ -243,17 +243,11 @@ TEST_F(P2PTest, block_propagate) {
   for (unsigned i = 0; i < 500; i++) {
     std::this_thread::sleep_for(std::chrono::milliseconds(100));
     connected = true;
-    int counterConnected = 0;
     setPendingPeersToReady(thc1);
     for (int j = 0; j < nodeCount; j++) {
       setPendingPeersToReady(vCapabilities[j]);
-
-      if (vHosts[j]->peer_count() < 1)
-        connected = false;
-      else
-        counterConnected++;
+      if (vHosts[j]->peer_count() < 1) connected = false;
     }
-    // printf("Addnode %d connected\n", counterConnected);
 
     if ((host1->peer_count() > 0) && connected) break;
   }

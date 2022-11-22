@@ -61,9 +61,9 @@ void ThreadPool::post(uint64_t do_in_ms, std::function<void()> action) {
 }
 
 void ThreadPool::post_loop(Periodicity const &periodicity, std::function<void()> action) {
-  post(periodicity.delay_ms, [this, periodicity, action = move(action)]() mutable {
+  post(periodicity.delay_ms, [this, periodicity, action = std::move(action)]() mutable {
     action();
-    post_loop({periodicity.period_ms}, move(action));
+    post_loop({periodicity.period_ms}, std::move(action));
   });
 }
 

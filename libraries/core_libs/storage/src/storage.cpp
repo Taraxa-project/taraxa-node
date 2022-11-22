@@ -23,10 +23,10 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
                      bool rebuild_columns)
     : path_(path),
       handles_(Columns::all.size()),
-      kDbSnapshotsEachNblock_(db_snapshot_each_n_pbft_block),
-      kDbSnapshotsMaxCount_(db_max_snapshots) {
-  db_path_ = (path / kDbDir_);
-  state_db_path_ = (path / kStateDbDir_);
+      kDbSnapshotsEachNblock(db_snapshot_each_n_pbft_block),
+      kDbSnapshotsMaxCount(db_max_snapshots) {
+  db_path_ = (path / kDbDir);
+  state_db_path_ = (path / kStateDbDir);
 
   if (rebuild) {
     const std::string backup_label = "-rebuild-backup-";
@@ -46,7 +46,7 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   options.create_missing_column_families = true;
   options.create_if_missing = true;
   options.compression = rocksdb::CompressionType::kLZ4Compression;
-  // This options is related to memory consuption
+  // This options is related to memory consumption
   // https://github.com/facebook/rocksdb/issues/3216#issuecomment-817358217
   // aleth default 256 (state_db is using another 128)
   options.max_open_files = (max_open_files) ? max_open_files : 256;
@@ -132,10 +132,10 @@ void DbStorage::loadSnapshots() {
 
     try {
       // Check for db or state_db prefix
-      if (boost::starts_with(fileName, kDbDir_) && fileName.size() > kDbDir_.size()) {
-        dir_period = stoi(fileName.substr(kDbDir_.size()));
-      } else if (boost::starts_with(fileName, kStateDbDir_) && fileName.size() > kStateDbDir_.size()) {
-        dir_period = stoi(fileName.substr(kStateDbDir_.size()));
+      if (boost::starts_with(fileName, kDbDir) && fileName.size() > kDbDir.size()) {
+        dir_period = stoi(fileName.substr(kDbDir.size()));
+      } else if (boost::starts_with(fileName, kStateDbDir) && fileName.size() > kStateDbDir.size()) {
+        dir_period = stoi(fileName.substr(kStateDbDir.size()));
       } else {
         continue;
       }
@@ -151,8 +151,8 @@ void DbStorage::loadSnapshots() {
 }
 
 bool DbStorage::createSnapshot(PbftPeriod period) {
-  // Only creates snapshot each kDbSnapshotsEachNblock_ periods
-  if (!snapshots_enabled_ || kDbSnapshotsEachNblock_ <= 0 || period % kDbSnapshotsEachNblock_ != 0 ||
+  // Only creates snapshot each kDbSnapshotsEachNblock periods
+  if (!snapshots_enabled_ || kDbSnapshotsEachNblock <= 0 || period % kDbSnapshotsEachNblock != 0 ||
       snapshots_.find(period) != snapshots_.end()) {
     return false;
   }
@@ -172,9 +172,9 @@ bool DbStorage::createSnapshot(PbftPeriod period) {
   checkStatus(status);
   snapshots_.insert(period);
 
-  // Delete any snapshot over kDbSnapshotsMaxCount_
-  if (kDbSnapshotsMaxCount_ && snapshots_.size() > kDbSnapshotsMaxCount_) {
-    while (snapshots_.size() > kDbSnapshotsMaxCount_) {
+  // Delete any snapshot over kDbSnapshotsMaxCount
+  if (kDbSnapshotsMaxCount && snapshots_.size() > kDbSnapshotsMaxCount) {
+    while (snapshots_.size() > kDbSnapshotsMaxCount) {
       auto snapshot = snapshots_.begin();
       deleteSnapshot(*snapshot);
       snapshots_.erase(snapshot);

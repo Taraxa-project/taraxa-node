@@ -40,13 +40,6 @@ class RewardsStats {
    */
   bool addTransaction(const trx_hash_t& tx_hash, const addr_t& validator);
 
-  // /**
-  //  * @brief Remove tx from statistics
-  //  *
-  //  * @param tx_hash
-  //  */
-  // void removeTransaction(const trx_hash_t& tx_hash);
-
   /**
    * @param tx_hash
    * @return dag block validator, who included tx_hash as first in his block. If no validator is found,

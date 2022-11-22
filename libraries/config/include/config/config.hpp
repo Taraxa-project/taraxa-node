@@ -64,7 +64,7 @@ struct DBConfig {
 };
 
 struct FullNodeConfig {
-  static const uint32_t kDefaultLightNodeHistoryDays = 7;
+  static constexpr uint64_t kDefaultLightNodeHistoryDays = 7;
 
   FullNodeConfig() = default;
   // The reason of using Json::Value as a union is that in the tests

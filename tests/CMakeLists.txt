@@ -88,13 +88,6 @@ target_link_libraries(pbft_manager_test
 )
 add_test(pbft_manager_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/pbft_manager_test)
 
-add_executable(replay_protection_service_test replay_protection_service_test.cpp ${UTIL_HEADERS})
-target_link_libraries(replay_protection_service_test
-    core_libs
-    CONAN_PKG::gtest
-)
-add_test(replay_protection_service_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/replay_protection_service_test)
-
 add_executable(sortition_test sortition_test.cpp ${UTIL_HEADERS})
 target_link_libraries(sortition_test
     core_libs
