@@ -118,6 +118,14 @@ class TransactionQueue {
     return std::chrono::system_clock::now() - transaction_overflow_time_ < kTransactionOverflowTimeLimit;
   }
 
+  /**
+   * @brief return true if non proposable transactions are over the limit
+   *
+   * @return true
+   * @return false
+   */
+  bool nonProposableTransactionsOverTheLimit() const;
+
  private:
   // Transactions in the queue per account ordered by nonce
   std::unordered_map<addr_t, std::map<val_t, std::shared_ptr<Transaction>>> account_nonce_transactions_;
@@ -141,8 +149,11 @@ class TransactionQueue {
   // Limit when non proposable transactions expire
   const size_t kNonProposableTransactionsPeriodExpiryLimit = 10;
 
-  // Maximum number of save transactions
-  const size_t kNonProposableTransactionsLimit = 1000;
+  // Maximum number of non proposable transactions in percentage of kMaxSize
+  const size_t kNonProposableTransactionsLimitPercentage = 20;
+
+  // Maximum number of non proposable transactions
+  const size_t kNonProposableTransactionsMaxSize;
 
   // Maximum size of transactions pool
   const size_t kMaxSize;

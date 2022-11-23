@@ -26,8 +26,6 @@ void DagSyncPacketHandler::validatePacketRlpFormat(const PacketData& packet_data
 }
 
 void DagSyncPacketHandler::process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
-  std::string received_dag_blocks_str;
-
   auto it = packet_data.rlp_.begin();
   const auto request_period = (*it++).toInt<PbftPeriod>();
   const auto response_period = (*it++).toInt<PbftPeriod>();
@@ -52,19 +50,45 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     throw MaliciousPeerException(err_msg.str());
   }
 
-  std::string transactions_to_log;
+  std::vector<trx_hash_t> transactions_to_log;
+  SharedTransactions transactions;
+  const auto trx_count = (*it).itemCount();
+  transactions.reserve(trx_count);
+  transactions_to_log.reserve(trx_count);
 
   for (const auto tx_rlp : (*it++)) {
-    std::shared_ptr<Transaction> trx;
-
     try {
-      trx = std::make_shared<Transaction>(tx_rlp);
+      auto trx = std::make_shared<Transaction>(tx_rlp);
+      peer->markTransactionAsKnown(trx->getHash());
+      transactions.emplace_back(std::move(trx));
     } catch (const Transaction::InvalidSignature& e) {
       throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
     }
+  }
 
-    peer->markTransactionAsKnown(trx->getHash());
-    transactions_to_log += trx->getHash().abridged();
+  std::vector<DagBlock> dag_blocks;
+  std::vector<blk_hash_t> dag_blocks_to_log;
+  dag_blocks.reserve((*it).itemCount());
+  dag_blocks_to_log.reserve((*it).itemCount());
+  std::unordered_set<trx_hash_t> trx_hashes;
+  trx_hashes.reserve(trx_count);
+
+  for (const auto block_rlp : *it) {
+    DagBlock block(block_rlp);
+    peer->markDagBlockAsKnown(block.getHash());
+    for (auto& trx_hash : block.getTrxs()) {
+      trx_hashes.insert(trx_hash);
+    }
+    dag_blocks.emplace_back(std::move(block));
+  }
+
+  for (auto& trx : transactions) {
+    // Verify the transactions sent within this packet are only transactions that belong to the dag blocks
+    if (!trx_hashes.contains(trx->getHash())) {
+      throw MaliciousPeerException("Transaction not in dag block: " + trx->getHash().abridged());
+    }
+
+    transactions_to_log.push_back(trx->getHash());
     if (trx_mgr_->isTransactionKnown(trx->getHash())) {
       continue;
     }
@@ -77,17 +101,10 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
         throw MaliciousPeerException(err_msg.str());
       }
       case TransactionStatus::InsufficentBalance:
-      case TransactionStatus::LowNonce: {
-        if (peer->reportSuspiciousPacket()) {
-          std::ostringstream err_msg;
-          err_msg << "Suspicious packets over the limit on DagBlock transaction " << trx->getHash()
-                  << " validation: " << reason;
-          throw MaliciousPeerException(err_msg.str());
-        }
-        break;
-      }
+      case TransactionStatus::LowNonce:
       case TransactionStatus::Verified:
-        // Any transaction received in dag sync packet handler should be force inserted in the pool
+        // Any non-invalid transaction received in dag sync packet handler which belongs to a dag block
+        // should be force inserted in the pool
         status = TransactionStatus::Forced;
         break;
       default:
@@ -96,11 +113,8 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     trx_mgr_->insertValidatedTransaction(std::move(trx), std::move(status));
   }
 
-  for (const auto block_rlp : *it) {
-    DagBlock block(block_rlp);
-    peer->markDagBlockAsKnown(block.getHash());
-
-    received_dag_blocks_str += block.getHash().abridged() + " ";
+  for (auto& block : dag_blocks) {
+    dag_blocks_to_log.push_back(block.getHash());
 
     const auto verified = dag_mgr_->verifyBlock(block);
     if (verified != DagManager::VerifyBlockReturnType::Verified) {
@@ -112,8 +126,8 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
 
     if (block.getLevel() > peer->dag_level_) peer->dag_level_ = block.getLevel();
 
-    auto transactions = trx_mgr_->getPoolTransactions(block.getTrxs()).first;
-    auto status = dag_mgr_->addDagBlock(std::move(block), std::move(transactions));
+    auto pool_transactions = trx_mgr_->getPoolTransactions(block.getTrxs()).first;
+    auto status = dag_mgr_->addDagBlock(std::move(block), std::move(pool_transactions));
     if (!status.first) {
       std::ostringstream err_msg;
       if (status.second.size() > 0)
@@ -129,7 +143,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
       std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
   peer->peer_dag_syncing_ = false;
 
-  LOG(log_dg_) << "Received DagSyncPacket with blocks: " << received_dag_blocks_str
+  LOG(log_dg_) << "Received DagSyncPacket with blocks: " << dag_blocks_to_log
                << " Transactions: " << transactions_to_log << " from " << packet_data.from_node_id_;
 }
 

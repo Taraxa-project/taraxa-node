@@ -453,11 +453,23 @@ TEST_F(TransactionTest, priority_queue_max_size) {
                                                  addr_t::random());
         EXPECT_TRUE(priority_queue.insert(std::move(trx), TransactionStatus::Verified, 1));
       }
+      EXPECT_FALSE(priority_queue.nonProposableTransactionsOverTheLimit());
     }
 
     EXPECT_TRUE(priority_queue.get(hash_to_remove) != nullptr);
     EXPECT_TRUE(priority_queue.isTransactionKnown(hash_to_remove));
     EXPECT_EQ(priority_queue.size(), max_queue_size);
+
+    for (uint32_t i = 2; i < max_queue_size + 1; i++) {
+      auto trx = std::make_shared<Transaction>(nonce, 1, 1, 100, dev::fromHex("00FEDCBA9876543210000000"), g_secret,
+                                               addr_t::random());
+      EXPECT_TRUE(priority_queue.insert(std::move(trx), TransactionStatus::Forced, 1));
+      if (i < max_queue_size * 20 / 100) {
+        EXPECT_FALSE(priority_queue.nonProposableTransactionsOverTheLimit());
+      } else {
+        EXPECT_TRUE(priority_queue.nonProposableTransactionsOverTheLimit());
+      }
+    }
   }
 }
 

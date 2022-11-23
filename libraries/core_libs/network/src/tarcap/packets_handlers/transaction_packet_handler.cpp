@@ -76,12 +76,14 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
         }
         case TransactionStatus::InsufficentBalance:
         case TransactionStatus::LowNonce: {
-          if (peer->reportSuspiciousPacket()) {
+          // Raise exception in trx pool is over the limit and this peer already has too many suspicious packets
+          if (peer->reportSuspiciousPacket() && trx_mgr_->nonProposableTransactionsOverTheLimit()) {
             std::ostringstream err_msg;
             err_msg << "Suspicious packets over the limit on DagBlock transaction " << transaction->getHash()
                     << " validation: " << reason;
             throw MaliciousPeerException(err_msg.str());
           }
+
           break;
         }
         case TransactionStatus::Verified:
