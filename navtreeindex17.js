@@ -1,5 +1,8 @@
 var NAVTREEINDEX17 =
 {
+"libdevcore_2_exceptions_8h.html#ad1e7bb79b5310de53d56f6fb9e538ddd":[15,0,1,0,0,12,11],
+"libdevcore_2_exceptions_8h.html#ad500bc05735dd2f89883fd0657f1897c":[15,0,1,0,0,12,39],
+"libdevcore_2_exceptions_8h.html#aeb8ca0cd54eb499d982f5c245641555b":[15,0,1,0,0,12,10],
 "libdevcore_2_exceptions_8h.html#aeeaeda1fce93a787e6dff2059f4d9c66":[15,0,1,0,0,12,6],
 "libdevcore_2_exceptions_8h.html#afd962456a6abb45c1c538d576df76a06":[15,0,1,0,0,12,7],
 "libdevcore_2_exceptions_8h.html#afdbb262900589dda13b53b5b6ab47892":[15,0,1,0,0,12,13],
@@ -246,8 +249,5 @@ var NAVTREEINDEX17 =
 "md_doc_building.html#autotoc_md52":[1,5],
 "md_doc_coding_practices.html":[2],
 "md_doc_coding_practices.html#autotoc_md100":[36],
-"md_doc_coding_practices.html#autotoc_md101":[37],
-"md_doc_coding_practices.html#autotoc_md102":[38],
-"md_doc_coding_practices.html#autotoc_md103":[39],
-"md_doc_coding_practices.html#autotoc_md104":[2,0,9]
+"md_doc_coding_practices.html#autotoc_md101":[37]
 };
