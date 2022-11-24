@@ -43,20 +43,22 @@ bytes GasPriceConfig::rlp() const {
 
 Json::Value enc_json(const Genesis& obj) {
   Json::Value json(Json::objectValue);
+  json["chain_id"] = obj.chain_id;
   json["dag_genesis_block"] = obj.dag_genesis_block.getJson(false);
   json["sortition"] = enc_json(obj.sortition);
   json["pbft"] = enc_json(obj.pbft);
-  json["state"] = enc_json(obj.state);
+  append_json(json, obj.state);
   json["gas_price"] = enc_json(obj.gas_price);
   json["dag"] = enc_json(obj.dag);
   return json;
 }
 
 void dec_json(Json::Value const& json, Genesis& obj) {
+  obj.chain_id = json["chain_id"].asUInt();
   obj.dag_genesis_block = DagBlock(json["dag_genesis_block"]);
   dec_json(json["sortition"], obj.sortition);
   dec_json(json["pbft"], obj.pbft);
-  dec_json(json["state"], obj.state);
+  dec_json(json, obj.state);
   dec_json(json["gas_price"], obj.gas_price);
   dec_json(json["dag"], obj.dag);
 }

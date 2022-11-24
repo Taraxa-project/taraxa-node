@@ -1609,7 +1609,7 @@ TEST_F(FullNodeTest, graphql_test) {
   auto q = std::make_shared<graphql::taraxa::Query>(nodes[0]->getFinalChain(), nodes[0]->getDagManager(),
                                                     nodes[0]->getPbftManager(), nodes[0]->getTransactionManager(),
                                                     nodes[0]->getDB(), nodes[0]->getGasPricer(), nodes[0]->getNetwork(),
-                                                    nodes[0]->getConfig().chain_id);
+                                                    nodes[0]->getConfig().genesis.chain_id);
   auto mutation = std::make_shared<graphql::taraxa::Mutation>(nodes[0]->getTransactionManager());
   auto subscription = std::make_shared<graphql::taraxa::Subscription>();
   auto _service = std::make_shared<graphql::taraxa::Operations>(q, mutation, subscription);

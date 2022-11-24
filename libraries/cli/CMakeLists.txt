@@ -23,16 +23,10 @@ set(JSONS_DIRECTIORY ${CMAKE_CURRENT_SOURCE_DIR}/include/cli/config_jsons)
 
 # no maps in cmake, so it is organized as two arrays. Order of this and config_files should be the same
 set(configs
-    DEFAULT
-    MAINNET
-    TESTNET
-    DEVNET
-)
-set(config_dirs
-    ${JSONS_DIRECTIORY}/default
-    ${JSONS_DIRECTIORY}/mainnet
-    ${JSONS_DIRECTIORY}/testnet
-    ${JSONS_DIRECTIORY}/devnet
+    default
+    mainnet
+    testnet
+    devnet
 )
 
 function(CHECK_JSON CONFIG_VAR_NAME FILE_PATH SEARCH_MEMBER)
@@ -56,15 +50,16 @@ list(LENGTH configs configs_count)
 # length should be less by 1 for foreach
 math(EXPR configs_count "${configs_count}-1")
 foreach(i RANGE ${configs_count})
-    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${config_dir}/config.json)
-    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${config_dir}/genesis.json)
-    
     # get file path and configuration variable name
-    list(GET configs ${i} config_name)
-    list(GET config_dirs ${i} config_dir)
+    list(GET configs ${i} config)
+    string(TOUPPER ${config} config_upper)
+    set(config_dir ${JSONS_DIRECTIORY}/${config})
 
-    CHECK_JSON(${config_name}_CONFIG_JSON ${config_dir}/config.json rpc)
-    CHECK_JSON(${config_name}_GENESIS_JSON ${config_dir}/genesis.json state)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${config_dir}/${config}_config.json)
+    set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${config_dir}/${config}_genesis.json)
+
+    CHECK_JSON(${config_upper}_CONFIG_JSON ${config_dir}/${config}_config.json network)
+    CHECK_JSON(${config_upper}_GENESIS_JSON ${config_dir}/${config}_genesis.json dpos)
     # endif()
 endforeach()
 

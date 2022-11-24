@@ -52,9 +52,9 @@ std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
     return {TransactionStatus::Verified, ""};
   }
 
-  if (trx->getChainID() != kConf.chain_id) {
+  if (trx->getChainID() != kConf.genesis.chain_id) {
     return {TransactionStatus::Invalid,
-            "chain_id mismatch " + std::to_string(trx->getChainID()) + " " + std::to_string(kConf.chain_id)};
+            "chain_id mismatch " + std::to_string(trx->getChainID()) + " " + std::to_string(kConf.genesis.chain_id)};
   }
 
   // Ensure the transaction doesn't exceed the current block limit gas.

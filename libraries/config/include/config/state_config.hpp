@@ -71,7 +71,7 @@ struct Config {
 
   HAS_RLP_FIELDS
 };
-Json::Value enc_json(const Config& obj);
+void append_json(Json::Value& json, const Config& obj);
 void dec_json(const Json::Value& json, Config& obj);
 
 struct Opts {

@@ -35,10 +35,8 @@ class Node:
 
     def __init__(self, cfg_file_path, wallet_file_path, genesis_file_path, mode: InitMode, default_w3_provider_type='http'):
         wallet_file_path, cfg_file_path, genesis_file_path = Path(wallet_file_path), Path(cfg_file_path), Path(genesis_file_path)
-        print(wallet_file_path, cfg_file_path, genesis_file_path)
         with open(cfg_file_path, mode="r") as f:
             cfg = json.load(f)
-        print(cfg)
         self._w3_by_type = {}
         self._proc = None
         with open(wallet_file_path, mode="r") as f:
@@ -51,16 +49,13 @@ class Node:
 
         net_host = _localhost
         if isinstance(mode, Node.ManagedProcessInitMode):
-            print("ManagedProcessInitMode")
             if mode.clean_data:
                 shutil.rmtree(Path(cfg["data_path"]), ignore_errors=True)
             os.makedirs(cfg["data_path"], exist_ok=True)
 
             datadir_cfg_file_path = Path(cfg["data_path"] + "/" + cfg_file_path.name)
-            print(cfg_file_path, datadir_cfg_file_path)
+
             shutil.copyfile(cfg_file_path, datadir_cfg_file_path)
-            with open(datadir_cfg_file_path, mode="r") as f:
-              print(datadir_cfg_file_path, json.load(f))
 
             datadir_wallet_file_path = Path(cfg["data_path"] + "/" + wallet_file_path.name)
             shutil.copyfile(wallet_file_path, datadir_wallet_file_path)
@@ -71,16 +66,14 @@ class Node:
             # add default chain config section in config file and add default account to it
             Popen([mode.executable_path, "--command", "config", "--config", datadir_cfg_file_path, "--wallet", datadir_wallet_file_path, "--genesis", datadir_genesis_file_path, "--chain-id", "0"]).wait()
 
-            with open(datadir_cfg_file_path, mode="r") as f:
-              print(datadir_cfg_file_path, json.load(f))
             with open(datadir_genesis_file_path, mode="r") as f:
                 genesis = json.load(f)
-                genesis["state"]["initial_balances"] = {}
-                genesis["state"]["initial_balances"]["de2b1203d72d3549ee2f733b00b2789414c7cea5"] = "0x1ffffffffffffff"
-                genesis["state"]["initial_balances"]["973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"] = "0x1ffffffffffffff"
-                genesis["state"]["initial_balances"]["4fae949ac2b72960fbe857b56532e2d3c8418d5e"] = "0x1ffffffffffffff"
-                genesis["state"]["initial_balances"]["415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"] = "0x1ffffffffffffff"
-                genesis["state"]["initial_balances"]["b770f7a99d0b7ad9adf6520be77ca20ee99b0858"] = "0x1ffffffffffffff"
+                genesis["initial_balances"] = {}
+                genesis["initial_balances"]["de2b1203d72d3549ee2f733b00b2789414c7cea5"] = "0x1ffffffffffffff"
+                genesis["initial_balances"]["973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"] = "0x1ffffffffffffff"
+                genesis["initial_balances"]["4fae949ac2b72960fbe857b56532e2d3c8418d5e"] = "0x1ffffffffffffff"
+                genesis["initial_balances"]["415cf514eb6a5a8bd4d325d4874eae8cf26bcfe0"] = "0x1ffffffffffffff"
+                genesis["initial_balances"]["b770f7a99d0b7ad9adf6520be77ca20ee99b0858"] = "0x1ffffffffffffff"
             with open(datadir_genesis_file_path, mode="w") as f:
                 json.dump(genesis, f)
 
@@ -90,7 +83,7 @@ class Node:
         else:
             raise AssertionError("unknown init mode")
 
-        cfg_rpc = cfg.get("rpc", {})
+        cfg_rpc = cfg["network"].get("rpc", {})
         rpc_http_port = cfg_rpc.get("http_port", None)
         if rpc_http_port is not None:
             self._w3_by_type['http'] = Web3(Web3.HTTPProvider(

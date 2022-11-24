@@ -39,7 +39,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
 
   // TODO config.network.max_peer_count -> config.network.peer_count_stretch
   taraxa_net_conf.peer_stretch = config.network.max_peer_count / config.network.ideal_peer_count;
-  taraxa_net_conf.chain_id = config.chain_id;
+  taraxa_net_conf.chain_id = config.genesis.chain_id;
   taraxa_net_conf.expected_parallelism = tp_.capacity();
 
   string net_version = "TaraxaNode";  // TODO maybe give a proper name?

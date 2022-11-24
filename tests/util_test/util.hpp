@@ -196,10 +196,10 @@ inline auto make_node_cfgs(size_t total_count, size_t validators_count = 1) {
       cfg.network.vote_accepting_rounds *= tests_speed;
     }
     if constexpr (!enable_rpc_http) {
-      cfg.rpc->http_port = std::nullopt;
+      cfg.network.rpc->http_port = std::nullopt;
     }
     if constexpr (!enable_rpc_ws) {
-      cfg.rpc->ws_port = std::nullopt;
+      cfg.network.rpc->ws_port = std::nullopt;
     }
     cfg.enable_test_rpc = true;
   }
@@ -336,7 +336,7 @@ inline auto make_dpos_trx(const FullNodeConfig& sender_node_cfg, const u256& val
       vrf_wrapper::getVrfPublicKey(sender_node_cfg.vrf_secret).asBytes(), 10, dev::asBytes("test"),
       dev::asBytes("test"));
   return std::make_shared<Transaction>(nonce, value, gas_price, TEST_TX_GAS_LIMIT, std::move(input),
-                                       sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.chain_id);
+                                       sender_node_cfg.node_secret, kContractAddress, sender_node_cfg.genesis.chain_id);
 }
 
 inline auto own_balance(std::shared_ptr<FullNode> const& node) {

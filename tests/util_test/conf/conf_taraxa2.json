@@ -2,6 +2,11 @@
   "chain_id": 0,
   "data_path": "/tmp/taraxa2",
   "network": {
+    "rpc": {
+      "http_port": 7778,
+      "ws_port": 8778,
+      "threads_num": 2
+    },
     "listen_ip": "127.0.0.1",
     "listen_port": 10003,
     "transaction_interval_ms": 100,
@@ -16,11 +21,6 @@
         "port": 10007
       }
     ]
-  },
-  "rpc": {
-    "http_port": 7778,
-    "ws_port": 8778,
-    "threads_num": 2
   },
   "logging": {
     "configurations": [

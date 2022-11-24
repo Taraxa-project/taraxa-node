@@ -28,13 +28,11 @@ void dec_json(const Json::Value& json, ETHChainConfig& obj) {
   obj.petersburg_block = dev::jsToInt(json["petersburg_block"].asString());
 }
 
-Json::Value enc_json(const Config& obj) {
-  Json::Value json(Json::objectValue);
+void append_json(Json::Value& json, const Config& obj) {
   json["eth_chain_config"] = enc_json(obj.eth_chain_config);
   json["initial_balances"] = enc_json(obj.initial_balances);
   // json["hardforks"] = enc_json(obj.hardforks);
   json["dpos"] = enc_json(obj.dpos);
-  return json;
 }
 
 void dec_json(const Json::Value& json, Config& obj) {

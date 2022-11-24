@@ -1,57 +1,13 @@
 #pragma once
 
-#include <string>
-
 #include "common/config_exception.hpp"
-#include "common/types.hpp"
 #include "common/util.hpp"
 #include "common/vrf_wrapper.hpp"
 #include "config/genesis.hpp"
+#include "config/network.hpp"
 #include "logger/logger_config.hpp"
 
 namespace taraxa {
-
-struct ConnectionConfig {
-  std::optional<uint16_t> http_port;
-  std::optional<uint16_t> ws_port;
-  boost::asio::ip::address address;
-
-  // Number of threads dedicated to the rpc calls processing, default = 5
-  uint16_t threads_num{5};
-
-  void validate() const;
-};
-
-struct NodeConfig {
-  std::string id;
-  std::string ip;
-  uint16_t port = 0;
-};
-
-struct NetworkConfig {
-  static constexpr uint16_t kBlacklistTimeoutDefaultInSeconds = 600;
-
-  std::string json_file_name;
-  std::string public_ip;
-  std::string listen_ip;
-  uint16_t listen_port = 0;
-  std::vector<NodeConfig> boot_nodes;
-  uint16_t ideal_peer_count = 0;
-  uint16_t max_peer_count = 0;
-  uint16_t transaction_interval_ms = 0;
-  uint16_t sync_level_size = 0;
-  uint16_t performance_log_interval = 0;
-  uint16_t num_threads = std::max(uint(1), uint(std::thread::hardware_concurrency() / 2));
-  uint16_t packets_processing_threads = 14;
-  uint16_t peer_blacklist_timeout = kBlacklistTimeoutDefaultInSeconds;
-  bool disable_peer_blacklist = false;
-  uint16_t deep_syncing_threshold = 10;
-  PbftPeriod vote_accepting_periods = 5;
-  PbftRound vote_accepting_rounds = 5;
-  PbftStep vote_accepting_steps = 0;
-
-  void validate() const;
-};
 
 struct DBConfig {
   uint32_t db_snapshot_each_n_pbft_block = 0;
@@ -84,11 +40,8 @@ struct FullNodeConfig {
   fs::path db_path;
   fs::path log_path;
   NetworkConfig network;
-  std::optional<ConnectionConfig> rpc;
-  std::optional<ConnectionConfig> graphql;
   DBConfig db_config;
   Genesis genesis = Genesis::predefined();
-  uint64_t chain_id = 0;
   state_api::Opts opts_final_chain;
   std::vector<logger::Config> log_configs;
   bool is_light_node = false;                            // Is light node

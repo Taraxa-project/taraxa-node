@@ -1,7 +1,9 @@
 set(HEADERS
     include/config/version.hpp
     include/config/config.hpp
+    include/config/config_utils.hpp
     include/config/genesis.hpp
+    include/config/network.hpp
     include/config/dag_config.hpp
     include/config/pbft_config.hpp
     include/config/state_config.hpp
@@ -10,7 +12,9 @@ set(HEADERS
 
 set(SOURCES
     src/config.cpp
+    src/config_utils.cpp
     src/genesis.cpp
+    src/network.cpp
     src/dag_config.cpp
     src/pbft_config.cpp
     src/state_config.cpp

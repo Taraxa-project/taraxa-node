@@ -5,138 +5,9 @@
 #include <fstream>
 
 #include "common/jsoncpp.hpp"
+#include "config/config_utils.hpp"
 
 namespace taraxa {
-
-std::string getConfigErr(std::vector<string> path) {
-  std::string res = "Error in processing configuration file on param: ";
-  for (size_t i = 0; i < path.size(); i++) res += path[i] + ".";
-  res += " ";
-  return res;
-}
-
-Json::Value getConfigData(Json::Value root, const std::vector<string> &path, bool optional = false) {
-  for (size_t i = 0; i < path.size(); i++) {
-    root = root[path[i]];
-    if (root.isNull() && !optional) {
-      throw ConfigException(getConfigErr(path) + "Element missing: " + path[i]);
-    }
-  }
-  return root;
-}
-
-std::string getConfigDataAsString(const Json::Value &root, const std::vector<string> &path, bool optional = false,
-                                  std::string value = {}) {
-  try {
-    Json::Value ret = getConfigData(root, path, optional);
-    if (ret.isNull()) {
-      return value;
-    } else {
-      return ret.asString();
-    }
-  } catch (Json::Exception &e) {
-    if (optional) {
-      return value;
-    }
-    throw ConfigException(getConfigErr(path) + e.what());
-  }
-}
-
-uint32_t getConfigDataAsUInt(const Json::Value &root, const std::vector<string> &path, bool optional = false,
-                             uint32_t value = 0) {
-  try {
-    Json::Value ret = getConfigData(root, path, optional);
-    if (ret.isNull()) {
-      return value;
-    } else {
-      return ret.asUInt();
-    }
-  } catch (Json::Exception &e) {
-    if (optional) {
-      return value;
-    }
-    throw ConfigException(getConfigErr(path) + e.what());
-  }
-}
-
-uint64_t getConfigDataAsUInt64(const Json::Value &root, const std::vector<string> &path) {
-  try {
-    return getConfigData(root, path).asUInt64();
-  } catch (Json::Exception &e) {
-    throw ConfigException(getConfigErr(path) + e.what());
-  }
-}
-
-bool getConfigDataAsBoolean(const Json::Value &root, const std::vector<string> &path, bool optional = false,
-                            bool value = false) {
-  try {
-    Json::Value ret = getConfigData(root, path, optional);
-    if (ret.isNull()) {
-      return value;
-    } else {
-      return ret.asBool();
-    }
-  } catch (Json::Exception &e) {
-    if (optional) {
-      return value;
-    }
-    throw ConfigException(getConfigErr(path) + e.what());
-  }
-}
-
-Json::Value getJsonFromFileOrString(const Json::Value &value) {
-  if (value.isString()) {
-    std::string json_file_name = value.asString();
-    if (!json_file_name.empty()) {
-      std::ifstream config_doc(json_file_name, std::ifstream::binary);
-      if (!config_doc.is_open()) {
-        throw ConfigException(string("Could not open configuration file: ") + json_file_name);
-      }
-      try {
-        Json::Value parsed_from_file;
-        config_doc >> parsed_from_file;
-        return parsed_from_file;
-      } catch (Json::Exception &e) {
-        throw ConfigException(string("Could not parse json configuration file: ") + json_file_name + e.what());
-      }
-    }
-  }
-  return value;
-}
-
-NodeConfig dec_json(const Json::Value &json) {
-  NodeConfig node;
-  node.id = getConfigDataAsString(json, {"id"});
-  node.ip = getConfigDataAsString(json, {"ip"});
-  node.port = getConfigDataAsUInt(json, {"port"});
-  return node;
-}
-
-void dec_json(const Json::Value &json, NetworkConfig &network) {
-  network.listen_ip = getConfigDataAsString(json, {"listen_ip"});
-  network.public_ip = getConfigDataAsString(json, {"public_ip"}, true);
-  network.listen_port = getConfigDataAsUInt(json, {"listen_port"});
-  network.performance_log_interval = getConfigDataAsUInt(json, {"performance_log_interval"}, true, 30000 /*ms*/);
-  network.transaction_interval_ms = getConfigDataAsUInt(json, {"transaction_interval_ms"});
-  network.ideal_peer_count = getConfigDataAsUInt(json, {"ideal_peer_count"});
-  network.max_peer_count = getConfigDataAsUInt(json, {"max_peer_count"});
-  network.sync_level_size = getConfigDataAsUInt(json, {"sync_level_size"});
-  network.packets_processing_threads = getConfigDataAsUInt(json, {"packets_processing_threads"});
-  network.peer_blacklist_timeout =
-      getConfigDataAsUInt(json, {"peer_blacklist_timeout"}, true, NetworkConfig::kBlacklistTimeoutDefaultInSeconds);
-  network.disable_peer_blacklist = getConfigDataAsBoolean(json, {"disable_peer_blacklist"}, true, false);
-  network.deep_syncing_threshold =
-      getConfigDataAsUInt(json, {"deep_syncing_threshold"}, true, network.deep_syncing_threshold);
-  network.vote_accepting_periods =
-      getConfigDataAsUInt(json, {"vote_accepting_periods"}, true, network.vote_accepting_periods);
-  network.vote_accepting_rounds =
-      getConfigDataAsUInt(json, {"vote_accepting_rounds"}, true, network.vote_accepting_rounds);
-  network.vote_accepting_steps =
-      getConfigDataAsUInt(json, {"vote_accepting_steps"}, true, network.vote_accepting_steps);
-  for (auto &item : json["boot_nodes"]) {
-    network.boot_nodes.push_back(dec_json(item));
-  }
-}
 
 FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::Value &wallet,
                                const Json::Value &genesis_json, const std::string &config_file_path) {
@@ -150,57 +21,10 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::
   auto const &root = string_or_object.isString() ? parsed_from_file : string_or_object;
   data_path = getConfigDataAsString(root, {"data_path"});
   db_path = data_path / "db";
-  chain_id = getConfigDataAsUInt(root, {"chain_id"});
   final_chain_cache_in_blocks =
       getConfigDataAsUInt(root, {"final_chain_cache_in_blocks"}, true, final_chain_cache_in_blocks);
 
   dec_json(root["network"], network);
-
-  // Rpc config
-  if (auto rpc_config = getConfigData(root, {"rpc"}, true); !rpc_config.isNull()) {
-    rpc = ConnectionConfig();
-
-    // ip address
-    rpc->address = boost::asio::ip::address::from_string(network.listen_ip);
-
-    // http port
-    if (auto http_port = getConfigData(rpc_config, {"http_port"}, true); !http_port.isNull()) {
-      rpc->http_port = http_port.asUInt();
-    }
-
-    // websocket port
-    if (auto ws_port = getConfigData(rpc_config, {"ws_port"}, true); !ws_port.isNull()) {
-      rpc->ws_port = ws_port.asUInt();
-    }
-
-    // number of threads processing rpc calls
-    if (auto threads_num = getConfigData(rpc_config, {"threads_num"}, true); !threads_num.isNull()) {
-      rpc->threads_num = threads_num.asUInt();
-    }
-  }
-
-  // GraphQL config
-  if (auto graphql_config = getConfigData(root, {"graphql"}, true); !graphql_config.isNull()) {
-    graphql = ConnectionConfig();
-
-    // ip address
-    graphql->address = boost::asio::ip::address::from_string(network.listen_ip);
-
-    // graphql http port
-    if (auto http_port = getConfigData(graphql_config, {"http_port"}, true); !http_port.isNull()) {
-      graphql->http_port = http_port.asUInt();
-    }
-
-    // graphql websocket port
-    if (auto ws_port = getConfigData(graphql_config, {"ws_port"}, true); !ws_port.isNull()) {
-      graphql->ws_port = ws_port.asUInt();
-    }
-
-    // number of threads processing rpc calls
-    if (auto threads_num = getConfigData(graphql_config, {"threads_num"}, true); !threads_num.isNull()) {
-      graphql->threads_num = threads_num.asUInt();
-    }
-  }
 
   // config values that limits transactions and blocks memory pools
   transactions_pool_size = getConfigDataAsUInt(root, {"transactions_pool_size"}, true, kDefaultTransactionPoolSize);
@@ -319,51 +143,9 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::
   opts_final_chain.max_trie_full_node_levels_to_cache = 4;
 }
 
-void NetworkConfig::validate() const {
-  if (sync_level_size == 0) {
-    throw ConfigException(std::string("network.sync_level_size cannot be 0"));
-  }
-
-  // Max enabled number of threads for processing rpc requests
-  constexpr uint16_t MAX_PACKETS_PROCESSING_THREADS_NUM = 30;
-  if (packets_processing_threads < 3 || packets_processing_threads > MAX_PACKETS_PROCESSING_THREADS_NUM) {
-    throw ConfigException(std::string("network.packets_processing_threads must be in range [3, ") +
-                          std::to_string(MAX_PACKETS_PROCESSING_THREADS_NUM) + "]");
-  }
-
-  if (transaction_interval_ms == 0) {
-    throw ConfigException(std::string("network.transaction_interval_ms must be greater than zero"));
-  }
-
-  // TODO validate that the boot node list doesn't contain self (although it's not critical)
-  for (const auto &node : boot_nodes) {
-    if (node.ip.empty()) {
-      throw ConfigException(std::string("Boot node ip is empty:") + node.ip + ":" + std::to_string(node.port));
-    }
-    if (node.port == 0) {
-      throw ConfigException(std::string("Boot node port invalid: ") + std::to_string(node.port));
-    }
-  }
-}
-
-void ConnectionConfig::validate() const {
-  if (!http_port && !ws_port) {
-    throw ConfigException("Either http_port or ws_port post must be specified for connection config");
-  }
-
-  // Max enabled number of threads for processing rpc requests
-  constexpr uint16_t MAX_RPC_THREADS_NUM = 10;
-  if (threads_num <= 0 || threads_num > MAX_RPC_THREADS_NUM) {
-    throw ConfigException(string("threads_num must be in range (0, ") + std::to_string(MAX_RPC_THREADS_NUM) + "]");
-  }
-}
-
 void FullNodeConfig::validate() const {
   network.validate();
   genesis.validate();
-  if (rpc) {
-    rpc->validate();
-  }
   if (network.vote_accepting_periods > genesis.state.dpos.delegation_delay) {
     throw ConfigException(
         std::string("network.vote_accepting_periods(" + std::to_string(network.vote_accepting_periods) +

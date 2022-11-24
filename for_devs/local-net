@@ -142,7 +142,6 @@ def config(binary, boot_nodes, rpc_nodes):
             cmd += f'--genesis {genesis_path} '
             cmd += f'--wallet {wallet_path} '
             cmd += f'--data-dir {local_net}/db-{worker_name} '
-            print(cmd)
             os.system(cmd)
 
             config = json.loads('{}')
@@ -158,31 +157,31 @@ def config(binary, boot_nodes, rpc_nodes):
             if existing_genesis:
                 genesis = existing_genesis
             else:
-                default_validator = genesis['state']['dpos']['initial_validators'][0]
-                genesis['state']['dpos']['initial_validators'] = []
+                default_validator = genesis['dpos']['initial_validators'][0]
+                genesis['dpos']['initial_validators'] = []
                 print("boot_nodes_public_addresses: ",boot_nodes_public_addresses)
                 for key in boot_nodes_public_addresses:
                     address, vrf_key = boot_nodes_public_addresses[key]
                     default_validator["address"] = address
                     default_validator["owner"] = address
                     default_validator["vrf_key"] = vrf_key
-                    genesis['state']['dpos']['initial_validators'].append(default_validator.copy())
+                    genesis['dpos']['initial_validators'].append(default_validator.copy())
 
-                initial_balances = genesis['state']['initial_balances']
+                initial_balances = genesis['initial_balances']
                 initial_balances_faucet_address = list(initial_balances.keys())[0]
                 delegator_address = list(initial_balances.keys())[1]
                 initial_balances_faucet_value = initial_balances[initial_balances_faucet_address]
                 del initial_balances[initial_balances_faucet_address]
                 initial_balances[faucet_public_address] = initial_balances_faucet_value
-                genesis['state']['initial_balances'] = initial_balances
+                genesis['initial_balances'] = initial_balances
 
                 genesis['dag_genesis_block']['timestamp'] = timestamp
 
             config['network']['listen_port'] = int(f'1{port_prefix}{i+1}02')
-            config['rpc']['http_port'] = int(f'7{port_prefix}{i+1}7')
-            config['rpc']['ws_port'] = int(f'8{port_prefix}{i+1}7')
-            config['graphql']['http_port'] = int(f'2{port_prefix}{i+1}7')
-            config['graphql']['ws_port'] = int(f'3{port_prefix}{i+1}7')
+            config['network']['rpc']['http_port'] = int(f'7{port_prefix}{i+1}7')
+            config['network']['rpc']['ws_port'] = int(f'8{port_prefix}{i+1}7')
+            config['network']['graphql']['http_port'] = int(f'2{port_prefix}{i+1}7')
+            config['network']['graphql']['ws_port'] = int(f'3{port_prefix}{i+1}7')
 
             with open(config_path, 'w') as json_file:
                 json.dump(config, json_file, indent=2)

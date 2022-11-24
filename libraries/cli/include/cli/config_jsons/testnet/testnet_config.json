@@ -1,15 +1,22 @@
 {
-  "chain_id": 4,
   "data_path": "",
   "is_light_node": false,
   "final_chain_cache_in_blocks": 5,
   "network": {
+    "rpc": {
+      "http_port": 7777,
+      "ws_port": 8777
+    },
+    "graphql": {
+      "http_port": 9777,
+      "ws_port": 6777
+    },
     "listen_ip": "0.0.0.0",
     "listen_port": 10002,
     "transaction_interval_ms": 100,
-    "ideal_peer_count": 5,
-    "max_peer_count": 15,
-    "sync_level_size": 25,
+    "ideal_peer_count": 10,
+    "max_peer_count": 50,
+    "sync_level_size": 10,
     "packets_processing_threads": 14,
     "peer_blacklist_timeout": 600,
     "deep_syncing_threshold": 10,
@@ -17,19 +24,41 @@
     "vote_accepting_rounds": 5,
     "vote_accepting_steps": 0,
     "boot_nodes": [
+      {
+        "id": "f36f467529fe91a750dfdc8086fd0d2f30bad9f55a5800b6b4aa603c7787501db78dc4ac1bf3cf16e42af7c2ebb53648653013c3da1987494960d751871d598a",
+        "ip": "boot-node-0.testnet.taraxa.io",
+        "port": 10002
+      },
+      {
+        "id": "d2d445fc3276bdbf2a07628a484baabf45ccb91d6aa078a0dc3aefc11f1941899a923312ec0e664b8e57b63b774c47a006d9d1d16befd2135dcf76067736c688",
+        "ip": "boot-node-1.testnet.taraxa.io",
+        "port": 10002
+      },
+      {
+        "id": "c6e7263f44d88c0d6cc3b0d5ebdc31cf891908e8fa7e545e137d3ed0bfec1810fa24c1379228afbb53df0d59e716e17138115fd096782a84261718ab77665171",
+        "ip": "boot-node-2.testnet.taraxa.io",
+        "port": 10002
+      },
+      {
+        "id": "dcc7f60f64eee9fc470e24fd821b3d82acca646c6c951169a8f5b3de297e241cd9987e1cca1083c85b6482ba09715bbea8765710b149c55493e0bb16fc1c29cc",
+        "ip": "taraxa-node-0.testnet.taraxa.io",
+        "port": 10002
+      },
+      {
+        "id": "dedae37d9c96e0f2c8ef2796351f5560234a3e8e0407ef5cd16aaf93dd8ffd437608a585d5dc3eea54e30e1392591cfc61c6fce3cbf12b46dcc479b5fbdcde96",
+        "ip": "taraxa-node-1.testnet.taraxa.io",
+        "port": 10002
+      },
+      {
+        "id": "edc73153c2aa5991aee267f46d3ca153fa15f61eb7847b3f4c8b8fa308282b93a315a071bd5ff4327dd321faf4d979710b0e681a7088f65552ce0065fa7683fd",
+        "ip": "taraxa-node-2.testnet.taraxa.io",
+        "port": 10002
+      }
     ]
-  },
-  "rpc": {
-    "http_port": 7777,
-    "ws_port": 8777
-  },
-  "graphql": {
-    "http_port": 9777,
-    "ws_port": 6777
   },
   "db_config": {
     "db_snapshot_each_n_pbft_block": 10000,
-    "db_max_snapshots": 5
+    "db_max_snapshots": 1
   },
   "logging": {
     "configurations": [

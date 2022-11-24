@@ -41,27 +41,27 @@ Json::Value getConfig(Config::ChainIdType chain_id) {
       break;
     default:
       conf = util::readJsonFromString(default_config_json);
-      conf["chain_id"] = static_cast<int>(chain_id);
   }
   return conf;
 }
 
 Json::Value getGenesis(Config::ChainIdType chain_id) {
-  Json::Value conf;
+  Json::Value genesis;
   switch (chain_id) {
     case Config::ChainIdType::Mainnet:
-      conf = util::readJsonFromString(mainnet_genesis_json);
+      genesis = util::readJsonFromString(mainnet_genesis_json);
       break;
     case Config::ChainIdType::Testnet:
-      conf = util::readJsonFromString(testnet_genesis_json);
+      genesis = util::readJsonFromString(testnet_genesis_json);
       break;
     case Config::ChainIdType::Devnet:
-      conf = util::readJsonFromString(devnet_genesis_json);
+      genesis = util::readJsonFromString(devnet_genesis_json);
       break;
     default:
-      conf = util::readJsonFromString(default_genesis_json);
+      genesis = util::readJsonFromString(default_genesis_json);
+      genesis["chain_id"] = static_cast<int>(chain_id);
   }
-  return conf;
+  return genesis;
 }
 
 Json::Value overrideConfig(Json::Value& conf, std::string& data_dir, vector<string> boot_nodes,
@@ -108,7 +108,6 @@ Json::Value overrideConfig(Json::Value& conf, std::string& data_dir, vector<stri
         Json::Value b_node;
         b_node["id"] = result[2];
         b_node["ip"] = result[0];
-        // b_node["listen_port"] = stoi(result[1]);
         b_node["port"] = stoi(result[1]);
         conf["network"]["boot_nodes"].append(b_node);
       }

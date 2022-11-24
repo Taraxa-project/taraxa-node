@@ -198,7 +198,7 @@ void TaraxaCapability::registerPacketHandlers(
 
   // Non critical packets with low processing priority
   packets_handlers_->registerHandler<StatusPacketHandler>(peers_state_, packets_stats, pbft_syncing_state_, pbft_chain,
-                                                          pbft_mgr, dag_mgr, next_votes_mgr, db, kConf.chain_id,
+                                                          pbft_mgr, dag_mgr, next_votes_mgr, db, kConf.genesis.chain_id,
                                                           genesis_hash, node_addr);
   packets_handlers_->registerHandler<GetDagSyncPacketHandler>(peers_state_, packets_stats, trx_mgr, dag_mgr, db,
                                                               node_addr);

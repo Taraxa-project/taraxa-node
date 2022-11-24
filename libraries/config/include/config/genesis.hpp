@@ -28,6 +28,7 @@ Json::Value enc_json(GasPriceConfig const& obj);
 void dec_json(Json::Value const& json, GasPriceConfig& obj);
 
 struct Genesis {
+  uint64_t chain_id = 0;
   DagBlock dag_genesis_block;
   GasPriceConfig gas_price;
   SortitionConfig sortition;

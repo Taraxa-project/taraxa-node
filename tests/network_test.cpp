@@ -399,16 +399,16 @@ TEST_F(NetworkTest, node_chain_id) {
   auto node_cfgs = make_node_cfgs(2);
   {
     auto node_cfgs_ = node_cfgs;
-    node_cfgs_[0].chain_id = 1;
-    node_cfgs_[1].chain_id = 1;
+    node_cfgs_[0].genesis.chain_id = 1;
+    node_cfgs_[1].genesis.chain_id = 1;
     auto nodes = launch_nodes(node_cfgs_);
   }
   // we need to cleanup datadirs because we saved previous genesis_hash in db. And it is different after chain_id
   // change
   CleanupDirs();
   {
-    node_cfgs[0].chain_id = 1;
-    node_cfgs[1].chain_id = 2;
+    node_cfgs[0].genesis.chain_id = 1;
+    node_cfgs[1].genesis.chain_id = 2;
 
     auto nodes = create_nodes(node_cfgs, true /*start*/);
 

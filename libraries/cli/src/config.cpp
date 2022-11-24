@@ -207,9 +207,9 @@ Config::Config(int argc, const char* argv[]) {
       // override hardforks data with one from default json
       addNewHardforks(genesis_json, default_genesis_json);
       // add vote_eligibility_balance_step field if it is missing in the config
-      if (genesis_json["state"]["dpos"]["vote_eligibility_balance_step"].isNull()) {
-        genesis_json["state"]["dpos"]["vote_eligibility_balance_step"] =
-            default_genesis_json["state"]["dpos"]["vote_eligibility_balance_step"];
+      if (genesis_json["dpos"]["vote_eligibility_balance_step"].isNull()) {
+        genesis_json["dpos"]["vote_eligibility_balance_step"] =
+            default_genesis_json["dpos"]["vote_eligibility_balance_step"];
       }
       write_config_and_wallet_files();
     }
@@ -280,8 +280,8 @@ bool Config::nodeConfigured() { return node_configured_; }
 FullNodeConfig Config::getNodeConfiguration() { return node_config_; }
 
 void Config::addNewHardforks(Json::Value& genesis, const Json::Value& default_genesis) {
-  auto& new_hardforks_json = default_genesis["state"]["hardforks"];
-  auto& local_hardforks_json = genesis["state"]["hardforks"];
+  auto& new_hardforks_json = default_genesis["hardforks"];
+  auto& local_hardforks_json = genesis["hardforks"];
 
   if (local_hardforks_json.isNull()) {
     local_hardforks_json = new_hardforks_json;
