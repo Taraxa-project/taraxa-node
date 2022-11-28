@@ -53,8 +53,8 @@ bool DagBlockProposer::proposeDagBlock() {
 
   const auto proposal_period = db_->getProposalPeriodForDagLevel(propose_level);
   if (!proposal_period.has_value()) {
-    LOG(log_er_) << "No proposal period for propose_level " << propose_level << " found";
-    assert(false);
+    LOG(log_wr_) << "No proposal period for propose_level " << propose_level << " found";
+    return false;
   }
 
   if (!isValidDposProposer(*proposal_period)) {
