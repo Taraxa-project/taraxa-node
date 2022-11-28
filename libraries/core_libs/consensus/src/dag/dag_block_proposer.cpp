@@ -26,9 +26,9 @@ DagBlockProposer::DagBlockProposer(const DagBlockProposerConfig& bp_config, std:
       key_manager_(std::move(key_manager)),
       db_(std::move(db)),
       node_addr_(node_addr),
-      node_sk_(node_sk),
-      vrf_sk_(vrf_sk),
-      vrf_pk_(vrf_wrapper::getVrfPublicKey(vrf_sk)) {
+      node_sk_(std::move(node_sk)),
+      vrf_sk_(std::move(vrf_sk)),
+      vrf_pk_(vrf_wrapper::getVrfPublicKey(vrf_sk_)) {
   LOG_OBJECTS_CREATE("DAG_PROPOSER");
 
   // Add a random component in proposing stale blocks so that not all nodes propose stale blocks at the same time
@@ -49,7 +49,7 @@ bool DagBlockProposer::proposeDagBlock() {
   auto frontier = dag_mgr_->getDagFrontier();
   LOG(log_dg_) << "Get frontier with pivot: " << frontier.pivot << " tips: " << frontier.tips;
   assert(!frontier.pivot.isZero());
-  auto propose_level = getProposeLevel(frontier.pivot, frontier.tips) + 1;
+  const auto propose_level = getProposeLevel(frontier.pivot, frontier.tips) + 1;
 
   const auto proposal_period = db_->getProposalPeriodForDagLevel(propose_level);
   if (!proposal_period.has_value()) {
