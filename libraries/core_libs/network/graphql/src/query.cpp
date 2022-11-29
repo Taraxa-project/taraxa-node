@@ -29,7 +29,11 @@ Query::Query(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain,
 std::shared_ptr<object::Block> Query::getBlock(std::optional<response::Value>&& number,
                                                std::optional<response::Value>&& hash) const {
   if (number) {
-    if (auto block_header = final_chain_->block_header(number->get<int>())) {
+    const uint64_t block_number = number->get<int>();
+    if (const auto last_block_number = final_chain_->last_block_number(); last_block_number < block_number) {
+      return nullptr;
+    }
+    if (auto block_header = final_chain_->block_header(block_number)) {
       return std::make_shared<object::Block>(
           std::make_shared<Block>(final_chain_, transaction_manager_, std::move(block_header)));
     }
