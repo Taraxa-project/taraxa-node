@@ -1,6 +1,5 @@
 var NAVTREEINDEX4 =
 {
-"classdev_1_1p2p_1_1_node_table.html#ae6be78eae27ea37219e69e649699431b":[14,0,1,1,22,5],
 "classdev_1_1p2p_1_1_node_table.html#ae9d84e561b21ee2ad0b7bbd2f61febf3":[14,0,1,1,22,51],
 "classdev_1_1p2p_1_1_node_table.html#aee81c2ab6eac0d68f039f0aa338e0e25":[14,0,1,1,22,36],
 "classdev_1_1p2p_1_1_node_table.html#afc6dc5ffedf8e3229715efb22bf7b1f7":[14,0,1,1,22,30],
@@ -249,5 +248,6 @@ var NAVTREEINDEX4 =
 "classgraphql_1_1taraxa_1_1_dag_block.html#a321e8b051a6966608b46ec243d7b64e3":[14,0,2,0,3,5],
 "classgraphql_1_1taraxa_1_1_dag_block.html#a4887648782bbf8804a839821c0136683":[14,0,2,0,3,8],
 "classgraphql_1_1taraxa_1_1_dag_block.html#a4ca8c98fa0895a2d468b3dbc22f835f7":[14,0,2,0,3,14],
-"classgraphql_1_1taraxa_1_1_dag_block.html#a62db2b51be5f3c8941927e095d7b9076":[14,0,2,0,3,16]
+"classgraphql_1_1taraxa_1_1_dag_block.html#a62db2b51be5f3c8941927e095d7b9076":[14,0,2,0,3,16],
+"classgraphql_1_1taraxa_1_1_dag_block.html#a77ba05ccdedf027940bf5a26e821637b":[14,0,2,0,3,7]
 };

@@ -12,7 +12,6 @@ var hierarchy =
     [ "taraxa::network::tarcap::AllPacketTypesStats", "classtaraxa_1_1network_1_1tarcap_1_1_all_packet_types_stats.html", null ],
     [ "graphql::taraxa::Block", "classgraphql_1_1taraxa_1_1_block.html", null ],
     [ "taraxa::final_chain::BlockHeader", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header", null ],
-    [ "taraxa::BlockProposerConfig", "structtaraxa_1_1_block_proposer_config.html", null ],
     [ "taraxa::state_api::BlockRewardsOptions", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_block_rewards_options", null ],
     [ "dev::p2p::Capability", "structdev_1_1p2p_1_1_capability.html", [
       [ "dev::p2p::SessionCapability", "structdev_1_1p2p_1_1_session_capability.html", null ]
@@ -62,6 +61,8 @@ var hierarchy =
     ] ],
     [ "taraxa::DagBlock", "classtaraxa_1_1_dag_block.html", null ],
     [ "graphql::taraxa::DagBlock", "classgraphql_1_1taraxa_1_1_dag_block.html", null ],
+    [ "taraxa::DagBlockProposer", "group___d_a_g.html#classtaraxa_1_1_dag_block_proposer", null ],
+    [ "taraxa::DagBlockProposerConfig", "structtaraxa_1_1_dag_block_proposer_config.html", null ],
     [ "taraxa::DagConfig", "structtaraxa_1_1_dag_config.html", null ],
     [ "taraxa::DagFrontier", "structtaraxa_1_1_dag_frontier.html", null ],
     [ "taraxa::DBConfig", "namespacetaraxa.html#structtaraxa_1_1_d_b_config", null ],
@@ -76,7 +77,6 @@ var hierarchy =
       [ "dev::p2p::Session", "structdev_1_1p2p_1_1_session.html", null ],
       [ "dev::p2p::UDPSocket< Handler, MaxDatagramSize >", "classdev_1_1p2p_1_1_u_d_p_socket.html", null ],
       [ "graphql::taraxa::Transaction", "classgraphql_1_1taraxa_1_1_transaction.html", null ],
-      [ "taraxa::BlockProposer", "group___d_a_g.html#classtaraxa_1_1_block_proposer", null ],
       [ "taraxa::DagManager", "group___d_a_g.html#classtaraxa_1_1_dag_manager", null ],
       [ "taraxa::DbStorage", "classtaraxa_1_1_db_storage.html", null ],
       [ "taraxa::FullNode", "classtaraxa_1_1_full_node.html", null ],
@@ -275,9 +275,6 @@ var hierarchy =
     [ "taraxa::network::tarcap::PriorityQueue", "classtaraxa_1_1network_1_1tarcap_1_1_priority_queue.html", null ],
     [ "taraxa::state_api::Proof", "group___final_chain.html#structtaraxa_1_1state__api_1_1_proof", null ],
     [ "taraxa::ProposedBlocks", "classtaraxa_1_1_proposed_blocks.html", null ],
-    [ "taraxa::ProposeModelFace", "group___d_a_g.html#classtaraxa_1_1_propose_model_face", [
-      [ "taraxa::SortitionPropose", "group___d_a_g.html#classtaraxa_1_1_sortition_propose", null ]
-    ] ],
     [ "graphql::taraxa::Query", "classgraphql_1_1taraxa_1_1_query.html", null ],
     [ "taraxa::util::range_view::RangeView< Element >", "structtaraxa_1_1util_1_1range__view_1_1_range_view.html", null ],
     [ "taraxa::RewardsStats", "classtaraxa_1_1_rewards_stats.html", null ],
@@ -359,10 +356,10 @@ var hierarchy =
     [ "dev::Timer", "classdev_1_1_timer.html", null ],
     [ "dev::TimerHelper", "classdev_1_1_timer_helper.html", null ],
     [ "taraxa::Transaction", "structtaraxa_1_1_transaction.html", null ],
-    [ "taraxa::final_chain::FinalChain::TransactionHashes", "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html", null ],
     [ "TransactionHashes", null, [
       [ "taraxa::final_chain::FinalChainImpl::TransactionHashesImpl", "structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl.html", null ]
     ] ],
+    [ "taraxa::final_chain::FinalChain::TransactionHashes", "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html", null ],
     [ "taraxa::final_chain::TransactionLocation", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location", [
       [ "taraxa::net::rpc::eth::TransactionLocationWithBlockHash", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html", [
         [ "taraxa::net::rpc::eth::ExtendedTransactionLocation", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_extended_transaction_location.html", null ]

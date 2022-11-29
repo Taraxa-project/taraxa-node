@@ -163,7 +163,7 @@ $(document).ready(function(){initNavTree('functions_n.html',''); initResizable()
 <li>network_
 : <a class="el" href="classgraphql_1_1taraxa_1_1_query.html#a18f11be4d6bd92b11d0b1435982d6eb9">graphql::taraxa::Query</a>
 , <a class="el" href="classgraphql_1_1taraxa_1_1_sync_state.html#a257e4bb870d1c78d21cec375c1ade6e7">graphql::taraxa::SyncState</a>
-, <a class="el" href="group___d_a_g.html#a9c0f09d282c744e0f7963bdc27ece162">taraxa::BlockProposer</a>
+, <a class="el" href="group___d_a_g.html#a6b54b1b7cd643903a2db01197c60c234">taraxa::DagBlockProposer</a>
 , <a class="el" href="group___d_a_g.html#a3556c5c37d7798257f61f03c10192fb1">taraxa::DagManager</a>
 , <a class="el" href="classtaraxa_1_1_full_node.html#a70c7aa5338cbc231c0739504204e49ce">taraxa::FullNode</a>
 , <a class="el" href="group___p_b_f_t.html#ac7c6c733e7085039af62ccb5ba167da9">taraxa::PbftManager</a>
@@ -319,10 +319,9 @@ $(document).ready(function(){initNavTree('functions_n.html',''); initResizable()
 : <a class="el" href="structtaraxa_1_1network_1_1tarcap_1_1_single_packet_stats.html#adf49d423cc485085edbbc836218d0b1d">taraxa::network::tarcap::SinglePacketStats</a>
 </li>
 <li>node_addr_
-: <a class="el" href="group___d_a_g.html#a66e146d216c54d902f5a5685496e1ff8">taraxa::BlockProposer</a>
+: <a class="el" href="group___d_a_g.html#ab11733ba00bca2fc4e5ed939a6b40be8">taraxa::DagBlockProposer</a>
 , <a class="el" href="classtaraxa_1_1net_1_1_ws_server.html#a33ae5c7a9f40a1315212e12e52875b54">taraxa::net::WsServer</a>
 , <a class="el" href="group___p_b_f_t.html#a0cf068139ba798e8168ea6e90b71e9e6">taraxa::PbftManager</a>
-, <a class="el" href="group___d_a_g.html#a96cbaf3265e081eca89d836d2a62b975">taraxa::ProposeModelFace</a>
 </li>
 <li>NODE_BUCKET_SIZE
 : <a class="el" href="classdev_1_1p2p_1_1_node_table.html#a6a59a9d8e19ac764fffc82d17d990fb9">dev::p2p::NodeTable</a>
@@ -349,7 +348,7 @@ $(document).ready(function(){initNavTree('functions_n.html',''); initResizable()
 : <a class="el" href="structtaraxa_1_1_full_node_config.html#a21a1f640ba90bfeb59c42efa0f0afbe1">taraxa::FullNodeConfig</a>
 </li>
 <li>node_sk_
-: <a class="el" href="group___d_a_g.html#a1a319a60241e118bb0c0982c41c04619">taraxa::BlockProposer</a>
+: <a class="el" href="group___d_a_g.html#ae896f82c805b3fbacc0a63e39d8d954c">taraxa::DagBlockProposer</a>
 , <a class="el" href="group___p_b_f_t.html#af6581bbdf1e3008c84c8010afe9f49cc">taraxa::PbftManager</a>
 </li>
 <li>node_stats_
@@ -467,14 +466,14 @@ $(document).ready(function(){initNavTree('functions_n.html',''); initResizable()
 : <a class="el" href="class_modular_server_3_01_i_00_01_is_8_8_8_01_4.html#a8b954752c4f7da349cd3441b155985fa">ModularServer&lt; I, Is... &gt;</a>
 , <a class="el" href="class_server_interface.html#a7015bfd8d2b09c965a45478c2bbce0ff">ServerInterface&lt; I &gt;</a>
 </li>
-<li>Notifications
-: <a class="el" href="class_server_interface.html#a2ead59c4d460654500a15a3cfd6afd57">ServerInterface&lt; I &gt;</a>
-</li>
 <li>notifications()
 : <a class="el" href="class_server_interface.html#a19b8ea1735ae989211a9ba6250c18124">ServerInterface&lt; I &gt;</a>
 </li>
+<li>Notifications
+: <a class="el" href="class_server_interface.html#a2ead59c4d460654500a15a3cfd6afd57">ServerInterface&lt; I &gt;</a>
+</li>
 <li>Notified()
-: <a class="el" href="classdev_1_1_notified.html#a83359f09f21e760c28df5efa3485d3a2">dev::Notified&lt; N &gt;</a>
+: <a class="el" href="classdev_1_1_notified.html#afca01dc64435240f29e023646b6c5c4b">dev::Notified&lt; N &gt;</a>
 </li>
 <li>num_executed_dag_blk_
 : <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a7e4b48d1c452fb9384e2c69a5f595560">taraxa::final_chain::FinalChainImpl</a>
@@ -488,11 +487,8 @@ $(document).ready(function(){initNavTree('functions_n.html',''); initResizable()
 <li>num_pending_tasks_
 : <a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html#a3ff2365fd44789aa5b13a68b952b0456">taraxa::util::ThreadPool</a>
 </li>
-<li>num_proposed_blocks
-: <a class="el" href="group___d_a_g.html#abf4bd7a7aaf332722e17eedfca762c98">taraxa::BlockProposer</a>
-</li>
 <li>num_tries_
-: <a class="el" href="group___d_a_g.html#a0120111247e61dad6da6541c54fc47d9">taraxa::SortitionPropose</a>
+: <a class="el" href="group___d_a_g.html#a1492d6033959ade8d362c6d3141c9513">taraxa::DagBlockProposer</a>
 </li>
 <li>number
 : <a class="el" href="group___final_chain.html#a2150879a49281a5426b712612329b2ed">taraxa::final_chain::BlockHeader</a>

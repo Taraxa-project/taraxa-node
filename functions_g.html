@@ -348,9 +348,6 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 : <a class="el" href="group___p_b_f_t.html#af7c819faf5bba2d9a7de8a1959afcd77">taraxa::PbftBlock</a>
 , <a class="el" href="group___vote.html#aed1c7d1c2547411fa0cca7ec01ada8fe">taraxa::Vote</a>
 </li>
-<li>getBlockProposer()
-: <a class="el" href="classtaraxa_1_1_full_node.html#a9cebc0460b49e0a844e7d0768ac82234">taraxa::FullNode</a>
-</li>
 <li>getBlocks()
 : <a class="el" href="classgraphql_1_1taraxa_1_1_query.html#a67717e63f151e057b0a6cc68f2d61e16">graphql::taraxa::Query</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_test_state.html#a713b79289d020088161254532801a652">taraxa::network::tarcap::TestState</a>
@@ -425,6 +422,9 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 : <a class="el" href="classgraphql_1_1taraxa_1_1_current_state.html#a19c18cc74b69f8775ec1615861d6e924">graphql::taraxa::CurrentState</a>
 , <a class="el" href="classtaraxa_1_1_db_storage.html#a78632c03d082cac70a125d7eb18aef46">taraxa::DbStorage</a>
 , <a class="el" href="group___p_b_f_t.html#a353e47b13755fa85ed099a8212a887db">taraxa::PbftManager</a>
+</li>
+<li>getDagBlockProposer()
+: <a class="el" href="classtaraxa_1_1_full_node.html#acd79d7925da2406173b89780f67f26c3">taraxa::FullNode</a>
 </li>
 <li>getDagBlocks()
 : <a class="el" href="classgraphql_1_1taraxa_1_1_query.html#ab88c2c556deffefe3a0b8a00c8a278d7">graphql::taraxa::Query</a>
@@ -708,10 +708,6 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 <li>getNumEdgesInDag()
 : <a class="el" href="group___d_a_g.html#a45ba709af4dcfcac0d71bc458f407a2a">taraxa::DagManager</a>
 </li>
-<li>getNumProposedBlocks()
-: <a class="el" href="group___d_a_g.html#a94ba0a1b88decc0742d6ec97f611aa78">taraxa::BlockProposer</a>
-, <a class="el" href="classtaraxa_1_1_full_node.html#a4d55c6a5d0e5ad9c257f04b4bb51894e">taraxa::FullNode</a>
-</li>
 <li>getNumTransactionExecuted()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a87c64629858c2267ef6b0c61f627e7d8">taraxa::DbStorage</a>
 </li>
@@ -765,7 +761,7 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 : <a class="el" href="classgraphql_1_1taraxa_1_1_block.html#a53e081aaddd87d1d3bc8f38fbb4f6717">graphql::taraxa::Block</a>
 </li>
 <li>getPbftBlock()
-: <a class="el" href="classtaraxa_1_1_db_storage.html#a7c5b83f06af69153fbb86037ecda6a1f">taraxa::DbStorage</a>
+: <a class="el" href="classtaraxa_1_1_db_storage.html#a7b42f08e7be82a334247e92f782c00ff">taraxa::DbStorage</a>
 </li>
 <li>getPbftBlockInChain()
 : <a class="el" href="group___p_b_f_t.html#acd48a78dbe8d552be5f35b0ba4795ed9">taraxa::PbftChain</a>
@@ -892,6 +888,10 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 <li>getProposalVotes()
 : <a class="el" href="group___vote.html#a51b54b6d0c0e6ce6c427c6a0d013ace2">taraxa::VoteManager</a>
 </li>
+<li>getProposedBlocksCount()
+: <a class="el" href="group___d_a_g.html#aecedfcd13d08fb7c9d36566fef46f787">taraxa::DagBlockProposer</a>
+, <a class="el" href="classtaraxa_1_1_full_node.html#acdf9603fc717f447b1159aef312ab1ba">taraxa::FullNode</a>
+</li>
 <li>getProposedBlocksSt()
 : <a class="el" href="group___p_b_f_t.html#a3abf3e606917590b8e9e9bcf873ec962">taraxa::PbftManager</a>
 </li>
@@ -899,7 +899,7 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a888b53ddd659b759d3fdfdee4d75857c">taraxa::DbStorage</a>
 </li>
 <li>getProposeLevel()
-: <a class="el" href="group___d_a_g.html#a65049d7c6d06d4dafcd21fc4be034520">taraxa::BlockProposer</a>
+: <a class="el" href="group___d_a_g.html#af2392a1fb3beb72c52897847359e0d9e">taraxa::DagBlockProposer</a>
 </li>
 <li>getProposeRewardVotes()
 : <a class="el" href="group___vote.html#a2d8c8ac3185a149796a99dff63b29c60">taraxa::VoteManager</a>
@@ -966,11 +966,10 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html#a7b85d173ae0306ec580a31855a1bf6cb">taraxa::network::tarcap::PacketsStats</a>
 </li>
 <li>getShardedTrxs()
-: <a class="el" href="group___d_a_g.html#a493fd313c47b24ee3c9cd588b1d90b93">taraxa::BlockProposer</a>
+: <a class="el" href="group___d_a_g.html#a2120333b1505684141edfb6f488ffb2b">taraxa::DagBlockProposer</a>
 </li>
 <li>getShared()
-: <a class="el" href="group___d_a_g.html#aab264e4d9ace503123f82f79af7b6ba6">taraxa::BlockProposer</a>
-, <a class="el" href="group___d_a_g.html#aa8d1eb570a2cba814ff88f3500fe3fa1">taraxa::DagManager</a>
+: <a class="el" href="group___d_a_g.html#aa8d1eb570a2cba814ff88f3500fe3fa1">taraxa::DagManager</a>
 , <a class="el" href="classtaraxa_1_1_full_node.html#a937bf9b995ec87bd0209d92a24cc3a2b">taraxa::FullNode</a>
 , <a class="el" href="classtaraxa_1_1net_1_1_http_connection.html#a8221a76fcff7bf6a65ae5b999d60947d">taraxa::net::HttpConnection</a>
 , <a class="el" href="classtaraxa_1_1net_1_1_http_server.html#a8f04e576d497b83d75f9edd9c0fe17dc">taraxa::net::HttpServer</a>
@@ -1001,7 +1000,7 @@ $(document).ready(function(){initNavTree('functions_g.html',''); initResizable()
 </li>
 <li>getSpecificHandler()
 : <a class="el" href="classtaraxa_1_1_network.html#a35dc353c28031b64a7a826c477cb55fd">taraxa::Network</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html#a89ef34d040a5c2c69c7b3cfc0e026475">taraxa::network::tarcap::PacketsHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html#ac2844a94c2dc829d234e72b14ffe7feb">taraxa::network::tarcap::PacketsHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ab9cc01fbd4061a7fe9c5981a3825502a">taraxa::network::tarcap::TaraxaCapability</a>
 </li>
 <li>getStartingBlock()

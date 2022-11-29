@@ -1,0 +1,9 @@
+<map id="taraxa::DagBlockProposer" name="taraxa::DagBlockProposer">
+<area shape="rect" id="node1" title="DagBlockProposer class proposes new DAG blocks using transactions retrieved from TransactionManager." alt="" coords="568,105,759,131"/>
+<area shape="rect" id="node2" href="$classtaraxa_1_1util_1_1_thread_pool.html" title=" " alt="" coords="257,13,432,39"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,5,200,47"/>
+<area shape="rect" id="node4" href="$classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="263,64,427,105"/>
+<area shape="rect" id="node5" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="23,71,182,98"/>
+<area shape="rect" id="node6" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="265,142,425,169"/>
+<area shape="rect" id="node7" href="$structtaraxa_1_1_dag_block_proposer_config.html" title=" " alt="" coords="249,193,440,235"/>
+</map>
