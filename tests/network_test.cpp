@@ -19,8 +19,8 @@
 #include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
 #include "pbft/pbft_manager.hpp"
-#include "util_test/samples.hpp"
-#include "util_test/util.hpp"
+#include "test_util/samples.hpp"
+#include "test_util/test_util.hpp"
 
 namespace taraxa::core_tests {
 
@@ -35,17 +35,12 @@ auto g_secret = Lazy([] {
 auto node_key = dev::KeyPair(g_secret);
 auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 
-auto three_default_configs = Lazy([] { return make_node_cfgs(3); });
-auto g_conf1 = Lazy([] { return three_default_configs[0]; });
-auto g_conf2 = Lazy([] { return three_default_configs[1]; });
-auto g_conf3 = Lazy([] { return three_default_configs[2]; });
+struct NetworkTest : NodesTest {};
 
-struct NetworkTest : BaseTest {};
-
-// Test creates two Network setup and verifies sending block between is successfull
+// Test creates two Network setup and verifies sending block between is successful
 TEST_F(NetworkTest, transfer_block) {
-  auto nw1 = std::make_unique<Network>(g_conf1);
-  auto nw2 = std::make_unique<Network>(g_conf2);
+  auto nw1 = std::make_unique<Network>(node_cfgs[0]);
+  auto nw2 = std::make_unique<Network>(node_cfgs[1]);
 
   nw1->start();
   nw2->start();
@@ -80,7 +75,7 @@ TEST_F(NetworkTest, transfer_block) {
 // Test creates two Network setup and verifies sending blocks between is successfull
 // This test can not work anymore as we are marking other nodes as malicous becasue of invalid dag blocks
 TEST_F(NetworkTest, transfer_lot_of_blocks) {
-  auto node_cfgs = make_node_cfgs<20>(2);
+  auto node_cfgs = make_node_cfgs(2, 1, 20);
   auto nodes = launch_nodes(node_cfgs);
   const auto& node1 = nodes[0];
   const auto& node2 = nodes[1];
@@ -156,7 +151,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
 
 // TODO[2033]: enable this test
 TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
-  auto node_cfgs = make_node_cfgs<5>(2);
+  auto node_cfgs = make_node_cfgs(2, 1, 5);
   auto nodes = launch_nodes(node_cfgs);
 
   const auto& node1 = nodes[0];
@@ -236,7 +231,7 @@ TEST_F(NetworkTest, malicious_peers) {
 
 TEST_F(NetworkTest, sync_large_pbft_block) {
   const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
-  auto node_cfgs = make_node_cfgs<5>(2);
+  auto node_cfgs = make_node_cfgs(2, 1, 5);
   node_cfgs[0].genesis.pbft.gas_limit = TEST_BLOCK_GAS_LIMIT;
   node_cfgs[1].genesis.pbft.gas_limit = TEST_BLOCK_GAS_LIMIT;
   auto nodes = launch_nodes({node_cfgs[0]});
@@ -320,8 +315,8 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
 // Test creates two Network setup and verifies sending transaction
 // between is successfull
 TEST_F(NetworkTest, transfer_transaction) {
-  auto nw1 = std::make_unique<Network>(g_conf1);
-  auto nw2 = std::make_unique<Network>(g_conf2);
+  auto nw1 = std::make_unique<Network>(node_cfgs[0]);
+  auto nw2 = std::make_unique<Network>(node_cfgs[1]);
   nw1->start();
   nw2->start();
 
@@ -359,11 +354,11 @@ TEST_F(NetworkTest, save_network) {
   h256 genesis_hash;
   {
     std::shared_ptr<Network> nw1 =
-        std::make_shared<taraxa::Network>(g_conf1, genesis_hash, Host::CapabilitiesFactory());
+        std::make_shared<taraxa::Network>(node_cfgs[0], genesis_hash, Host::CapabilitiesFactory());
     std::shared_ptr<Network> nw2 =
-        std::make_shared<taraxa::Network>(g_conf2, genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw2", key2);
+        std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw2", key2);
     std::shared_ptr<Network> nw3 =
-        std::make_shared<taraxa::Network>(g_conf3, genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw3", key3);
+        std::make_shared<taraxa::Network>(node_cfgs[2], genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw3", key3);
 
     nw1->start();
     nw2->start();
@@ -380,9 +375,9 @@ TEST_F(NetworkTest, save_network) {
   }
 
   std::shared_ptr<Network> nw2 =
-      std::make_shared<taraxa::Network>(g_conf2, genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw2", key2);
+      std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw2", key2);
   std::shared_ptr<Network> nw3 =
-      std::make_shared<taraxa::Network>(g_conf3, genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw3", key3);
+      std::make_shared<taraxa::Network>(node_cfgs[2], genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw3", key3);
   nw2->start();
   nw3->start();
 
@@ -421,7 +416,7 @@ TEST_F(NetworkTest, node_chain_id) {
 // Test creates a DAG on one node and verifies that the second node syncs with it and that the resulting DAG on the
 // other end is the same
 TEST_F(NetworkTest, node_sync) {
-  auto node_cfgs = make_node_cfgs<5>(2);
+  auto node_cfgs = make_node_cfgs(2, 1, 5);
   auto node1 = create_nodes({node_cfgs[0]}, true /*start*/).front();
   // Stop PBFT manager
   node1->getPbftManager()->stop();
@@ -513,7 +508,7 @@ TEST_F(NetworkTest, node_sync) {
 // that the second node syncs with it and that the resulting
 // chain on the other end is the same
 TEST_F(NetworkTest, node_pbft_sync) {
-  auto node_cfgs = make_node_cfgs<20>(2);
+  auto node_cfgs = make_node_cfgs(2, 1, 20);
   auto node1 = create_nodes({node_cfgs[0]}, true /*start*/).front();
 
   // Stop PBFT manager and executor for syncing test
@@ -680,7 +675,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
 }
 
 TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
-  auto node_cfgs = make_node_cfgs<20>(2);
+  auto node_cfgs = make_node_cfgs(2, 1, 20);
   auto node1 = create_nodes({node_cfgs[0]}, true /*start*/).front();
 
   // Stop PBFT manager and executor for syncing test
@@ -802,7 +797,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
 // Test PBFT next votes sycning when node is behind of PBFT round with peer
 TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
-  auto node_cfgs = make_node_cfgs<20>(2);
+  auto node_cfgs = make_node_cfgs(2, 1, 20);
   auto node1 = create_nodes({node_cfgs[0]}, true /*start*/).front();
 
   // Stop PBFT manager, that will place vote
@@ -848,7 +843,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
 
 // Test PBFT next votes sycning when nodes stay at same PBFT round, but node2 has less previous round next votes size
 TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
-  auto node_cfgs = make_node_cfgs<20>(2);
+  auto node_cfgs = make_node_cfgs(2, 1, 20);
   std::vector<std::shared_ptr<FullNode>> nodes;
   for (auto i(0); i < 2; i++) {
     nodes.emplace_back(std::make_shared<FullNode>(node_cfgs[i]));
@@ -913,7 +908,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
 // Test PBFT next votes sycning when nodes stay at same PBFT round, node1 and node2 have different previous round next
 // votes set
 TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
-  auto node_cfgs = make_node_cfgs<20>(2);
+  auto node_cfgs = make_node_cfgs(2, 1, 20);
   std::vector<std::shared_ptr<FullNode>> nodes;
   for (auto i(0); i < 2; i++) {
     nodes.emplace_back(std::make_shared<FullNode>(node_cfgs[i]));
@@ -994,7 +989,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
 // Unlike the previous tests, this DAG contains blocks with transactions
 // and verifies that the sync containing transactions is successful
 TEST_F(NetworkTest, node_sync_with_transactions) {
-  auto node_cfgs = make_node_cfgs<5>(2);
+  auto node_cfgs = make_node_cfgs(2, 1, 5);
   auto node1 = create_nodes({node_cfgs[0]}, true /*start*/).front();
 
   std::vector<DagBlock> blks;
@@ -1122,7 +1117,7 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
 // that the second node syncs with it and that the resulting
 // DAG on the other end is the same
 TEST_F(NetworkTest, node_sync2) {
-  auto node_cfgs = make_node_cfgs<5>(2);
+  auto node_cfgs = make_node_cfgs(2, 1, 5);
   auto node1 = create_nodes({node_cfgs[0]}, true /*start*/).front();
 
   std::vector<DagBlock> blks;
@@ -1320,7 +1315,7 @@ TEST_F(NetworkTest, node_transaction_sync) {
 // resulting DAG is the same on all nodes
 TEST_F(NetworkTest, node_full_sync) {
   constexpr auto numberOfNodes = 5;
-  auto node_cfgs = make_node_cfgs<20>(numberOfNodes);
+  auto node_cfgs = make_node_cfgs(numberOfNodes, 1, 20);
   auto nodes = launch_nodes(slice(node_cfgs, 0, numberOfNodes - 1));
 
   std::random_device dev;

@@ -9,34 +9,27 @@
 
 namespace taraxa {
 
-FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::Value &wallet,
-                               const Json::Value &genesis_json, const std::string &config_file_path) {
-  Json::Value parsed_from_file = getJsonFromFileOrString(string_or_object);
-  if (string_or_object.isString()) {
-    json_file_name = string_or_object.asString();
-  } else {
-    json_file_name = config_file_path;
-  }
-  assert(!json_file_name.empty());
-  auto const &root = string_or_object.isString() ? parsed_from_file : string_or_object;
+void dec_json(Json::Value const &json, DBConfig &db_config) {
+  db_config.db_snapshot_each_n_pbft_block =
+      getConfigDataAsUInt(json, {"db_snapshot_each_n_pbft_block"}, true, db_config.db_snapshot_each_n_pbft_block);
+
+  db_config.db_max_snapshots = getConfigDataAsUInt(json, {"db_max_snapshots"}, true, db_config.db_max_snapshots);
+  db_config.db_max_open_files = getConfigDataAsUInt(json, {"db_max_open_files"}, true, db_config.db_max_open_files);
+}
+
+void FullNodeConfig::overwriteConfigFromJson(const Json::Value &root) {
   data_path = getConfigDataAsString(root, {"data_path"});
   db_path = data_path / "db";
+
   final_chain_cache_in_blocks =
       getConfigDataAsUInt(root, {"final_chain_cache_in_blocks"}, true, final_chain_cache_in_blocks);
-
-  dec_json(root["network"], network);
 
   // config values that limits transactions and blocks memory pools
   transactions_pool_size = getConfigDataAsUInt(root, {"transactions_pool_size"}, true, kDefaultTransactionPoolSize);
 
-  {  // db_config
-    // Create db snapshot each N pbft block
-    db_config.db_snapshot_each_n_pbft_block =
-        getConfigDataAsUInt(root, {"db_config", "db_snapshot_each_n_pbft_block"}, true);
+  dec_json(root["network"], network);
 
-    db_config.db_max_snapshots = getConfigDataAsUInt(root, {"db_config", "db_max_snapshots"}, true);
-    db_config.db_max_open_files = getConfigDataAsUInt(root, {"db_config", "db_max_open_files"}, true);
-  }
+  dec_json(root["db_config"], db_config);
 
   // Network logging in p2p library creates performance issues even with
   // channel/verbosity off Disable it completely in net channel is not present
@@ -80,12 +73,29 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::
       }
     }
   }
+
+  is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, is_light_node);
+  light_node_history = getConfigDataAsUInt(root, {"light_node_history"}, true, light_node_history);
+}
+
+FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::Value &wallet,
+                               const Json::Value &genesis_json, const std::string &config_file_path) {
+  Json::Value parsed_from_file = getJsonFromFileOrString(string_or_object);
+  if (string_or_object.isString()) {
+    json_file_name = string_or_object.asString();
+  } else {
+    json_file_name = config_file_path;
+  }
+  assert(!json_file_name.empty());
+
+  auto const &root = string_or_object.isString() ? parsed_from_file : string_or_object;
+  overwriteConfigFromJson(root);
+
   if (const auto &v = genesis_json; v.isObject()) {
     dec_json(v, genesis);
   } else {
-    genesis = Genesis::predefined();
+    genesis = Genesis();
   }
-
   // blocks_per_year config param is calculated from lambda_ms
   uint64_t year_ms = 365 * 24 * 60 * 60;
   year_ms *= 1000;
@@ -93,7 +103,7 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::
   const uint32_t expected_block_time = 2 * genesis.pbft.lambda_ms + 700;
   genesis.state.dpos.blocks_per_year = year_ms / expected_block_time;
 
-  is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, false);
+  is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, is_light_node);
   if (is_light_node) {
     const auto min_light_node_history = (genesis.state.dpos.blocks_per_year * kDefaultLightNodeHistoryDays) / 365;
     light_node_history = getConfigDataAsUInt(root, {"light_node_history"}, true, min_light_node_history);

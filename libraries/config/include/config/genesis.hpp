@@ -36,14 +36,10 @@ struct Genesis {
   state_api::Config state;
   DagConfig dag;
 
- private:
-  static LazyVal<std::unordered_map<string, Genesis>> const predefined_;
-
- public:
+  Genesis();
   void validate() const;
   bytes rlp() const;
   blk_hash_t genesisHash() const;
-  static const Genesis& predefined(std::string const& name = "default");
 };
 
 Json::Value enc_json(Genesis const& obj);

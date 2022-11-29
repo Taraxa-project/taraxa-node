@@ -3,12 +3,12 @@
 #include <libdevcore/Common.h>
 
 #include "network/rpc/eth/Eth.h"
-#include "util_test/gtest.hpp"
-#include "util_test/samples.hpp"
+#include "test_util/gtest.hpp"
+#include "test_util/samples.hpp"
 
 namespace taraxa::core_tests {
 
-struct RPCTest : BaseTest {};
+struct RPCTest : NodesTest {};
 
 TEST_F(RPCTest, eth_estimateGas) {
   auto node_cfg = make_node_cfgs(1);

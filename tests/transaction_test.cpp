@@ -11,9 +11,9 @@
 #include "final_chain/trie_common.hpp"
 #include "logger/logger.hpp"
 #include "pbft/pbft_manager.hpp"
+#include "test_util/samples.hpp"
 #include "transaction/transaction_manager.hpp"
 #include "transaction/transaction_queue.hpp"
-#include "util_test/samples.hpp"
 
 namespace taraxa::core_tests {
 
@@ -29,7 +29,7 @@ auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(1, NUM_TRX, g_secret); });
 auto g_blk_samples = Lazy([] { return samples::createMockDagBlkSamples(0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP); });
 
-struct TransactionTest : BaseTest {};
+struct TransactionTest : NodesTest {};
 
 TEST_F(TransactionTest, status_table_lru) {
   using TestStatus = StatusTable<int, int>;
@@ -119,7 +119,7 @@ TEST_F(TransactionTest, sig) {
 
 TEST_F(TransactionTest, verifiers) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  auto cfg = FullNodeConfig("test");
+  auto cfg = node_cfgs.front();
   auto final_chain = NewFinalChain(db, cfg);
   TransactionManager trx_mgr(cfg, db, final_chain, addr_t());
   // insert trx
@@ -140,7 +140,7 @@ TEST_F(TransactionTest, verifiers) {
 
 TEST_F(TransactionTest, transaction_limit) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  auto cfg = FullNodeConfig("test");
+  auto cfg = node_cfgs.front();
   TransactionManager trx_mgr(cfg, db, NewFinalChain(db, cfg), addr_t());
   // insert trx
   std::thread t([&trx_mgr]() {
@@ -162,7 +162,7 @@ TEST_F(TransactionTest, transaction_limit) {
 
 TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  auto cfg = FullNodeConfig("test");
+  auto cfg = node_cfgs.front();
   TransactionManager trx_mgr(cfg, db, NewFinalChain(db, cfg), addr_t());
   std::thread insertTrx([&trx_mgr]() {
     for (auto const& t : *g_signed_trx_samples) {
@@ -190,7 +190,7 @@ TEST_F(TransactionTest, prepare_signed_trx_for_propose) {
 
 TEST_F(TransactionTest, transaction_low_nonce) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  taraxa::FullNodeConfig cfg = FullNodeConfig("test");
+  auto cfg = node_cfgs.front();
   auto final_chain = NewFinalChain(db, cfg);
   TransactionManager trx_mgr(cfg, db, final_chain, addr_t());
   const auto& trx_2 = g_signed_trx_samples[1];
@@ -255,7 +255,7 @@ TEST_F(TransactionTest, transaction_low_nonce) {
 
 TEST_F(TransactionTest, transaction_concurrency) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  auto cfg = FullNodeConfig("test");
+  auto cfg = node_cfgs.front();
   TransactionManager trx_mgr(cfg, db, NewFinalChain(db, cfg), addr_t());
   bool stopped = false;
   // Insert transactions to memory pool and keep trying to insert them again on separate thread, it should always fail
@@ -654,7 +654,7 @@ TEST_F(TransactionTest, typed_deserialization) {
 }
 TEST_F(TransactionTest, zero_gas_price_limit) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  auto cfg = FullNodeConfig("test");
+  auto cfg = node_cfgs.front();
   auto final_chain = NewFinalChain(db, cfg);
   TransactionManager trx_mgr(cfg, db, final_chain, addr_t());
   auto make_trx_with_price = [](uint64_t price) {
@@ -676,7 +676,7 @@ TEST_F(TransactionTest, zero_gas_price_limit) {
 
 TEST_F(TransactionTest, gas_price_limiting) {
   auto db = std::make_shared<DbStorage>(data_dir);
-  auto cfg = FullNodeConfig("test");
+  auto cfg = node_cfgs.front();
   auto minimum_price = cfg.genesis.gas_price.minimum_price = 10;
   auto final_chain = NewFinalChain(db, cfg);
   TransactionManager trx_mgr(cfg, db, final_chain, addr_t());

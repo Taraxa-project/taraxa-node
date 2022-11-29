@@ -7,9 +7,9 @@
 #include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
 #include "final_chain/trie_common.hpp"
-#include "util_test/gtest.hpp"
-#include "util_test/samples.hpp"
-#include "util_test/util.hpp"
+#include "test_util/gtest.hpp"
+#include "test_util/samples.hpp"
+#include "test_util/test_util.hpp"
 #include "vote/vote.hpp"
 
 namespace taraxa::final_chain {
@@ -23,7 +23,7 @@ struct advance_check_opts {
 
 struct FinalChainTest : WithDataDir {
   std::shared_ptr<DbStorage> db{new DbStorage(data_dir / "db")};
-  FullNodeConfig cfg = FullNodeConfig("test");
+  FullNodeConfig cfg = FullNodeConfig();
   std::shared_ptr<FinalChain> SUT;
   bool assume_only_toplevel_transfers = true;
   std::unordered_map<addr_t, u256> expected_balances;
@@ -31,6 +31,7 @@ struct FinalChainTest : WithDataDir {
   void init() {
     SUT = NewFinalChain(db, cfg);
     const auto& effective_balances = effective_initial_balances(cfg.genesis.state);
+    cfg.genesis.state.dpos.yield_percentage = 0;
     for (const auto& [addr, _] : cfg.genesis.state.initial_balances) {
       auto acc_actual = SUT->get_account(addr);
       ASSERT_TRUE(acc_actual);

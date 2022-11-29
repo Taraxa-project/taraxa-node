@@ -12,8 +12,8 @@
 #include "dag/dag_manager.hpp"
 #include "logger/logger.hpp"
 #include "node/node.hpp"
-#include "util_test/samples.hpp"
-#include "util_test/util.hpp"
+#include "test_util/samples.hpp"
+#include "test_util/test_util.hpp"
 #include "vdf/sortition.hpp"
 
 namespace taraxa::core_tests {
@@ -22,8 +22,8 @@ const unsigned BLK_TRX_LEN = 4;
 const unsigned BLK_TRX_OVERLAP = 1;
 using namespace vdf_sortition;
 
-struct DagBlockTest : BaseTest {};
-struct DagBlockMgrTest : BaseTest {};
+struct DagBlockTest : NodesTest {};
+struct DagBlockMgrTest : NodesTest {};
 
 auto g_blk_samples = samples::createMockDagBlkSamples(0, NUM_BLK, 0, BLK_TRX_LEN, BLK_TRX_OVERLAP);
 
@@ -215,6 +215,7 @@ TEST_F(DagBlockMgrTest, incorrect_tx_estimation) {
   auto trx = samples::createSignedTrxSamples(1, 1, g_secret).front();
   auto insert_result = node->getTransactionManager()->insertTransaction(trx);
   ASSERT_EQ(insert_result.second, "");
+
   // Generate DAG blocks
   auto dag_genesis = node->getConfig().genesis.dag_genesis_block.getHash();
   SortitionConfig vdf_config(node->getConfig().genesis.sortition);
@@ -243,7 +244,7 @@ TEST_F(DagBlockMgrTest, incorrect_tx_estimation) {
 
 TEST_F(DagBlockMgrTest, too_big_dag_block) {
   // make config
-  auto node_cfgs = make_node_cfgs<20>(1);
+  auto node_cfgs = make_node_cfgs(1, 1, 20);
   node_cfgs.front().genesis.dag.gas_limit = 500000;
 
   auto node = create_nodes(node_cfgs).front();

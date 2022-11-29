@@ -12,8 +12,8 @@
 #include "logger/logger.hpp"
 #include "node/node.hpp"
 #include "string"
+#include "test_util/samples.hpp"
 #include "transaction/transaction_manager.hpp"
-#include "util_test/samples.hpp"
 
 namespace taraxa::core_tests {
 

@@ -5,12 +5,12 @@
 #include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
-#include "util_test/node_dag_creation_fixture.hpp"
+#include "test_util/node_dag_creation_fixture.hpp"
 #include "vdf/sortition.hpp"
 
 namespace taraxa::core_tests {
 
-struct PbftManagerTest : BaseTest {
+struct PbftManagerTest : NodesTest {
   val_t gas_price = 0;
   std::vector<std::shared_ptr<FullNode>> nodes;
   std::vector<uint64_t> nonces;
@@ -40,7 +40,7 @@ struct PbftManagerTest : BaseTest {
   }
 
   void check_2tPlus1_validVotingPlayers_activePlayers_threshold(size_t committee_size) {
-    auto node_cfgs = make_node_cfgs<5>(5);
+    auto node_cfgs = make_node_cfgs(5, 1, 5);
     auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
     for (auto &cfg : node_cfgs) {
       cfg.genesis.pbft.committee_size = committee_size;
@@ -194,7 +194,7 @@ struct PbftManagerTest : BaseTest {
 
 // Test that after some amount of elapsed time will not continue soft voting for same value
 TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
-  auto node_cfgs = make_node_cfgs<20>(1);
+  auto node_cfgs = make_node_cfgs(1, 1, 20);
   makeNodesWithNonces(node_cfgs);
 
   auto pbft_mgr = nodes[0]->getPbftManager();
@@ -255,7 +255,7 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
 
 /*
 TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
-  auto node_cfgs = make_node_cfgs<20>(1);
+  auto node_cfgs = make_node_cfgs(1, 1, 20);
   makeNodesWithNonces(node_cfgs);
 
   auto pbft_mgr = nodes[0]->getPbftManager();
@@ -329,7 +329,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
 
 // Test that after some number of rounds will give up the proposing value if proposed block is not available
 TEST_F(PbftManagerTest, terminate_missing_proposed_pbft_block) {
-  auto node_cfgs = make_node_cfgs<20>(1);
+  auto node_cfgs = make_node_cfgs(1, 1, 20);
   makeNodesWithNonces(node_cfgs);
 
   auto pbft_mgr = nodes[0]->getPbftManager();
@@ -400,7 +400,7 @@ TEST_F(PbftManagerTest, full_node_lambda_input_test) {
 }
 
 TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
-  auto node_cfgs = make_node_cfgs<5>(5);
+  auto node_cfgs = make_node_cfgs(5, 1, 5);
   auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
   for (auto &cfg : node_cfgs) {
     cfg.genesis.pbft.committee_size = 100;
@@ -528,7 +528,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
 }
 
 TEST_F(PbftManagerTest, pbft_produce_blocks_with_null_anchor) {
-  auto node_cfgs = make_node_cfgs<20>(1);
+  auto node_cfgs = make_node_cfgs(1, 1, 20);
   auto node = create_nodes(node_cfgs, true).front();
   EXPECT_EQ(own_balance(node), own_effective_genesis_bal(node_cfgs[0]));
 
@@ -538,7 +538,7 @@ TEST_F(PbftManagerTest, pbft_produce_blocks_with_null_anchor) {
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
-  auto node_cfgs = make_node_cfgs<20>(1);
+  auto node_cfgs = make_node_cfgs(1, 1, 20);
   makeNodesWithNonces(node_cfgs);
   auto node = nodes.front();
 
@@ -565,7 +565,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
 }
 
 TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
-  const auto node_cfgs = make_node_cfgs<20>(3);
+  const auto node_cfgs = make_node_cfgs(3, 1, 20);
   const auto node1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
   const auto node2_genesis_bal = own_effective_genesis_bal(node_cfgs[1]);
   const auto node3_genesis_bal = own_effective_genesis_bal(node_cfgs[2]);
@@ -607,7 +607,7 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
 }
 
 TEST_F(PbftManagerTest, propose_block_and_vote_broadcast) {
-  auto node_cfgs = make_node_cfgs<1>(3);
+  auto node_cfgs = make_node_cfgs(3);
 
   makeNodesWithNonces(node_cfgs);
   auto &node1 = nodes[0];
@@ -700,7 +700,7 @@ TEST_F(PbftManagerWithDagCreation, trx_generation) {
     insertTransactions(trxs);
 
     EXPECT_HAPPENS({10s, 500ms},
-                   [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce); });
+                   [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce - 1); });
     std::cout << "Creation and applying of " << count << " transactions is ok" << std::endl;
   }
 }
@@ -738,12 +738,12 @@ TEST_F(PbftManagerWithDagCreation, dag_generation) {
 
   EXPECT_HAPPENS({60s, 250ms}, [&](auto &ctx) {
     WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce);
-    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce);
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce - 1);
   });
 }
 
 TEST_F(PbftManagerWithDagCreation, limit_dag_block_size) {
-  auto node_cfgs = make_node_cfgs<5, true>(1);
+  auto node_cfgs = make_node_cfgs(1, 1, 5, true);
   node_cfgs.front().genesis.dag.gas_limit = 500000;
   makeNodeFromConfig(node_cfgs);
   deployContract();
@@ -799,7 +799,7 @@ TEST_F(PbftManagerWithDagCreation, limit_dag_block_size) {
 }
 
 TEST_F(PbftManagerWithDagCreation, limit_pbft_block) {
-  auto node_cfgs = make_node_cfgs<5, true>(1);
+  auto node_cfgs = make_node_cfgs(1, 1, 5, true);
   node_cfgs.front().genesis.dag.gas_limit = 500000;
   node_cfgs.front().genesis.pbft.gas_limit = 1100000;
   makeNodeFromConfig(node_cfgs);
@@ -834,7 +834,7 @@ TEST_F(PbftManagerWithDagCreation, limit_pbft_block) {
 }
 
 TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
-  auto node_cfgs = make_node_cfgs<5, true>(1);
+  auto node_cfgs = make_node_cfgs(1, 1, 5, true);
   auto dag_gas_limit = node_cfgs.front().genesis.dag.gas_limit = 500000;
   node_cfgs.front().genesis.pbft.gas_limit = 1100000;
   makeNodeFromConfig(node_cfgs);
@@ -876,7 +876,7 @@ TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
 }
 
 TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
-  auto node_cfgs = make_node_cfgs<5, true>(1);
+  auto node_cfgs = make_node_cfgs(1, 5, true);
   node_cfgs.front().genesis.dag.gas_limit = 500000;
   node_cfgs.front().genesis.pbft.gas_limit = 600000;
   makeNode();

@@ -19,6 +19,8 @@ struct DBConfig {
   bool rebuild_db_columns = false;
 };
 
+void dec_json(Json::Value const &json, DBConfig &db_config);
+
 struct FullNodeConfig {
   static constexpr uint64_t kDefaultLightNodeHistoryDays = 7;
 
@@ -29,10 +31,11 @@ struct FullNodeConfig {
   // if you have std::string and Json::Value constructor. It was easier
   // to just treat Json::Value as a std::string or Json::Value depending on
   // the contents
-  explicit FullNodeConfig(Json::Value const &file_name_str_or_json_object, Json::Value const &wallet,
-                          Json::Value const &genesis = Json::Value::null, const std::string &config_file_path = "");
+  explicit FullNodeConfig(const Json::Value &file_name_str_or_json_object, const Json::Value &wallet,
+                          const Json::Value &genesis = Json::Value::null, const std::string &config_file_path = "");
 
-  explicit FullNodeConfig(const std::string &chain_config_name) : genesis(Genesis::predefined(chain_config_name)) {}
+  void overwriteConfigFromJson(const Json::Value &config_json);
+
   std::string json_file_name;
   dev::Secret node_secret;
   vrf_wrapper::vrf_sk_t vrf_secret;
@@ -41,7 +44,7 @@ struct FullNodeConfig {
   fs::path log_path;
   NetworkConfig network;
   DBConfig db_config;
-  Genesis genesis = Genesis::predefined();
+  Genesis genesis;
   state_api::Opts opts_final_chain;
   std::vector<logger::Config> log_configs;
   bool is_light_node = false;                            // Is light node

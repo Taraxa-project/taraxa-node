@@ -19,8 +19,8 @@
 #include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
 #include "network/tarcap/taraxa_capability.hpp"
-#include "util_test/samples.hpp"
-#include "util_test/util.hpp"
+#include "test_util/samples.hpp"
+#include "test_util/test_util.hpp"
 
 namespace taraxa::core_tests {
 using namespace dev;
@@ -33,7 +33,7 @@ auto g_secret = Lazy([] {
 });
 auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 
-struct P2PTest : BaseTest {};
+struct P2PTest : NodesTest {};
 
 // TODO this needs to be removed and called from tracap->setPendingPeersToReady() directly
 void setPendingPeersToReady(std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> taraxa_capability) {
@@ -311,7 +311,7 @@ TEST_F(P2PTest, multiple_capabilities) {
     std::filesystem::remove_all("/tmp/nw3");
   };
   auto wait_for_connection = [](std::shared_ptr<Network> nw1, std::shared_ptr<Network> nw2) {
-    EXPECT_HAPPENS({10s, 500ms}, [&](auto &ctx) {
+    EXPECT_HAPPENS({15s, 500ms}, [&](auto &ctx) {
       nw1->setPendingPeersToReady();
       nw2->setPendingPeersToReady();
       WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 1)

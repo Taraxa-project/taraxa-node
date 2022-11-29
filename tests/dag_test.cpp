@@ -4,13 +4,11 @@
 #include "common/types.hpp"
 #include "dag/dag_manager.hpp"
 #include "logger/logger.hpp"
-#include "util_test/util.hpp"
+#include "test_util/test_util.hpp"
 
 namespace taraxa::core_tests {
 
-struct DagTest : BaseTest {
-  std::vector<FullNodeConfig> node_cfgs = make_node_cfgs(1);
-};
+struct DagTest : NodesTest {};
 
 TEST_F(DagTest, build_dag) {
   const blk_hash_t GENESIS("0000000000000000000000000000000000000000000000000000000000000001");

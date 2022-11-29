@@ -7,7 +7,7 @@
 #include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
 #include "node/node.hpp"
 #include "pbft/pbft_manager.hpp"
-#include "util_test/util.hpp"
+#include "test_util/test_util.hpp"
 
 namespace taraxa::core_tests {
 using namespace vrf_wrapper;
@@ -21,7 +21,7 @@ auto g_sk = Lazy([] {
   return secret_t("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                   dev::Secret::ConstructFromStringType::FromHex);
 });
-struct VoteTest : BaseTest {};
+struct VoteTest : NodesTest {};
 
 std::pair<PbftPeriod, PbftRound> clearAllVotes(const std::vector<std::shared_ptr<FullNode>> &nodes) {
   // Get highest round from all nodes

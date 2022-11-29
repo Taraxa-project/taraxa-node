@@ -1,7 +1,7 @@
 #include <gtest/gtest.h>
 
 #include "final_chain/contract_interface.hpp"
-#include "util_test/gtest.hpp"
+#include "test_util/gtest.hpp"
 
 namespace taraxa::core_tests {
 

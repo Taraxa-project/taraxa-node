@@ -1,5 +1,7 @@
 #include "logger/logger_config.hpp"
 
+#include <json/json.h>
+
 #include <boost/algorithm/string.hpp>
 #include <boost/core/null_deleter.hpp>
 #include <boost/log/attributes/function.hpp>
@@ -22,6 +24,19 @@ Verbosity stringToVerbosity(std::string _verbosity) {
   if (_verbosity == "DEBUG") return Verbosity::Debug;
   if (_verbosity == "TRACE") return Verbosity::Trace;
   throw("Unknown verbosity string");
+}
+
+Config::Config(fs::path log_path) {
+  // emplace default(console) output
+  outputs.emplace_back();
+
+  OutputConfig file;
+  file.type = "file";
+  file.target = log_path;
+  file.rotation_size = 10000000;
+  file.time_based_rotation = "0,0,0";
+  file.max_size = 1000000000;
+  outputs.emplace_back(file);
 }
 
 Config::Config(const Config &other)

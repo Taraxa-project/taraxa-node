@@ -22,8 +22,8 @@
 #include "network/rpc/Taraxa.h"
 #include "node/node.hpp"
 #include "pbft/pbft_manager.hpp"
+#include "test_util/samples.hpp"
 #include "transaction/transaction_manager.hpp"
-#include "util_test/samples.hpp"
 
 // TODO rename this namespace to `tests`
 namespace taraxa::core_tests {
@@ -45,13 +45,12 @@ void send_dummy_trx() {
                                         "value": 0,
                                         "gas_price": 0,
                                         "gas": 100000,
-                                        "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7782 > /dev/null)";
-
-  std::cout << "Send dummy transaction ..." << std::endl;
+                                        "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 127.0.0.1:7778 > /dev/null)";
+  std::cout << "Send dummy transaction ... " << std::endl;
   EXPECT_FALSE(system(dummy_trx.c_str()));
 }
 
-struct FullNodeTest : BaseTest {};
+struct FullNodeTest : NodesTest {};
 
 TEST_F(FullNodeTest, db_test) {
   auto db_ptr = std::make_shared<DbStorage>(data_dir);
@@ -387,7 +386,7 @@ TEST_F(FullNodeTest, db_test) {
 TEST_F(FullNodeTest, sync_five_nodes) {
   using namespace std;
 
-  auto node_cfgs = make_node_cfgs<20>(5);
+  auto node_cfgs = make_node_cfgs(5, 1, 20);
   auto nodes = launch_nodes(node_cfgs);
 
   class context {
@@ -812,7 +811,7 @@ TEST_F(FullNodeTest, destroy_db) {
 }
 
 TEST_F(FullNodeTest, reconstruct_anchors) {
-  auto node_cfgs = make_node_cfgs<5>(1);
+  auto node_cfgs = make_node_cfgs(1, 1, 5);
   std::pair<blk_hash_t, blk_hash_t> anchors;
   {
     auto node = create_nodes(node_cfgs, true /*start*/).front();
@@ -890,7 +889,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
 }
 
 TEST_F(FullNodeTest, sync_two_nodes1) {
-  auto node_cfgs = make_node_cfgs<2, true>(2);
+  auto node_cfgs = make_node_cfgs(2, 1, 2, true);
   auto nodes = launch_nodes(node_cfgs);
 
   // send 1000 trxs
@@ -928,7 +927,7 @@ TEST_F(FullNodeTest, sync_two_nodes1) {
 }
 
 TEST_F(FullNodeTest, persist_counter) {
-  auto node_cfgs = make_node_cfgs<2, true>(2);
+  auto node_cfgs = make_node_cfgs(2, 1, 2, true);
   unsigned long num_exe_trx1 = 0, num_exe_trx2 = 0, num_exe_blk1 = 0, num_exe_blk2 = 0, num_trx1 = 0, num_trx2 = 0;
   {
     auto nodes = launch_nodes(node_cfgs);
@@ -1000,13 +999,13 @@ TEST_F(FullNodeTest, persist_counter) {
 }
 
 TEST_F(FullNodeTest, sync_two_nodes2) {
-  auto node_cfgs = make_node_cfgs<20, true>(2);
+  auto node_cfgs = make_node_cfgs(2, 1, 20, true);
   auto nodes = launch_nodes(node_cfgs);
 
   // send 1000 trxs
   try {
     std::cout << "Sending 1000 trxs ..." << std::endl;
-    sendTrx(1000, 7782);
+    sendTrx(1000, 7778);
     std::cout << "1000 trxs sent ..." << std::endl;
 
   } catch (std::exception &e) {
@@ -1027,20 +1026,20 @@ TEST_F(FullNodeTest, sync_two_nodes2) {
 }
 
 TEST_F(FullNodeTest, single_node_run_two_transactions) {
-  auto node_cfgs = make_node_cfgs<5, true>(1);
+  auto node_cfgs = make_node_cfgs(1, 1, 5, true);
   auto node = create_nodes(node_cfgs, true /*start*/).front();
 
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
 "eth_sendRawTransaction", "params":
 ["0xf86c0180830186a0948a73eb33a449c5875c6f22afbe3f666606c27bb6648c00fedcba98765432100000001ca0b8c05088645fdce361cbef72c304fb7bef72baef0396743aec9ea19bf258bd3da037154cf300f768d06f24189d4cf4f23921d696973b3fb23a5950da5ca1ca0f7c"
-                                      ]}' 0.0.0.0:7782)";
+                                      ]}' 0.0.0.0:7778)";
 
   std::string send_raw_trx2 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
 "eth_sendRawTransaction", "params":
 ["0xf86d0280830186a094cad9ed1711133943b1a6ca50d3741f871c07991281c88c00fedcba98765432100000001ca0ab735dbf255a3ac9fb1680272583a47397569ece015a12d2e1d955db429c9c69a05430325ef3b098d36673467661610d884e72efc46a6588f81f237dcecc841520"
-                                      ]}' 0.0.0.0:7782)";
+                                      ]}' 0.0.0.0:7778)";
 
   std::cout << "Send first trx ..." << std::endl;
   EXPECT_FALSE(system(send_raw_trx1.c_str()));
@@ -1065,20 +1064,20 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
 }
 
 TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
-  auto node_cfgs = make_node_cfgs<5, true>(2);
+  auto node_cfgs = make_node_cfgs(2, 1, 5, true);
   auto nodes = launch_nodes(node_cfgs);
 
   std::string send_raw_trx1 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
 "eth_sendRawTransaction", "params":
 ["0xf86c0180830186a0948a73eb33a449c5875c6f22afbe3f666606c27bb6648c00fedcba98765432100000001ca0b8c05088645fdce361cbef72c304fb7bef72baef0396743aec9ea19bf258bd3da037154cf300f768d06f24189d4cf4f23921d696973b3fb23a5950da5ca1ca0f7c"
-                                      ]}' 0.0.0.0:7782)";
+                                      ]}' 0.0.0.0:7778)";
 
   std::string send_raw_trx2 =
       R"(curl -m 10 -s -d '{"jsonrpc": "2.0", "id": "0", "method":
 "eth_sendRawTransaction", "params":
 ["0xf86d0280830186a094cad9ed1711133943b1a6ca50d3741f871c07991281c88c00fedcba98765432100000001ca0ab735dbf255a3ac9fb1680272583a47397569ece015a12d2e1d955db429c9c69a05430325ef3b098d36673467661610d884e72efc46a6588f81f237dcecc841520"
-                                      ]}' 0.0.0.0:7782)";
+                                      ]}' 0.0.0.0:7778)";
 
   std::cout << "Send first trx ..." << std::endl;
   EXPECT_FALSE(system(send_raw_trx1.c_str()));
@@ -1129,11 +1128,11 @@ TEST_F(FullNodeTest, save_network_to_file) {
 }
 
 TEST_F(FullNodeTest, receive_send_transaction) {
-  auto node_cfgs = make_node_cfgs<20, true>(1);
+  auto node_cfgs = make_node_cfgs(1, 1, 20, true);
   auto node = create_nodes(node_cfgs, true /*start*/).front();
 
   try {
-    sendTrx(1000, 7782);
+    sendTrx(1000, 7778);
   } catch (std::exception &e) {
     std::cerr << e.what() << std::endl;
   }
@@ -1150,7 +1149,7 @@ TEST_F(FullNodeTest, receive_send_transaction) {
 }
 
 TEST_F(FullNodeTest, detect_overlap_transactions) {
-  auto node_cfgs = make_node_cfgs<20>(5);
+  auto node_cfgs = make_node_cfgs(5, 1, 20);
   auto nodes = launch_nodes(node_cfgs);
   const auto expected_balances = effective_initial_balances(node_cfgs[0].genesis.state);
   const auto node_1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
@@ -1295,7 +1294,7 @@ TEST_F(FullNodeTest, db_rebuild) {
   uint64_t executed_chain_size = 0;
 
   {
-    auto node_cfgs = make_node_cfgs<5>(1);
+    auto node_cfgs = make_node_cfgs(1, 1, 5);
     auto nodes = launch_nodes(node_cfgs);
 
     auto gas_price = val_t(2);
@@ -1335,7 +1334,7 @@ TEST_F(FullNodeTest, db_rebuild) {
 
   {
     std::cout << "Test rebuild DB" << std::endl;
-    auto node_cfgs = make_node_cfgs<5>(1);
+    auto node_cfgs = make_node_cfgs(1, 1, 5);
     node_cfgs[0].db_config.rebuild_db = true;
     auto nodes = launch_nodes(node_cfgs);
     ASSERT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
@@ -1346,7 +1345,7 @@ TEST_F(FullNodeTest, db_rebuild) {
 
   {
     std::cout << "Check rebuild DB" << std::endl;
-    auto node_cfgs = make_node_cfgs<5>(1);
+    auto node_cfgs = make_node_cfgs(1, 1, 5);
     auto nodes = launch_nodes(node_cfgs);
     EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
       WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count)
@@ -1356,7 +1355,7 @@ TEST_F(FullNodeTest, db_rebuild) {
 
   {
     std::cout << "Test rebuild for period 5" << std::endl;
-    auto node_cfgs = make_node_cfgs<5>(1);
+    auto node_cfgs = make_node_cfgs(1, 1, 5);
     node_cfgs[0].db_config.rebuild_db = true;
     node_cfgs[0].db_config.rebuild_db_period = 5;
     auto nodes = launch_nodes(node_cfgs);
@@ -1364,7 +1363,7 @@ TEST_F(FullNodeTest, db_rebuild) {
 
   {
     std::cout << "Check rebuild for period 5" << std::endl;
-    auto node_cfgs = make_node_cfgs<5>(1);
+    auto node_cfgs = make_node_cfgs(1, 1, 5);
     auto nodes = launch_nodes(node_cfgs);
     EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
       WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count_at_pbft_size_5)
@@ -1374,7 +1373,7 @@ TEST_F(FullNodeTest, db_rebuild) {
 }
 
 TEST_F(FullNodeTest, transfer_to_self) {
-  auto node_cfgs = make_node_cfgs<5, true>(1);
+  auto node_cfgs = make_node_cfgs(1, 1, 5, true);
   auto node = launch_nodes(node_cfgs).front();
 
   std::cout << "Send first trx ..." << std::endl;
@@ -1403,7 +1402,7 @@ TEST_F(FullNodeTest, transfer_to_self) {
 }
 
 TEST_F(FullNodeTest, transaction_validation) {
-  auto node_cfgs = make_node_cfgs<5>(1);
+  auto node_cfgs = make_node_cfgs(1, 1, 5);
   auto nodes = launch_nodes(node_cfgs);
   uint32_t nonce = 1;
   const uint32_t gasprice = 1;
@@ -1442,7 +1441,7 @@ TEST_F(FullNodeTest, transaction_validation) {
 }
 
 TEST_F(FullNodeTest, light_node) {
-  auto node_cfgs = make_node_cfgs<5>(2);
+  auto node_cfgs = make_node_cfgs(2, 1, 5);
   node_cfgs[0].dag_expiry_limit = 5;
   node_cfgs[0].max_levels_per_period = 3;
   node_cfgs[1].dag_expiry_limit = 5;
@@ -1476,7 +1475,7 @@ TEST_F(FullNodeTest, light_node) {
 }
 
 TEST_F(FullNodeTest, clear_period_data) {
-  auto node_cfgs = make_node_cfgs<10>(2);
+  auto node_cfgs = make_node_cfgs(2, 1, 10);
   node_cfgs[1].is_light_node = true;
   node_cfgs[1].light_node_history = 4;
   node_cfgs[0].dag_expiry_limit = 15;
@@ -1532,7 +1531,7 @@ TEST_F(FullNodeTest, clear_period_data) {
 
 TEST_F(FullNodeTest, transaction_pool_overflow) {
   // make 2 node verifiers to avoid out of sync state
-  auto node_cfgs = make_node_cfgs<5>(2, 2);
+  auto node_cfgs = make_node_cfgs(2, 2, 5);
   for (auto &cfg : node_cfgs) {
     cfg.transactions_pool_size = kMinTransactionPoolSize;
   }
@@ -1594,7 +1593,7 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
 
 TEST_F(FullNodeTest, graphql_test) {
   // Create a node with 5 pbft/eth blocks
-  auto node_cfgs = make_node_cfgs<20>(1);
+  auto node_cfgs = make_node_cfgs(1, 1, 20);
   auto nodes = launch_nodes(node_cfgs);
 
   for (auto &trx : samples::createSignedTrxSamples(0, 100, g_secret)) {
