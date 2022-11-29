@@ -12,7 +12,7 @@
 #include "cli/tools.hpp"
 #include "common/constants.hpp"
 #include "common/static_init.hpp"
-#include "dag/block_proposer.hpp"
+#include "dag/dag_block_proposer.hpp"
 #include "dag/dag_manager.hpp"
 #include "graphql/mutation.hpp"
 #include "graphql/query.hpp"
@@ -1141,14 +1141,14 @@ TEST_F(FullNodeTest, receive_send_transaction) {
   }
   std::cout << "1000 transaction are sent through RPC ..." << std::endl;
 
-  auto num_proposed_blk = node->getNumProposedBlocks();
+  auto num_proposed_blk = node->getProposedBlocksCount();
   for (unsigned i = 0; i < SYNC_TIMEOUT; i++) {
     if (num_proposed_blk > 0) {
       break;
     }
     taraxa::thisThreadSleepForMilliSeconds(500);
   }
-  EXPECT_GT(node->getNumProposedBlocks(), 0);
+  EXPECT_GT(node->getProposedBlocksCount(), 0);
 }
 
 TEST_F(FullNodeTest, detect_overlap_transactions) {
@@ -1550,7 +1550,6 @@ TEST_F(FullNodeTest, transaction_validation) {
   EXPECT_FALSE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
 }
 
-// TODO[1908]: fix and enable this test again
 TEST_F(FullNodeTest, light_node) {
   auto node_cfgs = make_node_cfgs<5>(2);
   node_cfgs[0].dag_expiry_limit = 5;
@@ -1651,7 +1650,7 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
   const uint32_t gasprice = 5;
   const uint32_t gas = 100000;
   for (auto &node : nodes) {
-    node->getBlockProposer()->stop();
+    node->getDagBlockProposer()->stop();
   }
 
   auto node0 = nodes.front();

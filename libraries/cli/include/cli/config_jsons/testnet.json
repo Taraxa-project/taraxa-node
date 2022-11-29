@@ -71,6 +71,14 @@
           {
             "name": "SUMMARY",
             "verbosity": "INFO"
+          },
+          {
+            "name": "PBFT_MGR",
+            "verbosity": "INFO"
+          },
+          {
+            "name": "DAG_PROPOSER",
+            "verbosity": "INFO"
           }
         ],
         "outputs": [

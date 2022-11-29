@@ -31,7 +31,7 @@
 namespace taraxa {
 
 class Network;
-class BlockProposer;
+class DagBlockProposer;
 class DagManager;
 class DagBlock;
 struct Transaction;
@@ -66,7 +66,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<Network> network_;
-  std::shared_ptr<BlockProposer> blk_proposer_;
+  std::shared_ptr<DagBlockProposer> dag_block_proposer_;
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<NextVotesManager> next_votes_mgr_;
   std::shared_ptr<PbftManager> pbft_mgr_;
@@ -110,7 +110,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto const &getPbftChain() const { return pbft_chain_; }
   auto const &getFinalChain() const { return final_chain_; }
   // used only in tests
-  auto &getBlockProposer() { return blk_proposer_; }
+  auto &getDagBlockProposer() { return dag_block_proposer_; }
   auto const &getGasPricer() const { return gas_pricer_; }
 
   auto const &getAddress() const { return kp_.address(); }
@@ -119,7 +119,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto const &getVrfSecretKey() const { return conf_.vrf_secret; }
 
   // For Debug
-  uint64_t getNumProposedBlocks() const;
+  uint64_t getProposedBlocksCount() const;
 
   void rebuildDb();
 };
