@@ -64,8 +64,6 @@ class TaraxaConan(ConanFile):
         self.options["cppcheck"].have_rules = False
         self.options["rocksdb"].use_rtti = True
         self.options["rocksdb"].with_lz4 = True
-        if (self.settings.arch == "x86_64"):
-            self.options["rocksdb"].enable_sse = "avx2"
         self.options["libjson-rpc-cpp"].shared = False
         # mpir is required by cppcheck and it causing gmp confict
         self.options["mpir"].enable_gmpcompat = False
