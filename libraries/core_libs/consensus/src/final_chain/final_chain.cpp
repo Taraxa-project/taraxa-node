@@ -198,8 +198,8 @@ class FinalChainImpl final : public FinalChain {
 
     num_executed_dag_blk_ = num_executed_dag_blk;
     num_executed_trx_ = num_executed_trx;
-    block_finalized_emitter_.emit(result);
     block_headers_cache_.append(blk_header->number, blk_header);
+    block_finalized_emitter_.emit(result);
     LOG(log_nf_) << " successful finalize block " << result->hash << " with number " << blk_header->number;
 
     // Creates snapshot if needed

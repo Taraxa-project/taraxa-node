@@ -278,6 +278,6 @@ bool DagBlockProposer::isValidDposProposer(PbftPeriod propose_period) const {
   }
 }
 
-void DagBlockProposer::setNetwork(std::weak_ptr<Network> network) { network_ = move(network); }
+void DagBlockProposer::setNetwork(std::weak_ptr<Network> network) { network_ = std::move(network); }
 
 }  // namespace taraxa
