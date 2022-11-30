@@ -465,7 +465,6 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getConfig","params":[],"i
         "lambda_bound": "0x64"
       },
       "vrf": {
-        "threshold_range": "0xbb8",
         "threshold_upper": "0x1770"
       }
     }
@@ -489,8 +488,7 @@ Get sortition params changes for closest smaller period to specified
 `OBJECT` - sortition parameters
 * `interval_efficiency`: `QUANTITY` - efficiency of interval
 * `period`: `QUANTITY` - number of period when closest smaller change happened
-* `threshold_range`: `QUANTITY` - range of normal selection
-* `threshold_upper`: `QUANTITY` - upper bound of normal selection
+* `threshold_upper`: `QUANTITY` - upper bound of selection
 * `kThresholdUpperMinValue`: `QUANTITY` - const that represents minimum value of `threshold_upper`
 
 #### Example
@@ -507,7 +505,6 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"get_sortition_change","params":[
     "interval_efficiency": 1327,
     "kThresholdUpperMinValue": 80,
     "period": 2820,
-    "threshold_range": 80,
     "threshold_upper": 31953
   }
 }

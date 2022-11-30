@@ -219,6 +219,20 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    */
   uint64_t getDagExpiryLevel() { return dag_expiry_level_; }
 
+  /**
+   * @brief Retrieves VDF message from block hash and transactions
+   *
+   * @return message
+   */
+  static dev::bytes getVdfMessage(blk_hash_t const &hash, SharedTransactions const &trxs);
+
+  /**
+   * @brief Retrieves VDF message from block hash and transactions
+   *
+   * @return message
+   */
+  static dev::bytes getVdfMessage(blk_hash_t const &hash, std::vector<trx_hash_t> const &trx_hashes);
+
  private:
   void recoverDag();
   void addToDag(blk_hash_t const &hash, blk_hash_t const &pivot, std::vector<blk_hash_t> const &tips, uint64_t level,

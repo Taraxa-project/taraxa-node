@@ -27,7 +27,6 @@ Json::Value Test::get_sortition_change(const Json::Value &param1) {
       auto params_change = node->getDB()->getParamsChangeForPeriod(period);
       res["interval_efficiency"] = params_change->interval_efficiency;
       res["period"] = params_change->period;
-      res["threshold_range"] = params_change->vrf_params.threshold_range;
       res["threshold_upper"] = params_change->vrf_params.threshold_upper;
       res["kThresholdUpperMinValue"] = params_change->vrf_params.kThresholdUpperMinValue;
     }

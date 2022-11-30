@@ -41,7 +41,7 @@ TEST_F(DagBlockTest, clear) {
 }
 
 TEST_F(DagBlockTest, serialize_deserialize) {
-  SortitionParams sortition_params(0xFFFF, 0xe665, 0, 5, 5, 1500);
+  SortitionParams sortition_params(0xFFFF, 0, 5, 5, 1500);
   vrf_sk_t sk(
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
@@ -222,7 +222,9 @@ TEST_F(DagBlockMgrTest, incorrect_tx_estimation) {
   const auto period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
   vdf_sortition::VdfSortition vdf1(vdf_config, node->getVrfSecretKey(),
                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
-  vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
+
+  dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trx});
+  vdf1.computeVdfSolution(vdf_config, vdf_msg, false);
 
   // transactions.size and estimations size is not equal
   {
@@ -267,7 +269,8 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
   const auto period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
   vdf_sortition::VdfSortition vdf1(vdf_config, node->getVrfSecretKey(),
                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
-  vdf1.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
+  dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, hashes);
+  vdf1.computeVdfSolution(vdf_config, vdf_msg, false);
 
   {
     DagBlock blk(dag_genesis, propose_level, {}, hashes, estimations, vdf1, node->getSecretKey());

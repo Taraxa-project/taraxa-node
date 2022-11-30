@@ -53,22 +53,18 @@ PeriodData createBlock(PbftPeriod period, uint16_t efficiency, size_t dag_blocks
 TEST_F(SortitionTest, vrf_lower_overflow) {
   VrfParams vrf;
 
-  vrf.threshold_range = 200;
   vrf.threshold_upper = 300;
 
   vrf += -200;
 
-  EXPECT_EQ(vrf.threshold_range, 200);
   EXPECT_EQ(vrf.threshold_upper, 100);
 
   vrf += -200;
 
-  EXPECT_EQ(vrf.threshold_range, 200);
   EXPECT_EQ(vrf.threshold_upper, VrfParams::kThresholdUpperMinValue);
 
   vrf += 50;
 
-  EXPECT_EQ(vrf.threshold_range, 200);
   EXPECT_EQ(vrf.threshold_upper, VrfParams::kThresholdUpperMinValue + 50);
 }
 
@@ -76,17 +72,14 @@ TEST_F(SortitionTest, vrf_upper_overflow) {
   VrfParams vrf;
 
   vrf.threshold_upper = std::numeric_limits<uint16_t>::max() - 100;
-  vrf.threshold_range = 200;
 
   vrf += 200;
 
   EXPECT_EQ(vrf.threshold_upper, std::numeric_limits<uint16_t>::max());
-  EXPECT_EQ(vrf.threshold_range, 200);
 
   vrf += 200;
 
   EXPECT_EQ(vrf.threshold_upper, std::numeric_limits<uint16_t>::max());
-  EXPECT_EQ(vrf.threshold_range, 200);
 }
 
 TEST_F(SortitionTest, sortition_config_serialization) {
@@ -101,7 +94,6 @@ TEST_F(SortitionTest, sortition_config_serialization) {
   config.vdf.difficulty_stale = std::rand();
   config.vdf.lambda_bound = std::rand();
 
-  config.vrf.threshold_range = std::rand();
   config.vrf.threshold_upper = std::rand();
 
   auto config_json = enc_json(config);
@@ -117,19 +109,17 @@ TEST_F(SortitionTest, sortition_config_serialization) {
   EXPECT_EQ(config.vdf.difficulty_stale, restored_config.vdf.difficulty_stale);
   EXPECT_EQ(config.vdf.lambda_bound, restored_config.vdf.lambda_bound);
 
-  EXPECT_EQ(config.vrf.threshold_range, restored_config.vrf.threshold_range);
   EXPECT_EQ(config.vrf.threshold_upper, restored_config.vrf.threshold_upper);
 }
 
 TEST_F(SortitionTest, params_change_serialization) {
-  SortitionParamsChange start(1, 25 * kOnePercent, {1100, 1500});
+  SortitionParamsChange start(1, 25 * kOnePercent, {1100});
   // 1700 - 1500 / 2 = 100 (change per percent)
-  SortitionParamsChange params(2, 27 * kOnePercent, {1300, 1700});
+  SortitionParamsChange params(2, 27 * kOnePercent, {1300});
 
   const auto params_rlp = params.rlp();
   const auto deserialized_params = SortitionParamsChange::from_rlp(dev::RLP(params_rlp));
 
-  EXPECT_EQ(params.vrf_params.threshold_range, deserialized_params.vrf_params.threshold_range);
   EXPECT_EQ(params.vrf_params.threshold_upper, deserialized_params.vrf_params.threshold_upper);
   EXPECT_EQ(params.interval_efficiency, deserialized_params.interval_efficiency);
 }
@@ -168,7 +158,7 @@ TEST_F(SortitionTest, params_changes_from_db) {
 
   auto batch = db->createWriteBatch();
   for (uint16_t i = 0; i < 10; ++i) {
-    SortitionParamsChange p{i, i, {i, i}};
+    SortitionParamsChange p{i, i, {i}};
     db->saveSortitionParamsChange(i, p, batch);
   }
   db->commitWriteBatch(batch);
@@ -178,7 +168,6 @@ TEST_F(SortitionTest, params_changes_from_db) {
   for (uint16_t i = 0; i < 5; ++i) {
     // +5 is offset to the middle of data
     EXPECT_EQ(res[i].interval_efficiency, i + 5);
-    EXPECT_EQ(res[i].vrf_params.threshold_range, i + 5);
     EXPECT_EQ(res[i].vrf_params.threshold_upper, i + 5);
   }
 }
@@ -188,7 +177,7 @@ TEST_F(SortitionTest, params_changes_from_db2) {
 
   auto batch = db->createWriteBatch();
   for (uint16_t i = 0; i < 2; ++i) {
-    SortitionParamsChange p{i, i, {i, i}};
+    SortitionParamsChange p{i, i, {i}};
     db->saveSortitionParamsChange(i, p, batch);
   }
   db->commitWriteBatch(batch);
@@ -197,7 +186,6 @@ TEST_F(SortitionTest, params_changes_from_db2) {
   EXPECT_EQ(res.size(), 2);
   for (uint16_t i = 0; i < 2; ++i) {
     EXPECT_EQ(res[i].interval_efficiency, i);
-    EXPECT_EQ(res[i].vrf_params.threshold_range, i);
     EXPECT_EQ(res[i].vrf_params.threshold_upper, i);
   }
 }
@@ -507,7 +495,6 @@ TEST_F(SortitionTest, params_restart) {
     EXPECT_EQ(params_changes.size(), 1);
     EXPECT_EQ(params_changes[0].period, 0);
     EXPECT_EQ(params_changes[0].vrf_params.threshold_upper, cfg.vrf.threshold_upper);
-    EXPECT_EQ(params_changes[0].vrf_params.threshold_range, cfg.vrf.threshold_range);
     auto batch = db->createWriteBatch();
     auto b = createBlock(1, 75 * kOnePercent);
     sp.pbftBlockPushed(b, batch, 1);
