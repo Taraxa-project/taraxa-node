@@ -94,10 +94,12 @@ data:
     #!/bin/bash
     DATA_PATH=/root/.taraxa
     CONFIG_PATH=$DATA_PATH/conf_taraxa.json
+    GENESIS_PATH=$DATA_PATH/genesis_taraxa.json
     WALLET_PATH=$DATA_PATH/wallet_taraxa.json
 
     echo "Cleaning up old config..."
     rm -rf $CONFIG_PATH
+    rm -rf $GENESIS_PATH
 
     echo "Generating config"
     INDEX=${HOSTNAME##*-}
@@ -151,6 +153,7 @@ data:
       {{ join " " .Values.config.extraArgs }} \
       {{- end }}
       --config $CONFIG_PATH \
+      --genesis $GENESIS_PATH \
       --wallet $WALLET_PATH \
       --data-dir $DATA_PATH
 
