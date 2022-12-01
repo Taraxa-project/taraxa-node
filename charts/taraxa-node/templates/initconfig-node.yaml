@@ -59,7 +59,7 @@ data:
       with open(config) as f:
         data = json.load(f)
 
-        initial_validators = data['genesis']['state']['dpos']['initial_validators']
+        initial_validators = data['dpos']['initial_validators']
         
         # get delegations from x1st default validator 
         delegations = initial_validators[0]['delegations']
@@ -83,7 +83,7 @@ data:
           validator['vrf_key'] = get_vrf_public(vrfs[idx])
           validators.append(validator)
 
-        data['genesis']['state']['dpos']['initial_validators'] = validators
+        data['dpos']['initial_validators'] = validators
         print(json.dumps(data))
 
     if __name__ == "__main__":
@@ -144,7 +144,7 @@ data:
       --data-dir $DATA_PATH
 
     {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
-    python3 /bin/genconfig.py $CONFIG_PATH > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
+    python3 /bin/genconfig.py $GENESIS_PATH > $GENESIS_PATH.tmp && mv $GENESIS_PATH.tmp $GENESIS_PATH
     {{- end }}
 
     {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
