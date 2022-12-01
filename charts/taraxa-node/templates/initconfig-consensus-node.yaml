@@ -168,5 +168,11 @@ data:
     {{- end }}
     {{- end }}
 
+    echo "***** $CONFIG_PATH *****"
     cat $CONFIG_PATH
+    echo "***** $CONFIG_PATH *****"
+
+    echo "***** $GENESIS_PATH *****"
+    cat $GENESIS_PATH
+    echo "***** $GENESIS_PATH *****"
 {{- end }}
