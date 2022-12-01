@@ -237,6 +237,7 @@ string getTaraxaDataDefaultDir() { return getHomeDir() + "/" + DEFAULT_TARAXA_DA
 string getTaraxaDefaultWalletFile() { return getTaraxaDefaultDir() + "/" + DEFAULT_WALLET_FILE_NAME; }
 
 string getTaraxaDefaultConfigFile() { return getTaraxaDefaultDir() + "/" + DEFAULT_CONFIG_FILE_NAME; }
-string getTaraxaDefaultGenesisFile() { return getTaraxaDefaultDir() + "/" + DEFAULT_CONFIG_FILE_NAME; }
+
+string getTaraxaDefaultGenesisFile() { return getTaraxaDefaultDir() + "/" + DEFAULT_GENESIS_FILE_NAME; }
 
 }  // namespace taraxa::cli::tools
