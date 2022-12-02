@@ -14,6 +14,7 @@ constexpr const char* DEFAULT_TARAXA_DIR_NAME = ".taraxa";
 constexpr const char* DEFAULT_TARAXA_DATA_DIR_NAME = ".taraxa/data";
 constexpr const char* DEFAULT_WALLET_FILE_NAME = "wallet.json";
 constexpr const char* DEFAULT_CONFIG_FILE_NAME = "config.json";
+constexpr const char* DEFAULT_GENESIS_FILE_NAME = "genesis.json";
 const std::filesystem::path configs_path = std::filesystem::current_path() / "config_jsons";
 
 // Account generation
@@ -28,8 +29,9 @@ void generateVrfFromKey(const std::string& key);
 
 // Generate default config and wallet files
 int getChainIdFromString(std::string& chain_str);
-void generateConfig(const std::string& config, cli::Config::ChainIdType chain_id);
-Json::Value generateConfig(Config::ChainIdType chain_id);
+void getConfig(const std::string& config, cli::Config::ChainIdType chain_id);
+Json::Value getConfig(Config::ChainIdType chain_id);
+Json::Value getGenesis(Config::ChainIdType chain_id);
 void generateWallet(const std::string& wallet);
 
 // Override existing config and wallet files
@@ -43,7 +45,8 @@ std::string getHomeDir();
 std::string getTaraxaDefaultDir();
 std::string getTaraxaDataDefaultDir();
 std::string getTaraxaDefaultConfigFile();
-std::string getWalletDefaultFile();
+std::string getTaraxaDefaultWalletFile();
+std::string getTaraxaDefaultGenesisFile();
 Json::Value createWalletJson(const dev::KeyPair& account, const taraxa::vrf_wrapper::vrf_sk_t& sk,
                              const taraxa::vrf_wrapper::vrf_pk_t& pk);
 

@@ -115,11 +115,11 @@ bool PeersState::is_peer_malicious(const dev::p2p::NodeID& peer_id) {
     return false;
   }
 
-  // Peers are marked malicious for the time defined in conf_.network_peer_blacklist_timeout
+  // Peers are marked malicious for the time defined in conf_.peer_blacklist_timeout
   if (auto i = malicious_peers_.get(peer_id); i.second) {
-    if (kConf.network.network_peer_blacklist_timeout == 0 ||
+    if (kConf.network.peer_blacklist_timeout == 0 ||
         std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - i.first).count() <=
-            kConf.network.network_peer_blacklist_timeout) {
+            kConf.network.peer_blacklist_timeout) {
       return true;
     } else {
       malicious_peers_.erase(peer_id);
@@ -127,10 +127,10 @@ bool PeersState::is_peer_malicious(const dev::p2p::NodeID& peer_id) {
   }
 
   // Delete any expired item from the list
-  if (kConf.network.network_peer_blacklist_timeout > 0) {
+  if (kConf.network.peer_blacklist_timeout > 0) {
     malicious_peers_.erase([this](const std::chrono::steady_clock::time_point& value) {
       return std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - value).count() >
-             kConf.network.network_peer_blacklist_timeout;
+             kConf.network.peer_blacklist_timeout;
     });
   }
 

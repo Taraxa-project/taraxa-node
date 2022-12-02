@@ -96,7 +96,7 @@ TEST_F(P2PTest, capability_send_block) {
   prefs2.discovery = false;
 
   FullNodeConfig conf;
-  conf.network.network_transaction_interval = 1000;
+  conf.network.transaction_interval_ms = 1000;
   h256 genesis;
   std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1, thc2;
   auto host1 = Host::make(
@@ -189,7 +189,7 @@ TEST_F(P2PTest, block_propagate) {
   taraxa_net_conf_1.is_boot_node = true;
 
   FullNodeConfig conf;
-  conf.network.network_transaction_interval = 1000;
+  conf.network.transaction_interval_ms = 1000;
   h256 genesis;
   std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1;
   auto host1 = Host::make(
@@ -305,7 +305,7 @@ TEST_F(P2PTest, multiple_capabilities) {
   auto node_cfgs = make_node_cfgs(3);
   h256 genesis_hash;
   NetworkConfig network_conf;
-  network_conf.network_transaction_interval = 1000;
+  network_conf.transaction_interval_ms = 1000;
   auto cleanup = []() {
     std::filesystem::remove_all("/tmp/nw2");
     std::filesystem::remove_all("/tmp/nw3");

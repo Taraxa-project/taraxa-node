@@ -7,7 +7,7 @@
 namespace taraxa {
 
 struct PbftConfig {
-  uint32_t lambda_ms_min = 0;
+  uint32_t lambda_ms = 0;
   uint32_t committee_size = 0;
   uint32_t number_of_proposers = 20;
   uint32_t dag_blocks_size = 0;

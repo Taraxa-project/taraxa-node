@@ -7,13 +7,17 @@
 
 namespace taraxa::cli {
 
-constexpr std::string_view default_json = R"(@DEFAULT_CONFIG_JSON@)";
+constexpr std::string_view default_config_json = R"(@DEFAULT_CONFIG_JSON@)";
+constexpr std::string_view default_genesis_json = R"(@DEFAULT_GENESIS_JSON@)";
 
-constexpr std::string_view mainnet_json = R"(@MAINNET_CONFIG_JSON@)";
+constexpr std::string_view mainnet_config_json = R"(@MAINNET_CONFIG_JSON@)";
+constexpr std::string_view mainnet_genesis_json = R"(@MAINNET_GENESIS_JSON@)";
 
-constexpr std::string_view testnet_json = R"(@TESTNET_CONFIG_JSON@)";
+constexpr std::string_view testnet_config_json = R"(@TESTNET_CONFIG_JSON@)";
+constexpr std::string_view testnet_genesis_json = R"(@TESTNET_GENESIS_JSON@)";
 
-constexpr std::string_view devnet_json = R"(@DEVNET_CONFIG_JSON@)";
+constexpr std::string_view devnet_config_json = R"(@DEVNET_CONFIG_JSON@)";
+constexpr std::string_view devnet_genesis_json = R"(@DEVNET_GENESIS_JSON@)";
 
 }  // namespace taraxa::cli
 // DO NOT EDIT !!!

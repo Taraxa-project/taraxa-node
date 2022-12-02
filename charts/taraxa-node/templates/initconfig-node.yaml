@@ -59,7 +59,7 @@ data:
       with open(config) as f:
         data = json.load(f)
 
-        initial_validators = data['chain_config']['final_chain']['state']['dpos']['initial_validators']
+        initial_validators = data['genesis']['state']['dpos']['initial_validators']
         
         # get delegations from x1st default validator 
         delegations = initial_validators[0]['delegations']
@@ -83,7 +83,7 @@ data:
           validator['vrf_key'] = get_vrf_public(vrfs[idx])
           validators.append(validator)
 
-        data['chain_config']['final_chain']['state']['dpos']['initial_validators'] = validators
+        data['genesis']['state']['dpos']['initial_validators'] = validators
         print(json.dumps(data))
 
     if __name__ == "__main__":
@@ -148,7 +148,7 @@ data:
     {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
     {{ if .Values.explorer.enabled }}
     export FAUCET_ADDRESS=$(taraxad --command account ${EXPLORER_FAUCET_PRIVATE_KEY} | grep node_address | cut -d\  -f3 | tr -d \")
-    cat $CONFIG_PATH | jq '.chain_config.final_chain.state.genesis_balances += ({("0x"+env.FAUCET_ADDRESS): "0x1027e72f1f12813088000000"})' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
+    cat $CONFIG_PATH | jq '.genesis.state.initial_balances += ({("0x"+env.FAUCET_ADDRESS): "0x1027e72f1f12813088000000"})' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
     {{- end }}
     {{- end }}
 

@@ -185,7 +185,7 @@ Json::Value Test::get_all_nodes() {
         Json::Value node;
         node["node_id"] = n.id().toString();
         node["address"] = n.endpoint().address().to_string();
-        node["tcp_port"] = Json::UInt64(n.endpoint().tcpPort());
+        node["listen_port"] = Json::UInt64(n.endpoint().tcpPort());
         res["nodes"].append(node);
       }
     }

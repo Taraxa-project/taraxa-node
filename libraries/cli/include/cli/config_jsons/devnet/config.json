@@ -1,0 +1,174 @@
+{
+  "chain_id": 843,
+  "data_path": "",
+  "is_light_node": false,
+  "final_chain_cache_in_blocks": 5,
+  "network": {
+    "listen_ip": "0.0.0.0",
+    "listen_port": 10002,
+    "transaction_interval_ms": 100,
+    "ideal_peer_count": 15,
+    "max_peer_count": 30,
+    "sync_level_size": 25,
+    "packets_processing_threads": 14,
+    "peer_blacklist_timeout": 600,
+    "deep_syncing_threshold": 10,
+    "vote_accepting_periods": 5,
+    "vote_accepting_rounds": 5,
+    "vote_accepting_steps": 0,
+    "boot_nodes": [
+      {
+        "id": "fdcf4c860d9bb1f17608cbf2dd10ac3ae8d0ba41aa20b3e43fb85a72617a356f8609475d68b44e25dd508a0e5b36da75e7ae9aaf93360f4f002464d1d75fd353",
+        "ip": "boot-node-0.devnet.taraxa.io",
+        "port": 10002
+      },
+      {
+        "id": "5dad63f090ab5b5960dfd33b2deed974fd2e058b2af47b3d1a4682a192a47880f7b1de9aa6c80758aaabb40972a196634774373be27e0bdc52572194ad57acc2",
+        "ip": "boot-node-1.devnet.taraxa.io",
+        "port": 10002
+      },
+      {
+        "id": "8a919928e2ee8908d3ef7cf49f245b79d228a86fd2c1c0b8c687007e62b5777aff11e748d0b29fcebd321780ce9e0544717a4c221271252a66bd50b3db6eb532",
+        "ip": "boot-node-2.devnet.taraxa.io",
+        "port": 10002
+      }
+    ]
+  },
+  "rpc": {
+    "http_port": 7777,
+    "ws_port": 8777
+  },
+  "graphql": {
+    "http_port": 9777,
+    "ws_port": 6777
+  },
+  "db_config": {
+    "db_snapshot_each_n_pbft_block": 10000,
+    "db_max_snapshots": 5
+  },
+  "logging": {
+    "configurations": [
+      {
+        "name": "standard",
+        "on": true,
+        "verbosity": "ERROR",
+        "channels": [
+          {
+            "name": "SUMMARY",
+            "verbosity": "INFO"
+          },
+          {
+            "name": "PBFT_MGR",
+            "verbosity": "INFO"
+          },
+          {
+            "name": "DAG_PROPOSER",
+            "verbosity": "INFO"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "console",
+            "format": "%ThreadID% %Channel% [%TimeStamp%] %SeverityStr%: %Message%"
+          },
+          {
+            "type": "file",
+            "file_name": "Taraxa_N1_%m%d%Y_%H%M%S_%5N.log",
+            "rotation_size": 10000000,
+            "time_based_rotation": "0,0,0",
+            "format": "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
+            "max_size": 1000000000
+          }
+        ]
+      },
+      {
+        "name": "network",
+        "on": false,
+        "verbosity": "ERROR",
+        "channels": [
+          {
+            "name": "PBFT_CHAIN",
+            "verbosity": "INFO"
+          },
+          {
+            "name": "PBFT_MGR",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "GET_PBFT_SYNC_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "PBFT_SYNC_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "GET_DAG_SYNC_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "DAG_SYNC_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "DAG_BLOCK_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "PBFT_BLOCK_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "TARCAP",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "NETWORK",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "TRANSACTION_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "DAGBLKMGR",
+            "verbosity": "INFO"
+          },
+          {
+            "name": "DAGMGR",
+            "verbosity": "INFO"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "console",
+            "format": "%ThreadID% %Channel% [%TimeStamp%] %SeverityStr%: %Message%"
+          },
+          {
+            "type": "file",
+            "file_name": "TaraxaNetwork_N1_%m%d%Y_%H%M%S_%5N.log",
+            "rotation_size": 10000000,
+            "time_based_rotation": "0,0,0",
+            "format": "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
+            "max_size": 1000000000
+          }
+        ]
+      },
+      {
+        "name": "debug",
+        "on": false,
+        "verbosity": "DEBUG",
+        "outputs": [
+          {
+            "type": "file",
+            "file_name": "debug/TaraxaDebug_N1_%m%d%Y_%H%M%S_%5N.log",
+            "rotation_size": 10000000,
+            "time_based_rotation": "0,0,0",
+            "format": "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
+            "max_size": 1000000000
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -19,26 +19,26 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
                  std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                  std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
                  std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr)
-    : tp_(config.network.network_num_threads, false) {
+    : tp_(config.network.num_threads, false) {
   auto const &node_addr = key.address();
   LOG_OBJECTS_CREATE("NETWORK");
   LOG(log_nf_) << "Read Network Config: " << std::endl << config.network << std::endl;
 
   // TODO make all these properties configurable
   dev::p2p::NetworkConfig net_conf;
-  net_conf.listenIPAddress = config.network.network_listen_ip;
-  net_conf.listenPort = config.network.network_tcp_port;
+  net_conf.listenIPAddress = config.network.listen_ip;
+  net_conf.listenPort = config.network.listen_port;
   net_conf.discovery = true;
   net_conf.allowLocalDiscovery = true;
   net_conf.traverseNAT = false;
-  net_conf.publicIPAddress = config.network.network_public_ip;
+  net_conf.publicIPAddress = config.network.public_ip;
   net_conf.pin = false;
 
   dev::p2p::TaraxaNetworkConfig taraxa_net_conf;
-  taraxa_net_conf.ideal_peer_count = config.network.network_ideal_peer_count;
+  taraxa_net_conf.ideal_peer_count = config.network.ideal_peer_count;
 
-  // TODO config.network.network_max_peer_count -> config.network.peer_count_stretch
-  taraxa_net_conf.peer_stretch = config.network.network_max_peer_count / config.network.network_ideal_peer_count;
+  // TODO config.network.max_peer_count -> config.network.peer_count_stretch
+  taraxa_net_conf.peer_stretch = config.network.max_peer_count / config.network.ideal_peer_count;
   taraxa_net_conf.chain_id = config.chain_id;
   taraxa_net_conf.expected_parallelism = tp_.capacity();
 
@@ -62,8 +62,8 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
     });
   }
 
-  LOG(log_nf_) << "Configured host. Listening on address: " << config.network.network_listen_ip << ":"
-               << config.network.network_tcp_port;
+  LOG(log_nf_) << "Configured host. Listening on address: " << config.network.listen_ip << ":"
+               << config.network.listen_port;
 }
 
 Network::~Network() {

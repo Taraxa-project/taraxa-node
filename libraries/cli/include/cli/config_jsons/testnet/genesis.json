@@ -1,0 +1,143 @@
+{
+  "dag_genesis_block": {
+    "level": "0x0",
+    "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
+    "timestamp": "0x636cf5d0",
+    "tips": [],
+    "transactions": []
+  },
+  "state": {
+    "dpos": {
+      "delegation_delay": "0x5",
+      "delegation_locking_period": "0x5",
+      "eligibility_balance_threshold": "0xd3c21bcecceda1000000",
+      "vote_eligibility_balance_step": "0x152d02c7e14af6800000",
+      "validator_maximum_stake": "0x295BE96E640669720000000",
+      "minimum_deposit": "0x3635C9ADC5DEA00000",
+      "max_block_author_reward": "0x5",
+      "dag_proposers_reward": "0x32",
+      "commission_change_delta": "0x0",
+      "commission_change_frequency": "0x0",
+      "yield_percentage": "0x14",
+      "initial_validators": [
+        {
+          "address": "0x18551e353aa65bc0ffbdf9d93b7ad4a8fe29cf95",
+          "owner": "0x18551e353aa65bc0ffbdf9d93b7ad4a8fe29cf95",
+          "commission": 0,
+          "endpoint": "",
+          "description": "Taraxa testnet validator 1",
+          "delegations": {
+            "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
+          },
+          "vrf_key": "3cebcfdc7a076352e7b55c5a277a63769ff7baf62d44bd9a8d9add904ab11b7b"
+        },
+        {
+          "address": "0xc578bb5fc3dac3e96a8c4cb126c71d2dc9082817",
+          "owner": "0xc578bb5fc3dac3e96a8c4cb126c71d2dc9082817",
+          "commission": 0,
+          "endpoint": "",
+          "description": "Taraxa testnet validator 2",
+          "delegations": {
+            "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
+          },
+          "vrf_key": "48c633fe14f3c5e13ffb62816fa3111d3a09739bd9be7b6ab05c3f03ed6a879c"
+        },
+        {
+          "address": "0x5c9afb23fba3967ca6102fb60c9949f6a38cd9e8",
+          "owner": "0x5c9afb23fba3967ca6102fb60c9949f6a38cd9e8",
+          "commission": 0,
+          "endpoint": "",
+          "description": "Taraxa testnet validator 3",
+          "delegations": {
+            "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
+          },
+          "vrf_key": "f8bbb0c73c74997498796b845458e1cca5a0ef83b3489fca084badd9fba968c6"
+        },
+        {
+          "address": "0x403480c2b2ade0851c62bd1ff7a594c416aff7ce",
+          "owner": "0x403480c2b2ade0851c62bd1ff7a594c416aff7ce",
+          "commission": 0,
+          "endpoint": "",
+          "description": "Taraxa testnet validator 4",
+          "delegations": {
+            "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
+          },
+          "vrf_key": "c3912a8c849032ebdc071397c5ae4178a5e67f3399315b30fd6277fca8e1b64f"
+        },
+        {
+          "address": "0x5042fa2711fe547e46c2f64852fdaa5982c80697",
+          "owner": "0x5042fa2711fe547e46c2f64852fdaa5982c80697",
+          "commission": 0,
+          "endpoint": "",
+          "description": "Taraxa testnet validator 5",
+          "delegations": {
+            "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
+          },
+          "vrf_key": "7c6dab1852f34ebdf3ad73b60ad70b95b2a6a457d88693823f356c3f8ccc74c6"
+        },
+        {
+          "address": "0x6258d8f51ea17e873f69a2a978fe311fd95743dd",
+          "owner": "0x6258d8f51ea17e873f69a2a978fe311fd95743dd",
+          "commission": 0,
+          "endpoint": "",
+          "description": "Taraxa testnet validator 6",
+          "delegations": {
+            "0x76870407332398322576505f3c5423d0a71af296": "0x84595161401484a000000"
+          },
+          "vrf_key": "f5f88dcc7fbfa50a576359ae05ace6ca28352fbc40b4ebbc99605e04c6f42883"
+        }
+      ]
+    },
+    "eth_chain_config": {
+      "byzantium_block": "0x0",
+      "constantinople_block": "0x0",
+      "eip_150_block": "0x0",
+      "eip_158_block": "0x0",
+      "homestead_block": "0x0",
+      "petersburg_block": "0x0"
+    },
+    "initial_balances": {
+      "76870407332398322576505f3c5423d0a71af296": "0x117364175f2cb0e1dfc0000",
+      "f4a52b8f6dc8ab046fec6ad02e77023c044342e4": "0x1f3d8d75bcb82da15ad40000",
+      "ee1326fbf7d9322e5ea02c6fe5eb63535fceccd1": "0x52b7d2dcc80cd2e4000000"
+    }
+  },
+  "gas_price": {
+    "blocks": 200,
+    "percentile": 60,
+    "minimum_price" : 1
+  },
+  "pbft": {
+    "committee_size": "0x3e8",
+    "number_of_proposers": "0x14",
+    "dag_blocks_size": "0x32",
+    "ghost_path_move_back": "0x0",
+    "lambda_ms": "0x5DC",
+    "gas_limit": "0x7d2b7500"
+  },
+  "dag": {
+    "block_proposer": {
+      "shard": 1
+    },
+    "gas_limit": "0xc845880"
+  },
+  "sortition": {
+    "changes_count_for_average": 10,
+    "dag_efficiency_targets": [
+      6900,
+      7100
+    ],
+    "changing_interval": 200,
+    "computation_interval": 50,
+    "vrf": {
+      "threshold_upper": "0xafff"
+    },
+    "vdf": {
+      "difficulty_max": 21,
+      "difficulty_min": 16,
+      "difficulty_stale": 23,
+      "lambda_bound": "0x64"
+    }
+  }
+}

@@ -150,20 +150,20 @@ inline auto make_node_cfgs(size_t total_count, size_t validators_count = 1) {
   assert(validators_count <= total_count);
 
   // Prepare genesis balances & initial validators
-  state_api::BalanceMap genesis_balances;
+  state_api::BalanceMap initial_balances;
   std::vector<state_api::ValidatorInfo> initial_validators;
 
   for (size_t idx = 0; idx < total_count; idx++) {
     const auto& cfg = default_configs[idx];
     const auto& node_addr = dev::toAddress(cfg.node_secret);
-    genesis_balances[node_addr] = 9007199254740991;
+    initial_balances[node_addr] = 9007199254740991;
 
     if (idx >= validators_count) {
       continue;
     }
 
     state_api::BalanceMap delegations;
-    delegations.emplace(node_addr, cfg.chain.final_chain.state.dpos.eligibility_balance_threshold);
+    delegations.emplace(node_addr, cfg.genesis.state.dpos.eligibility_balance_threshold);
     initial_validators.emplace_back(state_api::ValidatorInfo{
         node_addr, node_addr, vrf_wrapper::getVrfPublicKey(cfg.vrf_secret), 100, "", "", delegations});
   }
@@ -172,29 +172,27 @@ inline auto make_node_cfgs(size_t total_count, size_t validators_count = 1) {
 
   for (size_t idx = 0; idx < total_count; idx++) {
     auto& cfg = ret_configs.emplace_back(default_configs[idx]);
+    cfg.genesis.state.dpos.yield_percentage = 0;
     if constexpr (tests_speed == 1 && enable_rpc_http && enable_rpc_ws) {
       continue;
     }
 
-    cfg.chain.final_chain.state.genesis_balances = genesis_balances;
-    cfg.chain.final_chain.state.dpos.initial_validators = initial_validators;
+    cfg.genesis.state.initial_balances = initial_balances;
+    cfg.genesis.state.dpos.initial_validators = initial_validators;
 
-    cfg.chain.final_chain.state.dpos.delegation_delay = 5;
-    cfg.chain.final_chain.state.dpos.delegation_locking_period = 5;
+    cfg.genesis.state.dpos.delegation_delay = 5;
+    cfg.genesis.state.dpos.delegation_locking_period = 5;
 
-    // As test are badly written let's disable it for now
-    cfg.chain.final_chain.state.block_rewards_options.disable_block_rewards = true;
-    cfg.chain.final_chain.state.block_rewards_options.disable_contract_distribution = true;
     if constexpr (tests_speed != 1) {
       // VDF config
-      cfg.chain.sortition.vrf.threshold_upper = 0xffff;
-      cfg.chain.sortition.vdf.difficulty_min = 0;
-      cfg.chain.sortition.vdf.difficulty_max = 5;
-      cfg.chain.sortition.vdf.difficulty_stale = 5;
-      cfg.chain.sortition.vdf.lambda_bound = 100;
+      cfg.genesis.sortition.vrf.threshold_upper = 0xffff;
+      cfg.genesis.sortition.vdf.difficulty_min = 0;
+      cfg.genesis.sortition.vdf.difficulty_max = 5;
+      cfg.genesis.sortition.vdf.difficulty_stale = 5;
+      cfg.genesis.sortition.vdf.lambda_bound = 100;
       // PBFT config
-      cfg.chain.pbft.lambda_ms_min /= tests_speed;
-      cfg.network.network_transaction_interval /= tests_speed;
+      cfg.genesis.pbft.lambda_ms /= tests_speed;
+      cfg.network.transaction_interval_ms /= tests_speed;
       cfg.network.vote_accepting_rounds *= tests_speed;
     }
     if constexpr (!enable_rpc_http) {
@@ -345,8 +343,8 @@ inline auto own_balance(std::shared_ptr<FullNode> const& node) {
   return node->getFinalChain()->getBalance(node->getAddress()).first;
 }
 
-inline state_api::BalanceMap effective_genesis_balances(const state_api::Config& cfg) {
-  state_api::BalanceMap effective_balances = cfg.genesis_balances;
+inline state_api::BalanceMap effective_initial_balances(const state_api::Config& cfg) {
+  state_api::BalanceMap effective_balances = cfg.initial_balances;
   for (const auto& validator_info : cfg.dpos.initial_validators) {
     for (const auto& [delegator, amount] : validator_info.delegations) {
       effective_balances[delegator] -= amount;
@@ -356,7 +354,7 @@ inline state_api::BalanceMap effective_genesis_balances(const state_api::Config&
 }
 
 inline auto own_effective_genesis_bal(const FullNodeConfig& cfg) {
-  return effective_genesis_balances(cfg.chain.final_chain.state)[dev::toAddress(dev::Secret(cfg.node_secret))];
+  return effective_initial_balances(cfg.genesis.state)[dev::toAddress(dev::Secret(cfg.node_secret))];
 }
 
 inline auto make_simple_pbft_block(h256 const& hash, uint64_t period, h256 const& anchor_hash = blk_hash_t(0)) {

@@ -1,4 +1,4 @@
-#include "config/chain_config.hpp"
+#include "config/genesis.hpp"
 
 #include <libdevcore/CommonJS.h>
 
@@ -41,37 +41,37 @@ bytes GasPriceConfig::rlp() const {
   return s.out();
 }
 
-Json::Value enc_json(const ChainConfig& obj) {
+Json::Value enc_json(const Genesis& obj) {
   Json::Value json(Json::objectValue);
   json["dag_genesis_block"] = obj.dag_genesis_block.getJson(false);
   json["sortition"] = enc_json(obj.sortition);
   json["pbft"] = enc_json(obj.pbft);
-  json["final_chain"] = enc_json(obj.final_chain);
+  json["state"] = enc_json(obj.state);
   json["gas_price"] = enc_json(obj.gas_price);
   json["dag"] = enc_json(obj.dag);
   return json;
 }
 
-void dec_json(Json::Value const& json, ChainConfig& obj) {
+void dec_json(Json::Value const& json, Genesis& obj) {
   obj.dag_genesis_block = DagBlock(json["dag_genesis_block"]);
   dec_json(json["sortition"], obj.sortition);
   dec_json(json["pbft"], obj.pbft);
-  dec_json(json["final_chain"], obj.final_chain);
+  dec_json(json["state"], obj.state);
   dec_json(json["gas_price"], obj.gas_price);
   dec_json(json["dag"], obj.dag);
 }
 
-const ChainConfig& ChainConfig::predefined(std::string const& name) {
+const Genesis& Genesis::predefined(std::string const& name) {
   if (auto i = predefined_->find(name); i != predefined_->end()) {
     return i->second;
   }
   throw std::runtime_error("unknown chain config: " + name);
 }
 
-decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
-  decltype(ChainConfig::predefined_)::val_t cfgs;
+decltype(Genesis::predefined_) const Genesis::predefined_([] {
+  decltype(Genesis::predefined_)::val_t cfgs;
   cfgs["default"] = [] {
-    ChainConfig cfg;
+    Genesis cfg;
     cfg.dag_genesis_block = DagBlock(string(R"({
       "level": 0,
       "tips": [],
@@ -84,9 +84,6 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
       "vdf": ""
     })"));
 
-    cfg.final_chain.state.block_rewards_options.disable_block_rewards = true;
-    cfg.final_chain.state.block_rewards_options.disable_contract_distribution = true;
-
     // VDF config
     cfg.sortition.vrf.threshold_upper = 0xafff;
     cfg.sortition.vdf.difficulty_min = 16;
@@ -95,7 +92,7 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     cfg.sortition.vdf.lambda_bound = 100;
 
     // PBFT config
-    cfg.pbft.lambda_ms_min = 2000;
+    cfg.pbft.lambda_ms = 2000;
     cfg.pbft.committee_size = 5;
     cfg.pbft.dag_blocks_size = 100;
     cfg.pbft.ghost_path_move_back = 1;
@@ -105,33 +102,35 @@ decltype(ChainConfig::predefined_) const ChainConfig::predefined_([] {
     cfg.dag.gas_limit = 10000000;
 
     // DPOS config
-    auto& dpos = cfg.final_chain.state.dpos;
+    auto& dpos = cfg.state.dpos;
     dpos.eligibility_balance_threshold = 1000000000;
     dpos.vote_eligibility_balance_step = 1000000000;
     dpos.validator_maximum_stake = dev::jsToU256("0x84595161401484A000000");
+    // dpos.yield_percentage = 0;
     dpos.yield_percentage = 20;
 
     uint64_t year_ms = 365 * 24 * 60 * 60;
     year_ms *= 1000;
     // we have fixed 2*lambda time for proposing step and adding some expecting value for filter and certify steps
-    const uint32_t expected_block_time = 2 * cfg.pbft.lambda_ms_min + 700;
+    const uint32_t expected_block_time = 2 * cfg.pbft.lambda_ms + 700;
     dpos.blocks_per_year = year_ms / expected_block_time;
 
     return cfg;
   }();
   cfgs["test"] = [&] {
     auto cfg = cfgs["default"];
+    cfg.state.dpos.yield_percentage = 0;
     cfg.gas_price.minimum_price = 0;
-    cfg.final_chain.state.genesis_balances[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")] =
+    cfg.state.initial_balances[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")] =
         u256(7200999050) * 10000000000000000;  // https://ethereum.stackexchange.com/a/74832
     return cfg;
   }();
   return cfgs;
 });
 
-void ChainConfig::validate() const { gas_price.validate(); }
+void Genesis::validate() const { gas_price.validate(); }
 
-bytes ChainConfig::rlp() const {
+bytes Genesis::rlp() const {
   dev::RLPStream s;
   s.appendList(6);
 
@@ -139,12 +138,12 @@ bytes ChainConfig::rlp() const {
   s << gas_price.rlp();
   s << sortition.rlp();
   s << pbft.rlp();
-  s << final_chain.rlp();
+  state.rlp(s);
   s << dag.rlp();
 
   return s.out();
 }
 
-blk_hash_t ChainConfig::genesisHash() const { return dev::sha3(rlp()); }
+blk_hash_t Genesis::genesisHash() const { return dev::sha3(rlp()); }
 
 }  // namespace taraxa

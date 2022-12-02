@@ -373,7 +373,7 @@ none
 `OBJECT` - config object
 * `chain_id`: `QUANTITY` - chain id. Different between networks
 * `dag_genesis_block`: `OBJECT` - DAG genesis block
-* `final_chain`: `OBJECT` - FinalChain config object
+* `state`: `OBJECT` - State config object
 * `pbft`: `OBJECT` - PBFT configuration object
 * `sortition`: `OBJECT` - Sortition configuration object
 
@@ -397,57 +397,47 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getConfig","params":[],"i
       "tips": [],
       "transactions": []
     },
-    "final_chain": {
-      "genesis_block_fields": {
-        "author": "0x0000000000000000000000000000000000000000",
-        "timestamp": "0x61cd9f40"
+    "state": {
+      "dpos": {
+        "deposit_delay": "0x5",
+        "eligibility_balance_threshold": "0x186a0",
+        "genesis_state": {
+          "0x0274cfffea9fa850e54c93a23042f12a87358a82": {
+            "0x00ccd0de0809ac03fd292036ee1544185583cd88": "0x989680",
+            "0x0d149e61cc02b5893ef6fc33bc7d67ff13eeeee0": "0x989680",
+            "0x1f8333245650a19a0683891b7afe7787a3ce9f00": "0x989680",
+            "0x267e780b7843992e57f52e13018f0f97467ac06e": "0x989680",
+            "0x6f96be7626a74e86c76e65ccbccf0a38e2b62fc5": "0x989680",
+            "0x9d047654e55248ec38aa6723a5ab36d171008584": "0x989680",
+            "0xd20131f980c9932b1df31cf3aafeecfb1d504381": "0x989680",
+            "0xd4e4728bea5a67dd70dccb742bdc9c3a48465bec": "0x989680",
+            "0xec591a85f613fe98f057dc09712a9b22cdd05845": "0x989680"
+          }
+        },
+        "vote_eligibility_balance_step": "0x186a0",
+        "withdrawal_delay": "0x5"
       },
-      "state": {
-        "dpos": {
-          "deposit_delay": "0x5",
-          "eligibility_balance_threshold": "0x186a0",
-          "genesis_state": {
-            "0x0274cfffea9fa850e54c93a23042f12a87358a82": {
-              "0x00ccd0de0809ac03fd292036ee1544185583cd88": "0x989680",
-              "0x0d149e61cc02b5893ef6fc33bc7d67ff13eeeee0": "0x989680",
-              "0x1f8333245650a19a0683891b7afe7787a3ce9f00": "0x989680",
-              "0x267e780b7843992e57f52e13018f0f97467ac06e": "0x989680",
-              "0x6f96be7626a74e86c76e65ccbccf0a38e2b62fc5": "0x989680",
-              "0x9d047654e55248ec38aa6723a5ab36d171008584": "0x989680",
-              "0xd20131f980c9932b1df31cf3aafeecfb1d504381": "0x989680",
-              "0xd4e4728bea5a67dd70dccb742bdc9c3a48465bec": "0x989680",
-              "0xec591a85f613fe98f057dc09712a9b22cdd05845": "0x989680"
-            }
-          },
-          "vote_eligibility_balance_step": "0x186a0",
-          "withdrawal_delay": "0x5"
-        },
-        "eth_chain_config": {
-          "byzantium_block": "0x0",
-          "constantinople_block": "0x0",
-          "eip_150_block": "0x0",
-          "eip_158_block": "0x0",
-          "homestead_block": "0x0",
-          "petersburg_block": "0x0"
-        },
-        "block_rewards_options": {
-          "disable_block_rewards": false,
-          "disable_contract_distribution": false
-        },
-        "genesis_balances": {
-          "0x0274cfffea9fa850e54c93a23042f12a87358a82": "0x141e8d17",
-          "0x111f91441efc8c6c0edf6534970cc887e2fabaa8": "0x24048ce3d"
-        },
-        "hardforks": {
-          "fix_genesis_fork_block": "0x102ca0"
-        }
+      "eth_chain_config": {
+        "byzantium_block": "0x0",
+        "constantinople_block": "0x0",
+        "eip_150_block": "0x0",
+        "eip_158_block": "0x0",
+        "homestead_block": "0x0",
+        "petersburg_block": "0x0"
+      },
+      "initial_balances": {
+        "0x0274cfffea9fa850e54c93a23042f12a87358a82": "0x141e8d17",
+        "0x111f91441efc8c6c0edf6534970cc887e2fabaa8": "0x24048ce3d"
+      },
+      "hardforks": {
+        "fix_genesis_fork_block": "0x102ca0"
       }
     },
     "pbft": {
       "committee_size": "0x3e8",
       "dag_blocks_size": "0xa",
       "ghost_path_move_back": "0x0",
-      "lambda_ms_min": "0x5dc",
+      "lambda_ms": "0x5dc",
     },
     "sortition": {
       "changes_count_for_average": "0x5",

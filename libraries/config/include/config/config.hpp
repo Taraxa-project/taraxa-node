@@ -6,7 +6,7 @@
 #include "common/types.hpp"
 #include "common/util.hpp"
 #include "common/vrf_wrapper.hpp"
-#include "config/chain_config.hpp"
+#include "config/genesis.hpp"
 #include "logger/logger_config.hpp"
 
 namespace taraxa {
@@ -25,25 +25,25 @@ struct ConnectionConfig {
 struct NodeConfig {
   std::string id;
   std::string ip;
-  uint16_t udp_port = 0;
+  uint16_t port = 0;
 };
 
 struct NetworkConfig {
   static constexpr uint16_t kBlacklistTimeoutDefaultInSeconds = 600;
 
   std::string json_file_name;
-  std::string network_public_ip;
-  std::string network_listen_ip;
-  uint16_t network_tcp_port = 0;
-  std::vector<NodeConfig> network_boot_nodes;
-  uint16_t network_ideal_peer_count = 0;
-  uint16_t network_max_peer_count = 0;
-  uint16_t network_transaction_interval = 0;
-  uint16_t network_sync_level_size = 0;
-  uint16_t network_performance_log_interval = 0;
-  uint16_t network_num_threads = std::max(uint(1), uint(std::thread::hardware_concurrency() / 2));
-  uint16_t network_packets_processing_threads = 14;
-  uint16_t network_peer_blacklist_timeout = kBlacklistTimeoutDefaultInSeconds;
+  std::string public_ip;
+  std::string listen_ip;
+  uint16_t listen_port = 0;
+  std::vector<NodeConfig> boot_nodes;
+  uint16_t ideal_peer_count = 0;
+  uint16_t max_peer_count = 0;
+  uint16_t transaction_interval_ms = 0;
+  uint16_t sync_level_size = 0;
+  uint16_t performance_log_interval = 0;
+  uint16_t num_threads = std::max(uint(1), uint(std::thread::hardware_concurrency() / 2));
+  uint16_t packets_processing_threads = 14;
+  uint16_t peer_blacklist_timeout = kBlacklistTimeoutDefaultInSeconds;
   bool disable_peer_blacklist = false;
   uint16_t deep_syncing_threshold = 10;
   PbftPeriod vote_accepting_periods = 5;
@@ -74,9 +74,9 @@ struct FullNodeConfig {
   // to just treat Json::Value as a std::string or Json::Value depending on
   // the contents
   explicit FullNodeConfig(Json::Value const &file_name_str_or_json_object, Json::Value const &wallet,
-                          const std::string &config_file_path = "");
+                          Json::Value const &genesis = Json::Value::null, const std::string &config_file_path = "");
 
-  explicit FullNodeConfig(const std::string &chain_config_name) : chain(ChainConfig::predefined(chain_config_name)) {}
+  explicit FullNodeConfig(const std::string &chain_config_name) : genesis(Genesis::predefined(chain_config_name)) {}
   std::string json_file_name;
   dev::Secret node_secret;
   vrf_wrapper::vrf_sk_t vrf_secret;
@@ -87,7 +87,7 @@ struct FullNodeConfig {
   std::optional<ConnectionConfig> rpc;
   std::optional<ConnectionConfig> graphql;
   DBConfig db_config;
-  ChainConfig chain = ChainConfig::predefined();
+  Genesis genesis = Genesis::predefined();
   uint64_t chain_id = 0;
   state_api::Opts opts_final_chain;
   std::vector<logger::Config> log_configs;
@@ -108,8 +108,6 @@ struct FullNodeConfig {
    * @return
    */
   void validate() const;
-
-  void overwrite_chain_config_in_file() const;
 };
 
 std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);

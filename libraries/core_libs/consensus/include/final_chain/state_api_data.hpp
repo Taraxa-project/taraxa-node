@@ -8,7 +8,7 @@
 
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
-#include "config/state_api_config.hpp"
+#include "config/state_config.hpp"
 
 namespace taraxa::state_api {
 

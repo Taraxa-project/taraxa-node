@@ -1,21 +1,19 @@
 set(HEADERS
     include/config/version.hpp
     include/config/config.hpp
-    include/config/chain_config.hpp
+    include/config/genesis.hpp
     include/config/dag_config.hpp
-    include/config/final_chain_config.hpp
     include/config/pbft_config.hpp
-    include/config/state_api_config.hpp
+    include/config/state_config.hpp
     include/config/hardfork.hpp
 )
 
 set(SOURCES
     src/config.cpp
-    src/chain_config.cpp
+    src/genesis.cpp
     src/dag_config.cpp
-    src/final_chain_config.cpp
     src/pbft_config.cpp
-    src/state_api_config.cpp
+    src/state_config.cpp
     src/hardfork.cpp
 )
 

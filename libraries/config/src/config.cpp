@@ -15,7 +15,7 @@ std::string getConfigErr(std::vector<string> path) {
   return res;
 }
 
-Json::Value getConfigData(Json::Value root, std::vector<string> const &path, bool optional = false) {
+Json::Value getConfigData(Json::Value root, const std::vector<string> &path, bool optional = false) {
   for (size_t i = 0; i < path.size(); i++) {
     root = root[path[i]];
     if (root.isNull() && !optional) {
@@ -25,7 +25,7 @@ Json::Value getConfigData(Json::Value root, std::vector<string> const &path, boo
   return root;
 }
 
-std::string getConfigDataAsString(Json::Value const &root, std::vector<string> const &path, bool optional = false,
+std::string getConfigDataAsString(const Json::Value &root, const std::vector<string> &path, bool optional = false,
                                   std::string value = {}) {
   try {
     Json::Value ret = getConfigData(root, path, optional);
@@ -42,7 +42,7 @@ std::string getConfigDataAsString(Json::Value const &root, std::vector<string> c
   }
 }
 
-uint32_t getConfigDataAsUInt(Json::Value const &root, std::vector<string> const &path, bool optional = false,
+uint32_t getConfigDataAsUInt(const Json::Value &root, const std::vector<string> &path, bool optional = false,
                              uint32_t value = 0) {
   try {
     Json::Value ret = getConfigData(root, path, optional);
@@ -59,7 +59,7 @@ uint32_t getConfigDataAsUInt(Json::Value const &root, std::vector<string> const 
   }
 }
 
-uint64_t getConfigDataAsUInt64(Json::Value const &root, std::vector<string> const &path) {
+uint64_t getConfigDataAsUInt64(const Json::Value &root, const std::vector<string> &path) {
   try {
     return getConfigData(root, path).asUInt64();
   } catch (Json::Exception &e) {
@@ -67,7 +67,7 @@ uint64_t getConfigDataAsUInt64(Json::Value const &root, std::vector<string> cons
   }
 }
 
-bool getConfigDataAsBoolean(Json::Value const &root, std::vector<string> const &path, bool optional = false,
+bool getConfigDataAsBoolean(const Json::Value &root, const std::vector<string> &path, bool optional = false,
                             bool value = false) {
   try {
     Json::Value ret = getConfigData(root, path, optional);
@@ -84,7 +84,7 @@ bool getConfigDataAsBoolean(Json::Value const &root, std::vector<string> const &
   }
 }
 
-Json::Value getJsonFromFileOrString(Json::Value const &value) {
+Json::Value getJsonFromFileOrString(const Json::Value &value) {
   if (value.isString()) {
     std::string json_file_name = value.asString();
     if (!json_file_name.empty()) {
@@ -104,8 +104,42 @@ Json::Value getJsonFromFileOrString(Json::Value const &value) {
   return value;
 }
 
-FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value const &wallet,
-                               const std::string &config_file_path) {
+NodeConfig dec_json(const Json::Value &json) {
+  NodeConfig node;
+  node.id = getConfigDataAsString(json, {"id"});
+  node.ip = getConfigDataAsString(json, {"ip"});
+  node.port = getConfigDataAsUInt(json, {"port"});
+  return node;
+}
+
+void dec_json(const Json::Value &json, NetworkConfig &network) {
+  network.listen_ip = getConfigDataAsString(json, {"listen_ip"});
+  network.public_ip = getConfigDataAsString(json, {"public_ip"}, true);
+  network.listen_port = getConfigDataAsUInt(json, {"listen_port"});
+  network.performance_log_interval = getConfigDataAsUInt(json, {"performance_log_interval"}, true, 30000 /*ms*/);
+  network.transaction_interval_ms = getConfigDataAsUInt(json, {"transaction_interval_ms"});
+  network.ideal_peer_count = getConfigDataAsUInt(json, {"ideal_peer_count"});
+  network.max_peer_count = getConfigDataAsUInt(json, {"max_peer_count"});
+  network.sync_level_size = getConfigDataAsUInt(json, {"sync_level_size"});
+  network.packets_processing_threads = getConfigDataAsUInt(json, {"packets_processing_threads"});
+  network.peer_blacklist_timeout =
+      getConfigDataAsUInt(json, {"peer_blacklist_timeout"}, true, NetworkConfig::kBlacklistTimeoutDefaultInSeconds);
+  network.disable_peer_blacklist = getConfigDataAsBoolean(json, {"disable_peer_blacklist"}, true, false);
+  network.deep_syncing_threshold =
+      getConfigDataAsUInt(json, {"deep_syncing_threshold"}, true, network.deep_syncing_threshold);
+  network.vote_accepting_periods =
+      getConfigDataAsUInt(json, {"vote_accepting_periods"}, true, network.vote_accepting_periods);
+  network.vote_accepting_rounds =
+      getConfigDataAsUInt(json, {"vote_accepting_rounds"}, true, network.vote_accepting_rounds);
+  network.vote_accepting_steps =
+      getConfigDataAsUInt(json, {"vote_accepting_steps"}, true, network.vote_accepting_steps);
+  for (auto &item : json["boot_nodes"]) {
+    network.boot_nodes.push_back(dec_json(item));
+  }
+}
+
+FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::Value &wallet,
+                               const Json::Value &genesis_json, const std::string &config_file_path) {
   Json::Value parsed_from_file = getJsonFromFileOrString(string_or_object);
   if (string_or_object.isString()) {
     json_file_name = string_or_object.asString();
@@ -120,41 +154,14 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
   final_chain_cache_in_blocks =
       getConfigDataAsUInt(root, {"final_chain_cache_in_blocks"}, true, final_chain_cache_in_blocks);
 
-  network.network_listen_ip = getConfigDataAsString(root, {"network_listen_ip"});
-  network.network_public_ip = getConfigDataAsString(root, {"network_public_ip"}, true);
-  network.network_tcp_port = getConfigDataAsUInt(root, {"network_tcp_port"});
-  network.network_performance_log_interval =
-      getConfigDataAsUInt(root, {"network_performance_log_interval"}, true, 30000 /*ms*/);
-  network.network_transaction_interval = getConfigDataAsUInt(root, {"network_transaction_interval"});
-  network.network_ideal_peer_count = getConfigDataAsUInt(root, {"network_ideal_peer_count"});
-  network.network_max_peer_count = getConfigDataAsUInt(root, {"network_max_peer_count"});
-  network.network_sync_level_size = getConfigDataAsUInt(root, {"network_sync_level_size"});
-  network.network_packets_processing_threads = getConfigDataAsUInt(root, {"network_packets_processing_threads"});
-  network.network_peer_blacklist_timeout = getConfigDataAsUInt(root, {"network_peer_blacklist_timeout"}, true,
-                                                               NetworkConfig::kBlacklistTimeoutDefaultInSeconds);
-  network.disable_peer_blacklist = getConfigDataAsBoolean(root, {"disable_peer_blacklist"}, true, false);
-  network.deep_syncing_threshold =
-      getConfigDataAsUInt(root, {"deep_syncing_threshold"}, true, network.deep_syncing_threshold);
-  network.vote_accepting_periods =
-      getConfigDataAsUInt(root, {"vote_accepting_periods"}, true, network.vote_accepting_periods);
-  network.vote_accepting_rounds =
-      getConfigDataAsUInt(root, {"vote_accepting_rounds"}, true, network.vote_accepting_rounds);
-  network.vote_accepting_steps =
-      getConfigDataAsUInt(root, {"vote_accepting_steps"}, true, network.vote_accepting_steps);
-  for (auto &item : root["network_boot_nodes"]) {
-    NodeConfig node;
-    node.id = getConfigDataAsString(item, {"id"});
-    node.ip = getConfigDataAsString(item, {"ip"});
-    node.udp_port = getConfigDataAsUInt(item, {"udp_port"});
-    network.network_boot_nodes.push_back(node);
-  }
+  dec_json(root["network"], network);
 
   // Rpc config
   if (auto rpc_config = getConfigData(root, {"rpc"}, true); !rpc_config.isNull()) {
     rpc = ConnectionConfig();
 
     // ip address
-    rpc->address = boost::asio::ip::address::from_string(network.network_listen_ip);
+    rpc->address = boost::asio::ip::address::from_string(network.listen_ip);
 
     // http port
     if (auto http_port = getConfigData(rpc_config, {"http_port"}, true); !http_port.isNull()) {
@@ -177,7 +184,7 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
     graphql = ConnectionConfig();
 
     // ip address
-    graphql->address = boost::asio::ip::address::from_string(network.network_listen_ip);
+    graphql->address = boost::asio::ip::address::from_string(network.listen_ip);
 
     // graphql http port
     if (auto http_port = getConfigData(graphql_config, {"http_port"}, true); !http_port.isNull()) {
@@ -249,25 +256,22 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
       }
     }
   }
-  if (auto const &v = root["chain_config"]; v.isString()) {
-    chain = ChainConfig::predefined(v.asString());
-  } else if (v.isObject()) {
-    dec_json(v, chain);
+  if (const auto &v = genesis_json; v.isObject()) {
+    dec_json(v, genesis);
   } else {
-    chain = ChainConfig::predefined();
+    genesis = Genesis::predefined();
   }
 
-  // blocks_per_year config param is calculated from lambda_ms_min
+  // blocks_per_year config param is calculated from lambda_ms
   uint64_t year_ms = 365 * 24 * 60 * 60;
   year_ms *= 1000;
   // we have fixed 2*lambda time for proposing step and adding some expecting value for filter and certify steps
-  const uint32_t expected_block_time = 2 * chain.pbft.lambda_ms_min + 700;
-  chain.final_chain.state.dpos.blocks_per_year = year_ms / expected_block_time;
+  const uint32_t expected_block_time = 2 * genesis.pbft.lambda_ms + 700;
+  genesis.state.dpos.blocks_per_year = year_ms / expected_block_time;
 
   is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, false);
   if (is_light_node) {
-    const auto min_light_node_history =
-        (chain.final_chain.state.dpos.blocks_per_year * kDefaultLightNodeHistoryDays) / 365;
+    const auto min_light_node_history = (genesis.state.dpos.blocks_per_year * kDefaultLightNodeHistoryDays) / 365;
     light_node_history = getConfigDataAsUInt(root, {"light_node_history"}, true, min_light_node_history);
     if (light_node_history < min_light_node_history) {
       throw ConfigException("Min. required light node history is " + std::to_string(min_light_node_history) +
@@ -316,29 +320,28 @@ FullNodeConfig::FullNodeConfig(Json::Value const &string_or_object, Json::Value 
 }
 
 void NetworkConfig::validate() const {
-  if (network_sync_level_size == 0) {
-    throw ConfigException(std::string("network_sync_level_size cannot be 0"));
+  if (sync_level_size == 0) {
+    throw ConfigException(std::string("network.sync_level_size cannot be 0"));
   }
 
   // Max enabled number of threads for processing rpc requests
   constexpr uint16_t MAX_PACKETS_PROCESSING_THREADS_NUM = 30;
-  if (network_packets_processing_threads < 3 ||
-      network_packets_processing_threads > MAX_PACKETS_PROCESSING_THREADS_NUM) {
-    throw ConfigException(std::string("network_packets_processing_threads must be in range [3, ") +
+  if (packets_processing_threads < 3 || packets_processing_threads > MAX_PACKETS_PROCESSING_THREADS_NUM) {
+    throw ConfigException(std::string("network.packets_processing_threads must be in range [3, ") +
                           std::to_string(MAX_PACKETS_PROCESSING_THREADS_NUM) + "]");
   }
 
-  if (network_transaction_interval == 0) {
-    throw ConfigException(std::string("network_transaction_interval must be greater than zero"));
+  if (transaction_interval_ms == 0) {
+    throw ConfigException(std::string("network.transaction_interval_ms must be greater than zero"));
   }
 
   // TODO validate that the boot node list doesn't contain self (although it's not critical)
-  for (auto const &node : network_boot_nodes) {
+  for (const auto &node : boot_nodes) {
     if (node.ip.empty()) {
-      throw ConfigException(std::string("Boot node ip is empty:") + node.ip + ":" + std::to_string(node.udp_port));
+      throw ConfigException(std::string("Boot node ip is empty:") + node.ip + ":" + std::to_string(node.port));
     }
-    if (node.udp_port == 0) {
-      throw ConfigException(std::string("Boot node port invalid: ") + std::to_string(node.udp_port));
+    if (node.port == 0) {
+      throw ConfigException(std::string("Boot node port invalid: ") + std::to_string(node.port));
     }
   }
 }
@@ -357,15 +360,14 @@ void ConnectionConfig::validate() const {
 
 void FullNodeConfig::validate() const {
   network.validate();
-  chain.validate();
+  genesis.validate();
   if (rpc) {
     rpc->validate();
   }
-
-  if (network.vote_accepting_periods > chain.final_chain.state.dpos.delegation_delay) {
-    throw ConfigException("network.vote_accepting_periods(" + std::to_string(network.vote_accepting_periods) +
-                          ") must be <= DPOS.delegation_delay(" +
-                          std::to_string(chain.final_chain.state.dpos.delegation_delay) + ")");
+  if (network.vote_accepting_periods > genesis.state.dpos.delegation_delay) {
+    throw ConfigException(
+        std::string("network.vote_accepting_periods(" + std::to_string(network.vote_accepting_periods) +
+                    ") must be <= DPOS.delegation_delay(" + std::to_string(genesis.state.dpos.delegation_delay) + ")"));
   }
   if (transactions_pool_size < kMinTransactionPoolSize) {
     throw ConfigException("transactions_pool_size cannot be smaller than " + std::to_string(kMinTransactionPoolSize) +
@@ -375,43 +377,37 @@ void FullNodeConfig::validate() const {
   // TODO: add validation of other config values
 }
 
-void FullNodeConfig::overwrite_chain_config_in_file() const {
-  Json::Value from_file = getJsonFromFileOrString(json_file_name);
-  from_file["chain_config"] = enc_json(chain);
-  util::writeJsonToFile(json_file_name, from_file);
-}
-
-std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf) {
+std::ostream &operator<<(std::ostream &strm, const NodeConfig &conf) {
   strm << "  [Node Config] " << std::endl;
   strm << "    node_id: " << conf.id << std::endl;
   strm << "    node_ip: " << conf.ip << std::endl;
-  strm << "    node_udp_port: " << conf.udp_port << std::endl;
+  strm << "    node_udp_port: " << conf.port << std::endl;
   return strm;
 }
 
-std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf) {
+std::ostream &operator<<(std::ostream &strm, const NetworkConfig &conf) {
   strm << "[Network Config] " << std::endl;
   strm << "  json_file_name: " << conf.json_file_name << std::endl;
-  strm << "  network_listen_ip: " << conf.network_listen_ip << std::endl;
-  strm << "  network_public_ip: " << conf.network_public_ip << std::endl;
-  strm << "  network_tcp_port: " << conf.network_tcp_port << std::endl;
-  strm << "  network_transaction_interval: " << conf.network_transaction_interval << std::endl;
-  strm << "  network_ideal_peer_count: " << conf.network_ideal_peer_count << std::endl;
-  strm << "  network_max_peer_count: " << conf.network_max_peer_count << std::endl;
-  strm << "  network_sync_level_size: " << conf.network_sync_level_size << std::endl;
-  strm << "  network_performance_log_interval: " << conf.network_performance_log_interval << std::endl;
-  strm << "  network_num_threads: " << conf.network_num_threads << std::endl;
-  strm << "  network_packets_processing_threads: " << conf.network_packets_processing_threads << std::endl;
+  strm << "  listen_ip: " << conf.listen_ip << std::endl;
+  strm << "  public_ip: " << conf.public_ip << std::endl;
+  strm << "  listen_port: " << conf.listen_port << std::endl;
+  strm << "  transaction_interval_ms: " << conf.transaction_interval_ms << std::endl;
+  strm << "  ideal_peer_count: " << conf.ideal_peer_count << std::endl;
+  strm << "  max_peer_count: " << conf.max_peer_count << std::endl;
+  strm << "  sync_level_size: " << conf.sync_level_size << std::endl;
+  strm << "  performance_log_interval: " << conf.performance_log_interval << std::endl;
+  strm << "  num_threads: " << conf.num_threads << std::endl;
+  strm << "  packets_processing_threads: " << conf.packets_processing_threads << std::endl;
   strm << "  deep_syncing_threshold: " << conf.deep_syncing_threshold << std::endl;
 
   strm << "  --> boot nodes  ... " << std::endl;
-  for (auto const &c : conf.network_boot_nodes) {
+  for (const auto &c : conf.boot_nodes) {
     strm << c << std::endl;
   }
   return strm;
 }
 
-std::ostream &operator<<(std::ostream &strm, FullNodeConfig const &conf) {
+std::ostream &operator<<(std::ostream &strm, const FullNodeConfig &conf) {
   strm << std::ifstream(conf.json_file_name).rdbuf() << std::endl;
   return strm;
 }

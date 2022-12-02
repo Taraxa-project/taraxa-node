@@ -32,10 +32,8 @@ using vrf_wrapper::VrfSortitionBase;
 
 const unsigned NUM_TRX = 200;
 const unsigned SYNC_TIMEOUT = 400;
-auto g_secret = Lazy([] {
-  return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
-                     dev::Secret::ConstructFromStringType::FromHex);
-});
+auto g_secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                            dev::Secret::ConstructFromStringType::FromHex);
 auto g_key_pair = Lazy([] { return dev::KeyPair(g_secret); });
 auto g_trx_signed_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 
@@ -45,7 +43,7 @@ void send_dummy_trx() {
                                       "params": [{
                                         "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                                         "value": 0,
-                                        "gas_price": 1,
+                                        "gas_price": 0,
                                         "gas": 100000,
                                         "receiver":"973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0"}]}' 0.0.0.0:7782 > /dev/null)";
 
@@ -723,7 +721,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   auto nodes = launch_nodes(node_cfgs);
   auto &node = nodes[0];
 
-  auto mock_dags = samples::createMockDag1(node->getConfig().chain.dag_genesis_block.getHash().toString());
+  auto mock_dags = samples::createMockDag1(node->getConfig().genesis.dag_genesis_block.getHash().toString());
 
   for (int i = 1; i <= 9; i++) {
     node->getDagManager()->addDagBlock(std::move(mock_dags[i]));
@@ -847,7 +845,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
   unsigned long vertices3 = 0;
   unsigned long vertices4 = 0;
 
-  auto mock_dags = samples::createMockDag0(node_cfgs.front().chain.dag_genesis_block.getHash().toString());
+  auto mock_dags = samples::createMockDag0(node_cfgs.front().genesis.dag_genesis_block.getHash().toString());
   auto num_blks = mock_dags.size();
 
   {
@@ -1154,7 +1152,7 @@ TEST_F(FullNodeTest, receive_send_transaction) {
 TEST_F(FullNodeTest, detect_overlap_transactions) {
   auto node_cfgs = make_node_cfgs<20>(5);
   auto nodes = launch_nodes(node_cfgs);
-  const auto expected_balances = effective_genesis_balances(node_cfgs[0].chain.final_chain.state);
+  const auto expected_balances = effective_initial_balances(node_cfgs[0].genesis.state);
   const auto node_1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
 
   // Even distribute coins from master boot node to other nodes. Since master
@@ -1179,7 +1177,7 @@ TEST_F(FullNodeTest, detect_overlap_transactions) {
         std::cout << "node" << i << " executed " << nodes[i]->getDB()->getNumTransactionExecuted()
                   << " transactions, expected " << trxs_count << std::endl;
         if (ctx.fail(); !ctx.is_last_attempt) {
-          auto dummy_trx = std::make_shared<Transaction>(nonce++, 0, 2, 100000, bytes(), nodes[0]->getSecretKey(),
+          auto dummy_trx = std::make_shared<Transaction>(nonce++, 0, 0, 100000, bytes(), nodes[0]->getSecretKey(),
                                                          nodes[0]->getAddress());
           // broadcast dummy transaction
           nodes[0]->getTransactionManager()->insertTransaction(dummy_trx);
@@ -1377,137 +1375,31 @@ TEST_F(FullNodeTest, db_rebuild) {
 
 TEST_F(FullNodeTest, transfer_to_self) {
   auto node_cfgs = make_node_cfgs<5, true>(1);
-  auto nodes = launch_nodes(node_cfgs);
+  auto node = launch_nodes(node_cfgs).front();
 
   std::cout << "Send first trx ..." << std::endl;
-  auto node_addr = nodes[0]->getAddress();
-  auto initial_bal = nodes[0]->getFinalChain()->getBalance(node_addr);
+  auto node_addr = node->getAddress();
+  auto initial_bal = node->getFinalChain()->getBalance(node_addr);
   uint64_t trx_count(100);
   EXPECT_TRUE(initial_bal.second);
   for (uint64_t i = 1; i <= trx_count; ++i) {
     const auto trx = std::make_shared<Transaction>(i, i * 100, 0, 1000000, dev::fromHex("00FEDCBA9876543210000000"),
                                                    g_secret, node_addr);
-    nodes[0]->getTransactionManager()->insertTransaction(trx);
+    node->getTransactionManager()->insertTransaction(trx);
   }
   thisThreadSleepForSeconds(5);
-  EXPECT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), trx_count);
-  auto trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
+  EXPECT_EQ(node->getTransactionManager()->getTransactionCount(), trx_count);
+  auto trx_executed1 = node->getDB()->getNumTransactionExecuted();
   send_dummy_trx();
   for (unsigned i(0); i < SYNC_TIMEOUT; ++i) {
-    trx_executed1 = nodes[0]->getDB()->getNumTransactionExecuted();
+    trx_executed1 = node->getDB()->getNumTransactionExecuted();
     if (trx_executed1 == trx_count + 1) break;
     thisThreadSleepForMilliSeconds(100);
   }
   EXPECT_EQ(trx_executed1, trx_count + 1);
-  auto const bal = nodes[0]->getFinalChain()->getBalance(node_addr);
+  auto const bal = node->getFinalChain()->getBalance(node_addr);
   EXPECT_TRUE(bal.second);
   EXPECT_EQ(bal.first, initial_bal.first);
-}
-
-TEST_F(FullNodeTest, chain_config_json) {
-  const string expected_default_chain_cfg_json = R"({
-  "dag_genesis_block": {
-    "level": "0x0",
-    "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
-    "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
-    "timestamp": "0x5d422b80",
-    "tips": [],
-    "transactions": [],
-    "trx_estimations" : "0x0"
-  },
-  "final_chain": {
-    "genesis_block_fields": {
-      "author": "0x0000000000000000000000000000000000000000",
-      "timestamp": "0x0"
-    },
-    "state": {
-      "dpos": {
-        "delegation_delay": "0x5",
-        "delegation_locking_period": "0x5",
-        "eligibility_balance_threshold": "0x3b9aca00",
-        "vote_eligibility_balance_step": "0x3b9aca00",
-        "validator_maximum_stake":"0x84595161401484a000000",
-        "minimum_deposit":"0x0",
-        "max_block_author_reward": "0x0",
-        "dag_proposers_reward": "0x0",
-        "commission_change_delta":"0x0",
-        "commission_change_frequency":"0x0",
-        "yield_percentage":"0x14",
-        "blocks_per_year":"0x66621b",
-        "initial_validators": []
-      },
-      "eth_chain_config": {
-        "byzantium_block": "0x0",
-        "constantinople_block": "0x0",
-        "eip_150_block": "0x0",
-        "eip_158_block": "0x0",
-        "homestead_block": "0x0",
-        "petersburg_block": "0x0"
-      },
-      "block_rewards_options": {
-        "disable_block_rewards": true,
-        "disable_contract_distribution": true
-      },
-      "genesis_balances": {
-      }
-    }
-  },
-  "gas_price": {
-    "blocks": 200,
-    "percentile": 60,
-    "minimum_price": 1
-  },
-  "pbft": {
-    "committee_size": "0x5",
-    "dag_blocks_size": "0x64",
-    "ghost_path_move_back": "0x1",
-    "lambda_ms_min": "0x7d0",
-    "number_of_proposers" : "0x14",
-    "gas_limit": "0x3938700"
-  },
-  "dag": {
-    "block_proposer": {
-      "shard": "0x1"
-    },
-    "gas_limit": "0x989680"
-  },
-  "sortition": {
-      "changes_count_for_average": 10,
-      "dag_efficiency_targets": [6900, 7100],
-      "changing_interval": 200,
-      "computation_interval": 50,
-      "vrf": {
-        "threshold_upper": "0xafff"
-      },
-      "vdf": {
-        "difficulty_max": 21,
-        "difficulty_min": 16,
-        "difficulty_stale": 23,
-        "lambda_bound": "0x64"
-      }
-    }
-})";
-  Json::Value default_chain_config_json;
-  std::istringstream(expected_default_chain_cfg_json) >> default_chain_config_json;
-  // TODO [1473] : remove jsonToUnstyledString
-  ASSERT_EQ(jsonToUnstyledString(default_chain_config_json), jsonToUnstyledString(enc_json(ChainConfig::predefined())));
-  std::string config_file_path = DIR_CONF / "conf_taraxa1.json";
-  Json::Value test_node_config_json;
-  std::ifstream(config_file_path, std::ifstream::binary) >> test_node_config_json;
-  Json::Value test_node_wallet_json;
-  std::ifstream((DIR_CONF / "wallet1.json").string(), std::ifstream::binary) >> test_node_wallet_json;
-  test_node_config_json.removeMember("chain_config");
-  ASSERT_EQ(jsonToUnstyledString(
-                enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain)),
-            jsonToUnstyledString(default_chain_config_json));
-  test_node_config_json["chain_config"] = default_chain_config_json;
-  ASSERT_EQ(jsonToUnstyledString(
-                enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain)),
-            jsonToUnstyledString(default_chain_config_json));
-  test_node_config_json["chain_config"] = "test";
-  ASSERT_EQ(jsonToUnstyledString(
-                enc_json(FullNodeConfig(test_node_config_json, test_node_wallet_json, config_file_path).chain)),
-            jsonToUnstyledString(enc_json(ChainConfig::predefined("test"))));
 }
 
 TEST_F(FullNodeTest, transaction_validation) {
@@ -1521,7 +1413,7 @@ TEST_F(FullNodeTest, transaction_validation) {
                                            nodes[0]->getSecretKey(), addr_t::random());
   // PASS on GAS
   EXPECT_TRUE(nodes[0]->getTransactionManager()->insertTransaction(trx).first);
-  trx = std::make_shared<Transaction>(nonce++, 0, gasprice, node_cfgs.front().chain.dag.gas_limit + 1,
+  trx = std::make_shared<Transaction>(nonce++, 0, gasprice, node_cfgs.front().genesis.dag.gas_limit + 1,
                                       dev::fromHex("00FEDCBA9876543210000000"), nodes[0]->getSecretKey(),
                                       addr_t::random());
   // FAIL on GAS
@@ -1684,7 +1576,7 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
       nodes.front()->getDagManager()->sortitionParamsManager().getSortitionParams(proposal_period);
   vdf_sortition::VdfSortition vdf(sortition_params, node0->getVrfSecretKey(),
                                   VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash));
-  const auto dag_genesis = node0->getConfig().chain.dag_genesis_block.getHash();
+  const auto dag_genesis = node0->getConfig().genesis.dag_genesis_block.getHash();
   const auto estimation = node0->getTransactionManager()->estimateTransactionGas(trx, proposal_period);
   dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trx});
 

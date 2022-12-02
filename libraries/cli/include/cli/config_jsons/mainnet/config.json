@@ -1,0 +1,204 @@
+{
+  "chain_id": 841,
+  "data_path": "",
+  "is_light_node": false,
+  "final_chain_cache_in_blocks": 5,
+  "network": {
+    "listen_ip": "0.0.0.0",
+    "listen_port": 10002,
+    "transaction_interval_ms": 100,
+    "ideal_peer_count": 10,
+    "max_peer_count": 50,
+    "sync_level_size": 10,
+    "packets_processing_threads": 14,
+    "peer_blacklist_timeout": 600,
+    "deep_syncing_threshold": 10,
+    "vote_accepting_periods": 5,
+    "vote_accepting_rounds": 5,
+    "vote_accepting_steps": 0,
+    "boot_nodes": [
+      {
+        "id": "d063098ceca0f5ea06f9455debffe6f6d5b2efdeb179215877e356cf8154afad99f058214bd25d8198a3854a4ed8f7ef97af59b0441a7d30bc4b3918c42764ef",
+        "ip": "boot-node-0.mainnet.taraxa.io",
+        "port": 10002
+      },
+      {
+        "id": "572778c6636361916acbc596808e1aa4e93ee0b577188f594015ec42125f58b7ec75fd59d78ca2282bc1c8c639dfc4d0eac2e57855b4fcc932c6bc6f530cd8f6",
+        "ip": "boot-node-1.mainnet.taraxa.io",
+        "port": 10002
+      },
+      {
+        "id": "10a5108d0070559cacbb0ed368d43c98848fbc0397e9bfc1a6e7e33f15532a804d158e405657650d3ea766ed4b0d7cfcbe5867e9261deacb457da332ed1eaf2a",
+        "ip": "boot-node-2.mainnet.taraxa.io",
+        "port": 10002
+      },
+      {
+        "id": "1dd6ae9674dee4e30f2f2f76036ad01be34bb617095b0513bc3818c8352e040fc3648fd400896fc80a544b3c23118e143928d0d49d4d575b68327f70da342939",
+        "ip": "boot-node-3.mainnet.taraxa.io",
+        "port": 10002
+      },
+      {
+        "id": "56b74f83d3e88319cf554c6e43ca6077f7cf9594547e530582ed12196dd891b289dc7b5b4392440bcead5adbdf4e23e184b7f46940efd603c5bf0a25b36d71c6",
+        "ip": "boot-node-4.mainnet.taraxa.io",
+        "port": 10002
+      },
+      {
+        "id": "833a3a724f5be3654524cb83307628117a668a00808fb2f34c43e5e3cb1a30354536cbdc9355172e5f285e1b4b3dde88d94385fa4df69c89da0638760ed5b0ac",
+        "ip": "boot-node-5.mainnet.taraxa.io",
+        "port": 10002
+      },
+      {
+        "id": "94026c10fce281ede4bae9b54606703eba77cb876ddacb3eba364b7e444618d424641de206f5d5cb39f5c04da48ebad502b76d698ed341e46721c8777a8c3f15",
+        "ip": "boot-node-6.mainnet.taraxa.io",
+        "port": 10002
+      },
+      {
+        "id": "03947eaba01564a69d6ea238f4c264ee50b34918838fee164b1b0f0de833b0098f2d4a7c05448a0f3d3aa05d55fe4d150aa3a1553fd940a433433aff8ae57a0e",
+        "ip": "boot-node-7.mainnet.taraxa.io",
+        "port": 10002
+      },
+      {
+        "id": "8a3394cccb379d66e6b7b131ef8ea9f195c333020b246135bf5d888443e8b6245cef9c90f2b6466240f38c9cfa4ccaa472b0f204623f09da819068c6d1168242",
+        "ip": "boot-node-8.mainnet.taraxa.io",
+        "port": 10002
+      }
+    ]
+  },
+  "rpc": {
+    "http_port": 7777,
+    "ws_port": 8777
+  },
+  "graphql": {
+    "http_port": 9777,
+    "ws_port": 6777
+  },
+  "db_config": {
+    "db_snapshot_each_n_pbft_block": 10000,
+    "db_max_snapshots": 1
+  },
+  "logging": {
+    "configurations": [
+      {
+        "name": "standard",
+        "on": true,
+        "verbosity": "ERROR",
+        "channels": [
+          {
+            "name": "SUMMARY",
+            "verbosity": "INFO"
+          },
+          {
+            "name": "PBFT_MGR",
+            "verbosity": "INFO"
+          },
+          {
+            "name": "DAG_PROPOSER",
+            "verbosity": "INFO"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "console",
+            "format": "%ThreadID% %Channel% [%TimeStamp%] %SeverityStr%: %Message%"
+          },
+          {
+            "type": "file",
+            "file_name": "Taraxa_N1_%m%d%Y_%H%M%S_%5N.log",
+            "rotation_size": 10000000,
+            "time_based_rotation": "0,0,0",
+            "format": "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
+            "max_size": 1000000000
+          }
+        ]
+      },
+      {
+        "name": "network",
+        "on": false,
+        "verbosity": "ERROR",
+        "channels": [
+          {
+            "name": "PBFT_CHAIN",
+            "verbosity": "INFO"
+          },
+          {
+            "name": "PBFT_MGR",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "GET_PBFT_SYNC_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "PBFT_SYNC_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "GET_DAG_SYNC_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "DAG_SYNC_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "DAG_BLOCK_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "PBFT_BLOCK_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "TARCAP",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "NETWORK",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "TRANSACTION_PH",
+            "verbosity": "DEBUG"
+          },
+          {
+            "name": "DAGBLKMGR",
+            "verbosity": "INFO"
+          },
+          {
+            "name": "DAGMGR",
+            "verbosity": "INFO"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "console",
+            "format": "%ThreadID% %Channel% [%TimeStamp%] %SeverityStr%: %Message%"
+          },
+          {
+            "type": "file",
+            "file_name": "TaraxaNetwork_N1_%m%d%Y_%H%M%S_%5N.log",
+            "rotation_size": 10000000,
+            "time_based_rotation": "0,0,0",
+            "format": "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
+            "max_size": 1000000000
+          }
+        ]
+      },
+      {
+        "name": "debug",
+        "on": false,
+        "verbosity": "DEBUG",
+        "outputs": [
+          {
+            "type": "file",
+            "file_name": "debug/TaraxaDebug_N1_%m%d%Y_%H%M%S_%5N.log",
+            "rotation_size": 10000000,
+            "time_based_rotation": "0,0,0",
+            "format": "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%",
+            "max_size": 1000000000
+          }
+        ]
+      }
+    ]
+  }
+}

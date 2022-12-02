@@ -12,7 +12,7 @@ TransactionManager::TransactionManager(FullNodeConfig const &conf, std::shared_p
                                        std::shared_ptr<FinalChain> final_chain, addr_t node_addr)
     : kConf(conf),
       transactions_pool_(kConf.transactions_pool_size),
-      kDagBlockGasLimit(kConf.chain.dag.gas_limit),
+      kDagBlockGasLimit(kConf.genesis.dag.gas_limit),
       db_(std::move(db)),
       final_chain_(std::move(final_chain)) {
   LOG_OBJECTS_CREATE("TRXMGR");
@@ -69,7 +69,7 @@ std::pair<TransactionStatus, std::string> TransactionManager::verifyTransaction(
   }
 
   // gas_price in transaction must be greater than or equal to minimum value from config
-  if (kConf.chain.gas_price.minimum_price > trx->getGasPrice()) {
+  if (kConf.genesis.gas_price.minimum_price > trx->getGasPrice()) {
     return {TransactionStatus::Invalid, "gas_price too low"};
   }
 

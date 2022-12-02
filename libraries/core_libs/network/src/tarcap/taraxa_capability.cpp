@@ -35,7 +35,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
       pbft_syncing_state_(std::make_shared<PbftSyncingState>(conf.network.deep_syncing_threshold)),
       node_stats_(nullptr),
       packets_handlers_(std::make_shared<PacketsHandler>()),
-      thread_pool_(std::make_shared<TarcapThreadPool>(conf.network.network_packets_processing_threads, key.address())),
+      thread_pool_(std::make_shared<TarcapThreadPool>(conf.network.packets_processing_threads, key.address())),
       periodic_events_tp_(std::make_shared<util::ThreadPool>(kPeriodicEventsThreadCount, false)),
       pub_key_(key.pub()) {
   const auto &node_addr = key.address();
@@ -101,16 +101,16 @@ void TaraxaCapability::addBootNodes(bool initial) {
     return;
   }
 
-  for (auto const &node : kConf.network.network_boot_nodes) {
+  for (auto const &node : kConf.network.boot_nodes) {
     dev::Public pub(node.id);
     if (pub == pub_key_) {
       LOG(log_wr_) << "not adding self to the boot node list";
       continue;
     }
 
-    auto ip = resolveHost(node.ip, node.udp_port);
-    LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.udp_port << " " << ip.second.address().to_string();
-    dev::p2p::Node boot_node(pub, dev::p2p::NodeIPEndpoint(ip.second.address(), node.udp_port, node.udp_port),
+    auto ip = resolveHost(node.ip, node.port);
+    LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.port << " " << ip.second.address().to_string();
+    dev::p2p::Node boot_node(pub, dev::p2p::NodeIPEndpoint(ip.second.address(), node.port, node.port),
                              dev::p2p::PeerType::Required);
     host->addNode(boot_node);
     if (!initial) {
@@ -126,12 +126,12 @@ void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pb
   //       1. Most of time is this single threaded thread pool doing nothing...
   //       2. These periodic events are sending packets - that might be processed by main thread_pool ???
   // Creates periodic events
-  uint64_t lambda_ms_min = pbft_mgr ? pbft_mgr->getPbftInitialLambda().count() : 2000;
+  uint64_t lambda_ms = pbft_mgr ? pbft_mgr->getPbftInitialLambda().count() : 2000;
 
   // Send new txs periodic event
   auto tx_packet_handler = packets_handlers_->getSpecificHandler<TransactionPacketHandler>();
-  if (trx_mgr /* just because of tests */ && kConf.network.network_transaction_interval > 0) {
-    periodic_events_tp_->post_loop({kConf.network.network_transaction_interval},
+  if (trx_mgr /* just because of tests */ && kConf.network.transaction_interval_ms > 0) {
+    periodic_events_tp_->post_loop({kConf.network.transaction_interval_ms},
                                    [tx_packet_handler = std::move(tx_packet_handler), trx_mgr = std::move(trx_mgr)] {
                                      tx_packet_handler->periodicSendTransactions(trx_mgr->getAllPoolTrxs());
                                    });
@@ -139,19 +139,19 @@ void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pb
 
   // Send status periodic event
   auto status_packet_handler = packets_handlers_->getSpecificHandler<StatusPacketHandler>();
-  const auto send_status_interval = 6 * lambda_ms_min;
+  const auto send_status_interval = 6 * lambda_ms;
   periodic_events_tp_->post_loop({send_status_interval}, [status_packet_handler = std::move(status_packet_handler)] {
     status_packet_handler->sendStatusToPeers();
   });
 
   // Logs packets stats periodic event
-  if (kConf.network.network_performance_log_interval > 0) {
-    periodic_events_tp_->post_loop({kConf.network.network_performance_log_interval},
+  if (kConf.network.performance_log_interval > 0) {
+    periodic_events_tp_->post_loop({kConf.network.performance_log_interval},
                                    [packets_stats = std::move(packets_stats)] { packets_stats->logAndUpdateStats(); });
   }
 
   // SUMMARY log periodic event
-  const auto node_stats_log_interval = 5 * 6 * lambda_ms_min;
+  const auto node_stats_log_interval = 5 * 6 * lambda_ms;
   periodic_events_tp_->post_loop({node_stats_log_interval},
                                  [node_stats = node_stats_]() mutable { node_stats->logNodeStats(); });
 
@@ -207,13 +207,12 @@ void TaraxaCapability::registerPacketHandlers(
                                                            pbft_mgr, dag_mgr, trx_mgr, db, node_addr);
 
   // TODO there is additional logic, that should be moved outside process function
-  packets_handlers_->registerHandler<GetPbftSyncPacketHandler>(peers_state_, packets_stats, pbft_syncing_state_,
-                                                               pbft_chain, db, kConf.network.network_sync_level_size,
-                                                               node_addr);
+  packets_handlers_->registerHandler<GetPbftSyncPacketHandler>(
+      peers_state_, packets_stats, pbft_syncing_state_, pbft_chain, db, kConf.network.sync_level_size, node_addr);
 
   packets_handlers_->registerHandler<PbftSyncPacketHandler>(
       peers_state_, packets_stats, pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr, vote_mgr, periodic_events_tp_,
-      db, kConf.network.network_sync_level_size, node_addr);
+      db, kConf.network.sync_level_size, node_addr);
 
   thread_pool_->setPacketsHandlers(packets_handlers_);
 }
