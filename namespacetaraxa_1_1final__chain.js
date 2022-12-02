@@ -1,7 +1,6 @@
 var namespacetaraxa_1_1final__chain =
 [
     [ "BlockHeader", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header", "group___final_chain_structtaraxa_1_1final__chain_1_1_block_header" ],
-    [ "Config", "structtaraxa_1_1final__chain_1_1_config.html", "structtaraxa_1_1final__chain_1_1_config" ],
     [ "ContractInterface", "classtaraxa_1_1final__chain_1_1_contract_interface.html", "classtaraxa_1_1final__chain_1_1_contract_interface" ],
     [ "FinalChain", "group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain", "group___final_chain_classtaraxa_1_1final__chain_1_1_final_chain" ],
     [ "FinalChainImpl", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html", "classtaraxa_1_1final__chain_1_1_final_chain_impl" ],

@@ -12,14 +12,12 @@ var hierarchy =
     [ "taraxa::network::tarcap::AllPacketTypesStats", "classtaraxa_1_1network_1_1tarcap_1_1_all_packet_types_stats.html", null ],
     [ "graphql::taraxa::Block", "classgraphql_1_1taraxa_1_1_block.html", null ],
     [ "taraxa::final_chain::BlockHeader", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header", null ],
-    [ "taraxa::state_api::BlockRewardsOptions", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_block_rewards_options", null ],
     [ "dev::p2p::Capability", "structdev_1_1p2p_1_1_capability.html", [
       [ "dev::p2p::SessionCapability", "structdev_1_1p2p_1_1_session_capability.html", null ]
     ] ],
     [ "dev::p2p::CapabilityFace", "classdev_1_1p2p_1_1_capability_face.html", [
       [ "taraxa::network::tarcap::TaraxaCapability", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html", null ]
     ] ],
-    [ "taraxa::ChainConfig", "structtaraxa_1_1_chain_config.html", null ],
     [ "Client", null, [
       [ "taraxa::net::EthClient", "classtaraxa_1_1net_1_1_eth_client.html", null ],
       [ "taraxa::net::NetClient", "classtaraxa_1_1net_1_1_net_client.html", null ],
@@ -31,9 +29,8 @@ var hierarchy =
     [ "Comparator", null, [
       [ "taraxa::UintComparator< T >", "classtaraxa_1_1_uint_comparator.html", null ]
     ] ],
-    [ "taraxa::final_chain::Config", "structtaraxa_1_1final__chain_1_1_config.html", null ],
-    [ "taraxa::state_api::Config", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config", null ],
     [ "taraxa::logger::Config", "classtaraxa_1_1logger_1_1_config.html", null ],
+    [ "taraxa::state_api::Config", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config", null ],
     [ "taraxa::cli::Config", "classtaraxa_1_1cli_1_1_config.html", null ],
     [ "taraxa::cli::ConfigUpdater::ConfigChange", "structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html", null ],
     [ "taraxa::cli::ConfigUpdater", "classtaraxa_1_1cli_1_1_config_updater.html", null ],
@@ -159,7 +156,7 @@ var hierarchy =
     [ "taraxa::GasPricer", "group___transaction.html#classtaraxa_1_1_gas_pricer", null ],
     [ "dev::GenericUnguardBool< MutexType >", "structdev_1_1_generic_unguard_bool.html", null ],
     [ "dev::GenericUnguardSharedBool< MutexType >", "structdev_1_1_generic_unguard_shared_bool.html", null ],
-    [ "taraxa::final_chain::Config::GenesisBlockFields", "structtaraxa_1_1final__chain_1_1_config.html#structtaraxa_1_1final__chain_1_1_config_1_1_genesis_block_fields", null ],
+    [ "taraxa::Genesis", "structtaraxa_1_1_genesis.html", null ],
     [ "GuardType", null, [
       [ "dev::GenericGuardBool< GuardType, MutexType >", "structdev_1_1_generic_guard_bool.html", null ]
     ] ],

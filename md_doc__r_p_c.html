@@ -428,7 +428,7 @@ Returns</h3>
 <p><code>OBJECT</code> - config object</p><ul>
 <li><code>chain_id</code>: <code>QUANTITY</code> - chain id. Different between networks</li>
 <li><code>dag_genesis_block</code>: <code>OBJECT</code> - DAG genesis block</li>
-<li><code>final_chain</code>: <code>OBJECT</code> - FinalChain config object</li>
+<li><code>state</code>: <code>OBJECT</code> - State config object</li>
 <li><code>pbft</code>: <code>OBJECT</code> - PBFT configuration object</li>
 <li><code>sortition</code>: <code>OBJECT</code> - Sortition configuration object</li>
 </ul>
@@ -451,57 +451,47 @@ Example</h3>
 <div class="line">      &quot;tips&quot;: [],</div>
 <div class="line">      &quot;transactions&quot;: []</div>
 <div class="line">    },</div>
-<div class="line">    &quot;final_chain&quot;: {</div>
-<div class="line">      &quot;genesis_block_fields&quot;: {</div>
-<div class="line">        &quot;author&quot;: &quot;0x0000000000000000000000000000000000000000&quot;,</div>
-<div class="line">        &quot;timestamp&quot;: &quot;0x61cd9f40&quot;</div>
+<div class="line">    &quot;state&quot;: {</div>
+<div class="line">      &quot;dpos&quot;: {</div>
+<div class="line">        &quot;deposit_delay&quot;: &quot;0x5&quot;,</div>
+<div class="line">        &quot;eligibility_balance_threshold&quot;: &quot;0x186a0&quot;,</div>
+<div class="line">        &quot;genesis_state&quot;: {</div>
+<div class="line">          &quot;0x0274cfffea9fa850e54c93a23042f12a87358a82&quot;: {</div>
+<div class="line">            &quot;0x00ccd0de0809ac03fd292036ee1544185583cd88&quot;: &quot;0x989680&quot;,</div>
+<div class="line">            &quot;0x0d149e61cc02b5893ef6fc33bc7d67ff13eeeee0&quot;: &quot;0x989680&quot;,</div>
+<div class="line">            &quot;0x1f8333245650a19a0683891b7afe7787a3ce9f00&quot;: &quot;0x989680&quot;,</div>
+<div class="line">            &quot;0x267e780b7843992e57f52e13018f0f97467ac06e&quot;: &quot;0x989680&quot;,</div>
+<div class="line">            &quot;0x6f96be7626a74e86c76e65ccbccf0a38e2b62fc5&quot;: &quot;0x989680&quot;,</div>
+<div class="line">            &quot;0x9d047654e55248ec38aa6723a5ab36d171008584&quot;: &quot;0x989680&quot;,</div>
+<div class="line">            &quot;0xd20131f980c9932b1df31cf3aafeecfb1d504381&quot;: &quot;0x989680&quot;,</div>
+<div class="line">            &quot;0xd4e4728bea5a67dd70dccb742bdc9c3a48465bec&quot;: &quot;0x989680&quot;,</div>
+<div class="line">            &quot;0xec591a85f613fe98f057dc09712a9b22cdd05845&quot;: &quot;0x989680&quot;</div>
+<div class="line">          }</div>
+<div class="line">        },</div>
+<div class="line">        &quot;vote_eligibility_balance_step&quot;: &quot;0x186a0&quot;,</div>
+<div class="line">        &quot;withdrawal_delay&quot;: &quot;0x5&quot;</div>
 <div class="line">      },</div>
-<div class="line">      &quot;state&quot;: {</div>
-<div class="line">        &quot;dpos&quot;: {</div>
-<div class="line">          &quot;deposit_delay&quot;: &quot;0x5&quot;,</div>
-<div class="line">          &quot;eligibility_balance_threshold&quot;: &quot;0x186a0&quot;,</div>
-<div class="line">          &quot;genesis_state&quot;: {</div>
-<div class="line">            &quot;0x0274cfffea9fa850e54c93a23042f12a87358a82&quot;: {</div>
-<div class="line">              &quot;0x00ccd0de0809ac03fd292036ee1544185583cd88&quot;: &quot;0x989680&quot;,</div>
-<div class="line">              &quot;0x0d149e61cc02b5893ef6fc33bc7d67ff13eeeee0&quot;: &quot;0x989680&quot;,</div>
-<div class="line">              &quot;0x1f8333245650a19a0683891b7afe7787a3ce9f00&quot;: &quot;0x989680&quot;,</div>
-<div class="line">              &quot;0x267e780b7843992e57f52e13018f0f97467ac06e&quot;: &quot;0x989680&quot;,</div>
-<div class="line">              &quot;0x6f96be7626a74e86c76e65ccbccf0a38e2b62fc5&quot;: &quot;0x989680&quot;,</div>
-<div class="line">              &quot;0x9d047654e55248ec38aa6723a5ab36d171008584&quot;: &quot;0x989680&quot;,</div>
-<div class="line">              &quot;0xd20131f980c9932b1df31cf3aafeecfb1d504381&quot;: &quot;0x989680&quot;,</div>
-<div class="line">              &quot;0xd4e4728bea5a67dd70dccb742bdc9c3a48465bec&quot;: &quot;0x989680&quot;,</div>
-<div class="line">              &quot;0xec591a85f613fe98f057dc09712a9b22cdd05845&quot;: &quot;0x989680&quot;</div>
-<div class="line">            }</div>
-<div class="line">          },</div>
-<div class="line">          &quot;vote_eligibility_balance_step&quot;: &quot;0x186a0&quot;,</div>
-<div class="line">          &quot;withdrawal_delay&quot;: &quot;0x5&quot;</div>
-<div class="line">        },</div>
-<div class="line">        &quot;eth_chain_config&quot;: {</div>
-<div class="line">          &quot;byzantium_block&quot;: &quot;0x0&quot;,</div>
-<div class="line">          &quot;constantinople_block&quot;: &quot;0x0&quot;,</div>
-<div class="line">          &quot;eip_150_block&quot;: &quot;0x0&quot;,</div>
-<div class="line">          &quot;eip_158_block&quot;: &quot;0x0&quot;,</div>
-<div class="line">          &quot;homestead_block&quot;: &quot;0x0&quot;,</div>
-<div class="line">          &quot;petersburg_block&quot;: &quot;0x0&quot;</div>
-<div class="line">        },</div>
-<div class="line">        &quot;block_rewards_options&quot;: {</div>
-<div class="line">          &quot;disable_block_rewards&quot;: false,</div>
-<div class="line">          &quot;disable_contract_distribution&quot;: false</div>
-<div class="line">        },</div>
-<div class="line">        &quot;genesis_balances&quot;: {</div>
-<div class="line">          &quot;0x0274cfffea9fa850e54c93a23042f12a87358a82&quot;: &quot;0x141e8d17&quot;,</div>
-<div class="line">          &quot;0x111f91441efc8c6c0edf6534970cc887e2fabaa8&quot;: &quot;0x24048ce3d&quot;</div>
-<div class="line">        },</div>
-<div class="line">        &quot;hardforks&quot;: {</div>
-<div class="line">          &quot;fix_genesis_fork_block&quot;: &quot;0x102ca0&quot;</div>
-<div class="line">        }</div>
+<div class="line">      &quot;eth_chain_config&quot;: {</div>
+<div class="line">        &quot;byzantium_block&quot;: &quot;0x0&quot;,</div>
+<div class="line">        &quot;constantinople_block&quot;: &quot;0x0&quot;,</div>
+<div class="line">        &quot;eip_150_block&quot;: &quot;0x0&quot;,</div>
+<div class="line">        &quot;eip_158_block&quot;: &quot;0x0&quot;,</div>
+<div class="line">        &quot;homestead_block&quot;: &quot;0x0&quot;,</div>
+<div class="line">        &quot;petersburg_block&quot;: &quot;0x0&quot;</div>
+<div class="line">      },</div>
+<div class="line">      &quot;initial_balances&quot;: {</div>
+<div class="line">        &quot;0x0274cfffea9fa850e54c93a23042f12a87358a82&quot;: &quot;0x141e8d17&quot;,</div>
+<div class="line">        &quot;0x111f91441efc8c6c0edf6534970cc887e2fabaa8&quot;: &quot;0x24048ce3d&quot;</div>
+<div class="line">      },</div>
+<div class="line">      &quot;hardforks&quot;: {</div>
+<div class="line">        &quot;fix_genesis_fork_block&quot;: &quot;0x102ca0&quot;</div>
 <div class="line">      }</div>
 <div class="line">    },</div>
 <div class="line">    &quot;pbft&quot;: {</div>
 <div class="line">      &quot;committee_size&quot;: &quot;0x3e8&quot;,</div>
 <div class="line">      &quot;dag_blocks_size&quot;: &quot;0xa&quot;,</div>
 <div class="line">      &quot;ghost_path_move_back&quot;: &quot;0x0&quot;,</div>
-<div class="line">      &quot;lambda_ms_min&quot;: &quot;0x5dc&quot;,</div>
+<div class="line">      &quot;lambda_ms&quot;: &quot;0x5dc&quot;,</div>
 <div class="line">    },</div>
 <div class="line">    &quot;sortition&quot;: {</div>
 <div class="line">      &quot;changes_count_for_average&quot;: &quot;0x5&quot;,</div>

@@ -1,7 +1,6 @@
 var namespacetaraxa_1_1state__api =
 [
     [ "Account", "group___final_chain.html#structtaraxa_1_1state__api_1_1_account", "group___final_chain_structtaraxa_1_1state__api_1_1_account" ],
-    [ "BlockRewardsOptions", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_block_rewards_options", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_block_rewards_options_dup" ],
     [ "Config", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_config_dup" ],
     [ "DPOSConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_d_p_o_s_config_dup" ],
     [ "ErrFutureBlock", "group___final_chain.html#structtaraxa_1_1state__api_1_1_err_future_block", "group___final_chain_structtaraxa_1_1state__api_1_1_err_future_block" ],

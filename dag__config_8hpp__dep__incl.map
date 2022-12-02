@@ -1,10 +1,10 @@
 <map id="libraries/config/include/config/dag_config.hpp" name="libraries/config/include/config/dag_config.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="4111,5,4280,47"/>
-<area shape="rect" id="node2" href="$chain__config_8hpp.html" title=" " alt="" coords="4014,95,4193,136"/>
-<area shape="rect" id="node50" href="$dag__config_8cpp.html" title=" " alt="" coords="4217,95,4358,136"/>
+<area shape="rect" id="node1" title=" " alt="" coords="4108,5,4278,47"/>
+<area shape="rect" id="node2" href="$genesis_8hpp.html" title=" " alt="" coords="4019,95,4188,136"/>
+<area shape="rect" id="node50" href="$dag__config_8cpp.html" title=" " alt="" coords="4213,95,4354,136"/>
 <area shape="rect" id="node3" href="$config_2include_2config_2config_8hpp.html" title=" " alt="" coords="2760,184,2930,225"/>
 <area shape="rect" id="node29" href="$gas__pricer_8hpp.html" title=" " alt="" coords="3362,615,3584,671"/>
-<area shape="rect" id="node49" href="$chain__config_8cpp.html" title=" " alt="" coords="4141,184,4282,225"/>
+<area shape="rect" id="node49" href="$genesis_8cpp.html" title=" " alt="" coords="4141,184,4282,225"/>
 <area shape="rect" id="node4" href="$cli_2include_2cli_2config_8hpp.html" title=" " alt="" coords="3440,288,3586,329"/>
 <area shape="rect" id="node11" href="$config__updater_8hpp.html" title=" " alt="" coords="3338,399,3506,441"/>
 <area shape="rect" id="node12" href="$config_2src_2config_8cpp.html" title=" " alt="" coords="186,288,328,329"/>
@@ -15,7 +15,7 @@
 <area shape="rect" id="node31" href="$transaction__manager_8hpp.html" title=" " alt="" coords="752,615,975,671"/>
 <area shape="rect" id="node36" href="$node_8hpp.html" title=" " alt="" coords="3078,622,3287,663"/>
 <area shape="rect" id="node42" href="$src_2ws__server_8cpp.html" title=" " alt="" coords="2855,622,3054,663"/>
-<area shape="rect" id="node44" href="$network_8hpp.html" title=" " alt="" coords="2596,503,2782,559"/>
+<area shape="rect" id="node44" href="$core__libs_2network_2include_2network_2network_8hpp.html" title=" " alt="" coords="2596,503,2782,559"/>
 <area shape="rect" id="node45" href="$taraxa__capability_8hpp.html" title=" " alt="" coords="2505,392,2716,448"/>
 <area shape="rect" id="node46" href="$peers__state_8hpp.html" title=" " alt="" coords="2580,273,2782,344"/>
 <area shape="rect" id="node47" href="$include_2network_2ws__server_8hpp.html" title=" " alt="" coords="2908,503,3094,559"/>

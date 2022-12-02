@@ -6,7 +6,7 @@ var dir_27ba4c808a9763eadfaa84d09f9540e6 =
       [ "HttpServer", "classtaraxa_1_1net_1_1_http_server.html", "classtaraxa_1_1net_1_1_http_server" ],
       [ "HttpConnection", "classtaraxa_1_1net_1_1_http_connection.html", "classtaraxa_1_1net_1_1_http_connection" ]
     ] ],
-    [ "network.hpp", "network_8hpp.html", [
+    [ "network.hpp", "core__libs_2network_2include_2network_2network_8hpp.html", [
       [ "Network", "classtaraxa_1_1_network.html", "classtaraxa_1_1_network" ]
     ] ],
     [ "ws_server.hpp", "include_2network_2ws__server_8hpp.html", "include_2network_2ws__server_8hpp" ]

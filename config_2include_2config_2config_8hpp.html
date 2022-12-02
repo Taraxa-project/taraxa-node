@@ -89,12 +89,11 @@ $(document).ready(function(){initNavTree('config_2include_2config_2config_8hpp.h
 <div class="title">config.hpp File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &lt;string&gt;</code><br />
-<code>#include &quot;<a class="el" href="config__exception_8hpp_source.html">common/config_exception.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="types_8hpp_source.html">common/types.hpp</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="config__exception_8hpp_source.html">common/config_exception.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="util_8hpp_source.html">common/util.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="vrf__wrapper_8hpp_source.html">common/vrf_wrapper.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="chain__config_8hpp_source.html">config/chain_config.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="genesis_8hpp_source.html">config/genesis.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="config_2include_2config_2network_8hpp_source.html">config/network.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="logger__config_8hpp_source.html">logger/logger_config.hpp</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
 This graph shows which files directly or indirectly include this file:</div>
@@ -112,7 +111,7 @@ This graph shows which files directly or indirectly include this file:</div>
 <area shape="rect" href="transaction__manager_8hpp.html" title=" " alt="" coords="1953,436,2176,492"/>
 <area shape="rect" href="node_8hpp.html" title=" " alt="" coords="3623,443,3832,485"/>
 <area shape="rect" href="src_2ws__server_8cpp.html" title=" " alt="" coords="4280,443,4479,485"/>
-<area shape="rect" href="network_8hpp.html" title=" " alt="" coords="2878,325,3065,381"/>
+<area shape="rect" href="core__libs_2network_2include_2network_2network_8hpp.html" title=" " alt="" coords="2878,325,3065,381"/>
 <area shape="rect" href="taraxa__capability_8hpp.html" title=" " alt="" coords="3013,213,3223,269"/>
 <area shape="rect" href="peers__state_8hpp.html" title=" " alt="" coords="2962,95,3165,165"/>
 <area shape="rect" href="include_2network_2ws__server_8hpp.html" title=" " alt="" coords="3641,325,3827,381"/>
@@ -158,12 +157,6 @@ This graph shows which files directly or indirectly include this file:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_connection_config.html">taraxa::ConnectionConfig</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:structtaraxa_1_1_node_config"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#structtaraxa_1_1_node_config">taraxa::NodeConfig</a></td></tr>
-<tr class="separator:structtaraxa_1_1_node_config"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html">taraxa::NetworkConfig</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:structtaraxa_1_1_d_b_config"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#structtaraxa_1_1_d_b_config">taraxa::DBConfig</a></td></tr>
 <tr class="separator:structtaraxa_1_1_d_b_config"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html">taraxa::FullNodeConfig</a></td></tr>
@@ -184,50 +177,6 @@ Functions</h2></td></tr>
 <tr class="separator:ae8c764ebb2b4085bbff52d37f6a1fefe"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <hr/><h2 class="groupheader">Class Documentation</h2>
-<a name="structtaraxa_1_1_node_config" id="structtaraxa_1_1_node_config"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#structtaraxa_1_1_node_config">&#9670;&nbsp;</a></span>taraxa::NodeConfig</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">struct taraxa::NodeConfig</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="textblock"></div><div class="dynheader">
-Collaboration diagram for taraxa::NodeConfig:</div>
-<div class="dyncontent">
-<div class="center"><img src="structtaraxa_1_1_node_config__coll__graph.png" border="0" usemap="#taraxa_1_1_node_config_coll__map" alt="Collaboration graph"/></div>
-<map name="taraxa_1_1_node_config_coll__map" id="taraxa_1_1_node_config_coll__map">
-<area shape="rect" title=" " alt="" coords="5,109,152,136"/>
-<area shape="rect" title=" " alt="" coords="49,5,108,32"/>
-</map>
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
-<table class="fieldtable">
-<tr><th colspan="3">Class Members</th></tr>
-<tr><td class="fieldtype">
-<a id="a4faf253efde7446f593b1d0a5063bffc"></a>string</td>
-<td class="fieldname">
-id</td>
-<td class="fielddoc">
-</td></tr>
-<tr><td class="fieldtype">
-<a id="ace279b5bb50e6cdeb99932ac0a0f3416"></a>string</td>
-<td class="fieldname">
-ip</td>
-<td class="fielddoc">
-</td></tr>
-<tr><td class="fieldtype">
-<a id="ae0cd39b43c10f421e537483bfec486f7"></a>uint16_t</td>
-<td class="fieldname">
-udp_port</td>
-<td class="fielddoc">
-</td></tr>
-</table>
-
-</div>
-</div>
 <a name="structtaraxa_1_1_d_b_config" id="structtaraxa_1_1_d_b_config"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#structtaraxa_1_1_d_b_config">&#9670;&nbsp;</a></span>taraxa::DBConfig</h2>
 

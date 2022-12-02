@@ -23,6 +23,7 @@ var classtaraxa_1_1cli_1_1_config =
     [ "DEFAULT_CHAIN_ID", "classtaraxa_1_1cli_1_1_config.html#a2ca7d9d2c7c4f6250799199e06c15301", null ],
     [ "DESTROY_DB", "classtaraxa_1_1cli_1_1_config.html#a31fcb2a538b5031bb86c5c1dcdffad6c", null ],
     [ "ENABLE_TEST_RPC", "classtaraxa_1_1cli_1_1_config.html#a1a03d46a5abdcaed8f4f57ed4416a081", null ],
+    [ "GENESIS", "classtaraxa_1_1cli_1_1_config.html#a1e2dc176594b61dd572df519b8f63752", null ],
     [ "HELP", "classtaraxa_1_1cli_1_1_config.html#aa731c143ec5fdbb7bb6c770457616c93", null ],
     [ "LOG_CHANNELS", "classtaraxa_1_1cli_1_1_config.html#aab1ed69a5e4fb38e3649fd197dd4d1e6", null ],
     [ "LOG_CHANNELS_APPEND", "classtaraxa_1_1cli_1_1_config.html#a57ec4dc90c87397725129f25e4a5934f", null ],

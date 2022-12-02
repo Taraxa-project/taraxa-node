@@ -1,12 +1,5 @@
 var config_2include_2config_2config_8hpp =
 [
-    [ "ConnectionConfig", "structtaraxa_1_1_connection_config.html", "structtaraxa_1_1_connection_config" ],
-    [ "NodeConfig", "namespacetaraxa.html#structtaraxa_1_1_node_config", [
-      [ "id", "namespacetaraxa.html#a4faf253efde7446f593b1d0a5063bffc", null ],
-      [ "ip", "namespacetaraxa.html#ace279b5bb50e6cdeb99932ac0a0f3416", null ],
-      [ "udp_port", "namespacetaraxa.html#ae0cd39b43c10f421e537483bfec486f7", null ]
-    ] ],
-    [ "NetworkConfig", "structtaraxa_1_1_network_config.html", "structtaraxa_1_1_network_config" ],
     [ "DBConfig", "namespacetaraxa.html#structtaraxa_1_1_d_b_config", [
       [ "db_max_open_files", "namespacetaraxa.html#a20a355304a30d8893626b16bf7c78595", null ],
       [ "db_max_snapshots", "namespacetaraxa.html#acb88135b62c8aadb5c6636e1796ec016", null ],

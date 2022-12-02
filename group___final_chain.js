@@ -95,7 +95,7 @@ var group___final_chain =
       [ "block_finalized_emitter_", "group___final_chain.html#a9d96fe095fcf303295edb569fb8e8499", null ]
     ] ],
     [ "StateAPI", "group___final_chain.html#classtaraxa_1_1state__api_1_1_state_a_p_i", [
-      [ "StateAPI", "group___final_chain.html#a3659b64d4106129d81228d72c2b96101", null ],
+      [ "StateAPI", "group___final_chain.html#a1fac277cc4a1ad6889438d90435770e5", null ],
       [ "~StateAPI", "group___final_chain.html#a96bc22686a2b7500cf6cdf657ced3858", null ],
       [ "StateAPI", "group___final_chain.html#a332877b929b0fd7ec175d35324cb4502", null ],
       [ "StateAPI", "group___final_chain.html#a5dfe1f47f0ebe2356a2620d0a212e5ef", null ],

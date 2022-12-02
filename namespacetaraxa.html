@@ -116,8 +116,6 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_chain_config.html">ChainConfig</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_config_exception.html">ConfigException</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_connection_config.html">ConnectionConfig</a></td></tr>
@@ -157,6 +155,8 @@ Classes</h2></td></tr>
 <tr class="memitem:classtaraxa_1_1_gas_pricer"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#classtaraxa_1_1_gas_pricer">GasPricer</a></td></tr>
 <tr class="memdesc:classtaraxa_1_1_gas_pricer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Basic gas price calculator. We calculate the gas price based on the lowest price in last number_of_blocks blocks. Then all of those values are sorted and current price is selected based on percentile.  <a href="group___transaction.html#classtaraxa_1_1_gas_pricer">More...</a><br /></td></tr>
 <tr class="separator:classtaraxa_1_1_gas_pricer"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_genesis.html">Genesis</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_invalid_rlp_items_count_exception.html">InvalidRlpItemsCountException</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">Exception thrown in case basic rlp format validation fails - number of rlp items.  <a href="classtaraxa_1_1_invalid_rlp_items_count_exception.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -433,20 +433,26 @@ Functions</h2></td></tr>
 <tr class="separator:aa92677cfc287e3d80880f70bbe71fe1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a74eb6907da8267aacd374e6091105f8c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a74eb6907da8267aacd374e6091105f8c">GLOBAL_CONST_DEF</a> (EmptySHA3, <a class="el" href="namespacedev.html#a29e8fa50d93ce68f98e93cf3c75a98c9">dev::sha3</a>(<a class="el" href="namespacedev.html#ab457e5f6cc31fb60752381cdca22b4c4">dev::bytesConstRef</a>())) GLOBAL_CONST_DEF(EmptyRLPListSHA3</td></tr>
 <tr class="separator:a74eb6907da8267aacd374e6091105f8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7d7f3b69fe4c31d0649cf77226d9b155"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a7d7f3b69fe4c31d0649cf77226d9b155">enc_json</a> (<a class="el" href="structtaraxa_1_1_gas_price_config.html">GasPriceConfig</a> const &amp;obj)</td></tr>
-<tr class="separator:a7d7f3b69fe4c31d0649cf77226d9b155"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1a7add6cdc2ba2969325ea1ad4723859"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a1a7add6cdc2ba2969325ea1ad4723859">dec_json</a> (Json::Value const &amp;json, <a class="el" href="structtaraxa_1_1_gas_price_config.html">GasPriceConfig</a> &amp;obj)</td></tr>
-<tr class="separator:a1a7add6cdc2ba2969325ea1ad4723859"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a965558b5c14a833fa003214c7af7f7b5"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a965558b5c14a833fa003214c7af7f7b5">enc_json</a> (<a class="el" href="structtaraxa_1_1_chain_config.html">ChainConfig</a> const &amp;obj)</td></tr>
-<tr class="separator:a965558b5c14a833fa003214c7af7f7b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a99340add0456c691068835a90b6a0f71"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a99340add0456c691068835a90b6a0f71">dec_json</a> (Json::Value const &amp;json, <a class="el" href="structtaraxa_1_1_chain_config.html">ChainConfig</a> &amp;obj)</td></tr>
-<tr class="separator:a99340add0456c691068835a90b6a0f71"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7144bd4413224a3760d44247b265db26"><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a7144bd4413224a3760d44247b265db26">operator&lt;&lt;</a> (std::ostream &amp;strm, <a class="el" href="namespacetaraxa.html#structtaraxa_1_1_node_config">NodeConfig</a> const &amp;conf)</td></tr>
 <tr class="separator:a7144bd4413224a3760d44247b265db26"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adb6bc9eb6ed069134037916ff99c9b3a"><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#adb6bc9eb6ed069134037916ff99c9b3a">operator&lt;&lt;</a> (std::ostream &amp;strm, <a class="el" href="structtaraxa_1_1_network_config.html">NetworkConfig</a> const &amp;conf)</td></tr>
 <tr class="separator:adb6bc9eb6ed069134037916ff99c9b3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae8c764ebb2b4085bbff52d37f6a1fefe"><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#ae8c764ebb2b4085bbff52d37f6a1fefe">operator&lt;&lt;</a> (std::ostream &amp;strm, <a class="el" href="structtaraxa_1_1_full_node_config.html">FullNodeConfig</a> const &amp;conf)</td></tr>
 <tr class="separator:ae8c764ebb2b4085bbff52d37f6a1fefe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a025dc7d9035b4ab599f8c9d07410dc2b"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a025dc7d9035b4ab599f8c9d07410dc2b">getConfigErr</a> (std::vector&lt; std::string &gt; path)</td></tr>
+<tr class="separator:a025dc7d9035b4ab599f8c9d07410dc2b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6378934371ebf5122855eface28398ec"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a6378934371ebf5122855eface28398ec">getConfigData</a> (Json::Value root, const std::vector&lt; std::string &gt; &amp;path, bool optional=false)</td></tr>
+<tr class="separator:a6378934371ebf5122855eface28398ec"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abb2c0c0f2fe4e2d5dc10157861ca1fb9"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#abb2c0c0f2fe4e2d5dc10157861ca1fb9">getConfigDataAsString</a> (const Json::Value &amp;root, const std::vector&lt; std::string &gt; &amp;path, bool optional=false, std::string value={})</td></tr>
+<tr class="separator:abb2c0c0f2fe4e2d5dc10157861ca1fb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3357cd6f870115a50951b8cc75d50d40"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a3357cd6f870115a50951b8cc75d50d40">getConfigDataAsUInt</a> (const Json::Value &amp;root, const std::vector&lt; std::string &gt; &amp;path, bool optional=false, uint32_t value=0)</td></tr>
+<tr class="separator:a3357cd6f870115a50951b8cc75d50d40"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acdf8560f0132265cb3dd4126cfd9f195"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#acdf8560f0132265cb3dd4126cfd9f195">getConfigDataAsUInt64</a> (const Json::Value &amp;root, const std::vector&lt; std::string &gt; &amp;path)</td></tr>
+<tr class="separator:acdf8560f0132265cb3dd4126cfd9f195"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3eb36cfed892990b6cb869699a090d20"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a3eb36cfed892990b6cb869699a090d20">getConfigDataAsBoolean</a> (const Json::Value &amp;root, const std::vector&lt; std::string &gt; &amp;path, bool optional=false, bool value=false)</td></tr>
+<tr class="separator:a3eb36cfed892990b6cb869699a090d20"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab1bcc118f66a254e727851a6455a20e7"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#ab1bcc118f66a254e727851a6455a20e7">getJsonFromFileOrString</a> (const Json::Value &amp;value)</td></tr>
+<tr class="separator:ab1bcc118f66a254e727851a6455a20e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a48523fb260955ed0881f6945e84066a3"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a48523fb260955ed0881f6945e84066a3">enc_json</a> (const <a class="el" href="structtaraxa_1_1_dag_block_proposer_config.html">DagBlockProposerConfig</a> &amp;obj)</td></tr>
 <tr class="separator:a48523fb260955ed0881f6945e84066a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a681e859a51cfd602ec476273ae67ce91"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a681e859a51cfd602ec476273ae67ce91">dec_json</a> (const Json::Value &amp;json, <a class="el" href="structtaraxa_1_1_dag_block_proposer_config.html">DagBlockProposerConfig</a> &amp;obj)</td></tr>
@@ -455,24 +461,24 @@ Functions</h2></td></tr>
 <tr class="separator:af048650cf3dc86bc3af3a4bdb4824df7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c00e55e957ffb65d8891c88785cf57e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a9c00e55e957ffb65d8891c88785cf57e">dec_json</a> (const Json::Value &amp;json, <a class="el" href="structtaraxa_1_1_dag_config.html">DagConfig</a> &amp;obj)</td></tr>
 <tr class="separator:a9c00e55e957ffb65d8891c88785cf57e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7d7f3b69fe4c31d0649cf77226d9b155"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a7d7f3b69fe4c31d0649cf77226d9b155">enc_json</a> (<a class="el" href="structtaraxa_1_1_gas_price_config.html">GasPriceConfig</a> const &amp;obj)</td></tr>
+<tr class="separator:a7d7f3b69fe4c31d0649cf77226d9b155"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a7add6cdc2ba2969325ea1ad4723859"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a1a7add6cdc2ba2969325ea1ad4723859">dec_json</a> (Json::Value const &amp;json, <a class="el" href="structtaraxa_1_1_gas_price_config.html">GasPriceConfig</a> &amp;obj)</td></tr>
+<tr class="separator:a1a7add6cdc2ba2969325ea1ad4723859"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a38da04aa3ccaa8dc8284943292a95c61"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a38da04aa3ccaa8dc8284943292a95c61">enc_json</a> (<a class="el" href="structtaraxa_1_1_genesis.html">Genesis</a> const &amp;obj)</td></tr>
+<tr class="separator:a38da04aa3ccaa8dc8284943292a95c61"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a110379ae3c76cbe68346680bc1aab397"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a110379ae3c76cbe68346680bc1aab397">dec_json</a> (Json::Value const &amp;json, <a class="el" href="structtaraxa_1_1_genesis.html">Genesis</a> &amp;obj)</td></tr>
+<tr class="separator:a110379ae3c76cbe68346680bc1aab397"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a74ad03c0d7a830dd89d7f10d6f941077"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a74ad03c0d7a830dd89d7f10d6f941077">dec_json</a> (const Json::Value &amp;json, <a class="el" href="structtaraxa_1_1_connection_config.html">ConnectionConfig</a> &amp;config)</td></tr>
+<tr class="separator:a74ad03c0d7a830dd89d7f10d6f941077"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5e15ca58e0ad240f75a8c70883a00e0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#aa5e15ca58e0ad240f75a8c70883a00e0">dec_json</a> (const Json::Value &amp;json, <a class="el" href="structtaraxa_1_1_network_config.html">NetworkConfig</a> &amp;network)</td></tr>
+<tr class="separator:aa5e15ca58e0ad240f75a8c70883a00e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aca5cc9aeb1d46dec9df51efa8f4f666f"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#aca5cc9aeb1d46dec9df51efa8f4f666f">enc_json</a> (<a class="el" href="structtaraxa_1_1_pbft_config.html">PbftConfig</a> const &amp;obj)</td></tr>
 <tr class="separator:aca5cc9aeb1d46dec9df51efa8f4f666f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6d4575c65b00ce4d77c66f41277ce170"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a6d4575c65b00ce4d77c66f41277ce170">dec_json</a> (Json::Value const &amp;json, <a class="el" href="structtaraxa_1_1_pbft_config.html">PbftConfig</a> &amp;obj)</td></tr>
 <tr class="separator:a6d4575c65b00ce4d77c66f41277ce170"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adad38f04626368561547d084efacae68"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#adad38f04626368561547d084efacae68">getConfigErr</a> (std::vector&lt; string &gt; path)</td></tr>
-<tr class="separator:adad38f04626368561547d084efacae68"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a410cc59f77a835513499b141da5b90bd"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a410cc59f77a835513499b141da5b90bd">getConfigData</a> (Json::Value root, std::vector&lt; string &gt; const &amp;path, bool optional=false)</td></tr>
-<tr class="separator:a410cc59f77a835513499b141da5b90bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa7a0f4abbe589845d54d6a2a4a713b46"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#aa7a0f4abbe589845d54d6a2a4a713b46">getConfigDataAsString</a> (Json::Value const &amp;root, std::vector&lt; string &gt; const &amp;path, bool optional=false, std::string value={})</td></tr>
-<tr class="separator:aa7a0f4abbe589845d54d6a2a4a713b46"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a610ee020a223583b4a3d4b47d1a27d43"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a610ee020a223583b4a3d4b47d1a27d43">getConfigDataAsUInt</a> (Json::Value const &amp;root, std::vector&lt; string &gt; const &amp;path, bool optional=false, uint32_t value=0)</td></tr>
-<tr class="separator:a610ee020a223583b4a3d4b47d1a27d43"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7e6d1d1fc9f9ce55c61b6bc9e3b606ca"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a7e6d1d1fc9f9ce55c61b6bc9e3b606ca">getConfigDataAsUInt64</a> (Json::Value const &amp;root, std::vector&lt; string &gt; const &amp;path)</td></tr>
-<tr class="separator:a7e6d1d1fc9f9ce55c61b6bc9e3b606ca"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8f8b8779d441ce2fda119140436d52fc"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a8f8b8779d441ce2fda119140436d52fc">getConfigDataAsBoolean</a> (Json::Value const &amp;root, std::vector&lt; string &gt; const &amp;path, bool optional=false, bool value=false)</td></tr>
-<tr class="separator:a8f8b8779d441ce2fda119140436d52fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a394c73b34d97d6a6cc15af5fa2be7aa0"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a394c73b34d97d6a6cc15af5fa2be7aa0">getJsonFromFileOrString</a> (Json::Value const &amp;value)</td></tr>
-<tr class="separator:a394c73b34d97d6a6cc15af5fa2be7aa0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aab796ac6602a0ecde1f58bc181127628"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#structtaraxa_1_1_node_config">NodeConfig</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#aab796ac6602a0ecde1f58bc181127628">dec_json</a> (const Json::Value &amp;json)</td></tr>
+<tr class="separator:aab796ac6602a0ecde1f58bc181127628"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3fdeda8aaed53f4c24ef36e0642d819a"><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ga3fdeda8aaed53f4c24ef36e0642d819a">operator&lt;&lt;</a> (std::ostream &amp;strm, <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> const &amp;pbft_chain)</td></tr>
 <tr class="separator:ga3fdeda8aaed53f4c24ef36e0642d819a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa90c9f0332c5cb6f975c11a607dfcb80"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#aa90c9f0332c5cb6f975c11a607dfcb80">getThresholdChange</a> (uint16_t efficiency, uint16_t target_efficiency, int32_t current_threshold)</td></tr>
@@ -655,9 +661,9 @@ ip</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
-<a id="ae0cd39b43c10f421e537483bfec486f7"></a>uint16_t</td>
+<a id="a13ec6be411c3c352858744678e0690da"></a>uint16_t</td>
 <td class="fieldname">
-udp_port</td>
+port</td>
 <td class="fielddoc">
 </td></tr>
 </table>
@@ -1325,8 +1331,54 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
+<a id="aab796ac6602a0ecde1f58bc181127628"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aab796ac6602a0ecde1f58bc181127628">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[1/12]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#structtaraxa_1_1_node_config">NodeConfig</a> taraxa::dec_json </td>
+          <td>(</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>json</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a74ad03c0d7a830dd89d7f10d6f941077"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a74ad03c0d7a830dd89d7f10d6f941077">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[2/12]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::dec_json </td>
+          <td>(</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>json</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structtaraxa_1_1_connection_config.html">ConnectionConfig</a> &amp;&#160;</td>
+          <td class="paramname"><em>config</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a681e859a51cfd602ec476273ae67ce91"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a681e859a51cfd602ec476273ae67ce91">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[1/9]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a681e859a51cfd602ec476273ae67ce91">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[3/12]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1354,7 +1406,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a9c00e55e957ffb65d8891c88785cf57e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9c00e55e957ffb65d8891c88785cf57e">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[2/9]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c00e55e957ffb65d8891c88785cf57e">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[4/12]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1381,8 +1433,36 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
+<a id="aa5e15ca58e0ad240f75a8c70883a00e0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa5e15ca58e0ad240f75a8c70883a00e0">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[5/12]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::dec_json </td>
+          <td>(</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>json</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structtaraxa_1_1_network_config.html">NetworkConfig</a> &amp;&#160;</td>
+          <td class="paramname"><em>network</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ad2584bf1da77275f513d1378d392fd99"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad2584bf1da77275f513d1378d392fd99">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[3/9]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ad2584bf1da77275f513d1378d392fd99">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[6/12]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1410,7 +1490,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a124545b9fa417446dd410b9c69701744"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a124545b9fa417446dd410b9c69701744">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[4/9]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a124545b9fa417446dd410b9c69701744">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[7/12]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1438,7 +1518,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a2850298ee300bd104ca9db9352abf63f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2850298ee300bd104ca9db9352abf63f">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[5/9]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a2850298ee300bd104ca9db9352abf63f">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[8/12]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1466,7 +1546,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a6ea909654b6cd15b58987ec4d1a9d0ab"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6ea909654b6cd15b58987ec4d1a9d0ab">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[6/9]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ea909654b6cd15b58987ec4d1a9d0ab">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[9/12]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1493,36 +1573,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a99340add0456c691068835a90b6a0f71"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a99340add0456c691068835a90b6a0f71">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[7/9]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::dec_json </td>
-          <td>(</td>
-          <td class="paramtype">Json::Value const &amp;&#160;</td>
-          <td class="paramname"><em>json</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="structtaraxa_1_1_chain_config.html">ChainConfig</a> &amp;&#160;</td>
-          <td class="paramname"><em>obj</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a1a7add6cdc2ba2969325ea1ad4723859"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1a7add6cdc2ba2969325ea1ad4723859">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[8/9]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a7add6cdc2ba2969325ea1ad4723859">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[10/12]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1549,8 +1601,36 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
+<a id="a110379ae3c76cbe68346680bc1aab397"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a110379ae3c76cbe68346680bc1aab397">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[11/12]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::dec_json </td>
+          <td>(</td>
+          <td class="paramtype">Json::Value const &amp;&#160;</td>
+          <td class="paramname"><em>json</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structtaraxa_1_1_genesis.html">Genesis</a> &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a6d4575c65b00ce4d77c66f41277ce170"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6d4575c65b00ce4d77c66f41277ce170">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[9/9]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a6d4575c65b00ce4d77c66f41277ce170">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[12/12]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1577,26 +1657,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a965558b5c14a833fa003214c7af7f7b5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a965558b5c14a833fa003214c7af7f7b5">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[1/9]</span></h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">Json::Value taraxa::enc_json </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="structtaraxa_1_1_chain_config.html">ChainConfig</a> const &amp;&#160;</td>
-          <td class="paramname"><em>obj</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a48523fb260955ed0881f6945e84066a3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a48523fb260955ed0881f6945e84066a3">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[2/9]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a48523fb260955ed0881f6945e84066a3">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[1/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1614,7 +1676,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="af048650cf3dc86bc3af3a4bdb4824df7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af048650cf3dc86bc3af3a4bdb4824df7">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[3/9]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#af048650cf3dc86bc3af3a4bdb4824df7">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[2/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1632,7 +1694,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a1011e62c651406e635b897eb61b57cff"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1011e62c651406e635b897eb61b57cff">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[4/9]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a1011e62c651406e635b897eb61b57cff">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[3/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1650,7 +1712,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a1a5366250b143fb8f68102999cd2f746"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1a5366250b143fb8f68102999cd2f746">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[5/9]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a5366250b143fb8f68102999cd2f746">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[4/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1668,7 +1730,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a9f02a416851542c70a97829c8e4e56d9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9f02a416851542c70a97829c8e4e56d9">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[6/9]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a9f02a416851542c70a97829c8e4e56d9">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[5/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1686,7 +1748,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a307376581a485cafa078a7f978c336af"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a307376581a485cafa078a7f978c336af">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[7/9]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a307376581a485cafa078a7f978c336af">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[6/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1704,7 +1766,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a7d7f3b69fe4c31d0649cf77226d9b155"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7d7f3b69fe4c31d0649cf77226d9b155">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[8/9]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a7d7f3b69fe4c31d0649cf77226d9b155">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[7/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1713,6 +1775,24 @@ template&lt;typename T &gt; </div>
           <td class="memname">Json::Value taraxa::enc_json </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="structtaraxa_1_1_gas_price_config.html">GasPriceConfig</a> const &amp;&#160;</td>
+          <td class="paramname"><em>obj</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a38da04aa3ccaa8dc8284943292a95c61"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a38da04aa3ccaa8dc8284943292a95c61">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[8/9]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">Json::Value taraxa::enc_json </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structtaraxa_1_1_genesis.html">Genesis</a> const &amp;&#160;</td>
           <td class="paramname"><em>obj</em></td><td>)</td>
           <td></td>
         </tr>
@@ -1891,8 +1971,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a410cc59f77a835513499b141da5b90bd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a410cc59f77a835513499b141da5b90bd">&#9670;&nbsp;</a></span>getConfigData()</h2>
+<a id="a6378934371ebf5122855eface28398ec"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6378934371ebf5122855eface28398ec">&#9670;&nbsp;</a></span>getConfigData()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1906,7 +1986,7 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::vector&lt; string &gt; const &amp;&#160;</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&#160;</td>
           <td class="paramname"><em>path</em>, </td>
         </tr>
         <tr>
@@ -1925,8 +2005,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a8f8b8779d441ce2fda119140436d52fc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8f8b8779d441ce2fda119140436d52fc">&#9670;&nbsp;</a></span>getConfigDataAsBoolean()</h2>
+<a id="a3eb36cfed892990b6cb869699a090d20"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3eb36cfed892990b6cb869699a090d20">&#9670;&nbsp;</a></span>getConfigDataAsBoolean()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1934,13 +2014,13 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="memname">bool taraxa::getConfigDataAsBoolean </td>
           <td>(</td>
-          <td class="paramtype">Json::Value const &amp;&#160;</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
           <td class="paramname"><em>root</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::vector&lt; string &gt; const &amp;&#160;</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&#160;</td>
           <td class="paramname"><em>path</em>, </td>
         </tr>
         <tr>
@@ -1965,8 +2045,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="aa7a0f4abbe589845d54d6a2a4a713b46"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa7a0f4abbe589845d54d6a2a4a713b46">&#9670;&nbsp;</a></span>getConfigDataAsString()</h2>
+<a id="abb2c0c0f2fe4e2d5dc10157861ca1fb9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abb2c0c0f2fe4e2d5dc10157861ca1fb9">&#9670;&nbsp;</a></span>getConfigDataAsString()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1974,13 +2054,13 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="memname">std::string taraxa::getConfigDataAsString </td>
           <td>(</td>
-          <td class="paramtype">Json::Value const &amp;&#160;</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
           <td class="paramname"><em>root</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::vector&lt; string &gt; const &amp;&#160;</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&#160;</td>
           <td class="paramname"><em>path</em>, </td>
         </tr>
         <tr>
@@ -2005,8 +2085,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a610ee020a223583b4a3d4b47d1a27d43"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a610ee020a223583b4a3d4b47d1a27d43">&#9670;&nbsp;</a></span>getConfigDataAsUInt()</h2>
+<a id="a3357cd6f870115a50951b8cc75d50d40"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3357cd6f870115a50951b8cc75d50d40">&#9670;&nbsp;</a></span>getConfigDataAsUInt()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2014,13 +2094,13 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="memname">uint32_t taraxa::getConfigDataAsUInt </td>
           <td>(</td>
-          <td class="paramtype">Json::Value const &amp;&#160;</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
           <td class="paramname"><em>root</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::vector&lt; string &gt; const &amp;&#160;</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&#160;</td>
           <td class="paramname"><em>path</em>, </td>
         </tr>
         <tr>
@@ -2045,8 +2125,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a7e6d1d1fc9f9ce55c61b6bc9e3b606ca"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7e6d1d1fc9f9ce55c61b6bc9e3b606ca">&#9670;&nbsp;</a></span>getConfigDataAsUInt64()</h2>
+<a id="acdf8560f0132265cb3dd4126cfd9f195"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acdf8560f0132265cb3dd4126cfd9f195">&#9670;&nbsp;</a></span>getConfigDataAsUInt64()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2054,13 +2134,13 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="memname">uint64_t taraxa::getConfigDataAsUInt64 </td>
           <td>(</td>
-          <td class="paramtype">Json::Value const &amp;&#160;</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
           <td class="paramname"><em>root</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">std::vector&lt; string &gt; const &amp;&#160;</td>
+          <td class="paramtype">const std::vector&lt; std::string &gt; &amp;&#160;</td>
           <td class="paramname"><em>path</em>&#160;</td>
         </tr>
         <tr>
@@ -2073,8 +2153,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="adad38f04626368561547d084efacae68"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adad38f04626368561547d084efacae68">&#9670;&nbsp;</a></span>getConfigErr()</h2>
+<a id="a025dc7d9035b4ab599f8c9d07410dc2b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a025dc7d9035b4ab599f8c9d07410dc2b">&#9670;&nbsp;</a></span>getConfigErr()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2082,7 +2162,7 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="memname">std::string taraxa::getConfigErr </td>
           <td>(</td>
-          <td class="paramtype">std::vector&lt; string &gt;&#160;</td>
+          <td class="paramtype">std::vector&lt; std::string &gt;&#160;</td>
           <td class="paramname"><em>path</em></td><td>)</td>
           <td></td>
         </tr>
@@ -2153,8 +2233,8 @@ template&lt;class T &gt; </div>
 
 </div>
 </div>
-<a id="a394c73b34d97d6a6cc15af5fa2be7aa0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a394c73b34d97d6a6cc15af5fa2be7aa0">&#9670;&nbsp;</a></span>getJsonFromFileOrString()</h2>
+<a id="ab1bcc118f66a254e727851a6455a20e7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab1bcc118f66a254e727851a6455a20e7">&#9670;&nbsp;</a></span>getJsonFromFileOrString()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2162,7 +2242,7 @@ template&lt;class T &gt; </div>
         <tr>
           <td class="memname">Json::Value taraxa::getJsonFromFileOrString </td>
           <td>(</td>
-          <td class="paramtype">Json::Value const &amp;&#160;</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
           <td class="paramname"><em>value</em></td><td>)</td>
           <td></td>
         </tr>
