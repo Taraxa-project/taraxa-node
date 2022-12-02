@@ -40,8 +40,7 @@ class PacketHandler {
    */
   void processPacket(const PacketData& packet_data);
 
-  void requestPbftNextVotesAtPeriodRound(const dev::p2p::NodeID& peerID, PbftPeriod pbft_period, PbftRound pbft_round,
-                                         size_t pbft_previous_round_next_votes_size);
+  void requestPbftNextVotesAtPeriodRound(const dev::p2p::NodeID& peerID, PbftPeriod pbft_period, PbftRound pbft_round);
 
  private:
   void handle_caught_exception(std::string_view exception_msg, const PacketData& packet_data,

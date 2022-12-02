@@ -15,39 +15,36 @@ GetVotesSyncPacketHandler::GetVotesSyncPacketHandler(
       next_votes_mgr_(std::move(next_votes_mgr)) {}
 
 void GetVotesSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
-  if (constexpr size_t required_size = 3; packet_data.rlp_.itemCount() != required_size) {
+  if (constexpr size_t required_size = 2; packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
 }
 
+// TODO: rename to GetNextVotesSyncPacket
 void GetVotesSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   LOG(log_dg_) << "Received GetVotesSyncPacket request";
 
   const PbftPeriod peer_pbft_period = packet_data.rlp_[0].toInt<PbftPeriod>();
   const PbftRound peer_pbft_round = packet_data.rlp_[1].toInt<PbftRound>();
-  const size_t peer_pbft_previous_round_next_votes_size = packet_data.rlp_[2].toInt<unsigned>();
   const auto [pbft_round, pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
-  const size_t pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();
 
-  if (pbft_period == peer_pbft_period &&
-      (pbft_round > peer_pbft_round ||
-       (pbft_round == peer_pbft_round &&
-        pbft_previous_round_next_votes_size > peer_pbft_previous_round_next_votes_size))) {
-    LOG(log_dg_) << "In PBFT period " << pbft_period << ", current PBFT round is " << pbft_round
-                 << " previous round next votes size " << pbft_previous_round_next_votes_size
-                 << ", and peer PBFT round is " << peer_pbft_round << " previous round next votes size "
-                 << peer_pbft_previous_round_next_votes_size << ". Will send out bundle of next votes";
-
-    // TODO: send also a block
-    auto next_votes_bundle = next_votes_mgr_->getNextVotes();
-    std::vector<std::shared_ptr<Vote>> send_next_votes_bundle;
-    for (auto &v : next_votes_bundle) {
-      if (!peer->isVoteKnown(v->getHash())) {
-        send_next_votes_bundle.push_back(std::move(v));
-      }
-    }
-    sendPbftVotes(peer, std::move(send_next_votes_bundle), true);
+  // Send votes only for current_period == peer_period && current_period >= peer_round
+  if (pbft_period != peer_pbft_period || pbft_round < peer_pbft_round) {
+    LOG(log_nf_) << "No next votes sync packet will be sent. pbft_period " << pbft_period << ", peer_pbft_period "
+                 << peer_pbft_period << ", pbft_round " << pbft_round << ", peer_pbft_round " << peer_pbft_round;
+    return;
   }
+
+  const auto next_votes_bundle = next_votes_mgr_->getNextVotes();
+  std::vector<std::shared_ptr<Vote>> next_votes;
+  for (auto &v : next_votes_bundle) {
+    if (!peer->isVoteKnown(v->getHash())) {
+      next_votes.push_back(std::move(v));
+    }
+  }
+
+  LOG(log_nf_) << "Next votes sync packet with " << next_votes.size() << " votes sent to " << peer->getId();
+  sendPbftVotesBundle(peer, std::move(next_votes));
 }
 
 }  // namespace taraxa::network::tarcap

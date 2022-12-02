@@ -161,7 +161,7 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
       // Do not request round sync too often here
       if (std::chrono::system_clock::now() - last_votes_sync_request_time_ > kSyncRequestInterval) {
         // request round votes sync from this node
-        requestPbftNextVotesAtPeriodRound(peer->getId(), current_pbft_period, current_pbft_round, 0);
+        requestPbftNextVotesAtPeriodRound(peer->getId(), current_pbft_period, current_pbft_round);
         last_votes_sync_request_time_ = std::chrono::system_clock::now();
       }
     }
@@ -272,85 +272,11 @@ bool ExtVotesPacketHandler::validateVoteAndBlock(const std::shared_ptr<Vote> &vo
   return true;
 }
 
-void ExtVotesPacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &block) {
-  for (const auto &peer : peers_state_->getAllPeers()) {
-    if (peer.second->syncing_) {
-      LOG(log_dg_) << " PBFT vote " << vote->getHash() << " not sent to " << peer.first << " peer syncing";
-      continue;
-    }
-
-    if (peer.second->isVoteKnown(vote->getHash())) {
-      continue;
-    }
-
-    // Peer already has pbft block, do not send it (do not check it for propose votes as it could happen that nodes
-    // re-propose the same block for new round, in which case we need to send the block again
-    if (vote->getType() != PbftVoteTypes::propose_vote && peer.second->isPbftBlockKnown(vote->getBlockHash())) {
-      sendPbftVote(peer.second, vote, nullptr);
-    } else {
-      sendPbftVote(peer.second, vote, block);
-    }
-  }
-}
-
-void ExtVotesPacketHandler::sendPbftVote(const std::shared_ptr<TaraxaPeer> &peer, const std::shared_ptr<Vote> &vote,
-                                         const std::shared_ptr<PbftBlock> &block) {
-  if (block && block->getBlockHash() != vote->getBlockHash()) {
-    LOG(log_er_) << "Vote " << vote->getHash().abridged() << " voted block " << vote->getBlockHash().abridged()
-                 << " != actual block " << block->getBlockHash().abridged();
-    return;
-  }
-
-  dev::RLPStream s(1);
-  if (block) {
-    s.appendList(kVotePacketWithBlockSize);
-    s.appendRaw(vote->rlp(true, false));
-    s.appendRaw(block->rlp(true));
-    s.append(pbft_chain_->getPbftChainSize());
-  } else {
-    s.appendRaw(vote->rlp(true, false));
-  }
-
-  if (sealAndSend(peer->getId(), SubprotocolPacketType::VotePacket, std::move(s))) {
-    peer->markVoteAsKnown(vote->getHash());
-    if (block) {
-      peer->markPbftBlockAsKnown(block->getBlockHash());
-      LOG(log_dg_) << " PBFT vote " << vote->getHash() << " together with block " << block->getBlockHash()
-                   << " sent to " << peer->getId();
-    } else {
-      LOG(log_dg_) << " PBFT vote " << vote->getHash() << " sent to " << peer->getId();
-    }
-  }
-}
-
-void ExtVotesPacketHandler::onNewPbftVotes(std::vector<std::shared_ptr<Vote>> &&votes, bool rebroadcast) {
-  for (const auto &peer : peers_state_->getAllPeers()) {
-    if (peer.second->syncing_) {
-      continue;
-    }
-
-    std::vector<std::shared_ptr<Vote>> peer_votes;
-    for (const auto &vote : votes) {
-      if (!rebroadcast && peer.second->isVoteKnown(vote->getHash())) {
-        continue;
-      }
-
-      peer_votes.push_back(vote);
-    }
-
-    sendPbftVotes(peer.second, std::move(peer_votes));
-  }
-}
-
-void ExtVotesPacketHandler::sendPbftVotes(const std::shared_ptr<TaraxaPeer> &peer,
-                                          std::vector<std::shared_ptr<Vote>> &&votes, bool is_next_votes) {
+void ExtVotesPacketHandler::sendPbftVotesBundle(const std::shared_ptr<TaraxaPeer> &peer,
+                                                std::vector<std::shared_ptr<Vote>> &&votes) {
   if (votes.empty()) {
     return;
   }
-
-  LOG(log_nf_) << "Send next votes type " << std::boolalpha << is_next_votes;
-  auto subprotocol_packet_type =
-      is_next_votes ? SubprotocolPacketType::VotesSyncPacket : SubprotocolPacketType::VotePacket;
 
   size_t index = 0;
   while (index < votes.size()) {
@@ -362,7 +288,7 @@ void ExtVotesPacketHandler::sendPbftVotes(const std::shared_ptr<TaraxaPeer> &pee
       LOG(log_dg_) << "Send vote " << vote->getHash() << " to peer " << peer->getId();
     }
 
-    if (sealAndSend(peer->getId(), subprotocol_packet_type, std::move(s))) {
+    if (sealAndSend(peer->getId(), SubprotocolPacketType::VotesSyncPacket, std::move(s))) {
       LOG(log_dg_) << count << " PBFT votes to were sent to " << peer->getId();
       for (auto i = index; i < index + count; i++) {
         peer->markVoteAsKnown(votes[i]->getHash());

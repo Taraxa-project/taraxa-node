@@ -17,8 +17,22 @@ class VotePacketHandler final : public ExtVotesPacketHandler {
                     std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
                     std::shared_ptr<NextVotesManager> next_votes_mgr, const addr_t& node_addr);
 
+  /**
+   * @brief Sends pbft vote to connected peers
+   *
+   * @param vote Votes to send
+   * @param block block to send - nullptr means no block
+   */
+  void onNewPbftVote(const std::shared_ptr<Vote>& vote, const std::shared_ptr<PbftBlock>& block);
+  void sendPbftVote(const std::shared_ptr<TaraxaPeer>& peer, const std::shared_ptr<Vote>& vote,
+                    const std::shared_ptr<PbftBlock>& block);
+
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::VotePacket;
+
+ private:
+  const size_t kVotePacketSize{1};
+  const size_t kExtendedVotePacketSize{3};
 
  private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;

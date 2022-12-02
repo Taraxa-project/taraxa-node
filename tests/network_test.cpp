@@ -17,6 +17,7 @@
 #include "network/tarcap/packets_handlers/get_votes_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/status_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "test_util/samples.hpp"
@@ -174,8 +175,7 @@ TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
   auto node2_id = nw2->getNodeId();
   ASSERT_NE(node1->getPbftChain()->getPbftChainSize(), nw1->getPeer(node2_id)->pbft_chain_size_);
 
-  nw2->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->sendPbftVote(nw1->getPeer(node2_id), vote,
-                                                                                   pbft_block);
+  nw2->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVote(nw1->getPeer(node2_id), vote, pbft_block);
 
   EXPECT_HAPPENS({10s, 200ms}, [&](auto& ctx) {
     WAIT_EXPECT_EQ(ctx, nw1->getPeer(node2_id)->pbft_chain_size_, node1->getPbftChain()->getPbftChainSize())

@@ -8,6 +8,7 @@
 
 #include "network/network.hpp"
 #include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
 #include "pbft/pbft_manager.hpp"
 
 namespace taraxa {
@@ -729,7 +730,8 @@ void VoteManager::sendRewardVotes(const blk_hash_t& pbft_block_hash, bool rebroa
   if (reward_votes.empty()) return;
 
   if (auto net = network_.lock()) {
-    net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(std::move(reward_votes), rebroadcast);
+    net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(reward_votes),
+                                                                                             rebroadcast);
   }
 }
 

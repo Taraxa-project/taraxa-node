@@ -26,6 +26,16 @@ class VotesSyncPacketHandler final : public ExtVotesPacketHandler {
    */
   void broadcastPreviousRoundNextVotesBundle(bool rebroadcast = false);
 
+  /**
+   * @brief Sends pbft votes bundle to connected peers
+   *
+   * @param votes Votes to send
+   * @param rebroadcast if rebroadcast is true, all votes are resent to all peers
+   * @param exclude_node do not send votes to excluded node
+   */
+  void onNewPbftVotesBundle(std::vector<std::shared_ptr<Vote>>&& votes, bool rebroadcast = false,
+                            const std::optional<dev::p2p::NodeID>& exclude_node = {});
+
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::VotesSyncPacket;
 

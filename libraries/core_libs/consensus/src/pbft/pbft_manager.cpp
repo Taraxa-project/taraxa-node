@@ -711,7 +711,7 @@ void PbftManager::broadcastVotes(bool rebroadcast) {
   }
 
   if (auto soft_voted_block_data = getTwoTPlusOneSoftVotedBlockData(period, round); soft_voted_block_data.has_value()) {
-    net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVotes(
+    net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(
         std::move(soft_voted_block_data->soft_votes_), rebroadcast);
     vote_mgr_->sendRewardVotes(getLastPbftBlockHash(), rebroadcast);
   }
