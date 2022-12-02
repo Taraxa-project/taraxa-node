@@ -10,7 +10,6 @@ var classtaraxa_1_1vdf__sortition_1_1_vdf_sortition =
     [ "getComputationTime", "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a16d744db3c9e0dc2a971719e985ffbcb", null ],
     [ "getDifficulty", "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a89234eac485bbc7013ba708f244bd550", null ],
     [ "getJson", "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a9d14e797d26726d8fe52150c007cf1c4", null ],
-    [ "isOmitVdf", "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a2634b68502932eb1d78847beb6638097", null ],
     [ "isStale", "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a287e4796ee5701716a830de33e1e1b89", null ],
     [ "operator!=", "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a5a4fba6316b7e9623682c438dadd9cb5", null ],
     [ "operator==", "classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html#a626efa5303c95075b158517732cca53a", null ],

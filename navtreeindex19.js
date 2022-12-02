@@ -1,5 +1,6 @@
 var NAVTREEINDEX19 =
 {
+"namespacemembers_g.html":[13,0,7],
 "namespacemembers_h.html":[13,0,8],
 "namespacemembers_i.html":[13,0,9],
 "namespacemembers_j.html":[13,0,10],
@@ -248,6 +249,5 @@ var NAVTREEINDEX19 =
 "sortition_8hpp.html":[15,0,1,7,0,0,1],
 "sortition_8hpp_source.html":[15,0,1,7,0,0,1],
 "sortition__params__manager_8cpp.html":[15,0,1,4,0,1,0,3],
-"sortition__params__manager_8cpp.html#aa90c9f0332c5cb6f975c11a607dfcb80":[15,0,1,4,0,1,0,3,1],
-"sortition__params__manager_8cpp.html#ada5bb0a560627ca344997d1e5b52c415":[15,0,1,4,0,1,0,3,0]
+"sortition__params__manager_8cpp.html#aa90c9f0332c5cb6f975c11a607dfcb80":[15,0,1,4,0,1,0,3,1]
 };

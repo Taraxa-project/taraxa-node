@@ -1,5 +1,6 @@
 var NAVTREEINDEX18 =
 {
+"md_doc_coding_practices.html#autotoc_md120":[52],
 "md_doc_coding_practices.html#autotoc_md121":[2,0,13],
 "md_doc_coding_practices.html#autotoc_md122":[53],
 "md_doc_coding_practices.html#autotoc_md123":[54],
@@ -248,6 +249,5 @@ var NAVTREEINDEX18 =
 "namespacemembers_func_t.html":[13,1,18],
 "namespacemembers_func_u.html":[13,1,19],
 "namespacemembers_func_v.html":[13,1,20],
-"namespacemembers_func_w.html":[13,1,21],
-"namespacemembers_g.html":[13,0,7]
+"namespacemembers_func_w.html":[13,1,21]
 };

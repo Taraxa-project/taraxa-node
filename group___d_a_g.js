@@ -260,6 +260,8 @@ var group___d_a_g =
       [ "getNumEdgesInDag", "group___d_a_g.html#a45ba709af4dcfcac0d71bc458f407a2a", null ],
       [ "getNumVerticesInDag", "group___d_a_g.html#a9cf1a5a8f6925a71885b319ed46d64af", null ],
       [ "getShared", "group___d_a_g.html#aa8d1eb570a2cba814ff88f3500fe3fa1", null ],
+      [ "getVdfMessage", "group___d_a_g.html#a668474499dbff8925ddaa637faf6a7d4", null ],
+      [ "getVdfMessage", "group___d_a_g.html#acbbdcb25746648ebadbd104631c11113", null ],
       [ "handleExpiredDagBlocksTransactions", "group___d_a_g.html#a05d925eccd7403ab607e5f70793c19e0", null ],
       [ "isDagBlockKnown", "group___d_a_g.html#a478ed805801b09b4d80b940473840822", null ],
       [ "isLightNode", "group___d_a_g.html#a94f485fa25235a24f8ce24aaf061fa6f", null ],

@@ -2680,6 +2680,13 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr class="memitem:a029c23493b0db3bf8f2a1279df404b7e"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a029c23493b0db3bf8f2a1279df404b7e">getDagExpiryLevel</a> ()</td></tr>
 <tr class="memdesc:a029c23493b0db3bf8f2a1279df404b7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag" title="Thread safe. Labelled graph.">Dag</a> expiry level.  <a href="group___d_a_g.html#a029c23493b0db3bf8f2a1279df404b7e">More...</a><br /></td></tr>
 <tr class="separator:a029c23493b0db3bf8f2a1279df404b7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr><td colspan="2"><h3>Static Public Member Functions</h3></td></tr>
+<tr class="memitem:a668474499dbff8925ddaa637faf6a7d4"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a668474499dbff8925ddaa637faf6a7d4">getVdfMessage</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;hash, <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> const &amp;trxs)</td></tr>
+<tr class="memdesc:a668474499dbff8925ddaa637faf6a7d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves VDF message from block hash and transactions.  <a href="group___d_a_g.html#a668474499dbff8925ddaa637faf6a7d4">More...</a><br /></td></tr>
+<tr class="separator:a668474499dbff8925ddaa637faf6a7d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acbbdcb25746648ebadbd104631c11113"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#acbbdcb25746648ebadbd104631c11113">getVdfMessage</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;hash, std::vector&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt; const &amp;trx_hashes)</td></tr>
+<tr class="memdesc:acbbdcb25746648ebadbd104631c11113"><td class="mdescLeft">&#160;</td><td class="mdescRight">Retrieves VDF message from block hash and transactions.  <a href="group___d_a_g.html#acbbdcb25746648ebadbd104631c11113">More...</a><br /></td></tr>
+<tr class="separator:acbbdcb25746648ebadbd104631c11113"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Public Attributes</h3></td></tr>
 <tr class="memitem:a3935e897459f808552ad22fa79fdae84"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="classtaraxa_1_1util_1_1event_1_1_event.html">util::Event</a>&lt; <a class="el" href="group___d_a_g.html#classtaraxa_1_1_dag_manager">DagManager</a>, <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a3935e897459f808552ad22fa79fdae84">block_verified_</a> {}</td></tr>
 <tr class="separator:a3935e897459f808552ad22fa79fdae84"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -3650,6 +3657,84 @@ Collaboration diagram for taraxa::DagManager:</div>
         </tr>
       </table>
 </div><div class="memdoc">
+
+</div>
+</div>
+<a id="a668474499dbff8925ddaa637faf6a7d4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a668474499dbff8925ddaa637faf6a7d4">&#9670;&nbsp;</a></span>getVdfMessage() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a> taraxa::DagManager::getVdfMessage </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;&#160;</td>
+          <td class="paramname"><em>hash</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> const &amp;&#160;</td>
+          <td class="paramname"><em>trxs</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Retrieves VDF message from block hash and transactions. </p>
+<dl class="section return"><dt>Returns</dt><dd>message </dd></dl>
+
+</div>
+</div>
+<a id="acbbdcb25746648ebadbd104631c11113"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acbbdcb25746648ebadbd104631c11113">&#9670;&nbsp;</a></span>getVdfMessage() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a> taraxa::DagManager::getVdfMessage </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;&#160;</td>
+          <td class="paramname"><em>hash</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt; const &amp;&#160;</td>
+          <td class="paramname"><em>trx_hashes</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Retrieves VDF message from block hash and transactions. </p>
+<dl class="section return"><dt>Returns</dt><dd>message </dd></dl>
 
 </div>
 </div>
