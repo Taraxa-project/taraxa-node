@@ -2,7 +2,7 @@
 
 #include <boost/circular_buffer.hpp>
 
-#include "config/chain_config.hpp"
+#include "config/genesis.hpp"
 #include "final_chain/final_chain.hpp"
 
 namespace taraxa {

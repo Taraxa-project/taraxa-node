@@ -47,7 +47,7 @@ void FullNode::init() {
                << EthReset << "Node VRF public key: " << EthGreen
                << vrf_wrapper::getVrfPublicKey(conf_.vrf_secret).toString() << EthReset;
 
-  if (!conf_.chain.dag_genesis_block.verifySig()) {
+  if (!conf_.genesis.dag_genesis_block.verifySig()) {
     LOG(log_er_) << "Genesis block is invalid";
     assert(false);
   }
@@ -75,18 +75,18 @@ void FullNode::init() {
                                         conf_.db_config.db_revert_to_period, node_addr);
     }
     if (db_->getNumDagBlocks() == 0) {
-      db_->saveDagBlock(conf_.chain.dag_genesis_block);
-      db_->setGenesisHash(conf_.chain.genesisHash());
+      db_->saveDagBlock(conf_.genesis.dag_genesis_block);
+      db_->setGenesisHash(conf_.genesis.genesisHash());
     }
   }
   LOG(log_nf_) << "DB initialized ...";
 
-  gas_pricer_ = std::make_shared<GasPricer>(conf_.chain.gas_price, conf_.is_light_node, db_);
+  gas_pricer_ = std::make_shared<GasPricer>(conf_.genesis.gas_price, conf_.is_light_node, db_);
   final_chain_ = NewFinalChain(db_, conf_, node_addr);
   key_manager_ = std::make_shared<KeyManager>(final_chain_);
   trx_mgr_ = std::make_shared<TransactionManager>(conf_, db_, final_chain_, node_addr);
 
-  auto genesis_hash = conf_.chain.genesisHash();
+  auto genesis_hash = conf_.genesis.genesisHash();
   auto genesis_hash_from_db = db_->getGenesisHash();
   if (!genesis_hash_from_db.has_value()) {
     LOG(log_er_) << "Genesis hash was not found in DB. Something is wrong";
@@ -97,20 +97,20 @@ void FullNode::init() {
                  << (genesis_hash_from_db.has_value() ? *genesis_hash_from_db : h256(0)) << " in DB";
     assert(false);
   }
-  auto dag_genesis_block_hash = conf_.chain.dag_genesis_block.getHash();
+  auto dag_genesis_block_hash = conf_.genesis.dag_genesis_block.getHash();
 
   pbft_chain_ = std::make_shared<PbftChain>(node_addr, db_);
   next_votes_mgr_ = std::make_shared<NextVotesManager>(node_addr, db_, final_chain_);
   dag_mgr_ =
-      std::make_shared<DagManager>(dag_genesis_block_hash, node_addr, conf_.chain.sortition, conf_.chain.dag, trx_mgr_,
-                                   pbft_chain_, final_chain_, db_, key_manager_, conf_.is_light_node,
+      std::make_shared<DagManager>(dag_genesis_block_hash, node_addr, conf_.genesis.sortition, conf_.genesis.dag,
+                                   trx_mgr_, pbft_chain_, final_chain_, db_, key_manager_, conf_.is_light_node,
                                    conf_.light_node_history, conf_.max_levels_per_period, conf_.dag_expiry_limit);
   vote_mgr_ = std::make_shared<VoteManager>(node_addr, db_, pbft_chain_, final_chain_, next_votes_mgr_);
-  pbft_mgr_ = std::make_shared<PbftManager>(conf_.chain.pbft, dag_genesis_block_hash, node_addr, db_, pbft_chain_,
+  pbft_mgr_ = std::make_shared<PbftManager>(conf_.genesis.pbft, dag_genesis_block_hash, node_addr, db_, pbft_chain_,
                                             vote_mgr_, next_votes_mgr_, dag_mgr_, trx_mgr_, final_chain_, key_manager_,
                                             kp_.secret(), conf_.vrf_secret, conf_.max_levels_per_period);
   dag_block_proposer_ =
-      std::make_shared<DagBlockProposer>(conf_.chain.dag.block_proposer, dag_mgr_, trx_mgr_, final_chain_, db_,
+      std::make_shared<DagBlockProposer>(conf_.genesis.dag.block_proposer, dag_mgr_, trx_mgr_, final_chain_, db_,
                                          key_manager_, node_addr, getSecretKey(), getVrfSecretKey());
   network_ = std::make_shared<Network>(conf_, genesis_hash, dev::p2p::Host::CapabilitiesFactory(),
                                        conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_, vote_mgr_,
@@ -123,12 +123,12 @@ void FullNode::start() {
   }
 
   // Inits rpc related members
-  if (conf_.rpc) {
-    rpc_thread_pool_ = std::make_unique<util::ThreadPool>(conf_.rpc->threads_num);
+  if (conf_.network.rpc) {
+    rpc_thread_pool_ = std::make_unique<util::ThreadPool>(conf_.network.rpc->threads_num);
     net::rpc::eth::EthParams eth_rpc_params;
     eth_rpc_params.address = getAddress();
-    eth_rpc_params.chain_id = conf_.chain_id;
-    eth_rpc_params.gas_limit = conf_.chain.dag.gas_limit;
+    eth_rpc_params.chain_id = conf_.genesis.chain_id;
+    eth_rpc_params.gas_limit = conf_.genesis.dag.gas_limit;
     eth_rpc_params.final_chain = final_chain_;
     eth_rpc_params.gas_pricer = [gas_pricer = gas_pricer_]() { return gas_pricer->bid(); };
     eth_rpc_params.get_trx = [db = db_](auto const &trx_hash) { return db->getTransaction(trx_hash); };
@@ -168,18 +168,19 @@ void FullNode::start() {
                                                             // lifecycle/dependency management is more complicated
         eth_json_rpc, test_json_rpc);
 
-    if (conf_.rpc->http_port) {
+    if (conf_.network.rpc->http_port) {
       auto json_rpc_processor = std::make_shared<net::JsonRpcHttpProcessor>();
       jsonrpc_http_ = std::make_shared<net::HttpServer>(
           rpc_thread_pool_->unsafe_get_io_context(),
-          boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->http_port}, getAddress(), json_rpc_processor);
+          boost::asio::ip::tcp::endpoint{conf_.network.rpc->address, *conf_.network.rpc->http_port}, getAddress(),
+          json_rpc_processor);
       jsonrpc_api_->addConnector(json_rpc_processor);
       jsonrpc_http_->start();
     }
-    if (conf_.rpc->ws_port) {
+    if (conf_.network.rpc->ws_port) {
       jsonrpc_ws_ = std::make_shared<net::JsonRpcWsServer>(
           rpc_thread_pool_->unsafe_get_io_context(),
-          boost::asio::ip::tcp::endpoint{conf_.rpc->address, *conf_.rpc->ws_port}, getAddress());
+          boost::asio::ip::tcp::endpoint{conf_.network.rpc->address, *conf_.network.rpc->ws_port}, getAddress());
       jsonrpc_api_->addConnector(jsonrpc_ws_);
       jsonrpc_ws_->run();
     }
@@ -219,21 +220,23 @@ void FullNode::start() {
         },
         *rpc_thread_pool_);
   }
-  if (conf_.graphql) {
-    graphql_thread_pool_ = std::make_unique<util::ThreadPool>(conf_.graphql->threads_num);
-    if (conf_.graphql->ws_port) {
+  if (conf_.network.graphql) {
+    graphql_thread_pool_ = std::make_unique<util::ThreadPool>(conf_.network.graphql->threads_num);
+    if (conf_.network.graphql->ws_port) {
       graphql_ws_ = std::make_shared<net::GraphQlWsServer>(
           graphql_thread_pool_->unsafe_get_io_context(),
-          boost::asio::ip::tcp::endpoint{conf_.graphql->address, *conf_.graphql->ws_port}, getAddress());
+          boost::asio::ip::tcp::endpoint{conf_.network.graphql->address, *conf_.network.graphql->ws_port},
+          getAddress());
       // graphql_ws_->run();
     }
 
-    if (conf_.graphql->http_port) {
+    if (conf_.network.graphql->http_port) {
       graphql_http_ = std::make_shared<net::HttpServer>(
           graphql_thread_pool_->unsafe_get_io_context(),
-          boost::asio::ip::tcp::endpoint{conf_.graphql->address, *conf_.graphql->http_port}, getAddress(),
+          boost::asio::ip::tcp::endpoint{conf_.network.graphql->address, *conf_.network.graphql->http_port},
+          getAddress(),
           std::make_shared<net::GraphQlHttpProcessor>(final_chain_, dag_mgr_, pbft_mgr_, trx_mgr_, db_, gas_pricer_,
-                                                      as_weak(network_), conf_.chain_id));
+                                                      as_weak(network_), conf_.genesis.chain_id));
       graphql_http_->start();
     }
   }
@@ -258,14 +261,14 @@ void FullNode::start() {
   // Subscription to process hardforks
   // final_chain_->block_applying_.subscribe([&](uint64_t block_num) {
   //   // TODO: should have only common hardfork code calling hardfork executor
-  //   auto &state_conf = conf_.chain.final_chain.state;
+  //   auto &state_conf = conf_.genesis.state;
   //   if (state_conf.hardforks.fix_genesis_fork_block == block_num) {
   //     for (auto &e : state_conf.dpos->genesis_state) {
   //       for (auto &b : e.second) {
   //         b.second *= kOneTara;
   //       }
   //     }
-  //     for (auto &b : state_conf.genesis_balances) {
+  //     for (auto &b : state_conf.initial_balances) {
   //       b.second *= kOneTara;
   //     }
   //     // we are multiplying it by TARA precision
@@ -273,7 +276,8 @@ void FullNode::start() {
   //     // amount of stake per vote should be 10 times smaller than eligibility threshold
   //     state_conf.dpos->vote_eligibility_balance_step.assign(state_conf.dpos->eligibility_balance_threshold);
   //     state_conf.dpos->eligibility_balance_threshold *= 10;
-  //     conf_.overwrite_chain_config_in_file();
+  //     // if this part of code will be needed we need to overwrite genesis json here
+  //     // conf_.overwrite_chain_config_in_file();
   //     final_chain_->update_state_config(state_conf);
   //   }
   // });

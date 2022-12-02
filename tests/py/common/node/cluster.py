@@ -22,8 +22,8 @@ class Cluster:
 
     @staticmethod
     def from_new_nodes(config_and_wallet_path_pairs, init_mode: Node.InitMode, wait_interconnect=True):
-        return Cluster((Node(cfg_path, wallet_path, init_mode)
-                        for cfg_path, wallet_path in config_and_wallet_path_pairs),
+        return Cluster((Node(cfg_path, wallet_path, genesis_path, init_mode)
+                        for cfg_path, wallet_path, genesis_path in config_and_wallet_path_pairs),
                        wait_interconnect=wait_interconnect)
 
     def __iter__(self):

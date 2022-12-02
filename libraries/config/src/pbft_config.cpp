@@ -7,7 +7,7 @@ namespace taraxa {
 
 Json::Value enc_json(PbftConfig const& obj) {
   Json::Value ret(Json::objectValue);
-  ret["lambda_ms_min"] = dev::toJS(obj.lambda_ms_min);
+  ret["lambda_ms"] = dev::toJS(obj.lambda_ms);
   ret["committee_size"] = dev::toJS(obj.committee_size);
   ret["number_of_proposers"] = dev::toJS(obj.number_of_proposers);
   ret["dag_blocks_size"] = dev::toJS(obj.dag_blocks_size);
@@ -17,7 +17,7 @@ Json::Value enc_json(PbftConfig const& obj) {
 }
 
 void dec_json(Json::Value const& json, PbftConfig& obj) {
-  obj.lambda_ms_min = dev::jsToInt(json["lambda_ms_min"].asString());
+  obj.lambda_ms = dev::jsToInt(json["lambda_ms"].asString());
   obj.committee_size = dev::jsToInt(json["committee_size"].asString());
   obj.number_of_proposers = dev::jsToInt(json["number_of_proposers"].asString());
   obj.dag_blocks_size = dev::jsToInt(json["dag_blocks_size"].asString());
@@ -29,7 +29,7 @@ bytes PbftConfig::rlp() const {
   dev::RLPStream s;
   s.appendList(6);
 
-  s << lambda_ms_min;
+  s << lambda_ms;
   s << committee_size;
   s << number_of_proposers;
   s << dag_blocks_size;

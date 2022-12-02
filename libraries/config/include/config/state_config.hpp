@@ -54,7 +54,7 @@ struct DPOSConfig {
   uint32_t commission_change_frequency = 0;  // number of blocks
   uint32_t delegation_delay = 5;             // number of blocks
   uint32_t delegation_locking_period = 5;    // number of blocks
-  uint32_t blocks_per_year = 0;              // number of blocks - it is calculated from lambda_ms_min
+  uint32_t blocks_per_year = 0;              // number of blocks - it is calculated from lambda_ms
   uint16_t yield_percentage = 0;             // [%]
   std::vector<ValidatorInfo> initial_validators;
 
@@ -63,29 +63,15 @@ struct DPOSConfig {
 Json::Value enc_json(const DPOSConfig& obj);
 void dec_json(const Json::Value& json, DPOSConfig& obj);
 
-struct BlockRewardsOptions {
-  // Disables new tokens generation as block reward
-  bool disable_block_rewards = false;
-
-  // TODO: once we fix tests, this flag can be deleted as rewards should be processed only in dpos contract
-  // Disbales rewards distribution through contract - rewards are added directly to the validators accounts
-  bool disable_contract_distribution = false;
-
-  HAS_RLP_FIELDS
-};
-Json::Value enc_json(BlockRewardsOptions const& obj);
-void dec_json(Json::Value const& json, BlockRewardsOptions& obj);
-
 struct Config {
   ETHChainConfig eth_chain_config;
-  BlockRewardsOptions block_rewards_options;
-  BalanceMap genesis_balances;
+  BalanceMap initial_balances;
   DPOSConfig dpos;
   // Hardforks hardforks;
 
   HAS_RLP_FIELDS
 };
-Json::Value enc_json(const Config& obj);
+void append_json(Json::Value& json, const Config& obj);
 void dec_json(const Json::Value& json, Config& obj);
 
 struct Opts {

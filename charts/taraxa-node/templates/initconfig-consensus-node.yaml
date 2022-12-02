@@ -59,7 +59,7 @@ data:
       with open(config) as f:
         data = json.load(f)
 
-        initial_validators = data['chain_config']['final_chain']['state']['dpos']['initial_validators']
+        initial_validators = data['dpos']['initial_validators']
         
         # get delegations from 1st default validator 
         delegations = initial_validators[0]['delegations']
@@ -83,7 +83,7 @@ data:
           validator['vrf_key'] = get_vrf_public(vrfs[idx])
           validators.append(validator)
 
-        data['chain_config']['final_chain']['state']['dpos']['initial_validators'] = validators
+        data['dpos']['initial_validators'] = validators
         print(json.dumps(data))
 
     if __name__ == "__main__":
@@ -94,10 +94,12 @@ data:
     #!/bin/bash
     DATA_PATH=/root/.taraxa
     CONFIG_PATH=$DATA_PATH/conf_taraxa.json
+    GENESIS_PATH=$DATA_PATH/genesis_taraxa.json
     WALLET_PATH=$DATA_PATH/wallet_taraxa.json
 
     echo "Cleaning up old config..."
     rm -rf $CONFIG_PATH
+    rm -rf $GENESIS_PATH
 
     echo "Generating config"
     INDEX=${HOSTNAME##*-}
@@ -151,19 +153,26 @@ data:
       {{ join " " .Values.config.extraArgs }} \
       {{- end }}
       --config $CONFIG_PATH \
+      --genesis $GENESIS_PATH \
       --wallet $WALLET_PATH \
       --data-dir $DATA_PATH
 
     {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
-    python3 /bin/genconfig.py $CONFIG_PATH > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
+    python3 /bin/genconfig.py $GENESIS_PATH > $GENESIS_PATH.tmp && mv $GENESIS_PATH.tmp $GENESIS_PATH
     {{- end }}
 
     {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
     {{ if .Values.explorer.enabled }}
     export FAUCET_ADDRESS=$(taraxad --command account ${EXPLORER_FAUCET_PRIVATE_KEY} | grep node_address | cut -d\  -f3 | tr -d \")
-    cat $CONFIG_PATH | jq '.chain_config.final_chain.state.genesis_balances += ({("0x"+env.FAUCET_ADDRESS): "0x1027e72f1f12813088000000"})' > $CONFIG_PATH.tmp && mv $CONFIG_PATH.tmp $CONFIG_PATH
+    cat $GENESIS_PATH | jq '.initial_balances += ({("0x"+env.FAUCET_ADDRESS): "0x1027e72f1f12813088000000"})' > $GENESIS_PATH.tmp && mv $GENESIS_PATH.tmp $GENESIS_PATH
     {{- end }}
     {{- end }}
 
+    echo "***** $CONFIG_PATH *****"
     cat $CONFIG_PATH
+    echo "***** $CONFIG_PATH *****"
+
+    echo "***** $GENESIS_PATH *****"
+    cat $GENESIS_PATH
+    echo "***** $GENESIS_PATH *****"
 {{- end }}

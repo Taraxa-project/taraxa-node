@@ -106,7 +106,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   const auto sortition_params = dag_mgr1->sortitionParamsManager().getSortitionParams(proposal_period);
   vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
                                   VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash));
-  const auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
+  const auto dag_genesis = node1->getConfig().genesis.dag_genesis_block.getHash();
   dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trxs[0]});
   vdf.computeVdfSolution(sortition_params, vdf_msg, false);
   DagBlock blk(dag_genesis, proposal_level, {}, {trxs[0]->getHash()}, estimation, vdf, node1->getSecretKey());
@@ -189,7 +189,7 @@ TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
 
 TEST_F(NetworkTest, malicious_peers) {
   FullNodeConfig conf;
-  conf.network.network_peer_blacklist_timeout = 2;
+  conf.network.peer_blacklist_timeout = 2;
   std::shared_ptr<dev::p2p::Host> host;
   EXPECT_EQ(conf.network.disable_peer_blacklist, false);
   network::tarcap::PeersState state1(host, dev::p2p::NodeID(), conf);
@@ -199,20 +199,20 @@ TEST_F(NetworkTest, malicious_peers) {
   EXPECT_EQ(state1.is_peer_malicious(id1), true);
   EXPECT_EQ(state1.is_peer_malicious(id2), false);
 
-  conf.network.network_peer_blacklist_timeout = 0;
+  conf.network.peer_blacklist_timeout = 0;
   network::tarcap::PeersState state2(host, dev::p2p::NodeID(), conf);
   state2.set_peer_malicious(id1);
   EXPECT_EQ(state2.is_peer_malicious(id1), true);
   EXPECT_EQ(state2.is_peer_malicious(id2), false);
 
-  conf.network.network_peer_blacklist_timeout = 2;
+  conf.network.peer_blacklist_timeout = 2;
   conf.network.disable_peer_blacklist = true;
   network::tarcap::PeersState state3(host, dev::p2p::NodeID(), conf);
   state1.set_peer_malicious(id1);
   EXPECT_EQ(state3.is_peer_malicious(id1), false);
   EXPECT_EQ(state3.is_peer_malicious(id2), false);
 
-  conf.network.network_peer_blacklist_timeout = 0;
+  conf.network.peer_blacklist_timeout = 0;
   conf.network.disable_peer_blacklist = true;
   network::tarcap::PeersState state4(host, dev::p2p::NodeID(), conf);
   state1.set_peer_malicious(id1);
@@ -237,8 +237,8 @@ TEST_F(NetworkTest, malicious_peers) {
 TEST_F(NetworkTest, sync_large_pbft_block) {
   const uint32_t MAX_PACKET_SIZE = 15 * 1024 * 1024;  // 15 MB -> 15 * 1024 * 1024 B
   auto node_cfgs = make_node_cfgs<5>(2);
-  node_cfgs[0].chain.pbft.gas_limit = TEST_BLOCK_GAS_LIMIT;
-  node_cfgs[1].chain.pbft.gas_limit = TEST_BLOCK_GAS_LIMIT;
+  node_cfgs[0].genesis.pbft.gas_limit = TEST_BLOCK_GAS_LIMIT;
+  node_cfgs[1].genesis.pbft.gas_limit = TEST_BLOCK_GAS_LIMIT;
   auto nodes = launch_nodes({node_cfgs[0]});
 
   // Create 250 transactions, each one has 10k dummy data
@@ -399,16 +399,16 @@ TEST_F(NetworkTest, node_chain_id) {
   auto node_cfgs = make_node_cfgs(2);
   {
     auto node_cfgs_ = node_cfgs;
-    node_cfgs_[0].chain_id = 1;
-    node_cfgs_[1].chain_id = 1;
+    node_cfgs_[0].genesis.chain_id = 1;
+    node_cfgs_[1].genesis.chain_id = 1;
     auto nodes = launch_nodes(node_cfgs_);
   }
   // we need to cleanup datadirs because we saved previous genesis_hash in db. And it is different after chain_id
   // change
   CleanupDirs();
   {
-    node_cfgs[0].chain_id = 1;
-    node_cfgs[1].chain_id = 2;
+    node_cfgs[0].genesis.chain_id = 1;
+    node_cfgs[1].genesis.chain_id = 2;
 
     auto nodes = create_nodes(node_cfgs, true /*start*/);
 
@@ -431,11 +431,11 @@ TEST_F(NetworkTest, node_sync) {
 
   std::vector<std::pair<DagBlock, std::shared_ptr<Transaction>>> blks;
   // Generate DAG blocks
-  const auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
+  const auto dag_genesis = node1->getConfig().genesis.dag_genesis_block.getHash();
   const auto sk = node1->getSecretKey();
   const auto vrf_sk = node1->getVrfSecretKey();
   const auto estimation = node1->getTransactionManager()->estimateTransactionGas(g_signed_trx_samples[0], {});
-  SortitionConfig vdf_config(node_cfgs[0].chain.sortition);
+  SortitionConfig vdf_config(node_cfgs[0].genesis.sortition);
 
   auto propose_level = 1;
   const auto period_block_hash = node1->getDB()->getPeriodBlockHash(propose_level);
@@ -522,10 +522,10 @@ TEST_F(NetworkTest, node_pbft_sync) {
   auto db1 = node1->getDB();
   auto pbft_chain1 = node1->getPbftChain();
 
-  auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
+  auto dag_genesis = node1->getConfig().genesis.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
   auto vrf_sk = node1->getVrfSecretKey();
-  SortitionConfig vdf_config(node_cfgs[0].chain.sortition);
+  SortitionConfig vdf_config(node_cfgs[0].genesis.sortition);
   auto batch = db1->createWriteBatch();
 
   // generate first PBFT block sample
@@ -689,10 +689,10 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   auto db1 = node1->getDB();
   auto pbft_chain1 = node1->getPbftChain();
 
-  auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
+  auto dag_genesis = node1->getConfig().genesis.dag_genesis_block.getHash();
   auto sk = node1->getSecretKey();
   auto vrf_sk = node1->getVrfSecretKey();
-  SortitionConfig vdf_config(node_cfgs[0].chain.sortition);
+  SortitionConfig vdf_config(node_cfgs[0].genesis.sortition);
   auto batch = db1->createWriteBatch();
 
   // generate first PBFT block sample
@@ -999,12 +999,12 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
 
   std::vector<DagBlock> blks;
   // Generate DAG blocks
-  const auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
+  const auto dag_genesis = node1->getConfig().genesis.dag_genesis_block.getHash();
   const auto sk = node1->getSecretKey();
   const auto vrf_sk = node1->getVrfSecretKey();
   const auto estimation = node1->getTransactionManager()->estimateTransactionGas(g_signed_trx_samples[0], {});
 
-  SortitionConfig vdf_config(node_cfgs[0].chain.sortition);
+  SortitionConfig vdf_config(node_cfgs[0].genesis.sortition);
   auto propose_level = 1;
   const auto period_block_hash = node1->getDB()->getPeriodBlockHash(propose_level);
   vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk,
@@ -1127,10 +1127,10 @@ TEST_F(NetworkTest, node_sync2) {
 
   std::vector<DagBlock> blks;
   // Generate DAG blocks
-  const auto dag_genesis = node1->getConfig().chain.dag_genesis_block.getHash();
+  const auto dag_genesis = node1->getConfig().genesis.dag_genesis_block.getHash();
   const auto sk = node1->getSecretKey();
   const auto vrf_sk = node1->getVrfSecretKey();
-  const SortitionConfig vdf_config(node_cfgs[0].chain.sortition);
+  const SortitionConfig vdf_config(node_cfgs[0].genesis.sortition);
   const auto transactions = samples::createSignedTrxSamples(0, 25, sk);
   const auto estimation = node1->getTransactionManager()->estimateTransactionGas(transactions[0], {});
   // DAG block1

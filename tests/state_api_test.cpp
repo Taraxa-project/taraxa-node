@@ -20,14 +20,6 @@ using namespace core_tests;
 
 struct StateAPITest : WithDataDir {};
 
-static auto const base_taraxa_chain_cfg = [] {
-  Config ret;
-  ret.block_rewards_options.disable_block_rewards = true;
-  ret.block_rewards_options.disable_contract_distribution = true;
-
-  return ret;
-}();
-
 struct TestBlock {
   h256 hash;
   h256 state_root;
@@ -47,7 +39,7 @@ T parse_rlp_file(path const& p) {
 }
 
 TEST_F(StateAPITest, DISABLED_dpos_integration) {
-  auto chain_cfg = base_taraxa_chain_cfg;
+  // Config chain_cfg;
 
   // DPOSQuery::AccountQuery acc_q;
   // acc_q.with_staking_balance = true;
@@ -60,7 +52,7 @@ TEST_F(StateAPITest, DISABLED_dpos_integration) {
   // q.account_queries[make_addr(3)] = acc_q;
 
   // u256 addr_1_bal_expected = 100000000;
-  // chain_cfg.genesis_balances[make_addr(1)] = addr_1_bal_expected;
+  // chain_cfg.initial_balances[make_addr(1)] = addr_1_bal_expected;
   // auto& dpos_cfg = chain_cfg.dpos.emplace();
   // dpos_cfg.delegation_delay = 2;
   // dpos_cfg.delegation_locking_period = 4;
@@ -186,8 +178,6 @@ TEST_F(StateAPITest, DISABLED_eth_mainnet_smoke) {
                                         "taraxa" / "data" / "eth_mainnet_blocks_0_300000.rlp");
 
   Config chain_config;
-  chain_config.block_rewards_options.disable_block_rewards = false;
-  chain_config.block_rewards_options.disable_contract_distribution = true;
 
   auto& eth_cfg = chain_config.eth_chain_config;
   eth_cfg.homestead_block = 1150000;
@@ -197,10 +187,10 @@ TEST_F(StateAPITest, DISABLED_eth_mainnet_smoke) {
   eth_cfg.constantinople_block = 7280000;
   eth_cfg.petersburg_block = 7280000;
 
-  auto genesis_balances_rlp_hex_c = taraxa_evm_mainnet_initial_balances();
-  auto genesis_balances_rlp =
-      dev::jsToBytes(string((char*)genesis_balances_rlp_hex_c.Data, genesis_balances_rlp_hex_c.Len));
-  util::rlp(dev::RLP(genesis_balances_rlp), chain_config.genesis_balances);
+  auto initial_balances_rlp_hex_c = taraxa_evm_mainnet_initial_balances();
+  auto initial_balances_rlp =
+      dev::jsToBytes(string((char*)initial_balances_rlp_hex_c.Data, initial_balances_rlp_hex_c.Len));
+  util::rlp(dev::RLP(initial_balances_rlp), chain_config.initial_balances);
 
   Opts opts;
   opts.expected_max_trx_per_block = 300;

@@ -105,7 +105,7 @@ void c_method_args_rlp(taraxa_evm_state_API_ptr this_c, const Params&... args) {
   err_h.check();
 }
 
-StateAPI::StateAPI(decltype(get_blk_hash_) get_blk_hash, const Config& chain_config, const Opts& opts,
+StateAPI::StateAPI(decltype(get_blk_hash_) get_blk_hash, const Config& state_config, const Opts& opts,
                    const OptsDB& opts_db)
     : get_blk_hash_(std::move(get_blk_hash)),
       get_blk_hash_c_{
@@ -121,7 +121,7 @@ StateAPI::StateAPI(decltype(get_blk_hash_) get_blk_hash, const Config& chain_con
   result_buf_transition_state_.execution_results.reserve(opts.expected_max_trx_per_block);
   rlp_enc_transition_state_.reserve(opts.expected_max_trx_per_block * 1024, opts.expected_max_trx_per_block * 128);
   dev::RLPStream encoding;
-  util::rlp_tuple(encoding, reinterpret_cast<uintptr_t>(&get_blk_hash_c_), chain_config, opts, opts_db);
+  util::rlp_tuple(encoding, reinterpret_cast<uintptr_t>(&get_blk_hash_c_), state_config, opts, opts_db);
   ErrorHandler err_h;
   this_c_ = taraxa_evm_state_api_new(map_bytes(encoding.out()), err_h.cgo_part_);
   err_h.check();

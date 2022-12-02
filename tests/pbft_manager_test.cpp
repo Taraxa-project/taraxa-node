@@ -43,7 +43,7 @@ struct PbftManagerTest : BaseTest {
     auto node_cfgs = make_node_cfgs<5>(5);
     auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
     for (auto &cfg : node_cfgs) {
-      cfg.chain.pbft.committee_size = committee_size;
+      cfg.genesis.pbft.committee_size = committee_size;
     }
     makeNodesWithNonces(node_cfgs);
 
@@ -53,7 +53,7 @@ struct PbftManagerTest : BaseTest {
     uint64_t trxs_count = 0;
 
     {
-      const auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos.eligibility_balance_threshold;
+      const auto min_stake_to_vote = node_cfgs[0].genesis.state.dpos.eligibility_balance_threshold;
       for (size_t i(1); i < node_cfgs.size(); ++i) {
         const auto trx = make_dpos_trx(node_cfgs[i], min_stake_to_vote, nonces[i]++, gas_price);
         std::cout << "Delegating stake of " << min_stake_to_vote << " to node " << i << ", tx hash: " << trx->getHash()
@@ -75,7 +75,7 @@ struct PbftManagerTest : BaseTest {
     size_t delegations_block = nodes[0]->getPbftChain()->getPbftChainSize();
     ASSERT_GE(delegations_block, 0);
     // Block, in which delegations should be already applied (due to delegation delay)
-    size_t delegations_applied_block = delegations_block + node_cfgs[0].chain.final_chain.state.dpos.delegation_delay;
+    size_t delegations_applied_block = delegations_block + node_cfgs[0].genesis.state.dpos.delegation_delay;
 
     std::vector<u256> balances;
     for (size_t i(0); i < nodes.size(); ++i) {
@@ -403,7 +403,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
   auto node_cfgs = make_node_cfgs<5>(5);
   auto node_1_expected_bal = own_effective_genesis_bal(node_cfgs[0]);
   for (auto &cfg : node_cfgs) {
-    cfg.chain.pbft.committee_size = 100;
+    cfg.genesis.pbft.committee_size = 100;
   }
   makeNodesWithNonces(node_cfgs);
 
@@ -413,7 +413,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
   uint64_t trxs_count = 0;
   auto expected_eligible_total_vote = 1;
   {
-    const auto min_stake_to_vote = node_cfgs[0].chain.final_chain.state.dpos.eligibility_balance_threshold;
+    const auto min_stake_to_vote = node_cfgs[0].genesis.state.dpos.eligibility_balance_threshold;
     for (size_t i(1); i < node_cfgs.size(); ++i) {
       std::cout << "Delegating stake of " << min_stake_to_vote << " to node " << i << std::endl;
       const auto trx = make_dpos_trx(node_cfgs[i], min_stake_to_vote, nonces[i]++, gas_price);
@@ -541,7 +541,6 @@ TEST_F(PbftManagerTest, pbft_manager_run_single_node) {
   auto node_cfgs = make_node_cfgs<20>(1);
   makeNodesWithNonces(node_cfgs);
   auto node = nodes.front();
-  gas_price = 2;
 
   auto receiver = addr_t("973ecb1c08c8eb5a7eaa0d3fd3aab7924f2838b0");
   EXPECT_EQ(own_balance(node), own_effective_genesis_bal(node_cfgs[0]));
@@ -571,7 +570,6 @@ TEST_F(PbftManagerTest, pbft_manager_run_multi_nodes) {
   const auto node2_genesis_bal = own_effective_genesis_bal(node_cfgs[1]);
   const auto node3_genesis_bal = own_effective_genesis_bal(node_cfgs[2]);
   makeNodesWithNonces(node_cfgs);
-  gas_price = 2;
 
   const auto node1_addr = nodes[0]->getAddress();
   const auto node2_addr = nodes[1]->getAddress();
@@ -746,7 +744,7 @@ TEST_F(PbftManagerWithDagCreation, dag_generation) {
 
 TEST_F(PbftManagerWithDagCreation, limit_dag_block_size) {
   auto node_cfgs = make_node_cfgs<5, true>(1);
-  node_cfgs.front().chain.dag.gas_limit = 500000;
+  node_cfgs.front().genesis.dag.gas_limit = 500000;
   makeNodeFromConfig(node_cfgs);
   deployContract();
 
@@ -780,7 +778,7 @@ TEST_F(PbftManagerWithDagCreation, limit_dag_block_size) {
   const uint32_t additional_trx_count = 30;
   insertTransactions(makeTransactions(additional_trx_count));
 
-  uint64_t should_be_in_one_dag_block = node->getConfig().chain.dag.gas_limit / trxEstimation();
+  uint64_t should_be_in_one_dag_block = node->getConfig().genesis.dag.gas_limit / trxEstimation();
   EXPECT_HAPPENS({10s, 250ms}, [&](auto &ctx) {
     WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), trxs_before + additional_trx_count)
     WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), trxs_before + additional_trx_count)
@@ -802,8 +800,8 @@ TEST_F(PbftManagerWithDagCreation, limit_dag_block_size) {
 
 TEST_F(PbftManagerWithDagCreation, limit_pbft_block) {
   auto node_cfgs = make_node_cfgs<5, true>(1);
-  node_cfgs.front().chain.dag.gas_limit = 500000;
-  node_cfgs.front().chain.pbft.gas_limit = 1100000;
+  node_cfgs.front().genesis.dag.gas_limit = 500000;
+  node_cfgs.front().genesis.pbft.gas_limit = 1100000;
   makeNodeFromConfig(node_cfgs);
 
   deployContract();
@@ -824,7 +822,7 @@ TEST_F(PbftManagerWithDagCreation, limit_pbft_block) {
     WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), trxs_before + tx_count);
   });
 
-  auto max_pbft_block_capacity = node_cfgs.front().chain.pbft.gas_limit / (trxEstimation() * 5);
+  auto max_pbft_block_capacity = node_cfgs.front().genesis.pbft.gas_limit / (trxEstimation() * 5);
   for (size_t i = starting_block_number; i < node->getFinalChain()->last_block_number(); ++i) {
     const auto &blk_hash = node->getDB()->getPeriodBlockHash(i);
     ASSERT_TRUE(blk_hash != blk_hash_t());
@@ -837,8 +835,8 @@ TEST_F(PbftManagerWithDagCreation, limit_pbft_block) {
 
 TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
   auto node_cfgs = make_node_cfgs<5, true>(1);
-  auto dag_gas_limit = node_cfgs.front().chain.dag.gas_limit = 500000;
-  node_cfgs.front().chain.pbft.gas_limit = 1100000;
+  auto dag_gas_limit = node_cfgs.front().genesis.dag.gas_limit = 500000;
+  node_cfgs.front().genesis.pbft.gas_limit = 1100000;
   makeNodeFromConfig(node_cfgs);
 
   deployContract();
@@ -879,8 +877,8 @@ TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
 
 TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
   auto node_cfgs = make_node_cfgs<5, true>(1);
-  node_cfgs.front().chain.dag.gas_limit = 500000;
-  node_cfgs.front().chain.pbft.gas_limit = 600000;
+  node_cfgs.front().genesis.dag.gas_limit = 500000;
+  node_cfgs.front().genesis.pbft.gas_limit = 600000;
   makeNode();
   deployContract();
   node->getDagBlockProposer()->stop();

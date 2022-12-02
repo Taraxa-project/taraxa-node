@@ -216,8 +216,8 @@ TEST_F(DagBlockMgrTest, incorrect_tx_estimation) {
   auto insert_result = node->getTransactionManager()->insertTransaction(trx);
   ASSERT_EQ(insert_result.second, "");
   // Generate DAG blocks
-  auto dag_genesis = node->getConfig().chain.dag_genesis_block.getHash();
-  SortitionConfig vdf_config(node->getConfig().chain.sortition);
+  auto dag_genesis = node->getConfig().genesis.dag_genesis_block.getHash();
+  SortitionConfig vdf_config(node->getConfig().genesis.sortition);
   auto propose_level = 1;
   const auto period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
   vdf_sortition::VdfSortition vdf1(vdf_config, node->getVrfSecretKey(),
@@ -244,7 +244,7 @@ TEST_F(DagBlockMgrTest, incorrect_tx_estimation) {
 TEST_F(DagBlockMgrTest, too_big_dag_block) {
   // make config
   auto node_cfgs = make_node_cfgs<20>(1);
-  node_cfgs.front().chain.dag.gas_limit = 500000;
+  node_cfgs.front().genesis.dag.gas_limit = 500000;
 
   auto node = create_nodes(node_cfgs).front();
   auto db = node->getDB();
@@ -263,8 +263,8 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
   }
 
   // Generate DAG block
-  auto dag_genesis = node->getConfig().chain.dag_genesis_block.getHash();
-  SortitionConfig vdf_config(node->getConfig().chain.sortition);
+  auto dag_genesis = node->getConfig().genesis.dag_genesis_block.getHash();
+  SortitionConfig vdf_config(node->getConfig().genesis.sortition);
   auto propose_level = 1;
   const auto period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
   vdf_sortition::VdfSortition vdf1(vdf_config, node->getVrfSecretKey(),

@@ -21,11 +21,11 @@ struct NodeDagCreationFixture : BaseTest {
     SharedTransactions trxs;
   };
   void modifyConfig(FullNodeConfig &cfg) {
-    auto &vdf_config = cfg.chain.sortition.vdf;
+    auto &vdf_config = cfg.genesis.sortition.vdf;
     vdf_config.difficulty_min = 1;
     vdf_config.difficulty_max = 3;
     vdf_config.difficulty_stale = 4;
-    cfg.chain.pbft.ghost_path_move_back = 0;
+    cfg.genesis.pbft.ghost_path_move_back = 0;
   }
   void makeNode(bool start = true) {
     auto cfgs = make_node_cfgs<5, true>(1);
@@ -123,8 +123,8 @@ struct NodeDagCreationFixture : BaseTest {
     std::vector<DagBlockWithTxs> result;
     auto start_level = node->getDagManager()->getMaxLevel() + 1;
     auto &db = node->getDB();
-    auto dag_genesis = node->getConfig().chain.dag_genesis_block.getHash();
-    SortitionConfig vdf_config(node->getConfig().chain.sortition);
+    auto dag_genesis = node->getConfig().genesis.dag_genesis_block.getHash();
+    SortitionConfig vdf_config(node->getConfig().genesis.sortition);
 
     auto transactions = makeTransactions(levels * blocks_per_level * trx_per_block + 1);
     auto trx_estimation = node->getTransactionManager()->estimateTransactionGas(transactions.front(), {});

@@ -15,10 +15,6 @@ namespace fs = std::filesystem;
 
 namespace taraxa::cli::tools {
 
-void generateConfig(const std::string& config, Config::ChainIdType chain_id) {
-  util::writeJsonToFile(config, generateConfig(chain_id));
-}
-
 int getChainIdFromString(std::string& chain_str) {
   boost::algorithm::to_lower(chain_str);
   if (chain_str == "mainnet") {
@@ -31,23 +27,41 @@ int getChainIdFromString(std::string& chain_str) {
   throw boost::program_options::invalid_option_value(chain_str);
 }
 
-Json::Value generateConfig(Config::ChainIdType chain_id) {
+Json::Value getConfig(Config::ChainIdType chain_id) {
   Json::Value conf;
   switch (chain_id) {
     case Config::ChainIdType::Mainnet:
-      conf = util::readJsonFromString(mainnet_json);
+      conf = util::readJsonFromString(mainnet_config_json);
       break;
     case Config::ChainIdType::Testnet:
-      conf = util::readJsonFromString(testnet_json);
+      conf = util::readJsonFromString(testnet_config_json);
       break;
     case Config::ChainIdType::Devnet:
-      conf = util::readJsonFromString(devnet_json);
+      conf = util::readJsonFromString(devnet_config_json);
       break;
     default:
-      conf = util::readJsonFromString(default_json);
-      conf["chain_id"] = static_cast<int>(chain_id);
+      conf = util::readJsonFromString(default_config_json);
   }
   return conf;
+}
+
+Json::Value getGenesis(Config::ChainIdType chain_id) {
+  Json::Value genesis;
+  switch (chain_id) {
+    case Config::ChainIdType::Mainnet:
+      genesis = util::readJsonFromString(mainnet_genesis_json);
+      break;
+    case Config::ChainIdType::Testnet:
+      genesis = util::readJsonFromString(testnet_genesis_json);
+      break;
+    case Config::ChainIdType::Devnet:
+      genesis = util::readJsonFromString(devnet_genesis_json);
+      break;
+    default:
+      genesis = util::readJsonFromString(default_genesis_json);
+      genesis["chain_id"] = static_cast<int>(chain_id);
+  }
+  return genesis;
 }
 
 Json::Value overrideConfig(Json::Value& conf, std::string& data_dir, vector<string> boot_nodes,
@@ -71,7 +85,7 @@ Json::Value overrideConfig(Json::Value& conf, std::string& data_dir, vector<stri
 
   // Override boot nodes
   if (boot_nodes.size() > 0) {
-    conf["network_boot_nodes"] = Json::Value(Json::arrayValue);
+    conf["network"]["boot_nodes"] = Json::Value(Json::arrayValue);
   }
   if (boot_nodes_append.size() > 0) {
     boot_nodes = boot_nodes_append;
@@ -82,21 +96,20 @@ Json::Value overrideConfig(Json::Value& conf, std::string& data_dir, vector<stri
       boost::split(result, b, boost::is_any_of(":/"));
       if (result.size() != 3) throw invalid_argument("Boot node in boot_nodes not specified correctly");
       bool found = false;
-      for (Json::Value& node : conf["network_boot_nodes"]) {
+      for (Json::Value& node : conf["network"]["boot_nodes"]) {
         if (node["id"].asString() == result[2]) {
           found = true;
           node["ip"] = result[0];
-          node["tcp_port"] = stoi(result[1]);
-          node["udp_port"] = stoi(result[1]);
+          node["listen_port"] = stoi(result[1]);
+          node["port"] = stoi(result[1]);
         }
       }
       if (!found) {
         Json::Value b_node;
         b_node["id"] = result[2];
         b_node["ip"] = result[0];
-        b_node["tcp_port"] = stoi(result[1]);
-        b_node["udp_port"] = stoi(result[1]);
-        conf["network_boot_nodes"].append(b_node);
+        b_node["port"] = stoi(result[1]);
+        conf["network"]["boot_nodes"].append(b_node);
       }
     }
   }
@@ -221,8 +234,10 @@ string getTaraxaDefaultDir() { return getHomeDir() + "/" + DEFAULT_TARAXA_DIR_NA
 
 string getTaraxaDataDefaultDir() { return getHomeDir() + "/" + DEFAULT_TARAXA_DATA_DIR_NAME; }
 
-string getWalletDefaultFile() { return getTaraxaDefaultDir() + "/" + DEFAULT_WALLET_FILE_NAME; }
+string getTaraxaDefaultWalletFile() { return getTaraxaDefaultDir() + "/" + DEFAULT_WALLET_FILE_NAME; }
 
 string getTaraxaDefaultConfigFile() { return getTaraxaDefaultDir() + "/" + DEFAULT_CONFIG_FILE_NAME; }
+
+string getTaraxaDefaultGenesisFile() { return getTaraxaDefaultDir() + "/" + DEFAULT_GENESIS_FILE_NAME; }
 
 }  // namespace taraxa::cli::tools

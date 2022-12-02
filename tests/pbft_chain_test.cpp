@@ -42,10 +42,10 @@ TEST_F(PbftChainTest, pbft_db_test) {
   std::string pbft_head_from_db = db->getPbftHead(pbft_chain_head_hash);
   EXPECT_FALSE(pbft_head_from_db.empty());
 
-  auto dag_genesis = node->getConfig().chain.dag_genesis_block.getHash();
+  auto dag_genesis = node->getConfig().genesis.dag_genesis_block.getHash();
   auto sk = node->getSecretKey();
   auto vrf_sk = node->getVrfSecretKey();
-  SortitionConfig vdf_config(node_cfgs[0].chain.sortition);
+  SortitionConfig vdf_config(node_cfgs[0].genesis.sortition);
 
   // generate PBFT block sample
   blk_hash_t prev_block_hash(0);

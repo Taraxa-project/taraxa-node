@@ -45,10 +45,10 @@ class FinalChainImpl final : public FinalChain {
  public:
   FinalChainImpl(const std::shared_ptr<DB>& db, const taraxa::FullNodeConfig& config, const addr_t& node_addr)
       : db_(db),
-        kCommitteeSize(config.chain.pbft.committee_size),
-        kBlockGasLimit(config.chain.pbft.gas_limit),
+        kCommitteeSize(config.genesis.pbft.committee_size),
+        kBlockGasLimit(config.genesis.pbft.gas_limit),
         state_api_([this](auto n) { return block_hash(n).value_or(ZeroHash()); },  //
-                   config.chain.final_chain.state, config.opts_final_chain,
+                   config.genesis.state, config.opts_final_chain,
                    {
                        db->stateDbStoragePath().string(),
                    }),
@@ -77,8 +77,7 @@ class FinalChainImpl final : public FinalChain {
     // If we don't have genesis block in db then create and push it
     if (!last_blk_num) [[unlikely]] {
       auto batch = db_->createWriteBatch();
-      auto header = append_block(batch, config.chain.final_chain.genesis_block_fields.author,
-                                 config.chain.final_chain.genesis_block_fields.timestamp, kBlockGasLimit,
+      auto header = append_block(batch, addr_t(), config.genesis.dag_genesis_block.getTimestamp(), kBlockGasLimit,
                                  state_db_descriptor.state_root);
 
       block_headers_cache_.append(header->number, header);
@@ -113,7 +112,7 @@ class FinalChainImpl final : public FinalChain {
       }
     }
 
-    delegation_delay_ = config.chain.final_chain.state.dpos.delegation_delay;
+    delegation_delay_ = config.genesis.state.dpos.delegation_delay;
   }
 
   void stop() override { executor_thread_.stop(); }
