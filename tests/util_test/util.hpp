@@ -188,7 +188,6 @@ inline auto make_node_cfgs(size_t total_count, size_t validators_count = 1) {
     if constexpr (tests_speed != 1) {
       // VDF config
       cfg.chain.sortition.vrf.threshold_upper = 0xffff;
-      cfg.chain.sortition.vrf.threshold_range = 0x199a;
       cfg.chain.sortition.vdf.difficulty_min = 0;
       cfg.chain.sortition.vdf.difficulty_max = 5;
       cfg.chain.sortition.vdf.difficulty_stale = 5;

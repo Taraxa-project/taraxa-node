@@ -9,8 +9,7 @@ SortitionParamsChange::SortitionParamsChange(PbftPeriod period, uint16_t efficie
 
 bytes SortitionParamsChange::rlp() const {
   dev::RLPStream s;
-  s.appendList(4);
-  s << vrf_params.threshold_range;
+  s.appendList(3);
   s << vrf_params.threshold_upper;
   s << period;
   s << interval_efficiency;
@@ -21,10 +20,9 @@ bytes SortitionParamsChange::rlp() const {
 SortitionParamsChange SortitionParamsChange::from_rlp(const dev::RLP& rlp) {
   SortitionParamsChange p;
 
-  p.vrf_params.threshold_range = rlp[0].toInt<uint16_t>();
-  p.vrf_params.threshold_upper = rlp[1].toInt<uint16_t>();
-  p.period = rlp[2].toInt<PbftPeriod>();
-  p.interval_efficiency = rlp[3].toInt<uint16_t>();
+  p.vrf_params.threshold_upper = rlp[0].toInt<uint16_t>();
+  p.period = rlp[1].toInt<PbftPeriod>();
+  p.interval_efficiency = rlp[2].toInt<uint16_t>();
 
   return p;
 }

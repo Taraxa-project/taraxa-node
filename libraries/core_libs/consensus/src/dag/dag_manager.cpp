@@ -672,4 +672,22 @@ std::shared_ptr<DagBlock> DagManager::getDagBlock(const blk_hash_t &hash) const 
   return db_->getDagBlock(hash);
 }
 
+dev::bytes DagManager::getVdfMessage(blk_hash_t const &hash, SharedTransactions const &trxs) {
+  dev::RLPStream s;
+  s << hash;
+  for (const auto &t : trxs) {
+    s << t->getHash();
+  }
+  return s.invalidate();
+}
+
+dev::bytes DagManager::getVdfMessage(blk_hash_t const &hash, std::vector<trx_hash_t> const &trx_hashes) {
+  dev::RLPStream s;
+  s << hash;
+  for (const auto &h : trx_hashes) {
+    s << h;
+  }
+  return s.invalidate();
+}
+
 }  // namespace taraxa

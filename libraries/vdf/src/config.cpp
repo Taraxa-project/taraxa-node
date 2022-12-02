@@ -26,12 +26,10 @@ VrfParams& VrfParams::operator+=(int32_t change) {
 Json::Value enc_json(VrfParams const& obj) {
   Json::Value ret(Json::objectValue);
   ret["threshold_upper"] = dev::toJS(obj.threshold_upper);
-  ret["threshold_range"] = obj.threshold_range;
   return ret;
 }
 void dec_json(Json::Value const& json, VrfParams& obj) {
   obj.threshold_upper = dev::jsToInt(json["threshold_upper"].asString());
-  obj.threshold_range = json["threshold_range"].asInt();
 }
 
 Json::Value enc_json(VdfParams const& obj) {

@@ -1477,8 +1477,7 @@ TEST_F(FullNodeTest, chain_config_json) {
       "changing_interval": 200,
       "computation_interval": 50,
       "vrf": {
-        "threshold_upper": "0xafff",
-        "threshold_range": 80
+        "threshold_upper": "0xafff"
       },
       "vdf": {
         "difficulty_max": 21,
@@ -1687,7 +1686,9 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
                                   VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash));
   const auto dag_genesis = node0->getConfig().chain.dag_genesis_block.getHash();
   const auto estimation = node0->getTransactionManager()->estimateTransactionGas(trx, proposal_period);
-  vdf.computeVdfSolution(sortition_params, dag_genesis.asBytes(), false);
+  dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trx});
+
+  vdf.computeVdfSolution(sortition_params, vdf_msg, false);
 
   DagBlock blk(dag_genesis, proposal_level, {}, {trx->getHash()}, estimation, vdf, node0->getSecretKey());
   const auto blk_hash = blk.getHash();

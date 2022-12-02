@@ -143,6 +143,23 @@ class FinalChainImpl final : public FinalChain {
 
     block_applying_emitter_.emit(block_header()->number + 1);
 
+    /*
+    // Any dag block producer producing duplicate dag blocks on same level should be slashed
+
+
+    std::map<std::pair<addr_t, uint64_t>, uint32_t> dag_blocks_per_addr_and_level;
+    std::unordered_map<addr_t, uint32_t> duplicate_dag_blocks_count;
+
+    for (const auto& block : new_blk.dag_blocks) {
+      dag_blocks_per_addr_and_level[{block.getSender(), block.getLevel()}]++;
+    }
+
+    for (const auto& it : dag_blocks_per_addr_and_level) {
+      if (it.second > 1) {
+        duplicate_dag_blocks_count[it.first.first] += it.second - 1;
+      }
+    } */
+
     auto const& [exec_results, state_root] =
         state_api_.transition_state({new_blk.pbft_blk->getBeneficiary(), kBlockGasLimit,
                                      new_blk.pbft_blk->getTimestamp(), BlockHeader::difficulty()},

@@ -45,7 +45,6 @@ struct HardforkTest : WithDataDir {
     // speed up block production
     {
       node_cfg.chain.sortition.vrf.threshold_upper = 0xffff;
-      node_cfg.chain.sortition.vrf.threshold_range = 0xa;
       node_cfg.chain.sortition.vdf.difficulty_min = 0;
       node_cfg.chain.sortition.vdf.difficulty_max = 3;
       node_cfg.chain.sortition.vdf.difficulty_stale = 3;
