@@ -1,5 +1,6 @@
 #include "network/tarcap/stats/node_stats.hpp"
 
+#include "config/version.hpp"
 #include "dag/dag_manager.hpp"
 #include "libp2p/Common.h"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
@@ -10,7 +11,6 @@
 #include "pbft/pbft_manager.hpp"
 #include "transaction/transaction_manager.hpp"
 #include "vote_manager/vote_manager.hpp"
-
 namespace taraxa::network::tarcap {
 
 NodeStats::NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PbftSyncingState> pbft_syncing_state,
@@ -128,6 +128,7 @@ void NodeStats::logNodeStats() {
   LOG(log_dg_) << "Making DAG progress: " << std::boolalpha << making_dag_progress << " (grew " << dag_level_growh
                << " dag levels)";
 
+  LOG(log_nf_) << "Build version: " << TARAXA_COMMIT_HASH;
   LOG(log_nf_) << "Connected to " << peers_size << " peers: [ " << connected_peers_str << "]";
   LOG(log_nf_) << "Number of discovered peers: " << number_of_discov_peers;
 
