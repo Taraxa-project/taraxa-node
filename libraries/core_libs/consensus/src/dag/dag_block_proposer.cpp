@@ -88,10 +88,20 @@ bool DagBlockProposer::proposeDagBlock() {
       return false;
     }
   }
+
+  auto [transactions, estimations] = getShardedTrxs(*proposal_period, dag_mgr_->getDagConfig().gas_limit);
+  if (transactions.empty()) {
+    last_propose_level_ = propose_level;
+    num_tries_ = 0;
+    return false;
+  }
+
+  dev::bytes vdf_msg = DagManager::getVdfMessage(frontier.pivot, transactions);
+
   std::atomic_bool cancellation_token = false;
   std::promise<void> sync;
-  executor_.post([&vdf, &sortition_params, &frontier, cancel = std::ref(cancellation_token), &sync]() mutable {
-    vdf.computeVdfSolution(sortition_params, frontier.pivot.asBytes(), cancel);
+  executor_.post([&vdf, &sortition_params, &vdf_msg, cancel = std::ref(cancellation_token), &sync]() mutable {
+    vdf.computeVdfSolution(sortition_params, vdf_msg, cancel);
     sync.set_value();
   });
 
@@ -126,13 +136,6 @@ bool DagBlockProposer::proposeDagBlock() {
     }
   }
   LOG(log_dg_) << "VDF computation time " << vdf.getComputationTime() << " difficulty " << vdf.getDifficulty();
-
-  auto [transactions, estimations] = getShardedTrxs(*proposal_period, dag_mgr_->getDagConfig().gas_limit);
-  if (transactions.empty()) {
-    last_propose_level_ = propose_level;
-    num_tries_ = 0;
-    return false;
-  }
 
   auto dag_block =
       createDagBlock(std::move(frontier), propose_level, transactions, std::move(estimations), std::move(vdf));

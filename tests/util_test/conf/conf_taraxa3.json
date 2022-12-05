@@ -1,25 +1,26 @@
 {
   "chain_id": 0,
   "data_path": "/tmp/taraxa3",
-  "network_listen_ip": "127.0.0.1",
-  "network_tcp_port": 10004,
-  "network_transaction_interval": 100,
-  "network_ideal_peer_count": 10,
-  "network_max_peer_count": 50,
-  "network_sync_level_size": 1,
-  "network_packets_processing_threads": 5,
-  "network_boot_nodes": [
-    {
-      "id": "7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4623a14a421d4f030cf25ef368ab394a45e920e14b57a259a09c41767dd50d1da27b627412a",
-      "ip": "127.0.0.1",
-      "tcp_port": 10007,
-      "udp_port": 10007
-    }
-  ],
-  "rpc": {
-    "http_port": 7779,
-    "ws_port": 8779,
-    "threads_num": 2
+  "network": {
+    "rpc": {
+      "http_port": 7779,
+      "ws_port": 8779,
+      "threads_num": 2
+    },
+    "listen_ip": "127.0.0.1",
+    "listen_port": 10004,
+    "transaction_interval_ms": 100,
+    "ideal_peer_count": 10,
+    "max_peer_count": 50,
+    "sync_level_size": 1,
+    "packets_processing_threads": 5,
+    "boot_nodes": [
+      {
+        "id": "7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4623a14a421d4f030cf25ef368ab394a45e920e14b57a259a09c41767dd50d1da27b627412a",
+        "ip": "127.0.0.1",
+        "port": 10007
+      }
+    ]
   },
   "logging": {
     "configurations": [

@@ -39,20 +39,19 @@ struct HardforkTest : WithDataDir {
     node_cfg.json_file_name = data_path_cfg;
 
     addr_t root_node_addr("de2b1203d72d3549ee2f733b00b2789414c7cea5");
-    node_cfg.chain.final_chain.state.genesis_balances[root_node_addr] = 9007199254740991;
-    auto &dpos = *node_cfg.chain.final_chain.state.dpos;
+    node_cfg.genesis.state.initial_balances[root_node_addr] = 9007199254740991;
+    auto &dpos = *node_cfg.genesis.state.dpos;
     dpos.genesis_state[root_node_addr][root_node_addr] = dpos.eligibility_balance_threshold;
     // speed up block production
     {
-      node_cfg.chain.sortition.vrf.threshold_upper = 0xffff;
-      node_cfg.chain.sortition.vrf.threshold_range = 0xa;
-      node_cfg.chain.sortition.vdf.difficulty_min = 0;
-      node_cfg.chain.sortition.vdf.difficulty_max = 3;
-      node_cfg.chain.sortition.vdf.difficulty_stale = 3;
-      node_cfg.chain.sortition.vdf.lambda_bound = 100;
+      node_cfg.genesis.sortition.vrf.threshold_upper = 0xffff;
+      node_cfg.genesis.sortition.vdf.difficulty_min = 0;
+      node_cfg.genesis.sortition.vdf.difficulty_max = 3;
+      node_cfg.genesis.sortition.vdf.difficulty_stale = 3;
+      node_cfg.genesis.sortition.vdf.lambda_bound = 100;
       // PBFT config
-      node_cfg.chain.pbft.lambda_ms_min /= 20;
-      node_cfg.network.network_transaction_interval /= 20;
+      node_cfg.genesis.pbft.lambda_ms /= 20;
+      node_cfg.network.transaction_interval_ms /= 20;
     }
   }
 
@@ -65,10 +64,10 @@ struct HardforkTest : WithDataDir {
 };
 
 TEST_F(HardforkTest, hardfork_override) {
-  auto default_json = cli::tools::generateConfig(cli::Config::DEFAULT_CHAIN_ID);
-  auto default_hardforks = default_json["chain_config"]["final_chain"]["state"]["hardforks"];
+  auto default_json = cli::tools::getConfig(cli::Config::DEFAULT_CHAIN_ID);
+  auto default_hardforks = default_json["genesis"]["hardforks"];
   Json::Value config = default_json;
-  auto &state_cfg = config["chain_config"]["final_chain"]["state"];
+  auto &state_cfg = config["genesis"];
   state_cfg["hardforks"].removeMember("fix_genesis_fork_block");
 
   EXPECT_TRUE(state_cfg["hardforks"]["fix_genesis_fork_block"].isNull());
@@ -83,7 +82,7 @@ TEST_F(HardforkTest, hardfork_override) {
 }
 
 TEST_F(HardforkTest, fix_genesis_fork_block_is_zero) {
-  auto &cfg = node_cfg.chain.final_chain;
+  auto &cfg = node_cfg.genesis;
   cfg.state.hardforks.fix_genesis_fork_block = 0;
   auto node = launch_nodes({node_cfg}).front();
 
@@ -95,12 +94,12 @@ TEST_F(HardforkTest, fix_genesis_fork_block_is_zero) {
       ctx.fail();
     }
   });
-  EXPECT_EQ(cfg.state.genesis_balances.begin()->second,
-            node->getConfig().chain.final_chain.state.genesis_balances.begin()->second);
+  EXPECT_EQ(cfg.state.initial_balances.begin()->second,
+            node->getConfig().genesis.state.initial_balances.begin()->second);
 }
 
 TEST_F(HardforkTest, hardfork) {
-  auto &cfg = node_cfg.chain.final_chain;
+  auto &cfg = node_cfg.genesis;
   cfg.state.hardforks.fix_genesis_fork_block = 10;
   cfg.state.dpos->eligibility_balance_threshold = 100000;
   cfg.state.dpos->vote_eligibility_balance_step.assign(cfg.state.dpos->eligibility_balance_threshold);
@@ -109,7 +108,7 @@ TEST_F(HardforkTest, hardfork) {
 
   auto random_node = addr_t::random();
   auto random_votes = 3;
-  for (auto &gb : cfg.state.genesis_balances) {
+  for (auto &gb : cfg.state.initial_balances) {
     gb.second = 110000000;
   }
   for (auto &gs : cfg.state.dpos->genesis_state) {
@@ -137,7 +136,7 @@ TEST_F(HardforkTest, hardfork) {
     dummy_trx();
   });
   std::map<addr_t, u256> balances_before;
-  for (const auto &b : node->getConfig().chain.final_chain.state.genesis_balances) {
+  for (const auto &b : node->getConfig().genesis.state.initial_balances) {
     auto balance = node->getFinalChain()->get_account(b.first)->balance;
     balances_before.emplace(b.first, balance);
   }
@@ -153,14 +152,14 @@ TEST_F(HardforkTest, hardfork) {
 
   u256 dpos_genesis_sum = 0;
   // Verify DPOS initial balances increasing
-  for (const auto &gs : node->getConfig().chain.final_chain.state.dpos->genesis_state) {
+  for (const auto &gs : node->getConfig().genesis.state.dpos->genesis_state) {
     for (const auto &b : gs.second) {
       EXPECT_EQ(b.second, node->getFinalChain()->get_staking_balance(b.first));
       dpos_genesis_sum += b.second;
     }
   }
 
-  for (const auto &b : node->getConfig().chain.final_chain.state.genesis_balances) {
+  for (const auto &b : node->getConfig().genesis.state.initial_balances) {
     auto balance_after = node->getFinalChain()->get_account(b.first)->balance;
     auto res = b.second - dpos_genesis_sum;
     EXPECT_EQ(res, balance_after);
@@ -190,11 +189,11 @@ TEST_F(HardforkTest, hardfork) {
   }
 
   EXPECT_EQ(cfg.state.dpos->vote_eligibility_balance_step * kOneTara,
-            node->getConfig().chain.final_chain.state.dpos->vote_eligibility_balance_step);
-  EXPECT_NE(cfg.state.genesis_balances.begin()->second,
-            node->getConfig().chain.final_chain.state.genesis_balances.begin()->second);
+            node->getConfig().genesis.state.dpos->vote_eligibility_balance_step);
+  EXPECT_NE(cfg.state.initial_balances.begin()->second,
+            node->getConfig().genesis.state.initial_balances.begin()->second);
   EXPECT_NE(cfg.state.dpos->eligibility_balance_threshold,
-            node->getConfig().chain.final_chain.state.dpos->eligibility_balance_threshold);
+            node->getConfig().genesis.state.dpos->eligibility_balance_threshold);
 }
 
 }  // namespace taraxa::core_tests

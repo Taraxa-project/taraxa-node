@@ -46,7 +46,7 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
       node_sk_(std::move(node_sk)),
       node_pub_(dev::toPublic(node_sk_)),
       vrf_sk_(std::move(vrf_sk)),
-      LAMBDA_ms_MIN(conf.lambda_ms_min),
+      LAMBDA_ms_MIN(conf.lambda_ms),
       COMMITTEE_SIZE(conf.committee_size),
       NUMBER_OF_PROPOSERS(conf.number_of_proposers),
       DAG_BLOCKS_SIZE(conf.dag_blocks_size),

@@ -17,6 +17,7 @@ Config::Config(int argc, const char* argv[]) {
   boost::program_options::options_description main_options("OPTIONS");
   boost::program_options::options_description node_command_options("NODE COMMAND OPTIONS");
   boost::program_options::options_description allowed_options("Allowed options");
+  std::string genesis;
   std::string config;
   std::string wallet;
   int chain_id = static_cast<int>(DEFAULT_CHAIN_ID);
@@ -48,7 +49,8 @@ Config::Config(int argc, const char* argv[]) {
 
   // Set config file and data directory to default values
   config = tools::getTaraxaDefaultConfigFile();
-  wallet = tools::getWalletDefaultFile();
+  wallet = tools::getTaraxaDefaultWalletFile();
+  genesis = tools::getTaraxaDefaultGenesisFile();
 
   // Define all the command line options and descriptions
   main_options.add_options()(HELP, "Print this help message and exit");
@@ -64,6 +66,8 @@ Config::Config(int argc, const char* argv[]) {
                                      "JSON wallet file (default: \"~/.taraxa/wallet.json\")");
   node_command_options.add_options()(CONFIG, bpo::value<std::string>(&config),
                                      "JSON configuration file (default: \"~/.taraxa/config.json\")");
+  node_command_options.add_options()(GENESIS, bpo::value<std::string>(&genesis),
+                                     "JSON genesis file (default: \"~/.taraxa/genesis.json\")");
   node_command_options.add_options()(DATA_DIR, bpo::value<std::string>(&data_dir),
                                      "Data directory for the databases, logs ... (default: \"~/.taraxa/data\")");
   node_command_options.add_options()(DESTROY_DB, bpo::bool_switch(&destroy_db),
@@ -152,11 +156,15 @@ Config::Config(int argc, const char* argv[]) {
     // Create dir if missing
     auto config_dir = dirNameFromFile(config);
     auto wallet_dir = dirNameFromFile(wallet);
+    auto genesis_dir = dirNameFromFile(genesis);
     if (!config_dir.empty() && !fs::exists(config_dir)) {
       fs::create_directories(config_dir);
     }
     if (!wallet_dir.empty() && !fs::exists(wallet_dir)) {
       fs::create_directories(wallet_dir);
+    }
+    if (!genesis_dir.empty() && !fs::exists(genesis_dir)) {
+      fs::create_directories(genesis_dir);
     }
 
     // Update chain_id
@@ -172,7 +180,11 @@ Config::Config(int argc, const char* argv[]) {
     if (!fs::exists(config)) {
       std::cout << "Configuration file does not exist at: " << config << ". New config file will be generated"
                 << std::endl;
-      tools::generateConfig(config, (Config::ChainIdType)chain_id);
+      util::writeJsonToFile(config, tools::getConfig((Config::ChainIdType)chain_id));
+    }
+    if (!fs::exists(genesis)) {
+      std::cout << "Genesis file does not exist at: " << genesis << ". New one file will be generated" << std::endl;
+      util::writeJsonToFile(genesis, tools::getGenesis((Config::ChainIdType)chain_id));
     }
     if (!fs::exists(wallet)) {
       std::cout << "Wallet file does not exist at: " << wallet << ". New wallet file will be generated" << std::endl;
@@ -180,26 +192,27 @@ Config::Config(int argc, const char* argv[]) {
     }
 
     Json::Value config_json = util::readJsonFromFile(config);
+    Json::Value genesis_json = util::readJsonFromFile(genesis);
     Json::Value wallet_json = util::readJsonFromFile(wallet);
 
     auto write_config_and_wallet_files = [&]() {
       util::writeJsonToFile(config, config_json);
+      util::writeJsonToFile(genesis, genesis_json);
       util::writeJsonToFile(wallet, wallet_json);
     };
 
     // Check that it is not empty, to not create chain config with just overwritten files
-    if (!config_json["chain_config"].isNull()) {
-      auto default_config_json = tools::generateConfig((Config::ChainIdType)chain_id);
+    if (!genesis_json.isNull()) {
+      auto default_genesis_json = tools::getGenesis((Config::ChainIdType)chain_id);
       // override hardforks data with one from default json
-      addNewHardforks(config_json, default_config_json);
+      addNewHardforks(genesis_json, default_genesis_json);
       // add vote_eligibility_balance_step field if it is missing in the config
-      if (config_json["chain_config"]["final_chain"]["state"]["dpos"]["vote_eligibility_balance_step"].isNull()) {
-        config_json["chain_config"]["final_chain"]["state"]["dpos"]["vote_eligibility_balance_step"] =
-            default_config_json["chain_config"]["final_chain"]["state"]["dpos"]["vote_eligibility_balance_step"];
+      if (genesis_json["dpos"]["vote_eligibility_balance_step"].isNull()) {
+        genesis_json["dpos"]["vote_eligibility_balance_step"] =
+            default_genesis_json["dpos"]["vote_eligibility_balance_step"];
       }
       write_config_and_wallet_files();
     }
-
     // Override config values with values from CLI
     config_json = tools::overrideConfig(config_json, data_dir, boot_nodes, log_channels, log_configurations,
                                         boot_nodes_append, log_channels_append);
@@ -212,17 +225,18 @@ Config::Config(int argc, const char* argv[]) {
 
     {
       ConfigUpdater updater{chain_id};
-      updater.UpdateConfig(config, config_json);
+      updater.UpdateConfig(config_json);
+      write_config_and_wallet_files();
     }
 
     // Load config
-    node_config_ = FullNodeConfig(config_json, wallet_json, config);
+    node_config_ = FullNodeConfig(config_json, wallet_json, genesis_json, config);
 
     // Save changes permanently if overwrite_config option is set
     // or if running config command
     // This can overwrite secret keys in wallet
     if (overwrite_config || command[0] == CONFIG_COMMAND) {
-      config_json["chain_config"] = enc_json(node_config_.chain);
+      genesis_json = enc_json(node_config_.genesis);
       write_config_and_wallet_files();
     }
 
@@ -236,7 +250,7 @@ Config::Config(int argc, const char* argv[]) {
       fs::remove_all(node_config_.net_file_path());
     }
     if (!public_ip.empty()) {
-      node_config_.network.network_public_ip = public_ip;
+      node_config_.network.public_ip = public_ip;
     }
     node_config_.db_config.db_revert_to_period = revert_to_period;
     node_config_.db_config.rebuild_db = rebuild_db;
@@ -265,9 +279,9 @@ bool Config::nodeConfigured() { return node_configured_; }
 
 FullNodeConfig Config::getNodeConfiguration() { return node_config_; }
 
-void Config::addNewHardforks(Json::Value& config, const Json::Value& default_config) {
-  auto& new_hardforks_json = default_config["chain_config"]["final_chain"]["state"]["hardforks"];
-  auto& local_hardforks_json = config["chain_config"]["final_chain"]["state"]["hardforks"];
+void Config::addNewHardforks(Json::Value& genesis, const Json::Value& default_genesis) {
+  auto& new_hardforks_json = default_genesis["hardforks"];
+  auto& local_hardforks_json = genesis["hardforks"];
 
   if (local_hardforks_json.isNull()) {
     local_hardforks_json = new_hardforks_json;

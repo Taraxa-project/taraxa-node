@@ -7,7 +7,7 @@
 #include <vector>
 
 #include "common/static_init.hpp"
-#include "config/chain_config.hpp"
+#include "config/genesis.hpp"
 #include "final_chain/trie_common.hpp"
 #include "logger/logger.hpp"
 #include "pbft/pbft_manager.hpp"
@@ -677,7 +677,7 @@ TEST_F(TransactionTest, zero_gas_price_limit) {
 TEST_F(TransactionTest, gas_price_limiting) {
   auto db = std::make_shared<DbStorage>(data_dir);
   auto cfg = FullNodeConfig("test");
-  auto minimum_price = cfg.chain.gas_price.minimum_price = 10;
+  auto minimum_price = cfg.genesis.gas_price.minimum_price = 10;
   auto final_chain = NewFinalChain(db, cfg);
   TransactionManager trx_mgr(cfg, db, final_chain, addr_t());
   auto make_trx_with_price = [](uint64_t price) {

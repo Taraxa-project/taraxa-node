@@ -158,9 +158,13 @@ set(GO_TEST_SCRIPT ${CMAKE_BINARY_DIR}/bin/go_test.sh)
 # List serializes with ; delimiter by default. This is not working for bash
 list(JOIN EVM_BUILD_ENV " " EVM_BUILD_ENV_STRING)
 
+# Add ${GO_TEST_SCRIPT} to CMake dependencies to regenrate it if file was removed or changed for some reason
+set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS ${GO_TEST_SCRIPT})
+
 # we need to write this command to file because add_test can't accept command
 file(WRITE ${GO_TEST_SCRIPT}
-"cd ${CMAKE_SOURCE_DIR}/submodules/taraxa-evm/
+"#!/bin/bash
+cd ${CMAKE_SOURCE_DIR}/submodules/taraxa-evm/
 export ${EVM_BUILD_ENV_STRING}
 go test ./..."
 )
@@ -169,7 +173,7 @@ go test ./..."
 execute_process(COMMAND chmod +x ${GO_TEST_SCRIPT})
 
 add_test(go_test
-    ${GO_TEST_SCRIPT}
+  ${GO_TEST_SCRIPT}
 )
 
 add_custom_target(all_tests COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure)

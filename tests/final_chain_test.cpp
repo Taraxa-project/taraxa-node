@@ -29,10 +29,9 @@ struct FinalChainTest : WithDataDir {
   std::unordered_map<addr_t, u256> expected_balances;
   uint64_t expected_blk_num = 0;
   void init() {
-    cfg.chain.final_chain.state.block_rewards_options.disable_block_rewards = true;
     SUT = NewFinalChain(db, cfg);
-    const auto& effective_balances = effective_genesis_balances(cfg.chain.final_chain.state);
-    for (const auto& [addr, _] : cfg.chain.final_chain.state.genesis_balances) {
+    const auto& effective_balances = effective_initial_balances(cfg.genesis.state);
+    for (const auto& [addr, _] : cfg.genesis.state.initial_balances) {
       auto acc_actual = SUT->get_account(addr);
       ASSERT_TRUE(acc_actual);
       const auto expected_bal = effective_balances.at(addr);
@@ -88,7 +87,7 @@ struct FinalChainTest : WithDataDir {
     EXPECT_EQ(blk_h.receipts_root, trieRootOver(
                                        trxs.size(), [&](auto i) { return dev::rlp(i); },
                                        [&](auto i) { return util::rlp_enc(receipts[i]); }));
-    EXPECT_EQ(blk_h.gas_limit, cfg.chain.pbft.gas_limit);
+    EXPECT_EQ(blk_h.gas_limit, cfg.genesis.pbft.gas_limit);
     EXPECT_EQ(blk_h.extra_data, bytes());
     EXPECT_EQ(blk_h.nonce(), Nonce());
     EXPECT_EQ(blk_h.difficulty(), 0);
@@ -151,15 +150,15 @@ struct FinalChainTest : WithDataDir {
   }
 
   void fillConfigForGenesisTests(const addr_t& init_address) {
-    cfg.chain.final_chain.state.genesis_balances = {};
-    cfg.chain.final_chain.state.genesis_balances[init_address] = 1000000000 * kOneTara;
-    cfg.chain.final_chain.state.dpos.eligibility_balance_threshold = 100000 * kOneTara;
-    cfg.chain.final_chain.state.dpos.vote_eligibility_balance_step = 10000 * kOneTara;
-    cfg.chain.final_chain.state.dpos.validator_maximum_stake = 10000000 * kOneTara;
-    cfg.chain.final_chain.state.dpos.minimum_deposit = 1000 * kOneTara;
-    cfg.chain.final_chain.state.dpos.eligibility_balance_threshold = 1000 * kOneTara;
-    cfg.chain.final_chain.state.dpos.yield_percentage = 10;
-    cfg.chain.final_chain.state.dpos.blocks_per_year = 1000;
+    cfg.genesis.state.initial_balances = {};
+    cfg.genesis.state.initial_balances[init_address] = 1000000000 * kOneTara;
+    cfg.genesis.state.dpos.eligibility_balance_threshold = 100000 * kOneTara;
+    cfg.genesis.state.dpos.vote_eligibility_balance_step = 10000 * kOneTara;
+    cfg.genesis.state.dpos.validator_maximum_stake = 10000000 * kOneTara;
+    cfg.genesis.state.dpos.minimum_deposit = 1000 * kOneTara;
+    cfg.genesis.state.dpos.eligibility_balance_threshold = 1000 * kOneTara;
+    cfg.genesis.state.dpos.yield_percentage = 10;
+    cfg.genesis.state.dpos.blocks_per_year = 1000;
   }
 
   template <class T, class U>
@@ -172,26 +171,26 @@ struct FinalChainTest : WithDataDir {
   }
 };
 
-TEST_F(FinalChainTest, genesis_balances) {
-  cfg.chain.final_chain.state.genesis_balances = {};
-  cfg.chain.final_chain.state.genesis_balances[addr_t::random()] = 0;
-  cfg.chain.final_chain.state.genesis_balances[addr_t::random()] = 1000;
-  cfg.chain.final_chain.state.genesis_balances[addr_t::random()] = 100000;
+TEST_F(FinalChainTest, initial_balances) {
+  cfg.genesis.state.initial_balances = {};
+  cfg.genesis.state.initial_balances[addr_t::random()] = 0;
+  cfg.genesis.state.initial_balances[addr_t::random()] = 1000;
+  cfg.genesis.state.initial_balances[addr_t::random()] = 100000;
   init();
 }
 
 // TEST_F(FinalChainTest, update_state_config) {
 //   init();
-//   cfg.chain.final_chain.state.hardforks.fix_genesis_fork_block = 2222222;
-//   SUT->update_state_config(cfg.chain.final_chain.state);
+//   cfg.genesis.state.hardforks.fix_genesis_fork_block = 2222222;
+//   SUT->update_state_config(cfg.genesis.state);
 // }
 
 TEST_F(FinalChainTest, contract) {
   auto sender_keys = dev::KeyPair::create();
   const auto& addr = sender_keys.address();
   const auto& sk = sender_keys.secret();
-  cfg.chain.final_chain.state.genesis_balances = {};
-  cfg.chain.final_chain.state.genesis_balances[addr] = 100000;
+  cfg.genesis.state.initial_balances = {};
+  cfg.genesis.state.initial_balances[addr] = 100000;
   init();
   auto nonce = 0;
   auto trx = std::make_shared<Transaction>(nonce++, 0, 0, 1000000, dev::fromHex(samples::greeter_contract_code), sk);
@@ -237,12 +236,12 @@ TEST_F(FinalChainTest, contract) {
 
 TEST_F(FinalChainTest, coin_transfers) {
   constexpr size_t NUM_ACCS = 5;
-  cfg.chain.final_chain.state.genesis_balances = {};
+  cfg.genesis.state.initial_balances = {};
   std::vector<dev::KeyPair> keys;
   keys.reserve(NUM_ACCS);
   for (size_t i = 0; i < NUM_ACCS; ++i) {
     const auto& k = keys.emplace_back(dev::KeyPair::create());
-    cfg.chain.final_chain.state.genesis_balances[k.address()] = std::numeric_limits<u256>::max() / NUM_ACCS;
+    cfg.genesis.state.initial_balances[k.address()] = std::numeric_limits<u256>::max() / NUM_ACCS;
   }
 
   init();
@@ -285,13 +284,13 @@ TEST_F(FinalChainTest, initial_validators) {
   for (const auto& vk : validator_keys) {
     const auto [vrf_key, _] = taraxa::vrf_wrapper::getVrfKeyPair();
     state_api::ValidatorInfo validator{vk.address(), key.address(), vrf_key, 0, "", "", {}};
-    validator.delegations.emplace(key.address(), cfg.chain.final_chain.state.dpos.validator_maximum_stake);
-    cfg.chain.final_chain.state.dpos.initial_validators.emplace_back(validator);
+    validator.delegations.emplace(key.address(), cfg.genesis.state.dpos.validator_maximum_stake);
+    cfg.genesis.state.dpos.initial_validators.emplace_back(validator);
   }
 
   init();
-  const auto votes_per_address = cfg.chain.final_chain.state.dpos.validator_maximum_stake /
-                                 cfg.chain.final_chain.state.dpos.vote_eligibility_balance_step;
+  const auto votes_per_address =
+      cfg.genesis.state.dpos.validator_maximum_stake / cfg.genesis.state.dpos.vote_eligibility_balance_step;
   const auto total_votes = SUT->dpos_eligible_total_vote_count(SUT->last_block_number());
   for (const auto& vk : validator_keys) {
     const auto address_votes = SUT->dpos_eligible_vote_count(SUT->last_block_number(), vk.address());
@@ -305,8 +304,8 @@ TEST_F(FinalChainTest, nonce_test) {
   const auto& addr = sender_keys.address();
   const auto& sk = sender_keys.secret();
   const auto receiver_addr = dev::KeyPair::create().address();
-  cfg.chain.final_chain.state.genesis_balances = {};
-  cfg.chain.final_chain.state.genesis_balances[addr] = 100000;
+  cfg.genesis.state.initial_balances = {};
+  cfg.genesis.state.initial_balances[addr] = 100000;
   init();
 
   auto trx1 = std::make_shared<Transaction>(0, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
@@ -337,8 +336,8 @@ TEST_F(FinalChainTest, nonce_skipping) {
   const auto& addr = sender_keys.address();
   const auto& sk = sender_keys.secret();
   const auto receiver_addr = dev::KeyPair::create().address();
-  cfg.chain.final_chain.state.genesis_balances = {};
-  cfg.chain.final_chain.state.genesis_balances[addr] = 100000;
+  cfg.genesis.state.initial_balances = {};
+  cfg.genesis.state.initial_balances[addr] = 100000;
   init();
 
   auto trx1 = std::make_shared<Transaction>(0, 100, 0, 100000, dev::bytes(), sk, receiver_addr);
@@ -368,8 +367,8 @@ TEST_F(FinalChainTest, exec_trx_with_nonce_from_api) {
   auto sender_keys = dev::KeyPair::create();
   const auto& addr = sender_keys.address();
   const auto& sk = sender_keys.secret();
-  cfg.chain.final_chain.state.genesis_balances = {};
-  cfg.chain.final_chain.state.genesis_balances[addr] = 100000;
+  cfg.genesis.state.initial_balances = {};
+  cfg.genesis.state.initial_balances[addr] = 100000;
   init();
 
   // exec trx with nonce 5 to skip some
@@ -416,8 +415,8 @@ TEST_F(FinalChainTest, new_contract_address) {
   auto sender_keys = dev::KeyPair::create();
   const auto& addr = sender_keys.address();
   const auto& sk = sender_keys.secret();
-  cfg.chain.final_chain.state.genesis_balances = {};
-  cfg.chain.final_chain.state.genesis_balances[addr] = 100000;
+  cfg.genesis.state.initial_balances = {};
+  cfg.genesis.state.initial_balances[addr] = 100000;
   init();
 
   auto nonce = 0;
@@ -445,8 +444,8 @@ TEST_F(FinalChainTest, failed_transaction_fee) {
   const auto& receiver = dev::KeyPair::create().address();
   const auto& addr = sender_keys.address();
   const auto& sk = sender_keys.secret();
-  cfg.chain.final_chain.state.genesis_balances = {};
-  cfg.chain.final_chain.state.genesis_balances[addr] = 100000;
+  cfg.genesis.state.initial_balances = {};
+  cfg.genesis.state.initial_balances[addr] = 100000;
   init();
   auto trx1 = std::make_shared<Transaction>(1, 100, 1, gas, dev::bytes(), sk, receiver);
   auto trx2 = std::make_shared<Transaction>(2, 100, 1, gas, dev::bytes(), sk, receiver);
@@ -487,9 +486,9 @@ TEST_F(FinalChainTest, initial_validator_exceed_maximum_stake) {
   fillConfigForGenesisTests(key.address());
 
   state_api::ValidatorInfo validator{validator_key.address(), key.address(), vrf_key, 0, "", "", {}};
-  validator.delegations.emplace(key.address(), cfg.chain.final_chain.state.dpos.validator_maximum_stake);
-  validator.delegations.emplace(validator_key.address(), cfg.chain.final_chain.state.dpos.minimum_deposit);
-  cfg.chain.final_chain.state.dpos.initial_validators.emplace_back(validator);
+  validator.delegations.emplace(key.address(), cfg.genesis.state.dpos.validator_maximum_stake);
+  validator.delegations.emplace(validator_key.address(), cfg.genesis.state.dpos.minimum_deposit);
+  cfg.genesis.state.dpos.initial_validators.emplace_back(validator);
 
   EXPECT_THROW(init(), std::exception);
 }

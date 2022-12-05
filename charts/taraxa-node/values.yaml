@@ -75,6 +75,8 @@ node:
     - "taraxad"
     - "--config"
     - "/root/.taraxa/conf_taraxa.json"
+    - "--genesis"
+    - "/root/.taraxa/genesis_taraxa.json"
     - "--wallet"
     - "/root/.taraxa/wallet_taraxa.json"
   ingress:
@@ -177,6 +179,8 @@ consensusnode:
     - "taraxad"
     - "--config"
     - "/root/.taraxa/conf_taraxa.json"
+    - "--genesis"
+    - "/root/.taraxa/genesis_taraxa.json"
     - "--wallet"
     - "/root/.taraxa/wallet_taraxa.json"
   ports:

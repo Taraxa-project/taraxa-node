@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python3.9
 
 import click
 import subprocess
@@ -82,8 +82,8 @@ def config(binary, boot_nodes, rpc_nodes):
 
     timestamp = hex(int(time.time()))
 
-    existing_chain_config = None
-    existing_chain_config_node = None
+    existing_genesis = None
+    existing_genesis_node = None
 
     for type in ("boot", "rpc"):
         if type == "boot":
@@ -98,26 +98,27 @@ def config(binary, boot_nodes, rpc_nodes):
                 worker_name = f'rpc-node-{i}'
 
             config_path = f'./{data_dir}/conf-{worker_name}.json'
+            genesis_path = f'./{data_dir}/genesis-{worker_name}.json'
             wallet_path = f'./{data_dir}/wallet-{worker_name}.json'
 
-            if os.path.isfile(config_path) and os.path.isfile(wallet_path):
-                # If there is some existing config, take timestamp from it
-                tmp_config = json.loads('{}')
-                with open(config_path) as json_file:
-                    config_data = json.load(json_file)
-                    tmp_config.update(config_data)
+            if os.path.isfile(config_path) and os.path.isfile(wallet_path) and os.path.isfile(genesis_path):
+                # If there is some existing genesis, take timestamp from it
+                tmp_genesis = json.loads('{}')
+                with open(genesis_path) as json_file:
+                    genesis_data = json.load(json_file)
+                    tmp_genesis.update(genesis_data)
 
-                if not existing_chain_config:
-                    existing_chain_config = tmp_config['chain_config']
-                    existing_chain_config_node = worker_name
+                if not existing_genesis:
+                    existing_genesis = tmp_genesis
+                    existing_genesis_node = worker_name
 
-                if tmp_config['chain_config'] != existing_chain_config:
-                    sys.exit("Existing chain_configs don't match between nodes: " + existing_chain_config_node + " & " + worker_name)
+                if tmp_genesis != existing_genesis:
+                    sys.exit("Existing chain_configs don't match between nodes: " + existing_genesis_node + " & " + worker_name)
 
-                timestamp = tmp_config['chain_config']['dag_genesis_block']['timestamp']
+                timestamp = tmp_genesis['dag_genesis_block']['timestamp']
                 continue
 
-            if type == "boot" and existing_chain_config:
+            if type == "boot" and existing_genesis:
                 sys.exit("Cannot increase number of boot nodes without resetting the network")
 
             if not os.path.isdir(f'{local_net}/db-{worker_name}'):
@@ -138,9 +139,9 @@ def config(binary, boot_nodes, rpc_nodes):
                 port_prefix = '1'
 
             cmd += f'--config {config_path} '
+            cmd += f'--genesis {genesis_path} '
             cmd += f'--wallet {wallet_path} '
             cmd += f'--data-dir {local_net}/db-{worker_name} '
-
             os.system(cmd)
 
             config = json.loads('{}')
@@ -148,38 +149,45 @@ def config(binary, boot_nodes, rpc_nodes):
                 config_data = json.load(json_file)
                 config.update(config_data)
 
-            if existing_chain_config:
-                config['chain_config'] = existing_chain_config
+            genesis = json.loads('{}')
+            with open(genesis_path) as json_file:
+                genesis_data = json.load(json_file)
+                genesis.update(genesis_data)
+
+            if existing_genesis:
+                genesis = existing_genesis
             else:
-                default_validator = config['chain_config']['final_chain']['state']['dpos']['initial_validators'][0]
-                config['chain_config']['final_chain']['state']['dpos']['initial_validators'] = []
+                default_validator = genesis['dpos']['initial_validators'][0]
+                genesis['dpos']['initial_validators'] = []
                 print("boot_nodes_public_addresses: ",boot_nodes_public_addresses)
                 for key in boot_nodes_public_addresses:
                     address, vrf_key = boot_nodes_public_addresses[key]
                     default_validator["address"] = address
                     default_validator["owner"] = address
                     default_validator["vrf_key"] = vrf_key
-                    config['chain_config']['final_chain']['state']['dpos']['initial_validators'].append(default_validator.copy())
+                    genesis['dpos']['initial_validators'].append(default_validator.copy())
 
-                genesis_balances = config['chain_config']['final_chain']['state']['genesis_balances']
-                genesis_balances_faucet_address = list(genesis_balances.keys())[0]
-                delegator_address = list(genesis_balances.keys())[1]
-                genesis_balances_faucet_value = genesis_balances[genesis_balances_faucet_address]
-                del genesis_balances[genesis_balances_faucet_address]
-                genesis_balances[faucet_public_address] = genesis_balances_faucet_value
-                config['chain_config']['final_chain']['state']['genesis_balances'] = genesis_balances
+                initial_balances = genesis['initial_balances']
+                initial_balances_faucet_address = list(initial_balances.keys())[0]
+                delegator_address = list(initial_balances.keys())[1]
+                initial_balances_faucet_value = initial_balances[initial_balances_faucet_address]
+                del initial_balances[initial_balances_faucet_address]
+                initial_balances[faucet_public_address] = initial_balances_faucet_value
+                genesis['initial_balances'] = initial_balances
 
-                config['chain_config']['dag_genesis_block']['timestamp'] = timestamp
-                config['chain_config']['final_chain']['genesis_block_fields']['timestamp'] = timestamp
+                genesis['dag_genesis_block']['timestamp'] = timestamp
 
-            config['network_tcp_port'] = int(f'1{port_prefix}{i+1}02')
-            config['rpc']['http_port'] = int(f'7{port_prefix}{i+1}7')
-            config['rpc']['ws_port'] = int(f'8{port_prefix}{i+1}7')
-            config['graphql']['http_port'] = int(f'2{port_prefix}{i+1}7')
-            config['graphql']['ws_port'] = int(f'3{port_prefix}{i+1}7')
+            config['network']['listen_port'] = int(f'1{port_prefix}{i+1}02')
+            config['network']['rpc']['http_port'] = int(f'7{port_prefix}{i+1}7')
+            config['network']['rpc']['ws_port'] = int(f'8{port_prefix}{i+1}7')
+            config['network']['graphql']['http_port'] = int(f'2{port_prefix}{i+1}7')
+            config['network']['graphql']['ws_port'] = int(f'3{port_prefix}{i+1}7')
 
             with open(config_path, 'w') as json_file:
                 json.dump(config, json_file, indent=2)
+
+            with open(genesis_path, 'w') as json_file:
+                json.dump(genesis, json_file, indent=2)
 
 def generate_node_wallet(binary, wallet_path):
     global chain_id
@@ -274,7 +282,7 @@ def start_workers(binary, boot_nodes, rpc_nodes, tps, enable_test_rpc):
 
 
 def node_worker(binary, worker_name, enable_test_rpc):
-    cmd = f'{binary} --config ./{data_dir}/conf-{worker_name}.json --wallet ./{data_dir}/wallet-{worker_name}.json'
+    cmd = f'{binary} --config ./{data_dir}/conf-{worker_name}.json --wallet ./{data_dir}/wallet-{worker_name}.json --genesis ./{data_dir}/genesis-{worker_name}.json'
     if enable_test_rpc:
         cmd += ' --enable-test-rpc '
     process = subprocess.Popen(cmd,

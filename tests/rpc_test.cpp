@@ -14,8 +14,8 @@ TEST_F(RPCTest, eth_estimateGas) {
   auto node_cfg = make_node_cfgs(1);
   auto nodes = launch_nodes(node_cfg);
   net::rpc::eth::EthParams eth_rpc_params;
-  eth_rpc_params.chain_id = node_cfg.front().chain_id;
-  eth_rpc_params.gas_limit = node_cfg.front().chain.dag.gas_limit;
+  eth_rpc_params.chain_id = node_cfg.front().genesis.chain_id;
+  eth_rpc_params.gas_limit = node_cfg.front().genesis.dag.gas_limit;
   eth_rpc_params.final_chain = nodes.front()->getFinalChain();
   auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
 
@@ -70,8 +70,8 @@ TEST_F(RPCTest, eth_call) {
   const auto final_chain = nodes.front()->getFinalChain();
 
   net::rpc::eth::EthParams eth_rpc_params;
-  eth_rpc_params.chain_id = node_cfg.front().chain_id;
-  eth_rpc_params.gas_limit = node_cfg.front().chain.dag.gas_limit;
+  eth_rpc_params.chain_id = node_cfg.front().genesis.chain_id;
+  eth_rpc_params.gas_limit = node_cfg.front().genesis.dag.gas_limit;
   eth_rpc_params.final_chain = final_chain;
   auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
 

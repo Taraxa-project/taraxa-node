@@ -52,7 +52,6 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   auto getComputationTime() const { return vdf_computation_time_; }
   uint16_t getDifficulty() const;
   uint16_t calculateDifficulty(SortitionParams const& config) const;
-  bool isOmitVdf(SortitionParams const& config) const;
   bool isStale(SortitionParams const& config) const;
   Json::Value getJson() const;
 

@@ -45,10 +45,10 @@ class FinalChainImpl final : public FinalChain {
  public:
   FinalChainImpl(const std::shared_ptr<DB>& db, const taraxa::FullNodeConfig& config, const addr_t& node_addr)
       : db_(db),
-        kCommitteeSize(config.chain.pbft.committee_size),
-        kBlockGasLimit(config.chain.pbft.gas_limit),
+        kCommitteeSize(config.genesis.pbft.committee_size),
+        kBlockGasLimit(config.genesis.pbft.gas_limit),
         state_api_([this](auto n) { return block_hash(n).value_or(ZeroHash()); },  //
-                   config.chain.final_chain.state, config.opts_final_chain,
+                   config.genesis.state, config.opts_final_chain,
                    {
                        db->stateDbStoragePath().string(),
                    }),
@@ -77,8 +77,7 @@ class FinalChainImpl final : public FinalChain {
     // If we don't have genesis block in db then create and push it
     if (!last_blk_num) [[unlikely]] {
       auto batch = db_->createWriteBatch();
-      auto header = append_block(batch, config.chain.final_chain.genesis_block_fields.author,
-                                 config.chain.final_chain.genesis_block_fields.timestamp, kBlockGasLimit,
+      auto header = append_block(batch, addr_t(), config.genesis.dag_genesis_block.getTimestamp(), kBlockGasLimit,
                                  state_db_descriptor.state_root);
 
       block_headers_cache_.append(header->number, header);
@@ -113,7 +112,7 @@ class FinalChainImpl final : public FinalChain {
       }
     }
 
-    delegation_delay_ = config.chain.final_chain.state.dpos.delegation_delay;
+    delegation_delay_ = config.genesis.state.dpos.delegation_delay;
   }
 
   void stop() override { executor_thread_.stop(); }
@@ -142,6 +141,23 @@ class FinalChainImpl final : public FinalChain {
         new_blk, dpos_eligible_total_vote_count(new_blk.pbft_blk->getPeriod() - 1), kCommitteeSize);
 
     block_applying_emitter_.emit(block_header()->number + 1);
+
+    /*
+    // Any dag block producer producing duplicate dag blocks on same level should be slashed
+
+
+    std::map<std::pair<addr_t, uint64_t>, uint32_t> dag_blocks_per_addr_and_level;
+    std::unordered_map<addr_t, uint32_t> duplicate_dag_blocks_count;
+
+    for (const auto& block : new_blk.dag_blocks) {
+      dag_blocks_per_addr_and_level[{block.getSender(), block.getLevel()}]++;
+    }
+
+    for (const auto& it : dag_blocks_per_addr_and_level) {
+      if (it.second > 1) {
+        duplicate_dag_blocks_count[it.first.first] += it.second - 1;
+      }
+    } */
 
     auto const& [exec_results, state_root] =
         state_api_.transition_state({new_blk.pbft_blk->getBeneficiary(), kBlockGasLimit,

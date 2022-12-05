@@ -32,7 +32,7 @@ def test_cfg(pytestconfig):
 @pytest.fixture(scope="session")
 def default_node_configs():
     basedir = THIS_DIR.parent.parent.joinpath("util_test").joinpath("conf")
-    return [(basedir.joinpath(f"conf_taraxa{i + 1}.json"), basedir.joinpath(f"wallet{i + 1}.json")) for i in range(5)]
+    return [(basedir.joinpath(f"conf_taraxa{i + 1}.json"), basedir.joinpath(f"wallet{i + 1}.json"), basedir.joinpath(f"genesis{i + 1}.json")) for i in range(5)]
 
 
 @pytest.fixture()

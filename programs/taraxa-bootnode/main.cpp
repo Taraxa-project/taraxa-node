@@ -180,9 +180,9 @@ int main(int argc, char** argv) {
   if (boot_host->isRunning()) {
     std::cout << "Node ID: " << boot_host->enode() << std::endl;
     if (static_cast<taraxa::cli::Config::ChainIdType>(chain_id) < taraxa::cli::Config::ChainIdType::LastNetworkId) {
-      const auto conf = taraxa::cli::tools::generateConfig(static_cast<taraxa::cli::Config::ChainIdType>(chain_id));
-      for (auto const& bn : conf["network_boot_nodes"]) {
-        bi::tcp::endpoint ep = dev::p2p::Network::resolveHost(bn["ip"].asString() + ":" + bn["udp_port"].asString());
+      const auto conf = taraxa::cli::tools::getConfig(static_cast<taraxa::cli::Config::ChainIdType>(chain_id));
+      for (auto const& bn : conf["network"]["boot_nodes"]) {
+        bi::tcp::endpoint ep = dev::p2p::Network::resolveHost(bn["ip"].asString() + ":" + bn["port"].asString());
         boot_host->addNode(
             dev::p2p::Node(dev::Public(bn["id"].asString()),
                            dev::p2p::NodeIPEndpoint{ep.address(), ep.port() /* udp */, ep.port() /* tcp */},

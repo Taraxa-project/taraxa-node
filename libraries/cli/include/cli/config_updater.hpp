@@ -10,7 +10,7 @@ class ConfigUpdater {
  public:
   ConfigUpdater(int chain_id);
 
-  void UpdateConfig(const std::string& config_name, Json::Value& old_conf);
+  void UpdateConfig(Json::Value& old_conf);
 
  private:
   struct ConfigChange {

@@ -27,7 +27,6 @@ Json::Value Test::get_sortition_change(const Json::Value &param1) {
       auto params_change = node->getDB()->getParamsChangeForPeriod(period);
       res["interval_efficiency"] = params_change->interval_efficiency;
       res["period"] = params_change->period;
-      res["threshold_range"] = params_change->vrf_params.threshold_range;
       res["threshold_upper"] = params_change->vrf_params.threshold_upper;
       res["kThresholdUpperMinValue"] = params_change->vrf_params.kThresholdUpperMinValue;
     }
@@ -186,7 +185,7 @@ Json::Value Test::get_all_nodes() {
         Json::Value node;
         node["node_id"] = n.id().toString();
         node["address"] = n.endpoint().address().to_string();
-        node["tcp_port"] = Json::UInt64(n.endpoint().tcpPort());
+        node["listen_port"] = Json::UInt64(n.endpoint().tcpPort());
         res["nodes"].append(node);
       }
     }

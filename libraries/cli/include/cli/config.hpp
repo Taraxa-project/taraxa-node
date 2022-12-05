@@ -28,6 +28,7 @@ class Config {
   bool node_configured_ = false;
 
   static constexpr const char* CONFIG = "config";
+  static constexpr const char* GENESIS = "genesis";
   static constexpr const char* DATA_DIR = "data-dir";
   static constexpr const char* CHAIN_ID = "chain-id";
   static constexpr const char* CHAIN = "chain";

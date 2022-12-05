@@ -1,4 +1,4 @@
-#include "config/state_api_config.hpp"
+#include "config/state_config.hpp"
 
 #include <libdevcore/CommonJS.h>
 
@@ -28,20 +28,16 @@ void dec_json(const Json::Value& json, ETHChainConfig& obj) {
   obj.petersburg_block = dev::jsToInt(json["petersburg_block"].asString());
 }
 
-Json::Value enc_json(const Config& obj) {
-  Json::Value json(Json::objectValue);
+void append_json(Json::Value& json, const Config& obj) {
   json["eth_chain_config"] = enc_json(obj.eth_chain_config);
-  json["block_rewards_options"] = enc_json(obj.block_rewards_options);
-  json["genesis_balances"] = enc_json(obj.genesis_balances);
+  json["initial_balances"] = enc_json(obj.initial_balances);
   // json["hardforks"] = enc_json(obj.hardforks);
   json["dpos"] = enc_json(obj.dpos);
-  return json;
 }
 
 void dec_json(const Json::Value& json, Config& obj) {
   dec_json(json["eth_chain_config"], obj.eth_chain_config);
-  dec_json(json["block_rewards_options"], obj.block_rewards_options);
-  dec_json(json["genesis_balances"], obj.genesis_balances);
+  dec_json(json["initial_balances"], obj.initial_balances);
   // dec_json(json["hardforks"], obj.hardforks);
   dec_json(json["dpos"], obj.dpos);
 }
@@ -128,20 +124,6 @@ void dec_json(const Json::Value& json, DPOSConfig& obj) {
   }
 }
 
-Json::Value enc_json(BlockRewardsOptions const& obj) {
-  Json::Value json(Json::objectValue);
-  json["disable_block_rewards"] = obj.disable_block_rewards;
-  json["disable_contract_distribution"] = obj.disable_contract_distribution;
-
-  return json;
-}
-
-void dec_json(Json::Value const& json, BlockRewardsOptions& obj) {
-  obj.disable_block_rewards = json["disable_block_rewards"].asBool();
-  obj.disable_contract_distribution = json["disable_contract_distribution"].asBool();
-}
-
-RLP_FIELDS_DEFINE(BlockRewardsOptions, disable_block_rewards, disable_contract_distribution)
 RLP_FIELDS_DEFINE(ETHChainConfig, homestead_block, eip_150_block, eip_158_block, byzantium_block, constantinople_block,
                   petersburg_block)
 RLP_FIELDS_DEFINE(ValidatorInfo, address, owner, vrf_key, commission, endpoint, description, delegations)
@@ -149,7 +131,7 @@ RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, vote_eligibility_ba
                   minimum_deposit, max_block_author_reward, dag_proposers_reward, commission_change_delta,
                   commission_change_frequency, delegation_delay, delegation_locking_period, blocks_per_year,
                   yield_percentage, initial_validators)
-RLP_FIELDS_DEFINE(Config, eth_chain_config, block_rewards_options, genesis_balances, dpos)
+RLP_FIELDS_DEFINE(Config, eth_chain_config, initial_balances, dpos)
 RLP_FIELDS_DEFINE(Opts, expected_max_trx_per_block, max_trie_full_node_levels_to_cache)
 RLP_FIELDS_DEFINE(OptsDB, db_path, disable_most_recent_trie_value_views)
 

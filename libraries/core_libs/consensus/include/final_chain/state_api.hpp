@@ -24,7 +24,7 @@ class StateAPI {
   string db_path_;
 
  public:
-  StateAPI(std::function<h256(EthBlockNumber)> get_blk_hash, const Config& chain_config, const Opts& opts,
+  StateAPI(std::function<h256(EthBlockNumber)> get_blk_hash, const Config& state_config, const Opts& opts,
            const OptsDB& opts_db);
   ~StateAPI();
   StateAPI(const StateAPI&) = default;
