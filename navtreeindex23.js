@@ -1,5 +1,7 @@
 var NAVTREEINDEX23 =
 {
+"structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl.html#a8c3efd05796946600fa98ae9d43ba040":[14,0,4,1,3,0,2],
+"structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl.html#ad3ade44e59266e3e660bc3354c225546":[14,0,4,1,3,0,1],
 "structtaraxa_1_1logger_1_1_config_1_1_output_config.html":[14,0,4,2,0,0],
 "structtaraxa_1_1logger_1_1_config_1_1_output_config.html#a121c61ecc2db07bde0a457efebe2e04f":[14,0,4,2,0,0,7],
 "structtaraxa_1_1logger_1_1_config_1_1_output_config.html#a3473ff2f82e2e5bf9307536478b18a3b":[14,0,4,2,0,0,4],
@@ -247,7 +249,5 @@ var NAVTREEINDEX23 =
 "types_8hpp.html#aefa6fd5ad981b0cb3eb602983218f3ca":[15,0,1,2,0,0,12,16],
 "types_8hpp.html#afdbc2bb6877d6ff2055c36afff45899a":[15,0,1,2,0,0,12,20],
 "types_8hpp_source.html":[15,0,1,2,0,0,12],
-"uint__comparator_8hpp.html":[15,0,1,4,3,0,0,2],
-"uint__comparator_8hpp.html#aced41bb0204474f3fd03a0aac32a126c":[15,0,1,4,3,0,0,2,1],
-"uint__comparator_8hpp_source.html":[15,0,1,4,3,0,0,2]
+"uint__comparator_8hpp.html":[15,0,1,4,3,0,0,2]
 };

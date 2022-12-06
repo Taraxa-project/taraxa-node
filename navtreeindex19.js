@@ -1,5 +1,8 @@
 var NAVTREEINDEX19 =
 {
+"namespacemembers_func_i.html":[13,1,9],
+"namespacemembers_func_j.html":[13,1,10],
+"namespacemembers_func_k.html":[13,1,11],
 "namespacemembers_func_m.html":[13,1,12],
 "namespacemembers_func_n.html":[13,1,13],
 "namespacemembers_func_o.html":[13,1,14],
@@ -246,8 +249,5 @@ var NAVTREEINDEX19 =
 "rewards__stats_8cpp.html#a8a4de82a5682e63b73fae50e9f0d23ac":[15,0,1,4,0,1,1,2,0],
 "rewards__stats_8hpp.html":[15,0,1,4,0,0,1,4],
 "rewards__stats_8hpp_source.html":[15,0,1,4,0,0,1,4],
-"soft__voted__block__data_8cpp.html":[15,0,1,4,0,1,3,4],
-"soft__voted__block__data_8hpp.html":[15,0,1,4,0,0,3,4],
-"soft__voted__block__data_8hpp_source.html":[15,0,1,4,0,0,3,4],
-"sortition_8cpp.html":[15,0,1,7,1,1]
+"soft__voted__block__data_8cpp.html":[15,0,1,4,0,1,3,4]
 };

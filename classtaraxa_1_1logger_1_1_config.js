@@ -3,6 +3,7 @@ var classtaraxa_1_1logger_1_1_config =
     [ "OutputConfig", "structtaraxa_1_1logger_1_1_config_1_1_output_config.html", "structtaraxa_1_1logger_1_1_config_1_1_output_config" ],
     [ "log_sink", "classtaraxa_1_1logger_1_1_config.html#a010b8605c14e0bf29793b00ec6c5b2c7", null ],
     [ "Config", "classtaraxa_1_1logger_1_1_config.html#a96202ea1a1f7be231d882a5f22a7e1c6", null ],
+    [ "Config", "classtaraxa_1_1logger_1_1_config.html#a97e42480007f80dcb287090051eaa0ea", null ],
     [ "~Config", "classtaraxa_1_1logger_1_1_config.html#a147f329cdc28884073bba18b4c5e3549", null ],
     [ "Config", "classtaraxa_1_1logger_1_1_config.html#afe417b454e12ce0fa789403dcbaf16c2", null ],
     [ "Config", "classtaraxa_1_1logger_1_1_config.html#a9f5db50d11086edfdc5ed74b180a1bcb", null ],

@@ -1,9 +1,9 @@
 var structtaraxa_1_1_full_node_config =
 [
     [ "FullNodeConfig", "structtaraxa_1_1_full_node_config.html#a335a372211671d427c5fd18ea0b390cd", null ],
-    [ "FullNodeConfig", "structtaraxa_1_1_full_node_config.html#a2a15f5a9fbb931ebaaf615202c0c4508", null ],
-    [ "FullNodeConfig", "structtaraxa_1_1_full_node_config.html#a3b650cc79dd88410fe31af5722ef7501", null ],
+    [ "FullNodeConfig", "structtaraxa_1_1_full_node_config.html#a82539ddcbc6d23432896dcfbc4110829", null ],
     [ "net_file_path", "structtaraxa_1_1_full_node_config.html#ae79d1a5da89550572a64d0850f9bc845", null ],
+    [ "overwriteConfigFromJson", "structtaraxa_1_1_full_node_config.html#a2c448f29c13e83cf18eb1108cdc75c9c", null ],
     [ "validate", "structtaraxa_1_1_full_node_config.html#aad4a40f97ab5a5dafcbc5909bd869c4d", null ],
     [ "dag_expiry_limit", "structtaraxa_1_1_full_node_config.html#a6eb0f104bf3dcfaead265c1718809d89", null ],
     [ "data_path", "structtaraxa_1_1_full_node_config.html#a864347d8c0df47defc19d10ff4733d21", null ],

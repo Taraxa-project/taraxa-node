@@ -119,6 +119,8 @@ Public Types</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a96202ea1a1f7be231d882a5f22a7e1c6"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1logger_1_1_config.html#a96202ea1a1f7be231d882a5f22a7e1c6">Config</a> ()=default</td></tr>
 <tr class="separator:a96202ea1a1f7be231d882a5f22a7e1c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a97e42480007f80dcb287090051eaa0ea"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1logger_1_1_config.html#a97e42480007f80dcb287090051eaa0ea">Config</a> (fs::path log_path)</td></tr>
+<tr class="separator:a97e42480007f80dcb287090051eaa0ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a147f329cdc28884073bba18b4c5e3549"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1logger_1_1_config.html#a147f329cdc28884073bba18b4c5e3549">~Config</a> ()</td></tr>
 <tr class="separator:a147f329cdc28884073bba18b4c5e3549"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afe417b454e12ce0fa789403dcbaf16c2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1logger_1_1_config.html#afe417b454e12ce0fa789403dcbaf16c2">Config</a> (const <a class="el" href="classtaraxa_1_1logger_1_1_config.html">Config</a> &amp;other)</td></tr>
@@ -138,7 +140,7 @@ Public Member Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
-<tr class="memitem:ac78bac98d53da0e69b54627f6830d09b"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1logger_1_1_config.html#ac78bac98d53da0e69b54627f6830d09b">name</a></td></tr>
+<tr class="memitem:ac78bac98d53da0e69b54627f6830d09b"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1logger_1_1_config.html#ac78bac98d53da0e69b54627f6830d09b">name</a> = &quot;default&quot;</td></tr>
 <tr class="separator:ac78bac98d53da0e69b54627f6830d09b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a59ebef8d2fb9329b49e973583f60973e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1logger.html#aceaf6df58f5b07f6884928392f007d04">Verbosity</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1logger_1_1_config.html#a59ebef8d2fb9329b49e973583f60973e">verbosity</a> {Verbosity::Error}</td></tr>
 <tr class="separator:a59ebef8d2fb9329b49e973583f60973e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -175,7 +177,7 @@ template&lt;class T &gt; </div>
 </div>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a96202ea1a1f7be231d882a5f22a7e1c6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a96202ea1a1f7be231d882a5f22a7e1c6">&#9670;&nbsp;</a></span>Config() <span class="overload">[1/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a96202ea1a1f7be231d882a5f22a7e1c6">&#9670;&nbsp;</a></span>Config() <span class="overload">[1/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -199,6 +201,24 @@ template&lt;class T &gt; </div>
 
 </div>
 </div>
+<a id="a97e42480007f80dcb287090051eaa0ea"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a97e42480007f80dcb287090051eaa0ea">&#9670;&nbsp;</a></span>Config() <span class="overload">[2/4]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">taraxa::logger::Config::Config </td>
+          <td>(</td>
+          <td class="paramtype">fs::path&#160;</td>
+          <td class="paramname"><em>log_path</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a147f329cdc28884073bba18b4c5e3549"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a147f329cdc28884073bba18b4c5e3549">&#9670;&nbsp;</a></span>~Config()</h2>
 
@@ -217,7 +237,7 @@ template&lt;class T &gt; </div>
 </div>
 </div>
 <a id="afe417b454e12ce0fa789403dcbaf16c2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afe417b454e12ce0fa789403dcbaf16c2">&#9670;&nbsp;</a></span>Config() <span class="overload">[2/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#afe417b454e12ce0fa789403dcbaf16c2">&#9670;&nbsp;</a></span>Config() <span class="overload">[3/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -235,7 +255,7 @@ template&lt;class T &gt; </div>
 </div>
 </div>
 <a id="a9f5db50d11086edfdc5ed74b180a1bcb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9f5db50d11086edfdc5ed74b180a1bcb">&#9670;&nbsp;</a></span>Config() <span class="overload">[3/3]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a9f5db50d11086edfdc5ed74b180a1bcb">&#9670;&nbsp;</a></span>Config() <span class="overload">[4/4]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -416,7 +436,7 @@ template&lt;class T &gt; </div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::string taraxa::logger::Config::name</td>
+          <td class="memname">std::string taraxa::logger::Config::name = &quot;default&quot;</td>
         </tr>
       </table>
 </div><div class="memdoc">

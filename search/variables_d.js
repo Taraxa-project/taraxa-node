@@ -53,5 +53,5 @@ var searchData=
   ['num_5fthreads_6311',['num_threads',['../structtaraxa_1_1_network_config.html#afbacdd7402e6309bd59494551ddef537',1,'taraxa::NetworkConfig']]],
   ['num_5ftries_5f_6312',['num_tries_',['../group___d_a_g.html#a1492d6033959ade8d362c6d3141c9513',1,'taraxa::DagBlockProposer']]],
   ['number_6313',['number',['../group___final_chain.html#a2150879a49281a5426b712612329b2ed',1,'taraxa::final_chain::BlockHeader::number()'],['../group___final_chain.html#a4655fb5d4538ce7a5840214f322eb37e',1,'taraxa::state_api::UncleBlock::number()']]],
-  ['number_5fof_5fproposers_6314',['NUMBER_OF_PROPOSERS',['../group___p_b_f_t.html#a2e38bc0d57e9b5d96b306d3504365fd1',1,'taraxa::PbftManager::NUMBER_OF_PROPOSERS()'],['../structtaraxa_1_1_pbft_config.html#a8d281d1afa5d0b87650194c0660f0b72',1,'taraxa::PbftConfig::number_of_proposers()']]]
+  ['number_5fof_5fproposers_6314',['number_of_proposers',['../structtaraxa_1_1_pbft_config.html#a8d281d1afa5d0b87650194c0660f0b72',1,'taraxa::PbftConfig::number_of_proposers()'],['../group___p_b_f_t.html#a2e38bc0d57e9b5d96b306d3504365fd1',1,'taraxa::PbftManager::NUMBER_OF_PROPOSERS()']]]
 ];
