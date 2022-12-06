@@ -46,9 +46,8 @@ class Config {
     std::string format = "%ThreadID% %ShortNodeId% %Channel% [%TimeStamp%] %SeverityStr%: %Message%";
     uint64_t max_size = 0;
   };
-
- public:
   Config() = default;
+  Config(fs::path log_path);
   ~Config();
 
   Config(const Config& other);
@@ -66,7 +65,7 @@ class Config {
    */
   void DeinitLogging();
 
-  std::string name;
+  std::string name = "default";
   Verbosity verbosity{Verbosity::Error};
   std::map<std::string, uint16_t> channels;
   std::vector<OutputConfig> outputs;

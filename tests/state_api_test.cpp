@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "common/encoding_rlp.hpp"
-#include "util_test/util.hpp"
+#include "test_util/test_util.hpp"
 
 namespace taraxa::state_api {
 using boost::filesystem::create_directories;
@@ -16,7 +16,7 @@ using boost::filesystem::path;
 using boost::filesystem::remove_all;
 using boost::filesystem::temp_directory_path;
 using namespace std;
-using namespace core_tests;
+// using namespace core_tests;
 
 struct StateAPITest : WithDataDir {};
 

@@ -10,12 +10,12 @@
 #include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "pbft/pbft_manager.hpp"
-#include "util_test/samples.hpp"
-#include "util_test/util.hpp"
+#include "test_util/samples.hpp"
+#include "test_util/test_util.hpp"
 
 namespace taraxa::core_tests {
 
-struct PbftChainTest : BaseTest {};
+struct PbftChainTest : NodesTest {};
 
 TEST_F(PbftChainTest, serialize_desiriablize_pbft_block) {
   auto node_cfgs = make_node_cfgs(1);

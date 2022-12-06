@@ -2,7 +2,7 @@
 
 #include <optional>
 
-#include "util_test/gtest.hpp"
+#include "test_util/gtest.hpp"
 
 namespace taraxa::final_chain {
 

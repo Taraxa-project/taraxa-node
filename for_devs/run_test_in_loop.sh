@@ -18,8 +18,8 @@ while true; do
 # ec=$?  # grab the exit code into a variable so that it can
 #        # be reused later, without the fear of being overwritten
 
-    $TEST_CMD ec=$?  # grab the exit code into a variable so that it can be reused later, without the fear of being overwritten
-
+    $TEST_CMD
+    ec=$? # grab the exit code into a variable so that it can be reused later, without the fear of being overwritten
     case $ec in
         0) printf '%s\n' "Command exited with zero";;
         1) printf '%s RUNS: %d\n' "Command exited with non-zero" $COUNTER; exit 1;;

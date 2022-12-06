@@ -2,11 +2,11 @@
 
 #include "common/types.hpp"
 #include "dag/sortition_params_manager.hpp"
-#include "util_test/util.hpp"
+#include "test_util/test_util.hpp"
 
 namespace taraxa::core_tests {
 
-struct SortitionTest : BaseTest {
+struct SortitionTest : NodesTest {
   std::vector<FullNodeConfig> node_cfgs = make_node_cfgs(1);
 };
 

@@ -10,21 +10,21 @@
 
 namespace taraxa::core_tests {
 
-// Do not use BaseTest from "util_test/gtest.hpp" as its functionality is not needed in this test
-struct BaseTest : virtual testing::Test {
+// Do not use NodesTest from "test_util/gtest.hpp" as its functionality is not needed in this test
+struct NodesTest : virtual testing::Test {
   testing::UnitTest* current_test = ::testing::UnitTest::GetInstance();
   testing::TestInfo const* current_test_info = current_test->current_test_info();
 
-  BaseTest() = default;
-  virtual ~BaseTest() = default;
+  NodesTest() = default;
+  virtual ~NodesTest() = default;
 
-  BaseTest(const BaseTest&) = delete;
-  BaseTest(BaseTest&&) = delete;
-  BaseTest& operator=(const BaseTest&) = delete;
-  BaseTest& operator=(BaseTest&&) = delete;
+  NodesTest(const NodesTest&) = delete;
+  NodesTest(NodesTest&&) = delete;
+  NodesTest& operator=(const NodesTest&) = delete;
+  NodesTest& operator=(NodesTest&&) = delete;
 };
 
-struct TarcapTpTest : BaseTest {};
+struct TarcapTpTest : NodesTest {};
 
 using namespace taraxa::network;
 

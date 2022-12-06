@@ -12,7 +12,7 @@
 #include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
 #include "logger/logger.hpp"
-#include "util_test/gtest.hpp"
+#include "test_util/gtest.hpp"
 #include "vdf/sortition.hpp"
 #include "vote/vote.hpp"
 

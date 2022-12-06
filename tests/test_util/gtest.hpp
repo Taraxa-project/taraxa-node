@@ -25,24 +25,24 @@ inline auto const DIR_CONF = DIR / "conf";
     return RUN_ALL_TESTS();                                   \
   }
 
-struct WithTestInfo : virtual testing::Test {
+struct BaseTest : virtual testing::Test {
   testing::UnitTest *current_test = ::testing::UnitTest::GetInstance();
   testing::TestInfo const *current_test_info = current_test->current_test_info();
 
-  WithTestInfo() = default;
-  virtual ~WithTestInfo() = default;
+  BaseTest() = default;
+  virtual ~BaseTest() = default;
 
-  WithTestInfo(const WithTestInfo &) = delete;
-  WithTestInfo(WithTestInfo &&) = delete;
-  WithTestInfo &operator=(const WithTestInfo &) = delete;
-  WithTestInfo &operator=(WithTestInfo &&) = delete;
+  BaseTest(const BaseTest &) = delete;
+  BaseTest(BaseTest &&) = delete;
+  BaseTest &operator=(const BaseTest &) = delete;
+  BaseTest &operator=(BaseTest &&) = delete;
 };
 
-struct WithDataDir : virtual WithTestInfo {
+struct WithDataDir : virtual BaseTest {
   std::filesystem::path data_dir = std::filesystem::temp_directory_path() / "taraxa_node_tests" /
                                    current_test_info->test_suite_name() / current_test_info->test_case_name();
 
-  WithDataDir() : WithTestInfo() {
+  WithDataDir() : BaseTest() {
     std::filesystem::remove_all(data_dir);
     std::filesystem::create_directories(data_dir);
   }
@@ -52,38 +52,4 @@ struct WithDataDir : virtual WithTestInfo {
   WithDataDir(WithDataDir &&) = delete;
   WithDataDir &operator=(const WithDataDir &) = delete;
   WithDataDir &operator=(WithDataDir &&) = delete;
-};
-
-inline auto const node_cfgs_original = Lazy([] {
-  std::vector<taraxa::FullNodeConfig> ret;
-  for (int i = 1;; ++i) {
-    auto p = DIR_CONF / (std::string("conf_taraxa") + std::to_string(i) + ".json");
-    if (!fs::exists(p)) {
-      break;
-    }
-    auto w = DIR_CONF / (std::string("wallet") + std::to_string(i) + ".json");
-    Json::Value test_node_wallet_json;
-    std::ifstream(w.string(), std::ifstream::binary) >> test_node_wallet_json;
-    ret.emplace_back(p.string(), test_node_wallet_json);
-    ret.back().genesis.gas_price.minimum_price = 0;
-  }
-  return ret;
-});
-
-struct BaseTest : virtual WithDataDir {
-  BaseTest() : WithDataDir() { CleanupDirs(); }
-  virtual ~BaseTest() {}
-
-  BaseTest(const BaseTest &) = delete;
-  BaseTest(BaseTest &&) = delete;
-  BaseTest &operator=(const BaseTest &) = delete;
-  BaseTest &operator=(BaseTest &&) = delete;
-
-  void CleanupDirs() {
-    for (auto &cfg : *node_cfgs_original) {
-      remove_all(cfg.data_path);
-    }
-  }
-
-  void TearDown() override { CleanupDirs(); }
 };

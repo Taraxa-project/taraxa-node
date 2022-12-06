@@ -63,72 +63,49 @@ void dec_json(Json::Value const& json, Genesis& obj) {
   dec_json(json["dag"], obj.dag);
 }
 
-const Genesis& Genesis::predefined(std::string const& name) {
-  if (auto i = predefined_->find(name); i != predefined_->end()) {
-    return i->second;
-  }
-  throw std::runtime_error("unknown chain config: " + name);
+Genesis::Genesis() {
+  dag_genesis_block = DagBlock(string(R"({
+    "level": 0,
+    "tips": [],
+    "trxs": [],
+    "sig": "b7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
+    "hash": "c9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69",
+    "sender": "de2b1203d72d3549ee2f733b00b2789414c7cea5",
+    "pivot": "0000000000000000000000000000000000000000000000000000000000000000",
+    "timestamp": 1564617600,
+    "vdf": ""
+  })"));
+
+  // VDF config
+  sortition.vrf.threshold_upper = 0xafff;
+  sortition.vdf.difficulty_min = 16;
+  sortition.vdf.difficulty_max = 21;
+  sortition.vdf.difficulty_stale = 23;
+  sortition.vdf.lambda_bound = 100;
+
+  // PBFT config
+  pbft.lambda_ms = 2000;
+  pbft.committee_size = 5;
+  pbft.dag_blocks_size = 100;
+  pbft.ghost_path_move_back = 1;
+  pbft.gas_limit = 60000000;
+
+  // DAG config
+  dag.gas_limit = 10000000;
+
+  // DPOS config
+  auto& dpos = state.dpos;
+  dpos.eligibility_balance_threshold = 1000000000;
+  dpos.vote_eligibility_balance_step = 1000000000;
+  dpos.validator_maximum_stake = dev::jsToU256("0x84595161401484A000000");
+  dpos.yield_percentage = 20;
+
+  uint64_t year_ms = 365 * 24 * 60 * 60;
+  year_ms *= 1000;
+  // we have fixed 2*lambda time for proposing step and adding some expecting value for filter and certify steps
+  const uint32_t expected_block_time = 2 * pbft.lambda_ms + 700;
+  dpos.blocks_per_year = year_ms / expected_block_time;
 }
-
-decltype(Genesis::predefined_) const Genesis::predefined_([] {
-  decltype(Genesis::predefined_)::val_t cfgs;
-  cfgs["default"] = [] {
-    Genesis cfg;
-    cfg.dag_genesis_block = DagBlock(string(R"({
-      "level": 0,
-      "tips": [],
-      "trxs": [],
-      "sig": "b7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
-      "hash": "c9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69",
-      "sender": "de2b1203d72d3549ee2f733b00b2789414c7cea5",
-      "pivot": "0000000000000000000000000000000000000000000000000000000000000000",
-      "timestamp": 1564617600,
-      "vdf": ""
-    })"));
-
-    // VDF config
-    cfg.sortition.vrf.threshold_upper = 0xafff;
-    cfg.sortition.vdf.difficulty_min = 16;
-    cfg.sortition.vdf.difficulty_max = 21;
-    cfg.sortition.vdf.difficulty_stale = 23;
-    cfg.sortition.vdf.lambda_bound = 100;
-
-    // PBFT config
-    cfg.pbft.lambda_ms = 2000;
-    cfg.pbft.committee_size = 5;
-    cfg.pbft.dag_blocks_size = 100;
-    cfg.pbft.ghost_path_move_back = 1;
-    cfg.pbft.gas_limit = 60000000;
-
-    // DAG config
-    cfg.dag.gas_limit = 10000000;
-
-    // DPOS config
-    auto& dpos = cfg.state.dpos;
-    dpos.eligibility_balance_threshold = 1000000000;
-    dpos.vote_eligibility_balance_step = 1000000000;
-    dpos.validator_maximum_stake = dev::jsToU256("0x84595161401484A000000");
-    // dpos.yield_percentage = 0;
-    dpos.yield_percentage = 20;
-
-    uint64_t year_ms = 365 * 24 * 60 * 60;
-    year_ms *= 1000;
-    // we have fixed 2*lambda time for proposing step and adding some expecting value for filter and certify steps
-    const uint32_t expected_block_time = 2 * cfg.pbft.lambda_ms + 700;
-    dpos.blocks_per_year = year_ms / expected_block_time;
-
-    return cfg;
-  }();
-  cfgs["test"] = [&] {
-    auto cfg = cfgs["default"];
-    cfg.state.dpos.yield_percentage = 0;
-    cfg.gas_price.minimum_price = 0;
-    cfg.state.initial_balances[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")] =
-        u256(7200999050) * 10000000000000000;  // https://ethereum.stackexchange.com/a/74832
-    return cfg;
-  }();
-  return cfgs;
-});
 
 void Genesis::validate() const { gas_price.validate(); }
 
