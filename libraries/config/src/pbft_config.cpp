@@ -12,6 +12,7 @@ Json::Value enc_json(PbftConfig const& obj) {
   ret["number_of_proposers"] = dev::toJS(obj.number_of_proposers);
   ret["dag_blocks_size"] = dev::toJS(obj.dag_blocks_size);
   ret["ghost_path_move_back"] = dev::toJS(obj.ghost_path_move_back);
+  ret["state_root_recording_delay"] = dev::toJS(obj.state_root_recording_delay);
   ret["gas_limit"] = dev::toJS(obj.gas_limit);
   return ret;
 }
@@ -22,6 +23,7 @@ void dec_json(Json::Value const& json, PbftConfig& obj) {
   obj.number_of_proposers = dev::jsToInt(json["number_of_proposers"].asString());
   obj.dag_blocks_size = dev::jsToInt(json["dag_blocks_size"].asString());
   obj.ghost_path_move_back = dev::jsToInt(json["ghost_path_move_back"].asString());
+  obj.state_root_recording_delay = dev::jsToInt(json["state_root_recording_delay"].asString());
   obj.gas_limit = dev::getUInt(json["gas_limit"]);
 }
 
@@ -34,6 +36,7 @@ bytes PbftConfig::rlp() const {
   s << number_of_proposers;
   s << dag_blocks_size;
   s << ghost_path_move_back;
+  s << state_root_recording_delay;
   s << gas_limit;
 
   return s.out();

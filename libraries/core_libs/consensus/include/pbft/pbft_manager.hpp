@@ -473,7 +473,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Identify a leader block from all received proposed PBFT blocks for the current round by using minimum
    * Verifiable Random Function (VRF) output. In filter state, don’t need check vote value correction.
    * @param round current pbft round
-   * @param period new pbft period (perriod == chain_size + 1)
+   * @param period new pbft period (period == chain_size + 1)
    * @return shared_ptr to leader identified leader block
    */
   // TODO: exchange round <-> period

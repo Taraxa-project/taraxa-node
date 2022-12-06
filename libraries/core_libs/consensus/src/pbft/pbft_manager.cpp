@@ -1175,15 +1175,19 @@ std::shared_ptr<PbftBlock> PbftManager::generatePbftBlock(PbftPeriod propose_per
   std::vector<vote_hash_t> reward_votes_hashes;
   std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
                  [](const auto &v) { return v->getHash(); });
-  return std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, propose_period, node_addr_, node_sk_,
-                                     std::move(reward_votes_hashes));
+  h256 last_state_root;
+  if (propose_period > config_.state_root_recording_delay) {
+    last_state_root = final_chain_->block_header(propose_period - config_.state_root_recording_delay)->state_root;
+  }
+  return std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, last_state_root, propose_period,
+                                     node_addr_, node_sk_, std::move(reward_votes_hashes));
 }
 
-std::shared_ptr<Vote> PbftManager::generateVote(const blk_hash_t &blockhash, PbftVoteTypes type, PbftPeriod period,
+std::shared_ptr<Vote> PbftManager::generateVote(const blk_hash_t &block_hash, PbftVoteTypes type, PbftPeriod period,
                                                 PbftRound round, PbftStep step) {
   // sortition proof
   VrfPbftSortition vrf_sortition(vrf_sk_, {type, period, round, step});
-  return std::make_shared<Vote>(node_sk_, std::move(vrf_sortition), blockhash);
+  return std::make_shared<Vote>(node_sk_, std::move(vrf_sortition), block_hash);
 }
 
 std::pair<bool, std::string> PbftManager::validateVote(const std::shared_ptr<Vote> &vote) const {
@@ -1560,6 +1564,20 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
 
   auto const &pbft_block_hash = pbft_block->getBlockHash();
 
+  auto period = pbft_block->getPeriod();
+
+  {
+    h256 prev_state_root_hash;
+    if (period > config_.state_root_recording_delay) {
+      prev_state_root_hash = final_chain_->block_header(period - config_.state_root_recording_delay)->state_root;
+    }
+    if (pbft_block->getPrevStateRoot() != prev_state_root_hash) {
+      LOG(log_er_) << "Block " << pbft_block_hash << " state root " << pbft_block->getPrevStateRoot()
+                   << " isn't matching actual " << prev_state_root_hash;
+      return false;
+    }
+  }
+
   // Vadliates reward votes
   if (!vote_mgr_->checkRewardVotes(pbft_block)) {
     LOG(log_er_) << "Failed verifying reward votes for proposed PBFT block " << pbft_block_hash;
@@ -1736,7 +1754,7 @@ void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finali
   auto result = final_chain_->finalize(
       std::move(period_data), std::move(finalized_dag_blk_hashes),
       [this, weak_ptr = weak_from_this(), anchor_hash = anchor, period = period_data.pbft_blk->getPeriod()](
-          auto const &, auto &batch) {
+          const auto &, auto &batch) {
         // Update proposal period DAG levels map
         auto ptr = weak_ptr.lock();
         if (!ptr) return;  // it was destroyed

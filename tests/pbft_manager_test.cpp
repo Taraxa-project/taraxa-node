@@ -641,7 +641,7 @@ TEST_F(PbftManagerTest, propose_block_and_vote_broadcast) {
   std::vector<vote_hash_t> reward_votes_hashes;
   std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
                  [](const auto &v) { return v->getHash(); });
-  auto proposed_pbft_block = std::make_shared<PbftBlock>(prev_block_hash, blk_hash_t(0), blk_hash_t(0),
+  auto proposed_pbft_block = std::make_shared<PbftBlock>(prev_block_hash, blk_hash_t(0), blk_hash_t(0), blk_hash_t(0),
                                                          node1->getPbftManager()->getPbftPeriod(), node1->getAddress(),
                                                          node1->getSecretKey(), std::move(reward_votes_hashes));
   auto propose_vote = pbft_mgr1->generateVote(proposed_pbft_block->getBlockHash(), PbftVoteTypes::propose_vote,
@@ -913,8 +913,8 @@ TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
     std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
                    [](const auto &v) { return v->getHash(); });
     const auto pbft_block =
-        std::make_shared<PbftBlock>(last_hash, dag_block_hash, order_hash, propose_period, node->getAddress(),
-                                    node->getSecretKey(), std::move(reward_votes_hashes));
+        std::make_shared<PbftBlock>(last_hash, dag_block_hash, order_hash, blk_hash_t(), propose_period,
+                                    node->getAddress(), node->getSecretKey(), std::move(reward_votes_hashes));
     // node->getPbftChain()->pushUnverifiedPbftBlock(pbft_block);
   }
 
@@ -932,7 +932,7 @@ TEST_F(PbftManagerWithDagCreation, proposed_blocks) {
   // Create blocks
   for (uint32_t i = 1; i <= block_count; i++) {
     std::vector<vote_hash_t> reward_votes_hashes;
-    auto block = std::make_shared<PbftBlock>(blk_hash_t(1), blk_hash_t(0), blk_hash_t(0), 2, addr_t(),
+    auto block = std::make_shared<PbftBlock>(blk_hash_t(1), blk_hash_t(0), blk_hash_t(0), blk_hash_t(0), 2, addr_t(),
                                              dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
     blocks.insert({block->getBlockHash(), block});
   }

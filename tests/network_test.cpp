@@ -164,9 +164,9 @@ TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
   auto nw2 = nodes[1]->getNetwork();
 
   std::vector<vote_hash_t> reward_votes{};
-  auto pbft_block =
-      std::make_shared<PbftBlock>(blk_hash_t(1), blk_hash_t(0), blk_hash_t(0), node1->getPbftManager()->getPbftPeriod(),
-                                  node1->getAddress(), node1->getSecretKey(), std::move(reward_votes));
+  auto pbft_block = std::make_shared<PbftBlock>(blk_hash_t(1), blk_hash_t(0), blk_hash_t(0), blk_hash_t(),
+                                                node1->getPbftManager()->getPbftPeriod(), node1->getAddress(),
+                                                node1->getSecretKey(), std::move(reward_votes));
   auto vote =
       node1_pbft_mgr->generateVote(pbft_block->getBlockHash(), PbftVoteTypes::propose_vote, pbft_block->getPeriod(),
                                    node1_pbft_mgr->getPbftRound() + 1, value_proposal_state);
@@ -545,8 +545,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
   order_stream.appendList(1);
   order_stream << blk1.getHash();
 
-  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), period, beneficiary,
-                        node1->getSecretKey(), {});
+  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), blk_hash_t(), period,
+                        beneficiary, node1->getSecretKey(), {});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
       node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, 1, 1, 3));
@@ -601,8 +601,8 @@ TEST_F(NetworkTest, node_pbft_sync) {
   dev::RLPStream order_stream2(1);
   order_stream2.appendList(1);
   order_stream2 << blk2.getHash();
-  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), period, beneficiary,
-                        node1->getSecretKey(), {});
+  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), blk_hash_t(), period,
+                        beneficiary, node1->getSecretKey(), {});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(
       node1->getPbftManager()->generateVote(pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, 2, 2, 3));
@@ -711,8 +711,8 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   order_stream.appendList(1);
   order_stream << blk1.getHash();
 
-  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), period, beneficiary,
-                        node1->getSecretKey(), {});
+  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), blk_hash_t(), period,
+                        beneficiary, node1->getSecretKey(), {});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
       node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, 1, 1, 3));
@@ -759,8 +759,8 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   order_stream2.appendList(1);
   order_stream2 << blk2.getHash();
 
-  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), period, beneficiary,
-                        node1->getSecretKey(), {});
+  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), blk_hash_t(), period,
+                        beneficiary, node1->getSecretKey(), {});
   std::cout << "Use fake votes for the second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and use fake votes storing into DB (malicious player)
   // Add fake votes in DB
