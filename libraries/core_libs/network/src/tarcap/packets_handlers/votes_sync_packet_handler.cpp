@@ -164,7 +164,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
   // Previous round next votes
   if (votes_bundle_votes_type == PbftVoteTypes::next_vote) {
     const auto [pbft_round, pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
-    const auto two_t_plus_one = pbft_mgr_->getPbftTwoTPlusOne(pbft_period - 1);
+    const auto two_t_plus_one = vote_mgr_->getPbftTwoTPlusOne(pbft_period - 1);
     // Check if we did not move to the next period/round in the meantime
     if (votes_bundle_pbft_period == pbft_period && votes_bundle_pbft_round == (pbft_round - 1) &&
         two_t_plus_one.has_value()) {

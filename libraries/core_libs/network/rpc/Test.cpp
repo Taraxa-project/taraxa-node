@@ -133,7 +133,7 @@ Json::Value Test::get_node_status() {
       const auto chain_size = node->getPbftChain()->getPbftChainSize();
       const auto dpos_total_votes_opt = node->getPbftManager()->getCurrentDposTotalVotesCount();
       const auto dpos_node_votes_opt = node->getPbftManager()->getCurrentNodeVotesCount();
-      const auto two_t_plus_one_opt = node->getPbftManager()->getPbftTwoTPlusOne(chain_size);
+      const auto two_t_plus_one_opt = node->getVoteManager()->getPbftTwoTPlusOne(chain_size);
 
       res["synced"] = !node->getNetwork()->pbft_syncing();
       res["syncing_seconds"] = Json::UInt64(node->getNetwork()->syncTimeSeconds());

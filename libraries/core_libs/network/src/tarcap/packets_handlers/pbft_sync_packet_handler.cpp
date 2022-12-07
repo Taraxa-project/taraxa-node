@@ -156,7 +156,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
     // have been verified before
     if (pbft_mgr_->periodDataQueueEmpty()) {
       for (const auto &v : period_data.previous_block_cert_votes) {
-        if (auto vote_is_valid = pbft_mgr_->validateVote(v); vote_is_valid.first == false) {
+        if (auto vote_is_valid = vote_mgr_->validateVote(v); vote_is_valid.first == false) {
           LOG(log_er_) << "Invalid reward votes in block " << period_data.pbft_blk->getBlockHash() << " from peer "
                        << packet_data.from_node_id_.abridged()
                        << " received, stop syncing.   Validation failed. Err: " << vote_is_valid.second;

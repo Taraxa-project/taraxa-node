@@ -16,12 +16,19 @@ namespace taraxa {
 constexpr PbftStep kExtendedPartionSteps = 1000;
 constexpr PbftStep kFirstFinishStep = 4;
 
-VoteManager::VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-                         std::shared_ptr<FinalChain> final_chain, std::shared_ptr<NextVotesManager> next_votes_mgr)
-    : db_(std::move(db)),
+VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config, const secret_t& node_sk,
+                         const vrf_wrapper::vrf_sk_t& vrf_sk, std::shared_ptr<DbStorage> db,
+                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
+                         std::shared_ptr<KeyManager> key_manager)
+    : node_addr_(node_addr),
+      pbft_config_(pbft_config),
+      vrf_sk_(vrf_sk),
+      node_sk_(node_sk),
+      node_pub_(dev::toPublic(node_sk_)),
+      db_(std::move(db)),
       pbft_chain_(std::move(pbft_chain)),
       final_chain_(std::move(final_chain)),
-      next_votes_manager_(std::move(next_votes_mgr)) {
+      key_manager_(std::move(key_manager)) {
   LOG_OBJECTS_CREATE("VOTE_MGR");
   verified_votes_last_period_ = pbft_chain_->getPbftChainSize() + 1;
 
@@ -733,6 +740,157 @@ void VoteManager::sendRewardVotes(const blk_hash_t& pbft_block_hash, bool rebroa
     net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(reward_votes),
                                                                                              rebroadcast);
   }
+}
+
+uint64_t VoteManager::getPbftSortitionThreshold(uint64_t total_dpos_votes_count, PbftVoteTypes vote_type) const {
+  switch (vote_type) {
+    case PbftVoteTypes::propose_vote:
+      return std::min<uint64_t>(pbft_config_.number_of_proposers, total_dpos_votes_count);
+    case PbftVoteTypes::soft_vote:
+    case PbftVoteTypes::cert_vote:
+    case PbftVoteTypes::next_vote:
+    default:
+      return std::min<uint64_t>(pbft_config_.committee_size, total_dpos_votes_count);
+  }
+}
+
+std::shared_ptr<Vote> VoteManager::generateVoteWithWeight(const taraxa::blk_hash_t& blockhash, PbftVoteTypes vote_type,
+                                                          PbftPeriod period, PbftRound round, PbftStep step) {
+  uint64_t voter_dpos_votes_count = 0;
+  uint64_t total_dpos_votes_count = 0;
+  uint64_t pbft_sortition_threshold = 0;
+
+  try {
+    voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(period - 1, node_addr_);
+    total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(period - 1);
+    pbft_sortition_threshold = getPbftSortitionThreshold(total_dpos_votes_count, vote_type);
+
+  } catch (state_api::ErrFutureBlock& e) {
+    LOG(log_er_) << "Unable to place vote for period: " << period << ", round: " << round << ", step: " << step
+                 << ", voted block hash: " << blockhash.abridged() << ". "
+                 << "Period is too far ahead of actual finalized pbft chain size (" << final_chain_->last_block_number()
+                 << "). Err msg: " << e.what();
+
+    return nullptr;
+  }
+
+  if (!voter_dpos_votes_count) {
+    // No delegation
+    return nullptr;
+  }
+
+  auto vote = generateVote(blockhash, vote_type, period, round, step);
+  vote->calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold);
+
+  if (*vote->getWeight() == 0) {
+    // zero weight vote
+    return nullptr;
+  }
+
+  return vote;
+}
+
+std::shared_ptr<Vote> VoteManager::generateVote(const blk_hash_t& blockhash, PbftVoteTypes type, PbftPeriod period,
+                                                PbftRound round, PbftStep step) {
+  // sortition proof
+  VrfPbftSortition vrf_sortition(vrf_sk_, {type, period, round, step});
+  return std::make_shared<Vote>(node_sk_, std::move(vrf_sortition), blockhash);
+}
+
+std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Vote>& vote) const {
+  const uint64_t vote_period = vote->getPeriod();
+
+  // Validate vote against dpos contract
+  try {
+    const auto pk = key_manager_->get(vote_period - 1, vote->getVoterAddr());
+    if (!pk) {
+      std::stringstream err;
+      err << "No vrf key mapped for vote author " << vote->getVoterAddr();
+      return {false, err.str()};
+    }
+
+    const uint64_t voter_dpos_votes_count =
+        final_chain_->dpos_eligible_vote_count(vote_period - 1, vote->getVoterAddr());
+    const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(vote_period - 1);
+    const uint64_t pbft_sortition_threshold = getPbftSortitionThreshold(total_dpos_votes_count, vote->getType());
+
+    vote->validate(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold, *pk);
+  } catch (state_api::ErrFutureBlock& e) {
+    std::stringstream err;
+    err << "Unable to validate vote " << vote->getHash() << " against dpos contract. It's period (" << vote_period
+        << ") is too far ahead of actual finalized pbft chain size (" << final_chain_->last_block_number()
+        << "). Err msg: " << e.what();
+
+    return {false, err.str()};
+  } catch (const std::logic_error& e) {
+    std::stringstream err;
+    err << "Vote " << vote->getHash() << " validation failed. Err: " << e.what();
+
+    return {false, err.str()};
+  }
+
+  return {true, ""};
+}
+
+std::optional<uint64_t> VoteManager::getPbftTwoTPlusOne(PbftPeriod pbft_period) const {
+  // Check cache first
+  {
+    std::shared_lock lock(current_two_t_plus_one_mutex_);
+    if (pbft_period == current_two_t_plus_one_.first && current_two_t_plus_one_.second) {
+      return current_two_t_plus_one_.second;
+    }
+  }
+
+  uint64_t total_dpos_votes_count = 0;
+  try {
+    total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(pbft_period);
+  } catch (state_api::ErrFutureBlock& e) {
+    LOG(log_er_) << "Unable to calculate 2t + 1 for period: " << pbft_period
+                 << ". Period is too far ahead of actual finalized pbft chain size ("
+                 << final_chain_->last_block_number() << "). Err msg: " << e.what();
+    return {};
+  }
+
+  const auto two_t_plus_one = getPbftSortitionThreshold(total_dpos_votes_count, PbftVoteTypes::cert_vote) * 2 / 3 + 1;
+
+  // Cache is only for current pbft period
+  if (pbft_period == pbft_chain_->getPbftChainSize()) {
+    std::unique_lock lock(current_two_t_plus_one_mutex_);
+    current_two_t_plus_one_ = std::make_pair(pbft_period, two_t_plus_one);
+  }
+
+  return two_t_plus_one;
+}
+
+bool VoteManager::genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound pbft_round) const {
+  VrfPbftSortition vrf_sortition(vrf_sk_, {PbftVoteTypes::propose_vote, pbft_period, pbft_round, 1});
+
+  try {
+    const uint64_t voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(pbft_period - 1, node_addr_);
+    const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(pbft_period - 1);
+    const uint64_t pbft_sortition_threshold =
+        getPbftSortitionThreshold(total_dpos_votes_count, PbftVoteTypes::propose_vote);
+
+    if (!voter_dpos_votes_count) {
+      LOG(log_er_) << "Generated vrf sortition for period " << pbft_period << ", round " << pbft_round
+                   << " is invalid. Voter dpos vote count is zero";
+      return false;
+    }
+
+    if (!vrf_sortition.calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold,
+                                       node_pub_)) {
+      LOG(log_dg_) << "Generated vrf sortition for period " << pbft_period << ", round " << pbft_round
+                   << " is invalid. Vrf sortition is zero";
+      return false;
+    }
+  } catch (state_api::ErrFutureBlock& e) {
+    LOG(log_er_) << "Unable to generate vrf sorititon for period " << pbft_period << ", round " << pbft_round
+                 << ". Period is too far ahead of actual finalized pbft chain size ("
+                 << final_chain_->last_block_number() << "). Err msg: " << e.what();
+    return false;
+  }
+
+  return true;
 }
 
 NextVotesManager::NextVotesManager(addr_t node_addr, std::shared_ptr<DbStorage> db,

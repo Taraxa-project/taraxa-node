@@ -1,7 +1,9 @@
 #pragma once
 
 #include "common/util.hpp"
+#include "common/vrf_wrapper.hpp"
 #include "final_chain/final_chain.hpp"
+#include "key_manager/key_manager.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "vote/vote.hpp"
 
@@ -125,8 +127,9 @@ class NextVotesManager {
  */
 class VoteManager {
  public:
-  VoteManager(const addr_t& node_addr, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<NextVotesManager> next_votes_mgr);
+  VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config, const secret_t& node_sk,
+              const vrf_wrapper::vrf_sk_t& vrf_sk, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
+              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<KeyManager> key_manager);
   ~VoteManager();
   VoteManager(const VoteManager&) = delete;
   VoteManager(VoteManager&&) = delete;
@@ -309,20 +312,76 @@ class VoteManager {
    */
   uint64_t getRewardVotesPbftBlockPeriod();
 
+  /**
+   * @brief Place a vote, save it in the verified votes queue, and gossip to peers
+   * @param blockhash vote on PBFT block hash
+   * @param vote_type vote type
+   * @param period PBFT period
+   * @param round PBFT round
+   * @param step PBFT step
+   * @param step PBFT step
+   */
+  std::shared_ptr<Vote> generateVoteWithWeight(const blk_hash_t& blockhash, PbftVoteTypes vote_type, PbftPeriod period,
+                                               PbftRound round, PbftStep step);
+
+  /**
+   * @brief Generate a vote
+   * @param blockhash vote on PBFT block hash
+   * @param type vote type
+   * @param period PBFT period
+   * @param round PBFT round
+   * @param step PBFT step
+   * @return vote
+   */
+  std::shared_ptr<Vote> generateVote(const blk_hash_t& blockhash, PbftVoteTypes type, PbftPeriod period,
+                                     PbftRound round, PbftStep step);
+
+  /**
+   * @brief Validates vote
+   *
+   * @param vote to be validated
+   * @return <true, ""> vote validation passed, otherwise <false, "err msg">
+   */
+  std::pair<bool, std::string> validateVote(const std::shared_ptr<Vote>& vote) const;
+
+  /**
+   * @brief Get 2t+1. 2t+1 is 2/3 of PBFT sortition threshold and plus 1 for a specific period
+   * @param pbft_period pbft period
+   * @return PBFT 2T + 1 if successful, otherwise (due to non-existent data for pbft_period) empty optional
+   */
+  std::optional<uint64_t> getPbftTwoTPlusOne(PbftPeriod pbft_period) const;
+
+  bool genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound pbft_round) const;
+
  private:
+  using UniqueLock = boost::unique_lock<boost::shared_mutex>;
+  using SharedLock = boost::shared_lock<boost::shared_mutex>;
+
   /**
    * @brief Retrieve all verified votes from DB to the verified votes map. And broadcast all next voting type votes to
    * peers if node has extended the partition steps (1000). That only happens when nodes start.
    */
   void retreieveVotes_();
 
-  using UniqueLock = boost::unique_lock<boost::shared_mutex>;
-  using SharedLock = boost::shared_lock<boost::shared_mutex>;
+  /**
+   * @brief Get PBFT sortition threshold for specific period
+   * @param total_dpos_votes_count total votes count
+   * @param vote_type vote type
+   * @return PBFT sortition threshold
+   */
+  uint64_t getPbftSortitionThreshold(uint64_t total_dpos_votes_count, PbftVoteTypes vote_type) const;
+
+ private:
+  const addr_t node_addr_;
+  const PbftConfig& pbft_config_;
+  const vrf_wrapper::vrf_sk_t vrf_sk_;
+  const secret_t node_sk_;
+  const dev::Public node_pub_;
 
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<FinalChain> final_chain_;
-  std::shared_ptr<NextVotesManager> next_votes_manager_;
+  std::shared_ptr<KeyManager> key_manager_;
   std::weak_ptr<Network> network_;
 
   std::unique_ptr<std::thread> daemon_;
@@ -356,6 +415,11 @@ class VoteManager {
   std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> reward_votes_;
   mutable std::shared_mutex reward_votes_mutex_;
   // TODO[1907]: end of RewardVotes class
+
+  // Cache for current 2T+1 - do not access it directly as it is not updated automatically,
+  // always call getPbftTwoTPlusOne instead !!!
+  mutable std::pair<PbftPeriod, uint64_t /* two_t_plus_one for period */> current_two_t_plus_one_;
+  mutable std::shared_mutex current_two_t_plus_one_mutex_;
 
   LOG_OBJECTS_DEFINE
 };

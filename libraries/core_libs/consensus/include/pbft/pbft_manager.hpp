@@ -4,10 +4,8 @@
 #include <thread>
 
 #include "common/types.hpp"
-#include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
 #include "final_chain/final_chain.hpp"
-#include "key_manager/key_manager.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
 #include "network/tarcap/taraxa_capability.hpp"
@@ -57,14 +55,13 @@ enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_
 class PbftManager : public std::enable_shared_from_this<PbftManager> {
  public:
   using time_point = std::chrono::system_clock::time_point;
-  using vrf_sk_t = vrf_wrapper::vrf_sk_t;
 
   PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_block_hash, addr_t node_addr,
               std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
               std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
               std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<KeyManager> key_manager, secret_t node_sk,
-              vrf_sk_t vrf_sk, uint32_t max_levels_per_period = kMaxLevelsPerPeriod);
+              std::shared_ptr<FinalChain> final_chain, secret_t node_sk,
+              uint32_t max_levels_per_period = kMaxLevelsPerPeriod);
   ~PbftManager();
   PbftManager(const PbftManager &) = delete;
   PbftManager(PbftManager &&) = delete;
@@ -158,18 +155,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
                                                const blk_hash_t &anchor_hash, const blk_hash_t &order_hash);
 
   /**
-   * @brief Generate a vote
-   * @param blockhash vote on PBFT block hash
-   * @param type vote type
-   * @param period PBFT period
-   * @param round PBFT round
-   * @param step PBFT step
-   * @return vote
-   */
-  std::shared_ptr<Vote> generateVote(const blk_hash_t &blockhash, PbftVoteTypes type, PbftPeriod period,
-                                     PbftRound round, PbftStep step);
-
-  /**
    * @brief Get current total DPOS votes count
    * @return current total DPOS votes count if successful, otherwise (due to non-existent data for pbft_period) empty
    * optional
@@ -253,14 +238,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   blk_hash_t getLastPbftBlockHash();
 
   /**
-   * @brief Validates vote
-   *
-   * @param vote to be validated
-   * @return <true, ""> vote validation passed, otherwise <false, "err msg">
-   */
-  std::pair<bool, std::string> validateVote(const std::shared_ptr<Vote> &vote) const;
-
-  /**
    * @brief Push proposed block into the proposed_blocks_ in case it is not there yet
    *
    * @param proposed_block
@@ -291,13 +268,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @return PBFT committee size
    */
   size_t getPbftCommitteeSize() const { return config_.committee_size; }
-
-  /**
-   * @brief Get 2t+1. 2t+1 is 2/3 of PBFT sortition threshold and plus 1 for a specific period
-   * @param pbft_period pbft period
-   * @return PBFT 2T + 1 if successful, otherwise (due to non-existent data for pbft_period) empty optional
-   */
-  std::optional<uint64_t> getPbftTwoTPlusOne(PbftPeriod pbft_period) const;
 
  private:
   // DPOS
@@ -421,18 +391,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * the current PBFT round.
    */
   void secondFinish_();
-
-  /**
-   * @brief Place a vote, save it in the verified votes queue, and gossip to peers
-   * @param blockhash vote on PBFT block hash
-   * @param vote_type vote type
-   * @param period PBFT period
-   * @param round PBFT round
-   * @param step PBFT step
-   * @param step PBFT step
-   */
-  std::shared_ptr<Vote> generateVoteWithWeight(blk_hash_t const &blockhash, PbftVoteTypes vote_type, PbftPeriod period,
-                                               PbftRound round, PbftStep step);
 
   /**
    * @brief Place (gossip) vote
@@ -569,14 +527,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool canParticipateInConsensus(PbftPeriod period) const;
 
   /**
-   * @brief Get PBFT sortition threshold for specific period
-   * @param total_dpos_votes_count total votes count
-   * @param vote_type vote type
-   * @return PBFT sortition threshold
-   */
-  uint64_t getPbftSortitionThreshold(uint64_t total_dpos_votes_count, PbftVoteTypes vote_type) const;
-
-  /**
    * @brief Broadcast or rebroadcast current round soft votes, previous round next votes and reward votes
    * @param rebroadcast
    */
@@ -605,12 +555,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::weak_ptr<Network> network_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<FinalChain> final_chain_;
-  std::shared_ptr<KeyManager> key_manager_;
 
   const addr_t node_addr_;
   const secret_t node_sk_;
-  const dev::Public node_pub_;
-  const vrf_sk_t vrf_sk_;
 
   const std::chrono::milliseconds LAMBDA_ms_MIN;
   std::chrono::milliseconds LAMBDA_ms{0};
@@ -650,11 +597,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool already_next_voted_null_block_hash_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
-
-  // Cache for current 2T+1 - do not access it directly as it is not updated automatically,
-  // always call getPbftTwoTPlusOne instead !!!
-  mutable std::pair<PbftPeriod, uint64_t /* two_t_plus_one for period */> current_two_t_plus_one_;
-  mutable std::shared_mutex current_two_t_plus_one_mutex_;
 
   const blk_hash_t dag_genesis_block_hash_;
 
