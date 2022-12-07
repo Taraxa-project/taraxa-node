@@ -8,12 +8,10 @@ namespace taraxa::network::tarcap {
 VotePacketHandler::VotePacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                                      std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                      std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
-                                     std::shared_ptr<VoteManager> vote_mgr,
-                                     std::shared_ptr<NextVotesManager> next_vote_mgr, const addr_t &node_addr)
+                                     std::shared_ptr<VoteManager> vote_mgr, const addr_t &node_addr)
     : ExtVotesPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
                             std::move(pbft_chain), std::move(vote_mgr), node_addr, "PBFT_VOTE_PH"),
-      seen_votes_(1000000, 1000),
-      next_votes_mgr_(next_vote_mgr) {}
+{}
 
 void VotePacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketData &packet_data) const {
   auto items = packet_data.rlp_.itemCount();
@@ -40,10 +38,10 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
   }
 
   const auto vote_hash = vote->getHash();
-  // Synchronization point in case multiple threads are processing the same vote at the same time
-  if (!seen_votes_.insert(vote_hash)) {
-    LOG(log_tr_) << "Received vote " << vote_hash << " (from " << packet_data.from_node_id_.abridged()
-                 << ") already seen.";
+
+  // Do not process vote that has already been validated
+  if (vote_mgr_->voteAlreadyValidated(vote_hash)) {
+    LOG(log_dg_) << "Received vote " << vote_hash << " has already been validated";
     return;
   }
 

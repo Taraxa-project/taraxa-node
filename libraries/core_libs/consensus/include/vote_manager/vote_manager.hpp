@@ -351,6 +351,16 @@ class VoteManager {
    */
   std::optional<uint64_t> getPbftTwoTPlusOne(PbftPeriod pbft_period) const;
 
+  /**
+   * @param vote_hash
+   * @return true if vote_hash was already validated, otherwise false
+   */
+  bool voteAlreadyValidated(const vote_hash_t& vote_hash) const;
+
+  /**
+   * @brief Generates vrf sorition and calculates its weight
+   * @return true if sortition weight > 0, otherwise false
+   */
   bool genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound pbft_round) const;
 
  private:
@@ -420,6 +430,10 @@ class VoteManager {
   // always call getPbftTwoTPlusOne instead !!!
   mutable std::pair<PbftPeriod, uint64_t /* two_t_plus_one for period */> current_two_t_plus_one_;
   mutable std::shared_mutex current_two_t_plus_one_mutex_;
+
+  // Votes that have been already validated in terms of signature, stake, etc...
+  // It is used as protection against ddos attack so we do no validate/process vote more than once
+  mutable ExpirationCache<vote_hash_t> already_validated_votes_;
 
   LOG_OBJECTS_DEFINE
 };

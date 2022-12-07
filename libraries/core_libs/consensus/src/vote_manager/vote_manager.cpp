@@ -28,7 +28,8 @@ VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config,
       db_(std::move(db)),
       pbft_chain_(std::move(pbft_chain)),
       final_chain_(std::move(final_chain)),
-      key_manager_(std::move(key_manager)) {
+      key_manager_(std::move(key_manager)),
+      already_validated_votes_(1000000, 1000) {
   LOG_OBJECTS_CREATE("VOTE_MGR");
   verified_votes_last_period_ = pbft_chain_->getPbftChainSize() + 1;
 
@@ -807,6 +808,11 @@ std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Vot
     const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(vote_period - 1);
     const uint64_t pbft_sortition_threshold = getPbftSortitionThreshold(total_dpos_votes_count, vote->getType());
 
+    // Mark vote as validated only after getting dpos_eligible_vote_count and other values from dpos contract. It is
+    // possible that we are behind in processing pbft blocks, in which case we wont be able to get values from dpos
+    // contract and validation fails due to this, not due to the fact that vote is invalid...
+    already_validated_votes_.insert(vote->getHash());
+
     const auto pk = key_manager_->get(vote_period - 1, vote->getVoterAddr());
     if (!pk) {
       err_msg << "No vrf key mapped for vote author " << vote->getVoterAddr();
@@ -873,6 +879,10 @@ std::optional<uint64_t> VoteManager::getPbftTwoTPlusOne(PbftPeriod pbft_period) 
   }
 
   return two_t_plus_one;
+}
+
+bool VoteManager::voteAlreadyValidated(const vote_hash_t& vote_hash) const {
+  return already_validated_votes_.contains(vote_hash);
 }
 
 bool VoteManager::genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound pbft_round) const {

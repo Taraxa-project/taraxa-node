@@ -2,12 +2,6 @@
 
 #include "network/tarcap/packets_handlers/common/ext_votes_packet_handler.hpp"
 
-namespace taraxa {
-class PbftManager;
-class VoteManager;
-class NextVotesManager;
-}  // namespace taraxa
-
 namespace taraxa::network::tarcap {
 
 class VotePacketHandler final : public ExtVotesPacketHandler {
@@ -15,7 +9,7 @@ class VotePacketHandler final : public ExtVotesPacketHandler {
   VotePacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                     std::shared_ptr<TimePeriodPacketsStats> packets_stats, std::shared_ptr<PbftManager> pbft_mgr,
                     std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-                    std::shared_ptr<NextVotesManager> next_votes_mgr, const addr_t& node_addr);
+                    const addr_t& node_addr);
 
   /**
    * @brief Sends pbft vote to connected peers
@@ -31,15 +25,12 @@ class VotePacketHandler final : public ExtVotesPacketHandler {
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::VotePacket;
 
  private:
-  const size_t kVotePacketSize{1};
-  const size_t kExtendedVotePacketSize{3};
-
- private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;
   void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
-  ExpirationCache<vote_hash_t> seen_votes_;
-  std::shared_ptr<NextVotesManager> next_votes_mgr_;
+ private:
+  const size_t kVotePacketSize{1};
+  const size_t kExtendedVotePacketSize{3};
 };
 
 }  // namespace taraxa::network::tarcap

@@ -72,7 +72,11 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
     auto vote = std::make_shared<Vote>(packet_data.rlp_[i]);
     peer->markVoteAsKnown(vote->getHash());
 
-    // TODO: use seen_votes ???
+    // Do not process vote that has already been validated
+    if (vote_mgr_->voteAlreadyValidated(vote->getHash())) {
+      LOG(log_dg_) << "Received vote " << vote->getHash() << " has already been validated";
+      return;
+    }
 
     // Next votes bundle can contain votes for NULL_BLOCK_HASH as well as some specific block hash
     // TODO[2047]: when implementing issue 2047, check if this is correct -> we are sending all next votes so
