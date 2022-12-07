@@ -159,7 +159,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
         if (auto vote_is_valid = vote_mgr_->validateVote(v); vote_is_valid.first == false) {
           LOG(log_er_) << "Invalid reward votes in block " << period_data.pbft_blk->getBlockHash() << " from peer "
                        << packet_data.from_node_id_.abridged()
-                       << " received, stop syncing.   Validation failed. Err: " << vote_is_valid.second;
+                       << " received, stop syncing. Validation failed. Err: " << vote_is_valid.second;
           handleMaliciousSyncPeer(packet_data.from_node_id_);
           return;
         }

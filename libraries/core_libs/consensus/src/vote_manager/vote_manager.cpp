@@ -798,35 +798,48 @@ std::shared_ptr<Vote> VoteManager::generateVote(const blk_hash_t& blockhash, Pbf
 }
 
 std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Vote>& vote) const {
+  std::stringstream err_msg;
   const uint64_t vote_period = vote->getPeriod();
 
-  // Validate vote against dpos contract
   try {
-    const auto pk = key_manager_->get(vote_period - 1, vote->getVoterAddr());
-    if (!pk) {
-      std::stringstream err;
-      err << "No vrf key mapped for vote author " << vote->getVoterAddr();
-      return {false, err.str()};
-    }
-
     const uint64_t voter_dpos_votes_count =
         final_chain_->dpos_eligible_vote_count(vote_period - 1, vote->getVoterAddr());
     const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(vote_period - 1);
     const uint64_t pbft_sortition_threshold = getPbftSortitionThreshold(total_dpos_votes_count, vote->getType());
 
-    vote->validate(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold, *pk);
+    const auto pk = key_manager_->get(vote_period - 1, vote->getVoterAddr());
+    if (!pk) {
+      err_msg << "No vrf key mapped for vote author " << vote->getVoterAddr();
+      return {false, err_msg.str()};
+    }
+
+    if (voter_dpos_votes_count == 0) {
+      err_msg << "Invalid vote " << vote->getHash() << ": author " << vote->getVoterAddr() << " has zero stake";
+      return {false, err_msg.str()};
+    }
+
+    if (!vote->verifyVote()) {
+      err_msg << "Invalid vote " << vote->getHash() << ": invalid signature";
+      return {false, err_msg.str()};
+    }
+
+    if (!vote->verifyVrfSortition(*pk)) {
+      err_msg << "Invalid vote " << vote->getHash() << ": invalid vrf proof";
+      return {false, err_msg.str()};
+    }
+
+    if (!vote->calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold)) {
+      err_msg << "Invalid vote " << vote->getHash() << ": zero weight";
+      return {false, err_msg.str()};
+    }
   } catch (state_api::ErrFutureBlock& e) {
-    std::stringstream err;
-    err << "Unable to validate vote " << vote->getHash() << " against dpos contract. It's period (" << vote_period
-        << ") is too far ahead of actual finalized pbft chain size (" << final_chain_->last_block_number()
-        << "). Err msg: " << e.what();
-
-    return {false, err.str()};
-  } catch (const std::logic_error& e) {
-    std::stringstream err;
-    err << "Vote " << vote->getHash() << " validation failed. Err: " << e.what();
-
-    return {false, err.str()};
+    err_msg << "Unable to validate vote " << vote->getHash() << " against dpos contract. It's period (" << vote_period
+            << ") is too far ahead of actual finalized pbft chain size (" << final_chain_->last_block_number()
+            << "). Err msg: " << e.what();
+    return {false, err_msg.str()};
+  } catch (...) {
+    err_msg << "Invalid vote " << vote->getHash() << ": unknown error during validation";
+    return {false, err_msg.str()};
   }
 
   return {true, ""};

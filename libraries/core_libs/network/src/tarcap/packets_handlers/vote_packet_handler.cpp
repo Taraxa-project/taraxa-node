@@ -86,7 +86,6 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
 
   // Do not mark it before, as peers have small caches of known votes. Only mark gossiping votes
   peer->markVoteAsKnown(vote_hash);
-
   onNewPbftVote(vote, pbft_block);
 
   // Update peer's max chain size
