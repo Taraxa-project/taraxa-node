@@ -47,10 +47,6 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
       node_pub_(dev::toPublic(node_sk_)),
       vrf_sk_(std::move(vrf_sk)),
       LAMBDA_ms_MIN(conf.lambda_ms),
-      COMMITTEE_SIZE(conf.committee_size),
-      NUMBER_OF_PROPOSERS(conf.number_of_proposers),
-      DAG_BLOCKS_SIZE(conf.dag_blocks_size),
-      GHOST_PATH_MOVE_BACK(conf.ghost_path_move_back),
       dag_genesis_block_hash_(dag_genesis_block_hash),
       config_(conf),
       proposed_blocks_(db_),
@@ -1238,12 +1234,12 @@ void PbftManager::processProposedBlock(const std::shared_ptr<PbftBlock> &propose
 uint64_t PbftManager::getPbftSortitionThreshold(uint64_t total_dpos_votes_count, PbftVoteTypes vote_type) const {
   switch (vote_type) {
     case PbftVoteTypes::propose_vote:
-      return std::min<uint64_t>(NUMBER_OF_PROPOSERS, total_dpos_votes_count);
+      return std::min<uint64_t>(config_.number_of_proposers, total_dpos_votes_count);
     case PbftVoteTypes::soft_vote:
     case PbftVoteTypes::cert_vote:
     case PbftVoteTypes::next_vote:
     default:
-      return std::min<uint64_t>(COMMITTEE_SIZE, total_dpos_votes_count);
+      return std::min<uint64_t>(config_.committee_size, total_dpos_votes_count);
   }
 }
 
@@ -1399,9 +1395,10 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
   }
 
   blk_hash_t dag_block_hash;
-  if (ghost.size() <= DAG_BLOCKS_SIZE) {
-    // Move back GHOST_PATH_MOVE_BACK DAG blocks for DAG sycning
-    auto ghost_index = (ghost.size() < GHOST_PATH_MOVE_BACK + 1) ? 0 : (ghost.size() - 1 - GHOST_PATH_MOVE_BACK);
+  if (ghost.size() <= config_.dag_blocks_size) {
+    // Move back config_.ghost_path_move_back DAG blocks for DAG sycning
+    auto ghost_index =
+        (ghost.size() < config_.ghost_path_move_back + 1) ? 0 : (ghost.size() - 1 - config_.ghost_path_move_back);
     while (ghost_index < ghost.size() - 1) {
       if (ghost[ghost_index] != last_period_dag_anchor_block_hash) {
         break;
@@ -1410,7 +1407,7 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
     }
     dag_block_hash = ghost[ghost_index];
   } else {
-    dag_block_hash = ghost[DAG_BLOCKS_SIZE - 1];
+    dag_block_hash = ghost[config_.dag_blocks_size - 1];
   }
 
   if (dag_block_hash == dag_genesis_block_hash_) {

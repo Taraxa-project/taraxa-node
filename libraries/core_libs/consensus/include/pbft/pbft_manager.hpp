@@ -290,7 +290,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Get PBFT committee size
    * @return PBFT committee size
    */
-  size_t getPbftCommitteeSize() const { return COMMITTEE_SIZE; }
+  size_t getPbftCommitteeSize() const { return config_.committee_size; }
 
   /**
    * @brief Get 2t+1. 2t+1 is 2/3 of PBFT sortition threshold and plus 1 for a specific period
@@ -624,13 +624,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   std::default_random_engine random_engine_{std::random_device{}()};
 
-  const size_t COMMITTEE_SIZE;
-  const size_t NUMBER_OF_PROPOSERS;
-  const size_t DAG_BLOCKS_SIZE;
-  const size_t GHOST_PATH_MOVE_BACK;
-
   PbftStates state_ = value_proposal_state;
-
   std::atomic<PbftRound> round_ = 1;
   PbftStep step_ = 1;
   PbftStep startingStepInRound_ = 1;
