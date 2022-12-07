@@ -102,7 +102,8 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shar
       case DagManager::VerifyBlockReturnType::IncorrectTransactionsEstimation:
       case DagManager::VerifyBlockReturnType::BlockTooBig:
       case DagManager::VerifyBlockReturnType::FailedVdfVerification:
-      case DagManager::VerifyBlockReturnType::NotEligible: {
+      case DagManager::VerifyBlockReturnType::NotEligible:
+      case DagManager::VerifyBlockReturnType::FailedTipsVerification: {
         std::ostringstream err_msg;
         err_msg << "DagBlock" << block_hash << " failed verification with error code "
                 << static_cast<uint32_t>(verified);

@@ -246,6 +246,51 @@ level_t DagBlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t con
   return max_level;
 }
 
+vec_blk_t DagBlockProposer::selectDagBlockTips(const vec_blk_t& frontier_tips) const {
+  // Prioritize higher level with unique proposer
+  assert(frontier_tips.size() > kDagBlockMaxTips);
+  std::unordered_set<addr_t> proposers, duplicate_proposers;
+  std::unordered_map<blk_hash_t, std::shared_ptr<DagBlock>> tips_blocks;
+  tips_blocks.reserve(frontier_tips.size());
+  vec_blk_t tips;
+  tips.reserve(kDagBlockMaxTips);
+
+  // Retrieve all the tips blocks and identify duplicate proposer tips
+  for (const auto& t : frontier_tips) {
+    auto tip_block = dag_mgr_->getDagBlock(t);
+    assert(tip_block != nullptr);
+    tips_blocks.insert({t, tip_block});
+    if (!proposers.insert(tip_block->getSender()).second) {
+      duplicate_proposers.insert(tip_block->getSender());
+    }
+  }
+
+  // Split tips by tips with unique or duplicate proposers
+  std::multimap<level_t, blk_hash_t, std::greater<level_t>> ordered_tips_with_unique_proposers,
+      ordered_tips_with_duplicate_proposers;
+  for (const auto& t : frontier_tips) {
+    const auto& tip_block = tips_blocks[t];
+    if (duplicate_proposers.contains(tip_block->getSender())) {
+      ordered_tips_with_duplicate_proposers.insert({tip_block->getLevel(), t});
+    } else {
+      ordered_tips_with_unique_proposers.insert({tip_block->getLevel(), t});
+    }
+  }
+
+  // First insert tips with unique proposers ordered by level
+  for (const auto& tip : ordered_tips_with_unique_proposers) {
+    tips.push_back(tip.second);
+    if (tips.size() == kDagBlockMaxTips) break;
+  }
+
+  // After inserting all unique proposers blocks, insert duplicates as well
+  for (const auto& tip : ordered_tips_with_duplicate_proposers) {
+    if (tips.size() == kDagBlockMaxTips) break;
+    tips.push_back(tip.second);
+  }
+  return tips;
+}
+
 DagBlock DagBlockProposer::createDagBlock(DagFrontier&& frontier, level_t level, const SharedTransactions& trxs,
                                           std::vector<uint64_t>&& estimations, VdfSortition&& vdf) const {
   // When we propose block we know it is valid, no need for block verification with queue,
@@ -258,6 +303,11 @@ DagBlock DagBlockProposer::createDagBlock(DagFrontier&& frontier, level_t level,
   uint64_t block_estimation = 0;
   for (const auto& e : estimations) {
     block_estimation += e;
+  }
+
+  // If number of tips is over the limit filter by producer and level
+  if (frontier.tips.size() > kDagBlockMaxTips) {
+    frontier.tips = selectDagBlockTips(frontier.tips);
   }
 
   DagBlock block(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes), block_estimation,

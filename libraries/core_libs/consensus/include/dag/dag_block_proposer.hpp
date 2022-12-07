@@ -74,6 +74,15 @@ class DagBlockProposer {
    */
   uint64_t getProposedBlocksCount() const { return proposed_blocks_count_; }
 
+  /**
+   * @brief Select tips for DagBlock proposal up to max allowed
+   *
+   * @param frontier_tips
+   *
+   * @return tips
+   */
+  vec_blk_t selectDagBlockTips(const vec_blk_t& frontier_tips) const;
+
  private:
   /**
    * @brief Creates a new block with provided data
