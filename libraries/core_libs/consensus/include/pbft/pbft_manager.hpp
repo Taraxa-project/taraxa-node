@@ -15,8 +15,6 @@
 #include "pbft/proposed_blocks.hpp"
 #include "pbft/soft_voted_block_data.hpp"
 
-#define NULL_BLOCK_HASH blk_hash_t(0)
-
 namespace taraxa {
 
 /** @addtogroup PBFT
@@ -314,7 +312,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void resetStep();
 
   /**
-   * @brief If node receives 2t+1 next votes for some block(including NULL_BLOCK_HASH), advance round to + 1.
+   * @brief If node receives 2t+1 next votes for some block(including kNullBlockHash), advance round to + 1.
    * @return true if PBFT round advanced, otherwise false
    */
   bool advanceRound();

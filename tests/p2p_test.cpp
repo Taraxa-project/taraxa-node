@@ -255,7 +255,7 @@ TEST_F(P2PTest, block_propagate) {
   EXPECT_GT(host1->peer_count(), 0);
 
   DagBlock blk(blk_hash_t(1111), 0, {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-               {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, sig_t(7777), blk_hash_t(0),
+               {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, sig_t(7777), kNullBlockHash,
                addr_t(999));
 
   SharedTransactions transactions{g_signed_trx_samples[0], g_signed_trx_samples[1]};

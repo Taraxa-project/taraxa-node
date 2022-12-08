@@ -25,8 +25,8 @@ PeriodData createBlock(PbftPeriod period, uint16_t efficiency, size_t dag_blocks
   const size_t kTrxCount = 100 * kOnePercent;
   PeriodData b;
   std::vector<vote_hash_t> reward_votes_hashes;
-  b.pbft_blk = std::make_shared<PbftBlock>(blk_hash_t(), anchor_hash, blk_hash_t(), blk_hash_t(), period, addr_t(0),
-                                           dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
+  b.pbft_blk = std::make_shared<PbftBlock>(kNullBlockHash, anchor_hash, kNullBlockHash, kNullBlockHash, period,
+                                           addr_t(0), dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
   size_t effective_transactions = kTrxCount * efficiency / (100 * kOnePercent);
   auto trx_hashes = generateTrxHashes(effective_transactions);
   auto trx_per_block = effective_transactions / dag_blocks_count;

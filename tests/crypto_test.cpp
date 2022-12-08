@@ -185,7 +185,7 @@ TEST_F(CryptoTest, DISABLED_compute_vdf_solution_cost_time) {
   uint16_t difficulty_min = 0;
   uint16_t difficulty_max = 0;
   uint16_t lambda_bound = 100;
-  blk_hash_t proposal_dag_block_pivot_hash1 = blk_hash_t(0);
+  blk_hash_t proposal_dag_block_pivot_hash1;
   blk_hash_t proposal_dag_block_pivot_hash2 =
       blk_hash_t("c9524784c4bf29e6facdd94ef7d214b9f512cdfd0f68184432dab85d053cbc69");
   blk_hash_t proposal_dag_block_pivot_hash3 =

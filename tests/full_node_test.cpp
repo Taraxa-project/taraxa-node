@@ -201,7 +201,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getCertVotedBlockInRound(), std::nullopt);
 
   // pbft_blocks and cert votes
-  EXPECT_FALSE(db.pbftBlockInDb(blk_hash_t(0)));
+  EXPECT_FALSE(db.pbftBlockInDb(kNullBlockHash));
   EXPECT_FALSE(db.pbftBlockInDb(blk_hash_t(1)));
   auto pbft_block1 = make_simple_pbft_block(blk_hash_t(1), 2);
   auto pbft_block2 = make_simple_pbft_block(blk_hash_t(2), 3);
@@ -1503,7 +1503,7 @@ TEST_F(FullNodeTest, clear_period_data) {
   uint64_t last_anchor_level;
   for (uint64_t i = 0; i < nodes[0]->getPbftChain()->getPbftChainSize(); i++) {
     const auto pbft_block = nodes[0]->getDB()->getPbftBlock(i);
-    if (pbft_block && pbft_block->getPivotDagBlockHash() != NULL_BLOCK_HASH) {
+    if (pbft_block && pbft_block->getPivotDagBlockHash() != kNullBlockHash) {
       non_empty_counter++;
       last_anchor_level = nodes[0]->getDB()->getDagBlock(pbft_block->getPivotDagBlockHash())->getLevel();
     }
@@ -1511,7 +1511,7 @@ TEST_F(FullNodeTest, clear_period_data) {
   uint32_t first_over_limit = 0;
   for (uint64_t i = 0; i < nodes[1]->getPbftChain()->getPbftChainSize(); i++) {
     const auto pbft_block = nodes[1]->getDB()->getPbftBlock(i);
-    if (pbft_block && pbft_block->getPivotDagBlockHash() != NULL_BLOCK_HASH) {
+    if (pbft_block && pbft_block->getPivotDagBlockHash() != kNullBlockHash) {
       if (nodes[1]->getDB()->getDagBlock(pbft_block->getPivotDagBlockHash())->getLevel() +
               node_cfgs[0].dag_expiry_limit >=
           last_anchor_level) {

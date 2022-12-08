@@ -164,7 +164,7 @@ TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
   auto nw2 = nodes[1]->getNetwork();
 
   std::vector<vote_hash_t> reward_votes{};
-  auto pbft_block = std::make_shared<PbftBlock>(blk_hash_t(1), blk_hash_t(0), blk_hash_t(0), blk_hash_t(),
+  auto pbft_block = std::make_shared<PbftBlock>(blk_hash_t(1), kNullBlockHash, kNullBlockHash, kNullBlockHash,
                                                 node1->getPbftManager()->getPbftPeriod(), node1->getAddress(),
                                                 node1->getSecretKey(), std::move(reward_votes));
   auto vote =
@@ -545,7 +545,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   order_stream.appendList(1);
   order_stream << blk1.getHash();
 
-  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), blk_hash_t(), period,
+  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), kNullBlockHash, period,
                         beneficiary, node1->getSecretKey(), {});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
@@ -601,7 +601,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   dev::RLPStream order_stream2(1);
   order_stream2.appendList(1);
   order_stream2 << blk2.getHash();
-  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), blk_hash_t(), period,
+  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), kNullBlockHash, period,
                         beneficiary, node1->getSecretKey(), {});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(
@@ -711,7 +711,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   order_stream.appendList(1);
   order_stream << blk1.getHash();
 
-  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), blk_hash_t(), period,
+  PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), kNullBlockHash, period,
                         beneficiary, node1->getSecretKey(), {});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
@@ -759,7 +759,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   order_stream2.appendList(1);
   order_stream2 << blk2.getHash();
 
-  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), blk_hash_t(), period,
+  PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), kNullBlockHash, period,
                         beneficiary, node1->getSecretKey(), {});
   std::cout << "Use fake votes for the second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and use fake votes storing into DB (malicious player)
@@ -886,7 +886,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   node1_next_votes_mgr->updateNextVotes(next_votes1, node1_pbft_2t_plus_1);
   EXPECT_EQ(node1_next_votes_mgr->getNextVotesWeight(), next_votes1.size());
 
-  // Generate 1 same next votes with node1, voted same value on NULL_BLOCK_HASH
+  // Generate 1 same next votes with node1, voted same value on kNullBlockHash
   blk_hash_t voted_pbft_block_hash2(0);
   auto vote1 = pbft_mgr1->generateVote(voted_pbft_block_hash2, type, period, round, step);
   vote1->calculateWeight(1, 1, 1);
@@ -934,13 +934,12 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   auto node2_pbft_2t_plus_1 = pbft_mgr2->getPbftTwoTPlusOne(node2->getPbftChain()->getPbftChainSize()).value();
   EXPECT_EQ(node2_pbft_2t_plus_1, 1);
 
-  // Node1 generate 1 next vote voted at NULL_BLOCK_HASH
-  blk_hash_t voted_pbft_block_hash1(blk_hash_t(0));
+  // Node1 generate 1 next vote voted at kNullBlockHash
   PbftVoteTypes type = PbftVoteTypes::next_vote;
   PbftPeriod period = 1;
   PbftRound round = 1;
   PbftStep step = 5;
-  auto vote1 = pbft_mgr1->generateVote(voted_pbft_block_hash1, type, period, round, step);
+  auto vote1 = pbft_mgr1->generateVote(kNullBlockHash, type, period, round, step);
   vote1->calculateWeight(1, 1, 1);
   std::vector<std::shared_ptr<Vote>> next_votes1{vote1};
 

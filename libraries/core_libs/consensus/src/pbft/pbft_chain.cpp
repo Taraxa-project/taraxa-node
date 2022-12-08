@@ -10,11 +10,7 @@ using namespace std;
 namespace taraxa {
 
 PbftChain::PbftChain(addr_t node_addr, std::shared_ptr<DbStorage> db)
-    : head_hash_(blk_hash_t(0)),
-      size_(0),
-      non_empty_size_(0),
-      last_pbft_block_hash_(blk_hash_t(0)),
-      db_(std::move(db)) {
+    : size_(0), non_empty_size_(0), db_(std::move(db)) {
   LOG_OBJECTS_CREATE("PBFT_CHAIN");
   // Get PBFT head from DB
   auto pbft_head_str = db_->getPbftHead(head_hash_);
@@ -88,7 +84,7 @@ PbftBlock PbftChain::getPbftBlockInChain(const taraxa::blk_hash_t& pbft_block_ha
 void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash, blk_hash_t const& anchor_hash) {
   UniqueLock lock(chain_head_access_);
   size_++;
-  if (anchor_hash != NULL_BLOCK_HASH) {
+  if (anchor_hash != kNullBlockHash) {
     non_empty_size_++;
     last_non_null_pbft_dag_anchor_hash_ = anchor_hash;
   }

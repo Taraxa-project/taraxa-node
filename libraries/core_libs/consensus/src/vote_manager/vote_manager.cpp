@@ -218,16 +218,16 @@ std::pair<bool, std::string> VoteManager::isUniqueVote(const std::shared_ptr<Vot
     return {true, ""};
   }
 
-  // Next votes are special case, where we allow voting for both NULL_BLOCK_HASH and some other specific block hash
+  // Next votes are special case, where we allow voting for both kNullBlockHash and some other specific block hash
   // at the same time
   if (vote->getType() == PbftVoteTypes::next_vote) {
     // New second next vote
     if (found_voter_it->second.second == nullptr) {
-      // One of the next votes == NULL_BLOCK_HASH -> valid scenario
-      if (found_voter_it->second.first->getBlockHash() == NULL_BLOCK_HASH && vote->getBlockHash() != NULL_BLOCK_HASH) {
+      // One of the next votes == kNullBlockHash -> valid scenario
+      if (found_voter_it->second.first->getBlockHash() == kNullBlockHash && vote->getBlockHash() != kNullBlockHash) {
         return {true, ""};
-      } else if (found_voter_it->second.first->getBlockHash() != NULL_BLOCK_HASH &&
-                 vote->getBlockHash() == NULL_BLOCK_HASH) {
+      } else if (found_voter_it->second.first->getBlockHash() != kNullBlockHash &&
+                 vote->getBlockHash() == kNullBlockHash) {
         return {true, ""};
       }
     } else if (found_voter_it->second.second->getHash() == vote->getHash()) {
@@ -276,18 +276,18 @@ bool VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote) {
 
   // There was already some vote inserted, check if it is the same vote as we are trying to insert
   if (inserted_vote.first->second.first->getHash() != vote->getHash()) {
-    // Next votes (second finishing steps) are special case, where we allow voting for both NULL_BLOCK_HASH and
+    // Next votes (second finishing steps) are special case, where we allow voting for both kNullBlockHash and
     // some other specific block hash at the same time -> 2 unique votes per round & step & voter
     if (vote->getType() == PbftVoteTypes::next_vote && vote->getStep() % 2) {
       // New second next vote
       if (inserted_vote.first->second.second == nullptr) {
-        // One of the next votes == NULL_BLOCK_HASH -> valid scenario
-        if (inserted_vote.first->second.first->getBlockHash() == NULL_BLOCK_HASH &&
-            vote->getBlockHash() != NULL_BLOCK_HASH) {
+        // One of the next votes == kNullBlockHash -> valid scenario
+        if (inserted_vote.first->second.first->getBlockHash() == kNullBlockHash &&
+            vote->getBlockHash() != kNullBlockHash) {
           inserted_vote.first->second.second = vote;
           return true;
-        } else if (inserted_vote.first->second.first->getBlockHash() != NULL_BLOCK_HASH &&
-                   vote->getBlockHash() == NULL_BLOCK_HASH) {
+        } else if (inserted_vote.first->second.first->getBlockHash() != kNullBlockHash &&
+                   vote->getBlockHash() == kNullBlockHash) {
           inserted_vote.first->second.second = vote;
           return true;
         }
@@ -791,7 +791,7 @@ size_t NextVotesManager::getNextVotesWeight() const {
 
 // Assumption is that all votes are validated, in next voting phase, in the same round.
 // Votes for same voted value are in the same step
-// Voted values have maximum 2 PBFT block hashes, NULL_BLOCK_HASH and a non NULL_BLOCK_HASH
+// Voted values have maximum 2 PBFT block hashes, kNullBlockHash and a non kNullBlockHash
 void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes, size_t pbft_2t_plus_1) {
   if (next_votes.empty()) {
     return;
@@ -860,7 +860,7 @@ void NextVotesManager::addNextVotes(std::vector<std::shared_ptr<Vote>> const& ne
       LOG(log_dg_) << "Voted PBFT block hash " << voted_value << " has enough " << voted_value_next_votes_size
                    << " next votes";
 
-      if (voted_value == NULL_BLOCK_HASH) {
+      if (voted_value == kNullBlockHash) {
         enough_votes_for_null_block_hash_ = true;
       } else {
         if (voted_value_.has_value() && voted_value != *voted_value_) {
@@ -928,7 +928,7 @@ void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const&
       LOG(log_nf_) << "Voted PBFT block hash " << it->first << " has " << next_votes_weight_[it->first]
                    << " next votes";
 
-      if (it->first == NULL_BLOCK_HASH) {
+      if (it->first == kNullBlockHash) {
         enough_votes_for_null_block_hash_ = true;
       } else {
         if (voted_value_.has_value()) {
@@ -969,7 +969,7 @@ void NextVotesManager::updateNextVotes(std::vector<std::shared_ptr<Vote>> const&
 }
 
 // Assumption is that all synced votes are in next voting phase, in the same round.
-// Valid voted values have maximum 2 block hash, NULL_BLOCK_HASH and a non NULL_BLOCK_HASH
+// Valid voted values have maximum 2 block hash, kNullBlockHash and a non kNullBlockHash
 void NextVotesManager::updateWithSyncedVotes(std::vector<std::shared_ptr<Vote>>& next_votes, size_t pbft_2t_plus_1) {
   if (next_votes.empty()) {
     LOG(log_er_) << "Synced next votes is empty.";
@@ -1065,7 +1065,7 @@ void NextVotesManager::assertError_(std::vector<std::shared_ptr<Vote>> next_vote
     return;
   }
 
-  LOG(log_er_) << "There are more than one voted values on non NULL_BLOCK_HASH have 2t+1 next votes.";
+  LOG(log_er_) << "There are more than one voted values on non kNullBlockHash have 2t+1 next votes.";
 
   LOG(log_er_) << "Voted value " << next_votes_1[0]->getBlockHash();
   for (auto const& v : next_votes_1) {

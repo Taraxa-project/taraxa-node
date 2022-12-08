@@ -17,8 +17,6 @@
 #include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 #include "transaction/transaction_manager.hpp"
 
-#define NULL_BLOCK_HASH blk_hash_t(0)
-
 namespace taraxa {
 
 Dag::Dag(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr) {

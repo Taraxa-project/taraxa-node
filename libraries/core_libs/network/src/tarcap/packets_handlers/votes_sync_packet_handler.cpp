@@ -23,7 +23,7 @@ void VotesSyncPacketHandler::validatePacketRlpFormat([[maybe_unused]] const Pack
 }
 
 void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
-  // We already have 2t+1 votes for both NULL_BLOCK_HASH as well as some specific block hash
+  // We already have 2t+1 votes for both kNullBlockHash as well as some specific block hash
   if (next_votes_mgr_->enoughNextVotes()) {
     LOG(log_nf_) << "Already have enought next votes for perevious round.";
     return;
@@ -51,16 +51,16 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
   }
 
   std::vector<std::shared_ptr<Vote>> next_votes;
-  blk_hash_t voted_value = NULL_BLOCK_HASH;
+  blk_hash_t voted_value = kNullBlockHash;
 
   const auto next_votes_count = packet_data.rlp_.itemCount();
   //  It is done in separate cycle because we don't need to process this next_votes if some of checks will fail
   for (size_t i = 0; i < next_votes_count; i++) {
     auto vote = std::make_shared<Vote>(packet_data.rlp_[i].data().toBytes());
-    if (voted_value == NULL_BLOCK_HASH && vote->getBlockHash() != NULL_BLOCK_HASH) {
-      // initialize voted value with first block hash that not equal to NULL_BLOCK_HASH
+    if (voted_value == kNullBlockHash && vote->getBlockHash() != kNullBlockHash) {
+      // initialize voted value with first block hash that not equal to kNullBlockHash
       voted_value = vote->getBlockHash();
-    } else if (vote->getBlockHash() != NULL_BLOCK_HASH && voted_value != NULL_BLOCK_HASH &&
+    } else if (vote->getBlockHash() != kNullBlockHash && voted_value != kNullBlockHash &&
                vote->getBlockHash() != voted_value) {
       // we see different voted value, so bundle is invalid
       LOG(log_er_) << "Received next votes bundle with unmatched voted values(" << voted_value << ", "

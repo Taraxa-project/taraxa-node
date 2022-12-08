@@ -341,7 +341,7 @@ class VoteManager {
   mutable boost::shared_mutex verified_votes_access_;
 
   // <PBFT period, <PBFT round, <PBFT step, <voter address, pair<vote 1, vote 2>>><>
-  // For next votes we enable 2 votes per round & step, one of which must be vote for NULL_BLOCK_HASH
+  // For next votes we enable 2 votes per round & step, one of which must be vote for kNullBlockHash
   std::map<PbftPeriod,
            std::map<PbftRound,
                     std::unordered_map<

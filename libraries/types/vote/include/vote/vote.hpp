@@ -187,11 +187,11 @@ class Vote {
  * step, the total votes weights must be greater or equal to PBFT 2t+1.
  */
 struct VotesBundle {
-  blk_hash_t voted_block_hash{blk_hash_t(0)};
+  blk_hash_t voted_block_hash;
   PbftPeriod votes_period{0};
   std::vector<std::shared_ptr<Vote>> votes;  // Greater than 2t+1 votes
 
-  VotesBundle() : voted_block_hash(blk_hash_t(0)) {}
+  VotesBundle() {}
   VotesBundle(blk_hash_t const& voted_block_hash, std::vector<std::shared_ptr<Vote>> const& votes)
       : voted_block_hash(voted_block_hash), votes(votes) {}
 };

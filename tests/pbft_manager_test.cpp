@@ -276,7 +276,7 @@ TEST_F(PbftManagerTest, terminate_bogus_dag_anchor) {
   auto beneficiary = nodes[0]->getAddress();
   auto node_sk = nodes[0]->getSecretKey();
   auto propose_pbft_block =
-      std::make_shared<PbftBlock>(last_pbft_block_hash, dag_anchor, blk_hash_t(), propose_pbft_period, beneficiary,
+      std::make_shared<PbftBlock>(last_pbft_block_hash, dag_anchor, kNullBlockHash, propose_pbft_period, beneficiary,
                                   node_sk, std::move(reward_votes_hashes));
   auto pbft_block_hash = propose_pbft_block->getBlockHash();
   pbft_chain->pushUnverifiedPbftBlock(propose_pbft_block);
@@ -641,9 +641,9 @@ TEST_F(PbftManagerTest, propose_block_and_vote_broadcast) {
   std::vector<vote_hash_t> reward_votes_hashes;
   std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
                  [](const auto &v) { return v->getHash(); });
-  auto proposed_pbft_block = std::make_shared<PbftBlock>(prev_block_hash, blk_hash_t(0), blk_hash_t(0), blk_hash_t(0),
-                                                         node1->getPbftManager()->getPbftPeriod(), node1->getAddress(),
-                                                         node1->getSecretKey(), std::move(reward_votes_hashes));
+  auto proposed_pbft_block = std::make_shared<PbftBlock>(
+      prev_block_hash, kNullBlockHash, kNullBlockHash, kNullBlockHash, node1->getPbftManager()->getPbftPeriod(),
+      node1->getAddress(), node1->getSecretKey(), std::move(reward_votes_hashes));
   auto propose_vote = pbft_mgr1->generateVote(proposed_pbft_block->getBlockHash(), PbftVoteTypes::propose_vote,
                                               proposed_pbft_block->getPeriod(),
                                               node1->getPbftManager()->getPbftRound() + 1, value_proposal_state);
@@ -825,7 +825,7 @@ TEST_F(PbftManagerWithDagCreation, limit_pbft_block) {
   auto max_pbft_block_capacity = node_cfgs.front().genesis.pbft.gas_limit / (trxEstimation() * 5);
   for (size_t i = starting_block_number; i < node->getFinalChain()->last_block_number(); ++i) {
     const auto &blk_hash = node->getDB()->getPeriodBlockHash(i);
-    ASSERT_TRUE(blk_hash != blk_hash_t());
+    ASSERT_TRUE(blk_hash != kNullBlockHash);
     const auto &pbft_block = node->getPbftChain()->getPbftBlockInChain(blk_hash);
     const auto &dag_blocks_order = node->getDagManager()->getDagBlockOrder(pbft_block.getPivotDagBlockHash(), i);
 
@@ -885,7 +885,7 @@ TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
   generateAndApplyInitialDag();
 
   EXPECT_HAPPENS({10s, 500ms},
-                 [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nonce, node->getDB()->getNumTransactionExecuted()); });
+                 [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nonce, node->getDB()->getNumTransactionExecuted() + 1); });
 
   node->getPbftManager()->stop();
   // create pbft block
@@ -913,7 +913,7 @@ TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
     std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
                    [](const auto &v) { return v->getHash(); });
     const auto pbft_block =
-        std::make_shared<PbftBlock>(last_hash, dag_block_hash, order_hash, blk_hash_t(), propose_period,
+        std::make_shared<PbftBlock>(last_hash, dag_block_hash, order_hash, kNullBlockHash, propose_period,
                                     node->getAddress(), node->getSecretKey(), std::move(reward_votes_hashes));
     // node->getPbftChain()->pushUnverifiedPbftBlock(pbft_block);
   }
@@ -932,7 +932,7 @@ TEST_F(PbftManagerWithDagCreation, proposed_blocks) {
   // Create blocks
   for (uint32_t i = 1; i <= block_count; i++) {
     std::vector<vote_hash_t> reward_votes_hashes;
-    auto block = std::make_shared<PbftBlock>(blk_hash_t(1), blk_hash_t(0), blk_hash_t(0), blk_hash_t(0), 2, addr_t(),
+    auto block = std::make_shared<PbftBlock>(blk_hash_t(1), kNullBlockHash, kNullBlockHash, kNullBlockHash, 2, addr_t(),
                                              dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
     blocks.insert({block->getBlockHash(), block});
   }
@@ -955,6 +955,44 @@ TEST_F(PbftManagerWithDagCreation, proposed_blocks) {
             << " microseconds" << std::endl;
   blocks_from_db = db->getProposedPbftBlocks();
   EXPECT_EQ(blocks_from_db.size(), 0);
+}
+
+TEST_F(PbftManagerWithDagCreation, state_root_hash) {
+  makeNode();
+  deployContract();
+  node->getDagBlockProposer()->stop();
+  const auto lambda = node->getConfig().genesis.pbft.lambda_ms;
+  auto prev_value = node->getDagManager()->getNumVerticesInDag().first;
+  generateAndApplyInitialDag();
+  EXPECT_HAPPENS({10s, 250ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().second, prev_value + getInitialDagSize());
+  });
+  // generate dag blocks with delays to distribute them between pbft blocks
+  for (uint8_t i = 0; i < 5; ++i) {
+    auto blocks = generateDagBlocks(2, 2, 2);
+    insertBlocks(std::move(blocks));
+    std::this_thread::sleep_for(std::chrono::milliseconds(3 * lambda));
+  }
+
+  EXPECT_HAPPENS({5s, 500ms}, [&](auto &ctx) {
+    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce);
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce - 1);
+  });
+
+  const auto &state_root_delay = node_cfgs.front().genesis.pbft.state_root_recording_delay;
+  const auto &head_hash = node->getPbftChain()->getLastPbftBlockHash();
+  auto pbft_block = node->getPbftChain()->getPbftBlockInChain(head_hash);
+  // Check that all produced blocks have correct state_root_hashes
+  while (pbft_block.getPeriod() != 1) {
+    auto period = pbft_block.getPeriod();
+    h256 state_root;
+    if (period > state_root_delay) {
+      state_root = node->getFinalChain()->block_header(period - state_root_delay)->state_root;
+    }
+    EXPECT_EQ(pbft_block.getPrevStateRoot(), state_root);
+
+    pbft_block = node->getPbftChain()->getPbftBlockInChain(pbft_block.getPrevBlockHash());
+  }
 }
 
 }  // namespace taraxa::core_tests
