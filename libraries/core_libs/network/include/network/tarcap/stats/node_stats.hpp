@@ -16,7 +16,7 @@ namespace taraxa::network::tarcap {
 
 class PeersState;
 class PbftSyncingState;
-class PacketsStats;
+class AllPacketsStats;
 class TarcapThreadPool;
 
 class NodeStats {
@@ -24,7 +24,7 @@ class NodeStats {
   NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PbftSyncingState> pbft_syncing_state,
             std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
             std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<VoteManager> vote_mgr,
-            std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<PacketsStats> packets_stats,
+            std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<AllPacketsStats> packets_stats,
             std::shared_ptr<const TarcapThreadPool> thread_pool, const addr_t &node_addr);
 
   void logNodeStats();
@@ -41,7 +41,7 @@ class NodeStats {
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
-  std::shared_ptr<PacketsStats> packets_stats_;
+  std::shared_ptr<AllPacketsStats> packets_stats_;
   std::shared_ptr<const TarcapThreadPool> thread_pool_;
 
   level_t local_max_level_in_dag_prev_interval_{0};

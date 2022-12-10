@@ -41,10 +41,8 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
   const auto &node_addr = key.address();
   LOG_OBJECTS_CREATE("TARCAP");
 
-  assert(host.lock());
-  peers_state_ = std::make_shared<PeersState>(host, host.lock()->id(), kConf);
-
-  packets_stats_ = std::make_shared<PacketsStats>(node_addr);
+  peers_state_ = std::make_shared<PeersState>(host, kConf);
+  packets_stats_ = std::make_shared<AllPacketsStats>(node_addr);
 
   // Inits boot nodes (based on config)
   addBootNodes(true);
@@ -121,7 +119,7 @@ void TaraxaCapability::addBootNodes(bool initial) {
 
 void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr,
                                           std::shared_ptr<TransactionManager> trx_mgr,
-                                          std::shared_ptr<PacketsStats> packets_stats) {
+                                          std::shared_ptr<AllPacketsStats> packets_stats) {
   // TODO: refactor this:
   //       1. Most of time is this single threaded thread pool doing nothing...
   //       2. These periodic events are sending packets - that might be processed by main thread_pool ???
@@ -142,6 +140,13 @@ void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pb
   const auto send_status_interval = 6 * lambda_ms;
   periodic_events_tp_->post_loop({send_status_interval}, [status_packet_handler = std::move(status_packet_handler)] {
     status_packet_handler->sendStatusToPeers();
+  });
+
+  // Log max packets stats
+  periodic_events_tp_->post_loop({60000}, [peers_state = peers_state_] {
+    for (const auto &peer : peers_state->getAllPeers()) {
+      std::cout << peer.second->getPacketsStats().getStatsJson(true) << std::endl;
+    }
   });
 
   // Logs packets stats periodic event
@@ -170,11 +175,11 @@ void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pb
 }
 
 void TaraxaCapability::registerPacketHandlers(
-    const h256 &genesis_hash, const std::shared_ptr<PacketsStats> &packets_stats, const std::shared_ptr<DbStorage> &db,
-    const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
-    const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<NextVotesManager> &next_votes_mgr,
-    const std::shared_ptr<DagManager> &dag_mgr, const std::shared_ptr<TransactionManager> &trx_mgr,
-    addr_t const &node_addr) {
+    const h256 &genesis_hash, const std::shared_ptr<AllPacketsStats> &packets_stats,
+    const std::shared_ptr<DbStorage> &db, const std::shared_ptr<PbftManager> &pbft_mgr,
+    const std::shared_ptr<PbftChain> &pbft_chain, const std::shared_ptr<VoteManager> &vote_mgr,
+    const std::shared_ptr<NextVotesManager> &next_votes_mgr, const std::shared_ptr<DagManager> &dag_mgr,
+    const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr) {
   node_stats_ = std::make_shared<NodeStats>(peers_state_, pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr, vote_mgr,
                                             trx_mgr, packets_stats, thread_pool_, node_addr);
 

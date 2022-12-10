@@ -187,7 +187,7 @@ TEST_F(NetworkTest, malicious_peers) {
   conf.network.peer_blacklist_timeout = 2;
   std::shared_ptr<dev::p2p::Host> host;
   EXPECT_EQ(conf.network.disable_peer_blacklist, false);
-  network::tarcap::PeersState state1(host, dev::p2p::NodeID(), conf);
+  network::tarcap::PeersState state1(host, conf);
   dev::p2p::NodeID id1(1);
   dev::p2p::NodeID id2(2);
   state1.set_peer_malicious(id1);
@@ -195,21 +195,21 @@ TEST_F(NetworkTest, malicious_peers) {
   EXPECT_EQ(state1.is_peer_malicious(id2), false);
 
   conf.network.peer_blacklist_timeout = 0;
-  network::tarcap::PeersState state2(host, dev::p2p::NodeID(), conf);
+  network::tarcap::PeersState state2(host, conf);
   state2.set_peer_malicious(id1);
   EXPECT_EQ(state2.is_peer_malicious(id1), true);
   EXPECT_EQ(state2.is_peer_malicious(id2), false);
 
   conf.network.peer_blacklist_timeout = 2;
   conf.network.disable_peer_blacklist = true;
-  network::tarcap::PeersState state3(host, dev::p2p::NodeID(), conf);
+  network::tarcap::PeersState state3(host, conf);
   state1.set_peer_malicious(id1);
   EXPECT_EQ(state3.is_peer_malicious(id1), false);
   EXPECT_EQ(state3.is_peer_malicious(id2), false);
 
   conf.network.peer_blacklist_timeout = 0;
   conf.network.disable_peer_blacklist = true;
-  network::tarcap::PeersState state4(host, dev::p2p::NodeID(), conf);
+  network::tarcap::PeersState state4(host, conf);
   state1.set_peer_malicious(id1);
   EXPECT_EQ(state4.is_peer_malicious(id1), false);
   EXPECT_EQ(state4.is_peer_malicious(id2), false);

@@ -17,14 +17,14 @@ namespace taraxa::network::tarcap {
 // Taraxa capability name
 constexpr char TARAXA_CAPABILITY_NAME[] = "taraxa";
 
-class PacketsStats;
+class AllPacketsStats;
 
 /**
  * @brief Packet handler base class that consists of shared state and some commonly used functions
  */
 class PacketHandler {
  public:
-  PacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
+  PacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<AllPacketsStats> packets_stats,
                 const addr_t& node_addr, const std::string& log_channel_name);
   virtual ~PacketHandler() = default;
   PacketHandler(const PacketHandler&) = default;
@@ -75,7 +75,7 @@ class PacketHandler {
   std::shared_ptr<PeersState> peers_state_{nullptr};
 
   // Shared packet stats
-  std::shared_ptr<PacketsStats> packets_stats_;
+  std::shared_ptr<AllPacketsStats> packets_stats_;
 
   // Declare logger instances
   LOG_OBJECTS_DEFINE

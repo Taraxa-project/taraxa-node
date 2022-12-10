@@ -6,7 +6,7 @@
 #include "libp2p/Common.h"
 #include "libp2p/Host.h"
 #include "network/tarcap/packet_types.hpp"
-#include "network/tarcap/stats/packets_stats.hpp"
+#include "network/tarcap/stats/all_packets_stats.hpp"
 #include "network/tarcap/taraxa_peer.hpp"
 #include "transaction/transaction.hpp"
 
@@ -18,7 +18,7 @@ namespace taraxa::network::tarcap {
  */
 class PeersState {
  public:
-  PeersState(std::weak_ptr<dev::p2p::Host> host, const dev::p2p::NodeID& own_node_id, const FullNodeConfig& conf);
+  PeersState(std::weak_ptr<dev::p2p::Host> host, const FullNodeConfig& conf);
 
   std::shared_ptr<TaraxaPeer> getPeer(const dev::p2p::NodeID& node_id) const;
   std::shared_ptr<TaraxaPeer> getPendingPeer(const dev::p2p::NodeID& node_id) const;
@@ -55,7 +55,6 @@ class PeersState {
 
  public:
   const std::weak_ptr<dev::p2p::Host> host_;
-  const dev::p2p::NodeID node_id_;
 
  private:
   mutable std::shared_mutex peers_mutex_;

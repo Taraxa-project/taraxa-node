@@ -92,8 +92,8 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
  protected:
   virtual void initPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr,
                                   std::shared_ptr<TransactionManager> trx_mgr,
-                                  std::shared_ptr<PacketsStats> packets_stats);
-  virtual void registerPacketHandlers(const h256 &genesis_hash, const std::shared_ptr<PacketsStats> &packets_stats,
+                                  std::shared_ptr<AllPacketsStats> packets_stats);
+  virtual void registerPacketHandlers(const h256 &genesis_hash, const std::shared_ptr<AllPacketsStats> &packets_stats,
                                       const std::shared_ptr<DbStorage> &db,
                                       const std::shared_ptr<PbftManager> &pbft_mgr,
                                       const std::shared_ptr<PbftChain> &pbft_chain,
@@ -117,7 +117,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   unsigned version_;
 
   // Packets stats
-  std::shared_ptr<PacketsStats> packets_stats_;
+  std::shared_ptr<AllPacketsStats> packets_stats_;
 
   // Node config
   const FullNodeConfig &kConf;

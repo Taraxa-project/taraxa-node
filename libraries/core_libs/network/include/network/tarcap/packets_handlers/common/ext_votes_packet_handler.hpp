@@ -18,7 +18,7 @@ namespace taraxa::network::tarcap {
  */
 class ExtVotesPacketHandler : public PacketHandler {
  public:
-  ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
+  ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<AllPacketsStats> packets_stats,
                         std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                         std::shared_ptr<VoteManager> vote_mgr, const NetworkConfig& net_config, const addr_t& node_addr,
                         const std::string& log_channel_name);

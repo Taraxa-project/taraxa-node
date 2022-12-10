@@ -5,7 +5,7 @@
 #include "libp2p/Common.h"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "network/tarcap/shared_states/peers_state.hpp"
-#include "network/tarcap/stats/packets_stats.hpp"
+#include "network/tarcap/stats/all_packets_stats.hpp"
 #include "network/tarcap/threadpool/tarcap_thread_pool.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
@@ -16,7 +16,7 @@ namespace taraxa::network::tarcap {
 NodeStats::NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                      std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
                      std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<VoteManager> vote_mgr,
-                     std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<PacketsStats> packets_stats,
+                     std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<AllPacketsStats> packets_stats,
                      std::shared_ptr<const TarcapThreadPool> thread_pool, const addr_t &node_addr)
     : peers_state_(std::move(peers_state)),
       pbft_syncing_state_(std::move(pbft_syncing_state)),

@@ -2,9 +2,8 @@
 
 namespace taraxa::network::tarcap {
 
-PeersState::PeersState(std::weak_ptr<dev::p2p::Host> host, const dev::p2p::NodeID& own_node_id,
-                       const FullNodeConfig& conf)
-    : host_(std::move(host)), node_id_(own_node_id), kConf(conf) {}
+PeersState::PeersState(std::weak_ptr<dev::p2p::Host> host, const FullNodeConfig& conf)
+    : host_(std::move(host)), kConf(conf) {}
 
 std::shared_ptr<TaraxaPeer> PeersState::getPeer(const dev::p2p::NodeID& node_id) const {
   std::shared_lock lock(peers_mutex_);
