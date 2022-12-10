@@ -2,24 +2,21 @@
 
 namespace taraxa::network::tarcap {
 
-std::string PacketStats::getStatsJsonStr(const std::string &packet_type, const dev::p2p::NodeID &node,
-                                         bool include_duration_fields) const {
+std::string PacketStats::getStatsJsonStr(const std::string &packet_type, const dev::p2p::NodeID &node) const {
   std::ostringstream ret;
   ret << "{\"type\":\"" << packet_type << "\",";
   ret << "\"size\":" << size_ << ",";
   ret << "\"node\":\"" << node.abridged() << "\"";
 
-  if (include_duration_fields) {
-    ret << ",\"processing_duration\":" << processing_duration_.count() << ",";
-    ret << "\"tp_wait_duration\":" << tp_wait_duration_.count();
-  }
+  ret << ",\"processing_duration\":" << processing_duration_.count() << ",";
+  ret << "\"tp_wait_duration\":" << tp_wait_duration_.count();
 
   ret << "}";
 
   return ret.str();
 }
 
-Json::Value PacketStats::getStatsJson(bool include_duration_fields) const {
+Json::Value PacketStats::getStatsJson() const {
   Json::Value ret;
   const auto divisor = count_ ? count_ : 1;
 
@@ -27,12 +24,10 @@ Json::Value PacketStats::getStatsJson(bool include_duration_fields) const {
   ret["total_size"] = Json::UInt64(size_);
   ret["avg_size"] = Json::UInt64(size_ / divisor);
 
-  if (include_duration_fields) {
-    ret["total_processing_duration"] = Json::UInt64(processing_duration_.count());
-    ret["total_tp_wait_duration"] = Json::UInt64(tp_wait_duration_.count());
-    ret["avg_processing_duration"] = Json::UInt64(processing_duration_.count() / divisor);
-    ret["avg_tp_wait_duration"] = Json::UInt64(tp_wait_duration_.count() / divisor);
-  }
+  ret["total_processing_duration"] = Json::UInt64(processing_duration_.count());
+  ret["total_tp_wait_duration"] = Json::UInt64(tp_wait_duration_.count());
+  ret["avg_processing_duration"] = Json::UInt64(processing_duration_.count() / divisor);
+  ret["avg_tp_wait_duration"] = Json::UInt64(tp_wait_duration_.count() / divisor);
 
   return ret;
 }

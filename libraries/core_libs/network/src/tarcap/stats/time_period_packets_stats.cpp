@@ -21,8 +21,8 @@ void TimePeriodPacketsStats::addSentPacket(const std::string& packet_type, const
 }
 
 void TimePeriodPacketsStats::processStats(const std::shared_ptr<PeersState>& peers_state) {
-  LOG(log_nf_) << "Received packets stats: " << jsonToUnstyledString(received_packets_stats_.getStatsJson(true));
-  LOG(log_nf_) << "Sent packets stats: " << jsonToUnstyledString(sent_packets_stats_.getStatsJson(true));
+  LOG(log_nf_) << "Received packets stats: " << jsonToUnstyledString(received_packets_stats_.getStatsJson());
+  LOG(log_nf_) << "Sent packets stats: " << jsonToUnstyledString(sent_packets_stats_.getStatsJson());
 
   // Update max stats for all received packets from all peers - must be called before resetStats
   received_packets_stats_.updateAllPacketsMaxStats();

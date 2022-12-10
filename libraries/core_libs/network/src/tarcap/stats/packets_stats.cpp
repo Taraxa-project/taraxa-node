@@ -32,7 +32,7 @@ void PacketsStats::resetStats() {
   per_packet_stats_.clear();
 }
 
-Json::Value PacketsStats::getStatsJson(bool include_duration_fields) const {
+Json::Value PacketsStats::getStatsJson() const {
   const auto end_time = std::chrono::system_clock::now();
 
   Json::Value ret;
@@ -57,12 +57,12 @@ Json::Value PacketsStats::getStatsJson(bool include_duration_fields) const {
 
   ret["duration_ms"] = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time_).count();
 
-  Json::Value packet_json = all_packets_stats_.getStatsJson(include_duration_fields);
+  Json::Value packet_json = all_packets_stats_.getStatsJson();
   packet_json["type"] = "ALL_PACKETS_COMBINED";
   packets_stats_json.append(std::move(packet_json));
 
   for (auto &single_packet_stats : per_packet_stats_) {
-    packet_json = single_packet_stats.second.getStatsJson(include_duration_fields);
+    packet_json = single_packet_stats.second.getStatsJson();
     packet_json["type"] = single_packet_stats.first;
     packets_stats_json.append(std::move(packet_json));
   }

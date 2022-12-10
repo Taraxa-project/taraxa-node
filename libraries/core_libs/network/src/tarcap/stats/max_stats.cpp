@@ -4,10 +4,10 @@ namespace taraxa::network::tarcap {
 
 Json::Value MaxStats::getMaxStatsJson() const {
   Json::Value ret;
-  ret["max_count"] = max_count_stats_.getStatsJson(true);
-  ret["max_size"] = max_size_stats_.getStatsJson(true);
-  ret["max_processing_duration"] = max_processing_duration_stats_.getStatsJson(true);
-  ret["max_tp_wait_time"] = max_tp_wait_time_stats_.getStatsJson(true);
+  ret["max_count"] = max_count_stats_.getStatsJson();
+  ret["max_size"] = max_size_stats_.getStatsJson();
+  ret["max_processing_duration"] = max_processing_duration_stats_.getStatsJson();
+  ret["max_tp_wait_time"] = max_tp_wait_time_stats_.getStatsJson();
 
   return ret;
 }

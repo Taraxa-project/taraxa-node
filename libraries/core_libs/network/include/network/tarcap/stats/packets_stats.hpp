@@ -27,7 +27,7 @@ class PacketsStats {
 
   PacketStats getAllPacketsStatsCopy() const;
   Json::Value getAllPacketsMaxStats() const;
-  Json::Value getStatsJson(bool include_duration_fields = true) const;
+  Json::Value getStatsJson() const;
 
   /**
    * @brief Updates max stats

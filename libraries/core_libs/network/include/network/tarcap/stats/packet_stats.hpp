@@ -18,9 +18,8 @@ class PacketStats {
   std::chrono::microseconds processing_duration_{0};
   std::chrono::microseconds tp_wait_duration_{0};
 
-  std::string getStatsJsonStr(const std::string &packet_type, const dev::p2p::NodeID &node,
-                              bool include_duration_fields = true) const;
-  Json::Value getStatsJson(bool include_duration_fields = true) const;
+  std::string getStatsJsonStr(const std::string &packet_type, const dev::p2p::NodeID &node) const;
+  Json::Value getStatsJson() const;
 };
 
 }  // namespace taraxa::network::tarcap
