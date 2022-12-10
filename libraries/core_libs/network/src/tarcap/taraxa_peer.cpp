@@ -64,6 +64,8 @@ void TaraxaPeer::addSentPacket(const std::string& packet_type, const PacketStats
   sent_packets_stats_.addPacket(packet_type, packet);
 }
 
-const PacketsStats& TaraxaPeer::getPacketsStats() const { return sent_packets_stats_; }
+PacketStats TaraxaPeer::getAllPacketsStatsCopy() const { return sent_packets_stats_.getAllPacketsStatsCopy(); }
+
+void TaraxaPeer::resetPacketsStats() { sent_packets_stats_.resetStats(); }
 
 }  // namespace taraxa::network::tarcap

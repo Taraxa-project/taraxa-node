@@ -68,15 +68,6 @@ class TestClient : public jsonrpc::Client {
     else
       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
-  Json::Value get_packets_stats() throw(jsonrpc::JsonRpcException) {
-    Json::Value p;
-    p = Json::nullValue;
-    Json::Value result = this->CallMethod("get_packets_stats", p);
-    if (result.isObject())
-      return result;
-    else
-      throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
-  }
   Json::Value get_node_version() throw(jsonrpc::JsonRpcException) {
     Json::Value p;
     p = Json::nullValue;

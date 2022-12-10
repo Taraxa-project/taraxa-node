@@ -24,11 +24,6 @@ PacketStats PacketsStats::getAllPacketsStatsCopy() const {
   return all_packets_stats_;
 }
 
-PacketsStats::PerPacketStatsMap PacketsStats::getPerPacketStatsCopy() const {
-  std::shared_lock<std::shared_mutex> lock(mutex_);
-  return per_packet_stats_;
-}
-
 void PacketsStats::resetStats() {
   std::shared_lock<std::shared_mutex> lock(mutex_);
 
@@ -75,65 +70,8 @@ Json::Value PacketsStats::getStatsJson(bool include_duration_fields) const {
   return ret;
 }
 
-void PacketsStats::updatePeriodMaxStats(const PacketsStats::PerPacketStatsMap &period_stats) {
-  std::scoped_lock<std::shared_mutex> lock(max_stats_mutex_);
-  for (const auto &packet_stats : period_stats) {
-    auto &abs_max_packet_count = max_counts_stats_[packet_stats.first];
-    if (packet_stats.second.count_ > abs_max_packet_count.count_) {
-      abs_max_packet_count = packet_stats.second;
-    }
+Json::Value PacketsStats::getAllPacketsMaxStats() const { return all_packets_max_stats_.getMaxStatsJson(); }
 
-    auto &abs_max_packet_size = max_sizes_stats_[packet_stats.first];
-    if (packet_stats.second.size_ > abs_max_packet_size.size_) {
-      abs_max_packet_size = packet_stats.second;
-    }
-  }
-}
-
-Json::Value PacketsStats::getPeriodMaxStatsJson(bool include_duration_fields) const {
-  Json::Value max_counts_stats_json;
-  Json::Value max_sizes_stats_json;
-
-  {
-    std::shared_lock<std::shared_mutex> lock(max_stats_mutex_);
-    for (const auto &packet : max_counts_stats_) {
-      Json::Value packet_json = packet.second.getStatsJson(include_duration_fields /* include duration fields */);
-      packet_json["type"] = packet.first;
-      max_counts_stats_json.append(std::move(packet_json));
-    }
-
-    for (const auto &packet : max_sizes_stats_) {
-      Json::Value packet_json = packet.second.getStatsJson(include_duration_fields /* include duration fields */);
-      packet_json["type"] = packet.first;
-      max_sizes_stats_json.append(std::move(packet_json));
-    }
-  }
-
-  Json::Value ret;
-  ret["period_max_counts_stats"] = std::move(max_counts_stats_json);
-  ret["period_max_sizes_stats"] = std::move(max_sizes_stats_json);
-
-  return ret;
-}
-
-PacketsStats::PerPacketStatsMap operator-(const PacketsStats::PerPacketStatsMap &lo,
-                                          const PacketsStats::PerPacketStatsMap &ro) {
-  PacketsStats::PerPacketStatsMap result;
-
-  for (const auto &lo_packet_stats : lo) {
-    const auto ro_packets_stats = ro.find(lo_packet_stats.first);
-
-    if (ro_packets_stats != ro.end()) {
-      PacketStats packet_stats = lo_packet_stats.second - ro_packets_stats->second;
-      if (packet_stats.count_ > 0) {
-        result[lo_packet_stats.first] = packet_stats;
-      }
-    } else {
-      result[lo_packet_stats.first] = lo_packet_stats.second;
-    }
-  }
-
-  return result;
-}
+void PacketsStats::updateAllPacketsMaxStats() { all_packets_max_stats_.updateMaxStats(getAllPacketsStatsCopy()); }
 
 }  // namespace taraxa::network::tarcap

@@ -6,7 +6,7 @@
 #include "libp2p/Common.h"
 #include "libp2p/Host.h"
 #include "network/tarcap/packet_types.hpp"
-#include "network/tarcap/stats/all_packets_stats.hpp"
+#include "network/tarcap/stats/time_period_packets_stats.hpp"
 #include "network/tarcap/taraxa_peer.hpp"
 #include "transaction/transaction.hpp"
 
@@ -18,6 +18,8 @@ namespace taraxa::network::tarcap {
  */
 class PeersState {
  public:
+  using PeersMap = std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>>;
+
   PeersState(std::weak_ptr<dev::p2p::Host> host, const FullNodeConfig& conf);
 
   std::shared_ptr<TaraxaPeer> getPeer(const dev::p2p::NodeID& node_id) const;
@@ -33,7 +35,7 @@ class PeersState {
   std::pair<std::shared_ptr<TaraxaPeer>, std::string> getPacketSenderPeer(const dev::p2p::NodeID& node_id,
                                                                           SubprotocolPacketType packet_type) const;
 
-  std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> getAllPeers() const;
+  PeersMap getAllPeers() const;
   std::vector<dev::p2p::NodeID> getAllPendingPeersIDs() const;
   size_t getPeersCount() const;
   std::shared_ptr<TaraxaPeer> addPendingPeer(const dev::p2p::NodeID& node_id);
@@ -58,8 +60,8 @@ class PeersState {
 
  private:
   mutable std::shared_mutex peers_mutex_;
-  std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> peers_;
-  std::unordered_map<dev::p2p::NodeID, std::shared_ptr<TaraxaPeer>> pending_peers_;
+  PeersMap peers_;
+  PeersMap pending_peers_;
 
   ThreadSafeMap<dev::p2p::NodeID, std::chrono::steady_clock::time_point> malicious_peers_;
   const FullNodeConfig kConf;

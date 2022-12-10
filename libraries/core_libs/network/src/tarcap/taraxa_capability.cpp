@@ -42,7 +42,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
   LOG_OBJECTS_CREATE("TARCAP");
 
   peers_state_ = std::make_shared<PeersState>(host, kConf);
-  packets_stats_ = std::make_shared<AllPacketsStats>(node_addr);
+  all_packets_stats_ = std::make_shared<TimePeriodPacketsStats>(node_addr);
 
   // Inits boot nodes (based on config)
   addBootNodes(true);
@@ -65,11 +65,11 @@ void TaraxaCapability::init(const h256 &genesis_hash, std::shared_ptr<DbStorage>
                             std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
                             const dev::Address &node_addr) {
   // Creates and registers all packets handlers
-  registerPacketHandlers(genesis_hash, packets_stats_, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr,
+  registerPacketHandlers(genesis_hash, all_packets_stats_, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr,
                          trx_mgr, node_addr);
 
   // Inits periodic events. Must be called after registerHandlers !!!
-  initPeriodicEvents(pbft_mgr, trx_mgr, packets_stats_);
+  initPeriodicEvents(pbft_mgr, trx_mgr, all_packets_stats_);
 }
 
 void TaraxaCapability::addBootNodes(bool initial) {
@@ -119,7 +119,7 @@ void TaraxaCapability::addBootNodes(bool initial) {
 
 void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr,
                                           std::shared_ptr<TransactionManager> trx_mgr,
-                                          std::shared_ptr<AllPacketsStats> packets_stats) {
+                                          std::shared_ptr<TimePeriodPacketsStats> packets_stats) {
   // TODO: refactor this:
   //       1. Most of time is this single threaded thread pool doing nothing...
   //       2. These periodic events are sending packets - that might be processed by main thread_pool ???
@@ -142,17 +142,12 @@ void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pb
     status_packet_handler->sendStatusToPeers();
   });
 
-  // Log max packets stats
-  periodic_events_tp_->post_loop({60000}, [peers_state = peers_state_] {
-    for (const auto &peer : peers_state->getAllPeers()) {
-      std::cout << peer.second->getPacketsStats().getStatsJson(true) << std::endl;
-    }
-  });
-
   // Logs packets stats periodic event
   if (kConf.network.performance_log_interval > 0) {
     periodic_events_tp_->post_loop({kConf.network.performance_log_interval},
-                                   [packets_stats = std::move(packets_stats)] { packets_stats->logAndUpdateStats(); });
+                                   [packets_stats = std::move(packets_stats), peers_state = peers_state_] {
+                                     packets_stats->processStats(peers_state);
+                                   });
   }
 
   // SUMMARY log periodic event
@@ -175,7 +170,7 @@ void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pb
 }
 
 void TaraxaCapability::registerPacketHandlers(
-    const h256 &genesis_hash, const std::shared_ptr<AllPacketsStats> &packets_stats,
+    const h256 &genesis_hash, const std::shared_ptr<TimePeriodPacketsStats> &packets_stats,
     const std::shared_ptr<DbStorage> &db, const std::shared_ptr<PbftManager> &pbft_mgr,
     const std::shared_ptr<PbftChain> &pbft_chain, const std::shared_ptr<VoteManager> &vote_mgr,
     const std::shared_ptr<NextVotesManager> &next_votes_mgr, const std::shared_ptr<DagManager> &dag_mgr,

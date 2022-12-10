@@ -8,7 +8,7 @@
 namespace taraxa::network::tarcap {
 
 GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(std::shared_ptr<PeersState> peers_state,
-                                                   std::shared_ptr<AllPacketsStats> packets_stats,
+                                                   std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                    std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                                                    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DbStorage> db,
                                                    size_t network_sync_level_size, const addr_t &node_addr,

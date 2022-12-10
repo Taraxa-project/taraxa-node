@@ -1,11 +1,12 @@
 #include "network/tarcap/packets_handlers/common/packet_handler.hpp"
 
-#include "network/tarcap/stats/all_packets_stats.hpp"
+#include "network/tarcap/stats/time_period_packets_stats.hpp"
 
 namespace taraxa::network::tarcap {
 
-PacketHandler::PacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<AllPacketsStats> packets_stats,
-                             const addr_t& node_addr, const std::string& log_channel_name)
+PacketHandler::PacketHandler(std::shared_ptr<PeersState> peers_state,
+                             std::shared_ptr<TimePeriodPacketsStats> packets_stats, const addr_t& node_addr,
+                             const std::string& log_channel_name)
     : peers_state_(std::move(peers_state)), packets_stats_(std::move(packets_stats)) {
   LOG_OBJECTS_CREATE(log_channel_name);
 }

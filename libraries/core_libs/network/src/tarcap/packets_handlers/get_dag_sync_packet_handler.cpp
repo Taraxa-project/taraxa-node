@@ -6,7 +6,7 @@
 namespace taraxa::network::tarcap {
 
 GetDagSyncPacketHandler::GetDagSyncPacketHandler(std::shared_ptr<PeersState> peers_state,
-                                                 std::shared_ptr<AllPacketsStats> packets_stats,
+                                                 std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                  std::shared_ptr<TransactionManager> trx_mgr,
                                                  std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DbStorage> db,
                                                  const addr_t &node_addr)

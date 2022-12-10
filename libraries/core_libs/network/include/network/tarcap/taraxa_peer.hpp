@@ -88,7 +88,12 @@ class TaraxaPeer : public boost::noncopyable {
   /**
    * @return AllPacketsStats - packets stats for packets received from peer
    */
-  const PacketsStats& getPacketsStats() const;
+  PacketStats getAllPacketsStatsCopy() const;
+
+  /**
+   * @brief Resets sent packets stats
+   */
+  void resetPacketsStats();
 
  public:
   std::atomic<bool> syncing_ = false;

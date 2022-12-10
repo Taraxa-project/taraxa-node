@@ -37,15 +37,4 @@ Json::Value PacketStats::getStatsJson(bool include_duration_fields) const {
   return ret;
 }
 
-PacketStats PacketStats::operator-(const PacketStats &ro) const {
-  PacketStats result;
-
-  result.count_ = count_ - ro.count_;
-  result.size_ = size_ - ro.size_;
-  result.processing_duration_ = processing_duration_ - ro.processing_duration_;
-  result.tp_wait_duration_ = tp_wait_duration_ - ro.tp_wait_duration_;
-
-  return result;
-}
-
 }  // namespace taraxa::network::tarcap

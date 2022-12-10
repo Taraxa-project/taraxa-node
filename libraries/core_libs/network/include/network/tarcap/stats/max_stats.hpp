@@ -1,35 +1,31 @@
 #pragma once
 
-#include "network/tarcap/stats/packets_stats.hpp"
+#include "json/value.h"
+#include "network/tarcap/stats/packet_stats.hpp"
 
 namespace taraxa::network::tarcap {
 
-///**
-// * @brief Stats for all received (or sent) packets of all types
-// */
-// class MaxStats {
-// public:
-//
-// private:
-//  // Time point since which are the stats measured
-//  std::chrono::system_clock::time_point start_time_;
-//
-//  // Stats for all packets types combined
-//  AllPacketsStats::Stats all_packets_stats_;
-//
-//  // Stas per individual packet type
-//  PerPacketStatsMap per_packet_stats_;
-//  mutable std::shared_mutex mutex_;
-//
-//  // TODO: maybe put max stats into separate class together with max stats per peer ?
-//  // Statistics about max number of packets (of the same type) received during fixed time period
-//  std::unordered_map<std::string /*packet name*/, Stats> max_counts_stats_;
-//  // Statistics about max size of packets (of the same type) received during fixed time period
-//  std::unordered_map<std::string /*packet name*/, Stats> max_sizes_stats_;
-//  mutable std::shared_mutex max_stats_mutex_;
-//};
-//
-// AllPacketsStats::PerPacketStatsMap operator-(const AllPacketsStats::PerPacketStatsMap &lo,
-//                                             const AllPacketsStats::PerPacketStatsMap &ro);
+/**
+ * @brief MAx stats data holder class
+ */
+class MaxStats {
+ public:
+  PacketStats max_count_stats_;
+  PacketStats max_size_stats_;
+  PacketStats max_processing_duration_stats_;
+  PacketStats max_tp_wait_time_stats_;
+
+  /**
+   * @return max stats json
+   */
+  Json::Value getMaxStatsJson() const;
+
+  /**
+   * @brief Updates max states based on provided packet_stats
+   *
+   * @param packet_stats
+   */
+  void updateMaxStats(const PacketStats& packet_stats);
+};
 
 }  // namespace taraxa::network::tarcap

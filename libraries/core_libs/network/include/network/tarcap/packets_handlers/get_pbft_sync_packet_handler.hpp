@@ -13,7 +13,8 @@ class PbftSyncingState;
 
 class GetPbftSyncPacketHandler final : public PacketHandler {
  public:
-  GetPbftSyncPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<AllPacketsStats> packets_stats,
+  GetPbftSyncPacketHandler(std::shared_ptr<PeersState> peers_state,
+                           std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                            std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
                            std::shared_ptr<DbStorage> db, size_t network_sync_level_size, const addr_t& node_addr,
                            bool is_light_node = false, uint64_t light_node_history = 0);

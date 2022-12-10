@@ -21,7 +21,6 @@ class PacketStats {
   std::string getStatsJsonStr(const std::string &packet_type, const dev::p2p::NodeID &node,
                               bool include_duration_fields = true) const;
   Json::Value getStatsJson(bool include_duration_fields = true) const;
-  PacketStats operator-(const PacketStats &ro) const;
 };
 
 }  // namespace taraxa::network::tarcap

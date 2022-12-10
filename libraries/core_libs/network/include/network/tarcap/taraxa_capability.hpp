@@ -92,15 +92,13 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
  protected:
   virtual void initPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr,
                                   std::shared_ptr<TransactionManager> trx_mgr,
-                                  std::shared_ptr<AllPacketsStats> packets_stats);
-  virtual void registerPacketHandlers(const h256 &genesis_hash, const std::shared_ptr<AllPacketsStats> &packets_stats,
-                                      const std::shared_ptr<DbStorage> &db,
-                                      const std::shared_ptr<PbftManager> &pbft_mgr,
-                                      const std::shared_ptr<PbftChain> &pbft_chain,
-                                      const std::shared_ptr<VoteManager> &vote_mgr,
-                                      const std::shared_ptr<NextVotesManager> &next_votes_mgr,
-                                      const std::shared_ptr<DagManager> &dag_mgr,
-                                      const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr);
+                                  std::shared_ptr<TimePeriodPacketsStats> packets_stats);
+  virtual void registerPacketHandlers(
+      const h256 &genesis_hash, const std::shared_ptr<TimePeriodPacketsStats> &packets_stats,
+      const std::shared_ptr<DbStorage> &db, const std::shared_ptr<PbftManager> &pbft_mgr,
+      const std::shared_ptr<PbftChain> &pbft_chain, const std::shared_ptr<VoteManager> &vote_mgr,
+      const std::shared_ptr<NextVotesManager> &next_votes_mgr, const std::shared_ptr<DagManager> &dag_mgr,
+      const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr);
 
  private:
   void addBootNodes(bool initial = false);
@@ -116,8 +114,11 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   // Capability version
   unsigned version_;
 
-  // Packets stats
-  std::shared_ptr<AllPacketsStats> packets_stats_;
+  // Packets stats per time period
+  std::shared_ptr<TimePeriodPacketsStats> all_packets_stats_;
+
+  // Max packets stats per time period
+  MaxStats max_packets_stats_;
 
   // Node config
   const FullNodeConfig &kConf;
