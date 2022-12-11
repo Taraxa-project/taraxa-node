@@ -74,6 +74,9 @@ void TimePeriodPacketsStats::processStats(const std::shared_ptr<PeersState>& pee
   max_stats_json["all_max_stats"] = received_packets_stats_.getAllPacketsMaxStats();
   max_stats_json["peer_max_stats"] = peer_max_stats_.getMaxStatsJson();
   LOG(log_dg_) << "Max packets stats: " << jsonToUnstyledString(max_stats_json);
+
+  // Reset start time
+  start_time_ = std::chrono::system_clock::now();
 }
 
 }  // namespace taraxa::network::tarcap
