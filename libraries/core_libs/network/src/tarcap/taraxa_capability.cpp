@@ -42,7 +42,8 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
   LOG_OBJECTS_CREATE("TARCAP");
 
   peers_state_ = std::make_shared<PeersState>(host, kConf);
-  all_packets_stats_ = std::make_shared<TimePeriodPacketsStats>(node_addr);
+  all_packets_stats_ = std::make_shared<TimePeriodPacketsStats>(
+      std::chrono::milliseconds(kConf.network.performance_log_interval_ms), node_addr);
 
   // Inits boot nodes (based on config)
   addBootNodes(true);
@@ -142,12 +143,11 @@ void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pb
     status_packet_handler->sendStatusToPeers();
   });
 
-  // Logs packets stats periodic event
-  if (kConf.network.performance_log_interval > 0) {
-    periodic_events_tp_->post_loop({kConf.network.performance_log_interval},
-                                   [packets_stats = std::move(packets_stats), peers_state = peers_state_] {
-                                     packets_stats->processStats(peers_state);
-                                   });
+  // Logs packets stats and process max stats periodic event
+  if (packets_stats->getResetTimePeriodMs() > 0) {
+    periodic_events_tp_->post_loop(
+        {packets_stats->getResetTimePeriodMs()},
+        [stats = packets_stats, peers_state = peers_state_] { stats->processStats(peers_state); });
   }
 
   // SUMMARY log periodic event

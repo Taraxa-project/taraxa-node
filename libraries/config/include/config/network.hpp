@@ -39,7 +39,7 @@ struct NetworkConfig {
   uint16_t max_peer_count = 50;
   uint16_t transaction_interval_ms = 100;
   uint16_t sync_level_size = 10;
-  uint16_t performance_log_interval = 0;
+  uint16_t performance_log_interval_ms = 0;
   uint16_t num_threads = std::max(uint(1), uint(std::thread::hardware_concurrency() / 2));
   uint16_t packets_processing_threads = 14;
   uint16_t peer_blacklist_timeout = kBlacklistTimeoutDefaultInSeconds;

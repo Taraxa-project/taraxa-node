@@ -78,7 +78,7 @@ void dec_json(const Json::Value &json, NetworkConfig &network) {
   network.listen_ip = getConfigDataAsString(json, {"listen_ip"});
   network.public_ip = getConfigDataAsString(json, {"public_ip"}, true);
   network.listen_port = getConfigDataAsUInt(json, {"listen_port"});
-  network.performance_log_interval = getConfigDataAsUInt(json, {"performance_log_interval"}, true, 30000 /*ms*/);
+  network.performance_log_interval_ms = getConfigDataAsUInt(json, {"performance_log_interval_ms"}, true, 30000 /*ms*/);
   network.transaction_interval_ms = getConfigDataAsUInt(json, {"transaction_interval_ms"});
   network.ideal_peer_count = getConfigDataAsUInt(json, {"ideal_peer_count"});
   network.max_peer_count = getConfigDataAsUInt(json, {"max_peer_count"});

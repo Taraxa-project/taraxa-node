@@ -187,7 +187,7 @@ std::ostream &operator<<(std::ostream &strm, const NetworkConfig &conf) {
   strm << "  ideal_peer_count: " << conf.ideal_peer_count << std::endl;
   strm << "  max_peer_count: " << conf.max_peer_count << std::endl;
   strm << "  sync_level_size: " << conf.sync_level_size << std::endl;
-  strm << "  performance_log_interval: " << conf.performance_log_interval << std::endl;
+  strm << "  performance_log_interval_ms: " << conf.performance_log_interval_ms << std::endl;
   strm << "  num_threads: " << conf.num_threads << std::endl;
   strm << "  packets_processing_threads: " << conf.packets_processing_threads << std::endl;
   strm << "  deep_syncing_threshold: " << conf.deep_syncing_threshold << std::endl;
