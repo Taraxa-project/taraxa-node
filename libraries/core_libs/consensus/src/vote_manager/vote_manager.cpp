@@ -763,6 +763,11 @@ std::shared_ptr<Vote> VoteManager::generateVoteWithWeight(const taraxa::blk_hash
 
   try {
     voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(period - 1, node_addr_);
+    if (!voter_dpos_votes_count) {
+      // No delegation
+      return nullptr;
+    }
+
     total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(period - 1);
     pbft_sortition_threshold = getPbftSortitionThreshold(total_dpos_votes_count, vote_type);
 
@@ -772,11 +777,6 @@ std::shared_ptr<Vote> VoteManager::generateVoteWithWeight(const taraxa::blk_hash
                  << "Period is too far ahead of actual finalized pbft chain size (" << final_chain_->last_block_number()
                  << "). Err msg: " << e.what();
 
-    return nullptr;
-  }
-
-  if (!voter_dpos_votes_count) {
-    // No delegation
     return nullptr;
   }
 
@@ -890,15 +890,15 @@ bool VoteManager::genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound p
 
   try {
     const uint64_t voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(pbft_period - 1, node_addr_);
-    const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(pbft_period - 1);
-    const uint64_t pbft_sortition_threshold =
-        getPbftSortitionThreshold(total_dpos_votes_count, PbftVoteTypes::propose_vote);
-
     if (!voter_dpos_votes_count) {
       LOG(log_er_) << "Generated vrf sortition for period " << pbft_period << ", round " << pbft_round
                    << " is invalid. Voter dpos vote count is zero";
       return false;
     }
+
+    const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(pbft_period - 1);
+    const uint64_t pbft_sortition_threshold =
+        getPbftSortitionThreshold(total_dpos_votes_count, PbftVoteTypes::propose_vote);
 
     if (!vrf_sortition.calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold,
                                        node_pub_)) {

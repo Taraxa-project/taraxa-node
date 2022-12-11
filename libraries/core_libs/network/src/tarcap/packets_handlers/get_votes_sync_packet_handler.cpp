@@ -5,24 +5,23 @@
 
 namespace taraxa::network::tarcap {
 
-GetVotesSyncPacketHandler::GetVotesSyncPacketHandler(
+GetNextVotesSyncPacketHandler::GetNextVotesSyncPacketHandler(
     const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
     std::shared_ptr<TimePeriodPacketsStats> packets_stats, std::shared_ptr<PbftManager> pbft_mgr,
     std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
     std::shared_ptr<NextVotesManager> next_votes_mgr, const addr_t &node_addr)
     : ExtVotesPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
-                            std::move(pbft_chain), std::move(vote_mgr), node_addr, "GET_VOTES_SYNC_PH"),
+                            std::move(pbft_chain), std::move(vote_mgr), node_addr, "GET_NEXT_VOTES_SYNC_PH"),
       next_votes_mgr_(std::move(next_votes_mgr)) {}
 
-void GetVotesSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
+void GetNextVotesSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
   if (constexpr size_t required_size = 2; packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
 }
 
-// TODO: rename to GetNextVotesSyncPacket
-void GetVotesSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
-  LOG(log_dg_) << "Received GetVotesSyncPacket request";
+void GetNextVotesSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
+  LOG(log_dg_) << "Received GetNextVotesSyncPacket request";
 
   const PbftPeriod peer_pbft_period = packet_data.rlp_[0].toInt<PbftPeriod>();
   const PbftRound peer_pbft_round = packet_data.rlp_[1].toInt<PbftRound>();

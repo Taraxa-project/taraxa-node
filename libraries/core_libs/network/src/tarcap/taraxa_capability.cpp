@@ -190,7 +190,7 @@ void TaraxaCapability::registerPacketHandlers(
   // Consensus packets with high processing priority
   packets_handlers_->registerHandler<VotePacketHandler>(kConf, peers_state_, packets_stats, pbft_mgr, pbft_chain,
                                                         vote_mgr, node_addr);
-  packets_handlers_->registerHandler<GetVotesSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_mgr,
+  packets_handlers_->registerHandler<GetNextVotesSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_mgr,
                                                                 pbft_chain, vote_mgr, next_votes_mgr, node_addr);
   packets_handlers_->registerHandler<VotesSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_mgr, pbft_chain,
                                                              vote_mgr, next_votes_mgr, db, node_addr);
