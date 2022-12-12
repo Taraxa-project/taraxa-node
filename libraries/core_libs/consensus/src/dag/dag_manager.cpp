@@ -17,8 +17,6 @@
 #include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 #include "transaction/transaction_manager.hpp"
 
-#define NULL_BLOCK_HASH blk_hash_t(0)
-
 namespace taraxa {
 DagManager::DagManager(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr,
                        const SortitionConfig &sortition_config, const DagConfig &dag_config,
@@ -238,8 +236,8 @@ void DagManager::updateFrontier() {
 }
 
 std::vector<blk_hash_t> DagManager::getGhostPath(const blk_hash_t &source) const {
-  // No need to check ghost path for NULL_BLOCK_HASH
-  if (source == NULL_BLOCK_HASH) {
+  // No need to check ghost path for kNullBlockHash
+  if (source == kNullBlockHash) {
     return {};
   }
 
@@ -309,9 +307,9 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, PbftPeriod perio
     return 0;
   }
 
-  if (new_anchor == NULL_BLOCK_HASH) {
+  if (new_anchor == kNullBlockHash) {
     period_ = period;
-    LOG(log_nf_) << "Set new period " << period << " with NULL_BLOCK_HASH anchor";
+    LOG(log_nf_) << "Set new period " << period << " with kNullBlockHash anchor";
     return 0;
   }
 
@@ -347,7 +345,7 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, PbftPeriod perio
 
   std::unordered_set<blk_hash_t> dag_order_set(dag_order.begin(), dag_order.end());
   assert(dag_order_set.count(new_anchor));
-  addToDag(new_anchor, blk_hash_t(), vec_blk_t(), 0, true);
+  addToDag(new_anchor, kNullBlockHash, vec_blk_t(), 0, true);
 
   const auto anchor_block_level = getDagBlock(new_anchor)->getLevel();
   if (anchor_block_level > dag_expiry_limit_) {
@@ -458,7 +456,7 @@ void DagManager::recoverDag() {
       if (anchor) {
         anchor_ = anchor;
         LOG(log_nf_) << "Recover anchor " << anchor_;
-        addToDag(anchor_, blk_hash_t(), vec_blk_t(), 0, true);
+        addToDag(anchor_, kNullBlockHash, vec_blk_t(), 0, true);
         break;
       }
     }

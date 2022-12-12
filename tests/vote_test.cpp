@@ -279,7 +279,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   auto pbft_2t_plus_1 = pbft_mgr->getPbftTwoTPlusOne(chain_size).value();
   EXPECT_EQ(pbft_2t_plus_1, 1);
 
-  // Generate a vote voted at NULL_BLOCK_HASH
+  // Generate a vote voted at kNullBlockHash
   PbftVoteTypes type = PbftVoteTypes::next_vote;
   PbftPeriod period = 1;
   PbftRound round = 1;
@@ -289,7 +289,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   vote1->calculateWeight(1, 1, 1);
   std::vector<std::shared_ptr<Vote>> next_votes_1{vote1};
 
-  // Enough votes for NULL_BLOCK_HASH
+  // Enough votes for kNullBlockHash
   next_votes_mgr->addNextVotes(next_votes_1, pbft_2t_plus_1);
   EXPECT_TRUE(next_votes_mgr->haveEnoughVotesForNullBlockHash());
   EXPECT_EQ(next_votes_mgr->getNextVotes().size(), next_votes_1.size());

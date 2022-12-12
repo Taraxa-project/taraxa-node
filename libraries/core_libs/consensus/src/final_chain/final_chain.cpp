@@ -18,7 +18,7 @@ class FinalChainImpl final : public FinalChain {
   StateAPI state_api_;
 
   // It is not prepared to use more then 1 thread. Examine it if you want to change threads count
-  util::ThreadPool executor_thread_{1};
+  boost::asio::thread_pool executor_thread_{1};
 
   std::atomic<uint64_t> num_executed_dag_blk_ = 0;
   std::atomic<uint64_t> num_executed_trx_ = 0;
@@ -60,7 +60,6 @@ class FinalChainImpl final : public FinalChain {
                                   [this](uint64_t blk) { return get_transaction_hashes(blk); }),
         accounts_cache_(config.final_chain_cache_in_blocks,
                         [this](uint64_t blk, const addr_t& addr) { return state_api_.get_account(blk, addr); }),
-
         total_vote_count_cache_(config.final_chain_cache_in_blocks,
                                 [this](uint64_t blk) { return state_api_.dpos_eligible_total_vote_count(blk); }),
         dpos_vote_count_cache_(
@@ -115,15 +114,15 @@ class FinalChainImpl final : public FinalChain {
     delegation_delay_ = config.genesis.state.dpos.delegation_delay;
   }
 
-  void stop() override { executor_thread_.stop(); }
+  void stop() override { executor_thread_.join(); }
 
-  std::future<std::shared_ptr<FinalizationResult const>> finalize(PeriodData&& new_blk,
+  std::future<std::shared_ptr<const FinalizationResult>> finalize(PeriodData&& new_blk,
                                                                   std::vector<h256>&& finalized_dag_blk_hashes,
                                                                   finalize_precommit_ext precommit_ext = {}) override {
-    auto p = std::make_shared<std::promise<std::shared_ptr<FinalizationResult const>>>();
-    executor_thread_.post([this, new_blk = std::move(new_blk),
-                           finalized_dag_blk_hashes = std::move(finalized_dag_blk_hashes),
-                           precommit_ext = std::move(precommit_ext), p]() mutable {
+    auto p = std::make_shared<std::promise<std::shared_ptr<const FinalizationResult>>>();
+    boost::asio::post(executor_thread_, [this, new_blk = std::move(new_blk),
+                                         finalized_dag_blk_hashes = std::move(finalized_dag_blk_hashes),
+                                         precommit_ext = std::move(precommit_ext), p]() mutable {
       p->set_value(finalize_(std::move(new_blk), std::move(finalized_dag_blk_hashes), precommit_ext));
     });
     return p->get_future();
@@ -131,8 +130,9 @@ class FinalChainImpl final : public FinalChain {
 
   EthBlockNumber delegation_delay() const override { return delegation_delay_; }
 
-  std::shared_ptr<FinalizationResult> finalize_(PeriodData&& new_blk, std::vector<h256>&& finalized_dag_blk_hashes,
-                                                finalize_precommit_ext const& precommit_ext) {
+  std::shared_ptr<const FinalizationResult> finalize_(PeriodData&& new_blk,
+                                                      std::vector<h256>&& finalized_dag_blk_hashes,
+                                                      finalize_precommit_ext const& precommit_ext) {
     auto batch = db_->createWriteBatch();
 
     RewardsStats rewards_stats;

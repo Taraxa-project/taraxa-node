@@ -617,7 +617,7 @@ void PbftManager::initialState() {
   previous_round_next_voted_null_block_hash_ = next_votes_manager_->haveEnoughVotesForNullBlockHash();
 
   LOG(log_nf_) << "Node initialize at round " << current_pbft_round << ", period " << getPbftPeriod() << ", step "
-               << current_pbft_step << ". Previous round has enough next votes for NULL_BLOCK_HASH: " << std::boolalpha
+               << current_pbft_step << ". Previous round has enough next votes for kNullBlockHash: " << std::boolalpha
                << previous_round_next_voted_null_block_hash_ << ", voted value "
                << (previous_round_next_voted_value_.has_value() ? previous_round_next_voted_value_->abridged()
                                                                 : "no value")
@@ -932,7 +932,7 @@ void PbftManager::proposeBlock_() {
 
   if (round == 1 || previous_round_next_voted_null_block_hash_) {
     if (round > 1) {
-      LOG(log_nf_) << "Previous round " << round - 1 << " had next voted NULL_BLOCK_HASH";
+      LOG(log_nf_) << "Previous round " << round - 1 << " had next voted kNullBlockHash";
     }
 
     proposed_block_ = proposePbftBlock_();
@@ -1084,7 +1084,7 @@ void PbftManager::firstFinish_() {
   } else if (round >= 2 && previous_round_next_voted_null_block_hash_) {
     // Starting value in round 1 is always null block hash... So combined with other condition for next
     // voting null block hash...
-    if (auto vote = generateVoteWithWeight(NULL_BLOCK_HASH, PbftVoteTypes::next_vote, period, round, step_); vote) {
+    if (auto vote = generateVoteWithWeight(kNullBlockHash, PbftVoteTypes::next_vote, period, round, step_); vote) {
       placeVote(vote, "first finish next vote", nullptr);
     }
   } else {
@@ -1101,12 +1101,12 @@ void PbftManager::firstFinish_() {
       }
 
       starting_value = {*previous_round_next_voted_value_, std::move(block)};
-    } else {  // for round == 1, starting value is always NULL_BLOCK_HASH and previous_round_next_voted_null_block_hash_
+    } else {  // for round == 1, starting value is always kNullBlockHash and previous_round_next_voted_null_block_hash_
               // should be == false
-      // This should never happen as round >= 2 && previous_round_next_voted_block == NULL_BLOCK_HASH is covered in
+      // This should never happen as round >= 2 && previous_round_next_voted_block == kNullBlockHash is covered in
       // previous "else if" condition
       assert(!previous_round_next_voted_null_block_hash_);
-      starting_value = {NULL_BLOCK_HASH, nullptr};
+      starting_value = {kNullBlockHash, nullptr};
     }
 
     if (auto vote = generateVoteWithWeight(starting_value.first, PbftVoteTypes::next_vote, period, round, step_);
@@ -1156,7 +1156,7 @@ void PbftManager::secondFinish_() {
 
   if (!already_next_voted_null_block_hash_ && round >= 2 && previous_round_next_voted_null_block_hash_ &&
       !cert_voted_block_for_round_.has_value()) {
-    if (auto vote = generateVoteWithWeight(NULL_BLOCK_HASH, PbftVoteTypes::next_vote, period, round, step_); vote) {
+    if (auto vote = generateVoteWithWeight(kNullBlockHash, PbftVoteTypes::next_vote, period, round, step_); vote) {
       if (placeVote(vote, "second finish next vote", nullptr)) {
         db_->savePbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash, true);
         already_next_voted_null_block_hash_ = true;
@@ -1175,15 +1175,19 @@ std::shared_ptr<PbftBlock> PbftManager::generatePbftBlock(PbftPeriod propose_per
   std::vector<vote_hash_t> reward_votes_hashes;
   std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
                  [](const auto &v) { return v->getHash(); });
-  return std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, propose_period, node_addr_, node_sk_,
-                                     std::move(reward_votes_hashes));
+  h256 last_state_root;
+  if (propose_period > config_.state_root_recording_delay) {
+    last_state_root = final_chain_->block_header(propose_period - config_.state_root_recording_delay)->state_root;
+  }
+  return std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, last_state_root, propose_period,
+                                     node_addr_, node_sk_, std::move(reward_votes_hashes));
 }
 
-std::shared_ptr<Vote> PbftManager::generateVote(const blk_hash_t &blockhash, PbftVoteTypes type, PbftPeriod period,
+std::shared_ptr<Vote> PbftManager::generateVote(const blk_hash_t &block_hash, PbftVoteTypes type, PbftPeriod period,
                                                 PbftRound round, PbftStep step) {
   // sortition proof
   VrfPbftSortition vrf_sortition(vrf_sk_, {type, period, round, step});
-  return std::make_shared<Vote>(node_sk_, std::move(vrf_sortition), blockhash);
+  return std::make_shared<Vote>(node_sk_, std::move(vrf_sortition), block_hash);
 }
 
 std::pair<bool, std::string> PbftManager::validateVote(const std::shared_ptr<Vote> &vote) const {
@@ -1319,7 +1323,7 @@ std::shared_ptr<Vote> PbftManager::generateVoteWithWeight(taraxa::blk_hash_t con
 
 blk_hash_t PbftManager::calculateOrderHash(const std::vector<blk_hash_t> &dag_block_hashes) {
   if (dag_block_hashes.empty()) {
-    return NULL_BLOCK_HASH;
+    return kNullBlockHash;
   }
   dev::RLPStream order_stream(1);
   order_stream.appendList(dag_block_hashes.size());
@@ -1331,7 +1335,7 @@ blk_hash_t PbftManager::calculateOrderHash(const std::vector<blk_hash_t> &dag_bl
 
 blk_hash_t PbftManager::calculateOrderHash(const std::vector<DagBlock> &dag_blocks) {
   if (dag_blocks.empty()) {
-    return NULL_BLOCK_HASH;
+    return kNullBlockHash;
   }
   dev::RLPStream order_stream(1);
   order_stream.appendList(dag_blocks.size());
@@ -1382,7 +1386,7 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
 
   auto last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
   auto last_period_dag_anchor_block_hash = pbft_chain_->getLastNonNullPbftBlockAnchor();
-  if (last_period_dag_anchor_block_hash == NULL_BLOCK_HASH) {
+  if (last_period_dag_anchor_block_hash == kNullBlockHash) {
     last_period_dag_anchor_block_hash = dag_genesis_block_hash_;
   }
 
@@ -1391,7 +1395,7 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
   // Looks like ghost never empty, at least include the last period dag anchor block
   if (ghost.empty()) {
     LOG(log_dg_) << "GHOST is empty. No new DAG blocks generated, PBFT propose NULL BLOCK HASH anchor";
-    return generatePbftBlock(current_pbft_period, last_pbft_block_hash, NULL_BLOCK_HASH, NULL_BLOCK_HASH);
+    return generatePbftBlock(current_pbft_period, last_pbft_block_hash, kNullBlockHash, kNullBlockHash);
   }
 
   blk_hash_t dag_block_hash;
@@ -1412,7 +1416,7 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
   if (dag_block_hash == dag_genesis_block_hash_) {
     LOG(log_dg_) << "No new DAG blocks generated. DAG only has genesis " << dag_block_hash
                  << " PBFT propose NULL BLOCK HASH anchor";
-    return generatePbftBlock(current_pbft_period, last_pbft_block_hash, NULL_BLOCK_HASH, NULL_BLOCK_HASH);
+    return generatePbftBlock(current_pbft_period, last_pbft_block_hash, kNullBlockHash, kNullBlockHash);
   }
 
   // Compare with last dag block hash. If they are same, which means no new dag blocks generated since last round. In
@@ -1421,7 +1425,7 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
     LOG(log_dg_) << "Last period DAG anchor block hash " << dag_block_hash
                  << " No new DAG blocks generated, PBFT propose NULL BLOCK HASH anchor";
     LOG(log_dg_) << "Ghost: " << ghost;
-    return generatePbftBlock(current_pbft_period, last_pbft_block_hash, NULL_BLOCK_HASH, NULL_BLOCK_HASH);
+    return generatePbftBlock(current_pbft_period, last_pbft_block_hash, kNullBlockHash, kNullBlockHash);
   }
 
   // get DAG block and transaction order
@@ -1513,7 +1517,7 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(PbftRound round, Pb
     }
 
     const auto proposed_block_hash = v->getBlockHash();
-    if (proposed_block_hash == NULL_BLOCK_HASH) {
+    if (proposed_block_hash == kNullBlockHash) {
       LOG(log_er_) << "Propose block hash should not be NULL. Vote " << v;
       continue;
     }
@@ -1536,7 +1540,7 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(PbftRound round, Pb
       continue;
     }
 
-    if (leader_block->getPivotDagBlockHash() == NULL_BLOCK_HASH && empty_leader_block == nullptr) {
+    if (leader_block->getPivotDagBlockHash() == kNullBlockHash && empty_leader_block == nullptr) {
       empty_leader_block = leader_block;
       continue;
     }
@@ -1560,6 +1564,20 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
 
   auto const &pbft_block_hash = pbft_block->getBlockHash();
 
+  auto period = pbft_block->getPeriod();
+
+  {
+    h256 prev_state_root_hash;
+    if (period > config_.state_root_recording_delay) {
+      prev_state_root_hash = final_chain_->block_header(period - config_.state_root_recording_delay)->state_root;
+    }
+    if (pbft_block->getPrevStateRoot() != prev_state_root_hash) {
+      LOG(log_er_) << "Block " << pbft_block_hash << " state root " << pbft_block->getPrevStateRoot()
+                   << " isn't matching actual " << prev_state_root_hash;
+      return false;
+    }
+  }
+
   // Vadliates reward votes
   if (!vote_mgr_->checkRewardVotes(pbft_block)) {
     LOG(log_er_) << "Failed verifying reward votes for proposed PBFT block " << pbft_block_hash;
@@ -1567,7 +1585,7 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
   }
 
   auto const &anchor_hash = pbft_block->getPivotDagBlockHash();
-  if (anchor_hash == NULL_BLOCK_HASH) {
+  if (anchor_hash == kNullBlockHash) {
     return true;
   }
 
@@ -1617,7 +1635,7 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(const std::shared_ptr<PbftBlo
                                                    std::vector<std::shared_ptr<Vote>> &&current_round_cert_votes) {
   PeriodData period_data;
   period_data.pbft_blk = pbft_block;
-  if (pbft_block->getPivotDagBlockHash() != NULL_BLOCK_HASH) {
+  if (pbft_block->getPivotDagBlockHash() != kNullBlockHash) {
     auto dag_order_it = anchor_dag_block_order_cache_.find(pbft_block->getPivotDagBlockHash());
     assert(dag_order_it != anchor_dag_block_order_cache_.end());
     std::unordered_set<trx_hash_t> trx_set;
@@ -1736,7 +1754,7 @@ void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finali
   auto result = final_chain_->finalize(
       std::move(period_data), std::move(finalized_dag_blk_hashes),
       [this, weak_ptr = weak_from_this(), anchor_hash = anchor, period = period_data.pbft_blk->getPeriod()](
-          auto const &, auto &batch) {
+          const auto &, auto &batch) {
         // Update proposal period DAG levels map
         auto ptr = weak_ptr.lock();
         if (!ptr) return;  // it was destroyed
@@ -1765,7 +1783,7 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   if (db_->pbftBlockInDb(pbft_block_hash)) {
     LOG(log_nf_) << "PBFT block: " << pbft_block_hash << " in DB already.";
     if (cert_voted_block_for_round_.has_value() && (*cert_voted_block_for_round_)->getBlockHash() == pbft_block_hash) {
-      LOG(log_er_) << "Last cert voted value should be NULL_BLOCK_HASH. Block hash "
+      LOG(log_er_) << "Last cert voted value should be kNullBlockHash. Block hash "
                    << (*cert_voted_block_for_round_)->getBlockHash() << " has been pushed into chain already";
       assert(false);
     }
@@ -1776,7 +1794,7 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   assert(pbft_block_hash == cert_votes[0]->getBlockHash());
 
   auto pbft_period = period_data.pbft_blk->getPeriod();
-  auto null_anchor = period_data.pbft_blk->getPivotDagBlockHash() == NULL_BLOCK_HASH;
+  auto null_anchor = period_data.pbft_blk->getPivotDagBlockHash() == kNullBlockHash;
 
   auto batch = db_->createWriteBatch();
 
@@ -1795,7 +1813,7 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   db_->addLastBlockCertVotesToBatch(cert_votes, reward_votes, batch);
 
   // pass pbft with dag blocks and transactions to adjust difficulty
-  if (period_data.pbft_blk->getPivotDagBlockHash() != NULL_BLOCK_HASH) {
+  if (period_data.pbft_blk->getPivotDagBlockHash() != kNullBlockHash) {
     dag_mgr_->sortitionParamsManager().pbftBlockPushed(period_data, batch,
                                                        pbft_chain_->getPbftChainSizeExcludingEmptyPbftBlocks() + 1);
   }

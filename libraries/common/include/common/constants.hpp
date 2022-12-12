@@ -13,7 +13,7 @@ GLOBAL_CONST(h256, EmptyRLPListSHA3);
 GLOBAL_CONST(h64, EmptyNonce);
 GLOBAL_CONST(u256, ZeroU256);
 
-static const blk_hash_t kNullBlockHash = blk_hash_t(0);
+static const blk_hash_t kNullBlockHash;
 
 constexpr uint16_t kOnePercent = 100;
 constexpr uint16_t kMaxLevelsPerPeriod = 100;

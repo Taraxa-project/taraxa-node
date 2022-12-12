@@ -15,8 +15,6 @@
 #include "pbft/proposed_blocks.hpp"
 #include "pbft/soft_voted_block_data.hpp"
 
-#define NULL_BLOCK_HASH blk_hash_t(0)
-
 namespace taraxa {
 
 /** @addtogroup PBFT
@@ -314,7 +312,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void resetStep();
 
   /**
-   * @brief If node receives 2t+1 next votes for some block(including NULL_BLOCK_HASH), advance round to + 1.
+   * @brief If node receives 2t+1 next votes for some block(including kNullBlockHash), advance round to + 1.
    * @return true if PBFT round advanced, otherwise false
    */
   bool advanceRound();
@@ -473,7 +471,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Identify a leader block from all received proposed PBFT blocks for the current round by using minimum
    * Verifiable Random Function (VRF) output. In filter state, don’t need check vote value correction.
    * @param round current pbft round
-   * @param period new pbft period (perriod == chain_size + 1)
+   * @param period new pbft period (period == chain_size + 1)
    * @return shared_ptr to leader identified leader block
    */
   // TODO: exchange round <-> period
