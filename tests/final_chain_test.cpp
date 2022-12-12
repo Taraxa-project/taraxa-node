@@ -175,7 +175,7 @@ struct FinalChainTest : WithDataDir {
 
 TEST_F(FinalChainTest, initial_balances) {
   cfg.genesis.state.initial_balances = {};
-  cfg.genesis.state.initial_balances[addr_t::random()] = 0;
+  cfg.genesis.state.initial_balances[addr_t::random()] = 1;
   cfg.genesis.state.initial_balances[addr_t::random()] = 1000;
   cfg.genesis.state.initial_balances[addr_t::random()] = 100000;
   init();

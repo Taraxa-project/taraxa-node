@@ -178,15 +178,6 @@ TEST_F(StateAPITest, DISABLED_eth_mainnet_smoke) {
                                         "taraxa" / "data" / "eth_mainnet_blocks_0_300000.rlp");
 
   Config chain_config;
-
-  auto& eth_cfg = chain_config.eth_chain_config;
-  eth_cfg.homestead_block = 1150000;
-  eth_cfg.eip_150_block = 2463000;
-  eth_cfg.eip_158_block = 2675000;
-  eth_cfg.byzantium_block = 4370000;
-  eth_cfg.constantinople_block = 7280000;
-  eth_cfg.petersburg_block = 7280000;
-
   auto initial_balances_rlp_hex_c = taraxa_evm_mainnet_initial_balances();
   auto initial_balances_rlp =
       dev::jsToBytes(string((char*)initial_balances_rlp_hex_c.Data, initial_balances_rlp_hex_c.Len));

@@ -12,18 +12,12 @@ namespace taraxa::state_api {
 
 static constexpr auto BlockNumberNIL = std::numeric_limits<EthBlockNumber>::max();
 
-struct ETHChainConfig {
-  EthBlockNumber homestead_block = 0;
-  EthBlockNumber eip_150_block = 0;
-  EthBlockNumber eip_158_block = 0;
-  EthBlockNumber byzantium_block = 0;
-  EthBlockNumber constantinople_block = 0;
-  EthBlockNumber petersburg_block = 0;
-
+struct EVMChainConfig {
+  uint64_t chain_id = 0;
   HAS_RLP_FIELDS
 };
-Json::Value enc_json(const ETHChainConfig& obj);
-void dec_json(const Json::Value& json, ETHChainConfig& obj);
+Json::Value enc_json(const EVMChainConfig& obj);
+void dec_json(const Json::Value& json, EVMChainConfig& obj);
 
 using BalanceMap = std::map<addr_t, u256>;
 Json::Value enc_json(const BalanceMap& obj);
@@ -64,7 +58,7 @@ Json::Value enc_json(const DPOSConfig& obj);
 void dec_json(const Json::Value& json, DPOSConfig& obj);
 
 struct Config {
-  ETHChainConfig eth_chain_config;
+  EVMChainConfig evm_chain_config;
   BalanceMap initial_balances;
   DPOSConfig dpos;
   // Hardforks hardforks;
