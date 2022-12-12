@@ -1,6 +1,6 @@
 <map id="dev::p2p::ECDHEError" name="dev::p2p::ECDHEError">
-<area shape="rect" id="node1" title="The ECDHE agreement failed during RLPx handshake." alt="" coords="35,155,196,181"/>
-<area shape="rect" id="node2" href="$structdev_1_1_exception.html" title="Base class for all exceptions." alt="" coords="57,80,174,107"/>
-<area shape="rect" id="node3" title=" " alt="" coords="5,5,92,32"/>
-<area shape="rect" id="node4" title=" " alt="" coords="117,5,247,32"/>
+<area shape="rect" id="node1" title="The ECDHE agreement failed during RLPx handshake." alt="" coords="55,155,217,181"/>
+<area shape="rect" id="node2" href="$structdev_1_1_exception.html" title="Base class for all exceptions." alt="" coords="77,80,195,107"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,5,120,32"/>
+<area shape="rect" id="node4" title=" " alt="" coords="144,5,275,32"/>
 </map>

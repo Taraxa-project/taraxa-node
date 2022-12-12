@@ -1,6 +1,5 @@
 var classdev_1_1p2p_1_1_u_d_p_socket =
 [
-    [ "maxDatagramSize", "classdev_1_1p2p_1_1_u_d_p_socket.html#a6337557a43cf2988dc66d493beb10330a4b0f0deb93b290d70dd027bf20bdeff8", null ],
     [ "UDPSocket", "classdev_1_1p2p_1_1_u_d_p_socket.html#a3d845fb3751c1bdc4212cdf1e562f491", null ],
     [ "UDPSocket", "classdev_1_1p2p_1_1_u_d_p_socket.html#ade78ed19b25fc53883063cac2f0eb95d", null ],
     [ "~UDPSocket", "classdev_1_1p2p_1_1_u_d_p_socket.html#a05d710ef80c6a6e80ad09cc05d1c8d05", null ],

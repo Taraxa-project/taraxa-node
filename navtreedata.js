@@ -1,24 +1,26 @@
 /*
-@licstart  The following is the entire license notice for the
-JavaScript code in this file.
+ @licstart  The following is the entire license notice for the JavaScript code in this file.
 
-Copyright (C) 1997-2019 by Dimitri van Heesch
+ The MIT License (MIT)
 
-This program is free software; you can redistribute it and/or modify
-it under the terms of version 2 of the GNU General Public License as published by
-the Free Software Foundation
+ Copyright (C) 1997-2020 by Dimitri van Heesch
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+ Permission is hereby granted, free of charge, to any person obtaining a copy of this software
+ and associated documentation files (the "Software"), to deal in the Software without restriction,
+ including without limitation the rights to use, copy, modify, merge, publish, distribute,
+ sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is
+ furnished to do so, subject to the following conditions:
 
-You should have received a copy of the GNU General Public License along
-with this program; if not, write to the Free Software Foundation, Inc.,
-51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ The above copyright notice and this permission notice shall be included in all copies or
+ substantial portions of the Software.
 
-@licend  The above is the entire license notice
-for the JavaScript code in this file
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING
+ BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+ NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+ @licend  The above is the entire license notice for the JavaScript code in this file
 */
 var NAVTREE =
 [
@@ -314,28 +316,28 @@ var NAVTREEINDEX =
 "_a_e_s_8cpp.html",
 "_log_8h_source.html",
 "class_server_interface.html#af7af014b31d7fbd7bb3880db1b980efe",
-"classdev_1_1_secure_fixed_hash.html#a02f09295f7205e0926485c1ec46fec5c",
-"classdev_1_1p2p_1_1_node_table_event_handler.html#a28436197494c3eb994ff78239edd19bb",
-"classgraphql_1_1taraxa_1_1_log.html#a4583e205d4fd53085d0862943f834811",
-"classtaraxa_1_1_db_storage.html#abde6570e222c007c5c15a532d26035a7",
-"classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html#af7e97c62bfe70e5abf829e047cd50833",
-"classtaraxa_1_1net_1_1_eth_face.html#ae66e0931bf579b3305b94d4d5ba4da12",
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a3784c14e0331c576b4b0d95a391dd4fd",
-"classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html",
-"classtaraxa_1_1network_1_1tarcap_1_1_test_state.html#abd21fae825cd586a28f27e16c808f8f6",
-"db__utils_8hpp_source.html",
-"get__dag__sync__packet__handler_8hpp_source.html",
-"group___final_chain.html#a3681f2fc87600ce90484dacfe07a14c6",
-"group___p_b_f_t.html#a7d13114eb26c13f00d7a4850773c8948",
-"group___vote.html#a54d61a5f0afb0ffa643f73c6f8477466",
-"libdevcore_2_exceptions_8h.html#afdbb262900589dda13b53b5b6ab47892",
-"md_doc_coding_practices.html#autotoc_md107",
-"namespacemembers_func_i.html",
-"soft__voted__block__data_8hpp.html",
-"structdev_1_1p2p_1_1_host.html#a7551c55d8bface84e5f697e558a4a694",
-"structdev_1_1p2p_1_1_session.html#a01416d8957bb4ce1e009e37ba5c3f092",
-"structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl.html#a8c3efd05796946600fa98ae9d43ba040",
-"uint__comparator_8hpp.html#aced41bb0204474f3fd03a0aac32a126c"
+"classdev_1_1_secure_fixed_hash.html#a4c149df1ed78c3416771e7df52d4aa56",
+"classdev_1_1p2p_1_1_peer.html#a0b0a37f9b3e6378f601f253ca9ab0371",
+"classgraphql_1_1taraxa_1_1_log.html#ae2ba397029b180d86329ccd500b44272",
+"classtaraxa_1_1_db_storage.html#ad797fc9c28e52d355aae1ca7bd5b79d8",
+"classtaraxa_1_1_value_by_block_cache.html#a1bddfd3f6608005ea00dd3f51547de1c",
+"classtaraxa_1_1net_1_1_graph_ql_http_processor.html#a482871a43fbaf6c5e26a2d4ecfbef583",
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a61c591f50f278012e642576c7936a802",
+"classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a7fc54c59db2e2c11f440de4503b49cb8",
+"classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a470ce2322a047acdde8024eaa41bf083",
+"dir_184a5acb128f25a8b9d9e6bcb43e2b5d.html",
+"globals.html",
+"group___final_chain.html#a4655fb5d4538ce7a5840214f322eb37e",
+"group___p_b_f_t.html#a88ab9f3501538d572e1a582a031ca4cf",
+"group___vote.html#a657bbf95ad1866cbf01a6f170998bce2",
+"libdevcrypto_2_common_8h.html#a15bc8df921a5e850704474ba2b3a5e59",
+"md_doc_coding_practices.html#autotoc_md116",
+"namespacemembers_i.html",
+"state__config_8cpp.html#a222405ee877ab022ce0ab60290df5de5",
+"structdev_1_1p2p_1_1_host.html#ac05b941935177dabc23d1a7968edc6d8",
+"structdev_1_1p2p_1_1_session.html#ac50d879ffd0bfb8b3e9f8fc92e1940cc",
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a4e59d4458a7687e5c99075954cfc803e",
+"vdf_2include_2vdf_2config_8hpp.html#a307376581a485cafa078a7f978c336af"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

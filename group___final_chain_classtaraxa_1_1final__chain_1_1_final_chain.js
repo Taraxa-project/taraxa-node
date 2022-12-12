@@ -32,7 +32,7 @@ var group___final_chain_classtaraxa_1_1final__chain_1_1_final_chain =
     [ "update_state_config", "group___final_chain.html#a19cae7d3b4caa28a0cdb070b22eec756", null ],
     [ "withBlockBloom", "group___final_chain.html#ad2a6bb5c605c2add276e34fa1fdfad08", null ],
     [ "block_applying_", "group___final_chain.html#a34e1f0898ade4066d3047e079e77d191", null ],
-    [ "block_applying_emitter_", "group___final_chain.html#a69bbe62bb85c685861fa39df13226a2e", null ],
+    [ "block_applying_emitter_", "group___final_chain.html#a754f940f1f13e0ee8ce8b53f55cc6487", null ],
     [ "block_finalized_", "group___final_chain.html#a2e621698a6b854047e645f21cd7f9c38", null ],
-    [ "block_finalized_emitter_", "group___final_chain.html#a9d96fe095fcf303295edb569fb8e8499", null ]
+    [ "block_finalized_emitter_", "group___final_chain.html#abc20e02427fbb67bd0867f2a9eb09fd0", null ]
 ];

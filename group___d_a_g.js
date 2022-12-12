@@ -1,6 +1,5 @@
 var group___d_a_g =
 [
-    [ "final_chain", "namespacetaraxa_1_1final__chain.html", null ],
     [ "Dag", "group___d_a_g.html#classtaraxa_1_1_dag", [
       [ "adj_list_t", "group___d_a_g.html#aebe0629679ef96c6a242faeded09311e", null ],
       [ "edge_index_map_const_t", "group___d_a_g.html#a2d5bed139128d5baa19b9b724ce08b18", null ],
@@ -276,7 +275,7 @@ var group___d_a_g =
       [ "validateBlockNotExpired", "group___d_a_g.html#a62e092771ea64e24a726828460fdefd2", null ],
       [ "verifyBlock", "group___d_a_g.html#a2743a075e35d45823238cf5d540e69d1", null ],
       [ "anchor_", "group___d_a_g.html#a56e52dad59ae0107beb964b6d7fe857a", null ],
-      [ "block_verified_", "group___d_a_g.html#a3935e897459f808552ad22fa79fdae84", null ],
+      [ "block_verified_", "group___d_a_g.html#a757e9bf84df5cd479f8ddcf9ab12cc47", null ],
       [ "cache_delete_step_", "group___d_a_g.html#a8a5501aae6db9f6a2e22ab2d12a7e962", null ],
       [ "cache_max_size_", "group___d_a_g.html#add633db15e04c6e237cdefdea21cd465", null ],
       [ "dag_config_", "group___d_a_g.html#aa3697762b635b69a447e105984f20482", null ],

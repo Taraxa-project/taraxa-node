@@ -3,7 +3,7 @@
 <area shape="rect" id="node2" href="$genesis_8hpp.html" title=" " alt="" coords="4019,95,4188,136"/>
 <area shape="rect" id="node50" href="$dag__config_8cpp.html" title=" " alt="" coords="4213,95,4354,136"/>
 <area shape="rect" id="node3" href="$config_2include_2config_2config_8hpp.html" title=" " alt="" coords="2760,184,2930,225"/>
-<area shape="rect" id="node29" href="$gas__pricer_8hpp.html" title=" " alt="" coords="3362,615,3584,671"/>
+<area shape="rect" id="node29" href="$gas__pricer_8hpp.html" title=" " alt="" coords="3348,615,3571,671"/>
 <area shape="rect" id="node49" href="$genesis_8cpp.html" title=" " alt="" coords="4141,184,4282,225"/>
 <area shape="rect" id="node4" href="$cli_2include_2cli_2config_8hpp.html" title=" " alt="" coords="3440,288,3586,329"/>
 <area shape="rect" id="node11" href="$config__updater_8hpp.html" title=" " alt="" coords="3338,399,3506,441"/>
@@ -11,20 +11,20 @@
 <area shape="rect" id="node13" href="$dag__block__proposer_8hpp.html" title=" " alt="" coords="43,615,226,671"/>
 <area shape="rect" id="node16" href="$final__chain_8hpp.html" title=" " alt="" coords="1600,392,1778,448"/>
 <area shape="rect" id="node19" href="$pbft__manager_8hpp.html" title=" " alt="" coords="2010,615,2184,671"/>
-<area shape="rect" id="node25" href="$graphql_2src_2ws__server_8cpp.html" title=" " alt="" coords="2860,823,3014,879"/>
+<area shape="rect" id="node25" href="$graphql_2src_2ws__server_8cpp.html" title=" " alt="" coords="2846,823,3001,879"/>
 <area shape="rect" id="node31" href="$transaction__manager_8hpp.html" title=" " alt="" coords="752,615,975,671"/>
-<area shape="rect" id="node36" href="$node_8hpp.html" title=" " alt="" coords="3078,622,3287,663"/>
-<area shape="rect" id="node42" href="$src_2ws__server_8cpp.html" title=" " alt="" coords="2855,622,3054,663"/>
+<area shape="rect" id="node36" href="$node_8hpp.html" title=" " alt="" coords="3064,622,3274,663"/>
+<area shape="rect" id="node42" href="$src_2ws__server_8cpp.html" title=" " alt="" coords="2842,622,3040,663"/>
 <area shape="rect" id="node44" href="$core__libs_2network_2include_2network_2network_8hpp.html" title=" " alt="" coords="2596,503,2782,559"/>
-<area shape="rect" id="node45" href="$taraxa__capability_8hpp.html" title=" " alt="" coords="2505,392,2716,448"/>
-<area shape="rect" id="node46" href="$peers__state_8hpp.html" title=" " alt="" coords="2580,273,2782,344"/>
+<area shape="rect" id="node45" href="$peers__state_8hpp.html" title=" " alt="" coords="2529,273,2732,344"/>
+<area shape="rect" id="node46" href="$taraxa__capability_8hpp.html" title=" " alt="" coords="2548,392,2758,448"/>
 <area shape="rect" id="node47" href="$include_2network_2ws__server_8hpp.html" title=" " alt="" coords="2908,503,3094,559"/>
 <area shape="rect" id="node48" href="$jsonrpc__ws__server_8cpp.html" title=" " alt="" coords="3220,281,3374,337"/>
 <area shape="rect" id="node5" href="$tools_8hpp.html" title=" " alt="" coords="3531,399,3676,441"/>
 <area shape="rect" id="node6" href="$cli_2src_2config_8cpp.html" title=" " alt="" coords="3270,518,3457,545"/>
 <area shape="rect" id="node8" href="$tools_8cpp.html" title=" " alt="" coords="3886,518,4066,545"/>
 <area shape="rect" id="node9" href="$taraxa-bootnode_2main_8cpp.html" title=" " alt="" coords="3666,511,3862,552"/>
-<area shape="rect" id="node10" href="$taraxad_2main_8cpp.html" title=" " alt="" coords="3089,733,3292,760"/>
+<area shape="rect" id="node10" href="$taraxad_2main_8cpp.html" title=" " alt="" coords="3076,733,3278,760"/>
 <area shape="rect" id="node7" href="$config__updater_8cpp.html" title=" " alt="" coords="3481,511,3641,552"/>
 <area shape="rect" id="node14" href="$dag__block__proposer_8cpp.html" title=" " alt="" coords="181,719,354,775"/>
 <area shape="rect" id="node15" href="$node_8cpp.html" title=" " alt="" coords="1784,927,1928,968"/>
@@ -32,7 +32,7 @@
 <area shape="rect" id="node18" href="$key__manager_8hpp.html" title=" " alt="" coords="1586,503,1792,559"/>
 <area shape="rect" id="node21" href="$pbft__manager_8cpp.html" title=" " alt="" coords="1918,719,2065,775"/>
 <area shape="rect" id="node23" href="$query_8hpp.html" title=" " alt="" coords="2780,719,2963,775"/>
-<area shape="rect" id="node24" href="$http__processor_8hpp.html" title=" " alt="" coords="2633,823,2836,879"/>
+<area shape="rect" id="node24" href="$http__processor_8hpp.html" title=" " alt="" coords="2620,823,2822,879"/>
 <area shape="rect" id="node26" href="$core__libs_2network_2graphql_2include_2graphql_2types_2dag__block_8hpp.html" title=" " alt="" coords="1580,719,1793,775"/>
 <area shape="rect" id="node32" href="$block_8hpp.html" title=" " alt="" coords="387,719,570,775"/>
 <area shape="rect" id="node33" href="$log_8hpp.html" title=" " alt="" coords="624,823,807,879"/>
@@ -40,7 +40,7 @@
 <area shape="rect" id="node35" href="$vote__manager_8hpp.html" title=" " alt="" coords="2310,503,2522,559"/>
 <area shape="rect" id="node37" href="$final__chain_8cpp.html" title=" " alt="" coords="453,503,618,559"/>
 <area shape="rect" id="node38" href="$account_8hpp.html" title=" " alt="" coords="643,503,826,559"/>
-<area shape="rect" id="node39" href="$sync__state_8hpp.html" title=" " alt="" coords="2395,615,2578,671"/>
+<area shape="rect" id="node39" href="$sync__state_8hpp.html" title=" " alt="" coords="2382,615,2564,671"/>
 <area shape="rect" id="node40" href="$current__state_8hpp.html" title=" " alt="" coords="902,496,1084,567"/>
 <area shape="rect" id="node41" href="$_eth_8h.html" title=" " alt="" coords="1918,511,2084,552"/>
 <area shape="rect" id="node43" href="$_log_filter_8hpp.html" title=" " alt="" coords="1108,511,1323,552"/>
@@ -48,5 +48,5 @@
 <area shape="rect" id="node22" href="$vote__manager_8cpp.html" title=" " alt="" coords="2310,719,2521,775"/>
 <area shape="rect" id="node27" href="$_taraxa_8cpp.html" title=" " alt="" coords="1231,726,1408,767"/>
 <area shape="rect" id="node28" href="$_test_8cpp.html" title=" " alt="" coords="2545,726,2705,767"/>
-<area shape="rect" id="node30" href="$gas__pricer_8cpp.html" title=" " alt="" coords="3366,719,3561,775"/>
+<area shape="rect" id="node30" href="$gas__pricer_8cpp.html" title=" " alt="" coords="3353,719,3548,775"/>
 </map>

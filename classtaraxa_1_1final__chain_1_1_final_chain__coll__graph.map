@@ -1,5 +1,7 @@
 <map id="taraxa::final_chain::FinalChain" name="taraxa::final_chain::FinalChain">
-<area shape="rect" id="node1" title="main responsibility is blocks execution in EVM, getting data from EVM state" alt="" coords="473,60,616,101"/>
-<area shape="rect" id="node2" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="5,5,260,76"/>
-<area shape="rect" id="node3" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="33,100,232,141"/>
+<area shape="rect" id="node1" title="main responsibility is blocks execution in EVM, getting data from EVM state" alt="" coords="1033,60,1176,101"/>
+<area shape="rect" id="node2" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="565,5,820,76"/>
+<area shape="rect" id="node3" href="$structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="300,61,516,103"/>
+<area shape="rect" id="node5" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="593,100,792,141"/>
+<area shape="rect" id="node4" href="$classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="5,54,207,110"/>
 </map>

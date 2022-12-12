@@ -1,4 +1,4 @@
 <map id="taraxa::PbftChain" name="taraxa::PbftChain">
-<area shape="rect" id="node1" title="PbftChain class is a single linked list that contains finalized PBFT blocks." alt="" coords="18,153,153,180"/>
+<area shape="rect" id="node1" title="PbftChain class is a single linked list that contains finalized PBFT blocks." alt="" coords="18,139,153,165"/>
 <area shape="rect" id="node2" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,165,32"/>
 </map>

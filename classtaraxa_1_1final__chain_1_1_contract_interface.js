@@ -7,5 +7,5 @@ var classtaraxa_1_1final__chain_1_1_contract_interface =
     [ "pack", "classtaraxa_1_1final__chain_1_1_contract_interface.html#a9845d06dfc9345ffb12f999b48087ebc", null ],
     [ "pack", "classtaraxa_1_1final__chain_1_1_contract_interface.html#a621edb6d3239c52dba88c107cbefe951", null ],
     [ "packFunctionCall", "classtaraxa_1_1final__chain_1_1_contract_interface.html#afa7b466e99d62dcb6849cd9d930ef7a8", null ],
-    [ "kWordSize", "classtaraxa_1_1final__chain_1_1_contract_interface.html#a64eb160b9018216a6e67368bfe43decc", null ]
+    [ "kWordSize", "classtaraxa_1_1final__chain_1_1_contract_interface.html#ab40c2fa5fa01e3a6108dad31fdbaaf34", null ]
 ];

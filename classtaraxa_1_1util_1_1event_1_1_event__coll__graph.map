@@ -1,6 +1,6 @@
 <map id="taraxa::util::event::Event&lt; Owner, Payload &gt;" name="taraxa::util::event::Event&lt; Owner, Payload &gt;">
-<area shape="rect" id="node1" title=" " alt="" coords="565,39,764,80"/>
-<area shape="rect" id="node2" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="310,5,506,47"/>
-<area shape="rect" id="node3" href="$structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="300,71,516,112"/>
-<area shape="rect" id="node4" href="$classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="5,63,207,119"/>
+<area shape="rect" id="node1" title=" " alt="" coords="811,13,1009,54"/>
+<area shape="rect" id="node2" href="$structtaraxa_1_1util_1_1event_1_1_event_emitter.html" title=" " alt="" coords="565,42,761,83"/>
+<area shape="rect" id="node3" href="$structtaraxa_1_1util_1_1event_1_1_event_subscriber.html" title=" " alt="" coords="300,13,516,54"/>
+<area shape="rect" id="node4" href="$classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html" title=" " alt="" coords="5,5,207,61"/>
 </map>

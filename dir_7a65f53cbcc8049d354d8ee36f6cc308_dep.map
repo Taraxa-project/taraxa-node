@@ -1,12 +1,12 @@
 <map id="libraries/core_libs/network/include/network/tarcap/stats" name="libraries/core_libs/network/include/network/tarcap/stats">
-<area shape="rect" id="node1" href="dir_7a65f53cbcc8049d354d8ee36f6cc308.html" title="stats" alt="" coords="79,52,151,100"/>
-<area shape="rect" id="node2" href="dir_f7551ecb51caaf87735ee43ce07dac37.html" title="logger" alt="" coords="5,148,77,196"/>
-<area shape="rect" id="edge3-headlabel" href="dir_000064_000080.html" title="2" alt="" coords="72,131,82,146"/>
-<area shape="rect" id="node3" href="dir_468f50b028e1e94ed0441083f377df37.html" title="common" alt="" coords="49,244,127,292"/>
-<area shape="rect" id="edge4-headlabel" href="dir_000064_000022.html" title="2" alt="" coords="97,220,107,234"/>
-<area shape="rect" id="node4" href="dir_bb5b5f24c752375767f5169004c876a2.html" title="aleth" alt="" coords="91,340,163,388"/>
-<area shape="rect" id="edge5-headlabel" href="dir_000064_000002.html" title="1" alt="" coords="139,317,149,331"/>
-<area shape="rect" id="edge1-headlabel" href="dir_000080_000022.html" title="3" alt="" coords="71,217,81,231"/>
-<area shape="rect" id="edge2-headlabel" href="dir_000022_000002.html" title="9" alt="" coords="113,313,123,327"/>
-<area shape="rect" id="clust1" href="dir_1ca9ccfb116222db9f6425522db16f45.html" title="tarcap" alt="" coords="68,16,161,111"/>
+<area shape="rect" id="node1" href="dir_7a65f53cbcc8049d354d8ee36f6cc308.html" title="stats" alt="" coords="27,52,99,100"/>
+<area shape="rect" id="node2" href="dir_468f50b028e1e94ed0441083f377df37.html" title="common" alt="" coords="19,244,98,292"/>
+<area shape="rect" id="edge3-headlabel" href="dir_000064_000022.html" title="2" alt="" coords="32,216,41,231"/>
+<area shape="rect" id="node3" href="dir_bb5b5f24c752375767f5169004c876a2.html" title="aleth" alt="" coords="61,340,133,388"/>
+<area shape="rect" id="edge4-headlabel" href="dir_000064_000002.html" title="1" alt="" coords="112,317,121,331"/>
+<area shape="rect" id="node4" href="dir_f7551ecb51caaf87735ee43ce07dac37.html" title="logger" alt="" coords="27,148,99,196"/>
+<area shape="rect" id="edge5-headlabel" href="dir_000064_000080.html" title="2" alt="" coords="66,122,76,137"/>
+<area shape="rect" id="edge2-headlabel" href="dir_000022_000002.html" title="9" alt="" coords="84,313,93,327"/>
+<area shape="rect" id="edge1-headlabel" href="dir_000080_000022.html" title="3" alt="" coords="64,219,74,233"/>
+<area shape="rect" id="clust1" href="dir_1ca9ccfb116222db9f6425522db16f45.html" title="tarcap" alt="" coords="16,16,109,111"/>
 </map>

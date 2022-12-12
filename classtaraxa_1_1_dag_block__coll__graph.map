@@ -1,11 +1,10 @@
 <map id="taraxa::DagBlock" name="taraxa::DagBlock">
-<area shape="rect" id="node1" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b..." alt="" coords="927,118,1061,145"/>
-<area shape="rect" id="node2" href="$structtaraxa_1_1util_1_1_default_construct_copyable_movable.html" title=" " alt="" coords="507,5,745,47"/>
-<area shape="rect" id="node3" title=" " alt="" coords="326,13,390,39"/>
-<area shape="rect" id="node4" href="$classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html" title=" " alt="" coords="549,71,703,112"/>
-<area shape="rect" id="node5" href="$classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html" title=" " alt="" coords="283,71,433,112"/>
-<area shape="rect" id="node6" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,37,181,79"/>
-<area shape="rect" id="node7" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,103,181,144"/>
-<area shape="rect" id="node8" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="546,162,706,189"/>
-<area shape="rect" id="node9" title=" " alt="" coords="596,222,656,249"/>
+<area shape="rect" id="node1" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b..." alt="" coords="907,113,1041,139"/>
+<area shape="rect" id="node2" href="$structtaraxa_1_1util_1_1_default_construct_copyable_movable.html" title=" " alt="" coords="483,5,721,47"/>
+<area shape="rect" id="node3" href="$classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html" title=" " alt="" coords="525,71,679,112"/>
+<area shape="rect" id="node4" href="$classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html" title=" " alt="" coords="283,71,433,112"/>
+<area shape="rect" id="node5" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,37,181,79"/>
+<area shape="rect" id="node6" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,103,181,144"/>
+<area shape="rect" id="node7" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="522,157,682,183"/>
+<area shape="rect" id="node8" title=" " alt="" coords="572,217,632,243"/>
 </map>

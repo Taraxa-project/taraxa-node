@@ -1,5 +1,5 @@
 <map id="taraxa::MaliciousPeerException" name="taraxa::MaliciousPeerException">
 <area shape="rect" id="node1" title="Exception thrown in case peer seems malicious based on data he sent." alt="" coords="5,169,232,196"/>
 <area shape="rect" id="node2" href="$classtaraxa_1_1_packet_processing_exception.html" title=" " alt="" coords="27,80,211,121"/>
-<area shape="rect" id="node3" title=" " alt="" coords="63,5,174,32"/>
+<area shape="rect" id="node3" title=" " alt="" coords="49,5,188,32"/>
 </map>

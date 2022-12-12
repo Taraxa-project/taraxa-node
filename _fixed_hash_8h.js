@@ -1,7 +1,7 @@
 var _fixed_hash_8h =
 [
-    [ "StaticLog2", "structdev_1_1_static_log2.html", "structdev_1_1_static_log2" ],
-    [ "StaticLog2< 1 >", "structdev_1_1_static_log2_3_011_01_4.html", "structdev_1_1_static_log2_3_011_01_4" ],
+    [ "StaticLog2", "structdev_1_1_static_log2.html", null ],
+    [ "StaticLog2< 1 >", "structdev_1_1_static_log2_3_011_01_4.html", null ],
     [ "FixedHash", "classdev_1_1_fixed_hash.html", "classdev_1_1_fixed_hash" ],
     [ "hash", "structdev_1_1_fixed_hash_1_1hash.html", "structdev_1_1_fixed_hash_1_1hash" ],
     [ "SecureFixedHash", "classdev_1_1_secure_fixed_hash.html", "classdev_1_1_secure_fixed_hash" ],

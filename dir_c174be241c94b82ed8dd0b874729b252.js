@@ -9,7 +9,6 @@ var dir_c174be241c94b82ed8dd0b874729b252 =
     ] ],
     [ "encoding_rlp.hpp", "encoding__rlp_8hpp.html", "encoding__rlp_8hpp" ],
     [ "event.hpp", "event_8hpp.html", [
-      [ "EventEmitter", "structtaraxa_1_1util_1_1event_1_1_event_emitter.html", "structtaraxa_1_1util_1_1event_1_1_event_emitter" ],
       [ "EventSubscriber", "structtaraxa_1_1util_1_1event_1_1_event_subscriber.html", "structtaraxa_1_1util_1_1event_1_1_event_subscriber" ],
       [ "State", "classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html", "classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state" ],
       [ "EventEmitter", "structtaraxa_1_1util_1_1event_1_1_event_emitter.html", "structtaraxa_1_1util_1_1event_1_1_event_emitter" ],

@@ -1,14 +1,5 @@
 var NAVTREEINDEX16 =
 {
-"group___vote.html#a54d61a5f0afb0ffa643f73c6f8477466":[12,4,0,20],
-"group___vote.html#a54dc4e2948e790d629569675d221ca74":[12,4,3,4],
-"group___vote.html#a5778529b1a6b677dafb00cdefa2d8446":[12,4,1,22],
-"group___vote.html#a59225772466fd9824448a4ff11ff7d05":[12,4,1,3],
-"group___vote.html#a5a9524665903c1186005956de19f7fd2":[12,4,5,12],
-"group___vote.html#a5b8927447804e3384e9dc32a76b51258":[12,4,1,44],
-"group___vote.html#a610b26e9e0c08e26983bc20c05ab00d2":[12,4,0,5],
-"group___vote.html#a6288475206d07e28b0fd193b001911a3":[12,4,4,3],
-"group___vote.html#a6528bb14bb94e196d5ffb65693acda19":[12,4,2,23],
 "group___vote.html#a657bbf95ad1866cbf01a6f170998bce2":[12,4,1,24],
 "group___vote.html#a66e72e969ea4bdbefd3a0ed0e620bd23":[12,4,1,14],
 "group___vote.html#a67109b03711bf2a2d2ea9a60c660c113":[12,4,1,23],
@@ -164,9 +155,9 @@ var NAVTREEINDEX16 =
 "lazy_8hpp.html#accbb2a1c395a6aa4043db51c276b2fc1":[15,0,1,2,0,0,8,1],
 "lazy_8hpp_source.html":[15,0,1,2,0,0,8],
 "libdevcore_2_common_8cpp.html":[15,0,1,0,0,5],
-"libdevcore_2_common_8cpp.html#a26610611397184a5299c4342a868a07a":[15,0,1,0,0,5,2],
+"libdevcore_2_common_8cpp.html#a68c67d1a81b975e0dd4d1de134fa92eb":[15,0,1,0,0,5,1],
 "libdevcore_2_common_8cpp.html#a9ec0fad72b75dc7e13ea0aebd51e3b0f":[15,0,1,0,0,5,0],
-"libdevcore_2_common_8cpp.html#aae4f0d242ccae89d92564101561421c4":[15,0,1,0,0,5,1],
+"libdevcore_2_common_8cpp.html#af05e7ccc0dc08b34b847a5bf87dc8757":[15,0,1,0,0,5,2],
 "libdevcore_2_common_8h.html":[15,0,1,0,0,6],
 "libdevcore_2_common_8h.html#a09367f9d4956590d1fe2332b9ea18040":[15,0,1,0,0,6,7],
 "libdevcore_2_common_8h.html#a0b8b7ae6678082075edbad2fc862cbab":[15,0,1,0,0,6,47],
@@ -249,5 +240,14 @@ var NAVTREEINDEX16 =
 "libdevcore_2_exceptions_8h.html#ad500bc05735dd2f89883fd0657f1897c":[15,0,1,0,0,12,39],
 "libdevcore_2_exceptions_8h.html#aeb8ca0cd54eb499d982f5c245641555b":[15,0,1,0,0,12,10],
 "libdevcore_2_exceptions_8h.html#aeeaeda1fce93a787e6dff2059f4d9c66":[15,0,1,0,0,12,6],
-"libdevcore_2_exceptions_8h.html#afd962456a6abb45c1c538d576df76a06":[15,0,1,0,0,12,7]
+"libdevcore_2_exceptions_8h.html#afd962456a6abb45c1c538d576df76a06":[15,0,1,0,0,12,7],
+"libdevcore_2_exceptions_8h.html#afdbb262900589dda13b53b5b6ab47892":[15,0,1,0,0,12,13],
+"libdevcore_2_exceptions_8h.html#afe355b8bc62d396302fc16b2a0856516":[15,0,1,0,0,12,20],
+"libdevcore_2_exceptions_8h_source.html":[15,0,1,0,0,12],
+"libdevcrypto_2_common_8cpp.html":[15,0,1,0,1,2],
+"libdevcrypto_2_common_8cpp.html#ab309954fe1c9914c26899b796de49926":[15,0,1,0,1,2,0],
+"libdevcrypto_2_common_8h.html":[15,0,1,0,1,3],
+"libdevcrypto_2_common_8h.html#a0266517d70437660a08b9f6166572eb3":[15,0,1,0,1,3,4],
+"libdevcrypto_2_common_8h.html#a04a16f8a4c264a7868151d49e2223f04":[15,0,1,0,1,3,5],
+"libdevcrypto_2_common_8h.html#a0842f17403d63f4a260d5283ae5fb3a7":[15,0,1,0,1,3,28]
 };

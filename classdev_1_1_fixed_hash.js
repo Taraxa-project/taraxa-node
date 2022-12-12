@@ -2,7 +2,6 @@ var classdev_1_1_fixed_hash =
 [
     [ "hash", "structdev_1_1_fixed_hash_1_1hash.html", "structdev_1_1_fixed_hash_1_1hash" ],
     [ "Arith", "classdev_1_1_fixed_hash.html#a36f80b5ba4ea5466a6d5395f99907b9c", null ],
-    [ "size", "classdev_1_1_fixed_hash.html#a87d44031d6d1f54ba29ea7bf8dee8823a2696024c774fed67360382de4eea4cbc", null ],
     [ "ConstructFromHashType", "classdev_1_1_fixed_hash.html#a0489b365b779827aa7ad44c87007012b", [
       [ "AlignLeft", "classdev_1_1_fixed_hash.html#a0489b365b779827aa7ad44c87007012baeac8621eaaa55e5a10b5539f30c83c76", null ],
       [ "AlignRight", "classdev_1_1_fixed_hash.html#a0489b365b779827aa7ad44c87007012ba01b885b2f8740f1b93ebc837ce62a6db", null ],

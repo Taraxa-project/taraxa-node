@@ -1,13 +1,13 @@
 <map id="Graphical Class Hierarchy" name="Graphical Class Hierarchy">
-<area shape="rect" id="node1" title=" " alt="" coords="5,195,116,222"/>
-<area shape="rect" id="node2" href="$structdev_1_1p2p_1_1_network_1_1_port_bind_exception.html" title=" " alt="" coords="208,5,356,47"/>
-<area shape="rect" id="node3" href="$structdev_1_1p2p_1_1_session_1_1_unknown_p2_p_packet_type.html" title=" " alt="" coords="193,71,371,112"/>
-<area shape="rect" id="node4" href="$structtaraxa_1_1_config_exception.html" title=" " alt="" coords="193,137,371,163"/>
-<area shape="rect" id="node5" href="$classtaraxa_1_1_packet_processing_exception.html" title=" " alt="" coords="190,188,374,229"/>
-<area shape="rect" id="node8" href="$group___final_chain.html#structtaraxa_1_1state__api_1_1_taraxa_e_v_m_error" title=" " alt="" coords="212,253,352,295"/>
-<area shape="rect" id="node10" href="$structtaraxa_1_1_transaction_1_1_invalid_signature.html" title=" " alt="" coords="209,319,355,360"/>
-<area shape="rect" id="node11" href="$structtaraxa_1_1vdf__sortition_1_1_vdf_sortition_1_1_invalid_vdf_sortition.html" title=" " alt="" coords="164,384,400,425"/>
-<area shape="rect" id="node6" href="$classtaraxa_1_1_invalid_rlp_items_count_exception.html" title="Exception thrown in case basic rlp format validation fails &#45; number of rlp items." alt="" coords="455,133,667,175"/>
-<area shape="rect" id="node7" href="$classtaraxa_1_1_malicious_peer_exception.html" title="Exception thrown in case peer seems malicious based on data he sent." alt="" coords="448,199,675,226"/>
-<area shape="rect" id="node9" href="$group___final_chain.html#structtaraxa_1_1state__api_1_1_err_future_block" title=" " alt="" coords="491,253,631,295"/>
+<area shape="rect" id="node1" title=" " alt="" coords="5,195,144,222"/>
+<area shape="rect" id="node2" href="$structdev_1_1p2p_1_1_network_1_1_port_bind_exception.html" title=" " alt="" coords="236,5,384,47"/>
+<area shape="rect" id="node3" href="$structdev_1_1p2p_1_1_session_1_1_unknown_p2_p_packet_type.html" title=" " alt="" coords="221,71,399,112"/>
+<area shape="rect" id="node4" href="$structtaraxa_1_1_config_exception.html" title=" " alt="" coords="221,137,399,163"/>
+<area shape="rect" id="node5" href="$classtaraxa_1_1_packet_processing_exception.html" title=" " alt="" coords="218,188,402,229"/>
+<area shape="rect" id="node8" href="$structtaraxa_1_1_transaction_1_1_invalid_signature.html" title=" " alt="" coords="237,253,383,295"/>
+<area shape="rect" id="node9" href="$group___final_chain.html#structtaraxa_1_1state__api_1_1_taraxa_e_v_m_error" title=" " alt="" coords="240,319,380,360"/>
+<area shape="rect" id="node11" href="$structtaraxa_1_1vdf__sortition_1_1_vdf_sortition_1_1_invalid_vdf_sortition.html" title=" " alt="" coords="192,384,428,425"/>
+<area shape="rect" id="node6" href="$classtaraxa_1_1_invalid_rlp_items_count_exception.html" title="Exception thrown in case basic rlp format validation fails &#45; number of rlp items." alt="" coords="483,159,695,200"/>
+<area shape="rect" id="node7" href="$classtaraxa_1_1_malicious_peer_exception.html" title="Exception thrown in case peer seems malicious based on data he sent." alt="" coords="476,225,703,251"/>
+<area shape="rect" id="node10" href="$group___final_chain.html#structtaraxa_1_1state__api_1_1_err_future_block" title=" " alt="" coords="519,319,659,360"/>
 </map>

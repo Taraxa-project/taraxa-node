@@ -54,7 +54,7 @@ var group___transaction =
       [ "kRecentlyFinalizedTransactionsMax", "group___transaction.html#a4a14493411b6e059a45ed8ae906a23d5", null ],
       [ "nonfinalized_transactions_in_dag_", "group___transaction.html#a16c4d3c1bfe64a804a3478319e77a2cf", null ],
       [ "recently_finalized_transactions_", "group___transaction.html#a8c55e3c5cdcbd8c82eaa772e2f85bbe1", null ],
-      [ "transaction_accepted_", "group___transaction.html#a5fb06f1acad0ea15eb66b43d46a0f3f8", null ],
+      [ "transaction_accepted_", "group___transaction.html#a2ba3199a952e30073de5b456b67ef67f", null ],
       [ "transactions_mutex_", "group___transaction.html#a00a2976d0676026e18ca173b54fcf2f0", null ],
       [ "transactions_pool_", "group___transaction.html#a7fd9dcd6c2f9c35d33bafafe740973cf", null ],
       [ "trx_count_", "group___transaction.html#a023cf1c70f9a5851ed9e1f2054da01f2", null ]

@@ -1,4 +1,4 @@
 <map id="taraxa::PbftBlock" name="taraxa::PbftBlock">
-<area shape="rect" id="node1" title="The PbftBlockk class is a PBFT block class that includes PBFT block hash, previous PBFT block hash,..." alt="" coords="19,183,152,209"/>
+<area shape="rect" id="node1" title="The PbftBlockk class is a PBFT block class that includes PBFT block hash, previous PBFT block hash,..." alt="" coords="19,227,152,253"/>
 <area shape="rect" id="node2" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,165,32"/>
 </map>
