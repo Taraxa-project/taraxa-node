@@ -7,7 +7,7 @@
 namespace taraxa::network::tarcap {
 
 TimePeriodPacketsStats::TimePeriodPacketsStats(std::chrono::milliseconds reset_time_period, const addr_t& node_addr)
-    : kResetTimePeriod(reset_time_period), start_time_(std::chrono::system_clock::now()) {
+    : kResetTimePeriod(reset_time_period) {
   LOG_OBJECTS_CREATE("NETPER");
 }
 
@@ -25,11 +25,12 @@ void TimePeriodPacketsStats::addSentPacket(const std::string& packet_type, const
 
 uint64_t TimePeriodPacketsStats::getResetTimePeriodMs() const { return kResetTimePeriod.count(); }
 
-std::pair<bool, std::chrono::milliseconds> TimePeriodPacketsStats::validResetTimePeriod() const {
+std::pair<bool, std::chrono::milliseconds> TimePeriodPacketsStats::validMaxStatsTimePeriod(
+    const std::chrono::system_clock::time_point& start_time) const {
   using namespace std::chrono_literals;
 
   const auto reset_time_period =
-      std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time_);
+      std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time);
 
   // Let the time period be max 500ms off to both sides
   if (reset_time_period >= kResetTimePeriod - 500ms && reset_time_period <= kResetTimePeriod + 500ms) {
@@ -40,13 +41,6 @@ std::pair<bool, std::chrono::milliseconds> TimePeriodPacketsStats::validResetTim
 }
 
 void TimePeriodPacketsStats::processStats(const std::shared_ptr<PeersState>& peers_state) {
-  // Check if processStats was called on expected time period so we can use current stats for max stats
-  const auto valid_reset_period = validResetTimePeriod();
-  if (!valid_reset_period.first) {
-    LOG(log_wr_) << "Cannot process stats for \"max\" stats. Current reset period " << valid_reset_period.second.count()
-                 << ", expected reset period " << kResetTimePeriod.count();
-  }
-
   LOG(log_nf_) << "Received packets stats: " << jsonToUnstyledString(received_packets_stats_.getStatsJson());
   LOG(log_nf_) << "Sent packets stats: " << jsonToUnstyledString(sent_packets_stats_.getStatsJson());
 
@@ -55,13 +49,17 @@ void TimePeriodPacketsStats::processStats(const std::shared_ptr<PeersState>& pee
   sent_packets_stats_.resetStats();
 
   for (const auto& peer : peers_state->getAllPeers()) {
-    // Update max packets stats per peer
-    if (valid_reset_period.first) {
-      peer_max_stats_.updateMaxStats(peer.second->getAllPacketsStatsCopy());
+    const auto [start_time, peer_packets_stats] = peer.second->getAllPacketsStatsCopy();
+
+    // Check if processStats was called on expected time period so we can use current stats for max stats
+    if (const auto valid_reset_period = validMaxStatsTimePeriod(start_time); valid_reset_period.first) {
+      LOG(log_wr_) << "Cannot process stats from peer " << peer.first << " for \"max\" stats. Current reset period "
+                   << valid_reset_period.second.count() << ", expected reset period " << kResetTimePeriod.count();
+      continue;
     }
 
-    // Reset packet stats per peer
-    peer.second->resetPacketsStats();
+    // Update max packets stats per peer
+    peer_max_stats_.updateMaxStats(peer_packets_stats);
   }
 
   // Log max stats
@@ -69,9 +67,6 @@ void TimePeriodPacketsStats::processStats(const std::shared_ptr<PeersState>& pee
   max_stats_json["time_period_ms"] = kResetTimePeriod.count();
   max_stats_json["peer_max_stats"] = peer_max_stats_.getMaxStatsJson();
   LOG(log_dg_) << "Max packets stats: " << jsonToUnstyledString(max_stats_json);
-
-  // Reset start time
-  start_time_ = std::chrono::system_clock::now();
 }
 
 }  // namespace taraxa::network::tarcap

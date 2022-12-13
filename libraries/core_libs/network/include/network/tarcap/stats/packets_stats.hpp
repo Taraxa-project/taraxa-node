@@ -25,7 +25,7 @@ class PacketsStats {
  public:
   void addPacket(const std::string &packet_type, const PacketStats &packet);
 
-  PacketStats getAllPacketsStatsCopy() const;
+  std::pair<std::chrono::system_clock::time_point, PacketStats> getAllPacketsStatsCopy() const;
   Json::Value getStatsJson() const;
 
   /**

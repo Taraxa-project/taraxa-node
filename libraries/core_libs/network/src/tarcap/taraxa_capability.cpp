@@ -42,8 +42,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
   LOG_OBJECTS_CREATE("TARCAP");
 
   peers_state_ = std::make_shared<PeersState>(host, kConf);
-  all_packets_stats_ = std::make_shared<TimePeriodPacketsStats>(
-      std::chrono::milliseconds(kConf.network.performance_log_interval_ms), node_addr);
+  all_packets_stats_ = std::make_shared<TimePeriodPacketsStats>(std::chrono::milliseconds(60), node_addr);
 
   // Inits boot nodes (based on config)
   addBootNodes(true);
@@ -143,12 +142,20 @@ void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pb
     status_packet_handler->sendStatusToPeers();
   });
 
-  // Logs packets stats and process max stats periodic event
-  if (packets_stats->getResetTimePeriodMs() > 0) {
-    periodic_events_tp_->post_loop(
-        {packets_stats->getResetTimePeriodMs()},
-        [stats = packets_stats, peers_state = peers_state_] { stats->processStats(peers_state); });
-  }
+  // TODO[2244]: once ddos protection is implemented, use reset time period from config
+  periodic_events_tp_->post_loop(
+      {packets_stats->getResetTimePeriodMs()},
+      [collect_packet_stats = kConf.network.collect_packets_stats, stats = packets_stats, peers_state = peers_state_] {
+        // Log interval + max packets stats only if enabled in config
+        if (collect_packet_stats) {
+          stats->processStats(peers_state);
+        }
+
+        // Per peer packets stats are used for ddos protection so they must be always collected and reset
+        for (const auto &peer : peers_state->getAllPeers()) {
+          peer.second->resetPacketsStats();
+        }
+      });
 
   // SUMMARY log periodic event
   const auto node_stats_log_interval = 5 * 6 * lambda_ms;

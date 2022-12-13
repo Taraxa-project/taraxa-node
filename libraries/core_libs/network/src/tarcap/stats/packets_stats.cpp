@@ -19,17 +19,17 @@ void PacketsStats::addPacket(const std::string &packet_type, const PacketStats &
   all_packets_stats_.tp_wait_duration_ += packet.tp_wait_duration_;
 }
 
-PacketStats PacketsStats::getAllPacketsStatsCopy() const {
+std::pair<std::chrono::system_clock::time_point, PacketStats> PacketsStats::getAllPacketsStatsCopy() const {
   std::shared_lock<std::shared_mutex> lock(mutex_);
-  return all_packets_stats_;
+  return {start_time_, all_packets_stats_};
 }
 
 void PacketsStats::resetStats() {
   std::shared_lock<std::shared_mutex> lock(mutex_);
 
-  start_time_ = std::chrono::system_clock::now();
   all_packets_stats_ = PacketStats{};
   per_packet_stats_.clear();
+  start_time_ = std::chrono::system_clock::now();
 }
 
 Json::Value PacketsStats::getStatsJson() const {
@@ -40,11 +40,9 @@ Json::Value PacketsStats::getStatsJson() const {
 
   std::time_t end_time_tt = std::chrono::system_clock::to_time_t(end_time);
   std::tm end_time_tm = *std::localtime(&end_time_tt);
-
   std::stringstream end_time_point_str;
   end_time_point_str << std::put_time(&end_time_tm, "%Y-%m-%d_%H:%M:%S");
   ret["end_time"] = end_time_point_str.str();
-  end_time_point_str.clear();
 
   std::stringstream start_time_point_str;
 

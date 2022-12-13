@@ -64,7 +64,9 @@ void TaraxaPeer::addSentPacket(const std::string& packet_type, const PacketStats
   sent_packets_stats_.addPacket(packet_type, packet);
 }
 
-PacketStats TaraxaPeer::getAllPacketsStatsCopy() const { return sent_packets_stats_.getAllPacketsStatsCopy(); }
+std::pair<std::chrono::system_clock::time_point, PacketStats> TaraxaPeer::getAllPacketsStatsCopy() const {
+  return sent_packets_stats_.getAllPacketsStatsCopy();
+}
 
 void TaraxaPeer::resetPacketsStats() { sent_packets_stats_.resetStats(); }
 
