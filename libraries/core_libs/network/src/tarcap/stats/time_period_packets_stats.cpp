@@ -7,7 +7,7 @@
 namespace taraxa::network::tarcap {
 
 TimePeriodPacketsStats::TimePeriodPacketsStats(std::chrono::milliseconds reset_time_period, const addr_t& node_addr)
-    : reset_time_period_(reset_time_period), start_time_(std::chrono::system_clock::now()) {
+    : kResetTimePeriod(reset_time_period), start_time_(std::chrono::system_clock::now()) {
   LOG_OBJECTS_CREATE("NETPER");
 }
 
@@ -23,7 +23,7 @@ void TimePeriodPacketsStats::addSentPacket(const std::string& packet_type, const
   LOG(log_tr_) << "Sent packet: " << packet.getStatsJsonStr(packet_type, node);
 }
 
-uint64_t TimePeriodPacketsStats::getResetTimePeriodMs() const { return reset_time_period_.count(); }
+uint64_t TimePeriodPacketsStats::getResetTimePeriodMs() const { return kResetTimePeriod.count(); }
 
 std::pair<bool, std::chrono::milliseconds> TimePeriodPacketsStats::validResetTimePeriod() const {
   using namespace std::chrono_literals;
@@ -32,7 +32,7 @@ std::pair<bool, std::chrono::milliseconds> TimePeriodPacketsStats::validResetTim
       std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - start_time_);
 
   // Let the time period be max 500ms off to both sides
-  if (reset_time_period >= reset_time_period_ - 500ms && reset_time_period <= reset_time_period_ + 500ms) {
+  if (reset_time_period >= kResetTimePeriod - 500ms && reset_time_period <= kResetTimePeriod + 500ms) {
     return {true, reset_time_period};
   }
 
@@ -51,7 +51,7 @@ void TimePeriodPacketsStats::processStats(const std::shared_ptr<PeersState>& pee
     received_packets_stats_.updateAllPacketsMaxStats();
   } else {
     LOG(log_wr_) << "Cannot process stats for \"max\" stats. Current reset period " << valid_reset_period.second.count()
-                 << ", expected reset period " << reset_time_period_.count();
+                 << ", expected reset period " << kResetTimePeriod.count();
   }
 
   // Reset stats for both received & sent packets stats from all peers
@@ -70,7 +70,7 @@ void TimePeriodPacketsStats::processStats(const std::shared_ptr<PeersState>& pee
 
   // Log max stats
   Json::Value max_stats_json;
-  max_stats_json["time_period_ms"] = reset_time_period_.count();
+  max_stats_json["time_period_ms"] = kResetTimePeriod.count();
   max_stats_json["all_max_stats"] = received_packets_stats_.getAllPacketsMaxStats();
   max_stats_json["peer_max_stats"] = peer_max_stats_.getMaxStatsJson();
   LOG(log_dg_) << "Max packets stats: " << jsonToUnstyledString(max_stats_json);

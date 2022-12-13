@@ -117,9 +117,6 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   // Packets stats per time period
   std::shared_ptr<TimePeriodPacketsStats> all_packets_stats_;
 
-  // Max packets stats per time period
-  MaxStats max_packets_stats_;
-
   // Node config
   const FullNodeConfig &kConf;
 

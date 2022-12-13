@@ -32,17 +32,17 @@ class TimePeriodPacketsStats {
  private:
   /**
    * @brief Checks if processStats is called in a correct time point -> now() - start_time_ is approximately
-   *        equal to reset_time_period_. Stats are reset by calling processStats in regular interval, but it might be
+   *        equal to kResetTimePeriod. Stats are reset by calling processStats in regular interval, but it might be
    *        postponed due to lack o resources, in which case we dont want to count such stats when processing max stats
    *
    * @return <true, interval_ms> in case current time is valid time point for resetting stats ->
-   *         now() - start_time_ != *reset_time_period_, otherwise <false, interval_ms>
+   *         now() - start_time_ != *kResetTimePeriod, otherwise <false, interval_ms>
    */
   std::pair<bool, std::chrono::milliseconds> validResetTimePeriod() const;
 
  private:
   // Interval during which are the stats supposed to be collected
-  const std::chrono::milliseconds reset_time_period_;
+  const std::chrono::milliseconds kResetTimePeriod;
 
   // Time point since which we are currently collecting stats - it is reset to current time in processStats()
   std::chrono::system_clock::time_point start_time_;

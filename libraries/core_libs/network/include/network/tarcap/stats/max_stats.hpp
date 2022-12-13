@@ -10,11 +10,6 @@ namespace taraxa::network::tarcap {
  */
 class MaxStats {
  public:
-  PacketStats max_count_stats_;
-  PacketStats max_size_stats_;
-  PacketStats max_processing_duration_stats_;
-  PacketStats max_tp_wait_time_stats_;
-
   /**
    * @return max stats json
    */
@@ -26,6 +21,12 @@ class MaxStats {
    * @param packet_stats
    */
   void updateMaxStats(const PacketStats& packet_stats);
+
+ private:
+  PacketStats max_count_stats_;
+  PacketStats max_size_stats_;
+  PacketStats max_processing_duration_stats_;
+  PacketStats max_tp_wait_time_stats_;
 };
 
 }  // namespace taraxa::network::tarcap

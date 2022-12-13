@@ -68,14 +68,14 @@ class TaraxaPeer : public boost::noncopyable {
    *
    * @return true if allowed
    */
-  bool dagSyncingAllowed();
+  bool dagSyncingAllowed() const;
 
   /**
    * @brief Check if it is allowed to receive dag syncing request
    *
    * @return true if allowed
    */
-  bool requestDagSyncingAllowed();
+  bool requestDagSyncingAllowed() const;
 
   /**
    * @brief Adds packet to the stats

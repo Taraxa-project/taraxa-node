@@ -46,14 +46,14 @@ bool TaraxaPeer::reportSuspiciousPacket() {
   return suspicious_packet_count_ > kMaxSuspiciousPacketPerMinute;
 }
 
-bool TaraxaPeer::dagSyncingAllowed() {
+bool TaraxaPeer::dagSyncingAllowed() const {
   return !peer_dag_synced_ ||
          (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())
               .count() -
           peer_dag_synced_time_) > kDagSyncingLimit;
 }
 
-bool TaraxaPeer::requestDagSyncingAllowed() {
+bool TaraxaPeer::requestDagSyncingAllowed() const {
   return !peer_requested_dag_syncing_ ||
          (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())
               .count() -
