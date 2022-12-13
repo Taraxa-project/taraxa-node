@@ -70,8 +70,4 @@ Json::Value PacketsStats::getStatsJson() const {
   return ret;
 }
 
-Json::Value PacketsStats::getAllPacketsMaxStats() const { return all_packets_max_stats_.getMaxStatsJson(); }
-
-void PacketsStats::updateAllPacketsMaxStats() { all_packets_max_stats_.updateMaxStats(getAllPacketsStatsCopy()); }
-
 }  // namespace taraxa::network::tarcap

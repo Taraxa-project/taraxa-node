@@ -42,17 +42,13 @@ std::pair<bool, std::chrono::milliseconds> TimePeriodPacketsStats::validResetTim
 void TimePeriodPacketsStats::processStats(const std::shared_ptr<PeersState>& peers_state) {
   // Check if processStats was called on expected time period so we can use current stats for max stats
   const auto valid_reset_period = validResetTimePeriod();
-
-  LOG(log_nf_) << "Received packets stats: " << jsonToUnstyledString(received_packets_stats_.getStatsJson());
-  LOG(log_nf_) << "Sent packets stats: " << jsonToUnstyledString(sent_packets_stats_.getStatsJson());
-
-  // Update max stats for all received packets from all peers - must be called before resetStats
-  if (valid_reset_period.first) {
-    received_packets_stats_.updateAllPacketsMaxStats();
-  } else {
+  if (!valid_reset_period.first) {
     LOG(log_wr_) << "Cannot process stats for \"max\" stats. Current reset period " << valid_reset_period.second.count()
                  << ", expected reset period " << kResetTimePeriod.count();
   }
+
+  LOG(log_nf_) << "Received packets stats: " << jsonToUnstyledString(received_packets_stats_.getStatsJson());
+  LOG(log_nf_) << "Sent packets stats: " << jsonToUnstyledString(sent_packets_stats_.getStatsJson());
 
   // Reset stats for both received & sent packets stats from all peers
   received_packets_stats_.resetStats();
@@ -71,7 +67,6 @@ void TimePeriodPacketsStats::processStats(const std::shared_ptr<PeersState>& pee
   // Log max stats
   Json::Value max_stats_json;
   max_stats_json["time_period_ms"] = kResetTimePeriod.count();
-  max_stats_json["all_max_stats"] = received_packets_stats_.getAllPacketsMaxStats();
   max_stats_json["peer_max_stats"] = peer_max_stats_.getMaxStatsJson();
   LOG(log_dg_) << "Max packets stats: " << jsonToUnstyledString(max_stats_json);
 

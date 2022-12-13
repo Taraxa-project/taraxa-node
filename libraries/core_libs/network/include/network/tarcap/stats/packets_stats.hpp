@@ -26,14 +26,7 @@ class PacketsStats {
   void addPacket(const std::string &packet_type, const PacketStats &packet);
 
   PacketStats getAllPacketsStatsCopy() const;
-  Json::Value getAllPacketsMaxStats() const;
   Json::Value getStatsJson() const;
-
-  /**
-   * @brief Updates max stats
-   * @note Partially thread-safe: all_packets_max_<...> class members are not protected through mutex
-   */
-  void updateAllPacketsMaxStats();
 
   /**
    * @brief Resets stats to zero
@@ -50,10 +43,6 @@ class PacketsStats {
   // Stas per individual packet type
   PerPacketStatsMap per_packet_stats_;
   mutable std::shared_mutex mutex_;
-
-  // Max stats for all received packets combined from all peers
-  // Note: all_packets_max_<...> class members are not protected by mutex
-  MaxStats all_packets_max_stats_;
 };
 
 }  // namespace taraxa::network::tarcap
