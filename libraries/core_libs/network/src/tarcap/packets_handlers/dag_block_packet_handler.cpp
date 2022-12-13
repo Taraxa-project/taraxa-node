@@ -19,8 +19,7 @@ DagBlockPacketHandler::DagBlockPacketHandler(std::shared_ptr<PeersState> peers_s
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
                               "DAG_BLOCK_PH"),
       test_state_(std::move(test_state)),
-      trx_mgr_(std::move(trx_mgr)),
-      seen_dags_(10000, 100) {}
+      trx_mgr_(std::move(trx_mgr)) {}
 
 void DagBlockPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
   // Only one dag block can be received
