@@ -7,8 +7,6 @@ var classtaraxa_1_1net_1_1_test_face =
     [ "get_all_nodesI", "classtaraxa_1_1net_1_1_test_face.html#a796fb87c2e380a9355173c39d58c8134", null ],
     [ "get_node_status", "classtaraxa_1_1net_1_1_test_face.html#a54c7987cedbb47d7652a9e2ceb1c0d82", null ],
     [ "get_node_statusI", "classtaraxa_1_1net_1_1_test_face.html#a07680fc88d0716eb65f948fafb279ad5", null ],
-    [ "get_packets_stats", "classtaraxa_1_1net_1_1_test_face.html#acb78df0bfdffe89b26253b8ecf76f6d6", null ],
-    [ "get_packets_statsI", "classtaraxa_1_1net_1_1_test_face.html#a2aca26fe832ac9098eef489633dd8711", null ],
     [ "get_peer_count", "classtaraxa_1_1net_1_1_test_face.html#a18064861df173d5669b2409ac339ce0d", null ],
     [ "get_peer_countI", "classtaraxa_1_1net_1_1_test_face.html#a408774c2df482b4dac82bb6e9823218b", null ],
     [ "get_sortition_change", "classtaraxa_1_1net_1_1_test_face.html#ac9d42b2533b483bf1af667b9eed697a5", null ],

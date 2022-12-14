@@ -260,15 +260,10 @@ var NAVTREE =
           [ "Returns", "md_doc__r_p_c.html#autotoc_md319", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md320", null ]
         ] ],
-        [ "get_packets_stats", "md_doc__r_p_c.html#autotoc_md321", [
+        [ "get_all_nodes", "md_doc__r_p_c.html#autotoc_md321", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md322", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md323", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md324", null ]
-        ] ],
-        [ "get_all_nodes", "md_doc__r_p_c.html#autotoc_md325", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md326", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md327", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md328", null ]
         ] ]
       ] ]
     ] ],
@@ -320,24 +315,24 @@ var NAVTREEINDEX =
 "classdev_1_1p2p_1_1_peer.html#a0b0a37f9b3e6378f601f253ca9ab0371",
 "classgraphql_1_1taraxa_1_1_log.html#ae2ba397029b180d86329ccd500b44272",
 "classtaraxa_1_1_db_storage.html#ad797fc9c28e52d355aae1ca7bd5b79d8",
-"classtaraxa_1_1_value_by_block_cache.html#a1bddfd3f6608005ea00dd3f51547de1c",
-"classtaraxa_1_1net_1_1_graph_ql_http_processor.html#a482871a43fbaf6c5e26a2d4ecfbef583",
-"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a61c591f50f278012e642576c7936a802",
-"classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a7fc54c59db2e2c11f440de4503b49cb8",
-"classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a470ce2322a047acdde8024eaa41bf083",
-"dir_184a5acb128f25a8b9d9e6bcb43e2b5d.html",
-"globals.html",
-"group___final_chain.html#a4655fb5d4538ce7a5840214f322eb37e",
-"group___p_b_f_t.html#a88ab9f3501538d572e1a582a031ca4cf",
-"group___vote.html#a657bbf95ad1866cbf01a6f170998bce2",
-"libdevcrypto_2_common_8h.html#a15bc8df921a5e850704474ba2b3a5e59",
-"md_doc_coding_practices.html#autotoc_md116",
-"namespacemembers_i.html",
-"state__config_8cpp.html#a222405ee877ab022ce0ab60290df5de5",
-"structdev_1_1p2p_1_1_host.html#ac05b941935177dabc23d1a7968edc6d8",
-"structdev_1_1p2p_1_1_session.html#ac50d879ffd0bfb8b3e9f8fc92e1940cc",
-"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a4e59d4458a7687e5c99075954cfc803e",
-"vdf_2include_2vdf_2config_8hpp.html#a307376581a485cafa078a7f978c336af"
+"classtaraxa_1_1_value_by_block_cache.html#a2555511afb42337f7564ec69a7057fe3",
+"classtaraxa_1_1net_1_1_graph_ql_http_processor.html#a5e245a39cf539684de86ff51e102179b",
+"classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a6cef47a849e8da1f43fd36daff12a223",
+"classtaraxa_1_1network_1_1tarcap_1_1_packets_blocking_mask.html#a498edd7047f808d368514d03b1a131a8",
+"classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html#afa45dffa2aac24e5dccb93f7821c23e2",
+"dir_09dd6a089b30e1a573a85a200966bea6.html",
+"global__const_8hpp.html",
+"group___final_chain.html#a417ad359468f6932de665cb660c505e1",
+"group___p_b_f_t.html#a855f5bd423b3d34db9aca2b732752574",
+"group___vote.html#a5b8927447804e3384e9dc32a76b51258",
+"libdevcrypto_2_common_8h.html",
+"md_doc_coding_practices.html#autotoc_md113",
+"namespacemembers_func_w.html",
+"state__config_8cpp.html#a15046280f6cced1ba188ecded81bb15f",
+"structdev_1_1p2p_1_1_host.html#abd82b169ada4a372ababc61517ac1aec",
+"structdev_1_1p2p_1_1_session.html#ac2908ff423e6a573c3e2461ba3423727",
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a37c3a70b29f7b44a4d8fe666414eb742",
+"vdf_2src_2config_8cpp.html#a1a5366250b143fb8f68102999cd2f746"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

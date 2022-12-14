@@ -1,6 +1,6 @@
 var classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler =
 [
-    [ "ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#ac7b7e1f45079ed332c222cf35259e5f4", null ],
+    [ "ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a28915665aefeebd6b63a5ea52566f846", null ],
     [ "~ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a6093dfd3a55632fcd05c2e4c3da06956", null ],
     [ "ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a24a19569eb088bd75f9fb3a10c589998", null ],
     [ "ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a63b09171549b48e930977951c574c15e", null ],
@@ -18,12 +18,9 @@ var classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler =
     [ "validateStandardVote", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a12b2166786e7a4f689e8dfa84a6acb2a", null ],
     [ "validateVote", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#afafdabcd8b16cfb455faa1e2e42df752", null ],
     [ "validateVoteAndBlock", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#ae00924c5e98fd3682d3604f34b41e920", null ],
-    [ "kMaxVotesInPacket", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a6e2c9ef6af17c28f5cce4dfb579faaa0", null ],
+    [ "kMaxVotesInPacket", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#afbf0d2e7c613557c901ed2ac960999bf", null ],
     [ "kSyncRequestInterval", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#af375302bb818c8a01f0b403d0f02e059", null ],
-    [ "kVoteAcceptingPeriods", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a664501f7656450d7f7c6ecc79e2998e0", null ],
-    [ "kVoteAcceptingRounds", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#abac1355c67ca5fe1183bfd68d3ac74d4", null ],
-    [ "kVoteAcceptingSteps", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a49f0d9ba2f7daaa4eb39b623d80388c6", null ],
-    [ "kVotePacketWithBlockSize", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a7e58923489ed4a38b31ebbddcafa379f", null ],
+    [ "kVotePacketWithBlockSize", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a69545d74c158654b927a46be592e7aa0", null ],
     [ "last_pbft_block_sync_request_time_", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a06334d2f46c138d9b4396740a4548682", null ],
     [ "last_votes_sync_request_time_", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a67f5aa15e87c6e6aa973c4b43b453012", null ],
     [ "pbft_chain_", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a7de70e30de9ba98435660bf5434dbef2", null ],

@@ -1,0 +1,4 @@
+<map id="taraxa::network::tarcap::MaxStats" name="taraxa::network::tarcap::MaxStats">
+<area shape="rect" id="node1" title="MAx stats data holder class." alt="" coords="5,168,180,209"/>
+<area shape="rect" id="node2" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html" title="Stats single packet type." alt="" coords="5,5,180,47"/>
+</map>

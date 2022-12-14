@@ -127,8 +127,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a7ec9d38a0edc06c79d979ba9a1439049"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aacf1424b93ac3b5698fbf919a4f2e55c"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#aacf1424b93ac3b5698fbf919a4f2e55c">sync_level_size</a> = 10</td></tr>
 <tr class="separator:aacf1424b93ac3b5698fbf919a4f2e55c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a69997ddd7a5ffc0aa84d027c76307e04"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a69997ddd7a5ffc0aa84d027c76307e04">performance_log_interval</a> = 0</td></tr>
-<tr class="separator:a69997ddd7a5ffc0aa84d027c76307e04"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4f74c8666dbc79db246472ebbda14a14"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a4f74c8666dbc79db246472ebbda14a14">collect_packets_stats</a> = false</td></tr>
+<tr class="separator:a4f74c8666dbc79db246472ebbda14a14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afbacdd7402e6309bd59494551ddef537"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#afbacdd7402e6309bd59494551ddef537">num_threads</a> = std::max(uint(1), uint(std::thread::hardware_concurrency() / 2))</td></tr>
 <tr class="separator:afbacdd7402e6309bd59494551ddef537"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6c958f97e88f2829ab455d32f2bf80e2"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a6c958f97e88f2829ab455d32f2bf80e2">packets_processing_threads</a> = 14</td></tr>
@@ -182,6 +182,20 @@ Static Public Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::vector&lt;<a class="el" href="namespacetaraxa.html#structtaraxa_1_1_node_config">NodeConfig</a>&gt; taraxa::NetworkConfig::boot_nodes</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4f74c8666dbc79db246472ebbda14a14"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4f74c8666dbc79db246472ebbda14a14">&#9670;&nbsp;</a></span>collect_packets_stats</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool taraxa::NetworkConfig::collect_packets_stats = false</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -358,20 +372,6 @@ Static Public Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">uint16_t taraxa::NetworkConfig::peer_blacklist_timeout = <a class="el" href="structtaraxa_1_1_network_config.html#a51247ea862ddf795e2eaf53c189490c3">kBlacklistTimeoutDefaultInSeconds</a></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a69997ddd7a5ffc0aa84d027c76307e04"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a69997ddd7a5ffc0aa84d027c76307e04">&#9670;&nbsp;</a></span>performance_log_interval</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">uint16_t taraxa::NetworkConfig::performance_log_interval = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">

@@ -102,9 +102,8 @@ $(document).ready(function(){initNavTree('functions_vars_p.html',''); initResiza
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_priority_queue.html#a249230a1ad4a1f6bc7535a6e0cd29996">taraxa::network::tarcap::PriorityQueue</a>
 </li>
 <li>packets_stats_
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a700f8be150c4936b5b51ae54ee038414">taraxa::network::tarcap::NodeStats</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#afabdc72598d541c7b8abb17bfbb6d93b">taraxa::network::tarcap::PacketHandler</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a08d9b03d5e8a3b2640bb8df4591bad5b">taraxa::network::tarcap::TaraxaCapability</a>
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a0997a3935943d78b2a9977f0b45023a2">taraxa::network::tarcap::NodeStats</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a481d7860a8bc694182f20bc57067253a">taraxa::network::tarcap::PacketHandler</a>
 </li>
 <li>padding
 : <a class="el" href="structdev_1_1p2p_1_1_r_l_p_x_frame_info.html#a58708ac3ff55b398937d352956d878fd">dev::p2p::RLPXFrameInfo</a>
@@ -204,6 +203,9 @@ $(document).ready(function(){initNavTree('functions_vars_p.html',''); initResiza
 <li>peer_light_node_history
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ae6e1470f37c84dacdd7b56a87aac98a2">taraxa::network::tarcap::TaraxaPeer</a>
 </li>
+<li>peer_max_stats_
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html#afa45dffa2aac24e5dccb93f7821c23e2">taraxa::network::tarcap::TimePeriodPacketsStats</a>
+</li>
 <li>peer_mutex_
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html#a971ddb14adcdec11fe48ace370060b9f">taraxa::network::tarcap::PbftSyncingState</a>
 </li>
@@ -223,7 +225,7 @@ $(document).ready(function(){initNavTree('functions_vars_p.html',''); initResiza
 : <a class="el" href="structdev_1_1p2p_1_1_host.html#a02347e7bf3c420974812af9b3e701737">dev::p2p::Host::PersistentState</a>
 </li>
 <li>peers_
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a169b35dd8c149448793747ece8f6e0cc">taraxa::network::tarcap::PeersState</a>
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#aca9c558140fd832045c1e9a69ce67d9f">taraxa::network::tarcap::PeersState</a>
 </li>
 <li>peers_mutex_
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a2254e736b6cc5ac7d1adc6ed81afae28">taraxa::network::tarcap::PeersState</a>
@@ -237,13 +239,13 @@ $(document).ready(function(){initNavTree('functions_vars_p.html',''); initResiza
 : <a class="el" href="classdev_1_1p2p_1_1_node.html#a27c241eaf6416a17a00ff17395aec3b7">dev::p2p::Node</a>
 </li>
 <li>pending_peers_
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a4c92721bbd03516961cf7de1506ee6d0">taraxa::network::tarcap::PeersState</a>
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a7407a2538dc0fc5725d7f7d6261d4751">taraxa::network::tarcap::PeersState</a>
+</li>
+<li>per_packet_stats_
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html#a72a43de67f5b875d5dd4cc684063b430">taraxa::network::tarcap::PacketsStats</a>
 </li>
 <li>percentile
 : <a class="el" href="structtaraxa_1_1_gas_price_config.html#ac0b372753bf58c137a38c93c02abf8c7">taraxa::GasPriceConfig</a>
-</li>
-<li>performance_log_interval
-: <a class="el" href="structtaraxa_1_1_network_config.html#a69997ddd7a5ffc0aa84d027c76307e04">taraxa::NetworkConfig</a>
 </li>
 <li>period
 : <a class="el" href="group___d_a_g.html#ac66f690ce0d6fedf07bde818821d7dda">taraxa::SortitionParamsChange</a>
@@ -321,8 +323,7 @@ $(document).ready(function(){initNavTree('functions_vars_p.html',''); initResiza
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_blocking_mask.html#a457ccebb16664fc9707285e4ccc15bcd">taraxa::network::tarcap::PacketsBlockingMask</a>
 </li>
 <li>processing_duration_
-: <a class="el" href="structtaraxa_1_1network_1_1tarcap_1_1_all_packet_types_stats_1_1_packet_type_stats.html#a2b0b213f89661cf63041df77dd29038c">taraxa::network::tarcap::AllPacketTypesStats::PacketTypeStats</a>
-, <a class="el" href="structtaraxa_1_1network_1_1tarcap_1_1_single_packet_stats.html#ad720a729ee7b87b03936dadcbb096003">taraxa::network::tarcap::SinglePacketStats</a>
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html#a9ab35c03f5e480b600efe61eaca9db9f">taraxa::network::tarcap::PacketStats</a>
 </li>
 <li>proof_
 : <a class="el" href="classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#ad5d2ebb95d8cdffa2c4c2273319af50c">taraxa::vrf_wrapper::VrfSortitionBase</a>

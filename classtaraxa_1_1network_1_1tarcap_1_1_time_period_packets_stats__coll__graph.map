@@ -1,0 +1,6 @@
+<map id="taraxa::network::tarcap::TimePeriodPacketsStats" name="taraxa::network::tarcap::TimePeriodPacketsStats">
+<area shape="rect" id="node1" title="Stats for all received and sent packets of all types." alt="" coords="98,301,285,343"/>
+<area shape="rect" id="node2" href="$classtaraxa_1_1network_1_1tarcap_1_1_max_stats.html" title="MAx stats data holder class." alt="" coords="5,168,180,209"/>
+<area shape="rect" id="node3" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html" title="Stats single packet type." alt="" coords="104,5,279,47"/>
+<area shape="rect" id="node4" href="$classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html" title="Stats for all packet types." alt="" coords="204,168,379,209"/>
+</map>

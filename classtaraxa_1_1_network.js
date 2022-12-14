@@ -7,7 +7,6 @@ var classtaraxa_1_1_network =
     [ "getAllNodes", "classtaraxa_1_1_network.html#a0402a98a77e20969de80be41981d038f", null ],
     [ "getNodeCount", "classtaraxa_1_1_network.html#a4388be45cc36b080cd6d3b261ed1f7a6", null ],
     [ "getNodeId", "classtaraxa_1_1_network.html#a87a092a6afecd4748768d07ee9f59b71", null ],
-    [ "getPacketsStats", "classtaraxa_1_1_network.html#a3444060546109ee47792393760b8611c", null ],
     [ "getPeer", "classtaraxa_1_1_network.html#a3bc79d60649800d199a090d11c213e55", null ],
     [ "getPeerCount", "classtaraxa_1_1_network.html#a259bd66c2688338ead9f2a48f5851790", null ],
     [ "getReceivedBlocksCount", "classtaraxa_1_1_network.html#a1c048091be269784cebe9501688de1f4", null ],

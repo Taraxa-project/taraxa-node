@@ -1,5 +1,9 @@
 var NAVTREEINDEX17 =
 {
+"libdevcrypto_2_common_8h.html":[15,0,1,0,1,3],
+"libdevcrypto_2_common_8h.html#a0266517d70437660a08b9f6166572eb3":[15,0,1,0,1,3,4],
+"libdevcrypto_2_common_8h.html#a04a16f8a4c264a7868151d49e2223f04":[15,0,1,0,1,3,5],
+"libdevcrypto_2_common_8h.html#a0842f17403d63f4a260d5283ae5fb3a7":[15,0,1,0,1,3,28],
 "libdevcrypto_2_common_8h.html#a15bc8df921a5e850704474ba2b3a5e59":[15,0,1,0,1,3,15],
 "libdevcrypto_2_common_8h.html#a1fd0d1e56fde466db30621e9e08c0cf2":[15,0,1,0,1,3,7],
 "libdevcrypto_2_common_8h.html#a1ff2b83bbbbac92f3685f19b06a265b8":[15,0,1,0,1,3,27],
@@ -135,6 +139,9 @@ var NAVTREEINDEX17 =
 "logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04a737b0fd32fc71a78ba8e7ebd2f0803fd":[15,0,1,5,0,0,1,2,2],
 "logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04adb0b5b09b75c8444187b01d7fc94a5bc":[15,0,1,5,0,0,1,2,1],
 "logger__config_8hpp_source.html":[15,0,1,5,0,0,1],
+"max__stats_8cpp.html":[15,0,1,4,1,3,0,2,0],
+"max__stats_8hpp.html":[15,0,1,4,1,1,0,0,2,0],
+"max__stats_8hpp_source.html":[15,0,1,4,1,1,0,0,2,0],
 "md_doc__r_p_c.html":[9],
 "md_doc__r_p_c.html#autotoc_md261":[9,0],
 "md_doc__r_p_c.html#autotoc_md262":[9,0,0],
@@ -200,10 +207,6 @@ var NAVTREEINDEX17 =
 "md_doc__r_p_c.html#autotoc_md322":[9,2,6,0],
 "md_doc__r_p_c.html#autotoc_md323":[9,2,6,1],
 "md_doc__r_p_c.html#autotoc_md324":[9,2,6,2],
-"md_doc__r_p_c.html#autotoc_md325":[9,2,7],
-"md_doc__r_p_c.html#autotoc_md326":[9,2,7,0],
-"md_doc__r_p_c.html#autotoc_md327":[9,2,7,1],
-"md_doc__r_p_c.html#autotoc_md328":[9,2,7,2],
 "md_doc_building.html":[1],
 "md_doc_building.html#autotoc_md25":[0],
 "md_doc_building.html#autotoc_md26":[0,4],
@@ -246,8 +249,5 @@ var NAVTREEINDEX17 =
 "md_doc_coding_practices.html#autotoc_md109":[2,0,10],
 "md_doc_coding_practices.html#autotoc_md110":[44],
 "md_doc_coding_practices.html#autotoc_md111":[45],
-"md_doc_coding_practices.html#autotoc_md112":[46],
-"md_doc_coding_practices.html#autotoc_md113":[2,0,11],
-"md_doc_coding_practices.html#autotoc_md114":[47],
-"md_doc_coding_practices.html#autotoc_md115":[48]
+"md_doc_coding_practices.html#autotoc_md112":[46]
 };

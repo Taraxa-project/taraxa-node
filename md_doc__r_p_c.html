@@ -693,91 +693,15 @@ Example</h3>
 <div class="line">  }</div>
 <div class="line">}</div>
 </div><!-- fragment --><h2><a class="anchor" id="autotoc_md321"></a>
-get_packets_stats</h2>
-<p>Returns current taraxa network protocol version</p>
+get_all_nodes</h2>
+<p>Returns info of current connected nodes including its id, ip_address and port</p>
 <h3><a class="anchor" id="autotoc_md322"></a>
 Parameters</h3>
 <p>none</p>
 <h3><a class="anchor" id="autotoc_md323"></a>
 Returns</h3>
-<p><code>OBJECT</code> - with info about packets statistic</p><ul>
-<li><code>received_packets</code>: <code>ARRAY</code> of <code>PACKET_STATS_OBJECT</code></li>
-<li><code>received_packets_period_max_stats</code>: <code>OBJECT</code><ul>
-<li><code>period_max_counts_stats</code>: <code>ARRAY</code> of <code>PACKET_STATS_OBJECT</code></li>
-<li><code>period_max_sizes_stats</code>: <code>ARRAY</code> of <code>PACKET_STATS_OBJECT</code></li>
-</ul>
-</li>
-<li><code>sent_packets</code>: <code>ARRAY</code> of <code>PACKET_STATS_OBJECT</code></li>
-<li><code>sent_packets_period_max_stats</code>: <code>OBJECT</code><ul>
-<li><code>period_max_counts_stats</code>: <code>ARRAY</code> of <code>PACKET_STATS_OBJECT</code></li>
-<li><code>period_max_sizes_stats</code>: <code>ARRAY</code> of <code>PACKET_STATS_OBJECT</code></li>
-</ul>
-</li>
-</ul>
-<p><code>PACKET_STATS_OBJECT</code>:</p><ul>
-<li><code>avg_processing_duration</code>: <code>QUANTITY</code> - average processing time of one packet</li>
-<li><code>avg_size</code>: <code>QUANTITY</code> - average packet size</li>
-<li><code>avg_tp_wait_duration</code>: <code>QUANTITY</code> - Average ThreadPool waiting time for 1 packet</li>
-<li><code>total_count</code>: <code>QUANTITY</code> - total count of processed packets</li>
-<li><code>total_processing_duration</code>: <code>QUANTITY</code> - total processing time for all packets</li>
-<li><code>total_size</code>: <code>QUANTITY</code> - sum of size of all processed packets</li>
-<li><code>total_tp_wait_duration</code>: <code>QUANTITY</code> - Total ThreadPool waiting time</li>
-<li><code>type</code>: <code>STRING</code> - Type of packet data related to. List of packet types: <div class="fragment"><div class="line">VotePacket</div>
-<div class="line">GetVotesSyncPacket</div>
-<div class="line">VotesSyncPacket</div>
-<div class="line">DagBlockPacket</div>
-<div class="line">DagSyncPacket</div>
-<div class="line">TransactionPacket</div>
-<div class="line">StatusPacket</div>
-<div class="line">GetPbftSyncPacket</div>
-<div class="line">PbftSyncPacket</div>
-<div class="line">GetDagSyncPacket</div>
-</div><!-- fragment --></li>
-</ul>
-<h3><a class="anchor" id="autotoc_md324"></a>
-Example</h3>
-<div class="fragment"><div class="line">// Request</div>
-<div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_packets_stats&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
-<div class="line"> </div>
-<div class="line">// PACKET_STATS_OBJECT example</div>
-<div class="line">{</div>
-<div class="line">  &quot;avg_processing_duration&quot;: 363,</div>
-<div class="line">  &quot;avg_size&quot;: 5,</div>
-<div class="line">  &quot;avg_tp_wait_duration&quot;: 543,</div>
-<div class="line">  &quot;total_count&quot;: 243,</div>
-<div class="line">  &quot;total_processing_duration&quot;: 88363,</div>
-<div class="line">  &quot;total_size&quot;: 1215,</div>
-<div class="line">  &quot;total_tp_wait_duration&quot;: 132164,</div>
-<div class="line">  &quot;type&quot;: &quot;PacketType&quot;</div>
-<div class="line">}</div>
-<div class="line"> </div>
-<div class="line">// Result</div>
-<div class="line">{</div>
-<div class="line">  &quot;id&quot;: 1,</div>
-<div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
-<div class="line">  &quot;result&quot;: {</div>
-<div class="line">    &quot;received_packets&quot;: [PACKET_STATS_OBJECTs],</div>
-<div class="line">    &quot;received_packets_period_max_stats&quot;: {</div>
-<div class="line">      &quot;period_max_counts_stats&quot;: [PACKET_STATS_OBJECTs],</div>
-<div class="line">      &quot;period_max_sizes_stats&quot;: [PACKET_STATS_OBJECTs]</div>
-<div class="line">    },</div>
-<div class="line">    &quot;sent_packets&quot;: [PACKET_STATS_OBJECTs],</div>
-<div class="line">    &quot;sent_packets_period_max_stats&quot;: {</div>
-<div class="line">      &quot;period_max_counts_stats&quot;: [PACKET_STATS_OBJECTs],</div>
-<div class="line">      &quot;period_max_sizes_stats&quot;: [PACKET_STATS_OBJECTs]</div>
-<div class="line">    }</div>
-<div class="line">  }</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md325"></a>
-get_all_nodes</h2>
-<p>Returns info of current connected nodes including its id, ip_address and port</p>
-<h3><a class="anchor" id="autotoc_md326"></a>
-Parameters</h3>
-<p>none</p>
-<h3><a class="anchor" id="autotoc_md327"></a>
-Returns</h3>
 <p><code>STRING</code> - string that contains info about peer if format <code>id ip_address:port</code> separated with <code>\n</code>.</p>
-<h3><a class="anchor" id="autotoc_md328"></a>
+<h3><a class="anchor" id="autotoc_md324"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_all_nodes&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>

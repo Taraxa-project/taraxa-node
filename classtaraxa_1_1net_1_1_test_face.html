@@ -116,8 +116,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a408774c2df482b4dac82bb6e9823218b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a07680fc88d0716eb65f948fafb279ad5"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#a07680fc88d0716eb65f948fafb279ad5">get_node_statusI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
 <tr class="separator:a07680fc88d0716eb65f948fafb279ad5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2aca26fe832ac9098eef489633dd8711"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#a2aca26fe832ac9098eef489633dd8711">get_packets_statsI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
-<tr class="separator:a2aca26fe832ac9098eef489633dd8711"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a796fb87c2e380a9355173c39d58c8134"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#a796fb87c2e380a9355173c39d58c8134">get_all_nodesI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
 <tr class="separator:a796fb87c2e380a9355173c39d58c8134"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac9d42b2533b483bf1af667b9eed697a5"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#ac9d42b2533b483bf1af667b9eed697a5">get_sortition_change</a> (const Json::Value &amp;param1)=0</td></tr>
@@ -132,8 +130,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a18064861df173d5669b2409ac339ce0d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a54c7987cedbb47d7652a9e2ceb1c0d82"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#a54c7987cedbb47d7652a9e2ceb1c0d82">get_node_status</a> ()=0</td></tr>
 <tr class="separator:a54c7987cedbb47d7652a9e2ceb1c0d82"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acb78df0bfdffe89b26253b8ecf76f6d6"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#acb78df0bfdffe89b26253b8ecf76f6d6">get_packets_stats</a> ()=0</td></tr>
-<tr class="separator:acb78df0bfdffe89b26253b8ecf76f6d6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b81d078104a3151a459d13e152d6ca2"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_test_face.html#a8b81d078104a3151a459d13e152d6ca2">get_all_nodes</a> ()=0</td></tr>
 <tr class="separator:a8b81d078104a3151a459d13e152d6ca2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_server_interface"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_server_interface')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_server_interface.html">ServerInterface&lt; TestFace &gt;</a></td></tr>
@@ -360,69 +356,6 @@ Additional Inherited Members</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">virtual void taraxa::net::TestFace::get_node_statusI </td>
-          <td>(</td>
-          <td class="paramtype">const Json::Value &amp;&#160;</td>
-          <td class="paramname"><em>request</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">Json::Value &amp;&#160;</td>
-          <td class="paramname"><em>response</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="acb78df0bfdffe89b26253b8ecf76f6d6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acb78df0bfdffe89b26253b8ecf76f6d6">&#9670;&nbsp;</a></span>get_packets_stats()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual Json::Value taraxa::net::TestFace::get_packets_stats </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Implemented in <a class="el" href="classtaraxa_1_1net_1_1_test.html#a81dd0add4f2682cd7e2c05d72b0bfe66">taraxa::net::Test</a>.</p>
-
-</div>
-</div>
-<a id="a2aca26fe832ac9098eef489633dd8711"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2aca26fe832ac9098eef489633dd8711">&#9670;&nbsp;</a></span>get_packets_statsI()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">virtual void taraxa::net::TestFace::get_packets_statsI </td>
           <td>(</td>
           <td class="paramtype">const Json::Value &amp;&#160;</td>
           <td class="paramname"><em>request</em>, </td>

@@ -1,7 +1,6 @@
 var classtaraxa_1_1network_1_1tarcap_1_1_node_stats =
 [
-    [ "NodeStats", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a71e4247f0eb231474621accba6ae3c32", null ],
-    [ "getPacketsStats", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#adee217df8afd195899bbfc8f4fc3f5e3", null ],
+    [ "NodeStats", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a69c0e66aeb2519bbdc79bf87e496f181", null ],
     [ "getStatus", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#ac6f46e20d6b707c66ca7a0b184c00d28", null ],
     [ "logNodeStats", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a24c5620e6bb35000d3886663ce4a2ac2", null ],
     [ "syncTimeSeconds", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#ab00824d5ed31f5b77860715376c8b011", null ],
@@ -12,7 +11,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_node_stats =
     [ "local_max_level_in_dag_prev_interval_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#aeb19852ece458f1bdf5b8c1a0b0b855b", null ],
     [ "local_pbft_round_prev_interval_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a38b65a6499eccaf9c017fcd06de1571f", null ],
     [ "local_pbft_sync_period_prev_interval_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a20852311c92db303133b6d395a01d4e9", null ],
-    [ "packets_stats_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a700f8be150c4936b5b51ae54ee038414", null ],
+    [ "packets_stats_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a0997a3935943d78b2a9977f0b45023a2", null ],
     [ "pbft_chain_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a84eb4ab3fed4f3ed03b293d18aad27bc", null ],
     [ "pbft_mgr_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#af6078adea51b53762fed5c0bcb34bdbc", null ],
     [ "pbft_syncing_state_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a898cb3b0af9a46cffe337767455edc6a", null ],

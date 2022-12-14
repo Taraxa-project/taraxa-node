@@ -1,5 +1,9 @@
 var NAVTREEINDEX16 =
 {
+"group___vote.html#a5b8927447804e3384e9dc32a76b51258":[12,4,1,44],
+"group___vote.html#a610b26e9e0c08e26983bc20c05ab00d2":[12,4,0,5],
+"group___vote.html#a6288475206d07e28b0fd193b001911a3":[12,4,4,3],
+"group___vote.html#a6528bb14bb94e196d5ffb65693acda19":[12,4,2,23],
 "group___vote.html#a657bbf95ad1866cbf01a6f170998bce2":[12,4,1,24],
 "group___vote.html#a66e72e969ea4bdbefd3a0ed0e620bd23":[12,4,1,14],
 "group___vote.html#a67109b03711bf2a2d2ea9a60c660c113":[12,4,1,23],
@@ -245,9 +249,5 @@ var NAVTREEINDEX16 =
 "libdevcore_2_exceptions_8h.html#afe355b8bc62d396302fc16b2a0856516":[15,0,1,0,0,12,20],
 "libdevcore_2_exceptions_8h_source.html":[15,0,1,0,0,12],
 "libdevcrypto_2_common_8cpp.html":[15,0,1,0,1,2],
-"libdevcrypto_2_common_8cpp.html#ab309954fe1c9914c26899b796de49926":[15,0,1,0,1,2,0],
-"libdevcrypto_2_common_8h.html":[15,0,1,0,1,3],
-"libdevcrypto_2_common_8h.html#a0266517d70437660a08b9f6166572eb3":[15,0,1,0,1,3,4],
-"libdevcrypto_2_common_8h.html#a04a16f8a4c264a7868151d49e2223f04":[15,0,1,0,1,3,5],
-"libdevcrypto_2_common_8h.html#a0842f17403d63f4a260d5283ae5fb3a7":[15,0,1,0,1,3,28]
+"libdevcrypto_2_common_8cpp.html#ab309954fe1c9914c26899b796de49926":[15,0,1,0,1,2,0]
 };

@@ -97,10 +97,12 @@ Collaboration diagram for taraxa::network::tarcap::TaraxaPeer:</div>
 <div class="dyncontent">
 <div class="center"><img src="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer__coll__graph.png" border="0" usemap="#ataraxa_1_1network_1_1tarcap_1_1_taraxa_peer_coll__map" alt="Collaboration graph"/></div>
 <map name="ataraxa_1_1network_1_1tarcap_1_1_taraxa_peer_coll__map" id="ataraxa_1_1network_1_1tarcap_1_1_taraxa_peer_coll__map">
-<area shape="rect" title=" " alt="" coords="175,183,350,224"/>
-<area shape="rect" title=" " alt="" coords="5,13,155,39"/>
-<area shape="rect" href="class_expiration_cache.html" title=" " alt="" coords="179,5,346,47"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="371,13,531,39"/>
+<area shape="rect" title=" " alt="" coords="711,135,885,177"/>
+<area shape="rect" title=" " alt="" coords="365,5,514,32"/>
+<area shape="rect" href="class_expiration_cache.html" title=" " alt="" coords="356,99,523,141"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="359,165,519,192"/>
+<area shape="rect" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html" title="Stats for all packet types." alt="" coords="352,217,527,258"/>
+<area shape="rect" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html" title="Stats single packet type." alt="" coords="5,217,180,258"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -110,37 +112,45 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ae9b3def56efaad65ee07dc1090522860"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a367c830e803fd80a33ae63551fc37e3f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a367c830e803fd80a33ae63551fc37e3f">TaraxaPeer</a> (const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;id, size_t transaction_pool_size)</td></tr>
 <tr class="separator:a367c830e803fd80a33ae63551fc37e3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a21918e36afa156b256c76c1415d439f8"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a21918e36afa156b256c76c1415d439f8">markDagBlockAsKnown</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;_hash)</td></tr>
-<tr class="memdesc:a21918e36afa156b256c76c1415d439f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark dag block as known.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a21918e36afa156b256c76c1415d439f8">More...</a><br /></td></tr>
-<tr class="separator:a21918e36afa156b256c76c1415d439f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7314d5de69e76bb266d81a88dc212585"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a7314d5de69e76bb266d81a88dc212585">isDagBlockKnown</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;_hash) const</td></tr>
-<tr class="separator:a7314d5de69e76bb266d81a88dc212585"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a61b9f64654fdf5d82bda92c7be12dcb4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a61b9f64654fdf5d82bda92c7be12dcb4">markTransactionAsKnown</a> (<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> const &amp;_hash)</td></tr>
-<tr class="memdesc:a61b9f64654fdf5d82bda92c7be12dcb4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark transaction as known.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a61b9f64654fdf5d82bda92c7be12dcb4">More...</a><br /></td></tr>
-<tr class="separator:a61b9f64654fdf5d82bda92c7be12dcb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a87587a1a84b62916298c7aa60d3b6509"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a87587a1a84b62916298c7aa60d3b6509">isTransactionKnown</a> (<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> const &amp;_hash) const</td></tr>
-<tr class="separator:a87587a1a84b62916298c7aa60d3b6509"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a60b98d6d58fa7ca79e6d62306cf6729d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a60b98d6d58fa7ca79e6d62306cf6729d">markVoteAsKnown</a> (<a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> const &amp;_hash)</td></tr>
-<tr class="memdesc:a60b98d6d58fa7ca79e6d62306cf6729d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark vote as known.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a60b98d6d58fa7ca79e6d62306cf6729d">More...</a><br /></td></tr>
-<tr class="separator:a60b98d6d58fa7ca79e6d62306cf6729d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a71db766d0999e6f6e568035b0dd3731f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a71db766d0999e6f6e568035b0dd3731f">isVoteKnown</a> (<a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> const &amp;_hash) const</td></tr>
-<tr class="separator:a71db766d0999e6f6e568035b0dd3731f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aef773e5fefc9aa00e965e362efd72c82"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#aef773e5fefc9aa00e965e362efd72c82">markPbftBlockAsKnown</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;_hash)</td></tr>
-<tr class="memdesc:aef773e5fefc9aa00e965e362efd72c82"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark pbft block as known.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#aef773e5fefc9aa00e965e362efd72c82">More...</a><br /></td></tr>
-<tr class="separator:aef773e5fefc9aa00e965e362efd72c82"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4a9280c100cbd6f847124953cab761f4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a4a9280c100cbd6f847124953cab761f4">isPbftBlockKnown</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;_hash) const</td></tr>
-<tr class="separator:a4a9280c100cbd6f847124953cab761f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aac167e4f756ff33ea8b73709f94c7ebb"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#aac167e4f756ff33ea8b73709f94c7ebb">getId</a> () const</td></tr>
-<tr class="separator:aac167e4f756ff33ea8b73709f94c7ebb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d0440c826c6fbff002b249508466706"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a6d0440c826c6fbff002b249508466706">markDagBlockAsKnown</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;hash)</td></tr>
+<tr class="memdesc:a6d0440c826c6fbff002b249508466706"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark dag block as known.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a6d0440c826c6fbff002b249508466706">More...</a><br /></td></tr>
+<tr class="separator:a6d0440c826c6fbff002b249508466706"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af7092b677e703e591e03e31a74b0670a"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#af7092b677e703e591e03e31a74b0670a">isDagBlockKnown</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;hash) const</td></tr>
+<tr class="separator:af7092b677e703e591e03e31a74b0670a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad107e33c94b8e85de83913c593fc8960"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ad107e33c94b8e85de83913c593fc8960">markTransactionAsKnown</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;hash)</td></tr>
+<tr class="memdesc:ad107e33c94b8e85de83913c593fc8960"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark transaction as known.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ad107e33c94b8e85de83913c593fc8960">More...</a><br /></td></tr>
+<tr class="separator:ad107e33c94b8e85de83913c593fc8960"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92fdd74f7542117a51261fe29d30f616"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a92fdd74f7542117a51261fe29d30f616">isTransactionKnown</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;hash) const</td></tr>
+<tr class="separator:a92fdd74f7542117a51261fe29d30f616"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a14a9f8b7680551bb5cad1a13ffe313de"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a14a9f8b7680551bb5cad1a13ffe313de">markVoteAsKnown</a> (const <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &amp;hash)</td></tr>
+<tr class="memdesc:a14a9f8b7680551bb5cad1a13ffe313de"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark vote as known.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a14a9f8b7680551bb5cad1a13ffe313de">More...</a><br /></td></tr>
+<tr class="separator:a14a9f8b7680551bb5cad1a13ffe313de"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aaa65ff837ae19fbf6f473b1ff51cddfe"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#aaa65ff837ae19fbf6f473b1ff51cddfe">isVoteKnown</a> (const <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &amp;hash) const</td></tr>
+<tr class="separator:aaa65ff837ae19fbf6f473b1ff51cddfe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a91f4368f2e287f0ebe99cc5ab9841736"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a91f4368f2e287f0ebe99cc5ab9841736">markPbftBlockAsKnown</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;hash)</td></tr>
+<tr class="memdesc:a91f4368f2e287f0ebe99cc5ab9841736"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark pbft block as known.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a91f4368f2e287f0ebe99cc5ab9841736">More...</a><br /></td></tr>
+<tr class="separator:a91f4368f2e287f0ebe99cc5ab9841736"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a677d2f7a7de2997dcbceb6e5ed4d3b29"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a677d2f7a7de2997dcbceb6e5ed4d3b29">isPbftBlockKnown</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;hash) const</td></tr>
+<tr class="separator:a677d2f7a7de2997dcbceb6e5ed4d3b29"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa3aa3db6733dbb28af4351fcadc1c02e"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#aa3aa3db6733dbb28af4351fcadc1c02e">getId</a> () const</td></tr>
+<tr class="separator:aa3aa3db6733dbb28af4351fcadc1c02e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab011392ed8dd7d78307fc747e9917b76"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ab011392ed8dd7d78307fc747e9917b76">reportSuspiciousPacket</a> ()</td></tr>
 <tr class="memdesc:ab011392ed8dd7d78307fc747e9917b76"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reports suspicious pacet.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ab011392ed8dd7d78307fc747e9917b76">More...</a><br /></td></tr>
 <tr class="separator:ab011392ed8dd7d78307fc747e9917b76"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3e954b2f3603e67d27d19ea2af942a34"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a3e954b2f3603e67d27d19ea2af942a34">dagSyncingAllowed</a> ()</td></tr>
-<tr class="memdesc:a3e954b2f3603e67d27d19ea2af942a34"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if it is allowed to send dag syncing request.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a3e954b2f3603e67d27d19ea2af942a34">More...</a><br /></td></tr>
-<tr class="separator:a3e954b2f3603e67d27d19ea2af942a34"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acd7570ded3c179df20eeb1750866e1aa"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#acd7570ded3c179df20eeb1750866e1aa">requestDagSyncingAllowed</a> ()</td></tr>
-<tr class="memdesc:acd7570ded3c179df20eeb1750866e1aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if it is allowed to receive dag syncing request.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#acd7570ded3c179df20eeb1750866e1aa">More...</a><br /></td></tr>
-<tr class="separator:acd7570ded3c179df20eeb1750866e1aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2ca9c17057d092453dd4e0337a27bafe"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a2ca9c17057d092453dd4e0337a27bafe">dagSyncingAllowed</a> () const</td></tr>
+<tr class="memdesc:a2ca9c17057d092453dd4e0337a27bafe"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if it is allowed to send dag syncing request.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a2ca9c17057d092453dd4e0337a27bafe">More...</a><br /></td></tr>
+<tr class="separator:a2ca9c17057d092453dd4e0337a27bafe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a056101dcc9778dd470abcb835e0f8044"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a056101dcc9778dd470abcb835e0f8044">requestDagSyncingAllowed</a> () const</td></tr>
+<tr class="memdesc:a056101dcc9778dd470abcb835e0f8044"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if it is allowed to receive dag syncing request.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a056101dcc9778dd470abcb835e0f8044">More...</a><br /></td></tr>
+<tr class="separator:a056101dcc9778dd470abcb835e0f8044"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa4e1e9682330387196553d5ecc8f17fb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#aa4e1e9682330387196553d5ecc8f17fb">addSentPacket</a> (const std::string &amp;packet_type, const <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html">PacketStats</a> &amp;packet)</td></tr>
+<tr class="memdesc:aa4e1e9682330387196553d5ecc8f17fb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Adds packet to the stats.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#aa4e1e9682330387196553d5ecc8f17fb">More...</a><br /></td></tr>
+<tr class="separator:aa4e1e9682330387196553d5ecc8f17fb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad1b292988be596017f166bec2a51ac6"><td class="memItemLeft" align="right" valign="top">std::pair&lt; std::chrono::system_clock::time_point, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html">PacketStats</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#aad1b292988be596017f166bec2a51ac6">getAllPacketsStatsCopy</a> () const</td></tr>
+<tr class="separator:aad1b292988be596017f166bec2a51ac6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12ad09bcae81855dfe143c889554a95a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a12ad09bcae81855dfe143c889554a95a">resetPacketsStats</a> ()</td></tr>
+<tr class="memdesc:a12ad09bcae81855dfe143c889554a95a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resets sent packets stats.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a12ad09bcae81855dfe143c889554a95a">More...</a><br /></td></tr>
+<tr class="separator:a12ad09bcae81855dfe143c889554a95a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -195,6 +205,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:ab3bbe4adc4861112464995c4a54eff8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a301deafbd1816dac80780aee08811c85"><td class="memItemLeft" align="right" valign="top">const uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a301deafbd1816dac80780aee08811c85">kDagSyncingLimit</a> = 300</td></tr>
 <tr class="separator:a301deafbd1816dac80780aee08811c85"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad20e60754ea475bcba106a215aee3cd2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html">PacketsStats</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ad20e60754ea475bcba106a215aee3cd2">sent_packets_stats_</a></td></tr>
+<tr class="separator:ad20e60754ea475bcba106a215aee3cd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="ae9b3def56efaad65ee07dc1090522860"></a>
@@ -202,9 +214,6 @@ Private Attributes</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">taraxa::network::tarcap::TaraxaPeer::TaraxaPeer </td>
@@ -213,11 +222,6 @@ Private Attributes</h2></td></tr>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 </div>
@@ -227,9 +231,6 @@ Private Attributes</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">taraxa::network::tarcap::TaraxaPeer::TaraxaPeer </td>
@@ -249,37 +250,61 @@ Private Attributes</h2></td></tr>
           <td></td><td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">explicit</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a3e954b2f3603e67d27d19ea2af942a34"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3e954b2f3603e67d27d19ea2af942a34">&#9670;&nbsp;</a></span>dagSyncingAllowed()</h2>
+<a id="aa4e1e9682330387196553d5ecc8f17fb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa4e1e9682330387196553d5ecc8f17fb">&#9670;&nbsp;</a></span>addSentPacket()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::network::tarcap::TaraxaPeer::addSentPacket </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>packet_type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html">PacketStats</a> &amp;&#160;</td>
+          <td class="paramname"><em>packet</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Adds packet to the stats. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">packet_type</td><td></td></tr>
+    <tr><td class="paramname">packet</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a2ca9c17057d092453dd4e0337a27bafe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2ca9c17057d092453dd4e0337a27bafe">&#9670;&nbsp;</a></span>dagSyncingAllowed()</h2>
+
+<div class="memitem">
+<div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname">bool taraxa::network::tarcap::TaraxaPeer::dagSyncingAllowed </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td></td>
+          <td> const</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Check if it is allowed to send dag syncing request. </p>
@@ -287,157 +312,127 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="aac167e4f756ff33ea8b73709f94c7ebb"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aac167e4f756ff33ea8b73709f94c7ebb">&#9670;&nbsp;</a></span>getId()</h2>
+<a id="aad1b292988be596017f166bec2a51ac6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aad1b292988be596017f166bec2a51ac6">&#9670;&nbsp;</a></span>getAllPacketsStatsCopy()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a>&amp; taraxa::network::tarcap::TaraxaPeer::getId </td>
+          <td class="memname">std::pair&lt; std::chrono::system_clock::time_point, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html">PacketStats</a> &gt; taraxa::network::tarcap::TaraxaPeer::getAllPacketsStatsCopy </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>AllPacketsStats - packets stats for packets received from peer </dd></dl>
+
+</div>
+</div>
+<a id="aa3aa3db6733dbb28af4351fcadc1c02e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa3aa3db6733dbb28af4351fcadc1c02e">&#9670;&nbsp;</a></span>getId()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp; taraxa::network::tarcap::TaraxaPeer::getId </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a7314d5de69e76bb266d81a88dc212585"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7314d5de69e76bb266d81a88dc212585">&#9670;&nbsp;</a></span>isDagBlockKnown()</h2>
+<a id="af7092b677e703e591e03e31a74b0670a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af7092b677e703e591e03e31a74b0670a">&#9670;&nbsp;</a></span>isDagBlockKnown()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">bool taraxa::network::tarcap::TaraxaPeer::isDagBlockKnown </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;&#160;</td>
-          <td class="paramname"><em>_hash</em></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>hash</em></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a4a9280c100cbd6f847124953cab761f4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4a9280c100cbd6f847124953cab761f4">&#9670;&nbsp;</a></span>isPbftBlockKnown()</h2>
+<a id="a677d2f7a7de2997dcbceb6e5ed4d3b29"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a677d2f7a7de2997dcbceb6e5ed4d3b29">&#9670;&nbsp;</a></span>isPbftBlockKnown()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">bool taraxa::network::tarcap::TaraxaPeer::isPbftBlockKnown </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;&#160;</td>
-          <td class="paramname"><em>_hash</em></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>hash</em></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a87587a1a84b62916298c7aa60d3b6509"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a87587a1a84b62916298c7aa60d3b6509">&#9670;&nbsp;</a></span>isTransactionKnown()</h2>
+<a id="a92fdd74f7542117a51261fe29d30f616"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92fdd74f7542117a51261fe29d30f616">&#9670;&nbsp;</a></span>isTransactionKnown()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">bool taraxa::network::tarcap::TaraxaPeer::isTransactionKnown </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> const &amp;&#160;</td>
-          <td class="paramname"><em>_hash</em></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>hash</em></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a71db766d0999e6f6e568035b0dd3731f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a71db766d0999e6f6e568035b0dd3731f">&#9670;&nbsp;</a></span>isVoteKnown()</h2>
+<a id="aaa65ff837ae19fbf6f473b1ff51cddfe"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aaa65ff837ae19fbf6f473b1ff51cddfe">&#9670;&nbsp;</a></span>isVoteKnown()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">bool taraxa::network::tarcap::TaraxaPeer::isVoteKnown </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> const &amp;&#160;</td>
-          <td class="paramname"><em>_hash</em></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>hash</em></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a21918e36afa156b256c76c1415d439f8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a21918e36afa156b256c76c1415d439f8">&#9670;&nbsp;</a></span>markDagBlockAsKnown()</h2>
+<a id="a6d0440c826c6fbff002b249508466706"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6d0440c826c6fbff002b249508466706">&#9670;&nbsp;</a></span>markDagBlockAsKnown()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">bool taraxa::network::tarcap::TaraxaPeer::markDagBlockAsKnown </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;&#160;</td>
-          <td class="paramname"><em>_hash</em></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>hash</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Mark dag block as known. </p>
@@ -451,28 +446,20 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="aef773e5fefc9aa00e965e362efd72c82"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aef773e5fefc9aa00e965e362efd72c82">&#9670;&nbsp;</a></span>markPbftBlockAsKnown()</h2>
+<a id="a91f4368f2e287f0ebe99cc5ab9841736"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a91f4368f2e287f0ebe99cc5ab9841736">&#9670;&nbsp;</a></span>markPbftBlockAsKnown()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">bool taraxa::network::tarcap::TaraxaPeer::markPbftBlockAsKnown </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;&#160;</td>
-          <td class="paramname"><em>_hash</em></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>hash</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Mark pbft block as known. </p>
@@ -486,28 +473,20 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a61b9f64654fdf5d82bda92c7be12dcb4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a61b9f64654fdf5d82bda92c7be12dcb4">&#9670;&nbsp;</a></span>markTransactionAsKnown()</h2>
+<a id="ad107e33c94b8e85de83913c593fc8960"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad107e33c94b8e85de83913c593fc8960">&#9670;&nbsp;</a></span>markTransactionAsKnown()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">bool taraxa::network::tarcap::TaraxaPeer::markTransactionAsKnown </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> const &amp;&#160;</td>
-          <td class="paramname"><em>_hash</em></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>hash</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Mark transaction as known. </p>
@@ -521,28 +500,20 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a60b98d6d58fa7ca79e6d62306cf6729d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a60b98d6d58fa7ca79e6d62306cf6729d">&#9670;&nbsp;</a></span>markVoteAsKnown()</h2>
+<a id="a14a9f8b7680551bb5cad1a13ffe313de"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a14a9f8b7680551bb5cad1a13ffe313de">&#9670;&nbsp;</a></span>markVoteAsKnown()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">bool taraxa::network::tarcap::TaraxaPeer::markVoteAsKnown </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> const &amp;&#160;</td>
-          <td class="paramname"><em>_hash</em></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>hash</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Mark vote as known. </p>
@@ -561,9 +532,6 @@ Private Attributes</h2></td></tr>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">bool taraxa::network::tarcap::TaraxaPeer::reportSuspiciousPacket </td>
@@ -572,11 +540,6 @@ Private Attributes</h2></td></tr>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Reports suspicious pacet. </p>
@@ -584,31 +547,42 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="acd7570ded3c179df20eeb1750866e1aa"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acd7570ded3c179df20eeb1750866e1aa">&#9670;&nbsp;</a></span>requestDagSyncingAllowed()</h2>
+<a id="a056101dcc9778dd470abcb835e0f8044"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a056101dcc9778dd470abcb835e0f8044">&#9670;&nbsp;</a></span>requestDagSyncingAllowed()</h2>
 
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">bool taraxa::network::tarcap::TaraxaPeer::requestDagSyncingAllowed </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td></td>
+          <td> const</td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Check if it is allowed to receive dag syncing request. </p>
 <dl class="section return"><dt>Returns</dt><dd>true if allowed </dd></dl>
+
+</div>
+</div>
+<a id="a12ad09bcae81855dfe143c889554a95a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12ad09bcae81855dfe143c889554a95a">&#9670;&nbsp;</a></span>resetPacketsStats()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::network::tarcap::TaraxaPeer::resetPacketsStats </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Resets sent packets stats. </p>
 
 </div>
 </div>
@@ -971,6 +945,28 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="ad20e60754ea475bcba106a215aee3cd2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad20e60754ea475bcba106a215aee3cd2">&#9670;&nbsp;</a></span>sent_packets_stats_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html">PacketsStats</a> taraxa::network::tarcap::TaraxaPeer::sent_packets_stats_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a2ed69c0f95a95ce97ea3d7d672add234"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2ed69c0f95a95ce97ea3d7d672add234">&#9670;&nbsp;</a></span>suspicious_packet_count_</h2>
 
@@ -1029,8 +1025,9 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<hr/>The documentation for this class was generated from the following file:<ul>
+<hr/>The documentation for this class was generated from the following files:<ul>
 <li>libraries/core_libs/network/include/network/tarcap/<a class="el" href="taraxa__peer_8hpp_source.html">taraxa_peer.hpp</a></li>
+<li>libraries/core_libs/network/src/tarcap/<a class="el" href="taraxa__peer_8cpp.html">taraxa_peer.cpp</a></li>
 </ul>
 </div><!-- contents -->
 </div><!-- doc-content -->

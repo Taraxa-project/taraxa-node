@@ -9,7 +9,6 @@ var hierarchy =
     ] ],
     [ "graphql::taraxa::Account", "classgraphql_1_1taraxa_1_1_account.html", null ],
     [ "taraxa::state_api::Account", "group___final_chain.html#structtaraxa_1_1state__api_1_1_account", null ],
-    [ "taraxa::network::tarcap::AllPacketTypesStats", "classtaraxa_1_1network_1_1tarcap_1_1_all_packet_types_stats.html", null ],
     [ "graphql::taraxa::Block", "classgraphql_1_1taraxa_1_1_block.html", null ],
     [ "taraxa::final_chain::BlockHeader", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header", null ],
     [ "dev::p2p::Capability", "structdev_1_1p2p_1_1_capability.html", [
@@ -200,6 +199,7 @@ var hierarchy =
     [ "taraxa::MapByBlockCache< Key, Value >", "classtaraxa_1_1_map_by_block_cache.html", null ],
     [ "taraxa::MapByBlockCache< dev::FixedHash, std::optional< const taraxa::state_api::Account > >", "classtaraxa_1_1_map_by_block_cache.html", null ],
     [ "taraxa::MapByBlockCache< dev::FixedHash, uint64_t >", "classtaraxa_1_1_map_by_block_cache.html", null ],
+    [ "taraxa::network::tarcap::MaxStats", "classtaraxa_1_1network_1_1tarcap_1_1_max_stats.html", null ],
     [ "graphql::taraxa::Mutation", "classgraphql_1_1taraxa_1_1_mutation.html", null ],
     [ "dev::p2p::Neighbours::Neighbour", "structdev_1_1p2p_1_1_neighbours_1_1_neighbour.html", null ],
     [ "dev::p2p::Network", "classdev_1_1p2p_1_1_network.html", null ],
@@ -251,7 +251,7 @@ var hierarchy =
     [ "taraxa::network::tarcap::PacketsHandler", "classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html", null ],
     [ "taraxa::network::tarcap::PacketsQueue", "classtaraxa_1_1network_1_1tarcap_1_1_packets_queue.html", null ],
     [ "taraxa::network::tarcap::PacketsStats", "classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html", null ],
-    [ "taraxa::network::tarcap::AllPacketTypesStats::PacketTypeStats", "structtaraxa_1_1network_1_1tarcap_1_1_all_packet_types_stats_1_1_packet_type_stats.html", null ],
+    [ "taraxa::network::tarcap::PacketStats", "classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html", null ],
     [ "taraxa::PbftBlock", "group___p_b_f_t.html#classtaraxa_1_1_pbft_block", null ],
     [ "taraxa::PbftChain", "group___p_b_f_t.html#classtaraxa_1_1_pbft_chain", null ],
     [ "taraxa::PbftConfig", "structtaraxa_1_1_pbft_config.html", null ],
@@ -320,7 +320,6 @@ var hierarchy =
       ] ]
     ] ],
     [ "dev::SignatureStruct", "structdev_1_1_signature_struct.html", null ],
-    [ "taraxa::network::tarcap::SinglePacketStats", "structtaraxa_1_1network_1_1tarcap_1_1_single_packet_stats.html", null ],
     [ "taraxa::SortitionParams", "structtaraxa_1_1_sortition_params.html", [
       [ "taraxa::SortitionConfig", "structtaraxa_1_1_sortition_config.html", null ]
     ] ],
@@ -344,6 +343,7 @@ var hierarchy =
     [ "ThreadSafeMap< Key, Value >", "class_thread_safe_map.html", null ],
     [ "ThreadSafeMap< dev::FixedHash, std::chrono::steady_clock::time_point >", "class_thread_safe_map.html", null ],
     [ "ThreadSafeSet< Key >", "class_thread_safe_set.html", null ],
+    [ "taraxa::network::tarcap::TimePeriodPacketsStats", "classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html", null ],
     [ "dev::Timer", "classdev_1_1_timer.html", null ],
     [ "dev::TimerHelper", "classdev_1_1_timer_helper.html", null ],
     [ "taraxa::Transaction", "structtaraxa_1_1_transaction.html", null ],

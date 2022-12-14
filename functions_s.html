@@ -195,9 +195,6 @@ $(document).ready(function(){initNavTree('functions_s.html',''); initResizable()
 <li>seen_blocks_
 : <a class="el" href="group___d_a_g.html#a9882c7cb659923bc340e19ec1031eae6">taraxa::DagManager</a>
 </li>
-<li>seen_dags_
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html#a6c58107085d700228e23d085d264f6b0">taraxa::network::tarcap::DagBlockPacketHandler</a>
-</li>
 <li>seen_votes_
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a3563daa113e2ca9ce581f7733e4bd960">taraxa::network::tarcap::VotePacketHandler</a>
 </li>
@@ -269,7 +266,8 @@ $(document).ready(function(){initNavTree('functions_s.html',''); initResizable()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a5f7de89d122bca14cfbaa4fce0ad5a63">taraxa::network::tarcap::TransactionPacketHandler</a>
 </li>
 <li>sent_packets_stats_
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html#a7a001cfafa5cd5b7a5dd453b7423b238">taraxa::network::tarcap::PacketsStats</a>
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ad20e60754ea475bcba106a215aee3cd2">taraxa::network::tarcap::TaraxaPeer</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html#add22886ac239adcec71417cdb708f920">taraxa::network::tarcap::TimePeriodPacketsStats</a>
 </li>
 <li>seq
 : <a class="el" href="structdev_1_1p2p_1_1_ping_node.html#a3540e0f68e2c80d9cdb731c18739c4c2">dev::p2p::PingNode</a>
@@ -467,8 +465,7 @@ $(document).ready(function(){initNavTree('functions_s.html',''); initResizable()
 , <a class="el" href="class_thread_safe_set.html#aea977abaea2a41c5b369a2cbcadef92c">ThreadSafeSet&lt; Key &gt;</a>
 </li>
 <li>size_
-: <a class="el" href="structtaraxa_1_1network_1_1tarcap_1_1_all_packet_types_stats_1_1_packet_type_stats.html#ae51b09cf8633aaa79bc7767351c66fb0">taraxa::network::tarcap::AllPacketTypesStats::PacketTypeStats</a>
-, <a class="el" href="structtaraxa_1_1network_1_1tarcap_1_1_single_packet_stats.html#a012bff13f3868d7270fbc35834aba990">taraxa::network::tarcap::SinglePacketStats</a>
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html#a10c3d8599ea42f12cb11065485333d9d">taraxa::network::tarcap::PacketStats</a>
 , <a class="el" href="group___p_b_f_t.html#a4cbac9a55aeb28e499888266e1988fd0">taraxa::PbftChain</a>
 </li>
 <li>size_t
@@ -547,6 +544,9 @@ $(document).ready(function(){initNavTree('functions_s.html',''); initResizable()
 , <a class="el" href="group___p_b_f_t.html#a2592f1fa6ffb499e1886827e8e904e29">taraxa::PbftManager</a>
 , <a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html#af9a538ba805c416624b2d634c81f04aa">taraxa::util::ThreadPool</a>
 </li>
+<li>start_time_
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html#a2bbc00a075ab808aff24f0f73ecf33ad">taraxa::network::tarcap::PacketsStats</a>
+</li>
 <li>started_
 : <a class="el" href="classtaraxa_1_1_full_node.html#a324cf17816fc78dafaf48adaa39bebac">taraxa::FullNode</a>
 </li>
@@ -598,16 +598,13 @@ $(document).ready(function(){initNavTree('functions_s.html',''); initResizable()
 : <a class="el" href="structtaraxa_1_1_pbft_config.html#af239b4665e0acfcb9c038019ab5acd11">taraxa::PbftConfig</a>
 </li>
 <li>StateAPI()
-: <a class="el" href="group___final_chain.html#a1fac277cc4a1ad6889438d90435770e5">taraxa::state_api::StateAPI</a>
+: <a class="el" href="group___final_chain.html#a5dfe1f47f0ebe2356a2620d0a212e5ef">taraxa::state_api::StateAPI</a>
 </li>
 <li>stateDbStoragePath()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a3dc4827d96659dc2ea04610a6e31216c">taraxa::DbStorage</a>
 </li>
 <li>stateOperations_()
 : <a class="el" href="group___p_b_f_t.html#a5734de8f8252ba4603d5250393f8bdd8">taraxa::PbftManager</a>
-</li>
-<li>stats_
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_all_packet_types_stats.html#a46363fd8805000fb4d93f5e157d9a036">taraxa::network::tarcap::AllPacketTypesStats</a>
 </li>
 <li>status_
 : <a class="el" href="classtaraxa_1_1_status_table.html#aa0854e52dcdb01ba7afbc553c6ac203d">taraxa::StatusTable&lt; K, V &gt;</a>
@@ -616,7 +613,7 @@ $(document).ready(function(){initNavTree('functions_s.html',''); initResizable()
 : <a class="el" href="group___final_chain.html#a638cdb2e246e18eeafe1ed33cca7c50f">taraxa::final_chain::TransactionReceipt</a>
 </li>
 <li>StatusPacketHandler()
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#a39b26146f6db6d8802fd5647410f9008">taraxa::network::tarcap::StatusPacketHandler</a>
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#a012dc95c3c363150635b3ffb84f1704a">taraxa::network::tarcap::StatusPacketHandler</a>
 </li>
 <li>StatusTable()
 : <a class="el" href="classtaraxa_1_1_status_table.html#a5cdbbcb65bdb2feb29e8ad5fa0bfcdf2">taraxa::StatusTable&lt; K, V &gt;</a>
