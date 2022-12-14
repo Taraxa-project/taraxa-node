@@ -64,8 +64,7 @@ TEST_F(VoteTest, verified_votes) {
   auto node = create_nodes(1, true /*start*/).front();
 
   // stop PBFT manager, that will place vote
-  auto pbft_mgr = node->getPbftManager();
-  pbft_mgr->stop();
+  node->getPbftManager()->stop();
 
   auto [period, round] = clearAllVotes({node});
   std::cout << "[TODO REMOVE] Clear all votes returned period " << period << ", round " << round << std::endl;
@@ -74,7 +73,7 @@ TEST_F(VoteTest, verified_votes) {
   blk_hash_t blockhash(1);
   PbftVoteTypes type = PbftVoteTypes::soft_vote;
   PbftStep step = 2;
-  auto vote = pbft_mgr->generateVote(blockhash, type, period, round, step);
+  auto vote = node->getVoteManager()->generateVote(blockhash, type, period, round, step);
   vote->calculateWeight(1, 1, 1);
 
   auto vote_mgr = node->getVoteManager();
@@ -101,8 +100,7 @@ TEST_F(VoteTest, DISABLED_add_cleanup_get_votes) {
   auto node = create_nodes(1, true /*start*/).front();
 
   // stop PBFT manager, that will place vote
-  auto pbft_mgr = node->getPbftManager();
-  pbft_mgr->stop();
+  node->getPbftManager()->stop();
 
   clearAllVotes({node});
 
@@ -115,7 +113,7 @@ TEST_F(VoteTest, DISABLED_add_cleanup_get_votes) {
       PbftPeriod period = i;
       PbftRound round = 1;
       PbftStep step = 3 + j;
-      auto vote = pbft_mgr->generateVote(voted_block_hash, type, period, round, step);
+      auto vote = vote_mgr->generateVote(voted_block_hash, type, period, round, step);
       vote->calculateWeight(1, 1, 1);
       vote_mgr->addVerifiedVote(vote);
     }
@@ -146,8 +144,7 @@ TEST_F(VoteTest, round_determine_from_next_votes) {
   auto node = create_nodes(1, true /*start*/).front();
 
   // stop PBFT manager, that will place vote
-  auto pbft_mgr = node->getPbftManager();
-  pbft_mgr->stop();
+  node->getPbftManager()->stop();
 
   clearAllVotes({node});
 
@@ -162,7 +159,7 @@ TEST_F(VoteTest, round_determine_from_next_votes) {
       PbftPeriod period = i;
       PbftRound round = i;
       PbftStep step = j;
-      auto vote = pbft_mgr->generateVote(voted_block_hash, type, period, round, step);
+      auto vote = vote_mgr->generateVote(voted_block_hash, type, period, round, step);
       vote->calculateWeight(3, 3, 3);
       vote_mgr->addVerifiedVote(vote);
     }
@@ -200,10 +197,8 @@ TEST_F(VoteTest, transfer_vote) {
   std::shared_ptr<Network> nw2 = node2->getNetwork();
 
   // stop PBFT manager, that will place vote
-  std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
-  std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
-  pbft_mgr1->stop();
-  pbft_mgr2->stop();
+  node1->getPbftManager()->stop();
+  node2->getPbftManager()->stop();
 
   clearAllVotes({node1, node2});
 
@@ -213,7 +208,7 @@ TEST_F(VoteTest, transfer_vote) {
   PbftPeriod period = 1;
   PbftRound round = 1;
   PbftStep step = 1;
-  auto vote = pbft_mgr1->generateVote(propose_block_hash, type, period, round, step);
+  auto vote = node1->getVoteManager()->generateVote(propose_block_hash, type, period, round, step);
 
   nw1->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVote(nw1->getPeer(nw2->getNodeId()), vote,
                                                                               nullptr);
@@ -239,19 +234,20 @@ TEST_F(VoteTest, vote_broadcast) {
   pbft_mgr2->stop();
   pbft_mgr3->stop();
 
+  auto vote_mgr1 = node1->getVoteManager();
+  auto vote_mgr2 = node2->getVoteManager();
+  auto vote_mgr3 = node3->getVoteManager();
+
   auto [period, round] = clearAllVotes({node1, node2, node3});
 
   // generate a vote far ahead (never exist in PBFT manager)
   blk_hash_t propose_block_hash(111);
   PbftVoteTypes type = PbftVoteTypes::propose_vote;
   PbftStep step = 1;
-  auto vote = pbft_mgr1->generateVote(propose_block_hash, type, period, round, step);
+  auto vote = vote_mgr1->generateVote(propose_block_hash, type, period, round, step);
 
   node1->getNetwork()->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(vote, nullptr);
 
-  auto vote_mgr1 = node1->getVoteManager();
-  auto vote_mgr2 = node2->getVoteManager();
-  auto vote_mgr3 = node3->getVoteManager();
   EXPECT_HAPPENS({60s, 100ms}, [&](auto &ctx) {
     WAIT_EXPECT_EQ(ctx, vote_mgr2->getVerifiedVotesSize(), 1)
     WAIT_EXPECT_EQ(ctx, vote_mgr3->getVerifiedVotesSize(), 1)
@@ -265,8 +261,9 @@ TEST_F(VoteTest, previous_round_next_votes) {
   auto &node = nodes[0];
 
   // stop PBFT manager, that will place vote
-  auto pbft_mgr = node->getPbftManager();
-  pbft_mgr->stop();
+  node->getPbftManager()->stop();
+
+  auto vote_mgr = node->getVoteManager();
 
   // Clear unverfied/verified table/DB
   clearAllVotes({node});
@@ -276,7 +273,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   next_votes_mgr->clearVotes();
 
   const auto chain_size = node->getPbftChain()->getPbftChainSize();
-  auto pbft_2t_plus_1 = pbft_mgr->getPbftTwoTPlusOne(chain_size).value();
+  auto pbft_2t_plus_1 = vote_mgr->getPbftTwoTPlusOne(chain_size).value();
   EXPECT_EQ(pbft_2t_plus_1, 1);
 
   // Generate a vote voted at kNullBlockHash
@@ -285,7 +282,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   PbftRound round = 1;
   PbftStep step = 4;
   blk_hash_t voted_pbft_block_hash(0);
-  auto vote1 = pbft_mgr->generateVote(voted_pbft_block_hash, type, period, round, step);
+  auto vote1 = vote_mgr->generateVote(voted_pbft_block_hash, type, period, round, step);
   vote1->calculateWeight(1, 1, 1);
   std::vector<std::shared_ptr<Vote>> next_votes_1{vote1};
 
@@ -298,7 +295,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   // Generate a vote voted at value blk_hash_t(1)
   voted_pbft_block_hash = blk_hash_t(1);
   step = 5;
-  auto vote2 = pbft_mgr->generateVote(voted_pbft_block_hash, type, period, round, step);
+  auto vote2 = vote_mgr->generateVote(voted_pbft_block_hash, type, period, round, step);
   vote2->calculateWeight(1, 1, 1);
   std::vector<std::shared_ptr<Vote>> next_votes_2{vote2};
 
@@ -332,7 +329,7 @@ TEST_F(VoteTest, previous_round_next_votes) {
   voted_pbft_block_hash = blk_hash_t(2);
   period = 2;
   round = 2;
-  auto vote3 = pbft_mgr->generateVote(voted_pbft_block_hash, type, period, round, step);
+  auto vote3 = vote_mgr->generateVote(voted_pbft_block_hash, type, period, round, step);
   vote3->calculateWeight(1, 1, 1);
   std::vector<std::shared_ptr<Vote>> next_votes_4{vote3};
 

@@ -25,70 +25,104 @@ void VotesSyncPacketHandler::validatePacketRlpFormat([[maybe_unused]] const Pack
 }
 
 void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
-  // We already have 2t+1 votes for both kNullBlockHash as well as some specific block hash
-  if (next_votes_mgr_->enoughNextVotes()) {
-    LOG(log_nf_) << "Already have enought next votes for perevious round.";
+  const auto reference_vote = std::make_shared<Vote>(packet_data.rlp_[0]);
+
+  const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
+  const auto votes_bundle_pbft_period = reference_vote->getPeriod();
+  const auto votes_bundle_pbft_round = reference_vote->getRound();
+  const auto votes_bundle_votes_type = reference_vote->getType();
+  const auto votes_bundle_voted_block = reference_vote->getBlockHash();
+
+  // Accept only votes, which period is >= current pbft period - 1 (reward votes period)
+  if (votes_bundle_pbft_period < current_pbft_period - 1) {
+    LOG(log_wr_) << "Dropping votes sync packet due to period. Votes period: " << votes_bundle_pbft_period
+                 << ", current pbft period: " << current_pbft_period;
+    return;
+  } else if (votes_bundle_pbft_period == current_pbft_period) {
+    if (votes_bundle_pbft_round < current_pbft_round - 1) {
+      // Accept only votes, which round is >= previous round(current pbft round - 1) in case their period == current
+      // pbft period
+      LOG(log_wr_) << "Dropping votes sync packet due to round. Votes round: " << votes_bundle_pbft_round
+                   << ", current pbft round: " << current_pbft_round;
+      return;
+    } else if (votes_bundle_pbft_round == current_pbft_round - 1 &&
+               votes_bundle_votes_type == PbftVoteTypes::next_vote) {
+      // Already have 2t+1 previous round next votes for both kNullBlockHash as well as some specific block hash
+      if (next_votes_mgr_->enoughNextVotes()) {
+        LOG(log_nf_) << "Dropping next votes sync packet - already have enough next votes for previous round";
+        return;
+      }
+    }
+  }
+
+  // VotesSyncPacket does not support propose votes
+  if (votes_bundle_votes_type == PbftVoteTypes::propose_vote) {
+    LOG(log_er_) << "Dropping votes sync packet due to received \"propose_votes\" votes from "
+                 << packet_data.from_node_id_ << ". The peer may be a malicious player, will be disconnected";
+    disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
     return;
   }
 
-  auto reference_vote = std::make_shared<Vote>(packet_data.rlp_[0].data().toBytes());
-
-  const auto [pbft_current_round, pbft_current_period] = pbft_mgr_->getPbftRoundAndPeriod();
-  const auto peer_pbft_period = reference_vote->getPeriod();
-  const auto peer_pbft_round = reference_vote->getRound();
-
-  // Accept only votes, which period is >= current pbft period
-  if (peer_pbft_period < pbft_current_period) {
-    LOG(log_er_) << "Dropping votes sync packet due to period. Votes period: " << peer_pbft_period
-                 << ", current pbft period: " << peer_pbft_period;
-    return;
-  }
-
-  // Accept only votes, which round is >= previous round(current pbft round - 1) in case their period == current pbft
-  // period
-  if (peer_pbft_period == pbft_current_period && peer_pbft_round < pbft_current_round - 1) {
-    LOG(log_er_) << "Dropping votes sync packet due to round. Votes round: " << peer_pbft_round
-                 << ", current pbft round: " << pbft_current_round;
-    return;
-  }
-
-  std::vector<std::shared_ptr<Vote>> next_votes;
-  blk_hash_t voted_value = kNullBlockHash;
+  std::vector<std::shared_ptr<Vote>> votes;
+  blk_hash_t next_votes_bundle_voted_block = kNullBlockHash;
 
   const auto next_votes_count = packet_data.rlp_.itemCount();
   //  It is done in separate cycle because we don't need to process this next_votes if some of checks will fail
   for (size_t i = 0; i < next_votes_count; i++) {
-    auto vote = std::make_shared<Vote>(packet_data.rlp_[i].data().toBytes());
-    if (voted_value == kNullBlockHash && vote->getBlockHash() != kNullBlockHash) {
-      // initialize voted value with first block hash that not equal to kNullBlockHash
-      voted_value = vote->getBlockHash();
-    } else if (vote->getBlockHash() != kNullBlockHash && voted_value != kNullBlockHash &&
-               vote->getBlockHash() != voted_value) {
-      // we see different voted value, so bundle is invalid
-      LOG(log_er_) << "Received next votes bundle with unmatched voted values(" << voted_value << ", "
-                   << vote->getBlockHash() << ") from " << packet_data.from_node_id_
+    auto vote = std::make_shared<Vote>(packet_data.rlp_[i]);
+    peer->markVoteAsKnown(vote->getHash());
+
+    // Do not process vote that has already been validated
+    if (vote_mgr_->voteAlreadyValidated(vote->getHash())) {
+      LOG(log_dg_) << "Received vote " << vote->getHash() << " has already been validated";
+      return;
+    }
+
+    // Next votes bundle can contain votes for kNullBlockHash as well as some specific block hash
+    // TODO[2047]: when implementing issue 2047, check if this is correct -> we are sending all next votes so
+    //             there could be potentially multiple voted blocks ???
+    if (vote->getType() == PbftVoteTypes::next_vote) {
+      if (next_votes_bundle_voted_block == kNullBlockHash && vote->getBlockHash() != kNullBlockHash) {
+        // initialize voted value with first block hash not equal to kNullBlockHash
+        next_votes_bundle_voted_block = vote->getBlockHash();
+      }
+
+      if (vote->getBlockHash() != kNullBlockHash && vote->getBlockHash() != next_votes_bundle_voted_block) {
+        // we see different voted value, so bundle is invalid
+        LOG(log_er_) << "Received next votes bundle with unmatched voted values(" << next_votes_bundle_voted_block
+                     << ", " << vote->getBlockHash() << ") from " << packet_data.from_node_id_
+                     << ". The peer may be a malicious player, will be disconnected";
+        disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
+        return;
+      }
+    } else {
+      // Other votes bundles can contain votes only for 1 specific block hash
+      if (vote->getBlockHash() != votes_bundle_voted_block) {
+        // we see different voted value, so bundle is invalid
+        LOG(log_er_) << "Received votes bundle with unmatched voted values(" << votes_bundle_voted_block << ", "
+                     << vote->getBlockHash() << ") from " << packet_data.from_node_id_
+                     << ". The peer may be a malicious player, will be disconnected";
+        disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
+        return;
+      }
+    }
+
+    if (vote->getType() != votes_bundle_votes_type) {
+      LOG(log_er_) << "Received votes bundle with unmatched types from " << packet_data.from_node_id_
                    << ". The peer may be a malicious player, will be disconnected";
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
-    // VotesSyncPacket is only for next votes
-    if (vote->getType() != PbftVoteTypes::next_vote) {
-      LOG(log_er_) << "Received next votes bundle with non \"next_votes\" from " << packet_data.from_node_id_
+    if (vote->getPeriod() != votes_bundle_pbft_period) {
+      LOG(log_er_) << "Received votes bundle with unmatched periods from " << packet_data.from_node_id_
                    << ". The peer may be a malicious player, will be disconnected";
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
 
-    if (vote->getRound() != peer_pbft_round) {
-      LOG(log_er_) << "Received next votes bundle with unmatched rounds from " << packet_data.from_node_id_
-                   << ". The peer may be a malicious player, will be disconnected";
-      disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
-      return;
-    }
-
-    if (vote->getPeriod() != peer_pbft_period) {
-      LOG(log_er_) << "Received next votes bundle with unmatched periods from " << packet_data.from_node_id_
+    if (vote->getRound() != votes_bundle_pbft_round) {
+      LOG(log_er_) << "Received votes bundle with unmatched rounds from " << packet_data.from_node_id_
                    << ". The peer may be a malicious player, will be disconnected";
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
@@ -96,67 +130,54 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
 
     LOG(log_dg_) << "Received sync vote " << vote->getHash().abridged();
 
-    // Previous round vote
-    if (peer_pbft_period == pbft_current_period && (pbft_current_round - 1) == peer_pbft_round) {
+    // Previous round next vote
+    if (votes_bundle_votes_type == PbftVoteTypes::next_vote && votes_bundle_pbft_period == current_pbft_period &&
+        votes_bundle_pbft_round == (current_pbft_round - 1)) {
       if (!processNextSyncVote(vote, nullptr)) {
         continue;
       }
+    } else if (votes_bundle_pbft_period >= current_pbft_period) {
+      // Standard vote
+
+      // Process processStandardVote is called with false in case of next votes bundle -> does not check max boundaries
+      // for round and step to actually being able to sync the current round in case network is stalled
+      bool check_max_round_step = votes_bundle_votes_type == PbftVoteTypes::next_vote ? false : true;
+      if (!processStandardVote(vote, nullptr, peer, check_max_round_step)) {
+        continue;
+      }
+    } else if (votes_bundle_votes_type == PbftVoteTypes::cert_vote &&
+               votes_bundle_pbft_period == current_pbft_period - 1) {
+      // Potential reward vote
+      if (!processRewardVote(vote)) {
+        continue;
+      }
     } else {
-      // Standard vote -> peer_pbft_period > pbft_current_period || pbft_current_round >= peer_pbft_round
-      // Process processStandardVote is called with false -> does not check max boundaries for round and step to
-      // actually being able to sync the current round in case network is stalled
-      if (!processStandardVote(vote, nullptr, peer, false)) {
-        continue;
-      }
+      // Too old vote
+      LOG(log_dg_) << "Drop vote " << vote->getHash() << ". Vote period " << vote->getPeriod()
+                   << " too old. current_pbft_period " << current_pbft_period;
+      continue;
     }
 
-    peer->markVoteAsKnown(vote->getHash());
-    next_votes.push_back(std::move(vote));
+    votes.push_back(std::move(vote));
   }
 
-  LOG(log_nf_) << "Received " << next_votes_count << " (processed " << next_votes.size() << " ) sync votes from peer "
-               << packet_data.from_node_id_ << " node current round " << pbft_current_round << ", peer pbft round "
-               << peer_pbft_round;
+  LOG(log_nf_) << "Received " << next_votes_count << " (processed " << votes.size() << " ) sync votes from peer "
+               << packet_data.from_node_id_ << " node current round " << current_pbft_round << ", peer pbft round "
+               << votes_bundle_pbft_round;
 
-  // Previous round votes
-  if (peer_pbft_period == pbft_current_period && (pbft_current_round - 1) == peer_pbft_round) {
-    const auto two_t_plus_one = pbft_mgr_->getPbftTwoTPlusOne(pbft_current_period - 1);
-    if (two_t_plus_one.has_value()) {
+  // Previous round next votes
+  if (votes_bundle_votes_type == PbftVoteTypes::next_vote) {
+    const auto [pbft_round, pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
+    const auto two_t_plus_one = vote_mgr_->getPbftTwoTPlusOne(pbft_period - 1);
+    // Check if we did not move to the next period/round in the meantime
+    if (votes_bundle_pbft_period == pbft_period && votes_bundle_pbft_round == (pbft_round - 1) &&
+        two_t_plus_one.has_value()) {
       // Update our previous round next vote bundles...
-      next_votes_mgr_->updateWithSyncedVotes(next_votes, *two_t_plus_one);
+      next_votes_mgr_->updateWithSyncedVotes(votes, *two_t_plus_one);
     }
-
-    // Pass them on to our peers...
-    const auto updated_next_votes_size = next_votes_mgr_->getNextVotesWeight();
-    for (auto const &peer_to_share_to : peers_state_->getAllPeers()) {
-      // Do not send votes right back to same peer...
-      if (peer_to_share_to.first == packet_data.from_node_id_) {
-        continue;
-      }
-
-      // Do not send votes to nodes that already have as many bundles as we do...
-      if (peer_to_share_to.second->pbft_previous_round_next_votes_size_ >= updated_next_votes_size) {
-        continue;
-      }
-
-      // Nodes may vote at different values at previous round, so need less or equal
-      if (!peer_to_share_to.second->syncing_ && peer_to_share_to.second->pbft_round_ > pbft_current_round) {
-        continue;
-      }
-
-      std::vector<std::shared_ptr<Vote>> send_next_votes_bundle;
-      for (const auto &v : next_votes) {
-        if (!peer_to_share_to.second->isVoteKnown(v->getHash())) {
-          send_next_votes_bundle.push_back(v);
-        }
-      }
-      sendPbftVotes(peer_to_share_to.second, std::move(send_next_votes_bundle), true);
-    }
-  } else {
-    // Standard votes -> peer_pbft_period > pbft_current_period || (peer_pbft_period == pbft_current_period &&
-    // peer_pbft_round > pbft_current_round - 1)
-    onNewPbftVotes(std::move(next_votes));
   }
+
+  onNewPbftVotesBundle(std::move(votes), false, packet_data.from_node_id_);
 }
 
 void VotesSyncPacketHandler::broadcastPreviousRoundNextVotesBundle(bool rebroadcast) {
@@ -177,8 +198,32 @@ void VotesSyncPacketHandler::broadcastPreviousRoundNextVotesBundle(bool rebroadc
           send_next_votes_bundle.push_back(v);
         }
       }
-      sendPbftVotes(peer.second, std::move(send_next_votes_bundle), true);
+      sendPbftVotesBundle(peer.second, std::move(send_next_votes_bundle));
     }
+  }
+}
+
+void VotesSyncPacketHandler::onNewPbftVotesBundle(std::vector<std::shared_ptr<Vote>> &&votes, bool rebroadcast,
+                                                  const std::optional<dev::p2p::NodeID> &exclude_node) {
+  for (const auto &peer : peers_state_->getAllPeers()) {
+    if (peer.second->syncing_) {
+      continue;
+    }
+
+    if (exclude_node.has_value() && *exclude_node == peer.first) {
+      continue;
+    }
+
+    std::vector<std::shared_ptr<Vote>> peer_votes;
+    for (const auto &vote : votes) {
+      if (!rebroadcast && peer.second->isVoteKnown(vote->getHash())) {
+        continue;
+      }
+
+      peer_votes.push_back(vote);
+    }
+
+    sendPbftVotesBundle(peer.second, std::move(peer_votes));
   }
 }
 

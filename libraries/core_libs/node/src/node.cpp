@@ -105,10 +105,11 @@ void FullNode::init() {
       std::make_shared<DagManager>(dag_genesis_block_hash, node_addr, conf_.genesis.sortition, conf_.genesis.dag,
                                    trx_mgr_, pbft_chain_, final_chain_, db_, key_manager_, conf_.is_light_node,
                                    conf_.light_node_history, conf_.max_levels_per_period, conf_.dag_expiry_limit);
-  vote_mgr_ = std::make_shared<VoteManager>(node_addr, db_, pbft_chain_, final_chain_, next_votes_mgr_);
+  vote_mgr_ = std::make_shared<VoteManager>(node_addr, conf_.genesis.pbft, kp_.secret(), conf_.vrf_secret, db_,
+                                            pbft_chain_, final_chain_, key_manager_);
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.genesis.pbft, dag_genesis_block_hash, node_addr, db_, pbft_chain_,
-                                            vote_mgr_, next_votes_mgr_, dag_mgr_, trx_mgr_, final_chain_, key_manager_,
-                                            kp_.secret(), conf_.vrf_secret, conf_.max_levels_per_period);
+                                            vote_mgr_, next_votes_mgr_, dag_mgr_, trx_mgr_, final_chain_, kp_.secret(),
+                                            conf_.max_levels_per_period);
   dag_block_proposer_ =
       std::make_shared<DagBlockProposer>(conf_.genesis.dag.block_proposer, dag_mgr_, trx_mgr_, final_chain_, db_,
                                          key_manager_, node_addr, getSecretKey(), getVrfSecretKey());

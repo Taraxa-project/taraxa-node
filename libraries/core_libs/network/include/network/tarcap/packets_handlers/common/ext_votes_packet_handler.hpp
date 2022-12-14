@@ -58,20 +58,6 @@ class ExtVotesPacketHandler : public PacketHandler {
    */
   bool processNextSyncVote(const std::shared_ptr<Vote>& vote, const std::shared_ptr<PbftBlock>& pbft_block) const;
 
-  /**
-   * @brief Sends pbft votes to connected peers
-   *
-   * @param votes Votes to send
-   * @param rebroadcast if rebroadcast is true, all votes are resent to all peers
-   */
-  void onNewPbftVotes(std::vector<std::shared_ptr<Vote>>&& votes, bool rebroadcast = false);
-  void sendPbftVotes(const std::shared_ptr<TaraxaPeer>& peer, std::vector<std::shared_ptr<Vote>>&& votes,
-                     bool is_next_votes = false);
-
-  void onNewPbftVote(const std::shared_ptr<Vote>& vote, const std::shared_ptr<PbftBlock>& block);
-  void sendPbftVote(const std::shared_ptr<TaraxaPeer>& peer, const std::shared_ptr<Vote>& vote,
-                    const std::shared_ptr<PbftBlock>& block);
-
  protected:
   /**
    * @brief Validates standard vote
@@ -118,9 +104,10 @@ class ExtVotesPacketHandler : public PacketHandler {
    */
   bool validateVoteAndBlock(const std::shared_ptr<Vote>& vote, const std::shared_ptr<PbftBlock>& pbft_block) const;
 
+  void sendPbftVotesBundle(const std::shared_ptr<TaraxaPeer>& peer, std::vector<std::shared_ptr<Vote>>&& votes);
+
  protected:
   constexpr static size_t kMaxVotesInPacket{1000};
-  constexpr static size_t kVotePacketWithBlockSize{3};
   constexpr static std::chrono::seconds kSyncRequestInterval = std::chrono::seconds(10);
 
   mutable std::chrono::system_clock::time_point last_votes_sync_request_time_;

@@ -121,12 +121,9 @@ void PacketHandler::disconnect(const dev::p2p::NodeID& node_id, dev::p2p::Discon
 }
 
 void PacketHandler::requestPbftNextVotesAtPeriodRound(const dev::p2p::NodeID& peerID, PbftPeriod pbft_period,
-                                                      PbftRound pbft_round,
-                                                      size_t pbft_previous_round_next_votes_size) {
-  LOG(log_nf_) << "Sending GetVotesSyncPacket with period:" << pbft_period << ", round:" << pbft_round
-               << ", previous_round_next_votes_size:" << pbft_previous_round_next_votes_size;
-  sealAndSend(peerID, GetVotesSyncPacket,
-              std::move(dev::RLPStream(3) << pbft_period << pbft_round << pbft_previous_round_next_votes_size));
+                                                      PbftRound pbft_round) {
+  LOG(log_dg_) << "Sending GetNextVotesSyncPacket with period:" << pbft_period << ", round:" << pbft_round;
+  sealAndSend(peerID, GetNextVotesSyncPacket, std::move(dev::RLPStream(2) << pbft_period << pbft_round));
 }
 
 }  // namespace taraxa::network::tarcap

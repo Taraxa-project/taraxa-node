@@ -7,8 +7,8 @@
 #include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/dag_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/get_next_votes_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/get_pbft_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/get_votes_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/status_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
@@ -189,9 +189,9 @@ void TaraxaCapability::registerPacketHandlers(
 
   // Consensus packets with high processing priority
   packets_handlers_->registerHandler<VotePacketHandler>(kConf, peers_state_, packets_stats, pbft_mgr, pbft_chain,
-                                                        vote_mgr, next_votes_mgr, node_addr);
-  packets_handlers_->registerHandler<GetVotesSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_mgr,
-                                                                pbft_chain, vote_mgr, next_votes_mgr, node_addr);
+                                                        vote_mgr, node_addr);
+  packets_handlers_->registerHandler<GetNextVotesSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_mgr,
+                                                                    pbft_chain, vote_mgr, next_votes_mgr, node_addr);
   packets_handlers_->registerHandler<VotesSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_mgr, pbft_chain,
                                                              vote_mgr, next_votes_mgr, db, node_addr);
 

@@ -25,16 +25,6 @@ class Vote {
   bool operator==(Vote const& other) const { return rlp() == other.rlp(); }
 
   /**
-   * @brief vote validation
-   * @param stake voter DPOS eligible votes count
-   * @param dpos_total_votes_count total DPOS votes count
-   * @param sortition_threshold PBFT sortition threshold that is minimum of between PBFT committee size and total DPOS
-   * votes count
-   */
-  void validate(uint64_t stake, double dpos_total_votes_count, double sortition_threshold,
-                const vrf_wrapper::vrf_pk_t& pk) const;
-
-  /**
    * @brief Get vote hash
    * @return vote hash
    */

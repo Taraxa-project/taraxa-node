@@ -14,9 +14,10 @@
 #include "logger/logger.hpp"
 #include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/get_votes_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/get_next_votes_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/status_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "test_util/samples.hpp"
@@ -155,7 +156,6 @@ TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
   auto nodes = launch_nodes(node_cfgs);
 
   const auto& node1 = nodes[0];
-  const auto node1_pbft_mgr = node1->getPbftManager();
 
   nodes[0]->getPbftManager()->stop();
   nodes[1]->getPbftManager()->stop();
@@ -167,15 +167,14 @@ TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
   auto pbft_block = std::make_shared<PbftBlock>(blk_hash_t(1), kNullBlockHash, kNullBlockHash, kNullBlockHash,
                                                 node1->getPbftManager()->getPbftPeriod(), node1->getAddress(),
                                                 node1->getSecretKey(), std::move(reward_votes));
-  auto vote =
-      node1_pbft_mgr->generateVote(pbft_block->getBlockHash(), PbftVoteTypes::propose_vote, pbft_block->getPeriod(),
-                                   node1_pbft_mgr->getPbftRound() + 1, value_proposal_state);
+  auto vote = node1->getVoteManager()->generateVote(pbft_block->getBlockHash(), PbftVoteTypes::propose_vote,
+                                                    pbft_block->getPeriod(),
+                                                    node1->getPbftManager()->getPbftRound() + 1, value_proposal_state);
 
   auto node2_id = nw2->getNodeId();
   ASSERT_NE(node1->getPbftChain()->getPbftChainSize(), nw1->getPeer(node2_id)->pbft_chain_size_);
 
-  nw2->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->sendPbftVote(nw1->getPeer(node2_id), vote,
-                                                                                   pbft_block);
+  nw2->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVote(nw1->getPeer(node2_id), vote, pbft_block);
 
   EXPECT_HAPPENS({10s, 200ms}, [&](auto& ctx) {
     WAIT_EXPECT_EQ(ctx, nw1->getPeer(node2_id)->pbft_chain_size_, node1->getPbftChain()->getPbftChainSize())
@@ -549,7 +548,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
                         beneficiary, node1->getSecretKey(), {});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
-      node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, 1, 1, 3));
+      node1->getVoteManager()->generateVote(pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, 1, 1, 3));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
   // Add PBFT block in DB
@@ -605,7 +604,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
                         beneficiary, node1->getSecretKey(), {});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(
-      node1->getPbftManager()->generateVote(pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, 2, 2, 3));
+      node1->getVoteManager()->generateVote(pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, 2, 2, 3));
   std::cout << "Generate 1 vote for second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and store into DB
   // Add cert votes in DB
@@ -715,7 +714,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
                         beneficiary, node1->getSecretKey(), {});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
-      node1->getPbftManager()->generateVote(pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, 1, 1, 3));
+      node1->getVoteManager()->generateVote(pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, 1, 1, 3));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
   // Add PBFT block in DB
@@ -801,8 +800,10 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   auto node1 = create_nodes({node_cfgs[0]}, true /*start*/).front();
 
   // Stop PBFT manager, that will place vote
-  std::shared_ptr<PbftManager> pbft_mgr1 = node1->getPbftManager();
+  auto pbft_mgr1 = node1->getPbftManager();
   pbft_mgr1->stop();
+
+  auto vote_mgr1 = node1->getVoteManager();
 
   // Generate 3 next votes
   std::vector<std::shared_ptr<Vote>> next_votes;
@@ -813,7 +814,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   for (auto i = 0; i < 3; i++) {
     blk_hash_t voted_pbft_block_hash(i % 2);  // Next votes could vote on 2 values
     std::cout << voted_pbft_block_hash << std::endl;
-    auto vote = pbft_mgr1->generateVote(voted_pbft_block_hash, type, period, round, step + i);
+    auto vote = vote_mgr1->generateVote(voted_pbft_block_hash, type, period, round, step + i);
     vote->calculateWeight(1, 1, 1);
     next_votes.push_back(std::move(vote));
   }
@@ -862,11 +863,11 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   node1_next_votes_mgr->clearVotes();
   node2_next_votes_mgr->clearVotes();
 
-  auto pbft_mgr1 = node1->getPbftManager();
-  auto pbft_mgr2 = node2->getPbftManager();
-  auto node1_pbft_2t_plus_1 = pbft_mgr1->getPbftTwoTPlusOne(node1->getPbftChain()->getPbftChainSize()).value();
+  auto vote_mgr1 = node1->getVoteManager();
+  auto vote_mgr2 = node2->getVoteManager();
+  auto node1_pbft_2t_plus_1 = vote_mgr1->getPbftTwoTPlusOne(node1->getPbftChain()->getPbftChainSize()).value();
   EXPECT_EQ(node1_pbft_2t_plus_1, 1);
-  auto node2_pbft_2t_plus_1 = pbft_mgr2->getPbftTwoTPlusOne(node2->getPbftChain()->getPbftChainSize()).value();
+  auto node2_pbft_2t_plus_1 = vote_mgr2->getPbftTwoTPlusOne(node2->getPbftChain()->getPbftChainSize()).value();
   EXPECT_EQ(node2_pbft_2t_plus_1, 1);
 
   // Generate 2 next votes for node1
@@ -877,7 +878,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   PbftVoteTypes type = PbftVoteTypes::next_vote;
   for (uint64_t i = 0; i < 2; i++) {
     blk_hash_t voted_pbft_block_hash1(i);  // Next votes could vote on 2 values
-    auto vote = pbft_mgr1->generateVote(voted_pbft_block_hash1, type, period, round, step);
+    auto vote = vote_mgr1->generateVote(voted_pbft_block_hash1, type, period, round, step);
     vote->calculateWeight(1, 1, 1);
     next_votes1.push_back(std::move(vote));
   }
@@ -888,7 +889,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
 
   // Generate 1 same next votes with node1, voted same value on kNullBlockHash
   blk_hash_t voted_pbft_block_hash2(0);
-  auto vote1 = pbft_mgr1->generateVote(voted_pbft_block_hash2, type, period, round, step);
+  auto vote1 = vote_mgr1->generateVote(voted_pbft_block_hash2, type, period, round, step);
   vote1->calculateWeight(1, 1, 1);
   std::vector<std::shared_ptr<Vote>> next_votes2{vote1};
 
@@ -897,8 +898,8 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_1) {
   EXPECT_EQ(node2_next_votes_mgr->getNextVotesWeight(), next_votes2.size());
 
   // Set both node1 and node2 pbft manager round to 2
-  pbft_mgr1->setPbftRound(2);
-  pbft_mgr2->setPbftRound(2);
+  node1->getPbftManager()->setPbftRound(2);
+  node2->getPbftManager()->setPbftRound(2);
 
   auto expect_size = next_votes1.size();
   EXPECT_HAPPENS({30s, 500ms},
@@ -927,11 +928,11 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   node1_next_votes_mgr->clearVotes();
   node2_next_votes_mgr->clearVotes();
 
-  auto pbft_mgr1 = node1->getPbftManager();
-  auto pbft_mgr2 = node2->getPbftManager();
-  auto node1_pbft_2t_plus_1 = pbft_mgr1->getPbftTwoTPlusOne(node1->getPbftChain()->getPbftChainSize()).value();
+  auto vote_mgr1 = node1->getVoteManager();
+  auto vote_mgr2 = node2->getVoteManager();
+  auto node1_pbft_2t_plus_1 = vote_mgr1->getPbftTwoTPlusOne(node1->getPbftChain()->getPbftChainSize()).value();
   EXPECT_EQ(node1_pbft_2t_plus_1, 1);
-  auto node2_pbft_2t_plus_1 = pbft_mgr2->getPbftTwoTPlusOne(node2->getPbftChain()->getPbftChainSize()).value();
+  auto node2_pbft_2t_plus_1 = vote_mgr2->getPbftTwoTPlusOne(node2->getPbftChain()->getPbftChainSize()).value();
   EXPECT_EQ(node2_pbft_2t_plus_1, 1);
 
   // Node1 generate 1 next vote voted at kNullBlockHash
@@ -939,7 +940,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   PbftPeriod period = 1;
   PbftRound round = 1;
   PbftStep step = 5;
-  auto vote1 = pbft_mgr1->generateVote(kNullBlockHash, type, period, round, step);
+  auto vote1 = vote_mgr1->generateVote(kNullBlockHash, type, period, round, step);
   vote1->calculateWeight(1, 1, 1);
   std::vector<std::shared_ptr<Vote>> next_votes1{vote1};
 
@@ -949,7 +950,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
 
   // Node1 generate 1 different next vote for node2, because node2 is not delegated
   blk_hash_t voted_pbft_block_hash2("1234567890000000000000000000000000000000000000000000000000000000");
-  auto vote2 = pbft_mgr1->generateVote(voted_pbft_block_hash2, type, period, round, step);
+  auto vote2 = vote_mgr1->generateVote(voted_pbft_block_hash2, type, period, round, step);
   vote2->calculateWeight(1, 1, 1);
   std::vector<std::shared_ptr<Vote>> next_votes2{vote2};
 
@@ -958,8 +959,8 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round_2) {
   EXPECT_EQ(node2_next_votes_mgr->getNextVotesWeight(), next_votes2.size());
 
   // Set both node1 and node2 pbft manager round to 2
-  pbft_mgr1->setPbftRound(2);
-  pbft_mgr2->setPbftRound(2);
+  node1->getPbftManager()->setPbftRound(2);
+  node2->getPbftManager()->setPbftRound(2);
 
   std::shared_ptr<Network> nw1 = node1->getNetwork();
   std::shared_ptr<Network> nw2 = node2->getNetwork();

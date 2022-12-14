@@ -13,7 +13,7 @@ enum SubprotocolPacketType : uint32_t {
   // Consensus packets with high processing priority
   HighPriorityPackets = 0,
   VotePacket,  // Vote packer can contain (optional) also pbft block
-  GetVotesSyncPacket,
+  GetNextVotesSyncPacket,
   VotesSyncPacket,
 
   // Standard packets with mid processing priority
@@ -51,8 +51,8 @@ inline std::string convertPacketTypeToString(SubprotocolPacketType packet_type) 
       return "TransactionPacket";
     case VotePacket:
       return "VotePacket";
-    case GetVotesSyncPacket:
-      return "GetVotesSyncPacket";
+    case GetNextVotesSyncPacket:
+      return "GetNextVotesSyncPacket";
     case VotesSyncPacket:
       return "VotesSyncPacket";
     case GetPbftSyncPacket:

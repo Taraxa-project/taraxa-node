@@ -25,36 +25,6 @@ Vote::Vote(secret_t const& node_sk, VrfPbftSortition vrf_sortition, blk_hash_t c
   cached_voter_ = dev::toPublic(node_sk);
 }
 
-void Vote::validate(uint64_t stake, double dpos_total_votes_count, double sortition_threshold,
-                    const vrf_wrapper::vrf_pk_t& pk) const {
-  if (!stake) {
-    // After deep syncing, node could receive votes but still behind, may don't have vote sender state in table
-    // If in PBFT blocks syncing for cert votes, that's malicious blocks
-    std::stringstream err;
-    err << "Invalid stake " << *this;
-    throw std::logic_error(err.str());
-  }
-
-  if (!verifyVote()) {
-    std::stringstream err;
-    err << "Invalid vote signature. " << dev::toHex(rlp(false)) << "  " << *this;
-    throw std::logic_error(err.str());
-  }
-
-  if (!verifyVrfSortition(pk)) {
-    std::stringstream err;
-    err << "Invalid vrf proof. " << *this;
-    throw std::logic_error(err.str());
-  }
-
-  if (!calculateWeight(stake, dpos_total_votes_count, sortition_threshold)) {
-    std::stringstream err;
-    err << "Vote sortition failed. Sortition threshold " << sortition_threshold << ", DPOS total votes count "
-        << dpos_total_votes_count << " " << *this;
-    throw std::logic_error(err.str());
-  }
-}
-
 bytes Vote::rlp(bool inc_sig, bool inc_weight) const {
   dev::RLPStream s;
   uint32_t number_of_items = 2;

@@ -127,7 +127,7 @@ struct PbftManagerTest : NodesTest {
     for (size_t i(0); i < nodes.size(); ++i) {
       auto pbft_mgr = nodes[i]->getPbftManager();
       const auto chain_size = nodes[i]->getPbftChain()->getPbftChainSize();
-      two_t_plus_one = pbft_mgr->getPbftTwoTPlusOne(chain_size).value();
+      two_t_plus_one = nodes[i]->getVoteManager()->getPbftTwoTPlusOne(chain_size).value();
 
       committee = pbft_mgr->getPbftCommitteeSize();
       valid_voting_players = pbft_mgr->getCurrentDposTotalVotesCount().value();
@@ -180,7 +180,7 @@ struct PbftManagerTest : NodesTest {
     for (size_t i(0); i < nodes.size(); ++i) {
       auto pbft_mgr = nodes[i]->getPbftManager();
       const auto chain_size = nodes[i]->getPbftChain()->getPbftChainSize();
-      two_t_plus_one = pbft_mgr->getPbftTwoTPlusOne(chain_size).value();
+      two_t_plus_one = nodes[i]->getVoteManager()->getPbftTwoTPlusOne(chain_size).value();
       committee = pbft_mgr->getPbftCommitteeSize();
       valid_voting_players = pbft_mgr->getCurrentDposTotalVotesCount().value();
       std::cout << "Node" << i << " committee " << committee << ", valid voting players " << valid_voting_players
@@ -198,14 +198,13 @@ TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
   makeNodesWithNonces(node_cfgs);
 
   auto pbft_mgr = nodes[0]->getPbftManager();
+  auto vote_mgr = nodes[0]->getVoteManager();
   pbft_mgr->stop();
   std::cout << "PBFT manager stopped" << std::endl;
 
-  auto vote_mgr = nodes[0]->getVoteManager();
-
   // Generate bogus votes
   auto stale_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
-  auto propose_vote = pbft_mgr->generateVote(stale_block_hash, PbftVoteTypes::propose_vote, 2, 2, 1);
+  auto propose_vote = vote_mgr->generateVote(stale_block_hash, PbftVoteTypes::propose_vote, 2, 2, 1);
   propose_vote->calculateWeight(1, 1, 1);
   vote_mgr->addVerifiedVote(propose_vote);
 
@@ -516,7 +515,7 @@ TEST_F(PbftManagerTest, check_get_eligible_vote_count) {
   for (size_t i(0); i < nodes.size(); ++i) {
     auto pbft_mgr = nodes[i]->getPbftManager();
     const auto chain_size = nodes[i]->getPbftChain()->getPbftChainSize();
-    two_t_plus_one = pbft_mgr->getPbftTwoTPlusOne(chain_size).value();
+    two_t_plus_one = nodes[i]->getVoteManager()->getPbftTwoTPlusOne(chain_size).value();
     committee = pbft_mgr->getPbftCommitteeSize();
     eligible_total_vote_count = pbft_mgr->getCurrentDposTotalVotesCount().value();
     std::cout << "Node" << i << " committee " << committee << ", eligible total vote count "
@@ -644,9 +643,9 @@ TEST_F(PbftManagerTest, propose_block_and_vote_broadcast) {
   auto proposed_pbft_block = std::make_shared<PbftBlock>(
       prev_block_hash, kNullBlockHash, kNullBlockHash, kNullBlockHash, node1->getPbftManager()->getPbftPeriod(),
       node1->getAddress(), node1->getSecretKey(), std::move(reward_votes_hashes));
-  auto propose_vote = pbft_mgr1->generateVote(proposed_pbft_block->getBlockHash(), PbftVoteTypes::propose_vote,
-                                              proposed_pbft_block->getPeriod(),
-                                              node1->getPbftManager()->getPbftRound() + 1, value_proposal_state);
+  auto propose_vote = node1->getVoteManager()->generateVote(
+      proposed_pbft_block->getBlockHash(), PbftVoteTypes::propose_vote, proposed_pbft_block->getPeriod(),
+      node1->getPbftManager()->getPbftRound() + 1, value_proposal_state);
   pbft_mgr1->processProposedBlock(proposed_pbft_block, propose_vote);
 
   auto block1_from_node1 = pbft_mgr1->getProposedBlocksSt().getPbftProposedBlock(
