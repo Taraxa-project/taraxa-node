@@ -30,9 +30,6 @@ class TestFace : public ServerInterface<TestFace> {
     this->bindAndAddMethod(
         jsonrpc::Procedure("get_node_status", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
         &taraxa::net::TestFace::get_node_statusI);
-    this->bindAndAddMethod(
-        jsonrpc::Procedure("get_packets_stats", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
-        &taraxa::net::TestFace::get_packets_statsI);
     this->bindAndAddMethod(jsonrpc::Procedure("get_all_nodes", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::TestFace::get_all_nodesI);
   }
@@ -58,10 +55,6 @@ class TestFace : public ServerInterface<TestFace> {
     (void)request;
     response = this->get_node_status();
   }
-  inline virtual void get_packets_statsI(const Json::Value &request, Json::Value &response) {
-    (void)request;
-    response = this->get_packets_stats();
-  }
   inline virtual void get_all_nodesI(const Json::Value &request, Json::Value &response) {
     (void)request;
     response = this->get_all_nodes();
@@ -72,7 +65,6 @@ class TestFace : public ServerInterface<TestFace> {
   virtual Json::Value get_account_address() = 0;
   virtual Json::Value get_peer_count() = 0;
   virtual Json::Value get_node_status() = 0;
-  virtual Json::Value get_packets_stats() = 0;
   virtual Json::Value get_all_nodes() = 0;
 };
 

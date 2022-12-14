@@ -1,35 +1,48 @@
 #pragma once
 
-#include "common/types.hpp"
-#include "logger/logger.hpp"
-#include "packets_avg_stats.hpp"
+#include <optional>
+
+#include "network/tarcap/stats/max_stats.hpp"
+#include "network/tarcap/stats/packets_stats.hpp"
 
 namespace taraxa::network::tarcap {
 
 /**
- * @brief Stats for all received and sent packets of all types
+ * @brief Stats for all packet types
  */
 class PacketsStats {
  public:
-  PacketsStats(const addr_t& node_addr = {});
+  PacketsStats();
+  PacketsStats(const PacketsStats &) = delete;
+  PacketsStats &operator=(const PacketsStats &) = delete;
+  PacketsStats(PacketsStats &&) = delete;
+  PacketsStats &operator=(PacketsStats &&) = delete;
 
-  void addReceivedPacket(const std::string& packet_type, const SinglePacketStats& packet);
-  void addSentPacket(const std::string& packet_type, const SinglePacketStats& packet);
+  ~PacketsStats() = default;
 
-  const AllPacketTypesStats& getSentPacketsStats() const;
-  const AllPacketTypesStats& getReceivedPacketsStats() const;
+  using PerPacketStatsMap = std::unordered_map<std::string /*packet name*/, PacketStats>;
+
+ public:
+  void addPacket(const std::string &packet_type, const PacketStats &packet);
+
+  std::pair<std::chrono::system_clock::time_point, PacketStats> getAllPacketsStatsCopy() const;
+  Json::Value getStatsJson() const;
 
   /**
-   * @brief Logs both received as well as sent avg packets stats + updates max count/size stats per period
+   * @brief Resets stats to zero
    */
-  void logAndUpdateStats();
+  void resetStats();
 
  private:
-  AllPacketTypesStats sent_packets_stats_;
-  AllPacketTypesStats received_packets_stats_;
+  // Time point since which are the stats measured
+  std::chrono::system_clock::time_point start_time_;
 
-  // Declare logger instances
-  LOG_OBJECTS_DEFINE
+  // Stats for all packets types combined
+  PacketStats all_packets_stats_;
+
+  // Stas per individual packet type
+  PerPacketStatsMap per_packet_stats_;
+  mutable std::shared_mutex mutex_;
 };
 
 }  // namespace taraxa::network::tarcap

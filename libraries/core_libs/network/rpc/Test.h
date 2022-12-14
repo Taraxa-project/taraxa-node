@@ -23,7 +23,6 @@ class Test : public TestFace {
   virtual Json::Value get_account_address() override;
   virtual Json::Value get_peer_count() override;
   virtual Json::Value get_node_status() override;
-  virtual Json::Value get_packets_stats() override;
   virtual Json::Value get_all_nodes() override;
 
  private:

@@ -87,8 +87,6 @@ unsigned Network::getNodeCount() { return host_->getNodeCount(); }
 
 Json::Value Network::getStatus() { return taraxa_capability_->getNodeStats()->getStatus(); }
 
-Json::Value Network::getPacketsStats() { return taraxa_capability_->getNodeStats()->getPacketsStats(); }
-
 void Network::restartSyncingPbft(bool force) {
   tp_.post([this, force] {
     taraxa_capability_->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->restartSyncingPbft(force);

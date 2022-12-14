@@ -64,13 +64,12 @@ class PacketsProcessingInfo {
 
 // Help functions for tests
 struct HandlersInitData {
+  FullNodeConfig conf;
   dev::p2p::NodeID sender_node_id;
-
-  dev::p2p::NodeID own_node_id;
   addr_t own_node_addr;
 
   std::shared_ptr<tarcap::PeersState> peers_state;
-  std::shared_ptr<tarcap::PacketsStats> packets_stats;
+  std::shared_ptr<tarcap::TimePeriodPacketsStats> packets_stats;
   std::shared_ptr<PacketsProcessingInfo> packets_processing_info;
 
   dev::p2p::NodeID copySender() { return sender_node_id; }
@@ -80,15 +79,16 @@ class DummyPacketHandler : public tarcap::PacketHandler {
  public:
   DummyPacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
                      uint32_t processing_delay_ms)
-      : PacketHandler(init_data.peers_state, init_data.packets_stats, init_data.own_node_addr, log_channel_name),
+      : PacketHandler(init_data.conf, init_data.peers_state, init_data.packets_stats, init_data.own_node_addr,
+                      log_channel_name),
         processing_delay_ms_(processing_delay_ms),
         packets_proc_info_(init_data.packets_processing_info) {}
 
   virtual ~DummyPacketHandler() = default;
   DummyPacketHandler(const DummyPacketHandler&) = default;
   DummyPacketHandler(DummyPacketHandler&&) = default;
-  DummyPacketHandler& operator=(const DummyPacketHandler&) = default;
-  DummyPacketHandler& operator=(DummyPacketHandler&&) = default;
+  DummyPacketHandler& operator=(const DummyPacketHandler&) = delete;
+  DummyPacketHandler& operator=(DummyPacketHandler&&) = delete;
 
  private:
   void validatePacketRlpFormat([[maybe_unused]] const tarcap::PacketData& packet_data) const override {}
@@ -216,11 +216,10 @@ HandlersInitData createHandlersInitData() {
   HandlersInitData ret_init_data;
 
   ret_init_data.sender_node_id = dev::p2p::NodeID(1);
-  ret_init_data.own_node_id = dev::p2p::NodeID(2);
   ret_init_data.own_node_addr = addr_t(2);
-  ret_init_data.peers_state = std::make_shared<tarcap::PeersState>(std::weak_ptr<dev::p2p::Host>(),
-                                                                   ret_init_data.own_node_id, FullNodeConfig());
-  ret_init_data.packets_stats = std::make_shared<tarcap::PacketsStats>(ret_init_data.own_node_addr);
+  ret_init_data.peers_state = std::make_shared<tarcap::PeersState>(std::weak_ptr<dev::p2p::Host>(), FullNodeConfig());
+  ret_init_data.packets_stats =
+      std::make_shared<tarcap::TimePeriodPacketsStats>(std::chrono::milliseconds(0), ret_init_data.own_node_addr);
   ret_init_data.packets_processing_info = std::make_shared<PacketsProcessingInfo>();
 
   // Enable packets from sending peer to be processed

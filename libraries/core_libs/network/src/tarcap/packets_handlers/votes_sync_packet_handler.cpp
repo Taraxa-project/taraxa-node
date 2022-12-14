@@ -5,13 +5,15 @@
 
 namespace taraxa::network::tarcap {
 
-VotesSyncPacketHandler::VotesSyncPacketHandler(
-    std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-    std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-    std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DbStorage> db, const NetworkConfig &net_config,
-    const addr_t &node_addr)
-    : ExtVotesPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
-                            std::move(pbft_chain), std::move(vote_mgr), net_config, node_addr, "VOTES_SYNC_PH"),
+VotesSyncPacketHandler::VotesSyncPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
+                                               std::shared_ptr<TimePeriodPacketsStats> packets_stats,
+                                               std::shared_ptr<PbftManager> pbft_mgr,
+                                               std::shared_ptr<PbftChain> pbft_chain,
+                                               std::shared_ptr<VoteManager> vote_mgr,
+                                               std::shared_ptr<NextVotesManager> next_votes_mgr,
+                                               std::shared_ptr<DbStorage> db, const addr_t &node_addr)
+    : ExtVotesPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
+                            std::move(pbft_chain), std::move(vote_mgr), node_addr, "VOTES_SYNC_PH"),
       next_votes_mgr_(std::move(next_votes_mgr)),
       db_(std::move(db)) {}
 

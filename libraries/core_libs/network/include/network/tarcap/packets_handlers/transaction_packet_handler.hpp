@@ -15,7 +15,8 @@ class TestState;
 
 class TransactionPacketHandler final : public PacketHandler {
  public:
-  TransactionPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
+  TransactionPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
+                           std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                            std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<TestState> test_state,
                            const addr_t& node_addr);
 

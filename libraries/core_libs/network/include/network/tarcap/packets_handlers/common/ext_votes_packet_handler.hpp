@@ -18,10 +18,10 @@ namespace taraxa::network::tarcap {
  */
 class ExtVotesPacketHandler : public PacketHandler {
  public:
-  ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-                        std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
-                        std::shared_ptr<VoteManager> vote_mgr, const NetworkConfig& net_config, const addr_t& node_addr,
-                        const std::string& log_channel_name);
+  ExtVotesPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
+                        std::shared_ptr<TimePeriodPacketsStats> packets_stats, std::shared_ptr<PbftManager> pbft_mgr,
+                        std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+                        const addr_t& node_addr, const std::string& log_channel_name);
 
   virtual ~ExtVotesPacketHandler() = default;
   ExtVotesPacketHandler(const ExtVotesPacketHandler&) = delete;
@@ -119,14 +119,8 @@ class ExtVotesPacketHandler : public PacketHandler {
   bool validateVoteAndBlock(const std::shared_ptr<Vote>& vote, const std::shared_ptr<PbftBlock>& pbft_block) const;
 
  protected:
-  const size_t kMaxVotesInPacket{1000};
-  const size_t kVotePacketWithBlockSize{3};
-
-  // Dpos contract delay - it is used to validate pbft period in votes -> does not make sense to accept vote
-  // with vote period > current pbft period + kDposDelay as the valiation will fail
-  const PbftPeriod kVoteAcceptingPeriods;
-  const PbftRound kVoteAcceptingRounds;
-  const PbftStep kVoteAcceptingSteps;
+  constexpr static size_t kMaxVotesInPacket{1000};
+  constexpr static size_t kVotePacketWithBlockSize{3};
   constexpr static std::chrono::seconds kSyncRequestInterval = std::chrono::seconds(10);
 
   mutable std::chrono::system_clock::time_point last_votes_sync_request_time_;

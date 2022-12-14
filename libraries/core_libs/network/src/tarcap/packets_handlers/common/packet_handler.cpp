@@ -1,12 +1,13 @@
 #include "network/tarcap/packets_handlers/common/packet_handler.hpp"
 
-#include "network/tarcap/stats/packets_stats.hpp"
+#include "network/tarcap/stats/time_period_packets_stats.hpp"
 
 namespace taraxa::network::tarcap {
 
-PacketHandler::PacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
-                             const addr_t& node_addr, const std::string& log_channel_name)
-    : peers_state_(std::move(peers_state)), packets_stats_(std::move(packets_stats)) {
+PacketHandler::PacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
+                             std::shared_ptr<TimePeriodPacketsStats> packets_stats, const addr_t& node_addr,
+                             const std::string& log_channel_name)
+    : kConf(conf), peers_state_(std::move(peers_state)), packets_stats_(std::move(packets_stats)) {
   LOG_OBJECTS_CREATE(log_channel_name);
 }
 
@@ -43,9 +44,12 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
     auto tp_wait_duration = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() -
                                                                                   packet_data.receive_time_);
 
-    SinglePacketStats packet_stats{packet_data.from_node_id_, packet_data.rlp_.data().size(), processing_duration,
-                                   tp_wait_duration};
-    packets_stats_->addReceivedPacket(packet_data.type_str_, packet_stats);
+    PacketStats packet_stats{1 /* count */, packet_data.rlp_.data().size(), processing_duration, tp_wait_duration};
+    peer.first->addSentPacket(packet_data.type_str_, packet_stats);
+
+    if (kConf.network.collect_packets_stats) {
+      packets_stats_->addReceivedPacket(packet_data.type_str_, packet_data.from_node_id_, packet_stats);
+    }
 
   } catch (const PacketProcessingException& e) {
     // thrown during packets processing -> malicious peer, invalid rlp items count, ...
@@ -92,11 +96,16 @@ bool PacketHandler::sealAndSend(const dev::p2p::NodeID& node_id, SubprotocolPack
 
   host->send(node_id, TARAXA_CAPABILITY_NAME, packet_type, rlp.invalidate(),
              [begin, node_id, packet_size, packet_type, this]() {
-               SinglePacketStats packet_stats{
-                   node_id, packet_size,
+               if (!kConf.network.collect_packets_stats) {
+                 return;
+               }
+
+               PacketStats packet_stats{
+                   1 /* count */, packet_size,
                    std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::steady_clock::now() - begin),
                    std::chrono::microseconds{0}};
-               packets_stats_->addSentPacket(convertPacketTypeToString(packet_type), packet_stats);
+
+               packets_stats_->addSentPacket(convertPacketTypeToString(packet_type), node_id, packet_stats);
              });
 
   return true;

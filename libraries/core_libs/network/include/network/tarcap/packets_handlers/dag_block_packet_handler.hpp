@@ -12,7 +12,8 @@ class TestState;
 
 class DagBlockPacketHandler final : public ExtSyncingPacketHandler {
  public:
-  DagBlockPacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PacketsStats> packets_stats,
+  DagBlockPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
+                        std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                         std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
                         std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                         std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DbStorage> db,
@@ -31,7 +32,6 @@ class DagBlockPacketHandler final : public ExtSyncingPacketHandler {
 
   std::shared_ptr<TestState> test_state_;
   std::shared_ptr<TransactionManager> trx_mgr_{nullptr};
-  ExpirationCache<blk_hash_t> seen_dags_;
 };
 
 }  // namespace taraxa::network::tarcap

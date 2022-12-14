@@ -1,77 +1,71 @@
 #include "network/tarcap/stats/packets_stats.hpp"
 
-#include "common/util.hpp"
-#include "json/writer.h"
-
 namespace taraxa::network::tarcap {
 
-PacketsStats::PacketsStats(const addr_t& node_addr) { LOG_OBJECTS_CREATE("NETPER"); }
+PacketsStats::PacketsStats() : start_time_(std::chrono::system_clock::now()) {}
 
-void PacketsStats::addReceivedPacket(const std::string& packet_type, const SinglePacketStats& packet) {
-  received_packets_stats_.addPacket(packet_type, packet);
-  LOG(log_tr_) << "Received packet: " << packet.getStatsJsonStr(packet_type);
+void PacketsStats::addPacket(const std::string &packet_type, const PacketStats &packet) {
+  std::scoped_lock<std::shared_mutex> lock(mutex_);
+  auto &packet_stats = per_packet_stats_[packet_type];
+
+  packet_stats.count_++;
+  packet_stats.size_ += packet.size_;
+  packet_stats.processing_duration_ += packet.processing_duration_;
+  packet_stats.tp_wait_duration_ += packet.tp_wait_duration_;
+
+  all_packets_stats_.count_++;
+  all_packets_stats_.size_ += packet.size_;
+  all_packets_stats_.processing_duration_ += packet.processing_duration_;
+  all_packets_stats_.tp_wait_duration_ += packet.tp_wait_duration_;
 }
 
-void PacketsStats::addSentPacket(const std::string& packet_type, const SinglePacketStats& packet) {
-  sent_packets_stats_.addPacket(packet_type, packet);
-  LOG(log_tr_) << "Sent packet: " << packet.getStatsJsonStr(packet_type);
+std::pair<std::chrono::system_clock::time_point, PacketStats> PacketsStats::getAllPacketsStatsCopy() const {
+  std::shared_lock<std::shared_mutex> lock(mutex_);
+  return {start_time_, all_packets_stats_};
 }
 
-const AllPacketTypesStats& PacketsStats::getSentPacketsStats() const { return sent_packets_stats_; }
+void PacketsStats::resetStats() {
+  std::shared_lock<std::shared_mutex> lock(mutex_);
 
-const AllPacketTypesStats& PacketsStats::getReceivedPacketsStats() const { return received_packets_stats_; }
+  all_packets_stats_ = PacketStats{};
+  per_packet_stats_.clear();
+  start_time_ = std::chrono::system_clock::now();
+}
 
-AllPacketTypesStats::PacketTypeStatsMap operator-(const AllPacketTypesStats::PacketTypeStatsMap& lo,
-                                                  const AllPacketTypesStats::PacketTypeStatsMap& ro) {
-  AllPacketTypesStats::PacketTypeStatsMap result;
+Json::Value PacketsStats::getStatsJson() const {
+  const auto end_time = std::chrono::system_clock::now();
 
-  for (const auto& lo_packet_stats : lo) {
-    const auto ro_packets_stats = ro.find(lo_packet_stats.first);
+  Json::Value ret;
+  auto &packets_stats_json = ret["packets"] = Json::Value(Json::arrayValue);
 
-    if (ro_packets_stats != ro.end()) {
-      AllPacketTypesStats::PacketTypeStats packet_avg_stats_result = lo_packet_stats.second - ro_packets_stats->second;
-      if (packet_avg_stats_result.count_ > 0) {
-        result[lo_packet_stats.first] = packet_avg_stats_result;
-      }
-    } else {
-      result[lo_packet_stats.first] = lo_packet_stats.second;
-    }
+  std::time_t end_time_tt = std::chrono::system_clock::to_time_t(end_time);
+  std::tm end_time_tm = *std::localtime(&end_time_tt);
+  std::stringstream end_time_point_str;
+  end_time_point_str << std::put_time(&end_time_tm, "%Y-%m-%d_%H:%M:%S");
+  ret["end_time"] = end_time_point_str.str();
+
+  std::stringstream start_time_point_str;
+
+  std::shared_lock<std::shared_mutex> lock(mutex_);
+
+  std::time_t start_time_tt = std::chrono::system_clock::to_time_t(start_time_);
+  std::tm start_time_tm = *std::localtime(&start_time_tt);
+  start_time_point_str << std::put_time(&start_time_tm, "%Y-%m-%d_%H:%M:%S");
+  ret["start_time"] = start_time_point_str.str();
+
+  ret["duration_ms"] = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time_).count();
+
+  Json::Value packet_json = all_packets_stats_.getStatsJson();
+  packet_json["type"] = "ALL_PACKETS_COMBINED";
+  packets_stats_json.append(std::move(packet_json));
+
+  for (auto &single_packet_stats : per_packet_stats_) {
+    packet_json = single_packet_stats.second.getStatsJson();
+    packet_json["type"] = single_packet_stats.first;
+    packets_stats_json.append(std::move(packet_json));
   }
 
-  return result;
-}
-
-void PacketsStats::logAndUpdateStats() {
-  static AllPacketTypesStats::PacketTypeStatsMap previous_received_packets_stats =
-      received_packets_stats_.getStatsCopy();
-  static AllPacketTypesStats::PacketTypeStatsMap previous_sent_packets_stats = sent_packets_stats_.getStatsCopy();
-
-  auto getStatsJson = [](const AllPacketTypesStats::PacketTypeStatsMap& packets_stats_map) -> Json::Value {
-    Json::Value ret;
-
-    for (const auto& single_packet_stats : packets_stats_map) {
-      Json::Value packet_json = single_packet_stats.second.getStatsJson(true);
-      packet_json["type"] = single_packet_stats.first;
-      ret.append(std::move(packet_json));
-    }
-
-    return ret;
-  };
-
-  auto tmp_received_packets_stats = received_packets_stats_.getStatsCopy();
-  auto tmp_sent_packets_stats = sent_packets_stats_.getStatsCopy();
-
-  auto period_received_packets_stats = tmp_received_packets_stats - previous_received_packets_stats;
-  auto period_sent_packets_stats = tmp_sent_packets_stats - previous_sent_packets_stats;
-
-  LOG(log_nf_) << "Received packets stats: " << jsonToUnstyledString(getStatsJson(period_received_packets_stats));
-  LOG(log_nf_) << "Sent packets stats: " << jsonToUnstyledString(getStatsJson(period_sent_packets_stats));
-
-  received_packets_stats_.updatePeriodMaxStats(period_received_packets_stats);
-  sent_packets_stats_.updatePeriodMaxStats(period_sent_packets_stats);
-
-  previous_received_packets_stats = std::move(tmp_received_packets_stats);
-  previous_sent_packets_stats = std::move(tmp_sent_packets_stats);
+  return ret;
 }
 
 }  // namespace taraxa::network::tarcap

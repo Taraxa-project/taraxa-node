@@ -7,19 +7,15 @@
 
 namespace taraxa::network::tarcap {
 
-GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(std::shared_ptr<PeersState> peers_state,
-                                                   std::shared_ptr<PacketsStats> packets_stats,
+GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
+                                                   std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                    std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                                                    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DbStorage> db,
-                                                   size_t network_sync_level_size, const addr_t &node_addr,
-                                                   bool is_light_node, uint64_t light_node_history)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "GET_PBFT_SYNC_PH"),
+                                                   const addr_t &node_addr)
+    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, "GET_PBFT_SYNC_PH"),
       pbft_syncing_state_(std::move(pbft_syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
-      db_(std::move(db)),
-      network_sync_level_size_(network_sync_level_size),
-      is_light_node_(is_light_node),
-      light_node_history_(light_node_history) {}
+      db_(std::move(db)) {}
 
 void GetPbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
   if (constexpr size_t required_size = 1; packet_data.rlp_.itemCount() != required_size) {
@@ -42,7 +38,7 @@ void GetPbftSyncPacketHandler::process(const PacketData &packet_data,
     throw MaliciousPeerException(err_msg.str());
   }
 
-  if (is_light_node_ && height_to_sync + light_node_history_ <= my_chain_size) {
+  if (kConf.is_light_node && height_to_sync + kConf.light_node_history <= my_chain_size) {
     std::ostringstream err_msg;
     err_msg << "Peer " << packet_data.from_node_id_ << " request syncing period start at " << height_to_sync
             << ". Light node does not have the data " << my_chain_size;
@@ -52,11 +48,11 @@ void GetPbftSyncPacketHandler::process(const PacketData &packet_data,
   size_t blocks_to_transfer = 0;
   auto pbft_chain_synced = false;
   const auto total_period_datas_size = my_chain_size - height_to_sync + 1;
-  if (total_period_datas_size <= network_sync_level_size_) {
+  if (total_period_datas_size <= kConf.network.sync_level_size) {
     blocks_to_transfer = total_period_datas_size;
     pbft_chain_synced = true;
   } else {
-    blocks_to_transfer = network_sync_level_size_;
+    blocks_to_transfer = kConf.network.sync_level_size;
   }
   LOG(log_tr_) << "Will send " << blocks_to_transfer << " PBFT blocks to " << packet_data.from_node_id_;
 

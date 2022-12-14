@@ -51,7 +51,6 @@ class Network {
   // returns count of all connected nodes
   unsigned getNodeCount();
   Json::Value getStatus();
-  Json::Value getPacketsStats();
   void restartSyncingPbft(bool force = false);
   bool pbft_syncing();
   uint64_t syncTimeSeconds() const;

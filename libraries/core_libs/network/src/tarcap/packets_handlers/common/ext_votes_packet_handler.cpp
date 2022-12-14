@@ -6,16 +6,13 @@
 
 namespace taraxa::network::tarcap {
 
-ExtVotesPacketHandler::ExtVotesPacketHandler(std::shared_ptr<PeersState> peers_state,
-                                             std::shared_ptr<PacketsStats> packets_stats,
+ExtVotesPacketHandler::ExtVotesPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
+                                             std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                              std::shared_ptr<PbftManager> pbft_mgr,
                                              std::shared_ptr<PbftChain> pbft_chain,
-                                             std::shared_ptr<VoteManager> vote_mgr, const NetworkConfig &net_config,
-                                             const addr_t &node_addr, const std::string &log_channel_name)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
-      kVoteAcceptingPeriods(net_config.vote_accepting_periods),
-      kVoteAcceptingRounds(net_config.vote_accepting_rounds),
-      kVoteAcceptingSteps(net_config.vote_accepting_steps),
+                                             std::shared_ptr<VoteManager> vote_mgr, const addr_t &node_addr,
+                                             const std::string &log_channel_name)
+    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
       last_votes_sync_request_time_(std::chrono::system_clock::now()),
       last_pbft_block_sync_request_time_(std::chrono::system_clock::now()),
       pbft_mgr_(std::move(pbft_mgr)),
@@ -131,8 +128,9 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
   // Period validation
   if (vote->getPeriod() < current_pbft_period) {
     return {false, "Invalid period(too small): " + genErrMsg(vote)};
-  } else if (kVoteAcceptingPeriods && vote->getPeriod() - 1 > current_pbft_period + kVoteAcceptingPeriods) {
-    // skip this check if kVoteAcceptingPeriods == 0
+  } else if (kConf.network.vote_accepting_periods &&
+             vote->getPeriod() - 1 > current_pbft_period + kConf.network.vote_accepting_periods) {
+    // skip this check if kConf.network.vote_accepting_periods == 0
     // vote->getPeriod() - 1 is here because votes are validated against vote_period - 1 in dpos contract
     // Do not request round sync too often here
     if (std::chrono::system_clock::now() - last_pbft_block_sync_request_time_ > kSyncRequestInterval) {
@@ -148,16 +146,16 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
   // Round validation
   auto checking_round = current_pbft_round;
   // If period is not the same we assume current round is equal to 1
-  // So we won't accept votes for future period with round bigger than kVoteAcceptingSteps
+  // So we won't accept votes for future period with round bigger than kConf.network.vote_accepting_steps
   if (current_pbft_period != vote->getPeriod()) {
     checking_round = 1;
   }
 
   if (vote->getRound() < checking_round) {
     return {false, "Invalid round(too small): " + genErrMsg(vote)};
-  } else if (validate_max_round_step && kVoteAcceptingRounds &&
-             vote->getRound() >= checking_round + kVoteAcceptingRounds) {
-    // skip this check if kVoteAcceptingRounds == 0
+  } else if (validate_max_round_step && kConf.network.vote_accepting_rounds &&
+             vote->getRound() >= checking_round + kConf.network.vote_accepting_rounds) {
+    // skip this check if kConf.network.vote_accepting_rounds == 0
     // Trigger votes(round) syncing only if we are in sync in terms of period
     if (current_pbft_period == vote->getPeriod()) {
       // Do not request round sync too often here
@@ -174,13 +172,14 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
   // Step validation
   auto checking_step = pbft_mgr_->getPbftStep();
   // If period or round is not the same we assume current step is equal to 1
-  // So we won't accept votes for future rounds with step bigger than kVoteAcceptingSteps
+  // So we won't accept votes for future rounds with step bigger than kConf.network.vote_accepting_steps
   if (current_pbft_period != vote->getPeriod() || current_pbft_round != vote->getRound()) {
     checking_step = 1;
   }
 
-  // skip check if kVoteAcceptingSteps == 0
-  if (validate_max_round_step && kVoteAcceptingSteps && vote->getStep() >= checking_step + kVoteAcceptingSteps) {
+  // skip check if kConf.network.vote_accepting_steps == 0
+  if (validate_max_round_step && kConf.network.vote_accepting_steps &&
+      vote->getStep() >= checking_step + kConf.network.vote_accepting_steps) {
     return {false, "Invalid step(too big): " + genErrMsg(vote)};
   }
 

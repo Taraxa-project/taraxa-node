@@ -34,10 +34,5 @@
     "name": "get_node_status",
     "params": [],
     "returns": {}
-  },
-  {
-    "name": "get_packets_stats",
-    "params": [],
-    "returns": {}
   }
 ]

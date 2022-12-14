@@ -6,22 +6,14 @@
 #include <boost/noncopyable.hpp>
 
 #include "common/util.hpp"
+#include "network/tarcap/stats/packets_stats.hpp"
 
 namespace taraxa::network::tarcap {
 
 class TaraxaPeer : public boost::noncopyable {
  public:
-  TaraxaPeer()
-      : known_dag_blocks_(10000, 1000),
-        known_transactions_(100000, 10000),
-        known_pbft_blocks_(10000, 1000),
-        known_votes_(10000, 1000) {}
-  explicit TaraxaPeer(const dev::p2p::NodeID &id, size_t transaction_pool_size)
-      : id_(id),
-        known_dag_blocks_(10000, 1000),
-        known_transactions_(transaction_pool_size * 1.2, transaction_pool_size / 10),
-        known_pbft_blocks_(10000, 1000),
-        known_votes_(100000, 1000) {}
+  TaraxaPeer();
+  TaraxaPeer(const dev::p2p::NodeID& id, size_t transaction_pool_size);
 
   /**
    * @brief Mark dag block as known
@@ -30,8 +22,8 @@ class TaraxaPeer : public boost::noncopyable {
    * @return true in case dag block was actually marked as known(was not known before), otherwise false (was already
    * known)
    */
-  bool markDagBlockAsKnown(blk_hash_t const &_hash) { return known_dag_blocks_.insert(_hash); }
-  bool isDagBlockKnown(blk_hash_t const &_hash) const { return known_dag_blocks_.contains(_hash); }
+  bool markDagBlockAsKnown(const blk_hash_t& hash);
+  bool isDagBlockKnown(const blk_hash_t& hash) const;
 
   /**
    * @brief Mark transaction as known
@@ -40,18 +32,17 @@ class TaraxaPeer : public boost::noncopyable {
    * @return true in case transaction was actually marked as known(was not known before), otherwise false (was already
    * known)
    */
-  bool markTransactionAsKnown(trx_hash_t const &_hash) { return known_transactions_.insert(_hash); }
-  bool isTransactionKnown(trx_hash_t const &_hash) const { return known_transactions_.contains(_hash); }
+  bool markTransactionAsKnown(const trx_hash_t& hash);
+  bool isTransactionKnown(const trx_hash_t& hash) const;
 
-  // PBFT
   /**
    * @brief Mark vote as known
    *
    * @param _hash
    * @return true in case vote was actually marked as known(was not known before), otherwise false (was already known)
    */
-  bool markVoteAsKnown(vote_hash_t const &_hash) { return known_votes_.insert(_hash); }
-  bool isVoteKnown(vote_hash_t const &_hash) const { return known_votes_.contains(_hash); }
+  bool markVoteAsKnown(const vote_hash_t& hash);
+  bool isVoteKnown(const vote_hash_t& hash) const;
 
   /**
    * @brief Mark pbft block as known
@@ -60,53 +51,51 @@ class TaraxaPeer : public boost::noncopyable {
    * @return true in case pbft block was actually marked as known(was not known before), otherwise false (was already
    * known)
    */
-  bool markPbftBlockAsKnown(blk_hash_t const &_hash) { return known_pbft_blocks_.insert(_hash); }
-  bool isPbftBlockKnown(blk_hash_t const &_hash) const { return known_pbft_blocks_.contains(_hash); }
+  bool markPbftBlockAsKnown(const blk_hash_t& hash);
+  bool isPbftBlockKnown(const blk_hash_t& hash) const;
 
-  const dev::p2p::NodeID &getId() const { return id_; }
+  const dev::p2p::NodeID& getId() const;
 
   /**
    * @brief Reports suspicious pacet
    *
    * @return true in case suspicious packet count within current minute is greater than kMaxSuspiciousPacketPerMinute
    */
-  bool reportSuspiciousPacket() {
-    uint64_t now =
-        std::chrono::duration_cast<std::chrono::minutes>(std::chrono::system_clock::now().time_since_epoch()).count();
-    // Reset counter if no suspicious packet sent for over a minute
-    if (now > timestamp_suspicious_packet_) {
-      suspicious_packet_count_ = 1;
-      timestamp_suspicious_packet_ = now;
-    } else {
-      suspicious_packet_count_++;
-    }
-    return suspicious_packet_count_ > kMaxSuspiciousPacketPerMinute;
-  }
+  bool reportSuspiciousPacket();
 
   /**
    * @brief Check if it is allowed to send dag syncing request
    *
    * @return true if allowed
    */
-  bool dagSyncingAllowed() {
-    return !peer_dag_synced_ ||
-           (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())
-                .count() -
-            peer_dag_synced_time_) > kDagSyncingLimit;
-  }
+  bool dagSyncingAllowed() const;
 
   /**
    * @brief Check if it is allowed to receive dag syncing request
    *
    * @return true if allowed
    */
-  bool requestDagSyncingAllowed() {
-    return !peer_requested_dag_syncing_ ||
-           (std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch())
-                .count() -
-            peer_requested_dag_syncing_time_) > kDagSyncingLimit;
-  }
+  bool requestDagSyncingAllowed() const;
 
+  /**
+   * @brief Adds packet to the stats
+   *
+   * @param packet_type
+   * @param packet
+   */
+  void addSentPacket(const std::string& packet_type, const PacketStats& packet);
+
+  /**
+   * @return AllPacketsStats - packets stats for packets received from peer
+   */
+  std::pair<std::chrono::system_clock::time_point, PacketStats> getAllPacketsStatsCopy() const;
+
+  /**
+   * @brief Resets sent packets stats
+   */
+  void resetPacketsStats();
+
+ public:
   std::atomic<bool> syncing_ = false;
   std::atomic<uint64_t> dag_level_ = 0;
   std::atomic<PbftPeriod> pbft_chain_size_ = 0;
@@ -140,6 +129,9 @@ class TaraxaPeer : public boost::noncopyable {
 
   // Performance extensive dag syncing is only allowed to be requested once each kDagSyncingLimit seconds
   const uint64_t kDagSyncingLimit = 300;
+
+  // Packets stats for packets sent by *this TaraxaPeer
+  PacketsStats sent_packets_stats_;
 };
 
 }  // namespace taraxa::network::tarcap
