@@ -239,7 +239,7 @@ var hierarchy =
         [ "taraxa::network::tarcap::StatusPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html", null ]
       ] ],
       [ "taraxa::network::tarcap::ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html", [
-        [ "taraxa::network::tarcap::GetVotesSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_votes_sync_packet_handler.html", null ],
+        [ "taraxa::network::tarcap::GetNextVotesSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_sync_packet_handler.html", null ],
         [ "taraxa::network::tarcap::VotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html", null ],
         [ "taraxa::network::tarcap::VotesSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_votes_sync_packet_handler.html", null ]
       ] ],

@@ -22,7 +22,6 @@ var group___vote_classtaraxa_1_1_vote =
     [ "operator==", "group___vote.html#a4336a403a91fd97ab23a8124c79c98e4", null ],
     [ "rlp", "group___vote.html#acba0f5fe7ab3479d8b622b013ee6b7cf", null ],
     [ "sha3", "group___vote.html#ad1ee3c8e4288b4e166d2aedd9ee325b6", null ],
-    [ "validate", "group___vote.html#a9e78c8540877d473231735e55d51fc2f", null ],
     [ "verifyVote", "group___vote.html#a6528bb14bb94e196d5ffb65693acda19", null ],
     [ "verifyVrfSortition", "group___vote.html#a8ad105bcb6457cd15953cc1cf146b3dd", null ],
     [ "operator<<", "group___vote.html#a98ee040183ce7e5147bbee2283263cd9", null ],

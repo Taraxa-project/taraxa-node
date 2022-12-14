@@ -3,7 +3,7 @@ var packet__types_8hpp =
     [ "SubprotocolPacketType", "packet__types_8hpp.html#ab9638975c8f96ddde1ef012aa4a10368", [
       [ "HighPriorityPackets", "packet__types_8hpp.html#ab9638975c8f96ddde1ef012aa4a10368ae314ae2149a2c255085a02e1ae5400e2", null ],
       [ "VotePacket", "packet__types_8hpp.html#ab9638975c8f96ddde1ef012aa4a10368a6ee4a9d5f1977759fc31f9b29174a955", null ],
-      [ "GetVotesSyncPacket", "packet__types_8hpp.html#ab9638975c8f96ddde1ef012aa4a10368afd0edaff753fefc0f7a58a0e7d29158f", null ],
+      [ "GetNextVotesSyncPacket", "packet__types_8hpp.html#ab9638975c8f96ddde1ef012aa4a10368adbfbf0430186c2149950f899f574dfda", null ],
       [ "VotesSyncPacket", "packet__types_8hpp.html#ab9638975c8f96ddde1ef012aa4a10368a7e829bf318188d49a8f5c5a2fa95a49d", null ],
       [ "MidPriorityPackets", "packet__types_8hpp.html#ab9638975c8f96ddde1ef012aa4a10368af6f1a52f4463133828df300c73f6e173", null ],
       [ "DagBlockPacket", "packet__types_8hpp.html#ab9638975c8f96ddde1ef012aa4a10368a0e8670743447b0cf6432e3c88423de7b", null ],

@@ -1,8 +1,5 @@
 var NAVTREEINDEX22 =
 {
-"structdev_1_1p2p_1_1_session.html#ac2908ff423e6a573c3e2461ba3423727":[14,0,0,1,34,0,0],
-"structdev_1_1p2p_1_1_session.html#ac3a2ee5a4288cbf52bc71761ff25c58a":[14,0,0,1,34,8],
-"structdev_1_1p2p_1_1_session.html#ac50d879ffd0bfb8b3e9f8fc92e1940cc":[14,0,0,1,34,27],
 "structdev_1_1p2p_1_1_session.html#ac54975fc1868fd83a53d6c2c6a1f10b5":[14,0,0,1,34,5],
 "structdev_1_1p2p_1_1_session.html#ac56524e008eb9d5e63ca5915f3f4216e":[14,0,0,1,34,35],
 "structdev_1_1p2p_1_1_session.html#acbd0c5326fd76291e27095db7fdca161":[14,0,0,1,34,25],
@@ -249,5 +246,8 @@ var NAVTREEINDEX22 =
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#afb89235aa014f0696f703080a83fa35f":[14,0,3,3,0,0,8,1],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_extended_transaction_location.html":[14,0,3,3,0,0,2],
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_extended_transaction_location.html#ad0807ea5975d5ea3c46849623dd5e472":[14,0,3,3,0,0,2,0],
-"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html":[14,0,3,3,0,0,10]
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html":[14,0,3,3,0,0,10],
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a37c3a70b29f7b44a4d8fe666414eb742":[14,0,3,3,0,0,10,1],
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a4b4f0d090a7ad2094e9c003c44b84166":[14,0,3,3,0,0,10,0],
+"structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html#a4e59d4458a7687e5c99075954cfc803e":[14,0,3,3,0,0,10,2]
 };

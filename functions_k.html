@@ -149,11 +149,14 @@ $(document).ready(function(){initNavTree('functions_k.html',''); initResizable()
 <li>kExtendedDataItemCount
 : <a class="el" href="classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html#af7e97c62bfe70e5abf829e047cd50833">taraxa::TwoTPlusOneSoftVotedBlockData</a>
 </li>
+<li>kExtendedVotePacketSize
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a407f59c8205c48d498066712108c3d69">taraxa::network::tarcap::VotePacketHandler</a>
+</li>
 <li>key_manager_
 : <a class="el" href="group___d_a_g.html#a5a36c04f481e9c1dd344fd2af990a3cc">taraxa::DagBlockProposer</a>
 , <a class="el" href="group___d_a_g.html#a24126b789e44798ff62e6f7504ee659f">taraxa::DagManager</a>
 , <a class="el" href="classtaraxa_1_1_full_node.html#a9718bf42b46b6db94ab5565aa34c9b93">taraxa::FullNode</a>
-, <a class="el" href="group___p_b_f_t.html#a07cd83fb15922aa8cd8d6d6f2cebfb71">taraxa::PbftManager</a>
+, <a class="el" href="group___vote.html#a7d6ef7f016e3e9870229a67ae64c1dfc">taraxa::VoteManager</a>
 </li>
 <li>key_map_
 : <a class="el" href="classtaraxa_1_1_key_manager.html#a32e1d37aea18a3ef39fb27ca8df45cea">taraxa::KeyManager</a>
@@ -209,6 +212,15 @@ $(document).ready(function(){initNavTree('functions_k.html',''); initResizable()
 <li>kMinimumPrice
 : <a class="el" href="group___transaction.html#a66af96deef89cc0852e7f53d76e9765e">taraxa::GasPricer</a>
 </li>
+<li>kNodeAddr
+: <a class="el" href="group___vote.html#a37887491fb17879f44204e2d7e0da280">taraxa::VoteManager</a>
+</li>
+<li>kNodePub
+: <a class="el" href="group___vote.html#ab40ee465a0ae9c5d6f9bdb76784abf0e">taraxa::VoteManager</a>
+</li>
+<li>kNodeSk
+: <a class="el" href="group___vote.html#a48fe1fde3e5052f198901137a41b82f3">taraxa::VoteManager</a>
+</li>
 <li>kNonProposableTransactionsLimitPercentage
 : <a class="el" href="group___transaction.html#adf177856ba34c82fb84138cdc3ae13f6">taraxa::TransactionQueue</a>
 </li>
@@ -243,13 +255,16 @@ $(document).ready(function(){initNavTree('functions_k.html',''); initResizable()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html#af995d8e098c45e69e3fef6b670c9d3cc">taraxa::network::tarcap::DagBlockPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_dag_sync_packet_handler.html#a4bd36b937379c23de1fb058ab016a5e1">taraxa::network::tarcap::DagSyncPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#af3f2f50ee9cc1226193c189887bc9fcf">taraxa::network::tarcap::GetDagSyncPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_sync_packet_handler.html#a800cbd072eddad205174294124a2f592">taraxa::network::tarcap::GetNextVotesSyncPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#abb00a37642f6819cd0e5c7ba44e0b306">taraxa::network::tarcap::GetPbftSyncPacketHandler</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_votes_sync_packet_handler.html#a74c7291f4db15196972bd7adc4bc2a8b">taraxa::network::tarcap::GetVotesSyncPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#aab076aac8ccb972af61d6fa6aa80759b">taraxa::network::tarcap::PbftSyncPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#af906835405b5d8132ced3ab6b1685918">taraxa::network::tarcap::StatusPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a8ca8ec0d164aca81f25ebedffa45b733">taraxa::network::tarcap::TransactionPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a8d801b7364fab5d508a30bf43dc1eae6">taraxa::network::tarcap::VotePacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_votes_sync_packet_handler.html#afd8364bba9a1e475468560c87ea0d193">taraxa::network::tarcap::VotesSyncPacketHandler</a>
+</li>
+<li>kPbftConfig
+: <a class="el" href="group___vote.html#a48acd91ee1cfb71742b0c3d9bb7ee753">taraxa::VoteManager</a>
 </li>
 <li>kPercentile
 : <a class="el" href="group___transaction.html#adca26d8bc46adafaaa9611911735d41a">taraxa::GasPricer</a>
@@ -299,8 +314,11 @@ $(document).ready(function(){initNavTree('functions_k.html',''); initResizable()
 <li>kTransactionPacketItemCount
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#ae5a3a3cdfd8e59bc050cfa9cb18f086d">taraxa::network::tarcap::TransactionPacketHandler</a>
 </li>
-<li>kVotePacketWithBlockSize
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a69545d74c158654b927a46be592e7aa0">taraxa::network::tarcap::ExtVotesPacketHandler</a>
+<li>kVotePacketSize
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a92c5ebec35efa9aae5f105a215fc6710">taraxa::network::tarcap::VotePacketHandler</a>
+</li>
+<li>kVrfSk
+: <a class="el" href="group___vote.html#a27d0b3b033a16774033fb56b6afb44c2">taraxa::VoteManager</a>
 </li>
 <li>kWordSize
 : <a class="el" href="classtaraxa_1_1final__chain_1_1_contract_interface.html#ab40c2fa5fa01e3a6108dad31fdbaaf34">taraxa::final_chain::ContractInterface</a>

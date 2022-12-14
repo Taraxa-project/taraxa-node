@@ -10,11 +10,11 @@ var dir_6a2098da4a159a9dd0edfdbff3b6611a =
     [ "get_dag_sync_packet_handler.hpp", "get__dag__sync__packet__handler_8hpp.html", [
       [ "GetDagSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler" ]
     ] ],
+    [ "get_next_votes_sync_packet_handler.hpp", "get__next__votes__sync__packet__handler_8hpp.html", [
+      [ "GetNextVotesSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_sync_packet_handler" ]
+    ] ],
     [ "get_pbft_sync_packet_handler.hpp", "get__pbft__sync__packet__handler_8hpp.html", [
       [ "GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler" ]
-    ] ],
-    [ "get_votes_sync_packet_handler.hpp", "get__votes__sync__packet__handler_8hpp.html", [
-      [ "GetVotesSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_votes_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_get_votes_sync_packet_handler" ]
     ] ],
     [ "pbft_sync_packet_handler.hpp", "pbft__sync__packet__handler_8hpp.html", [
       [ "PbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler" ]
