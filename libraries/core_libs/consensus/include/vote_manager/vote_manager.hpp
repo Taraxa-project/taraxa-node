@@ -382,11 +382,11 @@ class VoteManager {
   uint64_t getPbftSortitionThreshold(uint64_t total_dpos_votes_count, PbftVoteTypes vote_type) const;
 
  private:
-  const addr_t node_addr_;
-  const PbftConfig& pbft_config_;
-  const vrf_wrapper::vrf_sk_t vrf_sk_;
-  const secret_t node_sk_;
-  const dev::Public node_pub_;
+  const addr_t kNodeAddr;
+  const PbftConfig& kPbftConfig;
+  const vrf_wrapper::vrf_sk_t kVrfSk;
+  const secret_t kNodeSk;
+  const dev::Public kNodePub;
 
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<PbftChain> pbft_chain_;

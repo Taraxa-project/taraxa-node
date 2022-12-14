@@ -20,11 +20,11 @@ VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config,
                          const vrf_wrapper::vrf_sk_t& vrf_sk, std::shared_ptr<DbStorage> db,
                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
                          std::shared_ptr<KeyManager> key_manager)
-    : node_addr_(node_addr),
-      pbft_config_(pbft_config),
-      vrf_sk_(vrf_sk),
-      node_sk_(node_sk),
-      node_pub_(dev::toPublic(node_sk_)),
+    : kNodeAddr(node_addr),
+      kPbftConfig(pbft_config),
+      kVrfSk(vrf_sk),
+      kNodeSk(node_sk),
+      kNodePub(dev::toPublic(kNodeSk)),
       db_(std::move(db)),
       pbft_chain_(std::move(pbft_chain)),
       final_chain_(std::move(final_chain)),
@@ -746,12 +746,12 @@ void VoteManager::sendRewardVotes(const blk_hash_t& pbft_block_hash, bool rebroa
 uint64_t VoteManager::getPbftSortitionThreshold(uint64_t total_dpos_votes_count, PbftVoteTypes vote_type) const {
   switch (vote_type) {
     case PbftVoteTypes::propose_vote:
-      return std::min<uint64_t>(pbft_config_.number_of_proposers, total_dpos_votes_count);
+      return std::min<uint64_t>(kPbftConfig.number_of_proposers, total_dpos_votes_count);
     case PbftVoteTypes::soft_vote:
     case PbftVoteTypes::cert_vote:
     case PbftVoteTypes::next_vote:
     default:
-      return std::min<uint64_t>(pbft_config_.committee_size, total_dpos_votes_count);
+      return std::min<uint64_t>(kPbftConfig.committee_size, total_dpos_votes_count);
   }
 }
 
@@ -762,7 +762,7 @@ std::shared_ptr<Vote> VoteManager::generateVoteWithWeight(const taraxa::blk_hash
   uint64_t pbft_sortition_threshold = 0;
 
   try {
-    voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(period - 1, node_addr_);
+    voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(period - 1, kNodeAddr);
     if (!voter_dpos_votes_count) {
       // No delegation
       return nullptr;
@@ -794,8 +794,8 @@ std::shared_ptr<Vote> VoteManager::generateVoteWithWeight(const taraxa::blk_hash
 std::shared_ptr<Vote> VoteManager::generateVote(const blk_hash_t& blockhash, PbftVoteTypes type, PbftPeriod period,
                                                 PbftRound round, PbftStep step) {
   // sortition proof
-  VrfPbftSortition vrf_sortition(vrf_sk_, {type, period, round, step});
-  return std::make_shared<Vote>(node_sk_, std::move(vrf_sortition), blockhash);
+  VrfPbftSortition vrf_sortition(kVrfSk, {type, period, round, step});
+  return std::make_shared<Vote>(kNodeSk, std::move(vrf_sortition), blockhash);
 }
 
 std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Vote>& vote) const {
@@ -806,21 +806,20 @@ std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Vot
     const uint64_t voter_dpos_votes_count =
         final_chain_->dpos_eligible_vote_count(vote_period - 1, vote->getVoterAddr());
     const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(vote_period - 1);
-    const uint64_t pbft_sortition_threshold = getPbftSortitionThreshold(total_dpos_votes_count, vote->getType());
 
     // Mark vote as validated only after getting dpos_eligible_vote_count and other values from dpos contract. It is
     // possible that we are behind in processing pbft blocks, in which case we wont be able to get values from dpos
     // contract and validation fails due to this, not due to the fact that vote is invalid...
     already_validated_votes_.insert(vote->getHash());
 
-    const auto pk = key_manager_->get(vote_period - 1, vote->getVoterAddr());
-    if (!pk) {
-      err_msg << "No vrf key mapped for vote author " << vote->getVoterAddr();
+    if (voter_dpos_votes_count == 0) {
+      err_msg << "Invalid vote " << vote->getHash() << ": author " << vote->getVoterAddr() << " has zero stake";
       return {false, err_msg.str()};
     }
 
-    if (voter_dpos_votes_count == 0) {
-      err_msg << "Invalid vote " << vote->getHash() << ": author " << vote->getVoterAddr() << " has zero stake";
+    const auto pk = key_manager_->get(vote_period - 1, vote->getVoterAddr());
+    if (!pk) {
+      err_msg << "No vrf key mapped for vote author " << vote->getVoterAddr();
       return {false, err_msg.str()};
     }
 
@@ -834,6 +833,7 @@ std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Vot
       return {false, err_msg.str()};
     }
 
+    const uint64_t pbft_sortition_threshold = getPbftSortitionThreshold(total_dpos_votes_count, vote->getType());
     if (!vote->calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold)) {
       err_msg << "Invalid vote " << vote->getHash() << ": zero weight";
       return {false, err_msg.str()};
@@ -886,10 +886,10 @@ bool VoteManager::voteAlreadyValidated(const vote_hash_t& vote_hash) const {
 }
 
 bool VoteManager::genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound pbft_round) const {
-  VrfPbftSortition vrf_sortition(vrf_sk_, {PbftVoteTypes::propose_vote, pbft_period, pbft_round, 1});
+  VrfPbftSortition vrf_sortition(kVrfSk, {PbftVoteTypes::propose_vote, pbft_period, pbft_round, 1});
 
   try {
-    const uint64_t voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(pbft_period - 1, node_addr_);
+    const uint64_t voter_dpos_votes_count = final_chain_->dpos_eligible_vote_count(pbft_period - 1, kNodeAddr);
     if (!voter_dpos_votes_count) {
       LOG(log_er_) << "Generated vrf sortition for period " << pbft_period << ", round " << pbft_round
                    << " is invalid. Voter dpos vote count is zero";
@@ -901,7 +901,7 @@ bool VoteManager::genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound p
         getPbftSortitionThreshold(total_dpos_votes_count, PbftVoteTypes::propose_vote);
 
     if (!vrf_sortition.calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold,
-                                       node_pub_)) {
+                                       kNodePub)) {
       LOG(log_dg_) << "Generated vrf sortition for period " << pbft_period << ", round " << pbft_round
                    << " is invalid. Vrf sortition is zero";
       return false;
