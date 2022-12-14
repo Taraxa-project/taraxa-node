@@ -24,13 +24,14 @@ class TimePeriodPacketsStats;
  */
 class PacketHandler {
  public:
-  PacketHandler(std::shared_ptr<PeersState> peers_state, std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-                const addr_t& node_addr, const std::string& log_channel_name);
+  PacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
+                std::shared_ptr<TimePeriodPacketsStats> packets_stats, const addr_t& node_addr,
+                const std::string& log_channel_name);
   virtual ~PacketHandler() = default;
   PacketHandler(const PacketHandler&) = default;
   PacketHandler(PacketHandler&&) = default;
-  PacketHandler& operator=(const PacketHandler&) = default;
-  PacketHandler& operator=(PacketHandler&&) = default;
+  PacketHandler& operator=(const PacketHandler&) = delete;
+  PacketHandler& operator=(PacketHandler&&) = delete;
 
   /**
    * @brief Packet processing function wrapper that logs packet stats and calls process function
@@ -72,6 +73,9 @@ class PacketHandler {
   void disconnect(const dev::p2p::NodeID& node_id, dev::p2p::DisconnectReason reason);
 
  protected:
+  // Node config
+  const FullNodeConfig& kConf;
+
   std::shared_ptr<PeersState> peers_state_{nullptr};
 
   // Shared packet stats

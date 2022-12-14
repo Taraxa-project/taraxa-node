@@ -32,8 +32,8 @@ class TimePeriodPacketsStats {
  private:
   /**
    * @brief Checks if now() - start_time is approximately equal to kResetTimePeriod. Stats are reset in regular
-   * interval, but it might be postponed due to lack o resources, in which case we dont want to count such stats when
-   * processing max stats
+   *        interval, but it might be postponed due to lack o resources, in which case we dont want to count such stats
+   *        when processing max stats
    *
    * @return <true, interval_ms> in case current time is valid time point for max stats ->
    *         now() - start_time == *kResetTimePeriod, otherwise <false, interval_ms>

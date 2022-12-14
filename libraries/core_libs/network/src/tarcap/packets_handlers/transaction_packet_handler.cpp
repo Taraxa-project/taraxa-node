@@ -7,11 +7,11 @@
 
 namespace taraxa::network::tarcap {
 
-TransactionPacketHandler::TransactionPacketHandler(std::shared_ptr<PeersState> peers_state,
+TransactionPacketHandler::TransactionPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                                                    std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                    std::shared_ptr<TransactionManager> trx_mgr,
                                                    std::shared_ptr<TestState> test_state, const addr_t &node_addr)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, "TRANSACTION_PH"),
+    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, "TRANSACTION_PH"),
       trx_mgr_(std::move(trx_mgr)),
       test_state_(std::move(test_state)) {}
 

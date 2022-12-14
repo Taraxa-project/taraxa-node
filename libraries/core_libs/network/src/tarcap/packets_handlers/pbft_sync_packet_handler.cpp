@@ -9,18 +9,19 @@
 
 namespace taraxa::network::tarcap {
 
-PbftSyncPacketHandler::PbftSyncPacketHandler(
-    std::shared_ptr<PeersState> peers_state, std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-    std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
-    std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<VoteManager> vote_mgr,
-    std::shared_ptr<util::ThreadPool> periodic_events_tp, std::shared_ptr<DbStorage> db, size_t network_sync_level_size,
-    const addr_t &node_addr)
-    : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
+PbftSyncPacketHandler::PbftSyncPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
+                                             std::shared_ptr<TimePeriodPacketsStats> packets_stats,
+                                             std::shared_ptr<PbftSyncingState> pbft_syncing_state,
+                                             std::shared_ptr<PbftChain> pbft_chain,
+                                             std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
+                                             std::shared_ptr<VoteManager> vote_mgr,
+                                             std::shared_ptr<util::ThreadPool> periodic_events_tp,
+                                             std::shared_ptr<DbStorage> db, const addr_t &node_addr)
+    : ExtSyncingPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
                               "PBFT_SYNC_PH"),
       vote_mgr_(std::move(vote_mgr)),
-      periodic_events_tp_(periodic_events_tp),
-      network_sync_level_size_(network_sync_level_size) {}
+      periodic_events_tp_(periodic_events_tp) {}
 
 void PbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
   if (packet_data.rlp_.itemCount() != kStandardPacketSize && packet_data.rlp_.itemCount() != kChainSyncedPacketSize) {
@@ -207,7 +208,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
       return restartSyncingPbft(true);
     }
     if (pbft_syncing_state_->isPbftSyncing()) {
-      if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * network_sync_level_size_)) {
+      if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * kConf.network.sync_level_size)) {
         LOG(log_tr_) << "Syncing pbft blocks too fast than processing. Has synced period " << pbft_sync_period
                      << ", PBFT chain size " << pbft_chain_->getPbftChainSize();
         if (auto periodic_events_tp = periodic_events_tp_.lock())
@@ -251,7 +252,7 @@ void PbftSyncPacketHandler::delayedPbftSync(int counter) {
   }
 
   if (pbft_syncing_state_->isPbftSyncing()) {
-    if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * network_sync_level_size_)) {
+    if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * kConf.network.sync_level_size)) {
       LOG(log_tr_) << "Syncing pbft blocks faster than processing " << pbft_sync_period << " "
                    << pbft_chain_->getPbftChainSize();
       if (auto periodic_events_tp = periodic_events_tp_.lock())

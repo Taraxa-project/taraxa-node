@@ -12,7 +12,7 @@ namespace taraxa::network::tarcap {
 
 class GetDagSyncPacketHandler final : public PacketHandler {
  public:
-  GetDagSyncPacketHandler(std::shared_ptr<PeersState> peers_state,
+  GetDagSyncPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                           std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                           std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DagManager> dag_mgr,
                           std::shared_ptr<DbStorage> db, const addr_t& node_addr);

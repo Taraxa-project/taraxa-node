@@ -82,7 +82,7 @@ void dec_json(const Json::Value &json, NetworkConfig &network) {
   network.ideal_peer_count = getConfigDataAsUInt(json, {"ideal_peer_count"});
   network.max_peer_count = getConfigDataAsUInt(json, {"max_peer_count"});
   network.sync_level_size = getConfigDataAsUInt(json, {"sync_level_size"});
-  network.collect_packets_stats = getConfigDataAsUInt(json, {"collect_packets_stats"});
+  network.collect_packets_stats = getConfigDataAsBoolean(json, {"collect_packets_stats"});
   network.packets_processing_threads = getConfigDataAsUInt(json, {"packets_processing_threads"});
   network.peer_blacklist_timeout =
       getConfigDataAsUInt(json, {"peer_blacklist_timeout"}, true, NetworkConfig::kBlacklistTimeoutDefaultInSeconds);

@@ -42,7 +42,7 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
   LOG_OBJECTS_CREATE("TARCAP");
 
   peers_state_ = std::make_shared<PeersState>(host, kConf);
-  all_packets_stats_ = std::make_shared<TimePeriodPacketsStats>(std::chrono::milliseconds(60), node_addr);
+  all_packets_stats_ = std::make_shared<TimePeriodPacketsStats>(std::chrono::milliseconds(60000), node_addr);
 
   // Inits boot nodes (based on config)
   addBootNodes(true);
@@ -188,38 +188,38 @@ void TaraxaCapability::registerPacketHandlers(
   // Register all packet handlers
 
   // Consensus packets with high processing priority
-  packets_handlers_->registerHandler<VotePacketHandler>(peers_state_, packets_stats, pbft_mgr, pbft_chain, vote_mgr,
-                                                        next_votes_mgr, kConf.network, node_addr);
-  packets_handlers_->registerHandler<GetVotesSyncPacketHandler>(peers_state_, packets_stats, pbft_mgr, pbft_chain,
-                                                                vote_mgr, next_votes_mgr, kConf.network, node_addr);
-  packets_handlers_->registerHandler<VotesSyncPacketHandler>(peers_state_, packets_stats, pbft_mgr, pbft_chain,
-                                                             vote_mgr, next_votes_mgr, db, kConf.network, node_addr);
+  packets_handlers_->registerHandler<VotePacketHandler>(kConf, peers_state_, packets_stats, pbft_mgr, pbft_chain,
+                                                        vote_mgr, next_votes_mgr, node_addr);
+  packets_handlers_->registerHandler<GetVotesSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_mgr,
+                                                                pbft_chain, vote_mgr, next_votes_mgr, node_addr);
+  packets_handlers_->registerHandler<VotesSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_mgr, pbft_chain,
+                                                             vote_mgr, next_votes_mgr, db, node_addr);
 
   // Standard packets with mid processing priority
-  packets_handlers_->registerHandler<DagBlockPacketHandler>(peers_state_, packets_stats, pbft_syncing_state_,
+  packets_handlers_->registerHandler<DagBlockPacketHandler>(kConf, peers_state_, packets_stats, pbft_syncing_state_,
                                                             pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, test_state_,
                                                             node_addr);
 
-  packets_handlers_->registerHandler<TransactionPacketHandler>(peers_state_, packets_stats, trx_mgr, test_state_,
+  packets_handlers_->registerHandler<TransactionPacketHandler>(kConf, peers_state_, packets_stats, trx_mgr, test_state_,
                                                                node_addr);
 
   // Non critical packets with low processing priority
-  packets_handlers_->registerHandler<StatusPacketHandler>(peers_state_, packets_stats, pbft_syncing_state_, pbft_chain,
-                                                          pbft_mgr, dag_mgr, next_votes_mgr, db, kConf.genesis.chain_id,
+  packets_handlers_->registerHandler<StatusPacketHandler>(kConf, peers_state_, packets_stats, pbft_syncing_state_,
+                                                          pbft_chain, pbft_mgr, dag_mgr, next_votes_mgr, db,
                                                           genesis_hash, node_addr);
-  packets_handlers_->registerHandler<GetDagSyncPacketHandler>(peers_state_, packets_stats, trx_mgr, dag_mgr, db,
+  packets_handlers_->registerHandler<GetDagSyncPacketHandler>(kConf, peers_state_, packets_stats, trx_mgr, dag_mgr, db,
                                                               node_addr);
 
-  packets_handlers_->registerHandler<DagSyncPacketHandler>(peers_state_, packets_stats, pbft_syncing_state_, pbft_chain,
-                                                           pbft_mgr, dag_mgr, trx_mgr, db, node_addr);
+  packets_handlers_->registerHandler<DagSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_syncing_state_,
+                                                           pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, node_addr);
 
   // TODO there is additional logic, that should be moved outside process function
-  packets_handlers_->registerHandler<GetPbftSyncPacketHandler>(
-      peers_state_, packets_stats, pbft_syncing_state_, pbft_chain, db, kConf.network.sync_level_size, node_addr);
+  packets_handlers_->registerHandler<GetPbftSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_syncing_state_,
+                                                               pbft_chain, db, node_addr);
 
-  packets_handlers_->registerHandler<PbftSyncPacketHandler>(
-      peers_state_, packets_stats, pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr, vote_mgr, periodic_events_tp_,
-      db, kConf.network.sync_level_size, node_addr);
+  packets_handlers_->registerHandler<PbftSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_syncing_state_,
+                                                            pbft_chain, pbft_mgr, dag_mgr, vote_mgr,
+                                                            periodic_events_tp_, db, node_addr);
 
   thread_pool_->setPacketsHandlers(packets_handlers_);
 }

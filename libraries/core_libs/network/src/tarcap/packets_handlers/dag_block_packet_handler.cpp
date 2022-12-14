@@ -8,14 +8,14 @@
 
 namespace taraxa::network::tarcap {
 
-DagBlockPacketHandler::DagBlockPacketHandler(std::shared_ptr<PeersState> peers_state,
+DagBlockPacketHandler::DagBlockPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                                              std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                              std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                                              std::shared_ptr<PbftChain> pbft_chain,
                                              std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                                              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DbStorage> db,
                                              std::shared_ptr<TestState> test_state, const addr_t &node_addr)
-    : ExtSyncingPacketHandler(std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
+    : ExtSyncingPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
                               "DAG_BLOCK_PH"),
       test_state_(std::move(test_state)),

@@ -7,14 +7,14 @@
 
 namespace taraxa::network::tarcap {
 
-ExtSyncingPacketHandler::ExtSyncingPacketHandler(std::shared_ptr<PeersState> peers_state,
+ExtSyncingPacketHandler::ExtSyncingPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                                                  std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                  std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                                                  std::shared_ptr<PbftChain> pbft_chain,
                                                  std::shared_ptr<PbftManager> pbft_mgr,
                                                  std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DbStorage> db,
                                                  const addr_t &node_addr, const std::string &log_channel_name)
-    : PacketHandler(std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
+    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
       pbft_syncing_state_(std::move(pbft_syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       pbft_mgr_(std::move(pbft_mgr)),

@@ -52,7 +52,7 @@ void TimePeriodPacketsStats::processStats(const std::shared_ptr<PeersState>& pee
     const auto [start_time, peer_packets_stats] = peer.second->getAllPacketsStatsCopy();
 
     // Check if processStats was called on expected time period so we can use current stats for max stats
-    if (const auto valid_reset_period = validMaxStatsTimePeriod(start_time); valid_reset_period.first) {
+    if (const auto valid_reset_period = validMaxStatsTimePeriod(start_time); !valid_reset_period.first) {
       LOG(log_wr_) << "Cannot process stats from peer " << peer.first << " for \"max\" stats. Current reset period "
                    << valid_reset_period.second.count() << ", expected reset period " << kResetTimePeriod.count();
       continue;

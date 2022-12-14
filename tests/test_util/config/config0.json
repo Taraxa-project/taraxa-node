@@ -13,6 +13,7 @@
     "ideal_peer_count": 10,
     "max_peer_count": 50,
     "sync_level_size": 1,
+    "collect_packets_stats": false,
     "packets_processing_threads": 5,
     "boot_nodes": [
       {
