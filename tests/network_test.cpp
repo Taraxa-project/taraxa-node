@@ -14,7 +14,7 @@
 #include "logger/logger.hpp"
 #include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/get_votes_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/get_next_votes_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/status_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
@@ -167,9 +167,9 @@ TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
   auto pbft_block = std::make_shared<PbftBlock>(blk_hash_t(1), kNullBlockHash, kNullBlockHash, kNullBlockHash,
                                                 node1->getPbftManager()->getPbftPeriod(), node1->getAddress(),
                                                 node1->getSecretKey(), std::move(reward_votes));
-  auto vote =
-      node1->getVoteManager()->generateVote(pbft_block->getBlockHash(), PbftVoteTypes::propose_vote, pbft_block->getPeriod(),
-                                   node1->getPbftManager()->getPbftRound() + 1, value_proposal_state);
+  auto vote = node1->getVoteManager()->generateVote(pbft_block->getBlockHash(), PbftVoteTypes::propose_vote,
+                                                    pbft_block->getPeriod(),
+                                                    node1->getPbftManager()->getPbftRound() + 1, value_proposal_state);
 
   auto node2_id = nw2->getNodeId();
   ASSERT_NE(node1->getPbftChain()->getPbftChainSize(), nw1->getPeer(node2_id)->pbft_chain_size_);

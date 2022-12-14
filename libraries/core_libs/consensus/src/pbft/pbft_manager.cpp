@@ -1077,7 +1077,8 @@ void PbftManager::firstFinish_() {
   } else if (round >= 2 && previous_round_next_voted_null_block_hash_) {
     // Starting value in round 1 is always null block hash... So combined with other condition for next
     // voting null block hash...
-    if (auto vote = vote_mgr_->generateVoteWithWeight(kNullBlockHash, PbftVoteTypes::next_vote, period, round, step_); vote) {
+    if (auto vote = vote_mgr_->generateVoteWithWeight(kNullBlockHash, PbftVoteTypes::next_vote, period, round, step_);
+        vote) {
       placeVote(vote, "first finish next vote", nullptr);
     }
   } else {

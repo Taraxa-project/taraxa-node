@@ -1,4 +1,4 @@
-#include "network/tarcap/packets_handlers/get_votes_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/get_next_votes_sync_packet_handler.hpp"
 
 #include "pbft/pbft_manager.hpp"
 #include "vote_manager/vote_manager.hpp"

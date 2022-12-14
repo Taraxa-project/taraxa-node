@@ -47,7 +47,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
       return;
     } else if (votes_bundle_pbft_round == current_pbft_round - 1 &&
                votes_bundle_votes_type == PbftVoteTypes::next_vote) {
-      // Already have 2t+1 previous round next votes for both NULL_BLOCK_HASH as well as some specific block hash
+      // Already have 2t+1 previous round next votes for both kNullBlockHash as well as some specific block hash
       if (next_votes_mgr_->enoughNextVotes()) {
         LOG(log_nf_) << "Dropping next votes sync packet - already have enough next votes for previous round";
         return;
@@ -64,7 +64,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
   }
 
   std::vector<std::shared_ptr<Vote>> votes;
-  blk_hash_t next_votes_bundle_voted_block = NULL_BLOCK_HASH;
+  blk_hash_t next_votes_bundle_voted_block = kNullBlockHash;
 
   const auto next_votes_count = packet_data.rlp_.itemCount();
   //  It is done in separate cycle because we don't need to process this next_votes if some of checks will fail
@@ -78,16 +78,16 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
       return;
     }
 
-    // Next votes bundle can contain votes for NULL_BLOCK_HASH as well as some specific block hash
+    // Next votes bundle can contain votes for kNullBlockHash as well as some specific block hash
     // TODO[2047]: when implementing issue 2047, check if this is correct -> we are sending all next votes so
     //             there could be potentially multiple voted blocks ???
     if (vote->getType() == PbftVoteTypes::next_vote) {
-      if (next_votes_bundle_voted_block == NULL_BLOCK_HASH && vote->getBlockHash() != NULL_BLOCK_HASH) {
-        // initialize voted value with first block hash not equal to NULL_BLOCK_HASH
+      if (next_votes_bundle_voted_block == kNullBlockHash && vote->getBlockHash() != kNullBlockHash) {
+        // initialize voted value with first block hash not equal to kNullBlockHash
         next_votes_bundle_voted_block = vote->getBlockHash();
       }
 
-      if (vote->getBlockHash() != NULL_BLOCK_HASH && vote->getBlockHash() != next_votes_bundle_voted_block) {
+      if (vote->getBlockHash() != kNullBlockHash && vote->getBlockHash() != next_votes_bundle_voted_block) {
         // we see different voted value, so bundle is invalid
         LOG(log_er_) << "Received next votes bundle with unmatched voted values(" << next_votes_bundle_voted_block
                      << ", " << vote->getBlockHash() << ") from " << packet_data.from_node_id_
