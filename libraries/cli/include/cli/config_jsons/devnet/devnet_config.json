@@ -17,7 +17,7 @@
     "ideal_peer_count": 15,
     "max_peer_count": 30,
     "sync_level_size": 25,
-    "collect_packets_stats": false,
+    "collect_packets_stats": true,
     "packets_processing_threads": 14,
     "peer_blacklist_timeout": 600,
     "deep_syncing_threshold": 10,
@@ -64,6 +64,10 @@
           {
             "name": "DAG_PROPOSER",
             "verbosity": "INFO"
+          },
+          {
+            "name": "NET_PER",
+            "verbosity": "DEBUG"
           }
         ],
         "outputs": [
