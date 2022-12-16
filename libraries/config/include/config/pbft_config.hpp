@@ -12,7 +12,6 @@ struct PbftConfig {
   uint32_t number_of_proposers = 20;
   uint32_t dag_blocks_size = 0;
   uint32_t ghost_path_move_back = 0;
-  uint32_t state_root_recording_delay = 5;
   uint64_t gas_limit = 0;
 
   bytes rlp() const;

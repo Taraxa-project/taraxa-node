@@ -1172,8 +1172,8 @@ std::shared_ptr<PbftBlock> PbftManager::generatePbftBlock(PbftPeriod propose_per
   std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
                  [](const auto &v) { return v->getHash(); });
   h256 last_state_root;
-  if (propose_period > config_.state_root_recording_delay) {
-    if (const auto header = final_chain_->block_header(propose_period - config_.state_root_recording_delay)) {
+  if (propose_period > final_chain_->delegation_delay()) {
+    if (const auto header = final_chain_->block_header(propose_period - final_chain_->delegation_delay())) {
       last_state_root = header->state_root;
     } else {
       LOG(log_wr_) << "Block for period " << propose_period << " could not be proposed as we are behind";
@@ -1420,8 +1420,8 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
   auto period = pbft_block->getPeriod();
   {
     h256 prev_state_root_hash;
-    if (period > config_.state_root_recording_delay) {
-      if (const auto header = final_chain_->block_header(period - config_.state_root_recording_delay)) {
+    if (period > final_chain_->delegation_delay()) {
+      if (const auto header = final_chain_->block_header(period - final_chain_->delegation_delay())) {
         prev_state_root_hash = header->state_root;
       } else {
         LOG(log_wr_) << "Block " << pbft_block_hash << " could not be validated as we are behind";
