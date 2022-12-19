@@ -5,6 +5,7 @@
 
 #include "dag/dag.hpp"
 #include "logger/logger.hpp"
+#include "metrics/transaction_queue_metrics.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {

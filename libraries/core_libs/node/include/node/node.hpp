@@ -28,6 +28,9 @@
 #include "transaction/transaction.hpp"
 #include "vote_manager/vote_manager.hpp"
 
+namespace metrics {
+class MetricsService;
+}
 namespace taraxa {
 
 class Network;
@@ -78,6 +81,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<net::WsServer> jsonrpc_ws_;
   std::shared_ptr<net::WsServer> graphql_ws_;
   std::unique_ptr<jsonrpc_server_t> jsonrpc_api_;
+  std::unique_ptr<metrics::MetricsService> metrics_;
 
   // logging
   LOG_OBJECTS_DEFINE
@@ -86,6 +90,12 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
 
   void init();
   void close();
+
+  /**
+   * @brief Method that is used to register metrics updaters.
+   * So we don't need to pass metrics classes instances in other classes.
+   */
+  void setupMetricsUpdaters();
 
  public:
   explicit FullNode(FullNodeConfig const &conf);

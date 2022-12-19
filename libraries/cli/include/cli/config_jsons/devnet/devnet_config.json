@@ -11,6 +11,10 @@
       "http_port": 9777,
       "ws_port": 6777
     },
+    "prometheus": {
+      "listen_port": 8888,
+      "polling_interval_ms": 1000
+    },
     "listen_ip": "0.0.0.0",
     "listen_port": 10002,
     "transaction_interval_ms": 100,

@@ -4,6 +4,16 @@
 
 namespace taraxa {
 
+void dec_json(const Json::Value &json, PrometheusConfig &config) {
+  if (auto listen_port = getConfigData(json, {"listen_port"}, true); !listen_port.isNull()) {
+    config.listen_port = listen_port.asUInt();
+  }
+
+  if (auto polling_interval_ms = getConfigData(json, {"polling_interval_ms"}, true); !polling_interval_ms.isNull()) {
+    config.polling_interval_ms = polling_interval_ms.asUInt();
+  }
+}
+
 void ConnectionConfig::validate() const {
   if (!http_port && !ws_port) {
     throw ConfigException("Either http_port or ws_port post must be specified for connection config");
@@ -115,6 +125,14 @@ void dec_json(const Json::Value &json, NetworkConfig &network) {
     network.graphql->address = listen_ip;
 
     dec_json(graphql_json, *network.graphql);
+  }
+
+  if (auto prometheus_json = getConfigData(json, {"prometheus"}, true); !prometheus_json.isNull()) {
+    network.prometheus.emplace();
+    // ip address
+    network.prometheus->address = network.listen_ip;
+
+    dec_json(prometheus_json, *network.prometheus);
   }
 }
 

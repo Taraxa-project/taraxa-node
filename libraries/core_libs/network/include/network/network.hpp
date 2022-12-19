@@ -48,7 +48,7 @@ class Network {
   bool isStarted();
   std::list<dev::p2p::NodeEntry> getAllNodes() const;
   size_t getPeerCount();
-  // returns count of all connected nodes
+  // returns count of all discovered nodes
   unsigned getNodeCount();
   Json::Value getStatus();
   void restartSyncingPbft(bool force = false);

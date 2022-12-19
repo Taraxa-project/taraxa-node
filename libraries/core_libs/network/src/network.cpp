@@ -10,6 +10,7 @@
 // #include "transaction/transaction_manager.hpp"
 
 #include "config/version.hpp"
+#include "metrics/network_metrics.hpp"
 
 namespace taraxa {
 
@@ -61,7 +62,6 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
         ;
     });
   }
-
   LOG(log_nf_) << "Configured host. Listening on address: " << config.network.listen_ip << ":"
                << config.network.listen_port;
 }
