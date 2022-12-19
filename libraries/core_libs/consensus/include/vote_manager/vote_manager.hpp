@@ -142,7 +142,6 @@ class VoteManager {
    */
   void setNetwork(std::weak_ptr<Network> network);
 
-  // Verified votes
   /**
    * @brief Add a vote to the verified votes map
    * @param vote vote
@@ -158,13 +157,14 @@ class VoteManager {
    */
   bool voteInVerifiedMap(std::shared_ptr<Vote> const& vote) const;
 
+  // TODO: lock_verified_votes_mutex will be removed once we get reward votes from verified_votes_
   /**
    * @brief Inserts unique vote
    * @param vote
    * @return true if vote was successfully inserted(it was unique) or this specific vote was already inserted, otherwise
    * false
    */
-  bool insertUniqueVote(const std::shared_ptr<Vote>& vote);
+  bool insertUniqueVote(const std::shared_ptr<Vote>& vote, bool lock_verified_votes_mutex = true);
 
   /**
    * @param vote
@@ -198,15 +198,6 @@ class VoteManager {
   void cleanupVotesByPeriod(PbftPeriod pbft_period);
 
   /**
-   * @brief Get single propose vote for specified voted block
-   * @param period
-   * @param round
-   * @param voted_block_hash
-   * @return single propose vote for specified voted block
-   */
-  std::shared_ptr<Vote> getProposalVote(PbftPeriod period, PbftRound round, const blk_hash_t& voted_block_hash) const;
-
-  /**
    * @brief Get all verified votes in proposal vote type for the current PBFT round
    * @param period new PBFT period (period == chain_size + 1)
    * @param round current PBFT round
@@ -237,18 +228,14 @@ class VoteManager {
       PbftPeriod period, uint64_t two_t_plus_one);
 
   // reward votes
-  /**
-   * @return current rewards votes <pbft block hash, pbft block period>
-   */
-  std::pair<blk_hash_t, PbftPeriod> getCurrentRewardsVotesBlock() const;
-
+  // TODO: lock_verified_votes_mutex will be removed once we get reward votes from verified_votes_
   /**
    * @brief Add last period cert vote to reward_votes_ after the cert vote voted block finalized
    * @param cert vote voted to last period PBFT block
    *
    * @return true if vote was successfully added, otherwise false
    */
-  bool addRewardVote(const std::shared_ptr<Vote>& vote);
+  bool addRewardVote(const std::shared_ptr<Vote>& vote, bool lock_verified_votes_mutex = true);
 
   /**
    * @param vote_hash
@@ -364,6 +351,7 @@ class VoteManager {
   bool genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound pbft_round) const;
 
  private:
+  // TODO: use std locks
   using UniqueLock = boost::unique_lock<boost::shared_mutex>;
   using SharedLock = boost::shared_lock<boost::shared_mutex>;
 
@@ -382,6 +370,23 @@ class VoteManager {
   uint64_t getPbftSortitionThreshold(uint64_t total_dpos_votes_count, PbftVoteTypes vote_type) const;
 
  private:
+  struct StepVotes {
+    std::unordered_map<blk_hash_t, std::pair<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>> votes;
+    std::unordered_map<addr_t, std::pair<std::shared_ptr<Vote>, std::shared_ptr<Vote>>> unique_voters;
+  };
+
+  struct VerifiedVotes {
+    // 2t+1 voted blocks
+    std::optional<blk_hash_t> soft_voted_block;
+    std::optional<blk_hash_t> cert_voted_block;
+    std::optional<std::pair<blk_hash_t, PbftStep>> next_voted_block;
+    std::optional<PbftStep> next_voted_null_block;
+
+    // Step votes
+    std::map<PbftStep, StepVotes> step_votes;
+  };
+
+ private:
   const addr_t kNodeAddr;
   const PbftConfig& kPbftConfig;
   const vrf_wrapper::vrf_sk_t kVrfSk;
@@ -394,30 +399,12 @@ class VoteManager {
   std::shared_ptr<KeyManager> key_manager_;
   std::weak_ptr<Network> network_;
 
+  // TODO: no need to call retrieveVotes in separate thread ???
   std::unique_ptr<std::thread> daemon_;
 
-  // TODO[1907]: this will be part of VerifiedVotes class
-  // <PBFT period, <PBFT round, <PBFT step, <voted value, pair<voted weight, <vote hash, vote>>>>>
-  std::map<
-      PbftPeriod,
-      std::map<PbftRound,
-               std::map<PbftStep,
-                        std::unordered_map<
-                            blk_hash_t, std::pair<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>>>>>
-      verified_votes_;
-  // Current period, it should only be used under verified_votes_access_ mutex
+  std::map<PbftPeriod, std::map<PbftRound, VerifiedVotes>> verified_votes_;
   PbftPeriod verified_votes_last_period_;
   mutable boost::shared_mutex verified_votes_access_;
-
-  // <PBFT period, <PBFT round, <PBFT step, <voter address, pair<vote 1, vote 2>>><>
-  // For next votes we enable 2 votes per round & step, one of which must be vote for kNullBlockHash
-  std::map<PbftPeriod,
-           std::map<PbftRound,
-                    std::unordered_map<
-                        PbftStep, std::unordered_map<addr_t, std::pair<std::shared_ptr<Vote>, std::shared_ptr<Vote>>>>>>
-      voters_unique_votes_;
-  mutable std::shared_mutex voters_unique_votes_mutex_;
-  // TODO[1907]: end of VerifiedVotes class
 
   // TODO[1907]: this will be part of RewardVotes class
   std::pair<blk_hash_t, PbftPeriod> reward_votes_pbft_block_;

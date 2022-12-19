@@ -574,12 +574,14 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   PbftStep step_ = 1;
   PbftStep startingStepInRound_ = 1;
 
+  // TODO: possibly remove ?
   // 2t+1 soft voted block related data
   std::optional<TwoTPlusOneSoftVotedBlockData> soft_voted_block_for_round_{};
 
   // Block that node cert voted
   std::optional<std::shared_ptr<PbftBlock>> cert_voted_block_for_round_{};
 
+  // TODO: remove
   std::optional<blk_hash_t> previous_round_next_voted_value_{};
   bool previous_round_next_voted_null_block_hash_ = false;
 
