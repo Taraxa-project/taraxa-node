@@ -17,7 +17,7 @@ struct EVMChainConfig {
   HAS_RLP_FIELDS
 };
 Json::Value enc_json(const EVMChainConfig& obj);
-void dec_json(const Json::Value& json, EVMChainConfig& obj);
+void dec_json(const Json::Value& json, uint64_t chain_id, EVMChainConfig& obj);
 
 using BalanceMap = std::map<addr_t, u256>;
 Json::Value enc_json(const BalanceMap& obj);
