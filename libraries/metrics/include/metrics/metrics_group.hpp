@@ -7,14 +7,8 @@
 
 namespace metrics {
 
-/**
- * @brief add updater method.
- * This is used to store lambda function that updates metric, so we can update it periodically
- */
-#define ADD_UPDATER_METHOD(method)                               \
-  void method##Updater(MetricGetter getter) {                    \
-    updaters_.push_back([this, getter]() { method(getter()); }); \
-  }
+using MetricGetter = std::function<double()>;
+using MetricUpdater = std::function<void()>;
 
 /**
  * @brief add method that is setting specific gauge metric.
@@ -26,14 +20,22 @@ namespace metrics {
   }
 
 /**
+ * @brief add updater method.
+ * This is used to store lambda function that updates metric, so we can update it periodically
+ * Passed `method` should be added first
+ */
+#define ADD_UPDATER_METHOD(method)                               \
+  void method##Updater(MetricGetter getter) {                    \
+    updaters_.push_back([this, getter]() { method(getter()); }); \
+  }
+
+/**
  * @brief combines ADD_UPDATER_METHOD and ADD_GAUGE_METRIC
  */
 #define ADD_GAUGE_METRIC_WITH_UPDATER(method, name, description) \
   ADD_GAUGE_METRIC(method, name, description)                    \
   ADD_UPDATER_METHOD(method)
 
-using MetricGetter = std::function<double()>;
-using MetricUpdater = std::function<void()>;
 class MetricsGroup {
  public:
   MetricsGroup(std::shared_ptr<prometheus::Registry> registry) : registry_(std::move(registry)) {}

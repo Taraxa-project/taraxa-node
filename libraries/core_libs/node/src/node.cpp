@@ -91,7 +91,6 @@ void FullNode::init() {
                  << ". Polling interval is " << config.polling_interval_ms << "ms";
     metrics_ =
         std::make_unique<metrics::MetricsService>(config.address, config.listen_port, config.polling_interval_ms);
-    setupMetricsUpdaters();
   } else {
     LOG(log_wr_) << "Prometheus: config values aren't specified. Metrics collecting is disabled";
   }
@@ -135,17 +134,25 @@ void FullNode::init() {
 
 void FullNode::setupMetricsUpdaters() {
   auto network_metrics = metrics_->getMetrics<metrics::NetworkMetrics>();
-  network_metrics->setPeersCountUpdater([this]() { return network_->getPeerCount(); });
-  network_metrics->setDiscoveredPeersCountUpdater([this]() { return network_->getNodeCount(); });
-  network_metrics->syncingDurationUpdater([this]() { return network_->syncTimeSeconds(); });
+  network_metrics->setPeersCountUpdater([&network = network_]() { return network->getPeerCount(); });
+  network_metrics->setDiscoveredPeersCountUpdater([&network = network_]() { return network->getNodeCount(); });
+  network_metrics->setSyncingDurationUpdater([&network = network_]() { return network->syncTimeSeconds(); });
 
   auto transaction_queue_metrics = metrics_->getMetrics<metrics::TransactionQueueMetrics>();
-  transaction_queue_metrics->setTransactionsCountUpdater([this]() { return trx_mgr_->getTransactionPoolSize(); });
+  transaction_queue_metrics->setTransactionsCountUpdater(
+      [&trx_mgr = trx_mgr_]() { return trx_mgr->getTransactionPoolSize(); });
+  transaction_queue_metrics->setGasPriceUpdater(
+      [&gas_pricer = gas_pricer_]() { return gas_pricer->bid().convert_to<double>(); });
 
   auto pbft_metrics = metrics_->getMetrics<metrics::PbftMetrics>();
-  pbft_metrics->setPeriodUpdater([this]() { return pbft_mgr_->getPbftPeriod(); });
-  pbft_metrics->setRoundUpdater([this]() { return pbft_mgr_->getPbftRound(); });
-  pbft_metrics->setStepUpdater([this]() { return pbft_mgr_->getPbftStep(); });
+  pbft_metrics->setPeriodUpdater([&pbft_mgr = pbft_mgr_]() { return pbft_mgr->getPbftPeriod(); });
+  pbft_metrics->setRoundUpdater([&pbft_mgr = pbft_mgr_]() { return pbft_mgr->getPbftRound(); });
+  pbft_metrics->setStepUpdater([&pbft_mgr = pbft_mgr_]() { return pbft_mgr->getPbftStep(); });
+  final_chain_->block_finalized_.subscribe([pbft_metrics](const std::shared_ptr<final_chain::FinalizationResult> &res) {
+    pbft_metrics->setBlockNumber(res->final_chain_blk->number);
+    pbft_metrics->setBlockTransactionsCount(res->trxs.size());
+    pbft_metrics->setBlockTimestamp(res->final_chain_blk->timestamp);
+  });
 }
 
 void FullNode::start() {
@@ -331,6 +338,7 @@ void FullNode::start() {
   pbft_mgr_->start();
 
   if (metrics_) {
+    setupMetricsUpdaters();
     metrics_->start();
   }
   started_ = true;
