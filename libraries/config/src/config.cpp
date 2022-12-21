@@ -96,12 +96,6 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::
   } else {
     genesis = Genesis();
   }
-  // blocks_per_year config param is calculated from lambda_ms
-  uint64_t year_ms = 365 * 24 * 60 * 60;
-  year_ms *= 1000;
-  // we have fixed 2*lambda time for proposing step and adding some expecting value for filter and certify steps
-  const uint32_t expected_block_time = 2 * genesis.pbft.lambda_ms + 700;
-  genesis.state.dpos.blocks_per_year = year_ms / expected_block_time;
 
   is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, is_light_node);
   if (is_light_node) {
