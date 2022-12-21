@@ -143,8 +143,8 @@ Typedefs</h2></td></tr>
 Functions</h2></td></tr>
 <tr class="memitem:a2041ed7b7b90eb378c7ef916d761ce3b"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#a2041ed7b7b90eb378c7ef916d761ce3b">enc_json</a> (const <a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config">EVMChainConfig</a> &amp;obj)</td></tr>
 <tr class="separator:a2041ed7b7b90eb378c7ef916d761ce3b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a02b501fa26d84cdb6951017e678a993a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#a02b501fa26d84cdb6951017e678a993a">dec_json</a> (const Json::Value &amp;json, <a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config">EVMChainConfig</a> &amp;obj)</td></tr>
-<tr class="separator:a02b501fa26d84cdb6951017e678a993a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a142767c95d8323471aee83d86833ee8c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#a142767c95d8323471aee83d86833ee8c">dec_json</a> (const Json::Value &amp;json, uint64_t chain_id, <a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config">EVMChainConfig</a> &amp;obj)</td></tr>
+<tr class="separator:a142767c95d8323471aee83d86833ee8c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad768d97fcf1d34681a2ef3bee3b0fad0"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#ad768d97fcf1d34681a2ef3bee3b0fad0">enc_json</a> (const <a class="el" href="namespacetaraxa_1_1state__api.html#a3e5d8455efc176980b350d5f8ef5970f">BalanceMap</a> &amp;obj)</td></tr>
 <tr class="separator:ad768d97fcf1d34681a2ef3bee3b0fad0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0cdba49b2802bab1d0da7a671714e77b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1state__api.html#a0cdba49b2802bab1d0da7a671714e77b">dec_json</a> (const Json::Value &amp;json, <a class="el" href="namespacetaraxa_1_1state__api.html#a3e5d8455efc176980b350d5f8ef5970f">BalanceMap</a> &amp;obj)</td></tr>
@@ -725,8 +725,8 @@ template&lt;typename Result , void(*)(taraxa_evm_Bytes, Result &amp;) decode, vo
 
 </div>
 </div>
-<a id="a02b501fa26d84cdb6951017e678a993a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a02b501fa26d84cdb6951017e678a993a">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[4/5]</span></h2>
+<a id="a142767c95d8323471aee83d86833ee8c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a142767c95d8323471aee83d86833ee8c">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[4/5]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -736,6 +736,12 @@ template&lt;typename Result , void(*)(taraxa_evm_Bytes, Result &amp;) decode, vo
           <td>(</td>
           <td class="paramtype">const Json::Value &amp;&#160;</td>
           <td class="paramname"><em>json</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>chain_id</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
