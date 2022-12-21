@@ -13,9 +13,9 @@ metadata:
 spec:
   selector:
     matchLabels:
-    app: taraxa-node
-    app.kubernetes.io/name: {{ .Release.Name }}-taraxa-node
-    app.kubernetes.io/instance: {{ .Release.Name }}
+      app: taraxa-node
+      app.kubernetes.io/name: {{ .Release.Name }}-taraxa-node
+      app.kubernetes.io/instance: {{ .Release.Name }}
   namespaceSelector:
     matchNames:
       - {{ $.Release.Namespace | quote }}

@@ -13,9 +13,9 @@ metadata:
 spec:
   selector:
     matchLabels:
-    app: boot-node
-    app.kubernetes.io/name: {{ .Release.Name }}-boot-node
-    app.kubernetes.io/instance: {{ .Release.Name }}
+      app: boot-node
+      app.kubernetes.io/name: {{ .Release.Name }}-boot-node
+      app.kubernetes.io/instance: {{ .Release.Name }}
   namespaceSelector:
     matchNames:
       - {{ $.Release.Namespace | quote }}
