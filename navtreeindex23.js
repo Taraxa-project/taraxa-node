@@ -1,6 +1,5 @@
 var NAVTREEINDEX23 =
 {
-"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#ac718147a53f8214bb8cb34d4cdfbbfc6":[14,0,3,6,4,5],
 "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#ad732d53e2059b488e691a63e0ac8c3b5":[14,0,3,6,4,7],
 "structtaraxa_1_1util_1_1encoding__rlp_1_1_invalid_encoding_size.html":[14,0,3,6,0,1],
 "structtaraxa_1_1util_1_1encoding__rlp_1_1_invalid_encoding_size.html#a46ced845cbf9b72a1d641c7feb8acded":[14,0,3,6,0,1,1],
@@ -249,5 +248,6 @@ var NAVTREEINDEX23 =
 "vote__manager_8cpp.html#ad6812ddc0d9686f50218e26b6d0cc8a4":[15,0,1,4,0,1,5,0,0],
 "vote__manager_8hpp.html":[15,0,1,4,0,0,5,0],
 "vote__manager_8hpp_source.html":[15,0,1,4,0,0,5,0],
-"vote__packet__handler_8cpp.html":[15,0,1,4,1,3,0,0,9]
+"vote__packet__handler_8cpp.html":[15,0,1,4,1,3,0,0,9],
+"vote__packet__handler_8hpp.html":[15,0,1,4,1,1,0,0,0,9]
 };
