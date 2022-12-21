@@ -1,12 +1,7 @@
 var state__config_8hpp =
 [
-    [ "ETHChainConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_t_h_chain_config", [
-      [ "byzantium_block", "namespacetaraxa_1_1state__api.html#ab5bf595e29304fcaae9657c01e4e8158", null ],
-      [ "constantinople_block", "namespacetaraxa_1_1state__api.html#aea7b5ea27213170e2cb08ab8ebdc0327", null ],
-      [ "eip_150_block", "namespacetaraxa_1_1state__api.html#a5d91619bad8c08c69a78cb853d9f9e7f", null ],
-      [ "eip_158_block", "namespacetaraxa_1_1state__api.html#a342725b33eedab528dfac7d692862628", null ],
-      [ "homestead_block", "namespacetaraxa_1_1state__api.html#a9939f1ea12b35cc221769286f99dbe95", null ],
-      [ "petersburg_block", "namespacetaraxa_1_1state__api.html#acb5a9058dc94935d934dd25836b82f58", null ]
+    [ "EVMChainConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config", [
+      [ "chain_id", "namespacetaraxa_1_1state__api.html#a1e41db5c557bcf515334890ecc5bbe79", null ]
     ] ],
     [ "ValidatorInfo", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_validator_info", [
       [ "address", "namespacetaraxa_1_1state__api.html#ad4691677fe3777ad9cda380c7cd120b3", null ],
@@ -34,7 +29,7 @@ var state__config_8hpp =
     ] ],
     [ "Config", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config", [
       [ "dpos", "namespacetaraxa_1_1state__api.html#aeab9bb1152bb8cb61bf1f41cdd18f5c3", null ],
-      [ "eth_chain_config", "namespacetaraxa_1_1state__api.html#af57fed8c0b8fb07b99ce8a363540d5f0", null ],
+      [ "evm_chain_config", "namespacetaraxa_1_1state__api.html#a615b642f8d815dd93363bc4c7850bdef", null ],
       [ "initial_balances", "namespacetaraxa_1_1state__api.html#a3867bb291da3931e75c23ab1b170d05a", null ]
     ] ],
     [ "Opts", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts", [
@@ -50,11 +45,11 @@ var state__config_8hpp =
     [ "dec_json", "state__config_8hpp.html#a0cdba49b2802bab1d0da7a671714e77b", null ],
     [ "dec_json", "state__config_8hpp.html#a71678cb3f5feb67a738df3d7d2f45270", null ],
     [ "dec_json", "state__config_8hpp.html#a8430d4247900167bc1ac842c70484cc3", null ],
-    [ "dec_json", "state__config_8hpp.html#a5317339747dfef713124ea43da1c9529", null ],
+    [ "dec_json", "state__config_8hpp.html#a02b501fa26d84cdb6951017e678a993a", null ],
     [ "dec_json", "state__config_8hpp.html#a88679bd672ad12f8a2517728f1c1109f", null ],
     [ "enc_json", "state__config_8hpp.html#ad768d97fcf1d34681a2ef3bee3b0fad0", null ],
     [ "enc_json", "state__config_8hpp.html#adc935939acc39b6b0cba881e134b1fa0", null ],
-    [ "enc_json", "state__config_8hpp.html#ae2900ab0e408d3411fd87eee505a91c2", null ],
+    [ "enc_json", "state__config_8hpp.html#a2041ed7b7b90eb378c7ef916d761ce3b", null ],
     [ "enc_json", "state__config_8hpp.html#a15046280f6cced1ba188ecded81bb15f", null ],
     [ "BlockNumberNIL", "state__config_8hpp.html#a9aa3f912b525631665f9049907d9001f", null ]
 ];

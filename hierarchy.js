@@ -91,7 +91,6 @@ var hierarchy =
     [ "dev::p2p::ENR", "classdev_1_1p2p_1_1_e_n_r.html", null ],
     [ "taraxa::net::JsonRpcHttpProcessor::Error", "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#structtaraxa_1_1net_1_1_json_rpc_http_processor_1_1_error", null ],
     [ "taraxa::state_api::ErrorHandler", "classtaraxa_1_1state__api_1_1_error_handler.html", null ],
-    [ "taraxa::state_api::ETHChainConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_t_h_chain_config", null ],
     [ "taraxa::net::rpc::eth::EthParams", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html", [
       [ "taraxa::net::rpc::eth::EthImpl", "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html", null ]
     ] ],
@@ -108,6 +107,7 @@ var hierarchy =
       ] ]
     ] ],
     [ "taraxa::state_api::EVMBlock", "group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_block", null ],
+    [ "taraxa::state_api::EVMChainConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config", null ],
     [ "taraxa::state_api::EVMTransaction", "group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction", null ],
     [ "boost::exception", null, [
       [ "dev::Exception", "structdev_1_1_exception.html", [

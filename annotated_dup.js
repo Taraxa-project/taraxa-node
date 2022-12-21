@@ -212,7 +212,7 @@ var annotated_dup =
         ] ]
       ] ],
       [ "state_api", "namespacetaraxa_1_1state__api.html", [
-        [ "ETHChainConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_t_h_chain_config", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_e_t_h_chain_config_dup" ],
+        [ "EVMChainConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_e_v_m_chain_config_dup" ],
         [ "ValidatorInfo", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_validator_info", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_validator_info_dup" ],
         [ "DPOSConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_d_p_o_s_config_dup" ],
         [ "Config", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_config_dup" ],

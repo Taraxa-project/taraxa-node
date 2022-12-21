@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['opts_3730',['Opts',['../namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts',1,'taraxa::state_api']]],
-  ['optsdb_3731',['OptsDB',['../namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts_d_b',1,'taraxa::state_api']]],
-  ['outputconfig_3732',['OutputConfig',['../structtaraxa_1_1logger_1_1_config_1_1_output_config.html',1,'taraxa::logger::Config']]]
+  ['opts_3722',['Opts',['../namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts',1,'taraxa::state_api']]],
+  ['optsdb_3723',['OptsDB',['../namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts_d_b',1,'taraxa::state_api']]],
+  ['outputconfig_3724',['OutputConfig',['../structtaraxa_1_1logger_1_1_config_1_1_output_config.html',1,'taraxa::logger::Config']]]
 ];
