@@ -121,6 +121,8 @@ node:
         - name: udp-listen-port
           port: 10002
           protocol: UDP
+  servicemonitor:
+    enabled: false
   resources: {}
   nodeSelector: {}
   persistence:
@@ -160,6 +162,8 @@ bootnode:
       - name: udp-listen-port
         port: 10002
         protocol: UDP
+  servicemonitor:
+    enabled: false
   resources: {}
   nodeSelector: {}
   persistence:
@@ -206,6 +210,8 @@ consensusnode:
       - name: udp-listen-port
         port: 10002
         protocol: UDP
+  servicemonitor:
+    enabled: false
   resources: {}
   nodeSelector: {}
   persistence:
