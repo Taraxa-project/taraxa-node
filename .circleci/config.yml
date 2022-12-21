@@ -268,7 +268,7 @@ commands:
                 --set bootnode.persistence.enabled=false \
                 --set consensusnode.persistence.enabled=true \
                 --set node.serviceMonitor.enabled=true \
-                --set bootnode.serviceMonitor.enabled=false \
+                --set bootnode.serviceMonitor.enabled=true \
                 --set consensusnode.serviceMonitor.enabled=true
             fi
 
