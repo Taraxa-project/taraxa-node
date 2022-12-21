@@ -1,5 +1,5 @@
 {{ if .Values.consensusnode.enabled }}
-{{- if .Values.consensusnode.servicemonitor.enabled  }}
+{{- if .Values.consensusnode.serviceMonitor.enabled  }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
