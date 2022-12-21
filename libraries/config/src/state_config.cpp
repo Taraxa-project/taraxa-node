@@ -14,7 +14,8 @@ Json::Value enc_json(const EVMChainConfig& /*obj*/) {
   return json;
 }
 
-void dec_json(const Json::Value& /*json*/, EVMChainConfig& /*obj*/) {
+void dec_json(const Json::Value& /*json*/, uint64_t chain_id, EVMChainConfig& obj) {
+  obj.chain_id = chain_id;
   //   obj.homestead_block = dev::jsToInt(json["homestead_block"].asString());
 }
 
@@ -26,7 +27,7 @@ void append_json(Json::Value& json, const Config& obj) {
 }
 
 void dec_json(const Json::Value& json, Config& obj) {
-  dec_json(json["evm_chain_config"], obj.evm_chain_config);
+  dec_json(json["evm_chain_config"], json["chain_id"].asUInt(), obj.evm_chain_config);
   dec_json(json["initial_balances"], obj.initial_balances);
   // dec_json(json["hardforks"], obj.hardforks);
   dec_json(json["dpos"], obj.dpos);
