@@ -8,35 +8,25 @@
 
 namespace taraxa::state_api {
 
-Json::Value enc_json(const ETHChainConfig& obj) {
+Json::Value enc_json(const EVMChainConfig& /*obj*/) {
   Json::Value json(Json::objectValue);
-  json["homestead_block"] = dev::toJS(obj.homestead_block);
-  json["eip_150_block"] = dev::toJS(obj.eip_150_block);
-  json["eip_158_block"] = dev::toJS(obj.eip_158_block);
-  json["byzantium_block"] = dev::toJS(obj.byzantium_block);
-  json["constantinople_block"] = dev::toJS(obj.constantinople_block);
-  json["petersburg_block"] = dev::toJS(obj.petersburg_block);
+  // json["homestead_block"] = dev::toJS(obj.homestead_block);
   return json;
 }
 
-void dec_json(const Json::Value& json, ETHChainConfig& obj) {
-  obj.homestead_block = dev::jsToInt(json["homestead_block"].asString());
-  obj.eip_150_block = dev::jsToInt(json["eip_150_block"].asString());
-  obj.eip_158_block = dev::jsToInt(json["eip_158_block"].asString());
-  obj.byzantium_block = dev::jsToInt(json["byzantium_block"].asString());
-  obj.constantinople_block = dev::jsToInt(json["constantinople_block"].asString());
-  obj.petersburg_block = dev::jsToInt(json["petersburg_block"].asString());
+void dec_json(const Json::Value& /*json*/, EVMChainConfig& /*obj*/) {
+  //   obj.homestead_block = dev::jsToInt(json["homestead_block"].asString());
 }
 
 void append_json(Json::Value& json, const Config& obj) {
-  json["eth_chain_config"] = enc_json(obj.eth_chain_config);
+  json["evm_chain_config"] = enc_json(obj.evm_chain_config);
   json["initial_balances"] = enc_json(obj.initial_balances);
   // json["hardforks"] = enc_json(obj.hardforks);
   json["dpos"] = enc_json(obj.dpos);
 }
 
 void dec_json(const Json::Value& json, Config& obj) {
-  dec_json(json["eth_chain_config"], obj.eth_chain_config);
+  dec_json(json["evm_chain_config"], obj.evm_chain_config);
   dec_json(json["initial_balances"], obj.initial_balances);
   // dec_json(json["hardforks"], obj.hardforks);
   dec_json(json["dpos"], obj.dpos);
@@ -124,14 +114,13 @@ void dec_json(const Json::Value& json, DPOSConfig& obj) {
   }
 }
 
-RLP_FIELDS_DEFINE(ETHChainConfig, homestead_block, eip_150_block, eip_158_block, byzantium_block, constantinople_block,
-                  petersburg_block)
+RLP_FIELDS_DEFINE(EVMChainConfig, chain_id)
 RLP_FIELDS_DEFINE(ValidatorInfo, address, owner, vrf_key, commission, endpoint, description, delegations)
 RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, vote_eligibility_balance_step, validator_maximum_stake,
                   minimum_deposit, max_block_author_reward, dag_proposers_reward, commission_change_delta,
                   commission_change_frequency, delegation_delay, delegation_locking_period, blocks_per_year,
                   yield_percentage, initial_validators)
-RLP_FIELDS_DEFINE(Config, eth_chain_config, initial_balances, dpos)
+RLP_FIELDS_DEFINE(Config, evm_chain_config, initial_balances, dpos)
 RLP_FIELDS_DEFINE(Opts, expected_max_trx_per_block, max_trie_full_node_levels_to_cache)
 RLP_FIELDS_DEFINE(OptsDB, db_path, disable_most_recent_trie_value_views)
 
