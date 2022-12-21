@@ -6,12 +6,12 @@
 
 # Usage: ./for_devs/run_test_in_loop.sh './cmake-build-debug/bin/vote_test --gtest_filter=* --gtest_color=no'
 
-TEST_CMD="$1"
+TEST_CMD="$@"
 printf "\n********************************** Running \"$TEST_CMD\" in infinite loop *********************************"
 
 COUNTER=1
 
-while true; do 
+while true; do
     printf "\n\n******************************************** TEST RUN %d  ************************************\n\n" $COUNTER
 
 #    ./cmake-build-debug/bin/full_node_test --gtest_filter=FullNodeTest.sync_five_nodes:FullNodeTest/*.sync_five_nodes:FullNodeTest.sync_five_nodes/*:*/FullNodeTest.sync_five_nodes/*:*/FullNodeTest/*.sync_five_nodes --gtest_color=no

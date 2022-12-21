@@ -259,7 +259,6 @@
     "number_of_proposers": "0x14",
     "dag_blocks_size": "0x32",
     "ghost_path_move_back": "0x0",
-    "state_root_recording_delay": "0x3",
     "lambda_ms": "0x5DC",
     "gas_limit": "0x7d2b7500"
   },

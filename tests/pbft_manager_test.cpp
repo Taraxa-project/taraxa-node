@@ -978,7 +978,7 @@ TEST_F(PbftManagerWithDagCreation, state_root_hash) {
     WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce - 1);
   });
 
-  const auto &state_root_delay = node_cfgs.front().genesis.pbft.state_root_recording_delay;
+  const auto &state_root_delay = node_cfgs.front().genesis.state.dpos.delegation_delay;
   const auto &head_hash = node->getPbftChain()->getLastPbftBlockHash();
   auto pbft_block = node->getPbftChain()->getPbftBlockInChain(head_hash);
   // Check that all produced blocks have correct state_root_hashes
