@@ -236,10 +236,11 @@ commands:
                 --sort-by="~timestamp" \
                 --limit 1 \
                 --format="value(tags[0])" )
+
+              PR_TAG="pr-2248-9112"
               if [ -z ${PR_TAG} ]; then
                 echo "No images for PR pr-<< parameters.pr-name >>"
-                echo "export PR_TAG=pr-2248-9112" >> ${BASH_ENV}
-                # exit 1
+                exit 1
               else
                 echo "export PR_TAG=${PR_TAG}" >> ${BASH_ENV}
               fi
