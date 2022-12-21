@@ -266,7 +266,10 @@ commands:
                 --set node.loadBalancer.addresses\[2\]="${PRNET_IPS_RPC_NODES[2]}" \
                 --set node.persistence.enabled=true \
                 --set bootnode.persistence.enabled=false \
-                --set consensusnode.persistence.enabled=true
+                --set consensusnode.persistence.enabled=true \
+                --set node.serviceMonitor.enabled=true \
+                --set bootnode.serviceMonitor.enabled=false \
+                --set consensusnode.serviceMonitor.enabled=true
             fi
 
   cleanup_prnet_chart:
