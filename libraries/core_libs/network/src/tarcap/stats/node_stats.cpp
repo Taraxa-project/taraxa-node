@@ -81,7 +81,10 @@ void NodeStats::logNodeStats() {
   const auto local_chain_size_without_empty_blocks = pbft_chain_->getPbftChainSizeExcludingEmptyPbftBlocks();
 
   const auto local_dpos_total_votes_count = pbft_mgr_->getCurrentDposTotalVotesCount();
-  const auto local_dpos_node_votes_count = pbft_mgr_->getCurrentNodeVotesCount();
+  uint64_t local_dpos_node_votes_count = 0;
+  if (const auto votes_count = pbft_mgr_->getCurrentNodeVotesCount()) {
+    local_dpos_node_votes_count = *votes_count;
+  }
   const auto local_twotplusone = vote_mgr_->getPbftTwoTPlusOne(local_pbft_period - 1);
 
   // Syncing period...
@@ -161,9 +164,7 @@ void NodeStats::logNodeStats() {
                                                             : "Info not available");
   LOG(log_nf_) << "PBFT consensus 2t+1 threshold:   "
                << (local_twotplusone.has_value() ? std::to_string(*local_twotplusone) : "Info not available");
-  LOG(log_nf_) << "Node eligible vote count:        "
-               << (local_dpos_node_votes_count.has_value() ? std::to_string(*local_dpos_node_votes_count)
-                                                           : "Info not available");
+  LOG(log_nf_) << "Node eligible vote count:        " << std::to_string(local_dpos_node_votes_count);
 
   LOG(log_dg_) << "****** Memory structures sizes ******";
   LOG(log_dg_) << "Verified votes size:             " << vote_mgr_->getVerifiedVotesSize();
