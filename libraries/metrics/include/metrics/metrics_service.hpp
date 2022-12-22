@@ -8,7 +8,7 @@
 
 #include "metrics/metrics_group.hpp"
 
-namespace metrics {
+namespace taraxa::metrics {
 
 /**
  * @brief class for metrics collecting. Registering specific metrics classes and creating prometheus server(exposer)
@@ -43,10 +43,10 @@ class MetricsService {
   }
 
  private:
-  const uint16_t polling_interval_ms_ = 0;
+  const uint16_t kPollingIntervalMs = 0;
   std::unique_ptr<prometheus::Exposer> exposer_;
   std::shared_ptr<prometheus::Registry> registry_;
   std::map<std::string, SharedMetricsGroup> metrics_;
   std::unique_ptr<std::thread> thread_;
 };
-}  // namespace metrics
+}  // namespace taraxa::metrics

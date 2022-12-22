@@ -5,10 +5,7 @@
 
 #include <iostream>
 
-namespace metrics {
-
-using MetricGetter = std::function<double()>;
-using MetricUpdater = std::function<void()>;
+namespace taraxa::metrics {
 
 /**
  * @brief add method that is setting specific gauge metric.
@@ -38,6 +35,8 @@ using MetricUpdater = std::function<void()>;
 
 class MetricsGroup {
  public:
+  using MetricGetter = std::function<double()>;
+  using MetricUpdater = std::function<void()>;
   MetricsGroup(std::shared_ptr<prometheus::Registry> registry) : registry_(std::move(registry)) {}
   virtual ~MetricsGroup() = default;
 
@@ -68,4 +67,4 @@ class MetricsGroup {
 };
 
 using SharedMetricsGroup = std::shared_ptr<MetricsGroup>;
-}  // namespace metrics
+}  // namespace taraxa::metrics

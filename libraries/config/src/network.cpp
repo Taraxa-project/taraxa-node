@@ -5,13 +5,8 @@
 namespace taraxa {
 
 void dec_json(const Json::Value &json, PrometheusConfig &config) {
-  if (auto listen_port = getConfigData(json, {"listen_port"}, true); !listen_port.isNull()) {
-    config.listen_port = listen_port.asUInt();
-  }
-
-  if (auto polling_interval_ms = getConfigData(json, {"polling_interval_ms"}, true); !polling_interval_ms.isNull()) {
-    config.polling_interval_ms = polling_interval_ms.asUInt();
-  }
+  config.listen_port = getConfigData(json, {"listen_port"}).asUInt();
+  config.polling_interval_ms = getConfigData(json, {"polling_interval_ms"}).asUInt();
 }
 
 void ConnectionConfig::validate() const {

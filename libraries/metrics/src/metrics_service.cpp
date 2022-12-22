@@ -6,9 +6,9 @@
 #include <memory>
 #include <thread>
 
-namespace metrics {
+namespace taraxa::metrics {
 MetricsService::MetricsService(const std::string& host, uint16_t port, uint16_t polling_interval_ms)
-    : polling_interval_ms_(polling_interval_ms) {
+    : kPollingIntervalMs(polling_interval_ms) {
   exposer_ = std::make_unique<prometheus::Exposer>(host + ":" + std::to_string(port));
   registry_ = std::make_shared<prometheus::Registry>();
   exposer_->RegisterCollectable(registry_);
@@ -28,8 +28,8 @@ void MetricsService::start() {
       for (auto& r : metrics_) {
         r.second->updateData();
       }
-      std::this_thread::sleep_for(std::chrono::milliseconds(polling_interval_ms_));
+      std::this_thread::sleep_for(std::chrono::milliseconds(kPollingIntervalMs));
     }
   });
 }
-}  // namespace metrics
+}  // namespace taraxa::metrics

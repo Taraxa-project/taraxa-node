@@ -28,11 +28,10 @@
 #include "transaction/transaction.hpp"
 #include "vote_manager/vote_manager.hpp"
 
+namespace taraxa {
 namespace metrics {
 class MetricsService;
 }
-namespace taraxa {
-
 class Network;
 class DagBlockProposer;
 class DagManager;

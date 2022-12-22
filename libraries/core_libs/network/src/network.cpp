@@ -6,11 +6,8 @@
 
 #include <boost/tokenizer.hpp>
 
-#include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
-// #include "transaction/transaction_manager.hpp"
-
 #include "config/version.hpp"
-#include "metrics/network_metrics.hpp"
+#include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
 
 namespace taraxa {
 

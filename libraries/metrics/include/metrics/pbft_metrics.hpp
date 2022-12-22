@@ -2,7 +2,7 @@
 
 #include "metrics/metrics_group.hpp"
 
-namespace metrics {
+namespace taraxa::metrics {
 class PbftMetrics : public MetricsGroup {
  public:
   inline static const std::string group_name = "pbft";
@@ -11,10 +11,11 @@ class PbftMetrics : public MetricsGroup {
   ADD_GAUGE_METRIC_WITH_UPDATER(setPeriod, "period", "Current PBFT period")
   ADD_GAUGE_METRIC_WITH_UPDATER(setRound, "round", "Current PBFT round")
   ADD_GAUGE_METRIC_WITH_UPDATER(setStep, "step", "Current PBFT step")
+  ADD_GAUGE_METRIC_WITH_UPDATER(setVotesCount, "votes_count", "Current node votes count")
 
   ADD_GAUGE_METRIC(setBlockNumber, "block_number", "Number of the most recent block")
   ADD_GAUGE_METRIC(setBlockTransactionsCount, "block_transactions_count", "Number of transactions in block")
   ADD_GAUGE_METRIC(setBlockTimestamp, "block_timestamp", "Number of transactions in block")
 };
 
-}  // namespace metrics
+}  // namespace taraxa::metrics
