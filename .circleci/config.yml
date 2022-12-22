@@ -237,7 +237,6 @@ commands:
                 --limit 1 \
                 --format="value(tags[0])" )
 
-              PR_TAG="pr-2248-9112"
               if [ -z ${PR_TAG} ]; then
                 echo "No images for PR pr-<< parameters.pr-name >>"
                 exit 1
