@@ -38,6 +38,7 @@ Config::Config(int argc, const char* argv[]) {
   bool rebuild_network = false;
   bool rebuild_db = false;
   bool rebuild_db_columns = false;
+  bool light_node = false;
   bool version = false;
   uint64_t rebuild_db_period = 0;
   uint64_t revert_to_period = 0;
@@ -89,6 +90,7 @@ Config::Config(int argc, const char* argv[]) {
   node_command_options.add_options()(REVERT_TO_PERIOD, bpo::value<uint64_t>(&revert_to_period),
                                      "Revert db/state to specified "
                                      "period (specify period)");
+  node_command_options.add_options()(LIGHT, bpo::bool_switch(&light_node), "Enable light node functionality");
   node_command_options.add_options()(CHAIN_ID, bpo::value<int>(&chain_id),
                                      "Chain identifier (integer, 841=Mainnet, 842=Testnet, 843=Devnet) (default: 841) "
                                      "Only used when creating new config file");
@@ -217,6 +219,10 @@ Config::Config(int argc, const char* argv[]) {
     config_json = tools::overrideConfig(config_json, data_dir, boot_nodes, log_channels, log_configurations,
                                         boot_nodes_append, log_channels_append);
     wallet_json = tools::overrideWallet(wallet_json, node_secret, vrf_secret);
+
+    if (light_node) {
+      config_json["is_light_node"] = true;
+    }
 
     // Create data directory
     if (!data_dir.empty() && !fs::exists(data_dir)) {
