@@ -13,7 +13,6 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: consensus-node
       app.kubernetes.io/name: {{ .Release.Name }}-consensus-node
       app.kubernetes.io/instance: {{ .Release.Name }}
   namespaceSelector:
