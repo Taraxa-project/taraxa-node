@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "Common.h"
+#include "NodeTable.h"
 namespace ba = boost::asio;
 namespace bi = ba::ip;
 
@@ -58,6 +59,8 @@ struct NetworkConfig {
   bool discovery = true;             // Discovery is activated with network.
   bool allowLocalDiscovery = false;  // Include nodes with local IP addresses in the discovery process.
   bool pin = false;                  // Only accept or connect to trusted peers.
+
+  NodeTable::UsePacketIpMode usePacketIp = NodeTable::UsePacketIpMode::UseDefault;
 };
 
 /**

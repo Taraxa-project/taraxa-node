@@ -90,6 +90,8 @@ int main(int argc, char** argv) {
   auto addNetworkingOption = client_networking.add_options();
   addNetworkingOption("public-ip", po::value<std::string>()->value_name("<ip>"),
                       "Force advertised public IP to the given IP (default: auto)");
+  addNetworkingOption("use-packet-ip", po::value<uint32_t>()->value_name("<#>"),
+                      "0 - default, 1 - use packet IP if packet IP is not private address, 2 - always use packet ip");
   addNetworkingOption("listen-ip", po::value<std::string>()->value_name("<ip>(:<port>)"),
                       "Listen on the given IP for incoming connections (default: 0.0.0.0)");
   addNetworkingOption("listen", po::value<unsigned short>()->value_name("<port>"),
@@ -136,10 +138,12 @@ int main(int argc, char** argv) {
   std::string listen_ip = "0.0.0.0";
   unsigned short listen_port = 10002;
   std::string public_ip;
+  uint32_t use_packet_ip = 0;
   uint32_t num_of_threads = 1;
 
   if (vm.count("public-ip")) public_ip = vm["public-ip"].as<std::string>();
   if (vm.count("listen-ip")) listen_ip = vm["listen-ip"].as<std::string>();
+  if (vm.count("use-packet-ip")) use_packet_ip = vm["use-packet-ip"].as<uint32_t>();
   if (vm.count("listen")) listen_port = vm["listen"].as<unsigned short>();
   if (vm.count("number-of-threads")) num_of_threads = vm["number-of-threads"].as<uint32_t>();
 
@@ -160,6 +164,7 @@ int main(int argc, char** argv) {
   auto net_conf = public_ip.empty() ? dev::p2p::NetworkConfig(listen_ip, listen_port, false)
                                     : dev::p2p::NetworkConfig(public_ip, listen_ip, listen_port, false);
   net_conf.allowLocalDiscovery = !denyLocalDiscovery;
+  net_conf.usePacketIp = (dev::p2p::NodeTable::UsePacketIpMode)use_packet_ip;
 
   dev::p2p::TaraxaNetworkConfig taraxa_net_conf;
   taraxa_net_conf.is_boot_node = true;
@@ -183,10 +188,9 @@ int main(int argc, char** argv) {
       const auto conf = taraxa::cli::tools::getConfig(static_cast<taraxa::cli::Config::ChainIdType>(chain_id));
       for (auto const& bn : conf["network"]["boot_nodes"]) {
         bi::tcp::endpoint ep = dev::p2p::Network::resolveHost(bn["ip"].asString() + ":" + bn["port"].asString());
-        boot_host->addNode(
-            dev::p2p::Node(dev::Public(bn["id"].asString()),
-                           dev::p2p::NodeIPEndpoint{ep.address(), ep.port() /* udp */, ep.port() /* tcp */},
-                           dev::p2p::PeerType::Required));
+        boot_host->addNode(dev::p2p::Node(dev::Public(bn["id"].asString()),
+                                          dev::p2p::NodeIPEndpoint{ep.address(), ep.port(), ep.port()},
+                                          dev::p2p::PeerType::Required));
       }
     }
     // TODO graceful shutdown

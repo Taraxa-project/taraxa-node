@@ -3,6 +3,7 @@
 // Licensed under the GNU General Public License, Version 3.
 
 #include "NodeTable.h"
+
 using namespace std;
 
 namespace dev {
@@ -33,7 +34,8 @@ inline bool operator==(weak_ptr<NodeEntry> const& _weak, shared_ptr<NodeEntry> c
 }
 
 NodeTable::NodeTable(ba::io_context& _io, KeyPair const& _alias, NodeIPEndpoint const& _endpoint, ENR const& _enr,
-                     bool _enabled, bool _allowLocalDiscovery, bool is_boot_node, unsigned chain_id)
+                     bool _enabled, bool _allowLocalDiscovery, bool is_boot_node, unsigned chain_id,
+                     UsePacketIpMode use_packet_ip)
     : strand_(ba::make_strand(_io)),
       m_hostNodeID{_alias.pub()},
       m_hostNodeIDHash{sha3(m_hostNodeID)},
@@ -48,7 +50,8 @@ NodeTable::NodeTable(ba::io_context& _io, KeyPair const& _alias, NodeIPEndpoint 
       m_timeoutsTimer{make_shared<ba::steady_timer>(_io)},
       m_endpointTrackingTimer{make_shared<ba::steady_timer>(_io)},
       is_boot_node_(is_boot_node),
-      chain_id_(chain_id) {
+      chain_id_(chain_id),
+      use_packet_ip_(use_packet_ip) {
   if (is_boot_node_) {
     s_bucketSize = BOOT_NODE_BUCKET_SIZE;
   }
@@ -553,7 +556,11 @@ std::shared_ptr<NodeEntry> NodeTable::handleFindNode(bi::udp::endpoint const& _f
 
 NodeIPEndpoint NodeTable::getSourceEndpoint(bi::udp::endpoint const& from, PingNode const& packet) {
   if (from.address() != packet.source.address() && !isLocalHostAddress(packet.source.address())) {
-    if (isPrivateAddress(from.address()) && !isPrivateAddress(packet.source.address())) {
+    if ((use_packet_ip_ == UsePacketIpMode::UseDefault && isPrivateAddress(from.address()) &&
+         !isPrivateAddress(packet.source.address())) ||
+        (use_packet_ip_ == UsePacketIpMode::UsePacketIpIfNotPrivateAddress &&
+         !isPrivateAddress(packet.source.address())) ||
+        use_packet_ip_ == UsePacketIpMode::UsePacketIp) {
       Guard l(x_ips);
       if (m_id2IpMap.contains(packet.sourceid)) {
         if (m_id2IpMap[packet.sourceid] != from) {

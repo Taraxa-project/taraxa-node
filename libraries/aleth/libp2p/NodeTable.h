@@ -106,10 +106,13 @@ class NodeTable : UDPSocketEvents {
   // sending new PONG
   static constexpr uint32_t c_bondingTimeSeconds{12 * 60 * 60};
 
+  enum class UsePacketIpMode { UseDefault = 0, UsePacketIpIfNotPrivateAddress, UsePacketIp };
+
   /// Constructor requiring host for I/O, credentials, and IP Address, port to
   /// listen on and host ENR.
   NodeTable(ba::io_context& _io, KeyPair const& _alias, NodeIPEndpoint const& _endpoint, ENR const& _enr,
-            bool _enabled = true, bool _allowLocalDiscovery = false, bool is_boot_node = false, unsigned chain_id = 0);
+            bool _enabled = true, bool _allowLocalDiscovery = false, bool is_boot_node = false, unsigned chain_id = 0,
+            UsePacketIpMode use_packet_ip = UsePacketIpMode::UseDefault);
 
   ~NodeTable() {
     if (m_socket->isOpen()) {
@@ -386,6 +389,8 @@ class NodeTable : UDPSocketEvents {
 
   const bool is_boot_node_ = false;
   const uint32_t chain_id_ = 0;
+
+  UsePacketIpMode use_packet_ip_;
 };
 
 /**
