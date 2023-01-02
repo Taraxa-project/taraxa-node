@@ -64,10 +64,6 @@
           {
             "name": "DAG_PROPOSER",
             "verbosity": "INFO"
-          },
-          {
-            "name": "NET_PER",
-            "verbosity": "DEBUG"
           }
         ],
         "outputs": [

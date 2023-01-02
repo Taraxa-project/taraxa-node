@@ -48,6 +48,8 @@ void TimePeriodPacketsStats::processStats(const std::shared_ptr<PeersState>& pee
   received_packets_stats_.resetStats();
   sent_packets_stats_.resetStats();
 
+  MaxStats peer_max_stats_per_time_window;
+
   for (const auto& peer : peers_state->getAllPeers()) {
     const auto [start_time, peer_packets_stats] = peer.second->getAllPacketsStatsCopy();
 
@@ -60,12 +62,14 @@ void TimePeriodPacketsStats::processStats(const std::shared_ptr<PeersState>& pee
 
     // Update max packets stats per peer
     peer_max_stats_.updateMaxStats(peer_packets_stats);
+    peer_max_stats_per_time_window.updateMaxStats(peer_packets_stats);
   }
 
   // Log max stats
   Json::Value max_stats_json;
   max_stats_json["time_period_ms"] = kResetTimePeriod.count();
-  max_stats_json["peer_max_stats"] = peer_max_stats_.getMaxStatsJson();
+  max_stats_json["peer_overall_max_stats"] = peer_max_stats_.getMaxStatsJson();
+  max_stats_json["peer_current_max_stats"] = peer_max_stats_per_time_window.getMaxStatsJson();
   LOG(log_dg_) << "Max packets stats: " << jsonToUnstyledString(max_stats_json);
 }
 
