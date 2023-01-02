@@ -25,6 +25,7 @@ var classtaraxa_1_1cli_1_1_config =
     [ "ENABLE_TEST_RPC", "classtaraxa_1_1cli_1_1_config.html#a1a03d46a5abdcaed8f4f57ed4416a081", null ],
     [ "GENESIS", "classtaraxa_1_1cli_1_1_config.html#a1e2dc176594b61dd572df519b8f63752", null ],
     [ "HELP", "classtaraxa_1_1cli_1_1_config.html#aa731c143ec5fdbb7bb6c770457616c93", null ],
+    [ "LIGHT", "classtaraxa_1_1cli_1_1_config.html#a17a06d58df51645a20c2b3bcfcfaa335", null ],
     [ "LOG_CHANNELS", "classtaraxa_1_1cli_1_1_config.html#aab1ed69a5e4fb38e3649fd197dd4d1e6", null ],
     [ "LOG_CHANNELS_APPEND", "classtaraxa_1_1cli_1_1_config.html#a57ec4dc90c87397725129f25e4a5934f", null ],
     [ "LOG_CONFIGURATIONS", "classtaraxa_1_1cli_1_1_config.html#ab9e51cd5f55999a1da8ee99d3255f99a", null ],

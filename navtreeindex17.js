@@ -1,5 +1,6 @@
 var NAVTREEINDEX17 =
 {
+"libdevcrypto_2_common_8h.html#a04a16f8a4c264a7868151d49e2223f04":[15,0,1,0,1,3,5],
 "libdevcrypto_2_common_8h.html#a0842f17403d63f4a260d5283ae5fb3a7":[15,0,1,0,1,3,28],
 "libdevcrypto_2_common_8h.html#a15bc8df921a5e850704474ba2b3a5e59":[15,0,1,0,1,3,15],
 "libdevcrypto_2_common_8h.html#a1fd0d1e56fde466db30621e9e08c0cf2":[15,0,1,0,1,3,7],
@@ -248,6 +249,5 @@ var NAVTREEINDEX17 =
 "md_doc_coding_practices.html#autotoc_md111":[45],
 "md_doc_coding_practices.html#autotoc_md112":[46],
 "md_doc_coding_practices.html#autotoc_md113":[2,0,11],
-"md_doc_coding_practices.html#autotoc_md114":[47],
-"md_doc_coding_practices.html#autotoc_md115":[48]
+"md_doc_coding_practices.html#autotoc_md114":[47]
 };
