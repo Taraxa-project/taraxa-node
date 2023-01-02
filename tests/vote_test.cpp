@@ -165,8 +165,8 @@ TEST_F(VoteTest, round_determine_from_next_votes) {
     }
   }
 
-  auto new_round = vote_mgr->determineRoundFromPeriodAndVotes(12, two_t_plus_one);
-  EXPECT_EQ(new_round->first, 13);
+  auto new_round = vote_mgr->determineNewRound(12, two_t_plus_one);
+  EXPECT_EQ(*new_round, 13);
 }
 
 TEST_F(VoteTest, reconstruct_votes) {

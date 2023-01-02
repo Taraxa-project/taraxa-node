@@ -11,7 +11,6 @@
 #include "network/tarcap/taraxa_capability.hpp"
 #include "pbft/period_data_queue.hpp"
 #include "pbft/proposed_blocks.hpp"
-#include "pbft/soft_voted_block_data.hpp"
 
 namespace taraxa {
 
@@ -58,10 +57,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_block_hash, addr_t node_addr,
               std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-              std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
-              std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-              std::shared_ptr<FinalChain> final_chain, secret_t node_sk,
-              uint32_t max_levels_per_period = kMaxLevelsPerPeriod);
+              std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
+              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain, secret_t node_sk,
+              uint32_t max_levels_per_period);
   ~PbftManager();
   PbftManager(const PbftManager &) = delete;
   PbftManager(PbftManager &&) = delete;
@@ -480,19 +478,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool pushPbftBlock_(PeriodData &&period_data, std::vector<std::shared_ptr<Vote>> &&cert_votes);
 
   /**
-   * @brief Check if previous round next voting value has been changed
-   */
-  void checkPreviousRoundNextVotedValueChange_();
-
-  /**
-   * @param period
-   * @param round
-   * @return Soft voted block data if there is enough (2t+1) soft votes, otherwise returns empty optional
-   */
-  const std::optional<TwoTPlusOneSoftVotedBlockData> &getTwoTPlusOneSoftVotedBlockData(PbftPeriod period,
-                                                                                       PbftRound round);
-
-  /**
    * @brief Get valid proposed pbft block. It will retrieve block from proposed_blocks and then validate it if not
    *        already validated
    *
@@ -546,7 +531,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   std::unique_ptr<std::thread> daemon_;
   std::shared_ptr<DbStorage> db_;
-  std::shared_ptr<NextVotesManager> next_votes_manager_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<DagManager> dag_mgr_;
@@ -574,16 +558,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   PbftStep step_ = 1;
   PbftStep startingStepInRound_ = 1;
 
-  // TODO: possibly remove ?
-  // 2t+1 soft voted block related data
-  std::optional<TwoTPlusOneSoftVotedBlockData> soft_voted_block_for_round_{};
-
   // Block that node cert voted
   std::optional<std::shared_ptr<PbftBlock>> cert_voted_block_for_round_{};
-
-  // TODO: remove
-  std::optional<blk_hash_t> previous_round_next_voted_value_{};
-  bool previous_round_next_voted_null_block_hash_ = false;
 
   // All broadcasted votes created by a node in current round - just for summary logging purposes
   std::map<blk_hash_t, std::vector<PbftStep>> current_round_broadcasted_votes_;

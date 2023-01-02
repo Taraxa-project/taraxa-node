@@ -101,7 +101,6 @@ class TaraxaPeer : public boost::noncopyable {
   std::atomic<PbftPeriod> pbft_chain_size_ = 0;
   std::atomic<PbftPeriod> pbft_period_ = pbft_chain_size_ = 1;
   std::atomic<PbftRound> pbft_round_ = 1;
-  std::atomic<size_t> pbft_previous_round_next_votes_size_ = 0;
   std::atomic<PbftPeriod> last_status_pbft_chain_size_ = 0;
   std::atomic_bool peer_dag_synced_ = false;
   std::atomic_uint64_t peer_dag_synced_time_ = 0;

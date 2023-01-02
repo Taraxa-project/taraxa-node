@@ -6,6 +6,7 @@
 #include "key_manager/key_manager.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "vote/vote.hpp"
+#include "vote_manager/verified_votes.hpp"
 
 namespace taraxa {
 
@@ -14,6 +15,10 @@ namespace taraxa {
  */
 
 class Network;
+
+namespace network::tarcap {
+class TaraxaPeer;
+}
 
 /**
  * @brief NextVotesManager class manage next voting type votes for previous PBFT round.
@@ -126,11 +131,16 @@ class NextVotesManager {
  * @brief VoteManager class manage votes for PBFT consensus
  */
 class VoteManager {
+ private:
+  // TODO: use std locks
+  using UniqueLock = boost::unique_lock<boost::shared_mutex>;
+  using SharedLock = boost::shared_lock<boost::shared_mutex>;
+
  public:
   VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config, const secret_t& node_sk,
               const vrf_wrapper::vrf_sk_t& vrf_sk, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
               std::shared_ptr<FinalChain> final_chain, std::shared_ptr<KeyManager> key_manager);
-  ~VoteManager();
+  ~VoteManager() = default;
   VoteManager(const VoteManager&) = delete;
   VoteManager(VoteManager&&) = delete;
   VoteManager& operator=(const VoteManager&) = delete;
@@ -148,7 +158,7 @@ class VoteManager {
    *
    * @return true if vote was successfully added, otherwise false
    */
-  bool addVerifiedVote(std::shared_ptr<Vote> const& vote);
+  bool addVerifiedVote(const std::shared_ptr<Vote>& vote);
 
   /**
    * @brief Check if the vote has been in the verified votes map
@@ -158,6 +168,7 @@ class VoteManager {
   bool voteInVerifiedMap(std::shared_ptr<Vote> const& vote) const;
 
   // TODO: lock_verified_votes_mutex will be removed once we get reward votes from verified_votes_
+  // TODO: can be then also private function
   /**
    * @brief Inserts unique vote
    * @param vote
@@ -176,12 +187,14 @@ class VoteManager {
    * @brief Get all verified votes
    * @return all verified votes
    */
+  // TODO: remove - used only in tests
   std::vector<std::shared_ptr<Vote>> getVerifiedVotes() const;
 
   /**
    * @brief Get the total size of all verified votes
    * @return the total size of all verified votes
    */
+  // TODO: remove - used only in tests
   uint64_t getVerifiedVotesSize() const;
 
   /**
@@ -206,26 +219,12 @@ class VoteManager {
   std::vector<std::shared_ptr<Vote>> getProposalVotes(PbftPeriod period, PbftRound round) const;
 
   /**
-   * @brief Get a bunch of votes that vote on the same voting value in the specific PBFT round and step, the total votes
-   * weights must be greater or equal to PBFT 2t+1
-   * @param period PBFT period
-   * @param round PBFT round
-   * @param step PBFT step
-   * @param two_t_plus_one PBFT 2t+1 is 2/3 of PBFT sortition threshold and plus 1
-   * @return VotesBundle a bunch of votes that vote on the same voting value in the specific PBFT round and step
-   */
-  std::optional<VotesBundle> getTwoTPlusOneVotesBundle(PbftPeriod period, PbftRound round, PbftStep step,
-                                                       uint64_t two_t_plus_one) const;
-
-  /**
    * @brief Check if there are enough next voting type votes to set PBFT to a forward round within period
-   * @param period is current pbft period
-   * @param two_t_plus_one PBFT 2t+1 is 2/3 of PBFT sortition threshold and plus 1
-   * @return optional<pair<new round, 2t+1 next votes>> if there is enough next votes from prior round, otherwise
-   * returns empty optional
+   * @param current_pbft_period current pbft period
+   * @param current_pbft_round current pbft round
+   * @return optional<new round> if there is enough next votes from prior round, otherwise returns empty optional
    */
-  std::optional<std::pair<PbftRound, std::vector<std::shared_ptr<Vote>>>> determineRoundFromPeriodAndVotes(
-      PbftPeriod period, uint64_t two_t_plus_one);
+  std::optional<PbftRound> determineNewRound(PbftPeriod current_pbft_period, PbftRound current_pbft_round);
 
   // reward votes
   // TODO: lock_verified_votes_mutex will be removed once we get reward votes from verified_votes_
@@ -350,11 +349,51 @@ class VoteManager {
    */
   bool genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound pbft_round) const;
 
- private:
-  // TODO: use std locks
-  using UniqueLock = boost::unique_lock<boost::shared_mutex>;
-  using SharedLock = boost::shared_lock<boost::shared_mutex>;
+  /**
+   * @brief Get 2t+1 voted block for specific period, round and type, e.g. soft/cert/next voted block
+   *
+   * @param period
+   * @param round
+   * @param votes_type
+   * @return emoty optional if no 2t+1 voted block was found, otherwise initialized optional with block hash
+   */
+  std::optional<blk_hash_t> getTwoTPlusOneVotedBlock(PbftPeriod period, PbftRound round,
+                                                     TwoTPlusOneVotedBlockType type) const;
 
+  /**
+   * Get 2t+1 voted block votes for specific period, round and type, e.g. soft/cert/next voted block
+   *
+   * @param period
+   * @param round
+   * @param type
+   * @param peer_filter if specified, get only votes that are unknown for peer
+   * @return vector of votes if 2t+1 voted block votes found, otherwise empty vector
+   */
+  std::vector<std::shared_ptr<Vote>> getTwoTPlusOneVotedBlockVotes(
+      PbftPeriod period, PbftRound round, TwoTPlusOneVotedBlockType type,
+      const std::shared_ptr<network::tarcap::TaraxaPeer>& peer_filter = {}) const;
+
+  /**
+   * Get all 2t+1 voted block next votes(both for null block as well as specific block) for specific period and round
+   *
+   * @param period
+   * @param round
+   * @param peer_filter if specified, get only votes that are unknown for peer
+   * @return vector of next votes if 2t+1 voted block votes found, otherwise empty vector
+   */
+  std::vector<std::shared_ptr<Vote>> getAllTwoTPlusOneNextVotes(
+      PbftPeriod period, PbftRound round, const std::shared_ptr<network::tarcap::TaraxaPeer>& peer_filter = {}) const;
+
+  /**
+   * @brief Sets current pbft period & round. It also checks if we dont alredy have 2t+1 vote bundles(pf any type) for
+   *                the provided period & round and if so, it saves these bundles into db
+   *
+   * @param pbft_period
+   * @param pbft_round
+   */
+  void setCurrentPbftPeriodAndRound(PbftPeriod pbft_period, PbftRound pbft_round);
+
+ private:
   /**
    * @brief Retrieve all verified votes from DB to the verified votes map. And broadcast all next voting type votes to
    * peers if node has extended the partition steps (1000). That only happens when nodes start.
@@ -370,23 +409,6 @@ class VoteManager {
   uint64_t getPbftSortitionThreshold(uint64_t total_dpos_votes_count, PbftVoteTypes vote_type) const;
 
  private:
-  struct StepVotes {
-    std::unordered_map<blk_hash_t, std::pair<uint64_t, std::unordered_map<vote_hash_t, std::shared_ptr<Vote>>>> votes;
-    std::unordered_map<addr_t, std::pair<std::shared_ptr<Vote>, std::shared_ptr<Vote>>> unique_voters;
-  };
-
-  struct VerifiedVotes {
-    // 2t+1 voted blocks
-    std::optional<blk_hash_t> soft_voted_block;
-    std::optional<blk_hash_t> cert_voted_block;
-    std::optional<std::pair<blk_hash_t, PbftStep>> next_voted_block;
-    std::optional<PbftStep> next_voted_null_block;
-
-    // Step votes
-    std::map<PbftStep, StepVotes> step_votes;
-  };
-
- private:
   const addr_t kNodeAddr;
   const PbftConfig& kPbftConfig;
   const vrf_wrapper::vrf_sk_t kVrfSk;
@@ -399,11 +421,13 @@ class VoteManager {
   std::shared_ptr<KeyManager> key_manager_;
   std::weak_ptr<Network> network_;
 
-  // TODO: no need to call retrieveVotes in separate thread ???
-  std::unique_ptr<std::thread> daemon_;
+  // Current pbft period based on pbft_manager
+  std::atomic<PbftPeriod> current_pbft_period_{0};
+  // Current pbft round based on pbft_manager
+  std::atomic<PbftRound> current_pbft_round_{0};
 
+  // Main storage for all verified votes
   std::map<PbftPeriod, std::map<PbftRound, VerifiedVotes>> verified_votes_;
-  PbftPeriod verified_votes_last_period_;
   mutable boost::shared_mutex verified_votes_access_;
 
   // TODO[1907]: this will be part of RewardVotes class

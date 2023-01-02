@@ -30,7 +30,7 @@ class ExtVotesPacketHandler : public PacketHandler {
   ExtVotesPacketHandler& operator=(ExtVotesPacketHandler&&) = delete;
 
   /**
-   * @brief Process standard vote
+   * @brief Process vote
    *
    * @param vote
    * @param pbft_block
@@ -38,8 +38,8 @@ class ExtVotesPacketHandler : public PacketHandler {
    * @param validate_max_round_step
    * @return if vote was successfully processed, otherwise false
    */
-  bool processStandardVote(const std::shared_ptr<Vote>& vote, const std::shared_ptr<PbftBlock>& pbft_block,
-                           const std::shared_ptr<TaraxaPeer>& peer, bool validate_max_round_step);
+  bool processVote(const std::shared_ptr<Vote>& vote, const std::shared_ptr<PbftBlock>& pbft_block,
+                   const std::shared_ptr<TaraxaPeer>& peer, bool validate_max_round_step);
 
   /**
    * @brief Process reward vote
@@ -50,26 +50,26 @@ class ExtVotesPacketHandler : public PacketHandler {
   bool processRewardVote(const std::shared_ptr<Vote>& vote) const;
 
   /**
-   * @brief Process next sync vote
-   *
+   * @brief Checks is vote is relevant for current pbft state in terms of period, round and type
    * @param vote
-   * @param pbft_block
-   * @return if vote was successfully processed, otherwise false
+   * @return true if vote is relevant for current pbft state, otherwise false
    */
-  bool processNextSyncVote(const std::shared_ptr<Vote>& vote, const std::shared_ptr<PbftBlock>& pbft_block) const;
+  bool isPbftRelevantVote(const std::shared_ptr<Vote>& vote) const;
 
- protected:
+  void sendPbftVotesBundle(const std::shared_ptr<TaraxaPeer>& peer, std::vector<std::shared_ptr<Vote>>&& votes);
+
+ private:
   /**
-   * @brief Validates standard vote
+   * @brief Validates vote period, round and step against max values from config
    *
    * @param vote to be validated
    * @param peer
    * @param validate_max_round_step validate also max round and step
    * @return <true, ""> vote validation passed, otherwise <false, "err msg">
    */
-  std::pair<bool, std::string> validateStandardVote(const std::shared_ptr<Vote>& vote,
-                                                    const std::shared_ptr<TaraxaPeer>& peer,
-                                                    bool validate_max_round_step);
+  std::pair<bool, std::string> validateVotePeriodRoundStep(const std::shared_ptr<Vote>& vote,
+                                                           const std::shared_ptr<TaraxaPeer>& peer,
+                                                           bool validate_max_round_step);
 
   /**
    * @brief Validates reward vote
@@ -78,14 +78,6 @@ class ExtVotesPacketHandler : public PacketHandler {
    * @return <true, ""> vote validation passed, otherwise <false, "err msg">
    */
   std::pair<bool, std::string> validateRewardVote(const std::shared_ptr<Vote>& vote) const;
-
-  /**
-   * @brief Validates next vote
-   *
-   * @param vote to be validated
-   * @return <true, ""> vote validation passed, otherwise <false, "err msg">
-   */
-  std::pair<bool, std::string> validateNextSyncVote(const std::shared_ptr<Vote>& vote) const;
 
   /**
    * @brief Common validation for all types of votes
@@ -103,8 +95,6 @@ class ExtVotesPacketHandler : public PacketHandler {
    * @return true if validation successful, otherwise false
    */
   bool validateVoteAndBlock(const std::shared_ptr<Vote>& vote, const std::shared_ptr<PbftBlock>& pbft_block) const;
-
-  void sendPbftVotesBundle(const std::shared_ptr<TaraxaPeer>& peer, std::vector<std::shared_ptr<Vote>>&& votes);
 
  protected:
   constexpr static size_t kMaxVotesInPacket{1000};

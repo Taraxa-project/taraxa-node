@@ -32,8 +32,7 @@ class Network {
           std::filesystem::path const &network_file_path = {}, dev::KeyPair const &key = dev::KeyPair::create(),
           std::shared_ptr<DbStorage> db = {}, std::shared_ptr<PbftManager> pbft_mgr = {},
           std::shared_ptr<PbftChain> pbft_chain = {}, std::shared_ptr<VoteManager> vote_mgr = {},
-          std::shared_ptr<NextVotesManager> next_votes_mgr = {}, std::shared_ptr<DagManager> dag_mgr = {},
-          std::shared_ptr<TransactionManager> trx_mgr = {});
+          std::shared_ptr<DagManager> dag_mgr = {}, std::shared_ptr<TransactionManager> trx_mgr = {});
 
   ~Network();
   Network(const Network &) = delete;

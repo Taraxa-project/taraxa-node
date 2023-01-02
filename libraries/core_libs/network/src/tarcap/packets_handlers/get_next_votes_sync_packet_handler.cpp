@@ -8,11 +8,9 @@ namespace taraxa::network::tarcap {
 GetNextVotesSyncPacketHandler::GetNextVotesSyncPacketHandler(
     const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
     std::shared_ptr<TimePeriodPacketsStats> packets_stats, std::shared_ptr<PbftManager> pbft_mgr,
-    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-    std::shared_ptr<NextVotesManager> next_votes_mgr, const addr_t &node_addr)
+    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr, const addr_t &node_addr)
     : ExtVotesPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
-                            std::move(pbft_chain), std::move(vote_mgr), node_addr, "GET_NEXT_VOTES_SYNC_PH"),
-      next_votes_mgr_(std::move(next_votes_mgr)) {}
+                            std::move(pbft_chain), std::move(vote_mgr), node_addr, "GET_NEXT_VOTES_SYNC_PH") {}
 
 void GetNextVotesSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
   if (constexpr size_t required_size = 2; packet_data.rlp_.itemCount() != required_size) {
@@ -28,17 +26,36 @@ void GetNextVotesSyncPacketHandler::process(const PacketData &packet_data, const
   const auto [pbft_round, pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
   // Send votes only for current_period == peer_period && current_period >= peer_round
-  if (pbft_period != peer_pbft_period || pbft_round < peer_pbft_round) {
-    LOG(log_nf_) << "No next votes sync packet will be sent. pbft_period " << pbft_period << ", peer_pbft_period "
-                 << peer_pbft_period << ", pbft_round " << pbft_round << ", peer_pbft_round " << peer_pbft_round;
+  if (pbft_period != peer_pbft_period || pbft_round == 1 || pbft_round < peer_pbft_round) {
+    LOG(log_nf_) << "No previous round next votes sync packet will be sent. pbft_period " << pbft_period
+                 << ", peer_pbft_period " << peer_pbft_period << ", pbft_round " << pbft_round << ", peer_pbft_round "
+                 << peer_pbft_round;
     return;
   }
 
-  const auto next_votes_bundle = next_votes_mgr_->getNextVotes();
-  std::vector<std::shared_ptr<Vote>> next_votes;
-  for (auto &v : next_votes_bundle) {
-    if (!peer->isVoteKnown(v->getHash())) {
-      next_votes.push_back(std::move(v));
+  std::vector<std::shared_ptr<Vote>> next_votes =
+      vote_mgr_->getAllTwoTPlusOneNextVotes(pbft_period, pbft_round - 1, peer);
+  // In edge case this could theoretically happen due to race condition when we moved to the next period or round
+  // right before calling getAllTwoTPlusOneNextVotes with specific period & round
+  if (next_votes.empty()) {
+    // Try to get period & round values again
+    const auto [tmp_pbft_round, tmp_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
+    // No changes in period & round or new round == 1
+    if (pbft_period == tmp_pbft_period && pbft_round == tmp_pbft_round) {
+      LOG(log_er_) << "No next votes returned for period " << tmp_pbft_period << ", round " << tmp_pbft_round - 1;
+      return;
+    }
+
+    if (tmp_pbft_round == 1) {
+      LOG(log_wr_) << "No next votes returned for period " << tmp_pbft_period << ", round " << tmp_pbft_round - 1
+                   << " due to race condition - pbft already moved to the next period & round == 1";
+      return;
+    }
+
+    next_votes = vote_mgr_->getAllTwoTPlusOneNextVotes(tmp_pbft_period, tmp_pbft_round - 1, peer);
+    if (next_votes.empty()) {
+      LOG(log_er_) << "No next votes returned for period " << tmp_pbft_period << ", round " << tmp_pbft_round - 1;
+      return;
     }
   }
 

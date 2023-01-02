@@ -70,7 +70,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<Network> network_;
   std::shared_ptr<DagBlockProposer> dag_block_proposer_;
   std::shared_ptr<VoteManager> vote_mgr_;
-  std::shared_ptr<NextVotesManager> next_votes_mgr_;
   std::shared_ptr<PbftManager> pbft_mgr_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<KeyManager> key_manager_;
@@ -115,7 +114,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   auto const &getDB() const { return db_; }
   auto const &getPbftManager() const { return pbft_mgr_; }
   auto const &getVoteManager() const { return vote_mgr_; }
-  auto const &getNextVotesManager() const { return next_votes_mgr_; }
   auto const &getPbftChain() const { return pbft_chain_; }
   auto const &getFinalChain() const { return final_chain_; }
   // used only in tests

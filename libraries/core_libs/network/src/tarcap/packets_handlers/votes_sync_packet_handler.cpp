@@ -9,13 +9,9 @@ VotesSyncPacketHandler::VotesSyncPacketHandler(const FullNodeConfig &conf, std::
                                                std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                std::shared_ptr<PbftManager> pbft_mgr,
                                                std::shared_ptr<PbftChain> pbft_chain,
-                                               std::shared_ptr<VoteManager> vote_mgr,
-                                               std::shared_ptr<NextVotesManager> next_votes_mgr,
-                                               std::shared_ptr<DbStorage> db, const addr_t &node_addr)
+                                               std::shared_ptr<VoteManager> vote_mgr, const addr_t &node_addr)
     : ExtVotesPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
-                            std::move(pbft_chain), std::move(vote_mgr), node_addr, "VOTES_SYNC_PH"),
-      next_votes_mgr_(std::move(next_votes_mgr)),
-      db_(std::move(db)) {}
+                            std::move(pbft_chain), std::move(vote_mgr), node_addr, "VOTES_SYNC_PH") {}
 
 void VotesSyncPacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketData &packet_data) const {
   auto items = packet_data.rlp_.itemCount();
@@ -33,26 +29,14 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
   const auto votes_bundle_votes_type = reference_vote->getType();
   const auto votes_bundle_voted_block = reference_vote->getBlockHash();
 
-  // Accept only votes, which period is >= current pbft period - 1 (reward votes period)
-  if (votes_bundle_pbft_period < current_pbft_period - 1) {
-    LOG(log_wr_) << "Dropping votes sync packet due to period. Votes period: " << votes_bundle_pbft_period
-                 << ", current pbft period: " << current_pbft_period;
+  // Votes sync bundles are allowed to cotain only votes bundles of the same type, period, round and step so if first
+  // vote is irrelevant, all of them are
+  if (!isPbftRelevantVote(reference_vote)) {
+    LOG(log_wr_) << "Drop votes sync bundle as it is irrelevant for current pbft state. Votes (period, round, step) = ("
+                 << votes_bundle_pbft_period << ", " << votes_bundle_pbft_round << ", " << reference_vote->getStep()
+                 << "). Current PBFT (period, round, step) = (" << current_pbft_period << ", " << current_pbft_round
+                 << ", " << pbft_mgr_->getPbftStep() << ")";
     return;
-  } else if (votes_bundle_pbft_period == current_pbft_period) {
-    if (votes_bundle_pbft_round < current_pbft_round - 1) {
-      // Accept only votes, which round is >= previous round(current pbft round - 1) in case their period == current
-      // pbft period
-      LOG(log_wr_) << "Dropping votes sync packet due to round. Votes round: " << votes_bundle_pbft_round
-                   << ", current pbft round: " << current_pbft_round;
-      return;
-    } else if (votes_bundle_pbft_round == current_pbft_round - 1 &&
-               votes_bundle_votes_type == PbftVoteTypes::next_vote) {
-      // Already have 2t+1 previous round next votes for both kNullBlockHash as well as some specific block hash
-      if (next_votes_mgr_->enoughNextVotes()) {
-        LOG(log_nf_) << "Dropping next votes sync packet - already have enough next votes for previous round";
-        return;
-      }
-    }
   }
 
   // VotesSyncPacket does not support propose votes
@@ -67,7 +51,6 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
   blk_hash_t next_votes_bundle_voted_block = kNullBlockHash;
 
   const auto next_votes_count = packet_data.rlp_.itemCount();
-  //  It is done in separate cycle because we don't need to process this next_votes if some of checks will fail
   for (size_t i = 0; i < next_votes_count; i++) {
     auto vote = std::make_shared<Vote>(packet_data.rlp_[i]);
     peer->markVoteAsKnown(vote->getHash());
@@ -79,8 +62,6 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
     }
 
     // Next votes bundle can contain votes for kNullBlockHash as well as some specific block hash
-    // TODO[2047]: when implementing issue 2047, check if this is correct -> we are sending all next votes so
-    //             there could be potentially multiple voted blocks ???
     if (vote->getType() == PbftVoteTypes::next_vote) {
       if (next_votes_bundle_voted_block == kNullBlockHash && vote->getBlockHash() != kNullBlockHash) {
         // initialize voted value with first block hash not equal to kNullBlockHash
@@ -130,32 +111,17 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
 
     LOG(log_dg_) << "Received sync vote " << vote->getHash().abridged();
 
-    // Previous round next vote
-    if (votes_bundle_votes_type == PbftVoteTypes::next_vote && votes_bundle_pbft_period == current_pbft_period &&
-        votes_bundle_pbft_round == (current_pbft_round - 1)) {
-      if (!processNextSyncVote(vote, nullptr)) {
-        continue;
-      }
-    } else if (votes_bundle_pbft_period >= current_pbft_period) {
-      // Standard vote
+    // Process processStandardVote is called with false in case of next votes bundle -> does not check max boundaries
+    // for round and step to actually being able to sync the current round in case network is stalled
+    bool check_max_round_step = votes_bundle_votes_type == PbftVoteTypes::next_vote ? false : true;
+    processVote(vote, nullptr, peer, check_max_round_step);
 
-      // Process processStandardVote is called with false in case of next votes bundle -> does not check max boundaries
-      // for round and step to actually being able to sync the current round in case network is stalled
-      bool check_max_round_step = votes_bundle_votes_type == PbftVoteTypes::next_vote ? false : true;
-      if (!processStandardVote(vote, nullptr, peer, check_max_round_step)) {
-        continue;
-      }
-    } else if (votes_bundle_votes_type == PbftVoteTypes::cert_vote &&
-               votes_bundle_pbft_period == current_pbft_period - 1) {
-      // Potential reward vote
+    // TODO: remove once we get reward votes from verified_votes_ -> this should work but does not handle edge cases
+    if (vote->getPeriod() == current_pbft_period - 1 && vote->getType() == PbftVoteTypes::cert_vote) {
+      // potential reward vote
       if (!processRewardVote(vote)) {
-        continue;
+        return;
       }
-    } else {
-      // Too old vote
-      LOG(log_dg_) << "Drop vote " << vote->getHash() << ". Vote period " << vote->getPeriod()
-                   << " too old. current_pbft_period " << current_pbft_period;
-      continue;
     }
 
     votes.push_back(std::move(vote));
@@ -165,42 +131,26 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
                << packet_data.from_node_id_ << " node current round " << current_pbft_round << ", peer pbft round "
                << votes_bundle_pbft_round;
 
-  // Previous round next votes
-  if (votes_bundle_votes_type == PbftVoteTypes::next_vote) {
-    const auto [pbft_round, pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
-    const auto two_t_plus_one = vote_mgr_->getPbftTwoTPlusOne(pbft_period - 1);
-    // Check if we did not move to the next period/round in the meantime
-    if (votes_bundle_pbft_period == pbft_period && votes_bundle_pbft_round == (pbft_round - 1) &&
-        two_t_plus_one.has_value()) {
-      // Update our previous round next vote bundles...
-      next_votes_mgr_->updateWithSyncedVotes(votes, *two_t_plus_one);
-    }
-  }
-
   onNewPbftVotesBundle(std::move(votes), false, packet_data.from_node_id_);
 }
 
+// TODO: this method might be either deleted or moved somewhere else
 void VotesSyncPacketHandler::broadcastPreviousRoundNextVotesBundle(bool rebroadcast) {
-  auto next_votes_bundle = next_votes_mgr_->getNextVotes();
-  if (next_votes_bundle.empty()) {
-    LOG(log_er_) << "There are empty next votes for previous PBFT round";
+  const auto [pbft_round, pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
+  if (pbft_round == 1) {
+    LOG(log_wr_) << "Current round == 1 -> there are no next votes for previous PBFT round. Current period "
+                 << pbft_period << ", round " << pbft_round;
     return;
   }
 
-  const auto pbft_current_round = pbft_mgr_->getPbftRound();
-
-  for (auto const &peer : peers_state_->getAllPeers()) {
-    // Nodes may vote at different values at previous round, so need less or equal
-    if (!peer.second->syncing_ && peer.second->pbft_round_ <= pbft_current_round) {
-      std::vector<std::shared_ptr<Vote>> send_next_votes_bundle;
-      for (const auto &v : next_votes_bundle) {
-        if (rebroadcast || !peer.second->isVoteKnown(v->getHash())) {
-          send_next_votes_bundle.push_back(v);
-        }
-      }
-      sendPbftVotesBundle(peer.second, std::move(send_next_votes_bundle));
-    }
+  auto next_votes = vote_mgr_->getAllTwoTPlusOneNextVotes(pbft_period, pbft_round - 1);
+  if (next_votes.empty()) {
+    LOG(log_er_) << "There are no next votes for previous PBFT round. Current period " << pbft_period << ", round "
+                 << pbft_round;
+    return;
   }
+
+  onNewPbftVotesBundle(std::move(next_votes), rebroadcast);
 }
 
 void VotesSyncPacketHandler::onNewPbftVotesBundle(std::vector<std::shared_ptr<Vote>> &&votes, bool rebroadcast,
