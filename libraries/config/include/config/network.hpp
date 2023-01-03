@@ -43,8 +43,13 @@ struct DdosProtectionConfig {
 
   // Time period for collecting packets stats
   std::chrono::milliseconds packets_stats_time_period_ms{60000};
+  // Log packets stats flag
+  bool log_packets_stats = false;
   // Peer's max allowed packets processing time during packets_stats_time_period_ms
-  std::chrono::milliseconds peer_max_packets_processing_time_ms{0};
+  std::chrono::microseconds peer_max_packets_processing_time_us{0};
+
+  void validate(uint32_t delegation_delay) const;
+  bool isPeerPacketsProtectionEnabled() const;
 };
 DdosProtectionConfig dec_ddos_protection_config_json(const Json::Value &json);
 
@@ -60,7 +65,6 @@ struct NetworkConfig {
   uint16_t max_peer_count = 50;
   uint16_t transaction_interval_ms = 100;
   uint16_t sync_level_size = 10;
-  bool log_packets_stats = false;
   uint16_t num_threads = std::max(uint(1), uint(std::thread::hardware_concurrency() / 2));
   uint16_t packets_processing_threads = 14;
   uint16_t peer_blacklist_timeout = kBlacklistTimeoutDefaultInSeconds;
@@ -72,7 +76,7 @@ struct NetworkConfig {
   std::optional<ConnectionConfig> graphql;
   std::optional<PrometheusConfig> prometheus;
 
-  void validate() const;
+  void validate(uint32_t delegation_delay) const;
 };
 
 void dec_json(const Json::Value &json, NetworkConfig &network);

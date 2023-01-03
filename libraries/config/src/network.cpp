@@ -38,26 +38,50 @@ void dec_json(const Json::Value &json, ConnectionConfig &config) {
   }
 }
 
+void DdosProtectionConfig::validate(uint32_t delegation_delay) const {
+  if (vote_accepting_periods > delegation_delay) {
+    throw ConfigException(std::string("network.ddos_protection.vote_accepting_periods(" +
+                                      std::to_string(vote_accepting_periods) + ") must be <= DPOS.delegation_delay(" +
+                                      std::to_string(delegation_delay) + ")"));
+  }
+
+  if ((log_packets_stats || isPeerPacketsProtectionEnabled()) && packets_stats_time_period_ms.count() == 0) {
+    throw ConfigException(
+        std::string("if network.ddos_protection.peer_max_packets_processing_time_us != 0 or "
+                    "network.ddos_protection.log_packets_stats == true then "
+                    "network.ddos_protection.packets_stats_time_period_ms must be != 0 too"));
+  }
+}
+
+bool DdosProtectionConfig::isPeerPacketsProtectionEnabled() const {
+  return peer_max_packets_processing_time_us.count() != 0;
+}
+
 DdosProtectionConfig dec_ddos_protection_config_json(const Json::Value &json) {
   DdosProtectionConfig ddos_protection;
   ddos_protection.vote_accepting_periods = getConfigDataAsUInt(json, {"vote_accepting_periods"});
   ddos_protection.vote_accepting_rounds = getConfigDataAsUInt(json, {"vote_accepting_rounds"});
   ddos_protection.vote_accepting_steps = getConfigDataAsUInt(json, {"vote_accepting_steps"});
+  ddos_protection.log_packets_stats = getConfigDataAsBoolean(json, {"log_packets_stats"});
 
   ddos_protection.packets_stats_time_period_ms =
       std::chrono::milliseconds{getConfigDataAsUInt(json, {"packets_stats_time_period_ms"})};
-  ddos_protection.peer_max_packets_processing_time_ms =
-      std::chrono::milliseconds{getConfigDataAsUInt(json, {"peer_max_packets_processing_time_ms"})};
+  ddos_protection.peer_max_packets_processing_time_us =
+      std::chrono::microseconds{getConfigDataAsUInt64(json, {"peer_max_packets_processing_time_us"})};
   return ddos_protection;
 }
 
-void NetworkConfig::validate() const {
+void NetworkConfig::validate(uint32_t delegation_delay) const {
   if (rpc) {
     rpc->validate();
   }
+
   if (graphql) {
     graphql->validate();
   }
+
+  ddos_protection.validate(delegation_delay);
+
   if (sync_level_size == 0) {
     throw ConfigException(std::string("network.sync_level_size cannot be 0"));
   }
@@ -100,7 +124,6 @@ void dec_json(const Json::Value &json, NetworkConfig &network) {
   network.ideal_peer_count = getConfigDataAsUInt(json, {"ideal_peer_count"});
   network.max_peer_count = getConfigDataAsUInt(json, {"max_peer_count"});
   network.sync_level_size = getConfigDataAsUInt(json, {"sync_level_size"});
-  network.log_packets_stats = getConfigDataAsBoolean(json, {"log_packets_stats"});
   network.packets_processing_threads = getConfigDataAsUInt(json, {"packets_processing_threads"});
   network.peer_blacklist_timeout =
       getConfigDataAsUInt(json, {"peer_blacklist_timeout"}, true, NetworkConfig::kBlacklistTimeoutDefaultInSeconds);

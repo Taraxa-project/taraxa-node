@@ -24,11 +24,6 @@ class TimePeriodPacketsStats {
    */
   void processStats(const std::shared_ptr<PeersState>& peers_state);
 
-  /**
-   * @return reset interval [ms] for stats
-   */
-  uint64_t getResetTimePeriodMs() const;
-
  private:
   /**
    * @brief Checks if now() - start_time is approximately equal to kResetTimePeriod. Stats are reset in regular
