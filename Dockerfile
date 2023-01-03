@@ -11,8 +11,9 @@ FROM ubuntu:22.04 as builder
 ARG LLVM_VERSION=14
 
 # Install standard packages
-RUN apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
+    apt-get install -y --no-install-recommends \
+    tzdata \
     && apt-get install -y \
     tar \
     git \
@@ -20,6 +21,8 @@ RUN apt-get update \
     wget \
     python3-pip \
     lsb-release \
+    libgmp-dev \
+    libmpfr-dev \
     software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 

@@ -5,7 +5,7 @@ set(prefix "${CMAKE_BINARY_DIR}/deps")
 set(libff_library "${prefix}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}ff${CMAKE_STATIC_LIBRARY_SUFFIX}")
 set(libff_inlcude_dir "${prefix}/include/libff")
 
-file(GLOB gmp_libs "${CONAN_LIB_DIRS_GMP}/*gmp.*")
+# file(GLOB gmp_libs "${CONAN_LIB_DIRS_GMP}/*gmp.*")
 
 ExternalProject_Add(libff
     PREFIX "${prefix}"
@@ -17,8 +17,8 @@ ExternalProject_Add(libff
         -DCMAKE_BUILD_TYPE=Release
         -DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}
         -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-        -DGMP_INCLUDE_DIR=${CONAN_INCLUDE_DIRS_GMP}
-        -DGMP_LIBRARY=${gmp_libs}
+        -DGMP_INCLUDE_DIR=${GMP_INCLUDES}
+        -DGMP_LIBRARY=${GMP_LIBRARIES}
         -DOPENSSL_INCLUDE_DIR=${CONAN_INCLUDE_DIRS_OPENSSL}
         -DOPENSSL_ROOT_DIR=${CONAN_OPENSSL_ROOT}
         -DCURVE=ALT_BN128 -DPERFORMANCE=Off -DWITH_PROCPS=Off
@@ -30,6 +30,7 @@ ExternalProject_Add(libff
     LOG_BUILD 1
     INSTALL_COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release --target install
     BUILD_BYPRODUCTS "${libff_library}"
+    DOWNLOAD_EXTRACT_TIMESTAMP NEW
 )
 
 # Create snark imported library

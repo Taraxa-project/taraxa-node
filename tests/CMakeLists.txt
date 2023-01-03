@@ -16,6 +16,7 @@ add_executable(crypto_test crypto_test.cpp)
 target_link_libraries(crypto_test
     config
     vote
+    ${MPFR_LIBRARIES}
     CONAN_PKG::gtest
 )
 add_test(crypto_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/crypto_test)
