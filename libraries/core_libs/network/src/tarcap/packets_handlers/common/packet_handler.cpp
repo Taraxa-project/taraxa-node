@@ -47,7 +47,7 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
     PacketStats packet_stats{1 /* count */, packet_data.rlp_.data().size(), processing_duration, tp_wait_duration};
     peer.first->addSentPacket(packet_data.type_str_, packet_stats);
 
-    if (kConf.network.collect_packets_stats) {
+    if (kConf.network.log_packets_stats) {
       packets_stats_->addReceivedPacket(packet_data.type_str_, packet_data.from_node_id_, packet_stats);
     }
 
@@ -96,7 +96,7 @@ bool PacketHandler::sealAndSend(const dev::p2p::NodeID& node_id, SubprotocolPack
 
   host->send(node_id, TARAXA_CAPABILITY_NAME, packet_type, rlp.invalidate(),
              [begin, node_id, packet_size, packet_type, this]() {
-               if (!kConf.network.collect_packets_stats) {
+               if (!kConf.network.log_packets_stats) {
                  return;
                }
 

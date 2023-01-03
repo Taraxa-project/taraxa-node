@@ -38,6 +38,19 @@ void dec_json(const Json::Value &json, ConnectionConfig &config) {
   }
 }
 
+DdosProtectionConfig dec_ddos_protection_config_json(const Json::Value &json) {
+  DdosProtectionConfig ddos_protection;
+  ddos_protection.vote_accepting_periods = getConfigDataAsUInt(json, {"vote_accepting_periods"});
+  ddos_protection.vote_accepting_rounds = getConfigDataAsUInt(json, {"vote_accepting_rounds"});
+  ddos_protection.vote_accepting_steps = getConfigDataAsUInt(json, {"vote_accepting_steps"});
+
+  ddos_protection.packets_stats_time_period_ms =
+      std::chrono::milliseconds{getConfigDataAsUInt(json, {"packets_stats_time_period_ms"})};
+  ddos_protection.peer_max_packets_processing_time_ms =
+      std::chrono::milliseconds{getConfigDataAsUInt(json, {"peer_max_packets_processing_time_ms"})};
+  return ddos_protection;
+}
+
 void NetworkConfig::validate() const {
   if (rpc) {
     rpc->validate();
@@ -87,19 +100,15 @@ void dec_json(const Json::Value &json, NetworkConfig &network) {
   network.ideal_peer_count = getConfigDataAsUInt(json, {"ideal_peer_count"});
   network.max_peer_count = getConfigDataAsUInt(json, {"max_peer_count"});
   network.sync_level_size = getConfigDataAsUInt(json, {"sync_level_size"});
-  network.collect_packets_stats = getConfigDataAsBoolean(json, {"collect_packets_stats"});
+  network.log_packets_stats = getConfigDataAsBoolean(json, {"log_packets_stats"});
   network.packets_processing_threads = getConfigDataAsUInt(json, {"packets_processing_threads"});
   network.peer_blacklist_timeout =
       getConfigDataAsUInt(json, {"peer_blacklist_timeout"}, true, NetworkConfig::kBlacklistTimeoutDefaultInSeconds);
   network.disable_peer_blacklist = getConfigDataAsBoolean(json, {"disable_peer_blacklist"}, true, false);
   network.deep_syncing_threshold =
       getConfigDataAsUInt(json, {"deep_syncing_threshold"}, true, network.deep_syncing_threshold);
-  network.vote_accepting_periods =
-      getConfigDataAsUInt(json, {"vote_accepting_periods"}, true, network.vote_accepting_periods);
-  network.vote_accepting_rounds =
-      getConfigDataAsUInt(json, {"vote_accepting_rounds"}, true, network.vote_accepting_rounds);
-  network.vote_accepting_steps =
-      getConfigDataAsUInt(json, {"vote_accepting_steps"}, true, network.vote_accepting_steps);
+  network.ddos_protection = dec_ddos_protection_config_json(getConfigData(json, {"ddos_protection"}));
+
   for (auto &item : json["boot_nodes"]) {
     network.boot_nodes.push_back(dec_json(item));
   }

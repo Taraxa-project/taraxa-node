@@ -145,7 +145,7 @@ void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pb
   // TODO[2244]: once ddos protection is implemented, use reset time period from config
   periodic_events_tp_->post_loop(
       {packets_stats->getResetTimePeriodMs()},
-      [collect_packet_stats = kConf.network.collect_packets_stats, stats = packets_stats, peers_state = peers_state_] {
+      [collect_packet_stats = kConf.network.log_packets_stats, stats = packets_stats, peers_state = peers_state_] {
         // Log interval + max packets stats only if enabled in config
         if (collect_packet_stats) {
           stats->processStats(peers_state);
