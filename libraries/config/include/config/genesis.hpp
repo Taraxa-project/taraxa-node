@@ -40,6 +40,7 @@ struct Genesis {
   void validate() const;
   bytes rlp() const;
   blk_hash_t genesisHash() const;
+  void updateBlocksPerYear();
 };
 
 Json::Value enc_json(Genesis const& obj);
