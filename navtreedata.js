@@ -331,8 +331,8 @@ var NAVTREEINDEX =
 "state__config_8hpp.html",
 "structdev_1_1p2p_1_1_host.html#af412e2b9651b98154f1916bdbf42d22c",
 "structdev_1_1p2p_1_1_session_capability.html#ab7381340457805684198229b78e9b62f",
-"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#ac718147a53f8214bb8cb34d4cdfbbfc6",
-"vote__packet__handler_8hpp.html"
+"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a943bfb9713bbbf6adaeccac20925c3b8",
+"vote__packet__handler_8cpp.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
