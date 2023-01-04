@@ -101,6 +101,8 @@ Namespaces</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespacetaraxa_1_1logger"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1logger.html">logger</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:namespacetaraxa_1_1metrics"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1metrics.html">metrics</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespacetaraxa_1_1net"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1net.html">net</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespacetaraxa_1_1network"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1network.html">network</a></td></tr>
@@ -132,6 +134,8 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_genesis.html">Genesis</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:structtaraxa_1_1_prometheus_config"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#structtaraxa_1_1_prometheus_config">PrometheusConfig</a></td></tr>
+<tr class="separator:structtaraxa_1_1_prometheus_config"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_connection_config.html">ConnectionConfig</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:structtaraxa_1_1_node_config"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#structtaraxa_1_1_node_config">NodeConfig</a></td></tr>
@@ -479,6 +483,8 @@ Functions</h2></td></tr>
 <tr class="separator:aca5cc9aeb1d46dec9df51efa8f4f666f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6d4575c65b00ce4d77c66f41277ce170"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a6d4575c65b00ce4d77c66f41277ce170">dec_json</a> (Json::Value const &amp;json, <a class="el" href="structtaraxa_1_1_pbft_config.html">PbftConfig</a> &amp;obj)</td></tr>
 <tr class="separator:a6d4575c65b00ce4d77c66f41277ce170"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad70d4845a45158f0122129ce50737b7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#aad70d4845a45158f0122129ce50737b7">dec_json</a> (const Json::Value &amp;json, <a class="el" href="namespacetaraxa.html#structtaraxa_1_1_prometheus_config">PrometheusConfig</a> &amp;config)</td></tr>
+<tr class="separator:aad70d4845a45158f0122129ce50737b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aab796ac6602a0ecde1f58bc181127628"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#structtaraxa_1_1_node_config">NodeConfig</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#aab796ac6602a0ecde1f58bc181127628">dec_json</a> (const Json::Value &amp;json)</td></tr>
 <tr class="separator:aab796ac6602a0ecde1f58bc181127628"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3fdeda8aaed53f4c24ef36e0642d819a"><td class="memItemLeft" align="right" valign="top">std::ostream &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ga3fdeda8aaed53f4c24ef36e0642d819a">operator&lt;&lt;</a> (std::ostream &amp;strm, <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> const &amp;pbft_chain)</td></tr>
@@ -622,6 +628,50 @@ rebuild_db_columns</td>
 <a id="abe73b7f0480b66b1d6f4e9b7b31ac2e1"></a><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a></td>
 <td class="fieldname">
 rebuild_db_period</td>
+<td class="fielddoc">
+</td></tr>
+</table>
+
+</div>
+</div>
+<a name="structtaraxa_1_1_prometheus_config" id="structtaraxa_1_1_prometheus_config"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#structtaraxa_1_1_prometheus_config">&#9670;&nbsp;</a></span>taraxa::PrometheusConfig</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct taraxa::PrometheusConfig</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="textblock"></div><div class="dynheader">
+Collaboration diagram for taraxa::PrometheusConfig:</div>
+<div class="dyncontent">
+<div class="center"><img src="structtaraxa_1_1_prometheus_config__coll__graph.png" border="0" usemap="#ataraxa_1_1_prometheus_config_coll__map" alt="Collaboration graph"/></div>
+<map name="ataraxa_1_1_prometheus_config_coll__map" id="ataraxa_1_1_prometheus_config_coll__map">
+<area shape="rect" title=" " alt="" coords="5,95,196,121"/>
+<area shape="rect" title=" " alt="" coords="71,5,130,32"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
+<table class="fieldtable">
+<tr><th colspan="3">Class Members</th></tr>
+<tr><td class="fieldtype">
+<a id="a8eae5cf0479f4747c27adf4810f45c1a"></a>string</td>
+<td class="fieldname">
+address</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a id="aa0de37558696314f72215e80df0d2105"></a>uint16_t</td>
+<td class="fieldname">
+listen_port</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a id="a750ea236fc9a952abc71508807c75ce8"></a>uint16_t</td>
+<td class="fieldname">
+polling_interval_ms</td>
 <td class="fielddoc">
 </td></tr>
 </table>
@@ -1334,7 +1384,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="aab796ac6602a0ecde1f58bc181127628"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aab796ac6602a0ecde1f58bc181127628">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[1/13]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aab796ac6602a0ecde1f58bc181127628">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[1/14]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1352,7 +1402,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a74ad03c0d7a830dd89d7f10d6f941077"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a74ad03c0d7a830dd89d7f10d6f941077">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[2/13]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a74ad03c0d7a830dd89d7f10d6f941077">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[2/14]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1380,7 +1430,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a681e859a51cfd602ec476273ae67ce91"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a681e859a51cfd602ec476273ae67ce91">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[3/13]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a681e859a51cfd602ec476273ae67ce91">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[3/14]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1408,7 +1458,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a9c00e55e957ffb65d8891c88785cf57e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9c00e55e957ffb65d8891c88785cf57e">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[4/13]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c00e55e957ffb65d8891c88785cf57e">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[4/14]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1436,7 +1486,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="aa5e15ca58e0ad240f75a8c70883a00e0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa5e15ca58e0ad240f75a8c70883a00e0">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[5/13]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#aa5e15ca58e0ad240f75a8c70883a00e0">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[5/14]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1463,8 +1513,36 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
+<a id="aad70d4845a45158f0122129ce50737b7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aad70d4845a45158f0122129ce50737b7">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[6/14]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::dec_json </td>
+          <td>(</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>json</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#structtaraxa_1_1_prometheus_config">PrometheusConfig</a> &amp;&#160;</td>
+          <td class="paramname"><em>config</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ad2584bf1da77275f513d1378d392fd99"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad2584bf1da77275f513d1378d392fd99">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[6/13]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#ad2584bf1da77275f513d1378d392fd99">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[7/14]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1492,7 +1570,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a124545b9fa417446dd410b9c69701744"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a124545b9fa417446dd410b9c69701744">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[7/13]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a124545b9fa417446dd410b9c69701744">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[8/14]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1520,7 +1598,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a2850298ee300bd104ca9db9352abf63f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2850298ee300bd104ca9db9352abf63f">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[8/13]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a2850298ee300bd104ca9db9352abf63f">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[9/14]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1548,7 +1626,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a6ea909654b6cd15b58987ec4d1a9d0ab"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6ea909654b6cd15b58987ec4d1a9d0ab">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[9/13]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a6ea909654b6cd15b58987ec4d1a9d0ab">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[10/14]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1576,7 +1654,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a4fe5a976d3d25a7348800b50b8d377b5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4fe5a976d3d25a7348800b50b8d377b5">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[10/13]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a4fe5a976d3d25a7348800b50b8d377b5">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[11/14]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1604,7 +1682,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a1a7add6cdc2ba2969325ea1ad4723859"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1a7add6cdc2ba2969325ea1ad4723859">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[11/13]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a7add6cdc2ba2969325ea1ad4723859">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[12/14]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1632,7 +1710,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a110379ae3c76cbe68346680bc1aab397"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a110379ae3c76cbe68346680bc1aab397">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[12/13]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a110379ae3c76cbe68346680bc1aab397">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[13/14]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1660,7 +1738,7 @@ template&lt;typename T &gt; </div>
 </div>
 </div>
 <a id="a6d4575c65b00ce4d77c66f41277ce170"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6d4575c65b00ce4d77c66f41277ce170">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[13/13]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a6d4575c65b00ce4d77c66f41277ce170">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[14/14]</span></h2>
 
 <div class="memitem">
 <div class="memproto">

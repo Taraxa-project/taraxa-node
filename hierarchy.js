@@ -200,6 +200,12 @@ var hierarchy =
     [ "taraxa::MapByBlockCache< dev::FixedHash, std::optional< const taraxa::state_api::Account > >", "classtaraxa_1_1_map_by_block_cache.html", null ],
     [ "taraxa::MapByBlockCache< dev::FixedHash, uint64_t >", "classtaraxa_1_1_map_by_block_cache.html", null ],
     [ "taraxa::network::tarcap::MaxStats", "classtaraxa_1_1network_1_1tarcap_1_1_max_stats.html", null ],
+    [ "taraxa::metrics::MetricsGroup", "classtaraxa_1_1metrics_1_1_metrics_group.html", [
+      [ "taraxa::metrics::NetworkMetrics", "classtaraxa_1_1metrics_1_1_network_metrics.html", null ],
+      [ "taraxa::metrics::PbftMetrics", "classtaraxa_1_1metrics_1_1_pbft_metrics.html", null ],
+      [ "taraxa::metrics::TransactionQueueMetrics", "classtaraxa_1_1metrics_1_1_transaction_queue_metrics.html", null ]
+    ] ],
+    [ "taraxa::metrics::MetricsService", "classtaraxa_1_1metrics_1_1_metrics_service.html", null ],
     [ "graphql::taraxa::Mutation", "classgraphql_1_1taraxa_1_1_mutation.html", null ],
     [ "dev::p2p::Neighbours::Neighbour", "structdev_1_1p2p_1_1_neighbours_1_1_neighbour.html", null ],
     [ "dev::p2p::Network", "classdev_1_1p2p_1_1_network.html", null ],
@@ -264,6 +270,7 @@ var hierarchy =
     [ "dev::p2p::Host::PersistentState", "structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_persistent_state", null ],
     [ "taraxa::net::rpc::eth::placeholder_t", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1placeholder__t", null ],
     [ "taraxa::network::tarcap::PriorityQueue", "classtaraxa_1_1network_1_1tarcap_1_1_priority_queue.html", null ],
+    [ "taraxa::PrometheusConfig", "namespacetaraxa.html#structtaraxa_1_1_prometheus_config", null ],
     [ "taraxa::state_api::Proof", "group___final_chain.html#structtaraxa_1_1state__api_1_1_proof", null ],
     [ "taraxa::ProposedBlocks", "classtaraxa_1_1_proposed_blocks.html", null ],
     [ "graphql::taraxa::Query", "classgraphql_1_1taraxa_1_1_query.html", null ],

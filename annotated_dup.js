@@ -135,6 +135,13 @@ var annotated_dup =
       [ "logger", "namespacetaraxa_1_1logger.html", [
         [ "Config", "classtaraxa_1_1logger_1_1_config.html", "classtaraxa_1_1logger_1_1_config" ]
       ] ],
+      [ "metrics", "namespacetaraxa_1_1metrics.html", [
+        [ "MetricsGroup", "classtaraxa_1_1metrics_1_1_metrics_group.html", "classtaraxa_1_1metrics_1_1_metrics_group" ],
+        [ "MetricsService", "classtaraxa_1_1metrics_1_1_metrics_service.html", "classtaraxa_1_1metrics_1_1_metrics_service" ],
+        [ "NetworkMetrics", "classtaraxa_1_1metrics_1_1_network_metrics.html", "classtaraxa_1_1metrics_1_1_network_metrics" ],
+        [ "PbftMetrics", "classtaraxa_1_1metrics_1_1_pbft_metrics.html", "classtaraxa_1_1metrics_1_1_pbft_metrics" ],
+        [ "TransactionQueueMetrics", "classtaraxa_1_1metrics_1_1_transaction_queue_metrics.html", "classtaraxa_1_1metrics_1_1_transaction_queue_metrics" ]
+      ] ],
       [ "net", "namespacetaraxa_1_1net.html", [
         [ "rpc", "namespacetaraxa_1_1net_1_1rpc.html", [
           [ "eth", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html", [
@@ -266,6 +273,7 @@ var annotated_dup =
       [ "DagConfig", "structtaraxa_1_1_dag_config.html", "structtaraxa_1_1_dag_config" ],
       [ "GasPriceConfig", "structtaraxa_1_1_gas_price_config.html", "structtaraxa_1_1_gas_price_config" ],
       [ "Genesis", "structtaraxa_1_1_genesis.html", "structtaraxa_1_1_genesis" ],
+      [ "PrometheusConfig", "namespacetaraxa.html#structtaraxa_1_1_prometheus_config", "namespacetaraxa_structtaraxa_1_1_prometheus_config_dup" ],
       [ "ConnectionConfig", "structtaraxa_1_1_connection_config.html", "structtaraxa_1_1_connection_config" ],
       [ "NodeConfig", "namespacetaraxa.html#structtaraxa_1_1_node_config", "namespacetaraxa_structtaraxa_1_1_node_config_dup" ],
       [ "NetworkConfig", "structtaraxa_1_1_network_config.html", "structtaraxa_1_1_network_config" ],

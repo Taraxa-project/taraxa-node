@@ -210,6 +210,9 @@ Private Member Functions</h2></td></tr>
 <tr class="separator:a07ad33fa54ceeb50882d05e29158afd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2c03d09773ffe43be703a1118e2e58e8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a2c03d09773ffe43be703a1118e2e58e8">close</a> ()</td></tr>
 <tr class="separator:a2c03d09773ffe43be703a1118e2e58e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a03603a9ee154f12656f930d9c819c8c9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a03603a9ee154f12656f930d9c819c8c9">setupMetricsUpdaters</a> ()</td></tr>
+<tr class="memdesc:a03603a9ee154f12656f930d9c819c8c9"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method that is used to register metrics updaters. So we don't need to pass metrics classes instances in other classes.  <a href="classtaraxa_1_1_full_node.html#a03603a9ee154f12656f930d9c819c8c9">More...</a><br /></td></tr>
+<tr class="separator:a03603a9ee154f12656f930d9c819c8c9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -261,6 +264,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a21f8494e94903bc42fc8fc4b55875892"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aae46eb02fbf66cc65d4d1bbddc02ac1f"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="classtaraxa_1_1_full_node.html#a37e0e5f8aa698447bd1124d02c704d5b">jsonrpc_server_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#aae46eb02fbf66cc65d4d1bbddc02ac1f">jsonrpc_api_</a></td></tr>
 <tr class="separator:aae46eb02fbf66cc65d4d1bbddc02ac1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5645579fbc2ebab485fcfb6b4326dc55"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; <a class="el" href="classtaraxa_1_1metrics_1_1_metrics_service.html">metrics::MetricsService</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a5645579fbc2ebab485fcfb6b4326dc55">metrics_</a></td></tr>
+<tr class="separator:a5645579fbc2ebab485fcfb6b4326dc55"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a324cf17816fc78dafaf48adaa39bebac"><td class="memItemLeft" align="right" valign="top"><a class="el" href="logger_8hpp.html#a41399a11426ea3272948aca283625fb5">LOG_OBJECTS_DEFINE</a> std::atomic_bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a324cf17816fc78dafaf48adaa39bebac">started_</a> = 0</td></tr>
 <tr class="separator:a324cf17816fc78dafaf48adaa39bebac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -1058,6 +1063,33 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="a03603a9ee154f12656f930d9c819c8c9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a03603a9ee154f12656f930d9c819c8c9">&#9670;&nbsp;</a></span>setupMetricsUpdaters()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::FullNode::setupMetricsUpdaters </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Method that is used to register metrics updaters. So we don't need to pass metrics classes instances in other classes. </p>
+
+</div>
+</div>
 <a id="a041c503dd47b0bb58206a9b7214f7b3b"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a041c503dd47b0bb58206a9b7214f7b3b">&#9670;&nbsp;</a></span>start()</h2>
 
@@ -1373,6 +1405,28 @@ Private Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="classdev_1_1_key_pair.html">dev::KeyPair</a> taraxa::FullNode::kp_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5645579fbc2ebab485fcfb6b4326dc55"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5645579fbc2ebab485fcfb6b4326dc55">&#9670;&nbsp;</a></span>metrics_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unique_ptr&lt;<a class="el" href="classtaraxa_1_1metrics_1_1_metrics_service.html">metrics::MetricsService</a>&gt; taraxa::FullNode::metrics_</td>
         </tr>
       </table>
   </td>

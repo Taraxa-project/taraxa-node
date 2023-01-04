@@ -15,6 +15,7 @@ var structtaraxa_1_1_network_config =
     [ "num_threads", "structtaraxa_1_1_network_config.html#afbacdd7402e6309bd59494551ddef537", null ],
     [ "packets_processing_threads", "structtaraxa_1_1_network_config.html#a6c958f97e88f2829ab455d32f2bf80e2", null ],
     [ "peer_blacklist_timeout", "structtaraxa_1_1_network_config.html#a24793f8cecab2c2f3ef438d11b868439", null ],
+    [ "prometheus", "structtaraxa_1_1_network_config.html#a1be513a0f2892dea7dcc8e5dfd4b5c50", null ],
     [ "public_ip", "structtaraxa_1_1_network_config.html#a85cb06d2c30472248db88950cdfe120c", null ],
     [ "rpc", "structtaraxa_1_1_network_config.html#a1af8e0e3927577c35e290542d2fb8697", null ],
     [ "sync_level_size", "structtaraxa_1_1_network_config.html#aacf1424b93ac3b5698fbf919a4f2e55c", null ],
