@@ -6,10 +6,8 @@
 
 #include <boost/tokenizer.hpp>
 
-#include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
-// #include "transaction/transaction_manager.hpp"
-
 #include "config/version.hpp"
+#include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
 
 namespace taraxa {
 
@@ -61,7 +59,6 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
         ;
     });
   }
-
   LOG(log_nf_) << "Configured host. Listening on address: " << config.network.listen_ip << ":"
                << config.network.listen_port;
 }

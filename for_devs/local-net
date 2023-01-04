@@ -182,6 +182,7 @@ def config(binary, boot_nodes, rpc_nodes):
             config['network']['rpc']['ws_port'] = int(f'8{port_prefix}{i+1}7')
             config['network']['graphql']['http_port'] = int(f'2{port_prefix}{i+1}7')
             config['network']['graphql']['ws_port'] = int(f'3{port_prefix}{i+1}7')
+            config['network']['prometheus']['listen_port'] = int(f'6{port_prefix}{i+1}7')
 
             with open(config_path, 'w') as json_file:
                 json.dump(config, json_file, indent=2)

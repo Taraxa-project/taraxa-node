@@ -22,6 +22,7 @@ class TaraxaConan(ConanFile):
         self.requires("lz4/1.9.4")
         self.requires("rocksdb/6.29.5")
         self.requires("gmp/6.2.1")
+        self.requires("prometheus-cpp/1.1.0")
         self.requires("libjson-rpc-cpp/1.3.0@bincrafters/stable")
 
     def _configure_boost_libs(self):

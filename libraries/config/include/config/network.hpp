@@ -8,6 +8,12 @@
 
 namespace taraxa {
 
+struct PrometheusConfig {
+  std::string address;
+  uint16_t listen_port = 0;
+  uint16_t polling_interval_ms = 1000;
+};
+
 struct ConnectionConfig {
   std::optional<uint16_t> http_port;
   std::optional<uint16_t> ws_port;
@@ -51,6 +57,7 @@ struct NetworkConfig {
 
   std::optional<ConnectionConfig> rpc;
   std::optional<ConnectionConfig> graphql;
+  std::optional<PrometheusConfig> prometheus;
 
   void validate() const;
 };
