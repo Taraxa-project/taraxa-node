@@ -108,7 +108,9 @@ sudo apt-get install -y \
     # this libs are required for arm build by go part. you can skip it for amd64 build
     libzstd-dev \
     libsnappy-dev \
-    rapidjson-dev
+    rapidjson-dev \
+    libgmp-dev \
+    libmpfr-dev
 
 # Optional. Needed to run py_test. This won't install on arm64 OS because package is missing in apt
 sudo add-apt-repository ppa:ethereum/ethereum
@@ -163,7 +165,9 @@ sudo apt-get install -y \
     libjsoncpp-dev \
     libjsonrpccpp-dev \
     python3-pip \
-    rapidjson-dev
+    rapidjson-dev \
+    libgmp-dev \
+    libmpfr-dev
 
 
 # Install conan package manager
@@ -237,7 +241,7 @@ Building on MacOS</h1>
 <h2><a class="anchor" id="autotoc_md36"></a>
 Install taraxa-node dependencies:</h2>
 <p>First you need to get (Brew)[<a href="https://brew.sh/">https://brew.sh/</a>] package manager. After that you need tot install dependencies with it. Currently there is no llvm-14 in brew, but it works well with llvm-13 </p><pre class="fragment">brew update
-brew install coreutils go autoconf automake gflags git libtool llvm@13 make pkg-config cmake conan snappy zstd rapidjson
+brew install coreutils go autoconf automake gflags git libtool llvm@13 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr
 </pre> <h2><a class="anchor" id="autotoc_md37"></a>
 Clone the Repository</h2>
 <pre class="fragment">git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
@@ -303,7 +307,7 @@ Install Homebrew</h2>
 <pre class="fragment">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 </pre> <h2><a class="anchor" id="autotoc_md46"></a>
 Install dependencies</h2>
-<pre class="fragment">/usr/local/bin/brew install coreutils go autoconf automake gflags git libtool llvm@13 make pkg-config cmake conan snappy zstd rapidjson
+<pre class="fragment">/usr/local/bin/brew install coreutils go autoconf automake gflags git libtool llvm@13 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr
 </pre> <h2><a class="anchor" id="autotoc_md47"></a>
 Clone the Repository</h2>
 <pre class="fragment">git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
