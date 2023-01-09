@@ -321,9 +321,7 @@ std::map<level_t, std::vector<DagBlock>> DbStorage::getNonfinalizedDagBlocks() {
   auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::dag_blocks)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
     DagBlock block(asBytes(i->value().ToString()));
-    if (block.getPivot() != kNullBlockHash) {
-      res[block.getLevel()].emplace_back(std::move(block));
-    }
+    res[block.getLevel()].emplace_back(std::move(block));
   }
   return res;
 }
@@ -357,12 +355,7 @@ void DbStorage::updateDagBlockCounters(std::vector<DagBlock> blks) {
     }
     insert(write_batch, Columns::dag_blocks_index, toSlice(level), toSlice(blocks_stream.out()));
     dag_blocks_count_.fetch_add(1);
-    // Do not count genesis pivot field
-    if (blk.getPivot() == kNullBlockHash) {
-      dag_edge_count_.fetch_add(blk.getTips().size());
-    } else {
-      dag_edge_count_.fetch_add(blk.getTips().size() + 1);
-    }
+    dag_edge_count_.fetch_add(blk.getTips().size() + 1);
   }
   insert(write_batch, Columns::status, toSlice((uint8_t)StatusDbField::DagBlkCount), toSlice(dag_blocks_count_.load()));
   insert(write_batch, Columns::status, toSlice((uint8_t)StatusDbField::DagEdgeCount), toSlice(dag_edge_count_.load()));
@@ -388,13 +381,8 @@ void DbStorage::saveDagBlock(DagBlock const& blk, Batch* write_batch_p) {
   insert(write_batch, Columns::dag_blocks_index, toSlice(level), toSlice(blocks_stream.out()));
 
   dag_blocks_count_.fetch_add(1);
+  dag_edge_count_.fetch_add(blk.getTips().size() + 1);
   insert(write_batch, Columns::status, toSlice((uint8_t)StatusDbField::DagBlkCount), toSlice(dag_blocks_count_.load()));
-  // Do not count genesis pivot field
-  if (blk.getPivot() == kNullBlockHash) {
-    dag_edge_count_.fetch_add(blk.getTips().size());
-  } else {
-    dag_edge_count_.fetch_add(blk.getTips().size() + 1);
-  }
   insert(write_batch, Columns::status, toSlice((uint8_t)StatusDbField::DagEdgeCount), toSlice(dag_edge_count_.load()));
   if (commit) {
     commitWriteBatch(write_batch);

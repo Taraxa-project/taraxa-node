@@ -290,7 +290,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   auto getNumTransactionExecuted() { return getStatusField(StatusDbField::ExecutedTrxCount); }
   auto getNumTransactionInDag() { return getStatusField(StatusDbField::TrxCount); }
   auto getNumBlockExecuted() { return getStatusField(StatusDbField::ExecutedBlkCount); }
-  uint64_t getNumDagBlocks() { return getDagBlocksCount(); }
 
   std::vector<blk_hash_t> getFinalizedDagBlockHashesByPeriod(PbftPeriod period);
   std::vector<std::shared_ptr<DagBlock>> getFinalizedDagBlockByPeriod(PbftPeriod period);

@@ -68,7 +68,7 @@ std::shared_ptr<DagManager> DagManager::getShared() {
 
 std::pair<uint64_t, uint64_t> DagManager::getNumVerticesInDag() const {
   std::shared_lock lock(mutex_);
-  return {db_->getNumDagBlocks(), total_dag_->getNumVertices()};
+  return {db_->getDagBlocksCount(), total_dag_->getNumVertices()};
 }
 
 std::pair<uint64_t, uint64_t> DagManager::getNumEdgesInDag() const {
