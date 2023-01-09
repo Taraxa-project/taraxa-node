@@ -662,8 +662,8 @@ TEST_F(FullNodeTest, sync_five_nodes) {
         << " \nNum vertices in DAG: " << node->getDagManager()->getNumVerticesInDag().first << " "
         << node->getDagManager()->getNumVerticesInDag().second << "\n";
 
-    auto vertices_diff = node->getDagManager()->getNumVerticesInDag().first - 1 - node->getDB()->getNumBlockExecuted();
-
+    auto vertices_diff = node->getDagManager()->getNumVerticesInDag().first - node->getDB()->getNumBlockExecuted();
+    EXPECT_EQ(node->getDagManager()->getNumVerticesInDag().first, node->getDB()->getNumBlockExecuted());
     // diff should be larger than 0 but smaller than number of nodes
     // genesis block won't be executed
     EXPECT_LT(vertices_diff, nodes.size())
@@ -714,7 +714,7 @@ TEST_F(FullNodeTest, insert_anchor_and_compute_order) {
   auto nodes = launch_nodes(node_cfgs);
   auto &node = nodes[0];
 
-  auto mock_dags = samples::createMockDag1(node->getConfig().genesis.dag_genesis_block.getHash().toString());
+  auto mock_dags = samples::createMockDag1(node->getConfig().genesis.dag_genesis_block.getHash());
 
   for (int i = 1; i <= 9; i++) {
     node->getDagManager()->addDagBlock(std::move(mock_dags[i]));
@@ -838,7 +838,7 @@ TEST_F(FullNodeTest, reconstruct_dag) {
   unsigned long vertices3 = 0;
   unsigned long vertices4 = 0;
 
-  auto mock_dags = samples::createMockDag0(node_cfgs.front().genesis.dag_genesis_block.getHash().toString());
+  auto mock_dags = samples::createMockDag0(node_cfgs.front().genesis.dag_genesis_block.getHash());
   auto num_blks = mock_dags.size();
 
   {
@@ -846,8 +846,8 @@ TEST_F(FullNodeTest, reconstruct_dag) {
 
     taraxa::thisThreadSleepForMilliSeconds(100);
 
-    for (size_t i = 1; i < num_blks; i++) {
-      node->getDagManager()->addDagBlock(DagBlock(mock_dags[i]));
+    for (size_t i = 0; i < num_blks; i++) {
+      EXPECT_EQ(true, node->getDagManager()->addDagBlock(DagBlock(mock_dags[i])).first);
     }
 
     taraxa::thisThreadSleepForMilliSeconds(100);
@@ -866,8 +866,8 @@ TEST_F(FullNodeTest, reconstruct_dag) {
     auto node = create_nodes(node_cfgs, true /*start*/).front();
     // TODO: pbft does not support node stop yet, to be fixed ...
     node->getPbftManager()->stop();
-    for (size_t i = 1; i < num_blks; i++) {
-      node->getDagManager()->addDagBlock(std::move(mock_dags[i]));
+    for (size_t i = 0; i < num_blks; i++) {
+      EXPECT_EQ(true, node->getDagManager()->addDagBlock(DagBlock(mock_dags[i])).first);
     }
     taraxa::thisThreadSleepForMilliSeconds(100);
     vertices3 = node->getDagManager()->getNumVerticesInDag().first;
@@ -1042,7 +1042,7 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
   EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
     WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 1)
     WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), 1)
-    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first, 2)
+    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first, 1)
   });
 
   std::cout << "First trx executed ..." << std::endl;
@@ -1053,7 +1053,7 @@ TEST_F(FullNodeTest, single_node_run_two_transactions) {
   EXPECT_HAPPENS({60s, 1s}, [&](auto &ctx) {
     WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), 1)
     WAIT_EXPECT_EQ(ctx, node->getTransactionManager()->getTransactionCount(), 1)
-    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first, 2)
+    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().first, 1)
   });
 }
 
@@ -1085,7 +1085,7 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
     thisThreadSleepForMilliSeconds(500);
   }
   EXPECT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), 1);
-  EXPECT_GE(nodes[0]->getDagManager()->getNumVerticesInDag().first, 2);
+  EXPECT_GE(nodes[0]->getDagManager()->getNumVerticesInDag().first, 1);
   EXPECT_EQ(trx_executed1, 1);
   std::cout << "First trx executed ..." << std::endl;
   std::cout << "Send second trx ..." << std::endl;
@@ -1100,7 +1100,7 @@ TEST_F(FullNodeTest, two_nodes_run_two_transactions) {
     thisThreadSleepForMilliSeconds(1000);
   }
   EXPECT_EQ(nodes[0]->getTransactionManager()->getTransactionCount(), 1);
-  EXPECT_GE(nodes[0]->getDagManager()->getNumVerticesInDag().first, 2);
+  EXPECT_GE(nodes[0]->getDagManager()->getNumVerticesInDag().first, 1);
   EXPECT_EQ(trx_executed1, 1);
 }
 

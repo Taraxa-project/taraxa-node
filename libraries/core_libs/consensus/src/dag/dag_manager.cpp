@@ -18,22 +18,22 @@
 #include "transaction/transaction_manager.hpp"
 
 namespace taraxa {
-DagManager::DagManager(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr,
-                       const SortitionConfig &sortition_config, const DagConfig &dag_config,
-                       std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<PbftChain> pbft_chain,
-                       std::shared_ptr<FinalChain> final_chain, std::shared_ptr<DbStorage> db,
-                       std::shared_ptr<KeyManager> key_manager, bool is_light_node, uint64_t light_node_history,
-                       uint32_t max_levels_per_period, uint32_t dag_expiry_limit) try
-    : pivot_tree_(std::make_shared<PivotTree>(dag_genesis_block_hash, node_addr)),
-      total_dag_(std::make_shared<Dag>(dag_genesis_block_hash, node_addr)),
+DagManager::DagManager(const DagBlock &dag_genesis_block, addr_t node_addr, const SortitionConfig &sortition_config,
+                       const DagConfig &dag_config, std::shared_ptr<TransactionManager> trx_mgr,
+                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
+                       std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager, bool is_light_node,
+                       uint64_t light_node_history, uint32_t max_levels_per_period, uint32_t dag_expiry_limit) try
+    : pivot_tree_(std::make_shared<PivotTree>(dag_genesis_block.getHash(), node_addr)),
+      total_dag_(std::make_shared<Dag>(dag_genesis_block.getHash(), node_addr)),
       trx_mgr_(trx_mgr),
       pbft_chain_(pbft_chain),
       db_(db),
       key_manager_(std::move(key_manager)),
-      anchor_(dag_genesis_block_hash),
+      anchor_(dag_genesis_block.getHash()),
       period_(0),
       sortition_params_manager_(node_addr, sortition_config, db_),
       dag_config_(dag_config),
+      genesis_block_(std::make_shared<DagBlock>(dag_genesis_block)),
       is_light_node_(is_light_node),
       light_node_history_(light_node_history),
       max_levels_per_period_(max_levels_per_period),
@@ -682,6 +682,9 @@ std::shared_ptr<DagBlock> DagManager::getDagBlock(const blk_hash_t &hash) const 
   auto blk = seen_blocks_.get(hash);
   if (blk.second) {
     return std::make_shared<DagBlock>(blk.first);
+  }
+  if (hash == genesis_block_->getHash()) {
+    return genesis_block_;
   }
 
   return db_->getDagBlock(hash);

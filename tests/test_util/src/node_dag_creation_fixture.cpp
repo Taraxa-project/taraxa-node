@@ -88,7 +88,7 @@ void NodeDagCreationFixture::insertBlocks(std::vector<DagBlockWithTxs> blks_with
     for (auto t : b.trxs) {
       node->getTransactionManager()->insertTransaction(t);
     }
-    node->getDagManager()->addDagBlock(std::move(b.blk), std::move(b.trxs));
+    EXPECT_EQ(true, node->getDagManager()->addDagBlock(std::move(b.blk), std::move(b.trxs)).first);
   }
 }
 

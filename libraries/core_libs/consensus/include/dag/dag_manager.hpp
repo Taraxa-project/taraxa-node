@@ -43,7 +43,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
     FailedTipsVerification
   };
 
-  explicit DagManager(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr,
+  explicit DagManager(const DagBlock &dag_genesis_block, addr_t node_addr,
                       const SortitionConfig &sortition_config, const DagConfig &dag_config,
                       std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<PbftChain> pbft_chain,
                       std::shared_ptr<FinalChain> final_chain, std::shared_ptr<DbStorage> db,
@@ -259,7 +259,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   DagFrontier frontier_;
   SortitionParamsManager sortition_params_manager_;
   const DagConfig dag_config_;
-
+  std::shared_ptr<DagBlock> genesis_block_;
   const bool is_light_node_ = false;
   const uint64_t light_node_history_ = 0;
   const uint32_t max_levels_per_period_;
