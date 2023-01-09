@@ -253,9 +253,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   bool pbftBlockInDb(blk_hash_t const& hash);
 
   // Proposed pbft blocks
-  void saveProposedPbftBlock(const std::shared_ptr<PbftBlock>& block, PbftRound round);
+  void saveProposedPbftBlock(const std::shared_ptr<PbftBlock>& block);
   void removeProposedPbftBlock(const blk_hash_t& block_hash, Batch& write_batch);
-  std::vector<std::pair<uint64_t, std::shared_ptr<PbftBlock>>> getProposedPbftBlocks();
+  std::vector<std::shared_ptr<PbftBlock>> getProposedPbftBlocks();
 
   // pbft_blocks (head)
   string getPbftHead(blk_hash_t const& hash);

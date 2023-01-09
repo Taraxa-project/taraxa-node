@@ -358,8 +358,7 @@ bool PbftManager::tryPushCertVotesBlock() {
   LOG(log_nf_) << "Found enough cert votes for PBFT block " << certified_block->voted_block_hash << ", period "
                << current_pbft_period << ", round " << current_pbft_round;
 
-  auto pbft_block =
-      getValidPbftProposedBlock(current_pbft_period, current_pbft_round, certified_block->voted_block_hash);
+  auto pbft_block = getValidPbftProposedBlock(current_pbft_period, certified_block->voted_block_hash);
   if (!pbft_block) {
     LOG(log_er_) << "Invalid cert voted block " << certified_block->voted_block_hash;
     return false;
@@ -413,11 +412,6 @@ bool PbftManager::advanceRound() {
 
   // Move to a new round, cleanup previous round votes in vote manager
   vote_mgr_->cleanupVotesByRound(current_pbft_period, determined_round_with_votes->first);
-
-  // Cleanup proposed blocks for deremined round - 1. We must keep previous round proposed blocks for voting purposes
-  if (determined_round_with_votes->first >= 3) {
-    proposed_blocks_.cleanupProposedPbftBlocksByRound(current_pbft_period, determined_round_with_votes->first);
-  }
 
   // Cleanup previous round next votes & set new previous round 2t+1 next votes in next vote manager
   next_votes_manager_->updateNextVotes(determined_round_with_votes->second, *two_t_plus_one);
@@ -536,7 +530,7 @@ void PbftManager::initialState() {
   }
 
   for (const auto &block : db_->getProposedPbftBlocks()) {
-    proposed_blocks_.pushProposedPbftBlock(block.first, block.second, false);
+    proposed_blocks_.pushProposedPbftBlock(block, false);
   }
 
   // This is used to offset endtime for second finishing step...
@@ -553,7 +547,7 @@ void PbftManager::initialState() {
     // If there is also actual block, push it into the proposed blocks
     if (soft_voted_block_data->block_data_) {
       const auto soft_voted_block = soft_voted_block_data->block_data_->first;
-      if (proposed_blocks_.pushProposedPbftBlock(soft_voted_block_data->round_, soft_voted_block)) {
+      if (proposed_blocks_.pushProposedPbftBlock(soft_voted_block)) {
         LOG(log_nf_) << "Last soft voted block " << soft_voted_block->getBlockHash() << " with period "
                      << soft_voted_block->getPeriod() << ", round " << soft_voted_block_data->round_
                      << " pushed into proposed blocks";
@@ -574,8 +568,8 @@ void PbftManager::initialState() {
 
   // Process saved cert voted block from db
   if (auto cert_voted_block_data = db_->getCertVotedBlockInRound(); cert_voted_block_data.has_value()) {
-    const auto &[cert_voted_block_round, cert_voted_block] = *cert_voted_block_data;
-    if (proposed_blocks_.pushProposedPbftBlock(cert_voted_block_round, cert_voted_block)) {
+    const auto [cert_voted_block_round, cert_voted_block] = *cert_voted_block_data;
+    if (proposed_blocks_.pushProposedPbftBlock(cert_voted_block)) {
       LOG(log_nf_) << "Last cert voted block " << cert_voted_block->getBlockHash() << " with period "
                    << cert_voted_block->getPeriod() << ", round " << cert_voted_block_round
                    << " pushed into proposed blocks";
@@ -796,7 +790,7 @@ const std::optional<TwoTPlusOneSoftVotedBlockData> &PbftManager::getTwoTPlusOneS
 
     // In case we dont have full block object yet, try to get it and save into db
     if (!soft_voted_block_for_round_->block_data_.has_value()) {
-      auto block_data = proposed_blocks_.getPbftProposedBlock(period, round, soft_voted_block_for_round_->block_hash_);
+      auto block_data = proposed_blocks_.getPbftProposedBlock(period, soft_voted_block_for_round_->block_hash_);
       if (block_data.has_value()) {
         soft_voted_block_for_round_->block_data_ = std::move(block_data);
         db_->saveSoftVotedBlockDataInRound(*soft_voted_block_for_round_);
@@ -811,7 +805,7 @@ const std::optional<TwoTPlusOneSoftVotedBlockData> &PbftManager::getTwoTPlusOneS
       soft_voted_block_data.block_hash_ = soft_votes_bundle->voted_block_hash;
       soft_voted_block_data.soft_votes_ = std::move(soft_votes_bundle->votes);
       soft_voted_block_data.block_data_ =
-          proposed_blocks_.getPbftProposedBlock(period, round, soft_votes_bundle->voted_block_hash);
+          proposed_blocks_.getPbftProposedBlock(period, soft_votes_bundle->voted_block_hash);
 
       db_->saveSoftVotedBlockDataInRound(soft_voted_block_data);
       soft_voted_block_for_round_ = std::move(soft_voted_block_data);
@@ -823,18 +817,17 @@ const std::optional<TwoTPlusOneSoftVotedBlockData> &PbftManager::getTwoTPlusOneS
       !soft_voted_block_for_round_->block_data_->second) {
     if (validatePbftBlock(soft_voted_block_for_round_->block_data_->first)) {
       soft_voted_block_for_round_->block_data_->second = true;
-      proposed_blocks_.markBlockAsValid(round, soft_voted_block_for_round_->block_data_->first);
+      proposed_blocks_.markBlockAsValid(soft_voted_block_for_round_->block_data_->first);
     }
   }
 
   return soft_voted_block_for_round_;
 }
 
-std::shared_ptr<PbftBlock> PbftManager::getValidPbftProposedBlock(PbftPeriod period, PbftRound round,
-                                                                  const blk_hash_t &block_hash) {
-  const auto block_data = proposed_blocks_.getPbftProposedBlock(period, round, block_hash);
+std::shared_ptr<PbftBlock> PbftManager::getValidPbftProposedBlock(PbftPeriod period, const blk_hash_t &block_hash) {
+  const auto block_data = proposed_blocks_.getPbftProposedBlock(period, block_hash);
   if (!block_data.has_value()) {
-    LOG(log_er_) << "Unable to find proposed block " << block_hash << ", period " << period << ", round " << round;
+    LOG(log_er_) << "Unable to find proposed block " << block_hash << ", period " << period;
     return nullptr;
   }
 
@@ -844,11 +837,11 @@ std::shared_ptr<PbftBlock> PbftManager::getValidPbftProposedBlock(PbftPeriod per
   // Block is not validated yet
   if (!block_data->second) {
     if (!validatePbftBlock(block)) {
-      LOG(log_er_) << "Proposed block " << block_hash << " failed validation, period " << period << ", round " << round;
+      LOG(log_er_) << "Proposed block " << block_hash << " failed validation, period " << period;
       return nullptr;
     }
 
-    proposed_blocks_.markBlockAsValid(round, block);
+    proposed_blocks_.markBlockAsValid(block);
   }
 
   return block;
@@ -947,7 +940,7 @@ void PbftManager::proposeBlock_() {
     // Round greater than 1 and next voted some value that is not null block hash
     const auto &next_voted_block_hash = *previous_round_next_voted_value_;
 
-    const auto next_voted_block = getValidPbftProposedBlock(period, round - 1, next_voted_block_hash);
+    const auto next_voted_block = getValidPbftProposedBlock(period, next_voted_block_hash);
     if (!next_voted_block) {
       // This should never happen - if so, we probably have a bug in storing the blocks in proposed_blocks_
       LOG(log_er_) << "Unable to re-propose previous round next voted block " << next_voted_block_hash << ", period "
@@ -987,7 +980,7 @@ void PbftManager::identifyBlock_() {
     }
   } else if (previous_round_next_voted_value_.has_value()) {
     const auto &next_voted_block_hash = *previous_round_next_voted_value_;
-    const auto next_voted_block = getValidPbftProposedBlock(period, round - 1, next_voted_block_hash);
+    const auto next_voted_block = getValidPbftProposedBlock(period, next_voted_block_hash);
     if (!next_voted_block) {
       // This should never happen - if so, we probably have a bug in storing the blocks in proposed_blocks_
       LOG(log_er_) << "Unable to soft-vote previous round next voted block " << next_voted_block_hash << ", period "
@@ -1092,7 +1085,7 @@ void PbftManager::firstFinish_() {
     // we dont know for which value we saw 2t+1 next votes as first so we prefer specific block if possible
     std::pair<blk_hash_t, std::shared_ptr<PbftBlock>> starting_value;
     if (previous_round_next_voted_value_.has_value()) {
-      auto block = getValidPbftProposedBlock(period, round - 1, *previous_round_next_voted_value_);
+      auto block = getValidPbftProposedBlock(period, *previous_round_next_voted_value_);
       if (!block) {
         // This should never happen - if so, we probably have a bug in storing the blocks in proposed_blocks_
         LOG(log_er_) << "Unable to first finish next-vote starting value " << *previous_round_next_voted_value_
@@ -1223,8 +1216,7 @@ std::pair<bool, std::string> PbftManager::validateVote(const std::shared_ptr<Vot
 
 void PbftManager::processProposedBlock(const std::shared_ptr<PbftBlock> &proposed_block,
                                        const std::shared_ptr<Vote> &propose_vote) {
-  if (proposed_blocks_.isInProposedBlocks(propose_vote->getPeriod(), propose_vote->getRound(),
-                                          propose_vote->getBlockHash())) {
+  if (proposed_blocks_.isInProposedBlocks(propose_vote->getPeriod(), propose_vote->getBlockHash())) {
     return;
   }
 
@@ -1529,8 +1521,7 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(PbftRound round, Pb
       continue;
     }
 
-    auto leader_block =
-        getValidPbftProposedBlock(leader_vote.second->getPeriod(), leader_vote.second->getRound(), proposed_block_hash);
+    auto leader_block = getValidPbftProposedBlock(leader_vote.second->getPeriod(), proposed_block_hash);
     if (!leader_block) {
       LOG(log_er_) << "Unable to get valid proposed block " << proposed_block_hash;
       continue;

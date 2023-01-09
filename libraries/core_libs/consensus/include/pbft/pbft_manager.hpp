@@ -541,12 +541,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    *        already validated
    *
    * @param period
-   * @param round
    * @param block_hash
    * @return valid proposed pbft block or nullptr
    */
-  std::shared_ptr<PbftBlock> getValidPbftProposedBlock(PbftPeriod period, PbftRound round,
-                                                       const blk_hash_t &block_hash);
+  std::shared_ptr<PbftBlock> getValidPbftProposedBlock(PbftPeriod period, const blk_hash_t &block_hash);
 
   /**
    * @brief Process synced PBFT blocks if PBFT syncing queue is not empty
