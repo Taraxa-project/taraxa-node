@@ -9,11 +9,10 @@ bool ProposedBlocks::pushProposedPbftBlock(const std::shared_ptr<PbftBlock>& pro
                                            const std::shared_ptr<Vote>& propose_vote) {
   assert(propose_vote->getBlockHash() == proposed_block->getBlockHash());
   assert(propose_vote->getPeriod() == proposed_block->getPeriod());
-  return pushProposedPbftBlock(propose_vote->getRound(), proposed_block);
+  return pushProposedPbftBlock(proposed_block);
 }
 
-bool ProposedBlocks::pushProposedPbftBlock(PbftRound round, const std::shared_ptr<PbftBlock>& proposed_block,
-                                           bool save_to_db) {
+bool ProposedBlocks::pushProposedPbftBlock(const std::shared_ptr<PbftBlock>& proposed_block, bool save_to_db) {
   std::unique_lock lock(proposed_blocks_mutex_);
 
   auto found_period_it = proposed_blocks_.find(proposed_block->getPeriod());
@@ -22,36 +21,27 @@ bool ProposedBlocks::pushProposedPbftBlock(PbftRound round, const std::shared_pt
     found_period_it = proposed_blocks_.insert({proposed_block->getPeriod(), {}}).first;
   }
 
-  auto found_round_it = found_period_it->second.find(round);
-  // Add round
-  if (found_round_it == found_period_it->second.end()) {
-    found_round_it = found_period_it->second.insert({round, {}}).first;
-  }
-
   if (save_to_db) {
-    db_->saveProposedPbftBlock(proposed_block, round);
+    db_->saveProposedPbftBlock(proposed_block);
   }
 
   // Add propose vote & block
-  return found_round_it->second.insert({proposed_block->getBlockHash(), {proposed_block, false}}).second;
+  return found_period_it->second.insert({proposed_block->getBlockHash(), {proposed_block, false}}).second;
 }
 
-void ProposedBlocks::markBlockAsValid(PbftRound round, const std::shared_ptr<PbftBlock>& proposed_block) {
+void ProposedBlocks::markBlockAsValid(const std::shared_ptr<PbftBlock>& proposed_block) {
   std::unique_lock lock(proposed_blocks_mutex_);
 
   const auto found_period_it = proposed_blocks_.find(proposed_block->getPeriod());
   assert(found_period_it != proposed_blocks_.end());
 
-  const auto found_round_it = found_period_it->second.find(round);
-  assert(found_round_it != found_period_it->second.end());
-
-  auto found_block_it = found_round_it->second.find(proposed_block->getBlockHash());
+  auto found_block_it = found_period_it->second.find(proposed_block->getBlockHash());
   // Set validation flag to true
   found_block_it->second.second = true;
 }
 
 std::optional<std::pair<std::shared_ptr<PbftBlock>, bool>> ProposedBlocks::getPbftProposedBlock(
-    PbftPeriod period, PbftRound round, const blk_hash_t& block_hash) const {
+    PbftPeriod period, const blk_hash_t& block_hash) const {
   std::shared_lock lock(proposed_blocks_mutex_);
 
   auto found_period_it = proposed_blocks_.find(period);
@@ -59,20 +49,15 @@ std::optional<std::pair<std::shared_ptr<PbftBlock>, bool>> ProposedBlocks::getPb
     return {};
   }
 
-  auto found_round_it = found_period_it->second.find(round);
-  if (found_round_it == found_period_it->second.end()) {
-    return {};
-  }
-
-  auto found_block_it = found_round_it->second.find(block_hash);
-  if (found_block_it == found_round_it->second.end()) {
+  auto found_block_it = found_period_it->second.find(block_hash);
+  if (found_block_it == found_period_it->second.end()) {
     return {};
   }
 
   return found_block_it->second;
 }
 
-bool ProposedBlocks::isInProposedBlocks(PbftPeriod period, PbftRound round, const blk_hash_t& block_hash) const {
+bool ProposedBlocks::isInProposedBlocks(PbftPeriod period, const blk_hash_t& block_hash) const {
   std::shared_lock lock(proposed_blocks_mutex_);
 
   auto found_period_it = proposed_blocks_.find(period);
@@ -80,12 +65,7 @@ bool ProposedBlocks::isInProposedBlocks(PbftPeriod period, PbftRound round, cons
     return false;
   }
 
-  auto found_round_it = found_period_it->second.find(round);
-  if (found_round_it == found_period_it->second.end()) {
-    return false;
-  }
-
-  return found_round_it->second.contains(block_hash);
+  return found_period_it->second.contains(block_hash);
 }
 
 void ProposedBlocks::cleanupProposedPbftBlocksByPeriod(PbftPeriod period) {
@@ -93,37 +73,11 @@ void ProposedBlocks::cleanupProposedPbftBlocksByPeriod(PbftPeriod period) {
 
   for (auto period_it = proposed_blocks_.begin(); period_it != proposed_blocks_.end() && period_it->first < period;) {
     auto batch = db_->createWriteBatch();
-    for (auto round : period_it->second) {
-      for (const auto& block : round.second) {
-        db_->removeProposedPbftBlock(block.first, batch);
-      }
-    }
-    db_->commitWriteBatch(batch);
-    period_it = proposed_blocks_.erase(period_it);
-  }
-}
-
-void ProposedBlocks::cleanupProposedPbftBlocksByRound(PbftPeriod period, PbftRound round) {
-  // We must keep previous round proposed blocks for voting purposes
-  if (round < 3) {
-    return;
-  }
-
-  std::unique_lock lock(proposed_blocks_mutex_);
-  auto found_period_it = proposed_blocks_.find(period);
-
-  if (found_period_it == proposed_blocks_.end()) {
-    return;
-  }
-
-  for (auto round_it = found_period_it->second.begin();
-       round_it != found_period_it->second.end() && round_it->first < round - 1;) {
-    auto batch = db_->createWriteBatch();
-    for (const auto& block : round_it->second) {
+    for (const auto& block : period_it->second) {
       db_->removeProposedPbftBlock(block.first, batch);
     }
     db_->commitWriteBatch(batch);
-    round_it = found_period_it->second.erase(round_it);
+    period_it = proposed_blocks_.erase(period_it);
   }
 }
 

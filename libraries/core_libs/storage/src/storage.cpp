@@ -558,25 +558,25 @@ std::unordered_map<trx_hash_t, PbftPeriod> DbStorage::getAllTransactionPeriod() 
 }
 
 // Proposed pbft blocks
-void DbStorage::saveProposedPbftBlock(const std::shared_ptr<PbftBlock>& block, PbftRound round) {
+void DbStorage::saveProposedPbftBlock(const std::shared_ptr<PbftBlock>& block) {
   dev::RLPStream s;
   s.appendList(2);
   s.appendRaw(block->rlp(true));
-  s << round;
-  insert(Columns::proposed_pbft_blocks, toSlice(block->getBlockHash().asBytes()), toSlice(s.out()));
+  s << 0;
+  insert(Columns::proposed_pbft_blocks, block->getBlockHash().asBytes(), s.out());
 }
 
 void DbStorage::removeProposedPbftBlock(const blk_hash_t& block_hash, Batch& write_batch) {
   remove(write_batch, Columns::proposed_pbft_blocks, toSlice(block_hash.asBytes()));
 }
 
-std::vector<std::pair<uint64_t, std::shared_ptr<PbftBlock>>> DbStorage::getProposedPbftBlocks() {
-  std::vector<std::pair<uint64_t, std::shared_ptr<PbftBlock>>> res;
+std::vector<std::shared_ptr<PbftBlock>> DbStorage::getProposedPbftBlocks() {
+  std::vector<std::shared_ptr<PbftBlock>> res;
   auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::proposed_pbft_blocks)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
     auto data = asBytes(i->value().ToString());
-    dev::RLP const rlp(data);
-    res.push_back({rlp[1].toInt<PbftRound>(), std::make_shared<PbftBlock>(rlp[0])});
+    const dev::RLP rlp(data);
+    res.push_back(std::make_shared<PbftBlock>(rlp[0]));
   }
   return res;
 }
