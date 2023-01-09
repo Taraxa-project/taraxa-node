@@ -4,7 +4,7 @@ The main goal of fair rewards distribution is to motivate validators to particip
 
 ## Glossary
 
-* DAG blocks are stored stored in DAG(Directed Acyclic Graph) structure and have transactions inside it. 
+* DAG blocks are stored in DAG(Directed Acyclic Graph) structure and have transactions inside it. 
 * PBFT block is finalizing part of ordered DAG blocks from DAG structure and transactions from them. 
 * Reward votes is finalized votes from PBFT block. Block `N` is finalizing votes from block `N - 1`.
 
@@ -13,7 +13,7 @@ More info could be found in this [series of medium articles](https://medium.com/
 ## Rewards sources
 
 There are 2 sources of tokens, which are distributed as rewards:
-* Newly created tokens. Rewards depends on total delegations in the network and is equal to 20% of it per year. So block reward is equal to `total_delegated_amount * 20% / block_per_year`. It could change from block to block as total delegated amount is changing.
+* Newly created tokens. Rewards depend on total delegations in the network and is equal to 20% of it per year. So block reward is equal to `total_delegated_amount * 20% / block_per_year`. It could change from block to block as total delegated amount is changing.
 * Transactions fees is basically transaction cost. Rewards for block depends on transactions that are included in DAG block and its uniqueness.
 
 ## Rewards distribution
@@ -88,7 +88,7 @@ Validator E | 1 | 0 |
 
 ### Rewards
 
-Newly generated tokens amount per year is equal to total delegated amount multiplied by yield percentage. So every new block will create a reward is equal to newly generated tokens amount per year divided by estimated blocks count per year. All following calculations would be described with a pseudocode. Lets put some random values to show the calculations:
+Newly generated tokens amount per year is equal to total delegated amount multiplied by yield percentage. So every new block will create a reward is equal to newly generated tokens amount per year divided by estimated blocks count per year. All following calculations would be described with a pseudocode. Let's put some random values to show the calculations:
 ```
 total_delegated_amount = 10_000_000_000
 yield_percentage = 20%
