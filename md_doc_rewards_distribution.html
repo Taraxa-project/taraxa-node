@@ -89,7 +89,7 @@ $(document).ready(function(){initNavTree('md_doc_rewards_distribution.html','');
 <h1><a class="anchor" id="autotoc_md245"></a>
 Glossary</h1>
 <ul>
-<li>DAG blocks are stored stored in DAG(Directed Acyclic Graph) structure and have transactions inside it.</li>
+<li>DAG blocks are stored in DAG(Directed Acyclic Graph) structure and have transactions inside it.</li>
 <li>PBFT block is finalizing part of ordered DAG blocks from DAG structure and transactions from them.</li>
 <li>Reward votes is finalized votes from PBFT block. Block <code>N</code> is finalizing votes from block <code>N - 1</code>.</li>
 </ul>
@@ -97,7 +97,7 @@ Glossary</h1>
 <h1><a class="anchor" id="autotoc_md246"></a>
 Rewards sources</h1>
 <p>There are 2 sources of tokens, which are distributed as rewards:</p><ul>
-<li>Newly created tokens. Rewards depends on total delegations in the network and is equal to 20% of it per year. So block reward is equal to <code>total_delegated_amount * 20% / block_per_year</code>. It could change from block to block as total delegated amount is changing.</li>
+<li>Newly created tokens. Rewards depend on total delegations in the network and is equal to 20% of it per year. So block reward is equal to <code>total_delegated_amount * 20% / block_per_year</code>. It could change from block to block as total delegated amount is changing.</li>
 <li>Transactions fees is basically transaction cost. Rewards for block depends on transactions that are included in DAG block and its uniqueness.</li>
 </ul>
 <h1><a class="anchor" id="autotoc_md247"></a>
@@ -177,7 +177,7 @@ Statistics</h2>
 </table>
 <h2><a class="anchor" id="autotoc_md256"></a>
 Rewards</h2>
-<p>Newly generated tokens amount per year is equal to total delegated amount multiplied by yield percentage. So every new block will create a reward is equal to newly generated tokens amount per year divided by estimated blocks count per year. All following calculations would be described with a pseudocode. Lets put some random values to show the calculations: </p><div class="fragment"><div class="line">total_delegated_amount = 10_000_000_000</div>
+<p>Newly generated tokens amount per year is equal to total delegated amount multiplied by yield percentage. So every new block will create a reward is equal to newly generated tokens amount per year divided by estimated blocks count per year. All following calculations would be described with a pseudocode. Let's put some random values to show the calculations: </p><div class="fragment"><div class="line">total_delegated_amount = 10_000_000_000</div>
 <div class="line">yield_percentage = 20%</div>
 <div class="line">new_tokens_per_year = total_delegated_amount * yield_percentage // 2_000_000_000</div>
 <div class="line">blocks_per_year = 20_000</div>
