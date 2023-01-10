@@ -21,7 +21,7 @@
       "vote_accepting_steps": 0,
       "log_packets_stats": true,
       "packets_stats_time_period_ms": 60000,
-      "peer_max_packets_processing_time_us": 0
+      "peer_max_packets_processing_time_us": 10000000
     },
     "listen_ip": "0.0.0.0",
     "listen_port": 10002,
