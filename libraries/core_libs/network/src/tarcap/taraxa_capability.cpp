@@ -293,7 +293,7 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
   // Drop any packet (except StatusPacket) that comes before the connection between nodes is initialized by sending
   // and received initial status packet
   if (const auto peer = peers_state_->getPacketSenderPeer(node_id, packet_type); !peer.first) [[unlikely]] {
-    LOG(log_er_) << "Unable to push packet into queue. Reason: " << peer.second;
+    LOG(log_wr_) << "Unable to push packet into queue. Reason: " << peer.second;
     host->disconnect(node_id, dev::p2p::UserReason);
     return;
   }

@@ -882,7 +882,7 @@ bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &propo
   auto propose_vote = vote_mgr_->generateVoteWithWeight(proposed_block->getBlockHash(), PbftVoteTypes::propose_vote,
                                                         current_pbft_period, current_pbft_round, current_pbft_step);
   if (!propose_vote) {
-    LOG(log_er_) << "Unable to generate propose vote";
+    LOG(log_nf_) << "Unable to generate propose vote";
     return false;
   }
 
@@ -1023,7 +1023,7 @@ void PbftManager::certifyBlock_() {
   // Get soft voted bock with 2t+1 soft votes
   const auto soft_voted_block_data = getTwoTPlusOneSoftVotedBlockData(period, round);
   if (soft_voted_block_data.has_value() == false) {
-    LOG(log_dg_) << "Certify: Not enough soft votes for current round yet. Period " << period << ",  round" << round;
+    LOG(log_dg_) << "Certify: Not enough soft votes for current round yet. Period " << period << ",  round " << round;
     return;
   }
 
