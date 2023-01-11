@@ -91,7 +91,8 @@ void NodeStats::logNodeStats() {
   const auto local_pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
 
   // Decide if making progress...
-  const auto pbft_consensus_rounds_advanced = local_pbft_round - local_pbft_round_prev_interval_;
+  const auto pbft_consensus_rounds_advanced =
+      (local_pbft_round > local_pbft_round_prev_interval_) ? (local_pbft_round - local_pbft_round_prev_interval_) : 0;
   const auto pbft_chain_size_growth = local_chain_size - local_chain_size_prev_interval_;
   const auto pbft_sync_period_progress = local_pbft_sync_period - local_pbft_sync_period_prev_interval_;
   const auto dag_level_growh = local_max_level_in_dag - local_max_level_in_dag_prev_interval_;
