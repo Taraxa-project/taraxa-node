@@ -5,7 +5,6 @@
 namespace taraxa {
 class PbftManager;
 class VoteManager;
-class NextVotesManager;
 }  // namespace taraxa
 
 namespace taraxa::network::tarcap {

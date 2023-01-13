@@ -21,7 +21,6 @@ class DbStorage;
 class PbftManager;
 class PbftChain;
 class VoteManager;
-class NextVotesManager;
 class DagManager;
 class TransactionManager;
 enum class TransactionStatus;
