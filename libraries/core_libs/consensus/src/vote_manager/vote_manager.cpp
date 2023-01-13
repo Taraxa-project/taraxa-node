@@ -80,7 +80,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getVerifiedVotes() const {
   std::vector<std::shared_ptr<Vote>> votes;
   votes.reserve(getVerifiedVotesSize());
 
-  SharedLock lock(verified_votes_access_);
+  std::shared_lock lock(verified_votes_access_);
   for (const auto& period : verified_votes_) {
     for (const auto& round : period.second) {
       for (const auto& step : round.second.step_votes) {
@@ -99,7 +99,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getVerifiedVotes() const {
 uint64_t VoteManager::getVerifiedVotesSize() const {
   uint64_t size = 0;
 
-  SharedLock lock(verified_votes_access_);
+  std::shared_lock lock(verified_votes_access_);
   for (auto const& period : verified_votes_) {
     for (auto const& round : period.second) {
       for (auto const& step : round.second.step_votes) {
@@ -117,7 +117,7 @@ void VoteManager::setCurrentPbftPeriodAndRound(PbftPeriod pbft_period, PbftRound
   current_pbft_period_ = pbft_period;
   current_pbft_round_ = pbft_round;
 
-  SharedLock lock(verified_votes_access_);
+  std::shared_lock lock(verified_votes_access_);
 
   auto found_period_it = verified_votes_.find(pbft_period);
   if (found_period_it == verified_votes_.end()) {
@@ -184,7 +184,7 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
   const auto vote_block_hash = vote->getBlockHash();
 
   {
-    UniqueLock lock(verified_votes_access_);
+    std::scoped_lock lock(verified_votes_access_);
 
     // It is possible that period just changed and validated vote is now a round behind and possibly a reward vote
     // TODO: if we keep reward votes inside verified_votes_, we would not need this extra handling
@@ -301,7 +301,7 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
 }
 
 bool VoteManager::voteInVerifiedMap(const std::shared_ptr<Vote>& vote) const {
-  SharedLock lock(verified_votes_access_);
+  std::shared_lock lock(verified_votes_access_);
 
   const auto found_period_it = verified_votes_.find(vote->getPeriod());
   if (found_period_it == verified_votes_.end()) {
@@ -327,7 +327,7 @@ bool VoteManager::voteInVerifiedMap(const std::shared_ptr<Vote>& vote) const {
 }
 
 std::pair<bool, std::string> VoteManager::isUniqueVote(const std::shared_ptr<Vote>& vote) const {
-  SharedLock lock(verified_votes_access_);
+  std::shared_lock lock(verified_votes_access_);
 
   const auto found_period_it = verified_votes_.find(vote->getPeriod());
   if (found_period_it == verified_votes_.end()) {
@@ -452,7 +452,7 @@ bool VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote, bool lock_
 
   // TODO: this if else locking will be deleted once we get reward votes from verified_votes_
   if (lock_verified_votes_mutex) {
-    UniqueLock lock(verified_votes_access_);
+    std::scoped_lock lock(verified_votes_access_);
     return insertVote(vote);
   }
 
@@ -464,7 +464,7 @@ void VoteManager::cleanupVotesByRound(PbftPeriod pbft_period, PbftRound pbft_rou
   // Remove verified votes
   auto batch = db_->createWriteBatch();
   {
-    UniqueLock lock(verified_votes_access_);
+    std::scoped_lock lock(verified_votes_access_);
     auto found_period_it = verified_votes_.find(pbft_period);
 
     // cleanupVotesByRound should not be called in case there are not votes for previous round
@@ -497,7 +497,7 @@ void VoteManager::cleanupVotesByPeriod(PbftPeriod pbft_period) {
   // Remove verified votes
   auto batch = db_->createWriteBatch();
   {
-    UniqueLock lock(verified_votes_access_);
+    std::scoped_lock lock(verified_votes_access_);
     auto it = verified_votes_.begin();
     while (it != verified_votes_.end() && it->first < pbft_period) {
       for (const auto& round : it->second) {
@@ -522,7 +522,7 @@ void VoteManager::cleanupVotesByPeriod(PbftPeriod pbft_period) {
 }
 
 std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(PbftPeriod period, PbftRound round) const {
-  SharedLock lock(verified_votes_access_);
+  std::shared_lock lock(verified_votes_access_);
 
   const auto found_period_it = verified_votes_.find(period);
   if (found_period_it == verified_votes_.end()) {
@@ -551,7 +551,7 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(PbftPeriod peri
 }
 
 std::optional<PbftRound> VoteManager::determineNewRound(PbftPeriod current_pbft_period, PbftRound current_pbft_round) {
-  SharedLock lock(verified_votes_access_);
+  std::shared_lock lock(verified_votes_access_);
 
   const auto found_period_it = verified_votes_.find(current_pbft_period);
   if (found_period_it == verified_votes_.end()) {
@@ -913,7 +913,7 @@ bool VoteManager::genAndValidateVrfSortition(PbftPeriod pbft_period, PbftRound p
 
 std::optional<blk_hash_t> VoteManager::getTwoTPlusOneVotedBlock(PbftPeriod period, PbftRound round,
                                                                 TwoTPlusOneVotedBlockType type) const {
-  SharedLock lock(verified_votes_access_);
+  std::shared_lock lock(verified_votes_access_);
 
   const auto found_period_it = verified_votes_.find(period);
   if (found_period_it == verified_votes_.end()) {
@@ -936,7 +936,7 @@ std::optional<blk_hash_t> VoteManager::getTwoTPlusOneVotedBlock(PbftPeriod perio
 std::vector<std::shared_ptr<Vote>> VoteManager::getTwoTPlusOneVotedBlockVotes(
     PbftPeriod period, PbftRound round, TwoTPlusOneVotedBlockType type,
     const std::shared_ptr<network::tarcap::TaraxaPeer>& peer_filter) const {
-  SharedLock lock(verified_votes_access_);
+  std::shared_lock lock(verified_votes_access_);
 
   const auto found_period_it = verified_votes_.find(period);
   if (found_period_it == verified_votes_.end()) {

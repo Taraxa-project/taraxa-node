@@ -20,16 +20,10 @@ namespace network::tarcap {
 class TaraxaPeer;
 }
 
-// TODO[1907]: refactor vote manager
 /**
  * @brief VoteManager class manage votes for PBFT consensus
  */
 class VoteManager {
- private:
-  // TODO: use std locks
-  using UniqueLock = boost::unique_lock<boost::shared_mutex>;
-  using SharedLock = boost::shared_lock<boost::shared_mutex>;
-
  public:
   VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config, const secret_t& node_sk,
               const vrf_wrapper::vrf_sk_t& vrf_sk, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
@@ -322,7 +316,7 @@ class VoteManager {
 
   // Main storage for all verified votes
   std::map<PbftPeriod, std::map<PbftRound, VerifiedVotes>> verified_votes_;
-  mutable boost::shared_mutex verified_votes_access_;
+  mutable std::shared_mutex verified_votes_access_;
 
   // TODO[1907]: this will be part of RewardVotes class
   std::pair<blk_hash_t, PbftPeriod> reward_votes_pbft_block_;
