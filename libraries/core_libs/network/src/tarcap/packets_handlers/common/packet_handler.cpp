@@ -25,7 +25,7 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
     // in the meantime the connection was lost and we started to process packet from such peer
     const auto peer = peers_state_->getPacketSenderPeer(packet_data.from_node_id_, packet_data.type_);
     if (!peer.first) [[unlikely]] {
-      LOG(log_er_) << "Unable to process packet. Reason: " << peer.second;
+      LOG(log_wr_) << "Unable to process packet. Reason: " << peer.second;
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
       return;
     }
@@ -86,7 +86,7 @@ bool PacketHandler::sealAndSend(const dev::p2p::NodeID& node_id, SubprotocolPack
   }
 
   if (const auto peer = peers_state_->getPacketSenderPeer(node_id, packet_type); !peer.first) [[unlikely]] {
-    LOG(log_er_) << "Unable to send packet. Reason: " << peer.second;
+    LOG(log_wr_) << "Unable to send packet. Reason: " << peer.second;
     host->disconnect(node_id, dev::p2p::UserReason);
     return false;
   }
