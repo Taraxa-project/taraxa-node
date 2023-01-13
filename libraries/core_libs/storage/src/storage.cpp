@@ -559,11 +559,7 @@ std::unordered_map<trx_hash_t, PbftPeriod> DbStorage::getAllTransactionPeriod() 
 
 // Proposed pbft blocks
 void DbStorage::saveProposedPbftBlock(const std::shared_ptr<PbftBlock>& block) {
-  dev::RLPStream s;
-  s.appendList(2);
-  s.appendRaw(block->rlp(true));
-  s << 0;
-  insert(Columns::proposed_pbft_blocks, block->getBlockHash().asBytes(), s.out());
+  insert(Columns::proposed_pbft_blocks, block->getBlockHash().asBytes(), block->rlp(true));
 }
 
 void DbStorage::removeProposedPbftBlock(const blk_hash_t& block_hash, Batch& write_batch) {
@@ -574,9 +570,7 @@ std::vector<std::shared_ptr<PbftBlock>> DbStorage::getProposedPbftBlocks() {
   std::vector<std::shared_ptr<PbftBlock>> res;
   auto i = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::proposed_pbft_blocks)));
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
-    auto data = asBytes(i->value().ToString());
-    const dev::RLP rlp(data);
-    res.push_back(std::make_shared<PbftBlock>(rlp[0]));
+    res.push_back(std::make_shared<PbftBlock>(asBytes(i->value().ToString())));
   }
   return res;
 }
