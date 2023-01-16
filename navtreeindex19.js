@@ -1,6 +1,5 @@
 var NAVTREEINDEX19 =
 {
-"namespacedev_1_1p2p.html#a4c2c3d4a753e9c972c46049cd3c2205e":[15,0,1,0,2,24,0,8],
 "namespacedev_1_1p2p.html#a5fb1244b9ea3818995118c180a42d60c":[15,0,1,0,2,24,0,3],
 "namespacedev_1_1p2p.html#a687a36a8092b753cf02e4d217305c336":[15,0,1,0,2,24,0,7],
 "namespacedev_1_1p2p.html#a8ef448e9f56885950b218ca95c4dd330":[15,0,1,0,2,24,0,1],
@@ -249,5 +248,6 @@ var NAVTREEINDEX19 =
 "priority__queue_8hpp.html":[15,0,1,4,1,1,0,0,3,3],
 "priority__queue_8hpp_source.html":[15,0,1,4,1,1,0,0,3,3],
 "proposed__blocks_8cpp.html":[15,0,1,4,0,1,3,3],
-"proposed__blocks_8hpp.html":[15,0,1,4,0,0,3,3]
+"proposed__blocks_8hpp.html":[15,0,1,4,0,0,3,3],
+"proposed__blocks_8hpp_source.html":[15,0,1,4,0,0,3,3]
 };

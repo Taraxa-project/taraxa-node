@@ -1033,9 +1033,9 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="separator:ac4f19ded8ce9d9b0ddbf3a00126c77bc"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a21a6b1c3d018c7767889fe512e1c6f8d"><td class="memItemLeft" align="right" valign="top">const std::optional&lt; <a class="el" href="classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html">TwoTPlusOneSoftVotedBlockData</a> &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a21a6b1c3d018c7767889fe512e1c6f8d">getTwoTPlusOneSoftVotedBlockData</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, <a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a> round)</td></tr>
 <tr class="separator:a21a6b1c3d018c7767889fe512e1c6f8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad97f57e7bf4357526ddcd0b17290b59e"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ad97f57e7bf4357526ddcd0b17290b59e">getValidPbftProposedBlock</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, <a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a> round, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;block_hash)</td></tr>
-<tr class="memdesc:ad97f57e7bf4357526ddcd0b17290b59e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get valid proposed pbft block. It will retrieve block from proposed_blocks and then validate it if not already validated.  <a href="group___p_b_f_t.html#ad97f57e7bf4357526ddcd0b17290b59e">More...</a><br /></td></tr>
-<tr class="separator:ad97f57e7bf4357526ddcd0b17290b59e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2288a72ad03d8eca1f6325d1cd5bc803"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a2288a72ad03d8eca1f6325d1cd5bc803">getValidPbftProposedBlock</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;block_hash)</td></tr>
+<tr class="memdesc:a2288a72ad03d8eca1f6325d1cd5bc803"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get valid proposed pbft block. It will retrieve block from proposed_blocks and then validate it if not already validated.  <a href="group___p_b_f_t.html#a2288a72ad03d8eca1f6325d1cd5bc803">More...</a><br /></td></tr>
+<tr class="separator:a2288a72ad03d8eca1f6325d1cd5bc803"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a98aa2d65de6a6448020cf06ccd14e972"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::pair&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a>, std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a98aa2d65de6a6448020cf06ccd14e972">processPeriodData</a> ()</td></tr>
 <tr class="memdesc:a98aa2d65de6a6448020cf06ccd14e972"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process synced PBFT blocks if PBFT syncing queue is not empty.  <a href="group___p_b_f_t.html#a98aa2d65de6a6448020cf06ccd14e972">More...</a><br /></td></tr>
 <tr class="separator:a98aa2d65de6a6448020cf06ccd14e972"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2164,8 +2164,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="ad97f57e7bf4357526ddcd0b17290b59e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad97f57e7bf4357526ddcd0b17290b59e">&#9670;&nbsp;</a></span>getValidPbftProposedBlock()</h2>
+<a id="a2288a72ad03d8eca1f6325d1cd5bc803"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2288a72ad03d8eca1f6325d1cd5bc803">&#9670;&nbsp;</a></span>getValidPbftProposedBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2178,12 +2178,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
           <td class="paramname"><em>period</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a>&#160;</td>
-          <td class="paramname"><em>round</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -2208,7 +2202,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">period</td><td></td></tr>
-    <tr><td class="paramname">round</td><td></td></tr>
     <tr><td class="paramname">block_hash</td><td></td></tr>
   </table>
   </dd>

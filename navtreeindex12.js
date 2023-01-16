@@ -1,6 +1,5 @@
 var NAVTREEINDEX12 =
 {
-"dag__block__proposer_8cpp.html":[15,0,1,4,0,1,0,1],
 "dag__block__proposer_8hpp.html":[15,0,1,4,0,0,0,2],
 "dag__block__proposer_8hpp_source.html":[15,0,1,4,0,0,0,2],
 "dag__config_8cpp.html":[15,0,1,3,1,2],
@@ -249,5 +248,6 @@ var NAVTREEINDEX12 =
 "functions_vars_o.html":[14,3,2,14],
 "functions_vars_p.html":[14,3,2,15],
 "functions_vars_q.html":[14,3,2,16],
-"functions_vars_r.html":[14,3,2,17]
+"functions_vars_r.html":[14,3,2,17],
+"functions_vars_s.html":[14,3,2,18]
 };
