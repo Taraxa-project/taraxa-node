@@ -1321,9 +1321,10 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
 
   auto order_hash = calculateOrderHash(dag_block_order);
   auto pbft_block = generatePbftBlock(current_pbft_period, last_pbft_block_hash, dag_block_hash, order_hash);
-  LOG(log_nf_) << "Proposed PBFT block: " << pbft_block->getBlockHash() << ". Order hash:" << order_hash
-               << ". DAG order for proposed block" << dag_block_order;
-
+  if (pbft_block) {
+    LOG(log_nf_) << "Proposed PBFT block: " << pbft_block->getBlockHash() << ". Order hash:" << order_hash
+                 << ". DAG order for proposed block" << dag_block_order;
+  }
   return pbft_block;
 }
 
