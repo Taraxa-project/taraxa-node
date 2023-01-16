@@ -115,15 +115,6 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
     // for round and step to actually being able to sync the current round in case network is stalled
     bool check_max_round_step = votes_bundle_votes_type == PbftVoteTypes::next_vote ? false : true;
     processVote(vote, nullptr, peer, check_max_round_step);
-
-    // TODO: remove once we get reward votes from verified_votes_ -> this should work but does not handle edge cases
-    if (vote->getPeriod() == current_pbft_period - 1 && vote->getType() == PbftVoteTypes::cert_vote) {
-      // potential reward vote
-      if (!processRewardVote(vote)) {
-        return;
-      }
-    }
-
     votes.push_back(std::move(vote));
   }
 
@@ -132,25 +123,6 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
                << votes_bundle_pbft_round;
 
   onNewPbftVotesBundle(std::move(votes), false, packet_data.from_node_id_);
-}
-
-// TODO: this method might be either deleted or moved somewhere else
-void VotesSyncPacketHandler::broadcastPreviousRoundNextVotesBundle(bool rebroadcast) {
-  const auto [pbft_round, pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
-  if (pbft_round == 1) {
-    LOG(log_wr_) << "Current round == 1 -> there are no next votes for previous PBFT round. Current period "
-                 << pbft_period << ", round " << pbft_round;
-    return;
-  }
-
-  auto next_votes = vote_mgr_->getAllTwoTPlusOneNextVotes(pbft_period, pbft_round - 1);
-  if (next_votes.empty()) {
-    LOG(log_er_) << "There are no next votes for previous PBFT round. Current period " << pbft_period << ", round "
-                 << pbft_round;
-    return;
-  }
-
-  onNewPbftVotesBundle(std::move(next_votes), rebroadcast);
 }
 
 void VotesSyncPacketHandler::onNewPbftVotesBundle(std::vector<std::shared_ptr<Vote>> &&votes, bool rebroadcast,

@@ -140,52 +140,6 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateVotePeriodRoundStep(
   return {true, ""};
 }
 
-bool ExtVotesPacketHandler::processRewardVote(const std::shared_ptr<Vote> &vote) const {
-  if (vote_mgr_->isInRewardsVotes(vote->getHash())) {
-    LOG(log_dg_) << "Reward vote " << vote->getHash() << " already inserted in reward votes";
-    return false;
-  }
-
-  if (auto vote_is_valid = validateRewardVote(vote); !vote_is_valid.first) {
-    LOG(log_wr_) << "Reward vote " << vote->getHash() << " validation failed. Err: " << vote_is_valid.second;
-    return false;
-  }
-
-  if (!vote_mgr_->addRewardVote(vote)) {
-    LOG(log_dg_) << "Reward vote " << vote->getHash() << " already inserted in reward votes(race condition)";
-    return false;
-  }
-
-  return true;
-}
-
-std::pair<bool, std::string> ExtVotesPacketHandler::validateRewardVote(const std::shared_ptr<Vote> &vote) const {
-  const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
-
-  if (vote->getType() != PbftVoteTypes::cert_vote) {
-    std::stringstream err;
-    err << "Invalid type: " << static_cast<uint64_t>(vote->getType());
-    return {false, err.str()};
-  }
-
-  if (vote->getStep() != PbftStates::certify_state) {
-    std::stringstream err;
-    err << "Invalid step: " << static_cast<uint64_t>(vote->getStep());
-    return {false, err.str()};
-  }
-
-  if (vote->getPeriod() != current_pbft_period - 1) {
-    std::stringstream err;
-    err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
-    return {false, err.str()};
-  }
-
-  // TODO[1938]: implement ddos protection so user cannot sent indefinite number of valid reward votes with different
-  // rounds.
-
-  return validateVote(vote);
-}
-
 std::pair<bool, std::string> ExtVotesPacketHandler::validateVote(const std::shared_ptr<Vote> &vote) const {
   // Check is vote is unique per period, round & step & voter -> each address can generate just 1 vote
   // (for a value that isn't NBH) per period, round & step
@@ -223,7 +177,7 @@ bool ExtVotesPacketHandler::isPbftRelevantVote(const std::shared_ptr<Vote> &vote
     // Standard vote
     return true;
   } else if (vote->getPeriod() == current_pbft_period - 1 && vote->getType() == PbftVoteTypes::cert_vote) {
-    // Previous round cert vote - potential missing reward vote
+    // Previous round cert vote - potential reward vote
     return true;
   }
 

@@ -42,14 +42,6 @@ class ExtVotesPacketHandler : public PacketHandler {
                    const std::shared_ptr<TaraxaPeer>& peer, bool validate_max_round_step);
 
   /**
-   * @brief Process reward vote
-   *
-   * @param vote
-   * @return if vote was successfully processed, otherwise false
-   */
-  bool processRewardVote(const std::shared_ptr<Vote>& vote) const;
-
-  /**
    * @brief Checks is vote is relevant for current pbft state in terms of period, round and type
    * @param vote
    * @return true if vote is relevant for current pbft state, otherwise false
@@ -70,14 +62,6 @@ class ExtVotesPacketHandler : public PacketHandler {
   std::pair<bool, std::string> validateVotePeriodRoundStep(const std::shared_ptr<Vote>& vote,
                                                            const std::shared_ptr<TaraxaPeer>& peer,
                                                            bool validate_max_round_step);
-
-  /**
-   * @brief Validates reward vote
-   *
-   * @param vote to be validated
-   * @return <true, ""> vote validation passed, otherwise <false, "err msg">
-   */
-  std::pair<bool, std::string> validateRewardVote(const std::shared_ptr<Vote>& vote) const;
 
   /**
    * @brief Common validation for all types of votes

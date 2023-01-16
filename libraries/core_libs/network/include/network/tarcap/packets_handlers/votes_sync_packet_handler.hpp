@@ -12,13 +12,6 @@ class VotesSyncPacketHandler final : public ExtVotesPacketHandler {
                          const addr_t& node_addr);
 
   /**
-   * @brief Send all previous round next votes
-   *
-   * @param rebroadcast if rebroadcast is true, all votes are resent to all peers
-   */
-  void broadcastPreviousRoundNextVotesBundle(bool rebroadcast = false);
-
-  /**
    * @brief Sends pbft votes bundle to connected peers
    *
    * @param votes Votes to send

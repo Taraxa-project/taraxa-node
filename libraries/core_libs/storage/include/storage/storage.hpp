@@ -105,7 +105,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(pbft_head);
     COLUMN(latest_round_own_votes);             // own votes of any type for the latest round
     COLUMN(latest_round_two_t_plus_one_votes);  // 2t+1 votes bundles of any type for the latest round
-    COLUMN(latest_reward_votes);                // latest reward votes - cert votes for the latest finalized block
+    COLUMN(latest_reward_votes);                // extra reward votes on top of 2t+1 cert votes bundle from
+                                                // latest_round_two_t_plus_one_votes
     // TODO: we are saving here only our own votes so we should either fix it or rename the column
     // TODO: we can save here all of our own votes + bundles of 2t+1 soft votes & next votes for previous round
     //       we would keep last 2 rounds here -> on new period everything id removed, on new round previous round is

@@ -65,14 +65,6 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
 
   processVote(vote, pbft_block, peer, true);
 
-  // TODO: remove once we get reward votes from verified_votes_ -> this should work but does not handle edge cases
-  if (vote->getPeriod() == current_pbft_period - 1 && vote->getType() == PbftVoteTypes::cert_vote) {
-    // potential reward vote
-    if (!processRewardVote(vote)) {
-      return;
-    }
-  }
-
   // Do not mark it before, as peers have small caches of known votes. Only mark gossiping votes
   peer->markVoteAsKnown(vote_hash);
   onNewPbftVote(vote, pbft_block);

@@ -48,7 +48,11 @@ VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config,
 
   loadVotesFromDb(db_->getAllTwoTPlusOneVotes());
   loadVotesFromDb(db_->getOwnVerifiedVotes());
-  loadVotesFromDb(db_->getRewardVotes());
+
+  if (const auto reward_votes = db_->getRewardVotes(); !reward_votes.empty()) {
+    loadVotesFromDb(reward_votes);
+    resetRewardVotesInfo(reward_votes[0]->getPeriod(), reward_votes[0]->getRound(), reward_votes[0]->getBlockHash());
+  }
 }
 
 void VoteManager::setNetwork(std::weak_ptr<Network> network) { network_ = std::move(network); }
@@ -173,12 +177,6 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
     return false;
   }
 
-  // TODO: this is locking the same verified_votes_access_ as few lines below
-  if (!insertUniqueVote(vote)) {
-    LOG(log_wr_) << "Non unique vote " << vote->getHash().abridged() << " (race condition)";
-    return false;
-  }
-
   // TODO: solve two_t_plus_one that is received always for cert vote type...
   const auto two_t_plus_one = getPbftTwoTPlusOne(vote->getPeriod() - 1);
   const auto vote_block_hash = vote->getBlockHash();
@@ -186,20 +184,19 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
   {
     std::scoped_lock lock(verified_votes_access_);
 
-    // It is possible that period just changed and validated vote is now a round behind and possibly a reward vote
-    // TODO: if we keep reward votes inside verified_votes_, we would not need this extra handling
+    if (!insertUniqueVote(vote)) {
+      LOG(log_wr_) << "Non unique vote " << vote->getHash().abridged() << " (race condition)";
+      return false;
+    }
+
+    // Old vote, ignore unless it is a reward vote
+    bool is_valid_potential_reward_vote = false;
     if (vote->getPeriod() < current_pbft_period_) {
-      // Old vote, ignore unless it is a reward vote
-      if (vote->getPeriod() == current_pbft_period_ - 1 && vote->getType() == PbftVoteTypes::cert_vote) {
-        LOG(log_dg_) << "Add vote " << vote->getHash().abridged() << " into the reward votes instead of verified votes";
-        addRewardVote(vote, false);
+      if (is_valid_potential_reward_vote = isValidRewardVote(vote); !is_valid_potential_reward_vote) {
+        LOG(log_tr_) << "Old vote " << vote->getHash().abridged() << " vote period" << vote->getPeriod()
+                     << " current period " << current_pbft_period_;
         return false;
       }
-
-      // Old vote, ignore it
-      LOG(log_tr_) << "Old vote " << vote->getHash().abridged() << " vote period" << vote->getPeriod()
-                   << " current period " << current_pbft_period_;
-      return false;
     }
 
     auto found_period_it = verified_votes_.find(vote->getPeriod());
@@ -239,12 +236,20 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
       return false;
     }
 
+    // Save in db only those reward votes that have the same round as round during which we pushed the block into chain
+    if (is_valid_potential_reward_vote && reward_votes_round_ == vote->getRound()) {
+      db_->saveRewardVote(vote);
+    }
+
     const auto total_weight = (found_voted_value_it->second.first += weight);
 
     // Set 2t+1 voted block
     if (total_weight >= two_t_plus_one) {
-      auto saveTwoTPlusOneVotesInDb = [this, &found_round_it, &found_voted_value_it](TwoTPlusOneVotedBlockType two_plus_one_voted_block_type, const std::shared_ptr<Vote> vote) {
-        auto found_two_t_plus_one_voted_block = found_round_it->second.two_t_plus_one_voted_blocks_.find(two_plus_one_voted_block_type);
+      auto saveTwoTPlusOneVotesInDb = [this, &found_round_it, &found_voted_value_it](
+                                          TwoTPlusOneVotedBlockType two_plus_one_voted_block_type,
+                                          const std::shared_ptr<Vote> vote) {
+        auto found_two_t_plus_one_voted_block =
+            found_round_it->second.two_t_plus_one_voted_blocks_.find(two_plus_one_voted_block_type);
 
         // 2t+1 votes block already set
         if (found_two_t_plus_one_voted_block != found_round_it->second.two_t_plus_one_voted_blocks_.end()) {
@@ -260,7 +265,7 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
 
         // Insert new 2t+1 voted block
         found_round_it->second.two_t_plus_one_voted_blocks_.insert(
-          {two_plus_one_voted_block_type, std::make_pair(vote->getBlockHash(), vote->getStep())});
+            {two_plus_one_voted_block_type, std::make_pair(vote->getBlockHash(), vote->getStep())});
 
         // Save only current pbft period & round 2t+1 votes bundles into db
         if (vote->getPeriod() == current_pbft_period_ && vote->getRound() == current_pbft_round_) {
@@ -384,7 +389,7 @@ std::pair<bool, std::string> VoteManager::isUniqueVote(const std::shared_ptr<Vot
   return {false, err.str()};
 }
 
-bool VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote, bool lock_verified_votes_mutex) {
+bool VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote) {
   auto insertVote = [this](const std::shared_ptr<Vote>& vote) -> bool {
     auto found_period_it = verified_votes_.find(vote->getPeriod());
     if (found_period_it == verified_votes_.end()) {
@@ -450,47 +455,7 @@ bool VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote, bool lock_
     return true;
   };
 
-  // TODO: this if else locking will be deleted once we get reward votes from verified_votes_
-  if (lock_verified_votes_mutex) {
-    std::scoped_lock lock(verified_votes_access_);
-    return insertVote(vote);
-  }
-
   return insertVote(vote);
-}
-
-// cleanup votes < pbft_round
-void VoteManager::cleanupVotesByRound(PbftPeriod pbft_period, PbftRound pbft_round) {
-  // Remove verified votes
-  auto batch = db_->createWriteBatch();
-  {
-    std::scoped_lock lock(verified_votes_access_);
-    auto found_period_it = verified_votes_.find(pbft_period);
-
-    // cleanupVotesByRound should not be called in case there are not votes for previous round
-    if (found_period_it == verified_votes_.end()) {
-      assert(false);
-      return;
-    }
-
-    auto round_it = found_period_it->second.begin();
-    while (round_it != found_period_it->second.end() && round_it->first < pbft_round) {
-      for (const auto& step : round_it->second.step_votes) {
-        for (const auto& voted_value : step.second.votes) {
-          for (const auto& v : voted_value.second.second) {
-            // TODO: if we get reward votes from verified_votes_, we would not need this extra handling...
-            if (v.second->getType() == PbftVoteTypes::cert_vote) {
-              // The verified cert vote may be reward vote
-              addRewardVote(v.second, false);
-            }
-          }
-        }
-      }
-      round_it = found_period_it->second.erase(round_it);
-    }
-
-  }  // verified_votes_access_
-  db_->commitWriteBatch(batch);
 }
 
 void VoteManager::cleanupVotesByPeriod(PbftPeriod pbft_period) {
@@ -500,20 +465,6 @@ void VoteManager::cleanupVotesByPeriod(PbftPeriod pbft_period) {
     std::scoped_lock lock(verified_votes_access_);
     auto it = verified_votes_.begin();
     while (it != verified_votes_.end() && it->first < pbft_period) {
-      for (const auto& round : it->second) {
-        for (const auto& step : round.second.step_votes) {
-          for (const auto& voted_value : step.second.votes) {
-            for (const auto& v : voted_value.second.second) {
-              if (v.second->getType() == PbftVoteTypes::cert_vote) {
-                // The verified cert vote may be reward vote
-                // TODO: if we get reward votes from verified_votes_, we would not need this extra handling...
-                addRewardVote(v.second, false);
-              }
-            }
-          }
-        }
-      }
-
       it = verified_votes_.erase(it);
     }
   }
@@ -584,158 +535,150 @@ std::optional<PbftRound> VoteManager::determineNewRound(PbftPeriod current_pbft_
   return {};
 }
 
-uint64_t VoteManager::getRewardVotesPbftBlockPeriod() {
-  std::shared_lock lock(reward_votes_mutex_);
-  return reward_votes_pbft_block_.second;
+PbftPeriod VoteManager::getRewardVotesPbftBlockPeriod() {
+  std::shared_lock lock(reward_votes_info_mutex_);
+  return reward_votes_period_;
 }
 
-bool VoteManager::addRewardVote(const std::shared_ptr<Vote>& vote, bool lock_verified_votes_mutex) {
-  std::unique_lock lock(reward_votes_mutex_);
+void VoteManager::resetRewardVotesInfo(PbftPeriod period, PbftRound round, const blk_hash_t& block_hash) {
+  std::scoped_lock lock(reward_votes_info_mutex_);
+
+  reward_votes_block_hash_ = block_hash;
+  reward_votes_period_ = period;
+  reward_votes_round_ = round;
+}
+
+bool VoteManager::isValidRewardVote(const std::shared_ptr<Vote>& vote) const {
+  std::shared_lock lock(reward_votes_info_mutex_);
+
   if (vote->getType() != PbftVoteTypes::cert_vote) {
-    LOG(log_wr_) << "Invalid type: " << static_cast<uint64_t>(vote->getType());
+    LOG(log_tr_) << "Invalid reward vote: type " << static_cast<uint64_t>(vote->getType())
+                 << " is different from cert type";
     return false;
   }
 
-  if (vote->getStep() != 3) {
-    LOG(log_wr_) << "Invalid step: " << vote->getStep();
+  if (vote->getBlockHash() != reward_votes_block_hash_) {
+    LOG(log_tr_) << "Invalid reward vote: block hash " << vote->getBlockHash()
+                 << " is different from reward_votes_block_hash " << reward_votes_block_hash_;
     return false;
   }
 
-  const auto [reward_votes_block_hash, reward_votes_block_period] = reward_votes_pbft_block_;
-  if (vote->getBlockHash() != reward_votes_block_hash) {
-    LOG(log_wr_) << "Invalid block hash " << vote->getBlockHash() << " -> different from reward_votes_block_hash "
-                 << reward_votes_block_hash;
+  if (vote->getPeriod() != reward_votes_period_) {
+    LOG(log_tr_) << "Invalid reward vote: period " << vote->getPeriod()
+                 << " is different from reward_votes_block_period " << reward_votes_period_;
     return false;
   }
 
-  if (vote->getPeriod() != reward_votes_block_period) {
-    LOG(log_wr_) << "Invalid period " << vote->getPeriod() << " -> different from reward_votes_block_period "
-                 << reward_votes_block_period;
+  // !!! Important: Different nodes might finalize/push the same block in different rounds and therefore they can
+  // include different reward votes when creating new block - accept all cert votes with matching period & block_hash
+  // TODO[1938]: implement ddos protection so user cannot sent indefinite number of valid reward votes with different
+  // round Dummy round protection - if we pushed the block in round reward_votes_round_, the rest of the network should
+  // push it shortly after - 100 rounds buffer
+  if (vote->getRound() > reward_votes_round_ + 100) {
+    LOG(log_wr_) << "Invalid reward vote: round " << vote->getRound() << " exceeded max round "
+                 << reward_votes_round_ + 100;
     return false;
-  }
-
-  if (!insertUniqueVote(vote, lock_verified_votes_mutex)) {
-    LOG(log_wr_) << "Non unique vote " << vote->getHash().abridged() << " (race condition)";
-    return false;
-  }
-
-  // If reward vote is from another round it should not be added to last block cert votes which should all be the same
-  // round
-  if (reward_votes_round_ == vote->getRound()) {
-    db_->saveLastBlockCertVote(vote);
-  }
-
-  return reward_votes_.insert({vote->getHash(), vote}).second;
-}
-
-bool VoteManager::isInRewardsVotes(const vote_hash_t& vote_hash) const {
-  std::shared_lock lock(reward_votes_mutex_);
-  return reward_votes_.contains(vote_hash);
-}
-
-bool VoteManager::checkRewardVotes(const std::shared_ptr<PbftBlock>& pbft_block) {
-  if (pbft_block->getPeriod() == 1) [[unlikely]] {
-    // First period no reward votes
-    return true;
-  }
-
-  const auto pbft_block_period = pbft_block->getPeriod();
-  const auto& reward_votes_hashes = pbft_block->getRewardVotes();
-  std::shared_lock lock(reward_votes_mutex_);
-  for (const auto& v : reward_votes_hashes) {
-    const auto found_reward_vote = reward_votes_.find(v);
-    if (found_reward_vote == reward_votes_.end()) {
-      LOG(log_er_) << "Missing reward vote " << v;
-      return false;
-    }
-
-    // This should never happen
-    if (found_reward_vote->second->getPeriod() + 1 != pbft_block_period) [[unlikely]] {
-      LOG(log_er_) << "Reward vote has wrong period " << found_reward_vote->second->getPeriod()
-                   << ", pbft block period: " << pbft_block_period;
-      assert(true);
-      return false;
-    }
   }
 
   return true;
 }
 
-std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> VoteManager::replaceRewardVotes(
-    const std::vector<std::shared_ptr<Vote>>& cert_votes) {
-  if (cert_votes.empty()) return {};
-
-  std::unique_lock lock(reward_votes_mutex_);
-  auto reward_votes = std::move(reward_votes_);
-  reward_votes_.clear();
-  reward_votes_pbft_block_ = {cert_votes[0]->getBlockHash(), cert_votes[0]->getPeriod()};
-
-  // It is possible that incoming reward votes might have another round because it is possible that same block was cert
-  // voted in different rounds on different nodes but this is a reference round for any pbft block this node might
-  // propose
-  reward_votes_round_ = cert_votes[0]->getRound();
-  for (auto& v : cert_votes) {
-    assert(v->getWeight());
-    reward_votes_.insert({v->getHash(), std::move(v)});
-  }
-  return reward_votes;
-}
-
-std::vector<std::shared_ptr<Vote>> VoteManager::getAllRewardVotes() {
-  std::vector<std::shared_ptr<Vote>> reward_votes;
-
-  std::shared_lock lock(reward_votes_mutex_);
-  for (const auto& v : reward_votes_) {
-    reward_votes.push_back(v.second);
+std::pair<bool, std::vector<std::shared_ptr<Vote>>> VoteManager::checkRewardVotes(
+    const std::shared_ptr<PbftBlock>& pbft_block, bool copy_votes) {
+  if (pbft_block->getPeriod() == 1) [[unlikely]] {
+    // First period no reward votes
+    return {true, {}};
   }
 
-  return reward_votes;
-}
-
-std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotesByHashes(const std::vector<vote_hash_t>& vote_hashes) {
-  std::vector<std::shared_ptr<Vote>> reward_votes;
-
-  std::shared_lock lock(reward_votes_mutex_);
-  for (auto vote_hash : vote_hashes) {
-    auto it = reward_votes_.find(vote_hash);
-    if (it != reward_votes_.end()) {
-      reward_votes.emplace_back(it->second);
-    } else {
-      LOG(log_dg_) << "Missing reward vote: " << vote_hash;
-      return {};
+  auto getRewardVotes = [](const std::map<PbftRound, VerifiedVotes>::iterator round_votes_it,
+                           const std::vector<vote_hash_t>& vote_hashes, const blk_hash_t& block_hash,
+                           bool copy_votes) -> std::pair<bool, std::vector<std::shared_ptr<Vote>>> {
+    // Get cert votes
+    const auto found_step_votes_it =
+        round_votes_it->second.step_votes.find(static_cast<PbftStep>(PbftVoteTypes::cert_vote));
+    if (found_step_votes_it == round_votes_it->second.step_votes.end()) {
+      return {false, {}};
     }
+
+    // Find verified votes for specified block_hash
+    const auto found_verified_votes_it = found_step_votes_it->second.votes.find(block_hash);
+    if (found_verified_votes_it == found_step_votes_it->second.votes.end()) {
+      return {false, {}};
+    }
+
+    std::vector<std::shared_ptr<Vote>> found_reward_votes;
+    const auto& potential_reward_votes = found_verified_votes_it->second.second;
+    for (const auto& vote_hash : vote_hashes) {
+      const auto found_vote = potential_reward_votes.find(vote_hash);
+      if (found_vote == potential_reward_votes.end()) {
+        // Reward vote not found
+        return {false, {}};
+      }
+
+      if (copy_votes) {
+        found_reward_votes.push_back(found_vote->second);
+      }
+    }
+
+    return {true, std::move(found_reward_votes)};
+  };
+
+  std::shared_lock reward_votes_info_lock(reward_votes_info_mutex_);
+  std::shared_lock verified_votes_lock(verified_votes_access_);
+
+  const auto found_period_it = verified_votes_.find(reward_votes_period_);
+  if (found_period_it == verified_votes_.end()) {
+    LOG(log_er_) << "No reward votes found for period " << reward_votes_period_;
+    assert(false);
+    return {false, {}};
   }
 
-  return reward_votes;
+  const auto found_round_it = found_period_it->second.find(reward_votes_round_);
+  if (found_round_it == found_period_it->second.end()) {
+    LOG(log_er_) << "No reward votes found for round " << reward_votes_round_;
+    assert(false);
+    return {false, {}};
+  }
+
+  const auto reward_votes_hashes = pbft_block->getRewardVotes();
+
+  // Most of the time we should get the reward votes based on reward_votes_period_ and reward_votes_round_
+  auto reward_votes = getRewardVotes(found_round_it, reward_votes_hashes, reward_votes_block_hash_, copy_votes);
+  if (reward_votes.first) [[likely]] {
+    return {true, std::move(reward_votes.second)};
+  }
+
+  // It could happen though in some edge cases that some nodes pushed the same block in different round than we did
+  // and when they included the reward votes in new block, these votes have different round than what saved in
+  // reward_votes_round_ -> therefore we have to iterate over all rounds and find the correct round
+  for (auto round_it = found_period_it->second.rbegin(); round_it != found_period_it->second.rend(); round_it++) {
+    const auto tmp_reward_votes =
+        getRewardVotes(found_round_it, reward_votes_hashes, reward_votes_block_hash_, copy_votes);
+    if (!tmp_reward_votes.first) {
+      continue;
+    }
+
+    return {true, std::move(tmp_reward_votes.second)};
+  }
+
+  LOG(log_er_) << "No reward votes found for round " << reward_votes_block_hash_;
+  return {false, {}};
 }
 
 std::vector<std::shared_ptr<Vote>> VoteManager::getProposeRewardVotes() {
-  std::vector<std::shared_ptr<Vote>> reward_votes;
+  std::shared_lock lock(reward_votes_info_mutex_);
+  const auto reward_votes = getTwoTPlusOneVotedBlockVotes(reward_votes_period_, reward_votes_round_,
+                                                          TwoTPlusOneVotedBlockType::CertVotedBlock);
 
-  std::shared_lock lock(reward_votes_mutex_);
-  for (const auto& v : reward_votes_) {
-    // Select only reward votes with round == round during which node pushed previous block into the chain
-    if (v.second->getRound() == reward_votes_round_) {
-      reward_votes.push_back(v.second);
-    }
+  if (!reward_votes.empty() && reward_votes[0]->getBlockHash() != reward_votes_block_hash_) {
+    // This should never happen
+    LOG(log_er_) << "Proposal reward votes block hash mismatch. reward_votes_block_hash_ " << reward_votes_block_hash_
+                 << ", reward_votes[0]->getBlockHash() " << reward_votes[0]->getBlockHash();
+    assert(false);
+    return {};
   }
 
   return reward_votes;
-}
-
-void VoteManager::sendRewardVotes(const blk_hash_t& pbft_block_hash, bool rebroadcast) {
-  {
-    std::shared_lock lock(reward_votes_mutex_);
-    if (reward_votes_pbft_block_.first != pbft_block_hash) return;
-  }
-
-  auto reward_votes = getAllRewardVotes();
-  if (reward_votes.empty()) return;
-
-  if (auto net = network_.lock()) {
-    net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(reward_votes),
-                                                                                             rebroadcast);
-  }
 }
 
 uint64_t VoteManager::getPbftSortitionThreshold(uint64_t total_dpos_votes_count, PbftVoteTypes vote_type) const {

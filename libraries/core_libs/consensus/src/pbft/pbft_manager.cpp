@@ -112,20 +112,6 @@ void PbftManager::run() {
     finalize_(std::move(period_data), db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
   }
 
-  // Verify that last block cert votes point to the last block hash
-  auto last_block_cert_votes = db_->getLastBlockCertVotes();
-  for (auto it = last_block_cert_votes.begin(); it != last_block_cert_votes.end();) {
-    if ((*it)->getBlockHash() != pbft_chain_->getLastPbftBlockHash()) {
-      LOG(log_er_) << "Found invalid last block cert vote: " << **it;
-      db_->removeLastBlockCertVotes((*it)->getHash());
-      it = last_block_cert_votes.erase(it);
-    } else {
-      ++it;
-    }
-  }
-
-  vote_mgr_->replaceRewardVotes(last_block_cert_votes);
-
   // Initialize PBFT status
   // TODO: put this inside PbftManager constructor
   initialState();
@@ -367,9 +353,11 @@ bool PbftManager::tryPushCertVotesBlock() {
 bool PbftManager::advancePeriod() {
   resetPbftConsensus(1 /* round */);
 
-  // Cleanup previous period votes in vote manager
   const auto new_period = getPbftPeriod();
-  vote_mgr_->cleanupVotesByPeriod(new_period);
+
+  // Cleanup previous period votes in vote manager
+  // !!!Important: we need previous period votes to get reward votes for current period block
+  vote_mgr_->cleanupVotesByPeriod(new_period - 1);
 
   // Cleanup proposed blocks
   proposed_blocks_.cleanupProposedPbftBlocksByPeriod(new_period);
@@ -391,15 +379,6 @@ bool PbftManager::advanceRound() {
 
   // Reset consensus
   resetPbftConsensus(*new_round);
-
-  if (new_round >= 3) {
-    // Move to a new round, cleanup pre-previous round votes in vote manager, previous round is kept to keep information
-    // about 2t+1 next voted value in previous round
-    vote_mgr_->cleanupVotesByRound(current_pbft_period, *new_round - 1);
-
-    // Cleanup proposed blocks for determined round - 1. We must keep previous round proposed blocks for voting purposes
-    proposed_blocks_.cleanupProposedPbftBlocksByRound(current_pbft_period, *new_round - 1);
-  }
 
   LOG(log_nf_) << "Round advanced to: " << *new_round << ", period " << current_pbft_period << ", step " << step_;
 
@@ -519,7 +498,7 @@ void PbftManager::initialState() {
 
   // Load all proposed block from db to memory
   for (const auto &block : db_->getProposedPbftBlocks()) {
-    proposed_blocks_.pushProposedPbftBlock(block.first, block.second, false);
+    proposed_blocks_.pushProposedPbftBlock(block, false);
   }
 
   // TODO: broadcasrt own erified votes - question is when shiuld be this done ?? - see logic in retreieveVotes_()
@@ -646,32 +625,37 @@ void PbftManager::loopBackFinishState_() {
 }
 
 void PbftManager::broadcastVotes(bool rebroadcast) {
-  auto [round, period] = getPbftRoundAndPeriod();
   auto net = network_.lock();
   if (!net) {
     return;
   }
 
-  // TODO: we could somehow unite sending of reward votes and previouound next votes
-  //       basically need to call getTwoTPlusOneVotedBlockVotes(soft_vote) and getAllTwoTPlusOneNextVotes and then
-  //       send it through onNewPbftVotesBundle
+  auto [round, period] = getPbftRoundAndPeriod();
 
   // Broadcast 2t+1 soft votes
   auto soft_votes = vote_mgr_->getTwoTPlusOneVotedBlockVotes(period, round, TwoTPlusOneVotedBlockType::SoftVotedBlock);
   if (!soft_votes.empty()) {
+    LOG(log_dg_) << "Broadcast soft votes for period " << period << ", round " << round;
     net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(soft_votes),
                                                                                              rebroadcast);
   }
 
   // Broadcast reward votes - previous round 2t+1 cert votes
-  // TODO: can be reworked so we get cert votes for previous round by getTwoTPlusOneVotedBlockVotes and send it
-  vote_mgr_->sendRewardVotes(getLastPbftBlockHash(), rebroadcast);
+  auto reward_votes = vote_mgr_->getProposeRewardVotes();
+  if (!reward_votes.empty()) {
+    LOG(log_dg_) << "Broadcast propose reward votes for period " << period << ", round " << round;
+    net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(reward_votes),
+                                                                                             rebroadcast);
+  }
 
   // Broadcast previous round 2t+1 next votes
-  LOG(log_dg_) << "Broadcast next votes for previous round. In period " << period << ", round " << round << " step "
-               << step_;
-  net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->broadcastPreviousRoundNextVotesBundle(
-      rebroadcast);
+  if (round > 1) {
+    if (auto next_votes = vote_mgr_->getAllTwoTPlusOneNextVotes(period, round - 1); !next_votes.empty()) {
+      LOG(log_dg_) << "Broadcast next votes for period " << period << ", round " << round - 1;
+      net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(next_votes),
+                                                                                               rebroadcast);
+    }
+  }
 }
 
 void PbftManager::printVotingSummary() const {
@@ -792,13 +776,24 @@ bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &propo
     return false;
   }
 
+  // Broadcast reward votes - previous round 2t+1 cert votes
+  // TODO: here we should send the actual votes that were included in proposed block
+  auto reward_votes = vote_mgr_->getProposeRewardVotes();
+  if (!reward_votes.empty()) {
+    if (auto net = network_.lock()) {
+      LOG(log_dg_) << "Broadcast propose reward votes for period " << current_pbft_period << ", round "
+                   << current_pbft_round;
+      net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(reward_votes),
+                                                                                               false);
+    }
+  }
+
   if (!placeVote(propose_vote, "propose vote", proposed_block)) {
     LOG(log_er_) << "Unable place propose vote";
     return false;
   }
 
   proposed_blocks_.pushProposedPbftBlock(proposed_block, propose_vote);
-  vote_mgr_->sendRewardVotes(proposed_block->getPrevBlockHash());
 
   return true;
 }
@@ -835,6 +830,7 @@ void PbftManager::proposeBlock_() {
       LOG(log_nf_) << " 2t+1 next voted kNullBlockHash in previous round " << round - 1;
     }
 
+    // TODO[2276]: Ensures that only one PBFT block per period can be proposed -> does this protection work ?
     proposed_block_ = proposePbftBlock_();
     if (proposed_block_) {
       genAndPlaceProposeVote(proposed_block_);
@@ -943,7 +939,7 @@ void PbftManager::certifyBlock_() {
   }
 
   // Get 2t+1 soft voted bock
-  const auto soft_voted_block = getValidPbftProposedBlock(period, round, *soft_voted_block_hash);
+  const auto soft_voted_block = getValidPbftProposedBlock(period, *soft_voted_block_hash);
   if (soft_voted_block == nullptr) {
     LOG(log_dg_) << "Certify: invalid 2t+1 soft voted block " << *soft_voted_block_hash << ". Period " << period
                  << ",  round " << round;
@@ -1049,7 +1045,7 @@ void PbftManager::secondFinish_() {
     }
 
     // Get 2t+1 soft voted bock
-    const auto soft_voted_block = getValidPbftProposedBlock(period, round, *soft_voted_block_hash);
+    const auto soft_voted_block = getValidPbftProposedBlock(period, *soft_voted_block_hash);
     if (soft_voted_block == nullptr) {
       LOG(log_dg_) << "Second finish: invalid 2t+1 soft voted block " << *soft_voted_block_hash << ". Period " << period
                    << ",  round " << round;
@@ -1280,27 +1276,7 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(PbftRound round, Pb
   // Each leader candidate with <vote_signature_hash, vote>
   std::map<h256, std::shared_ptr<Vote>> leader_candidates;
 
-  for (auto const &v : votes) {
-    if (v->getRound() != round) {
-      LOG(log_er_) << "Vote round is different than current round " << round << ". Vote " << v;
-      continue;
-    }
-
-    if (v->getPeriod() != period) {
-      LOG(log_er_) << "Vote period is different than wanted new period " << period << ". Vote " << v;
-      continue;
-    }
-
-    if (v->getStep() != 1) {
-      LOG(log_er_) << "Vote step is not 1. Vote " << v;
-      continue;
-    }
-
-    if (v->getType() != PbftVoteTypes::propose_vote) {
-      LOG(log_er_) << "Vote type is not propose vote type. Vote " << v;
-      continue;
-    }
-
+  for (const auto &v : votes) {
     const auto proposed_block_hash = v->getBlockHash();
     if (proposed_block_hash == kNullBlockHash) {
       LOG(log_er_) << "Propose block hash should not be NULL. Vote " << v;
@@ -1367,7 +1343,7 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
   }
 
   // Validates reward votes
-  if (!vote_mgr_->checkRewardVotes(pbft_block)) {
+  if (!vote_mgr_->checkRewardVotes(pbft_block, false).first) {
     LOG(log_er_) << "Failed verifying reward votes for proposed PBFT block " << pbft_block_hash;
     return false;
   }
@@ -1440,11 +1416,12 @@ bool PbftManager::pushCertVotedPbftBlockIntoChain_(const std::shared_ptr<PbftBlo
     period_data.transactions = trx_mgr_->getNonfinalizedTrx(transactions_to_query);
   }
 
-  period_data.previous_block_cert_votes = vote_mgr_->getRewardVotesByHashes(period_data.pbft_blk->getRewardVotes());
-  if (period_data.previous_block_cert_votes.size() < period_data.pbft_blk->getRewardVotes().size()) {
+  auto reward_votes = vote_mgr_->checkRewardVotes(period_data.pbft_blk, true);
+  if (!reward_votes.first) {
     LOG(log_er_) << "Missing reward votes in cert voted block " << pbft_block->getBlockHash();
     return false;
   }
+  period_data.previous_block_cert_votes = std::move(reward_votes.second);
 
   if (!pushPbftBlock_(std::move(period_data), std::move(current_round_cert_votes))) {
     LOG(log_er_) << "Failed push cert voted block " << pbft_block->getBlockHash() << " into PBFT chain";
@@ -1597,8 +1574,10 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
                  [](const DagBlock &dag_block) { return dag_block.getHash(); });
 
   db_->savePeriodData(period_data, batch);
-  auto reward_votes = vote_mgr_->replaceRewardVotes(cert_votes);
-  db_->addLastBlockCertVotesToBatch(cert_votes, reward_votes, batch);
+
+  // Replace current reward votes
+  vote_mgr_->resetRewardVotesInfo(cert_votes[0]->getPeriod(), cert_votes[0]->getRound(), cert_votes[0]->getBlockHash());
+  db_->replaceRewardVotes(cert_votes);
 
   // pass pbft with dag blocks and transactions to adjust difficulty
   if (period_data.pbft_blk->getPivotDagBlockHash() != kNullBlockHash) {
@@ -1678,8 +1657,10 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
   }
 
   // Check reward votes
-  if (!vote_mgr_->checkRewardVotes(period_data.pbft_blk)) {
-    LOG(log_er_) << "Failed verifying reward votes. Disconnect malicious peer " << node_id.abridged();
+  auto reward_votes = vote_mgr_->checkRewardVotes(period_data.pbft_blk, true);
+  if (!reward_votes.first) {
+    LOG(log_er_) << "Failed verifying reward votes for block " << pbft_block_hash << ". Disconnect malicious peer "
+                 << node_id.abridged();
     sync_queue_.clear();
     net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
     return std::nullopt;
@@ -1689,16 +1670,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
   // pbft_chain_->findPbftBlockInChain(pbft_block_hash) and it's cert votes were not verified here, they are part of
   // vote_manager so we need to replace them as they are not verified period_data structure
   if (period_data.previous_block_cert_votes.size() && !period_data.previous_block_cert_votes.front()->getWeight()) {
-    if (auto votes = vote_mgr_->getRewardVotesByHashes(period_data.pbft_blk->getRewardVotes()); votes.size()) {
-      if (votes.size() < period_data.pbft_blk->getRewardVotes().size()) {
-        LOG(log_er_) << "Failed verifying reward votes. PBFT block " << pbft_block_hash << ".Disconnect malicious peer "
-                     << node_id.abridged();
-        sync_queue_.clear();
-        net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
-        return std::nullopt;
-      }
-      period_data.previous_block_cert_votes = std::move(votes);
-    }
+    period_data.previous_block_cert_votes = std::move(reward_votes.second);
   }
 
   // Validate cert votes
@@ -1800,6 +1772,8 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
 
     assert(v->getWeight());
     votes_weight += *v->getWeight();
+
+    vote_mgr_->addVerifiedVote(v);
   }
 
   const auto two_t_plus_one = vote_mgr_->getPbftTwoTPlusOne(first_vote_period - 1);
