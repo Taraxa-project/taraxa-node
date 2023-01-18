@@ -116,6 +116,12 @@ spec:
               value: "{{ $value }}"
           {{- end }}
           {{- end }}
+          {{ if .Values.node.nodePort.enabled }}
+          {{- range $key, $value := .Values.node.nodePort.ports }}
+            - name: ADVERTISED_PORT_{{ $key }}
+              value: "{{ $value }}"
+          {{- end }}
+          {{- end }}
           ports:
             {{- toYaml .Values.node.ports | nindent 12 }}
           {{- if .Values.node.probes.enabled }}
