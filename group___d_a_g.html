@@ -1526,6 +1526,9 @@ Collaboration diagram for taraxa::DagBlockProposer:</div>
 <tr class="separator:ac2a8095b889d4c06237b440ee683991c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aecedfcd13d08fb7c9d36566fef46f787"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aecedfcd13d08fb7c9d36566fef46f787">getProposedBlocksCount</a> () const</td></tr>
 <tr class="separator:aecedfcd13d08fb7c9d36566fef46f787"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0df4fbcbf64964f0ede7a8bbea223cc2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a0df4fbcbf64964f0ede7a8bbea223cc2">selectDagBlockTips</a> (const <a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a> &amp;frontier_tips) const</td></tr>
+<tr class="memdesc:a0df4fbcbf64964f0ede7a8bbea223cc2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Select tips for <a class="el" href="classtaraxa_1_1_dag_block.html" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b...">DagBlock</a> proposal up to max allowed.  <a href="group___d_a_g.html#a0df4fbcbf64964f0ede7a8bbea223cc2">More...</a><br /></td></tr>
+<tr class="separator:a0df4fbcbf64964f0ede7a8bbea223cc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Member Functions</h3></td></tr>
 <tr class="memitem:a4ecfec97096f3121935880335571db78"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a4ecfec97096f3121935880335571db78">createDagBlock</a> (<a class="el" href="structtaraxa_1_1_dag_frontier.html">DagFrontier</a> &amp;&amp;frontier, <a class="el" href="namespacetaraxa.html#ac29ce7c6f0fae63e548b523170910526">level_t</a> level, const <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> &amp;trxs, std::vector&lt; uint64_t &gt; &amp;&amp;estimations, <a class="el" href="classtaraxa_1_1vdf__sortition_1_1_vdf_sortition.html">VdfSortition</a> &amp;&amp;vdf) const</td></tr>
 <tr class="memdesc:a4ecfec97096f3121935880335571db78"><td class="mdescLeft">&#160;</td><td class="mdescRight">Creates a new block with provided data.  <a href="group___d_a_g.html#a4ecfec97096f3121935880335571db78">More...</a><br /></td></tr>
@@ -2018,6 +2021,33 @@ Collaboration diagram for taraxa::DagBlockProposer:</div>
 
 <p>Tries to propose new dag block. </p>
 <dl class="section return"><dt>Returns</dt><dd>true if successfully proposed, otherwise false </dd></dl>
+
+</div>
+</div>
+<a id="a0df4fbcbf64964f0ede7a8bbea223cc2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0df4fbcbf64964f0ede7a8bbea223cc2">&#9670;&nbsp;</a></span>selectDagBlockTips()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a> taraxa::DagBlockProposer::selectDagBlockTips </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a3b0dfef1d0e54a4410d95b131a6203b3">vec_blk_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>frontier_tips</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Select tips for <a class="el" href="classtaraxa_1_1_dag_block.html" title="DagBlock class is a DAG block class which main data is a list of transaction hashes included in the b...">DagBlock</a> proposal up to max allowed. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">frontier_tips</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>tips </dd></dl>
 
 </div>
 </div>
@@ -2579,6 +2609,7 @@ Collaboration diagram for taraxa::DagManager:</div>
 , <a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a122320ab35a2188727e599b3cc61d72f">IncorrectTransactionsEstimation</a>
 , <br />
 &#160;&#160;<a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a6acb71e475d0aaa76f18fde586c6d6db">BlockTooBig</a>
+, <a class="el" href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484adef7264cfb315c8a66080e035af83b16">FailedTipsVerification</a>
 <br />
  }</td></tr>
 <tr class="memdesc:a3445d6e089f93e4e521fb98a0699d484"><td class="mdescLeft">&#160;</td><td class="mdescRight">return type of verifyBlock  <a href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484">More...</a><br /></td></tr>
@@ -2814,6 +2845,7 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr><td class="fieldname"><a id="a3445d6e089f93e4e521fb98a0699d484a62018b502a00304fc02337ba19cdba0c"></a>ExpiredBlock&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a3445d6e089f93e4e521fb98a0699d484a122320ab35a2188727e599b3cc61d72f"></a>IncorrectTransactionsEstimation&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="a3445d6e089f93e4e521fb98a0699d484a6acb71e475d0aaa76f18fde586c6d6db"></a>BlockTooBig&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="a3445d6e089f93e4e521fb98a0699d484adef7264cfb315c8a66080e035af83b16"></a>FailedTipsVerification&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
 </div>

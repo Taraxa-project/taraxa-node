@@ -71,6 +71,7 @@ var group___d_a_g =
       [ "operator=", "group___d_a_g.html#a4c55ee1e958605b26c0242e3b5130ba4", null ],
       [ "operator=", "group___d_a_g.html#a378f2f625a428d2b1064bded3e36c1f7", null ],
       [ "proposeDagBlock", "group___d_a_g.html#a00f3ec13b42c2ce2c232642c661ac736", null ],
+      [ "selectDagBlockTips", "group___d_a_g.html#a0df4fbcbf64964f0ede7a8bbea223cc2", null ],
       [ "setNetwork", "group___d_a_g.html#ac2a8095b889d4c06237b440ee683991c", null ],
       [ "start", "group___d_a_g.html#a01d58209a9a9e3dabdc8e55f7acafcf8", null ],
       [ "stop", "group___d_a_g.html#a08cc3adaaf8e20414ae8d7fe01837ebd", null ],
@@ -227,7 +228,8 @@ var group___d_a_g =
         [ "NotEligible", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a916ec32bed391fc1def53a8e263ec400", null ],
         [ "ExpiredBlock", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a62018b502a00304fc02337ba19cdba0c", null ],
         [ "IncorrectTransactionsEstimation", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a122320ab35a2188727e599b3cc61d72f", null ],
-        [ "BlockTooBig", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a6acb71e475d0aaa76f18fde586c6d6db", null ]
+        [ "BlockTooBig", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a6acb71e475d0aaa76f18fde586c6d6db", null ],
+        [ "FailedTipsVerification", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484adef7264cfb315c8a66080e035af83b16", null ]
       ] ],
       [ "DagManager", "group___d_a_g.html#a77daf30c3c77830f8fbaeebd0ff02b16", null ],
       [ "DagManager", "group___d_a_g.html#aa0fe82cc22a187cab97099ef465bed02", null ],

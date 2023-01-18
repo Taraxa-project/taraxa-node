@@ -5,6 +5,7 @@ var constants_8hpp =
     [ "GLOBAL_CONST", "constants_8hpp.html#a0d9f9e3d1c27b680e799c858e31e0d45", null ],
     [ "GLOBAL_CONST", "constants_8hpp.html#adfe9ef8a9e899342e53c4753eae451f6", null ],
     [ "GLOBAL_CONST", "constants_8hpp.html#a198f44157b005998e37b60245f01e0f6", null ],
+    [ "kDagBlockMaxTips", "constants_8hpp.html#a9138e5e238c0d922c209de846ceb4cc5", null ],
     [ "kDagExpiryLevelLimit", "constants_8hpp.html#ad71e68c4976b8c6ed7407682d06505ab", null ],
     [ "kDefaultTransactionPoolSize", "constants_8hpp.html#a14fc5210f7f52dbf8a90d2a6b6de8f8d", null ],
     [ "kMaxLevelsPerPeriod", "constants_8hpp.html#ab2f5ec0c8b9d91b604a61ca8062d0505", null ],

@@ -12,6 +12,7 @@ var group___d_a_g_classtaraxa_1_1_dag_block_proposer =
     [ "operator=", "group___d_a_g.html#a4c55ee1e958605b26c0242e3b5130ba4", null ],
     [ "operator=", "group___d_a_g.html#a378f2f625a428d2b1064bded3e36c1f7", null ],
     [ "proposeDagBlock", "group___d_a_g.html#a00f3ec13b42c2ce2c232642c661ac736", null ],
+    [ "selectDagBlockTips", "group___d_a_g.html#a0df4fbcbf64964f0ede7a8bbea223cc2", null ],
     [ "setNetwork", "group___d_a_g.html#ac2a8095b889d4c06237b440ee683991c", null ],
     [ "start", "group___d_a_g.html#a01d58209a9a9e3dabdc8e55f7acafcf8", null ],
     [ "stop", "group___d_a_g.html#a08cc3adaaf8e20414ae8d7fe01837ebd", null ],

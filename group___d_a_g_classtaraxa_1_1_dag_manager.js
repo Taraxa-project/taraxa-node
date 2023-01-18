@@ -11,7 +11,8 @@ var group___d_a_g_classtaraxa_1_1_dag_manager =
       [ "NotEligible", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a916ec32bed391fc1def53a8e263ec400", null ],
       [ "ExpiredBlock", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a62018b502a00304fc02337ba19cdba0c", null ],
       [ "IncorrectTransactionsEstimation", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a122320ab35a2188727e599b3cc61d72f", null ],
-      [ "BlockTooBig", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a6acb71e475d0aaa76f18fde586c6d6db", null ]
+      [ "BlockTooBig", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a6acb71e475d0aaa76f18fde586c6d6db", null ],
+      [ "FailedTipsVerification", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484adef7264cfb315c8a66080e035af83b16", null ]
     ] ],
     [ "DagManager", "group___d_a_g.html#a77daf30c3c77830f8fbaeebd0ff02b16", null ],
     [ "DagManager", "group___d_a_g.html#aa0fe82cc22a187cab97099ef465bed02", null ],
