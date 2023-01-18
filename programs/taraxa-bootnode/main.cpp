@@ -90,7 +90,7 @@ int main(int argc, char** argv) {
   auto addNetworkingOption = client_networking.add_options();
   addNetworkingOption("public-ip", po::value<std::string>()->value_name("<ip>"),
                       "Force advertised public IP to the given IP (default: auto)");
-  addNetworkingOption("listen-ip", po::value<std::string>()->value_name("<ip>(:<port>)"),
+  addNetworkingOption("listen-ip", po::value<std::string>()->value_name("<ip>"),
                       "Listen on the given IP for incoming connections (default: 0.0.0.0)");
   addNetworkingOption("listen", po::value<unsigned short>()->value_name("<port>"),
                       "Listen on the given port for incoming connections (default: 10002)");
