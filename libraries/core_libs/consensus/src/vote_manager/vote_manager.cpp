@@ -437,13 +437,13 @@ bool VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote) {
 
       std::stringstream err;
       err << "Unable to insert new unique vote(race condition): "
-          << ", new vote hash (voted value): " << vote->getHash().abridged() << " (" << vote->getBlockHash().abridged()
+          << ", new vote hash (voted value): " << vote->getHash().abridged() << " (" << vote->getBlockHash()
           << ")"
           << ", orig. vote hash (voted value): " << inserted_vote.first->second.first->getHash().abridged() << " ("
-          << inserted_vote.first->second.first->getBlockHash().abridged() << ")";
+          << inserted_vote.first->second.first->getBlockHash() << ")";
       if (inserted_vote.first->second.second != nullptr) {
         err << ", orig. vote 2 hash (voted value): " << inserted_vote.first->second.second->getHash().abridged() << " ("
-            << inserted_vote.first->second.second->getBlockHash().abridged() << ")";
+            << inserted_vote.first->second.second->getBlockHash() << ")";
       }
       err << ", period: " << vote->getPeriod() << ", round: " << vote->getRound() << ", step: " << vote->getStep()
           << ", voter: " << vote->getVoterAddr();
@@ -460,16 +460,11 @@ bool VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote) {
 
 void VoteManager::cleanupVotesByPeriod(PbftPeriod pbft_period) {
   // Remove verified votes
-  auto batch = db_->createWriteBatch();
-  {
-    std::scoped_lock lock(verified_votes_access_);
-    auto it = verified_votes_.begin();
-    while (it != verified_votes_.end() && it->first < pbft_period) {
-      it = verified_votes_.erase(it);
-    }
+  std::scoped_lock lock(verified_votes_access_);
+  auto it = verified_votes_.begin();
+  while (it != verified_votes_.end() && it->first < pbft_period) {
+    it = verified_votes_.erase(it);
   }
-
-  db_->commitWriteBatch(batch);
 }
 
 std::vector<std::shared_ptr<Vote>> VoteManager::getProposalVotes(PbftPeriod period, PbftRound round) const {

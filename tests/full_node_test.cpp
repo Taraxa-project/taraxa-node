@@ -221,8 +221,8 @@ TEST_F(FullNodeTest, db_test) {
   auto genVote = [](PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step) {
     VrfPbftMsg msg(type, period, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
-      "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
-      "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
     VrfPbftSortition vrf_sortition(vrf_sk, msg);
     return std::make_shared<Vote>(g_secret, vrf_sortition, blk_hash_t(1));
   };
@@ -280,7 +280,7 @@ TEST_F(FullNodeTest, db_test) {
 
   // Reward votes - cert votes for the latest finalized block
   std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> verified_votes_map;
-  for (const auto& vote : verified_votes) {
+  for (const auto &vote : verified_votes) {
     verified_votes_map[vote->getHash()] = vote;
   }
 
@@ -291,7 +291,7 @@ TEST_F(FullNodeTest, db_test) {
 
   const auto db_reward_votes = db.getRewardVotes();
   EXPECT_EQ(db_reward_votes.size(), verified_votes_map.size());
-  for (const auto& db_vote : db_reward_votes) {
+  for (const auto &db_vote : db_reward_votes) {
     EXPECT_EQ(db_vote->rlp(true, true), verified_votes_map[db_vote->getHash()]->rlp(true, true));
   }
 
@@ -301,7 +301,7 @@ TEST_F(FullNodeTest, db_test) {
 
   const auto new_db_reward_votes = db.getRewardVotes();
   EXPECT_EQ(new_db_reward_votes.size(), verified_votes_map.size());
-  for (const auto& db_vote : new_db_reward_votes) {
+  for (const auto &db_vote : new_db_reward_votes) {
     EXPECT_EQ(db_vote->rlp(true, true), verified_votes_map[db_vote->getHash()]->rlp(true, true));
   }
 

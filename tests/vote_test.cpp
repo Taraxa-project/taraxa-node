@@ -37,24 +37,9 @@ std::pair<PbftPeriod, PbftRound> clearAllVotes(const std::vector<std::shared_ptr
     }
   }
 
-  // Clean up votes from db & memory for each node
+  // Clean up votes from memory for each node
   for (const auto &node : nodes) {
-    // Clear unverified votes and verified votes table
-    auto db = node->getDB();
-    auto vote_mgr = node->getVoteManager();
-    auto verified_votes = db->getVerifiedVotes();
-
-    auto batch = db->createWriteBatch();
-    for (auto const &v : verified_votes) {
-      db->removeVerifiedVoteToBatch(v->getHash(), batch);
-    }
-    db->commitWriteBatch(batch);
-
-    vote_mgr->cleanupVotesByPeriod(max_period);
-
-    if (vote_mgr->getVerifiedVotesSize()) {
-      vote_mgr->cleanupVotesByRound(max_period, max_round + 1);
-    }
+    node->getVoteManager()->cleanupVotesByPeriod(max_period + 1);
   }
 
   return {max_period, max_round};
@@ -90,54 +75,6 @@ TEST_F(VoteTest, verified_votes) {
   EXPECT_FALSE(vote_mgr->voteInVerifiedMap(vote));
   EXPECT_EQ(vote_mgr->getVerifiedVotesSize(), 0);
   EXPECT_EQ(vote_mgr->getVerifiedVotes().size(), 0);
-}
-
-// CONCERN TODO This test does not test period and round based cleanup differences at all..
-
-// Add votes round 1, 2 and 3 into unverified vote table
-// Verify votes by round 2, will remove round 1 in the table, and keep round 2 & 3 votes
-TEST_F(VoteTest, DISABLED_add_cleanup_get_votes) {
-  auto node = create_nodes(1, true /*start*/).front();
-
-  // stop PBFT manager, that will place vote
-  node->getPbftManager()->stop();
-
-  clearAllVotes({node});
-
-  // generate 6 votes, 3 periods, 2 votes in round 1 each
-  auto vote_mgr = node->getVoteManager();
-  blk_hash_t voted_block_hash(1);
-  PbftVoteTypes type = PbftVoteTypes::next_vote;
-  for (int i = 1; i <= 3; i++) {
-    for (int j = 1; j <= 2; j++) {
-      PbftPeriod period = i;
-      PbftRound round = 1;
-      PbftStep step = 3 + j;
-      auto vote = vote_mgr->generateVote(voted_block_hash, type, period, round, step);
-      vote->calculateWeight(1, 1, 1);
-      vote_mgr->addVerifiedVote(vote);
-    }
-  }
-
-  // Test add vote
-  size_t votes_size = vote_mgr->getVerifiedVotesSize();
-  EXPECT_EQ(votes_size, 6);
-
-  // Test cleanup votes
-  vote_mgr->cleanupVotesByRound(1, 2);  // cleanup more
-  auto verified_votes_size = vote_mgr->getVerifiedVotesSize();
-  EXPECT_EQ(verified_votes_size, 3);
-  auto votes = vote_mgr->getVerifiedVotes();
-  EXPECT_EQ(votes.size(), 3);
-  for (auto const &v : votes) {
-    EXPECT_GT(v->getRound(), 1);
-  }
-
-  vote_mgr->cleanupVotesByRound(2, 2);  // cleanup more
-  verified_votes_size = vote_mgr->getVerifiedVotesSize();
-  EXPECT_EQ(verified_votes_size, 0);
-  votes = vote_mgr->getVerifiedVotes();
-  EXPECT_TRUE(votes.empty());
 }
 
 TEST_F(VoteTest, round_determine_from_next_votes) {
@@ -240,11 +177,12 @@ TEST_F(VoteTest, vote_broadcast) {
 
   auto [period, round] = clearAllVotes({node1, node2, node3});
 
+  EXPECT_EQ(vote_mgr1->getVerifiedVotesSize(), 0);
+  EXPECT_EQ(vote_mgr2->getVerifiedVotesSize(), 0);
+  EXPECT_EQ(vote_mgr3->getVerifiedVotesSize(), 0);
+
   // generate a vote far ahead (never exist in PBFT manager)
-  blk_hash_t propose_block_hash(111);
-  PbftVoteTypes type = PbftVoteTypes::propose_vote;
-  PbftStep step = 1;
-  auto vote = vote_mgr1->generateVote(propose_block_hash, type, period, round, step);
+  auto vote = vote_mgr1->generateVote(blk_hash_t(1), PbftVoteTypes::soft_vote, period, round, 2);
 
   node1->getNetwork()->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(vote, nullptr);
 
@@ -255,7 +193,7 @@ TEST_F(VoteTest, vote_broadcast) {
   EXPECT_EQ(vote_mgr1->getVerifiedVotesSize(), 0);
 }
 
-TEST_F(VoteTest, previous_round_next_votes) {
+TEST_F(VoteTest, two_t_plus_one_votes) {
   auto node_cfgs = make_node_cfgs(1);
   auto nodes = launch_nodes(node_cfgs);
   auto &node = nodes[0];
@@ -268,77 +206,43 @@ TEST_F(VoteTest, previous_round_next_votes) {
   // Clear unverfied/verified table/DB
   clearAllVotes({node});
 
-  // Clear next votes structure
-  auto next_votes_mgr = node->getNextVotesManager();
-  next_votes_mgr->clearVotes();
-
   const auto chain_size = node->getPbftChain()->getPbftChainSize();
   auto pbft_2t_plus_1 = vote_mgr->getPbftTwoTPlusOne(chain_size).value();
   EXPECT_EQ(pbft_2t_plus_1, 1);
 
+  auto genVote = [vote_mgr](PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step, blk_hash_t block_hash = blk_hash_t(1)) {
+    auto vote = vote_mgr->generateVote(block_hash, type, period, round, step);
+    vote->calculateWeight(1, 1, 1);
+    return vote;
+  };
+
   // Generate a vote voted at kNullBlockHash
-  PbftVoteTypes type = PbftVoteTypes::next_vote;
   PbftPeriod period = 1;
   PbftRound round = 1;
-  PbftStep step = 4;
-  blk_hash_t voted_pbft_block_hash(0);
-  auto vote1 = vote_mgr->generateVote(voted_pbft_block_hash, type, period, round, step);
-  vote1->calculateWeight(1, 1, 1);
-  std::vector<std::shared_ptr<Vote>> next_votes_1{vote1};
 
-  // Enough votes for kNullBlockHash
-  next_votes_mgr->addNextVotes(next_votes_1, pbft_2t_plus_1);
-  EXPECT_TRUE(next_votes_mgr->haveEnoughVotesForNullBlockHash());
-  EXPECT_EQ(next_votes_mgr->getNextVotes().size(), next_votes_1.size());
-  EXPECT_EQ(next_votes_mgr->getNextVotesWeight(), next_votes_1.size());
+  vote_mgr->addVerifiedVote(genVote(PbftVoteTypes::soft_vote, period, round, 2));
+  EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::SoftVotedBlock).has_value());
+  EXPECT_FALSE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::CertVotedBlock).has_value());
+  EXPECT_FALSE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::NextVotedBlock).has_value());
+  EXPECT_FALSE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::NextVotedNullBlock).has_value());
 
-  // Generate a vote voted at value blk_hash_t(1)
-  voted_pbft_block_hash = blk_hash_t(1);
-  step = 5;
-  auto vote2 = vote_mgr->generateVote(voted_pbft_block_hash, type, period, round, step);
-  vote2->calculateWeight(1, 1, 1);
-  std::vector<std::shared_ptr<Vote>> next_votes_2{vote2};
+  vote_mgr->addVerifiedVote(genVote(PbftVoteTypes::cert_vote, period, round, 3));
+  EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::SoftVotedBlock).has_value());
+  EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::CertVotedBlock).has_value());
+  EXPECT_FALSE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::NextVotedBlock).has_value());
+  EXPECT_FALSE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::NextVotedNullBlock).has_value());
 
-  // Enough votes for blk_hash_t(1)
-  next_votes_mgr->updateWithSyncedVotes(next_votes_2, pbft_2t_plus_1);
-  EXPECT_EQ(next_votes_mgr->getVotedValue(), voted_pbft_block_hash);
-  EXPECT_TRUE(next_votes_mgr->enoughNextVotes());
-  auto expect_size = next_votes_1.size() + next_votes_2.size();
-  EXPECT_EQ(expect_size, 2);
-  EXPECT_EQ(next_votes_mgr->getNextVotes().size(), expect_size);
-  EXPECT_EQ(next_votes_mgr->getNextVotesWeight(), expect_size);
+  vote_mgr->addVerifiedVote(genVote(PbftVoteTypes::next_vote, period, round, 4));
+  EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::SoftVotedBlock).has_value());
+  EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::CertVotedBlock).has_value());
+  EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::NextVotedBlock).has_value());
+  EXPECT_FALSE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::NextVotedNullBlock).has_value());
 
-  // Copy next_votes_1 and next_votes_2 into next_votes_3
-  std::vector<std::shared_ptr<Vote>> next_votes_3;
-  next_votes_3.reserve(expect_size);
-  next_votes_3.insert(next_votes_3.end(), next_votes_1.begin(), next_votes_1.end());
-  next_votes_3.insert(next_votes_3.end(), next_votes_2.begin(), next_votes_2.end());
-  EXPECT_EQ(next_votes_3.size(), 2);
-
-  // Should not update anything
-  next_votes_mgr->addNextVotes(next_votes_3, pbft_2t_plus_1);
-  EXPECT_EQ(next_votes_mgr->getNextVotes().size(), expect_size);
-  EXPECT_EQ(next_votes_mgr->getNextVotesWeight(), expect_size);
-
-  // Should not update anything
-  next_votes_mgr->updateWithSyncedVotes(next_votes_3, pbft_2t_plus_1);
-  EXPECT_EQ(next_votes_mgr->getNextVotes().size(), next_votes_3.size());
-  EXPECT_EQ(next_votes_mgr->getNextVotesWeight(), next_votes_3.size());
-
-  // Generate a vote voted at value blk_hash_t(2)
-  voted_pbft_block_hash = blk_hash_t(2);
-  period = 2;
-  round = 2;
-  auto vote3 = vote_mgr->generateVote(voted_pbft_block_hash, type, period, round, step);
-  vote3->calculateWeight(1, 1, 1);
-  std::vector<std::shared_ptr<Vote>> next_votes_4{vote3};
-
-  next_votes_mgr->updateNextVotes(next_votes_4, pbft_2t_plus_1);
-  EXPECT_FALSE(next_votes_mgr->haveEnoughVotesForNullBlockHash());
-  EXPECT_EQ(next_votes_mgr->getVotedValue(), voted_pbft_block_hash);
-  EXPECT_FALSE(next_votes_mgr->enoughNextVotes());
-  EXPECT_EQ(next_votes_mgr->getNextVotes().size(), next_votes_4.size());
-  EXPECT_EQ(next_votes_mgr->getNextVotesWeight(), next_votes_4.size());
+  vote_mgr->addVerifiedVote(genVote(PbftVoteTypes::next_vote, period, round, 5, kNullBlockHash));
+  EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::SoftVotedBlock).has_value());
+  EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::CertVotedBlock).has_value());
+  EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::NextVotedBlock).has_value());
+  EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::NextVotedNullBlock).has_value());
 }
 
 TEST_F(VoteTest, vote_count_compare) {
