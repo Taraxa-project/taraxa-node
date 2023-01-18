@@ -39,7 +39,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
     NotEligible,
     ExpiredBlock,
     IncorrectTransactionsEstimation,
-    BlockTooBig
+    BlockTooBig,
+    FailedTipsVerification
   };
 
   using ULock = std::unique_lock<std::shared_mutex>;

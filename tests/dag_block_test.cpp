@@ -9,6 +9,7 @@
 #include "common/types.hpp"
 #include "common/util.hpp"
 #include "dag/dag.hpp"
+#include "dag/dag_block_proposer.hpp"
 #include "dag/dag_manager.hpp"
 #include "logger/logger.hpp"
 #include "node/node.hpp"
@@ -240,6 +241,152 @@ TEST_F(DagBlockMgrTest, incorrect_tx_estimation) {
     EXPECT_EQ(node->getDagManager()->verifyBlock(std::move(blk)),
               DagManager::VerifyBlockReturnType::IncorrectTransactionsEstimation);
   }
+}
+
+TEST_F(DagBlockMgrTest, dag_block_tips_verification) {
+  auto node_cfgs = make_node_cfgs(1, 1, 20);
+  auto node = create_nodes(node_cfgs).front();
+
+  auto trxs = samples::createSignedTrxSamples(1, kDagBlockMaxTips + 1, g_secret);
+  for (auto trx : trxs) {
+    auto insert_result = node->getTransactionManager()->insertTransaction(trx);
+    ASSERT_EQ(insert_result.second, "");
+  }
+  // Generate DAG blocks
+  auto dag_genesis = node->getConfig().genesis.dag_genesis_block.getHash();
+  SortitionConfig vdf_config(node->getConfig().genesis.sortition);
+  auto propose_level = 1;
+  const auto period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
+  vdf_sortition::VdfSortition vdf(vdf_config, node->getVrfSecretKey(),
+                                  VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+
+  std::vector<blk_hash_t> dag_blocks_hashes;
+  for (auto trx : trxs) {
+    dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trx});
+    vdf.computeVdfSolution(vdf_config, vdf_msg, false);
+
+    DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, 100000, vdf, node->getSecretKey());
+    dag_blocks_hashes.push_back(blk.getHash());
+    EXPECT_EQ(node->getDagManager()->verifyBlock(blk), DagManager::VerifyBlockReturnType::Verified);
+    EXPECT_TRUE(node->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
+  }
+
+  dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trxs[0]});
+  vdf.computeVdfSolution(vdf_config, vdf_msg, false);
+
+  // Verify block over the kDagBlockMaxTips is rejected
+  DagBlock blk_over_limit(dag_genesis, propose_level, dag_blocks_hashes, {trxs[0]->getHash()}, 100000, vdf,
+                          node->getSecretKey());
+  EXPECT_EQ(node->getDagManager()->verifyBlock(blk_over_limit),
+            DagManager::VerifyBlockReturnType::FailedTipsVerification);
+
+  // Verify block at kDagBlockMaxTips is accepted
+  dag_blocks_hashes.resize(kDagBlockMaxTips);
+  DagBlock blk_at_limit(dag_genesis, propose_level, dag_blocks_hashes, {trxs[0]->getHash()}, 100000, vdf,
+                        node->getSecretKey());
+  EXPECT_EQ(node->getDagManager()->verifyBlock(blk_at_limit), DagManager::VerifyBlockReturnType::Verified);
+
+  // Verify block below kDagBlockMaxTips is accepted
+  dag_blocks_hashes.resize(kDagBlockMaxTips - 1);
+  DagBlock blk_under_limit(dag_genesis, propose_level, dag_blocks_hashes, {trxs[0]->getHash()}, 100000, vdf,
+                           node->getSecretKey());
+  EXPECT_EQ(node->getDagManager()->verifyBlock(blk_under_limit), DagManager::VerifyBlockReturnType::Verified);
+
+  auto dag_blocks_hashes_with_duplicate_pivot = dag_blocks_hashes;
+  dag_blocks_hashes_with_duplicate_pivot.push_back(dag_genesis);
+
+  auto dag_blocks_hashes_with_duplicate_tip = dag_blocks_hashes;
+  dag_blocks_hashes_with_duplicate_tip.push_back(dag_blocks_hashes[0]);
+
+  // Verify block with duplicate pivot is rejected
+  DagBlock blk_with_duplicate_pivot(dag_genesis, propose_level, dag_blocks_hashes_with_duplicate_pivot,
+                                    {trxs[0]->getHash()}, 100000, vdf, node->getSecretKey());
+  EXPECT_EQ(node->getDagManager()->verifyBlock(blk_with_duplicate_pivot),
+            DagManager::VerifyBlockReturnType::FailedTipsVerification);
+
+  // Verify block with duplicate tip is rejected
+  DagBlock blk_with_duplicate_tip(dag_genesis, propose_level, dag_blocks_hashes_with_duplicate_tip,
+                                  {trxs[0]->getHash()}, 100000, vdf, node->getSecretKey());
+  EXPECT_EQ(node->getDagManager()->verifyBlock(blk_with_duplicate_tip),
+            DagManager::VerifyBlockReturnType::FailedTipsVerification);
+}
+
+TEST_F(DagBlockMgrTest, dag_block_tips_proposal) {
+  auto node_cfgs = make_node_cfgs(2, 1, 20);
+  auto node = create_nodes(node_cfgs).front();
+
+  auto trxs = samples::createSignedTrxSamples(1, kDagBlockMaxTips + 1, g_secret);
+  for (auto trx : trxs) {
+    auto insert_result = node->getTransactionManager()->insertTransaction(trx);
+    ASSERT_EQ(insert_result.second, "");
+  }
+  // Generate DAG blocks
+  auto dag_genesis = node->getConfig().genesis.dag_genesis_block.getHash();
+  SortitionConfig vdf_config(node->getConfig().genesis.sortition);
+  auto propose_level = 1;
+  auto period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
+  vdf_sortition::VdfSortition vdf(vdf_config, node->getVrfSecretKey(),
+                                  VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+
+  std::vector<blk_hash_t> dag_blocks_hashes;
+  for (auto trx : trxs) {
+    dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trx});
+    vdf.computeVdfSolution(vdf_config, vdf_msg, false);
+
+    DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, 100000, vdf, node->getSecretKey());
+    dag_blocks_hashes.push_back(blk.getHash());
+    EXPECT_EQ(node->getDagManager()->verifyBlock(blk), DagManager::VerifyBlockReturnType::Verified);
+    EXPECT_TRUE(node->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
+  }
+
+  // Verify selection is up to kDagBlockMaxTips
+  EXPECT_EQ(dag_blocks_hashes.size(), kDagBlockMaxTips + 1);
+  auto selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes);
+  EXPECT_EQ(selected_tips.size(), kDagBlockMaxTips);
+
+  // Verify selection is up to kDagBlockMaxTips and higher propose level has priority
+  propose_level = 2;
+  period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
+  vdf = vdf_sortition::VdfSortition(vdf_config, node->getVrfSecretKey(),
+                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  for (auto trx : trxs) {
+    dev::bytes vdf_msg = DagManager::getVdfMessage(dag_blocks_hashes[0], {trx});
+    vdf.computeVdfSolution(vdf_config, vdf_msg, false);
+
+    DagBlock blk(dag_blocks_hashes[0], propose_level, {}, {trx->getHash()}, 100000, vdf, node->getSecretKey());
+    dag_blocks_hashes.push_back(blk.getHash());
+    EXPECT_EQ(node->getDagManager()->verifyBlock(blk), DagManager::VerifyBlockReturnType::Verified);
+    EXPECT_TRUE(node->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
+  }
+
+  selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes);
+  EXPECT_EQ(selected_tips.size(), kDagBlockMaxTips);
+  for (auto t : selected_tips) {
+    EXPECT_EQ(node->getDagManager()->getDagBlock(t)->getLevel(), propose_level);
+  }
+
+  // Verify selection is up to kDagBlockMaxTips and unique proposer has priority
+  propose_level = 1;
+  period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
+  vdf = vdf_sortition::VdfSortition(vdf_config, node_cfgs[1].vrf_secret,
+                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+
+  dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trxs[0]});
+  vdf.computeVdfSolution(vdf_config, vdf_msg, false);
+
+  DagBlock blk(dag_genesis, propose_level, {}, {trxs[0]->getHash()}, 100000, vdf, node_cfgs[1].node_secret);
+  dag_blocks_hashes.push_back(blk.getHash());
+  EXPECT_TRUE(node->getDagManager()->addDagBlock(std::move(blk), {trxs[0]}).first);
+
+  selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes);
+  EXPECT_EQ(selected_tips.size(), kDagBlockMaxTips);
+  std::unordered_map<uint32_t, uint32_t> level_count;
+  for (auto t : selected_tips) {
+    level_count[node->getDagManager()->getDagBlock(t)->getLevel()]++;
+  }
+  EXPECT_EQ(level_count.size(), 2);
+  EXPECT_EQ(level_count[1], 1);
+  EXPECT_EQ(level_count[2], kDagBlockMaxTips - 1);
 }
 
 TEST_F(DagBlockMgrTest, too_big_dag_block) {

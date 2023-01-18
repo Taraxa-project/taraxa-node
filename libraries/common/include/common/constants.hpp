@@ -18,6 +18,7 @@ static const blk_hash_t kNullBlockHash;
 constexpr uint16_t kOnePercent = 100;
 constexpr uint16_t kMaxLevelsPerPeriod = 100;
 constexpr uint32_t kDagExpiryLevelLimit = 1000;
+constexpr uint32_t kDagBlockMaxTips = 16;
 
 const uint32_t kMaxTransactionsInPacket{500};
 
