@@ -110,6 +110,12 @@ spec:
             - name: TARAXA_SLEEP_DIAGNOSE
               value: "true"
           {{- end }}
+          {{ if .Values.node.loadBalancer.enabled }}
+          {{- range $key, $value := .Values.node.loadBalancer.addresses }}
+            - name: ADVERTISED_IP_{{ $key }}
+              value: "{{ $value }}"
+          {{- end }}
+          {{- end }}
           ports:
             {{- toYaml .Values.node.ports | nindent 12 }}
           {{- if .Values.node.probes.enabled }}
