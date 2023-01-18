@@ -29,7 +29,7 @@ class PeriodDataQueue {
    * @param cert_votes cert votes
    * @return true if pushed
    */
-  bool push(PeriodData &&period_data, dev::p2p::NodeID const &node_id, uint64_t max_pbft_size,
+  bool push(PeriodData &&period_data, const dev::p2p::NodeID &node_id, uint64_t max_pbft_size,
             std::vector<std::shared_ptr<Vote>> &&cert_votes);
 
   /**

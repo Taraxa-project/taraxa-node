@@ -18,7 +18,7 @@ using namespace ::taraxa::final_chain;
 
 namespace taraxa::net {
 
-Taraxa::Taraxa(std::shared_ptr<FullNode> const& _full_node) : full_node_(_full_node) {
+Taraxa::Taraxa(const std::shared_ptr<FullNode>& _full_node) : full_node_(_full_node) {
   Json::CharReaderBuilder builder;
   auto reader = std::unique_ptr<Json::CharReader>(builder.newCharReader());
 
@@ -55,7 +55,7 @@ Taraxa::NodePtr Taraxa::tryGetNode() {
   BOOST_THROW_EXCEPTION(jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_RPC_INTERNAL_ERROR));
 }
 
-Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash, bool _includeTransactions) {
+Json::Value Taraxa::taraxa_getDagBlockByHash(const string& _blockHash, bool _includeTransactions) {
   try {
     auto node = tryGetNode();
     auto block = node->getDagManager()->getDagBlock(blk_hash_t(_blockHash));
@@ -81,7 +81,21 @@ Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash, bool _inc
   return Json::Value();
 }
 
-Json::Value Taraxa::taraxa_getScheduleBlockByPeriod(std::string const& _period) {
+std::string Taraxa::taraxa_pbftBlockHashByPeriod(const std::string& _period) {
+  try {
+    auto node = tryGetNode();
+    auto db = node->getDB();
+    auto blk = db->getPbftBlock(std::stoull(_period, 0, 16));
+    if (!blk.has_value()) {
+      return {};
+    }
+    return blk->getBlockHash().toString();
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
+}
+
+Json::Value Taraxa::taraxa_getScheduleBlockByPeriod(const std::string& _period) {
   try {
     auto node = tryGetNode();
     auto db = node->getDB();
@@ -95,7 +109,7 @@ Json::Value Taraxa::taraxa_getScheduleBlockByPeriod(std::string const& _period) 
   }
 }
 
-Json::Value Taraxa::taraxa_getDagBlockByLevel(string const& _blockLevel, bool _includeTransactions) {
+Json::Value Taraxa::taraxa_getDagBlockByLevel(const string& _blockLevel, bool _includeTransactions) {
   try {
     auto node = tryGetNode();
     auto blocks = node->getDB()->getDagBlocksAtLevel(std::stoull(_blockLevel, 0, 16), 1);

@@ -360,6 +360,32 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getScheduleBlockByPeriod"
 }
 ```
 
+### taraxa_pbftBlockHashByPeriod
+
+Returns hash of PBFT block for specified period
+
+#### Parameters
+
+`QUANTITY` - period
+
+#### Returns
+
+`STRING` - PBFT block hash 
+
+#### Example
+
+```json
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_pbftBlockHashByPeriod","params":["0x1D533B"],"id":1}'
+
+// Result
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": "024409a272dd2f87b0c98f8be109dbf993eb61346a0f4ff5dacc5a7205b49623"
+}
+```
+
 ### taraxa_getConfig
 
 Returns current node configuration

@@ -95,8 +95,8 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   LOG(log_tr_) << "Processing pbft block: " << pbft_blk_hash;
 
   if (pbft_chain_->findPbftBlockInChain(pbft_blk_hash)) {
-    LOG(log_wr_) << "PBFT block " << pbft_blk_hash << " from " << packet_data.from_node_id_
-                 << " already present in chain";
+    LOG(log_wr_) << "PBFT block " << pbft_blk_hash << ", period: " << period_data.pbft_blk->getPeriod() << " from "
+                 << packet_data.from_node_id_ << " already present in chain";
   } else {
     if (pbft_block_period != pbft_mgr_->pbftSyncingPeriod() + 1) {
       LOG(log_wr_) << "Block " << pbft_blk_hash << " period unexpected: " << pbft_block_period
