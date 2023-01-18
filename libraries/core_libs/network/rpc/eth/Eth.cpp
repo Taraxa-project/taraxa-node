@@ -427,7 +427,7 @@ class EthImpl : public Eth, EthParams {
     res["extraData"] = toJson(obj.extra_data);
     res["logsBloom"] = toJson(obj.log_bloom);
     res["timestamp"] = toJson(obj.timestamp);
-    res["author"] = res["miner"] = toJson(obj.author);
+    res["author"] = toJson(obj.author);
     res["mixHash"] = toJson(BlockHeader::mix_hash());
     res["nonce"] = toJson(BlockHeader::nonce());
     res["uncles"] = Json::Value(Json::arrayValue);
