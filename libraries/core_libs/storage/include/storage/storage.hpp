@@ -107,15 +107,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(latest_round_two_t_plus_one_votes);  // 2t+1 votes bundles of any type for the latest round
     COLUMN(latest_reward_votes);                // extra reward votes on top of 2t+1 cert votes bundle from
                                                 // latest_round_two_t_plus_one_votes
-    // TODO: we are saving here only our own votes so we should either fix it or rename the column
-    // TODO: we can save here all of our own votes + bundles of 2t+1 soft votes & next votes for previous round
-    //       we would keep last 2 rounds here -> on new period everything id removed, on new round previous round is
-    //       removed
-    COLUMN(verified_votes);
-    // TODO: can probably delete
-    COLUMN(next_votes);  // only for previous PBFT round
-    // TODO: can probably delete
-    COLUMN(last_block_cert_votes);  // cert votes for last block in pbft chain
     COLUMN(pbft_block_period);
     COLUMN(dag_block_period);
     COLUMN_W_COMP(proposal_period_levels_map, getIntComparator<uint64_t>());
@@ -194,6 +185,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void clearPeriodDataHistory(PbftPeriod period);
   dev::bytes getPeriodDataRaw(PbftPeriod period) const;
   std::optional<PbftBlock> getPbftBlock(PbftPeriod period) const;
+  std::vector<std::shared_ptr<Vote>> getPeriodCertVotes(PbftPeriod period) const;
   blk_hash_t getPeriodBlockHash(PbftPeriod period) const;
   std::optional<SharedTransactions> getPeriodTransactions(PbftPeriod period) const;
 
@@ -281,34 +273,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::vector<std::shared_ptr<Vote>> getAllTwoTPlusOneVotes();
 
   // Reward votes - cert votes for the latest finalized block
-  void replaceRewardVotes(const std::vector<std::shared_ptr<Vote>>& votes);
+  void replaceRewardVotes(const std::vector<std::shared_ptr<Vote>>& votes, Batch& write_batch);
   void saveRewardVote(const std::shared_ptr<Vote>& vote);
   std::vector<std::shared_ptr<Vote>> getRewardVotes();
-
-  // TODO: these can be deleted start
-  // Verified votes
-  std::vector<std::shared_ptr<Vote>> getVerifiedVotes();
-  std::shared_ptr<Vote> getVerifiedVote(vote_hash_t const& vote_hash);
-  void saveVerifiedVote(std::shared_ptr<Vote> const& vote);
-  void addVerifiedVoteToBatch(std::shared_ptr<Vote> const& vote, Batch& write_batch);
-  void removeVerifiedVoteToBatch(vote_hash_t const& vote_hash, Batch& write_batch);
-
-  // Certified votes
-  std::vector<std::shared_ptr<Vote>> getCertVotes(PbftPeriod period);
-
-  // Next votes
-  std::vector<std::shared_ptr<Vote>> getPreviousRoundNextVotes();
-  void savePreviousRoundNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes);
-  void removePreviousRoundNextVotes();
-
-  // last block cert votes
-  void saveLastBlockCertVote(const std::shared_ptr<Vote>& cert_vote);
-  void addLastBlockCertVotesToBatch(std::vector<std::shared_ptr<Vote>> const& cert_votes,
-                                    std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> const& old_cert_votes,
-                                    Batch& write_batch);
-  std::vector<std::shared_ptr<Vote>> getLastBlockCertVotes();
-  void removeLastBlockCertVotes(const vote_hash_t& hash);
-  // TODO: these can be deleted end
 
   // period_pbft_block
   void addPbftBlockPeriodToBatch(PbftPeriod period, taraxa::blk_hash_t const& pbft_block_hash, Batch& write_batch);

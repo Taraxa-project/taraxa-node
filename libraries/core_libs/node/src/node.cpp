@@ -378,7 +378,8 @@ void FullNode::rebuildDb() {
     auto data = old_db_->getPeriodDataRaw(period + 1);
     if (data.size() == 0) {
       next_period_data = nullptr;
-      cert_votes = old_db_->getLastBlockCertVotes();
+      // Latest finalized block cert votes are saved in db as reward votes for new blocks
+      cert_votes = old_db_->getRewardVotes();
     } else {
       next_period_data = std::make_shared<PeriodData>(data);
       cert_votes = next_period_data->previous_block_cert_votes;

@@ -639,6 +639,21 @@ std::pair<std::optional<SharedTransactions>, trx_hash_t> DbStorage::getFinalized
   return {transactions, {}};
 }
 
+std::vector<std::shared_ptr<Vote>> DbStorage::getPeriodCertVotes(PbftPeriod period) const {
+  std::vector<std::shared_ptr<Vote>> cert_votes;
+  auto period_data = getPeriodDataRaw(period);
+  if (period_data.size() > 0) {
+    auto period_data_rlp = dev::RLP(period_data);
+    auto cert_votes_data = period_data_rlp[CERT_VOTES_POS_IN_PERIOD_DATA];
+    cert_votes.reserve(cert_votes_data.size());
+    for (auto const vote : cert_votes_data) {
+      cert_votes.emplace_back(std::make_shared<Vote>(vote));
+    }
+  }
+
+  return cert_votes;
+}
+
 std::optional<SharedTransactions> DbStorage::getPeriodTransactions(PbftPeriod period) const {
   const auto period_data = getPeriodDataRaw(period);
   if (!period_data.size()) {
@@ -845,13 +860,11 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getAllTwoTPlusOneVotes() {
   return votes;
 }
 
-void DbStorage::replaceRewardVotes(const std::vector<std::shared_ptr<Vote>>& votes) {
-  Batch write_batch;
-
+void DbStorage::replaceRewardVotes(const std::vector<std::shared_ptr<Vote>>& votes, Batch& write_batch) {
   // TODO: deletion could be optimized if we save votes in memory
   // Remove existing reward votes
   auto it =
-      std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::latest_round_own_votes)));
+      std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::latest_reward_votes)));
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
     const auto vote = std::make_shared<Vote>(asBytes(it->value().ToString()));
     remove(write_batch, Columns::latest_reward_votes, vote->getHash().asBytes());
@@ -861,8 +874,6 @@ void DbStorage::replaceRewardVotes(const std::vector<std::shared_ptr<Vote>>& vot
   for (const auto& vote : votes) {
     insert(write_batch, Columns::latest_reward_votes, vote->getHash().asBytes(), vote->rlp(true, true));
   }
-
-  commitWriteBatch(write_batch);
 }
 
 void DbStorage::saveRewardVote(const std::shared_ptr<Vote>& vote) {
@@ -878,106 +889,6 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getRewardVotes() {
   }
 
   return votes;
-}
-
-std::vector<std::shared_ptr<Vote>> DbStorage::getVerifiedVotes() {
-  std::vector<std::shared_ptr<Vote>> votes;
-
-  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::verified_votes)));
-  for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    votes.emplace_back(std::make_shared<Vote>(asBytes(it->value().ToString())));
-  }
-
-  return votes;
-}
-
-// Only for test
-std::shared_ptr<Vote> DbStorage::getVerifiedVote(vote_hash_t const& vote_hash) {
-  auto vote = asBytes(lookup(toSlice(vote_hash.asBytes()), Columns::verified_votes));
-  if (!vote.empty()) {
-    return std::make_shared<Vote>(dev::RLP(vote));
-  }
-  return nullptr;
-}
-
-void DbStorage::saveVerifiedVote(std::shared_ptr<Vote> const& vote) {
-  insert(Columns::verified_votes, toSlice(vote->getHash().asBytes()), toSlice(vote->rlp(true, true)));
-}
-
-void DbStorage::addVerifiedVoteToBatch(std::shared_ptr<Vote> const& vote, Batch& write_batch) {
-  insert(write_batch, Columns::verified_votes, toSlice(vote->getHash().asBytes()), toSlice(vote->rlp(true, true)));
-}
-
-void DbStorage::removeVerifiedVoteToBatch(vote_hash_t const& vote_hash, Batch& write_batch) {
-  remove(write_batch, Columns::verified_votes, toSlice(vote_hash.asBytes()));
-}
-
-std::vector<std::shared_ptr<Vote>> DbStorage::getCertVotes(PbftPeriod period) {
-  std::vector<std::shared_ptr<Vote>> cert_votes;
-  auto period_data = getPeriodDataRaw(period);
-  if (period_data.size() > 0) {
-    auto period_data_rlp = dev::RLP(period_data);
-    auto cert_votes_data = period_data_rlp[CERT_VOTES_POS_IN_PERIOD_DATA];
-    cert_votes.reserve(cert_votes_data.size());
-    for (auto const vote : cert_votes_data) {
-      cert_votes.emplace_back(std::make_shared<Vote>(vote));
-    }
-  }
-
-  return cert_votes;
-}
-
-std::vector<std::shared_ptr<Vote>> DbStorage::getPreviousRoundNextVotes() {
-  std::vector<std::shared_ptr<Vote>> next_votes;
-  auto next_votes_raw = asBytes(lookup(0, Columns::next_votes));
-  auto next_votes_rlp = dev::RLP(next_votes_raw);
-  next_votes.reserve(next_votes_rlp.size());
-
-  for (auto const next_vote : next_votes_rlp) {
-    next_votes.emplace_back(std::make_shared<Vote>(next_vote));
-  }
-
-  return next_votes;
-}
-
-void DbStorage::savePreviousRoundNextVotes(std::vector<std::shared_ptr<Vote>> const& next_votes) {
-  dev::RLPStream s(next_votes.size());
-  for (auto const& v : next_votes) {
-    s.appendRaw(v->rlp(true, true));
-  }
-  insert(Columns::next_votes, 0, toSlice(s.out()));
-}
-
-void DbStorage::removePreviousRoundNextVotes() { remove(Columns::next_votes, 0); }
-
-void DbStorage::saveLastBlockCertVote(const std::shared_ptr<Vote>& cert_vote) {
-  insert(Columns::last_block_cert_votes, toSlice(cert_vote->getHash()), toSlice(cert_vote->rlp(true, true)));
-}
-
-void DbStorage::addLastBlockCertVotesToBatch(
-    std::vector<std::shared_ptr<Vote>> const& cert_votes,
-    std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> const& old_cert_votes, Batch& write_batch) {
-  for (auto const& v : old_cert_votes) {
-    remove(write_batch, Columns::last_block_cert_votes, toSlice(v.second->getHash()));
-  }
-
-  dev::RLPStream s(cert_votes.size());
-  for (auto const& v : cert_votes) {
-    insert(write_batch, Columns::last_block_cert_votes, toSlice(v->getHash()), toSlice(v->rlp(true, true)));
-  }
-}
-
-std::vector<std::shared_ptr<Vote>> DbStorage::getLastBlockCertVotes() {
-  std::vector<std::shared_ptr<Vote>> votes;
-  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::last_block_cert_votes)));
-  for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    votes.emplace_back(std::make_shared<Vote>(asBytes(it->value().ToString())));
-  }
-  return votes;
-}
-
-void DbStorage::removeLastBlockCertVotes(const vote_hash_t& hash) {
-  remove(Columns::last_block_cert_votes, toSlice(hash));
 }
 
 void DbStorage::addPbftBlockPeriodToBatch(PbftPeriod period, taraxa::blk_hash_t const& pbft_block_hash,
