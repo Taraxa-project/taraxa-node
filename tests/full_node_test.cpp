@@ -713,6 +713,30 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   context.assert_all_transactions_success();
   context.assert_all_transactions_known();
   context.assert_balances_synced();
+
+  // Prune state_db of one node to remove all but last 10 block state and verify all ballances still match
+  auto prune_node = nodes[nodes.size() - 1];
+  auto last_block = prune_node->getPbftChain()->getPbftChainSize() - 10;
+  prune_node->getFinalChain()->prune(last_block);
+  context.assert_all_transactions_success();
+  context.assert_all_transactions_known();
+  context.assert_balances_synced();
+
+  // transfer some coins to pruned node ...
+  context.coin_transfer(0, prune_node->getAddress(), init_bal, false);
+  context.wait_all_transactions_known();
+
+  std::cout << "Waiting until transaction is executed" << std::endl;
+  auto trx_cnt = context.getIssuedTrxCount();
+  ASSERT_HAPPENS({20s, 500ms}, [&](auto &ctx) {
+    for (size_t i = 0; i < nodes.size(); ++i)
+      WAIT_EXPECT_EQ(ctx, nodes[i]->getDB()->getNumTransactionExecuted(), trx_cnt)
+  });
+
+  std::cout << "Check balances" << std::endl;
+  context.assert_all_transactions_success();
+  context.assert_all_transactions_known();
+  context.assert_balances_synced();
 }
 
 TEST_F(FullNodeTest, insert_anchor_and_compute_order) {

@@ -16,6 +16,8 @@ class FinalChainImpl final : public FinalChain {
   const uint32_t kCommitteeSize;
   const uint64_t kBlockGasLimit;
   StateAPI state_api_;
+  const bool kLightNode = false;
+  const uint64_t kLigntNodeHistory = 0;
 
   // It is not prepared to use more then 1 thread. Examine it if you want to change threads count
   boost::asio::thread_pool executor_thread_{1};
@@ -52,6 +54,8 @@ class FinalChainImpl final : public FinalChain {
                    {
                        db->stateDbStoragePath().string(),
                    }),
+        kLightNode(config.is_light_node),
+        kLigntNodeHistory(config.light_node_history),
         block_headers_cache_(config.final_chain_cache_in_blocks,
                              [this](uint64_t blk) { return get_block_header(blk); }),
         block_hashes_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return get_block_hash(blk); }),
@@ -223,7 +227,35 @@ class FinalChainImpl final : public FinalChain {
       state_api_.create_snapshot(blk_header->number);
     }
 
+    if (kLightNode) {
+      // Actual history size will be between 100% and 105% of light_node_history_ to avoid deleting on every period
+      if (((blk_header->number % (std::max(kLigntNodeHistory / 20, (uint64_t)1)) == 0)) &&
+          blk_header->number > kLigntNodeHistory) {
+        prune(blk_header->number - kLigntNodeHistory);
+      }
+    }
     return result;
+  }
+
+  void prune(EthBlockNumber blk_n) override {
+    std::vector<dev::h256> state_root_to_prune;
+    const auto last_block_to_keep = get_block_header(blk_n);
+    if (last_block_to_keep) {
+      LOG(log_nf_) << "Pruning data older than " << blk_n;
+      auto block_to_prune = get_block_header(last_block_to_keep->number - 1);
+      while (block_to_prune && block_to_prune->number > 0) {
+        state_root_to_prune.push_back(block_to_prune->state_root);
+        db_->remove(DB::Columns::final_chain_blk_by_number, block_to_prune->number);
+        db_->remove(DB::Columns::final_chain_blk_hash_by_number, block_to_prune->number);
+        db_->remove(DB::Columns::final_chain_blk_number_by_hash, block_to_prune->hash);
+        block_to_prune = get_block_header(block_to_prune->number - 1);
+      }
+
+      state_api_.prune(last_block_to_keep->state_root, state_root_to_prune, last_block_to_keep->number);
+      db_->compactColumn(DB::Columns::final_chain_blk_by_number);
+      db_->compactColumn(DB::Columns::final_chain_blk_hash_by_number);
+      db_->compactColumn(DB::Columns::final_chain_blk_number_by_hash);
+    }
   }
 
   std::shared_ptr<BlockHeader> append_block(DB::Batch& batch, const addr_t& author, uint64_t timestamp,
