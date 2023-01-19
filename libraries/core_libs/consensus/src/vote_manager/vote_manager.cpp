@@ -437,8 +437,7 @@ bool VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote) {
 
       std::stringstream err;
       err << "Unable to insert new unique vote(race condition): "
-          << ", new vote hash (voted value): " << vote->getHash().abridged() << " (" << vote->getBlockHash()
-          << ")"
+          << ", new vote hash (voted value): " << vote->getHash().abridged() << " (" << vote->getBlockHash() << ")"
           << ", orig. vote hash (voted value): " << inserted_vote.first->second.first->getHash().abridged() << " ("
           << inserted_vote.first->second.first->getBlockHash() << ")";
       if (inserted_vote.first->second.second != nullptr) {
