@@ -636,7 +636,7 @@ TEST_F(PbftManagerTest, propose_block_and_vote_broadcast) {
   blk_hash_t prev_block_hash = node1->getPbftChain()->getLastPbftBlockHash();
 
   // Node1 generate a PBFT block sample
-  auto reward_votes = node1->getDB()->getLastBlockCertVotes();
+  auto reward_votes = node1->getDB()->getRewardVotes();
   std::vector<vote_hash_t> reward_votes_hashes;
   std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
                  [](const auto &v) { return v->getHash(); });
@@ -907,7 +907,7 @@ TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
     auto order_hash = node->getPbftManager()->calculateOrderHash(dag_block_order);
 
     const auto &last_hash = node->getPbftChain()->getLastPbftBlockHash();
-    auto reward_votes = node->getDB()->getLastBlockCertVotes();
+    auto reward_votes = node->getDB()->getRewardVotes();
     std::vector<vote_hash_t> reward_votes_hashes;
     std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
                    [](const auto &v) { return v->getHash(); });
