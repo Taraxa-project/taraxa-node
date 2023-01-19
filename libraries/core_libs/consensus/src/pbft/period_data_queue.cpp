@@ -57,7 +57,9 @@ std::tuple<PeriodData, std::vector<std::shared_ptr<Vote>>, dev::p2p::NodeID> Per
   else {
     // if queue is empty set period to zero and move last_block_cert_votes_
     period_ = 0;
-    return {block.first, std::move(last_block_cert_votes_), block.second};
+    auto cert_votes = std::move(last_block_cert_votes_);
+    last_block_cert_votes_.clear();
+    return {block.first, std::move(cert_votes), block.second};
   }
 }
 

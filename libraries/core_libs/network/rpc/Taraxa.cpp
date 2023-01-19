@@ -89,7 +89,7 @@ std::string Taraxa::taraxa_pbftBlockHashByPeriod(const std::string& _period) {
     if (!blk.has_value()) {
       return {};
     }
-    return blk->getBlockHash().toString();
+    return toJS(blk->getBlockHash());
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }
