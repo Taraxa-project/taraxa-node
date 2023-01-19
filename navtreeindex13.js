@@ -1,5 +1,6 @@
 var NAVTREEINDEX13 =
 {
+"functions_vars_r.html":[14,3,2,17],
 "functions_vars_s.html":[14,3,2,18],
 "functions_vars_t.html":[14,3,2,19],
 "functions_vars_u.html":[14,3,2,20],
@@ -248,6 +249,5 @@ var NAVTREEINDEX13 =
 "group___d_a_g.html#classtaraxa_1_1edge__label__writer":[12,0,3],
 "group___d_a_g.html#classtaraxa_1_1vertex__label__writer":[12,0,2],
 "group___d_a_g.html#structtaraxa_1_1_sortition_params_change":[12,0,6],
-"group___final_chain.html":[12,1],
-"group___final_chain.html#a0053d2c9e2c118c572681ca1055e500b":[12,1,7,15]
+"group___final_chain.html":[12,1]
 };
