@@ -10,13 +10,21 @@ if [[ -z "${HOSTNAME}" ]]; then
   echo "HOSTNAME is not set."
 else
   INDEX=${HOSTNAME##*-}
+
   ADVERTISED_IP_NAME="ADVERTISED_IP_$INDEX"
   ADVERTISED_IP=${!ADVERTISED_IP_NAME}
-
   if [[ -z "${ADVERTISED_IP}" ]]; then
     echo "ADVERTISED_IP is not set."
   else
     FLAGS="--public-ip ${ADVERTISED_IP}"
+  fi
+
+  ADVERTISED_PORT_NAME="ADVERTISED_PORT_$INDEX"
+  ADVERTISED_PORT=${!ADVERTISED_PORT_NAME}
+  if [[ -z "${ADVERTISED_PORT}" ]]; then
+    echo "ADVERTISED_PORT is not set."
+  else
+    FLAGS="$FLAGS --port ${ADVERTISED_PORT}"
   fi
 fi
 
