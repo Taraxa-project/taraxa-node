@@ -648,8 +648,8 @@ TEST_F(PbftManagerTest, propose_block_and_vote_broadcast) {
       node1->getPbftManager()->getPbftRound() + 1, value_proposal_state);
   pbft_mgr1->processProposedBlock(proposed_pbft_block, propose_vote);
 
-  auto block1_from_node1 = pbft_mgr1->getProposedBlocksSt().getPbftProposedBlock(
-      propose_vote->getPeriod(), propose_vote->getRound(), propose_vote->getBlockHash());
+  auto block1_from_node1 =
+      pbft_mgr1->getProposedBlocksSt().getPbftProposedBlock(propose_vote->getPeriod(), propose_vote->getBlockHash());
   ASSERT_TRUE(block1_from_node1);
   EXPECT_EQ(block1_from_node1->first->getJsonStr(), proposed_pbft_block->getJsonStr());
 
@@ -660,10 +660,10 @@ TEST_F(PbftManagerTest, propose_block_and_vote_broadcast) {
   std::optional<std::pair<std::shared_ptr<PbftBlock>, bool>> node3_synced_proposed_block_and_vote = std::nullopt;
 
   EXPECT_HAPPENS({20s, 200ms}, [&](auto &ctx) {
-    node2_synced_proposed_block_and_vote = pbft_mgr2->getProposedBlocksSt().getPbftProposedBlock(
-        propose_vote->getPeriod(), propose_vote->getRound(), propose_vote->getBlockHash());
-    node3_synced_proposed_block_and_vote = pbft_mgr3->getProposedBlocksSt().getPbftProposedBlock(
-        propose_vote->getPeriod(), propose_vote->getRound(), propose_vote->getBlockHash());
+    node2_synced_proposed_block_and_vote =
+        pbft_mgr2->getProposedBlocksSt().getPbftProposedBlock(propose_vote->getPeriod(), propose_vote->getBlockHash());
+    node3_synced_proposed_block_and_vote =
+        pbft_mgr3->getProposedBlocksSt().getPbftProposedBlock(propose_vote->getPeriod(), propose_vote->getBlockHash());
 
     WAIT_EXPECT_TRUE(ctx, node2_synced_proposed_block_and_vote)
     WAIT_EXPECT_TRUE(ctx, node3_synced_proposed_block_and_vote)
@@ -937,7 +937,7 @@ TEST_F(PbftManagerWithDagCreation, proposed_blocks) {
   }
   auto now = std::chrono::steady_clock::now();
   for (auto b : blocks) {
-    proposed_blocks.pushProposedPbftBlock(1, b.second);
+    proposed_blocks.pushProposedPbftBlock(b.second);
   }
   std::cout << "Time to push " << block_count
             << " blocks: " << duration_cast<microseconds>(std::chrono::steady_clock::now() - now).count()
@@ -945,7 +945,7 @@ TEST_F(PbftManagerWithDagCreation, proposed_blocks) {
   auto blocks_from_db = db->getProposedPbftBlocks();
   EXPECT_EQ(blocks_from_db.size(), blocks.size());
   for (auto b : blocks_from_db) {
-    EXPECT_TRUE(blocks.find(b.second->getBlockHash()) != blocks.end());
+    EXPECT_TRUE(blocks.find(b->getBlockHash()) != blocks.end());
   }
   now = std::chrono::steady_clock::now();
   proposed_blocks.cleanupProposedPbftBlocksByPeriod(3);
@@ -978,7 +978,7 @@ TEST_F(PbftManagerWithDagCreation, state_root_hash) {
     WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce - 1);
   });
 
-  const auto &state_root_delay = node_cfgs.front().genesis.pbft.state_root_recording_delay;
+  const auto &state_root_delay = node_cfgs.front().genesis.state.dpos.delegation_delay;
   const auto &head_hash = node->getPbftChain()->getLastPbftBlockHash();
   auto pbft_block = node->getPbftChain()->getPbftBlockInChain(head_hash);
   // Check that all produced blocks have correct state_root_hashes

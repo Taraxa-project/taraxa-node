@@ -39,6 +39,7 @@ class Config {
   static constexpr const char* REBUILD_DB_PERIOD = "rebuild-db-period";
   static constexpr const char* REVERT_TO_PERIOD = "revert-to-period";
   static constexpr const char* REBUILD_DB_COLUMNS = "rebuild-db-columns";
+  static constexpr const char* LIGHT = "light";
   static constexpr const char* HELP = "help";
   static constexpr const char* VERSION = "version";
   static constexpr const char* WALLET = "wallet";
@@ -49,6 +50,7 @@ class Config {
   static constexpr const char* CONFIG_COMMAND = "config";
   static constexpr const char* BOOT_NODES = "boot-nodes";
   static constexpr const char* PUBLIC_IP = "public-ip";
+  static constexpr const char* PORT = "port";
   static constexpr const char* LOG_CHANNELS = "log-channels";
   static constexpr const char* LOG_CONFIGURATIONS = "log-configurations";
   static constexpr const char* BOOT_NODES_APPEND = "boot-nodes-append";

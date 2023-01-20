@@ -1,0 +1,28 @@
+{{ if .Values.node.enabled }}
+{{ if .Values.node.nodePort.enabled }}
+{{- range $key, $value := .Values.node.nodePort.ports }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $.Release.Name }}-taraxa-node-discovery-{{ $key }}
+  labels:
+    name: {{ $.Release.Name }}-taraxa-node-discovery-{{ $key }}
+spec:
+  type: NodePort
+  selector:
+    statefulset.kubernetes.io/pod-name: {{ $.Release.Name }}-taraxa-node-{{ $key }}
+  ports:
+    - name: udp-listen-port
+      port: {{ $value }}
+      targetPort: {{ $value }}
+      nodePort: {{ $value }}
+      protocol: UDP
+    - name: tcp-listen-port
+      port: {{ $value }}
+      targetPort: {{ $value }}
+      nodePort: {{ $value }}
+      protocol: TCP
+{{- end }}
+{{- end }}
+{{- end }}

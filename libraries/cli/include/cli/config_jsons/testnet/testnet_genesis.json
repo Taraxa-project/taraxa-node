@@ -4,7 +4,7 @@
     "level": "0x0",
     "pivot": "0x0000000000000000000000000000000000000000000000000000000000000000",
     "sig": "0xb7e22d46c1ba94d5e8347b01d137b5c428fcbbeaf0a77fb024cbbf1517656ff00d04f7f25be608c321b0d7483c402c294ff46c49b265305d046a52236c0a363701",
-    "timestamp": "0x636cf5d0",
+    "timestamp": "0x6398A180",
     "tips": [],
     "transactions": []
   },
@@ -89,14 +89,6 @@
       }
     ]
   },
-  "eth_chain_config": {
-    "byzantium_block": "0x0",
-    "constantinople_block": "0x0",
-    "eip_150_block": "0x0",
-    "eip_158_block": "0x0",
-    "homestead_block": "0x0",
-    "petersburg_block": "0x0"
-  },
   "initial_balances": {
     "76870407332398322576505f3c5423d0a71af296": "0x117364175f2cb0e1dfc0000",
     "f4a52b8f6dc8ab046fec6ad02e77023c044342e4": "0x1f3d8d75bcb82da15ad40000",
@@ -112,7 +104,6 @@
     "number_of_proposers": "0x14",
     "dag_blocks_size": "0x32",
     "ghost_path_move_back": "0x0",
-    "state_root_recording_delay": "0x3",
     "lambda_ms": "0x5DC",
     "gas_limit": "0x7d2b7500"
   },

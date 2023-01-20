@@ -31,7 +31,8 @@ add_compile_options(-Wall
                     -Wvla
                     -Wextra-semi
                     -Wnull-dereference
-                    -Wno-unknown-pragmas)
+                    -Wno-unknown-pragmas
+                    -Wno-overlength-strings)
 # Set the position independent code property on all targets
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
@@ -197,6 +198,10 @@ add_custom_target(check-static DEPENDS cpp-check clang-format clang-format-check
 
 # execute command to get git info
 include(CMakeModules/git_info.cmake)
+
+# find and include system libraries used in submodues and libraries
+find_package(GMP)
+find_package(MPFR)
 
 # Add sub-directories cmakes
 add_subdirectory(submodules)

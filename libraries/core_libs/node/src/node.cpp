@@ -14,6 +14,10 @@
 #include "graphql/http_processor.hpp"
 #include "graphql/ws_server.hpp"
 #include "key_manager/key_manager.hpp"
+#include "metrics/metrics_service.hpp"
+#include "metrics/network_metrics.hpp"
+#include "metrics/pbft_metrics.hpp"
+#include "metrics/transaction_queue_metrics.hpp"
 #include "network/rpc/Net.h"
 #include "network/rpc/Taraxa.h"
 #include "network/rpc/Test.h"
@@ -81,6 +85,16 @@ void FullNode::init() {
   }
   LOG(log_nf_) << "DB initialized ...";
 
+  if (conf_.network.prometheus) {
+    auto &config = *conf_.network.prometheus;
+    LOG(log_nf_) << "Prometheus: server started at " << config.address << ":" << config.listen_port
+                 << ". Polling interval is " << config.polling_interval_ms << "ms";
+    metrics_ =
+        std::make_unique<metrics::MetricsService>(config.address, config.listen_port, config.polling_interval_ms);
+  } else {
+    LOG(log_nf_) << "Prometheus: config values aren't specified. Metrics collecting is disabled";
+  }
+
   gas_pricer_ = std::make_shared<GasPricer>(conf_.genesis.gas_price, conf_.is_light_node, db_);
   final_chain_ = NewFinalChain(db_, conf_, node_addr);
   key_manager_ = std::make_shared<KeyManager>(final_chain_);
@@ -116,6 +130,31 @@ void FullNode::init() {
   network_ = std::make_shared<Network>(conf_, genesis_hash, dev::p2p::Host::CapabilitiesFactory(),
                                        conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_, vote_mgr_,
                                        next_votes_mgr_, dag_mgr_, trx_mgr_);
+}
+
+void FullNode::setupMetricsUpdaters() {
+  auto network_metrics = metrics_->getMetrics<metrics::NetworkMetrics>();
+  network_metrics->setPeersCountUpdater([network = network_]() { return network->getPeerCount(); });
+  network_metrics->setDiscoveredPeersCountUpdater([network = network_]() { return network->getNodeCount(); });
+  network_metrics->setSyncingDurationUpdater([network = network_]() { return network->syncTimeSeconds(); });
+
+  auto transaction_queue_metrics = metrics_->getMetrics<metrics::TransactionQueueMetrics>();
+  transaction_queue_metrics->setTransactionsCountUpdater(
+      [trx_mgr = trx_mgr_]() { return trx_mgr->getTransactionPoolSize(); });
+  transaction_queue_metrics->setGasPriceUpdater(
+      [gas_pricer = gas_pricer_]() { return gas_pricer->bid().convert_to<double>(); });
+
+  auto pbft_metrics = metrics_->getMetrics<metrics::PbftMetrics>();
+  pbft_metrics->setPeriodUpdater([pbft_mgr = pbft_mgr_]() { return pbft_mgr->getPbftPeriod(); });
+  pbft_metrics->setRoundUpdater([pbft_mgr = pbft_mgr_]() { return pbft_mgr->getPbftRound(); });
+  pbft_metrics->setStepUpdater([pbft_mgr = pbft_mgr_]() { return pbft_mgr->getPbftStep(); });
+  pbft_metrics->setVotesCountUpdater(
+      [pbft_mgr = pbft_mgr_]() { return pbft_mgr->getCurrentNodeVotesCount().value_or(0); });
+  final_chain_->block_finalized_.subscribe([pbft_metrics](const std::shared_ptr<final_chain::FinalizationResult> &res) {
+    pbft_metrics->setBlockNumber(res->final_chain_blk->number);
+    pbft_metrics->setBlockTransactionsCount(res->trxs.size());
+    pbft_metrics->setBlockTimestamp(res->final_chain_blk->timestamp);
+  });
 }
 
 void FullNode::start() {
@@ -300,6 +339,10 @@ void FullNode::start() {
 
   pbft_mgr_->start();
 
+  if (metrics_) {
+    setupMetricsUpdaters();
+    metrics_->start();
+  }
   started_ = true;
   LOG(log_nf_) << "Node started ... ";
 }

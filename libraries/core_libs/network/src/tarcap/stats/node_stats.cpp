@@ -81,14 +81,18 @@ void NodeStats::logNodeStats() {
   const auto local_chain_size_without_empty_blocks = pbft_chain_->getPbftChainSizeExcludingEmptyPbftBlocks();
 
   const auto local_dpos_total_votes_count = pbft_mgr_->getCurrentDposTotalVotesCount();
-  const auto local_dpos_node_votes_count = pbft_mgr_->getCurrentNodeVotesCount();
+  uint64_t local_dpos_node_votes_count = 0;
+  if (const auto votes_count = pbft_mgr_->getCurrentNodeVotesCount()) {
+    local_dpos_node_votes_count = *votes_count;
+  }
   const auto local_twotplusone = vote_mgr_->getPbftTwoTPlusOne(local_pbft_period - 1);
 
   // Syncing period...
   const auto local_pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
 
   // Decide if making progress...
-  const auto pbft_consensus_rounds_advanced = local_pbft_round - local_pbft_round_prev_interval_;
+  const auto pbft_consensus_rounds_advanced =
+      (local_pbft_round > local_pbft_round_prev_interval_) ? (local_pbft_round - local_pbft_round_prev_interval_) : 0;
   const auto pbft_chain_size_growth = local_chain_size - local_chain_size_prev_interval_;
   const auto pbft_sync_period_progress = local_pbft_sync_period - local_pbft_sync_period_prev_interval_;
   const auto dag_level_growh = local_max_level_in_dag - local_max_level_in_dag_prev_interval_;
@@ -161,9 +165,7 @@ void NodeStats::logNodeStats() {
                                                             : "Info not available");
   LOG(log_nf_) << "PBFT consensus 2t+1 threshold:   "
                << (local_twotplusone.has_value() ? std::to_string(*local_twotplusone) : "Info not available");
-  LOG(log_nf_) << "Node eligible vote count:        "
-               << (local_dpos_node_votes_count.has_value() ? std::to_string(*local_dpos_node_votes_count)
-                                                           : "Info not available");
+  LOG(log_nf_) << "Node eligible vote count:        " << std::to_string(local_dpos_node_votes_count);
 
   LOG(log_dg_) << "****** Memory structures sizes ******";
   LOG(log_dg_) << "Verified votes size:             " << vote_mgr_->getVerifiedVotesSize();

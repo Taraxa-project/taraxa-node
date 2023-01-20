@@ -28,6 +28,7 @@ ExternalProject_Add(
     ${_overwrite_install_command}
     LOG_INSTALL 1
     BUILD_BYPRODUCTS "${SECP256K1_LIBRARY}"
+    DOWNLOAD_EXTRACT_TIMESTAMP NEW
 )
 
 # Create imported library

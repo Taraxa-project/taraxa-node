@@ -26,6 +26,7 @@ Config::Config(int argc, const char* argv[]) {
   std::vector<std::string> command;
   std::vector<std::string> boot_nodes;
   std::string public_ip;
+  uint16_t port = 0;
   std::vector<std::string> log_channels;
   std::vector<std::string> log_configurations;
   std::vector<std::string> boot_nodes_append;
@@ -38,6 +39,7 @@ Config::Config(int argc, const char* argv[]) {
   bool rebuild_network = false;
   bool rebuild_db = false;
   bool rebuild_db_columns = false;
+  bool light_node = false;
   bool version = false;
   uint64_t rebuild_db_period = 0;
   uint64_t revert_to_period = 0;
@@ -89,6 +91,7 @@ Config::Config(int argc, const char* argv[]) {
   node_command_options.add_options()(REVERT_TO_PERIOD, bpo::value<uint64_t>(&revert_to_period),
                                      "Revert db/state to specified "
                                      "period (specify period)");
+  node_command_options.add_options()(LIGHT, bpo::bool_switch(&light_node), "Enable light node functionality");
   node_command_options.add_options()(CHAIN_ID, bpo::value<int>(&chain_id),
                                      "Chain identifier (integer, 841=Mainnet, 842=Testnet, 843=Devnet) (default: 841) "
                                      "Only used when creating new config file");
@@ -103,6 +106,8 @@ Config::Config(int argc, const char* argv[]) {
       "Boot nodes to connect to in addition to boot nodes defined in config: [ip_address:port_number/node_id, ....]");
   node_command_options.add_options()(PUBLIC_IP, bpo::value<std::string>(&public_ip),
                                      "Force advertised public IP to the given IP (default: auto)");
+  node_command_options.add_options()(PORT, bpo::value<uint16_t>(&port),
+                                     "Listen on the given port for incoming connections");
   node_command_options.add_options()(LOG_CHANNELS, bpo::value<std::vector<std::string>>(&log_channels)->multitoken(),
                                      "Log channels to log: [channel:level, ....]");
   node_command_options.add_options()(
@@ -218,6 +223,10 @@ Config::Config(int argc, const char* argv[]) {
                                         boot_nodes_append, log_channels_append);
     wallet_json = tools::overrideWallet(wallet_json, node_secret, vrf_secret);
 
+    if (light_node) {
+      config_json["is_light_node"] = true;
+    }
+
     // Create data directory
     if (!data_dir.empty() && !fs::exists(data_dir)) {
       fs::create_directories(data_dir);
@@ -251,6 +260,9 @@ Config::Config(int argc, const char* argv[]) {
     }
     if (!public_ip.empty()) {
       node_config_.network.public_ip = public_ip;
+    }
+    if (port) {
+      node_config_.network.listen_port = port;
     }
     node_config_.db_config.db_revert_to_period = revert_to_period;
     node_config_.db_config.rebuild_db = rebuild_db;

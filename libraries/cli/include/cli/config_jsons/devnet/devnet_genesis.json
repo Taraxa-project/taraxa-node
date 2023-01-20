@@ -221,14 +221,6 @@
       }
     ]
   },
-  "eth_chain_config": {
-    "byzantium_block": "0x0",
-    "constantinople_block": "0x0",
-    "eip_150_block": "0x0",
-    "eip_158_block": "0x0",
-    "homestead_block": "0x0",
-    "petersburg_block": "0x0"
-  },
   "initial_balances": {
     "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027e72f1f12813088000000",
     "7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0x1027e72f1f12813088000000",
@@ -244,7 +236,6 @@
     "number_of_proposers": "0x14",
     "dag_blocks_size": "0x32",
     "ghost_path_move_back": "0x0",
-    "state_root_recording_delay": "0x3",
     "lambda_ms": "0x5DC",
     "gas_limit": "0x7d2b7500"
   },
