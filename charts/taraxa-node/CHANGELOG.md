@@ -7,7 +7,7 @@ numbering uses [semantic versioning](http://semver.org).
 
 ### Minor changes
 
-* Added `ServiceMonitor` to enable scraping targets for PrometheusOperator
+* Added `ServiceMonitor` to enable scraping targets by _PrometheusOperator_
 
 ## v0.3.1
 
