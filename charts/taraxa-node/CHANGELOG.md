@@ -3,6 +3,17 @@
 This file documents all notable changes to `taraxa-node` Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v0.3.2
+
+### Minor changes
+
+* Added `ServiceMonitor` to enable scraping targets for PrometheusOperator
+
+## v0.3.1
+
+### Minor changes
+
+* Added new `Service` of type `NodePort` to for rpc nodes
 
 ## v0.3.0
 
