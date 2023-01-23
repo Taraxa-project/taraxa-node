@@ -1,0 +1,26 @@
+{{ if .Values.consensusnode.enabled }}
+{{- if .Values.consensusnode.serviceMonitor.enabled  }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name:  {{ include "taraxa-consensus-node.fullname" . }}
+  labels:
+    name: consensus-node
+    app.kubernetes.io/name: consensus-node
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: consensus-node
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  namespaceSelector:
+    matchNames:
+      - {{ $.Release.Namespace | quote }}
+  endpoints:
+    - honorLabels: true
+      path: /metrics
+      port: metrics
+{{- end }}
+{{- end }}

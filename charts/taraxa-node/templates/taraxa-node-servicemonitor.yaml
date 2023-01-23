@@ -1,0 +1,26 @@
+{{ if .Values.node.enabled }}
+{{- if .Values.node.serviceMonitor.enabled  }}
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name:  {{ include "taraxa-node.fullname" . }}
+  labels:
+    name: taraxa-node
+    app.kubernetes.io/name: taraxa-node
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: taraxa-node
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  namespaceSelector:
+    matchNames:
+      - {{ $.Release.Namespace | quote }}
+  endpoints:
+    - honorLabels: true
+      path: /metrics
+      port: metrics
+{{- end }}
+{{- end }}
