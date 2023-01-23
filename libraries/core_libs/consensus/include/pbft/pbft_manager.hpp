@@ -521,9 +521,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   // dag block order for specific anchor
   mutable std::unordered_map<blk_hash_t, std::vector<DagBlock>> anchor_dag_block_order_cache_;
 
-  // Ensures that only one PBFT block per period can be proposed
-  std::shared_ptr<PbftBlock> proposed_block_ = nullptr;
-
   std::unique_ptr<std::thread> daemon_;
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<PbftChain> pbft_chain_;

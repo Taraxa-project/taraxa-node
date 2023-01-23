@@ -819,14 +819,11 @@ void PbftManager::proposeBlock_() {
   if (round == 1 ||
       vote_mgr_->getTwoTPlusOneVotedBlock(period, round - 1, TwoTPlusOneVotedBlockType::NextVotedNullBlock)
           .has_value()) {
-    if (round > 1) {
-      LOG(log_nf_) << " 2t+1 next voted kNullBlockHash in previous round " << round - 1;
-    }
+    LOG(log_nf_) << " 2t+1 next voted kNullBlockHash in previous round " << round - 1;
 
-    // TODO[2276]: Ensures that only one PBFT block per period can be proposed -> does this protection work ?
-    proposed_block_ = proposePbftBlock_();
-    if (proposed_block_) {
-      genAndPlaceProposeVote(proposed_block_);
+    // Propose new block
+    if (const auto proposed_block = proposePbftBlock_(); proposed_block) {
+      genAndPlaceProposeVote(proposed_block);
     }
     return;
   } else if (const auto previous_round_next_voted_value =
