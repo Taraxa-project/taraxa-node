@@ -31,7 +31,8 @@ add_compile_options(-Wall
                     -Wvla
                     -Wextra-semi
                     -Wnull-dereference
-                    -Wno-unknown-pragmas)
+                    -Wno-unknown-pragmas
+                    -Wno-overlength-strings)
 # Set the position independent code property on all targets
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 

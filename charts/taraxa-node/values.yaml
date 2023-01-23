@@ -68,6 +68,12 @@ node:
   replicaCount: 20
   loadBalancer:
     enabled: false
+    addresses: []
+    serviceAnnotations: {}
+  nodePort:
+    enabled: false
+    ports: []
+    serviceAnnotations: {}
   probes:
     enabled: true
   debug: 0
