@@ -321,11 +321,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void sleep_();
 
   /**
-   * @brief PBFT daemon
-   */
-  void continuousOperation_();
-
-  /**
    * @brief Go to next PBFT state. Only to be used for unit tests
    */
   void doNextState_();

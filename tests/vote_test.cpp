@@ -23,28 +23,6 @@ auto g_sk = Lazy([] {
 });
 struct VoteTest : NodesTest {};
 
-std::pair<PbftPeriod, PbftRound> clearAllVotes(const std::vector<std::shared_ptr<FullNode>> &nodes) {
-  // Get highest round from all nodes
-  PbftPeriod max_period = 0;
-  PbftRound max_round = 1;
-  for (const auto &node : nodes) {
-    auto [node_round, node_period] = node->getPbftManager()->getPbftRoundAndPeriod();
-    if (node_period > max_period) {
-      max_period = node_period;
-    }
-    if (node_period == max_period && node_round > max_round) {
-      max_round = node_round;
-    }
-  }
-
-  // Clean up votes from memory for each node
-  for (const auto &node : nodes) {
-    node->getVoteManager()->cleanupVotesByPeriod(max_period + 1);
-  }
-
-  return {max_period, max_round};
-}
-
 TEST_F(VoteTest, verified_votes) {
   auto node = create_nodes(1, true /*start*/).front();
 

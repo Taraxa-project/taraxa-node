@@ -779,13 +779,17 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 // Test PBFT next votes sycning when node is behind of PBFT round with peer
 TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
   auto node_cfgs = make_node_cfgs(2, 1, 20);
+
   auto node1 = create_nodes({node_cfgs[0]}, true /*start*/).front();
-
-  // Stop PBFT manager, that will place vote
   auto pbft_mgr1 = node1->getPbftManager();
-  pbft_mgr1->stop();
-
   auto vote_mgr1 = node1->getVoteManager();
+  pbft_mgr1->stop();  // Stop PBFT manager, that will place vote
+
+  auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
+  auto pbft_mgr2 = node2->getPbftManager();
+  pbft_mgr2->stop();  // Stop PBFT manager, that will place vote
+
+  clearAllVotes({node1, node2});
 
   // Generate 3 next votes
   PbftVoteTypes type = PbftVoteTypes::next_vote;
@@ -804,11 +808,6 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_behind_round) {
 
   const size_t votes_count = 2;
   EXPECT_EQ(vote_mgr1->getVerifiedVotesSize(), votes_count);
-
-  auto node2 = create_nodes({node_cfgs[1]}, true /*start*/).front();
-  // Stop PBFT manager, that will place vote
-  std::shared_ptr<PbftManager> pbft_mgr2 = node2->getPbftManager();
-  pbft_mgr2->stop();
 
   // Make sure node2 PBFT round is less than node1
   pbft_mgr2->setPbftRound(round);
@@ -840,15 +839,11 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round) {
   EXPECT_TRUE(wait_connect({node1, node2}));
 
   // Clear all votes
-  const auto node1_chain_size = node1->getPbftChain()->getPbftChainSize();
-  node1_vote_mgr->cleanupVotesByPeriod(node1_chain_size + 1);
+  clearAllVotes({node1, node2});
 
-  const auto node2_chain_size = node2->getPbftChain()->getPbftChainSize();
-  node2_vote_mgr->cleanupVotesByPeriod(node2_chain_size + 1);
-
-  auto node1_pbft_2t_plus_1 = node1_vote_mgr->getPbftTwoTPlusOne(node1_chain_size).value();
+  auto node1_pbft_2t_plus_1 = node1_vote_mgr->getPbftTwoTPlusOne(node1->getPbftChain()->getPbftChainSize()).value();
   EXPECT_EQ(node1_pbft_2t_plus_1, 1);
-  auto node2_pbft_2t_plus_1 = node2_vote_mgr->getPbftTwoTPlusOne(node2_chain_size).value();
+  auto node2_pbft_2t_plus_1 = node2_vote_mgr->getPbftTwoTPlusOne(node2->getPbftChain()->getPbftChainSize()).value();
   EXPECT_EQ(node2_pbft_2t_plus_1, 1);
 
   // Node1 generate 1 next vote voted at kNullBlockHash

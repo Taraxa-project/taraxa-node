@@ -65,14 +65,12 @@ class VoteManager {
    * @brief Get all verified votes
    * @return all verified votes
    */
-  // TODO: remove - used only in tests
   std::vector<std::shared_ptr<Vote>> getVerifiedVotes() const;
 
   /**
    * @brief Get the total size of all verified votes
    * @return the total size of all verified votes
    */
-  // TODO: remove - used only in tests
   uint64_t getVerifiedVotesSize() const;
 
   /**

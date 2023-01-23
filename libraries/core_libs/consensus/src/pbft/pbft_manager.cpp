@@ -47,6 +47,33 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
       proposed_blocks_(db_),
       max_levels_per_period_(max_levels_per_period) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
+
+  for (auto period = final_chain_->last_block_number() + 1, curr_period = pbft_chain_->getPbftChainSize();
+       period <= curr_period; ++period) {
+    auto period_raw = db_->getPeriodDataRaw(period);
+    if (period_raw.size() == 0) {
+      LOG(log_er_) << "DB corrupted - Cannot find PBFT block in period " << period << " in PBFT chain DB pbft_blocks.";
+      assert(false);
+    }
+
+    PeriodData period_data(period_raw);
+    if (period_data.pbft_blk->getPeriod() != period) {
+      LOG(log_er_) << "DB corrupted - PBFT block hash " << period_data.pbft_blk->getBlockHash()
+                   << " has different period " << period_data.pbft_blk->getPeriod()
+                   << " in block data than in block order db: " << period;
+      assert(false);
+    }
+
+    // We need this section because votes need to be verified for reward distribution
+    for (const auto &v : period_data.previous_block_cert_votes) {
+      vote_mgr_->validateVote(v);
+    }
+
+    finalize_(std::move(period_data), db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
+  }
+
+  // Initialize PBFT status
+  initialState();
 }
 
 PbftManager::~PbftManager() { stop(); }
@@ -78,47 +105,6 @@ void PbftManager::stop() {
   LOG(log_dg_) << "PBFT daemon terminated ...";
 }
 
-/* When a node starts up it has to sync to the current phase (type of block
- * being generated) and step (within the block generation round)
- * Five step loop for block generation over three phases of blocks
- * User's credential, sigma_i_p for a round p is sig_i(R, p)
- * Leader l_i_p = min ( H(sig_j(R,p) ) over set of j in S_i where S_i is set of
- * users from which have received valid round p credentials
- */
-void PbftManager::run() {
-  LOG(log_nf_) << "PBFT running ...";
-
-  for (auto period = final_chain_->last_block_number() + 1, curr_period = pbft_chain_->getPbftChainSize();
-       period <= curr_period; ++period) {
-    auto period_raw = db_->getPeriodDataRaw(period);
-    if (period_raw.size() == 0) {
-      LOG(log_er_) << "DB corrupted - Cannot find PBFT block in period " << period << " in PBFT chain DB pbft_blocks.";
-      assert(false);
-    }
-
-    PeriodData period_data(period_raw);
-    if (period_data.pbft_blk->getPeriod() != period) {
-      LOG(log_er_) << "DB corrupted - PBFT block hash " << period_data.pbft_blk->getBlockHash()
-                   << " has different period " << period_data.pbft_blk->getPeriod()
-                   << " in block data than in block order db: " << period;
-      assert(false);
-    }
-
-    // We need this section because votes need to be verified for reward distribution
-    for (const auto &v : period_data.previous_block_cert_votes) {
-      vote_mgr_->validateVote(v);
-    }
-
-    finalize_(std::move(period_data), db_->getFinalizedDagBlockHashesByPeriod(period), period == curr_period);
-  }
-
-  // Initialize PBFT status
-  // TODO: put this inside PbftManager constructor
-  initialState();
-
-  continuousOperation_();
-}
-
 // Only to be used for tests...
 void PbftManager::resume() {
   // Will only appear in testing...
@@ -136,7 +122,7 @@ void PbftManager::resume() {
     state_ = finish_polling_state;
   }
 
-  daemon_ = std::make_unique<std::thread>([this]() { continuousOperation_(); });
+  daemon_ = std::make_unique<std::thread>([this]() { run(); });
 }
 
 // Only to be used for tests...
@@ -198,7 +184,14 @@ void PbftManager::doNextState_() {
   }
 }
 
-void PbftManager::continuousOperation_() {
+/* When a node starts up it has to sync to the current phase (type of block
+ * being generated) and step (within the block generation round)
+ * Five step loop for block generation over three phases of blocks
+ * User's credential, sigma_i_p for a round p is sig_i(R, p)
+ * Leader l_i_p = min ( H(sig_j(R,p) ) over set of j in S_i where S_i is set of
+ * users from which have received valid round p credentials
+ */
+void PbftManager::run() {
   while (!stopped_) {
     if (stateOperations_()) {
       continue;
