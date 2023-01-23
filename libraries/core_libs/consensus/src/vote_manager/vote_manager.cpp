@@ -13,9 +13,6 @@
 
 namespace taraxa {
 
-constexpr PbftStep kExtendedPartionSteps = 1000;
-constexpr PbftStep kFirstFinishStep = 4;
-
 VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config, const secret_t& node_sk,
                          const vrf_wrapper::vrf_sk_t& vrf_sk, std::shared_ptr<DbStorage> db,
                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
@@ -56,29 +53,6 @@ VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config,
 }
 
 void VoteManager::setNetwork(std::weak_ptr<Network> network) { network_ = std::move(network); }
-
-void VoteManager::retreieveVotes_() {
-  LOG(log_si_) << "Retrieve verified votes from DB";
-  auto verified_votes = db_->getOwnVerifiedVotes();
-  const auto pbft_step = db_->getPbftMgrField(PbftMgrField::Step);
-  for (auto const& v : verified_votes) {
-    // Rebroadcast our own next votes in case we were partitioned...
-    if (v->getStep() >= kFirstFinishStep && pbft_step > kExtendedPartionSteps) {
-      if (auto net = network_.lock()) {
-        net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(v, nullptr);
-      }
-    }
-
-    // Check if votes are unique per round & step & voter
-    if (auto is_unique_vote = isUniqueVote(v); !is_unique_vote.first) {
-      // This should never happen
-      assert(false);
-    }
-
-    addVerifiedVote(v);
-    LOG(log_dg_) << "Retrieved verified vote " << *v;
-  }
-}
 
 std::vector<std::shared_ptr<Vote>> VoteManager::getVerifiedVotes() const {
   std::vector<std::shared_ptr<Vote>> votes;

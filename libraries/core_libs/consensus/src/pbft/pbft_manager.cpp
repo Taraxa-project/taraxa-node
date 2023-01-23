@@ -494,8 +494,6 @@ void PbftManager::initialState() {
     proposed_blocks_.pushProposedPbftBlock(block, false);
   }
 
-  // TODO: broadcasrt own erified votes - question is when shiuld be this done ?? - see logic in retreieveVotes_()
-
   // Process saved cert voted block from db
   if (auto cert_voted_block_data = db_->getCertVotedBlockInRound(); cert_voted_block_data.has_value()) {
     const auto [cert_voted_block_round, cert_voted_block] = *cert_voted_block_data;

@@ -239,12 +239,6 @@ class VoteManager {
   bool insertUniqueVote(const std::shared_ptr<Vote>& vote);
 
   /**
-   * @brief Retrieve all verified votes from DB to the verified votes map. And broadcast all next voting type votes to
-   * peers if node has extended the partition steps (1000). That only happens when nodes start.
-   */
-  void retreieveVotes_();
-
-  /**
    * @brief Get PBFT sortition threshold for specific period
    * @param total_dpos_votes_count total votes count
    * @param vote_type vote type

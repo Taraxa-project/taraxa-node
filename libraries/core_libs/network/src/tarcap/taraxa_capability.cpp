@@ -68,7 +68,7 @@ void TaraxaCapability::init(const h256 &genesis_hash, std::shared_ptr<DbStorage>
                          node_addr);
 
   // Inits periodic events. Must be called after registerHandlers !!!
-  initPeriodicEvents(pbft_mgr, trx_mgr, all_packets_stats_);
+  initPeriodicEvents(pbft_mgr, db, trx_mgr, all_packets_stats_);
 }
 
 void TaraxaCapability::addBootNodes(bool initial) {
@@ -117,6 +117,7 @@ void TaraxaCapability::addBootNodes(bool initial) {
 }
 
 void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr,
+                                          const std::shared_ptr<DbStorage> &db,
                                           std::shared_ptr<TransactionManager> trx_mgr,
                                           std::shared_ptr<TimePeriodPacketsStats> packets_stats) {
   // TODO: refactor this:
@@ -177,6 +178,23 @@ void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pb
       addBootNodes();
     }
   });
+
+  // If period and round did not change after 60 seconds from node start, rebroadcast own pbft votes
+  if (pbft_mgr && db /* just because of tests */) {
+    auto votes_sync_packet_handler = packets_handlers_->getSpecificHandler<VotesSyncPacketHandler>();
+    const auto [init_round, init_period] = pbft_mgr->getPbftRoundAndPeriod();
+    periodic_events_tp_->post(60000, [init_round = init_round, init_period = init_period, db = db, pbft_mgr = pbft_mgr,
+                                      votes_sync_packet_handler = std::move(votes_sync_packet_handler)] {
+      const auto [curent_round, curent_period] = pbft_mgr->getPbftRoundAndPeriod();
+      if (curent_period != init_period || curent_round != init_round) {
+        return;
+      }
+
+      if (auto own_votes = db->getOwnVerifiedVotes(); !own_votes.empty()) {
+        votes_sync_packet_handler->onNewPbftVotesBundle(std::move(own_votes), true);
+      }
+    });
+  }
 }
 
 void TaraxaCapability::registerPacketHandlers(
