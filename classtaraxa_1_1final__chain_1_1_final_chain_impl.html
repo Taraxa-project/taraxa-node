@@ -136,6 +136,9 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a4b8f0831630b3578c70f4e67a4f97ef6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a65964df9947f8f13c90fd3279a571fc3"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; const <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result">FinalizationResult</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a65964df9947f8f13c90fd3279a571fc3">finalize_</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&amp;new_blk, std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt; &amp;&amp;finalized_dag_blk_hashes, <a class="el" href="group___final_chain.html#a85c2c0863dab085cd063aac9b6886d51">finalize_precommit_ext</a> const &amp;precommit_ext)</td></tr>
 <tr class="separator:a65964df9947f8f13c90fd3279a571fc3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3874417fe6c4c200e3d44078de54f50f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a3874417fe6c4c200e3d44078de54f50f">prune</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_n) override</td></tr>
+<tr class="memdesc:a3874417fe6c4c200e3d44078de54f50f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prune state db for all blocks older than blk_n.  <a href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a3874417fe6c4c200e3d44078de54f50f">More...</a><br /></td></tr>
+<tr class="separator:a3874417fe6c4c200e3d44078de54f50f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4384eacfe6e7156f105d208d5dcc0de9"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header">BlockHeader</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a4384eacfe6e7156f105d208d5dcc0de9">append_block</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DB::Batch</a> &amp;batch, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;author, uint64_t timestamp, uint64_t gas_limit, const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &amp;state_root, const <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> &amp;<a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab54243b01846a87cd31281089389b3ae">transactions</a>={}, const <a class="el" href="group___final_chain.html#gafa74492224d3e9c12af3c0f31e9c7afb">TransactionReceipts</a> &amp;receipts={})</td></tr>
 <tr class="separator:a4384eacfe6e7156f105d208d5dcc0de9"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa7011215c95945e0322fb58c5e736f2c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#aa7011215c95945e0322fb58c5e736f2c">last_block_number</a> () const override</td></tr>
@@ -245,6 +248,10 @@ Private Attributes</h2></td></tr>
 <tr class="separator:abc398fa9c008b4001bcc78bbfb1040c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8dc59861e1ecd2ad92e753bab9cf13bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___final_chain.html#classtaraxa_1_1state__api_1_1_state_a_p_i">StateAPI</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a8dc59861e1ecd2ad92e753bab9cf13bd">state_api_</a></td></tr>
 <tr class="separator:a8dc59861e1ecd2ad92e753bab9cf13bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0bd20b9995125122e8857c7fbb92aade"><td class="memItemLeft" align="right" valign="top">const bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a0bd20b9995125122e8857c7fbb92aade">kLightNode</a> = false</td></tr>
+<tr class="separator:a0bd20b9995125122e8857c7fbb92aade"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abba353a2e7d65ac74afdb8956762d3f7"><td class="memItemLeft" align="right" valign="top">const uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#abba353a2e7d65ac74afdb8956762d3f7">kLigntNodeHistory</a> = 0</td></tr>
+<tr class="separator:abba353a2e7d65ac74afdb8956762d3f7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a06d9ea36b96d6a63e18245c581c17e87"><td class="memItemLeft" align="right" valign="top">boost::asio::thread_pool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a06d9ea36b96d6a63e18245c581c17e87">executor_thread_</a> {1}</td></tr>
 <tr class="separator:a06d9ea36b96d6a63e18245c581c17e87"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e4b48d1c452fb9384e2c69a5f595560"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a7e4b48d1c452fb9384e2c69a5f595560">num_executed_dag_blk_</a> = 0</td></tr>
@@ -1236,6 +1243,42 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
+<a id="a3874417fe6c4c200e3d44078de54f50f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3874417fe6c4c200e3d44078de54f50f">&#9670;&nbsp;</a></span>prune()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::final_chain::FinalChainImpl::prune </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td>
+          <td class="paramname"><em>blk_n</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">override</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Prune state db for all blocks older than blk_n. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">blk_n</td><td>number of block we are getting state from </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Implements <a class="el" href="group___final_chain.html#a7206ab974911e06f78e50084b1f0f87a">taraxa::final_chain::FinalChain</a>.</p>
+
+</div>
+</div>
 <a id="a2586af303e2a0f870e81a409ec273da9"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2586af303e2a0f870e81a409ec273da9">&#9670;&nbsp;</a></span>stop()</h2>
 
@@ -1856,6 +1899,50 @@ Additional Inherited Members</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">const uint32_t taraxa::final_chain::FinalChainImpl::kCommitteeSize</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a0bd20b9995125122e8857c7fbb92aade"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0bd20b9995125122e8857c7fbb92aade">&#9670;&nbsp;</a></span>kLightNode</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const bool taraxa::final_chain::FinalChainImpl::kLightNode = false</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="abba353a2e7d65ac74afdb8956762d3f7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abba353a2e7d65ac74afdb8956762d3f7">&#9670;&nbsp;</a></span>kLigntNodeHistory</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const uint64_t taraxa::final_chain::FinalChainImpl::kLigntNodeHistory = 0</td>
         </tr>
       </table>
   </td>

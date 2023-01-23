@@ -25,6 +25,7 @@ var classtaraxa_1_1_db_storage =
     [ "clearPeriodDataHistory", "classtaraxa_1_1_db_storage.html#a56b74f6282c0ead7cb428a3ebe046aad", null ],
     [ "commitWriteBatch", "classtaraxa_1_1_db_storage.html#a88a606470708384489145d70b5e1c11b", null ],
     [ "commitWriteBatch", "classtaraxa_1_1_db_storage.html#a18273694ac5bef0c063a72ca19408c00", null ],
+    [ "compactColumn", "classtaraxa_1_1_db_storage.html#a3bb8669c1a589bbe5b0690df0b1c1244", null ],
     [ "createSnapshot", "classtaraxa_1_1_db_storage.html#a441528936e0ad6583242bad33e859523", null ],
     [ "createWriteBatch", "classtaraxa_1_1_db_storage.html#aea08b8d408a7e3f26f1fb011fe5ccd27", null ],
     [ "dagBlockInDb", "classtaraxa_1_1_db_storage.html#a0e7339685ce0f30cb9186ccec58709fa", null ],

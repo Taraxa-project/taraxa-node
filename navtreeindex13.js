@@ -1,5 +1,9 @@
 var NAVTREEINDEX13 =
 {
+"functions_vars_n.html":[14,3,2,13],
+"functions_vars_o.html":[14,3,2,14],
+"functions_vars_p.html":[14,3,2,15],
+"functions_vars_q.html":[14,3,2,16],
 "functions_vars_r.html":[14,3,2,17],
 "functions_vars_s.html":[14,3,2,18],
 "functions_vars_t.html":[14,3,2,19],
@@ -245,9 +249,5 @@ var NAVTREEINDEX13 =
 "group___d_a_g.html#classtaraxa_1_1_dag_block_proposer":[12,0,4],
 "group___d_a_g.html#classtaraxa_1_1_dag_manager":[12,0,5],
 "group___d_a_g.html#classtaraxa_1_1_pivot_tree":[12,0,1],
-"group___d_a_g.html#classtaraxa_1_1_sortition_params_manager":[12,0,7],
-"group___d_a_g.html#classtaraxa_1_1edge__label__writer":[12,0,3],
-"group___d_a_g.html#classtaraxa_1_1vertex__label__writer":[12,0,2],
-"group___d_a_g.html#structtaraxa_1_1_sortition_params_change":[12,0,6],
-"group___final_chain.html":[12,1]
+"group___d_a_g.html#classtaraxa_1_1_sortition_params_manager":[12,0,7]
 };

@@ -1073,6 +1073,9 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <tr class="memitem:ab193319e8081030abcfa62a172ab6cfd"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#ab193319e8081030abcfa62a172ab6cfd">dpos_get_vrf_key</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_n, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;addr) const =0</td></tr>
 <tr class="memdesc:ab193319e8081030abcfa62a172ab6cfd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get the vrf key object from DPOS state.  <a href="group___final_chain.html#ab193319e8081030abcfa62a172ab6cfd">More...</a><br /></td></tr>
 <tr class="separator:ab193319e8081030abcfa62a172ab6cfd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7206ab974911e06f78e50084b1f0f87a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a7206ab974911e06f78e50084b1f0f87a">prune</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_n)=0</td></tr>
+<tr class="memdesc:a7206ab974911e06f78e50084b1f0f87a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prune state db for all blocks older than blk_n.  <a href="group___final_chain.html#a7206ab974911e06f78e50084b1f0f87a">More...</a><br /></td></tr>
+<tr class="separator:a7206ab974911e06f78e50084b1f0f87a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afcb9ccbdd87a08842e591ed1c228d66f"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespacetaraxa.html#aad3ca55780e79a029c6a1ccf43f66e67">val_t</a>, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#afcb9ccbdd87a08842e591ed1c228d66f">getBalance</a> (<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;addr) const</td></tr>
 <tr class="separator:afcb9ccbdd87a08842e591ed1c228d66f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Public Attributes</h3></td></tr>
@@ -1887,6 +1890,42 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 
 </div>
 </div>
+<a id="a7206ab974911e06f78e50084b1f0f87a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7206ab974911e06f78e50084b1f0f87a">&#9670;&nbsp;</a></span>prune()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void taraxa::final_chain::FinalChain::prune </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td>
+          <td class="paramname"><em>blk_n</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Prune state db for all blocks older than blk_n. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">blk_n</td><td>number of block we are getting state from </td></tr>
+  </table>
+  </dd>
+</dl>
+
+<p>Implemented in <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a3874417fe6c4c200e3d44078de54f50f">taraxa::final_chain::FinalChainImpl</a>.</p>
+
+</div>
+</div>
 <a id="a91ede0e4ca9b7b7c75b474756ab4c2a6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a91ede0e4ca9b7b7c75b474756ab4c2a6">&#9670;&nbsp;</a></span>stop()</h2>
 
@@ -2323,6 +2362,8 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
 <tr class="separator:a7b5dc95d0aa9a90b7fd37fd3e0593cff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abd94382ec0e65196486c46500019bf33"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#abd94382ec0e65196486c46500019bf33">create_snapshot</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
 <tr class="separator:abd94382ec0e65196486c46500019bf33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9e4746f527401e367e02a462693853ae"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a9e4746f527401e367e02a462693853ae">prune</a> (const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">dev::h256</a> &amp;state_root_to_keep, const std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">dev::h256</a> &gt; &amp;state_root_to_prune, <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num)</td></tr>
+<tr class="separator:a9e4746f527401e367e02a462693853ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4f67cd91d38cc3f873506b94d66ee916"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a4f67cd91d38cc3f873506b94d66ee916">dpos_eligible_total_vote_count</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num) const</td></tr>
 <tr class="separator:a4f67cd91d38cc3f873506b94d66ee916"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a954304ae0af99b51d175d9ba4a09a976"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a954304ae0af99b51d175d9ba4a09a976">dpos_eligible_vote_count</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;addr) const</td></tr>
@@ -2833,6 +2874,40 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
           <td></td>
           <td>)</td>
           <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9e4746f527401e367e02a462693853ae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9e4746f527401e367e02a462693853ae">&#9670;&nbsp;</a></span>prune()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::state_api::StateAPI::prune </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">dev::h256</a> &amp;&#160;</td>
+          <td class="paramname"><em>state_root_to_keep</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">dev::h256</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>state_root_to_prune</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td>
+          <td class="paramname"><em>blk_num</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
