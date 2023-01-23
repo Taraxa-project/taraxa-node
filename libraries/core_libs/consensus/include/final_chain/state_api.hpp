@@ -48,6 +48,8 @@ class StateAPI {
                                                 const RewardsStats& rewards_stats = {});
   void transition_state_commit();
   void create_snapshot(PbftPeriod period);
+  void prune(const dev::h256& state_root_to_keep, const std::vector<dev::h256>& state_root_to_prune,
+             EthBlockNumber blk_num);
 
   // DPOS
   uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const;
