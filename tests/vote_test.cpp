@@ -210,18 +210,11 @@ TEST_F(VoteTest, two_t_plus_one_votes) {
   auto pbft_2t_plus_1 = vote_mgr->getPbftTwoTPlusOne(chain_size).value();
   EXPECT_EQ(pbft_2t_plus_1, 1);
 
-  auto genVote = [vote_mgr](PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
-                            blk_hash_t block_hash = blk_hash_t(1)) {
-    auto vote = vote_mgr->generateVote(block_hash, type, period, round, step);
-    vote->calculateWeight(1, 1, 1);
-    return vote;
-  };
-
   // Generate a vote voted at kNullBlockHash
   PbftPeriod period = 1;
   PbftRound round = 1;
 
-  vote_mgr->addVerifiedVote(genVote(PbftVoteTypes::soft_vote, period, round, 2));
+  vote_mgr->addVerifiedVote(genDummyVote(PbftVoteTypes::soft_vote, period, round, 2, blk_hash_t(1), vote_mgr));
   EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::SoftVotedBlock).has_value());
   EXPECT_FALSE(
       vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::CertVotedBlock).has_value());
@@ -230,7 +223,7 @@ TEST_F(VoteTest, two_t_plus_one_votes) {
   EXPECT_FALSE(
       vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::NextVotedNullBlock).has_value());
 
-  vote_mgr->addVerifiedVote(genVote(PbftVoteTypes::cert_vote, period, round, 3));
+  vote_mgr->addVerifiedVote(genDummyVote(PbftVoteTypes::cert_vote, period, round, 3, blk_hash_t(1), vote_mgr));
   EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::SoftVotedBlock).has_value());
   EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::CertVotedBlock).has_value());
   EXPECT_FALSE(
@@ -238,14 +231,14 @@ TEST_F(VoteTest, two_t_plus_one_votes) {
   EXPECT_FALSE(
       vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::NextVotedNullBlock).has_value());
 
-  vote_mgr->addVerifiedVote(genVote(PbftVoteTypes::next_vote, period, round, 4));
+  vote_mgr->addVerifiedVote(genDummyVote(PbftVoteTypes::next_vote, period, round, 4, blk_hash_t(1), vote_mgr));
   EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::SoftVotedBlock).has_value());
   EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::CertVotedBlock).has_value());
   EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::NextVotedBlock).has_value());
   EXPECT_FALSE(
       vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::NextVotedNullBlock).has_value());
 
-  vote_mgr->addVerifiedVote(genVote(PbftVoteTypes::next_vote, period, round, 5, kNullBlockHash));
+  vote_mgr->addVerifiedVote(genDummyVote(PbftVoteTypes::next_vote, period, round, 5, kNullBlockHash, vote_mgr));
   EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::SoftVotedBlock).has_value());
   EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::CertVotedBlock).has_value());
   EXPECT_TRUE(vote_mgr->getTwoTPlusOneVotedBlock(period, round, TwoTPlusOneVotedBlockType::NextVotedBlock).has_value());

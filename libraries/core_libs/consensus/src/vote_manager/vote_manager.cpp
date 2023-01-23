@@ -254,6 +254,7 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
         // 2t+1 votes block already set
         if (found_two_t_plus_one_voted_block != found_round_it->second.two_t_plus_one_voted_blocks_.end()) {
           assert(found_two_t_plus_one_voted_block->second.first == vote->getBlockHash());
+
           // It is possible to have 2t+1 next votes for the same block in multiple steps
           if (two_plus_one_voted_block_type != TwoTPlusOneVotedBlockType::NextVotedBlock &&
               two_plus_one_voted_block_type != TwoTPlusOneVotedBlockType::NextVotedNullBlock) {

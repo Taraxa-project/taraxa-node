@@ -141,6 +141,13 @@ void wait_for_balances(const shared_nodes_t& nodes, const expected_balances_map_
   });
 }
 
+std::shared_ptr<Vote> genDummyVote(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
+                                   blk_hash_t block_hash, const std::shared_ptr<VoteManager> vote_mgr) {
+  auto vote = vote_mgr->generateVote(block_hash, type, period, round, step);
+  vote->calculateWeight(1, 1, 1);
+  return vote;
+}
+
 NodesTest::NodesTest() {
   for (uint16_t i = 0; i < 5; ++i) {
     taraxa::FullNodeConfig cfg;
