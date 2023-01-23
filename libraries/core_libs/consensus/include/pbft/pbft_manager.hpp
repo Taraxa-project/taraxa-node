@@ -147,10 +147,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param prev_blk_hash previous PBFT block hash
    * @param anchor_hash proposed DAG pivot block hash for finalization
    * @param order_hash the hash of all DAG blocks include in the PBFT block
-   * @return PBFT block
+   * @return optional<pair<PBFT block, PBFT block reward votes>>
    */
-  std::shared_ptr<PbftBlock> generatePbftBlock(PbftPeriod propose_period, const blk_hash_t &prev_blk_hash,
-                                               const blk_hash_t &anchor_hash, const blk_hash_t &order_hash);
+  std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<Vote>>>> generatePbftBlock(
+      PbftPeriod propose_period, const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
+      const blk_hash_t &order_hash);
 
   /**
    * @brief Get current total DPOS votes count
@@ -405,9 +406,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Generate propose vote for provided block place (gossip) it
    *
    * @param proposed_block
+   * @param reward_votes for proposed_block
    * @return true if successful, otherwise false
    */
-  bool genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &proposed_block);
+  bool genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &proposed_block,
+                              std::vector<std::shared_ptr<Vote>> &&reward_votes);
 
   /**
    * @brief Gossips newly generated vote to the other peers
@@ -420,9 +423,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   /**
    * @brief Propose a new PBFT block
-   * @return proposed PBFT block
+   * @return optional<pair<PBFT block, PBFT block reward votes>> in case new block was proposed, otherwise empty
+   * optional
    */
-  std::shared_ptr<PbftBlock> proposePbftBlock_();
+  std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<Vote>>>> proposePbftBlock();
 
   /**
    * @brief Identify a leader block from all received proposed PBFT blocks for the current round by using minimum

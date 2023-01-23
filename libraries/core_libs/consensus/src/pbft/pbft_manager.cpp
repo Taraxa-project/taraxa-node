@@ -752,7 +752,8 @@ bool PbftManager::placeVote(const std::shared_ptr<Vote> &vote, std::string_view 
   return true;
 }
 
-bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &proposed_block) {
+bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &proposed_block,
+                                         std::vector<std::shared_ptr<Vote>> &&reward_votes) {
   const auto [current_pbft_round, current_pbft_period] = getPbftRoundAndPeriod();
   const auto current_pbft_step = getPbftStep();
 
@@ -770,15 +771,12 @@ bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &propo
   }
 
   // Broadcast reward votes - previous round 2t+1 cert votes
-  // TODO: here we should send the actual votes that were included in proposed block
-  auto reward_votes = vote_mgr_->getProposeRewardVotes();
-  if (!reward_votes.empty()) {
-    if (auto net = network_.lock()) {
-      LOG(log_dg_) << "Broadcast propose reward votes for period " << current_pbft_period << ", round "
-                   << current_pbft_round;
-      net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(reward_votes),
-                                                                                               false);
-    }
+  if (auto net = network_.lock()) {
+    LOG(log_dg_) << "Broadcast propose block reward votes for block " << proposed_block->getBlockHash()
+                 << ", num of reward votes: " << reward_votes.size() << ", period " << current_pbft_period << ", round "
+                 << current_pbft_round;
+    net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(reward_votes),
+                                                                                             false);
   }
 
   if (!placeVote(propose_vote, "propose vote", proposed_block)) {
@@ -822,9 +820,10 @@ void PbftManager::proposeBlock_() {
     LOG(log_nf_) << " 2t+1 next voted kNullBlockHash in previous round " << round - 1;
 
     // Propose new block
-    if (const auto proposed_block = proposePbftBlock_(); proposed_block) {
-      genAndPlaceProposeVote(proposed_block);
+    if (auto proposed_block = proposePbftBlock(); proposed_block.has_value()) {
+      genAndPlaceProposeVote(proposed_block->first, std::move(proposed_block->second));
     }
+
     return;
   } else if (const auto previous_round_next_voted_value =
                  vote_mgr_->getTwoTPlusOneVotedBlock(period, round - 1, TwoTPlusOneVotedBlockType::NextVotedBlock);
@@ -843,7 +842,14 @@ void PbftManager::proposeBlock_() {
       return;
     }
 
-    genAndPlaceProposeVote(next_voted_block);
+    auto block_reward_votes = vote_mgr_->checkRewardVotes(next_voted_block, true);
+    if (!block_reward_votes.first) {
+      LOG(log_er_) << "Unable to re-propose previous round next voted block " << next_voted_block_hash << ", period "
+                   << period << ", round " << round << ". Reward votes for this block were not found";
+      return;
+    }
+
+    genAndPlaceProposeVote(next_voted_block, std::move(block_reward_votes.second));
     return;
   } else {
     LOG(log_er_) << "Previous round " << round - 1 << " doesn't have enough next votes, period " << period;
@@ -1081,14 +1087,26 @@ void PbftManager::secondFinish_() {
   loop_back_finish_state_ = elapsedTimeInMs(second_finish_step_start_datetime_) > 2 * (LAMBDA_ms - kPollingIntervalMs);
 }
 
-std::shared_ptr<PbftBlock> PbftManager::generatePbftBlock(PbftPeriod propose_period, const blk_hash_t &prev_blk_hash,
-                                                          const blk_hash_t &anchor_hash, const blk_hash_t &order_hash) {
+std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<Vote>>>> PbftManager::generatePbftBlock(
+    PbftPeriod propose_period, const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
+    const blk_hash_t &order_hash) {
   // Reward votes should only include those reward votes with the same round as the round last pbft block was pushed
   // into chain
-  const auto reward_votes = vote_mgr_->getProposeRewardVotes();
+  auto reward_votes = vote_mgr_->getProposeRewardVotes();
+  if (propose_period > 1) [[likely]] {
+    assert(!reward_votes.empty());
+    if (reward_votes[0]->getPeriod() != propose_period - 1) {
+      LOG(log_er_) << "Reward vote period(" << reward_votes[0]->getPeriod() << ") != propose_period - 1("
+                   << propose_period - 1 << ")";
+      assert(false);
+      return {};
+    }
+  }
+
   std::vector<vote_hash_t> reward_votes_hashes;
   std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
                  [](const auto &v) { return v->getHash(); });
+
   h256 last_state_root;
   if (propose_period > final_chain_->delegation_delay()) {
     if (const auto header = final_chain_->block_header(propose_period - final_chain_->delegation_delay())) {
@@ -1098,8 +1116,11 @@ std::shared_ptr<PbftBlock> PbftManager::generatePbftBlock(PbftPeriod propose_per
       return {};
     }
   }
-  return std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, last_state_root, propose_period,
-                                     node_addr_, node_sk_, std::move(reward_votes_hashes));
+
+  auto block = std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, last_state_root, propose_period,
+                                           node_addr_, node_sk_, std::move(reward_votes_hashes));
+
+  return {std::make_pair(std::move(block), std::move(reward_votes))};
 }
 
 void PbftManager::processProposedBlock(const std::shared_ptr<PbftBlock> &proposed_block,
@@ -1145,12 +1166,13 @@ std::optional<blk_hash_t> findClosestAnchor(const std::vector<blk_hash_t> &ghost
   return ghost[1];
 }
 
-std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
+std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<Vote>>>>
+PbftManager::proposePbftBlock() {
   const auto [current_pbft_round, current_pbft_period] = getPbftRoundAndPeriod();
   if (!vote_mgr_->genAndValidateVrfSortition(current_pbft_period, current_pbft_round)) {
     LOG(log_dg_) << "Unable to propose block for period " << current_pbft_period << ", round " << current_pbft_round
                  << ". Invalid vrf sortition";
-    return nullptr;
+    return {};
   }
 
   auto last_pbft_block_hash = pbft_chain_->getLastPbftBlockHash();
@@ -1237,12 +1259,14 @@ std::shared_ptr<PbftBlock> PbftManager::proposePbftBlock_() {
   }
 
   auto order_hash = calculateOrderHash(dag_block_order);
-  auto pbft_block = generatePbftBlock(current_pbft_period, last_pbft_block_hash, dag_block_hash, order_hash);
-  if (pbft_block) {
-    LOG(log_nf_) << "Proposed PBFT block: " << pbft_block->getBlockHash() << ". Order hash:" << order_hash
-                 << ". DAG order for proposed block" << dag_block_order;
+  if (auto proposed_block = generatePbftBlock(current_pbft_period, last_pbft_block_hash, dag_block_hash, order_hash);
+      proposed_block.has_value()) {
+    LOG(log_nf_) << "Created PBFT block: " << proposed_block->first->getBlockHash() << ", order hash:" << order_hash
+                 << ", DAG order " << dag_block_order;
+    return proposed_block;
   }
-  return pbft_block;
+
+  return {};
 }
 
 h256 PbftManager::getProposal(const std::shared_ptr<Vote> &vote) const {
