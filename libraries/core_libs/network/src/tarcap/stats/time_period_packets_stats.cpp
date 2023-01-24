@@ -23,8 +23,6 @@ void TimePeriodPacketsStats::addSentPacket(const std::string& packet_type, const
   LOG(log_tr_) << "Sent packet: " << packet.getStatsJsonStr(packet_type, node);
 }
 
-uint64_t TimePeriodPacketsStats::getResetTimePeriodMs() const { return kResetTimePeriod.count(); }
-
 std::pair<bool, std::chrono::milliseconds> TimePeriodPacketsStats::validMaxStatsTimePeriod(
     const std::chrono::system_clock::time_point& start_time) const {
   using namespace std::chrono_literals;
