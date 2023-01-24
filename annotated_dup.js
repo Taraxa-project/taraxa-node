@@ -276,6 +276,7 @@ var annotated_dup =
       [ "PrometheusConfig", "namespacetaraxa.html#structtaraxa_1_1_prometheus_config", "namespacetaraxa_structtaraxa_1_1_prometheus_config_dup" ],
       [ "ConnectionConfig", "structtaraxa_1_1_connection_config.html", "structtaraxa_1_1_connection_config" ],
       [ "NodeConfig", "namespacetaraxa.html#structtaraxa_1_1_node_config", "namespacetaraxa_structtaraxa_1_1_node_config_dup" ],
+      [ "DdosProtectionConfig", "structtaraxa_1_1_ddos_protection_config.html", "structtaraxa_1_1_ddos_protection_config" ],
       [ "NetworkConfig", "structtaraxa_1_1_network_config.html", "structtaraxa_1_1_network_config" ],
       [ "PbftConfig", "structtaraxa_1_1_pbft_config.html", "structtaraxa_1_1_pbft_config" ],
       [ "Dag", "group___d_a_g.html#classtaraxa_1_1_dag", "group___d_a_g_classtaraxa_1_1_dag" ],

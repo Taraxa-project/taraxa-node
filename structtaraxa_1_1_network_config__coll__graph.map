@@ -1,4 +1,5 @@
 <map id="taraxa::NetworkConfig" name="taraxa::NetworkConfig">
-<area shape="rect" id="node1" title=" " alt="" coords="5,124,173,151"/>
-<area shape="rect" id="node2" title=" " alt="" coords="60,5,119,32"/>
+<area shape="rect" id="node1" title=" " alt="" coords="29,124,197,151"/>
+<area shape="rect" id="node2" title=" " alt="" coords="5,5,64,32"/>
+<area shape="rect" id="node3" href="$structtaraxa_1_1_ddos_protection_config.html" title=" " alt="" coords="87,5,299,32"/>
 </map>

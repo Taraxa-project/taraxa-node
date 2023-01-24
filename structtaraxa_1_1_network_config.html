@@ -97,15 +97,16 @@ Collaboration diagram for taraxa::NetworkConfig:</div>
 <div class="dyncontent">
 <div class="center"><img src="structtaraxa_1_1_network_config__coll__graph.png" border="0" usemap="#ataraxa_1_1_network_config_coll__map" alt="Collaboration graph"/></div>
 <map name="ataraxa_1_1_network_config_coll__map" id="ataraxa_1_1_network_config_coll__map">
-<area shape="rect" title=" " alt="" coords="5,124,173,151"/>
-<area shape="rect" title=" " alt="" coords="60,5,119,32"/>
+<area shape="rect" title=" " alt="" coords="29,124,197,151"/>
+<area shape="rect" title=" " alt="" coords="5,5,64,32"/>
+<area shape="rect" href="structtaraxa_1_1_ddos_protection_config.html" title=" " alt="" coords="87,5,299,32"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a6842ef9818d8bfa2a789ca3afb3b4d22"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a6842ef9818d8bfa2a789ca3afb3b4d22">validate</a> () const</td></tr>
-<tr class="separator:a6842ef9818d8bfa2a789ca3afb3b4d22"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a815929009ed91b397f929e385d5fd10d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a815929009ed91b397f929e385d5fd10d">validate</a> (uint32_t delegation_delay) const</td></tr>
+<tr class="separator:a815929009ed91b397f929e385d5fd10d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -127,8 +128,6 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a7ec9d38a0edc06c79d979ba9a1439049"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aacf1424b93ac3b5698fbf919a4f2e55c"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#aacf1424b93ac3b5698fbf919a4f2e55c">sync_level_size</a> = 10</td></tr>
 <tr class="separator:aacf1424b93ac3b5698fbf919a4f2e55c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4f74c8666dbc79db246472ebbda14a14"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a4f74c8666dbc79db246472ebbda14a14">collect_packets_stats</a> = false</td></tr>
-<tr class="separator:a4f74c8666dbc79db246472ebbda14a14"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afbacdd7402e6309bd59494551ddef537"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#afbacdd7402e6309bd59494551ddef537">num_threads</a> = std::max(uint(1), uint(std::thread::hardware_concurrency() / 2))</td></tr>
 <tr class="separator:afbacdd7402e6309bd59494551ddef537"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6c958f97e88f2829ab455d32f2bf80e2"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a6c958f97e88f2829ab455d32f2bf80e2">packets_processing_threads</a> = 14</td></tr>
@@ -139,12 +138,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:aecd55fa8d7ebec1b3bc00e97cf74119c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5c2b116ffa131039491a84f8efbceb1c"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a5c2b116ffa131039491a84f8efbceb1c">deep_syncing_threshold</a> = 10</td></tr>
 <tr class="separator:a5c2b116ffa131039491a84f8efbceb1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5d27c222be533f358fac47af131741ad"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a5d27c222be533f358fac47af131741ad">vote_accepting_periods</a> = 5</td></tr>
-<tr class="separator:a5d27c222be533f358fac47af131741ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaac462d426577862ef36fe63755cf380"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#aaac462d426577862ef36fe63755cf380">vote_accepting_rounds</a> = 5</td></tr>
-<tr class="separator:aaac462d426577862ef36fe63755cf380"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a54fbceae5cffabdd771f43301c841362"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a54fbceae5cffabdd771f43301c841362">vote_accepting_steps</a> = 0</td></tr>
-<tr class="separator:a54fbceae5cffabdd771f43301c841362"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a308625fa050f2f0e646b0e0ca4d48cbf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="structtaraxa_1_1_ddos_protection_config.html">DdosProtectionConfig</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a308625fa050f2f0e646b0e0ca4d48cbf">ddos_protection</a></td></tr>
+<tr class="separator:a308625fa050f2f0e646b0e0ca4d48cbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1af8e0e3927577c35e290542d2fb8697"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="structtaraxa_1_1_connection_config.html">ConnectionConfig</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#a1af8e0e3927577c35e290542d2fb8697">rpc</a></td></tr>
 <tr class="separator:a1af8e0e3927577c35e290542d2fb8697"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abc6eb505c01d9d4d12afc5950f39f83e"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="structtaraxa_1_1_connection_config.html">ConnectionConfig</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_network_config.html#abc6eb505c01d9d4d12afc5950f39f83e">graphql</a></td></tr>
@@ -158,8 +153,8 @@ Static Public Attributes</h2></td></tr>
 <tr class="separator:a51247ea862ddf795e2eaf53c189490c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a6842ef9818d8bfa2a789ca3afb3b4d22"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a6842ef9818d8bfa2a789ca3afb3b4d22">&#9670;&nbsp;</a></span>validate()</h2>
+<a id="a815929009ed91b397f929e385d5fd10d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a815929009ed91b397f929e385d5fd10d">&#9670;&nbsp;</a></span>validate()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -167,7 +162,8 @@ Static Public Attributes</h2></td></tr>
         <tr>
           <td class="memname">void taraxa::NetworkConfig::validate </td>
           <td>(</td>
-          <td class="paramname"></td><td>)</td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>delegation_delay</em></td><td>)</td>
           <td> const</td>
         </tr>
       </table>
@@ -190,14 +186,14 @@ Static Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a4f74c8666dbc79db246472ebbda14a14"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4f74c8666dbc79db246472ebbda14a14">&#9670;&nbsp;</a></span>collect_packets_stats</h2>
+<a id="a308625fa050f2f0e646b0e0ca4d48cbf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a308625fa050f2f0e646b0e0ca4d48cbf">&#9670;&nbsp;</a></span>ddos_protection</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">bool taraxa::NetworkConfig::collect_packets_stats = false</td>
+          <td class="memname"><a class="el" href="structtaraxa_1_1_ddos_protection_config.html">DdosProtectionConfig</a> taraxa::NetworkConfig::ddos_protection</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -444,48 +440,6 @@ Static Public Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">uint16_t taraxa::NetworkConfig::transaction_interval_ms = 100</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a5d27c222be533f358fac47af131741ad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5d27c222be533f358fac47af131741ad">&#9670;&nbsp;</a></span>vote_accepting_periods</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> taraxa::NetworkConfig::vote_accepting_periods = 5</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aaac462d426577862ef36fe63755cf380"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaac462d426577862ef36fe63755cf380">&#9670;&nbsp;</a></span>vote_accepting_rounds</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a> taraxa::NetworkConfig::vote_accepting_rounds = 5</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a54fbceae5cffabdd771f43301c841362"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a54fbceae5cffabdd771f43301c841362">&#9670;&nbsp;</a></span>vote_accepting_steps</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a> taraxa::NetworkConfig::vote_accepting_steps = 0</td>
         </tr>
       </table>
 </div><div class="memdoc">

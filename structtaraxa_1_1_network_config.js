@@ -1,8 +1,8 @@
 var structtaraxa_1_1_network_config =
 [
-    [ "validate", "structtaraxa_1_1_network_config.html#a6842ef9818d8bfa2a789ca3afb3b4d22", null ],
+    [ "validate", "structtaraxa_1_1_network_config.html#a815929009ed91b397f929e385d5fd10d", null ],
     [ "boot_nodes", "structtaraxa_1_1_network_config.html#a544ad7ce2c33b3c1e0174e4b61deb9a7", null ],
-    [ "collect_packets_stats", "structtaraxa_1_1_network_config.html#a4f74c8666dbc79db246472ebbda14a14", null ],
+    [ "ddos_protection", "structtaraxa_1_1_network_config.html#a308625fa050f2f0e646b0e0ca4d48cbf", null ],
     [ "deep_syncing_threshold", "structtaraxa_1_1_network_config.html#a5c2b116ffa131039491a84f8efbceb1c", null ],
     [ "disable_peer_blacklist", "structtaraxa_1_1_network_config.html#aecd55fa8d7ebec1b3bc00e97cf74119c", null ],
     [ "graphql", "structtaraxa_1_1_network_config.html#abc6eb505c01d9d4d12afc5950f39f83e", null ],
@@ -19,8 +19,5 @@ var structtaraxa_1_1_network_config =
     [ "public_ip", "structtaraxa_1_1_network_config.html#a85cb06d2c30472248db88950cdfe120c", null ],
     [ "rpc", "structtaraxa_1_1_network_config.html#a1af8e0e3927577c35e290542d2fb8697", null ],
     [ "sync_level_size", "structtaraxa_1_1_network_config.html#aacf1424b93ac3b5698fbf919a4f2e55c", null ],
-    [ "transaction_interval_ms", "structtaraxa_1_1_network_config.html#a7ec9d38a0edc06c79d979ba9a1439049", null ],
-    [ "vote_accepting_periods", "structtaraxa_1_1_network_config.html#a5d27c222be533f358fac47af131741ad", null ],
-    [ "vote_accepting_rounds", "structtaraxa_1_1_network_config.html#aaac462d426577862ef36fe63755cf380", null ],
-    [ "vote_accepting_steps", "structtaraxa_1_1_network_config.html#a54fbceae5cffabdd771f43301c841362", null ]
+    [ "transaction_interval_ms", "structtaraxa_1_1_network_config.html#a7ec9d38a0edc06c79d979ba9a1439049", null ]
 ];

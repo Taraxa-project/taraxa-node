@@ -62,6 +62,7 @@ var hierarchy =
     [ "taraxa::DagConfig", "structtaraxa_1_1_dag_config.html", null ],
     [ "taraxa::DagFrontier", "structtaraxa_1_1_dag_frontier.html", null ],
     [ "taraxa::DBConfig", "namespacetaraxa.html#structtaraxa_1_1_d_b_config", null ],
+    [ "taraxa::DdosProtectionConfig", "structtaraxa_1_1_ddos_protection_config.html", null ],
     [ "taraxa::util::DefaultConstructCopyableMovable< T >", "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html", null ],
     [ "taraxa::util::DefaultConstructCopyableMovable< std::mutex >", "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html", null ],
     [ "taraxa::util::DefaultConstructCopyableMovable< std::shared_mutex >", "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html", null ],
