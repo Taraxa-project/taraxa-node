@@ -151,8 +151,6 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
     return false;
   }
 
-  // TODO: solve two_t_plus_one that is received always for cert vote type...
-  const auto two_t_plus_one = getPbftTwoTPlusOne(vote->getPeriod() - 1);
   const auto vote_block_hash = vote->getBlockHash();
 
   {
@@ -210,6 +208,9 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
       return false;
     }
 
+    LOG(log_nf_) << "Added verified vote: " << hash;
+    LOG(log_dg_) << "Added verified vote: " << *vote;
+
     // Save in db only those reward votes that have the same round as round during which we pushed the block into chain
     if (is_valid_potential_reward_vote && reward_votes_round_ == vote->getRound()) {
       db_->saveRewardVote(vote);
@@ -217,65 +218,66 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
 
     const auto total_weight = (found_voted_value_it->second.first += weight);
 
-    // Set 2t+1 voted block
-    if (total_weight >= two_t_plus_one) {
-      auto saveTwoTPlusOneVotesInDb = [this, &found_round_it, &found_voted_value_it](
-                                          TwoTPlusOneVotedBlockType two_plus_one_voted_block_type,
-                                          const std::shared_ptr<Vote> vote) {
-        auto found_two_t_plus_one_voted_block =
-            found_round_it->second.two_t_plus_one_voted_blocks_.find(two_plus_one_voted_block_type);
+    // Not enough votes - do not set 2t+1 voted block for period,round and step
+    const auto two_t_plus_one = getPbftTwoTPlusOne(vote->getPeriod() - 1, vote->getType());
+    if (total_weight < two_t_plus_one) {
+      return true;
+    }
 
-        // 2t+1 votes block already set
-        if (found_two_t_plus_one_voted_block != found_round_it->second.two_t_plus_one_voted_blocks_.end()) {
-          assert(found_two_t_plus_one_voted_block->second.first == vote->getBlockHash());
+    // Function to save 2t+1 voted block + its votes
+    auto saveTwoTPlusOneVotesInDb = [this, &found_round_it, &found_voted_value_it](
+                                        TwoTPlusOneVotedBlockType two_plus_one_voted_block_type,
+                                        const std::shared_ptr<Vote> vote) {
+      auto found_two_t_plus_one_voted_block =
+          found_round_it->second.two_t_plus_one_voted_blocks_.find(two_plus_one_voted_block_type);
 
-          // It is possible to have 2t+1 next votes for the same block in multiple steps
-          if (two_plus_one_voted_block_type != TwoTPlusOneVotedBlockType::NextVotedBlock &&
-              two_plus_one_voted_block_type != TwoTPlusOneVotedBlockType::NextVotedNullBlock) {
-            assert(found_two_t_plus_one_voted_block->second.second == vote->getStep());
-          }
+      // 2t+1 votes block already set
+      if (found_two_t_plus_one_voted_block != found_round_it->second.two_t_plus_one_voted_blocks_.end()) {
+        assert(found_two_t_plus_one_voted_block->second.first == vote->getBlockHash());
 
-          return;
+        // It is possible to have 2t+1 next votes for the same block in multiple steps
+        if (two_plus_one_voted_block_type != TwoTPlusOneVotedBlockType::NextVotedBlock &&
+            two_plus_one_voted_block_type != TwoTPlusOneVotedBlockType::NextVotedNullBlock) {
+          assert(found_two_t_plus_one_voted_block->second.second == vote->getStep());
         }
 
-        // Insert new 2t+1 voted block
-        found_round_it->second.two_t_plus_one_voted_blocks_.insert(
-            {two_plus_one_voted_block_type, std::make_pair(vote->getBlockHash(), vote->getStep())});
-
-        // Save only current pbft period & round 2t+1 votes bundles into db
-        if (vote->getPeriod() == current_pbft_period_ && vote->getRound() == current_pbft_round_) {
-          std::vector<std::shared_ptr<Vote>> votes;
-          votes.reserve(found_voted_value_it->second.second.size());
-          for (const auto& tmp_vote : found_voted_value_it->second.second) {
-            votes.push_back(tmp_vote.second);
-          }
-
-          db_->replaceTwoTPlusOneVotes(two_plus_one_voted_block_type, votes);
-        }
-      };
-
-      switch (vote->getType()) {
-        case PbftVoteTypes::soft_vote:
-          saveTwoTPlusOneVotesInDb(TwoTPlusOneVotedBlockType::SoftVotedBlock, vote);
-          break;
-        case PbftVoteTypes::cert_vote:
-          saveTwoTPlusOneVotesInDb(TwoTPlusOneVotedBlockType::CertVotedBlock, vote);
-          break;
-        case PbftVoteTypes::next_vote:
-          if (vote_block_hash == kNullBlockHash) {
-            saveTwoTPlusOneVotesInDb(TwoTPlusOneVotedBlockType::NextVotedNullBlock, vote);
-          } else {
-            saveTwoTPlusOneVotesInDb(TwoTPlusOneVotedBlockType::NextVotedBlock, vote);
-          }
-          break;
-        default:
-          break;
+        return;
       }
+
+      // Insert new 2t+1 voted block
+      found_round_it->second.two_t_plus_one_voted_blocks_.insert(
+          {two_plus_one_voted_block_type, std::make_pair(vote->getBlockHash(), vote->getStep())});
+
+      // Save only current pbft period & round 2t+1 votes bundles into db
+      if (vote->getPeriod() == current_pbft_period_ && vote->getRound() == current_pbft_round_) {
+        std::vector<std::shared_ptr<Vote>> votes;
+        votes.reserve(found_voted_value_it->second.second.size());
+        for (const auto& tmp_vote : found_voted_value_it->second.second) {
+          votes.push_back(tmp_vote.second);
+        }
+
+        db_->replaceTwoTPlusOneVotes(two_plus_one_voted_block_type, votes);
+      }
+    };
+
+    switch (vote->getType()) {
+      case PbftVoteTypes::soft_vote:
+        saveTwoTPlusOneVotesInDb(TwoTPlusOneVotedBlockType::SoftVotedBlock, vote);
+        break;
+      case PbftVoteTypes::cert_vote:
+        saveTwoTPlusOneVotesInDb(TwoTPlusOneVotedBlockType::CertVotedBlock, vote);
+        break;
+      case PbftVoteTypes::next_vote:
+        if (vote_block_hash == kNullBlockHash) {
+          saveTwoTPlusOneVotesInDb(TwoTPlusOneVotedBlockType::NextVotedNullBlock, vote);
+        } else {
+          saveTwoTPlusOneVotesInDb(TwoTPlusOneVotedBlockType::NextVotedBlock, vote);
+        }
+        break;
+      default:
+        break;
     }
   }
-
-  LOG(log_nf_) << "Added verified vote: " << hash;
-  LOG(log_dg_) << "Added verified vote: " << *vote;
 
   return true;
 }
@@ -758,12 +760,16 @@ std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Vot
   return {true, ""};
 }
 
-std::optional<uint64_t> VoteManager::getPbftTwoTPlusOne(PbftPeriod pbft_period) const {
+std::optional<uint64_t> VoteManager::getPbftTwoTPlusOne(PbftPeriod pbft_period, PbftVoteTypes vote_type) const {
   // Check cache first
   {
     std::shared_lock lock(current_two_t_plus_one_mutex_);
-    if (pbft_period == current_two_t_plus_one_.first && current_two_t_plus_one_.second) {
-      return current_two_t_plus_one_.second;
+    const auto cached_two_t_plus_one_it = current_two_t_plus_one_.find(vote_type);
+    if (cached_two_t_plus_one_it != current_two_t_plus_one_.end()) {
+      const auto [cached_period, cached_two_t_plus_one] = cached_two_t_plus_one_it->second;
+      if (pbft_period == cached_period && cached_two_t_plus_one) {
+        return cached_two_t_plus_one;
+      }
     }
   }
 
@@ -777,12 +783,12 @@ std::optional<uint64_t> VoteManager::getPbftTwoTPlusOne(PbftPeriod pbft_period) 
     return {};
   }
 
-  const auto two_t_plus_one = getPbftSortitionThreshold(total_dpos_votes_count, PbftVoteTypes::cert_vote) * 2 / 3 + 1;
+  const auto two_t_plus_one = getPbftSortitionThreshold(total_dpos_votes_count, vote_type) * 2 / 3 + 1;
 
   // Cache is only for current pbft chain size
   if (pbft_period == pbft_chain_->getPbftChainSize()) {
-    std::unique_lock lock(current_two_t_plus_one_mutex_);
-    current_two_t_plus_one_ = std::make_pair(pbft_period, two_t_plus_one);
+    std::scoped_lock lock(current_two_t_plus_one_mutex_);
+    current_two_t_plus_one_[vote_type] = std::make_pair(pbft_period, two_t_plus_one);
   }
 
   return two_t_plus_one;

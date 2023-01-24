@@ -841,9 +841,11 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round) {
   // Clear all votes
   clearAllVotes({node1, node2});
 
-  auto node1_pbft_2t_plus_1 = node1_vote_mgr->getPbftTwoTPlusOne(node1->getPbftChain()->getPbftChainSize()).value();
+  auto node1_pbft_2t_plus_1 =
+      node1_vote_mgr->getPbftTwoTPlusOne(node1->getPbftChain()->getPbftChainSize(), PbftVoteTypes::next_vote).value();
   EXPECT_EQ(node1_pbft_2t_plus_1, 1);
-  auto node2_pbft_2t_plus_1 = node2_vote_mgr->getPbftTwoTPlusOne(node2->getPbftChain()->getPbftChainSize()).value();
+  auto node2_pbft_2t_plus_1 =
+      node2_vote_mgr->getPbftTwoTPlusOne(node2->getPbftChain()->getPbftChainSize(), PbftVoteTypes::next_vote).value();
   EXPECT_EQ(node2_pbft_2t_plus_1, 1);
 
   // Node1 generate 1 next vote voted at kNullBlockHash

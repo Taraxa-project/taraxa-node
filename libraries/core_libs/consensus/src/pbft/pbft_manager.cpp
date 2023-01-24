@@ -1788,7 +1788,7 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
     vote_mgr_->addVerifiedVote(v);
   }
 
-  const auto two_t_plus_one = vote_mgr_->getPbftTwoTPlusOne(first_vote_period - 1);
+  const auto two_t_plus_one = vote_mgr_->getPbftTwoTPlusOne(first_vote_period - 1, PbftVoteTypes::cert_vote);
   if (!two_t_plus_one.has_value()) {
     return false;
   }

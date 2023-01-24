@@ -185,7 +185,7 @@ TEST_F(VoteTest, two_t_plus_one_votes) {
   clearAllVotes({node});
 
   const auto chain_size = node->getPbftChain()->getPbftChainSize();
-  auto pbft_2t_plus_1 = vote_mgr->getPbftTwoTPlusOne(chain_size).value();
+  auto pbft_2t_plus_1 = vote_mgr->getPbftTwoTPlusOne(chain_size, PbftVoteTypes::cert_vote).value();
   EXPECT_EQ(pbft_2t_plus_1, 1);
 
   // Generate a vote voted at kNullBlockHash

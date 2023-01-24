@@ -163,9 +163,10 @@ class VoteManager {
   /**
    * @brief Get 2t+1. 2t+1 is 2/3 of PBFT sortition threshold and plus 1 for a specific period
    * @param pbft_period pbft period
+   * @param vote_type vote type, for which we get 2t+1
    * @return PBFT 2T + 1 if successful, otherwise (due to non-existent data for pbft_period) empty optional
    */
-  std::optional<uint64_t> getPbftTwoTPlusOne(PbftPeriod pbft_period) const;
+  std::optional<uint64_t> getPbftTwoTPlusOne(PbftPeriod pbft_period, PbftVoteTypes vote_type) const;
 
   /**
    * @param vote_hash
@@ -274,9 +275,10 @@ class VoteManager {
   PbftRound reward_votes_round_;
   mutable std::shared_mutex reward_votes_info_mutex_;
 
-  // Cache for current 2T+1 - do not access it directly as it is not updated automatically,
-  // always call getPbftTwoTPlusOne instead !!!
-  mutable std::pair<PbftPeriod, uint64_t /* two_t_plus_one for period */> current_two_t_plus_one_;
+  // Cache for current 2T+1 - <Vote type, <period, two_t_plus_one for period>>
+  // !!! Important: do not access it directly as it is not updated automatically, always call getPbftTwoTPlusOne instead
+  // !!!
+  mutable std::unordered_map<PbftVoteTypes, std::pair<PbftPeriod, uint64_t>> current_two_t_plus_one_;
   mutable std::shared_mutex current_two_t_plus_one_mutex_;
 
   // Votes that have been already validated in terms of signature, stake, etc...
