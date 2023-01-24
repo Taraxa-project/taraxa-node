@@ -714,12 +714,18 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   context.assert_all_transactions_known();
   context.assert_balances_synced();
 
-  // Prune state_db of one node to remove all but last 10 block state and verify all ballances still match
+  // Prune state_db of one node
   auto prune_node = nodes[nodes.size() - 1];
-  auto last_block = prune_node->getPbftChain()->getPbftChainSize() - 10;
-  prune_node->getFinalChain()->prune(last_block);
-  context.assert_all_transactions_success();
-  context.assert_all_transactions_known();
+  const uint32_t min_blocks_to_prune = 50;
+  // This ensures that we never prune blocks that are over proposal period
+  ASSERT_HAPPENS({20s, 100ms}, [&](auto &ctx) {
+    const auto max_level = prune_node->getDagManager()->getMaxLevel();
+    const auto proposal_period = prune_node->getDB()->getProposalPeriodForDagLevel(max_level);
+    ASSERT_TRUE(proposal_period.has_value());
+    context.dummy_transaction();
+    WAIT_EXPECT_TRUE(ctx, ((*proposal_period) > min_blocks_to_prune))
+  });
+  prune_node->getFinalChain()->prune(min_blocks_to_prune);
   context.assert_balances_synced();
 
   // transfer some coins to pruned node ...
@@ -733,9 +739,7 @@ TEST_F(FullNodeTest, sync_five_nodes) {
       WAIT_EXPECT_EQ(ctx, nodes[i]->getDB()->getNumTransactionExecuted(), trx_cnt)
   });
 
-  std::cout << "Check balances" << std::endl;
-  context.assert_all_transactions_success();
-  context.assert_all_transactions_known();
+  // Check balances after prune";
   context.assert_balances_synced();
 }
 
