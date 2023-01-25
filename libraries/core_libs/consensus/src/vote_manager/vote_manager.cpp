@@ -542,7 +542,6 @@ bool VoteManager::isValidRewardVote(const std::shared_ptr<Vote>& vote) const {
 
   // !!! Important: Different nodes might finalize/push the same block in different rounds and therefore they can
   // include different reward votes when creating new block - accept all cert votes with matching period & block_hash
-  // TODO[1938]: implement ddos protection so user cannot sent indefinite number of valid reward votes with different
   // round Dummy round protection - if we pushed the block in round reward_votes_round_, the rest of the network should
   // push it shortly after - 100 rounds buffer
   if (vote->getRound() > reward_votes_round_ + 100) {
