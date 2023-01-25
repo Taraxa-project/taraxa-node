@@ -12,6 +12,7 @@ namespace taraxa {
 PbftChain::PbftChain(addr_t node_addr, std::shared_ptr<DbStorage> db)
     : size_(0), non_empty_size_(0), db_(std::move(db)) {
   LOG_OBJECTS_CREATE("PBFT_CHAIN");
+
   // Get PBFT head from DB
   auto pbft_head_str = db_->getPbftHead(head_hash_);
   if (pbft_head_str.empty()) {
@@ -21,6 +22,7 @@ PbftChain::PbftChain(addr_t node_addr, std::shared_ptr<DbStorage> db)
     LOG(log_nf_) << "Initialize PBFT chain head " << head_json_str;
     return;
   }
+
   Json::Value doc;
   istringstream(pbft_head_str) >> doc;
   head_hash_ = blk_hash_t(doc["head_hash"].asString());
@@ -112,8 +114,8 @@ std::string PbftChain::getJsonStr() const {
   Json::Value json;
   std::shared_lock lock(chain_head_access_);
   json["head_hash"] = head_hash_.toString();
-  json["size"] = (Json::Value::UInt64)size_;
-  json["non_empty_size"] = (Json::Value::UInt64)non_empty_size_;
+  json["size"] = static_cast<Json::Value::UInt64>(size_);
+  json["non_empty_size"] = static_cast<Json::Value::UInt64>(non_empty_size_);
   json["last_pbft_block_hash"] = last_pbft_block_hash_.toString();
   return json.toStyledString();
 }
@@ -122,7 +124,7 @@ std::string PbftChain::getJsonStrForBlock(blk_hash_t const& block_hash, bool nul
   Json::Value json;
   std::shared_lock lock(chain_head_access_);
   json["head_hash"] = head_hash_.toString();
-  json["size"] = (Json::Value::UInt64)size_ + 1;
+  json["size"] = static_cast<Json::Value::UInt64>(size_) + 1;
   auto non_empty_size = non_empty_size_;
   if (!null_anchor) {
     non_empty_size++;
