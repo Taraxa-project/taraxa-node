@@ -79,7 +79,8 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, P
       s.appendList(3);
       s << last_block;
       s.appendRaw(data);
-      const auto votes = db_->getLastBlockCertVotes();
+      // Latest finalized block cert votes are saved in db as reward votes for new blocks
+      const auto votes = db_->getRewardVotes();
       s.appendList(votes.size());
       for (const auto &vote : votes) {
         s.appendRaw(vote->rlp(true));

@@ -11,7 +11,6 @@
 #include "network/tarcap/taraxa_capability.hpp"
 #include "pbft/period_data_queue.hpp"
 #include "pbft/proposed_blocks.hpp"
-#include "pbft/soft_voted_block_data.hpp"
 
 namespace taraxa {
 
@@ -58,10 +57,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_block_hash, addr_t node_addr,
               std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-              std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
-              std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-              std::shared_ptr<FinalChain> final_chain, secret_t node_sk,
-              uint32_t max_levels_per_period = kMaxLevelsPerPeriod);
+              std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
+              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain, secret_t node_sk,
+              uint32_t max_levels_per_period);
   ~PbftManager();
   PbftManager(const PbftManager &) = delete;
   PbftManager(PbftManager &&) = delete;
@@ -149,10 +147,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @param prev_blk_hash previous PBFT block hash
    * @param anchor_hash proposed DAG pivot block hash for finalization
    * @param order_hash the hash of all DAG blocks include in the PBFT block
-   * @return PBFT block
+   * @return optional<pair<PBFT block, PBFT block reward votes>>
    */
-  std::shared_ptr<PbftBlock> generatePbftBlock(PbftPeriod propose_period, const blk_hash_t &prev_blk_hash,
-                                               const blk_hash_t &anchor_hash, const blk_hash_t &order_hash);
+  std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<Vote>>>> generatePbftBlock(
+      PbftPeriod propose_period, const blk_hash_t &prev_blk_hash, const blk_hash_t &anchor_hash,
+      const blk_hash_t &order_hash);
 
   /**
    * @brief Get current total DPOS votes count
@@ -259,15 +258,24 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void resumeSingleState();
 
   /**
-   * @return ProposedBlocks structure
+   * @brief Get a proposed PBFT block based on specified period and block hash
+   * @param period
+   * @param block_hash
+   * @return std::shared_ptr<PbftBlock>
    */
-  const ProposedBlocks &getProposedBlocksSt() const;
+  std::shared_ptr<PbftBlock> getPbftProposedBlock(PbftPeriod period, const blk_hash_t &block_hash) const;
 
   /**
    * @brief Get PBFT committee size
    * @return PBFT committee size
    */
   size_t getPbftCommitteeSize() const { return config_.committee_size; }
+
+  /**
+   * @brief Broadcast or rebroadcast current round soft votes, previous round next votes and reward votes
+   * @param rebroadcast
+   */
+  void broadcastVotes(bool rebroadcast);
 
  private:
   // DPOS
@@ -315,11 +323,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Time to sleep for PBFT protocol
    */
   void sleep_();
-
-  /**
-   * @brief PBFT daemon
-   */
-  void continuousOperation_();
 
   /**
    * @brief Go to next PBFT state. Only to be used for unit tests
@@ -406,9 +409,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Generate propose vote for provided block place (gossip) it
    *
    * @param proposed_block
+   * @param reward_votes for proposed_block
    * @return true if successful, otherwise false
    */
-  bool genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &proposed_block);
+  bool genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &proposed_block,
+                              std::vector<std::shared_ptr<Vote>> &&reward_votes);
 
   /**
    * @brief Gossips newly generated vote to the other peers
@@ -421,9 +426,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   /**
    * @brief Propose a new PBFT block
-   * @return proposed PBFT block
+   * @return optional<pair<PBFT block, PBFT block reward votes>> in case new block was proposed, otherwise empty
+   * optional
    */
-  std::shared_ptr<PbftBlock> proposePbftBlock_();
+  std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<Vote>>>> proposePbftBlock();
 
   /**
    * @brief Identify a leader block from all received proposed PBFT blocks for the current round by using minimum
@@ -480,19 +486,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool pushPbftBlock_(PeriodData &&period_data, std::vector<std::shared_ptr<Vote>> &&cert_votes);
 
   /**
-   * @brief Check if previous round next voting value has been changed
-   */
-  void checkPreviousRoundNextVotedValueChange_();
-
-  /**
-   * @param period
-   * @param round
-   * @return Soft voted block data if there is enough (2t+1) soft votes, otherwise returns empty optional
-   */
-  const std::optional<TwoTPlusOneSoftVotedBlockData> &getTwoTPlusOneSoftVotedBlockData(PbftPeriod period,
-                                                                                       PbftRound round);
-
-  /**
    * @brief Get valid proposed pbft block. It will retrieve block from proposed_blocks and then validate it if not
    *        already validated
    *
@@ -525,12 +518,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool canParticipateInConsensus(PbftPeriod period) const;
 
   /**
-   * @brief Broadcast or rebroadcast current round soft votes, previous round next votes and reward votes
-   * @param rebroadcast
-   */
-  void broadcastVotes(bool rebroadcast);
-
-  /**
    * @brief Prints all votes generated by node in current round
    */
   void printVotingSummary() const;
@@ -541,12 +528,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   // dag block order for specific anchor
   mutable std::unordered_map<blk_hash_t, std::vector<DagBlock>> anchor_dag_block_order_cache_;
 
-  // Ensures that only one PBFT block per period can be proposed
-  std::shared_ptr<PbftBlock> proposed_block_ = nullptr;
-
   std::unique_ptr<std::thread> daemon_;
   std::shared_ptr<DbStorage> db_;
-  std::shared_ptr<NextVotesManager> next_votes_manager_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<DagManager> dag_mgr_;
@@ -574,14 +557,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   PbftStep step_ = 1;
   PbftStep startingStepInRound_ = 1;
 
-  // 2t+1 soft voted block related data
-  std::optional<TwoTPlusOneSoftVotedBlockData> soft_voted_block_for_round_{};
-
   // Block that node cert voted
   std::optional<std::shared_ptr<PbftBlock>> cert_voted_block_for_round_{};
-
-  std::optional<blk_hash_t> previous_round_next_voted_value_{};
-  bool previous_round_next_voted_null_block_hash_ = false;
 
   // All broadcasted votes created by a node in current round - just for summary logging purposes
   std::map<blk_hash_t, std::vector<PbftStep>> current_round_broadcasted_votes_;

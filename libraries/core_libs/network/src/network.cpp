@@ -15,8 +15,8 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
                  dev::p2p::Host::CapabilitiesFactory construct_capabilities,
                  std::filesystem::path const &network_file_path, dev::KeyPair const &key, std::shared_ptr<DbStorage> db,
                  std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
-                 std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
-                 std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr)
+                 std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
+                 std::shared_ptr<TransactionManager> trx_mgr)
     : tp_(config.network.num_threads, false) {
   auto const &node_addr = key.address();
   LOG_OBJECTS_CREATE("NETWORK");
@@ -45,9 +45,8 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
     construct_capabilities = [&](std::weak_ptr<dev::p2p::Host> host) {
       assert(!host.expired());
 
-      auto taraxa_capability =
-          network::tarcap::TaraxaCapability::make(host, key, config, genesis_hash, TARAXA_NET_VERSION, db, pbft_mgr,
-                                                  pbft_chain, vote_mgr, next_votes_mgr, dag_mgr, trx_mgr);
+      auto taraxa_capability = network::tarcap::TaraxaCapability::make(
+          host, key, config, genesis_hash, TARAXA_NET_VERSION, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr);
       return dev::p2p::Host::CapabilityList{taraxa_capability};
     };
   }

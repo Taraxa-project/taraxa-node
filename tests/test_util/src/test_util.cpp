@@ -1,5 +1,8 @@
 #include "test_util/test_util.hpp"
 
+#include "pbft/pbft_manager.hpp"
+#include "vote_manager/vote_manager.hpp"
+
 namespace taraxa {
 
 bool wait(const wait_opts& opts, const std::function<void(wait_ctx&)>& poller) {
@@ -139,6 +142,35 @@ void wait_for_balances(const shared_nodes_t& nodes, const expected_balances_map_
       }
     }
   });
+}
+
+std::shared_ptr<Vote> genDummyVote(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
+                                   blk_hash_t block_hash, const std::shared_ptr<VoteManager> vote_mgr) {
+  auto vote = vote_mgr->generateVote(block_hash, type, period, round, step);
+  vote->calculateWeight(1, 1, 1);
+  return vote;
+}
+
+std::pair<PbftPeriod, PbftRound> clearAllVotes(const std::vector<std::shared_ptr<FullNode>>& nodes) {
+  // Get highest round from all nodes
+  PbftPeriod max_period = 0;
+  PbftRound max_round = 1;
+  for (const auto& node : nodes) {
+    auto [node_round, node_period] = node->getPbftManager()->getPbftRoundAndPeriod();
+    if (node_period > max_period) {
+      max_period = node_period;
+    }
+    if (node_period == max_period && node_round > max_round) {
+      max_round = node_round;
+    }
+  }
+
+  // Clean up votes from memory for each node
+  for (const auto& node : nodes) {
+    node->getVoteManager()->cleanupVotesByPeriod(max_period + 1);
+  }
+
+  return {max_period, max_round};
 }
 
 NodesTest::NodesTest() {

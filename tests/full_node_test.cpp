@@ -130,62 +130,6 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedSoftValue));
   EXPECT_FALSE(db.getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash));
 
-  // PBFT soft voted block data in round
-  EXPECT_EQ(db.getSoftVotedBlockDataInRound(), std::nullopt);
-  PbftRound soft_voted_block_period_and_round = 123;
-  TwoTPlusOneSoftVotedBlockData soft_voted_block_data_with_block;
-  soft_voted_block_data_with_block.round_ = soft_voted_block_period_and_round;
-  soft_voted_block_data_with_block.block_data_ = {
-      make_simple_pbft_block(soft_voted_block_data_with_block.block_hash_, soft_voted_block_period_and_round), false};
-  soft_voted_block_data_with_block.block_hash_ = soft_voted_block_data_with_block.block_data_->first->getBlockHash();
-  std::vector<std::shared_ptr<Vote>> soft_votes;
-  for (auto i = 0; i < 3; i++) {
-    blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(PbftVoteTypes::soft_vote, soft_voted_block_period_and_round, soft_voted_block_period_and_round,
-                   filter_state);
-    vrf_wrapper::vrf_sk_t vrf_sk(
-        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
-        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-    VrfPbftSortition vrf_sortition(vrf_sk, msg);
-    Vote vote(g_secret, vrf_sortition, soft_voted_block_data_with_block.block_hash_);
-    soft_votes.emplace_back(std::make_shared<Vote>(vote));
-  }
-  soft_voted_block_data_with_block.soft_votes_ = soft_votes;
-
-  db.saveSoftVotedBlockDataInRound(soft_voted_block_data_with_block);
-  auto soft_voted_block_data_with_block_db = db.getSoftVotedBlockDataInRound();
-  EXPECT_EQ(soft_voted_block_data_with_block_db->round_, soft_voted_block_data_with_block.round_);
-  EXPECT_EQ(soft_voted_block_data_with_block_db->block_hash_, soft_voted_block_data_with_block.block_hash_);
-  EXPECT_EQ(soft_voted_block_data_with_block_db->soft_votes_.size(),
-            soft_voted_block_data_with_block.soft_votes_.size());
-  for (size_t idx = 0; idx < soft_voted_block_data_with_block.soft_votes_.size(); idx++) {
-    const auto &db_vote = soft_voted_block_data_with_block_db->soft_votes_[idx];
-    const auto &orig_vote = soft_voted_block_data_with_block.soft_votes_[idx];
-    EXPECT_EQ(db_vote->rlp(true, true), orig_vote->rlp(true, true));
-  }
-
-  EXPECT_EQ(soft_voted_block_data_with_block_db->block_data_->first->rlp(true),
-            soft_voted_block_data_with_block.block_data_->first->rlp(true));
-
-  batch = db.createWriteBatch();
-  db.removeSoftVotedBlockDataInRound(batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(db.getSoftVotedBlockDataInRound(), std::nullopt);
-
-  TwoTPlusOneSoftVotedBlockData soft_voted_block_data_no_block = soft_voted_block_data_with_block;
-  soft_voted_block_data_no_block.block_data_ = std::nullopt;
-  db.saveSoftVotedBlockDataInRound(soft_voted_block_data_no_block);
-  auto soft_voted_block_data_no_block_db = db.getSoftVotedBlockDataInRound();
-  EXPECT_EQ(soft_voted_block_data_no_block_db->round_, soft_voted_block_data_no_block.round_);
-  EXPECT_EQ(soft_voted_block_data_no_block_db->block_hash_, soft_voted_block_data_no_block.block_hash_);
-  EXPECT_EQ(soft_voted_block_data_no_block_db->soft_votes_.size(), soft_voted_block_data_no_block.soft_votes_.size());
-  for (size_t idx = 0; idx < soft_voted_block_data_with_block.soft_votes_.size(); idx++) {
-    const auto &db_vote = soft_voted_block_data_with_block_db->soft_votes_[idx];
-    const auto &orig_vote = soft_voted_block_data_with_block.soft_votes_[idx];
-    EXPECT_EQ(db_vote->rlp(true, true), orig_vote->rlp(true, true));
-  }
-  EXPECT_FALSE(soft_voted_block_data_no_block_db->block_data_.has_value());
-
   // PBFT cert voted block in round
   EXPECT_EQ(db.getCertVotedBlockInRound(), std::nullopt);
 
@@ -244,7 +188,7 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getPbftBlock(pbft_block4->getBlockHash())->rlp(false), pbft_block4->rlp(false));
 
   PeriodData pbft_block_cert_votes(pbft_block1, cert_votes);
-  auto cert_votes_from_db = db.getCertVotes(pbft_block1->getPeriod());
+  auto cert_votes_from_db = db.getPeriodCertVotes(pbft_block1->getPeriod());
   PeriodData pbft_block_cert_votes_from_db(pbft_block1, cert_votes_from_db);
   EXPECT_EQ(pbft_block_cert_votes.rlp(), pbft_block_cert_votes_from_db.rlp());
 
@@ -274,75 +218,97 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedBlkCount), 10);
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedTrxCount), 20);
 
-  // Verified votes
-  auto verified_votes = db.getVerifiedVotes();
-  EXPECT_TRUE(verified_votes.empty());
-  auto voted_pbft_block_hash = blk_hash_t(2);
-  for (auto i = 0; i < 3; i++) {
-    PbftPeriod period = i;
-    PbftRound round = i;
-    VrfPbftMsg msg(PbftVoteTypes::next_vote, period, round, 4);
+  auto genVote = [](PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step) {
+    VrfPbftMsg msg(type, period, round, step);
     vrf_wrapper::vrf_sk_t vrf_sk(
         "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
         "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
     VrfPbftSortition vrf_sortition(vrf_sk, msg);
-    Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
-    verified_votes.emplace_back(std::make_shared<Vote>(vote));
-  }
-  db.saveVerifiedVote(verified_votes[0]);
-  EXPECT_EQ(db.getVerifiedVote(verified_votes[0]->getHash())->rlp(true), verified_votes[0]->rlp(true));
-  batch = db.createWriteBatch();
-  db.addVerifiedVoteToBatch(verified_votes[1], batch);
-  db.addVerifiedVoteToBatch(verified_votes[2], batch);
-  db.commitWriteBatch(batch);
-  EXPECT_EQ(db.getVerifiedVotes().size(), verified_votes.size());
-  batch = db.createWriteBatch();
-  for (size_t i = 0; i < verified_votes.size(); i++) {
-    db.removeVerifiedVoteToBatch(verified_votes[i]->getHash(), batch);
-  }
-  db.commitWriteBatch(batch);
-  EXPECT_TRUE(db.getVerifiedVotes().empty());
+    return std::make_shared<Vote>(g_secret, vrf_sortition, blk_hash_t(1));
+  };
 
-  // Next votes
-  PbftPeriod period = 3;
-  PbftRound round = 3;
-  PbftStep step = 5;
-  auto next_votes = db.getPreviousRoundNextVotes();
-  EXPECT_TRUE(next_votes.empty());
+  // Own verified votes
+  EXPECT_TRUE(db.getOwnVerifiedVotes().empty());
+  std::vector<std::shared_ptr<Vote>> verified_votes;
   for (auto i = 0; i < 3; i++) {
-    blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(PbftVoteTypes::next_vote, period, round, step);
-    vrf_wrapper::vrf_sk_t vrf_sk(
-        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
-        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-    VrfPbftSortition vrf_sortition(vrf_sk, msg);
-    Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
-    next_votes.emplace_back(std::make_shared<Vote>(vote));
+    const auto vote = genVote(PbftVoteTypes::soft_vote, i, i, 2);
+    verified_votes.push_back(vote);
+    db.saveOwnVerifiedVote(vote);
   }
-  db.savePreviousRoundNextVotes(next_votes);
-  auto next_votes_from_db = db.getPreviousRoundNextVotes();
-  EXPECT_EQ(next_votes.size(), next_votes_from_db.size());
-  EXPECT_EQ(next_votes_from_db.size(), 3);
-  next_votes.clear();
-  for (auto i = 3; i < 5; i++) {
-    blk_hash_t voted_pbft_block_hash(i);
-    VrfPbftMsg msg(PbftVoteTypes::next_vote, period, round, step);
-    vrf_wrapper::vrf_sk_t vrf_sk(
-        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
-        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-    VrfPbftSortition vrf_sortition(vrf_sk, msg);
-    Vote vote(g_secret, vrf_sortition, voted_pbft_block_hash);
-    next_votes.emplace_back(std::make_shared<Vote>(vote));
+  const auto db_own_verified_votes = db.getOwnVerifiedVotes();
+  EXPECT_EQ(db_own_verified_votes.size(), verified_votes.size());
+  for (size_t i = 0; i < db_own_verified_votes.size(); i++) {
+    EXPECT_EQ(db_own_verified_votes[i]->rlp(true, true), verified_votes[i]->rlp(true, true));
   }
-  db.savePreviousRoundNextVotes(next_votes);
-  next_votes_from_db = db.getPreviousRoundNextVotes();
-  EXPECT_EQ(next_votes.size(), next_votes_from_db.size());
-  EXPECT_EQ(next_votes_from_db.size(), 2);
+
   batch = db.createWriteBatch();
-  db.removePreviousRoundNextVotes();
+  db.clearOwnVerifiedVotes(batch);
   db.commitWriteBatch(batch);
-  next_votes_from_db = db.getPreviousRoundNextVotes();
-  EXPECT_TRUE(next_votes_from_db.empty());
+  EXPECT_TRUE(db.getOwnVerifiedVotes().empty());
+
+  // 2t+1 votes bundles for the latest round
+  EXPECT_TRUE(db.getAllTwoTPlusOneVotes().empty());
+  db.replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType::SoftVotedBlock, verified_votes);
+  const auto db_two_t_plus_one_votes = db.getAllTwoTPlusOneVotes();
+  EXPECT_EQ(db_two_t_plus_one_votes.size(), verified_votes.size());
+  for (size_t i = 0; i < db_two_t_plus_one_votes.size(); i++) {
+    EXPECT_EQ(db_two_t_plus_one_votes[i]->rlp(true, true), verified_votes[i]->rlp(true, true));
+  }
+
+  // Save new votes for different TwoTPlusOneVotedBlockType
+  const auto cert_vote = genVote(PbftVoteTypes::cert_vote, 1, 1, 3);
+  verified_votes.push_back(cert_vote);
+  db.replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType::CertVotedBlock, {cert_vote});
+
+  const auto next_vote = genVote(PbftVoteTypes::next_vote, 1, 1, 4);
+  verified_votes.push_back(next_vote);
+  db.replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType::NextVotedBlock, {next_vote});
+
+  const auto next_null_vote = genVote(PbftVoteTypes::next_vote, 1, 1, 5);
+  verified_votes.push_back(next_null_vote);
+  db.replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType::NextVotedNullBlock, {next_null_vote});
+  EXPECT_EQ(db.getAllTwoTPlusOneVotes().size(), verified_votes.size());
+
+  // Replace cert votes, size of all votes should not change
+  db.replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType::CertVotedBlock, {cert_vote});
+
+  const auto new_db_two_t_plus_one_votes = db.getAllTwoTPlusOneVotes();
+  EXPECT_EQ(new_db_two_t_plus_one_votes.size(), verified_votes.size());
+  for (size_t i = 0; i < db_two_t_plus_one_votes.size(); i++) {
+    EXPECT_EQ(new_db_two_t_plus_one_votes[i]->rlp(true, true), verified_votes[i]->rlp(true, true));
+  }
+
+  // Reward votes - cert votes for the latest finalized block
+  std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> verified_votes_map;
+  for (const auto &vote : verified_votes) {
+    verified_votes_map[vote->getHash()] = vote;
+  }
+
+  EXPECT_TRUE(db.getRewardVotes().empty());
+  batch = db.createWriteBatch();
+  db.replaceRewardVotes(verified_votes, batch);
+  db.commitWriteBatch(batch);
+
+  const auto db_reward_votes = db.getRewardVotes();
+  EXPECT_EQ(db_reward_votes.size(), verified_votes_map.size());
+  for (const auto &db_vote : db_reward_votes) {
+    EXPECT_EQ(db_vote->rlp(true, true), verified_votes_map[db_vote->getHash()]->rlp(true, true));
+  }
+
+  const auto new_reward_vote = genVote(PbftVoteTypes::cert_vote, 10, 10, 3);
+  verified_votes_map[new_reward_vote->getHash()] = new_reward_vote;
+  db.saveRewardVote(new_reward_vote);
+
+  const auto new_db_reward_votes = db.getRewardVotes();
+  EXPECT_EQ(new_db_reward_votes.size(), verified_votes_map.size());
+  for (const auto &db_vote : new_db_reward_votes) {
+    EXPECT_EQ(db_vote->rlp(true, true), verified_votes_map[db_vote->getHash()]->rlp(true, true));
+  }
+
+  batch = db.createWriteBatch();
+  db.replaceRewardVotes({}, batch);
+  db.commitWriteBatch(batch);
+  EXPECT_TRUE(db.getRewardVotes().empty());
 
   // period_pbft_block
   batch = db.createWriteBatch();

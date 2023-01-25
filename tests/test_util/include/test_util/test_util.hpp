@@ -170,6 +170,11 @@ addr_t make_addr(uint8_t i);
 void wait_for_balances(const std::vector<std::shared_ptr<FullNode>>& nodes, const expected_balances_map_t& balances,
                        wait_opts to_wait = {10s, 500ms});
 
+std::shared_ptr<Vote> genDummyVote(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
+                                   blk_hash_t block_hash, const std::shared_ptr<VoteManager> vote_mgr);
+
+std::pair<PbftPeriod, PbftRound> clearAllVotes(const std::vector<std::shared_ptr<FullNode>>& nodes);
+
 struct NodesTest : virtual WithDataDir {
   virtual ~NodesTest() {}
   NodesTest();

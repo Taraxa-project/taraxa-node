@@ -164,23 +164,24 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
           return;
         }
 
-        vote_mgr_->addRewardVote(v);
+        vote_mgr_->addVerifiedVote(v);
       }
-      if (!vote_mgr_->checkRewardVotes(period_data.pbft_blk)) {
+
+      // And now we need to replace it with verified votes
+      if (auto votes = vote_mgr_->checkRewardVotes(period_data.pbft_blk, true); votes.first) {
+        period_data.previous_block_cert_votes = std::move(votes.second);
+      } else {
         // checkRewardVotes could fail because we just cert voted this block and moved to next period, in that case we
         // might even be fully synced so call restartSyncingPbft to verify
         if (pbft_block_period <= vote_mgr_->getRewardVotesPbftBlockPeriod()) {
           restartSyncingPbft(true);
           return;
         }
+
         LOG(log_er_) << "Invalid reward votes in block " << period_data.pbft_blk->getBlockHash() << " from peer "
                      << packet_data.from_node_id_.abridged() << " received, stop syncing.";
         handleMaliciousSyncPeer(packet_data.from_node_id_);
         return;
-      }
-      // And now we need to replace it with verified votes
-      if (auto votes = vote_mgr_->getRewardVotesByHashes(period_data.pbft_blk->getRewardVotes()); votes.size()) {
-        period_data.previous_block_cert_votes = std::move(votes);
       }
     }
 

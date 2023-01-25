@@ -19,9 +19,8 @@ ExtVotesPacketHandler::ExtVotesPacketHandler(const FullNodeConfig &conf, std::sh
       pbft_chain_(std::move(pbft_chain)),
       vote_mgr_(std::move(vote_mgr)) {}
 
-bool ExtVotesPacketHandler::processStandardVote(const std::shared_ptr<Vote> &vote,
-                                                const std::shared_ptr<PbftBlock> &pbft_block,
-                                                const std::shared_ptr<TaraxaPeer> &peer, bool validate_max_round_step) {
+bool ExtVotesPacketHandler::processVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &pbft_block,
+                                        const std::shared_ptr<TaraxaPeer> &peer, bool validate_max_round_step) {
   if (pbft_block && !validateVoteAndBlock(vote, pbft_block)) {
     throw MaliciousPeerException("Received vote's voted value != received pbft block");
   }
@@ -31,26 +30,22 @@ bool ExtVotesPacketHandler::processStandardVote(const std::shared_ptr<Vote> &vot
     return false;
   }
 
-  if (auto vote_is_valid = validateStandardVote(vote, peer, validate_max_round_step); !vote_is_valid.first) {
-    const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
-    // There is a possible race condition:
-    // 1) vote is evaluated as standard vote during vote packet processing based on current_pbft_period == vote_period
-    // 2) In the meantime new block is pushed
-    // 3) Standard vote validation then fails due to invalid period
-    // -> If this happens, try to process this vote as reward vote
-    if (vote->getType() == PbftVoteTypes::cert_vote && vote->getPeriod() == current_pbft_period - 1) {
-      LOG(log_dg_) << "Process standard cert vote as reward vote " << vote->getHash();
-      if (processRewardVote(vote)) {
-        return true;
-      }
-    } else if (vote->getType() == PbftVoteTypes::next_vote && vote->getPeriod() == current_pbft_period &&
-               vote->getRound() == current_pbft_round - 1) {
-      if (processNextSyncVote(vote, nullptr)) {
-        return true;
-      }
-    }
+  // Validate vote's period, roun and step min/max values
+  if (const auto vote_valid = validateVotePeriodRoundStep(vote, peer, validate_max_round_step); !vote_valid.first) {
+    LOG(log_wr_) << "Vote period/round/step " << vote->getHash() << " validation failed. Err: " << vote_valid.second;
+    return false;
+  }
 
-    LOG(log_wr_) << "Vote " << vote->getHash() << " validation failed. Err: " << vote_is_valid.second;
+  // Check is vote is unique per period, round & step & voter -> each address can generate just 1 vote
+  // (for a value that isn't NBH) per period, round & step
+  if (auto vote_valid = vote_mgr_->isUniqueVote(vote); !vote_valid.first) {
+    LOG(log_wr_) << "Vote uniqueness " << vote->getHash() << " validation failed. Err: " << vote_valid.second;
+    return false;
+  }
+
+  // Validate vote's signature, vrf, etc...
+  if (const auto vote_valid = vote_mgr_->validateVote(vote); !vote_valid.first) {
+    LOG(log_wr_) << "Vote " << vote->getHash() << " validation failed. Err: " << vote_valid.second;
     return false;
   }
 
@@ -66,54 +61,9 @@ bool ExtVotesPacketHandler::processStandardVote(const std::shared_ptr<Vote> &vot
   return true;
 }
 
-bool ExtVotesPacketHandler::processRewardVote(const std::shared_ptr<Vote> &vote) const {
-  if (vote_mgr_->isInRewardsVotes(vote->getHash())) {
-    LOG(log_dg_) << "Reward vote " << vote->getHash() << " already inserted in reward votes";
-    return false;
-  }
-
-  if (auto vote_is_valid = validateRewardVote(vote); !vote_is_valid.first) {
-    LOG(log_wr_) << "Reward vote " << vote->getHash() << " validation failed. Err: " << vote_is_valid.second;
-    return false;
-  }
-
-  if (!vote_mgr_->addRewardVote(vote)) {
-    LOG(log_dg_) << "Reward vote " << vote->getHash() << " already inserted in reward votes(race condition)";
-    return false;
-  }
-
-  return true;
-}
-
-bool ExtVotesPacketHandler::processNextSyncVote(const std::shared_ptr<Vote> &vote,
-                                                const std::shared_ptr<PbftBlock> &pbft_block) const {
-  // TODO: add check if next vote is already in next votes
-
-  if (pbft_block && !validateVoteAndBlock(vote, pbft_block)) {
-    throw MaliciousPeerException("Received vote's voted value != received pbft block");
-  }
-
-  if (auto vote_is_valid = validateNextSyncVote(vote); !vote_is_valid.first) {
-    LOG(log_wr_) << "Vote " << vote->getHash()
-                 << " from previous round validation failed. Err: " << vote_is_valid.second;
-    return false;
-  }
-
-  if (!vote_mgr_->insertUniqueVote(vote)) {
-    LOG(log_dg_) << "Non unique next vote " << vote->getHash() << " (race condition)";
-    return false;
-  }
-
-  if (pbft_block) {
-    pbft_mgr_->processProposedBlock(pbft_block, vote);
-  }
-
-  return true;
-}
-
-std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const std::shared_ptr<Vote> &vote,
-                                                                         const std::shared_ptr<TaraxaPeer> &peer,
-                                                                         bool validate_max_round_step) {
+std::pair<bool, std::string> ExtVotesPacketHandler::validateVotePeriodRoundStep(const std::shared_ptr<Vote> &vote,
+                                                                                const std::shared_ptr<TaraxaPeer> &peer,
+                                                                                bool validate_max_round_step) {
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
   auto genErrMsg = [period = current_pbft_period, round = current_pbft_round,
@@ -126,7 +76,9 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
   };
 
   // Period validation
-  if (vote->getPeriod() < current_pbft_period) {
+  // vote->getPeriod() == current_pbft_period - 1 && cert_vote -> potential reward vote
+  if (vote->getPeriod() < current_pbft_period - 1 ||
+      (vote->getPeriod() == current_pbft_period - 1 && vote->getType() != PbftVoteTypes::cert_vote)) {
     return {false, "Invalid period(too small): " + genErrMsg(vote)};
   } else if (kConf.network.ddos_protection.vote_accepting_periods &&
              vote->getPeriod() - 1 > current_pbft_period + kConf.network.ddos_protection.vote_accepting_periods) {
@@ -151,7 +103,9 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
     checking_round = 1;
   }
 
-  if (vote->getRound() < checking_round) {
+  // vote->getRound() == checking_round - 1 && next_vote -> previous round next vote
+  if (vote->getRound() < checking_round - 1 ||
+      (vote->getRound() == checking_round - 1 && vote->getType() != PbftVoteTypes::next_vote)) {
     return {false, "Invalid round(too small): " + genErrMsg(vote)};
   } else if (validate_max_round_step && kConf.network.ddos_protection.vote_accepting_rounds &&
              vote->getRound() >= checking_round + kConf.network.ddos_protection.vote_accepting_rounds) {
@@ -183,67 +137,7 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
     return {false, "Invalid step(too big): " + genErrMsg(vote)};
   }
 
-  return validateVote(vote);
-}
-
-std::pair<bool, std::string> ExtVotesPacketHandler::validateNextSyncVote(const std::shared_ptr<Vote> &vote) const {
-  const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
-
-  if (vote->getType() != PbftVoteTypes::next_vote) {
-    std::stringstream err;
-    err << "Invalid type: " << static_cast<uint64_t>(vote->getType());
-    return {false, err.str()};
-  }
-
-  if (vote->getStep() < PbftStates::finish_state) {
-    std::stringstream err;
-    err << "Invalid step: " << static_cast<uint64_t>(vote->getStep());
-    return {false, err.str()};
-  }
-
-  // Old vote or vote from too far in the future, can be dropped
-  if (vote->getPeriod() != current_pbft_period) {
-    std::stringstream err;
-    err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
-    return {false, err.str()};
-  }
-
-  if (vote->getRound() != current_pbft_round - 1) {
-    std::stringstream err;
-    err << "Invalid round: Vote round: " << vote->getRound() << ", current pbft round: " << current_pbft_round;
-    return {false, err.str()};
-  }
-
-  // TODO: check also max step
-
-  return validateVote(vote);
-}
-
-std::pair<bool, std::string> ExtVotesPacketHandler::validateRewardVote(const std::shared_ptr<Vote> &vote) const {
-  const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
-
-  if (vote->getType() != PbftVoteTypes::cert_vote) {
-    std::stringstream err;
-    err << "Invalid type: " << static_cast<uint64_t>(vote->getType());
-    return {false, err.str()};
-  }
-
-  if (vote->getStep() != PbftStates::certify_state) {
-    std::stringstream err;
-    err << "Invalid step: " << static_cast<uint64_t>(vote->getStep());
-    return {false, err.str()};
-  }
-
-  if (vote->getPeriod() != current_pbft_period - 1) {
-    std::stringstream err;
-    err << "Invalid period: Vote period: " << vote->getPeriod() << ", current pbft period: " << current_pbft_period;
-    return {false, err.str()};
-  }
-
-  // TODO[1938]: implement ddos protection so user cannot sent indefinite number of valid reward votes with different
-  // rounds.
-
-  return validateVote(vote);
+  return {true, ""};
 }
 
 std::pair<bool, std::string> ExtVotesPacketHandler::validateVote(const std::shared_ptr<Vote> &vote) const {
@@ -270,6 +164,24 @@ bool ExtVotesPacketHandler::validateVoteAndBlock(const std::shared_ptr<Vote> &vo
   }
 
   return true;
+}
+
+bool ExtVotesPacketHandler::isPbftRelevantVote(const std::shared_ptr<Vote> &vote) const {
+  const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
+
+  // Previous round next vote
+  if (vote->getPeriod() == current_pbft_period && (current_pbft_round - 1) == vote->getRound() &&
+      vote->getType() == PbftVoteTypes::next_vote) {
+    return true;
+  } else if (vote->getPeriod() >= current_pbft_period) {
+    // Standard vote
+    return true;
+  } else if (vote->getPeriod() == current_pbft_period - 1 && vote->getType() == PbftVoteTypes::cert_vote) {
+    // Previous round cert vote - potential reward vote
+    return true;
+  }
+
+  return false;
 }
 
 void ExtVotesPacketHandler::sendPbftVotesBundle(const std::shared_ptr<TaraxaPeer> &peer,

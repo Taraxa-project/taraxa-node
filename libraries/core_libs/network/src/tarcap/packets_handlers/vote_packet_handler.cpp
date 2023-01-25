@@ -38,6 +38,14 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
 
   const auto vote_hash = vote->getHash();
 
+  if (!isPbftRelevantVote(vote)) {
+    LOG(log_dg_) << "Drop irrelevant vote " << vote_hash << " for current pbft state. Vote (period, round, step) = ("
+                 << vote->getPeriod() << ", " << vote->getRound() << ", " << vote->getStep()
+                 << "). Current PBFT (period, round, step) = (" << current_pbft_period << ", " << current_pbft_round
+                 << ", " << pbft_mgr_->getPbftStep() << ")";
+    return;
+  }
+
   // Do not process vote that has already been validated
   if (vote_mgr_->voteAlreadyValidated(vote_hash)) {
     LOG(log_dg_) << "Received vote " << vote_hash << " has already been validated";
@@ -55,31 +63,7 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     peer->markPbftBlockAsKnown(pbft_block->getBlockHash());
   }
 
-  if (vote->getPeriod() == current_pbft_period && (current_pbft_round - 1) == vote->getRound() &&
-      vote->getType() == PbftVoteTypes::next_vote) {
-    // Previous round next vote
-    // We could switch round before other nodes, so we need to process also previous round next votes
-    if (!processNextSyncVote(vote, pbft_block)) {
-      return;
-    }
-  } else if (vote->getPeriod() >= current_pbft_period) {
-    // Standard vote
-    if (!processStandardVote(vote, pbft_block, peer, true)) {
-      return;
-    }
-
-  } else if (vote->getPeriod() == current_pbft_period - 1 && vote->getType() == PbftVoteTypes::cert_vote) {
-    // potential reward vote
-    if (!processRewardVote(vote)) {
-      return;
-    }
-
-  } else {
-    // Too old vote
-    LOG(log_dg_) << "Drop vote " << vote_hash << ". Vote period " << vote->getPeriod()
-                 << " too old. current_pbft_period " << current_pbft_period;
-    return;
-  }
+  processVote(vote, pbft_block, peer, true);
 
   // Do not mark it before, as peers have small caches of known votes. Only mark gossiping votes
   peer->markVoteAsKnown(vote_hash);

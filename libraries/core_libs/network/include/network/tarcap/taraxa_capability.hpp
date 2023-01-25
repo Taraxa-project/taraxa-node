@@ -21,7 +21,6 @@ class DbStorage;
 class PbftManager;
 class PbftChain;
 class VoteManager;
-class NextVotesManager;
 class DagManager;
 class TransactionManager;
 enum class TransactionStatus;
@@ -47,13 +46,12 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
       std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const FullNodeConfig &conf, const h256 &genesis_hash,
       unsigned version, std::shared_ptr<DbStorage> db = {}, std::shared_ptr<PbftManager> pbft_mgr = {},
       std::shared_ptr<PbftChain> pbft_chain = {}, std::shared_ptr<VoteManager> vote_mgr = {},
-      std::shared_ptr<NextVotesManager> next_votes_mgr = {}, std::shared_ptr<DagManager> dag_mgr = {},
-      std::shared_ptr<TransactionManager> trx_mgr = {});
+      std::shared_ptr<DagManager> dag_mgr = {}, std::shared_ptr<TransactionManager> trx_mgr = {});
   // Init capability. Register packet handlers and periodic events
   virtual void init(const h256 &genesis_hash, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                     std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-                    std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
-                    std::shared_ptr<TransactionManager> trx_mgr, const dev::Address &node_addr);
+                    std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+                    const dev::Address &node_addr);
   // CapabilityFace implemented interface
   std::string name() const override;
   unsigned version() const override;
@@ -90,15 +88,17 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   // END METHODS USED IN TESTS ONLY
 
  protected:
-  virtual void initPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr,
+  virtual void initPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<DbStorage> &db,
                                   std::shared_ptr<TransactionManager> trx_mgr,
                                   std::shared_ptr<TimePeriodPacketsStats> packets_stats);
-  virtual void registerPacketHandlers(
-      const h256 &genesis_hash, const std::shared_ptr<TimePeriodPacketsStats> &packets_stats,
-      const std::shared_ptr<DbStorage> &db, const std::shared_ptr<PbftManager> &pbft_mgr,
-      const std::shared_ptr<PbftChain> &pbft_chain, const std::shared_ptr<VoteManager> &vote_mgr,
-      const std::shared_ptr<NextVotesManager> &next_votes_mgr, const std::shared_ptr<DagManager> &dag_mgr,
-      const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr);
+  virtual void registerPacketHandlers(const h256 &genesis_hash,
+                                      const std::shared_ptr<TimePeriodPacketsStats> &packets_stats,
+                                      const std::shared_ptr<DbStorage> &db,
+                                      const std::shared_ptr<PbftManager> &pbft_mgr,
+                                      const std::shared_ptr<PbftChain> &pbft_chain,
+                                      const std::shared_ptr<VoteManager> &vote_mgr,
+                                      const std::shared_ptr<DagManager> &dag_mgr,
+                                      const std::shared_ptr<TransactionManager> &trx_mgr, const addr_t &node_addr);
 
  private:
   void addBootNodes(bool initial = false);

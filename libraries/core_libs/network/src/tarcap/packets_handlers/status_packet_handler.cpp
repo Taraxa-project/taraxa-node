@@ -14,14 +14,12 @@ StatusPacketHandler::StatusPacketHandler(const FullNodeConfig& conf, std::shared
                                          std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                          std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
-                                         std::shared_ptr<DagManager> dag_mgr,
-                                         std::shared_ptr<NextVotesManager> next_votes_mgr,
-                                         std::shared_ptr<DbStorage> db, h256 genesis_hash, const addr_t& node_addr)
+                                         std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<DbStorage> db,
+                                         h256 genesis_hash, const addr_t& node_addr)
     : ExtSyncingPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
                               "STATUS_PH"),
-      genesis_hash_(genesis_hash),
-      next_votes_mgr_(std::move(next_votes_mgr)) {}
+      kGenesisHash(genesis_hash) {}
 
 void StatusPacketHandler::validatePacketRlpFormat(const PacketData& packet_data) const {
   if (const auto items_count = packet_data.rlp_.itemCount();
@@ -55,7 +53,6 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     auto const peer_pbft_chain_size = (*it++).toInt<PbftPeriod>();
     auto const peer_syncing = (*it++).toInt();
     auto const peer_pbft_round = (*it++).toInt<PbftRound>();
-    auto const peer_pbft_previous_round_next_votes_size = (*it++).toInt<unsigned>();
     auto const node_major_version = (*it++).toInt<unsigned>();
     auto const node_minor_version = (*it++).toInt<unsigned>();
     auto const node_patch_version = (*it++).toInt<unsigned>();
@@ -70,7 +67,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
       return;
     }
 
-    if (genesis_hash != genesis_hash_) {
+    if (genesis_hash != kGenesisHash) {
       LOG((peers_state_->getPeersCount()) ? log_nf_ : log_er_)
           << "Incorrect genesis hash " << genesis_hash << ", host " << packet_data.from_node_id_.abridged()
           << " will be disconnected";
@@ -98,7 +95,6 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     selected_peer->syncing_ = peer_syncing;
     selected_peer->pbft_period_ = peer_pbft_chain_size + 1;
     selected_peer->pbft_round_ = peer_pbft_round;
-    selected_peer->pbft_previous_round_next_votes_size_ = peer_pbft_previous_round_next_votes_size;
 
     peers_state_->setPeerAsReadyToSendMessages(packet_data.from_node_id_, selected_peer);
 
@@ -106,8 +102,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
                  << peer_chain_id << ", peer DAG max level " << selected_peer->dag_level_ << ", genesis "
                  << genesis_hash << ", peer pbft chain size " << selected_peer->pbft_chain_size_ << ", peer syncing "
                  << std::boolalpha << selected_peer->syncing_ << ", peer pbft period " << selected_peer->pbft_period_
-                 << ", peer pbft round " << selected_peer->pbft_round_ << ", peer pbft previous round next votes size "
-                 << selected_peer->pbft_previous_round_next_votes_size_ << ", node major version" << node_major_version
+                 << ", peer pbft round " << selected_peer->pbft_round_ << ", node major version" << node_major_version
                  << ", node minor version" << node_minor_version << ", node patch version" << node_patch_version;
 
   } else {  // Standard status packet
@@ -125,7 +120,6 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     selected_peer->pbft_period_ = selected_peer->pbft_chain_size_ + 1;
     selected_peer->syncing_ = (*it++).toInt();
     selected_peer->pbft_round_ = (*it++).toInt<PbftRound>();
-    selected_peer->pbft_previous_round_next_votes_size_ = (*it++).toInt<size_t>();
 
     // TODO: Address malicious status
     if (!pbft_syncing_state_->isPbftSyncing()) {
@@ -147,14 +141,8 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
       }
 
       const auto [pbft_current_round, pbft_current_period] = pbft_mgr_->getPbftRoundAndPeriod();
-      const auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();
-      if (pbft_current_period == selected_peer->pbft_period_) {
-        if (pbft_current_round < selected_peer->pbft_round_) {
-          requestPbftNextVotesAtPeriodRound(selected_peer->getId(), pbft_current_period, pbft_current_round);
-        } else if (pbft_current_round == selected_peer->pbft_round_ &&
-                   pbft_previous_round_next_votes_size < selected_peer->pbft_previous_round_next_votes_size_) {
-          requestPbftNextVotesAtPeriodRound(selected_peer->getId(), pbft_current_period, pbft_current_round);
-        }
+      if (pbft_current_period == selected_peer->pbft_period_ && pbft_current_round < selected_peer->pbft_round_) {
+        requestPbftNextVotesAtPeriodRound(selected_peer->getId(), pbft_current_period, pbft_current_round);
       }
     }
     selected_peer->last_status_pbft_chain_size_ = selected_peer->pbft_chain_size_.load();
@@ -162,8 +150,7 @@ void StatusPacketHandler::process(const PacketData& packet_data, const std::shar
     LOG(log_dg_) << "Received status message from " << packet_data.from_node_id_ << ", peer DAG max level "
                  << selected_peer->dag_level_ << ", peer pbft chain size " << selected_peer->pbft_chain_size_
                  << ", peer syncing " << std::boolalpha << selected_peer->syncing_ << ", peer pbft round "
-                 << selected_peer->pbft_round_ << ", peer pbft previous round next votes size "
-                 << selected_peer->pbft_previous_round_next_votes_size_;
+                 << selected_peer->pbft_round_;
   }
 }
 
@@ -174,27 +161,25 @@ bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initi
     std::string status_packet_type = initial ? "initial" : "standard";
 
     LOG(log_dg_) << "Sending " << status_packet_type << " status message to " << node_id << ", protocol version "
-                 << TARAXA_NET_VERSION << ", network id " << kConf.genesis.chain_id << ", genesis " << genesis_hash_
+                 << TARAXA_NET_VERSION << ", network id " << kConf.genesis.chain_id << ", genesis " << kGenesisHash
                  << ", node version " << TARAXA_VERSION;
 
     auto dag_max_level = dag_mgr_->getMaxLevel();
     auto pbft_chain_size = pbft_chain_->getPbftChainSize();
     const auto pbft_round = pbft_mgr_->getPbftRound();
-    const auto pbft_previous_round_next_votes_size = next_votes_mgr_->getNextVotesWeight();
 
     if (initial) {
-      success =
-          sealAndSend(node_id, StatusPacket,
-                      std::move(dev::RLPStream(kInitialStatusPacketItemsCount)
-                                << kConf.genesis.chain_id << dag_max_level << genesis_hash_ << pbft_chain_size
-                                << pbft_syncing_state_->isPbftSyncing() << pbft_round
-                                << pbft_previous_round_next_votes_size << TARAXA_MAJOR_VERSION << TARAXA_MINOR_VERSION
-                                << TARAXA_PATCH_VERSION << dag_mgr_->isLightNode() << dag_mgr_->getLightNodeHistory()));
-    } else {
       success = sealAndSend(node_id, StatusPacket,
-                            std::move(dev::RLPStream(kStandardStatusPacketItemsCount)
-                                      << dag_max_level << pbft_chain_size << pbft_syncing_state_->isDeepPbftSyncing()
-                                      << pbft_round << pbft_previous_round_next_votes_size));
+                            std::move(dev::RLPStream(kInitialStatusPacketItemsCount)
+                                      << kConf.genesis.chain_id << dag_max_level << kGenesisHash << pbft_chain_size
+                                      << pbft_syncing_state_->isPbftSyncing() << pbft_round << TARAXA_MAJOR_VERSION
+                                      << TARAXA_MINOR_VERSION << TARAXA_PATCH_VERSION << dag_mgr_->isLightNode()
+                                      << dag_mgr_->getLightNodeHistory()));
+    } else {
+      success = sealAndSend(
+          node_id, StatusPacket,
+          std::move(dev::RLPStream(kStandardStatusPacketItemsCount)
+                    << dag_max_level << pbft_chain_size << pbft_syncing_state_->isDeepPbftSyncing() << pbft_round));
     }
   }
 

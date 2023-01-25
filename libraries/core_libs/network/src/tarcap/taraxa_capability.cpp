@@ -52,25 +52,23 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
 std::shared_ptr<TaraxaCapability> TaraxaCapability::make(
     std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const FullNodeConfig &conf, const h256 &genesis_hash,
     unsigned version, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
-    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-    std::shared_ptr<NextVotesManager> next_votes_mgr, std::shared_ptr<DagManager> dag_mgr,
+    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
     std::shared_ptr<TransactionManager> trx_mgr) {
   auto instance = std::make_shared<TaraxaCapability>(host, key, conf, version);
-  instance->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr, trx_mgr, key.address());
+  instance->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, key.address());
   return instance;
 }
 
 void TaraxaCapability::init(const h256 &genesis_hash, std::shared_ptr<DbStorage> db,
                             std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
-                            std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<NextVotesManager> next_votes_mgr,
-                            std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-                            const dev::Address &node_addr) {
+                            std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
+                            std::shared_ptr<TransactionManager> trx_mgr, const dev::Address &node_addr) {
   // Creates and registers all packets handlers
-  registerPacketHandlers(genesis_hash, all_packets_stats_, db, pbft_mgr, pbft_chain, vote_mgr, next_votes_mgr, dag_mgr,
-                         trx_mgr, node_addr);
+  registerPacketHandlers(genesis_hash, all_packets_stats_, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr,
+                         node_addr);
 
   // Inits periodic events. Must be called after registerHandlers !!!
-  initPeriodicEvents(pbft_mgr, trx_mgr, all_packets_stats_);
+  initPeriodicEvents(pbft_mgr, db, trx_mgr, all_packets_stats_);
 }
 
 void TaraxaCapability::addBootNodes(bool initial) {
@@ -119,6 +117,7 @@ void TaraxaCapability::addBootNodes(bool initial) {
 }
 
 void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr,
+                                          const std::shared_ptr<DbStorage> &db,
                                           std::shared_ptr<TransactionManager> trx_mgr,
                                           std::shared_ptr<TimePeriodPacketsStats> packets_stats) {
   // TODO: refactor this:
@@ -179,14 +178,38 @@ void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pb
       addBootNodes();
     }
   });
+
+  // If period and round did not change after 60 seconds from node start, rebroadcast own pbft votes
+  if (pbft_mgr && db /* just because of tests */) {
+    auto vote_packet_handler = packets_handlers_->getSpecificHandler<VotePacketHandler>();
+    const auto [init_round, init_period] = pbft_mgr->getPbftRoundAndPeriod();
+    periodic_events_tp_->post(60000, [init_round = init_round, init_period = init_period, db = db, pbft_mgr = pbft_mgr,
+                                      vote_packet_handler = std::move(vote_packet_handler)] {
+      const auto [curent_round, curent_period] = pbft_mgr->getPbftRoundAndPeriod();
+      if (curent_period != init_period || curent_round != init_round) {
+        return;
+      }
+
+      const auto own_votes = db->getOwnVerifiedVotes();
+      if (own_votes.empty()) {
+        return;
+      }
+
+      // Send votes by one as votes sync packet must contain votes with the same type, period and round
+      for (const auto &vote : own_votes) {
+        vote_packet_handler->onNewPbftVote(vote,
+                                           pbft_mgr->getPbftProposedBlock(vote->getPeriod(), vote->getBlockHash()));
+      }
+    });
+  }
 }
 
 void TaraxaCapability::registerPacketHandlers(
     const h256 &genesis_hash, const std::shared_ptr<TimePeriodPacketsStats> &packets_stats,
     const std::shared_ptr<DbStorage> &db, const std::shared_ptr<PbftManager> &pbft_mgr,
     const std::shared_ptr<PbftChain> &pbft_chain, const std::shared_ptr<VoteManager> &vote_mgr,
-    const std::shared_ptr<NextVotesManager> &next_votes_mgr, const std::shared_ptr<DagManager> &dag_mgr,
-    const std::shared_ptr<TransactionManager> &trx_mgr, addr_t const &node_addr) {
+    const std::shared_ptr<DagManager> &dag_mgr, const std::shared_ptr<TransactionManager> &trx_mgr,
+    const addr_t &node_addr) {
   node_stats_ = std::make_shared<NodeStats>(peers_state_, pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr, vote_mgr,
                                             trx_mgr, packets_stats, thread_pool_, node_addr);
 
@@ -196,9 +219,9 @@ void TaraxaCapability::registerPacketHandlers(
   packets_handlers_->registerHandler<VotePacketHandler>(kConf, peers_state_, packets_stats, pbft_mgr, pbft_chain,
                                                         vote_mgr, node_addr);
   packets_handlers_->registerHandler<GetNextVotesSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_mgr,
-                                                                    pbft_chain, vote_mgr, next_votes_mgr, node_addr);
+                                                                    pbft_chain, vote_mgr, node_addr);
   packets_handlers_->registerHandler<VotesSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_mgr, pbft_chain,
-                                                             vote_mgr, next_votes_mgr, db, node_addr);
+                                                             vote_mgr, node_addr);
 
   // Standard packets with mid processing priority
   packets_handlers_->registerHandler<DagBlockPacketHandler>(kConf, peers_state_, packets_stats, pbft_syncing_state_,
@@ -210,8 +233,7 @@ void TaraxaCapability::registerPacketHandlers(
 
   // Non critical packets with low processing priority
   packets_handlers_->registerHandler<StatusPacketHandler>(kConf, peers_state_, packets_stats, pbft_syncing_state_,
-                                                          pbft_chain, pbft_mgr, dag_mgr, next_votes_mgr, db,
-                                                          genesis_hash, node_addr);
+                                                          pbft_chain, pbft_mgr, dag_mgr, db, genesis_hash, node_addr);
   packets_handlers_->registerHandler<GetDagSyncPacketHandler>(kConf, peers_state_, packets_stats, trx_mgr, dag_mgr, db,
                                                               node_addr);
 
