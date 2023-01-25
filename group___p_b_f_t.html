@@ -190,18 +190,9 @@ Collaboration diagram for taraxa::PbftChain:</div>
 <tr class="memitem:a2c802f09565e3c42412e2c6d04105517"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a2c802f09565e3c42412e2c6d04105517">checkPbftBlockValidation</a> (const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;pbft_block) const</td></tr>
 <tr class="memdesc:a2c802f09565e3c42412e2c6d04105517"><td class="mdescLeft">&#160;</td><td class="mdescRight">Verify a PBFT block.  <a href="group___p_b_f_t.html#a2c802f09565e3c42412e2c6d04105517">More...</a><br /></td></tr>
 <tr class="separator:a2c802f09565e3c42412e2c6d04105517"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr><td colspan="2"><h3>Private Types</h3></td></tr>
-<tr class="memitem:a97e5ea36ac983f27a42c941bb185d398"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a97e5ea36ac983f27a42c941bb185d398">UniqueLock</a> = boost::unique_lock&lt; boost::shared_mutex &gt;</td></tr>
-<tr class="separator:a97e5ea36ac983f27a42c941bb185d398"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7d95737c4985b831ca7cf214aaad556e"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a7d95737c4985b831ca7cf214aaad556e">SharedLock</a> = boost::shared_lock&lt; boost::shared_mutex &gt;</td></tr>
-<tr class="separator:a7d95737c4985b831ca7cf214aaad556e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a977daad4b43b9a2846eaef0d0eaa4840"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a977daad4b43b9a2846eaef0d0eaa4840">UpgradableLock</a> = boost::upgrade_lock&lt; boost::shared_mutex &gt;</td></tr>
-<tr class="separator:a977daad4b43b9a2846eaef0d0eaa4840"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a313d6072fe4c81808aa397a025e79946"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a313d6072fe4c81808aa397a025e79946">UpgradeLock</a> = boost::upgrade_to_unique_lock&lt; boost::shared_mutex &gt;</td></tr>
-<tr class="separator:a313d6072fe4c81808aa397a025e79946"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Attributes</h3></td></tr>
-<tr class="memitem:a32b2c9e947e9eeb14e08a14dbfae408a"><td class="memItemLeft" align="right" valign="top">boost::shared_mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a32b2c9e947e9eeb14e08a14dbfae408a">chain_head_access_</a></td></tr>
-<tr class="separator:a32b2c9e947e9eeb14e08a14dbfae408a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e14a4e69ae409bb94eff61710631200"><td class="memItemLeft" align="right" valign="top">std::shared_mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a6e14a4e69ae409bb94eff61710631200">chain_head_access_</a></td></tr>
+<tr class="separator:a6e14a4e69ae409bb94eff61710631200"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaa81d91b429a66dfde206e07734d217f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aaa81d91b429a66dfde206e07734d217f">head_hash_</a></td></tr>
 <tr class="separator:aaa81d91b429a66dfde206e07734d217f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4cbac9a55aeb28e499888266e1988fd0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a4cbac9a55aeb28e499888266e1988fd0">size_</a></td></tr>
@@ -215,95 +206,6 @@ Collaboration diagram for taraxa::PbftChain:</div>
 <tr class="memitem:a54320bf3e4e774ee45eda5e56aa9440c"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a54320bf3e4e774ee45eda5e56aa9440c">db_</a> = nullptr</td></tr>
 <tr class="separator:a54320bf3e4e774ee45eda5e56aa9440c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h4 class="groupheader">Member Typedef Documentation</h4>
-<a id="a7d95737c4985b831ca7cf214aaad556e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7d95737c4985b831ca7cf214aaad556e">&#9670;&nbsp;</a></span>SharedLock</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="group___p_b_f_t.html#a7d95737c4985b831ca7cf214aaad556e">taraxa::PbftChain::SharedLock</a> =  boost::shared_lock&lt;boost::shared_mutex&gt;</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a97e5ea36ac983f27a42c941bb185d398"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a97e5ea36ac983f27a42c941bb185d398">&#9670;&nbsp;</a></span>UniqueLock</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="group___p_b_f_t.html#a97e5ea36ac983f27a42c941bb185d398">taraxa::PbftChain::UniqueLock</a> =  boost::unique_lock&lt;boost::shared_mutex&gt;</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a977daad4b43b9a2846eaef0d0eaa4840"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a977daad4b43b9a2846eaef0d0eaa4840">&#9670;&nbsp;</a></span>UpgradableLock</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="group___p_b_f_t.html#a977daad4b43b9a2846eaef0d0eaa4840">taraxa::PbftChain::UpgradableLock</a> =  boost::upgrade_lock&lt;boost::shared_mutex&gt;</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a313d6072fe4c81808aa397a025e79946"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a313d6072fe4c81808aa397a025e79946">&#9670;&nbsp;</a></span>UpgradeLock</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="group___p_b_f_t.html#a313d6072fe4c81808aa397a025e79946">taraxa::PbftChain::UpgradeLock</a> =  boost::upgrade_to_unique_lock&lt;boost::shared_mutex&gt;</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <h4 class="groupheader">Constructor &amp; Destructor Documentation</h4>
 <a id="a9437dee7bab66a6671a3baabfaa5d177"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9437dee7bab66a6671a3baabfaa5d177">&#9670;&nbsp;</a></span>PbftChain()</h2>
@@ -619,8 +521,8 @@ Collaboration diagram for taraxa::PbftChain:</div>
 </div>
 </div>
 <h4 class="groupheader">Member Data Documentation</h4>
-<a id="a32b2c9e947e9eeb14e08a14dbfae408a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a32b2c9e947e9eeb14e08a14dbfae408a">&#9670;&nbsp;</a></span>chain_head_access_</h2>
+<a id="a6e14a4e69ae409bb94eff61710631200"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6e14a4e69ae409bb94eff61710631200">&#9670;&nbsp;</a></span>chain_head_access_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -629,7 +531,7 @@ Collaboration diagram for taraxa::PbftChain:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">boost::shared_mutex taraxa::PbftChain::chain_head_access_</td>
+          <td class="memname">std::shared_mutex taraxa::PbftChain::chain_head_access_</td>
         </tr>
       </table>
   </td>

@@ -1,13 +1,5 @@
 var NAVTREEINDEX23 =
 {
-"structtaraxa_1_1_vrf_params.html#a0a13eb6eb58b66ec417e67862f01ccfe":[14,0,3,63,2],
-"structtaraxa_1_1_vrf_params.html#a0fa7b78e010d7e0b3e19ff13e02bd1f2":[14,0,3,63,1],
-"structtaraxa_1_1_vrf_params.html#a3b2c4911216aaa18cf7eaf517312fed6":[14,0,3,63,0],
-"structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html":[14,0,3,0,1,0],
-"structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html#a1abf81dc0e54c7375b70c6f7915a446d":[14,0,3,0,1,0,1],
-"structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html#a37fe4b527fe5485e0e734970cf59a0a6":[14,0,3,0,1,0,2],
-"structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html#a912031cb9fc779056a151c1c835f7e04":[14,0,3,0,1,0,3],
-"structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html#af274264ac77157fb818ea58119e24999":[14,0,3,0,1,0,0],
 "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html":[12,1,6,0],
 "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#a09820dc8d12ecec7986747838f146ad8":[12,1,6,0,1],
 "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html#a20ae0df7b61567032daaf88d695dcf8b":[12,1,6,0,3],
@@ -249,5 +241,13 @@ var NAVTREEINDEX23 =
 "types_8hpp.html#a5e82c539dc447e0f4562c69fe5d91145":[15,0,1,2,0,0,12,17],
 "types_8hpp.html#a6339cbbf8f3eef50f67929876dd45b5f":[15,0,1,2,0,0,12,8],
 "types_8hpp.html#a65a103ca2c7b87e38da64ba76ffe0eac":[15,0,1,2,0,0,12,7],
-"types_8hpp.html#a73873ff077f3a9470e522a373eba9200":[15,0,1,2,0,0,12,15]
+"types_8hpp.html#a73873ff077f3a9470e522a373eba9200":[15,0,1,2,0,0,12,15],
+"types_8hpp.html#a81b5cfd508017d57dd0af6b688c799f1":[15,0,1,2,0,0,12,26],
+"types_8hpp.html#a8de50f43ce780650bc4a185b970baaa5":[15,0,1,2,0,0,12,18],
+"types_8hpp.html#a939db49e844b718c8ccc5ab4f5833f57":[15,0,1,2,0,0,12,10],
+"types_8hpp.html#aad3ca55780e79a029c6a1ccf43f66e67":[15,0,1,2,0,0,12,21],
+"types_8hpp.html#ac29ce7c6f0fae63e548b523170910526":[15,0,1,2,0,0,12,6],
+"types_8hpp.html#ac413a96709236ee8b2a47c019f83ce37":[15,0,1,2,0,0,12,13],
+"types_8hpp.html#ad0d27015d777d709bbfa9046a833ba55":[15,0,1,2,0,0,12,23],
+"types_8hpp.html#ad3e82d51831adf27d1db73c289aa28d5":[15,0,1,2,0,0,12,0]
 };

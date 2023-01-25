@@ -97,8 +97,6 @@ var group___d_a_g =
       [ "vrf_sk_", "group___d_a_g.html#a70a63ad742c1a60452a0ecb7084712ba", null ]
     ] ],
     [ "DagManager", "group___d_a_g.html#classtaraxa_1_1_dag_manager", [
-      [ "SharedLock", "group___d_a_g.html#a438a9cce146f37209702173a90707322", null ],
-      [ "ULock", "group___d_a_g.html#aed1bf9463f3f5dd18f46ead7f1323fc1", null ],
       [ "VerifyBlockReturnType", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484", [
         [ "Reason", "md_doc_coding_practices.html#autotoc_md56", null ],
         [ "Example", "md_doc_coding_practices.html#autotoc_md57", null ],

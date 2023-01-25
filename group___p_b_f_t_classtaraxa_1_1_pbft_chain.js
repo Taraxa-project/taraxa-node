@@ -1,9 +1,5 @@
 var group___p_b_f_t_classtaraxa_1_1_pbft_chain =
 [
-    [ "SharedLock", "group___p_b_f_t.html#a7d95737c4985b831ca7cf214aaad556e", null ],
-    [ "UniqueLock", "group___p_b_f_t.html#a97e5ea36ac983f27a42c941bb185d398", null ],
-    [ "UpgradableLock", "group___p_b_f_t.html#a977daad4b43b9a2846eaef0d0eaa4840", null ],
-    [ "UpgradeLock", "group___p_b_f_t.html#a313d6072fe4c81808aa397a025e79946", null ],
     [ "PbftChain", "group___p_b_f_t.html#a9437dee7bab66a6671a3baabfaa5d177", null ],
     [ "checkPbftBlockValidation", "group___p_b_f_t.html#a2c802f09565e3c42412e2c6d04105517", null ],
     [ "findPbftBlockInChain", "group___p_b_f_t.html#a068a96e0b08ed10fc6a08f412da6dd63", null ],
@@ -16,7 +12,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_chain =
     [ "getPbftChainSize", "group___p_b_f_t.html#a658302bd8a003a3547d25286ac26a65a", null ],
     [ "getPbftChainSizeExcludingEmptyPbftBlocks", "group___p_b_f_t.html#a2deea0b998e926925c5939c0d5c0ab14", null ],
     [ "updatePbftChain", "group___p_b_f_t.html#a81c9c909dc98960eae42e6b6d3126013", null ],
-    [ "chain_head_access_", "group___p_b_f_t.html#a32b2c9e947e9eeb14e08a14dbfae408a", null ],
+    [ "chain_head_access_", "group___p_b_f_t.html#a6e14a4e69ae409bb94eff61710631200", null ],
     [ "db_", "group___p_b_f_t.html#a54320bf3e4e774ee45eda5e56aa9440c", null ],
     [ "head_hash_", "group___p_b_f_t.html#aaa81d91b429a66dfde206e07734d217f", null ],
     [ "last_non_null_pbft_dag_anchor_hash_", "group___p_b_f_t.html#a8b78847ba76f5d5060265adf8798a91c", null ],

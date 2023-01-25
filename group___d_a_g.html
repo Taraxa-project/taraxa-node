@@ -2614,10 +2614,6 @@ Collaboration diagram for taraxa::DagManager:</div>
  }</td></tr>
 <tr class="memdesc:a3445d6e089f93e4e521fb98a0699d484"><td class="mdescLeft">&#160;</td><td class="mdescRight">return type of verifyBlock  <a href="group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484">More...</a><br /></td></tr>
 <tr class="separator:a3445d6e089f93e4e521fb98a0699d484"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aed1bf9463f3f5dd18f46ead7f1323fc1"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aed1bf9463f3f5dd18f46ead7f1323fc1">ULock</a> = std::unique_lock&lt; std::shared_mutex &gt;</td></tr>
-<tr class="separator:aed1bf9463f3f5dd18f46ead7f1323fc1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a438a9cce146f37209702173a90707322"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a438a9cce146f37209702173a90707322">SharedLock</a> = std::shared_lock&lt; std::shared_mutex &gt;</td></tr>
-<tr class="separator:a438a9cce146f37209702173a90707322"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Public Member Functions</h3></td></tr>
 <tr class="memitem:a77daf30c3c77830f8fbaeebd0ff02b16"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#a77daf30c3c77830f8fbaeebd0ff02b16">DagManager</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;dag_genesis_block_hash, <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> node_addr, const <a class="el" href="structtaraxa_1_1_sortition_config.html">SortitionConfig</a> &amp;sortition_config, const <a class="el" href="structtaraxa_1_1_dag_config.html">DagConfig</a> &amp;dag_config, std::shared_ptr&lt; <a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">TransactionManager</a> &gt; trx_mgr, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt; pbft_chain, std::shared_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">FinalChain</a> &gt; final_chain, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_key_manager.html">KeyManager</a> &gt; key_manager, bool is_light_node=false, uint64_t light_node_history=0, uint32_t max_levels_per_period=<a class="el" href="namespacetaraxa.html#ab2f5ec0c8b9d91b604a61ca8062d0505">kMaxLevelsPerPeriod</a>, uint32_t dag_expiry_limit=<a class="el" href="namespacetaraxa.html#ad71e68c4976b8c6ed7407682d06505ab">kDagExpiryLevelLimit</a>)</td></tr>
 <tr class="separator:a77daf30c3c77830f8fbaeebd0ff02b16"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2784,35 +2780,6 @@ Collaboration diagram for taraxa::DagManager:</div>
 <tr class="memitem:aa495661e7bb6c853172edf4311e86da8"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">FinalChain</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___d_a_g.html#aa495661e7bb6c853172edf4311e86da8">final_chain_</a></td></tr>
 <tr class="separator:aa495661e7bb6c853172edf4311e86da8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h4 class="groupheader">Member Typedef Documentation</h4>
-<a id="a438a9cce146f37209702173a90707322"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a438a9cce146f37209702173a90707322">&#9670;&nbsp;</a></span>SharedLock</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="group___d_a_g.html#a438a9cce146f37209702173a90707322">taraxa::DagManager::SharedLock</a> =  std::shared_lock&lt;std::shared_mutex&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aed1bf9463f3f5dd18f46ead7f1323fc1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aed1bf9463f3f5dd18f46ead7f1323fc1">&#9670;&nbsp;</a></span>ULock</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">using <a class="el" href="group___d_a_g.html#aed1bf9463f3f5dd18f46ead7f1323fc1">taraxa::DagManager::ULock</a> =  std::unique_lock&lt;std::shared_mutex&gt;</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <h4 class="groupheader">Member Enumeration Documentation</h4>
 <a id="a3445d6e089f93e4e521fb98a0699d484"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a3445d6e089f93e4e521fb98a0699d484">&#9670;&nbsp;</a></span>VerifyBlockReturnType</h2>

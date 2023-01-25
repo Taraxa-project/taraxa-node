@@ -1,13 +1,5 @@
 var NAVTREEINDEX22 =
 {
-"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#ade558717b4606ea7d69bd1b37b1d31f8":[14,0,0,1,30,13],
-"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#ae08c57ed6c42df120f3eaa167753c7b2":[14,0,0,1,30,25],
-"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#af045b93799d63efe503702e10f1b41de":[15,0,1,0,2,19,1,1],
-"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#af045b93799d63efe503702e10f1b41de":[14,0,0,1,30,0,1],
-"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#af3d6378f2644d6f0cbd00279b212ff62":[14,0,0,1,30,0,2],
-"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#af3d6378f2644d6f0cbd00279b212ff62":[15,0,1,0,2,19,1,2],
-"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#af67251080be60836f380077d344f018e":[14,0,0,1,30,19],
-"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#af677ddc7b72b51edda6f7ac4a6d966ea":[14,0,0,1,30,32],
 "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#afa60c54a7c445e08d4076e0f37feae96":[14,0,0,1,30,39],
 "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#afdddde18f10a3a81e45cdf06cef1a4fd":[14,0,0,1,30,18],
 "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#structdev_1_1p2p_1_1_r_l_p_x_handshake_1_1_host_context":[14,0,0,1,30,0],
@@ -47,8 +39,8 @@ var NAVTREEINDEX22 =
 "structdev_1_1p2p_1_1_session.html#aac41f68b2694f494c10f5a4f1bf69867":[14,0,0,1,34,32],
 "structdev_1_1p2p_1_1_session.html#ab0497ba0ad627ba6b21ddf5d8533a345":[14,0,0,1,34,39],
 "structdev_1_1p2p_1_1_session.html#ab62a3cf14b0c2ab3a5b509d5d3fa3122":[14,0,0,1,34,36],
-"structdev_1_1p2p_1_1_session.html#ac2908ff423e6a573c3e2461ba3423727":[14,0,0,1,34,0,0],
 "structdev_1_1p2p_1_1_session.html#ac2908ff423e6a573c3e2461ba3423727":[15,0,1,0,2,23,2,0],
+"structdev_1_1p2p_1_1_session.html#ac2908ff423e6a573c3e2461ba3423727":[14,0,0,1,34,0,0],
 "structdev_1_1p2p_1_1_session.html#ac3a2ee5a4288cbf52bc71761ff25c58a":[14,0,0,1,34,8],
 "structdev_1_1p2p_1_1_session.html#ac50d879ffd0bfb8b3e9f8fc92e1940cc":[14,0,0,1,34,27],
 "structdev_1_1p2p_1_1_session.html#ac54975fc1868fd83a53d6c2c6a1f10b5":[14,0,0,1,34,5],
@@ -249,5 +241,13 @@ var NAVTREEINDEX22 =
 "structtaraxa_1_1_transaction.html#af8a7c8df007e8ef709eaf6a55f557593":[14,0,3,58,42],
 "structtaraxa_1_1_transaction_1_1_invalid_signature.html":[14,0,3,58,0],
 "structtaraxa_1_1_transaction_1_1_invalid_signature.html#a7974a0937e6fff51c0ff13f9e57b238f":[14,0,3,58,0,0],
-"structtaraxa_1_1_vrf_params.html":[14,0,3,63]
+"structtaraxa_1_1_vrf_params.html":[14,0,3,63],
+"structtaraxa_1_1_vrf_params.html#a0a13eb6eb58b66ec417e67862f01ccfe":[14,0,3,63,2],
+"structtaraxa_1_1_vrf_params.html#a0fa7b78e010d7e0b3e19ff13e02bd1f2":[14,0,3,63,1],
+"structtaraxa_1_1_vrf_params.html#a3b2c4911216aaa18cf7eaf517312fed6":[14,0,3,63,0],
+"structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html":[14,0,3,0,1,0],
+"structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html#a1abf81dc0e54c7375b70c6f7915a446d":[14,0,3,0,1,0,1],
+"structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html#a37fe4b527fe5485e0e734970cf59a0a6":[14,0,3,0,1,0,2],
+"structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html#a912031cb9fc779056a151c1c835f7e04":[14,0,3,0,1,0,3],
+"structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html#af274264ac77157fb818ea58119e24999":[14,0,3,0,1,0,0]
 };

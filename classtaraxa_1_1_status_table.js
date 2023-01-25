@@ -1,8 +1,6 @@
 var classtaraxa_1_1_status_table =
 [
     [ "Element", "classtaraxa_1_1_status_table.html#ad9550ddcda320cf651e9228b54b35091", null ],
-    [ "sharedLock", "classtaraxa_1_1_status_table.html#a85efe5fe4c32f1d5fce1fb487a801e51", null ],
-    [ "uLock", "classtaraxa_1_1_status_table.html#ab862e80b30523df74ebf4ddedfe96ace", null ],
     [ "UnsafeStatusTable", "classtaraxa_1_1_status_table.html#ac2ece372cbaa20d7b9861c356ac02179", null ],
     [ "StatusTable", "classtaraxa_1_1_status_table.html#a5cdbbcb65bdb2feb29e8ad5fa0bfcdf2", null ],
     [ "clear", "classtaraxa_1_1_status_table.html#abfce70093b459e99105739dcac91e0fc", null ],

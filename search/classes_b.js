@@ -1,11 +1,11 @@
 var searchData=
 [
-  ['lazy_3725',['Lazy',['../classtaraxa_1_1util_1_1lazy_1_1_lazy.html',1,'taraxa::util::lazy']]],
-  ['localisedlogentry_3726',['LocalisedLogEntry',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_localised_log_entry',1,'taraxa::net::rpc::eth']]],
-  ['localisedtransaction_3727',['LocalisedTransaction',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_localised_transaction',1,'taraxa::net::rpc::eth']]],
-  ['localisedtransactionreceipt_3728',['LocalisedTransactionReceipt',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_localised_transaction_receipt',1,'taraxa::net::rpc::eth']]],
-  ['log_3729',['Log',['../classgraphql_1_1taraxa_1_1_log.html',1,'graphql::taraxa']]],
-  ['logentry_3730',['LogEntry',['../group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry',1,'taraxa::final_chain']]],
-  ['logfilter_3731',['LogFilter',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html',1,'taraxa::net::rpc::eth']]],
-  ['logrecord_3732',['LogRecord',['../group___final_chain.html#structtaraxa_1_1state__api_1_1_log_record',1,'taraxa::state_api']]]
+  ['lazy_3723',['Lazy',['../classtaraxa_1_1util_1_1lazy_1_1_lazy.html',1,'taraxa::util::lazy']]],
+  ['localisedlogentry_3724',['LocalisedLogEntry',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_localised_log_entry',1,'taraxa::net::rpc::eth']]],
+  ['localisedtransaction_3725',['LocalisedTransaction',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_localised_transaction',1,'taraxa::net::rpc::eth']]],
+  ['localisedtransactionreceipt_3726',['LocalisedTransactionReceipt',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_localised_transaction_receipt',1,'taraxa::net::rpc::eth']]],
+  ['log_3727',['Log',['../classgraphql_1_1taraxa_1_1_log.html',1,'graphql::taraxa']]],
+  ['logentry_3728',['LogEntry',['../group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry',1,'taraxa::final_chain']]],
+  ['logfilter_3729',['LogFilter',['../structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html',1,'taraxa::net::rpc::eth']]],
+  ['logrecord_3730',['LogRecord',['../group___final_chain.html#structtaraxa_1_1state__api_1_1_log_record',1,'taraxa::state_api']]]
 ];
