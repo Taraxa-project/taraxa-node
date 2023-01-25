@@ -51,7 +51,6 @@ var classtaraxa_1_1_db_storage =
     [ "getLastSortitionParams", "classtaraxa_1_1_db_storage.html#a74ceb5b21b5007ad1ec3d68c57a6cb52", null ],
     [ "getNonfinalizedDagBlocks", "classtaraxa_1_1_db_storage.html#aafbe68c93f3501f659beafdeae61b746", null ],
     [ "getNumBlockExecuted", "classtaraxa_1_1_db_storage.html#addcf5424fe751d8e593cc63b2193a8dc", null ],
-    [ "getNumDagBlocks", "classtaraxa_1_1_db_storage.html#a6f4e2e6850377d23672333425e43b44e", null ],
     [ "getNumTransactionExecuted", "classtaraxa_1_1_db_storage.html#a87c64629858c2267ef6b0c61f627e7d8", null ],
     [ "getNumTransactionInDag", "classtaraxa_1_1_db_storage.html#ab2d590a0858867c0ee145834b81f15c8", null ],
     [ "getOwnVerifiedVotes", "classtaraxa_1_1_db_storage.html#abe46de0804c09732be06b24bb7c11861", null ],

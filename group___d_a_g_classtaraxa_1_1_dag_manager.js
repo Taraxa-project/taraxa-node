@@ -12,7 +12,7 @@ var group___d_a_g_classtaraxa_1_1_dag_manager =
       [ "BlockTooBig", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a6acb71e475d0aaa76f18fde586c6d6db", null ],
       [ "FailedTipsVerification", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484adef7264cfb315c8a66080e035af83b16", null ]
     ] ],
-    [ "DagManager", "group___d_a_g.html#a77daf30c3c77830f8fbaeebd0ff02b16", null ],
+    [ "DagManager", "group___d_a_g.html#a87cecbf01b96b2692d1503cc0174f1c9", null ],
     [ "DagManager", "group___d_a_g.html#aa0fe82cc22a187cab97099ef465bed02", null ],
     [ "DagManager", "group___d_a_g.html#a1a957529304d407e997ca611b4530ab7", null ],
     [ "addDagBlock", "group___d_a_g.html#af03ed62a5da2149160bf80318f94fc17", null ],
@@ -67,6 +67,7 @@ var group___d_a_g_classtaraxa_1_1_dag_manager =
     [ "db_", "group___d_a_g.html#a8df95cccdea775300aec10f65ab0cdea", null ],
     [ "final_chain_", "group___d_a_g.html#aa495661e7bb6c853172edf4311e86da8", null ],
     [ "frontier_", "group___d_a_g.html#aa8ecef50260ac0b2b2da330f53fb42c2", null ],
+    [ "genesis_block_", "group___d_a_g.html#ac2cbd5c2284f9a75e3eb012ad2ea371d", null ],
     [ "is_light_node_", "group___d_a_g.html#a304bc3dd4e16a2e6fe824960998fa85c", null ],
     [ "key_manager_", "group___d_a_g.html#a24126b789e44798ff62e6f7504ee659f", null ],
     [ "light_node_history_", "group___d_a_g.html#a9da5c3fb13e2ae292e70a030efdfbdec", null ],
