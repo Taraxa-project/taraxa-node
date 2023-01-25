@@ -68,6 +68,7 @@ DdosProtectionConfig dec_ddos_protection_config_json(const Json::Value &json) {
       std::chrono::milliseconds{getConfigDataAsUInt(json, {"packets_stats_time_period_ms"})};
   ddos_protection.peer_max_packets_processing_time_us =
       std::chrono::microseconds{getConfigDataAsUInt64(json, {"peer_max_packets_processing_time_us"})};
+  ddos_protection.max_packets_queue_size = getConfigDataAsUInt64(json, {"max_packets_queue_size"});
   return ddos_protection;
 }
 

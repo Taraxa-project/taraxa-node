@@ -331,6 +331,16 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
     return;
   }
 
+  // Check max allowed packets queue size
+  if (kConf.network.ddos_protection.max_packets_queue_size) {
+    const auto [hp_queue_size, mp_queue_size, lp_queue_size] = thread_pool_->getQueueSize();
+    if (hp_queue_size + mp_queue_size + lp_queue_size > kConf.network.ddos_protection.max_packets_queue_size) {
+      LOG(log_wr_) << "Ignored " << convertPacketTypeToString(packet_type) << ". Max allowed packets queue size "
+                   << kConf.network.ddos_protection.max_packets_queue_size << " exceeded";
+      return;
+    }
+  }
+
   // Check peer's max allowed packets processing time
   if (kConf.network.ddos_protection.isPeerPacketsProtectionEnabled()) {
     const auto [start_time, peer_packets_stats] = peer.first->getAllPacketsStatsCopy();

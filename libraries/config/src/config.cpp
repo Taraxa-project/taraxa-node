@@ -174,6 +174,7 @@ std::ostream &operator<<(std::ostream &strm, const DdosProtectionConfig &conf) {
   strm << "    log_packets_stats: " << conf.log_packets_stats << std::endl;
   strm << "    packets_stats_time_period_ms: " << conf.packets_stats_time_period_ms.count() << std::endl;
   strm << "    peer_max_packets_processing_time_us: " << conf.peer_max_packets_processing_time_us.count() << std::endl;
+  strm << "    max_packets_queue_size: " << conf.max_packets_queue_size << std::endl;
   return strm;
 }
 
