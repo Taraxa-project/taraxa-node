@@ -101,12 +101,7 @@ class PbftChain {
   bool checkPbftBlockValidation(const std::shared_ptr<PbftBlock>& pbft_block) const;
 
  private:
-  using UniqueLock = boost::unique_lock<boost::shared_mutex>;
-  using SharedLock = boost::shared_lock<boost::shared_mutex>;
-  using UpgradableLock = boost::upgrade_lock<boost::shared_mutex>;
-  using UpgradeLock = boost::upgrade_to_unique_lock<boost::shared_mutex>;
-
-  mutable boost::shared_mutex chain_head_access_;
+  mutable std::shared_mutex chain_head_access_;
 
   blk_hash_t head_hash_;             // PBFT head hash
   PbftPeriod size_;                  // PBFT chain size, includes both executed and unexecuted PBFT blocks

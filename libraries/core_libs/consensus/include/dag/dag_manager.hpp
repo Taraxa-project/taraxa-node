@@ -43,9 +43,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
     FailedTipsVerification
   };
 
-  using ULock = std::unique_lock<std::shared_mutex>;
-  using SharedLock = std::shared_lock<std::shared_mutex>;
-
   explicit DagManager(blk_hash_t const &dag_genesis_block_hash, addr_t node_addr,
                       const SortitionConfig &sortition_config, const DagConfig &dag_config,
                       std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<PbftChain> pbft_chain,
@@ -156,11 +153,11 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
 
   // DAG anchors
   PbftPeriod getLatestPeriod() const {
-    SharedLock lock(mutex_);
+    std::shared_lock lock(mutex_);
     return period_;
   }
   std::pair<blk_hash_t, blk_hash_t> getAnchors() const {
-    SharedLock lock(mutex_);
+    std::shared_lock lock(mutex_);
     return std::make_pair(old_anchor_, anchor_);
   }
 

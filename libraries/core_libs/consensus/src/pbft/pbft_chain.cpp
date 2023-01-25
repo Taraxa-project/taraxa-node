@@ -44,27 +44,27 @@ PbftChain::PbftChain(addr_t node_addr, std::shared_ptr<DbStorage> db)
 }
 
 blk_hash_t PbftChain::getHeadHash() const {
-  SharedLock lock(chain_head_access_);
+  std::shared_lock lock(chain_head_access_);
   return head_hash_;
 }
 
 PbftPeriod PbftChain::getPbftChainSize() const {
-  SharedLock lock(chain_head_access_);
+  std::shared_lock lock(chain_head_access_);
   return size_;
 }
 
 PbftPeriod PbftChain::getPbftChainSizeExcludingEmptyPbftBlocks() const {
-  SharedLock lock(chain_head_access_);
+  std::shared_lock lock(chain_head_access_);
   return non_empty_size_;
 }
 
 blk_hash_t PbftChain::getLastPbftBlockHash() const {
-  SharedLock lock(chain_head_access_);
+  std::shared_lock lock(chain_head_access_);
   return last_pbft_block_hash_;
 }
 
 blk_hash_t PbftChain::getLastNonNullPbftBlockAnchor() const {
-  SharedLock lock(chain_head_access_);
+  std::shared_lock lock(chain_head_access_);
   return last_non_null_pbft_dag_anchor_hash_;
 }
 
@@ -82,7 +82,7 @@ PbftBlock PbftChain::getPbftBlockInChain(const taraxa::blk_hash_t& pbft_block_ha
 }
 
 void PbftChain::updatePbftChain(blk_hash_t const& pbft_block_hash, blk_hash_t const& anchor_hash) {
-  UniqueLock lock(chain_head_access_);
+  std::scoped_lock lock(chain_head_access_);
   size_++;
   if (anchor_hash != kNullBlockHash) {
     non_empty_size_++;
@@ -110,7 +110,7 @@ bool PbftChain::checkPbftBlockValidation(const std::shared_ptr<PbftBlock>& pbft_
 
 std::string PbftChain::getJsonStr() const {
   Json::Value json;
-  SharedLock lock(chain_head_access_);
+  std::shared_lock lock(chain_head_access_);
   json["head_hash"] = head_hash_.toString();
   json["size"] = (Json::Value::UInt64)size_;
   json["non_empty_size"] = (Json::Value::UInt64)non_empty_size_;
@@ -120,7 +120,7 @@ std::string PbftChain::getJsonStr() const {
 
 std::string PbftChain::getJsonStrForBlock(blk_hash_t const& block_hash, bool null_anchor) const {
   Json::Value json;
-  SharedLock lock(chain_head_access_);
+  std::shared_lock lock(chain_head_access_);
   json["head_hash"] = head_hash_.toString();
   json["size"] = (Json::Value::UInt64)size_ + 1;
   auto non_empty_size = non_empty_size_;
