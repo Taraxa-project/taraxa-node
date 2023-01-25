@@ -140,7 +140,7 @@ Json::Value Test::get_node_status() {
       res["peer_count"] = Json::UInt64(node->getNetwork()->getPeerCount());
       res["node_count"] = Json::UInt64(node->getNetwork()->getNodeCount());
       res["blk_executed"] = Json::UInt64(node->getDB()->getNumBlockExecuted());
-      res["blk_count"] = Json::UInt64(node->getDB()->getNumDagBlocks());
+      res["blk_count"] = Json::UInt64(node->getDB()->getDagBlocksCount());
       res["trx_executed"] = Json::UInt64(node->getDB()->getNumTransactionExecuted());
       res["trx_count"] = Json::UInt64(node->getTransactionManager()->getTransactionCount());
       res["dag_level"] = Json::UInt64(node->getDagManager()->getMaxLevel());

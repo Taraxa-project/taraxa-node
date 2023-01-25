@@ -180,15 +180,13 @@ TEST_F(NetworkTest, update_peer_chainsize) {
                                                     pbft_block->getPeriod(),
                                                     node1->getPbftManager()->getPbftRound() + 1, value_proposal_state);
 
-
   auto node1_id = nw1->getNodeId();
   auto node2_id = nw2->getNodeId();
 
   EXPECT_NE(nw2->getPeer(node1_id)->pbft_chain_size_, expected_chain_size);
   nw1->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVote(nw1->getPeer(node2_id), vote, pbft_block);
-  EXPECT_HAPPENS({5s, 100ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, nw2->getPeer(node1_id)->pbft_chain_size_, expected_chain_size)
-  });
+  EXPECT_HAPPENS({5s, 100ms},
+                 [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, nw2->getPeer(node1_id)->pbft_chain_size_, expected_chain_size) });
 }
 
 TEST_F(NetworkTest, malicious_peers) {
@@ -1282,7 +1280,7 @@ TEST_F(NetworkTest, node_full_sync) {
     EXPECT_GT(nodes[i]->getDagManager()->getNumVerticesInDag().first, 0);
     EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first,
               nodes[0]->getDagManager()->getNumVerticesInDag().first);
-    EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first, nodes[i]->getDB()->getNumDagBlocks());
+    EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first, nodes[i]->getDB()->getDagBlocksCount());
     EXPECT_EQ(nodes[i]->getDagManager()->getNumEdgesInDag().first, nodes[0]->getDagManager()->getNumEdgesInDag().first);
   }
 
@@ -1337,7 +1335,7 @@ TEST_F(NetworkTest, node_full_sync) {
     EXPECT_GT(nodes[i]->getDagManager()->getNumVerticesInDag().first, 0);
     EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first,
               nodes[0]->getDagManager()->getNumVerticesInDag().first);
-    EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first, nodes[i]->getDB()->getNumDagBlocks());
+    EXPECT_EQ(nodes[i]->getDagManager()->getNumVerticesInDag().first, nodes[i]->getDB()->getDagBlocksCount());
     EXPECT_EQ(nodes[i]->getDagManager()->getNumEdgesInDag().first, nodes[0]->getDagManager()->getNumEdgesInDag().first);
   }
 

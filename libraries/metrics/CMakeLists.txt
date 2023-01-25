@@ -12,7 +12,7 @@ set(SOURCES
 
 add_library(metrics ${SOURCES} ${HEADERS})
 target_include_directories(metrics PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
-target_link_libraries(metrics PUBLIC CONAN_PKG::prometheus-cpp CONAN_PKG::libjson-rpc-cpp)
+target_link_libraries(metrics PUBLIC CONAN_PKG::prometheus-cpp)
 
 
 install(TARGETS metrics

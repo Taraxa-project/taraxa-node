@@ -707,12 +707,9 @@ TEST_F(PbftManagerWithDagCreation, initial_dag) {
   makeNode();
   deployContract();
 
-  auto prev_value = node->getDagManager()->getNumVerticesInDag().first;
   generateAndApplyInitialDag();
-
-  EXPECT_HAPPENS({10s, 250ms}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().second, prev_value + getInitialDagSize());
-  });
+  EXPECT_HAPPENS({10s, 250ms},
+                 [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce - 1); });
 }
 
 TEST_F(PbftManagerWithDagCreation, dag_generation) {
@@ -960,10 +957,10 @@ TEST_F(PbftManagerWithDagCreation, state_root_hash) {
   deployContract();
   node->getDagBlockProposer()->stop();
   const auto lambda = node->getConfig().genesis.pbft.lambda_ms;
-  auto prev_value = node->getDagManager()->getNumVerticesInDag().first;
+  auto prev_pbft_chain_size = node->getPbftChain()->getPbftChainSize();
   generateAndApplyInitialDag();
   EXPECT_HAPPENS({10s, 250ms}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getDagManager()->getNumVerticesInDag().second, prev_value + getInitialDagSize());
+    WAIT_EXPECT_EQ(ctx, prev_pbft_chain_size + 1, node->getPbftChain()->getPbftChainSize());
   });
   // generate dag blocks with delays to distribute them between pbft blocks
   for (uint8_t i = 0; i < 5; ++i) {

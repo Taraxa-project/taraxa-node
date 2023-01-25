@@ -107,10 +107,8 @@ SharedTransactions createSignedTrxSamples(unsigned start, unsigned num, secret_t
 std::vector<DagBlock> createMockDagBlkSamples(unsigned pivot_start, unsigned blk_num, unsigned trx_start,
                                               unsigned trx_len, unsigned trx_overlap);
 
-std::vector<DagBlock> createMockDag0(
-    std::string genesis = "0000000000000000000000000000000000000000000000000000000000000000");
+std::vector<DagBlock> createMockDag0(const blk_hash_t &genesis);
 
-std::vector<DagBlock> createMockDag1(
-    std::string genesis = "0000000000000000000000000000000000000000000000000000000000000000");
+std::vector<DagBlock> createMockDag1(const blk_hash_t &genesis);
 
 }  // namespace taraxa::core_tests::samples
