@@ -648,28 +648,27 @@ TEST_F(PbftManagerTest, propose_block_and_vote_broadcast) {
       node1->getPbftManager()->getPbftRound() + 1, value_proposal_state);
   pbft_mgr1->processProposedBlock(proposed_pbft_block, propose_vote);
 
-  auto block1_from_node1 =
-      pbft_mgr1->getProposedBlocksSt().getPbftProposedBlock(propose_vote->getPeriod(), propose_vote->getBlockHash());
+  auto block1_from_node1 = pbft_mgr1->getPbftProposedBlock(propose_vote->getPeriod(), propose_vote->getBlockHash());
   ASSERT_TRUE(block1_from_node1);
-  EXPECT_EQ(block1_from_node1->first->getJsonStr(), proposed_pbft_block->getJsonStr());
+  EXPECT_EQ(block1_from_node1->getJsonStr(), proposed_pbft_block->getJsonStr());
 
   nw1->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(propose_vote, proposed_pbft_block);
 
   // Check node2 and node3 receive the PBFT block
-  std::optional<std::pair<std::shared_ptr<PbftBlock>, bool>> node2_synced_proposed_block_and_vote = std::nullopt;
-  std::optional<std::pair<std::shared_ptr<PbftBlock>, bool>> node3_synced_proposed_block_and_vote = std::nullopt;
+  std::shared_ptr<PbftBlock> node2_synced_proposed_block = nullptr;
+  std::shared_ptr<PbftBlock> node3_synced_proposed_block = nullptr;
 
   EXPECT_HAPPENS({20s, 200ms}, [&](auto &ctx) {
-    node2_synced_proposed_block_and_vote =
-        pbft_mgr2->getProposedBlocksSt().getPbftProposedBlock(propose_vote->getPeriod(), propose_vote->getBlockHash());
-    node3_synced_proposed_block_and_vote =
-        pbft_mgr3->getProposedBlocksSt().getPbftProposedBlock(propose_vote->getPeriod(), propose_vote->getBlockHash());
+    node2_synced_proposed_block =
+        pbft_mgr2->getPbftProposedBlock(propose_vote->getPeriod(), propose_vote->getBlockHash());
+    node3_synced_proposed_block =
+        pbft_mgr3->getPbftProposedBlock(propose_vote->getPeriod(), propose_vote->getBlockHash());
 
-    WAIT_EXPECT_TRUE(ctx, node2_synced_proposed_block_and_vote)
-    WAIT_EXPECT_TRUE(ctx, node3_synced_proposed_block_and_vote)
+    WAIT_EXPECT_TRUE(ctx, node2_synced_proposed_block)
+    WAIT_EXPECT_TRUE(ctx, node3_synced_proposed_block)
   });
-  EXPECT_EQ(node2_synced_proposed_block_and_vote->first->getJsonStr(), proposed_pbft_block->getJsonStr());
-  EXPECT_EQ(node3_synced_proposed_block_and_vote->first->getJsonStr(), proposed_pbft_block->getJsonStr());
+  EXPECT_EQ(node2_synced_proposed_block->getJsonStr(), proposed_pbft_block->getJsonStr());
+  EXPECT_EQ(node3_synced_proposed_block->getJsonStr(), proposed_pbft_block->getJsonStr());
 }
 
 TEST_F(PbftManagerTest, check_committeeSize_less_or_equal_to_activePlayers) {

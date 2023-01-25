@@ -1850,6 +1850,13 @@ bool PbftManager::checkBlockWeight(const std::vector<DagBlock> &dag_blocks) cons
 
 blk_hash_t PbftManager::getLastPbftBlockHash() { return pbft_chain_->getLastPbftBlockHash(); }
 
-const ProposedBlocks &PbftManager::getProposedBlocksSt() const { return proposed_blocks_; }
+std::shared_ptr<PbftBlock> PbftManager::getPbftProposedBlock(PbftPeriod period, const blk_hash_t &block_hash) const {
+  auto proposed_block = proposed_blocks_.getPbftProposedBlock(period, block_hash);
+  if (!proposed_block.has_value()) {
+    return nullptr;
+  }
+
+  return proposed_block->first;
+}
 
 }  // namespace taraxa

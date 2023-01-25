@@ -44,7 +44,7 @@ class ProposedBlocks {
   void markBlockAsValid(const std::shared_ptr<PbftBlock>& proposed_block);
 
   /**
-   * @brief Get a proposed PBFT block based on specified period, round and block hash
+   * @brief Get a proposed PBFT block based on specified period and block hash
    * @param period
    * @param block_hash
    * @return optional<pair<block, is_valid flag>>

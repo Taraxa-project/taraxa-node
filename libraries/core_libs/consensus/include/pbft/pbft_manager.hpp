@@ -258,9 +258,12 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void resumeSingleState();
 
   /**
-   * @return ProposedBlocks structure
+   * @brief Get a proposed PBFT block based on specified period and block hash
+   * @param period
+   * @param block_hash
+   * @return std::shared_ptr<PbftBlock>
    */
-  const ProposedBlocks &getProposedBlocksSt() const;
+  std::shared_ptr<PbftBlock> getPbftProposedBlock(PbftPeriod period, const blk_hash_t &block_hash) const;
 
   /**
    * @brief Get PBFT committee size
