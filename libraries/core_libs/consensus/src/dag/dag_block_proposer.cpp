@@ -17,7 +17,7 @@ DagBlockProposer::DagBlockProposer(const DagBlockProposerConfig& bp_config, std:
                                    std::shared_ptr<TransactionManager> trx_mgr,
                                    std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<DbStorage> db,
                                    std::shared_ptr<KeyManager> key_manager, addr_t node_addr, secret_t node_sk,
-                                   vrf_wrapper::vrf_sk_t vrf_sk)
+                                   vrf_wrapper::vrf_sk_t vrf_sk, uint64_t pbft_gas_limit, uint64_t dag_gas_limit)
     : bp_config_(bp_config),
       total_trx_shards_(std::max(bp_config_.shard, uint16_t(1))),
       dag_mgr_(std::move(dag_mgr)),
@@ -28,7 +28,9 @@ DagBlockProposer::DagBlockProposer(const DagBlockProposerConfig& bp_config, std:
       node_addr_(node_addr),
       node_sk_(std::move(node_sk)),
       vrf_sk_(std::move(vrf_sk)),
-      vrf_pk_(vrf_wrapper::getVrfPublicKey(vrf_sk_)) {
+      vrf_pk_(vrf_wrapper::getVrfPublicKey(vrf_sk_)),
+      kPbftGasLimit(pbft_gas_limit),
+      kDagGasLimit(dag_gas_limit) {
   LOG_OBJECTS_CREATE("DAG_PROPOSER");
 
   // Add a random component in proposing stale blocks so that not all nodes propose stale blocks at the same time
@@ -250,9 +252,9 @@ level_t DagBlockProposer::getProposeLevel(blk_hash_t const& pivot, vec_blk_t con
   return max_level;
 }
 
-vec_blk_t DagBlockProposer::selectDagBlockTips(const vec_blk_t& frontier_tips) const {
+vec_blk_t DagBlockProposer::selectDagBlockTips(const vec_blk_t& frontier_tips, uint64_t gas_limit) const {
   // Prioritize higher level with unique proposer
-  assert(frontier_tips.size() > kDagBlockMaxTips);
+  uint64_t gas_estimation = 0;
   std::unordered_set<addr_t> proposers, duplicate_proposers;
   std::unordered_map<blk_hash_t, std::shared_ptr<DagBlock>> tips_blocks;
   tips_blocks.reserve(frontier_tips.size());
@@ -283,13 +285,19 @@ vec_blk_t DagBlockProposer::selectDagBlockTips(const vec_blk_t& frontier_tips) c
 
   // First insert tips with unique proposers ordered by level
   for (const auto& tip : ordered_tips_with_unique_proposers) {
+    gas_estimation += tips_blocks[tip.second]->getGasEstimation();
+    if (gas_estimation > gas_limit || tips.size() == kDagBlockMaxTips) {
+      return tips;
+    }
     tips.push_back(tip.second);
-    if (tips.size() == kDagBlockMaxTips) break;
   }
 
   // After inserting all unique proposers blocks, insert duplicates as well
   for (const auto& tip : ordered_tips_with_duplicate_proposers) {
-    if (tips.size() == kDagBlockMaxTips) break;
+    gas_estimation += tips_blocks[tip.second]->getGasEstimation();
+    if (gas_estimation > gas_limit || tips.size() == kDagBlockMaxTips) {
+      return tips;
+    }
     tips.push_back(tip.second);
   }
   return tips;
@@ -310,8 +318,8 @@ DagBlock DagBlockProposer::createDagBlock(DagFrontier&& frontier, level_t level,
   }
 
   // If number of tips is over the limit filter by producer and level
-  if (frontier.tips.size() > kDagBlockMaxTips) {
-    frontier.tips = selectDagBlockTips(frontier.tips);
+  if (frontier.tips.size() > kDagBlockMaxTips || (frontier.tips.size() + 1) > kPbftGasLimit / kDagGasLimit) {
+    frontier.tips = selectDagBlockTips(frontier.tips, kPbftGasLimit - block_estimation);
   }
 
   DagBlock block(frontier.pivot, std::move(level), std::move(frontier.tips), std::move(trx_hashes), block_estimation,
