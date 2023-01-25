@@ -109,7 +109,7 @@ Public Member Functions</h2></td></tr>
 <tr class="memdesc:a527196daa3c16a7c39734a10917fb412"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark block as valid - no need to validate it again.  <a href="classtaraxa_1_1_proposed_blocks.html#a527196daa3c16a7c39734a10917fb412">More...</a><br /></td></tr>
 <tr class="separator:a527196daa3c16a7c39734a10917fb412"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a83ac95e2efe8f0859b3fcf1d0deb450e"><td class="memItemLeft" align="right" valign="top">std::optional&lt; std::pair&lt; std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;, bool &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#a83ac95e2efe8f0859b3fcf1d0deb450e">getPbftProposedBlock</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;block_hash) const</td></tr>
-<tr class="memdesc:a83ac95e2efe8f0859b3fcf1d0deb450e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a proposed PBFT block based on specified period, round and block hash.  <a href="classtaraxa_1_1_proposed_blocks.html#a83ac95e2efe8f0859b3fcf1d0deb450e">More...</a><br /></td></tr>
+<tr class="memdesc:a83ac95e2efe8f0859b3fcf1d0deb450e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a proposed PBFT block based on specified period and block hash.  <a href="classtaraxa_1_1_proposed_blocks.html#a83ac95e2efe8f0859b3fcf1d0deb450e">More...</a><br /></td></tr>
 <tr class="separator:a83ac95e2efe8f0859b3fcf1d0deb450e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af3b1c579aa64b0c50a1c5421fb699b5c"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html#af3b1c579aa64b0c50a1c5421fb699b5c">isInProposedBlocks</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;block_hash) const</td></tr>
 <tr class="memdesc:af3b1c579aa64b0c50a1c5421fb699b5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check if specified block is already in proposed blocks.  <a href="classtaraxa_1_1_proposed_blocks.html#af3b1c579aa64b0c50a1c5421fb699b5c">More...</a><br /></td></tr>
@@ -209,7 +209,7 @@ Private Attributes</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Get a proposed PBFT block based on specified period, round and block hash. </p>
+<p>Get a proposed PBFT block based on specified period and block hash. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">period</td><td></td></tr>

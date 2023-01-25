@@ -172,6 +172,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ab1523d59c5c4bd4a2992406574b17083"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7c5b83f06af69153fbb86037ecda6a1f"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a7c5b83f06af69153fbb86037ecda6a1f">getPbftBlock</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) const</td></tr>
 <tr class="separator:a7c5b83f06af69153fbb86037ecda6a1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af29ec2c6f9a294ce2ee2b6f438d95cdf"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#af29ec2c6f9a294ce2ee2b6f438d95cdf">getPeriodCertVotes</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) const</td></tr>
+<tr class="separator:af29ec2c6f9a294ce2ee2b6f438d95cdf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a26daf94afb332ffa5f59094c6d68cbcb"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a26daf94afb332ffa5f59094c6d68cbcb">getPeriodBlockHash</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) const</td></tr>
 <tr class="separator:a26daf94afb332ffa5f59094c6d68cbcb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8b26ad95106e0603d9c10768140e0d14"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a8b26ad95106e0603d9c10768140e0d14">getPeriodTransactions</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) const</td></tr>
@@ -247,12 +249,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a71661181663d424c54f22674b2467e20"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7af1875f20241a41477937f1f2b2872e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a7af1875f20241a41477937f1f2b2872e">removeCertVotedBlockInRound</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:a7af1875f20241a41477937f1f2b2872e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3abac7baa21e35036831d2d496b6034a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a3abac7baa21e35036831d2d496b6034a">saveSoftVotedBlockDataInRound</a> (const <a class="el" href="classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html">TwoTPlusOneSoftVotedBlockData</a> &amp;soft_voted_block_data)</td></tr>
-<tr class="separator:a3abac7baa21e35036831d2d496b6034a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8fcf6eaa95c4b83ee265fc493727bed9"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html">TwoTPlusOneSoftVotedBlockData</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a8fcf6eaa95c4b83ee265fc493727bed9">getSoftVotedBlockDataInRound</a> () const</td></tr>
-<tr class="separator:a8fcf6eaa95c4b83ee265fc493727bed9"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a973c9d1fd7045a99186eaee18fc4037c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a973c9d1fd7045a99186eaee18fc4037c">removeSoftVotedBlockDataInRound</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
-<tr class="separator:a973c9d1fd7045a99186eaee18fc4037c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7b42f08e7be82a334247e92f782c00ff"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a7b42f08e7be82a334247e92f782c00ff">getPbftBlock</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;hash)</td></tr>
 <tr class="separator:a7b42f08e7be82a334247e92f782c00ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae173b51945d0eb5e71d9d8040de88553"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ae173b51945d0eb5e71d9d8040de88553">pbftBlockInDb</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;hash)</td></tr>
@@ -275,32 +271,22 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a4ae4857feead345b0f165e6b97653999"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0093c29ef1e270e9200a112453790b1c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a0093c29ef1e270e9200a112453790b1c">addStatusFieldToBatch</a> (<a class="el" href="namespacetaraxa.html#ac3d6a3ed52a696ba79164a87e643e901">StatusDbField</a> const &amp;field, uint64_t value, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:a0093c29ef1e270e9200a112453790b1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aaf9adc2354fb98dad87ec356f6bedd66"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#aaf9adc2354fb98dad87ec356f6bedd66">getVerifiedVotes</a> ()</td></tr>
-<tr class="separator:aaf9adc2354fb98dad87ec356f6bedd66"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a605c44579ef20233d54edb2b3b877276"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a605c44579ef20233d54edb2b3b877276">getVerifiedVote</a> (<a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> const &amp;vote_hash)</td></tr>
-<tr class="separator:a605c44579ef20233d54edb2b3b877276"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a948788a780b780072ce0bb7f58f6b9e6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a948788a780b780072ce0bb7f58f6b9e6">saveVerifiedVote</a> (std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; const &amp;vote)</td></tr>
-<tr class="separator:a948788a780b780072ce0bb7f58f6b9e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad88a9e344ff797e2012fd415feb78853"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ad88a9e344ff797e2012fd415feb78853">addVerifiedVoteToBatch</a> (std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; const &amp;vote, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
-<tr class="separator:ad88a9e344ff797e2012fd415feb78853"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a78e849ad7b803865efffac2e43e642be"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a78e849ad7b803865efffac2e43e642be">removeVerifiedVoteToBatch</a> (<a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> const &amp;vote_hash, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
-<tr class="separator:a78e849ad7b803865efffac2e43e642be"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acf581d75bafbe3afafc7a47d6030168b"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#acf581d75bafbe3afafc7a47d6030168b">getCertVotes</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
-<tr class="separator:acf581d75bafbe3afafc7a47d6030168b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1312b50eb81508f71fe1398e56a9275a"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a1312b50eb81508f71fe1398e56a9275a">getPreviousRoundNextVotes</a> ()</td></tr>
-<tr class="separator:a1312b50eb81508f71fe1398e56a9275a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1c8cb2ba703ad25973e763cfe52bb9f3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a1c8cb2ba703ad25973e763cfe52bb9f3">savePreviousRoundNextVotes</a> (std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; const &amp;next_votes)</td></tr>
-<tr class="separator:a1c8cb2ba703ad25973e763cfe52bb9f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae96c77411c262273b0e1763e481db01c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ae96c77411c262273b0e1763e481db01c">removePreviousRoundNextVotes</a> ()</td></tr>
-<tr class="separator:ae96c77411c262273b0e1763e481db01c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1af48648a3a24253c85a679ebc13c394"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a1af48648a3a24253c85a679ebc13c394">saveLastBlockCertVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;cert_vote)</td></tr>
-<tr class="separator:a1af48648a3a24253c85a679ebc13c394"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a5168e3bb5525e85c5ec1b9194ef49001"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a5168e3bb5525e85c5ec1b9194ef49001">addLastBlockCertVotesToBatch</a> (std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; const &amp;cert_votes, std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a>, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; const &amp;old_cert_votes, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
-<tr class="separator:a5168e3bb5525e85c5ec1b9194ef49001"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0f5deb58ed3536cd44eb95e205bd7a1c"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a0f5deb58ed3536cd44eb95e205bd7a1c">getLastBlockCertVotes</a> ()</td></tr>
-<tr class="separator:a0f5deb58ed3536cd44eb95e205bd7a1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a69732c30c6bb6fd497fd4819c3178ce7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a69732c30c6bb6fd497fd4819c3178ce7">removeLastBlockCertVotes</a> (const <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &amp;hash)</td></tr>
-<tr class="separator:a69732c30c6bb6fd497fd4819c3178ce7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a499ba709282b237f26a1fc6f42cfccf3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a499ba709282b237f26a1fc6f42cfccf3">saveOwnVerifiedVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote)</td></tr>
+<tr class="separator:a499ba709282b237f26a1fc6f42cfccf3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:abe46de0804c09732be06b24bb7c11861"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#abe46de0804c09732be06b24bb7c11861">getOwnVerifiedVotes</a> ()</td></tr>
+<tr class="separator:abe46de0804c09732be06b24bb7c11861"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1b0e62066ae9b1ce35137be13fe68d36"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a1b0e62066ae9b1ce35137be13fe68d36">clearOwnVerifiedVotes</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="separator:a1b0e62066ae9b1ce35137be13fe68d36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e32ed6c6cddede88d65c2baca5dbdf1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a6e32ed6c6cddede88d65c2baca5dbdf1">replaceTwoTPlusOneVotes</a> (<a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bf">TwoTPlusOneVotedBlockType</a> type, const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;votes)</td></tr>
+<tr class="separator:a6e32ed6c6cddede88d65c2baca5dbdf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a761a411ba5ec2d13363824cfd2306554"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a761a411ba5ec2d13363824cfd2306554">getAllTwoTPlusOneVotes</a> ()</td></tr>
+<tr class="separator:a761a411ba5ec2d13363824cfd2306554"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac314d53a46bbdf10ffd689a1b4e66ad1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ac314d53a46bbdf10ffd689a1b4e66ad1">replaceRewardVotes</a> (const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;votes, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
+<tr class="separator:ac314d53a46bbdf10ffd689a1b4e66ad1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6093510d651e2e7f5e579fff12a0c06e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a6093510d651e2e7f5e579fff12a0c06e">saveRewardVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote)</td></tr>
+<tr class="separator:a6093510d651e2e7f5e579fff12a0c06e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae86453729f94a0be017bd6e8a052d3e8"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ae86453729f94a0be017bd6e8a052d3e8">getRewardVotes</a> ()</td></tr>
+<tr class="separator:ae86453729f94a0be017bd6e8a052d3e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a850f427148761a7aa1227014db6b3653"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a850f427148761a7aa1227014db6b3653">addPbftBlockPeriodToBatch</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">taraxa::blk_hash_t</a> const &amp;pbft_block_hash, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:a850f427148761a7aa1227014db6b3653"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab21a00dbe414aac9337b36c115729a27"><td class="memItemLeft" align="right" valign="top">std::pair&lt; bool, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ab21a00dbe414aac9337b36c115729a27">getPeriodFromPbftHash</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">taraxa::blk_hash_t</a> const &amp;pbft_block_hash)</td></tr>
@@ -658,40 +644,6 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a5168e3bb5525e85c5ec1b9194ef49001"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a5168e3bb5525e85c5ec1b9194ef49001">&#9670;&nbsp;</a></span>addLastBlockCertVotesToBatch()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::DbStorage::addLastBlockCertVotesToBatch </td>
-          <td>(</td>
-          <td class="paramtype">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; const &amp;&#160;</td>
-          <td class="paramname"><em>cert_votes</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a>, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; const &amp;&#160;</td>
-          <td class="paramname"><em>old_cert_votes</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
-          <td class="paramname"><em>write_batch</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a850f427148761a7aa1227014db6b3653"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a850f427148761a7aa1227014db6b3653">&#9670;&nbsp;</a></span>addPbftBlockPeriodToBatch()</h2>
 
@@ -964,34 +916,6 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="ad88a9e344ff797e2012fd415feb78853"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad88a9e344ff797e2012fd415feb78853">&#9670;&nbsp;</a></span>addVerifiedVoteToBatch()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::DbStorage::addVerifiedVoteToBatch </td>
-          <td>(</td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; const &amp;&#160;</td>
-          <td class="paramname"><em>vote</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
-          <td class="paramname"><em>write_batch</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a665e81c5b3353666c4df63adb0b34df1"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a665e81c5b3353666c4df63adb0b34df1">&#9670;&nbsp;</a></span>asBytes()</h2>
 
@@ -1040,6 +964,24 @@ Private Attributes</h2></td></tr>
 <span class="mlabels"><span class="mlabel">static</span></span>  </td>
   </tr>
 </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1b0e62066ae9b1ce35137be13fe68d36"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1b0e62066ae9b1ce35137be13fe68d36">&#9670;&nbsp;</a></span>clearOwnVerifiedVotes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::DbStorage::clearOwnVerifiedVotes </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
+          <td class="paramname"><em>write_batch</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
 </div><div class="memdoc">
 
 </div>
@@ -1380,6 +1322,23 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
+<a id="a761a411ba5ec2d13363824cfd2306554"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a761a411ba5ec2d13363824cfd2306554">&#9670;&nbsp;</a></span>getAllTwoTPlusOneVotes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::DbStorage::getAllTwoTPlusOneVotes </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a952faaf7edbe9f4819802f2901984d58"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a952faaf7edbe9f4819802f2901984d58">&#9670;&nbsp;</a></span>getBlocksByLevel()</h2>
 
@@ -1409,24 +1368,6 @@ template&lt;typename K &gt; </div>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="acf581d75bafbe3afafc7a47d6030168b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acf581d75bafbe3afafc7a47d6030168b">&#9670;&nbsp;</a></span>getCertVotes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::DbStorage::getCertVotes </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
-          <td class="paramname"><em>period</em></td><td>)</td>
-          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1627,23 +1568,6 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
-<a id="a0f5deb58ed3536cd44eb95e205bd7a1c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0f5deb58ed3536cd44eb95e205bd7a1c">&#9670;&nbsp;</a></span>getLastBlockCertVotes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::DbStorage::getLastBlockCertVotes </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a74ceb5b21b5007ad1ec3d68c57a6cb52"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a74ceb5b21b5007ad1ec3d68c57a6cb52">&#9670;&nbsp;</a></span>getLastSortitionParams()</h2>
 
@@ -1779,6 +1703,23 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
+<a id="abe46de0804c09732be06b24bb7c11861"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#abe46de0804c09732be06b24bb7c11861">&#9670;&nbsp;</a></span>getOwnVerifiedVotes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::DbStorage::getOwnVerifiedVotes </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="af02b3d7be68505a2ffc5527df0a02a85"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#af02b3d7be68505a2ffc5527df0a02a85">&#9670;&nbsp;</a></span>getParamsChangeForPeriod()</h2>
 
@@ -1905,6 +1846,24 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
+<a id="af29ec2c6f9a294ce2ee2b6f438d95cdf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af29ec2c6f9a294ce2ee2b6f438d95cdf">&#9670;&nbsp;</a></span>getPeriodCertVotes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::DbStorage::getPeriodCertVotes </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
+          <td class="paramname"><em>period</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ab1523d59c5c4bd4a2992406574b17083"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab1523d59c5c4bd4a2992406574b17083">&#9670;&nbsp;</a></span>getPeriodDataRaw()</h2>
 
@@ -1959,23 +1918,6 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
-<a id="a1312b50eb81508f71fe1398e56a9275a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1312b50eb81508f71fe1398e56a9275a">&#9670;&nbsp;</a></span>getPreviousRoundNextVotes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::DbStorage::getPreviousRoundNextVotes </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a14db1e88a6b4a4dd71f6a2c15d8e46c7"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a14db1e88a6b4a4dd71f6a2c15d8e46c7">&#9670;&nbsp;</a></span>getProposalPeriodForDagLevel()</h2>
 
@@ -2011,17 +1953,17 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
-<a id="a8fcf6eaa95c4b83ee265fc493727bed9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8fcf6eaa95c4b83ee265fc493727bed9">&#9670;&nbsp;</a></span>getSoftVotedBlockDataInRound()</h2>
+<a id="ae86453729f94a0be017bd6e8a052d3e8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae86453729f94a0be017bd6e8a052d3e8">&#9670;&nbsp;</a></span>getRewardVotes()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::optional&lt; <a class="el" href="classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html">TwoTPlusOneSoftVotedBlockData</a> &gt; taraxa::DbStorage::getSoftVotedBlockDataInRound </td>
+          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::DbStorage::getRewardVotes </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
-          <td> const</td>
+          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -2076,41 +2018,6 @@ template&lt;typename K &gt; </div>
           <td class="paramtype"><a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> const &amp;&#160;</td>
           <td class="paramname"><em>hash</em></td><td>)</td>
           <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a605c44579ef20233d54edb2b3b877276"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a605c44579ef20233d54edb2b3b877276">&#9670;&nbsp;</a></span>getVerifiedVote()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; taraxa::DbStorage::getVerifiedVote </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> const &amp;&#160;</td>
-          <td class="paramname"><em>vote_hash</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aaf9adc2354fb98dad87ec356f6bedd66"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aaf9adc2354fb98dad87ec356f6bedd66">&#9670;&nbsp;</a></span>getVerifiedVotes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::DbStorage::getVerifiedVotes </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -2670,41 +2577,6 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
-<a id="a69732c30c6bb6fd497fd4819c3178ce7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a69732c30c6bb6fd497fd4819c3178ce7">&#9670;&nbsp;</a></span>removeLastBlockCertVotes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::DbStorage::removeLastBlockCertVotes </td>
-          <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>hash</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ae96c77411c262273b0e1763e481db01c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae96c77411c262273b0e1763e481db01c">&#9670;&nbsp;</a></span>removePreviousRoundNextVotes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::DbStorage::removePreviousRoundNextVotes </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="a17e5a0c8f762f8fc9d1220c67d58fa03"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a17e5a0c8f762f8fc9d1220c67d58fa03">&#9670;&nbsp;</a></span>removeProposedPbftBlock()</h2>
 
@@ -2727,24 +2599,6 @@ template&lt;typename K &gt; </div>
           <td></td>
           <td>)</td>
           <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a973c9d1fd7045a99186eaee18fc4037c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a973c9d1fd7045a99186eaee18fc4037c">&#9670;&nbsp;</a></span>removeSoftVotedBlockDataInRound()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::DbStorage::removeSoftVotedBlockDataInRound </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
-          <td class="paramname"><em>write_batch</em></td><td>)</td>
-          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -2779,23 +2633,51 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
-<a id="a78e849ad7b803865efffac2e43e642be"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a78e849ad7b803865efffac2e43e642be">&#9670;&nbsp;</a></span>removeVerifiedVoteToBatch()</h2>
+<a id="ac314d53a46bbdf10ffd689a1b4e66ad1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac314d53a46bbdf10ffd689a1b4e66ad1">&#9670;&nbsp;</a></span>replaceRewardVotes()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void taraxa::DbStorage::removeVerifiedVoteToBatch </td>
+          <td class="memname">void taraxa::DbStorage::replaceRewardVotes </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> const &amp;&#160;</td>
-          <td class="paramname"><em>vote_hash</em>, </td>
+          <td class="paramtype">const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&#160;</td>
+          <td class="paramname"><em>votes</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6e32ed6c6cddede88d65c2baca5dbdf1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6e32ed6c6cddede88d65c2baca5dbdf1">&#9670;&nbsp;</a></span>replaceTwoTPlusOneVotes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::DbStorage::replaceTwoTPlusOneVotes </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bf">TwoTPlusOneVotedBlockType</a>&#160;</td>
+          <td class="paramname"><em>type</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&#160;</td>
+          <td class="paramname"><em>votes</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -2863,17 +2745,17 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
-<a id="a1af48648a3a24253c85a679ebc13c394"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1af48648a3a24253c85a679ebc13c394">&#9670;&nbsp;</a></span>saveLastBlockCertVote()</h2>
+<a id="a499ba709282b237f26a1fc6f42cfccf3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a499ba709282b237f26a1fc6f42cfccf3">&#9670;&nbsp;</a></span>saveOwnVerifiedVote()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void taraxa::DbStorage::saveLastBlockCertVote </td>
+          <td class="memname">void taraxa::DbStorage::saveOwnVerifiedVote </td>
           <td>(</td>
           <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>cert_vote</em></td><td>)</td>
+          <td class="paramname"><em>vote</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -2993,24 +2875,6 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
-<a id="a1c8cb2ba703ad25973e763cfe52bb9f3"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1c8cb2ba703ad25973e763cfe52bb9f3">&#9670;&nbsp;</a></span>savePreviousRoundNextVotes()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::DbStorage::savePreviousRoundNextVotes </td>
-          <td>(</td>
-          <td class="paramtype">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; const &amp;&#160;</td>
-          <td class="paramname"><em>next_votes</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="ab47b8c737823242ffe4a374cac60b690"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab47b8c737823242ffe4a374cac60b690">&#9670;&nbsp;</a></span>saveProposalPeriodDagLevelsMap()</h2>
 
@@ -3057,17 +2921,17 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
-<a id="a3abac7baa21e35036831d2d496b6034a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3abac7baa21e35036831d2d496b6034a">&#9670;&nbsp;</a></span>saveSoftVotedBlockDataInRound()</h2>
+<a id="a6093510d651e2e7f5e579fff12a0c06e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6093510d651e2e7f5e579fff12a0c06e">&#9670;&nbsp;</a></span>saveRewardVote()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void taraxa::DbStorage::saveSoftVotedBlockDataInRound </td>
+          <td class="memname">void taraxa::DbStorage::saveRewardVote </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html">TwoTPlusOneSoftVotedBlockData</a> &amp;&#160;</td>
-          <td class="paramname"><em>soft_voted_block_data</em></td><td>)</td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>vote</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -3183,24 +3047,6 @@ template&lt;typename K &gt; </div>
           <td></td>
           <td>)</td>
           <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a948788a780b780072ce0bb7f58f6b9e6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a948788a780b780072ce0bb7f58f6b9e6">&#9670;&nbsp;</a></span>saveVerifiedVote()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::DbStorage::saveVerifiedVote </td>
-          <td>(</td>
-          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; const &amp;&#160;</td>
-          <td class="paramname"><em>vote</em></td><td>)</td>
-          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">

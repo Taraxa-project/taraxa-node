@@ -169,8 +169,6 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a59f8e5ff82797b03cc344864d4228b09"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a40493a41211aa723c639a5f836c9a990"><td class="memItemLeft" align="right" valign="top">auto const  &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a40493a41211aa723c639a5f836c9a990">getVoteManager</a> () const</td></tr>
 <tr class="separator:a40493a41211aa723c639a5f836c9a990"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0157a6094b12ab43d7f6524ac8551b0c"><td class="memItemLeft" align="right" valign="top">auto const  &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a0157a6094b12ab43d7f6524ac8551b0c">getNextVotesManager</a> () const</td></tr>
-<tr class="separator:a0157a6094b12ab43d7f6524ac8551b0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1343c10ffe087d19479a1271c2c6987e"><td class="memItemLeft" align="right" valign="top">auto const  &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a1343c10ffe087d19479a1271c2c6987e">getPbftChain</a> () const</td></tr>
 <tr class="separator:a1343c10ffe087d19479a1271c2c6987e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a449d898f819187211e5bbd7b0109276d"><td class="memItemLeft" align="right" valign="top">auto const  &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a449d898f819187211e5bbd7b0109276d">getFinalChain</a> () const</td></tr>
@@ -245,8 +243,6 @@ Private Attributes</h2></td></tr>
 <tr class="separator:ace4a885b3a59850d5133fb23eca3bd6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9cbf438fffafec396f3afe870892598e"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote_manager">VoteManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a9cbf438fffafec396f3afe870892598e">vote_mgr_</a></td></tr>
 <tr class="separator:a9cbf438fffafec396f3afe870892598e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abbfd2a5cf53df38d4414544aaee632df"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_next_votes_manager">NextVotesManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#abbfd2a5cf53df38d4414544aaee632df">next_votes_mgr_</a></td></tr>
-<tr class="separator:abbfd2a5cf53df38d4414544aaee632df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a88212d5ce635f0355c22ca854648b935"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">PbftManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a88212d5ce635f0355c22ca854648b935">pbft_mgr_</a></td></tr>
 <tr class="separator:a88212d5ce635f0355c22ca854648b935"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c43b8019e96e34ac52f774de78cdd9d"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_full_node.html#a9c43b8019e96e34ac52f774de78cdd9d">pbft_chain_</a></td></tr>
@@ -689,31 +685,6 @@ Private Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">auto const&amp; taraxa::FullNode::getNetwork </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a0157a6094b12ab43d7f6524ac8551b0c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0157a6094b12ab43d7f6524ac8551b0c">&#9670;&nbsp;</a></span>getNextVotesManager()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">auto const&amp; taraxa::FullNode::getNextVotesManager </td>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
@@ -1450,28 +1421,6 @@ Private Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1_network.html">Network</a>&gt; taraxa::FullNode::network_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="abbfd2a5cf53df38d4414544aaee632df"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abbfd2a5cf53df38d4414544aaee632df">&#9670;&nbsp;</a></span>next_votes_mgr_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::shared_ptr&lt;<a class="el" href="group___vote.html#classtaraxa_1_1_next_votes_manager">NextVotesManager</a>&gt; taraxa::FullNode::next_votes_mgr_</td>
         </tr>
       </table>
   </td>

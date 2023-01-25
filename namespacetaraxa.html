@@ -188,9 +188,6 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html">ProposedBlocks</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">class <a class="el" href="classtaraxa_1_1_proposed_blocks.html" title="class ProposedBlocks holds proposed pbft blocks together with propose votes hashes per period &amp; round">ProposedBlocks</a> holds proposed pbft blocks together with propose votes hashes per period &amp; round  <a href="classtaraxa_1_1_proposed_blocks.html#details">More...</a><br /></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html">TwoTPlusOneSoftVotedBlockData</a></td></tr>
-<tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html" title="TwoTPlusOneSoftVotedBlockData holds data related to observed 2t+1 soft voted block.">TwoTPlusOneSoftVotedBlockData</a> holds data related to observed 2t+1 soft voted block.  <a href="classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html#details">More...</a><br /></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:classtaraxa_1_1_gas_pricer"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#classtaraxa_1_1_gas_pricer">GasPricer</a></td></tr>
 <tr class="memdesc:classtaraxa_1_1_gas_pricer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Basic gas price calculator. We calculate the gas price based on the lowest price in last number_of_blocks blocks. Then all of those values are sorted and current price is selected based on percentile.  <a href="group___transaction.html#classtaraxa_1_1_gas_pricer">More...</a><br /></td></tr>
 <tr class="separator:classtaraxa_1_1_gas_pricer"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -200,9 +197,8 @@ Classes</h2></td></tr>
 <tr class="memitem:classtaraxa_1_1_transaction_queue"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_queue">TransactionQueue</a></td></tr>
 <tr class="memdesc:classtaraxa_1_1_transaction_queue"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_queue" title="TransactionQueue keeps transactions in memory sorted by priority to be included in a proposed DAG blo...">TransactionQueue</a> keeps transactions in memory sorted by priority to be included in a proposed DAG block or which might be required by an incoming DAG block.  <a href="group___transaction.html#classtaraxa_1_1_transaction_queue">More...</a><br /></td></tr>
 <tr class="separator:classtaraxa_1_1_transaction_queue"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:classtaraxa_1_1_next_votes_manager"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#classtaraxa_1_1_next_votes_manager">NextVotesManager</a></td></tr>
-<tr class="memdesc:classtaraxa_1_1_next_votes_manager"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___vote.html#classtaraxa_1_1_next_votes_manager" title="NextVotesManager class manage next voting type votes for previous PBFT round.">NextVotesManager</a> class manage next voting type votes for previous PBFT round.  <a href="group___vote.html#classtaraxa_1_1_next_votes_manager">More...</a><br /></td></tr>
-<tr class="separator:classtaraxa_1_1_next_votes_manager"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:structtaraxa_1_1_verified_votes"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#structtaraxa_1_1_verified_votes">VerifiedVotes</a></td></tr>
+<tr class="separator:structtaraxa_1_1_verified_votes"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:classtaraxa_1_1_vote_manager"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#classtaraxa_1_1_vote_manager">VoteManager</a></td></tr>
 <tr class="memdesc:classtaraxa_1_1_vote_manager"><td class="mdescLeft">&#160;</td><td class="mdescRight"><a class="el" href="group___vote.html#classtaraxa_1_1_vote_manager" title="VoteManager class manage votes for PBFT consensus.">VoteManager</a> class manage votes for PBFT consensus.  <a href="group___vote.html#classtaraxa_1_1_vote_manager">More...</a><br /></td></tr>
 <tr class="separator:classtaraxa_1_1_vote_manager"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -354,6 +350,12 @@ Enumerations</h2></td></tr>
  }</td></tr>
 <tr class="memdesc:gae7551c287ae57b46d56d27de67df61e7"><td class="mdescLeft">&#160;</td><td class="mdescRight">TransactionStatus enum class defines current transaction status. All states except Forced are result of verification. Forced status is used when trx is part of synced dag block which is about to be added to DAG.  <a href="group___transaction.html#gae7551c287ae57b46d56d27de67df61e7">More...</a><br /></td></tr>
 <tr class="separator:gae7551c287ae57b46d56d27de67df61e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afc780cd89307f2097bb4281488e325bf"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bf">TwoTPlusOneVotedBlockType</a> { <a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bfab4f6c1353c76c2aecdfcd3fcc3e8241d">SoftVotedBlock</a>
+, <a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bfa5c7ca0f667f2a592cd73c6fc8a0c874e">CertVotedBlock</a>
+, <a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bfa32c5b142b23830e9dd140911a2612f48">NextVotedBlock</a>
+, <a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bfa023cc79bc259f282c3b059929ea64fbe">NextVotedNullBlock</a>
+ }</td></tr>
+<tr class="separator:afc780cd89307f2097bb4281488e325bf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac3d6a3ed52a696ba79164a87e643e901"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#ac3d6a3ed52a696ba79164a87e643e901">StatusDbField</a> : uint8_t { <br />
 &#160;&#160;<a class="el" href="namespacetaraxa.html#ac3d6a3ed52a696ba79164a87e643e901aa2a2c44ef822e8f4d4fa2fc8b46d4ea4">ExecutedBlkCount</a> = 0
 , <a class="el" href="namespacetaraxa.html#ac3d6a3ed52a696ba79164a87e643e901a8a20ac8bbd519c242e59b667dbd99d94">ExecutedTrxCount</a>
@@ -567,10 +569,6 @@ Variables</h2></td></tr>
 <tr class="separator:a568055ae86bee5e4c6bff09eff8c5336"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aabafad8a9eda2b4f3a4dec9da77ace14"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#aabafad8a9eda2b4f3a4dec9da77ace14">kMaxSteps</a> {13}</td></tr>
 <tr class="separator:aabafad8a9eda2b4f3a4dec9da77ace14"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad6812ddc0d9686f50218e26b6d0cc8a4"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#ad6812ddc0d9686f50218e26b6d0cc8a4">kExtendedPartionSteps</a> = 1000</td></tr>
-<tr class="separator:ad6812ddc0d9686f50218e26b6d0cc8a4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa34ec6dca30450f8966fa61256052a2a"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#aa34ec6dca30450f8966fa61256052a2a">kFirstFinishStep</a> = 4</td></tr>
-<tr class="separator:aa34ec6dca30450f8966fa61256052a2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68e682168971290c106a9d9792a973cf"><td class="memItemLeft" align="right" valign="top">static constexpr uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a68e682168971290c106a9d9792a973cf">PBFT_BLOCK_POS_IN_PERIOD_DATA</a> = 0</td></tr>
 <tr class="separator:a68e682168971290c106a9d9792a973cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae2f5fd388cce3480b1f74c81569cc50d"><td class="memItemLeft" align="right" valign="top">static constexpr uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#ae2f5fd388cce3480b1f74c81569cc50d">CERT_VOTES_POS_IN_PERIOD_DATA</a> = 1</td></tr>
@@ -724,6 +722,35 @@ ip</td>
 <a id="a13ec6be411c3c352858744678e0690da"></a>uint16_t</td>
 <td class="fieldname">
 port</td>
+<td class="fielddoc">
+</td></tr>
+</table>
+
+</div>
+</div>
+<a name="structtaraxa_1_1_verified_votes" id="structtaraxa_1_1_verified_votes"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#structtaraxa_1_1_verified_votes">&#9670;&nbsp;</a></span>taraxa::VerifiedVotes</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct taraxa::VerifiedVotes</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="textblock"></div><table class="fieldtable">
+<tr><th colspan="3">Class Members</th></tr>
+<tr><td class="fieldtype">
+<a id="a3747de5ec38a001ef934c2764b539ef3"></a>map&lt; <a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a>, <a class="el" href="namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes">StepVotes</a> &gt;</td>
+<td class="fieldname">
+step_votes</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a id="adf04d5c498c76dd7cd8ec1e713dfb391"></a>unordered_map&lt; <a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bf">TwoTPlusOneVotedBlockType</a>, pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, <a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a> &gt; &gt;</td>
+<td class="fieldname">
+two_t_plus_one_voted_blocks_</td>
 <td class="fielddoc">
 </td></tr>
 </table>
@@ -1328,6 +1355,34 @@ lambda_bound</td>
 <tr><td class="fieldname"><a id="ac3d6a3ed52a696ba79164a87e643e901a512d88ce597e82f8cfc5288bd9b1a62e"></a>DagEdgeCount&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="ac3d6a3ed52a696ba79164a87e643e901a48540f3bf590a38aaaf2c69000a9ba2b"></a>DbMajorVersion&#160;</td><td class="fielddoc"></td></tr>
 <tr><td class="fieldname"><a id="ac3d6a3ed52a696ba79164a87e643e901a1a52fe6b564c8ef4d0d4df7a31ed41ec"></a>DbMinorVersion&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
+<a id="afc780cd89307f2097bb4281488e325bf"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afc780cd89307f2097bb4281488e325bf">&#9670;&nbsp;</a></span>TwoTPlusOneVotedBlockType</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bf">taraxa::TwoTPlusOneVotedBlockType</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="afc780cd89307f2097bb4281488e325bfab4f6c1353c76c2aecdfcd3fcc3e8241d"></a>SoftVotedBlock&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="afc780cd89307f2097bb4281488e325bfa5c7ca0f667f2a592cd73c6fc8a0c874e"></a>CertVotedBlock&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="afc780cd89307f2097bb4281488e325bfa32c5b142b23830e9dd140911a2612f48"></a>NextVotedBlock&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="afc780cd89307f2097bb4281488e325bfa023cc79bc259f282c3b059929ea64fbe"></a>NextVotedNullBlock&#160;</td><td class="fielddoc"></td></tr>
 </table>
 
 </div>
@@ -3118,50 +3173,6 @@ template&lt;typename T &gt; </div>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ad6812ddc0d9686f50218e26b6d0cc8a4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad6812ddc0d9686f50218e26b6d0cc8a4">&#9670;&nbsp;</a></span>kExtendedPartionSteps</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr <a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a> taraxa::kExtendedPartionSteps = 1000</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="aa34ec6dca30450f8966fa61256052a2a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa34ec6dca30450f8966fa61256052a2a">&#9670;&nbsp;</a></span>kFirstFinishStep</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">constexpr <a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a> taraxa::kFirstFinishStep = 4</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">constexpr</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">

@@ -216,7 +216,6 @@ var hierarchy =
     [ "taraxa::final_chain::NewBlock", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_new_block", [
       [ "taraxa::final_chain::FinalizationResult", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result", null ]
     ] ],
-    [ "taraxa::NextVotesManager", "group___vote.html#classtaraxa_1_1_next_votes_manager", null ],
     [ "dev::p2p::Node", "classdev_1_1p2p_1_1_node.html", [
       [ "dev::p2p::Peer", "classdev_1_1p2p_1_1_peer.html", null ]
     ] ],
@@ -340,6 +339,7 @@ var hierarchy =
     [ "dev::StaticLog2< N >", "structdev_1_1_static_log2.html", null ],
     [ "dev::StaticLog2< 1 >", "structdev_1_1_static_log2_3_011_01_4.html", null ],
     [ "taraxa::StatusTable< K, V >", "classtaraxa_1_1_status_table.html", null ],
+    [ "taraxa::VerifiedVotes::StepVotes", "namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes", null ],
     [ "dev::StreamOut< T >", "structdev_1_1_stream_out.html", null ],
     [ "dev::StreamOut< uint8_t >", "structdev_1_1_stream_out_3_01uint8__t_01_4.html", null ],
     [ "graphql::taraxa::Subscription", "classgraphql_1_1taraxa_1_1_subscription.html", null ],
@@ -367,7 +367,6 @@ var hierarchy =
     [ "taraxa::final_chain::TransactionReceipt", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt", null ],
     [ "taraxa::net::rpc::eth::TransactionSkeleton", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_skeleton", null ],
     [ "taraxa::state_api::TrieProof", "group___final_chain.html#structtaraxa_1_1state__api_1_1_trie_proof", null ],
-    [ "taraxa::TwoTPlusOneSoftVotedBlockData", "classtaraxa_1_1_two_t_plus_one_soft_voted_block_data.html", null ],
     [ "dev::p2p::UDPDatagram", "classdev_1_1p2p_1_1_u_d_p_datagram.html", [
       [ "dev::p2p::RLPXDatagramFace", "structdev_1_1p2p_1_1_r_l_p_x_datagram_face.html", [
         [ "dev::p2p::DiscoveryDatagram", "structdev_1_1p2p_1_1_discovery_datagram.html", [
@@ -399,6 +398,7 @@ var hierarchy =
     [ "taraxa::VdfParams", "namespacetaraxa.html#structtaraxa_1_1_vdf_params", null ],
     [ "dev::vector_ref< _T >", "classdev_1_1vector__ref.html", null ],
     [ "dev::vector_ref<::byte const >", "classdev_1_1vector__ref.html", null ],
+    [ "taraxa::VerifiedVotes", "namespacetaraxa.html#structtaraxa_1_1_verified_votes", null ],
     [ "taraxa::vertex_label_writer< Property1 >", "group___d_a_g.html#classtaraxa_1_1vertex__label__writer", null ],
     [ "taraxa::Vote", "group___vote.html#classtaraxa_1_1_vote", null ],
     [ "taraxa::VoteManager", "group___vote.html#classtaraxa_1_1_vote_manager", null ],

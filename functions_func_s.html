@@ -93,8 +93,8 @@ $(document).ready(function(){initNavTree('functions_func_s.html',''); initResiza
 <li>saveDagBlock()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a78da78cc5c8beadb10b5884f848403ee">taraxa::DbStorage</a>
 </li>
-<li>saveLastBlockCertVote()
-: <a class="el" href="classtaraxa_1_1_db_storage.html#a1af48648a3a24253c85a679ebc13c394">taraxa::DbStorage</a>
+<li>saveOwnVerifiedVote()
+: <a class="el" href="classtaraxa_1_1_db_storage.html#a499ba709282b237f26a1fc6f42cfccf3">taraxa::DbStorage</a>
 </li>
 <li>savePbftHead()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#af69f3e7594f36c9d4ea2884bec31fa0f">taraxa::DbStorage</a>
@@ -108,17 +108,14 @@ $(document).ready(function(){initNavTree('functions_func_s.html',''); initResiza
 <li>savePeriodData()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a55029b172261c0dc91da128fef909e06">taraxa::DbStorage</a>
 </li>
-<li>savePreviousRoundNextVotes()
-: <a class="el" href="classtaraxa_1_1_db_storage.html#a1c8cb2ba703ad25973e763cfe52bb9f3">taraxa::DbStorage</a>
-</li>
 <li>saveProposalPeriodDagLevelsMap()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#ab47b8c737823242ffe4a374cac60b690">taraxa::DbStorage</a>
 </li>
 <li>saveProposedPbftBlock()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a173c7e7fcb9a734581ec840af5768aaf">taraxa::DbStorage</a>
 </li>
-<li>saveSoftVotedBlockDataInRound()
-: <a class="el" href="classtaraxa_1_1_db_storage.html#a3abac7baa21e35036831d2d496b6034a">taraxa::DbStorage</a>
+<li>saveRewardVote()
+: <a class="el" href="classtaraxa_1_1_db_storage.html#a6093510d651e2e7f5e579fff12a0c06e">taraxa::DbStorage</a>
 </li>
 <li>saveSortitionParamsChange()
 : <a class="el" href="classtaraxa_1_1_db_storage.html#a1f3c7fd6e259e84b867ac81ca4d81035">taraxa::DbStorage</a>
@@ -134,9 +131,6 @@ $(document).ready(function(){initNavTree('functions_func_s.html',''); initResiza
 </li>
 <li>saveTransactionsFromDagBlock()
 : <a class="el" href="group___transaction.html#ae1e584cde38667d050293b51af85553d">taraxa::TransactionManager</a>
-</li>
-<li>saveVerifiedVote()
-: <a class="el" href="classtaraxa_1_1_db_storage.html#a948788a780b780072ce0bb7f58f6b9e6">taraxa::DbStorage</a>
 </li>
 <li>schedulePing()
 : <a class="el" href="classdev_1_1p2p_1_1_node_table.html#a9cefcb7a5195fba7d3c9c13a0b501204">dev::p2p::NodeTable</a>
@@ -166,7 +160,7 @@ $(document).ready(function(){initNavTree('functions_func_s.html',''); initResiza
 : <a class="el" href="classdev_1_1secure__vector.html#ad8b6acd1c81fb498d66c6bde6c59d32a">dev::secure_vector&lt; T &gt;</a>
 </li>
 <li>SecureFixedHash()
-: <a class="el" href="classdev_1_1_secure_fixed_hash.html#a4484c361687fa91f1b1a449cf00674a8">dev::SecureFixedHash&lt; T &gt;</a>
+: <a class="el" href="classdev_1_1_secure_fixed_hash.html#af24d015892b08ac7354e7496f8de30ed">dev::SecureFixedHash&lt; T &gt;</a>
 </li>
 <li>selectDagBlockTips()
 : <a class="el" href="group___d_a_g.html#a0df4fbcbf64964f0ede7a8bbea223cc2">taraxa::DagBlockProposer</a>
@@ -211,9 +205,6 @@ $(document).ready(function(){initNavTree('functions_func_s.html',''); initResiza
 <li>sendPbftVotesBundle()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a8e52d015311e67eba1b2e864a6262104">taraxa::network::tarcap::ExtVotesPacketHandler</a>
 </li>
-<li>sendRewardVotes()
-: <a class="el" href="group___vote.html#aa7b030390e0402e2e7f498e2dbb4b8a9">taraxa::VoteManager</a>
-</li>
 <li>sendStatus()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#a6aba7f16e36428ad0d91fbe6ee7eb455">taraxa::network::tarcap::StatusPacketHandler</a>
 </li>
@@ -249,6 +240,9 @@ $(document).ready(function(){initNavTree('functions_func_s.html',''); initResiza
 </li>
 <li>setCertifyState_()
 : <a class="el" href="group___p_b_f_t.html#a41c26a8791a8fc12b0c7190c3c960c0e">taraxa::PbftManager</a>
+</li>
+<li>setCurrentPbftPeriodAndRound()
+: <a class="el" href="group___vote.html#aad3b0005eb4bf67641018be3db3e1962">taraxa::VoteManager</a>
 </li>
 <li>setDagBlockBeingProcessed()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_blocking_mask.html#a18450cd38a8da01a23d84a49f0aacaef">taraxa::network::tarcap::PacketsBlockingMask</a>
@@ -420,7 +414,7 @@ $(document).ready(function(){initNavTree('functions_func_s.html',''); initResiza
 : <a class="el" href="group___p_b_f_t.html#a5734de8f8252ba4603d5250393f8bdd8">taraxa::PbftManager</a>
 </li>
 <li>StatusPacketHandler()
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#a012dc95c3c363150635b3ffb84f1704a">taraxa::network::tarcap::StatusPacketHandler</a>
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#af7e0fe1aaf3e088b7e886bb14ba074ad">taraxa::network::tarcap::StatusPacketHandler</a>
 </li>
 <li>StatusTable()
 : <a class="el" href="classtaraxa_1_1_status_table.html#a5cdbbcb65bdb2feb29e8ad5fa0bfcdf2">taraxa::StatusTable&lt; K, V &gt;</a>
