@@ -150,18 +150,27 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   wait({30s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr2->getDagBlock(block_hash), nullptr) });
 }
 
-// TODO[2033]: enable this test
-TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
+TEST_F(NetworkTest, update_peer_chainsize) {
   auto node_cfgs = make_node_cfgs(2, 1, 5);
   auto nodes = launch_nodes(node_cfgs);
-
-  const auto& node1 = nodes[0];
 
   nodes[0]->getPbftManager()->stop();
   nodes[1]->getPbftManager()->stop();
 
+  wait_connect(nodes);
+
   auto nw1 = nodes[0]->getNetwork();
   auto nw2 = nodes[1]->getNetwork();
+
+  const auto& node1 = nodes[0];
+  const auto& node1_pbft_chain = node1->getPbftChain();
+  const PbftPeriod expected_chain_size = 10;
+
+  // Artificially increase node1 chain_size, which is then sent through VotePacket
+  for (auto i = node1_pbft_chain->getPbftChainSize(); i < expected_chain_size; i++) {
+    node1_pbft_chain->updatePbftChain(kNullBlockHash, kNullBlockHash);
+  }
+  EXPECT_EQ(node1_pbft_chain->getPbftChainSize(), expected_chain_size);
 
   std::vector<vote_hash_t> reward_votes{};
   auto pbft_block = std::make_shared<PbftBlock>(blk_hash_t(1), kNullBlockHash, kNullBlockHash, kNullBlockHash,
@@ -171,13 +180,14 @@ TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
                                                     pbft_block->getPeriod(),
                                                     node1->getPbftManager()->getPbftRound() + 1, value_proposal_state);
 
+
+  auto node1_id = nw1->getNodeId();
   auto node2_id = nw2->getNodeId();
-  ASSERT_NE(node1->getPbftChain()->getPbftChainSize(), nw1->getPeer(node2_id)->pbft_chain_size_);
 
-  nw2->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVote(nw1->getPeer(node2_id), vote, pbft_block);
-
-  EXPECT_HAPPENS({10s, 200ms}, [&](auto& ctx) {
-    WAIT_EXPECT_EQ(ctx, nw1->getPeer(node2_id)->pbft_chain_size_, node1->getPbftChain()->getPbftChainSize())
+  EXPECT_NE(nw2->getPeer(node1_id)->pbft_chain_size_, expected_chain_size);
+  nw1->getSpecificHandler<network::tarcap::VotePacketHandler>()->sendPbftVote(nw1->getPeer(node2_id), vote, pbft_block);
+  EXPECT_HAPPENS({5s, 100ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, nw2->getPeer(node1_id)->pbft_chain_size_, expected_chain_size)
   });
 }
 
