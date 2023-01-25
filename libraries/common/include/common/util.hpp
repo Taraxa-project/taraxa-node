@@ -95,12 +95,10 @@ std::string getFormattedVersion(std::initializer_list<uint32_t> list);
 template <typename K, typename V>
 class StatusTable {
  public:
-  using uLock = std::unique_lock<std::shared_mutex>;
-  using sharedLock = std::shared_lock<std::shared_mutex>;
   using UnsafeStatusTable = std::unordered_map<K, V>;
   StatusTable(size_t capacity = 10000) : capacity_(capacity) {}
   std::pair<V, bool> get(K const &hash) {
-    uLock lock(shared_mutex_);
+    std::scoped_lock lock(shared_mutex_);
     auto iter = status_.find(hash);
     if (iter != status_.end()) {
       auto kv = *(iter->second);
@@ -115,11 +113,11 @@ class StatusTable {
     }
   }
   unsigned long size() const {
-    sharedLock lock(shared_mutex_);
+    std::shared_lock lock(shared_mutex_);
     return status_.size();
   }
   bool insert(K const &hash, V status) {
-    uLock lock(shared_mutex_);
+    std::scoped_lock lock(shared_mutex_);
     bool ret = false;
     if (status_.count(hash)) {
       ret = false;
@@ -135,7 +133,7 @@ class StatusTable {
     return ret;
   }
   void update(K const &hash, V status) {
-    uLock lock(shared_mutex_);
+    std::scoped_lock lock(shared_mutex_);
     auto iter = status_.find(hash);
     if (iter != status_.end()) {
       lru_.erase(iter->second);
@@ -147,7 +145,7 @@ class StatusTable {
 
   bool update(K const &hash, V status, V expected_status) {
     bool ret = false;
-    uLock lock(shared_mutex_);
+    std::scoped_lock lock(shared_mutex_);
     auto iter = status_.find(hash);
     if (iter != status_.end() && iter->second == expected_status) {
       lru_.erase(iter->second);
@@ -160,13 +158,13 @@ class StatusTable {
   }
   // clear everything
   void clear() {
-    uLock lock(shared_mutex_);
+    std::scoped_lock lock(shared_mutex_);
     status_.clear();
     lru_.clear();
   }
   bool erase(K const &hash) {
     bool ret = false;
-    uLock lock(shared_mutex_);
+    std::scoped_lock lock(shared_mutex_);
     auto iter = status_.find(hash);
     if (iter != status_.end()) {
       lru_.erase(iter->second);
@@ -177,7 +175,7 @@ class StatusTable {
   }
 
   UnsafeStatusTable getThreadUnsafeCopy() const {
-    sharedLock lock(shared_mutex_);
+    std::shared_lock lock(shared_mutex_);
     return status_;
   }
 

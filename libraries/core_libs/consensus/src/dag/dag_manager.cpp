@@ -67,22 +67,22 @@ std::shared_ptr<DagManager> DagManager::getShared() {
 }
 
 std::pair<uint64_t, uint64_t> DagManager::getNumVerticesInDag() const {
-  SharedLock lock(mutex_);
+  std::shared_lock lock(mutex_);
   return {db_->getNumDagBlocks(), total_dag_->getNumVertices()};
 }
 
 std::pair<uint64_t, uint64_t> DagManager::getNumEdgesInDag() const {
-  SharedLock lock(mutex_);
+  std::shared_lock lock(mutex_);
   return {db_->getDagEdgeCount(), total_dag_->getNumEdges()};
 }
 
 void DagManager::drawTotalGraph(std::string const &str) const {
-  SharedLock lock(mutex_);
+  std::shared_lock lock(mutex_);
   total_dag_->drawGraph(str);
 }
 
 void DagManager::drawPivotGraph(std::string const &str) const {
-  SharedLock lock(mutex_);
+  std::shared_lock lock(mutex_);
   pivot_tree_->drawGraph(str);
 }
 
@@ -124,7 +124,7 @@ std::pair<bool, std::vector<blk_hash_t>> DagManager::pivotAndTipsAvailable(DagBl
 }
 
 DagFrontier DagManager::getDagFrontier() {
-  SharedLock lock(mutex_);
+  std::shared_lock lock(mutex_);
   return frontier_;
 }
 
@@ -136,9 +136,9 @@ std::pair<bool, std::vector<blk_hash_t>> DagManager::addDagBlock(DagBlock &&blk,
     // One mutex protects the DagManager internal state, the other mutex ensures that dag blocks are gossiped in
     // correct order since multiple threads can call this method. There is a need for using two mutexes since having
     // blocks gossip under mutex_ leads to a deadlock with mutex in TaraxaPeer
-    ULock order_lock(order_dag_blocks_mutex_);
+    std::scoped_lock order_lock(order_dag_blocks_mutex_);
     {
-      ULock lock(mutex_);
+      std::scoped_lock lock(mutex_);
       if (save) {
         if (db_->dagBlockInDb(blk.getHash())) {
           // It is a valid scenario that two threads can receive same block from two peers and process at same time
@@ -185,7 +185,7 @@ std::pair<bool, std::vector<blk_hash_t>> DagManager::addDagBlock(DagBlock &&blk,
 }
 
 void DagManager::drawGraph(std::string const &dotfile) const {
-  SharedLock lock(mutex_);
+  std::shared_lock lock(mutex_);
   drawPivotGraph("pivot." + dotfile);
   drawTotalGraph("total." + dotfile);
 }
@@ -206,7 +206,7 @@ void DagManager::addToDag(blk_hash_t const &hash, blk_hash_t const &pivot, std::
 }
 
 std::optional<std::pair<blk_hash_t, std::vector<blk_hash_t>>> DagManager::getLatestPivotAndTips() const {
-  SharedLock lock(mutex_);
+  std::shared_lock lock(mutex_);
   return {getFrontier()};
 }
 
@@ -241,19 +241,19 @@ std::vector<blk_hash_t> DagManager::getGhostPath(const blk_hash_t &source) const
     return {};
   }
 
-  SharedLock lock(mutex_);
+  std::shared_lock lock(mutex_);
   return pivot_tree_->getGhostPath(source);
 }
 
 std::vector<blk_hash_t> DagManager::getGhostPath() const {
-  SharedLock lock(mutex_);
+  std::shared_lock lock(mutex_);
   auto last_pivot = anchor_;
   return pivot_tree_->getGhostPath(last_pivot);
 }
 
 // return {block order}, for pbft-pivot-blk proposing
 std::vector<blk_hash_t> DagManager::getDagBlockOrder(blk_hash_t const &anchor, PbftPeriod period) {
-  SharedLock lock(mutex_);
+  std::shared_lock lock(mutex_);
   std::vector<blk_hash_t> blk_orders;
 
   if (period != period_ + 1) {
@@ -524,13 +524,13 @@ void DagManager::recoverDag() {
 
 const std::pair<PbftPeriod, std::map<uint64_t, std::unordered_set<blk_hash_t>>> DagManager::getNonFinalizedBlocks()
     const {
-  SharedLock lock(mutex_);
+  std::shared_lock lock(mutex_);
   return {period_, non_finalized_blks_};
 }
 
 const std::tuple<PbftPeriod, std::vector<std::shared_ptr<DagBlock>>, SharedTransactions>
 DagManager::getNonFinalizedBlocksWithTransactions(const std::unordered_set<blk_hash_t> &known_hashes) const {
-  SharedLock lock(mutex_);
+  std::shared_lock lock(mutex_);
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
   std::unordered_set<trx_hash_t> unique_trxs;
   std::vector<trx_hash_t> trx_to_query;
@@ -558,7 +558,7 @@ DagManager::getNonFinalizedBlocksWithTransactions(const std::unordered_set<blk_h
 }
 
 std::pair<size_t, size_t> DagManager::getNonFinalizedBlocksSize() const {
-  SharedLock lock(mutex_);
+  std::shared_lock lock(mutex_);
 
   size_t blocks_counter = 0;
   for (auto it = non_finalized_blks_.begin(); it != non_finalized_blks_.end(); ++it) {
