@@ -1,5 +1,11 @@
 var NAVTREEINDEX19 =
 {
+"metrics__group_8hpp.html#a785e1ac53690f215c36bc6e524a9fa20":[15,0,1,6,0,0,0,1],
+"metrics__group_8hpp.html#af3c0a44571c5e3b9b86534ae374ae145":[15,0,1,6,0,0,0,3],
+"metrics__group_8hpp_source.html":[15,0,1,6,0,0,0],
+"metrics__service_8cpp.html":[15,0,1,6,1,0],
+"metrics__service_8hpp.html":[15,0,1,6,0,0,1],
+"metrics__service_8hpp_source.html":[15,0,1,6,0,0,1],
 "modules.html":[12],
 "mutation_8cpp.html":[15,0,1,4,1,0,1,5],
 "mutation_8hpp.html":[15,0,1,4,1,0,0,0,5],
@@ -243,11 +249,5 @@ var NAVTREEINDEX19 =
 "pbft__sync__packet__handler_8hpp.html":[15,0,1,4,1,1,0,0,0,6],
 "pbft__sync__packet__handler_8hpp_source.html":[15,0,1,4,1,1,0,0,0,6],
 "pbft__syncing__state_8cpp.html":[15,0,1,4,1,3,0,1,0],
-"pbft__syncing__state_8hpp.html":[15,0,1,4,1,1,0,0,1,0],
-"pbft__syncing__state_8hpp_source.html":[15,0,1,4,1,1,0,0,1,0],
-"peers__state_8cpp.html":[15,0,1,4,1,3,0,1,1],
-"peers__state_8hpp.html":[15,0,1,4,1,1,0,0,1,1],
-"peers__state_8hpp_source.html":[15,0,1,4,1,1,0,0,1,1],
-"period__data_8cpp.html":[15,0,1,7,1,1,1],
-"period__data_8cpp.html#ga4eb5ae28c1fec5d7a7695d4545961ea0":[15,0,1,7,1,1,1,0]
+"pbft__syncing__state_8hpp.html":[15,0,1,4,1,1,0,0,1,0]
 };

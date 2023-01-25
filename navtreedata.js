@@ -224,46 +224,51 @@ var NAVTREE =
           [ "Returns", "md_doc__r_p_c.html#autotoc_md291", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md292", null ]
         ] ],
-        [ "taraxa_getConfig", "md_doc__r_p_c.html#autotoc_md293", [
+        [ "taraxa_pbftBlockHashByPeriod", "md_doc__r_p_c.html#autotoc_md293", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md294", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md295", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md296", null ]
+        ] ],
+        [ "taraxa_getConfig", "md_doc__r_p_c.html#autotoc_md297", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md298", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md299", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md300", null ]
         ] ]
       ] ],
-      [ "Test API", "md_doc__r_p_c.html#autotoc_md297", [
-        [ "get_sortition_change", "md_doc__r_p_c.html#autotoc_md298", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md299", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md300", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md301", null ]
-        ] ],
-        [ "send_coin_transaction", "md_doc__r_p_c.html#autotoc_md302", [
+      [ "Test API", "md_doc__r_p_c.html#autotoc_md301", [
+        [ "get_sortition_change", "md_doc__r_p_c.html#autotoc_md302", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md303", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md304", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md305", null ]
         ] ],
-        [ "send_coin_transactions", "md_doc__r_p_c.html#autotoc_md306", [
+        [ "send_coin_transaction", "md_doc__r_p_c.html#autotoc_md306", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md307", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md308", null ]
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md308", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md309", null ]
         ] ],
-        [ "get_account_address", "md_doc__r_p_c.html#autotoc_md309", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md310", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md311", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md312", null ]
+        [ "send_coin_transactions", "md_doc__r_p_c.html#autotoc_md310", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md311", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md312", null ]
         ] ],
-        [ "get_peer_count", "md_doc__r_p_c.html#autotoc_md313", [
+        [ "get_account_address", "md_doc__r_p_c.html#autotoc_md313", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md314", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md315", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md316", null ]
         ] ],
-        [ "get_node_status", "md_doc__r_p_c.html#autotoc_md317", [
+        [ "get_peer_count", "md_doc__r_p_c.html#autotoc_md317", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md318", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md319", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md320", null ]
         ] ],
-        [ "get_all_nodes", "md_doc__r_p_c.html#autotoc_md321", [
+        [ "get_node_status", "md_doc__r_p_c.html#autotoc_md321", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md322", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md323", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md324", null ]
+        ] ],
+        [ "get_all_nodes", "md_doc__r_p_c.html#autotoc_md325", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md326", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md327", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md328", null ]
         ] ]
       ] ]
     ] ],
@@ -310,29 +315,29 @@ var NAVTREEINDEX =
 [
 "_a_e_s_8cpp.html",
 "_log_8h_source.html",
-"class_server_interface.html#af7af014b31d7fbd7bb3880db1b980efe",
-"classdev_1_1_secure_fixed_hash.html#a4c149df1ed78c3416771e7df52d4aa56",
-"classdev_1_1p2p_1_1_peer.html#a0b0a37f9b3e6378f601f253ca9ab0371",
-"classgraphql_1_1taraxa_1_1_log.html#ae2ba397029b180d86329ccd500b44272",
-"classtaraxa_1_1_db_storage.html#ad519340760d0cefb10174c10e4851071",
-"classtaraxa_1_1_value_by_block_cache.html#a0a28b1c85d345912fa296dc8931eedaf",
-"classtaraxa_1_1net_1_1_eth_face.html#a931d33160d3b31dde99f6bacfc2adb9e",
-"classtaraxa_1_1net_1_1_ws_session.html#adf9279d9c2df9ee81e582c917ccc4170",
-"classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a0bc0eb91a8941bd8d03eb55c41d06b2c",
-"classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#ab1c187aac996c9cf723aee194033c87d",
-"current__state_8hpp_source.html",
-"functions_vars_l.html",
-"group___d_a_g.html#classtaraxa_1_1_pivot_tree",
-"group___p_b_f_t.html#a4e2dc0b0fdd0e68a9ffac002daa6486d",
-"group___vote.html#a2876b72592443f97d036ccc693e14448",
-"libdevcore_2_common_8h.html#af94ec8cce8f14439329ba576fe96175e",
-"md_doc__r_p_c.html#autotoc_md324",
-"modules.html",
-"period__data_8hpp.html",
-"structdev_1_1p2p_1_1_host.html#a51239084dd8d29c8adbf725c4aee5208",
-"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#af67251080be60836f380077d344f018e",
-"structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html#a912031cb9fc779056a151c1c835f7e04",
-"types_8hpp.html#ad0d27015d777d709bbfa9046a833ba55"
+"class_server_interface.html#struct_server_interface_1_1_r_p_c_module",
+"classdev_1_1_secure_fixed_hash.html#a55e7286a05eb1fc5072d118bff4eaae5",
+"classdev_1_1p2p_1_1_peer.html#a345ef62a4ab8f2f27be1c99cec671fca",
+"classgraphql_1_1taraxa_1_1_mutation.html#a0c3147e0992e5da52da3f4ae2bdf26b7",
+"classtaraxa_1_1_db_storage.html#ad88a9e344ff797e2012fd415feb78853",
+"classtaraxa_1_1_value_by_block_cache.html#a2555511afb42337f7564ec69a7057fe3",
+"classtaraxa_1_1net_1_1_eth_face.html#a9dacb44d62cb8b33be93a52f01b9951e",
+"classtaraxa_1_1net_1_1_ws_session.html#adab966a3da09dca80949abb17b9cc9cc",
+"classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html",
+"classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#aa419b70c1f8ed87d051bce38dc777a2c",
+"current__state_8cpp.html",
+"functions_vars_j.html",
+"group___d_a_g.html#classtaraxa_1_1_dag_block_proposer",
+"group___p_b_f_t.html#a4d3ab20a116f88b6621ff48b0af60e57",
+"group___vote.html#a25def29b02c4c9e2adcde735d8136c48",
+"libdevcore_2_common_8h.html#ae7f7baf09aabec43e7a80a3efcad63ce",
+"md_doc__r_p_c.html#autotoc_md322",
+"metrics__group_8hpp.html#a785e1ac53690f215c36bc6e524a9fa20",
+"pbft__syncing__state_8hpp_source.html",
+"structdev_1_1p2p_1_1_host.html#a3e01d167821457263b023b6a248b4eed",
+"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#ade558717b4606ea7d69bd1b37b1d31f8",
+"structtaraxa_1_1_vrf_params.html#a0a13eb6eb58b66ec417e67862f01ccfe",
+"types_8hpp.html#a81b5cfd508017d57dd0af6b688c799f1"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

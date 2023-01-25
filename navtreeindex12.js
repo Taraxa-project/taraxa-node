@@ -1,15 +1,17 @@
 var NAVTREEINDEX12 =
 {
+"current__state_8cpp.html":[15,0,1,4,1,0,1,0,0],
+"current__state_8hpp.html":[15,0,1,4,1,0,0,0,0,0],
 "current__state_8hpp_source.html":[15,0,1,4,1,0,0,0,0,0],
 "dag_8cpp.html":[15,0,1,4,0,1,0,0],
-"dag_8hpp.html":[15,0,1,4,0,0,0,1],
-"dag_8hpp_source.html":[15,0,1,4,0,0,0,1],
+"dag_8hpp.html":[15,0,1,4,0,0,0,0],
+"dag_8hpp_source.html":[15,0,1,4,0,0,0,0],
 "dag__block__packet__handler_8cpp.html":[15,0,1,4,1,3,0,0,1],
 "dag__block__packet__handler_8hpp.html":[15,0,1,4,1,1,0,0,0,1],
 "dag__block__packet__handler_8hpp_source.html":[15,0,1,4,1,1,0,0,0,1],
 "dag__block__proposer_8cpp.html":[15,0,1,4,0,1,0,1],
-"dag__block__proposer_8hpp.html":[15,0,1,4,0,0,0,2],
-"dag__block__proposer_8hpp_source.html":[15,0,1,4,0,0,0,2],
+"dag__block__proposer_8hpp.html":[15,0,1,4,0,0,0,1],
+"dag__block__proposer_8hpp_source.html":[15,0,1,4,0,0,0,1],
 "dag__config_8cpp.html":[15,0,1,3,1,2],
 "dag__config_8cpp.html#a48523fb260955ed0881f6945e84066a3":[15,0,1,3,1,2,2],
 "dag__config_8cpp.html#a681e859a51cfd602ec476273ae67ce91":[15,0,1,3,1,2,0],
@@ -22,8 +24,8 @@ var NAVTREEINDEX12 =
 "dag__config_8hpp.html#af048650cf3dc86bc3af3a4bdb4824df7":[15,0,1,3,0,0,2,5],
 "dag__config_8hpp_source.html":[15,0,1,3,0,0,2],
 "dag__manager_8cpp.html":[15,0,1,4,0,1,0,2],
-"dag__manager_8hpp.html":[15,0,1,4,0,0,0,3],
-"dag__manager_8hpp_source.html":[15,0,1,4,0,0,0,3],
+"dag__manager_8hpp.html":[15,0,1,4,0,0,0,2],
+"dag__manager_8hpp_source.html":[15,0,1,4,0,0,0,2],
 "dag__sync__packet__handler_8cpp.html":[15,0,1,4,1,3,0,0,2],
 "dag__sync__packet__handler_8hpp.html":[15,0,1,4,1,1,0,0,0,2],
 "dag__sync__packet__handler_8hpp_source.html":[15,0,1,4,1,1,0,0,0,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX12 =
 "functions_vars_f.html":[14,3,2,5],
 "functions_vars_g.html":[14,3,2,6],
 "functions_vars_h.html":[14,3,2,7],
-"functions_vars_i.html":[14,3,2,8],
-"functions_vars_j.html":[14,3,2,9],
-"functions_vars_k.html":[14,3,2,10]
+"functions_vars_i.html":[14,3,2,8]
 };
