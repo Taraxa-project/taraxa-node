@@ -128,9 +128,9 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
   // Period validation
   if (vote->getPeriod() < current_pbft_period) {
     return {false, "Invalid period(too small): " + genErrMsg(vote)};
-  } else if (kConf.network.vote_accepting_periods &&
-             vote->getPeriod() - 1 > current_pbft_period + kConf.network.vote_accepting_periods) {
-    // skip this check if kConf.network.vote_accepting_periods == 0
+  } else if (kConf.network.ddos_protection.vote_accepting_periods &&
+             vote->getPeriod() - 1 > current_pbft_period + kConf.network.ddos_protection.vote_accepting_periods) {
+    // skip this check if kConf.network.ddos_protection.vote_accepting_periods == 0
     // vote->getPeriod() - 1 is here because votes are validated against vote_period - 1 in dpos contract
     // Do not request round sync too often here
     if (std::chrono::system_clock::now() - last_pbft_block_sync_request_time_ > kSyncRequestInterval) {
@@ -153,8 +153,8 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
 
   if (vote->getRound() < checking_round) {
     return {false, "Invalid round(too small): " + genErrMsg(vote)};
-  } else if (validate_max_round_step && kConf.network.vote_accepting_rounds &&
-             vote->getRound() >= checking_round + kConf.network.vote_accepting_rounds) {
+  } else if (validate_max_round_step && kConf.network.ddos_protection.vote_accepting_rounds &&
+             vote->getRound() >= checking_round + kConf.network.ddos_protection.vote_accepting_rounds) {
     // skip this check if kConf.network.vote_accepting_rounds == 0
     // Trigger votes(round) syncing only if we are in sync in terms of period
     if (current_pbft_period == vote->getPeriod()) {
@@ -178,8 +178,8 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateStandardVote(const s
   }
 
   // skip check if kConf.network.vote_accepting_steps == 0
-  if (validate_max_round_step && kConf.network.vote_accepting_steps &&
-      vote->getStep() >= checking_step + kConf.network.vote_accepting_steps) {
+  if (validate_max_round_step && kConf.network.ddos_protection.vote_accepting_steps &&
+      vote->getStep() >= checking_step + kConf.network.ddos_protection.vote_accepting_steps) {
     return {false, "Invalid step(too big): " + genErrMsg(vote)};
   }
 

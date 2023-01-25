@@ -254,7 +254,7 @@ std::vector<taraxa::FullNodeConfig> NodesTest::make_node_cfgs(size_t total_count
       // PBFT config
       cfg.genesis.pbft.lambda_ms /= tests_speed;
       cfg.network.transaction_interval_ms /= tests_speed;
-      cfg.network.vote_accepting_rounds *= tests_speed;
+      cfg.network.ddos_protection.vote_accepting_rounds *= tests_speed;
     }
     if (!enable_rpc_http) {
       cfg.network.rpc->http_port = std::nullopt;

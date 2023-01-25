@@ -220,6 +220,12 @@ class FinalChain {
    */
   virtual vrf_wrapper::vrf_pk_t dpos_get_vrf_key(EthBlockNumber blk_n, const addr_t& addr) const = 0;
 
+  /**
+   * @brief Prune state db for all blocks older than blk_n
+   * @param blk_n number of block we are getting state from
+   */
+  virtual void prune(EthBlockNumber blk_n) = 0;
+
   // TODO move out of here:
 
   std::pair<val_t, bool> getBalance(addr_t const& addr) const {

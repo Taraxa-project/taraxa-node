@@ -315,6 +315,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   bool hasMinorVersionChanged() { return minor_version_changed_; }
 
+  void compactColumn(Column const& column) { db_->CompactRange({}, handle(column), nullptr, nullptr); }
+
   inline static bytes asBytes(string const& b) {
     return bytes((byte const*)b.data(), (byte const*)(b.data() + b.size()));
   }

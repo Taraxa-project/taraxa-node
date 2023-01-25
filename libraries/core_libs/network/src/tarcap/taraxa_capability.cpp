@@ -42,7 +42,8 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
   LOG_OBJECTS_CREATE("TARCAP");
 
   peers_state_ = std::make_shared<PeersState>(host, kConf);
-  all_packets_stats_ = std::make_shared<TimePeriodPacketsStats>(std::chrono::milliseconds(60000), node_addr);
+  all_packets_stats_ =
+      std::make_shared<TimePeriodPacketsStats>(kConf.network.ddos_protection.packets_stats_time_period_ms, node_addr);
 
   // Inits boot nodes (based on config)
   addBootNodes(true);
@@ -142,20 +143,24 @@ void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pb
     status_packet_handler->sendStatusToPeers();
   });
 
-  // TODO[2244]: once ddos protection is implemented, use reset time period from config
-  periodic_events_tp_->post_loop(
-      {packets_stats->getResetTimePeriodMs()},
-      [collect_packet_stats = kConf.network.collect_packets_stats, stats = packets_stats, peers_state = peers_state_] {
-        // Log interval + max packets stats only if enabled in config
-        if (collect_packet_stats) {
-          stats->processStats(peers_state);
-        }
+  if (kConf.network.ddos_protection.log_packets_stats ||
+      kConf.network.ddos_protection.isPeerPacketsProtectionEnabled()) {
+    periodic_events_tp_->post_loop(
+        {static_cast<uint64_t>(kConf.network.ddos_protection.packets_stats_time_period_ms.count())},
+        [ddos_protection = kConf.network.ddos_protection, stats = packets_stats, peers_state = peers_state_] {
+          // Log interval + max packets stats only if enabled in config
+          if (ddos_protection.log_packets_stats) {
+            stats->processStats(peers_state);
+          }
 
-        // Per peer packets stats are used for ddos protection so they must be always collected and reset
-        for (const auto &peer : peers_state->getAllPeers()) {
-          peer.second->resetPacketsStats();
-        }
-      });
+          if (ddos_protection.isPeerPacketsProtectionEnabled()) {
+            // Per peer packets stats are used for ddos protection so they must be always reset
+            for (const auto &peer : peers_state->getAllPeers()) {
+              peer.second->resetPacketsStats();
+            }
+          }
+        });
+  }
 
   // SUMMARY log periodic event
   const auto node_stats_log_interval = 5 * 6 * lambda_ms;
@@ -292,7 +297,8 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
 
   // Drop any packet (except StatusPacket) that comes before the connection between nodes is initialized by sending
   // and received initial status packet
-  if (const auto peer = peers_state_->getPacketSenderPeer(node_id, packet_type); !peer.first) [[unlikely]] {
+  const auto peer = peers_state_->getPacketSenderPeer(node_id, packet_type);
+  if (!peer.first) [[unlikely]] {
     LOG(log_wr_) << "Unable to push packet into queue. Reason: " << peer.second;
     host->disconnect(node_id, dev::p2p::UserReason);
     return;
@@ -301,6 +307,28 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
   if (pbft_syncing_state_->isDeepPbftSyncing() && filterSyncIrrelevantPackets(packet_type)) {
     LOG(log_dg_) << "Ignored " << convertPacketTypeToString(packet_type) << " because we are still syncing";
     return;
+  }
+
+  // Check peer's max allowed packets processing time
+  if (kConf.network.ddos_protection.isPeerPacketsProtectionEnabled()) {
+    const auto [start_time, peer_packets_stats] = peer.first->getAllPacketsStatsCopy();
+    // As start_time is reset in independent thread, it might be few ms out of sync - subtract extra 250ms for this
+    const auto current_time_period = std::chrono::duration_cast<std::chrono::milliseconds>(
+        std::chrono::system_clock::now() - start_time - std::chrono::milliseconds{250});
+
+    if (current_time_period <= kConf.network.ddos_protection.packets_stats_time_period_ms) {
+      // Peer exceeded max allowed processing time for his packets
+      if (peer_packets_stats.processing_duration_ > kConf.network.ddos_protection.peer_max_packets_processing_time_us) {
+        LOG(log_er_) << "Peer " << node_id
+                     << " exceeded max allowed packets processing time. Peer's current packets processing time "
+                     << peer_packets_stats.processing_duration_.count() << " us, max allowed processing time "
+                     << kConf.network.ddos_protection.peer_max_packets_processing_time_us.count() << " us";
+        host->disconnect(node_id, dev::p2p::UserReason);
+        return;
+      }
+    } else {
+      LOG(log_wr_) << "Unable to validate peer's max allowed packets processing time due to invalid time period";
+    }
   }
 
   // TODO: we are making a copy here for each packet bytes(toBytes()), which is pretty significant. Check why RLP does

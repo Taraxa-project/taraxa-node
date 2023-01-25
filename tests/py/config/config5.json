@@ -7,13 +7,20 @@
       "ws_port": 8781,
       "threads_num": 2
     },
+    "ddos_protection": {
+      "vote_accepting_periods": 5,
+      "vote_accepting_rounds": 5,
+      "vote_accepting_steps": 0,
+      "log_packets_stats": false,
+      "packets_stats_time_period_ms": 60000,
+      "peer_max_packets_processing_time_us": 0
+    },
     "listen_ip": "127.0.0.1",
     "listen_port": 10006,
     "transaction_interval_ms": 100,
     "ideal_peer_count": 10,
     "max_peer_count": 50,
     "sync_level_size": 1,
-    "collect_packets_stats": false,
     "packets_processing_threads": 5,
     "boot_nodes": [
       {

@@ -15,19 +15,23 @@
       "listen_port": 8888,
       "polling_interval_ms": 1000
     },
+    "ddos_protection": {
+      "vote_accepting_periods": 5,
+      "vote_accepting_rounds": 5,
+      "vote_accepting_steps": 0,
+      "log_packets_stats": false,
+      "packets_stats_time_period_ms": 60000,
+      "peer_max_packets_processing_time_us": 0
+    },
     "listen_ip": "0.0.0.0",
     "listen_port": 10002,
     "transaction_interval_ms": 100,
     "ideal_peer_count": 10,
     "max_peer_count": 50,
     "sync_level_size": 10,
-    "collect_packets_stats": false,
     "packets_processing_threads": 14,
     "peer_blacklist_timeout": 600,
     "deep_syncing_threshold": 10,
-    "vote_accepting_periods": 5,
-    "vote_accepting_rounds": 5,
-    "vote_accepting_steps": 0,
     "boot_nodes": [
       {
         "id": "f36f467529fe91a750dfdc8086fd0d2f30bad9f55a5800b6b4aa603c7787501db78dc4ac1bf3cf16e42af7c2ebb53648653013c3da1987494960d751871d598a",

@@ -713,6 +713,34 @@ TEST_F(FullNodeTest, sync_five_nodes) {
   context.assert_all_transactions_success();
   context.assert_all_transactions_known();
   context.assert_balances_synced();
+
+  // Prune state_db of one node
+  auto prune_node = nodes[nodes.size() - 1];
+  const uint32_t min_blocks_to_prune = 50;
+  // This ensures that we never prune blocks that are over proposal period
+  ASSERT_HAPPENS({20s, 100ms}, [&](auto &ctx) {
+    const auto max_level = prune_node->getDagManager()->getMaxLevel();
+    const auto proposal_period = prune_node->getDB()->getProposalPeriodForDagLevel(max_level);
+    ASSERT_TRUE(proposal_period.has_value());
+    context.dummy_transaction();
+    WAIT_EXPECT_TRUE(ctx, ((*proposal_period) > min_blocks_to_prune))
+  });
+  prune_node->getFinalChain()->prune(min_blocks_to_prune);
+  context.assert_balances_synced();
+
+  // transfer some coins to pruned node ...
+  context.coin_transfer(0, prune_node->getAddress(), init_bal, false);
+  context.wait_all_transactions_known();
+
+  std::cout << "Waiting until transaction is executed" << std::endl;
+  auto trx_cnt = context.getIssuedTrxCount();
+  ASSERT_HAPPENS({20s, 500ms}, [&](auto &ctx) {
+    for (size_t i = 0; i < nodes.size(); ++i)
+      WAIT_EXPECT_EQ(ctx, nodes[i]->getDB()->getNumTransactionExecuted(), trx_cnt)
+  });
+
+  // Check balances after prune";
+  context.assert_balances_synced();
 }
 
 TEST_F(FullNodeTest, insert_anchor_and_compute_order) {

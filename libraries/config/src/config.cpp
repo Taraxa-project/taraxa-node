@@ -148,13 +148,8 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::
 }
 
 void FullNodeConfig::validate() const {
-  network.validate();
   genesis.validate();
-  if (network.vote_accepting_periods > genesis.state.dpos.delegation_delay) {
-    throw ConfigException(
-        std::string("network.vote_accepting_periods(" + std::to_string(network.vote_accepting_periods) +
-                    ") must be <= DPOS.delegation_delay(" + std::to_string(genesis.state.dpos.delegation_delay) + ")"));
-  }
+  network.validate(genesis.state.dpos.delegation_delay);
   if (transactions_pool_size < kMinTransactionPoolSize) {
     throw ConfigException("transactions_pool_size cannot be smaller than " + std::to_string(kMinTransactionPoolSize) +
                           ".");
@@ -171,6 +166,17 @@ std::ostream &operator<<(std::ostream &strm, const NodeConfig &conf) {
   return strm;
 }
 
+std::ostream &operator<<(std::ostream &strm, const DdosProtectionConfig &conf) {
+  strm << "  [Ddos protection] " << std::endl;
+  strm << "    vote_accepting_periods: " << conf.vote_accepting_periods << std::endl;
+  strm << "    vote_accepting_rounds: " << conf.vote_accepting_rounds << std::endl;
+  strm << "    vote_accepting_steps: " << conf.vote_accepting_steps << std::endl;
+  strm << "    log_packets_stats: " << conf.log_packets_stats << std::endl;
+  strm << "    packets_stats_time_period_ms: " << conf.packets_stats_time_period_ms.count() << std::endl;
+  strm << "    peer_max_packets_processing_time_us: " << conf.peer_max_packets_processing_time_us.count() << std::endl;
+  return strm;
+}
+
 std::ostream &operator<<(std::ostream &strm, const NetworkConfig &conf) {
   strm << "[Network Config] " << std::endl;
   strm << "  json_file_name: " << conf.json_file_name << std::endl;
@@ -181,10 +187,10 @@ std::ostream &operator<<(std::ostream &strm, const NetworkConfig &conf) {
   strm << "  ideal_peer_count: " << conf.ideal_peer_count << std::endl;
   strm << "  max_peer_count: " << conf.max_peer_count << std::endl;
   strm << "  sync_level_size: " << conf.sync_level_size << std::endl;
-  strm << "  collect_packets_stats: " << conf.collect_packets_stats << std::endl;
   strm << "  num_threads: " << conf.num_threads << std::endl;
   strm << "  packets_processing_threads: " << conf.packets_processing_threads << std::endl;
   strm << "  deep_syncing_threshold: " << conf.deep_syncing_threshold << std::endl;
+  strm << conf.ddos_protection << std::endl;
 
   strm << "  --> boot nodes  ... " << std::endl;
   for (const auto &c : conf.boot_nodes) {

@@ -99,7 +99,7 @@ Result c_method_args_rlp(taraxa_evm_state_API_ptr this_c, const Params&... args)
 template <void (*fn)(taraxa_evm_state_API_ptr, taraxa_evm_Bytes, taraxa_evm_BytesCallback), typename... Params>
 void c_method_args_rlp(taraxa_evm_state_API_ptr this_c, const Params&... args) {
   dev::RLPStream encoding;
-  rlp_tuple(encoding, args...);
+  util::rlp_tuple(encoding, args...);
   ErrorHandler err_h;
   fn(this_c, map_bytes(encoding.out()), err_h.cgo_part_);
   err_h.check();
@@ -201,6 +201,11 @@ void StateAPI::create_snapshot(PbftPeriod period) {
   ErrorHandler err_h;
   taraxa_evm_state_api_db_snapshot(this_c_, go_path, 0, err_h.cgo_part_);
   err_h.check();
+}
+
+void StateAPI::prune(const dev::h256& state_root_to_keep, const std::vector<dev::h256>& state_root_to_prune,
+                     EthBlockNumber blk_num) {
+  return c_method_args_rlp<taraxa_evm_state_api_prune>(this_c_, state_root_to_keep, state_root_to_prune, blk_num);
 }
 
 uint64_t StateAPI::dpos_eligible_total_vote_count(EthBlockNumber blk_num) const {
