@@ -14,7 +14,7 @@ class TaraxaClient : public jsonrpc::Client {
   TaraxaClient(jsonrpc::IClientConnector& conn, jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2)
       : jsonrpc::Client(conn, type) {}
 
-  Json::Value taraxa_protocolVersion() throw(jsonrpc::JsonRpcException) {
+  std::string taraxa_protocolVersion() throw(jsonrpc::JsonRpcException) {
     Json::Value p;
     p = Json::nullValue;
     Json::Value result = this->CallMethod("taraxa_protocolVersion", p);

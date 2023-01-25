@@ -9,7 +9,7 @@
     "name": "taraxa_getVersion",
     "params": [],
     "order": [],
-    "returns": ""
+    "returns": {}
   },
   {
     "name": "taraxa_getDagBlockByHash",
