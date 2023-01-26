@@ -18,6 +18,7 @@
 #include "metrics/network_metrics.hpp"
 #include "metrics/pbft_metrics.hpp"
 #include "metrics/transaction_queue_metrics.hpp"
+#include "network/rpc/Debug.h"
 #include "network/rpc/Net.h"
 #include "network/rpc/Taraxa.h"
 #include "network/rpc/Test.h"
@@ -198,12 +199,18 @@ void FullNode::start() {
       test_json_rpc = std::make_shared<net::Test>(shared_from_this());
     }
 
+    std::shared_ptr<net::Debug> debug_json_rpc;
+    if (conf_.enable_debug) {
+      // TODO Because this object refers to FullNode, the lifecycle/dependency management is more complicated);
+      debug_json_rpc = std::make_shared<net::Debug>(shared_from_this(), conf_.genesis.dag.gas_limit);
+    }
+
     jsonrpc_api_ = std::make_unique<jsonrpc_server_t>(
         std::make_shared<net::Taraxa>(shared_from_this()),  // TODO Because this object refers to FullNode, the
                                                             // lifecycle/dependency management is more complicated
         std::make_shared<net::Net>(shared_from_this()),     // TODO Because this object refers to FullNode, the
                                                             // lifecycle/dependency management is more complicated
-        eth_json_rpc, test_json_rpc);
+        eth_json_rpc, test_json_rpc, debug_json_rpc);
 
     if (conf_.network.rpc->http_port) {
       auto json_rpc_processor = std::make_shared<net::JsonRpcHttpProcessor>();

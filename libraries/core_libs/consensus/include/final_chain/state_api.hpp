@@ -40,6 +40,7 @@ class StateAPI {
   u256 get_account_storage(EthBlockNumber blk_num, const addr_t& addr, const u256& key) const;
   bytes get_code_by_address(EthBlockNumber blk_num, const addr_t& addr) const;
   ExecutionResult dry_run_transaction(EthBlockNumber blk_num, const EVMBlock& blk, const EVMTransaction& trx) const;
+  bytes trace_transaction(EthBlockNumber blk_num, const EVMBlock& blk, const EVMTransaction& trx) const;
   StateDescriptor get_last_committed_state_descriptor() const;
   const StateTransitionResult& transition_state(const EVMBlock& block,
                                                 const util::RangeView<EVMTransaction>& transactions,

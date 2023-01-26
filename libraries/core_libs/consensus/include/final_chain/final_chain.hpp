@@ -190,6 +190,16 @@ class FinalChain {
                                           std::optional<EthBlockNumber> blk_n = {}) const = 0;
 
   /**
+   * @brief Trace execution of a new message call immediately without creating a transaction on the block chain. That
+   * means that state would be reverted and not saved anywhere
+   * @param trx state_api::EVMTransaction
+   * @param blk_n EthBlockNumber number of block we are getting state from
+   * @return std::string
+   */
+  virtual std::string trace_trx(state_api::EVMTransaction const& trx,
+                                std::optional<EthBlockNumber> blk_n = {}) const = 0;
+
+  /**
    * @brief total count of eligible votes are in DPOS precompiled contract
    * @param blk_num EthBlockNumber number of block we are getting state from
    * @return total count of eligible votes

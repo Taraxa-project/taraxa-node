@@ -43,9 +43,7 @@
   },
   {
     "name": "taraxa_getScheduleBlockByPeriod",
-    "params": [
-      ""
-    ],
+    "params": [""],
     "order": [],
     "returns": {}
   },
@@ -59,7 +57,7 @@
     "name": "taraxa_pbftBlockHashByPeriod",
     "params": [""],
     "order": [],
-    "returns": {}
+    "returns": ""
   }
 ]
 

@@ -1,6 +1,7 @@
 #include "final_chain/final_chain.hpp"
 
 #include <cstdint>
+#include <string>
 
 #include "common/constants.hpp"
 #include "common/thread_pool.hpp"
@@ -410,6 +411,18 @@ class FinalChainImpl final : public FinalChain {
                                               BlockHeader::difficulty(),
                                           },
                                           trx);
+  }
+
+  std::string trace_trx(const state_api::EVMTransaction& trx, std::optional<EthBlockNumber> blk_n = {}) const override {
+    const auto blk_header = block_header(last_if_absent(blk_n));
+    return dev::asString(state_api_.trace_transaction(blk_header->number,
+                                                      {
+                                                          blk_header->author,
+                                                          blk_header->gas_limit,
+                                                          blk_header->timestamp,
+                                                          BlockHeader::difficulty(),
+                                                      },
+                                                      trx));
   }
 
   uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const override {

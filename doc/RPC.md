@@ -370,7 +370,7 @@ Returns hash of PBFT block for specified period
 
 #### Returns
 
-`STRING` - PBFT block hash 
+`STRING` - PBFT block hash
 
 #### Example
 
@@ -567,7 +567,7 @@ Method to create and send multiple transaction. Used to create high transactions
 
 #### Returns
 
-Number of transactions inserted successfuly, in case of transaction insertion failure, error message is returned
+Number of transactions inserted successfully, in case of transaction insertion failure, error message is returned
 
 
 

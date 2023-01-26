@@ -52,6 +52,7 @@ struct FullNodeConfig {
   uint32_t dag_expiry_limit = kDagExpiryLevelLimit;      // For unit tests only
   uint32_t max_levels_per_period = kMaxLevelsPerPeriod;  // For unit tests only
   bool enable_test_rpc = false;
+  bool enable_debug = false;
   uint32_t final_chain_cache_in_blocks = 5;
 
   // config values that limits transactions pool

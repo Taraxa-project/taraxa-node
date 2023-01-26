@@ -6,7 +6,7 @@
       {}
     ],
     "order": [],
-    "returns": {}
+    "returns": ""
   },
   {
     "name": "debug_traceCall",
@@ -16,6 +16,6 @@
       {}
     ],
     "order": [],
-    "returns": {}
+    "returns": ""
   }
 ]

@@ -45,6 +45,7 @@ Config::Config(int argc, const char* argv[]) {
   uint64_t revert_to_period = 0;
 
   bool enable_test_rpc = false;
+  bool enable_debug = false;
 
   // Set node as default command
   command.push_back(NODE_COMMAND);
@@ -129,6 +130,8 @@ Config::Config(int argc, const char* argv[]) {
 
   node_command_options.add_options()(ENABLE_TEST_RPC, bpo::bool_switch(&enable_test_rpc),
                                      "Enables Test JsonRPC. Disabled by default");
+  node_command_options.add_options()(ENABLE_DEBUG, bpo::bool_switch(&enable_debug),
+                                     "Enables Debug RPC interface. Disabled by default");
 
   allowed_options.add(main_options);
 
@@ -270,6 +273,7 @@ Config::Config(int argc, const char* argv[]) {
     node_config_.db_config.rebuild_db_period = rebuild_db_period;
 
     node_config_.enable_test_rpc = enable_test_rpc;
+    node_config_.enable_debug = enable_debug;
 
     if (command[0] == NODE_COMMAND) node_configured_ = true;
   } else if (command[0] == ACCOUNT_COMMAND) {
