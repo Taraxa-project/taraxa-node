@@ -8,6 +8,7 @@
 #include "config/config.hpp"
 #include "final_chain/data.hpp"
 #include "final_chain/state_api.hpp"
+#include "final_chain/state_api_data.hpp"
 #include "storage/storage.hpp"
 
 namespace taraxa::final_chain {
@@ -196,8 +197,8 @@ class FinalChain {
    * @param blk_n EthBlockNumber number of block we are getting state from
    * @return std::string
    */
-  virtual std::string trace_trx(state_api::EVMTransaction const& trx,
-                                std::optional<EthBlockNumber> blk_n = {}) const = 0;
+  virtual std::string trace_trx(const state_api::EVMTransaction& trx, EthBlockNumber blk_n,
+                                std::optional<state_api::Tracing> params = {}) const = 0;
 
   /**
    * @brief total count of eligible votes are in DPOS precompiled contract

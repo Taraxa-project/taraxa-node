@@ -2,20 +2,28 @@
   {
     "name": "debug_traceTransaction",
     "params": [
-      "",
-      {}
+      ""
     ],
     "order": [],
-    "returns": ""
+    "returns": {}
   },
   {
     "name": "debug_traceCall",
     "params": [
       {},
-      "",
-      {}
+      ""
     ],
     "order": [],
-    "returns": ""
+    "returns": {}
+  },
+  {
+    "name": "trace_call",
+    "params": [
+      {},
+      [],
+      ""
+    ],
+    "order": [],
+    "returns": {}
   }
 ]

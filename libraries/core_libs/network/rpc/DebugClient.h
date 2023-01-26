@@ -14,26 +14,34 @@ class DebugClient : public jsonrpc::Client {
   DebugClient(jsonrpc::IClientConnector& conn, jsonrpc::clientVersion_t type = jsonrpc::JSONRPC_CLIENT_V2)
       : jsonrpc::Client(conn, type) {}
 
-  std::string debug_traceTransaction(const std::string& param1,
-                                     const Json::Value& param2) throw(jsonrpc::JsonRpcException) {
+  Json::Value debug_traceTransaction(const std::string& param1) throw(jsonrpc::JsonRpcException) {
     Json::Value p;
     p.append(param1);
-    p.append(param2);
     Json::Value result = this->CallMethod("debug_traceTransaction", p);
-    if (result.isString())
-      return result.asString();
+    if (result.isObject())
+      return result;
     else
       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
-  std::string debug_traceCall(const Json::Value& param1, const std::string& param2,
-                              const Json::Value& param3) throw(jsonrpc::JsonRpcException) {
+  Json::Value debug_traceCall(const Json::Value& param1, const std::string& param2) throw(jsonrpc::JsonRpcException) {
+    Json::Value p;
+    p.append(param1);
+    p.append(param2);
+    Json::Value result = this->CallMethod("debug_traceCall", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+  }
+  Json::Value trace_call(const Json::Value& param1, const Json::Value& param2,
+                         const std::string& param3) throw(jsonrpc::JsonRpcException) {
     Json::Value p;
     p.append(param1);
     p.append(param2);
     p.append(param3);
-    Json::Value result = this->CallMethod("debug_traceCall", p);
-    if (result.isString())
-      return result.asString();
+    Json::Value result = this->CallMethod("trace_call", p);
+    if (result.isObject())
+      return result;
     else
       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }

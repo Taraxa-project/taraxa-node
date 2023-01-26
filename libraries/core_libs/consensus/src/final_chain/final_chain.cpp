@@ -413,7 +413,8 @@ class FinalChainImpl final : public FinalChain {
                                           trx);
   }
 
-  std::string trace_trx(const state_api::EVMTransaction& trx, std::optional<EthBlockNumber> blk_n = {}) const override {
+  std::string trace_trx(const state_api::EVMTransaction& trx, EthBlockNumber blk_n,
+                        std::optional<state_api::Tracing> params = {}) const override {
     const auto blk_header = block_header(last_if_absent(blk_n));
     return dev::asString(state_api_.trace_transaction(blk_header->number,
                                                       {
@@ -422,7 +423,7 @@ class FinalChainImpl final : public FinalChain {
                                                           blk_header->timestamp,
                                                           BlockHeader::difficulty(),
                                                       },
-                                                      trx));
+                                                      trx, params));
   }
 
   uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const override {

@@ -3,13 +3,16 @@
 #include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
 
+#include "common/jsoncpp.hpp"
+#include "final_chain/state_api_data.hpp"
+
 using namespace std;
 using namespace dev;
 using namespace jsonrpc;
 using namespace taraxa;
 
 namespace taraxa::net {
-std::string Debug::debug_traceTransaction(const std::string& transaction_hash, const Json::Value& /*param2*/) {
+Json::Value Debug::debug_traceTransaction(const std::string& transaction_hash) {
   Json::Value res;
   try {
     if (auto node = full_node_.lock()) {
@@ -17,34 +20,62 @@ std::string Debug::debug_traceTransaction(const std::string& transaction_hash, c
       const auto trx = node->getDB()->getTransaction(hash);
       if (!trx) {
         res["status"] = "Transaction not found";
-        return res.asString();
+        return res;
       }
       const auto loc = node->getFinalChain()->transaction_location(hash);
       if (!loc) {
         res["status"] = "Transaction not found";
-        return res.asString();
+        return res;
       }
-      return node->getFinalChain()->trace_trx(to_eth_trx(trx), loc->blk_n);
+      return util::readJsonFromString(node->getFinalChain()->trace_trx(to_eth_trx(trx), loc->blk_n));
     }
   } catch (std::exception& e) {
     res["status"] = e.what();
   }
-  return res.asString();
+  return res;
 }
 
-std::string Debug::debug_traceCall(const Json::Value& call_params, const std::string& blk_num,
-                                   const Json::Value& /*param3*/) {
+Json::Value Debug::debug_traceCall(const Json::Value& call_params, const std::string& blk_num) {
   Json::Value res;
   try {
     const auto block = parse_blk_num(blk_num);
     auto trx = to_eth_trx(call_params, block);
     if (auto node = full_node_.lock()) {
-      return node->getFinalChain()->trace_trx(std::move(trx), block);
+      return util::readJsonFromString(node->getFinalChain()->trace_trx(std::move(trx), block));
     }
   } catch (std::exception& e) {
     res["status"] = e.what();
   }
-  return res.asString();
+  return res;
+}
+
+Json::Value Debug::trace_call(const Json::Value& call_params, const Json::Value& trace_params,
+                              const std::string& blk_num) {
+  Json::Value res;
+  try {
+    const auto block = parse_blk_num(blk_num);
+    auto trx = to_eth_trx(call_params, block);
+    auto params = parse_tracking_parms(trace_params);
+    if (auto node = full_node_.lock()) {
+      return util::readJsonFromString(node->getFinalChain()->trace_trx(std::move(trx), block, std::move(params)));
+    }
+  } catch (std::exception& e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
+state_api::Tracing Debug::parse_tracking_parms(const Json::Value& json) const {
+  state_api::Tracing ret;
+  if (!json.isArray() || json.empty()) {
+    throw InvalidTracingParams();
+  }
+  for (const auto& obj : json) {
+    if (obj.asString() == "trace") ret.trace = true;
+    if (obj.asString() == "stateDiff") ret.stateDiff = true;
+    if (obj.asString() == "vmTrace") ret.vmTrace = true;
+  }
+  return ret;
 }
 
 state_api::EVMTransaction Debug::to_eth_trx(std::shared_ptr<Transaction> t) const {
@@ -95,7 +126,7 @@ state_api::EVMTransaction Debug::to_eth_trx(const Json::Value& json, EthBlockNum
     trx.nonce = jsToU256(json["nonce"].asString());
   } else {
     if (auto node = full_node_.lock()) {
-      trx.nonce = node->getFinalChain()->get_account(trx.from, blk_num)->nonce;
+      trx.nonce = node->getFinalChain()->get_account(trx.from, blk_num).value_or(state_api::ZeroAccount).nonce;
     }
   }
 
@@ -103,7 +134,7 @@ state_api::EVMTransaction Debug::to_eth_trx(const Json::Value& json, EthBlockNum
 }
 
 EthBlockNumber Debug::parse_blk_num(const string& blk_num_str) {
-  if (blk_num_str.empty()) {
+  if (blk_num_str == "latest" || blk_num_str == "pending" || blk_num_str.empty()) {
     if (auto node = full_node_.lock()) {
       return node->getFinalChain()->last_block_number();
     }
