@@ -52,7 +52,9 @@ Json::Value Test::send_coin_transaction(const Json::Value &param1) {
       val_t gas_price = val_t(param1["gas_price"].asString());
       auto gas = dev::jsToInt(param1["gas"].asString());
       addr_t receiver = addr_t(param1["receiver"].asString());
-      auto trx = std::make_shared<Transaction>(nonce, value, gas_price, gas, bytes(), sk, receiver, kChainId);
+      bytes data;
+      auto trx = std::make_shared<Transaction>(nonce, value, gas_price, gas, data, sk, receiver,
+                                               node->getConfig().genesis.chain_id);
       if (auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(trx); !ok) {
         res["status"] = err_msg;
       } else {
@@ -82,7 +84,7 @@ Json::Value Test::send_coin_transactions(const Json::Value &param1) {
       }
       for (uint32_t i = 0; i < transactions_count; i++) {
         auto trx = std::make_shared<Transaction>(nonce, value, gas_price, gas, bytes(), sk,
-                                                 receivers[i % receivers.size()], kChainId);
+                                                 receivers[i % receivers.size()], node->getConfig().genesis.chain_id);
         nonce++;
         if (auto [ok, err_msg] = node->getTransactionManager()->insertTransaction(trx); !ok) {
           res["err"] = err_msg;
@@ -97,6 +99,82 @@ Json::Value Test::send_coin_transactions(const Json::Value &param1) {
     res["status"] = e.what();
   }
 
+  return res;
+}
+
+Json::Value Test::tps_test(const Json::Value &param1) {
+  Json::Value res;
+  /*try {
+    if (auto node = full_node_.lock()) {
+      secret_t sk = secret_t(param1["secret"].asString());
+      auto nonce = dev::jsToInt(param1["nonce"].asString());
+      val_t value = val_t(param1["value"].asString());
+      val_t gas_price = val_t(param1["gas_price"].asString());
+      auto gas = dev::jsToInt(param1["gas"].asString());
++}
++}
++catch (std::exception &e) {
+  res["status"] = e.what();
++}
++*/
+  new std::thread([this]() {
+    auto node = full_node_.lock();
+    uint64_t trx_count = 200000;
+    std::vector<std::shared_ptr<Transaction>> trxs;
+    for (uint64_t i = 0; i < trx_count; i++) {
+      static std::atomic<uint64_t> nonce = 1000001;
+      trxs.emplace_back(std::make_shared<Transaction>(++nonce, 10, 1, 21000, bytes(), node->getSecretKey(),
+                                                      addr_t(100000000l + (i % 2000)),
+                                                      node->getConfig().genesis.chain_id));
+      if (i % 10000 == 0) {
+        std::cout << "Transactions created: " << i << std::endl;
+      }
+    }
+
+    auto inexe = node->getDB()->getNumTransactionExecuted();
+    auto now = std::chrono::steady_clock::now();
+    for (uint64_t i = 0; i < trx_count; i++) {
+      // addr_t to(100000 + i);
+      // auto result = trx_client.coinTransfer(/*KeyPair::create().address()*/ addr_t(100000000l + (i % 50)), 10, {},
+      // false); EXPECT_EQ(result.stage, TransactionClient::TransactionStage::inserted);
+
+      /*std::vector<std::pair<std::shared_ptr<Transaction>, TransactionStatus>> txs1{
+          {trxs[i], TransactionStatus::Verified}};
+      node->getTransactionManager()->insertValidatedTransactions(std::move(txs1));*/
+      if (i < trx_count - 1) {
+        auto r = node->getTransactionManager()->insertTransaction(trxs[i]);
+        if (!r.first) {
+          std::cout << "ERROR INSERT: " << r.second << std::endl;
+        }
+        if (i % 5 == 0) thisThreadSleepForMilliSeconds(1);
+      } else {
+        i--;
+        thisThreadSleepForMilliSeconds(1000);
+      }
+
+      if (i % 10000 == 0 || i == trx_count - 2) {
+        auto elapsed_time_in_ms =
+            std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - now).count();
+
+        if (elapsed_time_in_ms) {
+          std::cout << "Node: "
+                    << ". Transactions inserted: " << i
+                    << " N1 Transactions executed: " << node->getDB()->getNumTransactionExecuted() - inexe
+                    << " Transactions in DAG: " << node->getDB()->getNumTransactionInDag()
+                    << " Transactions executed per second: "
+                    << (node->getDB()->getNumTransactionExecuted() - inexe) * 1000 / elapsed_time_in_ms << std::endl;
+        }
+
+        // Stop feeding transactions if too many transactions in pool or unexecuted
+        // while (node->getTransactionManager()->getTransactionPoolSize() > 100000 ||
+        //       node->getDB()->getNumTransactionInDag() - node->getDB()->getNumTransactionExecuted() > 100000) {
+        //  thisThreadSleepForMilliSeconds(1);
+        //}
+      }
+    }
+  });
+
+  if (param1.isNull()) return res;
   return res;
 }
 

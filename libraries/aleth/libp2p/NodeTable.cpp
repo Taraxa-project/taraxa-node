@@ -368,6 +368,7 @@ void NodeTable::dropNode(shared_ptr<NodeEntry> _n) {
 NodeTable::NodeBucket& NodeTable::bucket_UNSAFE(NodeEntry const* _n) { return m_buckets[_n->distance - 1]; }
 
 void NodeTable::onPacketReceived(UDPSocketFace*, bi::udp::endpoint const& _from, bytesConstRef _packet) {
+  LOG(m_logger) << "onPacketReceived ";
   auto node_ip = _from;
   {
     Guard l(x_ips);
