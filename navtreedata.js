@@ -336,8 +336,8 @@ var NAVTREEINDEX =
 "state__config_8hpp.html#a79474e94e8b7bddd9319b13a2bbb18d0",
 "structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_persistent_state",
 "structdev_1_1p2p_1_1_u_d_p_socket_face.html#a9106e4f9a26c0cda3b865c638a7788ed",
-"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a943bfb9713bbbf6adaeccac20925c3b8",
-"verified__votes_8hpp_source.html"
+"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a855a78293e92333fe5609f47714a79b5",
+"verified__votes_8hpp.html#afc780cd89307f2097bb4281488e325bfab4f6c1353c76c2aecdfcd3fcc3e8241d"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

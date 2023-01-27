@@ -33,13 +33,14 @@ var NAVTREEINDEX22 =
 "structtaraxa_1_1_dag_frontier.html#ac34ac011d52c143ba3232dfc13476bb6":[14,0,3,54,3],
 "structtaraxa_1_1_dag_frontier.html#af057794db9c48bdc0b7b71d76d89cf41":[14,0,3,54,2],
 "structtaraxa_1_1_ddos_protection_config.html":[14,0,3,21],
-"structtaraxa_1_1_ddos_protection_config.html#a1cd0da47a626df0262a2de8fb11950dc":[14,0,3,21,3],
+"structtaraxa_1_1_ddos_protection_config.html#a1cd0da47a626df0262a2de8fb11950dc":[14,0,3,21,4],
+"structtaraxa_1_1_ddos_protection_config.html#a754560f8810f02fd4669b65c1e033620":[14,0,3,21,3],
 "structtaraxa_1_1_ddos_protection_config.html#a7f95401e2a468ced0de219a56e0bdefd":[14,0,3,21,2],
-"structtaraxa_1_1_ddos_protection_config.html#a9c38a5a9bf0dd0de07104a2136841356":[14,0,3,21,6],
+"structtaraxa_1_1_ddos_protection_config.html#a9c38a5a9bf0dd0de07104a2136841356":[14,0,3,21,7],
 "structtaraxa_1_1_ddos_protection_config.html#aa3f778b1ac75f673a81b5d733d510c6e":[14,0,3,21,0],
-"structtaraxa_1_1_ddos_protection_config.html#aa64afdf887275977afaaf436cd1f5d57":[14,0,3,21,5],
-"structtaraxa_1_1_ddos_protection_config.html#ac7ebf3adcb6de5385c8cce64be5a59b1":[14,0,3,21,7],
-"structtaraxa_1_1_ddos_protection_config.html#ad397e2566fc469b163720d5ce9c7b2a6":[14,0,3,21,4],
+"structtaraxa_1_1_ddos_protection_config.html#aa64afdf887275977afaaf436cd1f5d57":[14,0,3,21,6],
+"structtaraxa_1_1_ddos_protection_config.html#ac7ebf3adcb6de5385c8cce64be5a59b1":[14,0,3,21,8],
+"structtaraxa_1_1_ddos_protection_config.html#ad397e2566fc469b163720d5ce9c7b2a6":[14,0,3,21,5],
 "structtaraxa_1_1_ddos_protection_config.html#afebf1c6865de0152e78970a87bc068fd":[14,0,3,21,1],
 "structtaraxa_1_1_full_node_config.html":[14,0,3,13],
 "structtaraxa_1_1_full_node_config.html#a0a81eb125af3592470454f1f932b07fe":[14,0,3,13,23],
@@ -248,6 +249,5 @@ var NAVTREEINDEX22 =
 "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a11e4826e5170008b2efe4c5ac309c4c1":[14,0,3,7,4,0],
 "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a31db61ce7d91cf934eb10dc70b0d4672":[14,0,3,7,4,4],
 "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a3dc6fb187801345b1d2991e0dd48865a":[14,0,3,7,4,3],
-"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a53b07cb9d48fb974fad6cffceabb9397":[14,0,3,7,4,1],
-"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a855a78293e92333fe5609f47714a79b5":[14,0,3,7,4,2]
+"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a53b07cb9d48fb974fad6cffceabb9397":[14,0,3,7,4,1]
 };
