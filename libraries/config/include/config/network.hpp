@@ -48,6 +48,9 @@ struct DdosProtectionConfig {
   // Peer's max allowed packets processing time during packets_stats_time_period_ms
   std::chrono::microseconds peer_max_packets_processing_time_us{0};
 
+  // Max packets queue size, 0 means unlimited
+  uint64_t max_packets_queue_size{0};
+
   void validate(uint32_t delegation_delay) const;
   bool isPeerPacketsProtectionEnabled() const;
 };
