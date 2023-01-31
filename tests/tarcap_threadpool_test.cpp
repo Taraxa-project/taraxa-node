@@ -2,6 +2,7 @@
 
 #include <tuple>
 
+#include "test_util/test_util.hpp"
 #include "config/config.hpp"
 #include "dag/dag_block.hpp"
 #include "logger/logger.hpp"
@@ -9,6 +10,8 @@
 #include "network/tarcap/threadpool/tarcap_thread_pool.hpp"
 
 namespace taraxa::core_tests {
+
+using namespace std::literals;
 
 // Do not use NodesTest from "test_util/gtest.hpp" as its functionality is not needed in this test
 struct NodesTest : virtual testing::Test {
@@ -55,6 +58,11 @@ class PacketsProcessingInfo {
     }
 
     return found_packet_info->second;
+  }
+
+  size_t getPacketProcessingTimesCount() const {
+    std::shared_lock<std::shared_mutex> lock(mutex_);
+    return packets_processing_times_.size();
   }
 
  private:
@@ -294,8 +302,8 @@ size_t queuesSize(const tarcap::TarcapThreadPool& tp) {
   return high_priority_queue_size + mid_priority_queue_size + low_priority_queue_size;
 }
 
-// Extra delay for queue locking, popping packets, etc... on top of how much time is packet processing taking
-constexpr size_t WAIT_TRESHOLD_MS = 15;
+// Threshold for packets queue to be emptied 
+constexpr std::chrono::milliseconds QUEUE_EMPTIED_WAIT_TRESHOLD_MS = 15ms;
 
 // Test if all "block-free" packets are processed concurrently
 // Note: in case someone creates new blocking dependency and does not adjust tests, this test should fail
@@ -359,7 +367,9 @@ TEST_F(TarcapTpTest, block_free_packets) {
 
   const auto packet16_pbft_next_votes_id =
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotesSyncPacket, {})).value();
-  const auto packet17_pbft_next_votes_id =
+
+  size_t packets_count = 0;
+  const auto packet17_pbft_next_votes_id = packets_count =
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotesSyncPacket, {})).value();
 
   tp.startProcessing();
@@ -388,10 +398,15 @@ TEST_F(TarcapTpTest, block_free_packets) {
     0.....................20.................... time [ms]
   */
 
-  // Wait specific amount of time during which all packets should be already processed if concurrent processing works as
-  // it is supposed to
-  std::this_thread::sleep_for(std::chrono::milliseconds(20 + WAIT_TRESHOLD_MS));
+  // All packets should be already being processed after short amount of time
+  std::this_thread::sleep_for(QUEUE_EMPTIED_WAIT_TRESHOLD_MS);
   EXPECT_EQ(queuesSize(tp), 0);
+
+  // Wait until processing of all packets is finished - in some edge cases it might be little bit delayed due to locking 
+  EXPECT_HAPPENS({500s, 20ms}, [&](auto &ctx) {
+    // Check if transactions was propagated to node0
+    WAIT_EXPECT_EQ(ctx, init_data.packets_processing_info->getPacketProcessingTimesCount(), packets_count + 1)
+  });
 
   // Check order of packets how they were processed
   const auto packets_proc_info = init_data.packets_processing_info;
@@ -473,7 +488,9 @@ TEST_F(TarcapTpTest, hard_blocking_deps) {
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::PbftSyncPacket, {})).value();
   const auto packet7_pbft_sync_id =
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::PbftSyncPacket, {})).value();
-  const auto packet8_get_dag_sync_id =
+
+  size_t packets_count = 0;
+  const auto packet8_get_dag_sync_id = packets_count =
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::GetDagSyncPacket, {})).value();
 
   tp.startProcessing();
@@ -510,13 +527,18 @@ TEST_F(TarcapTpTest, hard_blocking_deps) {
                                                        ------------------------
                                                        - packet8_get_dag_sync -
                                                        ------------------------
-    0......................20........................60........................80.......... time
+    0......................20........................40........................60.......... time
   */
 
-  // Wait specific amount of time during which all packets should be already processed if concurrent processing works as
-  // it is supposed to
-  std::this_thread::sleep_for(std::chrono::milliseconds(60 + WAIT_TRESHOLD_MS));
+  // All packets should be already being processed after short amount of time
+  std::this_thread::sleep_for(60ms + QUEUE_EMPTIED_WAIT_TRESHOLD_MS);
   EXPECT_EQ(queuesSize(tp), 0);
+
+  // Wait until processing of all packets is finished - in some edge cases it might be little bit delayed due to locking 
+  EXPECT_HAPPENS({500s, 20ms}, [&](auto &ctx) {
+    // Check if transactions was propagated to node0
+    WAIT_EXPECT_EQ(ctx, init_data.packets_processing_info->getPacketProcessingTimesCount(), packets_count + 1)
+  });
 
   // Check order of packets how they were processed
   const auto packets_proc_info = init_data.packets_processing_info;
@@ -580,7 +602,9 @@ TEST_F(TarcapTpTest, peer_order_blocking_deps) {
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagSyncPacket)).value();
   const auto packet3_tx_id =
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TransactionPacket)).value();
-  const auto packet4_dag_block_id =
+
+  size_t packets_count = 0;
+  const auto packet4_dag_block_id = packets_count =
       tp.push(
             createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket, {createDagBlockRlp(1)}))
           .value();
@@ -610,10 +634,15 @@ TEST_F(TarcapTpTest, peer_order_blocking_deps) {
 
   tp.startProcessing();
 
-  // Wait specific amount of time during which all packets should be already processed if concurrent processing works as
-  // it is supposed to
-  std::this_thread::sleep_for(std::chrono::milliseconds(60 + WAIT_TRESHOLD_MS));
+  // All packets should be already being processed after short amount of time
+  std::this_thread::sleep_for(60ms + QUEUE_EMPTIED_WAIT_TRESHOLD_MS);
   EXPECT_EQ(queuesSize(tp), 0);
+
+  // Wait until processing of all packets is finished - in some edge cases it might be little bit delayed due to locking 
+  EXPECT_HAPPENS({500s, 20ms}, [&](auto &ctx) {
+    // Check if transactions was propagated to node0
+    WAIT_EXPECT_EQ(ctx, init_data.packets_processing_info->getPacketProcessingTimesCount(), packets_count + 1)
+  });
 
   // Check order of packets how they were processed
   const auto packets_proc_info = init_data.packets_processing_info;
@@ -662,7 +691,9 @@ TEST_F(TarcapTpTest, same_dag_blks_ordering) {
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket, {dag_block})).value();
   const auto blk3_id =
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket, {dag_block})).value();
-  const auto blk4_id =
+
+  size_t packets_count = 0;
+  const auto blk4_id = packets_count =
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket, {dag_block})).value();
 
   tp.startProcessing();
@@ -670,10 +701,15 @@ TEST_F(TarcapTpTest, same_dag_blks_ordering) {
   // How should dag blocks packets be processed:
   // Same dag blocks should not be processed concurrently but one after another
 
-  // Wait specific amount of time during which all packets should be already processed as
-  // it is supposed to
-  std::this_thread::sleep_for(std::chrono::milliseconds(200 + WAIT_TRESHOLD_MS));
+  // All packets should be already being processed after short amount of time
+  std::this_thread::sleep_for(200ms + QUEUE_EMPTIED_WAIT_TRESHOLD_MS);
   EXPECT_EQ(queuesSize(tp), 0);
+
+  // Wait until processing of all packets is finished - in some edge cases it might be little bit delayed due to locking 
+  EXPECT_HAPPENS({500s, 20ms}, [&](auto &ctx) {
+    // Check if transactions was propagated to node0
+    WAIT_EXPECT_EQ(ctx, init_data.packets_processing_info->getPacketProcessingTimesCount(), packets_count + 1)
+  });
 
   // Check order of packets how they were processed
   const auto packets_proc_info = init_data.packets_processing_info;
@@ -725,9 +761,11 @@ TEST_F(TarcapTpTest, dag_blks_lvls_ordering) {
   const auto blk4_lvl2_id = tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket,
                                                  {createDagBlockRlp(2, 5)}))
                                 .value();
-  const auto blk5_lvl3_id = tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket,
-                                                 {createDagBlockRlp(3, 6)}))
-                                .value();
+
+  size_t packets_count = 0;
+  const auto blk5_lvl3_id = packets_count =
+                            tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket,
+                                                 {createDagBlockRlp(3, 6)})).value();
 
   tp.startProcessing();
 
@@ -757,10 +795,15 @@ TEST_F(TarcapTpTest, dag_blks_lvls_ordering) {
     0...........20............40............60.............80................. time [ms]
   */
 
-  // Wait specific amount of time during which all packets should be already processed if concurrent processing works as
-  // it is supposed to
-  std::this_thread::sleep_for(std::chrono::milliseconds(80 + WAIT_TRESHOLD_MS));
+  // All packets should be already being processed after short amount of time
+  std::this_thread::sleep_for(80ms + QUEUE_EMPTIED_WAIT_TRESHOLD_MS);
   EXPECT_EQ(queuesSize(tp), 0);
+
+  // Wait until processing of all packets is finished - in some edge cases it might be little bit delayed due to locking 
+  EXPECT_HAPPENS({500s, 20ms}, [&](auto &ctx) {
+    // Check if transactions was propagated to node0
+    WAIT_EXPECT_EQ(ctx, init_data.packets_processing_info->getPacketProcessingTimesCount(), packets_count + 1)
+  });
 
   // Check order of packets how they were processed
   const auto packets_proc_info = init_data.packets_processing_info;
@@ -847,9 +890,8 @@ TEST_F(TarcapTpTest, threads_borrowing) {
     0..............100...............200........... time [ms]
    */
 
-  // Wait specific amount of time during which first 8 packets should be already processed if
-  // concurrent processing works as it is supposed to
-  std::this_thread::sleep_for(std::chrono::milliseconds(100 + WAIT_TRESHOLD_MS));
+  // First 8 packets should be already processed by this time
+  std::this_thread::sleep_for(100ms + QUEUE_EMPTIED_WAIT_TRESHOLD_MS);
   EXPECT_LE(queuesSize(tp), 2);
 
   // Check order of packets how they were processed
@@ -968,9 +1010,8 @@ TEST_F(TarcapTpTest, low_priotity_queue_starvation) {
     0.................20.................40................... time [ms]
   */
 
-  // Wait specific amount of time during which all packets should be already processed if concurrent processing works as
-  // it is supposed to
-  std::this_thread::sleep_for(std::chrono::milliseconds(40 + WAIT_TRESHOLD_MS));
+  std::this_thread::sleep_for(40ms + QUEUE_EMPTIED_WAIT_TRESHOLD_MS);
+  
   const auto [high_priority_queue_size, mid_priority_queue_size, low_priority_queue_size] = tp.getQueueSize();
 
   EXPECT_GT(high_priority_queue_size, 0);
