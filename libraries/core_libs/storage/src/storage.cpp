@@ -301,6 +301,16 @@ std::set<blk_hash_t> DbStorage::getBlocksByLevel(level_t level) {
   return rlp.toSet<blk_hash_t>();
 }
 
+level_t DbStorage::getLastBlocksLevel() const {
+  level_t level = 0;
+  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::dag_blocks_index)));
+  it->SeekToLast();
+  if (it->Valid()) {
+    memcpy(&level, it->key().data(), sizeof(level_t));
+  }
+  return level;
+}
+
 std::vector<std::shared_ptr<DagBlock>> DbStorage::getDagBlocksAtLevel(level_t level, int number_of_levels) {
   std::vector<std::shared_ptr<DagBlock>> res;
   for (int i = 0; i < number_of_levels; i++) {

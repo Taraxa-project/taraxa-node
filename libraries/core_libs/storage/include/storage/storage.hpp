@@ -205,6 +205,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
   bool dagBlockInDb(blk_hash_t const& hash);
   std::set<blk_hash_t> getBlocksByLevel(level_t level);
+  level_t getLastBlocksLevel() const;
   std::vector<std::shared_ptr<DagBlock>> getDagBlocksAtLevel(level_t level, int number_of_levels);
   void updateDagBlockCounters(std::vector<DagBlock> blks);
   std::map<level_t, std::vector<DagBlock>> getNonfinalizedDagBlocks();

@@ -23,11 +23,12 @@ DagManager::DagManager(const DagBlock &dag_genesis_block, addr_t node_addr, cons
                        std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
                        std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager, bool is_light_node,
                        uint64_t light_node_history, uint32_t max_levels_per_period, uint32_t dag_expiry_limit) try
-    : pivot_tree_(std::make_shared<PivotTree>(dag_genesis_block.getHash(), node_addr)),
+    : max_level_(db->getLastBlocksLevel()),
+      pivot_tree_(std::make_shared<PivotTree>(dag_genesis_block.getHash(), node_addr)),
       total_dag_(std::make_shared<Dag>(dag_genesis_block.getHash(), node_addr)),
-      trx_mgr_(trx_mgr),
-      pbft_chain_(pbft_chain),
-      db_(db),
+      trx_mgr_(std::move(trx_mgr)),
+      pbft_chain_(std::move(pbft_chain)),
+      db_(std::move(db)),
       key_manager_(std::move(key_manager)),
       anchor_(dag_genesis_block.getHash()),
       period_(0),
@@ -39,7 +40,7 @@ DagManager::DagManager(const DagBlock &dag_genesis_block, addr_t node_addr, cons
       max_levels_per_period_(max_levels_per_period),
       dag_expiry_limit_(dag_expiry_limit),
       seen_blocks_(cache_max_size_, cache_delete_step_),
-      final_chain_(final_chain) {
+      final_chain_(std::move(final_chain)) {
   LOG_OBJECTS_CREATE("DAGMGR");
   if (auto ret = getLatestPivotAndTips(); ret) {
     frontier_.pivot = ret->first;
