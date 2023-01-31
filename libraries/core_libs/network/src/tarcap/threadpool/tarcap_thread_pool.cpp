@@ -97,7 +97,6 @@ void TarcapThreadPool::processPacket(size_t worker_id) {
         return;
       }
 
-      LOG(log_dg_) << "Worker (" << worker_id << ") waiting for packets to be processed.";
       cond_var_.wait(lock);
     }
 
