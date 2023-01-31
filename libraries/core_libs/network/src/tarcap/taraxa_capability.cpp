@@ -331,18 +331,21 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
     return;
   }
 
+  const auto [hp_queue_size, mp_queue_size, lp_queue_size] = thread_pool_->getQueueSize();
+  const size_t tp_queue_size = hp_queue_size + mp_queue_size + lp_queue_size;
+
   // Check max allowed packets queue size
   if (kConf.network.ddos_protection.max_packets_queue_size) {
-    const auto [hp_queue_size, mp_queue_size, lp_queue_size] = thread_pool_->getQueueSize();
-    if (hp_queue_size + mp_queue_size + lp_queue_size > kConf.network.ddos_protection.max_packets_queue_size) {
+    if (tp_queue_size > kConf.network.ddos_protection.max_packets_queue_size) {
       LOG(log_wr_) << "Ignored " << convertPacketTypeToString(packet_type) << ". Max allowed packets queue size "
-                   << kConf.network.ddos_protection.max_packets_queue_size << " exceeded";
+                   << kConf.network.ddos_protection.max_packets_queue_size << " exceeded: " << tp_queue_size;
       return;
     }
   }
 
-  // Check peer's max allowed packets processing time
-  if (kConf.network.ddos_protection.isPeerPacketsProtectionEnabled()) {
+  // Check peer's max allowed packets processing time in case peer_max_packets_queue_size_limit was exceeded
+  if (kConf.network.ddos_protection.isPeerPacketsProtectionEnabled() &&
+      tp_queue_size > kConf.network.ddos_protection.peer_max_packets_queue_size_limit) {
     const auto [start_time, peer_packets_stats] = peer.first->getAllPacketsStatsCopy();
     // As start_time is reset in independent thread, it might be few ms out of sync - subtract extra 250ms for this
     const auto current_time_period = std::chrono::duration_cast<std::chrono::milliseconds>(

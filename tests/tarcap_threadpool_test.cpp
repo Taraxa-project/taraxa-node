@@ -2,12 +2,12 @@
 
 #include <tuple>
 
-#include "test_util/test_util.hpp"
 #include "config/config.hpp"
 #include "dag/dag_block.hpp"
 #include "logger/logger.hpp"
 #include "network/tarcap/packets_handler.hpp"
 #include "network/tarcap/threadpool/tarcap_thread_pool.hpp"
+#include "test_util/test_util.hpp"
 
 namespace taraxa::core_tests {
 
@@ -302,7 +302,7 @@ size_t queuesSize(const tarcap::TarcapThreadPool& tp) {
   return high_priority_queue_size + mid_priority_queue_size + low_priority_queue_size;
 }
 
-// Threshold for packets queue to be emptied 
+// Threshold for packets queue to be emptied
 constexpr std::chrono::milliseconds QUEUE_EMPTIED_WAIT_TRESHOLD_MS = 15ms;
 
 // Test if all "block-free" packets are processed concurrently
@@ -402,8 +402,8 @@ TEST_F(TarcapTpTest, block_free_packets) {
   std::this_thread::sleep_for(QUEUE_EMPTIED_WAIT_TRESHOLD_MS);
   EXPECT_EQ(queuesSize(tp), 0);
 
-  // Wait until processing of all packets is finished - in some edge cases it might be little bit delayed due to locking 
-  EXPECT_HAPPENS({500s, 20ms}, [&](auto &ctx) {
+  // Wait until processing of all packets is finished - in some edge cases it might be little bit delayed due to locking
+  EXPECT_HAPPENS({500s, 20ms}, [&](auto& ctx) {
     // Check if transactions was propagated to node0
     WAIT_EXPECT_EQ(ctx, init_data.packets_processing_info->getPacketProcessingTimesCount(), packets_count + 1)
   });
@@ -534,8 +534,8 @@ TEST_F(TarcapTpTest, hard_blocking_deps) {
   std::this_thread::sleep_for(60ms + QUEUE_EMPTIED_WAIT_TRESHOLD_MS);
   EXPECT_EQ(queuesSize(tp), 0);
 
-  // Wait until processing of all packets is finished - in some edge cases it might be little bit delayed due to locking 
-  EXPECT_HAPPENS({500s, 20ms}, [&](auto &ctx) {
+  // Wait until processing of all packets is finished - in some edge cases it might be little bit delayed due to locking
+  EXPECT_HAPPENS({500s, 20ms}, [&](auto& ctx) {
     // Check if transactions was propagated to node0
     WAIT_EXPECT_EQ(ctx, init_data.packets_processing_info->getPacketProcessingTimesCount(), packets_count + 1)
   });
@@ -638,8 +638,8 @@ TEST_F(TarcapTpTest, peer_order_blocking_deps) {
   std::this_thread::sleep_for(60ms + QUEUE_EMPTIED_WAIT_TRESHOLD_MS);
   EXPECT_EQ(queuesSize(tp), 0);
 
-  // Wait until processing of all packets is finished - in some edge cases it might be little bit delayed due to locking 
-  EXPECT_HAPPENS({500s, 20ms}, [&](auto &ctx) {
+  // Wait until processing of all packets is finished - in some edge cases it might be little bit delayed due to locking
+  EXPECT_HAPPENS({500s, 20ms}, [&](auto& ctx) {
     // Check if transactions was propagated to node0
     WAIT_EXPECT_EQ(ctx, init_data.packets_processing_info->getPacketProcessingTimesCount(), packets_count + 1)
   });
@@ -705,8 +705,8 @@ TEST_F(TarcapTpTest, same_dag_blks_ordering) {
   std::this_thread::sleep_for(200ms + QUEUE_EMPTIED_WAIT_TRESHOLD_MS);
   EXPECT_EQ(queuesSize(tp), 0);
 
-  // Wait until processing of all packets is finished - in some edge cases it might be little bit delayed due to locking 
-  EXPECT_HAPPENS({500s, 20ms}, [&](auto &ctx) {
+  // Wait until processing of all packets is finished - in some edge cases it might be little bit delayed due to locking
+  EXPECT_HAPPENS({500s, 20ms}, [&](auto& ctx) {
     // Check if transactions was propagated to node0
     WAIT_EXPECT_EQ(ctx, init_data.packets_processing_info->getPacketProcessingTimesCount(), packets_count + 1)
   });
@@ -764,8 +764,9 @@ TEST_F(TarcapTpTest, dag_blks_lvls_ordering) {
 
   size_t packets_count = 0;
   const auto blk5_lvl3_id = packets_count =
-                            tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket,
-                                                 {createDagBlockRlp(3, 6)})).value();
+      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket,
+                           {createDagBlockRlp(3, 6)}))
+          .value();
 
   tp.startProcessing();
 
@@ -799,8 +800,8 @@ TEST_F(TarcapTpTest, dag_blks_lvls_ordering) {
   std::this_thread::sleep_for(80ms + QUEUE_EMPTIED_WAIT_TRESHOLD_MS);
   EXPECT_EQ(queuesSize(tp), 0);
 
-  // Wait until processing of all packets is finished - in some edge cases it might be little bit delayed due to locking 
-  EXPECT_HAPPENS({500s, 20ms}, [&](auto &ctx) {
+  // Wait until processing of all packets is finished - in some edge cases it might be little bit delayed due to locking
+  EXPECT_HAPPENS({500s, 20ms}, [&](auto& ctx) {
     // Check if transactions was propagated to node0
     WAIT_EXPECT_EQ(ctx, init_data.packets_processing_info->getPacketProcessingTimesCount(), packets_count + 1)
   });
@@ -1009,7 +1010,7 @@ TEST_F(TarcapTpTest, low_priotity_queue_starvation) {
   */
 
   std::this_thread::sleep_for(40ms + QUEUE_EMPTIED_WAIT_TRESHOLD_MS);
-  
+
   const auto [high_priority_queue_size, mid_priority_queue_size, low_priority_queue_size] = tp.getQueueSize();
 
   EXPECT_GT(high_priority_queue_size, 0);

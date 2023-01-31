@@ -22,7 +22,8 @@
       "log_packets_stats": false,
       "packets_stats_time_period_ms": 60000,
       "peer_max_packets_processing_time_us": 0,
-      "max_packets_queue_size": 1000000
+      "peer_max_packets_queue_size_limit": 0,
+      "max_packets_queue_size": 500000
     },
     "listen_ip": "0.0.0.0",
     "listen_port": 10002,
