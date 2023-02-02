@@ -376,6 +376,7 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
                    << " exceeded: " << tp_queue_size << ". Peer with the highest processing time "
                    << peer_max_processing_time.second << " will be disconnected";
       host->disconnect(node_id, dev::p2p::UserReason);
+      return;
     }
   }
 
