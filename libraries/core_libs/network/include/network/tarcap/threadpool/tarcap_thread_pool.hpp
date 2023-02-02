@@ -76,7 +76,7 @@ class TarcapThreadPool {
   std::shared_ptr<PacketsHandler> packets_handlers_;
 
   // If true, stop processing packets and join all workers threads
-  bool stopProcessing_{false};
+  std::atomic<bool> stopProcessing_{false};
 
   // How many packets were pushed into the queue, it also serves for creating packet unique id
   uint64_t packets_count_{0};
