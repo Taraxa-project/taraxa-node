@@ -54,9 +54,7 @@ struct DdosProtectionConfig {
   uint64_t max_packets_queue_size{0};
 
   void validate(uint32_t delegation_delay) const;
-  bool isPeerPacketsProtectionEnabled() const;
 };
-DdosProtectionConfig dec_ddos_protection_config_json(const Json::Value &json);
 
 struct NetworkConfig {
   static constexpr uint16_t kBlacklistTimeoutDefaultInSeconds = 600;

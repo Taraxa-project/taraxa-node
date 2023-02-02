@@ -68,7 +68,7 @@ std::vector<dev::p2p::NodeID> PeersState::getAllPendingPeersIDs() const {
 
 PeersState::PeersMap PeersState::getAllPeers() const {
   std::shared_lock lock(peers_mutex_);
-  return PeersMap(peers_.begin(), peers_.end());
+  return peers_;
 }
 
 std::shared_ptr<TaraxaPeer> PeersState::addPendingPeer(const dev::p2p::NodeID& node_id) {

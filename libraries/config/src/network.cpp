@@ -59,8 +59,6 @@ void DdosProtectionConfig::validate(uint32_t delegation_delay) const {
   }
 }
 
-bool DdosProtectionConfig::isPeerPacketsProtectionEnabled() const { return peer_max_packets_queue_size_limit; }
-
 DdosProtectionConfig dec_ddos_protection_config_json(const Json::Value &json) {
   DdosProtectionConfig ddos_protection;
   ddos_protection.vote_accepting_periods = getConfigDataAsUInt(json, {"vote_accepting_periods"});
