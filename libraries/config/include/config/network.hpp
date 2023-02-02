@@ -47,14 +47,14 @@ struct DdosProtectionConfig {
   bool log_packets_stats = false;
   // Peer's max allowed packets processing time during packets_stats_time_period_ms
   std::chrono::microseconds peer_max_packets_processing_time_us{0};
+  // Queue size limit when we start dropping packets from peers if they exceed peer_max_packets_processing_time_us
+  uint64_t peer_max_packets_queue_size_limit{0};
 
   // Max packets queue size, 0 means unlimited
   uint64_t max_packets_queue_size{0};
 
   void validate(uint32_t delegation_delay) const;
-  bool isPeerPacketsProtectionEnabled() const;
 };
-DdosProtectionConfig dec_ddos_protection_config_json(const Json::Value &json);
 
 struct NetworkConfig {
   static constexpr uint16_t kBlacklistTimeoutDefaultInSeconds = 600;

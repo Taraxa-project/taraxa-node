@@ -45,16 +45,18 @@ void DdosProtectionConfig::validate(uint32_t delegation_delay) const {
                                       std::to_string(delegation_delay) + ")"));
   }
 
-  if ((log_packets_stats || isPeerPacketsProtectionEnabled()) && packets_stats_time_period_ms.count() == 0) {
+  if (peer_max_packets_queue_size_limit && peer_max_packets_processing_time_us.count() == 0) {
     throw ConfigException(
-        std::string("if network.ddos_protection.peer_max_packets_processing_time_us != 0 or "
+        std::string("if network.ddos_protection.peer_max_packets_queue_size_limit != 0 then "
+                    "network.ddos_protection.peer_max_packets_processing_time_us must be != 0 too"));
+  }
+
+  if ((log_packets_stats || peer_max_packets_queue_size_limit) && packets_stats_time_period_ms.count() == 0) {
+    throw ConfigException(
+        std::string("if network.ddos_protection.peer_max_packets_queue_size_limit != 0 or "
                     "network.ddos_protection.log_packets_stats == true then "
                     "network.ddos_protection.packets_stats_time_period_ms must be != 0 too"));
   }
-}
-
-bool DdosProtectionConfig::isPeerPacketsProtectionEnabled() const {
-  return peer_max_packets_processing_time_us.count() != 0;
 }
 
 DdosProtectionConfig dec_ddos_protection_config_json(const Json::Value &json) {
@@ -68,6 +70,8 @@ DdosProtectionConfig dec_ddos_protection_config_json(const Json::Value &json) {
       std::chrono::milliseconds{getConfigDataAsUInt(json, {"packets_stats_time_period_ms"})};
   ddos_protection.peer_max_packets_processing_time_us =
       std::chrono::microseconds{getConfigDataAsUInt64(json, {"peer_max_packets_processing_time_us"})};
+  ddos_protection.peer_max_packets_queue_size_limit =
+      getConfigDataAsUInt64(json, {"peer_max_packets_queue_size_limit"});
   ddos_protection.max_packets_queue_size = getConfigDataAsUInt64(json, {"max_packets_queue_size"});
   return ddos_protection;
 }

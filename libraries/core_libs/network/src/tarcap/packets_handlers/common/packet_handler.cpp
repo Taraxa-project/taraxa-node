@@ -45,9 +45,7 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
                                                                                   packet_data.receive_time_);
 
     PacketStats packet_stats{1 /* count */, packet_data.rlp_.data().size(), processing_duration, tp_wait_duration};
-    if (kConf.network.ddos_protection.isPeerPacketsProtectionEnabled()) {
-      peer.first->addSentPacket(packet_data.type_str_, packet_stats);
-    }
+    peer.first->addSentPacket(packet_data.type_str_, packet_stats);
 
     if (kConf.network.ddos_protection.log_packets_stats) {
       packets_stats_->addReceivedPacket(packet_data.type_str_, packet_data.from_node_id_, packet_stats);

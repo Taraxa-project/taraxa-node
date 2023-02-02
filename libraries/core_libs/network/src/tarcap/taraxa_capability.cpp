@@ -142,24 +142,19 @@ void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pb
     status_packet_handler->sendStatusToPeers();
   });
 
-  if (kConf.network.ddos_protection.log_packets_stats ||
-      kConf.network.ddos_protection.isPeerPacketsProtectionEnabled()) {
-    periodic_events_tp_->post_loop(
-        {static_cast<uint64_t>(kConf.network.ddos_protection.packets_stats_time_period_ms.count())},
-        [ddos_protection = kConf.network.ddos_protection, stats = packets_stats, peers_state = peers_state_] {
-          // Log interval + max packets stats only if enabled in config
-          if (ddos_protection.log_packets_stats) {
-            stats->processStats(peers_state);
-          }
+  periodic_events_tp_->post_loop(
+      {static_cast<uint64_t>(kConf.network.ddos_protection.packets_stats_time_period_ms.count())},
+      [ddos_protection = kConf.network.ddos_protection, stats = packets_stats, peers_state = peers_state_] {
+        // Log interval + max packets stats only if enabled in config
+        if (ddos_protection.log_packets_stats) {
+          stats->processStats(peers_state);
+        }
 
-          if (ddos_protection.isPeerPacketsProtectionEnabled()) {
-            // Per peer packets stats are used for ddos protection so they must be always reset
-            for (const auto &peer : peers_state->getAllPeers()) {
-              peer.second->resetPacketsStats();
-            }
-          }
-        });
-  }
+        // Per peer packets stats are used for ddos protection
+        for (const auto &peer : peers_state->getAllPeers()) {
+          peer.second->resetPacketsStats();
+        }
+      });
 
   // SUMMARY log periodic event
   const auto node_stats_log_interval = 5 * 6 * lambda_ms;
@@ -331,18 +326,12 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
     return;
   }
 
-  // Check max allowed packets queue size
-  if (kConf.network.ddos_protection.max_packets_queue_size) {
-    const auto [hp_queue_size, mp_queue_size, lp_queue_size] = thread_pool_->getQueueSize();
-    if (hp_queue_size + mp_queue_size + lp_queue_size > kConf.network.ddos_protection.max_packets_queue_size) {
-      LOG(log_wr_) << "Ignored " << convertPacketTypeToString(packet_type) << ". Max allowed packets queue size "
-                   << kConf.network.ddos_protection.max_packets_queue_size << " exceeded";
-      return;
-    }
-  }
+  const auto [hp_queue_size, mp_queue_size, lp_queue_size] = thread_pool_->getQueueSize();
+  const size_t tp_queue_size = hp_queue_size + mp_queue_size + lp_queue_size;
 
-  // Check peer's max allowed packets processing time
-  if (kConf.network.ddos_protection.isPeerPacketsProtectionEnabled()) {
+  // Check peer's max allowed packets processing time in case peer_max_packets_queue_size_limit was exceeded
+  if (kConf.network.ddos_protection.peer_max_packets_queue_size_limit &&
+      tp_queue_size > kConf.network.ddos_protection.peer_max_packets_queue_size_limit) {
     const auto [start_time, peer_packets_stats] = peer.first->getAllPacketsStatsCopy();
     // As start_time is reset in independent thread, it might be few ms out of sync - subtract extra 250ms for this
     const auto current_time_period = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -351,15 +340,43 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
     if (current_time_period <= kConf.network.ddos_protection.packets_stats_time_period_ms) {
       // Peer exceeded max allowed processing time for his packets
       if (peer_packets_stats.processing_duration_ > kConf.network.ddos_protection.peer_max_packets_processing_time_us) {
-        LOG(log_er_) << "Peer " << node_id
-                     << " exceeded max allowed packets processing time. Peer's current packets processing time "
-                     << peer_packets_stats.processing_duration_.count() << " us, max allowed processing time "
-                     << kConf.network.ddos_protection.peer_max_packets_processing_time_us.count() << " us";
+        LOG(log_er_) << "Ignored " << convertPacketTypeToString(packet_type) << " from " << node_id
+                     << ". Peer's current packets processing time " << peer_packets_stats.processing_duration_.count()
+                     << " us, max allowed processing time "
+                     << kConf.network.ddos_protection.peer_max_packets_processing_time_us.count()
+                     << " us. Peer will be disconnected";
         host->disconnect(node_id, dev::p2p::UserReason);
         return;
       }
     } else {
       LOG(log_wr_) << "Unable to validate peer's max allowed packets processing time due to invalid time period";
+    }
+  }
+
+  // Check max allowed packets queue size
+  if (kConf.network.ddos_protection.max_packets_queue_size &&
+      tp_queue_size > kConf.network.ddos_protection.max_packets_queue_size) {
+    const auto connected_peers = peers_state_->getAllPeers();
+    // Always keep at least 5 connected peers
+    if (connected_peers.size() > 5) {
+      // Find peer with the highest processing time and disconnect him
+      std::pair<std::chrono::microseconds, dev::p2p::NodeID> peer_max_processing_time{std::chrono::microseconds(0),
+                                                                                      dev::p2p::NodeID()};
+
+      for (const auto &connected_peer : connected_peers) {
+        const auto peer_packets_stats = connected_peer.second->getAllPacketsStatsCopy();
+
+        if (peer_packets_stats.second.processing_duration_ > peer_max_processing_time.first) {
+          peer_max_processing_time = {peer_packets_stats.second.processing_duration_, connected_peer.first};
+        }
+      }
+
+      // Disconnect peer with the highest processing time
+      LOG(log_er_) << "Max allowed packets queue size " << kConf.network.ddos_protection.max_packets_queue_size
+                   << " exceeded: " << tp_queue_size << ". Peer with the highest processing time "
+                   << peer_max_processing_time.second << " will be disconnected";
+      host->disconnect(node_id, dev::p2p::UserReason);
+      return;
     }
   }
 
