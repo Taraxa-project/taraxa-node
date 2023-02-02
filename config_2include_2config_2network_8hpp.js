@@ -13,7 +13,6 @@ var config_2include_2config_2network_8hpp =
     ] ],
     [ "DdosProtectionConfig", "structtaraxa_1_1_ddos_protection_config.html", "structtaraxa_1_1_ddos_protection_config" ],
     [ "NetworkConfig", "structtaraxa_1_1_network_config.html", "structtaraxa_1_1_network_config" ],
-    [ "dec_ddos_protection_config_json", "config_2include_2config_2network_8hpp.html#aa8f416533f421d87c50990a6aa205f6a", null ],
     [ "dec_json", "config_2include_2config_2network_8hpp.html#a74ad03c0d7a830dd89d7f10d6f941077", null ],
     [ "dec_json", "config_2include_2config_2network_8hpp.html#aa5e15ca58e0ad240f75a8c70883a00e0", null ]
 ];

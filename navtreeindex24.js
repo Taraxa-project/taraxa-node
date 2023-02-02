@@ -1,6 +1,5 @@
 var NAVTREEINDEX24 =
 {
-"verified__votes_8hpp.html#afc780cd89307f2097bb4281488e325bfa5c7ca0f667f2a592cd73c6fc8a0c874e":[15,0,1,4,0,0,5,0,2,1],
 "verified__votes_8hpp.html#afc780cd89307f2097bb4281488e325bfab4f6c1353c76c2aecdfcd3fcc3e8241d":[15,0,1,4,0,0,5,0,2,0],
 "verified__votes_8hpp_source.html":[15,0,1,4,0,0,5,0],
 "vote_8cpp.html":[15,0,1,7,3,1,0],

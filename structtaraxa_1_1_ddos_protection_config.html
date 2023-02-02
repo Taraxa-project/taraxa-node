@@ -96,8 +96,6 @@ $(document).ready(function(){initNavTree('structtaraxa_1_1_ddos_protection_confi
 Public Member Functions</h2></td></tr>
 <tr class="memitem:afebf1c6865de0152e78970a87bc068fd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_ddos_protection_config.html#afebf1c6865de0152e78970a87bc068fd">validate</a> (uint32_t delegation_delay) const</td></tr>
 <tr class="separator:afebf1c6865de0152e78970a87bc068fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aa3f778b1ac75f673a81b5d733d510c6e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_ddos_protection_config.html#aa3f778b1ac75f673a81b5d733d510c6e">isPeerPacketsProtectionEnabled</a> () const</td></tr>
-<tr class="separator:aa3f778b1ac75f673a81b5d733d510c6e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-attribs"></a>
 Public Attributes</h2></td></tr>
@@ -113,27 +111,12 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a7f95401e2a468ced0de219a56e0bdefd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad397e2566fc469b163720d5ce9c7b2a6"><td class="memItemLeft" align="right" valign="top">std::chrono::microseconds&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_ddos_protection_config.html#ad397e2566fc469b163720d5ce9c7b2a6">peer_max_packets_processing_time_us</a> {0}</td></tr>
 <tr class="separator:ad397e2566fc469b163720d5ce9c7b2a6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a55dc66edda745007b85a252228ce1766"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_ddos_protection_config.html#a55dc66edda745007b85a252228ce1766">peer_max_packets_queue_size_limit</a> {0}</td></tr>
+<tr class="separator:a55dc66edda745007b85a252228ce1766"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a754560f8810f02fd4669b65c1e033620"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_ddos_protection_config.html#a754560f8810f02fd4669b65c1e033620">max_packets_queue_size</a> {0}</td></tr>
 <tr class="separator:a754560f8810f02fd4669b65c1e033620"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="aa3f778b1ac75f673a81b5d733d510c6e"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aa3f778b1ac75f673a81b5d733d510c6e">&#9670;&nbsp;</a></span>isPeerPacketsProtectionEnabled()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">bool taraxa::DdosProtectionConfig::isPeerPacketsProtectionEnabled </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="afebf1c6865de0152e78970a87bc068fd"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#afebf1c6865de0152e78970a87bc068fd">&#9670;&nbsp;</a></span>validate()</h2>
 
@@ -203,6 +186,20 @@ Public Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::chrono::microseconds taraxa::DdosProtectionConfig::peer_max_packets_processing_time_us {0}</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a55dc66edda745007b85a252228ce1766"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a55dc66edda745007b85a252228ce1766">&#9670;&nbsp;</a></span>peer_max_packets_queue_size_limit</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t taraxa::DdosProtectionConfig::peer_max_packets_queue_size_limit {0}</td>
         </tr>
       </table>
 </div><div class="memdoc">

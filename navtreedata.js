@@ -325,19 +325,19 @@ var NAVTREEINDEX =
 "classtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_impl.html#a4db54dcc9c6d41ea3a79c7daa54d5f48",
 "classtaraxa_1_1network_1_1tarcap_1_1_packets_blocking_mask.html#a4489d756c7f43c016e4196982ec132ec",
 "classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a0278fa38ffa38ca0e781671601501687",
-"dir_082b103f59cff91bfb399cd9b4f404e3.html",
-"get__dag__sync__packet__handler_8hpp_source.html",
-"group___final_chain.html#a34e1f0898ade4066d3047e079e77d191",
-"group___p_b_f_t.html#a8b78847ba76f5d5060265adf8798a91c",
-"group___vote.html#a9f620cb9c77c758547a3591f848f52d2",
-"libdevcrypto_2_exceptions_8h_source.html",
-"md_doc_coding_practices.html#autotoc_md144",
-"namespacetaraxa.html#a0849089d35105b6fcb8ef8f7b350b89d",
-"state__config_8hpp.html#a71678cb3f5feb67a738df3d7d2f45270",
-"structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_known_node",
-"structdev_1_1p2p_1_1_u_d_p_socket_face.html",
-"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a53b07cb9d48fb974fad6cffceabb9397",
-"verified__votes_8hpp.html#afc780cd89307f2097bb4281488e325bfa5c7ca0f667f2a592cd73c6fc8a0c874e"
+"dir_08bf0f09b161111308ef9ead5ecd8aea.html",
+"get__next__votes__sync__packet__handler_8cpp.html",
+"group___final_chain.html#a3681f2fc87600ce90484dacfe07a14c6",
+"group___p_b_f_t.html#a8d79d23ef300f120ac5a365f79092952",
+"group___vote.html#aa0c587e8e6442373845d257b13fa7813",
+"libp2p_2_common_8cpp.html",
+"md_doc_coding_practices.html#autotoc_md145",
+"namespacetaraxa.html#a13ec6be411c3c352858744678e0690da",
+"state__config_8hpp.html#a79474e94e8b7bddd9319b13a2bbb18d0",
+"structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_persistent_state",
+"structdev_1_1p2p_1_1_u_d_p_socket_face.html#a9106e4f9a26c0cda3b865c638a7788ed",
+"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a855a78293e92333fe5609f47714a79b5",
+"verified__votes_8hpp.html#afc780cd89307f2097bb4281488e325bfab4f6c1353c76c2aecdfcd3fcc3e8241d"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
