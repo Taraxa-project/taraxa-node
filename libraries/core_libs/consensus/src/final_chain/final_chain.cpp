@@ -140,9 +140,13 @@ class FinalChainImpl final : public FinalChain {
     auto batch = db_->createWriteBatch();
 
     RewardsStats rewards_stats;
+    uint64_t dpos_vote_count = kCommitteeSize;
+    // Block zero
+    if (!new_blk.previous_block_cert_votes.empty()) [[unlikely]] {
+      dpos_vote_count = dpos_eligible_total_vote_count(new_blk.previous_block_cert_votes[0]->getPeriod());
+    }
     // returns list of validators for new_blk.transactions
-    std::vector<addr_t> txs_validators = rewards_stats.processStats(
-        new_blk, dpos_eligible_total_vote_count(new_blk.pbft_blk->getPeriod() - 1), kCommitteeSize);
+    const std::vector<addr_t> txs_validators = rewards_stats.processStats(new_blk, dpos_vote_count, kCommitteeSize);
 
     block_applying_emitter_.emit(block_header()->number + 1);
 
