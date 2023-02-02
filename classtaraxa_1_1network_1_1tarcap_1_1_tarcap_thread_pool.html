@@ -146,8 +146,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a95fe1f00f89371ed120d91fb0211b26f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acc7561813ac9cbdadd52de619457572a"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html">PacketsHandler</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#acc7561813ac9cbdadd52de619457572a">packets_handlers_</a></td></tr>
 <tr class="separator:acc7561813ac9cbdadd52de619457572a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a279cd9cf3d5e63260a8e0842ee058ed9"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#a279cd9cf3d5e63260a8e0842ee058ed9">stopProcessing_</a> {false}</td></tr>
-<tr class="separator:a279cd9cf3d5e63260a8e0842ee058ed9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae86094269fd7f9cd5529cbe8578b3149"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#ae86094269fd7f9cd5529cbe8578b3149">stopProcessing_</a> {false}</td></tr>
+<tr class="separator:ae86094269fd7f9cd5529cbe8578b3149"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a56fe5286eed1f8f3cb59a933411e6037"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#a56fe5286eed1f8f3cb59a933411e6037">packets_count_</a> {0}</td></tr>
 <tr class="separator:a56fe5286eed1f8f3cb59a933411e6037"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5ae47684ee7284a37a5002b7616f4482"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_priority_queue.html">PriorityQueue</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#a5ae47684ee7284a37a5002b7616f4482">queue_</a></td></tr>
@@ -556,8 +556,8 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a279cd9cf3d5e63260a8e0842ee058ed9"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a279cd9cf3d5e63260a8e0842ee058ed9">&#9670;&nbsp;</a></span>stopProcessing_</h2>
+<a id="ae86094269fd7f9cd5529cbe8578b3149"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae86094269fd7f9cd5529cbe8578b3149">&#9670;&nbsp;</a></span>stopProcessing_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -566,7 +566,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool taraxa::network::tarcap::TarcapThreadPool::stopProcessing_ {false}</td>
+          <td class="memname">std::atomic&lt;bool&gt; taraxa::network::tarcap::TarcapThreadPool::stopProcessing_ {false}</td>
         </tr>
       </table>
   </td>
