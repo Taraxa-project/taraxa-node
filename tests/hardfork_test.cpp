@@ -64,7 +64,7 @@ struct HardforkTest : WithDataDir {
 };
 
 TEST_F(HardforkTest, hardfork_override) {
-  auto default_json = cli::tools::getConfig(cli::Config::DEFAULT_CHAIN_ID);
+  auto default_json = cli::tools::getConfig(cli::Config::kDefaultChainId);
   auto default_hardforks = default_json["genesis"]["hardforks"];
   Json::Value config = default_json;
   auto &state_cfg = config["genesis"];

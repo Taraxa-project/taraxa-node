@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
   }
 
   /// Networking params.
-  unsigned short chain_id = static_cast<unsigned short>(taraxa::cli::Config::DEFAULT_CHAIN_ID);
+  unsigned short chain_id = static_cast<unsigned short>(taraxa::cli::Config::kDefaultChainId);
   if (vm.count("chain-id")) chain_id = vm["chain-id"].as<unsigned short>();
 
   std::string listen_ip = "0.0.0.0";
