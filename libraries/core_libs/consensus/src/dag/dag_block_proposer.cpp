@@ -67,11 +67,15 @@ bool DagBlockProposer::proposeDagBlock() {
     return false;
   }
 
+  const auto total_vote_count = final_chain_->dpos_eligible_total_vote_count(*proposal_period);
+  const auto vote_count = final_chain_->dpos_eligible_vote_count(*proposal_period, node_addr_);
+
   const auto period_block_hash = db_->getPeriodBlockHash(*proposal_period);
   // get sortition
   const auto sortition_params = dag_mgr_->sortitionParamsManager().getSortitionParams(*proposal_period);
   vdf_sortition::VdfSortition vdf(sortition_params, vrf_sk_,
-                                  VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+                                  VrfSortitionBase::makeVrfInput(propose_level, period_block_hash), vote_count,
+                                  total_vote_count);
   if (vdf.isStale(sortition_params)) {
     if (last_propose_level_ == propose_level) {
       if (num_tries_ < max_num_tries_) {

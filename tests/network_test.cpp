@@ -101,7 +101,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   const auto period_block_hash = db1->getPeriodBlockHash(proposal_period);
   const auto sortition_params = dag_mgr1->sortitionParamsManager().getSortitionParams(proposal_period);
   vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
-                                  VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash));
+                                  VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash), 1, 1);
   const auto dag_genesis = node1->getConfig().genesis.dag_genesis_block.getHash();
   dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trxs[0]});
   vdf.computeVdfSolution(sortition_params, vdf_msg, false);
@@ -126,7 +126,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
     const auto period_block_hash = db1->getPeriodBlockHash(proposal_period);
     const auto sortition_params = dag_mgr1->sortitionParamsManager().getSortitionParams(proposal_period);
     vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
-                                    VrfSortitionBase::makeVrfInput(proposal_level + 1, period_block_hash));
+                                    VrfSortitionBase::makeVrfInput(proposal_level + 1, period_block_hash), 1, 1);
     DagBlock blk(block_hash, proposal_level + 1, {}, {trxs[i + 1]->getHash()}, {}, vdf, node1->getSecretKey());
     dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
   }
@@ -441,44 +441,44 @@ TEST_F(NetworkTest, node_sync) {
 
   auto propose_level = 1;
   const auto period_block_hash = node1->getDB()->getPeriodBlockHash(propose_level);
-  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
 
   dev::bytes vdf_msg1 = DagManager::getVdfMessage(dag_genesis, {g_signed_trx_samples[1]});
   vdf1.computeVdfSolution(vdf_config, vdf_msg1, false);
   DagBlock blk1(dag_genesis, propose_level, {}, {g_signed_trx_samples[1]->getHash()}, estimation, vdf1, sk);
 
   propose_level = 2;
-  vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   dev::bytes vdf_msg2 = DagManager::getVdfMessage(blk1.getHash(), {g_signed_trx_samples[2]});
   vdf2.computeVdfSolution(vdf_config, vdf_msg2, false);
   DagBlock blk2(blk1.getHash(), propose_level, {}, {g_signed_trx_samples[2]->getHash()}, estimation, vdf2, sk);
 
   propose_level = 3;
-  vdf_sortition::VdfSortition vdf3(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf3(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   dev::bytes vdf_msg3 = DagManager::getVdfMessage(blk2.getHash(), {g_signed_trx_samples[3]});
   vdf3.computeVdfSolution(vdf_config, vdf_msg3, false);
   DagBlock blk3(blk2.getHash(), propose_level, {}, {g_signed_trx_samples[3]->getHash()}, estimation, vdf3, sk);
 
   propose_level = 4;
-  vdf_sortition::VdfSortition vdf4(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf4(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   dev::bytes vdf_msg4 = DagManager::getVdfMessage(blk3.getHash(), {g_signed_trx_samples[4]});
   vdf4.computeVdfSolution(vdf_config, vdf_msg4, false);
   DagBlock blk4(blk3.getHash(), propose_level, {}, {g_signed_trx_samples[4]->getHash()}, estimation, vdf4, sk);
 
   propose_level = 5;
-  vdf_sortition::VdfSortition vdf5(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf5(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   dev::bytes vdf_msg5 = DagManager::getVdfMessage(blk4.getHash(), {g_signed_trx_samples[5]});
   vdf5.computeVdfSolution(vdf_config, vdf_msg5, false);
   DagBlock blk5(blk4.getHash(), propose_level, {}, {g_signed_trx_samples[5]->getHash()}, estimation, vdf5, sk);
 
   propose_level = 6;
-  vdf_sortition::VdfSortition vdf6(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf6(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   dev::bytes vdf_msg6 = DagManager::getVdfMessage(blk5.getHash(), {g_signed_trx_samples[6]});
   vdf6.computeVdfSolution(vdf_config, vdf_msg6, false);
   DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()}, {g_signed_trx_samples[6]->getHash()},
@@ -536,7 +536,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   addr_t beneficiary(987);
 
   level_t level = 1;
-  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(level));
+  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(level), 1, 1);
   dev::bytes vdf_msg1 = DagManager::getVdfMessage(dag_genesis, {g_signed_trx_samples[0], g_signed_trx_samples[1]});
   vdf1.computeVdfSolution(vdf_config, vdf_msg1, false);
   DagBlock blk1(dag_genesis, 1, {}, {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, 0, vdf1,
@@ -590,7 +590,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   prev_block_hash = pbft_block1.getBlockHash();
 
   level = 2;
-  vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk, getRlpBytes(level));
+  vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk, getRlpBytes(level), 1, 1);
   dev::bytes vdf_msg2 = DagManager::getVdfMessage(blk1.getHash(), {g_signed_trx_samples[2], g_signed_trx_samples[3]});
   vdf2.computeVdfSolution(vdf_config, vdf_msg2, false);
   DagBlock blk2(blk1.getHash(), 2, {}, {g_signed_trx_samples[2]->getHash(), g_signed_trx_samples[3]->getHash()}, 0,
@@ -685,7 +685,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   PbftPeriod period = 1;
   addr_t beneficiary(876);
   level_t level = 1;
-  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(level));
+  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, getRlpBytes(level), 1, 1);
   dev::bytes vdf_msg1 = DagManager::getVdfMessage(dag_genesis, {g_signed_trx_samples[0], g_signed_trx_samples[1]});
   vdf1.computeVdfSolution(vdf_config, vdf_msg1, false);
   DagBlock blk1(dag_genesis, 1, {}, {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, 0, vdf1,
@@ -729,7 +729,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   // generate second PBFT block sample
   prev_block_hash = pbft_block1.getBlockHash();
   level = 2;
-  vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk, getRlpBytes(level));
+  vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk, getRlpBytes(level), 1, 1);
   dev::bytes vdf_msg2 = DagManager::getVdfMessage(blk1.getHash(), {g_signed_trx_samples[2], g_signed_trx_samples[3]});
   vdf2.computeVdfSolution(vdf_config, vdf_msg2, false);
   DagBlock blk2(blk1.getHash(), 2, {}, {g_signed_trx_samples[2]->getHash(), g_signed_trx_samples[3]->getHash()}, 0,
@@ -903,8 +903,8 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
   SortitionConfig vdf_config(node_cfgs[0].genesis.sortition);
   auto propose_level = 1;
   const auto period_block_hash = node1->getDB()->getPeriodBlockHash(propose_level);
-  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   dev::RLPStream s;
   dev::bytes vdf_msg1 = DagManager::getVdfMessage(dag_genesis, {g_signed_trx_samples[0], g_signed_trx_samples[1]});
   vdf1.computeVdfSolution(vdf_config, vdf_msg1, false);
@@ -914,8 +914,8 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
       {g_signed_trx_samples[0], TransactionStatus::Verified}, {g_signed_trx_samples[1], TransactionStatus::Verified}};
 
   propose_level = 2;
-  vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   dev::bytes vdf_msg2 = DagManager::getVdfMessage(blk1.getHash(), {g_signed_trx_samples[2]});
   vdf2.computeVdfSolution(vdf_config, vdf_msg2, false);
   DagBlock blk2(blk1.getHash(), propose_level, {}, {g_signed_trx_samples[2]->getHash()}, estimation, vdf2, sk);
@@ -923,8 +923,8 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
       {g_signed_trx_samples[2], TransactionStatus::Verified}};
 
   propose_level = 3;
-  vdf_sortition::VdfSortition vdf3(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf3(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   dev::bytes vdf_msg3 = DagManager::getVdfMessage(blk2.getHash(), {g_signed_trx_samples[3]});
   vdf3.computeVdfSolution(vdf_config, vdf_msg3, false);
   DagBlock blk3(blk2.getHash(), propose_level, {}, {g_signed_trx_samples[3]->getHash()}, estimation, vdf3, sk);
@@ -932,8 +932,8 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
       {g_signed_trx_samples[3], TransactionStatus::Verified}};
 
   propose_level = 4;
-  vdf_sortition::VdfSortition vdf4(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf4(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   dev::bytes vdf_msg4 = DagManager::getVdfMessage(blk3.getHash(), {g_signed_trx_samples[4]});
   vdf4.computeVdfSolution(vdf_config, vdf_msg4, false);
   DagBlock blk4(blk3.getHash(), propose_level, {}, {g_signed_trx_samples[4]->getHash()}, estimation, vdf4, sk);
@@ -941,8 +941,8 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
       {g_signed_trx_samples[4], TransactionStatus::Verified}};
 
   propose_level = 5;
-  vdf_sortition::VdfSortition vdf5(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf5(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   dev::bytes vdf_msg5 = DagManager::getVdfMessage(blk4.getHash(), {g_signed_trx_samples[5], g_signed_trx_samples[6],
                                                                    g_signed_trx_samples[7], g_signed_trx_samples[8]});
   vdf5.computeVdfSolution(vdf_config, vdf_msg5, false);
@@ -957,8 +957,8 @@ TEST_F(NetworkTest, node_sync_with_transactions) {
       {g_signed_trx_samples[8], TransactionStatus::Verified}};
 
   propose_level = 6;
-  vdf_sortition::VdfSortition vdf6(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf6(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   dev::bytes vdf_msg6 = DagManager::getVdfMessage(blk5.getHash(), {g_signed_trx_samples[9]});
   vdf6.computeVdfSolution(vdf_config, vdf_msg6, false);
   DagBlock blk6(blk5.getHash(), propose_level, {blk4.getHash(), blk3.getHash()}, {g_signed_trx_samples[9]->getHash()},
@@ -1032,8 +1032,8 @@ TEST_F(NetworkTest, node_sync2) {
   // DAG block1
   auto propose_level = 1;
   const auto period_block_hash = node1->getDB()->getPeriodBlockHash(propose_level);
-  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf1(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {transactions[0], transactions[1]});
   vdf1.computeVdfSolution(vdf_config, vdf_msg, false);
   DagBlock blk1(dag_genesis, propose_level, {}, {transactions[0]->getHash(), transactions[1]->getHash()},
@@ -1041,8 +1041,8 @@ TEST_F(NetworkTest, node_sync2) {
   SharedTransactions tr1({transactions[0], transactions[1]});
   // DAG block2
   propose_level = 1;
-  vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf2(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   vdf_msg = DagManager::getVdfMessage(dag_genesis, {transactions[2], transactions[3]});
   vdf2.computeVdfSolution(vdf_config, vdf_msg, false);
   DagBlock blk2(dag_genesis, propose_level, {}, {transactions[2]->getHash(), transactions[3]->getHash()},
@@ -1050,8 +1050,8 @@ TEST_F(NetworkTest, node_sync2) {
   SharedTransactions tr2({transactions[2], transactions[3]});
   // DAG block3
   propose_level = 2;
-  vdf_sortition::VdfSortition vdf3(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf3(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   vdf_msg = DagManager::getVdfMessage(blk1.getHash(), {transactions[4], transactions[5]});
   vdf3.computeVdfSolution(vdf_config, vdf_msg, false);
   DagBlock blk3(blk1.getHash(), propose_level, {}, {transactions[4]->getHash(), transactions[5]->getHash()},
@@ -1059,8 +1059,8 @@ TEST_F(NetworkTest, node_sync2) {
   SharedTransactions tr3({transactions[4], transactions[5]});
   // DAG block4
   propose_level = 3;
-  vdf_sortition::VdfSortition vdf4(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf4(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   vdf_msg = DagManager::getVdfMessage(blk3.getHash(), {transactions[6], transactions[7]});
   vdf4.computeVdfSolution(vdf_config, vdf_msg, false);
   DagBlock blk4(blk3.getHash(), propose_level, {}, {transactions[6]->getHash(), transactions[7]->getHash()},
@@ -1068,8 +1068,8 @@ TEST_F(NetworkTest, node_sync2) {
   SharedTransactions tr4({transactions[6], transactions[7]});
   // DAG block5
   propose_level = 2;
-  vdf_sortition::VdfSortition vdf5(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf5(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   vdf_msg = DagManager::getVdfMessage(blk2.getHash(), {transactions[8], transactions[9]});
   vdf5.computeVdfSolution(vdf_config, vdf_msg, false);
   DagBlock blk5(blk2.getHash(), propose_level, {}, {transactions[8]->getHash(), transactions[9]->getHash()},
@@ -1077,8 +1077,8 @@ TEST_F(NetworkTest, node_sync2) {
   SharedTransactions tr5({transactions[8], transactions[9]});
   // DAG block6
   propose_level = 2;
-  vdf_sortition::VdfSortition vdf6(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf6(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   vdf_msg = DagManager::getVdfMessage(blk1.getHash(), {transactions[10], transactions[11]});
   vdf6.computeVdfSolution(vdf_config, vdf_msg, false);
   DagBlock blk6(blk1.getHash(), propose_level, {}, {transactions[10]->getHash(), transactions[11]->getHash()},
@@ -1086,8 +1086,8 @@ TEST_F(NetworkTest, node_sync2) {
   SharedTransactions tr6({transactions[10], transactions[11]});
   // DAG block7
   propose_level = 3;
-  vdf_sortition::VdfSortition vdf7(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf7(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   vdf_msg = DagManager::getVdfMessage(blk6.getHash(), {transactions[12], transactions[13]});
   vdf7.computeVdfSolution(vdf_config, vdf_msg, false);
   DagBlock blk7(blk6.getHash(), propose_level, {}, {transactions[12]->getHash(), transactions[13]->getHash()},
@@ -1095,8 +1095,8 @@ TEST_F(NetworkTest, node_sync2) {
   SharedTransactions tr7({transactions[12], transactions[13]});
   // DAG block8
   propose_level = 4;
-  vdf_sortition::VdfSortition vdf8(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf8(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   vdf_msg = DagManager::getVdfMessage(blk1.getHash(), {transactions[14], transactions[15]});
   vdf8.computeVdfSolution(vdf_config, vdf_msg, false);
   DagBlock blk8(blk1.getHash(), propose_level, {blk7.getHash()},
@@ -1104,8 +1104,8 @@ TEST_F(NetworkTest, node_sync2) {
   SharedTransactions tr8({transactions[14], transactions[15]});
   // DAG block9
   propose_level = 2;
-  vdf_sortition::VdfSortition vdf9(vdf_config, vrf_sk,
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+  vdf_sortition::VdfSortition vdf9(vdf_config, vrf_sk, VrfSortitionBase::makeVrfInput(propose_level, period_block_hash),
+                                   1, 1);
   vdf_msg = DagManager::getVdfMessage(blk1.getHash(), {transactions[16], transactions[17]});
   vdf9.computeVdfSolution(vdf_config, vdf_msg, false);
   DagBlock blk9(blk1.getHash(), propose_level, {}, {transactions[16]->getHash(), transactions[17]->getHash()},
@@ -1114,7 +1114,7 @@ TEST_F(NetworkTest, node_sync2) {
   // DAG block10
   propose_level = 5;
   vdf_sortition::VdfSortition vdf10(vdf_config, vrf_sk,
-                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash), 1, 1);
   vdf_msg = DagManager::getVdfMessage(blk8.getHash(), {transactions[18], transactions[19]});
   vdf10.computeVdfSolution(vdf_config, vdf_msg, false);
   DagBlock blk10(blk8.getHash(), propose_level, {}, {transactions[18]->getHash(), transactions[19]->getHash()},
@@ -1123,7 +1123,7 @@ TEST_F(NetworkTest, node_sync2) {
   // DAG block11
   propose_level = 3;
   vdf_sortition::VdfSortition vdf11(vdf_config, vrf_sk,
-                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash), 1, 1);
   vdf_msg = DagManager::getVdfMessage(blk3.getHash(), {transactions[20], transactions[21]});
   vdf11.computeVdfSolution(vdf_config, vdf_msg, false);
   DagBlock blk11(blk3.getHash(), propose_level, {}, {transactions[20]->getHash(), transactions[21]->getHash()},
@@ -1132,7 +1132,7 @@ TEST_F(NetworkTest, node_sync2) {
   // DAG block12
   propose_level = 3;
   vdf_sortition::VdfSortition vdf12(vdf_config, vrf_sk,
-                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash), 1, 1);
   vdf_msg = DagManager::getVdfMessage(blk5.getHash(), {transactions[22], transactions[23]});
   vdf12.computeVdfSolution(vdf_config, vdf_msg, false);
   DagBlock blk12(blk5.getHash(), propose_level, {}, {transactions[22]->getHash(), transactions[23]->getHash()},

@@ -1568,7 +1568,7 @@ TEST_F(FullNodeTest, transaction_pool_overflow) {
   const auto sortition_params =
       nodes.front()->getDagManager()->sortitionParamsManager().getSortitionParams(proposal_period);
   vdf_sortition::VdfSortition vdf(sortition_params, node0->getVrfSecretKey(),
-                                  VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash));
+                                  VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash), 1, 2);
   const auto dag_genesis = node0->getConfig().genesis.dag_genesis_block.getHash();
   const auto estimation = node0->getTransactionManager()->estimateTransactionGas(trx, proposal_period);
   dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trx});

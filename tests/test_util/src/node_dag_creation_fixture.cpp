@@ -134,7 +134,7 @@ std::vector<NodeDagCreationFixture::DagBlockWithTxs> NodeDagCreationFixture::gen
       const auto proposal_period = db->getProposalPeriodForDagLevel(level);
       const auto period_block_hash = db->getPeriodBlockHash(*proposal_period);
       vdf_sortition::VdfSortition vdf(vdf_config, node->getVrfSecretKey(),
-                                      vrf_wrapper::VrfSortitionBase::makeVrfInput(level, period_block_hash));
+                                      vrf_wrapper::VrfSortitionBase::makeVrfInput(level, period_block_hash), 1, 1);
       vdf.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
       std::vector<trx_hash_t> trx_hashes;
       std::transform(trx_itr, trx_itr_next, std::back_inserter(trx_hashes),
@@ -153,7 +153,7 @@ std::vector<NodeDagCreationFixture::DagBlockWithTxs> NodeDagCreationFixture::gen
   const auto period_block_hash = db->getPeriodBlockHash(*proposal_period);
   auto level = start_level + levels;
   vdf_sortition::VdfSortition vdf(vdf_config, node->getVrfSecretKey(),
-                                  vrf_wrapper::VrfSortitionBase::makeVrfInput(level, period_block_hash));
+                                  vrf_wrapper::VrfSortitionBase::makeVrfInput(level, period_block_hash), 1, 1);
   vdf.computeVdfSolution(vdf_config, dag_genesis.asBytes(), false);
   DagBlock blk(pivot, level, tips, {transactions.rbegin()->get()->getHash()}, trx_per_block * trx_estimation, vdf,
                node->getSecretKey());

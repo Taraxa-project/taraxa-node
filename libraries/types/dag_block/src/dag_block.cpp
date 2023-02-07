@@ -117,7 +117,7 @@ bool DagBlock::verifySig() const {
 }
 
 void DagBlock::verifyVdf(const SortitionParams &vdf_config, const h256 &proposal_period_hash,
-                         const vrf_wrapper::vrf_pk_t &pk) const {
+                         const vrf_wrapper::vrf_pk_t &pk, uint64_t vote_count, uint64_t total_vote_count) const {
   dev::RLPStream s;
   s << getPivot();
   for (const auto &trx : getTrxs()) {
@@ -125,7 +125,8 @@ void DagBlock::verifyVdf(const SortitionParams &vdf_config, const h256 &proposal
   }
   dev::bytes vdf_msg = s.invalidate();
 
-  vdf_.verifyVdf(vdf_config, VrfSortitionBase::makeVrfInput(getLevel(), proposal_period_hash), pk, vdf_msg);
+  vdf_.verifyVdf(vdf_config, VrfSortitionBase::makeVrfInput(getLevel(), proposal_period_hash), pk, vdf_msg, vote_count,
+                 total_vote_count);
 }
 
 blk_hash_t const &DagBlock::getHash() const {

@@ -23,14 +23,15 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
   };
 
   VdfSortition() = default;
-  explicit VdfSortition(SortitionParams const& config, vrf_sk_t const& sk, bytes const& vrf_input);
+  explicit VdfSortition(SortitionParams const& config, vrf_sk_t const& sk, bytes const& vrf_input, uint64_t vote_count,
+                        uint64_t total_vote_count);
   explicit VdfSortition(bytes const& b);
   explicit VdfSortition(Json::Value const& json);
 
   void computeVdfSolution(const SortitionParams& config, const bytes& msg, const std::atomic_bool& cancelled);
 
-  void verifyVdf(SortitionParams const& config, bytes const& vrf_input, const vrf_pk_t& pk,
-                 bytes const& vdf_input) const;
+  void verifyVdf(SortitionParams const& config, bytes const& vrf_input, const vrf_pk_t& pk, bytes const& vdf_input,
+                 uint64_t vote_count, uint64_t total_vote_count) const;
 
   bytes rlp() const;
   bool operator==(VdfSortition const& other) const {
@@ -51,7 +52,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
 
   auto getComputationTime() const { return vdf_computation_time_; }
   uint16_t getDifficulty() const;
-  uint16_t calculateDifficulty(SortitionParams const& config) const;
+  uint16_t calculateDifficulty(SortitionParams const& config, uint64_t vote_count, uint64_t total_vote_count) const;
   bool isStale(SortitionParams const& config) const;
   Json::Value getJson() const;
 
