@@ -3,6 +3,7 @@
   "data_path": "/tmp/taraxa3",
   "network": {
     "rpc": {
+      "enabled": true,
       "http_port": 7779,
       "ws_port": 8779,
       "threads_num": 2

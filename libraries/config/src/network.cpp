@@ -4,37 +4,21 @@
 
 namespace taraxa {
 
-void dec_json(const Json::Value &json, PrometheusConfig &config) {
-  config.listen_port = getConfigData(json, {"listen_port"}).asUInt();
-  config.polling_interval_ms = getConfigData(json, {"polling_interval_ms"}).asUInt();
-}
-
 void ConnectionConfig::validate() const {
-  if (!http_port && !ws_port) {
+  if (enabled && !http_port.has_value() && !ws_port.has_value()) {
     throw ConfigException("Either http_port or ws_port post must be specified for connection config");
   }
 
-  // Max enabled number of threads for processing rpc requests
-  constexpr uint16_t MAX_RPC_THREADS_NUM = 10;
-  if (threads_num <= 0 || threads_num > MAX_RPC_THREADS_NUM) {
-    throw ConfigException(std::string("threads_num must be in range (0, ") + std::to_string(MAX_RPC_THREADS_NUM) + "]");
+  // Max enabled number of threads for processing requests
+  constexpr uint16_t kMaxThreadsNum = 10;
+  if (threads_num <= 0 || threads_num > kMaxThreadsNum) {
+    throw ConfigException(std::string("threads_num must be in range (0, ") + std::to_string(kMaxThreadsNum) + "]");
   }
 }
 
-void dec_json(const Json::Value &json, ConnectionConfig &config) {
-  // http port
-  if (auto http_port = getConfigData(json, {"http_port"}, true); !http_port.isNull()) {
-    config.http_port = http_port.asUInt();
-  }
-
-  // websocket port
-  if (auto ws_port = getConfigData(json, {"ws_port"}, true); !ws_port.isNull()) {
-    config.ws_port = ws_port.asUInt();
-  }
-
-  // number of threads processing rpc calls
-  if (auto threads_num = getConfigData(json, {"threads_num"}, true); !threads_num.isNull()) {
-    config.threads_num = threads_num.asUInt();
+void PrometheusConfig::validate() const {
+  if (enabled && !listen_port) {
+    throw ConfigException("listen_port must be specified for prometheus config");
   }
 }
 
@@ -77,13 +61,9 @@ DdosProtectionConfig dec_ddos_protection_config_json(const Json::Value &json) {
 }
 
 void NetworkConfig::validate(uint32_t delegation_delay) const {
-  if (rpc) {
-    rpc->validate();
-  }
-
-  if (graphql) {
-    graphql->validate();
-  }
+  rpc.validate();
+  graphql.validate();
+  prometheus.validate();
 
   ddos_protection.validate(delegation_delay);
 
@@ -139,32 +119,6 @@ void dec_json(const Json::Value &json, NetworkConfig &network) {
 
   for (auto &item : json["boot_nodes"]) {
     network.boot_nodes.push_back(dec_json(item));
-  }
-  auto listen_ip = boost::asio::ip::address::from_string(network.listen_ip);
-  // Rpc config
-  if (auto rpc_json = getConfigData(json, {"rpc"}, true); !rpc_json.isNull()) {
-    network.rpc.emplace();
-    // ip address
-    network.rpc->address = listen_ip;
-
-    dec_json(rpc_json, *network.rpc);
-  }
-
-  // GraphQL config
-  if (auto graphql_json = getConfigData(json, {"graphql"}, true); !graphql_json.isNull()) {
-    network.graphql.emplace();
-    // ip address
-    network.graphql->address = listen_ip;
-
-    dec_json(graphql_json, *network.graphql);
-  }
-
-  if (auto prometheus_json = getConfigData(json, {"prometheus"}, true); !prometheus_json.isNull()) {
-    network.prometheus.emplace();
-    // ip address
-    network.prometheus->address = network.listen_ip;
-
-    dec_json(prometheus_json, *network.prometheus);
   }
 }
 

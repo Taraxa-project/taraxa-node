@@ -1,7 +1,7 @@
 #include "cli/config.hpp"
 
-#include <libdevcore/CommonJS.h>
-
+#include <boost/property_tree/json_parser.hpp>
+#include <boost/property_tree/ptree.hpp>
 #include <iostream>
 
 #include "cli/config_updater.hpp"
@@ -13,8 +13,63 @@ namespace bpo = boost::program_options;
 
 namespace taraxa::cli {
 
+template <class charT>
+void parseChildren(std::string prefix, boost::property_tree::ptree& tree,
+                   boost::program_options::parsed_options& options) {
+  if (tree.empty()) {
+    // remove first dot
+    std::basic_string<charT> name = prefix.substr(1);
+    // remove last dot if present
+    if (name.back() == '.') {
+      name.pop_back();
+    }
+    std::basic_string<charT> value = tree.data();
+
+    boost::program_options::basic_option<charT> opt;
+    opt.string_key = name;
+    opt.value.push_back(value);
+    opt.unregistered = (options.description->find_nothrow(name, false) == nullptr);
+    opt.position_key = -1;
+
+    // append value to existing option-key if it exists
+    for (auto& o : options.options) {
+      if (o.string_key == name) {
+        o.value.push_back(value);
+        return;
+      }
+    }
+    options.options.push_back(opt);
+  } else {
+    for (auto it = tree.begin(); it != tree.end(); ++it) {
+      parseChildren<charT>(prefix + "." + it->first, it->second, options);
+    }
+  }
+}
+
+template <class charT>
+void parseJsonOptions(std::basic_istream<charT>& is, boost::program_options::parsed_options& options) {
+  boost::property_tree::basic_ptree<std::basic_string<charT>, std::basic_string<charT>> pt;
+  boost::property_tree::read_json(is, pt);
+
+  parseChildren<charT>(std::basic_string<charT>(), pt, options);
+}
+
+template <class charT>
+boost::program_options::basic_parsed_options<charT> parse_json_config_file(
+    std::basic_istream<charT>& is, const boost::program_options::options_description& desc) {
+  boost::program_options::parsed_options result(&desc);
+  parseJsonOptions(is, result);
+
+  return boost::program_options::basic_parsed_options<charT>(result);
+}
+
 Config::Config(int argc, const char* argv[]) {
-  // Variables for parsed command line options
+  static constexpr const char* kNodeCommand = "node";
+  static constexpr const char* kAccountCommand = "account";
+  static constexpr const char* kVrfCommand = "vrf";
+  static constexpr const char* kConfigCommand = "config";
+
+  // Tmp variables for parsed command line options
   int chain_id = static_cast<int>(kDefaultChainId);
 
   std::string genesis, config, wallet, chain_str, data_dir, node_secret, vrf_secret;
@@ -31,7 +86,7 @@ Config::Config(int argc, const char* argv[]) {
   bool overwrite_config, destroy_db, rebuild_network, light_node;
   overwrite_config = destroy_db = rebuild_network = light_node = false;
 
-  // Define all the command line options and descriptions
+  // Define all command line options + descriptions
   boost::program_options::options_description node_cli_options("Node command line options");
   // Lambda for adding command line options
   auto addCliOption = node_cli_options.add_options();
@@ -107,15 +162,79 @@ Config::Config(int argc, const char* argv[]) {
                "Enables Test JsonRPC. Disabled by default");
   addCliOption("debug", bpo::bool_switch(&node_config_.enable_debug), "Enables Debug RPC interface. Disabled by default");
 
-  // Parse all options (command line + config)
+  // Define config options + descriptions
+  boost::program_options::options_description node_config_options("Node config options");
+  // Lambda for adding config options
+  auto addConfigOption = node_config_options.add_options();
+
+  addConfigOption("network.rpc.enabled", bpo::bool_switch(&node_config_.network.rpc.enabled),
+                  "Enable RPC to be called on node (default: false)");
+  addConfigOption("network.rpc.threads_num",
+                  bpo::value<decltype(node_config_.network.rpc.threads_num)>(&node_config_.network.rpc.threads_num),
+                  "Number of threads reserved for RPC calls processing (default: N/A)");
+  addConfigOption("network.rpc.http_port", bpo::value<uint16_t>(), "RPC http port (default: N/A)");
+  addConfigOption("network.rpc.ws_port", bpo::value<uint16_t>(), "RPC websocket port (default: N/A)");
+
+  addConfigOption("network.graphql.enabled", bpo::bool_switch(&node_config_.network.graphql.enabled),
+                  "Enable GraphQL to be called on node (default: false)");
+  addConfigOption(
+      "network.graphql.threads_num",
+      bpo::value<decltype(node_config_.network.graphql.threads_num)>(&node_config_.network.graphql.threads_num),
+      "Number of threads reserved for GraphQL calls processing (default: N/A)");
+  addConfigOption("network.graphql.http_port", bpo::value<uint16_t>(), "GraphQL http port (default: N/A)");
+  addConfigOption("network.graphql.ws_port", bpo::value<uint16_t>(), "GraphQL websocket port (default: N/A)");
+
+  addConfigOption("network.prometheus.enabled", bpo::bool_switch(&node_config_.network.prometheus.enabled),
+                  "Enable Prometheus to be called on node (default: false)");
+  addConfigOption(
+      "network.prometheus.listen_port",
+      bpo::value<decltype(node_config_.network.prometheus.listen_port)>(&node_config_.network.prometheus.listen_port),
+      "Prometheus listen port (default: 0)");
+  addConfigOption("network.prometheus.polling_interval_ms",
+                  bpo::value<decltype(node_config_.network.prometheus.polling_interval_ms)>(
+                      &node_config_.network.prometheus.polling_interval_ms),
+                  "Prometheus http port (default: 1000)");
+
   boost::program_options::options_description allowed_options("Allowed options");
   allowed_options.add(node_cli_options);
+  allowed_options.add(node_config_options);
+
   bpo::variables_map option_vars;
 
-  auto parsed_line = bpo::parse_command_line(argc, argv, allowed_options);
+  // Parse command line options
+  const auto parsed_cli_options = boost::program_options::parse_command_line(argc, argv, allowed_options);
+  boost::program_options::store(parsed_cli_options, option_vars);
+  store(parsed_cli_options, option_vars);
+  boost::program_options::notify(option_vars);
 
-  bpo::store(parsed_line, option_vars);
-  bpo::notify(option_vars);
+  // Parse config options
+  boost::filesystem::path config_file_path(config);
+  std::ifstream configFileStream(config_file_path.generic_string());
+  const auto parsed_config_options = parse_json_config_file(configFileStream, allowed_options);
+  store(parsed_config_options, option_vars);
+  boost::program_options::notify(option_vars);
+
+  // Manually setup some of the config values based on parsed options
+  if (option_vars.count("network.rpc.http_port")) {
+    node_config_.network.rpc.http_port = option_vars["network.rpc.http_port"].as<uint16_t>();
+  }
+  if (option_vars.count("network.rpc.ws_port")) {
+    node_config_.network.rpc.ws_port = option_vars["network.rpc.ws_port"].as<uint16_t>();
+  }
+
+  // network.graphql.ws_port
+  if (option_vars.count("network.graphql.http_port")) {
+    node_config_.network.graphql.http_port = option_vars["network.graphql.http_port"].as<uint16_t>();
+  }
+  if (option_vars.count("network.graphql.ws_port")) {
+    node_config_.network.graphql.ws_port = option_vars["network.graphql.ws_port"].as<uint16_t>();
+  }
+
+  // TODO: unite addresses types for rpc, graphql and prometheus
+  auto listen_ip = boost::asio::ip::address::from_string(node_config_.network.listen_ip);
+  node_config_.network.prometheus.address = node_config_.network.listen_ip;
+  node_config_.network.rpc.address = listen_ip;
+  node_config_.network.graphql.address = listen_ip;
 
   if (option_vars.count("help")) {
     std::cout << "NAME:\n  "
@@ -137,6 +256,11 @@ Config::Config(int argc, const char* argv[]) {
   }
 
   if (command[0] == kNodeCommand || command[0] == kConfigCommand) {
+    auto dirNameFromFile = [](const string& file) {
+      size_t pos = file.find_last_of("\\/");
+      return (string::npos == pos) ? "" : file.substr(0, pos);
+    };
+
     // Create dir if missing
     auto config_dir = dirNameFromFile(config);
     auto wallet_dir = dirNameFromFile(wallet);
@@ -279,11 +403,6 @@ void Config::addNewHardforks(Json::Value& genesis, const Json::Value& default_ge
       local = itr->asString();
     }
   }
-}
-
-std::string Config::dirNameFromFile(const string& file) const {
-  size_t pos = file.find_last_of("\\/");
-  return (string::npos == pos) ? "" : file.substr(0, pos);
 }
 
 }  // namespace taraxa::cli

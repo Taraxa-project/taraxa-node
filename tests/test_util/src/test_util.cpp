@@ -183,10 +183,9 @@ NodesTest::NodesTest() {
     taraxa::logger::Config log_cfg(cfg.log_path);
     log_cfg.verbosity = taraxa::logger::Verbosity::Error;
     cfg.log_configs.emplace_back(log_cfg);
-    cfg.network.rpc.emplace();
-    cfg.network.rpc->address = boost::asio::ip::address::from_string("127.0.0.1");
-    cfg.network.rpc->http_port = 7778 + i;
-    cfg.network.rpc->ws_port = 8778 + i;
+    cfg.network.rpc.address = boost::asio::ip::address::from_string("127.0.0.1");
+    cfg.network.rpc.http_port = 7778 + i;
+    cfg.network.rpc.ws_port = 8778 + i;
     cfg.node_secret = dev::KeyPair::create().secret();
     cfg.vrf_secret = taraxa::vdf_sortition::getVrfKeyPair().second;
     cfg.network.listen_port = 10003 + i;
@@ -196,6 +195,7 @@ NodesTest::NodesTest() {
     cfg.genesis.state.initial_balances[addr_t("de2b1203d72d3549ee2f733b00b2789414c7cea5")] =
         u256(7200999050) * 10000000000000000;  // https://ethereum.stackexchange.com/a/74832
 
+    cfg.network.rpc.enabled = true;
     cfg.network.boot_nodes.clear();
     cfg.network.boot_nodes.emplace_back(
         taraxa::NodeConfig{"7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4623a14a421d4f030cf25ef368ab394a45e9"
@@ -289,10 +289,10 @@ std::vector<taraxa::FullNodeConfig> NodesTest::make_node_cfgs(size_t total_count
       cfg.network.ddos_protection.vote_accepting_rounds *= tests_speed;
     }
     if (!enable_rpc_http) {
-      cfg.network.rpc->http_port = std::nullopt;
+      cfg.network.rpc.http_port = std::nullopt;
     }
     if (!enable_rpc_ws) {
-      cfg.network.rpc->ws_port = std::nullopt;
+      cfg.network.rpc.ws_port = std::nullopt;
     }
     cfg.enable_test_rpc = true;
   }

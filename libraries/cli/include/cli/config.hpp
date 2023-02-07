@@ -25,14 +25,7 @@ class Config {
 
   static void addNewHardforks(Json::Value& config, const Json::Value& default_config);
 
- protected:
-  static constexpr const char* kNodeCommand = "node";
-  static constexpr const char* kAccountCommand = "account";
-  static constexpr const char* kVrfCommand = "vrf";
-  static constexpr const char* kConfigCommand = "config";
-
-  std::string dirNameFromFile(const std::string& file) const;
-
+ private:
   FullNodeConfig node_config_;
   bool node_configured_ = false;
 };

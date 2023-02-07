@@ -9,12 +9,17 @@
 namespace taraxa {
 
 struct PrometheusConfig {
+  bool enabled{false};
   std::string address;
-  uint16_t listen_port = 0;
-  uint16_t polling_interval_ms = 1000;
+  // TODO: is this http or ws port, should it be optional ???
+  uint16_t listen_port{0};
+  uint16_t polling_interval_ms{1000};
+
+  void validate() const;
 };
 
 struct ConnectionConfig {
+  bool enabled{false};
   std::optional<uint16_t> http_port;
   std::optional<uint16_t> ws_port;
   boost::asio::ip::address address;
@@ -75,9 +80,9 @@ struct NetworkConfig {
   uint16_t deep_syncing_threshold = 10;
   DdosProtectionConfig ddos_protection;
 
-  std::optional<ConnectionConfig> rpc;
-  std::optional<ConnectionConfig> graphql;
-  std::optional<PrometheusConfig> prometheus;
+  ConnectionConfig rpc;
+  ConnectionConfig graphql;
+  PrometheusConfig prometheus;
 
   void validate(uint32_t delegation_delay) const;
 };
