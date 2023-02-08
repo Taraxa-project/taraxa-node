@@ -754,9 +754,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:adfbf462b602c175ef69942c30c45d5d4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#adfbf462b602c175ef69942c30c45d5d4">initialState</a> ()</td></tr>
 <tr class="memdesc:adfbf462b602c175ef69942c30c45d5d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initial PBFT states when node start PBFT.  <a href="group___p_b_f_t.html#adfbf462b602c175ef69942c30c45d5d4">More...</a><br /></td></tr>
 <tr class="separator:adfbf462b602c175ef69942c30c45d5d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a85fd5d3b057978179f6f0b4a71b4a991"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a85fd5d3b057978179f6f0b4a71b4a991">pushSyncedPbftBlocksIntoChain</a> ()</td></tr>
-<tr class="memdesc:a85fd5d3b057978179f6f0b4a71b4a991"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check PBFT blocks syncing queue. If there are synced PBFT blocks in queue, push it to PBFT chain.  <a href="group___p_b_f_t.html#a85fd5d3b057978179f6f0b4a71b4a991">More...</a><br /></td></tr>
-<tr class="separator:a85fd5d3b057978179f6f0b4a71b4a991"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a353e47b13755fa85ed099a8212a887db"><td class="memItemLeft" align="right" valign="top">std::pair&lt; bool, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a353e47b13755fa85ed099a8212a887db">getDagBlockPeriod</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;hash)</td></tr>
 <tr class="memdesc:a353e47b13755fa85ed099a8212a887db"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a DAG block period number.  <a href="group___p_b_f_t.html#a353e47b13755fa85ed099a8212a887db">More...</a><br /></td></tr>
 <tr class="separator:a353e47b13755fa85ed099a8212a887db"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -802,6 +799,9 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:ad15bdf09ea608848208827e1d05795d1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ad15bdf09ea608848208827e1d05795d1">lastPbftBlockHashFromQueueOrChain</a> ()</td></tr>
 <tr class="memdesc:ad15bdf09ea608848208827e1d05795d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get last pbft block hash from queue or if queue empty, from chain.  <a href="group___p_b_f_t.html#ad15bdf09ea608848208827e1d05795d1">More...</a><br /></td></tr>
 <tr class="separator:ad15bdf09ea608848208827e1d05795d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a00445d17a71262d4f11e687d76e7a1dd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a00445d17a71262d4f11e687d76e7a1dd">addRebuildDBPeriodData</a> (<a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&amp;period_data, std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&amp;current_block_cert_votes)</td></tr>
+<tr class="memdesc:a00445d17a71262d4f11e687d76e7a1dd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add rebuild DB with provided data.  <a href="group___p_b_f_t.html#a00445d17a71262d4f11e687d76e7a1dd">More...</a><br /></td></tr>
+<tr class="separator:a00445d17a71262d4f11e687d76e7a1dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2dec2b28f3c4bc7ee10f1b163852aeb5"><td class="memItemLeft" align="right" valign="top">std::chrono::milliseconds&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a2dec2b28f3c4bc7ee10f1b163852aeb5">getPbftInitialLambda</a> () const</td></tr>
 <tr class="memdesc:a2dec2b28f3c4bc7ee10f1b163852aeb5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get PBFT lambda. PBFT lambda is a timer clock.  <a href="group___p_b_f_t.html#a2dec2b28f3c4bc7ee10f1b163852aeb5">More...</a><br /></td></tr>
 <tr class="separator:a2dec2b28f3c4bc7ee10f1b163852aeb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -839,6 +839,9 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memdesc:ac56a08de3cdfb214776b6c10f9f03ac4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reorder transactions data if DAG reordering caused transactions with same sender to have nonce in incorrect order. Reordering is deterministic so that same order is produced on any node on any platform.  <a href="group___p_b_f_t.html#ac56a08de3cdfb214776b6c10f9f03ac4">More...</a><br /></td></tr>
 <tr class="separator:ac56a08de3cdfb214776b6c10f9f03ac4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Member Functions</h3></td></tr>
+<tr class="memitem:a85fd5d3b057978179f6f0b4a71b4a991"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a85fd5d3b057978179f6f0b4a71b4a991">pushSyncedPbftBlocksIntoChain</a> ()</td></tr>
+<tr class="memdesc:a85fd5d3b057978179f6f0b4a71b4a991"><td class="mdescLeft">&#160;</td><td class="mdescRight">Check PBFT blocks syncing queue. If there are synced PBFT blocks in queue, push it to PBFT chain.  <a href="group___p_b_f_t.html#a85fd5d3b057978179f6f0b4a71b4a991">More...</a><br /></td></tr>
+<tr class="separator:a85fd5d3b057978179f6f0b4a71b4a991"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aeb681d02abbfcf938cb5ceca9ab34419"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aeb681d02abbfcf938cb5ceca9ab34419">waitForPeriodFinalization</a> ()</td></tr>
 <tr class="memdesc:aeb681d02abbfcf938cb5ceca9ab34419"><td class="mdescLeft">&#160;</td><td class="mdescRight">wait for DPOS period finalization  <a href="group___p_b_f_t.html#aeb681d02abbfcf938cb5ceca9ab34419">More...</a><br /></td></tr>
 <tr class="separator:aeb681d02abbfcf938cb5ceca9ab34419"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1199,6 +1202,43 @@ Collaboration diagram for taraxa::PbftManager:</div>
 </div>
 </div>
 <h4 class="groupheader">Member Function Documentation</h4>
+<a id="a00445d17a71262d4f11e687d76e7a1dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a00445d17a71262d4f11e687d76e7a1dd">&#9670;&nbsp;</a></span>addRebuildDBPeriodData()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::PbftManager::addRebuildDBPeriodData </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&amp;&#160;</td>
+          <td class="paramname"><em>period_data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&amp;&#160;</td>
+          <td class="paramname"><em>current_block_cert_votes</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Add rebuild DB with provided data. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">block</td><td>period data </td></tr>
+    <tr><td class="paramname">current_block_cert_votes</td><td>cert votes for <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data" title="PeriodData class is for block execution, that includes PBFT block, certify votes, DAG blocks,...">PeriodData</a> pbft block period </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="ad42526b3c04825b6cf99b36ffbb51787"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ad42526b3c04825b6cf99b36ffbb51787">&#9670;&nbsp;</a></span>advancePeriod()</h2>
 
@@ -2651,6 +2691,9 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 <div class="memitem">
 <div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
       <table class="memname">
         <tr>
           <td class="memname">void taraxa::PbftManager::pushSyncedPbftBlocksIntoChain </td>
@@ -2659,6 +2702,11 @@ Collaboration diagram for taraxa::PbftManager:</div>
           <td></td>
         </tr>
       </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
 </div><div class="memdoc">
 
 <p>Check PBFT blocks syncing queue. If there are synced PBFT blocks in queue, push it to PBFT chain. </p>

@@ -27,6 +27,7 @@ var group___p_b_f_t =
       [ "~PbftManager", "group___p_b_f_t.html#a37f64cdc660f7bb1a22d03ce102c16a8", null ],
       [ "PbftManager", "group___p_b_f_t.html#ac6bf3bfdb609d5c2ace0a2130ff5d59e", null ],
       [ "PbftManager", "group___p_b_f_t.html#aee1e57b8818e581deb443cc7ef5ff948", null ],
+      [ "addRebuildDBPeriodData", "group___p_b_f_t.html#a00445d17a71262d4f11e687d76e7a1dd", null ],
       [ "advancePeriod", "group___p_b_f_t.html#ad42526b3c04825b6cf99b36ffbb51787", null ],
       [ "advanceRound", "group___p_b_f_t.html#a49a5ce8214c9a8234f04f1b1d845d025", null ],
       [ "broadcastVotes", "group___p_b_f_t.html#af28f6bd4a7c61d8a033e04fc9f3c5b8d", null ],
