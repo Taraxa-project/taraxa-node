@@ -88,22 +88,22 @@ class FinalChainImpl final : public FinalChain {
     } else {
       // We need to recover latest changes as there was shutdown inside finalize function
       if (*last_blk_num != state_db_descriptor.blk_num) [[unlikely]] {
-        assert(state_db_descriptor.blk_num + 1 == *last_blk_num);
-        auto raw_period_data = db_->getPeriodDataRaw(*last_blk_num);
-        assert(raw_period_data.size() > 0);
+        auto batch = db_->createWriteBatch();
+        for (auto block_n = *last_blk_num; block_n != state_db_descriptor.blk_num; --block_n) {
+          auto raw_period_data = db_->getPeriodDataRaw(block_n);
+          assert(raw_period_data.size() > 0);
 
-        const PeriodData period_data(raw_period_data);
-
-        if (period_data.transactions.size()) {
-          auto batch = db_->createWriteBatch();
-          num_executed_dag_blk_ -= period_data.dag_blocks.size();
-          num_executed_trx_ -= period_data.transactions.size();
-          db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk_.load());
-          db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx_.load());
-          db_->insert(batch, DB::Columns::final_chain_meta, DBMetaKeys::LAST_NUMBER, state_db_descriptor.blk_num);
-          db_->commitWriteBatch(batch, db_opts_w_);
-          last_blk_num = state_db_descriptor.blk_num;
+          const PeriodData period_data(std::move(raw_period_data));
+          if (period_data.transactions.size()) {
+            num_executed_dag_blk_ -= period_data.dag_blocks.size();
+            num_executed_trx_ -= period_data.transactions.size();
+          }
         }
+        db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk_.load());
+        db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx_.load());
+        db_->insert(batch, DB::Columns::final_chain_meta, DBMetaKeys::LAST_NUMBER, state_db_descriptor.blk_num);
+        db_->commitWriteBatch(batch, db_opts_w_);
+        last_blk_num = state_db_descriptor.blk_num;
       }
 
       int64_t start = 0;
