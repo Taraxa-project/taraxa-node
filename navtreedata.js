@@ -333,11 +333,11 @@ var NAVTREEINDEX =
 "libdevcrypto_2_exceptions_8h_source.html",
 "md_doc_coding_practices.html#autotoc_md144",
 "namespacetaraxa.html#a0849089d35105b6fcb8ef8f7b350b89d",
-"state__config_8hpp.html#a71678cb3f5feb67a738df3d7d2f45270",
+"state__config_8hpp.html#a3e5d8455efc176980b350d5f8ef5970f",
 "structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_known_node",
-"structdev_1_1p2p_1_1_u_d_p_socket_face.html",
-"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a53b07cb9d48fb974fad6cffceabb9397",
-"verified__votes_8hpp.html#afc780cd89307f2097bb4281488e325bfa5c7ca0f667f2a592cd73c6fc8a0c874e"
+"structdev_1_1p2p_1_1_u_d_p_socket_events.html#af6ba3388128a8ca63ec7243569eef939",
+"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a3dc6fb187801345b1d2991e0dd48865a",
+"verified__votes_8hpp.html#afc780cd89307f2097bb4281488e325bfa32c5b142b23830e9dd140911a2612f48"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

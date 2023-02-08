@@ -1,5 +1,6 @@
 var NAVTREEINDEX22 =
 {
+"structdev_1_1p2p_1_1_u_d_p_socket_events.html#af6ba3388128a8ca63ec7243569eef939":[14,0,0,1,41,2],
 "structdev_1_1p2p_1_1_u_d_p_socket_face.html":[14,0,0,1,40],
 "structdev_1_1p2p_1_1_u_d_p_socket_face.html#a9106e4f9a26c0cda3b865c638a7788ed":[14,0,0,1,40,1],
 "structdev_1_1p2p_1_1_u_d_p_socket_face.html#ac35c32537a1f553fae7690aec96df087":[14,0,0,1,40,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX22 =
 "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_location_with_block_hash.html#ab98cef7462cdd992e5aa8a1cdf27af58":[14,0,3,4,0,0,0,0],
 "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html":[14,0,3,7,4],
 "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a11e4826e5170008b2efe4c5ac309c4c1":[14,0,3,7,4,0],
-"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a31db61ce7d91cf934eb10dc70b0d4672":[14,0,3,7,4,4],
-"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a3dc6fb187801345b1d2991e0dd48865a":[14,0,3,7,4,3]
+"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a31db61ce7d91cf934eb10dc70b0d4672":[14,0,3,7,4,4]
 };

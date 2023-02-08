@@ -162,8 +162,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:aefa0ca80a85ad18d89e4133f27c884d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab28ae9dda4c128c0e90e086f72d823d4"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#ab28ae9dda4c128c0e90e086f72d823d4">verifySig</a> () const</td></tr>
 <tr class="separator:ab28ae9dda4c128c0e90e086f72d823d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7a45d537a02efa1803505932f17b8c3a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#a7a45d537a02efa1803505932f17b8c3a">verifyVdf</a> (const <a class="el" href="structtaraxa_1_1_sortition_params.html">SortitionParams</a> &amp;vdf_config, const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &amp;proposal_period_hash, const <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a> &amp;pk) const</td></tr>
-<tr class="separator:a7a45d537a02efa1803505932f17b8c3a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a135230d7b9166efe6d2c2da5c4cf7ddb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#a135230d7b9166efe6d2c2da5c4cf7ddb">verifyVdf</a> (const <a class="el" href="structtaraxa_1_1_sortition_params.html">SortitionParams</a> &amp;vdf_config, const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &amp;proposal_period_hash, const <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a> &amp;pk, uint64_t vote_count, uint64_t total_vote_count) const</td></tr>
+<tr class="separator:a135230d7b9166efe6d2c2da5c4cf7ddb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad56b5133c0560c42278111eb4f0033bd"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#ad56b5133c0560c42278111eb4f0033bd">rlp</a> (bool include_sig) const</td></tr>
 <tr class="separator:ad56b5133c0560c42278111eb4f0033bd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abff9ac02f998b919d4605153e4d03f79"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classdev_1_1_r_l_p_stream.html">dev::RLPStream</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_dag_block.html#abff9ac02f998b919d4605153e4d03f79">streamRLP</a> (bool include_sig) const</td></tr>
@@ -1037,8 +1037,8 @@ Friends</h2></td></tr>
 
 </div>
 </div>
-<a id="a7a45d537a02efa1803505932f17b8c3a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7a45d537a02efa1803505932f17b8c3a">&#9670;&nbsp;</a></span>verifyVdf()</h2>
+<a id="a135230d7b9166efe6d2c2da5c4cf7ddb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a135230d7b9166efe6d2c2da5c4cf7ddb">&#9670;&nbsp;</a></span>verifyVdf()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1059,7 +1059,19 @@ Friends</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const <a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>pk</em>&#160;</td>
+          <td class="paramname"><em>pk</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>vote_count</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>total_vote_count</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
