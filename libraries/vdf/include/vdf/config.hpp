@@ -19,6 +19,8 @@ struct VdfParams {
   uint16_t difficulty_max = 1;
   uint16_t difficulty_stale = 0;
   uint16_t lambda_bound = 1500;  // lambda upper bound, should be constant
+  uint16_t stake_threshold =
+      20000;  // Range 0 - UINT16_MAX. Decreasing this value, increases dag block production for higher stake nodes
 };
 
 struct SortitionParams {
@@ -34,6 +36,7 @@ struct SortitionParams {
     strm << "    difficulty maximum: " << config.vdf.difficulty_max << std::endl;
     strm << "    difficulty stale: " << config.vdf.difficulty_stale << std::endl;
     strm << "    lambda bound: " << config.vdf.lambda_bound << std::endl;
+    strm << "    stake threshold: " << config.vdf.stake_threshold << std::endl;
     return strm;
   }
   VrfParams vrf;

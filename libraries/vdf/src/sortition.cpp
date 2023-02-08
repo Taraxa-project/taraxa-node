@@ -7,20 +7,33 @@
 
 namespace taraxa::vdf_sortition {
 
-VdfSortition::VdfSortition(const SortitionParams& config, const vrf_sk_t& sk, const bytes& vrf_input)
+VdfSortition::VdfSortition(const SortitionParams& config, const vrf_sk_t& sk, const bytes& vrf_input,
+                           uint64_t vote_count, uint64_t total_vote_count)
     : VrfSortitionBase(sk, vrf_input) {
-  difficulty_ = calculateDifficulty(config);
+  difficulty_ = calculateDifficulty(config, vote_count, total_vote_count);
 }
 
-bool VdfSortition::isStale(SortitionParams const& config) const { return threshold_ > config.vrf.threshold_upper; }
+bool VdfSortition::isStale(SortitionParams const& config) const { return difficulty_ == config.vdf.difficulty_stale; }
 
-uint16_t VdfSortition::calculateDifficulty(SortitionParams const& config) const {
+uint16_t VdfSortition::calculateDifficulty(SortitionParams const& config, uint64_t vote_count,
+                                           uint64_t total_vote_count) const {
   uint16_t difficulty = 0;
-  if (isStale(config)) {
+  if (threshold_ >= config.vrf.threshold_upper) {
     difficulty = config.vdf.difficulty_stale;
   } else {
-    difficulty = config.vdf.difficulty_min + threshold_ % (config.vdf.difficulty_max - config.vdf.difficulty_min + 1);
+    const auto number_of_difficulties = config.vdf.difficulty_max - config.vdf.difficulty_min + 1;
+    difficulty = config.vdf.difficulty_min + threshold_ / (config.vrf.threshold_upper / number_of_difficulties);
   }
+
+  // Nodes with higher stake have greater chance to decrease difficulty to minimum
+  // This is a method to allow nodes with higher stake to produce more DAG blocks
+  // The values for this selection were chosen to keep the dag production fluid and avoid stale blocks
+  // but at the same time reward higher stake
+  const auto decrease_probability = vote_count * UINT16_MAX / total_vote_count;
+  if ((threshold_ % config.vdf.stake_threshold) < decrease_probability) {
+    difficulty = config.vdf.difficulty_min;
+  }
+
   return difficulty;
 }
 
@@ -70,13 +83,13 @@ void VdfSortition::computeVdfSolution(const SortitionParams& config, const bytes
 }
 
 void VdfSortition::verifyVdf(SortitionParams const& config, bytes const& vrf_input, const vrf_pk_t& pk,
-                             bytes const& vdf_input) const {
+                             bytes const& vdf_input, uint64_t vote_count, uint64_t total_vote_count) const {
   // Verify VRF output
   if (!verifyVrf(pk, vrf_input)) {
     throw InvalidVdfSortition("VRF verify failed. VRF input " + dev::toHex(vrf_input));
   }
 
-  const auto expected = calculateDifficulty(config);
+  const auto expected = calculateDifficulty(config, vote_count, total_vote_count);
   if (difficulty_ != expected) {
     throw InvalidVdfSortition("VDF solution verification failed. Incorrect difficulty. VDF input " +
                               dev::toHex(vdf_input) + ", lambda " + std::to_string(config.vdf.lambda_bound) +

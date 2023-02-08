@@ -496,8 +496,10 @@ void DagManager::recoverDag() {
         }
         // Verify VDF solution
         try {
+          const auto total_vote_count = final_chain_->dpos_eligible_total_vote_count(*propose_period);
+          const auto vote_count = final_chain_->dpos_eligible_vote_count(*propose_period, blk.getSender());
           blk.verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period),
-                        db_->getPeriodBlockHash(*propose_period), *pk);
+                        db_->getPeriodBlockHash(*propose_period), *pk, vote_count, total_vote_count);
         } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
           LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
                        << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason "
@@ -622,7 +624,10 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
 
   try {
     const auto proposal_period_hash = db_->getPeriodBlockHash(*propose_period);
-    blk.verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period), proposal_period_hash, *pk);
+    const auto total_vote_count = final_chain_->dpos_eligible_total_vote_count(*propose_period);
+    const auto vote_count = final_chain_->dpos_eligible_vote_count(*propose_period, blk.getSender());
+    blk.verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period), proposal_period_hash, *pk, vote_count,
+                  total_vote_count);
   } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
     LOG(log_er_) << "DAG block " << block_hash << " with " << blk.getLevel()
                  << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason " << e.what();

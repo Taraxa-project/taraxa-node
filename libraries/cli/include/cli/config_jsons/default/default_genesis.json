@@ -91,7 +91,8 @@
       "difficulty_max": 21,
       "difficulty_min": 16,
       "difficulty_stale": 23,
-      "lambda_bound": "0x64"
+      "lambda_bound": "0x64",
+      "stake_threshold": 20000
     }
   }
 }
