@@ -18,6 +18,7 @@
 #include "config/config.hpp"
 #include "config/version.hpp"
 #include "network/http_server.hpp"
+#include "network/rpc/DebugFace.h"
 #include "network/rpc/EthFace.h"
 #include "network/rpc/NetFace.h"
 #include "network/rpc/TaraxaFace.h"
@@ -48,7 +49,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   using vrf_pk_t = vrf_wrapper::vrf_pk_t;
   using vrf_sk_t = vrf_wrapper::vrf_sk_t;
   using vrf_proof_t = vrf_wrapper::vrf_proof_t;
-  using jsonrpc_server_t = ModularServer<net::TaraxaFace, net::NetFace, net::EthFace, net::TestFace>;
+  using jsonrpc_server_t = ModularServer<net::TaraxaFace, net::NetFace, net::EthFace, net::TestFace, net::DebugFace>;
 
   // should be destroyed after all components, since they may depend on it through unsafe pointers
   std::unique_ptr<util::ThreadPool> rpc_thread_pool_;

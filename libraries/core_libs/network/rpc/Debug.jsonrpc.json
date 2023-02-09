@@ -1,0 +1,29 @@
+[
+  {
+    "name": "debug_traceTransaction",
+    "params": [
+      ""
+    ],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "debug_traceCall",
+    "params": [
+      {},
+      ""
+    ],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "trace_call",
+    "params": [
+      {},
+      [],
+      ""
+    ],
+    "order": [],
+    "returns": {}
+  }
+]

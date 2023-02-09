@@ -34,5 +34,10 @@
     "name": "get_node_status",
     "params": [],
     "returns": {}
+  },
+  {
+    "name": "get_all_nodes",
+    "params": [],
+    "returns": {}
   }
 ]

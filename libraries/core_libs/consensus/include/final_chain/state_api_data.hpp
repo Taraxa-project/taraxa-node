@@ -111,5 +111,14 @@ struct StateDescriptor {
 
   HAS_RLP_FIELDS
 };
+
+struct Tracing {
+  bool vmTrace = false;
+  bool trace = false;
+  bool stateDiff = false;
+
+  HAS_RLP_FIELDS
+};
+
 /** @} */
 }  // namespace taraxa::state_api
