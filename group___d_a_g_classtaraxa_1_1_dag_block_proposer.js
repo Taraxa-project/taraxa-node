@@ -1,6 +1,6 @@
 var group___d_a_g_classtaraxa_1_1_dag_block_proposer =
 [
-    [ "DagBlockProposer", "group___d_a_g.html#afdcebc02bbd3671c60499708ddad63c7", null ],
+    [ "DagBlockProposer", "group___d_a_g.html#ade71bd4eb9aa6db990841e3173e4fa03", null ],
     [ "~DagBlockProposer", "group___d_a_g.html#a168ea7c60b4c3535c6ec999a8ff0b5d0", null ],
     [ "DagBlockProposer", "group___d_a_g.html#aace097ada959a377e46c6a6e57c43c21", null ],
     [ "DagBlockProposer", "group___d_a_g.html#ab6d80eccedea603e03d4a194c5df0327", null ],
@@ -12,7 +12,7 @@ var group___d_a_g_classtaraxa_1_1_dag_block_proposer =
     [ "operator=", "group___d_a_g.html#a4c55ee1e958605b26c0242e3b5130ba4", null ],
     [ "operator=", "group___d_a_g.html#a378f2f625a428d2b1064bded3e36c1f7", null ],
     [ "proposeDagBlock", "group___d_a_g.html#a00f3ec13b42c2ce2c232642c661ac736", null ],
-    [ "selectDagBlockTips", "group___d_a_g.html#a0df4fbcbf64964f0ede7a8bbea223cc2", null ],
+    [ "selectDagBlockTips", "group___d_a_g.html#acba115ac997fdb3f018151956965a51f", null ],
     [ "setNetwork", "group___d_a_g.html#ac2a8095b889d4c06237b440ee683991c", null ],
     [ "start", "group___d_a_g.html#a01d58209a9a9e3dabdc8e55f7acafcf8", null ],
     [ "stop", "group___d_a_g.html#a08cc3adaaf8e20414ae8d7fe01837ebd", null ],
@@ -21,7 +21,9 @@ var group___d_a_g_classtaraxa_1_1_dag_block_proposer =
     [ "db_", "group___d_a_g.html#a490e4d8542120699c12f821d1f7ce808", null ],
     [ "executor_", "group___d_a_g.html#a8ec46166cc8cb10a3f4bd1493fc60800", null ],
     [ "final_chain_", "group___d_a_g.html#abe7ac85bab1992c7eb368d899cf5fc58", null ],
+    [ "kDagGasLimit", "group___d_a_g.html#a37c728c8e45b35f8030a3278cd0f157e", null ],
     [ "key_manager_", "group___d_a_g.html#a5a36c04f481e9c1dd344fd2af990a3cc", null ],
+    [ "kPbftGasLimit", "group___d_a_g.html#a90ad08747b1ddb6fdfc415d7c9fafb84", null ],
     [ "last_propose_level_", "group___d_a_g.html#a26dce41a1d3475e3458bf9947537bbaf", null ],
     [ "max_num_tries_", "group___d_a_g.html#ad2c8f8841a2703497fd4a6a6538ddb84", null ],
     [ "my_trx_shard_", "group___d_a_g.html#a63e4b7ff61c17af0eee9e1249037da2a", null ],

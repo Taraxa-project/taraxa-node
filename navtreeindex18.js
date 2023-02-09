@@ -1,5 +1,8 @@
 var NAVTREEINDEX18 =
 {
+"md_doc_coding_practices.html#autotoc_md141":[69],
+"md_doc_coding_practices.html#autotoc_md142":[70],
+"md_doc_coding_practices.html#autotoc_md143":[71],
 "md_doc_coding_practices.html#autotoc_md144":[2,0,17],
 "md_doc_coding_practices.html#autotoc_md145":[72],
 "md_doc_coding_practices.html#autotoc_md146":[73],
@@ -206,8 +209,8 @@ var NAVTREEINDEX18 =
 "namespacemembers_enum.html":[13,4],
 "namespacemembers_eval.html":[13,5],
 "namespacemembers_f.html":[13,0,6],
-"namespacemembers_func.html":[13,1],
 "namespacemembers_func.html":[13,1,0],
+"namespacemembers_func.html":[13,1],
 "namespacemembers_func_a.html":[13,1,1],
 "namespacemembers_func_b.html":[13,1,2],
 "namespacemembers_func_c.html":[13,1,3],
@@ -246,8 +249,5 @@ var NAVTREEINDEX18 =
 "namespacemembers_u.html":[13,0,20],
 "namespacemembers_v.html":[13,0,21],
 "namespacemembers_vars.html":[13,2],
-"namespacemembers_w.html":[13,0,22],
-"namespacemembers_z.html":[13,0,23],
-"namespacetaraxa.html#a009be38daa65710a670613c7d9428e76":[15,0,1,8,0,0,0,1,0],
-"namespacetaraxa.html#a0849089d35105b6fcb8ef8f7b350b89d":[15,0,1,4,0,0,5,0,1,0]
+"namespacemembers_w.html":[13,0,22]
 };

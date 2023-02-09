@@ -327,17 +327,17 @@ var NAVTREEINDEX =
 "classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a0278fa38ffa38ca0e781671601501687",
 "dir_08bf0f09b161111308ef9ead5ecd8aea.html",
 "get__next__votes__sync__packet__handler_8cpp.html",
-"group___final_chain.html#a3681f2fc87600ce90484dacfe07a14c6",
-"group___p_b_f_t.html#a8b78847ba76f5d5060265adf8798a91c",
-"group___vote.html#a9f620cb9c77c758547a3591f848f52d2",
-"libdevcrypto_2_exceptions_8h_source.html",
-"md_doc_coding_practices.html#autotoc_md144",
-"namespacetaraxa.html#a0849089d35105b6fcb8ef8f7b350b89d",
-"state__config_8hpp.html#a3e5d8455efc176980b350d5f8ef5970f",
-"structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_known_node",
-"structdev_1_1p2p_1_1_u_d_p_socket_events.html#af6ba3388128a8ca63ec7243569eef939",
-"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html#a3dc6fb187801345b1d2991e0dd48865a",
-"verified__votes_8hpp.html#afc780cd89307f2097bb4281488e325bfa32c5b142b23830e9dd140911a2612f48"
+"group___final_chain.html#a30e8d0c8a0085d31299ba486459f670d",
+"group___p_b_f_t.html#a88ab9f3501538d572e1a582a031ca4cf",
+"group___vote.html#a958687409ea47afffc8e2bc179528683",
+"libdevcrypto_2_common_8h_source.html",
+"md_doc_coding_practices.html#autotoc_md141",
+"namespacemembers_z.html",
+"state__config_8hpp.html#a142767c95d8323471aee83d86833ee8c",
+"structdev_1_1p2p_1_1_host.html#af48111b36108125508b64b6e3e1be302",
+"structdev_1_1p2p_1_1_u_d_p_socket_events.html",
+"structtaraxa_1_1util_1_1_default_construct_copyable_movable.html",
+"verified__votes_8hpp.html"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';
