@@ -38,7 +38,7 @@ class DagBlockProposer {
   DagBlockProposer(const DagBlockProposerConfig& bp_config, std::shared_ptr<DagManager> dag_mgr,
                    std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<final_chain::FinalChain> final_chain,
                    std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager, addr_t node_addr,
-                   secret_t node_sk, vrf_wrapper::vrf_sk_t vrf_sk);
+                   secret_t node_sk, vrf_wrapper::vrf_sk_t vrf_sk, uint64_t pbft_gas_limit, uint64_t dag_gas_limit);
   ~DagBlockProposer() { stop(); }
   DagBlockProposer(const DagBlockProposer&) = delete;
   DagBlockProposer(DagBlockProposer&&) = delete;
@@ -78,10 +78,11 @@ class DagBlockProposer {
    * @brief Select tips for DagBlock proposal up to max allowed
    *
    * @param frontier_tips
+   * @param gas_limit gas limit for the tips
    *
    * @return tips
    */
-  vec_blk_t selectDagBlockTips(const vec_blk_t& frontier_tips) const;
+  vec_blk_t selectDagBlockTips(const vec_blk_t& frontier_tips, uint64_t gas_limit) const;
 
  private:
   /**
@@ -144,6 +145,9 @@ class DagBlockProposer {
   const secret_t node_sk_;
   const vrf_wrapper::vrf_sk_t vrf_sk_;
   const vrf_wrapper::vrf_pk_t vrf_pk_;
+
+  const uint64_t kPbftGasLimit;
+  const uint64_t kDagGasLimit;
 
   LOG_OBJECTS_DEFINE
 };

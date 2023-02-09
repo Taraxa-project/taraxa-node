@@ -328,20 +328,33 @@ TEST_F(DagBlockMgrTest, dag_block_tips_proposal) {
   vdf_sortition::VdfSortition vdf(vdf_config, node->getVrfSecretKey(),
                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash), 1, 1);
 
+  const uint64_t dag_block_gas = 100000;
   std::vector<blk_hash_t> dag_blocks_hashes;
   for (auto trx : trxs) {
     dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trx});
     vdf.computeVdfSolution(vdf_config, vdf_msg, false);
 
-    DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, 100000, vdf, node->getSecretKey());
+    DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, dag_block_gas, vdf, node->getSecretKey());
     dag_blocks_hashes.push_back(blk.getHash());
     EXPECT_EQ(node->getDagManager()->verifyBlock(blk), DagManager::VerifyBlockReturnType::Verified);
     EXPECT_TRUE(node->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
   }
 
-  // Verify selection is up to kDagBlockMaxTips
   EXPECT_EQ(dag_blocks_hashes.size(), kDagBlockMaxTips + 1);
-  auto selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes);
+  // Verify selection is up to the gas limit
+  uint64_t selection_gas_limit = 5 * dag_block_gas;
+  auto selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes, selection_gas_limit);
+  EXPECT_EQ(selected_tips.size(), 5);
+  selection_gas_limit = 5 * dag_block_gas - 1;
+  selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes, selection_gas_limit);
+  EXPECT_EQ(selected_tips.size(), 4);
+  selection_gas_limit = 5 * dag_block_gas + 1;
+  selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes, selection_gas_limit);
+  EXPECT_EQ(selected_tips.size(), 5);
+
+  // Verify selection is up to kDagBlockMaxTips
+  selection_gas_limit = (kDagBlockMaxTips + 1) * dag_block_gas;
+  selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes, selection_gas_limit);
   EXPECT_EQ(selected_tips.size(), kDagBlockMaxTips);
 
   // Verify selection is up to kDagBlockMaxTips and higher propose level has priority
@@ -359,7 +372,7 @@ TEST_F(DagBlockMgrTest, dag_block_tips_proposal) {
     EXPECT_TRUE(node->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
   }
 
-  selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes);
+  selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes, selection_gas_limit);
   EXPECT_EQ(selected_tips.size(), kDagBlockMaxTips);
   for (auto t : selected_tips) {
     EXPECT_EQ(node->getDagManager()->getDagBlock(t)->getLevel(), propose_level);
@@ -378,7 +391,7 @@ TEST_F(DagBlockMgrTest, dag_block_tips_proposal) {
   dag_blocks_hashes.push_back(blk.getHash());
   EXPECT_TRUE(node->getDagManager()->addDagBlock(std::move(blk), {trxs[0]}).first);
 
-  selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes);
+  selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes, selection_gas_limit);
   EXPECT_EQ(selected_tips.size(), kDagBlockMaxTips);
   std::unordered_map<uint32_t, uint32_t> level_count;
   for (auto t : selected_tips) {
