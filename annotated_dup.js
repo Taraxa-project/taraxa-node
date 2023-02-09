@@ -170,6 +170,11 @@ var annotated_dup =
         [ "HttpConnection", "classtaraxa_1_1net_1_1_http_connection.html", "classtaraxa_1_1net_1_1_http_connection" ],
         [ "WsSession", "classtaraxa_1_1net_1_1_ws_session.html", "classtaraxa_1_1net_1_1_ws_session" ],
         [ "WsServer", "classtaraxa_1_1net_1_1_ws_server.html", "classtaraxa_1_1net_1_1_ws_server" ],
+        [ "InvalidAddress", "classtaraxa_1_1net_1_1_invalid_address.html", "classtaraxa_1_1net_1_1_invalid_address" ],
+        [ "InvalidTracingParams", "classtaraxa_1_1net_1_1_invalid_tracing_params.html", "classtaraxa_1_1net_1_1_invalid_tracing_params" ],
+        [ "Debug", "classtaraxa_1_1net_1_1_debug.html", "classtaraxa_1_1net_1_1_debug" ],
+        [ "DebugClient", "classtaraxa_1_1net_1_1_debug_client.html", "classtaraxa_1_1net_1_1_debug_client" ],
+        [ "DebugFace", "classtaraxa_1_1net_1_1_debug_face.html", "classtaraxa_1_1net_1_1_debug_face" ],
         [ "EthClient", "classtaraxa_1_1net_1_1_eth_client.html", "classtaraxa_1_1net_1_1_eth_client" ],
         [ "EthFace", "classtaraxa_1_1net_1_1_eth_face.html", "classtaraxa_1_1net_1_1_eth_face" ],
         [ "JsonRpcHttpProcessor", "classtaraxa_1_1net_1_1_json_rpc_http_processor.html", "classtaraxa_1_1net_1_1_json_rpc_http_processor" ],
@@ -238,6 +243,7 @@ var annotated_dup =
         [ "TrieProof", "group___final_chain.html#structtaraxa_1_1state__api_1_1_trie_proof", "group___final_chain_structtaraxa_1_1state__api_1_1_trie_proof" ],
         [ "Proof", "group___final_chain.html#structtaraxa_1_1state__api_1_1_proof", "group___final_chain_structtaraxa_1_1state__api_1_1_proof" ],
         [ "StateDescriptor", "group___final_chain.html#structtaraxa_1_1state__api_1_1_state_descriptor", "group___final_chain_structtaraxa_1_1state__api_1_1_state_descriptor" ],
+        [ "Tracing", "group___final_chain.html#structtaraxa_1_1state__api_1_1_tracing", "group___final_chain_structtaraxa_1_1state__api_1_1_tracing" ],
         [ "ErrorHandler", "classtaraxa_1_1state__api_1_1_error_handler.html", "classtaraxa_1_1state__api_1_1_error_handler" ]
       ] ],
       [ "util", "namespacetaraxa_1_1util.html", [

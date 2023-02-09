@@ -1,6 +1,6 @@
 var classtaraxa_1_1_full_node =
 [
-    [ "jsonrpc_server_t", "classtaraxa_1_1_full_node.html#a37e0e5f8aa698447bd1124d02c704d5b", null ],
+    [ "jsonrpc_server_t", "classtaraxa_1_1_full_node.html#ad9a5d6a57fb0abbba5bc28a750783e65", null ],
     [ "shared_ptr_t", "classtaraxa_1_1_full_node.html#a243e55d1062eab5e66312cc71150892d", null ],
     [ "vrf_pk_t", "classtaraxa_1_1_full_node.html#a4ba9752006be512bfb5f14cce67f2288", null ],
     [ "vrf_proof_t", "classtaraxa_1_1_full_node.html#aaae8fc6f9aa9118f929d217258c62a27", null ],

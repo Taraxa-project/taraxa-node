@@ -18,6 +18,7 @@ var hierarchy =
       [ "taraxa::network::tarcap::TaraxaCapability", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html", null ]
     ] ],
     [ "jsonrpc::Client", null, [
+      [ "taraxa::net::DebugClient", "classtaraxa_1_1net_1_1_debug_client.html", null ],
       [ "taraxa::net::EthClient", "classtaraxa_1_1net_1_1_eth_client.html", null ],
       [ "taraxa::net::NetClient", "classtaraxa_1_1net_1_1_net_client.html", null ],
       [ "taraxa::net::TaraxaClient", "classtaraxa_1_1net_1_1_taraxa_client.html", null ],
@@ -122,7 +123,9 @@ var hierarchy =
     ] ],
     [ "std::exception", null, [
       [ "dev::Exception", "structdev_1_1_exception.html", null ],
-      [ "taraxa::DbException", "classtaraxa_1_1_db_exception.html", null ]
+      [ "taraxa::DbException", "classtaraxa_1_1_db_exception.html", null ],
+      [ "taraxa::net::InvalidAddress", "classtaraxa_1_1net_1_1_invalid_address.html", null ],
+      [ "taraxa::net::InvalidTracingParams", "classtaraxa_1_1net_1_1_invalid_tracing_params.html", null ]
     ] ],
     [ "taraxa::state_api::ExecutionResult", "group___final_chain.html#structtaraxa_1_1state__api_1_1_execution_result", null ],
     [ "ExpirationCache< Key >", "class_expiration_cache.html", null ],
@@ -304,6 +307,11 @@ var hierarchy =
     [ "dev::secure_vector< T >", "classdev_1_1secure__vector.html", null ],
     [ "dev::p2p::Session::SendRequest", "structdev_1_1p2p_1_1_session.html#structdev_1_1p2p_1_1_session_1_1_send_request", null ],
     [ "ServerInterface< I >", "class_server_interface.html", null ],
+    [ "ServerInterface< DebugFace >", "class_server_interface.html", [
+      [ "taraxa::net::DebugFace", "classtaraxa_1_1net_1_1_debug_face.html", [
+        [ "taraxa::net::Debug", "classtaraxa_1_1net_1_1_debug.html", null ]
+      ] ]
+    ] ],
     [ "ServerInterface< EthFace >", "class_server_interface.html", [
       [ "taraxa::net::EthFace", "classtaraxa_1_1net_1_1_eth_face.html", [
         [ "taraxa::net::rpc::eth::Eth", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth.html", [
@@ -354,6 +362,7 @@ var hierarchy =
     [ "taraxa::network::tarcap::TimePeriodPacketsStats", "classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html", null ],
     [ "dev::Timer", "classdev_1_1_timer.html", null ],
     [ "dev::TimerHelper", "classdev_1_1_timer_helper.html", null ],
+    [ "taraxa::state_api::Tracing", "group___final_chain.html#structtaraxa_1_1state__api_1_1_tracing", null ],
     [ "taraxa::Transaction", "structtaraxa_1_1_transaction.html", null ],
     [ "taraxa::final_chain::FinalChain::TransactionHashes", "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html", [
       [ "taraxa::final_chain::FinalChainImpl::TransactionHashesImpl", "structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl.html", null ]

@@ -1,6 +1,18 @@
 var dir_adc6401fdc4e23455a79d3d4841fd78c =
 [
     [ "eth", "dir_edb7e34652b53c5afb3da386073ea469.html", "dir_edb7e34652b53c5afb3da386073ea469" ],
+    [ "Debug.cpp", "_debug_8cpp.html", null ],
+    [ "Debug.h", "_debug_8h.html", [
+      [ "InvalidAddress", "classtaraxa_1_1net_1_1_invalid_address.html", "classtaraxa_1_1net_1_1_invalid_address" ],
+      [ "InvalidTracingParams", "classtaraxa_1_1net_1_1_invalid_tracing_params.html", "classtaraxa_1_1net_1_1_invalid_tracing_params" ],
+      [ "Debug", "classtaraxa_1_1net_1_1_debug.html", "classtaraxa_1_1net_1_1_debug" ]
+    ] ],
+    [ "DebugClient.h", "_debug_client_8h.html", [
+      [ "DebugClient", "classtaraxa_1_1net_1_1_debug_client.html", "classtaraxa_1_1net_1_1_debug_client" ]
+    ] ],
+    [ "DebugFace.h", "_debug_face_8h.html", [
+      [ "DebugFace", "classtaraxa_1_1net_1_1_debug_face.html", "classtaraxa_1_1net_1_1_debug_face" ]
+    ] ],
     [ "EthClient.h", "_eth_client_8h.html", [
       [ "EthClient", "classtaraxa_1_1net_1_1_eth_client.html", "classtaraxa_1_1net_1_1_eth_client" ]
     ] ],

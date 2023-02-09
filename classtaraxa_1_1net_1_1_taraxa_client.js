@@ -8,6 +8,6 @@ var classtaraxa_1_1net_1_1_taraxa_client =
     [ "taraxa_getDagBlockByLevel", "classtaraxa_1_1net_1_1_taraxa_client.html#a65868b9e1f9082ac9a1d05f44ebfb195", null ],
     [ "taraxa_getScheduleBlockByPeriod", "classtaraxa_1_1net_1_1_taraxa_client.html#a1ced5fc489bdc11edd5d116b942b01c8", null ],
     [ "taraxa_getVersion", "classtaraxa_1_1net_1_1_taraxa_client.html#a7ec27e5d19af683c02f09c9cdbe504f3", null ],
-    [ "taraxa_pbftBlockHashByPeriod", "classtaraxa_1_1net_1_1_taraxa_client.html#aa8c4d56473a80e51cd1432f7c2e22c6e", null ],
-    [ "taraxa_protocolVersion", "classtaraxa_1_1net_1_1_taraxa_client.html#af3b61dd67d63552fd0b92e5aed5d577e", null ]
+    [ "taraxa_pbftBlockHashByPeriod", "classtaraxa_1_1net_1_1_taraxa_client.html#af14353d7d5402ef9d0373ee87270ca78", null ],
+    [ "taraxa_protocolVersion", "classtaraxa_1_1net_1_1_taraxa_client.html#a9217f703bf012580e1396aca37384c36", null ]
 ];

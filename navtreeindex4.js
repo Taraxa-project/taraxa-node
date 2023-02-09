@@ -1,5 +1,12 @@
 var NAVTREEINDEX4 =
 {
+"classdev_1_1p2p_1_1_node_table_event_handler.html#a7f176ba27d4a47af6126bd551516095b":[14,0,0,1,16,2],
+"classdev_1_1p2p_1_1_node_table_event_handler.html#a850a29b6810ecdbcfb81a607541fca7e":[14,0,0,1,16,0],
+"classdev_1_1p2p_1_1_node_table_event_handler.html#abf1ae2fc2b5cdb2f554f24ce3078f077":[14,0,0,1,16,1],
+"classdev_1_1p2p_1_1_node_table_event_handler.html#ad252bb8bab27b8434af083ed2d22cee3":[14,0,0,1,16,7],
+"classdev_1_1p2p_1_1_peer.html":[14,0,0,1,26],
+"classdev_1_1p2p_1_1_peer.html#a0b0a37f9b3e6378f601f253ca9ab0371":[14,0,0,1,26,10],
+"classdev_1_1p2p_1_1_peer.html#a1de8d538a68a2baab37fbf6913d6e758":[14,0,0,1,26,9],
 "classdev_1_1p2p_1_1_peer.html#a345ef62a4ab8f2f27be1c99cec671fca":[14,0,0,1,26,8],
 "classdev_1_1p2p_1_1_peer.html#a431b7340bd5e41a9dedab4861e20a003":[14,0,0,1,26,4],
 "classdev_1_1p2p_1_1_peer.html#a45c3d79074f71a34eb9fc97b54d14293":[14,0,0,1,26,1],
@@ -242,12 +249,5 @@ var NAVTREEINDEX4 =
 "classgraphql_1_1taraxa_1_1_log.html#a4583e205d4fd53085d0862943f834811":[14,0,1,0,2,2],
 "classgraphql_1_1taraxa_1_1_log.html#a4f2a7d4f858f6b96ad07c632d8deda09":[14,0,1,0,2,1],
 "classgraphql_1_1taraxa_1_1_log.html#a5581c79cf1e6dc043e9809c5d4589243":[14,0,1,0,2,8],
-"classgraphql_1_1taraxa_1_1_log.html#a6269ad12b925b282d72ec95ed1205ba1":[14,0,1,0,2,0],
-"classgraphql_1_1taraxa_1_1_log.html#a62c2c2baa256f97cf82eca6bb7d220be":[14,0,1,0,2,7],
-"classgraphql_1_1taraxa_1_1_log.html#aa0db30fc193713525f75810157cdc5a4":[14,0,1,0,2,9],
-"classgraphql_1_1taraxa_1_1_log.html#aa9e797bdc5928b64c7ef2822a231cde5":[14,0,1,0,2,3],
-"classgraphql_1_1taraxa_1_1_log.html#abafc100162bb7836ea7dd5afa849de4d":[14,0,1,0,2,6],
-"classgraphql_1_1taraxa_1_1_log.html#abf9dd1d9027044256878ac04081fa980":[14,0,1,0,2,4],
-"classgraphql_1_1taraxa_1_1_log.html#ae2ba397029b180d86329ccd500b44272":[14,0,1,0,2,10],
-"classgraphql_1_1taraxa_1_1_mutation.html":[14,0,1,0,3]
+"classgraphql_1_1taraxa_1_1_log.html#a6269ad12b925b282d72ec95ed1205ba1":[14,0,1,0,2,0]
 };

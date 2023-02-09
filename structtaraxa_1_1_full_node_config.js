@@ -9,6 +9,7 @@ var structtaraxa_1_1_full_node_config =
     [ "data_path", "structtaraxa_1_1_full_node_config.html#a864347d8c0df47defc19d10ff4733d21", null ],
     [ "db_config", "structtaraxa_1_1_full_node_config.html#aa39ce68f57655792c78dcdac574bca99", null ],
     [ "db_path", "structtaraxa_1_1_full_node_config.html#acffae136a1a4516b1e8935af67d63aa8", null ],
+    [ "enable_debug", "structtaraxa_1_1_full_node_config.html#aeaf5ace948da7088670642301131a259", null ],
     [ "enable_test_rpc", "structtaraxa_1_1_full_node_config.html#a249ce0e41d9efaeb1029617408c63c13", null ],
     [ "final_chain_cache_in_blocks", "structtaraxa_1_1_full_node_config.html#aadf5b6df40359f749209e30e8a3d4f5b", null ],
     [ "genesis", "structtaraxa_1_1_full_node_config.html#aafec0dfc45a7579c9a22aba48696b6ea", null ],

@@ -83,6 +83,7 @@ var group___final_chain =
       [ "operator=", "group___final_chain.html#a417ad359468f6932de665cb660c505e1", null ],
       [ "prune", "group___final_chain.html#a7206ab974911e06f78e50084b1f0f87a", null ],
       [ "stop", "group___final_chain.html#a91ede0e4ca9b7b7c75b474756ab4c2a6", null ],
+      [ "trace_trx", "group___final_chain.html#ad25adddd87a6a7668d8928bcdfc63dd2", null ],
       [ "transaction_hashes", "group___final_chain.html#a2cf4e96ebcafa2e30fdbdf692ae05b44", null ],
       [ "transaction_location", "group___final_chain.html#abe6ee3b520176804d81ddbea0770fe7d", null ],
       [ "transaction_receipt", "group___final_chain.html#a0c747503c3474ff5dd8eb28ee5a09771", null ],
@@ -115,6 +116,7 @@ var group___final_chain =
       [ "operator=", "group___final_chain.html#a2ef92fcd4156622aa3dfe52a9f0a4f12", null ],
       [ "prove", "group___final_chain.html#af60d0e01cacc050ee5493c3332a5f7e8", null ],
       [ "prune", "group___final_chain.html#a9e4746f527401e367e02a462693853ae", null ],
+      [ "trace_transaction", "group___final_chain.html#afaed7012133c07fc28c340fb7080509c", null ],
       [ "transition_state", "group___final_chain.html#a4fc5b10de077e2e5310d23978d3c9882", null ],
       [ "transition_state_commit", "group___final_chain.html#a7b5dc95d0aa9a90b7fd37fd3e0593cff", null ],
       [ "update_state_config", "group___final_chain.html#a80acb20cfd3c4b7b4c293657167e849e", null ],
@@ -187,6 +189,11 @@ var group___final_chain =
     [ "StateDescriptor", "group___final_chain.html#structtaraxa_1_1state__api_1_1_state_descriptor", [
       [ "blk_num", "group___final_chain.html#a0bf86af7f54d2589d90e58b9c7b81945", null ],
       [ "state_root", "group___final_chain.html#a867b7dd5970768879482a6b6fb34d4ed", null ]
+    ] ],
+    [ "Tracing", "group___final_chain.html#structtaraxa_1_1state__api_1_1_tracing", [
+      [ "stateDiff", "group___final_chain.html#a56056dfdd0142da54f83d0841b93692f", null ],
+      [ "trace", "group___final_chain.html#a04f7664ce78f250fd3bf41faca987273", null ],
+      [ "vmTrace", "group___final_chain.html#a96bbdd2b7efb749144faac5567ea2a80", null ]
     ] ],
     [ "BlocksBlooms", "group___final_chain.html#ga135593595f98c5905f60e3a4d9c61112", null ],
     [ "LogBloom", "group___final_chain.html#ga7c637c1037e99cfc76922e6cbb3f88a4", null ],
