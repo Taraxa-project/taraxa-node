@@ -160,9 +160,9 @@ std::vector<std::shared_ptr<object::DagBlock>> Query::getDagBlocks(std::optional
     }
   }
 
-  auto addDagBlocks = [&final_chain = final_chain_, &pbft_manager = pbft_manager_,
-                       &transaction_manager = transaction_manager_](auto taraxa_dag_blocks,
-                                                                    auto& result_dag_blocks) -> size_t {
+  auto addDagBlocks = [final_chain = final_chain_, pbft_manager = pbft_manager_,
+                       transaction_manager = transaction_manager_](auto taraxa_dag_blocks,
+                                                                   auto& result_dag_blocks) -> size_t {
     for (auto& dag_block : taraxa_dag_blocks) {
       result_dag_blocks.emplace_back(std::make_shared<object::DagBlock>(
           std::make_shared<DagBlock>(std::move(dag_block), final_chain, pbft_manager, transaction_manager)));
