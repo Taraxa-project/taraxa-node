@@ -64,18 +64,9 @@ Json::Value getGenesis(Config::ChainIdType chain_id) {
   return genesis;
 }
 
-Json::Value overrideConfig(Json::Value& conf, std::string& data_dir, vector<string> boot_nodes,
-                           vector<string> log_channels, vector<string> log_configurations,
-                           const vector<string>& boot_nodes_append, const vector<string>& log_channels_append) {
-  if (data_dir.empty()) {
-    if (conf["data_path"].asString().empty()) {
-      conf["data_path"] = getTaraxaDataDefaultDir();
-    }
-    data_dir = conf["data_path"].asString();
-  } else {
-    conf["data_path"] = data_dir;
-  }
-
+Json::Value overrideConfig(Json::Value& conf, vector<string> boot_nodes, vector<string> log_channels,
+                           vector<string> log_configurations, const vector<string>& boot_nodes_append,
+                           const vector<string>& log_channels_append) {
   if (log_channels.size() > 0 && log_channels_append.size() > 0) {
     throw invalid_argument("log_channels and log_channels_append args are not allowed to be used together");
   }
@@ -159,9 +150,7 @@ Json::Value overrideConfig(Json::Value& conf, std::string& data_dir, vector<stri
 void generateWallet(const string& wallet) {
   // Wallet
   dev::KeyPair account = dev::KeyPair::create();
-
   auto [pk, sk] = taraxa::vrf_wrapper::getVrfKeyPair();
-
   auto account_json = createWalletJson(account, sk, pk);
 
   // Create account file

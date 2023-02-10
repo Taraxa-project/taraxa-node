@@ -26,6 +26,17 @@ std::string to_string(Json::Value const& json, bool no_indent) {
 }
 
 void writeJsonToFile(const std::string& file_name, const Json::Value& json) {
+  auto dirPathFromFile = [](const std::string& file_path) {
+    size_t pos = file_path.find_last_of("\\/");
+    return (std::string::npos == pos) ? "" : file_path.substr(0, pos);
+  };
+
+  // Create dir if missing
+  const auto file_dir = dirPathFromFile(file_name);
+  if (!file_dir.empty() && !fs::exists(file_dir)) {
+    fs::create_directories(file_dir);
+  }
+
   std::ofstream ofile(file_name, std::ios::trunc);
 
   if (ofile.is_open()) {

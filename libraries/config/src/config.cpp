@@ -73,9 +73,6 @@ void FullNodeConfig::overwriteConfigFromJson(const Json::Value &root) {
       }
     }
   }
-
-  is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, is_light_node);
-  light_node_history = getConfigDataAsUInt(root, {"light_node_history"}, true, light_node_history);
 }
 
 FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::Value &wallet,
@@ -95,16 +92,6 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::
     dec_json(v, genesis);
   } else {
     genesis = Genesis();
-  }
-
-  is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, is_light_node);
-  if (is_light_node) {
-    const auto min_light_node_history = (genesis.state.dpos.blocks_per_year * kDefaultLightNodeHistoryDays) / 365;
-    light_node_history = getConfigDataAsUInt(root, {"light_node_history"}, true, min_light_node_history);
-    if (light_node_history < min_light_node_history) {
-      throw ConfigException("Min. required light node history is " + std::to_string(min_light_node_history) +
-                            " blocks (" + std::to_string(kDefaultLightNodeHistoryDays) + " days)");
-    }
   }
 
   try {
@@ -153,6 +140,14 @@ void FullNodeConfig::validate() const {
   if (transactions_pool_size < kMinTransactionPoolSize) {
     throw ConfigException("transactions_pool_size cannot be smaller than " + std::to_string(kMinTransactionPoolSize) +
                           ".");
+  }
+
+  if (is_light_node) {
+    const auto min_light_node_history = (genesis.state.dpos.blocks_per_year * kDefaultLightNodeHistoryDays) / 365;
+    if (light_node_history < min_light_node_history) {
+      throw ConfigException("Min. required light node history is " + std::to_string(min_light_node_history) +
+                            " blocks (" + std::to_string(kDefaultLightNodeHistoryDays) + " days)");
+    }
   }
 
   // TODO: add validation of other config values

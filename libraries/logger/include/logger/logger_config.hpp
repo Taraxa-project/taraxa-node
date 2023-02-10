@@ -65,6 +65,7 @@ class Config {
    */
   void DeinitLogging();
 
+  bool enabled{false};
   std::string name = "default";
   Verbosity verbosity{Verbosity::Error};
   std::map<std::string, uint16_t> channels;

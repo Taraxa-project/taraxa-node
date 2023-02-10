@@ -38,11 +38,14 @@ FullNode::~FullNode() { close(); }
 void FullNode::init() {
   fs::create_directories(conf_.db_path);
   fs::create_directories(conf_.log_path);
+
   // Initialize logging
   auto const &node_addr = kp_.address();
 
-  for (auto &logging : conf_.log_configs) {
-    logging.InitLogging(node_addr);
+  for (auto &logging_config : conf_.log_configs) {
+    if (logging_config.enabled) {
+      logging_config.InitLogging(node_addr);
+    }
   }
 
   LOG_OBJECTS_CREATE("FULLND");

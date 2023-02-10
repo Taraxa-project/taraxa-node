@@ -11,7 +11,6 @@ namespace taraxa {
 struct PrometheusConfig {
   bool enabled{false};
   std::string address;
-  // TODO: is this http or ws port, should it be optional ???
   uint16_t listen_port{0};
   uint16_t polling_interval_ms{1000};
 
