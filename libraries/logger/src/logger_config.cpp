@@ -1,7 +1,5 @@
 #include "logger/logger_config.hpp"
 
-#include <json/json.h>
-
 #include <boost/algorithm/string.hpp>
 #include <boost/core/null_deleter.hpp>
 #include <boost/log/attributes/function.hpp>
@@ -26,13 +24,35 @@ Verbosity stringToVerbosity(std::string _verbosity) {
   throw("Unknown verbosity string");
 }
 
+std::string verbosityToString(Verbosity verbosity) {
+  switch (verbosity) {
+    case Verbosity::Silent:
+      return "SILENT";
+    case Verbosity::Error:
+      return "ERROR";
+    case Verbosity::Warning:
+      return "WARN";
+    case Verbosity::Info:
+      return "INFO";
+    case Verbosity::Debug:
+      return "DEBUG";
+    case Verbosity::Trace:
+      return "TRACE";
+    default:
+      throw ConfigException("Unknown verbosity value " + std::to_string(verbosity));
+  }
+}
+
 Config::Config(fs::path log_path) {
+  enabled = true;
+
   // emplace default(console) output
   outputs.emplace_back();
 
   OutputConfig file;
   file.type = "file";
   file.target = log_path;
+  file.file_name = "node_tests.log";
   file.rotation_size = 10000000;
   file.time_based_rotation = "0,0,0";
   file.max_size = 1000000000;
@@ -41,6 +61,7 @@ Config::Config(fs::path log_path) {
 
 Config::Config(const Config &other)
     : name(other.name),
+      enabled(other.enabled),
       verbosity(other.verbosity),
       channels(other.channels),
       outputs(other.outputs),
@@ -53,7 +74,7 @@ Config::Config(const Config &other)
 
 Config &Config::operator=(const Config &other) {
   name = other.name;
-  verbosity = other.verbosity;
+  enabled = other.enabled, verbosity = other.verbosity;
   channels = other.channels;
   outputs = other.outputs;
   console_sinks = other.console_sinks;
@@ -68,6 +89,7 @@ Config &Config::operator=(const Config &other) {
 
 Config::Config(Config &&other) noexcept
     : name(std::move(other.name)),
+      enabled(std::move(other.enabled)),
       verbosity(other.verbosity),
       channels(std::move(other.channels)),
       outputs(std::move(other.outputs)),
@@ -81,7 +103,7 @@ Config::Config(Config &&other) noexcept
 
 Config &Config::operator=(Config &&other) noexcept {
   name = std::move(other.name);
-  verbosity = other.verbosity;
+  enabled = std::move(other.enabled), verbosity = other.verbosity;
   channels = std::move(other.channels);
   outputs = std::move(other.outputs);
   console_sinks = std::move(other.console_sinks);
@@ -136,8 +158,9 @@ void Config::InitLogging(addr_t const &node) {
       boost::algorithm::split(v, output.time_based_rotation, boost::is_any_of(","));
       if (v.size() != 3)
         throw ConfigException("time_based_rotation not configured correctly" + output.time_based_rotation);
+
       auto sink = boost::log::add_file_log(
-          boost::log::keywords::file_name = output.file_name,
+          boost::log::keywords::file_name = fs::path(output.target) / output.file_name,
           boost::log::keywords::rotation_size = output.rotation_size,
           boost::log::keywords::time_based_rotation =
               boost::log::sinks::file::rotation_at_time_point(stoi(v[0]), stoi(v[1]), stoi(v[2])),
@@ -170,6 +193,43 @@ void Config::DeinitLogging() {
   }
 
   logging_initialized_ = false;
+}
+
+Json::Value Config::toJson() const {
+  Json::Value json_config;
+
+  json_config["name"] = name;
+  json_config["on"] = enabled;
+  json_config["verbosity"] = verbosityToString(verbosity);
+
+  auto &channels_json = json_config["channels"] = Json::Value(Json::arrayValue);
+  for (const auto &channel_cfg : channels) {
+    Json::Value channel_json;
+    channel_json["name"] = channel_cfg.first;
+    channel_json["verbosity"] = verbosityToString(channel_cfg.second);
+
+    channels_json.append(channel_json);
+  }
+
+  auto &outputs_json = json_config["outputs"] = Json::Value(Json::arrayValue);
+  for (const auto &output_cfg : outputs) {
+    Json::Value output_json;
+    output_json["type"] = output_cfg.type;
+    output_json["format"] = output_cfg.format;
+
+    if (output_cfg.type == "console") {
+      continue;
+    }
+
+    output_json["file_name"] = output_cfg.file_name;
+    output_json["rotation_size"] = output_cfg.rotation_size;
+    output_json["time_based_rotation"] = output_cfg.time_based_rotation;
+    output_json["max_size"] = output_cfg.max_size;
+
+    outputs_json.append(output_json);
+  }
+
+  return json_config;
 }
 
 }  // namespace taraxa::logger

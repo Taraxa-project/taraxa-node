@@ -1,11 +1,11 @@
 set(HEADERS
-    include/cli/config.hpp
+    include/cli/config_parser.hpp
     include/cli/config_updater.hpp
     include/cli/tools.hpp
 )
 
 set(SOURCES
-    src/config.cpp
+    src/config_parser.cpp
     src/config_updater.cpp
     src/tools.cpp
 )

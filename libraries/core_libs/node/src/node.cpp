@@ -36,8 +36,15 @@ FullNode::FullNode(FullNodeConfig const &conf) : subscription_pool_(1), conf_(co
 FullNode::~FullNode() { close(); }
 
 void FullNode::init() {
-  fs::create_directories(conf_.db_path);
-  fs::create_directories(conf_.log_path);
+  if (!fs::exists(conf_.data_path)) {
+    fs::create_directories(conf_.data_path);
+  }
+  if (!fs::exists(conf_.db_path)) {
+    fs::create_directories(conf_.db_path);
+  }
+  if (!fs::exists(conf_.log_path)) {
+    fs::create_directories(conf_.log_path);
+  }
 
   // Initialize logging
   auto const &node_addr = kp_.address();

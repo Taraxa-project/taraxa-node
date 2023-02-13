@@ -76,24 +76,4 @@ bool getConfigDataAsBoolean(const Json::Value &root, const std::vector<std::stri
     throw ConfigException(getConfigErr(path) + e.what());
   }
 }
-
-Json::Value getJsonFromFileOrString(const Json::Value &value) {
-  if (value.isString()) {
-    std::string json_file_name = value.asString();
-    if (!json_file_name.empty()) {
-      std::ifstream config_doc(json_file_name, std::ifstream::binary);
-      if (!config_doc.is_open()) {
-        throw ConfigException(std::string("Could not open configuration file: ") + json_file_name);
-      }
-      try {
-        Json::Value parsed_from_file;
-        config_doc >> parsed_from_file;
-        return parsed_from_file;
-      } catch (Json::Exception &e) {
-        throw ConfigException(std::string("Could not parse json configuration file: ") + json_file_name + e.what());
-      }
-    }
-  }
-  return value;
-}
 }  // namespace taraxa

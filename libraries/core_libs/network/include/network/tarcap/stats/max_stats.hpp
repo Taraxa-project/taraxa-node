@@ -1,6 +1,7 @@
 #pragma once
 
-#include "json/value.h"
+#include <json/value.h>
+
 #include "network/tarcap/stats/packet_stats.hpp"
 
 namespace taraxa::network::tarcap {

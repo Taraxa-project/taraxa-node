@@ -6,7 +6,7 @@
 #include <shared_mutex>
 #include <vector>
 
-#include "cli/config.hpp"
+#include "cli/config_parser.hpp"
 #include "cli/tools.hpp"
 #include "dag/dag.hpp"
 #include "logger/logger.hpp"

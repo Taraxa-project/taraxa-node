@@ -4,32 +4,9 @@
 
 namespace taraxa::logger {
 
-namespace {
-
-std::string verbosityToString(int _verbosity) {
-  switch (_verbosity) {
-    case Verbosity::Silent:
-      return "SILENT";
-    case Verbosity::Error:
-      return "ERROR";
-    case Verbosity::Warning:
-      return "WARN";
-    case Verbosity::Info:
-      return "INFO";
-    case Verbosity::Debug:
-      return "DEBUG";
-    case Verbosity::Trace:
-      return "TRACE";
-    default:
-      return "";
-  }
-}
-
-}  // namespace
-
 Logger createLogger(Verbosity verboseLevel, const std::string& channel, const addr_t& node_id) {
   Logger logger(boost::log::keywords::severity = verboseLevel, boost::log::keywords::channel = channel);
-  std::string severity_str = verbosityToString(verboseLevel);
+  std::string severity_str = logger::verbosityToString(verboseLevel);
   logger.add_attribute("SeverityStr", boost::log::attributes::constant<std::string>(severity_str));
   logger.add_attribute("ShortNodeId", boost::log::attributes::constant<std::string>(node_id.abridged()));
   logger.add_attribute("NodeId", boost::log::attributes::constant<std::string>(node_id.toString()));

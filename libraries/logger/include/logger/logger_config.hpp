@@ -1,5 +1,7 @@
 #pragma once
 
+#include <json/value.h>
+
 #include <boost/log/sinks/text_ostream_backend.hpp>
 #include <boost/log/sources/record_ostream.hpp>
 #include <boost/log/utility/setup/file.hpp>
@@ -29,6 +31,14 @@ enum Verbosity {
  * @return Verbosity enum
  */
 Verbosity stringToVerbosity(std::string _verbosity);
+
+/**
+ * @brief Transforms enum verbosity to string
+ *
+ * @param verbosity
+ * @return Verbosity string
+ */
+std::string verbosityToString(Verbosity verbosity);
 
 class Config {
  public:
@@ -65,10 +75,17 @@ class Config {
    */
   void DeinitLogging();
 
-  bool enabled{false};
+  /**
+   * @brief Generate json from config object
+   *
+   * @return json representation of config
+   */
+  Json::Value toJson() const;
+
   std::string name = "default";
+  bool enabled{false};
   Verbosity verbosity{Verbosity::Error};
-  std::map<std::string, uint16_t> channels;
+  std::map<std::string, Verbosity> channels;
   std::vector<OutputConfig> outputs;
   std::vector<boost::shared_ptr<log_sink<boost::log::sinks::text_ostream_backend>>> console_sinks;
   std::vector<boost::shared_ptr<log_sink<boost::log::sinks::text_file_backend>>> file_sinks;

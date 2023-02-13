@@ -23,7 +23,7 @@ Quickstart Guide
   #### OPTIONAL PORTS   
   TODO: add
 
-### Config
+### ConfigParser
 You can see example config [here](doc/example_config.json)
 
 #### Param1

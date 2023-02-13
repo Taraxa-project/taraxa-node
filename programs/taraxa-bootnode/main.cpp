@@ -13,7 +13,7 @@
 #include <string>
 #include <thread>
 
-#include "cli/config.hpp"
+#include "cli/config_parser.hpp"
 #include "cli/tools.hpp"
 #include "common/jsoncpp.hpp"
 #include "common/thread_pool.hpp"
@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
   }
 
   /// Networking params.
-  unsigned short chain_id = static_cast<unsigned short>(taraxa::cli::Config::kDefaultChainId);
+  unsigned short chain_id = static_cast<unsigned short>(taraxa::cli::ConfigParser::kDefaultChainId);
   if (vm.count("chain-id")) chain_id = vm["chain-id"].as<unsigned short>();
 
   std::string listen_ip = "0.0.0.0";
@@ -179,8 +179,9 @@ int main(int argc, char** argv) {
 
   if (boot_host->isRunning()) {
     std::cout << "Node ID: " << boot_host->enode() << std::endl;
-    if (static_cast<taraxa::cli::Config::ChainIdType>(chain_id) < taraxa::cli::Config::ChainIdType::LastNetworkId) {
-      const auto conf = taraxa::cli::tools::getConfig(static_cast<taraxa::cli::Config::ChainIdType>(chain_id));
+    if (static_cast<taraxa::cli::ConfigParser::ChainIdType>(chain_id) <
+        taraxa::cli::ConfigParser::ChainIdType::LastNetworkId) {
+      const auto conf = taraxa::cli::tools::getConfig(static_cast<taraxa::cli::ConfigParser::ChainIdType>(chain_id));
       for (auto const& bn : conf["network"]["boot_nodes"]) {
         bi::tcp::endpoint ep = dev::p2p::Network::resolveHost(bn["ip"].asString() + ":" + bn["port"].asString());
         boot_host->addNode(

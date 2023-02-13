@@ -17,24 +17,19 @@ struct DBConfig {
   bool rebuild_db = false;
   PbftPeriod rebuild_db_period = 0;
   bool rebuild_db_columns = false;
-};
 
-void dec_json(Json::Value const &json, DBConfig &db_config);
+  /**
+   * @brief Generate json from config object
+   *
+   * @return json representation of config
+   */
+  Json::Value toJson() const;
+};
 
 struct FullNodeConfig {
   static constexpr uint64_t kDefaultLightNodeHistoryDays = 7;
 
   FullNodeConfig() = default;
-  // The reason of using Json::Value as a union is that in the tests
-  // there are attempts to pass char const* to this constructor, which
-  // is ambiguous (char const* may promote to Json::Value)
-  // if you have std::string and Json::Value constructor. It was easier
-  // to just treat Json::Value as a std::string or Json::Value depending on
-  // the contents
-  explicit FullNodeConfig(const Json::Value &file_name_str_or_json_object, const Json::Value &wallet,
-                          const Json::Value &genesis = Json::Value::null, const std::string &config_file_path = "");
-
-  void overwriteConfigFromJson(const Json::Value &config_json);
 
   std::string json_file_name;
   dev::Secret node_secret;
@@ -65,10 +60,20 @@ struct FullNodeConfig {
    * @return
    */
   void validate() const;
-};
 
-std::ostream &operator<<(std::ostream &strm, NodeConfig const &conf);
-std::ostream &operator<<(std::ostream &strm, NetworkConfig const &conf);
-std::ostream &operator<<(std::ostream &strm, FullNodeConfig const &conf);
+  /**
+   * @brief Generate json from config object
+   *
+   * @return json representation of config
+   */
+  Json::Value toJson() const;
+
+  /**
+   * @brief Generate wallet json from config object
+   *
+   * @return json representation of wallet
+   */
+  Json::Value walletToJson() const;
+};
 
 }  // namespace taraxa

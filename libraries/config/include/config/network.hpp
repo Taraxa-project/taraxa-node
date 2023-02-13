@@ -15,6 +15,13 @@ struct PrometheusConfig {
   uint16_t polling_interval_ms{1000};
 
   void validate() const;
+
+  /**
+   * @brief Generate json from config object
+   *
+   * @return json representation of config
+   */
+  Json::Value toJson() const;
 };
 
 struct ConnectionConfig {
@@ -27,14 +34,26 @@ struct ConnectionConfig {
   uint16_t threads_num{5};
 
   void validate() const;
-};
 
-void dec_json(const Json::Value &json, ConnectionConfig &config);
+  /**
+   * @brief Generate json from config object
+   *
+   * @return json representation of config
+   */
+  Json::Value toJson() const;
+};
 
 struct NodeConfig {
   std::string id;
   std::string ip;
   uint16_t port = 0;
+
+  /**
+   * @brief Generate json from config object
+   *
+   * @return json representation of config
+   */
+  Json::Value toJson() const;
 };
 
 struct DdosProtectionConfig {
@@ -58,6 +77,13 @@ struct DdosProtectionConfig {
   uint64_t max_packets_queue_size{0};
 
   void validate(uint32_t delegation_delay) const;
+
+  /**
+   * @brief Generate json from config object
+   *
+   * @return json representation of config
+   */
+  Json::Value toJson() const;
 };
 
 struct NetworkConfig {
@@ -84,8 +110,13 @@ struct NetworkConfig {
   PrometheusConfig prometheus;
 
   void validate(uint32_t delegation_delay) const;
-};
 
-void dec_json(const Json::Value &json, NetworkConfig &network);
+  /**
+   * @brief Generate json from config object
+   *
+   * @return json representation of config
+   */
+  Json::Value toJson() const;
+};
 
 }  // namespace taraxa

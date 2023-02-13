@@ -8,7 +8,7 @@
 #include <shared_mutex>
 #include <vector>
 
-#include "cli/config.hpp"
+#include "cli/config_parser.hpp"
 #include "cli/tools.hpp"
 #include "common/constants.hpp"
 #include "common/static_init.hpp"

@@ -5,7 +5,7 @@
 
 #include <string>
 
-#include "cli/config.hpp"
+#include "cli/config_parser.hpp"
 #include "common/vrf_wrapper.hpp"
 
 namespace taraxa::cli::tools {
@@ -29,17 +29,10 @@ void generateVrfFromKey(const std::string& key);
 
 // Generate default config and wallet files
 int getChainIdFromString(std::string& chain_str);
-void getConfig(const std::string& config, cli::Config::ChainIdType chain_id);
-Json::Value getConfig(Config::ChainIdType chain_id);
-Json::Value getGenesis(Config::ChainIdType chain_id);
+void getConfig(const std::string& config, cli::ConfigParser::ChainIdType chain_id);
+Json::Value getConfig(ConfigParser::ChainIdType chain_id);
+Json::Value getGenesis(ConfigParser::ChainIdType chain_id);
 void generateWallet(const std::string& wallet);
-
-// Override existing config and wallet files
-Json::Value overrideConfig(Json::Value& config, std::vector<std::string> boot_nodes,
-                           std::vector<std::string> log_channels, std::vector<std::string> log_configurations,
-                           const std::vector<std::string>& boot_nodes_append,
-                           const std::vector<std::string>& log_channels_append);
-Json::Value overrideWallet(Json::Value& wallet, const std::string& node_key, const std::string& vrf_key);
 
 std::string getHomeDir();
 std::string getTaraxaDefaultDir();

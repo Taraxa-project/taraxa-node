@@ -6,7 +6,7 @@
 #include <boost/algorithm/string.hpp>
 #include <filesystem>
 
-#include "cli/config.hpp"
+#include "cli/config_parser.hpp"
 #include "common/jsoncpp.hpp"
 
 using namespace std;
@@ -18,25 +18,25 @@ namespace taraxa::cli::tools {
 int getChainIdFromString(std::string& chain_str) {
   boost::algorithm::to_lower(chain_str);
   if (chain_str == "mainnet") {
-    return static_cast<int>(Config::ChainIdType::Mainnet);
+    return static_cast<int>(ConfigParser::ChainIdType::Mainnet);
   } else if (chain_str == "testnet") {
-    return static_cast<int>(Config::ChainIdType::Testnet);
+    return static_cast<int>(ConfigParser::ChainIdType::Testnet);
   } else if (chain_str == "devnet") {
-    return static_cast<int>(Config::ChainIdType::Devnet);
+    return static_cast<int>(ConfigParser::ChainIdType::Devnet);
   }
   throw boost::program_options::invalid_option_value(chain_str);
 }
 
-Json::Value getConfig(Config::ChainIdType chain_id) {
+Json::Value getConfig(ConfigParser::ChainIdType chain_id) {
   Json::Value conf;
   switch (chain_id) {
-    case Config::ChainIdType::Mainnet:
+    case ConfigParser::ChainIdType::Mainnet:
       conf = util::readJsonFromString(mainnet_config_json);
       break;
-    case Config::ChainIdType::Testnet:
+    case ConfigParser::ChainIdType::Testnet:
       conf = util::readJsonFromString(testnet_config_json);
       break;
-    case Config::ChainIdType::Devnet:
+    case ConfigParser::ChainIdType::Devnet:
       conf = util::readJsonFromString(devnet_config_json);
       break;
     default:
@@ -45,16 +45,16 @@ Json::Value getConfig(Config::ChainIdType chain_id) {
   return conf;
 }
 
-Json::Value getGenesis(Config::ChainIdType chain_id) {
+Json::Value getGenesis(ConfigParser::ChainIdType chain_id) {
   Json::Value genesis;
   switch (chain_id) {
-    case Config::ChainIdType::Mainnet:
+    case ConfigParser::ChainIdType::Mainnet:
       genesis = util::readJsonFromString(mainnet_genesis_json);
       break;
-    case Config::ChainIdType::Testnet:
+    case ConfigParser::ChainIdType::Testnet:
       genesis = util::readJsonFromString(testnet_genesis_json);
       break;
-    case Config::ChainIdType::Devnet:
+    case ConfigParser::ChainIdType::Devnet:
       genesis = util::readJsonFromString(devnet_genesis_json);
       break;
     default:
@@ -62,89 +62,6 @@ Json::Value getGenesis(Config::ChainIdType chain_id) {
       genesis["chain_id"] = static_cast<int>(chain_id);
   }
   return genesis;
-}
-
-Json::Value overrideConfig(Json::Value& conf, vector<string> boot_nodes, vector<string> log_channels,
-                           vector<string> log_configurations, const vector<string>& boot_nodes_append,
-                           const vector<string>& log_channels_append) {
-  if (log_channels.size() > 0 && log_channels_append.size() > 0) {
-    throw invalid_argument("log_channels and log_channels_append args are not allowed to be used together");
-  }
-  if (boot_nodes.size() > 0 && boot_nodes_append.size() > 0) {
-    throw invalid_argument("boot_nodes and boot_nodes_append args are not allowed to be used together");
-  }
-
-  // Override boot nodes
-  if (boot_nodes.size() > 0) {
-    conf["network"]["boot_nodes"] = Json::Value(Json::arrayValue);
-  }
-  if (boot_nodes_append.size() > 0) {
-    boot_nodes = boot_nodes_append;
-  }
-  if (boot_nodes.size() > 0) {
-    for (auto const& b : boot_nodes) {
-      vector<string> result;
-      boost::split(result, b, boost::is_any_of(":/"));
-      if (result.size() != 3) throw invalid_argument("Boot node in boot_nodes not specified correctly");
-      bool found = false;
-      for (Json::Value& node : conf["network"]["boot_nodes"]) {
-        if (node["id"].asString() == result[2]) {
-          found = true;
-          node["ip"] = result[0];
-          node["listen_port"] = stoi(result[1]);
-          node["port"] = stoi(result[1]);
-        }
-      }
-      if (!found) {
-        Json::Value b_node;
-        b_node["id"] = result[2];
-        b_node["ip"] = result[0];
-        b_node["port"] = stoi(result[1]);
-        conf["network"]["boot_nodes"].append(b_node);
-      }
-    }
-  }
-
-  // Override log channels
-  if (log_channels.size() > 0) {
-    conf["logging"]["configurations"][0u]["channels"] = Json::Value(Json::arrayValue);
-  }
-
-  // Turn on logging configurations
-  if (log_configurations.size() > 0) {
-    for (Json::Value& node : conf["logging"]["configurations"]) {
-      for (const auto& log_conf : log_configurations) {
-        if (node["name"].asString() == log_conf) {
-          node["on"] = true;
-        }
-      }
-    }
-  }
-  if (log_channels_append.size() > 0) {
-    log_channels = log_channels_append;
-  }
-  if (log_channels.size() > 0) {
-    for (auto const& l : log_channels) {
-      vector<string> result;
-      boost::split(result, l, boost::is_any_of(":"));
-      if (result.size() != 2) throw invalid_argument("Log channel in log_channels not specified correctly");
-
-      bool found = false;
-      for (Json::Value& node : conf["logging"]["configurations"][0u]["channels"]) {
-        if (node["name"].asString() == result[0]) {
-          found = true;
-          node["verbosity"] = result[1];
-        }
-      }
-      if (!found) {
-        Json::Value channel_node;
-        channel_node["name"] = result[0];
-        channel_node["verbosity"] = result[1];
-        conf["logging"]["configurations"][0u]["channels"].append(channel_node);
-      }
-    }
-  }
-  return conf;
 }
 
 void generateWallet(const string& wallet) {
@@ -155,25 +72,6 @@ void generateWallet(const string& wallet) {
 
   // Create account file
   util::writeJsonToFile(wallet, account_json);
-}
-
-Json::Value overrideWallet(Json::Value& wallet, const string& node_key, const string& vrf_key) {
-  if (!node_key.empty()) {
-    auto sk = dev::Secret(node_key, dev::Secret::ConstructFromStringType::FromHex);
-    dev::KeyPair account = dev::KeyPair(sk);
-    wallet["node_secret"] = toHex(account.secret().ref());
-    wallet["node_public"] = account.pub().toString();
-    wallet["node_address"] = account.address().toString();
-  }
-
-  if (!vrf_key.empty()) {
-    auto sk = taraxa::vrf_wrapper::vrf_sk_t(vrf_key);
-    auto pk = taraxa::vrf_wrapper::getVrfPublicKey(sk);
-    wallet["vrf_secret"] = sk.toString();
-    wallet["vrf_public"] = pk.toString();
-  }
-
-  return wallet;
 }
 
 void generateAccount(const dev::KeyPair& account) {

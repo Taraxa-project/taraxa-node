@@ -1,5 +1,6 @@
 #include "test_util/test_util.hpp"
 
+#include "cli/config_parser.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "vote_manager/vote_manager.hpp"
 
@@ -179,7 +180,7 @@ NodesTest::NodesTest() {
 
     cfg.data_path = "/tmp/taraxa" + std::to_string(i);
     cfg.db_path = cfg.data_path / "db";
-    cfg.log_path = cfg.data_path / "log";
+    cfg.log_path = cfg.data_path / "logs";
     taraxa::logger::Config log_cfg(cfg.log_path);
     log_cfg.verbosity = taraxa::logger::Verbosity::Error;
     cfg.log_configs.emplace_back(log_cfg);
@@ -219,10 +220,9 @@ void NodesTest::overwriteFromJsons() {
     if (!fs::exists(path)) {
       break;
     }
-    Json::Value json;
-    std::ifstream(path.string(), std::ifstream::binary) >> json;
 
-    node_cfgs[i].overwriteConfigFromJson(json);
+    cli::ConfigParser config_parser;
+    config_parser.updateConfigFromJson(node_cfgs[i], path);
   }
 }
 

@@ -24,7 +24,6 @@ namespace taraxa {
 
 class PacketHandler;
 
-// TODO merge with TaraxaCapability, and then split the result in reasonable components
 class Network {
  public:
   Network(const FullNodeConfig &config, const h256 &genesis_hash = {},

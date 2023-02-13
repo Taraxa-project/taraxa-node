@@ -1,7 +1,7 @@
 #include <boost/program_options.hpp>
 #include <condition_variable>
 
-#include "cli/config.hpp"
+#include "cli/config_parser.hpp"
 #include "common/static_init.hpp"
 #include "node/node.hpp"
 
@@ -12,10 +12,10 @@ namespace bpo = boost::program_options;
 int main(int argc, const char* argv[]) {
   static_init();
   try {
-    cli::Config cli_conf(argc, argv);
+    const auto config = cli::ConfigParser().createConfig(argc, argv);
 
-    if (cli_conf.nodeConfigured()) {
-      auto node = std::make_shared<FullNode>(cli_conf.getNodeConfiguration());
+    if (config.has_value()) {
+      auto node = std::make_shared<FullNode>(*config);
       node->start();
 
       if (node->isStarted()) {

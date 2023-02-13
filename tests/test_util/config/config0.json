@@ -1,5 +1,4 @@
 {
-  "chain_id": 0,
   "data_path": "/tmp/taraxa0",
   "network": {
     "rpc": {

@@ -20,7 +20,6 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
     : tp_(config.network.num_threads, false) {
   auto const &node_addr = key.address();
   LOG_OBJECTS_CREATE("NETWORK");
-  LOG(log_nf_) << "Read Network Config: " << std::endl << config.network << std::endl;
 
   // TODO make all these properties configurable
   dev::p2p::NetworkConfig net_conf;
