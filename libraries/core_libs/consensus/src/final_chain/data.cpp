@@ -13,7 +13,7 @@ u256 const& BlockHeader::difficulty() { return ZeroU256(); }
 h256 const& BlockHeader::mix_hash() { return ZeroHash(); }
 
 RLP_FIELDS_DEFINE(BlockHeader, hash, parent_hash, author, state_root, transactions_root, receipts_root, log_bloom,
-                  number, gas_limit, gas_used, timestamp, extra_data)
+                  number, gas_limit, gas_used, timestamp, total_reward, extra_data)
 
 void BlockHeader::ethereum_rlp(dev::RLPStream& encoding) const {
   util::rlp_tuple(encoding, parent_hash, BlockHeader::uncles_hash(), author, state_root, transactions_root,

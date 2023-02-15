@@ -434,6 +434,7 @@ class EthImpl : public Eth, EthParams {
     res["hash"] = toJson(obj.hash);
     res["difficulty"] = "0x0";
     res["totalDifficulty"] = "0x0";
+    res["totalReward"] = toJson(obj.total_reward);
     return res;
   }
 

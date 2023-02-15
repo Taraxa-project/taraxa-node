@@ -6,6 +6,7 @@
 
 - "pending" block identifier means "latest"
 - `eth_syncing` return values are to be better defined
+- added `totalReward` field to a block type returned by `eth_getBlockByHash` and `eth_getBlockByNumber` methods. This field has amount of tokens that was minted as rewards in this block
 
 ### Not implemented
 

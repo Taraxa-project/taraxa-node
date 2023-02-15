@@ -40,6 +40,7 @@ struct BlockHeader {
   bytes extra_data;
   uint64_t timestamp = 0;
   Address author;
+  u256 total_reward;
 
   HAS_RLP_FIELDS
 
