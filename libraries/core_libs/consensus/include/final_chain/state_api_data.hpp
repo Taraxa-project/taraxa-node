@@ -75,6 +75,7 @@ struct ExecutionResult {
 struct StateTransitionResult {
   std::vector<ExecutionResult> execution_results;
   h256 state_root;
+  u256 total_reward;
 
   HAS_RLP_FIELDS
 };
