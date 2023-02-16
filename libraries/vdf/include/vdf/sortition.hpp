@@ -52,7 +52,7 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
 
   auto getComputationTime() const { return vdf_computation_time_; }
   uint16_t getDifficulty() const;
-  uint16_t calculateDifficulty(SortitionParams const& config, uint64_t vote_count, uint64_t total_vote_count) const;
+  uint16_t calculateDifficulty(SortitionParams const& config) const;
   bool isStale(SortitionParams const& config) const;
   Json::Value getJson() const;
 
@@ -62,11 +62,14 @@ class VdfSortition : public vrf_wrapper::VrfSortitionBase {
       "9aee2a207e5173a7ee8f90ee9ab9b6a745d27c6e850e7ca7332388dfef7e5bbe6267d1f7"
       "9f9330e44715b3f2066f903081836c1c83ca29126f8fdc5f5922bf3f9ddb4540171691ac"
       "cc1ef6a34b2a804a18159c89c39b16edee2ede35");
-  bool verifyVrf(const vrf_pk_t& pk, const bytes& vrf_input) const;
+  bool verifyVrf(const vrf_pk_t& pk, const bytes& vrf_input, uint16_t vote_count) const;
 
   std::pair<bytes, bytes> vdf_sol_;
   unsigned long vdf_computation_time_ = 0;
   uint16_t difficulty_ = 0;
+  // Votes are normalized to part per thousand of total votes
+  static const uint32_t kVotesProportion = 1000;
+  static const uint32_t kThresholdCorrection = 10;
 };
 
 }  // namespace taraxa::vdf_sortition

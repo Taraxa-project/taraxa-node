@@ -78,10 +78,10 @@ Genesis::Genesis() {
   })"));
 
   // VDF config
-  sortition.vrf.threshold_upper = 0xafff;
+  sortition.vrf.threshold_upper = 0x2710;
   sortition.vdf.difficulty_min = 16;
   sortition.vdf.difficulty_max = 21;
-  sortition.vdf.difficulty_stale = 23;
+  sortition.vdf.difficulty_stale = 22;
   sortition.vdf.lambda_bound = 100;
 
   // PBFT config

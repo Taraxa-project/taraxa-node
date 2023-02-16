@@ -123,7 +123,7 @@ void TransactionPacketHandler::onNewTransactions(const SharedTransactions &trans
 }
 
 void TransactionPacketHandler::periodicSendTransactions(SharedTransactions &&transactions) {
-  std::unordered_map<dev::p2p::NodeID, SharedTransactions> transactions_to_send;
+  std::vector<std::pair<dev::p2p::NodeID, SharedTransactions>> peers_with_transactions_to_send;
 
   auto peers = peers_state_->getAllPeers();
   std::string transactions_to_log;
@@ -136,21 +136,26 @@ void TransactionPacketHandler::periodicSendTransactions(SharedTransactions &&tra
     // incorrectly markTransactionAsKnown
     if (!peer.second->syncing_) {
       peers_to_log += peer.first.abridged();
+      SharedTransactions peer_trxs;
       for (auto const &trx : transactions) {
         auto trx_hash = trx->getHash();
         if (peer.second->isTransactionKnown(trx_hash)) {
           continue;
         }
-
-        transactions_to_send[peer.first].push_back(trx);
+        peer_trxs.push_back(trx);
       }
+      peers_with_transactions_to_send.push_back({peer.first, peer_trxs});
     }
   }
-
-  LOG(log_tr_) << "Sending Transactions " << transactions_to_log << " to " << peers_to_log;
-
-  for (auto &it : transactions_to_send) {
-    sendTransactions(peers[it.first], std::move(it.second));
+  const auto peers_to_send_count = peers_with_transactions_to_send.size();
+  if (peers_to_send_count > 0) {
+    LOG(log_tr_) << "Sending Transactions " << transactions_to_log << " to " << peers_to_log;
+    // Sending it in same order favours some peers over others, always start with a different position
+    uint32_t start_with = rand() % peers_to_send_count;
+    for (uint32_t i = 0; i < peers_to_send_count; i++) {
+      auto peer_to_send = peers_with_transactions_to_send[(start_with + i) % peers_to_send_count];
+      sendTransactions(peers[peer_to_send.first], std::move(peer_to_send.second));
+    }
   }
 }
 

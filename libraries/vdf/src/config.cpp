@@ -38,7 +38,6 @@ Json::Value enc_json(VdfParams const& obj) {
   ret["difficulty_max"] = obj.difficulty_max;
   ret["difficulty_stale"] = obj.difficulty_stale;
   ret["lambda_bound"] = dev::toJS(obj.lambda_bound);
-  ret["stake_threshold"] = obj.stake_threshold;
   return ret;
 }
 
@@ -47,7 +46,6 @@ void dec_json(Json::Value const& json, VdfParams& obj) {
   obj.difficulty_max = json["difficulty_max"].asInt();
   obj.difficulty_stale = json["difficulty_stale"].asInt();
   obj.lambda_bound = dev::jsToInt(json["lambda_bound"].asString());
-  obj.stake_threshold = json["stake_threshold"].asInt();
 }
 
 Json::Value enc_json(SortitionParams const& obj) {
