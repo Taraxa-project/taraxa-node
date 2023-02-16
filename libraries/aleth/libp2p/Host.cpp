@@ -281,7 +281,7 @@ void Host::startPeerSession(Public const& _id, RLP const& _hello, unique_ptr<RLP
     cdebug << "Unexpected identity from peer (peer is not marked required)";
     disconnect_reason = UnexpectedIdentity;
   }
-  if (!disconnect_reason && m_sessions.count(_id)) {
+  if (!disconnect_reason && m_sessions.contains(_id)) {
     if (auto s = m_sessions[_id].lock()) {
       if (s->isConnected()) {
         // Already connected.
@@ -328,7 +328,7 @@ void Host::onNodeTableEvent(NodeID const& _n, NodeTableEventType const& _e) {
     LOG(m_logger) << "p2p.host.nodeTable.events.nodeEntryAdded " << _n;
     if (Node n = nodeFromNodeTable(_n)) {
       shared_ptr<Peer> p;
-      if (m_peers.count(_n)) {
+      if (m_peers.contains(_n)) {
         p = m_peers[_n];
         p->set_endpoint(n.get_endpoint());
       } else {
@@ -340,7 +340,7 @@ void Host::onNodeTableEvent(NodeID const& _n, NodeTableEventType const& _e) {
     }
   } else if (_e == NodeEntryDropped) {
     LOG(m_logger) << "p2p.host.nodeTable.events.NodeEntryDropped " << _n;
-    if (m_peers.count(_n) && m_peers[_n]->peerType == PeerType::Optional) m_peers.erase(_n);
+    if (m_peers.contains(_n) && m_peers[_n]->peerType == PeerType::Optional) m_peers.erase(_n);
   }
 }
 
@@ -362,7 +362,7 @@ bi::tcp::endpoint Host::determinePublic() const {
   auto pset = !paddr.is_unspecified();
 
   bool listenIsPublic = lset && isPublicAddress(laddr);
-  bool publicIsHost = !lset && pset && ifAddresses.count(paddr);
+  bool publicIsHost = !lset && pset && ifAddresses.contains(paddr);
 
   bi::tcp::endpoint ep(bi::address(), m_listenPort);
   if (m_netConfig.traverseNAT && listenIsPublic) {
@@ -373,8 +373,8 @@ bi::tcp::endpoint Host::determinePublic() const {
     ep.address(paddr);
   } else if (m_netConfig.traverseNAT) {
     bi::address natIFAddr;
-    ep = Network::traverseNAT(lset && ifAddresses.count(laddr) ? set<bi::address>({laddr}) : ifAddresses, m_listenPort,
-                              natIFAddr);
+    ep = Network::traverseNAT(lset && ifAddresses.contains(laddr) ? set<bi::address>({laddr}) : ifAddresses,
+                              m_listenPort, natIFAddr);
 
     if (lset && natIFAddr != laddr)
       // if listen address is set, Host will use it, even if upnp returns
@@ -407,26 +407,27 @@ ENR Host::updateENR(ENR const& _restoredENR, bi::tcp::endpoint const& _tcpPublic
 }
 
 void Host::runAcceptor() {
-  m_tcp4Acceptor.async_accept(make_strand(session_ioc_),
-                              [=, this](boost::system::error_code _ec, bi::tcp::socket _socket) {
-                                if (_ec == ba::error::operation_aborted || !m_tcp4Acceptor.is_open()) {
-                                  return;
-                                }
-                                auto socket = make_shared<RLPXSocket>(std::move(_socket));
-                                if (peer_count_() > peerSlots(Ingress)) {
-                                  cnetdetails << "Dropping incoming connect due to maximum peer count (" << Ingress
-                                              << " * ideal peer count): " << socket->remoteEndpoint();
-                                  socket->close();
-                                } else {
-                                  // incoming connection; we don't yet know nodeid
-                                  auto handshake = make_shared<RLPXHandshake>(handshake_ctx_, socket);
-                                  ba::post(strand_, [=, this, this_shared = shared_from_this()] {
-                                    m_connecting.push_back(handshake);
-                                    handshake->start();
-                                  });
-                                }
-                                runAcceptor();
-                              });
+  m_tcp4Acceptor.async_accept(
+      make_strand(session_ioc_),
+      ba::bind_executor(strand_, [this](boost::system::error_code _ec, bi::tcp::socket _socket) {
+        if (_ec == ba::error::operation_aborted || !m_tcp4Acceptor.is_open()) {
+          return;
+        }
+        auto socket = make_shared<RLPXSocket>(std::move(_socket));
+        if (peer_count_() > peerSlots(Ingress)) {
+          cnetdetails << "Dropping incoming connect due to maximum peer count (" << Ingress
+                      << " * ideal peer count): " << socket->remoteEndpoint();
+          socket->close();
+        } else {
+          // incoming connection; we don't yet know nodeid
+          auto handshake = make_shared<RLPXHandshake>(handshake_ctx_, socket);
+          ba::post(strand_, [=, this, this_shared = shared_from_this()] {
+            m_connecting.push_back(handshake);
+            handshake->start();
+          });
+        }
+        runAcceptor();
+      }));
 }
 
 void Host::invalidateNode(NodeID const& _node) { m_nodeTable->invalidateNode(_node); }
@@ -449,7 +450,7 @@ void Host::connect(shared_ptr<Peer> const& _p) {
 
   // prevent concurrently connecting to a node
   Peer* nptr = _p.get();
-  if (m_pendingPeerConns.count(nptr)) {
+  if (m_pendingPeerConns.contains(nptr)) {
     return;
   }
   m_pendingPeerConns.insert(nptr);
@@ -488,10 +489,12 @@ PeerSessionInfos Host::peerSessionInfos() const {
 }
 
 size_t Host::peer_count_() const {
-  unsigned retCount = 0;
-  for (auto& i : m_sessions)
-    if (shared_ptr<Session> j = i.second.lock())
-      if (j->isConnected()) retCount++;
+  size_t retCount = 0;
+  for (auto& i : m_sessions) {
+    if (auto j = i.second.lock(); j && j->isConnected()) {
+      retCount++;
+    }
+  }
   return retCount;
 }
 
