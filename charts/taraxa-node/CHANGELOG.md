@@ -3,6 +3,12 @@
 This file documents all notable changes to `taraxa-node` Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v0.4.0
+
+### Minor changes
+
+* Added `lite` flavour of consensus node
+
 ## v0.3.2
 
 ### Minor changes
