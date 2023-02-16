@@ -217,14 +217,12 @@ Json::Value Config::toJson() const {
     output_json["type"] = output_cfg.type;
     output_json["format"] = output_cfg.format;
 
-    if (output_cfg.type == "console") {
-      continue;
+    if (output_cfg.type == "file") {
+      output_json["file_name"] = output_cfg.file_name;
+      output_json["rotation_size"] = output_cfg.rotation_size;
+      output_json["time_based_rotation"] = output_cfg.time_based_rotation;
+      output_json["max_size"] = output_cfg.max_size;
     }
-
-    output_json["file_name"] = output_cfg.file_name;
-    output_json["rotation_size"] = output_cfg.rotation_size;
-    output_json["time_based_rotation"] = output_cfg.time_based_rotation;
-    output_json["max_size"] = output_cfg.max_size;
 
     outputs_json.append(output_json);
   }

@@ -210,7 +210,7 @@ void FullNode::start() {
     }
 
     std::shared_ptr<net::Debug> debug_json_rpc;
-    if (conf_.enable_debug) {
+    if (conf_.enable_debug_rpc) {
       // TODO Because this object refers to FullNode, the lifecycle/dependency management is more complicated);
       debug_json_rpc = std::make_shared<net::Debug>(shared_from_this(), conf_.genesis.dag.gas_limit);
     }

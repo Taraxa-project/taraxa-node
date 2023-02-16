@@ -37,6 +37,7 @@ Json::Value FullNodeConfig::toJson() const {
   json_config["dag_expiry_limit"] = dag_expiry_limit;
   json_config["max_levels_per_period"] = max_levels_per_period;
   json_config["enable_test_rpc"] = enable_test_rpc;
+  json_config["enable_debug_rpc"] = enable_debug_rpc;
   json_config["final_chain_cache_in_blocks"] = final_chain_cache_in_blocks;
   json_config["transactions_pool_size"] = transactions_pool_size;
 

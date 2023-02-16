@@ -63,13 +63,16 @@ class ConfigParser {
    * @param enable_log_configurations
    * @param override_log_channels
    * @param log_channels_append
+   * @param node_secret
+   * @param vrf_secret
    */
   static void updateConfigFromCliSpecialOptions(FullNodeConfig& config,
                                                 const std::vector<std::string>& override_boot_nodes,
                                                 const std::vector<std::string>& append_boot_nodes,
                                                 const std::vector<std::string>& enable_log_configurations,
                                                 const std::vector<std::string>& override_log_channels,
-                                                const std::vector<std::string>& append_log_channels);
+                                                const std::vector<std::string>& append_log_channels,
+                                                const std::string& node_secret, const std::string& vrf_secret);
 
   /**
    * @brief Adds config values that are not registered as config cmd options

@@ -77,7 +77,7 @@ class Node:
             with open(datadir_genesis_file_path, mode="w") as f:
                 json.dump(genesis, f)
 
-            self._proc = Popen([mode.executable_path, "--config", datadir_cfg_file_path, "--wallet", datadir_wallet_file_path, "--genesis", datadir_genesis_file_path, "--data-dir", cfg["data_path"]])
+            self._proc = Popen([mode.executable_path, "--config", datadir_cfg_file_path, "--wallet", datadir_wallet_file_path, "--genesis", datadir_genesis_file_path, "--data_path", cfg["data_path"]])
         elif isinstance(mode, Node.RemoteInitMode):
             net_host = mode.host
         else:

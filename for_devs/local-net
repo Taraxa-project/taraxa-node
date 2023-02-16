@@ -47,7 +47,7 @@ def cli():
 @click.option('--boot-nodes', default=3, help='Number of boot nodes')
 @click.option('--rpc-nodes', default=3, help='Number of RPC nodes')
 @click.option('--tps', default=0, help='Number of transactions per second (if zero the faucet will not start)')
-@click.option('--enable-test-rpc', is_flag=True, default=False, help='Enables Test JsonRPC')
+@click.option('--enable_test_rpc', is_flag=True, default=False, help='Enables Test JsonRPC')
 @click.argument('binary')
 def start(boot_nodes, rpc_nodes, tps, enable_test_rpc, binary):
     """Start a local testnet"""
@@ -121,15 +121,14 @@ def config(binary, boot_nodes, rpc_nodes):
             if type == "boot" and existing_genesis:
                 sys.exit("Cannot increase number of boot nodes without resetting the network")
 
-            if not os.path.isdir(f'{local_net}/db-{worker_name}'):
-                os.mkdir(f'{local_net}/db-{worker_name}')
+            if not os.path.isdir(f'{local_net}/data-{worker_name}'):
+                os.mkdir(f'{local_net}/data-{worker_name}')
 
             cmd = ''
             cmd += f'{binary} --command config --chain-id {chain_id} '
             cmd += f'--boot-nodes {boot_nodes_flags} '
 
             if type == "boot":
-                # cmd += '--boot-node ' // TODO: we should replace this with bootnode binary?
                 cmd += f'--node-secret {private_keys[worker_name]} '
                 cmd += f'--vrf-secret {vrf_secrets[worker_name]} '
 
@@ -141,7 +140,7 @@ def config(binary, boot_nodes, rpc_nodes):
             cmd += f'--config {config_path} '
             cmd += f'--genesis {genesis_path} '
             cmd += f'--wallet {wallet_path} '
-            cmd += f'--data-dir {local_net}/db-{worker_name} '
+            cmd += f'--data_path {local_net}/data-{worker_name} '
             os.system(cmd)
 
             config = json.loads('{}')
@@ -285,7 +284,7 @@ def start_workers(binary, boot_nodes, rpc_nodes, tps, enable_test_rpc):
 def node_worker(binary, worker_name, enable_test_rpc):
     cmd = f'{binary} --config ./{data_dir}/conf-{worker_name}.json --wallet ./{data_dir}/wallet-{worker_name}.json --genesis ./{data_dir}/genesis-{worker_name}.json'
     if enable_test_rpc:
-        cmd += ' --enable-test-rpc '
+        cmd += ' --enable_test_rpc '
     process = subprocess.Popen(cmd,
                                shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     logs(worker_name, process)

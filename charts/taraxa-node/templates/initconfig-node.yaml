@@ -141,7 +141,7 @@ data:
       --config $CONFIG_PATH \
       --genesis $GENESIS_PATH \
       --wallet $WALLET_PATH \
-      --data-dir $DATA_PATH
+      --data_path $DATA_PATH
 
     {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
     python3 /bin/genconfig.py $GENESIS_PATH > $GENESIS_PATH.tmp && mv $GENESIS_PATH.tmp $GENESIS_PATH

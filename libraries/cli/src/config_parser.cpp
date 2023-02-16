@@ -93,7 +93,7 @@ boost::program_options::options_description ConfigParser::registerCliOnlyOptions
   addCliOption("chain", bpo::value<std::string>(&chain_str_),
                "Chain identifier (string, mainnet, testnet, devnet) (default: mainnet) "
                "Only used when creating new config file");
-  addCliOption("node-secret", bpo::value<std::string>(&node_secret_), "Nose secret key to use");
+  addCliOption("node-secret", bpo::value<std::string>(&node_secret_), "Node secret key to use");
   addCliOption("vrf-secret", bpo::value<std::string>(&vrf_secret_), "Vrf secret key to use");
   addCliOption("chain-id", bpo::value<int>(&chain_id_),
                "Chain identifier (integer, 841=Mainnet, 842=Testnet, 843=Devnet) (default: 841) "
@@ -137,6 +137,8 @@ boost::program_options::options_description ConfigParser::registerCliConfigOptio
                   "Transaction pool size limit");
   addConfigOption("enable_test_rpc", bpo::bool_switch(&config.enable_test_rpc),
                   "Enables Test JsonRPC. Disabled by default");
+  addConfigOption("enable_debug_rpc", bpo::bool_switch(&config.enable_debug_rpc),
+                  "Enables Debug RPC interface. Disabled by default");
 
   addConfigOption("network.listen_ip", bpo::value<decltype(config.network.listen_ip)>(&config.network.listen_ip),
                   "Listen IP (default: 127.0.0.1)");
@@ -293,7 +295,6 @@ std::optional<FullNodeConfig> ConfigParser::createConfig(int argc, const char* a
   }
 
   // Update chain_id
-  // TODO: do we even use chain_str ???
   if (!chain_str_.empty()) {
     if (chain_id_ != static_cast<int>(kDefaultChainId)) {
       throw ConfigException("Cannot specify both \"chain-d\" and \"chain\"");
@@ -308,9 +309,9 @@ std::optional<FullNodeConfig> ConfigParser::createConfig(int argc, const char* a
   // Parse json config files and update existing config object
   parseJsonConfigFiles(allowed_options, option_vars, new_config, config_path_, genesis_path_, wallet_path_);
 
-  // Update config by options, which can be provided only through command line and not config
+  // Update/override config by options, which can be provided only through command line
   updateConfigFromCliSpecialOptions(new_config, boot_nodes_, log_channels_, log_configurations_, boot_nodes_append_,
-                                    log_channels_append_);
+                                    log_channels_append_, node_secret_, vrf_secret_);
 
   // Validate config values
   new_config.validate();
@@ -426,7 +427,8 @@ void ConfigParser::updateConfigFromCliSpecialOptions(FullNodeConfig& config,
                                                      const std::vector<std::string>& append_boot_nodes,
                                                      const std::vector<std::string>& enable_log_configurations,
                                                      const std::vector<std::string>& override_log_channels,
-                                                     const std::vector<std::string>& append_log_channels) {
+                                                     const std::vector<std::string>& append_log_channels,
+                                                     const std::string& node_secret, const std::string& vrf_secret) {
   auto parseBootNodeConfig = [](const std::string& boot_node_str) {
     std::vector<std::string> parsed_boot_node_str;
     boost::split(parsed_boot_node_str, boot_node_str, boost::is_any_of(":/"));
@@ -518,6 +520,13 @@ void ConfigParser::updateConfigFromCliSpecialOptions(FullNodeConfig& config,
       const auto [name, verbosity] = parseLogChannel(log_channel);
       existing_logging_cfg.channels[name] = logger::stringToVerbosity(verbosity);
     }
+  }
+
+  if (!node_secret.empty()) {
+    config.node_secret = dev::Secret(node_secret, dev::Secret::ConstructFromStringType::FromHex);
+  }
+  if (!vrf_secret.empty()) {
+    config.vrf_secret = vrf_wrapper::vrf_sk_t(vrf_secret);
   }
 }
 
@@ -665,21 +674,5 @@ void ConfigParser::generateDefaultPathsAndConfigs(ConfigParser::ChainIdType chai
     tools::generateWallet(wallet_path);
   }
 }
-
-// void ConfigParser::addNewHardforks(Json::Value& genesis, const Json::Value& default_genesis) {
-//   auto& new_hardforks_json = default_genesis["hardforks"];
-//   auto& local_hardforks_json = genesis["hardforks"];
-//
-//   if (local_hardforks_json.isNull()) {
-//     local_hardforks_json = new_hardforks_json;
-//     return;
-//   }
-//   for (auto itr = new_hardforks_json.begin(); itr != new_hardforks_json.end(); ++itr) {
-//     auto& local = local_hardforks_json[itr.key().asString()];
-//     if (local.isNull()) {
-//       local = itr->asString();
-//     }
-//   }
-// }
 
 }  // namespace taraxa::cli
