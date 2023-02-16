@@ -120,9 +120,11 @@ Host::~Host() {
   ioc_.stop();
   session_ioc_.restart();
 
-  // shutdown acceptor
-  m_tcp4Acceptor.cancel();
-  if (m_tcp4Acceptor.is_open()) m_tcp4Acceptor.close();
+  // shutdown acceptor from same executor
+  ba::post(m_tcp4Acceptor.get_executor(), [this] {
+    m_tcp4Acceptor.cancel();
+    if (m_tcp4Acceptor.is_open()) m_tcp4Acceptor.close();
+  });
 
   for (auto& wp : m_connecting) {
     if (auto handshake = wp.lock()) {
