@@ -1,5 +1,7 @@
 var NAVTREEINDEX16 =
 {
+"group___vote.html#a258bc6006658bc58b212999aa802d9fe":[12,4,0,47],
+"group___vote.html#a25def29b02c4c9e2adcde735d8136c48":[12,4,1,31],
 "group___vote.html#a27d0b3b033a16774033fb56b6afb44c2":[12,4,0,44],
 "group___vote.html#a2876b72592443f97d036ccc693e14448":[12,4,0,0],
 "group___vote.html#a2d6aa993f05aa2cbdd2558faf40e9fa4":[12,4,2,0],
@@ -131,8 +133,8 @@ var NAVTREEINDEX16 =
 "include_2network_2ws__server_8hpp.html":[15,0,1,4,1,1,0,3],
 "include_2network_2ws__server_8hpp.html#a87adc53071ba8ddc553c84e894a4accc":[15,0,1,4,1,1,0,3,2],
 "include_2network_2ws__server_8hpp_source.html":[15,0,1,4,1,1,0,3],
-"index.html":[0],
 "index.html":[],
+"index.html":[0],
 "index.html#autotoc_md1":[0,0],
 "index.html#autotoc_md10":[0,5],
 "index.html#autotoc_md11":[0,6],
@@ -247,7 +249,5 @@ var NAVTREEINDEX16 =
 "libdevcore_2_exceptions_8h.html#a83f076111496c324f745edb92ca32773":[15,0,1,0,0,12,29],
 "libdevcore_2_exceptions_8h.html#a8bd5764483662329f2f83dccc90bb13a":[15,0,1,0,0,12,22],
 "libdevcore_2_exceptions_8h.html#a926847180de7bc693356b6c9eea6fff0":[15,0,1,0,0,12,38],
-"libdevcore_2_exceptions_8h.html#a9c9aef151a4dabe39f87ac0365b8ec64":[15,0,1,0,0,12,24],
-"libdevcore_2_exceptions_8h.html#ab268b8e1f4e962f96b88c00f9b302791":[15,0,1,0,0,12,9],
-"libdevcore_2_exceptions_8h.html#ab900e3615719a0cf136272805113dd30":[15,0,1,0,0,12,27]
+"libdevcore_2_exceptions_8h.html#a9c9aef151a4dabe39f87ac0365b8ec64":[15,0,1,0,0,12,24]
 };
