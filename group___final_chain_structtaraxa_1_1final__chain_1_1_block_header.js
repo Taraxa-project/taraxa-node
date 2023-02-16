@@ -16,5 +16,6 @@ var group___final_chain_structtaraxa_1_1final__chain_1_1_block_header =
     [ "receipts_root", "group___final_chain.html#a6e5f70efb1b1bd7a472deea54eece7c9", null ],
     [ "state_root", "group___final_chain.html#ae85b81d392741dd9953bc11a32eaec2f", null ],
     [ "timestamp", "group___final_chain.html#a20e929aebe9b03aa67fcffeb2874cccc", null ],
+    [ "total_reward", "group___final_chain.html#a0a6ccdd5ddda008d6a39d52a752e13d3", null ],
     [ "transactions_root", "group___final_chain.html#a6d6e46b703c85fcdb0176ef063b5032a", null ]
 ];

@@ -17,6 +17,7 @@ var group___final_chain =
       [ "receipts_root", "group___final_chain.html#a6e5f70efb1b1bd7a472deea54eece7c9", null ],
       [ "state_root", "group___final_chain.html#ae85b81d392741dd9953bc11a32eaec2f", null ],
       [ "timestamp", "group___final_chain.html#a20e929aebe9b03aa67fcffeb2874cccc", null ],
+      [ "total_reward", "group___final_chain.html#a0a6ccdd5ddda008d6a39d52a752e13d3", null ],
       [ "transactions_root", "group___final_chain.html#a6d6e46b703c85fcdb0176ef063b5032a", null ]
     ] ],
     [ "LogEntry", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry", [
@@ -168,7 +169,8 @@ var group___final_chain =
     ] ],
     [ "StateTransitionResult", "group___final_chain.html#structtaraxa_1_1state__api_1_1_state_transition_result", [
       [ "execution_results", "group___final_chain.html#ab0c200e9be443b0feea8611249ae455e", null ],
-      [ "state_root", "group___final_chain.html#a4e0da8f4c2b7479c611b4666c3602270", null ]
+      [ "state_root", "group___final_chain.html#a4e0da8f4c2b7479c611b4666c3602270", null ],
+      [ "total_reward", "group___final_chain.html#a51fb2fe1134738d18b3e38816c7a1131", null ]
     ] ],
     [ "Account", "group___final_chain.html#structtaraxa_1_1state__api_1_1_account", [
       [ "storage_root_eth", "group___final_chain.html#a7a4287f5ce78fb059336f09c889adf67", null ],

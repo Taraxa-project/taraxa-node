@@ -2,7 +2,7 @@ var classtaraxa_1_1final__chain_1_1_final_chain_impl =
 [
     [ "TransactionHashesImpl", "structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl.html", "structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl" ],
     [ "FinalChainImpl", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a006e9fdb73dfcf514d0e378755808b14", null ],
-    [ "append_block", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a4384eacfe6e7156f105d208d5dcc0de9", null ],
+    [ "append_block", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a0b0a09d690fd13f9142ad8bae894a372", null ],
     [ "block_blooms", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a36c25cbc65dcf7931595bf50e373fa7c", null ],
     [ "block_blooms_chunk_id", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a083155d89e1b08725857668e2da8471f", null ],
     [ "block_hash", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#afe855fac7ceb954c301c74c4afbbe3f3", null ],

@@ -1,5 +1,7 @@
 var NAVTREEINDEX18 =
 {
+"md_doc_building.html#autotoc_md49":[1,4],
+"md_doc_building.html#autotoc_md50":[1,4,0],
 "md_doc_building.html#autotoc_md51":[1,4,1],
 "md_doc_building.html#autotoc_md52":[1,5],
 "md_doc_coding_practices.html":[2],
@@ -243,11 +245,9 @@ var NAVTREEINDEX18 =
 "namespacedev_1_1p2p.html#af43282a970fe54591278ceb38be2590b":[15,0,1,0,2,24,0,5],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_peer_session_info":[15,0,1,0,2,3,4],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_taraxa_network_config":[15,0,1,0,2,24,0],
-"namespacemembers.html":[13,0],
 "namespacemembers.html":[13,0,0],
+"namespacemembers.html":[13,0],
 "namespacemembers_a.html":[13,0,1],
 "namespacemembers_b.html":[13,0,2],
-"namespacemembers_c.html":[13,0,3],
-"namespacemembers_d.html":[13,0,4],
-"namespacemembers_e.html":[13,0,5]
+"namespacemembers_c.html":[13,0,3]
 };
