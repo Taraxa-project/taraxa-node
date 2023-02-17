@@ -30,7 +30,7 @@ std::optional<int> Transaction::getIndex() const noexcept {
   return {location_->index};
 }
 
-std::shared_ptr<object::Account> Transaction::getFrom(std::optional<response::Value>&&) const noexcept {
+std::shared_ptr<object::Account> Transaction::getFrom(std::optional<response::Value>&&) const {
   if (!location_) {
     location_ = final_chain_->transaction_location(transaction_->getHash());
     if (!location_) {
@@ -41,7 +41,7 @@ std::shared_ptr<object::Account> Transaction::getFrom(std::optional<response::Va
       std::make_shared<Account>(final_chain_, transaction_->getSender(), location_->blk_n));
 }
 
-std::shared_ptr<object::Account> Transaction::getTo(std::optional<response::Value>&&) const noexcept {
+std::shared_ptr<object::Account> Transaction::getTo(std::optional<response::Value>&&) const {
   if (!transaction_->getReceiver()) return nullptr;
   if (!location_) {
     location_ = final_chain_->transaction_location(transaction_->getHash());
@@ -65,7 +65,7 @@ response::Value Transaction::getInputData() const noexcept {
   return response::Value(dev::toJS(transaction_->getData()));
 }
 
-std::shared_ptr<object::Block> Transaction::getBlock() const noexcept {
+std::shared_ptr<object::Block> Transaction::getBlock() const {
   if (!location_) {
     location_ = final_chain_->transaction_location(transaction_->getHash());
     if (!location_) return nullptr;
