@@ -141,6 +141,7 @@ node:
     storageClass: 
     annotations: {}
 
+
 bootnode:
   enabled: true
   replicaCount: 1
@@ -235,57 +236,6 @@ consensusnode:
     storageClass: 
     annotations: {}
 
-consensusnode-lite:
-  enabled: false
-  replicaCount: 1
-  probes:
-    enabled: true
-  debug: 0
-  args:
-    - "taraxad"
-    - "--config"
-    - "/root/.taraxa/conf_taraxa.json"
-    - "--genesis"
-    - "/root/.taraxa/genesis_taraxa.json"
-    - "--wallet"
-    - "/root/.taraxa/wallet_taraxa.json"
-    - "--light"
-  ports:
-    - name: rest
-      containerPort: 7777
-    - name: ws
-      containerPort: 8777
-    - name: tcp-listen-port
-      containerPort: 10002
-      protocol: TCP
-    - name: udp-listen-port
-      containerPort: 10002
-      protocol: UDP
-  service:
-    ports:
-      - name: rest
-        port: 7777
-      - name: ws
-        port: 8777
-      - name: tcp-listen-port
-        port: 10002
-        protocol: TCP
-      - name: udp-listen-port
-        port: 10002
-        protocol: UDP
-      - name: metrics
-        port: 8888
-        protocol: TCP
-  serviceMonitor:
-    enabled: false
-  resources: {}
-  nodeSelector: {}
-  persistence:
-    enabled: false
-    accessMode: ReadWriteOnce
-    size: 30Gi
-    storageClass: 
-    annotations: {}
 
 explorer:
   enabled: false
