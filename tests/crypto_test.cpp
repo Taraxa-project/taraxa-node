@@ -109,7 +109,8 @@ TEST_F(CryptoTest, vrf_sortition) {
 }
 
 TEST_F(CryptoTest, vdf_stake_test) {
-  for (uint32_t upper_threshold = 0x8ff; upper_threshold < 0xffff; upper_threshold *= 3) {
+  srand(0);
+  for (uint32_t upper_threshold = 0x5ff; upper_threshold < 0xffff; upper_threshold *= 3) {
     std::cout << "Upper threshold: " << upper_threshold << std::endl;
     SortitionParams sortition_params(upper_threshold, 16, 21, 23, 0x64);
     uint64_t total_vote_count = 1000;
@@ -145,9 +146,15 @@ TEST_F(CryptoTest, vdf_stake_test) {
           min_diff = difficulties[i];
         }
       }
-      for (uint64_t i = 0; i < voters_count; i++) {
-        if (difficulties[i] == min_diff) {
-          count_dag_blocks_production[i]++;
+      // Stale block is produced by random node
+      if (min_diff == 23) {
+        count_dag_blocks_production[rand() % 10]++;
+      } else {
+        for (uint64_t i = 0; i < voters_count; i++) {
+          if (difficulties[i] == min_diff) {
+            count_dag_blocks_production[i]++;
+            // std::cout << "min AT " << i << std::endl;
+          }
         }
       }
     }
@@ -155,6 +162,7 @@ TEST_F(CryptoTest, vdf_stake_test) {
     for (auto count : count_dag_blocks_production) {
       total_dags += count;
     }
+    std::cout << "total_dags: " << total_dags << std::endl;
     for (uint64_t i = 0; i < voters_count; i++) {
       if (i > 0) {
         // Verify that greater stake produce more dag blocks
@@ -174,14 +182,14 @@ TEST_F(CryptoTest, vdf_sortition) {
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   level_t level = 3;
   blk_hash_t vdf_input = blk_hash_t(200);
-  VdfSortition vdf(sortition_params, sk, getRlpBytes(level), 1, 1000);
-  VdfSortition vdf2(sortition_params, sk, getRlpBytes(level), 1, 1000);
+  VdfSortition vdf(sortition_params, sk, getRlpBytes(level), 10, 1000);
+  VdfSortition vdf2(sortition_params, sk, getRlpBytes(level), 10, 1000);
   vdf.computeVdfSolution(sortition_params, vdf_input.asBytes(), false);
   vdf2.computeVdfSolution(sortition_params, vdf_input.asBytes(), false);
   auto b = vdf.rlp();
   VdfSortition vdf3(b);
   EXPECT_NO_THROW(
-      vdf3.verifyVdf(sortition_params, getRlpBytes(level), getVrfPublicKey(sk), vdf_input.asBytes(), 1, 1000));
+      vdf3.verifyVdf(sortition_params, getRlpBytes(level), getVrfPublicKey(sk), vdf_input.asBytes(), 10, 1000));
   EXPECT_EQ(vdf, vdf2);
   EXPECT_EQ(vdf, vdf3);
 
@@ -191,7 +199,7 @@ TEST_F(CryptoTest, vdf_sortition) {
   SortitionParams sortition_params_omit_no_stale(0xffff, 5, 10, 10, 1500);
   EXPECT_FALSE(vdf.isStale(sortition_params_omit_no_stale));
 
-  SortitionParams sortition_params_stale(0xfff, 5, 10, 5, 1500);
+  SortitionParams sortition_params_stale(0xfff, 5, 10, 7, 1500);
   EXPECT_TRUE(vdf.isStale(sortition_params_stale));
 }
 
