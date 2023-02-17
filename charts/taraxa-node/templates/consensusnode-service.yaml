@@ -1,25 +1,59 @@
-{{ if .Values.consensusnode.enabled }}
-{{- if .Values.consensusnode.service.ports  }}
+{{ if .Values.consensusnode.full.enabled }}
+{{- if .Values.consensusnode.full.service.ports  }}
+---
 # Note: This is a headless service
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "taraxa-consensus-node.fullname" . }}
+  name: {{ include "taraxa-consensus-node.fullname" . }}-full
   labels:
-    name: consensus-node
-    app.kubernetes.io/name: consensus-node
     helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/name: consensus-node
+    app.kubernetes.io/type: fullnode
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
   type: ClusterIP
   clusterIP: None
   selector:
-    app: consensus-node
     app.kubernetes.io/name: {{ .Release.Name }}-consensus-node
+    app.kubernetes.io/type: fullnode
     app.kubernetes.io/instance: {{ .Release.Name }}
   ports:
-  {{- range $port := .Values.consensusnode.service.ports }}
+  {{- range $port := .Values.consensusnode.full.service.ports }}
+    - name: {{ $port.name | default $port.port }}
+      port: {{ $port.port }}
+      targetPort: {{ $port.targetPort | default $port.port }}
+      {{- if $port.protocol }}
+      protocol: {{ $port.protocol }}
+      {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}
+
+{{ if .Values.consensusnode.lite.enabled }}
+{{- if .Values.consensusnode.lite.service.ports  }}
+---
+# Note: This is a headless service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "taraxa-consensus-node.fullname" . }}-full
+  labels:
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/name: consensus-node
+    app.kubernetes.io/type: litenode
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app.kubernetes.io/name: {{ .Release.Name }}-consensus-node
+    app.kubernetes.io/type: litenode
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+  {{- range $port := .Values.consensusnode.lite.service.ports }}
     - name: {{ $port.name | default $port.port }}
       port: {{ $port.port }}
       targetPort: {{ $port.targetPort | default $port.port }}
