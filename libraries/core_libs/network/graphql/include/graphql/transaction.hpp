@@ -19,13 +19,13 @@ class Transaction final : public std::enable_shared_from_this<Transaction> {
   response::Value getHash() const noexcept;
   response::Value getNonce() const noexcept;
   std::optional<int> getIndex() const noexcept;
-  std::shared_ptr<object::Account> getFrom(std::optional<response::Value>&& blockArg) const noexcept;
-  std::shared_ptr<object::Account> getTo(std::optional<response::Value>&& blockArg) const noexcept;
+  std::shared_ptr<object::Account> getFrom(std::optional<response::Value>&& blockArg) const;
+  std::shared_ptr<object::Account> getTo(std::optional<response::Value>&& blockArg) const;
   response::Value getValue() const noexcept;
   response::Value getGasPrice() const noexcept;
   response::Value getGas() const noexcept;
   response::Value getInputData() const noexcept;
-  std::shared_ptr<object::Block> getBlock() const noexcept;
+  std::shared_ptr<object::Block> getBlock() const;
   std::optional<response::Value> getStatus() const noexcept;
   std::optional<response::Value> getGasUsed() const noexcept;
   std::optional<response::Value> getCumulativeGasUsed() const noexcept;
