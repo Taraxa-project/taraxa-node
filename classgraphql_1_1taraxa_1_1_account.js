@@ -1,7 +1,7 @@
 var classgraphql_1_1taraxa_1_1_account =
 [
-    [ "Account", "classgraphql_1_1taraxa_1_1_account.html#a1be71f1c8b8617d0266eeee20361e63e", null ],
-    [ "Account", "classgraphql_1_1taraxa_1_1_account.html#a5989a7d30a0297cbde9bea348b56118c", null ],
+    [ "Account", "classgraphql_1_1taraxa_1_1_account.html#a5e2c97006808c4806145eb2e94bb5730", null ],
+    [ "Account", "classgraphql_1_1taraxa_1_1_account.html#a38f1d239ff407ecdd6433a0aad852d76", null ],
     [ "getAddress", "classgraphql_1_1taraxa_1_1_account.html#a35016e9a592018cacb3b24056a5149d0", null ],
     [ "getBalance", "classgraphql_1_1taraxa_1_1_account.html#a169a52081c67058a2edef7da85ed26b5", null ],
     [ "getCode", "classgraphql_1_1taraxa_1_1_account.html#a5845e7230cbe5482a69b0dcd10aa663b", null ],
