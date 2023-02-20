@@ -87,7 +87,7 @@ add_test(gas_pricer_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gas_pricer_test)
 
 add_executable(rpc_test rpc_test.cpp)
 target_link_libraries(rpc_test test_util)
-add_test(rpc_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/gas_pricer_test)
+add_test(rpc_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/rpc_test)
 
 add_custom_target(py_test)
 

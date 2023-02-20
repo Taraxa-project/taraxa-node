@@ -24,9 +24,9 @@ TEST_F(RPCTest, eth_estimateGas) {
   {
     Json::Value trx(Json::objectValue);
     trx["data"] = samples::greeter_contract_code;
-    EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5ca85");
+    EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5ccc5");
     trx["from"] = from;
-    EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5ca85");
+    EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5ccc5");
   }
 
   // Contract creation with value
@@ -34,7 +34,7 @@ TEST_F(RPCTest, eth_estimateGas) {
     Json::Value trx(Json::objectValue);
     trx["value"] = 1;
     trx["data"] = samples::greeter_contract_code;
-    EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5ca85");
+    EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5ccc5");
   }
 
   // Simple transfer estimations with author + without author
@@ -215,6 +215,23 @@ TEST_F(RPCTest, eth_call) {
   }
 }
 
+TEST_F(RPCTest, eth_getBlock) {
+  auto node_cfg = make_node_cfgs(1, 1, 10);
+  // Enable rewards distribution
+  node_cfg[0].genesis.state.dpos.yield_percentage = 10;
+  auto nodes = launch_nodes(node_cfg);
+  net::rpc::eth::EthParams eth_rpc_params;
+  eth_rpc_params.chain_id = node_cfg.front().genesis.chain_id;
+  eth_rpc_params.gas_limit = node_cfg.front().genesis.dag.gas_limit;
+  eth_rpc_params.final_chain = nodes.front()->getFinalChain();
+  auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
+
+  wait({10s, 500ms}, [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, 5, nodes[0]->getFinalChain()->last_block_number()); });
+  auto block = eth_json_rpc->eth_getBlockByNumber("0x4", false);
+
+  EXPECT_EQ(4, dev::jsToU256(block["number"].asString()));
+  EXPECT_GT(dev::jsToU256(block["totalReward"].asString()), 0);
+}
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;

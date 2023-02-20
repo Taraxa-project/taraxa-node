@@ -6,6 +6,7 @@
 
 - "pending" block identifier means "latest"
 - `eth_syncing` return values are to be better defined
+- added `totalReward` field to a block type returned by `eth_getBlockByHash` and `eth_getBlockByNumber` methods. This field has amount of tokens that was minted as rewards in this block
 
 ### Not implemented
 
@@ -370,7 +371,7 @@ Returns hash of PBFT block for specified period
 
 #### Returns
 
-`STRING` - PBFT block hash 
+`STRING` - PBFT block hash
 
 #### Example
 
@@ -566,7 +567,7 @@ Method to create and send multiple transaction. Used to create high transactions
 
 #### Returns
 
-Number of transactions inserted successfuly, in case of transaction insertion failure, error message is returned
+Number of transactions inserted successfully, in case of transaction insertion failure, error message is returned
 
 
 

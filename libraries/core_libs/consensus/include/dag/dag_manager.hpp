@@ -46,7 +46,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   explicit DagManager(const DagBlock &dag_genesis_block, addr_t node_addr, const SortitionConfig &sortition_config,
                       const DagConfig &dag_config, std::shared_ptr<TransactionManager> trx_mgr,
                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
-                      std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager,
+                      std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager, uint64_t pbft_gas_limit,
                       bool is_light_node = false, uint64_t light_node_history = 0,
                       uint32_t max_levels_per_period = kMaxLevelsPerPeriod,
                       uint32_t dag_expiry_limit = kDagExpiryLevelLimit);
@@ -275,6 +275,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   const uint32_t cache_delete_step_ = 100;
   ExpirationCacheMap<blk_hash_t, DagBlock> seen_blocks_;
   std::shared_ptr<FinalChain> final_chain_;
+  const uint64_t kPbftGasLimit;
 
   LOG_OBJECTS_DEFINE
 };

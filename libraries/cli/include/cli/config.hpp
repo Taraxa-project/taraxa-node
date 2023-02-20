@@ -59,6 +59,7 @@ class Config {
   static constexpr const char* VRF_SECRET = "vrf-secret";
   static constexpr const char* OVERWRITE_CONFIG = "overwrite-config";
   static constexpr const char* ENABLE_TEST_RPC = "enable-test-rpc";
+  static constexpr const char* ENABLE_DEBUG = "debug";
 
   std::string dirNameFromFile(const std::string& file);
 };

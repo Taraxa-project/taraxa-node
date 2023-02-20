@@ -47,7 +47,7 @@ TEST_F(DagBlockTest, serialize_deserialize) {
       "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
       "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
   level_t level = 3;
-  VdfSortition vdf(sortition_params, sk, getRlpBytes(level));
+  VdfSortition vdf(sortition_params, sk, getRlpBytes(level), 1, 100);
   blk_hash_t vdf_input(200);
   vdf.computeVdfSolution(sortition_params, vdf_input.asBytes(), false);
   DagBlock blk1(blk_hash_t(1), 2, {}, {}, {}, vdf, secret_t::random());
@@ -223,7 +223,7 @@ TEST_F(DagBlockMgrTest, incorrect_tx_estimation) {
   auto propose_level = 1;
   const auto period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
   vdf_sortition::VdfSortition vdf1(vdf_config, node->getVrfSecretKey(),
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash), 1, 1);
 
   dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trx});
   vdf1.computeVdfSolution(vdf_config, vdf_msg, false);
@@ -258,7 +258,7 @@ TEST_F(DagBlockMgrTest, dag_block_tips_verification) {
   auto propose_level = 1;
   const auto period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
   vdf_sortition::VdfSortition vdf(vdf_config, node->getVrfSecretKey(),
-                                  VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+                                  VrfSortitionBase::makeVrfInput(propose_level, period_block_hash), 1, 1);
 
   std::vector<blk_hash_t> dag_blocks_hashes;
   for (auto trx : trxs) {
@@ -326,29 +326,42 @@ TEST_F(DagBlockMgrTest, dag_block_tips_proposal) {
   auto propose_level = 1;
   auto period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
   vdf_sortition::VdfSortition vdf(vdf_config, node->getVrfSecretKey(),
-                                  VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+                                  VrfSortitionBase::makeVrfInput(propose_level, period_block_hash), 1, 1);
 
+  const uint64_t dag_block_gas = 100000;
   std::vector<blk_hash_t> dag_blocks_hashes;
   for (auto trx : trxs) {
     dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trx});
     vdf.computeVdfSolution(vdf_config, vdf_msg, false);
 
-    DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, 100000, vdf, node->getSecretKey());
+    DagBlock blk(dag_genesis, propose_level, {}, {trx->getHash()}, dag_block_gas, vdf, node->getSecretKey());
     dag_blocks_hashes.push_back(blk.getHash());
     EXPECT_EQ(node->getDagManager()->verifyBlock(blk), DagManager::VerifyBlockReturnType::Verified);
     EXPECT_TRUE(node->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
   }
 
-  // Verify selection is up to kDagBlockMaxTips
   EXPECT_EQ(dag_blocks_hashes.size(), kDagBlockMaxTips + 1);
-  auto selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes);
+  // Verify selection is up to the gas limit
+  uint64_t selection_gas_limit = 5 * dag_block_gas;
+  auto selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes, selection_gas_limit);
+  EXPECT_EQ(selected_tips.size(), 5);
+  selection_gas_limit = 5 * dag_block_gas - 1;
+  selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes, selection_gas_limit);
+  EXPECT_EQ(selected_tips.size(), 4);
+  selection_gas_limit = 5 * dag_block_gas + 1;
+  selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes, selection_gas_limit);
+  EXPECT_EQ(selected_tips.size(), 5);
+
+  // Verify selection is up to kDagBlockMaxTips
+  selection_gas_limit = (kDagBlockMaxTips + 1) * dag_block_gas;
+  selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes, selection_gas_limit);
   EXPECT_EQ(selected_tips.size(), kDagBlockMaxTips);
 
   // Verify selection is up to kDagBlockMaxTips and higher propose level has priority
   propose_level = 2;
   period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
   vdf = vdf_sortition::VdfSortition(vdf_config, node->getVrfSecretKey(),
-                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash), 1, 1);
   for (auto trx : trxs) {
     dev::bytes vdf_msg = DagManager::getVdfMessage(dag_blocks_hashes[0], {trx});
     vdf.computeVdfSolution(vdf_config, vdf_msg, false);
@@ -359,7 +372,7 @@ TEST_F(DagBlockMgrTest, dag_block_tips_proposal) {
     EXPECT_TRUE(node->getDagManager()->addDagBlock(std::move(blk), {trx}).first);
   }
 
-  selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes);
+  selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes, selection_gas_limit);
   EXPECT_EQ(selected_tips.size(), kDagBlockMaxTips);
   for (auto t : selected_tips) {
     EXPECT_EQ(node->getDagManager()->getDagBlock(t)->getLevel(), propose_level);
@@ -369,7 +382,7 @@ TEST_F(DagBlockMgrTest, dag_block_tips_proposal) {
   propose_level = 1;
   period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
   vdf = vdf_sortition::VdfSortition(vdf_config, node_cfgs[1].vrf_secret,
-                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+                                    VrfSortitionBase::makeVrfInput(propose_level, period_block_hash), 1, 1);
 
   dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trxs[0]});
   vdf.computeVdfSolution(vdf_config, vdf_msg, false);
@@ -378,7 +391,7 @@ TEST_F(DagBlockMgrTest, dag_block_tips_proposal) {
   dag_blocks_hashes.push_back(blk.getHash());
   EXPECT_TRUE(node->getDagManager()->addDagBlock(std::move(blk), {trxs[0]}).first);
 
-  selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes);
+  selected_tips = node->getDagBlockProposer()->selectDagBlockTips(dag_blocks_hashes, selection_gas_limit);
   EXPECT_EQ(selected_tips.size(), kDagBlockMaxTips);
   std::unordered_map<uint32_t, uint32_t> level_count;
   for (auto t : selected_tips) {
@@ -416,7 +429,7 @@ TEST_F(DagBlockMgrTest, too_big_dag_block) {
   auto propose_level = 1;
   const auto period_block_hash = node->getDB()->getPeriodBlockHash(propose_level);
   vdf_sortition::VdfSortition vdf1(vdf_config, node->getVrfSecretKey(),
-                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash));
+                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash), 1, 1);
   dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, hashes);
   vdf1.computeVdfSolution(vdf_config, vdf_msg, false);
 

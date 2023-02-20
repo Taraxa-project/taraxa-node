@@ -93,11 +93,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void initialState();
 
   /**
-   * @brief Check PBFT blocks syncing queue. If there are synced PBFT blocks in queue, push it to PBFT chain
-   */
-  void pushSyncedPbftBlocksIntoChain();
-
-  /**
    * @brief Get a DAG block period number
    * @param hash DAG block hash
    * @return true with DAG block period number if the DAG block has been finalized. Otherwise return false
@@ -201,6 +196,13 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   blk_hash_t lastPbftBlockHashFromQueueOrChain();
 
   /**
+   * @brief Add rebuild DB with provided data
+   * @param block period data
+   * @param current_block_cert_votes cert votes for PeriodData pbft block period
+   */
+  void addRebuildDBPeriodData(PeriodData &&period_data, std::vector<std::shared_ptr<Vote>> &&current_block_cert_votes);
+
+  /**
    * @brief Get PBFT lambda. PBFT lambda is a timer clock
    * @return PBFT lambda
    */
@@ -278,6 +280,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void broadcastVotes(bool rebroadcast);
 
  private:
+  /**
+   * @brief Check PBFT blocks syncing queue. If there are synced PBFT blocks in queue, push it to PBFT chain
+   */
+  void pushSyncedPbftBlocksIntoChain();
+
   // DPOS
   /**
    * @brief wait for DPOS period finalization

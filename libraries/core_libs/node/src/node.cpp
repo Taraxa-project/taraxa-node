@@ -18,6 +18,7 @@
 #include "metrics/network_metrics.hpp"
 #include "metrics/pbft_metrics.hpp"
 #include "metrics/transaction_queue_metrics.hpp"
+#include "network/rpc/Debug.h"
 #include "network/rpc/Net.h"
 #include "network/rpc/Taraxa.h"
 #include "network/rpc/Test.h"
@@ -114,16 +115,16 @@ void FullNode::init() {
   pbft_chain_ = std::make_shared<PbftChain>(node_addr, db_);
   dag_mgr_ = std::make_shared<DagManager>(conf_.genesis.dag_genesis_block, node_addr, conf_.genesis.sortition,
                                           conf_.genesis.dag, trx_mgr_, pbft_chain_, final_chain_, db_, key_manager_,
-                                          conf_.is_light_node, conf_.light_node_history, conf_.max_levels_per_period,
-                                          conf_.dag_expiry_limit);
+                                          conf_.genesis.pbft.gas_limit, conf_.is_light_node, conf_.light_node_history,
+                                          conf_.max_levels_per_period, conf_.dag_expiry_limit);
   vote_mgr_ = std::make_shared<VoteManager>(node_addr, conf_.genesis.pbft, kp_.secret(), conf_.vrf_secret, db_,
                                             pbft_chain_, final_chain_, key_manager_);
   pbft_mgr_ = std::make_shared<PbftManager>(conf_.genesis.pbft, conf_.genesis.dag_genesis_block.getHash(), node_addr,
                                             db_, pbft_chain_, vote_mgr_, dag_mgr_, trx_mgr_, final_chain_, kp_.secret(),
                                             conf_.max_levels_per_period);
-  dag_block_proposer_ =
-      std::make_shared<DagBlockProposer>(conf_.genesis.dag.block_proposer, dag_mgr_, trx_mgr_, final_chain_, db_,
-                                         key_manager_, node_addr, getSecretKey(), getVrfSecretKey());
+  dag_block_proposer_ = std::make_shared<DagBlockProposer>(
+      conf_.genesis.dag.block_proposer, dag_mgr_, trx_mgr_, final_chain_, db_, key_manager_, node_addr, getSecretKey(),
+      getVrfSecretKey(), conf_.genesis.pbft.gas_limit, conf_.genesis.dag.gas_limit);
   network_ = std::make_shared<Network>(conf_, genesis_hash, dev::p2p::Host::CapabilitiesFactory(),
                                        conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_, vote_mgr_,
                                        dag_mgr_, trx_mgr_);
@@ -198,12 +199,18 @@ void FullNode::start() {
       test_json_rpc = std::make_shared<net::Test>(shared_from_this());
     }
 
+    std::shared_ptr<net::Debug> debug_json_rpc;
+    if (conf_.enable_debug) {
+      // TODO Because this object refers to FullNode, the lifecycle/dependency management is more complicated);
+      debug_json_rpc = std::make_shared<net::Debug>(shared_from_this(), conf_.genesis.dag.gas_limit);
+    }
+
     jsonrpc_api_ = std::make_unique<jsonrpc_server_t>(
         std::make_shared<net::Taraxa>(shared_from_this()),  // TODO Because this object refers to FullNode, the
                                                             // lifecycle/dependency management is more complicated
         std::make_shared<net::Net>(shared_from_this()),     // TODO Because this object refers to FullNode, the
                                                             // lifecycle/dependency management is more complicated
-        eth_json_rpc, test_json_rpc);
+        eth_json_rpc, test_json_rpc, debug_json_rpc);
 
     if (conf_.network.rpc->http_port) {
       auto json_rpc_processor = std::make_shared<net::JsonRpcHttpProcessor>();
@@ -366,12 +373,12 @@ void FullNode::rebuildDb() {
   std::shared_ptr<PeriodData> period_data, next_period_data;
   std::vector<std::shared_ptr<Vote>> cert_votes;
   while (true) {
-    if (next_period_data != nullptr)
+    if (next_period_data != nullptr) {
       period_data = next_period_data;
-    else {
+    } else {
       auto data = old_db_->getPeriodDataRaw(period);
       if (data.size() == 0) break;
-      period_data = std::make_shared<PeriodData>(data);
+      period_data = std::make_shared<PeriodData>(std::move(data));
     }
     auto data = old_db_->getPeriodDataRaw(period + 1);
     if (data.size() == 0) {
@@ -379,15 +386,13 @@ void FullNode::rebuildDb() {
       // Latest finalized block cert votes are saved in db as reward votes for new blocks
       cert_votes = old_db_->getRewardVotes();
     } else {
-      next_period_data = std::make_shared<PeriodData>(data);
+      next_period_data = std::make_shared<PeriodData>(std::move(data));
       cert_votes = next_period_data->previous_block_cert_votes;
     }
 
     LOG(log_nf_) << "Adding PBFT block " << period_data->pbft_blk->getBlockHash().toString()
                  << " from old DB into syncing queue for processing";
-    pbft_mgr_->periodDataQueuePush(std::move(*period_data), dev::p2p::NodeID(), std::move(cert_votes));
-    pbft_mgr_->pushSyncedPbftBlocksIntoChain();
-
+    pbft_mgr_->addRebuildDBPeriodData(std::move(*period_data), std::move(cert_votes));
     period++;
 
     if (period - 1 == conf_.db_config.rebuild_db_period) {

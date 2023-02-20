@@ -1,6 +1,7 @@
 #include "final_chain/final_chain.hpp"
 
 #include <cstdint>
+#include <string>
 
 #include "common/constants.hpp"
 #include "common/thread_pool.hpp"
@@ -81,29 +82,29 @@ class FinalChainImpl final : public FinalChain {
     if (!last_blk_num) [[unlikely]] {
       auto batch = db_->createWriteBatch();
       auto header = append_block(batch, addr_t(), config.genesis.dag_genesis_block.getTimestamp(), kBlockGasLimit,
-                                 state_db_descriptor.state_root);
+                                 state_db_descriptor.state_root, u256(0));
 
       block_headers_cache_.append(header->number, header);
       db_->commitWriteBatch(batch, db_opts_w_);
     } else {
       // We need to recover latest changes as there was shutdown inside finalize function
       if (*last_blk_num != state_db_descriptor.blk_num) [[unlikely]] {
-        assert(state_db_descriptor.blk_num + 1 == *last_blk_num);
-        auto raw_period_data = db_->getPeriodDataRaw(*last_blk_num);
-        assert(raw_period_data.size() > 0);
+        auto batch = db_->createWriteBatch();
+        for (auto block_n = *last_blk_num; block_n != state_db_descriptor.blk_num; --block_n) {
+          auto raw_period_data = db_->getPeriodDataRaw(block_n);
+          assert(raw_period_data.size() > 0);
 
-        const PeriodData period_data(raw_period_data);
-
-        if (period_data.transactions.size()) {
-          auto batch = db_->createWriteBatch();
-          num_executed_dag_blk_ -= period_data.dag_blocks.size();
-          num_executed_trx_ -= period_data.transactions.size();
-          db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk_.load());
-          db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx_.load());
-          db_->insert(batch, DB::Columns::final_chain_meta, DBMetaKeys::LAST_NUMBER, state_db_descriptor.blk_num);
-          db_->commitWriteBatch(batch, db_opts_w_);
-          last_blk_num = state_db_descriptor.blk_num;
+          const PeriodData period_data(std::move(raw_period_data));
+          if (period_data.transactions.size()) {
+            num_executed_dag_blk_ -= period_data.dag_blocks.size();
+            num_executed_trx_ -= period_data.transactions.size();
+          }
         }
+        db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedBlkCount, num_executed_dag_blk_.load());
+        db_->insert(batch, DB::Columns::status, StatusDbField::ExecutedTrxCount, num_executed_trx_.load());
+        db_->insert(batch, DB::Columns::final_chain_meta, DBMetaKeys::LAST_NUMBER, state_db_descriptor.blk_num);
+        db_->commitWriteBatch(batch, db_opts_w_);
+        last_blk_num = state_db_descriptor.blk_num;
       }
 
       int64_t start = 0;
@@ -143,7 +144,7 @@ class FinalChainImpl final : public FinalChain {
     uint64_t dpos_vote_count = kCommitteeSize;
     // Block zero
     if (!new_blk.previous_block_cert_votes.empty()) [[unlikely]] {
-      dpos_vote_count = dpos_eligible_total_vote_count(new_blk.previous_block_cert_votes[0]->getPeriod());
+      dpos_vote_count = dpos_eligible_total_vote_count(new_blk.previous_block_cert_votes[0]->getPeriod() - 1);
     }
     // returns list of validators for new_blk.transactions
     const std::vector<addr_t> txs_validators = rewards_stats.processStats(new_blk, dpos_vote_count, kCommitteeSize);
@@ -167,7 +168,7 @@ class FinalChainImpl final : public FinalChain {
       }
     } */
 
-    auto const& [exec_results, state_root] =
+    auto const& [exec_results, state_root, total_reward] =
         state_api_.transition_state({new_blk.pbft_blk->getBeneficiary(), kBlockGasLimit,
                                      new_blk.pbft_blk->getTimestamp(), BlockHeader::difficulty()},
                                     to_state_api_transactions(new_blk.transactions), txs_validators, {}, rewards_stats);
@@ -190,7 +191,7 @@ class FinalChainImpl final : public FinalChain {
       });
     }
     auto blk_header = append_block(batch, new_blk.pbft_blk->getBeneficiary(), new_blk.pbft_blk->getTimestamp(),
-                                   kBlockGasLimit, state_root, new_blk.transactions, receipts);
+                                   kBlockGasLimit, state_root, total_reward, new_blk.transactions, receipts);
     // Update number of executed DAG blocks and transactions
     auto num_executed_dag_blk = num_executed_dag_blk_ + finalized_dag_blk_hashes.size();
     auto num_executed_trx = num_executed_trx_ + new_blk.transactions.size();
@@ -263,7 +264,7 @@ class FinalChainImpl final : public FinalChain {
   }
 
   std::shared_ptr<BlockHeader> append_block(DB::Batch& batch, const addr_t& author, uint64_t timestamp,
-                                            uint64_t gas_limit, const h256& state_root,
+                                            uint64_t gas_limit, const h256& state_root, u256 total_reward,
                                             const SharedTransactions& transactions = {},
                                             const TransactionReceipts& receipts = {}) {
     auto blk_header_ptr = std::make_shared<BlockHeader>();
@@ -276,6 +277,7 @@ class FinalChainImpl final : public FinalChain {
     blk_header.state_root = state_root;
     blk_header.gas_used = receipts.empty() ? 0 : receipts.back().cumulative_gas_used;
     blk_header.gas_limit = gas_limit;
+    blk_header.total_reward = total_reward;
     dev::BytesMap trxs_trie, receipts_trie;
     dev::RLPStream rlp_strm;
     for (size_t i(0); i < transactions.size(); ++i) {
@@ -410,6 +412,19 @@ class FinalChainImpl final : public FinalChain {
                                               BlockHeader::difficulty(),
                                           },
                                           trx);
+  }
+
+  std::string trace_trx(const state_api::EVMTransaction& trx, EthBlockNumber blk_n,
+                        std::optional<state_api::Tracing> params = {}) const override {
+    const auto blk_header = block_header(last_if_absent(blk_n));
+    return dev::asString(state_api_.trace_transaction(blk_header->number,
+                                                      {
+                                                          blk_header->author,
+                                                          blk_header->gas_limit,
+                                                          blk_header->timestamp,
+                                                          BlockHeader::difficulty(),
+                                                      },
+                                                      trx, params));
   }
 
   uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const override {

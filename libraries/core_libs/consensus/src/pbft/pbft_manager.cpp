@@ -1859,4 +1859,11 @@ std::shared_ptr<PbftBlock> PbftManager::getPbftProposedBlock(PbftPeriod period, 
   return proposed_block->first;
 }
 
+void PbftManager::addRebuildDBPeriodData(PeriodData &&period_data,
+                                         std::vector<std::shared_ptr<Vote>> &&current_block_cert_votes) {
+  periodDataQueuePush(std::move(period_data), dev::p2p::NodeID(), std::move(current_block_cert_votes));
+  pushSyncedPbftBlocksIntoChain();
+  waitForPeriodFinalization();
+}
+
 }  // namespace taraxa

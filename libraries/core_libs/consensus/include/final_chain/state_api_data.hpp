@@ -75,6 +75,7 @@ struct ExecutionResult {
 struct StateTransitionResult {
   std::vector<ExecutionResult> execution_results;
   h256 state_root;
+  u256 total_reward;
 
   HAS_RLP_FIELDS
 };
@@ -111,5 +112,14 @@ struct StateDescriptor {
 
   HAS_RLP_FIELDS
 };
+
+struct Tracing {
+  bool vmTrace = false;
+  bool trace = false;
+  bool stateDiff = false;
+
+  HAS_RLP_FIELDS
+};
+
 /** @} */
 }  // namespace taraxa::state_api
