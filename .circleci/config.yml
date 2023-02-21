@@ -271,7 +271,7 @@ commands:
                 --set consensusnode.lite.persistence.enabled=true \
                 --set node.serviceMonitor.enabled=true \
                 --set bootnode.serviceMonitor.enabled=false \
-                --set consensusnode.full.serviceMonitor.enabled=true
+                --set consensusnode.full.serviceMonitor.enabled=true \
                 --set consensusnode.lite.serviceMonitor.enabled=true
             fi
 
