@@ -12,7 +12,8 @@ bool ProposedBlocks::pushProposedPbftBlock(const std::shared_ptr<PbftBlock>& pro
   return pushProposedPbftBlock(propose_vote->getRound(), proposed_block);
 }
 
-bool ProposedBlocks::pushProposedPbftBlock(uint64_t round, const std::shared_ptr<PbftBlock>& proposed_block) {
+bool ProposedBlocks::pushProposedPbftBlock(uint64_t round, const std::shared_ptr<PbftBlock>& proposed_block,
+                                           bool save_to_db) {
   std::unique_lock lock(proposed_blocks_mutex_);
 
   auto found_period_it = proposed_blocks_.find(proposed_block->getPeriod());
@@ -25,6 +26,10 @@ bool ProposedBlocks::pushProposedPbftBlock(uint64_t round, const std::shared_ptr
   // Add round
   if (found_round_it == found_period_it->second.end()) {
     found_round_it = found_period_it->second.insert({round, {}}).first;
+  }
+
+  if (save_to_db) {
+    db_->saveProposedPbftBlock(proposed_block, round);
   }
 
   // Add propose vote & block
@@ -73,6 +78,13 @@ void ProposedBlocks::cleanupProposedPbftBlocksByPeriod(uint64_t period) {
   std::unique_lock lock(proposed_blocks_mutex_);
 
   for (auto period_it = proposed_blocks_.begin(); period_it != proposed_blocks_.end() && period_it->first < period;) {
+    auto batch = db_->createWriteBatch();
+    for (auto round : period_it->second) {
+      for (const auto& block : round.second) {
+        db_->removeProposedPbftBlock(block.first, batch);
+      }
+    }
+    db_->commitWriteBatch(batch);
     period_it = proposed_blocks_.erase(period_it);
   }
 }
@@ -92,6 +104,11 @@ void ProposedBlocks::cleanupProposedPbftBlocksByRound(uint64_t period, uint64_t 
 
   for (auto round_it = found_period_it->second.begin();
        round_it != found_period_it->second.end() && round_it->first < round - 1;) {
+    auto batch = db_->createWriteBatch();
+    for (const auto& block : round_it->second) {
+      db_->removeProposedPbftBlock(block.first, batch);
+    }
+    db_->commitWriteBatch(batch);
     round_it = found_period_it->second.erase(round_it);
   }
 }

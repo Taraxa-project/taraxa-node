@@ -170,7 +170,8 @@
           "vote_eligibility_balance_step": "0x152d02c7e14af6800000",
           "validator_maximum_stake":"0x84595161401484A000000",
           "minimum_deposit":"0x0",
-          "max_block_author_reward": "0xa",
+          "max_block_author_reward": "0x5",
+          "dag_proposers_reward": "0x32",
           "commission_change_delta":"0x0",
           "commission_change_frequency":"0x0",
           "yield_percentage":"0x14",
@@ -234,7 +235,7 @@
       "number_of_proposers": "0x14",
       "dag_blocks_size": "0x32",
       "ghost_path_move_back": "0x0",
-      "lambda_ms_min": "0x29a",
+      "lambda_ms_min": "0x5DC",
       "gas_limit": "0x3938700"
     },
     "dag": {

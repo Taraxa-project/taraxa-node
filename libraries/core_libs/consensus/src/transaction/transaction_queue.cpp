@@ -98,7 +98,9 @@ bool TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction, const 
   assert(transaction);
   const auto tx_hash = transaction->getHash();
 
-  if (contains(tx_hash)) return false;
+  if (contains(tx_hash)) {
+    return false;
+  }
 
   switch (status) {
     case TransactionStatus::Verified: {
@@ -122,6 +124,8 @@ bool TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction, const 
             queue_transactions_.erase(nonce_it->second->getHash());
             account_nonce_transactions_[transaction->getSender()][transaction->getNonce()] = transaction;
             queue_transactions_[tx_hash] = transaction;
+          } else {
+            non_proposable_transactions_[tx_hash] = {last_block_number, transaction};
           }
         }
       }
@@ -162,6 +166,7 @@ bool TransactionQueue::insert(std::shared_ptr<Transaction> &&transaction, const 
 void TransactionQueue::blockFinalized(uint64_t block_number) {
   for (auto it = non_proposable_transactions_.begin(); it != non_proposable_transactions_.end();) {
     if (it->second.first + kNonProposableTransactionsPeriodExpiryLimit < block_number) {
+      known_txs_.erase(it->first);
       it = non_proposable_transactions_.erase(it);
     } else {
       ++it;

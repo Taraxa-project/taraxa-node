@@ -702,7 +702,7 @@ TEST_F(PbftManagerWithDagCreation, trx_generation) {
     insertTransactions(trxs);
 
     EXPECT_HAPPENS({10s, 500ms},
-                   [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce - 1); });
+                   [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce); });
     std::cout << "Creation and applying of " << count << " transactions is ok" << std::endl;
   }
 }
@@ -726,7 +726,7 @@ TEST_F(PbftManagerWithDagCreation, dag_generation) {
   generateAndApplyInitialDag();
 
   EXPECT_HAPPENS({10s, 250ms}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce - 1);
+    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce);
   });
 
   auto nonce_before = nonce;
@@ -739,8 +739,8 @@ TEST_F(PbftManagerWithDagCreation, dag_generation) {
   EXPECT_EQ(nonce, nonce_before + tx_count);
 
   EXPECT_HAPPENS({60s, 250ms}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce - 1);
-    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce - 1);
+    WAIT_EXPECT_EQ(ctx, node->getFinalChain()->get_account(node->getAddress())->nonce, nonce);
+    WAIT_EXPECT_EQ(ctx, node->getDB()->getNumTransactionExecuted(), nonce);
   });
 }
 
@@ -923,6 +923,40 @@ TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
   EXPECT_HAPPENS({60s, 500ms}, [&](auto &ctx) {
     WAIT_EXPECT_EQ(ctx, node->getPbftChain()->getPbftChainSize(), chain_size_before + 1);
   });
+}
+
+TEST_F(PbftManagerWithDagCreation, proposed_blocks) {
+  auto db = std::make_shared<DbStorage>(data_dir);
+  ProposedBlocks proposed_blocks(db);
+
+  std::map<blk_hash_t, std::shared_ptr<PbftBlock>> blocks;
+  const uint32_t block_count = 100;
+  // Create blocks
+  for (uint32_t i = 1; i <= block_count; i++) {
+    std::vector<vote_hash_t> reward_votes_hashes;
+    auto block = std::make_shared<PbftBlock>(blk_hash_t(1), blk_hash_t(0), blk_hash_t(0), 2, addr_t(),
+                                             dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
+    blocks.insert({block->getBlockHash(), block});
+  }
+  auto now = std::chrono::steady_clock::now();
+  for (auto b : blocks) {
+    proposed_blocks.pushProposedPbftBlock(1, b.second);
+  }
+  std::cout << "Time to push " << block_count
+            << " blocks: " << duration_cast<microseconds>(std::chrono::steady_clock::now() - now).count()
+            << " microseconds" << std::endl;
+  auto blocks_from_db = db->getProposedPbftBlocks();
+  EXPECT_EQ(blocks_from_db.size(), blocks.size());
+  for (auto b : blocks_from_db) {
+    EXPECT_TRUE(blocks.find(b.second->getBlockHash()) != blocks.end());
+  }
+  now = std::chrono::steady_clock::now();
+  proposed_blocks.cleanupProposedPbftBlocksByPeriod(3);
+  std::cout << "Time to erase " << block_count
+            << " blocks: " << duration_cast<microseconds>(std::chrono::steady_clock::now() - now).count()
+            << " microseconds" << std::endl;
+  blocks_from_db = db->getProposedPbftBlocks();
+  EXPECT_EQ(blocks_from_db.size(), 0);
 }
 
 }  // namespace taraxa::core_tests

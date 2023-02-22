@@ -3,20 +3,17 @@
 This file documents all notable changes to `taraxa-node` Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
-
 ## v0.2.5
 
 ### Minor changes
 
 * Allow for different images in `StatefulSet`s for boot, rpc and consensus nodes
 
-
 ## v0.2.4
 
 ### Minor changes
 
 * Specify persistance (PVC) per node type
-
 
 ## v0.2.1
 
