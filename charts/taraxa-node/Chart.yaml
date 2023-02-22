@@ -2,13 +2,13 @@ apiVersion: v2
 appVersion: "1.0"
 description: Kubernetes helm chart for Taraxa blockchain full node implementation.
 name: taraxa-node
-version: 0.2.1
+version: 0.2.4
 keywords:
   - blockchain
   - taraxa
   - node
 dependencies:
   - name: explorer
-    version: 0.2.0
+    version: 0.2.3
     condition: explorer.enabled
     repository: https://charts.gcp.taraxa.io
