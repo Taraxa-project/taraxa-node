@@ -35,16 +35,16 @@ spec:
     spec:
       initContainers:
         - name: config-adapter
-          {{- if and .Values.node.image.repository .Values.node.image.tag -}}
+          {{- if and .Values.node.image.repository .Values.node.image.tag }}
           image: "{{ .Values.node.image.repository }}:{{ .Values.node.image.tag }}"
-          {{- else -}}
+          {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          {{- end -}}
-          {{- if .Values.node.image.imagePullPolicy -}}
+          {{- end }}
+          {{- if .Values.node.image.imagePullPolicy }}
           imagePullPolicy: {{ .Values.node.image.pullPolicy }}
-          {{- else -}}
+          {{- else }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- end -}}
+          {{- end }}
           envFrom:
             - secretRef:
                 name: {{ .Release.Name }}
@@ -99,16 +99,16 @@ spec:
               subPath: status.py
         {{- end }}
         - name: taraxa-node
-          {{- if and .Values.node.image.repository .Values.node.image.tag -}}
+          {{- if and .Values.node.image.repository .Values.node.image.tag }}
           image: "{{ .Values.node.image.repository }}:{{ .Values.node.image.tag }}"
-          {{- else -}}
+          {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          {{- end -}}
-          {{- if .Values.node.image.imagePullPolicy -}}
+          {{- end }}
+          {{- if .Values.node.image.imagePullPolicy }}
           imagePullPolicy: {{ .Values.node.image.pullPolicy }}
-          {{- else -}}
+          {{- else }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- end -}}
+          {{- end }}
           args:
             {{- toYaml .Values.node.args | nindent 12 }}
           env:
