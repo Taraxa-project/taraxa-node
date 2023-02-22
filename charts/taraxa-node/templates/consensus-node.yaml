@@ -44,16 +44,16 @@ spec:
               subPath: entrypoint.sh
         {{- end }}
         - name: config-adapter
-          {{- if and .Values.consensusnode.image.repository .Values.consensusnode.image.tag -}}
+          {{- if and .Values.consensusnode.image.repository .Values.consensusnode.image.tag }}
           image: "{{ .Values.consensusnode.image.repository }}:{{ .Values.consensusnode.image.tag }}"
-          {{- else -}}
+          {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          {{- end -}}
-          {{- if .Values.consensusnode.image.imagePullPolicy -}}
+          {{- end }}
+          {{- if .Values.consensusnode.image.imagePullPolicy }}
           imagePullPolicy: {{ .Values.consensusnode.image.pullPolicy }}
-          {{- else -}}
+          {{- else }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- end -}}
+          {{- end }}
           envFrom:
             - secretRef:
                 name: {{ .Release.Name }}
@@ -102,16 +102,16 @@ spec:
               subPath: status.py
         {{- end }}
         - name: consensus-node
-          {{- if and .Values.consensusnode.image.repository .Values.consensusnode.image.tag -}}
+          {{- if and .Values.consensusnode.image.repository .Values.consensusnode.image.tag }}
           image: "{{ .Values.consensusnode.image.repository }}:{{ .Values.consensusnode.image.tag }}"
-          {{- else -}}
+          {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
-          {{- end -}}
-          {{- if .Values.consensusnode.image.imagePullPolicy -}}
+          {{- end }}
+          {{- if .Values.consensusnode.image.imagePullPolicy }}
           imagePullPolicy: {{ .Values.consensusnode.image.pullPolicy }}
-          {{- else -}}
+          {{- else }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- end -}}
+          {{- end }}
           args:
             {{- toYaml .Values.consensusnode.args | nindent 12 }}
           env:

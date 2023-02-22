@@ -64,8 +64,8 @@ tolerations: []
 affinity: {}
 
 node:
-  image: {}
   enabled: true
+  image: {}
   replicaCount: 20
   loadBalancer:
     enabled: false
@@ -131,8 +131,8 @@ node:
 
 
 bootnode:
-  image: {}
   enabled: true
+  image: {}
   replicaCount: 1
   loadBalancer:
     enabled: false
@@ -170,8 +170,8 @@ bootnode:
     annotations: {}
 
 consensusnode:
-  image: {}
   enabled: true
+  image: {}
   replicaCount: 1
   probes:
     enabled: true
