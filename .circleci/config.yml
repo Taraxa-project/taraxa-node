@@ -240,7 +240,7 @@ commands:
               # temp
               PR_TAG=pr-2342-1a09cc9
               # temp
-              
+
               if [ -z ${PR_TAG} ]; then
                 echo "No images for PR pr-<< parameters.pr-name >>"
                 exit 1
@@ -272,7 +272,8 @@ commands:
                 --set consensusnode.persistence.enabled=true \
                 --set node.serviceMonitor.enabled=true \
                 --set bootnode.serviceMonitor.enabled=false \
-                --set consensusnode.serviceMonitor.enabled=true
+                --set consensusnode.serviceMonitor.enabled=true \
+                --set node.indexer.enabled=true
             fi
 
   cleanup_prnet_chart:
