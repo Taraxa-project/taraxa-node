@@ -105,7 +105,7 @@ spec:
           command: ["/taraxa-indexer"]
           args:
             - -db_path {{ .Values.node.indexer.persistence.mountPoint }}
-            - -blockchain_ws 'wss://localhost:8777'
+            - -blockchain_ws 'ws://localhost:8777'
           volumeMounts:
             - name: data
               mountPath: /data
