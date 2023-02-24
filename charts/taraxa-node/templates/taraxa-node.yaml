@@ -100,12 +100,12 @@ spec:
         {{- end }}
         {{- if .Values.node.indexer.enabled }}
         - name: taraxa-indexer
-          image: "{{ .Values.node.image.repository }}:{{ .Values.node.image.tag }}"
-          imagePullPolicy: {{ .Values.node.image.pullPolicy }}
+          image: "{{ .Values.node.indexer.image.repository }}:{{ .Values.node.indexer.image.tag }}"
+          imagePullPolicy: {{ .Values.node.indexer.image.pullPolicy }}
           command: ["/taraxa-indexer"]
           args:
             - -db_path {{ .Values.node.indexer.persistence.mountPoint }}
-            - -blockchain_ws 'ws://localhost:8777'
+            - -blockchain_ws 'wss://localhost:8777'
           volumeMounts:
             - name: data
               mountPath: /data
