@@ -107,7 +107,7 @@ spec:
             - -db_path {{ .Values.node.indexer.persistence.mountPoint }}
             - -blockchain_ws 'ws://localhost:8777'
           volumeMounts:
-            - name: data
+            - name: indexer-data
               mountPath: /data
         {{- end }}
         - name: taraxa-node
