@@ -65,6 +65,7 @@ affinity: {}
 
 node:
   enabled: true
+  image: {}
   replicaCount: 20
   loadBalancer:
     enabled: false
@@ -131,6 +132,7 @@ node:
 
 bootnode:
   enabled: true
+  image: {}
   replicaCount: 1
   loadBalancer:
     enabled: false
@@ -169,6 +171,7 @@ bootnode:
 
 consensusnode:
   enabled: true
+  image: {}
   replicaCount: 1
   probes:
     enabled: true
