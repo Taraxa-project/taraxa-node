@@ -98,6 +98,18 @@ spec:
               readOnly: true
               subPath: status.py
         {{- end }}
+        {{- if .Values.node.indexer.enabled }}
+        - name: taraxa-indexer
+          image: "{{ .Values.node.image.repository }}:{{ .Values.node.image.tag }}"
+          imagePullPolicy: {{ .Values.node.image.pullPolicy }}
+          command: ["/taraxa-indexer"]
+          args:
+            - -db_path {{ .Values.node.indexer.persistence.mountPoint }}
+            - -blockchain_ws 'ws://localhost:8777'
+          volumeMounts:
+            - name: data
+              mountPath: /data
+        {{- end }}
         - name: taraxa-node
           {{- if and .Values.node.image.repository .Values.node.image.tag }}
           image: "{{ .Values.node.image.repository }}:{{ .Values.node.image.tag }}"
@@ -224,5 +236,26 @@ spec:
       resources:
         requests:
           storage: "{{ .Values.node.persistence.size }}"
+  {{- if .Values.node.indexer.enabled }}
+  - metadata:
+      name: indexer-data
+      annotations:
+        {{- if .Values.node.indexer.persistence.annotations}}
+        {{- toYaml .Values.node.indexer.persistence.annotations | nindent 4 }}
+        {{- end }}
+    spec:
+      accessModes:
+        - {{ .Values.node.indexer.persistence.accessMode | quote }}
+    {{- if .Values.node.indexer.persistence.storageClass }}
+    {{- if (eq "-" .Values.node.indexer.persistence.storageClass) }}
+      storageClassName: ""
+    {{- else }}
+      storageClassName: "{{ .Values.node.indexer.persistence.storageClass }}"
+    {{- end }}
+    {{- end }}
+      resources:
+        requests:
+          storage: "{{ .Values.node.indexer.persistence.size }}"
+  {{- end }}
   {{- end }}
 {{- end }}

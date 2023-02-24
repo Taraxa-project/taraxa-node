@@ -141,7 +141,19 @@ node:
     size: 30Gi
     storageClass: 
     annotations: {}
-
+  indexer:
+    enabled: false
+    image:
+      repository: gcr.io/jovial-meridian-249123/taraxa-indexer
+      tag: latest
+      pullPolicy: IfNotPresent
+    persistence:
+      enabled: false
+      accessMode: ReadWriteOnce
+      size: 30Gi
+      storageClass: 
+      annotations: {}
+      mountPoint: /data
 
 bootnode:
   enabled: true
