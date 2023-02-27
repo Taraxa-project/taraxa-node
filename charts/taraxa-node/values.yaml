@@ -139,6 +139,9 @@ node:
         - name: metrics
           port: 8888
           protocol: TCP
+        - name: http-indexer
+          containerPort: 8080
+          protocol: TCP
   serviceMonitor:
     enabled: false
   resources: {}
