@@ -95,6 +95,7 @@ node:
     annotationsRpcWS: {}
     annotationsGraphQl: {}
     annotationsGraphQlWS: {}
+    annotationsIndexer: {}
     hosts: []
     tls: []
   ports:
@@ -112,6 +113,9 @@ node:
     - name: udp-listen-port
       containerPort: 10002
       protocol: UDP
+    - name: http-indexer
+      containerPort: 8080
+      protocol: TCP
   service:
     ports:
         - name: rest
