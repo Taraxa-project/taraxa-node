@@ -273,7 +273,8 @@ commands:
                 --set node.serviceMonitor.enabled=true \
                 --set bootnode.serviceMonitor.enabled=false \
                 --set consensusnode.serviceMonitor.enabled=true \
-                --set node.indexer.enabled=true
+                --set node.indexer.enabled=true \
+                --set node.indexer.image.tag=develop-045732f-1677256915
             fi
 
   cleanup_prnet_chart:
