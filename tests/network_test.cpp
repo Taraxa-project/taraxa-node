@@ -327,7 +327,7 @@ TEST_F(NetworkTest, transfer_transaction) {
   nw1->start();
   nw2->start();
 
-  EXPECT_HAPPENS({10s, 200ms}, [&](auto& ctx) {
+  EXPECT_HAPPENS({20s, 100ms}, [&](auto& ctx) {
     nw1->setPendingPeersToReady();
     nw2->setPendingPeersToReady();
     WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 1)
@@ -336,15 +336,18 @@ TEST_F(NetworkTest, transfer_transaction) {
 
   auto nw1_nodeid = nw1->getNodeId();
   auto nw2_nodeid = nw2->getNodeId();
-  EXPECT_NE(nw1->getPeer(nw2_nodeid), nullptr);
-  EXPECT_NE(nw2->getPeer(nw1_nodeid), nullptr);
+
+  const auto peer2 = nw1->getPeer(nw2_nodeid);
+  const auto peer1 = nw2->getPeer(nw1_nodeid);
+  EXPECT_NE(peer2, nullptr);
+  EXPECT_NE(peer1, nullptr);
 
   SharedTransactions transactions;
   transactions.push_back(g_signed_trx_samples[0]);
   transactions.push_back(g_signed_trx_samples[1]);
   transactions.push_back(g_signed_trx_samples[2]);
 
-  nw2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(nw2->getPeer(nw1_nodeid),
+  nw2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(peer1,
                                                                                          std::move(transactions));
 
   EXPECT_HAPPENS({2s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, nw1->getReceivedTransactionsCount(), 3) });

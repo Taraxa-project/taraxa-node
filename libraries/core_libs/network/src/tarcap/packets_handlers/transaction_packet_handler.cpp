@@ -159,8 +159,9 @@ void TransactionPacketHandler::periodicSendTransactions(SharedTransactions &&tra
   }
 }
 
-void TransactionPacketHandler::sendTransactions(std::shared_ptr<TaraxaPeer> const &peer,
+void TransactionPacketHandler::sendTransactions(std::shared_ptr<TaraxaPeer> peer,
                                                 std::vector<std::shared_ptr<Transaction>> &&transactions) {
+  if (!peer) return;
   const auto peer_id = peer->getId();
   LOG(log_tr_) << "sendTransactions " << transactions.size() << " to " << peer_id;
 
