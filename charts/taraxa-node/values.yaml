@@ -95,7 +95,11 @@ node:
     annotationsRpcWS: {}
     annotationsGraphQl: {}
     annotationsGraphQlWS: {}
-    annotationsIndexer: {}
+    annotationsIndexer:
+      nginx.ingress.kubernetes.io/affinity: "cookie"
+      nginx.ingress.kubernetes.io/session-cookie-name: "stickounet"
+      nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+      nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
     hosts: []
     tls: []
   ports:
