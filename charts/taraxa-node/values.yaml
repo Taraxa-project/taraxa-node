@@ -128,6 +128,11 @@ node:
         - name: udp-listen-port
           port: 10002
           protocol: UDP
+        - name: http-indexer
+          containerPort: 8080
+          protocol: TCP
+  serviceMonitor:
+    enabled: false
   resources: {}
   nodeSelector: {}
   persistence:
