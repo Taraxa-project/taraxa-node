@@ -96,7 +96,7 @@ If release name contains chart name it will be used as a full name.
 {{- if .Values.indexerNameOverride -}}
 {{- .Values.indexerNameOverride | trunc 63 | trimSuffix "-" -}}
 {{- else -}}
-{{- printf "%s-%s.%s" "ws" .Release.Name .Values.domain | trunc 63 | trimSuffix "-" -}}
+{{- printf "%s-%s.%s" "indexer" .Release.Name .Values.domain | trunc 63 | trimSuffix "-" -}}
 {{- end -}}
 {{- end -}}
 
