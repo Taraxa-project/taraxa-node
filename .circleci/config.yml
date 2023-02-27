@@ -273,6 +273,9 @@ commands:
                 --set node.serviceMonitor.enabled=true \
                 --set bootnode.serviceMonitor.enabled=false \
                 --set consensusnode.serviceMonitor.enabled=true \
+                --set node.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
+                --set bootnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
+                --set consensusnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set node.indexer.enabled=true \
                 --set node.indexer.image.tag=develop-503f613-1677511322
             fi
