@@ -37,7 +37,7 @@ will build out of the box without further effort:
     sudo apt install solc
 
     # Install conan package manager
-    sudo python3 -m pip install conan
+    sudo python3 -m pip install conan==1.59.0
 
     # Setup clang as default compiler either in your IDE or by env. variables"
     export C="clang-14"
@@ -95,7 +95,7 @@ will build out of the box without further effort:
 
     # Install conan package manager
     # >= 1.36.0 version is required to work properly with clang-14
-    sudo python3 -m pip install conan
+    sudo python3 -m pip install conan==1.59.0
 
     # Install cmake
     # >= 3.20 version is required for JSON subcommand
@@ -216,7 +216,7 @@ Sometimes conan cache goes wrong, so you should clean it up. You could face erro
 ERROR: boost/1.76.0: Error in package_info() method, line 1492
     raise ConanException("These libraries were expected to be built, but were not built: {}".format(non_built))
     ConanException: These libraries were expected to be built, but were not built: {'boost_math_c99l', 'boost_json', 'boost_math_c99', 'boost_nowide', 'boost_math_tr1l', 'boost_math_tr1f', 'boost_math_tr1', 'boost_math_c99f'}
-``` 
+```
 
 It could be cleaned up with:
 
@@ -227,7 +227,7 @@ rm -rf ~/.conan/data
 #### Project building issue
 
 If you are facing strange errors with project compilation it could be a problem that after install of llvm clang if pointing to a default apple clang. You could check that with `clang --version`. It should not point to `/Library/Developer/CommandLineTools/usr/bin`, but something like `/usr/local/opt/llvm/bin`. So you should specify full paths to a compiler:
-1. Check full path with `brew info llvm`. Search for command that looks like 
+1. Check full path with `brew info llvm`. Search for command that looks like
 ```
     echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> ~/.zshrc
 ```
@@ -248,7 +248,7 @@ make -j$(nproc)
 
 ## Building on M1 Macs for x86_64 with Rosetta2
 
-You should be able to build project following default MacOS building process. But here is a guide how to build project for x86_64 arch with Rosetta2. 
+You should be able to build project following default MacOS building process. But here is a guide how to build project for x86_64 arch with Rosetta2.
 
 ### Install Rosetta2
 
@@ -258,11 +258,11 @@ You should be able to build project following default MacOS building process. Bu
 
     arch -x86_64 zsh
 
-### Install Homebrew 
+### Install Homebrew
 
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-### Install dependencies 
+### Install dependencies
 
     /usr/local/bin/brew install coreutils go autoconf automake gflags git libtool llvm@13 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr
 
