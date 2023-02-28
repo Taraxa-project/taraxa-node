@@ -3,6 +3,12 @@
 This file documents all notable changes to `taraxa-node` Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v0.2.6
+
+### Minor changes
+
+* Fix for `image.pullPolicy`
+
 ## v0.2.5
 
 ### Minor changes
