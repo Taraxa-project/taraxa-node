@@ -555,7 +555,7 @@ void PbftManager::broadcastVotes(bool rebroadcast) {
   }
 
   // Broadcast reward votes - previous round 2t+1 cert votes
-  auto reward_votes = vote_mgr_->getProposeRewardVotes();
+  auto reward_votes = vote_mgr_->getRewardVotes();
   if (!reward_votes.empty()) {
     LOG(log_dg_) << "Broadcast propose reward votes for period " << period << ", round " << round;
     net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(reward_votes),
@@ -1013,7 +1013,7 @@ std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<
     const blk_hash_t &order_hash) {
   // Reward votes should only include those reward votes with the same round as the round last pbft block was pushed
   // into chain
-  auto reward_votes = vote_mgr_->getProposeRewardVotes();
+  auto reward_votes = vote_mgr_->getRewardVotes();
   if (propose_period > 1) [[likely]] {
     assert(!reward_votes.empty());
     if (reward_votes[0]->getPeriod() != propose_period - 1) {
@@ -1511,8 +1511,8 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   db_->savePeriodData(period_data, batch);
 
   // Replace current reward votes
-  vote_mgr_->resetRewardVotesInfo(cert_votes[0]->getPeriod(), cert_votes[0]->getRound(), cert_votes[0]->getBlockHash());
-  db_->replaceRewardVotes(cert_votes, batch);
+  vote_mgr_->resetRewardVotes(cert_votes[0]->getPeriod(), cert_votes[0]->getRound(), cert_votes[0]->getStep(),
+                              cert_votes[0]->getBlockHash(), batch);
 
   // pass pbft with dag blocks and transactions to adjust difficulty
   if (period_data.pbft_blk->getPivotDagBlockHash() != kNullBlockHash) {

@@ -347,8 +347,8 @@ void FullNode::rebuildDb() {
   // Read pbft blocks one by one
   PbftPeriod period = 1;
   std::shared_ptr<PeriodData> period_data, next_period_data;
-  std::vector<std::shared_ptr<Vote>> cert_votes;
   while (true) {
+    std::vector<std::shared_ptr<Vote>> cert_votes;
     if (next_period_data != nullptr) {
       period_data = next_period_data;
     } else {
@@ -359,8 +359,11 @@ void FullNode::rebuildDb() {
     auto data = old_db_->getPeriodDataRaw(period + 1);
     if (data.size() == 0) {
       next_period_data = nullptr;
-      // Latest finalized block cert votes are saved in db as reward votes for new blocks
-      cert_votes = old_db_->getRewardVotes();
+      // Latest finalized block cert votes are saved in db as 2t+1 cert votes
+      auto votes = old_db_->getAllTwoTPlusOneVotes();
+      for (auto v : votes) {
+        if (v->getType() == PbftVoteTypes::cert_vote) cert_votes.push_back(v);
+      }
     } else {
       next_period_data = std::make_shared<PeriodData>(std::move(data));
       cert_votes = next_period_data->previous_block_cert_votes;

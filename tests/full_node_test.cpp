@@ -285,9 +285,7 @@ TEST_F(FullNodeTest, db_test) {
   }
 
   EXPECT_TRUE(db.getRewardVotes().empty());
-  batch = db.createWriteBatch();
-  db.replaceRewardVotes(verified_votes, batch);
-  db.commitWriteBatch(batch);
+  for (auto v : verified_votes) db.saveExtraRewardVote(v);
 
   const auto db_reward_votes = db.getRewardVotes();
   EXPECT_EQ(db_reward_votes.size(), verified_votes_map.size());
@@ -297,7 +295,7 @@ TEST_F(FullNodeTest, db_test) {
 
   const auto new_reward_vote = genVote(PbftVoteTypes::cert_vote, 10, 10, 3);
   verified_votes_map[new_reward_vote->getHash()] = new_reward_vote;
-  db.saveRewardVote(new_reward_vote);
+  db.saveExtraRewardVote(new_reward_vote);
 
   const auto new_db_reward_votes = db.getRewardVotes();
   EXPECT_EQ(new_db_reward_votes.size(), verified_votes_map.size());
@@ -306,7 +304,12 @@ TEST_F(FullNodeTest, db_test) {
   }
 
   batch = db.createWriteBatch();
-  db.replaceRewardVotes({}, batch);
+
+  std::vector<vote_hash_t> verified_votes_hashes, new_db_reward_votes_hashes;
+  for (const auto &v : verified_votes) verified_votes_hashes.emplace_back(v->getHash());
+  for (const auto &v : new_db_reward_votes) new_db_reward_votes_hashes.emplace_back(v->getHash());
+  db.removeExtraRewardVotes(verified_votes_hashes, batch);
+  db.removeExtraRewardVotes(new_db_reward_votes_hashes, batch);
   db.commitWriteBatch(batch);
   EXPECT_TRUE(db.getRewardVotes().empty());
 
