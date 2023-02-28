@@ -66,14 +66,7 @@ WORKDIR /opt/taraxa/
 COPY conanfile.py .
 
 RUN conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan" \
-    && conan profile new clang --detect \
-    && conan profile update settings.compiler=clang clang  \
-    && conan profile update settings.compiler.version=$LLVM_VERSION clang  \
-    && conan profile update settings.compiler.libcxx=libstdc++11 clang \
-    && conan profile update settings.build_type=RelWithDebInfo clang \
-    && conan profile update env.CC=clang-$LLVM_VERSION clang  \
-    && conan profile update env.CXX=clang++-$LLVM_VERSION clang  \
-    && conan install --build missing -pr=clang .
+    && conan profile detect --name clang
 
 ###################################################################
 # Build stage - use builder image for actual build of taraxa node #
