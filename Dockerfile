@@ -59,8 +59,12 @@ RUN add-apt-repository ppa:ethereum/ethereum \
 ENV CXX="clang++-${LLVM_VERSION}"
 ENV CC="clang-${LLVM_VERSION}"
 
+# HACK remove this when update to conan 2.0
+RUN ln -s /usr/bin/clang-${LLVM_VERSION} /usr/bin/clang
+RUN ln -s /usr/bin/clang++-${LLVM_VERSION} /usr/bin/clang++
+
 # Install conan
-RUN pip3 install --upgrade conan
+RUN pip3 install conan==1.59.0
 
 ENV CONAN_REVISIONS_ENABLED=1
 
@@ -76,7 +80,7 @@ RUN conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/ap
     && conan profile update settings.build_type=RelWithDebInfo clang \
     && conan profile update env.CC=clang-$LLVM_VERSION clang  \
     && conan profile update env.CXX=clang++-$LLVM_VERSION clang  \
-    && conan install --build missing -pr=clang .
+    && conan install --build missing -pr:b=clang .
 
 ###################################################################
 # Build stage - use builder image for actual build of taraxa node #
