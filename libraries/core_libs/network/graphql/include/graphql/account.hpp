@@ -12,8 +12,8 @@ namespace graphql::taraxa {
 class Account {
  public:
   explicit Account(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain, dev::Address address,
-                   ::taraxa::EthBlockNumber blk_n) noexcept;
-  explicit Account(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain, dev::Address address) noexcept;
+                   ::taraxa::EthBlockNumber blk_n);
+  explicit Account(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain, dev::Address address);
 
   response::Value getAddress() const noexcept;
   response::Value getBalance() const noexcept;
