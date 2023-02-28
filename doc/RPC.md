@@ -471,8 +471,7 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getConfig","params":[],"i
         "difficulty_max": "0x12",
         "difficulty_min": "0x10",
         "difficulty_stale": "0x14",
-        "lambda_bound": "0x64",
-        "stake_threshold": "0x4e20"
+        "lambda_bound": "0x64"
       },
       "vrf": {
         "threshold_upper": "0x1770"

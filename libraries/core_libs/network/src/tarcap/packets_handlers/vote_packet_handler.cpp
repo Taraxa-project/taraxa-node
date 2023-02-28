@@ -70,7 +70,7 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
   onNewPbftVote(vote, pbft_block);
 
   // Update peer's max chain size
-  if (peer_chain_size.has_value() && *peer_chain_size > peer->pbft_chain_size_) {
+  if (peer_chain_size.has_value() && vote->getVoter() == peer->getId() && *peer_chain_size > peer->pbft_chain_size_) {
     peer->pbft_chain_size_ = *peer_chain_size;
   }
 }
