@@ -40,7 +40,7 @@ spec:
           {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           {{- end }}
-          {{- if .Values.node.image.imagePullPolicy }}
+          {{- if .Values.node.image.pullPolicy }}
           imagePullPolicy: {{ .Values.node.image.pullPolicy }}
           {{- else }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -118,7 +118,7 @@ spec:
           {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           {{- end }}
-          {{- if .Values.node.image.imagePullPolicy }}
+          {{- if .Values.node.image.pullPolicy }}
           imagePullPolicy: {{ .Values.node.image.pullPolicy }}
           {{- else }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}

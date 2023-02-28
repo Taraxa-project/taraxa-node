@@ -49,7 +49,7 @@ spec:
           {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           {{- end }}
-          {{- if .Values.consensusnode.image.imagePullPolicy }}
+          {{- if .Values.consensusnode.image.pullPolicy }}
           imagePullPolicy: {{ .Values.consensusnode.image.pullPolicy }}
           {{- else }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
@@ -107,7 +107,7 @@ spec:
           {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           {{- end }}
-          {{- if .Values.consensusnode.image.imagePullPolicy }}
+          {{- if .Values.consensusnode.image.pullPolicy }}
           imagePullPolicy: {{ .Values.consensusnode.image.pullPolicy }}
           {{- else }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
