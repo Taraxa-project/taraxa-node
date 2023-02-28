@@ -577,6 +577,8 @@ jobs:
             https://explorer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr> \
             <tr><td>RPC</td><td><a href=https://rpc-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io >\
             https://rpc-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr>\
+            <tr><td>Indexer</td><td><a href=https://indexer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io >\
+            https://indexer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr>\
             </table>\
             <h4><p>Boot Nodes</p></h4>\
             <table>\
