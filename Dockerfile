@@ -57,7 +57,7 @@ ENV CXX="clang++-${LLVM_VERSION}"
 ENV CC="clang-${LLVM_VERSION}"
 
 # Install conan
-RUN pip3 install --upgrade conan
+RUN pip3 install conan==1.59.0
 
 ENV CONAN_REVISIONS_ENABLED=1
 
