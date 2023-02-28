@@ -34,8 +34,17 @@ spec:
     spec:
       initContainers:
         - name: config-adapter
+          {{- if and .Values.bootnode.image.repository .Values.bootnode.image.tag }}
+          image: "{{ .Values.bootnode.image.repository }}:{{ .Values.bootnode.image.tag }}"
+          {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          {{- end }}
+
+          {{- if .Values.bootnode.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.bootnode.image.pullPolicy }}
+          {{- else }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- end }}
           envFrom:
             - secretRef:
                 name: {{ .Release.Name }}
@@ -54,8 +63,17 @@ spec:
               mountPath: /root/.taraxa
       containers:
         - name: boot-node
+          {{- if and .Values.bootnode.image.repository .Values.bootnode.image.tag }}
+          image: "{{ .Values.bootnode.image.repository }}:{{ .Values.bootnode.image.tag }}"
+          {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          {{- end }}
+
+          {{- if .Values.bootnode.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.bootnode.image.pullPolicy }}
+          {{- else }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- end }}
           args:
             {{- toYaml .Values.bootnode.args | nindent 12 }}
             - --chain-id

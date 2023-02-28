@@ -1,5 +1,6 @@
 {{ if .Values.node.enabled }}
 {{- if .Values.node.ingress.enabled -}}
+
 {{- $fullName := include "taraxa-node.fullname" . -}}
 {{- $apiIsStable := eq (include "taraxa-node.ingress.isStable" .) "true" -}}
 {{- $ingressSupportsPathType := eq (include "taraxa-node.ingress.supportsPathType" .) "true" -}}
@@ -9,11 +10,14 @@
 {{- $servicePortRpcWs := 8777 -}}
 {{- $servicePortGraphQl := 9777 -}}
 {{- $servicePortGraphQlWs := 6777 -}}
+{{- $servicePortHttp := 8080 -}}
+
 {{- range .Values.node.service.ports }}
   {{ if eq .name "rest"}} {{ $servicePortRpc = .port }} {{ end }}
   {{ if eq .name "ws"}} {{ $servicePortRpcWs = .port }} {{ end }}
   {{ if eq .name "graphql"}} {{ $servicePortGraphQl = .port }} {{ end }}
   {{ if eq .name "graphql-ws"}} {{ $servicePortGraphQlWs = .port }} {{ end }}
+  {{ if eq .name "http-indexer"}} {{ $servicePortHttp = .port }} {{ end }}
 {{- end }}
 
 {{- $pathType := .Values.node.ingress.pathType | default "ImplementationSpecific" -}}
@@ -196,6 +200,52 @@ spec:
               {{- else }}
               serviceName: {{ $serviceName }}
               servicePort: {{ $servicePortGraphQlWs }}
+              {{- end }}
+
+---
+apiVersion: {{ include "taraxa-node.ingress.apiVersion" . }}
+kind: Ingress
+metadata:
+  name: {{ $fullName }}-indexer
+  labels:
+    app: taraxa-node
+    app.kubernetes.io/name: {{ include "taraxa-node.name" . }}
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+  {{- with .Values.node.ingress.annotationsIndexer }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+{{- if $apiIsStable }}
+{{- if .Values.node.ingress.ingressClassName }}
+  ingressClassName: {{ .Values.node.ingress.ingressClassName }}
+{{- end }}
+{{- end }}
+  {{- if .Values.wildCertDomainSecret }}
+  tls:
+    - hosts:
+        - {{ include "taraxa-node.indexerName" . | quote }}
+      secretName: {{ .Values.wildCertDomainSecret }}
+  {{- end }}
+  rules:
+    - host: {{ include "taraxa-node.indexerName" . | quote }}
+      http:
+        paths:
+          - path: /
+            {{- if and $pathType $ingressSupportsPathType }}
+            pathType: {{ $pathType }}
+            {{- end }}
+            backend:
+              {{- if $apiIsStable }}
+              service:
+                name: {{ $serviceName }}
+                port:
+                  number: {{ $servicePortHttp }}
+              {{- else }}
+              serviceName: {{ $serviceName }}
+              servicePort: {{ $servicePortHttp }}
               {{- end }}
 {{- end }}
 {{- end }}

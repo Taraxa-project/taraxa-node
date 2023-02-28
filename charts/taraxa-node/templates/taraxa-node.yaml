@@ -35,8 +35,16 @@ spec:
     spec:
       initContainers:
         - name: config-adapter
+          {{- if and .Values.node.image.repository .Values.node.image.tag }}
+          image: "{{ .Values.node.image.repository }}:{{ .Values.node.image.tag }}"
+          {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          {{- end }}
+          {{- if .Values.node.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.node.image.pullPolicy }}
+          {{- else }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- end }}
           envFrom:
             - secretRef:
                 name: {{ .Release.Name }}
@@ -90,9 +98,31 @@ spec:
               readOnly: true
               subPath: status.py
         {{- end }}
+        {{- if .Values.node.indexer.enabled }}
+        - name: taraxa-indexer
+          image: "{{ .Values.node.indexer.image.repository }}:{{ .Values.node.indexer.image.tag }}"
+          imagePullPolicy: {{ .Values.node.indexer.image.pullPolicy }}
+          command: ["/taraxa-indexer"]
+          args:
+            - -db_path 
+            - {{ .Values.node.indexer.persistence.mountPoint }}
+            - -blockchain_ws 
+            - 'ws://localhost:8777'
+          volumeMounts:
+            - name: indexer-data
+              mountPath: /data
+        {{- end }}
         - name: taraxa-node
+          {{- if and .Values.node.image.repository .Values.node.image.tag }}
+          image: "{{ .Values.node.image.repository }}:{{ .Values.node.image.tag }}"
+          {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          {{- end }}
+          {{- if .Values.node.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.node.image.pullPolicy }}
+          {{- else }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- end }}
           args:
             {{- toYaml .Values.node.args | nindent 12 }}
           env:
@@ -208,5 +238,26 @@ spec:
       resources:
         requests:
           storage: "{{ .Values.node.persistence.size }}"
+  {{- if .Values.node.indexer.enabled }}
+  - metadata:
+      name: indexer-data
+      annotations:
+        {{- if .Values.node.indexer.persistence.annotations}}
+        {{- toYaml .Values.node.indexer.persistence.annotations | nindent 4 }}
+        {{- end }}
+    spec:
+      accessModes:
+        - {{ .Values.node.indexer.persistence.accessMode | quote }}
+    {{- if .Values.node.indexer.persistence.storageClass }}
+    {{- if (eq "-" .Values.node.indexer.persistence.storageClass) }}
+      storageClassName: ""
+    {{- else }}
+      storageClassName: "{{ .Values.node.indexer.persistence.storageClass }}"
+    {{- end }}
+    {{- end }}
+      resources:
+        requests:
+          storage: "{{ .Values.node.indexer.persistence.size }}"
+  {{- end }}
   {{- end }}
 {{- end }}

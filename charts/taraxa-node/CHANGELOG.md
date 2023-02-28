@@ -3,6 +3,12 @@
 This file documents all notable changes to `taraxa-node` Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v0.3.3
+
+### Major changes
+
+* Added sidecar container to RPC nodes with [taraxa-indexer](https://github.com/Taraxa-project/taraxa-indexer)
+
 ## v0.3.2
 
 ### Minor changes
@@ -20,6 +26,13 @@ numbering uses [semantic versioning](http://semver.org).
 ### Major changes
 
 * Separate config for genesis
+
+## v0.2.5
+
+### Minor changes
+
+* Allow for different images in `StatefulSet`s for boot, rpc and consensus nodes
+
 
 ## v0.2.4
 
