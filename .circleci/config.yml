@@ -236,10 +236,6 @@ commands:
                 --sort-by="~timestamp" \
                 --limit 1 \
                 --format="value(tags[0])" )
-              
-              # temp
-              PR_TAG=pr-2342-1a09cc9
-              # temp
 
               if [ -z ${PR_TAG} ]; then
                 echo "No images for PR pr-<< parameters.pr-name >>"
