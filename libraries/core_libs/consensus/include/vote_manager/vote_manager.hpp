@@ -43,10 +43,11 @@ class VoteManager {
   /**
    * @brief Add a vote to the verified votes map
    * @param vote vote
+   * @param save save vote to db
    *
    * @return true if vote was successfully added, otherwise false
    */
-  bool addVerifiedVote(const std::shared_ptr<Vote>& vote);
+  bool addVerifiedVote(const std::shared_ptr<Vote>& vote, bool save = true);
 
   /**
    * @brief Check if the vote has been in the verified votes map

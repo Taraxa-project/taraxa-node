@@ -142,7 +142,7 @@ void VoteManager::setCurrentPbftPeriodAndRound(PbftPeriod pbft_period, PbftRound
   }
 }
 
-bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
+bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote, bool save) {
   assert(vote->getWeight().has_value());
   const auto hash = vote->getHash();
   const auto weight = *vote->getWeight();
@@ -260,22 +260,24 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
       }
     };
 
-    switch (vote->getType()) {
-      case PbftVoteTypes::soft_vote:
-        saveTwoTPlusOneVotesInDb(TwoTPlusOneVotedBlockType::SoftVotedBlock, vote);
-        break;
-      case PbftVoteTypes::cert_vote:
-        saveTwoTPlusOneVotesInDb(TwoTPlusOneVotedBlockType::CertVotedBlock, vote);
-        break;
-      case PbftVoteTypes::next_vote:
-        if (vote_block_hash == kNullBlockHash) {
-          saveTwoTPlusOneVotesInDb(TwoTPlusOneVotedBlockType::NextVotedNullBlock, vote);
-        } else {
-          saveTwoTPlusOneVotesInDb(TwoTPlusOneVotedBlockType::NextVotedBlock, vote);
-        }
-        break;
-      default:
-        break;
+    if (save) {
+      switch (vote->getType()) {
+        case PbftVoteTypes::soft_vote:
+          saveTwoTPlusOneVotesInDb(TwoTPlusOneVotedBlockType::SoftVotedBlock, vote);
+          break;
+        case PbftVoteTypes::cert_vote:
+          saveTwoTPlusOneVotesInDb(TwoTPlusOneVotedBlockType::CertVotedBlock, vote);
+          break;
+        case PbftVoteTypes::next_vote:
+          if (vote_block_hash == kNullBlockHash) {
+            saveTwoTPlusOneVotesInDb(TwoTPlusOneVotedBlockType::NextVotedNullBlock, vote);
+          } else {
+            saveTwoTPlusOneVotesInDb(TwoTPlusOneVotedBlockType::NextVotedBlock, vote);
+          }
+          break;
+        default:
+          break;
+      }
     }
   }
 

@@ -1785,7 +1785,7 @@ bool PbftManager::validatePbftBlockCertVotes(const std::shared_ptr<PbftBlock> pb
     assert(v->getWeight());
     votes_weight += *v->getWeight();
 
-    vote_mgr_->addVerifiedVote(v);
+    vote_mgr_->addVerifiedVote(v, false);
   }
 
   const auto two_t_plus_one = vote_mgr_->getPbftTwoTPlusOne(first_vote_period - 1, PbftVoteTypes::cert_vote);
