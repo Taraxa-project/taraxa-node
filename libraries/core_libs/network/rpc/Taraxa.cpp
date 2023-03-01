@@ -81,6 +81,20 @@ Json::Value Taraxa::taraxa_getDagBlockByHash(string const& _blockHash, bool _inc
   return Json::Value();
 }
 
+std::string Taraxa::taraxa_pbftBlockHashByPeriod(const std::string& _period) {
+  try {
+    auto node = tryGetNode();
+    auto db = node->getDB();
+    auto blk = db->getPbftBlock(std::stoull(_period, 0, 16));
+    if (!blk.has_value()) {
+      return {};
+    }
+    return toJS(blk->getBlockHash());
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
+}
+
 Json::Value Taraxa::taraxa_getScheduleBlockByPeriod(std::string const& _period) {
   try {
     auto node = tryGetNode();
@@ -123,4 +137,18 @@ Json::Value Taraxa::taraxa_getDagBlockByLevel(string const& _blockLevel, bool _i
 }
 
 Json::Value Taraxa::taraxa_getConfig() { return enc_json(tryGetNode()->getConfig().chain); }
+
+Json::Value Taraxa::taraxa_getChainStats() {
+  Json::Value res;
+  try {
+    if (auto node = full_node_.lock()) {
+      res["pbft_period"] = Json::UInt64(node->getPbftChain()->getPbftChainSize());
+      res["dag_blocks_executed"] = Json::UInt64(node->getDB()->getNumBlockExecuted());
+      res["transactions_executed"] = Json::UInt64(node->getDB()->getNumTransactionExecuted());
+    }
+  } catch (std::exception& e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
 }  // namespace taraxa::net
