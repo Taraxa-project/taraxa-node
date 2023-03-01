@@ -13,11 +13,11 @@ class TaraxaConan(ConanFile):
     generators = "cmake"
 
     def requirements(self):
-        self.requires("boost/1.80.0")
+        self.requires("boost/1.81.0")
         self.requires("cppcheck/2.7.5")
-        self.requires("openssl/1.1.1s")
+        self.requires("openssl/1.1.1t")
         self.requires("cryptopp/8.7.0")
-        self.requires("gtest/1.12.1")
+        self.requires("gtest/1.13.0")
         self.requires("lz4/1.9.4")
         self.requires("rocksdb/6.29.5")
         self.requires("prometheus-cpp/1.1.0")
