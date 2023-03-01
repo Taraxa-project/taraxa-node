@@ -871,9 +871,8 @@ std::optional<blk_hash_t> VoteManager::getTwoTPlusOneVotedBlock(PbftPeriod perio
   return two_t_plus_one_voted_block_it->second.first;
 }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getTwoTPlusOneVotedBlockVotes(
-    PbftPeriod period, PbftRound round, TwoTPlusOneVotedBlockType type,
-    const std::shared_ptr<network::tarcap::TaraxaPeer>& peer_filter) const {
+std::vector<std::shared_ptr<Vote>> VoteManager::getTwoTPlusOneVotedBlockVotes(PbftPeriod period, PbftRound round,
+                                                                              TwoTPlusOneVotedBlockType type) const {
   std::shared_lock lock(verified_votes_access_);
 
   const auto found_period_it = verified_votes_.find(period);
@@ -909,23 +908,17 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getTwoTPlusOneVotedBlockVotes(
   std::vector<std::shared_ptr<Vote>> votes;
   votes.reserve(found_verified_votes_it->second.second.size());
   for (const auto& vote : found_verified_votes_it->second.second) {
-    if (peer_filter && peer_filter->isVoteKnown(vote.first)) {
-      continue;
-    }
-
     votes.push_back(vote.second);
   }
 
   return votes;
 }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getAllTwoTPlusOneNextVotes(
-    PbftPeriod period, PbftRound round, const std::shared_ptr<network::tarcap::TaraxaPeer>& peer_filter) const {
-  auto next_votes =
-      getTwoTPlusOneVotedBlockVotes(period, round, TwoTPlusOneVotedBlockType::NextVotedBlock, peer_filter);
+std::vector<std::shared_ptr<Vote>> VoteManager::getAllTwoTPlusOneNextVotes(PbftPeriod period, PbftRound round) const {
+  auto next_votes = getTwoTPlusOneVotedBlockVotes(period, round, TwoTPlusOneVotedBlockType::NextVotedBlock);
 
   auto null_block_next_vote =
-      getTwoTPlusOneVotedBlockVotes(period, round, TwoTPlusOneVotedBlockType::NextVotedNullBlock, peer_filter);
+      getTwoTPlusOneVotedBlockVotes(period, round, TwoTPlusOneVotedBlockType::NextVotedNullBlock);
   if (!null_block_next_vote.empty()) {
     next_votes.reserve(next_votes.size() + null_block_next_vote.size());
     next_votes.insert(next_votes.end(), std::make_move_iterator(null_block_next_vote.begin()),

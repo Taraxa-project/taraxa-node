@@ -168,7 +168,6 @@ TEST_F(VoteTest, vote_broadcast) {
     WAIT_EXPECT_EQ(ctx, vote_mgr2->getVerifiedVotesSize(), 1)
     WAIT_EXPECT_EQ(ctx, vote_mgr3->getVerifiedVotesSize(), 1)
   });
-  EXPECT_EQ(vote_mgr1->getVerifiedVotesSize(), 0);
 }
 
 TEST_F(VoteTest, two_t_plus_one_votes) {
