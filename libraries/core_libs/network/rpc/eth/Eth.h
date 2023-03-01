@@ -18,21 +18,21 @@ Json::Value toJson(const LocalisedTransactionReceipt& ltr);
 Json::Value toJson(const SyncStatus& obj);
 
 template <typename T>
-Json::Value toJson(T const& t) {
+Json::Value toJson(const T& t) {
   return toJS(t);
 }
 
 template <typename T>
-Json::Value toJsonArray(std::vector<T> const& _es) {
+Json::Value toJsonArray(const std::vector<T>& _es) {
   Json::Value res(Json::arrayValue);
-  for (auto const& e : _es) {
+  for (const auto& e : _es) {
     res.append(toJson(e));
   }
   return res;
 }
 
 template <typename T>
-Json::Value toJson(std::optional<T> const& t) {
+Json::Value toJson(const std::optional<T>& t) {
   return t ? toJson(*t) : Json::Value();
 }
 
