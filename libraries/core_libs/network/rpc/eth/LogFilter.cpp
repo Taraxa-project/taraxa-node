@@ -154,10 +154,9 @@ std::vector<LocalisedLogEntry> LogFilter::match_all(FinalChain const& final_chai
   auto action = [&, this](EthBlockNumber blk_n) {
     ExtendedTransactionLocation trx_loc{{{blk_n}, *final_chain.block_hash(blk_n)}};
     auto hashes = final_chain.transaction_hashes(trx_loc.blk_n);
-    for (size_t i = 0; i < hashes->count(); ++i) {
-      trx_loc.trx_hash = hashes->get(i);
-      match_one(trx_loc, *final_chain.transaction_receipt(trx_loc.trx_hash),
-                [&](auto const& lle) { ret.push_back(lle); });
+    for (const auto& hash : *hashes) {
+      trx_loc.trx_hash = hash;
+      match_one(trx_loc, *final_chain.transaction_receipt(hash), [&](auto const& lle) { ret.push_back(lle); });
       ++trx_loc.index;
     }
   };

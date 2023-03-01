@@ -1657,7 +1657,7 @@ TEST_F(FullNodeTest, graphql_test) {
   block = service::ScalarArgument::require("block", data);
   auto transactionAt = service::ScalarArgument::require("transactionAt", block);
   const auto hash2 = service::StringArgument::require("hash", transactionAt);
-  EXPECT_EQ(nodes[0]->getFinalChain()->transaction_hashes(2)->get(0).toString(), hash2);
+  EXPECT_EQ(nodes[0]->getFinalChain()->transaction_hashes(2)->at(0).toString(), hash2);
 }
 
 }  // namespace taraxa::core_tests

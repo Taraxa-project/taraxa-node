@@ -90,17 +90,6 @@ class FinalChain {
    * @return BlockHash h256
    */
   virtual std::optional<h256> block_hash(std::optional<EthBlockNumber> n = {}) const = 0;
-  struct TransactionHashes {
-    TransactionHashes() = default;
-    virtual ~TransactionHashes() = default;
-    TransactionHashes(const TransactionHashes&) = default;
-    TransactionHashes(TransactionHashes&&) = default;
-    TransactionHashes& operator=(const TransactionHashes&) = default;
-    TransactionHashes& operator=(TransactionHashes&&) = default;
-
-    virtual size_t count() const = 0;
-    virtual h256 get(size_t i) const = 0;
-  };
 
   /**
    * @brief Needed if we are changing params with hardfork and it affects Go part of code. For example DPOS contract
