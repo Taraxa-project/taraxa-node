@@ -190,7 +190,7 @@ void FullNode::start() {
             _eth_json_rpc->note_block_executed(*res->final_chain_blk, res->trxs, res->trx_receipts);
           }
           if (auto _ws = ws.lock()) {
-            _ws->newEthBlock(*res->final_chain_blk);
+            _ws->newEthBlock(*res->final_chain_blk, hashes_vector_from_transactions(res->trxs));
             if (auto _db = db.lock()) {
               auto pbft_blk = _db->getPbftBlock(res->hash);
               if (const auto &hash = pbft_blk->getPivotDagBlockHash(); hash != kNullBlockHash) {

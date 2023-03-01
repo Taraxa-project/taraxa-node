@@ -89,12 +89,14 @@ void WsSession::on_write_no_read(beast::error_code ec, std::size_t bytes_transfe
   }
 }
 
-void WsSession::newEthBlock(::taraxa::final_chain::BlockHeader const &payload) {
+void WsSession::newEthBlock(const ::taraxa::final_chain::BlockHeader &payload,
+                            const TransactionHashesVector &trx_hashes) {
   if (new_heads_subscription_ != 0) {
     Json::Value res, params;
     res["jsonrpc"] = "2.0";
     res["method"] = "eth_subscription";
     params["result"] = rpc::eth::toJson(payload);
+    params["result"]["transactions"] = rpc::eth::toJsonArray(trx_hashes);
     params["subscription"] = dev::toJS(new_heads_subscription_);
     res["params"] = params;
     auto response = util::to_string(res);
@@ -318,10 +320,11 @@ void WsServer::newPbftBlockExecuted(PbftBlock const &pbft_blk,
   }
 }
 
-void WsServer::newEthBlock(::taraxa::final_chain::BlockHeader const &payload) {
+void WsServer::newEthBlock(const ::taraxa::final_chain::BlockHeader &payload,
+                           const TransactionHashesVector &trx_hashes) {
   boost::shared_lock<boost::shared_mutex> lock(sessions_mtx_);
   for (auto const &session : sessions) {
-    if (!session->is_closed()) session->newEthBlock(payload);
+    if (!session->is_closed()) session->newEthBlock(payload, trx_hashes);
   }
 }
 

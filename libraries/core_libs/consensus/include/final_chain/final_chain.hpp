@@ -99,6 +99,7 @@ class FinalChain {
 
     virtual size_t count() const = 0;
     virtual h256 get(size_t i) const = 0;
+    virtual TransactionHashesVector toVector() const = 0;
   };
 
   /**
