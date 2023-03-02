@@ -46,8 +46,12 @@ VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config,
   loadVotesFromDb(db_->getAllTwoTPlusOneVotes());
   loadVotesFromDb(db_->getOwnVerifiedVotes());
 
-  if (const auto reward_votes = db_->getRewardVotes(); !reward_votes.empty()) {
-    loadVotesFromDb(reward_votes);
+  if (pbft_chain_->getPbftChainSize() > 0) {
+    auto last_pbft_block = pbft_chain_->getPbftBlockInChain(pbft_chain_->getLastPbftBlockHash());
+    auto reward_votes =
+        getTwoTPlusOneVotedBlockVotes(last_pbft_block.getPeriod(), TwoTPlusOneVotedBlockType::CertVotedBlock);
+
+    assert(!reward_votes.empty());
     resetRewardVotesInfo(reward_votes[0]->getPeriod(), reward_votes[0]->getRound(), reward_votes[0]->getBlockHash());
   }
 }
@@ -161,14 +165,10 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
       return false;
     }
 
-    // Old vote, ignore unless it is a reward vote
-    bool is_valid_potential_reward_vote = false;
-    if (vote->getPeriod() < current_pbft_period_) {
-      if (is_valid_potential_reward_vote = isValidRewardVote(vote); !is_valid_potential_reward_vote) {
-        LOG(log_tr_) << "Old vote " << vote->getHash().abridged() << " vote period" << vote->getPeriod()
-                     << " current period " << current_pbft_period_;
-        return false;
-      }
+    if (vote->getPeriod() < current_pbft_period_ && !isValidRewardVote(vote)) {
+      LOG(log_tr_) << "Old vote " << vote->getHash().abridged() << " vote period" << vote->getPeriod()
+                   << " current period " << current_pbft_period_;
+      return false;
     }
 
     auto found_period_it = verified_votes_.find(vote->getPeriod());
@@ -210,11 +210,6 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
 
     LOG(log_nf_) << "Added verified vote: " << hash;
     LOG(log_dg_) << "Added verified vote: " << *vote;
-
-    // Save in db only those reward votes that have the same round as round during which we pushed the block into chain
-    if (is_valid_potential_reward_vote && reward_votes_round_ == vote->getRound()) {
-      db_->saveRewardVote(vote);
-    }
 
     const auto total_weight = (found_voted_value_it->second.first += weight);
 
@@ -912,6 +907,49 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getTwoTPlusOneVotedBlockVotes(Pb
   }
 
   return votes;
+}
+
+std::vector<std::shared_ptr<Vote>> VoteManager::getTwoTPlusOneVotedBlockVotes(PbftPeriod period,
+                                                                              TwoTPlusOneVotedBlockType type) const {
+  std::shared_lock lock(verified_votes_access_);
+
+  const auto found_period_it = verified_votes_.find(period);
+  if (found_period_it == verified_votes_.end()) {
+    return {};
+  }
+
+  // Find the first round for which there twotplusone votes
+  for (const auto& round_it : found_period_it->second) {
+    const auto two_t_plus_one_voted_block_it = round_it.second.two_t_plus_one_voted_blocks_.find(type);
+    if (two_t_plus_one_voted_block_it == round_it.second.two_t_plus_one_voted_blocks_.end()) {
+      continue;
+    }
+    const auto [two_t_plus_one_voted_block_hash, two_t_plus_one_voted_block_step] =
+        two_t_plus_one_voted_block_it->second;
+
+    // Find step votes for specified step based on found 2t+1 voted block of type "type"
+    const auto found_step_votes_it = round_it.second.step_votes.find(two_t_plus_one_voted_block_step);
+    if (found_step_votes_it == round_it.second.step_votes.end()) {
+      assert(false);
+      return {};
+    }
+
+    // Find verified votes for specified block_hash based on found 2t+1 voted block of type "type"
+    const auto found_verified_votes_it = found_step_votes_it->second.votes.find(two_t_plus_one_voted_block_hash);
+    if (found_verified_votes_it == found_step_votes_it->second.votes.end()) {
+      assert(false);
+      return {};
+    }
+
+    std::vector<std::shared_ptr<Vote>> votes;
+    votes.reserve(found_verified_votes_it->second.second.size());
+    for (const auto& vote : found_verified_votes_it->second.second) {
+      votes.push_back(vote.second);
+    }
+
+    return votes;
+  }
+  return {};
 }
 
 std::vector<std::shared_ptr<Vote>> VoteManager::getAllTwoTPlusOneNextVotes(PbftPeriod period, PbftRound round) const {

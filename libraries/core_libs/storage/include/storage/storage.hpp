@@ -105,8 +105,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(pbft_head);
     COLUMN(latest_round_own_votes);             // own votes of any type for the latest round
     COLUMN(latest_round_two_t_plus_one_votes);  // 2t+1 votes bundles of any type for the latest round
-    COLUMN(latest_reward_votes);                // extra reward votes on top of 2t+1 cert votes bundle from
-                                                // latest_round_two_t_plus_one_votes
     COLUMN(pbft_block_period);
     COLUMN(dag_block_period);
     COLUMN_W_COMP(proposal_period_levels_map, getIntComparator<uint64_t>());
@@ -272,11 +270,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   // 2t+1 votes bundles for the latest round
   void replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType type, const std::vector<std::shared_ptr<Vote>>& votes);
   std::vector<std::shared_ptr<Vote>> getAllTwoTPlusOneVotes();
-
-  // Reward votes - cert votes for the latest finalized block
-  void replaceRewardVotes(const std::vector<std::shared_ptr<Vote>>& votes, Batch& write_batch);
-  void saveRewardVote(const std::shared_ptr<Vote>& vote);
-  std::vector<std::shared_ptr<Vote>> getRewardVotes();
 
   // period_pbft_block
   void addPbftBlockPeriodToBatch(PbftPeriod period, taraxa::blk_hash_t const& pbft_block_hash, Batch& write_batch);

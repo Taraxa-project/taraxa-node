@@ -284,32 +284,6 @@ TEST_F(FullNodeTest, db_test) {
     verified_votes_map[vote->getHash()] = vote;
   }
 
-  EXPECT_TRUE(db.getRewardVotes().empty());
-  batch = db.createWriteBatch();
-  db.replaceRewardVotes(verified_votes, batch);
-  db.commitWriteBatch(batch);
-
-  const auto db_reward_votes = db.getRewardVotes();
-  EXPECT_EQ(db_reward_votes.size(), verified_votes_map.size());
-  for (const auto &db_vote : db_reward_votes) {
-    EXPECT_EQ(db_vote->rlp(true, true), verified_votes_map[db_vote->getHash()]->rlp(true, true));
-  }
-
-  const auto new_reward_vote = genVote(PbftVoteTypes::cert_vote, 10, 10, 3);
-  verified_votes_map[new_reward_vote->getHash()] = new_reward_vote;
-  db.saveRewardVote(new_reward_vote);
-
-  const auto new_db_reward_votes = db.getRewardVotes();
-  EXPECT_EQ(new_db_reward_votes.size(), verified_votes_map.size());
-  for (const auto &db_vote : new_db_reward_votes) {
-    EXPECT_EQ(db_vote->rlp(true, true), verified_votes_map[db_vote->getHash()]->rlp(true, true));
-  }
-
-  batch = db.createWriteBatch();
-  db.replaceRewardVotes({}, batch);
-  db.commitWriteBatch(batch);
-  EXPECT_TRUE(db.getRewardVotes().empty());
-
   // period_pbft_block
   batch = db.createWriteBatch();
   db.addPbftBlockPeriodToBatch(3, blk_hash_t(1), batch);

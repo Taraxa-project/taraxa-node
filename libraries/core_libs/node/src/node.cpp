@@ -382,9 +382,16 @@ void FullNode::rebuildDb() {
     }
     auto data = old_db_->getPeriodDataRaw(period + 1);
     if (data.size() == 0) {
-      next_period_data = nullptr;
       // Latest finalized block cert votes are saved in db as reward votes for new blocks
-      cert_votes = old_db_->getRewardVotes();
+      auto db_votes = old_db_->getAllTwoTPlusOneVotes();
+      cert_votes.clear();
+      for (const auto &vote : db_votes) {
+        if (vote->getBlockHash() == period_data->pbft_blk->getBlockHash() &&
+            vote->getType() == PbftVoteTypes::cert_vote) {
+          cert_votes.emplace_back(std::move(vote));
+        }
+      }
+      next_period_data = nullptr;
     } else {
       next_period_data = std::make_shared<PeriodData>(std::move(data));
       cert_votes = next_period_data->previous_block_cert_votes;

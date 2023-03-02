@@ -203,6 +203,16 @@ class VoteManager {
                                                                    TwoTPlusOneVotedBlockType type) const;
 
   /**
+   * Get 2t+1 voted block votes for first round with specific period and type, e.g. soft/cert/next voted block
+   *
+   * @param period
+   * @param type
+   * @return vector of votes if 2t+1 voted block votes found, otherwise empty vector
+   */
+  std::vector<std::shared_ptr<Vote>> getTwoTPlusOneVotedBlockVotes(PbftPeriod period,
+                                                                   TwoTPlusOneVotedBlockType type) const;
+
+  /**
    * Get all 2t+1 voted block next votes(both for null block as well as specific block) for specific period and round
    *
    * @param period
@@ -267,8 +277,8 @@ class VoteManager {
 
   // Reward votes related info
   blk_hash_t reward_votes_block_hash_;
-  PbftRound reward_votes_period_;
-  PbftRound reward_votes_round_;
+  PbftRound reward_votes_period_ = 0;
+  PbftRound reward_votes_round_ = 0;
   mutable std::shared_mutex reward_votes_info_mutex_;
 
   // Cache for current 2T+1 - <Vote type, <period, two_t_plus_one for period>>

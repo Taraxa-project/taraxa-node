@@ -1589,7 +1589,6 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
 
   // Replace current reward votes
   vote_mgr_->resetRewardVotesInfo(cert_votes[0]->getPeriod(), cert_votes[0]->getRound(), cert_votes[0]->getBlockHash());
-  db_->replaceRewardVotes(cert_votes, batch);
 
   // pass pbft with dag blocks and transactions to adjust difficulty
   if (period_data.pbft_blk->getPivotDagBlockHash() != kNullBlockHash) {

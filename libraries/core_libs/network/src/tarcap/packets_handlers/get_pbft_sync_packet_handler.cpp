@@ -4,17 +4,20 @@
 #include "pbft/pbft_chain.hpp"
 #include "storage/storage.hpp"
 #include "vote/vote.hpp"
+#include "vote_manager/vote_manager.hpp"
 
 namespace taraxa::network::tarcap {
 
 GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                                                    std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                    std::shared_ptr<PbftSyncingState> pbft_syncing_state,
-                                                   std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DbStorage> db,
+                                                   std::shared_ptr<PbftChain> pbft_chain,
+                                                   std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DbStorage> db,
                                                    const addr_t &node_addr)
     : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, "GET_PBFT_SYNC_PH"),
       pbft_syncing_state_(std::move(pbft_syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
+      vote_mgr_(std::move(vote_mgr)),
       db_(std::move(db)) {}
 
 void GetPbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
@@ -74,13 +77,24 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, P
       assert(false);
     }
 
+    std::vector<std::shared_ptr<Vote>> votes;
+    if (pbft_chain_synced && last_block) {
+      votes = vote_mgr_->getTwoTPlusOneVotedBlockVotes(block_period, TwoTPlusOneVotedBlockType::CertVotedBlock);
+      if (votes.empty()) {
+        // Only valid reason why votes might be empty is if we moved to next period
+        if (vote_mgr_->getRewardVotesPbftBlockPeriod() > block_period) {
+          pbft_chain_synced = false;
+        } else {
+          assert(false);
+        }
+      }
+    }
+
     dev::RLPStream s;
     if (pbft_chain_synced && last_block) {
       s.appendList(3);
       s << last_block;
       s.appendRaw(data);
-      // Latest finalized block cert votes are saved in db as reward votes for new blocks
-      const auto votes = db_->getRewardVotes();
       s.appendList(votes.size());
       for (const auto &vote : votes) {
         s.appendRaw(vote->rlp(true));

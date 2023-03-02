@@ -615,7 +615,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
                         beneficiary, node1->getSecretKey(), {});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(
-      node1->getVoteManager()->generateVote(pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, 2, 2, 3));
+      node1->getVoteManager()->generateVoteWithWeight(pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, 2, 2, 3));
   std::cout << "Generate 1 vote for second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and store into DB
   // Add cert votes in DB
@@ -629,7 +629,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
   period_data2.transactions.push_back(g_signed_trx_samples[3]);
 
   db1->savePeriodData(period_data2, batch);
-  db1->replaceRewardVotes(votes_for_pbft_blk2, batch);
+  node1->getVoteManager()->addVerifiedVote(votes_for_pbft_blk2[0]);
 
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash(), pbft_block2.getPivotDagBlockHash());
@@ -708,7 +708,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
                         beneficiary, node1->getSecretKey(), {});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
   votes_for_pbft_blk1.emplace_back(
-      node1->getVoteManager()->generateVote(pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, 1, 1, 3));
+      node1->getVoteManager()->generateVoteWithWeight(pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, 1, 1, 3));
   std::cout << "Generate 1 vote for first PBFT block" << std::endl;
   // Add cert votes in DB
   // Add PBFT block in DB
@@ -754,6 +754,8 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), kNullBlockHash, period,
                         beneficiary, node1->getSecretKey(), {});
+  auto vote_for_pbft_blk2 =
+      node1->getVoteManager()->generateVoteWithWeight(pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, 2, 2, 3);
   std::cout << "Use fake votes for the second PBFT block" << std::endl;
   // TODO: how can these fake votes be somehow properly handled when we save it directly to db ???
   // node1 put block2 into pbft chain and use fake votes storing into DB (malicious player)
@@ -765,6 +767,7 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   period_data2.transactions.push_back(g_signed_trx_samples[2]);
   period_data2.transactions.push_back(g_signed_trx_samples[3]);
   db1->savePeriodData(period_data2, batch);
+  node1->getVoteManager()->addVerifiedVote(vote_for_pbft_blk2);
 
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash(), pbft_block2.getPivotDagBlockHash());

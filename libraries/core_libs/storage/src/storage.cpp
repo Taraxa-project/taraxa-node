@@ -858,36 +858,6 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getAllTwoTPlusOneVotes() {
   return votes;
 }
 
-void DbStorage::replaceRewardVotes(const std::vector<std::shared_ptr<Vote>>& votes, Batch& write_batch) {
-  // TODO: deletion could be optimized if we save votes in memory
-  // Remove existing reward votes
-  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::latest_reward_votes)));
-  for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    const auto vote = std::make_shared<Vote>(asBytes(it->value().ToString()));
-    remove(write_batch, Columns::latest_reward_votes, vote->getHash().asBytes());
-  }
-
-  // Add new reward votes
-  for (const auto& vote : votes) {
-    insert(write_batch, Columns::latest_reward_votes, vote->getHash().asBytes(), vote->rlp(true, true));
-  }
-}
-
-void DbStorage::saveRewardVote(const std::shared_ptr<Vote>& vote) {
-  insert(Columns::latest_reward_votes, vote->getHash().asBytes(), vote->rlp(true, true));
-}
-
-std::vector<std::shared_ptr<Vote>> DbStorage::getRewardVotes() {
-  std::vector<std::shared_ptr<Vote>> votes;
-
-  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::latest_reward_votes)));
-  for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    votes.emplace_back(std::make_shared<Vote>(asBytes(it->value().ToString())));
-  }
-
-  return votes;
-}
-
 void DbStorage::addPbftBlockPeriodToBatch(PbftPeriod period, taraxa::blk_hash_t const& pbft_block_hash,
                                           Batch& write_batch) {
   insert(write_batch, Columns::pbft_block_period, toSlice(pbft_block_hash.asBytes()), toSlice(period));
