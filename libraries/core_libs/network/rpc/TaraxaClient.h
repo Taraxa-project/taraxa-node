@@ -88,6 +88,24 @@ class TaraxaClient : public jsonrpc::Client {
     else
       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
+  Json::Value taraxa_getChainStats() throw(jsonrpc::JsonRpcException) {
+    Json::Value p;
+    p = Json::nullValue;
+    Json::Value result = this->CallMethod("taraxa_getChainStats", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+  }
+  std::string taraxa_pbftBlockHashByPeriod(const std::string& param1) throw(jsonrpc::JsonRpcException) {
+    Json::Value p;
+    p.append(param1);
+    Json::Value result = this->CallMethod("taraxa_pbftBlockHashByPeriod", p);
+    if (result.isString())
+      return result.asString();
+    else
+      throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+  }
 };
 
 }  // namespace net

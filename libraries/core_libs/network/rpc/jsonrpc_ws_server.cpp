@@ -4,8 +4,8 @@
 #include <json/reader.h>
 #include <json/value.h>
 #include <json/writer.h>
-#include <libdevcore/CommonJS.h>
 #include <jsonrpccpp/common/exception.h>
+#include <libdevcore/CommonJS.h>
 
 #include <string_view>
 
@@ -49,7 +49,6 @@ std::string JsonRpcWsSession::processRequest(const std::string_view &request) {
     }
     json_response["result"] = dev::toJS(subscription_id_);
     response = util::to_string(json_response);
-    ws_.text(ws_.got_text());
     LOG(log_tr_) << "WS WRITE " << response.c_str();
   } else {
     auto ws_server = ws_server_.lock();
@@ -59,7 +58,7 @@ std::string JsonRpcWsSession::processRequest(const std::string_view &request) {
         try {
           LOG(log_tr_) << "WS Read: " << (char *)buffer_.data().data();
           handler->HandleRequest((char *)buffer_.data().data(), response);
-        } catch (std::exception const& e) {
+        } catch (std::exception const &e) {
           LOG(log_er_) << "Exception " << e.what();
           auto &res_json_error = json_response["error"] = Json::Value(Json::objectValue);
           res_json_error["code"] = jsonrpc::Errors::ERROR_RPC_INTERNAL_ERROR;

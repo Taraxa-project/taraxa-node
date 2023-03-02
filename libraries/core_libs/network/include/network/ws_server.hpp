@@ -8,10 +8,10 @@
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
 #include <cstdlib>
-#include <deque>
 #include <functional>
 #include <iostream>
 #include <memory>
+#include <queue>
 #include <string>
 #include <thread>
 #include <vector>
@@ -34,13 +34,13 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
   // Take ownership of the socket
   explicit WsSession(tcp::socket&& socket, addr_t node_addr, std::shared_ptr<WsServer> ws_server)
       : ws_(std::move(socket)) {
-    LOG_OBJECTS_CREATE("RPC");
+    LOG_OBJECTS_CREATE("WS_SESSION");
     ws_server_ = ws_server;
   }
 
   // Start the asynchronous operation
   void run();
-  void close();
+  void close(bool normal = true);
 
   void on_accept(beast::error_code ec);
   void do_read();
@@ -49,18 +49,19 @@ class WsSession : public std::enable_shared_from_this<WsSession> {
 
   virtual std::string processRequest(const std::string_view& request) = 0;
 
-  void newEthBlock(::taraxa::final_chain::BlockHeader const& payload);
+  void newEthBlock(::taraxa::final_chain::BlockHeader const& payload, const TransactionHashesVector& trx_hashes);
   void newDagBlock(DagBlock const& blk);
   void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
   void newPbftBlockExecuted(Json::Value const& payload);
   void newPendingTransaction(trx_hash_t const& trx_hash);
-  bool is_closed() { return closed_; }
+  bool is_closed() const { return closed_; }
+  bool is_normal(const beast::error_code& ec) const;
   LOG_OBJECTS_DEFINE
 
  protected:
-  void writeImpl(const std::string& message);
-  void write(const std::string& message);
-  std::deque<std::string> queue_messages_;
+  void writeImpl(std::string&& message);
+  void write();
+  std::queue<std::string> queue_messages_;
   websocket::stream<beast::tcp_stream> ws_;
   beast::flat_buffer buffer_;
   std::string write_buffer_;
@@ -89,7 +90,7 @@ class WsServer : public std::enable_shared_from_this<WsServer>, public jsonrpc::
 
   // Start accepting incoming connections
   void run();
-  void newEthBlock(::taraxa::final_chain::BlockHeader const& payload);
+  void newEthBlock(::taraxa::final_chain::BlockHeader const& payload, const TransactionHashesVector& trx_hashes);
   void newDagBlock(DagBlock const& blk);
   void newDagBlockFinalized(blk_hash_t const& blk, uint64_t period);
   void newPbftBlockExecuted(PbftBlock const& sche_blk, std::vector<blk_hash_t> const& finalized_dag_blk_hashes);

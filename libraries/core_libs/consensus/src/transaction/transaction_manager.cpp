@@ -190,7 +190,9 @@ void TransactionManager::saveTransactionsFromDagBlock(SharedTransactions const &
     db_->addStatusFieldToBatch(StatusDbField::TrxCount, trx_count_, write_batch);
     db_->commitWriteBatch(write_batch);
   }
-  for (auto &trx_hash : accepted_transactions) transaction_accepted_.emit(trx_hash);
+  for (const auto &trx_hash : accepted_transactions) {
+    transaction_accepted_.emit(trx_hash);
+  }
 }
 
 void TransactionManager::recoverNonfinalizedTransactions() {

@@ -489,6 +489,15 @@ class FinalChainImpl final : public FinalChain {
     }
 
     size_t count() const override { return count_; }
+
+    TransactionHashesVector toVector() const override {
+      TransactionHashesVector res;
+      res.reserve(count());
+      for (uint32_t i = 0; i < count(); ++i) {
+        res.push_back(get(i));
+      }
+      return res;
+    }
   };
 };
 

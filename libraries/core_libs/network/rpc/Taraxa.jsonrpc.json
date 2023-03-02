@@ -54,6 +54,18 @@
     "params": [],
     "order": [],
     "returns": {}
+  },
+  {
+    "name": "taraxa_getChainStats",
+    "params": [],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "taraxa_pbftBlockHashByPeriod",
+    "params": [""],
+    "order": [],
+    "returns": ""
   }
 ]
 

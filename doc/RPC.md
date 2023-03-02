@@ -473,6 +473,39 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getConfig","params":[],"i
 }
 ```
 
+### taraxa_getChainStats
+
+Returns current chain stats with count of transactions, PBFT blocks and DAG blocks
+
+#### Parameters
+
+none
+
+#### Returns
+
+`OBJECT` - current chain stats object
+* `pbft_period`: `QUANTITY` - current PBFT period 
+* `dag_blocks_executed`: `QUANTITY` - count of executed(finalized) DAG blocks
+* `transactions_executed`: `QUANTITY` - count of executed transactions
+
+#### Example
+
+```json
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getChainStats","params":[],"id":1}'
+
+// Result
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+    "pbft_period": 50,
+    "dag_blocks_executed": 100,
+    "transactions_executed": 200
+  }
+}
+```
+
 ## Test API
 
 ### get_sortition_change
