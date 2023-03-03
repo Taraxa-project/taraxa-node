@@ -1,6 +1,8 @@
 var structtaraxa_1_1_transaction =
 [
+    [ "InvalidFormat", "structtaraxa_1_1_transaction_1_1_invalid_format.html", "structtaraxa_1_1_transaction_1_1_invalid_format" ],
     [ "InvalidSignature", "structtaraxa_1_1_transaction_1_1_invalid_signature.html", "structtaraxa_1_1_transaction_1_1_invalid_signature" ],
+    [ "InvalidTransaction", "structtaraxa_1_1_transaction_1_1_invalid_transaction.html", "structtaraxa_1_1_transaction_1_1_invalid_transaction" ],
     [ "Transaction", "structtaraxa_1_1_transaction.html#a018e38f2ed76fb1df1077247de11f80a", null ],
     [ "Transaction", "structtaraxa_1_1_transaction.html#a5dece3e8614eccb82bd10d5739200065", null ],
     [ "Transaction", "structtaraxa_1_1_transaction.html#ae2d6301c8b44e9ff093bc7bdeb625422", null ],

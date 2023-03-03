@@ -296,7 +296,10 @@ var hierarchy =
         [ "taraxa::InvalidRlpItemsCountException", "classtaraxa_1_1_invalid_rlp_items_count_exception.html", null ],
         [ "taraxa::MaliciousPeerException", "classtaraxa_1_1_malicious_peer_exception.html", null ]
       ] ],
-      [ "taraxa::Transaction::InvalidSignature", "structtaraxa_1_1_transaction_1_1_invalid_signature.html", null ],
+      [ "taraxa::Transaction::InvalidTransaction", "structtaraxa_1_1_transaction_1_1_invalid_transaction.html", [
+        [ "taraxa::Transaction::InvalidFormat", "structtaraxa_1_1_transaction_1_1_invalid_format.html", null ],
+        [ "taraxa::Transaction::InvalidSignature", "structtaraxa_1_1_transaction_1_1_invalid_signature.html", null ]
+      ] ],
       [ "taraxa::state_api::TaraxaEVMError", "group___final_chain.html#structtaraxa_1_1state__api_1_1_taraxa_e_v_m_error", [
         [ "taraxa::state_api::ErrFutureBlock", "group___final_chain.html#structtaraxa_1_1state__api_1_1_err_future_block", null ]
       ] ],
