@@ -7,7 +7,6 @@
 
 #include "common/types.hpp"
 #include "dag/dag_block.hpp"
-#include "transaction/transaction.hpp"
 #include "vote/vote.hpp"
 
 namespace taraxa {

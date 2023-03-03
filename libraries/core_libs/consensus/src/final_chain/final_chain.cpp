@@ -311,7 +311,7 @@ class FinalChainImpl final : public FinalChain {
       ++tl.index;
     }
     db_->insert(batch, DB::Columns::final_chain_transaction_hashes_by_blk_number, blk_header.number,
-                TransactionHashesImpl::serialize_from_transactions(transactions));
+                dev::rlp(hashes_from_transactions(transactions)));
     db_->insert(batch, DB::Columns::final_chain_transaction_count_by_blk_number, blk_header.number,
                 transactions.size());
     db_->insert(batch, DB::Columns::final_chain_blk_hash_by_number, blk_header.number, blk_header.hash);
@@ -444,17 +444,18 @@ class FinalChainImpl final : public FinalChain {
   }
 
  private:
-  std::shared_ptr<const TransactionHashes> get_transaction_hashes(std::optional<EthBlockNumber> n = {}) const {
-    return make_shared<TransactionHashesImpl>(
-        db_->lookup(last_if_absent(n), DB::Columns::final_chain_transaction_hashes_by_blk_number));
+  std::shared_ptr<TransactionHashes> get_transaction_hashes(std::optional<EthBlockNumber> n = {}) const {
+    auto res = db_->lookup(last_if_absent(n), DB::Columns::final_chain_transaction_hashes_by_blk_number);
+
+    return std::make_shared<TransactionHashes>(util::rlp_dec<TransactionHashes>(dev::RLP(res)));
   }
 
   const SharedTransactions get_transactions(std::optional<EthBlockNumber> n = {}) const {
     SharedTransactions ret;
     auto hashes = transaction_hashes(n);
-    ret.reserve(hashes->count());
+    ret.reserve(hashes->size());
     for (size_t i = 0; i < ret.capacity(); ++i) {
-      auto trx = db_->getTransaction(hashes->get(i));
+      auto trx = db_->getTransaction(hashes->at(i));
       assert(trx);
       ret.emplace_back(trx);
     }
@@ -520,31 +521,6 @@ class FinalChainImpl final : public FinalChain {
     }
     return ret;
   }
-
-  struct TransactionHashesImpl : TransactionHashes {
-    string serialized_;
-    size_t count_;
-
-    explicit TransactionHashesImpl(string serialized)
-        : serialized_(std::move(serialized)), count_(serialized_.size() / h256::size) {}
-
-    static bytes serialize_from_transactions(SharedTransactions const& transactions) {
-      bytes serialized;
-      serialized.reserve(transactions.size() * h256::size);
-      for (auto const& trx : transactions) {
-        for (auto b : trx->getHash()) {
-          serialized.push_back(b);
-        }
-      }
-      return serialized;
-    }
-
-    h256 get(size_t i) const override {
-      return h256((uint8_t*)(serialized_.data() + i * h256::size), h256::ConstructFromPointer);
-    }
-
-    size_t count() const override { return count_; }
-  };
 };
 
 std::shared_ptr<FinalChain> NewFinalChain(const std::shared_ptr<DB>& db, const taraxa::FullNodeConfig& config,
