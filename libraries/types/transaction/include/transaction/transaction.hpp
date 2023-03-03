@@ -10,8 +10,16 @@
 namespace taraxa {
 
 struct Transaction {
-  struct InvalidSignature : std::runtime_error {
-    explicit InvalidSignature(std::string const &msg) : runtime_error("invalid signature:\n" + msg) {}
+  struct InvalidTransaction : std::runtime_error {
+    explicit InvalidTransaction(const std::string &msg) : runtime_error("invalid transaction - " + msg) {}
+  };
+
+  struct InvalidSignature : InvalidTransaction {
+    explicit InvalidSignature(const std::string &msg) : InvalidTransaction("signature:\n" + msg) {}
+  };
+
+  struct InvalidFormat : InvalidTransaction {
+    explicit InvalidFormat(const std::string &msg) : InvalidTransaction("rlp format:\n" + msg) {}
   };
 
  private:

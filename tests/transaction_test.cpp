@@ -76,7 +76,7 @@ TEST_F(TransactionTest, sig) {
   ASSERT_THROW(Transaction(dev::jsToBytes("0xf84980808080808024a01404adc97c8b58fef303b2862d0e72378"
                                           "4fb635e7237e0e8d3ea33bbea19c36ca0229e80d57ba91a0f347686"
                                           "30fd21ad86e4c403b307de9ac4550d0ccc81c90fe3")),
-               Transaction::InvalidSignature);
+               Transaction::InvalidFormat);
   std::vector<std::pair<uint64_t, string>> valid_cases{
       {0, "0xf647d1d47ce927ce2fb9f57e4e2a3c32b037c5e544b44611077f5cc6980b0bc2"},
       {1, "0x49c1cb845df5d3ed238ca37ad25ca96f417e4f22d7911224cf3c2a725985e7ff"},
@@ -112,7 +112,7 @@ TEST_F(TransactionTest, sig) {
         }
       }
       ASSERT_NE(Transaction(with_modified_payload.out()).getSender(), sender);
-      ASSERT_THROW(Transaction(with_invalid_signature.out()).getSender(), Transaction::InvalidSignature);
+      ASSERT_THROW(Transaction(with_invalid_signature.out()).getSender(), Transaction::InvalidTransaction);
     }
   }
 }
