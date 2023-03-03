@@ -19,6 +19,15 @@ uint64_t toChainID(u256 const &val) {
   return static_cast<uint64_t>(val);
 }
 
+TransactionHashes hashes_from_transactions(const SharedTransactions &transactions) {
+  TransactionHashes trx_hashes;
+  trx_hashes.reserve(transactions.size());
+  for (auto const &trx : transactions) {
+    trx_hashes.push_back(trx->getHash());
+  }
+  return trx_hashes;
+}
+
 Transaction::Transaction(const trx_nonce_t &nonce, const val_t &value, const val_t &gas_price, gas_t gas, bytes data,
                          const secret_t &sk, const optional<addr_t> &receiver, uint64_t chain_id)
     : nonce_(nonce),

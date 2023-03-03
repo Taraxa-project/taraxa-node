@@ -78,7 +78,10 @@ struct Transaction {
 };
 
 using SharedTransaction = std::shared_ptr<Transaction>;
-using Transactions = ::std::vector<Transaction>;
-using SharedTransactions = ::std::vector<SharedTransaction>;
+using Transactions = std::vector<Transaction>;
+using SharedTransactions = std::vector<SharedTransaction>;
+using TransactionHashes = std::vector<trx_hash_t>;
+
+TransactionHashes hashes_from_transactions(const SharedTransactions &transactions);
 
 }  // namespace taraxa
