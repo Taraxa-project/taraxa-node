@@ -14,7 +14,7 @@ using namespace dev;
 
 uint64_t toChainID(u256 const &val) {
   if (val == 0 || std::numeric_limits<uint64_t>::max() < val) {
-    BOOST_THROW_EXCEPTION(Transaction::InvalidSignature("eip-155 chain id must be in the open interval: (0, 2^64)"));
+    BOOST_THROW_EXCEPTION(Transaction::InvalidTransaction("eip-155 chain id must be in the open interval: (0, 2^64)"));
   }
   return static_cast<uint64_t>(val);
 }
@@ -71,7 +71,7 @@ void Transaction::fromRLP(const dev::RLP &_rlp, bool verify_strict, const h256 &
     if (36 < v) {
       chain_id_ = toChainID((v - 35) / 2);
     } else if (v != 27 && v != 28) {
-      BOOST_THROW_EXCEPTION(InvalidSignature(
+      BOOST_THROW_EXCEPTION(InvalidFormat(
           "only values 27 and 28 are allowed for non-replay protected transactions for the 'v' signature field"));
     }
     vrs_.v = chain_id_ ? byte{v - (u256{chain_id_} * 2 + 35)} : byte{v - 27};

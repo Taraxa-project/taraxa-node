@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "network/tarcap/shared_states/test_state.hpp"
+#include "transaction/transaction.hpp"
 #include "transaction/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {
@@ -61,7 +62,7 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
       try {
         transaction = std::make_shared<Transaction>(packet_data.rlp_[1][tx_idx].data().toBytes());
         received_transactions.emplace_back(trx_hash);
-      } catch (const Transaction::InvalidSignature &e) {
+      } catch (const Transaction::InvalidTransaction &e) {
         throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
       }
 
