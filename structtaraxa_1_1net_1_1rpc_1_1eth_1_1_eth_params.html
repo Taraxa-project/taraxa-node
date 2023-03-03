@@ -110,10 +110,10 @@ Public Attributes</h2></td></tr>
 <tr class="separator:acb03b669b1e474b1068baf3df6d36e1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa435c9b4e8826afd763e7d6f2e0368a3"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">FinalChain</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#aa435c9b4e8826afd763e7d6f2e0368a3">final_chain</a></td></tr>
 <tr class="separator:aa435c9b4e8826afd763e7d6f2e0368a3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a287d618eaca0c9a96d6d75c9af34b9cc"><td class="memItemLeft" align="right" valign="top">std::function&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;<a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> const  &amp;)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a287d618eaca0c9a96d6d75c9af34b9cc">get_trx</a></td></tr>
-<tr class="separator:a287d618eaca0c9a96d6d75c9af34b9cc"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a85a5d2743fba4d57429002bbba9b1f75"><td class="memItemLeft" align="right" valign="top">std::function&lt; void(std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; const  &amp;trx)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a85a5d2743fba4d57429002bbba9b1f75">send_trx</a></td></tr>
-<tr class="separator:a85a5d2743fba4d57429002bbba9b1f75"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae18521e4674bdf9e93e62d1270ae19d0"><td class="memItemLeft" align="right" valign="top">std::function&lt; std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt;const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &amp;)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#ae18521e4674bdf9e93e62d1270ae19d0">get_trx</a></td></tr>
+<tr class="separator:ae18521e4674bdf9e93e62d1270ae19d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac1e12f5cd49fcd8c979096a61df49316"><td class="memItemLeft" align="right" valign="top">std::function&lt; void(const std::shared_ptr&lt; <a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a> &gt; &amp;trx)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#ac1e12f5cd49fcd8c979096a61df49316">send_trx</a></td></tr>
+<tr class="separator:ac1e12f5cd49fcd8c979096a61df49316"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a62aeb6d36e6c6df101ce8065ccf2e8ff"><td class="memItemLeft" align="right" valign="top">std::function&lt; <a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a>()&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a62aeb6d36e6c6df101ce8065ccf2e8ff">gas_pricer</a> = [] { return <a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a>(0); }</td></tr>
 <tr class="separator:a62aeb6d36e6c6df101ce8065ccf2e8ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5775f2bf4ec958168564a14c020ca343"><td class="memItemLeft" align="right" valign="top">std::function&lt; std::optional&lt; <a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_sync_status">SyncStatus</a> &gt;)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1net_1_1rpc_1_1eth_1_1_eth_params.html#a5775f2bf4ec958168564a14c020ca343">syncing_probe</a> = [] { return std::nullopt; }</td></tr>
@@ -192,28 +192,28 @@ Public Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a287d618eaca0c9a96d6d75c9af34b9cc"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a287d618eaca0c9a96d6d75c9af34b9cc">&#9670;&nbsp;</a></span>get_trx</h2>
+<a id="ae18521e4674bdf9e93e62d1270ae19d0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae18521e4674bdf9e93e62d1270ae19d0">&#9670;&nbsp;</a></span>get_trx</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::function&lt;std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a>&gt;<a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> const&amp;)&gt; taraxa::net::rpc::eth::EthParams::get_trx</td>
+          <td class="memname">std::function&lt;std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a>&gt;const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a>&amp;)&gt; taraxa::net::rpc::eth::EthParams::get_trx</td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="a85a5d2743fba4d57429002bbba9b1f75"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a85a5d2743fba4d57429002bbba9b1f75">&#9670;&nbsp;</a></span>send_trx</h2>
+<a id="ac1e12f5cd49fcd8c979096a61df49316"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac1e12f5cd49fcd8c979096a61df49316">&#9670;&nbsp;</a></span>send_trx</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">std::function&lt;void(std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a>&gt; const&amp; trx)&gt; taraxa::net::rpc::eth::EthParams::send_trx</td>
+          <td class="memname">std::function&lt;void(const std::shared_ptr&lt;<a class="el" href="structtaraxa_1_1_transaction.html">Transaction</a>&gt;&amp; trx)&gt; taraxa::net::rpc::eth::EthParams::send_trx</td>
         </tr>
       </table>
 </div><div class="memdoc">

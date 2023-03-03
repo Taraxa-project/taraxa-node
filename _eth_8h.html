@@ -89,7 +89,8 @@ $(document).ready(function(){initNavTree('_eth_8h.html',''); initResizable(); })
 <div class="title">Eth.h File Reference</div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><code>#include &quot;<a class="el" href="final__chain_8hpp_source.html">final_chain/final_chain.hpp</a>&quot;</code><br />
+<div class="textblock"><code>#include &quot;<a class="el" href="network_2rpc_2eth_2data_8hpp_source.html">data.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="final__chain_8hpp_source.html">final_chain/final_chain.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="_eth_face_8h_source.html">network/rpc/EthFace.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="watches_8hpp_source.html">watches.hpp</a>&quot;</code><br />
 </div><div class="textblock"><div class="dynheader">
@@ -126,10 +127,33 @@ Namespaces</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:af72b9fd436555b4efe06d96bb66475e9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#af72b9fd436555b4efe06d96bb66475e9">taraxa::net::rpc::eth::add</a> (Json::Value &amp;obj, const std::optional&lt; TransactionLocationWithBlockHash &gt; &amp;info)</td></tr>
+<tr class="separator:af72b9fd436555b4efe06d96bb66475e9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8e7280252a06a8a2b7e275ce51d5e4b9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a8e7280252a06a8a2b7e275ce51d5e4b9">taraxa::net::rpc::eth::add</a> (Json::Value &amp;obj, const ExtendedTransactionLocation &amp;info)</td></tr>
+<tr class="separator:a8e7280252a06a8a2b7e275ce51d5e4b9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:addca121892d2f8aeace5cc2b86b82f1a"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#addca121892d2f8aeace5cc2b86b82f1a">taraxa::net::rpc::eth::toJson</a> (const <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header">BlockHeader</a> &amp;obj)</td></tr>
+<tr class="separator:addca121892d2f8aeace5cc2b86b82f1a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a970d1cddc244b777fc73464e33796802"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a970d1cddc244b777fc73464e33796802">taraxa::net::rpc::eth::toJson</a> (const Transaction &amp;trx, const std::optional&lt; TransactionLocationWithBlockHash &gt; &amp;loc)</td></tr>
+<tr class="separator:a970d1cddc244b777fc73464e33796802"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2afeacbec02bbfc4191244df912baed6"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a2afeacbec02bbfc4191244df912baed6">taraxa::net::rpc::eth::toJson</a> (const LocalisedTransaction &amp;lt)</td></tr>
+<tr class="separator:a2afeacbec02bbfc4191244df912baed6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a340bc91663d886575b83dabfdeda98fc"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a340bc91663d886575b83dabfdeda98fc">taraxa::net::rpc::eth::toJson</a> (const LocalisedLogEntry &amp;lle)</td></tr>
+<tr class="separator:a340bc91663d886575b83dabfdeda98fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac252a5143d13eda2e7a858d77d9f9d67"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#ac252a5143d13eda2e7a858d77d9f9d67">taraxa::net::rpc::eth::toJson</a> (const LocalisedTransactionReceipt &amp;ltr)</td></tr>
+<tr class="separator:ac252a5143d13eda2e7a858d77d9f9d67"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a87d3f1c3c85378baec6adc017942460e"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a87d3f1c3c85378baec6adc017942460e">taraxa::net::rpc::eth::toJson</a> (const SyncStatus &amp;obj)</td></tr>
+<tr class="separator:a87d3f1c3c85378baec6adc017942460e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2e8f8c258b130976cd2ac009f13b6b91"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a2e8f8c258b130976cd2ac009f13b6b91"><td class="memTemplItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a2e8f8c258b130976cd2ac009f13b6b91">taraxa::net::rpc::eth::toJson</a> (const T &amp;t)</td></tr>
+<tr class="separator:a2e8f8c258b130976cd2ac009f13b6b91"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3968a07117dca8732444c8ae609599cd"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a3968a07117dca8732444c8ae609599cd"><td class="memTemplItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a3968a07117dca8732444c8ae609599cd">taraxa::net::rpc::eth::toJsonArray</a> (const std::vector&lt; T &gt; &amp;_es)</td></tr>
+<tr class="separator:a3968a07117dca8732444c8ae609599cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a21b988af46ba8b9f7c613aee79d61ab5"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a21b988af46ba8b9f7c613aee79d61ab5"><td class="memTemplItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a21b988af46ba8b9f7c613aee79d61ab5">taraxa::net::rpc::eth::toJson</a> (const std::optional&lt; T &gt; &amp;t)</td></tr>
+<tr class="separator:a21b988af46ba8b9f7c613aee79d61ab5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a32e76b365b5e214b3737e5ce8377e822"><td class="memItemLeft" align="right" valign="top">shared_ptr&lt; Eth &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a32e76b365b5e214b3737e5ce8377e822">taraxa::net::rpc::eth::NewEth</a> (EthParams &amp;&amp;prerequisites)</td></tr>
 <tr class="separator:a32e76b365b5e214b3737e5ce8377e822"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab52cb182797f5de06cb90ed97d51bbdd"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1net_1_1rpc_1_1eth.html#ab52cb182797f5de06cb90ed97d51bbdd">taraxa::net::rpc::eth::toJson</a> (final_chain::BlockHeader const &amp;obj)</td></tr>
-<tr class="separator:ab52cb182797f5de06cb90ed97d51bbdd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 </div><!-- contents -->
 </div><!-- doc-content -->

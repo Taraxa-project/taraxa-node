@@ -233,42 +233,47 @@ var NAVTREE =
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md298", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md299", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md300", null ]
+        ] ],
+        [ "taraxa_getChainStats", "md_doc__r_p_c.html#autotoc_md301", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md302", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md303", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md304", null ]
         ] ]
       ] ],
-      [ "Test API", "md_doc__r_p_c.html#autotoc_md301", [
-        [ "get_sortition_change", "md_doc__r_p_c.html#autotoc_md302", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md303", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md304", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md305", null ]
-        ] ],
-        [ "send_coin_transaction", "md_doc__r_p_c.html#autotoc_md306", [
+      [ "Test API", "md_doc__r_p_c.html#autotoc_md305", [
+        [ "get_sortition_change", "md_doc__r_p_c.html#autotoc_md306", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md307", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md308", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md309", null ]
         ] ],
-        [ "send_coin_transactions", "md_doc__r_p_c.html#autotoc_md310", [
+        [ "send_coin_transaction", "md_doc__r_p_c.html#autotoc_md310", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md311", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md312", null ]
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md312", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md313", null ]
         ] ],
-        [ "get_account_address", "md_doc__r_p_c.html#autotoc_md313", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md314", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md315", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md316", null ]
+        [ "send_coin_transactions", "md_doc__r_p_c.html#autotoc_md314", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md315", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md316", null ]
         ] ],
-        [ "get_peer_count", "md_doc__r_p_c.html#autotoc_md317", [
+        [ "get_account_address", "md_doc__r_p_c.html#autotoc_md317", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md318", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md319", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md320", null ]
         ] ],
-        [ "get_node_status", "md_doc__r_p_c.html#autotoc_md321", [
+        [ "get_peer_count", "md_doc__r_p_c.html#autotoc_md321", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md322", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md323", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md324", null ]
         ] ],
-        [ "get_all_nodes", "md_doc__r_p_c.html#autotoc_md325", [
+        [ "get_node_status", "md_doc__r_p_c.html#autotoc_md325", [
           [ "Parameters", "md_doc__r_p_c.html#autotoc_md326", null ],
           [ "Returns", "md_doc__r_p_c.html#autotoc_md327", null ],
           [ "Example", "md_doc__r_p_c.html#autotoc_md328", null ]
+        ] ],
+        [ "get_all_nodes", "md_doc__r_p_c.html#autotoc_md329", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md330", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md331", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md332", null ]
         ] ]
       ] ]
     ] ],
@@ -314,30 +319,30 @@ var NAVTREE =
 var NAVTREEINDEX =
 [
 "_a_e_s_8cpp.html",
-"_log_8h.html#ac8e2941272645dc3e1e5b896d45d9960",
-"class_server_interface.html#ac0aa223e4ab3f27a4ce502179f102255",
-"classdev_1_1_secure_fixed_hash.html#a244903d47daf0cc6d48753ad1e868f59",
-"classdev_1_1p2p_1_1_node_table_event_handler.html#a7f176ba27d4a47af6126bd551516095b",
-"classgraphql_1_1taraxa_1_1_log.html#a62c2c2baa256f97cf82eca6bb7d220be",
-"classtaraxa_1_1_db_storage.html#adb846ceaa52ed2cd9f151cc2abd3fe8e",
-"classtaraxa_1_1cli_1_1_config.html#a1b0c2862470aee93e503a5d2a67e410e",
-"classtaraxa_1_1net_1_1_eth_face.html#a7b2b9bdab559d3e28b3c2d63aed99097",
-"classtaraxa_1_1net_1_1_ws_session.html#a4e58d27758cf71060ffa029846382391",
-"classtaraxa_1_1network_1_1tarcap_1_1_packet_data.html#ac42e275eff9828744e976684c04c50c0",
-"classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#a70977ed1a727fd8d850d2df3f1b8e749",
-"core__libs_2network_2include_2network_2network_8hpp.html",
-"functions_vars_g.html",
-"group___d_a_g.html#afa3f18cf3f73a439e0e1f023f7948973",
-"group___p_b_f_t.html#a3f62783c3acffc0c3c51f48b703675b3",
-"group___vote.html#a258bc6006658bc58b212999aa802d9fe",
-"libdevcore_2_exceptions_8h.html#ab268b8e1f4e962f96b88c00f9b302791",
-"md_doc_building.html#autotoc_md47",
-"namespacemembers_b.html",
-"range__view_8hpp.html",
-"structdev_1_1p2p_1_1_host.html#a813c9bc08f843581281cbdafe524e6cc",
-"structdev_1_1p2p_1_1_session.html#a3e334c8bc4c4aef74c2c141349451d7a",
-"structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl.html#a8c3efd05796946600fa98ae9d43ba040",
-"util_8cpp.html#ae1cedc034638e7363eb01f7cc38649bc"
+"_log_8h.html#a7ddacfef5f8ebc130dad55bf1a579177",
+"class_modular_server_3_01_i_00_01_is_8_8_8_01_4.html#ac103c344d481c55a0ec4fa5f228029ff",
+"classdev_1_1_r_l_p_stream.html#ac8eb3fe628f61f13d7fc02d0633ad53a",
+"classdev_1_1p2p_1_1_node_table.html#ade27d74d11db98a6b0ef30d82a16e025",
+"classgraphql_1_1taraxa_1_1_dag_block.html#a62db2b51be5f3c8941927e095d7b9076",
+"classtaraxa_1_1_db_storage.html#ab2d590a0858867c0ee145834b81f15c8",
+"classtaraxa_1_1_value_by_block_cache.html#a5dbc0226ab8db527672eabd2502e67d7",
+"classtaraxa_1_1net_1_1_eth_face.html#a231b55b88d501ee0437ba4ee5b7bc6bf",
+"classtaraxa_1_1net_1_1_ws_server.html#a8e904b54c82e17f52b79548e48728e06",
+"classtaraxa_1_1network_1_1tarcap_1_1_packet_data.html#a72bf03216d29eb83ebd1a90cb137bec9",
+"classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#afedf2147a84dcb41398c55f9957668f1",
+"constants_8hpp.html#af37c840bbc7870c8fb9f5c878ac55582",
+"functions_type.html",
+"group___d_a_g.html#aecedfcd13d08fb7c9d36566fef46f787",
+"group___p_b_f_t.html#a353e47b13755fa85ed099a8212a887db",
+"group___vote.html#a08ba8186689a8e3621443397e2a4866b",
+"libdevcore_2_exceptions_8h.html#a4b4b10242be59dd68c1749205272e2ec",
+"md_doc_building.html#autotoc_md33",
+"namespacedev_1_1p2p.html#a43c31a929138dbdff7d10a2781433879",
+"period__data_8hpp.html#ga4eb5ae28c1fec5d7a7695d4545961ea0",
+"structdev_1_1p2p_1_1_host.html#a635530337ad0e62f0d65da4379f609a4",
+"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#structdev_1_1p2p_1_1_r_l_p_x_handshake_1_1_host_context",
+"structtaraxa_1_1logger_1_1_config_1_1_output_config.html",
+"util_8cpp.html#ad28feaa9a24297029b19f8801c9d2af4"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

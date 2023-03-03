@@ -527,17 +527,45 @@ Example</h3>
 <div class="line">    }</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md301"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md301"></a>
+taraxa_getChainStats</h2>
+<p>Returns current chain stats with count of transactions, PBFT blocks and DAG blocks</p>
+<h3><a class="anchor" id="autotoc_md302"></a>
+Parameters</h3>
+<p>none</p>
+<h3><a class="anchor" id="autotoc_md303"></a>
+Returns</h3>
+<p><code>OBJECT</code> - current chain stats object</p><ul>
+<li><code>pbft_period</code>: <code>QUANTITY</code> - current PBFT period</li>
+<li><code>dag_blocks_executed</code>: <code>QUANTITY</code> - count of executed(finalized) DAG blocks</li>
+<li><code>transactions_executed</code>: <code>QUANTITY</code> - count of executed transactions</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md304"></a>
+Example</h3>
+<div class="fragment"><div class="line">// Request</div>
+<div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;taraxa_getChainStats&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
+<div class="line"> </div>
+<div class="line">// Result</div>
+<div class="line">{</div>
+<div class="line">  &quot;id&quot;: 1,</div>
+<div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
+<div class="line">  &quot;result&quot;: {</div>
+<div class="line">    &quot;pbft_period&quot;: 50,</div>
+<div class="line">    &quot;dag_blocks_executed&quot;: 100,</div>
+<div class="line">    &quot;transactions_executed&quot;: 200</div>
+<div class="line">  }</div>
+<div class="line">}</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md305"></a>
 Test API</h1>
-<h2><a class="anchor" id="autotoc_md302"></a>
+<h2><a class="anchor" id="autotoc_md306"></a>
 get_sortition_change</h2>
 <p>Get sortition params changes for closest smaller period to specified</p>
-<h3><a class="anchor" id="autotoc_md303"></a>
+<h3><a class="anchor" id="autotoc_md307"></a>
 Parameters</h3>
 <p><code>OBJECT</code> - param is wrapped into object</p><ul>
 <li><code>period</code>: QUANTITY` - period number to get sortition parameters for</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md304"></a>
+<h3><a class="anchor" id="autotoc_md308"></a>
 Returns</h3>
 <p><code>OBJECT</code> - sortition parameters</p><ul>
 <li><code>interval_efficiency</code>: <code>QUANTITY</code> - efficiency of interval</li>
@@ -545,7 +573,7 @@ Returns</h3>
 <li><code>threshold_upper</code>: <code>QUANTITY</code> - upper bound of selection</li>
 <li><code>kThresholdUpperMinValue</code>: <code>QUANTITY</code> - const that represents minimum value of <code>threshold_upper</code></li>
 </ul>
-<h3><a class="anchor" id="autotoc_md305"></a>
+<h3><a class="anchor" id="autotoc_md309"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_sortition_change&quot;,&quot;params&quot;:[{&quot;period&quot;: 3000}],&quot;id&quot;:1}&#39;</div>
@@ -561,10 +589,10 @@ Example</h3>
 <div class="line">    &quot;threshold_upper&quot;: 31953</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md306"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md310"></a>
 send_coin_transaction</h2>
 <p>Method to create and send transfer transaction. Used in some tests and CI</p>
-<h3><a class="anchor" id="autotoc_md307"></a>
+<h3><a class="anchor" id="autotoc_md311"></a>
 Parameters</h3>
 <p><code>OBJECT</code> - block json to insert</p><ul>
 <li><code>secret</code>: <code>DATA</code>, 32 Bytes - Secret key for account to send transaction from</li>
@@ -574,10 +602,10 @@ Parameters</h3>
 <li><code>gas</code>: <code>QUANTITY</code> - Amount of gas transaction can use</li>
 <li><code>receiver</code>: <code>DATA</code>, 20 Bytes - Address of receiver account</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md308"></a>
+<h3><a class="anchor" id="autotoc_md312"></a>
 Returns</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md309"></a>
+<h3><a class="anchor" id="autotoc_md313"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;send_coin_transaction&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -588,10 +616,10 @@ Example</h3>
 <div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
 <div class="line">  &quot;result&quot;: null</div>
 <div class="line">}</div>
-</div><!-- fragment --> <h2><a class="anchor" id="autotoc_md310"></a>
+</div><!-- fragment --> <h2><a class="anchor" id="autotoc_md314"></a>
 send_coin_transactions</h2>
 <p>Method to create and send multiple transaction. Used to create high transactions load in tests</p>
-<h3><a class="anchor" id="autotoc_md311"></a>
+<h3><a class="anchor" id="autotoc_md315"></a>
 Parameters</h3>
 <p><code>OBJECT</code> - block json to insert</p><ul>
 <li><code>secret</code>: <code>DATA</code>, 32 Bytes - Secret key for account to send transactions from</li>
@@ -602,19 +630,19 @@ Parameters</h3>
 <li><code>receiver</code>: <code>DATA</code>, 20 Bytes - Array of Addresses of receiver account</li>
 <li><code>transaction_count</code>: <code>QUANTITY</code>, - Number of transactions to create</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md312"></a>
+<h3><a class="anchor" id="autotoc_md316"></a>
 Returns</h3>
 <p>Number of transactions inserted successfully, in case of transaction insertion failure, error message is returned</p>
-<h2><a class="anchor" id="autotoc_md313"></a>
+<h2><a class="anchor" id="autotoc_md317"></a>
 get_account_address</h2>
 <p>Returns address of account on current node</p>
-<h3><a class="anchor" id="autotoc_md314"></a>
+<h3><a class="anchor" id="autotoc_md318"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md315"></a>
+<h3><a class="anchor" id="autotoc_md319"></a>
 Returns</h3>
 <p><code>DATA</code>, 20 Bytes - address of account on current node</p>
-<h3><a class="anchor" id="autotoc_md316"></a>
+<h3><a class="anchor" id="autotoc_md320"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_account_address&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -627,16 +655,16 @@ Example</h3>
 <div class="line">    &quot;value&quot;: &quot;b3888b0bafcf1f9481a0ec97ff032d84f22254ec&quot;</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md317"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md321"></a>
 get_peer_count</h2>
 <p>Returns count of peers that node is connected to</p>
-<h3><a class="anchor" id="autotoc_md318"></a>
+<h3><a class="anchor" id="autotoc_md322"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md319"></a>
+<h3><a class="anchor" id="autotoc_md323"></a>
 Returns</h3>
 <p><code>QUANTITY</code> - count of peers that node is connected to</p>
-<h3><a class="anchor" id="autotoc_md320"></a>
+<h3><a class="anchor" id="autotoc_md324"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_peer_count&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -649,16 +677,16 @@ Example</h3>
 <div class="line">    &quot;value&quot;: 50</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md321"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md325"></a>
 get_node_status</h2>
 <p>Returns current taraxa network protocol version</p>
-<h3><a class="anchor" id="autotoc_md322"></a>
+<h3><a class="anchor" id="autotoc_md326"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md323"></a>
+<h3><a class="anchor" id="autotoc_md327"></a>
 Returns</h3>
 <p><code>OBJECT</code> - with a lot of info about node status including networking. See Example</p>
-<h3><a class="anchor" id="autotoc_md324"></a>
+<h3><a class="anchor" id="autotoc_md328"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_node_status&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -705,16 +733,16 @@ Example</h3>
 <div class="line">    &quot;trx_pool_size&quot;: 7</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md325"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md329"></a>
 get_all_nodes</h2>
 <p>Returns info of current connected nodes including its id, ip_address and port</p>
-<h3><a class="anchor" id="autotoc_md326"></a>
+<h3><a class="anchor" id="autotoc_md330"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md327"></a>
+<h3><a class="anchor" id="autotoc_md331"></a>
 Returns</h3>
 <p><code>STRING</code> - string that contains info about peer if format <code>id ip_address:port</code> separated with <code>\n</code>.</p>
-<h3><a class="anchor" id="autotoc_md328"></a>
+<h3><a class="anchor" id="autotoc_md332"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_all_nodes&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>

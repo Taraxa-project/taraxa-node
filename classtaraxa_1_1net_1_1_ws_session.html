@@ -121,16 +121,16 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a48c439863a597777fe15e60087d2f61c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1844eaac98a814a2ca4fd274a19e1504"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a1844eaac98a814a2ca4fd274a19e1504">processRequest</a> (const std::string_view &amp;request)=0</td></tr>
 <tr class="separator:a1844eaac98a814a2ca4fd274a19e1504"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7bd70c3ebed0e9b0ebc73bf20a031b81"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a7bd70c3ebed0e9b0ebc73bf20a031b81">newEthBlock</a> (::<a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header">taraxa::final_chain::BlockHeader</a> const &amp;payload)</td></tr>
-<tr class="separator:a7bd70c3ebed0e9b0ebc73bf20a031b81"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af54dde7e17a487cd1505576fd4e6e90b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#af54dde7e17a487cd1505576fd4e6e90b">newDagBlock</a> (<a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;blk)</td></tr>
-<tr class="separator:af54dde7e17a487cd1505576fd4e6e90b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a932125804b5c19e37f71600a26d5df77"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a932125804b5c19e37f71600a26d5df77">newDagBlockFinalized</a> (<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;blk, uint64_t period)</td></tr>
-<tr class="separator:a932125804b5c19e37f71600a26d5df77"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ade2a9505b2928baac661fede47833433"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#ade2a9505b2928baac661fede47833433">newPbftBlockExecuted</a> (Json::Value const &amp;payload)</td></tr>
-<tr class="separator:ade2a9505b2928baac661fede47833433"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1aeea5ac874e5a459d3acb9cc9805024"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a1aeea5ac874e5a459d3acb9cc9805024">newPendingTransaction</a> (<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> const &amp;trx_hash)</td></tr>
-<tr class="separator:a1aeea5ac874e5a459d3acb9cc9805024"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a230431c6d2476181d58493f0c6e35aa6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a230431c6d2476181d58493f0c6e35aa6">newEthBlock</a> (const ::<a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header">taraxa::final_chain::BlockHeader</a> &amp;payload, const <a class="el" href="namespacetaraxa.html#a7d06996d287fdcc8938bb4662842c2ff">TransactionHashes</a> &amp;trx_hashes)</td></tr>
+<tr class="separator:a230431c6d2476181d58493f0c6e35aa6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6e2a05b96a82177b2d4cb0a5650e56cd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a6e2a05b96a82177b2d4cb0a5650e56cd">newDagBlock</a> (const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;blk)</td></tr>
+<tr class="separator:a6e2a05b96a82177b2d4cb0a5650e56cd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5c855ee20232cae37ab70dff0e9deeb9"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a5c855ee20232cae37ab70dff0e9deeb9">newDagBlockFinalized</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;blk, uint64_t period)</td></tr>
+<tr class="separator:a5c855ee20232cae37ab70dff0e9deeb9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab686f1cee9e3f3ee453a8a9e76b01860"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#ab686f1cee9e3f3ee453a8a9e76b01860">newPbftBlockExecuted</a> (const Json::Value &amp;payload)</td></tr>
+<tr class="separator:ab686f1cee9e3f3ee453a8a9e76b01860"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae0ee50ce6d41db1da6e0d6ce2c681421"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#ae0ee50ce6d41db1da6e0d6ce2c681421">newPendingTransaction</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;trx_hash)</td></tr>
+<tr class="separator:ae0ee50ce6d41db1da6e0d6ce2c681421"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5621bdc44b6ed090bc4c8e19c7042837"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a5621bdc44b6ed090bc4c8e19c7042837">is_closed</a> () const</td></tr>
 <tr class="separator:a5621bdc44b6ed090bc4c8e19c7042837"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0ac5a482061fe062756b2fc12f710a4e"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a0ac5a482061fe062756b2fc12f710a4e">is_normal</a> (const beast::error_code &amp;ec) const</td></tr>
@@ -292,8 +292,8 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="af54dde7e17a487cd1505576fd4e6e90b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af54dde7e17a487cd1505576fd4e6e90b">&#9670;&nbsp;</a></span>newDagBlock()</h2>
+<a id="a6e2a05b96a82177b2d4cb0a5650e56cd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6e2a05b96a82177b2d4cb0a5650e56cd">&#9670;&nbsp;</a></span>newDagBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -301,7 +301,7 @@ Protected Attributes</h2></td></tr>
         <tr>
           <td class="memname">void taraxa::net::WsSession::newDagBlock </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> const &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &amp;&#160;</td>
           <td class="paramname"><em>blk</em></td><td>)</td>
           <td></td>
         </tr>
@@ -310,8 +310,8 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a932125804b5c19e37f71600a26d5df77"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a932125804b5c19e37f71600a26d5df77">&#9670;&nbsp;</a></span>newDagBlockFinalized()</h2>
+<a id="a5c855ee20232cae37ab70dff0e9deeb9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5c855ee20232cae37ab70dff0e9deeb9">&#9670;&nbsp;</a></span>newDagBlockFinalized()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -319,7 +319,7 @@ Protected Attributes</h2></td></tr>
         <tr>
           <td class="memname">void taraxa::net::WsSession::newDagBlockFinalized </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> const &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;&#160;</td>
           <td class="paramname"><em>blk</em>, </td>
         </tr>
         <tr>
@@ -338,8 +338,8 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a7bd70c3ebed0e9b0ebc73bf20a031b81"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7bd70c3ebed0e9b0ebc73bf20a031b81">&#9670;&nbsp;</a></span>newEthBlock()</h2>
+<a id="a230431c6d2476181d58493f0c6e35aa6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a230431c6d2476181d58493f0c6e35aa6">&#9670;&nbsp;</a></span>newEthBlock()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -347,17 +347,27 @@ Protected Attributes</h2></td></tr>
         <tr>
           <td class="memname">void taraxa::net::WsSession::newEthBlock </td>
           <td>(</td>
-          <td class="paramtype">::<a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header">taraxa::final_chain::BlockHeader</a> const &amp;&#160;</td>
-          <td class="paramname"><em>payload</em></td><td>)</td>
+          <td class="paramtype">const ::<a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header">taraxa::final_chain::BlockHeader</a> &amp;&#160;</td>
+          <td class="paramname"><em>payload</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a7d06996d287fdcc8938bb4662842c2ff">TransactionHashes</a> &amp;&#160;</td>
+          <td class="paramname"><em>trx_hashes</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
 
 </div>
 </div>
-<a id="ade2a9505b2928baac661fede47833433"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ade2a9505b2928baac661fede47833433">&#9670;&nbsp;</a></span>newPbftBlockExecuted()</h2>
+<a id="ab686f1cee9e3f3ee453a8a9e76b01860"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab686f1cee9e3f3ee453a8a9e76b01860">&#9670;&nbsp;</a></span>newPbftBlockExecuted()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -365,7 +375,7 @@ Protected Attributes</h2></td></tr>
         <tr>
           <td class="memname">void taraxa::net::WsSession::newPbftBlockExecuted </td>
           <td>(</td>
-          <td class="paramtype">Json::Value const &amp;&#160;</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
           <td class="paramname"><em>payload</em></td><td>)</td>
           <td></td>
         </tr>
@@ -374,8 +384,8 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a1aeea5ac874e5a459d3acb9cc9805024"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1aeea5ac874e5a459d3acb9cc9805024">&#9670;&nbsp;</a></span>newPendingTransaction()</h2>
+<a id="ae0ee50ce6d41db1da6e0d6ce2c681421"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae0ee50ce6d41db1da6e0d6ce2c681421">&#9670;&nbsp;</a></span>newPendingTransaction()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -383,7 +393,7 @@ Protected Attributes</h2></td></tr>
         <tr>
           <td class="memname">void taraxa::net::WsSession::newPendingTransaction </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> const &amp;&#160;</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;&#160;</td>
           <td class="paramname"><em>trx_hash</em></td><td>)</td>
           <td></td>
         </tr>

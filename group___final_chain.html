@@ -925,7 +925,7 @@ Collaboration diagram for taraxa::final_chain::FinalizationResult:</div>
 <tr><td colspan="2"><h3>Public Attributes</h3></td></tr>
 <tr class="memitem:a0ad31ac07fe766fc69f59c7a3988462e"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header">BlockHeader</a> const  &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a0ad31ac07fe766fc69f59c7a3988462e">final_chain_blk</a></td></tr>
 <tr class="separator:a0ad31ac07fe766fc69f59c7a3988462e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a628827df0da85367d6fbe10a28626df2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a628827df0da85367d6fbe10a28626df2">trxs</a></td></tr>
+<tr class="memitem:a628827df0da85367d6fbe10a28626df2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a628827df0da85367d6fbe10a28626df2">trxs</a></td></tr>
 <tr class="separator:a628827df0da85367d6fbe10a28626df2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6f150a67e8f3179e104cead633432af5"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___final_chain.html#gafa74492224d3e9c12af3c0f31e9c7afb">TransactionReceipts</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a6f150a67e8f3179e104cead633432af5">trx_receipts</a></td></tr>
 <tr class="separator:a6f150a67e8f3179e104cead633432af5"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -975,7 +975,7 @@ Collaboration diagram for taraxa::final_chain::FinalizationResult:</div>
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> taraxa::final_chain::FinalizationResult::trxs</td>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> taraxa::final_chain::FinalizationResult::trxs</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -1049,10 +1049,10 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <tr class="memitem:a19cae7d3b4caa28a0cdb070b22eec756"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a19cae7d3b4caa28a0cdb070b22eec756">update_state_config</a> (const <a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config">state_api::Config</a> &amp;new_config)=0</td></tr>
 <tr class="memdesc:a19cae7d3b4caa28a0cdb070b22eec756"><td class="mdescLeft">&#160;</td><td class="mdescRight">Needed if we are changing params with hardfork and it affects Go part of code. For example DPOS contract.  <a href="group___final_chain.html#a19cae7d3b4caa28a0cdb070b22eec756">More...</a><br /></td></tr>
 <tr class="separator:a19cae7d3b4caa28a0cdb070b22eec756"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2cf4e96ebcafa2e30fdbdf692ae05b44"><td class="memItemLeft" align="right" valign="top">virtual std::shared_ptr&lt; const <a class="el" href="structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html">TransactionHashes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a2cf4e96ebcafa2e30fdbdf692ae05b44">transaction_hashes</a> (std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; n={}) const =0</td></tr>
+<tr class="memitem:a2cf4e96ebcafa2e30fdbdf692ae05b44"><td class="memItemLeft" align="right" valign="top">virtual std::shared_ptr&lt; const <a class="el" href="namespacetaraxa.html#a7d06996d287fdcc8938bb4662842c2ff">TransactionHashes</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a2cf4e96ebcafa2e30fdbdf692ae05b44">transaction_hashes</a> (std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; n={}) const =0</td></tr>
 <tr class="memdesc:a2cf4e96ebcafa2e30fdbdf692ae05b44"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method to get all transaction hashes from the block.  <a href="group___final_chain.html#a2cf4e96ebcafa2e30fdbdf692ae05b44">More...</a><br /></td></tr>
 <tr class="separator:a2cf4e96ebcafa2e30fdbdf692ae05b44"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a30e8d0c8a0085d31299ba486459f670d"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a30e8d0c8a0085d31299ba486459f670d">transactions</a> (std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; n={}) const =0</td></tr>
+<tr class="memitem:a30e8d0c8a0085d31299ba486459f670d"><td class="memItemLeft" align="right" valign="top">virtual const <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a30e8d0c8a0085d31299ba486459f670d">transactions</a> (std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; n={}) const =0</td></tr>
 <tr class="memdesc:a30e8d0c8a0085d31299ba486459f670d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Method to get all transactions from the block.  <a href="group___final_chain.html#a30e8d0c8a0085d31299ba486459f670d">More...</a><br /></td></tr>
 <tr class="separator:a30e8d0c8a0085d31299ba486459f670d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abe6ee3b520176804d81ddbea0770fe7d"><td class="memItemLeft" align="right" valign="top">virtual std::optional&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location">TransactionLocation</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#abe6ee3b520176804d81ddbea0770fe7d">transaction_location</a> (<a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> const &amp;trx_hash) const =0</td></tr>
@@ -2038,7 +2038,7 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual std::shared_ptr&lt;const <a class="el" href="structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html">TransactionHashes</a>&gt; taraxa::final_chain::FinalChain::transaction_hashes </td>
+          <td class="memname">virtual std::shared_ptr&lt;const <a class="el" href="namespacetaraxa.html#a7d06996d287fdcc8938bb4662842c2ff">TransactionHashes</a>&gt; taraxa::final_chain::FinalChain::transaction_hashes </td>
           <td>(</td>
           <td class="paramtype">std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt;&#160;</td>
           <td class="paramname"><em>n</em> = <code>{}</code></td><td>)</td>
@@ -2059,7 +2059,7 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd><a class="el" href="structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html">TransactionHashes</a> list if transaction hashes </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>TransactionHashes list if transaction hashes </dd></dl>
 
 <p>Implemented in <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a616404561e1b6a328f09f7a23a6163c7">taraxa::final_chain::FinalChainImpl</a>.</p>
 
@@ -2186,7 +2186,7 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual const <a class="el" href="namespacetaraxa.html#a8dfebedf195293ea340d4b7413c2af0b">SharedTransactions</a> taraxa::final_chain::FinalChain::transactions </td>
+          <td class="memname">virtual const <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> taraxa::final_chain::FinalChain::transactions </td>
           <td>(</td>
           <td class="paramtype">std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt;&#160;</td>
           <td class="paramname"><em>n</em> = <code>{}</code></td><td>)</td>

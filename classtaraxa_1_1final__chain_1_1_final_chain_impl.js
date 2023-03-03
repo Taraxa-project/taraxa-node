@@ -1,6 +1,5 @@
 var classtaraxa_1_1final__chain_1_1_final_chain_impl =
 [
-    [ "TransactionHashesImpl", "structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl.html", "structtaraxa_1_1final__chain_1_1_final_chain_impl_1_1_transaction_hashes_impl" ],
     [ "FinalChainImpl", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a006e9fdb73dfcf514d0e378755808b14", null ],
     [ "append_block", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a0b0a09d690fd13f9142ad8bae894a372", null ],
     [ "block_blooms", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a36c25cbc65dcf7931595bf50e373fa7c", null ],
@@ -21,7 +20,7 @@ var classtaraxa_1_1final__chain_1_1_final_chain_impl =
     [ "get_block_hash", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a42dd6f267b93490439d3df4fafc6839c", null ],
     [ "get_block_header", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a8c390a30ad0d8014c9028a18903d3bde", null ],
     [ "get_code", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a55413a1397ce7bd28d4616f72f2dddfe", null ],
-    [ "get_transaction_hashes", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a819013f13368c7cc04d84b9c8cbf1191", null ],
+    [ "get_transaction_hashes", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#afa9e85163eb8f307d24854b9ad428d50", null ],
     [ "get_transactions", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ac242d93a5ae3335158271f3679fab674", null ],
     [ "last_block_number", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#aa7011215c95945e0322fb58c5e736f2c", null ],
     [ "last_if_absent", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a0b0996f00fe09b643e036ab66b07d3d4", null ],

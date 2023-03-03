@@ -5,6 +5,7 @@ var classtaraxa_1_1net_1_1_taraxa =
     [ "implementedModules", "classtaraxa_1_1net_1_1_taraxa.html#ae5a356e17a7caef2a470d43fe18aff60", null ],
     [ "taraxa_dagBlockLevel", "classtaraxa_1_1net_1_1_taraxa.html#a9cea1cbf6c1ca84a993f52e5746c86c4", null ],
     [ "taraxa_dagBlockPeriod", "classtaraxa_1_1net_1_1_taraxa.html#aedec7694b0f10833caeedd41c8f3d13f", null ],
+    [ "taraxa_getChainStats", "classtaraxa_1_1net_1_1_taraxa.html#acd5894a59498f0a34e810ddf07288abd", null ],
     [ "taraxa_getConfig", "classtaraxa_1_1net_1_1_taraxa.html#accac5fc87f1430aeb38335f6fb99ca06", null ],
     [ "taraxa_getDagBlockByHash", "classtaraxa_1_1net_1_1_taraxa.html#a8c896c0f32763bfdbe29d7db75748550", null ],
     [ "taraxa_getDagBlockByLevel", "classtaraxa_1_1net_1_1_taraxa.html#ac6414fa488c01a977da6e2237a47ebc6", null ],

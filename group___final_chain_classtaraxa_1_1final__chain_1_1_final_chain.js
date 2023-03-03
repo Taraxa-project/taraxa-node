@@ -1,6 +1,5 @@
 var group___final_chain_classtaraxa_1_1final__chain_1_1_final_chain =
 [
-    [ "TransactionHashes", "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes.html", "structtaraxa_1_1final__chain_1_1_final_chain_1_1_transaction_hashes" ],
     [ "finalize_precommit_ext", "group___final_chain.html#a85c2c0863dab085cd063aac9b6886d51", null ],
     [ "FinalChain", "group___final_chain.html#ababdb83aed2fc614d815944b986a60ed", null ],
     [ "~FinalChain", "group___final_chain.html#ac2cc9992f262b4521602a568b003ae59", null ],
