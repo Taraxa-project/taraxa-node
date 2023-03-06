@@ -87,6 +87,16 @@ node:
     annotationsRpcWS: {}
     annotationsGraphQl: {}
     annotationsGraphQlWS: {}
+    annotationsIndexer:
+      nginx.ingress.kubernetes.io/affinity: "cookie"
+      nginx.ingress.kubernetes.io/session-cookie-name: "stickounet"
+      nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+      nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+      nginx.ingress.kubernetes.io/affinity-mode: persistent
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+      nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS, DELETE"
+      nginx.ingress.kubernetes.io/cors-allow-headers: "Authorization,Range,Content-Range,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Access-Control-Allow-Origin"
     hosts: []
     tls: []
   ports:
@@ -104,6 +114,9 @@ node:
     - name: udp-listen-port
       containerPort: 10002
       protocol: UDP
+    - name: http-indexer
+      containerPort: 8080
+      protocol: TCP
   service:
     ports:
         - name: rest
@@ -120,6 +133,11 @@ node:
         - name: udp-listen-port
           port: 10002
           protocol: UDP
+        - name: http-indexer
+          port: 8080
+          protocol: TCP
+  serviceMonitor:
+    enabled: false
   resources: {}
   nodeSelector: {}
   persistence:
@@ -128,7 +146,19 @@ node:
     size: 30Gi
     storageClass: 
     annotations: {}
-
+  indexer:
+    enabled: false
+    image:
+      repository: gcr.io/jovial-meridian-249123/taraxa-indexer
+      tag: latest
+      pullPolicy: IfNotPresent
+    persistence:
+      enabled: false
+      accessMode: ReadWriteOnce
+      size: 30Gi
+      storageClass: 
+      annotations: {}
+      mountPoint: /data
 
 bootnode:
   enabled: true

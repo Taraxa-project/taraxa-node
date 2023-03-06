@@ -40,7 +40,3 @@ charts/*/charts/*.tgz
 
 # do not include generated documentation
 doxygen_docs
-
-# Helm stuff
-requirements.lock
-Chart.lock
