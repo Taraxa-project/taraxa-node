@@ -3,6 +3,11 @@
 This file documents all notable changes to `taraxa-node` Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v0.3.5
+
+### Minor changes
+
+* Changed `db_path` to `data_dir` for taraxa-indexer
 
 ## v0.3.4
 
