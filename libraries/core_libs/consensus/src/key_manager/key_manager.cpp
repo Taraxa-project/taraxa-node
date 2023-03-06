@@ -19,7 +19,7 @@ std::shared_ptr<vrf_wrapper::vrf_pk_t> KeyManager::get(EthBlockNumber blk_n, con
       std::unique_lock lock(mutex_);
       return key_map_.insert_or_assign(addr, std::make_shared<vrf_wrapper::vrf_pk_t>(std::move(key))).first->second;
     }
-  } catch (state_api::ErrFutureBlock& e) {
+  } catch (state_api::ErrFutureBlock&) {
     return nullptr;
   }
 

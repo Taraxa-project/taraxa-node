@@ -243,9 +243,9 @@ class FinalChainImpl final : public FinalChain {
   }
 
   void prune(EthBlockNumber blk_n) override {
-    std::vector<dev::h256> state_root_to_prune;
     const auto last_block_to_keep = get_block_header(blk_n);
     if (last_block_to_keep) {
+      std::vector<dev::h256> state_root_to_prune;
       LOG(log_nf_) << "Pruning data older than " << blk_n;
       auto block_to_prune = get_block_header(last_block_to_keep->number - 1);
       while (block_to_prune && block_to_prune->number > 0) {

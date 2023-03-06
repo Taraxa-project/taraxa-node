@@ -11,7 +11,7 @@ else ()
             --error-exitcode=1
             --enable=all
             --suppress=missingInclude
-            --suppress=useStlAlgorithm
+            #--suppress=useStlAlgorithm
             --suppress=noExplicitConstructor
             --suppress=unknownMacro
             # false positive
@@ -27,7 +27,11 @@ else ()
             # TODO remove this when we solve correct exit of programs
             --suppress=localMutex:${PROJECT_SOURCE_DIR}/*/main.cpp
             # Just style warning
-            --suppress=virtualCallInConstructor:${PROJECT_SOURCE_DIR}/*/final_chain.cpp
+            --suppress=unmatchedSuppression:${PROJECT_SOURCE_DIR}/*/final_chain.cpp
+            # graphql generated
+            --suppress=shadowVariable:${PROJECT_SOURCE_DIR}/*/TaraxaSchema.*
+
+            --suppress=cstyleCast
 
             # Only show found errors
             "--quiet"

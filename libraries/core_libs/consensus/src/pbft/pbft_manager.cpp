@@ -1481,7 +1481,6 @@ void PbftManager::reorderTransactions(SharedTransactions &transactions) {
 
   // While iterating over transactions, account_nonce will keep the last nonce for the account
   std::unordered_map<addr_t, val_t> account_nonce;
-  std::unordered_map<addr_t, std::multimap<val_t, std::shared_ptr<Transaction>>> account_nonce_transactions;
 
   // Find accounts that need reordering and place in account_reverse_order set
   for (uint32_t i = 0; i < transactions.size(); i++) {
@@ -1502,6 +1501,7 @@ void PbftManager::reorderTransactions(SharedTransactions &transactions) {
 
   // If account_reverse_order size is 0, there is no need to reorder transactions
   if (account_reverse_order.size() > 0) {
+    std::unordered_map<addr_t, std::multimap<val_t, std::shared_ptr<Transaction>>> account_nonce_transactions;
     // Keep the order for all transactions that do not need reordering
     for (uint32_t i = 0; i < transactions.size(); i++) {
       const auto &t = transactions[i];
