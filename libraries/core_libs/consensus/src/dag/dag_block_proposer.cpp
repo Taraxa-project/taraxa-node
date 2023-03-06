@@ -312,7 +312,7 @@ DagBlock DagBlockProposer::createDagBlock(DagFrontier&& frontier, level_t level,
     trx_hashes.push_back(trx->getHash());
   }
 
-  const int64_t block_estimation = std::accumulate(estimations.begin(), estimations.end(), 0);
+  const uint64_t block_estimation = std::accumulate(estimations.begin(), estimations.end(), 0);
 
   // If number of tips is over the limit filter by producer and level
   if (frontier.tips.size() > kDagBlockMaxTips || (frontier.tips.size() + 1) > kPbftGasLimit / kDagGasLimit) {

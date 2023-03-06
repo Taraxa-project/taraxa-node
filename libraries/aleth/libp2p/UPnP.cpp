@@ -56,7 +56,7 @@ UPnP::UPnP()
 #elif MINIUPNPC_API_VERSION >= 9
     descXML = (char*)miniwget(dev->descURL, &descXMLsize, 0);
 #else
-    descXML = (char*)miniwget(dev->descURL, &descXMLsize);
+    descXML = static_cast<char*>(miniwget(dev->descURL, &descXMLsize));
 #endif
     if (descXML) {
       parserootdesc(descXML, descXMLsize, m_data.get());

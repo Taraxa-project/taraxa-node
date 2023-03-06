@@ -73,19 +73,19 @@ static bool isHash(std::string const& _hash) {
 /// Converts byte array to a string containing the same (binary) data. Unless
 /// the byte array happens to contain ASCII data, this won't be printable.
 inline std::string asString(bytes const& _b) {
-  return std::string((char const*)_b.data(), (char const*)(_b.data() + _b.size()));
+  return std::string(reinterpret_cast<char const*>(_b.data()), reinterpret_cast<char const*>(_b.data() + _b.size()));
 }
 
 /// Converts byte array ref to a string containing the same (binary) data.
 /// Unless the byte array happens to contain ASCII data, this won't be
 /// printable.
 inline std::string asString(bytesConstRef _b) {
-  return std::string((char const*)_b.data(), (char const*)(_b.data() + _b.size()));
+  return std::string(reinterpret_cast<char const*>(_b.data()), reinterpret_cast<char const*>(_b.data() + _b.size()));
 }
 
 /// Converts a string to a byte array containing the string's (byte) data.
 inline bytes asBytes(std::string const& _b) {
-  return bytes((::byte const*)_b.data(), (::byte const*)(_b.data() + _b.size()));
+  return bytes(reinterpret_cast<::byte const*>(_b.data()), reinterpret_cast<::byte const*>(_b.data() + _b.size()));
 }
 
 /// Converts a string into the big-endian base-16 stream of integers (NOT

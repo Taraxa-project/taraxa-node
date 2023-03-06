@@ -29,10 +29,11 @@ else ()
             --suppress=localMutex:${PROJECT_SOURCE_DIR}/*/main.cpp
             # Just style warning
             --suppress=unmatchedSuppression:${PROJECT_SOURCE_DIR}/*/final_chain.cpp
-            # graphql generated
-            --suppress=shadowVariable:${PROJECT_SOURCE_DIR}/*/TaraxaSchema.*
-
-            --suppress=cstyleCast
+            # exclude graphql generated
+            -i ${PROJECT_SOURCE_DIR}/libraries/core_libs/network/graphql/gen/
+            # messy files
+            --suppress=cstyleCast:${PROJECT_SOURCE_DIR}/*/vector_ref.h
+            --suppress=cstyleCast:${PROJECT_SOURCE_DIR}/*/Common.h
 
             # Only show found errors
             "--quiet"

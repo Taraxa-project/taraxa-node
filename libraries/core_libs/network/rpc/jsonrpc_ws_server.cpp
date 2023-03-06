@@ -56,8 +56,8 @@ std::string JsonRpcWsSession::processRequest(const std::string_view &request) {
       auto handler = ws_server->GetHandler();
       if (handler != NULL) {
         try {
-          LOG(log_tr_) << "WS Read: " << (char *)buffer_.data().data();
-          handler->HandleRequest((char *)buffer_.data().data(), response);
+          LOG(log_tr_) << "WS Read: " << static_cast<char *>(buffer_.data().data());
+          handler->HandleRequest(static_cast<char *>(buffer_.data().data()), response);
         } catch (std::exception const &e) {
           LOG(log_er_) << "Exception " << e.what();
           auto &res_json_error = json_response["error"] = Json::Value(Json::objectValue);
