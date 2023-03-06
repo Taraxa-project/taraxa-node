@@ -3,6 +3,18 @@
 This file documents all notable changes to `taraxa-node` Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v0.2.8
+
+### Minor changes
+
+* Changed arg for taraxa-indexer
+
+## v0.2.7
+
+### Major changes
+
+* Added [taraxa-indexer](https://github.com/Taraxa-project/taraxa-indexer) to RPC nodes
+
 ## v0.2.6
 
 ### Minor changes
