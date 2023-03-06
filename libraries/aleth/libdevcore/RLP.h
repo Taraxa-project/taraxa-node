@@ -251,7 +251,8 @@ class RLP {
     std::vector<T> ret;
     if (isList()) {
       ret.reserve(itemCount());
-      for (auto const i : *this) ret.push_back(i.convert<T>(_flags));
+      std::transform((*this).begin(), (*this).end(), std::back_inserter(ret),
+                     [_flags](const auto i) { return i.template convert<T>(_flags); });
     } else if (_flags & ThrowOnFail)
       BOOST_THROW_EXCEPTION(BadCast());
     return ret;

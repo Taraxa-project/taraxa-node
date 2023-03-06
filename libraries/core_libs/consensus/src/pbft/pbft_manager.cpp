@@ -1838,10 +1838,9 @@ void PbftManager::periodDataQueuePush(PeriodData &&period_data, dev::p2p::NodeID
 size_t PbftManager::periodDataQueueSize() const { return sync_queue_.size(); }
 
 bool PbftManager::checkBlockWeight(const std::vector<DagBlock> &dag_blocks) const {
-  u256 total_weight = 0;
-  for (const auto &dag_block : dag_blocks) {
-    total_weight += dag_block.getGasEstimation();
-  }
+  const u256 total_weight =
+      std::accumulate(dag_blocks.begin(), dag_blocks.end(), u256(0),
+                      [](u256 value, const auto &dag_block) { return value + dag_block.getGasEstimation(); });
   if (total_weight > config_.gas_limit) {
     return false;
   }

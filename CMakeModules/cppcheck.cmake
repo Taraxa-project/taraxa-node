@@ -11,7 +11,8 @@ else ()
             --error-exitcode=1
             --enable=all
             --suppress=missingInclude
-            #--suppress=useStlAlgorithm
+            # find_if - useless here
+            --suppress=useStlAlgorithm:${PROJECT_SOURCE_DIR}/*/pbft_sync_packet_handler.cpp
             --suppress=noExplicitConstructor
             --suppress=unknownMacro
             # false positive

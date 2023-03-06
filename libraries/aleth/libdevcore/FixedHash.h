@@ -209,7 +209,8 @@ class FixedHash {
   /// Populate with random data.
   template <class Engine>
   void randomize(Engine& _eng) {
-    for (auto& i : m_data) i = (uint8_t)std::uniform_int_distribution<uint16_t>(0, 255)(_eng);
+    std::generate(m_data.begin(), m_data.end(),
+                  [&]() { return (uint8_t)std::uniform_int_distribution<uint16_t>(0, 255)(_eng); });
   }
 
   /// @returns a random valued object.
