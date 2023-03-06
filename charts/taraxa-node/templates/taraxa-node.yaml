@@ -104,7 +104,7 @@ spec:
           imagePullPolicy: {{ .Values.node.indexer.image.pullPolicy }}
           command: ["/taraxa-indexer"]
           args:
-            - -db_path 
+            - -data_dir 
             - {{ .Values.node.indexer.persistence.mountPoint }}
             - -blockchain_ws 
             - 'ws://localhost:8777'
