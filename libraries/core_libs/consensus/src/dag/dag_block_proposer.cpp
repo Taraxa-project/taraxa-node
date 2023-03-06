@@ -264,10 +264,14 @@ vec_blk_t DagBlockProposer::selectDagBlockTips(const vec_blk_t& frontier_tips, u
   // Retrieve all the tips blocks and identify duplicate proposer tips
   for (const auto& t : frontier_tips) {
     auto tip_block = dag_mgr_->getDagBlock(t);
-    assert(tip_block != nullptr);
-    tips_blocks.insert({t, tip_block});
-    if (!proposers.insert(tip_block->getSender()).second) {
-      duplicate_proposers.insert(tip_block->getSender());
+    if (tip_block == nullptr) {
+      // This could happen if a tip block has expired, exclude this tip
+      LOG(log_nf_) << "selectDagBlockTips, Cannot find tip dag block " << tip_block;
+    } else {
+      tips_blocks.insert({t, tip_block});
+      if (!proposers.insert(tip_block->getSender()).second) {
+        duplicate_proposers.insert(tip_block->getSender());
+      }
     }
   }
 
