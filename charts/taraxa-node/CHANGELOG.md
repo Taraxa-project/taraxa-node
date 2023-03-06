@@ -3,6 +3,13 @@
 This file documents all notable changes to `taraxa-node` Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+
+## v0.3.4
+
+### Minor changes
+
+* Enabled CORS on `Ingress` of indexer
+
 ## v0.3.3
 
 ### Major changes
