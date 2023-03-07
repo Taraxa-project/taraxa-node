@@ -192,61 +192,6 @@ struct PbftManagerTest : NodesTest {
   }
 };
 
-// Test that after some amount of elapsed time will not continue soft voting for same value
-TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
-  auto node_cfgs = make_node_cfgs(1, 1, 20);
-  makeNodesWithNonces(node_cfgs);
-
-  auto pbft_mgr = nodes[0]->getPbftManager();
-  auto vote_mgr = nodes[0]->getVoteManager();
-  pbft_mgr->stop();
-  std::cout << "PBFT manager stopped" << std::endl;
-
-  // Generate bogus votes
-  auto stale_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
-  auto propose_vote = vote_mgr->generateVote(stale_block_hash, PbftVoteTypes::propose_vote, 2, 2, 1);
-  propose_vote->calculateWeight(1, 1, 1);
-  vote_mgr->addVerifiedVote(propose_vote);
-
-  // uint64_t time_till_stale_ms = 1000;
-  // std::cout << "Set max wait for soft voted value to " << time_till_stale_ms << "ms..." << std::endl;
-  // pbft_mgr->setMaxWaitForSoftVotedBlock_ms(time_till_stale_ms);
-  // pbft_mgr->setMaxWaitForNextVotedBlock_ms(std::numeric_limits<uint64_t>::max());
-
-  auto sleep_time = 1100;
-  std::cout << "Sleep " << sleep_time << "ms so that last soft voted value of " << stale_block_hash.abridged()
-            << " becomes stale..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(sleep_time);
-
-  std::cout << "Initialize PBFT manager at round 2 step 2" << std::endl;
-  pbft_mgr->setPbftRound(2);
-  pbft_mgr->setPbftStep(2);
-  pbft_mgr->resumeSingleState();
-  std::cout << "Into cert voted state in round 2..." << std::endl;
-  EXPECT_EQ(pbft_mgr->getPbftRound(), 2);
-  EXPECT_EQ(pbft_mgr->getPbftStep(), 3);
-
-  std::cout << "Check did not soft vote for stale soft voted value of " << stale_block_hash.abridged() << "..."
-            << std::endl;
-  bool skipped_soft_voting = true;
-  auto votes = vote_mgr->getVerifiedVotes();
-  for (const auto &v : votes) {
-    if (PbftVoteTypes::soft_vote == v->getType()) {
-      if (v->getBlockHash() == stale_block_hash) {
-        skipped_soft_voting = false;
-      }
-      std::cout << "Found soft voted value of " << v->getBlockHash().abridged() << " in round 2" << std::endl;
-    }
-  }
-  EXPECT_EQ(skipped_soft_voting, true);
-
-  auto start_round = pbft_mgr->getPbftRound();
-  pbft_mgr->resume();
-
-  std::cout << "Wait ensure node is still advancing in rounds... " << std::endl;
-  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) { WAIT_EXPECT_NE(ctx, start_round, pbft_mgr->getPbftRound()) });
-}
-
 // Test that after some amount of elapsed time will give up on the next voting value if corresponding DAG blocks can't
 // be found
 

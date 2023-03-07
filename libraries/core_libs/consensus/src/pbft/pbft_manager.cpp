@@ -125,65 +125,6 @@ void PbftManager::resume() {
   daemon_ = std::make_unique<std::thread>([this]() { run(); });
 }
 
-// Only to be used for tests...
-void PbftManager::resumeSingleState() {
-  if (!stopped_.load()) daemon_->join();
-  stopped_ = false;
-
-  if (step_ == 1) {
-    state_ = value_proposal_state;
-  } else if (step_ == 2) {
-    state_ = filter_state;
-  } else if (step_ == 3) {
-    state_ = certify_state;
-  } else if (step_ % 2 == 0) {
-    state_ = finish_state;
-  } else {
-    state_ = finish_polling_state;
-  }
-
-  doNextState_();
-}
-
-// Only to be used for tests...
-void PbftManager::doNextState_() {
-  auto initial_state = state_;
-
-  while (!stopped_ && state_ == initial_state) {
-    if (stateOperations_()) {
-      continue;
-    }
-
-    // PBFT states
-    switch (state_) {
-      case value_proposal_state:
-        proposeBlock_();
-        break;
-      case filter_state:
-        identifyBlock_();
-        break;
-      case certify_state:
-        certifyBlock_();
-        break;
-      case finish_state:
-        firstFinish_();
-        break;
-      case finish_polling_state:
-        secondFinish_();
-        break;
-      default:
-        LOG(log_er_) << "Unknown PBFT state " << state_;
-        assert(false);
-    }
-
-    setNextState_();
-    if (state_ != initial_state) {
-      return;
-    }
-    sleep_();
-  }
-}
-
 /* When a node starts up it has to sync to the current phase (type of block
  * being generated) and step (within the block generation round)
  * Five step loop for block generation over three phases of blocks
@@ -201,25 +142,41 @@ void PbftManager::run() {
     switch (state_) {
       case value_proposal_state:
         proposeBlock_();
+        setFilterState_();
         break;
       case filter_state:
         identifyBlock_();
+        setCertifyState_();
         break;
       case certify_state:
         certifyBlock_();
+        if (go_finish_state_) {
+          setFinishState_();
+        } else {
+          next_step_time_ms_ += kPollingIntervalMs;
+        }
         break;
       case finish_state:
         firstFinish_();
+        setFinishPollingState_();
         break;
       case finish_polling_state:
         secondFinish_();
+        if (loop_back_finish_state_) {
+          loopBackFinishState_();
+
+          // Print voting summary for current round
+          printVotingSummary();
+        } else {
+          next_step_time_ms_ += kPollingIntervalMs;
+        }
         break;
       default:
         LOG(log_er_) << "Unknown PBFT state " << state_;
         assert(false);
     }
 
-    setNextState_();
+    LOG(log_tr_) << "next step time(ms): " << next_step_time_ms_.count() << ", step " << step_;
     sleep_();
   }
 }
@@ -289,23 +246,33 @@ void PbftManager::setPbftStep(PbftStep pbft_step) {
   db_->savePbftMgrField(PbftMgrField::Step, pbft_step);
   step_ = pbft_step;
 
-  if (step_ > kMaxSteps && LAMBDA_backoff_multiple < 8) {
-    // Note: We calculate the lambda for a step independently of prior steps
-    //       in case missed earlier steps.
-    std::uniform_int_distribution<uint64_t> distribution(0, step_ - kMaxSteps);
-    auto lambda_random_count = distribution(random_engine_);
-    LAMBDA_backoff_multiple = 2 * LAMBDA_backoff_multiple;
-    LAMBDA_ms = LAMBDA_ms_MIN * (LAMBDA_backoff_multiple + lambda_random_count);
+  if (step_ > kMaxSteps && LAMBDA_ms < kMaxLambda) {
+    // Note: We calculate the lambda for a step independently of prior steps in case missed earlier steps.
+    LAMBDA_ms *= 2;
     if (LAMBDA_ms > kMaxLambda) {
       LAMBDA_ms = kMaxLambda;
     }
-
-    LOG(log_dg_) << "Surpassed max steps, exponentially backing off lambda to " << LAMBDA_ms.count() << " ms in round "
-                 << getPbftRound() << ", step " << step_;
-  } else {
-    LAMBDA_ms = LAMBDA_ms_MIN;
-    LAMBDA_backoff_multiple = 1;
   }
+
+  // TODO: remove this block of code and variables
+  //  if (step_ > kMaxSteps && LAMBDA_backoff_multiple < 8) {
+  //    // Note: We calculate the lambda for a step independently of prior steps
+  //    //       in case missed earlier steps.
+  //    std::uniform_int_distribution<uint64_t> distribution(0, step_ - kMaxSteps);
+  //    auto lambda_random_count = distribution(random_engine_);
+  //    LAMBDA_backoff_multiple = 2 * LAMBDA_backoff_multiple;
+  //    LAMBDA_ms = LAMBDA_ms_MIN * (LAMBDA_backoff_multiple + lambda_random_count);
+  //    if (LAMBDA_ms > kMaxLambda) {
+  //      LAMBDA_ms = kMaxLambda;
+  //    }
+  //
+  //    LOG(log_dg_) << "Surpassed max steps, exponentially backing off lambda to " << LAMBDA_ms.count() << " ms in
+  //    round "
+  //                 << getPbftRound() << ", step " << step_;
+  //  } else {
+  //    LAMBDA_ms = LAMBDA_ms_MIN;
+  //    LAMBDA_backoff_multiple = 1;
+  //  }
 }
 
 void PbftManager::resetStep() {
@@ -536,38 +503,6 @@ void PbftManager::initialState() {
                                                                : "no value");
 }
 
-void PbftManager::setNextState_() {
-  switch (state_) {
-    case value_proposal_state:
-      setFilterState_();
-      break;
-    case filter_state:
-      setCertifyState_();
-      break;
-    case certify_state:
-      if (go_finish_state_) {
-        setFinishState_();
-      } else {
-        next_step_time_ms_ += kPollingIntervalMs;
-      }
-      break;
-    case finish_state:
-      setFinishPollingState_();
-      break;
-    case finish_polling_state:
-      if (loop_back_finish_state_) {
-        loopBackFinishState_();
-      } else {
-        next_step_time_ms_ += kPollingIntervalMs;
-      }
-      break;
-    default:
-      LOG(log_er_) << "Unknown PBFT state " << state_;
-      assert(false);
-  }
-  LOG(log_tr_) << "next step time(ms): " << next_step_time_ms_.count() << ", step " << step_;
-}
-
 void PbftManager::setFilterState_() {
   state_ = filter_state;
   setPbftStep(step_ + 1);
@@ -610,9 +545,6 @@ void PbftManager::loopBackFinishState_() {
   already_next_voted_null_block_hash_ = false;
   assert(step_ >= startingStepInRound_);
   next_step_time_ms_ += kPollingIntervalMs;
-
-  // Print voting summary for current round
-  printVotingSummary();
 }
 
 void PbftManager::broadcastVotes(bool rebroadcast) {
