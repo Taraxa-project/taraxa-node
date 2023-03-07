@@ -532,6 +532,7 @@ void PbftManager::setFinishPollingState_() {
   already_next_voted_value_ = false;
   already_next_voted_null_block_hash_ = false;
   second_finish_step_start_datetime_ = std::chrono::system_clock::now();
+  next_step_time_ms_ += kPollingIntervalMs;
 }
 
 void PbftManager::loopBackFinishState_() {
