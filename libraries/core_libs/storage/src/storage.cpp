@@ -448,8 +448,8 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period) {
         auto trx_hashes_raw = lookup(period, DB::Columns::final_chain_transaction_hashes_by_blk_number);
         auto hashes_count = trx_hashes_raw.size() / trx_hash_t::size;
         for (uint32_t i = 0; i < hashes_count; i++) {
-          auto hash =
-              trx_hash_t((uint8_t*)(trx_hashes_raw.data() + i * trx_hash_t::size), trx_hash_t::ConstructFromPointer);
+          auto hash = trx_hash_t(reinterpret_cast<uint8_t*>(trx_hashes_raw.data() + i * trx_hash_t::size),
+                                 trx_hash_t::ConstructFromPointer);
           remove(write_batch, Columns::final_chain_receipt_by_trx_hash, hash);
           remove(write_batch, Columns::final_chain_transaction_location_by_hash, hash);
         }

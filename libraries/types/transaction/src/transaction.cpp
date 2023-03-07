@@ -3,6 +3,7 @@
 
 #include <libdevcore/CommonJS.h>
 
+#include <algorithm>
 #include <string>
 #include <utility>
 
@@ -22,9 +23,8 @@ uint64_t toChainID(u256 const &val) {
 TransactionHashes hashes_from_transactions(const SharedTransactions &transactions) {
   TransactionHashes trx_hashes;
   trx_hashes.reserve(transactions.size());
-  for (auto const &trx : transactions) {
-    trx_hashes.push_back(trx->getHash());
-  }
+  std::transform(transactions.cbegin(), transactions.cend(), std::back_inserter(trx_hashes),
+                 [](const auto &trx) { return trx->getHash(); });
   return trx_hashes;
 }
 

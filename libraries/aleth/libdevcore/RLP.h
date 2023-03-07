@@ -84,7 +84,7 @@ class RLP {
 
   /// Construct a node to read RLP data in the string.
   explicit RLP(std::string const& _s, Strictness _st = VeryStrict)
-      : RLP(bytesConstRef((::byte const*)_s.data(), _s.size()), _st) {}
+      : RLP(bytesConstRef(reinterpret_cast<::byte const*>(_s.data()), _s.size()), _st) {}
 
   /// The bare data of the RLP.
   bytesConstRef data() const { return m_data; }
@@ -251,7 +251,8 @@ class RLP {
     std::vector<T> ret;
     if (isList()) {
       ret.reserve(itemCount());
-      for (auto const i : *this) ret.push_back(i.convert<T>(_flags));
+      std::transform((*this).begin(), (*this).end(), std::back_inserter(ret),
+                     [_flags](const auto i) { return i.template convert<T>(_flags); });
     } else if (_flags & ThrowOnFail)
       BOOST_THROW_EXCEPTION(BadCast());
     return ret;

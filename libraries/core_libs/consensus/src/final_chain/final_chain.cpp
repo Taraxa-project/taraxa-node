@@ -179,9 +179,9 @@ class FinalChainImpl final : public FinalChain {
     for (auto const& r : exec_results) {
       LogEntries logs;
       logs.reserve(r.logs.size());
-      for (auto const& l : r.logs) {
-        logs.emplace_back(LogEntry{l.address, l.topics, l.data});
-      }
+      std::transform(r.logs.cbegin(), r.logs.cend(), std::back_inserter(logs), [](const auto& l) {
+        return LogEntry{l.address, l.topics, l.data};
+      });
       receipts.emplace_back(TransactionReceipt{
           r.code_err.empty() && r.consensus_err.empty(),
           r.gas_used,
@@ -243,9 +243,9 @@ class FinalChainImpl final : public FinalChain {
   }
 
   void prune(EthBlockNumber blk_n) override {
-    std::vector<dev::h256> state_root_to_prune;
     const auto last_block_to_keep = get_block_header(blk_n);
     if (last_block_to_keep) {
+      std::vector<dev::h256> state_root_to_prune;
       LOG(log_nf_) << "Pruning data older than " << blk_n;
       auto block_to_prune = get_block_header(last_block_to_keep->number - 1);
       while (block_to_prune && block_to_prune->number > 0) {

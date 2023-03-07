@@ -8,12 +8,7 @@ LogFilter::LogFilter(EthBlockNumber from_block, std::optional<EthBlockNumber> to
   if (!addresses_.empty()) {
     return;
   }
-  for (const auto& t : topics_) {
-    if (!t.empty()) {
-      return;
-    }
-  }
-  is_range_only_ = true;
+  is_range_only_ = std::all_of(topics_.cbegin(), topics_.cend(), [](const auto& t) { return t.empty(); });
 }
 
 std::vector<LogBloom> LogFilter::bloomPossibilities() const {
@@ -51,9 +46,8 @@ std::vector<LogBloom> LogFilter::bloomPossibilities() const {
   // blooms = [a0, a1];
   //
   if (ret.empty()) {
-    for (const auto& i : addresses_) {
-      ret.push_back(LogBloom().shiftBloom<3>(sha3(i)));
-    }
+    std::transform(addresses_.cbegin(), addresses_.cend(), std::back_inserter(ret),
+                   [](const auto& i) { return LogBloom().shiftBloom<3>(sha3(i)); });
   }
 
   // 3rd case, there are no addresses, at least create blooms from topics

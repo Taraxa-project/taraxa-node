@@ -81,9 +81,9 @@ uint64_t VoteManager::getVerifiedVotesSize() const {
   for (auto const& period : verified_votes_) {
     for (auto const& round : period.second) {
       for (auto const& step : round.second.step_votes) {
-        for (auto const& voted_value : step.second.votes) {
-          size += voted_value.second.second.size();
-        }
+        size += std::accumulate(
+            step.second.votes.begin(), step.second.votes.end(), 0,
+            [](uint64_t value, const auto& voted_value) { return value + voted_value.second.second.size(); });
       }
     }
   }

@@ -51,7 +51,7 @@ void WsSession::on_read(beast::error_code ec, std::size_t bytes_transferred) {
     return close(is_normal(ec));
   }
 
-  LOG(log_tr_) << "WS READ " << ((char *)buffer_.data().data());
+  LOG(log_tr_) << "WS READ " << (static_cast<char *>(buffer_.data().data()));
 
   const std::string_view str_view(static_cast<const char *>(buffer_.data().data()), buffer_.size());
   const auto response = processRequest(str_view);

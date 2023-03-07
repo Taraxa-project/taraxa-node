@@ -11,7 +11,8 @@ else ()
             --error-exitcode=1
             --enable=all
             --suppress=missingInclude
-            --suppress=useStlAlgorithm
+            # find_if - useless here
+            --suppress=useStlAlgorithm:${PROJECT_SOURCE_DIR}/*/pbft_sync_packet_handler.cpp
             --suppress=noExplicitConstructor
             --suppress=unknownMacro
             # false positive
@@ -27,7 +28,12 @@ else ()
             # TODO remove this when we solve correct exit of programs
             --suppress=localMutex:${PROJECT_SOURCE_DIR}/*/main.cpp
             # Just style warning
-            --suppress=virtualCallInConstructor:${PROJECT_SOURCE_DIR}/*/final_chain.cpp
+            --suppress=unmatchedSuppression:${PROJECT_SOURCE_DIR}/*/final_chain.cpp
+            # exclude graphql generated
+            -i ${PROJECT_SOURCE_DIR}/libraries/core_libs/network/graphql/gen/
+            # messy files
+            --suppress=cstyleCast:${PROJECT_SOURCE_DIR}/*/vector_ref.h
+            --suppress=cstyleCast:${PROJECT_SOURCE_DIR}/*/Common.h
 
             # Only show found errors
             "--quiet"

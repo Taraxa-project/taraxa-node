@@ -137,7 +137,7 @@ void dec_json(const Json::Value &json, NetworkConfig &network) {
       getConfigDataAsUInt(json, {"deep_syncing_threshold"}, true, network.deep_syncing_threshold);
   network.ddos_protection = dec_ddos_protection_config_json(getConfigData(json, {"ddos_protection"}));
 
-  for (auto &item : json["boot_nodes"]) {
+  for (const auto &item : json["boot_nodes"]) {
     network.boot_nodes.push_back(dec_json(item));
   }
   auto listen_ip = boost::asio::ip::address::from_string(network.listen_ip);
