@@ -255,11 +255,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void resume();
 
   /**
-   * @brief Resume PBFT daemon on single state. Only to be used for unit tests
-   */
-  void resumeSingleState();
-
-  /**
    * @brief Get a proposed PBFT block based on specified period and block hash
    * @param period
    * @param block_hash
@@ -330,16 +325,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Time to sleep for PBFT protocol
    */
   void sleep_();
-
-  /**
-   * @brief Go to next PBFT state. Only to be used for unit tests
-   */
-  void doNextState_();
-
-  /**
-   * @brief Set next PBFT state
-   */
-  void setNextState_();
 
   /**
    * @brief Set PBFT filter state
