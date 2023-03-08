@@ -870,54 +870,6 @@ TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
   EXPECT_FALSE(node->getPbftManager()->checkBlockWeight(period_data.dag_blocks));
 }
 
-TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
-  auto node_cfgs = make_node_cfgs(1, 5, true);
-  node_cfgs.front().genesis.dag.gas_limit = 500000;
-  node_cfgs.front().genesis.pbft.gas_limit = 600000;
-  makeNode();
-  deployContract();
-  node->getDagBlockProposer()->stop();
-  generateAndApplyInitialDag();
-
-  EXPECT_HAPPENS({10s, 500ms},
-                 [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nonce, node->getDB()->getNumTransactionExecuted() + 1); });
-
-  node->getPbftManager()->stop();
-  // create pbft block
-  auto chain_size_before = node->getPbftChain()->getPbftChainSize();
-  {
-    auto blocks_with_txs = generateDagBlocks(10, 3, 1);
-    insertBlocks(blocks_with_txs);
-    auto dag_block_hash = blocks_with_txs.back().blk.getHash();
-
-    // get DAG block and transaction order
-    const auto propose_period = node->getPbftChain()->getPbftChainSize() + 1;
-    auto dag_block_order = node->getDagManager()->getDagBlockOrder(dag_block_hash, propose_period);
-    ASSERT_TRUE(!dag_block_order.empty());
-
-    std::vector<trx_hash_t> trx_hashes;
-    for (const auto &bt : blocks_with_txs) {
-      std::transform(bt.trxs.begin(), bt.trxs.end(), std::back_inserter(trx_hashes),
-                     [](const auto &t) { return t->getHash(); });
-    }
-    auto order_hash = node->getPbftManager()->calculateOrderHash(dag_block_order);
-
-    const auto &last_hash = node->getPbftChain()->getLastPbftBlockHash();
-    auto reward_votes = node->getDB()->getRewardVotes();
-    std::vector<vote_hash_t> reward_votes_hashes;
-    std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
-                   [](const auto &v) { return v->getHash(); });
-    const auto pbft_block =
-        std::make_shared<PbftBlock>(last_hash, dag_block_hash, order_hash, kNullBlockHash, propose_period,
-                                    node->getAddress(), node->getSecretKey(), std::move(reward_votes_hashes));
-    // node->getPbftChain()->pushUnverifiedPbftBlock(pbft_block);
-  }
-
-  EXPECT_HAPPENS({60s, 500ms}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getPbftChain()->getPbftChainSize(), chain_size_before + 1);
-  });
-}
-
 TEST_F(PbftManagerWithDagCreation, proposed_blocks) {
   auto db = std::make_shared<DbStorage>(data_dir);
   ProposedBlocks proposed_blocks(db);

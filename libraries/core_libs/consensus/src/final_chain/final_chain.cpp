@@ -18,7 +18,8 @@ class FinalChainImpl final : public FinalChain {
   const uint64_t kBlockGasLimit;
   StateAPI state_api_;
   const bool kLightNode = false;
-  const uint64_t kLigntNodeHistory = 0;
+  const uint64_t kLightNodeHistory = 0;
+  const uint64_t kLightNodePruneOffset = 0;
 
   // It is not prepared to use more then 1 thread. Examine it if you want to change threads count
   boost::asio::thread_pool executor_thread_{1};
@@ -56,7 +57,11 @@ class FinalChainImpl final : public FinalChain {
                        db->stateDbStoragePath().string(),
                    }),
         kLightNode(config.is_light_node),
-        kLigntNodeHistory(config.light_node_history),
+        kLightNodeHistory(config.light_node_history),
+        // This will provide a speific random offset based on node address for each node to prevent all light nodes
+        // performing prune at the same block height
+        kLightNodePruneOffset((*reinterpret_cast<uint32_t*>(node_addr.asBytes().data())) %
+                              std::max(config.light_node_history, (uint64_t)1)),
         block_headers_cache_(config.final_chain_cache_in_blocks,
                              [this](uint64_t blk) { return get_block_header(blk); }),
         block_hashes_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return get_block_hash(blk); }),
@@ -234,9 +239,9 @@ class FinalChainImpl final : public FinalChain {
 
     if (kLightNode) {
       // Actual history size will be between 100% and 105% of light_node_history_ to avoid deleting on every period
-      if (((blk_header->number % (std::max(kLigntNodeHistory / 20, (uint64_t)1)) == 0)) &&
-          blk_header->number > kLigntNodeHistory) {
-        prune(blk_header->number - kLigntNodeHistory);
+      if ((((blk_header->number + kLightNodePruneOffset) % (std::max(kLightNodeHistory / 20, (uint64_t)1)) == 0)) &&
+          blk_header->number > kLightNodeHistory) {
+        prune(blk_header->number - kLightNodeHistory);
       }
     }
     return result;
