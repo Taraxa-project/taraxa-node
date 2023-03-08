@@ -181,12 +181,6 @@ TEST_F(FinalChainTest, initial_balances) {
   init();
 }
 
-// TEST_F(FinalChainTest, update_state_config) {
-//   init();
-//   cfg.genesis.state.hardforks.fix_genesis_fork_block = 2222222;
-//   SUT->update_state_config(cfg.genesis.state);
-// }
-
 TEST_F(FinalChainTest, contract) {
   auto sender_keys = dev::KeyPair::create();
   const auto& addr = sender_keys.address();

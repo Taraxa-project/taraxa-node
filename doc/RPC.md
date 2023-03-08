@@ -448,9 +448,6 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getConfig","params":[],"i
         "0x0274cfffea9fa850e54c93a23042f12a87358a82": "0x141e8d17",
         "0x111f91441efc8c6c0edf6534970cc887e2fabaa8": "0x24048ce3d"
       },
-      "hardforks": {
-        "fix_genesis_fork_block": "0x102ca0"
-      }
     },
     "pbft": {
       "committee_size": "0x3e8",
@@ -492,7 +489,7 @@ none
 #### Returns
 
 `OBJECT` - current chain stats object
-* `pbft_period`: `QUANTITY` - current PBFT period 
+* `pbft_period`: `QUANTITY` - current PBFT period
 * `dag_blocks_executed`: `QUANTITY` - count of executed(finalized) DAG blocks
 * `transactions_executed`: `QUANTITY` - count of executed transactions
 

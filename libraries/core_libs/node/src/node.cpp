@@ -302,30 +302,6 @@ void FullNode::start() {
       },
       subscription_pool_);
 
-  // Subscription to process hardforks
-  // final_chain_->block_applying_.subscribe([&](uint64_t block_num) {
-  //   // TODO: should have only common hardfork code calling hardfork executor
-  //   auto &state_conf = conf_.genesis.state;
-  //   if (state_conf.hardforks.fix_genesis_fork_block == block_num) {
-  //     for (auto &e : state_conf.dpos->genesis_state) {
-  //       for (auto &b : e.second) {
-  //         b.second *= kOneTara;
-  //       }
-  //     }
-  //     for (auto &b : state_conf.initial_balances) {
-  //       b.second *= kOneTara;
-  //     }
-  //     // we are multiplying it by TARA precision
-  //     state_conf.dpos->eligibility_balance_threshold *= kOneTara;
-  //     // amount of stake per vote should be 10 times smaller than eligibility threshold
-  //     state_conf.dpos->vote_eligibility_balance_step.assign(state_conf.dpos->eligibility_balance_threshold);
-  //     state_conf.dpos->eligibility_balance_threshold *= 10;
-  //     // if this part of code will be needed we need to overwrite genesis json here
-  //     // conf_.overwrite_chain_config_in_file();
-  //     final_chain_->update_state_config(state_conf);
-  //   }
-  // });
-
   vote_mgr_->setNetwork(network_);
   pbft_mgr_->setNetwork(network_);
   dag_mgr_->setNetwork(network_);
