@@ -1,5 +1,7 @@
 #include "graphql/query.hpp"
 
+#include <libdevcore/CommonJS.h>
+
 #include "graphql/account.hpp"
 #include "graphql/block.hpp"
 #include "graphql/log.hpp"

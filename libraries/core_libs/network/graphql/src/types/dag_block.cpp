@@ -1,5 +1,7 @@
 #include "graphql/types/dag_block.hpp"
 
+#include <libdevcore/CommonJS.h>
+
 #include "graphql/account.hpp"
 #include "graphql/transaction.hpp"
 

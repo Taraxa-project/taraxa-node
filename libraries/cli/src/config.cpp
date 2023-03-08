@@ -214,11 +214,6 @@ Config::Config(int argc, const char* argv[]) {
       auto default_genesis_json = tools::getGenesis((Config::ChainIdType)chain_id);
       // override hardforks data with one from default json
       addNewHardforks(genesis_json, default_genesis_json);
-      // add vote_eligibility_balance_step field if it is missing in the config
-      if (genesis_json["dpos"]["vote_eligibility_balance_step"].isNull()) {
-        genesis_json["dpos"]["vote_eligibility_balance_step"] =
-            default_genesis_json["dpos"]["vote_eligibility_balance_step"];
-      }
       write_config_and_wallet_files();
     }
     // Override config values with values from CLI
