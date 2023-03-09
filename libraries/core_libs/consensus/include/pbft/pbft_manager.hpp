@@ -532,8 +532,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   const addr_t node_addr_;
   const secret_t node_sk_;
 
-  const std::chrono::milliseconds kMinLambda; // [ms]
-  std::chrono::milliseconds lambda_{0}; // [ms]
+  const std::chrono::milliseconds kMinLambda;         // [ms]
+  std::chrono::milliseconds lambda_{0};               // [ms]
   const std::chrono::milliseconds kMaxLambda{60000};  // in ms, max lambda is 1 minutes
 
   const uint32_t kBroadcastVotesLambdaTime = 20;
