@@ -140,21 +140,6 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateVotePeriodRoundStep(
   return {true, ""};
 }
 
-std::pair<bool, std::string> ExtVotesPacketHandler::validateVote(const std::shared_ptr<Vote> &vote) const {
-  // Check is vote is unique per period, round & step & voter -> each address can generate just 1 vote
-  // (for a value that isn't NBH) per period, round & step
-  if (auto unique_vote_validation = vote_mgr_->isUniqueVote(vote); !unique_vote_validation.first) {
-    return unique_vote_validation;
-  }
-
-  const auto vote_valid = vote_mgr_->validateVote(vote);
-  if (!vote_valid.first) {
-    LOG(log_er_) << "Vote \"dpos\" validation failed: " << vote_valid.second;
-  }
-
-  return vote_valid;
-}
-
 bool ExtVotesPacketHandler::validateVoteAndBlock(const std::shared_ptr<Vote> &vote,
                                                  const std::shared_ptr<PbftBlock> &pbft_block) const {
   if (pbft_block->getBlockHash() != vote->getBlockHash()) {
@@ -169,15 +154,15 @@ bool ExtVotesPacketHandler::validateVoteAndBlock(const std::shared_ptr<Vote> &vo
 bool ExtVotesPacketHandler::isPbftRelevantVote(const std::shared_ptr<Vote> &vote) const {
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
-  // Previous round next vote
-  if (vote->getPeriod() == current_pbft_period && (current_pbft_round - 1) == vote->getRound() &&
-      vote->getType() == PbftVoteTypes::next_vote) {
+  if (vote->getPeriod() >= current_pbft_period && vote->getRound() >= current_pbft_round) {
+    // Standard current or future vote
     return true;
-  } else if (vote->getPeriod() >= current_pbft_period) {
-    // Standard vote
+  } else if (vote->getPeriod() == current_pbft_period && vote->getRound() == (current_pbft_round - 1) &&
+             vote->getType() == PbftVoteTypes::next_vote) {
+    // Previous round next vote
     return true;
   } else if (vote->getPeriod() == current_pbft_period - 1 && vote->getType() == PbftVoteTypes::cert_vote) {
-    // Previous round cert vote - potential reward vote
+    // Previous period cert vote - potential reward vote
     return true;
   }
 
