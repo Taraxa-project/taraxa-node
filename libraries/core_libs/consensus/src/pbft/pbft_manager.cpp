@@ -246,12 +246,23 @@ void PbftManager::setPbftStep(PbftStep pbft_step) {
   db_->savePbftMgrField(PbftMgrField::Step, pbft_step);
   step_ = pbft_step;
 
-  if (step_ > kMaxSteps && lambda_ < kMaxLambda) {
-    // Note: We calculate the lambda for a step independently of prior steps in case missed earlier steps.
-    // TODO: do we need some randomness here ?
-    lambda_ *= 2;
-    if (lambda_ > kMaxLambda) {
-      lambda_ = kMaxLambda;
+  // Increase lambda only for odd steps (second finish steps) after node reached kMaxSteps steps
+  if (step_ > kMaxSteps && step_ % 2) {
+    const auto [round, period] = getPbftRoundAndPeriod();
+    const auto network_next_voting_step = vote_mgr_->getNetworkTplusOneNextVotingStep(period, round);
+
+    // Node is still >= kMaxSteps steps behind the rest (at least 1/3) of the network - keep lambda at the standard
+    // value so node can catch up with the rest of the nodes
+    if (network_next_voting_step > step_ && network_next_voting_step - step_ >= kMaxSteps) {
+      lambda_ = kMinLambda;
+    } else if (lambda_ < kMaxLambda) {
+      // Node is < kMaxSteps steps behind the rest (at least 1/3) of the network - start exponentially backing off
+      // lambda until it reaches kMaxLambda
+      // Note: We calculate the lambda for a step independently of prior steps in case missed earlier steps.
+      lambda_ *= 2;
+      if (lambda_ > kMaxLambda) {
+        lambda_ = kMaxLambda;
+      }
     }
   }
 }
