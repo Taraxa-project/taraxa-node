@@ -211,8 +211,6 @@ TEST_F(TransactionTest, transaction_low_nonce) {
   SharedTransactions trxs{trx_1, trx_2};
   period_data.transactions = trxs;
   auto batch = db->createWriteBatch();
-  db->saveTransactionPeriod(trx_1->getHash(), 1, 0);
-  db->saveTransactionPeriod(trx_2->getHash(), 1, 0);
   db->savePeriodData(period_data, batch);
   db->commitWriteBatch(batch);
   final_chain->finalize(std::move(period_data), {dag_blk.getHash()}).get();

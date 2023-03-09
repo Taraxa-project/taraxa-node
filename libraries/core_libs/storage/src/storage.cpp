@@ -2,6 +2,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <cstdint>
 #include <memory>
 
 #include "config/version.hpp"
@@ -451,7 +452,6 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period) {
           auto hash = trx_hash_t(reinterpret_cast<uint8_t*>(trx_hashes_raw.data() + i * trx_hash_t::size),
                                  trx_hash_t::ConstructFromPointer);
           remove(write_batch, Columns::final_chain_receipt_by_trx_hash, hash);
-          remove(write_batch, Columns::final_chain_transaction_location_by_hash, hash);
         }
         remove(write_batch, Columns::final_chain_transaction_hashes_by_blk_number, EthBlockNumber(period));
         if ((period - start_period + 1) % max_batch_delete == 0) {
@@ -466,7 +466,6 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period) {
       // data in the database and free disk space
       db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
       db_->CompactRange({}, handle(Columns::final_chain_receipt_by_trx_hash), nullptr, nullptr);
-      db_->CompactRange({}, handle(Columns::final_chain_transaction_location_by_hash), nullptr, nullptr);
       db_->CompactRange({}, handle(Columns::final_chain_transaction_hashes_by_blk_number), nullptr, nullptr);
     }
   }
@@ -606,6 +605,15 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
     }
   }
   return nullptr;
+}
+
+uint64_t DbStorage::getTransactionCount(PbftPeriod period) const {
+  auto period_data = getPeriodDataRaw(period);
+  if (period_data.size()) {
+    auto period_data_rlp = dev::RLP(period_data);
+    return period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA].itemCount();
+  }
+  return 0;
 }
 
 std::pair<std::optional<SharedTransactions>, trx_hash_t> DbStorage::getFinalizedTransactions(

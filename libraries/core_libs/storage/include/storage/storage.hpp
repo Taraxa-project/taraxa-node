@@ -111,10 +111,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(dag_block_period);
     COLUMN_W_COMP(proposal_period_levels_map, getIntComparator<uint64_t>());
     COLUMN(final_chain_meta);
-    COLUMN(final_chain_transaction_location_by_hash);
-    COLUMN(final_chain_replay_protection);
     COLUMN(final_chain_transaction_hashes_by_blk_number);
-    COLUMN(final_chain_transaction_count_by_blk_number);
     COLUMN(final_chain_blk_by_number);
     COLUMN(final_chain_blk_hash_by_number);
     COLUMN(final_chain_blk_number_by_hash);
@@ -231,6 +228,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void addTransactionPeriodToBatch(Batch& write_batch, trx_hash_t const& trx, PbftPeriod period, uint32_t position);
   std::optional<std::pair<PbftPeriod, uint32_t>> getTransactionPeriod(trx_hash_t const& hash) const;
   std::unordered_map<trx_hash_t, PbftPeriod> getAllTransactionPeriod();
+  uint64_t getTransactionCount(PbftPeriod period) const;
 
   // PBFT manager
   uint32_t getPbftMgrField(PbftMgrField field);
