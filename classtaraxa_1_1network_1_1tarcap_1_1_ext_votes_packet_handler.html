@@ -208,9 +208,6 @@ Private Member Functions</h2></td></tr>
 <tr class="memitem:acc3ebcac8f0d502e645dd8bc901bb726"><td class="memItemLeft" align="right" valign="top">std::pair&lt; bool, std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#acc3ebcac8f0d502e645dd8bc901bb726">validateVotePeriodRoundStep</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote, const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt; &amp;peer, bool validate_max_round_step)</td></tr>
 <tr class="memdesc:acc3ebcac8f0d502e645dd8bc901bb726"><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates vote period, round and step against max values from config.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#acc3ebcac8f0d502e645dd8bc901bb726">More...</a><br /></td></tr>
 <tr class="separator:acc3ebcac8f0d502e645dd8bc901bb726"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afafdabcd8b16cfb455faa1e2e42df752"><td class="memItemLeft" align="right" valign="top">std::pair&lt; bool, std::string &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#afafdabcd8b16cfb455faa1e2e42df752">validateVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote) const</td></tr>
-<tr class="memdesc:afafdabcd8b16cfb455faa1e2e42df752"><td class="mdescLeft">&#160;</td><td class="mdescRight">Common validation for all types of votes.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#afafdabcd8b16cfb455faa1e2e42df752">More...</a><br /></td></tr>
-<tr class="separator:afafdabcd8b16cfb455faa1e2e42df752"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae00924c5e98fd3682d3604f34b41e920"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#ae00924c5e98fd3682d3604f34b41e920">validateVoteAndBlock</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote, const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;pbft_block) const</td></tr>
 <tr class="memdesc:ae00924c5e98fd3682d3604f34b41e920"><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates provided vote if voted value == provided block.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#ae00924c5e98fd3682d3604f34b41e920">More...</a><br /></td></tr>
 <tr class="separator:ae00924c5e98fd3682d3604f34b41e920"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -527,41 +524,6 @@ Additional Inherited Members</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
-
-</div>
-</div>
-<a id="afafdabcd8b16cfb455faa1e2e42df752"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afafdabcd8b16cfb455faa1e2e42df752">&#9670;&nbsp;</a></span>validateVote()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::pair&lt; bool, std::string &gt; taraxa::network::tarcap::ExtVotesPacketHandler::validateVote </td>
-          <td>(</td>
-          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>vote</em></td><td>)</td>
-          <td> const</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Common validation for all types of votes. </p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">vote</td><td>to be validated </td></tr>
-  </table>
-  </dd>
-</dl>
-<dl class="section return"><dt>Returns</dt><dd>&lt;true, ""&gt; vote validation passed, otherwise &lt;false, "err msg"&gt; </dd></dl>
 
 </div>
 </div>

@@ -9,7 +9,6 @@ var classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler =
     [ "operator=", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#aeb67be35c0774ae2710779d4fcec787f", null ],
     [ "processVote", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#ab389ecf32012656604e2b80e1620438b", null ],
     [ "sendPbftVotesBundle", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a8e52d015311e67eba1b2e864a6262104", null ],
-    [ "validateVote", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#afafdabcd8b16cfb455faa1e2e42df752", null ],
     [ "validateVoteAndBlock", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#ae00924c5e98fd3682d3604f34b41e920", null ],
     [ "validateVotePeriodRoundStep", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#acc3ebcac8f0d502e645dd8bc901bb726", null ],
     [ "kMaxVotesInPacket", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#afbf0d2e7c613557c901ed2ac960999bf", null ],
