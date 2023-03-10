@@ -71,6 +71,7 @@ var classtaraxa_1_1_db_storage =
     [ "getRewardVotes", "classtaraxa_1_1_db_storage.html#ae86453729f94a0be017bd6e8a052d3e8", null ],
     [ "getStatusField", "classtaraxa_1_1_db_storage.html#abcbe399ba3465cdf96c4b612732c81b2", null ],
     [ "getTransaction", "classtaraxa_1_1_db_storage.html#a293302014a66ea0edcf444decf09f9d0", null ],
+    [ "getTransactionCount", "classtaraxa_1_1_db_storage.html#a088a21c446c0b4ad206bb8c422b525f5", null ],
     [ "getTransactionPeriod", "classtaraxa_1_1_db_storage.html#a725b32cfd239e1530dac0bb1b875f176", null ],
     [ "handle", "classtaraxa_1_1_db_storage.html#ac0b98de59537f7274bc9d1c57576e78b", null ],
     [ "hasMinorVersionChanged", "classtaraxa_1_1_db_storage.html#abc2340acad061b1f9698e54c2018e0ea", null ],

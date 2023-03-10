@@ -29,7 +29,7 @@ var classtaraxa_1_1final__chain_1_1_final_chain_impl =
     [ "to_state_api_transactions", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#aa6c0057142f0be0589a28cd07694bf32", null ],
     [ "trace_trx", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab25546e37799c069454b0e72cd2a5cc4", null ],
     [ "transaction_hashes", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a616404561e1b6a328f09f7a23a6163c7", null ],
-    [ "transaction_location", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#afd255044cf2062280914d42a8f5baaca", null ],
+    [ "transaction_location", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a9dabc621b7c7b50e38c242aaff5b60bd", null ],
     [ "transaction_receipt", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ad41c174138cd0b4ef597e21aec925b3a", null ],
     [ "transactionCount", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ad59de1a26755f0a00123eceb7a5e6a80", null ],
     [ "transactions", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab54243b01846a87cd31281089389b3ae", null ],

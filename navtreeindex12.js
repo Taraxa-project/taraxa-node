@@ -1,7 +1,5 @@
 var NAVTREEINDEX12 =
 {
-"constants_8hpp.html#af37c840bbc7870c8fb9f5c878ac55582":[15,0,1,2,0,0,1,14],
-"constants_8hpp_source.html":[15,0,1,2,0,0,1],
 "contract__interface_8hpp.html":[15,0,1,4,0,0,1,1],
 "contract__interface_8hpp_source.html":[15,0,1,4,0,0,1,1],
 "core__libs_2network_2graphql_2include_2graphql_2transaction_8hpp.html":[15,0,1,4,1,0,0,0,9],
@@ -249,5 +247,7 @@ var NAVTREEINDEX12 =
 "functions_r.html":[14,3,0,17],
 "functions_rela.html":[14,3,6],
 "functions_s.html":[14,3,0,18],
-"functions_t.html":[14,3,0,19]
+"functions_t.html":[14,3,0,19],
+"functions_type.html":[14,3,3],
+"functions_u.html":[14,3,0,20]
 };
