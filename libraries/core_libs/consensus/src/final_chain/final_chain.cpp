@@ -309,16 +309,8 @@ class FinalChainImpl final : public FinalChain {
       chunk_to_alter[index % c_bloomIndexSize] |= log_bloom_for_index;
       db_->insert(batch, DB::Columns::final_chain_log_blooms_index, chunk_id, util::rlp_enc(rlp_strm, chunk_to_alter));
     }
-    TransactionLocation tl{blk_header.number};
-    for (auto const& trx : transactions) {
-      db_->insert(batch, DB::Columns::final_chain_transaction_location_by_hash, trx->getHash(),
-                  util::rlp_enc(rlp_strm, tl));
-      ++tl.index;
-    }
     db_->insert(batch, DB::Columns::final_chain_transaction_hashes_by_blk_number, blk_header.number,
                 dev::rlp(hashes_from_transactions(transactions)));
-    db_->insert(batch, DB::Columns::final_chain_transaction_count_by_blk_number, blk_header.number,
-                transactions.size());
     db_->insert(batch, DB::Columns::final_chain_blk_hash_by_number, blk_header.number, blk_header.hash);
     db_->insert(batch, DB::Columns::final_chain_blk_number_by_hash, blk_header.hash, blk_header.number);
     db_->insert(batch, DB::Columns::final_chain_meta, DBMetaKeys::LAST_NUMBER, blk_header.number);
@@ -343,14 +335,12 @@ class FinalChainImpl final : public FinalChain {
     return block_headers_cache_.get(*n);
   }
 
-  std::optional<TransactionLocation> transaction_location(h256 const& trx_hash) const override {
-    auto raw = db_->lookup(trx_hash, DB::Columns::final_chain_transaction_location_by_hash);
-    if (raw.empty()) {
+  std::optional<TransactionLocation> transaction_location(const h256& trx_hash) const override {
+    const auto period = db_->getTransactionPeriod(trx_hash);
+    if (!period) {
       return {};
     }
-    TransactionLocation ret;
-    ret.rlp(dev::RLP(raw));
-    return ret;
+    return TransactionLocation{period->first, period->second};
   }
 
   std::optional<TransactionReceipt> transaction_receipt(h256 const& trx_h) const override {
@@ -364,8 +354,7 @@ class FinalChainImpl final : public FinalChain {
   }
 
   uint64_t transactionCount(std::optional<EthBlockNumber> n = {}) const override {
-    return db_->lookup_int<uint64_t>(last_if_absent(n), DB::Columns::final_chain_transaction_count_by_blk_number)
-        .value_or(0);
+    return db_->getTransactionCount(last_if_absent(n));
   }
 
   std::shared_ptr<const TransactionHashes> transaction_hashes(std::optional<EthBlockNumber> n = {}) const override {
