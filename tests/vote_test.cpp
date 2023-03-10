@@ -58,30 +58,29 @@ TEST_F(VoteTest, verified_votes) {
 TEST_F(VoteTest, round_determine_from_next_votes) {
   auto node = create_nodes(1, true /*start*/).front();
 
-  // stop PBFT manager, that will place vote
-  node->getPbftManager()->stop();
+  auto pbft_mgr = node->getPbftManager();
+  auto vote_mgr = node->getVoteManager();
 
+  // stop PBFT manager, that will place vote
+  pbft_mgr->stop();
   clearAllVotes({node});
 
-  auto vote_mgr = node->getVoteManager();
-  size_t two_t_plus_one = 2;
+  const auto [current_round, current_period] = pbft_mgr->getPbftRoundAndPeriod();
 
-  // Generate votes in 3 rounds, 2 steps, each step have 3 votes
+  // Generate votes for a few future rounds
   blk_hash_t voted_block_hash(1);
   PbftVoteTypes type = PbftVoteTypes::next_vote;
-  for (int i = 10; i <= 12; i++) {
-    for (int j = 4; j <= 5; j++) {
-      PbftPeriod period = i;
-      PbftRound round = i;
-      PbftStep step = j;
-      auto vote = vote_mgr->generateVote(voted_block_hash, type, period, round, step);
-      vote->calculateWeight(3, 3, 3);
-      vote_mgr->addVerifiedVote(vote);
-    }
+  const PbftRound kMaxRound = current_round + 3;
+  PbftStep step = 5;
+  for (PbftRound round = current_round; round <= kMaxRound; round++) {
+    auto vote = vote_mgr->generateVote(voted_block_hash, type, current_period, round, step);
+    vote->calculateWeight(3, 3, 3);
+    vote_mgr->addVerifiedVote(vote);
   }
 
-  auto new_round = vote_mgr->determineNewRound(12, two_t_plus_one);
-  EXPECT_EQ(*new_round, 13);
+  auto new_round = vote_mgr->determineNewRound(current_period, kMaxRound);
+  EXPECT_EQ(new_round.has_value(), true);
+  EXPECT_EQ(*new_round, kMaxRound + 1);
 }
 
 TEST_F(VoteTest, reconstruct_votes) {
