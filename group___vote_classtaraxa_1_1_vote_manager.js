@@ -12,6 +12,7 @@ var group___vote_classtaraxa_1_1_vote_manager =
     [ "generateVote", "group___vote.html#adf91d6a817ee12e17d5cc8e0ac67c9c2", null ],
     [ "generateVoteWithWeight", "group___vote.html#a14715d74b4fde03472c62c55b60c0f5c", null ],
     [ "getAllTwoTPlusOneNextVotes", "group___vote.html#a72f8b50957c6d43eeedd344f58e06280", null ],
+    [ "getNetworkTplusOneNextVotingStep", "group___vote.html#adf48ab63030131c5ea2666dc26c19a23", null ],
     [ "getPbftSortitionThreshold", "group___vote.html#a61d9d15dbff071b69ec36ab33864e727", null ],
     [ "getPbftTwoTPlusOne", "group___vote.html#a1d1188e97e2400c1beb8d01a7b3daf7a", null ],
     [ "getProposalVotes", "group___vote.html#a51b54b6d0c0e6ce6c427c6a0d013ace2", null ],

@@ -233,6 +233,9 @@ Collaboration diagram for taraxa::VoteManager:</div>
 <tr class="memitem:aad3b0005eb4bf67641018be3db3e1962"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#aad3b0005eb4bf67641018be3db3e1962">setCurrentPbftPeriodAndRound</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> pbft_period, <a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a> pbft_round)</td></tr>
 <tr class="memdesc:aad3b0005eb4bf67641018be3db3e1962"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets current pbft period &amp; round. It also checks if we dont alredy have 2t+1 vote bundles(pf any type) for the provided period &amp; round and if so, it saves these bundles into db.  <a href="group___vote.html#aad3b0005eb4bf67641018be3db3e1962">More...</a><br /></td></tr>
 <tr class="separator:aad3b0005eb4bf67641018be3db3e1962"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adf48ab63030131c5ea2666dc26c19a23"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#adf48ab63030131c5ea2666dc26c19a23">getNetworkTplusOneNextVotingStep</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, <a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a> round) const</td></tr>
+<tr class="memdesc:adf48ab63030131c5ea2666dc26c19a23"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns greatest step (in specified period &amp; round), for which there is at least t+1 voting power from all nodes.  <a href="group___vote.html#adf48ab63030131c5ea2666dc26c19a23">More...</a><br /></td></tr>
+<tr class="separator:adf48ab63030131c5ea2666dc26c19a23"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Member Functions</h3></td></tr>
 <tr class="memitem:ad9887aa224a11b723e647f13c04e335f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ad9887aa224a11b723e647f13c04e335f">isValidRewardVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote) const</td></tr>
 <tr class="separator:ad9887aa224a11b723e647f13c04e335f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -741,6 +744,45 @@ Collaboration diagram for taraxa::VoteManager:</div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>vector of next votes if 2t+1 voted block votes found, otherwise empty vector </dd></dl>
+
+</div>
+</div>
+<a id="adf48ab63030131c5ea2666dc26c19a23"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adf48ab63030131c5ea2666dc26c19a23">&#9670;&nbsp;</a></span>getNetworkTplusOneNextVotingStep()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a> taraxa::VoteManager::getNetworkTplusOneNextVotingStep </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
+          <td class="paramname"><em>period</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a>&#160;</td>
+          <td class="paramname"><em>round</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns greatest step (in specified period &amp; round), for which there is at least t+1 voting power from all nodes. </p>
+<dl class="section note"><dt>Note</dt><dd>It is used for triggering lambda exponential backoff</dd></dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">period</td><td></td></tr>
+    <tr><td class="paramname">round</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>greatest network 2t+1 next voting step </dd></dl>
 
 </div>
 </div>
