@@ -237,6 +237,7 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
     // Unable to get 2t+1
     const auto two_t_plus_one = getPbftTwoTPlusOne(vote->getPeriod() - 1, vote->getType());
     if (!two_t_plus_one.has_value()) [[unlikely]] {
+      LOG(log_er_) << "Cannot set(or not) 2t+1 voted block as 2t+1 threshold is unavailable, vote " << vote->getHash();
       return true;
     }
 
