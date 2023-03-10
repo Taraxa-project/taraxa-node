@@ -142,6 +142,22 @@ void VoteManager::setCurrentPbftPeriodAndRound(PbftPeriod pbft_period, PbftRound
   }
 }
 
+PbftStep VoteManager::getNetworkTplusOneNextVotingStep(PbftPeriod period, PbftRound round) const {
+  std::shared_lock lock(verified_votes_access_);
+
+  const auto found_period_it = verified_votes_.find(period);
+  if (found_period_it == verified_votes_.end()) {
+    return 0;
+  }
+
+  const auto found_round_it = found_period_it->second.find(round);
+  if (found_round_it == found_period_it->second.end()) {
+    return 0;
+  }
+
+  return found_round_it->second.network_t_plus_one_step;
+}
+
 bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
   assert(vote->getWeight().has_value());
   const auto hash = vote->getHash();
@@ -218,9 +234,23 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
 
     const auto total_weight = (found_voted_value_it->second.first += weight);
 
-    // Not enough votes - do not set 2t+1 voted block for period,round and step
+    // Unable to get 2t+1
     const auto two_t_plus_one = getPbftTwoTPlusOne(vote->getPeriod() - 1, vote->getType());
-    if (total_weight < two_t_plus_one) {
+    if (!two_t_plus_one.has_value()) [[unlikely]] {
+      LOG(log_er_) << "Cannot set(or not) 2t+1 voted block as 2t+1 threshold is unavailable, vote " << vote->getHash();
+      return true;
+    }
+
+    // Calculate t+1
+    const auto t_plus_one = ((*two_t_plus_one - 1) / 2) + 1;
+    // Set network_t_plus_one_step - used for triggering exponential backoff
+    if (vote->getType() == PbftVoteTypes::next_vote && total_weight >= t_plus_one &&
+        vote->getStep() > found_round_it->second.network_t_plus_one_step) {
+      found_round_it->second.network_t_plus_one_step = vote->getStep();
+    }
+
+    // Not enough votes - do not set 2t+1 voted block for period,round and step
+    if (total_weight < *two_t_plus_one) {
       return true;
     }
 

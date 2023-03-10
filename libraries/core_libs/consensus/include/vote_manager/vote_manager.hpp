@@ -220,6 +220,17 @@ class VoteManager {
    */
   void setCurrentPbftPeriodAndRound(PbftPeriod pbft_period, PbftRound pbft_round);
 
+  /**
+   * @brief Returns greatest step (in specified period & round), for which there is at least t+1 voting power
+   *        from all nodes
+   * @note It is used for triggering lambda exponential backoff
+   *
+   * @param period
+   * @param round
+   * @return greatest network 2t+1 next voting step
+   */
+  PbftStep getNetworkTplusOneNextVotingStep(PbftPeriod period, PbftRound round) const;
+
  private:
   /**
    * @param vote
