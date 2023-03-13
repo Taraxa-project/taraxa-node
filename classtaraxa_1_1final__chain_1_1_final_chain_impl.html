@@ -253,6 +253,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:ac1653373481d9ddb21e75135a28fba0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a06d9ea36b96d6a63e18245c581c17e87"><td class="memItemLeft" align="right" valign="top">boost::asio::thread_pool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a06d9ea36b96d6a63e18245c581c17e87">executor_thread_</a> {1}</td></tr>
 <tr class="separator:a06d9ea36b96d6a63e18245c581c17e87"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d457e2a05b269befe456ba025151bc7"><td class="memItemLeft" align="right" valign="top">boost::asio::thread_pool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a6d457e2a05b269befe456ba025151bc7">prune_thread_</a> {1}</td></tr>
+<tr class="separator:a6d457e2a05b269befe456ba025151bc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7e4b48d1c452fb9384e2c69a5f595560"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a7e4b48d1c452fb9384e2c69a5f595560">num_executed_dag_blk_</a> = 0</td></tr>
 <tr class="separator:a7e4b48d1c452fb9384e2c69a5f595560"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae93239105e5ce019b97a88ef69e80527"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ae93239105e5ce019b97a88ef69e80527">num_executed_trx_</a> = 0</td></tr>
@@ -2068,6 +2070,28 @@ Additional Inherited Members</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::atomic&lt;uint64_t&gt; taraxa::final_chain::FinalChainImpl::num_executed_trx_ = 0</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6d457e2a05b269befe456ba025151bc7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6d457e2a05b269befe456ba025151bc7">&#9670;&nbsp;</a></span>prune_thread_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">boost::asio::thread_pool taraxa::final_chain::FinalChainImpl::prune_thread_ {1}</td>
         </tr>
       </table>
   </td>

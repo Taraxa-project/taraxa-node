@@ -52,6 +52,7 @@ var classtaraxa_1_1final__chain_1_1_final_chain_impl =
     [ "kLightNodePruneOffset", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ac1653373481d9ddb21e75135a28fba0e", null ],
     [ "num_executed_dag_blk_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a7e4b48d1c452fb9384e2c69a5f595560", null ],
     [ "num_executed_trx_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ae93239105e5ce019b97a88ef69e80527", null ],
+    [ "prune_thread_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a6d457e2a05b269befe456ba025151bc7", null ],
     [ "state_api_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a8dc59861e1ecd2ad92e753bab9cf13bd", null ],
     [ "total_vote_count_cache_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#aabdeea361ea634f9110f70405234cfc5", null ],
     [ "transaction_hashes_cache_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ae96fc4a3e9b8e8b1a234d9777c661436", null ],

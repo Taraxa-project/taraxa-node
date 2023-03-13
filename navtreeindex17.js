@@ -1,5 +1,6 @@
 var NAVTREEINDEX17 =
 {
+"libdevcore_2_exceptions_8h.html#a82395d09737f9b495da8df93b67054e9":[15,0,1,0,0,12,2],
 "libdevcore_2_exceptions_8h.html#a83f076111496c324f745edb92ca32773":[15,0,1,0,0,12,29],
 "libdevcore_2_exceptions_8h.html#a8bd5764483662329f2f83dccc90bb13a":[15,0,1,0,0,12,22],
 "libdevcore_2_exceptions_8h.html#a926847180de7bc693356b6c9eea6fff0":[15,0,1,0,0,12,38],
@@ -248,6 +249,5 @@ var NAVTREEINDEX17 =
 "md_doc_building.html#autotoc_md34":[1,1,2],
 "md_doc_building.html#autotoc_md35":[1,2],
 "md_doc_building.html#autotoc_md36":[1,2,0],
-"md_doc_building.html#autotoc_md37":[1,2,1],
-"md_doc_building.html#autotoc_md38":[1,2,2]
+"md_doc_building.html#autotoc_md37":[1,2,1]
 };

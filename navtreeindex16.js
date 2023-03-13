@@ -1,5 +1,6 @@
 var NAVTREEINDEX16 =
 {
+"group___vote.html#a1d1188e97e2400c1beb8d01a7b3daf7a":[12,4,0,14],
 "group___vote.html#a1dcf910e6a0ff63ef8895cbe64446b02":[12,4,1,5],
 "group___vote.html#a2078e19b96d7ca2d0a651d38ed69de2a":[12,4,4,15],
 "group___vote.html#a20938e045130449e05407e01f7f82f5b":[12,4,4,5],
@@ -248,6 +249,5 @@ var NAVTREEINDEX16 =
 "libdevcore_2_exceptions_8h.html#a502ea1315515149073c33d6ade682886":[15,0,1,0,0,12,32],
 "libdevcore_2_exceptions_8h.html#a5f310013fd2491ad3a83068b8c1cf0b1":[15,0,1,0,0,12,18],
 "libdevcore_2_exceptions_8h.html#a66c3ce4791f34cf1418a1b570de74328":[15,0,1,0,0,12,15],
-"libdevcore_2_exceptions_8h.html#a7142a9d865619e40e469bf11236a2813":[15,0,1,0,0,12,36],
-"libdevcore_2_exceptions_8h.html#a82395d09737f9b495da8df93b67054e9":[15,0,1,0,0,12,2]
+"libdevcore_2_exceptions_8h.html#a7142a9d865619e40e469bf11236a2813":[15,0,1,0,0,12,36]
 };
