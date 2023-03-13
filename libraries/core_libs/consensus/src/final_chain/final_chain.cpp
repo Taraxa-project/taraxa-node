@@ -23,6 +23,7 @@ class FinalChainImpl final : public FinalChain {
 
   // It is not prepared to use more then 1 thread. Examine it if you want to change threads count
   boost::asio::thread_pool executor_thread_{1};
+  boost::asio::thread_pool prune_thread_{1};
 
   std::atomic<uint64_t> num_executed_dag_blk_ = 0;
   std::atomic<uint64_t> num_executed_trx_ = 0;
@@ -124,7 +125,10 @@ class FinalChainImpl final : public FinalChain {
     delegation_delay_ = config.genesis.state.dpos.delegation_delay;
   }
 
-  void stop() override { executor_thread_.join(); }
+  void stop() override {
+    executor_thread_.join();
+    prune_thread_.join();
+  }
 
   std::future<std::shared_ptr<const FinalizationResult>> finalize(PeriodData&& new_blk,
                                                                   std::vector<h256>&& finalized_dag_blk_hashes,
@@ -261,10 +265,13 @@ class FinalChainImpl final : public FinalChain {
         block_to_prune = get_block_header(block_to_prune->number - 1);
       }
 
-      state_api_.prune(last_block_to_keep->state_root, state_root_to_prune, last_block_to_keep->number);
       db_->compactColumn(DB::Columns::final_chain_blk_by_number);
       db_->compactColumn(DB::Columns::final_chain_blk_hash_by_number);
       db_->compactColumn(DB::Columns::final_chain_blk_number_by_hash);
+
+      boost::asio::post(prune_thread_, [this, last_block_to_keep, state_root_to_prune]() {
+        state_api_.prune(last_block_to_keep->state_root, state_root_to_prune, last_block_to_keep->number);
+      });
     }
   }
 
