@@ -40,7 +40,7 @@ will build out of the box without further effort:
     sudo python3 -m pip install conan==1.59.0
 
     # Setup clang as default compiler either in your IDE or by env. variables"
-    export C="clang-14"
+    export CC="clang-14"
     export CXX="clang++-14"
 
 ### Clone the Repository
@@ -127,7 +127,7 @@ will build out of the box without further effort:
     rm -f llvm.sh
 
     # Setup clang as default compiler either in your IDE or by env. variables"
-    export C="clang-14"
+    export CC="clang-14"
     export CXX="clang++-14"
 
 ### Clone the Repository
