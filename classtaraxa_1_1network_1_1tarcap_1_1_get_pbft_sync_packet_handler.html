@@ -134,8 +134,8 @@ Collaboration diagram for taraxa::network::tarcap::GetPbftSyncPacketHandler:</di
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a143c05f8c4e6363400d9505c7e946a6a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a143c05f8c4e6363400d9505c7e946a6a">GetPbftSyncPacketHandler</a> (const <a class="el" href="structtaraxa_1_1_full_node_config.html">FullNodeConfig</a> &amp;conf, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt; peers_state, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html">TimePeriodPacketsStats</a> &gt; packets_stats, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html">PbftSyncingState</a> &gt; pbft_syncing_state, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt; pbft_chain, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr)</td></tr>
-<tr class="separator:a143c05f8c4e6363400d9505c7e946a6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42bd49e342a44a828eef02c3c7a735c7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a42bd49e342a44a828eef02c3c7a735c7">GetPbftSyncPacketHandler</a> (const <a class="el" href="structtaraxa_1_1_full_node_config.html">FullNodeConfig</a> &amp;conf, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt; peers_state, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html">TimePeriodPacketsStats</a> &gt; packets_stats, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html">PbftSyncingState</a> &gt; pbft_syncing_state, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt; pbft_chain, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote_manager">VoteManager</a> &gt; vote_mgr, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt; db, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr)</td></tr>
+<tr class="separator:a42bd49e342a44a828eef02c3c7a735c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9d61229b66cfba5dbeb93dc594b4827c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a9d61229b66cfba5dbeb93dc594b4827c">sendPbftBlocks</a> (<a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> const &amp;peer_id, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> from_period, size_t blocks_to_transfer, bool pbft_chain_synced)</td></tr>
 <tr class="separator:a9d61229b66cfba5dbeb93dc594b4827c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html">taraxa::network::tarcap::PacketHandler</a></td></tr>
@@ -177,6 +177,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a9de1cec0b923bd7b95c70c51a16eda19"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8651276881f357c5053e0cfedc7030d1"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a8651276881f357c5053e0cfedc7030d1">pbft_chain_</a></td></tr>
 <tr class="separator:a8651276881f357c5053e0cfedc7030d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa26c311823e22133a6d57fc3bba7a796"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote_manager">VoteManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#aa26c311823e22133a6d57fc3bba7a796">vote_mgr_</a></td></tr>
+<tr class="separator:aa26c311823e22133a6d57fc3bba7a796"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a66bc045d5383a67bd29581789a4a989e"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_db_storage.html">DbStorage</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a66bc045d5383a67bd29581789a4a989e">db_</a></td></tr>
 <tr class="separator:a66bc045d5383a67bd29581789a4a989e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -199,8 +201,8 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:a481d7860a8bc694182f20bc57067253a inherit pro_attribs_classtaraxa_1_1network_1_1tarcap_1_1_packet_handler"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a143c05f8c4e6363400d9505c7e946a6a"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a143c05f8c4e6363400d9505c7e946a6a">&#9670;&nbsp;</a></span>GetPbftSyncPacketHandler()</h2>
+<a id="a42bd49e342a44a828eef02c3c7a735c7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a42bd49e342a44a828eef02c3c7a735c7">&#9670;&nbsp;</a></span>GetPbftSyncPacketHandler()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -234,6 +236,12 @@ Additional Inherited Members</h2></td></tr>
           <td></td>
           <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt;&#160;</td>
           <td class="paramname"><em>pbft_chain</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote_manager">VoteManager</a> &gt;&#160;</td>
+          <td class="paramname"><em>vote_mgr</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -452,6 +460,28 @@ Additional Inherited Members</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::shared_ptr&lt;<a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html">PbftSyncingState</a>&gt; taraxa::network::tarcap::GetPbftSyncPacketHandler::pbft_syncing_state_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa26c311823e22133a6d57fc3bba7a796"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa26c311823e22133a6d57fc3bba7a796">&#9670;&nbsp;</a></span>vote_mgr_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::shared_ptr&lt;<a class="el" href="group___vote.html#classtaraxa_1_1_vote_manager">VoteManager</a>&gt; taraxa::network::tarcap::GetPbftSyncPacketHandler::vote_mgr_</td>
         </tr>
       </table>
   </td>
