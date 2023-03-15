@@ -615,7 +615,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
                         beneficiary, node1->getSecretKey(), {});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(
-      node1->getVoteManager()->generateVote(pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, 2, 2, 3));
+      node1->getVoteManager()->generateVoteWithWeight(pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, 2, 1, 3));
   std::cout << "Generate 1 vote for second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and store into DB
   // Add cert votes in DB
@@ -629,7 +629,9 @@ TEST_F(NetworkTest, node_pbft_sync) {
   period_data2.transactions.push_back(g_signed_trx_samples[3]);
 
   db1->savePeriodData(period_data2, batch);
-  db1->replaceRewardVotes(votes_for_pbft_blk2, batch);
+  node1->getVoteManager()->addVerifiedVote(votes_for_pbft_blk2[0]);
+  db1->replaceTwoTPlusOneVotesToBatch(TwoTPlusOneVotedBlockType::CertVotedBlock, votes_for_pbft_blk2, batch);
+  node1->getVoteManager()->resetRewardVotes(2, 1, 3, pbft_block2.getBlockHash(), batch);
 
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash(), pbft_block2.getPivotDagBlockHash());

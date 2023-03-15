@@ -96,13 +96,16 @@ class VoteManager {
   std::optional<PbftRound> determineNewRound(PbftPeriod current_pbft_period, PbftRound current_pbft_round);
 
   /**
-   * @brief Replace current reward votes info with new period, round & block hash based on vote
+   * @brief Replace current reward votes with new period, round & block hash based on vote
    *
    * @param period
    * @param round
+   * @param step
    * @param block_hash
+   * @param batch
    */
-  void resetRewardVotesInfo(PbftPeriod period, PbftRound round, const blk_hash_t& block_hash);
+  void resetRewardVotes(PbftPeriod period, PbftRound round, PbftStep step, const blk_hash_t& block_hash,
+                        DbStorage::Batch& batch);
 
   /**
    * @brief Check reward votes for specified pbft block
@@ -115,11 +118,11 @@ class VoteManager {
                                                                        bool copy_votes);
 
   /**
-   * @brief Get reward votes from reward_votes_ with the round during which was the previous block pushed
+   * @brief Get reward votes with the round during which was the previous block pushed
    *
    * @return vector of reward votes
    */
-  std::vector<std::shared_ptr<Vote>> getProposeRewardVotes();
+  std::vector<std::shared_ptr<Vote>> getRewardVotes();
 
   /**
    * @brief Get current reward votes pbft block period
@@ -280,6 +283,7 @@ class VoteManager {
   blk_hash_t reward_votes_block_hash_;
   PbftRound reward_votes_period_;
   PbftRound reward_votes_round_;
+  std::vector<vote_hash_t> extra_reward_votes_;
   mutable std::shared_mutex reward_votes_info_mutex_;
 
   // Cache for current 2T+1 - <Vote type, <period, two_t_plus_one for period>>

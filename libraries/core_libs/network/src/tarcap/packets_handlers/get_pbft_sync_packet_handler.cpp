@@ -4,17 +4,20 @@
 #include "pbft/pbft_chain.hpp"
 #include "storage/storage.hpp"
 #include "vote/vote.hpp"
+#include "vote_manager/vote_manager.hpp"
 
 namespace taraxa::network::tarcap {
 
 GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                                                    std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                    std::shared_ptr<PbftSyncingState> pbft_syncing_state,
-                                                   std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<DbStorage> db,
+                                                   std::shared_ptr<PbftChain> pbft_chain,
+                                                   std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DbStorage> db,
                                                    const addr_t &node_addr)
     : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, "GET_PBFT_SYNC_PH"),
       pbft_syncing_state_(std::move(pbft_syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
+      vote_mgr_(std::move(vote_mgr)),
       db_(std::move(db)) {}
 
 void GetPbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
@@ -80,7 +83,7 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, P
       s << last_block;
       s.appendRaw(data);
       // Latest finalized block cert votes are saved in db as reward votes for new blocks
-      const auto votes = db_->getRewardVotes();
+      const auto votes = vote_mgr_->getRewardVotes();
       s.appendList(votes.size());
       for (const auto &vote : votes) {
         s.appendRaw(vote->rlp(true));

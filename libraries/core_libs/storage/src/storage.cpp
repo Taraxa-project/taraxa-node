@@ -846,6 +846,17 @@ void DbStorage::replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType type,
   insert(Columns::latest_round_two_t_plus_one_votes, static_cast<uint8_t>(type), s.out());
 }
 
+void DbStorage::replaceTwoTPlusOneVotesToBatch(TwoTPlusOneVotedBlockType type,
+                                               const std::vector<std::shared_ptr<Vote>>& votes, Batch& write_batch) {
+  remove(write_batch, Columns::latest_round_two_t_plus_one_votes, static_cast<uint8_t>(type));
+
+  dev::RLPStream s(votes.size());
+  for (const auto& vote : votes) {
+    s.appendRaw(vote->rlp(true, true));
+  }
+  insert(write_batch, Columns::latest_round_two_t_plus_one_votes, static_cast<uint8_t>(type), s.out());
+}
+
 std::vector<std::shared_ptr<Vote>> DbStorage::getAllTwoTPlusOneVotes() {
   std::vector<std::shared_ptr<Vote>> votes;
   auto load_db_votes = [this, &votes](TwoTPlusOneVotedBlockType type) {
@@ -866,29 +877,20 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getAllTwoTPlusOneVotes() {
   return votes;
 }
 
-void DbStorage::replaceRewardVotes(const std::vector<std::shared_ptr<Vote>>& votes, Batch& write_batch) {
-  // TODO: deletion could be optimized if we save votes in memory
-  // Remove existing reward votes
-  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::latest_reward_votes)));
-  for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    const auto vote = std::make_shared<Vote>(asBytes(it->value().ToString()));
-    remove(write_batch, Columns::latest_reward_votes, vote->getHash().asBytes());
-  }
-
-  // Add new reward votes
-  for (const auto& vote : votes) {
-    insert(write_batch, Columns::latest_reward_votes, vote->getHash().asBytes(), vote->rlp(true, true));
+void DbStorage::removeExtraRewardVotes(const std::vector<vote_hash_t>& votes, Batch& write_batch) {
+  for (const auto& v : votes) {
+    remove(write_batch, Columns::extra_reward_votes, v.asBytes());
   }
 }
 
-void DbStorage::saveRewardVote(const std::shared_ptr<Vote>& vote) {
-  insert(Columns::latest_reward_votes, vote->getHash().asBytes(), vote->rlp(true, true));
+void DbStorage::saveExtraRewardVote(const std::shared_ptr<Vote>& vote) {
+  insert(Columns::extra_reward_votes, vote->getHash().asBytes(), vote->rlp(true, true));
 }
 
 std::vector<std::shared_ptr<Vote>> DbStorage::getRewardVotes() {
   std::vector<std::shared_ptr<Vote>> votes;
 
-  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::latest_reward_votes)));
+  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::extra_reward_votes)));
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
     votes.emplace_back(std::make_shared<Vote>(asBytes(it->value().ToString())));
   }
