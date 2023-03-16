@@ -114,7 +114,10 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
     // Process processStandardVote is called with false in case of next votes bundle -> does not check max boundaries
     // for round and step to actually being able to sync the current round in case network is stalled
     bool check_max_round_step = votes_bundle_votes_type == PbftVoteTypes::next_vote ? false : true;
-    processVote(vote, nullptr, peer, check_max_round_step);
+    if (processVote(vote, nullptr, peer, check_max_round_step)) {
+      continue;
+    }
+
     votes.push_back(std::move(vote));
   }
 
