@@ -114,7 +114,8 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateVotePeriodRoundStep(
     // Trigger votes(round) syncing only if we are in sync in terms of period
     if (current_pbft_period == vote->getPeriod()) {
       // Do not request round sync too often here
-      if (std::chrono::system_clock::now() - last_votes_sync_request_time_ > kSyncRequestInterval) {
+      if (vote->getVoter() == peer->getId() &&
+          std::chrono::system_clock::now() - last_votes_sync_request_time_ > kSyncRequestInterval) {
         // request round votes sync from this node
         requestPbftNextVotesAtPeriodRound(peer->getId(), current_pbft_period, current_pbft_round);
         last_votes_sync_request_time_ = std::chrono::system_clock::now();
