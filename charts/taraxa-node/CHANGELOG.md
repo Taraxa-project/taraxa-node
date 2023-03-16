@@ -3,6 +3,12 @@
 This file documents all notable changes to `taraxa-node` Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v0.3.7
+
+### Minor changes
+
+* Adds transaction generating service to replace the explorer faucet
+
 ## v0.3.5
 
 ### Minor changes
