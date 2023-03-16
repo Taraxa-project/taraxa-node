@@ -64,6 +64,18 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
       assert(false);
     }
 
+    // Remove any duplicate votes
+    std::unordered_map<vote_hash_t, std::shared_ptr<Vote>> cert_votes;
+    for (const auto &vote : period_data.previous_block_cert_votes) {
+      cert_votes.insert({vote->getHash(), vote});
+    }
+    if (period_data.previous_block_cert_votes.size() > cert_votes.size()) {
+      period_data.previous_block_cert_votes.clear();
+      for (const auto &vote : cert_votes) {
+        period_data.previous_block_cert_votes.push_back(vote.second);
+      }
+    }
+
     // We need this section because votes need to be verified for reward distribution
     for (const auto &v : period_data.previous_block_cert_votes) {
       vote_mgr_->validateVote(v);
