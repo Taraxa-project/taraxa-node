@@ -40,7 +40,7 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
         &taraxa::net::TaraxaFace::taraxa_getConfigI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("taraxa_getChainStats", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, NULL),
-        &taraxa::net::TaraxaFace::taraxa_getStatsI);
+        &taraxa::net::TaraxaFace::taraxa_getChainStatsI);
     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_pbftBlockHashByPeriod", jsonrpc::PARAMS_BY_POSITION,
                                               jsonrpc::JSON_STRING, "param1", jsonrpc::JSON_STRING, NULL),
                            &taraxa::net::TaraxaFace::taraxa_pbftBlockHashByPeriodI);
@@ -75,7 +75,7 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
     (void)request;
     response = this->taraxa_getConfig();
   }
-  inline virtual void taraxa_getStatsI(const Json::Value &request, Json::Value &response) {
+  inline virtual void taraxa_getChainStatsI(const Json::Value &request, Json::Value &response) {
     (void)request;
     response = this->taraxa_getChainStats();
   }

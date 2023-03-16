@@ -127,14 +127,14 @@ class EthImpl : public Eth, EthParams {
 
   string eth_blockNumber() override { return toJS(final_chain->last_block_number()); }
 
-  string eth_getBalance(const string& _address, const string& _blockNumber) override {
-    return toJS(
-        final_chain->get_account(toAddress(_address), parse_blk_num(_blockNumber)).value_or(ZeroAccount).balance);
+  string eth_getBalance(const string& _address, const Json::Value& _json) override {
+    const auto block_number = get_block_number_from_json(_json);
+    return toJS(final_chain->get_account(toAddress(_address), block_number).value_or(ZeroAccount).balance);
   }
 
-  string eth_getStorageAt(const string& _address, const string& _position, const string& _blockNumber) override {
-    return toJS(
-        final_chain->get_account_storage(toAddress(_address), jsToU256(_position), parse_blk_num(_blockNumber)));
+  string eth_getStorageAt(const string& _address, const string& _position, const Json::Value& _json) override {
+    const auto block_number = get_block_number_from_json(_json);
+    return toJS(final_chain->get_account_storage(toAddress(_address), jsToU256(_position), block_number));
   }
 
   string eth_getStorageRoot(const string& _address, const string& _blockNumber) override {
@@ -143,15 +143,16 @@ class EthImpl : public Eth, EthParams {
                     .storage_root_eth());
   }
 
-  string eth_getCode(const string& _address, const string& _blockNumber) override {
-    return toJS(final_chain->get_code(toAddress(_address), parse_blk_num(_blockNumber)));
+  string eth_getCode(const string& _address, const Json::Value& _json) override {
+    const auto block_number = get_block_number_from_json(_json);
+    return toJS(final_chain->get_code(toAddress(_address), block_number));
   }
 
-  string eth_call(const Json::Value& _json, const string& _blockNumber) override {
+  string eth_call(const Json::Value& _json, const Json::Value& _jsonBlock) override {
+    const auto block_number = get_block_number_from_json(_jsonBlock);
     auto t = toTransactionSkeleton(_json);
-    auto blk_n = parse_blk_num(_blockNumber);
-    prepare_transaction_for_call(t, blk_n);
-    return toJS(call(blk_n, t).code_retval);
+    prepare_transaction_for_call(t, block_number);
+    return toJS(call(block_number, t).code_retval);
   }
 
   string eth_estimateGas(const Json::Value& _json) override {
@@ -161,8 +162,9 @@ class EthImpl : public Eth, EthParams {
     return toJS(call(blk_n, t).gas_used);
   }
 
-  string eth_getTransactionCount(const string& _address, const string& _blockNumber) override {
-    return toJS(transaction_count(parse_blk_num(_blockNumber), toAddress(_address)));
+  string eth_getTransactionCount(const string& _address, const Json::Value& _json) override {
+    const auto block_number = get_block_number_from_json(_json);
+    return toJS(transaction_count(block_number, toAddress(_address)));
   }
 
   Json::Value eth_getBlockTransactionCountByHash(const string& _blockHash) override {
@@ -426,7 +428,7 @@ class EthImpl : public Eth, EthParams {
   }
 
   static optional<EthBlockNumber> parse_blk_num_specific(const string& blk_num_str) {
-    if (blk_num_str == "latest" || blk_num_str == "pending") {
+    if (blk_num_str == "latest" || blk_num_str == "pending" || blk_num_str == "safe" || blk_num_str == "finalized") {
       return std::nullopt;
     }
     return blk_num_str == "earliest" ? 0 : jsToInt(blk_num_str);
@@ -435,6 +437,21 @@ class EthImpl : public Eth, EthParams {
   EthBlockNumber parse_blk_num(const string& blk_num_str) {
     auto ret = parse_blk_num_specific(blk_num_str);
     return ret ? *ret : final_chain->last_block_number();
+  }
+
+  EthBlockNumber get_block_number_from_json(const Json::Value& json) {
+    if (json.isObject()) {
+      if (!json["blockNumber"].empty()) {
+        return parse_blk_num(json["blockNumber"].asString());
+      }
+      if (!json["blockHash"].empty()) {
+        if (auto ret = final_chain->block_number(jsToFixed<32>(json["blockHash"].asString()))) {
+          return *ret;
+        }
+        throw std::runtime_error("Resource not found");
+      }
+    }
+    return parse_blk_num(json.asString());
   }
 
   LogFilter parse_log_filter(const Json::Value& json) {

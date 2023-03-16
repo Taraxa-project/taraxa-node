@@ -233,6 +233,27 @@ TEST_F(RPCTest, eth_getBlock) {
   EXPECT_EQ(4, dev::jsToU256(block["number"].asString()));
   EXPECT_GT(dev::jsToU256(block["totalReward"].asString()), 0);
 }
+
+TEST_F(RPCTest, eip_1898) {
+  auto node_cfg = make_node_cfgs(1);
+  auto nodes = launch_nodes(node_cfg);
+  net::rpc::eth::EthParams eth_rpc_params;
+  eth_rpc_params.chain_id = node_cfg.front().genesis.chain_id;
+  eth_rpc_params.gas_limit = node_cfg.front().genesis.dag.gas_limit;
+  eth_rpc_params.final_chain = nodes.front()->getFinalChain();
+  auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
+
+  const auto from = dev::toHex(dev::toAddress(node_cfg.front().node_secret));
+
+  Json::Value zero_block(Json::objectValue);
+  zero_block["blockNumber"] = dev::toJS(0);
+  EXPECT_EQ(eth_json_rpc->eth_getBalance(from, "0x0"), eth_json_rpc->eth_getBalance(from, zero_block));
+
+  Json::Value genesis_block(Json::objectValue);
+  genesis_block["blockHash"] = dev::toJS(*nodes.front()->getFinalChain()->block_hash(0));
+  EXPECT_EQ(eth_json_rpc->eth_getBalance(from, "0x0"), eth_json_rpc->eth_getBalance(from, genesis_block));
+}
+
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;

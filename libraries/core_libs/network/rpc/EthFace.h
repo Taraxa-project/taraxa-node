@@ -25,18 +25,18 @@ class EthFace : public ServerInterface<EthFace> {
         jsonrpc::Procedure("eth_blockNumber", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, NULL),
         &taraxa::net::EthFace::eth_blockNumberI);
     this->bindAndAddMethod(jsonrpc::Procedure("eth_getBalance", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,
-                                              "param1", jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_STRING, NULL),
+                                              "param1", jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::EthFace::eth_getBalanceI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("eth_getStorageAt", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1",
-                           jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_STRING, "param3", jsonrpc::JSON_STRING, NULL),
+                           jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_STRING, "param3", jsonrpc::JSON_OBJECT, NULL),
         &taraxa::net::EthFace::eth_getStorageAtI);
     this->bindAndAddMethod(jsonrpc::Procedure("eth_getStorageRoot", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,
                                               "param1", jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_STRING, NULL),
                            &taraxa::net::EthFace::eth_getStorageRootI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("eth_getTransactionCount", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1",
-                           jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_STRING, NULL),
+                           jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_OBJECT, NULL),
         &taraxa::net::EthFace::eth_getTransactionCountI);
     this->bindAndAddMethod(jsonrpc::Procedure("eth_getBlockTransactionCountByHash", jsonrpc::PARAMS_BY_POSITION,
                                               jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_STRING, NULL),
@@ -51,10 +51,10 @@ class EthFace : public ServerInterface<EthFace> {
                                               jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_STRING, NULL),
                            &taraxa::net::EthFace::eth_getUncleCountByBlockNumberI);
     this->bindAndAddMethod(jsonrpc::Procedure("eth_getCode", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,
-                                              "param1", jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_STRING, NULL),
+                                              "param1", jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::EthFace::eth_getCodeI);
     this->bindAndAddMethod(jsonrpc::Procedure("eth_call", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1",
-                                              jsonrpc::JSON_OBJECT, "param2", jsonrpc::JSON_STRING, NULL),
+                                              jsonrpc::JSON_OBJECT, "param2", jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::EthFace::eth_callI);
     this->bindAndAddMethod(jsonrpc::Procedure("eth_getBlockByHash", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
                                               "param1", jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_BOOLEAN, NULL),
@@ -138,16 +138,16 @@ class EthFace : public ServerInterface<EthFace> {
     response = this->eth_blockNumber();
   }
   inline virtual void eth_getBalanceI(const Json::Value &request, Json::Value &response) {
-    response = this->eth_getBalance(request[0u].asString(), request[1u].asString());
+    response = this->eth_getBalance(request[0u].asString(), request[1u]);
   }
   inline virtual void eth_getStorageAtI(const Json::Value &request, Json::Value &response) {
-    response = this->eth_getStorageAt(request[0u].asString(), request[1u].asString(), request[2u].asString());
+    response = this->eth_getStorageAt(request[0u].asString(), request[1u].asString(), request[2u]);
   }
   inline virtual void eth_getStorageRootI(const Json::Value &request, Json::Value &response) {
     response = this->eth_getStorageRoot(request[0u].asString(), request[1u].asString());
   }
   inline virtual void eth_getTransactionCountI(const Json::Value &request, Json::Value &response) {
-    response = this->eth_getTransactionCount(request[0u].asString(), request[1u].asString());
+    response = this->eth_getTransactionCount(request[0u].asString(), request[1u]);
   }
   inline virtual void eth_getBlockTransactionCountByHashI(const Json::Value &request, Json::Value &response) {
     response = this->eth_getBlockTransactionCountByHash(request[0u].asString());
@@ -162,10 +162,10 @@ class EthFace : public ServerInterface<EthFace> {
     response = this->eth_getUncleCountByBlockNumber(request[0u].asString());
   }
   inline virtual void eth_getCodeI(const Json::Value &request, Json::Value &response) {
-    response = this->eth_getCode(request[0u].asString(), request[1u].asString());
+    response = this->eth_getCode(request[0u].asString(), request[1u]);
   }
   inline virtual void eth_callI(const Json::Value &request, Json::Value &response) {
-    response = this->eth_call(request[0u], request[1u].asString());
+    response = this->eth_call(request[0u], request[1u]);
   }
   inline virtual void eth_getBlockByHashI(const Json::Value &request, Json::Value &response) {
     response = this->eth_getBlockByHash(request[0u].asString(), request[1u].asBool());
@@ -233,17 +233,17 @@ class EthFace : public ServerInterface<EthFace> {
   virtual std::string eth_gasPrice() = 0;
   virtual Json::Value eth_accounts() = 0;
   virtual std::string eth_blockNumber() = 0;
-  virtual std::string eth_getBalance(const std::string &param1, const std::string &param2) = 0;
+  virtual std::string eth_getBalance(const std::string &param1, const Json::Value &param2) = 0;
   virtual std::string eth_getStorageAt(const std::string &param1, const std::string &param2,
-                                       const std::string &param3) = 0;
+                                       const Json::Value &param3) = 0;
   virtual std::string eth_getStorageRoot(const std::string &param1, const std::string &param2) = 0;
-  virtual std::string eth_getTransactionCount(const std::string &param1, const std::string &param2) = 0;
+  virtual std::string eth_getTransactionCount(const std::string &param1, const Json::Value &param2) = 0;
   virtual Json::Value eth_getBlockTransactionCountByHash(const std::string &param1) = 0;
   virtual Json::Value eth_getBlockTransactionCountByNumber(const std::string &param1) = 0;
   virtual Json::Value eth_getUncleCountByBlockHash(const std::string &param1) = 0;
   virtual Json::Value eth_getUncleCountByBlockNumber(const std::string &param1) = 0;
-  virtual std::string eth_getCode(const std::string &param1, const std::string &param2) = 0;
-  virtual std::string eth_call(const Json::Value &param1, const std::string &param2) = 0;
+  virtual std::string eth_getCode(const std::string &param1, const Json::Value &param2) = 0;
+  virtual std::string eth_call(const Json::Value &param1, const Json::Value &param2) = 0;
   virtual Json::Value eth_getBlockByHash(const std::string &param1, bool param2) = 0;
   virtual Json::Value eth_getBlockByNumber(const std::string &param1, bool param2) = 0;
   virtual Json::Value eth_getTransactionByHash(const std::string &param1) = 0;
