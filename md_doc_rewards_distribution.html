@@ -86,7 +86,7 @@ $(document).ready(function(){initNavTree('md_doc_rewards_distribution.html','');
 </div><!--header-->
 <div class="contents">
 <div class="textblock"><p>The main goal of fair rewards distribution is to motivate validators to participate in all steps of the validation process(creating high-quality DAG blocks, creating PBFT blocks, voting for PBFT blocks) as much as possible.</p>
-<h1><a class="anchor" id="autotoc_md245"></a>
+<h1><a class="anchor" id="autotoc_md247"></a>
 Glossary</h1>
 <ul>
 <li>DAG blocks are stored in DAG(Directed Acyclic Graph) structure and have transactions inside it.</li>
@@ -94,15 +94,15 @@ Glossary</h1>
 <li>Reward votes is finalized votes from PBFT block. Block <code>N</code> is finalizing votes from block <code>N - 1</code>.</li>
 </ul>
 <p>More info could be found in this <a href="https://medium.com/taraxa-project/tagged/taraxa-tech">series of medium articles</a></p>
-<h1><a class="anchor" id="autotoc_md246"></a>
+<h1><a class="anchor" id="autotoc_md248"></a>
 Rewards sources</h1>
 <p>There are 2 sources of tokens, which are distributed as rewards:</p><ul>
 <li>Newly created tokens. Rewards depend on total delegations in the network and is equal to 20% of it per year. So block reward is equal to <code>total_delegated_amount * 20% / block_per_year</code>. It could change from block to block as total delegated amount is changing.</li>
 <li>Transactions fees is basically transaction cost. Rewards for block depends on transactions that are included in DAG block and its uniqueness.</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md247"></a>
+<h1><a class="anchor" id="autotoc_md249"></a>
 Rewards distribution</h1>
-<h2><a class="anchor" id="autotoc_md248"></a>
+<h2><a class="anchor" id="autotoc_md250"></a>
 Beneficial work in network</h2>
 <p>There are 3 types of beneficial work that result in stable network functioning:</p>
 <ul>
@@ -110,21 +110,21 @@ Beneficial work in network</h2>
 <li>Proposing PBFT blocks</li>
 <li>Voting for PBFT blocks</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md249"></a>
+<h2><a class="anchor" id="autotoc_md251"></a>
 Newly created tokens:</h2>
 <ul>
 <li><b>50%</b> goes proportionally to the <b>DAG blocks proposers</b>, according to block weight calculated from count of unique transactions. For example PBFT finalizes 2 DAG blocks. The first one have 3 transactions and the second have 7. So first will receive 3/10 of this reward and second one will receive 7/10 of this reward.</li>
 <li><b>45%</b> of total votes reward is voters part. So voters from reward votes will receive reward calculated according to their vote weight.</li>
 <li><b>5%</b> of total votes reward is part for <b>PBFT block proposer</b>. It is proportional to bonus reward votes count. Bonus reward votes are all votes over <code>2/3 + 1</code> needed threshold. So that means that <b>PBFT block proposer</b> will receive reward only for this additional votes and will receive all <b>10%</b> of reward only if all votes will be included. The rest of reward will be burned if included votes count is less than maximum possible.</li>
 </ul>
-<h2><a class="anchor" id="autotoc_md250"></a>
+<h2><a class="anchor" id="autotoc_md252"></a>
 Included transactions fees:</h2>
 <p>Each transaction has a different fee. Simple "token send tx" has different fee than "smart contract write tx". These fees are calculated in taraxa-evm.</p>
 <ul>
 <li><b>100%</b> goes to the <b>DAG blocks proposers</b></li>
 </ul>
 <p>Block proposer is rewarded for unique transactions included into DAG block. Unique transaction means that proposer is the first one who included it in the DAG block according to DAG order. It might motivate validators to not include transactions that was already included by other proposers and to prioritize transactions with higher fees. On the other hand if there would be equal reward for all transaction types, it would motivate validators to prioritize more simple transactions (which require less work to process). This way there is also a possibility for users to try to make their transactions being processed faster by specifying higher gas price.</p>
-<h1><a class="anchor" id="autotoc_md251"></a>
+<h1><a class="anchor" id="autotoc_md253"></a>
 Validators statistics</h1>
 <p>Rewards distribution described in the previous section is based on validators statistic in current PBFT round. Such statistics consists of:</p><ul>
 <li>PBFT block author</li>
@@ -137,12 +137,12 @@ Validators statistics</h1>
 </ul>
 </li>
 </ul>
-<h1><a class="anchor" id="autotoc_md252"></a>
+<h1><a class="anchor" id="autotoc_md254"></a>
 Example:</h1>
-<h2><a class="anchor" id="autotoc_md253"></a>
+<h2><a class="anchor" id="autotoc_md255"></a>
 DAG structure:</h2>
 <p><img src="./images/DAG_unordered.png?raw=true" alt="Unoreded DAG blocks" title="Unordered DAG blocks" class="inline"/></p>
-<h2><a class="anchor" id="autotoc_md254"></a>
+<h2><a class="anchor" id="autotoc_md256"></a>
 PBFT block</h2>
 <p>Let's say PBFT consensus was reached on PBFT block produced by <code>Validator A</code> on this DAG and it is ordered as follows:</p>
 <p><img src="./images/DAG_ordered.png?raw=true" alt="Oreded DAG blocks" title="Ordered DAG blocks" class="inline"/></p>
@@ -152,7 +152,7 @@ PBFT block</h2>
 <li>Validator C weight 2</li>
 <li>Validator D weight 4</li>
 </ol>
-<h2><a class="anchor" id="autotoc_md255"></a>
+<h2><a class="anchor" id="autotoc_md257"></a>
 Statistics</h2>
 <ol type="1">
 <li>PBFT block author is <code>Validator A</code></li>
@@ -175,14 +175,14 @@ Statistics</h2>
 <tr class="markdownTableRowOdd">
 <td class="markdownTableBodyNone">Validator E   </td><td class="markdownTableBodyNone">1   </td><td class="markdownTableBodyNone">0   </td></tr>
 </table>
-<h2><a class="anchor" id="autotoc_md256"></a>
+<h2><a class="anchor" id="autotoc_md258"></a>
 Rewards</h2>
 <p>Newly generated tokens amount per year is equal to total delegated amount multiplied by yield percentage. So every new block will create a reward is equal to newly generated tokens amount per year divided by estimated blocks count per year. All following calculations would be described with a pseudocode. Let's put some random values to show the calculations: </p><div class="fragment"><div class="line">total_delegated_amount = 10_000_000_000</div>
 <div class="line">yield_percentage = 20%</div>
 <div class="line">new_tokens_per_year = total_delegated_amount * yield_percentage // 2_000_000_000</div>
 <div class="line">blocks_per_year = 20_000</div>
 <div class="line">block_generated_reward = new_tokens_per_year / blocks_per_year // 100_000</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md257"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md259"></a>
 DAG blocks rewards</h3>
 <p>Voters rewards calculation </p><div class="fragment"><div class="line">dag_blocks_reward_part = block_generated_reward * 50% // 50_000</div>
 <div class="line">total_rewardable_dag_count = 5</div>
@@ -201,7 +201,7 @@ DAG blocks rewards</h3>
 <div class="line"> </div>
 <div class="line">validator_E_dag_count = 4</div>
 <div class="line">validator_E_dag_reward = dag_blocks_reward_part * validator_E_dag_count / block_total_votes_weight // 20_000</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md258"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md260"></a>
 PBFT proposer reward</h3>
 <p>PBFT proposer gets reward for bonus votes, as described above. We have 5% in config, so: </p><div class="fragment"><div class="line">max_pbft_proposer_reward = block_generated_reward * 5% // 5_000</div>
 <div class="line">block_max_votes_weight = 11</div>
@@ -211,7 +211,7 @@ PBFT proposer reward</h3>
 <div class="line">block_total_bonus_reward_votes = block_max_votes_weight - two_t_plus_one // 3</div>
 <div class="line">proposer_reward = max_proposer_reward * block_bonus_reward_votes / block_total_bonus_reward_votes // 3_333</div>
 <div class="line">burned_amount = max_proposer_reward - proposer_reward // 1667</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md259"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md261"></a>
 PBFT voters reward</h3>
 <p>Rewards for the votes is calculated from left part. 100% - 50% - 5% = 45%. So we have this calculations: </p><div class="fragment"><div class="line">pbft_voters_reward = block_generated_reward * 45% // 45_000</div>
 <div class="line">block_total_votes_weight = 10</div>

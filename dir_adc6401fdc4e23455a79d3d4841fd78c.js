@@ -16,9 +16,7 @@ var dir_adc6401fdc4e23455a79d3d4841fd78c =
     [ "EthClient.h", "_eth_client_8h.html", [
       [ "EthClient", "classtaraxa_1_1net_1_1_eth_client.html", "classtaraxa_1_1net_1_1_eth_client" ]
     ] ],
-    [ "EthFace.h", "_eth_face_8h.html", [
-      [ "EthFace", "classtaraxa_1_1net_1_1_eth_face.html", "classtaraxa_1_1net_1_1_eth_face" ]
-    ] ],
+    [ "EthFace.h", "_eth_face_8h.html", "_eth_face_8h" ],
     [ "jsonrpc_http_processor.cpp", "jsonrpc__http__processor_8cpp.html", null ],
     [ "jsonrpc_http_processor.hpp", "jsonrpc__http__processor_8hpp.html", [
       [ "JsonRpcHttpProcessor", "classtaraxa_1_1net_1_1_json_rpc_http_processor.html", "classtaraxa_1_1net_1_1_json_rpc_http_processor" ],
