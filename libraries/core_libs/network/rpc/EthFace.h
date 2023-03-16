@@ -9,6 +9,8 @@
 
 namespace taraxa {
 namespace net {
+// Please read README
+const int JSON_ANY = 0;
 class EthFace : public ServerInterface<EthFace> {
  public:
   EthFace() {
@@ -25,18 +27,18 @@ class EthFace : public ServerInterface<EthFace> {
         jsonrpc::Procedure("eth_blockNumber", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, NULL),
         &taraxa::net::EthFace::eth_blockNumberI);
     this->bindAndAddMethod(jsonrpc::Procedure("eth_getBalance", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,
-                                              "param1", jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_OBJECT, NULL),
+                                              "param1", JSON_ANY, "param2", jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::EthFace::eth_getBalanceI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("eth_getStorageAt", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1",
-                           jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_STRING, "param3", jsonrpc::JSON_OBJECT, NULL),
+                           jsonrpc::JSON_STRING, "param2", JSON_ANY, "param3", jsonrpc::JSON_OBJECT, NULL),
         &taraxa::net::EthFace::eth_getStorageAtI);
     this->bindAndAddMethod(jsonrpc::Procedure("eth_getStorageRoot", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,
                                               "param1", jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_STRING, NULL),
                            &taraxa::net::EthFace::eth_getStorageRootI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("eth_getTransactionCount", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1",
-                           jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_OBJECT, NULL),
+                           JSON_ANY, "param2", jsonrpc::JSON_OBJECT, NULL),
         &taraxa::net::EthFace::eth_getTransactionCountI);
     this->bindAndAddMethod(jsonrpc::Procedure("eth_getBlockTransactionCountByHash", jsonrpc::PARAMS_BY_POSITION,
                                               jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_STRING, NULL),
@@ -51,10 +53,10 @@ class EthFace : public ServerInterface<EthFace> {
                                               jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_STRING, NULL),
                            &taraxa::net::EthFace::eth_getUncleCountByBlockNumberI);
     this->bindAndAddMethod(jsonrpc::Procedure("eth_getCode", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,
-                                              "param1", jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_OBJECT, NULL),
+                                              "param1", JSON_ANY, "param2", jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::EthFace::eth_getCodeI);
     this->bindAndAddMethod(jsonrpc::Procedure("eth_call", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1",
-                                              jsonrpc::JSON_OBJECT, "param2", jsonrpc::JSON_OBJECT, NULL),
+                                              JSON_ANY, "param2", jsonrpc::JSON_OBJECT, NULL),
                            &taraxa::net::EthFace::eth_callI);
     this->bindAndAddMethod(jsonrpc::Procedure("eth_getBlockByHash", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
                                               "param1", jsonrpc::JSON_STRING, "param2", jsonrpc::JSON_BOOLEAN, NULL),
