@@ -63,7 +63,9 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     peer->markPbftBlockAsKnown(pbft_block->getBlockHash());
   }
 
-  processVote(vote, pbft_block, peer, true);
+  if (processVote(vote, pbft_block, peer, true)) {
+    return;
+  }
 
   // Do not mark it before, as peers have small caches of known votes. Only mark gossiping votes
   peer->markVoteAsKnown(vote_hash);

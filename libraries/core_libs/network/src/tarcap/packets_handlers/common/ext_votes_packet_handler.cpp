@@ -85,7 +85,8 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateVotePeriodRoundStep(
     // skip this check if kConf.network.ddos_protection.vote_accepting_periods == 0
     // vote->getPeriod() - 1 is here because votes are validated against vote_period - 1 in dpos contract
     // Do not request round sync too often here
-    if (std::chrono::system_clock::now() - last_pbft_block_sync_request_time_ > kSyncRequestInterval) {
+    if (vote->getVoter() == peer->getId() &&
+        std::chrono::system_clock::now() - last_pbft_block_sync_request_time_ > kSyncRequestInterval) {
       // request PBFT chain sync from this node
       sealAndSend(peer->getId(), SubprotocolPacketType::GetPbftSyncPacket,
                   std::move(dev::RLPStream(1) << std::max(vote->getPeriod() - 1, peer->pbft_chain_size_.load())));

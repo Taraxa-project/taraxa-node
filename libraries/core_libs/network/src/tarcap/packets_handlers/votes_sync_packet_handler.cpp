@@ -115,7 +115,10 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
     // for round and step to actually being able to sync the current round in case network is stalled
     bool check_max_round_step = votes_bundle_votes_type == PbftVoteTypes::next_vote ? false : true;
     if (votes_bundle_votes_type == PbftVoteTypes::cert_vote) check_max_round_step = false;
-    processVote(vote, nullptr, peer, check_max_round_step);
+    if (processVote(vote, nullptr, peer, check_max_round_step)) {
+      continue;
+    }
+
     votes.push_back(std::move(vote));
   }
 
