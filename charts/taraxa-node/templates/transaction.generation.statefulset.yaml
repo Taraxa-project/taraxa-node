@@ -1,0 +1,73 @@
+{{ if .Values.transactionGeneration.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ .Release.Name }}-transaction-generation
+  labels:
+    app: transaction-generation
+    app.kubernetes.io/name: transaction-generation
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: 1
+  serviceName: {{ .Release.Name }}-transaction-generation
+  # to launch or terminate all Pods in parallel.
+  # https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#parallel-pod-management
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: transaction-generation
+      app.kubernetes.io/name: {{ .Release.Name }}-transaction-generation
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      name: transaction-generation
+      labels:
+        app: transaction-generation
+        app.kubernetes.io/name: {{ .Release.Name }}-transaction-generation
+        app.kubernetes.io/instance: {{ .Release.Name }}
+      annotations:
+        kubernetes.io/change-cause: "Configuration through configmaps."
+    spec:
+      containers:
+        - name: transaction-generation
+          image: "python:3.8"
+          imagePullPolicy: IfNotPresent
+          env:
+          - name: PRIVATE_KEY
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}
+                key: TRANSACTION_GENERATION_PRIVATE_KEY
+          - name: PROVIDER_URL
+            value: http://{{ include "taraxa-node.fullname" . }}-head:7777
+          command: ["/bin/bash", "-c", "--"]
+          args: [ "pip install -r /app/requirements.txt && python /app/transactions.py" ]
+          volumeMounts:
+            - name: requirements
+              mountPath: /app/requirements.txt
+              readOnly: true
+              subPath: requirements.txt
+            - name: script
+              mountPath: /app/transactions.py
+              readOnly: true
+              subPath: transactions.py
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+        - name: requirements
+          configMap:
+            defaultMode: 0700
+            name: {{ .Release.Name }}-transaction-generation
+        - name: script
+          configMap:
+            defaultMode: 0700
+            name: {{ .Release.Name }}-transaction-generation
+{{- end }}
