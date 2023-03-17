@@ -49,21 +49,6 @@
         "id": "c6e7263f44d88c0d6cc3b0d5ebdc31cf891908e8fa7e545e137d3ed0bfec1810fa24c1379228afbb53df0d59e716e17138115fd096782a84261718ab77665171",
         "ip": "boot-node-2.testnet.taraxa.io",
         "port": 10002
-      },
-      {
-        "id": "dcc7f60f64eee9fc470e24fd821b3d82acca646c6c951169a8f5b3de297e241cd9987e1cca1083c85b6482ba09715bbea8765710b149c55493e0bb16fc1c29cc",
-        "ip": "taraxa-node-0.testnet.taraxa.io",
-        "port": 10002
-      },
-      {
-        "id": "dedae37d9c96e0f2c8ef2796351f5560234a3e8e0407ef5cd16aaf93dd8ffd437608a585d5dc3eea54e30e1392591cfc61c6fce3cbf12b46dcc479b5fbdcde96",
-        "ip": "taraxa-node-1.testnet.taraxa.io",
-        "port": 10002
-      },
-      {
-        "id": "edc73153c2aa5991aee267f46d3ca153fa15f61eb7847b3f4c8b8fa308282b93a315a071bd5ff4327dd321faf4d979710b0e681a7088f65552ce0065fa7683fd",
-        "ip": "taraxa-node-2.testnet.taraxa.io",
-        "port": 10002
       }
     ]
   },
