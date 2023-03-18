@@ -58,7 +58,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
     // Do not process vote that has already been validated
     if (vote_mgr_->voteAlreadyValidated(vote->getHash())) {
       LOG(log_dg_) << "Received vote " << vote->getHash() << " has already been validated";
-      return;
+      continue;
     }
 
     // Next votes bundle can contain votes for kNullBlockHash as well as some specific block hash
