@@ -162,12 +162,15 @@ bool ExtVotesPacketHandler::validateVoteAndBlock(const std::shared_ptr<Vote> &vo
                  << pbft_block->getBlockHash();
     return false;
   }
+  // TODO[2401]: move this check to PBFT block
   std::unordered_set<vote_hash_t> set;
   const auto reward_votes = pbft_block->getRewardVotes();
   set.reserve(reward_votes.size());
   for (const auto &hash : reward_votes) {
     if (!set.insert(hash).second) {
-      LOG(log_er_) << "PBFT block " << pbft_block->getBlockHash() << " has duplicated vote " << hash;
+      LOG(log_er_) << "PBFT block " << pbft_block->getBlockHash() << " proposed by " << pbft_block->getBeneficiary()
+                   << " has duplicated vote " << hash;
+      return false;
     }
   }
 
