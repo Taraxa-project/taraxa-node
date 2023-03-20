@@ -274,10 +274,16 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t getPbftCommitteeSize() const { return config_.committee_size; }
 
   /**
-   * @brief Broadcast or rebroadcast current round soft votes, previous round next votes and reward votes
+   * @brief Broadcast or rebroadcast current round soft votes and previous round next votes
    * @param rebroadcast
    */
-  void broadcastVotes(bool rebroadcast);
+  void broadcastSoftAndNextVotes(bool rebroadcast);
+
+  /**
+   * @brief Broadcast or rebroadcast reward votes
+   * @param rebroadcast
+   */
+  void broadcastRewardVotes(bool rebroadcast);
 
  private:
   /**
@@ -554,8 +560,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   const uint32_t kBroadcastVotesLambdaTime = 20;
   const uint32_t kRebroadcastVotesLambdaTime = 60;
-  uint32_t broadcast_votes_counter_ = 1;
-  uint32_t rebroadcast_votes_counter_ = 1;
+  uint32_t broadcast_soft_next_votes_counter_ = 1;
+  uint32_t rebroadcast_soft_next_votes_counter_ = 1;
+  uint32_t broadcast_reward_votes_counter_ = 1;
+  uint32_t rebroadcast_reward_votes_counter_ = 1;
 
   std::default_random_engine random_engine_{std::random_device{}()};
 
@@ -571,6 +579,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::map<blk_hash_t, std::vector<PbftStep>> current_round_broadcasted_votes_;
 
   time_point current_round_start_datetime_;
+  time_point current_period_start_datetime_;
   time_point second_finish_step_start_datetime_;
   std::chrono::milliseconds next_step_time_ms_{0};
 
