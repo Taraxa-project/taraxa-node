@@ -30,7 +30,7 @@ bool ExtVotesPacketHandler::processVote(const std::shared_ptr<Vote> &vote, const
     return false;
   }
 
-  // Validate vote's period, roun and step min/max values
+  // Validate vote's period, round and step min/max values
   if (const auto vote_valid = validateVotePeriodRoundStep(vote, peer, validate_max_round_step); !vote_valid.first) {
     LOG(log_wr_) << "Vote period/round/step " << vote->getHash() << " validation failed. Err: " << vote_valid.second;
     return false;

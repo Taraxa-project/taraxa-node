@@ -118,7 +118,7 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
       check_max_round_step = false;
     }
 
-    if (processVote(vote, nullptr, peer, check_max_round_step)) {
+    if (!processVote(vote, nullptr, peer, check_max_round_step)) {
       continue;
     }
 
