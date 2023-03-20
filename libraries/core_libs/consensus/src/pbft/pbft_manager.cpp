@@ -302,6 +302,9 @@ bool PbftManager::tryPushCertVotesBlock() {
 
 bool PbftManager::advancePeriod() {
   resetPbftConsensus(1 /* round */);
+  broadcast_reward_votes_counter_ = 1;
+  rebroadcast_reward_votes_counter_ = 1;
+  current_period_start_datetime_ = std::chrono::system_clock::now();
 
   const auto new_period = getPbftPeriod();
 
@@ -346,8 +349,8 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
   LOG(log_dg_) << "Reset PBFT consensus to: period " << getPbftPeriod() << ", round " << round << ", step 1";
 
   // Reset broadcast counters
-  broadcast_votes_counter_ = 1;
-  rebroadcast_votes_counter_ = 1;
+  broadcast_soft_next_votes_counter_ = 1;
+  rebroadcast_soft_next_votes_counter_ = 1;
 
   // Update current round and reset step to 1
   round_ = round;
@@ -474,6 +477,7 @@ void PbftManager::initialState() {
   already_next_voted_null_block_hash_ = db_->getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash);
 
   current_round_start_datetime_ = now;
+  current_period_start_datetime_ = now;
   next_step_time_ms_ = std::chrono::milliseconds(0);
 
   // Set current period & round in vote manager
@@ -538,7 +542,7 @@ void PbftManager::loopBackFinishState_() {
   next_step_time_ms_ += kPollingIntervalMs;
 }
 
-void PbftManager::broadcastVotes(bool rebroadcast) {
+void PbftManager::broadcastSoftAndNextVotes(bool rebroadcast) {
   auto net = network_.lock();
   if (!net) {
     return;
@@ -554,14 +558,6 @@ void PbftManager::broadcastVotes(bool rebroadcast) {
                                                                                              rebroadcast);
   }
 
-  // Broadcast reward votes - previous round 2t+1 cert votes
-  auto reward_votes = vote_mgr_->getRewardVotes();
-  if (!reward_votes.empty()) {
-    LOG(log_dg_) << "Broadcast propose reward votes for period " << period << ", round " << round;
-    net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(reward_votes),
-                                                                                             rebroadcast);
-  }
-
   // Broadcast previous round 2t+1 next votes
   if (round > 1) {
     if (auto next_votes = vote_mgr_->getAllTwoTPlusOneNextVotes(period, round - 1); !next_votes.empty()) {
@@ -569,6 +565,23 @@ void PbftManager::broadcastVotes(bool rebroadcast) {
       net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(next_votes),
                                                                                                rebroadcast);
     }
+  }
+}
+
+void PbftManager::broadcastRewardVotes(bool rebroadcast) {
+  auto net = network_.lock();
+  if (!net) {
+    return;
+  }
+
+  auto [round, period] = getPbftRoundAndPeriod();
+
+  // Broadcast reward votes - previous round 2t+1 cert votes
+  auto reward_votes = vote_mgr_->getRewardVotes();
+  if (!reward_votes.empty()) {
+    LOG(log_dg_) << "Broadcast propose reward votes for period " << period << ", round " << round;
+    net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(reward_votes),
+                                                                                             rebroadcast);
   }
 }
 
@@ -597,15 +610,27 @@ bool PbftManager::stateOperations_() {
   pushSyncedPbftBlocksIntoChain();
 
   const auto round_elapsed_time = elapsedTimeInMs(current_round_start_datetime_);
+  const auto period_elapsed_time = elapsedTimeInMs(current_period_start_datetime_);
 
-  if (round_elapsed_time / kMinLambda > kRebroadcastVotesLambdaTime * rebroadcast_votes_counter_) {
-    broadcastVotes(true);
-    rebroadcast_votes_counter_++;
+  if (round_elapsed_time / kMinLambda > kRebroadcastVotesLambdaTime * rebroadcast_soft_next_votes_counter_) {
+    broadcastSoftAndNextVotes(true);
+    rebroadcast_soft_next_votes_counter_++;
     // If there was a rebroadcast no need to do next broadcast either
-    broadcast_votes_counter_++;
-  } else if (round_elapsed_time / kMinLambda > kBroadcastVotesLambdaTime * broadcast_votes_counter_) {
-    broadcastVotes(false);
-    broadcast_votes_counter_++;
+    broadcast_soft_next_votes_counter_++;
+  } else if (round_elapsed_time / kMinLambda > kBroadcastVotesLambdaTime * broadcast_soft_next_votes_counter_) {
+    broadcastSoftAndNextVotes(false);
+    broadcast_soft_next_votes_counter_++;
+  }
+
+  // Reward votes need to be broadcast even if we are advancing rounds but unable to advance a period
+  if (period_elapsed_time / kMinLambda > kRebroadcastVotesLambdaTime * rebroadcast_reward_votes_counter_) {
+    broadcastRewardVotes(true);
+    rebroadcast_reward_votes_counter_++;
+    // If there was a rebroadcast no need to do next broadcast either
+    broadcast_reward_votes_counter_++;
+  } else if (period_elapsed_time / kMinLambda > kBroadcastVotesLambdaTime * broadcast_reward_votes_counter_) {
+    broadcastRewardVotes(false);
+    broadcast_reward_votes_counter_++;
   }
 
   auto [round, period] = getPbftRoundAndPeriod();
