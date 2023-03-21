@@ -127,11 +127,7 @@ void TransactionPacketHandler::periodicSendTransactions(SharedTransactions &&tra
   std::vector<std::pair<dev::p2p::NodeID, SharedTransactions>> peers_with_transactions_to_send;
 
   auto peers = peers_state_->getAllPeers();
-  std::string transactions_to_log;
   std::string peers_to_log;
-  for (auto const &trx : transactions) {
-    transactions_to_log += trx->getHash().abridged();
-  }
   for (const auto &peer : peers) {
     // Confirm that status messages were exchanged otherwise message might be ignored and node would
     // incorrectly markTransactionAsKnown
@@ -150,6 +146,9 @@ void TransactionPacketHandler::periodicSendTransactions(SharedTransactions &&tra
   }
   const auto peers_to_send_count = peers_with_transactions_to_send.size();
   if (peers_to_send_count > 0) {
+    auto transactions_to_log =
+        std::accumulate(transactions.begin(), transactions.end(), std::string{},
+                        [](const auto &r, const auto &trx) { return r + trx->getHash().abridged(); });
     LOG(log_tr_) << "Sending Transactions " << transactions_to_log << " to " << peers_to_log;
     // Sending it in same order favours some peers over others, always start with a different position
     uint32_t start_with = rand() % peers_to_send_count;

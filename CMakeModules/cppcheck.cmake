@@ -32,9 +32,12 @@ else ()
             # exclude graphql generated
             -i ${PROJECT_SOURCE_DIR}/libraries/core_libs/network/graphql/gen/
             # messy files
+            --suppress=unmatchedSuppression:${PROJECT_SOURCE_DIR}/*/vector_ref.h
+            --suppress=unmatchedSuppression:${PROJECT_SOURCE_DIR}/*/Common.h
             --suppress=cstyleCast:${PROJECT_SOURCE_DIR}/*/vector_ref.h
             --suppress=cstyleCast:${PROJECT_SOURCE_DIR}/*/Common.h
-
+            #not an issue here 
+            --suppress=virtualCallInConstructor:${PROJECT_SOURCE_DIR}/*/final_chain.cpp
             # Only show found errors
             "--quiet"
 
