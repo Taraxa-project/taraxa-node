@@ -67,13 +67,9 @@ class TaraxaConan(ConanFile):
         # mpir is required by cppcheck and it causing gmp confict
         self.options["mpir"].enable_gmpcompat = False
 
-        # mpir is z3 dependency and it couldn't be built for arm
-        if (self.settings.arch == "armv8"):
-            self.options["cppcheck"].with_z3 = False
-
     def _configure_cmake(self):
         cmake = CMake(self)
-        # set find path to clang utils dowloaded by that script
+        # set find path to clang utils downloaded by that script
         cmake.configure()
         return cmake
 
