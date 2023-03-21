@@ -106,7 +106,11 @@ void DbStorage::rebuildColumns(const rocksdb::Options& options) {
   std::vector<rocksdb::ColumnFamilyHandle*> handles;
   handles.reserve(column_families.size());
   std::transform(column_families.begin(), column_families.end(), std::back_inserter(descriptors), [](const auto& name) {
-    return rocksdb::ColumnFamilyDescriptor(name, rocksdb::ColumnFamilyOptions());
+    const auto it = std::find_if(Columns::all.begin(), Columns::all.end(),
+                                 [&name](const Column& col) { return col.name() == name; });
+    auto options = rocksdb::ColumnFamilyOptions();
+    if (it != Columns::all.end() && it->comparator_) options.comparator = it->comparator_;
+    return rocksdb::ColumnFamilyDescriptor(name, options);
   });
   rocksdb::DB* db_ptr = nullptr;
   checkStatus(rocksdb::DB::Open(options, db_path_.string(), descriptors, &handles, &db_ptr));
