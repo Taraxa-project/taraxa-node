@@ -9,7 +9,7 @@
 #include "common/range_view.hpp"
 #include "common/util.hpp"
 
-namespace taraxa::util::encoding_rlp {
+namespace taraxa::util {
 using dev::RLP;
 
 using RLPEncoderRef = dev::RLPStream&;
@@ -153,13 +153,12 @@ void __dec_rlp_tuple_body__(RLP::iterator& i, RLP::iterator const& end, RLP::Str
   }
 }
 
-struct InvalidEncodingSize : std::invalid_argument {
-  uint expected, actual;
+struct InvalidEncodingSize : dev::RLPException {
+  dev::bigint expected, actual;
 
-  InvalidEncodingSize(uint expected, uint actual)
-      : invalid_argument(fmt("Invalid rlp list size; expected: %s, actual: %s", expected, actual)),
-        expected(expected),
-        actual(actual) {}
+  InvalidEncodingSize(uint e, uint a) : expected(e), actual(a) {
+    RLPException() << dev::errinfo_comment("Invalid rlp list size") << dev::RequirementError(expected, actual);
+  }
 };
 
 template <typename... Params>
@@ -196,34 +195,16 @@ bytes rlp_enc(T const& obj) {
   return std::move(s.invalidate());
 }
 
-}  // namespace taraxa::util::encoding_rlp
-
-#define HAS_RLP_FIELDS                                            \
-  void rlp(::taraxa::util::encoding_rlp::RLPDecoderRef encoding); \
-  void rlp(::taraxa::util::encoding_rlp::RLPEncoderRef encoding) const;
-
-#define RLP_FIELDS_DEFINE(_class_, ...)                                           \
-  void _class_::rlp(::taraxa::util::encoding_rlp::RLPDecoderRef encoding) {       \
-    ::taraxa::util::encoding_rlp::rlp_tuple(encoding, __VA_ARGS__);               \
-  }                                                                               \
-  void _class_::rlp(::taraxa::util::encoding_rlp::RLPEncoderRef encoding) const { \
-    ::taraxa::util::encoding_rlp::rlp_tuple(encoding, __VA_ARGS__);               \
-  }
-
-#define RLP_FIELDS_DEFINE_INPLACE(...)                                   \
-  void rlp(::taraxa::util::encoding_rlp::RLPDecoderRef encoding) {       \
-    ::taraxa::util::encoding_rlp::rlp_tuple(encoding, __VA_ARGS__);      \
-  }                                                                      \
-  void rlp(::taraxa::util::encoding_rlp::RLPEncoderRef encoding) const { \
-    ::taraxa::util::encoding_rlp::rlp_tuple(encoding, __VA_ARGS__);      \
-  }
-
-namespace taraxa::util {
-using encoding_rlp::InvalidEncodingSize;
-using encoding_rlp::rlp;
-using encoding_rlp::rlp_dec;
-using encoding_rlp::rlp_enc;
-using encoding_rlp::rlp_tuple;
-using encoding_rlp::RLPDecoderRef;
-using encoding_rlp::RLPEncoderRef;
 }  // namespace taraxa::util
+
+#define HAS_RLP_FIELDS                              \
+  void rlp(::taraxa::util::RLPDecoderRef encoding); \
+  void rlp(::taraxa::util::RLPEncoderRef encoding) const;
+
+#define RLP_FIELDS_DEFINE(_class_, ...)                                                                           \
+  void _class_::rlp(::taraxa::util::RLPDecoderRef encoding) { ::taraxa::util::rlp_tuple(encoding, __VA_ARGS__); } \
+  void _class_::rlp(::taraxa::util::RLPEncoderRef encoding) const { ::taraxa::util::rlp_tuple(encoding, __VA_ARGS__); }
+
+#define RLP_FIELDS_DEFINE_INPLACE(...)                                                                   \
+  void rlp(::taraxa::util::RLPDecoderRef encoding) { ::taraxa::util::rlp_tuple(encoding, __VA_ARGS__); } \
+  void rlp(::taraxa::util::RLPEncoderRef encoding) const { ::taraxa::util::rlp_tuple(encoding, __VA_ARGS__); }
