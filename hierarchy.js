@@ -113,7 +113,9 @@ var hierarchy =
     [ "taraxa::state_api::EVMTransaction", "group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction", null ],
     [ "boost::exception", null, [
       [ "dev::Exception", "structdev_1_1_exception.html", [
-        [ "dev::RLPException", "structdev_1_1_r_l_p_exception.html", null ],
+        [ "dev::RLPException", "structdev_1_1_r_l_p_exception.html", [
+          [ "taraxa::util::InvalidEncodingSize", "structtaraxa_1_1util_1_1_invalid_encoding_size.html", null ]
+        ] ],
         [ "dev::p2p::ECDHEError", "structdev_1_1p2p_1_1_e_c_d_h_e_error.html", null ],
         [ "dev::p2p::InvalidPublicIPAddress", "structdev_1_1p2p_1_1_invalid_public_i_p_address.html", null ],
         [ "dev::p2p::NetworkRestartNotSupported", "structdev_1_1p2p_1_1_network_restart_not_supported.html", null ],
@@ -179,9 +181,6 @@ var hierarchy =
     [ "dev::intTraits< bigint >", "structdev_1_1int_traits_3_01bigint_01_4.html", null ],
     [ "dev::intTraits< u160 >", "structdev_1_1int_traits_3_01u160_01_4.html", null ],
     [ "dev::intTraits< u256 >", "structdev_1_1int_traits_3_01u256_01_4.html", null ],
-    [ "std::invalid_argument", null, [
-      [ "taraxa::util::encoding_rlp::InvalidEncodingSize", "structtaraxa_1_1util_1_1encoding__rlp_1_1_invalid_encoding_size.html", null ]
-    ] ],
     [ "jsonrpc::IProcedureInvokationHandler", null, [
       [ "ModularServer< Is... >", "class_modular_server.html", [
         [ "ModularServer< I, Is... >", "class_modular_server_3_01_i_00_01_is_8_8_8_01_4.html", null ]
@@ -280,7 +279,7 @@ var hierarchy =
     [ "taraxa::util::range_view::RangeView< Element >", "structtaraxa_1_1util_1_1range__view_1_1_range_view.html", null ],
     [ "taraxa::RewardsStats", "classtaraxa_1_1_rewards_stats.html", null ],
     [ "dev::RLP", "classdev_1_1_r_l_p.html", null ],
-    [ "taraxa::util::encoding_rlp::RLPDecoderRef", "structtaraxa_1_1util_1_1encoding__rlp_1_1_r_l_p_decoder_ref.html", null ],
+    [ "taraxa::util::RLPDecoderRef", "structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html", null ],
     [ "dev::RLPStream", "classdev_1_1_r_l_p_stream.html", null ],
     [ "dev::p2p::RLPXFrameCoder", "classdev_1_1p2p_1_1_r_l_p_x_frame_coder.html", null ],
     [ "dev::p2p::RLPXFrameCoderImpl", "classdev_1_1p2p_1_1_r_l_p_x_frame_coder_impl.html", null ],

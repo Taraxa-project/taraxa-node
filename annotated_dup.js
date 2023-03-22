@@ -247,10 +247,6 @@ var annotated_dup =
         [ "ErrorHandler", "classtaraxa_1_1state__api_1_1_error_handler.html", "classtaraxa_1_1state__api_1_1_error_handler" ]
       ] ],
       [ "util", "namespacetaraxa_1_1util.html", [
-        [ "encoding_rlp", "namespacetaraxa_1_1util_1_1encoding__rlp.html", [
-          [ "RLPDecoderRef", "structtaraxa_1_1util_1_1encoding__rlp_1_1_r_l_p_decoder_ref.html", "structtaraxa_1_1util_1_1encoding__rlp_1_1_r_l_p_decoder_ref" ],
-          [ "InvalidEncodingSize", "structtaraxa_1_1util_1_1encoding__rlp_1_1_invalid_encoding_size.html", "structtaraxa_1_1util_1_1encoding__rlp_1_1_invalid_encoding_size" ]
-        ] ],
         [ "event", "namespacetaraxa_1_1util_1_1event.html", [
           [ "EventEmitter", "structtaraxa_1_1util_1_1event_1_1_event_emitter.html", "structtaraxa_1_1util_1_1event_1_1_event_emitter" ],
           [ "EventSubscriber", "structtaraxa_1_1util_1_1event_1_1_event_subscriber.html", "structtaraxa_1_1util_1_1event_1_1_event_subscriber" ],
@@ -263,6 +259,8 @@ var annotated_dup =
           [ "RangeView", "structtaraxa_1_1util_1_1range__view_1_1_range_view.html", "structtaraxa_1_1util_1_1range__view_1_1_range_view" ]
         ] ],
         [ "DefaultConstructCopyableMovable", "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html", "structtaraxa_1_1util_1_1_default_construct_copyable_movable" ],
+        [ "RLPDecoderRef", "structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html", "structtaraxa_1_1util_1_1_r_l_p_decoder_ref" ],
+        [ "InvalidEncodingSize", "structtaraxa_1_1util_1_1_invalid_encoding_size.html", "structtaraxa_1_1util_1_1_invalid_encoding_size" ],
         [ "ThreadPool", "classtaraxa_1_1util_1_1_thread_pool.html", "classtaraxa_1_1util_1_1_thread_pool" ]
       ] ],
       [ "vdf_sortition", "namespacetaraxa_1_1vdf__sortition.html", [

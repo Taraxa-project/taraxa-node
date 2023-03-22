@@ -243,7 +243,7 @@ var searchData=
   ['exist_882',['exist',['../classtaraxa_1_1_db_storage.html#a50da530d3b8ee21a095a4895e887a961',1,'taraxa::DbStorage']]],
   ['exp10_883',['exp10',['../namespacedev.html#aaa0b3b33e41c3a8aad65a07acd88a897',1,'dev']]],
   ['exp10_3c_200_20_3e_884',['exp10&lt; 0 &gt;',['../namespacedev.html#a1bfc3ff8d33037e21295aa768a0232bf',1,'dev']]],
-  ['expected_885',['expected',['../structtaraxa_1_1util_1_1encoding__rlp_1_1_invalid_encoding_size.html#aeb3ccffc6b3905e7f6bb11c9fa5afb21',1,'taraxa::util::encoding_rlp::InvalidEncodingSize']]],
+  ['expected_885',['expected',['../structtaraxa_1_1util_1_1_invalid_encoding_size.html#a3bcde54c0f4c767e4d2be383a1ea182c',1,'taraxa::util::InvalidEncodingSize']]],
   ['expected_5fmax_5ftrx_5fper_5fblock_886',['expected_max_trx_per_block',['../namespacetaraxa_1_1state__api.html#a6aa169090ee01a5aa0dc420811ae5205',1,'taraxa::state_api::Opts']]],
   ['expected_5fparallelism_887',['expected_parallelism',['../namespacedev_1_1p2p.html#a8ef448e9f56885950b218ca95c4dd330',1,'dev::p2p::TaraxaNetworkConfig']]],
   ['expiration_888',['expiration',['../structdev_1_1p2p_1_1_discovery_datagram.html#a2b6efb9d8b8fd98a3db00afbe28eb1ab',1,'dev::p2p::DiscoveryDatagram']]],

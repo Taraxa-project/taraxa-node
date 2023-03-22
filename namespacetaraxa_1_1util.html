@@ -93,8 +93,6 @@ $(document).ready(function(){initNavTree('namespacetaraxa_1_1util.html',''); ini
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="namespaces"></a>
 Namespaces</h2></td></tr>
-<tr class="memitem:namespacetaraxa_1_1util_1_1encoding__rlp"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util_1_1encoding__rlp.html">encoding_rlp</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespacetaraxa_1_1util_1_1event"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util_1_1event.html">event</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespacetaraxa_1_1util_1_1lazy"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util_1_1lazy.html">lazy</a></td></tr>
@@ -106,11 +104,17 @@ Namespaces</h2></td></tr>
 Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1util_1_1_default_construct_copyable_movable.html">DefaultConstructCopyableMovable</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1util_1_1_invalid_encoding_size.html">InvalidEncodingSize</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">ThreadPool</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
+<tr class="memitem:a9cb3b1c1d289684696b20c11b057cf32"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a> = <a class="el" href="classdev_1_1_r_l_p_stream.html">dev::RLPStream</a> &amp;</td></tr>
+<tr class="separator:a9cb3b1c1d289684696b20c11b057cf32"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a56dbf93e2c136dee250fa7650bc66661"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a56dbf93e2c136dee250fa7650bc66661">task_t</a> = std::function&lt; void()&gt;</td></tr>
 <tr class="separator:a56dbf93e2c136dee250fa7650bc66661"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adf6bcc32e5ee130e9f286722f92a769a"><td class="memItemLeft" align="right" valign="top">using&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#adf6bcc32e5ee130e9f286722f92a769a">task_executor_t</a> = std::function&lt; void(<a class="el" href="namespacetaraxa_1_1util.html#a56dbf93e2c136dee250fa7650bc66661">task_t</a> &amp;&amp;)&gt;</td></tr>
@@ -118,6 +122,70 @@ Typedefs</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:a2be3e4808f63c48975129c4e0571dfe8"><td class="memTemplParams" colspan="2">template&lt;typename... Params&gt; </td></tr>
+<tr class="memitem:a2be3e4808f63c48975129c4e0571dfe8"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a2be3e4808f63c48975129c4e0571dfe8">rlp_tuple</a> (<a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a> encoding, Params const &amp;... args)</td></tr>
+<tr class="separator:a2be3e4808f63c48975129c4e0571dfe8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a974d9667af9b32aa3fae70bd0e1cc62c"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a974d9667af9b32aa3fae70bd0e1cc62c"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a974d9667af9b32aa3fae70bd0e1cc62c">rlp</a> (<a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a> encoding, T const &amp;target) -&gt; decltype(<a class="el" href="classdev_1_1_r_l_p.html">RLP</a>().toInt&lt; T &gt;(), void())</td></tr>
+<tr class="separator:a974d9667af9b32aa3fae70bd0e1cc62c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a99f42e0a0c28264c593aa672d27a75a9"><td class="memTemplParams" colspan="2">template&lt;unsigned N&gt; </td></tr>
+<tr class="memitem:a99f42e0a0c28264c593aa672d27a75a9"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a99f42e0a0c28264c593aa672d27a75a9">rlp</a> (<a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a> encoding, <a class="el" href="classdev_1_1_fixed_hash.html">dev::FixedHash</a>&lt; N &gt; const &amp;target)</td></tr>
+<tr class="separator:a99f42e0a0c28264c593aa672d27a75a9"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92577fee9fd55e9a607b3084c5d42888"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a92577fee9fd55e9a607b3084c5d42888">rlp</a> (<a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a> encoding, std::string const &amp;target)</td></tr>
+<tr class="separator:a92577fee9fd55e9a607b3084c5d42888"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8515a877c0c16041fc7137aa54e5875e"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a8515a877c0c16041fc7137aa54e5875e">rlp</a> (<a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a> encoding, <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> const &amp;target)</td></tr>
+<tr class="separator:a8515a877c0c16041fc7137aa54e5875e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aad23e6d1030a1df7bea80cf3fad3a3c3"><td class="memTemplParams" colspan="2">template&lt;typename Param &gt; </td></tr>
+<tr class="memitem:aad23e6d1030a1df7bea80cf3fad3a3c3"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#aad23e6d1030a1df7bea80cf3fad3a3c3">rlp</a> (<a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a> encoding, std::optional&lt; Param &gt; const &amp;target)</td></tr>
+<tr class="separator:aad23e6d1030a1df7bea80cf3fad3a3c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a08c0ebe11d075726f5fcb914adf53a03"><td class="memTemplParams" colspan="2">template&lt;typename Param &gt; </td></tr>
+<tr class="memitem:a08c0ebe11d075726f5fcb914adf53a03"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a08c0ebe11d075726f5fcb914adf53a03">rlp</a> (<a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a> encoding, <a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">RangeView</a>&lt; Param &gt; const &amp;target)</td></tr>
+<tr class="separator:a08c0ebe11d075726f5fcb914adf53a03"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adfdb3edf3587436dc1e59ef1df92c747"><td class="memTemplParams" colspan="2">template&lt;typename T1 , typename T2 &gt; </td></tr>
+<tr class="memitem:adfdb3edf3587436dc1e59ef1df92c747"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#adfdb3edf3587436dc1e59ef1df92c747">rlp</a> (<a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a> encoding, std::pair&lt; T1, T2 &gt; const &amp;target)</td></tr>
+<tr class="separator:adfdb3edf3587436dc1e59ef1df92c747"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a65a290e98a69d53830b042aad512475a"><td class="memTemplParams" colspan="2">template&lt;typename Sequence &gt; </td></tr>
+<tr class="memitem:a65a290e98a69d53830b042aad512475a"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a65a290e98a69d53830b042aad512475a">rlp</a> (<a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a> encoding, Sequence const &amp;target) -&gt; decltype(target.size(), target.begin(), target.end(), void())</td></tr>
+<tr class="separator:a65a290e98a69d53830b042aad512475a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acedba4b139837a8892109b1bce78d31a"><td class="memTemplParams" colspan="2">template&lt;typename Param , typename... Params&gt; </td></tr>
+<tr class="memitem:acedba4b139837a8892109b1bce78d31a"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#acedba4b139837a8892109b1bce78d31a">__enc_rlp_tuple_body__</a> (<a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a> encoding, Param const &amp;target, Params const &amp;... rest)</td></tr>
+<tr class="separator:acedba4b139837a8892109b1bce78d31a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a7738fb6818e4b7a123ab5014180934"><td class="memTemplParams" colspan="2">template&lt;typename... Params&gt; </td></tr>
+<tr class="memitem:a6a7738fb6818e4b7a123ab5014180934"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a6a7738fb6818e4b7a123ab5014180934">rlp_tuple</a> (<a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a> encoding, Params &amp;... args)</td></tr>
+<tr class="separator:a6a7738fb6818e4b7a123ab5014180934"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac6a6eb8ccaad190ce05493df38916a89"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:ac6a6eb8ccaad190ce05493df38916a89"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#ac6a6eb8ccaad190ce05493df38916a89">rlp</a> (<a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a> encoding, T &amp;target) -&gt; decltype(encoding.value.toInt&lt; T &gt;(), void())</td></tr>
+<tr class="separator:ac6a6eb8ccaad190ce05493df38916a89"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5804acc66b96d45af0f06a6081d375d7"><td class="memTemplParams" colspan="2">template&lt;unsigned N&gt; </td></tr>
+<tr class="memitem:a5804acc66b96d45af0f06a6081d375d7"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a5804acc66b96d45af0f06a6081d375d7">rlp</a> (<a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a> encoding, <a class="el" href="classdev_1_1_fixed_hash.html">dev::FixedHash</a>&lt; N &gt; &amp;target)</td></tr>
+<tr class="separator:a5804acc66b96d45af0f06a6081d375d7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8b0884bdeb5464ccdbb02d74d99a2331"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a8b0884bdeb5464ccdbb02d74d99a2331">rlp</a> (<a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a> encoding, std::string &amp;target)</td></tr>
+<tr class="separator:a8b0884bdeb5464ccdbb02d74d99a2331"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac7279d76d6676aab430755f63911bc29"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#ac7279d76d6676aab430755f63911bc29">rlp</a> (<a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a> encoding, <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> &amp;target)</td></tr>
+<tr class="separator:ac7279d76d6676aab430755f63911bc29"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae45df8acb9a357420355fe5fe15fd99e"><td class="memTemplParams" colspan="2">template&lt;typename Param &gt; </td></tr>
+<tr class="memitem:ae45df8acb9a357420355fe5fe15fd99e"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#ae45df8acb9a357420355fe5fe15fd99e">rlp</a> (<a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a> encoding, std::optional&lt; Param &gt; &amp;target)</td></tr>
+<tr class="separator:ae45df8acb9a357420355fe5fe15fd99e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd2197f743dfe6455ce1dbae37d4b493"><td class="memTemplParams" colspan="2">template&lt;typename Sequence &gt; </td></tr>
+<tr class="memitem:afd2197f743dfe6455ce1dbae37d4b493"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#afd2197f743dfe6455ce1dbae37d4b493">rlp</a> (<a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a> encoding, Sequence &amp;target) -&gt; decltype(target.emplace_back(), void())</td></tr>
+<tr class="separator:afd2197f743dfe6455ce1dbae37d4b493"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a46f51587c55531118e5c860c3b3dd691"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a46f51587c55531118e5c860c3b3dd691">rlp</a> (<a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a> encoding, bool &amp;target)</td></tr>
+<tr class="separator:a46f51587c55531118e5c860c3b3dd691"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1afe68a4924ed8bb49ba56d3aa75518b"><td class="memTemplParams" colspan="2">template&lt;typename Map &gt; </td></tr>
+<tr class="memitem:a1afe68a4924ed8bb49ba56d3aa75518b"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a1afe68a4924ed8bb49ba56d3aa75518b">rlp</a> (<a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a> encoding, Map &amp;target) -&gt; decltype(target[target.begin() -&gt;first], void())</td></tr>
+<tr class="separator:a1afe68a4924ed8bb49ba56d3aa75518b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad2bf09b9604e1bab61d2c2e84b5f5a22"><td class="memTemplParams" colspan="2">template&lt;typename Param , typename... Params&gt; </td></tr>
+<tr class="memitem:ad2bf09b9604e1bab61d2c2e84b5f5a22"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#ad2bf09b9604e1bab61d2c2e84b5f5a22">__dec_rlp_tuple_body__</a> (<a class="el" href="classdev_1_1_r_l_p_1_1iterator.html">RLP::iterator</a> &amp;i, <a class="el" href="classdev_1_1_r_l_p_1_1iterator.html">RLP::iterator</a> const &amp;end, <a class="el" href="classdev_1_1_r_l_p.html#aa0727843a4996f7e317adc8f1f966938">RLP::Strictness</a> strictness, Param &amp;target, Params &amp;... rest)</td></tr>
+<tr class="separator:ad2bf09b9604e1bab61d2c2e84b5f5a22"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a42009a8d67bcd12cb10331707b73e7cb"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a42009a8d67bcd12cb10331707b73e7cb"><td class="memTemplItemLeft" align="right" valign="top">T&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a42009a8d67bcd12cb10331707b73e7cb">rlp_dec</a> (<a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a> encoding)</td></tr>
+<tr class="separator:a42009a8d67bcd12cb10331707b73e7cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a880f76f27d9a8b6d153bf9d559055609"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a880f76f27d9a8b6d153bf9d559055609"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> const  &amp;&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a880f76f27d9a8b6d153bf9d559055609">rlp_enc</a> (<a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a> encoder_to_reuse, T const &amp;obj)</td></tr>
+<tr class="separator:a880f76f27d9a8b6d153bf9d559055609"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a17cce151761153539f207207285c1404"><td class="memTemplParams" colspan="2">template&lt;typename T &gt; </td></tr>
+<tr class="memitem:a17cce151761153539f207207285c1404"><td class="memTemplItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a>&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a17cce151761153539f207207285c1404">rlp_enc</a> (T const &amp;obj)</td></tr>
+<tr class="separator:a17cce151761153539f207207285c1404"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2e2023bff6913264bc83ccef61e32275"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1util.html#adf6bcc32e5ee130e9f286722f92a769a">task_executor_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a2e2023bff6913264bc83ccef61e32275">current_thread_executor</a> ()</td></tr>
 <tr class="separator:a2e2023bff6913264bc83ccef61e32275"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8c8c5e3d84bb4d2ec1511aebf75b9bd1"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a8c8c5e3d84bb4d2ec1511aebf75b9bd1">parse_json</a> (std::string_view const &amp;str)</td></tr>
@@ -134,6 +202,20 @@ Functions</h2></td></tr>
 <tr class="separator:aa57a87cf79b5ec8b938c45fc75c6a285"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Typedef Documentation</h2>
+<a id="a9cb3b1c1d289684696b20c11b057cf32"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9cb3b1c1d289684696b20c11b057cf32">&#9670;&nbsp;</a></span>RLPEncoderRef</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">using <a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">taraxa::util::RLPEncoderRef</a> = typedef <a class="el" href="classdev_1_1_r_l_p_stream.html">dev::RLPStream</a>&amp;</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="adf6bcc32e5ee130e9f286722f92a769a"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adf6bcc32e5ee130e9f286722f92a769a">&#9670;&nbsp;</a></span>task_executor_t</h2>
 
@@ -163,6 +245,90 @@ Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
+<a id="ad2bf09b9604e1bab61d2c2e84b5f5a22"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad2bf09b9604e1bab61d2c2e84b5f5a22">&#9670;&nbsp;</a></span>__dec_rlp_tuple_body__()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Param , typename... Params&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::util::__dec_rlp_tuple_body__ </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classdev_1_1_r_l_p_1_1iterator.html">RLP::iterator</a> &amp;&#160;</td>
+          <td class="paramname"><em>i</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classdev_1_1_r_l_p_1_1iterator.html">RLP::iterator</a> const &amp;&#160;</td>
+          <td class="paramname"><em>end</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classdev_1_1_r_l_p.html#aa0727843a4996f7e317adc8f1f966938">RLP::Strictness</a>&#160;</td>
+          <td class="paramname"><em>strictness</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Param &amp;&#160;</td>
+          <td class="paramname"><em>target</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Params &amp;...&#160;</td>
+          <td class="paramname"><em>rest</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="acedba4b139837a8892109b1bce78d31a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acedba4b139837a8892109b1bce78d31a">&#9670;&nbsp;</a></span>__enc_rlp_tuple_body__()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Param , typename... Params&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::util::__enc_rlp_tuple_body__ </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Param const &amp;&#160;</td>
+          <td class="paramname"><em>target</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Params const &amp;...&#160;</td>
+          <td class="paramname"><em>rest</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a2e2023bff6913264bc83ccef61e32275"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a2e2023bff6913264bc83ccef61e32275">&#9670;&nbsp;</a></span>current_thread_executor()</h2>
 
@@ -254,6 +420,662 @@ Functions</h2></td></tr>
           <td class="paramtype">std::string_view&#160;</td>
           <td class="paramname"><em>str</em></td><td>)</td>
           <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a46f51587c55531118e5c860c3b3dd691"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a46f51587c55531118e5c860c3b3dd691">&#9670;&nbsp;</a></span>rlp() <span class="overload">[1/16]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::util::rlp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool &amp;&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac7279d76d6676aab430755f63911bc29"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac7279d76d6676aab430755f63911bc29">&#9670;&nbsp;</a></span>rlp() <span class="overload">[2/16]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto taraxa::util::rlp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> &amp;&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5804acc66b96d45af0f06a6081d375d7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5804acc66b96d45af0f06a6081d375d7">&#9670;&nbsp;</a></span>rlp() <span class="overload">[3/16]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;unsigned N&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::util::rlp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classdev_1_1_fixed_hash.html">dev::FixedHash</a>&lt; N &gt; &amp;&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a1afe68a4924ed8bb49ba56d3aa75518b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1afe68a4924ed8bb49ba56d3aa75518b">&#9670;&nbsp;</a></span>rlp() <span class="overload">[4/16]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Map &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">auto taraxa::util::rlp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Map &amp;&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; decltype(target[target.begin()-&gt;first], void()) </td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afd2197f743dfe6455ce1dbae37d4b493"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd2197f743dfe6455ce1dbae37d4b493">&#9670;&nbsp;</a></span>rlp() <span class="overload">[5/16]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Sequence &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">auto taraxa::util::rlp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Sequence &amp;&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; decltype(target.emplace_back(), void()) </td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae45df8acb9a357420355fe5fe15fd99e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae45df8acb9a357420355fe5fe15fd99e">&#9670;&nbsp;</a></span>rlp() <span class="overload">[6/16]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Param &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::util::rlp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::optional&lt; Param &gt; &amp;&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8b0884bdeb5464ccdbb02d74d99a2331"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8b0884bdeb5464ccdbb02d74d99a2331">&#9670;&nbsp;</a></span>rlp() <span class="overload">[7/16]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto taraxa::util::rlp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string &amp;&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac6a6eb8ccaad190ce05493df38916a89"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac6a6eb8ccaad190ce05493df38916a89">&#9670;&nbsp;</a></span>rlp() <span class="overload">[8/16]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto taraxa::util::rlp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">T &amp;&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; decltype(encoding.value.toInt&lt;T&gt;(), void()) </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8515a877c0c16041fc7137aa54e5875e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8515a877c0c16041fc7137aa54e5875e">&#9670;&nbsp;</a></span>rlp() <span class="overload">[9/16]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto taraxa::util::rlp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> const &amp;&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a99f42e0a0c28264c593aa672d27a75a9"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a99f42e0a0c28264c593aa672d27a75a9">&#9670;&nbsp;</a></span>rlp() <span class="overload">[10/16]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;unsigned N&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::util::rlp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classdev_1_1_fixed_hash.html">dev::FixedHash</a>&lt; N &gt; const &amp;&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a08c0ebe11d075726f5fcb914adf53a03"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a08c0ebe11d075726f5fcb914adf53a03">&#9670;&nbsp;</a></span>rlp() <span class="overload">[11/16]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Param &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::util::rlp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">RangeView</a>&lt; Param &gt; const &amp;&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a65a290e98a69d53830b042aad512475a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a65a290e98a69d53830b042aad512475a">&#9670;&nbsp;</a></span>rlp() <span class="overload">[12/16]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Sequence &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">auto taraxa::util::rlp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Sequence const &amp;&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; decltype(target.size(), target.begin(), target.end(), void()) </td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aad23e6d1030a1df7bea80cf3fad3a3c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aad23e6d1030a1df7bea80cf3fad3a3c3">&#9670;&nbsp;</a></span>rlp() <span class="overload">[13/16]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Param &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::util::rlp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::optional&lt; Param &gt; const &amp;&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adfdb3edf3587436dc1e59ef1df92c747"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adfdb3edf3587436dc1e59ef1df92c747">&#9670;&nbsp;</a></span>rlp() <span class="overload">[14/16]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T1 , typename T2 &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::util::rlp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::pair&lt; T1, T2 &gt; const &amp;&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a92577fee9fd55e9a607b3084c5d42888"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92577fee9fd55e9a607b3084c5d42888">&#9670;&nbsp;</a></span>rlp() <span class="overload">[15/16]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto taraxa::util::rlp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string const &amp;&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a974d9667af9b32aa3fae70bd0e1cc62c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a974d9667af9b32aa3fae70bd0e1cc62c">&#9670;&nbsp;</a></span>rlp() <span class="overload">[16/16]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">auto taraxa::util::rlp </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">T const &amp;&#160;</td>
+          <td class="paramname"><em>target</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> -&gt; decltype(<a class="el" href="classdev_1_1_r_l_p.html">RLP</a>().toInt&lt;T&gt;(), void()) </td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a42009a8d67bcd12cb10331707b73e7cb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a42009a8d67bcd12cb10331707b73e7cb">&#9670;&nbsp;</a></span>rlp_dec()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">T taraxa::util::rlp_dec </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a880f76f27d9a8b6d153bf9d559055609"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a880f76f27d9a8b6d153bf9d559055609">&#9670;&nbsp;</a></span>rlp_enc() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> const&amp; taraxa::util::rlp_enc </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoder_to_reuse</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">T const &amp;&#160;</td>
+          <td class="paramname"><em>obj</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a17cce151761153539f207207285c1404"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a17cce151761153539f207207285c1404">&#9670;&nbsp;</a></span>rlp_enc() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename T &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> taraxa::util::rlp_enc </td>
+          <td>(</td>
+          <td class="paramtype">T const &amp;&#160;</td>
+          <td class="paramname"><em>obj</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6a7738fb6818e4b7a123ab5014180934"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6a7738fb6818e4b7a123ab5014180934">&#9670;&nbsp;</a></span>rlp_tuple() <span class="overload">[1/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename... Params&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::util::rlp_tuple </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Params &amp;...&#160;</td>
+          <td class="paramname"><em>args</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a2be3e4808f63c48975129c4e0571dfe8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2be3e4808f63c48975129c4e0571dfe8">&#9670;&nbsp;</a></span>rlp_tuple() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename... Params&gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::util::rlp_tuple </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a>&#160;</td>
+          <td class="paramname"><em>encoding</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Params const &amp;...&#160;</td>
+          <td class="paramname"><em>args</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
