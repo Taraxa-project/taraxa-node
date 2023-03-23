@@ -11,10 +11,10 @@ metadata:
     app.kubernetes.io/managed-by: {{ .Release.Service }}
     {{ if .Values.kubemonkey.enabled }}
     kube-monkey/enabled: enabled
-    kube-monkey/identifier: monkey-victim
-    kube-monkey/mtbf: '2'
-    kube-monkey/kill-mode: "fixed"
-    kube-monkey/kill-value: '1'
+    kube-monkey/identifier: {{ include "taraxa-boot-node.fullname" . }}
+    kube-monkey/mtbf: {{ .Values.kubemonkey.mtbf }}
+    kube-monkey/kill-mode: {{ .Values.kubemonkey.kill-mode }}
+    kube-monkey/kill-value: {{ .Values.kubemonkey.kill-value }}
     {{ end }}
 spec:
   replicas: {{ .Values.bootnode.replicaCount }}
@@ -38,10 +38,10 @@ spec:
         app.kubernetes.io/instance: {{ .Release.Name }}
         {{ if .Values.kubemonkey.enabled }}
         kube-monkey/enabled: enabled
-        kube-monkey/identifier: monkey-victim
-        kube-monkey/mtbf: '2'
-        kube-monkey/kill-mode: "fixed"
-        kube-monkey/kill-value: '1'
+        kube-monkey/identifier: {{ include "taraxa-boot-node.fullname" . }}
+        kube-monkey/mtbf: {{ .Values.kubemonkey.mtbf }}
+        kube-monkey/kill-mode: {{ .Values.kubemonkey.kill-mode }}
+        kube-monkey/kill-value: {{ .Values.kubemonkey.kill-value }}
         {{ end }}
       annotations:
         kubernetes.io/change-cause: "Configuration through configmaps."

@@ -294,3 +294,6 @@ test:
 
 kubemonkey:
   enabled: false
+  mtbf: 2
+  kill-mode: "fixed"
+  kill-value: '1'
