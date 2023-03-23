@@ -9,6 +9,13 @@ metadata:
     helm.sh/chart: {{ include "taraxa-node.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{ if .Values.kubemonkey.enabled }}
+    kube-monkey/enabled: enabled
+    kube-monkey/identifier: monkey-victim
+    kube-monkey/mtbf: '2'
+    kube-monkey/kill-mode: "fixed"
+    kube-monkey/kill-value: '1'
+    {{ end }}
 spec:
   replicas: {{ .Values.bootnode.replicaCount }}
   serviceName: {{ include "taraxa-boot-node.fullname" . }}
@@ -29,6 +36,13 @@ spec:
         partition: a
         app.kubernetes.io/name: {{ .Release.Name }}-boot-node
         app.kubernetes.io/instance: {{ .Release.Name }}
+        {{ if .Values.kubemonkey.enabled }}
+        kube-monkey/enabled: enabled
+        kube-monkey/identifier: monkey-victim
+        kube-monkey/mtbf: '2'
+        kube-monkey/kill-mode: "fixed"
+        kube-monkey/kill-value: '1'
+        {{ end }}
       annotations:
         kubernetes.io/change-cause: "Configuration through configmaps."
     spec:

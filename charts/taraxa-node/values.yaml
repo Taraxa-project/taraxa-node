@@ -291,3 +291,6 @@ test:
     repository: gcr.io/jovial-meridian-249123/python
     tag: latest
     pullPolicy: IfNotPresent
+
+kubemonkey:
+  enabled: false
