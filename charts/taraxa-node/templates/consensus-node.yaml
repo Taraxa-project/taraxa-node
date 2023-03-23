@@ -13,8 +13,8 @@ metadata:
     kube-monkey/enabled: enabled
     kube-monkey/identifier: {{ include "taraxa-consensus-node.fullname" . }}
     kube-monkey/mtbf: {{ .Values.kubemonkey.mtbf }}
-    kube-monkey/kill-mode: {{ .Values.kubemonkey.kill-mode }}
-    kube-monkey/kill-value: {{ .Values.kubemonkey.kill-value }}
+    kube-monkey/kill-mode: {{ .Values.kubemonkey.killMode }}
+    kube-monkey/kill-value: {{ .Values.kubemonkey.killValue }}
     {{ end }}
 spec:
   replicas: {{ .Values.consensusnode.replicaCount }}
@@ -40,8 +40,8 @@ spec:
         kube-monkey/enabled: enabled
         kube-monkey/identifier: {{ include "taraxa-consensus-node.fullname" . }}
         kube-monkey/mtbf: {{ .Values.kubemonkey.mtbf }}
-        kube-monkey/kill-mode: {{ .Values.kubemonkey.kill-mode }}
-        kube-monkey/kill-value: {{ .Values.kubemonkey.kill-value }}
+        kube-monkey/kill-mode: {{ .Values.kubemonkey.killMode }}
+        kube-monkey/kill-value: {{ .Values.kubemonkey.killValue }}
         {{ end }}
       annotations:
         kubernetes.io/change-cause: "Configuration through configmaps."
