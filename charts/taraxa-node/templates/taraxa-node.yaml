@@ -10,13 +10,6 @@ metadata:
     helm.sh/chart: {{ include "taraxa-node.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-    {{ if .Values.kubemonkey.enabled }}
-    kube-monkey/enabled: enabled
-    kube-monkey/identifier: {{ include "taraxa-node.fullname" . }}
-    kube-monkey/mtbf: {{ .Values.kubemonkey.mtbf }}
-    kube-monkey/kill-mode: {{ .Values.kubemonkey.killMode }}
-    kube-monkey/kill-value: {{ .Values.kubemonkey.killValue }}
-    {{ end }}
 spec:
   replicas: {{ .Values.node.replicaCount }}
   # to launch or terminate all Pods in parallel.
@@ -37,13 +30,6 @@ spec:
         partition: a
         app.kubernetes.io/name: {{ include "taraxa-node.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
-        {{ if .Values.kubemonkey.enabled }}
-        kube-monkey/enabled: enabled
-        kube-monkey/identifier: {{ include "taraxa-node.fullname" . }}
-        kube-monkey/mtbf: {{ .Values.kubemonkey.mtbf }}
-        kube-monkey/kill-mode: {{ .Values.kubemonkey.killMode }}
-        kube-monkey/kill-value: {{ .Values.kubemonkey.killValue }}
-        {{ end }}
       annotations:
         kubernetes.io/change-cause: "Configuration through configmaps."
     spec:
