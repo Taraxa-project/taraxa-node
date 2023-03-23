@@ -144,6 +144,9 @@ node:
         - name: metrics
           port: 8888
           protocol: TCP
+        - name: metrics-indexer
+          port: 2112
+          protocol: TCP
         - name: http-indexer
           port: 8080
           protocol: TCP
