@@ -250,6 +250,35 @@ commands:
 
               echo ${PRNET_HELM_VALUES} | base64 -d > charts/taraxa-node/prnet.values.yaml
               helm dependency build charts/taraxa-node/
+
+
+              helm template pr-<< parameters.pr-name >> charts/taraxa-node/ --namespace blockchain-prnet -f charts/taraxa-node/values.yaml -f charts/taraxa-node/prnet.values.yaml \
+                --set image.repository=gcr.io/jovial-meridian-249123/taraxa-node \
+                --set image.tag=${PR_TAG} \
+                --set explorer.configEnvs.faucetEnabled="true" \
+                --set explorer.configEnvs.rpcHttpProvider="http://pr-<< parameters.pr-name >>-taraxa-node-1.pr-<< parameters.pr-name >>-taraxa-node:7777" \
+                --set explorer.configEnvs.rpcWsProvider="http://pr-<< parameters.pr-name >>-taraxa-node-1.pr-<< parameters.pr-name >>-taraxa-node:8777" \
+                --set explorer.configEnvs.wsProvider="wss://explorer-ws-pr-<< parameters.pr-name >>.prnet.taraxa.io" \
+                --set bootnode.loadBalancer.addresses\[0\]="${PRNET_IPS_BOOT_NODES[0]}" \
+                --set bootnode.loadBalancer.addresses\[1\]="${PRNET_IPS_BOOT_NODES[1]}" \
+                --set bootnode.loadBalancer.addresses\[2\]="${PRNET_IPS_BOOT_NODES[2]}" \
+                --set node.loadBalancer.addresses\[0\]="${PRNET_IPS_RPC_NODES[0]}" \
+                --set node.loadBalancer.addresses\[1\]="${PRNET_IPS_RPC_NODES[1]}" \
+                --set node.loadBalancer.addresses\[2\]="${PRNET_IPS_RPC_NODES[2]}" \
+                --set node.persistence.enabled=true \
+                --set bootnode.persistence.enabled=false \
+                --set consensusnode.persistence.enabled=true \
+                --set node.serviceMonitor.enabled=true \
+                --set bootnode.serviceMonitor.enabled=false \
+                --set consensusnode.serviceMonitor.enabled=true \
+                --set node.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
+                --set bootnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
+                --set consensusnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
+                --set node.indexer.enabled=true \
+                --set kubemonkey.enabled=true
+
+
+              
               helm upgrade -i pr-<< parameters.pr-name >> charts/taraxa-node/ --namespace blockchain-prnet -f charts/taraxa-node/values.yaml -f charts/taraxa-node/prnet.values.yaml \
                 --set image.repository=gcr.io/jovial-meridian-249123/taraxa-node \
                 --set image.tag=${PR_TAG} \
