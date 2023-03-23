@@ -151,7 +151,7 @@ node:
     image:
       repository: gcr.io/jovial-meridian-249123/taraxa-indexer
       tag: latest
-      pullPolicy: IfNotPresent
+      pullPolicy: Always
     persistence:
       enabled: false
       accessMode: ReadWriteOnce
@@ -244,6 +244,9 @@ consensusnode:
     storageClass: 
     annotations: {}
 
+transactionGeneration:
+  enabled: true
+  privateKey: ""
 
 explorer:
   enabled: false
