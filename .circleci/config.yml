@@ -272,7 +272,8 @@ commands:
                 --set node.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set bootnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set consensusnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
-                --set node.indexer.enabled=true
+                --set node.indexer.enabled=true \
+                --set kubemonkey.enabled=true
             fi
 
   cleanup_prnet_chart:
