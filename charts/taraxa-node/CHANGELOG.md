@@ -3,6 +3,13 @@
 This file documents all notable changes to `taraxa-node` Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v0.3.6
+
+### Minor changes
+
+* Added labels into `StatefulSets` for [kube-monkey](https://github.com/asobti/kube-monkey)
+
+
 ## v0.3.5
 
 ### Minor changes
