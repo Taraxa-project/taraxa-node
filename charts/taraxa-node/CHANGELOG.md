@@ -9,12 +9,17 @@ numbering uses [semantic versioning](http://semver.org).
 
 * Added port for scrapping metrics from sidecar of rpc-nodes ([taraxa-indexer](https://github.com/Taraxa-project/taraxa-indexer))
 
+## v0.3.7
+
+### Minor changes
+
+* Adds transaction generating service to replace the explorer faucet
+
 ## v0.3.6
 
 ### Minor changes
 
 * Added labels into `StatefulSets` for [kube-monkey](https://github.com/asobti/kube-monkey)
-
 
 ## v0.3.5
 
