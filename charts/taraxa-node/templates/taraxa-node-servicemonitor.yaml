@@ -22,5 +22,8 @@ spec:
     - honorLabels: true
       path: /metrics
       port: metrics
+    - honorLabels: true
+      path: /metrics
+      port: metrics-indexer
 {{- end }}
 {{- end }}
