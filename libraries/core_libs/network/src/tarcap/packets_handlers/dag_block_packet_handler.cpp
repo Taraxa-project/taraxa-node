@@ -133,6 +133,16 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shar
           }
         }
         break;
+      case DagManager::VerifyBlockReturnType::MissingTip:
+        if (peer->peer_dag_synced_) {
+          std::ostringstream err_msg;
+          err_msg << "DagBlock has missing tip";
+          throw MaliciousPeerException(err_msg.str());
+        } else {
+          // peer_dag_synced_ flag ensures that this can only be performed once for a peer
+          requestPendingDagBlocks(peer);
+        }
+        break;
       case DagManager::VerifyBlockReturnType::AheadBlock:
       case DagManager::VerifyBlockReturnType::FutureBlock:
         if (peer->peer_dag_synced_) {

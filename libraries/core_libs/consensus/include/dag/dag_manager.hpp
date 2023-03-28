@@ -40,7 +40,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
     ExpiredBlock,
     IncorrectTransactionsEstimation,
     BlockTooBig,
-    FailedTipsVerification
+    FailedTipsVerification,
+    MissingTip
   };
 
   explicit DagManager(const DagBlock &dag_genesis_block, addr_t node_addr, const SortitionConfig &sortition_config,
