@@ -1,0 +1,178 @@
+{{ if .Values.consensusnodeLight.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-consensus-node-light-init-script-light
+  labels:
+    app: consensus-node-light
+    app.kubernetes.io/name: consensus-node-light
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  genconfig.py: |-
+    import json
+    import sys
+    import subprocess
+
+    def get_vrf_public(vrf_prv_key):
+        process = subprocess.Popen(['taraxad', '--command', 'vrf', vrf_prv_key],stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        for line in process.stdout:
+            l = line.decode("utf-8")
+
+            if "vrf_public" in l:
+                vrf_public = l.split(':')[1].replace("\"", "").strip()
+                return f'0x{vrf_public}'
+
+    def get_addr(prv_key):
+        process = subprocess.Popen(['taraxad', '--command', 'account', prv_key],stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+
+        for line in process.stdout:
+            l = line.decode("utf-8")
+
+            if "node_address" in l:
+                addr = l.split(':')[1].replace("\"", "").strip()
+                return f'0x{addr}'
+
+    def main(config):
+      keys = []
+      vrfs = []
+
+      {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
+      keys = [
+      {{- range $key, $value := .Values.config.consensusnode.keys }}
+      "{{ $value }}",
+      {{- end }}
+      ]
+      {{- end }}
+
+      {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
+      vrfs = [
+      {{- range $key, $value := .Values.config.consensusnode.vrfs }}
+      "{{ $value }}",
+      {{- end }}
+      ]
+      {{- end }}
+
+      with open(config) as f:
+        data = json.load(f)
+
+        initial_validators = data['dpos']['initial_validators']
+        
+        # get delegations from 1st default validator 
+        delegations = initial_validators[0]['delegations']
+
+        validators = []
+        for idx, key in enumerate(keys):
+
+          validator = {
+              'address': '',
+              'commission': '0x0',
+              'delegations': {},
+              'description': 'Taraxa validator',
+              'endpoint': '',
+              'owner': ''
+          }
+          
+          addr = get_addr(key)
+          validator['address'] = addr
+          validator['owner'] = addr
+          validator['delegations'] = delegations
+          validator['vrf_key'] = get_vrf_public(vrfs[idx])
+          validators.append(validator)
+
+        data['dpos']['initial_validators'] = validators
+        print(json.dumps(data))
+
+    if __name__ == "__main__":
+      config_file_name = sys.argv[1]
+      main(config_file_name)
+
+  entrypoint.sh: |-
+    #!/bin/bash
+    DATA_PATH=/root/.taraxa
+    CONFIG_PATH=$DATA_PATH/conf_taraxa.json
+    GENESIS_PATH=$DATA_PATH/genesis_taraxa.json
+    WALLET_PATH=$DATA_PATH/wallet_taraxa.json
+
+    echo "Cleaning up old config..."
+    rm -rf $CONFIG_PATH
+    rm -rf $GENESIS_PATH
+
+    echo "Generating config"
+    INDEX=${HOSTNAME##*-}
+    KEY="CONSENSUS_NODE_KEY_${INDEX}"
+    VRF="CONSENSUS_NODE_VRF_${INDEX}"
+
+    KEY="${!KEY}"
+    VRF="${!VRF}"
+
+    if [ -z "$KEY" ]
+    then
+      if [ ! -f "$WALLET_PATH" ]
+      then
+        echo "No predifined keys. Generating new wallet..."
+        KEY=$(taraxad --command account | grep node_secret | cut -d\  -f3- | tr -d \")
+        VRF=$(taraxad --command vrf | grep vrf_secret | cut -d\  -f3 | tr -d \")
+        {{ if .Values.explorer.enabled }}
+        NODE_ADDRESS=$(taraxad --command account ${KEY} | grep node_address | cut -d\  -f3 | tr -d \")
+        echo "New wallet: 0x${NODE_ADDRESS}"
+
+        SIG=$(taraxa-sign sign --key 0x${EXPLORER_DELEGATION_PRIVATE_KEY} 0x${NODE_ADDRESS})
+
+        curl --silent http://{{ .Release.Name }}-explorer/api/delegate/0x${NODE_ADDRESS}?sig=${SIG}
+        {{- end }}
+      else
+        echo "Found wallet file."
+        KEY=$(cat "$WALLET_PATH" | jq -r .node_secret)
+        VRF=$(cat "$WALLET_PATH" | jq -r .vrf_secret)
+      fi
+    fi
+
+    {{ if .Values.explorer.enabled }}
+    {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
+    NODE_ADDRESS=$(taraxad --command account ${KEY} | grep node_address | cut -d\  -f3 | tr -d \")
+    curl --silent http://{{ .Release.Name }}-explorer/api/faucet/0x${NODE_ADDRESS}
+    {{- end }}
+    {{- end }}
+
+    taraxad --command config \
+      --chain-id {{ .Values.config.network }} \
+      --node-secret ${KEY} \
+      --vrf-secret ${VRF} \
+      {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
+      {{- $lbEnabled := .Values.bootnode.loadBalancer.enabled -}}
+      {{- $lbIPs := .Values.bootnode.loadBalancer.addresses -}}
+      {{- range $key, $value := .Values.config.bootnode.addresses }}
+      --boot-nodes {{ if $lbEnabled }}{{ index $lbIPs $key }}{{- else }}{{ include "taraxa-boot-node.fullname" $ }}-{{ $key }}.{{ include "taraxa-boot-node.fullname" $ }}.{{$.Release.Namespace}}{{- end }}:10002/{{ $value }} \
+      {{- end }}
+      {{- end }}
+      {{- if .Values.config.extraArgs }}
+      {{ join " " .Values.config.extraArgs }} \
+      {{- end }}
+      --config $CONFIG_PATH \
+      --genesis $GENESIS_PATH \
+      --wallet $WALLET_PATH \
+      --data-dir $DATA_PATH
+
+    {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
+    python3 /bin/genconfig.py $GENESIS_PATH > $GENESIS_PATH.tmp && mv $GENESIS_PATH.tmp $GENESIS_PATH
+    {{- end }}
+
+    {{- if and (ne .Values.config.network "841") (ne .Values.config.network "842") (ne .Values.config.network "843") }}
+    {{ if .Values.explorer.enabled }}
+    export FAUCET_ADDRESS=$(taraxad --command account ${EXPLORER_FAUCET_PRIVATE_KEY} | grep node_address | cut -d\  -f3 | tr -d \")
+    cat $GENESIS_PATH | jq '.initial_balances += ({("0x"+env.FAUCET_ADDRESS): "0x1027e72f1f12813088000000"})' > $GENESIS_PATH.tmp && mv $GENESIS_PATH.tmp $GENESIS_PATH
+    {{- end }}
+    {{- end }}
+
+    echo "***** $CONFIG_PATH *****"
+    cat $CONFIG_PATH
+    echo "***** $CONFIG_PATH *****"
+
+    echo "***** $GENESIS_PATH *****"
+    cat $GENESIS_PATH
+    echo "***** $GENESIS_PATH *****"
+{{- end }}
