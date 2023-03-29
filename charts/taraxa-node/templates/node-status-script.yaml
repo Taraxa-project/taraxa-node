@@ -118,8 +118,8 @@ data:
 
                 switcher = {
                     "UP": ":white_check_mark: {} ({}) node is up and running :white_check_mark:".format(HOSTNAME, K8S_CLUSTER),
-                    "DOWN": "@channel :fire: {} ({}) node is down (RPC not responding) :fire:".format(HOSTNAME, K8S_CLUSTER),
-                    "DOWN_NP": "@channel :fire: {} ({}) node is down (no network progress). Last block is {} :fire:".format(HOSTNAME, K8S_CLUSTER, last_block),
+                    "DOWN": ":fire: {} ({}) node is down (RPC not responding) :fire:".format(HOSTNAME, K8S_CLUSTER),
+                    "DOWN_NP": ":fire: {} ({}) node is down (no network progress). Last block is {} :fire:".format(HOSTNAME, K8S_CLUSTER, last_block),
                 }
 
                 message = switcher.get(current_status)
