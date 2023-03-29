@@ -17,7 +17,7 @@ metadata:
     kube-monkey/kill-value: {{ .Values.kubemonkey.killValue | quote }}
     {{ end }}
 spec:
-  replicas: {{ .Values.consensusnode.replicaCount }}
+  replicas: {{ .Values.consensusnodeLight.replicaCount }}
   serviceName: {{ include "taraxa-consensus-node.fullname" . }}-light
   # to launch or terminate all Pods in parallel.
   # https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#parallel-pod-management
@@ -58,13 +58,13 @@ spec:
               subPath: entrypoint.sh
         {{- end }}
         - name: config-adapter
-          {{- if and .Values.consensusnode.image.repository .Values.consensusnode.image.tag }}
-          image: "{{ .Values.consensusnode.image.repository }}:{{ .Values.consensusnode.image.tag }}"
+          {{- if and .Values.consensusnodeLight.image.repository .Values.consensusnodeLight.image.tag }}
+          image: "{{ .Values.consensusnodeLight.image.repository }}:{{ .Values.consensusnodeLight.image.tag }}"
           {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           {{- end }}
-          {{- if .Values.consensusnode.image.pullPolicy }}
-          imagePullPolicy: {{ .Values.consensusnode.image.pullPolicy }}
+          {{- if .Values.consensusnodeLight.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.consensusnodeLight.image.pullPolicy }}
           {{- else }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- end }}
@@ -116,32 +116,32 @@ spec:
               subPath: status.py
         {{- end }}
         - name: consensus-node-light
-          {{- if and .Values.consensusnode.image.repository .Values.consensusnode.image.tag }}
-          image: "{{ .Values.consensusnode.image.repository }}:{{ .Values.consensusnode.image.tag }}"
+          {{- if and .Values.consensusnodeLight.image.repository .Values.consensusnodeLight.image.tag }}
+          image: "{{ .Values.consensusnodeLight.image.repository }}:{{ .Values.consensusnodeLight.image.tag }}"
           {{- else }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           {{- end }}
-          {{- if .Values.consensusnode.image.pullPolicy }}
-          imagePullPolicy: {{ .Values.consensusnode.image.pullPolicy }}
+          {{- if .Values.consensusnodeLight.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.consensusnodeLight.image.pullPolicy }}
           {{- else }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- end }}
           args:
-            {{- toYaml .Values.consensusnode.args | nindent 12 }}
+            {{- toYaml .Values.consensusnodeLight.args | nindent 12 }}
           env:
             - name: DEBUG
-              value: "{{ .Values.consensusnode.debug }}"
+              value: "{{ .Values.consensusnodeLight.debug }}"
             - name: HOST
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
-          {{- if not .Values.consensusnode.probes.enabled }}
+          {{- if not .Values.consensusnodeLight.probes.enabled }}
             - name: TARAXA_SLEEP_DIAGNOSE
               value: "true"
           {{- end }}
           ports:
-            {{- toYaml .Values.consensusnode.ports | nindent 12 }}
-          {{- if .Values.consensusnode.probes.enabled }}
+            {{- toYaml .Values.consensusnodeLight.ports | nindent 12 }}
+          {{- if .Values.consensusnodeLight.probes.enabled }}
           livenessProbe:
             exec:
               command:
@@ -165,7 +165,7 @@ spec:
             periodSeconds: 5
           {{- end }}
           resources:
-            {{- toYaml .Values.consensusnode.resources | nindent 12 }}
+            {{- toYaml .Values.consensusnodeLight.resources | nindent 12 }}
           volumeMounts:
             - name: data
               mountPath: /root/.taraxa
@@ -173,7 +173,7 @@ spec:
             capabilities:
               add:
               - SYS_PTRACE
-      {{- with .Values.consensusnode.nodeSelector }}
+      {{- with .Values.consensusnodeLight.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
@@ -206,30 +206,30 @@ spec:
             defaultMode: 0700
             name: {{ .Release.Name }}-node-status-script
         {{- end }}
-       {{- if not .Values.consensusnode.persistence.enabled }}
+       {{- if not .Values.consensusnodeLight.persistence.enabled }}
         - name: data
           emptyDir: {}
        {{- end }}
-  {{- if .Values.consensusnode.persistence.enabled }}
+  {{- if .Values.consensusnodeLight.persistence.enabled }}
   volumeClaimTemplates:
   - metadata:
       name: data
       annotations:
-        {{- if .Values.consensusnode.persistence.annotations}}
-        {{- toYaml .Values.consensusnode.persistence.annotations | nindent 4 }}
+        {{- if .Values.consensusnodeLight.persistence.annotations}}
+        {{- toYaml .Values.consensusnodeLight.persistence.annotations | nindent 4 }}
         {{- end }}
     spec:
       accessModes:
-        - {{ .Values.consensusnode.persistence.accessMode | quote }}
-    {{- if .Values.consensusnode.persistence.storageClass }}
-    {{- if (eq "-" .Values.consensusnode.persistence.storageClass) }}
+        - {{ .Values.consensusnodeLight.persistence.accessMode | quote }}
+    {{- if .Values.consensusnodeLight.persistence.storageClass }}
+    {{- if (eq "-" .Values.consensusnodeLight.persistence.storageClass) }}
       storageClassName: ""
     {{- else }}
-      storageClassName: "{{ .Values.consensusnode.persistence.storageClass }}"
+      storageClassName: "{{ .Values.consensusnodeLight.persistence.storageClass }}"
     {{- end }}
     {{- end }}
       resources:
         requests:
-          storage: "{{ .Values.consensusnode.persistence.size }}"
+          storage: "{{ .Values.consensusnodeLight.persistence.size }}"
   {{- end }}
 {{- end }}
