@@ -18,7 +18,8 @@ class FinalChainImpl final : public FinalChain {
   const uint64_t kBlockGasLimit;
   StateAPI state_api_;
   const bool kLightNode = false;
-  const uint64_t kLigntNodeHistory = 0;
+  const uint64_t kLightNodeHistory = 0;
+  const uint32_t kMaxLevelsPerPeriod;
 
   // It is not prepared to use more then 1 thread. Examine it if you want to change threads count
   boost::asio::thread_pool executor_thread_{1};
@@ -56,7 +57,8 @@ class FinalChainImpl final : public FinalChain {
                        db->stateDbStoragePath().string(),
                    }),
         kLightNode(config.is_light_node),
-        kLigntNodeHistory(config.light_node_history),
+        kLightNodeHistory(config.light_node_history),
+        kMaxLevelsPerPeriod(config.max_levels_per_period),
         block_headers_cache_(config.final_chain_cache_in_blocks,
                              [this](uint64_t blk) { return get_block_header(blk); }),
         block_hashes_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return get_block_hash(blk); }),
@@ -121,14 +123,14 @@ class FinalChainImpl final : public FinalChain {
 
   void stop() override { executor_thread_.join(); }
 
-  std::future<std::shared_ptr<const FinalizationResult>> finalize(PeriodData&& new_blk,
-                                                                  std::vector<h256>&& finalized_dag_blk_hashes,
-                                                                  finalize_precommit_ext precommit_ext = {}) override {
+  std::future<std::shared_ptr<const FinalizationResult>> finalize(
+      PeriodData&& new_blk, std::vector<h256>&& finalized_dag_blk_hashes,
+      std::shared_ptr<DagBlock>&& anchor = nullptr) override {
     auto p = std::make_shared<std::promise<std::shared_ptr<const FinalizationResult>>>();
     boost::asio::post(executor_thread_, [this, new_blk = std::move(new_blk),
                                          finalized_dag_blk_hashes = std::move(finalized_dag_blk_hashes),
-                                         precommit_ext = std::move(precommit_ext), p]() mutable {
-      p->set_value(finalize_(std::move(new_blk), std::move(finalized_dag_blk_hashes), precommit_ext));
+                                         anchor_block = std::move(anchor), p]() mutable {
+      p->set_value(finalize_(std::move(new_blk), std::move(finalized_dag_blk_hashes), std::move(anchor_block)));
     });
     return p->get_future();
   }
@@ -137,7 +139,7 @@ class FinalChainImpl final : public FinalChain {
 
   std::shared_ptr<const FinalizationResult> finalize_(PeriodData&& new_blk,
                                                       std::vector<h256>&& finalized_dag_blk_hashes,
-                                                      finalize_precommit_ext const& precommit_ext) {
+                                                      std::shared_ptr<DagBlock>&& anchor) {
     auto batch = db_->createWriteBatch();
 
     RewardsStats rewards_stats;
@@ -202,6 +204,13 @@ class FinalChainImpl final : public FinalChain {
                    << num_executed_dag_blk_ - 1 << " , Transactions count: " << new_blk.transactions.size();
     }
 
+    //// Update DAG lvl mapping
+    if (anchor) {
+      db_->addProposalPeriodDagLevelsMapToBatch(anchor->getLevel() + kMaxLevelsPerPeriod, new_blk.pbft_blk->getPeriod(),
+                                                batch);
+    }
+    ////
+
     auto result = std::make_shared<FinalizationResult>(FinalizationResult{
         {
             new_blk.pbft_blk->getBeneficiary(),
@@ -213,10 +222,6 @@ class FinalChainImpl final : public FinalChain {
         std::move(new_blk.transactions),
         std::move(receipts),
     });
-
-    if (precommit_ext) {
-      precommit_ext(*result, batch);
-    }
 
     db_->commitWriteBatch(batch, db_opts_w_);
     state_api_.transition_state_commit();
@@ -234,9 +239,9 @@ class FinalChainImpl final : public FinalChain {
 
     if (kLightNode) {
       // Actual history size will be between 100% and 105% of light_node_history_ to avoid deleting on every period
-      if (((blk_header->number % (std::max(kLigntNodeHistory / 20, (uint64_t)1)) == 0)) &&
-          blk_header->number > kLigntNodeHistory) {
-        prune(blk_header->number - kLigntNodeHistory);
+      if (((blk_header->number % (std::max(kLightNodeHistory / 20, (uint64_t)1)) == 0)) &&
+          blk_header->number > kLightNodeHistory) {
+        prune(blk_header->number - kLightNodeHistory);
       }
     }
     return result;

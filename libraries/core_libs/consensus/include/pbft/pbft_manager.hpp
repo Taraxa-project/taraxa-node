@@ -58,8 +58,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_block_hash, addr_t node_addr,
               std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
               std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
-              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain, secret_t node_sk,
-              uint32_t max_levels_per_period);
+              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain, secret_t node_sk);
   ~PbftManager();
   PbftManager(const PbftManager &) = delete;
   PbftManager(PbftManager &&) = delete;
@@ -600,8 +599,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   // Proposed blocks based on received propose votes
   ProposedBlocks proposed_blocks_;
-
-  const uint32_t max_levels_per_period_;
 
   LOG_OBJECTS_DEFINE
 };
