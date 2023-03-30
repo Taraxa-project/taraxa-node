@@ -3,7 +3,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-consensus-node-light-init-script-light
+  name: {{ .Release.Name }}-consensus-node-light-init-script
   labels:
     app: consensus-node-light
     app.kubernetes.io/name: consensus-node-light
