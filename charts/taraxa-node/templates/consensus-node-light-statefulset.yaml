@@ -189,7 +189,7 @@ spec:
         - name: initconfig
           configMap:
             defaultMode: 0700
-            name: {{ .Release.Name }}-consensus-node-init-script-light
+            name: {{ .Release.Name }}-consensus-node-light-init-script
         {{ if .Values.explorer.enabled }}
         - name: explorer-check
           configMap:
