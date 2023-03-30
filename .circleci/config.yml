@@ -274,7 +274,7 @@ commands:
                 --set consensusnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set node.indexer.enabled=true \
                 --set consensusnodeLight.enabled=true \
-                --set consensusnodeLight.serviceMonitor.enabled=false \
+                --set consensusnodeLight.serviceMonitor.enabled=true \
 
             fi
 
