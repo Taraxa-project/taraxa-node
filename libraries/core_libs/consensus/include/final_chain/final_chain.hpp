@@ -27,9 +27,6 @@ enum class DBMetaKeys { LAST_NUMBER = 1 };
  * It implements few events and implements methods related to Ethereum API
  */
 class FinalChain {
- public:
-  using finalize_precommit_ext = std::function<void(FinalizationResult const&, DB::Batch&)>;
-
  protected:
   util::EventEmitter<std::shared_ptr<FinalizationResult>> const block_finalized_emitter_{};
   util::EventEmitter<uint64_t> const block_applying_emitter_{};
@@ -57,10 +54,9 @@ class FinalChain {
    * @param precommit_ext
    * @return finalization result
    */
-  virtual std::future<std::shared_ptr<FinalizationResult const>> finalize(PeriodData&& period_data,
-                                                                          std::vector<h256>&& finalized_dag_blk_hashes,
-                                                                          std::shared_ptr<DagBlock>&& anchor = nullptr,
-                                                                          finalize_precommit_ext = {}) = 0;
+  virtual std::future<std::shared_ptr<FinalizationResult const>> finalize(
+      PeriodData&& period_data, std::vector<h256>&& finalized_dag_blk_hashes,
+      std::shared_ptr<DagBlock>&& anchor = nullptr) = 0;
 
   /**
    * @brief Method to get block header by block number

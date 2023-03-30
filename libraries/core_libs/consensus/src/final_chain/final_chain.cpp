@@ -123,18 +123,15 @@ class FinalChainImpl final : public FinalChain {
 
   void stop() override { executor_thread_.join(); }
 
-  std::future<std::shared_ptr<const FinalizationResult>> finalize(PeriodData&& new_blk,
-                                                                  std::vector<h256>&& finalized_dag_blk_hashes,
-                                                                  std::shared_ptr<DagBlock>&& anchor = nullptr,
-                                                                  finalize_precommit_ext precommit_ext = {}) override {
+  std::future<std::shared_ptr<const FinalizationResult>> finalize(
+      PeriodData&& new_blk, std::vector<h256>&& finalized_dag_blk_hashes,
+      std::shared_ptr<DagBlock>&& anchor = nullptr) override {
     auto p = std::make_shared<std::promise<std::shared_ptr<const FinalizationResult>>>();
-    boost::asio::post(
-        executor_thread_,
-        [this, new_blk = std::move(new_blk), finalized_dag_blk_hashes = std::move(finalized_dag_blk_hashes),
-         anchor_block = std::move(anchor), precommit_ext = std::move(precommit_ext), p]() mutable {
-          p->set_value(finalize_(std::move(new_blk), std::move(finalized_dag_blk_hashes), std::move(anchor_block),
-                                 precommit_ext));
-        });
+    boost::asio::post(executor_thread_, [this, new_blk = std::move(new_blk),
+                                         finalized_dag_blk_hashes = std::move(finalized_dag_blk_hashes),
+                                         anchor_block = std::move(anchor), p]() mutable {
+      p->set_value(finalize_(std::move(new_blk), std::move(finalized_dag_blk_hashes), std::move(anchor_block)));
+    });
     return p->get_future();
   }
 
@@ -142,8 +139,7 @@ class FinalChainImpl final : public FinalChain {
 
   std::shared_ptr<const FinalizationResult> finalize_(PeriodData&& new_blk,
                                                       std::vector<h256>&& finalized_dag_blk_hashes,
-                                                      std::shared_ptr<DagBlock>&& anchor,
-                                                      finalize_precommit_ext const& precommit_ext) {
+                                                      std::shared_ptr<DagBlock>&& anchor) {
     auto batch = db_->createWriteBatch();
 
     RewardsStats rewards_stats;
@@ -226,10 +222,6 @@ class FinalChainImpl final : public FinalChain {
         std::move(new_blk.transactions),
         std::move(receipts),
     });
-
-    if (precommit_ext) {
-      precommit_ext(*result, batch);
-    }
 
     db_->commitWriteBatch(batch, db_opts_w_);
     state_api_.transition_state_commit();
