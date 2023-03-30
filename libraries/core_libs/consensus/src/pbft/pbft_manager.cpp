@@ -32,7 +32,7 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
                          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
                          std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
-                         secret_t node_sk, uint32_t max_levels_per_period)
+                         secret_t node_sk)
     : db_(std::move(db)),
       pbft_chain_(std::move(pbft_chain)),
       vote_mgr_(std::move(vote_mgr)),
@@ -44,8 +44,7 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
       LAMBDA_ms_MIN(conf.lambda_ms),
       dag_genesis_block_hash_(dag_genesis_block_hash),
       config_(conf),
-      proposed_blocks_(db_),
-      max_levels_per_period_(max_levels_per_period) {
+      proposed_blocks_(db_) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
 
   for (auto period = final_chain_->last_block_number() + 1, curr_period = pbft_chain_->getPbftChainSize();
@@ -1550,31 +1549,20 @@ void PbftManager::reorderTransactions(SharedTransactions &transactions) {
 
 void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes,
                             bool synchronous_processing) {
-  const auto anchor = period_data.pbft_blk->getPivotDagBlockHash();
+  std::shared_ptr<DagBlock> anchor_block = nullptr;
+
   reorderTransactions(period_data.transactions);
 
-  auto result = final_chain_->finalize(
-      std::move(period_data), std::move(finalized_dag_blk_hashes),
-      [this, weak_ptr = weak_from_this(), anchor_hash = anchor, period = period_data.pbft_blk->getPeriod()](
-          const auto &, auto &batch) {
-        // Update proposal period DAG levels map
-        auto ptr = weak_ptr.lock();
-        if (!ptr) return;  // it was destroyed
+  if (const auto anchor = period_data.pbft_blk->getPivotDagBlockHash()) {
+    anchor_block = dag_mgr_->getDagBlock(anchor);
+    if (!anchor_block) {
+      LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor << " in DB.";
+      assert(false);
+    }
+  }
 
-        if (!anchor_hash) {
-          // Null anchor don't update proposal period DAG levels map
-          return;
-        }
-
-        auto anchor = dag_mgr_->getDagBlock(anchor_hash);
-        if (!anchor) {
-          LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in DB.";
-          assert(false);
-        }
-
-        db_->addProposalPeriodDagLevelsMapToBatch(anchor->getLevel() + max_levels_per_period_, period, batch);
-      });
-
+  const auto result =
+      final_chain_->finalize(std::move(period_data), std::move(finalized_dag_blk_hashes), std::move(anchor_block));
   if (synchronous_processing) {
     result.wait();
   }

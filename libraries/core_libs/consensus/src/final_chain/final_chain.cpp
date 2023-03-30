@@ -19,6 +19,7 @@ class FinalChainImpl final : public FinalChain {
   StateAPI state_api_;
   const bool kLightNode = false;
   const uint64_t kLigntNodeHistory = 0;
+  const uint32_t kMaxLevelsPerPeriod;
 
   // It is not prepared to use more then 1 thread. Examine it if you want to change threads count
   boost::asio::thread_pool executor_thread_{1};
@@ -57,6 +58,7 @@ class FinalChainImpl final : public FinalChain {
                    }),
         kLightNode(config.is_light_node),
         kLigntNodeHistory(config.light_node_history),
+        kMaxLevelsPerPeriod(config.max_levels_per_period),
         block_headers_cache_(config.final_chain_cache_in_blocks,
                              [this](uint64_t blk) { return get_block_header(blk); }),
         block_hashes_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return get_block_hash(blk); }),
@@ -123,13 +125,16 @@ class FinalChainImpl final : public FinalChain {
 
   std::future<std::shared_ptr<const FinalizationResult>> finalize(PeriodData&& new_blk,
                                                                   std::vector<h256>&& finalized_dag_blk_hashes,
+                                                                  std::shared_ptr<DagBlock>&& anchor = nullptr,
                                                                   finalize_precommit_ext precommit_ext = {}) override {
     auto p = std::make_shared<std::promise<std::shared_ptr<const FinalizationResult>>>();
-    boost::asio::post(executor_thread_, [this, new_blk = std::move(new_blk),
-                                         finalized_dag_blk_hashes = std::move(finalized_dag_blk_hashes),
-                                         precommit_ext = std::move(precommit_ext), p]() mutable {
-      p->set_value(finalize_(std::move(new_blk), std::move(finalized_dag_blk_hashes), precommit_ext));
-    });
+    boost::asio::post(
+        executor_thread_,
+        [this, new_blk = std::move(new_blk), finalized_dag_blk_hashes = std::move(finalized_dag_blk_hashes),
+         anchor_block = std::move(anchor), precommit_ext = std::move(precommit_ext), p]() mutable {
+          p->set_value(finalize_(std::move(new_blk), std::move(finalized_dag_blk_hashes), std::move(anchor_block),
+                                 precommit_ext));
+        });
     return p->get_future();
   }
 
@@ -137,6 +142,7 @@ class FinalChainImpl final : public FinalChain {
 
   std::shared_ptr<const FinalizationResult> finalize_(PeriodData&& new_blk,
                                                       std::vector<h256>&& finalized_dag_blk_hashes,
+                                                      std::shared_ptr<DagBlock>&& anchor,
                                                       finalize_precommit_ext const& precommit_ext) {
     auto batch = db_->createWriteBatch();
 
@@ -201,6 +207,13 @@ class FinalChainImpl final : public FinalChain {
       LOG(log_nf_) << "Executed dag blocks #" << num_executed_dag_blk_ - finalized_dag_blk_hashes.size() << "-"
                    << num_executed_dag_blk_ - 1 << " , Transactions count: " << new_blk.transactions.size();
     }
+
+    //// Update DAG lvl mapping
+    if (anchor) {
+      db_->addProposalPeriodDagLevelsMapToBatch(anchor->getLevel() + kMaxLevelsPerPeriod, new_blk.pbft_blk->getPeriod(),
+                                                batch);
+    }
+    ////
 
     auto result = std::make_shared<FinalizationResult>(FinalizationResult{
         {

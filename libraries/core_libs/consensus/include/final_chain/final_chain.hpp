@@ -59,6 +59,7 @@ class FinalChain {
    */
   virtual std::future<std::shared_ptr<FinalizationResult const>> finalize(PeriodData&& period_data,
                                                                           std::vector<h256>&& finalized_dag_blk_hashes,
+                                                                          std::shared_ptr<DagBlock>&& anchor = nullptr,
                                                                           finalize_precommit_ext = {}) = 0;
 
   /**
