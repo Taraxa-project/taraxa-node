@@ -18,7 +18,7 @@ class FinalChainImpl final : public FinalChain {
   const uint64_t kBlockGasLimit;
   StateAPI state_api_;
   const bool kLightNode = false;
-  const uint64_t kLigntNodeHistory = 0;
+  const uint64_t kLightNodeHistory = 0;
   const uint32_t kMaxLevelsPerPeriod;
 
   // It is not prepared to use more then 1 thread. Examine it if you want to change threads count
@@ -57,7 +57,7 @@ class FinalChainImpl final : public FinalChain {
                        db->stateDbStoragePath().string(),
                    }),
         kLightNode(config.is_light_node),
-        kLigntNodeHistory(config.light_node_history),
+        kLightNodeHistory(config.light_node_history),
         kMaxLevelsPerPeriod(config.max_levels_per_period),
         block_headers_cache_(config.final_chain_cache_in_blocks,
                              [this](uint64_t blk) { return get_block_header(blk); }),
@@ -239,9 +239,9 @@ class FinalChainImpl final : public FinalChain {
 
     if (kLightNode) {
       // Actual history size will be between 100% and 105% of light_node_history_ to avoid deleting on every period
-      if (((blk_header->number % (std::max(kLigntNodeHistory / 20, (uint64_t)1)) == 0)) &&
-          blk_header->number > kLigntNodeHistory) {
-        prune(blk_header->number - kLigntNodeHistory);
+      if (((blk_header->number % (std::max(kLightNodeHistory / 20, (uint64_t)1)) == 0)) &&
+          blk_header->number > kLightNodeHistory) {
+        prune(blk_header->number - kLightNodeHistory);
       }
     }
     return result;
