@@ -103,8 +103,8 @@ data:
 
     echo "Generating config"
     INDEX=${HOSTNAME##*-}
-    KEY="CONSENSUS_NODE_KEY_${INDEX}"
-    VRF="CONSENSUS_NODE_VRF_${INDEX}"
+    KEY="CONSENSUS_NODE_LIGHT_KEY_${INDEX}"
+    VRF="CONSENSUS_NODE_LIGHT_VRF_${INDEX}"
 
     KEY="${!KEY}"
     VRF="${!VRF}"
