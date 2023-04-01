@@ -1,0 +1,235 @@
+{{ if .Values.consensusnodeLight.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "taraxa-consensus-node.fullname" . }}-light
+  labels:
+    app: consensus-node-light
+    app.kubernetes.io/name: consensus-node-light
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{ if .Values.kubemonkey.enabled }}
+    kube-monkey/enabled: enabled
+    kube-monkey/identifier: {{ include "taraxa-consensus-node.fullname" . }}-light
+    kube-monkey/mtbf: {{ .Values.kubemonkey.mtbf | quote }}
+    kube-monkey/kill-mode: {{ .Values.kubemonkey.killMode | quote }}
+    kube-monkey/kill-value: {{ .Values.kubemonkey.killValue | quote }}
+    {{ end }}
+spec:
+  replicas: {{ .Values.consensusnodeLight.replicaCount }}
+  serviceName: {{ include "taraxa-consensus-node.fullname" . }}-light
+  # to launch or terminate all Pods in parallel.
+  # https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#parallel-pod-management
+  podManagementPolicy: Parallel
+  selector:
+    matchLabels:
+      app: consensus-node-light
+      partition: a
+      app.kubernetes.io/name: {{ .Release.Name }}-consensus-node-light
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      name: consensus-node-light
+      labels:
+        app: consensus-node-light
+        partition: a
+        app.kubernetes.io/name: {{ .Release.Name }}-consensus-node-light
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        {{ if .Values.kubemonkey.enabled }}
+        kube-monkey/enabled: enabled
+        kube-monkey/identifier: {{ include "taraxa-consensus-node.fullname" . }}-light
+        kube-monkey/mtbf: {{ .Values.kubemonkey.mtbf | quote }}
+        kube-monkey/kill-mode: {{ .Values.kubemonkey.killMode | quote }}
+        kube-monkey/kill-value: {{ .Values.kubemonkey.killValue | quote }}
+        {{ end }}
+      annotations:
+        kubernetes.io/change-cause: "Configuration through configmaps."
+    spec:
+      initContainers:
+        {{ if .Values.explorer.enabled }}
+        - name: wait-for-explorer
+          image: dwdraju/alpine-curl-jq:latest
+          command: ["/bin/entrypoint.sh"]
+          volumeMounts:
+            - name: explorer-check
+              mountPath: /bin/entrypoint.sh
+              readOnly: true
+              subPath: entrypoint.sh
+        {{- end }}
+        - name: config-adapter
+          {{- if and .Values.consensusnodeLight.image.repository .Values.consensusnodeLight.image.tag }}
+          image: "{{ .Values.consensusnodeLight.image.repository }}:{{ .Values.consensusnodeLight.image.tag }}"
+          {{- else }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          {{- end }}
+          {{- if .Values.consensusnodeLight.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.consensusnodeLight.image.pullPolicy }}
+          {{- else }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- end }}
+          envFrom:
+            - secretRef:
+                name: {{ .Release.Name }}
+          env:
+          - name: HOST
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          command: ["/bin/entrypoint.sh"]
+          volumeMounts:
+            - name: initconfig
+              mountPath: /bin/entrypoint.sh
+              readOnly: true
+              subPath: entrypoint.sh
+            - name: initconfig
+              mountPath: /bin/genconfig.py
+              readOnly: true
+              subPath: genconfig.py
+            - name: data
+              mountPath: /root/.taraxa
+      containers:
+        {{- if .Values.slack.enabled }}
+        - name: status
+          image: "python:3.8"
+          imagePullPolicy: IfNotPresent
+          env:
+          - name: SLACK_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}
+                key: SLACK_TOKEN
+          - name: SLACK_CHANNEL
+            value: {{ .Values.slack.channel }}
+          - name: K8S_CLUSTER
+            value: {{ .Values.slack.k8s_cluster }}
+          command: ["/bin/bash", "-c", "--"]
+          args: [ "pip install -r /app/requirements.txt && python /app/status.py" ]
+          volumeMounts:
+            - name: status-requirements
+              mountPath: /app/requirements.txt
+              readOnly: true
+              subPath: requirements.txt
+            - name: status-script
+              mountPath: /app/status.py
+              readOnly: true
+              subPath: status.py
+        {{- end }}
+        - name: consensus-node-light
+          {{- if and .Values.consensusnodeLight.image.repository .Values.consensusnodeLight.image.tag }}
+          image: "{{ .Values.consensusnodeLight.image.repository }}:{{ .Values.consensusnodeLight.image.tag }}"
+          {{- else }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          {{- end }}
+          {{- if .Values.consensusnodeLight.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.consensusnodeLight.image.pullPolicy }}
+          {{- else }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- end }}
+          args:
+            {{- toYaml .Values.consensusnodeLight.args | nindent 12 }}
+          env:
+            - name: DEBUG
+              value: "{{ .Values.consensusnodeLight.debug }}"
+            - name: HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          {{- if not .Values.consensusnodeLight.probes.enabled }}
+            - name: TARAXA_SLEEP_DIAGNOSE
+              value: "true"
+          {{- end }}
+          ports:
+            {{- toYaml .Values.consensusnodeLight.ports | nindent 12 }}
+          {{- if .Values.consensusnodeLight.probes.enabled }}
+          livenessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - "ps -A | grep taraxad"
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+              - curl
+              - -X
+              - POST
+              - -H
+              - "'Content-Type: application/json'"
+              - -d
+              - "'{\"jsonrpc\":\"2.0\",\"method\":\"taraxa_protocolVersion\",\"params\": [],\"id\":1}'"
+              - http://127.0.0.1:7777
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          {{- end }}
+          resources:
+            {{- toYaml .Values.consensusnodeLight.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /root/.taraxa
+          securityContext:
+            capabilities:
+              add:
+              - SYS_PTRACE
+      {{- with .Values.consensusnodeLight.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+        - name: initconfig
+          configMap:
+            defaultMode: 0700
+            name: {{ .Release.Name }}-consensus-node-light-init-script
+        {{ if .Values.explorer.enabled }}
+        - name: explorer-check
+          configMap:
+            defaultMode: 0700
+            name: {{ include "taraxa-node.fullname" . }}-explorer-check
+        {{- end }}
+        {{- if .Values.slack.enabled }}
+        - name: status-requirements
+          configMap:
+            defaultMode: 0700
+            name: {{ .Release.Name }}-node-status-script
+        - name: status-script
+          configMap:
+            defaultMode: 0700
+            name: {{ .Release.Name }}-node-status-script
+        {{- end }}
+       {{- if not .Values.consensusnodeLight.persistence.enabled }}
+        - name: data
+          emptyDir: {}
+       {{- end }}
+  {{- if .Values.consensusnodeLight.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      annotations:
+        {{- if .Values.consensusnodeLight.persistence.annotations}}
+        {{- toYaml .Values.consensusnodeLight.persistence.annotations | nindent 4 }}
+        {{- end }}
+    spec:
+      accessModes:
+        - {{ .Values.consensusnodeLight.persistence.accessMode | quote }}
+    {{- if .Values.consensusnodeLight.persistence.storageClass }}
+    {{- if (eq "-" .Values.consensusnodeLight.persistence.storageClass) }}
+      storageClassName: ""
+    {{- else }}
+      storageClassName: "{{ .Values.consensusnodeLight.persistence.storageClass }}"
+    {{- end }}
+    {{- end }}
+      resources:
+        requests:
+          storage: "{{ .Values.consensusnodeLight.persistence.size }}"
+  {{- end }}
+{{- end }}

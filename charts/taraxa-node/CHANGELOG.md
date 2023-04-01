@@ -3,6 +3,17 @@
 This file documents all notable changes to `taraxa-node` Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v0.3.9
+
+### Major changes
+
+* Rename / restrusture manifest files
+* Added light nodes
+
+### Minor changes
+
+* Removed "@channel" from slack notifications
+
 ## v0.3.8
 
 ### Minor changes
