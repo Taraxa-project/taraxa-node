@@ -22,7 +22,7 @@
     "yield_percentage": "0x14",
     "initial_validators": [
       {
-        "address": "0x1f8333245650a19a0683891b7afe7787a3ce9f00",
+        "address": "0x8dcc94cc57c72eaa6609ee77cb50c84141fa39bd",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 0,
         "endpoint": "",
@@ -30,10 +30,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
         },
-        "vrf_key": "ec9ffc3c5ce9c570954d8c22341c9da62926d20802854a06b9508773c78007c4"
+        "vrf_key": "583c69b0fec1e2944f906a4610f477207965170534c0465bdc94887148f0293b"
       },
       {
-        "address": "0xd4e4728bea5a67dd70dccb742bdc9c3a48465bec",
+        "address": "0x4bd4dbae73bfcd070ed01788bb8ecf18f152ef61",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 0,
         "endpoint": "",
@@ -41,10 +41,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
         },
-        "vrf_key": "3258951e738ca5322b25f929f2c4bbbd1ebcef9acbf306a38ab9f1a5264af0eb"
+        "vrf_key": "0aeff3eac9ef7d6b7a55006ffe2ad4d8b0d3c5488cd0471d6000dd4e8bccf889"
       },
       {
-        "address": "0xec591a85f613fe98f057dc09712a9b22cdd05845",
+        "address": "0xe90958a7e4a95ee0c3e2b36dcf6344835755fcfd",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 0,
         "endpoint": "",
@@ -52,10 +52,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
         },
-        "vrf_key": "1c15fcd1c47970d57e46938a1af612244d2c680be052be6a8c22a1860ab1834d"
+        "vrf_key": "1304808db726aa036c593bfe990ae52ce06901ad0eae8f3286a219a930469669"
       },
       {
-        "address": "0x267e780b7843992e57f52e13018f0f97467ac06e",
+        "address": "0x869b5f98b0e3aa50bc91be470a8c5d44e92b59d7",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 0,
         "endpoint": "",
@@ -63,10 +63,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
         },
-        "vrf_key": "5debe334c8f77c7517fea348ce0ed77791bf27ee96270555627405d71ca801a2"
+        "vrf_key": "d7c6ecd15f8873d441228714bfd081ee7eab093fa488f642f2022b5981878124"
       },
       {
-        "address": "0x9d047654e55248ec38aa6723a5ab36d171008584",
+        "address": "0x73ec3af8f07c964f13e0d105ac77951f4d80811f",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 0,
         "endpoint": "",
@@ -74,10 +74,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
         },
-        "vrf_key": "81452dc66d1255c9793c27ff1be58e27b43153841e80228c287ea871963a1888"
+        "vrf_key": "f365f846941e2f3d400bacce05ea16047a61c540fc5904ac63a6c47738e28d38"
       },
       {
-        "address": "0x0d149e61cc02b5893ef6fc33bc7d67ff13eeeee0",
+        "address": "0x0105deca852ae3e7e1fe17bc0db2271ad259e0d6",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 0,
         "endpoint": "",
@@ -85,10 +85,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
         },
-        "vrf_key": "981179ea25cee52379e55682572abffb78a7ca3eab28f98ea4b4dbe16b422d3e"
+        "vrf_key": "acc66b79e960a1fb9d2a54ccd6499fd56a22c87ce7183d156cf340e54f3dec43"
       },
       {
-        "address": "0x00ccd0de0809ac03fd292036ee1544185583cd88",
+        "address": "0xe143ededbf9285dc39daf64c120037a4b9a0f095",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 0,
         "endpoint": "",
@@ -96,10 +96,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
         },
-        "vrf_key": "17b80677162309fa25c3aca5f853ee6d4c13012b34733e3151751996b788c581"
+        "vrf_key": "346eeaa23a3df2977a28659f96b86b3d04db0a49aeae0014f1535217503da34d"
       },
       {
-        "address": "0x6f96be7626a74e86c76e65ccbccf0a38e2b62fc5",
+        "address": "0xb743f776ddd8278325a6c64b8a7d6c409433c96e",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 0,
         "endpoint": "",
@@ -107,10 +107,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
         },
-        "vrf_key": "a72833d53c67e6b460cec4e13b83de94f76f3f97c43d21608ccfabde89523912"
+        "vrf_key": "f742733ce2935b5fc50065b131720bae196a8078e27ab570ca0a5c0069dae7bc"
       },
       {
-        "address": "0xd20131f980c9932b1df31cf3aafeecfb1d504381",
+        "address": "0x7ab15fdcf5c1305541900bba926ac7b38b2acc7b",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 0,
         "endpoint": "",
@@ -118,10 +118,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
         },
-        "vrf_key": "a416ee332d5b66151099b801fa3408e4e4b4602511150a4d89cb085a5a33031c"
+        "vrf_key": "2eeebafbc3c38e993469d4a3cb402a02985828b7e9acc6d89c117f7eae11e2fe"
       },
       {
-        "address": "0xdb4c007e7e6bbb009709006a445a4835fe229ad8",
+        "address": "0xf9d0eada55b9a3e8d9fd69dc3c57163c0d42dc18",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 0,
         "endpoint": "",
@@ -129,10 +129,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
         },
-        "vrf_key": "71310846d8d49ee88b59b31636aac9e3faa6bf67affb0158e09e6fb900675f44"
+        "vrf_key": "8f14fed98e6b0608fadf2c5a13f4cac3e0b16fc88e39d81f1d06d6eb9252f5a8"
       },
       {
-        "address": "0x6816653dee09e9a85551f30a0a917cf66b8db9a2",
+        "address": "0xe3a497c34a0d5dcdbeff5b88063d9a87ff51bd80",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 0,
         "endpoint": "",
@@ -140,10 +140,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
         },
-        "vrf_key": "9b60c98a38c73074c06ef824070a9a4cdc364fc306782a2a05ce61fc8b557e78"
+        "vrf_key": "2c26d5aeba6fd9ffa0de63437d38ca7dd0c679845893a4e26cea192d397ecfa7"
       },
       {
-        "address": "0x36f060efe036c6a9c54dfc95d5eaa4885134b785",
+        "address": "0xe43d40a9bdff67ce7756bab3ff697192b466e6d6",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 0,
         "endpoint": "",
@@ -151,10 +151,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
         },
-        "vrf_key": "0f68e9d6851501af6effc5c90b1d56be28e1de49b8bf53c1a2f3327deeb6e6ad"
+        "vrf_key": "ffeb4ce44f7f7bce45131501f035e2fc1eb7fae932986e403292ad53ea26aaaa"
       },
       {
-        "address": "0x42d481f54c09fd3011cf3915a45e975caacc89aa",
+        "address": "0x94306df4a952bff4cb99c48859acf1178766fe34",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 0,
         "endpoint": "",
@@ -162,10 +162,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
         },
-        "vrf_key": "e73a0b05d3e276796c8597aec4442fbb7f5b54f5f26c301bda087f4a58f58186"
+        "vrf_key": "c3a536e4c8631ccced52706f1e42e63d52a62ea08a4b50e741fe27411655a37b"
       },
       {
-        "address": "0x6bf36050bd656d4c23df9d9e0561a7348a6e6516",
+        "address": "0x5e70e5a2fda0675ea0f2453425190c02858b272a",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 0,
         "endpoint": "",
@@ -173,10 +173,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
         },
-        "vrf_key": "7fa06b39dea1b8943f39650196bf977c893617fb04cd233c9d926ff5bfdc6a06"
+        "vrf_key": "ee7263f503ceebdca76165077e9b49e2c286db3f4f580e0cfcf077571d2354ae"
       },
       {
-        "address": "0x2654030981f0c741de3b1ad5dad7a34fb1f3c09e",
+        "address": "0xebb12f67806703f7dd80ec1ea4c768fbce98c48c",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 0,
         "endpoint": "",
@@ -184,10 +184,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x422CA8B0A00A4250000000"
         },
-        "vrf_key": "27ce22e9e1bcb1ae1afb1c77b9fd0b90e3a2e1cfce0589c3c4b8dad168472a7a"
+        "vrf_key": "385665ca10cd8327fd5c0f2dea675ccc77f2e976c39f9b49db24d784ba7dc20f"
       },
       {
-        "address": "0x6a6edbd858634c1fc4ca361bb9732a652c3e72e4",
+        "address": "0x94ca3352cd13344bb67e2132ee6d1f0f237b6ae4",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 1000,
         "endpoint": "",
@@ -195,10 +195,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
         },
-        "vrf_key": "fa5fc8f130f1dab9cd6c15d73c502b25b1e03ab15c9947248cf99e26f9d13fee"
+        "vrf_key": "2e4fef8e394251d86f8f6b4652b25ef6054ff749d1dd64c35bcfd77339348a2f"
       },
       {
-        "address": "0x137f75bfc36399e8f6b9873e1a1137a27f847d48",
+        "address": "0xc83e64997c6244f85ac1459fe46f2e059d855305",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 1000,
         "endpoint": "",
@@ -206,10 +206,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
         },
-        "vrf_key": "8d4368458989265fdc1a1f18120af47290cc3c50e41585ed07516cd988283e1d"
+        "vrf_key": "4827a7db21cdedc77b4d13b4d7754f7be59de33a86ac3235a0c2c007913b798e"
       },
       {
-        "address": "0x49a415346973c216a702c333322e4ce79c77f494",
+        "address": "0xfdc4fcce3beb94b201ef2623b1bcc96cb56c4b84",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 1000,
         "endpoint": "",
@@ -217,10 +217,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
         },
-        "vrf_key": "cf611e1301254ac66d18a1b4bd046fbd3881235ef3b260b672ba5c306465a639"
+        "vrf_key": "bede056463a1021427d0a1555d77e46310c42be4299da135877ef34362deb00d"
       },
       {
-        "address": "0xc61bd82f46463b5dad3f73a565fb9f02cce69108",
+        "address": "0x746c48a57f2297ce00ea05378113667aa8d23684",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 1000,
         "endpoint": "",
@@ -228,10 +228,10 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
         },
-        "vrf_key": "bc06ba2e7e42353dd80dae23f31e3f3d49e6aa1d76e52adb1397f03ce8a9c9f3"
+        "vrf_key": "8339b389e06524d0b81a01bb29e87824f44be07965528481720be2eeefa70b86"
       },
       {
-        "address": "0x2c126e4e40cc83359ab988b98cf94b20651a4c47",
+        "address": "0x9d3fa769f395ed6e136ff76c0bcb6fe7f60d926b",
         "owner": "0x0274cfffea9fa850e54c93a23042f12a87358a82",
         "commission": 1000,
         "endpoint": "",
@@ -239,7 +239,7 @@
         "delegations": {
           "0274cfffea9fa850e54c93a23042f12a87358a82": "0x69E10DE76676D0800000"
         },
-        "vrf_key": "23d57d3731f0eab13f642c6b41f8039a2ce2fd907d207f67d83cc6d20ba3c429"
+        "vrf_key": "a25053afb5316ff12137ae573b6272b1258020454606631308d32cbf776788c0"
       }
     ]
   },
