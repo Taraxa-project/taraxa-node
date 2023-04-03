@@ -270,6 +270,21 @@ void DbStorage::commitWriteBatch(Batch& write_batch, rocksdb::WriteOptions const
   checkStatus(status);
 }
 
+std::shared_ptr<DagBlock> DbStorage::getDagBlockCached(const trx_hash_t& hash) {
+  auto data = asBytes(lookup(toSlice(hash.asBytes()), Columns::dag_blocks));
+  if (data.size() > 0) {
+    return std::make_shared<DagBlock>(data);
+  }
+  auto res = getDagBlockPeriod(hash);
+  if (res) {
+    auto period_data = getPeriodDataCached(res->first);
+    if (period_data) {
+      return std::make_shared<DagBlock>(period_data->dag_blocks[res->second]);
+    }
+  }
+  return nullptr;
+}
+
 std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
   auto block_data = asBytes(lookup(toSlice(hash.asBytes()), Columns::dag_blocks));
   if (block_data.size() > 0) {
@@ -499,6 +514,20 @@ dev::bytes DbStorage::getPeriodDataRaw(PbftPeriod period) const {
   return asBytes(lookup(toSlice(period), Columns::period_data));
 }
 
+std::shared_ptr<PeriodData> DbStorage::getPeriodDataCached(PbftPeriod period) const {
+  auto from_cache = periodCache_.get(period);
+  if (from_cache) {
+    return from_cache;
+  }
+  auto from_db = asBytes(lookup(toSlice(period), Columns::period_data));
+  if (from_db.size() > 0) {
+    auto period_data = std::make_shared<PeriodData>(std::move(from_db));
+    periodCache_.save(period, period_data);
+    return period_data;
+  }
+  return nullptr;
+}
+
 void DbStorage::saveTransaction(Transaction const& trx) {
   insert(Columns::transactions, toSlice(trx.getHash().asBytes()), toSlice(trx.rlp()));
 }
@@ -603,6 +632,21 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
       auto period_data_rlp = dev::RLP(period_data);
       auto transaction_data = period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA];
       return std::make_shared<Transaction>(transaction_data[res->second]);
+    }
+  }
+  return nullptr;
+}
+
+std::shared_ptr<Transaction> DbStorage::getTransactionCached(const trx_hash_t& hash) {
+  auto data = asBytes(lookup(toSlice(hash.asBytes()), Columns::transactions));
+  if (data.size() > 0) {
+    return std::make_shared<Transaction>(data);
+  }
+  auto res = getTransactionPeriod(hash);
+  if (res) {
+    auto period_data = getPeriodDataCached(res->first);
+    if (period_data) {
+      return period_data->transactions[res->second];
     }
   }
   return nullptr;

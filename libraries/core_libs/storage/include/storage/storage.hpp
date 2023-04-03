@@ -14,6 +14,7 @@
 #include "logger/logger.hpp"
 #include "pbft/pbft_block.hpp"
 #include "pbft/period_data.hpp"
+#include "storage/period_cache.hpp"
 #include "storage/uint_comparator.hpp"
 #include "transaction/transaction.hpp"
 #include "vote_manager/verified_votes.hpp"
@@ -144,6 +145,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   const uint32_t kDbSnapshotsMaxCount = 0;
   std::set<PbftPeriod> snapshots_;
 
+  mutable cache<PeriodData> periodCache_;
   bool minor_version_changed_ = false;
 
   auto handle(Column const& col) const { return handles_[col.ordinal_]; }
@@ -184,6 +186,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void savePeriodData(const PeriodData& period_data, Batch& write_batch);
   void clearPeriodDataHistory(PbftPeriod period);
   dev::bytes getPeriodDataRaw(PbftPeriod period) const;
+  std::shared_ptr<PeriodData> getPeriodDataCached(PbftPeriod period) const;
   std::optional<PbftBlock> getPbftBlock(PbftPeriod period) const;
   std::vector<std::shared_ptr<Vote>> getPeriodCertVotes(PbftPeriod period) const;
   blk_hash_t getPeriodBlockHash(PbftPeriod period) const;
@@ -202,6 +205,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // DAG
   void saveDagBlock(DagBlock const& blk, Batch* write_batch_p = nullptr);
+  std::shared_ptr<DagBlock> getDagBlockCached(blk_hash_t const& hash);
   std::shared_ptr<DagBlock> getDagBlock(blk_hash_t const& hash);
   bool dagBlockInDb(blk_hash_t const& hash);
   std::set<blk_hash_t> getBlocksByLevel(level_t level);
@@ -219,6 +223,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   // Transaction
   void saveTransaction(Transaction const& trx);
   std::shared_ptr<Transaction> getTransaction(trx_hash_t const& hash);
+  std::shared_ptr<Transaction> getTransactionCached(trx_hash_t const& hash);
   SharedTransactions getAllNonfinalizedTransactions();
   bool transactionInDb(trx_hash_t const& hash);
   bool transactionFinalized(trx_hash_t const& hash);

@@ -58,7 +58,7 @@ Taraxa::NodePtr Taraxa::tryGetNode() {
 Json::Value Taraxa::taraxa_getDagBlockByHash(const string& _blockHash, bool _includeTransactions) {
   try {
     auto node = tryGetNode();
-    auto block = node->getDagManager()->getDagBlock(blk_hash_t(_blockHash));
+    auto block = node->getDB()->getDagBlockCached(blk_hash_t(_blockHash));
     if (block) {
       auto block_json = block->getJson();
       auto period = node->getPbftManager()->getDagBlockPeriod(block->getHash());
