@@ -90,6 +90,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
     // do not change/move
     COLUMN(default_column);
+    // migrations
+    COLUMN(migrations);
     // Contains full data for an executed PBFT block including PBFT block, cert votes, dag blocks and transactions
     COLUMN_W_COMP(period_data, getIntComparator<PbftPeriod>());
     COLUMN(genesis);

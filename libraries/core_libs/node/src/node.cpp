@@ -26,6 +26,7 @@
 #include "network/rpc/jsonrpc_http_processor.hpp"
 #include "network/rpc/jsonrpc_ws_server.hpp"
 #include "pbft/pbft_manager.hpp"
+#include "storage/migration/migration_manager.hpp"
 #include "transaction/gas_pricer.hpp"
 #include "transaction/transaction_manager.hpp"
 
@@ -82,6 +83,8 @@ void FullNode::init() {
     if (db_->getDagBlocksCount() == 0) {
       db_->setGenesisHash(conf_.genesis.genesisHash());
     }
+
+    storage::migration::Manager(db_).applyAll();
   }
   LOG(log_nf_) << "DB initialized ...";
 
