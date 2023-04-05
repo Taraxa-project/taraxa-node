@@ -252,23 +252,35 @@ void PbftManager::setPbftStep(PbftStep pbft_step) {
 
     // Node is still >= kMaxSteps steps behind the rest (at least 1/3) of the network - keep lambda at the standard
     // value so node can catch up with the rest of the nodes
-    if (network_next_voting_step > step_ && network_next_voting_step - step_ >= kMaxSteps) {
-      lambda_ = kMinLambda;
+
+    // To get withing 1 round with the rest of the network - node cannot start exponentially backing off its lambda
+    // exactly when it is kMaxSteps behind the network as it would reach kMaxLambda lambda time before catching up. If
+    // we delay triggering exponential backoff by 4 steps, node should get within 1 round with the network.
+    // !!! Important: This is true only for values kMinLambda = 15000ms and kMaxLambda = 60000 ms
+    if (network_next_voting_step > step_ && network_next_voting_step - step_ >= kMaxSteps - 4 /* hardcoded delay */) {
+      // Reset it only if it was already increased compared to default value
+      if (lambda_ != kMinLambda) {
+        lambda_ = kMinLambda;
+        LOG(log_nf_) << "Node is " << network_next_voting_step - step_
+                     << " steps behind the rest of the network. Reset lambda to the default value "
+                     << lambda_.count() << " [ms]";
+      }
     } else if (lambda_ < kMaxLambda) {
       // Node is < kMaxSteps steps behind the rest (at least 1/3) of the network - start exponentially backing off
-      // lambda until it reaches kMaxLambda
+      // lambda until it reaches kMaxLambdagetNetworkTplusOneNextVotingStep
       // Note: We calculate the lambda for a step independently of prior steps in case missed earlier steps.
       lambda_ *= 2;
       if (lambda_ > kMaxLambda) {
         lambda_ = kMaxLambda;
       }
+
+      LOG(log_nf_) << "Exponentially backing off lambda to " << lambda_.count() << " [ms] ";
     }
   }
 }
 
 void PbftManager::resetStep() {
   step_ = 1;
-  startingStepInRound_ = 1;
   lambda_ = kMinLambda;
 }
 
@@ -443,8 +455,6 @@ void PbftManager::initialState() {
     assert(false);
   }
 
-  // This is used to offset endtime for second finishing step...
-  startingStepInRound_ = current_pbft_step;
   setPbftStep(current_pbft_step);
   round_ = current_pbft_round;
 
@@ -506,6 +516,7 @@ void PbftManager::setCertifyState_() {
   state_ = certify_state;
   setPbftStep(step_ + 1);
   next_step_time_ms_ = 2 * lambda_;
+  printCertStepInfo = true;
 }
 
 void PbftManager::setFinishState_() {
@@ -524,6 +535,7 @@ void PbftManager::setFinishPollingState_() {
   db_->commitWriteBatch(batch);
   already_next_voted_value_ = false;
   already_next_voted_null_block_hash_ = false;
+  printSecondFinishStepInfo = true;
   second_finish_step_start_datetime_ = std::chrono::system_clock::now();
   next_step_time_ms_ += kPollingIntervalMs;
 }
@@ -537,7 +549,6 @@ void PbftManager::loopBackFinishState_() {
   db_->commitWriteBatch(batch);
   already_next_voted_value_ = false;
   already_next_voted_null_block_hash_ = false;
-  assert(step_ >= startingStepInRound_);
   next_step_time_ms_ += kPollingIntervalMs;
 }
 
@@ -857,7 +868,11 @@ void PbftManager::identifyBlock_() {
 void PbftManager::certifyBlock_() {
   // The Certifying Step
   auto [round, period] = getPbftRoundAndPeriod();
-  LOG(log_dg_) << "PBFT certifying state in period " << period << ", round " << round;
+
+  if (printCertStepInfo) {
+    LOG(log_dg_) << "PBFT certifying state in period " << period << ", round " << round;
+    printCertStepInfo = false;
+  }
 
   const auto elapsed_time_in_round = elapsedTimeInMs(current_round_start_datetime_);
   go_finish_state_ = elapsed_time_in_round > 4 * lambda_ - kPollingIntervalMs;
@@ -974,9 +989,11 @@ void PbftManager::firstFinish_() {
 void PbftManager::secondFinish_() {
   // Odd number steps from 5 are in second finish
   auto [round, period] = getPbftRoundAndPeriod();
-  LOG(log_dg_) << "PBFT second finishing state in period " << period << ", round " << round << ", step " << step_;
 
-  assert(step_ >= startingStepInRound_);
+  if (printSecondFinishStepInfo) {
+    LOG(log_dg_) << "PBFT second finishing state in period " << period << ", round " << round << ", step " << step_;
+    printSecondFinishStepInfo = false;
+  }
 
   // Lambda function for next voting 2t+1 soft voted block from current round
   auto next_vote_soft_voted_block = [this, period = period, round = round]() {

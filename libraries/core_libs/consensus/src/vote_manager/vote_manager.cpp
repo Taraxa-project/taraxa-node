@@ -253,6 +253,7 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
     if (vote->getType() == PbftVoteTypes::next_vote && total_weight >= t_plus_one &&
         vote->getStep() > found_round_it->second.network_t_plus_one_step) {
       found_round_it->second.network_t_plus_one_step = vote->getStep();
+      LOG(log_nf_) << "Set t+1 next voted block " << vote->getHash() << " in step " << vote->getStep();
     }
 
     // Not enough votes - do not set 2t+1 voted block for period,round and step

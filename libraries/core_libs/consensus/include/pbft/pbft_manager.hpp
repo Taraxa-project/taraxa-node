@@ -551,7 +551,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   PbftStates state_ = value_proposal_state;
   std::atomic<PbftRound> round_ = 1;
   PbftStep step_ = 1;
-  PbftStep startingStepInRound_ = 1;
 
   // Block that node cert voted
   std::optional<std::shared_ptr<PbftBlock>> cert_voted_block_for_round_{};
@@ -569,6 +568,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool already_next_voted_null_block_hash_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
+
+  // Used to avoid cyclic logging in voting steps that are called repeatedly
+  bool printSecondFinishStepInfo = true;
+  bool printCertStepInfo = true;
 
   const blk_hash_t dag_genesis_block_hash_;
 
