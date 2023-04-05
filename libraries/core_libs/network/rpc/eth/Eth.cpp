@@ -56,14 +56,50 @@ class EthImpl : public Eth, EthParams {
     auto t = toTransactionSkeleton(_json);
     auto blk_n = parse_blk_num(_blockNumber);
     prepare_transaction_for_call(t, blk_n);
-    return toJS(call(blk_n, t).code_retval);
+    auto ret = call(blk_n, t);
+    if (!ret.consensus_err.empty() || !ret.code_err.empty()) {
+      throw std::runtime_error(ret.consensus_err.empty() ? ret.code_err : ret.consensus_err);
+    }
+    return toJS(ret.code_retval);
   }
 
   string eth_estimateGas(Json::Value const& _json) override {
     auto t = toTransactionSkeleton(_json);
     auto blk_n = final_chain->last_block_number();
     prepare_transaction_for_call(t, blk_n);
-    return toJS(call(blk_n, t).gas_used);
+
+    auto is_enough_gas = [&](gas_t gas) -> bool {
+      t.gas = gas;
+      auto res = call(blk_n, t);
+      if (!res.consensus_err.empty()) {
+        throw std::runtime_error(res.consensus_err);
+      }
+      if (!res.code_err.empty()) {
+        return false;
+      }
+      return true;
+    };
+    // couldn't be lower than execution gas_used. So we should start with this value
+    auto call_result = call(blk_n, t);
+    if (!call_result.consensus_err.empty() || !call_result.code_err.empty()) {
+      throw std::runtime_error(call_result.consensus_err.empty() ? call_result.code_err : call_result.consensus_err);
+    }
+    gas_t low = call_result.gas_used;
+    gas_t hi = *t.gas;
+    if (low > hi) {
+      throw std::runtime_error("out of gas");
+    }
+    // precision is 5%(1/20) of higher gas_used value
+    while (hi - low > hi / 20) {
+      auto mid = low + ((hi - low) / 2);
+
+      if (is_enough_gas(mid)) {
+        hi = mid;
+      } else {
+        low = mid;
+      }
+    }
+    return toJS(hi);
   }
 
   string eth_getTransactionCount(string const& _address, string const& _blockNumber) override {
@@ -267,10 +303,7 @@ class EthImpl : public Eth, EthParams {
         },
         blk_n);
 
-    if (result.consensus_err.empty() && result.code_err.empty()) {
-      return result;
-    }
-    throw std::runtime_error(result.consensus_err.empty() ? result.code_err : result.consensus_err);
+    return result;
   }
 
   // this should be used only in eth_call and eth_estimateGas

@@ -20,13 +20,20 @@ TEST_F(RPCTest, eth_estimateGas) {
   auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
 
   const auto from = dev::toHex(dev::toAddress(node_cfg.front().node_secret));
+  auto check_estimation_is_in_range = [&](const Json::Value& trx, const std::string& e) {
+    auto estimate = dev::jsToInt(eth_json_rpc->eth_estimateGas(trx));
+    auto expected = dev::jsToInt(e);
+    EXPECT_GE(estimate, expected);
+    EXPECT_GE(expected / 20, estimate - expected);
+  };
+
   // Contract creation estimations with author + without author
   {
     Json::Value trx(Json::objectValue);
     trx["data"] = samples::greeter_contract_code;
-    EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5ccc5");
+    check_estimation_is_in_range(trx, "0x5ccc5");
     trx["from"] = from;
-    EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5ccc5");
+    check_estimation_is_in_range(trx, "0x5ccc5");
   }
 
   // Contract creation with value
@@ -34,7 +41,7 @@ TEST_F(RPCTest, eth_estimateGas) {
     Json::Value trx(Json::objectValue);
     trx["value"] = 1;
     trx["data"] = samples::greeter_contract_code;
-    EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5ccc5");
+    check_estimation_is_in_range(trx, "0x5ccc5");
   }
 
   // Simple transfer estimations with author + without author
@@ -42,9 +49,9 @@ TEST_F(RPCTest, eth_estimateGas) {
     Json::Value trx(Json::objectValue);
     trx["value"] = 1;
     trx["to"] = dev::toHex(addr_t::random());
-    EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5208");  // 21k
+    check_estimation_is_in_range(trx, "0x5208");  // 21k
     trx["from"] = from;
-    EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5208");  // 21k
+    check_estimation_is_in_range(trx, "0x5208");  // 21k
   }
 
   // Test throw on failed transaction
