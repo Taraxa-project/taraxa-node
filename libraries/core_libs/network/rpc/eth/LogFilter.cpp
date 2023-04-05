@@ -8,19 +8,14 @@ LogFilter::LogFilter(EthBlockNumber from_block, std::optional<EthBlockNumber> to
   if (!addresses_.empty()) {
     return;
   }
-  for (auto const& t : topics_) {
-    if (!t.empty()) {
-      return;
-    }
-  }
-  is_range_only_ = true;
+  is_range_only_ = std::all_of(topics_.cbegin(), topics_.cend(), [](const auto& t) { return t.empty(); });
 }
 
 std::vector<LogBloom> LogFilter::bloomPossibilities() const {
   // return combination of each of the addresses/topics
   std::vector<LogBloom> ret;
   // | every address with every topic
-  for (auto const& i : addresses_) {
+  for (const auto& i : addresses_) {
     // 1st case, there are addresses and topics
     //
     // m_addresses = [a0, a1];
@@ -31,12 +26,12 @@ std::vector<LogBloom> LogFilter::bloomPossibilities() const {
     // a1 | t0, a1 | t1a | t1b
     // ]
     //
-    for (auto const& t : topics_) {
+    for (const auto& t : topics_) {
       if (t.empty()) {
         continue;
       }
       auto b = LogBloom().shiftBloom<3>(sha3(i));
-      for (auto const& j : t) {
+      for (const auto& j : t) {
         b = b.shiftBloom<3>(sha3(j));
       }
       ret.push_back(b);
@@ -51,9 +46,8 @@ std::vector<LogBloom> LogFilter::bloomPossibilities() const {
   // blooms = [a0, a1];
   //
   if (ret.empty()) {
-    for (auto const& i : addresses_) {
-      ret.push_back(LogBloom().shiftBloom<3>(sha3(i)));
-    }
+    std::transform(addresses_.cbegin(), addresses_.cend(), std::back_inserter(ret),
+                   [](const auto& i) { return LogBloom().shiftBloom<3>(sha3(i)); });
   }
 
   // 3rd case, there are no addresses, at least create blooms from topics
@@ -64,10 +58,10 @@ std::vector<LogBloom> LogFilter::bloomPossibilities() const {
   // blooms = [t0, t1a | t1b];
   //
   if (addresses_.empty()) {
-    for (auto const& t : topics_) {
+    for (const auto& t : topics_) {
       if (t.size()) {
         LogBloom b;
-        for (auto const& j : t) {
+        for (const auto& j : t) {
           b = b.shiftBloom<3>(sha3(j));
         }
         ret.push_back(b);
@@ -80,7 +74,7 @@ std::vector<LogBloom> LogFilter::bloomPossibilities() const {
 bool LogFilter::matches(LogBloom b) const {
   if (!addresses_.empty()) {
     auto ok = false;
-    for (auto const& i : addresses_) {
+    for (const auto& i : addresses_) {
       if (b.containsBloom<3>(sha3(i))) {
         ok = true;
         break;
@@ -90,12 +84,12 @@ bool LogFilter::matches(LogBloom b) const {
       return false;
     }
   }
-  for (auto const& t : topics_) {
+  for (const auto& t : topics_) {
     if (t.empty()) {
       continue;
     }
     auto ok = false;
-    for (auto const& i : t) {
+    for (const auto& i : t) {
       if (b.containsBloom<3>(sha3(i))) {
         ok = true;
         break;
@@ -108,12 +102,12 @@ bool LogFilter::matches(LogBloom b) const {
   return true;
 }
 
-void LogFilter::match_one(TransactionReceipt const& r, std::function<void(size_t)> const& cb) const {
+void LogFilter::match_one(const TransactionReceipt& r, const std::function<void(size_t)>& cb) const {
   if (!matches(r.bloom())) {
     return;
   }
   for (size_t log_i = 0; log_i < r.logs.size(); ++log_i) {
-    auto const& e = r.logs[log_i];
+    const auto& e = r.logs[log_i];
     if (!addresses_.empty() && !addresses_.count(e.address)) {
       continue;
     }
@@ -134,8 +128,8 @@ bool LogFilter::blk_number_matches(EthBlockNumber blk_n) const {
   return from_block_ <= blk_n && (!to_block_ || blk_n <= *to_block_);
 }
 
-void LogFilter::match_one(ExtendedTransactionLocation const& trx_loc, TransactionReceipt const& r,
-                          std::function<void(LocalisedLogEntry const&)> const& cb) const {
+void LogFilter::match_one(const ExtendedTransactionLocation& trx_loc, const TransactionReceipt& r,
+                          const std::function<void(const LocalisedLogEntry&)>& cb) const {
   if (!blk_number_matches(trx_loc.blk_n)) {
     return;
   }
@@ -149,15 +143,14 @@ void LogFilter::match_one(ExtendedTransactionLocation const& trx_loc, Transactio
   }
 }
 
-std::vector<LocalisedLogEntry> LogFilter::match_all(FinalChain const& final_chain) const {
+std::vector<LocalisedLogEntry> LogFilter::match_all(const FinalChain& final_chain) const {
   std::vector<LocalisedLogEntry> ret;
   auto action = [&, this](EthBlockNumber blk_n) {
     ExtendedTransactionLocation trx_loc{{{blk_n}, *final_chain.block_hash(blk_n)}};
     auto hashes = final_chain.transaction_hashes(trx_loc.blk_n);
-    for (size_t i = 0; i < hashes->count(); ++i) {
-      trx_loc.trx_hash = hashes->get(i);
-      match_one(trx_loc, *final_chain.transaction_receipt(trx_loc.trx_hash),
-                [&](auto const& lle) { ret.push_back(lle); });
+    for (const auto& hash : *hashes) {
+      trx_loc.trx_hash = hash;
+      match_one(trx_loc, *final_chain.transaction_receipt(hash), [&](const auto& lle) { ret.push_back(lle); });
       ++trx_loc.index;
     }
   };
@@ -169,7 +162,7 @@ std::vector<LocalisedLogEntry> LogFilter::match_all(FinalChain const& final_chai
     return ret;
   }
   std::set<EthBlockNumber> matchingBlocks;
-  for (auto const& bloom : bloomPossibilities()) {
+  for (const auto& bloom : bloomPossibilities()) {
     for (auto blk_n : final_chain.withBlockBloom(bloom, from_block_, to_blk_n)) {
       matchingBlocks.insert(blk_n);
     }

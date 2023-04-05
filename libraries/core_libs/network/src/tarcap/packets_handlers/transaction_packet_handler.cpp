@@ -3,6 +3,7 @@
 #include <cassert>
 
 #include "network/tarcap/shared_states/test_state.hpp"
+#include "transaction/transaction.hpp"
 #include "transaction/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {
@@ -61,7 +62,7 @@ inline void TransactionPacketHandler::process(const PacketData &packet_data, con
       try {
         transaction = std::make_shared<Transaction>(packet_data.rlp_[1][tx_idx].data().toBytes());
         received_transactions.emplace_back(trx_hash);
-      } catch (const Transaction::InvalidSignature &e) {
+      } catch (const Transaction::InvalidTransaction &e) {
         throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
       }
 
@@ -126,11 +127,7 @@ void TransactionPacketHandler::periodicSendTransactions(SharedTransactions &&tra
   std::vector<std::pair<dev::p2p::NodeID, SharedTransactions>> peers_with_transactions_to_send;
 
   auto peers = peers_state_->getAllPeers();
-  std::string transactions_to_log;
   std::string peers_to_log;
-  for (auto const &trx : transactions) {
-    transactions_to_log += trx->getHash().abridged();
-  }
   for (const auto &peer : peers) {
     // Confirm that status messages were exchanged otherwise message might be ignored and node would
     // incorrectly markTransactionAsKnown
@@ -149,6 +146,9 @@ void TransactionPacketHandler::periodicSendTransactions(SharedTransactions &&tra
   }
   const auto peers_to_send_count = peers_with_transactions_to_send.size();
   if (peers_to_send_count > 0) {
+    auto transactions_to_log =
+        std::accumulate(transactions.begin(), transactions.end(), std::string{},
+                        [](const auto &r, const auto &trx) { return r + trx->getHash().abridged(); });
     LOG(log_tr_) << "Sending Transactions " << transactions_to_log << " to " << peers_to_log;
     // Sending it in same order favours some peers over others, always start with a different position
     uint32_t start_with = rand() % peers_to_send_count;
@@ -159,8 +159,9 @@ void TransactionPacketHandler::periodicSendTransactions(SharedTransactions &&tra
   }
 }
 
-void TransactionPacketHandler::sendTransactions(std::shared_ptr<TaraxaPeer> const &peer,
+void TransactionPacketHandler::sendTransactions(std::shared_ptr<TaraxaPeer> peer,
                                                 std::vector<std::shared_ptr<Transaction>> &&transactions) {
+  if (!peer) return;
   const auto peer_id = peer->getId();
   LOG(log_tr_) << "sendTransactions " << transactions.size() << " to " << peer_id;
 

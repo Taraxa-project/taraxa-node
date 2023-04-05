@@ -1,0 +1,127 @@
+{{- if .Values.transactionGeneration.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-transaction-generation
+  labels:
+    app: node
+    app.kubernetes.io/name: node
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+data:
+  requirements.txt: |-
+    aiohttp==3.8.4
+    aiosignal==1.3.1
+    async-timeout==4.0.2
+    attrs==22.2.0
+    base58==2.1.1
+    bitarray==2.7.3
+    certifi==2022.12.7
+    charset-normalizer==3.1.0
+    coloredlogs==15.0.1
+    cytoolz==0.12.1
+    eth-abi==2.2.0
+    eth-account==0.5.9
+    eth-hash==0.5.1
+    eth-keyfile==0.5.1
+    eth-keys==0.3.4
+    eth-rlp==0.2.1
+    eth-typing==2.3.0
+    eth-utils==1.9.5
+    frozenlist==1.3.3
+    hexbytes==0.3.0
+    humanfriendly==10.0
+    idna==3.4
+    ipfshttpclient==0.8.0a2
+    jsonschema==4.17.3
+    lru-dict==1.1.8
+    multiaddr==0.0.9
+    multidict==6.0.4
+    netaddr==0.8.0
+    parsimonious==0.8.1
+    protobuf==3.19.5
+    pycryptodome==3.17
+    pyrsistent==0.19.3
+    python-dotenv==1.0.0
+    requests==2.28.2
+    rlp==2.0.1
+    six==1.16.0
+    toolz==0.12.0
+    urllib3==1.26.15
+    varint==1.0.2
+    web3==5.31.4
+    websockets==9.1
+    yarl==1.8.2
+  transactions.py: |-
+    import logging
+    import coloredlogs
+    import time
+    from dotenv import load_dotenv
+    from os import getenv
+    from web3 import Web3
+
+    load_dotenv()
+
+    LOG_LEVEL = getenv('LOG_LEVEL', 'INFO')
+    PROVIDER_URL = getenv('PROVIDER_URL')
+    PRIVATE_KEY = getenv('PRIVATE_KEY')
+    PENDING_TRANSACTIONS_THRESHOLD = 1000
+
+    logger = logging.getLogger()
+    coloredlogs.install(level=LOG_LEVEL, logger=logger)
+
+    provider = Web3.HTTPProvider(PROVIDER_URL)
+    chain_id = provider.make_request('net_version', [])
+    chain_id = int(chain_id['result'])
+    logger.info(f'Got chain ID: {chain_id}')
+
+    node_config = provider.make_request('taraxa_getConfig', [])
+    initial_validators = list(
+        map(lambda x: Web3.to_checksum_address(x['address']), node_config['result']['dpos']['initial_validators']))
+    logger.info(f'Got initial validators: {initial_validators}')
+
+    web3 = Web3(provider)
+    logger.info(f'Connected to Taraxa node: {PROVIDER_URL}')
+
+    last_block = web3.eth.getBlock('latest')
+    logger.info(f'Last block: #{last_block.number}')
+
+    account = web3.eth.account.from_key(PRIVATE_KEY)
+    logger.info(f'Account: {account.address}')
+
+    transaction_count = int(web3.eth.get_transaction_count(account.address))
+    logger.info(f'Transaction count for address: {transaction_count}')
+
+    while True:
+        pending_transactions = web3.eth.get_block_transaction_count('pending')
+        logger.info(f'Number of pending transactions: {pending_transactions}')
+        if pending_transactions > PENDING_TRANSACTIONS_THRESHOLD:
+            logger.info(
+                f'Number of pending transactions is above threshold, sleeping for 10 seconds')
+            time.sleep(10)
+            continue
+
+        logger.info(f'Sending transactions to initial validators')
+
+        for initial_validator in initial_validators:
+            transaction_count = transaction_count+1
+            logger.info(
+                f'Sending transaction #{transaction_count} to {initial_validator}')
+
+            transaction = {
+                'from': account.address,
+                'to': initial_validator,
+                'value': 1,
+                'gas': 21000,
+                'gasPrice': 1,
+                'nonce': transaction_count,
+                'chainId': chain_id,
+            }
+            logger.debug(f'Transaction {transaction}')
+            signed_transaction = account.sign_transaction(transaction)
+            web3.eth.send_raw_transaction(signed_transaction.rawTransaction)
+
+        time.sleep(1)
+{{- end }}

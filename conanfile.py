@@ -13,11 +13,11 @@ class TaraxaConan(ConanFile):
     generators = "cmake"
 
     def requirements(self):
-        self.requires("boost/1.80.0")
-        self.requires("cppcheck/2.7.5")
-        self.requires("openssl/1.1.1s")
+        self.requires("boost/1.81.0")
+        self.requires("cppcheck/2.10")
+        self.requires("openssl/1.1.1t")
         self.requires("cryptopp/8.7.0")
-        self.requires("gtest/1.12.1")
+        self.requires("gtest/1.13.0")
         self.requires("lz4/1.9.4")
         self.requires("rocksdb/6.29.5")
         self.requires("prometheus-cpp/1.1.0")
@@ -67,13 +67,9 @@ class TaraxaConan(ConanFile):
         # mpir is required by cppcheck and it causing gmp confict
         self.options["mpir"].enable_gmpcompat = False
 
-        # mpir is z3 dependency and it couldn't be built for arm
-        if (self.settings.arch == "armv8"):
-            self.options["cppcheck"].with_z3 = False
-
     def _configure_cmake(self):
         cmake = CMake(self)
-        # set find path to clang utils dowloaded by that script
+        # set find path to clang utils downloaded by that script
         cmake.configure()
         return cmake
 

@@ -2,6 +2,7 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/split.hpp>
+#include <cstdint>
 #include <memory>
 
 #include "config/version.hpp"
@@ -105,7 +106,11 @@ void DbStorage::rebuildColumns(const rocksdb::Options& options) {
   std::vector<rocksdb::ColumnFamilyHandle*> handles;
   handles.reserve(column_families.size());
   std::transform(column_families.begin(), column_families.end(), std::back_inserter(descriptors), [](const auto& name) {
-    return rocksdb::ColumnFamilyDescriptor(name, rocksdb::ColumnFamilyOptions());
+    const auto it = std::find_if(Columns::all.begin(), Columns::all.end(),
+                                 [&name](const Column& col) { return col.name() == name; });
+    auto options = rocksdb::ColumnFamilyOptions();
+    if (it != Columns::all.end() && it->comparator_) options.comparator = it->comparator_;
+    return rocksdb::ColumnFamilyDescriptor(name, options);
   });
   rocksdb::DB* db_ptr = nullptr;
   checkStatus(rocksdb::DB::Open(options, db_path_.string(), descriptors, &handles, &db_ptr));
@@ -448,10 +453,9 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period) {
         auto trx_hashes_raw = lookup(period, DB::Columns::final_chain_transaction_hashes_by_blk_number);
         auto hashes_count = trx_hashes_raw.size() / trx_hash_t::size;
         for (uint32_t i = 0; i < hashes_count; i++) {
-          auto hash =
-              trx_hash_t((uint8_t*)(trx_hashes_raw.data() + i * trx_hash_t::size), trx_hash_t::ConstructFromPointer);
+          auto hash = trx_hash_t(reinterpret_cast<uint8_t*>(trx_hashes_raw.data() + i * trx_hash_t::size),
+                                 trx_hash_t::ConstructFromPointer);
           remove(write_batch, Columns::final_chain_receipt_by_trx_hash, hash);
-          remove(write_batch, Columns::final_chain_transaction_location_by_hash, hash);
         }
         remove(write_batch, Columns::final_chain_transaction_hashes_by_blk_number, EthBlockNumber(period));
         if ((period - start_period + 1) % max_batch_delete == 0) {
@@ -466,7 +470,6 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period) {
       // data in the database and free disk space
       db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
       db_->CompactRange({}, handle(Columns::final_chain_receipt_by_trx_hash), nullptr, nullptr);
-      db_->CompactRange({}, handle(Columns::final_chain_transaction_location_by_hash), nullptr, nullptr);
       db_->CompactRange({}, handle(Columns::final_chain_transaction_hashes_by_blk_number), nullptr, nullptr);
     }
   }
@@ -606,6 +609,15 @@ std::shared_ptr<Transaction> DbStorage::getTransaction(trx_hash_t const& hash) {
     }
   }
   return nullptr;
+}
+
+uint64_t DbStorage::getTransactionCount(PbftPeriod period) const {
+  auto period_data = getPeriodDataRaw(period);
+  if (period_data.size()) {
+    auto period_data_rlp = dev::RLP(period_data);
+    return period_data_rlp[TRANSACTIONS_POS_IN_PERIOD_DATA].itemCount();
+  }
+  return 0;
 }
 
 std::pair<std::optional<SharedTransactions>, trx_hash_t> DbStorage::getFinalizedTransactions(
@@ -838,6 +850,17 @@ void DbStorage::replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType type,
   insert(Columns::latest_round_two_t_plus_one_votes, static_cast<uint8_t>(type), s.out());
 }
 
+void DbStorage::replaceTwoTPlusOneVotesToBatch(TwoTPlusOneVotedBlockType type,
+                                               const std::vector<std::shared_ptr<Vote>>& votes, Batch& write_batch) {
+  remove(write_batch, Columns::latest_round_two_t_plus_one_votes, static_cast<uint8_t>(type));
+
+  dev::RLPStream s(votes.size());
+  for (const auto& vote : votes) {
+    s.appendRaw(vote->rlp(true, true));
+  }
+  insert(write_batch, Columns::latest_round_two_t_plus_one_votes, static_cast<uint8_t>(type), s.out());
+}
+
 std::vector<std::shared_ptr<Vote>> DbStorage::getAllTwoTPlusOneVotes() {
   std::vector<std::shared_ptr<Vote>> votes;
   auto load_db_votes = [this, &votes](TwoTPlusOneVotedBlockType type) {
@@ -858,29 +881,20 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getAllTwoTPlusOneVotes() {
   return votes;
 }
 
-void DbStorage::replaceRewardVotes(const std::vector<std::shared_ptr<Vote>>& votes, Batch& write_batch) {
-  // TODO: deletion could be optimized if we save votes in memory
-  // Remove existing reward votes
-  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::latest_reward_votes)));
-  for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    const auto vote = std::make_shared<Vote>(asBytes(it->value().ToString()));
-    remove(write_batch, Columns::latest_reward_votes, vote->getHash().asBytes());
-  }
-
-  // Add new reward votes
-  for (const auto& vote : votes) {
-    insert(write_batch, Columns::latest_reward_votes, vote->getHash().asBytes(), vote->rlp(true, true));
+void DbStorage::removeExtraRewardVotes(const std::vector<vote_hash_t>& votes, Batch& write_batch) {
+  for (const auto& v : votes) {
+    remove(write_batch, Columns::extra_reward_votes, v.asBytes());
   }
 }
 
-void DbStorage::saveRewardVote(const std::shared_ptr<Vote>& vote) {
-  insert(Columns::latest_reward_votes, vote->getHash().asBytes(), vote->rlp(true, true));
+void DbStorage::saveExtraRewardVote(const std::shared_ptr<Vote>& vote) {
+  insert(Columns::extra_reward_votes, vote->getHash().asBytes(), vote->rlp(true, true));
 }
 
 std::vector<std::shared_ptr<Vote>> DbStorage::getRewardVotes() {
   std::vector<std::shared_ptr<Vote>> votes;
 
-  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::latest_reward_votes)));
+  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::extra_reward_votes)));
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
     votes.emplace_back(std::make_shared<Vote>(asBytes(it->value().ToString())));
   }

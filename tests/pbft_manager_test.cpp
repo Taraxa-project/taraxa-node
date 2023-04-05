@@ -192,61 +192,6 @@ struct PbftManagerTest : NodesTest {
   }
 };
 
-// Test that after some amount of elapsed time will not continue soft voting for same value
-TEST_F(PbftManagerTest, terminate_soft_voting_pbft_block) {
-  auto node_cfgs = make_node_cfgs(1, 1, 20);
-  makeNodesWithNonces(node_cfgs);
-
-  auto pbft_mgr = nodes[0]->getPbftManager();
-  auto vote_mgr = nodes[0]->getVoteManager();
-  pbft_mgr->stop();
-  std::cout << "PBFT manager stopped" << std::endl;
-
-  // Generate bogus votes
-  auto stale_block_hash = blk_hash_t("0000000100000000000000000000000000000000000000000000000000000000");
-  auto propose_vote = vote_mgr->generateVote(stale_block_hash, PbftVoteTypes::propose_vote, 2, 2, 1);
-  propose_vote->calculateWeight(1, 1, 1);
-  vote_mgr->addVerifiedVote(propose_vote);
-
-  // uint64_t time_till_stale_ms = 1000;
-  // std::cout << "Set max wait for soft voted value to " << time_till_stale_ms << "ms..." << std::endl;
-  // pbft_mgr->setMaxWaitForSoftVotedBlock_ms(time_till_stale_ms);
-  // pbft_mgr->setMaxWaitForNextVotedBlock_ms(std::numeric_limits<uint64_t>::max());
-
-  auto sleep_time = 1100;
-  std::cout << "Sleep " << sleep_time << "ms so that last soft voted value of " << stale_block_hash.abridged()
-            << " becomes stale..." << std::endl;
-  taraxa::thisThreadSleepForMilliSeconds(sleep_time);
-
-  std::cout << "Initialize PBFT manager at round 2 step 2" << std::endl;
-  pbft_mgr->setPbftRound(2);
-  pbft_mgr->setPbftStep(2);
-  pbft_mgr->resumeSingleState();
-  std::cout << "Into cert voted state in round 2..." << std::endl;
-  EXPECT_EQ(pbft_mgr->getPbftRound(), 2);
-  EXPECT_EQ(pbft_mgr->getPbftStep(), 3);
-
-  std::cout << "Check did not soft vote for stale soft voted value of " << stale_block_hash.abridged() << "..."
-            << std::endl;
-  bool skipped_soft_voting = true;
-  auto votes = vote_mgr->getVerifiedVotes();
-  for (const auto &v : votes) {
-    if (PbftVoteTypes::soft_vote == v->getType()) {
-      if (v->getBlockHash() == stale_block_hash) {
-        skipped_soft_voting = false;
-      }
-      std::cout << "Found soft voted value of " << v->getBlockHash().abridged() << " in round 2" << std::endl;
-    }
-  }
-  EXPECT_EQ(skipped_soft_voting, true);
-
-  auto start_round = pbft_mgr->getPbftRound();
-  pbft_mgr->resume();
-
-  std::cout << "Wait ensure node is still advancing in rounds... " << std::endl;
-  EXPECT_HAPPENS({60s, 50ms}, [&](auto &ctx) { WAIT_EXPECT_NE(ctx, start_round, pbft_mgr->getPbftRound()) });
-}
-
 // Test that after some amount of elapsed time will give up on the next voting value if corresponding DAG blocks can't
 // be found
 
@@ -868,54 +813,6 @@ TEST_F(PbftManagerWithDagCreation, produce_overweighted_block) {
   ASSERT_FALSE(period_raw.empty());
   PeriodData period_data(period_raw);
   EXPECT_FALSE(node->getPbftManager()->checkBlockWeight(period_data.dag_blocks));
-}
-
-TEST_F(PbftManagerWithDagCreation, DISABLED_pbft_block_is_overweighted) {
-  auto node_cfgs = make_node_cfgs(1, 5, true);
-  node_cfgs.front().genesis.dag.gas_limit = 500000;
-  node_cfgs.front().genesis.pbft.gas_limit = 600000;
-  makeNode();
-  deployContract();
-  node->getDagBlockProposer()->stop();
-  generateAndApplyInitialDag();
-
-  EXPECT_HAPPENS({10s, 500ms},
-                 [&](auto &ctx) { WAIT_EXPECT_EQ(ctx, nonce, node->getDB()->getNumTransactionExecuted() + 1); });
-
-  node->getPbftManager()->stop();
-  // create pbft block
-  auto chain_size_before = node->getPbftChain()->getPbftChainSize();
-  {
-    auto blocks_with_txs = generateDagBlocks(10, 3, 1);
-    insertBlocks(blocks_with_txs);
-    auto dag_block_hash = blocks_with_txs.back().blk.getHash();
-
-    // get DAG block and transaction order
-    const auto propose_period = node->getPbftChain()->getPbftChainSize() + 1;
-    auto dag_block_order = node->getDagManager()->getDagBlockOrder(dag_block_hash, propose_period);
-    ASSERT_TRUE(!dag_block_order.empty());
-
-    std::vector<trx_hash_t> trx_hashes;
-    for (const auto &bt : blocks_with_txs) {
-      std::transform(bt.trxs.begin(), bt.trxs.end(), std::back_inserter(trx_hashes),
-                     [](const auto &t) { return t->getHash(); });
-    }
-    auto order_hash = node->getPbftManager()->calculateOrderHash(dag_block_order);
-
-    const auto &last_hash = node->getPbftChain()->getLastPbftBlockHash();
-    auto reward_votes = node->getDB()->getRewardVotes();
-    std::vector<vote_hash_t> reward_votes_hashes;
-    std::transform(reward_votes.begin(), reward_votes.end(), std::back_inserter(reward_votes_hashes),
-                   [](const auto &v) { return v->getHash(); });
-    const auto pbft_block =
-        std::make_shared<PbftBlock>(last_hash, dag_block_hash, order_hash, kNullBlockHash, propose_period,
-                                    node->getAddress(), node->getSecretKey(), std::move(reward_votes_hashes));
-    // node->getPbftChain()->pushUnverifiedPbftBlock(pbft_block);
-  }
-
-  EXPECT_HAPPENS({60s, 500ms}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, node->getPbftChain()->getPbftChainSize(), chain_size_before + 1);
-  });
 }
 
 TEST_F(PbftManagerWithDagCreation, proposed_blocks) {

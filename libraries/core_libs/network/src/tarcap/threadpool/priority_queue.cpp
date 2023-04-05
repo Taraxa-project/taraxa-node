@@ -114,13 +114,7 @@ std::optional<PacketData> PriorityQueue::pop() {
 }
 
 bool PriorityQueue::empty() const {
-  for (const auto& queue : packets_queues_) {
-    if (!queue.empty()) {
-      return false;
-    }
-  }
-
-  return true;
+  return std::all_of(packets_queues_.cbegin(), packets_queues_.cend(), [](const auto& queue) { return queue.empty(); });
 }
 
 void PriorityQueue::updateDependenciesStart(const PacketData& packet) {

@@ -21,7 +21,7 @@ void from_rlp(taraxa_evm_Bytes b, Result& result) {
   util::rlp(dev::RLP(map_bytes(b), 0), result);
 }
 
-void to_str(taraxa_evm_Bytes b, string& result) { result = {(char*)b.Data, b.Len}; }
+void to_str(taraxa_evm_Bytes b, string& result) { result = {reinterpret_cast<char*>(b.Data), b.Len}; }
 
 void to_bytes(taraxa_evm_Bytes b, bytes& result) { result.assign(b.Data, b.Data + b.Len); }
 
@@ -31,7 +31,7 @@ template <typename Result, void (*decode)(taraxa_evm_Bytes, Result&)>
 taraxa_evm_BytesCallback decoder_cb_c(Result& res) {
   return {
       &res,
-      [](auto receiver, auto b) { decode(b, *(Result*)receiver); },
+      [](auto receiver, auto b) { decode(b, *static_cast<Result*>(receiver)); },
   };
 }
 

@@ -1,0 +1,277 @@
+{{ if .Values.node.enabled }}
+{{- $root := . -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "taraxa-node.fullname" . }}
+  labels:
+    app: taraxa-node
+    app.kubernetes.io/name: {{ include "taraxa-node.name" . }}
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{ if .Values.kubemonkey.enabled }}
+    kube-monkey/enabled: enabled
+    kube-monkey/identifier: {{ include "taraxa-node.fullname" . }}
+    kube-monkey/mtbf: {{ .Values.kubemonkey.mtbf | quote }}
+    kube-monkey/kill-mode: {{ .Values.kubemonkey.killMode | quote }}
+    kube-monkey/kill-value: {{ .Values.kubemonkey.killValue | quote }}
+    {{ end }}
+spec:
+  replicas: {{ .Values.node.replicaCount }}
+  # to launch or terminate all Pods in parallel.
+  # https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#parallel-pod-management
+  podManagementPolicy: Parallel
+  serviceName: {{ include "taraxa-node.fullname" . }}
+  selector:
+    matchLabels:
+      app: taraxa-node
+      partition: a
+      app.kubernetes.io/name: {{ include "taraxa-node.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      name: taraxa-node
+      labels:
+        app: taraxa-node
+        partition: a
+        app.kubernetes.io/name: {{ include "taraxa-node.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        {{ if .Values.kubemonkey.enabled }}
+        kube-monkey/enabled: enabled
+        kube-monkey/identifier: {{ include "taraxa-node.fullname" . }}
+        kube-monkey/mtbf: {{ .Values.kubemonkey.mtbf | quote }}
+        kube-monkey/kill-mode: {{ .Values.kubemonkey.killMode | quote }}
+        kube-monkey/kill-value: {{ .Values.kubemonkey.killValue | quote }}
+        {{ end }}
+      annotations:
+        kubernetes.io/change-cause: "Configuration through configmaps."
+    spec:
+      initContainers:
+        - name: config-adapter
+          {{- if and .Values.node.image.repository .Values.node.image.tag }}
+          image: "{{ .Values.node.image.repository }}:{{ .Values.node.image.tag }}"
+          {{- else }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          {{- end }}
+          {{- if .Values.node.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.node.image.pullPolicy }}
+          {{- else }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- end }}
+          envFrom:
+            - secretRef:
+                name: {{ .Release.Name }}
+          env:
+          - name: HOST
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+          - name: NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: RELEASE
+            value: {{ .Release.Name }}
+          command: ["/bin/entrypoint.sh"]
+          volumeMounts:
+            - name: initconfig
+              mountPath: /bin/entrypoint.sh
+              readOnly: true
+              subPath: entrypoint.sh
+            - name: initconfig
+              mountPath: /bin/genconfig.py
+              readOnly: true
+              subPath: genconfig.py
+            - name: data
+              mountPath: /root/.taraxa
+      containers:
+        {{- if .Values.slack.enabled }}
+        - name: status
+          image: "python:3.8"
+          imagePullPolicy: IfNotPresent
+          env:
+          - name: SLACK_TOKEN
+            valueFrom:
+              secretKeyRef:
+                name: {{ .Release.Name }}
+                key: SLACK_TOKEN
+          - name: SLACK_CHANNEL
+            value: {{ .Values.slack.channel }}
+          - name: K8S_CLUSTER
+            value: {{ .Values.slack.k8s_cluster }}
+          command: ["/bin/bash", "-c", "--"]
+          args: [ "pip install -r /app/requirements.txt && python /app/status.py" ]
+          volumeMounts:
+            - name: status-requirements
+              mountPath: /app/requirements.txt
+              readOnly: true
+              subPath: requirements.txt
+            - name: status-script
+              mountPath: /app/status.py
+              readOnly: true
+              subPath: status.py
+        {{- end }}
+        {{- if .Values.node.indexer.enabled }}
+        - name: taraxa-indexer
+          image: "{{ .Values.node.indexer.image.repository }}:{{ .Values.node.indexer.image.tag }}"
+          imagePullPolicy: {{ .Values.node.indexer.image.pullPolicy }}
+          command: ["/taraxa-indexer"]
+          args:
+            - -data_dir 
+            - {{ .Values.node.indexer.persistence.mountPoint }}
+            - -blockchain_ws 
+            - 'ws://localhost:8777'
+          volumeMounts:
+            - name: indexer-data
+              mountPath: /data
+        {{- end }}
+        - name: taraxa-node
+          {{- if and .Values.node.image.repository .Values.node.image.tag }}
+          image: "{{ .Values.node.image.repository }}:{{ .Values.node.image.tag }}"
+          {{- else }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          {{- end }}
+          {{- if .Values.node.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.node.image.pullPolicy }}
+          {{- else }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- end }}
+          args:
+            {{- toYaml .Values.node.args | nindent 12 }}
+          env:
+            - name: DEBUG
+              value: "{{ .Values.node.debug }}"
+            - name: HOST
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          {{- if not .Values.node.probes.enabled }}
+            - name: TARAXA_SLEEP_DIAGNOSE
+              value: "true"
+          {{- end }}
+          {{ if .Values.node.loadBalancer.enabled }}
+          {{- range $key, $value := .Values.node.loadBalancer.addresses }}
+            - name: ADVERTISED_IP_{{ $key }}
+              value: "{{ $value }}"
+          {{- end }}
+          {{- end }}
+          {{ if .Values.node.nodePort.enabled }}
+          {{- range $key, $value := .Values.node.nodePort.ports }}
+            - name: ADVERTISED_PORT_{{ $key }}
+              value: "{{ $value }}"
+          {{- end }}
+          {{- end }}
+          ports:
+            {{- toYaml .Values.node.ports | nindent 12 }}
+          {{- if .Values.node.probes.enabled }}
+          livenessProbe:
+            exec:
+              command:
+              - /bin/sh
+              - -c
+              - "ps -A | grep taraxad"
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          readinessProbe:
+            exec:
+              command:
+              - curl
+              - -X
+              - POST
+              - -H
+              - "'Content-Type: application/json'"
+              - -d
+              - "'{\"jsonrpc\":\"2.0\",\"method\":\"taraxa_protocolVersion\",\"params\": [],\"id\":1}'"
+              - http://127.0.0.1:7777
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          {{- end }}
+          resources:
+            {{- toYaml .Values.node.resources | nindent 12 }}
+          volumeMounts:
+            - name: data
+              mountPath: /root/.taraxa
+          securityContext:
+            capabilities:
+              add:
+              - SYS_PTRACE
+      {{- with .Values.node.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+      volumes:
+        - name: initconfig
+          configMap:
+            defaultMode: 0700
+            name: {{ .Release.Name }}-node-init-script
+        {{- if .Values.slack.enabled }}
+        - name: status-requirements
+          configMap:
+            defaultMode: 0700
+            name: {{ .Release.Name }}-node-status-script
+        - name: status-script
+          configMap:
+            defaultMode: 0700
+            name: {{ .Release.Name }}-node-status-script
+        {{- end }}
+        {{- if not .Values.node.persistence.enabled }}
+        - name: data
+          emptyDir: {}
+        {{- end }}
+  {{- if .Values.node.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+      annotations:
+        {{- if .Values.node.persistence.annotations}}
+        {{- toYaml .Values.node.persistence.annotations | nindent 4 }}
+        {{- end }}
+    spec:
+      accessModes:
+        - {{ .Values.node.persistence.accessMode | quote }}
+    {{- if .Values.node.persistence.storageClass }}
+    {{- if (eq "-" .Values.node.persistence.storageClass) }}
+      storageClassName: ""
+    {{- else }}
+      storageClassName: "{{ .Values.node.persistence.storageClass }}"
+    {{- end }}
+    {{- end }}
+      resources:
+        requests:
+          storage: "{{ .Values.node.persistence.size }}"
+  {{- if .Values.node.indexer.enabled }}
+  - metadata:
+      name: indexer-data
+      annotations:
+        {{- if .Values.node.indexer.persistence.annotations}}
+        {{- toYaml .Values.node.indexer.persistence.annotations | nindent 4 }}
+        {{- end }}
+    spec:
+      accessModes:
+        - {{ .Values.node.indexer.persistence.accessMode | quote }}
+    {{- if .Values.node.indexer.persistence.storageClass }}
+    {{- if (eq "-" .Values.node.indexer.persistence.storageClass) }}
+      storageClassName: ""
+    {{- else }}
+      storageClassName: "{{ .Values.node.indexer.persistence.storageClass }}"
+    {{- end }}
+    {{- end }}
+      resources:
+        requests:
+          storage: "{{ .Values.node.indexer.persistence.size }}"
+  {{- end }}
+  {{- end }}
+{{- end }}

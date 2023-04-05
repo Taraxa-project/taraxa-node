@@ -45,17 +45,16 @@ struct FinalChainTest : WithDataDir {
     SUT = nullptr;
     SUT = NewFinalChain(db, cfg);
     std::vector<h256> trx_hashes;
-    int pos = 0;
+    ++expected_blk_num;
     for (const auto& trx : trxs) {
-      db->saveTransactionPeriod(trx->getHash(), 1, pos++);
       trx_hashes.emplace_back(trx->getHash());
     }
     DagBlock dag_blk({}, {}, {}, trx_hashes, {}, {}, secret_t::random());
     db->saveDagBlock(dag_blk);
     std::vector<vote_hash_t> reward_votes_hashes;
     auto pbft_block =
-        std::make_shared<PbftBlock>(kNullBlockHash, kNullBlockHash, kNullBlockHash, kNullBlockHash, 1, addr_t::random(),
-                                    dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
+        std::make_shared<PbftBlock>(kNullBlockHash, kNullBlockHash, kNullBlockHash, kNullBlockHash, expected_blk_num,
+                                    addr_t::random(), dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
     std::vector<std::shared_ptr<Vote>> votes;
     PeriodData period_data(pbft_block, votes);
     period_data.dag_blocks.push_back(dag_blk);
@@ -67,7 +66,6 @@ struct FinalChainTest : WithDataDir {
     db->commitWriteBatch(batch);
 
     auto result = SUT->finalize(std::move(period_data), {dag_blk.getHash()}).get();
-    ++expected_blk_num;
     const auto& blk_h = *result->final_chain_blk;
     EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->block_header(blk_h.number)));
     EXPECT_EQ(util::rlp_enc(blk_h), util::rlp_enc(*SUT->block_header()));
@@ -180,12 +178,6 @@ TEST_F(FinalChainTest, initial_balances) {
   cfg.genesis.state.initial_balances[addr_t::random()] = 100000;
   init();
 }
-
-// TEST_F(FinalChainTest, update_state_config) {
-//   init();
-//   cfg.genesis.state.hardforks.fix_genesis_fork_block = 2222222;
-//   SUT->update_state_config(cfg.genesis.state);
-// }
 
 TEST_F(FinalChainTest, contract) {
   auto sender_keys = dev::KeyPair::create();

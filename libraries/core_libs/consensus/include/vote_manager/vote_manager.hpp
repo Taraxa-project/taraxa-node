@@ -96,13 +96,16 @@ class VoteManager {
   std::optional<PbftRound> determineNewRound(PbftPeriod current_pbft_period, PbftRound current_pbft_round);
 
   /**
-   * @brief Replace current reward votes info with new period, round & block hash based on vote
+   * @brief Replace current reward votes with new period, round & block hash based on vote
    *
    * @param period
    * @param round
+   * @param step
    * @param block_hash
+   * @param batch
    */
-  void resetRewardVotesInfo(PbftPeriod period, PbftRound round, const blk_hash_t& block_hash);
+  void resetRewardVotes(PbftPeriod period, PbftRound round, PbftStep step, const blk_hash_t& block_hash,
+                        DbStorage::Batch& batch);
 
   /**
    * @brief Check reward votes for specified pbft block
@@ -115,11 +118,11 @@ class VoteManager {
                                                                        bool copy_votes);
 
   /**
-   * @brief Get reward votes from reward_votes_ with the round during which was the previous block pushed
+   * @brief Get reward votes with the round during which was the previous block pushed
    *
    * @return vector of reward votes
    */
-  std::vector<std::shared_ptr<Vote>> getProposeRewardVotes();
+  std::vector<std::shared_ptr<Vote>> getRewardVotes();
 
   /**
    * @brief Get current reward votes pbft block period
@@ -197,23 +200,19 @@ class VoteManager {
    * @param period
    * @param round
    * @param type
-   * @param peer_filter if specified, get only votes that are unknown for peer
    * @return vector of votes if 2t+1 voted block votes found, otherwise empty vector
    */
-  std::vector<std::shared_ptr<Vote>> getTwoTPlusOneVotedBlockVotes(
-      PbftPeriod period, PbftRound round, TwoTPlusOneVotedBlockType type,
-      const std::shared_ptr<network::tarcap::TaraxaPeer>& peer_filter = {}) const;
+  std::vector<std::shared_ptr<Vote>> getTwoTPlusOneVotedBlockVotes(PbftPeriod period, PbftRound round,
+                                                                   TwoTPlusOneVotedBlockType type) const;
 
   /**
    * Get all 2t+1 voted block next votes(both for null block as well as specific block) for specific period and round
    *
    * @param period
    * @param round
-   * @param peer_filter if specified, get only votes that are unknown for peer
    * @return vector of next votes if 2t+1 voted block votes found, otherwise empty vector
    */
-  std::vector<std::shared_ptr<Vote>> getAllTwoTPlusOneNextVotes(
-      PbftPeriod period, PbftRound round, const std::shared_ptr<network::tarcap::TaraxaPeer>& peer_filter = {}) const;
+  std::vector<std::shared_ptr<Vote>> getAllTwoTPlusOneNextVotes(PbftPeriod period, PbftRound round) const;
 
   /**
    * @brief Sets current pbft period & round. It also checks if we dont alredy have 2t+1 vote bundles(pf any type) for
@@ -223,6 +222,17 @@ class VoteManager {
    * @param pbft_round
    */
   void setCurrentPbftPeriodAndRound(PbftPeriod pbft_period, PbftRound pbft_round);
+
+  /**
+   * @brief Returns greatest step (in specified period & round), for which there is at least t+1 voting power
+   *        from all nodes
+   * @note It is used for triggering lambda exponential backoff
+   *
+   * @param period
+   * @param round
+   * @return greatest network 2t+1 next voting step
+   */
+  PbftStep getNetworkTplusOneNextVotingStep(PbftPeriod period, PbftRound round) const;
 
  private:
   /**
@@ -273,6 +283,7 @@ class VoteManager {
   blk_hash_t reward_votes_block_hash_;
   PbftRound reward_votes_period_;
   PbftRound reward_votes_round_;
+  std::vector<vote_hash_t> extra_reward_votes_;
   mutable std::shared_mutex reward_votes_info_mutex_;
 
   // Cache for current 2T+1 - <Vote type, <period, two_t_plus_one for period>>

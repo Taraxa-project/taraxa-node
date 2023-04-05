@@ -237,7 +237,7 @@ void TaraxaCapability::registerPacketHandlers(
 
   // TODO there is additional logic, that should be moved outside process function
   packets_handlers_->registerHandler<GetPbftSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_syncing_state_,
-                                                               pbft_chain, db, node_addr);
+                                                               pbft_chain, vote_mgr, db, node_addr);
 
   packets_handlers_->registerHandler<PbftSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_syncing_state_,
                                                             pbft_chain, pbft_mgr, dag_mgr, vote_mgr,

@@ -205,7 +205,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Get PBFT lambda. PBFT lambda is a timer clock
    * @return PBFT lambda
    */
-  std::chrono::milliseconds getPbftInitialLambda() const { return LAMBDA_ms_MIN; }
+  std::chrono::milliseconds getPbftInitialLambda() const { return kMinLambda; }
 
   /**
    * @brief Calculate DAG blocks ordering hash
@@ -252,11 +252,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Resume PBFT daemon. Only to be used for unit tests
    */
   void resume();
-
-  /**
-   * @brief Resume PBFT daemon on single state. Only to be used for unit tests
-   */
-  void resumeSingleState();
 
   /**
    * @brief Get a proposed PBFT block based on specified period and block hash
@@ -335,16 +330,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Time to sleep for PBFT protocol
    */
   void sleep_();
-
-  /**
-   * @brief Go to next PBFT state. Only to be used for unit tests
-   */
-  void doNextState_();
-
-  /**
-   * @brief Set next PBFT state
-   */
-  void setNextState_();
 
   /**
    * @brief Set PBFT filter state
@@ -552,9 +537,8 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   const addr_t node_addr_;
   const secret_t node_sk_;
 
-  const std::chrono::milliseconds LAMBDA_ms_MIN;
-  std::chrono::milliseconds LAMBDA_ms{0};
-  uint64_t LAMBDA_backoff_multiple = 1;
+  const std::chrono::milliseconds kMinLambda;         // [ms]
+  std::chrono::milliseconds lambda_{0};               // [ms]
   const std::chrono::milliseconds kMaxLambda{60000};  // in ms, max lambda is 1 minutes
 
   const uint32_t kBroadcastVotesLambdaTime = 20;
@@ -563,8 +547,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   uint32_t rebroadcast_soft_next_votes_counter_ = 1;
   uint32_t broadcast_reward_votes_counter_ = 1;
   uint32_t rebroadcast_reward_votes_counter_ = 1;
-
-  std::default_random_engine random_engine_{std::random_device{}()};
 
   PbftStates state_ = value_proposal_state;
   std::atomic<PbftRound> round_ = 1;

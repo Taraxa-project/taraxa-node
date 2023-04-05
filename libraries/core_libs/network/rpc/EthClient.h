@@ -59,7 +59,7 @@ class EthClient : public jsonrpc::Client {
     else
       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
-  std::string eth_getBalance(const std::string& param1, const std::string& param2) throw(jsonrpc::JsonRpcException) {
+  std::string eth_getBalance(const std::string& param1, const Json::Value& param2) throw(jsonrpc::JsonRpcException) {
     Json::Value p;
     p.append(param1);
     p.append(param2);
@@ -70,7 +70,7 @@ class EthClient : public jsonrpc::Client {
       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
   std::string eth_getStorageAt(const std::string& param1, const std::string& param2,
-                               const std::string& param3) throw(jsonrpc::JsonRpcException) {
+                               const Json::Value& param3) throw(jsonrpc::JsonRpcException) {
     Json::Value p;
     p.append(param1);
     p.append(param2);
@@ -93,7 +93,7 @@ class EthClient : public jsonrpc::Client {
       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
   std::string eth_getTransactionCount(const std::string& param1,
-                                      const std::string& param2) throw(jsonrpc::JsonRpcException) {
+                                      const Json::Value& param2) throw(jsonrpc::JsonRpcException) {
     Json::Value p;
     p.append(param1);
     p.append(param2);
@@ -139,7 +139,7 @@ class EthClient : public jsonrpc::Client {
     else
       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
-  std::string eth_getCode(const std::string& param1, const std::string& param2) throw(jsonrpc::JsonRpcException) {
+  std::string eth_getCode(const std::string& param1, const Json::Value& param2) throw(jsonrpc::JsonRpcException) {
     Json::Value p;
     p.append(param1);
     p.append(param2);
@@ -149,7 +149,7 @@ class EthClient : public jsonrpc::Client {
     else
       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
-  std::string eth_call(const Json::Value& param1, const std::string& param2) throw(jsonrpc::JsonRpcException) {
+  std::string eth_call(const Json::Value& param1, const Json::Value& param2) throw(jsonrpc::JsonRpcException) {
     Json::Value p;
     p.append(param1);
     p.append(param2);

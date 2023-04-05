@@ -268,7 +268,11 @@ commands:
                 --set consensusnode.persistence.enabled=true \
                 --set node.serviceMonitor.enabled=true \
                 --set bootnode.serviceMonitor.enabled=false \
-                --set consensusnode.serviceMonitor.enabled=true
+                --set consensusnode.serviceMonitor.enabled=true \
+                --set node.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
+                --set bootnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
+                --set consensusnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
+                --set node.indexer.enabled=true
             fi
 
   cleanup_prnet_chart:
@@ -568,6 +572,8 @@ jobs:
             https://explorer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr> \
             <tr><td>RPC</td><td><a href=https://rpc-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io >\
             https://rpc-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr>\
+            <tr><td>Indexer</td><td><a href=https://indexer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io >\
+            https://indexer-pr-<<pipeline.parameters.pr_number>>.prnet.taraxa.io </a></td></tr>\
             </table>\
             <h4><p>Boot Nodes</p></h4>\
             <table>\

@@ -64,14 +64,6 @@ class ExtVotesPacketHandler : public PacketHandler {
                                                            bool validate_max_round_step);
 
   /**
-   * @brief Common validation for all types of votes
-   *
-   * @param vote to be validated
-   * @return <true, ""> vote validation passed, otherwise <false, "err msg">
-   */
-  std::pair<bool, std::string> validateVote(const std::shared_ptr<Vote>& vote) const;
-
-  /**
    * @brief Validates provided vote if voted value == provided block
    *
    * @param vote
