@@ -1,12 +1,16 @@
 var NAVTREEINDEX22 =
 {
+"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#af3d6378f2644d6f0cbd00279b212ff62":[15,0,1,0,2,19,1,2],
+"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#af67251080be60836f380077d344f018e":[14,0,0,1,30,19],
+"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#af677ddc7b72b51edda6f7ac4a6d966ea":[14,0,0,1,30,32],
+"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#afa60c54a7c445e08d4076e0f37feae96":[14,0,0,1,30,39],
 "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#afdddde18f10a3a81e45cdf06cef1a4fd":[14,0,0,1,30,18],
-"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#structdev_1_1p2p_1_1_r_l_p_x_handshake_1_1_host_context":[14,0,0,1,30,0],
 "structdev_1_1p2p_1_1_r_l_p_x_handshake.html#structdev_1_1p2p_1_1_r_l_p_x_handshake_1_1_host_context":[15,0,1,0,2,19,1],
+"structdev_1_1p2p_1_1_r_l_p_x_handshake.html#structdev_1_1p2p_1_1_r_l_p_x_handshake_1_1_host_context":[14,0,0,1,30,0],
 "structdev_1_1p2p_1_1_r_l_p_x_invalid_packet.html":[14,0,0,1,31],
 "structdev_1_1p2p_1_1_session.html":[14,0,0,1,34],
-"structdev_1_1p2p_1_1_session.html#a01416d8957bb4ce1e009e37ba5c3f092":[14,0,0,1,34,0,1],
 "structdev_1_1p2p_1_1_session.html#a01416d8957bb4ce1e009e37ba5c3f092":[15,0,1,0,2,23,2,1],
+"structdev_1_1p2p_1_1_session.html#a01416d8957bb4ce1e009e37ba5c3f092":[14,0,0,1,34,0,1],
 "structdev_1_1p2p_1_1_session.html#a053093e64182a07fad1dd1934bf17936":[14,0,0,1,34,23],
 "structdev_1_1p2p_1_1_session.html#a1417d93bca94036eea9fbac70cfdaae2":[14,0,0,1,34,22],
 "structdev_1_1p2p_1_1_session.html#a170989a0413c487f14f36b504f7cd73f":[14,0,0,1,34,46],
@@ -245,9 +249,5 @@ var NAVTREEINDEX22 =
 "structtaraxa_1_1_transaction_1_1_invalid_signature.html":[14,0,3,57,1],
 "structtaraxa_1_1_transaction_1_1_invalid_signature.html#a91e4a623c9edc3cdcf95b401751f0d8c":[14,0,3,57,1,0],
 "structtaraxa_1_1_transaction_1_1_invalid_transaction.html":[14,0,3,57,2],
-"structtaraxa_1_1_transaction_1_1_invalid_transaction.html#a5b66fae72abba7c859978116a5e2b646":[14,0,3,57,2,0],
-"structtaraxa_1_1_vrf_params.html":[14,0,3,62],
-"structtaraxa_1_1_vrf_params.html#a0a13eb6eb58b66ec417e67862f01ccfe":[14,0,3,62,2],
-"structtaraxa_1_1_vrf_params.html#a0fa7b78e010d7e0b3e19ff13e02bd1f2":[14,0,3,62,1],
-"structtaraxa_1_1_vrf_params.html#a3b2c4911216aaa18cf7eaf517312fed6":[14,0,3,62,0]
+"structtaraxa_1_1_transaction_1_1_invalid_transaction.html#a5b66fae72abba7c859978116a5e2b646":[14,0,3,57,2,0]
 };

@@ -10,7 +10,8 @@ var group___d_a_g_classtaraxa_1_1_dag_manager =
       [ "ExpiredBlock", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a62018b502a00304fc02337ba19cdba0c", null ],
       [ "IncorrectTransactionsEstimation", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a122320ab35a2188727e599b3cc61d72f", null ],
       [ "BlockTooBig", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a6acb71e475d0aaa76f18fde586c6d6db", null ],
-      [ "FailedTipsVerification", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484adef7264cfb315c8a66080e035af83b16", null ]
+      [ "FailedTipsVerification", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484adef7264cfb315c8a66080e035af83b16", null ],
+      [ "MissingTip", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484acd9ea5e61108c6f8d0592a48ffae5f36", null ]
     ] ],
     [ "DagManager", "group___d_a_g.html#ac9aed798e9b30f18abf9dc910adeb991", null ],
     [ "DagManager", "group___d_a_g.html#aa0fe82cc22a187cab97099ef465bed02", null ],

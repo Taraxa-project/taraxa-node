@@ -50,7 +50,6 @@ var group___final_chain =
       [ "trxs", "group___final_chain.html#a628827df0da85367d6fbe10a28626df2", null ]
     ] ],
     [ "FinalChain", "group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain", [
-      [ "finalize_precommit_ext", "group___final_chain.html#a85c2c0863dab085cd063aac9b6886d51", null ],
       [ "FinalChain", "group___final_chain.html#ababdb83aed2fc614d815944b986a60ed", null ],
       [ "~FinalChain", "group___final_chain.html#ac2cc9992f262b4521602a568b003ae59", null ],
       [ "FinalChain", "group___final_chain.html#a596dff53cf6de6397b5775c048f9a000", null ],
@@ -64,7 +63,7 @@ var group___final_chain =
       [ "dpos_eligible_vote_count", "group___final_chain.html#a92cea442deb2f451264773571de49e06", null ],
       [ "dpos_get_vrf_key", "group___final_chain.html#ab193319e8081030abcfa62a172ab6cfd", null ],
       [ "dpos_is_eligible", "group___final_chain.html#a218a8d86259ff424fdbda18138fb0bad", null ],
-      [ "finalize", "group___final_chain.html#a266e83f473963f7ab585279f6e50d835", null ],
+      [ "finalize", "group___final_chain.html#ae71c5be266ef7366c0650c6ff9a31947", null ],
       [ "get_account", "group___final_chain.html#a4dd6baa7b56ef75d07e95fe604458be5", null ],
       [ "get_account_storage", "group___final_chain.html#a20d7b88f1fef839aacb13035bb65e2be", null ],
       [ "get_code", "group___final_chain.html#aa66ce3061b2e802f2bd08e6428fb2159", null ],

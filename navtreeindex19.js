@@ -1,5 +1,9 @@
 var NAVTREEINDEX19 =
 {
+"namespacedev_1_1p2p.html#a3344d5869c485de4f4cba7a146d58e82":[15,0,1,0,2,24,0,6],
+"namespacedev_1_1p2p.html#a3675ac13787c68602db309c5112eae89":[15,0,1,0,2,3,4,2],
+"namespacedev_1_1p2p.html#a36d10b4c244b1abf9b9491c2a0564f24":[15,0,1,0,2,3,4,3],
+"namespacedev_1_1p2p.html#a38e9c4551a1446220a142c1af3c9ae35":[15,0,1,0,2,24,0,0],
 "namespacedev_1_1p2p.html#a43c31a929138dbdff7d10a2781433879":[15,0,1,0,2,3,4,4],
 "namespacedev_1_1p2p.html#a4c2c3d4a753e9c972c46049cd3c2205e":[15,0,1,0,2,24,0,8],
 "namespacedev_1_1p2p.html#a5fb1244b9ea3818995118c180a42d60c":[15,0,1,0,2,24,0,3],
@@ -70,8 +74,8 @@ var NAVTREEINDEX19 =
 "namespacetaraxa.html#a20a355304a30d8893626b16bf7c78595":[15,0,1,3,0,0,0,0,0],
 "namespacetaraxa.html#a25279da4cb5c51a252df1a2c42d8fdc6":[15,0,1,3,0,0,0,0,2],
 "namespacetaraxa.html#a3747de5ec38a001ef934c2764b539ef3":[15,0,1,4,0,0,5,0,0,2],
-"namespacetaraxa.html#a41b6bc15bf8fbbecfd3b53037e4f37c2":[15,0,1,4,0,0,5,0,1,1],
 "namespacetaraxa.html#a41b6bc15bf8fbbecfd3b53037e4f37c2":[15,0,1,4,0,0,5,0,0,0,1],
+"namespacetaraxa.html#a41b6bc15bf8fbbecfd3b53037e4f37c2":[15,0,1,4,0,0,5,0,1,1],
 "namespacetaraxa.html#a4faf253efde7446f593b1d0a5063bffc":[15,0,1,3,0,0,5,2,0],
 "namespacetaraxa.html#a750ea236fc9a952abc71508807c75ce8":[15,0,1,3,0,0,5,0,2],
 "namespacetaraxa.html#a755e4a0a6744a31b65b04cb9022d6a47":[15,0,1,8,0,0,0,1,2],
@@ -92,8 +96,8 @@ var NAVTREEINDEX19 =
 "namespacetaraxa.html#structtaraxa_1_1_prometheus_config":[15,0,1,3,0,0,5,0],
 "namespacetaraxa.html#structtaraxa_1_1_vdf_params":[15,0,1,8,0,0,0,1],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes":[15,0,1,4,0,0,5,0,0],
-"namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[15,0,1,4,0,0,5,0,1],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[15,0,1,4,0,0,5,0,0,0],
+"namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[15,0,1,4,0,0,5,0,1],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a1e15a59a79691f16628fd670283ecf80":[15,0,1,4,1,2,0,0,5,2],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a2f6cd6b167f36d948149b2cbd69eca30":[15,0,1,4,1,2,0,6,0,1],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a31d0681d099115697d44bf875d7f8d1b":[15,0,1,4,1,2,0,6,0,0],
@@ -245,9 +249,5 @@ var NAVTREEINDEX19 =
 "pbft__syncing__state_8cpp.html":[15,0,1,4,1,3,0,1,0],
 "pbft__syncing__state_8hpp.html":[15,0,1,4,1,1,0,0,1,0],
 "pbft__syncing__state_8hpp_source.html":[15,0,1,4,1,1,0,0,1,0],
-"peers__state_8cpp.html":[15,0,1,4,1,3,0,1,1],
-"peers__state_8hpp.html":[15,0,1,4,1,1,0,0,1,1],
-"peers__state_8hpp_source.html":[15,0,1,4,1,1,0,0,1,1],
-"period__data_8cpp.html":[15,0,1,7,1,1,1],
-"period__data_8cpp.html#ga4eb5ae28c1fec5d7a7695d4545961ea0":[15,0,1,7,1,1,1,0]
+"peers__state_8cpp.html":[15,0,1,4,1,3,0,1,1]
 };
