@@ -32,7 +32,7 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
                          std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
                          std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
                          std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain,
-                         secret_t node_sk, uint32_t max_levels_per_period)
+                         secret_t node_sk)
     : db_(std::move(db)),
       pbft_chain_(std::move(pbft_chain)),
       vote_mgr_(std::move(vote_mgr)),
@@ -44,8 +44,7 @@ PbftManager::PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_b
       kMinLambda(conf.lambda_ms),
       dag_genesis_block_hash_(dag_genesis_block_hash),
       config_(conf),
-      proposed_blocks_(db_),
-      max_levels_per_period_(max_levels_per_period) {
+      proposed_blocks_(db_) {
   LOG_OBJECTS_CREATE("PBFT_MGR");
 
   for (auto period = final_chain_->last_block_number() + 1, curr_period = pbft_chain_->getPbftChainSize();
@@ -302,6 +301,9 @@ bool PbftManager::tryPushCertVotesBlock() {
 
 bool PbftManager::advancePeriod() {
   resetPbftConsensus(1 /* round */);
+  broadcast_reward_votes_counter_ = 1;
+  rebroadcast_reward_votes_counter_ = 1;
+  current_period_start_datetime_ = std::chrono::system_clock::now();
 
   const auto new_period = getPbftPeriod();
 
@@ -346,8 +348,8 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
   LOG(log_dg_) << "Reset PBFT consensus to: period " << getPbftPeriod() << ", round " << round << ", step 1";
 
   // Reset broadcast counters
-  broadcast_votes_counter_ = 1;
-  rebroadcast_votes_counter_ = 1;
+  broadcast_soft_next_votes_counter_ = 1;
+  rebroadcast_soft_next_votes_counter_ = 1;
 
   // Update current round and reset step to 1
   round_ = round;
@@ -474,6 +476,7 @@ void PbftManager::initialState() {
   already_next_voted_null_block_hash_ = db_->getPbftMgrStatus(PbftMgrStatus::NextVotedNullBlockHash);
 
   current_round_start_datetime_ = now;
+  current_period_start_datetime_ = now;
   next_step_time_ms_ = std::chrono::milliseconds(0);
 
   // Set current period & round in vote manager
@@ -538,7 +541,7 @@ void PbftManager::loopBackFinishState_() {
   next_step_time_ms_ += kPollingIntervalMs;
 }
 
-void PbftManager::broadcastVotes(bool rebroadcast) {
+void PbftManager::broadcastSoftAndNextVotes(bool rebroadcast) {
   auto net = network_.lock();
   if (!net) {
     return;
@@ -572,6 +575,23 @@ void PbftManager::broadcastVotes(bool rebroadcast) {
   }
 }
 
+void PbftManager::broadcastRewardVotes(bool rebroadcast) {
+  auto net = network_.lock();
+  if (!net) {
+    return;
+  }
+
+  auto [round, period] = getPbftRoundAndPeriod();
+
+  // Broadcast reward votes - previous round 2t+1 cert votes
+  auto reward_votes = vote_mgr_->getRewardVotes();
+  if (!reward_votes.empty()) {
+    LOG(log_dg_) << "Broadcast propose reward votes for period " << period << ", round " << round;
+    net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(reward_votes),
+                                                                                             rebroadcast);
+  }
+}
+
 void PbftManager::printVotingSummary() const {
   const auto [round, period] = getPbftRoundAndPeriod();
   Json::Value json_obj;
@@ -597,15 +617,27 @@ bool PbftManager::stateOperations_() {
   pushSyncedPbftBlocksIntoChain();
 
   const auto round_elapsed_time = elapsedTimeInMs(current_round_start_datetime_);
+  const auto period_elapsed_time = elapsedTimeInMs(current_period_start_datetime_);
 
-  if (round_elapsed_time / kMinLambda > kRebroadcastVotesLambdaTime * rebroadcast_votes_counter_) {
-    broadcastVotes(true);
-    rebroadcast_votes_counter_++;
+  if (round_elapsed_time / kMinLambda > kRebroadcastVotesLambdaTime * rebroadcast_soft_next_votes_counter_) {
+    broadcastSoftAndNextVotes(true);
+    rebroadcast_soft_next_votes_counter_++;
     // If there was a rebroadcast no need to do next broadcast either
-    broadcast_votes_counter_++;
-  } else if (round_elapsed_time / kMinLambda > kBroadcastVotesLambdaTime * broadcast_votes_counter_) {
-    broadcastVotes(false);
-    broadcast_votes_counter_++;
+    broadcast_soft_next_votes_counter_++;
+  } else if (round_elapsed_time / kMinLambda > kBroadcastVotesLambdaTime * broadcast_soft_next_votes_counter_) {
+    broadcastSoftAndNextVotes(false);
+    broadcast_soft_next_votes_counter_++;
+  }
+
+  // Reward votes need to be broadcast even if we are advancing rounds but unable to advance a period
+  if (period_elapsed_time / kMinLambda > kRebroadcastVotesLambdaTime * rebroadcast_reward_votes_counter_) {
+    broadcastRewardVotes(true);
+    rebroadcast_reward_votes_counter_++;
+    // If there was a rebroadcast no need to do next broadcast either
+    broadcast_reward_votes_counter_++;
+  } else if (period_elapsed_time / kMinLambda > kBroadcastVotesLambdaTime * broadcast_reward_votes_counter_) {
+    broadcastRewardVotes(false);
+    broadcast_reward_votes_counter_++;
   }
 
   auto [round, period] = getPbftRoundAndPeriod();
@@ -1448,31 +1480,20 @@ void PbftManager::reorderTransactions(SharedTransactions &transactions) {
 
 void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes,
                             bool synchronous_processing) {
-  const auto anchor = period_data.pbft_blk->getPivotDagBlockHash();
+  std::shared_ptr<DagBlock> anchor_block = nullptr;
+
   reorderTransactions(period_data.transactions);
 
-  auto result = final_chain_->finalize(
-      std::move(period_data), std::move(finalized_dag_blk_hashes),
-      [this, weak_ptr = weak_from_this(), anchor_hash = anchor, period = period_data.pbft_blk->getPeriod()](
-          const auto &, auto &batch) {
-        // Update proposal period DAG levels map
-        auto ptr = weak_ptr.lock();
-        if (!ptr) return;  // it was destroyed
+  if (const auto anchor = period_data.pbft_blk->getPivotDagBlockHash()) {
+    anchor_block = dag_mgr_->getDagBlock(anchor);
+    if (!anchor_block) {
+      LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor << " in DB.";
+      assert(false);
+    }
+  }
 
-        if (!anchor_hash) {
-          // Null anchor don't update proposal period DAG levels map
-          return;
-        }
-
-        auto anchor = dag_mgr_->getDagBlock(anchor_hash);
-        if (!anchor) {
-          LOG(log_er_) << "DB corrupted - Cannot find anchor block: " << anchor_hash << " in DB.";
-          assert(false);
-        }
-
-        db_->addProposalPeriodDagLevelsMapToBatch(anchor->getLevel() + max_levels_per_period_, period, batch);
-      });
-
+  const auto result =
+      final_chain_->finalize(std::move(period_data), std::move(finalized_dag_blk_hashes), std::move(anchor_block));
   if (synchronous_processing) {
     result.wait();
   }
