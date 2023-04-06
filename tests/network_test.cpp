@@ -883,7 +883,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round) {
   node2->getPbftManager()->setPbftRound(2);
 
   // Node 1 broadcast his votes
-  node1_pbft_mgr->broadcastSoftAndNextVotes(false);
+  node1_pbft_mgr->testBroadcatVotesFunctionality();
   // Node 2 should receive votes from node 1, node 1 has its own 2 votes
   EXPECT_EQ(node1_vote_mgr->getVerifiedVotesSize(), 2);
   EXPECT_HAPPENS({5s, 100ms}, [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, node2_vote_mgr->getVerifiedVotesSize(), 3) });

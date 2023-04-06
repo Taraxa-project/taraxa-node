@@ -31,7 +31,7 @@ VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config,
 
   auto db_votes = db_->getAllTwoTPlusOneVotes();
 
-  auto loadVotesFromDb = [this](const std::vector<std::shared_ptr<Vote>>& votes) {
+  auto addVerifiedVotes = [this](const std::vector<std::shared_ptr<Vote>>& votes) {
     bool reward_votes_info_set = false;
     for (const auto& vote : votes) {
       // Check if votes are unique per round, step & voter
@@ -51,11 +51,22 @@ VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config,
     }
   };
 
-  loadVotesFromDb(db_->getAllTwoTPlusOneVotes());
-  loadVotesFromDb(db_->getOwnVerifiedVotes());
-  auto reward_votes = db_->getRewardVotes();
-  for (const auto& vote : reward_votes) extra_reward_votes_.emplace_back(vote->getHash());
-  loadVotesFromDb(reward_votes);
+  // Load 2t+1 vote blocks votes
+  addVerifiedVotes(db_->getAllTwoTPlusOneVotes());
+
+  // Load own votes
+  const auto own_votes = db_->getOwnVerifiedVotes();
+  for (const auto& own_vote : own_votes) {
+    own_verified_votes_.emplace_back(own_vote);
+  }
+  addVerifiedVotes(own_votes);
+
+  // Load reward votes
+  const auto reward_votes = db_->getRewardVotes();
+  for (const auto& reward_vote : reward_votes) {
+    extra_reward_votes_.emplace_back(reward_vote->getHash());
+  }
+  addVerifiedVotes(reward_votes);
 }
 
 void VoteManager::setNetwork(std::weak_ptr<Network> network) { network_ = std::move(network); }
@@ -253,7 +264,8 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
     if (vote->getType() == PbftVoteTypes::next_vote && total_weight >= t_plus_one &&
         vote->getStep() > found_round_it->second.network_t_plus_one_step) {
       found_round_it->second.network_t_plus_one_step = vote->getStep();
-      LOG(log_nf_) << "Set t+1 next voted block " << vote->getHash() << " in step " << vote->getStep();
+      LOG(log_nf_) << "Set t+1 next voted block " << vote->getHash() << " for period " << vote->getPeriod()
+                   << ", round " << vote->getRound() << ", step " << vote->getStep();
     }
 
     // Not enough votes - do not set 2t+1 voted block for period,round and step
@@ -774,6 +786,18 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getRewardVotes() {
   }
 
   return reward_votes;
+}
+
+void VoteManager::saveOwnVerifiedVote(const std::shared_ptr<Vote>& vote) {
+  own_verified_votes_.push_back(vote);
+  db_->saveOwnVerifiedVote(vote);
+}
+
+std::vector<std::shared_ptr<Vote>> VoteManager::getOwnVerifiedVotes() { return own_verified_votes_; }
+
+void VoteManager::clearOwnVerifiedVotes(DbStorage::Batch& write_batch) {
+  db_->clearOwnVerifiedVotes(write_batch, own_verified_votes_);
+  own_verified_votes_.clear();
 }
 
 uint64_t VoteManager::getPbftSortitionThreshold(uint64_t total_dpos_votes_count, PbftVoteTypes vote_type) const {

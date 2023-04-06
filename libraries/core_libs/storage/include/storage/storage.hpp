@@ -265,7 +265,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   // Own votes for the latest round
   void saveOwnVerifiedVote(const std::shared_ptr<Vote>& vote);
   std::vector<std::shared_ptr<Vote>> getOwnVerifiedVotes();
-  void clearOwnVerifiedVotes(Batch& write_batch);
+  void clearOwnVerifiedVotes(Batch& write_batch, const std::vector<std::shared_ptr<Vote>>& own_verified_votes);
 
   // 2t+1 votes bundles for the latest round
   void replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType type, const std::vector<std::shared_ptr<Vote>>& votes);

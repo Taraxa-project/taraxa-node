@@ -132,6 +132,25 @@ class VoteManager {
   PbftPeriod getRewardVotesPbftBlockPeriod();
 
   /**
+   * @brief Saves own verified vote into memory and db
+   *
+   * @param vote
+   */
+  void saveOwnVerifiedVote(const std::shared_ptr<Vote>& vote);
+
+  /**
+   * @return all own verified votes
+   */
+  std::vector<std::shared_ptr<Vote>> getOwnVerifiedVotes();
+
+  /**
+   * @brief Clear own verified votes
+   *
+   * @param write_batch
+   */
+  void clearOwnVerifiedVotes(DbStorage::Batch& write_batch);
+
+  /**
    * @brief Place a vote, save it in the verified votes queue, and gossip to peers
    * @param blockhash vote on PBFT block hash
    * @param vote_type vote type
@@ -285,6 +304,9 @@ class VoteManager {
   PbftRound reward_votes_round_;
   std::vector<vote_hash_t> extra_reward_votes_;
   mutable std::shared_mutex reward_votes_info_mutex_;
+
+  // Own votes generated during current period & round
+  std::vector<std::shared_ptr<Vote>> own_verified_votes_;
 
   // Cache for current 2T+1 - <Vote type, <period, two_t_plus_one for period>>
   // !!! Important: do not access it directly as it is not updated automatically, always call getPbftTwoTPlusOne instead

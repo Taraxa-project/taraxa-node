@@ -262,8 +262,8 @@ void PbftManager::setPbftStep(PbftStep pbft_step) {
       if (lambda_ != kMinLambda) {
         lambda_ = kMinLambda;
         LOG(log_nf_) << "Node is " << network_next_voting_step - step_
-                     << " steps behind the rest of the network. Reset lambda to the default value "
-                     << lambda_.count() << " [ms]";
+                     << " steps behind the rest of the network. Reset lambda to the default value " << lambda_.count()
+                     << " [ms]";
       }
     } else if (lambda_ < kMaxLambda) {
       // Node is < kMaxSteps steps behind the rest (at least 1/3) of the network - start exponentially backing off
@@ -274,7 +274,7 @@ void PbftManager::setPbftStep(PbftStep pbft_step) {
         lambda_ = kMaxLambda;
       }
 
-      LOG(log_nf_) << "Exponentially backing off lambda to " << lambda_.count() << " [ms] ";
+      LOG(log_nf_) << "No round progress - exponentially backing off lambda to " << lambda_.count() << " [ms] in step " << step_;
     }
   }
 }
@@ -360,8 +360,8 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
   LOG(log_dg_) << "Reset PBFT consensus to: period " << getPbftPeriod() << ", round " << round << ", step 1";
 
   // Reset broadcast counters
-  broadcast_soft_next_votes_counter_ = 1;
-  rebroadcast_soft_next_votes_counter_ = 1;
+  broadcast_votes_counter_ = 1;
+  rebroadcast_votes_counter_ = 1;
 
   // Update current round and reset step to 1
   round_ = round;
@@ -381,8 +381,8 @@ void PbftManager::resetPbftConsensus(PbftRound round) {
     cert_voted_block_for_round_.reset();
   }
 
-  // Remove all own votes generated in previous round
-  db_->clearOwnVerifiedVotes(batch);
+  // Clear all own votes generated in previous round
+  vote_mgr_->clearOwnVerifiedVotes(batch);
 
   db_->commitWriteBatch(batch);
 
@@ -516,7 +516,7 @@ void PbftManager::setCertifyState_() {
   state_ = certify_state;
   setPbftStep(step_ + 1);
   next_step_time_ms_ = 2 * lambda_;
-  printCertStepInfo = true;
+  printCertStepInfo_ = true;
 }
 
 void PbftManager::setFinishState_() {
@@ -535,7 +535,7 @@ void PbftManager::setFinishPollingState_() {
   db_->commitWriteBatch(batch);
   already_next_voted_value_ = false;
   already_next_voted_null_block_hash_ = false;
-  printSecondFinishStepInfo = true;
+  printSecondFinishStepInfo_ = true;
   second_finish_step_start_datetime_ = std::chrono::system_clock::now();
   next_step_time_ms_ += kPollingIntervalMs;
 }
@@ -552,55 +552,87 @@ void PbftManager::loopBackFinishState_() {
   next_step_time_ms_ += kPollingIntervalMs;
 }
 
-void PbftManager::broadcastSoftAndNextVotes(bool rebroadcast) {
+void PbftManager::broadcastVotes() {
   auto net = network_.lock();
   if (!net) {
+    LOG(log_er_) << "Unable to broadcast votes -> cant obtain net ptr";
     return;
   }
 
-  auto [round, period] = getPbftRoundAndPeriod();
+  const auto votes_sync_packet_handler = net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>();
 
-  // Broadcast 2t+1 soft votes
-  auto soft_votes = vote_mgr_->getTwoTPlusOneVotedBlockVotes(period, round, TwoTPlusOneVotedBlockType::SoftVotedBlock);
-  if (!soft_votes.empty()) {
-    LOG(log_dg_) << "Broadcast soft votes for period " << period << ", round " << round;
-    net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(soft_votes),
-                                                                                             rebroadcast);
-  }
-
-  // Broadcast reward votes - previous round 2t+1 cert votes
-  auto reward_votes = vote_mgr_->getRewardVotes();
-  if (!reward_votes.empty()) {
-    LOG(log_dg_) << "Broadcast propose reward votes for period " << period << ", round " << round;
-    net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(reward_votes),
-                                                                                             rebroadcast);
-  }
-
-  // Broadcast previous round 2t+1 next votes
-  if (round > 1) {
-    if (auto next_votes = vote_mgr_->getAllTwoTPlusOneNextVotes(period, round - 1); !next_votes.empty()) {
-      LOG(log_dg_) << "Broadcast next votes for period " << period << ", round " << round - 1;
-      net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(next_votes),
-                                                                                               rebroadcast);
+  // Send votes to the other peers
+  auto gossipVotes = [this, &votes_sync_packet_handler](std::vector<std::shared_ptr<Vote>> &&votes,
+                                                        const std::string &votes_type_str, bool rebroadcast) {
+    if (!votes.empty()) {
+      LOG(log_dg_) << "Broadcast " << votes_type_str << " for period " << votes.back()->getPeriod() << ", round "
+                   << votes.back()->getRound();
+      votes_sync_packet_handler->onNewPbftVotesBundle(std::move(votes), rebroadcast);
     }
+  };
+
+  // (Re)broadcast 2t+1 soft/reward/previous round next votes + all own votes
+  auto broadcastVotes = [this, &net, &gossipVotes](bool rebroadcast) {
+    auto [round, period] = getPbftRoundAndPeriod();
+
+    // Broadcast 2t+1 soft votes
+    gossipVotes(vote_mgr_->getTwoTPlusOneVotedBlockVotes(period, round, TwoTPlusOneVotedBlockType::SoftVotedBlock),
+                "2t+1 soft votes", rebroadcast);
+
+    // Broadcast reward votes - previous round 2t+1 cert votes
+    gossipVotes(vote_mgr_->getRewardVotes(), "2t+1 propose reward votes", rebroadcast);
+
+    // Broadcast previous round 2t+1 next votes
+    if (round > 1) {
+      gossipVotes(vote_mgr_->getAllTwoTPlusOneNextVotes(period, round - 1), "2t+1 next votes", rebroadcast);
+    }
+
+    // Broadcast own votes
+    auto vote_packet_handler = net->getSpecificHandler<network::tarcap::VotePacketHandler>();
+    // TODO: this could be optimized to use VotesSyncPacketHandler if we drop some of the checks in process function
+    // TODO: onNewPbftVote does not use rebroadcast flag to force sending the votes
+    // Send votes by one as votes sync packet must contain votes with the same type, period and round
+    const auto& own_votes = vote_mgr_->getOwnVerifiedVotes();
+    for (const auto &vote : own_votes) {
+      vote_packet_handler->onNewPbftVote(vote, getPbftProposedBlock(vote->getPeriod(), vote->getBlockHash()));
+    }
+    if (!own_votes.empty()) {
+      LOG(log_dg_) << "Broadcast own votes for period " << period << ", round " << round;
+    }
+  };
+
+  const auto round_elapsed_time = elapsedTimeInMs(current_round_start_datetime_);
+  const auto period_elapsed_time = elapsedTimeInMs(current_period_start_datetime_);
+
+  if (round_elapsed_time / kMinLambda > kRebroadcastVotesLambdaTime * rebroadcast_votes_counter_) {
+    // Stalled in the same round for kRebroadcastVotesLambdaTime * kMinLambda time -> rebroadcast votes
+    broadcastVotes(true);
+    rebroadcast_votes_counter_++;
+    // If there was a rebroadcast no need to do next broadcast either
+    broadcast_votes_counter_++;
+  } else if (round_elapsed_time / kMinLambda > kBroadcastVotesLambdaTime * broadcast_votes_counter_) {
+    // Stalled in the same round for kBroadcastVotesLambdaTime * kMinLambda time -> broadcast votes
+    broadcastVotes(false);
+    broadcast_votes_counter_++;
+  } else if (period_elapsed_time / kMinLambda > kRebroadcastVotesLambdaTime * rebroadcast_reward_votes_counter_) {
+    // Stalled in the same period for kRebroadcastVotesLambdaTime * kMinLambda time -> rebroadcast reward votes
+    gossipVotes(vote_mgr_->getRewardVotes(), "2t+1 propose reward votes", true);
+    rebroadcast_reward_votes_counter_++;
+    // If there was a rebroadcast no need to do next broadcast either
+    broadcast_reward_votes_counter_++;
+  } else if (period_elapsed_time / kMinLambda > kBroadcastVotesLambdaTime * broadcast_reward_votes_counter_) {
+    // Stalled in the same period for kBroadcastVotesLambdaTime * kMinLambda time -> broadcast reward votes
+    gossipVotes(vote_mgr_->getRewardVotes(), "2t+1 propose reward votes", false);
+    broadcast_reward_votes_counter_++;
   }
 }
 
-void PbftManager::broadcastRewardVotes(bool rebroadcast) {
-  auto net = network_.lock();
-  if (!net) {
-    return;
-  }
+void PbftManager::testBroadcatVotesFunctionality() {
+  // Set these variables to force broadcastVotes() send votes
+  current_round_start_datetime_ = time_point{};
+  current_period_start_datetime_ = time_point{};
 
-  auto [round, period] = getPbftRoundAndPeriod();
-
-  // Broadcast reward votes - previous round 2t+1 cert votes
-  auto reward_votes = vote_mgr_->getRewardVotes();
-  if (!reward_votes.empty()) {
-    LOG(log_dg_) << "Broadcast propose reward votes for period " << period << ", round " << round;
-    net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(reward_votes),
-                                                                                             rebroadcast);
-  }
+  broadcastVotes();
 }
 
 void PbftManager::printVotingSummary() const {
@@ -625,41 +657,21 @@ void PbftManager::printVotingSummary() const {
 }
 
 bool PbftManager::stateOperations_() {
-  pushSyncedPbftBlocksIntoChain();
-
-  const auto round_elapsed_time = elapsedTimeInMs(current_round_start_datetime_);
-  const auto period_elapsed_time = elapsedTimeInMs(current_period_start_datetime_);
-
-  if (round_elapsed_time / kMinLambda > kRebroadcastVotesLambdaTime * rebroadcast_soft_next_votes_counter_) {
-    broadcastSoftAndNextVotes(true);
-    rebroadcast_soft_next_votes_counter_++;
-    // If there was a rebroadcast no need to do next broadcast either
-    broadcast_soft_next_votes_counter_++;
-  } else if (round_elapsed_time / kMinLambda > kBroadcastVotesLambdaTime * broadcast_soft_next_votes_counter_) {
-    broadcastSoftAndNextVotes(false);
-    broadcast_soft_next_votes_counter_++;
-  }
-
-  // Reward votes need to be broadcast even if we are advancing rounds but unable to advance a period
-  if (period_elapsed_time / kMinLambda > kRebroadcastVotesLambdaTime * rebroadcast_reward_votes_counter_) {
-    broadcastRewardVotes(true);
-    rebroadcast_reward_votes_counter_++;
-    // If there was a rebroadcast no need to do next broadcast either
-    broadcast_reward_votes_counter_++;
-  } else if (period_elapsed_time / kMinLambda > kBroadcastVotesLambdaTime * broadcast_reward_votes_counter_) {
-    broadcastRewardVotes(false);
-    broadcast_reward_votes_counter_++;
-  }
-
   auto [round, period] = getPbftRoundAndPeriod();
   LOG(log_tr_) << "PBFT current round: " << round << ", period: " << period << ", step " << step_;
 
-  // Check if these is already 2t+1 cert votes for some valid block, if so - push it into the chain
+  // Process synced blocks
+  pushSyncedPbftBlocksIntoChain();
+
+  // (Re)broadcast votes if needed
+  broadcastVotes();
+
+  // Check if there is 2t+1 cert votes for some valid block, if so - push it into the chain
   if (tryPushCertVotesBlock()) {
     return true;
   }
 
-  // 2t+1 next votes were seen
+  // Check if there is 2t+1 next votes for some valid block, if so - advance round
   if (advanceRound()) {
     return true;
   }
@@ -708,6 +720,9 @@ bool PbftManager::placeVote(const std::shared_ptr<Vote> &vote, std::string_view 
   }
 
   gossipNewVote(vote, voted_block);
+
+  // Save own verified vote
+  vote_mgr_->saveOwnVerifiedVote(vote);
 
   LOG(log_nf_) << "Placed " << log_vote_id << " " << vote->getHash() << " for block " << vote->getBlockHash()
                << ", vote weight " << *vote->getWeight() << ", period " << vote->getPeriod() << ", round "
@@ -869,9 +884,9 @@ void PbftManager::certifyBlock_() {
   // The Certifying Step
   auto [round, period] = getPbftRoundAndPeriod();
 
-  if (printCertStepInfo) {
+  if (printCertStepInfo_) {
     LOG(log_dg_) << "PBFT certifying state in period " << period << ", round " << round;
-    printCertStepInfo = false;
+    printCertStepInfo_ = false;
   }
 
   const auto elapsed_time_in_round = elapsedTimeInMs(current_round_start_datetime_);
@@ -990,9 +1005,9 @@ void PbftManager::secondFinish_() {
   // Odd number steps from 5 are in second finish
   auto [round, period] = getPbftRoundAndPeriod();
 
-  if (printSecondFinishStepInfo) {
+  if (printSecondFinishStepInfo_) {
     LOG(log_dg_) << "PBFT second finishing state in period " << period << ", round " << round << ", step " << step_;
-    printSecondFinishStepInfo = false;
+    printSecondFinishStepInfo_ = false;
   }
 
   // Lambda function for next voting 2t+1 soft voted block from current round
