@@ -7,6 +7,8 @@
 #include "common/vrf_wrapper.hpp"
 #include "config/config.hpp"
 #include "final_chain/trie_common.hpp"
+#include "libdevcore/CommonJS.h"
+#include "network/rpc/eth/Eth.h"
 #include "test_util/gtest.hpp"
 #include "test_util/samples.hpp"
 #include "test_util/test_util.hpp"
@@ -42,8 +44,6 @@ struct FinalChainTest : WithDataDir {
   }
 
   auto advance(const SharedTransactions& trxs, advance_check_opts opts = {}) {
-    SUT = nullptr;
-    SUT = NewFinalChain(db, cfg);
     std::vector<h256> trx_hashes;
     ++expected_blk_num;
     for (const auto& trx : trxs) {
@@ -473,6 +473,50 @@ TEST_F(FinalChainTest, failed_transaction_fee) {
   }
 }
 
+TEST_F(FinalChainTest, revert_reason) {
+  const auto test_contract_code =
+      "608060405234801561001057600080fd5b506101ac806100206000396000f3fe608060405234801561001057600080fd5b50600436106100"
+      "2b5760003560e01c806336091dff14610030575b600080fd5b61004a600480360381019061004591906100cc565b61004c565b005b806100"
+      "8c576040517f08c379a000000000000000000000000000000000000000000000000000000000815260040161008390610156565b60405180"
+      "910390fd5b50565b600080fd5b60008115159050919050565b6100a981610094565b81146100b457600080fd5b50565b6000813590506100"
+      "c6816100a0565b92915050565b6000602082840312156100e2576100e161008f565b5b60006100f0848285016100b7565b91505092915050"
+      "565b600082825260208201905092915050565b7f617267207265717569726564000000000000000000000000000000000000000060008201"
+      "5250565b6000610140600c836100f9565b915061014b8261010a565b602082019050919050565b6000602082019050818103600083015261"
+      "016f81610133565b905091905056fea2646970667358221220846c5a92aab30dade0d92661a25b1fd6ba9a914fd114f2f264c2003b5abdda"
+      "db64736f6c63430008120033";
+  auto sender_keys = dev::KeyPair::create();
+  const auto& from = sender_keys.address();
+  const auto& sk = sender_keys.secret();
+  cfg.genesis.state.initial_balances = {};
+  cfg.genesis.state.initial_balances[from] = u256("10000000000000000000000");
+  // disable balances check as we have internal transfer
+  assume_only_toplevel_transfers = false;
+  init();
+
+  net::rpc::eth::EthParams eth_rpc_params;
+  eth_rpc_params.chain_id = cfg.genesis.chain_id;
+  eth_rpc_params.gas_limit = cfg.genesis.dag.gas_limit;
+  eth_rpc_params.final_chain = SUT;
+  auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
+
+  auto nonce = 0;
+  auto trx1 = std::make_shared<Transaction>(nonce++, 0, 0, TEST_TX_GAS_LIMIT, dev::fromHex(test_contract_code), sk);
+  auto result = advance({trx1});
+  auto test_contract_addr = result->trx_receipts[0].new_contract_address;
+  EXPECT_EQ(test_contract_addr, dev::right160(dev::sha3(dev::rlpList(from, 0))));
+  auto call_data = "0x36091dff0000000000000000000000000000000000000000000000000000000000000000";
+  {
+    Json::Value est(Json::objectValue);
+    est["to"] = dev::toHex(*test_contract_addr);
+    est["from"] = dev::toHex(from);
+    est["data"] = call_data;
+    EXPECT_THROW_WITH(dev::jsToInt(eth_json_rpc->eth_estimateGas(est)), std::exception,
+                      "evm: execution reverted: arg required");
+    EXPECT_THROW_WITH(eth_json_rpc->eth_call(est, "latest"), std::exception, "evm: execution reverted: arg required");
+  }
+}
+
+// This test should be last as state_api isn't destructed correctly because of exception
 TEST_F(FinalChainTest, initial_validator_exceed_maximum_stake) {
   const dev::KeyPair key = dev::KeyPair::create();
   const dev::KeyPair validator_key = dev::KeyPair::create();
