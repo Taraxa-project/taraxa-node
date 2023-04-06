@@ -1,0 +1,31 @@
+{{ if .Values.consensusnodeLight.enabled }}
+{{- if .Values.consensusnodeLight.service.ports  }}
+# Note: This is a headless service
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "taraxa-consensus-node.fullname" . }}-light
+  labels:
+    name: consensus-node-light
+    app.kubernetes.io/name: consensus-node-light
+    helm.sh/chart: {{ include "taraxa-node.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  selector:
+    app: consensus-node-light
+    app.kubernetes.io/name: {{ .Release.Name }}-consensus-node-light
+    app.kubernetes.io/instance: {{ .Release.Name }}
+  ports:
+  {{- range $port := .Values.consensusnode.service.ports }}
+    - name: {{ $port.name | default $port.port }}
+      port: {{ $port.port }}
+      targetPort: {{ $port.targetPort | default $port.port }}
+      {{- if $port.protocol }}
+      protocol: {{ $port.protocol }}
+      {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}

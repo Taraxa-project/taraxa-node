@@ -63,7 +63,7 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     peer->markPbftBlockAsKnown(pbft_block->getBlockHash());
   }
 
-  if (processVote(vote, pbft_block, peer, true)) {
+  if (!processVote(vote, pbft_block, peer, true)) {
     return;
   }
 

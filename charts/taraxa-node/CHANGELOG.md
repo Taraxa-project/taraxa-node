@@ -3,6 +3,35 @@
 This file documents all notable changes to `taraxa-node` Helm Chart. The release
 numbering uses [semantic versioning](http://semver.org).
 
+## v0.3.9
+
+### Major changes
+
+* Rename / restrusture manifest files
+* Added light nodes
+
+### Minor changes
+
+* Removed "@channel" from slack notifications
+
+## v0.3.8
+
+### Minor changes
+
+* Added port for scrapping metrics from sidecar of rpc-nodes ([taraxa-indexer](https://github.com/Taraxa-project/taraxa-indexer))
+
+## v0.3.7
+
+### Minor changes
+
+* Adds transaction generating service to replace the explorer faucet
+
+## v0.3.6
+
+### Minor changes
+
+* Added labels into `StatefulSets` for [kube-monkey](https://github.com/asobti/kube-monkey)
+
 ## v0.3.5
 
 ### Minor changes

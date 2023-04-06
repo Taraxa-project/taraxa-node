@@ -58,8 +58,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   PbftManager(const PbftConfig &conf, const blk_hash_t &dag_genesis_block_hash, addr_t node_addr,
               std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
               std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
-              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain, secret_t node_sk,
-              uint32_t max_levels_per_period);
+              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<FinalChain> final_chain, secret_t node_sk);
   ~PbftManager();
   PbftManager(const PbftManager &) = delete;
   PbftManager(PbftManager &&) = delete;
@@ -269,10 +268,16 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t getPbftCommitteeSize() const { return config_.committee_size; }
 
   /**
-   * @brief Broadcast or rebroadcast current round soft votes, previous round next votes and reward votes
+   * @brief Broadcast or rebroadcast current round soft votes and previous round next votes
    * @param rebroadcast
    */
-  void broadcastVotes(bool rebroadcast);
+  void broadcastSoftAndNextVotes(bool rebroadcast);
+
+  /**
+   * @brief Broadcast or rebroadcast reward votes
+   * @param rebroadcast
+   */
+  void broadcastRewardVotes(bool rebroadcast);
 
  private:
   /**
@@ -538,8 +543,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   const uint32_t kBroadcastVotesLambdaTime = 20;
   const uint32_t kRebroadcastVotesLambdaTime = 60;
-  uint32_t broadcast_votes_counter_ = 1;
-  uint32_t rebroadcast_votes_counter_ = 1;
+  uint32_t broadcast_soft_next_votes_counter_ = 1;
+  uint32_t rebroadcast_soft_next_votes_counter_ = 1;
+  uint32_t broadcast_reward_votes_counter_ = 1;
+  uint32_t rebroadcast_reward_votes_counter_ = 1;
 
   PbftStates state_ = value_proposal_state;
   std::atomic<PbftRound> round_ = 1;
@@ -553,6 +560,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   std::map<blk_hash_t, std::vector<PbftStep>> current_round_broadcasted_votes_;
 
   time_point current_round_start_datetime_;
+  time_point current_period_start_datetime_;
   time_point second_finish_step_start_datetime_;
   std::chrono::milliseconds next_step_time_ms_{0};
 
@@ -573,8 +581,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   // Proposed blocks based on received propose votes
   ProposedBlocks proposed_blocks_;
-
-  const uint32_t max_levels_per_period_;
 
   LOG_OBJECTS_DEFINE
 };

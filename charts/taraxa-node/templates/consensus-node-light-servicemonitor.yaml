@@ -1,19 +1,19 @@
-{{ if .Values.node.enabled }}
-{{- if .Values.node.serviceMonitor.enabled  }}
+{{ if .Values.consensusnodeLight.enabled }}
+{{- if .Values.consensusnodeLight.serviceMonitor.enabled  }}
 apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
-  name:  {{ include "taraxa-node.fullname" . }}
+  name:  {{ include "taraxa-consensus-node.fullname" . }}-light
   labels:
-    name: taraxa-node
-    app.kubernetes.io/name: taraxa-node
+    name: consensus-node-light
+    app.kubernetes.io/name: consensus-node-light
     helm.sh/chart: {{ include "taraxa-node.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/name: taraxa-node
+      app.kubernetes.io/name: consensus-node-light
       app.kubernetes.io/instance: {{ .Release.Name }}
   namespaceSelector:
     matchNames:
@@ -22,8 +22,5 @@ spec:
     - honorLabels: true
       path: /metrics
       port: metrics
-    - honorLabels: true
-      path: /metrics
-      port: metrics-indexer
 {{- end }}
 {{- end }}

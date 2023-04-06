@@ -30,7 +30,7 @@ bool ExtVotesPacketHandler::processVote(const std::shared_ptr<Vote> &vote, const
     return false;
   }
 
-  // Validate vote's period, roun and step min/max values
+  // Validate vote's period, round and step min/max values
   if (const auto vote_valid = validateVotePeriodRoundStep(vote, peer, validate_max_round_step); !vote_valid.first) {
     LOG(log_wr_) << "Vote period/round/step " << vote->getHash() << " validation failed. Err: " << vote_valid.second;
     return false;
@@ -148,6 +148,17 @@ bool ExtVotesPacketHandler::validateVoteAndBlock(const std::shared_ptr<Vote> &vo
     LOG(log_er_) << "Vote " << vote->getHash() << " voted block " << vote->getBlockHash() << " != actual block "
                  << pbft_block->getBlockHash();
     return false;
+  }
+  // TODO[2401]: move this check to PBFT block
+  std::unordered_set<vote_hash_t> set;
+  const auto reward_votes = pbft_block->getRewardVotes();
+  set.reserve(reward_votes.size());
+  for (const auto &hash : reward_votes) {
+    if (!set.insert(hash).second) {
+      LOG(log_er_) << "PBFT block " << pbft_block->getBlockHash() << " proposed by " << pbft_block->getBeneficiary()
+                   << " has duplicated vote " << hash;
+      return false;
+    }
   }
 
   return true;
