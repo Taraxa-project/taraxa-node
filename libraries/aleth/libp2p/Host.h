@@ -145,9 +145,9 @@ struct Host final : std::enable_shared_from_this<Host> {
     return "enode://" + id().hex() + "@" + address + ":" + port;
   }
 
+  bool nodeTableHasNode(Public const& _id) const;
   // private but can be made public if needed
  private:
-  bool nodeTableHasNode(Public const& _id) const;
   Node nodeFromNodeTable(Public const& _id) const;
 
   struct KnownNode {

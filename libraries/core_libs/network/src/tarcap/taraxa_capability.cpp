@@ -105,6 +105,11 @@ void TaraxaCapability::addBootNodes(bool initial) {
       continue;
     }
 
+    if (host->nodeTableHasNode(pub)) {
+      LOG(log_dg_) << "skipping node " << node.id << " already in table";
+      continue;
+    }
+
     auto ip = resolveHost(node.ip, node.port);
     LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.port << " " << ip.second.address().to_string();
     dev::p2p::Node boot_node(pub, dev::p2p::NodeIPEndpoint(ip.second.address(), node.port, node.port),
