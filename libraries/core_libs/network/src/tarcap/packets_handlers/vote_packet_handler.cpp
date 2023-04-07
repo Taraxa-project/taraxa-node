@@ -77,14 +77,15 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
   }
 }
 
-void VotePacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &block) {
+void VotePacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &block,
+                                      bool rebroadcast) {
   for (const auto &peer : peers_state_->getAllPeers()) {
     if (peer.second->syncing_) {
       LOG(log_dg_) << " PBFT vote " << vote->getHash() << " not sent to " << peer.first << " peer syncing";
       continue;
     }
 
-    if (peer.second->isVoteKnown(vote->getHash())) {
+    if (!rebroadcast && peer.second->isVoteKnown(vote->getHash())) {
       continue;
     }
 

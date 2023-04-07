@@ -274,7 +274,8 @@ void PbftManager::setPbftStep(PbftStep pbft_step) {
         lambda_ = kMaxLambda;
       }
 
-      LOG(log_nf_) << "No round progress - exponentially backing off lambda to " << lambda_.count() << " [ms] in step " << step_;
+      LOG(log_nf_) << "No round progress - exponentially backing off lambda to " << lambda_.count() << " [ms] in step "
+                   << step_;
     }
   }
 }
@@ -590,11 +591,11 @@ void PbftManager::broadcastVotes() {
     // Broadcast own votes
     auto vote_packet_handler = net->getSpecificHandler<network::tarcap::VotePacketHandler>();
     // TODO: this could be optimized to use VotesSyncPacketHandler if we drop some of the checks in process function
-    // TODO: onNewPbftVote does not use rebroadcast flag to force sending the votes
     // Send votes by one as votes sync packet must contain votes with the same type, period and round
-    const auto& own_votes = vote_mgr_->getOwnVerifiedVotes();
+    const auto &own_votes = vote_mgr_->getOwnVerifiedVotes();
     for (const auto &vote : own_votes) {
-      vote_packet_handler->onNewPbftVote(vote, getPbftProposedBlock(vote->getPeriod(), vote->getBlockHash()));
+      vote_packet_handler->onNewPbftVote(vote, getPbftProposedBlock(vote->getPeriod(), vote->getBlockHash()),
+                                         rebroadcast);
     }
     if (!own_votes.empty()) {
       LOG(log_dg_) << "Broadcast own votes for period " << period << ", round " << round;
