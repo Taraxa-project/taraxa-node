@@ -90,10 +90,10 @@ $(document).ready(function(){initNavTree('md_doc_release_cycle.html',''); initRe
 <p>Versioning is based on <a href="https://semver.org/">Semantic Versioning 2.0.0</a>. \</p>
 <p>Release branch annotation: <code>release/vX.Y.Z</code> \ Release tag annotation: <code>vX.Y.Z</code></p>
 <p><img src="./images/release_cycle.png?raw=true" alt="Release cycle" title="Release cycle" class="inline"/></p>
-<h1><a class="anchor" id="autotoc_md240"></a>
+<h1><a class="anchor" id="autotoc_md239"></a>
 Release cycle phases</h1>
 <p>We can divide each release cycle into the multiple phases</p>
-<h2><a class="anchor" id="autotoc_md241"></a>
+<h2><a class="anchor" id="autotoc_md240"></a>
 Phase 1 - active development of new features</h2>
 <p>During this phase devs are implementing new features, devnet is regularly restarted (or reset) with each new feature merged. Devnet might be unstable during this period of time, although devs should try to fix the bugs asap. In case other teams need something more stable, they can use prnet.</p>
 <p><code>HowTo:</code></p><ul>
@@ -103,7 +103,7 @@ Phase 1 - active development of new features</h2>
 <li>Deploy new devnet</li>
 </ul>
 <p><code>Duration:</code> 4 weeks \ <code>Active Branch:</code> develop \ <code>Environment:</code> devnet</p>
-<h2><a class="anchor" id="autotoc_md242"></a>
+<h2><a class="anchor" id="autotoc_md241"></a>
 Phase 2 - alpha testing (internal)</h2>
 <p>It is used for internal testing. Stress tests are performed on regular basis and the goal is to make the new set of features stable - it is #1 priority to make sure devnet does not crash and works without any problems. In case everything is fine, devs can continue with development of new features for the next release and merge them into the develop branch.</p>
 <p>At the beginning of alpha testing, <code>release/vX.Y.Z</code> branch is created based on <code>develop</code> - this is new release candidate and from now on only bug fixes are merged into <code>release/vX.Y.Z</code>. \ Note: this does not affect develop branch, new features can be still merged into the develop branch for the next release.</p>
@@ -116,7 +116,7 @@ Phase 2 - alpha testing (internal)</h2>
 <li><em><b>Optional:</b></em> At the end of alpha testing, merge <code>release/vX.Y.Z</code> back into <code>develop</code> in case there are some important bug fixes</li>
 </ul>
 <p><code>Duration:</code> 1 week \ <code>Active Branch:</code> release/vX.Y.Z \ <code>Environment:</code> devnet</p>
-<h2><a class="anchor" id="autotoc_md243"></a>
+<h2><a class="anchor" id="autotoc_md242"></a>
 Phase 3 - beta testing (public)</h2>
 <p>After the release candidate successfully passed alpha testing, it is deployed on testnet for beta testing. The goal is to make new release candidate even more stable and production (mainnet) ready by testing it together with community nodes.</p>
 <p><code>HowTo:</code></p><ul>
@@ -127,7 +127,7 @@ Phase 3 - beta testing (public)</h2>
 <li><em><b>Optional:</b></em> At the end of beta testing, merge <code>release/vX.Y.Z</code> back into <code>develop</code> in case there are some important bug fixes</li>
 </ul>
 <p><code>Duration:</code> 1 week \ <code>Active Branch:</code> release/vX.Y.Z \ <code>Environment:</code> testnet</p>
-<h2><a class="anchor" id="autotoc_md244"></a>
+<h2><a class="anchor" id="autotoc_md243"></a>
 Phase 4 - Mainnet release</h2>
 <p>After beta testing is successfully finished, we can create final mainnet release.</p>
 <p><code>HowTo:</code></p><ul>
@@ -139,7 +139,7 @@ Phase 4 - Mainnet release</h2>
 <li>Delete <code>release/vX.Y.Z</code> branch</li>
 </ul>
 <p><code>Duration:</code> 1 day - Monday, beginning of the next release cycle (fifth week of the first cycle) \ <code>Active Branch:</code> release/vX.Y.Z -&gt; merged into master &amp; develop \ <code>Environment:</code> mainnet</p>
-<h1><a class="anchor" id="autotoc_md245"></a>
+<h1><a class="anchor" id="autotoc_md244"></a>
 Ad-hoc releases with bug fixes</h1>
 <p>There can be also ad-hoc releases with bug fixes for already released versions. Such releases do not follow standard release process described above <br  />
  </p>
