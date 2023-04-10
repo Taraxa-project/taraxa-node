@@ -279,8 +279,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a499ba709282b237f26a1fc6f42cfccf3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abe46de0804c09732be06b24bb7c11861"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#abe46de0804c09732be06b24bb7c11861">getOwnVerifiedVotes</a> ()</td></tr>
 <tr class="separator:abe46de0804c09732be06b24bb7c11861"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1b0e62066ae9b1ce35137be13fe68d36"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a1b0e62066ae9b1ce35137be13fe68d36">clearOwnVerifiedVotes</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
-<tr class="separator:a1b0e62066ae9b1ce35137be13fe68d36"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5fca6f57176d623215abb8117bed35b6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a5fca6f57176d623215abb8117bed35b6">clearOwnVerifiedVotes</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch, const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;own_verified_votes)</td></tr>
+<tr class="separator:a5fca6f57176d623215abb8117bed35b6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6e32ed6c6cddede88d65c2baca5dbdf1"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a6e32ed6c6cddede88d65c2baca5dbdf1">replaceTwoTPlusOneVotes</a> (<a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bf">TwoTPlusOneVotedBlockType</a> type, const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;votes)</td></tr>
 <tr class="separator:a6e32ed6c6cddede88d65c2baca5dbdf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a99db7475ed769d034d2ec3c8a7a12080"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a99db7475ed769d034d2ec3c8a7a12080">replaceTwoTPlusOneVotesToBatch</a> (<a class="el" href="namespacetaraxa.html#afc780cd89307f2097bb4281488e325bf">TwoTPlusOneVotedBlockType</a> type, const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;votes, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
@@ -972,8 +972,8 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a1b0e62066ae9b1ce35137be13fe68d36"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1b0e62066ae9b1ce35137be13fe68d36">&#9670;&nbsp;</a></span>clearOwnVerifiedVotes()</h2>
+<a id="a5fca6f57176d623215abb8117bed35b6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5fca6f57176d623215abb8117bed35b6">&#9670;&nbsp;</a></span>clearOwnVerifiedVotes()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -982,8 +982,18 @@ Private Attributes</h2></td></tr>
           <td class="memname">void taraxa::DbStorage::clearOwnVerifiedVotes </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
-          <td class="paramname"><em>write_batch</em></td><td>)</td>
+          <td class="paramname"><em>write_batch</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&#160;</td>
+          <td class="paramname"><em>own_verified_votes</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">

@@ -12,7 +12,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability =
     [ "getReceivedTransactionsCount", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a1dbee693a33a8dcdfc097d1c5175d6dc", null ],
     [ "getSpecificHandler", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ab9cc01fbd4061a7fe9c5981a3825502a", null ],
     [ "init", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#aded367b4ae2d70194400fed7c17c8c2c", null ],
-    [ "initPeriodicEvents", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#af40358ac68bb3e9de7cf892de1f5a40c", null ],
+    [ "initPeriodicEvents", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a3c26e6429fe0265c77187cd8f0ff34b2", null ],
     [ "interpretCapabilityPacket", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#aaa47685602704d45f4198ec6fd09e30a", null ],
     [ "make", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a8af3b994ce006330ba3e67b6ec96fb63", null ],
     [ "messageCount", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ae7b9a80aedd5f191c43f554a34531b98", null ],

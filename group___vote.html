@@ -206,6 +206,14 @@ Collaboration diagram for taraxa::VoteManager:</div>
 <tr class="memitem:ae2c88c3b1906d31f0a970f0839aab4e4"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ae2c88c3b1906d31f0a970f0839aab4e4">getRewardVotesPbftBlockPeriod</a> ()</td></tr>
 <tr class="memdesc:ae2c88c3b1906d31f0a970f0839aab4e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get current reward votes pbft block period.  <a href="group___vote.html#ae2c88c3b1906d31f0a970f0839aab4e4">More...</a><br /></td></tr>
 <tr class="separator:ae2c88c3b1906d31f0a970f0839aab4e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae8e01d0552ee78e7c6c7c88b96840a6c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ae8e01d0552ee78e7c6c7c88b96840a6c">saveOwnVerifiedVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote)</td></tr>
+<tr class="memdesc:ae8e01d0552ee78e7c6c7c88b96840a6c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Saves own verified vote into memory and db.  <a href="group___vote.html#ae8e01d0552ee78e7c6c7c88b96840a6c">More...</a><br /></td></tr>
+<tr class="separator:ae8e01d0552ee78e7c6c7c88b96840a6c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae2f8a5793839bf9aa97835ffd9015acd"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ae2f8a5793839bf9aa97835ffd9015acd">getOwnVerifiedVotes</a> ()</td></tr>
+<tr class="separator:ae2f8a5793839bf9aa97835ffd9015acd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5b61047fe10782ee2c1124b216ac5f47"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a5b61047fe10782ee2c1124b216ac5f47">clearOwnVerifiedVotes</a> (<a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DbStorage::Batch</a> &amp;write_batch)</td></tr>
+<tr class="memdesc:a5b61047fe10782ee2c1124b216ac5f47"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clear own verified votes.  <a href="group___vote.html#a5b61047fe10782ee2c1124b216ac5f47">More...</a><br /></td></tr>
+<tr class="separator:a5b61047fe10782ee2c1124b216ac5f47"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a14715d74b4fde03472c62c55b60c0f5c"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a14715d74b4fde03472c62c55b60c0f5c">generateVoteWithWeight</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;blockhash, <a class="el" href="group___vote.html#ga8a0770e242b649865f15f20a405507cc">PbftVoteTypes</a> vote_type, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, <a class="el" href="namespacetaraxa.html#a6339cbbf8f3eef50f67929876dd45b5f">PbftRound</a> round, <a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a> step)</td></tr>
 <tr class="memdesc:a14715d74b4fde03472c62c55b60c0f5c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Place a vote, save it in the verified votes queue, and gossip to peers.  <a href="group___vote.html#a14715d74b4fde03472c62c55b60c0f5c">More...</a><br /></td></tr>
 <tr class="separator:a14715d74b4fde03472c62c55b60c0f5c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -284,6 +292,8 @@ Collaboration diagram for taraxa::VoteManager:</div>
 <tr class="separator:a2032545e950f6e1751e1e54f493e576c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0431bfe5e227da1f109b45a3dfabba51"><td class="memItemLeft" align="right" valign="top">std::shared_mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#a0431bfe5e227da1f109b45a3dfabba51">reward_votes_info_mutex_</a></td></tr>
 <tr class="separator:a0431bfe5e227da1f109b45a3dfabba51"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae212a380f55a8a497f2816641b1f3f53"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#ae212a380f55a8a497f2816641b1f3f53">own_verified_votes_</a></td></tr>
+<tr class="separator:ae212a380f55a8a497f2816641b1f3f53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aafdedc4bf114418909191280ebe4da8d"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="group___vote.html#ga8a0770e242b649865f15f20a405507cc">PbftVoteTypes</a>, std::pair&lt; <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>, uint64_t &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#aafdedc4bf114418909191280ebe4da8d">current_two_t_plus_one_</a></td></tr>
 <tr class="separator:aafdedc4bf114418909191280ebe4da8d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afe5c2a85f19780be66afa8c0f0ea3382"><td class="memItemLeft" align="right" valign="top">std::shared_mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___vote.html#afe5c2a85f19780be66afa8c0f0ea3382">current_two_t_plus_one_mutex_</a></td></tr>
@@ -519,6 +529,32 @@ Collaboration diagram for taraxa::VoteManager:</div>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">pbft_period</td><td>current PBFT period </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a id="a5b61047fe10782ee2c1124b216ac5f47"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5b61047fe10782ee2c1124b216ac5f47">&#9670;&nbsp;</a></span>clearOwnVerifiedVotes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::VoteManager::clearOwnVerifiedVotes </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DbStorage::Batch</a> &amp;&#160;</td>
+          <td class="paramname"><em>write_batch</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Clear own verified votes. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">write_batch</td><td></td></tr>
   </table>
   </dd>
 </dl>
@@ -785,6 +821,24 @@ Collaboration diagram for taraxa::VoteManager:</div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>greatest network 2t+1 next voting step </dd></dl>
+
+</div>
+</div>
+<a id="ae2f8a5793839bf9aa97835ffd9015acd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae2f8a5793839bf9aa97835ffd9015acd">&#9670;&nbsp;</a></span>getOwnVerifiedVotes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &gt; taraxa::VoteManager::getOwnVerifiedVotes </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>all own verified votes </dd></dl>
 
 </div>
 </div>
@@ -1282,6 +1336,32 @@ Collaboration diagram for taraxa::VoteManager:</div>
 
 </div>
 </div>
+<a id="ae8e01d0552ee78e7c6c7c88b96840a6c"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae8e01d0552ee78e7c6c7c88b96840a6c">&#9670;&nbsp;</a></span>saveOwnVerifiedVote()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::VoteManager::saveOwnVerifiedVote </td>
+          <td>(</td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>vote</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Saves own verified vote into memory and db. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">vote</td><td></td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a id="aad3b0005eb4bf67641018be3db3e1962"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#aad3b0005eb4bf67641018be3db3e1962">&#9670;&nbsp;</a></span>setCurrentPbftPeriodAndRound()</h2>
 
@@ -1744,6 +1824,28 @@ Collaboration diagram for taraxa::VoteManager:</div>
       <table class="memname">
         <tr>
           <td class="memname">std::weak_ptr&lt;<a class="el" href="classtaraxa_1_1_network.html">Network</a>&gt; taraxa::VoteManager::network_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae212a380f55a8a497f2816641b1f3f53"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae212a380f55a8a497f2816641b1f3f53">&#9670;&nbsp;</a></span>own_verified_votes_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt;std::shared_ptr&lt;<a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a>&gt; &gt; taraxa::VoteManager::own_verified_votes_</td>
         </tr>
       </table>
   </td>

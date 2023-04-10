@@ -137,9 +137,9 @@ Collaboration diagram for taraxa::network::tarcap::VotePacketHandler:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a82e6afd12895058be3a4dd5d2fa09a4e"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a82e6afd12895058be3a4dd5d2fa09a4e">VotePacketHandler</a> (const <a class="el" href="structtaraxa_1_1_full_node_config.html">FullNodeConfig</a> &amp;conf, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html">PeersState</a> &gt; peers_state, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html">TimePeriodPacketsStats</a> &gt; packets_stats, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_manager">PbftManager</a> &gt; pbft_mgr, std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_chain">PbftChain</a> &gt; pbft_chain, std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote_manager">VoteManager</a> &gt; vote_mgr, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_addr)</td></tr>
 <tr class="separator:a82e6afd12895058be3a4dd5d2fa09a4e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a91097325554ed3f727145aa1aee93128"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a91097325554ed3f727145aa1aee93128">onNewPbftVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote, const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;block)</td></tr>
-<tr class="memdesc:a91097325554ed3f727145aa1aee93128"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends pbft vote to connected peers.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a91097325554ed3f727145aa1aee93128">More...</a><br /></td></tr>
-<tr class="separator:a91097325554ed3f727145aa1aee93128"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2f946f2c4e2bbd44a9da1496041d0017"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a2f946f2c4e2bbd44a9da1496041d0017">onNewPbftVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote, const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;block, bool rebroadcast=false)</td></tr>
+<tr class="memdesc:a2f946f2c4e2bbd44a9da1496041d0017"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sends pbft vote to connected peers.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a2f946f2c4e2bbd44a9da1496041d0017">More...</a><br /></td></tr>
+<tr class="separator:a2f946f2c4e2bbd44a9da1496041d0017"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af2c56ac63f95ba962e8a3a86f4b10a1f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#af2c56ac63f95ba962e8a3a86f4b10a1f">sendPbftVote</a> (const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt; &amp;peer, const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote, const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;block)</td></tr>
 <tr class="separator:af2c56ac63f95ba962e8a3a86f4b10a1f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html">taraxa::network::tarcap::ExtVotesPacketHandler</a></td></tr>
@@ -297,8 +297,8 @@ Additional Inherited Members</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="a91097325554ed3f727145aa1aee93128"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a91097325554ed3f727145aa1aee93128">&#9670;&nbsp;</a></span>onNewPbftVote()</h2>
+<a id="a2f946f2c4e2bbd44a9da1496041d0017"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2f946f2c4e2bbd44a9da1496041d0017">&#9670;&nbsp;</a></span>onNewPbftVote()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -313,7 +313,13 @@ Additional Inherited Members</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>block</em>&#160;</td>
+          <td class="paramname"><em>block</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>rebroadcast</em> = <code>false</code>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -328,6 +334,7 @@ Additional Inherited Members</h2></td></tr>
   <table class="params">
     <tr><td class="paramname">vote</td><td>Votes to send </td></tr>
     <tr><td class="paramname">block</td><td>block to send - nullptr means no block </td></tr>
+    <tr><td class="paramname">rebroadcast</td><td>- send even of vote i known for the peer </td></tr>
   </table>
   </dd>
 </dl>
