@@ -88,7 +88,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   // END METHODS USED IN TESTS ONLY
 
  protected:
-  virtual void initPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<DbStorage> &db,
+  virtual void initPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr,
                                   std::shared_ptr<TransactionManager> trx_mgr,
                                   std::shared_ptr<TimePeriodPacketsStats> packets_stats);
   virtual void registerPacketHandlers(const h256 &genesis_hash,

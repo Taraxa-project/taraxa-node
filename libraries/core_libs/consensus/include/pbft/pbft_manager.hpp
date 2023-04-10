@@ -268,18 +268,16 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t getPbftCommitteeSize() const { return config_.committee_size; }
 
   /**
-   * @brief Broadcast or rebroadcast current round soft votes and previous round next votes
-   * @param rebroadcast
+   * @brief Test/enforce broadcastVotes() to actually send votes
    */
-  void broadcastSoftAndNextVotes(bool rebroadcast);
-
-  /**
-   * @brief Broadcast or rebroadcast reward votes
-   * @param rebroadcast
-   */
-  void broadcastRewardVotes(bool rebroadcast);
+  void testBroadcatVotesFunctionality();
 
  private:
+  /**
+   * @brief Broadcast or rebroadcast 2t+1 soft/reward/previous round next votes + all own votes if needed
+   */
+  void broadcastVotes();
+
   /**
    * @brief Check PBFT blocks syncing queue. If there are synced PBFT blocks in queue, push it to PBFT chain
    */
@@ -543,15 +541,14 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
 
   const uint32_t kBroadcastVotesLambdaTime = 20;
   const uint32_t kRebroadcastVotesLambdaTime = 60;
-  uint32_t broadcast_soft_next_votes_counter_ = 1;
-  uint32_t rebroadcast_soft_next_votes_counter_ = 1;
+  uint32_t broadcast_votes_counter_ = 1;
+  uint32_t rebroadcast_votes_counter_ = 1;
   uint32_t broadcast_reward_votes_counter_ = 1;
   uint32_t rebroadcast_reward_votes_counter_ = 1;
 
   PbftStates state_ = value_proposal_state;
   std::atomic<PbftRound> round_ = 1;
   PbftStep step_ = 1;
-  PbftStep startingStepInRound_ = 1;
 
   // Block that node cert voted
   std::optional<std::shared_ptr<PbftBlock>> cert_voted_block_for_round_{};
@@ -569,6 +566,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool already_next_voted_null_block_hash_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
+
+  // Used to avoid cyclic logging in voting steps that are called repeatedly
+  bool printSecondFinishStepInfo_ = true;
+  bool printCertStepInfo_ = true;
 
   const blk_hash_t dag_genesis_block_hash_;
 

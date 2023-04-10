@@ -829,13 +829,10 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getOwnVerifiedVotes() {
   return votes;
 }
 
-void DbStorage::clearOwnVerifiedVotes(Batch& write_batch) {
-  // TODO: deletion could be optimized if we save votes in memory
-  auto it =
-      std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::latest_round_own_votes)));
-  for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    const auto vote = std::make_shared<Vote>(asBytes(it->value().ToString()));
-    remove(write_batch, Columns::latest_round_own_votes, vote->getHash().asBytes());
+void DbStorage::clearOwnVerifiedVotes(Batch& write_batch,
+                                      const std::vector<std::shared_ptr<Vote>>& own_verified_votes) {
+  for (const auto& own_vote : own_verified_votes) {
+    remove(write_batch, Columns::latest_round_own_votes, own_vote->getHash().asBytes());
   }
 }
 

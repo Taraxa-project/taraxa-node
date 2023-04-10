@@ -242,7 +242,7 @@ TEST_F(FullNodeTest, db_test) {
   }
 
   batch = db.createWriteBatch();
-  db.clearOwnVerifiedVotes(batch);
+  db.clearOwnVerifiedVotes(batch, verified_votes);
   db.commitWriteBatch(batch);
   EXPECT_TRUE(db.getOwnVerifiedVotes().empty());
 
