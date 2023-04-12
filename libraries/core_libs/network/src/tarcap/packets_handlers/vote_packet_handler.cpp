@@ -40,6 +40,11 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     LOG(log_dg_) << "Received PBFT vote " << vote->getHash();
   }
 
+  // Update peer's max chain size
+  if (peer_chain_size.has_value() && *peer_chain_size > peer->pbft_chain_size_) {
+    peer->pbft_chain_size_ = *peer_chain_size;
+  }
+
   const auto vote_hash = vote->getHash();
 
   if (!isPbftRelevantVote(vote)) {
@@ -74,11 +79,6 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
   // Do not mark it before, as peers have small caches of known votes. Only mark gossiping votes
   peer->markVoteAsKnown(vote_hash);
   onNewPbftVote(vote, pbft_block);
-
-  // Update peer's max chain size
-  if (peer_chain_size.has_value() && vote->getVoter() == peer->getId() && *peer_chain_size > peer->pbft_chain_size_) {
-    peer->pbft_chain_size_ = *peer_chain_size;
-  }
 }
 
 void VotePacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &block,
