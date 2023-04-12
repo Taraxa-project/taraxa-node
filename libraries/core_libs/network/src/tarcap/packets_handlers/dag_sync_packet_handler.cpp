@@ -120,7 +120,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     const auto verified = dag_mgr_->verifyBlock(block);
     if (verified != DagManager::VerifyBlockReturnType::Verified) {
       std::ostringstream err_msg;
-      err_msg << "DagBlock" << block.getHash() << " failed verification with error code "
+      err_msg << "DagBlock " << block.getHash() << " failed verification with error code "
               << static_cast<uint32_t>(verified);
       throw MaliciousPeerException(err_msg.str());
     }
