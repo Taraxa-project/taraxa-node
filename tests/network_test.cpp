@@ -108,16 +108,6 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   dag_mgr1->addDagBlock(std::move(blk), {trxs[0]});
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
 
-  // creating lot of blocks just for size
-  std::vector<trx_hash_t> trx_hashes;
-  std::vector<std::shared_ptr<Transaction>> verified_transactions;
-  trx_hashes.reserve(trxs.size());
-  verified_transactions.reserve(trxs.size());
-
-  for (const auto& trx : trxs) {
-    trx_hashes.push_back(trx->getHash());
-    verified_transactions.push_back(trx);
-  }
   {
     const auto proposal_period = *db1->getProposalPeriodForDagLevel(proposal_level + 1);
     const auto period_block_hash = db1->getPeriodBlockHash(proposal_period);
@@ -126,16 +116,17 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
     for (int i = 0; i < 100; ++i) {
       vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
                                       VrfSortitionBase::makeVrfInput(proposal_level + 1, period_block_hash), 1, 1);
-      dev::bytes vdf_msg = DagManager::getVdfMessage(block_hash, {trxs[i + 1]});
+      dev::bytes vdf_msg = DagManager::getVdfMessage(block_hash, {trxs[i]});
       vdf.computeVdfSolution(sortition_params, vdf_msg, false);
-      DagBlock blk(block_hash, proposal_level + 1, {}, {trxs[i + 1]->getHash()}, estimation, vdf,
-                   node1->getSecretKey());
+      DagBlock blk(block_hash, proposal_level + 1, {}, {trxs[i]->getHash()}, estimation, vdf, node1->getSecretKey());
       dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
     }
   }
 
-  for (auto trx : verified_transactions)
-    node1->getTransactionManager()->insertValidatedTransaction(std::move(trx), TransactionStatus::Verified);
+  for (auto trx : trxs) {
+    auto tx = trx;
+    node1->getTransactionManager()->insertValidatedTransaction(std::move(tx), TransactionStatus::Verified);
+  }
   for (size_t i = 0; i < dag_blocks.size(); i++) {
     if (dag_mgr1->verifyBlock(*dag_blocks[i]) == DagManager::VerifyBlockReturnType::Verified)
       dag_mgr1->addDagBlock(DagBlock(*dag_blocks[i]), {trxs[i]});
