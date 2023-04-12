@@ -58,13 +58,6 @@ TEST_F(RPCTest, eth_estimateGas) {
   }
 }
 
-#define EXPECT_THROW_WITH(statement, expected_exception, msg) \
-  try {                                                       \
-    statement;                                                \
-  } catch (const expected_exception& e) {                     \
-    ASSERT_EQ(std::string(msg), std::string(e.what()));       \
-  }
-
 TEST_F(RPCTest, eth_call) {
   auto node_cfg = make_node_cfgs(1);
   auto nodes = launch_nodes(node_cfg);
