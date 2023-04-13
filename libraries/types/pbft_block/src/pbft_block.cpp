@@ -7,12 +7,14 @@
 #include "common/jsoncpp.hpp"
 
 namespace taraxa {
+
 PbftBlock::PbftBlock(bytes const& b) : PbftBlock(dev::RLP(b)) {}
 
 PbftBlock::PbftBlock(dev::RLP const& rlp) {
   util::rlp_tuple(util::RLPDecoderRef(rlp, true), prev_block_hash_, dag_block_hash_as_pivot_, order_hash_,
                   prev_state_root_hash_, period_, timestamp_, reward_votes_, signature_);
   calculateHash_();
+  checkUniqueRewardVotes();
 }
 
 PbftBlock::PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_hash_as_pivot,
@@ -28,6 +30,7 @@ PbftBlock::PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_
   timestamp_ = dev::utcTime();
   signature_ = dev::sign(sk, sha3(false));
   calculateHash_();
+  checkUniqueRewardVotes();
 }
 
 Json::Value PbftBlock::toJson(PbftBlock const& b, std::vector<blk_hash_t> const& dag_blks) {
@@ -51,6 +54,17 @@ void PbftBlock::calculateHash_() {
   auto p = dev::recover(signature_, sha3(false));
   assert(p);
   beneficiary_ = dev::right160(dev::sha3(dev::bytesConstRef(p.data(), sizeof(p))));
+}
+
+void PbftBlock::checkUniqueRewardVotes() {
+  std::unordered_set<vote_hash_t> set;
+  set.reserve(reward_votes_.size());
+  for (const auto& hash : reward_votes_) {
+    if (!set.insert(hash).second) {
+      throw std::runtime_error(
+          fmt("Invalid PBFT Block %s proposed by %s has duplicated vote %s", block_hash_, beneficiary_, hash));
+    }
+  }
 }
 
 blk_hash_t PbftBlock::sha3(bool include_sig) const { return dev::sha3(rlp(include_sig)); }
