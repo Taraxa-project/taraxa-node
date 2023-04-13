@@ -20,8 +20,7 @@ static constexpr uint16_t DAG_BLOCKS_POS_IN_PERIOD_DATA = 2;
 static constexpr uint16_t TRANSACTIONS_POS_IN_PERIOD_DATA = 3;
 
 DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t max_open_files,
-                     uint32_t db_max_snapshots, PbftPeriod db_revert_to_period, addr_t node_addr, bool rebuild,
-                     bool rebuild_columns)
+                     uint32_t db_max_snapshots, PbftPeriod db_revert_to_period, addr_t node_addr, bool rebuild)
     : path_(path),
       handles_(Columns::all.size()),
       kDbSnapshotsEachNblock(db_snapshot_each_n_pbft_block),
@@ -61,9 +60,7 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   });
   LOG_OBJECTS_CREATE("DBS");
 
-  if (rebuild_columns) {
-    rebuildColumns(options);
-  }
+  rebuildColumns(options);
 
   // Iterate over the db folders and populate snapshot set
   loadSnapshots();
@@ -80,15 +77,15 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   dag_blocks_count_.store(getStatusField(StatusDbField::DagBlkCount));
   dag_edge_count_.store(getStatusField(StatusDbField::DagEdgeCount));
 
-  uint32_t major_version = getStatusField(StatusDbField::DbMajorVersion);
+  kMajorVersion_ = getStatusField(StatusDbField::DbMajorVersion);
   uint32_t minor_version = getStatusField(StatusDbField::DbMinorVersion);
-  if (major_version == 0 && minor_version == 0) {
+  if (kMajorVersion_ == 0 && minor_version == 0) {
     saveStatusField(StatusDbField::DbMajorVersion, TARAXA_DB_MAJOR_VERSION);
     saveStatusField(StatusDbField::DbMinorVersion, TARAXA_DB_MINOR_VERSION);
   } else {
-    if (major_version != TARAXA_DB_MAJOR_VERSION) {
+    if (kMajorVersion_ != TARAXA_DB_MAJOR_VERSION) {
       throw DbException(string("Database version mismatch. Version on disk ") +
-                        getFormattedVersion({major_version, minor_version}) +
+                        getFormattedVersion({kMajorVersion_, minor_version}) +
                         " Node version:" + getFormattedVersion({TARAXA_DB_MAJOR_VERSION, TARAXA_DB_MINOR_VERSION}));
     } else if (minor_version != TARAXA_DB_MINOR_VERSION) {
       minor_version_changed_ = true;
@@ -100,6 +97,10 @@ void DbStorage::rebuildColumns(const rocksdb::Options& options) {
   std::unique_ptr<rocksdb::DB> db;
   std::vector<std::string> column_families;
   rocksdb::DB::ListColumnFamilies(options, db_path_.string(), &column_families);
+  if (column_families.empty()) {
+    LOG(log_wr_) << "DB isn't initialized in rebuildColumns. Skip it";
+    return;
+  }
 
   std::vector<rocksdb::ColumnFamilyDescriptor> descriptors;
   descriptors.reserve(column_families.size());
@@ -260,6 +261,12 @@ DbStorage::~DbStorage() {
     checkStatus(db_->DestroyColumnFamilyHandle(cf));
   }
   checkStatus(db_->Close());
+}
+
+uint32_t DbStorage::getMajorVersion() const { return kMajorVersion_; }
+
+std::unique_ptr<rocksdb::Iterator> DbStorage::getColumnIterator(const Column& c) {
+  return std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(c)));
 }
 
 void DbStorage::checkStatus(rocksdb::Status const& status) {

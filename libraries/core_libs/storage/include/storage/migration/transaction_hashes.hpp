@@ -8,8 +8,9 @@
 namespace taraxa::storage::migration {
 class TransactionHashes : public migration::Base {
  public:
-  TransactionHashes(std::shared_ptr<DbStorage> db) : migration::Base(db) {}
-  std::string id() override { return "TransactionHashes"; }
+  TransactionHashes(std::shared_ptr<DbStorage> db);
+  std::string id() override;
+  uint32_t dbVersion() override;
   void migrate() override;
 };
 }  // namespace taraxa::storage::migration

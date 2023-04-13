@@ -14,21 +14,25 @@ struct OldTransactionsHashes {
   size_t count() const { return count_; }
 };
 
-void TransactionHashes::migrate() {
-  auto last_blk_num =
-      db_->lookup_int<EthBlockNumber>(final_chain::DBMetaKeys::LAST_NUMBER, DB::Columns::final_chain_meta);
+TransactionHashes::TransactionHashes(std::shared_ptr<DbStorage> db) : migration::Base(db) {}
 
+std::string TransactionHashes::id() { return "TransactionHashes"; }
+
+uint32_t TransactionHashes::dbVersion() { return 1; }
+
+void TransactionHashes::migrate() {
+  auto it = db_->getColumnIterator(DB::Columns::final_chain_transaction_hashes_by_blk_number);
   auto batch = db_->createWriteBatch();
+
   // Get and save data in new format for all blocks
-  for (uint64_t p = 1; p <= last_blk_num; ++p) {
+  for (it->SeekToFirst(); it->Valid(); it->Next()) {
     ::taraxa::TransactionHashes new_data;
-    auto old_data = std::make_unique<OldTransactionsHashes>(
-        db_->lookup(p, DB::Columns::final_chain_transaction_hashes_by_blk_number));
+    auto old_data = std::make_unique<OldTransactionsHashes>(it->value().ToString());
     new_data.reserve(old_data->count());
     for (size_t i = 0; i < new_data.capacity(); ++i) {
       new_data.emplace_back(old_data->get(i));
     }
-    db_->insert(batch, DB::Columns::final_chain_transaction_hashes_by_blk_number, p, dev::rlp(new_data));
+    db_->insert(batch, DB::Columns::final_chain_transaction_hashes_by_blk_number, it->key(), dev::rlp(new_data));
   }
   db_->commitWriteBatch(batch);
 }

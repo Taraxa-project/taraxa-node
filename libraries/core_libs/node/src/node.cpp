@@ -63,11 +63,9 @@ void FullNode::init() {
                                             conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
                                             conf_.db_config.db_revert_to_period, node_addr, true);
     }
-
     db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.db_config.db_snapshot_each_n_pbft_block,
                                       conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
-                                      conf_.db_config.db_revert_to_period, node_addr, false,
-                                      conf_.db_config.rebuild_db_columns);
+                                      conf_.db_config.db_revert_to_period, node_addr, false);
 
     if (db_->hasMinorVersionChanged()) {
       LOG(log_si_) << "Minor DB version has changed. Rebuilding Db";

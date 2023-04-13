@@ -16,7 +16,6 @@ struct DBConfig {
   PbftPeriod db_revert_to_period = 0;
   bool rebuild_db = false;
   PbftPeriod rebuild_db_period = 0;
-  bool rebuild_db_columns = false;
 };
 
 void dec_json(Json::Value const &json, DBConfig &db_config);

@@ -7,8 +7,13 @@ class Base {
   Base(std::shared_ptr<DbStorage> db) : db_(std::move(db)) {}
   virtual ~Base() = default;
   virtual std::string id() = 0;
+  // We need to specify version here, so in case of major version change(db reindex) we won't apply unneeded migrations
+  virtual uint32_t dbVersion() = 0;
   virtual void migrate() = 0;
   void apply() {
+    if (db_->getMajorVersion() != dbVersion()) {
+      return;
+    }
     migrate();
     setApplied();
   }
