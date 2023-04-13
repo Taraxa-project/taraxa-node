@@ -4,6 +4,7 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_block =
     [ "PbftBlock", "group___p_b_f_t.html#aee0c137aa382c405740c0f1a6c9d90c3", null ],
     [ "PbftBlock", "group___p_b_f_t.html#aa7b0decfa810c255b6a75a4053b1fb29", null ],
     [ "calculateHash_", "group___p_b_f_t.html#a2faa8e8207dbf6a67be09f98ceefd9f4", null ],
+    [ "checkUniqueRewardVotes", "group___p_b_f_t.html#a32af495911eba54a204465a01e9d1281", null ],
     [ "getBeneficiary", "group___p_b_f_t.html#a881559c8555e34dd4bd6d4e198da6f14", null ],
     [ "getBlockHash", "group___p_b_f_t.html#af7c819faf5bba2d9a7de8a1959afcd77", null ],
     [ "getJson", "group___p_b_f_t.html#a8aef5ed309007cb074784b667c0ed548", null ],
