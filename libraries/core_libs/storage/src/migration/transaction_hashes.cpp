@@ -22,7 +22,6 @@ uint32_t TransactionHashes::dbVersion() { return 1; }
 
 void TransactionHashes::migrate() {
   auto it = db_->getColumnIterator(DB::Columns::final_chain_transaction_hashes_by_blk_number);
-  auto batch = db_->createWriteBatch();
 
   // Get and save data in new format for all blocks
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
@@ -32,8 +31,7 @@ void TransactionHashes::migrate() {
     for (size_t i = 0; i < new_data.capacity(); ++i) {
       new_data.emplace_back(old_data->get(i));
     }
-    db_->insert(batch, DB::Columns::final_chain_transaction_hashes_by_blk_number, it->key(), dev::rlp(new_data));
+    db_->insert(batch_, DB::Columns::final_chain_transaction_hashes_by_blk_number, it->key(), dev::rlp(new_data));
   }
-  db_->commitWriteBatch(batch);
 }
 }  // namespace taraxa::storage::migration
