@@ -14,7 +14,7 @@ PbftBlock::PbftBlock(dev::RLP const& rlp) {
   util::rlp_tuple(util::RLPDecoderRef(rlp, true), prev_block_hash_, dag_block_hash_as_pivot_, order_hash_,
                   prev_state_root_hash_, period_, timestamp_, reward_votes_, signature_);
   calculateHash_();
-  checkRewardVotes();
+  checkUniqueRewardVotes();
 }
 
 PbftBlock::PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_hash_as_pivot,
@@ -30,7 +30,7 @@ PbftBlock::PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_
   timestamp_ = dev::utcTime();
   signature_ = dev::sign(sk, sha3(false));
   calculateHash_();
-  checkRewardVotes();
+  checkUniqueRewardVotes();
 }
 
 Json::Value PbftBlock::toJson(PbftBlock const& b, std::vector<blk_hash_t> const& dag_blks) {
@@ -56,7 +56,7 @@ void PbftBlock::calculateHash_() {
   beneficiary_ = dev::right160(dev::sha3(dev::bytesConstRef(p.data(), sizeof(p))));
 }
 
-void PbftBlock::checkRewardVotes() {
+void PbftBlock::checkUniqueRewardVotes() {
   std::unordered_set<vote_hash_t> set;
   set.reserve(reward_votes_.size());
   for (const auto& hash : reward_votes_) {

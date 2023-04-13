@@ -134,7 +134,7 @@ class PbftBlock {
    * @brief Check if all rewards votes are unique
    *
    */
-  void checkRewardVotes();
+  void checkUniqueRewardVotes();
 };
 std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
 
