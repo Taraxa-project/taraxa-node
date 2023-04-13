@@ -1102,11 +1102,15 @@ std::optional<std::pair<std::shared_ptr<PbftBlock>, std::vector<std::shared_ptr<
       return {};
     }
   }
+  try {
+    auto block = std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, last_state_root, propose_period,
+                                             node_addr_, node_sk_, std::move(reward_votes_hashes));
 
-  auto block = std::make_shared<PbftBlock>(prev_blk_hash, anchor_hash, order_hash, last_state_root, propose_period,
-                                           node_addr_, node_sk_, std::move(reward_votes_hashes));
-
-  return {std::make_pair(std::move(block), std::move(reward_votes))};
+    return {std::make_pair(std::move(block), std::move(reward_votes))};
+  } catch (const std::exception &e) {
+    LOG(log_er_) << "Block for period " << propose_period << " could not be proposed " << e.what();
+    return {};
+  }
 }
 
 void PbftManager::processProposedBlock(const std::shared_ptr<PbftBlock> &proposed_block,

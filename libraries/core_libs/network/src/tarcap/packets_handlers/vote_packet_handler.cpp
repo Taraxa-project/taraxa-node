@@ -29,7 +29,11 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
 
   std::shared_ptr<Vote> vote = std::make_shared<Vote>(packet_data.rlp_[0]);
   if (const size_t item_count = packet_data.rlp_.itemCount(); item_count == kExtendedVotePacketSize) {
-    pbft_block = std::make_shared<PbftBlock>(packet_data.rlp_[1]);
+    try {
+      pbft_block = std::make_shared<PbftBlock>(packet_data.rlp_[1]);
+    } catch (const std::exception &e) {
+      throw MaliciousPeerException(e.what());
+    }
     peer_chain_size = packet_data.rlp_[2].toInt();
     LOG(log_dg_) << "Received PBFT vote " << vote->getHash() << " with PBFT block " << pbft_block->getBlockHash();
   } else {

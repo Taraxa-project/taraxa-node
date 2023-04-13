@@ -30,7 +30,7 @@ std::optional<addr_t> RewardsStats::getTransactionValidator(const trx_hash_t& tx
 bool RewardsStats::addVote(const std::shared_ptr<Vote>& vote) {
   // Set valid cert vote to validator
   auto& validator_stats = validators_stats_[vote->getVoterAddr()];
-  // assert(validator_stats.vote_weight_ == 0);
+  assert(validator_stats.vote_weight_ == 0);
   assert(vote->getWeight());
 
   if (validator_stats.vote_weight_) {
