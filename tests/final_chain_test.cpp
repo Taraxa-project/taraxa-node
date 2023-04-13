@@ -474,6 +474,11 @@ TEST_F(FinalChainTest, failed_transaction_fee) {
 }
 
 TEST_F(FinalChainTest, revert_reason) {
+  // contract TestRevert {
+  //   function test(bool arg) public pure {
+  //       require(arg, "arg required");
+  //   }
+  // }
   const auto test_contract_code =
       "608060405234801561001057600080fd5b506101ac806100206000396000f3fe608060405234801561001057600080fd5b50600436106100"
       "2b5760003560e01c806336091dff14610030575b600080fd5b61004a600480360381019061004591906100cc565b61004c565b005b806100"
@@ -489,8 +494,6 @@ TEST_F(FinalChainTest, revert_reason) {
   const auto& sk = sender_keys.secret();
   cfg.genesis.state.initial_balances = {};
   cfg.genesis.state.initial_balances[from] = u256("10000000000000000000000");
-  // disable balances check as we have internal transfer
-  assume_only_toplevel_transfers = false;
   init();
 
   net::rpc::eth::EthParams eth_rpc_params;
@@ -513,6 +516,80 @@ TEST_F(FinalChainTest, revert_reason) {
     EXPECT_THROW_WITH(dev::jsToInt(eth_json_rpc->eth_estimateGas(est)), std::exception,
                       "evm: execution reverted: arg required");
     EXPECT_THROW_WITH(eth_json_rpc->eth_call(est, "latest"), std::exception, "evm: execution reverted: arg required");
+  }
+}
+
+TEST_F(FinalChainTest, incorrect_estimation_regress) {
+  // contract Receiver {
+  //     uint256 public receivedETH;
+  //     receive() external payable {
+  //         receivedETH += msg.value;
+  //     }
+  // }
+  const auto receiver_contract_code =
+      "608060405234801561001057600080fd5b5061012d806100206000396000f3fe608060405260043610601f5760003560e01c8063820bec9d"
+      "14603f57603a565b36603a57346000808282546032919060a4565b925050819055005b600080fd5b348015604a57600080fd5b5060516065"
+      "565b604051605c919060de565b60405180910390f35b60005481565b6000819050919050565b7f4e487b7100000000000000000000000000"
+      "000000000000000000000000000000600052601160045260246000fd5b600060ad82606b565b915060b683606b565b925082820190508082"
+      "111560cb5760ca6075565b5b92915050565b60d881606b565b82525050565b600060208201905060f1600083018460d1565b9291505056fe"
+      "a264697066735822122099ea1faf8b41cec96834060f2daaea3ae5c03561e110bdcf5a74ce041ddb497164736f6c63430008120033";
+
+  // contract SendFunction {
+  //     function send(address to) external payable {
+  //         (bool success,) = to.call{value: msg.value}("");
+  //         if (!success) {
+  //             revert("Failed to send ETH");
+  //         }
+  //     }
+  // }
+  const auto sender_contract_code =
+      "608060405234801561001057600080fd5b50610278806100206000396000f3fe60806040526004361061001e5760003560e01c80633e58c5"
+      "8c14610023575b600080fd5b61003d60048036038101906100389190610152565b61003f565b005b60008173ffffffffffffffffffffffff"
+      "ffffffffffffffff1634604051610065906101b0565b60006040518083038185875af1925050503d80600081146100a2576040519150601f"
+      "19603f3d011682016040523d82523d6000602084013e6100a7565b606091505b50509050806100eb576040517f08c379a000000000000000"
+      "00000000000000000000000000000000000000000081526004016100e290610222565b60405180910390fd5b5050565b600080fd5b600073"
+      "ffffffffffffffffffffffffffffffffffffffff82169050919050565b600061011f826100f4565b9050919050565b61012f81610114565b"
+      "811461013a57600080fd5b50565b60008135905061014c81610126565b92915050565b600060208284031215610168576101676100ef565b"
+      "5b60006101768482850161013d565b91505092915050565b600081905092915050565b50565b600061019a60008361017f565b91506101a5"
+      "8261018a565b600082019050919050565b60006101bb8261018d565b9150819050919050565b600082825260208201905092915050565b7f"
+      "4661696c656420746f2073656e64204554480000000000000000000000000000600082015250565b600061020c6012836101c5565b915061"
+      "0217826101d6565b602082019050919050565b6000602082019050818103600083015261023b816101ff565b905091905056fea264697066"
+      "73582212205fd48a05d31cae1309b1a3bb8fe678c4bfee4cd28079acd90056ad228e18d82864736f6c63430008120033";
+
+  auto sender_keys = dev::KeyPair::create();
+  const auto& from = sender_keys.address();
+  const auto& sk = sender_keys.secret();
+  cfg.genesis.state.initial_balances = {};
+  cfg.genesis.state.initial_balances[from] = u256("10000000000000000000000");
+  // disable balances check as we have internal transfer
+  assume_only_toplevel_transfers = false;
+  init();
+
+  net::rpc::eth::EthParams eth_rpc_params;
+  eth_rpc_params.chain_id = cfg.genesis.chain_id;
+  eth_rpc_params.gas_limit = cfg.genesis.dag.gas_limit;
+  eth_rpc_params.final_chain = SUT;
+  auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
+
+  auto nonce = 0;
+  auto trx1 = std::make_shared<Transaction>(nonce++, 0, 0, TEST_TX_GAS_LIMIT, dev::fromHex(receiver_contract_code), sk);
+  auto trx2 = std::make_shared<Transaction>(nonce++, 0, 0, TEST_TX_GAS_LIMIT, dev::fromHex(sender_contract_code), sk);
+  auto result = advance({trx1, trx2});
+  auto receiver_contract_addr = result->trx_receipts[0].new_contract_address;
+  auto sender_contract_addr = result->trx_receipts[1].new_contract_address;
+  EXPECT_EQ(receiver_contract_addr, dev::right160(dev::sha3(dev::rlpList(from, 0))));
+
+  const auto call_data = "0x3e58c58c000000000000000000000000" + receiver_contract_addr->toString();
+  const auto value = 10000;
+  {
+    Json::Value est(Json::objectValue);
+    est["to"] = dev::toHex(*sender_contract_addr);
+    est["from"] = dev::toHex(from);
+    est["value"] = value;
+    est["data"] = call_data;
+    auto estimate = dev::jsToInt(eth_json_rpc->eth_estimateGas(est));
+    est["gas"] = dev::toJS(estimate);
+    eth_json_rpc->eth_call(est, "latest");
   }
 }
 
