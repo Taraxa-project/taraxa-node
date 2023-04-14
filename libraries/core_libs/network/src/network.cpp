@@ -8,6 +8,7 @@
 
 #include "config/version.hpp"
 #include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
+#include "network/v1_tarcap/taraxa_capability.hpp"
 
 namespace taraxa {
 
@@ -45,11 +46,24 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
     construct_capabilities = [&](std::weak_ptr<dev::p2p::Host> host) {
       assert(!host.expired());
 
-      auto taraxa_capability = network::tarcap::TaraxaCapability::make(
-          host, key, config, genesis_hash, TARAXA_NET_VERSION, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr);
-      return dev::p2p::Host::CapabilityList{taraxa_capability};
+      const size_t kOldNetworkVersion = 1;
+      assert(kOldNetworkVersion < TARAXA_NET_VERSION);
+
+      dev::p2p::Host::CapabilityList capabilities;
+
+      // Register old version of taraxa capability
+      capabilities.emplace_back(network::v1_tarcap::TaraxaCapability::make(host, key, config, genesis_hash,
+                                                                           kOldNetworkVersion, db, pbft_mgr, pbft_chain,
+                                                                           vote_mgr, dag_mgr, trx_mgr, "V1_TARCAP"));
+      // Register new version of taraxa capability
+      capabilities.emplace_back(network::tarcap::TaraxaCapability::make(host, key, config, genesis_hash,
+                                                                        TARAXA_NET_VERSION, db, pbft_mgr, pbft_chain,
+                                                                        vote_mgr, dag_mgr, trx_mgr, "TARCAP"));
+
+      return capabilities;
     };
   }
+
   host_ = dev::p2p::Host::make(net_version, construct_capabilities, key, net_conf, taraxa_net_conf, network_file_path);
   taraxa_capability_ = std::static_pointer_cast<network::tarcap::TaraxaCapability>(host_->latestCapability());
   for (uint i = 0; i < tp_.capacity(); ++i) {
@@ -58,6 +72,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
         ;
     });
   }
+
   LOG(log_nf_) << "Configured host. Listening on address: " << config.network.listen_ip << ":"
                << config.network.listen_port;
 }

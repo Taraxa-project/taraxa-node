@@ -172,20 +172,6 @@ class Vote {
   mutable std::optional<uint64_t> weight_;
 };
 
-/**
- * @brief VotesBundle struct stores a bunch of votes that vote on the same voting value in the specific PBFT round and
- * step, the total votes weights must be greater or equal to PBFT 2t+1.
- */
-struct VotesBundle {
-  blk_hash_t voted_block_hash;
-  PbftPeriod votes_period{0};
-  std::vector<std::shared_ptr<Vote>> votes;  // Greater than 2t+1 votes
-
-  VotesBundle() {}
-  VotesBundle(blk_hash_t const& voted_block_hash, std::vector<std::shared_ptr<Vote>> const& votes)
-      : voted_block_hash(voted_block_hash), votes(votes) {}
-};
-
 /** @}*/
 
 }  // namespace taraxa

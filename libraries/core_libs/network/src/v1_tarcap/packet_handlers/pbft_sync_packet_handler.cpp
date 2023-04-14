@@ -1,4 +1,4 @@
-#include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
+#include "network/v1_tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
 
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "pbft/pbft_chain.hpp"
@@ -6,23 +6,21 @@
 #include "transaction/transaction_manager.hpp"
 #include "vote/vote.hpp"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network::v1_tarcap {
 
-PbftSyncPacketHandler::PbftSyncPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
-                                             std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-                                             std::shared_ptr<PbftSyncingState> pbft_syncing_state,
-                                             std::shared_ptr<PbftChain> pbft_chain,
-                                             std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
-                                             std::shared_ptr<VoteManager> vote_mgr,
-                                             std::shared_ptr<util::ThreadPool> periodic_events_tp,
-                                             std::shared_ptr<DbStorage> db, const addr_t &node_addr)
+PbftSyncPacketHandler::PbftSyncPacketHandler(
+    const FullNodeConfig &conf, std::shared_ptr<tarcap::PeersState> peers_state,
+    std::shared_ptr<tarcap::TimePeriodPacketsStats> packets_stats,
+    std::shared_ptr<tarcap::PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
+    std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<VoteManager> vote_mgr,
+    std::shared_ptr<util::ThreadPool> periodic_events_tp, std::shared_ptr<DbStorage> db, const addr_t &node_addr)
     : ExtSyncingPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
-                              "PBFT_SYNC_PH"),
+                              "V1_PBFT_SYNC_PH"),
       vote_mgr_(std::move(vote_mgr)),
       periodic_events_tp_(periodic_events_tp) {}
 
-void PbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
+void PbftSyncPacketHandler::validatePacketRlpFormat(const tarcap::PacketData &packet_data) const {
   if (packet_data.rlp_.itemCount() != kStandardPacketSize && packet_data.rlp_.itemCount() != kChainSyncedPacketSize) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), kStandardPacketSize);
   }
@@ -35,7 +33,8 @@ void PbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_dat
   }
 }
 
-void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
+void PbftSyncPacketHandler::process(const tarcap::PacketData &packet_data,
+                                    const std::shared_ptr<tarcap::TaraxaPeer> &peer) {
   // Note: no need to consider possible race conditions due to concurrent processing as it is
   // disabled on priority_queue blocking dependencies level
   const auto syncing_peer = pbft_syncing_state_->syncingPeer();
@@ -59,7 +58,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   PeriodData period_data;
   try {
     period_data = PeriodData(packet_data.rlp_[1]);
-  } catch (const std::runtime_error &e) {
+  } catch (const Transaction::InvalidTransaction &e) {
     throw MaliciousPeerException("Unable to parse PeriodData: " + std::string(e.what()));
   }
 
@@ -98,8 +97,9 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
                  << packet_data.from_node_id_ << " already present in chain";
   } else {
     if (pbft_block_period != pbft_mgr_->pbftSyncingPeriod() + 1) {
-      LOG(log_er_) << "Block " << pbft_blk_hash << " period unexpected: " << pbft_block_period
+      LOG(log_wr_) << "Block " << pbft_blk_hash << " period unexpected: " << pbft_block_period
                    << ". Expected period: " << pbft_mgr_->pbftSyncingPeriod() + 1;
+      restartSyncingPbft(true);
       return;
     }
 
@@ -169,10 +169,10 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
       if (auto votes = vote_mgr_->checkRewardVotes(period_data.pbft_blk, true); votes.first) {
         period_data.previous_block_cert_votes = std::move(votes.second);
       } else {
-        // checkRewardVotes could fail because we just cert voted this block and moved to next period,
-        // in that case we are probably fully synced
+        // checkRewardVotes could fail because we just cert voted this block and moved to next period, in that case we
+        // might even be fully synced so call restartSyncingPbft to verify
         if (pbft_block_period <= vote_mgr_->getRewardVotesPbftBlockPeriod()) {
-          pbft_syncing_state_->setPbftSyncing(false);
+          restartSyncingPbft(true);
           return;
         }
 
@@ -201,10 +201,10 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   }
 
   if (last_block) {
-    // If current sync period is actually bigger than the block we just received we are probably synced
+    // If current sync period is actually bigger than the block we just received we are probably synced but verify with
+    // calling restartSyncingPbft
     if (pbft_sync_period > pbft_block_period) {
-      pbft_syncing_state_->setPbftSyncing(false);
-      return;
+      return restartSyncingPbft(true);
     }
     if (pbft_syncing_state_->isPbftSyncing()) {
       if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * kConf.network.sync_level_size)) {
@@ -214,8 +214,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
           periodic_events_tp->post(1000, [this] { delayedPbftSync(1); });
       } else {
         if (!syncPeerPbft(pbft_sync_period + 1, true)) {
-          pbft_syncing_state_->setPbftSyncing(false);
-          return;
+          return restartSyncingPbft(true);
         }
       }
     }
@@ -231,11 +230,10 @@ void PbftSyncPacketHandler::pbftSyncComplete() {
   } else {
     LOG(log_dg_) << "Syncing PBFT is completed";
     // We are pbft synced with the node we are connected to but
-    // calling startSyncingPbft will check if some nodes have
+    // calling restartSyncingPbft will check if some nodes have
     // greater pbft chain size and we should continue syncing with
     // them, Or sync pending DAG blocks
-    pbft_syncing_state_->setPbftSyncing(false);
-    startSyncingPbft();
+    restartSyncingPbft(true);
     if (!pbft_syncing_state_->isPbftSyncing()) {
       requestPendingDagBlocks();
     }
@@ -260,7 +258,7 @@ void PbftSyncPacketHandler::delayedPbftSync(int counter) {
         periodic_events_tp->post(1000, [this, counter] { delayedPbftSync(counter + 1); });
     } else {
       if (!syncPeerPbft(pbft_sync_period + 1)) {
-        pbft_syncing_state_->setPbftSyncing(false);
+        return restartSyncingPbft(true);
       }
     }
   }
@@ -275,6 +273,8 @@ void PbftSyncPacketHandler::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) 
   } else {
     LOG(log_er_) << "Unable to handleMaliciousSyncPeer, host == nullptr";
   }
+
+  restartSyncingPbft(true);
 }
 
-}  // namespace taraxa::network::tarcap
+}  // namespace taraxa::network::v1_tarcap

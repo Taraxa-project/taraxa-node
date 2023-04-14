@@ -176,24 +176,47 @@ void ExtVotesPacketHandler::sendPbftVotesBundle(const std::shared_ptr<TaraxaPeer
     return;
   }
 
+  const auto &reference_block_hash = votes.back()->getBlockHash();
+  const auto reference_period = votes.back()->getPeriod();
+  const auto reference_round = votes.back()->getRound();
+  const auto reference_step = votes.back()->getStep();
+
   size_t index = 0;
   while (index < votes.size()) {
-    const size_t count = std::min(static_cast<size_t>(kMaxVotesInPacket), votes.size() - index);
-    dev::RLPStream s(count);
-    for (auto i = index; i < index + count; i++) {
+    const size_t votes_count = std::min(static_cast<size_t>(kMaxVotesInBundle), votes.size() - index);
+
+    dev::RLPStream packet_rlp(kVotesBundlePacketSize);
+    packet_rlp.append(reference_block_hash);
+    packet_rlp.append(reference_period);
+    packet_rlp.append(reference_round);
+    packet_rlp.append(reference_step);
+    packet_rlp.appendList(votes_count);
+
+    for (auto i = index; i < index + votes_count; i++) {
       const auto &vote = votes[i];
-      s.appendRaw(vote->rlp(true, false));
+      if (vote->getBlockHash() != reference_block_hash || vote->getPeriod() != reference_period ||
+          vote->getRound() != reference_round || vote->getStep() != reference_step) {
+        LOG(log_er_) << "Invalid vote " << vote->getHash() << " (voted_block, period, round, step)->("
+                     << vote->getBlockHash() << ", " << vote->getPeriod() << ", " << vote->getRound() << ", "
+                     << vote->getStep() << ") != reference vote (voted_block, period, round, step)->"
+                     << reference_block_hash << ", " << reference_period << ", " << reference_round << ", "
+                     << reference_step << ")";
+        assert(false);
+        return;
+      }
+
+      packet_rlp.appendRaw(vote->rlp(true, false));
       LOG(log_dg_) << "Send vote " << vote->getHash() << " to peer " << peer->getId();
     }
 
-    if (sealAndSend(peer->getId(), SubprotocolPacketType::VotesSyncPacket, std::move(s))) {
-      LOG(log_dg_) << count << " PBFT votes to were sent to " << peer->getId();
-      for (auto i = index; i < index + count; i++) {
+    if (sealAndSend(peer->getId(), SubprotocolPacketType::VotesBundlePacket, std::move(packet_rlp))) {
+      LOG(log_dg_) << votes_count << " PBFT votes to were sent to " << peer->getId();
+      for (auto i = index; i < index + votes_count; i++) {
         peer->markVoteAsKnown(votes[i]->getHash());
       }
     }
 
-    index += count;
+    index += votes_count;
   }
 }
 

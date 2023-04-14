@@ -590,7 +590,12 @@ void PbftManager::broadcastVotes() {
 
     // Broadcast previous round 2t+1 next votes
     if (round > 1) {
-      gossipVotes(vote_mgr_->getAllTwoTPlusOneNextVotes(period, round - 1), "2t+1 next votes", rebroadcast);
+      gossipVotes(
+          vote_mgr_->getTwoTPlusOneVotedBlockVotes(period, round - 1, TwoTPlusOneVotedBlockType::NextVotedBlock),
+          "2t+1 next votes", rebroadcast);
+      gossipVotes(
+          vote_mgr_->getTwoTPlusOneVotedBlockVotes(period, round - 1, TwoTPlusOneVotedBlockType::NextVotedNullBlock),
+          "2t+1 next null votes", rebroadcast);
     }
 
     // Broadcast own votes

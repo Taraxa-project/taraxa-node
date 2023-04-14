@@ -1,24 +1,25 @@
-#include "network/tarcap/packets_handlers/get_next_votes_sync_packet_handler.hpp"
+#include "network/v1_tarcap/packets_handlers/get_next_votes_sync_packet_handler.hpp"
 
 #include "pbft/pbft_manager.hpp"
 #include "vote_manager/vote_manager.hpp"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network::v1_tarcap {
 
 GetNextVotesSyncPacketHandler::GetNextVotesSyncPacketHandler(
-    const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
-    std::shared_ptr<TimePeriodPacketsStats> packets_stats, std::shared_ptr<PbftManager> pbft_mgr,
+    const FullNodeConfig &conf, std::shared_ptr<tarcap::PeersState> peers_state,
+    std::shared_ptr<tarcap::TimePeriodPacketsStats> packets_stats, std::shared_ptr<PbftManager> pbft_mgr,
     std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr, const addr_t &node_addr)
     : ExtVotesPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
-                            std::move(pbft_chain), std::move(vote_mgr), node_addr, "GET_NEXT_VOTES_SYNC_PH") {}
+                            std::move(pbft_chain), std::move(vote_mgr), node_addr, "V1_GET_NEXT_VOTES_SYNC_PH") {}
 
-void GetNextVotesSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
+void GetNextVotesSyncPacketHandler::validatePacketRlpFormat(const tarcap::PacketData &packet_data) const {
   if (constexpr size_t required_size = 2; packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
 }
 
-void GetNextVotesSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
+void GetNextVotesSyncPacketHandler::process(const tarcap::PacketData &packet_data,
+                                            const std::shared_ptr<tarcap::TaraxaPeer> &peer) {
   LOG(log_dg_) << "Received GetNextVotesSyncPacket request";
 
   const PbftPeriod peer_pbft_period = packet_data.rlp_[0].toInt<PbftPeriod>();
@@ -76,4 +77,4 @@ void GetNextVotesSyncPacketHandler::process(const PacketData &packet_data, const
   }
 }
 
-}  // namespace taraxa::network::tarcap
+}  // namespace taraxa::network::v1_tarcap

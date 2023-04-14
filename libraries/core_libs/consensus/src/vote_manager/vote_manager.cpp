@@ -1047,18 +1047,4 @@ std::vector<std::shared_ptr<Vote>> VoteManager::getTwoTPlusOneVotedBlockVotes(Pb
   return votes;
 }
 
-std::vector<std::shared_ptr<Vote>> VoteManager::getAllTwoTPlusOneNextVotes(PbftPeriod period, PbftRound round) const {
-  auto next_votes = getTwoTPlusOneVotedBlockVotes(period, round, TwoTPlusOneVotedBlockType::NextVotedBlock);
-
-  auto null_block_next_vote =
-      getTwoTPlusOneVotedBlockVotes(period, round, TwoTPlusOneVotedBlockType::NextVotedNullBlock);
-  if (!null_block_next_vote.empty()) {
-    next_votes.reserve(next_votes.size() + null_block_next_vote.size());
-    next_votes.insert(next_votes.end(), std::make_move_iterator(null_block_next_vote.begin()),
-                      std::make_move_iterator(null_block_next_vote.end()));
-  }
-
-  return next_votes;
-}
-
 }  // namespace taraxa

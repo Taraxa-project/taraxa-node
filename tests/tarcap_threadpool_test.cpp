@@ -177,7 +177,7 @@ class DummyVotesSyncPacketHandler : public DummyPacketHandler {
       : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
 
   // Packet type that is processed by this handler
-  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::VotesSyncPacket;
+  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::VotesBundlePacket;
 };
 
 class DummyGetDagSyncPacketHandler : public DummyPacketHandler {
@@ -366,11 +366,11 @@ TEST_F(TarcapTpTest, block_free_packets) {
       tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::GetNextVotesSyncPacket, {})).value();
 
   const auto packet16_pbft_next_votes_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotesSyncPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotesBundlePacket, {})).value();
 
   size_t packets_count = 0;
   const auto packet17_pbft_next_votes_id = packets_count =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotesSyncPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotesBundlePacket, {})).value();
 
   tp.startProcessing();
 

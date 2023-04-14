@@ -22,7 +22,7 @@ class VotesSyncPacketHandler final : public ExtVotesPacketHandler {
                             const std::optional<dev::p2p::NodeID>& exclude_node = {});
 
   // Packet type that is processed by this handler
-  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::VotesSyncPacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::VotesBundlePacket;
 
  private:
   void validatePacketRlpFormat(const PacketData& packet_data) const override;

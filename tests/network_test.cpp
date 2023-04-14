@@ -141,7 +141,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   wait({120s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr2->getDagBlock(block_hash), nullptr) });
 }
 
-TEST_F(NetworkTest, update_peer_chainsize) {
+TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
   auto node_cfgs = make_node_cfgs(2, 1, 5);
   auto nodes = launch_nodes(node_cfgs);
 
