@@ -274,9 +274,10 @@ class FinalChainImpl final : public FinalChain {
       db_->compactColumn(DB::Columns::final_chain_blk_hash_by_number);
       db_->compactColumn(DB::Columns::final_chain_blk_number_by_hash);
 
-      boost::asio::post(prune_thread_, [this, last_block_to_keep, state_root_to_prune]() {
-        state_api_.prune(last_block_to_keep->state_root, state_root_to_prune, last_block_to_keep->number);
-      });
+      boost::asio::post(
+          prune_thread_,
+          [this, to_keep = std::move(last_block_to_keep->state_root), to_prune = std::move(state_root_to_prune),
+           number = last_block_to_keep->number]() { state_api_.prune(to_keep, to_prune, number); });
     }
   }
 
