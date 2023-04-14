@@ -20,6 +20,10 @@ class Vote {
   Vote() = default;
   Vote(secret_t const& node_sk, VrfPbftSortition vrf_sortition, blk_hash_t const& blockhash);
 
+  // Ctor for optimized rlp vote objects - only signature and vrf proof are in the rlp
+  explicit Vote(const blk_hash_t& block_hash, PbftPeriod period, PbftRound round, PbftStep step, dev::RLP const& rlp);
+
+  // Ctors for full rlp vote objects - all data are encoded in the rlp
   explicit Vote(dev::RLP const& rlp);
   explicit Vote(bytes const& rlp);
   bool operator==(Vote const& other) const { return rlp() == other.rlp(); }
@@ -115,6 +119,14 @@ class Vote {
    * @return bytes of RLP stream
    */
   bytes rlp(bool inc_sig = true, bool inc_weight = false) const;
+
+  /**
+   * @brief Optimed Recursive Length Prefix
+   * @note Encode only vote's signature and vrf proof into the rlp
+   *
+   * @return bytes of RLP stream
+   */
+  bytes optimizedRlp() const;
 
   /**
    * @brief Verify vote

@@ -28,12 +28,14 @@ void VotesSyncPacketHandler::validatePacketRlpFormat([[maybe_unused]] const Pack
 void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
-  const auto votes_bundle_voted_block = packet_data.rlp_[0].toHash<blk_hash_t>();
+  const auto votes_bundle_block_hash = packet_data.rlp_[0].toHash<blk_hash_t>();
   const auto votes_bundle_pbft_period = packet_data.rlp_[1].toInt<PbftPeriod>();
   const auto votes_bundle_pbft_round = packet_data.rlp_[2].toInt<PbftRound>();
   const auto votes_bundle_votes_step = packet_data.rlp_[3].toInt<PbftStep>();
-  // TODO: special ctor for vote from optimized rlp
-  const auto &reference_vote = std::make_shared<Vote>(packet_data.rlp_[4][0]);
+
+  const auto &reference_vote =
+      std::make_shared<Vote>(votes_bundle_block_hash, votes_bundle_pbft_period, votes_bundle_pbft_round,
+                             votes_bundle_votes_step, packet_data.rlp_[4][0]);
   const auto votes_bundle_votes_type = reference_vote->getType();
 
   // Votes sync bundles are allowed to cotain only votes bundles of the same type, period, round and step so if first
@@ -56,8 +58,8 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
 
   std::vector<std::shared_ptr<Vote>> votes;
   for (const auto vote_rlp : packet_data.rlp_[4]) {
-    // TODO: special ctor for vote from optimized rlp
-    auto vote = std::make_shared<Vote>(vote_rlp);
+    auto vote = std::make_shared<Vote>(votes_bundle_block_hash, votes_bundle_pbft_period, votes_bundle_pbft_round,
+                                       votes_bundle_votes_step, vote_rlp);
     peer->markVoteAsKnown(vote->getHash());
 
     // Do not process vote that has already been validated
@@ -67,9 +69,9 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
     }
 
     // Votes bundles can contain votes only for 1 specific block hash
-    if (vote->getBlockHash() != votes_bundle_voted_block) {
+    if (vote->getBlockHash() != votes_bundle_block_hash) {
       // we see different voted value, so bundle is invalid
-      LOG(log_er_) << "Received votes bundle with unmatched voted values(" << votes_bundle_voted_block << ", "
+      LOG(log_er_) << "Received votes bundle with unmatched voted values(" << votes_bundle_block_hash << ", "
                    << vote->getBlockHash() << ") from " << packet_data.from_node_id_
                    << ". The peer may be a malicious player, will be disconnected";
       disconnect(packet_data.from_node_id_, dev::p2p::UserReason);

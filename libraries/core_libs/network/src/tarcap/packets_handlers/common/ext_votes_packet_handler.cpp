@@ -205,7 +205,7 @@ void ExtVotesPacketHandler::sendPbftVotesBundle(const std::shared_ptr<TaraxaPeer
         return;
       }
 
-      packet_rlp.appendRaw(vote->rlp(true, false));
+      packet_rlp.appendRaw(vote->optimizedRlp());
       LOG(log_dg_) << "Send vote " << vote->getHash() << " to peer " << peer->getId();
     }
 
