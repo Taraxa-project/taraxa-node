@@ -92,20 +92,6 @@ struct Account {
   h256 const& storage_root_eth() const;
 } const ZeroAccount;
 
-struct TrieProof {
-  bytes value;
-  std::vector<bytes> nodes;
-
-  HAS_RLP_FIELDS
-};
-
-struct Proof {
-  TrieProof account_proof;
-  std::vector<TrieProof> storage_proofs;
-
-  HAS_RLP_FIELDS
-};
-
 struct StateDescriptor {
   EthBlockNumber blk_num = 0;
   h256 state_root;
