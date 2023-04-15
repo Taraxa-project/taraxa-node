@@ -6,6 +6,7 @@
 #include "pbft/pbft_block.hpp"
 #include "transaction/transaction.hpp"
 #include "vote/vote.hpp"
+#include "vote/votes_bundle_rlp.hpp"
 
 namespace taraxa {
 
@@ -18,9 +19,7 @@ PeriodData::PeriodData(std::shared_ptr<PbftBlock> pbft_blk,
 PeriodData::PeriodData(dev::RLP&& rlp) {
   auto it = rlp.begin();
   pbft_blk = std::make_shared<PbftBlock>(*it++);
-  for (auto const vote_rlp : *it++) {
-    previous_block_cert_votes.emplace_back(std::make_shared<Vote>(vote_rlp));
-  }
+  previous_block_cert_votes = decodeVotesBundleRlp(*it++);
 
   for (auto const dag_block_rlp : *it++) {
     dag_blocks.emplace_back(dag_block_rlp);
@@ -36,18 +35,18 @@ PeriodData::PeriodData(bytes const& all_rlp) : PeriodData(dev::RLP(all_rlp)) {}
 bytes PeriodData::rlp() const {
   dev::RLPStream s(kRlpItemCount);
   s.appendRaw(pbft_blk->rlp(true));
-  s.appendList(previous_block_cert_votes.size());
-  for (auto const& v : previous_block_cert_votes) {
-    s.appendRaw(v->rlp(true));
-  }
+  s.appendRaw(encodeVotesBundleRlp(previous_block_cert_votes, false));
+
   s.appendList(dag_blocks.size());
   for (auto const& b : dag_blocks) {
     s.appendRaw(b.rlp(true));
   }
+
   s.appendList(transactions.size());
   for (auto const& t : transactions) {
     s.appendRaw(t->rlp());
   }
+
   return s.invalidate();
 }
 

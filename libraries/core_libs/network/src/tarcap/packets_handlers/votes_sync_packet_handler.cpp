@@ -1,6 +1,7 @@
 #include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
 
 #include "pbft/pbft_manager.hpp"
+#include "vote/votes_bundle_rlp.hpp"
 #include "vote_manager/vote_manager.hpp"
 
 namespace taraxa::network::tarcap {
@@ -15,13 +16,13 @@ VotesSyncPacketHandler::VotesSyncPacketHandler(const FullNodeConfig &conf, std::
 
 void VotesSyncPacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketData &packet_data) const {
   auto items = packet_data.rlp_.itemCount();
-  if (items != kVotesBundlePacketSize) {
-    throw InvalidRlpItemsCountException(packet_data.type_str_, items, kVotesBundlePacketSize);
+  if (items != kVotesBundleRlpSize) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, items, kVotesBundleRlpSize);
   }
 
-  auto votes_count = packet_data.rlp_[kVotesBundlePacketSize - 1].itemCount();
-  if (votes_count == 0 || votes_count > kMaxVotesInBundle) {
-    throw InvalidRlpItemsCountException(packet_data.type_str_, items, kMaxVotesInBundle);
+  auto votes_count = packet_data.rlp_[kVotesBundleRlpSize - 1].itemCount();
+  if (votes_count == 0 || votes_count > kMaxVotesInBundleRlp) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, items, kMaxVotesInBundleRlp);
   }
 }
 
@@ -66,37 +67,6 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
     if (vote_mgr_->voteAlreadyValidated(vote->getHash())) {
       LOG(log_dg_) << "Received vote " << vote->getHash() << " has already been validated";
       continue;
-    }
-
-    // Votes bundles can contain votes only for 1 specific block hash
-    if (vote->getBlockHash() != votes_bundle_block_hash) {
-      // we see different voted value, so bundle is invalid
-      LOG(log_er_) << "Received votes bundle with unmatched voted values(" << votes_bundle_block_hash << ", "
-                   << vote->getBlockHash() << ") from " << packet_data.from_node_id_
-                   << ". The peer may be a malicious player, will be disconnected";
-      disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
-      return;
-    }
-
-    if (vote->getPeriod() != votes_bundle_pbft_period) {
-      LOG(log_er_) << "Received votes bundle with unmatched periods from " << packet_data.from_node_id_
-                   << ". The peer may be a malicious player, will be disconnected";
-      disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
-      return;
-    }
-
-    if (vote->getRound() != votes_bundle_pbft_round) {
-      LOG(log_er_) << "Received votes bundle with unmatched rounds from " << packet_data.from_node_id_
-                   << ". The peer may be a malicious player, will be disconnected";
-      disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
-      return;
-    }
-
-    if (vote->getStep() != votes_bundle_votes_step) {
-      LOG(log_er_) << "Received votes bundle with unmatched step from " << packet_data.from_node_id_
-                   << ". The peer may be a malicious player, will be disconnected";
-      disconnect(packet_data.from_node_id_, dev::p2p::UserReason);
-      return;
     }
 
     LOG(log_dg_) << "Received sync vote " << vote->getHash().abridged();

@@ -2,6 +2,7 @@
 
 #include "pbft/pbft_manager.hpp"
 #include "vote/vote.hpp"
+#include "vote/votes_bundle_rlp.hpp"
 #include "vote_manager/vote_manager.hpp"
 
 namespace taraxa::network::tarcap {
@@ -176,47 +177,43 @@ void ExtVotesPacketHandler::sendPbftVotesBundle(const std::shared_ptr<TaraxaPeer
     return;
   }
 
-  const auto &reference_block_hash = votes.back()->getBlockHash();
-  const auto reference_period = votes.back()->getPeriod();
-  const auto reference_round = votes.back()->getRound();
-  const auto reference_step = votes.back()->getStep();
-
-  size_t index = 0;
-  while (index < votes.size()) {
-    const size_t votes_count = std::min(static_cast<size_t>(kMaxVotesInBundle), votes.size() - index);
-
-    dev::RLPStream packet_rlp(kVotesBundlePacketSize);
-    packet_rlp.append(reference_block_hash);
-    packet_rlp.append(reference_period);
-    packet_rlp.append(reference_round);
-    packet_rlp.append(reference_step);
-    packet_rlp.appendList(votes_count);
-
-    for (auto i = index; i < index + votes_count; i++) {
-      const auto &vote = votes[i];
-      if (vote->getBlockHash() != reference_block_hash || vote->getPeriod() != reference_period ||
-          vote->getRound() != reference_round || vote->getStep() != reference_step) {
-        LOG(log_er_) << "Invalid vote " << vote->getHash() << " (voted_block, period, round, step)->("
-                     << vote->getBlockHash() << ", " << vote->getPeriod() << ", " << vote->getRound() << ", "
-                     << vote->getStep() << ") != reference vote (voted_block, period, round, step)->"
-                     << reference_block_hash << ", " << reference_period << ", " << reference_round << ", "
-                     << reference_step << ")";
-        assert(false);
-        return;
-      }
-
-      packet_rlp.appendRaw(vote->optimizedRlp());
-      LOG(log_dg_) << "Send vote " << vote->getHash() << " to peer " << peer->getId();
+  auto sendVotes = [this, &peer](std::vector<std::shared_ptr<Vote>> &&votes) {
+    auto votes_bytes = encodeVotesBundleRlp(std::move(votes), false);
+    if (votes_bytes.empty()) {
+      LOG(log_er_) << "Unable to send VotesBundle rlp";
+      return;
     }
 
-    if (sealAndSend(peer->getId(), SubprotocolPacketType::VotesBundlePacket, std::move(packet_rlp))) {
-      LOG(log_dg_) << votes_count << " PBFT votes to were sent to " << peer->getId();
-      for (auto i = index; i < index + votes_count; i++) {
-        peer->markVoteAsKnown(votes[i]->getHash());
+    dev::RLPStream votes_rlp_stream;
+    votes_rlp_stream.appendRaw(votes_bytes);
+
+    if (sealAndSend(peer->getId(), SubprotocolPacketType::VotesBundlePacket, std::move(votes_rlp_stream))) {
+      LOG(log_dg_) << " Votes bundle with " << votes.size() << " sent to " << peer->getId();
+      for (const auto &vote : votes) {
+        peer->markVoteAsKnown(vote->getHash());
       }
     }
+  };
 
-    index += votes_count;
+  if (votes.size() <= kMaxVotesInBundleRlp) {
+    sendVotes(std::move(votes));
+    return;
+  } else {
+    // Need to split votes into multiple packets
+    size_t index = 0;
+    while (index < votes.size()) {
+      const size_t votes_count = std::min(kMaxVotesInBundleRlp, votes.size() - index);
+
+      const auto begin_it = std::next(votes.begin(), index);
+      const auto end_it = std::next(begin_it, votes_count);
+
+      std::vector<std::shared_ptr<Vote>> votes_sub_vector;
+      std::move(begin_it, end_it, std::back_inserter(votes_sub_vector));
+
+      sendVotes(std::move(votes_sub_vector));
+
+      index += votes_count;
+    }
   }
 }
 

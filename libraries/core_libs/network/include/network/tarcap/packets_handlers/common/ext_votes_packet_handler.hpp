@@ -73,8 +73,7 @@ class ExtVotesPacketHandler : public PacketHandler {
   bool validateVoteAndBlock(const std::shared_ptr<Vote>& vote, const std::shared_ptr<PbftBlock>& pbft_block) const;
 
  protected:
-  constexpr static size_t kVotesBundlePacketSize{5};
-  constexpr static size_t kMaxVotesInBundle{1000};
+  constexpr static size_t kMaxVotesInBundleRlp{1000};
   constexpr static std::chrono::seconds kSyncRequestInterval = std::chrono::seconds(10);
 
   mutable std::chrono::system_clock::time_point last_votes_sync_request_time_;

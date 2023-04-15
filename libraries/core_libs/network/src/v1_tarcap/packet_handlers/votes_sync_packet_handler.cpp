@@ -16,8 +16,8 @@ VotesSyncPacketHandler::VotesSyncPacketHandler(const FullNodeConfig &conf,
 
 void VotesSyncPacketHandler::validatePacketRlpFormat([[maybe_unused]] const tarcap::PacketData &packet_data) const {
   auto items = packet_data.rlp_.itemCount();
-  if (items == 0 || items > kMaxVotesInBundle) {
-    throw InvalidRlpItemsCountException(packet_data.type_str_, items, kMaxVotesInBundle);
+  if (items == 0 || items > kMaxVotesInBundleRlp) {
+    throw InvalidRlpItemsCountException(packet_data.type_str_, items, kMaxVotesInBundleRlp);
   }
 }
 

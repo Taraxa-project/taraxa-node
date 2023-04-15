@@ -24,11 +24,10 @@ void ExtVotesPacketHandler::sendPbftVotesBundle(const std::shared_ptr<tarcap::Ta
 
   size_t index = 0;
   while (index < votes.size()) {
-    const size_t count = std::min(static_cast<size_t>(kMaxVotesInBundle), votes.size() - index);
+    const size_t count = std::min(static_cast<size_t>(kMaxVotesInBundleRlp), votes.size() - index);
     dev::RLPStream s(count);
     for (auto i = index; i < index + count; i++) {
       const auto &vote = votes[i];
-      // TODO: special ctor for optimized votes rlp
       s.appendRaw(vote->rlp(true, false));
       LOG(log_dg_) << "Send vote " << vote->getHash() << " to peer " << peer->getId();
     }

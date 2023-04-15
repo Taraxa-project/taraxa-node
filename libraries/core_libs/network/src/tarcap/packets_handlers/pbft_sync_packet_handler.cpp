@@ -5,6 +5,7 @@
 #include "pbft/pbft_manager.hpp"
 #include "transaction/transaction_manager.hpp"
 #include "vote/vote.hpp"
+#include "vote/votes_bundle_rlp.hpp"
 
 namespace taraxa::network::tarcap {
 
@@ -65,11 +66,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
 
   std::vector<std::shared_ptr<Vote>> current_block_cert_votes;
   if (pbft_chain_synced) {
-    const auto cert_votes_count = packet_data.rlp_[2].itemCount();
-    current_block_cert_votes.reserve(cert_votes_count);
-    for (size_t i = 0; i < cert_votes_count; i++) {
-      current_block_cert_votes.emplace_back(std::make_shared<Vote>(packet_data.rlp_[2][i].data().toBytes()));
-    }
+    current_block_cert_votes = decodeVotesBundleRlp(packet_data.rlp_[2]);
   }
   const auto pbft_blk_hash = period_data.pbft_blk->getBlockHash();
 

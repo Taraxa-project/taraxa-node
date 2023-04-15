@@ -4,6 +4,7 @@
 #include "pbft/pbft_chain.hpp"
 #include "storage/storage.hpp"
 #include "vote/vote.hpp"
+#include "vote/votes_bundle_rlp.hpp"
 #include "vote_manager/vote_manager.hpp"
 
 namespace taraxa::network::tarcap {
@@ -84,11 +85,9 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
       s << last_block;
       s.appendRaw(data);
       // Latest finalized block cert votes are saved in db as reward votes for new blocks
-      const auto votes = vote_mgr_->getRewardVotes();
-      s.appendList(votes.size());
-      for (const auto &vote : votes) {
-        s.appendRaw(vote->rlp(true));
-      }
+      const auto reward_votes = vote_mgr_->getRewardVotes();
+      assert(!reward_votes.empty());
+      s.appendRaw(encodeVotesBundleRlp(reward_votes, false));
     } else {
       s.appendList(2);
       s << last_block;
