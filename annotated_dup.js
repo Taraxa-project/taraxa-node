@@ -246,6 +246,14 @@ var annotated_dup =
         [ "Tracing", "group___final_chain.html#structtaraxa_1_1state__api_1_1_tracing", "group___final_chain_structtaraxa_1_1state__api_1_1_tracing" ],
         [ "ErrorHandler", "classtaraxa_1_1state__api_1_1_error_handler.html", "classtaraxa_1_1state__api_1_1_error_handler" ]
       ] ],
+      [ "storage", "namespacetaraxa_1_1storage.html", [
+        [ "migration", "namespacetaraxa_1_1storage_1_1migration.html", [
+          [ "Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", "classtaraxa_1_1storage_1_1migration_1_1_base" ],
+          [ "Manager", "classtaraxa_1_1storage_1_1migration_1_1_manager.html", "classtaraxa_1_1storage_1_1migration_1_1_manager" ],
+          [ "TransactionHashes", "classtaraxa_1_1storage_1_1migration_1_1_transaction_hashes.html", "classtaraxa_1_1storage_1_1migration_1_1_transaction_hashes" ],
+          [ "OldTransactionsHashes", "structtaraxa_1_1storage_1_1migration_1_1_old_transactions_hashes.html", "structtaraxa_1_1storage_1_1migration_1_1_old_transactions_hashes" ]
+        ] ]
+      ] ],
       [ "util", "namespacetaraxa_1_1util.html", [
         [ "event", "namespacetaraxa_1_1util_1_1event.html", [
           [ "EventEmitter", "structtaraxa_1_1util_1_1event_1_1_event_emitter.html", "structtaraxa_1_1util_1_1event_1_1_event_emitter" ],

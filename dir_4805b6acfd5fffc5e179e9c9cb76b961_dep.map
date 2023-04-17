@@ -9,7 +9,7 @@
 <area shape="rect" id="node12" href="dir_bb5b5f24c752375767f5169004c876a2.html" title="aleth" alt="" coords="480,447,552,495"/>
 <area shape="rect" id="edge31-headlabel" href="dir_000029_000002.html" title="6" alt="" coords="568,451,577,466"/>
 <area shape="rect" id="node13" href="dir_f7551ecb51caaf87735ee43ce07dac37.html" title="logger" alt="" coords="604,255,676,303"/>
-<area shape="rect" id="edge32-headlabel" href="dir_000029_000080.html" title="4" alt="" coords="664,235,673,250"/>
+<area shape="rect" id="edge32-headlabel" href="dir_000029_000082.html" title="4" alt="" coords="664,235,673,250"/>
 <area shape="rect" id="node3" href="dir_3c2da5c6261518e22fd2fde9cf837ee2.html" title="dag" alt="" coords="429,63,501,111"/>
 <area shape="rect" id="edge1-headlabel" href="dir_000039_000029.html" title="13" alt="" coords="631,152,648,167"/>
 <area shape="rect" id="edge2-headlabel" href="dir_000039_000022.html" title="1" alt="" coords="587,323,596,338"/>
@@ -32,7 +32,7 @@
 <area shape="rect" id="node7" href="dir_178de5eb6e7ee29929dd1be2bca94f4e.html" title="transaction" alt="" coords="622,63,717,111"/>
 <area shape="rect" id="edge21-headlabel" href="dir_000043_000029.html" title="5" alt="" coords="685,132,694,146"/>
 <area shape="rect" id="edge22-headlabel" href="dir_000043_000048.html" title="1" alt="" coords="1003,267,1013,282"/>
-<area shape="rect" id="edge23-headlabel" href="dir_000043_000080.html" title="1" alt="" coords="637,228,647,243"/>
+<area shape="rect" id="edge23-headlabel" href="dir_000043_000082.html" title="1" alt="" coords="637,228,647,243"/>
 <area shape="rect" id="node8" href="dir_09dd6a089b30e1a573a85a200966bea6.html" title="vote_manager" alt="" coords="154,63,270,111"/>
 <area shape="rect" id="edge33-headlabel" href="dir_000044_000029.html" title="2" alt="" coords="632,163,642,177"/>
 <area shape="rect" id="edge34-headlabel" href="dir_000044_000009.html" title="3" alt="" coords="825,140,834,155"/>
@@ -42,10 +42,10 @@
 <area shape="rect" id="edge14-headlabel" href="dir_000009_000022.html" title="26" alt="" coords="651,341,668,355"/>
 <area shape="rect" id="edge15-headlabel" href="dir_000009_000048.html" title="16" alt="" coords="922,228,940,242"/>
 <area shape="rect" id="edge16-headlabel" href="dir_000009_000002.html" title="50" alt="" coords="563,456,580,471"/>
-<area shape="rect" id="edge17-headlabel" href="dir_000009_000080.html" title="6" alt="" coords="691,268,700,283"/>
+<area shape="rect" id="edge17-headlabel" href="dir_000009_000082.html" title="6" alt="" coords="691,268,700,283"/>
 <area shape="rect" id="edge18-headlabel" href="dir_000048_000022.html" title="12" alt="" coords="653,359,671,374"/>
 <area shape="rect" id="edge19-headlabel" href="dir_000048_000002.html" title="17" alt="" coords="562,466,580,481"/>
-<area shape="rect" id="edge12-headlabel" href="dir_000080_000022.html" title="3" alt="" coords="622,330,631,344"/>
+<area shape="rect" id="edge12-headlabel" href="dir_000082_000022.html" title="3" alt="" coords="622,330,631,344"/>
 <area shape="rect" id="clust2" href="dir_4805b6acfd5fffc5e179e9c9cb76b961.html" alt="" coords="27,52,824,121"/>
 <area shape="rect" id="clust1" href="dir_cfe3fd7e5f3bdd0f5dfa2b6860f93e94.html" title="consensus" alt="" coords="16,16,835,217"/>
 </map>

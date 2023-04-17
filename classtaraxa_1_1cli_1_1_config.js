@@ -38,7 +38,6 @@ var classtaraxa_1_1cli_1_1_config =
     [ "PORT", "classtaraxa_1_1cli_1_1_config.html#a983d5e7a2cfd99b161b20f0136fe0510", null ],
     [ "PUBLIC_IP", "classtaraxa_1_1cli_1_1_config.html#aac8aa3b99f73aa16fac59fa9990dd30a", null ],
     [ "REBUILD_DB", "classtaraxa_1_1cli_1_1_config.html#a49b02410c933fd30782ed56128b2d8d5", null ],
-    [ "REBUILD_DB_COLUMNS", "classtaraxa_1_1cli_1_1_config.html#a8a141f341e460ea81774eda03ec94986", null ],
     [ "REBUILD_DB_PERIOD", "classtaraxa_1_1cli_1_1_config.html#a055baabafb12296fe6274e8fd075a0dd", null ],
     [ "REBUILD_NETWORK", "classtaraxa_1_1cli_1_1_config.html#a6f9c5fc5b5fe88a2a6e71fe4e589caf6", null ],
     [ "REVERT_TO_PERIOD", "classtaraxa_1_1cli_1_1_config.html#ae99c9a4080b195c2922f919bff8101f2", null ],

@@ -9,6 +9,9 @@ var hierarchy =
     ] ],
     [ "graphql::taraxa::Account", "classgraphql_1_1taraxa_1_1_account.html", null ],
     [ "taraxa::state_api::Account", "group___final_chain.html#structtaraxa_1_1state__api_1_1_account", null ],
+    [ "taraxa::storage::migration::Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", [
+      [ "taraxa::storage::migration::TransactionHashes", "classtaraxa_1_1storage_1_1migration_1_1_transaction_hashes.html", null ]
+    ] ],
     [ "graphql::taraxa::Block", "classgraphql_1_1taraxa_1_1_block.html", null ],
     [ "taraxa::final_chain::BlockHeader", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header", null ],
     [ "dev::p2p::Capability", "structdev_1_1p2p_1_1_capability.html", [
@@ -199,6 +202,7 @@ var hierarchy =
     [ "taraxa::final_chain::LogEntry", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry", null ],
     [ "taraxa::net::rpc::eth::LogFilter", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html", null ],
     [ "taraxa::state_api::LogRecord", "group___final_chain.html#structtaraxa_1_1state__api_1_1_log_record", null ],
+    [ "taraxa::storage::migration::Manager", "classtaraxa_1_1storage_1_1migration_1_1_manager.html", null ],
     [ "taraxa::MapByBlockCache< Key, Value >", "classtaraxa_1_1_map_by_block_cache.html", null ],
     [ "taraxa::MapByBlockCache< dev::FixedHash, std::optional< const taraxa::state_api::Account > >", "classtaraxa_1_1_map_by_block_cache.html", null ],
     [ "taraxa::MapByBlockCache< dev::FixedHash, uint64_t >", "classtaraxa_1_1_map_by_block_cache.html", null ],
@@ -235,6 +239,7 @@ var hierarchy =
       [ "taraxa::network::tarcap::TaraxaPeer", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html", null ]
     ] ],
     [ "dev::Notified< N >", "classdev_1_1_notified.html", null ],
+    [ "taraxa::storage::migration::OldTransactionsHashes", "structtaraxa_1_1storage_1_1migration_1_1_old_transactions_hashes.html", null ],
     [ "taraxa::state_api::Opts", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts", null ],
     [ "taraxa::state_api::OptsDB", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts_d_b", null ],
     [ "taraxa::logger::Config::OutputConfig", "structtaraxa_1_1logger_1_1_config_1_1_output_config.html", null ],
