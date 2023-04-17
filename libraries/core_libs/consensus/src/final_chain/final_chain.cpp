@@ -20,11 +20,9 @@ class FinalChainImpl final : public FinalChain {
   const bool kLightNode = false;
   const uint64_t kLightNodeHistory = 0;
   const uint32_t kMaxLevelsPerPeriod;
-  const uint64_t kLightNodePruneOffset = 0;
 
   // It is not prepared to use more then 1 thread. Examine it if you want to change threads count
   boost::asio::thread_pool executor_thread_{1};
-  boost::asio::thread_pool prune_thread_{1};
 
   std::atomic<uint64_t> num_executed_dag_blk_ = 0;
   std::atomic<uint64_t> num_executed_trx_ = 0;
@@ -61,10 +59,6 @@ class FinalChainImpl final : public FinalChain {
         kLightNode(config.is_light_node),
         kLightNodeHistory(config.light_node_history),
         kMaxLevelsPerPeriod(config.max_levels_per_period),
-        // This will provide a speific random offset based on node address for each node to prevent all light nodes
-        // performing prune at the same block height
-        kLightNodePruneOffset((*reinterpret_cast<uint32_t*>(node_addr.asBytes().data())) %
-                              std::max(config.light_node_history, (uint64_t)1)),
         block_headers_cache_(config.final_chain_cache_in_blocks,
                              [this](uint64_t blk) { return get_block_header(blk); }),
         block_hashes_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return get_block_hash(blk); }),
@@ -125,12 +119,14 @@ class FinalChainImpl final : public FinalChain {
     }
 
     delegation_delay_ = config.genesis.state.dpos.delegation_delay;
+    if (config.db_config.prune_state_db && last_blk_num.has_value() && *last_blk_num > kLightNodeHistory) {
+      LOG(log_si_) << "Pruning state db, this might take several minutes";
+      prune(*last_blk_num - kLightNodeHistory);
+      LOG(log_si_) << "Pruning state db complete";
+    }
   }
 
-  void stop() override {
-    executor_thread_.join();
-    prune_thread_.join();
-  }
+  void stop() override { executor_thread_.join(); }
 
   std::future<std::shared_ptr<const FinalizationResult>> finalize(
       PeriodData&& new_blk, std::vector<h256>&& finalized_dag_blk_hashes,
@@ -246,13 +242,6 @@ class FinalChainImpl final : public FinalChain {
       state_api_.create_snapshot(blk_header->number);
     }
 
-    if (kLightNode) {
-      // Actual history size will be between 100% and 105% of light_node_history_ to avoid deleting on every period
-      if ((((blk_header->number + kLightNodePruneOffset) % (std::max(kLightNodeHistory / 20, (uint64_t)1)) == 0)) &&
-          blk_header->number > kLightNodeHistory) {
-        prune(blk_header->number - kLightNodeHistory);
-      }
-    }
     return result;
   }
 
@@ -274,10 +263,7 @@ class FinalChainImpl final : public FinalChain {
       db_->compactColumn(DB::Columns::final_chain_blk_hash_by_number);
       db_->compactColumn(DB::Columns::final_chain_blk_number_by_hash);
 
-      boost::asio::post(
-          prune_thread_,
-          [this, to_keep = std::move(last_block_to_keep->state_root), to_prune = std::move(state_root_to_prune),
-           number = last_block_to_keep->number]() { state_api_.prune(to_keep, to_prune, number); });
+      state_api_.prune(last_block_to_keep->state_root, state_root_to_prune, last_block_to_keep->number);
     }
   }
 

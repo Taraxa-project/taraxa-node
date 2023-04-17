@@ -38,6 +38,8 @@ Config::Config(int argc, const char* argv[]) {
   bool destroy_db = false;
   bool rebuild_network = false;
   bool rebuild_db = false;
+  bool prune_state_db = false;
+
   bool light_node = false;
   bool version = false;
   uint64_t rebuild_db_period = 0;
@@ -129,6 +131,7 @@ Config::Config(int argc, const char* argv[]) {
                                      "Enables Test JsonRPC. Disabled by default");
   node_command_options.add_options()(ENABLE_DEBUG, bpo::bool_switch(&enable_debug),
                                      "Enables Debug RPC interface. Disabled by default");
+  node_command_options.add_options()(PRUNE_STATE_DB, bpo::bool_switch(&prune_state_db), "Prune state_db");
 
   allowed_options.add(main_options);
 
@@ -261,6 +264,7 @@ Config::Config(int argc, const char* argv[]) {
     }
     node_config_.db_config.db_revert_to_period = revert_to_period;
     node_config_.db_config.rebuild_db = rebuild_db;
+    node_config_.db_config.prune_state_db = prune_state_db;
     node_config_.db_config.rebuild_db_period = rebuild_db_period;
 
     node_config_.enable_test_rpc = enable_test_rpc;
