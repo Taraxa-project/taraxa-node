@@ -48,6 +48,7 @@ endif()
 set(CMAKE_CXX_FLAGS_RELEASE "-O3")
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "-g -O2")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
 
 # Enable LTO
 option(TARAXA_ENABLE_LTO "Build taraxad with LTO (ON or OFF)" OFF)
@@ -161,8 +162,15 @@ else()
 
     include(${CMAKE_BINARY_DIR}/conan.cmake)
 
-    conan_cmake_run(CONANFILE conanfile.py BUILD_TYPE ${CMAKE_BUILD_TYPE} BUILD missing
-                    BASIC_SETUP CMAKE_TARGETS KEEP_RPATHS PROFILE ${CONAN_PROFILE})
+    conan_cmake_run(CONANFILE conanfile.py 
+                    BUILD_TYPE ${CMAKE_BUILD_TYPE} 
+                    CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
+                    BASIC_SETUP 
+                    CMAKE_TARGETS 
+                    KEEP_RPATHS 
+                    PROFILE ${CONAN_PROFILE}
+                    BUILD missing
+                    )
     set(CONAN_EXPORTED true CACHE BOOL "Is conan already run on the project")
 endif()
 
@@ -202,6 +210,11 @@ include(CMakeModules/git_info.cmake)
 # find and include system libraries used in submodues and libraries
 find_package(GMP)
 find_package(MPFR)
+
+include(ExternalProject)
+# use JSONCPP library from conan for JSONRPCCPP build 
+set(JSONCPP_INCLUDE_DIR ${CONAN_INCLUDE_DIRS_JSONCPP})
+include(ProjectJSONRPCCPP)
 
 # Add sub-directories cmakes
 add_subdirectory(submodules)

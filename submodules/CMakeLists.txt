@@ -27,8 +27,6 @@ add_library(
 )
 target_include_directories(ethash PUBLIC ${include_dir})
 
-include(ExternalProject)
-
 # prefix of build dir
 set(BUILD_DIR_PREFIX "${CMAKE_BINARY_DIR}/deps")
 ## add not cmake target
