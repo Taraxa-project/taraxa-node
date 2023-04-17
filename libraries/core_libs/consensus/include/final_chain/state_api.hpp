@@ -34,8 +34,6 @@ class StateAPI {
 
   void update_state_config(const Config& new_config);
 
-  Proof prove(EthBlockNumber blk_num, const root_t& state_root, const addr_t& addr,
-              const std::vector<h256>& keys) const;
   std::optional<Account> get_account(EthBlockNumber blk_num, const addr_t& addr) const;
   u256 get_account_storage(EthBlockNumber blk_num, const addr_t& addr, const u256& key) const;
   bytes get_code_by_address(EthBlockNumber blk_num, const addr_t& addr) const;

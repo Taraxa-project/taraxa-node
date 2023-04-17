@@ -142,11 +142,6 @@ void StateAPI::update_state_config(const Config& new_config) {
   err_h.check();
 }
 
-Proof StateAPI::prove(EthBlockNumber blk_num, const root_t& state_root, const addr_t& addr,
-                      const std::vector<h256>& keys) const {
-  return c_method_args_rlp<Proof, from_rlp, taraxa_evm_state_api_prove>(this_c_, blk_num, state_root, addr, keys);
-}
-
 std::optional<Account> StateAPI::get_account(EthBlockNumber blk_num, const addr_t& addr) const {
   return c_method_args_rlp<std::optional<Account>, from_rlp, taraxa_evm_state_api_get_account>(this_c_, blk_num, addr);
 }
