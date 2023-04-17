@@ -90,6 +90,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
     // do not change/move
     COLUMN(default_column);
+    // migrations
+    COLUMN(migrations);
     // Contains full data for an executed PBFT block including PBFT block, cert votes, dag blocks and transactions
     COLUMN_W_COMP(period_data, getIntComparator<PbftPeriod>());
     COLUMN(genesis);
@@ -141,6 +143,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   const uint32_t kDbSnapshotsMaxCount = 0;
   std::set<PbftPeriod> snapshots_;
 
+  uint32_t kMajorVersion_;
   bool minor_version_changed_ = false;
 
   auto handle(Column const& col) const { return handles_[col.ordinal_]; }
@@ -150,7 +153,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
  public:
   explicit DbStorage(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block = 0, uint32_t max_open_files = 0,
                      uint32_t db_max_snapshots = 0, PbftPeriod db_revert_to_period = 0, addr_t node_addr = addr_t(),
-                     bool rebuild = false, bool rebuild_columns = false);
+                     bool rebuild = false);
   ~DbStorage();
 
   DbStorage(const DbStorage&) = delete;
@@ -172,6 +175,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void loadSnapshots();
   void disableSnapshots();
   void enableSnapshots();
+
+  uint32_t getMajorVersion() const;
+  std::unique_ptr<rocksdb::Iterator> getColumnIterator(const Column& c);
 
   // Genesis
   void setGenesisHash(const h256& genesis_hash);

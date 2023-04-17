@@ -26,6 +26,7 @@
 #include "network/rpc/jsonrpc_http_processor.hpp"
 #include "network/rpc/jsonrpc_ws_server.hpp"
 #include "pbft/pbft_manager.hpp"
+#include "storage/migration/migration_manager.hpp"
 #include "transaction/gas_pricer.hpp"
 #include "transaction/transaction_manager.hpp"
 
@@ -62,11 +63,9 @@ void FullNode::init() {
                                             conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
                                             conf_.db_config.db_revert_to_period, node_addr, true);
     }
-
     db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.db_config.db_snapshot_each_n_pbft_block,
                                       conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
-                                      conf_.db_config.db_revert_to_period, node_addr, false,
-                                      conf_.db_config.rebuild_db_columns);
+                                      conf_.db_config.db_revert_to_period, node_addr, false);
 
     if (db_->hasMinorVersionChanged()) {
       LOG(log_si_) << "Minor DB version has changed. Rebuilding Db";
@@ -82,6 +81,8 @@ void FullNode::init() {
     if (db_->getDagBlocksCount() == 0) {
       db_->setGenesisHash(conf_.genesis.genesisHash());
     }
+
+    storage::migration::Manager(db_).applyAll();
   }
   LOG(log_nf_) << "DB initialized ...";
 
