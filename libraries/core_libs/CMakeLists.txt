@@ -47,7 +47,7 @@ target_link_libraries(core_libs PUBLIC
     taraxa-evm
     p2p
     metrics
-    CONAN_PKG::libjson-rpc-cpp
+    Jsonrpccpp
     CONAN_PKG::rocksdb
 # GraphQL
     cppgraphqlgen::graphqlservice
