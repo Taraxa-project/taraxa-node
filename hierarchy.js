@@ -278,7 +278,6 @@ var hierarchy =
     [ "taraxa::net::rpc::eth::placeholder_t", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1placeholder__t", null ],
     [ "taraxa::network::tarcap::PriorityQueue", "classtaraxa_1_1network_1_1tarcap_1_1_priority_queue.html", null ],
     [ "taraxa::PrometheusConfig", "namespacetaraxa.html#structtaraxa_1_1_prometheus_config", null ],
-    [ "taraxa::state_api::Proof", "group___final_chain.html#structtaraxa_1_1state__api_1_1_proof", null ],
     [ "taraxa::ProposedBlocks", "classtaraxa_1_1_proposed_blocks.html", null ],
     [ "graphql::taraxa::Query", "classgraphql_1_1taraxa_1_1_query.html", null ],
     [ "taraxa::util::range_view::RangeView< Element >", "structtaraxa_1_1util_1_1range__view_1_1_range_view.html", null ],
@@ -379,7 +378,6 @@ var hierarchy =
     [ "taraxa::TransactionQueue", "group___transaction.html#classtaraxa_1_1_transaction_queue", null ],
     [ "taraxa::final_chain::TransactionReceipt", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt", null ],
     [ "taraxa::net::rpc::eth::TransactionSkeleton", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_skeleton", null ],
-    [ "taraxa::state_api::TrieProof", "group___final_chain.html#structtaraxa_1_1state__api_1_1_trie_proof", null ],
     [ "dev::p2p::UDPDatagram", "classdev_1_1p2p_1_1_u_d_p_datagram.html", [
       [ "dev::p2p::RLPXDatagramFace", "structdev_1_1p2p_1_1_r_l_p_x_datagram_face.html", [
         [ "dev::p2p::DiscoveryDatagram", "structdev_1_1p2p_1_1_discovery_datagram.html", [

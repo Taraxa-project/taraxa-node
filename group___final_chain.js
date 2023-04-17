@@ -104,7 +104,6 @@ var group___final_chain =
       [ "get_staking_balance", "group___final_chain.html#a95c64474d9b590c0a57755f8a486a7d1", null ],
       [ "operator=", "group___final_chain.html#a0053d2c9e2c118c572681ca1055e500b", null ],
       [ "operator=", "group___final_chain.html#a2ef92fcd4156622aa3dfe52a9f0a4f12", null ],
-      [ "prove", "group___final_chain.html#af60d0e01cacc050ee5493c3332a5f7e8", null ],
       [ "prune", "group___final_chain.html#a9e4746f527401e367e02a462693853ae", null ],
       [ "trace_transaction", "group___final_chain.html#afaed7012133c07fc28c340fb7080509c", null ],
       [ "transition_state", "group___final_chain.html#a4fc5b10de077e2e5310d23978d3c9882", null ],
@@ -168,14 +167,6 @@ var group___final_chain =
       [ "code_size", "group___final_chain.html#aba2b5e89ccae051a42b7ac3d624760e6", null ],
       [ "nonce", "group___final_chain.html#a3af6e39dc224ec6a0a5235d112fd45d4", null ],
       [ "storage_root_hash", "group___final_chain.html#a2957c56a6f21565db24b76bee4ccc1d4", null ]
-    ] ],
-    [ "TrieProof", "group___final_chain.html#structtaraxa_1_1state__api_1_1_trie_proof", [
-      [ "nodes", "group___final_chain.html#aab09b0846ec99dbe885f9314a74d84f6", null ],
-      [ "value", "group___final_chain.html#acd06a4e7371f1b50768881780b3c4b8c", null ]
-    ] ],
-    [ "Proof", "group___final_chain.html#structtaraxa_1_1state__api_1_1_proof", [
-      [ "account_proof", "group___final_chain.html#ae1d88a6361ca3212bcf55600c9043fad", null ],
-      [ "storage_proofs", "group___final_chain.html#a54c010313c67fde58d8adfce7953662c", null ]
     ] ],
     [ "StateDescriptor", "group___final_chain.html#structtaraxa_1_1state__api_1_1_state_descriptor", [
       [ "blk_num", "group___final_chain.html#a0bf86af7f54d2589d90e58b9c7b81945", null ],

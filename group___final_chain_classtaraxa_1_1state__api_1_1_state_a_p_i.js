@@ -17,7 +17,6 @@ var group___final_chain_classtaraxa_1_1state__api_1_1_state_a_p_i =
     [ "get_staking_balance", "group___final_chain.html#a95c64474d9b590c0a57755f8a486a7d1", null ],
     [ "operator=", "group___final_chain.html#a0053d2c9e2c118c572681ca1055e500b", null ],
     [ "operator=", "group___final_chain.html#a2ef92fcd4156622aa3dfe52a9f0a4f12", null ],
-    [ "prove", "group___final_chain.html#af60d0e01cacc050ee5493c3332a5f7e8", null ],
     [ "prune", "group___final_chain.html#a9e4746f527401e367e02a462693853ae", null ],
     [ "trace_transaction", "group___final_chain.html#afaed7012133c07fc28c340fb7080509c", null ],
     [ "transition_state", "group___final_chain.html#a4fc5b10de077e2e5310d23978d3c9882", null ],

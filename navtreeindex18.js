@@ -1,12 +1,5 @@
 var NAVTREEINDEX18 =
 {
-"md_doc__r_p_c.html#autotoc_md306":[9,2],
-"md_doc__r_p_c.html#autotoc_md307":[9,2,0],
-"md_doc__r_p_c.html#autotoc_md308":[9,2,0,0],
-"md_doc__r_p_c.html#autotoc_md309":[9,2,0,1],
-"md_doc__r_p_c.html#autotoc_md310":[9,2,0,2],
-"md_doc__r_p_c.html#autotoc_md311":[9,2,1],
-"md_doc__r_p_c.html#autotoc_md312":[9,2,1,0],
 "md_doc__r_p_c.html#autotoc_md313":[9,2,1,1],
 "md_doc__r_p_c.html#autotoc_md314":[9,2,1,2],
 "md_doc__r_p_c.html#autotoc_md315":[9,2,2],
@@ -249,5 +242,12 @@ var NAVTREEINDEX18 =
 "md_doc_release_cycle.html#autotoc_md241":[7,0,1],
 "md_doc_release_cycle.html#autotoc_md242":[7,0,2],
 "md_doc_release_cycle.html#autotoc_md243":[7,0,3],
-"md_doc_release_cycle.html#autotoc_md244":[7,1]
+"md_doc_release_cycle.html#autotoc_md244":[7,1],
+"md_doc_rewards_distribution.html":[8],
+"md_doc_rewards_distribution.html#autotoc_md246":[8,0],
+"md_doc_rewards_distribution.html#autotoc_md247":[8,1],
+"md_doc_rewards_distribution.html#autotoc_md248":[8,2],
+"md_doc_rewards_distribution.html#autotoc_md249":[8,2,0],
+"md_doc_rewards_distribution.html#autotoc_md250":[8,2,1],
+"md_doc_rewards_distribution.html#autotoc_md251":[8,2,2]
 };

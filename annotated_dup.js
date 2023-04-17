@@ -240,8 +240,6 @@ var annotated_dup =
         [ "ExecutionResult", "group___final_chain.html#structtaraxa_1_1state__api_1_1_execution_result", "group___final_chain_structtaraxa_1_1state__api_1_1_execution_result" ],
         [ "StateTransitionResult", "group___final_chain.html#structtaraxa_1_1state__api_1_1_state_transition_result", "group___final_chain_structtaraxa_1_1state__api_1_1_state_transition_result" ],
         [ "Account", "group___final_chain.html#structtaraxa_1_1state__api_1_1_account", "group___final_chain_structtaraxa_1_1state__api_1_1_account" ],
-        [ "TrieProof", "group___final_chain.html#structtaraxa_1_1state__api_1_1_trie_proof", "group___final_chain_structtaraxa_1_1state__api_1_1_trie_proof" ],
-        [ "Proof", "group___final_chain.html#structtaraxa_1_1state__api_1_1_proof", "group___final_chain_structtaraxa_1_1state__api_1_1_proof" ],
         [ "StateDescriptor", "group___final_chain.html#structtaraxa_1_1state__api_1_1_state_descriptor", "group___final_chain_structtaraxa_1_1state__api_1_1_state_descriptor" ],
         [ "Tracing", "group___final_chain.html#structtaraxa_1_1state__api_1_1_tracing", "group___final_chain_structtaraxa_1_1state__api_1_1_tracing" ],
         [ "ErrorHandler", "classtaraxa_1_1state__api_1_1_error_handler.html", "classtaraxa_1_1state__api_1_1_error_handler" ]

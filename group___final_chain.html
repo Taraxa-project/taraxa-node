@@ -129,10 +129,6 @@ Classes</h2></td></tr>
 <tr class="separator:structtaraxa_1_1state__api_1_1_state_transition_result"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:structtaraxa_1_1state__api_1_1_account"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_account">taraxa::state_api::Account</a></td></tr>
 <tr class="separator:structtaraxa_1_1state__api_1_1_account"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:structtaraxa_1_1state__api_1_1_trie_proof"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_trie_proof">taraxa::state_api::TrieProof</a></td></tr>
-<tr class="separator:structtaraxa_1_1state__api_1_1_trie_proof"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:structtaraxa_1_1state__api_1_1_proof"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_proof">taraxa::state_api::Proof</a></td></tr>
-<tr class="separator:structtaraxa_1_1state__api_1_1_proof"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:structtaraxa_1_1state__api_1_1_state_descriptor"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_state_descriptor">taraxa::state_api::StateDescriptor</a></td></tr>
 <tr class="separator:structtaraxa_1_1state__api_1_1_state_descriptor"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:structtaraxa_1_1state__api_1_1_tracing"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_tracing">taraxa::state_api::Tracing</a></td></tr>
@@ -2401,8 +2397,6 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
 <tr class="separator:a2ef92fcd4156622aa3dfe52a9f0a4f12"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a80acb20cfd3c4b7b4c293657167e849e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a80acb20cfd3c4b7b4c293657167e849e">update_state_config</a> (const <a class="el" href="namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config">Config</a> &amp;new_config)</td></tr>
 <tr class="separator:a80acb20cfd3c4b7b4c293657167e849e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af60d0e01cacc050ee5493c3332a5f7e8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_proof">Proof</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#af60d0e01cacc050ee5493c3332a5f7e8">prove</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num, const <a class="el" href="namespacetaraxa.html#a0826926ee3a622c25c010d9004097ef8">root_t</a> &amp;state_root, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;addr, const std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt; &amp;keys) const</td></tr>
-<tr class="separator:af60d0e01cacc050ee5493c3332a5f7e8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ad7ae1a73eeada4a51680dfd2b5a0ff"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_account">Account</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a7ad7ae1a73eeada4a51680dfd2b5a0ff">get_account</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;addr) const</td></tr>
 <tr class="separator:a7ad7ae1a73eeada4a51680dfd2b5a0ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a56512f1ddf9e63750339141ec259c3f3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a56512f1ddf9e63750339141ec259c3f3">get_account_storage</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;addr, const <a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a> &amp;key) const</td></tr>
@@ -2895,46 +2889,6 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
 <span class="mlabels"><span class="mlabel">default</span></span>  </td>
   </tr>
 </table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="af60d0e01cacc050ee5493c3332a5f7e8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af60d0e01cacc050ee5493c3332a5f7e8">&#9670;&nbsp;</a></span>prove()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_proof">Proof</a> taraxa::state_api::StateAPI::prove </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td>
-          <td class="paramname"><em>blk_num</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a0826926ee3a622c25c010d9004097ef8">root_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>state_root</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>addr</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>keys</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td> const</td>
-        </tr>
-      </table>
 </div><div class="memdoc">
 
 </div>
@@ -3791,73 +3745,6 @@ Collaboration diagram for taraxa::state_api::Account:</div>
 
 </div>
 </div>
-
-</div>
-</div>
-<a name="structtaraxa_1_1state__api_1_1_trie_proof" id="structtaraxa_1_1state__api_1_1_trie_proof"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#structtaraxa_1_1state__api_1_1_trie_proof">&#9670;&nbsp;</a></span>taraxa::state_api::TrieProof</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">struct taraxa::state_api::TrieProof</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="textblock"></div><table class="fieldtable">
-<tr><th colspan="3">Class Members</th></tr>
-<tr><td class="fieldtype">
-<a id="aab09b0846ec99dbe885f9314a74d84f6"></a>vector&lt; <a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> &gt;</td>
-<td class="fieldname">
-nodes</td>
-<td class="fielddoc">
-</td></tr>
-<tr><td class="fieldtype">
-<a id="acd06a4e7371f1b50768881780b3c4b8c"></a><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a></td>
-<td class="fieldname">
-value</td>
-<td class="fielddoc">
-</td></tr>
-</table>
-
-</div>
-</div>
-<a name="structtaraxa_1_1state__api_1_1_proof" id="structtaraxa_1_1state__api_1_1_proof"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#structtaraxa_1_1state__api_1_1_proof">&#9670;&nbsp;</a></span>taraxa::state_api::Proof</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">struct taraxa::state_api::Proof</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="textblock"></div><div class="dynheader">
-Collaboration diagram for taraxa::state_api::Proof:</div>
-<div class="dyncontent">
-<div class="center"><img src="structtaraxa_1_1state__api_1_1_proof__coll__graph.png" border="0" usemap="#ataraxa_1_1state__api_1_1_proof_coll__map" alt="Collaboration graph"/></div>
-<map name="ataraxa_1_1state__api_1_1_proof_coll__map" id="ataraxa_1_1state__api_1_1_proof_coll__map">
-<area shape="rect" title=" " alt="" coords="5,109,145,151"/>
-<area shape="rect" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_trie_proof" title=" " alt="" coords="5,5,145,47"/>
-</map>
-<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
-<table class="fieldtable">
-<tr><th colspan="3">Class Members</th></tr>
-<tr><td class="fieldtype">
-<a id="ae1d88a6361ca3212bcf55600c9043fad"></a><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_trie_proof">TrieProof</a></td>
-<td class="fieldname">
-account_proof</td>
-<td class="fielddoc">
-</td></tr>
-<tr><td class="fieldtype">
-<a id="a54c010313c67fde58d8adfce7953662c"></a>vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_trie_proof">TrieProof</a> &gt;</td>
-<td class="fieldname">
-storage_proofs</td>
-<td class="fielddoc">
-</td></tr>
-</table>
 
 </div>
 </div>
