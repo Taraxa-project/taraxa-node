@@ -23,6 +23,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
     lsb-release \
     libgmp-dev \
     libmpfr-dev \
+    libmicrohttpd-dev \
     software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
@@ -72,15 +73,14 @@ ENV CONAN_REVISIONS_ENABLED=1
 WORKDIR /opt/taraxa/
 COPY conanfile.py .
 
-RUN conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan" \
-    && conan profile new clang --detect \
+RUN conan profile new clang --detect \
     && conan profile update settings.compiler=clang clang  \
     && conan profile update settings.compiler.version=$LLVM_VERSION clang  \
     && conan profile update settings.compiler.libcxx=libstdc++11 clang \
     && conan profile update settings.build_type=RelWithDebInfo clang \
     && conan profile update env.CC=clang-$LLVM_VERSION clang  \
     && conan profile update env.CXX=clang++-$LLVM_VERSION clang  \
-    && conan install --build missing -pr:b=clang .
+    && conan install --build missing -pr=clang .
 
 ###################################################################
 # Build stage - use builder image for actual build of taraxa node #
@@ -98,8 +98,9 @@ RUN mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR \
     && cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DTARAXA_ENABLE_LTO=OFF \
     -DTARAXA_STATIC_BUILD=OFF \
-    ../ \
-    && make -j$(nproc) all \
+    ../
+
+RUN cd $BUILD_OUTPUT_DIR && make -j$(nproc) all \
     # Copy CMake generated Testfile to be able to trigger ctest from bin directory
     && cp tests/CTestTestfile.cmake bin/ \
     # keep only required shared libraries and final binaries
