@@ -4,12 +4,12 @@
 
 namespace taraxa::network::v1_tarcap {
 
-class VotesSyncPacketHandler final : public ExtVotesPacketHandler {
+class VotesBundlePacketHandler final : public ExtVotesPacketHandler {
  public:
-  VotesSyncPacketHandler(const FullNodeConfig& conf, std::shared_ptr<tarcap::PeersState> peers_state,
-                         std::shared_ptr<tarcap::TimePeriodPacketsStats> packets_stats,
-                         std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
-                         std::shared_ptr<VoteManager> vote_mgr, const addr_t& node_addr);
+  VotesBundlePacketHandler(const FullNodeConfig& conf, std::shared_ptr<tarcap::PeersState> peers_state,
+                           std::shared_ptr<tarcap::TimePeriodPacketsStats> packets_stats,
+                           std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
+                           std::shared_ptr<VoteManager> vote_mgr, const addr_t& node_addr);
 
   /**
    * @brief Sends pbft votes bundle to connected peers

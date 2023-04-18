@@ -18,7 +18,7 @@
 #include "final_chain/final_chain.hpp"
 #include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/votes_bundle_packet_handler.hpp"
 #include "pbft/period_data.hpp"
 #include "vote_manager/vote_manager.hpp"
 
@@ -565,7 +565,7 @@ void PbftManager::broadcastVotes() {
     return;
   }
 
-  const auto votes_sync_packet_handler = net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>();
+  const auto votes_sync_packet_handler = net->getSpecificHandler<network::tarcap::VotesBundlePacketHandler>();
 
   // Send votes to the other peers
   auto gossipVotes = [this, &votes_sync_packet_handler](std::vector<std::shared_ptr<Vote>> &&votes,
@@ -600,7 +600,7 @@ void PbftManager::broadcastVotes() {
 
     // Broadcast own votes
     auto vote_packet_handler = net->getSpecificHandler<network::tarcap::VotePacketHandler>();
-    // TODO: this could be optimized to use VotesSyncPacketHandler if we drop some of the checks in process function
+    // TODO: this could be optimized to use VotesBundlePacketHandler if we drop some of the checks in process function
     // Send votes by one as votes sync packet must contain votes with the same type, period and round
     const auto &own_votes = vote_mgr_->getOwnVerifiedVotes();
     for (const auto &vote : own_votes) {
@@ -769,8 +769,8 @@ bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &propo
     LOG(log_dg_) << "Broadcast propose block reward votes for block " << proposed_block->getBlockHash()
                  << ", num of reward votes: " << reward_votes.size() << ", period " << current_pbft_period << ", round "
                  << current_pbft_round;
-    net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(reward_votes),
-                                                                                             false);
+    net->getSpecificHandler<network::tarcap::VotesBundlePacketHandler>()->onNewPbftVotesBundle(std::move(reward_votes),
+                                                                                               false);
   }
 
   if (!placeVote(propose_vote, "propose vote", proposed_block)) {

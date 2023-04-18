@@ -1,4 +1,4 @@
-#include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/votes_bundle_packet_handler.hpp"
 
 #include "pbft/pbft_manager.hpp"
 #include "vote/votes_bundle_rlp.hpp"
@@ -6,15 +6,15 @@
 
 namespace taraxa::network::tarcap {
 
-VotesSyncPacketHandler::VotesSyncPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
-                                               std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-                                               std::shared_ptr<PbftManager> pbft_mgr,
-                                               std::shared_ptr<PbftChain> pbft_chain,
-                                               std::shared_ptr<VoteManager> vote_mgr, const addr_t &node_addr)
+VotesBundlePacketHandler::VotesBundlePacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
+                                                   std::shared_ptr<TimePeriodPacketsStats> packets_stats,
+                                                   std::shared_ptr<PbftManager> pbft_mgr,
+                                                   std::shared_ptr<PbftChain> pbft_chain,
+                                                   std::shared_ptr<VoteManager> vote_mgr, const addr_t &node_addr)
     : ExtVotesPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
                             std::move(pbft_chain), std::move(vote_mgr), node_addr, "VOTES_SYNC_PH") {}
 
-void VotesSyncPacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketData &packet_data) const {
+void VotesBundlePacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketData &packet_data) const {
   auto items = packet_data.rlp_.itemCount();
   if (items != kVotesBundleRlpSize) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, items, kVotesBundleRlpSize);
@@ -26,7 +26,7 @@ void VotesSyncPacketHandler::validatePacketRlpFormat([[maybe_unused]] const Pack
   }
 }
 
-void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
+void VotesBundlePacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
   const auto votes_bundle_block_hash = packet_data.rlp_[0].toHash<blk_hash_t>();
@@ -92,8 +92,8 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
   onNewPbftVotesBundle(std::move(votes), false, packet_data.from_node_id_);
 }
 
-void VotesSyncPacketHandler::onNewPbftVotesBundle(std::vector<std::shared_ptr<Vote>> &&votes, bool rebroadcast,
-                                                  const std::optional<dev::p2p::NodeID> &exclude_node) {
+void VotesBundlePacketHandler::onNewPbftVotesBundle(std::vector<std::shared_ptr<Vote>> &&votes, bool rebroadcast,
+                                                    const std::optional<dev::p2p::NodeID> &exclude_node) {
   for (const auto &peer : peers_state_->getAllPeers()) {
     if (peer.second->syncing_) {
       continue;

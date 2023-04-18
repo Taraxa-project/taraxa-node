@@ -8,27 +8,27 @@
 
 namespace taraxa::network::v1_tarcap {
 
-OmgGetPbftSyncPacketHandler::OmgGetPbftSyncPacketHandler(const FullNodeConfig &conf,
-                                                         std::shared_ptr<tarcap::PeersState> peers_state,
-                                                         std::shared_ptr<tarcap::TimePeriodPacketsStats> packets_stats,
-                                                         std::shared_ptr<tarcap::PbftSyncingState> pbft_syncing_state,
-                                                         std::shared_ptr<PbftChain> pbft_chain,
-                                                         std::shared_ptr<VoteManager> vote_mgr,
-                                                         std::shared_ptr<DbStorage> db, const addr_t &node_addr)
+GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(const FullNodeConfig &conf,
+                                                   std::shared_ptr<tarcap::PeersState> peers_state,
+                                                   std::shared_ptr<tarcap::TimePeriodPacketsStats> packets_stats,
+                                                   std::shared_ptr<tarcap::PbftSyncingState> pbft_syncing_state,
+                                                   std::shared_ptr<PbftChain> pbft_chain,
+                                                   std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DbStorage> db,
+                                                   const addr_t &node_addr)
     : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, "V1_GET_PBFT_SYNC_PH"),
       pbft_syncing_state_(std::move(pbft_syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       vote_mgr_(std::move(vote_mgr)),
       db_(std::move(db)) {}
 
-void OmgGetPbftSyncPacketHandler::validatePacketRlpFormat(const tarcap::PacketData &packet_data) const {
+void GetPbftSyncPacketHandler::validatePacketRlpFormat(const tarcap::PacketData &packet_data) const {
   if (constexpr size_t required_size = 1; packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
 }
 
-void OmgGetPbftSyncPacketHandler::process(const tarcap::PacketData &packet_data,
-                                          [[maybe_unused]] const std::shared_ptr<tarcap::TaraxaPeer> &peer) {
+void GetPbftSyncPacketHandler::process(const tarcap::PacketData &packet_data,
+                                       [[maybe_unused]] const std::shared_ptr<tarcap::TaraxaPeer> &peer) {
   LOG(log_tr_) << "Received GetPbftSyncPacket Block";
 
   const size_t height_to_sync = packet_data.rlp_[0].toInt();
@@ -64,8 +64,8 @@ void OmgGetPbftSyncPacketHandler::process(const tarcap::PacketData &packet_data,
 }
 
 // api for pbft syncing
-void OmgGetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, PbftPeriod from_period,
-                                                 size_t blocks_to_transfer, bool pbft_chain_synced) {
+void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, PbftPeriod from_period,
+                                              size_t blocks_to_transfer, bool pbft_chain_synced) {
   LOG(log_tr_) << "sendPbftBlocks: peer want to sync from pbft chain height " << from_period << ", will send at most "
                << blocks_to_transfer << " pbft blocks to " << peer_id;
 

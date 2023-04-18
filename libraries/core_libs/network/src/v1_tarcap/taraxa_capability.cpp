@@ -9,7 +9,7 @@
 #include "network/v1_tarcap/packets_handlers/get_next_votes_sync_packet_handler.hpp"
 #include "network/v1_tarcap/packets_handlers/get_pbft_sync_packet_handler.hpp"
 #include "network/v1_tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
-#include "network/v1_tarcap/packets_handlers/votes_sync_packet_handler.hpp"
+#include "network/v1_tarcap/packets_handlers/votes_bundle_packet_handler.hpp"
 
 namespace taraxa::network::v1_tarcap {
 
@@ -31,10 +31,10 @@ void TaraxaCapability::registerPacketHandlers(
   // Consensus packets with high processing priority
   packets_handlers_->registerHandler<tarcap::VotePacketHandler>(kConf, peers_state_, packets_stats, pbft_mgr,
                                                                 pbft_chain, vote_mgr, node_addr);
-  packets_handlers_->registerHandler<v1_tarcap::GetNextVotesSyncPacketHandler>(
+  packets_handlers_->registerHandler<v1_tarcap::GetNextVotesBundlePacketHandler>(
       kConf, peers_state_, packets_stats, pbft_mgr, pbft_chain, vote_mgr, node_addr);
-  packets_handlers_->registerHandler<v1_tarcap::VotesSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_mgr,
-                                                                        pbft_chain, vote_mgr, node_addr);
+  packets_handlers_->registerHandler<v1_tarcap::VotesBundlePacketHandler>(kConf, peers_state_, packets_stats, pbft_mgr,
+                                                                          pbft_chain, vote_mgr, node_addr);
 
   // Standard packets with mid processing priority
   packets_handlers_->registerHandler<tarcap::DagBlockPacketHandler>(kConf, peers_state_, packets_stats,
@@ -54,7 +54,7 @@ void TaraxaCapability::registerPacketHandlers(
   packets_handlers_->registerHandler<tarcap::DagSyncPacketHandler>(
       kConf, peers_state_, packets_stats, pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, node_addr);
 
-  packets_handlers_->registerHandler<v1_tarcap::OmgGetPbftSyncPacketHandler>(
+  packets_handlers_->registerHandler<v1_tarcap::GetPbftSyncPacketHandler>(
       kConf, peers_state_, packets_stats, pbft_syncing_state_, pbft_chain, vote_mgr, db, node_addr);
 
   packets_handlers_->registerHandler<v1_tarcap::PbftSyncPacketHandler>(

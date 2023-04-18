@@ -160,20 +160,20 @@ class DummyVotePacketHandler : public DummyPacketHandler {
   static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::VotePacket;
 };
 
-class DummyGetNextVotesSyncPacketHandler : public DummyPacketHandler {
+class DummyGetNextVotesBundlePacketHandler : public DummyPacketHandler {
  public:
-  DummyGetNextVotesSyncPacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
-                                     uint32_t processing_delay_ms)
+  DummyGetNextVotesBundlePacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
+                                       uint32_t processing_delay_ms)
       : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
 
   // Packet type that is processed by this handler
   static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::GetNextVotesSyncPacket;
 };
 
-class DummyVotesSyncPacketHandler : public DummyPacketHandler {
+class DummyVotesBundlePacketHandler : public DummyPacketHandler {
  public:
-  DummyVotesSyncPacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
-                              uint32_t processing_delay_ms)
+  DummyVotesBundlePacketHandler(const HandlersInitData& init_data, const std::string& log_channel_name,
+                                uint32_t processing_delay_ms)
       : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
 
   // Packet type that is processed by this handler
@@ -322,8 +322,8 @@ TEST_F(TarcapTpTest, block_free_packets) {
   packets_handler->registerHandler<DummyDagBlockPacketHandler>(init_data, "DAG_BLOCK_PH", 20);
   packets_handler->registerHandler<DummyStatusPacketHandler>(init_data, "STATUS_PH", 20);
   packets_handler->registerHandler<DummyVotePacketHandler>(init_data, "VOTE_PH", 20);
-  packets_handler->registerHandler<DummyGetNextVotesSyncPacketHandler>(init_data, "GET_NEXT_VOTES_SYNC_PH", 20);
-  packets_handler->registerHandler<DummyVotesSyncPacketHandler>(init_data, "VOTES_SYNC_PH", 20);
+  packets_handler->registerHandler<DummyGetNextVotesBundlePacketHandler>(init_data, "GET_NEXT_VOTES_SYNC_PH", 20);
+  packets_handler->registerHandler<DummyVotesBundlePacketHandler>(init_data, "VOTES_SYNC_PH", 20);
 
   // Creates threadpool
   // Note: make num of threads >= num of packets to check if they are processed concurrently without blocks, otherwise
