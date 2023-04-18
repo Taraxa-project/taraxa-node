@@ -160,6 +160,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a1389c4d576ca86153be5668efdff49de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab38881e05d52dd3406f49ac3ebe0a030"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ab38881e05d52dd3406f49ac3ebe0a030">enableSnapshots</a> ()</td></tr>
 <tr class="separator:ab38881e05d52dd3406f49ac3ebe0a030"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad462163041fc976cacd980b387071e06"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ad462163041fc976cacd980b387071e06">updateDbVersions</a> ()</td></tr>
+<tr class="separator:ad462163041fc976cacd980b387071e06"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c216a3511b4e530505a25198f7181e6"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a9c216a3511b4e530505a25198f7181e6">getMajorVersion</a> () const</td></tr>
 <tr class="separator:a9c216a3511b4e530505a25198f7181e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afc663f43099756e78a3da91d21af167c"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; rocksdb::Iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#afc663f43099756e78a3da91d21af167c">getColumnIterator</a> (const <a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> &amp;c)</td></tr>
@@ -327,6 +329,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a1888e12ce4a4e49c0bd6eb1af0ffe743"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abc2340acad061b1f9698e54c2018e0ea"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#abc2340acad061b1f9698e54c2018e0ea">hasMinorVersionChanged</a> ()</td></tr>
 <tr class="separator:abc2340acad061b1f9698e54c2018e0ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ade6b6c770cc8cc4b5a99a6eb157be87d"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ade6b6c770cc8cc4b5a99a6eb157be87d">hasMajorVersionChanged</a> ()</td></tr>
+<tr class="separator:ade6b6c770cc8cc4b5a99a6eb157be87d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3bb8669c1a589bbe5b0690df0b1c1244"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a3bb8669c1a589bbe5b0690df0b1c1244">compactColumn</a> (<a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> const &amp;column)</td></tr>
 <tr class="separator:a3bb8669c1a589bbe5b0690df0b1c1244"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9b657786cf22bbe144c57dbfb4d79cca"><td class="memTemplParams" colspan="2">template&lt;typename K &gt; </td></tr>
@@ -425,6 +429,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a79f683cf51d266e66208086af806fa55"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a372d35a6d09263ab93ae4203b078a53f"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a372d35a6d09263ab93ae4203b078a53f">kMajorVersion_</a></td></tr>
 <tr class="separator:a372d35a6d09263ab93ae4203b078a53f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6a7b32f849d254434a433f9ac4b674cb"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a6a7b32f849d254434a433f9ac4b674cb">major_version_changed_</a> = false</td></tr>
+<tr class="separator:a6a7b32f849d254434a433f9ac4b674cb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a436aff92256ca1bb93c76443efaa7c10"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a436aff92256ca1bb93c76443efaa7c10">minor_version_changed_</a> = false</td></tr>
 <tr class="separator:a436aff92256ca1bb93c76443efaa7c10"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -2109,6 +2115,31 @@ template&lt;typename K &gt; </div>
 
 </div>
 </div>
+<a id="ade6b6c770cc8cc4b5a99a6eb157be87d"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ade6b6c770cc8cc4b5a99a6eb157be87d">&#9670;&nbsp;</a></span>hasMajorVersionChanged()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool taraxa::DbStorage::hasMajorVersionChanged </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="abc2340acad061b1f9698e54c2018e0ea"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#abc2340acad061b1f9698e54c2018e0ea">&#9670;&nbsp;</a></span>hasMinorVersionChanged()</h2>
 
@@ -3493,6 +3524,23 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
+<a id="ad462163041fc976cacd980b387071e06"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad462163041fc976cacd980b387071e06">&#9670;&nbsp;</a></span>updateDbVersions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::DbStorage::updateDbVersions </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <h2 class="groupheader">Member Data Documentation</h2>
 <a id="a08e047fd250cb0d786c208eddb78fdd6"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a08e047fd250cb0d786c208eddb78fdd6">&#9670;&nbsp;</a></span>dag_blocks_count_</h2>
@@ -3725,6 +3773,28 @@ template&lt;typename T &gt; </div>
       <table class="memname">
         <tr>
           <td class="memname">const std::string taraxa::DbStorage::kStateDbDir = &quot;state_db&quot;</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a6a7b32f849d254434a433f9ac4b674cb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6a7b32f849d254434a433f9ac4b674cb">&#9670;&nbsp;</a></span>major_version_changed_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool taraxa::DbStorage::major_version_changed_ = false</td>
         </tr>
       </table>
   </td>

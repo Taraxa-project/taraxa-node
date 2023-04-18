@@ -1,5 +1,8 @@
 var NAVTREEINDEX8 =
 {
+"classtaraxa_1_1net_1_1_eth_face.html#a0e31d2462205bf359b7ec26224e5b9ed":[14,0,3,4,15,32],
+"classtaraxa_1_1net_1_1_eth_face.html#a13c1d93c45c7418e2a3151193e2eb1c2":[14,0,3,4,15,41],
+"classtaraxa_1_1net_1_1_eth_face.html#a168b8339e73da47456ae2a9684385597":[14,0,3,4,15,45],
 "classtaraxa_1_1net_1_1_eth_face.html#a194b9a206ca5e3a3d52b592884987c11":[14,0,3,4,15,16],
 "classtaraxa_1_1net_1_1_eth_face.html#a1a553058e6107ad10ce02bf5f2db0e17":[14,0,3,4,15,5],
 "classtaraxa_1_1net_1_1_eth_face.html#a1dadef628c6f757f3aa97db178c8ed0b":[14,0,3,4,15,35],
@@ -119,8 +122,8 @@ var NAVTREEINDEX8 =
 "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#a7f6cec458a6dd88593305e6edf59e785":[14,0,3,4,16,1],
 "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#aa43810058fbe282f0e5cdf465fa06646":[15,0,1,4,1,2,8,1,2],
 "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#aa43810058fbe282f0e5cdf465fa06646":[14,0,3,4,16,0,2],
-"classtaraxa_1_1net_1_1_json_rpc_http_processor.html#aaa3e76fccc149b228a74e00ff0cb36fe":[15,0,1,4,1,2,8,1,0],
 "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#aaa3e76fccc149b228a74e00ff0cb36fe":[14,0,3,4,16,0,0],
+"classtaraxa_1_1net_1_1_json_rpc_http_processor.html#aaa3e76fccc149b228a74e00ff0cb36fe":[15,0,1,4,1,2,8,1,0],
 "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#ab5a4f9be4b12752d81748688ecad5d00":[14,0,3,4,16,2],
 "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#aeefb0e299e072f2d0a458da755ccb5c8":[14,0,3,4,16,3],
 "classtaraxa_1_1net_1_1_json_rpc_http_processor.html#structtaraxa_1_1net_1_1_json_rpc_http_processor_1_1_error":[15,0,1,4,1,2,8,1],
@@ -246,8 +249,5 @@ var NAVTREEINDEX8 =
 "classtaraxa_1_1net_1_1_ws_server.html#a0ef954af5bdce171d58bacd19bbcec06":[14,0,3,4,8,0],
 "classtaraxa_1_1net_1_1_ws_server.html#a0f7595a0385a6692be8d7604332a9a78":[14,0,3,4,8,1],
 "classtaraxa_1_1net_1_1_ws_server.html#a322346eb144b9474d339a11289d714f3":[14,0,3,4,8,8],
-"classtaraxa_1_1net_1_1_ws_server.html#a329e616926aaff1bc826f8c43b652973":[14,0,3,4,8,12],
-"classtaraxa_1_1net_1_1_ws_server.html#a32fe46d862ddcfdaa581a9927ad39097":[14,0,3,4,8,7],
-"classtaraxa_1_1net_1_1_ws_server.html#a33ae5c7a9f40a1315212e12e52875b54":[14,0,3,4,8,19],
-"classtaraxa_1_1net_1_1_ws_server.html#a41d10e1caef6632f3c6acc269314fba4":[14,0,3,4,8,16]
+"classtaraxa_1_1net_1_1_ws_server.html#a329e616926aaff1bc826f8c43b652973":[14,0,3,4,8,12]
 };
