@@ -144,6 +144,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::set<PbftPeriod> snapshots_;
 
   uint32_t kMajorVersion_;
+  bool major_version_changed_ = false;
   bool minor_version_changed_ = false;
 
   auto handle(Column const& col) const { return handles_[col.ordinal_]; }
@@ -175,6 +176,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void loadSnapshots();
   void disableSnapshots();
   void enableSnapshots();
+  void updateDbVersions();
 
   uint32_t getMajorVersion() const;
   std::unique_ptr<rocksdb::Iterator> getColumnIterator(const Column& c);
@@ -307,6 +309,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void addProposalPeriodDagLevelsMapToBatch(uint64_t level, PbftPeriod period, Batch& write_batch);
 
   bool hasMinorVersionChanged() { return minor_version_changed_; }
+  bool hasMajorVersionChanged() { return major_version_changed_; }
 
   void compactColumn(Column const& column) { db_->CompactRange({}, handle(column), nullptr, nullptr); }
 
