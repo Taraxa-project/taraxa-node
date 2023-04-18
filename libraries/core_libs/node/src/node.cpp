@@ -67,8 +67,8 @@ void FullNode::init() {
                                       conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
                                       conf_.db_config.db_revert_to_period, node_addr, false);
 
-    if (db_->hasMinorVersionChanged()) {
-      LOG(log_si_) << "Minor DB version has changed. Rebuilding Db";
+    if (db_->hasMajorVersionChanged()) {
+      LOG(log_si_) << "Major DB version has changed. Rebuilding Db";
       conf_.db_config.rebuild_db = true;
       db_ = nullptr;
       old_db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.db_config.db_snapshot_each_n_pbft_block,
@@ -77,12 +77,12 @@ void FullNode::init() {
       db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.db_config.db_snapshot_each_n_pbft_block,
                                         conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
                                         conf_.db_config.db_revert_to_period, node_addr);
+    } else if (db_->hasMinorVersionChanged()) {
+      storage::migration::Manager(db_).applyAll();
     }
     if (db_->getDagBlocksCount() == 0) {
       db_->setGenesisHash(conf_.genesis.genesisHash());
     }
-
-    storage::migration::Manager(db_).applyAll();
   }
   LOG(log_nf_) << "DB initialized ...";
 

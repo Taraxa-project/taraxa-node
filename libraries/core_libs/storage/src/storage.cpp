@@ -79,16 +79,19 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
 
   kMajorVersion_ = getStatusField(StatusDbField::DbMajorVersion);
   uint32_t minor_version = getStatusField(StatusDbField::DbMinorVersion);
-  if (kMajorVersion_ == 0 && minor_version == 0) {
+  auto save_db_versions = [&]() {
     saveStatusField(StatusDbField::DbMajorVersion, TARAXA_DB_MAJOR_VERSION);
     saveStatusField(StatusDbField::DbMinorVersion, TARAXA_DB_MINOR_VERSION);
+  };
+  if (kMajorVersion_ == 0 && minor_version == 0) {
+    save_db_versions();
   } else {
     if (kMajorVersion_ != TARAXA_DB_MAJOR_VERSION) {
-      throw DbException(string("Database version mismatch. Version on disk ") +
-                        getFormattedVersion({kMajorVersion_, minor_version}) +
-                        " Node version:" + getFormattedVersion({TARAXA_DB_MAJOR_VERSION, TARAXA_DB_MINOR_VERSION}));
+      major_version_changed_ = true;
+      save_db_versions();
     } else if (minor_version != TARAXA_DB_MINOR_VERSION) {
       minor_version_changed_ = true;
+      save_db_versions();
     }
   }
 }

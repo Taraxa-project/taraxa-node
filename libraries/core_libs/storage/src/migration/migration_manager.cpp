@@ -11,9 +11,9 @@ Manager::Manager(std::shared_ptr<DbStorage> db, const addr_t& node_addr) : db_(d
 void Manager::applyAll() {
   for (const auto& m : migrations_) {
     if (!m->isApplied()) {
-      LOG(log_nf_) << "Applying migration " << m->id();
-      m->apply();
-      LOG(log_nf_) << "Migration applied " << m->id();
+      LOG(log_si_) << "Applying migration " << m->id();
+      m->apply(log_si_);
+      LOG(log_si_) << "Migration applied " << m->id();
     }
   }
 }
