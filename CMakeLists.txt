@@ -10,7 +10,7 @@ set(TARAXA_VERSION ${TARAXA_MAJOR_VERSION}.${TARAXA_MINOR_VERSION}.${TARAXA_PATC
 set(TARAXA_NET_VERSION 2)
 # Major version is modified when DAG blocks, pbft blocks and any basic building blocks of our blockchain is modified
 # in the db
-set(TARAXA_DB_MAJOR_VERSION 1)
+set(TARAXA_DB_MAJOR_VERSION 2)
 # Minor version should be modified when changes to the database are made in the tables that can be rebuilt from the
 # basic tables
 set(TARAXA_DB_MINOR_VERSION 1)

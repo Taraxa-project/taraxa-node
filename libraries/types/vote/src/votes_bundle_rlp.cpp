@@ -6,8 +6,6 @@ namespace taraxa {
 
 dev::bytes encodeVotesBundleRlp(const std::vector<std::shared_ptr<Vote>>& votes, bool validate_common_data) {
   if (votes.empty()) {
-    // TODO: either remove logs or solve it in different way
-    // LOG(log_er_) << "Cannot create VotesBundle rlp: no votes provided";
     assert(false);
     return {};
   }
@@ -28,12 +26,6 @@ dev::bytes encodeVotesBundleRlp(const std::vector<std::shared_ptr<Vote>>& votes,
     if (validate_common_data &&
         (vote->getBlockHash() != reference_block_hash || vote->getPeriod() != reference_period ||
          vote->getRound() != reference_round || vote->getStep() != reference_step)) {
-      //      LOG(log_er_) << "Cannot create VotesBundle rlp: invalid vote " << vote->getHash() << " (voted_block,
-      //      period, round, step)->("
-      //                   << vote->getBlockHash() << ", " << vote->getPeriod() << ", " << vote->getRound() << ", "
-      //                   << vote->getStep() << ") != reference vote (voted_block, period, round, step)->"
-      //                   << reference_block_hash << ", " << reference_period << ", " << reference_round << ", "
-      //                   << reference_step << ")";
       assert(false);
       return {};
     }
@@ -45,6 +37,8 @@ dev::bytes encodeVotesBundleRlp(const std::vector<std::shared_ptr<Vote>>& votes,
 }
 
 std::vector<std::shared_ptr<Vote>> decodeVotesBundleRlp(const dev::RLP& votes_bundle_rlp) {
+  assert(votes_bundle_rlp.itemCount() == kVotesBundleRlpSize);
+
   const blk_hash_t votes_bundle_block_hash = votes_bundle_rlp[0].toHash<blk_hash_t>();
   const PbftPeriod votes_bundle_pbft_period = votes_bundle_rlp[1].toInt<PbftPeriod>();
   const PbftRound votes_bundle_pbft_round = votes_bundle_rlp[2].toInt<PbftRound>();
@@ -56,7 +50,6 @@ std::vector<std::shared_ptr<Vote>> decodeVotesBundleRlp(const dev::RLP& votes_bu
   for (const auto vote_rlp : votes_bundle_rlp[4]) {
     auto vote = std::make_shared<Vote>(votes_bundle_block_hash, votes_bundle_pbft_period, votes_bundle_pbft_round,
                                        votes_bundle_votes_step, vote_rlp);
-    // TODO: verify vote signature / hash ???
     votes.push_back(std::move(vote));
   }
 
