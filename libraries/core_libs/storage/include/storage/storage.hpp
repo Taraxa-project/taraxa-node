@@ -176,6 +176,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void loadSnapshots();
   void disableSnapshots();
   void enableSnapshots();
+  void updateDbVersions();
 
   uint32_t getMajorVersion() const;
   std::unique_ptr<rocksdb::Iterator> getColumnIterator(const Column& c);

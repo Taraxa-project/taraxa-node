@@ -80,6 +80,8 @@ void FullNode::init() {
     } else if (db_->hasMinorVersionChanged()) {
       storage::migration::Manager(db_).applyAll();
     }
+    db_->updateDbVersions();
+
     if (db_->getDagBlocksCount() == 0) {
       db_->setGenesisHash(conf_.genesis.genesisHash());
     }
