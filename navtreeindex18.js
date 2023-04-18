@@ -1,6 +1,5 @@
 var NAVTREEINDEX18 =
 {
-"md_doc__r_p_c.html#autotoc_md313":[9,2,1,1],
 "md_doc__r_p_c.html#autotoc_md314":[9,2,1,2],
 "md_doc__r_p_c.html#autotoc_md315":[9,2,2],
 "md_doc__r_p_c.html#autotoc_md316":[9,2,2,0],
@@ -249,5 +248,6 @@ var NAVTREEINDEX18 =
 "md_doc_rewards_distribution.html#autotoc_md248":[8,2],
 "md_doc_rewards_distribution.html#autotoc_md249":[8,2,0],
 "md_doc_rewards_distribution.html#autotoc_md250":[8,2,1],
-"md_doc_rewards_distribution.html#autotoc_md251":[8,2,2]
+"md_doc_rewards_distribution.html#autotoc_md251":[8,2,2],
+"md_doc_rewards_distribution.html#autotoc_md252":[8,3]
 };
