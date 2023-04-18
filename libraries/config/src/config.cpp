@@ -98,13 +98,11 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::
   }
 
   is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, is_light_node);
-  if (is_light_node) {
-    const auto min_light_node_history = (genesis.state.dpos.blocks_per_year * kDefaultLightNodeHistoryDays) / 365;
-    light_node_history = getConfigDataAsUInt(root, {"light_node_history"}, true, min_light_node_history);
-    if (light_node_history < min_light_node_history) {
-      throw ConfigException("Min. required light node history is " + std::to_string(min_light_node_history) +
-                            " blocks (" + std::to_string(kDefaultLightNodeHistoryDays) + " days)");
-    }
+  const auto min_light_node_history = (genesis.state.dpos.blocks_per_year * kDefaultLightNodeHistoryDays) / 365;
+  light_node_history = getConfigDataAsUInt(root, {"light_node_history"}, true, min_light_node_history);
+  if (light_node_history < min_light_node_history) {
+    throw ConfigException("Min. required light node history is " + std::to_string(min_light_node_history) +
+                          " blocks (" + std::to_string(kDefaultLightNodeHistoryDays) + " days)");
   }
 
   try {

@@ -42,6 +42,7 @@ class Config {
   static constexpr const char* HELP = "help";
   static constexpr const char* VERSION = "version";
   static constexpr const char* WALLET = "wallet";
+  static constexpr const char* PRUNE_STATE_DB = "prune-state-db";
 
   static constexpr const char* NODE_COMMAND = "node";
   static constexpr const char* ACCOUNT_COMMAND = "account";
