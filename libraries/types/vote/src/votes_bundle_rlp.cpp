@@ -12,12 +12,6 @@ dev::bytes encodeVotesBundleRlp(const std::vector<std::shared_ptr<Vote>>& votes,
     return {};
   }
 
-  //  const auto& reference_vote = votes.back();
-  //  blk_hash_t block_hash = reference_vote->getBlockHash();
-  //  PbftPeriod period = reference_vote->getPeriod();
-  //  PbftRound round = reference_vote->getRound();
-  //  PbftStep step = reference_vote->getStep();
-
   const auto& reference_block_hash = votes.back()->getBlockHash();
   const auto reference_period = votes.back()->getPeriod();
   const auto reference_round = votes.back()->getRound();
@@ -57,6 +51,8 @@ std::vector<std::shared_ptr<Vote>> decodeVotesBundleRlp(const dev::RLP& votes_bu
   const PbftStep votes_bundle_votes_step = votes_bundle_rlp[3].toInt<PbftStep>();
 
   std::vector<std::shared_ptr<Vote>> votes;
+  votes.reserve(votes_bundle_rlp[4].itemCount());
+
   for (const auto vote_rlp : votes_bundle_rlp[4]) {
     auto vote = std::make_shared<Vote>(votes_bundle_block_hash, votes_bundle_pbft_period, votes_bundle_pbft_round,
                                        votes_bundle_votes_step, vote_rlp);

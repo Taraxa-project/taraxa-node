@@ -80,10 +80,11 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
     }
 
     dev::RLPStream s;
-    if (pbft_chain_synced && last_block) {
+    if (pbft_chain_synced && last_block && block_period > 1) {
       s.appendList(3);
       s << last_block;
       s.appendRaw(data);
+
       // Latest finalized block cert votes are saved in db as reward votes for new blocks
       const auto reward_votes = vote_mgr_->getRewardVotes();
       assert(!reward_votes.empty());

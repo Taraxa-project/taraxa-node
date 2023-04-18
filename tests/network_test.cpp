@@ -699,13 +699,12 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), kNullBlockHash, period,
                         beneficiary, node1->getSecretKey(), {});
-  std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
-  votes_for_pbft_blk1.emplace_back(
-      node1->getVoteManager()->generateVote(pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, 1, 1, 3));
-  std::cout << "Generate 1 vote for first PBFT block" << std::endl;
-  // Add cert votes in DB
-  // Add PBFT block in DB
+  const auto pbft_block1_cert_vote = node1->getVoteManager()->generateVote(
+      pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, pbft_block1.getPeriod(), 1, 3);
+  pbft_block1_cert_vote->calculateWeight(1, 1, 1);
+  node1->getVoteManager()->addVerifiedVote(pbft_block1_cert_vote);
 
+  // Add PBFT block in DB
   PeriodData period_data1(std::make_shared<PbftBlock>(pbft_block1), {});
   period_data1.dag_blocks.push_back(blk1);
   period_data1.transactions.push_back(g_signed_trx_samples[0]);
@@ -747,13 +746,12 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), kNullBlockHash, period,
                         beneficiary, node1->getSecretKey(), {});
-  std::cout << "Use fake votes for the second PBFT block" << std::endl;
-  // TODO: how can these fake votes be somehow properly handled when we save it directly to db ???
-  // node1 put block2 into pbft chain and use fake votes storing into DB (malicious player)
-  // Add fake votes in DB
-  // Add PBFT block in DB
+  const auto pbft_block2_cert_vote = node1->getVoteManager()->generateVote(
+      pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, pbft_block2.getPeriod(), 1, 3);
+  pbft_block2_cert_vote->calculateWeight(1, 1, 1);
+  node1->getVoteManager()->addVerifiedVote(pbft_block2_cert_vote);
 
-  PeriodData period_data2(std::make_shared<PbftBlock>(pbft_block2), votes_for_pbft_blk1);
+  PeriodData period_data2(std::make_shared<PbftBlock>(pbft_block2), {pbft_block1_cert_vote});
   period_data2.dag_blocks.push_back(blk2);
   period_data2.transactions.push_back(g_signed_trx_samples[2]);
   period_data2.transactions.push_back(g_signed_trx_samples[3]);
@@ -765,7 +763,11 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   pbft_chain_head_hash = pbft_chain1->getHeadHash();
   pbft_chain_head_str = pbft_chain1->getJsonStr();
   db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
+
+  node1->getVoteManager()->resetRewardVotes(pbft_block2.getPeriod(), 1, 3, pbft_block2.getBlockHash(), batch);
+
   db1->commitWriteBatch(batch);
+
   expect_pbft_chain_size = 2;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 

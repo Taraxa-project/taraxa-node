@@ -57,6 +57,13 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
     return;
   }
 
+  // Process processStandardVote is called with false in case of next votes bundle -> does not check max boundaries
+  // for round and step to actually being able to sync the current round in case network is stalled
+  bool check_max_round_step = true;
+  if (votes_bundle_votes_type == PbftVoteTypes::cert_vote || votes_bundle_votes_type == PbftVoteTypes::next_vote) {
+    check_max_round_step = false;
+  }
+
   std::vector<std::shared_ptr<Vote>> votes;
   for (const auto vote_rlp : packet_data.rlp_[4]) {
     auto vote = std::make_shared<Vote>(votes_bundle_block_hash, votes_bundle_pbft_period, votes_bundle_pbft_round,
@@ -70,13 +77,6 @@ void VotesSyncPacketHandler::process(const PacketData &packet_data, const std::s
     }
 
     LOG(log_dg_) << "Received sync vote " << vote->getHash().abridged();
-
-    // Process processStandardVote is called with false in case of next votes bundle -> does not check max boundaries
-    // for round and step to actually being able to sync the current round in case network is stalled
-    bool check_max_round_step = true;
-    if (votes_bundle_votes_type == PbftVoteTypes::cert_vote || votes_bundle_votes_type == PbftVoteTypes::next_vote) {
-      check_max_round_step = false;
-    }
 
     if (!processVote(vote, nullptr, peer, check_max_round_step)) {
       continue;

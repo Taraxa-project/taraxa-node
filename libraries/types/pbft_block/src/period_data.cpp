@@ -13,13 +13,17 @@ namespace taraxa {
 using namespace std;
 
 PeriodData::PeriodData(std::shared_ptr<PbftBlock> pbft_blk,
-                       std::vector<std::shared_ptr<Vote>> const& previous_block_cert_votes)
+                       const std::vector<std::shared_ptr<Vote>>& previous_block_cert_votes)
     : pbft_blk(std::move(pbft_blk)), previous_block_cert_votes(previous_block_cert_votes) {}
 
 PeriodData::PeriodData(dev::RLP&& rlp) {
   auto it = rlp.begin();
   pbft_blk = std::make_shared<PbftBlock>(*it++);
-  previous_block_cert_votes = decodeVotesBundleRlp(*it++);
+
+  const auto votes_bundle_rlp = *it++;
+  if (pbft_blk->getPeriod() > 1) [[likely]] {
+    previous_block_cert_votes = decodeVotesBundleRlp(votes_bundle_rlp);
+  }
 
   for (auto const dag_block_rlp : *it++) {
     dag_blocks.emplace_back(dag_block_rlp);
@@ -35,7 +39,12 @@ PeriodData::PeriodData(bytes const& all_rlp) : PeriodData(dev::RLP(all_rlp)) {}
 bytes PeriodData::rlp() const {
   dev::RLPStream s(kRlpItemCount);
   s.appendRaw(pbft_blk->rlp(true));
-  s.appendRaw(encodeVotesBundleRlp(previous_block_cert_votes, false));
+
+  if (pbft_blk->getPeriod() > 1) [[likely]] {
+    s.appendRaw(encodeVotesBundleRlp(previous_block_cert_votes, false));
+  } else {
+    s.append("");
+  }
 
   s.appendList(dag_blocks.size());
   for (auto const& b : dag_blocks) {

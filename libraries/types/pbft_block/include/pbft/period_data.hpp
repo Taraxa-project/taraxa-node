@@ -24,7 +24,7 @@ class PbftBlock;
 class PeriodData {
  public:
   PeriodData() = default;
-  PeriodData(std::shared_ptr<PbftBlock> pbft_blk, std::vector<std::shared_ptr<Vote>> const& cert_votes);
+  PeriodData(std::shared_ptr<PbftBlock> pbft_blk, const std::vector<std::shared_ptr<Vote>>& previous_block_cert_votes);
   explicit PeriodData(dev::RLP&& all_rlp);
   explicit PeriodData(bytes const& all_rlp);
 
