@@ -21,7 +21,7 @@ class TaraxaConan(ConanFile):
         self.requires("lz4/1.9.4")
         self.requires("rocksdb/6.29.5")
         self.requires("prometheus-cpp/1.1.0")
-        self.requires("libjson-rpc-cpp/1.3.0@bincrafters/stable")
+        self.requires("jsoncpp/1.9.5")
 
     def _configure_boost_libs(self):
         self.options["boost"].without_atomic = False
@@ -63,7 +63,6 @@ class TaraxaConan(ConanFile):
         self.options["cppcheck"].have_rules = False
         self.options["rocksdb"].use_rtti = True
         self.options["rocksdb"].with_lz4 = True
-        self.options["libjson-rpc-cpp"].shared = False
         # mpir is required by cppcheck and it causing gmp confict
         self.options["mpir"].enable_gmpcompat = False
 
