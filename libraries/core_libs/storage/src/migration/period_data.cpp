@@ -6,7 +6,7 @@ PeriodData::PeriodData(std::shared_ptr<DbStorage> db) : migration::Base(db) {}
 
 std::string PeriodData::id() { return "PeriodData"; }
 
-uint32_t PeriodData::dbVersion() { return 2; }
+uint32_t PeriodData::dbVersion() { return 1; }
 
 void PeriodData::migrate() {
   auto it = db_->getColumnIterator(DB::Columns::period_data);
