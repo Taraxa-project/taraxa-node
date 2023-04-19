@@ -99,7 +99,6 @@ data:
 
     echo "Cleaning up old config..."
     rm -rf $CONFIG_PATH
-    rm -rf $GENESIS_PATH
 
     echo "Generating config"
     INDEX=${HOSTNAME##*-}
