@@ -14,14 +14,16 @@ class Base {
   bool isApplied() { return db_->lookup_int<bool>(id(), DB::Columns::migrations).has_value(); }
   void apply(logger::Logger& log) {
     if (db_->getMajorVersion() != dbVersion()) {
-      LOG(log) << id()
-               << ": skip migration as it was made for different major db version. Could be removed from the code"
-               << std::endl;
+      LOG(log) << "Skip \"" << id() << "\" migration as it was made for different major db version " << dbVersion()
+               << ", current db major version " << db_->getMajorVersion() << ". Migration can be removed from the code";
       return;
     }
+
     migrate();
     setApplied();
     db_->commitWriteBatch(batch_);
+
+    LOG(log) << "\"" << id() << "\" migration was applied";
   }
 
  protected:
