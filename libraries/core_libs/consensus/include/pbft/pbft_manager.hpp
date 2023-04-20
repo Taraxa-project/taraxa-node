@@ -455,6 +455,13 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block) const;
 
   /**
+   * @brief Validates pbft block state root. It checks if:
+   * @param pbft_block PBFT block
+   * @return true if pbft block is valid, otherwise false
+   */
+  bool validatePbftBlockStateRoot(const std::shared_ptr<PbftBlock> &pbft_block) const;
+
+  /**
    * @brief If there are enough certify votes, push the vote PBFT block in PBFT chain
    * @param pbft_block PBFT block
    * @param current_round_cert_votes certify votes
