@@ -1315,20 +1315,9 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(PbftRound round, Pb
   return empty_leader_block;
 }
 
-bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block) const {
-  if (!pbft_block) {
-    LOG(log_er_) << "Unable to validate pbft block - no block provided";
-    return false;
-  }
-
-  // Validates pbft_block's previous block hash against pbft chain
-  if (!pbft_chain_->checkPbftBlockValidation(pbft_block)) {
-    return false;
-  }
-
-  auto const &pbft_block_hash = pbft_block->getBlockHash();
-
+bool PbftManager::validatePbftBlockStateRoot(const std::shared_ptr<PbftBlock> &pbft_block) const {
   auto period = pbft_block->getPeriod();
+  auto const &pbft_block_hash = pbft_block->getBlockHash();
   {
     h256 prev_state_root_hash;
     if (period > final_chain_->delegation_delay()) {
@@ -1344,6 +1333,25 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
                    << " isn't matching actual " << prev_state_root_hash;
       return false;
     }
+  }
+  return true;
+}
+
+bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block) const {
+  if (!pbft_block) {
+    LOG(log_er_) << "Unable to validate pbft block - no block provided";
+    return false;
+  }
+
+  // Validates pbft_block's previous block hash against pbft chain
+  if (!pbft_chain_->checkPbftBlockValidation(pbft_block)) {
+    return false;
+  }
+
+  auto const &pbft_block_hash = pbft_block->getBlockHash();
+
+  if (!validatePbftBlockStateRoot(pbft_block)) {
+    return false;
   }
 
   // Validates reward votes
@@ -1646,6 +1654,10 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
     sync_queue_.clear();
     // Handle malicious peer on network level
     net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
+    return std::nullopt;
+  }
+
+  if (!validatePbftBlockStateRoot(period_data.pbft_blk)) {
     return std::nullopt;
   }
 
