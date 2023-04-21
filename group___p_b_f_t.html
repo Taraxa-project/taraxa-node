@@ -919,6 +919,9 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:a7d13114eb26c13f00d7a4850773c8948"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a7d13114eb26c13f00d7a4850773c8948">validatePbftBlock</a> (const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;pbft_block) const</td></tr>
 <tr class="memdesc:a7d13114eb26c13f00d7a4850773c8948"><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates pbft block. It checks if:  <a href="group___p_b_f_t.html#a7d13114eb26c13f00d7a4850773c8948">More...</a><br /></td></tr>
 <tr class="separator:a7d13114eb26c13f00d7a4850773c8948"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1f80e9a22be9cdb0f1a3f6e1d3164668"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a1f80e9a22be9cdb0f1a3f6e1d3164668">validatePbftBlockStateRoot</a> (const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;pbft_block) const</td></tr>
+<tr class="memdesc:a1f80e9a22be9cdb0f1a3f6e1d3164668"><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates pbft block state root. It checks if:  <a href="group___p_b_f_t.html#a1f80e9a22be9cdb0f1a3f6e1d3164668">More...</a><br /></td></tr>
+<tr class="separator:a1f80e9a22be9cdb0f1a3f6e1d3164668"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaf68a7e4b5cc663ed90ea2a126265cbf"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aaf68a7e4b5cc663ed90ea2a126265cbf">pushCertVotedPbftBlockIntoChain_</a> (const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;pbft_block, std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&amp;current_round_cert_votes)</td></tr>
 <tr class="memdesc:aaf68a7e4b5cc663ed90ea2a126265cbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">If there are enough certify votes, push the vote PBFT block in PBFT chain.  <a href="group___p_b_f_t.html#aaf68a7e4b5cc663ed90ea2a126265cbf">More...</a><br /></td></tr>
 <tr class="separator:aaf68a7e4b5cc663ed90ea2a126265cbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -3247,6 +3250,41 @@ Collaboration diagram for taraxa::PbftManager:</div>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>true if there is enough(2t+1) votes and all of them are valid, otherwise false </dd></dl>
+
+</div>
+</div>
+<a id="a1f80e9a22be9cdb0f1a3f6e1d3164668"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1f80e9a22be9cdb0f1a3f6e1d3164668">&#9670;&nbsp;</a></span>validatePbftBlockStateRoot()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool taraxa::PbftManager::validatePbftBlockStateRoot </td>
+          <td>(</td>
+          <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>pbft_block</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Validates pbft block state root. It checks if: </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">pbft_block</td><td>PBFT block </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>true if pbft block is valid, otherwise false </dd></dl>
 
 </div>
 </div>

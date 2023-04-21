@@ -1,5 +1,6 @@
 var NAVTREEINDEX19 =
 {
+"md_doc_rewards_distribution.html#autotoc_md249":[8,2,0],
 "md_doc_rewards_distribution.html#autotoc_md250":[8,2,1],
 "md_doc_rewards_distribution.html#autotoc_md251":[8,2,2],
 "md_doc_rewards_distribution.html#autotoc_md252":[8,3],
@@ -47,8 +48,8 @@ var NAVTREEINDEX19 =
 "namespacedev_1_1p2p.html#af43282a970fe54591278ceb38be2590b":[15,0,1,0,2,24,0,5],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_peer_session_info":[15,0,1,0,2,3,4],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_taraxa_network_config":[15,0,1,0,2,24,0],
-"namespacemembers.html":[13,0,0],
 "namespacemembers.html":[13,0],
+"namespacemembers.html":[13,0,0],
 "namespacemembers_a.html":[13,0,1],
 "namespacemembers_b.html":[13,0,2],
 "namespacemembers_c.html":[13,0,3],
@@ -57,8 +58,8 @@ var NAVTREEINDEX19 =
 "namespacemembers_enum.html":[13,4],
 "namespacemembers_eval.html":[13,5],
 "namespacemembers_f.html":[13,0,6],
-"namespacemembers_func.html":[13,1,0],
 "namespacemembers_func.html":[13,1],
+"namespacemembers_func.html":[13,1,0],
 "namespacemembers_func_a.html":[13,1,1],
 "namespacemembers_func_b.html":[13,1,2],
 "namespacemembers_func_c.html":[13,1,3],
@@ -128,8 +129,8 @@ var NAVTREEINDEX19 =
 "namespacetaraxa.html#structtaraxa_1_1_prometheus_config":[15,0,1,3,0,0,5,0],
 "namespacetaraxa.html#structtaraxa_1_1_vdf_params":[15,0,1,8,0,0,0,1],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes":[15,0,1,4,0,0,5,0,0],
-"namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[15,0,1,4,0,0,5,0,0,0],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[15,0,1,4,0,0,5,0,1],
+"namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[15,0,1,4,0,0,5,0,0,0],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a1e15a59a79691f16628fd670283ecf80":[15,0,1,4,1,2,0,0,5,2],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a2f6cd6b167f36d948149b2cbd69eca30":[15,0,1,4,1,2,0,6,0,1],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a31d0681d099115697d44bf875d7f8d1b":[15,0,1,4,1,2,0,6,0,0],
@@ -248,6 +249,5 @@ var NAVTREEINDEX19 =
 "pbft__block_8hpp.html":[15,0,1,7,1,0,0,0],
 "pbft__block_8hpp.html#gaa7708429f720df1efc1aa8b32073024a":[15,0,1,7,1,0,0,0,0],
 "pbft__block_8hpp_source.html":[15,0,1,7,1,0,0,0],
-"pbft__chain_8cpp.html":[15,0,1,4,0,1,3,0],
-"pbft__chain_8cpp.html#ga3fdeda8aaed53f4c24ef36e0642d819a":[15,0,1,4,0,1,3,0,0]
+"pbft__chain_8cpp.html":[15,0,1,4,0,1,3,0]
 };

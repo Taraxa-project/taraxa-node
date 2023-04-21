@@ -96,6 +96,7 @@ var group___p_b_f_t =
       [ "tryPushCertVotesBlock", "group___p_b_f_t.html#ada3b947a91cf04d2474cfb1cc4a84bdd", null ],
       [ "validatePbftBlock", "group___p_b_f_t.html#a7d13114eb26c13f00d7a4850773c8948", null ],
       [ "validatePbftBlockCertVotes", "group___p_b_f_t.html#ab98c1841139d0440c38fac78d97ee438", null ],
+      [ "validatePbftBlockStateRoot", "group___p_b_f_t.html#a1f80e9a22be9cdb0f1a3f6e1d3164668", null ],
       [ "waitForPeriodFinalization", "group___p_b_f_t.html#aeb681d02abbfcf938cb5ceca9ab34419", null ],
       [ "already_next_voted_null_block_hash_", "group___p_b_f_t.html#a31a503946d63d7a6cd3f6cd7d300172a", null ],
       [ "already_next_voted_value_", "group___p_b_f_t.html#acdef7513247069e09745ec7780b5b475", null ],
