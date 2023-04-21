@@ -516,6 +516,13 @@ TEST_F(FinalChainTest, revert_reason) {
     EXPECT_THROW_WITH(dev::jsToInt(eth_json_rpc->eth_estimateGas(est)), std::exception,
                       "evm: execution reverted: arg required");
     EXPECT_THROW_WITH(eth_json_rpc->eth_call(est, "latest"), std::exception, "evm: execution reverted: arg required");
+
+    auto gas = 100000;
+    auto trx = std::make_shared<Transaction>(2, 0, 1, gas, dev::fromHex(call_data), sk, test_contract_addr);
+    auto result = advance({trx}, {0, 0, 1});
+    auto receipt = result->trx_receipts.front();
+    ASSERT_EQ(receipt.status_code, 0);  // failed
+    ASSERT_GT(gas, receipt.gas_used);   // we aren't spending all gas in such cases
   }
 }
 
