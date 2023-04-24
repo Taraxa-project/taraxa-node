@@ -50,6 +50,25 @@ void PbftSyncPacketHandler::process(const tarcap::PacketData &packet_data,
     return;
   }
 
+  auto decodePeriodDataRlpV1 = [](const dev::RLP &period_data_v1) -> PeriodData {
+    PeriodData period_data;
+    auto it = period_data_v1.begin();
+    period_data.pbft_blk = std::make_shared<PbftBlock>(*it++);
+    for (auto const vote_rlp : *it++) {
+      period_data.previous_block_cert_votes.emplace_back(std::make_shared<Vote>(vote_rlp));
+    }
+
+    for (auto const dag_block_rlp : *it++) {
+      period_data.dag_blocks.emplace_back(dag_block_rlp);
+    }
+
+    for (auto const trx_rlp : *it) {
+      period_data.transactions.emplace_back(std::make_shared<Transaction>(trx_rlp));
+    }
+
+    return period_data;
+  };
+
   // Process received pbft blocks
   // pbft_chain_synced is the flag to indicate own PBFT chain has synced with the peer's PBFT chain
   const bool pbft_chain_synced = packet_data.rlp_.itemCount() == kChainSyncedPacketSize;
@@ -57,7 +76,7 @@ void PbftSyncPacketHandler::process(const tarcap::PacketData &packet_data,
   const bool last_block = packet_data.rlp_[0].toInt<bool>();
   PeriodData period_data;
   try {
-    period_data = PeriodData(packet_data.rlp_[1]);
+    period_data = decodePeriodDataRlpV1(packet_data.rlp_[1]);
   } catch (const Transaction::InvalidTransaction &e) {
     throw MaliciousPeerException("Unable to parse PeriodData: " + std::string(e.what()));
   }

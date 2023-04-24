@@ -52,13 +52,14 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
       dev::p2p::Host::CapabilityList capabilities;
 
       // Register old version of taraxa capability
-      capabilities.emplace_back(network::v1_tarcap::TaraxaCapability::make(host, key, config, genesis_hash,
-                                                                           kOldNetworkVersion, db, pbft_mgr, pbft_chain,
-                                                                           vote_mgr, dag_mgr, trx_mgr, "V1_TARCAP"));
+      auto v1_tarcap = std::make_shared<network::v1_tarcap::TaraxaCapability>(host, key, config, kOldNetworkVersion, "V1_TARCAP");
+      v1_tarcap->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, key.address());
+      capabilities.emplace_back(v1_tarcap);
+
       // Register new version of taraxa capability
-      capabilities.emplace_back(network::tarcap::TaraxaCapability::make(host, key, config, genesis_hash,
-                                                                        TARAXA_NET_VERSION, db, pbft_mgr, pbft_chain,
-                                                                        vote_mgr, dag_mgr, trx_mgr, "TARCAP"));
+//      auto v2_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(host, key, config, TARAXA_NET_VERSION, "TARCAP");
+//      v2_tarcap->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, key.address());
+//      capabilities.emplace_back(v2_tarcap);
 
       return capabilities;
     };

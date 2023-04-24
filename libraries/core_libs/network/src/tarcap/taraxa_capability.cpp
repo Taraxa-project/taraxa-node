@@ -49,16 +49,6 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
   addBootNodes(true);
 }
 
-std::shared_ptr<TaraxaCapability> TaraxaCapability::make(
-    std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const FullNodeConfig &conf, const h256 &genesis_hash,
-    unsigned version, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
-    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
-    std::shared_ptr<TransactionManager> trx_mgr, const std::string &log_channel) {
-  auto instance = std::make_shared<TaraxaCapability>(host, key, conf, version, log_channel);
-  instance->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, key.address());
-  return instance;
-}
-
 void TaraxaCapability::init(const h256 &genesis_hash, std::shared_ptr<DbStorage> db,
                             std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                             std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,

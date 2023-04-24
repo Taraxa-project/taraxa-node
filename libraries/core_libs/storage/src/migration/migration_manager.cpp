@@ -18,8 +18,9 @@ void Manager::applyAll() {
     }
 
     if (db_->getMajorVersion() != m->dbVersion()) {
-      LOG(log_si_) << "Skip \"" << m->id() << "\" migration as it was made for different major db version " << m->dbVersion()
-               << ", current db major version " << db_->getMajorVersion() << ". Migration can be removed from the code";
+      LOG(log_si_) << "Skip \"" << m->id() << "\" migration as it was made for different major db version "
+                   << m->dbVersion() << ", current db major version " << db_->getMajorVersion()
+                   << ". Migration can be removed from the code";
       continue;
     }
 

@@ -42,12 +42,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   TaraxaCapability &operator=(const TaraxaCapability &ro) = delete;
   TaraxaCapability(TaraxaCapability &&ro) = delete;
   TaraxaCapability &operator=(TaraxaCapability &&ro) = delete;
-  static std::shared_ptr<TaraxaCapability> make(
-      std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const FullNodeConfig &conf, const h256 &genesis_hash,
-      unsigned version, std::shared_ptr<DbStorage> db = {}, std::shared_ptr<PbftManager> pbft_mgr = {},
-      std::shared_ptr<PbftChain> pbft_chain = {}, std::shared_ptr<VoteManager> vote_mgr = {},
-      std::shared_ptr<DagManager> dag_mgr = {}, std::shared_ptr<TransactionManager> trx_mgr = {},
-      const std::string &log_channel = "TARCAP");
+
   // Init capability. Register packet handlers and periodic events
   virtual void init(const h256 &genesis_hash, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                     std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
