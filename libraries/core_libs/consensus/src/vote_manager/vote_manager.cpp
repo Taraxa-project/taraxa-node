@@ -31,19 +31,25 @@ VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config,
 
   auto db_votes = db_->getAllTwoTPlusOneVotes();
 
-  auto addVerifiedVotes = [this](const std::vector<std::shared_ptr<Vote>>& votes) {
-    bool reward_votes_info_set = false;
+  auto addVerifiedVotes = [this](const std::vector<std::shared_ptr<Vote>>& votes, bool set_reward_votes_info = false) {
+    bool rewards_info_already_set = false;
     for (const auto& vote : votes) {
       // Check if votes are unique per round, step & voter
       if (!isUniqueVote(vote).first) {
         continue;
       }
 
-      if (!reward_votes_info_set && vote->getType() == PbftVoteTypes::cert_vote) {
-        reward_votes_info_set = true;
-        reward_votes_block_hash_ = vote->getBlockHash();
-        reward_votes_period_ = vote->getPeriod();
-        reward_votes_round_ = vote->getRound();
+      if (set_reward_votes_info && vote->getType() == PbftVoteTypes::cert_vote) {
+        if (!rewards_info_already_set) {
+          rewards_info_already_set = true;
+          reward_votes_block_hash_ = vote->getBlockHash();
+          reward_votes_period_ = vote->getPeriod();
+          reward_votes_round_ = vote->getRound();
+        } else {
+          assert(reward_votes_block_hash_ == vote->getBlockHash());
+          assert(reward_votes_period_ == vote->getPeriod());
+          assert(reward_votes_round_ == vote->getRound());
+        }
       }
 
       addVerifiedVote(vote);
@@ -52,7 +58,7 @@ VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config,
   };
 
   // Load 2t+1 vote blocks votes
-  addVerifiedVotes(db_->getAllTwoTPlusOneVotes());
+  addVerifiedVotes(db_->getAllTwoTPlusOneVotes(), true);
 
   // Load own votes
   const auto own_votes = db_->getOwnVerifiedVotes();
