@@ -52,21 +52,27 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
       dev::p2p::Host::CapabilityList capabilities;
 
       // Register old version of taraxa capability
-      auto v1_tarcap = std::make_shared<network::v1_tarcap::TaraxaCapability>(host, key, config, kOldNetworkVersion, "V1_TARCAP");
+      auto v1_tarcap =
+          std::make_shared<network::v1_tarcap::TaraxaCapability>(host, key, config, kOldNetworkVersion, "V1_TARCAP");
       v1_tarcap->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, key.address());
       capabilities.emplace_back(v1_tarcap);
 
       // Register new version of taraxa capability
-//      auto v2_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(host, key, config, TARAXA_NET_VERSION, "TARCAP");
-//      v2_tarcap->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, key.address());
-//      capabilities.emplace_back(v2_tarcap);
+      auto v2_tarcap =
+          std::make_shared<network::tarcap::TaraxaCapability>(host, key, config, TARAXA_NET_VERSION, "TARCAP");
+      v2_tarcap->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, key.address());
+      capabilities.emplace_back(v2_tarcap);
 
       return capabilities;
     };
   }
 
   host_ = dev::p2p::Host::make(net_version, construct_capabilities, key, net_conf, taraxa_net_conf, network_file_path);
-  taraxa_capability_ = std::static_pointer_cast<network::tarcap::TaraxaCapability>(host_->latestCapability());
+  for (const auto &tarcap : host_->getSupportedCapabilities()) {
+    tarcaps_.emplace(tarcap.second.ref->version(),
+                     std::static_pointer_cast<network::tarcap::TaraxaCapability>(tarcap.second.ref));
+  }
+
   for (uint i = 0; i < tp_.capacity(); ++i) {
     tp_.post_loop({100 + i * 20}, [this] {
       while (0 < host_->do_work())
@@ -80,12 +86,17 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
 
 Network::~Network() {
   tp_.stop();
-  taraxa_capability_->stop();
+  for (auto &tarcap : host_->getSupportedCapabilities()) {
+    std::static_pointer_cast<network::tarcap::TaraxaCapability>(tarcap.second.ref)->stop();
+  }
 }
 
 void Network::start() {
   tp_.start();
-  taraxa_capability_->start();
+  for (auto &tarcap : host_->getSupportedCapabilities()) {
+    std::static_pointer_cast<network::tarcap::TaraxaCapability>(tarcap.second.ref)->start();
+  }
+
   LOG(log_nf_) << "Started Node id: " << host_->id() << ", listening on port " << host_->listenPort();
 }
 
@@ -97,22 +108,30 @@ size_t Network::getPeerCount() { return host_->peer_count(); }
 
 unsigned Network::getNodeCount() { return host_->getNodeCount(); }
 
-Json::Value Network::getStatus() { return taraxa_capability_->getNodeStats()->getStatus(); }
-
-void Network::startSyncingPbft() {
-  tp_.post(
-      [this] { taraxa_capability_->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->startSyncingPbft(); });
+Json::Value Network::getStatus() {
+  // TODO: refactor this: combine node stats from all tarcaps...
+  return tarcaps_.end()->second->getNodeStats()->getStatus();
 }
 
-bool Network::pbft_syncing() { return taraxa_capability_->pbft_syncing(); }
+bool Network::pbft_syncing() {
+  return std::ranges::any_of(tarcaps_, [](const auto &tarcap) { return tarcap.second->pbft_syncing(); });
+}
 
-uint64_t Network::syncTimeSeconds() const { return taraxa_capability_->getNodeStats()->syncTimeSeconds(); }
 
-void Network::setSyncStatePeriod(PbftPeriod period) { taraxa_capability_->setSyncStatePeriod(period); }
+void Network::setSyncStatePeriod(PbftPeriod period) {
+  for (auto &tarcap : tarcaps_) {
+    if (tarcap.second->pbft_syncing()) {
+      tarcap.second->setSyncStatePeriod(period);
+    }
+  }
+}
 
-// Only for test
+// METHODS USED IN TESTS ONLY
+// Note: for functions use in tests all data are fetched only from the tarcap with the highest version,
+//       other functions must use all tarcaps
+
 void Network::setPendingPeersToReady() {
-  const auto &peers_state = taraxa_capability_->getPeersState();
+  const auto &peers_state = tarcaps_.end()->second->getPeersState();
 
   auto peerIds = peers_state->getAllPendingPeersIDs();
   for (const auto &peerId : peerIds) {
@@ -125,12 +144,13 @@ void Network::setPendingPeersToReady() {
 
 dev::p2p::NodeID Network::getNodeId() const { return host_->id(); }
 
-int Network::getReceivedBlocksCount() const { return taraxa_capability_->getReceivedBlocksCount(); }
+int Network::getReceivedBlocksCount() const { return tarcaps_.end()->second->getReceivedBlocksCount(); }
 
-int Network::getReceivedTransactionsCount() const { return taraxa_capability_->getReceivedTransactionsCount(); }
+int Network::getReceivedTransactionsCount() const { return tarcaps_.end()->second->getReceivedTransactionsCount(); }
 
 std::shared_ptr<network::tarcap::TaraxaPeer> Network::getPeer(dev::p2p::NodeID const &id) const {
-  return taraxa_capability_->getPeersState()->getPeer(id);
+  return tarcaps_.end()->second->getPeersState()->getPeer(id);
 }
+// METHODS USED IN TESTS ONLY
 
 }  // namespace taraxa

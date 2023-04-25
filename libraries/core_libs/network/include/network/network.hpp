@@ -24,7 +24,6 @@ namespace taraxa {
 
 class PacketHandler;
 
-// TODO merge with TaraxaCapability, and then split the result in reasonable components
 class Network {
  public:
   Network(const FullNodeConfig &config, const h256 &genesis_hash = {},
@@ -69,14 +68,15 @@ class Network {
  private:
   util::ThreadPool tp_;
   std::shared_ptr<dev::p2p::Host> host_;
-  std::shared_ptr<network::tarcap::TaraxaCapability> taraxa_capability_;
+  std::map<unsigned /* tarcap version */, std::shared_ptr<network::tarcap::TaraxaCapability>> tarcaps_;
 
   LOG_OBJECTS_DEFINE
 };
 
 template <typename PacketHandlerType>
 std::shared_ptr<PacketHandlerType> Network::getSpecificHandler() const {
-  return taraxa_capability_->getSpecificHandler<PacketHandlerType>();
+  // TODO: rework this - we have to use both tarcaps
+  return tarcaps_.rbegin()->second->getSpecificHandler<PacketHandlerType>();
 }
 
 }  // namespace taraxa
