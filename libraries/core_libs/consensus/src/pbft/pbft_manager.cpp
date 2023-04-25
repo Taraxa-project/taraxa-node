@@ -565,15 +565,13 @@ void PbftManager::broadcastVotes() {
     return;
   }
 
-  const auto votes_sync_packet_handler = net->getSpecificHandler<network::tarcap::VotesBundlePacketHandler>();
-
   // Send votes to the other peers
-  auto gossipVotes = [this, &votes_sync_packet_handler](std::vector<std::shared_ptr<Vote>> &&votes,
-                                                        const std::string &votes_type_str, bool rebroadcast) {
+  auto gossipVotes = [this, &net](const std::vector<std::shared_ptr<Vote>> &votes, const std::string &votes_type_str,
+                                  bool rebroadcast) {
     if (!votes.empty()) {
       LOG(log_dg_) << "Broadcast " << votes_type_str << " for period " << votes.back()->getPeriod() << ", round "
                    << votes.back()->getRound();
-      votes_sync_packet_handler->onNewPbftVotesBundle(std::move(votes), rebroadcast);
+      net->gossipVotesBundle(votes, rebroadcast);
     }
   };
 
@@ -598,16 +596,12 @@ void PbftManager::broadcastVotes() {
           "2t+1 next null votes", rebroadcast);
     }
 
-    // Broadcast own votes
-    auto vote_packet_handler = net->getSpecificHandler<network::tarcap::VotePacketHandler>();
-    // TODO: this could be optimized to use VotesBundlePacketHandler if we drop some of the checks in process function
-    // Send votes by one as votes sync packet must contain votes with the same type, period and round
-    const auto &own_votes = vote_mgr_->getOwnVerifiedVotes();
-    for (const auto &vote : own_votes) {
-      vote_packet_handler->onNewPbftVote(vote, getPbftProposedBlock(vote->getPeriod(), vote->getBlockHash()),
-                                         rebroadcast);
-    }
-    if (!own_votes.empty()) {
+    // Broadcast own votes - send votes by one as they have different type, period, round, step
+    if (const auto &own_votes = vote_mgr_->getOwnVerifiedVotes(); !own_votes.empty()) {
+      for (const auto &vote : own_votes) {
+        net->gossipVote(vote, getPbftProposedBlock(vote->getPeriod(), vote->getBlockHash()), rebroadcast);
+      }
+
       LOG(log_dg_) << "Broadcast own votes for period " << period << ", round " << round;
     }
   };
@@ -769,8 +763,7 @@ bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &propo
     LOG(log_dg_) << "Broadcast propose block reward votes for block " << proposed_block->getBlockHash()
                  << ", num of reward votes: " << reward_votes.size() << ", period " << current_pbft_period << ", round "
                  << current_pbft_round;
-    net->getSpecificHandler<network::tarcap::VotesBundlePacketHandler>()->onNewPbftVotesBundle(std::move(reward_votes),
-                                                                                               false);
+    net->gossipVotesBundle(reward_votes, false);
   }
 
   if (!placeVote(propose_vote, "propose vote", proposed_block)) {
@@ -793,7 +786,7 @@ void PbftManager::gossipNewVote(const std::shared_ptr<Vote> &vote, const std::sh
     return;
   }
 
-  net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(vote, voted_block);
+  net->gossipVote(vote, voted_block);
 
   auto found_voted_block_it = current_round_broadcasted_votes_.find(vote->getBlockHash());
   if (found_voted_block_it == current_round_broadcasted_votes_.end()) {
@@ -1666,8 +1659,9 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
                  << "; prevHash: " << period_data.pbft_blk->getPrevBlockHash() << " from peer " << node_id.abridged()
                  << " received, stop syncing.";
     sync_queue_.clear();
+
     // Handle malicious peer on network level
-    net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
+    net->handleMaliciousSyncPeer(node_id);
     return std::nullopt;
   }
 
@@ -1681,7 +1675,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
     LOG(log_er_) << "Failed verifying reward votes for block " << pbft_block_hash << ". Disconnect malicious peer "
                  << node_id.abridged();
     sync_queue_.clear();
-    net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
+    net->handleMaliciousSyncPeer(node_id);
     return std::nullopt;
   }
 
@@ -1697,7 +1691,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
     LOG(log_er_) << "Synced PBFT block " << pbft_block_hash
                  << " doesn't have enough valid cert votes. Clear synced PBFT blocks!";
     sync_queue_.clear();
-    net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
+    net->handleMaliciousSyncPeer(node_id);
     return std::nullopt;
   }
 
@@ -1717,7 +1711,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
     LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << " transactions count " << period_data.transactions.size()
                  << " incorrect, expected: " << non_finalized_transactions.size();
     sync_queue_.clear();
-    net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
+    net->handleMaliciousSyncPeer(node_id);
     return std::nullopt;
   }
   for (uint32_t i = 0; i < non_finalized_transactions.size(); i++) {
@@ -1726,7 +1720,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
                    << non_finalized_transactions[i]
                    << " incorrect, expected: " << period_data.transactions[i]->getHash();
       sync_queue_.clear();
-      net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
+      net->handleMaliciousSyncPeer(node_id);
       return std::nullopt;
     }
   }

@@ -14,7 +14,7 @@ class PbftSyncPacketHandler final : public ExtSyncingPacketHandler {
                         std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<util::ThreadPool> periodic_events_tp,
                         std::shared_ptr<DbStorage> db, const addr_t& node_addr);
 
-  void handleMaliciousSyncPeer(dev::p2p::NodeID const& id);
+  void handleMaliciousSyncPeer(const dev::p2p::NodeID& id);
 
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::PbftSyncPacket;

@@ -181,14 +181,14 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shar
     }
   } else if (!test_state_->hasBlock(block.getHash())) {
     test_state_->insertBlock(block);
-    onNewBlockVerified(std::move(block), false, {});
+    onNewBlockVerified(block, false, {});
   } else {
     LOG(log_tr_) << "Received NewBlock " << block.getHash() << "that is already known";
     return;
   }
 }
 
-void DagBlockPacketHandler::onNewBlockVerified(DagBlock &&block, bool proposed, SharedTransactions &&trxs) {
+void DagBlockPacketHandler::onNewBlockVerified(const DagBlock &block, bool proposed, const SharedTransactions &trxs) {
   // If node is pbft syncing and block is not proposed by us, this is an old block that has been verified - no block
   // gossip is needed
   if (!proposed && pbft_syncing_state_->isDeepPbftSyncing()) {

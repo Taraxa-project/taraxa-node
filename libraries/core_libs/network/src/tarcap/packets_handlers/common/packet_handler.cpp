@@ -94,7 +94,6 @@ bool PacketHandler::sealAndSend(const dev::p2p::NodeID& node_id, SubprotocolPack
   const auto begin = std::chrono::steady_clock::now();
   const size_t packet_size = rlp.out().size();
 
-  LOG(log_er_) << "sealAndSend: " << convertPacketTypeToString(packet_type);
   host->send(node_id, TARAXA_CAPABILITY_NAME, packet_type, rlp.invalidate(),
              [begin, node_id, packet_size, packet_type, this]() {
                if (!kConf.network.ddos_protection.log_packets_stats) {

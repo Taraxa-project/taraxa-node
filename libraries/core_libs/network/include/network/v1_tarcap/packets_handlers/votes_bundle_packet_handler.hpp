@@ -18,7 +18,7 @@ class VotesBundlePacketHandler final : public ExtVotesPacketHandler {
    * @param rebroadcast if rebroadcast is true, all votes are resent to all peers
    * @param exclude_node do not send votes to excluded node
    */
-  void onNewPbftVotesBundle(std::vector<std::shared_ptr<Vote>>&& votes, bool rebroadcast = false,
+  void onNewPbftVotesBundle(const std::vector<std::shared_ptr<Vote>>& votes, bool rebroadcast = false,
                             const std::optional<dev::p2p::NodeID>& exclude_node = {});
 
   // Packet type that is processed by this handler

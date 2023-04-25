@@ -291,8 +291,6 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
     return;
   }
 
-  LOG(log_er_) << "received : " << convertPacketTypeToString(packet_type) << " from " << node_id;
-
   if (pbft_syncing_state_->isDeepPbftSyncing() && filterSyncIrrelevantPackets(packet_type)) {
     LOG(log_dg_) << "Ignored " << convertPacketTypeToString(packet_type) << " because we are still syncing";
     return;

@@ -177,8 +177,7 @@ std::pair<bool, std::vector<blk_hash_t>> DagManager::addDagBlock(DagBlock &&blk,
     if (save) {
       block_verified_.emit(blk);
       if (auto net = network_.lock()) {
-        net->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->onNewBlockVerified(std::move(blk), proposed,
-                                                                                              std::move(trxs));
+        net->gossipDagBlock(blk, proposed, trxs);
       }
     }
   }

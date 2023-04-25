@@ -5,9 +5,13 @@
 #include <libp2p/Network.h>
 
 #include <boost/tokenizer.hpp>
+#include <ranges>
 
 #include "config/version.hpp"
+#include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/votes_bundle_packet_handler.hpp"
 #include "network/v1_tarcap/taraxa_capability.hpp"
 
 namespace taraxa {
@@ -120,10 +124,62 @@ bool Network::pbft_syncing() {
 
 void Network::setSyncStatePeriod(PbftPeriod period) {
   for (auto &tarcap : tarcaps_) {
+    // TODO: double check this ???
     if (tarcap.second->pbft_syncing()) {
       tarcap.second->setSyncStatePeriod(period);
     }
   }
+}
+
+void Network::gossipDagBlock(const DagBlock &block, bool proposed, const SharedTransactions &trxs) {
+  for (const auto &tarcap : tarcaps_ | std::views::reverse) {
+    tarcap.second->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->onNewBlockVerified(block, proposed,
+                                                                                                    trxs);
+  }
+}
+
+void Network::gossipVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &block, bool rebroadcast) {
+  for (const auto &tarcap : tarcaps_ | std::views::reverse) {
+    tarcap.second->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(vote, block, rebroadcast);
+  }
+}
+
+void Network::gossipVotesBundle(const std::vector<std::shared_ptr<Vote>> &votes, bool rebroadcast) {
+  for (const auto &tarcap : tarcaps_ | std::views::reverse) {
+    tarcap.second->getSpecificHandler<network::tarcap::VotesBundlePacketHandler>()->onNewPbftVotesBundle(votes,
+                                                                                                         rebroadcast);
+  }
+}
+
+void Network::handleMaliciousSyncPeer(const dev::p2p::NodeID &node_id) {
+  for (const auto &tarcap : tarcaps_ | std::views::reverse) {
+    // Peer is present only in one taraxa capability depending on his network version
+    if (auto peer = tarcap.second->getPeersState()->getPeer(node_id); !peer) {
+      continue;
+    }
+
+    tarcap.second->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
+  }
+}
+
+std::shared_ptr<network::tarcap::TaraxaPeer> Network::getMaxChainPeer() const {
+  std::shared_ptr<network::tarcap::TaraxaPeer> max_chain_peer{nullptr};
+
+  for (const auto &tarcap : tarcaps_ | std::views::reverse) {
+    const auto peer =
+        tarcap.second->getSpecificHandler<::taraxa::network::tarcap::PbftSyncPacketHandler>()->getMaxChainPeer();
+    if (!peer) {
+      continue;
+    }
+
+    if (!max_chain_peer) {
+      max_chain_peer = peer;
+    } else if (peer->pbft_chain_size_ > max_chain_peer->pbft_chain_size_) {
+      max_chain_peer = peer;
+    }
+  }
+
+  return max_chain_peer;
 }
 
 // METHODS USED IN TESTS ONLY
@@ -131,7 +187,7 @@ void Network::setSyncStatePeriod(PbftPeriod period) {
 //       other functions must use all tarcaps
 
 void Network::setPendingPeersToReady() {
-  const auto &peers_state = tarcaps_.end()->second->getPeersState();
+  const auto &peers_state = tarcaps_.rbegin()->second->getPeersState();
 
   auto peerIds = peers_state->getAllPendingPeersIDs();
   for (const auto &peerId : peerIds) {
@@ -144,12 +200,12 @@ void Network::setPendingPeersToReady() {
 
 dev::p2p::NodeID Network::getNodeId() const { return host_->id(); }
 
-int Network::getReceivedBlocksCount() const { return tarcaps_.end()->second->getReceivedBlocksCount(); }
+int Network::getReceivedBlocksCount() const { return tarcaps_.rbegin()->second->getReceivedBlocksCount(); }
 
-int Network::getReceivedTransactionsCount() const { return tarcaps_.end()->second->getReceivedTransactionsCount(); }
+int Network::getReceivedTransactionsCount() const { return tarcaps_.rbegin()->second->getReceivedTransactionsCount(); }
 
 std::shared_ptr<network::tarcap::TaraxaPeer> Network::getPeer(dev::p2p::NodeID const &id) const {
-  return tarcaps_.end()->second->getPeersState()->getPeer(id);
+  return tarcaps_.rbegin()->second->getPeersState()->getPeer(id);
 }
 // METHODS USED IN TESTS ONLY
 

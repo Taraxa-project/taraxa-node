@@ -89,10 +89,10 @@ void VotesBundlePacketHandler::process(const PacketData &packet_data, const std:
                << " ) sync votes from peer " << packet_data.from_node_id_ << " node current round "
                << current_pbft_round << ", peer pbft round " << votes_bundle_pbft_round;
 
-  onNewPbftVotesBundle(std::move(votes), false, packet_data.from_node_id_);
+  onNewPbftVotesBundle(votes, false, packet_data.from_node_id_);
 }
 
-void VotesBundlePacketHandler::onNewPbftVotesBundle(std::vector<std::shared_ptr<Vote>> &&votes, bool rebroadcast,
+void VotesBundlePacketHandler::onNewPbftVotesBundle(const std::vector<std::shared_ptr<Vote>> &votes, bool rebroadcast,
                                                     const std::optional<dev::p2p::NodeID> &exclude_node) {
   for (const auto &peer : peers_state_->getAllPeers()) {
     if (peer.second->syncing_) {

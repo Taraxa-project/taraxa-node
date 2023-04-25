@@ -20,6 +20,7 @@
 #include "tarcap/taraxa_capability.hpp"
 #include "transaction/transaction.hpp"
 
+// TODO: use network::taraxa namespace
 namespace taraxa {
 
 class PacketHandler;
@@ -54,10 +55,16 @@ class Network {
   uint64_t syncTimeSeconds() const;
   void setSyncStatePeriod(PbftPeriod period);
 
+  void gossipDagBlock(const DagBlock &block, bool proposed, const SharedTransactions &trxs);
+  void gossipVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &block, bool rebroadcast = false);
+  void gossipVotesBundle(const std::vector<std::shared_ptr<Vote>> &votes, bool rebroadcast = false);
+  void handleMaliciousSyncPeer(const dev::p2p::NodeID &id);
+  std::shared_ptr<network::tarcap::TaraxaPeer> getMaxChainPeer() const;
+
+  // METHODS USED IN TESTS ONLY
   template <typename PacketHandlerType>
   std::shared_ptr<PacketHandlerType> getSpecificHandler() const;
 
-  // METHODS USED IN TESTS ONLY
   void setPendingPeersToReady();
   dev::p2p::NodeID getNodeId() const;
   int getReceivedBlocksCount() const;
@@ -75,7 +82,6 @@ class Network {
 
 template <typename PacketHandlerType>
 std::shared_ptr<PacketHandlerType> Network::getSpecificHandler() const {
-  // TODO: rework this - we have to use both tarcaps
   return tarcaps_.rbegin()->second->getSpecificHandler<PacketHandlerType>();
 }
 

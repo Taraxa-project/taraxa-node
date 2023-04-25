@@ -21,7 +21,7 @@ class DagBlockPacketHandler final : public ExtSyncingPacketHandler {
 
   void sendBlock(dev::p2p::NodeID const &peer_id, DagBlock block, const SharedTransactions &trxs);
   void onNewBlockReceived(DagBlock &&block, const std::shared_ptr<TaraxaPeer> &peer = nullptr);
-  void onNewBlockVerified(DagBlock &&block, bool proposed, SharedTransactions &&trxs);
+  void onNewBlockVerified(const DagBlock &block, bool proposed, const SharedTransactions &trxs);
 
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::DagBlockPacket;

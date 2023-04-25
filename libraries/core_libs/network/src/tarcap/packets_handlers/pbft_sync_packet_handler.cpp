@@ -263,7 +263,7 @@ void PbftSyncPacketHandler::delayedPbftSync(int counter) {
   }
 }
 
-void PbftSyncPacketHandler::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) {
+void PbftSyncPacketHandler::handleMaliciousSyncPeer(const dev::p2p::NodeID &id) {
   peers_state_->set_peer_malicious(id);
 
   if (auto host = peers_state_->host_.lock(); host) {
