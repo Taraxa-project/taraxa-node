@@ -7,7 +7,7 @@
 #include "json/value.h"
 #include "network/tarcap/packet_types.hpp"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network::threadpool {
 
 class PacketData {
  public:
@@ -46,4 +46,4 @@ class PacketData {
   dev::RLP rlp_;
 };
 
-}  // namespace taraxa::network::tarcap
+}  // namespace taraxa::network::threadpool

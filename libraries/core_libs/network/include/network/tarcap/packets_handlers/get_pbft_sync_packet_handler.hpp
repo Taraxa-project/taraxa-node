@@ -27,8 +27,8 @@ class GetPbftSyncPacketHandler final : public PacketHandler {
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetPbftSyncPacket;
 
  private:
-  void validatePacketRlpFormat(const PacketData& packet_data) const override;
-  void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
+  void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
+  void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_ptr<PbftSyncingState> pbft_syncing_state_;
   std::shared_ptr<PbftChain> pbft_chain_;

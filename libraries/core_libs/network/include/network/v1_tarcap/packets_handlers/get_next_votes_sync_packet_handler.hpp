@@ -17,11 +17,11 @@ class GetNextVotesBundlePacketHandler final : public ExtVotesPacketHandler {
                                   std::shared_ptr<VoteManager> vote_mgr, const addr_t& node_addr);
 
   // Packet type that is processed by this handler
-  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::GetNextVotesSyncPacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetNextVotesSyncPacket;
 
  private:
-  void validatePacketRlpFormat(const tarcap::PacketData& packet_data) const override;
-  void process(const tarcap::PacketData& packet_data, const std::shared_ptr<tarcap::TaraxaPeer>& peer) override;
+  void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
+  void process(const threadpool::PacketData& packet_data, const std::shared_ptr<tarcap::TaraxaPeer>& peer) override;
 };
 
 }  // namespace taraxa::network::v1_tarcap

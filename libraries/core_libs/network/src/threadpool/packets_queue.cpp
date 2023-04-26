@@ -1,6 +1,6 @@
-#include "network/tarcap/threadpool/packets_queue.hpp"
+#include "network/threadpool/packets_queue.hpp"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network::threadpool {
 
 bool PacketsQueue::maxWorkersCountReached() const {
   if (act_workers_count_ >= kMaxWorkersCount_) {
@@ -50,4 +50,4 @@ size_t PacketsQueue::size() const { return act_packets_count_; }
 
 size_t PacketsQueue::getActiveWorkersNum() const { return act_workers_count_; }
 
-}  // namespace taraxa::network::tarcap
+}  // namespace taraxa::network::threadpool

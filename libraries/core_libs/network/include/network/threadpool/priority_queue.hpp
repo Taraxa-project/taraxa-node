@@ -7,10 +7,10 @@
 
 #include "logger/logger.hpp"
 #include "network/tarcap/packet_types.hpp"
-#include "network/tarcap/threadpool/packets_blocking_mask.hpp"
+#include "network/threadpool/packets_blocking_mask.hpp"
 #include "packets_queue.hpp"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network::threadpool {
 
 class PriorityQueue {
  public:
@@ -86,4 +86,4 @@ class PriorityQueue {
   std::atomic<size_t> act_total_workers_count_;
 };
 
-}  // namespace taraxa::network::tarcap
+}  // namespace taraxa::network::threadpool

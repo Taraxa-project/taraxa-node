@@ -21,14 +21,15 @@ DagBlockPacketHandler::DagBlockPacketHandler(const FullNodeConfig &conf, std::sh
       test_state_(std::move(test_state)),
       trx_mgr_(std::move(trx_mgr)) {}
 
-void DagBlockPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
+void DagBlockPacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
   // Only one dag block can be received
   if (constexpr size_t required_size = 8; packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
 }
 
-void DagBlockPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
+void DagBlockPacketHandler::process(const threadpool::PacketData &packet_data,
+                                    const std::shared_ptr<TaraxaPeer> &peer) {
   DagBlock block(packet_data.rlp_);
   blk_hash_t const hash = block.getHash();
 

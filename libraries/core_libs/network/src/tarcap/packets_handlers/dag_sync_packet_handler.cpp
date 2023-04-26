@@ -20,13 +20,13 @@ DagSyncPacketHandler::DagSyncPacketHandler(const FullNodeConfig& conf, std::shar
                               "DAG_SYNC_PH"),
       trx_mgr_(std::move(trx_mgr)) {}
 
-void DagSyncPacketHandler::validatePacketRlpFormat(const PacketData& packet_data) const {
+void DagSyncPacketHandler::validatePacketRlpFormat(const threadpool::PacketData& packet_data) const {
   if (constexpr size_t required_size = 4; packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
 }
 
-void DagSyncPacketHandler::process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
+void DagSyncPacketHandler::process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
   auto it = packet_data.rlp_.begin();
   const auto request_period = (*it++).toInt<PbftPeriod>();
   const auto response_period = (*it++).toInt<PbftPeriod>();

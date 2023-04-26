@@ -12,7 +12,7 @@ VotePacketHandler::VotePacketHandler(const FullNodeConfig &conf, std::shared_ptr
     : ExtVotesPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
                             std::move(pbft_chain), std::move(vote_mgr), node_addr, "PBFT_VOTE_PH") {}
 
-void VotePacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketData &packet_data) const {
+void VotePacketHandler::validatePacketRlpFormat([[maybe_unused]] const threadpool::PacketData &packet_data) const {
   auto items = packet_data.rlp_.itemCount();
   // Vote packet can contain either just a vote or vote + block + peer_chain_size
   if (items != kVotePacketSize && items != kExtendedVotePacketSize) {
@@ -20,7 +20,7 @@ void VotePacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketDat
   }
 }
 
-void VotePacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
+void VotePacketHandler::process(const threadpool::PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
   // Optional packet items

@@ -7,9 +7,9 @@
 #include <shared_mutex>
 
 #include "network/tarcap/packet_types.hpp"
-#include "network/tarcap/threadpool/packet_data.hpp"
+#include "network/threadpool/packet_data.hpp"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network::threadpool {
 
 class PacketsBlockingMask {
  public:
@@ -69,4 +69,4 @@ class PacketsBlockingMask {
   std::map<taraxa::sig_t, PacketData::PacketId> processing_dag_blocks_;
 };
 
-}  // namespace taraxa::network::tarcap
+}  // namespace taraxa::network::threadpool

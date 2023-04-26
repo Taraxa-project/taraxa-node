@@ -10,7 +10,7 @@
 #include "network/tarcap/packets_handlers/common/exceptions.hpp"
 #include "network/tarcap/shared_states/peers_state.hpp"
 #include "network/tarcap/taraxa_peer.hpp"
-#include "network/tarcap/threadpool/packet_data.hpp"
+#include "network/threadpool/packet_data.hpp"
 
 namespace taraxa::network::tarcap {
 
@@ -38,26 +38,26 @@ class PacketHandler {
    *
    * @param packet_data
    */
-  void processPacket(const PacketData& packet_data);
+  void processPacket(const threadpool::PacketData& packet_data);
 
   void requestPbftNextVotesAtPeriodRound(const dev::p2p::NodeID& peerID, PbftPeriod pbft_period, PbftRound pbft_round);
 
  private:
-  void handle_caught_exception(std::string_view exception_msg, const PacketData& packet_data,
+  void handle_caught_exception(std::string_view exception_msg, const threadpool::PacketData& packet_data,
                                dev::p2p::DisconnectReason disconnect_reason = dev::p2p::DisconnectReason::UserReason,
                                bool set_peer_as_malicious = false);
 
   /**
    * @brief Main packet processing function
    */
-  virtual void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) = 0;
+  virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) = 0;
 
   /**
    * @brief Validates packet rlp format - items count
    *
    * @throws InvalidRlpItemsCountException exception
    */
-  virtual void validatePacketRlpFormat(const PacketData& packet_data) const = 0;
+  virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const = 0;
 
  protected:
   /**
@@ -66,7 +66,7 @@ class PacketHandler {
    * @param packet_data
    * @throws InvalidRlpItemsCountException exception
    */
-  void checkPacketRlpIsList(const PacketData& packet_data) const;
+  void checkPacketRlpIsList(const threadpool::PacketData& packet_data) const;
 
   bool sealAndSend(const dev::p2p::NodeID& nodeID, SubprotocolPacketType packet_type, dev::RLPStream&& rlp);
   void disconnect(const dev::p2p::NodeID& node_id, dev::p2p::DisconnectReason reason);

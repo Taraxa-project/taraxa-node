@@ -21,7 +21,7 @@ StatusPacketHandler::StatusPacketHandler(const FullNodeConfig& conf, std::shared
                               "STATUS_PH"),
       kGenesisHash(genesis_hash) {}
 
-void StatusPacketHandler::validatePacketRlpFormat(const PacketData& packet_data) const {
+void StatusPacketHandler::validatePacketRlpFormat(const threadpool::PacketData& packet_data) const {
   if (const auto items_count = packet_data.rlp_.itemCount();
       items_count != kInitialStatusPacketItemsCount && items_count != kStandardStatusPacketItemsCount) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(),
@@ -29,7 +29,7 @@ void StatusPacketHandler::validatePacketRlpFormat(const PacketData& packet_data)
   }
 }
 
-void StatusPacketHandler::process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
+void StatusPacketHandler::process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) {
   // Important !!! Use only "selected_peer" and not "peer" in this function as "peer" might be nullptr
   auto selected_peer = peer;
   const auto pbft_synced_period = pbft_mgr_->pbftSyncingPeriod();

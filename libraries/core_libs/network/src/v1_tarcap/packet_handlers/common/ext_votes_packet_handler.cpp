@@ -32,7 +32,7 @@ void ExtVotesPacketHandler::sendPbftVotesBundle(const std::shared_ptr<tarcap::Ta
       LOG(log_dg_) << "Send vote " << vote->getHash() << " to peer " << peer->getId();
     }
 
-    if (sealAndSend(peer->getId(), tarcap::SubprotocolPacketType::VotesBundlePacket, std::move(s))) {
+    if (sealAndSend(peer->getId(), SubprotocolPacketType::VotesBundlePacket, std::move(s))) {
       LOG(log_dg_) << count << " PBFT votes to were sent to " << peer->getId();
       for (auto i = index; i < index + count; i++) {
         peer->markVoteAsKnown(votes[i]->getHash());

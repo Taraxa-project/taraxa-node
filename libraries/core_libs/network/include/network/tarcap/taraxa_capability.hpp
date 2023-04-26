@@ -13,8 +13,8 @@
 #include "network/tarcap/shared_states/peers_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
 #include "network/tarcap/stats/node_stats.hpp"
+#include "network/threadpool/tarcap_thread_pool.hpp"
 #include "pbft/pbft_chain.hpp"
-#include "threadpool/tarcap_thread_pool.hpp"
 
 namespace taraxa {
 class DbStorage;
@@ -129,7 +129,7 @@ class TaraxaCapability : public dev::p2p::CapabilityFace {
   std::shared_ptr<PacketsHandler> packets_handlers_;
 
   // Main Threadpool for processing packets
-  std::shared_ptr<TarcapThreadPool> thread_pool_;
+  std::shared_ptr<threadpool::PacketsThreadPool> thread_pool_;
 
   // Threadpool for periodic and delayed events
   std::shared_ptr<util::ThreadPool> periodic_events_tp_;

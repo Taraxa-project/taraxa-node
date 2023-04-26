@@ -16,7 +16,7 @@ TransactionPacketHandler::TransactionPacketHandler(const FullNodeConfig &conf, s
       trx_mgr_(std::move(trx_mgr)),
       test_state_(std::move(test_state)) {}
 
-void TransactionPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
+void TransactionPacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
   auto items = packet_data.rlp_.itemCount();
   if (items != kTransactionPacketItemCount) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, items, kTransactionPacketItemCount);
@@ -32,7 +32,8 @@ void TransactionPacketHandler::validatePacketRlpFormat(const PacketData &packet_
   }
 }
 
-inline void TransactionPacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
+inline void TransactionPacketHandler::process(const threadpool::PacketData &packet_data,
+                                              const std::shared_ptr<TaraxaPeer> &peer) {
   std::vector<trx_hash_t> received_transactions;
 
   const auto transaction_count = packet_data.rlp_[0].itemCount();

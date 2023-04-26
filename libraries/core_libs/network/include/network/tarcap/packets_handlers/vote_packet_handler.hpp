@@ -27,8 +27,8 @@ class VotePacketHandler final : public ExtVotesPacketHandler {
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::VotePacket;
 
  private:
-  void validatePacketRlpFormat(const PacketData& packet_data) const override;
-  void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
+  void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
+  void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
  private:
   const size_t kVotePacketSize{1};

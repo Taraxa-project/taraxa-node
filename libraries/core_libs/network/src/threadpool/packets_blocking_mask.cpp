@@ -1,8 +1,8 @@
-#include "network/tarcap/threadpool/packets_blocking_mask.hpp"
+#include "network/threadpool/packets_blocking_mask.hpp"
 
 #include "dag/dag_block.hpp"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network::threadpool {
 
 void PacketsBlockingMask::markPacketAsHardBlocked(const PacketData& blocking_packet,
                                                   SubprotocolPacketType packet_type_to_block) {
@@ -209,4 +209,4 @@ bool PacketsBlockingMask::isPacketBlocked(const PacketData& packet_data) const {
   return false;
 }
 
-}  // namespace taraxa::network::tarcap
+}  // namespace taraxa::network::threadpool

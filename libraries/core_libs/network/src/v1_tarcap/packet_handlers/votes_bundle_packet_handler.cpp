@@ -14,14 +14,15 @@ VotesBundlePacketHandler::VotesBundlePacketHandler(const FullNodeConfig &conf,
     : ExtVotesPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
                             std::move(pbft_chain), std::move(vote_mgr), node_addr, "V1_VOTES_SYNC_PH") {}
 
-void VotesBundlePacketHandler::validatePacketRlpFormat([[maybe_unused]] const tarcap::PacketData &packet_data) const {
+void VotesBundlePacketHandler::validatePacketRlpFormat(
+    [[maybe_unused]] const threadpool::PacketData &packet_data) const {
   auto items = packet_data.rlp_.itemCount();
   if (items == 0 || items > kMaxVotesInBundleRlp) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, items, kMaxVotesInBundleRlp);
   }
 }
 
-void VotesBundlePacketHandler::process(const tarcap::PacketData &packet_data,
+void VotesBundlePacketHandler::process(const threadpool::PacketData &packet_data,
                                        const std::shared_ptr<tarcap::TaraxaPeer> &peer) {
   const auto reference_vote = std::make_shared<Vote>(packet_data.rlp_[0]);
 

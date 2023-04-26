@@ -19,8 +19,8 @@ class StatusPacketHandler final : public ExtSyncingPacketHandler {
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::StatusPacket;
 
  private:
-  void validatePacketRlpFormat(const PacketData& packet_data) const override;
-  void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
+  void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
+  void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   static constexpr uint16_t kInitialStatusPacketItemsCount = 11;
   static constexpr uint16_t kStandardStatusPacketItemsCount = 4;

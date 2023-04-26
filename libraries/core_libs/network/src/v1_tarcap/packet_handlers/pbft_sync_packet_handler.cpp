@@ -20,7 +20,7 @@ PbftSyncPacketHandler::PbftSyncPacketHandler(
       vote_mgr_(std::move(vote_mgr)),
       periodic_events_tp_(periodic_events_tp) {}
 
-void PbftSyncPacketHandler::validatePacketRlpFormat(const tarcap::PacketData &packet_data) const {
+void PbftSyncPacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
   if (packet_data.rlp_.itemCount() != kStandardPacketSize && packet_data.rlp_.itemCount() != kChainSyncedPacketSize) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), kStandardPacketSize);
   }
@@ -33,7 +33,7 @@ void PbftSyncPacketHandler::validatePacketRlpFormat(const tarcap::PacketData &pa
   }
 }
 
-void PbftSyncPacketHandler::process(const tarcap::PacketData &packet_data,
+void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
                                     const std::shared_ptr<tarcap::TaraxaPeer> &peer) {
   // Note: no need to consider possible race conditions due to concurrent processing as it is
   // disabled on priority_queue blocking dependencies level

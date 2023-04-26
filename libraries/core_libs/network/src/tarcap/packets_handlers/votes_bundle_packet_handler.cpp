@@ -14,7 +14,8 @@ VotesBundlePacketHandler::VotesBundlePacketHandler(const FullNodeConfig &conf, s
     : ExtVotesPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
                             std::move(pbft_chain), std::move(vote_mgr), node_addr, "VOTES_SYNC_PH") {}
 
-void VotesBundlePacketHandler::validatePacketRlpFormat([[maybe_unused]] const PacketData &packet_data) const {
+void VotesBundlePacketHandler::validatePacketRlpFormat(
+    [[maybe_unused]] const threadpool::PacketData &packet_data) const {
   auto items = packet_data.rlp_.itemCount();
   if (items != kVotesBundleRlpSize) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, items, kVotesBundleRlpSize);
@@ -26,7 +27,8 @@ void VotesBundlePacketHandler::validatePacketRlpFormat([[maybe_unused]] const Pa
   }
 }
 
-void VotesBundlePacketHandler::process(const PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) {
+void VotesBundlePacketHandler::process(const threadpool::PacketData &packet_data,
+                                       const std::shared_ptr<TaraxaPeer> &peer) {
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
   const auto votes_bundle_block_hash = packet_data.rlp_[0].toHash<blk_hash_t>();

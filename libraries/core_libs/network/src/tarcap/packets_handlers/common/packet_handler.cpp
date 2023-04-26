@@ -11,13 +11,13 @@ PacketHandler::PacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersSt
   LOG_OBJECTS_CREATE(log_channel_name);
 }
 
-void PacketHandler::checkPacketRlpIsList(const PacketData& packet_data) const {
+void PacketHandler::checkPacketRlpIsList(const threadpool::PacketData& packet_data) const {
   if (!packet_data.rlp_.isList()) {
     throw InvalidRlpItemsCountException(packet_data.type_str_ + " RLP must be a list. ", 0, 1);
   }
 }
 
-void PacketHandler::processPacket(const PacketData& packet_data) {
+void PacketHandler::processPacket(const threadpool::PacketData& packet_data) {
   try {
     const auto begin = std::chrono::steady_clock::now();
 
@@ -65,7 +65,7 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
   }
 }
 
-void PacketHandler::handle_caught_exception(std::string_view exception_msg, const PacketData& packet_data,
+void PacketHandler::handle_caught_exception(std::string_view exception_msg, const threadpool::PacketData& packet_data,
                                             dev::p2p::DisconnectReason disconnect_reason, bool set_peer_as_malicious) {
   LOG(log_er_) << "Exception caught during packet processing: " << exception_msg << " ."
                << "PacketData: " << jsonToUnstyledString(packet_data.getPacketDataJson());

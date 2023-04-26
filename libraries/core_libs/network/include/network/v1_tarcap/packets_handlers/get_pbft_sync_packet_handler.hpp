@@ -26,11 +26,11 @@ class GetPbftSyncPacketHandler final : public tarcap::PacketHandler {
                       bool pbft_chain_synced);
 
   // Packet type that is processed by this handler
-  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::GetPbftSyncPacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetPbftSyncPacket;
 
  private:
-  void validatePacketRlpFormat(const tarcap::PacketData& packet_data) const override;
-  void process(const tarcap::PacketData& packet_data, const std::shared_ptr<tarcap::TaraxaPeer>& peer) override;
+  void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
+  void process(const threadpool::PacketData& packet_data, const std::shared_ptr<tarcap::TaraxaPeer>& peer) override;
 
   std::shared_ptr<tarcap::PbftSyncingState> pbft_syncing_state_;
   std::shared_ptr<PbftChain> pbft_chain_;

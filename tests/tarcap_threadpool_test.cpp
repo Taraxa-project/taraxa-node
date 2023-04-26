@@ -6,7 +6,7 @@
 #include "dag/dag_block.hpp"
 #include "logger/logger.hpp"
 #include "network/tarcap/packets_handler.hpp"
-#include "network/tarcap/threadpool/tarcap_thread_pool.hpp"
+#include "network/threadpool/tarcap_thread_pool.hpp"
 #include "test_util/test_util.hpp"
 
 namespace taraxa::core_tests {
@@ -39,14 +39,14 @@ class PacketsProcessingInfo {
   };
 
  public:
-  void addPacketProcessingTimes(tarcap::PacketData::PacketId packet_id,
+  void addPacketProcessingTimes(threadpool::PacketData::PacketId packet_id,
                                 const PacketProcessingTimes& packet_processing_times) {
     std::scoped_lock<std::shared_mutex> lock(mutex_);
     bool res = packets_processing_times_.emplace(packet_id, packet_processing_times).second;
     assert(res);
   }
 
-  PacketProcessingTimes getPacketProcessingTimes(tarcap::PacketData::PacketId packet_id) const {
+  PacketProcessingTimes getPacketProcessingTimes(threadpool::PacketData::PacketId packet_id) const {
     std::shared_lock<std::shared_mutex> lock(mutex_);
 
     auto found_packet_info = packets_processing_times_.find(packet_id);
@@ -66,7 +66,7 @@ class PacketsProcessingInfo {
   }
 
  private:
-  std::unordered_map<tarcap::PacketData::PacketId, PacketProcessingTimes> packets_processing_times_;
+  std::unordered_map<threadpool::PacketData::PacketId, PacketProcessingTimes> packets_processing_times_;
   mutable std::shared_mutex mutex_;
 };
 
@@ -99,9 +99,9 @@ class DummyPacketHandler : public tarcap::PacketHandler {
   DummyPacketHandler& operator=(DummyPacketHandler&&) = delete;
 
  private:
-  void validatePacketRlpFormat([[maybe_unused]] const tarcap::PacketData& packet_data) const override {}
+  void validatePacketRlpFormat([[maybe_unused]] const threadpool::PacketData& packet_data) const override {}
 
-  void process(const tarcap::PacketData& packet_data,
+  void process(const threadpool::PacketData& packet_data,
                [[maybe_unused]] const std::shared_ptr<tarcap::TaraxaPeer>& peer) override {
     // Note do not use LOG() before saving start & finish time as it is internally synchronized and can
     // cause delays, which result in tests fails
@@ -127,7 +127,7 @@ class DummyTransactionPacketHandler : public DummyPacketHandler {
       : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
 
   // Packet type that is processed by this handler
-  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::TransactionPacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::TransactionPacket;
 };
 
 class DummyDagBlockPacketHandler : public DummyPacketHandler {
@@ -137,7 +137,7 @@ class DummyDagBlockPacketHandler : public DummyPacketHandler {
       : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
 
   // Packet type that is processed by this handler
-  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::DagBlockPacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::DagBlockPacket;
 };
 
 class DummyStatusPacketHandler : public DummyPacketHandler {
@@ -147,7 +147,7 @@ class DummyStatusPacketHandler : public DummyPacketHandler {
       : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
 
   // Packet type that is processed by this handler
-  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::StatusPacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::StatusPacket;
 };
 
 class DummyVotePacketHandler : public DummyPacketHandler {
@@ -157,7 +157,7 @@ class DummyVotePacketHandler : public DummyPacketHandler {
       : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
 
   // Packet type that is processed by this handler
-  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::VotePacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::VotePacket;
 };
 
 class DummyGetNextVotesBundlePacketHandler : public DummyPacketHandler {
@@ -167,7 +167,7 @@ class DummyGetNextVotesBundlePacketHandler : public DummyPacketHandler {
       : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
 
   // Packet type that is processed by this handler
-  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::GetNextVotesSyncPacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetNextVotesSyncPacket;
 };
 
 class DummyVotesBundlePacketHandler : public DummyPacketHandler {
@@ -177,7 +177,7 @@ class DummyVotesBundlePacketHandler : public DummyPacketHandler {
       : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
 
   // Packet type that is processed by this handler
-  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::VotesBundlePacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::VotesBundlePacket;
 };
 
 class DummyGetDagSyncPacketHandler : public DummyPacketHandler {
@@ -187,7 +187,7 @@ class DummyGetDagSyncPacketHandler : public DummyPacketHandler {
       : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
 
   // Packet type that is processed by this handler
-  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::GetDagSyncPacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetDagSyncPacket;
 };
 
 class DummyGetPbftSyncPacketHandler : public DummyPacketHandler {
@@ -197,7 +197,7 @@ class DummyGetPbftSyncPacketHandler : public DummyPacketHandler {
       : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
 
   // Packet type that is processed by this handler
-  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::GetPbftSyncPacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetPbftSyncPacket;
 };
 
 class DummyDagSyncPacketHandler : public DummyPacketHandler {
@@ -207,7 +207,7 @@ class DummyDagSyncPacketHandler : public DummyPacketHandler {
       : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
 
   // Packet type that is processed by this handler
-  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::DagSyncPacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::DagSyncPacket;
 };
 
 class DummyPbftSyncPacketHandler : public DummyPacketHandler {
@@ -217,7 +217,7 @@ class DummyPbftSyncPacketHandler : public DummyPacketHandler {
       : DummyPacketHandler(init_data, log_channel_name, processing_delay_ms) {}
 
   // Packet type that is processed by this handler
-  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::PbftSyncPacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::PbftSyncPacket;
 };
 
 HandlersInitData createHandlersInitData() {
@@ -237,8 +237,8 @@ HandlersInitData createHandlersInitData() {
   return ret_init_data;
 }
 
-tarcap::PacketData createPacket(const dev::p2p::NodeID& sender_node_id, tarcap::SubprotocolPacketType packet_type,
-                                std::optional<std::vector<unsigned char>> packet_rlp_bytes = {}) {
+threadpool::PacketData createPacket(const dev::p2p::NodeID& sender_node_id, SubprotocolPacketType packet_type,
+                                    std::optional<std::vector<unsigned char>> packet_rlp_bytes = {}) {
   if (packet_rlp_bytes.has_value()) {
     return {packet_type, sender_node_id, std::move(packet_rlp_bytes.value())};
   }
@@ -296,7 +296,7 @@ void checkSerialProcessing(
   }
 }
 
-size_t queuesSize(const tarcap::TarcapThreadPool& tp) {
+size_t queuesSize(const threadpool::PacketsThreadPool& tp) {
   const auto [high_priority_queue_size, mid_priority_queue_size, low_priority_queue_size] = tp.getQueueSize();
 
   return high_priority_queue_size + mid_priority_queue_size + low_priority_queue_size;
@@ -328,49 +328,47 @@ TEST_F(TarcapTpTest, block_free_packets) {
   // Creates threadpool
   // Note: make num of threads >= num of packets to check if they are processed concurrently without blocks, otherwise
   //       some blocks would be blocked for processing due to max threads limit
-  tarcap::TarcapThreadPool tp(18);
+  threadpool::PacketsThreadPool tp(18);
   tp.setPacketsHandlers(packets_handler);
 
   // Pushes packets to the tp
   const auto packet0_tx_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TransactionPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::TransactionPacket, {})).value();
   const auto packet1_tx_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TransactionPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::TransactionPacket, {})).value();
   const auto packet2_tx_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TransactionPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::TransactionPacket, {})).value();
   const auto packet3_tx_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TransactionPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::TransactionPacket, {})).value();
 
   const auto packet4_dag_block_id =
-      tp.push(createPacket(dev::p2p::NodeID(sender2), tarcap::SubprotocolPacketType::DagBlockPacket,
-                           {createDagBlockRlp(0, 1)}))
+      tp.push(createPacket(dev::p2p::NodeID(sender2), SubprotocolPacketType::DagBlockPacket, {createDagBlockRlp(0, 1)}))
           .value();
   const auto packet5_dag_block_id =
-      tp.push(createPacket(dev::p2p::NodeID(sender2), tarcap::SubprotocolPacketType::DagBlockPacket,
-                           {createDagBlockRlp(0, 2)}))
+      tp.push(createPacket(dev::p2p::NodeID(sender2), SubprotocolPacketType::DagBlockPacket, {createDagBlockRlp(0, 2)}))
           .value();
 
   const auto packet8_status_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::StatusPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::StatusPacket, {})).value();
   const auto packet9_status_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::StatusPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::StatusPacket, {})).value();
 
   const auto packet12_vote_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotePacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::VotePacket, {})).value();
   const auto packet13_vote_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotePacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::VotePacket, {})).value();
 
   const auto packet14_get_pbft_next_votes_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::GetNextVotesSyncPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::GetNextVotesSyncPacket, {})).value();
   const auto packet15_get_pbft_next_votes_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::GetNextVotesSyncPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::GetNextVotesSyncPacket, {})).value();
 
   const auto packet16_pbft_next_votes_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotesBundlePacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::VotesBundlePacket, {})).value();
 
   size_t packets_count = 0;
   const auto packet17_pbft_next_votes_id = packets_count =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotesBundlePacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::VotesBundlePacket, {})).value();
 
   tp.startProcessing();
 
@@ -468,30 +466,30 @@ TEST_F(TarcapTpTest, hard_blocking_deps) {
   packets_handler->registerHandler<DummyPbftSyncPacketHandler>(init_data, "PBFT_SYNC_PH", 20);
 
   // Creates threadpool
-  tarcap::TarcapThreadPool tp(10);
+  threadpool::PacketsThreadPool tp(10);
   tp.setPacketsHandlers(packets_handler);
 
   // Pushes packets to the tp
   const auto packet0_dag_sync_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagSyncPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::DagSyncPacket, {})).value();
   const auto packet1_dag_sync_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagSyncPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::DagSyncPacket, {})).value();
   const auto packet2_get_dag_sync_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::GetDagSyncPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::GetDagSyncPacket, {})).value();
   const auto packet3_get_dag_sync_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::GetDagSyncPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::GetDagSyncPacket, {})).value();
   const auto packet4_get_pbft_sync_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::GetPbftSyncPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::GetPbftSyncPacket, {})).value();
   const auto packet5_get_pbft_sync_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::GetPbftSyncPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::GetPbftSyncPacket, {})).value();
   const auto packet6_pbft_sync_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::PbftSyncPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::PbftSyncPacket, {})).value();
   const auto packet7_pbft_sync_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::PbftSyncPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::PbftSyncPacket, {})).value();
 
   size_t packets_count = 0;
   const auto packet8_get_dag_sync_id = packets_count =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::GetDagSyncPacket, {})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::GetDagSyncPacket, {})).value();
 
   tp.startProcessing();
 
@@ -590,23 +588,22 @@ TEST_F(TarcapTpTest, peer_order_blocking_deps) {
   packets_handler->registerHandler<DummyDagSyncPacketHandler>(init_data, "SYNC_TEST_PH", 40);
 
   // Creates threadpool
-  tarcap::TarcapThreadPool tp(10);
+  threadpool::PacketsThreadPool tp(10);
   tp.setPacketsHandlers(packets_handler);
 
   // Pushes packets to the tp
   const auto packet0_tx_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TransactionPacket)).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::TransactionPacket)).value();
   const auto packet1_tx_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TransactionPacket)).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::TransactionPacket)).value();
   const auto packet2_dag_sync_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagSyncPacket)).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::DagSyncPacket)).value();
   const auto packet3_tx_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TransactionPacket)).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::TransactionPacket)).value();
 
   size_t packets_count = 0;
   const auto packet4_dag_block_id = packets_count =
-      tp.push(
-            createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket, {createDagBlockRlp(1)}))
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::DagBlockPacket, {createDagBlockRlp(1)}))
           .value();
 
   // How should packets be processed:
@@ -677,24 +674,24 @@ TEST_F(TarcapTpTest, same_dag_blks_ordering) {
   packets_handler->registerHandler<DummyDagBlockPacketHandler>(init_data, "DAG_BLOCK_PH", 20);
 
   // Creates threadpool
-  tarcap::TarcapThreadPool tp(10);
+  threadpool::PacketsThreadPool tp(10);
   tp.setPacketsHandlers(packets_handler);
 
   auto dag_block = createDagBlockRlp(0);
 
   // Pushes packets to the tp
   const auto blk0_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket, {dag_block})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::DagBlockPacket, {dag_block})).value();
   const auto blk1_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket, {dag_block})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::DagBlockPacket, {dag_block})).value();
   const auto blk2_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket, {dag_block})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::DagBlockPacket, {dag_block})).value();
   const auto blk3_id =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket, {dag_block})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::DagBlockPacket, {dag_block})).value();
 
   size_t packets_count = 0;
   const auto blk4_id = packets_count =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket, {dag_block})).value();
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::DagBlockPacket, {dag_block})).value();
 
   tp.startProcessing();
 
@@ -742,30 +739,29 @@ TEST_F(TarcapTpTest, dag_blks_lvls_ordering) {
   packets_handler->registerHandler<DummyDagBlockPacketHandler>(init_data, "DAG_BLOCK_PH", 20);
 
   // Creates threadpool
-  tarcap::TarcapThreadPool tp(10);
+  threadpool::PacketsThreadPool tp(10);
   tp.setPacketsHandlers(packets_handler);
 
   // Pushes packets to the tp
-  const auto blk0_lvl1_id = tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket,
-                                                 {createDagBlockRlp(1, 1)}))
-                                .value();
-  const auto blk1_lvl1_id = tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket,
-                                                 {createDagBlockRlp(1, 2)}))
-                                .value();
-  const auto blk2_lvl0_id = tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket,
-                                                 {createDagBlockRlp(0, 3)}))
-                                .value();
-  const auto blk3_lvl1_id = tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket,
-                                                 {createDagBlockRlp(1, 4)}))
-                                .value();
-  const auto blk4_lvl2_id = tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket,
-                                                 {createDagBlockRlp(2, 5)}))
-                                .value();
+  const auto blk0_lvl1_id =
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::DagBlockPacket, {createDagBlockRlp(1, 1)}))
+          .value();
+  const auto blk1_lvl1_id =
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::DagBlockPacket, {createDagBlockRlp(1, 2)}))
+          .value();
+  const auto blk2_lvl0_id =
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::DagBlockPacket, {createDagBlockRlp(0, 3)}))
+          .value();
+  const auto blk3_lvl1_id =
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::DagBlockPacket, {createDagBlockRlp(1, 4)}))
+          .value();
+  const auto blk4_lvl2_id =
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::DagBlockPacket, {createDagBlockRlp(2, 5)}))
+          .value();
 
   size_t packets_count = 0;
   const auto blk5_lvl3_id = packets_count =
-      tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::DagBlockPacket,
-                           {createDagBlockRlp(3, 6)}))
+      tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::DagBlockPacket, {createDagBlockRlp(3, 6)}))
           .value();
 
   tp.startProcessing();
@@ -845,14 +841,13 @@ TEST_F(TarcapTpTest, threads_borrowing) {
 
   // Creates threadpool
   const size_t threads_num = 10;
-  tarcap::TarcapThreadPool tp(threads_num);
+  threadpool::PacketsThreadPool tp(threads_num);
   tp.setPacketsHandlers(packets_handler);
 
   // Pushes packets to the tp
   std::vector<uint64_t> pushed_packets_ids;
   for (size_t i = 0; i < threads_num; i++) {
-    uint64_t packet_id =
-        tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotePacket, {})).value();
+    uint64_t packet_id = tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::VotePacket, {})).value();
     pushed_packets_ids.push_back(packet_id);
   }
 
@@ -908,7 +903,7 @@ TEST_F(TarcapTpTest, threads_borrowing) {
   EXPECT_EQ(packets_proc_info->getPacketProcessingTimes(pushed_packets_ids[9]).finish_time_, default_time_point);
 
   std::vector<std::pair<PacketsProcessingInfo::PacketProcessingTimes, std::string>> packets_proc_info_vec;
-  for (size_t i = 0; i < threads_num - (tarcap::PacketData::PacketPriority::Count - 1); i++) {
+  for (size_t i = 0; i < threads_num - (threadpool::PacketData::PacketPriority::Count - 1); i++) {
     packets_proc_info_vec.emplace_back(packets_proc_info->getPacketProcessingTimes(pushed_packets_ids[i]),
                                        "packet" + std::to_string(pushed_packets_ids[i]) + "_vote");
   }
@@ -937,20 +932,20 @@ TEST_F(TarcapTpTest, low_priotity_queue_starvation) {
 
   // Creates threadpool
   size_t threads_num = 10;
-  tarcap::TarcapThreadPool tp(threads_num);
+  threadpool::PacketsThreadPool tp(threads_num);
   tp.setPacketsHandlers(packets_handler);
 
   // Push 10x more packets for each prioriy queue than max tp capacity to make sure that tp wont be able to process all
   // packets from each queue concurrently -> many packets will be waiting due to max threads num reached for specific
   // priority queues
   for (size_t i = 0; i < 2 * 10 * threads_num; i++) {
-    tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::VotePacket, {})).value();
-    tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::TransactionPacket, {})).value();
+    tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::VotePacket, {})).value();
+    tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::TransactionPacket, {})).value();
   }
 
   // Push a few packets low priority packets
   for (size_t i = 0; i < 4; i++) {
-    tp.push(createPacket(init_data.copySender(), tarcap::SubprotocolPacketType::StatusPacket, {})).value();
+    tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::StatusPacket, {})).value();
   }
 
   tp.startProcessing();

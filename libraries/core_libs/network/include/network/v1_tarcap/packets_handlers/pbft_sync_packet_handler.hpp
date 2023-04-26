@@ -18,11 +18,11 @@ class PbftSyncPacketHandler final : public tarcap::ExtSyncingPacketHandler {
   void handleMaliciousSyncPeer(dev::p2p::NodeID const& id);
 
   // Packet type that is processed by this handler
-  static constexpr tarcap::SubprotocolPacketType kPacketType_ = tarcap::SubprotocolPacketType::PbftSyncPacket;
+  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::PbftSyncPacket;
 
  private:
-  void validatePacketRlpFormat(const tarcap::PacketData& packet_data) const override;
-  void process(const tarcap::PacketData& packet_data, const std::shared_ptr<tarcap::TaraxaPeer>& peer) override;
+  void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
+  void process(const threadpool::PacketData& packet_data, const std::shared_ptr<tarcap::TaraxaPeer>& peer) override;
 
   void pbftSyncComplete();
   void delayedPbftSync(int counter);

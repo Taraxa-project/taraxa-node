@@ -12,12 +12,15 @@ class DagManager;
 class TransactionManager;
 }  // namespace taraxa
 
+namespace taraxa::network::threadpool {
+class PacketsThreadPool;
+}
+
 namespace taraxa::network::tarcap {
 
 class PeersState;
 class PbftSyncingState;
 class TimePeriodPacketsStats;
-class TarcapThreadPool;
 
 class NodeStats {
  public:
@@ -25,7 +28,7 @@ class NodeStats {
             std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
             std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<VoteManager> vote_mgr,
             std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-            std::shared_ptr<const TarcapThreadPool> thread_pool, const addr_t &node_addr);
+            std::shared_ptr<const threadpool::PacketsThreadPool> thread_pool, const addr_t &node_addr);
 
   void logNodeStats();
   uint64_t syncTimeSeconds() const;
@@ -40,7 +43,7 @@ class NodeStats {
   std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<TimePeriodPacketsStats> packets_stats_;
-  std::shared_ptr<const TarcapThreadPool> thread_pool_;
+  std::shared_ptr<const threadpool::PacketsThreadPool> thread_pool_;
 
   level_t local_max_level_in_dag_prev_interval_{0};
   uint64_t local_pbft_round_prev_interval_{0};

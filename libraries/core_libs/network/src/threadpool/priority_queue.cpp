@@ -1,6 +1,6 @@
-#include "network/tarcap/threadpool/priority_queue.hpp"
+#include "network/threadpool/priority_queue.hpp"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network::threadpool {
 
 PriorityQueue::PriorityQueue(size_t tp_workers_count, const addr_t& node_addr)
     : blocked_packets_mask_(), MAX_TOTAL_WORKERS_COUNT(tp_workers_count), act_total_workers_count_(0) {
@@ -215,4 +215,4 @@ size_t PriorityQueue::getPrirotityQueueSize(PacketData::PacketPriority priority)
   return packets_queues_[priority].size();
 }
 
-}  // namespace taraxa::network::tarcap
+}  // namespace taraxa::network::threadpool

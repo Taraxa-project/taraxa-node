@@ -1,10 +1,10 @@
-#include "network/tarcap/threadpool/tarcap_thread_pool.hpp"
+#include "network/threadpool/tarcap_thread_pool.hpp"
 
 #include "network/tarcap/packets_handler.hpp"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network::threadpool {
 
-TarcapThreadPool::TarcapThreadPool(size_t workers_num, const addr_t& node_addr)
+PacketsThreadPool::PacketsThreadPool(size_t workers_num, const addr_t& node_addr)
     : workers_num_(workers_num),
       packets_handlers_(nullptr),
       stopProcessing_(false),
@@ -16,7 +16,7 @@ TarcapThreadPool::TarcapThreadPool(size_t workers_num, const addr_t& node_addr)
   LOG_OBJECTS_CREATE("TARCAP_TP");
 }
 
-TarcapThreadPool::~TarcapThreadPool() {
+PacketsThreadPool::~PacketsThreadPool() {
   stopProcessing();
 
   for (auto& worker : workers_) {
@@ -31,7 +31,7 @@ TarcapThreadPool::~TarcapThreadPool() {
  *
  * @return packet unique ID. In case push was not successful, empty optional is returned
  **/
-std::optional<uint64_t> TarcapThreadPool::push(PacketData&& packet_data) {
+std::optional<uint64_t> PacketsThreadPool::push(PacketData&& packet_data) {
   if (stopProcessing_) {
     LOG(log_wr_) << "Trying to push packet while tp processing is stopped";
     return {};
@@ -55,12 +55,12 @@ std::optional<uint64_t> TarcapThreadPool::push(PacketData&& packet_data) {
   return {packet_unique_id};
 }
 
-void TarcapThreadPool::startProcessing() {
+void PacketsThreadPool::startProcessing() {
   assert(packets_handlers_ != nullptr);
 
   try {
     for (size_t idx = 0; idx < workers_num_; idx++) {
-      workers_.emplace_back(&TarcapThreadPool::processPacket, this, idx);
+      workers_.emplace_back(&PacketsThreadPool::processPacket, this, idx);
     }
   } catch (...) {
     stopProcessing();
@@ -69,7 +69,7 @@ void TarcapThreadPool::startProcessing() {
   }
 }
 
-void TarcapThreadPool::stopProcessing() {
+void PacketsThreadPool::stopProcessing() {
   stopProcessing_ = true;
   cond_var_.notify_all();
 }
@@ -77,7 +77,7 @@ void TarcapThreadPool::stopProcessing() {
 /**
  * @brief Threadpool sycnchronized processing function, which calls user-defined custom processing function
  **/
-void TarcapThreadPool::processPacket(size_t worker_id) {
+void PacketsThreadPool::processPacket(size_t worker_id) {
   LOG(log_dg_) << "Worker (" << worker_id << ") started";
   std::unique_lock<std::mutex> lock(queue_mutex_, std::defer_lock);
 
@@ -125,14 +125,14 @@ void TarcapThreadPool::processPacket(size_t worker_id) {
   }
 }
 
-void TarcapThreadPool::setPacketsHandlers(std::shared_ptr<PacketsHandler> packets_handlers) {
+void PacketsThreadPool::setPacketsHandlers(std::shared_ptr<tarcap::PacketsHandler> packets_handlers) {
   packets_handlers_ = std::move(packets_handlers);
 }
 
-std::tuple<size_t, size_t, size_t> TarcapThreadPool::getQueueSize() const {
+std::tuple<size_t, size_t, size_t> PacketsThreadPool::getQueueSize() const {
   return {queue_.getPrirotityQueueSize(PacketData::PacketPriority::High),
           queue_.getPrirotityQueueSize(PacketData::PacketPriority::Mid),
           queue_.getPrirotityQueueSize(PacketData::PacketPriority::Low)};
 }
 
-}  // namespace taraxa::network::tarcap
+}  // namespace taraxa::network::threadpool

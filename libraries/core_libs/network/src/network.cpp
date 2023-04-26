@@ -22,7 +22,9 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
                  std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                  std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
                  std::shared_ptr<TransactionManager> trx_mgr)
-    : tp_(config.network.num_threads, false) {
+    : tp_(config.network.num_threads, false),
+      packets_tp_(std::make_shared<network::threadpool::PacketsThreadPool>(config.network.packets_processing_threads,
+                                                                           key.address())) {
   auto const &node_addr = key.address();
   LOG_OBJECTS_CREATE("NETWORK");
   LOG(log_nf_) << "Read Network Config: " << std::endl << config.network << std::endl;
@@ -90,6 +92,10 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
 
 Network::~Network() {
   tp_.stop();
+  packets_tp_->stopProcessing();
+  periodic_events_tp_.stop();
+
+  // TODO: remove once packets_tp_ and periodic_events_tp_ are moved from tarcaps to network
   for (auto &tarcap : host_->getSupportedCapabilities()) {
     std::static_pointer_cast<network::tarcap::TaraxaCapability>(tarcap.second.ref)->stop();
   }
@@ -97,6 +103,10 @@ Network::~Network() {
 
 void Network::start() {
   tp_.start();
+  packets_tp_->startProcessing();
+  periodic_events_tp_.start();
+
+  // TODO: remove once packets_tp_ and periodic_events_tp_ are moved from tarcaps to network
   for (auto &tarcap : host_->getSupportedCapabilities()) {
     std::static_pointer_cast<network::tarcap::TaraxaCapability>(tarcap.second.ref)->start();
   }

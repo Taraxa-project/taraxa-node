@@ -1,6 +1,6 @@
-#include "network/tarcap/threadpool/packet_data.hpp"
+#include "network/threadpool/packet_data.hpp"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network::threadpool {
 
 PacketData::PacketData(SubprotocolPacketType type, const dev::p2p::NodeID& from_node_id,
                        std::vector<unsigned char>&& bytes)
@@ -51,4 +51,4 @@ Json::Value PacketData::getPacketDataJson() const {
   return ret;
 }
 
-}  // namespace taraxa::network::tarcap
+}  // namespace taraxa::network::threadpool

@@ -9,24 +9,26 @@
 #include "priority_queue.hpp"
 
 namespace taraxa::network::tarcap {
-
 class PacketsHandler;
+}
+
+namespace taraxa::network::threadpool {
 
 /**
- * @brief Taraxa ThreadPool that is supposed to process incoming packets in concurrent way
+ * @brief PacketsThreadPool for concurrent packets processing
  **/
-class TarcapThreadPool {
+class PacketsThreadPool {
  public:
   /**
    * @param workers_num  Number of workers
    **/
-  TarcapThreadPool(size_t workers_num = 10, const addr_t& node_addr = {});
-  ~TarcapThreadPool();
+  PacketsThreadPool(size_t workers_num = 10, const addr_t& node_addr = {});
+  ~PacketsThreadPool();
 
-  TarcapThreadPool(const TarcapThreadPool&) = delete;
-  TarcapThreadPool& operator=(const TarcapThreadPool&) = delete;
-  TarcapThreadPool(TarcapThreadPool&&) = delete;
-  TarcapThreadPool& operator=(TarcapThreadPool&&) = delete;
+  PacketsThreadPool(const PacketsThreadPool&) = delete;
+  PacketsThreadPool& operator=(const PacketsThreadPool&) = delete;
+  PacketsThreadPool(PacketsThreadPool&&) = delete;
+  PacketsThreadPool& operator=(PacketsThreadPool&&) = delete;
 
   /**
    * @brief Push the given element value to the end of the queue. Used for r-values
@@ -55,7 +57,7 @@ class TarcapThreadPool {
    *
    * @param packets_handlers
    */
-  void setPacketsHandlers(std::shared_ptr<PacketsHandler> packets_handlers);
+  void setPacketsHandlers(std::shared_ptr<tarcap::PacketsHandler> packets_handlers);
 
   /**
    * @brief Returns actual size of all priority queues (thread-safe)
@@ -73,7 +75,7 @@ class TarcapThreadPool {
   const size_t workers_num_;
 
   // Common packets handler
-  std::shared_ptr<PacketsHandler> packets_handlers_;
+  std::shared_ptr<tarcap::PacketsHandler> packets_handlers_;
 
   // If true, stop processing packets and join all workers threads
   std::atomic<bool> stopProcessing_{false};
@@ -94,4 +96,4 @@ class TarcapThreadPool {
   std::vector<std::thread> workers_;
 };
 
-}  // namespace taraxa::network::tarcap
+}  // namespace taraxa::network::threadpool

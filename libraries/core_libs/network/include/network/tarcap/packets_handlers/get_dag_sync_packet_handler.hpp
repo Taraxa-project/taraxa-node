@@ -24,8 +24,8 @@ class GetDagSyncPacketHandler final : public PacketHandler {
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetDagSyncPacket;
 
  private:
-  void validatePacketRlpFormat(const PacketData& packet_data) const override;
-  void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
+  void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
+  void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<DagManager> dag_mgr_;

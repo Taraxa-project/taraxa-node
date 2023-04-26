@@ -74,7 +74,16 @@ class Network {
  private:
   util::ThreadPool tp_;
   std::shared_ptr<dev::p2p::Host> host_;
+
+  // All supported taraxa capabilities
   std::map<unsigned /* tarcap version */, std::shared_ptr<network::tarcap::TaraxaCapability>> tarcaps_;
+
+  // Threadpool for packets
+  std::shared_ptr<network::threadpool::PacketsThreadPool> packets_tp_;
+
+  // Threadpool for periodic and delayed events
+  // TODO: tp_ could be used for this instead
+  util::ThreadPool periodic_events_tp_;
 
   LOG_OBJECTS_DEFINE
 };

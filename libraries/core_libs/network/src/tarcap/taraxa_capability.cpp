@@ -35,7 +35,8 @@ TaraxaCapability::TaraxaCapability(std::weak_ptr<dev::p2p::Host> host, const dev
       pbft_syncing_state_(std::make_shared<PbftSyncingState>(conf.network.deep_syncing_threshold)),
       node_stats_(nullptr),
       packets_handlers_(std::make_shared<PacketsHandler>()),
-      thread_pool_(std::make_shared<TarcapThreadPool>(conf.network.packets_processing_threads, key.address())),
+      thread_pool_(
+          std::make_shared<threadpool::PacketsThreadPool>(conf.network.packets_processing_threads, key.address())),
       periodic_events_tp_(std::make_shared<util::ThreadPool>(kPeriodicEventsThreadCount, false)),
       pub_key_(key.pub()) {
   const auto &node_addr = key.address();
@@ -352,7 +353,7 @@ void TaraxaCapability::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session
 
   // TODO: we are making a copy here for each packet bytes(toBytes()), which is pretty significant. Check why RLP does
   //       not support move semantics so we can take advantage of it...
-  thread_pool_->push(PacketData(packet_type, node_id, _r.data().toBytes()));
+  thread_pool_->push(threadpool::PacketData(packet_type, node_id, _r.data().toBytes()));
 }
 
 inline bool TaraxaCapability::filterSyncIrrelevantPackets(SubprotocolPacketType packet_type) const {

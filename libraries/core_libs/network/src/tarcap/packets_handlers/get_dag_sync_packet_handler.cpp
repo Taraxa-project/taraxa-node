@@ -15,13 +15,13 @@ GetDagSyncPacketHandler::GetDagSyncPacketHandler(const FullNodeConfig &conf, std
       dag_mgr_(std::move(dag_mgr)),
       db_(std::move(db)) {}
 
-void GetDagSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
+void GetDagSyncPacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
   if (constexpr size_t required_size = 2; packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
 }
 
-void GetDagSyncPacketHandler::process(const PacketData &packet_data,
+void GetDagSyncPacketHandler::process(const threadpool::PacketData &packet_data,
                                       [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
   if (!peer->requestDagSyncingAllowed()) {
     // This should not be possible for honest node

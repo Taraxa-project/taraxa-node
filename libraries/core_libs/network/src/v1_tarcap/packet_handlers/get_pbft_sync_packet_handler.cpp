@@ -21,13 +21,13 @@ GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(const FullNodeConfig &conf,
       vote_mgr_(std::move(vote_mgr)),
       db_(std::move(db)) {}
 
-void GetPbftSyncPacketHandler::validatePacketRlpFormat(const tarcap::PacketData &packet_data) const {
+void GetPbftSyncPacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
   if (constexpr size_t required_size = 1; packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
 }
 
-void GetPbftSyncPacketHandler::process(const tarcap::PacketData &packet_data,
+void GetPbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
                                        [[maybe_unused]] const std::shared_ptr<tarcap::TaraxaPeer> &peer) {
   LOG(log_tr_) << "Received GetPbftSyncPacket Block";
 
@@ -119,7 +119,7 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, P
       s.appendRaw(transformPeriodDataRlpToV1(data));
     }
     LOG(log_dg_) << "Sending PbftSyncPacket period " << block_period << " to " << peer_id;
-    sealAndSend(peer_id, tarcap::SubprotocolPacketType::PbftSyncPacket, std::move(s));
+    sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, std::move(s));
   }
 }
 

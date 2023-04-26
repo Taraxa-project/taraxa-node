@@ -21,13 +21,13 @@ GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(const FullNodeConfig &conf, s
       vote_mgr_(std::move(vote_mgr)),
       db_(std::move(db)) {}
 
-void GetPbftSyncPacketHandler::validatePacketRlpFormat(const PacketData &packet_data) const {
+void GetPbftSyncPacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
   if (constexpr size_t required_size = 1; packet_data.rlp_.itemCount() != required_size) {
     throw InvalidRlpItemsCountException(packet_data.type_str_, packet_data.rlp_.itemCount(), required_size);
   }
 }
 
-void GetPbftSyncPacketHandler::process(const PacketData &packet_data,
+void GetPbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
                                        [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
   LOG(log_tr_) << "Received GetPbftSyncPacket Block";
 

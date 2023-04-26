@@ -20,8 +20,8 @@ class GetNextVotesBundlePacketHandler final : public ExtVotesPacketHandler {
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetNextVotesSyncPacket;
 
  private:
-  void validatePacketRlpFormat(const PacketData& packet_data) const override;
-  void process(const PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
+  void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
+  void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 };
 
 }  // namespace taraxa::network::tarcap
