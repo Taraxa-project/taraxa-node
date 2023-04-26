@@ -20,7 +20,6 @@
 #include "tarcap/taraxa_capability.hpp"
 #include "transaction/transaction.hpp"
 
-// TODO: use network::taraxa namespace
 namespace taraxa {
 
 class PacketHandler;
