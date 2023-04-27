@@ -25,5 +25,14 @@
     ],
     "order": [],
     "returns": {}
+  },
+  {
+    "name": "trace_replayTransaction",
+    "params": [
+      "",
+      []
+    ],
+    "order": [],
+    "returns": {}
   }
 ]

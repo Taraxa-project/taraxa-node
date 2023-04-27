@@ -15,19 +15,13 @@ namespace taraxa::net {
 Json::Value Debug::debug_traceTransaction(const std::string& transaction_hash) {
   Json::Value res;
   try {
+    auto [trx, loc] = get_transaction_with_location(transaction_hash);
+    if (!trx || !loc) {
+      res["status"] = "Transaction not found";
+      return res;
+    }
     if (auto node = full_node_.lock()) {
-      const auto hash = jsToFixed<32>(transaction_hash);
-      const auto trx = node->getDB()->getTransaction(hash);
-      if (!trx) {
-        res["status"] = "Transaction not found";
-        return res;
-      }
-      const auto loc = node->getFinalChain()->transaction_location(hash);
-      if (!loc) {
-        res["status"] = "Transaction not found";
-        return res;
-      }
-      return util::readJsonFromString(node->getFinalChain()->trace_trx(to_eth_trx(trx), loc->blk_n));
+      return util::readJsonFromString(node->getFinalChain()->trace_trx(to_eth_trx(std::move(trx)), loc->blk_n - 1));
     }
   } catch (std::exception& e) {
     res["status"] = e.what();
@@ -65,6 +59,25 @@ Json::Value Debug::trace_call(const Json::Value& call_params, const Json::Value&
   return res;
 }
 
+Json::Value Debug::trace_replayTransaction(const std::string& transaction_hash, const Json::Value& trace_params) {
+  Json::Value res;
+  try {
+    auto params = parse_tracking_parms(trace_params);
+    auto [trx, loc] = get_transaction_with_location(transaction_hash);
+    if (!trx || !loc) {
+      res["status"] = "Transaction not found";
+      return res;
+    }
+    if (auto node = full_node_.lock()) {
+      return util::readJsonFromString(
+          node->getFinalChain()->trace_trx(to_eth_trx(std::move(trx)), loc->blk_n - 1, std::move(params)));
+    }
+  } catch (std::exception& e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
 state_api::Tracing Debug::parse_tracking_parms(const Json::Value& json) const {
   state_api::Tracing ret;
   if (!json.isArray() || json.empty()) {
@@ -91,13 +104,13 @@ state_api::EVMTransaction Debug::to_eth_trx(const Json::Value& json, EthBlockNum
   }
 
   if (!json["from"].empty()) {
-    trx.from = toAddress(json["from"].asString());
+    trx.from = to_address(json["from"].asString());
   } else {
     trx.from = ZeroAddress;
   }
 
   if (!json["to"].empty() && json["to"].asString() != "0x" && !json["to"].asString().empty()) {
-    trx.to = toAddress(json["to"].asString());
+    trx.to = to_address(json["to"].asString());
   }
 
   if (!json["value"].empty()) {
@@ -144,7 +157,7 @@ EthBlockNumber Debug::parse_blk_num(const string& blk_num_str) {
   return jsToInt(blk_num_str);
 }
 
-Address Debug::toAddress(const string& s) const {
+Address Debug::to_address(const string& s) const {
   try {
     if (auto b = fromHex(s.substr(0, 2) == "0x" ? s.substr(2) : s, WhenError::Throw); b.size() == Address::size) {
       return Address(b);
@@ -152,6 +165,15 @@ Address Debug::toAddress(const string& s) const {
   } catch (BadHexCharacter&) {
   }
   throw InvalidAddress();
+}
+
+std::pair<std::shared_ptr<Transaction>, std::optional<final_chain::TransactionLocation>>
+Debug::get_transaction_with_location(const std::string& transaction_hash) const {
+  if (auto node = full_node_.lock()) {
+    const auto hash = jsToFixed<32>(transaction_hash);
+    return {node->getDB()->getTransaction(hash), node->getFinalChain()->transaction_location(hash)};
+  }
+  return {};
 }
 
 }  // namespace taraxa::net

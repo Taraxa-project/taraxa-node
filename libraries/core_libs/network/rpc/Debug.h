@@ -36,13 +36,16 @@ class Debug : public DebugFace {
   virtual Json::Value debug_traceCall(const Json::Value& param1, const std::string& param2) override;
   virtual Json::Value trace_call(const Json::Value& param1, const Json::Value& param2,
                                  const std::string& param3) override;
+  virtual Json::Value trace_replayTransaction(const std::string& param1, const Json::Value& param2) override;
 
  private:
   state_api::EVMTransaction to_eth_trx(std::shared_ptr<Transaction> t) const;
   state_api::EVMTransaction to_eth_trx(const Json::Value& json, EthBlockNumber blk_num);
   EthBlockNumber parse_blk_num(const string& blk_num_str);
   state_api::Tracing parse_tracking_parms(const Json::Value& json) const;
-  Address toAddress(const string& s) const;
+  Address to_address(const string& s) const;
+  std::pair<std::shared_ptr<Transaction>, std::optional<final_chain::TransactionLocation>>
+  get_transaction_with_location(const std::string& transaction_hash) const;
 
   std::weak_ptr<taraxa::FullNode> full_node_;
   const uint64_t kGasLimit = ((uint64_t)1 << 53) - 1;
