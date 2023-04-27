@@ -8,7 +8,7 @@
 #include "final_chain/final_chain.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
-#include "network/tarcap/taraxa_capability.hpp"
+#include "network/tarcap/capability_latest/taraxa_capability.hpp"
 #include "pbft/period_data_queue.hpp"
 #include "pbft/proposed_blocks.hpp"
 

@@ -4,7 +4,7 @@
 #include "common/static_init.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
-#include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
+#include "network/tarcap/capability_latest/packets_handlers/vote_packet_handler.hpp"
 #include "node/node.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "test_util/test_util.hpp"

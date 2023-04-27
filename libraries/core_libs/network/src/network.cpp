@@ -8,11 +8,12 @@
 #include <ranges>
 
 #include "config/version.hpp"
-#include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/votes_bundle_packet_handler.hpp"
-#include "network/v1_tarcap/taraxa_capability.hpp"
+#include "network/tarcap/capability_latest/packets_handlers/dag_block_packet_handler.hpp"
+#include "network/tarcap/capability_latest/packets_handlers/pbft_sync_packet_handler.hpp"
+#include "network/tarcap/capability_latest/packets_handlers/vote_packet_handler.hpp"
+#include "network/tarcap/capability_latest/packets_handlers/votes_bundle_packet_handler.hpp"
+#include "network/tarcap/capability_latest/taraxa_capability.hpp"
+#include "network/tarcap/capability_v1/taraxa_capability.hpp"
 
 namespace taraxa {
 
@@ -59,7 +60,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
 
       // Register old version of taraxa capability
       auto v1_tarcap =
-          std::make_shared<network::v1_tarcap::TaraxaCapability>(host, key, config, kOldNetworkVersion, "V1_TARCAP");
+          std::make_shared<network::tarcap::v1::TaraxaCapability>(host, key, config, kOldNetworkVersion, "V1_TARCAP");
       v1_tarcap->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, key.address());
       capabilities.emplace_back(v1_tarcap);
 
@@ -76,7 +77,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
   host_ = dev::p2p::Host::make(net_version, construct_capabilities, key, net_conf, taraxa_net_conf, network_file_path);
   for (const auto &tarcap : host_->getSupportedCapabilities()) {
     tarcaps_.emplace(tarcap.second.ref->version(),
-                     std::static_pointer_cast<network::tarcap::TaraxaCapability>(tarcap.second.ref));
+                     std::static_pointer_cast<network::tarcap::TaraxaCapabilityBase>(tarcap.second.ref));
   }
 
   for (uint i = 0; i < tp_.capacity(); ++i) {
@@ -92,23 +93,23 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
 
 Network::~Network() {
   tp_.stop();
-  packets_tp_->stopProcessing();
-  periodic_events_tp_.stop();
+  //  packets_tp_->stopProcessing();
+  //  periodic_events_tp_.stop();
 
   // TODO: remove once packets_tp_ and periodic_events_tp_ are moved from tarcaps to network
   for (auto &tarcap : host_->getSupportedCapabilities()) {
-    std::static_pointer_cast<network::tarcap::TaraxaCapability>(tarcap.second.ref)->stop();
+    std::static_pointer_cast<network::tarcap::TaraxaCapabilityBase>(tarcap.second.ref)->stop();
   }
 }
 
 void Network::start() {
   tp_.start();
-  packets_tp_->startProcessing();
-  periodic_events_tp_.start();
+  //  packets_tp_->startProcessing();
+  //  periodic_events_tp_.start();
 
   // TODO: remove once packets_tp_ and periodic_events_tp_ are moved from tarcaps to network
   for (auto &tarcap : host_->getSupportedCapabilities()) {
-    std::static_pointer_cast<network::tarcap::TaraxaCapability>(tarcap.second.ref)->start();
+    std::static_pointer_cast<network::tarcap::TaraxaCapabilityBase>(tarcap.second.ref)->start();
   }
 
   LOG(log_nf_) << "Started Node id: " << host_->id() << ", listening on port " << host_->listenPort();

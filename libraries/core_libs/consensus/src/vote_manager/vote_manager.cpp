@@ -7,8 +7,8 @@
 #include <shared_mutex>
 
 #include "network/network.hpp"
-#include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/votes_bundle_packet_handler.hpp"
+#include "network/tarcap/capability_latest/packets_handlers/vote_packet_handler.hpp"
+#include "network/tarcap/capability_latest/packets_handlers/votes_bundle_packet_handler.hpp"
 #include "pbft/pbft_manager.hpp"
 
 namespace taraxa {
