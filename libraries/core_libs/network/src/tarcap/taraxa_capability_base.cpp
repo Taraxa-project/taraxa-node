@@ -27,7 +27,8 @@
 namespace taraxa::network::tarcap {
 
 TaraxaCapabilityBase::TaraxaCapabilityBase(std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key,
-                                           const FullNodeConfig &conf, unsigned version, const std::string &log_channel)
+                                           const FullNodeConfig &conf, TarcapVersion version,
+                                           const std::string &log_channel)
     : test_state_(std::make_shared<TestState>()),
       version_(version),
       kConf(conf),
@@ -35,8 +36,7 @@ TaraxaCapabilityBase::TaraxaCapabilityBase(std::weak_ptr<dev::p2p::Host> host, c
       pbft_syncing_state_(std::make_shared<PbftSyncingState>(conf.network.deep_syncing_threshold)),
       node_stats_(nullptr),
       packets_handlers_(std::make_shared<PacketsHandler>()),
-      thread_pool_(
-          std::make_shared<threadpool::PacketsThreadPool>(conf.network.packets_processing_threads, key.address())),
+      thread_pool_(nullptr),
       periodic_events_tp_(std::make_shared<util::ThreadPool>(kPeriodicEventsThreadCount, false)),
       pub_key_(key.pub()) {
   const auto &node_addr = key.address();
@@ -214,12 +214,12 @@ void TaraxaCapabilityBase::registerPacketHandlers(
                                                             pbft_chain, pbft_mgr, dag_mgr, vote_mgr,
                                                             periodic_events_tp_, db, node_addr);
 
-  thread_pool_->setPacketsHandlers(packets_handlers_);
+  thread_pool_->setPacketsHandlers(version(), packets_handlers_);
 }
 
 std::string TaraxaCapabilityBase::name() const { return TARAXA_CAPABILITY_NAME; }
 
-unsigned TaraxaCapabilityBase::version() const { return version_; }
+TarcapVersion TaraxaCapabilityBase::version() const { return version_; }
 
 unsigned TaraxaCapabilityBase::messageCount() const { return SubprotocolPacketType::PacketCount; }
 
@@ -353,7 +353,7 @@ void TaraxaCapabilityBase::interpretCapabilityPacket(std::weak_ptr<dev::p2p::Ses
 
   // TODO: we are making a copy here for each packet bytes(toBytes()), which is pretty significant. Check why RLP does
   //       not support move semantics so we can take advantage of it...
-  thread_pool_->push(threadpool::PacketData(packet_type, node_id, _r.data().toBytes()));
+  thread_pool_->push({version(), threadpool::PacketData(packet_type, node_id, _r.data().toBytes())});
 }
 
 inline bool TaraxaCapabilityBase::filterSyncIrrelevantPackets(SubprotocolPacketType packet_type) const {
@@ -367,15 +367,14 @@ inline bool TaraxaCapabilityBase::filterSyncIrrelevantPackets(SubprotocolPacketT
   }
 }
 
-void TaraxaCapabilityBase::start() {
-  thread_pool_->startProcessing();
-  periodic_events_tp_->start();
+void TaraxaCapabilityBase::setThreadPool(std::shared_ptr<network::threadpool::PacketsThreadPool> threadpool) {
+  thread_pool_ = std::move(threadpool);
 }
+std::shared_ptr<PacketsHandler> TaraxaCapabilityBase::getPacketsHandler() const { return packets_handlers_; }
 
-void TaraxaCapabilityBase::stop() {
-  thread_pool_->stopProcessing();
-  periodic_events_tp_->stop();
-}
+void TaraxaCapabilityBase::start() { periodic_events_tp_->start(); }
+
+void TaraxaCapabilityBase::stop() { periodic_events_tp_->stop(); }
 
 const std::shared_ptr<PeersState> &TaraxaCapabilityBase::getPeersState() { return peers_state_; }
 

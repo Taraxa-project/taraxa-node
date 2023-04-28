@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "logger/logger.hpp"
+#include "network/tarcap/tarcap_version.hpp"
 #include "priority_queue.hpp"
 
 namespace taraxa::network::tarcap {
@@ -35,7 +36,7 @@ class PacketsThreadPool {
    *
    * @return packet unique ID. In case push was not successful, empty optional is returned
    **/
-  std::optional<uint64_t> push(PacketData&& packet_data);
+  std::optional<uint64_t> push(std::pair<tarcap::TarcapVersion, PacketData>&& packet_data);
 
   /**
    * @brief Start all processing threads
@@ -57,7 +58,8 @@ class PacketsThreadPool {
    *
    * @param packets_handlers
    */
-  void setPacketsHandlers(std::shared_ptr<tarcap::PacketsHandler> packets_handlers);
+  void setPacketsHandlers(tarcap::TarcapVersion tarcap_version,
+                          std::shared_ptr<tarcap::PacketsHandler> packets_handlers);
 
   /**
    * @brief Returns actual size of all priority queues (thread-safe)
@@ -74,8 +76,8 @@ class PacketsThreadPool {
   // Number of workers(threads)
   const size_t workers_num_;
 
-  // Common packets handler
-  std::shared_ptr<tarcap::PacketsHandler> packets_handlers_;
+  // Common packets handler - each taraxa capability haits own packets handler
+  std::unordered_map<tarcap::TarcapVersion, std::shared_ptr<tarcap::PacketsHandler>> packets_handlers_;
 
   // If true, stop processing packets and join all workers threads
   std::atomic<bool> stopProcessing_{false};

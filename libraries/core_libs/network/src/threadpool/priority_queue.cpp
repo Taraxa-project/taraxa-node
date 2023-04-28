@@ -31,7 +31,10 @@ PriorityQueue::PriorityQueue(size_t tp_workers_count, const addr_t& node_addr)
                << ", Low priority packets max num of workers = " << low_priority_queue_workers;
 }
 
-void PriorityQueue::pushBack(PacketData&& packet) { packets_queues_[packet.priority_].pushBack(std::move(packet)); }
+void PriorityQueue::pushBack(std::pair<tarcap::TarcapVersion, PacketData>&& packet) {
+  const auto priority = packet.second.priority_;
+  packets_queues_[priority].pushBack(std::move(packet));
+}
 
 bool PriorityQueue::canBorrowThread() {
   size_t reserved_threads_num = 0;
@@ -48,7 +51,7 @@ bool PriorityQueue::canBorrowThread() {
   return act_total_workers_count_ < (MAX_TOTAL_WORKERS_COUNT - reserved_threads_num);
 }
 
-std::optional<PacketData> PriorityQueue::pop() {
+std::optional<std::pair<tarcap::TarcapVersion, PacketData>> PriorityQueue::pop() {
   if (act_total_workers_count_ >= MAX_TOTAL_WORKERS_COUNT) {
     LOG(log_dg_) << "MAX_TOTAL_WORKERS_COUNT(" << MAX_TOTAL_WORKERS_COUNT << ") reached, unable to pop data.";
     return {};

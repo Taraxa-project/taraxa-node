@@ -45,13 +45,18 @@ void setPendingPeersToReady(std::shared_ptr<taraxa::network::tarcap::TaraxaCapab
   }
 }
 
-std::shared_ptr<taraxa::network::tarcap::TaraxaCapabilityBase> makeTarcap(std::weak_ptr<dev::p2p::Host> host,
-                                                                          const dev::KeyPair &key,
-                                                                          const FullNodeConfig &conf,
-                                                                          const h256 &genesis_hash, unsigned version) {
-  auto instance = std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, key, conf, version, "TARCAP");
-  instance->init(genesis_hash, {}, {}, {}, {}, {}, {}, key.address());
-  return instance;
+std::shared_ptr<taraxa::network::tarcap::TaraxaCapabilityBase> makeTarcap(
+    std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const FullNodeConfig &conf, const h256 &genesis_hash,
+    unsigned version, std::shared_ptr<network::threadpool::PacketsThreadPool> thread_pool = nullptr) {
+  auto tarcap = std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, key, conf, version, "TARCAP");
+  tarcap->init(genesis_hash, {}, {}, {}, {}, {}, {}, key.address());
+
+  if (thread_pool) {
+    thread_pool->setPacketsHandlers(version, tarcap->getPacketsHandler());
+    tarcap->setThreadPool(thread_pool);
+  }
+
+  return tarcap;
 }
 
 /*
@@ -104,21 +109,29 @@ TEST_F(P2PTest, capability_send_block) {
   FullNodeConfig conf;
   conf.network.transaction_interval_ms = 1000;
   h256 genesis;
+
+  auto packets_tp1 = std::make_shared<network::threadpool::PacketsThreadPool>(conf.network.packets_processing_threads);
+  auto packets_tp2 = std::make_shared<network::threadpool::PacketsThreadPool>(conf.network.packets_processing_threads);
+
   std::shared_ptr<taraxa::network::tarcap::TaraxaCapabilityBase> thc1, thc2;
   auto host1 = Host::make(
       "Test",
       [&](auto host) {
-        thc1 = makeTarcap(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION);
+        thc1 = makeTarcap(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION, packets_tp1);
         return Host::CapabilityList{thc1};
       },
       KeyPair::create(), prefs1);
   auto host2 = Host::make(
       "Test",
       [&](auto host) {
-        thc2 = makeTarcap(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION);
+        thc2 = makeTarcap(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION, packets_tp2);
         return Host::CapabilityList{thc2};
       },
       KeyPair::create(), prefs2);
+
+  packets_tp1->startProcessing();
+  packets_tp2->startProcessing();
+
   util::ThreadPool tp;
   tp.post_loop({}, [=] { host1->do_work(); });
   tp.post_loop({}, [=] { host2->do_work(); });
@@ -198,29 +211,36 @@ TEST_F(P2PTest, block_propagate) {
   conf.network.transaction_interval_ms = 1000;
   h256 genesis;
   std::shared_ptr<taraxa::network::tarcap::TaraxaCapabilityBase> thc1;
+  auto packets_tp1 = std::make_shared<network::threadpool::PacketsThreadPool>(conf.network.packets_processing_threads);
   auto host1 = Host::make(
       "Test",
       [&](auto host) {
-        thc1 = makeTarcap(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION);
+        thc1 = makeTarcap(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION, packets_tp1);
         thc1->start();
         return Host::CapabilityList{thc1};
       },
       KeyPair::create(), prefs1, taraxa_net_conf_1);
+  packets_tp1->startProcessing();
+
   util::ThreadPool tp;
   tp.post_loop({}, [=] { host1->do_work(); });
   std::vector<std::shared_ptr<Host>> vHosts;
   std::vector<std::shared_ptr<taraxa::network::tarcap::TaraxaCapabilityBase>> vCapabilities;
   for (int i = 0; i < nodeCount; i++) {
+    auto packets_tp = std::make_shared<network::threadpool::PacketsThreadPool>(conf.network.packets_processing_threads);
     auto host = vHosts.emplace_back(Host::make(
         "Test",
         [&](auto host) {
-          auto cap = vCapabilities.emplace_back(makeTarcap(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION));
+          auto cap = vCapabilities.emplace_back(
+              makeTarcap(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION, packets_tp));
           cap->start();
           return Host::CapabilityList{cap};
         },
         KeyPair::create(), vPrefs[i]));
+    packets_tp->startProcessing();
     tp.post_loop({}, [=] { host->do_work(); });
   }
+
   printf("Starting %d hosts\n", nodeCount);
   auto port1 = host1->listenPort();
   EXPECT_NE(port1, 0);

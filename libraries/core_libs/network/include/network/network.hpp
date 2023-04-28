@@ -17,7 +17,8 @@
 #include "common/thread_pool.hpp"
 #include "common/util.hpp"
 #include "config/config.hpp"
-#include "tarcap/taraxa_capability_base.hpp"
+#include "network/tarcap/taraxa_capability_base.hpp"
+#include "network/tarcap/tarcap_version.hpp"
 #include "transaction/transaction.hpp"
 
 namespace taraxa {
@@ -76,7 +77,7 @@ class Network {
   std::shared_ptr<dev::p2p::Host> host_;
 
   // All supported taraxa capabilities
-  std::map<unsigned /* tarcap version */, std::shared_ptr<network::tarcap::TaraxaCapabilityBase>> tarcaps_;
+  std::map<network::tarcap::TarcapVersion, std::shared_ptr<network::tarcap::TaraxaCapabilityBase>> tarcaps_;
 
   // Threadpool for packets
   std::shared_ptr<network::threadpool::PacketsThreadPool> packets_tp_;

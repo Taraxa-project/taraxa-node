@@ -6,7 +6,7 @@ namespace taraxa::network::threadpool {
 
 PacketsThreadPool::PacketsThreadPool(size_t workers_num, const addr_t& node_addr)
     : workers_num_(workers_num),
-      packets_handlers_(nullptr),
+      packets_handlers_(),
       stopProcessing_(false),
       packets_count_(0),
       queue_(workers_num, node_addr),
@@ -31,13 +31,13 @@ PacketsThreadPool::~PacketsThreadPool() {
  *
  * @return packet unique ID. In case push was not successful, empty optional is returned
  **/
-std::optional<uint64_t> PacketsThreadPool::push(PacketData&& packet_data) {
+std::optional<uint64_t> PacketsThreadPool::push(std::pair<tarcap::TarcapVersion, PacketData>&& packet_data) {
   if (stopProcessing_) {
     LOG(log_wr_) << "Trying to push packet while tp processing is stopped";
     return {};
   }
 
-  std::string packet_type_str = packet_data.type_str_;
+  std::string packet_type_str = packet_data.second.type_str_;
   uint64_t packet_unique_id;
   {
     // Put packet into the priority queue
@@ -45,7 +45,7 @@ std::optional<uint64_t> PacketsThreadPool::push(PacketData&& packet_data) {
 
     // Create packet unique id
     packet_unique_id = packets_count_++;
-    packet_data.id_ = packet_unique_id;
+    packet_data.second.id_ = packet_unique_id;
 
     queue_.pushBack(std::move(packet_data));
     cond_var_.notify_one();
@@ -56,7 +56,7 @@ std::optional<uint64_t> PacketsThreadPool::push(PacketData&& packet_data) {
 }
 
 void PacketsThreadPool::startProcessing() {
-  assert(packets_handlers_ != nullptr);
+  assert(!packets_handlers_.empty());
 
   try {
     for (size_t idx = 0; idx < workers_num_; idx++) {
@@ -82,7 +82,7 @@ void PacketsThreadPool::processPacket(size_t worker_id) {
   std::unique_lock<std::mutex> lock(queue_mutex_, std::defer_lock);
 
   // Packet to be processed
-  std::optional<PacketData> packet;
+  std::optional<std::pair<tarcap::TarcapVersion, PacketData>> packet;
 
   while (stopProcessing_ == false) {
     lock.lock();
@@ -100,33 +100,49 @@ void PacketsThreadPool::processPacket(size_t worker_id) {
       cond_var_.wait(lock);
     }
 
-    LOG(log_dg_) << "Worker (" << worker_id << ") process packet: " << packet->type_str_ << ", id(" << packet->id_
-                 << ")";
+    LOG(log_dg_) << "Worker (" << worker_id << ") process packet: " << packet->second.type_str_
+                 << ", id: " << packet->second.id_ << ", tarcap version: " << packet->first;
 
-    queue_.updateDependenciesStart(*packet);
+    queue_.updateDependenciesStart(packet->second);
     lock.unlock();
 
     try {
-      // Get specific packet handler according to packet type
-      auto& handler = packets_handlers_->getSpecificHandler(packet->type_);
+      // Get packets handler based on tarcap version
+      const auto packets_handler = packets_handlers_.find(packet->first);
+      if (packets_handler == packets_handlers_.end()) {
+        LOG(log_er_) << "Worker (" << worker_id << ") process packet: " << packet->second.type_str_
+                     << ", id: " << packet->second.id_ << ", tarcap version: " << packet->first
+                     << " error: Unsupported tarcap version !";
+        assert(false);
+        throw std::runtime_error("Unsupported tarcap version " + std::to_string(packet->first));
+      }
+
+      // Get specific packet handler based on packet type
+      auto& handler = packets_handler->second->getSpecificHandler(packet->second.type_);
 
       // Process packet by specific packet type handler
-      handler->processPacket(*packet);
+      handler->processPacket(packet->second);
     } catch (const std::exception& e) {
-      LOG(log_er_) << "Worker (" << worker_id << ") packet: " << packet->type_str_ << ", id(" << packet->id_
-                   << ") processing exception caught: " << e.what();
+      LOG(log_er_) << "Worker (" << worker_id << ") process packet: " << packet->second.type_str_
+                   << ", id: " << packet->second.id_ << ", tarcap version: " << packet->first
+                   << " processing exception caught: " << e.what();
     } catch (...) {
-      LOG(log_er_) << "Worker (" << worker_id << ") packet: " << packet->type_str_ << ", id(" << packet->id_
-                   << ") processing unknown exception caught";
+      LOG(log_er_) << "Worker (" << worker_id << ") process packet: " << packet->second.type_str_
+                   << ", id: " << packet->second.id_ << ", tarcap version: " << packet->first
+                   << " processing unknown exception caught";
     }
 
     // Once packet handler is done with processing, update priority queue dependencies
-    queue_.updateDependenciesFinish(*packet, queue_mutex_, cond_var_);
+    queue_.updateDependenciesFinish(packet->second, queue_mutex_, cond_var_);
   }
 }
 
-void PacketsThreadPool::setPacketsHandlers(std::shared_ptr<tarcap::PacketsHandler> packets_handlers) {
-  packets_handlers_ = std::move(packets_handlers);
+void PacketsThreadPool::setPacketsHandlers(tarcap::TarcapVersion tarcap_version,
+                                           std::shared_ptr<tarcap::PacketsHandler> packets_handlers) {
+  if (!packets_handlers_.emplace(tarcap_version, std::move(packets_handlers)).second) {
+    LOG(log_er_) << "Packets handler for capability version " << tarcap_version << " already set";
+    assert(false);
+  }
 }
 
 std::tuple<size_t, size_t, size_t> PacketsThreadPool::getQueueSize() const {

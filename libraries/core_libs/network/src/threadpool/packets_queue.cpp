@@ -10,19 +10,20 @@ bool PacketsQueue::maxWorkersCountReached() const {
   return false;
 }
 
-void PacketsQueue::pushBack(PacketData&& packet) {
+void PacketsQueue::pushBack(std::pair<tarcap::TarcapVersion, PacketData>&& packet) {
   packets_.push_back(std::move(packet));
   act_packets_count_++;
 }
 
-std::optional<PacketData> PacketsQueue::pop(const PacketsBlockingMask& packets_blocking_mask) {
+std::optional<std::pair<tarcap::TarcapVersion, PacketData>> PacketsQueue::pop(
+    const PacketsBlockingMask& packets_blocking_mask) {
   for (auto packet_it = packets_.begin(); packet_it != packets_.end(); ++packet_it) {
     // Packet type is currently blocked for processing
-    if (packets_blocking_mask.isPacketBlocked(*packet_it)) {
+    if (packets_blocking_mask.isPacketBlocked(packet_it->second)) {
       continue;
     }
 
-    std::optional<PacketData> ret = std::move(*packet_it);
+    std::optional<std::pair<tarcap::TarcapVersion, PacketData>> ret = std::move(*packet_it);
     packets_.erase(packet_it);
 
     assert(act_packets_count_);

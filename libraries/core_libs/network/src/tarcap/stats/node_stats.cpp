@@ -176,11 +176,12 @@ void NodeStats::logNodeStats() {
   LOG(log_dg_) << "Non finalized dag blocks levels: " << non_finalized_blocks_levels;
   LOG(log_dg_) << "Non finalized dag blocks size:   " << non_finalized_blocks_size;
 
-  const auto [high_priority_queue_size, mid_priority_queue_size, low_priority_queue_size] =
-      thread_pool_->getQueueSize();
-  LOG(log_dg_) << "High priority queue size: " << high_priority_queue_size;
-  LOG(log_dg_) << "Mid priority queue size: " << mid_priority_queue_size;
-  LOG(log_dg_) << "Low priority queue size: " << low_priority_queue_size;
+  // TODO: enable once periodic events moved to network class
+  //  const auto [high_priority_queue_size, mid_priority_queue_size, low_priority_queue_size] =
+  //      thread_pool_->getQueueSize();
+  //  LOG(log_dg_) << "High priority queue size: " << high_priority_queue_size;
+  //  LOG(log_dg_) << "Mid priority queue size: " << mid_priority_queue_size;
+  //  LOG(log_dg_) << "Low priority queue size: " << low_priority_queue_size;
 
   LOG(log_nf_) << "------------- tl;dr -------------";
 

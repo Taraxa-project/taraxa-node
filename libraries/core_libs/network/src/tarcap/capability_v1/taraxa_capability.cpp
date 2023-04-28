@@ -56,7 +56,5 @@ void TaraxaCapability::registerPacketHandlers(
   packets_handlers_->registerHandler<tarcap::v1::PbftSyncPacketHandler>(
       kConf, peers_state_, packets_stats, pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr, vote_mgr,
       periodic_events_tp_, db, node_addr);
-
-  thread_pool_->setPacketsHandlers(packets_handlers_);
 }
 }  // namespace taraxa::network::tarcap::v1

@@ -3,6 +3,7 @@
 #include <list>
 #include <optional>
 
+#include "network/tarcap/tarcap_version.hpp"
 #include "network/threadpool/packets_blocking_mask.hpp"
 #include "packet_data.hpp"
 
@@ -17,7 +18,7 @@ class PacketsQueue {
    *
    * @param packet
    */
-  void pushBack(PacketData&& packet);
+  void pushBack(std::pair<tarcap::TarcapVersion, PacketData>&& packet);
 
   /**
    * @brief Return Task from queue. In some rare situations when all packets are blocked for processing due to
@@ -28,7 +29,7 @@ class PacketsQueue {
    *
    * @return std::optional<Task>
    */
-  std::optional<PacketData> pop(const PacketsBlockingMask& packets_blocking_mask);
+  std::optional<std::pair<tarcap::TarcapVersion, PacketData>> pop(const PacketsBlockingMask& packets_blocking_mask);
 
   /**
    * @return false in case there is already kMaxWorkersCount_ workers processing packets from
@@ -72,7 +73,7 @@ class PacketsQueue {
   size_t getActiveWorkersNum() const;
 
  private:
-  std::list<PacketData> packets_;
+  std::list<std::pair<tarcap::TarcapVersion, PacketData>> packets_;
 
   // How many workers can process packets from this queue at the same time
   size_t kMaxWorkersCount_{0};

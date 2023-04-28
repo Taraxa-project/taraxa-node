@@ -237,14 +237,17 @@ HandlersInitData createHandlersInitData() {
   return ret_init_data;
 }
 
-threadpool::PacketData createPacket(const dev::p2p::NodeID& sender_node_id, SubprotocolPacketType packet_type,
-                                    std::optional<std::vector<unsigned char>> packet_rlp_bytes = {}) {
+std::pair<tarcap::TarcapVersion, threadpool::PacketData> createPacket(
+    const dev::p2p::NodeID& sender_node_id, SubprotocolPacketType packet_type,
+    std::optional<std::vector<unsigned char>> packet_rlp_bytes = {}) {
   if (packet_rlp_bytes.has_value()) {
-    return {packet_type, sender_node_id, std::move(packet_rlp_bytes.value())};
+    threadpool::PacketData packet_data(packet_type, sender_node_id, std::move(packet_rlp_bytes.value()));
+    return {TARAXA_NET_VERSION, std::move(packet_data)};
   }
 
   dev::RLPStream s(0);
-  return {packet_type, sender_node_id, s.invalidate()};
+  threadpool::PacketData packet_data(packet_type, sender_node_id, s.invalidate());
+  return {TARAXA_NET_VERSION, std::move(packet_data)};
 }
 
 bytes createDagBlockRlp(level_t level, uint32_t sig = 777) {
@@ -329,9 +332,15 @@ TEST_F(TarcapTpTest, block_free_packets) {
   // Note: make num of threads >= num of packets to check if they are processed concurrently without blocks, otherwise
   //       some blocks would be blocked for processing due to max threads limit
   threadpool::PacketsThreadPool tp(18);
-  tp.setPacketsHandlers(packets_handler);
+  tp.setPacketsHandlers(TARAXA_NET_VERSION, packets_handler);
 
   // Pushes packets to the tp
+  auto packet = createPacket(init_data.copySender(), SubprotocolPacketType::TransactionPacket, {});
+  if (packet.second.rlp_.isList()) {
+    std::cout << "is list";
+  } else {
+    std::cout << "not list";
+  }
   const auto packet0_tx_id =
       tp.push(createPacket(init_data.copySender(), SubprotocolPacketType::TransactionPacket, {})).value();
   const auto packet1_tx_id =
@@ -467,7 +476,7 @@ TEST_F(TarcapTpTest, hard_blocking_deps) {
 
   // Creates threadpool
   threadpool::PacketsThreadPool tp(10);
-  tp.setPacketsHandlers(packets_handler);
+  tp.setPacketsHandlers(TARAXA_NET_VERSION, packets_handler);
 
   // Pushes packets to the tp
   const auto packet0_dag_sync_id =
@@ -589,7 +598,7 @@ TEST_F(TarcapTpTest, peer_order_blocking_deps) {
 
   // Creates threadpool
   threadpool::PacketsThreadPool tp(10);
-  tp.setPacketsHandlers(packets_handler);
+  tp.setPacketsHandlers(TARAXA_NET_VERSION, packets_handler);
 
   // Pushes packets to the tp
   const auto packet0_tx_id =
@@ -675,7 +684,7 @@ TEST_F(TarcapTpTest, same_dag_blks_ordering) {
 
   // Creates threadpool
   threadpool::PacketsThreadPool tp(10);
-  tp.setPacketsHandlers(packets_handler);
+  tp.setPacketsHandlers(TARAXA_NET_VERSION, packets_handler);
 
   auto dag_block = createDagBlockRlp(0);
 
@@ -740,7 +749,7 @@ TEST_F(TarcapTpTest, dag_blks_lvls_ordering) {
 
   // Creates threadpool
   threadpool::PacketsThreadPool tp(10);
-  tp.setPacketsHandlers(packets_handler);
+  tp.setPacketsHandlers(TARAXA_NET_VERSION, packets_handler);
 
   // Pushes packets to the tp
   const auto blk0_lvl1_id =
@@ -842,7 +851,7 @@ TEST_F(TarcapTpTest, threads_borrowing) {
   // Creates threadpool
   const size_t threads_num = 10;
   threadpool::PacketsThreadPool tp(threads_num);
-  tp.setPacketsHandlers(packets_handler);
+  tp.setPacketsHandlers(TARAXA_NET_VERSION, packets_handler);
 
   // Pushes packets to the tp
   std::vector<uint64_t> pushed_packets_ids;
@@ -933,7 +942,7 @@ TEST_F(TarcapTpTest, low_priotity_queue_starvation) {
   // Creates threadpool
   size_t threads_num = 10;
   threadpool::PacketsThreadPool tp(threads_num);
-  tp.setPacketsHandlers(packets_handler);
+  tp.setPacketsHandlers(TARAXA_NET_VERSION, packets_handler);
 
   // Push 10x more packets for each prioriy queue than max tp capacity to make sure that tp wont be able to process all
   // packets from each queue concurrently -> many packets will be waiting due to max threads num reached for specific

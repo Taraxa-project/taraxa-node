@@ -75,9 +75,13 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
   }
 
   host_ = dev::p2p::Host::make(net_version, construct_capabilities, key, net_conf, taraxa_net_conf, network_file_path);
-  for (const auto &tarcap : host_->getSupportedCapabilities()) {
-    tarcaps_.emplace(tarcap.second.ref->version(),
-                     std::static_pointer_cast<network::tarcap::TaraxaCapabilityBase>(tarcap.second.ref));
+  for (const auto &cap : host_->getSupportedCapabilities()) {
+    const auto tarcap_version = cap.second.ref->version();
+    auto tarcap = std::static_pointer_cast<network::tarcap::TaraxaCapabilityBase>(cap.second.ref);
+    packets_tp_->setPacketsHandlers(tarcap_version, tarcap->getPacketsHandler());
+
+    tarcap->setThreadPool(packets_tp_);
+    tarcaps_[tarcap_version] = std::move(tarcap);
   }
 
   for (uint i = 0; i < tp_.capacity(); ++i) {
@@ -93,25 +97,25 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
 
 Network::~Network() {
   tp_.stop();
-  //  packets_tp_->stopProcessing();
+  packets_tp_->stopProcessing();
   //  periodic_events_tp_.stop();
 
   // TODO: remove once packets_tp_ and periodic_events_tp_ are moved from tarcaps to network
-  for (auto &tarcap : host_->getSupportedCapabilities()) {
-    std::static_pointer_cast<network::tarcap::TaraxaCapabilityBase>(tarcap.second.ref)->stop();
+  for (auto &tarcap : tarcaps_) {
+    tarcap.second->stop();
   }
 }
 
 void Network::start() {
-  tp_.start();
-  //  packets_tp_->startProcessing();
+  packets_tp_->startProcessing();
   //  periodic_events_tp_.start();
 
   // TODO: remove once packets_tp_ and periodic_events_tp_ are moved from tarcaps to network
-  for (auto &tarcap : host_->getSupportedCapabilities()) {
-    std::static_pointer_cast<network::tarcap::TaraxaCapabilityBase>(tarcap.second.ref)->start();
+  for (auto &tarcap : tarcaps_) {
+    tarcap.second->start();
   }
 
+  tp_.start();
   LOG(log_nf_) << "Started Node id: " << host_->id() << ", listening on port " << host_->listenPort();
 }
 

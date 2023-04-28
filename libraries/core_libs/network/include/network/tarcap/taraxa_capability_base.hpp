@@ -13,6 +13,7 @@
 #include "network/tarcap/shared_states/peers_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
 #include "network/tarcap/stats/node_stats.hpp"
+#include "network/tarcap/tarcap_version.hpp"
 #include "network/threadpool/tarcap_thread_pool.hpp"
 #include "pbft/pbft_chain.hpp"
 
@@ -35,7 +36,7 @@ class TaraxaPeer;
 class TaraxaCapabilityBase : public dev::p2p::CapabilityFace {
  public:
   TaraxaCapabilityBase(std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const FullNodeConfig &conf,
-                       unsigned version, const std::string &log_channel);
+                       TarcapVersion version, const std::string &log_channel);
 
   virtual ~TaraxaCapabilityBase() = default;
   TaraxaCapabilityBase(const TaraxaCapabilityBase &ro) = delete;
@@ -51,7 +52,7 @@ class TaraxaCapabilityBase : public dev::p2p::CapabilityFace {
 
   // CapabilityFace implemented interface
   std::string name() const override;
-  unsigned version() const override;
+  TarcapVersion version() const override;
   unsigned messageCount() const override;
   virtual void onConnect(std::weak_ptr<dev::p2p::Session> session, u256 const &) override;
   virtual void onDisconnect(dev::p2p::NodeID const &_nodeID) override;
@@ -61,6 +62,18 @@ class TaraxaCapabilityBase : public dev::p2p::CapabilityFace {
 
   template <typename PacketHandlerType>
   std::shared_ptr<PacketHandlerType> getSpecificHandler() const;
+
+  /**
+   * @brief Sets threadpool for packets processing
+   *
+   * @param threadpool
+   */
+  void setThreadPool(std::shared_ptr<network::threadpool::PacketsThreadPool> threadpool);
+
+  /**
+   * @return packets handler
+   */
+  std::shared_ptr<PacketsHandler> getPacketsHandler() const;
 
   /**
    * @brief Start processing packets
