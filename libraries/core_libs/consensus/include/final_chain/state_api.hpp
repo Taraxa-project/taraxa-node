@@ -43,9 +43,7 @@ class StateAPI {
   StateDescriptor get_last_committed_state_descriptor() const;
   const StateTransitionResult& transition_state(const EVMBlock& block,
                                                 const util::RangeView<EVMTransaction>& transactions,
-                                                const util::RangeView<addr_t>& transactions_validators = {},
-                                                const util::RangeView<UncleBlock>& uncles = {},
-                                                const RewardsStats& rewards_stats = {});
+                                                const std::vector<RewardsStats>& rewards_stats = {});
   void transition_state_commit();
   void create_snapshot(PbftPeriod period);
   void prune(const std::vector<dev::h256>& state_root_to_keep, EthBlockNumber blk_num);

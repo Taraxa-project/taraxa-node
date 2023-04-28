@@ -144,19 +144,26 @@ class FinalChainImpl final : public FinalChain {
 
   EthBlockNumber delegation_delay() const override { return delegation_delay_; }
 
+  std::vector<RewardsStats> prepare_rewards_stats_(const PeriodData& blk) {
+    std::vector<RewardsStats> rewards_stats;
+    uint64_t dpos_vote_count = kCommitteeSize;
+
+    // Block zero
+    if (!blk.previous_block_cert_votes.empty()) [[likely]] {
+      dpos_vote_count = dpos_eligible_total_vote_count(blk.previous_block_cert_votes[0]->getPeriod() - 1);
+    }
+
+    rewards_stats.emplace_back(blk, dpos_vote_count, kCommitteeSize);
+
+    return rewards_stats;
+  }
+
   std::shared_ptr<const FinalizationResult> finalize_(PeriodData&& new_blk,
                                                       std::vector<h256>&& finalized_dag_blk_hashes,
                                                       std::shared_ptr<DagBlock>&& anchor) {
     auto batch = db_->createWriteBatch();
 
-    RewardsStats rewards_stats;
-    uint64_t dpos_vote_count = kCommitteeSize;
-    // Block zero
-    if (!new_blk.previous_block_cert_votes.empty()) [[unlikely]] {
-      dpos_vote_count = dpos_eligible_total_vote_count(new_blk.previous_block_cert_votes[0]->getPeriod() - 1);
-    }
-    // returns list of validators for new_blk.transactions
-    const std::vector<addr_t> txs_validators = rewards_stats.processStats(new_blk, dpos_vote_count, kCommitteeSize);
+    auto rewards_stats = prepare_rewards_stats_(new_blk);
 
     block_applying_emitter_.emit(block_header()->number + 1);
 
@@ -180,7 +187,7 @@ class FinalChainImpl final : public FinalChain {
     auto const& [exec_results, state_root, total_reward] =
         state_api_.transition_state({new_blk.pbft_blk->getBeneficiary(), kBlockGasLimit,
                                      new_blk.pbft_blk->getTimestamp(), BlockHeader::difficulty()},
-                                    to_state_api_transactions(new_blk.transactions), txs_validators, {}, rewards_stats);
+                                    to_state_api_transactions(new_blk.transactions), rewards_stats);
 
     TransactionReceipts receipts;
     receipts.reserve(exec_results.size());

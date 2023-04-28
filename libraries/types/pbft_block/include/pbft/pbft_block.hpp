@@ -16,7 +16,7 @@ namespace taraxa {
  */
 
 /**
- * @brief The PbftBlockk class is a PBFT block class that includes PBFT block hash, previous PBFT block hash, DAG anchor
+ * @brief The PbftBlock class is a PBFT block class that includes PBFT block hash, previous PBFT block hash, DAG anchor
  * hash, DAG blocks ordering hash, period number, timestamp, proposer address, and proposer signature.
  */
 class PbftBlock {
@@ -35,8 +35,8 @@ class PbftBlock {
   PbftBlock(const blk_hash_t& prev_blk_hash, const blk_hash_t& dag_blk_hash_as_pivot, const blk_hash_t& order_hash,
             const blk_hash_t& prev_state_root, PbftPeriod period, const addr_t& beneficiary, const secret_t& sk,
             std::vector<vote_hash_t>&& reward_votes);
-  explicit PbftBlock(dev::RLP const& rlp);
-  explicit PbftBlock(bytes const& RLP);
+  explicit PbftBlock(const dev::RLP& rlp);
+  explicit PbftBlock(const bytes& RLP);
 
   /**
    * @brief Secure Hash Algorithm 3
@@ -77,33 +77,33 @@ class PbftBlock {
    * @param dag_blks DAG blocks hashes
    * @return PBFT block with DAG blocks in JSON
    */
-  static Json::Value toJson(PbftBlock const& b, std::vector<blk_hash_t> const& dag_blks);
+  static Json::Value toJson(const PbftBlock& b, const std::vector<blk_hash_t>& dag_blks);
 
   /**
    * @brief Get PBFT block hash
    * @return PBFT block hash
    */
-  auto const& getBlockHash() const { return block_hash_; }
+  const auto& getBlockHash() const { return block_hash_; }
 
   /**
    * @brief Get previous PBFT block hash
    * @return previous PBFT block hash
    */
-  auto const& getPrevBlockHash() const { return prev_block_hash_; }
+  const auto& getPrevBlockHash() const { return prev_block_hash_; }
 
   /**
    * @brief Get DAG anchor hash for the finalized PBFT block
    * @return DAG anchor hash
    */
-  auto const& getPivotDagBlockHash() const { return dag_block_hash_as_pivot_; }
+  const auto& getPivotDagBlockHash() const { return dag_block_hash_as_pivot_; }
 
   /**
    * @brief Get DAG blocks ordering hash
    * @return DAG blocks ordering hash
    */
-  auto const& getOrderHash() const { return order_hash_; }
+  const auto& getOrderHash() const { return order_hash_; }
 
-  auto const& getPrevStateRoot() const { return prev_state_root_hash_; }
+  const auto& getPrevStateRoot() const { return prev_state_root_hash_; }
 
   /**
    * @brief Get period number
@@ -121,7 +121,8 @@ class PbftBlock {
    * @brief Get PBFT block proposer address
    * @return PBFT block proposer address
    */
-  auto const& getBeneficiary() const { return beneficiary_; }
+  const auto& getBeneficiary() const { return beneficiary_; }
+
   const auto& getRewardVotes() const { return reward_votes_; }
 
  private:
@@ -136,7 +137,7 @@ class PbftBlock {
    */
   void checkUniqueRewardVotes();
 };
-std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
+std::ostream& operator<<(std::ostream& strm, const PbftBlock& pbft_blk);
 
 /** @}*/
 
