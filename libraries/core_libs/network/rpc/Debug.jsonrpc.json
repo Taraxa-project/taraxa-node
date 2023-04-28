@@ -34,5 +34,14 @@
     ],
     "order": [],
     "returns": {}
+  },
+  {
+    "name": "trace_replayBlockTransactions",
+    "params": [
+      "",
+      []
+    ],
+    "order": [],
+    "returns": {}
   }
 ]

@@ -21,7 +21,7 @@ Json::Value Debug::debug_traceTransaction(const std::string& transaction_hash) {
       return res;
     }
     if (auto node = full_node_.lock()) {
-      return util::readJsonFromString(node->getFinalChain()->trace_trx(to_eth_trx(std::move(trx)), loc->blk_n - 1));
+      return util::readJsonFromString(node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, loc->blk_n - 1));
     }
   } catch (std::exception& e) {
     res["status"] = e.what();
@@ -35,7 +35,7 @@ Json::Value Debug::debug_traceCall(const Json::Value& call_params, const std::st
     const auto block = parse_blk_num(blk_num);
     auto trx = to_eth_trx(call_params, block);
     if (auto node = full_node_.lock()) {
-      return util::readJsonFromString(node->getFinalChain()->trace_trx(std::move(trx), block));
+      return util::readJsonFromString(node->getFinalChain()->trace({std::move(trx)}, block));
     }
   } catch (std::exception& e) {
     res["status"] = e.what();
@@ -48,10 +48,10 @@ Json::Value Debug::trace_call(const Json::Value& call_params, const Json::Value&
   Json::Value res;
   try {
     const auto block = parse_blk_num(blk_num);
-    auto trx = to_eth_trx(call_params, block);
     auto params = parse_tracking_parms(trace_params);
     if (auto node = full_node_.lock()) {
-      return util::readJsonFromString(node->getFinalChain()->trace_trx(std::move(trx), block, std::move(params)));
+      return util::readJsonFromString(
+          node->getFinalChain()->trace({to_eth_trx(call_params, block)}, block, std::move(params)));
     }
   } catch (std::exception& e) {
     res["status"] = e.what();
@@ -70,7 +70,30 @@ Json::Value Debug::trace_replayTransaction(const std::string& transaction_hash, 
     }
     if (auto node = full_node_.lock()) {
       return util::readJsonFromString(
-          node->getFinalChain()->trace_trx(to_eth_trx(std::move(trx)), loc->blk_n - 1, std::move(params)));
+          node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, loc->blk_n - 1, std::move(params)));
+    }
+  } catch (std::exception& e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
+Json::Value Debug::trace_replayBlockTransactions(const std::string& block_num, const Json::Value& trace_params) {
+  Json::Value res;
+  try {
+    const auto block = parse_blk_num(block_num);
+    auto params = parse_tracking_parms(trace_params);
+    if (auto node = full_node_.lock()) {
+      auto transactions = node->getDB()->getPeriodTransactions(block);
+      if (!transactions.has_value() || transactions->empty()) {
+        res["status"] = "Block has no transactions";
+        return res;
+      }
+      std::vector<state_api::EVMTransaction> trxs;
+      trxs.reserve(transactions->size());
+      std::transform(transactions->begin(), transactions->end(), std::back_inserter(trxs),
+                     [this](auto t) { return to_eth_trx(std::move(t)); });
+      return util::readJsonFromString(node->getFinalChain()->trace(std::move(trxs), block - 1, std::move(params)));
     }
   } catch (std::exception& e) {
     res["status"] = e.what();
