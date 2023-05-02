@@ -19,9 +19,6 @@ void TaraxaCapability::registerPacketHandlers(
     const std::shared_ptr<PbftChain> &pbft_chain, const std::shared_ptr<VoteManager> &vote_mgr,
     const std::shared_ptr<DagManager> &dag_mgr, const std::shared_ptr<TransactionManager> &trx_mgr,
     const addr_t &node_addr) {
-  node_stats_ = std::make_shared<tarcap::NodeStats>(peers_state_, pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr,
-                                                    vote_mgr, trx_mgr, packets_stats, thread_pool_, node_addr);
-
   // Register all packet handlers
 
   // Consensus packets with high processing priority
@@ -53,8 +50,7 @@ void TaraxaCapability::registerPacketHandlers(
   packets_handlers_->registerHandler<tarcap::GetPbftSyncPacketHandler>(
       kConf, peers_state_, packets_stats, pbft_syncing_state_, pbft_chain, vote_mgr, db, node_addr);
 
-  packets_handlers_->registerHandler<tarcap::PbftSyncPacketHandler>(kConf, peers_state_, packets_stats,
-                                                                    pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr,
-                                                                    vote_mgr, periodic_events_tp_, db, node_addr);
+  packets_handlers_->registerHandler<tarcap::PbftSyncPacketHandler>(
+      kConf, peers_state_, packets_stats, pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr, vote_mgr, db, node_addr);
 }
 }  // namespace taraxa::network::tarcap

@@ -16,7 +16,6 @@
 #include "network/tarcap/packets_handler.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
-#include "network/tarcap/stats/node_stats.hpp"
 #include "network/tarcap/taraxa_peer.hpp"
 #include "node/node.hpp"
 #include "pbft/pbft_chain.hpp"
@@ -28,26 +27,21 @@ namespace taraxa::network::tarcap {
 
 TaraxaCapabilityBase::TaraxaCapabilityBase(std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key,
                                            const FullNodeConfig &conf, TarcapVersion version,
+                                           std::shared_ptr<TimePeriodPacketsStats> packets_stats,
+                                           std::shared_ptr<PbftSyncingState> syncing_state,
                                            const std::string &log_channel)
     : test_state_(std::make_shared<TestState>()),
       version_(version),
+      all_packets_stats_(std::move(packets_stats)),
       kConf(conf),
       peers_state_(nullptr),
-      pbft_syncing_state_(std::make_shared<PbftSyncingState>(conf.network.deep_syncing_threshold)),
-      node_stats_(nullptr),
+      pbft_syncing_state_(std::move(syncing_state)),
       packets_handlers_(std::make_shared<PacketsHandler>()),
-      thread_pool_(nullptr),
-      periodic_events_tp_(std::make_shared<util::ThreadPool>(kPeriodicEventsThreadCount, false)),
-      pub_key_(key.pub()) {
+      thread_pool_(nullptr) {
   const auto &node_addr = key.address();
   LOG_OBJECTS_CREATE(log_channel);
 
   peers_state_ = std::make_shared<PeersState>(host, kConf);
-  all_packets_stats_ =
-      std::make_shared<TimePeriodPacketsStats>(kConf.network.ddos_protection.packets_stats_time_period_ms, node_addr);
-
-  // Inits boot nodes (based on config)
-  addBootNodes(true);
 }
 
 void TaraxaCapabilityBase::init(const h256 &genesis_hash, std::shared_ptr<DbStorage> db,
@@ -57,117 +51,6 @@ void TaraxaCapabilityBase::init(const h256 &genesis_hash, std::shared_ptr<DbStor
   // Creates and registers all packets handlers
   registerPacketHandlers(genesis_hash, all_packets_stats_, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr,
                          node_addr);
-
-  // Inits periodic events. Must be called after registerHandlers !!!
-  initPeriodicEvents(pbft_mgr, trx_mgr, all_packets_stats_);
-}
-
-void TaraxaCapabilityBase::addBootNodes(bool initial) {
-  auto resolveHost = [](const std::string &addr, uint16_t port) {
-    static boost::asio::io_context s_resolverIoService;
-    boost::system::error_code ec;
-    bi::address address = bi::address::from_string(addr, ec);
-    bi::tcp::endpoint ep(bi::address(), port);
-    if (!ec) {
-      ep.address(address);
-    } else {
-      // resolve returns an iterator (host can resolve to multiple addresses)
-      bi::tcp::resolver r(s_resolverIoService);
-      auto it = r.resolve({bi::tcp::v4(), addr, toString(port)}, ec);
-      if (ec) {
-        return std::make_pair(false, bi::tcp::endpoint());
-      } else {
-        ep = *it;
-      }
-    }
-    return std::make_pair(true, ep);
-  };
-
-  auto host = peers_state_->host_.lock();
-  if (!host) {
-    LOG(log_er_) << "Unable to obtain host in addBootNodes";
-    return;
-  }
-
-  for (auto const &node : kConf.network.boot_nodes) {
-    dev::Public pub(node.id);
-    if (pub == pub_key_) {
-      LOG(log_wr_) << "not adding self to the boot node list";
-      continue;
-    }
-
-    if (host->nodeTableHasNode(pub)) {
-      LOG(log_dg_) << "skipping node " << node.id << " already in table";
-      continue;
-    }
-
-    auto ip = resolveHost(node.ip, node.port);
-    LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.port << " " << ip.second.address().to_string();
-    dev::p2p::Node boot_node(pub, dev::p2p::NodeIPEndpoint(ip.second.address(), node.port, node.port),
-                             dev::p2p::PeerType::Required);
-    host->addNode(boot_node);
-    if (!initial) {
-      host->invalidateNode(boot_node.id);
-    }
-  }
-}
-
-void TaraxaCapabilityBase::initPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr,
-                                              std::shared_ptr<TransactionManager> trx_mgr,
-                                              std::shared_ptr<TimePeriodPacketsStats> packets_stats) {
-  // TODO: refactor this:
-  //       1. Most of time is this single threaded thread pool doing nothing...
-  //       2. These periodic events are sending packets - that might be processed by main thread_pool ???
-  // Creates periodic events
-  uint64_t lambda_ms = pbft_mgr ? pbft_mgr->getPbftInitialLambda().count() : 2000;
-
-  // Send new txs periodic event
-  auto tx_packet_handler = packets_handlers_->getSpecificHandler<TransactionPacketHandler>();
-  if (trx_mgr /* just because of tests */ && kConf.network.transaction_interval_ms > 0) {
-    periodic_events_tp_->post_loop({kConf.network.transaction_interval_ms},
-                                   [tx_packet_handler = std::move(tx_packet_handler), trx_mgr = std::move(trx_mgr)] {
-                                     tx_packet_handler->periodicSendTransactions(trx_mgr->getAllPoolTrxs());
-                                   });
-  }
-
-  // Send status periodic event
-  auto status_packet_handler = packets_handlers_->getSpecificHandler<StatusPacketHandler>();
-  const auto send_status_interval = 6 * lambda_ms;
-  periodic_events_tp_->post_loop({send_status_interval}, [status_packet_handler = std::move(status_packet_handler)] {
-    status_packet_handler->sendStatusToPeers();
-  });
-
-  periodic_events_tp_->post_loop(
-      {static_cast<uint64_t>(kConf.network.ddos_protection.packets_stats_time_period_ms.count())},
-      [ddos_protection = kConf.network.ddos_protection, stats = packets_stats, peers_state = peers_state_] {
-        // Log interval + max packets stats only if enabled in config
-        if (ddos_protection.log_packets_stats) {
-          stats->processStats(peers_state);
-        }
-
-        // Per peer packets stats are used for ddos protection
-        for (const auto &peer : peers_state->getAllPeers()) {
-          peer.second->resetPacketsStats();
-        }
-      });
-
-  // SUMMARY log periodic event
-  const auto node_stats_log_interval = 5 * 6 * lambda_ms;
-  periodic_events_tp_->post_loop({node_stats_log_interval},
-                                 [node_stats = node_stats_]() mutable { node_stats->logNodeStats(); });
-
-  // Every 30 seconds check if connected to another node and refresh boot nodes
-  periodic_events_tp_->post_loop({30000}, [this] {
-    auto host = peers_state_->host_.lock();
-    if (!host) {
-      LOG(log_er_) << "Unable to obtain host in initPeriodicEvents";
-      return;
-    }
-    // If node count drops to zero add boot nodes again and retry
-    if (host->peer_count() == 0) {
-      addBootNodes();
-    }
-  });
 }
 
 void TaraxaCapabilityBase::registerPacketHandlers(
@@ -176,9 +59,6 @@ void TaraxaCapabilityBase::registerPacketHandlers(
     const std::shared_ptr<PbftChain> &pbft_chain, const std::shared_ptr<VoteManager> &vote_mgr,
     const std::shared_ptr<DagManager> &dag_mgr, const std::shared_ptr<TransactionManager> &trx_mgr,
     const addr_t &node_addr) {
-  node_stats_ = std::make_shared<NodeStats>(peers_state_, pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr, vote_mgr,
-                                            trx_mgr, packets_stats, thread_pool_, node_addr);
-
   // Register all packet handlers
 
   // Consensus packets with high processing priority
@@ -211,8 +91,7 @@ void TaraxaCapabilityBase::registerPacketHandlers(
                                                                pbft_chain, vote_mgr, db, node_addr);
 
   packets_handlers_->registerHandler<PbftSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_syncing_state_,
-                                                            pbft_chain, pbft_mgr, dag_mgr, vote_mgr,
-                                                            periodic_events_tp_, db, node_addr);
+                                                            pbft_chain, pbft_mgr, dag_mgr, vote_mgr, db, node_addr);
 
   thread_pool_->setPacketsHandlers(version(), packets_handlers_);
 }
@@ -372,17 +251,7 @@ void TaraxaCapabilityBase::setThreadPool(std::shared_ptr<network::threadpool::Pa
 }
 std::shared_ptr<PacketsHandler> TaraxaCapabilityBase::getPacketsHandler() const { return packets_handlers_; }
 
-void TaraxaCapabilityBase::start() { periodic_events_tp_->start(); }
-
-void TaraxaCapabilityBase::stop() { periodic_events_tp_->stop(); }
-
 const std::shared_ptr<PeersState> &TaraxaCapabilityBase::getPeersState() { return peers_state_; }
-
-const std::shared_ptr<NodeStats> &TaraxaCapabilityBase::getNodeStats() { return node_stats_; }
-
-bool TaraxaCapabilityBase::pbft_syncing() const { return pbft_syncing_state_->isPbftSyncing(); }
-
-void TaraxaCapabilityBase::setSyncStatePeriod(PbftPeriod period) { pbft_syncing_state_->setSyncStatePeriod(period); }
 
 // METHODS USED IN TESTS ONLY
 size_t TaraxaCapabilityBase::getReceivedBlocksCount() const { return test_state_->getBlocksSize(); }

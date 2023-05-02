@@ -12,7 +12,6 @@
 #include "network/tarcap/packets_handler.hpp"
 #include "network/tarcap/shared_states/peers_state.hpp"
 #include "network/tarcap/shared_states/test_state.hpp"
-#include "network/tarcap/stats/node_stats.hpp"
 #include "network/tarcap/tarcap_version.hpp"
 #include "network/threadpool/tarcap_thread_pool.hpp"
 #include "pbft/pbft_chain.hpp"
@@ -36,7 +35,8 @@ class TaraxaPeer;
 class TaraxaCapabilityBase : public dev::p2p::CapabilityFace {
  public:
   TaraxaCapabilityBase(std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const FullNodeConfig &conf,
-                       TarcapVersion version, const std::string &log_channel);
+                       TarcapVersion version, std::shared_ptr<TimePeriodPacketsStats> packets_stats,
+                       std::shared_ptr<PbftSyncingState> syncing_state, const std::string &log_channel);
 
   virtual ~TaraxaCapabilityBase() = default;
   TaraxaCapabilityBase(const TaraxaCapabilityBase &ro) = delete;
@@ -65,6 +65,7 @@ class TaraxaCapabilityBase : public dev::p2p::CapabilityFace {
 
   /**
    * @brief Sets threadpool for packets processing
+   * @brief Sets threadpool for packets processing
    *
    * @param threadpool
    */
@@ -75,23 +76,9 @@ class TaraxaCapabilityBase : public dev::p2p::CapabilityFace {
    */
   std::shared_ptr<PacketsHandler> getPacketsHandler() const;
 
-  /**
-   * @brief Start processing packets
-   */
-  void start();
-
-  /**
-   * @brief Stop processing packets
-   */
-  void stop();
-
   // Interface required in network class to access packets handlers functionality
   // METHODS USED IN REAL CODE
   const std::shared_ptr<PeersState> &getPeersState();
-  const std::shared_ptr<NodeStats> &getNodeStats();
-
-  bool pbft_syncing() const;
-  void setSyncStatePeriod(PbftPeriod period);
 
   // METHODS USED IN TESTS ONLY
   size_t getReceivedBlocksCount() const;
@@ -99,9 +86,6 @@ class TaraxaCapabilityBase : public dev::p2p::CapabilityFace {
   // END METHODS USED IN TESTS ONLY
 
  protected:
-  virtual void initPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr,
-                                  std::shared_ptr<TransactionManager> trx_mgr,
-                                  std::shared_ptr<TimePeriodPacketsStats> packets_stats);
   virtual void registerPacketHandlers(const h256 &genesis_hash,
                                       const std::shared_ptr<TimePeriodPacketsStats> &packets_stats,
                                       const std::shared_ptr<DbStorage> &db,
@@ -112,8 +96,6 @@ class TaraxaCapabilityBase : public dev::p2p::CapabilityFace {
                                       const std::shared_ptr<TransactionManager> &trx_mgr, const addr_t &node_addr) = 0;
 
  private:
-  void addBootNodes(bool initial = false);
-
   bool filterSyncIrrelevantPackets(SubprotocolPacketType packet_type) const;
 
  public:
@@ -137,20 +119,11 @@ class TaraxaCapabilityBase : public dev::p2p::CapabilityFace {
   // Syncing state + syncing handler
   std::shared_ptr<PbftSyncingState> pbft_syncing_state_;
 
-  // Node stats
-  std::shared_ptr<NodeStats> node_stats_;
-
   // Packets handlers
   std::shared_ptr<PacketsHandler> packets_handlers_;
 
   // Main Threadpool for processing packets
   std::shared_ptr<threadpool::PacketsThreadPool> thread_pool_;
-
-  // Threadpool for periodic and delayed events
-  std::shared_ptr<util::ThreadPool> periodic_events_tp_;
-
-  // Node public key
-  const dev::Public pub_key_;
 
   LOG_OBJECTS_DEFINE
 };

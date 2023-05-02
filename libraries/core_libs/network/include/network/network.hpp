@@ -23,6 +23,11 @@
 
 namespace taraxa {
 
+namespace network::tarcap {
+class TimePeriodPacketsStats;
+class NodeStats;
+}  // namespace network::tarcap
+
 class PacketHandler;
 
 class Network {
@@ -40,13 +45,12 @@ class Network {
   Network &operator=(const Network &) = delete;
   Network &operator=(Network &&) = delete;
 
-  static std::pair<bool, bi::tcp::endpoint> resolveHost(string const &addr, uint16_t port);
-
   // METHODS USED IN REAL CODE
   void start();
   bool isStarted();
   std::list<dev::p2p::NodeEntry> getAllNodes() const;
   size_t getPeerCount();
+
   // returns count of all discovered nodes
   unsigned getNodeCount();
   Json::Value getStatus();
@@ -73,6 +77,39 @@ class Network {
   // END METHODS USED IN TESTS ONLY
 
  private:
+  static std::pair<bool, bi::tcp::endpoint> resolveHost(string const &addr, uint16_t port);
+
+  /**
+   * @brief Register period events, e.g. sending status packet, transaction packet etc...
+   *
+   * @param config
+   * @param pbft_mgr
+   * @param trx_mgr
+   */
+  void registerPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr,
+                              std::shared_ptr<TransactionManager> trx_mgr);
+
+  void addBootNodes(bool initial = false);
+
+ private:
+  // Node config
+  const FullNodeConfig &kConf;
+
+  // Node public key
+  const dev::Public pub_key_;
+
+  // Packets stats per time period
+  // TODO: maybe remove tarcap namespace ???
+  std::shared_ptr<network::tarcap::TimePeriodPacketsStats> all_packets_stats_;
+
+  // Node stats
+  // TODO: maybe remove tarcap namespace ???
+  std::shared_ptr<network::tarcap::NodeStats> node_stats_;
+
+  // Syncing state
+  // TODO: maybe remove tarcap namespace ???
+  std::shared_ptr<network::tarcap::PbftSyncingState> pbft_syncing_state_;
+
   util::ThreadPool tp_;
   std::shared_ptr<dev::p2p::Host> host_;
 

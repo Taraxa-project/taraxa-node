@@ -4,8 +4,8 @@
 #include "dag/dag_manager.hpp"
 #include "libp2p/Common.h"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
-#include "network/tarcap/shared_states/peers_state.hpp"
 #include "network/tarcap/stats/time_period_packets_stats.hpp"
+#include "network/tarcap/taraxa_peer.hpp"
 #include "network/threadpool/tarcap_thread_pool.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
@@ -13,13 +13,12 @@
 #include "vote_manager/vote_manager.hpp"
 namespace taraxa::network::tarcap {
 
-NodeStats::NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PbftSyncingState> pbft_syncing_state,
-                     std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
-                     std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<VoteManager> vote_mgr,
-                     std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<TimePeriodPacketsStats> packets_stats,
+NodeStats::NodeStats(std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
+                     std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
+                     std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+                     std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                      std::shared_ptr<const threadpool::PacketsThreadPool> thread_pool, const addr_t &node_addr)
-    : peers_state_(std::move(peers_state)),
-      pbft_syncing_state_(std::move(pbft_syncing_state)),
+    : pbft_syncing_state_(std::move(pbft_syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       pbft_mgr_(std::move(pbft_mgr)),
       dag_mgr_(std::move(dag_mgr)),
@@ -32,7 +31,8 @@ NodeStats::NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<Pb
 
 uint64_t NodeStats::syncTimeSeconds() const { return syncing_duration_seconds; }
 
-void NodeStats::logNodeStats() {
+void NodeStats::logNodeStats(const std::vector<std::shared_ptr<network::tarcap::TaraxaPeer>> &all_peers,
+                             size_t nodes_count) {
   bool is_pbft_syncing = pbft_syncing_state_->isPbftSyncing();
 
   dev::p2p::NodeID max_pbft_round_node_id;
@@ -42,34 +42,30 @@ void NodeStats::logNodeStats() {
   uint64_t peer_max_pbft_chain_size = 1;
   uint64_t peer_max_node_dag_level = 1;
 
-  const size_t peers_size = peers_state_->getPeersCount();
+  const size_t peers_size = all_peers.size();
   std::string connected_peers_str{""};
 
-  size_t number_of_discov_peers = 0;
-  if (const auto host = peers_state_->host_.lock()) {
-    number_of_discov_peers = host->getNodeCount();
-  }
-
-  for (auto const &peer : peers_state_->getAllPeers()) {
+  size_t number_of_discov_peers = nodes_count;
+  for (auto const &peer : all_peers) {
     // Find max pbft chain size
-    if (peer.second->pbft_chain_size_ > peer_max_pbft_chain_size) {
-      peer_max_pbft_chain_size = peer.second->pbft_chain_size_;
-      max_pbft_chain_node_id = peer.first;
+    if (peer->pbft_chain_size_ > peer_max_pbft_chain_size) {
+      peer_max_pbft_chain_size = peer->pbft_chain_size_;
+      max_pbft_chain_node_id = peer->getId();
     }
 
     // Find max dag level
-    if (peer.second->dag_level_ > peer_max_node_dag_level) {
-      peer_max_node_dag_level = peer.second->dag_level_;
-      max_node_dag_level_node_id = peer.first;
+    if (peer->dag_level_ > peer_max_node_dag_level) {
+      peer_max_node_dag_level = peer->dag_level_;
+      max_node_dag_level_node_id = peer->getId();
     }
 
     // Find max peer PBFT round
-    if (peer.second->pbft_round_ > peer_max_pbft_round) {
-      peer_max_pbft_round = peer.second->pbft_round_;
-      max_pbft_round_node_id = peer.first;
+    if (peer->pbft_round_ > peer_max_pbft_round) {
+      peer_max_pbft_round = peer->pbft_round_;
+      max_pbft_round_node_id = peer->getId();
     }
 
-    connected_peers_str += peer.first.abridged() + " ";
+    connected_peers_str += peer->getId().abridged() + " ";
   }
 
   // Local dag info...
@@ -176,12 +172,11 @@ void NodeStats::logNodeStats() {
   LOG(log_dg_) << "Non finalized dag blocks levels: " << non_finalized_blocks_levels;
   LOG(log_dg_) << "Non finalized dag blocks size:   " << non_finalized_blocks_size;
 
-  // TODO: enable once periodic events moved to network class
-  //  const auto [high_priority_queue_size, mid_priority_queue_size, low_priority_queue_size] =
-  //      thread_pool_->getQueueSize();
-  //  LOG(log_dg_) << "High priority queue size: " << high_priority_queue_size;
-  //  LOG(log_dg_) << "Mid priority queue size: " << mid_priority_queue_size;
-  //  LOG(log_dg_) << "Low priority queue size: " << low_priority_queue_size;
+  const auto [high_priority_queue_size, mid_priority_queue_size, low_priority_queue_size] =
+      thread_pool_->getQueueSize();
+  LOG(log_dg_) << "High priority queue size: " << high_priority_queue_size;
+  LOG(log_dg_) << "Mid priority queue size: " << mid_priority_queue_size;
+  LOG(log_dg_) << "Low priority queue size: " << low_priority_queue_size;
 
   LOG(log_nf_) << "------------- tl;dr -------------";
 
@@ -245,31 +240,33 @@ Json::Value NodeStats::getStatus() const {
 
   res["peers"] = Json::Value(Json::arrayValue);
 
-  for (auto const &peer : peers_state_->getAllPeers()) {
-    Json::Value peer_status;
-    peer_status["node_id"] = peer.first.toString();
-    peer_status["dag_level"] = Json::UInt64(peer.second->dag_level_);
-    peer_status["pbft_size"] = Json::UInt64(peer.second->pbft_chain_size_);
-    peer_status["dag_synced"] = !peer.second->syncing_;
-    res["peers"].append(peer_status);
-    // Find max pbft chain size
-    if (peer.second->pbft_chain_size_ > peer_max_pbft_chain_size) {
-      peer_max_pbft_chain_size = peer.second->pbft_chain_size_;
-      max_pbft_chain_nodeID = peer.first;
-    }
-
-    // Find max dag level
-    if (peer.second->dag_level_ > peer_max_node_dag_level) {
-      peer_max_node_dag_level = peer.second->dag_level_;
-      max_node_dag_level_nodeID = peer.first;
-    }
-
-    // Find max peer PBFT round
-    if (peer.second->pbft_round_ > peer_max_pbft_round) {
-      peer_max_pbft_round = peer.second->pbft_round_;
-      max_pbft_round_nodeID = peer.first;
-    }
-  }
+  // TODO: uncomment this
+  //  for (auto const &peer : peers_state_->getAllPeers()) {
+  //    Json::Value peer_status;
+  //    peer_status["node_id"] = peer.first.toString();
+  //    // TODO: add peer network version !
+  //    peer_status["dag_level"] = Json::UInt64(peer.second->dag_level_);
+  //    peer_status["pbft_size"] = Json::UInt64(peer.second->pbft_chain_size_);
+  //    peer_status["dag_synced"] = !peer.second->syncing_;
+  //    res["peers"].append(peer_status);
+  //    // Find max pbft chain size
+  //    if (peer.second->pbft_chain_size_ > peer_max_pbft_chain_size) {
+  //      peer_max_pbft_chain_size = peer.second->pbft_chain_size_;
+  //      max_pbft_chain_nodeID = peer.first;
+  //    }
+  //
+  //    // Find max dag level
+  //    if (peer.second->dag_level_ > peer_max_node_dag_level) {
+  //      peer_max_node_dag_level = peer.second->dag_level_;
+  //      max_node_dag_level_nodeID = peer.first;
+  //    }
+  //
+  //    // Find max peer PBFT round
+  //    if (peer.second->pbft_round_ > peer_max_pbft_round) {
+  //      peer_max_pbft_round = peer.second->pbft_round_;
+  //      max_pbft_round_nodeID = peer.first;
+  //    }
+  //  }
 
   if (const auto syncing_peer = pbft_syncing_state_->syncingPeer();
       syncing_peer && pbft_syncing_state_->isPbftSyncing()) {

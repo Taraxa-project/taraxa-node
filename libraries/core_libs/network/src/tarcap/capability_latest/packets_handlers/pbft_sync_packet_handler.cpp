@@ -14,14 +14,13 @@ PbftSyncPacketHandler::PbftSyncPacketHandler(const FullNodeConfig &conf, std::sh
                                              std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                                              std::shared_ptr<PbftChain> pbft_chain,
                                              std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
-                                             std::shared_ptr<VoteManager> vote_mgr,
-                                             std::shared_ptr<util::ThreadPool> periodic_events_tp,
-                                             std::shared_ptr<DbStorage> db, const addr_t &node_addr)
+                                             std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DbStorage> db,
+                                             const addr_t &node_addr)
     : ExtSyncingPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
                               "PBFT_SYNC_PH"),
       vote_mgr_(std::move(vote_mgr)),
-      periodic_events_tp_(periodic_events_tp) {}
+      periodic_events_tp_(1, true) {}
 
 void PbftSyncPacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
   if (packet_data.rlp_.itemCount() != kStandardPacketSize && packet_data.rlp_.itemCount() != kChainSyncedPacketSize) {
@@ -208,8 +207,7 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
       if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * kConf.network.sync_level_size)) {
         LOG(log_tr_) << "Syncing pbft blocks too fast than processing. Has synced period " << pbft_sync_period
                      << ", PBFT chain size " << pbft_chain_->getPbftChainSize();
-        if (auto periodic_events_tp = periodic_events_tp_.lock())
-          periodic_events_tp->post(1000, [this] { delayedPbftSync(1); });
+        periodic_events_tp_.post(1000, [this] { delayedPbftSync(1); });
       } else {
         if (!syncPeerPbft(pbft_sync_period + 1, true)) {
           pbft_syncing_state_->setPbftSyncing(false);
@@ -224,8 +222,7 @@ void PbftSyncPacketHandler::pbftSyncComplete() {
   if (pbft_mgr_->periodDataQueueSize()) {
     LOG(log_tr_) << "Syncing pbft blocks faster than processing. Remaining sync size "
                  << pbft_mgr_->periodDataQueueSize();
-    if (auto periodic_events_tp = periodic_events_tp_.lock())
-      periodic_events_tp->post(1000, [this] { pbftSyncComplete(); });
+    periodic_events_tp_.post(1000, [this] { pbftSyncComplete(); });
   } else {
     LOG(log_dg_) << "Syncing PBFT is completed";
     // We are pbft synced with the node we are connected to but
@@ -254,8 +251,7 @@ void PbftSyncPacketHandler::delayedPbftSync(int counter) {
     if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * kConf.network.sync_level_size)) {
       LOG(log_tr_) << "Syncing pbft blocks faster than processing " << pbft_sync_period << " "
                    << pbft_chain_->getPbftChainSize();
-      if (auto periodic_events_tp = periodic_events_tp_.lock())
-        periodic_events_tp->post(1000, [this, counter] { delayedPbftSync(counter + 1); });
+      periodic_events_tp_.post(1000, [this, counter] { delayedPbftSync(counter + 1); });
     } else {
       if (!syncPeerPbft(pbft_sync_period + 1)) {
         pbft_syncing_state_->setPbftSyncing(false);

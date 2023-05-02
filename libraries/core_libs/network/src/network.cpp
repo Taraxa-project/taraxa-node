@@ -10,10 +10,16 @@
 #include "config/version.hpp"
 #include "network/tarcap/capability_latest/packets_handlers/dag_block_packet_handler.hpp"
 #include "network/tarcap/capability_latest/packets_handlers/pbft_sync_packet_handler.hpp"
+#include "network/tarcap/capability_latest/packets_handlers/status_packet_handler.hpp"
+#include "network/tarcap/capability_latest/packets_handlers/transaction_packet_handler.hpp"
 #include "network/tarcap/capability_latest/packets_handlers/vote_packet_handler.hpp"
 #include "network/tarcap/capability_latest/packets_handlers/votes_bundle_packet_handler.hpp"
 #include "network/tarcap/capability_latest/taraxa_capability.hpp"
 #include "network/tarcap/capability_v1/taraxa_capability.hpp"
+#include "network/tarcap/shared_states/pbft_syncing_state.hpp"
+#include "network/tarcap/stats/node_stats.hpp"
+#include "network/tarcap/stats/time_period_packets_stats.hpp"
+#include "pbft/pbft_manager.hpp"
 
 namespace taraxa {
 
@@ -23,12 +29,25 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
                  std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                  std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
                  std::shared_ptr<TransactionManager> trx_mgr)
-    : tp_(config.network.num_threads, false),
+    : kConf(config),
+      pub_key_(key.pub()),
+      all_packets_stats_(nullptr),
+      node_stats_(nullptr),
+      pbft_syncing_state_(std::make_shared<network::tarcap::PbftSyncingState>(config.network.deep_syncing_threshold)),
+      tp_(config.network.num_threads, false),
       packets_tp_(std::make_shared<network::threadpool::PacketsThreadPool>(config.network.packets_processing_threads,
-                                                                           key.address())) {
+                                                                           key.address())),
+      periodic_events_tp_(kPeriodicEventsThreadCount, false) {
   auto const &node_addr = key.address();
   LOG_OBJECTS_CREATE("NETWORK");
   LOG(log_nf_) << "Read Network Config: " << std::endl << config.network << std::endl;
+
+  all_packets_stats_ = std::make_shared<network::tarcap::TimePeriodPacketsStats>(
+      kConf.network.ddos_protection.packets_stats_time_period_ms, node_addr);
+
+  node_stats_ =
+      std::make_shared<network::tarcap::NodeStats>(pbft_syncing_state_, pbft_chain, pbft_mgr, dag_mgr, vote_mgr,
+                                                   trx_mgr, all_packets_stats_, packets_tp_, node_addr);
 
   // TODO make all these properties configurable
   dev::p2p::NetworkConfig net_conf;
@@ -59,14 +78,14 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
       dev::p2p::Host::CapabilityList capabilities;
 
       // Register old version of taraxa capability
-      auto v1_tarcap =
-          std::make_shared<network::tarcap::v1::TaraxaCapability>(host, key, config, kOldNetworkVersion, "V1_TARCAP");
+      auto v1_tarcap = std::make_shared<network::tarcap::v1::TaraxaCapability>(
+          host, key, config, kOldNetworkVersion, all_packets_stats_, pbft_syncing_state_, "V1_TARCAP");
       v1_tarcap->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, key.address());
       capabilities.emplace_back(v1_tarcap);
 
       // Register new version of taraxa capability
-      auto v2_tarcap =
-          std::make_shared<network::tarcap::TaraxaCapability>(host, key, config, TARAXA_NET_VERSION, "TARCAP");
+      auto v2_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
+          host, key, config, TARAXA_NET_VERSION, all_packets_stats_, pbft_syncing_state_, "TARCAP");
       v2_tarcap->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, key.address());
       capabilities.emplace_back(v2_tarcap);
 
@@ -84,6 +103,11 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
     tarcaps_[tarcap_version] = std::move(tarcap);
   }
 
+  addBootNodes(true);
+
+  // Register periodic events. Must be called after full init of tarcaps_
+  registerPeriodicEvents(pbft_mgr, trx_mgr);
+
   for (uint i = 0; i < tp_.capacity(); ++i) {
     tp_.post_loop({100 + i * 20}, [this] {
       while (0 < host_->do_work())
@@ -97,25 +121,15 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
 
 Network::~Network() {
   tp_.stop();
+  periodic_events_tp_.stop();
   packets_tp_->stopProcessing();
-  //  periodic_events_tp_.stop();
-
-  // TODO: remove once packets_tp_ and periodic_events_tp_ are moved from tarcaps to network
-  for (auto &tarcap : tarcaps_) {
-    tarcap.second->stop();
-  }
 }
 
 void Network::start() {
   packets_tp_->startProcessing();
-  //  periodic_events_tp_.start();
-
-  // TODO: remove once packets_tp_ and periodic_events_tp_ are moved from tarcaps to network
-  for (auto &tarcap : tarcaps_) {
-    tarcap.second->start();
-  }
-
+  periodic_events_tp_.start();
   tp_.start();
+
   LOG(log_nf_) << "Started Node id: " << host_->id() << ", listening on port " << host_->listenPort();
 }
 
@@ -127,21 +141,129 @@ size_t Network::getPeerCount() { return host_->peer_count(); }
 
 unsigned Network::getNodeCount() { return host_->getNodeCount(); }
 
-Json::Value Network::getStatus() {
-  // TODO: refactor this: combine node stats from all tarcaps...
-  return tarcaps_.end()->second->getNodeStats()->getStatus();
+Json::Value Network::getStatus() { return node_stats_->getStatus(); }
+
+bool Network::pbft_syncing() { return pbft_syncing_state_->isPbftSyncing(); }
+
+uint64_t Network::syncTimeSeconds() const {
+  // TODO: this should be probably part of syncing_state, not node_stats
+  return node_stats_->syncTimeSeconds();
+}
+==== BASE ====
+
+void Network::setSyncStatePeriod(PbftPeriod period) { pbft_syncing_state_->setSyncStatePeriod(period); }
+
+void Network::registerPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr,
+                                     std::shared_ptr<TransactionManager> trx_mgr) {
+  auto getAllPeers = [this]() {
+    std::vector<std::shared_ptr<network::tarcap::TaraxaPeer>> all_peers;
+    for (auto &tarcap : tarcaps_) {
+      for (const auto &peer : tarcap.second->getPeersState()->getAllPeers()) {
+        all_peers.push_back(std::move(peer.second));
+      }
+    }
+
+    return all_peers;
+  };
+
+  uint64_t lambda_ms = pbft_mgr ? pbft_mgr->getPbftInitialLambda().count() : 2000;
+
+  // Send new transactions
+  if (trx_mgr) {  // because of tests
+    auto sendTxs = [this, trx_mgr = trx_mgr]() {
+      for (auto &tarcap : tarcaps_) {
+        auto tx_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::TransactionPacketHandler>();
+        tx_packet_handler->periodicSendTransactions(trx_mgr->getAllPoolTrxs());
+      }
+    };
+    periodic_events_tp_.post_loop({kConf.network.transaction_interval_ms}, sendTxs);
+  }
+
+  // Send status packet
+  auto sendStatus = [this]() {
+    for (auto &tarcap : tarcaps_) {
+      auto status_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::StatusPacketHandler>();
+      status_packet_handler->sendStatusToPeers();
+    }
+  };
+  const auto send_status_interval = 6 * lambda_ms;
+  periodic_events_tp_.post_loop({send_status_interval}, sendStatus);
+
+  // Check nodes connections and refresh boot nodes
+  auto checkNodesConnections = [this]() {
+    // If node count drops to zero add boot nodes again and retry
+    if (host_->peer_count() == 0) {
+      addBootNodes();
+    }
+  };
+  periodic_events_tp_.post_loop({30000}, checkNodesConnections);
+
+  // Ddos protection stats
+  auto ddosStats = [getAllPeers, ddos_protection = kConf.network.ddos_protection,
+                    all_packets_stats = all_packets_stats_] {
+    const auto all_peers = getAllPeers();
+
+    // Log interval + max packets stats only if enabled in config
+    if (ddos_protection.log_packets_stats) {
+      all_packets_stats->processStats(all_peers);
+    }
+
+    // Per peer packets stats are used for ddos protection
+    for (const auto &peer : all_peers) {
+      peer->resetPacketsStats();
+    }
+  };
+  periodic_events_tp_.post_loop(
+      {static_cast<uint64_t>(kConf.network.ddos_protection.packets_stats_time_period_ms.count())}, ddosStats);
+
+  // SUMMARY log
+  const auto node_stats_log_interval = 5 * 6 * lambda_ms;
+  auto summaryLog = [getAllPeers, node_stats = node_stats_, host = host_]() {
+    node_stats->logNodeStats(getAllPeers(), host->getNodeCount());
+  };
+  periodic_events_tp_.post_loop({node_stats_log_interval}, summaryLog);
 }
 
-bool Network::pbft_syncing() {
-  return std::ranges::any_of(tarcaps_, [](const auto &tarcap) { return tarcap.second->pbft_syncing(); });
-}
+void Network::addBootNodes(bool initial) {
+  auto resolveHost = [](const std::string &addr, uint16_t port) {
+    static boost::asio::io_context s_resolverIoService;
+    boost::system::error_code ec;
+    bi::address address = bi::address::from_string(addr, ec);
+    bi::tcp::endpoint ep(bi::address(), port);
+    if (!ec) {
+      ep.address(address);
+    } else {
+      // resolve returns an iterator (host can resolve to multiple addresses)
+      bi::tcp::resolver r(s_resolverIoService);
+      auto it = r.resolve({bi::tcp::v4(), addr, toString(port)}, ec);
+      if (ec) {
+        return std::make_pair(false, bi::tcp::endpoint());
+      } else {
+        ep = *it;
+      }
+    }
+    return std::make_pair(true, ep);
+  };
 
+  for (auto const &node : kConf.network.boot_nodes) {
+    dev::Public pub(node.id);
+    if (pub == pub_key_) {
+      LOG(log_wr_) << "not adding self to the boot node list";
+      continue;
+    }
 
-void Network::setSyncStatePeriod(PbftPeriod period) {
-  for (auto &tarcap : tarcaps_) {
-    // TODO: double check this ???
-    if (tarcap.second->pbft_syncing()) {
-      tarcap.second->setSyncStatePeriod(period);
+    if (host_->nodeTableHasNode(pub)) {
+      LOG(log_dg_) << "skipping node " << node.id << " already in table";
+      continue;
+    }
+
+    auto ip = resolveHost(node.ip, node.port);
+    LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.port << " " << ip.second.address().to_string();
+    dev::p2p::Node boot_node(pub, dev::p2p::NodeIPEndpoint(ip.second.address(), node.port, node.port),
+                             dev::p2p::PeerType::Required);
+    host_->addNode(boot_node);
+    if (!initial) {
+      host_->invalidateNode(boot_node.id);
     }
   }
 }

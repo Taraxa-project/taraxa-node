@@ -12,8 +12,7 @@ class PbftSyncPacketHandler final : public tarcap::ExtSyncingPacketHandler {
                         std::shared_ptr<tarcap::PbftSyncingState> pbft_syncing_state,
                         std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
                         std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<VoteManager> vote_mgr,
-                        std::shared_ptr<util::ThreadPool> periodic_events_tp, std::shared_ptr<DbStorage> db,
-                        const addr_t& node_addr);
+                        std::shared_ptr<DbStorage> db, const addr_t& node_addr);
 
   void handleMaliciousSyncPeer(dev::p2p::NodeID const& id);
 
@@ -28,8 +27,7 @@ class PbftSyncPacketHandler final : public tarcap::ExtSyncingPacketHandler {
   void delayedPbftSync(int counter);
 
   std::shared_ptr<VoteManager> vote_mgr_;
-
-  std::weak_ptr<util::ThreadPool> periodic_events_tp_;
+  util::ThreadPool periodic_events_tp_;
 
   static constexpr size_t kStandardPacketSize = 2;
   static constexpr size_t kChainSyncedPacketSize = 3;

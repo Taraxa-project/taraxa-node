@@ -18,24 +18,23 @@ class PacketsThreadPool;
 
 namespace taraxa::network::tarcap {
 
-class PeersState;
+class TaraxaPeer;
 class PbftSyncingState;
 class TimePeriodPacketsStats;
 
 class NodeStats {
  public:
-  NodeStats(std::shared_ptr<PeersState> peers_state, std::shared_ptr<PbftSyncingState> pbft_syncing_state,
-            std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
-            std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<VoteManager> vote_mgr,
-            std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-            std::shared_ptr<const threadpool::PacketsThreadPool> thread_pool, const addr_t &node_addr);
+  NodeStats(std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
+            std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
+            std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+            std::shared_ptr<TimePeriodPacketsStats> packets_stats,
+            std::shared_ptr<const threadpool::PacketsThreadPool> thread_pool, const addr_t& node_addr);
 
-  void logNodeStats();
+  void logNodeStats(const std::vector<std::shared_ptr<network::tarcap::TaraxaPeer>>& all_peers, size_t nodes_count);
   uint64_t syncTimeSeconds() const;
   Json::Value getStatus() const;
 
  private:
-  std::shared_ptr<PeersState> peers_state_;
   std::shared_ptr<PbftSyncingState> pbft_syncing_state_;
   std::shared_ptr<PbftChain> pbft_chain_;
   std::shared_ptr<PbftManager> pbft_mgr_;
