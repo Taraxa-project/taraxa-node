@@ -12,6 +12,11 @@ using namespace jsonrpc;
 using namespace taraxa;
 
 namespace taraxa::net {
+
+inline EthBlockNumber get_ctx_block_num(EthBlockNumber block_number) {
+  return (block_number >= 1) ? block_number - 1 : 0;
+}
+
 Json::Value Debug::debug_traceTransaction(const std::string& transaction_hash) {
   Json::Value res;
   try {
@@ -21,7 +26,8 @@ Json::Value Debug::debug_traceTransaction(const std::string& transaction_hash) {
       return res;
     }
     if (auto node = full_node_.lock()) {
-      return util::readJsonFromString(node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, loc->blk_n - 1));
+      return util::readJsonFromString(
+          node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, get_ctx_block_num(loc->blk_n)));
     }
   } catch (std::exception& e) {
     res["status"] = e.what();
@@ -70,7 +76,7 @@ Json::Value Debug::trace_replayTransaction(const std::string& transaction_hash, 
     }
     if (auto node = full_node_.lock()) {
       return util::readJsonFromString(
-          node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, loc->blk_n - 1, std::move(params)));
+          node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, get_ctx_block_num(loc->blk_n), std::move(params)));
     }
   } catch (std::exception& e) {
     res["status"] = e.what();
@@ -93,7 +99,8 @@ Json::Value Debug::trace_replayBlockTransactions(const std::string& block_num, c
       trxs.reserve(transactions->size());
       std::transform(transactions->begin(), transactions->end(), std::back_inserter(trxs),
                      [this](auto t) { return to_eth_trx(std::move(t)); });
-      return util::readJsonFromString(node->getFinalChain()->trace(std::move(trxs), block - 1, std::move(params)));
+      return util::readJsonFromString(
+          node->getFinalChain()->trace(std::move(trxs), get_ctx_block_num(block), std::move(params)));
     }
   } catch (std::exception& e) {
     res["status"] = e.what();
@@ -108,7 +115,8 @@ state_api::Tracing Debug::parse_tracking_parms(const Json::Value& json) const {
   }
   for (const auto& obj : json) {
     if (obj.asString() == "trace") ret.trace = true;
-    if (obj.asString() == "stateDiff") ret.stateDiff = true;
+    // Disabled for now
+    // if (obj.asString() == "stateDiff") ret.stateDiff = true;
     if (obj.asString() == "vmTrace") ret.vmTrace = true;
   }
   return ret;
