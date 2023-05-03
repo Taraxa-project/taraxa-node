@@ -180,9 +180,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:ad30a6d9b5c047ceb4cabebe5341cff1d"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_execution_result">state_api::ExecutionResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ad30a6d9b5c047ceb4cabebe5341cff1d">call</a> (<a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a> const &amp;trx, std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; blk_n={}) const override</td></tr>
 <tr class="memdesc:ad30a6d9b5c047ceb4cabebe5341cff1d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes a new message call immediately without creating a transaction on the block chain. That means that state would be reverted and not saved anywhere.  <a href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ad30a6d9b5c047ceb4cabebe5341cff1d">More...</a><br /></td></tr>
 <tr class="separator:ad30a6d9b5c047ceb4cabebe5341cff1d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab25546e37799c069454b0e72cd2a5cc4"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab25546e37799c069454b0e72cd2a5cc4">trace_trx</a> (const <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a> &amp;trx, <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_n, std::optional&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_tracing">state_api::Tracing</a> &gt; params={}) const override</td></tr>
-<tr class="memdesc:ab25546e37799c069454b0e72cd2a5cc4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Trace execution of a new message call immediately without creating a transaction on the block chain. That means that state would be reverted and not saved anywhere.  <a href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab25546e37799c069454b0e72cd2a5cc4">More...</a><br /></td></tr>
-<tr class="separator:ab25546e37799c069454b0e72cd2a5cc4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a45a9c0829ba0f881941fcc7324042f54"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a45a9c0829ba0f881941fcc7324042f54">trace</a> (std::vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a> &gt; trxs, <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_n, std::optional&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_tracing">state_api::Tracing</a> &gt; params={}) const override</td></tr>
+<tr class="memdesc:a45a9c0829ba0f881941fcc7324042f54"><td class="mdescLeft">&#160;</td><td class="mdescRight">Trace execution of a new message call immediately without creating a transactions on the block chain. That means that state would be reverted and not saved anywhere.  <a href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a45a9c0829ba0f881941fcc7324042f54">More...</a><br /></td></tr>
+<tr class="separator:a45a9c0829ba0f881941fcc7324042f54"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afd9369027b9b22c13e82d22ac9f07686"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#afd9369027b9b22c13e82d22ac9f07686">dpos_eligible_total_vote_count</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num) const override</td></tr>
 <tr class="memdesc:afd9369027b9b22c13e82d22ac9f07686"><td class="mdescLeft">&#160;</td><td class="mdescRight">total count of eligible votes are in DPOS precompiled contract  <a href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#afd9369027b9b22c13e82d22ac9f07686">More...</a><br /></td></tr>
 <tr class="separator:afd9369027b9b22c13e82d22ac9f07686"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1334,8 +1334,8 @@ Additional Inherited Members</h2></td></tr>
 
 </div>
 </div>
-<a id="ab25546e37799c069454b0e72cd2a5cc4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab25546e37799c069454b0e72cd2a5cc4">&#9670;&nbsp;</a></span>trace_trx()</h2>
+<a id="a45a9c0829ba0f881941fcc7324042f54"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a45a9c0829ba0f881941fcc7324042f54">&#9670;&nbsp;</a></span>trace()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1344,9 +1344,9 @@ Additional Inherited Members</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::string taraxa::final_chain::FinalChainImpl::trace_trx </td>
+          <td class="memname">std::string taraxa::final_chain::FinalChainImpl::trace </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a> &amp;&#160;</td>
+          <td class="paramtype">std::vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a> &gt;&#160;</td>
           <td class="paramname"><em>trx</em>, </td>
         </tr>
         <tr>
@@ -1374,17 +1374,17 @@ Additional Inherited Members</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Trace execution of a new message call immediately without creating a transaction on the block chain. That means that state would be reverted and not saved anywhere. </p>
+<p>Trace execution of a new message call immediately without creating a transactions on the block chain. That means that state would be reverted and not saved anywhere. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">trx</td><td><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a> </td></tr>
+    <tr><td class="paramname">trxs</td><td>std::vector&lt;state_api::EVMTransaction&gt; vector of transaction to trace </td></tr>
     <tr><td class="paramname">blk_n</td><td>EthBlockNumber number of block we are getting state from </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>std::string </dd></dl>
 
-<p>Implements <a class="el" href="group___final_chain.html#ad25adddd87a6a7668d8928bcdfc63dd2">taraxa::final_chain::FinalChain</a>.</p>
+<p>Implements <a class="el" href="group___final_chain.html#aa6ef3ad0a49f2f6075deef2e6f92baa8">taraxa::final_chain::FinalChain</a>.</p>
 
 </div>
 </div>

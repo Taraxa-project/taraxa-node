@@ -1072,9 +1072,9 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <tr class="memitem:a3681f2fc87600ce90484dacfe07a14c6"><td class="memItemLeft" align="right" valign="top">virtual <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_execution_result">state_api::ExecutionResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a3681f2fc87600ce90484dacfe07a14c6">call</a> (<a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a> const &amp;trx, std::optional&lt; <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> &gt; blk_n={}) const =0</td></tr>
 <tr class="memdesc:a3681f2fc87600ce90484dacfe07a14c6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Executes a new message call immediately without creating a transaction on the block chain. That means that state would be reverted and not saved anywhere.  <a href="group___final_chain.html#a3681f2fc87600ce90484dacfe07a14c6">More...</a><br /></td></tr>
 <tr class="separator:a3681f2fc87600ce90484dacfe07a14c6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad25adddd87a6a7668d8928bcdfc63dd2"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#ad25adddd87a6a7668d8928bcdfc63dd2">trace_trx</a> (const <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a> &amp;trx, <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_n, std::optional&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_tracing">state_api::Tracing</a> &gt; params={}) const =0</td></tr>
-<tr class="memdesc:ad25adddd87a6a7668d8928bcdfc63dd2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Trace execution of a new message call immediately without creating a transaction on the block chain. That means that state would be reverted and not saved anywhere.  <a href="group___final_chain.html#ad25adddd87a6a7668d8928bcdfc63dd2">More...</a><br /></td></tr>
-<tr class="separator:ad25adddd87a6a7668d8928bcdfc63dd2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa6ef3ad0a49f2f6075deef2e6f92baa8"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#aa6ef3ad0a49f2f6075deef2e6f92baa8">trace</a> (std::vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a> &gt; trx, <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_n, std::optional&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_tracing">state_api::Tracing</a> &gt; params={}) const =0</td></tr>
+<tr class="memdesc:aa6ef3ad0a49f2f6075deef2e6f92baa8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Trace execution of a new message call immediately without creating a transactions on the block chain. That means that state would be reverted and not saved anywhere.  <a href="group___final_chain.html#aa6ef3ad0a49f2f6075deef2e6f92baa8">More...</a><br /></td></tr>
+<tr class="separator:aa6ef3ad0a49f2f6075deef2e6f92baa8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afa0df0c96982e3fb920fae205e3ef0d9"><td class="memItemLeft" align="right" valign="top">virtual uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#afa0df0c96982e3fb920fae205e3ef0d9">dpos_eligible_total_vote_count</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num) const =0</td></tr>
 <tr class="memdesc:afa0df0c96982e3fb920fae205e3ef0d9"><td class="mdescLeft">&#160;</td><td class="mdescRight">total count of eligible votes are in DPOS precompiled contract  <a href="group___final_chain.html#afa0df0c96982e3fb920fae205e3ef0d9">More...</a><br /></td></tr>
 <tr class="separator:afa0df0c96982e3fb920fae205e3ef0d9"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1952,8 +1952,8 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 
 </div>
 </div>
-<a id="ad25adddd87a6a7668d8928bcdfc63dd2"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad25adddd87a6a7668d8928bcdfc63dd2">&#9670;&nbsp;</a></span>trace_trx()</h2>
+<a id="aa6ef3ad0a49f2f6075deef2e6f92baa8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa6ef3ad0a49f2f6075deef2e6f92baa8">&#9670;&nbsp;</a></span>trace()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1962,9 +1962,9 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">virtual std::string taraxa::final_chain::FinalChain::trace_trx </td>
+          <td class="memname">virtual std::string taraxa::final_chain::FinalChain::trace </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a> &amp;&#160;</td>
+          <td class="paramtype">std::vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a> &gt;&#160;</td>
           <td class="paramname"><em>trx</em>, </td>
         </tr>
         <tr>
@@ -1992,17 +1992,17 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 </table>
 </div><div class="memdoc">
 
-<p>Trace execution of a new message call immediately without creating a transaction on the block chain. That means that state would be reverted and not saved anywhere. </p>
+<p>Trace execution of a new message call immediately without creating a transactions on the block chain. That means that state would be reverted and not saved anywhere. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">trx</td><td><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">state_api::EVMTransaction</a> </td></tr>
+    <tr><td class="paramname">trxs</td><td>std::vector&lt;state_api::EVMTransaction&gt; vector of transaction to trace </td></tr>
     <tr><td class="paramname">blk_n</td><td>EthBlockNumber number of block we are getting state from </td></tr>
   </table>
   </dd>
 </dl>
 <dl class="section return"><dt>Returns</dt><dd>std::string </dd></dl>
 
-<p>Implemented in <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab25546e37799c069454b0e72cd2a5cc4">taraxa::final_chain::FinalChainImpl</a>.</p>
+<p>Implemented in <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a45a9c0829ba0f881941fcc7324042f54">taraxa::final_chain::FinalChainImpl</a>.</p>
 
 </div>
 </div>
@@ -2405,8 +2405,8 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
 <tr class="separator:a6b123fa4591708d19f2e422e66304905"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae8310bd008463bad92c1fa31849e8d2a"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_execution_result">ExecutionResult</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#ae8310bd008463bad92c1fa31849e8d2a">dry_run_transaction</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num, const <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_block">EVMBlock</a> &amp;blk, const <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">EVMTransaction</a> &amp;trx) const</td></tr>
 <tr class="separator:ae8310bd008463bad92c1fa31849e8d2a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afaed7012133c07fc28c340fb7080509c"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#afaed7012133c07fc28c340fb7080509c">trace_transaction</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num, const <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_block">EVMBlock</a> &amp;blk, const <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">EVMTransaction</a> &amp;trx, std::optional&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_tracing">Tracing</a> &gt; params={}) const</td></tr>
-<tr class="separator:afaed7012133c07fc28c340fb7080509c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac43a3d514db134411f3f0cc1d9389d30"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#ac43a3d514db134411f3f0cc1d9389d30">trace</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num, const <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_block">EVMBlock</a> &amp;blk, const std::vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">EVMTransaction</a> &gt; trx, std::optional&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_tracing">Tracing</a> &gt; params={}) const</td></tr>
+<tr class="separator:ac43a3d514db134411f3f0cc1d9389d30"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab04bdafacc9f54a8df616345ac8e2e34"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_state_descriptor">StateDescriptor</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#ab04bdafacc9f54a8df616345ac8e2e34">get_last_committed_state_descriptor</a> () const</td></tr>
 <tr class="separator:ab04bdafacc9f54a8df616345ac8e2e34"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4fc5b10de077e2e5310d23978d3c9882"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_state_transition_result">StateTransitionResult</a> &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a4fc5b10de077e2e5310d23978d3c9882">transition_state</a> (const <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_block">EVMBlock</a> &amp;block, const <a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">util::RangeView</a>&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">EVMTransaction</a> &gt; &amp;transactions, const <a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">util::RangeView</a>&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &gt; &amp;transactions_validators={}, const <a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">util::RangeView</a>&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_uncle_block">UncleBlock</a> &gt; &amp;uncles={}, const <a class="el" href="classtaraxa_1_1_rewards_stats.html">RewardsStats</a> &amp;rewards_stats={})</td></tr>
@@ -2927,14 +2927,14 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
 
 </div>
 </div>
-<a id="afaed7012133c07fc28c340fb7080509c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afaed7012133c07fc28c340fb7080509c">&#9670;&nbsp;</a></span>trace_transaction()</h2>
+<a id="ac43a3d514db134411f3f0cc1d9389d30"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac43a3d514db134411f3f0cc1d9389d30">&#9670;&nbsp;</a></span>trace()</h2>
 
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> taraxa::state_api::StateAPI::trace_transaction </td>
+          <td class="memname"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">bytes</a> taraxa::state_api::StateAPI::trace </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td>
           <td class="paramname"><em>blk_num</em>, </td>
@@ -2948,7 +2948,7 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">EVMTransaction</a> &amp;&#160;</td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_transaction">EVMTransaction</a> &gt;&#160;</td>
           <td class="paramname"><em>trx</em>, </td>
         </tr>
         <tr>

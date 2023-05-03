@@ -110,12 +110,20 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a5cf8ba06fbaf6bba56c7df8778546db0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a162220ea37ab87ecd99fecfd0a75b431"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_debug_face.html#a162220ea37ab87ecd99fecfd0a75b431">trace_callI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
 <tr class="separator:a162220ea37ab87ecd99fecfd0a75b431"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aea4208ecbed321daa2ce87b38eb9b9c1"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_debug_face.html#aea4208ecbed321daa2ce87b38eb9b9c1">trace_replayTransactionI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
+<tr class="separator:aea4208ecbed321daa2ce87b38eb9b9c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9722d9eb0ca131bd3600d9a93f1052dd"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_debug_face.html#a9722d9eb0ca131bd3600d9a93f1052dd">trace_replayBlockTransactionsI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
+<tr class="separator:a9722d9eb0ca131bd3600d9a93f1052dd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1546ee4d5b1a0dd831696902b4a0ba95"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_debug_face.html#a1546ee4d5b1a0dd831696902b4a0ba95">debug_traceTransaction</a> (const std::string &amp;param1)=0</td></tr>
 <tr class="separator:a1546ee4d5b1a0dd831696902b4a0ba95"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ddab247275cc6a4272b888989bcb8ab"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_debug_face.html#a7ddab247275cc6a4272b888989bcb8ab">debug_traceCall</a> (const Json::Value &amp;param1, const std::string &amp;param2)=0</td></tr>
 <tr class="separator:a7ddab247275cc6a4272b888989bcb8ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae54b80fc4cc63deb3cf02636501bbfae"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_debug_face.html#ae54b80fc4cc63deb3cf02636501bbfae">trace_call</a> (const Json::Value &amp;param1, const Json::Value &amp;param2, const std::string &amp;param3)=0</td></tr>
 <tr class="separator:ae54b80fc4cc63deb3cf02636501bbfae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a98418351794eabd6d46d450388a6db2e"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_debug_face.html#a98418351794eabd6d46d450388a6db2e">trace_replayTransaction</a> (const std::string &amp;param1, const Json::Value &amp;param2)=0</td></tr>
+<tr class="separator:a98418351794eabd6d46d450388a6db2e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9a6b353ac7a04ce57d80210ab8563f64"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_debug_face.html#a9a6b353ac7a04ce57d80210ab8563f64">trace_replayBlockTransactions</a> (const std::string &amp;param1, const Json::Value &amp;param2)=0</td></tr>
+<tr class="separator:a9a6b353ac7a04ce57d80210ab8563f64"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_server_interface"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_server_interface')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_server_interface.html">ServerInterface&lt; DebugFace &gt;</a></td></tr>
 <tr class="memitem:aab469c17069122d975dafa410856434d inherit pub_methods_class_server_interface"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_server_interface.html#aab469c17069122d975dafa410856434d">~ServerInterface</a> ()</td></tr>
 <tr class="separator:aab469c17069122d975dafa410856434d inherit pub_methods_class_server_interface"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -369,6 +377,154 @@ Additional Inherited Members</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">virtual void taraxa::net::DebugFace::trace_callI </td>
+          <td>(</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>request</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>response</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a9a6b353ac7a04ce57d80210ab8563f64"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9a6b353ac7a04ce57d80210ab8563f64">&#9670;&nbsp;</a></span>trace_replayBlockTransactions()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual Json::Value taraxa::net::DebugFace::trace_replayBlockTransactions </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>param1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>param2</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classtaraxa_1_1net_1_1_debug.html#a3f3be1de7356b5d893f67a47a16cbc3f">taraxa::net::Debug</a>.</p>
+
+</div>
+</div>
+<a id="a9722d9eb0ca131bd3600d9a93f1052dd"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9722d9eb0ca131bd3600d9a93f1052dd">&#9670;&nbsp;</a></span>trace_replayBlockTransactionsI()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void taraxa::net::DebugFace::trace_replayBlockTransactionsI </td>
+          <td>(</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>request</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>response</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a98418351794eabd6d46d450388a6db2e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a98418351794eabd6d46d450388a6db2e">&#9670;&nbsp;</a></span>trace_replayTransaction()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual Json::Value taraxa::net::DebugFace::trace_replayTransaction </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>param1</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>param2</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classtaraxa_1_1net_1_1_debug.html#a251807dd63caad7a4b9f197cb9402092">taraxa::net::Debug</a>.</p>
+
+</div>
+</div>
+<a id="aea4208ecbed321daa2ce87b38eb9b9c1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aea4208ecbed321daa2ce87b38eb9b9c1">&#9670;&nbsp;</a></span>trace_replayTransactionI()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void taraxa::net::DebugFace::trace_replayTransactionI </td>
           <td>(</td>
           <td class="paramtype">const Json::Value &amp;&#160;</td>
           <td class="paramname"><em>request</em>, </td>

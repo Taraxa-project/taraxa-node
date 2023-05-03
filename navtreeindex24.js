@@ -1,5 +1,15 @@
 var NAVTREEINDEX24 =
 {
+"transaction__queue__metrics_8hpp.html":[15,0,1,6,0,0,4],
+"transaction__queue__metrics_8hpp_source.html":[15,0,1,6,0,0,4],
+"trie__common_8cpp.html":[15,0,1,4,0,1,1,5],
+"trie__common_8cpp.html#a31a1e83861e1b14e99841d137c2da0a1":[15,0,1,4,0,1,1,5,2],
+"trie__common_8cpp.html#a41b2ec28d1ad728e6c4d190795391e6e":[15,0,1,4,0,1,1,5,0],
+"trie__common_8cpp.html#aa0b5a88e3d820936d80621999c99726c":[15,0,1,4,0,1,1,5,3],
+"trie__common_8cpp.html#aaaba8929089b332775874032190fb5e6":[15,0,1,4,0,1,1,5,1],
+"trie__common_8hpp.html":[15,0,1,4,0,0,1,7],
+"trie__common_8hpp.html#a41b2ec28d1ad728e6c4d190795391e6e":[15,0,1,4,0,0,1,7,0],
+"trie__common_8hpp_source.html":[15,0,1,4,0,0,1,7],
 "types_2dag__block_2include_2dag_2dag__block_8hpp.html":[15,0,1,7,0,0,0,0],
 "types_2dag__block_2include_2dag_2dag__block_8hpp.html#a6dbfbca5858f7b6fc55b134c217fa3bc":[15,0,1,7,0,0,0,0,2],
 "types_2dag__block_2include_2dag_2dag__block_8hpp_source.html":[15,0,1,7,0,0,0,0],

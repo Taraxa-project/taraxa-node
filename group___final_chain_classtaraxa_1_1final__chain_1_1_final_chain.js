@@ -23,7 +23,7 @@ var group___final_chain_classtaraxa_1_1final__chain_1_1_final_chain =
     [ "operator=", "group___final_chain.html#a417ad359468f6932de665cb660c505e1", null ],
     [ "prune", "group___final_chain.html#a7206ab974911e06f78e50084b1f0f87a", null ],
     [ "stop", "group___final_chain.html#a91ede0e4ca9b7b7c75b474756ab4c2a6", null ],
-    [ "trace_trx", "group___final_chain.html#ad25adddd87a6a7668d8928bcdfc63dd2", null ],
+    [ "trace", "group___final_chain.html#aa6ef3ad0a49f2f6075deef2e6f92baa8", null ],
     [ "transaction_hashes", "group___final_chain.html#a2cf4e96ebcafa2e30fdbdf692ae05b44", null ],
     [ "transaction_location", "group___final_chain.html#abe6ee3b520176804d81ddbea0770fe7d", null ],
     [ "transaction_receipt", "group___final_chain.html#a0c747503c3474ff5dd8eb28ee5a09771", null ],

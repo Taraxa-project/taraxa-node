@@ -129,13 +129,37 @@ $(document).ready(function(){initNavTree('_debug_client_8h_source.html',''); ini
 <div class="line"><a name="l00045"></a><span class="lineno">   45</span>&#160;    <span class="keywordflow">else</span></div>
 <div class="line"><a name="l00046"></a><span class="lineno">   46</span>&#160;      <span class="keywordflow">throw</span> jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());</div>
 <div class="line"><a name="l00047"></a><span class="lineno">   47</span>&#160;  }</div>
-<div class="line"><a name="l00048"></a><span class="lineno">   48</span>&#160;};</div>
-<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160; </div>
-<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;}  <span class="comment">// namespace net</span></div>
-<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;}  <span class="comment">// namespace taraxa</span></div>
-<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;<span class="preprocessor">#endif  </span><span class="comment">// JSONRPC_CPP_STUB_TARAXA_NET_DEBUGCLIENT_H_</span></div>
+<div class="line"><a name="l00048"></a><span class="lineno"><a class="line" href="classtaraxa_1_1net_1_1_debug_client.html#a505873f73ad1956705354e120b02dcf4">   48</a></span>&#160;  Json::Value <a class="code" href="classtaraxa_1_1net_1_1_debug_client.html#a505873f73ad1956705354e120b02dcf4">trace_replayTransaction</a>(<span class="keyword">const</span> std::string&amp; param1,</div>
+<div class="line"><a name="l00049"></a><span class="lineno">   49</span>&#160;                                      <span class="keyword">const</span> Json::Value&amp; param2) <span class="keywordflow">throw</span>(jsonrpc::JsonRpcException) {</div>
+<div class="line"><a name="l00050"></a><span class="lineno">   50</span>&#160;    Json::Value p;</div>
+<div class="line"><a name="l00051"></a><span class="lineno">   51</span>&#160;    p.append(param1);</div>
+<div class="line"><a name="l00052"></a><span class="lineno">   52</span>&#160;    p.append(param2);</div>
+<div class="line"><a name="l00053"></a><span class="lineno">   53</span>&#160;    Json::Value result = this-&gt;CallMethod(<span class="stringliteral">&quot;trace_replayTransaction&quot;</span>, p);</div>
+<div class="line"><a name="l00054"></a><span class="lineno">   54</span>&#160;    <span class="keywordflow">if</span> (result.isObject())</div>
+<div class="line"><a name="l00055"></a><span class="lineno">   55</span>&#160;      <span class="keywordflow">return</span> result;</div>
+<div class="line"><a name="l00056"></a><span class="lineno">   56</span>&#160;    <span class="keywordflow">else</span></div>
+<div class="line"><a name="l00057"></a><span class="lineno">   57</span>&#160;      <span class="keywordflow">throw</span> jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());</div>
+<div class="line"><a name="l00058"></a><span class="lineno">   58</span>&#160;  }</div>
+<div class="line"><a name="l00059"></a><span class="lineno"><a class="line" href="classtaraxa_1_1net_1_1_debug_client.html#a12dbf4c4a2fb809ca689355afff2fa9e">   59</a></span>&#160;  Json::Value <a class="code" href="classtaraxa_1_1net_1_1_debug_client.html#a12dbf4c4a2fb809ca689355afff2fa9e">trace_replayBlockTransactions</a>(<span class="keyword">const</span> std::string&amp; param1,</div>
+<div class="line"><a name="l00060"></a><span class="lineno">   60</span>&#160;                                            <span class="keyword">const</span> Json::Value&amp; param2) <span class="keywordflow">throw</span>(jsonrpc::JsonRpcException) {</div>
+<div class="line"><a name="l00061"></a><span class="lineno">   61</span>&#160;    Json::Value p;</div>
+<div class="line"><a name="l00062"></a><span class="lineno">   62</span>&#160;    p.append(param1);</div>
+<div class="line"><a name="l00063"></a><span class="lineno">   63</span>&#160;    p.append(param2);</div>
+<div class="line"><a name="l00064"></a><span class="lineno">   64</span>&#160;    Json::Value result = this-&gt;CallMethod(<span class="stringliteral">&quot;trace_replayBlockTransactions&quot;</span>, p);</div>
+<div class="line"><a name="l00065"></a><span class="lineno">   65</span>&#160;    <span class="keywordflow">if</span> (result.isObject())</div>
+<div class="line"><a name="l00066"></a><span class="lineno">   66</span>&#160;      <span class="keywordflow">return</span> result;</div>
+<div class="line"><a name="l00067"></a><span class="lineno">   67</span>&#160;    <span class="keywordflow">else</span></div>
+<div class="line"><a name="l00068"></a><span class="lineno">   68</span>&#160;      <span class="keywordflow">throw</span> jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());</div>
+<div class="line"><a name="l00069"></a><span class="lineno">   69</span>&#160;  }</div>
+<div class="line"><a name="l00070"></a><span class="lineno">   70</span>&#160;};</div>
+<div class="line"><a name="l00071"></a><span class="lineno">   71</span>&#160; </div>
+<div class="line"><a name="l00072"></a><span class="lineno">   72</span>&#160;}  <span class="comment">// namespace net</span></div>
+<div class="line"><a name="l00073"></a><span class="lineno">   73</span>&#160;}  <span class="comment">// namespace taraxa</span></div>
+<div class="line"><a name="l00074"></a><span class="lineno">   74</span>&#160;<span class="preprocessor">#endif  </span><span class="comment">// JSONRPC_CPP_STUB_TARAXA_NET_DEBUGCLIENT_H_</span></div>
 <div class="ttc" id="aclasstaraxa_1_1net_1_1_debug_client_html"><div class="ttname"><a href="classtaraxa_1_1net_1_1_debug_client.html">taraxa::net::DebugClient</a></div><div class="ttdef"><b>Definition:</b> DebugClient.h:12</div></div>
 <div class="ttc" id="aclasstaraxa_1_1net_1_1_debug_client_html_a0176a459e0cda8993a9150875c416174"><div class="ttname"><a href="classtaraxa_1_1net_1_1_debug_client.html#a0176a459e0cda8993a9150875c416174">taraxa::net::DebugClient::DebugClient</a></div><div class="ttdeci">DebugClient(jsonrpc::IClientConnector &amp;conn, jsonrpc::clientVersion_t type=jsonrpc::JSONRPC_CLIENT_V2)</div><div class="ttdef"><b>Definition:</b> DebugClient.h:14</div></div>
+<div class="ttc" id="aclasstaraxa_1_1net_1_1_debug_client_html_a12dbf4c4a2fb809ca689355afff2fa9e"><div class="ttname"><a href="classtaraxa_1_1net_1_1_debug_client.html#a12dbf4c4a2fb809ca689355afff2fa9e">taraxa::net::DebugClient::trace_replayBlockTransactions</a></div><div class="ttdeci">Json::Value trace_replayBlockTransactions(const std::string &amp;param1, const Json::Value &amp;param2)</div><div class="ttdef"><b>Definition:</b> DebugClient.h:59</div></div>
+<div class="ttc" id="aclasstaraxa_1_1net_1_1_debug_client_html_a505873f73ad1956705354e120b02dcf4"><div class="ttname"><a href="classtaraxa_1_1net_1_1_debug_client.html#a505873f73ad1956705354e120b02dcf4">taraxa::net::DebugClient::trace_replayTransaction</a></div><div class="ttdeci">Json::Value trace_replayTransaction(const std::string &amp;param1, const Json::Value &amp;param2)</div><div class="ttdef"><b>Definition:</b> DebugClient.h:48</div></div>
 <div class="ttc" id="aclasstaraxa_1_1net_1_1_debug_client_html_aa50bd584eff17885f5b20ac3534dcf15"><div class="ttname"><a href="classtaraxa_1_1net_1_1_debug_client.html#aa50bd584eff17885f5b20ac3534dcf15">taraxa::net::DebugClient::debug_traceTransaction</a></div><div class="ttdeci">Json::Value debug_traceTransaction(const std::string &amp;param1)</div><div class="ttdef"><b>Definition:</b> DebugClient.h:17</div></div>
 <div class="ttc" id="aclasstaraxa_1_1net_1_1_debug_client_html_aaea8a1290c23a206d32a975a12d92bc5"><div class="ttname"><a href="classtaraxa_1_1net_1_1_debug_client.html#aaea8a1290c23a206d32a975a12d92bc5">taraxa::net::DebugClient::debug_traceCall</a></div><div class="ttdeci">Json::Value debug_traceCall(const Json::Value &amp;param1, const std::string &amp;param2)</div><div class="ttdef"><b>Definition:</b> DebugClient.h:26</div></div>
 <div class="ttc" id="aclasstaraxa_1_1net_1_1_debug_client_html_aafd36eaaf4a2af55bedc718d1f0b19b6"><div class="ttname"><a href="classtaraxa_1_1net_1_1_debug_client.html#aafd36eaaf4a2af55bedc718d1f0b19b6">taraxa::net::DebugClient::trace_call</a></div><div class="ttdeci">Json::Value trace_call(const Json::Value &amp;param1, const Json::Value &amp;param2, const std::string &amp;param3)</div><div class="ttdef"><b>Definition:</b> DebugClient.h:36</div></div>

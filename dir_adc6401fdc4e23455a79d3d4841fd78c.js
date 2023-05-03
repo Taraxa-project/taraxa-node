@@ -1,7 +1,7 @@
 var dir_adc6401fdc4e23455a79d3d4841fd78c =
 [
     [ "eth", "dir_edb7e34652b53c5afb3da386073ea469.html", "dir_edb7e34652b53c5afb3da386073ea469" ],
-    [ "Debug.cpp", "_debug_8cpp.html", null ],
+    [ "Debug.cpp", "_debug_8cpp.html", "_debug_8cpp" ],
     [ "Debug.h", "_debug_8h.html", [
       [ "InvalidAddress", "classtaraxa_1_1net_1_1_invalid_address.html", "classtaraxa_1_1net_1_1_invalid_address" ],
       [ "InvalidTracingParams", "classtaraxa_1_1net_1_1_invalid_tracing_params.html", "classtaraxa_1_1net_1_1_invalid_tracing_params" ],
