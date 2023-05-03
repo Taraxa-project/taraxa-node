@@ -3,6 +3,7 @@
 #include "common/types.hpp"
 #include "json/value.h"
 #include "logger/logger.hpp"
+#include "network/tarcap/tarcap_version.hpp"
 
 namespace taraxa {
 class PbftChain;
@@ -32,7 +33,8 @@ class NodeStats {
 
   void logNodeStats(const std::vector<std::shared_ptr<network::tarcap::TaraxaPeer>>& all_peers, size_t nodes_count);
   uint64_t syncTimeSeconds() const;
-  Json::Value getStatus() const;
+  Json::Value getStatus(
+      std::map<network::tarcap::TarcapVersion, std::shared_ptr<network::tarcap::TaraxaPeer>> peers) const;
 
  private:
   std::shared_ptr<PbftSyncingState> pbft_syncing_state_;

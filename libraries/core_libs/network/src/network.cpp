@@ -23,12 +23,11 @@
 
 namespace taraxa {
 
-Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
-                 dev::p2p::Host::CapabilitiesFactory construct_capabilities,
-                 std::filesystem::path const &network_file_path, dev::KeyPair const &key, std::shared_ptr<DbStorage> db,
-                 std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
-                 std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
-                 std::shared_ptr<TransactionManager> trx_mgr)
+Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::filesystem::path const &network_file_path,
+                 dev::KeyPair const &key, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
+                 std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
+                 std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+                 const std::vector<network::tarcap::TarcapVersion> &create_test_tarcaps)
     : kConf(config),
       pub_key_(key.pub()),
       all_packets_stats_(nullptr),
@@ -68,8 +67,11 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
   taraxa_net_conf.expected_parallelism = tp_.capacity();
 
   string net_version = "TaraxaNode";  // TODO maybe give a proper name?
-  if (!construct_capabilities) {
-    construct_capabilities = [&](std::weak_ptr<dev::p2p::Host> host) {
+  dev::p2p::Host::CapabilitiesFactory constructCapabilities;
+
+  // Create real taraxa capabilities
+  if (create_test_tarcaps.empty()) {
+    constructCapabilities = [&](std::weak_ptr<dev::p2p::Host> host) {
       assert(!host.expired());
 
       const size_t kOldNetworkVersion = 1;
@@ -79,27 +81,39 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash,
 
       // Register old version of taraxa capability
       auto v1_tarcap = std::make_shared<network::tarcap::v1::TaraxaCapability>(
-          host, key, config, kOldNetworkVersion, all_packets_stats_, pbft_syncing_state_, "V1_TARCAP");
+          host, key, config, kOldNetworkVersion, packets_tp_, all_packets_stats_, pbft_syncing_state_, "V1_TARCAP");
       v1_tarcap->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, key.address());
       capabilities.emplace_back(v1_tarcap);
 
       // Register new version of taraxa capability
       auto v2_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
-          host, key, config, TARAXA_NET_VERSION, all_packets_stats_, pbft_syncing_state_, "TARCAP");
+          host, key, config, TARAXA_NET_VERSION, packets_tp_, all_packets_stats_, pbft_syncing_state_, "TARCAP");
       v2_tarcap->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, key.address());
       capabilities.emplace_back(v2_tarcap);
 
       return capabilities;
     };
+  } else {  // Create test taraxa capabilities
+    constructCapabilities = [&](std::weak_ptr<dev::p2p::Host> host) {
+      assert(!host.expired());
+
+      dev::p2p::Host::CapabilityList capabilities;
+      for (const auto test_tarcap_version : create_test_tarcaps) {
+        auto tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
+            host, key, config, test_tarcap_version, packets_tp_, all_packets_stats_, pbft_syncing_state_,
+            "V" + std::to_string(test_tarcap_version) + "_TARCAP");
+        tarcap->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, key.address());
+        capabilities.emplace_back(tarcap);
+      }
+
+      return capabilities;
+    };
   }
 
-  host_ = dev::p2p::Host::make(net_version, construct_capabilities, key, net_conf, taraxa_net_conf, network_file_path);
+  host_ = dev::p2p::Host::make(net_version, constructCapabilities, key, net_conf, taraxa_net_conf, network_file_path);
   for (const auto &cap : host_->getSupportedCapabilities()) {
     const auto tarcap_version = cap.second.ref->version();
     auto tarcap = std::static_pointer_cast<network::tarcap::TaraxaCapabilityBase>(cap.second.ref);
-    packets_tp_->setPacketsHandlers(tarcap_version, tarcap->getPacketsHandler());
-
-    tarcap->setThreadPool(packets_tp_);
     tarcaps_[tarcap_version] = std::move(tarcap);
   }
 
@@ -141,7 +155,16 @@ size_t Network::getPeerCount() { return host_->peer_count(); }
 
 unsigned Network::getNodeCount() { return host_->getNodeCount(); }
 
-Json::Value Network::getStatus() { return node_stats_->getStatus(); }
+Json::Value Network::getStatus() {
+  std::map<network::tarcap::TarcapVersion, std::shared_ptr<network::tarcap::TaraxaPeer>> peers;
+  for (auto &tarcap : tarcaps_) {
+    for (const auto &peer : tarcap.second->getPeersState()->getAllPeers()) {
+      peers.emplace(tarcap.second->version(), std::move(peer.second));
+    }
+  }
+
+  return node_stats_->getStatus(peers);
+}
 
 bool Network::pbft_syncing() { return pbft_syncing_state_->isPbftSyncing(); }
 
@@ -276,20 +299,20 @@ void Network::gossipDagBlock(const DagBlock &block, bool proposed, const SharedT
 }
 
 void Network::gossipVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &block, bool rebroadcast) {
-  for (const auto &tarcap : tarcaps_ | std::views::reverse) {
+  for (const auto &tarcap : tarcaps_) {
     tarcap.second->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(vote, block, rebroadcast);
   }
 }
 
 void Network::gossipVotesBundle(const std::vector<std::shared_ptr<Vote>> &votes, bool rebroadcast) {
-  for (const auto &tarcap : tarcaps_ | std::views::reverse) {
+  for (const auto &tarcap : tarcaps_) {
     tarcap.second->getSpecificHandler<network::tarcap::VotesBundlePacketHandler>()->onNewPbftVotesBundle(votes,
                                                                                                          rebroadcast);
   }
 }
 
 void Network::handleMaliciousSyncPeer(const dev::p2p::NodeID &node_id) {
-  for (const auto &tarcap : tarcaps_ | std::views::reverse) {
+  for (const auto &tarcap : tarcaps_) {
     // Peer is present only in one taraxa capability depending on his network version
     if (auto peer = tarcap.second->getPeersState()->getPeer(node_id); !peer) {
       continue;
@@ -302,7 +325,7 @@ void Network::handleMaliciousSyncPeer(const dev::p2p::NodeID &node_id) {
 std::shared_ptr<network::tarcap::TaraxaPeer> Network::getMaxChainPeer() const {
   std::shared_ptr<network::tarcap::TaraxaPeer> max_chain_peer{nullptr};
 
-  for (const auto &tarcap : tarcaps_ | std::views::reverse) {
+  for (const auto &tarcap : tarcaps_) {
     const auto peer =
         tarcap.second->getSpecificHandler<::taraxa::network::tarcap::PbftSyncPacketHandler>()->getMaxChainPeer();
     if (!peer) {

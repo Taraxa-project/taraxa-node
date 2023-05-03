@@ -345,7 +345,7 @@ TEST_F(NetworkTest, transfer_transaction) {
 }
 
 // Test verifies saving network to a file and restoring it from a file
-// is successfull. Once restored from the file it is able to reestablish
+// is successful. Once restored from the file it is able to reestablish
 // connections even with boot nodes down
 TEST_F(NetworkTest, save_network) {
   std::filesystem::remove_all("/tmp/nw2");
@@ -354,12 +354,9 @@ TEST_F(NetworkTest, save_network) {
   auto key3 = dev::KeyPair::create();
   h256 genesis_hash;
   {
-    std::shared_ptr<Network> nw1 =
-        std::make_shared<taraxa::Network>(node_cfgs[0], genesis_hash, Host::CapabilitiesFactory());
-    std::shared_ptr<Network> nw2 =
-        std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw2", key2);
-    std::shared_ptr<Network> nw3 =
-        std::make_shared<taraxa::Network>(node_cfgs[2], genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw3", key3);
+    std::shared_ptr<Network> nw1 = std::make_shared<taraxa::Network>(node_cfgs[0], genesis_hash);
+    std::shared_ptr<Network> nw2 = std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, "/tmp/nw2", key2);
+    std::shared_ptr<Network> nw3 = std::make_shared<taraxa::Network>(node_cfgs[2], genesis_hash, "/tmp/nw3", key3);
 
     nw1->start();
     nw2->start();
@@ -375,10 +372,8 @@ TEST_F(NetworkTest, save_network) {
     });
   }
 
-  std::shared_ptr<Network> nw2 =
-      std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw2", key2);
-  std::shared_ptr<Network> nw3 =
-      std::make_shared<taraxa::Network>(node_cfgs[2], genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw3", key3);
+  std::shared_ptr<Network> nw2 = std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, "/tmp/nw2", key2);
+  std::shared_ptr<Network> nw3 = std::make_shared<taraxa::Network>(node_cfgs[2], genesis_hash, "/tmp/nw3", key3);
   nw2->start();
   nw3->start();
 

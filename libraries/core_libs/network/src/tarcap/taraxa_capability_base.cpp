@@ -27,6 +27,7 @@ namespace taraxa::network::tarcap {
 
 TaraxaCapabilityBase::TaraxaCapabilityBase(std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key,
                                            const FullNodeConfig &conf, TarcapVersion version,
+                                           std::shared_ptr<network::threadpool::PacketsThreadPool> threadpool,
                                            std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                            std::shared_ptr<PbftSyncingState> syncing_state,
                                            const std::string &log_channel)
@@ -37,7 +38,7 @@ TaraxaCapabilityBase::TaraxaCapabilityBase(std::weak_ptr<dev::p2p::Host> host, c
       peers_state_(nullptr),
       pbft_syncing_state_(std::move(syncing_state)),
       packets_handlers_(std::make_shared<PacketsHandler>()),
-      thread_pool_(nullptr) {
+      thread_pool_(std::move(threadpool)) {
   const auto &node_addr = key.address();
   LOG_OBJECTS_CREATE(log_channel);
 
@@ -51,6 +52,9 @@ void TaraxaCapabilityBase::init(const h256 &genesis_hash, std::shared_ptr<DbStor
   // Creates and registers all packets handlers
   registerPacketHandlers(genesis_hash, all_packets_stats_, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr,
                          node_addr);
+
+  // Must be called after registerPacketHandlers
+  thread_pool_->setPacketsHandlers(version(), packets_handlers_);
 }
 
 void TaraxaCapabilityBase::registerPacketHandlers(
@@ -245,11 +249,6 @@ inline bool TaraxaCapabilityBase::filterSyncIrrelevantPackets(SubprotocolPacketT
       return true;
   }
 }
-
-void TaraxaCapabilityBase::setThreadPool(std::shared_ptr<network::threadpool::PacketsThreadPool> threadpool) {
-  thread_pool_ = std::move(threadpool);
-}
-std::shared_ptr<PacketsHandler> TaraxaCapabilityBase::getPacketsHandler() const { return packets_handlers_; }
 
 const std::shared_ptr<PeersState> &TaraxaCapabilityBase::getPeersState() { return peers_state_; }
 

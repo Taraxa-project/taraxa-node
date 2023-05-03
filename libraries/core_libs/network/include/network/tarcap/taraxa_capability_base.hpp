@@ -35,7 +35,8 @@ class TaraxaPeer;
 class TaraxaCapabilityBase : public dev::p2p::CapabilityFace {
  public:
   TaraxaCapabilityBase(std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const FullNodeConfig &conf,
-                       TarcapVersion version, std::shared_ptr<TimePeriodPacketsStats> packets_stats,
+                       TarcapVersion version, std::shared_ptr<network::threadpool::PacketsThreadPool> threadpool,
+                       std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                        std::shared_ptr<PbftSyncingState> syncing_state, const std::string &log_channel);
 
   virtual ~TaraxaCapabilityBase() = default;
@@ -62,19 +63,6 @@ class TaraxaCapabilityBase : public dev::p2p::CapabilityFace {
 
   template <typename PacketHandlerType>
   std::shared_ptr<PacketHandlerType> getSpecificHandler() const;
-
-  /**
-   * @brief Sets threadpool for packets processing
-   * @brief Sets threadpool for packets processing
-   *
-   * @param threadpool
-   */
-  void setThreadPool(std::shared_ptr<network::threadpool::PacketsThreadPool> threadpool);
-
-  /**
-   * @return packets handler
-   */
-  std::shared_ptr<PacketsHandler> getPacketsHandler() const;
 
   // Interface required in network class to access packets handlers functionality
   // METHODS USED IN REAL CODE

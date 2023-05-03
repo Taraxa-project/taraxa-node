@@ -33,11 +33,11 @@ class PacketHandler;
 class Network {
  public:
   Network(const FullNodeConfig &config, const h256 &genesis_hash = {},
-          dev::p2p::Host::CapabilitiesFactory construct_capabilities = {},
-          std::filesystem::path const &network_file_path = {}, dev::KeyPair const &key = dev::KeyPair::create(),
+          const std::filesystem::path &network_file_path = {}, const dev::KeyPair &key = dev::KeyPair::create(),
           std::shared_ptr<DbStorage> db = {}, std::shared_ptr<PbftManager> pbft_mgr = {},
           std::shared_ptr<PbftChain> pbft_chain = {}, std::shared_ptr<VoteManager> vote_mgr = {},
-          std::shared_ptr<DagManager> dag_mgr = {}, std::shared_ptr<TransactionManager> trx_mgr = {});
+          std::shared_ptr<DagManager> dag_mgr = {}, std::shared_ptr<TransactionManager> trx_mgr = {},
+          const std::vector<network::tarcap::TarcapVersion> &create_test_tarcaps = {});
 
   ~Network();
   Network(const Network &) = delete;
@@ -65,7 +65,6 @@ class Network {
   void handleMaliciousSyncPeer(const dev::p2p::NodeID &id);
   std::shared_ptr<network::tarcap::TaraxaPeer> getMaxChainPeer() const;
 
-  // METHODS USED IN TESTS ONLY
   template <typename PacketHandlerType>
   std::shared_ptr<PacketHandlerType> getSpecificHandler() const;
 

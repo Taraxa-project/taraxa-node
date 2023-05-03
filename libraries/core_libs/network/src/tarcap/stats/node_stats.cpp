@@ -229,7 +229,8 @@ void NodeStats::logNodeStats(const std::vector<std::shared_ptr<network::tarcap::
   local_pbft_sync_period_prev_interval_ = local_pbft_sync_period;
 }
 
-Json::Value NodeStats::getStatus() const {
+Json::Value NodeStats::getStatus(
+    std::map<network::tarcap::TarcapVersion, std::shared_ptr<network::tarcap::TaraxaPeer>> peers) const {
   Json::Value res;
   dev::p2p::NodeID max_pbft_round_nodeID;
   dev::p2p::NodeID max_pbft_chain_nodeID;
@@ -240,33 +241,32 @@ Json::Value NodeStats::getStatus() const {
 
   res["peers"] = Json::Value(Json::arrayValue);
 
-  // TODO: uncomment this
-  //  for (auto const &peer : peers_state_->getAllPeers()) {
-  //    Json::Value peer_status;
-  //    peer_status["node_id"] = peer.first.toString();
-  //    // TODO: add peer network version !
-  //    peer_status["dag_level"] = Json::UInt64(peer.second->dag_level_);
-  //    peer_status["pbft_size"] = Json::UInt64(peer.second->pbft_chain_size_);
-  //    peer_status["dag_synced"] = !peer.second->syncing_;
-  //    res["peers"].append(peer_status);
-  //    // Find max pbft chain size
-  //    if (peer.second->pbft_chain_size_ > peer_max_pbft_chain_size) {
-  //      peer_max_pbft_chain_size = peer.second->pbft_chain_size_;
-  //      max_pbft_chain_nodeID = peer.first;
-  //    }
-  //
-  //    // Find max dag level
-  //    if (peer.second->dag_level_ > peer_max_node_dag_level) {
-  //      peer_max_node_dag_level = peer.second->dag_level_;
-  //      max_node_dag_level_nodeID = peer.first;
-  //    }
-  //
-  //    // Find max peer PBFT round
-  //    if (peer.second->pbft_round_ > peer_max_pbft_round) {
-  //      peer_max_pbft_round = peer.second->pbft_round_;
-  //      max_pbft_round_nodeID = peer.first;
-  //    }
-  //  }
+  for (auto const &peer : peers) {
+    Json::Value peer_status;
+    peer_status["node_id"] = peer.second->getId().toString();
+    peer_status["net_version"] = Json::UInt64(peer.first);
+    peer_status["dag_level"] = Json::UInt64(peer.second->dag_level_);
+    peer_status["pbft_size"] = Json::UInt64(peer.second->pbft_chain_size_);
+    peer_status["dag_synced"] = !peer.second->syncing_;
+    res["peers"].append(peer_status);
+    // Find max pbft chain size
+    if (peer.second->pbft_chain_size_ > peer_max_pbft_chain_size) {
+      peer_max_pbft_chain_size = peer.second->pbft_chain_size_;
+      max_pbft_chain_nodeID = peer.second->getId();
+    }
+
+    // Find max dag level
+    if (peer.second->dag_level_ > peer_max_node_dag_level) {
+      peer_max_node_dag_level = peer.second->dag_level_;
+      max_node_dag_level_nodeID = peer.second->getId();
+    }
+
+    // Find max peer PBFT round
+    if (peer.second->pbft_round_ > peer_max_pbft_round) {
+      peer_max_pbft_round = peer.second->pbft_round_;
+      max_pbft_round_nodeID = peer.second->getId();
+    }
+  }
 
   if (const auto syncing_peer = pbft_syncing_state_->syncingPeer();
       syncing_peer && pbft_syncing_state_->isPbftSyncing()) {

@@ -16,6 +16,7 @@
 #include "network/tarcap/capability_latest/packets_handlers/dag_block_packet_handler.hpp"
 #include "network/tarcap/capability_latest/packets_handlers/transaction_packet_handler.hpp"
 #include "network/tarcap/capability_latest/taraxa_capability.hpp"
+#include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "test_util/samples.hpp"
 #include "test_util/test_util.hpp"
 
@@ -45,17 +46,20 @@ void setPendingPeersToReady(std::shared_ptr<taraxa::network::tarcap::TaraxaCapab
   }
 }
 
-std::shared_ptr<taraxa::network::tarcap::TaraxaCapabilityBase> makeTarcap(
-    std::weak_ptr<dev::p2p::Host> host, const dev::KeyPair &key, const FullNodeConfig &conf, const h256 &genesis_hash,
-    unsigned version, std::shared_ptr<network::threadpool::PacketsThreadPool> thread_pool = nullptr) {
-  auto tarcap =
-      std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, key, conf, version, nullptr, nullptr, "TARCAP");
+std::shared_ptr<taraxa::network::tarcap::TaraxaCapabilityBase> makeTarcap(std::weak_ptr<dev::p2p::Host> host,
+                                                                          const dev::KeyPair &key,
+                                                                          const FullNodeConfig &conf,
+                                                                          const h256 &genesis_hash, unsigned version) {
+  auto thread_pool = std::make_shared<network::threadpool::PacketsThreadPool>(conf.network.packets_processing_threads);
+  auto packets_stats = std::make_shared<network::tarcap::TimePeriodPacketsStats>(
+      conf.network.ddos_protection.packets_stats_time_period_ms, Address{});
+  auto syncing_state = std::make_shared<network::tarcap::PbftSyncingState>(conf.network.deep_syncing_threshold);
+
+  auto tarcap = std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, key, conf, version, thread_pool,
+                                                                            packets_stats, syncing_state, "TARCAP");
   tarcap->init(genesis_hash, {}, {}, {}, {}, {}, {}, key.address());
 
-  if (thread_pool) {
-    thread_pool->setPacketsHandlers(version, tarcap->getPacketsHandler());
-    tarcap->setThreadPool(thread_pool);
-  }
+  thread_pool->startProcessing();
 
   return tarcap;
 }
@@ -111,27 +115,21 @@ TEST_F(P2PTest, capability_send_block) {
   conf.network.transaction_interval_ms = 1000;
   h256 genesis;
 
-  auto packets_tp1 = std::make_shared<network::threadpool::PacketsThreadPool>(conf.network.packets_processing_threads);
-  auto packets_tp2 = std::make_shared<network::threadpool::PacketsThreadPool>(conf.network.packets_processing_threads);
-
   std::shared_ptr<taraxa::network::tarcap::TaraxaCapabilityBase> thc1, thc2;
   auto host1 = Host::make(
       "Test",
       [&](auto host) {
-        thc1 = makeTarcap(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION, packets_tp1);
+        thc1 = makeTarcap(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION);
         return Host::CapabilityList{thc1};
       },
       KeyPair::create(), prefs1);
   auto host2 = Host::make(
       "Test",
       [&](auto host) {
-        thc2 = makeTarcap(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION, packets_tp2);
+        thc2 = makeTarcap(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION);
         return Host::CapabilityList{thc2};
       },
       KeyPair::create(), prefs2);
-
-  packets_tp1->startProcessing();
-  packets_tp2->startProcessing();
 
   util::ThreadPool tp;
   tp.post_loop({}, [=] { host1->do_work(); });
@@ -210,31 +208,26 @@ TEST_F(P2PTest, block_propagate) {
   conf.network.transaction_interval_ms = 1000;
   h256 genesis;
   std::shared_ptr<taraxa::network::tarcap::TaraxaCapabilityBase> thc1;
-  auto packets_tp1 = std::make_shared<network::threadpool::PacketsThreadPool>(conf.network.packets_processing_threads);
   auto host1 = Host::make(
       "Test",
       [&](auto host) {
-        thc1 = makeTarcap(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION, packets_tp1);
+        thc1 = makeTarcap(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION);
         return Host::CapabilityList{thc1};
       },
       KeyPair::create(), prefs1, taraxa_net_conf_1);
-  packets_tp1->startProcessing();
 
   util::ThreadPool tp;
   tp.post_loop({}, [=] { host1->do_work(); });
   std::vector<std::shared_ptr<Host>> vHosts;
   std::vector<std::shared_ptr<taraxa::network::tarcap::TaraxaCapabilityBase>> vCapabilities;
   for (int i = 0; i < nodeCount; i++) {
-    auto packets_tp = std::make_shared<network::threadpool::PacketsThreadPool>(conf.network.packets_processing_threads);
     auto host = vHosts.emplace_back(Host::make(
         "Test",
         [&](auto host) {
-          auto cap = vCapabilities.emplace_back(
-              makeTarcap(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION, packets_tp));
+          auto cap = vCapabilities.emplace_back(makeTarcap(host, KeyPair::create(), conf, genesis, TARAXA_NET_VERSION));
           return Host::CapabilityList{cap};
         },
         KeyPair::create(), vPrefs[i]));
-    packets_tp->startProcessing();
     tp.post_loop({}, [=] { host->do_work(); });
   }
 
@@ -344,92 +337,50 @@ TEST_F(P2PTest, multiple_capabilities) {
   const auto kp2 = KeyPair::create();
   cleanup();
   {
-    auto nw1 = std::make_shared<taraxa::Network>(
-        node_cfgs[0], genesis_hash,
-        [kp1, &node_cfgs, &genesis_hash](auto host) {
-          auto cap = makeTarcap(host, kp1, node_cfgs[0], genesis_hash, 3);
-          return Host::CapabilityList{cap};
-        },
-        "/tmp/nw2");
-    auto nw2 = std::make_shared<taraxa::Network>(
-        node_cfgs[1], genesis_hash,
-        [kp2, &node_cfgs, &genesis_hash](auto host) {
-          auto cap = makeTarcap(host, kp2, node_cfgs[1], genesis_hash, 3);
-          return Host::CapabilityList{cap};
-        },
-        "/tmp/nw3");
+    auto nw1 =
+        std::make_shared<taraxa::Network>(node_cfgs[0], genesis_hash, "/tmp/nw2", kp1, nullptr, nullptr, nullptr,
+                                          nullptr, nullptr, nullptr, std::vector<network::tarcap::TarcapVersion>{3});
+    auto nw2 =
+        std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, "/tmp/nw3", kp2, nullptr, nullptr, nullptr,
+                                          nullptr, nullptr, nullptr, std::vector<network::tarcap::TarcapVersion>{3});
+
     nw1->start();
     nw2->start();
     wait_for_connection(nw1, nw2);
   }
   cleanup();
   {
-    auto nw1 = std::make_shared<taraxa::Network>(
-        node_cfgs[0], genesis_hash,
-        [kp1, &node_cfgs, &genesis_hash](auto host) {
-          auto cap1 = makeTarcap(host, kp1, node_cfgs[0], genesis_hash, 1);
-          auto cap2 = makeTarcap(host, kp1, node_cfgs[0], genesis_hash, 2);
-          auto cap3 = makeTarcap(host, kp1, node_cfgs[0], genesis_hash, 3);
-          return Host::CapabilityList{cap1, cap2, cap3};
-        },
-        "/tmp/nw2");
-    auto nw2 = std::make_shared<taraxa::Network>(
-        node_cfgs[1], genesis_hash,
-        [kp2, &node_cfgs, &genesis_hash](auto host) {
-          auto cap1 = makeTarcap(host, kp2, node_cfgs[1], genesis_hash, 1);
-          auto cap2 = makeTarcap(host, kp2, node_cfgs[1], genesis_hash, 2);
-          auto cap3 = makeTarcap(host, kp2, node_cfgs[1], genesis_hash, 3);
-          return Host::CapabilityList{cap1, cap2, cap3};
-        },
-        "/tmp/nw3");
+    auto nw1 = std::make_shared<taraxa::Network>(node_cfgs[0], genesis_hash, "/tmp/nw2", kp1, nullptr, nullptr, nullptr,
+                                                 nullptr, nullptr, nullptr,
+                                                 std::vector<network::tarcap::TarcapVersion>{1, 2, 3});
+    auto nw2 = std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, "/tmp/nw3", kp2, nullptr, nullptr, nullptr,
+                                                 nullptr, nullptr, nullptr,
+                                                 std::vector<network::tarcap::TarcapVersion>{1, 2, 3});
     nw1->start();
     nw2->start();
     wait_for_connection(nw1, nw2);
   }
   cleanup();
   {
-    auto nw1 = std::make_shared<taraxa::Network>(
-        node_cfgs[0], genesis_hash,
-        [kp1, &node_cfgs, &genesis_hash](auto host) {
-          auto cap1 = makeTarcap(host, kp1, node_cfgs[0], genesis_hash, 1);
-          auto cap2 = makeTarcap(host, kp1, node_cfgs[0], genesis_hash, 2);
-          auto cap3 = makeTarcap(host, kp1, node_cfgs[0], genesis_hash, 3);
-          return Host::CapabilityList{cap1, cap2, cap3};
-        },
-        "/tmp/nw2");
-    auto nw2 = std::make_shared<taraxa::Network>(
-        node_cfgs[1], genesis_hash,
-        [kp2, &node_cfgs, &genesis_hash](auto host) {
-          auto cap2 = makeTarcap(host, kp2, node_cfgs[1], genesis_hash, 2);
-          auto cap3 = makeTarcap(host, kp2, node_cfgs[1], genesis_hash, 3);
-          auto cap4 = makeTarcap(host, kp2, node_cfgs[1], genesis_hash, 4);
-          return Host::CapabilityList{cap2, cap3, cap4};
-        },
-        "/tmp/nw3");
+    auto nw1 = std::make_shared<taraxa::Network>(node_cfgs[0], genesis_hash, "/tmp/nw2", kp1, nullptr, nullptr, nullptr,
+                                                 nullptr, nullptr, nullptr,
+                                                 std::vector<network::tarcap::TarcapVersion>{1, 2, 3});
+    auto nw2 = std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, "/tmp/nw3", kp2, nullptr, nullptr, nullptr,
+                                                 nullptr, nullptr, nullptr,
+                                                 std::vector<network::tarcap::TarcapVersion>{2, 3, 4});
     nw1->start();
     nw2->start();
     wait_for_connection(nw1, nw2);
   }
   cleanup();
   {
-    auto nw1 = std::make_shared<taraxa::Network>(
-        node_cfgs[0], genesis_hash,
-        [kp1, &node_cfgs, &genesis_hash](auto host) {
-          auto cap1 = makeTarcap(host, kp1, node_cfgs[0], genesis_hash, 1);
-          auto cap2 = makeTarcap(host, kp1, node_cfgs[0], genesis_hash, 2);
-          auto cap3 = makeTarcap(host, kp1, node_cfgs[0], genesis_hash, 3);
-          return Host::CapabilityList{cap1, cap2, cap3};
-        },
-        "/tmp/nw2");
-    auto nw2 = std::make_shared<taraxa::Network>(
-        node_cfgs[1], genesis_hash,
-        [kp2, &node_cfgs, &genesis_hash](auto host) {
-          auto cap4 = makeTarcap(host, kp2, node_cfgs[1], genesis_hash, 4);
-          auto cap5 = makeTarcap(host, kp2, node_cfgs[1], genesis_hash, 5);
-          auto cap6 = makeTarcap(host, kp2, node_cfgs[1], genesis_hash, 6);
-          return Host::CapabilityList{cap4, cap5, cap6};
-        },
-        "/tmp/nw3");
+    auto nw1 = std::make_shared<taraxa::Network>(node_cfgs[0], genesis_hash, "/tmp/nw2", kp1, nullptr, nullptr, nullptr,
+                                                 nullptr, nullptr, nullptr,
+                                                 std::vector<network::tarcap::TarcapVersion>{1, 2, 3});
+    auto nw2 = std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, "/tmp/nw3", kp2, nullptr, nullptr, nullptr,
+                                                 nullptr, nullptr, nullptr,
+                                                 std::vector<network::tarcap::TarcapVersion>{4, 5, 6});
+
     nw1->start();
     nw2->start();
 
