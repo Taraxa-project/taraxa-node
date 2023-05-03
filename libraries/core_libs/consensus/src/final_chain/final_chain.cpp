@@ -119,9 +119,11 @@ class FinalChainImpl final : public FinalChain {
     }
 
     delegation_delay_ = config.genesis.state.dpos.delegation_delay;
-    if (config.db_config.prune_state_db && last_blk_num.has_value() && *last_blk_num > kLightNodeHistory) {
+    const auto kPruneblocksToKeep = kDagExpiryLevelLimit + kMaxLevelsPerPeriod + 1;
+    if ((config.db_config.prune_state_db || kLightNode) && last_blk_num.has_value() &&
+        *last_blk_num > kPruneblocksToKeep) {
       LOG(log_si_) << "Pruning state db, this might take several minutes";
-      prune(*last_blk_num - kLightNodeHistory);
+      prune(*last_blk_num - kPruneblocksToKeep);
       LOG(log_si_) << "Pruning state db complete";
     }
   }
@@ -246,13 +248,17 @@ class FinalChainImpl final : public FinalChain {
   }
 
   void prune(EthBlockNumber blk_n) override {
-    const auto last_block_to_keep = get_block_header(blk_n);
+    LOG(log_nf_) << "Pruning data older than " << blk_n;
+    auto last_block_to_keep = get_block_header(blk_n);
     if (last_block_to_keep) {
-      std::vector<dev::h256> state_root_to_prune;
-      LOG(log_nf_) << "Pruning data older than " << blk_n;
+      auto block_to_keep = last_block_to_keep;
+      std::vector<dev::h256> state_root_to_keep;
+      while (block_to_keep) {
+        state_root_to_keep.push_back(block_to_keep->state_root);
+        block_to_keep = get_block_header(block_to_keep->number + 1);
+      }
       auto block_to_prune = get_block_header(last_block_to_keep->number - 1);
       while (block_to_prune && block_to_prune->number > 0) {
-        state_root_to_prune.push_back(block_to_prune->state_root);
         db_->remove(DB::Columns::final_chain_blk_by_number, block_to_prune->number);
         db_->remove(DB::Columns::final_chain_blk_hash_by_number, block_to_prune->number);
         db_->remove(DB::Columns::final_chain_blk_number_by_hash, block_to_prune->hash);
@@ -263,7 +269,7 @@ class FinalChainImpl final : public FinalChain {
       db_->compactColumn(DB::Columns::final_chain_blk_hash_by_number);
       db_->compactColumn(DB::Columns::final_chain_blk_number_by_hash);
 
-      state_api_.prune(last_block_to_keep->state_root, state_root_to_prune, last_block_to_keep->number);
+      state_api_.prune(state_root_to_keep, last_block_to_keep->number);
     }
   }
 

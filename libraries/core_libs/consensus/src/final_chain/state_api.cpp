@@ -204,9 +204,8 @@ void StateAPI::create_snapshot(PbftPeriod period) {
   err_h.check();
 }
 
-void StateAPI::prune(const dev::h256& state_root_to_keep, const std::vector<dev::h256>& state_root_to_prune,
-                     EthBlockNumber blk_num) {
-  return c_method_args_rlp<taraxa_evm_state_api_prune>(this_c_, state_root_to_keep, state_root_to_prune, blk_num);
+void StateAPI::prune(const std::vector<dev::h256>& state_root_to_keep, EthBlockNumber blk_num) {
+  return c_method_args_rlp<taraxa_evm_state_api_prune>(this_c_, state_root_to_keep, blk_num);
 }
 
 uint64_t StateAPI::dpos_eligible_total_vote_count(EthBlockNumber blk_num) const {
