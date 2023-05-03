@@ -45,6 +45,28 @@ class DebugClient : public jsonrpc::Client {
     else
       throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
   }
+  Json::Value trace_replayTransaction(const std::string& param1,
+                                      const Json::Value& param2) throw(jsonrpc::JsonRpcException) {
+    Json::Value p;
+    p.append(param1);
+    p.append(param2);
+    Json::Value result = this->CallMethod("trace_replayTransaction", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+  }
+  Json::Value trace_replayBlockTransactions(const std::string& param1,
+                                            const Json::Value& param2) throw(jsonrpc::JsonRpcException) {
+    Json::Value p;
+    p.append(param1);
+    p.append(param2);
+    Json::Value result = this->CallMethod("trace_replayBlockTransactions", p);
+    if (result.isObject())
+      return result;
+    else
+      throw jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_CLIENT_INVALID_RESPONSE, result.toStyledString());
+  }
 };
 
 }  // namespace net
