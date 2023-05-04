@@ -233,7 +233,7 @@ var searchData=
   ['protocolid_2532',['protocolId',['../structdev_1_1p2p_1_1_r_l_p_x_frame_info.html#ae9abdd306b6740bc3b07b422212333b0',1,'dev::p2p::RLPXFrameInfo']]],
   ['protocolidtype_2533',['ProtocolIdType',['../classdev_1_1p2p_1_1_r_l_p_x_frame_coder.html#a799d44bbb3840ed20e05c3f0d0f3bf95',1,'dev::p2p::RLPXFrameCoder']]],
   ['provider_5f_2534',['provider_',['../classtaraxa_1_1util_1_1lazy_1_1_lazy.html#a347f8adc03302c21b1375ddb6853fbc4',1,'taraxa::util::lazy::Lazy']]],
-  ['prune_2535',['prune',['../group___final_chain.html#a7206ab974911e06f78e50084b1f0f87a',1,'taraxa::final_chain::FinalChain::prune()'],['../group___final_chain.html#a9e4746f527401e367e02a462693853ae',1,'taraxa::state_api::StateAPI::prune()'],['../classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a3874417fe6c4c200e3d44078de54f50f',1,'taraxa::final_chain::FinalChainImpl::prune()']]],
+  ['prune_2535',['prune',['../group___final_chain.html#a7206ab974911e06f78e50084b1f0f87a',1,'taraxa::final_chain::FinalChain::prune()'],['../group___final_chain.html#a057cb79096d78ef1791a5224f32a88f4',1,'taraxa::state_api::StateAPI::prune()'],['../classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a3874417fe6c4c200e3d44078de54f50f',1,'taraxa::final_chain::FinalChainImpl::prune()']]],
   ['prune_5fstate_5fdb_2536',['PRUNE_STATE_DB',['../classtaraxa_1_1cli_1_1_config.html#aed6aa9bc1b88eeeb5ffca242242069c1',1,'taraxa::cli::Config']]],
   ['prune_5fstate_5fdb_2537',['prune_state_db',['../namespacetaraxa.html#abdd62bbac265c8653d3c403952b8175d',1,'taraxa::DBConfig']]],
   ['pub_2538',['pub',['../classdev_1_1_key_pair.html#a85b9f6aebea36de4cc18794ee67d2920',1,'dev::KeyPair']]],

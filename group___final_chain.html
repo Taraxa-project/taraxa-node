@@ -2415,8 +2415,8 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
 <tr class="separator:a7b5dc95d0aa9a90b7fd37fd3e0593cff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abd94382ec0e65196486c46500019bf33"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#abd94382ec0e65196486c46500019bf33">create_snapshot</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
 <tr class="separator:abd94382ec0e65196486c46500019bf33"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a9e4746f527401e367e02a462693853ae"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a9e4746f527401e367e02a462693853ae">prune</a> (const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">dev::h256</a> &amp;state_root_to_keep, const std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">dev::h256</a> &gt; &amp;state_root_to_prune, <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num)</td></tr>
-<tr class="separator:a9e4746f527401e367e02a462693853ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a057cb79096d78ef1791a5224f32a88f4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a057cb79096d78ef1791a5224f32a88f4">prune</a> (const std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">dev::h256</a> &gt; &amp;state_root_to_keep, <a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num)</td></tr>
+<tr class="separator:a057cb79096d78ef1791a5224f32a88f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4f67cd91d38cc3f873506b94d66ee916"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a4f67cd91d38cc3f873506b94d66ee916">dpos_eligible_total_vote_count</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num) const</td></tr>
 <tr class="separator:a4f67cd91d38cc3f873506b94d66ee916"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a954304ae0af99b51d175d9ba4a09a976"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a954304ae0af99b51d175d9ba4a09a976">dpos_eligible_vote_count</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;addr) const</td></tr>
@@ -2893,8 +2893,8 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
 
 </div>
 </div>
-<a id="a9e4746f527401e367e02a462693853ae"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a9e4746f527401e367e02a462693853ae">&#9670;&nbsp;</a></span>prune()</h2>
+<a id="a057cb79096d78ef1791a5224f32a88f4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a057cb79096d78ef1791a5224f32a88f4">&#9670;&nbsp;</a></span>prune()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2902,14 +2902,8 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
         <tr>
           <td class="memname">void taraxa::state_api::StateAPI::prune </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">dev::h256</a> &amp;&#160;</td>
-          <td class="paramname"><em>state_root_to_keep</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
           <td class="paramtype">const std::vector&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">dev::h256</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>state_root_to_prune</em>, </td>
+          <td class="paramname"><em>state_root_to_keep</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>

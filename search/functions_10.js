@@ -78,7 +78,7 @@ var searchData=
   ['proposedagblock_5396',['proposeDagBlock',['../group___d_a_g.html#a00f3ec13b42c2ce2c232642c661ac736',1,'taraxa::DagBlockProposer']]],
   ['proposedblocks_5397',['ProposedBlocks',['../classtaraxa_1_1_proposed_blocks.html#a22d91ab51e5c1ce862ca29ee70c95f2e',1,'taraxa::ProposedBlocks']]],
   ['proposepbftblock_5398',['proposePbftBlock',['../group___p_b_f_t.html#a3d7b4477717362cf2220cbc8cf055aa1',1,'taraxa::PbftManager']]],
-  ['prune_5399',['prune',['../classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a3874417fe6c4c200e3d44078de54f50f',1,'taraxa::final_chain::FinalChainImpl::prune()'],['../group___final_chain.html#a9e4746f527401e367e02a462693853ae',1,'taraxa::state_api::StateAPI::prune()'],['../group___final_chain.html#a7206ab974911e06f78e50084b1f0f87a',1,'taraxa::final_chain::FinalChain::prune()']]],
+  ['prune_5399',['prune',['../classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a3874417fe6c4c200e3d44078de54f50f',1,'taraxa::final_chain::FinalChainImpl::prune()'],['../group___final_chain.html#a057cb79096d78ef1791a5224f32a88f4',1,'taraxa::state_api::StateAPI::prune()'],['../group___final_chain.html#a7206ab974911e06f78e50084b1f0f87a',1,'taraxa::final_chain::FinalChain::prune()']]],
   ['pub_5400',['pub',['../classdev_1_1_key_pair.html#a85b9f6aebea36de4cc18794ee67d2920',1,'dev::KeyPair']]],
   ['publickey_5401',['publicKey',['../classdev_1_1p2p_1_1_identity_scheme_v4.html#af25ca186ece01761809491df209ce186',1,'dev::p2p::IdentitySchemeV4']]],
   ['push_5402',['push',['../group___p_b_f_t.html#a4d4ad612c132333fabc8abc13ee7885f',1,'taraxa::PeriodDataQueue::push()'],['../classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html#a08acc424e974f0cdc0edf807ab9e3ef8',1,'taraxa::network::tarcap::TarcapThreadPool::push()']]],
