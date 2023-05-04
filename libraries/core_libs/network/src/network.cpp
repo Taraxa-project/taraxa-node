@@ -292,7 +292,7 @@ void Network::addBootNodes(bool initial) {
 }
 
 void Network::gossipDagBlock(const DagBlock &block, bool proposed, const SharedTransactions &trxs) {
-  for (const auto &tarcap : tarcaps_ | std::views::reverse) {
+  for (const auto &tarcap : tarcaps_) {
     tarcap.second->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->onNewBlockVerified(block, proposed,
                                                                                                     trxs);
   }
@@ -347,7 +347,7 @@ std::shared_ptr<network::tarcap::TaraxaPeer> Network::getMaxChainPeer() const {
 //       other functions must use all tarcaps
 
 void Network::setPendingPeersToReady() {
-  const auto &peers_state = tarcaps_.rbegin()->second->getPeersState();
+  const auto &peers_state = tarcaps_.begin()->second->getPeersState();
 
   auto peerIds = peers_state->getAllPendingPeersIDs();
   for (const auto &peerId : peerIds) {
@@ -360,12 +360,12 @@ void Network::setPendingPeersToReady() {
 
 dev::p2p::NodeID Network::getNodeId() const { return host_->id(); }
 
-int Network::getReceivedBlocksCount() const { return tarcaps_.rbegin()->second->getReceivedBlocksCount(); }
+int Network::getReceivedBlocksCount() const { return tarcaps_.begin()->second->getReceivedBlocksCount(); }
 
-int Network::getReceivedTransactionsCount() const { return tarcaps_.rbegin()->second->getReceivedTransactionsCount(); }
+int Network::getReceivedTransactionsCount() const { return tarcaps_.begin()->second->getReceivedTransactionsCount(); }
 
 std::shared_ptr<network::tarcap::TaraxaPeer> Network::getPeer(dev::p2p::NodeID const &id) const {
-  return tarcaps_.rbegin()->second->getPeersState()->getPeer(id);
+  return tarcaps_.begin()->second->getPeersState()->getPeer(id);
 }
 // METHODS USED IN TESTS ONLY
 

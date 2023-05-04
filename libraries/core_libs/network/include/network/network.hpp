@@ -112,8 +112,10 @@ class Network {
   util::ThreadPool tp_;
   std::shared_ptr<dev::p2p::Host> host_;
 
-  // All supported taraxa capabilities
-  std::map<network::tarcap::TarcapVersion, std::shared_ptr<network::tarcap::TaraxaCapabilityBase>> tarcaps_;
+  // All supported taraxa capabilities - in descending order
+  std::map<network::tarcap::TarcapVersion, std::shared_ptr<network::tarcap::TaraxaCapabilityBase>,
+           std::greater<network::tarcap::TarcapVersion>>
+      tarcaps_;
 
   // Threadpool for packets
   std::shared_ptr<network::threadpool::PacketsThreadPool> packets_tp_;
@@ -127,7 +129,7 @@ class Network {
 
 template <typename PacketHandlerType>
 std::shared_ptr<PacketHandlerType> Network::getSpecificHandler() const {
-  return tarcaps_.rbegin()->second->getSpecificHandler<PacketHandlerType>();
+  return tarcaps_.begin()->second->getSpecificHandler<PacketHandlerType>();
 }
 
 }  // namespace taraxa
