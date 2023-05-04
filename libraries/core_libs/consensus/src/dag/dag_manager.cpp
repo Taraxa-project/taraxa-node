@@ -287,6 +287,8 @@ void DagManager::clearLightNodeHistory() {
   // Actual history size will be between 100% and 110% of light_node_history_ to avoid deleting on every period
   if (((period_ % (std::max(light_node_history_ / 10, (uint64_t)1)) == 0)) && period_ > light_node_history_ &&
       dag_expiry_level_ > max_levels_per_period_ + 1) {
+    // This will happen at most once a day so log a silent log
+    LOG(log_si_) << "Clear light node history";
     const auto proposal_period = db_->getProposalPeriodForDagLevel(dag_expiry_level_ - max_levels_per_period_ - 1);
     assert(proposal_period);
 
@@ -299,6 +301,7 @@ void DagManager::clearLightNodeHistory() {
                  << " *proposal_period " << *proposal_period;
     LOG(log_tr_) << "Delete period history from: " << start << " to " << end;
     db_->clearPeriodDataHistory(end);
+    LOG(log_si_) << "Clear light node history completed";
   }
 }
 
