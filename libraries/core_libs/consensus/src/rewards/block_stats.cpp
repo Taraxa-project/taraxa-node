@@ -1,18 +1,18 @@
-#include "final_chain/rewards_stats.hpp"
+#include "rewards/block_stats.hpp"
 
 #include <cstdint>
 
 #include "pbft/pbft_block.hpp"
 
-namespace taraxa {
+namespace taraxa::rewards {
 
-RewardsStats::RewardsStats(const PeriodData& block, uint64_t dpos_vote_count, uint32_t committee_size)
+BlockStats::BlockStats(const PeriodData& block, uint64_t dpos_vote_count, uint32_t committee_size)
     : block_author_(block.pbft_blk->getBeneficiary()),
       max_votes_weight_(std::min<uint64_t>(committee_size, dpos_vote_count)) {
   processStats(block);
 }
 
-bool RewardsStats::addTransaction(const trx_hash_t& tx_hash, const addr_t& validator) {
+bool BlockStats::addTransaction(const trx_hash_t& tx_hash, const addr_t& validator) {
   auto found_tx = validator_by_tx_hash_.find(tx_hash);
 
   // Already processed tx
@@ -26,7 +26,7 @@ bool RewardsStats::addTransaction(const trx_hash_t& tx_hash, const addr_t& valid
   return true;
 }
 
-std::optional<addr_t> RewardsStats::getTransactionValidator(const trx_hash_t& tx_hash) {
+std::optional<addr_t> BlockStats::getTransactionValidator(const trx_hash_t& tx_hash) {
   auto found_tx = validator_by_tx_hash_.find(tx_hash);
   if (found_tx == validator_by_tx_hash_.end()) {
     return {};
@@ -35,7 +35,7 @@ std::optional<addr_t> RewardsStats::getTransactionValidator(const trx_hash_t& tx
   return {found_tx->second};
 }
 
-bool RewardsStats::addVote(const std::shared_ptr<Vote>& vote) {
+bool BlockStats::addVote(const std::shared_ptr<Vote>& vote) {
   // Set valid cert vote to validator
   auto& validator_stats = validators_stats_[vote->getVoterAddr()];
   assert(validator_stats.vote_weight_ == 0);
@@ -60,7 +60,7 @@ std::set<trx_hash_t> toTrxHashesSet(const SharedTransactions& transactions) {
   return block_transactions_hashes_;
 }
 
-void RewardsStats::processStats(const PeriodData& block) {
+void BlockStats::processStats(const PeriodData& block) {
   validator_by_tx_hash_.reserve(block.transactions.size());
   validators_stats_.reserve(std::max(block.dag_blocks.size(), block.previous_block_cert_votes.size()));
   auto block_transactions_hashes_ = toTrxHashesSet(block.transactions);
@@ -102,8 +102,8 @@ void RewardsStats::processStats(const PeriodData& block) {
   }
 }
 
-RLP_FIELDS_DEFINE(RewardsStats::ValidatorStats, dag_blocks_count_, vote_weight_)
-RLP_FIELDS_DEFINE(RewardsStats, block_author_, validators_stats_, txs_validators_, total_dag_blocks_count_,
+RLP_FIELDS_DEFINE(BlockStats::ValidatorStats, dag_blocks_count_, vote_weight_)
+RLP_FIELDS_DEFINE(BlockStats, block_author_, validators_stats_, txs_validators_, total_dag_blocks_count_,
                   total_votes_weight_, max_votes_weight_)
 
-}  // namespace taraxa
+}  // namespace taraxa::rewards
