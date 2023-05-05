@@ -362,12 +362,12 @@ commands:
       - run:
           name: Build ctest image
           command: |
-            docker build -t ${IMAGE}-ctest:${VERSION} --target build .
+            # docker build -t ${IMAGE}-ctest:${VERSION} --target build .
       - run:
           name: Build taraxad image
           command: |
             # DOCKER_CLI_EXPERIMENTAL=enabled docker buildx build --platform linux/arm64,linux/amd64 -t ${IMAGE}:${VERSION} .
-            DOCKER_CLI_EXPERIMENTAL=enabled docker buildx build --platform linux/arm64 -t ${IMAGE}:${VERSION} .
+            DOCKER_CLI_EXPERIMENTAL=enabled docker buildx build --platform linux/amd64 -t ${IMAGE}:${VERSION} .
       - run:
           name: List images
           command: |
