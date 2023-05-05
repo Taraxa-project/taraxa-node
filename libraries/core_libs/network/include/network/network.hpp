@@ -17,7 +17,7 @@
 #include "common/thread_pool.hpp"
 #include "common/util.hpp"
 #include "config/config.hpp"
-#include "network/tarcap/taraxa_capability_base.hpp"
+#include "network/tarcap/taraxa_capability.hpp"
 #include "network/tarcap/tarcap_version.hpp"
 #include "transaction/transaction.hpp"
 
@@ -65,6 +65,7 @@ class Network {
   void handleMaliciousSyncPeer(const dev::p2p::NodeID &id);
   std::shared_ptr<network::tarcap::TaraxaPeer> getMaxChainPeer() const;
 
+  // METHODS USED IN TESTS ONLY
   template <typename PacketHandlerType>
   std::shared_ptr<PacketHandlerType> getSpecificHandler() const;
 
@@ -98,22 +99,19 @@ class Network {
   const dev::Public pub_key_;
 
   // Packets stats per time period
-  // TODO: maybe remove tarcap namespace ???
   std::shared_ptr<network::tarcap::TimePeriodPacketsStats> all_packets_stats_;
 
   // Node stats
-  // TODO: maybe remove tarcap namespace ???
   std::shared_ptr<network::tarcap::NodeStats> node_stats_;
 
   // Syncing state
-  // TODO: maybe remove tarcap namespace ???
   std::shared_ptr<network::tarcap::PbftSyncingState> pbft_syncing_state_;
 
   util::ThreadPool tp_;
   std::shared_ptr<dev::p2p::Host> host_;
 
   // All supported taraxa capabilities - in descending order
-  std::map<network::tarcap::TarcapVersion, std::shared_ptr<network::tarcap::TaraxaCapabilityBase>,
+  std::map<network::tarcap::TarcapVersion, std::shared_ptr<network::tarcap::TaraxaCapability>,
            std::greater<network::tarcap::TarcapVersion>>
       tarcaps_;
 
@@ -121,7 +119,6 @@ class Network {
   std::shared_ptr<network::threadpool::PacketsThreadPool> packets_tp_;
 
   // Threadpool for periodic and delayed events
-  // TODO: tp_ could be used for this instead
   util::ThreadPool periodic_events_tp_;
 
   LOG_OBJECTS_DEFINE

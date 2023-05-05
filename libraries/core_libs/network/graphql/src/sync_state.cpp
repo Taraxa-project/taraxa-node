@@ -1,7 +1,7 @@
 
 #include "graphql/sync_state.hpp"
 
-#include "network/tarcap/capability_latest/packets_handlers/pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp"
 
 namespace graphql::taraxa {
 

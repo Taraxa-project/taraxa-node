@@ -16,9 +16,9 @@
 
 #include "dag/dag.hpp"
 #include "final_chain/final_chain.hpp"
-#include "network/tarcap/capability_latest/packets_handlers/pbft_sync_packet_handler.hpp"
-#include "network/tarcap/capability_latest/packets_handlers/vote_packet_handler.hpp"
-#include "network/tarcap/capability_latest/packets_handlers/votes_bundle_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp"
 #include "pbft/period_data.hpp"
 #include "vote_manager/vote_manager.hpp"
 

@@ -1,6 +1,5 @@
 #include <gtest/gtest.h>
 #include <libdevcrypto/Common.h>
-#include <libp2p/Capability.h>
 #include <libp2p/Common.h>
 #include <libp2p/Host.h>
 #include <libp2p/Network.h>
@@ -13,10 +12,10 @@
 #include "config/config.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
-#include "network/tarcap/capability_latest/packets_handlers/dag_block_packet_handler.hpp"
-#include "network/tarcap/capability_latest/packets_handlers/transaction_packet_handler.hpp"
-#include "network/tarcap/capability_latest/taraxa_capability.hpp"
+#include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
+#include "network/tarcap/taraxa_capability.hpp"
 #include "test_util/samples.hpp"
 #include "test_util/test_util.hpp"
 
@@ -34,7 +33,7 @@ auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, 
 struct P2PTest : NodesTest {};
 
 // TODO this needs to be removed and called from tracap->setPendingPeersToReady() directly
-void setPendingPeersToReady(std::shared_ptr<taraxa::network::tarcap::TaraxaCapabilityBase> taraxa_capability) {
+void setPendingPeersToReady(std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> taraxa_capability) {
   const auto &peers_state = taraxa_capability->getPeersState();
 
   auto peerIds = peers_state->getAllPendingPeersIDs();
@@ -46,18 +45,18 @@ void setPendingPeersToReady(std::shared_ptr<taraxa::network::tarcap::TaraxaCapab
   }
 }
 
-std::shared_ptr<taraxa::network::tarcap::TaraxaCapabilityBase> makeTarcap(std::weak_ptr<dev::p2p::Host> host,
-                                                                          const dev::KeyPair &key,
-                                                                          const FullNodeConfig &conf,
-                                                                          const h256 &genesis_hash, unsigned version) {
+std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> makeTarcap(std::weak_ptr<dev::p2p::Host> host,
+                                                                      const dev::KeyPair &key,
+                                                                      const FullNodeConfig &conf,
+                                                                      const h256 &genesis_hash, unsigned version) {
   auto thread_pool = std::make_shared<network::threadpool::PacketsThreadPool>(conf.network.packets_processing_threads);
   auto packets_stats = std::make_shared<network::tarcap::TimePeriodPacketsStats>(
       conf.network.ddos_protection.packets_stats_time_period_ms, Address{});
   auto syncing_state = std::make_shared<network::tarcap::PbftSyncingState>(conf.network.deep_syncing_threshold);
 
-  auto tarcap = std::make_shared<taraxa::network::tarcap::TaraxaCapability>(host, key, conf, version, thread_pool,
-                                                                            packets_stats, syncing_state, "TARCAP");
-  tarcap->init(genesis_hash, {}, {}, {}, {}, {}, {}, key.address());
+  auto tarcap = std::make_shared<network::tarcap::TaraxaCapability>(version, conf, genesis_hash, host, key, thread_pool,
+                                                                    packets_stats, syncing_state, nullptr, nullptr,
+                                                                    nullptr, nullptr, nullptr, nullptr, "TARCAP");
 
   thread_pool->startProcessing();
 
@@ -101,7 +100,7 @@ TEST_F(P2PTest, p2p_discovery) {
 /*
 Test creates two host/network/capability and verifies that host connect
 to each other and that a block packet message can be sent from one host
-to the other using TaraxaCapabilityBase
+to the other using TaraxaCapability
 */
 TEST_F(P2PTest, capability_send_block) {
   int const step = 10;
@@ -115,7 +114,7 @@ TEST_F(P2PTest, capability_send_block) {
   conf.network.transaction_interval_ms = 1000;
   h256 genesis;
 
-  std::shared_ptr<taraxa::network::tarcap::TaraxaCapabilityBase> thc1, thc2;
+  std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1, thc2;
   auto host1 = Host::make(
       "Test",
       [&](auto host) {
@@ -207,7 +206,7 @@ TEST_F(P2PTest, block_propagate) {
   FullNodeConfig conf;
   conf.network.transaction_interval_ms = 1000;
   h256 genesis;
-  std::shared_ptr<taraxa::network::tarcap::TaraxaCapabilityBase> thc1;
+  std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> thc1;
   auto host1 = Host::make(
       "Test",
       [&](auto host) {
@@ -219,7 +218,7 @@ TEST_F(P2PTest, block_propagate) {
   util::ThreadPool tp;
   tp.post_loop({}, [=] { host1->do_work(); });
   std::vector<std::shared_ptr<Host>> vHosts;
-  std::vector<std::shared_ptr<taraxa::network::tarcap::TaraxaCapabilityBase>> vCapabilities;
+  std::vector<std::shared_ptr<taraxa::network::tarcap::TaraxaCapability>> vCapabilities;
   for (int i = 0; i < nodeCount; i++) {
     auto host = vHosts.emplace_back(Host::make(
         "Test",

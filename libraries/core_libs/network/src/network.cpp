@@ -8,17 +8,13 @@
 #include <ranges>
 
 #include "config/version.hpp"
-#include "network/tarcap/capability_latest/packets_handlers/dag_block_packet_handler.hpp"
-#include "network/tarcap/capability_latest/packets_handlers/pbft_sync_packet_handler.hpp"
-#include "network/tarcap/capability_latest/packets_handlers/status_packet_handler.hpp"
-#include "network/tarcap/capability_latest/packets_handlers/transaction_packet_handler.hpp"
-#include "network/tarcap/capability_latest/packets_handlers/vote_packet_handler.hpp"
-#include "network/tarcap/capability_latest/packets_handlers/votes_bundle_packet_handler.hpp"
-#include "network/tarcap/capability_latest/taraxa_capability.hpp"
-#include "network/tarcap/capability_v1/taraxa_capability.hpp"
+#include "network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v1/init_packets_handlers.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "network/tarcap/stats/node_stats.hpp"
 #include "network/tarcap/stats/time_period_packets_stats.hpp"
+#include "network/tarcap/taraxa_capability.hpp"
 #include "pbft/pbft_manager.hpp"
 
 namespace taraxa {
@@ -74,22 +70,22 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::fi
     constructCapabilities = [&](std::weak_ptr<dev::p2p::Host> host) {
       assert(!host.expired());
 
-      const size_t kOldNetworkVersion = 1;
-      assert(kOldNetworkVersion < TARAXA_NET_VERSION);
+      const size_t kV1NetworkVersion = 1;
+      assert(kV1NetworkVersion < TARAXA_NET_VERSION);
 
       dev::p2p::Host::CapabilityList capabilities;
 
-      // Register old version of taraxa capability
-      auto v1_tarcap = std::make_shared<network::tarcap::v1::TaraxaCapability>(
-          host, key, config, kOldNetworkVersion, packets_tp_, all_packets_stats_, pbft_syncing_state_, "V1_TARCAP");
-      v1_tarcap->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, key.address());
+      // Register old version (V1) of taraxa capability
+      auto v1_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
+          kV1NetworkVersion, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
+          pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, "V1_TARCAP", network::tarcap::v1::kInitV1Handlers);
       capabilities.emplace_back(v1_tarcap);
 
-      // Register new version of taraxa capability
-      auto v2_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
-          host, key, config, TARAXA_NET_VERSION, packets_tp_, all_packets_stats_, pbft_syncing_state_, "TARCAP");
-      v2_tarcap->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, key.address());
-      capabilities.emplace_back(v2_tarcap);
+      // Register latest version of taraxa capability
+      auto latest_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
+          TARAXA_NET_VERSION, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
+          pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, "TARCAP");
+      capabilities.emplace_back(latest_tarcap);
 
       return capabilities;
     };
@@ -100,9 +96,9 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::fi
       dev::p2p::Host::CapabilityList capabilities;
       for (const auto test_tarcap_version : create_test_tarcaps) {
         auto tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
-            host, key, config, test_tarcap_version, packets_tp_, all_packets_stats_, pbft_syncing_state_,
+            test_tarcap_version, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_,
+            db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr,
             "V" + std::to_string(test_tarcap_version) + "_TARCAP");
-        tarcap->init(genesis_hash, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, key.address());
         capabilities.emplace_back(tarcap);
       }
 
@@ -113,7 +109,7 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::fi
   host_ = dev::p2p::Host::make(net_version, constructCapabilities, key, net_conf, taraxa_net_conf, network_file_path);
   for (const auto &cap : host_->getSupportedCapabilities()) {
     const auto tarcap_version = cap.second.ref->version();
-    auto tarcap = std::static_pointer_cast<network::tarcap::TaraxaCapabilityBase>(cap.second.ref);
+    auto tarcap = std::static_pointer_cast<network::tarcap::TaraxaCapability>(cap.second.ref);
     tarcaps_[tarcap_version] = std::move(tarcap);
   }
 
