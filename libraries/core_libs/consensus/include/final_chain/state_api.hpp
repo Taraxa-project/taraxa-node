@@ -5,8 +5,8 @@
 #include <functional>
 
 #include "common/range_view.hpp"
-#include "final_chain/rewards_stats.hpp"
 #include "final_chain/state_api_data.hpp"
+#include "rewards/block_stats.hpp"
 #include "storage/storage.hpp"
 
 namespace taraxa::state_api {
@@ -43,7 +43,7 @@ class StateAPI {
   StateDescriptor get_last_committed_state_descriptor() const;
   const StateTransitionResult& transition_state(const EVMBlock& block,
                                                 const util::RangeView<EVMTransaction>& transactions,
-                                                const std::vector<RewardsStats>& rewards_stats = {});
+                                                const std::vector<rewards::BlockStats>& rewards_stats = {});
   void transition_state_commit();
   void create_snapshot(PbftPeriod period);
   void prune(const std::vector<dev::h256>& state_root_to_keep, EthBlockNumber blk_num);

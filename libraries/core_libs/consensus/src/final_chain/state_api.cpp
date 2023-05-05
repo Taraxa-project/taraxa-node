@@ -177,7 +177,7 @@ StateDescriptor StateAPI::get_last_committed_state_descriptor() const {
 
 const StateTransitionResult& StateAPI::transition_state(const EVMBlock& block,
                                                         const util::RangeView<EVMTransaction>& transactions,
-                                                        const std::vector<RewardsStats>& rewards_stats) {
+                                                        const std::vector<rewards::BlockStats>& rewards_stats) {
   result_buf_transition_state_.execution_results.clear();
   rlp_enc_transition_state_.clear();
   c_method_args_rlp<StateTransitionResult, from_rlp, taraxa_evm_state_api_transition_state>(

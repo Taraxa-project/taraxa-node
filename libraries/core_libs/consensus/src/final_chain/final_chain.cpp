@@ -6,20 +6,21 @@
 #include "common/constants.hpp"
 #include "common/thread_pool.hpp"
 #include "final_chain/cache.hpp"
-#include "final_chain/rewards_stats.hpp"
 #include "final_chain/trie_common.hpp"
+#include "rewards/rewards_stats.hpp"
 #include "vote/vote.hpp"
 
 namespace taraxa::final_chain {
 
 class FinalChainImpl final : public FinalChain {
   std::shared_ptr<DB> db_;
-  const uint32_t kCommitteeSize;
   const uint64_t kBlockGasLimit;
   StateAPI state_api_;
   const bool kLightNode = false;
   const uint64_t kLightNodeHistory = 0;
   const uint32_t kMaxLevelsPerPeriod;
+  const uint32_t kRewardsDistributionInterval = 100;
+  rewards::Stats rewards_;
 
   // It is not prepared to use more then 1 thread. Examine it if you want to change threads count
   boost::asio::thread_pool executor_thread_{1};
@@ -49,7 +50,6 @@ class FinalChainImpl final : public FinalChain {
  public:
   FinalChainImpl(const std::shared_ptr<DB>& db, const taraxa::FullNodeConfig& config, const addr_t& node_addr)
       : db_(db),
-        kCommitteeSize(config.genesis.pbft.committee_size),
         kBlockGasLimit(config.genesis.pbft.gas_limit),
         state_api_([this](auto n) { return block_hash(n).value_or(ZeroHash()); },  //
                    config.genesis.state, config.opts_final_chain,
@@ -59,6 +59,8 @@ class FinalChainImpl final : public FinalChain {
         kLightNode(config.is_light_node),
         kLightNodeHistory(config.light_node_history),
         kMaxLevelsPerPeriod(config.max_levels_per_period),
+        rewards_(config.genesis.pbft.committee_size,
+                 [this](EthBlockNumber n) { return dpos_eligible_total_vote_count(n); }),
         block_headers_cache_(config.final_chain_cache_in_blocks,
                              [this](uint64_t blk) { return get_block_header(blk); }),
         block_hashes_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return get_block_hash(blk); }),
@@ -144,26 +146,12 @@ class FinalChainImpl final : public FinalChain {
 
   EthBlockNumber delegation_delay() const override { return delegation_delay_; }
 
-  std::vector<RewardsStats> prepare_rewards_stats_(const PeriodData& blk) {
-    std::vector<RewardsStats> rewards_stats;
-    uint64_t dpos_vote_count = kCommitteeSize;
-
-    // Block zero
-    if (!blk.previous_block_cert_votes.empty()) [[likely]] {
-      dpos_vote_count = dpos_eligible_total_vote_count(blk.previous_block_cert_votes[0]->getPeriod() - 1);
-    }
-
-    rewards_stats.emplace_back(blk, dpos_vote_count, kCommitteeSize);
-
-    return rewards_stats;
-  }
-
   std::shared_ptr<const FinalizationResult> finalize_(PeriodData&& new_blk,
                                                       std::vector<h256>&& finalized_dag_blk_hashes,
                                                       std::shared_ptr<DagBlock>&& anchor) {
     auto batch = db_->createWriteBatch();
 
-    auto rewards_stats = prepare_rewards_stats_(new_blk);
+    auto rewards_stats = rewards_.getStats(new_blk);
 
     block_applying_emitter_.emit(block_header()->number + 1);
 
