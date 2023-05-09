@@ -13,7 +13,9 @@ void PeriodData::migrate() {
 
   // Get and save data in new format for all blocks
   for (it->SeekToFirst(); it->Valid(); it->Next()) {
-    const auto period_data_old_rlp = dev::RLP(it->value().ToString());
+    // Use separate variable for rlp bytes, dev::RLP(it->value().ToString()); does not work
+    const auto bytes = it->value().ToString();
+    const auto period_data_old_rlp = dev::RLP(bytes);
     assert(period_data_old_rlp.itemCount() == 4);
 
     ::taraxa::PeriodData period_data;
