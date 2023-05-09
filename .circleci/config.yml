@@ -387,6 +387,51 @@ commands:
               docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:latest
             fi
 
+  tag:
+    description: Tags docker images
+    steps:
+      - run:
+          name: Tag images
+          command: |
+
+            # tag images for 'develop' branch
+            if [[ ${CIRCLE_BRANCH} == "develop" ]]; then
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:${SHORT_GIT_HASH}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-develop:latest
+            fi
+
+            # tag images for 'release' branches
+            if [[ ${CIRCLE_BRANCH} =~ ^release.* ]]; then
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-release:${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-release:${SHORT_GIT_HASH}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-release:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-release:latest
+            fi
+
+            ### soon obsolete ###
+            if [[ ${CIRCLE_BRANCH} == "testnet" ]]; then
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${SHORT_GIT_HASH}
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:latest
+            fi
+            ### soon obsolete ###
+
+            # tag images for 'feature' branches (based on PRs)
+            if [[ ${PR} != "false" ]]; then
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${SHORT_GIT_HASH}
+            fi
+
+            # tag images for release (based on tag)
+            if [[ ${CIRCLE_TAG} != "" ]];then
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${CIRCLE_TAG}
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:latest
+            fi
+
   push_gcr:
     description: Push images to GCR registry
     steps:
