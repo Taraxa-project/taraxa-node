@@ -361,6 +361,14 @@ commands:
           command: |
             docker build -t ${IMAGE}:${VERSION} .
 
+  build-builder:
+    description: Builds docker image (of builder)
+    steps:
+      - run:
+          name: Build builder image
+          command: |
+            docker build -t ${IMAGE}:${VERSION} -f builder.Dockerfile .
+
   tag:
     description: Tags docker images
     steps:
@@ -691,6 +699,19 @@ jobs:
       - store_artifacts:
           path: tmp_docker
 
+  build-builder-docker-image:
+    environment:
+      - IMAGE: taraxa-builder
+      - CONAN_REVISIONS_ENABLED: 1
+    machine:
+      image: ubuntu-2204:2022.04.2
+      docker_layer_caching: true
+    resource_class: large
+    steps:
+      - checkout
+      - prepare
+      - build-builder
+
   release-docker-image:
       environment:
         - IMAGE: taraxa-node
@@ -994,6 +1015,24 @@ workflows:
           requires:
             - build-linux
             - build-mac
+
+  # run this workflow for specific branches 'builder/*'
+  build-builder-docker-image:
+    when:
+      and:
+        - not: << pipeline.parameters.deploy_prnet >>
+        - not: << pipeline.parameters.redeploy_prnet >>
+        - not: << pipeline.parameters.cleanup_prnet >>
+    jobs:
+      - build-builder-docker-image:
+          filters:
+            branches:
+              ignore:
+                - /^builder\/.*/
+                - /^chore\/multiarch-build.*/
+          context:
+            - DOCKERHUB
+
 
   # run this workflow for all branches apart those reserved for chart
   build-docker-image:
