@@ -3,28 +3,41 @@
 #include "storage/storage.hpp"
 
 namespace taraxa::rewards {
-Stats::Stats(uint32_t committee_size, std::function<uint64_t(EthBlockNumber)>&& dpos_eligible_total_vote_count)
-    : kCommitteeSize(committee_size), dpos_eligible_total_vote_count_(dpos_eligible_total_vote_count) {}
+Stats::Stats(uint32_t committee_size, const Hardforks::RewardsDistributionMap& rdm, std::shared_ptr<DB> db,
+             std::function<uint64_t(EthBlockNumber)>&& dpos_eligible_total_vote_count)
+    : kCommitteeSize(committee_size),
+      kRewardsDistributionFrequency(rdm),
+      db_(std::move(db)),
+      dpos_eligible_total_vote_count_(dpos_eligible_total_vote_count) {
+  loadFromDb();
+}
 
-// std::vector<RewardsStats> processBlockHardfork(const PeriodData& current_blk, uint32_t interval) {
-//   const auto current = current_blk.pbft_blk->getPeriod();
-//   // skip for intermediate blocks
-//   if (current % interval != 0) {
-//     return {};
-//   }
+void Stats::loadFromDb() {
+  auto i = db_->getColumnIterator(DB::Columns::block_rewards_stats);
+  for (i->SeekToFirst(); i->Valid(); i->Next()) {
+    blocks_stats_.push_back(util::rlp_dec<BlockStats>(dev::RLP(i->value().ToString())));
+  }
+}
 
-//   std::vector<RewardsStats> rewards_stats;
-//   rewards_stats.reserve(interval);
-//   // add rewards stats for (last_distribution_block, current_block)
-//   for (auto p = current - interval + 1; p < current; ++p) {
-//     auto blk = PeriodData(db_->getPeriodDataRaw(p));
-//     rewards_stats.emplace_back(get_block_rewards_stats(blk));
-//   }
-//   // add current block rewards stats
-//   rewards_stats.emplace_back(get_block_rewards_stats(current_blk));
+void Stats::saveBlockStats(uint64_t period, const BlockStats& stats) {
+  dev::RLPStream encoding;
+  stats.rlp(encoding);
 
-//   return rewards_stats;
-// }
+  db_->insert(DB::Columns::block_rewards_stats, period, encoding.out());
+}
+
+uint32_t Stats::getCurrentDistributionFrequency(uint64_t current_block) const {
+  auto itr = kRewardsDistributionFrequency.upper_bound(current_block);
+  if (kRewardsDistributionFrequency.empty() || itr == kRewardsDistributionFrequency.begin()) {
+    return 1;
+  }
+  return (--itr)->second;
+}
+
+void Stats::clear() {
+  blocks_stats_.clear();
+  db_->deleteColumnData(DB::Columns::block_rewards_stats);
+}
 
 BlockStats Stats::getBlockStats(const PeriodData& blk) {
   uint64_t dpos_vote_count = kCommitteeSize;
@@ -37,5 +50,26 @@ BlockStats Stats::getBlockStats(const PeriodData& blk) {
   return BlockStats{blk, dpos_vote_count, kCommitteeSize};
 }
 
-std::vector<BlockStats> Stats::getStats(const PeriodData& current_blk) { return {getBlockStats(current_blk)}; }
+std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk) {
+  const auto current_period = current_blk.pbft_blk->getPeriod();
+  const auto frequency = getCurrentDistributionFrequency(current_period);
+
+  // Distribute rewards every block
+  if (frequency == 1) {
+    return {getBlockStats(current_blk)};
+  }
+
+  blocks_stats_.push_back(getBlockStats(current_blk));
+  // Blocks between distribution. Process and save for future processing
+  if (current_period % frequency != 0) {
+    // Save to db, so in case of restart data could be just loaded for the period
+    saveBlockStats(current_period, *blocks_stats_.rbegin());
+    return {};
+  }
+
+  std::vector<BlockStats> res(std::move(blocks_stats_));
+  clear();
+  return res;
+}
+
 }  // namespace taraxa::rewards

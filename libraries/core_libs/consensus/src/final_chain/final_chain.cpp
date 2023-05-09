@@ -59,7 +59,7 @@ class FinalChainImpl final : public FinalChain {
         kLightNode(config.is_light_node),
         kLightNodeHistory(config.light_node_history),
         kMaxLevelsPerPeriod(config.max_levels_per_period),
-        rewards_(config.genesis.pbft.committee_size,
+        rewards_(config.genesis.pbft.committee_size, config.genesis.state.hardforks.rewards_distribution_frequency, db_,
                  [this](EthBlockNumber n) { return dpos_eligible_total_vote_count(n); }),
         block_headers_cache_(config.final_chain_cache_in_blocks,
                              [this](uint64_t blk) { return get_block_header(blk); }),
@@ -151,7 +151,7 @@ class FinalChainImpl final : public FinalChain {
                                                       std::shared_ptr<DagBlock>&& anchor) {
     auto batch = db_->createWriteBatch();
 
-    auto rewards_stats = rewards_.getStats(new_blk);
+    auto rewards_stats = rewards_.processStats(new_blk);
 
     block_applying_emitter_.emit(block_header()->number + 1);
 

@@ -15,6 +15,8 @@ namespace taraxa::rewards {
  */
 class BlockStats {
  public:
+  // Needed for RLP
+  BlockStats() = default;
   /**
    * @brief setting block_author_, max_votes_weight_ and calls processStats function
    *
@@ -58,7 +60,7 @@ class BlockStats {
    */
   bool addVote(const std::shared_ptr<Vote>& vote);
 
- private:
+ protected:
   struct ValidatorStats {
     // count of rewardable(with 1 or more unique transactions) DAG blocks produced by this validator
     uint32_t dag_blocks_count_ = 0;

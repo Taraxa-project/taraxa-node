@@ -96,10 +96,10 @@ u256 own_effective_genesis_bal(const FullNodeConfig& cfg) {
   return effective_initial_balances(cfg.genesis.state)[dev::toAddress(dev::Secret(cfg.node_secret))];
 }
 
-std::shared_ptr<PbftBlock> make_simple_pbft_block(const h256& hash, uint64_t period, const h256& anchor_hash) {
+std::shared_ptr<PbftBlock> make_simple_pbft_block(const h256& hash, uint64_t period, const secret_t& pk) {
   std::vector<vote_hash_t> reward_votes_hashes;
-  return std::make_shared<PbftBlock>(hash, anchor_hash, kNullBlockHash, kNullBlockHash, period, addr_t(0),
-                                     secret_t::random(), std::move(reward_votes_hashes));
+  return std::make_shared<PbftBlock>(hash, kNullBlockHash, kNullBlockHash, kNullBlockHash, period, addr_t(0), pk,
+                                     std::move(reward_votes_hashes));
 }
 
 std::vector<blk_hash_t> getOrderedDagBlocks(const std::shared_ptr<DbStorage>& db) {
