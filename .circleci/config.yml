@@ -1027,7 +1027,7 @@ workflows:
       - build-builder-docker-image:
           filters:
             branches:
-              ignore:
+              only:
                 - /^builder\/.*/
                 - /^chore\/multiarch.*/
           context:
