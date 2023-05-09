@@ -1,8 +1,9 @@
 #pragma once
 
-#include "../../../../../../../../../../../../../../Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk/usr/include/c++/v1/stdexcept"
-#include "../../../../../../../../../../../../../../Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk/usr/include/c++/v1/string"
-#include "../../../../../../../../aleth/libp2p/Common.h"
+#include <stdexcept>
+#include <string>
+
+#include "libp2p/Common.h"
 
 namespace taraxa {
 

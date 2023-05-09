@@ -1,8 +1,8 @@
 #pragma once
 
-#include "../../../../../../../types/dag_block/include/dag/dag_block.hpp"
-#include "../../../../../../../types/transaction/include/transaction/transaction.hpp"
 #include "common/packet_handler.hpp"
+#include "dag/dag_block.hpp"
+#include "transaction/transaction.hpp"
 
 namespace taraxa {
 class TransactionManager;

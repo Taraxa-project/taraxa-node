@@ -1,4 +1,5 @@
-#include "../../gtest.hpp"
+#include <gtest/gtest.h>
+
 #include "dag/dag.hpp"
 #include "dag/dag_block_proposer.hpp"
 #include "dag/dag_manager.hpp"

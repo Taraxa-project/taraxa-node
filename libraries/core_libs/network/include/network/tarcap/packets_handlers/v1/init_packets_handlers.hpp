@@ -1,14 +1,14 @@
 #pragma once
 
-#include "../../taraxa_capability.hpp"
-#include "../latest/dag_block_packet_handler.hpp"
-#include "../latest/dag_sync_packet_handler.hpp"
-#include "../latest/get_dag_sync_packet_handler.hpp"
-#include "../latest/status_packet_handler.hpp"
-#include "../latest/transaction_packet_handler.hpp"
-#include "../latest/vote_packet_handler.hpp"
 #include "get_next_votes_sync_packet_handler.hpp"
 #include "get_pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/dag_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/get_dag_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/status_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
+#include "network/tarcap/taraxa_capability.hpp"
 #include "pbft_sync_packet_handler.hpp"
 #include "votes_bundle_packet_handler.hpp"
 

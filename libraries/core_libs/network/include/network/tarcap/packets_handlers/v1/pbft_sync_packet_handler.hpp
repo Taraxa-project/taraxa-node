@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../../../../../consensus/include/vote_manager/vote_manager.hpp"
 #include "network/tarcap/packets_handlers/latest/common/ext_syncing_packet_handler.hpp"
+#include "vote_manager/vote_manager.hpp"
 
 namespace taraxa::network::tarcap::v1 {
 

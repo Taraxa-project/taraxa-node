@@ -1,15 +1,17 @@
 #pragma once
 
-#include "../../../../../../../../../../../../../../Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk/usr/include/c++/v1/memory"
-#include "../../../../../../../../../../../../../../Library/Developer/CommandLineTools/SDKs/MacOSX13.3.sdk/usr/include/c++/v1/string_view"
-#include "../../../../../../../../aleth/libdevcore/RLP.h"
-#include "../../../../../../../../common/include/common/thread_pool.hpp"
-#include "../../../../../../../../logger/include/logger/logger.hpp"
-#include "../../../../threadpool/packet_data.hpp"
-#include "../../../packet_types.hpp"
-#include "../../../shared_states/peers_state.hpp"
-#include "../../../taraxa_peer.hpp"
+#include <libdevcore/RLP.h>
+
+#include <memory>
+#include <string_view>
+
+#include "common/thread_pool.hpp"
 #include "exceptions.hpp"
+#include "logger/logger.hpp"
+#include "network/tarcap/packet_types.hpp"
+#include "network/tarcap/shared_states/peers_state.hpp"
+#include "network/tarcap/taraxa_peer.hpp"
+#include "network/threadpool/packet_data.hpp"
 
 namespace taraxa::network::tarcap {
 

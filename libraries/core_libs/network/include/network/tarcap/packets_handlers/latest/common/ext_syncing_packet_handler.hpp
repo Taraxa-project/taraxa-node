@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../../../../../../../../types/dag_block/include/dag/dag_block.hpp"
-#include "../../../../../../../consensus/include/dag/dag_manager.hpp"
+#include "dag/dag_block.hpp"
+#include "dag/dag_manager.hpp"
 #include "packet_handler.hpp"
 
 namespace taraxa {
