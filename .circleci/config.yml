@@ -1029,7 +1029,7 @@ workflows:
             branches:
               ignore:
                 - /^builder\/.*/
-                - /^chore\/multiarch-build.*/
+                - /^chore\/multiarch.*/
           context:
             - DOCKERHUB
 
