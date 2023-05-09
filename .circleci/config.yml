@@ -329,23 +329,16 @@ commands:
             echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >> $BASH_ENV
             echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
       - run:
-          name: Setup buildx and qemu
+          name: Clean old Images if disk available is lower than 15G
           command: |
-            sudo apt-get update
-            sudo apt-get install -y qemu-user-static
-            sudo apt-get install -y binfmt-support
-      - run:
-          name: Check versions
-          command: |
-            qemu-aarch64-static --version
-            update-binfmts --version 
-      - run:
-          name: Create builder
-          command: |
-            export DOCKER_CLI_EXPERIMENTAL=enabled
-            docker buildx create --name arm-builder
-            docker buildx use arm-builder
-            docker buildx inspect --bootstrap
+            for time in 120 96 72 48 24 12 6 3 1 0
+            do
+              if [ $(df  /var/lib/docker --block-size=1073741824 --output=avail|grep -v Avail) -lt 15 ]; then 
+                 df  /var/lib/docker --block-size=1073741824 --output=avail
+                 echo "Pruning images older than ${time}h"
+                 docker image prune -a --force --filter "until=${time}h"
+               fi
+            done
 
   build:
     description: Builds docker images
@@ -362,16 +355,11 @@ commands:
       - run:
           name: Build ctest image
           command: |
-            # docker build -t ${IMAGE}-ctest:${VERSION} --target build .
+            docker build -t ${IMAGE}-ctest:${VERSION} --target build .
       - run:
           name: Build taraxad image
           command: |
-            # DOCKER_CLI_EXPERIMENTAL=enabled docker buildx build --platform linux/arm64,linux/amd64 -t ${IMAGE}:${VERSION} .
-            DOCKER_CLI_EXPERIMENTAL=enabled docker buildx build --platform linux/amd64 -t ${IMAGE}:${VERSION} .
-      - run:
-          name: List images
-          command: |
-            docker images
+            docker build -t ${IMAGE}:${VERSION} .
 
   tag:
     description: Tags docker images
