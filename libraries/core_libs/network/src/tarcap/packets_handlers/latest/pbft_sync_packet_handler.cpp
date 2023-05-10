@@ -59,14 +59,14 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
   const bool last_block = packet_data.rlp_[0].toInt<bool>();
   PeriodData period_data;
   try {
-    period_data = PeriodData(packet_data.rlp_[1]);
+    period_data = decodePeriodData(packet_data.rlp_[1]);
   } catch (const std::runtime_error &e) {
     throw MaliciousPeerException("Unable to parse PeriodData: " + std::string(e.what()));
   }
 
   std::vector<std::shared_ptr<Vote>> current_block_cert_votes;
   if (pbft_chain_synced) {
-    current_block_cert_votes = decodeVotesBundleRlp(packet_data.rlp_[2]);
+    current_block_cert_votes = decodeVotesBundle(packet_data.rlp_[2]);
   }
   const auto pbft_blk_hash = period_data.pbft_blk->getBlockHash();
 
@@ -216,6 +216,14 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
       }
     }
   }
+}
+
+PeriodData PbftSyncPacketHandler::decodePeriodData(const dev::RLP &period_data_rlp) const {
+  return PeriodData(period_data_rlp);
+}
+
+std::vector<std::shared_ptr<Vote>> PbftSyncPacketHandler::decodeVotesBundle(const dev::RLP &votes_bundle_rlp) const {
+  return decodeVotesBundleRlp(votes_bundle_rlp);
 }
 
 void PbftSyncPacketHandler::pbftSyncComplete() {

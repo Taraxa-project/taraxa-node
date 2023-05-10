@@ -1,41 +1,17 @@
 #pragma once
 
-#include "network/tarcap/packets_handlers/latest/common/packet_handler.hpp"
-
-namespace taraxa {
-class PbftChain;
-class DbStorage;
-class VoteManager;
-}  // namespace taraxa
-
-namespace taraxa::network::tarcap {
-class PbftSyncingState;
-}
+#include "network/tarcap/packets_handlers/latest/get_pbft_sync_packet_handler.hpp"
 
 namespace taraxa::network::tarcap::v1 {
 
-class GetPbftSyncPacketHandler final : public tarcap::PacketHandler {
+// V1 packets handlers must be derived from latest packets handlers otherwise netowrk class might not work properly !
+class GetPbftSyncPacketHandler final : public tarcap::GetPbftSyncPacketHandler {
  public:
-  GetPbftSyncPacketHandler(const FullNodeConfig& conf, std::shared_ptr<tarcap::PeersState> peers_state,
-                           std::shared_ptr<tarcap::TimePeriodPacketsStats> packets_stats,
-                           std::shared_ptr<tarcap::PbftSyncingState> pbft_syncing_state,
-                           std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-                           std::shared_ptr<DbStorage> db, const addr_t& node_addr);
-
-  void sendPbftBlocks(dev::p2p::NodeID const& peer_id, PbftPeriod from_period, size_t blocks_to_transfer,
-                      bool pbft_chain_synced);
-
-  // Packet type that is processed by this handler
-  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetPbftSyncPacket;
+  using tarcap::GetPbftSyncPacketHandler::GetPbftSyncPacketHandler;
 
  private:
-  void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
-  void process(const threadpool::PacketData& packet_data, const std::shared_ptr<tarcap::TaraxaPeer>& peer) override;
-
-  std::shared_ptr<tarcap::PbftSyncingState> pbft_syncing_state_;
-  std::shared_ptr<PbftChain> pbft_chain_;
-  std::shared_ptr<VoteManager> vote_mgr_;
-  std::shared_ptr<DbStorage> db_;
+  void sendPbftBlocks(dev::p2p::NodeID const& peer_id, PbftPeriod from_period, size_t blocks_to_transfer,
+                      bool pbft_chain_synced) override;
 };
 
 }  // namespace taraxa::network::tarcap::v1

@@ -9,7 +9,7 @@ class VoteManager;
 
 namespace taraxa::network::tarcap {
 
-class GetNextVotesBundlePacketHandler final : public ExtVotesPacketHandler {
+class GetNextVotesBundlePacketHandler : public ExtVotesPacketHandler {
  public:
   GetNextVotesBundlePacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                                   std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -20,8 +20,8 @@ class GetNextVotesBundlePacketHandler final : public ExtVotesPacketHandler {
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetNextVotesSyncPacket;
 
  private:
-  void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
-  void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
+  virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
+  virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 };
 
 }  // namespace taraxa::network::tarcap

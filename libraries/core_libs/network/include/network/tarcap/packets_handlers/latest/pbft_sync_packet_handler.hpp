@@ -5,7 +5,7 @@
 
 namespace taraxa::network::tarcap {
 
-class PbftSyncPacketHandler final : public ExtSyncingPacketHandler {
+class PbftSyncPacketHandler : public ExtSyncingPacketHandler {
  public:
   PbftSyncPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                         std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -19,14 +19,17 @@ class PbftSyncPacketHandler final : public ExtSyncingPacketHandler {
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::PbftSyncPacket;
 
  private:
-  void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
-  void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
+  virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
+  virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
+
+ protected:
+  virtual PeriodData decodePeriodData(const dev::RLP& period_data_rlp) const;
+  virtual std::vector<std::shared_ptr<Vote>> decodeVotesBundle(const dev::RLP& votes_bundle_rlp) const;
 
   void pbftSyncComplete();
   void delayedPbftSync(int counter);
 
   std::shared_ptr<VoteManager> vote_mgr_;
-
   util::ThreadPool periodic_events_tp_;
 
   static constexpr size_t kStandardPacketSize = 2;

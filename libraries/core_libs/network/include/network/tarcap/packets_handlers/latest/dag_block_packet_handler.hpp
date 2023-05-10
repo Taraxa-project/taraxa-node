@@ -10,7 +10,7 @@ namespace taraxa::network::tarcap {
 
 class TestState;
 
-class DagBlockPacketHandler final : public ExtSyncingPacketHandler {
+class DagBlockPacketHandler : public ExtSyncingPacketHandler {
  public:
   DagBlockPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                         std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -27,9 +27,10 @@ class DagBlockPacketHandler final : public ExtSyncingPacketHandler {
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::DagBlockPacket;
 
  private:
-  void validatePacketRlpFormat(const threadpool::PacketData &packet_data) const override;
-  void process(const threadpool::PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) override;
+  virtual void validatePacketRlpFormat(const threadpool::PacketData &packet_data) const override;
+  virtual void process(const threadpool::PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) override;
 
+ protected:
   std::shared_ptr<TestState> test_state_;
   std::shared_ptr<TransactionManager> trx_mgr_{nullptr};
 };

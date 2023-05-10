@@ -16,7 +16,7 @@ PeriodData::PeriodData(std::shared_ptr<PbftBlock> pbft_blk,
                        const std::vector<std::shared_ptr<Vote>>& previous_block_cert_votes)
     : pbft_blk(std::move(pbft_blk)), previous_block_cert_votes(previous_block_cert_votes) {}
 
-PeriodData::PeriodData(dev::RLP&& rlp) {
+PeriodData::PeriodData(const dev::RLP& rlp) {
   auto it = rlp.begin();
   pbft_blk = std::make_shared<PbftBlock>(*it++);
 

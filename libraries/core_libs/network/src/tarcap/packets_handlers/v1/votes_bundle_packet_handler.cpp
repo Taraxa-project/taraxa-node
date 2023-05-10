@@ -5,15 +5,6 @@
 
 namespace taraxa::network::tarcap::v1 {
 
-VotesBundlePacketHandler::VotesBundlePacketHandler(const FullNodeConfig &conf,
-                                                   std::shared_ptr<tarcap::PeersState> peers_state,
-                                                   std::shared_ptr<tarcap::TimePeriodPacketsStats> packets_stats,
-                                                   std::shared_ptr<PbftManager> pbft_mgr,
-                                                   std::shared_ptr<PbftChain> pbft_chain,
-                                                   std::shared_ptr<VoteManager> vote_mgr, const addr_t &node_addr)
-    : ExtVotesPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
-                            std::move(pbft_chain), std::move(vote_mgr), node_addr, "V1_VOTES_SYNC_PH") {}
-
 void VotesBundlePacketHandler::validatePacketRlpFormat(
     [[maybe_unused]] const threadpool::PacketData &packet_data) const {
   auto items = packet_data.rlp_.itemCount();
@@ -135,27 +126,30 @@ void VotesBundlePacketHandler::process(const threadpool::PacketData &packet_data
   onNewPbftVotesBundle(votes, false, packet_data.from_node_id_);
 }
 
-void VotesBundlePacketHandler::onNewPbftVotesBundle(const std::vector<std::shared_ptr<Vote>> &votes, bool rebroadcast,
-                                                    const std::optional<dev::p2p::NodeID> &exclude_node) {
-  for (const auto &peer : peers_state_->getAllPeers()) {
-    if (peer.second->syncing_) {
-      continue;
+void VotesBundlePacketHandler::sendPbftVotesBundle(const std::shared_ptr<tarcap::TaraxaPeer> &peer,
+                                                   std::vector<std::shared_ptr<Vote>> &&votes) {
+  if (votes.empty()) {
+    return;
+  }
+
+  size_t index = 0;
+  while (index < votes.size()) {
+    const size_t count = std::min(static_cast<size_t>(kMaxVotesInBundleRlp), votes.size() - index);
+    dev::RLPStream s(count);
+    for (auto i = index; i < index + count; i++) {
+      const auto &vote = votes[i];
+      s.appendRaw(vote->rlp(true, false));
+      LOG(log_dg_) << "Send vote " << vote->getHash() << " to peer " << peer->getId();
     }
 
-    if (exclude_node.has_value() && *exclude_node == peer.first) {
-      continue;
-    }
-
-    std::vector<std::shared_ptr<Vote>> peer_votes;
-    for (const auto &vote : votes) {
-      if (!rebroadcast && peer.second->isVoteKnown(vote->getHash())) {
-        continue;
+    if (sealAndSend(peer->getId(), SubprotocolPacketType::VotesBundlePacket, std::move(s))) {
+      LOG(log_dg_) << count << " PBFT votes to were sent to " << peer->getId();
+      for (auto i = index; i < index + count; i++) {
+        peer->markVoteAsKnown(votes[i]->getHash());
       }
-
-      peer_votes.push_back(vote);
     }
 
-    sendPbftVotesBundle(peer.second, std::move(peer_votes));
+    index += count;
   }
 }
 

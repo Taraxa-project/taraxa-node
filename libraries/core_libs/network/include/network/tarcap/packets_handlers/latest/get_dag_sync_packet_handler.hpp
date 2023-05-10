@@ -10,7 +10,7 @@ class TransactionManager;
 
 namespace taraxa::network::tarcap {
 
-class GetDagSyncPacketHandler final : public PacketHandler {
+class GetDagSyncPacketHandler : public PacketHandler {
  public:
   GetDagSyncPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                           std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -24,9 +24,10 @@ class GetDagSyncPacketHandler final : public PacketHandler {
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetDagSyncPacket;
 
  private:
-  void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
-  void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
+  virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
+  virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
+ protected:
   std::shared_ptr<TransactionManager> trx_mgr_;
   std::shared_ptr<DagManager> dag_mgr_;
   std::shared_ptr<DbStorage> db_;

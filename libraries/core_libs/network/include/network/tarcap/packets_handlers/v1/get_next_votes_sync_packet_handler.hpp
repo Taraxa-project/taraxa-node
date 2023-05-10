@@ -1,27 +1,16 @@
 #pragma once
 
-#include "common/ext_votes_packet_handler.hpp"
-
-namespace taraxa {
-class PbftManager;
-class VoteManager;
-}  // namespace taraxa
+#include "network/tarcap/packets_handlers/latest/get_next_votes_sync_packet_handler.hpp"
 
 namespace taraxa::network::tarcap::v1 {
 
-class GetNextVotesBundlePacketHandler final : public ExtVotesPacketHandler {
+// V1 packets handlers must be derived from latest packets handlers otherwise netowrk class might not work properly !
+class GetNextVotesBundlePacketHandler final : public tarcap::GetNextVotesBundlePacketHandler {
  public:
-  GetNextVotesBundlePacketHandler(const FullNodeConfig& conf, std::shared_ptr<tarcap::PeersState> peers_state,
-                                  std::shared_ptr<tarcap::TimePeriodPacketsStats> packets_stats,
-                                  std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
-                                  std::shared_ptr<VoteManager> vote_mgr, const addr_t& node_addr);
+  using tarcap::GetNextVotesBundlePacketHandler::GetNextVotesBundlePacketHandler;
 
-  // Packet type that is processed by this handler
-  static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetNextVotesSyncPacket;
-
- private:
-  void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
-  void process(const threadpool::PacketData& packet_data, const std::shared_ptr<tarcap::TaraxaPeer>& peer) override;
+  void sendPbftVotesBundle(const std::shared_ptr<tarcap::TaraxaPeer>& peer,
+                           std::vector<std::shared_ptr<Vote>>&& votes) override;
 };
 
 }  // namespace taraxa::network::tarcap::v1
