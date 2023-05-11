@@ -26,7 +26,6 @@ orbs:
   github-release: izumin5210/github-release@0.1.1
   gcp-gcr: circleci/gcp-gcr@0.13.0
   gcp-cli: circleci/gcp-cli@2.4.1
-  docker-cache: cci-x/docker-registry-image-cache@0.2.12
   helm-release: taraxa/helm-release@0.1.1
 
 commands:
