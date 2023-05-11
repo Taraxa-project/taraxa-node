@@ -736,9 +736,10 @@ jobs:
       - run:
           name: check layers 
           command: |
-            docker history taraxa-builder 
+            docker history taraxa-builder:${VERSION} 
       - tag_builder
       - push_dockerhub
+
 
   release-docker-image:
       environment:
