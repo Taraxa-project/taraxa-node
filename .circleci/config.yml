@@ -327,15 +327,10 @@ commands:
             echo "export VERSION=$(git rev-parse --short HEAD)" >> $BASH_ENV
             echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
             echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >> $BASH_ENV
-            echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
 
   build:
-    description: Builds docker images
+    description: Builds docker image (node)
     steps:
-      - run:
-          name: Build builder image
-          command: |
-            docker build -t ${IMAGE}:${VERSION} --target builder .
       - run:
           name: Checkout Submodules
           command: |
@@ -344,6 +339,7 @@ commands:
       - run:
           name: Build ctest image
           command: |
+            # TODO: rename this ctest
             docker build -t ${IMAGE}-ctest:${VERSION} --target build .
       - run:
           name: Build taraxad image
@@ -351,7 +347,7 @@ commands:
             docker build -t ${IMAGE}:${VERSION} .
 
   build_builder:
-    description: Builds docker image (of builder)
+    description: Builds docker image (builder)
     steps:
       - run:
           name: Build builder image
@@ -359,7 +355,7 @@ commands:
             docker build -t ${IMAGE}:${VERSION} -f builder.Dockerfile .
 
   tag_builder:
-    description: Tags docker images (of builder)
+    description: Tags docker images (builder)
     steps:
       - run:
           name: Tag images
@@ -367,6 +363,11 @@ commands:
 
             # tag image based on commit
             if [[ ${CIRCLE_BRANCH} =~ ^builder.* ]]; then
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${VERSION}
+            fi
+
+            # tag image based on commit
+            if [[ ${CIRCLE_BRANCH} =~ ^chore.* ]]; then
               docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${VERSION}
             fi
 
