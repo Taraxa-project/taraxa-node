@@ -478,8 +478,8 @@ commands:
       - run:
           name: Push Images
           command: |
-            docker push taraxa/${IMAGE}:${CIRCLE_TAG}
-            docker push taraxa/${IMAGE}:latest
+            echo docker push taraxa/${IMAGE}:${CIRCLE_TAG}
+            # docker push taraxa/${IMAGE}:latest
 
   test:
     description: Run tests
@@ -720,6 +720,7 @@ jobs:
       - prepare
       - build_builder
       - tag_builder
+      - push_dockerhub
 
   release-docker-image:
       environment:
