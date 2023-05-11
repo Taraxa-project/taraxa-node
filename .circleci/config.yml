@@ -478,8 +478,15 @@ commands:
       - run:
           name: Push Images
           command: |
-            echo docker push taraxa/${IMAGE}:${CIRCLE_TAG}
-            # docker push taraxa/${IMAGE}:latest
+
+            if [[ ${CIRCLE_TAG} != "" ]];then
+              echo docker push taraxa/${IMAGE}:${CIRCLE_TAG}
+              echo docker push taraxa/${IMAGE}:latest
+            else
+              echo docker push taraxa/${IMAGE}:${VERSION}
+            fi
+
+
 
   test:
     description: Run tests
