@@ -720,7 +720,6 @@ jobs:
     machine:
       image: ubuntu-2204:2022.04.2
       docker_layer_caching: true
-    parallelism: 1
     resource_class: large
     steps:
       - checkout
@@ -734,7 +733,10 @@ jobs:
           name: check images
           command: |
             docker images
-      - build_builder
+      - run:
+          name: check layers 
+          command: |
+            docker history taraxa-builder 
       - tag_builder
       - push_dockerhub
 
