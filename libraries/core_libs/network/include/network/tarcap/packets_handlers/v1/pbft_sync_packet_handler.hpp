@@ -4,7 +4,7 @@
 
 namespace taraxa::network::tarcap::v1 {
 
-// V1 packets handlers must be derived from latest packets handlers otherwise netowrk class might not work properly !
+// V1 packets handlers must be derived from latest packets handlers otherwise network class might not work properly !
 class PbftSyncPacketHandler final : public tarcap::PbftSyncPacketHandler {
  public:
   using tarcap::PbftSyncPacketHandler::PbftSyncPacketHandler;

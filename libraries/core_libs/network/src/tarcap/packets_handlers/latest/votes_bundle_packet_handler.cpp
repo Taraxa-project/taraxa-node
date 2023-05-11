@@ -10,9 +10,10 @@ VotesBundlePacketHandler::VotesBundlePacketHandler(const FullNodeConfig &conf, s
                                                    std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                    std::shared_ptr<PbftManager> pbft_mgr,
                                                    std::shared_ptr<PbftChain> pbft_chain,
-                                                   std::shared_ptr<VoteManager> vote_mgr, const addr_t &node_addr)
+                                                   std::shared_ptr<VoteManager> vote_mgr, const addr_t &node_addr,
+                                                   const std::string &log_channel_name)
     : ExtVotesPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
-                            std::move(pbft_chain), std::move(vote_mgr), node_addr, "VOTES_SYNC_PH") {}
+                            std::move(pbft_chain), std::move(vote_mgr), node_addr, log_channel_name) {}
 
 void VotesBundlePacketHandler::validatePacketRlpFormat(
     [[maybe_unused]] const threadpool::PacketData &packet_data) const {

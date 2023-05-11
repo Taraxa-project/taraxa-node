@@ -6,7 +6,7 @@
 #include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/get_dag_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/latest/get_next_votes_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/get_next_votes_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/get_pbft_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/status_packet_handler.hpp"

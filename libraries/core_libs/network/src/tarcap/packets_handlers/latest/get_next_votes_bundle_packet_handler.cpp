@@ -1,4 +1,4 @@
-#include "network/tarcap/packets_handlers/latest/get_next_votes_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/get_next_votes_bundle_packet_handler.hpp"
 
 #include "pbft/pbft_manager.hpp"
 #include "vote_manager/vote_manager.hpp"
@@ -8,9 +8,10 @@ namespace taraxa::network::tarcap {
 GetNextVotesBundlePacketHandler::GetNextVotesBundlePacketHandler(
     const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
     std::shared_ptr<TimePeriodPacketsStats> packets_stats, std::shared_ptr<PbftManager> pbft_mgr,
-    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr, const addr_t &node_addr)
+    std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr, const addr_t &node_addr,
+    const std::string &log_channel_name)
     : ExtVotesPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_mgr),
-                            std::move(pbft_chain), std::move(vote_mgr), node_addr, "GET_NEXT_VOTES_SYNC_PH") {}
+                            std::move(pbft_chain), std::move(vote_mgr), node_addr, log_channel_name) {}
 
 void GetNextVotesBundlePacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
   if (constexpr size_t required_size = 2; packet_data.rlp_.itemCount() != required_size) {

@@ -14,10 +14,11 @@ DagBlockPacketHandler::DagBlockPacketHandler(const FullNodeConfig &conf, std::sh
                                              std::shared_ptr<PbftChain> pbft_chain,
                                              std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                                              std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DbStorage> db,
-                                             std::shared_ptr<TestState> test_state, const addr_t &node_addr)
+                                             std::shared_ptr<TestState> test_state, const addr_t &node_addr,
+                                             const std::string &log_channel_name)
     : ExtSyncingPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
-                              "DAG_BLOCK_PH"),
+                              log_channel_name),
       test_state_(std::move(test_state)),
       trx_mgr_(std::move(trx_mgr)) {}
 

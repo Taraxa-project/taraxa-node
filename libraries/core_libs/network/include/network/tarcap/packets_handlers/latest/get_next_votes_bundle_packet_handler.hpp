@@ -14,7 +14,8 @@ class GetNextVotesBundlePacketHandler : public ExtVotesPacketHandler {
   GetNextVotesBundlePacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                                   std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                   std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
-                                  std::shared_ptr<VoteManager> vote_mgr, const addr_t& node_addr);
+                                  std::shared_ptr<VoteManager> vote_mgr, const addr_t& node_addr,
+                                  const std::string& log_channel_name = "GET_NEXT_VOTES_BUNDLE_PH");
 
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetNextVotesSyncPacket;
