@@ -724,6 +724,15 @@ jobs:
     steps:
       - checkout
       - prepare
+      - run:
+          name: check images
+          command: |
+            docker images
+      - build_builder
+      - run:
+          name: check images
+          command: |
+            docker images
       - build_builder
       - tag_builder
       - push_dockerhub
