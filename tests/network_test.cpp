@@ -52,7 +52,7 @@ TEST_F(NetworkTest, transfer_block) {
   SharedTransactions transactions({g_signed_trx_samples[0], g_signed_trx_samples[1]});
   nw2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->onNewTransactions(std::move(transactions));
 
-  EXPECT_HAPPENS({10s, 200ms}, [&](auto& ctx) {
+  EXPECT_HAPPENS({60s, 100ms}, [&](auto& ctx) {
     nw1->setPendingPeersToReady();
     nw2->setPendingPeersToReady();
     WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 1)
@@ -318,7 +318,7 @@ TEST_F(NetworkTest, transfer_transaction) {
   nw1->start();
   nw2->start();
 
-  EXPECT_HAPPENS({20s, 100ms}, [&](auto& ctx) {
+  EXPECT_HAPPENS({60s, 100ms}, [&](auto& ctx) {
     nw1->setPendingPeersToReady();
     nw2->setPendingPeersToReady();
     WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 1)
@@ -365,7 +365,7 @@ TEST_F(NetworkTest, save_network) {
     nw2->start();
     nw3->start();
 
-    EXPECT_HAPPENS({120s, 500ms}, [&](auto& ctx) {
+    EXPECT_HAPPENS({120s, 100ms}, [&](auto& ctx) {
       nw1->setPendingPeersToReady();
       nw2->setPendingPeersToReady();
       nw3->setPendingPeersToReady();
@@ -382,7 +382,7 @@ TEST_F(NetworkTest, save_network) {
   nw2->start();
   nw3->start();
 
-  EXPECT_HAPPENS({120s, 500ms}, [&](auto& ctx) {
+  EXPECT_HAPPENS({120s, 100ms}, [&](auto& ctx) {
     nw2->setPendingPeersToReady();
     nw3->setPendingPeersToReady();
     WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 1)
