@@ -223,6 +223,10 @@ var annotated_dup =
           [ "TarcapThreadPool", "classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html", "classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool" ]
         ] ]
       ] ],
+      [ "rewards", "namespacetaraxa_1_1rewards.html", [
+        [ "BlockStats", "classtaraxa_1_1rewards_1_1_block_stats.html", "classtaraxa_1_1rewards_1_1_block_stats" ],
+        [ "Stats", "classtaraxa_1_1rewards_1_1_stats.html", "classtaraxa_1_1rewards_1_1_stats" ]
+      ] ],
       [ "state_api", "namespacetaraxa_1_1state__api.html", [
         [ "EVMChainConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_e_v_m_chain_config_dup" ],
         [ "ValidatorInfo", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_validator_info", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_validator_info_dup" ],
@@ -261,12 +265,10 @@ var annotated_dup =
         [ "lazy", "namespacetaraxa_1_1util_1_1lazy.html", [
           [ "Lazy", "classtaraxa_1_1util_1_1lazy_1_1_lazy.html", "classtaraxa_1_1util_1_1lazy_1_1_lazy" ]
         ] ],
-        [ "range_view", "namespacetaraxa_1_1util_1_1range__view.html", [
-          [ "RangeView", "structtaraxa_1_1util_1_1range__view_1_1_range_view.html", "structtaraxa_1_1util_1_1range__view_1_1_range_view" ]
-        ] ],
         [ "DefaultConstructCopyableMovable", "structtaraxa_1_1util_1_1_default_construct_copyable_movable.html", "structtaraxa_1_1util_1_1_default_construct_copyable_movable" ],
         [ "RLPDecoderRef", "structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html", "structtaraxa_1_1util_1_1_r_l_p_decoder_ref" ],
         [ "InvalidEncodingSize", "structtaraxa_1_1util_1_1_invalid_encoding_size.html", "structtaraxa_1_1util_1_1_invalid_encoding_size" ],
+        [ "RangeView", "structtaraxa_1_1util_1_1_range_view.html", "structtaraxa_1_1util_1_1_range_view" ],
         [ "ThreadPool", "classtaraxa_1_1util_1_1_thread_pool.html", "classtaraxa_1_1util_1_1_thread_pool" ]
       ] ],
       [ "vdf_sortition", "namespacetaraxa_1_1vdf__sortition.html", [
@@ -299,7 +301,6 @@ var annotated_dup =
       [ "SortitionParamsManager", "group___d_a_g.html#classtaraxa_1_1_sortition_params_manager", "group___d_a_g_classtaraxa_1_1_sortition_params_manager" ],
       [ "MapByBlockCache", "classtaraxa_1_1_map_by_block_cache.html", "classtaraxa_1_1_map_by_block_cache" ],
       [ "ValueByBlockCache", "classtaraxa_1_1_value_by_block_cache.html", "classtaraxa_1_1_value_by_block_cache" ],
-      [ "RewardsStats", "classtaraxa_1_1_rewards_stats.html", "classtaraxa_1_1_rewards_stats" ],
       [ "KeyManager", "classtaraxa_1_1_key_manager.html", "classtaraxa_1_1_key_manager" ],
       [ "PbftChain", "group___p_b_f_t.html#classtaraxa_1_1_pbft_chain", "group___p_b_f_t_classtaraxa_1_1_pbft_chain" ],
       [ "PbftManager", "group___p_b_f_t.html#classtaraxa_1_1_pbft_manager", "group___p_b_f_t_classtaraxa_1_1_pbft_manager" ],
@@ -337,6 +338,7 @@ var annotated_dup =
     [ "Hardforks", "hardfork_8hpp.html#struct_hardforks", "hardfork_8hpp_struct_hardforks" ],
     [ "ModularServer", "class_modular_server.html", "class_modular_server" ],
     [ "ModularServer< I, Is... >", "class_modular_server_3_01_i_00_01_is_8_8_8_01_4.html", "class_modular_server_3_01_i_00_01_is_8_8_8_01_4" ],
+    [ "RewardsStats", "namespace_3global_scope_4.html#class_rewards_stats", null ],
     [ "ServerInterface", "class_server_interface.html", "class_server_interface" ],
     [ "ThreadSafeMap", "class_thread_safe_map.html", "class_thread_safe_map" ],
     [ "ThreadSafeSet", "class_thread_safe_set.html", "class_thread_safe_set" ]

@@ -25,6 +25,7 @@ var classtaraxa_1_1_db_storage_1_1_columns =
     [ "COLUMN", "classtaraxa_1_1_db_storage_1_1_columns.html#ac8e778348c859a83eb1de366809e6886", null ],
     [ "COLUMN", "classtaraxa_1_1_db_storage_1_1_columns.html#a5ea70e51b66b85a6ee7012a37cdc3761", null ],
     [ "COLUMN", "classtaraxa_1_1_db_storage_1_1_columns.html#a561f6f1003a062935ca483640ad357dc", null ],
+    [ "COLUMN_W_COMP", "classtaraxa_1_1_db_storage_1_1_columns.html#a87b169fe3d64298b2fb655546a4fc011", null ],
     [ "COLUMN_W_COMP", "classtaraxa_1_1_db_storage_1_1_columns.html#ad331b9da9745610e6f50c066c487d39c", null ],
     [ "COLUMN_W_COMP", "classtaraxa_1_1_db_storage_1_1_columns.html#ac376bb51365919ccb71f1b7518b03cee", null ],
     [ "COLUMN_W_COMP", "classtaraxa_1_1_db_storage_1_1_columns.html#adc42098c09e8d1ceb01a749484b523ca", null ],

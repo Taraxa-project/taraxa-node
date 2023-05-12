@@ -29,6 +29,7 @@ var classtaraxa_1_1_db_storage =
     [ "createWriteBatch", "classtaraxa_1_1_db_storage.html#aea08b8d408a7e3f26f1fb011fe5ccd27", null ],
     [ "dagBlockInDb", "classtaraxa_1_1_db_storage.html#a0e7339685ce0f30cb9186ccec58709fa", null ],
     [ "dbStoragePath", "classtaraxa_1_1_db_storage.html#a9b3cbfc1c55197bafc743ffc9f886ab5", null ],
+    [ "deleteColumnData", "classtaraxa_1_1_db_storage.html#a58f8f08182c66b2865c959221d5795f3", null ],
     [ "deleteSnapshot", "classtaraxa_1_1_db_storage.html#a77cc4b74d4441edac750b95e824ae791", null ],
     [ "disableSnapshots", "classtaraxa_1_1_db_storage.html#a1389c4d576ca86153be5668efdff49de", null ],
     [ "enableSnapshots", "classtaraxa_1_1_db_storage.html#ab38881e05d52dd3406f49ac3ebe0a030", null ],

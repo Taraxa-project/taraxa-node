@@ -106,7 +106,7 @@ var group___final_chain =
       [ "operator=", "group___final_chain.html#a2ef92fcd4156622aa3dfe52a9f0a4f12", null ],
       [ "prune", "group___final_chain.html#a057cb79096d78ef1791a5224f32a88f4", null ],
       [ "trace", "group___final_chain.html#ac43a3d514db134411f3f0cc1d9389d30", null ],
-      [ "transition_state", "group___final_chain.html#a4fc5b10de077e2e5310d23978d3c9882", null ],
+      [ "transition_state", "group___final_chain.html#a7d3e8a5ad8afe36e33cfe8cfebd1a600", null ],
       [ "transition_state_commit", "group___final_chain.html#a7b5dc95d0aa9a90b7fd37fd3e0593cff", null ],
       [ "update_state_config", "group___final_chain.html#a80acb20cfd3c4b7b4c293657167e849e", null ],
       [ "db_path_", "group___final_chain.html#a2e7fd611f3cc2fcc8a6a3cfbaa858cc0", null ],

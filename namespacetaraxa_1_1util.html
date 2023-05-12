@@ -97,8 +97,6 @@ Namespaces</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:namespacetaraxa_1_1util_1_1lazy"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util_1_1lazy.html">lazy</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:namespacetaraxa_1_1util_1_1range__view"><td class="memItemLeft" align="right" valign="top"> &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util_1_1range__view.html">range_view</a></td></tr>
-<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Classes</h2></td></tr>
@@ -107,6 +105,8 @@ Classes</h2></td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html">RLPDecoderRef</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1util_1_1_invalid_encoding_size.html">InvalidEncodingSize</a></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1util_1_1_range_view.html">RangeView</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1util_1_1_thread_pool.html">ThreadPool</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -139,7 +139,7 @@ Functions</h2></td></tr>
 <tr class="memitem:aad23e6d1030a1df7bea80cf3fad3a3c3"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#aad23e6d1030a1df7bea80cf3fad3a3c3">rlp</a> (<a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a> encoding, std::optional&lt; Param &gt; const &amp;target)</td></tr>
 <tr class="separator:aad23e6d1030a1df7bea80cf3fad3a3c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a08c0ebe11d075726f5fcb914adf53a03"><td class="memTemplParams" colspan="2">template&lt;typename Param &gt; </td></tr>
-<tr class="memitem:a08c0ebe11d075726f5fcb914adf53a03"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a08c0ebe11d075726f5fcb914adf53a03">rlp</a> (<a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a> encoding, <a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">RangeView</a>&lt; Param &gt; const &amp;target)</td></tr>
+<tr class="memitem:a08c0ebe11d075726f5fcb914adf53a03"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a08c0ebe11d075726f5fcb914adf53a03">rlp</a> (<a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a> encoding, <a class="el" href="structtaraxa_1_1util_1_1_range_view.html">RangeView</a>&lt; Param &gt; const &amp;target)</td></tr>
 <tr class="separator:a08c0ebe11d075726f5fcb914adf53a03"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:adfdb3edf3587436dc1e59ef1df92c747"><td class="memTemplParams" colspan="2">template&lt;typename T1 , typename T2 &gt; </td></tr>
 <tr class="memitem:adfdb3edf3587436dc1e59ef1df92c747"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#adfdb3edf3587436dc1e59ef1df92c747">rlp</a> (<a class="el" href="namespacetaraxa_1_1util.html#a9cb3b1c1d289684696b20c11b057cf32">RLPEncoderRef</a> encoding, std::pair&lt; T1, T2 &gt; const &amp;target)</td></tr>
@@ -198,6 +198,9 @@ Functions</h2></td></tr>
 <tr class="separator:aae0d1a2af185914f61e3152821947037"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa0cf9b786ac9c80e9ef79fb2c667d63b"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#aa0cf9b786ac9c80e9ef79fb2c667d63b">readJsonFromString</a> (std::string_view str)</td></tr>
 <tr class="separator:aa0cf9b786ac9c80e9ef79fb2c667d63b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8654434426bb76a775a185ca1a070c24"><td class="memTemplParams" colspan="2">template&lt;typename Seq &gt; </td></tr>
+<tr class="memitem:a8654434426bb76a775a185ca1a070c24"><td class="memTemplItemLeft" align="right" valign="top">auto&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#a8654434426bb76a775a185ca1a070c24">make_range_view</a> (Seq const &amp;seq)</td></tr>
+<tr class="separator:a8654434426bb76a775a185ca1a070c24"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa57a87cf79b5ec8b938c45fc75c6a285"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa_1_1util.html#aa57a87cf79b5ec8b938c45fc75c6a285">readJsonFromFile</a> (const std::filesystem::path &amp;file_path)</td></tr>
 <tr class="separator:aa57a87cf79b5ec8b938c45fc75c6a285"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -350,6 +353,26 @@ template&lt;typename Param , typename... Params&gt; </div>
 <span class="mlabels"><span class="mlabel">inline</span></span>  </td>
   </tr>
 </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8654434426bb76a775a185ca1a070c24"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8654434426bb76a775a185ca1a070c24">&#9670;&nbsp;</a></span>make_range_view()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename Seq &gt; </div>
+      <table class="memname">
+        <tr>
+          <td class="memname">auto taraxa::util::make_range_view </td>
+          <td>(</td>
+          <td class="paramtype">Seq const &amp;&#160;</td>
+          <td class="paramname"><em>seq</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
 </div><div class="memdoc">
 
 </div>
@@ -775,7 +798,7 @@ template&lt;typename Param &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structtaraxa_1_1util_1_1range__view_1_1_range_view.html">RangeView</a>&lt; Param &gt; const &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structtaraxa_1_1util_1_1_range_view.html">RangeView</a>&lt; Param &gt; const &amp;&#160;</td>
           <td class="paramname"><em>target</em>&#160;</td>
         </tr>
         <tr>
