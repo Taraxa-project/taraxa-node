@@ -169,7 +169,7 @@ state_api::BalanceMap effective_initial_balances(const state_api::Config& cfg);
 u256 own_effective_genesis_bal(const FullNodeConfig& cfg);
 
 std::shared_ptr<PbftBlock> make_simple_pbft_block(const h256& hash, uint64_t period,
-                                                  const h256& anchor_hash = kNullBlockHash);
+                                                  const secret_t& pk = secret_t::random());
 
 std::vector<blk_hash_t> getOrderedDagBlocks(const std::shared_ptr<DbStorage>& db);
 

@@ -6,7 +6,6 @@
 
 #include "common/types.hpp"
 #include "final_chain/final_chain.hpp"
-#include "final_chain/rewards_stats.hpp"
 
 namespace taraxa::final_chain {
 class ContractInterface {
