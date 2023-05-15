@@ -360,18 +360,15 @@ commands:
           name: Tag images
           command: |
 
-            # tag image based on commit
-            if [[ ${CIRCLE_BRANCH} =~ ^builder.* ]]; then
-              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${VERSION}
-            fi
-
-            # tag image based on commit
-            if [[ ${CIRCLE_BRANCH} =~ ^chore.* ]]; then
+            # tag image based on commit in branch
+            if ! [ -z "${CIRCLE_BRANCH}" ]; then
+              echo "Tagging based on commit"
               docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${VERSION}
             fi
 
             # tag image based on tag
             if [[ ${CIRCLE_TAG} != "" ]];then
+              echo "Tagging based on tag"
               docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${CIRCLE_TAG}
               docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:latest
             fi
