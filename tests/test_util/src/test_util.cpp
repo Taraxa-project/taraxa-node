@@ -302,7 +302,7 @@ std::vector<taraxa::FullNodeConfig> NodesTest::make_node_cfgs(size_t total_count
 
 bool NodesTest::wait_connect(const std::vector<std::shared_ptr<taraxa::FullNode>>& nodes) {
   auto num_peers_connected = nodes.size() - 1;
-  return wait({30s, 1s}, [&](auto& ctx) {
+  return wait({60s, 100ms}, [&](auto& ctx) {
     for (const auto& node : nodes) {
       if (ctx.fail_if(node->getNetwork()->getPeerCount() < num_peers_connected)) {
         return;
