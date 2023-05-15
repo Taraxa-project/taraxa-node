@@ -1396,7 +1396,7 @@ TEST_F(NetworkTest, suspicious_packets) {
 
 TEST_F(NetworkTest, dag_syncing_limit) {
   network::tarcap::TaraxaPeer peer1, peer2;
-  const uint64_t dag_sync_limit = 300;
+  const uint64_t dag_sync_limit = 60;
 
   EXPECT_TRUE(peer1.dagSyncingAllowed());
   peer1.peer_dag_synced_ = true;
