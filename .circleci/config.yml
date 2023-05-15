@@ -725,16 +725,16 @@ jobs:
       - checkout
       - prepare
       - run:
-          name: check images
+          name: List images restored from DLC
           command: |
             docker images
       - build_builder
       - run:
-          name: check images
+          name: List images to be saved in DLC
           command: |
             docker images
       - run:
-          name: check layers 
+          name: Show layers of taraxa-builder image
           command: |
             docker history taraxa-builder:${VERSION} 
       - tag_builder
