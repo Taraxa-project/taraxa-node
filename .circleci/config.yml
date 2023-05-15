@@ -360,17 +360,11 @@ commands:
           name: Tag images
           command: |
 
-            # tag image based on commit in branch
-            if ! [ -z "${CIRCLE_BRANCH}" ]; then
-              echo "Tagging based on commit"
-              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${VERSION}
-            fi
-
-            # tag image based on tag
             if [[ ${CIRCLE_TAG} != "" ]];then
-              echo "Tagging based on tag"
               docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${CIRCLE_TAG}
               docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:latest
+            else
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${VERSION}
             fi
 
   tag:
@@ -476,10 +470,10 @@ commands:
           command: |
 
             if [[ ${CIRCLE_TAG} != "" ]];then
-              echo docker push taraxa/${IMAGE}:${CIRCLE_TAG}
-              echo docker push taraxa/${IMAGE}:latest
+              docker push taraxa/${IMAGE}:${CIRCLE_TAG}
+              docker push taraxa/${IMAGE}:latest
             else
-              echo docker push taraxa/${IMAGE}:${VERSION}
+              docker push taraxa/${IMAGE}:${VERSION}
             fi
 
 
