@@ -351,8 +351,7 @@ commands:
       - run:
           name: Build builder image
           command: |
-            # docker build -t ${IMAGE}:${VERSION} -f builder.Dockerfile .
-            docker build -t ${IMAGE}:${VERSION} -f test.Dockerfile .
+            docker build -t ${IMAGE}:${VERSION} -f builder.Dockerfile .
 
   tag_builder:
     description: Tags docker images (builder)
