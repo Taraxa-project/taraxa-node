@@ -1036,6 +1036,8 @@ workflows:
             - build-linux
             - build-mac
 
+
+  # ### workflows for builder image ### #
   # run this workflow for specific branches 'builder/*'
   build-builder-docker-image:
     when:
@@ -1049,11 +1051,31 @@ workflows:
             branches:
               only:
                 - /^builder\/.*/
+                # FIXME: remove later
                 - /^chore\/multiarch.*/
           context:
             - DOCKERHUB
 
+  # run this workflow for specific tags 'builder/*'
+  release-builder-docker-image:
+    when:
+      and:
+        - not: << pipeline.parameters.deploy_prnet >>
+        - not: << pipeline.parameters.redeploy_prnet >>
+        - not: << pipeline.parameters.cleanup_prnet >>
+    jobs:
+      - build-builder-docker-image:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^builder-v\d+.\d+.\d+/
+          context:
+            - DOCKERHUB
+  # ### workflows for builder image ### #
 
+
+  # ### workflows for taraxa-node image ### #
   # run this workflow for all branches apart those reserved for chart
   build-docker-image:
     when:
@@ -1070,6 +1092,9 @@ workflows:
                 - /^chore\/chart-.*/
                 - /^fix\/chart-.*/
                 - /^feature\/chart-.*/
+                - /^builder\/.*/
+                  # FIXME: remove later
+                - /^chore\/multiarch.*/
           context:
             - TARAXA
             - GCP
@@ -1094,7 +1119,9 @@ workflows:
             - K8S
             - GCR
             - DOCKERHUB
+  # ### workflows for taraxa-node image ### #
 
+  # ### workflows for taraxa-node helm chart ### #
   # run this workflow for branches specified below
   build-helm-chart:
     when:
@@ -1120,7 +1147,6 @@ workflows:
               - /^fix\/chart-.*/
               - /^feature\/chart-.*/
 
-
   # run this workflow for tags, like chart-vX.Y.Z
   release-helm-chart:
     jobs:
@@ -1137,3 +1163,4 @@ workflows:
               ignore: /.*/
             tags:
               only: /^chart-v\d+.\d+.\d+/
+  # ### workflows for taraxa-node helm chart ### #
