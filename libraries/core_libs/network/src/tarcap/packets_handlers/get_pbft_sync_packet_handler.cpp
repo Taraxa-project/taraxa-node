@@ -59,12 +59,13 @@ void GetPbftSyncPacketHandler::process(const PacketData &packet_data,
   }
   LOG(log_tr_) << "Will send " << blocks_to_transfer << " PBFT blocks to " << packet_data.from_node_id_;
 
-  sendPbftBlocks(packet_data.from_node_id_, height_to_sync, blocks_to_transfer, pbft_chain_synced);
+  sendPbftBlocks(peer, height_to_sync, blocks_to_transfer, pbft_chain_synced);
 }
 
 // api for pbft syncing
-void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, PbftPeriod from_period,
+void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> &peer, PbftPeriod from_period,
                                               size_t blocks_to_transfer, bool pbft_chain_synced) {
+  const auto &peer_id = peer->getId();
   LOG(log_tr_) << "sendPbftBlocks: peer want to sync from pbft chain height " << from_period << ", will send at most "
                << blocks_to_transfer << " pbft blocks to " << peer_id;
 
@@ -95,6 +96,9 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, P
     }
     LOG(log_dg_) << "Sending PbftSyncPacket period " << block_period << " to " << peer_id;
     sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, std::move(s));
+    if (pbft_chain_synced && last_block) {
+      peer->syncing_ = false;
+    }
   }
 }
 
