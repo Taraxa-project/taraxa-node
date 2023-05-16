@@ -337,7 +337,7 @@ commands:
             git submodule sync
             git submodule update --init --recursive --jobs 8
       - run:
-          name: Build ctest image
+          name: Compile and build binaries
           command: |
             docker build -t ${IMAGE}-ctest:${VERSION} --target build .
       - run:
