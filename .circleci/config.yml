@@ -326,6 +326,7 @@ commands:
             echo "export VERSION=$(git rev-parse --short HEAD)" >> $BASH_ENV
             echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
             echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >> $BASH_ENV
+            echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
 
   build:
     description: Builds docker image (node)
