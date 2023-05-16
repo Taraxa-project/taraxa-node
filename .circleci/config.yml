@@ -329,7 +329,7 @@ commands:
             echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
 
   build:
-    description: Builds docker image (node)
+    description: Builds docker image (${IMAGE})
     steps:
       - run:
           name: Checkout Submodules
@@ -346,7 +346,7 @@ commands:
             docker build -t ${IMAGE}:${VERSION} .
 
   build_builder:
-    description: Builds docker image (builder)
+    description: Builds docker image (${IMAGE})
     steps:
       - run:
           name: Build builder image
@@ -361,6 +361,7 @@ commands:
           command: |
 
             if [[ ${CIRCLE_TAG} != "" ]];then
+              TAG=$()
               docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${CIRCLE_TAG}
               docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:latest
             else
@@ -401,14 +402,15 @@ commands:
 
             # tag images for 'feature' branches (based on PRs)
             if [[ ${PR} != "false" ]]; then
-              echo docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
-              echo docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_SHA1}
-              echo docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${SHORT_GIT_HASH}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_SHA1}
+              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${SHORT_GIT_HASH}
             fi
 
             # tag images for release (based on tag)
             if [[ ${CIRCLE_TAG} != "" ]];then
-              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${CIRCLE_TAG}
+              TAG=$(echo ${CIRCLE_TAG} | sed 's/^builder-//g')
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${TAG}
               docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:latest
             fi
 
@@ -470,7 +472,8 @@ commands:
           command: |
 
             if [[ ${CIRCLE_TAG} != "" ]];then
-              docker push taraxa/${IMAGE}:${CIRCLE_TAG}
+              TAG=$(echo ${CIRCLE_TAG} | sed 's/^builder-//g')
+              docker push taraxa/${IMAGE}:${TAG}
               docker push taraxa/${IMAGE}:latest
             else
               docker push taraxa/${IMAGE}:${VERSION}
