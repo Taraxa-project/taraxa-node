@@ -341,7 +341,7 @@ commands:
           command: |
             docker build -t ${IMAGE}-ctest:${VERSION} --target build .
       - run:
-          name: Build taraxad image
+          name: Build final Docker image (${IMAGE})
           command: |
             docker build -t ${IMAGE}:${VERSION} .
 
