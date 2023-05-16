@@ -361,8 +361,8 @@ commands:
           command: |
 
             if [[ ${CIRCLE_TAG} != "" ]];then
-              TAG=$()
-              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${CIRCLE_TAG}
+              TAG=$(echo ${CIRCLE_TAG} | sed 's/^builder-//g')
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${TAG}
               docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:latest
             else
               docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${VERSION}
@@ -409,8 +409,7 @@ commands:
 
             # tag images for release (based on tag)
             if [[ ${CIRCLE_TAG} != "" ]];then
-              TAG=$(echo ${CIRCLE_TAG} | sed 's/^builder-//g')
-              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${TAG}
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${CIRCLE_TAG}
               docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:latest
             fi
 
