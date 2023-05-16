@@ -338,7 +338,6 @@ commands:
       - run:
           name: Build ctest image
           command: |
-            # TODO: rename this ctest
             docker build -t ${IMAGE}-ctest:${VERSION} --target build .
       - run:
           name: Build taraxad image
@@ -401,9 +400,9 @@ commands:
 
             # tag images for 'feature' branches (based on PRs)
             if [[ ${PR} != "false" ]]; then
-              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
-              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_SHA1}
-              docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${SHORT_GIT_HASH}
+              echo docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_BUILD_NUM}
+              echo docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${CIRCLE_SHA1}
+              echo docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}:pr-${PR}-${SHORT_GIT_HASH}
             fi
 
             # tag images for release (based on tag)
