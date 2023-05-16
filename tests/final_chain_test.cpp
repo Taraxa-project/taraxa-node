@@ -49,12 +49,15 @@ struct FinalChainTest : WithDataDir {
     for (const auto& trx : trxs) {
       trx_hashes.emplace_back(trx->getHash());
     }
-    DagBlock dag_blk({}, {}, {}, trx_hashes, {}, {}, secret_t::random());
+
+    auto proposer_keys = dev::KeyPair::create();
+    DagBlock dag_blk({}, {}, {}, trx_hashes, {}, {}, proposer_keys.secret());
     db->saveDagBlock(dag_blk);
     std::vector<vote_hash_t> reward_votes_hashes;
     auto pbft_block =
         std::make_shared<PbftBlock>(kNullBlockHash, kNullBlockHash, kNullBlockHash, kNullBlockHash, expected_blk_num,
-                                    addr_t::random(), dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
+                                    addr_t::random(), proposer_keys.secret(), std::move(reward_votes_hashes));
+
     std::vector<std::shared_ptr<Vote>> votes;
     PeriodData period_data(pbft_block, votes);
     period_data.dag_blocks.push_back(dag_blk);
@@ -62,7 +65,6 @@ struct FinalChainTest : WithDataDir {
 
     auto batch = db->createWriteBatch();
     db->savePeriodData(period_data, batch);
-
     db->commitWriteBatch(batch);
 
     auto result = SUT->finalize(std::move(period_data), {dag_blk.getHash()}).get();
@@ -447,6 +449,9 @@ TEST_F(FinalChainTest, failed_transaction_fee) {
   auto trx2_1 = std::make_shared<Transaction>(2, 101, 1, gas, dev::bytes(), sk, receiver);
 
   advance({trx1});
+  auto blk = SUT->block_header(expected_blk_num);
+  auto proposer_balance = SUT->getBalance(blk->author);
+  EXPECT_EQ(proposer_balance.first, 21000);
   advance({trx2});
   advance({trx3});
 
@@ -598,6 +603,26 @@ TEST_F(FinalChainTest, incorrect_estimation_regress) {
     est["gas"] = dev::toJS(estimate);
     eth_json_rpc->eth_call(est, "latest");
   }
+}
+
+TEST_F(FinalChainTest, fee_rewards_distribution) {
+  auto sender_keys = dev::KeyPair::create();
+  auto gas = 30000;
+
+  const auto& receiver = dev::KeyPair::create().address();
+  const auto& addr = sender_keys.address();
+  const auto& sk = sender_keys.secret();
+  cfg.genesis.state.initial_balances = {};
+  cfg.genesis.state.initial_balances[addr] = 100000;
+  init();
+  const auto gas_price = 1;
+  auto trx1 = std::make_shared<Transaction>(1, 100, gas_price, gas, dev::bytes(), sk, receiver);
+
+  auto res = advance({trx1});
+  auto gas_used = res->trx_receipts.front().gas_used;
+  auto blk = SUT->block_header(expected_blk_num);
+  auto proposer_balance = SUT->getBalance(blk->author);
+  EXPECT_EQ(proposer_balance.first, gas_used * gas_price);
 }
 
 // This test should be last as state_api isn't destructed correctly because of exception

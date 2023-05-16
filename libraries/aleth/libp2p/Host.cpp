@@ -55,7 +55,7 @@ Host::Host(std::string _clientVersion, KeyPair const& kp, NetworkConfig _n, Tara
   handshake_ctx.port = m_listenPort;
   handshake_ctx.client_version = m_clientVersion;
   handshake_ctx.on_success = [this](auto const& id, auto const& rlp, auto frame_coder, auto socket) {
-    ba::post(strand_, [=, this, _ = shared_from_this(), rlp = rlp.data().cropped(0, rlp.actualSize()).toBytes(),
+    ba::post(strand_, [=, this, rlp = rlp.data().cropped(0, rlp.actualSize()).toBytes(),
                        frame_coder = std::move(frame_coder)]() mutable {
       startPeerSession(id, RLP(rlp), std::move(frame_coder), socket);
     });
@@ -94,11 +94,15 @@ Host::Host(std::string _clientVersion, KeyPair const& kp, NetworkConfig _n, Tara
     }
   }
   LOG(m_logger) << "devp2p started. Node id: " << id();
-  runAcceptor();
   //!!! this needs to be post to session_ioc_ as main_loop_body handles peer/session related stuff
   // and it should not be execute for bootnodes, but it needs to bind with strand_
   // as it touching same structures as discovery part !!!
-  ba::post(session_ioc_, [this] { ba::post(strand_, [this] { main_loop_body(); }); });
+  ba::post(session_ioc_, [this] {
+    ba::post(strand_, [this] {
+      runAcceptor();
+      main_loop_body();
+    });
+  });
 }
 
 std::shared_ptr<Host> Host::make(std::string _clientVersion, CapabilitiesFactory const& cap_factory, KeyPair const& kp,
@@ -116,10 +120,6 @@ std::shared_ptr<Host> Host::make(std::string _clientVersion, CapabilitiesFactory
 }
 
 Host::~Host() {
-  // reset io_context (allows manually polling network, below)
-  ioc_.stop();
-  session_ioc_.restart();
-
   // shutdown acceptor from same executor
   ba::post(m_tcp4Acceptor.get_executor(), [this] {
     m_tcp4Acceptor.cancel();
@@ -136,9 +136,13 @@ Host::~Host() {
       s->disconnect(ClientQuit);
     }
   }
-  while (0 < session_ioc_.poll())
+  // We need to poll both as strand_ is ioc_
+  while (0 < session_ioc_.poll() + ioc_.poll())
     ;
   save_state();
+
+  ioc_.restart();
+  session_ioc_.restart();
 }
 
 ba::io_context::count_type Host::do_work() {
@@ -423,7 +427,7 @@ void Host::runAcceptor() {
         } else {
           // incoming connection; we don't yet know nodeid
           auto handshake = make_shared<RLPXHandshake>(handshake_ctx_, socket);
-          ba::post(strand_, [=, this, this_shared = shared_from_this()] {
+          ba::post(strand_, [=, this] {
             m_connecting.push_back(handshake);
             handshake->start();
           });
@@ -462,24 +466,24 @@ void Host::connect(shared_ptr<Peer> const& _p) {
   bi::tcp::endpoint ep(_p->get_endpoint());
   cnetdetails << "Attempting connection to " << _p->id << "@" << ep << " from " << id();
   auto socket = make_shared<RLPXSocket>(bi::tcp::socket(make_strand(session_ioc_)));
-  socket->ref().async_connect(
-      ep, ba::bind_executor(strand_, [=, this, this_shared = shared_from_this()](boost::system::error_code const& ec) {
-        _p->m_lastAttempted = chrono::system_clock::now();
-        _p->m_failedAttempts++;
+  socket->ref().async_connect(ep, ba::bind_executor(strand_, [=, this](boost::system::error_code const& ec) {
+                                _p->m_lastAttempted = chrono::system_clock::now();
+                                _p->m_failedAttempts++;
 
-        if (ec) {
-          cnetdetails << "Connection refused to node " << _p->id << "@" << ep << " (" << ec.message() << ")";
-          // Manually set error (session not present)
-          _p->m_lastDisconnect = TCPError;
-        } else {
-          cnetdetails << "Starting RLPX handshake with " << _p->id << "@" << ep;
-          auto handshake = make_shared<RLPXHandshake>(handshake_ctx_, socket, _p->id);
-          m_connecting.push_back(handshake);
+                                if (ec) {
+                                  cnetdetails << "Connection refused to node " << _p->id << "@" << ep << " ("
+                                              << ec.message() << ")";
+                                  // Manually set error (session not present)
+                                  _p->m_lastDisconnect = TCPError;
+                                } else {
+                                  cnetdetails << "Starting RLPX handshake with " << _p->id << "@" << ep;
+                                  auto handshake = make_shared<RLPXHandshake>(handshake_ctx_, socket, _p->id);
+                                  m_connecting.push_back(handshake);
 
-          handshake->start();
-        }
-        m_pendingPeerConns.erase(nptr);
-      }));
+                                  handshake->start();
+                                }
+                                m_pendingPeerConns.erase(nptr);
+                              }));
 }
 
 PeerSessionInfos Host::peerSessionInfos() const {

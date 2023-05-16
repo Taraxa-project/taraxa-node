@@ -301,6 +301,11 @@ bool PbftManager::tryPushCertVotesBlock() {
   auto pbft_block = getValidPbftProposedBlock(current_pbft_period, certified_block_hash);
   if (!pbft_block) {
     LOG(log_er_) << "Invalid certified block " << certified_block_hash;
+    auto net = network_.lock();
+    // If block/reward votes are missing but block is cert voted other nodes probably advanced, sync
+    if (net) {
+      net->restartSyncingPbft();
+    }
     return false;
   }
 
@@ -664,12 +669,16 @@ bool PbftManager::stateOperations_() {
   // Process synced blocks
   pushSyncedPbftBlocksIntoChain();
 
-  // (Re)broadcast votes if needed
-  broadcastVotes();
+  auto net = network_.lock();
+  // Only broadcast votes and try to push cert voted block if node is not syncing
+  if (net && !net->pbft_syncing()) {
+    // (Re)broadcast votes if needed
+    broadcastVotes();
 
-  // Check if there is 2t+1 cert votes for some valid block, if so - push it into the chain
-  if (tryPushCertVotesBlock()) {
-    return true;
+    // Check if there is 2t+1 cert votes for some valid block, if so - push it into the chain
+    if (tryPushCertVotesBlock()) {
+      return true;
+    }
   }
 
   // Check if there is 2t+1 next votes for some valid block, if so - advance round

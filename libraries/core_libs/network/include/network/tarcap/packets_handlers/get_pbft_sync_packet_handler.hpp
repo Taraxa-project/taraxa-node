@@ -20,7 +20,7 @@ class GetPbftSyncPacketHandler final : public PacketHandler {
                            std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DbStorage> db,
                            const addr_t& node_addr);
 
-  void sendPbftBlocks(dev::p2p::NodeID const& peer_id, PbftPeriod from_period, size_t blocks_to_transfer,
+  void sendPbftBlocks(const std::shared_ptr<TaraxaPeer>& peer, PbftPeriod from_period, size_t blocks_to_transfer,
                       bool pbft_chain_synced);
 
   // Packet type that is processed by this handler

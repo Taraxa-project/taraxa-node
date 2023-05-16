@@ -1698,6 +1698,10 @@
     "a903715b57d3bf62e098a6a643c6924d9bdacec4": "0x170a0f5040e50400000",
     "5bd47fef8e8dcb6677c2957ecd78b8232354f145": "0x191cf61eb2bec223400"
   },
+  "hardforks": {
+    "rewards_distribution_frequency": {
+    }
+  },
   "gas_price": {
     "blocks": 200,
     "percentile": 60,

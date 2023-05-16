@@ -114,6 +114,16 @@ void DbStorage::updateDbVersions() {
   saveStatusField(StatusDbField::DbMinorVersion, TARAXA_DB_MINOR_VERSION);
 }
 
+void DbStorage::deleteColumnData(const Column& c) {
+  checkStatus(db_->DropColumnFamily(handle(c)));
+
+  auto options = rocksdb::ColumnFamilyOptions();
+  if (c.comparator_) {
+    options.comparator = c.comparator_;
+  }
+  checkStatus(db_->CreateColumnFamily(options, c.name(), &handles_[c.ordinal_]));
+}
+
 void DbStorage::rebuildColumns(const rocksdb::Options& options) {
   std::unique_ptr<rocksdb::DB> db;
   std::vector<std::string> column_families;
