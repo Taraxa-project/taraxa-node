@@ -164,6 +164,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ad462163041fc976cacd980b387071e06"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a58f8f08182c66b2865c959221d5795f3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a58f8f08182c66b2865c959221d5795f3">deleteColumnData</a> (const <a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> &amp;c)</td></tr>
 <tr class="separator:a58f8f08182c66b2865c959221d5795f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8fdea06e7db5a040e06a77cd95e6f980"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a8fdea06e7db5a040e06a77cd95e6f980">removeOldLogFiles</a> () const</td></tr>
+<tr class="separator:a8fdea06e7db5a040e06a77cd95e6f980"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afbda8888e46152dd8fd14fee81ae5ffb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#afbda8888e46152dd8fd14fee81ae5ffb">removeFilesWithPattern</a> (const std::string &amp;directory, const std::regex &amp;pattern) const</td></tr>
+<tr class="separator:afbda8888e46152dd8fd14fee81ae5ffb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c216a3511b4e530505a25198f7181e6"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a9c216a3511b4e530505a25198f7181e6">getMajorVersion</a> () const</td></tr>
 <tr class="separator:a9c216a3511b4e530505a25198f7181e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afc663f43099756e78a3da91d21af167c"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; rocksdb::Iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#afc663f43099756e78a3da91d21af167c">getColumnIterator</a> (const <a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> &amp;c)</td></tr>
@@ -2709,6 +2713,51 @@ template&lt;typename K &gt; </div>
           <td></td>
           <td>)</td>
           <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afbda8888e46152dd8fd14fee81ae5ffb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afbda8888e46152dd8fd14fee81ae5ffb">&#9670;&nbsp;</a></span>removeFilesWithPattern()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::DbStorage::removeFilesWithPattern </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>directory</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::regex &amp;&#160;</td>
+          <td class="paramname"><em>pattern</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a8fdea06e7db5a040e06a77cd95e6f980"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8fdea06e7db5a040e06a77cd95e6f980">&#9670;&nbsp;</a></span>removeOldLogFiles()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::DbStorage::removeOldLogFiles </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">

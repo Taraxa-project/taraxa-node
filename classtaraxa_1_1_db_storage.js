@@ -97,6 +97,8 @@ var classtaraxa_1_1_db_storage =
     [ "removeDagBlock", "classtaraxa_1_1_db_storage.html#a52ac6fd748255b5b9ee3bbc65df5c6a4", null ],
     [ "removeDagBlockBatch", "classtaraxa_1_1_db_storage.html#ae36e49e8e5977e63ca4ee2bd509637b5", null ],
     [ "removeExtraRewardVotes", "classtaraxa_1_1_db_storage.html#a2271d68a677903a0d080b9184fa9f062", null ],
+    [ "removeFilesWithPattern", "classtaraxa_1_1_db_storage.html#afbda8888e46152dd8fd14fee81ae5ffb", null ],
+    [ "removeOldLogFiles", "classtaraxa_1_1_db_storage.html#a8fdea06e7db5a040e06a77cd95e6f980", null ],
     [ "removeProposedPbftBlock", "classtaraxa_1_1_db_storage.html#a17e5a0c8f762f8fc9d1220c67d58fa03", null ],
     [ "removeTransactionToBatch", "classtaraxa_1_1_db_storage.html#ae8176573026b914f06c298c0dc138140", null ],
     [ "replaceTwoTPlusOneVotes", "classtaraxa_1_1_db_storage.html#a6e32ed6c6cddede88d65c2baca5dbdf1", null ],

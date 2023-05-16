@@ -1,5 +1,7 @@
 var NAVTREEINDEX20 =
 {
+"packet__stats_8hpp.html":[15,0,1,4,1,1,0,0,2,2],
+"packet__stats_8hpp_source.html":[15,0,1,4,1,1,0,0,2,2],
 "packet__types_8hpp.html":[15,0,1,4,1,1,0,0,4],
 "packet__types_8hpp.html#a8e1c39509245ade80e4e22b6b6d43ff6":[15,0,1,4,1,1,0,0,4,1],
 "packet__types_8hpp.html#ab9638975c8f96ddde1ef012aa4a10368":[15,0,1,4,1,1,0,0,4,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX20 =
 "structdev_1_1_stream_out_3_01uint8__t_01_4.html#a9535cf9033772b97fde60632ed5a9cb3":[14,0,0,7,0],
 "structdev_1_1int_traits.html":[14,0,0,18],
 "structdev_1_1int_traits.html#a087fd8c7cf4602be01aa6a2b1acf77d3":[14,0,0,18,0],
-"structdev_1_1int_traits_3_01bigint_01_4.html":[14,0,0,21],
-"structdev_1_1int_traits_3_01bigint_01_4.html#a6de0a0882186c614bcd1900e5090e8b7":[14,0,0,21,0],
-"structdev_1_1int_traits_3_01u160_01_4.html":[14,0,0,19]
+"structdev_1_1int_traits_3_01bigint_01_4.html":[14,0,0,21]
 };
