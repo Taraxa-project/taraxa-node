@@ -3,7 +3,7 @@ ARG BUILD_OUTPUT_DIR=cmake-docker-build-debug
 ###################################################################
 # Build stage - use builder image for actual build of taraxa node #
 ###################################################################
-FROM builder as build
+FROM taraxa/taraxa-builder:a0bf43231 as build
 
 # Default output dir containing build artifacts
 ARG BUILD_OUTPUT_DIR

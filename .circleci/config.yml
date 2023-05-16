@@ -1093,8 +1093,6 @@ workflows:
                 - /^fix\/chart-.*/
                 - /^feature\/chart-.*/
                 - /^builder\/.*/
-                  # FIXME: remove later
-                - /^chore\/multiarch.*/
           context:
             - TARAXA
             - GCP
