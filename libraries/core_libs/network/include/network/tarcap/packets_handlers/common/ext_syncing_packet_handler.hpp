@@ -28,18 +28,14 @@ class ExtSyncingPacketHandler : public PacketHandler {
                           std::shared_ptr<DbStorage> db, const addr_t &node_addr, const std::string &log_channel_name);
 
   virtual ~ExtSyncingPacketHandler() = default;
-  ExtSyncingPacketHandler(const ExtSyncingPacketHandler &) = default;
-  ExtSyncingPacketHandler(ExtSyncingPacketHandler &&) = default;
   ExtSyncingPacketHandler &operator=(const ExtSyncingPacketHandler &) = delete;
   ExtSyncingPacketHandler &operator=(ExtSyncingPacketHandler &&) = delete;
 
   /**
-   * @brief Restart syncing
+   * @brief Start syncing pbft if needed
    *
-   * @param shared_state
-   * @param force
    */
-  void restartSyncingPbft(bool force = false);
+  void startSyncingPbft();
 
   /**
    * @brief Send sync request to the current syncing peer with specified request_period
@@ -62,6 +58,7 @@ class ExtSyncingPacketHandler : public PacketHandler {
 
  protected:
   std::shared_ptr<PbftSyncingState> pbft_syncing_state_{nullptr};
+  std::shared_mutex sync_start_mutex_;
 
   std::shared_ptr<PbftChain> pbft_chain_{nullptr};
   std::shared_ptr<PbftManager> pbft_mgr_{nullptr};
