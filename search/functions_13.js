@@ -37,7 +37,7 @@ var searchData=
   ['send_5fcoin_5ftransactionsi_5547',['send_coin_transactionsI',['../classtaraxa_1_1net_1_1_test_face.html#af23c7c7051e0e394e8c1b3ba616cdb00',1,'taraxa::net::TestFace']]],
   ['sendblock_5548',['sendBlock',['../classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html#a8fc8ecad09f0fb173f3e94c4b664d4b9',1,'taraxa::network::tarcap::DagBlockPacketHandler']]],
   ['sendblocks_5549',['sendBlocks',['../classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#a07a6fb569e947722421de1e782c98e33',1,'taraxa::network::tarcap::GetDagSyncPacketHandler']]],
-  ['sendpbftblocks_5550',['sendPbftBlocks',['../classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a9d61229b66cfba5dbeb93dc594b4827c',1,'taraxa::network::tarcap::GetPbftSyncPacketHandler']]],
+  ['sendpbftblocks_5550',['sendPbftBlocks',['../classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#a6992a180a8995901031f1b17362e0fe5',1,'taraxa::network::tarcap::GetPbftSyncPacketHandler']]],
   ['sendpbftvote_5551',['sendPbftVote',['../classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#af2c56ac63f95ba962e8a3a86f4b10a1f',1,'taraxa::network::tarcap::VotePacketHandler']]],
   ['sendpbftvotesbundle_5552',['sendPbftVotesBundle',['../classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a8e52d015311e67eba1b2e864a6262104',1,'taraxa::network::tarcap::ExtVotesPacketHandler']]],
   ['sendstatus_5553',['sendStatus',['../classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#a6aba7f16e36428ad0d91fbe6ee7eb455',1,'taraxa::network::tarcap::StatusPacketHandler']]],
