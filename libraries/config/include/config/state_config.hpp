@@ -63,6 +63,7 @@ struct Config {
   DPOSConfig dpos;
   Hardforks hardforks;
 
+  void rlp_without_hardforks(util::RLPEncoderRef encoding) const;
   HAS_RLP_FIELDS
 };
 void append_json(Json::Value& json, const Config& obj);

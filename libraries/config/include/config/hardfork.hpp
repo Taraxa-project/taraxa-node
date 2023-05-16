@@ -16,6 +16,8 @@ struct Hardforks {
    */
   using RewardsDistributionMap = std::map<uint64_t, uint32_t>;
   RewardsDistributionMap rewards_distribution_frequency;
+  // disable it by default (set to max uint64)
+  uint64_t fee_rewards_block_num = -1;
 
   HAS_RLP_FIELDS
 };
