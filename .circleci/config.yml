@@ -352,7 +352,11 @@ commands:
          name: Build builder image (multiarch)
          command: |
            # docker build -t ${IMAGE}:${VERSION} -f builder.Dockerfile .
-           docker buildx build --output=type=local --platform linux/arm64,linux/amd64 --tag taraxa/${IMAGE}:{VERSION} -f builder.Dockerfile .  
+           docker buildx build \
+             --output=type=local,dst=/tmp \
+             --platform linux/arm64,linux/amd64 \
+             --tag taraxa/${IMAGE}:{VERSION} \
+             -f builder.Dockerfile .  
 
   tag_builder:
     description: Tags docker images (builder)
