@@ -35,7 +35,7 @@ var hierarchy =
     ] ],
     [ "taraxa::cli::Config", "classtaraxa_1_1cli_1_1_config.html", null ],
     [ "taraxa::logger::Config", "classtaraxa_1_1logger_1_1_config.html", null ],
-    [ "taraxa::state_api::Config", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config", null ],
+    [ "taraxa::state_api::Config", "structtaraxa_1_1state__api_1_1_config.html", null ],
     [ "taraxa::cli::ConfigUpdater::ConfigChange", "structtaraxa_1_1cli_1_1_config_updater_1_1_config_change.html", null ],
     [ "taraxa::cli::ConfigUpdater", "classtaraxa_1_1cli_1_1_config_updater.html", null ],
     [ "taraxa::ConnectionConfig", "structtaraxa_1_1_connection_config.html", null ],

@@ -27,12 +27,7 @@ var state__config_8hpp =
       [ "vote_eligibility_balance_step", "namespacetaraxa_1_1state__api.html#a9d7316cafe803848e671557efb79b754", null ],
       [ "yield_percentage", "namespacetaraxa_1_1state__api.html#affb25c212fee2a8eeed95be39a47f163", null ]
     ] ],
-    [ "Config", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config", [
-      [ "dpos", "namespacetaraxa_1_1state__api.html#aeab9bb1152bb8cb61bf1f41cdd18f5c3", null ],
-      [ "evm_chain_config", "namespacetaraxa_1_1state__api.html#a615b642f8d815dd93363bc4c7850bdef", null ],
-      [ "hardforks", "namespacetaraxa_1_1state__api.html#aa97e24f1d87b29d59a4d15ac45295a97", null ],
-      [ "initial_balances", "namespacetaraxa_1_1state__api.html#a3867bb291da3931e75c23ab1b170d05a", null ]
-    ] ],
+    [ "Config", "structtaraxa_1_1state__api_1_1_config.html", "structtaraxa_1_1state__api_1_1_config" ],
     [ "Opts", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts", [
       [ "expected_max_trx_per_block", "namespacetaraxa_1_1state__api.html#a6aa169090ee01a5aa0dc420811ae5205", null ],
       [ "max_trie_full_node_levels_to_cache", "namespacetaraxa_1_1state__api.html#ac56c39245ee1448b3bbdbf7364183632", null ]

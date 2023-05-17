@@ -231,7 +231,7 @@ var annotated_dup =
         [ "EVMChainConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_e_v_m_chain_config_dup" ],
         [ "ValidatorInfo", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_validator_info", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_validator_info_dup" ],
         [ "DPOSConfig", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_d_p_o_s_config_dup" ],
-        [ "Config", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_config", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_config_dup" ],
+        [ "Config", "structtaraxa_1_1state__api_1_1_config.html", "structtaraxa_1_1state__api_1_1_config" ],
         [ "Opts", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_opts_dup" ],
         [ "OptsDB", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts_d_b", "namespacetaraxa_1_1state__api_structtaraxa_1_1state__api_1_1_opts_d_b_dup" ],
         [ "StateAPI", "group___final_chain.html#classtaraxa_1_1state__api_1_1_state_a_p_i", "group___final_chain_classtaraxa_1_1state__api_1_1_state_a_p_i" ],

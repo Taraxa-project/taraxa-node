@@ -1,5 +1,6 @@
 var NAVTREEINDEX17 =
 {
+"key__manager_8cpp.html#a10105b152578aaf566cb89722b17385b":[15,0,1,4,0,1,2,0,0],
 "key__manager_8hpp.html":[15,0,1,4,0,0,2,0],
 "key__manager_8hpp_source.html":[15,0,1,4,0,0,2,0],
 "lazy_8hpp.html":[15,0,1,2,0,0,8],
@@ -248,6 +249,5 @@ var NAVTREEINDEX17 =
 "md_doc__r_p_c.html#autotoc_md267":[9,1,0,0],
 "md_doc__r_p_c.html#autotoc_md268":[9,1,0,1],
 "md_doc__r_p_c.html#autotoc_md269":[9,1,0,2],
-"md_doc__r_p_c.html#autotoc_md270":[9,1,1],
-"md_doc__r_p_c.html#autotoc_md271":[9,1,1,0]
+"md_doc__r_p_c.html#autotoc_md270":[9,1,1]
 };
