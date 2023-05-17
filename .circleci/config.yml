@@ -26,7 +26,6 @@ orbs:
   github-release: izumin5210/github-release@0.1.1
   gcp-gcr: circleci/gcp-gcr@0.13.0
   gcp-cli: circleci/gcp-cli@2.4.1
-  docker-cache: cci-x/docker-registry-image-cache@0.2.12
   helm-release: taraxa/helm-release@0.1.1
 
 commands:
@@ -328,38 +327,46 @@ commands:
             echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
             echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >> $BASH_ENV
             echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
-      - run:
-          name: Clean old Images if disk available is lower than 15G
-          command: |
-            for time in 120 96 72 48 24 12 6 3 1 0
-            do
-              if [ $(df  /var/lib/docker --block-size=1073741824 --output=avail|grep -v Avail) -lt 15 ]; then 
-                 df  /var/lib/docker --block-size=1073741824 --output=avail
-                 echo "Pruning images older than ${time}h"
-                 docker image prune -a --force --filter "until=${time}h"
-               fi
-            done
 
   build:
-    description: Builds docker images
+    description: Builds docker image (${IMAGE})
     steps:
-      - run:
-          name: Build builder image
-          command: |
-            docker build -t ${IMAGE}:${VERSION} --target builder .
       - run:
           name: Checkout Submodules
           command: |
             git submodule sync
             git submodule update --init --recursive --jobs 8
       - run:
-          name: Build ctest image
+          name: Compile and build binaries
           command: |
             docker build -t ${IMAGE}-ctest:${VERSION} --target build .
       - run:
-          name: Build taraxad image
+          name: Build final Docker image (${IMAGE})
           command: |
             docker build -t ${IMAGE}:${VERSION} .
+
+  build_builder:
+    description: Builds docker image (${IMAGE})
+    steps:
+      - run:
+          name: Build builder image
+          command: |
+            docker build -t ${IMAGE}:${VERSION} -f builder.Dockerfile .
+
+  tag_builder:
+    description: Tags docker images (builder)
+    steps:
+      - run:
+          name: Tag images
+          command: |
+
+            if [[ ${CIRCLE_TAG} != "" ]];then
+              TAG=$(echo ${CIRCLE_TAG} | sed 's/^builder-//g')
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${TAG}
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:latest
+            else
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${VERSION}
+            fi
 
   tag:
     description: Tags docker images
@@ -462,8 +469,16 @@ commands:
       - run:
           name: Push Images
           command: |
-            docker push taraxa/${IMAGE}:${CIRCLE_TAG}
-            docker push taraxa/${IMAGE}:latest
+
+            if [[ ${CIRCLE_TAG} != "" ]];then
+              TAG=$(echo ${CIRCLE_TAG} | sed 's/^builder-//g')
+              docker push taraxa/${IMAGE}:${TAG}
+              docker push taraxa/${IMAGE}:latest
+            else
+              docker push taraxa/${IMAGE}:${VERSION}
+            fi
+
+
 
   test:
     description: Run tests
@@ -690,6 +705,34 @@ jobs:
       - push_gcr
       - store_artifacts:
           path: tmp_docker
+
+  build-builder-docker-image:
+    environment:
+      - IMAGE: taraxa-builder
+      - CONAN_REVISIONS_ENABLED: 1
+    machine:
+      image: ubuntu-2204:2022.04.2
+      docker_layer_caching: true
+    resource_class: large
+    steps:
+      - checkout
+      - prepare
+      - run:
+          name: List images restored from DLC
+          command: |
+            docker images
+      - build_builder
+      - run:
+          name: List images to be saved in DLC
+          command: |
+            docker images
+      - run:
+          name: Show layers of taraxa-builder image
+          command: |
+            docker history taraxa-builder:${VERSION} 
+      - tag_builder
+      - push_dockerhub
+
 
   release-docker-image:
       environment:
@@ -995,6 +1038,47 @@ workflows:
             - build-linux
             - build-mac
 
+
+  # ### workflows for builder image ### #
+  # run this workflow for specific branches 'builder/*'
+  build-builder-docker-image:
+    when:
+      and:
+        - not: << pipeline.parameters.deploy_prnet >>
+        - not: << pipeline.parameters.redeploy_prnet >>
+        - not: << pipeline.parameters.cleanup_prnet >>
+    jobs:
+      - build-builder-docker-image:
+          filters:
+            branches:
+              only:
+                - /^builder\/.*/
+                - /^chore\/builder-.*/
+                - /^fix\/builder-.*/
+                - /^feature\/builder-.*/
+          context:
+            - DOCKERHUB
+
+  # run this workflow for specific tags 'builder/*'
+  release-builder-docker-image:
+    when:
+      and:
+        - not: << pipeline.parameters.deploy_prnet >>
+        - not: << pipeline.parameters.redeploy_prnet >>
+        - not: << pipeline.parameters.cleanup_prnet >>
+    jobs:
+      - build-builder-docker-image:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^builder-v\d+.\d+.\d+/
+          context:
+            - DOCKERHUB
+  # ### workflows for builder image ### #
+
+
+  # ### workflows for taraxa-node image ### #
   # run this workflow for all branches apart those reserved for chart
   build-docker-image:
     when:
@@ -1011,6 +1095,10 @@ workflows:
                 - /^chore\/chart-.*/
                 - /^fix\/chart-.*/
                 - /^feature\/chart-.*/
+                - /^builder\/.*/
+                - /^chore\/builder-.*/
+                - /^fix\/builder-.*/
+                - /^feature\/builder-.*/
           context:
             - TARAXA
             - GCP
@@ -1035,7 +1123,9 @@ workflows:
             - K8S
             - GCR
             - DOCKERHUB
+  # ### workflows for taraxa-node image ### #
 
+  # ### workflows for taraxa-node helm chart ### #
   # run this workflow for branches specified below
   build-helm-chart:
     when:
@@ -1061,7 +1151,6 @@ workflows:
               - /^fix\/chart-.*/
               - /^feature\/chart-.*/
 
-
   # run this workflow for tags, like chart-vX.Y.Z
   release-helm-chart:
     jobs:
@@ -1078,3 +1167,4 @@ workflows:
               ignore: /.*/
             tags:
               only: /^chart-v\d+.\d+.\d+/
+  # ### workflows for taraxa-node helm chart ### #
