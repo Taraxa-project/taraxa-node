@@ -353,7 +353,7 @@ commands:
          command: |
            # docker build -t ${IMAGE}:${VERSION} -f builder.Dockerfile .
            docker buildx build \
-             --output=type=local,dst=/tmp \
+             --output=type=local,dest=/tmp \
              --platform linux/arm64,linux/amd64 \
              --tag taraxa/${IMAGE}:{VERSION} \
              -f builder.Dockerfile .  
