@@ -349,6 +349,11 @@ commands:
     description: Builds docker image
     steps:
       - run:
+          name: Create builder
+          command: |
+            docker buildx create --name taraxa-builder --use --bootstrap
+
+      - run:
          name: Build builder image (multiarch)
          command: |
            # docker build -t ${IMAGE}:${VERSION} -f builder.Dockerfile .
