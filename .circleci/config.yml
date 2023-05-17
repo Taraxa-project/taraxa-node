@@ -355,7 +355,7 @@ commands:
            docker buildx build \
              --output=type=local,dest=/tmp \
              --platform linux/arm64,linux/amd64 \
-             --tag taraxa/${IMAGE}:{VERSION} \
+             --tag taraxa/${IMAGE}:123 \
              -f builder.Dockerfile .  
 
   tag_builder:
