@@ -341,7 +341,7 @@ commands:
           command: |
             docker build -t ${IMAGE}-ctest:${VERSION} --target build .
       - run:
-          name: Build final Docker image (${IMAGE})
+          name: Build final Docker image
           command: |
             docker build -t ${IMAGE}:${VERSION} .
 
