@@ -351,6 +351,7 @@ commands:
       - run:
         name: Build builder image (multiarch)
         command: |
+          echo "hello"
           # docker build -t ${IMAGE}:${VERSION} -f builder.Dockerfile .
           docker buildx build --output=type=local --platform linux/arm64,linux/amd64 --tag taraxa/${IMAGE}:{VERSION} -f builder.Dockerfile .  
 
