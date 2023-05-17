@@ -346,12 +346,16 @@ commands:
             docker build -t ${IMAGE}:${VERSION} .
 
   build_builder:
-    description: Builds docker image (${IMAGE})
+    description: Builds docker image
     steps:
       - run:
-          name: Build builder image
-          command: |
-            docker build -t ${IMAGE}:${VERSION} -f builder.Dockerfile .
+        name: Build builder image (multiarch)
+        command: |
+          # docker build -t ${IMAGE}:${VERSION} -f builder.Dockerfile .
+          docker buildx build \
+            --output=type=local \
+            --platform linux/arm64,linux/amd64 \
+            --tag taraxa/${IMAGE}:{VERSION} 
 
   tag_builder:
     description: Tags docker images (builder)
@@ -730,8 +734,8 @@ jobs:
           name: Show layers of taraxa-builder image
           command: |
             docker history taraxa-builder:${VERSION} 
-      - tag_builder
-      - push_dockerhub
+#      - tag_builder
+#      - push_dockerhub
 
 
   release-docker-image:
