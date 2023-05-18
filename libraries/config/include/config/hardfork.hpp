@@ -32,6 +32,12 @@ struct Hardforks {
   RewardsDistributionMap rewards_distribution_frequency;
   // disable it by default (set to max uint64)
   uint64_t fee_rewards_block_num = -1;
+
+  // Magnolia hardfork is fixing premature deletion of validators in dpos contract -> validator is deleted only
+  // after last delegator confirms his undelegation and:
+  // total_stake == 0, rewards_pool == 0, undelegations_count == 0.
+  uint64_t magnolia_hf_block_num = 0;
+
   HAS_RLP_FIELDS
 };
 
