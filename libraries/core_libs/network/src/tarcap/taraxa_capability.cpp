@@ -82,7 +82,7 @@ void TaraxaCapability::addBootNodes(bool initial) {
     } else {
       // resolve returns an iterator (host can resolve to multiple addresses)
       bi::tcp::resolver r(s_resolverIoService);
-      auto it = r.resolve({bi::tcp::v4(), addr, toString(port)}, ec);
+      auto it = r.resolve({bi::tcp::v4(), addr, std::to_string(port)}, ec);
       if (ec) {
         return std::make_pair(false, bi::tcp::endpoint());
       } else {

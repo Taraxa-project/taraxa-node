@@ -600,6 +600,142 @@ TEST_F(FinalChainTest, incorrect_estimation_regress) {
   }
 }
 
+TEST_F(FinalChainTest, get_logs_multiple_topics) {
+  // contract Events {
+  //     event Event1(uint256 indexed v1);
+  //     event Event2(uint256 indexed v1,uint256 indexed v2);
+  //     event Event3(uint256 indexed v1,uint256 indexed v2,uint256 indexed v3);
+  //     function method1(uint256 v1) public {
+  //         emit Event1(v1);
+  //     }
+  //     function method2(uint256 v1, uint256 v2) public {
+  //         emit Event2(v1, v2);
+  //     }
+  //     function method3(uint256 v1, uint256 v2, uint256 v3) public {
+  //         emit Event3(v1, v2, v3);
+  //     }
+  // }
+  const auto events_contract_code =
+      "608060405234801561001057600080fd5b50610261806100206000396000f3fe608060405234801561001057600080fd5b50600436106100"
+      "415760003560e01c8063110d99ed14610046578063d6f7f2a114610062578063ffcd960e1461007e575b600080fd5b610060600480360381"
+      "019061005b919061016b565b61009a565b005b61007c60048036038101906100779190610198565b6100ca565b005b610098600480360381"
+      "019061009391906101d8565b6100fc565b005b807f04474795f5b996ff80cb47c148d4c5ccdbe09ef27551820caa9c2f8ed149cce3604051"
+      "60405180910390a250565b80827f6a822560072e19c1981d3d3bb11e5954a77efa0caf306eb08d053f37de0040ba60405160405180910390"
+      "a35050565b8082847fac279a174af532aabe2bdfe61037bff7cfa74374d4d24034e97609940e4e2ac960405160405180910390a450505056"
+      "5b600080fd5b6000819050919050565b61014881610135565b811461015357600080fd5b50565b6000813590506101658161013f565b9291"
+      "5050565b60006020828403121561018157610180610130565b5b600061018f84828501610156565b91505092915050565b60008060408385"
+      "0312156101af576101ae610130565b5b60006101bd85828601610156565b92505060206101ce85828601610156565b915050925092905056"
+      "5b6000806000606084860312156101f1576101f0610130565b5b60006101ff86828701610156565b93505060206102108682870161015656"
+      "5b925050604061022186828701610156565b915050925092509256fea264697066735822122005a8bf7a7bc842378d30f7446847533e0b35"
+      "074e5453f29fe8762c0eb4d6f4ba64736f6c63430008120033";
+
+  auto sender_keys = dev::KeyPair::create();
+  const auto& from = sender_keys.address();
+  const auto& sk = sender_keys.secret();
+  cfg.genesis.state.initial_balances = {};
+  cfg.genesis.state.initial_balances[from] = u256("10000000000000000000000");
+  init();
+
+  net::rpc::eth::EthParams eth_rpc_params;
+  eth_rpc_params.chain_id = cfg.genesis.chain_id;
+  eth_rpc_params.gas_limit = cfg.genesis.dag.gas_limit;
+  eth_rpc_params.final_chain = SUT;
+  auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
+
+  auto nonce = 0;
+
+  auto trx1 = std::make_shared<Transaction>(nonce++, 0, 0, TEST_TX_GAS_LIMIT, dev::fromHex(events_contract_code), sk);
+  auto result = advance({trx1});
+  auto contract_addr = result->trx_receipts[0].new_contract_address;
+
+  auto to_call_param = [](uint64_t v) -> std::string {
+    auto str = std::to_string(v);
+    return std::string(64 - str.size(), '0') + str;
+  };
+  auto make_call_trx = [&](const std::string& method, const std::vector<uint64_t>& params) {
+    auto params_str = std::accumulate(params.begin(), params.end(), std::string(),
+                                      [&](const std::string& r, uint64_t p) { return r + to_call_param(p); });
+    return std::make_shared<Transaction>(nonce++, 0, 0, TEST_TX_GAS_LIMIT, dev::fromHex(method + params_str), sk,
+                                         contract_addr);
+  };
+  auto method1 = "0x110d99ed";
+  auto method2 = "0xd6f7f2a1";
+  auto method3 = "0xffcd960e";
+  auto topic1 = "0x04474795f5b996ff80cb47c148d4c5ccdbe09ef27551820caa9c2f8ed149cce3";
+  auto topic2 = "0x6a822560072e19c1981d3d3bb11e5954a77efa0caf306eb08d053f37de0040ba";
+
+  auto from_block = expected_blk_num;
+  {
+    auto trx = make_call_trx(method1, {1});
+    advance({trx}, {true});
+  }
+  {
+    auto trx = make_call_trx(method1, {2});
+    advance({trx}, {true});
+  }
+  {
+    auto trx = make_call_trx(method2, {1, 2});
+    advance({trx}, {true});
+  }
+  {
+    auto trx = make_call_trx(method3, {1, 2, 3});
+    advance({trx}, {true});
+  }
+  {
+    Json::Value topics{Json::arrayValue};
+    topics.append(topic1);
+    topics.append(topic2);
+    Json::Value logs_obj(Json::objectValue);
+    logs_obj["fromBlock"] = dev::toJS(from_block);
+    logs_obj["address"] = contract_addr->toString();
+    logs_obj["topics"] = Json::Value(Json::arrayValue);
+    logs_obj["topics"].append(topics);
+    auto res = eth_json_rpc->eth_getLogs(logs_obj);
+    ASSERT_EQ(res.size(), 3);
+  }
+}
+
+TEST_F(FinalChainTest, topics_size_limit) {
+  init();
+
+  net::rpc::eth::EthParams eth_rpc_params;
+  eth_rpc_params.chain_id = cfg.genesis.chain_id;
+  eth_rpc_params.gas_limit = cfg.genesis.dag.gas_limit;
+  eth_rpc_params.final_chain = SUT;
+  auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
+
+  Json::Value logs_obj(Json::objectValue);
+  logs_obj["topics"] = Json::Value(Json::arrayValue);
+  logs_obj["topics"].append("1");
+  logs_obj["topics"].append("2");
+  logs_obj["topics"].append("3");
+  logs_obj["topics"].append("4");
+  eth_json_rpc->eth_getLogs(logs_obj);
+  logs_obj["topics"].append("5");
+  logs_obj["topics"].append("6");
+  EXPECT_THROW(eth_json_rpc->eth_getLogs(logs_obj), jsonrpc::JsonRpcException);
+}
+
+TEST_F(FinalChainTest, fee_rewards_distribution) {
+  auto sender_keys = dev::KeyPair::create();
+  auto gas = 30000;
+
+  const auto& receiver = dev::KeyPair::create().address();
+  const auto& addr = sender_keys.address();
+  const auto& sk = sender_keys.secret();
+  cfg.genesis.state.initial_balances = {};
+  cfg.genesis.state.initial_balances[addr] = 100000;
+  init();
+  const auto gas_price = 1;
+  auto trx1 = std::make_shared<Transaction>(1, 100, gas_price, gas, dev::bytes(), sk, receiver);
+
+  auto res = advance({trx1});
+  auto gas_used = res->trx_receipts.front().gas_used;
+  auto blk = SUT->block_header(expected_blk_num);
+  auto proposer_balance = SUT->getBalance(blk->author);
+  EXPECT_EQ(proposer_balance.first, gas_used * gas_price);
+}
+
 // This test should be last as state_api isn't destructed correctly because of exception
 TEST_F(FinalChainTest, initial_validator_exceed_maximum_stake) {
   const dev::KeyPair key = dev::KeyPair::create();
