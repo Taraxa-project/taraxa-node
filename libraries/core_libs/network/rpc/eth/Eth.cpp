@@ -510,6 +510,10 @@ class EthImpl : public Eth, EthParams {
       }
     }
     if (const auto& topics_json = json["topics"]; !topics_json.empty()) {
+      if (topics_json.size() > 4) {
+        BOOST_THROW_EXCEPTION(jsonrpc::JsonRpcException(jsonrpc::Errors::ERROR_RPC_INVALID_PARAMS,
+                                                        "only up to four topic slots may be specified"));
+      }
       for (uint32_t i = 0; i < topics_json.size(); i++) {
         const auto& topic_json = topics_json[i];
         if (topic_json.isArray()) {
