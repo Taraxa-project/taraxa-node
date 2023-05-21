@@ -243,6 +243,10 @@
       }
     ]
   },
+  "hardforks": {
+    "rewards_distribution_frequency": {
+    }
+  },
   "initial_balances": {
     "723304d1357a2334fcf902aa3d232f5139080a1b": "0xd53323b7ca3737afbb45000",
     "b0800c7af0a6aec0ff8dbe01708bd8e300c6305b": "0x208b1d135e4a8000",

@@ -4,6 +4,7 @@
 #include <boost/algorithm/string/split.hpp>
 #include <cstdint>
 #include <memory>
+#include <regex>
 
 #include "config/version.hpp"
 #include "dag/sortition_params_manager.hpp"
@@ -42,6 +43,8 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   }
 
   fs::create_directories(db_path_);
+  removeOldLogFiles();
+
   rocksdb::Options options;
   options.create_missing_column_families = true;
   options.create_if_missing = true;
@@ -86,9 +89,39 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   }
 }
 
+void DbStorage::removeOldLogFiles() const {
+  const std::regex filePattern("LOG\\.old\\.\\d+");
+  removeFilesWithPattern(db_path_, filePattern);
+  removeFilesWithPattern(state_db_path_, filePattern);
+}
+
+void DbStorage::removeFilesWithPattern(const std::string& directory, const std::regex& pattern) const {
+  try {
+    for (const auto& entry : std::filesystem::directory_iterator(directory)) {
+      const std::string& filename = entry.path().filename().string();
+      if (std::regex_match(filename, pattern)) {
+        std::filesystem::remove(entry.path());
+        LOG(log_dg_) << "Removed file: " << filename << std::endl;
+      }
+    }
+  } catch (const std::filesystem::filesystem_error& e) {
+    LOG(log_dg_) << "Error accessing directory: " << e.what() << std::endl;
+  }
+}
+
 void DbStorage::updateDbVersions() {
   saveStatusField(StatusDbField::DbMajorVersion, TARAXA_DB_MAJOR_VERSION);
   saveStatusField(StatusDbField::DbMinorVersion, TARAXA_DB_MINOR_VERSION);
+}
+
+void DbStorage::deleteColumnData(const Column& c) {
+  checkStatus(db_->DropColumnFamily(handle(c)));
+
+  auto options = rocksdb::ColumnFamilyOptions();
+  if (c.comparator_) {
+    options.comparator = c.comparator_;
+  }
+  checkStatus(db_->CreateColumnFamily(options, c.name(), &handles_[c.ordinal_]));
 }
 
 void DbStorage::rebuildColumns(const rocksdb::Options& options) {
@@ -454,7 +487,8 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period) {
       auto start_slice = toSlice(start_period);
       auto end_slice = toSlice(end_period);
       for (auto period = start_period; period < end_period; period++) {
-        // Find transactions included in the old blocks and delete data related to these transactions to free disk space
+        // Find transactions included in the old blocks and delete data related to these transactions to free disk
+        // space
         auto trx_hashes_raw = lookup(period, DB::Columns::final_chain_transaction_hashes_by_blk_number);
         auto hashes_count = trx_hashes_raw.size() / trx_hash_t::size;
         for (uint32_t i = 0; i < hashes_count; i++) {
@@ -471,8 +505,8 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period) {
       commitWriteBatch(write_batch);
 
       db_->DeleteRange(write_options_, handle(Columns::period_data), start_slice, end_slice);
-      // Deletion alone does not guarantee that the disk space is freed, these CompactRange methods actually compact the
-      // data in the database and free disk space
+      // Deletion alone does not guarantee that the disk space is freed, these CompactRange methods actually compact
+      // the data in the database and free disk space
       db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
       db_->CompactRange({}, handle(Columns::final_chain_receipt_by_trx_hash), nullptr, nullptr);
       db_->CompactRange({}, handle(Columns::final_chain_transaction_hashes_by_blk_number), nullptr, nullptr);

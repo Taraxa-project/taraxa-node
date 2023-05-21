@@ -121,6 +121,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(final_chain_log_blooms_index);
     COLUMN_W_COMP(sortition_params_change, getIntComparator<PbftPeriod>());
 
+    COLUMN_W_COMP(block_rewards_stats, getIntComparator<uint64_t>());
+
 #undef COLUMN
 #undef COLUMN_W_COMP
   };
@@ -177,6 +179,11 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void disableSnapshots();
   void enableSnapshots();
   void updateDbVersions();
+  void deleteColumnData(const Column& c);
+
+  // For removal of LOG.old.* files in the database
+  void removeOldLogFiles() const;
+  void removeFilesWithPattern(const std::string& directory, const std::regex& pattern) const;
 
   uint32_t getMajorVersion() const;
   std::unique_ptr<rocksdb::Iterator> getColumnIterator(const Column& c);

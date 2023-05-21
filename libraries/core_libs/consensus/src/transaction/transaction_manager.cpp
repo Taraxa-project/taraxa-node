@@ -380,7 +380,7 @@ std::optional<SharedTransactions> TransactionManager::getBlockTransactions(DagBl
       transactions.emplace_back(std::move(trx));
     }
   } else {
-    LOG(log_er_) << "Block " << blk.getHash() << " has missing transaction " << finalizedTransactions.second;
+    LOG(log_nf_) << "Block " << blk.getHash() << " has missing transaction " << finalizedTransactions.second;
     return std::nullopt;
   }
 

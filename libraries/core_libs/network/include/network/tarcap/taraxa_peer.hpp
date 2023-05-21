@@ -127,7 +127,7 @@ class TaraxaPeer : public boost::noncopyable {
   const uint64_t kMaxSuspiciousPacketPerMinute = 1000;
 
   // Performance extensive dag syncing is only allowed to be requested once each kDagSyncingLimit seconds
-  const uint64_t kDagSyncingLimit = 300;
+  const uint64_t kDagSyncingLimit = 60;
 
   // Packets stats for packets sent by *this TaraxaPeer
   PacketsStats sent_packets_stats_;

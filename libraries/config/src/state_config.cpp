@@ -18,18 +18,21 @@ void dec_json(const Json::Value& /*json*/, uint64_t chain_id, EVMChainConfig& ob
   obj.chain_id = chain_id;
   //   obj.homestead_block = dev::jsToInt(json["homestead_block"].asString());
 }
+void Config::rlp_without_hardforks(util::RLPEncoderRef encoding) const {
+  util::rlp_tuple(encoding, evm_chain_config, initial_balances, dpos);
+}
 
 void append_json(Json::Value& json, const Config& obj) {
   json["evm_chain_config"] = enc_json(obj.evm_chain_config);
   json["initial_balances"] = enc_json(obj.initial_balances);
-  // json["hardforks"] = enc_json(obj.hardforks);
+  json["hardforks"] = enc_json(obj.hardforks);
   json["dpos"] = enc_json(obj.dpos);
 }
 
 void dec_json(const Json::Value& json, Config& obj) {
   dec_json(json["evm_chain_config"], json["chain_id"].asUInt(), obj.evm_chain_config);
   dec_json(json["initial_balances"], obj.initial_balances);
-  // dec_json(json["hardforks"], obj.hardforks);
+  dec_json(json["hardforks"], obj.hardforks);
   dec_json(json["dpos"], obj.dpos);
 }
 
@@ -121,7 +124,7 @@ RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, vote_eligibility_ba
                   minimum_deposit, max_block_author_reward, dag_proposers_reward, commission_change_delta,
                   commission_change_frequency, delegation_delay, delegation_locking_period, blocks_per_year,
                   yield_percentage, initial_validators)
-RLP_FIELDS_DEFINE(Config, evm_chain_config, initial_balances, dpos)
+RLP_FIELDS_DEFINE(Config, evm_chain_config, initial_balances, dpos, hardforks)
 RLP_FIELDS_DEFINE(Opts, expected_max_trx_per_block, max_trie_full_node_levels_to_cache)
 RLP_FIELDS_DEFINE(OptsDB, db_path, disable_most_recent_trie_value_views)
 

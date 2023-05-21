@@ -311,7 +311,7 @@ TEST_F(P2PTest, multiple_capabilities) {
     std::filesystem::remove_all("/tmp/nw3");
   };
   auto wait_for_connection = [](std::shared_ptr<Network> nw1, std::shared_ptr<Network> nw2) {
-    EXPECT_HAPPENS({15s, 500ms}, [&](auto &ctx) {
+    EXPECT_HAPPENS({60s, 100ms}, [&](auto &ctx) {
       nw1->setPendingPeersToReady();
       nw2->setPendingPeersToReady();
       WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 1)

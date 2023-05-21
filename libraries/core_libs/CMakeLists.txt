@@ -15,11 +15,15 @@ file(GLOB_RECURSE STORAGE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/storage/*.cpp)
 file(GLOB_RECURSE NODE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/node/*.hpp)
 file(GLOB_RECURSE NODE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/node/*.cpp)
 
+file(GLOB_RECURSE REWARDS_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/rewards/*.hpp)
+file(GLOB_RECURSE REWARDS_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/rewards/*.cpp)
+
 set(HEADERS
     ${CONSENSUS_HEADERS}
     ${NETWORK_HEADERS}
     ${STORAGE_HEADERS}
     ${NODE_HEADERS}
+    ${REWARDS_HEADERS}
 )
 
 set(SOURCES
@@ -28,6 +32,7 @@ set(SOURCES
     ${STORAGE_SOURCES}
     ${NODE_SOURCES}
     ${GRAPHQL_GENERATED_SOURCES}
+    ${REWARDS_SOURCES}
 )
 
 add_library(core_libs ${SOURCES} ${HEADERS})
@@ -36,6 +41,7 @@ target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/consensu
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/network/include)
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/node/include)
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/storage/include)
+target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/rewards/include)
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 # GraphQL
 target_include_directories(core_libs PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/network/graphql/gen)
