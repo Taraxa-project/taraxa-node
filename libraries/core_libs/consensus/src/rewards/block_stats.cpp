@@ -6,33 +6,40 @@
 
 namespace taraxa::rewards {
 
-BlockStats::BlockStats(const PeriodData& block, uint64_t dpos_vote_count, uint32_t committee_size)
+BlockStats::BlockStats(const PeriodData& block, const std::vector<gas_t>& trxs_gas_used, uint64_t dpos_vote_count,
+                       uint32_t committee_size)
     : block_author_(block.pbft_blk->getBeneficiary()),
       max_votes_weight_(std::min<uint64_t>(committee_size, dpos_vote_count)) {
+  initFeeByTrxHash(block.transactions, trxs_gas_used);
   processStats(block);
 }
 
-bool BlockStats::addTransaction(const trx_hash_t& tx_hash, const addr_t& validator) {
-  auto found_tx = validator_by_tx_hash_.find(tx_hash);
+void BlockStats::initFeeByTrxHash(const SharedTransactions& transactions, const std::vector<gas_t>& trxs_gas_used) {
+  // assert(transactions.size() == trxs_gas_used.size());
 
-  // Already processed tx
-  if (found_tx != validator_by_tx_hash_.end()) {
+  for (uint32_t i = 0; i < transactions.size(); ++i) {
+    const auto& trx = transactions[i];
+    uint64_t gas_used = 0;
+    // if its not empty then we will add this to validator stats and distribute it
+    if (!trxs_gas_used.empty()) {
+      gas_used = trxs_gas_used[i];
+    }
+    fee_by_trx_hash_.emplace(trx->getHash(), trx->getGasPrice() * gas_used);
+  }
+}
+
+bool BlockStats::addTransaction(const trx_hash_t& trx_hash, const addr_t& validator) {
+  auto itr = fee_by_trx_hash_.find(trx_hash);
+  if (itr == fee_by_trx_hash_.end()) {
+    // No fee record found for transaction means that transaction was processed before
     return false;
   }
 
-  // New tx
-  validator_by_tx_hash_[tx_hash] = validator;
+  validators_stats_[validator].fees_rewards_ += itr->second;
+
+  fee_by_trx_hash_.erase(itr);
 
   return true;
-}
-
-std::optional<addr_t> BlockStats::getTransactionValidator(const trx_hash_t& tx_hash) {
-  auto found_tx = validator_by_tx_hash_.find(tx_hash);
-  if (found_tx == validator_by_tx_hash_.end()) {
-    return {};
-  }
-
-  return {found_tx->second};
 }
 
 bool BlockStats::addVote(const std::shared_ptr<Vote>& vote) {
@@ -61,7 +68,9 @@ std::set<trx_hash_t> toTrxHashesSet(const SharedTransactions& transactions) {
 }
 
 void BlockStats::processStats(const PeriodData& block) {
-  validator_by_tx_hash_.reserve(block.transactions.size());
+  // total unique transactions count should be always equal to transactions count in block
+  assert(fee_by_trx_hash_.size() == block.transactions.size());
+
   validators_stats_.reserve(std::max(block.dag_blocks.size(), block.previous_block_cert_votes.size()));
   auto block_transactions_hashes_ = toTrxHashesSet(block.transactions);
 
@@ -85,25 +94,14 @@ void BlockStats::processStats(const PeriodData& block) {
       total_dag_blocks_count_ += 1;
     }
   }
-  // total_unique_txs_count_ should be always equal to transactions count in block
-  assert(validator_by_tx_hash_.size() == block.transactions.size());
 
   for (const auto& vote : block.previous_block_cert_votes) {
     addVote(vote);
   }
-
-  txs_validators_.reserve(block.transactions.size());
-  for (const auto& tx : block.transactions) {
-    // Non-executed trxs
-    auto tx_validator = getTransactionValidator(tx->getHash());
-    assert(tx_validator.has_value());
-
-    txs_validators_.push_back(*tx_validator);
-  }
 }
 
-RLP_FIELDS_DEFINE(BlockStats::ValidatorStats, dag_blocks_count_, vote_weight_)
-RLP_FIELDS_DEFINE(BlockStats, block_author_, validators_stats_, txs_validators_, total_dag_blocks_count_,
-                  total_votes_weight_, max_votes_weight_)
+RLP_FIELDS_DEFINE(BlockStats::ValidatorStats, dag_blocks_count_, vote_weight_, fees_rewards_)
+RLP_FIELDS_DEFINE(BlockStats, block_author_, validators_stats_, total_dag_blocks_count_, total_votes_weight_,
+                  max_votes_weight_)
 
 }  // namespace taraxa::rewards
