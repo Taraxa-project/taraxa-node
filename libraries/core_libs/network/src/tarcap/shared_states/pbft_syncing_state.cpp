@@ -21,20 +21,27 @@ void PbftSyncingState::setSyncStatePeriod(PbftPeriod period) {
   }
 }
 
-void PbftSyncingState::setPbftSyncing(bool syncing, PbftPeriod current_period,
+bool PbftSyncingState::setPbftSyncing(bool syncing, PbftPeriod current_period,
                                       std::shared_ptr<TaraxaPeer> peer /*=nullptr*/) {
   assert((syncing && peer) || !syncing);
-  pbft_syncing_ = syncing;
 
-  std::unique_lock lock(peer_mutex_);
-  peer_ = std::move(peer);
+  // Flag was changed meanwhile we should not be updating it again
+  if (pbft_syncing_ && syncing) {
+    return false;
+  }
+  {
+    std::unique_lock lock(peer_mutex_);
+    pbft_syncing_ = syncing;
+    peer_ = std::move(peer);
 
-  if (syncing) {
-    deep_pbft_syncing_ = (peer_->pbft_chain_size_ - current_period >= kDeepSyncingThreshold);
-    // Reset last sync packet time when syncing is restarted/fresh syncing flag is set
-    setLastSyncPacketTime();
-  } else {
-    deep_pbft_syncing_ = false;
+    if (syncing) {
+      deep_pbft_syncing_ = (peer_->pbft_chain_size_ - current_period >= kDeepSyncingThreshold);
+      // Reset last sync packet time when syncing is restarted/fresh syncing flag is set
+      setLastSyncPacketTime();
+    } else {
+      deep_pbft_syncing_ = false;
+    }
+    return true;
   }
 }
 
@@ -44,9 +51,8 @@ void PbftSyncingState::setLastSyncPacketTime() {
 }
 
 bool PbftSyncingState::isActivelySyncing() const {
-  auto now = std::chrono::steady_clock::now();
-
   std::shared_lock lock(time_mutex_);
+  auto now = std::chrono::steady_clock::now();
   return std::chrono::duration_cast<std::chrono::seconds>(now - last_received_sync_packet_time_) <=
          kSyncingInactivityThreshold;
 }
@@ -57,7 +63,6 @@ bool PbftSyncingState::isPbftSyncing() {
   if (!isActivelySyncing()) {
     setPbftSyncing(false);
   }
-
   return pbft_syncing_;
 }
 

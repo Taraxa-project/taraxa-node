@@ -58,7 +58,6 @@ class ExtSyncingPacketHandler : public PacketHandler {
 
  protected:
   std::shared_ptr<PbftSyncingState> pbft_syncing_state_{nullptr};
-  std::shared_mutex sync_start_mutex_;
 
   std::shared_ptr<PbftChain> pbft_chain_{nullptr};
   std::shared_ptr<PbftManager> pbft_mgr_{nullptr};
