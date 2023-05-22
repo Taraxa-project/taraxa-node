@@ -243,10 +243,6 @@
       }
     ]
   },
-  "hardforks": {
-    "rewards_distribution_frequency": {
-    }
-  },
   "initial_balances": {
     "723304d1357a2334fcf902aa3d232f5139080a1b": "0xd53323b7ca3737afbb45000",
     "b0800c7af0a6aec0ff8dbe01708bd8e300c6305b": "0x208b1d135e4a8000",
@@ -1591,6 +1587,11 @@
     "6fdd608d1332fab2b003cefd906d6d07d8c77bc3": "0x137b547a731c01800000",
     "c7cbe7d179857ea0ee5721f6b8b1b0dab193daf9": "0x381ce3ea85dc8f21bf0000",
     "6ba16abe80af8be7c9b6c852c6bd3e381a493c92": "0x4958bc77396e445c569000"
+  },
+  "hardforks": {
+    "rewards_distribution_frequency": {
+    },
+    "magnolia_hf_block_num" : 18446744073709551615
   },
   "gas_price": {
     "blocks": 200,

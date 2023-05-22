@@ -59,7 +59,7 @@ class FinalChainImpl final : public FinalChain {
         kLightNode(config.is_light_node),
         kLightNodeHistory(config.light_node_history),
         kMaxLevelsPerPeriod(config.max_levels_per_period),
-        rewards_(config.genesis.pbft.committee_size, config.genesis.state.hardforks.rewards_distribution_frequency, db_,
+        rewards_(config.genesis.pbft.committee_size, config.genesis.state.hardforks, db_,
                  [this](EthBlockNumber n) { return dpos_eligible_total_vote_count(n); }),
         block_headers_cache_(config.final_chain_cache_in_blocks,
                              [this](uint64_t blk) { return get_block_header(blk); }),
@@ -151,8 +151,6 @@ class FinalChainImpl final : public FinalChain {
                                                       std::shared_ptr<DagBlock>&& anchor) {
     auto batch = db_->createWriteBatch();
 
-    auto rewards_stats = rewards_.processStats(new_blk);
-
     block_applying_emitter_.emit(block_header()->number + 1);
 
     /*
@@ -172,13 +170,16 @@ class FinalChainImpl final : public FinalChain {
       }
     } */
 
-    auto const& [exec_results, state_root, total_reward] =
-        state_api_.transition_state({new_blk.pbft_blk->getBeneficiary(), kBlockGasLimit,
-                                     new_blk.pbft_blk->getTimestamp(), BlockHeader::difficulty()},
-                                    to_state_api_transactions(new_blk.transactions), rewards_stats);
+    auto const& [exec_results] =
+        state_api_.execute_transactions({new_blk.pbft_blk->getBeneficiary(), kBlockGasLimit,
+                                         new_blk.pbft_blk->getTimestamp(), BlockHeader::difficulty()},
+                                        to_state_api_transactions(new_blk.transactions));
 
     TransactionReceipts receipts;
     receipts.reserve(exec_results.size());
+    std::vector<gas_t> transactions_gas_used;
+    transactions_gas_used.reserve(exec_results.size());
+
     gas_t cumulative_gas_used = 0;
     for (auto const& r : exec_results) {
       LogEntries logs;
@@ -186,6 +187,7 @@ class FinalChainImpl final : public FinalChain {
       std::transform(r.logs.cbegin(), r.logs.cend(), std::back_inserter(logs), [](const auto& l) {
         return LogEntry{l.address, l.topics, l.data};
       });
+      transactions_gas_used.push_back(r.gas_used);
       receipts.emplace_back(TransactionReceipt{
           r.code_err.empty() && r.consensus_err.empty(),
           r.gas_used,
@@ -194,6 +196,10 @@ class FinalChainImpl final : public FinalChain {
           r.new_contract_addr ? std::optional(r.new_contract_addr) : std::nullopt,
       });
     }
+
+    auto rewards_stats = rewards_.processStats(new_blk, transactions_gas_used);
+    const auto& [state_root, total_reward] = state_api_.distribute_rewards(rewards_stats);
+
     auto blk_header = append_block(batch, new_blk.pbft_blk->getBeneficiary(), new_blk.pbft_blk->getTimestamp(),
                                    kBlockGasLimit, state_root, total_reward, new_blk.transactions, receipts);
     // Update number of executed DAG blocks and transactions

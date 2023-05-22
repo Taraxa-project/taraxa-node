@@ -211,9 +211,9 @@ Config::Config(int argc, const char* argv[]) {
 
     // Check that it is not empty, to not create chain config with just overwritten files
     if (!genesis_json.isNull()) {
-      auto default_genesis_json = tools::getGenesis((Config::ChainIdType)chain_id);
+      auto default_genesis_json = tools::getGenesis((Config::ChainIdType)genesis_json["chain_id"].asUInt64());
       // override hardforks data with one from default json
-      addNewHardforks(genesis_json, default_genesis_json);
+      genesis_json["hardforks"] = default_genesis_json["hardforks"];
       write_config_and_wallet_files();
     }
     // Override config values with values from CLI
@@ -289,22 +289,6 @@ Config::Config(int argc, const char* argv[]) {
 bool Config::nodeConfigured() { return node_configured_; }
 
 FullNodeConfig Config::getNodeConfiguration() { return node_config_; }
-
-void Config::addNewHardforks(Json::Value& genesis, const Json::Value& default_genesis) {
-  auto& new_hardforks_json = default_genesis["hardforks"];
-  auto& local_hardforks_json = genesis["hardforks"];
-
-  if (local_hardforks_json.isNull()) {
-    local_hardforks_json = new_hardforks_json;
-    return;
-  }
-  for (auto itr = new_hardforks_json.begin(); itr != new_hardforks_json.end(); ++itr) {
-    auto& local = local_hardforks_json[itr.key().asString()];
-    if (local.isNull()) {
-      local = itr->asString();
-    }
-  }
-}
 
 std::string Config::dirNameFromFile(const string& file) {
   size_t pos = file.find_last_of("\\/");

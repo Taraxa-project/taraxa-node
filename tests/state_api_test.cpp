@@ -201,7 +201,8 @@ TEST_F(StateAPITest, DISABLED_eth_mainnet_smoke) {
       progress_pct_log_threshold += 10;
     }
     auto const& test_block = test_blocks[blk_num];
-    auto const& result = SUT.transition_state(test_block.evm_block, test_block.transactions);
+    SUT.execute_transactions(test_block.evm_block, test_block.transactions);
+    const auto& result = SUT.distribute_rewards({});
     ASSERT_EQ(result.state_root, test_block.state_root);
     SUT.transition_state_commit();
   }

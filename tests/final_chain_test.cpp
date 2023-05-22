@@ -30,6 +30,19 @@ struct FinalChainTest : WithDataDir {
   bool assume_only_toplevel_transfers = true;
   std::unordered_map<addr_t, u256> expected_balances;
   uint64_t expected_blk_num = 0;
+  dev::KeyPair dag_proposer_keys = dev::KeyPair::create();
+  dev::KeyPair pbft_proposer_keys = dev::KeyPair::create();
+  void create_validators() {
+    dev::KeyPair validator_owner_keys = dev::KeyPair::create();
+    cfg.genesis.state.initial_balances[validator_owner_keys.address()] =
+        10 * cfg.genesis.state.dpos.validator_maximum_stake;
+    for (const auto& keys : {dag_proposer_keys, pbft_proposer_keys}) {
+      const auto [vrf_key, _] = taraxa::vrf_wrapper::getVrfKeyPair();
+      state_api::ValidatorInfo validator{keys.address(), validator_owner_keys.address(), vrf_key, 0, "", "", {}};
+      validator.delegations.emplace(validator_owner_keys.address(), cfg.genesis.state.dpos.validator_maximum_stake);
+      cfg.genesis.state.dpos.initial_validators.emplace_back(validator);
+    }
+  }
   void init() {
     SUT = NewFinalChain(db, cfg);
     const auto& effective_balances = effective_initial_balances(cfg.genesis.state);
@@ -50,13 +63,12 @@ struct FinalChainTest : WithDataDir {
       trx_hashes.emplace_back(trx->getHash());
     }
 
-    auto proposer_keys = dev::KeyPair::create();
-    DagBlock dag_blk({}, {}, {}, trx_hashes, {}, {}, proposer_keys.secret());
+    DagBlock dag_blk({}, {}, {}, trx_hashes, {}, {}, dag_proposer_keys.secret());
     db->saveDagBlock(dag_blk);
     std::vector<vote_hash_t> reward_votes_hashes;
     auto pbft_block =
         std::make_shared<PbftBlock>(kNullBlockHash, kNullBlockHash, kNullBlockHash, kNullBlockHash, expected_blk_num,
-                                    addr_t::random(), proposer_keys.secret(), std::move(reward_votes_hashes));
+                                    addr_t::random(), pbft_proposer_keys.secret(), std::move(reward_votes_hashes));
 
     std::vector<std::shared_ptr<Vote>> votes;
     PeriodData period_data(pbft_block, votes);
@@ -618,15 +630,47 @@ TEST_F(FinalChainTest, fee_rewards_distribution) {
   const auto& sk = sender_keys.secret();
   cfg.genesis.state.initial_balances = {};
   cfg.genesis.state.initial_balances[addr] = 100000;
+  cfg.genesis.state.hardforks.magnolia_hf_block_num = 2;
+  create_validators();
   init();
   const auto gas_price = 1;
-  auto trx1 = std::make_shared<Transaction>(1, 100, gas_price, gas, dev::bytes(), sk, receiver);
+  {
+    auto trx = std::make_shared<Transaction>(1, 100, gas_price, gas, dev::bytes(), sk, receiver);
 
-  auto res = advance({trx1});
-  auto gas_used = res->trx_receipts.front().gas_used;
-  auto blk = SUT->block_header(expected_blk_num);
-  auto proposer_balance = SUT->getBalance(blk->author);
-  EXPECT_EQ(proposer_balance.first, gas_used * gas_price);
+    auto res = advance({trx});
+    auto gas_used = res->trx_receipts.front().gas_used;
+    EXPECT_EQ(SUT->getBalance(pbft_proposer_keys.address()).first, gas_used * gas_price);
+  }
+  {
+    auto trx = std::make_shared<Transaction>(2, 100, gas_price, gas, dev::bytes(), sk, receiver);
+
+    auto res = advance({trx});
+    EXPECT_EQ(2, expected_blk_num);
+    EXPECT_EQ(res->trx_receipts.size(), 1);
+    auto gas_used = res->trx_receipts.front().gas_used;
+    auto dags = db->getFinalizedDagBlockByPeriod(expected_blk_num);
+    EXPECT_EQ(dags.size(), 1);
+    EXPECT_EQ(SUT->getBalance(dag_proposer_keys.address()).first, 0);
+
+    auto get_commission_rewards = [&](addr_t a) {
+      const addr_t dpos_contract("0x00000000000000000000000000000000000000FE");
+      auto ret = SUT->call({
+          addr,
+          0,
+          dpos_contract,
+          0,
+          0,
+          1000000,
+          // getValidator()
+          dev::fromHex("0x1904bb2e000000000000000000000000" + a.toString()),
+      });
+      EXPECT_GE(ret.code_retval.size(), 96);
+      // for some reason parsing u256 from bytes is failing check after
+      auto hex_commission = "0x" + dev::toHex(bytes(ret.code_retval.begin() + 64, ret.code_retval.begin() + 96));
+      return u256(hex_commission);
+    };
+    EXPECT_EQ(get_commission_rewards(dag_proposer_keys.address()), u256(gas_used * gas_price));
+  }
 }
 
 // This test should be last as state_api isn't destructed correctly because of exception

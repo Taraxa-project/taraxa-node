@@ -19,13 +19,14 @@ struct RewardsStatsTest : NodesTest {};
 class TestableRewardsStats : public rewards::Stats {
  public:
   TestableRewardsStats(const Hardforks::RewardsDistributionMap& rdm, std::shared_ptr<DB> db)
-      : rewards::Stats(100, rdm, db, [](auto) { return 100; }) {}
+      : rewards::Stats(100, Hardforks{rdm, 0}, db, [](auto) { return 100; }) {}
   std::vector<rewards::BlockStats> getStats() { return blocks_stats_; }
 };
 
 class TestableBlockStats : public rewards::BlockStats {
  public:
   const addr_t& getAuthor() const { return block_author_; }
+  const auto& getValidatorStats() const { return validators_stats_; }
 };
 
 TEST_F(RewardsStatsTest, defaultDistribution) {
@@ -36,7 +37,7 @@ TEST_F(RewardsStatsTest, defaultDistribution) {
 
   for (auto i = 1; i < 5; ++i) {
     PeriodData block(make_simple_pbft_block(blk_hash_t(i), i), empty_votes);
-    auto stats = rewards_stats.processStats(block);
+    auto stats = rewards_stats.processStats(block, {});
     ASSERT_EQ(stats.size(), 1);
     ASSERT_TRUE(rewards_stats.getStats().empty());
   }
@@ -58,7 +59,7 @@ TEST_F(RewardsStatsTest, statsSaving) {
       block_authors.push_back(kp.address());
 
       PeriodData block(make_simple_pbft_block(blk_hash_t(i), i, kp.secret()), empty_votes);
-      auto stats = rewards_stats.processStats(block);
+      auto stats = rewards_stats.processStats(block, {});
       ASSERT_EQ(rewards_stats.getStats().size(), block_authors.size());
       ASSERT_TRUE(stats.empty());
     }
@@ -92,14 +93,14 @@ TEST_F(RewardsStatsTest, statsCleaning) {
       block_authors.push_back(kp.address());
 
       PeriodData block(make_simple_pbft_block(blk_hash_t(i), i, kp.secret()), empty_votes);
-      auto stats = rewards_stats.processStats(block);
+      auto stats = rewards_stats.processStats(block, {});
       ASSERT_EQ(rewards_stats.getStats().size(), block_authors.size());
       ASSERT_TRUE(stats.empty());
     }
 
     // Process block 5 after which we should have no stats elements in db
     PeriodData block(make_simple_pbft_block(blk_hash_t(5), 5), empty_votes);
-    rewards_stats.processStats(block);
+    rewards_stats.processStats(block, {});
   }
 
   // Load from db
@@ -121,7 +122,7 @@ TEST_F(RewardsStatsTest, statsProcessing) {
     block_authors.push_back(kp.address());
 
     PeriodData block(make_simple_pbft_block(blk_hash_t(i), i, kp.secret()), empty_votes);
-    auto stats = rewards_stats.processStats(block);
+    auto stats = rewards_stats.processStats(block, {});
     ASSERT_TRUE(stats.empty());
     ASSERT_EQ(rewards_stats.getStats().size(), block_authors.size());
   }
@@ -130,7 +131,7 @@ TEST_F(RewardsStatsTest, statsProcessing) {
   block_authors.push_back(kp.address());
 
   PeriodData block(make_simple_pbft_block(blk_hash_t(10), 10, kp.secret()), empty_votes);
-  auto stats = rewards_stats.processStats(block);
+  auto stats = rewards_stats.processStats(block, {});
   ASSERT_EQ(stats.size(), block_authors.size());
 
   for (size_t i = 0; i < stats.size(); ++i) {
@@ -151,22 +152,64 @@ TEST_F(RewardsStatsTest, distributionChange) {
   uint64_t period = 1;
   for (; period <= 5; ++period) {
     PeriodData block(make_simple_pbft_block(blk_hash_t(period), period), empty_votes);
-    auto stats = rewards_stats.processStats(block);
+    auto stats = rewards_stats.processStats(block, {});
     ASSERT_FALSE(stats.empty());
   }
   {
     // make blocks [1,9] and process them. output of processStats should be empty
     for (; period < 10; ++period) {
       PeriodData block(make_simple_pbft_block(blk_hash_t(period), period), empty_votes);
-      auto stats = rewards_stats.processStats(block);
+      auto stats = rewards_stats.processStats(block, {});
       ASSERT_TRUE(stats.empty());
     }
     PeriodData block(make_simple_pbft_block(blk_hash_t(period), period), empty_votes);
-    auto stats = rewards_stats.processStats(block);
+    auto stats = rewards_stats.processStats(block, {});
   }
 
   PeriodData block(make_simple_pbft_block(blk_hash_t(period), period), empty_votes);
-  auto stats = rewards_stats.processStats(block);
+  auto stats = rewards_stats.processStats(block, {});
+}
+
+TEST_F(RewardsStatsTest, feeRewards) {
+  auto db = std::make_shared<DbStorage>(data_dir / "db");
+  auto pbft_proposer = dev::KeyPair::create();
+  auto dag_proposer = dev::KeyPair::create();
+
+  Hardforks::RewardsDistributionMap distribution{};
+
+  auto rewards_stats = TestableRewardsStats(distribution, db);
+
+  std::vector<std::shared_ptr<Vote>> empty_votes;
+  uint64_t period = 1;
+  uint64_t nonce = 1;
+
+  const auto trx_gas_fee = 1000000;
+  auto trx = std::make_shared<Transaction>(nonce++, 0, 1, trx_gas_fee, dev::fromHex(samples::greeter_contract_code),
+                                           pbft_proposer.secret());
+
+  DagBlock dag_blk({}, {}, {}, {trx->getHash()}, {}, {}, dag_proposer.secret());
+  db->saveDagBlock(dag_blk);
+  std::vector<vote_hash_t> reward_votes_hashes;
+  auto pbft_block =
+      std::make_shared<PbftBlock>(kNullBlockHash, kNullBlockHash, kNullBlockHash, kNullBlockHash, period,
+                                  addr_t::random(), pbft_proposer.secret(), std::move(reward_votes_hashes));
+
+  PeriodData period_data(pbft_block, empty_votes);
+  period_data.dag_blocks.push_back(dag_blk);
+  period_data.transactions = {trx};
+
+  auto stats = rewards_stats.processStats(period_data, {trx_gas_fee}).front();
+
+  auto testable_stats = reinterpret_cast<TestableBlockStats*>(&stats);
+  auto validators_stats = testable_stats->getValidatorStats();
+  // stats should be only for dag block proposer
+  ASSERT_EQ(validators_stats.size(), 1);
+  for (const auto& vs : validators_stats) {
+    if (vs.first == dag_proposer.address()) {
+      ASSERT_EQ(vs.second.dag_blocks_count_, 1);
+      ASSERT_EQ(vs.second.fees_rewards_, trx_gas_fee);
+    }
+  }
 }
 
 }  // namespace taraxa::core_tests

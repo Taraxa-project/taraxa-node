@@ -122,12 +122,6 @@ std::vector<blk_hash_t> getOrderedDagBlocks(const std::shared_ptr<DbStorage>& db
   return res;
 }
 
-addr_t make_addr(uint8_t i) {
-  addr_t ret;
-  ret[10] = i;
-  return ret;
-}
-
 void wait_for_balances(const shared_nodes_t& nodes, const expected_balances_map_t& balances, wait_opts to_wait) {
   wait(to_wait, [&](auto& ctx) {
     for (const auto& node : nodes) {

@@ -23,7 +23,8 @@ class BlockStats {
    * @param dpos_vote_count - votes count for previous block
    * @param committee_size
    */
-  BlockStats(const PeriodData& block, uint64_t dpos_vote_count, uint32_t committee_size);
+  BlockStats(const PeriodData& block, const std::vector<gas_t>& trxs_gas_used, uint64_t dpos_vote_count,
+             uint32_t committee_size);
 
   HAS_RLP_FIELDS
 
@@ -34,22 +35,24 @@ class BlockStats {
    * @param block
    */
   void processStats(const PeriodData& block);
-  /**
-   * @brief In case unique tx_hash is provided, it is mapped to it's validator's address + validator's unique txs count
-   *        is incremented. If provided tx_hash was already processed, nothing happens
-   *
-   * @param tx_hash
-   * @param validator
-   * @return true in case tx_hash was unique and processed, otherwise false
-   */
-  bool addTransaction(const trx_hash_t& tx_hash, const addr_t& validator);
 
   /**
-   * @param tx_hash
-   * @return dag block validator, who included tx_hash as first in his block. If no validator is found,
-   *         empty optional is returned
+   * @brief Prepare fee_by_trx_hash_ map with trx fee by trx hash
+   *
+   * @param transactions collection with transactions included in the block
+   * @param trxs_gas_used collection with gas used by transactions
    */
-  std::optional<addr_t> getTransactionValidator(const trx_hash_t& tx_hash);
+  void initFeeByTrxHash(const SharedTransactions& transactions, const std::vector<gas_t>& trxs_gas_used);
+
+  /**
+   * @brief In case unique trx_hash is provided, it is mapped to it's validator's address + validator's unique trxs
+   * count is incremented. If provided trx_hash was already processed, nothing happens
+   *
+   * @param trx_hash
+   * @param validator
+   * @return true in case trx_hash was unique and processed, otherwise false
+   */
+  bool addTransaction(const trx_hash_t& trx_hash, const addr_t& validator);
 
   /**
    * @brief In case unique vote is provided, author's votes weight is updated. If provided vote was
@@ -68,20 +71,18 @@ class BlockStats {
     // Validator cert voted block weight
     uint64_t vote_weight_ = 0;
 
+    u256 fees_rewards_ = 0;
+
     HAS_RLP_FIELDS
   };
 
   // Pbft block author
   addr_t block_author_;
 
-  // Transactions validators: tx hash -> validator that included it as first in his block
-  std::unordered_map<trx_hash_t, addr_t> validator_by_tx_hash_;
+  // Fee by trx : trx hash -> fee
+  std::unordered_map<trx_hash_t, u256> fee_by_trx_hash_;
 
-  // Vector with all transactions validators, who included provided block.transactions as first in dag block,
-  // e.g. returned validator on position 2 included transaction block.transactions[2] as first in his dag block
-  std::vector<addr_t> txs_validators_;
-
-  // Txs stats: validator -> ValidatorStats
+  // Validator stats: validator -> ValidatorStats
   std::unordered_map<addr_t, ValidatorStats> validators_stats_;
 
   // Total rewardable(with 1 or more unique transactions) DAG blocks count

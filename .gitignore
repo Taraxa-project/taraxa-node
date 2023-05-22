@@ -15,7 +15,7 @@ cmake-*
 
 # put here local env stuff
 local
-/local-net-data/
+*/local-net-data/
 
 .DS_Store
 
