@@ -9,7 +9,6 @@ Json::Value enc_json(const Hardforks& obj) {
     rewards[std::to_string(i->first)] = i->second;
   }
 
-  json["fee_rewards_block_num"] = obj.fee_rewards_block_num;
   json["magnolia_hf_block_num"] = obj.magnolia_hf_block_num;
 
   return json;
@@ -20,17 +19,12 @@ void dec_json(const Json::Value& json, Hardforks& obj) {
     assert(e.isObject());
 
     for (auto itr = e.begin(); itr != e.end(); ++itr) {
-      obj.rewards_distribution_frequency[itr.key().asUInt64()] = itr->asUInt64();
+      obj.rewards_distribution_frequency[dev::getUInt(itr.key())] = dev::getUInt(*itr);
     }
   }
-
-  if (const auto& e = json["fee_rewards_block_num"]) {
-    obj.fee_rewards_block_num = dev::getUInt(e);
-  }
-
   if (const auto& e = json["magnolia_hf_block_num"]) {
     obj.magnolia_hf_block_num = dev::getUInt(e);
   }
 }
 
-RLP_FIELDS_DEFINE(Hardforks, rewards_distribution_frequency, fee_rewards_block_num, magnolia_hf_block_num)
+RLP_FIELDS_DEFINE(Hardforks, rewards_distribution_frequency, magnolia_hf_block_num)

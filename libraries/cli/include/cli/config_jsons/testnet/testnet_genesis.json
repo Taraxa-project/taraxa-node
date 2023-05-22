@@ -96,7 +96,8 @@
   },
   "hardforks": {
     "rewards_distribution_frequency": {
-    }
+    },
+    "magnolia_hf_block_num" : 18446744073709551615
   },
   "gas_price": {
     "blocks": 200,
