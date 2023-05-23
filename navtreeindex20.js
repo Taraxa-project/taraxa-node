@@ -1,7 +1,5 @@
 var NAVTREEINDEX20 =
 {
-"packet__types_8hpp.html#ab9638975c8f96ddde1ef012aa4a10368":[15,0,1,4,1,1,0,0,4,0],
-"packet__types_8hpp.html#ab9638975c8f96ddde1ef012aa4a10368a049a87329edf74127177b73734ae94be":[15,0,1,4,1,1,0,0,4,0,7],
 "packet__types_8hpp.html#ab9638975c8f96ddde1ef012aa4a10368a0ce9d5a18caa09cb82dedcc9bcfb43f1":[15,0,1,4,1,1,0,0,4,0,6],
 "packet__types_8hpp.html#ab9638975c8f96ddde1ef012aa4a10368a0e8670743447b0cf6432e3c88423de7b":[15,0,1,4,1,1,0,0,4,0,5],
 "packet__types_8hpp.html#ab9638975c8f96ddde1ef012aa4a10368a60757b3d3f158be85f51bdda0a051c1f":[15,0,1,4,1,1,0,0,4,0,10],
@@ -249,5 +247,7 @@ var NAVTREEINDEX20 =
 "structdev_1_1int_traits_3_01bigint_01_4.html#a6de0a0882186c614bcd1900e5090e8b7":[14,0,0,21,0],
 "structdev_1_1int_traits_3_01u160_01_4.html":[14,0,0,19],
 "structdev_1_1int_traits_3_01u160_01_4.html#af9a62d2a5cd9362a66d5a88249a0f81c":[14,0,0,19,0],
-"structdev_1_1int_traits_3_01u256_01_4.html":[14,0,0,20]
+"structdev_1_1int_traits_3_01u256_01_4.html":[14,0,0,20],
+"structdev_1_1int_traits_3_01u256_01_4.html#a042b4b8521c77d81c586f36cbb18a7e3":[14,0,0,20,0],
+"structdev_1_1p2p_1_1_capability.html":[14,0,0,1,36]
 };

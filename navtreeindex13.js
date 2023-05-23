@@ -1,7 +1,5 @@
 var NAVTREEINDEX13 =
 {
-"exceptions_8hpp.html":[15,0,1,4,1,1,0,0,0,0,0],
-"exceptions_8hpp_source.html":[15,0,1,4,1,1,0,0,0,0,0],
 "ext__syncing__packet__handler_8cpp.html":[15,0,1,4,1,3,0,0,0,0],
 "ext__syncing__packet__handler_8hpp.html":[15,0,1,4,1,1,0,0,0,0,1],
 "ext__syncing__packet__handler_8hpp_source.html":[15,0,1,4,1,1,0,0,0,0,1],
@@ -249,5 +247,7 @@ var NAVTREEINDEX13 =
 "group___d_a_g.html#a7def37042439fa3c713ea8861d40b199":[12,0,0,15],
 "group___d_a_g.html#a7f00185a260406eb025c473f2f74da1c":[12,0,1,5],
 "group___d_a_g.html#a819aa6076a9305d48ec7e18c2912a4c5":[12,0,7,14],
-"group___d_a_g.html#a82fda6692132d23ca947de8dbc3ad1ac":[12,0,6,4]
+"group___d_a_g.html#a82fda6692132d23ca947de8dbc3ad1ac":[12,0,6,4],
+"group___d_a_g.html#a847af2af7e5e6f9b2e09ad71d21e92ad":[12,0,5,26],
+"group___d_a_g.html#a8a5501aae6db9f6a2e22ab2d12a7e962":[12,0,5,48]
 };

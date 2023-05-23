@@ -1,7 +1,5 @@
 var NAVTREEINDEX12 =
 {
-"config_2include_2config_2network_8hpp.html#a74ad03c0d7a830dd89d7f10d6f941077":[15,0,1,3,0,0,5,5],
-"config_2include_2config_2network_8hpp.html#aa5e15ca58e0ad240f75a8c70883a00e0":[15,0,1,3,0,0,5,6],
 "config_2include_2config_2network_8hpp_source.html":[15,0,1,3,0,0,5],
 "config_2src_2_network_8cpp.html":[15,0,1,3,1,5],
 "config_2src_2_network_8cpp.html#a74ad03c0d7a830dd89d7f10d6f941077":[15,0,1,3,1,5,2],
@@ -249,5 +247,7 @@ var NAVTREEINDEX12 =
 "encoding__rlp_8hpp_source.html":[15,0,1,2,0,0,3],
 "event_8hpp.html":[15,0,1,2,0,0,4],
 "event_8hpp_source.html":[15,0,1,2,0,0,4],
-"examples.html":[16]
+"examples.html":[16],
+"exceptions_8hpp.html":[15,0,1,4,1,1,0,0,0,0,0],
+"exceptions_8hpp_source.html":[15,0,1,4,1,1,0,0,0,0,0]
 };

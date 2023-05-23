@@ -1,7 +1,5 @@
 var NAVTREEINDEX21 =
 {
-"structdev_1_1int_traits_3_01u256_01_4.html#a042b4b8521c77d81c586f36cbb18a7e3":[14,0,0,20,0],
-"structdev_1_1p2p_1_1_capability.html":[14,0,0,1,36],
 "structdev_1_1p2p_1_1_capability.html#a17aaa37a45dd96c3c23be738a1abef24":[14,0,0,1,36,0],
 "structdev_1_1p2p_1_1_capability.html#a74b830e32fbdbfd0f5a867a39e8e38df":[14,0,0,1,36,2],
 "structdev_1_1p2p_1_1_capability.html#afc69340899d6a0dc163805473b18e02d":[14,0,0,1,36,1],
@@ -76,8 +74,8 @@ var NAVTREEINDEX21 =
 "structdev_1_1p2p_1_1_host.html#a6b5e61650bac9f96af5f50f05920d7e2":[14,0,0,1,13,31],
 "structdev_1_1p2p_1_1_host.html#a6c14f16c39ae6bc5db2672e0141adccd":[14,0,0,1,13,6],
 "structdev_1_1p2p_1_1_host.html#a6eb46b9c7133fb57be418f84396db369":[14,0,0,1,13,79],
-"structdev_1_1p2p_1_1_host.html#a7551c55d8bface84e5f697e558a4a694":[15,0,1,0,2,9,4,1],
 "structdev_1_1p2p_1_1_host.html#a7551c55d8bface84e5f697e558a4a694":[14,0,0,1,13,1,1],
+"structdev_1_1p2p_1_1_host.html#a7551c55d8bface84e5f697e558a4a694":[15,0,1,0,2,9,4,1],
 "structdev_1_1p2p_1_1_host.html#a7681c2e09bfce409ee94d5f4c391caf9":[14,0,0,1,13,0,1],
 "structdev_1_1p2p_1_1_host.html#a7681c2e09bfce409ee94d5f4c391caf9":[15,0,1,0,2,9,3,1],
 "structdev_1_1p2p_1_1_host.html#a773a77cc100211a7f0293f917fbc1bd9":[14,0,0,1,13,2],
@@ -92,8 +90,8 @@ var NAVTREEINDEX21 =
 "structdev_1_1p2p_1_1_host.html#a845ff3794d69b7063038e5424a026763":[14,0,0,1,13,56],
 "structdev_1_1p2p_1_1_host.html#a8f276784e3d059456eed843a26b20042":[14,0,0,1,13,43],
 "structdev_1_1p2p_1_1_host.html#a9045c601adb29bff6ff0454f0f5ab521":[14,0,0,1,13,40],
-"structdev_1_1p2p_1_1_host.html#a9199f1dc673c788ea3685938aca7d849":[14,0,0,1,13,0,2],
 "structdev_1_1p2p_1_1_host.html#a9199f1dc673c788ea3685938aca7d849":[15,0,1,0,2,9,3,2],
+"structdev_1_1p2p_1_1_host.html#a9199f1dc673c788ea3685938aca7d849":[14,0,0,1,13,0,2],
 "structdev_1_1p2p_1_1_host.html#a979ca721d86fbb90b7b87d31ece7bbac":[14,0,0,1,13,25],
 "structdev_1_1p2p_1_1_host.html#a9a37597abfbd9f52329f1ffe1d8508e6":[14,0,0,1,13,48],
 "structdev_1_1p2p_1_1_host.html#aa3d58b92362bb3b3fdf99fee37f0003c":[14,0,0,1,13,9],
@@ -133,13 +131,13 @@ var NAVTREEINDEX21 =
 "structdev_1_1p2p_1_1_host.html#af172022af7fd54783396778c6c64d208":[14,0,0,1,13,24],
 "structdev_1_1p2p_1_1_host.html#af412e2b9651b98154f1916bdbf42d22c":[14,0,0,1,13,64],
 "structdev_1_1p2p_1_1_host.html#af45455e39c329fdc3efe6af597288b6f":[14,0,0,1,13,15],
-"structdev_1_1p2p_1_1_host.html#af48111b36108125508b64b6e3e1be302":[14,0,0,1,13,0,0],
 "structdev_1_1p2p_1_1_host.html#af48111b36108125508b64b6e3e1be302":[15,0,1,0,2,9,3,0],
+"structdev_1_1p2p_1_1_host.html#af48111b36108125508b64b6e3e1be302":[14,0,0,1,13,0,0],
 "structdev_1_1p2p_1_1_host.html#af5f30d38696533a1f32dcd4433ccb91d":[14,0,0,1,13,38],
 "structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_known_node":[14,0,0,1,13,0],
 "structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_known_node":[15,0,1,0,2,9,3],
-"structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_persistent_state":[15,0,1,0,2,9,4],
 "structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_persistent_state":[14,0,0,1,13,1],
+"structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_persistent_state":[15,0,1,0,2,9,4],
 "structdev_1_1p2p_1_1_invalid_public_i_p_address.html":[14,0,0,1,2],
 "structdev_1_1p2p_1_1_neighbours.html":[14,0,0,1,23],
 "structdev_1_1p2p_1_1_neighbours.html#a1d87a065819d2e4065e48a1695f77a62":[14,0,0,1,23,9],
@@ -249,5 +247,7 @@ var NAVTREEINDEX21 =
 "structdev_1_1p2p_1_1_r_l_p_x_datagram_face.html#a976c84cde2814d341f66a3c7c95d8567":[14,0,0,1,39,2],
 "structdev_1_1p2p_1_1_r_l_p_x_datagram_face.html#ab7ffdfa3168cd952fb70ebb83fc8a4ad":[14,0,0,1,39,8],
 "structdev_1_1p2p_1_1_r_l_p_x_datagram_face.html#afc14b3e03e733ab8199cd39ea7b3c0f5":[14,0,0,1,39,3],
-"structdev_1_1p2p_1_1_r_l_p_x_datagram_face.html#affd9067c3f076cf3e5f689546a8066c8":[14,0,0,1,39,9]
+"structdev_1_1p2p_1_1_r_l_p_x_datagram_face.html#affd9067c3f076cf3e5f689546a8066c8":[14,0,0,1,39,9],
+"structdev_1_1p2p_1_1_r_l_p_x_frame_info.html":[14,0,0,1,28],
+"structdev_1_1p2p_1_1_r_l_p_x_frame_info.html#a11444ae2638e32a4c64d1e643c064103":[14,0,0,1,28,3]
 };
