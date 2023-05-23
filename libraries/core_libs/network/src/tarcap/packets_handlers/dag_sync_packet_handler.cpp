@@ -40,7 +40,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     }
     peer->peer_dag_syncing_ = false;
     // We might be behind, restart pbft sync if needed
-    restartSyncingPbft();
+    startSyncingPbft();
     return;
   } else if (response_period < request_period) {
     // This should not be possible for honest node

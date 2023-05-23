@@ -21,53 +21,44 @@ ExtSyncingPacketHandler::ExtSyncingPacketHandler(const FullNodeConfig &conf, std
       dag_mgr_(std::move(dag_mgr)),
       db_(std::move(db)) {}
 
-void ExtSyncingPacketHandler::restartSyncingPbft(bool force) {
-  if (pbft_syncing_state_->isPbftSyncing() && !force) {
-    LOG(log_dg_) << "restartSyncingPbft called but syncing_ already true";
+void ExtSyncingPacketHandler::startSyncingPbft() {
+  if (pbft_syncing_state_->isPbftSyncing()) {
+    LOG(log_dg_) << "startSyncingPbft called but syncing_ already true";
     return;
   }
 
   std::shared_ptr<TaraxaPeer> peer = getMaxChainPeer();
-
   if (!peer) {
-    pbft_syncing_state_->setPbftSyncing(false);
     LOG(log_nf_) << "Restarting syncing PBFT not possible since no connected peers";
     return;
   }
 
   auto pbft_sync_period = pbft_mgr_->pbftSyncingPeriod();
   if (peer->pbft_chain_size_ > pbft_sync_period) {
-    LOG(log_si_) << "Restarting syncing PBFT from peer " << peer->getId() << ", peer PBFT chain size "
-                 << peer->pbft_chain_size_ << ", own PBFT chain synced at period " << pbft_sync_period;
-
-    const auto node_id = peer->getId();
-
-    pbft_syncing_state_->setPbftSyncing(true, pbft_sync_period, std::move(peer));
-
-    // Handle case where syncing peer just disconnected
-    if (!syncPeerPbft(pbft_sync_period + 1)) {
-      // Only restart syncing if peer is actually disconnected and removed from peers_state, otherwise there is a risk
-      // of endless recursion
-      if (peers_state_->getPeer(node_id) == nullptr) {
-        return restartSyncingPbft(true);
-      }
-      pbft_syncing_state_->setPbftSyncing(false);
+    auto peer_id = peer->getId().abridged();
+    auto peer_pbft_chain_size = peer->pbft_chain_size_.load();
+    if (!pbft_syncing_state_->setPbftSyncing(true, pbft_sync_period, std::move(peer))) {
+      LOG(log_dg_) << "startSyncingPbft called but syncing_ already true";
       return;
     }
+    LOG(log_si_) << "Restarting syncing PBFT from peer " << peer_id << ", peer PBFT chain size " << peer_pbft_chain_size
+                 << ", own PBFT chain synced at period " << pbft_sync_period;
 
-    // Disable snapshots only if are syncing from scratch
-    if (pbft_syncing_state_->isDeepPbftSyncing()) {
-      db_->disableSnapshots();
+    if (syncPeerPbft(pbft_sync_period + 1)) {
+      // Disable snapshots only if are syncing from scratch
+      if (pbft_syncing_state_->isDeepPbftSyncing()) {
+        db_->disableSnapshots();
+      }
+    } else {
+      pbft_syncing_state_->setPbftSyncing(false);
     }
   } else {
     LOG(log_nf_) << "Restarting syncing PBFT not needed since our pbft chain size: " << pbft_sync_period << "("
                  << pbft_chain_->getPbftChainSize() << ")"
                  << " is greater or equal than max node pbft chain size:" << peer->pbft_chain_size_;
-    pbft_syncing_state_->setPbftSyncing(false);
     db_->enableSnapshots();
   }
 }
-
 bool ExtSyncingPacketHandler::syncPeerPbft(PbftPeriod request_period, bool ignore_chain_size_check) {
   const auto syncing_peer = pbft_syncing_state_->syncingPeer();
   if (!syncing_peer) {

@@ -99,9 +99,8 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
                  << packet_data.from_node_id_ << " already present in chain";
   } else {
     if (pbft_block_period != pbft_mgr_->pbftSyncingPeriod() + 1) {
-      LOG(log_wr_) << "Block " << pbft_blk_hash << " period unexpected: " << pbft_block_period
+      LOG(log_er_) << "Block " << pbft_blk_hash << " period unexpected: " << pbft_block_period
                    << ". Expected period: " << pbft_mgr_->pbftSyncingPeriod() + 1;
-      restartSyncingPbft(true);
       return;
     }
 
@@ -171,10 +170,10 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
       if (auto votes = vote_mgr_->checkRewardVotes(period_data.pbft_blk, true); votes.first) {
         period_data.previous_block_cert_votes = std::move(votes.second);
       } else {
-        // checkRewardVotes could fail because we just cert voted this block and moved to next period, in that case we
-        // might even be fully synced so call restartSyncingPbft to verify
+        // checkRewardVotes could fail because we just cert voted this block and moved to next period,
+        // in that case we are probably fully synced
         if (pbft_block_period <= vote_mgr_->getRewardVotesPbftBlockPeriod()) {
-          restartSyncingPbft(true);
+          pbft_syncing_state_->setPbftSyncing(false);
           return;
         }
 
@@ -203,10 +202,10 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   }
 
   if (last_block) {
-    // If current sync period is actually bigger than the block we just received we are probably synced but verify with
-    // calling restartSyncingPbft
+    // If current sync period is actually bigger than the block we just received we are probably synced
     if (pbft_sync_period > pbft_block_period) {
-      return restartSyncingPbft(true);
+      pbft_syncing_state_->setPbftSyncing(false);
+      return;
     }
     if (pbft_syncing_state_->isPbftSyncing()) {
       if (pbft_sync_period > pbft_chain_->getPbftChainSize() + (10 * kConf.network.sync_level_size)) {
@@ -216,7 +215,8 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
           periodic_events_tp->post(1000, [this] { delayedPbftSync(1); });
       } else {
         if (!syncPeerPbft(pbft_sync_period + 1, true)) {
-          return restartSyncingPbft(true);
+          pbft_syncing_state_->setPbftSyncing(false);
+          return;
         }
       }
     }
@@ -232,10 +232,11 @@ void PbftSyncPacketHandler::pbftSyncComplete() {
   } else {
     LOG(log_dg_) << "Syncing PBFT is completed";
     // We are pbft synced with the node we are connected to but
-    // calling restartSyncingPbft will check if some nodes have
+    // calling startSyncingPbft will check if some nodes have
     // greater pbft chain size and we should continue syncing with
     // them, Or sync pending DAG blocks
-    restartSyncingPbft(true);
+    pbft_syncing_state_->setPbftSyncing(false);
+    startSyncingPbft();
     if (!pbft_syncing_state_->isPbftSyncing()) {
       requestPendingDagBlocks();
     }
@@ -260,7 +261,7 @@ void PbftSyncPacketHandler::delayedPbftSync(int counter) {
         periodic_events_tp->post(1000, [this, counter] { delayedPbftSync(counter + 1); });
     } else {
       if (!syncPeerPbft(pbft_sync_period + 1)) {
-        return restartSyncingPbft(true);
+        pbft_syncing_state_->setPbftSyncing(false);
       }
     }
   }
@@ -275,8 +276,6 @@ void PbftSyncPacketHandler::handleMaliciousSyncPeer(dev::p2p::NodeID const &id) 
   } else {
     LOG(log_er_) << "Unable to handleMaliciousSyncPeer, host == nullptr";
   }
-
-  restartSyncingPbft(true);
 }
 
 }  // namespace taraxa::network::tarcap

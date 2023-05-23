@@ -304,7 +304,7 @@ bool PbftManager::tryPushCertVotesBlock() {
     auto net = network_.lock();
     // If block/reward votes are missing but block is cert voted other nodes probably advanced, sync
     if (net) {
-      net->restartSyncingPbft();
+      net->startSyncingPbft();
     }
     return false;
   }

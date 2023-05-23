@@ -83,10 +83,9 @@ unsigned Network::getNodeCount() { return host_->getNodeCount(); }
 
 Json::Value Network::getStatus() { return taraxa_capability_->getNodeStats()->getStatus(); }
 
-void Network::restartSyncingPbft(bool force) {
-  tp_.post([this, force] {
-    taraxa_capability_->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->restartSyncingPbft(force);
-  });
+void Network::startSyncingPbft() {
+  tp_.post(
+      [this] { taraxa_capability_->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->startSyncingPbft(); });
 }
 
 bool Network::pbft_syncing() { return taraxa_capability_->pbft_syncing(); }

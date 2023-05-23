@@ -260,12 +260,12 @@ void TaraxaCapability::onDisconnect(dev::p2p::NodeID const &_nodeID) {
 
   const auto syncing_peer = pbft_syncing_state_->syncingPeer();
   if (pbft_syncing_state_->isPbftSyncing() && syncing_peer && syncing_peer->getId() == _nodeID) {
+    pbft_syncing_state_->setPbftSyncing(false);
     if (peers_state_->getPeersCount() > 0) {
       LOG(log_dg_) << "Restart PBFT/DAG syncing due to syncing peer disconnect.";
-      packets_handlers_->getSpecificHandler<PbftSyncPacketHandler>()->restartSyncingPbft(true);
+      packets_handlers_->getSpecificHandler<PbftSyncPacketHandler>()->startSyncingPbft();
     } else {
       LOG(log_dg_) << "Stop PBFT/DAG syncing due to syncing peer disconnect and no other peers available.";
-      pbft_syncing_state_->setPbftSyncing(false);
     }
   }
 }
