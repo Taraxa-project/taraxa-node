@@ -301,11 +301,6 @@ bool PbftManager::tryPushCertVotesBlock() {
   auto pbft_block = getValidPbftProposedBlock(current_pbft_period, certified_block_hash);
   if (!pbft_block) {
     LOG(log_er_) << "Invalid certified block " << certified_block_hash;
-    auto net = network_.lock();
-    // If block/reward votes are missing but block is cert voted other nodes probably advanced, sync
-    if (net) {
-      net->startSyncingPbft();
-    }
     return false;
   }
 

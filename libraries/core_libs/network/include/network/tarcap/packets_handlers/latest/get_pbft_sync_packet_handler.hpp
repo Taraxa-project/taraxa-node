@@ -27,8 +27,8 @@ class GetPbftSyncPacketHandler : public PacketHandler {
   virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
   virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
-  virtual void sendPbftBlocks(dev::p2p::NodeID const& peer_id, PbftPeriod from_period, size_t blocks_to_transfer,
-                              bool pbft_chain_synced);
+  virtual void sendPbftBlocks(const std::shared_ptr<TaraxaPeer>& peer, PbftPeriod from_period,
+                              size_t blocks_to_transfer, bool pbft_chain_synced);
 
  protected:
   std::shared_ptr<PbftSyncingState> pbft_syncing_state_;

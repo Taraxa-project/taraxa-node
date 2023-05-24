@@ -4,8 +4,6 @@
 
 #include <algorithm>
 #include <fstream>
-#include <queue>
-#include <stack>
 #include <tuple>
 #include <unordered_set>
 #include <utility>
@@ -14,7 +12,6 @@
 #include "dag/dag.hpp"
 #include "key_manager/key_manager.hpp"
 #include "network/network.hpp"
-#include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
 #include "transaction/transaction_manager.hpp"
 
 namespace taraxa {

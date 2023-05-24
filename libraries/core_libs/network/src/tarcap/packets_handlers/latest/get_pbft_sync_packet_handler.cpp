@@ -28,7 +28,7 @@ void GetPbftSyncPacketHandler::validatePacketRlpFormat(const threadpool::PacketD
 }
 
 void GetPbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
-                                       [[maybe_unused]] const std::shared_ptr<TaraxaPeer> &peer) {
+                                       const std::shared_ptr<TaraxaPeer> &peer) {
   LOG(log_tr_) << "Received GetPbftSyncPacket Block";
 
   const size_t height_to_sync = packet_data.rlp_[0].toInt();

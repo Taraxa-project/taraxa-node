@@ -168,7 +168,6 @@ uint64_t Network::syncTimeSeconds() const {
   // TODO: this should be probably part of syncing_state, not node_stats
   return node_stats_->syncTimeSeconds();
 }
-==== BASE ====
 
 void Network::setSyncStatePeriod(PbftPeriod period) { pbft_syncing_state_->setSyncStatePeriod(period); }
 

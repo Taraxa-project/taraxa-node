@@ -54,7 +54,6 @@ class Network {
   // returns count of all discovered nodes
   unsigned getNodeCount();
   Json::Value getStatus();
-  void startSyncingPbft();
   bool pbft_syncing();
   uint64_t syncTimeSeconds() const;
   void setSyncStatePeriod(PbftPeriod period);

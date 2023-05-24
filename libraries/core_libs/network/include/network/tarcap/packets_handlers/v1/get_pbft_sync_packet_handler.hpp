@@ -10,7 +10,7 @@ class GetPbftSyncPacketHandler final : public tarcap::GetPbftSyncPacketHandler {
   using tarcap::GetPbftSyncPacketHandler::GetPbftSyncPacketHandler;
 
  private:
-  void sendPbftBlocks(dev::p2p::NodeID const& peer_id, PbftPeriod from_period, size_t blocks_to_transfer,
+  void sendPbftBlocks(const std::shared_ptr<TaraxaPeer>& peer, PbftPeriod from_period, size_t blocks_to_transfer,
                       bool pbft_chain_synced) override;
 };
 

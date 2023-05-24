@@ -8,8 +8,9 @@
 
 namespace taraxa::network::tarcap::v1 {
 
-void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, PbftPeriod from_period,
+void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> &peer, PbftPeriod from_period,
                                               size_t blocks_to_transfer, bool pbft_chain_synced) {
+  const auto &peer_id = peer->getId();
   LOG(log_tr_) << "sendPbftBlocks: peer want to sync from pbft chain height " << from_period << ", will send at most "
                << blocks_to_transfer << " pbft blocks to " << peer_id;
 
@@ -62,8 +63,12 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(dev::p2p::NodeID const &peer_id, P
       s << last_block;
       s.appendRaw(transformPeriodDataRlpToV1(data));
     }
+
     LOG(log_dg_) << "Sending PbftSyncPacket period " << block_period << " to " << peer_id;
     sealAndSend(peer_id, SubprotocolPacketType::PbftSyncPacket, std::move(s));
+    if (pbft_chain_synced && last_block) {
+      peer->syncing_ = false;
+    }
   }
 }
 
