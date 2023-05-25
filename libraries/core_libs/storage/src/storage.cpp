@@ -312,6 +312,7 @@ DbStorage::Batch DbStorage::createWriteBatch() { return DbStorage::Batch(); }
 void DbStorage::commitWriteBatch(Batch& write_batch, rocksdb::WriteOptions const& opts) {
   auto status = db_->Write(opts, write_batch.GetWriteBatch());
   checkStatus(status);
+  write_batch.Clear();
 }
 
 std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
