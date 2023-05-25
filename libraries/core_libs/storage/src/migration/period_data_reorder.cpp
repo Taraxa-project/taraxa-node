@@ -27,7 +27,7 @@ void PeriodDataReorder::migrate(logger::Logger& log) {
     it->Prev();
   }
   memcpy(&end_period, it->key().data(), sizeof(uint64_t));
-  util::ThreadPool executor{5};
+  util::ThreadPool executor{std::thread::hardware_concurrency()};
 
   const auto diff = end_period - start_period;
   uint64_t curr_progress = 0;
@@ -43,7 +43,7 @@ void PeriodDataReorder::migrate(logger::Logger& log) {
     while (executor.num_pending_tasks() > (executor.capacity() * 3)) {
       taraxa::thisThreadSleepForMilliSeconds(50);
     }
-    auto percentage = (i - start_period) / diff * 100;
+    auto percentage = (i - start_period) * 100 / diff ;
     if (percentage > curr_progress) {
       curr_progress = percentage;
       LOG(log) << "Migration " << id() << " progress " << curr_progress << "%";
