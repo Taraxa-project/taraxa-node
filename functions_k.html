@@ -114,7 +114,8 @@ $(document).ready(function(){initNavTree('functions_k.html',''); initResizable()
 : <a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a76a2d33a81bb57fd74b4468c42d8a807">taraxa::rewards::Stats</a>
 </li>
 <li>kConf
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a0bc0eb91a8941bd8d03eb55c41d06b2c">taraxa::network::tarcap::PacketHandler</a>
+: <a class="el" href="classtaraxa_1_1_network.html#a0719a7380d1d765bba50ef89be603aab">taraxa::Network</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a0bc0eb91a8941bd8d03eb55c41d06b2c">taraxa::network::tarcap::PacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ab052327a21fab01c681f89d615123934">taraxa::network::tarcap::PeersState</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a1d83c18dcaae2cb7bc166664f2fd5240">taraxa::network::tarcap::TaraxaCapability</a>
 , <a class="el" href="group___transaction.html#a6834f70d8689221cac865bf82f79891a">taraxa::TransactionManager</a>
@@ -185,6 +186,9 @@ $(document).ready(function(){initNavTree('functions_k.html',''); initResizable()
 <li>kInitialStatusPacketItemsCount
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#ac0c8c57b5f652761c8ec32b0a41812c2">taraxa::network::tarcap::StatusPacketHandler</a>
 </li>
+<li>kInitLatestVersionHandlers
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a48c76b3acfc0c33fbde3a76794f17214">taraxa::network::tarcap::TaraxaCapability</a>
+</li>
 <li>kIsLightNode
 : <a class="el" href="group___transaction.html#acd761bb267c3c7bfa8a559ba776c2fa3">taraxa::GasPricer</a>
 </li>
@@ -221,11 +225,11 @@ $(document).ready(function(){initNavTree('functions_k.html',''); initResizable()
 <li>kMaxSuspiciousPacketPerMinute
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ab3bbe4adc4861112464995c4a54eff8c">taraxa::network::tarcap::TaraxaPeer</a>
 </li>
-<li>kMaxVotesInPacket
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#afbf0d2e7c613557c901ed2ac960999bf">taraxa::network::tarcap::ExtVotesPacketHandler</a>
+<li>kMaxVotesInBundleRlp
+: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a278697f9e7b91e9e6150bfa7c3a7d92a">taraxa::network::tarcap::ExtVotesPacketHandler</a>
 </li>
 <li>kMaxWorkersCount_
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_queue.html#afc1e1ea6b36c38649a839358c3e970ac">taraxa::network::tarcap::PacketsQueue</a>
+: <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packets_queue.html#a21b38da5d75b51cdefde6501cf6d5581">taraxa::network::threadpool::PacketsQueue</a>
 </li>
 <li>kMinimumPrice
 : <a class="el" href="group___transaction.html#a66af96deef89cc0852e7f53d76e9765e">taraxa::GasPricer</a>
@@ -276,13 +280,13 @@ $(document).ready(function(){initNavTree('functions_k.html',''); initResizable()
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html#af995d8e098c45e69e3fef6b670c9d3cc">taraxa::network::tarcap::DagBlockPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_dag_sync_packet_handler.html#a4bd36b937379c23de1fb058ab016a5e1">taraxa::network::tarcap::DagSyncPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#af3f2f50ee9cc1226193c189887bc9fcf">taraxa::network::tarcap::GetDagSyncPacketHandler</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_sync_packet_handler.html#a800cbd072eddad205174294124a2f592">taraxa::network::tarcap::GetNextVotesSyncPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet_handler.html#af595b34620b4e3a2c5d389419e529cfb">taraxa::network::tarcap::GetNextVotesBundlePacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html#abb00a37642f6819cd0e5c7ba44e0b306">taraxa::network::tarcap::GetPbftSyncPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html#aab076aac8ccb972af61d6fa6aa80759b">taraxa::network::tarcap::PbftSyncPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html#af906835405b5d8132ced3ab6b1685918">taraxa::network::tarcap::StatusPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html#a8ca8ec0d164aca81f25ebedffa45b733">taraxa::network::tarcap::TransactionPacketHandler</a>
 , <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a8d801b7364fab5d508a30bf43dc1eae6">taraxa::network::tarcap::VotePacketHandler</a>
-, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_votes_sync_packet_handler.html#afd8364bba9a1e475468560c87ea0d193">taraxa::network::tarcap::VotesSyncPacketHandler</a>
+, <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet_handler.html#a82c0eadd707d16dccf3544e1caa18d9a">taraxa::network::tarcap::VotesBundlePacketHandler</a>
 </li>
 <li>kPbftConfig
 : <a class="el" href="group___vote.html#a48acd91ee1cfb71742b0c3d9bb7ee753">taraxa::VoteManager</a>

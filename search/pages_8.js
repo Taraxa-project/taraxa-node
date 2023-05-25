@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['taraxa_20rpc_7476',['Taraxa RPC',['../md_doc__r_p_c.html',1,'']]],
-  ['todo_20list_7477',['Todo List',['../todo.html',1,'']]]
+  ['standard_20release_20cycle_7506',['Standard release cycle',['../md_doc_release_cycle.html',1,'']]]
 ];

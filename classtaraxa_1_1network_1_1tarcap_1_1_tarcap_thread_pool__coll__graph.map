@@ -1,7 +1,0 @@
-<map id="taraxa::network::tarcap::TarcapThreadPool" name="taraxa::network::tarcap::TarcapThreadPool">
-<area shape="rect" id="node1" title="Taraxa ThreadPool that is supposed to process incoming packets in concurrent way." alt="" coords="427,213,601,255"/>
-<area shape="rect" id="node2" href="$classtaraxa_1_1network_1_1tarcap_1_1_priority_queue.html" title=" " alt="" coords="197,109,372,151"/>
-<area shape="rect" id="node3" href="$classtaraxa_1_1network_1_1tarcap_1_1_packets_blocking_mask.html" title=" " alt="" coords="5,5,180,47"/>
-<area shape="rect" id="node4" title=" " alt="" coords="369,13,429,39"/>
-<area shape="rect" id="node5" title=" " alt="" coords="637,117,701,143"/>
-</map>

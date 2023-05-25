@@ -1,5 +1,5 @@
 <map id="libraries/core_libs/consensus/include/pbft/pbft_manager.hpp" name="libraries/core_libs/consensus/include/pbft/pbft_manager.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="1495,5,1670,61"/>
+<area shape="rect" id="node1" title=" " alt="" coords="1927,5,2102,61"/>
 <area shape="rect" id="node2" href="$pbft__chain_8cpp.html" title=" " alt="" coords="5,124,152,180"/>
 <area shape="rect" id="node3" href="$pbft__manager_8cpp.html" title=" " alt="" coords="176,124,323,180"/>
 <area shape="rect" id="node4" href="$vote__manager_8cpp.html" title=" " alt="" coords="347,124,557,180"/>
@@ -8,15 +8,19 @@
 <area shape="rect" id="node11" href="$core__libs_2network_2graphql_2include_2graphql_2types_2dag__block_8hpp.html" title=" " alt="" coords="789,124,1003,180"/>
 <area shape="rect" id="node13" href="$_taraxa_8cpp.html" title=" " alt="" coords="1078,131,1255,173"/>
 <area shape="rect" id="node14" href="$_test_8cpp.html" title=" " alt="" coords="1280,131,1440,173"/>
-<area shape="rect" id="node15" href="$ext__syncing__packet__handler_8cpp.html" title=" " alt="" coords="1465,117,1701,187"/>
-<area shape="rect" id="node16" href="$ext__votes__packet__handler_8cpp.html" title=" " alt="" coords="1725,117,1947,187"/>
-<area shape="rect" id="node17" href="$get__next__votes__sync__packet__handler_8cpp.html" title=" " alt="" coords="1971,109,2159,195"/>
-<area shape="rect" id="node18" href="$pbft__sync__packet__handler_8cpp.html" title=" " alt="" coords="2183,117,2374,187"/>
-<area shape="rect" id="node19" href="$status__packet__handler_8cpp.html" title=" " alt="" coords="2398,117,2581,187"/>
-<area shape="rect" id="node20" href="$vote__packet__handler_8cpp.html" title=" " alt="" coords="2605,117,2777,187"/>
-<area shape="rect" id="node21" href="$votes__sync__packet__handler_8cpp.html" title=" " alt="" coords="2801,117,2991,187"/>
-<area shape="rect" id="node22" href="$node__stats_8cpp.html" title=" " alt="" coords="3016,124,3176,180"/>
-<area shape="rect" id="node23" href="$taraxa__capability_8cpp.html" title=" " alt="" coords="3201,124,3365,180"/>
+<area shape="rect" id="node15" href="$core__libs_2network_2src_2_network_8cpp.html" title=" " alt="" coords="1464,131,1651,173"/>
+<area shape="rect" id="node16" href="$ext__syncing__packet__handler_8cpp.html" title=" " alt="" coords="1675,109,1890,195"/>
+<area shape="rect" id="node17" href="$ext__votes__packet__handler_8cpp.html" title=" " alt="" coords="1914,109,2115,195"/>
+<area shape="rect" id="node18" href="$latest_2get__next__votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="2140,109,2367,195"/>
+<area shape="rect" id="node19" href="$latest_2pbft__sync__packet__handler_8cpp.html" title=" " alt="" coords="2391,117,2611,187"/>
+<area shape="rect" id="node20" href="$status__packet__handler_8cpp.html" title=" " alt="" coords="2635,117,2834,187"/>
+<area shape="rect" id="node21" href="$vote__packet__handler_8cpp.html" title=" " alt="" coords="2859,117,3045,187"/>
+<area shape="rect" id="node22" href="$latest_2votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="3069,117,3315,187"/>
+<area shape="rect" id="node23" href="$v1_2get__next__votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="3339,109,3517,195"/>
+<area shape="rect" id="node24" href="$v1_2pbft__sync__packet__handler_8cpp.html" title=" " alt="" coords="3541,117,3761,187"/>
+<area shape="rect" id="node25" href="$v1_2votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="3785,117,4031,187"/>
+<area shape="rect" id="node26" href="$node__stats_8cpp.html" title=" " alt="" coords="4055,124,4215,180"/>
+<area shape="rect" id="node27" href="$taraxa__capability_8cpp.html" title=" " alt="" coords="4239,124,4403,180"/>
 <area shape="rect" id="node6" href="$http__processor_8hpp.html" title=" " alt="" coords="437,243,640,299"/>
 <area shape="rect" id="node9" href="$query_8cpp.html" title=" " alt="" coords="664,243,819,299"/>
 <area shape="rect" id="node10" href="$graphql_2src_2ws__server_8cpp.html" title=" " alt="" coords="259,243,413,299"/>

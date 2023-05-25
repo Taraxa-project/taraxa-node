@@ -192,6 +192,12 @@ var annotated_dup =
       ] ],
       [ "network", "namespacetaraxa_1_1network.html", [
         [ "tarcap", "namespacetaraxa_1_1network_1_1tarcap.html", [
+          [ "v1", "namespacetaraxa_1_1network_1_1tarcap_1_1v1.html", [
+            [ "GetNextVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_get_next_votes_bundle_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_get_next_votes_bundle_packet_handler" ],
+            [ "GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_get_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_get_pbft_sync_packet_handler" ],
+            [ "PbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_pbft_sync_packet_handler" ],
+            [ "VotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_votes_bundle_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_votes_bundle_packet_handler" ]
+          ] ],
           [ "PacketsHandler", "classtaraxa_1_1network_1_1tarcap_1_1_packets_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_packets_handler" ],
           [ "ExtSyncingPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler" ],
           [ "ExtVotesPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler" ],
@@ -199,13 +205,13 @@ var annotated_dup =
           [ "DagBlockPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_dag_block_packet_handler" ],
           [ "DagSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_dag_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_dag_sync_packet_handler" ],
           [ "GetDagSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler" ],
-          [ "GetNextVotesSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_sync_packet_handler" ],
+          [ "GetNextVotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet_handler" ],
           [ "GetPbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler" ],
           [ "PbftSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_sync_packet_handler" ],
           [ "StatusPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_status_packet_handler" ],
           [ "TransactionPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_transaction_packet_handler" ],
           [ "VotePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler" ],
-          [ "VotesSyncPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_votes_sync_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_votes_sync_packet_handler" ],
+          [ "VotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet_handler" ],
           [ "PbftSyncingState", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state" ],
           [ "PeersState", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state" ],
           [ "TestState", "classtaraxa_1_1network_1_1tarcap_1_1_test_state.html", "classtaraxa_1_1network_1_1tarcap_1_1_test_state" ],
@@ -215,12 +221,14 @@ var annotated_dup =
           [ "PacketsStats", "classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html", "classtaraxa_1_1network_1_1tarcap_1_1_packets_stats" ],
           [ "TimePeriodPacketsStats", "classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html", "classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats" ],
           [ "TaraxaCapability", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability" ],
-          [ "TaraxaPeer", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer" ],
-          [ "PacketData", "classtaraxa_1_1network_1_1tarcap_1_1_packet_data.html", "classtaraxa_1_1network_1_1tarcap_1_1_packet_data" ],
-          [ "PacketsBlockingMask", "classtaraxa_1_1network_1_1tarcap_1_1_packets_blocking_mask.html", "classtaraxa_1_1network_1_1tarcap_1_1_packets_blocking_mask" ],
-          [ "PacketsQueue", "classtaraxa_1_1network_1_1tarcap_1_1_packets_queue.html", "classtaraxa_1_1network_1_1tarcap_1_1_packets_queue" ],
-          [ "PriorityQueue", "classtaraxa_1_1network_1_1tarcap_1_1_priority_queue.html", "classtaraxa_1_1network_1_1tarcap_1_1_priority_queue" ],
-          [ "TarcapThreadPool", "classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool.html", "classtaraxa_1_1network_1_1tarcap_1_1_tarcap_thread_pool" ]
+          [ "TaraxaPeer", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer" ]
+        ] ],
+        [ "threadpool", "namespacetaraxa_1_1network_1_1threadpool.html", [
+          [ "PacketData", "classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html", "classtaraxa_1_1network_1_1threadpool_1_1_packet_data" ],
+          [ "PacketsBlockingMask", "classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html", "classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask" ],
+          [ "PacketsQueue", "classtaraxa_1_1network_1_1threadpool_1_1_packets_queue.html", "classtaraxa_1_1network_1_1threadpool_1_1_packets_queue" ],
+          [ "PriorityQueue", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html", "classtaraxa_1_1network_1_1threadpool_1_1_priority_queue" ],
+          [ "PacketsThreadPool", "classtaraxa_1_1network_1_1threadpool_1_1_packets_thread_pool.html", "classtaraxa_1_1network_1_1threadpool_1_1_packets_thread_pool" ]
         ] ]
       ] ],
       [ "rewards", "namespacetaraxa_1_1rewards.html", [
@@ -252,6 +260,7 @@ var annotated_dup =
         [ "migration", "namespacetaraxa_1_1storage_1_1migration.html", [
           [ "Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", "classtaraxa_1_1storage_1_1migration_1_1_base" ],
           [ "Manager", "classtaraxa_1_1storage_1_1migration_1_1_manager.html", "classtaraxa_1_1storage_1_1migration_1_1_manager" ],
+          [ "PeriodData", "classtaraxa_1_1storage_1_1migration_1_1_period_data.html", "classtaraxa_1_1storage_1_1migration_1_1_period_data" ],
           [ "TransactionHashes", "classtaraxa_1_1storage_1_1migration_1_1_transaction_hashes.html", "classtaraxa_1_1storage_1_1migration_1_1_transaction_hashes" ],
           [ "OldTransactionsHashes", "structtaraxa_1_1storage_1_1migration_1_1_old_transactions_hashes.html", "structtaraxa_1_1storage_1_1migration_1_1_old_transactions_hashes" ]
         ] ]
@@ -325,7 +334,6 @@ var annotated_dup =
       [ "PeriodData", "group___p_b_f_t.html#classtaraxa_1_1_period_data", "group___p_b_f_t_classtaraxa_1_1_period_data" ],
       [ "Transaction", "structtaraxa_1_1_transaction.html", "structtaraxa_1_1_transaction" ],
       [ "Vote", "group___vote.html#classtaraxa_1_1_vote", "group___vote_classtaraxa_1_1_vote" ],
-      [ "VotesBundle", "group___vote.html#structtaraxa_1_1_votes_bundle", "group___vote_structtaraxa_1_1_votes_bundle" ],
       [ "VrfPbftMsg", "group___vote.html#classtaraxa_1_1_vrf_pbft_msg", "group___vote_classtaraxa_1_1_vrf_pbft_msg" ],
       [ "VrfPbftSortition", "group___vote.html#classtaraxa_1_1_vrf_pbft_sortition", "group___vote_classtaraxa_1_1_vrf_pbft_sortition" ],
       [ "VrfParams", "structtaraxa_1_1_vrf_params.html", "structtaraxa_1_1_vrf_params" ],

@@ -1,6 +1,8 @@
-<map id="libraries/core_libs/network/include/network/tarcap/packets_handlers/transaction_packet_handler.hpp" name="libraries/core_libs/network/include/network/tarcap/packets_handlers/transaction_packet_handler.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="218,5,450,76"/>
-<area shape="rect" id="node2" href="$dag__block__packet__handler_8cpp.html" title=" " alt="" coords="5,124,201,195"/>
-<area shape="rect" id="node3" href="$transaction__packet__handler_8cpp.html" title=" " alt="" coords="226,124,442,195"/>
-<area shape="rect" id="node4" href="$taraxa__capability_8cpp.html" title=" " alt="" coords="467,131,631,187"/>
+<map id="libraries/core_libs/network/include/network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp" name="libraries/core_libs/network/include/network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp">
+<area shape="rect" id="node1" title=" " alt="" coords="387,5,577,91"/>
+<area shape="rect" id="node2" href="$init__packets__handlers_8hpp.html" title=" " alt="" coords="5,139,220,209"/>
+<area shape="rect" id="node4" href="$dag__block__packet__handler_8cpp.html" title=" " alt="" coords="245,139,469,209"/>
+<area shape="rect" id="node5" href="$transaction__packet__handler_8cpp.html" title=" " alt="" coords="493,139,724,209"/>
+<area shape="rect" id="node6" href="$taraxa__capability_8cpp.html" title=" " alt="" coords="748,146,912,202"/>
+<area shape="rect" id="node3" href="$core__libs_2network_2src_2_network_8cpp.html" title=" " alt="" coords="19,257,206,299"/>
 </map>

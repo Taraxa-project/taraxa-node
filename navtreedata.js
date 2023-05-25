@@ -35,244 +35,245 @@ var NAVTREE =
       [ "Useful doc", "index.html#autotoc_md11", null ],
       [ "System Requirements", "index.html#autotoc_md12", null ]
     ] ],
+    [ "Multiple taraxa capabilities support", "md_libraries_core_libs_network_src_tarcap_packets_handlers_v1_readme.html", null ],
     [ "Building taraxa-node", "md_doc_building.html", [
-      [ "Building on Ubuntu 22.04", "md_doc_building.html#autotoc_md29", [
-        [ "Compile-Time Options (cmake)", "md_doc_building.html#autotoc_md27", [
+      [ "Building on Ubuntu 22.04", "md_doc_building.html#autotoc_md30", [
+        [ "Compile-Time Options (cmake)", "md_doc_building.html#autotoc_md28", [
           [ "Docker image", "index.html#autotoc_md4", null ],
           [ "Ubuntu binary", "index.html#autotoc_md5", null ],
           [ "Inside docker image", "index.html#autotoc_md8", null ],
           [ "Pre-built binary or manual build:", "index.html#autotoc_md9", null ],
-          [ "CMAKE_BUILD_TYPE=[Release/Debug/RelWithDebInfo]", "md_doc_building.html#autotoc_md28", null ]
+          [ "CMAKE_BUILD_TYPE=[Release/Debug/RelWithDebInfo]", "md_doc_building.html#autotoc_md29", null ]
         ] ],
-        [ "Install taraxa-node dependencies:", "md_doc_building.html#autotoc_md30", null ],
-        [ "Clone the Repository", "md_doc_building.html#autotoc_md31", null ],
-        [ "Compile", "md_doc_building.html#autotoc_md32", null ]
+        [ "Install taraxa-node dependencies:", "md_doc_building.html#autotoc_md31", null ],
+        [ "Clone the Repository", "md_doc_building.html#autotoc_md32", null ],
+        [ "Compile", "md_doc_building.html#autotoc_md33", null ]
       ] ],
-      [ "Building on Ubuntu 20.04", "md_doc_building.html#autotoc_md33", [
-        [ "Install taraxa-node dependencies:", "md_doc_building.html#autotoc_md34", null ],
-        [ "Clone the Repository", "md_doc_building.html#autotoc_md35", null ],
-        [ "Compile", "md_doc_building.html#autotoc_md36", null ]
+      [ "Building on Ubuntu 20.04", "md_doc_building.html#autotoc_md34", [
+        [ "Install taraxa-node dependencies:", "md_doc_building.html#autotoc_md35", null ],
+        [ "Clone the Repository", "md_doc_building.html#autotoc_md36", null ],
+        [ "Compile", "md_doc_building.html#autotoc_md37", null ]
       ] ],
-      [ "Building on MacOS", "md_doc_building.html#autotoc_md37", [
-        [ "Install taraxa-node dependencies:", "md_doc_building.html#autotoc_md38", null ],
-        [ "Clone the Repository", "md_doc_building.html#autotoc_md39", null ],
-        [ "Compile", "md_doc_building.html#autotoc_md40", null ],
-        [ "Known issues", "md_doc_building.html#autotoc_md41", [
-          [ "Issues with conan cache", "md_doc_building.html#autotoc_md42", null ]
+      [ "Building on MacOS", "md_doc_building.html#autotoc_md38", [
+        [ "Install taraxa-node dependencies:", "md_doc_building.html#autotoc_md39", null ],
+        [ "Clone the Repository", "md_doc_building.html#autotoc_md40", null ],
+        [ "Compile", "md_doc_building.html#autotoc_md41", null ],
+        [ "Known issues", "md_doc_building.html#autotoc_md42", [
+          [ "Issues with conan cache", "md_doc_building.html#autotoc_md43", null ]
         ] ]
       ] ],
-      [ "Building on M1 Macs for x86_64 with Rosetta2", "md_doc_building.html#autotoc_md43", [
-        [ "Install Rosetta2", "md_doc_building.html#autotoc_md44", null ],
-        [ "Run an x86_64 session", "md_doc_building.html#autotoc_md45", null ],
-        [ "Install Homebrew", "md_doc_building.html#autotoc_md46", null ],
-        [ "Install dependencies", "md_doc_building.html#autotoc_md47", null ],
-        [ "Clone the Repository", "md_doc_building.html#autotoc_md48", null ],
-        [ "Compile", "md_doc_building.html#autotoc_md49", null ]
+      [ "Building on M1 Macs for x86_64 with Rosetta2", "md_doc_building.html#autotoc_md44", [
+        [ "Install Rosetta2", "md_doc_building.html#autotoc_md45", null ],
+        [ "Run an x86_64 session", "md_doc_building.html#autotoc_md46", null ],
+        [ "Install Homebrew", "md_doc_building.html#autotoc_md47", null ],
+        [ "Install dependencies", "md_doc_building.html#autotoc_md48", null ],
+        [ "Clone the Repository", "md_doc_building.html#autotoc_md49", null ],
+        [ "Compile", "md_doc_building.html#autotoc_md50", null ]
       ] ],
-      [ "Run", "md_doc_building.html#autotoc_md50", [
-        [ "Running tests", "md_doc_building.html#autotoc_md51", null ],
-        [ "Running taraxa-node", "md_doc_building.html#autotoc_md52", null ]
+      [ "Run", "md_doc_building.html#autotoc_md51", [
+        [ "Running tests", "md_doc_building.html#autotoc_md52", null ],
+        [ "Running taraxa-node", "md_doc_building.html#autotoc_md53", null ]
       ] ],
-      [ "Building using \"taraxa-builder\" docker image", "md_doc_building.html#autotoc_md53", null ]
+      [ "Building using \"taraxa-builder\" docker image", "md_doc_building.html#autotoc_md54", null ]
     ] ],
     [ "C++ Best Practices Guidelines", "md_doc_coding_practices.html", [
-      [ "The structure of this document", "md_doc_coding_practices.html#autotoc_md55", [
-        [ "<a name=\"compiletimechecking\"></a> 1. Prefer compile-time checking to run-time checking", "md_doc_coding_practices.html#autotoc_md56", null ],
-        [ "<a name=\"avoidnonconst\"></a> 2. Avoid non-<tt>const</tt> global variables", "md_doc_coding_practices.html#autotoc_md60", null ],
-        [ "<a name=\"ruleofzero\"></a> 3. If you can avoid defining default operations, do", "md_doc_coding_practices.html#autotoc_md67", null ],
-        [ "<a name=\"ruleoffive\"></a> 4. If you define or <tt>=delete</tt> any default operation, define or <tt>=delete</tt> them all", "md_doc_coding_practices.html#autotoc_md72", null ],
-        [ "<a name=\"smartptr\"></a> 5. Never transfer ownership by a raw pointer (<tt>T*</tt>) or reference (<tt>T&</tt>)", "md_doc_coding_practices.html#autotoc_md81", null ],
-        [ "<a name=\"usingsmartptr\"></a> 6. Choose appropriate smart pointer or why we have more smart pointers?", "md_doc_coding_practices.html#autotoc_md86", null ],
-        [ "<a name=\"singlealloc\"></a> 7. Perform at most one explicit resource allocation in a single expression statement", "md_doc_coding_practices.html#autotoc_md90", null ],
-        [ "<a name=\"passsmartptr\"></a> 8. Take smart pointers as parameters only to explicitly express lifetime semantics", "md_doc_coding_practices.html#autotoc_md94", null ],
-        [ "<a name=\"varlimitscope\"></a> 9. Declare names in for-statement initializers and conditions to limit scope", "md_doc_coding_practices.html#autotoc_md99", null ],
-        [ "<a name=\"varrecycle\"></a> 10. Don't use a variable for two unrelated purposes", "md_doc_coding_practices.html#autotoc_md105", null ],
-        [ "<a name=\"macrosconsts\"></a> 11. Don't use macros for constants or \"functions\"", "md_doc_coding_practices.html#autotoc_md110", null ],
-        [ "<a name=\"magicconstants\"></a> 12. Avoid \"magic constants\"; use symbolic constants", "md_doc_coding_practices.html#autotoc_md114", null ],
-        [ "<a name=\"nullptr\"></a> 13. Use <tt>nullptr</tt> rather than <tt>0</tt> or <tt>NULL</tt>", "md_doc_coding_practices.html#autotoc_md118", null ],
-        [ "<a name=\"construct\"></a> 14. Use the <tt>T{e}</tt>notation for construction", "md_doc_coding_practices.html#autotoc_md122", null ],
-        [ "<a name=\"referencecapture\"></a> 15. Prefer capturing by reference in lambdas that will be used locally, including passed to algorithms", "md_doc_coding_practices.html#autotoc_md128", null ],
-        [ "<a name=\"valuecapture\"></a> 16. Avoid capturing by reference in lambdas that will be used nonlocally, including returned, stored on the heap, or passed to another thread", "md_doc_coding_practices.html#autotoc_md135", null ],
-        [ "<a name=\"thiscapture\"></a> 17. If you capture <tt>this</tt>, capture all variables explicitly (no default capture)", "md_doc_coding_practices.html#autotoc_md140", null ],
-        [ "<a name=\"defaultctor\"></a> 18. Don't define a default constructor that only initializes data members; use in-class member initializers instead", "md_doc_coding_practices.html#autotoc_md145", null ],
-        [ "<a name=\"explicitctor\"></a> 19. By default, declare single-argument constructors explicit", "md_doc_coding_practices.html#autotoc_md150", null ],
-        [ "<a name=\"alwaysinitialize\"></a> 20. Always initialize an object", "md_doc_coding_practices.html#autotoc_md155", null ],
-        [ "<a name=\"lambdainit\"></a> 21. Use lambdas for complex initialization, especially of <tt>const</tt> variables", "md_doc_coding_practices.html#autotoc_md166", null ],
-        [ "<a name=\"orderctor\"></a> 22. Define and initialize member variables in the order of member declaration", "md_doc_coding_practices.html#autotoc_md172", null ],
-        [ "<a name=\"inclassinitializer\"></a> 23. Prefer in-class initializers to member initializers in constructors for constant initializers", "md_doc_coding_practices.html#autotoc_md176", null ],
-        [ "<a name=\"initializetoassignment\"></a> 24. Prefer initialization to assignment in constructors", "md_doc_coding_practices.html#autotoc_md181", null ],
-        [ "<a name=\"castsnamed\"></a> 25. If you must use a cast, use a named cast", "md_doc_coding_practices.html#autotoc_md185", null ],
-        [ "<a name=\"castsconst\"></a> 26. Don't cast away <tt>const</tt>", "md_doc_coding_practices.html#autotoc_md191", null ],
-        [ "<a name=\"symmetric\"></a> 27. Use nonmember functions for symmetric operators", "md_doc_coding_practices.html#autotoc_md198", null ]
+      [ "The structure of this document", "md_doc_coding_practices.html#autotoc_md56", [
+        [ "<a name=\"compiletimechecking\"></a> 1. Prefer compile-time checking to run-time checking", "md_doc_coding_practices.html#autotoc_md57", null ],
+        [ "<a name=\"avoidnonconst\"></a> 2. Avoid non-<tt>const</tt> global variables", "md_doc_coding_practices.html#autotoc_md61", null ],
+        [ "<a name=\"ruleofzero\"></a> 3. If you can avoid defining default operations, do", "md_doc_coding_practices.html#autotoc_md68", null ],
+        [ "<a name=\"ruleoffive\"></a> 4. If you define or <tt>=delete</tt> any default operation, define or <tt>=delete</tt> them all", "md_doc_coding_practices.html#autotoc_md73", null ],
+        [ "<a name=\"smartptr\"></a> 5. Never transfer ownership by a raw pointer (<tt>T*</tt>) or reference (<tt>T&</tt>)", "md_doc_coding_practices.html#autotoc_md82", null ],
+        [ "<a name=\"usingsmartptr\"></a> 6. Choose appropriate smart pointer or why we have more smart pointers?", "md_doc_coding_practices.html#autotoc_md87", null ],
+        [ "<a name=\"singlealloc\"></a> 7. Perform at most one explicit resource allocation in a single expression statement", "md_doc_coding_practices.html#autotoc_md91", null ],
+        [ "<a name=\"passsmartptr\"></a> 8. Take smart pointers as parameters only to explicitly express lifetime semantics", "md_doc_coding_practices.html#autotoc_md95", null ],
+        [ "<a name=\"varlimitscope\"></a> 9. Declare names in for-statement initializers and conditions to limit scope", "md_doc_coding_practices.html#autotoc_md100", null ],
+        [ "<a name=\"varrecycle\"></a> 10. Don't use a variable for two unrelated purposes", "md_doc_coding_practices.html#autotoc_md106", null ],
+        [ "<a name=\"macrosconsts\"></a> 11. Don't use macros for constants or \"functions\"", "md_doc_coding_practices.html#autotoc_md111", null ],
+        [ "<a name=\"magicconstants\"></a> 12. Avoid \"magic constants\"; use symbolic constants", "md_doc_coding_practices.html#autotoc_md115", null ],
+        [ "<a name=\"nullptr\"></a> 13. Use <tt>nullptr</tt> rather than <tt>0</tt> or <tt>NULL</tt>", "md_doc_coding_practices.html#autotoc_md119", null ],
+        [ "<a name=\"construct\"></a> 14. Use the <tt>T{e}</tt>notation for construction", "md_doc_coding_practices.html#autotoc_md123", null ],
+        [ "<a name=\"referencecapture\"></a> 15. Prefer capturing by reference in lambdas that will be used locally, including passed to algorithms", "md_doc_coding_practices.html#autotoc_md129", null ],
+        [ "<a name=\"valuecapture\"></a> 16. Avoid capturing by reference in lambdas that will be used nonlocally, including returned, stored on the heap, or passed to another thread", "md_doc_coding_practices.html#autotoc_md136", null ],
+        [ "<a name=\"thiscapture\"></a> 17. If you capture <tt>this</tt>, capture all variables explicitly (no default capture)", "md_doc_coding_practices.html#autotoc_md141", null ],
+        [ "<a name=\"defaultctor\"></a> 18. Don't define a default constructor that only initializes data members; use in-class member initializers instead", "md_doc_coding_practices.html#autotoc_md146", null ],
+        [ "<a name=\"explicitctor\"></a> 19. By default, declare single-argument constructors explicit", "md_doc_coding_practices.html#autotoc_md151", null ],
+        [ "<a name=\"alwaysinitialize\"></a> 20. Always initialize an object", "md_doc_coding_practices.html#autotoc_md156", null ],
+        [ "<a name=\"lambdainit\"></a> 21. Use lambdas for complex initialization, especially of <tt>const</tt> variables", "md_doc_coding_practices.html#autotoc_md167", null ],
+        [ "<a name=\"orderctor\"></a> 22. Define and initialize member variables in the order of member declaration", "md_doc_coding_practices.html#autotoc_md173", null ],
+        [ "<a name=\"inclassinitializer\"></a> 23. Prefer in-class initializers to member initializers in constructors for constant initializers", "md_doc_coding_practices.html#autotoc_md177", null ],
+        [ "<a name=\"initializetoassignment\"></a> 24. Prefer initialization to assignment in constructors", "md_doc_coding_practices.html#autotoc_md182", null ],
+        [ "<a name=\"castsnamed\"></a> 25. If you must use a cast, use a named cast", "md_doc_coding_practices.html#autotoc_md186", null ],
+        [ "<a name=\"castsconst\"></a> 26. Don't cast away <tt>const</tt>", "md_doc_coding_practices.html#autotoc_md192", null ],
+        [ "<a name=\"symmetric\"></a> 27. Use nonmember functions for symmetric operators", "md_doc_coding_practices.html#autotoc_md199", null ]
       ] ]
     ] ],
     [ "Contributing Guide", "md_doc_contributing.html", null ],
     [ "Doxygen", "md_doc_doxygen.html", [
-      [ "Installing dependencies", "md_doc_doxygen.html#autotoc_md204", [
-        [ "Ubuntu", "md_doc_doxygen.html#autotoc_md205", null ],
-        [ "MacOS", "md_doc_doxygen.html#autotoc_md206", null ]
+      [ "Installing dependencies", "md_doc_doxygen.html#autotoc_md205", [
+        [ "Ubuntu", "md_doc_doxygen.html#autotoc_md206", null ],
+        [ "MacOS", "md_doc_doxygen.html#autotoc_md207", null ]
       ] ],
-      [ "Generating documentation", "md_doc_doxygen.html#autotoc_md207", null ],
-      [ "Commenting", "md_doc_doxygen.html#autotoc_md208", [
-        [ "Basic example", "md_doc_doxygen.html#autotoc_md209", null ],
-        [ "Grouping to modules", "md_doc_doxygen.html#autotoc_md210", null ],
-        [ "Graphs", "md_doc_doxygen.html#autotoc_md211", null ]
+      [ "Generating documentation", "md_doc_doxygen.html#autotoc_md208", null ],
+      [ "Commenting", "md_doc_doxygen.html#autotoc_md209", [
+        [ "Basic example", "md_doc_doxygen.html#autotoc_md210", null ],
+        [ "Grouping to modules", "md_doc_doxygen.html#autotoc_md211", null ],
+        [ "Graphs", "md_doc_doxygen.html#autotoc_md212", null ]
       ] ]
     ] ],
     [ "Git-flow Guide", "md_doc_git_practices.html", [
-      [ "Branch naming conventions", "md_doc_git_practices.html#autotoc_md212", null ],
-      [ "Main branches", "md_doc_git_practices.html#autotoc_md213", null ],
-      [ "Supporting branches", "md_doc_git_practices.html#autotoc_md214", [
-        [ "Standard Feature branches", "md_doc_git_practices.html#autotoc_md215", null ],
-        [ "Long-term Feature branches", "md_doc_git_practices.html#autotoc_md216", null ],
-        [ "Hotfix branches", "md_doc_git_practices.html#autotoc_md217", null ],
-        [ "Release branches", "md_doc_git_practices.html#autotoc_md218", null ]
+      [ "Branch naming conventions", "md_doc_git_practices.html#autotoc_md213", null ],
+      [ "Main branches", "md_doc_git_practices.html#autotoc_md214", null ],
+      [ "Supporting branches", "md_doc_git_practices.html#autotoc_md215", [
+        [ "Standard Feature branches", "md_doc_git_practices.html#autotoc_md216", null ],
+        [ "Long-term Feature branches", "md_doc_git_practices.html#autotoc_md217", null ],
+        [ "Hotfix branches", "md_doc_git_practices.html#autotoc_md218", null ],
+        [ "Release branches", "md_doc_git_practices.html#autotoc_md219", null ]
       ] ],
-      [ "Branches Cleaning", "md_doc_git_practices.html#autotoc_md219", null ],
-      [ "PR merging & Code reviews", "md_doc_git_practices.html#autotoc_md220", null ],
-      [ "Commit message conventions", "md_doc_git_practices.html#autotoc_md221", null ],
-      [ "Automatic github issues linking", "md_doc_git_practices.html#autotoc_md225", null ],
-      [ "Example", "md_doc_git_practices.html#autotoc_md226", null ]
+      [ "Branches Cleaning", "md_doc_git_practices.html#autotoc_md220", null ],
+      [ "PR merging & Code reviews", "md_doc_git_practices.html#autotoc_md221", null ],
+      [ "Commit message conventions", "md_doc_git_practices.html#autotoc_md222", null ],
+      [ "Automatic github issues linking", "md_doc_git_practices.html#autotoc_md226", null ],
+      [ "Example", "md_doc_git_practices.html#autotoc_md227", null ]
     ] ],
     [ "Quickstart Guide", "md_doc_quickstart_guide.html", [
-      [ "Taraxa docker image", "md_doc_quickstart_guide.html#autotoc_md235", [
-        [ "Pre-requisites", "md_doc_quickstart_guide.html#autotoc_md228", [
-          [ "\"type\" must be one of the following mentioned below!", "md_doc_git_practices.html#autotoc_md222", null ],
-          [ "\"scope\" is optional", "md_doc_git_practices.html#autotoc_md223", null ],
-          [ "\"subject\"", "md_doc_git_practices.html#autotoc_md224", null ],
-          [ "Used git flow:", "md_doc_git_practices.html#autotoc_md227", null ],
-          [ "MANDATORY PORT", "md_doc_quickstart_guide.html#autotoc_md229", null ],
-          [ "OPTIONAL PORTS", "md_doc_quickstart_guide.html#autotoc_md230", null ]
+      [ "Taraxa docker image", "md_doc_quickstart_guide.html#autotoc_md236", [
+        [ "Pre-requisites", "md_doc_quickstart_guide.html#autotoc_md229", [
+          [ "\"type\" must be one of the following mentioned below!", "md_doc_git_practices.html#autotoc_md223", null ],
+          [ "\"scope\" is optional", "md_doc_git_practices.html#autotoc_md224", null ],
+          [ "\"subject\"", "md_doc_git_practices.html#autotoc_md225", null ],
+          [ "Used git flow:", "md_doc_git_practices.html#autotoc_md228", null ],
+          [ "MANDATORY PORT", "md_doc_quickstart_guide.html#autotoc_md230", null ],
+          [ "OPTIONAL PORTS", "md_doc_quickstart_guide.html#autotoc_md231", null ]
         ] ],
-        [ "Config", "md_doc_quickstart_guide.html#autotoc_md231", [
-          [ "Param1", "md_doc_quickstart_guide.html#autotoc_md232", null ],
-          [ "Param2", "md_doc_quickstart_guide.html#autotoc_md233", null ],
-          [ "...", "md_doc_quickstart_guide.html#autotoc_md234", null ],
-          [ "taraxa-builder:latest", "md_doc_quickstart_guide.html#autotoc_md236", null ],
-          [ "taraxa-node:latest", "md_doc_quickstart_guide.html#autotoc_md237", null ]
+        [ "Config", "md_doc_quickstart_guide.html#autotoc_md232", [
+          [ "Param1", "md_doc_quickstart_guide.html#autotoc_md233", null ],
+          [ "Param2", "md_doc_quickstart_guide.html#autotoc_md234", null ],
+          [ "...", "md_doc_quickstart_guide.html#autotoc_md235", null ],
+          [ "taraxa-builder:latest", "md_doc_quickstart_guide.html#autotoc_md237", null ],
+          [ "taraxa-node:latest", "md_doc_quickstart_guide.html#autotoc_md238", null ]
         ] ]
       ] ]
     ] ],
     [ "Standard release cycle", "md_doc_release_cycle.html", [
-      [ "Release cycle phases", "md_doc_release_cycle.html#autotoc_md239", [
-        [ "Phase 1 - active development of new features", "md_doc_release_cycle.html#autotoc_md240", null ],
-        [ "Phase 2 - alpha testing (internal)", "md_doc_release_cycle.html#autotoc_md241", null ],
-        [ "Phase 3 - beta testing (public)", "md_doc_release_cycle.html#autotoc_md242", null ],
-        [ "Phase 4 - Mainnet release", "md_doc_release_cycle.html#autotoc_md243", null ]
+      [ "Release cycle phases", "md_doc_release_cycle.html#autotoc_md240", [
+        [ "Phase 1 - active development of new features", "md_doc_release_cycle.html#autotoc_md241", null ],
+        [ "Phase 2 - alpha testing (internal)", "md_doc_release_cycle.html#autotoc_md242", null ],
+        [ "Phase 3 - beta testing (public)", "md_doc_release_cycle.html#autotoc_md243", null ],
+        [ "Phase 4 - Mainnet release", "md_doc_release_cycle.html#autotoc_md244", null ]
       ] ],
-      [ "Ad-hoc releases with bug fixes", "md_doc_release_cycle.html#autotoc_md244", null ]
+      [ "Ad-hoc releases with bug fixes", "md_doc_release_cycle.html#autotoc_md245", null ]
     ] ],
     [ "Rewards distribution algorithm", "md_doc_rewards_distribution.html", [
-      [ "Glossary", "md_doc_rewards_distribution.html#autotoc_md246", null ],
-      [ "Rewards sources", "md_doc_rewards_distribution.html#autotoc_md247", null ],
-      [ "Rewards distribution", "md_doc_rewards_distribution.html#autotoc_md248", [
-        [ "Beneficial work in network", "md_doc_rewards_distribution.html#autotoc_md249", null ],
-        [ "Newly created tokens:", "md_doc_rewards_distribution.html#autotoc_md250", null ],
-        [ "Included transactions fees:", "md_doc_rewards_distribution.html#autotoc_md251", null ]
+      [ "Glossary", "md_doc_rewards_distribution.html#autotoc_md247", null ],
+      [ "Rewards sources", "md_doc_rewards_distribution.html#autotoc_md248", null ],
+      [ "Rewards distribution", "md_doc_rewards_distribution.html#autotoc_md249", [
+        [ "Beneficial work in network", "md_doc_rewards_distribution.html#autotoc_md250", null ],
+        [ "Newly created tokens:", "md_doc_rewards_distribution.html#autotoc_md251", null ],
+        [ "Included transactions fees:", "md_doc_rewards_distribution.html#autotoc_md252", null ]
       ] ],
-      [ "Validators statistics", "md_doc_rewards_distribution.html#autotoc_md252", null ],
-      [ "Example:", "md_doc_rewards_distribution.html#autotoc_md253", [
-        [ "DAG structure:", "md_doc_rewards_distribution.html#autotoc_md254", null ],
-        [ "PBFT block", "md_doc_rewards_distribution.html#autotoc_md255", null ],
-        [ "Statistics", "md_doc_rewards_distribution.html#autotoc_md256", null ],
-        [ "Rewards", "md_doc_rewards_distribution.html#autotoc_md257", [
-          [ "DAG blocks rewards", "md_doc_rewards_distribution.html#autotoc_md258", null ],
-          [ "PBFT proposer reward", "md_doc_rewards_distribution.html#autotoc_md259", null ],
-          [ "PBFT voters reward", "md_doc_rewards_distribution.html#autotoc_md260", null ]
+      [ "Validators statistics", "md_doc_rewards_distribution.html#autotoc_md253", null ],
+      [ "Example:", "md_doc_rewards_distribution.html#autotoc_md254", [
+        [ "DAG structure:", "md_doc_rewards_distribution.html#autotoc_md255", null ],
+        [ "PBFT block", "md_doc_rewards_distribution.html#autotoc_md256", null ],
+        [ "Statistics", "md_doc_rewards_distribution.html#autotoc_md257", null ],
+        [ "Rewards", "md_doc_rewards_distribution.html#autotoc_md258", [
+          [ "DAG blocks rewards", "md_doc_rewards_distribution.html#autotoc_md259", null ],
+          [ "PBFT proposer reward", "md_doc_rewards_distribution.html#autotoc_md260", null ],
+          [ "PBFT voters reward", "md_doc_rewards_distribution.html#autotoc_md261", null ]
         ] ]
       ] ]
     ] ],
     [ "Taraxa RPC", "md_doc__r_p_c.html", [
-      [ "Ethereum compatibility", "md_doc__r_p_c.html#autotoc_md262", [
-        [ "Quirks", "md_doc__r_p_c.html#autotoc_md263", null ],
-        [ "Not implemented", "md_doc__r_p_c.html#autotoc_md264", null ]
+      [ "Ethereum compatibility", "md_doc__r_p_c.html#autotoc_md263", [
+        [ "Quirks", "md_doc__r_p_c.html#autotoc_md264", null ],
+        [ "Not implemented", "md_doc__r_p_c.html#autotoc_md265", null ]
       ] ],
-      [ "Taraxa specific methods", "md_doc__r_p_c.html#autotoc_md265", [
-        [ "taraxa_protocolVersion", "md_doc__r_p_c.html#autotoc_md266", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md267", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md268", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md269", null ]
+      [ "Taraxa specific methods", "md_doc__r_p_c.html#autotoc_md266", [
+        [ "taraxa_protocolVersion", "md_doc__r_p_c.html#autotoc_md267", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md268", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md269", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md270", null ]
         ] ],
-        [ "taraxa_getVersion", "md_doc__r_p_c.html#autotoc_md270", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md271", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md272", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md273", null ]
+        [ "taraxa_getVersion", "md_doc__r_p_c.html#autotoc_md271", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md272", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md273", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md274", null ]
         ] ],
-        [ "taraxa_getDagBlockByHash", "md_doc__r_p_c.html#autotoc_md274", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md275", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md276", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md277", null ]
+        [ "taraxa_getDagBlockByHash", "md_doc__r_p_c.html#autotoc_md275", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md276", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md277", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md278", null ]
         ] ],
-        [ "taraxa_getDagBlockByLevel", "md_doc__r_p_c.html#autotoc_md278", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md279", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md280", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md281", null ]
+        [ "taraxa_getDagBlockByLevel", "md_doc__r_p_c.html#autotoc_md279", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md280", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md281", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md282", null ]
         ] ],
-        [ "taraxa_dagBlockLevel", "md_doc__r_p_c.html#autotoc_md282", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md283", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md284", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md285", null ]
+        [ "taraxa_dagBlockLevel", "md_doc__r_p_c.html#autotoc_md283", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md284", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md285", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md286", null ]
         ] ],
-        [ "taraxa_dagBlockPeriod", "md_doc__r_p_c.html#autotoc_md286", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md287", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md288", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md289", null ]
+        [ "taraxa_dagBlockPeriod", "md_doc__r_p_c.html#autotoc_md287", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md288", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md289", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md290", null ]
         ] ],
-        [ "taraxa_getScheduleBlockByPeriod", "md_doc__r_p_c.html#autotoc_md290", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md291", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md292", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md293", null ]
+        [ "taraxa_getScheduleBlockByPeriod", "md_doc__r_p_c.html#autotoc_md291", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md292", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md293", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md294", null ]
         ] ],
-        [ "taraxa_pbftBlockHashByPeriod", "md_doc__r_p_c.html#autotoc_md294", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md295", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md296", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md297", null ]
+        [ "taraxa_pbftBlockHashByPeriod", "md_doc__r_p_c.html#autotoc_md295", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md296", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md297", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md298", null ]
         ] ],
-        [ "taraxa_getConfig", "md_doc__r_p_c.html#autotoc_md298", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md299", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md300", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md301", null ]
+        [ "taraxa_getConfig", "md_doc__r_p_c.html#autotoc_md299", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md300", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md301", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md302", null ]
         ] ],
-        [ "taraxa_getChainStats", "md_doc__r_p_c.html#autotoc_md302", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md303", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md304", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md305", null ]
+        [ "taraxa_getChainStats", "md_doc__r_p_c.html#autotoc_md303", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md304", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md305", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md306", null ]
         ] ]
       ] ],
-      [ "Test API", "md_doc__r_p_c.html#autotoc_md306", [
-        [ "get_sortition_change", "md_doc__r_p_c.html#autotoc_md307", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md308", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md309", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md310", null ]
+      [ "Test API", "md_doc__r_p_c.html#autotoc_md307", [
+        [ "get_sortition_change", "md_doc__r_p_c.html#autotoc_md308", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md309", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md310", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md311", null ]
         ] ],
-        [ "send_coin_transaction", "md_doc__r_p_c.html#autotoc_md311", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md312", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md313", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md314", null ]
+        [ "send_coin_transaction", "md_doc__r_p_c.html#autotoc_md312", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md313", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md314", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md315", null ]
         ] ],
-        [ "send_coin_transactions", "md_doc__r_p_c.html#autotoc_md315", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md316", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md317", null ]
+        [ "send_coin_transactions", "md_doc__r_p_c.html#autotoc_md316", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md317", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md318", null ]
         ] ],
-        [ "get_account_address", "md_doc__r_p_c.html#autotoc_md318", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md319", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md320", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md321", null ]
+        [ "get_account_address", "md_doc__r_p_c.html#autotoc_md319", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md320", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md321", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md322", null ]
         ] ],
-        [ "get_peer_count", "md_doc__r_p_c.html#autotoc_md322", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md323", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md324", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md325", null ]
+        [ "get_peer_count", "md_doc__r_p_c.html#autotoc_md323", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md324", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md325", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md326", null ]
         ] ],
-        [ "get_node_status", "md_doc__r_p_c.html#autotoc_md326", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md327", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md328", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md329", null ]
+        [ "get_node_status", "md_doc__r_p_c.html#autotoc_md327", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md328", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md329", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md330", null ]
         ] ],
-        [ "get_all_nodes", "md_doc__r_p_c.html#autotoc_md330", [
-          [ "Parameters", "md_doc__r_p_c.html#autotoc_md331", null ],
-          [ "Returns", "md_doc__r_p_c.html#autotoc_md332", null ],
-          [ "Example", "md_doc__r_p_c.html#autotoc_md333", null ]
+        [ "get_all_nodes", "md_doc__r_p_c.html#autotoc_md331", [
+          [ "Parameters", "md_doc__r_p_c.html#autotoc_md332", null ],
+          [ "Returns", "md_doc__r_p_c.html#autotoc_md333", null ],
+          [ "Example", "md_doc__r_p_c.html#autotoc_md334", null ]
         ] ]
       ] ]
     ] ],
@@ -324,24 +325,24 @@ var NAVTREEINDEX =
 "classdev_1_1p2p_1_1_node_table.html#acdb299588ec7ad49cfa6e2e0f2cb776b",
 "classgraphql_1_1taraxa_1_1_dag_block.html#a02d9fa9864ec9276255f0d99f1830110",
 "classtaraxa_1_1_db_storage.html#a91cb10fa3a8499a93c36a435efe09dae",
-"classtaraxa_1_1_value_by_block_cache.html#a70aae1b0f7fe392d665b1d4d67ce2ec8",
-"classtaraxa_1_1net_1_1_eth_face.html#a0c2b89cdfc863f189cecb992a5230826",
-"classtaraxa_1_1net_1_1_ws_server.html#a322346eb144b9474d339a11289d714f3",
-"classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#aeb19852ece458f1bdf5b8c1a0b0b855b",
-"classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ad107e33c94b8e85de83913c593fc8960",
-"config_2include_2config_2network_8hpp_source.html",
-"ext__syncing__packet__handler_8cpp.html",
-"group___d_a_g.html#a8c17782f68f11b4d687028612dbc4ae8",
-"group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt",
-"group___transaction.html#a642117752a03190dcf801b18b8c4639d",
-"key__manager_8hpp_source.html",
-"md_doc__r_p_c.html#autotoc_md273",
-"md_doc_git_practices.html#autotoc_md213",
-"packet__types_8hpp.html#ab9638975c8f96ddde1ef012aa4a10368a0ce9d5a18caa09cb82dedcc9bcfb43f1",
-"structdev_1_1p2p_1_1_capability.html#a17aaa37a45dd96c3c23be738a1abef24",
-"structdev_1_1p2p_1_1_r_l_p_x_frame_info.html#a139ea4b6ed06846f0c139a59a1ba7b04",
-"structtaraxa_1_1_pbft_config.html#a9315879f959c32e99e707598bccd1a5f",
-"tools_8hpp.html#ab83c68c2cb7227a13df9aa226e597d6f"
+"classtaraxa_1_1_uint_comparator.html",
+"classtaraxa_1_1net_1_1_eth_client.html#abde8ef48945fa01197d9d00b22ef44bb",
+"classtaraxa_1_1net_1_1_test_face.html#a582c5b117827cf6360c616068dfa0004",
+"classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a31a6106e06e7e75749b52be5e203ea77",
+"classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_pbft_sync_packet_handler.html",
+"classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a42f0f1326bee252bb2595857f46228f4",
+"encoding__rlp_8hpp.html#a51df72c14cb62803d333c53ca75cfed2",
+"group___d_a_g.html#a6957731509338e71d5f995fa8e68869b",
+"group___final_chain.html#aff8665e430d6b7e0201bc4e19f611168",
+"group___transaction.html#a2ba3199a952e30073de5b456b67ef67f",
+"jsoncpp_8cpp.html#a58e760801a33b3cf8ed3ea2720ed6c62",
+"logger_8hpp.html#a9acd43b09e6273f2daa1e209d23db989",
+"md_doc_coding_practices.html#autotoc_md79",
+"namespacetaraxa_1_1state__api.html#ad4691677fe3777ad9cda380c7cd120b3",
+"structdev_1_1_generic_unguard_shared_bool.html#afb46de6b3e76f522f4166ca74cbd3645",
+"structdev_1_1p2p_1_1_ping_node.html#ae70de182fa1482e416772c4e02445749",
+"structtaraxa_1_1_network_config.html#a1af8e0e3927577c35e290542d2fb8697",
+"tools_8cpp.html#a77e6b42e5c28596e36805e806c77cc5a"
 ];
 
 var SYNCONMSG = 'click to disable panel synchronisation';

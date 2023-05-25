@@ -162,7 +162,7 @@ $(document).ready(function(){initNavTree('functions_r.html',''); initResizable()
 : <a class="el" href="group___final_chain.html#a6e5f70efb1b1bd7a472deea54eece7c9">taraxa::final_chain::BlockHeader</a>
 </li>
 <li>receive_time_
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_data.html#afb3165131b2b6c8b933342cf9fee45a3">taraxa::network::tarcap::PacketData</a>
+: <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#ad90424ac2cfe5e0296507ddf41815495">taraxa::network::threadpool::PacketData</a>
 </li>
 <li>received_packets_stats_
 : <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_time_period_packets_stats.html#a824707fea13d9f6d95543cb622c0e220">taraxa::network::tarcap::TimePeriodPacketsStats</a>
@@ -198,8 +198,8 @@ $(document).ready(function(){initNavTree('functions_r.html',''); initResizable()
 <li>registerMigration()
 : <a class="el" href="classtaraxa_1_1storage_1_1migration_1_1_manager.html#ac097ecc2875b0fda578b8f6106d7e8af">taraxa::storage::migration::Manager</a>
 </li>
-<li>registerPacketHandlers()
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a2a22a70af644d85699273af061269778">taraxa::network::tarcap::TaraxaCapability</a>
+<li>registerPeriodicEvents()
+: <a class="el" href="classtaraxa_1_1_network.html#a9e200ab1ad2ebb3c0064c887d8d75ac4">taraxa::Network</a>
 </li>
 <li>registry_
 : <a class="el" href="classtaraxa_1_1metrics_1_1_metrics_group.html#afe674d9b8bc3ca49f368550decf5c2d2">taraxa::metrics::MetricsGroup</a>
@@ -368,7 +368,7 @@ $(document).ready(function(){initNavTree('functions_r.html',''); initResizable()
 </li>
 <li>RLP
 : <a class="el" href="classdev_1_1_r_l_p_1_1iterator.html#ab043e66ed50b155fcde5db0ab9ebceba">dev::RLP::iterator</a>
-, <a class="el" href="classdev_1_1_r_l_p.html#a20885d660701b8263b7be6f61143e202">dev::RLP</a>
+, <a class="el" href="classdev_1_1_r_l_p.html#a48b251cc5e0039cab3470ed53f1936c8">dev::RLP</a>
 </li>
 <li>rlp()
 : <a class="el" href="classtaraxa_1_1_dag_block.html#ad56b5133c0560c42278111eb4f0033bd">taraxa::DagBlock</a>
@@ -386,10 +386,10 @@ $(document).ready(function(){initNavTree('functions_r.html',''); initResizable()
 , <a class="el" href="group___vote.html#acba0f5fe7ab3479d8b622b013ee6b7cf">taraxa::Vote</a>
 </li>
 <li>rlp_
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_data.html#a25adcfbbc52bf3f9576dd63aa636e27e">taraxa::network::tarcap::PacketData</a>
+: <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#a4555bf956a1f86cdbf1583308993637b">taraxa::network::threadpool::PacketData</a>
 </li>
 <li>rlp_bytes_
-: <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_data.html#ac16076e448224bb6bdc50521d5758aa1">taraxa::network::tarcap::PacketData</a>
+: <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#a0add3a60981266b518823480a49776cb">taraxa::network::threadpool::PacketData</a>
 </li>
 <li>rlp_enc_transition_state_
 : <a class="el" href="group___final_chain.html#a27b98955ea9361bbb0f9dd2d25cc1c72">taraxa::state_api::StateAPI</a>
@@ -401,7 +401,7 @@ $(document).ready(function(){initNavTree('functions_r.html',''); initResizable()
 : <a class="el" href="classdev_1_1p2p_1_1_node_i_p_endpoint.html#aa257254a683f3b8988d3e3a961191352">dev::p2p::NodeIPEndpoint</a>
 </li>
 <li>RLPDecoderRef()
-: <a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html#a5d50116f52cf13bf7829104b1da6a0df">taraxa::util::RLPDecoderRef</a>
+: <a class="el" href="structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html#abe131f2e32bc64fa4504f5b9789a0851">taraxa::util::RLPDecoderRef</a>
 </li>
 <li>RLPStream()
 : <a class="el" href="classdev_1_1_r_l_p_stream.html#a91696239bf408f1a2c06ee26d361f3fe">dev::RLPStream</a>
@@ -420,7 +420,7 @@ $(document).ready(function(){initNavTree('functions_r.html',''); initResizable()
 : <a class="el" href="structdev_1_1p2p_1_1_r_l_p_x_handshake.html#ab7d7cf9497942c35b64a29112f24a17f">dev::p2p::RLPXHandshake</a>
 </li>
 <li>RLPXPacket()
-: <a class="el" href="classdev_1_1p2p_1_1_r_l_p_x_packet.html#a10c191480d5bc3d148dd59b568af7dd8">dev::p2p::RLPXPacket</a>
+: <a class="el" href="classdev_1_1p2p_1_1_r_l_p_x_packet.html#a5f28eaaa04fddf191934475d193e9ddf">dev::p2p::RLPXPacket</a>
 </li>
 <li>RLPXSocket()
 : <a class="el" href="classdev_1_1p2p_1_1_r_l_p_x_socket.html#a6afc2cb2b3fcf6d922038756f592893b">dev::p2p::RLPXSocket</a>

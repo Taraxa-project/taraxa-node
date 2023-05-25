@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['getdagsyncpacket_7253',['GetDagSyncPacket',['../namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a734888f76772d0d0db9a033fe0ff91aa',1,'taraxa::network::tarcap']]],
-  ['getnextvotessyncpacket_7254',['GetNextVotesSyncPacket',['../namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368adbfbf0430186c2149950f899f574dfda',1,'taraxa::network::tarcap']]],
-  ['getpbftsyncpacket_7255',['GetPbftSyncPacket',['../namespacetaraxa_1_1network_1_1tarcap.html#ab9638975c8f96ddde1ef012aa4a10368a60757b3d3f158be85f51bdda0a051c1f',1,'taraxa::network::tarcap']]]
+  ['getdagsyncpacket_7283',['GetDagSyncPacket',['../namespacetaraxa_1_1network.html#adfc7b21eb1d78b8ec93d34ffe9742be9a1d528d488040816edd53bb6536ce51dc',1,'taraxa::network']]],
+  ['getnextvotessyncpacket_7284',['GetNextVotesSyncPacket',['../namespacetaraxa_1_1network.html#adfc7b21eb1d78b8ec93d34ffe9742be9a561bf44f34261df03288e0b856802bb7',1,'taraxa::network']]],
+  ['getpbftsyncpacket_7285',['GetPbftSyncPacket',['../namespacetaraxa_1_1network.html#adfc7b21eb1d78b8ec93d34ffe9742be9a0c0a5a93d8c3c1e62f32bfc7a8516cf3',1,'taraxa::network']]]
 ];

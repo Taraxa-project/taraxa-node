@@ -1,0 +1,7 @@
+<map id="taraxa::network::threadpool::PacketsThreadPool" name="taraxa::network::threadpool::PacketsThreadPool">
+<area shape="rect" id="node1" title="PacketsThreadPool for concurrent packets processing." alt="" coords="135,213,338,255"/>
+<area shape="rect" id="node2" href="$classtaraxa_1_1network_1_1threadpool_1_1_priority_queue.html" title=" " alt="" coords="135,109,338,151"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,13,65,39"/>
+<area shape="rect" id="node4" href="$classtaraxa_1_1network_1_1threadpool_1_1_packets_blocking_mask.html" title=" " alt="" coords="195,5,398,47"/>
+<area shape="rect" id="node5" title=" " alt="" coords="362,117,426,143"/>
+</map>

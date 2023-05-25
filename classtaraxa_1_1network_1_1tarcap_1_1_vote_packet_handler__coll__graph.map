@@ -1,8 +1,8 @@
 <map id="taraxa::network::tarcap::VotePacketHandler" name="taraxa::network::tarcap::VotePacketHandler">
-<area shape="rect" id="node1" title=" " alt="" coords="2397,45,2572,86"/>
-<area shape="rect" id="node2" href="$classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html" title="ExtVotesPacketHandler is extended abstract PacketHandler with added functions that are used in packet..." alt="" coords="2168,75,2348,117"/>
-<area shape="rect" id="node3" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html" title="Packet handler base class that consists of shared state and some commonly used functions." alt="" coords="1944,170,2119,211"/>
-<area shape="rect" id="node4" href="$structtaraxa_1_1_full_node_config.html" title=" " alt="" coords="1682,295,1853,321"/>
+<area shape="rect" id="node1" title=" " alt="" coords="2421,45,2596,86"/>
+<area shape="rect" id="node2" href="$classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html" title="ExtVotesPacketHandler is extended abstract PacketHandler with added functions that are used in packet..." alt="" coords="2192,75,2372,117"/>
+<area shape="rect" id="node3" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html" title="Packet handler base class that consists of shared state and some commonly used functions." alt="" coords="1968,170,2143,211"/>
+<area shape="rect" id="node4" href="$structtaraxa_1_1_full_node_config.html" title=" " alt="" coords="1706,295,1877,321"/>
 <area shape="rect" id="node5" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="1319,134,1503,175"/>
 <area shape="rect" id="node6" href="$structtaraxa_1_1_genesis.html" title=" " alt="" coords="1349,545,1473,572"/>
 <area shape="rect" id="node7" href="$structtaraxa_1_1_sortition_config.html" title=" " alt="" coords="953,645,1121,672"/>

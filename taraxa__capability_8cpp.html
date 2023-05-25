@@ -89,22 +89,19 @@ $(document).ready(function(){initNavTree('taraxa__capability_8cpp.html',''); ini
 <div class="contents">
 <div class="textblock"><code>#include &quot;<a class="el" href="taraxa__capability_8hpp_source.html">network/tarcap/taraxa_capability.hpp</a>&quot;</code><br />
 <code>#include &lt;algorithm&gt;</code><br />
-<code>#include &quot;<a class="el" href="dag_8hpp_source.html">dag/dag.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="packets__handler_8hpp_source.html">network/tarcap/packets_handler.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="dag__block__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/dag_block_packet_handler.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="dag__sync__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/dag_sync_packet_handler.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="get__dag__sync__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="get__next__votes__sync__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/get_next_votes_sync_packet_handler.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="get__pbft__sync__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/get_pbft_sync_packet_handler.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="pbft__sync__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="status__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/status_packet_handler.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="transaction__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/transaction_packet_handler.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="vote__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/vote_packet_handler.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="votes__sync__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/votes_sync_packet_handler.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="dag__block__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="dag__sync__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/latest/dag_sync_packet_handler.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="get__dag__sync__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/latest/get_dag_sync_packet_handler.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="latest_2get__next__votes__bundle__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/latest/get_next_votes_bundle_packet_handler.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="latest_2get__pbft__sync__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/latest/get_pbft_sync_packet_handler.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="latest_2pbft__sync__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="status__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/latest/status_packet_handler.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="transaction__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="vote__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/latest/vote_packet_handler.hpp</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="latest_2votes__bundle__packet__handler_8hpp_source.html">network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="pbft__syncing__state_8hpp_source.html">network/tarcap/shared_states/pbft_syncing_state.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="test__state_8hpp_source.html">network/tarcap/shared_states/test_state.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="node__stats_8hpp_source.html">network/tarcap/stats/node_stats.hpp</a>&quot;</code><br />
-<code>#include &quot;<a class="el" href="taraxa__peer_8hpp_source.html">network/tarcap/taraxa_peer.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="node_8hpp_source.html">node/node.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="pbft__chain_8hpp_source.html">pbft/pbft_chain.hpp</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="pbft__manager_8hpp_source.html">pbft/pbft_manager.hpp</a>&quot;</code><br />

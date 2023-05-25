@@ -85,15 +85,15 @@ $(document).ready(function(){initNavTree('md_doc_building.html',''); initResizab
 <div class="title">Building taraxa-node </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><h2><a class="anchor" id="autotoc_md27"></a>
+<div class="textblock"><h2><a class="anchor" id="autotoc_md28"></a>
 Compile-Time Options (cmake)</h2>
-<h3><a class="anchor" id="autotoc_md28"></a>
+<h3><a class="anchor" id="autotoc_md29"></a>
 CMAKE_BUILD_TYPE=[Release/Debug/RelWithDebInfo]</h3>
 <p>Specifies whether to build with or without optimization and without or with the symbol table for debugging. Unless you are specifically debugging or running tests, it is recommended to build as release.</p>
-<h1><a class="anchor" id="autotoc_md29"></a>
+<h1><a class="anchor" id="autotoc_md30"></a>
 Building on Ubuntu 22.04</h1>
 <p>For Ubuntu 22.04 users, after installing the right packages with <code>apt</code> taraxa-node will build out of the box without further effort:</p>
-<h2><a class="anchor" id="autotoc_md30"></a>
+<h2><a class="anchor" id="autotoc_md31"></a>
 Install taraxa-node dependencies:</h2>
 <pre class="fragment"># Required packages
 sudo apt-get install -y \
@@ -124,12 +124,12 @@ sudo python3 -m pip install conan==1.59.0
 # Setup clang as default compiler either in your IDE or by env. variables"
 export CC="clang-14"
 export CXX="clang++-14"
-</pre> <h2><a class="anchor" id="autotoc_md31"></a>
+</pre> <h2><a class="anchor" id="autotoc_md32"></a>
 Clone the Repository</h2>
 <pre class="fragment">git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
 cd taraxa-node
 git submodule update --init --recursive
-</pre> <h2><a class="anchor" id="autotoc_md32"></a>
+</pre> <h2><a class="anchor" id="autotoc_md33"></a>
 Compile</h2>
 <pre class="fragment"># Optional - one time action
 # Create clang profile
@@ -152,10 +152,10 @@ mkdir cmake-build
 cd cmake-build
 cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo ../
 make -j$(nproc)
-</pre> <h1><a class="anchor" id="autotoc_md33"></a>
+</pre> <h1><a class="anchor" id="autotoc_md34"></a>
 Building on Ubuntu 20.04</h1>
 <p>For Ubuntu 20.04 users, after installing the right packages with <code>apt</code> taraxa-node will build out of the box without further effort:</p>
-<h2><a class="anchor" id="autotoc_md34"></a>
+<h2><a class="anchor" id="autotoc_md35"></a>
 Install taraxa-node dependencies:</h2>
 <pre class="fragment"># Required packages
 sudo apt-get install -y \
@@ -208,12 +208,12 @@ rm -f llvm.sh
 # Setup clang as default compiler either in your IDE or by env. variables"
 export CC="clang-14"
 export CXX="clang++-14"
-</pre> <h2><a class="anchor" id="autotoc_md35"></a>
+</pre> <h2><a class="anchor" id="autotoc_md36"></a>
 Clone the Repository</h2>
 <pre class="fragment">git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
 cd taraxa-node
 git submodule update --init --recursive
-</pre> <h2><a class="anchor" id="autotoc_md36"></a>
+</pre> <h2><a class="anchor" id="autotoc_md37"></a>
 Compile</h2>
 <pre class="fragment"># Optional - one time action
 # Create clang profile
@@ -238,18 +238,18 @@ cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo ../
 make -j$(nproc)
 </pre><p> And optional: </p><pre class="fragment"># optional
 make install  # defaults to /usr/local
-</pre> <h1><a class="anchor" id="autotoc_md37"></a>
+</pre> <h1><a class="anchor" id="autotoc_md38"></a>
 Building on MacOS</h1>
-<h2><a class="anchor" id="autotoc_md38"></a>
+<h2><a class="anchor" id="autotoc_md39"></a>
 Install taraxa-node dependencies:</h2>
 <p>First you need to get (Brew)[<a href="https://brew.sh/">https://brew.sh/</a>] package manager. After that you need tot install dependencies with it. Clang-14 is used for compilation. </p><pre class="fragment">brew update
 brew install coreutils go autoconf automake gflags git libtool llvm@14 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr libmicrohttpd 
-</pre> <h2><a class="anchor" id="autotoc_md39"></a>
+</pre> <h2><a class="anchor" id="autotoc_md40"></a>
 Clone the Repository</h2>
 <pre class="fragment">git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
 cd taraxa-node
 git submodule update --init --recursive
-</pre> <h2><a class="anchor" id="autotoc_md40"></a>
+</pre> <h2><a class="anchor" id="autotoc_md41"></a>
 Compile</h2>
 <pre class="fragment"># Optional - one time action
 # It is recommended to use clang because on other compilers you could face some errors
@@ -273,36 +273,36 @@ cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo ../
 make -j$(nproc)
 </pre><p> And optional: </p><pre class="fragment"># optional
 make install  # defaults to /usr/local
-</pre> <h2><a class="anchor" id="autotoc_md41"></a>
+</pre> <h2><a class="anchor" id="autotoc_md42"></a>
 Known issues</h2>
-<h3><a class="anchor" id="autotoc_md42"></a>
+<h3><a class="anchor" id="autotoc_md43"></a>
 Issues with conan cache</h3>
 <p>Sometimes conan cache goes wrong, so you should clean it up. You could face error like: </p><div class="fragment"><div class="line">ERROR: boost/1.76.0: Error in package_info() method, line 1492</div>
 <div class="line">    raise ConanException(&quot;These libraries were expected to be built, but were not built: {}&quot;.format(non_built))</div>
 <div class="line">    ConanException: These libraries were expected to be built, but were not built: {&#39;boost_math_c99l&#39;, &#39;boost_json&#39;, &#39;boost_math_c99&#39;, &#39;boost_nowide&#39;, &#39;boost_math_tr1l&#39;, &#39;boost_math_tr1f&#39;, &#39;boost_math_tr1&#39;, &#39;boost_math_c99f&#39;}</div>
 </div><!-- fragment --><p>It could be cleaned up with:</p>
 <div class="fragment"><div class="line">rm -rf ~/.conan/data</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md43"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md44"></a>
 Building on M1 Macs for x86_64 with Rosetta2</h1>
 <p>You should be able to build project following default MacOS building process. But here is a guide how to build project for x86_64 arch with Rosetta2.</p>
-<h2><a class="anchor" id="autotoc_md44"></a>
+<h2><a class="anchor" id="autotoc_md45"></a>
 Install Rosetta2</h2>
 <pre class="fragment">softwareupdate --install-rosetta
-</pre> <h2><a class="anchor" id="autotoc_md45"></a>
+</pre> <h2><a class="anchor" id="autotoc_md46"></a>
 Run an x86_64 session</h2>
 <pre class="fragment">arch -x86_64 zsh
-</pre> <h2><a class="anchor" id="autotoc_md46"></a>
+</pre> <h2><a class="anchor" id="autotoc_md47"></a>
 Install Homebrew</h2>
 <pre class="fragment">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-</pre> <h2><a class="anchor" id="autotoc_md47"></a>
+</pre> <h2><a class="anchor" id="autotoc_md48"></a>
 Install dependencies</h2>
 <pre class="fragment">/usr/local/bin/brew install coreutils go autoconf automake gflags git libtool llvm@13 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr libmicrohttpd
-</pre> <h2><a class="anchor" id="autotoc_md48"></a>
+</pre> <h2><a class="anchor" id="autotoc_md49"></a>
 Clone the Repository</h2>
 <pre class="fragment">git clone https://github.com/Taraxa-project/taraxa-node.git --branch testnet
 cd taraxa-node
 git submodule update --init --recursive
-</pre> <h2><a class="anchor" id="autotoc_md49"></a>
+</pre> <h2><a class="anchor" id="autotoc_md50"></a>
 Compile</h2>
 <pre class="fragment"># Optional - one time action
 # It is recommended to use clang because on other compilers you could face some errors
@@ -325,9 +325,9 @@ cd cmake-build
 # Make sure that you are specifying the full path to C and CXX compilers
 cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ ../
 make -j$(nproc)
-</pre> <h1><a class="anchor" id="autotoc_md50"></a>
+</pre> <h1><a class="anchor" id="autotoc_md51"></a>
 Run</h1>
-<h2><a class="anchor" id="autotoc_md51"></a>
+<h2><a class="anchor" id="autotoc_md52"></a>
 Running tests</h2>
 <blockquote class="doxtable">
 <p>OSX: maybe you need to set a new limit for max open files per thread/process: <code>ulimit -n 200000</code> </p>
@@ -335,7 +335,7 @@ Running tests</h2>
 <p>cd cmake-build-release make all_tests</p>
 <p>or</p>
 <p>cd cd cmake-build-release/tests ctest</p>
-<h2><a class="anchor" id="autotoc_md52"></a>
+<h2><a class="anchor" id="autotoc_md53"></a>
 Running taraxa-node</h2>
 <p>cd cmake-build-release/src/taraxad</p>
 <p>Run taraxa node with default testnet config which on initial run will generate default config and wallet file in <code>~/.taraxa/config.json</code> and <code>~/.taraxa/wallet.json</code> </p><pre class="fragment"># run taraxa-node
@@ -344,7 +344,7 @@ Running taraxa-node</h2>
 ./taraxad --config /path/to/config/file --wallet /path/to/wallet/file
 </pre><p> Run help message to display all command line options to run and configure node in devnet, testnet or custom network </p><pre class="fragment"># help
 ./taraxad --help
-</pre> <h1><a class="anchor" id="autotoc_md53"></a>
+</pre> <h1><a class="anchor" id="autotoc_md54"></a>
 Building using "taraxa-builder" docker image</h1>
 <p>TODO: tutorial How to use docker image for remote building will be added soon </p>
 </div></div><!-- contents -->

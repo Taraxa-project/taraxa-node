@@ -11,7 +11,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler =
     [ "sendPbftVotesBundle", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a8e52d015311e67eba1b2e864a6262104", null ],
     [ "validateVoteAndBlock", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#ae00924c5e98fd3682d3604f34b41e920", null ],
     [ "validateVotePeriodRoundStep", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#acc3ebcac8f0d502e645dd8bc901bb726", null ],
-    [ "kMaxVotesInPacket", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#afbf0d2e7c613557c901ed2ac960999bf", null ],
+    [ "kMaxVotesInBundleRlp", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a278697f9e7b91e9e6150bfa7c3a7d92a", null ],
     [ "kSyncRequestInterval", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#af375302bb818c8a01f0b403d0f02e059", null ],
     [ "last_pbft_block_sync_request_time_", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a06334d2f46c138d9b4396740a4548682", null ],
     [ "last_votes_sync_request_time_", "classtaraxa_1_1network_1_1tarcap_1_1_ext_votes_packet_handler.html#a67f5aa15e87c6e6aa973c4b43b453012", null ],

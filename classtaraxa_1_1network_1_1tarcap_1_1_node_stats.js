@@ -1,8 +1,8 @@
 var classtaraxa_1_1network_1_1tarcap_1_1_node_stats =
 [
-    [ "NodeStats", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a69c0e66aeb2519bbdc79bf87e496f181", null ],
-    [ "getStatus", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#ac6f46e20d6b707c66ca7a0b184c00d28", null ],
-    [ "logNodeStats", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a24c5620e6bb35000d3886663ce4a2ac2", null ],
+    [ "NodeStats", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#af8028ea7a1a65621c5d3d42e1deefba0", null ],
+    [ "getStatus", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a4ec3a279177dc6fd578beb57ad74f14f", null ],
+    [ "logNodeStats", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a921350c5bf4fa1f12431d95af8581acf", null ],
     [ "syncTimeSeconds", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#ab00824d5ed31f5b77860715376c8b011", null ],
     [ "dag_mgr_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a178b3edbfb69bbc60a7f009d66abbf7c", null ],
     [ "intervals_in_sync_since_launch_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#afe3b1759755fb264173dbb7db41b366c", null ],
@@ -15,10 +15,9 @@ var classtaraxa_1_1network_1_1tarcap_1_1_node_stats =
     [ "pbft_chain_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a84eb4ab3fed4f3ed03b293d18aad27bc", null ],
     [ "pbft_mgr_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#af6078adea51b53762fed5c0bcb34bdbc", null ],
     [ "pbft_syncing_state_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a898cb3b0af9a46cffe337767455edc6a", null ],
-    [ "peers_state_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a1a3a5240bf493ebffa2601ba4e44ab80", null ],
     [ "stalled_syncing_duration_seconds", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a9113e2bf1296604986699fbbd909b2a5", null ],
     [ "syncing_duration_seconds", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#aa1bb93a8d0030583f20abf73e6d7d4d3", null ],
-    [ "thread_pool_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a7f372d88a419cf312a94884257ee869c", null ],
+    [ "thread_pool_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a1793d0c11adbd901eaf3eb5621626e7b", null ],
     [ "trx_mgr_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a5fe593de186c4083bc711772e0516d3d", null ],
     [ "vote_mgr_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a69566e770b06e4bb8d09263870c9686c", null ]
 ];

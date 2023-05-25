@@ -13,7 +13,6 @@ var group___vote =
       [ "genAndValidateVrfSortition", "group___vote.html#ab17438646b07052074ff6d9f010c6e8f", null ],
       [ "generateVote", "group___vote.html#adf91d6a817ee12e17d5cc8e0ac67c9c2", null ],
       [ "generateVoteWithWeight", "group___vote.html#a14715d74b4fde03472c62c55b60c0f5c", null ],
-      [ "getAllTwoTPlusOneNextVotes", "group___vote.html#a72f8b50957c6d43eeedd344f58e06280", null ],
       [ "getNetworkTplusOneNextVotingStep", "group___vote.html#adf48ab63030131c5ea2666dc26c19a23", null ],
       [ "getOwnVerifiedVotes", "group___vote.html#ae2f8a5793839bf9aa97835ffd9015acd", null ],
       [ "getPbftSortitionThreshold", "group___vote.html#a61d9d15dbff071b69ec36ab33864e727", null ],
@@ -65,6 +64,7 @@ var group___vote =
       [ "vrf_pk_t", "group___vote.html#a81e09c4f68615153eacf7bb84af229c0", null ],
       [ "Vote", "group___vote.html#af16925e0a68bfccde86e30377906ee16", null ],
       [ "Vote", "group___vote.html#a16c04d38985b7c6786a387b8ab6a999a", null ],
+      [ "Vote", "group___vote.html#aa24a21bb7d406a251dc92b51cef70e62", null ],
       [ "Vote", "group___vote.html#aab74f44a9dd90bcb7719cb75fab97877", null ],
       [ "Vote", "group___vote.html#a4d6671814c035c1ab8a6544e9c24a76c", null ],
       [ "calculateWeight", "group___vote.html#a1dcf910e6a0ff63ef8895cbe64446b02", null ],
@@ -82,6 +82,7 @@ var group___vote =
       [ "getVrfSortition", "group___vote.html#aa56af23e580a04c94c8f1a1c05adb7d8", null ],
       [ "getWeight", "group___vote.html#a8f1b2a30b92abba46e614f51f6433e0d", null ],
       [ "operator==", "group___vote.html#a4336a403a91fd97ab23a8124c79c98e4", null ],
+      [ "optimizedRlp", "group___vote.html#a3811ddf49cda58565fb87a7bcfeca942", null ],
       [ "rlp", "group___vote.html#acba0f5fe7ab3479d8b622b013ee6b7cf", null ],
       [ "sha3", "group___vote.html#ad1ee3c8e4288b4e166d2aedd9ee325b6", null ],
       [ "verifyVote", "group___vote.html#a6528bb14bb94e196d5ffb65693acda19", null ],
@@ -94,13 +95,6 @@ var group___vote =
       [ "vote_signature_", "group___vote.html#aeaa1d4836ba3a2ce8243b4dc939e3028", null ],
       [ "vrf_sortition_", "group___vote.html#a6dee428599ec5049386c46ef14fc404e", null ],
       [ "weight_", "group___vote.html#a25def29b02c4c9e2adcde735d8136c48", null ]
-    ] ],
-    [ "VotesBundle", "group___vote.html#structtaraxa_1_1_votes_bundle", [
-      [ "VotesBundle", "group___vote.html#a2d6aa993f05aa2cbdd2558faf40e9fa4", null ],
-      [ "VotesBundle", "group___vote.html#a81acaad581a3739dbc1b843247b4093b", null ],
-      [ "voted_block_hash", "group___vote.html#aeace6c1f91a27b4dfedf2d1146fd5406", null ],
-      [ "votes", "group___vote.html#abdfa19572d7e63d2eed1bb5d13fdaae7", null ],
-      [ "votes_period", "group___vote.html#a54dc4e2948e790d629569675d221ca74", null ]
     ] ],
     [ "VrfPbftMsg", "group___vote.html#classtaraxa_1_1_vrf_pbft_msg", [
       [ "VrfPbftMsg", "group___vote.html#adb609ddffdb2ee906e405a7e141bc16a", null ],
@@ -139,5 +133,8 @@ var group___vote =
       [ "cert_vote", "group___vote.html#gga8a0770e242b649865f15f20a405507cca15e81b6e3979738b87e59b040d2c9b53", null ],
       [ "next_vote", "group___vote.html#gga8a0770e242b649865f15f20a405507cca95aebab4b899f9fad597abfc4d9be96b", null ]
     ] ],
-    [ "getVoterIndexHash", "group___vote.html#gac8701dc4b2326bc90d8d2df733e0bae0", null ]
+    [ "decodeVotesBundleRlp", "group___vote.html#gaf3a4dffe8f7ad86c1d9e4e8df6b60189", null ],
+    [ "encodeVotesBundleRlp", "group___vote.html#ga8f30f98921b3c06085b1aa85e0d49f66", null ],
+    [ "getVoterIndexHash", "group___vote.html#gac8701dc4b2326bc90d8d2df733e0bae0", null ],
+    [ "kVotesBundleRlpSize", "group___vote.html#ga2a876cfe520b70b99aaae2227382fd01", null ]
 ];

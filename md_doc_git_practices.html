@@ -85,17 +85,17 @@ $(document).ready(function(){initNavTree('md_doc_git_practices.html',''); initRe
 <div class="title">Git-flow Guide </div>  </div>
 </div><!--header-->
 <div class="contents">
-<div class="textblock"><h1><a class="anchor" id="autotoc_md212"></a>
+<div class="textblock"><h1><a class="anchor" id="autotoc_md213"></a>
 Branch naming conventions</h1>
 <p>In Taraxa, we are using git-flow workflow based on this <a href="https://nvie.com/posts/a-successful-git-branching-model/">git-branching-model</a>.</p>
 <p><img src="./images/git_model.png?raw=true" alt="Git branching model" title="Git branching model" class="inline"/></p>
-<h1><a class="anchor" id="autotoc_md213"></a>
+<h1><a class="anchor" id="autotoc_md214"></a>
 Main branches</h1>
 <p>master, develop</p>
-<h1><a class="anchor" id="autotoc_md214"></a>
+<h1><a class="anchor" id="autotoc_md215"></a>
 Supporting branches</h1>
 <p>Feature branches, Hot-fix Branches, Release Branches Unlike the main branches (master, develop) these branches always have a limited life time since they will be removed eventually. Each of these branches have a specific purpose, e.g. developing a new feature.</p>
-<h2><a class="anchor" id="autotoc_md215"></a>
+<h2><a class="anchor" id="autotoc_md216"></a>
 Standard Feature branches</h2>
 <p>Feature branches are used to develop new features and merged back to develop. Basically all features, bug-fixes, refactors, etc...</p>
 <p>May branch off from: <br  />
@@ -104,7 +104,7 @@ Standard Feature branches</h2>
  <code>develop</code></p>
 <p>Branch naming convention: <br  />
  <code>no prefix</code> is used as 99% of branches will be feature branches, such prefix would be redundant.</p>
-<h2><a class="anchor" id="autotoc_md216"></a>
+<h2><a class="anchor" id="autotoc_md217"></a>
 Long-term Feature branches</h2>
 <p>Same logic applies as for <code>Standard feature branches</code> with one minor change. This is a feature that we expect to work on for relatively long time and multiple developers might be working on it simultaneously. They would use this <code>feature/*</code> branch as base branch so it would basically become a temporary develop for them... <br  />
 </p>
@@ -115,7 +115,7 @@ Long-term Feature branches</h2>
  <code>develop</code></p>
 <p>Branch naming convention: <br  />
  <code>feature/*</code></p>
-<h2><a class="anchor" id="autotoc_md217"></a>
+<h2><a class="anchor" id="autotoc_md218"></a>
 Hotfix branches</h2>
 <p>Hotfix branches are very much like release branches in that they are also meant to prepare for a new production release, albeit unplanned. They arise from the necessity to act immediately upon an undesired state of a live production version. When a critical bug in a production version must be resolved immediately, a hotfix branch may be branched off from the corresponding tag on the master branch that marks the production version.</p>
 <p>May branch off from: <br  />
@@ -124,7 +124,7 @@ Hotfix branches</h2>
  <code>develop</code> and <code>master</code></p>
 <p>Branch naming convention: <br  />
  <code>hotfix/*</code></p>
-<h2><a class="anchor" id="autotoc_md218"></a>
+<h2><a class="anchor" id="autotoc_md219"></a>
 Release branches</h2>
 <p>Release branches support the preparation of a new production release. They allow for minor bug fixes (can be contained in bugfix branch) and preparing meta-data for a release. By doing all of this work on a release branch, the develop branch is cleared to receive features for the next big release.</p>
 <p>Next, that commit on master must be tagged for easy future reference to this historical version. Finally, the changes made on the release branch need to be merged back into develop, so that future releases also contain these bug fixes.</p>
@@ -134,14 +134,14 @@ Release branches</h2>
  <code>develop</code> and <code>master</code></p>
 <p>Branch naming convention: <br  />
  <code>release/*</code></p>
-<h1><a class="anchor" id="autotoc_md219"></a>
+<h1><a class="anchor" id="autotoc_md220"></a>
 Branches Cleaning</h1>
 <p>Every month will be deleted by automatic script(TODO):</p><ul>
 <li>feature branches older than 1 months</li>
 <li>unknown branches older than 1 months</li>
 <li>branches fully merged to master/develop</li>
 </ul>
-<h1><a class="anchor" id="autotoc_md220"></a>
+<h1><a class="anchor" id="autotoc_md221"></a>
 PR merging &amp; Code reviews</h1>
 <p>When a developer is finished working on an feature or issue, another developer looks over the code and considers questions like:</p><ul>
 <li>Are there any obvious logic errors in the code?</li>
@@ -153,11 +153,11 @@ PR merging &amp; Code reviews</h1>
 
 // If there were some new commits pushed to the base branch while working on your branch, always use rebase pull
 git pull --rebase origin &lt;BASE BRANCH&gt;&gt;
-</pre> <h1><a class="anchor" id="autotoc_md221"></a>
+</pre> <h1><a class="anchor" id="autotoc_md222"></a>
 Commit message conventions</h1>
 <p>In Taraxa, we are using commit messages based on this <a href="http://karma-runner.github.io/1.0/dev/git-commit-msg.html">conventions</a>.</p>
 <p>A typical git commit message will look like: </p><pre class="fragment">&lt;type&gt;(&lt;scope&gt;): &lt;subject&gt;
-</pre> <h3><a class="anchor" id="autotoc_md222"></a>
+</pre> <h3><a class="anchor" id="autotoc_md223"></a>
 "type" must be one of the following mentioned below!</h3>
 <p><code>build</code>: Build related changes (eg: npm related/ adding external dependencies) <br  />
  <code>chore</code>: A code change that external user won't see (won't affect him), e.g.: (change to .gitignore file, change to internal build system - jenkins, merge conflicts fixes, etc..) <br  />
@@ -168,20 +168,20 @@ Commit message conventions</h1>
  <code>perf</code>: A code that improves performance <br  />
  <code>style</code>: A code that is related to styling <br  />
  <code>test</code>: Adding new test or making changes to existing test</p>
-<h3><a class="anchor" id="autotoc_md223"></a>
+<h3><a class="anchor" id="autotoc_md224"></a>
 "scope" is optional</h3>
 <p>Scope must be noun and it represents the section of the section of the codebase, e.g. consesnus, dag, network, etc...</p>
-<h3><a class="anchor" id="autotoc_md224"></a>
+<h3><a class="anchor" id="autotoc_md225"></a>
 "subject"</h3>
 <p>use imperative, present tense (eg: use "add" instead of "added" or "adds") <br  />
  don't use dot(.) at end <br  />
  don't capitalize first letter</p>
-<h1><a class="anchor" id="autotoc_md225"></a>
+<h1><a class="anchor" id="autotoc_md226"></a>
 Automatic github issues linking</h1>
 <p>We use <a href="https://github.com/Taraxa-project/taraxa-node/issues">github issues</a> for tasks/tracking. To automatically link your PR to the github issue (and vice versa), use branch naming convention:</p>
 <p><code>issue-&lt;NUMBER&gt;/*</code></p>
 <p>e.g. : </p><pre class="fragment">issue-1234/new-best-feature
-</pre> <h1><a class="anchor" id="autotoc_md226"></a>
+</pre> <h1><a class="anchor" id="autotoc_md227"></a>
 Example</h1>
 <p>Let's take this doc change as an example.</p>
 <ul>
@@ -191,7 +191,7 @@ Example</h1>
 <li>Documentation related changes are being added, so <code>docs</code> commit type is used</li>
 <li>Commit scope is optional, but we can use <code>git-flow</code> in this example, code-related scopes might be for examples: <code>consensus</code>, <code>dag</code>, etc...</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md227"></a>
+<h3><a class="anchor" id="autotoc_md228"></a>
 Used git flow:</h3>
 <pre class="fragment">git checkout develop
 
