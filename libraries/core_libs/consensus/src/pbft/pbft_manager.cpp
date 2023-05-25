@@ -1710,11 +1710,10 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
     net->handleMaliciousSyncPeer(node_id);
     return std::nullopt;
   }
-  for (uint32_t i = 0; i < non_finalized_transactions.size(); i++) {
-    if (non_finalized_transactions[i] != period_data.transactions[i]->getHash()) {
-      LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << " transaction mismatch "
-                   << non_finalized_transactions[i]
-                   << " incorrect, expected: " << period_data.transactions[i]->getHash();
+  for (uint32_t i = 0; i < period_data.transactions.size(); i++) {
+    if (!non_finalized_transactions.contains(period_data.transactions[i]->getHash())) {
+      LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << " has incorrect transaction "
+                   << period_data.transactions[i]->getHash();
       sync_queue_.clear();
       net->handleMaliciousSyncPeer(node_id);
       return std::nullopt;
