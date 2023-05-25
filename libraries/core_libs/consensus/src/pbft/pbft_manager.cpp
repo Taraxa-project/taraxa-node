@@ -1536,8 +1536,6 @@ void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finali
                             bool synchronous_processing) {
   std::shared_ptr<DagBlock> anchor_block = nullptr;
 
-  reorderTransactions(period_data.transactions);
-
   if (const auto anchor = period_data.pbft_blk->getPivotDagBlockHash()) {
     anchor_block = dag_mgr_->getDagBlock(anchor);
     if (!anchor_block) {
@@ -1582,6 +1580,9 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   dag_blocks_order.reserve(period_data.dag_blocks.size());
   std::transform(period_data.dag_blocks.begin(), period_data.dag_blocks.end(), std::back_inserter(dag_blocks_order),
                  [](const DagBlock &dag_block) { return dag_block.getHash(); });
+
+  // We need to reorder transactions before saving them
+  reorderTransactions(period_data.transactions);
 
   db_->savePeriodData(period_data, batch);
 
