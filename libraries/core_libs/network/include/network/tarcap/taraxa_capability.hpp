@@ -38,7 +38,7 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
    * @brief Function signature for creating taraxa capability packets handlers
    */
   using InitPacketsHandlers = std::function<std::shared_ptr<PacketsHandler>(
-      const TarcapVersion version, const FullNodeConfig &config, const h256 &genesis_hash,
+      const std::string &logs_prefix, const FullNodeConfig &config, const h256 &genesis_hash,
       const std::shared_ptr<PeersState> &peers_state, const std::shared_ptr<PbftSyncingState> &pbft_syncing_state,
       const std::shared_ptr<TestState> &test_state,
       const std::shared_ptr<tarcap::TimePeriodPacketsStats> &packets_stats, const std::shared_ptr<DbStorage> &db,
@@ -59,7 +59,7 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
                    std::shared_ptr<PbftSyncingState> syncing_state, std::shared_ptr<DbStorage> db,
                    std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                    std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
-                   std::shared_ptr<TransactionManager> trx_mgr, const std::string &log_channel,
+                   std::shared_ptr<TransactionManager> trx_mgr,
                    InitPacketsHandlers init_packets_handlers = kInitLatestVersionHandlers);
 
   virtual ~TaraxaCapability() = default;

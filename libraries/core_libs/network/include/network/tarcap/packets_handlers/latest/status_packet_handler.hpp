@@ -11,7 +11,7 @@ class StatusPacketHandler : public ExtSyncingPacketHandler {
                       std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
                       std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                       std::shared_ptr<DbStorage> db, h256 genesis_hash, const addr_t& node_addr,
-                      const std::string& log_channel_name = "STATUS_PH");
+                      const std::string& logs_prefix = "STATUS_PH");
 
   bool sendStatus(const dev::p2p::NodeID& node_id, bool initial);
   void sendStatusToPeers();

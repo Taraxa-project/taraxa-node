@@ -14,10 +14,10 @@ DagSyncPacketHandler::DagSyncPacketHandler(const FullNodeConfig& conf, std::shar
                                            std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<PbftManager> pbft_mgr,
                                            std::shared_ptr<DagManager> dag_mgr,
                                            std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DbStorage> db,
-                                           const addr_t& node_addr, const std::string& log_channel_name)
+                                           const addr_t& node_addr, const std::string& logs_prefix)
     : ExtSyncingPacketHandler(conf, std::move(peers_state), std::move(packets_stats), std::move(pbft_syncing_state),
                               std::move(pbft_chain), std::move(pbft_mgr), std::move(dag_mgr), std::move(db), node_addr,
-                              log_channel_name),
+                              logs_prefix + "DAG_SYNC_PH"),
       trx_mgr_(std::move(trx_mgr)) {}
 
 void DagSyncPacketHandler::validatePacketRlpFormat(const threadpool::PacketData& packet_data) const {

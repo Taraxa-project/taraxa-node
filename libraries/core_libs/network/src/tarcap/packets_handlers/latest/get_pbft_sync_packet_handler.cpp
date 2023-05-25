@@ -14,8 +14,9 @@ GetPbftSyncPacketHandler::GetPbftSyncPacketHandler(const FullNodeConfig &conf, s
                                                    std::shared_ptr<PbftSyncingState> pbft_syncing_state,
                                                    std::shared_ptr<PbftChain> pbft_chain,
                                                    std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DbStorage> db,
-                                                   const addr_t &node_addr, const std::string &log_channel_name)
-    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
+                                                   const addr_t &node_addr, const std::string &logs_prefix)
+    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr,
+                    logs_prefix + "GET_PBFT_SYNC_PH"),
       pbft_syncing_state_(std::move(pbft_syncing_state)),
       pbft_chain_(std::move(pbft_chain)),
       vote_mgr_(std::move(vote_mgr)),

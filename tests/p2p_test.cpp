@@ -56,7 +56,7 @@ std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> makeTarcap(std::weak_
 
   auto tarcap = std::make_shared<network::tarcap::TaraxaCapability>(version, conf, genesis_hash, host, key, thread_pool,
                                                                     packets_stats, syncing_state, nullptr, nullptr,
-                                                                    nullptr, nullptr, nullptr, nullptr, "TARCAP");
+                                                                    nullptr, nullptr, nullptr, nullptr);
 
   thread_pool->startProcessing();
 

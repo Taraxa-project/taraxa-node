@@ -18,7 +18,7 @@ class DagBlockPacketHandler : public ExtSyncingPacketHandler {
                         std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                         std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DbStorage> db,
                         std::shared_ptr<TestState> test_state, const addr_t &node_addr,
-                        const std::string &log_channel_name = "DAG_BLOCK_PH");
+                        const std::string &logs_prefix = "");
 
   void sendBlock(dev::p2p::NodeID const &peer_id, DagBlock block, const SharedTransactions &trxs);
   void onNewBlockReceived(DagBlock &&block, const std::shared_ptr<TaraxaPeer> &peer = nullptr);

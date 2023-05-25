@@ -12,8 +12,8 @@ TransactionPacketHandler::TransactionPacketHandler(const FullNodeConfig &conf, s
                                                    std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                    std::shared_ptr<TransactionManager> trx_mgr,
                                                    std::shared_ptr<TestState> test_state, const addr_t &node_addr,
-                                                   const std::string &log_channel_name)
-    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
+                                                   const std::string &logs_prefix)
+    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, logs_prefix + "TRANSACTION_PH"),
       trx_mgr_(std::move(trx_mgr)),
       test_state_(std::move(test_state)) {}
 

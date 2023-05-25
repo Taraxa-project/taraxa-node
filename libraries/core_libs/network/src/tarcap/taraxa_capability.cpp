@@ -30,7 +30,7 @@ TaraxaCapability::TaraxaCapability(TarcapVersion version, const FullNodeConfig &
                                    std::shared_ptr<PbftSyncingState> syncing_state, std::shared_ptr<DbStorage> db,
                                    std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                                    std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
-                                   std::shared_ptr<TransactionManager> trx_mgr, const std::string &log_channel,
+                                   std::shared_ptr<TransactionManager> trx_mgr,
                                    InitPacketsHandlers init_packets_handlers)
     : test_state_(std::make_shared<TestState>()),
       version_(version),
@@ -40,12 +40,14 @@ TaraxaCapability::TaraxaCapability(TarcapVersion version, const FullNodeConfig &
       pbft_syncing_state_(std::move(syncing_state)),
       packets_handlers_(std::make_shared<PacketsHandler>()),
       thread_pool_(std::move(threadpool)) {
+  const std::string logs_prefix = "V" + std::to_string(version) + "_";
   const auto &node_addr = key.address();
-  LOG_OBJECTS_CREATE(log_channel);
+
+  LOG_OBJECTS_CREATE(logs_prefix + "TARCAP");
 
   peers_state_ = std::make_shared<PeersState>(host, kConf);
   packets_handlers_ =
-      init_packets_handlers(version, conf, genesis_hash, peers_state_, pbft_syncing_state_, test_state_,
+      init_packets_handlers(logs_prefix, conf, genesis_hash, peers_state_, pbft_syncing_state_, test_state_,
                             all_packets_stats_, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, node_addr);
 
   // Must be called after init_packets_handlers
@@ -211,7 +213,7 @@ size_t TaraxaCapability::getReceivedTransactionsCount() const { return test_stat
 // END METHODS USED IN TESTS ONLY
 
 const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersionHandlers =
-    [](const TarcapVersion version [[maybe_unused]], const FullNodeConfig &config, const h256 &genesis_hash,
+    [](const std::string &logs_prefix, const FullNodeConfig &config, const h256 &genesis_hash,
        const std::shared_ptr<PeersState> &peers_state, const std::shared_ptr<PbftSyncingState> &pbft_syncing_state,
        const std::shared_ptr<TestState> &test_state,
        const std::shared_ptr<tarcap::TimePeriodPacketsStats> &packets_stats, const std::shared_ptr<DbStorage> &db,
@@ -219,38 +221,39 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersion
        const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<DagManager> &dag_mgr,
        const std::shared_ptr<TransactionManager> &trx_mgr, const addr_t &node_addr) {
       auto packets_handlers = std::make_shared<PacketsHandler>();
-
       // Consensus packets with high processing priority
       packets_handlers->registerHandler<VotePacketHandler>(config, peers_state, packets_stats, pbft_mgr, pbft_chain,
-                                                           vote_mgr, node_addr);
+                                                           vote_mgr, node_addr, logs_prefix);
       packets_handlers->registerHandler<GetNextVotesBundlePacketHandler>(config, peers_state, packets_stats, pbft_mgr,
-                                                                         pbft_chain, vote_mgr, node_addr);
+                                                                         pbft_chain, vote_mgr, node_addr, logs_prefix);
       packets_handlers->registerHandler<VotesBundlePacketHandler>(config, peers_state, packets_stats, pbft_mgr,
-                                                                  pbft_chain, vote_mgr, node_addr);
+                                                                  pbft_chain, vote_mgr, node_addr, logs_prefix);
 
       // Standard packets with mid processing priority
       packets_handlers->registerHandler<DagBlockPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
                                                                pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, test_state,
-                                                               node_addr);
+                                                               node_addr, logs_prefix);
 
       packets_handlers->registerHandler<TransactionPacketHandler>(config, peers_state, packets_stats, trx_mgr,
-                                                                  test_state, node_addr);
+                                                                  test_state, node_addr, logs_prefix);
 
       // Non critical packets with low processing priority
       packets_handlers->registerHandler<StatusPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
-                                                             pbft_chain, pbft_mgr, dag_mgr, db, genesis_hash,
-                                                             node_addr);
+                                                             pbft_chain, pbft_mgr, dag_mgr, db, genesis_hash, node_addr,
+                                                             logs_prefix);
       packets_handlers->registerHandler<GetDagSyncPacketHandler>(config, peers_state, packets_stats, trx_mgr, dag_mgr,
-                                                                 db, node_addr);
+                                                                 db, node_addr, logs_prefix);
 
       packets_handlers->registerHandler<DagSyncPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
-                                                              pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, node_addr);
+                                                              pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, node_addr,
+                                                              logs_prefix);
 
       packets_handlers->registerHandler<GetPbftSyncPacketHandler>(
-          config, peers_state, packets_stats, pbft_syncing_state, pbft_chain, vote_mgr, db, node_addr);
+          config, peers_state, packets_stats, pbft_syncing_state, pbft_chain, vote_mgr, db, node_addr, logs_prefix);
 
       packets_handlers->registerHandler<PbftSyncPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
-                                                               pbft_chain, pbft_mgr, dag_mgr, vote_mgr, db, node_addr);
+                                                               pbft_chain, pbft_mgr, dag_mgr, vote_mgr, db, node_addr,
+                                                               logs_prefix);
 
       return packets_handlers;
     };

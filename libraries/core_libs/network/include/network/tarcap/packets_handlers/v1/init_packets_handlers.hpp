@@ -18,7 +18,7 @@ namespace taraxa::network::tarcap::v1 {
  * @brief Taraxa capability V1 InitPacketsHandlers function definition
  */
 static const TaraxaCapability::InitPacketsHandlers kInitV1Handlers =
-    [](const TarcapVersion version [[maybe_unused]], const FullNodeConfig &config, const h256 &genesis_hash,
+    [](const std::string &logs_prefix, const FullNodeConfig &config, const h256 &genesis_hash,
        const std::shared_ptr<PeersState> &peers_state, const std::shared_ptr<PbftSyncingState> &pbft_syncing_state,
        const std::shared_ptr<TestState> &test_state,
        const std::shared_ptr<tarcap::TimePeriodPacketsStats> &packets_stats, const std::shared_ptr<DbStorage> &db,
@@ -29,38 +29,37 @@ static const TaraxaCapability::InitPacketsHandlers kInitV1Handlers =
 
       // Consensus packets with high processing priority
       packets_handlers->registerHandler<tarcap::VotePacketHandler>(config, peers_state, packets_stats, pbft_mgr,
-                                                                   pbft_chain, vote_mgr, node_addr);
+                                                                   pbft_chain, vote_mgr, node_addr, logs_prefix);
       packets_handlers->registerHandler<tarcap::v1::GetNextVotesBundlePacketHandler>(
-          config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, node_addr, "V1_GET_NEXT_VOTES_BUNDLE_PH");
+          config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, node_addr, logs_prefix);
       packets_handlers->registerHandler<tarcap::v1::VotesBundlePacketHandler>(
-          config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, node_addr, "V1_VOTES_BUNDLE_PH");
+          config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, node_addr, logs_prefix);
 
       // Standard packets with mid processing priority
-      packets_handlers->registerHandler<tarcap::DagBlockPacketHandler>(config, peers_state, packets_stats,
-                                                                       pbft_syncing_state, pbft_chain, pbft_mgr,
-                                                                       dag_mgr, trx_mgr, db, test_state, node_addr);
+      packets_handlers->registerHandler<tarcap::DagBlockPacketHandler>(
+          config, peers_state, packets_stats, pbft_syncing_state, pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db,
+          test_state, node_addr, logs_prefix);
 
       packets_handlers->registerHandler<tarcap::TransactionPacketHandler>(config, peers_state, packets_stats, trx_mgr,
-                                                                          test_state, node_addr);
+                                                                          test_state, node_addr, logs_prefix);
 
       // Non critical packets with low processing priority
       packets_handlers->registerHandler<tarcap::StatusPacketHandler>(config, peers_state, packets_stats,
                                                                      pbft_syncing_state, pbft_chain, pbft_mgr, dag_mgr,
-                                                                     db, genesis_hash, node_addr);
+                                                                     db, genesis_hash, node_addr, logs_prefix);
       packets_handlers->registerHandler<tarcap::GetDagSyncPacketHandler>(config, peers_state, packets_stats, trx_mgr,
-                                                                         dag_mgr, db, node_addr);
+                                                                         dag_mgr, db, node_addr, logs_prefix);
 
       packets_handlers->registerHandler<tarcap::DagSyncPacketHandler>(config, peers_state, packets_stats,
                                                                       pbft_syncing_state, pbft_chain, pbft_mgr, dag_mgr,
-                                                                      trx_mgr, db, node_addr);
+                                                                      trx_mgr, db, node_addr, logs_prefix);
 
-      packets_handlers->registerHandler<tarcap::v1::GetPbftSyncPacketHandler>(config, peers_state, packets_stats,
-                                                                              pbft_syncing_state, pbft_chain, vote_mgr,
-                                                                              db, node_addr, "V1_GET_PBFT_SYNC_PH");
+      packets_handlers->registerHandler<tarcap::v1::GetPbftSyncPacketHandler>(
+          config, peers_state, packets_stats, pbft_syncing_state, pbft_chain, vote_mgr, db, node_addr, logs_prefix);
 
       packets_handlers->registerHandler<tarcap::v1::PbftSyncPacketHandler>(
           config, peers_state, packets_stats, pbft_syncing_state, pbft_chain, pbft_mgr, dag_mgr, vote_mgr, db,
-          node_addr, "V1_PBFT_SYNC_PH");
+          node_addr, logs_prefix);
 
       return packets_handlers;
     };
