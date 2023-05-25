@@ -62,6 +62,10 @@ struct FinalChainTest : WithDataDir {
     PeriodData period_data(pbft_block, votes);
     period_data.dag_blocks.push_back(dag_blk);
     period_data.transactions = trxs;
+    if (pbft_block->getPeriod() > 1) {
+      period_data.previous_block_cert_votes = {
+          genDummyVote(PbftVoteTypes::cert_vote, pbft_block->getPeriod() - 1, 1, 3, pbft_block->getBlockHash())};
+    }
 
     auto batch = db->createWriteBatch();
     db->savePeriodData(period_data, batch);

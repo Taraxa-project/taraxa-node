@@ -1,5 +1,4 @@
 #pragma once
-#include "logger/logger.hpp"
 #include "storage/storage.hpp"
 
 namespace taraxa::storage::migration {
@@ -12,13 +11,7 @@ class Base {
   virtual uint32_t dbVersion() = 0;
 
   bool isApplied() { return db_->lookup_int<bool>(id(), DB::Columns::migrations).has_value(); }
-  void apply(logger::Logger& log) {
-    if (db_->getMajorVersion() != dbVersion()) {
-      LOG(log) << id()
-               << ": skip migration as it was made for different major db version. Could be removed from the code"
-               << std::endl;
-      return;
-    }
+  void apply() {
     migrate();
     setApplied();
     db_->commitWriteBatch(batch_);
