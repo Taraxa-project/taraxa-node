@@ -7,6 +7,7 @@
 #include "common/thread_pool.hpp"
 #include "final_chain/cache.hpp"
 #include "final_chain/trie_common.hpp"
+#include "pbft/pbft_manager.hpp"
 #include "rewards/rewards_stats.hpp"
 #include "vote/vote.hpp"
 

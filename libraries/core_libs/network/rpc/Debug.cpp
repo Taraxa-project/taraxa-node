@@ -5,6 +5,7 @@
 
 #include "common/jsoncpp.hpp"
 #include "final_chain/state_api_data.hpp"
+#include "pbft/pbft_manager.hpp"
 
 using namespace std;
 using namespace dev;
