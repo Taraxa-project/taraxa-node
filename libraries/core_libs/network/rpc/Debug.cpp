@@ -95,6 +95,9 @@ Json::Value Debug::trace_replayBlockTransactions(const std::string& block_num, c
         res["status"] = "Block has no transactions";
         return res;
       }
+
+      PbftManager::reorderTransactions(*transactions);
+
       std::vector<state_api::EVMTransaction> trxs;
       trxs.reserve(transactions->size());
       std::transform(transactions->begin(), transactions->end(), std::back_inserter(trxs),
