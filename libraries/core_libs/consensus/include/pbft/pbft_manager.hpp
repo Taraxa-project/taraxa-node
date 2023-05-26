@@ -225,8 +225,9 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Reorder transactions data if DAG reordering caused transactions with same sender to have nonce in incorrect
    * order. Reordering is deterministic so that same order is produced on any node on any platform
    * @param transactions transactions to reorder
+   * @return true if there was reordering, false otherwise
    */
-  static void reorderTransactions(SharedTransactions &transactions);
+  static bool reorderTransactions(SharedTransactions &transactions);
 
   /**
    * @brief Check a block weight of gas estimation

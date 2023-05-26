@@ -36,14 +36,16 @@ void PeriodDataReorder::migrate(logger::Logger& log) {
   for (uint64_t i = start_period; i <= end_period; ++i) {
     executor.post([this, i]() {
       PeriodData period_data(db_->getPeriodDataRaw(i));
-      PbftManager::reorderTransactions(period_data.transactions);
-      db_->insert(DB::Columns::period_data, i, period_data.rlp());
+      const auto trx_cpy = period_data.transactions;
+      if (PbftManager::reorderTransactions(period_data.transactions)) {
+        db_->insert(DB::Columns::period_data, i, period_data.rlp());
+      }
     });
     // This should slow down main loop so we are not using so much memory
     while (executor.num_pending_tasks() > (executor.capacity() * 3)) {
       taraxa::thisThreadSleepForMilliSeconds(50);
     }
-    auto percentage = (i - start_period) * 100 / diff ;
+    auto percentage = (i - start_period) * 100 / diff;
     if (percentage > curr_progress) {
       curr_progress = percentage;
       LOG(log) << "Migration " << id() << " progress " << curr_progress << "%";
