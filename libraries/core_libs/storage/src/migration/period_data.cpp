@@ -29,7 +29,7 @@ void PeriodData::migrate(logger::Logger& log) {
   memcpy(&end_period, it->key().data(), sizeof(uint64_t));
   util::ThreadPool executor{std::thread::hardware_concurrency()};
 
-  const auto diff = end_period - start_period;
+  const auto diff = (end_period - start_period) ? (end_period - start_period) : 1;
   uint64_t curr_progress = 0;
 
   // Get and save data in new format for all blocks

@@ -1472,7 +1472,7 @@ void PbftManager::pushSyncedPbftBlocksIntoChain() {
   }
 }
 
-bool PbftManager::reorderTransactions(SharedTransactions &transactions) {
+void PbftManager::reorderTransactions(SharedTransactions &transactions) {
   // DAG reordering can cause transactions from same sender to be reordered by nonce. If this is the case only
   // transactions from these accounts are sorted and reordered, all other transactions keep the order
   SharedTransactions ordered_transactions;
@@ -1521,15 +1521,8 @@ bool PbftManager::reorderTransactions(SharedTransactions &transactions) {
         ordered_transactions.push_back(t);
       }
     }
-    // just check if there is different order
-    for (uint32_t i = 0; i < transactions.size(); i++) {
-      if (transactions[i]->getHash() != ordered_transactions[i]->getHash()) {
-        transactions = ordered_transactions;
-        return true;
-      }
-    }
+    transactions = ordered_transactions;
   }
-  return false;
 }
 
 void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finalized_dag_blk_hashes,

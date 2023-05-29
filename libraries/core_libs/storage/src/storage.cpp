@@ -113,6 +113,7 @@ void DbStorage::removeFilesWithPattern(const std::string& directory, const std::
 void DbStorage::updateDbVersions() {
   saveStatusField(StatusDbField::DbMajorVersion, TARAXA_DB_MAJOR_VERSION);
   saveStatusField(StatusDbField::DbMinorVersion, TARAXA_DB_MINOR_VERSION);
+  kMajorVersion_ = TARAXA_DB_MAJOR_VERSION;
 }
 
 void DbStorage::deleteColumnData(const Column& c) {
