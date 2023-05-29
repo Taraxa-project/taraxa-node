@@ -11,6 +11,7 @@
 #include "rocksdb/utilities/checkpoint.h"
 #include "storage/uint_comparator.hpp"
 #include "vote/vote.hpp"
+#include "vote/votes_bundle_rlp.hpp"
 
 namespace taraxa {
 namespace fs = std::filesystem;
@@ -690,18 +691,13 @@ std::pair<std::optional<SharedTransactions>, trx_hash_t> DbStorage::getFinalized
 }
 
 std::vector<std::shared_ptr<Vote>> DbStorage::getPeriodCertVotes(PbftPeriod period) const {
-  std::vector<std::shared_ptr<Vote>> cert_votes;
   auto period_data = getPeriodDataRaw(period);
-  if (period_data.size() > 0) {
-    auto period_data_rlp = dev::RLP(period_data);
-    auto cert_votes_data = period_data_rlp[CERT_VOTES_POS_IN_PERIOD_DATA];
-    cert_votes.reserve(cert_votes_data.size());
-    for (auto const vote : cert_votes_data) {
-      cert_votes.emplace_back(std::make_shared<Vote>(vote));
-    }
+  if (period_data.empty()) {
+    return {};
   }
 
-  return cert_votes;
+  auto period_data_rlp = dev::RLP(period_data);
+  return decodeVotesBundleRlp(period_data_rlp[CERT_VOTES_POS_IN_PERIOD_DATA]);
 }
 
 std::optional<SharedTransactions> DbStorage::getPeriodTransactions(PbftPeriod period) const {

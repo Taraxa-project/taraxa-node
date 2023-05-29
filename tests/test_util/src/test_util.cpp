@@ -5,6 +5,9 @@
 
 namespace taraxa {
 
+auto g_secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                            dev::Secret::ConstructFromStringType::FromHex);
+
 bool wait(const wait_opts& opts, const std::function<void(wait_ctx&)>& poller) {
   struct NullBuffer : std::streambuf {
     int overflow(int c) override { return c; }
@@ -147,6 +150,18 @@ void wait_for_balances(const shared_nodes_t& nodes, const expected_balances_map_
 std::shared_ptr<Vote> genDummyVote(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
                                    blk_hash_t block_hash, const std::shared_ptr<VoteManager> vote_mgr) {
   auto vote = vote_mgr->generateVote(block_hash, type, period, round, step);
+  vote->calculateWeight(1, 1, 1);
+  return vote;
+}
+
+std::shared_ptr<Vote> genDummyVote(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
+                                   blk_hash_t block_hash) {
+  VrfPbftMsg msg(type, period, round, step);
+  vrf_wrapper::vrf_sk_t vrf_sk(
+      "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+      "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+  VrfPbftSortition vrf_sortition(vrf_sk, msg);
+  auto vote = std::make_shared<Vote>(g_secret, vrf_sortition, block_hash);
   vote->calculateWeight(1, 1, 1);
   return vote;
 }
