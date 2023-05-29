@@ -30,6 +30,7 @@ var classtaraxa_1_1cli_1_1_config =
     [ "LOG_CHANNELS", "classtaraxa_1_1cli_1_1_config.html#aab1ed69a5e4fb38e3649fd197dd4d1e6", null ],
     [ "LOG_CHANNELS_APPEND", "classtaraxa_1_1cli_1_1_config.html#a57ec4dc90c87397725129f25e4a5934f", null ],
     [ "LOG_CONFIGURATIONS", "classtaraxa_1_1cli_1_1_config.html#ab9e51cd5f55999a1da8ee99d3255f99a", null ],
+    [ "MIGRATE_ONLY", "classtaraxa_1_1cli_1_1_config.html#a743ea1336154e530bdce2de587b34efa", null ],
     [ "NODE_COMMAND", "classtaraxa_1_1cli_1_1_config.html#a94f9809b7efd0a71386655cea49d4ce0", null ],
     [ "node_config_", "classtaraxa_1_1cli_1_1_config.html#ac880d1d588ac08651bce9522e3110451", null ],
     [ "node_configured_", "classtaraxa_1_1cli_1_1_config.html#aad52a2c6f0dbba5387779f2785ab80a5", null ],

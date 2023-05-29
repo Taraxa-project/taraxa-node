@@ -1,5 +1,7 @@
 var NAVTREEINDEX20 =
 {
+"namespacetaraxa_1_1state__api.html#ac56c39245ee1448b3bbdbf7364183632":[16,0,1,3,0,0,7,4,1],
+"namespacetaraxa_1_1state__api.html#acf8492fa86e6ac73c82ae55d9db33c2e":[16,0,1,3,0,0,7,1,5],
 "namespacetaraxa_1_1state__api.html#ad4691677fe3777ad9cda380c7cd120b3":[16,0,1,3,0,0,7,1,0],
 "namespacetaraxa_1_1state__api.html#ad8eb3f9eb0841e339ef13826d264e183":[16,0,1,3,0,0,7,2,9],
 "namespacetaraxa_1_1state__api.html#ad98233293c73914facb8f4b31084838d":[16,0,1,3,0,0,7,2,8],
@@ -247,7 +249,5 @@ var NAVTREEINDEX20 =
 "structdev_1_1_generic_unguard_bool.html#aa21aac5dd65c4aabb9b72c728cca497d":[15,0,0,15,0],
 "structdev_1_1_generic_unguard_bool.html#adc2e4a266ca7d84cecc5293947f9f976":[15,0,0,15,2],
 "structdev_1_1_generic_unguard_shared_bool.html":[15,0,0,16],
-"structdev_1_1_generic_unguard_shared_bool.html#a75cab29ef147555c077d23fe693aa06a":[15,0,0,16,3],
-"structdev_1_1_generic_unguard_shared_bool.html#a7da5427fd9453f37d49349e6081cd16c":[15,0,0,16,2],
-"structdev_1_1_generic_unguard_shared_bool.html#af9a6720c81c1ee411ce77e94d66f52a0":[15,0,0,16,1]
+"structdev_1_1_generic_unguard_shared_bool.html#a75cab29ef147555c077d23fe693aa06a":[15,0,0,16,3]
 };
