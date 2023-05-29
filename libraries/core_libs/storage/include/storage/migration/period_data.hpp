@@ -1,7 +1,8 @@
 #pragma once
 #include <libdevcore/Common.h>
 
-#include "final_chain/final_chain.hpp"
+#include "common/thread_pool.hpp"
+#include "pbft/period_data.hpp"
 #include "storage/migration/migration_base.hpp"
 
 namespace taraxa::storage::migration {
@@ -10,6 +11,6 @@ class PeriodData : public migration::Base {
   PeriodData(std::shared_ptr<DbStorage> db);
   std::string id() override;
   uint32_t dbVersion() override;
-  void migrate() override;
+  void migrate(logger::Logger& log) override;
 };
 }  // namespace taraxa::storage::migration

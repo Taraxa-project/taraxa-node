@@ -80,10 +80,11 @@ void FullNode::init() {
                                         0,  // Snapshots should be disabled while rebuilding
                                         conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
                                         conf_.db_config.db_revert_to_period, node_addr);
-    } else if (db_->hasMinorVersionChanged()) {
-      storage::migration::Manager(db_).applyAll();
     }
+
     db_->updateDbVersions();
+
+    storage::migration::Manager(db_).applyAll();
 
     if (db_->getDagBlocksCount() == 0) {
       db_->setGenesisHash(conf_.genesis.genesisHash());
@@ -314,6 +315,10 @@ void FullNode::start() {
   if (conf_.db_config.rebuild_db) {
     rebuildDb();
     LOG(log_si_) << "Rebuild db completed successfully. Restart node without db_rebuild option";
+    started_ = false;
+    return;
+  } else if (conf_.db_config.migrate_only) {
+    LOG(log_si_) << "DB migrated successfully, please restart the node without the flag";
     started_ = false;
     return;
   } else {

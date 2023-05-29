@@ -25,7 +25,7 @@ void Manager::applyAll() {
     }
 
     LOG(log_si_) << "Applying migration " << m->id();
-    m->apply();
+    m->apply(log_si_);
     LOG(log_si_) << "Migration applied " << m->id();
   }
 }

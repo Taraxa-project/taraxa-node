@@ -162,12 +162,12 @@ else()
 
     include(${CMAKE_BINARY_DIR}/conan.cmake)
 
-    conan_cmake_run(CONANFILE conanfile.py 
-                    BUILD_TYPE ${CMAKE_BUILD_TYPE} 
+    conan_cmake_run(CONANFILE conanfile.py
+                    BUILD_TYPE ${CMAKE_BUILD_TYPE}
                     CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
-                    BASIC_SETUP 
-                    CMAKE_TARGETS 
-                    KEEP_RPATHS 
+                    BASIC_SETUP
+                    CMAKE_TARGETS
+                    KEEP_RPATHS
                     PROFILE ${CONAN_PROFILE}
                     BUILD missing
                     )
@@ -212,7 +212,7 @@ find_package(GMP)
 find_package(MPFR)
 
 include(ExternalProject)
-# use JSONCPP library from conan for JSONRPCCPP build 
+# use JSONCPP library from conan for JSONRPCCPP build
 set(JSONCPP_INCLUDE_DIR ${CONAN_INCLUDE_DIRS_JSONCPP})
 include(ProjectJSONRPCCPP)
 

@@ -113,6 +113,7 @@ void DbStorage::removeFilesWithPattern(const std::string& directory, const std::
 void DbStorage::updateDbVersions() {
   saveStatusField(StatusDbField::DbMajorVersion, TARAXA_DB_MAJOR_VERSION);
   saveStatusField(StatusDbField::DbMinorVersion, TARAXA_DB_MINOR_VERSION);
+  kMajorVersion_ = TARAXA_DB_MAJOR_VERSION;
 }
 
 void DbStorage::deleteColumnData(const Column& c) {
@@ -312,6 +313,7 @@ DbStorage::Batch DbStorage::createWriteBatch() { return DbStorage::Batch(); }
 void DbStorage::commitWriteBatch(Batch& write_batch, rocksdb::WriteOptions const& opts) {
   auto status = db_->Write(opts, write_batch.GetWriteBatch());
   checkStatus(status);
+  write_batch.Clear();
 }
 
 std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
