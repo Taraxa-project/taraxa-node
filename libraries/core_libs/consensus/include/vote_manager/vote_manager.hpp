@@ -225,15 +225,6 @@ class VoteManager {
                                                                    TwoTPlusOneVotedBlockType type) const;
 
   /**
-   * Get all 2t+1 voted block next votes(both for null block as well as specific block) for specific period and round
-   *
-   * @param period
-   * @param round
-   * @return vector of next votes if 2t+1 voted block votes found, otherwise empty vector
-   */
-  std::vector<std::shared_ptr<Vote>> getAllTwoTPlusOneNextVotes(PbftPeriod period, PbftRound round) const;
-
-  /**
    * @brief Sets current pbft period & round. It also checks if we dont alredy have 2t+1 vote bundles(pf any type) for
    *                the provided period & round and if so, it saves these bundles into db
    *

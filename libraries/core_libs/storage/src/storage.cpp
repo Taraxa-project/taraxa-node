@@ -11,6 +11,7 @@
 #include "rocksdb/utilities/checkpoint.h"
 #include "storage/uint_comparator.hpp"
 #include "vote/vote.hpp"
+#include "vote/votes_bundle_rlp.hpp"
 
 namespace taraxa {
 namespace fs = std::filesystem;
@@ -112,6 +113,7 @@ void DbStorage::removeFilesWithPattern(const std::string& directory, const std::
 void DbStorage::updateDbVersions() {
   saveStatusField(StatusDbField::DbMajorVersion, TARAXA_DB_MAJOR_VERSION);
   saveStatusField(StatusDbField::DbMinorVersion, TARAXA_DB_MINOR_VERSION);
+  kMajorVersion_ = TARAXA_DB_MAJOR_VERSION;
 }
 
 void DbStorage::deleteColumnData(const Column& c) {
@@ -311,6 +313,7 @@ DbStorage::Batch DbStorage::createWriteBatch() { return DbStorage::Batch(); }
 void DbStorage::commitWriteBatch(Batch& write_batch, rocksdb::WriteOptions const& opts) {
   auto status = db_->Write(opts, write_batch.GetWriteBatch());
   checkStatus(status);
+  write_batch.Clear();
 }
 
 std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
@@ -495,6 +498,7 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period) {
           auto hash = trx_hash_t(reinterpret_cast<uint8_t*>(trx_hashes_raw.data() + i * trx_hash_t::size),
                                  trx_hash_t::ConstructFromPointer);
           remove(write_batch, Columns::final_chain_receipt_by_trx_hash, hash);
+          remove(write_batch, Columns::period_data, hash);
         }
         remove(write_batch, Columns::final_chain_transaction_hashes_by_blk_number, EthBlockNumber(period));
         if ((period - start_period + 1) % max_batch_delete == 0) {
@@ -689,18 +693,13 @@ std::pair<std::optional<SharedTransactions>, trx_hash_t> DbStorage::getFinalized
 }
 
 std::vector<std::shared_ptr<Vote>> DbStorage::getPeriodCertVotes(PbftPeriod period) const {
-  std::vector<std::shared_ptr<Vote>> cert_votes;
   auto period_data = getPeriodDataRaw(period);
-  if (period_data.size() > 0) {
-    auto period_data_rlp = dev::RLP(period_data);
-    auto cert_votes_data = period_data_rlp[CERT_VOTES_POS_IN_PERIOD_DATA];
-    cert_votes.reserve(cert_votes_data.size());
-    for (auto const vote : cert_votes_data) {
-      cert_votes.emplace_back(std::make_shared<Vote>(vote));
-    }
+  if (period_data.empty()) {
+    return {};
   }
 
-  return cert_votes;
+  auto period_data_rlp = dev::RLP(period_data);
+  return decodeVotesBundleRlp(period_data_rlp[CERT_VOTES_POS_IN_PERIOD_DATA]);
 }
 
 std::optional<SharedTransactions> DbStorage::getPeriodTransactions(PbftPeriod period) const {

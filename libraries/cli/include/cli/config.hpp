@@ -60,6 +60,7 @@ class Config {
   static constexpr const char* OVERWRITE_CONFIG = "overwrite-config";
   static constexpr const char* ENABLE_TEST_RPC = "enable-test-rpc";
   static constexpr const char* ENABLE_DEBUG = "debug";
+  static constexpr const char* MIGRATE_ONLY = "migrate-only";
 
   std::string dirNameFromFile(const std::string& file);
 };
