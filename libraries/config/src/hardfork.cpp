@@ -8,6 +8,9 @@ Json::Value enc_json(const Hardforks& obj) {
   for (auto i = obj.rewards_distribution_frequency.begin(); i != obj.rewards_distribution_frequency.end(); ++i) {
     rewards[std::to_string(i->first)] = i->second;
   }
+
+  json["fee_rewards_block_num"] = obj.fee_rewards_block_num;
+
   return json;
 }
 
@@ -19,6 +22,9 @@ void dec_json(const Json::Value& json, Hardforks& obj) {
       obj.rewards_distribution_frequency[itr.key().asUInt64()] = itr->asUInt64();
     }
   }
+  if (const auto& e = json["fee_rewards_block_num"]) {
+    obj.fee_rewards_block_num = dev::getUInt(e);
+  }
 }
 
-RLP_FIELDS_DEFINE(Hardforks, rewards_distribution_frequency)
+RLP_FIELDS_DEFINE(Hardforks, rewards_distribution_frequency, fee_rewards_block_num)

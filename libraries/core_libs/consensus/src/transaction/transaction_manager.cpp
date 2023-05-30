@@ -1,6 +1,7 @@
 #include "transaction/transaction_manager.hpp"
 
 #include <string>
+#include <unordered_set>
 #include <utility>
 
 #include "dag/dag.hpp"
@@ -256,14 +257,14 @@ std::vector<std::shared_ptr<Transaction>> TransactionManager::getNonfinalizedTrx
   return ret;
 }
 
-std::vector<trx_hash_t> TransactionManager::excludeFinalizedTransactions(const std::vector<trx_hash_t> &hashes) {
-  std::vector<trx_hash_t> ret;
+std::unordered_set<trx_hash_t> TransactionManager::excludeFinalizedTransactions(const std::vector<trx_hash_t> &hashes) {
+  std::unordered_set<trx_hash_t> ret;
   ret.reserve(hashes.size());
   std::shared_lock transactions_lock(transactions_mutex_);
   for (const auto &hash : hashes) {
     if (!recently_finalized_transactions_.contains(hash)) {
       if (!db_->transactionFinalized(hash)) {
-        ret.push_back(hash);
+        ret.insert(hash);
       }
     }
   }

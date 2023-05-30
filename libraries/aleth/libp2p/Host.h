@@ -84,7 +84,7 @@ struct Host final : std::enable_shared_from_this<Host> {
                                     KeyPair const& kp, NetworkConfig _n, TaraxaNetworkConfig taraxa_conf = {},
                                     std::filesystem::path state_file_path = {});
 
-  std::shared_ptr<CapabilityFace> latestCapability() { return m_capabilities.rbegin()->second.ref; }
+  Capabilities getSupportedCapabilities() { return m_capabilities; }
   ~Host();
 
   ba::io_context::count_type do_work();

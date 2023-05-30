@@ -24,24 +24,12 @@ class PbftSyncingState {
    * @param current_period
    * @param peer used in case syncing flag == true to set which peer is the node syncing with
    */
-  void setPbftSyncing(bool syncing, PbftPeriod current_period = 0, std::shared_ptr<TaraxaPeer> peer = nullptr);
-
-  /**
-   * @brief Set current time as last received sync packet time
-   */
-  void setLastSyncPacketTime();
+  bool setPbftSyncing(bool syncing, PbftPeriod current_period = 0, std::shared_ptr<TaraxaPeer> peer = nullptr);
 
   /**
    * @brief Set current pbft period
    */
   void setSyncStatePeriod(PbftPeriod period);
-
-  /**
-   * @brief Check if syncing is active
-   *
-   * @return true if last syncing packet was received within kSyncingInactivityThreshold
-   */
-  bool isActivelySyncing() const;
 
   /**
    * @brief Check if PBFT is in deep syncing
@@ -63,6 +51,18 @@ class PbftSyncingState {
    * @return syncing peer, in case there is none - nullptr is returned
    */
   std::shared_ptr<TaraxaPeer> syncingPeer() const;
+
+  /**
+   * @brief Set current time as last received sync packet time
+   */
+  void setLastSyncPacketTime();
+
+  /**
+   * @brief Check if syncing is active
+   *
+   * @return true if last syncing packet was received within kSyncingInactivityThreshold
+   */
+  bool isActivelySyncing() const;
 
  private:
   std::atomic<bool> deep_pbft_syncing_{false};

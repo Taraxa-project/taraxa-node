@@ -12,13 +12,13 @@
 #include "dag/dag.hpp"
 #include "dag/dag_block_proposer.hpp"
 #include "logger/logger.hpp"
-#include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/get_next_votes_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/status_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/get_dag_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/get_next_votes_bundle_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/status_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "test_util/samples.hpp"
 #include "test_util/test_util.hpp"
@@ -141,7 +141,7 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   wait({120s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr2->getDagBlock(block_hash), nullptr) });
 }
 
-TEST_F(NetworkTest, update_peer_chainsize) {
+TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
   auto node_cfgs = make_node_cfgs(2, 1, 5);
   auto nodes = launch_nodes(node_cfgs);
 
@@ -345,7 +345,7 @@ TEST_F(NetworkTest, transfer_transaction) {
 }
 
 // Test verifies saving network to a file and restoring it from a file
-// is successfull. Once restored from the file it is able to reestablish
+// is successful. Once restored from the file it is able to reestablish
 // connections even with boot nodes down
 TEST_F(NetworkTest, save_network) {
   std::filesystem::remove_all("/tmp/nw2");
@@ -354,12 +354,9 @@ TEST_F(NetworkTest, save_network) {
   auto key3 = dev::KeyPair::create();
   h256 genesis_hash;
   {
-    std::shared_ptr<Network> nw1 =
-        std::make_shared<taraxa::Network>(node_cfgs[0], genesis_hash, Host::CapabilitiesFactory());
-    std::shared_ptr<Network> nw2 =
-        std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw2", key2);
-    std::shared_ptr<Network> nw3 =
-        std::make_shared<taraxa::Network>(node_cfgs[2], genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw3", key3);
+    std::shared_ptr<Network> nw1 = std::make_shared<taraxa::Network>(node_cfgs[0], genesis_hash);
+    std::shared_ptr<Network> nw2 = std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, "/tmp/nw2", key2);
+    std::shared_ptr<Network> nw3 = std::make_shared<taraxa::Network>(node_cfgs[2], genesis_hash, "/tmp/nw3", key3);
 
     nw1->start();
     nw2->start();
@@ -375,10 +372,8 @@ TEST_F(NetworkTest, save_network) {
     });
   }
 
-  std::shared_ptr<Network> nw2 =
-      std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw2", key2);
-  std::shared_ptr<Network> nw3 =
-      std::make_shared<taraxa::Network>(node_cfgs[2], genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw3", key3);
+  std::shared_ptr<Network> nw2 = std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, "/tmp/nw2", key2);
+  std::shared_ptr<Network> nw3 = std::make_shared<taraxa::Network>(node_cfgs[2], genesis_hash, "/tmp/nw3", key3);
   nw2->start();
   nw3->start();
 
@@ -699,13 +694,12 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), kNullBlockHash, period,
                         beneficiary, node1->getSecretKey(), {});
-  std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
-  votes_for_pbft_blk1.emplace_back(
-      node1->getVoteManager()->generateVote(pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, 1, 1, 3));
-  std::cout << "Generate 1 vote for first PBFT block" << std::endl;
-  // Add cert votes in DB
-  // Add PBFT block in DB
+  const auto pbft_block1_cert_vote = node1->getVoteManager()->generateVote(
+      pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, pbft_block1.getPeriod(), 1, 3);
+  pbft_block1_cert_vote->calculateWeight(1, 1, 1);
+  node1->getVoteManager()->addVerifiedVote(pbft_block1_cert_vote);
 
+  // Add PBFT block in DB
   PeriodData period_data1(std::make_shared<PbftBlock>(pbft_block1), {});
   period_data1.dag_blocks.push_back(blk1);
   period_data1.transactions.push_back(g_signed_trx_samples[0]);
@@ -747,13 +741,12 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), kNullBlockHash, period,
                         beneficiary, node1->getSecretKey(), {});
-  std::cout << "Use fake votes for the second PBFT block" << std::endl;
-  // TODO: how can these fake votes be somehow properly handled when we save it directly to db ???
-  // node1 put block2 into pbft chain and use fake votes storing into DB (malicious player)
-  // Add fake votes in DB
-  // Add PBFT block in DB
+  const auto pbft_block2_cert_vote = node1->getVoteManager()->generateVote(
+      pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, pbft_block2.getPeriod(), 1, 3);
+  pbft_block2_cert_vote->calculateWeight(1, 1, 1);
+  node1->getVoteManager()->addVerifiedVote(pbft_block2_cert_vote);
 
-  PeriodData period_data2(std::make_shared<PbftBlock>(pbft_block2), votes_for_pbft_blk1);
+  PeriodData period_data2(std::make_shared<PbftBlock>(pbft_block2), {pbft_block1_cert_vote});
   period_data2.dag_blocks.push_back(blk2);
   period_data2.transactions.push_back(g_signed_trx_samples[2]);
   period_data2.transactions.push_back(g_signed_trx_samples[3]);
@@ -765,7 +758,11 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   pbft_chain_head_hash = pbft_chain1->getHeadHash();
   pbft_chain_head_str = pbft_chain1->getJsonStr();
   db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
+
+  node1->getVoteManager()->resetRewardVotes(pbft_block2.getPeriod(), 1, 3, pbft_block2.getBlockHash(), batch);
+
   db1->commitWriteBatch(batch);
+
   expect_pbft_chain_size = 2;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 

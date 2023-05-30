@@ -445,15 +445,10 @@ class FinalChainImpl final : public FinalChain {
   }
 
   const SharedTransactions get_transactions(std::optional<EthBlockNumber> n = {}) const {
-    SharedTransactions ret;
-    auto hashes = transaction_hashes(n);
-    ret.reserve(hashes->size());
-    for (size_t i = 0; i < ret.capacity(); ++i) {
-      auto trx = db_->getTransaction(hashes->at(i));
-      assert(trx);
-      ret.emplace_back(trx);
+    if (auto trxs = db_->getPeriodTransactions(last_if_absent(n))) {
+      return *trxs;
     }
-    return ret;
+    return {};
   }
 
   std::shared_ptr<const BlockHeader> get_block_header(EthBlockNumber n) const {

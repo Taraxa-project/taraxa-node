@@ -7,13 +7,13 @@ set(TARAXA_PATCH_VERSION 1)
 set(TARAXA_VERSION ${TARAXA_MAJOR_VERSION}.${TARAXA_MINOR_VERSION}.${TARAXA_PATCH_VERSION})
 
 # Any time a change in the network protocol is introduced this version should be increased
-set(TARAXA_NET_VERSION 1)
+set(TARAXA_NET_VERSION 2)
 # Major version is modified when DAG blocks, pbft blocks and any basic building blocks of our blockchain is modified
 # in the db
 set(TARAXA_DB_MAJOR_VERSION 1)
 # Minor version should be modified when changes to the database are made in the tables that can be rebuilt from the
 # basic tables
-set(TARAXA_DB_MINOR_VERSION 1)
+set(TARAXA_DB_MINOR_VERSION 2)
 
 # Defines Taraxa library target.
 project(taraxa-node VERSION ${TARAXA_VERSION})
@@ -162,12 +162,12 @@ else()
 
     include(${CMAKE_BINARY_DIR}/conan.cmake)
 
-    conan_cmake_run(CONANFILE conanfile.py 
-                    BUILD_TYPE ${CMAKE_BUILD_TYPE} 
+    conan_cmake_run(CONANFILE conanfile.py
+                    BUILD_TYPE ${CMAKE_BUILD_TYPE}
                     CMAKE_BUILD_TYPE ${CMAKE_BUILD_TYPE}
-                    BASIC_SETUP 
-                    CMAKE_TARGETS 
-                    KEEP_RPATHS 
+                    BASIC_SETUP
+                    CMAKE_TARGETS
+                    KEEP_RPATHS
                     PROFILE ${CONAN_PROFILE}
                     BUILD missing
                     )
@@ -212,7 +212,7 @@ find_package(GMP)
 find_package(MPFR)
 
 include(ExternalProject)
-# use JSONCPP library from conan for JSONRPCCPP build 
+# use JSONCPP library from conan for JSONRPCCPP build
 set(JSONCPP_INCLUDE_DIR ${CONAN_INCLUDE_DIRS_JSONCPP})
 include(ProjectJSONRPCCPP)
 
