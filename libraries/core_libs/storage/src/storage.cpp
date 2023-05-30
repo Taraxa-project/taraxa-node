@@ -89,6 +89,7 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
 void DbStorage::updateDbVersions() {
   saveStatusField(StatusDbField::DbMajorVersion, TARAXA_DB_MAJOR_VERSION);
   saveStatusField(StatusDbField::DbMinorVersion, TARAXA_DB_MINOR_VERSION);
+  kMajorVersion_ = TARAXA_DB_MAJOR_VERSION;
 }
 
 void DbStorage::rebuildColumns(const rocksdb::Options& options) {
