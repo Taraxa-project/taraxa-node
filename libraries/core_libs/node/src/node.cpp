@@ -77,10 +77,10 @@ void FullNode::init() {
       db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.db_config.db_snapshot_each_n_pbft_block,
                                         conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
                                         conf_.db_config.db_revert_to_period, node_addr);
-    } else if (db_->hasMinorVersionChanged()) {
-      storage::migration::Manager(db_).applyAll();
     }
+
     db_->updateDbVersions();
+    storage::migration::Manager(db_).applyAll();
 
     if (db_->getDagBlocksCount() == 0) {
       db_->setGenesisHash(conf_.genesis.genesisHash());
