@@ -5,6 +5,7 @@
 
 #include "common/jsoncpp.hpp"
 #include "final_chain/state_api_data.hpp"
+#include "pbft/pbft_manager.hpp"
 
 using namespace std;
 using namespace dev;
@@ -95,6 +96,8 @@ Json::Value Debug::trace_replayBlockTransactions(const std::string& block_num, c
         res["status"] = "Block has no transactions";
         return res;
       }
+      // TODO[2495]: remove after a proper fox of transactions ordering in PeriodData
+      PbftManager::reorderTransactions(*transactions);
       std::vector<state_api::EVMTransaction> trxs;
       trxs.reserve(transactions->size());
       std::transform(transactions->begin(), transactions->end(), std::back_inserter(trxs),
