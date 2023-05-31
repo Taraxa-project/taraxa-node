@@ -42,6 +42,7 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
     db_path_ = backup_db_path;
     state_db_path_ = backup_state_db_path;
   }
+  LOG_OBJECTS_CREATE("DBS");
 
   fs::create_directories(db_path_);
   removeOldLogFiles();
@@ -62,7 +63,6 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
     if (col.comparator_) options.comparator = col.comparator_;
     return rocksdb::ColumnFamilyDescriptor(col.name(), options);
   });
-  LOG_OBJECTS_CREATE("DBS");
 
   rebuildColumns(options);
 
