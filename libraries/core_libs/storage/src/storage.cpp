@@ -116,6 +116,48 @@ void DbStorage::updateDbVersions() {
   kMajorVersion_ = TARAXA_DB_MAJOR_VERSION;
 }
 
+rocksdb::ColumnFamilyHandle* DbStorage::copyColumn(rocksdb::ColumnFamilyHandle* orig_column, const std::string& new_col_name, bool move_data) {
+  // Create rocskd checkpoint/snapshot
+  rocksdb::Checkpoint* checkpoint;
+  auto status = rocksdb::Checkpoint::Create(db_.get(), &checkpoint);
+  checkStatus(status);
+
+  const fs::path export_dir = path() / "migrations" / new_col_name;
+  fs::create_directory(export_dir.parent_path());
+
+  // Export dir should not exist before exporting the column family
+  fs::remove_all(export_dir);
+
+  rocksdb::ExportImportFilesMetaData* metadata;
+  status = checkpoint->ExportColumnFamily(orig_column, export_dir, &metadata);
+  checkStatus(status);
+
+  const rocksdb::Comparator* comparator = orig_column->GetComparator();
+  auto options = rocksdb::ColumnFamilyOptions();
+  if (comparator != nullptr) {
+    options.comparator = comparator;
+  }
+
+  rocksdb::ImportColumnFamilyOptions import_options;
+  import_options.move_files = move_data;
+
+  rocksdb::ColumnFamilyHandle* copied_column;
+  status = db_->CreateColumnFamilyWithImport(options, new_col_name, import_options, *metadata, &copied_column);
+  checkStatus(status);
+
+  // Remove export dir after successful import
+  fs::remove_all(export_dir);
+
+  return copied_column;
+}
+
+void DbStorage::replaceColumn(const Column& to_be_replaced_col, rocksdb::ColumnFamilyHandle* replacing_col) {
+  checkStatus(db_->DropColumnFamily(handle(to_be_replaced_col)));
+
+  rocksdb::ColumnFamilyHandle* replaced_col = copyColumn(replacing_col, to_be_replaced_col.name(), true);
+  handles_[to_be_replaced_col.ordinal_] = replaced_col;
+}
+
 void DbStorage::deleteColumnData(const Column& c) {
   checkStatus(db_->DropColumnFamily(handle(c)));
 
@@ -300,6 +342,10 @@ uint32_t DbStorage::getMajorVersion() const { return kMajorVersion_; }
 
 std::unique_ptr<rocksdb::Iterator> DbStorage::getColumnIterator(const Column& c) {
   return std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(c)));
+}
+
+std::unique_ptr<rocksdb::Iterator> DbStorage::getColumnIterator(rocksdb::ColumnFamilyHandle* c) {
+  return std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, c));
 }
 
 void DbStorage::checkStatus(rocksdb::Status const& status) {

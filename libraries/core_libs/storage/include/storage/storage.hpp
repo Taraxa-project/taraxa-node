@@ -127,6 +127,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 #undef COLUMN_W_COMP
   };
 
+  auto handle(Column const& col) const { return handles_[col.ordinal_]; }
+
  private:
   fs::path path_;
   fs::path db_path_;
@@ -148,8 +150,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   uint32_t kMajorVersion_;
   bool major_version_changed_ = false;
   bool minor_version_changed_ = false;
-
-  auto handle(Column const& col) const { return handles_[col.ordinal_]; }
 
   LOG_OBJECTS_DEFINE
 
@@ -181,12 +181,16 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void updateDbVersions();
   void deleteColumnData(const Column& c);
 
+  void replaceColumn(const Column& to_be_replaced_col, rocksdb::ColumnFamilyHandle* replacing_col);
+  rocksdb::ColumnFamilyHandle* copyColumn(rocksdb::ColumnFamilyHandle* orig_column, const std::string& new_col_name, bool move_data = false);
+
   // For removal of LOG.old.* files in the database
   void removeOldLogFiles() const;
   void removeFilesWithPattern(const std::string& directory, const std::regex& pattern) const;
 
   uint32_t getMajorVersion() const;
   std::unique_ptr<rocksdb::Iterator> getColumnIterator(const Column& c);
+  std::unique_ptr<rocksdb::Iterator> getColumnIterator(rocksdb::ColumnFamilyHandle* c);
 
   // Genesis
   void setGenesisHash(const h256& genesis_hash);
@@ -398,6 +402,11 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   }
 
   static void checkStatus(rocksdb::Status const& status);
+
+  template <typename K, typename V>
+  void insert(rocksdb::ColumnFamilyHandle* col, const K& k, const V& v) {
+    checkStatus(db_->Put(write_options_, col, toSlice(k), toSlice(v)));
+  }
 
   template <typename K, typename V>
   void insert(Column const& col, K const& k, V const& v) {
