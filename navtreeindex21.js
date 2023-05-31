@@ -1,7 +1,5 @@
 var NAVTREEINDEX21 =
 {
-"structdev_1_1_generic_unguard_shared_bool.html#a7da5427fd9453f37d49349e6081cd16c":[15,0,0,16,2],
-"structdev_1_1_generic_unguard_shared_bool.html#af9a6720c81c1ee411ce77e94d66f52a0":[15,0,0,16,1],
 "structdev_1_1_generic_unguard_shared_bool.html#afb46de6b3e76f522f4166ca74cbd3645":[15,0,0,16,0],
 "structdev_1_1_r_l_p_exception.html":[15,0,0,9],
 "structdev_1_1_signature_struct.html":[15,0,0,41],
@@ -104,8 +102,8 @@ var NAVTREEINDEX21 =
 "structdev_1_1p2p_1_1_host.html#a6eb46b9c7133fb57be418f84396db369":[15,0,0,1,13,79],
 "structdev_1_1p2p_1_1_host.html#a7551c55d8bface84e5f697e558a4a694":[15,0,0,1,13,1,1],
 "structdev_1_1p2p_1_1_host.html#a7551c55d8bface84e5f697e558a4a694":[16,0,1,0,2,9,4,1],
-"structdev_1_1p2p_1_1_host.html#a7681c2e09bfce409ee94d5f4c391caf9":[16,0,1,0,2,9,3,1],
 "structdev_1_1p2p_1_1_host.html#a7681c2e09bfce409ee94d5f4c391caf9":[15,0,0,1,13,0,1],
+"structdev_1_1p2p_1_1_host.html#a7681c2e09bfce409ee94d5f4c391caf9":[16,0,1,0,2,9,3,1],
 "structdev_1_1p2p_1_1_host.html#a773a77cc100211a7f0293f917fbc1bd9":[15,0,0,1,13,2],
 "structdev_1_1p2p_1_1_host.html#a779fae5e251a6e568844ec037d653ffa":[15,0,0,1,13,33],
 "structdev_1_1p2p_1_1_host.html#a7b2e3c45444299b4fa1771f6aeca0cdd":[15,0,0,1,13,45],
@@ -133,8 +131,8 @@ var NAVTREEINDEX21 =
 "structdev_1_1p2p_1_1_host.html#ab2c30507ea8316ba74331f5042a11bd6":[15,0,0,1,13,63],
 "structdev_1_1p2p_1_1_host.html#ab383bea226fe2374d82e909e54b0c626":[15,0,0,1,13,55],
 "structdev_1_1p2p_1_1_host.html#ab8336e770280ba43700db54b3020e2f5":[15,0,0,1,13,72],
-"structdev_1_1p2p_1_1_host.html#ab8ba5ebea9b1c7d20f54c1c3e4b524fd":[16,0,1,0,2,9,4,0],
 "structdev_1_1p2p_1_1_host.html#ab8ba5ebea9b1c7d20f54c1c3e4b524fd":[15,0,0,1,13,1,0],
+"structdev_1_1p2p_1_1_host.html#ab8ba5ebea9b1c7d20f54c1c3e4b524fd":[16,0,1,0,2,9,4,0],
 "structdev_1_1p2p_1_1_host.html#abd82b169ada4a372ababc61517ac1aec":[15,0,0,1,13,41],
 "structdev_1_1p2p_1_1_host.html#abedaae2ab185ba1b802d7f27b62bf955":[15,0,0,1,13,46],
 "structdev_1_1p2p_1_1_host.html#ac05b941935177dabc23d1a7968edc6d8":[15,0,0,1,13,21],
@@ -159,13 +157,13 @@ var NAVTREEINDEX21 =
 "structdev_1_1p2p_1_1_host.html#af172022af7fd54783396778c6c64d208":[15,0,0,1,13,25],
 "structdev_1_1p2p_1_1_host.html#af412e2b9651b98154f1916bdbf42d22c":[15,0,0,1,13,64],
 "structdev_1_1p2p_1_1_host.html#af45455e39c329fdc3efe6af597288b6f":[15,0,0,1,13,15],
-"structdev_1_1p2p_1_1_host.html#af48111b36108125508b64b6e3e1be302":[16,0,1,0,2,9,3,0],
 "structdev_1_1p2p_1_1_host.html#af48111b36108125508b64b6e3e1be302":[15,0,0,1,13,0,0],
+"structdev_1_1p2p_1_1_host.html#af48111b36108125508b64b6e3e1be302":[16,0,1,0,2,9,3,0],
 "structdev_1_1p2p_1_1_host.html#af5f30d38696533a1f32dcd4433ccb91d":[15,0,0,1,13,38],
 "structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_known_node":[15,0,0,1,13,0],
 "structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_known_node":[16,0,1,0,2,9,3],
-"structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_persistent_state":[15,0,0,1,13,1],
 "structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_persistent_state":[16,0,1,0,2,9,4],
+"structdev_1_1p2p_1_1_host.html#structdev_1_1p2p_1_1_host_1_1_persistent_state":[15,0,0,1,13,1],
 "structdev_1_1p2p_1_1_invalid_public_i_p_address.html":[15,0,0,1,2],
 "structdev_1_1p2p_1_1_neighbours.html":[15,0,0,1,23],
 "structdev_1_1p2p_1_1_neighbours.html#a1d87a065819d2e4065e48a1695f77a62":[15,0,0,1,23,9],
@@ -249,5 +247,7 @@ var NAVTREEINDEX21 =
 "structdev_1_1p2p_1_1_ping_node.html#a658e39b82d1ed1c1bf20e0cdbf214f41":[15,0,0,1,20,11],
 "structdev_1_1p2p_1_1_ping_node.html#a896187cbb24b61ba1d23ef98da134a88":[15,0,0,1,20,2],
 "structdev_1_1p2p_1_1_ping_node.html#a96903ffb0e57ff275c84d6d4b305dcd0":[15,0,0,1,20,9],
-"structdev_1_1p2p_1_1_ping_node.html#a99886a78e067ecac1b82cb7d7958f2f4":[15,0,0,1,20,13]
+"structdev_1_1p2p_1_1_ping_node.html#a99886a78e067ecac1b82cb7d7958f2f4":[15,0,0,1,20,13],
+"structdev_1_1p2p_1_1_ping_node.html#aaf5f09106022dafba70fb4226881bf9c":[15,0,0,1,20,3],
+"structdev_1_1p2p_1_1_ping_node.html#abc43437e237ee6b7038ca39e0996ce0a":[15,0,0,1,20,0]
 };

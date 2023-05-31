@@ -1,7 +1,5 @@
 var NAVTREEINDEX11 =
 {
-"classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_get_pbft_sync_packet_handler.html#a583eb9afc2edae161a0cfcdc7bc1b975":[15,0,3,5,0,0,1,0],
-"classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_pbft_sync_packet_handler.html":[15,0,3,5,0,0,2],
 "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_pbft_sync_packet_handler.html#a4bc11d03b15d54943a5b184aae8776c6":[15,0,3,5,0,0,2,0],
 "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_pbft_sync_packet_handler.html#a99546b796d5c378fee6e3e1166072f7b":[15,0,3,5,0,0,2,1],
 "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_votes_bundle_packet_handler.html":[15,0,3,5,0,0,3],
@@ -107,8 +105,8 @@ var NAVTREEINDEX11 =
 "classtaraxa_1_1rewards_1_1_block_stats.html#a814b17f27f484c3ce89128b403372bce":[15,0,3,6,0,11],
 "classtaraxa_1_1rewards_1_1_block_stats.html#a816d316dbdb7fa7490beb95bccdbdcd1":[15,0,3,6,0,4],
 "classtaraxa_1_1rewards_1_1_block_stats.html#a8bdc1447c71b6ca2d6508b0c8ebb8ac0":[15,0,3,6,0,2],
-"classtaraxa_1_1rewards_1_1_block_stats.html#a8fd93952dcd0b00354a1d0b76ecd3920":[16,0,1,4,0,0,4,0,1,0],
 "classtaraxa_1_1rewards_1_1_block_stats.html#a8fd93952dcd0b00354a1d0b76ecd3920":[15,0,3,6,0,0,0],
+"classtaraxa_1_1rewards_1_1_block_stats.html#a8fd93952dcd0b00354a1d0b76ecd3920":[16,0,1,4,0,0,4,0,1,0],
 "classtaraxa_1_1rewards_1_1_block_stats.html#a9c0222ab71a509f3997751698ba39f42":[15,0,3,6,0,13],
 "classtaraxa_1_1rewards_1_1_block_stats.html#ab271d9e42fb445fa2e8fbefe85400869":[16,0,1,4,0,0,4,0,1,1],
 "classtaraxa_1_1rewards_1_1_block_stats.html#ab271d9e42fb445fa2e8fbefe85400869":[15,0,3,6,0,0,1],
@@ -249,5 +247,7 @@ var NAVTREEINDEX11 =
 "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a004fe2754a9002b4b51c46becd19730f":[15,0,3,11,0,2],
 "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a19ce2bc4c110b4f08fe0727a56ffb974":[15,0,3,11,0,0],
 "classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a1aa1db36788f9520f693fe0f33c7c422":[15,0,3,11,0,6],
-"classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a1b4c859bbeeabf8c3a657333a0b8de63":[15,0,3,11,0,4]
+"classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a1b4c859bbeeabf8c3a657333a0b8de63":[15,0,3,11,0,4],
+"classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a2d060968af1594d11a58c232ac11022c":[15,0,3,11,0,5],
+"classtaraxa_1_1vrf__wrapper_1_1_vrf_sortition_base.html#a42f0f1326bee252bb2595857f46228f4":[15,0,3,11,0,7]
 };
