@@ -38,41 +38,6 @@ auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, 
 
 struct NetworkTest : NodesTest {};
 
-// Test creates two Network setup and verifies sending block between is successful
-TEST_F(NetworkTest, transfer_block) {
-  auto nw1 = std::make_unique<Network>(node_cfgs[0]);
-  auto nw2 = std::make_unique<Network>(node_cfgs[1]);
-
-  nw1->start();
-  nw2->start();
-  DagBlock blk(blk_hash_t(1111), 0, {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-               {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, sig_t(7777), blk_hash_t(888),
-               addr_t(999));
-
-  SharedTransactions transactions({g_signed_trx_samples[0], g_signed_trx_samples[1]});
-  nw2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->onNewTransactions(std::move(transactions));
-
-  EXPECT_HAPPENS({60s, 100ms}, [&](auto& ctx) {
-    nw1->setPendingPeersToReady();
-    nw2->setPendingPeersToReady();
-    WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 1)
-    WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 1)
-  });
-
-  nw2->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->sendBlock(nw1->getNodeId(), blk, {});
-
-  std::cout << "Waiting packages for 10 seconds ..." << std::endl;
-
-  for (int i = 0; i < 100; i++) {
-    if (nw1->getReceivedBlocksCount()) break;
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-  nw2 = nullptr;
-  unsigned long long num_received = nw1->getReceivedBlocksCount();
-  nw1 = nullptr;
-  ASSERT_EQ(1, num_received);
-}
-
 // Test creates two Network setup and verifies sending blocks between is successful
 TEST_F(NetworkTest, transfer_lot_of_blocks) {
   auto node_cfgs = make_node_cfgs(2, 1, 20);
