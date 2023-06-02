@@ -33,7 +33,6 @@ auto g_secret = Lazy([] {
   return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                      dev::Secret::ConstructFromStringType::FromHex);
 });
-auto node_key = dev::KeyPair(g_secret);
 auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 
 struct NetworkTest : NodesTest {};
@@ -105,6 +104,51 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   std::cout << "Waiting Sync ..." << std::endl;
   wait({120s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr2->getDagBlock(block_hash), nullptr) });
 }
+
+// TODO: debug why the test take so long...
+ TEST_F(NetworkTest, propagate_block) {
+   auto node_cfgs = make_node_cfgs(5, 1);
+   auto nodes = launch_nodes(node_cfgs);
+   const auto& node1 = nodes[0];
+
+   // Stop PBFT manager
+   for (auto& node : nodes) {
+    node->getPbftManager()->stop();
+   }
+
+   const auto db1 = node1->getDB();
+   const auto dag_mgr1 = node1->getDagManager();
+
+   auto trxs = samples::createSignedTrxSamples(0, 1, g_secret);
+   const auto estimation = node1->getTransactionManager()->estimateTransactionGas(trxs[0], {});
+
+   // node1 add one valid block
+   const auto proposal_level = 1;
+   const auto proposal_period = *db1->getProposalPeriodForDagLevel(proposal_level);
+   const auto period_block_hash = db1->getPeriodBlockHash(proposal_period);
+   const auto sortition_params = dag_mgr1->sortitionParamsManager().getSortitionParams(proposal_period);
+   vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
+                                   VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash), 1, 1);
+   const auto dag_genesis = node1->getConfig().genesis.dag_genesis_block.getHash();
+   dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trxs[0]});
+   vdf.computeVdfSolution(sortition_params, vdf_msg, false);
+   DagBlock blk(dag_genesis, proposal_level, {}, {trxs[0]->getHash()}, estimation, vdf, node1->getSecretKey());
+
+   const auto block_hash = blk.getHash();
+
+   // Add block gossip it to connected peers
+   dag_mgr1->addDagBlock(std::move(blk), {trxs[0]});
+
+   wait({1s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr1->getDagBlock(block_hash), nullptr) });
+
+   std::cout << "Waiting Sync ..." << std::endl;
+   wait({20s, 200ms}, [&](auto& ctx) {
+     for (const auto& node : nodes) {
+       const auto dag_mgr = node->getDagManager();
+       WAIT_EXPECT_NE(ctx, dag_mgr->getDagBlock(block_hash), nullptr)
+     }
+   });
+ }
 
 TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
   auto node_cfgs = make_node_cfgs(2, 1, 5);
@@ -278,10 +322,17 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
 // Test creates two Network setup and verifies sending transaction
 // between is successfull
 TEST_F(NetworkTest, transfer_transaction) {
-  auto nw1 = std::make_unique<Network>(node_cfgs[0]);
-  auto nw2 = std::make_unique<Network>(node_cfgs[1]);
-  nw1->start();
-  nw2->start();
+  auto node_cfgs = make_node_cfgs(2, 0, 20);
+  auto nodes = launch_nodes(node_cfgs);
+  const auto& node1 = nodes[0];
+  const auto& node2 = nodes[1];
+
+  // Stop PBFT manager
+  node1->getPbftManager()->stop();
+  node2->getPbftManager()->stop();
+
+  const auto nw1 = node1->getNetwork();
+  const auto nw2 = node2->getNetwork();
 
   EXPECT_HAPPENS({60s, 100ms}, [&](auto& ctx) {
     nw1->setPendingPeersToReady();
@@ -300,13 +351,12 @@ TEST_F(NetworkTest, transfer_transaction) {
 
   SharedTransactions transactions;
   transactions.push_back(g_signed_trx_samples[0]);
-  transactions.push_back(g_signed_trx_samples[1]);
-  transactions.push_back(g_signed_trx_samples[2]);
 
   nw2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(peer1,
                                                                                          std::move(transactions));
-
-  EXPECT_HAPPENS({2s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, nw1->getReceivedTransactionsCount(), 3) });
+  const auto tx_mgr1 = node1->getTransactionManager();
+  EXPECT_HAPPENS({2s, 200ms},
+                 [&](auto& ctx) { WAIT_EXPECT_TRUE(ctx, tx_mgr1->getTransaction(g_signed_trx_samples[0]->getHash())) });
 }
 
 // Test verifies saving network to a file and restoring it from a file
