@@ -172,6 +172,7 @@ void DbStorage::replaceColumn(const Column& to_be_replaced_col,
 
 void DbStorage::deleteColumnData(const Column& c) {
   checkStatus(db_->DropColumnFamily(handle(c)));
+  db_->DestroyColumnFamilyHandle(handle(c));
 
   auto options = rocksdb::ColumnFamilyOptions();
   if (c.comparator_) {
