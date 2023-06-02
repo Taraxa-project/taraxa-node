@@ -21,7 +21,7 @@ void PeriodData::migrate(logger::Logger& log) {
     return;
   }
 
-  auto it = db_->getColumnIterator(copied_col);
+  auto it = db_->getColumnIterator(copied_col.get());
   it->SeekToFirst();
   if (!it->Valid()) {
     return;
@@ -42,7 +42,7 @@ void PeriodData::migrate(logger::Logger& log) {
 
   // Get and save data in new format for all blocks
   for (uint64_t i = start_period; i <= end_period; ++i) {
-    executor.post([this, i, copied_col]() {
+    executor.post([this, i, &copied_col]() {
       const auto bytes = db_->getPeriodDataRaw(i);
       const auto period_data_old_rlp = dev::RLP(bytes);
       assert(period_data_old_rlp.itemCount() == 4);
@@ -63,7 +63,7 @@ void PeriodData::migrate(logger::Logger& log) {
 
       // Reorder transactions
       PbftManager::reorderTransactions(period_data.transactions);
-      db_->insert(copied_col, i, period_data.rlp());
+      db_->insert(copied_col.get(), i, period_data.rlp());
     });
     // This should slow down main loop so we are not using so much memory
     while (executor.num_pending_tasks() > (executor.capacity() * 3)) {
@@ -81,6 +81,6 @@ void PeriodData::migrate(logger::Logger& log) {
     taraxa::thisThreadSleepForMilliSeconds(100);
   } while (executor.num_pending_tasks());
 
-  db_->replaceColumn(orig_col, copied_col);
+  db_->replaceColumn(orig_col, std::move(copied_col));
 }
 }  // namespace taraxa::storage::migration

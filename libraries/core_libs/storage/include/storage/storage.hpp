@@ -181,8 +181,9 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void updateDbVersions();
   void deleteColumnData(const Column& c);
 
-  void replaceColumn(const Column& to_be_replaced_col, rocksdb::ColumnFamilyHandle* replacing_col);
-  rocksdb::ColumnFamilyHandle* copyColumn(rocksdb::ColumnFamilyHandle* orig_column, const std::string& new_col_name, bool move_data = false);
+  void replaceColumn(const Column& to_be_replaced_col, std::unique_ptr<rocksdb::ColumnFamilyHandle>&& replacing_col);
+  std::unique_ptr<rocksdb::ColumnFamilyHandle> copyColumn(rocksdb::ColumnFamilyHandle* orig_column,
+                                                          const std::string& new_col_name, bool move_data = false);
 
   // For removal of LOG.old.* files in the database
   void removeOldLogFiles() const;
