@@ -2,7 +2,6 @@
 
 #include <cassert>
 
-#include "network/tarcap/shared_states/test_state.hpp"
 #include "transaction/transaction.hpp"
 #include "transaction/transaction_manager.hpp"
 
@@ -10,12 +9,10 @@ namespace taraxa::network::tarcap {
 
 TransactionPacketHandler::TransactionPacketHandler(const FullNodeConfig &conf, std::shared_ptr<PeersState> peers_state,
                                                    std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-                                                   std::shared_ptr<TransactionManager> trx_mgr,
-                                                   std::shared_ptr<TestState> test_state, const addr_t &node_addr,
+                                                   std::shared_ptr<TransactionManager> trx_mgr, const addr_t &node_addr,
                                                    const std::string &logs_prefix)
     : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, logs_prefix + "TRANSACTION_PH"),
-      trx_mgr_(std::move(trx_mgr)),
-      test_state_(std::move(test_state)) {}
+      trx_mgr_(std::move(trx_mgr)) {}
 
 void TransactionPacketHandler::validatePacketRlpFormat(const threadpool::PacketData &packet_data) const {
   auto items = packet_data.rlp_.itemCount();
@@ -53,55 +50,50 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
   for (size_t tx_idx = 0; tx_idx < transaction_count; tx_idx++) {
     const auto &trx_hash = trx_hashes[tx_idx];
 
-    if (trx_mgr_) [[likely]] {  // ONLY FOR TESTING
-      // Skip any transactions that are already known to the trx mgr
-      if (trx_mgr_->isTransactionKnown(trx_hash)) {
-        continue;
-      }
+    // Skip any transactions that are already known to the trx mgr
+    if (trx_mgr_->isTransactionKnown(trx_hash)) {
+      continue;
+    }
 
-      std::shared_ptr<Transaction> transaction;
-      // Deserialization is expensive, do it only for the transactions we are about to process
-      try {
-        transaction = std::make_shared<Transaction>(packet_data.rlp_[1][tx_idx].data().toBytes());
-        received_transactions.emplace_back(trx_hash);
-      } catch (const Transaction::InvalidTransaction &e) {
-        throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
-      }
+    std::shared_ptr<Transaction> transaction;
+    // Deserialization is expensive, do it only for the transactions we are about to process
+    try {
+      transaction = std::make_shared<Transaction>(packet_data.rlp_[1][tx_idx].data().toBytes());
+      received_transactions.emplace_back(trx_hash);
+    } catch (const Transaction::InvalidTransaction &e) {
+      throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
+    }
 
-      TransactionStatus status;
-      std::string reason;
-      std::tie(status, reason) = trx_mgr_->verifyTransaction(transaction);
-      switch (status) {
-        case TransactionStatus::Invalid: {
+    TransactionStatus status;
+    std::string reason;
+    std::tie(status, reason) = trx_mgr_->verifyTransaction(transaction);
+    switch (status) {
+      case TransactionStatus::Invalid: {
+        std::ostringstream err_msg;
+        err_msg << "DagBlock transaction " << transaction->getHash() << " validation failed: " << reason;
+        throw MaliciousPeerException(err_msg.str());
+      }
+      case TransactionStatus::InsufficentBalance:
+      case TransactionStatus::LowNonce: {
+        // Raise exception in trx pool is over the limit and this peer already has too many suspicious packets
+        if (peer->reportSuspiciousPacket() && trx_mgr_->nonProposableTransactionsOverTheLimit()) {
           std::ostringstream err_msg;
-          err_msg << "DagBlock transaction " << transaction->getHash() << " validation failed: " << reason;
+          err_msg << "Suspicious packets over the limit on DagBlock transaction " << transaction->getHash()
+                  << " validation: " << reason;
           throw MaliciousPeerException(err_msg.str());
         }
-        case TransactionStatus::InsufficentBalance:
-        case TransactionStatus::LowNonce: {
-          // Raise exception in trx pool is over the limit and this peer already has too many suspicious packets
-          if (peer->reportSuspiciousPacket() && trx_mgr_->nonProposableTransactionsOverTheLimit()) {
-            std::ostringstream err_msg;
-            err_msg << "Suspicious packets over the limit on DagBlock transaction " << transaction->getHash()
-                    << " validation: " << reason;
-            throw MaliciousPeerException(err_msg.str());
-          }
 
-          break;
-        }
-        case TransactionStatus::Verified:
-          break;
-        default:
-          assert(false);
+        break;
       }
+      case TransactionStatus::Verified:
+        break;
+      default:
+        assert(false);
+    }
 
-      received_trx_count_++;
-      if (trx_mgr_->insertValidatedTransaction(std::move(transaction), std::move(status))) {
-        unique_received_trx_count_++;
-      }
-    } else {
-      // Only for unit tests
-      onNewTransactions({std::make_shared<Transaction>(packet_data.rlp_[1][tx_idx].data().toBytes())});
+    received_trx_count_++;
+    if (trx_mgr_->insertValidatedTransaction(std::move(transaction), std::move(status))) {
+      unique_received_trx_count_++;
     }
   }
 
@@ -109,19 +101,6 @@ inline void TransactionPacketHandler::process(const threadpool::PacketData &pack
     LOG(log_tr_) << "Received TransactionPacket with " << packet_data.rlp_.itemCount() << " transactions";
     LOG(log_dg_) << "Received TransactionPacket with " << received_transactions.size()
                  << " unseen transactions:" << received_transactions << " from: " << peer->getId().abridged();
-  }
-}
-
-void TransactionPacketHandler::onNewTransactions(const SharedTransactions &transactions) {
-  // Only for testing
-  for (auto const &trx : transactions) {
-    auto trx_hash = trx->getHash();
-    if (!test_state_->hasTransaction(trx_hash)) {
-      test_state_->insertTransaction(trx);
-      LOG(log_tr_) << "Received New Transaction " << trx_hash;
-    } else {
-      LOG(log_tr_) << "Received New Transaction" << trx_hash << "that is already known";
-    }
   }
 }
 

@@ -354,10 +354,6 @@ void Network::setPendingPeersToReady() {
 
 dev::p2p::NodeID Network::getNodeId() const { return host_->id(); }
 
-int Network::getReceivedBlocksCount() const { return tarcaps_.begin()->second->getReceivedBlocksCount(); }
-
-int Network::getReceivedTransactionsCount() const { return tarcaps_.begin()->second->getReceivedTransactionsCount(); }
-
 std::shared_ptr<network::tarcap::TaraxaPeer> Network::getPeer(dev::p2p::NodeID const &id) const {
   return tarcaps_.begin()->second->getPeersState()->getPeer(id);
 }
