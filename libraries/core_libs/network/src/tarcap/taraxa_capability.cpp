@@ -14,7 +14,6 @@
 #include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
-#include "network/tarcap/shared_states/test_state.hpp"
 #include "node/node.hpp"
 #include "pbft/pbft_chain.hpp"
 #include "pbft/pbft_manager.hpp"
@@ -32,8 +31,7 @@ TaraxaCapability::TaraxaCapability(TarcapVersion version, const FullNodeConfig &
                                    std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
                                    std::shared_ptr<TransactionManager> trx_mgr,
                                    InitPacketsHandlers init_packets_handlers)
-    : test_state_(std::make_shared<TestState>()),
-      version_(version),
+    : version_(version),
       all_packets_stats_(std::move(packets_stats)),
       kConf(conf),
       peers_state_(nullptr),
@@ -47,8 +45,8 @@ TaraxaCapability::TaraxaCapability(TarcapVersion version, const FullNodeConfig &
 
   peers_state_ = std::make_shared<PeersState>(host, kConf);
   packets_handlers_ =
-      init_packets_handlers(logs_prefix, conf, genesis_hash, peers_state_, pbft_syncing_state_, test_state_,
-                            all_packets_stats_, db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, node_addr);
+      init_packets_handlers(logs_prefix, conf, genesis_hash, peers_state_, pbft_syncing_state_, all_packets_stats_, db,
+                            pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, node_addr);
 
   // Must be called after init_packets_handlers
   thread_pool_->setPacketsHandlers(version, packets_handlers_);
@@ -206,16 +204,9 @@ inline bool TaraxaCapability::filterSyncIrrelevantPackets(SubprotocolPacketType 
 
 const std::shared_ptr<PeersState> &TaraxaCapability::getPeersState() { return peers_state_; }
 
-// METHODS USED IN TESTS ONLY
-size_t TaraxaCapability::getReceivedBlocksCount() const { return test_state_->getBlocksSize(); }
-
-size_t TaraxaCapability::getReceivedTransactionsCount() const { return test_state_->getTransactionsSize(); }
-// END METHODS USED IN TESTS ONLY
-
 const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersionHandlers =
     [](const std::string &logs_prefix, const FullNodeConfig &config, const h256 &genesis_hash,
        const std::shared_ptr<PeersState> &peers_state, const std::shared_ptr<PbftSyncingState> &pbft_syncing_state,
-       const std::shared_ptr<TestState> &test_state,
        const std::shared_ptr<tarcap::TimePeriodPacketsStats> &packets_stats, const std::shared_ptr<DbStorage> &db,
        const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
        const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<DagManager> &dag_mgr,
@@ -231,11 +222,11 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersion
 
       // Standard packets with mid processing priority
       packets_handlers->registerHandler<DagBlockPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
-                                                               pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, test_state,
-                                                               node_addr, logs_prefix);
+                                                               pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db, node_addr,
+                                                               logs_prefix);
 
       packets_handlers->registerHandler<TransactionPacketHandler>(config, peers_state, packets_stats, trx_mgr,
-                                                                  test_state, node_addr, logs_prefix);
+                                                                  node_addr, logs_prefix);
 
       // Non critical packets with low processing priority
       packets_handlers->registerHandler<StatusPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,

@@ -20,7 +20,6 @@ namespace taraxa::network::tarcap::v1 {
 static const TaraxaCapability::InitPacketsHandlers kInitV1Handlers =
     [](const std::string &logs_prefix, const FullNodeConfig &config, const h256 &genesis_hash,
        const std::shared_ptr<PeersState> &peers_state, const std::shared_ptr<PbftSyncingState> &pbft_syncing_state,
-       const std::shared_ptr<TestState> &test_state,
        const std::shared_ptr<tarcap::TimePeriodPacketsStats> &packets_stats, const std::shared_ptr<DbStorage> &db,
        const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
        const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<DagManager> &dag_mgr,
@@ -36,12 +35,12 @@ static const TaraxaCapability::InitPacketsHandlers kInitV1Handlers =
           config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, node_addr, logs_prefix);
 
       // Standard packets with mid processing priority
-      packets_handlers->registerHandler<tarcap::DagBlockPacketHandler>(
-          config, peers_state, packets_stats, pbft_syncing_state, pbft_chain, pbft_mgr, dag_mgr, trx_mgr, db,
-          test_state, node_addr, logs_prefix);
+      packets_handlers->registerHandler<tarcap::DagBlockPacketHandler>(config, peers_state, packets_stats,
+                                                                       pbft_syncing_state, pbft_chain, pbft_mgr,
+                                                                       dag_mgr, trx_mgr, db, node_addr, logs_prefix);
 
       packets_handlers->registerHandler<tarcap::TransactionPacketHandler>(config, peers_state, packets_stats, trx_mgr,
-                                                                          test_state, node_addr, logs_prefix);
+                                                                          node_addr, logs_prefix);
 
       // Non critical packets with low processing priority
       packets_handlers->registerHandler<tarcap::StatusPacketHandler>(config, peers_state, packets_stats,

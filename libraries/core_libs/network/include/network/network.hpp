@@ -70,8 +70,6 @@ class Network {
 
   void setPendingPeersToReady();
   dev::p2p::NodeID getNodeId() const;
-  int getReceivedBlocksCount() const;
-  int getReceivedTransactionsCount() const;
   std::shared_ptr<network::tarcap::TaraxaPeer> getPeer(dev::p2p::NodeID const &id) const;
   // END METHODS USED IN TESTS ONLY
 

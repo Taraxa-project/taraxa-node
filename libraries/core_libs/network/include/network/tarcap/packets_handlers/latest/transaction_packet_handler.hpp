@@ -17,8 +17,8 @@ class TransactionPacketHandler : public PacketHandler {
  public:
   TransactionPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                            std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-                           std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<TestState> test_state,
-                           const addr_t& node_addr, const std::string& logs_prefix = "TRANSACTION_PH");
+                           std::shared_ptr<TransactionManager> trx_mgr, const addr_t& node_addr,
+                           const std::string& logs_prefix = "TRANSACTION_PH");
 
   /**
    * @brief Send transactions
@@ -43,18 +43,12 @@ class TransactionPacketHandler : public PacketHandler {
   // 2 items: hashes and transactions
   static constexpr uint32_t kTransactionPacketItemCount = 2;
 
-  // Used only for unit tests
-  void onNewTransactions(const SharedTransactions& transactions);
-
  private:
   virtual void validatePacketRlpFormat(const threadpool::PacketData& packet_data) const override;
   virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
  protected:
   std::shared_ptr<TransactionManager> trx_mgr_;
-
-  // FOR TESTING ONLY
-  std::shared_ptr<TestState> test_state_;
 
   std::atomic<uint64_t> received_trx_count_{0};
   std::atomic<uint64_t> unique_received_trx_count_{0};

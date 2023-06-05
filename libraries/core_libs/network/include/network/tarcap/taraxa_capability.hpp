@@ -11,7 +11,6 @@
 #include "config/config.hpp"
 #include "network/tarcap/packets_handler.hpp"
 #include "network/tarcap/shared_states/peers_state.hpp"
-#include "network/tarcap/shared_states/test_state.hpp"
 #include "network/tarcap/tarcap_version.hpp"
 #include "network/threadpool/tarcap_thread_pool.hpp"
 #include "pbft/pbft_chain.hpp"
@@ -40,7 +39,7 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
   using InitPacketsHandlers = std::function<std::shared_ptr<PacketsHandler>(
       const std::string &logs_prefix, const FullNodeConfig &config, const h256 &genesis_hash,
       const std::shared_ptr<PeersState> &peers_state, const std::shared_ptr<PbftSyncingState> &pbft_syncing_state,
-      const std::shared_ptr<TestState> &test_state,
+
       const std::shared_ptr<tarcap::TimePeriodPacketsStats> &packets_stats, const std::shared_ptr<DbStorage> &db,
       const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
       const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<DagManager> &dag_mgr,
@@ -82,18 +81,8 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
   template <typename PacketHandlerType>
   std::shared_ptr<PacketHandlerType> getSpecificHandler() const;
 
-  // METHODS USED IN TESTS ONLY
-  size_t getReceivedBlocksCount() const;
-  size_t getReceivedTransactionsCount() const;
-  // END METHODS USED IN TESTS ONLY
-
  private:
   bool filterSyncIrrelevantPackets(SubprotocolPacketType packet_type) const;
-
- public:
-  // TODO: Remove in future when tests are refactored
-  // Test state
-  std::shared_ptr<TestState> test_state_;
 
  private:
   // Capability version
