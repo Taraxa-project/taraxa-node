@@ -1434,7 +1434,9 @@ TEST_F(FullNodeTest, light_node) {
   }
   // Verify light node keeps at least light_node_history and it deletes old blocks
   EXPECT_GE(non_empty_counter, node_cfgs[1].light_node_history);
-  EXPECT_LE(non_empty_counter, node_cfgs[1].light_node_history + 5);
+  // Actual history size will be between 100% and 110% of light_node_history_ to
+  // avoid deleting on every period
+  EXPECT_LE(non_empty_counter, node_cfgs[1].light_node_history * 1.1 + node_cfgs[1].dag_expiry_limit);
 }
 
 TEST_F(FullNodeTest, clear_period_data) {
