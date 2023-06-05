@@ -165,10 +165,14 @@ Json::Value mergeJsons(Json::Value&& o1, Json::Value&& o2) {
 
 template <class S, class FN>
 Json::Value transformToJsonParallel(const S& source, FN op) {
+  if (source.empty()) {
+    return Json::Value(Json::arrayValue);
+  }
+
+  static util::ThreadPool executor{std::thread::hardware_concurrency() / 2};
+
   Json::Value out(Json::arrayValue);
   out.resize(source.size());
-
-  util::ThreadPool executor{std::thread::hardware_concurrency() / 2};
   std::atomic_uint processed = 0;
   for (unsigned i = 0; i < source.size(); ++i) {
     executor.post([&, i]() {
@@ -176,6 +180,7 @@ Json::Value transformToJsonParallel(const S& source, FN op) {
       ++processed;
     });
   }
+
   while (true) {
     if (processed == source.size()) {
       break;
@@ -191,10 +196,10 @@ Json::Value Taraxa::taraxa_getPeriodTransactionsWithReceipts(const std::string& 
     auto period = dev::jsToInt(_period);
     auto block_hash = final_chain->block_hash(period);
     auto trxs = node->getDB()->getPeriodTransactions(period);
-    Json::Value result(Json::arrayValue);
     if (!trxs.has_value()) {
-      return result;
+      return Json::Value(Json::arrayValue);
     }
+
     return transformToJsonParallel(*trxs, [&final_chain, &block_hash](const auto& trx) {
       auto hash = trx->getHash();
       auto r = final_chain->transaction_receipt(hash);
@@ -217,7 +222,7 @@ Json::Value Taraxa::taraxa_getPeriodDagBlocks(const std::string& _period) {
     auto period = dev::jsToInt(_period);
     auto node = tryGetNode();
     auto dags = node->getDB()->getFinalizedDagBlockByPeriod(period);
-    Json::Value result(Json::arrayValue);
+
     return transformToJsonParallel(dags, [&period](const auto& dag) {
       auto block_json = dag->getJson();
       block_json["period"] = toJS(period);
