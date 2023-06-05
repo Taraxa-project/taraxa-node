@@ -511,6 +511,138 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getChainStats","params":[
 }
 ```
 
+### taraxa_getPeriodTransactionsWithReceipts
+
+Returns all transactions from block at specified period
+
+#### Parameters
+
+`QUANTITY` - period
+
+#### Returns
+
+`ARRAY` of `OBJECT` - Object that is result of transaction and receipt objects merging  
+* `blockHash`: `DATA`, 32 Bytes - hash of the block where this transaction was in. null when its pending.
+* `blockNumber`: `QUANTITY` - block number where this transaction was in. null when its pending.
+* `from`: `DATA`, 20 Bytes - address of the sender.
+* `gas`: `QUANTITY` - gas provided by the sender.
+* `gasPrice`: `QUANTITY` - gas price provided by the sender in Wei.
+* `hash`: `DATA`, 32 Bytes - hash of the transaction.
+* `input`: `DATA` - the data send along with the transaction.
+* `nonce`: `QUANTITY` - the number of transactions made by the sender prior to this one.
+* `to`: `DATA`, 20 Bytes - address of the receiver. null when its a contract creation transaction.
+* `transactionIndex`: `QUANTITY` - integer of the transactions index position in the block. null when its pending.
+* `value`: `QUANTITY` - value transferred in Wei.
+* `v`: `QUANTITY` - ECDSA recovery id
+* `r`: `QUANTITY` - ECDSA signature r
+* `s`: `QUANTITY` - ECDSA signature s
+* `cumulativeGasUsed`: `QUANTITY` - The total amount of gas used when this transaction was executed in the block.
+* `gasUsed`: `QUANTITY` - The amount of gas used by this specific transaction alone.
+* `contractAddress`: `DATA`, 20 Bytes - The contract address created, if the transaction was a contract creation, otherwise null.
+* `logs`: `Array` - Array of log objects, which this transaction generated.
+* `logsBloom`: `DATA`, 256 Bytes - Bloom filter for light clients to quickly retrieve related logs.
+* `status`: `QUANTITY` either 1 (success) or 0 (failure)
+
+
+#### Example
+
+```json
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getPeriodTransactionsWithReceipts","params":["0x100"],"id":1}'
+
+// Result
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": [
+    {
+      "blockHash": "0x9f27c225f7b645299a023d59d5407537e05cbc1aee09b8b338e2893e3a1c3698",
+      "blockNumber": "0x100",
+      "contractAddress": null,
+      "cumulativeGasUsed": "0x5208",
+      "from": "0x111f91441efc8c6c0edf6534970cc887e2fabaa8",
+      "gas": "0x5208",
+      "gasPrice": "0x1",
+      "gasUsed": "0x5208",
+      "hash": "0xca4f7b0c2bb4d0fd0ba525aee8c5148dbb10a4f937f5f39270c95e7735b48552",
+      "input": "0x",
+      "logs": [],
+      "logsBloom": "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "nonce": "0x2761",
+      "r": "0x9069748f0ea83d278e70b585c97f6033698d39b17aa60d74bb47b67c3f275429",
+      "s": "0x235abed51caca24778c4ce13ebd92811a61fef53d6a318dfa0c2340000e20dc3",
+      "status": "0x1",
+      "to": "0x8dcc94cc57c72eaa6609ee77cb50c84141fa39bd",
+      "transactionHash": "0xca4f7b0c2bb4d0fd0ba525aee8c5148dbb10a4f937f5f39270c95e7735b48552",
+      "transactionIndex": "0x0",
+      "v": "0x0",
+      "value": "0x1"
+    }, ...
+  ]
+}
+```
+
+### taraxa_getPeriodDagBlocks
+
+Returns all dag blocks for specified period
+
+#### Parameters
+
+`QUANTITY` - period
+
+#### Returns
+
+`ARRAY` of `OBJECT` - A DAG block object:
+* `pivot`: `DATA`, 32 Bytes -
+* `level`: `QUANTITY` - Level at which block was produced
+* `period`: `QUANTITY` - Finalization period of this block
+* `tips`: `ARRAY` - List of tips
+* `transactions`: `ARRAY` - Array of transaction objects, or 32 Bytes transaction hashes depending on the last given parameter.
+* `trx_estimations`: `ARRAY` - Array of `QUANTITIES` that means transaction gas estimation for corresponding transaction. For example `trx_estimations[0]` is for `transactions[0]`
+* `sig`: `DATA`, 65 Bytes - Signature of block creator
+* `hash`: `DATA`, 32 Bytes - Hash of this block
+* `sender`: `DATA`, 20 Bytes - Address of block creator
+* `timestamp`: `QUANTITY` - Time of block creation
+* `vdf`: `OBJECT` - vdf proof for this block
+  * `pk`: `DATA`, 32 Bytes - Public key
+  * `proof`: `DATA`, 80 Bytes - Bytes of proof
+  * `sol1`: `DATA` - First part of solution
+  * `sol1`: `DATA` - Second part of solution
+  * `difficulty`: `QUANTITY` - Difficulty with which block was produced
+
+#### Example
+
+```json
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getPeriodDagBlocks","params":["0x100"],"id":1}'
+
+// Result
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": [
+    {
+      "hash": "0xc142fafaebd46803a8c5bd8d7411a202e163fad0513e3fa2431d379b5c267a77",
+      "level": "0x1f9",
+      "period": "0x100",
+      "pivot": "0xa1e8e5485167951b81172ff6fe04b0d9fa7ac02280824da97e8af42cab783daa",
+      "sender": "0xe143ededbf9285dc39daf64c120037a4b9a0f095",
+      "sig": "0x8b5ba54ef14ee89255a4db84007f119589e73cb0b98befb3d04fd9fa0d92dc923dcb6ec2f6ffe60cd31a5d28fd2c290c293fa12fabff7e25d0051b701118748501",
+      "timestamp": "0x642ab512",
+      "tips": [],
+      "transactions": [...],
+      "trx_estimations": "0x668a0",
+      "vdf": {
+        "difficulty": "0x10",
+        "proof": "0x7ef44c562d64fb9169e6db68d720d182e4d9648c80349699a82c5b358cd9bc4f9b3ee50c97651bbc5579f98f412b642aa4b3c4af5a038816e54457152459e1e90cee85bcdc5fb386748777586186a10b",
+        "sol1": "0x041536b789da11f68c22b2ce1c23ed969a28e6269d3e0e65f81bfa3049e021875cff724803fe6f5ec3fe5362054eee9965978a004372b7249f4ce8485c7e92a64696aada82150329764612f9f5fabeabf0fb08e1ec33d7b52db165259033ca52d6f75284bb0163c993e0e6a4725e9a3417948ddf3dad8581aa596c2aeb53f321d6675d53ead1bafdee2d31928d77ad61452ad0e3c2c04cb6d27bfff2aaf94e2a47098f0270c62e7c5d1eb8e8c98398d2a75146a70b7bcbfc03be12c9deaf427562a9c37fbb93d466e6055ecd52abf6f9e14b49d4df19dc24187e22f62d0ed061c91b4c1b1712be47987e785094e91ea973af806c6b14299783ea0481070853d8",
+        "sol2": "0x2bb0760e2b5b4cbe2dfbe5c740206ad0f8606d397a7e16b157ebc4dcf899e67175d8ea83ac7c1b13cd7e84f1032f625b3d216c6595c5285898257a2d3b8359079cc6d6a7d5381a77756fe021747d3dcbae7cdaabc6def80eb9ee2e0b7cd9c7a85d06acaee456198d45b6652872b47f5dd5895548fc459d0ac854334c3ec3749b7011df27ee1b22ab7f8ad6ed731fbc2d8dc96eaf9e4d2fc87e2e8a1c52bff11e087e5da1f5c1e1ee316d1cd279d628c4a38cfb727b0aff896a82d9fe68a3c64490809f002615954ccd6422818210b4cafacd21dcf542c4c81263b71ccd149869d3077c3af5b674ae08b01059414247410f6f76f5215cfe40e10d0d95d5936197"
+      }
+    }, ...
+  ]
+}
+```
+
 ## Test API
 
 ### get_sortition_change
