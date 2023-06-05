@@ -86,7 +86,6 @@ $(document).ready(function(){initNavTree('classtaraxa_1_1_db_storage.html',''); 
 <a href="#pub-types">Public Types</a> &#124;
 <a href="#pub-methods">Public Member Functions</a> &#124;
 <a href="#pub-static-methods">Static Public Member Functions</a> &#124;
-<a href="#pri-methods">Private Member Functions</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classtaraxa_1_1_db_storage-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -124,6 +123,8 @@ Public Types</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
+<tr class="memitem:ac0b98de59537f7274bc9d1c57576e78b"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ac0b98de59537f7274bc9d1c57576e78b">handle</a> (<a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> const &amp;col) const</td></tr>
+<tr class="separator:ac0b98de59537f7274bc9d1c57576e78b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa41cccbaab43c81d7297013102e8f83c"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#aa41cccbaab43c81d7297013102e8f83c">DbStorage</a> (fs::path const &amp;base_path, uint32_t db_snapshot_each_n_pbft_block=0, uint32_t max_open_files=0, uint32_t db_max_snapshots=0, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> db_revert_to_period=0, <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> node_addr=<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>(), bool rebuild=false)</td></tr>
 <tr class="separator:aa41cccbaab43c81d7297013102e8f83c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa1e26b8951b25a1af8cdb312a2b36919"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#aa1e26b8951b25a1af8cdb312a2b36919">~DbStorage</a> ()</td></tr>
@@ -164,6 +165,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ad462163041fc976cacd980b387071e06"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a58f8f08182c66b2865c959221d5795f3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a58f8f08182c66b2865c959221d5795f3">deleteColumnData</a> (const <a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> &amp;c)</td></tr>
 <tr class="separator:a58f8f08182c66b2865c959221d5795f3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7c11fd9e55153a57c59d4df9ad9745e5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a7c11fd9e55153a57c59d4df9ad9745e5">replaceColumn</a> (const <a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> &amp;to_be_replaced_col, std::unique_ptr&lt; rocksdb::ColumnFamilyHandle &gt; &amp;&amp;replacing_col)</td></tr>
+<tr class="separator:a7c11fd9e55153a57c59d4df9ad9745e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab1580acf1e5a153b8a0ce83e89ea6b61"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; rocksdb::ColumnFamilyHandle &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ab1580acf1e5a153b8a0ce83e89ea6b61">copyColumn</a> (rocksdb::ColumnFamilyHandle *orig_column, const std::string &amp;new_col_name, bool move_data=false)</td></tr>
+<tr class="separator:ab1580acf1e5a153b8a0ce83e89ea6b61"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a8fdea06e7db5a040e06a77cd95e6f980"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a8fdea06e7db5a040e06a77cd95e6f980">removeOldLogFiles</a> () const</td></tr>
 <tr class="separator:a8fdea06e7db5a040e06a77cd95e6f980"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afbda8888e46152dd8fd14fee81ae5ffb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#afbda8888e46152dd8fd14fee81ae5ffb">removeFilesWithPattern</a> (const std::string &amp;directory, const std::regex &amp;pattern) const</td></tr>
@@ -172,6 +177,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a9c216a3511b4e530505a25198f7181e6"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afc663f43099756e78a3da91d21af167c"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; rocksdb::Iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#afc663f43099756e78a3da91d21af167c">getColumnIterator</a> (const <a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> &amp;c)</td></tr>
 <tr class="separator:afc663f43099756e78a3da91d21af167c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a515b585c603cbdcabd59012303447b05"><td class="memItemLeft" align="right" valign="top">std::unique_ptr&lt; rocksdb::Iterator &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a515b585c603cbdcabd59012303447b05">getColumnIterator</a> (rocksdb::ColumnFamilyHandle *c)</td></tr>
+<tr class="separator:a515b585c603cbdcabd59012303447b05"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a996ba68dcc57852ac1e84bb712da079f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a996ba68dcc57852ac1e84bb712da079f">setGenesisHash</a> (const <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &amp;genesis_hash)</td></tr>
 <tr class="separator:a996ba68dcc57852ac1e84bb712da079f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3b5913c661bb192e45c7a6b659886aed"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a3b5913c661bb192e45c7a6b659886aed">getGenesisHash</a> ()</td></tr>
@@ -348,6 +355,9 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a50da530d3b8ee21a095a4895e887a961"><td class="memTemplParams" colspan="2">template&lt;typename K &gt; </td></tr>
 <tr class="memitem:a50da530d3b8ee21a095a4895e887a961"><td class="memTemplItemLeft" align="right" valign="top">bool&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a50da530d3b8ee21a095a4895e887a961">exist</a> (K const &amp;key, <a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> const &amp;column)</td></tr>
 <tr class="separator:a50da530d3b8ee21a095a4895e887a961"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab25e512d7547f3b9d80ad862af1af0f0"><td class="memTemplParams" colspan="2">template&lt;typename K , typename V &gt; </td></tr>
+<tr class="memitem:ab25e512d7547f3b9d80ad862af1af0f0"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ab25e512d7547f3b9d80ad862af1af0f0">insert</a> (rocksdb::ColumnFamilyHandle *col, const K &amp;k, const V &amp;v)</td></tr>
+<tr class="separator:ab25e512d7547f3b9d80ad862af1af0f0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a52bc018a68867f795fdec7542d227fc7"><td class="memTemplParams" colspan="2">template&lt;typename K , typename V &gt; </td></tr>
 <tr class="memitem:a52bc018a68867f795fdec7542d227fc7"><td class="memTemplItemLeft" align="right" valign="top">void&#160;</td><td class="memTemplItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a52bc018a68867f795fdec7542d227fc7">insert</a> (<a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> const &amp;col, K const &amp;k, V const &amp;v)</td></tr>
 <tr class="separator:a52bc018a68867f795fdec7542d227fc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -393,11 +403,6 @@ Static Public Member Functions</h2></td></tr>
 <tr class="separator:a029990e648b1a374b6a01ad1dfb1ea16"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a88f561f5cd166f5ca10f466fdccc8e31"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a88f561f5cd166f5ca10f466fdccc8e31">checkStatus</a> (rocksdb::Status const &amp;status)</td></tr>
 <tr class="separator:a88f561f5cd166f5ca10f466fdccc8e31"><td class="memSeparator" colspan="2">&#160;</td></tr>
-</table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
-Private Member Functions</h2></td></tr>
-<tr class="memitem:ac0b98de59537f7274bc9d1c57576e78b"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ac0b98de59537f7274bc9d1c57576e78b">handle</a> (<a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> const &amp;col) const</td></tr>
-<tr class="separator:ac0b98de59537f7274bc9d1c57576e78b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
 Private Attributes</h2></td></tr>
@@ -1110,6 +1115,40 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
+<a id="ab1580acf1e5a153b8a0ce83e89ea6b61"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab1580acf1e5a153b8a0ce83e89ea6b61">&#9670;&nbsp;</a></span>copyColumn()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unique_ptr&lt; rocksdb::ColumnFamilyHandle &gt; taraxa::DbStorage::copyColumn </td>
+          <td>(</td>
+          <td class="paramtype">rocksdb::ColumnFamilyHandle *&#160;</td>
+          <td class="paramname"><em>orig_column</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>new_col_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">bool&#160;</td>
+          <td class="paramname"><em>move_data</em> = <code>false</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a441528936e0ad6583242bad33e859523"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a441528936e0ad6583242bad33e859523">&#9670;&nbsp;</a></span>createSnapshot()</h2>
 
@@ -1419,7 +1458,7 @@ template&lt;typename K &gt; </div>
 </div>
 </div>
 <a id="afc663f43099756e78a3da91d21af167c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afc663f43099756e78a3da91d21af167c">&#9670;&nbsp;</a></span>getColumnIterator()</h2>
+<h2 class="memtitle"><span class="permalink"><a href="#afc663f43099756e78a3da91d21af167c">&#9670;&nbsp;</a></span>getColumnIterator() <span class="overload">[1/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1428,6 +1467,24 @@ template&lt;typename K &gt; </div>
           <td class="memname">std::unique_ptr&lt; rocksdb::Iterator &gt; taraxa::DbStorage::getColumnIterator </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> &amp;&#160;</td>
+          <td class="paramname"><em>c</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a515b585c603cbdcabd59012303447b05"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a515b585c603cbdcabd59012303447b05">&#9670;&nbsp;</a></span>getColumnIterator() <span class="overload">[2/2]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unique_ptr&lt; rocksdb::Iterator &gt; taraxa::DbStorage::getColumnIterator </td>
+          <td>(</td>
+          <td class="paramtype">rocksdb::ColumnFamilyHandle *&#160;</td>
           <td class="paramname"><em>c</em></td><td>)</td>
           <td></td>
         </tr>
@@ -2132,7 +2189,7 @@ template&lt;typename K &gt; </div>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">private</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -2190,7 +2247,7 @@ template&lt;typename K &gt; </div>
 </div>
 </div>
 <a id="a3db124c57eac1ab701ef8c172204a30d"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3db124c57eac1ab701ef8c172204a30d">&#9670;&nbsp;</a></span>insert() <span class="overload">[1/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a3db124c57eac1ab701ef8c172204a30d">&#9670;&nbsp;</a></span>insert() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2240,7 +2297,7 @@ template&lt;typename K , typename V &gt; </div>
 </div>
 </div>
 <a id="a52bc018a68867f795fdec7542d227fc7"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a52bc018a68867f795fdec7542d227fc7">&#9670;&nbsp;</a></span>insert() <span class="overload">[2/2]</span></h2>
+<h2 class="memtitle"><span class="permalink"><a href="#a52bc018a68867f795fdec7542d227fc7">&#9670;&nbsp;</a></span>insert() <span class="overload">[2/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2266,6 +2323,50 @@ template&lt;typename K , typename V &gt; </div>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">V const &amp;&#160;</td>
+          <td class="paramname"><em>v</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ab25e512d7547f3b9d80ad862af1af0f0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab25e512d7547f3b9d80ad862af1af0f0">&#9670;&nbsp;</a></span>insert() <span class="overload">[3/3]</span></h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;typename K , typename V &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::DbStorage::insert </td>
+          <td>(</td>
+          <td class="paramtype">rocksdb::ColumnFamilyHandle *&#160;</td>
+          <td class="paramname"><em>col</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const K &amp;&#160;</td>
+          <td class="paramname"><em>k</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const V &amp;&#160;</td>
           <td class="paramname"><em>v</em>&#160;</td>
         </tr>
         <tr>
@@ -2809,6 +2910,34 @@ template&lt;typename K &gt; </div>
           <td></td>
           <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;&#160;</td>
           <td class="paramname"><em>write_batch</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a7c11fd9e55153a57c59d4df9ad9745e5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7c11fd9e55153a57c59d4df9ad9745e5">&#9670;&nbsp;</a></span>replaceColumn()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::DbStorage::replaceColumn </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="classtaraxa_1_1_db_storage_1_1_column.html">Column</a> &amp;&#160;</td>
+          <td class="paramname"><em>to_be_replaced_col</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::unique_ptr&lt; rocksdb::ColumnFamilyHandle &gt; &amp;&amp;&#160;</td>
+          <td class="paramname"><em>replacing_col</em>&#160;</td>
         </tr>
         <tr>
           <td></td>

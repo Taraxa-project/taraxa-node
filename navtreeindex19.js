@@ -1,5 +1,9 @@
 var NAVTREEINDEX19 =
 {
+"md_doc_coding_practices.html#autotoc_md76":[15],
+"md_doc_coding_practices.html#autotoc_md77":[16],
+"md_doc_coding_practices.html#autotoc_md78":[17],
+"md_doc_coding_practices.html#autotoc_md79":[18],
 "md_doc_coding_practices.html#autotoc_md80":[19],
 "md_doc_coding_practices.html#autotoc_md81":[20],
 "md_doc_coding_practices.html#autotoc_md82":[3,0,4],
@@ -128,8 +132,8 @@ var NAVTREEINDEX19 =
 "namespacemembers_enum.html":[14,4],
 "namespacemembers_eval.html":[14,5],
 "namespacemembers_f.html":[14,0,6],
-"namespacemembers_func.html":[14,1],
 "namespacemembers_func.html":[14,1,0],
+"namespacemembers_func.html":[14,1],
 "namespacemembers_func_a.html":[14,1,1],
 "namespacemembers_func_b.html":[14,1,2],
 "namespacemembers_func_c.html":[14,1,3],
@@ -178,8 +182,8 @@ var NAVTREEINDEX19 =
 "namespacetaraxa.html#a25279da4cb5c51a252df1a2c42d8fdc6":[16,0,1,3,0,0,0,0,2],
 "namespacetaraxa.html#a274099357513e9346beed7aefafb5a71":[16,0,1,3,0,0,0,0,4],
 "namespacetaraxa.html#a3747de5ec38a001ef934c2764b539ef3":[16,0,1,4,0,0,6,0,0,2],
-"namespacetaraxa.html#a41b6bc15bf8fbbecfd3b53037e4f37c2":[16,0,1,4,0,0,6,0,0,0,1],
 "namespacetaraxa.html#a41b6bc15bf8fbbecfd3b53037e4f37c2":[16,0,1,4,0,0,6,0,1,1],
+"namespacetaraxa.html#a41b6bc15bf8fbbecfd3b53037e4f37c2":[16,0,1,4,0,0,6,0,0,0,1],
 "namespacetaraxa.html#a4faf253efde7446f593b1d0a5063bffc":[16,0,1,3,0,0,5,2,0],
 "namespacetaraxa.html#a750ea236fc9a952abc71508807c75ce8":[16,0,1,3,0,0,5,0,2],
 "namespacetaraxa.html#a755e4a0a6744a31b65b04cb9022d6a47":[16,0,1,8,0,0,0,1,2],
@@ -200,8 +204,8 @@ var NAVTREEINDEX19 =
 "namespacetaraxa.html#structtaraxa_1_1_prometheus_config":[16,0,1,3,0,0,5,0],
 "namespacetaraxa.html#structtaraxa_1_1_vdf_params":[16,0,1,8,0,0,0,1],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes":[16,0,1,4,0,0,6,0,0],
-"namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[16,0,1,4,0,0,6,0,1],
 "namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[16,0,1,4,0,0,6,0,0,0],
+"namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[16,0,1,4,0,0,6,0,1],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a1e15a59a79691f16628fd670283ecf80":[16,0,1,4,1,2,0,0,5,2],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a2f6cd6b167f36d948149b2cbd69eca30":[16,0,1,4,1,2,0,6,0,1],
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a31d0681d099115697d44bf875d7f8d1b":[16,0,1,4,1,2,0,6,0,0],
@@ -245,9 +249,5 @@ var NAVTREEINDEX19 =
 "namespacetaraxa_1_1state__api.html#a7cba8e74712f847021e5118974cf97ae":[16,0,1,3,0,0,7,2,7],
 "namespacetaraxa_1_1state__api.html#a8c3b02a035312481a460ddce3d2ad06a":[16,0,1,3,0,0,7,2,5],
 "namespacetaraxa_1_1state__api.html#a9d7316cafe803848e671557efb79b754":[16,0,1,3,0,0,7,2,11],
-"namespacetaraxa_1_1state__api.html#ab094db016ae63d9e76541fbd2e016fda":[16,0,1,3,0,0,7,1,4],
-"namespacetaraxa_1_1state__api.html#ab2b4c9752dae77c339d0c5d2d51fced5":[16,0,1,3,0,0,7,2,2],
-"namespacetaraxa_1_1state__api.html#ac4aaee6dbf60f4917c72a4d660a6c576":[16,0,1,3,0,0,7,2,0],
-"namespacetaraxa_1_1state__api.html#ac56c39245ee1448b3bbdbf7364183632":[16,0,1,3,0,0,7,4,1],
-"namespacetaraxa_1_1state__api.html#acf8492fa86e6ac73c82ae55d9db33c2e":[16,0,1,3,0,0,7,1,5]
+"namespacetaraxa_1_1state__api.html#ab094db016ae63d9e76541fbd2e016fda":[16,0,1,3,0,0,7,1,4]
 };
