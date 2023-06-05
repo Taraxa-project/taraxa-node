@@ -372,7 +372,6 @@ var hierarchy =
     [ "graphql::taraxa::SyncState", "classgraphql_1_1taraxa_1_1_sync_state.html", null ],
     [ "taraxa::net::rpc::eth::SyncStatus", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_sync_status", null ],
     [ "dev::p2p::TaraxaNetworkConfig", "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_taraxa_network_config", null ],
-    [ "taraxa::network::tarcap::TestState", "classtaraxa_1_1network_1_1tarcap_1_1_test_state.html", null ],
     [ "ThreadSafeMap< Key, Value >", "class_thread_safe_map.html", null ],
     [ "ThreadSafeMap< dev::FixedHash, std::chrono::steady_clock::time_point >", "class_thread_safe_map.html", null ],
     [ "ThreadSafeSet< Key >", "class_thread_safe_set.html", null ],

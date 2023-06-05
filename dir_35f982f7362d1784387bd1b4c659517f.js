@@ -5,8 +5,5 @@ var dir_35f982f7362d1784387bd1b4c659517f =
     ] ],
     [ "peers_state.hpp", "peers__state_8hpp.html", [
       [ "PeersState", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state" ]
-    ] ],
-    [ "test_state.hpp", "test__state_8hpp.html", [
-      [ "TestState", "classtaraxa_1_1network_1_1tarcap_1_1_test_state.html", "classtaraxa_1_1network_1_1tarcap_1_1_test_state" ]
     ] ]
 ];

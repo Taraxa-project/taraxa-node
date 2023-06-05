@@ -11,8 +11,6 @@ var classtaraxa_1_1_network =
     [ "getNodeId", "classtaraxa_1_1_network.html#a87a092a6afecd4748768d07ee9f59b71", null ],
     [ "getPeer", "classtaraxa_1_1_network.html#a3bc79d60649800d199a090d11c213e55", null ],
     [ "getPeerCount", "classtaraxa_1_1_network.html#a259bd66c2688338ead9f2a48f5851790", null ],
-    [ "getReceivedBlocksCount", "classtaraxa_1_1_network.html#a1c048091be269784cebe9501688de1f4", null ],
-    [ "getReceivedTransactionsCount", "classtaraxa_1_1_network.html#a2b2e5c6dfc056ab5738f257321692391", null ],
     [ "getSpecificHandler", "classtaraxa_1_1_network.html#a35dc353c28031b64a7a826c477cb55fd", null ],
     [ "getStatus", "classtaraxa_1_1_network.html#acec9949d2bf39b966ead6e30b02d343f", null ],
     [ "gossipDagBlock", "classtaraxa_1_1_network.html#a5b53485799795edd98ed42d29e1dda99", null ],

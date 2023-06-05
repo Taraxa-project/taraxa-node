@@ -214,7 +214,6 @@ var annotated_dup =
           [ "VotesBundlePacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet_handler.html", "classtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet_handler" ],
           [ "PbftSyncingState", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state.html", "classtaraxa_1_1network_1_1tarcap_1_1_pbft_syncing_state" ],
           [ "PeersState", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state" ],
-          [ "TestState", "classtaraxa_1_1network_1_1tarcap_1_1_test_state.html", "classtaraxa_1_1network_1_1tarcap_1_1_test_state" ],
           [ "MaxStats", "classtaraxa_1_1network_1_1tarcap_1_1_max_stats.html", "classtaraxa_1_1network_1_1tarcap_1_1_max_stats" ],
           [ "NodeStats", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats" ],
           [ "PacketStats", "classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html", "classtaraxa_1_1network_1_1tarcap_1_1_packet_stats" ],
