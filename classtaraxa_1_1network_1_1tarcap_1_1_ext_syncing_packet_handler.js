@@ -8,7 +8,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler =
     [ "requestDagBlocks", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a20d7a5d06fcb94763b48bd6db79b1b4c", null ],
     [ "requestPendingDagBlocks", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a93bf11331e6e0f5cea4153292a8ed23b", null ],
     [ "startSyncingPbft", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#af157684acf37bcd3acbd2b869f28b43d", null ],
-    [ "syncPeerPbft", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#adfee0aafa7b11e8ba3212ed467a55400", null ],
+    [ "syncPeerPbft", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#ae1a7dccf28f9fe5fcb8236fe57d273c0", null ],
     [ "dag_mgr_", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a58e81f75ec08f404888a9df3df972aee", null ],
     [ "db_", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a00cb8c9c2a85e25458c00ee4a0b7ea74", null ],
     [ "pbft_chain_", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a72ca3a5338ab0a35f1cf436af01c582b", null ],
