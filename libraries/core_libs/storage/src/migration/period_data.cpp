@@ -17,7 +17,7 @@ void PeriodData::migrate(logger::Logger& log) {
   auto copied_col = db_->copyColumn(db_->handle(orig_col), orig_col.name() + "-copy");
 
   if (copied_col == nullptr) {
-    LOG(log) << "Migration " << id() << " failed: Unable to copy " << orig_col.name() << " column";
+    LOG(log) << "Migration " << id() << " skipped: Unable to copy " << orig_col.name() << " column";
     return;
   }
 

@@ -169,8 +169,8 @@ void DbStorage::replaceColumn(const Column& to_be_replaced_col,
       copyColumn(replacing_col.get(), to_be_replaced_col.name(), true);
 
   if (!replaced_col) {
-    LOG(log_er_) << "Unable to replace column " << to_be_replaced_col.name()
-                 << " by " << replacing_col->GetName() << " due to failed copy";
+    LOG(log_er_) << "Unable to replace column " << to_be_replaced_col.name() << " by " << replacing_col->GetName()
+                 << " due to failed copy";
     return;
   }
 

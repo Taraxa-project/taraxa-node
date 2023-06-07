@@ -41,14 +41,10 @@ class ExtSyncingPacketHandler : public PacketHandler {
    * @brief Send sync request to the current syncing peer with specified request_period
    *
    * @param request_period
-   * @param ignore_chain_size_check ignore peer's chain size check - it is used when processing sync packet from
-   *                                current syncing peer as he specifies in packet if he already send his last block
-   *                                or not. This info is more up to date then peer->chain_size that might have been
-   * saved in the past and it is not valid anymore
    *
    * @return true if sync request was sent, otherwise false
    */
-  bool syncPeerPbft(PbftPeriod request_period, bool ignore_chain_size_check = false);
+  bool syncPeerPbft(PbftPeriod request_period);
 
   void requestDagBlocks(const dev::p2p::NodeID &_nodeID, const std::unordered_set<blk_hash_t> &blocks,
                         PbftPeriod period);

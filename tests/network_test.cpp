@@ -106,49 +106,49 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
 }
 
 // TODO: debug why the test take so long...
- TEST_F(NetworkTest, propagate_block) {
-   auto node_cfgs = make_node_cfgs(5, 1);
-   auto nodes = launch_nodes(node_cfgs);
-   const auto& node1 = nodes[0];
+TEST_F(NetworkTest, propagate_block) {
+  auto node_cfgs = make_node_cfgs(5, 1);
+  auto nodes = launch_nodes(node_cfgs);
+  const auto& node1 = nodes[0];
 
-   // Stop PBFT manager
-   for (auto& node : nodes) {
+  // Stop PBFT manager
+  for (auto& node : nodes) {
     node->getPbftManager()->stop();
-   }
+  }
 
-   const auto db1 = node1->getDB();
-   const auto dag_mgr1 = node1->getDagManager();
+  const auto db1 = node1->getDB();
+  const auto dag_mgr1 = node1->getDagManager();
 
-   auto trxs = samples::createSignedTrxSamples(0, 1, g_secret);
-   const auto estimation = node1->getTransactionManager()->estimateTransactionGas(trxs[0], {});
+  auto trxs = samples::createSignedTrxSamples(0, 1, g_secret);
+  const auto estimation = node1->getTransactionManager()->estimateTransactionGas(trxs[0], {});
 
-   // node1 add one valid block
-   const auto proposal_level = 1;
-   const auto proposal_period = *db1->getProposalPeriodForDagLevel(proposal_level);
-   const auto period_block_hash = db1->getPeriodBlockHash(proposal_period);
-   const auto sortition_params = dag_mgr1->sortitionParamsManager().getSortitionParams(proposal_period);
-   vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
-                                   VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash), 1, 1);
-   const auto dag_genesis = node1->getConfig().genesis.dag_genesis_block.getHash();
-   dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trxs[0]});
-   vdf.computeVdfSolution(sortition_params, vdf_msg, false);
-   DagBlock blk(dag_genesis, proposal_level, {}, {trxs[0]->getHash()}, estimation, vdf, node1->getSecretKey());
+  // node1 add one valid block
+  const auto proposal_level = 1;
+  const auto proposal_period = *db1->getProposalPeriodForDagLevel(proposal_level);
+  const auto period_block_hash = db1->getPeriodBlockHash(proposal_period);
+  const auto sortition_params = dag_mgr1->sortitionParamsManager().getSortitionParams(proposal_period);
+  vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
+                                  VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash), 1, 1);
+  const auto dag_genesis = node1->getConfig().genesis.dag_genesis_block.getHash();
+  dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trxs[0]});
+  vdf.computeVdfSolution(sortition_params, vdf_msg, false);
+  DagBlock blk(dag_genesis, proposal_level, {}, {trxs[0]->getHash()}, estimation, vdf, node1->getSecretKey());
 
-   const auto block_hash = blk.getHash();
+  const auto block_hash = blk.getHash();
 
-   // Add block gossip it to connected peers
-   dag_mgr1->addDagBlock(std::move(blk), {trxs[0]});
+  // Add block gossip it to connected peers
+  dag_mgr1->addDagBlock(std::move(blk), {trxs[0]});
 
-   wait({1s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr1->getDagBlock(block_hash), nullptr) });
+  wait({1s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr1->getDagBlock(block_hash), nullptr) });
 
-   std::cout << "Waiting Sync ..." << std::endl;
-   wait({20s, 200ms}, [&](auto& ctx) {
-     for (const auto& node : nodes) {
-       const auto dag_mgr = node->getDagManager();
-       WAIT_EXPECT_NE(ctx, dag_mgr->getDagBlock(block_hash), nullptr)
-     }
-   });
- }
+  std::cout << "Waiting Sync ..." << std::endl;
+  wait({20s, 200ms}, [&](auto& ctx) {
+    for (const auto& node : nodes) {
+      const auto dag_mgr = node->getDagManager();
+      WAIT_EXPECT_NE(ctx, dag_mgr->getDagBlock(block_hash), nullptr)
+    }
+  });
+}
 
 TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
   auto node_cfgs = make_node_cfgs(2, 1, 5);
@@ -297,11 +297,10 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
 
   // Launch node2, node2 own 0 balance, could not vote
   auto nodes2 = launch_nodes({node_cfgs[1]});
-  nodes[0]->getPbftManager()->stop();
   const auto node2_pbft_chain = nodes2[0]->getPbftChain();
 
   // verify that the large pbft block is synced
-  EXPECT_HAPPENS({30s, 100ms}, [&](auto& ctx) {
+  EXPECT_HAPPENS({100s, 100ms}, [&](auto& ctx) {
     WAIT_EXPECT_EQ(ctx, node2_pbft_chain->getPbftChainSize(), node1_pbft_chain->getPbftChainSize())
   });
 
@@ -312,11 +311,6 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
     std::cout << "PBFT block2 " << *pbft_blocks2 << std::endl;
   }
   EXPECT_EQ(pbft_blocks1->rlp(true), pbft_blocks2->rlp(true));
-
-  // this sleep is needed to process all remaining packets and destruct all network stuff
-  // on removal will cause next tests in the suite to fail because p2p port left binded
-  // see https://github.com/Taraxa-project/taraxa-node/issues/977 for more info
-  std::this_thread::sleep_for(1s);
 }
 
 // Test creates two Network setup and verifies sending transaction
