@@ -183,10 +183,10 @@ commands:
       - run:
           name: Cleanup PRNet IPs
           command: |
-            if [[ $(gcloud compute addresses list --format json  --project << parameters.project >> --filter="name~'prnet-boot-<< parameters.pr-name >>.*'" ) != "[]" ]];then 
+            if [[ $(gcloud compute addresses list --format json  --project << parameters.project >> --filter="name~'prnet-boot-<< parameters.pr-name >>.*'" ) != "[]" ]];then
              gcloud compute addresses delete prnet-boot-<< parameters.pr-name >>-{1..3} --region << parameters.region >>  --project << parameters.project >> --quiet
             fi
-            if [[ $(gcloud compute addresses list --format json  --project << parameters.project >> --filter="name~'prnet-rpc-<< parameters.pr-name >>.*'" ) != "[]" ]];then 
+            if [[ $(gcloud compute addresses list --format json  --project << parameters.project >> --filter="name~'prnet-rpc-<< parameters.pr-name >>.*'" ) != "[]" ]];then
              gcloud compute addresses delete prnet-rpc-<< parameters.pr-name >>-{1..3} --region << parameters.region >>  --project << parameters.project >> --quiet
             fi
           when: << parameters.when >>
@@ -215,7 +215,7 @@ commands:
             echo -n "<< parameters.kubeconfig >>" | base64 --decode > $HOME/.kube/config
             curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
             curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            sudo cp kubectl /usr/local/bin 
+            sudo cp kubectl /usr/local/bin
             sudo chmod +x /usr/local/bin/kubectl
           when: << parameters.when >>
 
@@ -305,7 +305,7 @@ commands:
                   echo "waiting.. for all resources to be deleted"
                   echo ${GETALL}
                   sleep 10
-                fi             
+                fi
               done
               if [ $i -eq 50 ];then
                 echo "Exiting after 500 seconds not all resources may have cleaned up"
@@ -319,7 +319,7 @@ commands:
     steps:
       - run:
           name: Prepare env variables
-          command: | 
+          command: |
             echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >> $BASH_ENV
             export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )
             echo "export SHORT_GIT_HASH=$(echo $CIRCLE_SHA1 | cut -c -7)" >> $BASH_ENV
@@ -506,24 +506,24 @@ commands:
             if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoketest-${VERSION})" ]; then
               docker network rm smoketest-${VERSION} >/dev/null;
             fi
-            
+
             docker network create --driver=bridge \
               smoketest-${VERSION}
-            
+
             docker run -d\
               --name smoketest-${VERSION} \
               --net smoketest-${VERSION} \
               ${IMAGE}:${VERSION} \
               single
-            
+
             mkdir -p  $PWD/test_build-d/
-            
+
             sleep 30
 
             echo "--- Logs from container ---"
             docker logs smoketest-${VERSION}
             echo "--- Logs from container ---"
-            
+
             http_code=$(docker run --rm  -v $PWD/test_build-d:/data \
               --net smoketest-${VERSION} \
               byrnedo/alpine-curl \
@@ -542,7 +542,7 @@ commands:
                           "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
                       }]
                   }')
-              
+
             cat $PWD/test_build-d/http.out || true
             if [[ $http_code -eq 200 ]] ; then
                 exit 0
@@ -703,8 +703,6 @@ jobs:
       - test
       - tag
       - push_gcr
-      - store_artifacts:
-          path: tmp_docker
 
   build-builder-docker-image:
     environment:
@@ -729,7 +727,7 @@ jobs:
       - run:
           name: Show layers of taraxa-builder image
           command: |
-            docker history taraxa-builder:${VERSION} 
+            docker history taraxa-builder:${VERSION}
       - tag_builder
       - push_dockerhub
 
@@ -749,8 +747,6 @@ jobs:
         - test
         - tag
         - push_dockerhub
-        - store_artifacts:
-            path: tmp_docker
 
   create-and-push-builder:
     docker:
@@ -1112,7 +1108,7 @@ workflows:
       - release-docker-image:
           filters:
             tags:
-              only: 
+              only:
               - /^v?\d+\.\d+\.\d+$/
               - /^v?\d+\.\d+\.\d+-beta$/
             branches:
@@ -1145,7 +1141,7 @@ workflows:
             - CHARTSREPO
           filters:
             branches:
-              only: 
+              only:
               - /^chart\/.*/
               - /^chore\/chart-.*/
               - /^fix\/chart-.*/
