@@ -25,7 +25,8 @@ NodeStats::NodeStats(std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::
       vote_mgr_(std::move(vote_mgr)),
       trx_mgr_(std::move(trx_mgr)),
       packets_stats_(std::move(packets_stats)),
-      thread_pool_(std::move(thread_pool)) {
+      thread_pool_(std::move(thread_pool)),
+      kNodeAddress(node_addr.toString()) {
   LOG_OBJECTS_CREATE("SUMMARY");
 }
 
@@ -129,6 +130,7 @@ void NodeStats::logNodeStats(const std::vector<std::shared_ptr<network::tarcap::
                << " dag levels)";
 
   LOG(log_nf_) << "Build version: " << TARAXA_COMMIT_HASH;
+  LOG(log_nf_) << "Node address: " << kNodeAddress;
   LOG(log_nf_) << "Connected to " << peers_size << " peers: [ " << connected_peers_str << "]";
   LOG(log_nf_) << "Number of discovered peers: " << number_of_discov_peers;
 
