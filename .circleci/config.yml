@@ -272,7 +272,7 @@ commands:
                 --set node.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set bootnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set consensusnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
-                --set node.indexer.enabled=true
+                --set node.indexer.enabled=true \
                 --set indexer.image.tag="develop-038eeff-1686149905"
             fi
 
