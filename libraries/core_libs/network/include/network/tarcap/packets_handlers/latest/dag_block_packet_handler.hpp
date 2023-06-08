@@ -17,8 +17,7 @@ class DagBlockPacketHandler : public ExtSyncingPacketHandler {
                         std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::shared_ptr<PbftChain> pbft_chain,
                         std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<DagManager> dag_mgr,
                         std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<DbStorage> db,
-                        std::shared_ptr<TestState> test_state, const addr_t &node_addr,
-                        const std::string &logs_prefix = "");
+                        const addr_t &node_addr, const std::string &logs_prefix = "");
 
   void sendBlock(dev::p2p::NodeID const &peer_id, DagBlock block, const SharedTransactions &trxs);
   void onNewBlockReceived(DagBlock &&block, const std::shared_ptr<TaraxaPeer> &peer = nullptr);
@@ -32,7 +31,6 @@ class DagBlockPacketHandler : public ExtSyncingPacketHandler {
   virtual void process(const threadpool::PacketData &packet_data, const std::shared_ptr<TaraxaPeer> &peer) override;
 
  protected:
-  std::shared_ptr<TestState> test_state_;
   std::shared_ptr<TransactionManager> trx_mgr_{nullptr};
 };
 

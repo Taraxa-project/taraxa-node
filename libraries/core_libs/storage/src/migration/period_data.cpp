@@ -13,7 +13,15 @@ std::string PeriodData::id() { return "PeriodData"; }
 uint32_t PeriodData::dbVersion() { return 1; }
 
 void PeriodData::migrate(logger::Logger& log) {
-  auto it = db_->getColumnIterator(DB::Columns::period_data);
+  auto orig_col = DB::Columns::period_data;
+  auto copied_col = db_->copyColumn(db_->handle(orig_col), orig_col.name() + "-copy");
+
+  if (copied_col == nullptr) {
+    LOG(log) << "Migration " << id() << " skipped: Unable to copy " << orig_col.name() << " column";
+    return;
+  }
+
+  auto it = db_->getColumnIterator(copied_col.get());
   it->SeekToFirst();
   if (!it->Valid()) {
     return;
@@ -34,7 +42,7 @@ void PeriodData::migrate(logger::Logger& log) {
 
   // Get and save data in new format for all blocks
   for (uint64_t i = start_period; i <= end_period; ++i) {
-    executor.post([this, i]() {
+    executor.post([this, i, &copied_col]() {
       const auto bytes = db_->getPeriodDataRaw(i);
       const auto period_data_old_rlp = dev::RLP(bytes);
       assert(period_data_old_rlp.itemCount() == 4);
@@ -55,7 +63,7 @@ void PeriodData::migrate(logger::Logger& log) {
 
       // Reorder transactions
       PbftManager::reorderTransactions(period_data.transactions);
-      db_->insert(DB::Columns::period_data, i, period_data.rlp());
+      db_->insert(copied_col.get(), i, period_data.rlp());
     });
     // This should slow down main loop so we are not using so much memory
     while (executor.num_pending_tasks() > (executor.capacity() * 3)) {
@@ -67,9 +75,12 @@ void PeriodData::migrate(logger::Logger& log) {
       LOG(log) << "Migration " << id() << " progress " << curr_progress << "%";
     }
   }
-  // I know it's not perfect to check with sleep, but it's just migration that should be run once
+
+  // It's not perfect to check with sleep, but it's just migration that should be run once
   do {
     taraxa::thisThreadSleepForMilliSeconds(100);
   } while (executor.num_pending_tasks());
+
+  db_->replaceColumn(orig_col, std::move(copied_col));
 }
 }  // namespace taraxa::storage::migration

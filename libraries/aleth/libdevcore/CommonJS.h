@@ -90,9 +90,15 @@ jsToInt(std::string const& _s) {
 
 inline u256 jsToU256(std::string const& _s) { return jsToInt<32>(_s); }
 
-inline uint64_t jsToInt(std::string const& _s, int base = 16) { return std::stoull(_s, 0, base); }
-
-inline std::string jsToDecimal(std::string const& _s) { return toString(jsToU256(_s)); }
+inline uint64_t jsToInt(std::string const& _s) {
+  if (_s.substr(0, 2) == "0x") {
+    return std::stoull(_s, 0, 16);  // Hex
+  } else if (_s.find_first_not_of("0123456789") == std::string::npos) {
+    return std::stoull(_s, 0, 10);  // Decimal
+  }
+  // Still try to parse it as hex. Will throw the std::invalid_argument if it isn't possible
+  return std::stoull(_s, 0, 16);
+}
 
 inline uint64_t getUInt(const Json::Value& v) {
   if (v.isString()) {

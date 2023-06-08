@@ -52,9 +52,9 @@ void GetPbftSyncPacketHandler::process(const threadpool::PacketData &packet_data
 
   size_t blocks_to_transfer = 0;
   auto pbft_chain_synced = false;
-  const auto total_period_datas_size = my_chain_size - height_to_sync + 1;
-  if (total_period_datas_size <= kConf.network.sync_level_size) {
-    blocks_to_transfer = total_period_datas_size;
+  const auto total_period_data_size = my_chain_size - height_to_sync + 1;
+  if (total_period_data_size <= kConf.network.sync_level_size) {
+    blocks_to_transfer = total_period_data_size;
     pbft_chain_synced = true;
   } else {
     blocks_to_transfer = kConf.network.sync_level_size;

@@ -42,6 +42,7 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
     db_path_ = backup_db_path;
     state_db_path_ = backup_state_db_path;
   }
+  LOG_OBJECTS_CREATE("DBS");
 
   fs::create_directories(db_path_);
   removeOldLogFiles();
@@ -62,7 +63,6 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
     if (col.comparator_) options.comparator = col.comparator_;
     return rocksdb::ColumnFamilyDescriptor(col.name(), options);
   });
-  LOG_OBJECTS_CREATE("DBS");
 
   rebuildColumns(options);
 
@@ -116,8 +116,70 @@ void DbStorage::updateDbVersions() {
   kMajorVersion_ = TARAXA_DB_MAJOR_VERSION;
 }
 
+std::unique_ptr<rocksdb::ColumnFamilyHandle> DbStorage::copyColumn(rocksdb::ColumnFamilyHandle* orig_column,
+                                                                   const std::string& new_col_name, bool move_data) {
+  auto it = getColumnIterator(orig_column);
+  // No data to be copied
+  if (it->SeekToFirst(); !it->Valid()) {
+    return nullptr;
+  }
+
+  rocksdb::Checkpoint* checkpoint_raw;
+  auto status = rocksdb::Checkpoint::Create(db_.get(), &checkpoint_raw);
+  std::unique_ptr<rocksdb::Checkpoint> checkpoint(checkpoint_raw);
+  checkStatus(status);
+
+  const fs::path export_dir = path() / "migrations" / new_col_name;
+  fs::create_directory(export_dir.parent_path());
+
+  // Export dir should not exist before exporting the column family
+  fs::remove_all(export_dir);
+
+  rocksdb::ExportImportFilesMetaData* metadata_raw;
+  status = checkpoint->ExportColumnFamily(orig_column, export_dir, &metadata_raw);
+  std::unique_ptr<rocksdb::ExportImportFilesMetaData> metadata(metadata_raw);
+  checkStatus(status);
+
+  const rocksdb::Comparator* comparator = orig_column->GetComparator();
+  auto options = rocksdb::ColumnFamilyOptions();
+  if (comparator != nullptr) {
+    options.comparator = comparator;
+  }
+
+  rocksdb::ImportColumnFamilyOptions import_options;
+  import_options.move_files = move_data;
+
+  rocksdb::ColumnFamilyHandle* copied_column_raw;
+  status = db_->CreateColumnFamilyWithImport(options, new_col_name, import_options, *metadata, &copied_column_raw);
+  std::unique_ptr<rocksdb::ColumnFamilyHandle> copied_column(copied_column_raw);
+  checkStatus(status);
+
+  // Remove export dir after successful import
+  fs::remove_all(export_dir);
+
+  return copied_column;
+}
+
+void DbStorage::replaceColumn(const Column& to_be_replaced_col,
+                              std::unique_ptr<rocksdb::ColumnFamilyHandle>&& replacing_col) {
+  checkStatus(db_->DropColumnFamily(handle(to_be_replaced_col)));
+  db_->DestroyColumnFamilyHandle(handle(to_be_replaced_col));
+
+  std::unique_ptr<rocksdb::ColumnFamilyHandle> replaced_col =
+      copyColumn(replacing_col.get(), to_be_replaced_col.name(), true);
+
+  if (!replaced_col) {
+    LOG(log_er_) << "Unable to replace column " << to_be_replaced_col.name() << " by " << replacing_col->GetName()
+                 << " due to failed copy";
+    return;
+  }
+
+  handles_[to_be_replaced_col.ordinal_] = replaced_col.release();
+}
+
 void DbStorage::deleteColumnData(const Column& c) {
   checkStatus(db_->DropColumnFamily(handle(c)));
+  db_->DestroyColumnFamilyHandle(handle(c));
 
   auto options = rocksdb::ColumnFamilyOptions();
   if (c.comparator_) {
@@ -300,6 +362,10 @@ uint32_t DbStorage::getMajorVersion() const { return kMajorVersion_; }
 
 std::unique_ptr<rocksdb::Iterator> DbStorage::getColumnIterator(const Column& c) {
   return std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(c)));
+}
+
+std::unique_ptr<rocksdb::Iterator> DbStorage::getColumnIterator(rocksdb::ColumnFamilyHandle* c) {
+  return std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, c));
 }
 
 void DbStorage::checkStatus(rocksdb::Status const& status) {

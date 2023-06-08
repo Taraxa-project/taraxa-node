@@ -209,7 +209,7 @@ void PbftSyncPacketHandler::process(const threadpool::PacketData &packet_data,
                      << ", PBFT chain size " << pbft_chain_->getPbftChainSize();
         periodic_events_tp_.post(1000, [this] { delayedPbftSync(1); });
       } else {
-        if (!syncPeerPbft(pbft_sync_period + 1, true)) {
+        if (!syncPeerPbft(pbft_sync_period + 1)) {
           pbft_syncing_state_->setPbftSyncing(false);
           return;
         }
