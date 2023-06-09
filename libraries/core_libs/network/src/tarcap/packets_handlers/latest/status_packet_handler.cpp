@@ -156,31 +156,28 @@ void StatusPacketHandler::process(const threadpool::PacketData& packet_data, con
 
 bool StatusPacketHandler::sendStatus(const dev::p2p::NodeID& node_id, bool initial) {
   bool success = false;
+  std::string status_packet_type = initial ? "initial" : "standard";
 
-  if (dag_mgr_) {
-    std::string status_packet_type = initial ? "initial" : "standard";
+  LOG(log_dg_) << "Sending " << status_packet_type << " status message to " << node_id << ", protocol version "
+               << TARAXA_NET_VERSION << ", network id " << kConf.genesis.chain_id << ", genesis " << kGenesisHash
+               << ", node version " << TARAXA_VERSION;
 
-    LOG(log_dg_) << "Sending " << status_packet_type << " status message to " << node_id << ", protocol version "
-                 << TARAXA_NET_VERSION << ", network id " << kConf.genesis.chain_id << ", genesis " << kGenesisHash
-                 << ", node version " << TARAXA_VERSION;
+  auto dag_max_level = dag_mgr_->getMaxLevel();
+  auto pbft_chain_size = pbft_chain_->getPbftChainSize();
+  const auto pbft_round = pbft_mgr_->getPbftRound();
 
-    auto dag_max_level = dag_mgr_->getMaxLevel();
-    auto pbft_chain_size = pbft_chain_->getPbftChainSize();
-    const auto pbft_round = pbft_mgr_->getPbftRound();
-
-    if (initial) {
-      success = sealAndSend(node_id, StatusPacket,
-                            std::move(dev::RLPStream(kInitialStatusPacketItemsCount)
-                                      << kConf.genesis.chain_id << dag_max_level << kGenesisHash << pbft_chain_size
-                                      << pbft_syncing_state_->isPbftSyncing() << pbft_round << TARAXA_MAJOR_VERSION
-                                      << TARAXA_MINOR_VERSION << TARAXA_PATCH_VERSION << dag_mgr_->isLightNode()
-                                      << dag_mgr_->getLightNodeHistory()));
-    } else {
-      success = sealAndSend(
-          node_id, StatusPacket,
-          std::move(dev::RLPStream(kStandardStatusPacketItemsCount)
-                    << dag_max_level << pbft_chain_size << pbft_syncing_state_->isDeepPbftSyncing() << pbft_round));
-    }
+  if (initial) {
+    success = sealAndSend(
+        node_id, StatusPacket,
+        std::move(dev::RLPStream(kInitialStatusPacketItemsCount)
+                  << kConf.genesis.chain_id << dag_max_level << kGenesisHash << pbft_chain_size
+                  << pbft_syncing_state_->isPbftSyncing() << pbft_round << TARAXA_MAJOR_VERSION << TARAXA_MINOR_VERSION
+                  << TARAXA_PATCH_VERSION << dag_mgr_->isLightNode() << dag_mgr_->getLightNodeHistory()));
+  } else {
+    success = sealAndSend(
+        node_id, StatusPacket,
+        std::move(dev::RLPStream(kStandardStatusPacketItemsCount)
+                  << dag_max_level << pbft_chain_size << pbft_syncing_state_->isDeepPbftSyncing() << pbft_round));
   }
 
   return success;

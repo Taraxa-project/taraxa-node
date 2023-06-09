@@ -86,7 +86,7 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
 
  private:
   // Capability version
-  unsigned version_;
+  TarcapVersion version_;
 
   // Packets stats per time period
   std::shared_ptr<TimePeriodPacketsStats> all_packets_stats_;

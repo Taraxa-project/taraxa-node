@@ -35,7 +35,43 @@ auto g_secret = Lazy([] {
 });
 auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 
-struct NetworkTest : NodesTest {};
+struct NetworkTest : public NodesTest {};
+
+// Test verifies saving network to a file and restoring it from a file
+// is successful. Once restored from the file it is able to reestablish
+// connections even with boot nodes down
+TEST_F(NetworkTest, save_network) {
+  auto key2 = dev::KeyPair::create();
+  auto key3 = dev::KeyPair::create();
+  h256 genesis_hash;
+
+  auto node_cfgs = make_node_cfgs(3, 0, 20);
+  std::filesystem::remove_all(node_cfgs[0].net_file_path());
+  std::filesystem::remove_all(node_cfgs[1].net_file_path());
+  std::filesystem::remove_all(node_cfgs[2].net_file_path());
+
+  {
+    auto nodes = launch_nodes(node_cfgs);
+    const auto& node1 = nodes[0];
+    const auto& node2 = nodes[1];
+    const auto& node3 = nodes[2];
+
+    EXPECT_HAPPENS({120s, 100ms}, [&](auto& ctx) {
+      WAIT_EXPECT_EQ(ctx, node1->getNetwork()->getPeerCount(), 2)
+      WAIT_EXPECT_EQ(ctx, node2->getNetwork()->getPeerCount(), 2)
+      WAIT_EXPECT_EQ(ctx, node3->getNetwork()->getPeerCount(), 2)
+    });
+  }
+
+  auto nodes = launch_nodes({node_cfgs[0], node_cfgs[1]});
+  const auto& node1 = nodes[0];
+  const auto& node2 = nodes[1];
+
+  EXPECT_HAPPENS({120s, 100ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(ctx, node1->getNetwork()->getPeerCount(), 1)
+    WAIT_EXPECT_EQ(ctx, node2->getNetwork()->getPeerCount(), 1)
+  });
+}
 
 // Test creates two Network setup and verifies sending blocks between is successful
 TEST_F(NetworkTest, transfer_lot_of_blocks) {
@@ -314,7 +350,7 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
 }
 
 // Test creates two Network setup and verifies sending transaction
-// between is successfull
+// between is successful
 TEST_F(NetworkTest, transfer_transaction) {
   auto node_cfgs = make_node_cfgs(2, 0, 20);
   auto nodes = launch_nodes(node_cfgs);
@@ -327,13 +363,6 @@ TEST_F(NetworkTest, transfer_transaction) {
 
   const auto nw1 = node1->getNetwork();
   const auto nw2 = node2->getNetwork();
-
-  EXPECT_HAPPENS({60s, 100ms}, [&](auto& ctx) {
-    nw1->setPendingPeersToReady();
-    nw2->setPendingPeersToReady();
-    WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 1)
-    WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 1)
-  });
 
   auto nw1_nodeid = nw1->getNodeId();
   auto nw2_nodeid = nw2->getNodeId();
@@ -351,47 +380,6 @@ TEST_F(NetworkTest, transfer_transaction) {
   const auto tx_mgr1 = node1->getTransactionManager();
   EXPECT_HAPPENS({2s, 200ms},
                  [&](auto& ctx) { WAIT_EXPECT_TRUE(ctx, tx_mgr1->getTransaction(g_signed_trx_samples[0]->getHash())) });
-}
-
-// Test verifies saving network to a file and restoring it from a file
-// is successful. Once restored from the file it is able to reestablish
-// connections even with boot nodes down
-TEST_F(NetworkTest, save_network) {
-  std::filesystem::remove_all("/tmp/nw2");
-  std::filesystem::remove_all("/tmp/nw3");
-  auto key2 = dev::KeyPair::create();
-  auto key3 = dev::KeyPair::create();
-  h256 genesis_hash;
-  {
-    std::shared_ptr<Network> nw1 = std::make_shared<taraxa::Network>(node_cfgs[0], genesis_hash);
-    std::shared_ptr<Network> nw2 = std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, "/tmp/nw2", key2);
-    std::shared_ptr<Network> nw3 = std::make_shared<taraxa::Network>(node_cfgs[2], genesis_hash, "/tmp/nw3", key3);
-
-    nw1->start();
-    nw2->start();
-    nw3->start();
-
-    EXPECT_HAPPENS({120s, 100ms}, [&](auto& ctx) {
-      nw1->setPendingPeersToReady();
-      nw2->setPendingPeersToReady();
-      nw3->setPendingPeersToReady();
-      WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 2)
-      WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 2)
-      WAIT_EXPECT_EQ(ctx, nw3->getPeerCount(), 2)
-    });
-  }
-
-  std::shared_ptr<Network> nw2 = std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, "/tmp/nw2", key2);
-  std::shared_ptr<Network> nw3 = std::make_shared<taraxa::Network>(node_cfgs[2], genesis_hash, "/tmp/nw3", key3);
-  nw2->start();
-  nw3->start();
-
-  EXPECT_HAPPENS({120s, 100ms}, [&](auto& ctx) {
-    nw2->setPendingPeersToReady();
-    nw3->setPendingPeersToReady();
-    WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 1)
-    WAIT_EXPECT_EQ(ctx, nw3->getPeerCount(), 1)
-  });
 }
 
 // Test creates one node with testnet network ID and one node with main ID and verifies that connection fails

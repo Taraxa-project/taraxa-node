@@ -22,8 +22,7 @@ namespace taraxa {
 Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::filesystem::path const &network_file_path,
                  dev::KeyPair const &key, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                  std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-                 std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-                 const std::vector<network::tarcap::TarcapVersion> &create_test_tarcaps)
+                 std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr)
     : kConf(config),
       pub_key_(key.pub()),
       all_packets_stats_(nullptr),
@@ -63,47 +62,30 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::fi
   taraxa_net_conf.expected_parallelism = tp_.capacity();
 
   string net_version = "TaraxaNode";  // TODO maybe give a proper name?
-  dev::p2p::Host::CapabilitiesFactory constructCapabilities;
 
-  // Create real taraxa capabilities
-  if (create_test_tarcaps.empty()) {
-    constructCapabilities = [&](std::weak_ptr<dev::p2p::Host> host) {
-      assert(!host.expired());
+  // Create taraxa capabilities
+  dev::p2p::Host::CapabilitiesFactory constructCapabilities = [&](std::weak_ptr<dev::p2p::Host> host) {
+    assert(!host.expired());
 
-      const size_t kV1NetworkVersion = 1;
-      assert(kV1NetworkVersion < TARAXA_NET_VERSION);
+    const size_t kV1NetworkVersion = 1;
+    assert(kV1NetworkVersion < TARAXA_NET_VERSION);
 
-      dev::p2p::Host::CapabilityList capabilities;
+    dev::p2p::Host::CapabilityList capabilities;
 
-      // Register old version (V1) of taraxa capability
-      auto v1_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
-          kV1NetworkVersion, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
-          pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, network::tarcap::v1::kInitV1Handlers);
-      capabilities.emplace_back(v1_tarcap);
+    // Register old version (V1) of taraxa capability
+    auto v1_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
+        kV1NetworkVersion, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
+        pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, network::tarcap::v1::kInitV1Handlers);
+    capabilities.emplace_back(v1_tarcap);
 
-      // Register latest version of taraxa capability
-      auto latest_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
-          TARAXA_NET_VERSION, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
-          pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr);
-      capabilities.emplace_back(latest_tarcap);
+    // Register latest version of taraxa capability
+    auto latest_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
+        TARAXA_NET_VERSION, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
+        pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr);
+    capabilities.emplace_back(latest_tarcap);
 
-      return capabilities;
-    };
-  } else {  // Create test taraxa capabilities
-    constructCapabilities = [&](std::weak_ptr<dev::p2p::Host> host) {
-      assert(!host.expired());
-
-      dev::p2p::Host::CapabilityList capabilities;
-      for (const auto test_tarcap_version : create_test_tarcaps) {
-        auto tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
-            test_tarcap_version, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_,
-            db, pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr);
-        capabilities.emplace_back(tarcap);
-      }
-
-      return capabilities;
-    };
-  }
+    return capabilities;
+  };
 
   host_ = dev::p2p::Host::make(net_version, constructCapabilities, key, net_conf, taraxa_net_conf, network_file_path);
   for (const auto &cap : host_->getSupportedCapabilities()) {
@@ -130,14 +112,14 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::fi
 
 Network::~Network() {
   tp_.stop();
-  periodic_events_tp_.stop();
   packets_tp_->stopProcessing();
+  periodic_events_tp_.stop();
 }
 
 void Network::start() {
   packets_tp_->startProcessing();
-  periodic_events_tp_.start();
   tp_.start();
+  periodic_events_tp_.start();
 
   LOG(log_nf_) << "Started Node id: " << host_->id() << ", listening on port " << host_->listenPort();
 }
@@ -186,15 +168,13 @@ void Network::registerPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mg
   uint64_t lambda_ms = pbft_mgr ? pbft_mgr->getPbftInitialLambda().count() : 2000;
 
   // Send new transactions
-  if (trx_mgr) {  // because of tests
-    auto sendTxs = [this, trx_mgr = trx_mgr]() {
-      for (auto &tarcap : tarcaps_) {
-        auto tx_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::TransactionPacketHandler>();
-        tx_packet_handler->periodicSendTransactions(trx_mgr->getAllPoolTrxs());
-      }
-    };
-    periodic_events_tp_.post_loop({kConf.network.transaction_interval_ms}, sendTxs);
-  }
+  auto sendTxs = [this, trx_mgr = trx_mgr]() {
+    for (auto &tarcap : tarcaps_) {
+      auto tx_packet_handler = tarcap.second->getSpecificHandler<network::tarcap::TransactionPacketHandler>();
+      tx_packet_handler->periodicSendTransactions(trx_mgr->getAllPoolTrxs());
+    }
+  };
+  periodic_events_tp_.post_loop({kConf.network.transaction_interval_ms}, sendTxs);
 
   // Send status packet
   auto sendStatus = [this]() {
@@ -339,19 +319,6 @@ std::shared_ptr<network::tarcap::TaraxaPeer> Network::getMaxChainPeer() const {
 // METHODS USED IN TESTS ONLY
 // Note: for functions use in tests all data are fetched only from the tarcap with the highest version,
 //       other functions must use all tarcaps
-
-void Network::setPendingPeersToReady() {
-  const auto &peers_state = tarcaps_.begin()->second->getPeersState();
-
-  auto peerIds = peers_state->getAllPendingPeersIDs();
-  for (const auto &peerId : peerIds) {
-    auto peer = peers_state->getPendingPeer(peerId);
-    if (peer) {
-      peers_state->setPeerAsReadyToSendMessages(peerId, peer);
-    }
-  }
-}
-
 dev::p2p::NodeID Network::getNodeId() const { return host_->id(); }
 
 std::shared_ptr<network::tarcap::TaraxaPeer> Network::getPeer(dev::p2p::NodeID const &id) const {
