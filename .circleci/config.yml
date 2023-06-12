@@ -260,7 +260,6 @@ commands:
                 --set bootnode.loadBalancer.addresses\[0\]="${PRNET_IPS_BOOT_NODES[0]}" \
                 --set bootnode.loadBalancer.addresses\[1\]="${PRNET_IPS_BOOT_NODES[1]}" \
                 --set bootnode.loadBalancer.addresses\[2\]="${PRNET_IPS_BOOT_NODES[2]}" \
-                --set node.ingress.ingressClassName="nginx-public" \
                 --set node.loadBalancer.addresses\[0\]="${PRNET_IPS_RPC_NODES[0]}" \
                 --set node.loadBalancer.addresses\[1\]="${PRNET_IPS_RPC_NODES[1]}" \
                 --set node.loadBalancer.addresses\[2\]="${PRNET_IPS_RPC_NODES[2]}" \
@@ -274,7 +273,10 @@ commands:
                 --set bootnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set consensusnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set node.indexer.enabled=true \
-                --set indexer.image.tag="develop-038eeff-1686149905"
+                --set indexer.image.tag="develop-038eeff-1686149905" \
+                --set node.ingress.ingressClassName="nginx-public" \
+                --set node.ingress.annotationsRpc=null \
+                --set node.ingress.annotationsRpcWS=null
             fi
 
   cleanup_prnet_chart:
