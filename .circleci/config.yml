@@ -273,7 +273,7 @@ commands:
                 --set bootnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set consensusnode.nodeSelector."cloud\\.google\\.com/gke-nodepool"=blockchain-prnet \
                 --set node.indexer.enabled=true \
-                --set indexer.image.tag="develop-038eeff-1686149905" \
+                --set node.indexer.image.tag="develop-ce14ab6-1686565208" \
                 --set node.ingress.ingressClassName="nginx-public" \
                 --set node.ingress.annotationsRpc=null \
                 --set node.ingress.annotationsRpcWS=null
