@@ -1,8 +1,9 @@
 <map id="libraries/core_libs/network/rpc/eth/data.hpp" name="libraries/core_libs/network/rpc/eth/data.hpp">
-<area shape="rect" id="node1" title=" " alt="" coords="375,5,565,47"/>
+<area shape="rect" id="node1" title=" " alt="" coords="447,5,637,47"/>
 <area shape="rect" id="node2" href="$_eth_8h.html" title=" " alt="" coords="175,273,341,315"/>
 <area shape="rect" id="node6" href="$_log_filter_8hpp.html" title=" " alt="" coords="508,95,723,136"/>
 <area shape="rect" id="node8" href="$watches_8hpp.html" title=" " alt="" coords="363,184,577,225"/>
+<area shape="rect" id="node10" href="$_taraxa_8cpp.html" title=" " alt="" coords="747,95,924,136"/>
 <area shape="rect" id="node3" href="$_eth_8cpp.html" title=" " alt="" coords="483,363,663,404"/>
 <area shape="rect" id="node4" href="$src_2ws__server_8cpp.html" title=" " alt="" coords="5,363,204,404"/>
 <area shape="rect" id="node5" href="$node_8cpp.html" title=" " alt="" coords="229,363,373,404"/>

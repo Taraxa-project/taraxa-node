@@ -124,6 +124,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a8a25577c1f61f76409cbd90e31566692"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1ccfd8cc1bc665984158ec3e44df7ad7"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#a1ccfd8cc1bc665984158ec3e44df7ad7">taraxa_pbftBlockHashByPeriodI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
 <tr class="separator:a1ccfd8cc1bc665984158ec3e44df7ad7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0fc405ac8e223366d144a9f160e65a18"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#a0fc405ac8e223366d144a9f160e65a18">taraxa_getPeriodTransactionsWithReceiptsI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
+<tr class="separator:a0fc405ac8e223366d144a9f160e65a18"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a41d43fc82330d574e02eea7fc89f0bf1"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#a41d43fc82330d574e02eea7fc89f0bf1">taraxa_getPeriodDagBlocksI</a> (const Json::Value &amp;request, Json::Value &amp;response)</td></tr>
+<tr class="separator:a41d43fc82330d574e02eea7fc89f0bf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4998140d6d826fc772298b0b1ff9ab48"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#a4998140d6d826fc772298b0b1ff9ab48">taraxa_protocolVersion</a> ()=0</td></tr>
 <tr class="separator:a4998140d6d826fc772298b0b1ff9ab48"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae99bf55a2f903e805aaba7ba141cbb15"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#ae99bf55a2f903e805aaba7ba141cbb15">taraxa_getVersion</a> ()=0</td></tr>
@@ -144,6 +148,10 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a1d3fcbd2994f294b2c672111cb88a20f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac375ea121999019886bfdfe4f5fbbce8"><td class="memItemLeft" align="right" valign="top">virtual std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#ac375ea121999019886bfdfe4f5fbbce8">taraxa_pbftBlockHashByPeriod</a> (const std::string &amp;param1)=0</td></tr>
 <tr class="separator:ac375ea121999019886bfdfe4f5fbbce8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad6d56904b6f76a252b7118390bfc3a31"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#ad6d56904b6f76a252b7118390bfc3a31">taraxa_getPeriodTransactionsWithReceipts</a> (const std::string &amp;param1)=0</td></tr>
+<tr class="separator:ad6d56904b6f76a252b7118390bfc3a31"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:accca9847d3b5026db138687b744d1fed"><td class="memItemLeft" align="right" valign="top">virtual Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_taraxa_face.html#accca9847d3b5026db138687b744d1fed">taraxa_getPeriodDagBlocks</a> (const std::string &amp;param1)=0</td></tr>
+<tr class="separator:accca9847d3b5026db138687b744d1fed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_class_server_interface"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_class_server_interface')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="class_server_interface.html">ServerInterface&lt; TaraxaFace &gt;</a></td></tr>
 <tr class="memitem:aab469c17069122d975dafa410856434d inherit pub_methods_class_server_interface"><td class="memItemLeft" align="right" valign="top">virtual&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_server_interface.html#aab469c17069122d975dafa410856434d">~ServerInterface</a> ()</td></tr>
 <tr class="separator:aab469c17069122d975dafa410856434d inherit pub_methods_class_server_interface"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -579,6 +587,134 @@ Additional Inherited Members</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">virtual void taraxa::net::TaraxaFace::taraxa_getDagBlockByLevelI </td>
+          <td>(</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>request</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>response</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="accca9847d3b5026db138687b744d1fed"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#accca9847d3b5026db138687b744d1fed">&#9670;&nbsp;</a></span>taraxa_getPeriodDagBlocks()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual Json::Value taraxa::net::TaraxaFace::taraxa_getPeriodDagBlocks </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>param1</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classtaraxa_1_1net_1_1_taraxa.html#a5df58b93c2900d9a64bafd1e89224af6">taraxa::net::Taraxa</a>.</p>
+
+</div>
+</div>
+<a id="a41d43fc82330d574e02eea7fc89f0bf1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a41d43fc82330d574e02eea7fc89f0bf1">&#9670;&nbsp;</a></span>taraxa_getPeriodDagBlocksI()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void taraxa::net::TaraxaFace::taraxa_getPeriodDagBlocksI </td>
+          <td>(</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>request</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>response</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ad6d56904b6f76a252b7118390bfc3a31"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad6d56904b6f76a252b7118390bfc3a31">&#9670;&nbsp;</a></span>taraxa_getPeriodTransactionsWithReceipts()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual Json::Value taraxa::net::TaraxaFace::taraxa_getPeriodTransactionsWithReceipts </td>
+          <td>(</td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>param1</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classtaraxa_1_1net_1_1_taraxa.html#acd93a4728e30ddd711078d0bc6d41766">taraxa::net::Taraxa</a>.</p>
+
+</div>
+</div>
+<a id="a0fc405ac8e223366d144a9f160e65a18"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0fc405ac8e223366d144a9f160e65a18">&#9670;&nbsp;</a></span>taraxa_getPeriodTransactionsWithReceiptsI()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual void taraxa::net::TaraxaFace::taraxa_getPeriodTransactionsWithReceiptsI </td>
           <td>(</td>
           <td class="paramtype">const Json::Value &amp;&#160;</td>
           <td class="paramname"><em>request</em>, </td>

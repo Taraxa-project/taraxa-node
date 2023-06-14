@@ -7,6 +7,8 @@ var classtaraxa_1_1net_1_1_taraxa_client =
     [ "taraxa_getConfig", "classtaraxa_1_1net_1_1_taraxa_client.html#a9a3132c688724f67247a457f00b9f167", null ],
     [ "taraxa_getDagBlockByHash", "classtaraxa_1_1net_1_1_taraxa_client.html#a53e2b0c5bc89b261154fbba0c565d131", null ],
     [ "taraxa_getDagBlockByLevel", "classtaraxa_1_1net_1_1_taraxa_client.html#a65868b9e1f9082ac9a1d05f44ebfb195", null ],
+    [ "taraxa_getPeriodDagBlocks", "classtaraxa_1_1net_1_1_taraxa_client.html#a6587ea8ff973d95a678f1227a2b277cc", null ],
+    [ "taraxa_getPeriodTransactionsWithReceipts", "classtaraxa_1_1net_1_1_taraxa_client.html#a31a3518275f0f4c5e060018f83d78ba1", null ],
     [ "taraxa_getScheduleBlockByPeriod", "classtaraxa_1_1net_1_1_taraxa_client.html#a1ced5fc489bdc11edd5d116b942b01c8", null ],
     [ "taraxa_getVersion", "classtaraxa_1_1net_1_1_taraxa_client.html#a7ec27e5d19af683c02f09c9cdbe504f3", null ],
     [ "taraxa_pbftBlockHashByPeriod", "classtaraxa_1_1net_1_1_taraxa_client.html#af14353d7d5402ef9d0373ee87270ca78", null ],

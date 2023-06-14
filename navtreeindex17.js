@@ -1,6 +1,5 @@
 var NAVTREEINDEX17 =
 {
-"key__manager_8hpp.html":[16,0,1,4,0,0,2,0],
 "key__manager_8hpp_source.html":[16,0,1,4,0,0,2,0],
 "latest_2get__next__votes__bundle__packet__handler_8cpp.html":[16,0,1,4,1,3,0,0,0,4],
 "latest_2get__next__votes__bundle__packet__handler_8hpp.html":[16,0,1,4,1,1,0,0,0,0,4],
@@ -249,5 +248,6 @@ var NAVTREEINDEX17 =
 "logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04adb0b5b09b75c8444187b01d7fc94a5bc":[16,0,1,5,0,0,1,2,1],
 "logger__config_8hpp_source.html":[16,0,1,5,0,0,1],
 "max__stats_8cpp.html":[16,0,1,4,1,3,0,2,0],
-"max__stats_8hpp.html":[16,0,1,4,1,1,0,0,2,0]
+"max__stats_8hpp.html":[16,0,1,4,1,1,0,0,2,0],
+"max__stats_8hpp_source.html":[16,0,1,4,1,1,0,0,2,0]
 };

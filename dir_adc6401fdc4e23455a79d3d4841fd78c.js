@@ -41,7 +41,7 @@ var dir_adc6401fdc4e23455a79d3d4841fd78c =
     [ "NetFace.h", "_net_face_8h.html", [
       [ "NetFace", "classtaraxa_1_1net_1_1_net_face.html", "classtaraxa_1_1net_1_1_net_face" ]
     ] ],
-    [ "Taraxa.cpp", "_taraxa_8cpp.html", null ],
+    [ "Taraxa.cpp", "_taraxa_8cpp.html", "_taraxa_8cpp" ],
     [ "Taraxa.h", "_taraxa_8h.html", [
       [ "Taraxa", "classtaraxa_1_1net_1_1_taraxa.html", "classtaraxa_1_1net_1_1_taraxa" ]
     ] ],
