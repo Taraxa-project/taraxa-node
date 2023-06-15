@@ -30,7 +30,7 @@ bool ExtVotesPacketHandler::processVote(const std::shared_ptr<Vote> &vote, const
     return false;
   }
 
-  // Validate vote's period, roun and step min/max values
+  // Validate vote's period, round and step min/max values
   if (const auto vote_valid = validateVotePeriodRoundStep(vote, peer, validate_max_round_step); !vote_valid.first) {
     LOG(log_wr_) << "Vote period/round/step " << vote->getHash() << " validation failed. Err: " << vote_valid.second;
     return false;
@@ -85,7 +85,8 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateVotePeriodRoundStep(
     // skip this check if kConf.network.ddos_protection.vote_accepting_periods == 0
     // vote->getPeriod() - 1 is here because votes are validated against vote_period - 1 in dpos contract
     // Do not request round sync too often here
-    if (std::chrono::system_clock::now() - last_pbft_block_sync_request_time_ > kSyncRequestInterval) {
+    if (vote->getVoter() == peer->getId() &&
+        std::chrono::system_clock::now() - last_pbft_block_sync_request_time_ > kSyncRequestInterval) {
       // request PBFT chain sync from this node
       sealAndSend(peer->getId(), SubprotocolPacketType::GetPbftSyncPacket,
                   std::move(dev::RLPStream(1) << std::max(vote->getPeriod() - 1, peer->pbft_chain_size_.load())));
@@ -113,7 +114,8 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateVotePeriodRoundStep(
     // Trigger votes(round) syncing only if we are in sync in terms of period
     if (current_pbft_period == vote->getPeriod()) {
       // Do not request round sync too often here
-      if (std::chrono::system_clock::now() - last_votes_sync_request_time_ > kSyncRequestInterval) {
+      if (vote->getVoter() == peer->getId() &&
+          std::chrono::system_clock::now() - last_votes_sync_request_time_ > kSyncRequestInterval) {
         // request round votes sync from this node
         requestPbftNextVotesAtPeriodRound(peer->getId(), current_pbft_period, current_pbft_round);
         last_votes_sync_request_time_ = std::chrono::system_clock::now();
@@ -140,21 +142,6 @@ std::pair<bool, std::string> ExtVotesPacketHandler::validateVotePeriodRoundStep(
   return {true, ""};
 }
 
-std::pair<bool, std::string> ExtVotesPacketHandler::validateVote(const std::shared_ptr<Vote> &vote) const {
-  // Check is vote is unique per period, round & step & voter -> each address can generate just 1 vote
-  // (for a value that isn't NBH) per period, round & step
-  if (auto unique_vote_validation = vote_mgr_->isUniqueVote(vote); !unique_vote_validation.first) {
-    return unique_vote_validation;
-  }
-
-  const auto vote_valid = vote_mgr_->validateVote(vote);
-  if (!vote_valid.first) {
-    LOG(log_er_) << "Vote \"dpos\" validation failed: " << vote_valid.second;
-  }
-
-  return vote_valid;
-}
-
 bool ExtVotesPacketHandler::validateVoteAndBlock(const std::shared_ptr<Vote> &vote,
                                                  const std::shared_ptr<PbftBlock> &pbft_block) const {
   if (pbft_block->getBlockHash() != vote->getBlockHash()) {
@@ -162,33 +149,21 @@ bool ExtVotesPacketHandler::validateVoteAndBlock(const std::shared_ptr<Vote> &vo
                  << pbft_block->getBlockHash();
     return false;
   }
-  // TODO[2401]: move this check to PBFT block
-  std::unordered_set<vote_hash_t> set;
-  const auto reward_votes = pbft_block->getRewardVotes();
-  set.reserve(reward_votes.size());
-  for (const auto &hash : reward_votes) {
-    if (!set.insert(hash).second) {
-      LOG(log_er_) << "PBFT block " << pbft_block->getBlockHash() << " proposed by " << pbft_block->getBeneficiary()
-                   << " has duplicated vote " << hash;
-      return false;
-    }
-  }
-
   return true;
 }
 
 bool ExtVotesPacketHandler::isPbftRelevantVote(const std::shared_ptr<Vote> &vote) const {
   const auto [current_pbft_round, current_pbft_period] = pbft_mgr_->getPbftRoundAndPeriod();
 
-  // Previous round next vote
-  if (vote->getPeriod() == current_pbft_period && (current_pbft_round - 1) == vote->getRound() &&
-      vote->getType() == PbftVoteTypes::next_vote) {
+  if (vote->getPeriod() >= current_pbft_period && vote->getRound() >= current_pbft_round) {
+    // Standard current or future vote
     return true;
-  } else if (vote->getPeriod() >= current_pbft_period) {
-    // Standard vote
+  } else if (vote->getPeriod() == current_pbft_period && vote->getRound() == (current_pbft_round - 1) &&
+             vote->getType() == PbftVoteTypes::next_vote) {
+    // Previous round next vote
     return true;
   } else if (vote->getPeriod() == current_pbft_period - 1 && vote->getType() == PbftVoteTypes::cert_vote) {
-    // Previous round cert vote - potential reward vote
+    // Previous period cert vote - potential reward vote
     return true;
   }
 

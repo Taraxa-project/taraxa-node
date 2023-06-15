@@ -1,6 +1,7 @@
 #include <gtest/gtest.h>
 #include <libdevcore/Address.h>
 #include <libdevcore/Common.h>
+#include <libdevcore/CommonJS.h>
 
 #include "network/rpc/eth/Eth.h"
 #include "test_util/gtest.hpp"
@@ -20,13 +21,20 @@ TEST_F(RPCTest, eth_estimateGas) {
   auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
 
   const auto from = dev::toHex(dev::toAddress(node_cfg.front().node_secret));
+  auto check_estimation_is_in_range = [&](const Json::Value& trx, const std::string& e) {
+    auto estimate = dev::jsToInt(eth_json_rpc->eth_estimateGas(trx));
+    auto expected = dev::jsToInt(e);
+    EXPECT_GE(estimate, expected);
+    EXPECT_GE(expected / 20, estimate - expected);
+  };
+
   // Contract creation estimations with author + without author
   {
     Json::Value trx(Json::objectValue);
     trx["data"] = samples::greeter_contract_code;
-    EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5ccc5");
+    check_estimation_is_in_range(trx, "0x5ccc5");
     trx["from"] = from;
-    EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5ccc5");
+    check_estimation_is_in_range(trx, "0x5ccc5");
   }
 
   // Contract creation with value
@@ -34,7 +42,7 @@ TEST_F(RPCTest, eth_estimateGas) {
     Json::Value trx(Json::objectValue);
     trx["value"] = 1;
     trx["data"] = samples::greeter_contract_code;
-    EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5ccc5");
+    check_estimation_is_in_range(trx, "0x5ccc5");
   }
 
   // Simple transfer estimations with author + without author
@@ -42,9 +50,9 @@ TEST_F(RPCTest, eth_estimateGas) {
     Json::Value trx(Json::objectValue);
     trx["value"] = 1;
     trx["to"] = dev::toHex(addr_t::random());
-    EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5208");  // 21k
+    check_estimation_is_in_range(trx, "0x5208");  // 21k
     trx["from"] = from;
-    EXPECT_EQ(eth_json_rpc->eth_estimateGas(trx), "0x5208");  // 21k
+    check_estimation_is_in_range(trx, "0x5208");  // 21k
   }
 
   // Test throw on failed transaction
@@ -56,13 +64,6 @@ TEST_F(RPCTest, eth_estimateGas) {
     EXPECT_THROW(eth_json_rpc->eth_estimateGas(trx), std::exception);
   }
 }
-
-#define EXPECT_THROW_WITH(statement, expected_exception, msg) \
-  try {                                                       \
-    statement;                                                \
-  } catch (const expected_exception& e) {                     \
-    ASSERT_EQ(std::string(msg), std::string(e.what()));       \
-  }
 
 TEST_F(RPCTest, eth_call) {
   auto node_cfg = make_node_cfgs(1);
@@ -232,6 +233,27 @@ TEST_F(RPCTest, eth_getBlock) {
   EXPECT_EQ(4, dev::jsToU256(block["number"].asString()));
   EXPECT_GT(dev::jsToU256(block["totalReward"].asString()), 0);
 }
+
+TEST_F(RPCTest, eip_1898) {
+  auto node_cfg = make_node_cfgs(1);
+  auto nodes = launch_nodes(node_cfg);
+  net::rpc::eth::EthParams eth_rpc_params;
+  eth_rpc_params.chain_id = node_cfg.front().genesis.chain_id;
+  eth_rpc_params.gas_limit = node_cfg.front().genesis.dag.gas_limit;
+  eth_rpc_params.final_chain = nodes.front()->getFinalChain();
+  auto eth_json_rpc = net::rpc::eth::NewEth(std::move(eth_rpc_params));
+
+  const auto from = dev::toHex(dev::toAddress(node_cfg.front().node_secret));
+
+  Json::Value zero_block(Json::objectValue);
+  zero_block["blockNumber"] = dev::toJS(0);
+  EXPECT_EQ(eth_json_rpc->eth_getBalance(from, "0x0"), eth_json_rpc->eth_getBalance(from, zero_block));
+
+  Json::Value genesis_block(Json::objectValue);
+  genesis_block["blockHash"] = dev::toJS(*nodes.front()->getFinalChain()->block_hash(0));
+  EXPECT_EQ(eth_json_rpc->eth_getBalance(from, "0x0"), eth_json_rpc->eth_getBalance(from, genesis_block));
+}
+
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;

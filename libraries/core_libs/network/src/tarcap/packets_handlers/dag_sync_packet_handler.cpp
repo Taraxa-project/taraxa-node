@@ -3,6 +3,7 @@
 #include "dag/dag.hpp"
 #include "network/tarcap/packets_handlers/common/ext_syncing_packet_handler.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
+#include "transaction/transaction.hpp"
 #include "transaction/transaction_manager.hpp"
 
 namespace taraxa::network::tarcap {
@@ -61,7 +62,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
       auto trx = std::make_shared<Transaction>(tx_rlp);
       peer->markTransactionAsKnown(trx->getHash());
       transactions.emplace_back(std::move(trx));
-    } catch (const Transaction::InvalidSignature& e) {
+    } catch (const Transaction::InvalidTransaction& e) {
       throw MaliciousPeerException("Unable to parse transaction: " + std::string(e.what()));
     }
   }
@@ -119,7 +120,7 @@ void DagSyncPacketHandler::process(const PacketData& packet_data, const std::sha
     const auto verified = dag_mgr_->verifyBlock(block);
     if (verified != DagManager::VerifyBlockReturnType::Verified) {
       std::ostringstream err_msg;
-      err_msg << "DagBlock" << block.getHash() << " failed verification with error code "
+      err_msg << "DagBlock " << block.getHash() << " failed verification with error code "
               << static_cast<uint32_t>(verified);
       throw MaliciousPeerException(err_msg.str());
     }

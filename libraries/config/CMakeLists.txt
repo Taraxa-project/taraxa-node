@@ -7,7 +7,7 @@ set(HEADERS
     include/config/dag_config.hpp
     include/config/pbft_config.hpp
     include/config/state_config.hpp
-    include/config/hardfork.hpp
+    # include/config/hardfork.hpp
 )
 
 set(SOURCES
@@ -18,7 +18,7 @@ set(SOURCES
     src/dag_config.cpp
     src/pbft_config.cpp
     src/state_config.cpp
-    src/hardfork.cpp
+    # src/hardfork.cpp
 )
 
 # Configure file with version

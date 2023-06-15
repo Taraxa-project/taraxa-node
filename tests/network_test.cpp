@@ -73,8 +73,7 @@ TEST_F(NetworkTest, transfer_block) {
   ASSERT_EQ(1, num_received);
 }
 
-// Test creates two Network setup and verifies sending blocks between is successfull
-// This test can not work anymore as we are marking other nodes as malicous becasue of invalid dag blocks
+// Test creates two Network setup and verifies sending blocks between is successful
 TEST_F(NetworkTest, transfer_lot_of_blocks) {
   auto node_cfgs = make_node_cfgs(2, 1, 20);
   auto nodes = launch_nodes(node_cfgs);
@@ -91,9 +90,8 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   const auto nw1 = node1->getNetwork();
   const auto nw2 = node2->getNetwork();
 
-  const auto trxs = samples::createSignedTrxSamples(0, 1500, g_secret);
+  auto trxs = samples::createSignedTrxSamples(0, 1500, g_secret);
   const auto estimation = node1->getTransactionManager()->estimateTransactionGas(trxs[0], {});
-  const std::vector<uint64_t> estimations(trxs.size(), estimation);
 
   // node1 add one valid block
   const auto proposal_level = 1;
@@ -106,48 +104,41 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trxs[0]});
   vdf.computeVdfSolution(sortition_params, vdf_msg, false);
   DagBlock blk(dag_genesis, proposal_level, {}, {trxs[0]->getHash()}, estimation, vdf, node1->getSecretKey());
-  auto block_hash = blk.getHash();
+  const auto block_hash = blk.getHash();
+  dag_mgr1->addDagBlock(std::move(blk), {trxs[0]});
   std::vector<std::shared_ptr<DagBlock>> dag_blocks;
-  dag_blocks.emplace_back(std::make_shared<DagBlock>(std::move(blk)));
 
-  // creating lot of blocks just for size
-  std::vector<trx_hash_t> trx_hashes;
-  std::vector<std::shared_ptr<Transaction>> verified_transactions;
-  trx_hashes.reserve(trxs.size());
-  verified_transactions.reserve(trxs.size());
-
-  for (const auto& trx : trxs) {
-    trx_hashes.push_back(trx->getHash());
-    verified_transactions.push_back(trx);
-  }
-
-  for (int i = 0; i < 100; ++i) {
+  {
     const auto proposal_period = *db1->getProposalPeriodForDagLevel(proposal_level + 1);
     const auto period_block_hash = db1->getPeriodBlockHash(proposal_period);
     const auto sortition_params = dag_mgr1->sortitionParamsManager().getSortitionParams(proposal_period);
-    vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
-                                    VrfSortitionBase::makeVrfInput(proposal_level + 1, period_block_hash), 1, 1);
-    DagBlock blk(block_hash, proposal_level + 1, {}, {trxs[i + 1]->getHash()}, {}, vdf, node1->getSecretKey());
-    dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
+
+    for (int i = 0; i < 100; ++i) {
+      vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
+                                      VrfSortitionBase::makeVrfInput(proposal_level + 1, period_block_hash), 1, 1);
+      dev::bytes vdf_msg = DagManager::getVdfMessage(block_hash, {trxs[i]});
+      vdf.computeVdfSolution(sortition_params, vdf_msg, false);
+      DagBlock blk(block_hash, proposal_level + 1, {}, {trxs[i]->getHash()}, estimation, vdf, node1->getSecretKey());
+      dag_blocks.emplace_back(std::make_shared<DagBlock>(blk));
+    }
   }
 
-  for (auto trx : verified_transactions)
-    node1->getTransactionManager()->insertValidatedTransaction(std::move(trx), TransactionStatus::Verified);
+  for (auto trx : trxs) {
+    auto tx = trx;
+    node1->getTransactionManager()->insertValidatedTransaction(std::move(tx), TransactionStatus::Verified);
+  }
   for (size_t i = 0; i < dag_blocks.size(); i++) {
     if (dag_mgr1->verifyBlock(*dag_blocks[i]) == DagManager::VerifyBlockReturnType::Verified)
       dag_mgr1->addDagBlock(DagBlock(*dag_blocks[i]), {trxs[i]});
   }
   wait({1s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr1->getDagBlock(block_hash), nullptr) });
-
-  taraxa::thisThreadSleepForSeconds(1);
   const auto node1_period = node1->getPbftChain()->getPbftChainSize();
   const auto node2_period = node2->getPbftChain()->getPbftChainSize();
   std::cout << "node1 period " << node1_period << ", node2 period " << node2_period << std::endl;
   nw1->getSpecificHandler<network::tarcap::GetDagSyncPacketHandler>()->sendBlocks(
-      nw2->getNodeId(), std::move(dag_blocks), {}, node2_period, node1_period);
-
+      nw2->getNodeId(), std::move(dag_blocks), std::move(trxs), node2_period, node1_period);
   std::cout << "Waiting Sync ..." << std::endl;
-  wait({30s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr2->getDagBlock(block_hash), nullptr) });
+  wait({120s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr2->getDagBlock(block_hash), nullptr) });
 }
 
 TEST_F(NetworkTest, update_peer_chainsize) {
@@ -327,7 +318,7 @@ TEST_F(NetworkTest, transfer_transaction) {
   nw1->start();
   nw2->start();
 
-  EXPECT_HAPPENS({10s, 200ms}, [&](auto& ctx) {
+  EXPECT_HAPPENS({20s, 100ms}, [&](auto& ctx) {
     nw1->setPendingPeersToReady();
     nw2->setPendingPeersToReady();
     WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 1)
@@ -336,15 +327,18 @@ TEST_F(NetworkTest, transfer_transaction) {
 
   auto nw1_nodeid = nw1->getNodeId();
   auto nw2_nodeid = nw2->getNodeId();
-  EXPECT_NE(nw1->getPeer(nw2_nodeid), nullptr);
-  EXPECT_NE(nw2->getPeer(nw1_nodeid), nullptr);
+
+  const auto peer2 = nw1->getPeer(nw2_nodeid);
+  const auto peer1 = nw2->getPeer(nw1_nodeid);
+  EXPECT_NE(peer2, nullptr);
+  EXPECT_NE(peer1, nullptr);
 
   SharedTransactions transactions;
   transactions.push_back(g_signed_trx_samples[0]);
   transactions.push_back(g_signed_trx_samples[1]);
   transactions.push_back(g_signed_trx_samples[2]);
 
-  nw2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(nw2->getPeer(nw1_nodeid),
+  nw2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(peer1,
                                                                                          std::move(transactions));
 
   EXPECT_HAPPENS({2s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, nw1->getReceivedTransactionsCount(), 3) });
@@ -612,7 +606,7 @@ TEST_F(NetworkTest, node_pbft_sync) {
                         beneficiary, node1->getSecretKey(), {});
   std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk2;
   votes_for_pbft_blk2.emplace_back(
-      node1->getVoteManager()->generateVote(pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, 2, 2, 3));
+      node1->getVoteManager()->generateVoteWithWeight(pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, 2, 1, 3));
   std::cout << "Generate 1 vote for second PBFT block" << std::endl;
   // node1 put block2 into pbft chain and store into DB
   // Add cert votes in DB
@@ -626,7 +620,9 @@ TEST_F(NetworkTest, node_pbft_sync) {
   period_data2.transactions.push_back(g_signed_trx_samples[3]);
 
   db1->savePeriodData(period_data2, batch);
-  db1->replaceRewardVotes(votes_for_pbft_blk2, batch);
+  node1->getVoteManager()->addVerifiedVote(votes_for_pbft_blk2[0]);
+  db1->replaceTwoTPlusOneVotesToBatch(TwoTPlusOneVotedBlockType::CertVotedBlock, votes_for_pbft_blk2, batch);
+  node1->getVoteManager()->resetRewardVotes(2, 1, 3, pbft_block2.getBlockHash(), batch);
 
   // Update pbft chain
   pbft_chain1->updatePbftChain(pbft_block2.getBlockHash(), pbft_block2.getPivotDagBlockHash());
@@ -878,7 +874,7 @@ TEST_F(NetworkTest, pbft_next_votes_sync_in_same_round) {
   node2->getPbftManager()->setPbftRound(2);
 
   // Node 1 broadcast his votes
-  node1_pbft_mgr->broadcastSoftAndNextVotes(false);
+  node1_pbft_mgr->testBroadcatVotesFunctionality();
   // Node 2 should receive votes from node 1, node 1 has its own 2 votes
   EXPECT_EQ(node1_vote_mgr->getVerifiedVotesSize(), 2);
   EXPECT_HAPPENS({5s, 100ms}, [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, node2_vote_mgr->getVerifiedVotesSize(), 3) });

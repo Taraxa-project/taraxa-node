@@ -27,8 +27,7 @@ class TransactionPacketHandler final : public PacketHandler {
    * @param transactions serialized transactions
    *
    */
-  void sendTransactions(std::shared_ptr<TaraxaPeer> const& peer,
-                        std::vector<std::shared_ptr<Transaction>>&& transactions);
+  void sendTransactions(std::shared_ptr<TaraxaPeer> peer, std::vector<std::shared_ptr<Transaction>>&& transactions);
 
   /**
    * @brief Sends batch of transactions to all connected peers

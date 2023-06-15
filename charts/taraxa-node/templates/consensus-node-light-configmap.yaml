@@ -1,12 +1,12 @@
-{{ if .Values.consensusnode.enabled }}
+{{ if .Values.consensusnodeLight.enabled }}
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Release.Name }}-consensus-node-init-script
+  name: {{ .Release.Name }}-consensus-node-light-init-script
   labels:
-    app: consensus-node
-    app.kubernetes.io/name: consensus-node
+    app: consensus-node-light
+    app.kubernetes.io/name: consensus-node-light
     helm.sh/chart: {{ include "taraxa-node.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
@@ -99,12 +99,11 @@ data:
 
     echo "Cleaning up old config..."
     rm -rf $CONFIG_PATH
-    rm -rf $GENESIS_PATH
 
     echo "Generating config"
     INDEX=${HOSTNAME##*-}
-    KEY="CONSENSUS_NODE_KEY_${INDEX}"
-    VRF="CONSENSUS_NODE_VRF_${INDEX}"
+    KEY="CONSENSUS_NODE_LIGHT_KEY_${INDEX}"
+    VRF="CONSENSUS_NODE_LIGHT_VRF_${INDEX}"
 
     KEY="${!KEY}"
     VRF="${!VRF}"

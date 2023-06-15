@@ -68,7 +68,7 @@ void TaraxaCapability::init(const h256 &genesis_hash, std::shared_ptr<DbStorage>
                          node_addr);
 
   // Inits periodic events. Must be called after registerHandlers !!!
-  initPeriodicEvents(pbft_mgr, db, trx_mgr, all_packets_stats_);
+  initPeriodicEvents(pbft_mgr, trx_mgr, all_packets_stats_);
 }
 
 void TaraxaCapability::addBootNodes(bool initial) {
@@ -82,7 +82,7 @@ void TaraxaCapability::addBootNodes(bool initial) {
     } else {
       // resolve returns an iterator (host can resolve to multiple addresses)
       bi::tcp::resolver r(s_resolverIoService);
-      auto it = r.resolve({bi::tcp::v4(), addr, toString(port)}, ec);
+      auto it = r.resolve({bi::tcp::v4(), addr, std::to_string(port)}, ec);
       if (ec) {
         return std::make_pair(false, bi::tcp::endpoint());
       } else {
@@ -105,6 +105,11 @@ void TaraxaCapability::addBootNodes(bool initial) {
       continue;
     }
 
+    if (host->nodeTableHasNode(pub)) {
+      LOG(log_dg_) << "skipping node " << node.id << " already in table";
+      continue;
+    }
+
     auto ip = resolveHost(node.ip, node.port);
     LOG(log_nf_) << "Adding boot node:" << node.ip << ":" << node.port << " " << ip.second.address().to_string();
     dev::p2p::Node boot_node(pub, dev::p2p::NodeIPEndpoint(ip.second.address(), node.port, node.port),
@@ -117,7 +122,6 @@ void TaraxaCapability::addBootNodes(bool initial) {
 }
 
 void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mgr,
-                                          const std::shared_ptr<DbStorage> &db,
                                           std::shared_ptr<TransactionManager> trx_mgr,
                                           std::shared_ptr<TimePeriodPacketsStats> packets_stats) {
   // TODO: refactor this:
@@ -173,30 +177,6 @@ void TaraxaCapability::initPeriodicEvents(const std::shared_ptr<PbftManager> &pb
       addBootNodes();
     }
   });
-
-  // If period and round did not change after 60 seconds from node start, rebroadcast own pbft votes
-  if (pbft_mgr && db /* just because of tests */) {
-    auto vote_packet_handler = packets_handlers_->getSpecificHandler<VotePacketHandler>();
-    const auto [init_round, init_period] = pbft_mgr->getPbftRoundAndPeriod();
-    periodic_events_tp_->post(60000, [init_round = init_round, init_period = init_period, db = db, pbft_mgr = pbft_mgr,
-                                      vote_packet_handler = std::move(vote_packet_handler)] {
-      const auto [curent_round, curent_period] = pbft_mgr->getPbftRoundAndPeriod();
-      if (curent_period != init_period || curent_round != init_round) {
-        return;
-      }
-
-      const auto own_votes = db->getOwnVerifiedVotes();
-      if (own_votes.empty()) {
-        return;
-      }
-
-      // Send votes by one as votes sync packet must contain votes with the same type, period and round
-      for (const auto &vote : own_votes) {
-        vote_packet_handler->onNewPbftVote(vote,
-                                           pbft_mgr->getPbftProposedBlock(vote->getPeriod(), vote->getBlockHash()));
-      }
-    });
-  }
 }
 
 void TaraxaCapability::registerPacketHandlers(
@@ -237,7 +217,7 @@ void TaraxaCapability::registerPacketHandlers(
 
   // TODO there is additional logic, that should be moved outside process function
   packets_handlers_->registerHandler<GetPbftSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_syncing_state_,
-                                                               pbft_chain, db, node_addr);
+                                                               pbft_chain, vote_mgr, db, node_addr);
 
   packets_handlers_->registerHandler<PbftSyncPacketHandler>(kConf, peers_state_, packets_stats, pbft_syncing_state_,
                                                             pbft_chain, pbft_mgr, dag_mgr, vote_mgr,

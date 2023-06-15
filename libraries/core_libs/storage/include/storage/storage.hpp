@@ -90,6 +90,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
     // do not change/move
     COLUMN(default_column);
+    // migrations
+    COLUMN(migrations);
     // Contains full data for an executed PBFT block including PBFT block, cert votes, dag blocks and transactions
     COLUMN_W_COMP(period_data, getIntComparator<PbftPeriod>());
     COLUMN(genesis);
@@ -105,16 +107,13 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(pbft_head);
     COLUMN(latest_round_own_votes);             // own votes of any type for the latest round
     COLUMN(latest_round_two_t_plus_one_votes);  // 2t+1 votes bundles of any type for the latest round
-    COLUMN(latest_reward_votes);                // extra reward votes on top of 2t+1 cert votes bundle from
+    COLUMN(extra_reward_votes);                 // extra reward votes on top of 2t+1 cert votes bundle from
                                                 // latest_round_two_t_plus_one_votes
     COLUMN(pbft_block_period);
     COLUMN(dag_block_period);
     COLUMN_W_COMP(proposal_period_levels_map, getIntComparator<uint64_t>());
     COLUMN(final_chain_meta);
-    COLUMN(final_chain_transaction_location_by_hash);
-    COLUMN(final_chain_replay_protection);
     COLUMN(final_chain_transaction_hashes_by_blk_number);
-    COLUMN(final_chain_transaction_count_by_blk_number);
     COLUMN(final_chain_blk_by_number);
     COLUMN(final_chain_blk_hash_by_number);
     COLUMN(final_chain_blk_number_by_hash);
@@ -144,6 +143,8 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   const uint32_t kDbSnapshotsMaxCount = 0;
   std::set<PbftPeriod> snapshots_;
 
+  uint32_t kMajorVersion_;
+  bool major_version_changed_ = false;
   bool minor_version_changed_ = false;
 
   auto handle(Column const& col) const { return handles_[col.ordinal_]; }
@@ -153,7 +154,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
  public:
   explicit DbStorage(fs::path const& base_path, uint32_t db_snapshot_each_n_pbft_block = 0, uint32_t max_open_files = 0,
                      uint32_t db_max_snapshots = 0, PbftPeriod db_revert_to_period = 0, addr_t node_addr = addr_t(),
-                     bool rebuild = false, bool rebuild_columns = false);
+                     bool rebuild = false);
   ~DbStorage();
 
   DbStorage(const DbStorage&) = delete;
@@ -175,6 +176,10 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void loadSnapshots();
   void disableSnapshots();
   void enableSnapshots();
+  void updateDbVersions();
+
+  uint32_t getMajorVersion() const;
+  std::unique_ptr<rocksdb::Iterator> getColumnIterator(const Column& c);
 
   // Genesis
   void setGenesisHash(const h256& genesis_hash);
@@ -231,6 +236,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void addTransactionPeriodToBatch(Batch& write_batch, trx_hash_t const& trx, PbftPeriod period, uint32_t position);
   std::optional<std::pair<PbftPeriod, uint32_t>> getTransactionPeriod(trx_hash_t const& hash) const;
   std::unordered_map<trx_hash_t, PbftPeriod> getAllTransactionPeriod();
+  uint64_t getTransactionCount(PbftPeriod period) const;
 
   // PBFT manager
   uint32_t getPbftMgrField(PbftMgrField field);
@@ -267,15 +273,17 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   // Own votes for the latest round
   void saveOwnVerifiedVote(const std::shared_ptr<Vote>& vote);
   std::vector<std::shared_ptr<Vote>> getOwnVerifiedVotes();
-  void clearOwnVerifiedVotes(Batch& write_batch);
+  void clearOwnVerifiedVotes(Batch& write_batch, const std::vector<std::shared_ptr<Vote>>& own_verified_votes);
 
   // 2t+1 votes bundles for the latest round
   void replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType type, const std::vector<std::shared_ptr<Vote>>& votes);
+  void replaceTwoTPlusOneVotesToBatch(TwoTPlusOneVotedBlockType type, const std::vector<std::shared_ptr<Vote>>& votes,
+                                      Batch& write_batch);
   std::vector<std::shared_ptr<Vote>> getAllTwoTPlusOneVotes();
 
   // Reward votes - cert votes for the latest finalized block
-  void replaceRewardVotes(const std::vector<std::shared_ptr<Vote>>& votes, Batch& write_batch);
-  void saveRewardVote(const std::shared_ptr<Vote>& vote);
+  void removeExtraRewardVotes(const std::vector<vote_hash_t>& votes, Batch& write_batch);
+  void saveExtraRewardVote(const std::shared_ptr<Vote>& vote);
   std::vector<std::shared_ptr<Vote>> getRewardVotes();
 
   // period_pbft_block
@@ -301,6 +309,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void addProposalPeriodDagLevelsMapToBatch(uint64_t level, PbftPeriod period, Batch& write_batch);
 
   bool hasMinorVersionChanged() { return minor_version_changed_; }
+  bool hasMajorVersionChanged() { return major_version_changed_; }
 
   void compactColumn(Column const& column) { db_->CompactRange({}, handle(column), nullptr, nullptr); }
 

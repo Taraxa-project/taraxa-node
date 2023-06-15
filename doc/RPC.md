@@ -448,9 +448,6 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getConfig","params":[],"i
         "0x0274cfffea9fa850e54c93a23042f12a87358a82": "0x141e8d17",
         "0x111f91441efc8c6c0edf6534970cc887e2fabaa8": "0x24048ce3d"
       },
-      "hardforks": {
-        "fix_genesis_fork_block": "0x102ca0"
-      }
     },
     "pbft": {
       "committee_size": "0x3e8",
@@ -477,6 +474,39 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getConfig","params":[],"i
         "threshold_upper": "0x1770"
       }
     }
+  }
+}
+```
+
+### taraxa_getChainStats
+
+Returns current chain stats with count of transactions, PBFT blocks and DAG blocks
+
+#### Parameters
+
+none
+
+#### Returns
+
+`OBJECT` - current chain stats object
+* `pbft_period`: `QUANTITY` - current PBFT period
+* `dag_blocks_executed`: `QUANTITY` - count of executed(finalized) DAG blocks
+* `transactions_executed`: `QUANTITY` - count of executed transactions
+
+#### Example
+
+```json
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getChainStats","params":[],"id":1}'
+
+// Result
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": {
+    "pbft_period": 50,
+    "dag_blocks_executed": 100,
+    "transactions_executed": 200
   }
 }
 ```

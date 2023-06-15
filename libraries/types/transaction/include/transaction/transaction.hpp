@@ -10,8 +10,16 @@
 namespace taraxa {
 
 struct Transaction {
-  struct InvalidSignature : std::runtime_error {
-    explicit InvalidSignature(std::string const &msg) : runtime_error("invalid signature:\n" + msg) {}
+  struct InvalidTransaction : std::runtime_error {
+    explicit InvalidTransaction(const std::string &msg) : runtime_error("invalid transaction - " + msg) {}
+  };
+
+  struct InvalidSignature : InvalidTransaction {
+    explicit InvalidSignature(const std::string &msg) : InvalidTransaction("signature:\n" + msg) {}
+  };
+
+  struct InvalidFormat : InvalidTransaction {
+    explicit InvalidFormat(const std::string &msg) : InvalidTransaction("rlp format:\n" + msg) {}
   };
 
  private:
@@ -70,7 +78,10 @@ struct Transaction {
 };
 
 using SharedTransaction = std::shared_ptr<Transaction>;
-using Transactions = ::std::vector<Transaction>;
-using SharedTransactions = ::std::vector<SharedTransaction>;
+using Transactions = std::vector<Transaction>;
+using SharedTransactions = std::vector<SharedTransaction>;
+using TransactionHashes = std::vector<trx_hash_t>;
+
+TransactionHashes hashes_from_transactions(const SharedTransactions &transactions);
 
 }  // namespace taraxa

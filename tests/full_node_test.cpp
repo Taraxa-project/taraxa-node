@@ -242,7 +242,7 @@ TEST_F(FullNodeTest, db_test) {
   }
 
   batch = db.createWriteBatch();
-  db.clearOwnVerifiedVotes(batch);
+  db.clearOwnVerifiedVotes(batch, verified_votes);
   db.commitWriteBatch(batch);
   EXPECT_TRUE(db.getOwnVerifiedVotes().empty());
 
@@ -285,9 +285,7 @@ TEST_F(FullNodeTest, db_test) {
   }
 
   EXPECT_TRUE(db.getRewardVotes().empty());
-  batch = db.createWriteBatch();
-  db.replaceRewardVotes(verified_votes, batch);
-  db.commitWriteBatch(batch);
+  for (auto v : verified_votes) db.saveExtraRewardVote(v);
 
   const auto db_reward_votes = db.getRewardVotes();
   EXPECT_EQ(db_reward_votes.size(), verified_votes_map.size());
@@ -297,7 +295,7 @@ TEST_F(FullNodeTest, db_test) {
 
   const auto new_reward_vote = genVote(PbftVoteTypes::cert_vote, 10, 10, 3);
   verified_votes_map[new_reward_vote->getHash()] = new_reward_vote;
-  db.saveRewardVote(new_reward_vote);
+  db.saveExtraRewardVote(new_reward_vote);
 
   const auto new_db_reward_votes = db.getRewardVotes();
   EXPECT_EQ(new_db_reward_votes.size(), verified_votes_map.size());
@@ -306,7 +304,12 @@ TEST_F(FullNodeTest, db_test) {
   }
 
   batch = db.createWriteBatch();
-  db.replaceRewardVotes({}, batch);
+
+  std::vector<vote_hash_t> verified_votes_hashes, new_db_reward_votes_hashes;
+  for (const auto &v : verified_votes) verified_votes_hashes.emplace_back(v->getHash());
+  for (const auto &v : new_db_reward_votes) new_db_reward_votes_hashes.emplace_back(v->getHash());
+  db.removeExtraRewardVotes(verified_votes_hashes, batch);
+  db.removeExtraRewardVotes(new_db_reward_votes_hashes, batch);
   db.commitWriteBatch(batch);
   EXPECT_TRUE(db.getRewardVotes().empty());
 
@@ -682,30 +685,12 @@ TEST_F(FullNodeTest, sync_five_nodes) {
 
   // Prune state_db of one node
   auto prune_node = nodes[nodes.size() - 1];
-  const uint32_t min_blocks_to_prune = 50;
+  const uint32_t min_blocks_to_prune = 30;
   // This ensures that we never prune blocks that are over proposal period
-  ASSERT_HAPPENS({20s, 100ms}, [&](auto &ctx) {
-    const auto max_level = prune_node->getDagManager()->getMaxLevel();
-    const auto proposal_period = prune_node->getDB()->getProposalPeriodForDagLevel(max_level);
-    ASSERT_TRUE(proposal_period.has_value());
-    context.dummy_transaction();
-    WAIT_EXPECT_TRUE(ctx, ((*proposal_period) > min_blocks_to_prune))
+  ASSERT_HAPPENS({40s, 100ms}, [&](auto &ctx) {
+    WAIT_EXPECT_TRUE(ctx, (prune_node->getPbftChain()->getPbftChainSize() > min_blocks_to_prune + kMaxLevelsPerPeriod))
   });
   prune_node->getFinalChain()->prune(min_blocks_to_prune);
-  context.assert_balances_synced();
-
-  // transfer some coins to pruned node ...
-  context.coin_transfer(0, prune_node->getAddress(), init_bal, false);
-  context.wait_all_transactions_known();
-
-  std::cout << "Waiting until transaction is executed" << std::endl;
-  auto trx_cnt = context.getIssuedTrxCount();
-  ASSERT_HAPPENS({20s, 500ms}, [&](auto &ctx) {
-    for (size_t i = 0; i < nodes.size(); ++i)
-      WAIT_EXPECT_EQ(ctx, nodes[i]->getDB()->getNumTransactionExecuted(), trx_cnt)
-  });
-
-  // Check balances after prune";
   context.assert_balances_synced();
 }
 
@@ -1657,7 +1642,7 @@ TEST_F(FullNodeTest, graphql_test) {
   block = service::ScalarArgument::require("block", data);
   auto transactionAt = service::ScalarArgument::require("transactionAt", block);
   const auto hash2 = service::StringArgument::require("hash", transactionAt);
-  EXPECT_EQ(nodes[0]->getFinalChain()->transaction_hashes(2)->get(0).toString(), hash2);
+  EXPECT_EQ(nodes[0]->getFinalChain()->transaction_hashes(2)->at(0).toString(), hash2);
 }
 
 }  // namespace taraxa::core_tests

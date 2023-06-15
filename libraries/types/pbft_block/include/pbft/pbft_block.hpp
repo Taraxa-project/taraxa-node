@@ -7,7 +7,6 @@
 
 #include "common/types.hpp"
 #include "dag/dag_block.hpp"
-#include "transaction/transaction.hpp"
 #include "vote/vote.hpp"
 
 namespace taraxa {
@@ -130,6 +129,12 @@ class PbftBlock {
    * @brief Set PBFT block hash and block proposer address
    */
   void calculateHash_();
+
+  /**
+   * @brief Check if all rewards votes are unique
+   *
+   */
+  void checkUniqueRewardVotes();
 };
 std::ostream& operator<<(std::ostream& strm, PbftBlock const& pbft_blk);
 

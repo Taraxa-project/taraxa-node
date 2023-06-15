@@ -60,7 +60,7 @@ void PbftSyncPacketHandler::process(const PacketData &packet_data, const std::sh
   PeriodData period_data;
   try {
     period_data = PeriodData(packet_data.rlp_[1]);
-  } catch (const Transaction::InvalidSignature &e) {
+  } catch (const std::runtime_error &e) {
     throw MaliciousPeerException("Unable to parse PeriodData: " + std::string(e.what()));
   }
 

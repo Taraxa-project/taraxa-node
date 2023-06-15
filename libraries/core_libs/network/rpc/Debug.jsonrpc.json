@@ -25,5 +25,23 @@
     ],
     "order": [],
     "returns": {}
+  },
+  {
+    "name": "trace_replayTransaction",
+    "params": [
+      "",
+      []
+    ],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "trace_replayBlockTransactions",
+    "params": [
+      "",
+      []
+    ],
+    "order": [],
+    "returns": {}
   }
 ]

@@ -205,7 +205,7 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Get PBFT lambda. PBFT lambda is a timer clock
    * @return PBFT lambda
    */
-  std::chrono::milliseconds getPbftInitialLambda() const { return LAMBDA_ms_MIN; }
+  std::chrono::milliseconds getPbftInitialLambda() const { return kMinLambda; }
 
   /**
    * @brief Calculate DAG blocks ordering hash
@@ -254,11 +254,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   void resume();
 
   /**
-   * @brief Resume PBFT daemon on single state. Only to be used for unit tests
-   */
-  void resumeSingleState();
-
-  /**
    * @brief Get a proposed PBFT block based on specified period and block hash
    * @param period
    * @param block_hash
@@ -273,18 +268,16 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   size_t getPbftCommitteeSize() const { return config_.committee_size; }
 
   /**
-   * @brief Broadcast or rebroadcast current round soft votes and previous round next votes
-   * @param rebroadcast
+   * @brief Test/enforce broadcastVotes() to actually send votes
    */
-  void broadcastSoftAndNextVotes(bool rebroadcast);
-
-  /**
-   * @brief Broadcast or rebroadcast reward votes
-   * @param rebroadcast
-   */
-  void broadcastRewardVotes(bool rebroadcast);
+  void testBroadcatVotesFunctionality();
 
  private:
+  /**
+   * @brief Broadcast or rebroadcast 2t+1 soft/reward/previous round next votes + all own votes if needed
+   */
+  void broadcastVotes();
+
   /**
    * @brief Check PBFT blocks syncing queue. If there are synced PBFT blocks in queue, push it to PBFT chain
    */
@@ -335,16 +328,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
    * @brief Time to sleep for PBFT protocol
    */
   void sleep_();
-
-  /**
-   * @brief Go to next PBFT state. Only to be used for unit tests
-   */
-  void doNextState_();
-
-  /**
-   * @brief Set next PBFT state
-   */
-  void setNextState_();
 
   /**
    * @brief Set PBFT filter state
@@ -472,6 +455,13 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block) const;
 
   /**
+   * @brief Validates pbft block state root. It checks if:
+   * @param pbft_block PBFT block
+   * @return true if pbft block is valid, otherwise false
+   */
+  bool validatePbftBlockStateRoot(const std::shared_ptr<PbftBlock> &pbft_block) const;
+
+  /**
    * @brief If there are enough certify votes, push the vote PBFT block in PBFT chain
    * @param pbft_block PBFT block
    * @param current_round_cert_votes certify votes
@@ -552,24 +542,20 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   const addr_t node_addr_;
   const secret_t node_sk_;
 
-  const std::chrono::milliseconds LAMBDA_ms_MIN;
-  std::chrono::milliseconds LAMBDA_ms{0};
-  uint64_t LAMBDA_backoff_multiple = 1;
+  const std::chrono::milliseconds kMinLambda;         // [ms]
+  std::chrono::milliseconds lambda_{0};               // [ms]
   const std::chrono::milliseconds kMaxLambda{60000};  // in ms, max lambda is 1 minutes
 
   const uint32_t kBroadcastVotesLambdaTime = 20;
   const uint32_t kRebroadcastVotesLambdaTime = 60;
-  uint32_t broadcast_soft_next_votes_counter_ = 1;
-  uint32_t rebroadcast_soft_next_votes_counter_ = 1;
+  uint32_t broadcast_votes_counter_ = 1;
+  uint32_t rebroadcast_votes_counter_ = 1;
   uint32_t broadcast_reward_votes_counter_ = 1;
   uint32_t rebroadcast_reward_votes_counter_ = 1;
-
-  std::default_random_engine random_engine_{std::random_device{}()};
 
   PbftStates state_ = value_proposal_state;
   std::atomic<PbftRound> round_ = 1;
   PbftStep step_ = 1;
-  PbftStep startingStepInRound_ = 1;
 
   // Block that node cert voted
   std::optional<std::shared_ptr<PbftBlock>> cert_voted_block_for_round_{};
@@ -587,6 +573,10 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool already_next_voted_null_block_hash_ = false;
   bool go_finish_state_ = false;
   bool loop_back_finish_state_ = false;
+
+  // Used to avoid cyclic logging in voting steps that are called repeatedly
+  bool printSecondFinishStepInfo_ = true;
+  bool printCertStepInfo_ = true;
 
   const blk_hash_t dag_genesis_block_hash_;
 

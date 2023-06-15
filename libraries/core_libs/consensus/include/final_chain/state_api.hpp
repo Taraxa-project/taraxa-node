@@ -34,14 +34,12 @@ class StateAPI {
 
   void update_state_config(const Config& new_config);
 
-  Proof prove(EthBlockNumber blk_num, const root_t& state_root, const addr_t& addr,
-              const std::vector<h256>& keys) const;
   std::optional<Account> get_account(EthBlockNumber blk_num, const addr_t& addr) const;
   u256 get_account_storage(EthBlockNumber blk_num, const addr_t& addr, const u256& key) const;
   bytes get_code_by_address(EthBlockNumber blk_num, const addr_t& addr) const;
   ExecutionResult dry_run_transaction(EthBlockNumber blk_num, const EVMBlock& blk, const EVMTransaction& trx) const;
-  bytes trace_transaction(EthBlockNumber blk_num, const EVMBlock& blk, const EVMTransaction& trx,
-                          std::optional<Tracing> params = {}) const;
+  bytes trace(EthBlockNumber blk_num, const EVMBlock& blk, const std::vector<EVMTransaction> trx,
+              std::optional<Tracing> params = {}) const;
   StateDescriptor get_last_committed_state_descriptor() const;
   const StateTransitionResult& transition_state(const EVMBlock& block,
                                                 const util::RangeView<EVMTransaction>& transactions,
@@ -50,8 +48,7 @@ class StateAPI {
                                                 const RewardsStats& rewards_stats = {});
   void transition_state_commit();
   void create_snapshot(PbftPeriod period);
-  void prune(const dev::h256& state_root_to_keep, const std::vector<dev::h256>& state_root_to_prune,
-             EthBlockNumber blk_num);
+  void prune(const std::vector<dev::h256>& state_root_to_keep, EthBlockNumber blk_num);
 
   // DPOS
   uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const;

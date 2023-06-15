@@ -41,7 +41,7 @@ will build out of the box without further effort:
     sudo python3 -m pip install conan==1.59.0
 
     # Setup clang as default compiler either in your IDE or by env. variables"
-    export C="clang-14"
+    export CC="clang-14"
     export CXX="clang++-14"
 
 ### Clone the Repository
@@ -129,7 +129,7 @@ will build out of the box without further effort:
     rm -f llvm.sh
 
     # Setup clang as default compiler either in your IDE or by env. variables"
-    export C="clang-14"
+    export CC="clang-14"
     export CXX="clang++-14"
 
 ### Clone the Repository
@@ -171,7 +171,7 @@ And optional:
 
 ### Install taraxa-node dependencies:
 
-First you need to get (Brew)[https://brew.sh/] package manager. After that you need tot install dependencies with it. Currently there is no llvm-14 in brew, but it works well with llvm-13
+First you need to get (Brew)[https://brew.sh/] package manager. After that you need tot install dependencies with it. Clang-14 is used for compilation.
 
     brew update
     brew install coreutils go autoconf automake gflags git libtool llvm@14 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr libmicrohttpd 
@@ -189,6 +189,7 @@ First you need to get (Brew)[https://brew.sh/] package manager. After that you n
     conan profile new clang --detect && \
     conan profile update settings.compiler=clang clang && \
     conan profile update settings.compiler.version=14 clang && \
+    conan profile update settings.compiler.compiler.cppstd=14
     conan profile update settings.compiler.libcxx=libc++ clang && \
     conan profile update env.CC=clang clang && \
     conan profile update env.CXX=clang++ clang
@@ -226,28 +227,6 @@ It could be cleaned up with:
 rm -rf ~/.conan/data
 ```
 
-#### Project building issue
-
-If you are facing strange errors with project compilation it could be a problem that after install of llvm clang if pointing to a default apple clang. You could check that with `clang --version`. It should not point to `/Library/Developer/CommandLineTools/usr/bin`, but something like `/usr/local/opt/llvm/bin`. So you should specify full paths to a compiler:
-1. Check full path with `brew info llvm`. Search for command that looks like
-```
-    echo 'export PATH="/usr/local/opt/llvm/bin:$PATH"' >> ~/.zshrc
-```
-2. Take bin path from it. In our case this is `/usr/local/opt/llvm/bin` It shouldn't differ for most cases.
-3. Append compiler to it and specify it in conan profile:
-```
-    conan profile update env.CC=/usr/local/opt/llvm/bin/clang clang && \
-    conan profile update env.CXX=/usr/local/opt/llvm/bin/clang++ clang
-```
-4. Specify compiler with full path to cmake:
-```
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_COMPILER=/usr/local/opt/llvm/bin/clang -DCMAKE_CXX_COMPILER=/usr/local/opt/llvm/bin/clang++ ../
-```
-5. After successfull finish of that command processing compile project with:
-```
-make -j$(nproc)
-```
-
 ## Building on M1 Macs for x86_64 with Rosetta2
 
 You should be able to build project following default MacOS building process. But here is a guide how to build project for x86_64 arch with Rosetta2.
@@ -266,7 +245,7 @@ You should be able to build project following default MacOS building process. Bu
 
 ### Install dependencies
 
-    /usr/local/bin/brew install coreutils go autoconf automake gflags git libtool llvm@14 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr libmicrohttpd
+    /usr/local/bin/brew install coreutils go autoconf automake gflags git libtool llvm@13 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr libmicrohttpd
 
 ### Clone the Repository
 

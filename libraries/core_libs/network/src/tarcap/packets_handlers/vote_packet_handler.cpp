@@ -29,7 +29,11 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
 
   std::shared_ptr<Vote> vote = std::make_shared<Vote>(packet_data.rlp_[0]);
   if (const size_t item_count = packet_data.rlp_.itemCount(); item_count == kExtendedVotePacketSize) {
-    pbft_block = std::make_shared<PbftBlock>(packet_data.rlp_[1]);
+    try {
+      pbft_block = std::make_shared<PbftBlock>(packet_data.rlp_[1]);
+    } catch (const std::exception &e) {
+      throw MaliciousPeerException(e.what());
+    }
     peer_chain_size = packet_data.rlp_[2].toInt();
     LOG(log_dg_) << "Received PBFT vote " << vote->getHash() << " with PBFT block " << pbft_block->getBlockHash();
   } else {
@@ -63,26 +67,29 @@ void VotePacketHandler::process(const PacketData &packet_data, const std::shared
     peer->markPbftBlockAsKnown(pbft_block->getBlockHash());
   }
 
-  processVote(vote, pbft_block, peer, true);
+  if (!processVote(vote, pbft_block, peer, true)) {
+    return;
+  }
 
   // Do not mark it before, as peers have small caches of known votes. Only mark gossiping votes
   peer->markVoteAsKnown(vote_hash);
   onNewPbftVote(vote, pbft_block);
 
   // Update peer's max chain size
-  if (peer_chain_size.has_value() && *peer_chain_size > peer->pbft_chain_size_) {
+  if (peer_chain_size.has_value() && vote->getVoter() == peer->getId() && *peer_chain_size > peer->pbft_chain_size_) {
     peer->pbft_chain_size_ = *peer_chain_size;
   }
 }
 
-void VotePacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &block) {
+void VotePacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &block,
+                                      bool rebroadcast) {
   for (const auto &peer : peers_state_->getAllPeers()) {
     if (peer.second->syncing_) {
       LOG(log_dg_) << " PBFT vote " << vote->getHash() << " not sent to " << peer.first << " peer syncing";
       continue;
     }
 
-    if (peer.second->isVoteKnown(vote->getHash())) {
+    if (!rebroadcast && peer.second->isVoteKnown(vote->getHash())) {
       continue;
     }
 

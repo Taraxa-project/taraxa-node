@@ -16,7 +16,7 @@ image:
   pullPolicy: IfNotPresent
 
 config:
-  # integer, 1=Mainnet, 2=Testnet, 3=Devnet)
+  # integer, 841=Mainnet, 842=Testnet, 843=Devnet
   # 100 for default helm test
   network: "100"
   extraArgs: []
@@ -33,6 +33,11 @@ config:
       - "badf7196e18f653130564fd2f27419bff36194094057a69053bbe3a83a97b4fe"
     vrfs:
       - "c7c32f136cf4529471905a6b775ad82a076a5b5d3160b76ba683c743b8a852cff06560102e3dbab2e8b62082611dfc378c90336d01c0a7fd2a1a7bb88fb63478"
+  consensusnodeLight:
+    keys:
+      - "a48867f0133acd5e10dd980c4ad824da69c6c1947d2fb6c2b576f41cccf5e782"
+    vrfs:
+      - "6441cd427dcad51d7a2054d777237e1e53f6cb280eebfed6a6647a5c15fd0808d24dab2ffe1c32b4b608bdadf657f82f1871fa8dc19faeef3833bb3e42bb65ec"
   bootnode:
     keys:
       - "45dc56636faf97230f557e16345055f5839dad25f4b3f6f88a02add24b4a00fc"
@@ -50,6 +55,10 @@ slack:
   channel: channel
   k8s_cluster: taraxa
 
+transactionGeneration:
+  enabled: true
+  privateKey: ""
+
 nameOverride: ""
 fullnameOverride: ""
 
@@ -65,6 +74,7 @@ affinity: {}
 
 node:
   enabled: true
+  image: {}
   replicaCount: 20
   loadBalancer:
     enabled: false
@@ -94,6 +104,16 @@ node:
     annotationsRpcWS: {}
     annotationsGraphQl: {}
     annotationsGraphQlWS: {}
+    annotationsIndexer:
+      nginx.ingress.kubernetes.io/affinity: "cookie"
+      nginx.ingress.kubernetes.io/session-cookie-name: "stickounet"
+      nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+      nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+      nginx.ingress.kubernetes.io/affinity-mode: persistent
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+      nginx.ingress.kubernetes.io/cors-allow-methods: "PUT, GET, POST, OPTIONS, DELETE"
+      nginx.ingress.kubernetes.io/cors-allow-headers: "Authorization,Range,Content-Range,Keep-Alive,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Access-Control-Allow-Origin"
     hosts: []
     tls: []
   ports:
@@ -111,6 +131,9 @@ node:
     - name: udp-listen-port
       containerPort: 10002
       protocol: UDP
+    - name: http-indexer
+      containerPort: 8080
+      protocol: TCP
   service:
     ports:
         - name: rest
@@ -130,6 +153,12 @@ node:
         - name: metrics
           port: 8888
           protocol: TCP
+        - name: metrics-indexer
+          port: 2112
+          protocol: TCP
+        - name: http-indexer
+          port: 8080
+          protocol: TCP
   serviceMonitor:
     enabled: false
   resources: {}
@@ -140,10 +169,23 @@ node:
     size: 30Gi
     storageClass: 
     annotations: {}
-
+  indexer:
+    enabled: false
+    image:
+      repository: gcr.io/jovial-meridian-249123/taraxa-indexer
+      tag: latest
+      pullPolicy: Always
+    persistence:
+      enabled: false
+      accessMode: ReadWriteOnce
+      size: 30Gi
+      storageClass: 
+      annotations: {}
+      mountPoint: /data
 
 bootnode:
   enabled: true
+  image: {}
   replicaCount: 1
   loadBalancer:
     enabled: false
@@ -187,6 +229,7 @@ bootnode:
 
 consensusnode:
   enabled: true
+  image: {}
   replicaCount: 1
   probes:
     enabled: true
@@ -236,6 +279,61 @@ consensusnode:
     storageClass: 
     annotations: {}
 
+consensusnodeLight:
+  enabled: false
+  image: {}
+  replicaCount: 1
+  probes:
+    enabled: true
+  debug: 0
+  args:
+    - "taraxad"
+    - "--config"
+    - "/root/.taraxa/conf_taraxa.json"
+    - "--genesis"
+    - "/root/.taraxa/genesis_taraxa.json"
+    - "--wallet"
+    - "/root/.taraxa/wallet_taraxa.json"
+    - "--light"
+  ports:
+    - name: rest
+      containerPort: 7777
+    - name: ws
+      containerPort: 8777
+    - name: tcp-listen-port
+      containerPort: 10002
+      protocol: TCP
+    - name: udp-listen-port
+      containerPort: 10002
+      protocol: UDP
+  service:
+    ports:
+      - name: rest
+        port: 7777
+      - name: ws
+        port: 8777
+      - name: tcp-listen-port
+        port: 10002
+        protocol: TCP
+      - name: udp-listen-port
+        port: 10002
+        protocol: UDP
+      - name: metrics
+        port: 8888
+        protocol: TCP
+  serviceMonitor:
+    enabled: false
+  resources: {}
+  nodeSelector: {}
+  persistence:
+    enabled: false
+    accessMode: ReadWriteOnce
+    size: 30Gi
+    storageClass: 
+    annotations: {}
+
+
+
 
 explorer:
   enabled: false
@@ -260,3 +358,9 @@ test:
     repository: gcr.io/jovial-meridian-249123/python
     tag: latest
     pullPolicy: IfNotPresent
+
+kubemonkey:
+  enabled: false
+  mtbf: 2
+  killMode: "fixed"
+  killValue: '1'

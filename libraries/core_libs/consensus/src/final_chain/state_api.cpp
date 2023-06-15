@@ -21,7 +21,7 @@ void from_rlp(taraxa_evm_Bytes b, Result& result) {
   util::rlp(dev::RLP(map_bytes(b), 0), result);
 }
 
-void to_str(taraxa_evm_Bytes b, string& result) { result = {(char*)b.Data, b.Len}; }
+void to_str(taraxa_evm_Bytes b, string& result) { result = {reinterpret_cast<char*>(b.Data), b.Len}; }
 
 void to_bytes(taraxa_evm_Bytes b, bytes& result) { result.assign(b.Data, b.Data + b.Len); }
 
@@ -31,7 +31,7 @@ template <typename Result, void (*decode)(taraxa_evm_Bytes, Result&)>
 taraxa_evm_BytesCallback decoder_cb_c(Result& res) {
   return {
       &res,
-      [](auto receiver, auto b) { decode(b, *(Result*)receiver); },
+      [](auto receiver, auto b) { decode(b, *static_cast<Result*>(receiver)); },
   };
 }
 
@@ -142,11 +142,6 @@ void StateAPI::update_state_config(const Config& new_config) {
   err_h.check();
 }
 
-Proof StateAPI::prove(EthBlockNumber blk_num, const root_t& state_root, const addr_t& addr,
-                      const std::vector<h256>& keys) const {
-  return c_method_args_rlp<Proof, from_rlp, taraxa_evm_state_api_prove>(this_c_, blk_num, state_root, addr, keys);
-}
-
 std::optional<Account> StateAPI::get_account(EthBlockNumber blk_num, const addr_t& addr) const {
   return c_method_args_rlp<std::optional<Account>, from_rlp, taraxa_evm_state_api_get_account>(this_c_, blk_num, addr);
 }
@@ -165,14 +160,10 @@ ExecutionResult StateAPI::dry_run_transaction(EthBlockNumber blk_num, const EVMB
                                                                                                 trx);
 }
 
-bytes StateAPI::trace_transaction(EthBlockNumber blk_num, const EVMBlock& blk, const EVMTransaction& trx,
-                                  std::optional<Tracing> params) const {
-  if (params) {
-    return c_method_args_rlp<bytes, from_rlp, taraxa_evm_state_api_trace_transaction>(this_c_, blk_num, blk, trx,
-                                                                                      *params);
-  } else {
-    return c_method_args_rlp<bytes, from_rlp, taraxa_evm_state_api_debug_transaction>(this_c_, blk_num, blk, trx);
-  }
+bytes StateAPI::trace(EthBlockNumber blk_num, const EVMBlock& blk, const std::vector<EVMTransaction> trxs,
+                      std::optional<Tracing> params) const {
+  return c_method_args_rlp<bytes, from_rlp, taraxa_evm_state_api_trace_transactions>(this_c_, blk_num, blk, trxs,
+                                                                                     params);
 }
 
 StateDescriptor StateAPI::get_last_committed_state_descriptor() const {
@@ -213,9 +204,8 @@ void StateAPI::create_snapshot(PbftPeriod period) {
   err_h.check();
 }
 
-void StateAPI::prune(const dev::h256& state_root_to_keep, const std::vector<dev::h256>& state_root_to_prune,
-                     EthBlockNumber blk_num) {
-  return c_method_args_rlp<taraxa_evm_state_api_prune>(this_c_, state_root_to_keep, state_root_to_prune, blk_num);
+void StateAPI::prune(const std::vector<dev::h256>& state_root_to_keep, EthBlockNumber blk_num) {
+  return c_method_args_rlp<taraxa_evm_state_api_prune>(this_c_, state_root_to_keep, blk_num);
 }
 
 uint64_t StateAPI::dpos_eligible_total_vote_count(EthBlockNumber blk_num) const {

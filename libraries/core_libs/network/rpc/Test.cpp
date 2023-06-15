@@ -77,9 +77,8 @@ Json::Value Test::send_coin_transactions(const Json::Value &param1) {
       auto gas = dev::jsToInt(param1["gas"].asString());
       auto transactions_count = param1["transaction_count"].asUInt64();
       std::vector<addr_t> receivers;
-      for (auto rec : param1["receiver"]) {
-        receivers.emplace_back(addr_t(rec.asString()));
-      }
+      std::transform(param1["receiver"].begin(), param1["receiver"].end(), std::back_inserter(receivers),
+                     [](const auto rec) { return addr_t(rec.asString()); });
       for (uint32_t i = 0; i < transactions_count; i++) {
         auto trx = std::make_shared<Transaction>(nonce, value, gas_price, gas, bytes(), sk,
                                                  receivers[i % receivers.size()], kChainId);

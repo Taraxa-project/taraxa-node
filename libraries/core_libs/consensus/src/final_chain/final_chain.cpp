@@ -119,6 +119,13 @@ class FinalChainImpl final : public FinalChain {
     }
 
     delegation_delay_ = config.genesis.state.dpos.delegation_delay;
+    const auto kPruneblocksToKeep = kDagExpiryLevelLimit + kMaxLevelsPerPeriod + 1;
+    if ((config.db_config.prune_state_db || kLightNode) && last_blk_num.has_value() &&
+        *last_blk_num > kPruneblocksToKeep) {
+      LOG(log_si_) << "Pruning state db, this might take several minutes";
+      prune(*last_blk_num - kPruneblocksToKeep);
+      LOG(log_si_) << "Pruning state db complete";
+    }
   }
 
   void stop() override { executor_thread_.join(); }
@@ -181,9 +188,9 @@ class FinalChainImpl final : public FinalChain {
     for (auto const& r : exec_results) {
       LogEntries logs;
       logs.reserve(r.logs.size());
-      for (auto const& l : r.logs) {
-        logs.emplace_back(LogEntry{l.address, l.topics, l.data});
-      }
+      std::transform(r.logs.cbegin(), r.logs.cend(), std::back_inserter(logs), [](const auto& l) {
+        return LogEntry{l.address, l.topics, l.data};
+      });
       receipts.emplace_back(TransactionReceipt{
           r.code_err.empty() && r.consensus_err.empty(),
           r.gas_used,
@@ -237,34 +244,32 @@ class FinalChainImpl final : public FinalChain {
       state_api_.create_snapshot(blk_header->number);
     }
 
-    if (kLightNode) {
-      // Actual history size will be between 100% and 105% of light_node_history_ to avoid deleting on every period
-      if (((blk_header->number % (std::max(kLightNodeHistory / 20, (uint64_t)1)) == 0)) &&
-          blk_header->number > kLightNodeHistory) {
-        prune(blk_header->number - kLightNodeHistory);
-      }
-    }
     return result;
   }
 
   void prune(EthBlockNumber blk_n) override {
-    std::vector<dev::h256> state_root_to_prune;
-    const auto last_block_to_keep = get_block_header(blk_n);
+    LOG(log_nf_) << "Pruning data older than " << blk_n;
+    auto last_block_to_keep = get_block_header(blk_n);
     if (last_block_to_keep) {
-      LOG(log_nf_) << "Pruning data older than " << blk_n;
+      auto block_to_keep = last_block_to_keep;
+      std::vector<dev::h256> state_root_to_keep;
+      while (block_to_keep) {
+        state_root_to_keep.push_back(block_to_keep->state_root);
+        block_to_keep = get_block_header(block_to_keep->number + 1);
+      }
       auto block_to_prune = get_block_header(last_block_to_keep->number - 1);
       while (block_to_prune && block_to_prune->number > 0) {
-        state_root_to_prune.push_back(block_to_prune->state_root);
         db_->remove(DB::Columns::final_chain_blk_by_number, block_to_prune->number);
         db_->remove(DB::Columns::final_chain_blk_hash_by_number, block_to_prune->number);
         db_->remove(DB::Columns::final_chain_blk_number_by_hash, block_to_prune->hash);
         block_to_prune = get_block_header(block_to_prune->number - 1);
       }
 
-      state_api_.prune(last_block_to_keep->state_root, state_root_to_prune, last_block_to_keep->number);
       db_->compactColumn(DB::Columns::final_chain_blk_by_number);
       db_->compactColumn(DB::Columns::final_chain_blk_hash_by_number);
       db_->compactColumn(DB::Columns::final_chain_blk_number_by_hash);
+
+      state_api_.prune(state_root_to_keep, last_block_to_keep->number);
     }
   }
 
@@ -309,16 +314,8 @@ class FinalChainImpl final : public FinalChain {
       chunk_to_alter[index % c_bloomIndexSize] |= log_bloom_for_index;
       db_->insert(batch, DB::Columns::final_chain_log_blooms_index, chunk_id, util::rlp_enc(rlp_strm, chunk_to_alter));
     }
-    TransactionLocation tl{blk_header.number};
-    for (auto const& trx : transactions) {
-      db_->insert(batch, DB::Columns::final_chain_transaction_location_by_hash, trx->getHash(),
-                  util::rlp_enc(rlp_strm, tl));
-      ++tl.index;
-    }
     db_->insert(batch, DB::Columns::final_chain_transaction_hashes_by_blk_number, blk_header.number,
-                TransactionHashesImpl::serialize_from_transactions(transactions));
-    db_->insert(batch, DB::Columns::final_chain_transaction_count_by_blk_number, blk_header.number,
-                transactions.size());
+                dev::rlp(hashes_from_transactions(transactions)));
     db_->insert(batch, DB::Columns::final_chain_blk_hash_by_number, blk_header.number, blk_header.hash);
     db_->insert(batch, DB::Columns::final_chain_blk_number_by_hash, blk_header.hash, blk_header.number);
     db_->insert(batch, DB::Columns::final_chain_meta, DBMetaKeys::LAST_NUMBER, blk_header.number);
@@ -343,14 +340,12 @@ class FinalChainImpl final : public FinalChain {
     return block_headers_cache_.get(*n);
   }
 
-  std::optional<TransactionLocation> transaction_location(h256 const& trx_hash) const override {
-    auto raw = db_->lookup(trx_hash, DB::Columns::final_chain_transaction_location_by_hash);
-    if (raw.empty()) {
+  std::optional<TransactionLocation> transaction_location(const h256& trx_hash) const override {
+    const auto period = db_->getTransactionPeriod(trx_hash);
+    if (!period) {
       return {};
     }
-    TransactionLocation ret;
-    ret.rlp(dev::RLP(raw));
-    return ret;
+    return TransactionLocation{period->first, period->second};
   }
 
   std::optional<TransactionReceipt> transaction_receipt(h256 const& trx_h) const override {
@@ -364,8 +359,7 @@ class FinalChainImpl final : public FinalChain {
   }
 
   uint64_t transactionCount(std::optional<EthBlockNumber> n = {}) const override {
-    return db_->lookup_int<uint64_t>(last_if_absent(n), DB::Columns::final_chain_transaction_count_by_blk_number)
-        .value_or(0);
+    return db_->getTransactionCount(last_if_absent(n));
   }
 
   std::shared_ptr<const TransactionHashes> transaction_hashes(std::optional<EthBlockNumber> n = {}) const override {
@@ -419,17 +413,17 @@ class FinalChainImpl final : public FinalChain {
                                           trx);
   }
 
-  std::string trace_trx(const state_api::EVMTransaction& trx, EthBlockNumber blk_n,
-                        std::optional<state_api::Tracing> params = {}) const override {
+  std::string trace(std::vector<state_api::EVMTransaction> trxs, EthBlockNumber blk_n,
+                    std::optional<state_api::Tracing> params = {}) const override {
     const auto blk_header = block_header(last_if_absent(blk_n));
-    return dev::asString(state_api_.trace_transaction(blk_header->number,
-                                                      {
-                                                          blk_header->author,
-                                                          blk_header->gas_limit,
-                                                          blk_header->timestamp,
-                                                          BlockHeader::difficulty(),
-                                                      },
-                                                      trx, params));
+    return dev::asString(state_api_.trace(blk_header->number,
+                                          {
+                                              blk_header->author,
+                                              blk_header->gas_limit,
+                                              blk_header->timestamp,
+                                              BlockHeader::difficulty(),
+                                          },
+                                          trxs, params));
   }
 
   uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const override {
@@ -449,17 +443,18 @@ class FinalChainImpl final : public FinalChain {
   }
 
  private:
-  std::shared_ptr<const TransactionHashes> get_transaction_hashes(std::optional<EthBlockNumber> n = {}) const {
-    return make_shared<TransactionHashesImpl>(
-        db_->lookup(last_if_absent(n), DB::Columns::final_chain_transaction_hashes_by_blk_number));
+  std::shared_ptr<TransactionHashes> get_transaction_hashes(std::optional<EthBlockNumber> n = {}) const {
+    auto res = db_->lookup(last_if_absent(n), DB::Columns::final_chain_transaction_hashes_by_blk_number);
+
+    return std::make_shared<TransactionHashes>(util::rlp_dec<TransactionHashes>(dev::RLP(res)));
   }
 
   const SharedTransactions get_transactions(std::optional<EthBlockNumber> n = {}) const {
     SharedTransactions ret;
     auto hashes = transaction_hashes(n);
-    ret.reserve(hashes->count());
+    ret.reserve(hashes->size());
     for (size_t i = 0; i < ret.capacity(); ++i) {
-      auto trx = db_->getTransaction(hashes->get(i));
+      auto trx = db_->getTransaction(hashes->at(i));
       assert(trx);
       ret.emplace_back(trx);
     }
@@ -525,31 +520,6 @@ class FinalChainImpl final : public FinalChain {
     }
     return ret;
   }
-
-  struct TransactionHashesImpl : TransactionHashes {
-    string serialized_;
-    size_t count_;
-
-    explicit TransactionHashesImpl(string serialized)
-        : serialized_(std::move(serialized)), count_(serialized_.size() / h256::size) {}
-
-    static bytes serialize_from_transactions(SharedTransactions const& transactions) {
-      bytes serialized;
-      serialized.reserve(transactions.size() * h256::size);
-      for (auto const& trx : transactions) {
-        for (auto b : trx->getHash()) {
-          serialized.push_back(b);
-        }
-      }
-      return serialized;
-    }
-
-    h256 get(size_t i) const override {
-      return h256((uint8_t*)(serialized_.data() + i * h256::size), h256::ConstructFromPointer);
-    }
-
-    size_t count() const override { return count_; }
-  };
 };
 
 std::shared_ptr<FinalChain> NewFinalChain(const std::shared_ptr<DB>& db, const taraxa::FullNodeConfig& config,

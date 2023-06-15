@@ -6,7 +6,7 @@
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
 #include "common/vrf_wrapper.hpp"
-#include "config/hardfork.hpp"
+// #include "config/hardfork.hpp"
 
 namespace taraxa::state_api {
 

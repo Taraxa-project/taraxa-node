@@ -33,8 +33,7 @@ void GetNextVotesSyncPacketHandler::process(const PacketData &packet_data, const
     return;
   }
 
-  std::vector<std::shared_ptr<Vote>> next_votes =
-      vote_mgr_->getAllTwoTPlusOneNextVotes(pbft_period, pbft_round - 1, peer);
+  std::vector<std::shared_ptr<Vote>> next_votes = vote_mgr_->getAllTwoTPlusOneNextVotes(pbft_period, pbft_round - 1);
   // In edge case this could theoretically happen due to race condition when we moved to the next period or round
   // right before calling getAllTwoTPlusOneNextVotes with specific period & round
   if (next_votes.empty()) {
@@ -52,11 +51,25 @@ void GetNextVotesSyncPacketHandler::process(const PacketData &packet_data, const
       return;
     }
 
-    next_votes = vote_mgr_->getAllTwoTPlusOneNextVotes(tmp_pbft_period, tmp_pbft_round - 1, peer);
+    next_votes = vote_mgr_->getAllTwoTPlusOneNextVotes(tmp_pbft_period, tmp_pbft_round - 1);
     if (next_votes.empty()) {
       LOG(log_er_) << "No next votes returned for period " << tmp_pbft_period << ", round " << tmp_pbft_round - 1;
       return;
     }
+  }
+
+  std::vector<std::shared_ptr<Vote>> next_votes_to_send;
+  next_votes_to_send.reserve(next_votes.size());
+  for (const auto &vote : next_votes) {
+    if (!peer->isVoteKnown(vote->getHash())) {
+      next_votes_to_send.emplace_back(vote);
+    }
+  }
+
+  if (next_votes_to_send.empty()) {
+    LOG(log_dg_) << "Votes already gossiped, no need to send votes sync packet for" << pbft_period << ", round "
+                 << pbft_round - 1;
+    return;
   }
 
   LOG(log_nf_) << "Next votes sync packet with " << next_votes.size() << " votes sent to " << peer->getId();

@@ -5,6 +5,7 @@
 
 #include "common/jsoncpp.hpp"
 #include "final_chain/state_api_data.hpp"
+#include "pbft/pbft_manager.hpp"
 
 using namespace std;
 using namespace dev;
@@ -12,22 +13,22 @@ using namespace jsonrpc;
 using namespace taraxa;
 
 namespace taraxa::net {
+
+inline EthBlockNumber get_ctx_block_num(EthBlockNumber block_number) {
+  return (block_number >= 1) ? block_number - 1 : 0;
+}
+
 Json::Value Debug::debug_traceTransaction(const std::string& transaction_hash) {
   Json::Value res;
   try {
+    auto [trx, loc] = get_transaction_with_location(transaction_hash);
+    if (!trx || !loc) {
+      res["status"] = "Transaction not found";
+      return res;
+    }
     if (auto node = full_node_.lock()) {
-      const auto hash = jsToFixed<32>(transaction_hash);
-      const auto trx = node->getDB()->getTransaction(hash);
-      if (!trx) {
-        res["status"] = "Transaction not found";
-        return res;
-      }
-      const auto loc = node->getFinalChain()->transaction_location(hash);
-      if (!loc) {
-        res["status"] = "Transaction not found";
-        return res;
-      }
-      return util::readJsonFromString(node->getFinalChain()->trace_trx(to_eth_trx(trx), loc->blk_n));
+      return util::readJsonFromString(
+          node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, get_ctx_block_num(loc->blk_n)));
     }
   } catch (std::exception& e) {
     res["status"] = e.what();
@@ -41,7 +42,7 @@ Json::Value Debug::debug_traceCall(const Json::Value& call_params, const std::st
     const auto block = parse_blk_num(blk_num);
     auto trx = to_eth_trx(call_params, block);
     if (auto node = full_node_.lock()) {
-      return util::readJsonFromString(node->getFinalChain()->trace_trx(std::move(trx), block));
+      return util::readJsonFromString(node->getFinalChain()->trace({std::move(trx)}, block));
     }
   } catch (std::exception& e) {
     res["status"] = e.what();
@@ -54,10 +55,55 @@ Json::Value Debug::trace_call(const Json::Value& call_params, const Json::Value&
   Json::Value res;
   try {
     const auto block = parse_blk_num(blk_num);
-    auto trx = to_eth_trx(call_params, block);
     auto params = parse_tracking_parms(trace_params);
     if (auto node = full_node_.lock()) {
-      return util::readJsonFromString(node->getFinalChain()->trace_trx(std::move(trx), block, std::move(params)));
+      return util::readJsonFromString(
+          node->getFinalChain()->trace({to_eth_trx(call_params, block)}, block, std::move(params)));
+    }
+  } catch (std::exception& e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
+Json::Value Debug::trace_replayTransaction(const std::string& transaction_hash, const Json::Value& trace_params) {
+  Json::Value res;
+  try {
+    auto params = parse_tracking_parms(trace_params);
+    auto [trx, loc] = get_transaction_with_location(transaction_hash);
+    if (!trx || !loc) {
+      res["status"] = "Transaction not found";
+      return res;
+    }
+    if (auto node = full_node_.lock()) {
+      return util::readJsonFromString(
+          node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, get_ctx_block_num(loc->blk_n), std::move(params)));
+    }
+  } catch (std::exception& e) {
+    res["status"] = e.what();
+  }
+  return res;
+}
+
+Json::Value Debug::trace_replayBlockTransactions(const std::string& block_num, const Json::Value& trace_params) {
+  Json::Value res;
+  try {
+    const auto block = parse_blk_num(block_num);
+    auto params = parse_tracking_parms(trace_params);
+    if (auto node = full_node_.lock()) {
+      auto transactions = node->getDB()->getPeriodTransactions(block);
+      if (!transactions.has_value() || transactions->empty()) {
+        res["status"] = "Block has no transactions";
+        return res;
+      }
+      // TODO[2495]: remove after a proper fox of transactions ordering in PeriodData
+      PbftManager::reorderTransactions(*transactions);
+      std::vector<state_api::EVMTransaction> trxs;
+      trxs.reserve(transactions->size());
+      std::transform(transactions->begin(), transactions->end(), std::back_inserter(trxs),
+                     [this](auto t) { return to_eth_trx(std::move(t)); });
+      return util::readJsonFromString(
+          node->getFinalChain()->trace(std::move(trxs), get_ctx_block_num(block), std::move(params)));
     }
   } catch (std::exception& e) {
     res["status"] = e.what();
@@ -72,7 +118,8 @@ state_api::Tracing Debug::parse_tracking_parms(const Json::Value& json) const {
   }
   for (const auto& obj : json) {
     if (obj.asString() == "trace") ret.trace = true;
-    if (obj.asString() == "stateDiff") ret.stateDiff = true;
+    // Disabled for now
+    // if (obj.asString() == "stateDiff") ret.stateDiff = true;
     if (obj.asString() == "vmTrace") ret.vmTrace = true;
   }
   return ret;
@@ -91,13 +138,13 @@ state_api::EVMTransaction Debug::to_eth_trx(const Json::Value& json, EthBlockNum
   }
 
   if (!json["from"].empty()) {
-    trx.from = toAddress(json["from"].asString());
+    trx.from = to_address(json["from"].asString());
   } else {
     trx.from = ZeroAddress;
   }
 
   if (!json["to"].empty() && json["to"].asString() != "0x" && !json["to"].asString().empty()) {
-    trx.to = toAddress(json["to"].asString());
+    trx.to = to_address(json["to"].asString());
   }
 
   if (!json["value"].empty()) {
@@ -144,7 +191,7 @@ EthBlockNumber Debug::parse_blk_num(const string& blk_num_str) {
   return jsToInt(blk_num_str);
 }
 
-Address Debug::toAddress(const string& s) const {
+Address Debug::to_address(const string& s) const {
   try {
     if (auto b = fromHex(s.substr(0, 2) == "0x" ? s.substr(2) : s, WhenError::Throw); b.size() == Address::size) {
       return Address(b);
@@ -152,6 +199,15 @@ Address Debug::toAddress(const string& s) const {
   } catch (BadHexCharacter&) {
   }
   throw InvalidAddress();
+}
+
+std::pair<std::shared_ptr<Transaction>, std::optional<final_chain::TransactionLocation>>
+Debug::get_transaction_with_location(const std::string& transaction_hash) const {
+  if (auto node = full_node_.lock()) {
+    const auto hash = jsToFixed<32>(transaction_hash);
+    return {node->getDB()->getTransaction(hash), node->getFinalChain()->transaction_location(hash)};
+  }
+  return {};
 }
 
 }  // namespace taraxa::net

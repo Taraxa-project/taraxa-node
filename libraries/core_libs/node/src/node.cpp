@@ -26,6 +26,7 @@
 #include "network/rpc/jsonrpc_http_processor.hpp"
 #include "network/rpc/jsonrpc_ws_server.hpp"
 #include "pbft/pbft_manager.hpp"
+#include "storage/migration/migration_manager.hpp"
 #include "transaction/gas_pricer.hpp"
 #include "transaction/transaction_manager.hpp"
 
@@ -62,14 +63,12 @@ void FullNode::init() {
                                             conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
                                             conf_.db_config.db_revert_to_period, node_addr, true);
     }
-
     db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.db_config.db_snapshot_each_n_pbft_block,
                                       conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
-                                      conf_.db_config.db_revert_to_period, node_addr, false,
-                                      conf_.db_config.rebuild_db_columns);
+                                      conf_.db_config.db_revert_to_period, node_addr, false);
 
-    if (db_->hasMinorVersionChanged()) {
-      LOG(log_si_) << "Minor DB version has changed. Rebuilding Db";
+    if (db_->hasMajorVersionChanged()) {
+      LOG(log_si_) << "Major DB version has changed. Rebuilding Db";
       conf_.db_config.rebuild_db = true;
       db_ = nullptr;
       old_db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.db_config.db_snapshot_each_n_pbft_block,
@@ -79,6 +78,10 @@ void FullNode::init() {
                                         conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
                                         conf_.db_config.db_revert_to_period, node_addr);
     }
+
+    db_->updateDbVersions();
+    storage::migration::Manager(db_).applyAll();
+
     if (db_->getDagBlocksCount() == 0) {
       db_->setGenesisHash(conf_.genesis.genesisHash());
     }
@@ -234,7 +237,7 @@ void FullNode::start() {
             _eth_json_rpc->note_block_executed(*res->final_chain_blk, res->trxs, res->trx_receipts);
           }
           if (auto _ws = ws.lock()) {
-            _ws->newEthBlock(*res->final_chain_blk);
+            _ws->newEthBlock(*res->final_chain_blk, hashes_from_transactions(res->trxs));
             if (auto _db = db.lock()) {
               auto pbft_blk = _db->getPbftBlock(res->hash);
               if (const auto &hash = pbft_blk->getPivotDagBlockHash(); hash != kNullBlockHash) {
@@ -302,30 +305,6 @@ void FullNode::start() {
       },
       subscription_pool_);
 
-  // Subscription to process hardforks
-  // final_chain_->block_applying_.subscribe([&](uint64_t block_num) {
-  //   // TODO: should have only common hardfork code calling hardfork executor
-  //   auto &state_conf = conf_.genesis.state;
-  //   if (state_conf.hardforks.fix_genesis_fork_block == block_num) {
-  //     for (auto &e : state_conf.dpos->genesis_state) {
-  //       for (auto &b : e.second) {
-  //         b.second *= kOneTara;
-  //       }
-  //     }
-  //     for (auto &b : state_conf.initial_balances) {
-  //       b.second *= kOneTara;
-  //     }
-  //     // we are multiplying it by TARA precision
-  //     state_conf.dpos->eligibility_balance_threshold *= kOneTara;
-  //     // amount of stake per vote should be 10 times smaller than eligibility threshold
-  //     state_conf.dpos->vote_eligibility_balance_step.assign(state_conf.dpos->eligibility_balance_threshold);
-  //     state_conf.dpos->eligibility_balance_threshold *= 10;
-  //     // if this part of code will be needed we need to overwrite genesis json here
-  //     // conf_.overwrite_chain_config_in_file();
-  //     final_chain_->update_state_config(state_conf);
-  //   }
-  // });
-
   vote_mgr_->setNetwork(network_);
   pbft_mgr_->setNetwork(network_);
   dag_mgr_->setNetwork(network_);
@@ -371,8 +350,8 @@ void FullNode::rebuildDb() {
   // Read pbft blocks one by one
   PbftPeriod period = 1;
   std::shared_ptr<PeriodData> period_data, next_period_data;
-  std::vector<std::shared_ptr<Vote>> cert_votes;
   while (true) {
+    std::vector<std::shared_ptr<Vote>> cert_votes;
     if (next_period_data != nullptr) {
       period_data = next_period_data;
     } else {
@@ -383,8 +362,11 @@ void FullNode::rebuildDb() {
     auto data = old_db_->getPeriodDataRaw(period + 1);
     if (data.size() == 0) {
       next_period_data = nullptr;
-      // Latest finalized block cert votes are saved in db as reward votes for new blocks
-      cert_votes = old_db_->getRewardVotes();
+      // Latest finalized block cert votes are saved in db as 2t+1 cert votes
+      auto votes = old_db_->getAllTwoTPlusOneVotes();
+      for (auto v : votes) {
+        if (v->getType() == PbftVoteTypes::cert_vote) cert_votes.push_back(v);
+      }
     } else {
       next_period_data = std::make_shared<PeriodData>(std::move(data));
       cert_votes = next_period_data->previous_block_cert_votes;

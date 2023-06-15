@@ -122,6 +122,14 @@ bool wait(const wait_opts& opts, const std::function<void(wait_ctx&)>& poller);
     EXPECT_GE(o1, o2);                      \
   }
 
+#define EXPECT_THROW_WITH(statement, expected_exception, msg) \
+  try {                                                       \
+    statement;                                                \
+    EXPECT_TRUE("No exception thrown" && false);              \
+  } catch (const expected_exception& e) {                     \
+    EXPECT_EQ(std::string(msg), std::string(e.what()));       \
+  }
+
 struct TransactionClient {
   enum class TransactionStage {
     created,

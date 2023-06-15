@@ -38,7 +38,8 @@ Config::Config(int argc, const char* argv[]) {
   bool destroy_db = false;
   bool rebuild_network = false;
   bool rebuild_db = false;
-  bool rebuild_db_columns = false;
+  bool prune_state_db = false;
+
   bool light_node = false;
   bool version = false;
   uint64_t rebuild_db_period = 0;
@@ -81,8 +82,6 @@ Config::Config(int argc, const char* argv[]) {
                                      "rebuilding all the other "
                                      "database tables - this could take a long "
                                      "time");
-  node_command_options.add_options()(REBUILD_DB_COLUMNS, bpo::bool_switch(&rebuild_db_columns),
-                                     "Removes old DB columns ");
   node_command_options.add_options()(REBUILD_DB_PERIOD, bpo::value<uint64_t>(&rebuild_db_period),
                                      "Use with rebuild-db - Rebuild db up "
                                      "to a specified period");
@@ -132,6 +131,7 @@ Config::Config(int argc, const char* argv[]) {
                                      "Enables Test JsonRPC. Disabled by default");
   node_command_options.add_options()(ENABLE_DEBUG, bpo::bool_switch(&enable_debug),
                                      "Enables Debug RPC interface. Disabled by default");
+  node_command_options.add_options()(PRUNE_STATE_DB, bpo::bool_switch(&prune_state_db), "Prune state_db");
 
   allowed_options.add(main_options);
 
@@ -214,11 +214,6 @@ Config::Config(int argc, const char* argv[]) {
       auto default_genesis_json = tools::getGenesis((Config::ChainIdType)chain_id);
       // override hardforks data with one from default json
       addNewHardforks(genesis_json, default_genesis_json);
-      // add vote_eligibility_balance_step field if it is missing in the config
-      if (genesis_json["dpos"]["vote_eligibility_balance_step"].isNull()) {
-        genesis_json["dpos"]["vote_eligibility_balance_step"] =
-            default_genesis_json["dpos"]["vote_eligibility_balance_step"];
-      }
       write_config_and_wallet_files();
     }
     // Override config values with values from CLI
@@ -269,7 +264,7 @@ Config::Config(int argc, const char* argv[]) {
     }
     node_config_.db_config.db_revert_to_period = revert_to_period;
     node_config_.db_config.rebuild_db = rebuild_db;
-    node_config_.db_config.rebuild_db_columns = rebuild_db_columns;
+    node_config_.db_config.prune_state_db = prune_state_db;
     node_config_.db_config.rebuild_db_period = rebuild_db_period;
 
     node_config_.enable_test_rpc = enable_test_rpc;

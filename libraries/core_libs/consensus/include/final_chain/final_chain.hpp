@@ -87,17 +87,6 @@ class FinalChain {
    * @return BlockHash h256
    */
   virtual std::optional<h256> block_hash(std::optional<EthBlockNumber> n = {}) const = 0;
-  struct TransactionHashes {
-    TransactionHashes() = default;
-    virtual ~TransactionHashes() = default;
-    TransactionHashes(const TransactionHashes&) = default;
-    TransactionHashes(TransactionHashes&&) = default;
-    TransactionHashes& operator=(const TransactionHashes&) = default;
-    TransactionHashes& operator=(TransactionHashes&&) = default;
-
-    virtual size_t count() const = 0;
-    virtual h256 get(size_t i) const = 0;
-  };
 
   /**
    * @brief Needed if we are changing params with hardfork and it affects Go part of code. For example DPOS contract
@@ -188,14 +177,14 @@ class FinalChain {
                                           std::optional<EthBlockNumber> blk_n = {}) const = 0;
 
   /**
-   * @brief Trace execution of a new message call immediately without creating a transaction on the block chain. That
+   * @brief Trace execution of a new message call immediately without creating a transactions on the block chain. That
    * means that state would be reverted and not saved anywhere
-   * @param trx state_api::EVMTransaction
+   * @param trxs std::vector<state_api::EVMTransaction> vector of transaction to trace
    * @param blk_n EthBlockNumber number of block we are getting state from
    * @return std::string
    */
-  virtual std::string trace_trx(const state_api::EVMTransaction& trx, EthBlockNumber blk_n,
-                                std::optional<state_api::Tracing> params = {}) const = 0;
+  virtual std::string trace(std::vector<state_api::EVMTransaction> trx, EthBlockNumber blk_n,
+                            std::optional<state_api::Tracing> params = {}) const = 0;
 
   /**
    * @brief total count of eligible votes are in DPOS precompiled contract
