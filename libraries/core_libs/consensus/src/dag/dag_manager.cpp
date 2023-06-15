@@ -4,8 +4,6 @@
 
 #include <algorithm>
 #include <fstream>
-#include <queue>
-#include <stack>
 #include <tuple>
 #include <unordered_set>
 #include <utility>
@@ -14,7 +12,6 @@
 #include "dag/dag.hpp"
 #include "key_manager/key_manager.hpp"
 #include "network/network.hpp"
-#include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
 #include "transaction/transaction_manager.hpp"
 
 namespace taraxa {
@@ -177,8 +174,7 @@ std::pair<bool, std::vector<blk_hash_t>> DagManager::addDagBlock(DagBlock &&blk,
     if (save) {
       block_verified_.emit(blk);
       if (auto net = network_.lock()) {
-        net->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->onNewBlockVerified(std::move(blk), proposed,
-                                                                                              std::move(trxs));
+        net->gossipDagBlock(blk, proposed, trxs);
       }
     }
   }

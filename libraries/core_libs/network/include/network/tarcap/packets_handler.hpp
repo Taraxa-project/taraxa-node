@@ -3,7 +3,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include "network/tarcap/packets_handlers/common/packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/common/packet_handler.hpp"
 
 namespace taraxa::network::tarcap {
 

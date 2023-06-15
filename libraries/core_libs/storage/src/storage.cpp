@@ -4,12 +4,14 @@
 #include <boost/algorithm/string/split.hpp>
 #include <cstdint>
 #include <memory>
+#include <regex>
 
 #include "config/version.hpp"
 #include "dag/sortition_params_manager.hpp"
 #include "rocksdb/utilities/checkpoint.h"
 #include "storage/uint_comparator.hpp"
 #include "vote/vote.hpp"
+#include "vote/votes_bundle_rlp.hpp"
 
 namespace taraxa {
 namespace fs = std::filesystem;
@@ -40,8 +42,11 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
     db_path_ = backup_db_path;
     state_db_path_ = backup_state_db_path;
   }
+  LOG_OBJECTS_CREATE("DBS");
 
   fs::create_directories(db_path_);
+  removeOldLogFiles();
+
   rocksdb::Options options;
   options.create_missing_column_families = true;
   options.create_if_missing = true;
@@ -58,7 +63,6 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
     if (col.comparator_) options.comparator = col.comparator_;
     return rocksdb::ColumnFamilyDescriptor(col.name(), options);
   });
-  LOG_OBJECTS_CREATE("DBS");
 
   rebuildColumns(options);
 
@@ -86,10 +90,102 @@ DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_bloc
   }
 }
 
+void DbStorage::removeOldLogFiles() const {
+  const std::regex filePattern("LOG\\.old\\.\\d+");
+  removeFilesWithPattern(db_path_, filePattern);
+  removeFilesWithPattern(state_db_path_, filePattern);
+}
+
+void DbStorage::removeFilesWithPattern(const std::string& directory, const std::regex& pattern) const {
+  try {
+    for (const auto& entry : std::filesystem::directory_iterator(directory)) {
+      const std::string& filename = entry.path().filename().string();
+      if (std::regex_match(filename, pattern)) {
+        std::filesystem::remove(entry.path());
+        LOG(log_dg_) << "Removed file: " << filename << std::endl;
+      }
+    }
+  } catch (const std::filesystem::filesystem_error& e) {
+    LOG(log_dg_) << "Error accessing directory: " << e.what() << std::endl;
+  }
+}
+
 void DbStorage::updateDbVersions() {
   saveStatusField(StatusDbField::DbMajorVersion, TARAXA_DB_MAJOR_VERSION);
   saveStatusField(StatusDbField::DbMinorVersion, TARAXA_DB_MINOR_VERSION);
   kMajorVersion_ = TARAXA_DB_MAJOR_VERSION;
+}
+
+std::unique_ptr<rocksdb::ColumnFamilyHandle> DbStorage::copyColumn(rocksdb::ColumnFamilyHandle* orig_column,
+                                                                   const std::string& new_col_name, bool move_data) {
+  auto it = getColumnIterator(orig_column);
+  // No data to be copied
+  if (it->SeekToFirst(); !it->Valid()) {
+    return nullptr;
+  }
+
+  rocksdb::Checkpoint* checkpoint_raw;
+  auto status = rocksdb::Checkpoint::Create(db_.get(), &checkpoint_raw);
+  std::unique_ptr<rocksdb::Checkpoint> checkpoint(checkpoint_raw);
+  checkStatus(status);
+
+  const fs::path export_dir = path() / "migrations" / new_col_name;
+  fs::create_directory(export_dir.parent_path());
+
+  // Export dir should not exist before exporting the column family
+  fs::remove_all(export_dir);
+
+  rocksdb::ExportImportFilesMetaData* metadata_raw;
+  status = checkpoint->ExportColumnFamily(orig_column, export_dir, &metadata_raw);
+  std::unique_ptr<rocksdb::ExportImportFilesMetaData> metadata(metadata_raw);
+  checkStatus(status);
+
+  const rocksdb::Comparator* comparator = orig_column->GetComparator();
+  auto options = rocksdb::ColumnFamilyOptions();
+  if (comparator != nullptr) {
+    options.comparator = comparator;
+  }
+
+  rocksdb::ImportColumnFamilyOptions import_options;
+  import_options.move_files = move_data;
+
+  rocksdb::ColumnFamilyHandle* copied_column_raw;
+  status = db_->CreateColumnFamilyWithImport(options, new_col_name, import_options, *metadata, &copied_column_raw);
+  std::unique_ptr<rocksdb::ColumnFamilyHandle> copied_column(copied_column_raw);
+  checkStatus(status);
+
+  // Remove export dir after successful import
+  fs::remove_all(export_dir);
+
+  return copied_column;
+}
+
+void DbStorage::replaceColumn(const Column& to_be_replaced_col,
+                              std::unique_ptr<rocksdb::ColumnFamilyHandle>&& replacing_col) {
+  checkStatus(db_->DropColumnFamily(handle(to_be_replaced_col)));
+  db_->DestroyColumnFamilyHandle(handle(to_be_replaced_col));
+
+  std::unique_ptr<rocksdb::ColumnFamilyHandle> replaced_col =
+      copyColumn(replacing_col.get(), to_be_replaced_col.name(), true);
+
+  if (!replaced_col) {
+    LOG(log_er_) << "Unable to replace column " << to_be_replaced_col.name() << " by " << replacing_col->GetName()
+                 << " due to failed copy";
+    return;
+  }
+
+  handles_[to_be_replaced_col.ordinal_] = replaced_col.release();
+}
+
+void DbStorage::deleteColumnData(const Column& c) {
+  checkStatus(db_->DropColumnFamily(handle(c)));
+  db_->DestroyColumnFamilyHandle(handle(c));
+
+  auto options = rocksdb::ColumnFamilyOptions();
+  if (c.comparator_) {
+    options.comparator = c.comparator_;
+  }
+  checkStatus(db_->CreateColumnFamily(options, c.name(), &handles_[c.ordinal_]));
 }
 
 void DbStorage::rebuildColumns(const rocksdb::Options& options) {
@@ -268,6 +364,10 @@ std::unique_ptr<rocksdb::Iterator> DbStorage::getColumnIterator(const Column& c)
   return std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(c)));
 }
 
+std::unique_ptr<rocksdb::Iterator> DbStorage::getColumnIterator(rocksdb::ColumnFamilyHandle* c) {
+  return std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, c));
+}
+
 void DbStorage::checkStatus(rocksdb::Status const& status) {
   if (status.ok()) return;
   throw DbException(string("Db error. Status code: ") + std::to_string(status.code()) +
@@ -279,6 +379,7 @@ DbStorage::Batch DbStorage::createWriteBatch() { return DbStorage::Batch(); }
 void DbStorage::commitWriteBatch(Batch& write_batch, rocksdb::WriteOptions const& opts) {
   auto status = db_->Write(opts, write_batch.GetWriteBatch());
   checkStatus(status);
+  write_batch.Clear();
 }
 
 std::shared_ptr<DagBlock> DbStorage::getDagBlock(blk_hash_t const& hash) {
@@ -455,13 +556,15 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period) {
       auto start_slice = toSlice(start_period);
       auto end_slice = toSlice(end_period);
       for (auto period = start_period; period < end_period; period++) {
-        // Find transactions included in the old blocks and delete data related to these transactions to free disk space
+        // Find transactions included in the old blocks and delete data related to these transactions to free disk
+        // space
         auto trx_hashes_raw = lookup(period, DB::Columns::final_chain_transaction_hashes_by_blk_number);
         auto hashes_count = trx_hashes_raw.size() / trx_hash_t::size;
         for (uint32_t i = 0; i < hashes_count; i++) {
           auto hash = trx_hash_t(reinterpret_cast<uint8_t*>(trx_hashes_raw.data() + i * trx_hash_t::size),
                                  trx_hash_t::ConstructFromPointer);
           remove(write_batch, Columns::final_chain_receipt_by_trx_hash, hash);
+          remove(write_batch, Columns::period_data, hash);
         }
         remove(write_batch, Columns::final_chain_transaction_hashes_by_blk_number, EthBlockNumber(period));
         if ((period - start_period + 1) % max_batch_delete == 0) {
@@ -472,8 +575,8 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period) {
       commitWriteBatch(write_batch);
 
       db_->DeleteRange(write_options_, handle(Columns::period_data), start_slice, end_slice);
-      // Deletion alone does not guarantee that the disk space is freed, these CompactRange methods actually compact the
-      // data in the database and free disk space
+      // Deletion alone does not guarantee that the disk space is freed, these CompactRange methods actually compact
+      // the data in the database and free disk space
       db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
       db_->CompactRange({}, handle(Columns::final_chain_receipt_by_trx_hash), nullptr, nullptr);
       db_->CompactRange({}, handle(Columns::final_chain_transaction_hashes_by_blk_number), nullptr, nullptr);
@@ -656,18 +759,13 @@ std::pair<std::optional<SharedTransactions>, trx_hash_t> DbStorage::getFinalized
 }
 
 std::vector<std::shared_ptr<Vote>> DbStorage::getPeriodCertVotes(PbftPeriod period) const {
-  std::vector<std::shared_ptr<Vote>> cert_votes;
   auto period_data = getPeriodDataRaw(period);
-  if (period_data.size() > 0) {
-    auto period_data_rlp = dev::RLP(period_data);
-    auto cert_votes_data = period_data_rlp[CERT_VOTES_POS_IN_PERIOD_DATA];
-    cert_votes.reserve(cert_votes_data.size());
-    for (auto const vote : cert_votes_data) {
-      cert_votes.emplace_back(std::make_shared<Vote>(vote));
-    }
+  if (period_data.empty()) {
+    return {};
   }
 
-  return cert_votes;
+  auto period_data_rlp = dev::RLP(period_data);
+  return decodeVotesBundleRlp(period_data_rlp[CERT_VOTES_POS_IN_PERIOD_DATA]);
 }
 
 std::optional<SharedTransactions> DbStorage::getPeriodTransactions(PbftPeriod period) const {

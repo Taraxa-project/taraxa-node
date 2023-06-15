@@ -20,7 +20,7 @@ std::string TransactionHashes::id() { return "TransactionHashes"; }
 
 uint32_t TransactionHashes::dbVersion() { return 1; }
 
-void TransactionHashes::migrate() {
+void TransactionHashes::migrate(logger::Logger& /*log*/) {
   auto it = db_->getColumnIterator(DB::Columns::final_chain_transaction_hashes_by_blk_number);
 
   // Get and save data in new format for all blocks

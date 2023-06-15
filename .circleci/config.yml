@@ -26,7 +26,6 @@ orbs:
   github-release: izumin5210/github-release@0.1.1
   gcp-gcr: circleci/gcp-gcr@0.13.0
   gcp-cli: circleci/gcp-cli@2.4.1
-  docker-cache: cci-x/docker-registry-image-cache@0.2.12
   helm-release: taraxa/helm-release@0.1.1
 
 commands:
@@ -184,10 +183,10 @@ commands:
       - run:
           name: Cleanup PRNet IPs
           command: |
-            if [[ $(gcloud compute addresses list --format json  --project << parameters.project >> --filter="name~'prnet-boot-<< parameters.pr-name >>.*'" ) != "[]" ]];then 
+            if [[ $(gcloud compute addresses list --format json  --project << parameters.project >> --filter="name~'prnet-boot-<< parameters.pr-name >>.*'" ) != "[]" ]];then
              gcloud compute addresses delete prnet-boot-<< parameters.pr-name >>-{1..3} --region << parameters.region >>  --project << parameters.project >> --quiet
             fi
-            if [[ $(gcloud compute addresses list --format json  --project << parameters.project >> --filter="name~'prnet-rpc-<< parameters.pr-name >>.*'" ) != "[]" ]];then 
+            if [[ $(gcloud compute addresses list --format json  --project << parameters.project >> --filter="name~'prnet-rpc-<< parameters.pr-name >>.*'" ) != "[]" ]];then
              gcloud compute addresses delete prnet-rpc-<< parameters.pr-name >>-{1..3} --region << parameters.region >>  --project << parameters.project >> --quiet
             fi
           when: << parameters.when >>
@@ -216,7 +215,7 @@ commands:
             echo -n "<< parameters.kubeconfig >>" | base64 --decode > $HOME/.kube/config
             curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
             curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-            sudo cp kubectl /usr/local/bin 
+            sudo cp kubectl /usr/local/bin
             sudo chmod +x /usr/local/bin/kubectl
           when: << parameters.when >>
 
@@ -306,7 +305,7 @@ commands:
                   echo "waiting.. for all resources to be deleted"
                   echo ${GETALL}
                   sleep 10
-                fi             
+                fi
               done
               if [ $i -eq 50 ];then
                 echo "Exiting after 500 seconds not all resources may have cleaned up"
@@ -320,7 +319,7 @@ commands:
     steps:
       - run:
           name: Prepare env variables
-          command: | 
+          command: |
             echo "export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )" >> $BASH_ENV
             export PR=$( [[ -z ${CIRCLE_PULL_REQUEST+x} ]] && echo false || echo $(basename ${CIRCLE_PULL_REQUEST}) )
             echo "export SHORT_GIT_HASH=$(echo $CIRCLE_SHA1 | cut -c -7)" >> $BASH_ENV
@@ -328,38 +327,46 @@ commands:
             echo "export HELM_TEST_NAME=pr-${PR}" >> $BASH_ENV
             echo "export DOCKER_BRANCH_TAG=$(./scripts/docker_tag_from_branch.sh $CIRCLE_BRANCH)" >> $BASH_ENV
             echo "export GCP_IMAGE=gcr.io/${GOOGLE_PROJECT_ID}/${IMAGE}" >> $BASH_ENV
-      - run:
-          name: Clean old Images if disk available is lower than 15G
-          command: |
-            for time in 120 96 72 48 24 12 6 3 1 0
-            do
-              if [ $(df  /var/lib/docker --block-size=1073741824 --output=avail|grep -v Avail) -lt 15 ]; then 
-                 df  /var/lib/docker --block-size=1073741824 --output=avail
-                 echo "Pruning images older than ${time}h"
-                 docker image prune -a --force --filter "until=${time}h"
-               fi
-            done
 
   build:
-    description: Builds docker images
+    description: Builds docker image (${IMAGE})
     steps:
-      - run:
-          name: Build builder image
-          command: |
-            docker build -t ${IMAGE}:${VERSION} --target builder .
       - run:
           name: Checkout Submodules
           command: |
             git submodule sync
             git submodule update --init --recursive --jobs 8
       - run:
-          name: Build ctest image
+          name: Compile and build binaries
           command: |
             docker build -t ${IMAGE}-ctest:${VERSION} --target build .
       - run:
-          name: Build taraxad image
+          name: Build final Docker image
           command: |
             docker build -t ${IMAGE}:${VERSION} .
+
+  build_builder:
+    description: Builds docker image (${IMAGE})
+    steps:
+      - run:
+          name: Build builder image
+          command: |
+            docker build -t ${IMAGE}:${VERSION} -f builder.Dockerfile .
+
+  tag_builder:
+    description: Tags docker images (builder)
+    steps:
+      - run:
+          name: Tag images
+          command: |
+
+            if [[ ${CIRCLE_TAG} != "" ]];then
+              TAG=$(echo ${CIRCLE_TAG} | sed 's/^builder-//g')
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${TAG}
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:latest
+            else
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${VERSION}
+            fi
 
   tag:
     description: Tags docker images
@@ -504,24 +511,24 @@ commands:
             if [ ! -z "$(docker network list --format '{{.Name}}' | grep -o smoketest-${VERSION})" ]; then
               docker network rm smoketest-${VERSION} >/dev/null;
             fi
-            
+
             docker network create --driver=bridge \
               smoketest-${VERSION}
-            
+
             docker run -d\
               --name smoketest-${VERSION} \
               --net smoketest-${VERSION} \
               ${IMAGE}:${VERSION} \
               single
-            
+
             mkdir -p  $PWD/test_build-d/
-            
+
             sleep 30
 
             echo "--- Logs from container ---"
             docker logs smoketest-${VERSION}
             echo "--- Logs from container ---"
-            
+
             http_code=$(docker run --rm  -v $PWD/test_build-d:/data \
               --net smoketest-${VERSION} \
               byrnedo/alpine-curl \
@@ -540,7 +547,7 @@ commands:
                           "secret": "3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd"
                       }]
                   }')
-              
+
             cat $PWD/test_build-d/http.out || true
             if [[ $http_code -eq 200 ]] ; then
                 exit 0
@@ -701,9 +708,34 @@ jobs:
       - test
       - tag
       - push_gcr
+
+  build-builder-docker-image:
+    environment:
+      - IMAGE: taraxa-builder
+      - CONAN_REVISIONS_ENABLED: 1
+    machine:
+      image: ubuntu-2204:2022.04.2
+      docker_layer_caching: true
+    resource_class: large
+    steps:
+      - checkout
+      - prepare
+      - run:
+          name: List images restored from DLC
+          command: |
+            docker images
+      - build_builder
+      - run:
+          name: List images to be saved in DLC
+          command: |
+            docker images
+      - run:
+          name: Show layers of taraxa-builder image
+          command: |
+            docker history taraxa-builder:${VERSION}
+      - tag_builder
       - push_dockerhub
-      - store_artifacts:
-          path: tmp_docker
+
 
   release-docker-image:
       environment:
@@ -720,8 +752,6 @@ jobs:
         - test
         - tag
         - push_dockerhub
-        - store_artifacts:
-            path: tmp_docker
 
   create-and-push-builder:
     docker:
@@ -1009,6 +1039,47 @@ workflows:
             - build-linux
             - build-mac
 
+
+  # ### workflows for builder image ### #
+  # run this workflow for specific branches 'builder/*'
+  build-builder-docker-image:
+    when:
+      and:
+        - not: << pipeline.parameters.deploy_prnet >>
+        - not: << pipeline.parameters.redeploy_prnet >>
+        - not: << pipeline.parameters.cleanup_prnet >>
+    jobs:
+      - build-builder-docker-image:
+          filters:
+            branches:
+              only:
+                - /^builder\/.*/
+                - /^chore\/builder-.*/
+                - /^fix\/builder-.*/
+                - /^feature\/builder-.*/
+          context:
+            - DOCKERHUB
+
+  # run this workflow for specific tags 'builder/*'
+  release-builder-docker-image:
+    when:
+      and:
+        - not: << pipeline.parameters.deploy_prnet >>
+        - not: << pipeline.parameters.redeploy_prnet >>
+        - not: << pipeline.parameters.cleanup_prnet >>
+    jobs:
+      - build-builder-docker-image:
+          filters:
+            branches:
+              ignore: /.*/
+            tags:
+              only: /^builder-v\d+.\d+.\d+/
+          context:
+            - DOCKERHUB
+  # ### workflows for builder image ### #
+
+
+  # ### workflows for taraxa-node image ### #
   # run this workflow for all branches apart those reserved for chart
   build-docker-image:
     when:
@@ -1026,6 +1097,10 @@ workflows:
                 - /^chore\/chart-.*/
                 - /^fix\/chart-.*/
                 - /^feature\/chart-.*/
+                - /^builder\/.*/
+                - /^chore\/builder-.*/
+                - /^fix\/builder-.*/
+                - /^feature\/builder-.*/
           context:
             - TARAXA
             - GCP
@@ -1060,7 +1135,7 @@ workflows:
       - release-docker-image:
           filters:
             tags:
-              only: 
+              only:
               - /^v?\d+\.\d+\.\d+$/
               - /^v?\d+\.\d+\.\d+-beta$/
             branches:
@@ -1071,7 +1146,9 @@ workflows:
             - K8S
             - GCR
             - DOCKERHUB
+  # ### workflows for taraxa-node image ### #
 
+  # ### workflows for taraxa-node helm chart ### #
   # run this workflow for branches specified below
   build-helm-chart:
     when:
@@ -1091,12 +1168,11 @@ workflows:
             - CHARTSREPO
           filters:
             branches:
-              only: 
+              only:
               - /^chart\/.*/
               - /^chore\/chart-.*/
               - /^fix\/chart-.*/
               - /^feature\/chart-.*/
-
 
   # run this workflow for tags, like chart-vX.Y.Z
   release-helm-chart:
@@ -1114,3 +1190,4 @@ workflows:
               ignore: /.*/
             tags:
               only: /^chart-v\d+.\d+.\d+/
+  # ### workflows for taraxa-node helm chart ### #

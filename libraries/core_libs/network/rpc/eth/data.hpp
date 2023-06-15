@@ -50,4 +50,33 @@ struct SyncStatus {
   EthBlockNumber starting_block = 0, current_block = 0, highest_block = 0;
 };
 
+void add(Json::Value& obj, const std::optional<TransactionLocationWithBlockHash>& info);
+void add(Json::Value& obj, const ExtendedTransactionLocation& info);
+Json::Value toJson(const final_chain::BlockHeader& obj);
+Json::Value toJson(const Transaction& trx, const std::optional<TransactionLocationWithBlockHash>& loc);
+Json::Value toJson(const LocalisedTransaction& lt);
+Json::Value toJson(const final_chain::BlockHeader& obj);
+Json::Value toJson(const LocalisedLogEntry& lle);
+Json::Value toJson(const LocalisedTransactionReceipt& ltr);
+Json::Value toJson(const SyncStatus& obj);
+
+template <typename T>
+Json::Value toJson(const T& t) {
+  return toJS(t);
+}
+
+template <typename T>
+Json::Value toJsonArray(const std::vector<T>& _es) {
+  Json::Value res(Json::arrayValue);
+  for (const auto& e : _es) {
+    res.append(toJson(e));
+  }
+  return res;
+}
+
+template <typename T>
+Json::Value toJson(const std::optional<T>& t) {
+  return t ? toJson(*t) : Json::Value();
+}
+
 }  // namespace taraxa::net::rpc::eth

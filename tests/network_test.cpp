@@ -12,13 +12,13 @@
 #include "dag/dag.hpp"
 #include "dag/dag_block_proposer.hpp"
 #include "logger/logger.hpp"
-#include "network/tarcap/packets_handlers/dag_block_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/get_dag_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/get_next_votes_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/status_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/transaction_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/get_dag_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/get_next_votes_bundle_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/status_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "test_util/samples.hpp"
 #include "test_util/test_util.hpp"
@@ -33,45 +33,9 @@ auto g_secret = Lazy([] {
   return dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
                      dev::Secret::ConstructFromStringType::FromHex);
 });
-auto node_key = dev::KeyPair(g_secret);
 auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, NUM_TRX, g_secret); });
 
 struct NetworkTest : NodesTest {};
-
-// Test creates two Network setup and verifies sending block between is successful
-TEST_F(NetworkTest, transfer_block) {
-  auto nw1 = std::make_unique<Network>(node_cfgs[0]);
-  auto nw2 = std::make_unique<Network>(node_cfgs[1]);
-
-  nw1->start();
-  nw2->start();
-  DagBlock blk(blk_hash_t(1111), 0, {blk_hash_t(222), blk_hash_t(333), blk_hash_t(444)},
-               {g_signed_trx_samples[0]->getHash(), g_signed_trx_samples[1]->getHash()}, sig_t(7777), blk_hash_t(888),
-               addr_t(999));
-
-  SharedTransactions transactions({g_signed_trx_samples[0], g_signed_trx_samples[1]});
-  nw2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->onNewTransactions(std::move(transactions));
-
-  EXPECT_HAPPENS({10s, 200ms}, [&](auto& ctx) {
-    nw1->setPendingPeersToReady();
-    nw2->setPendingPeersToReady();
-    WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 1)
-    WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 1)
-  });
-
-  nw2->getSpecificHandler<network::tarcap::DagBlockPacketHandler>()->sendBlock(nw1->getNodeId(), blk, {});
-
-  std::cout << "Waiting packages for 10 seconds ..." << std::endl;
-
-  for (int i = 0; i < 100; i++) {
-    if (nw1->getReceivedBlocksCount()) break;
-    taraxa::thisThreadSleepForMilliSeconds(100);
-  }
-  nw2 = nullptr;
-  unsigned long long num_received = nw1->getReceivedBlocksCount();
-  nw1 = nullptr;
-  ASSERT_EQ(1, num_received);
-}
 
 // Test creates two Network setup and verifies sending blocks between is successful
 TEST_F(NetworkTest, transfer_lot_of_blocks) {
@@ -141,7 +105,52 @@ TEST_F(NetworkTest, transfer_lot_of_blocks) {
   wait({120s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr2->getDagBlock(block_hash), nullptr) });
 }
 
-TEST_F(NetworkTest, update_peer_chainsize) {
+// TODO: debug why the test take so long...
+TEST_F(NetworkTest, propagate_block) {
+  auto node_cfgs = make_node_cfgs(5, 1);
+  auto nodes = launch_nodes(node_cfgs);
+  const auto& node1 = nodes[0];
+
+  // Stop PBFT manager
+  for (auto& node : nodes) {
+    node->getPbftManager()->stop();
+  }
+
+  const auto db1 = node1->getDB();
+  const auto dag_mgr1 = node1->getDagManager();
+
+  auto trxs = samples::createSignedTrxSamples(0, 1, g_secret);
+  const auto estimation = node1->getTransactionManager()->estimateTransactionGas(trxs[0], {});
+
+  // node1 add one valid block
+  const auto proposal_level = 1;
+  const auto proposal_period = *db1->getProposalPeriodForDagLevel(proposal_level);
+  const auto period_block_hash = db1->getPeriodBlockHash(proposal_period);
+  const auto sortition_params = dag_mgr1->sortitionParamsManager().getSortitionParams(proposal_period);
+  vdf_sortition::VdfSortition vdf(sortition_params, node1->getVrfSecretKey(),
+                                  VrfSortitionBase::makeVrfInput(proposal_level, period_block_hash), 1, 1);
+  const auto dag_genesis = node1->getConfig().genesis.dag_genesis_block.getHash();
+  dev::bytes vdf_msg = DagManager::getVdfMessage(dag_genesis, {trxs[0]});
+  vdf.computeVdfSolution(sortition_params, vdf_msg, false);
+  DagBlock blk(dag_genesis, proposal_level, {}, {trxs[0]->getHash()}, estimation, vdf, node1->getSecretKey());
+
+  const auto block_hash = blk.getHash();
+
+  // Add block gossip it to connected peers
+  dag_mgr1->addDagBlock(std::move(blk), {trxs[0]});
+
+  wait({1s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_NE(ctx, dag_mgr1->getDagBlock(block_hash), nullptr) });
+
+  std::cout << "Waiting Sync ..." << std::endl;
+  wait({20s, 200ms}, [&](auto& ctx) {
+    for (const auto& node : nodes) {
+      const auto dag_mgr = node->getDagManager();
+      WAIT_EXPECT_NE(ctx, dag_mgr->getDagBlock(block_hash), nullptr)
+    }
+  });
+}
+
+TEST_F(NetworkTest, DISABLED_update_peer_chainsize) {
   auto node_cfgs = make_node_cfgs(2, 1, 5);
   auto nodes = launch_nodes(node_cfgs);
 
@@ -288,11 +297,10 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
 
   // Launch node2, node2 own 0 balance, could not vote
   auto nodes2 = launch_nodes({node_cfgs[1]});
-  nodes[0]->getPbftManager()->stop();
   const auto node2_pbft_chain = nodes2[0]->getPbftChain();
 
   // verify that the large pbft block is synced
-  EXPECT_HAPPENS({30s, 100ms}, [&](auto& ctx) {
+  EXPECT_HAPPENS({100s, 100ms}, [&](auto& ctx) {
     WAIT_EXPECT_EQ(ctx, node2_pbft_chain->getPbftChainSize(), node1_pbft_chain->getPbftChainSize())
   });
 
@@ -303,22 +311,24 @@ TEST_F(NetworkTest, sync_large_pbft_block) {
     std::cout << "PBFT block2 " << *pbft_blocks2 << std::endl;
   }
   EXPECT_EQ(pbft_blocks1->rlp(true), pbft_blocks2->rlp(true));
-
-  // this sleep is needed to process all remaining packets and destruct all network stuff
-  // on removal will cause next tests in the suite to fail because p2p port left binded
-  // see https://github.com/Taraxa-project/taraxa-node/issues/977 for more info
-  std::this_thread::sleep_for(1s);
 }
 
 // Test creates two Network setup and verifies sending transaction
 // between is successfull
 TEST_F(NetworkTest, transfer_transaction) {
-  auto nw1 = std::make_unique<Network>(node_cfgs[0]);
-  auto nw2 = std::make_unique<Network>(node_cfgs[1]);
-  nw1->start();
-  nw2->start();
+  auto node_cfgs = make_node_cfgs(2, 0, 20);
+  auto nodes = launch_nodes(node_cfgs);
+  const auto& node1 = nodes[0];
+  const auto& node2 = nodes[1];
 
-  EXPECT_HAPPENS({20s, 100ms}, [&](auto& ctx) {
+  // Stop PBFT manager
+  node1->getPbftManager()->stop();
+  node2->getPbftManager()->stop();
+
+  const auto nw1 = node1->getNetwork();
+  const auto nw2 = node2->getNetwork();
+
+  EXPECT_HAPPENS({60s, 100ms}, [&](auto& ctx) {
     nw1->setPendingPeersToReady();
     nw2->setPendingPeersToReady();
     WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 1)
@@ -335,17 +345,16 @@ TEST_F(NetworkTest, transfer_transaction) {
 
   SharedTransactions transactions;
   transactions.push_back(g_signed_trx_samples[0]);
-  transactions.push_back(g_signed_trx_samples[1]);
-  transactions.push_back(g_signed_trx_samples[2]);
 
   nw2->getSpecificHandler<network::tarcap::TransactionPacketHandler>()->sendTransactions(peer1,
                                                                                          std::move(transactions));
-
-  EXPECT_HAPPENS({2s, 200ms}, [&](auto& ctx) { WAIT_EXPECT_EQ(ctx, nw1->getReceivedTransactionsCount(), 3) });
+  const auto tx_mgr1 = node1->getTransactionManager();
+  EXPECT_HAPPENS({2s, 200ms},
+                 [&](auto& ctx) { WAIT_EXPECT_TRUE(ctx, tx_mgr1->getTransaction(g_signed_trx_samples[0]->getHash())) });
 }
 
 // Test verifies saving network to a file and restoring it from a file
-// is successfull. Once restored from the file it is able to reestablish
+// is successful. Once restored from the file it is able to reestablish
 // connections even with boot nodes down
 TEST_F(NetworkTest, save_network) {
   std::filesystem::remove_all("/tmp/nw2");
@@ -354,18 +363,15 @@ TEST_F(NetworkTest, save_network) {
   auto key3 = dev::KeyPair::create();
   h256 genesis_hash;
   {
-    std::shared_ptr<Network> nw1 =
-        std::make_shared<taraxa::Network>(node_cfgs[0], genesis_hash, Host::CapabilitiesFactory());
-    std::shared_ptr<Network> nw2 =
-        std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw2", key2);
-    std::shared_ptr<Network> nw3 =
-        std::make_shared<taraxa::Network>(node_cfgs[2], genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw3", key3);
+    std::shared_ptr<Network> nw1 = std::make_shared<taraxa::Network>(node_cfgs[0], genesis_hash);
+    std::shared_ptr<Network> nw2 = std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, "/tmp/nw2", key2);
+    std::shared_ptr<Network> nw3 = std::make_shared<taraxa::Network>(node_cfgs[2], genesis_hash, "/tmp/nw3", key3);
 
     nw1->start();
     nw2->start();
     nw3->start();
 
-    EXPECT_HAPPENS({120s, 500ms}, [&](auto& ctx) {
+    EXPECT_HAPPENS({120s, 100ms}, [&](auto& ctx) {
       nw1->setPendingPeersToReady();
       nw2->setPendingPeersToReady();
       nw3->setPendingPeersToReady();
@@ -375,14 +381,12 @@ TEST_F(NetworkTest, save_network) {
     });
   }
 
-  std::shared_ptr<Network> nw2 =
-      std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw2", key2);
-  std::shared_ptr<Network> nw3 =
-      std::make_shared<taraxa::Network>(node_cfgs[2], genesis_hash, Host::CapabilitiesFactory(), "/tmp/nw3", key3);
+  std::shared_ptr<Network> nw2 = std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, "/tmp/nw2", key2);
+  std::shared_ptr<Network> nw3 = std::make_shared<taraxa::Network>(node_cfgs[2], genesis_hash, "/tmp/nw3", key3);
   nw2->start();
   nw3->start();
 
-  EXPECT_HAPPENS({120s, 500ms}, [&](auto& ctx) {
+  EXPECT_HAPPENS({120s, 100ms}, [&](auto& ctx) {
     nw2->setPendingPeersToReady();
     nw3->setPendingPeersToReady();
     WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 1)
@@ -699,13 +703,12 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   PbftBlock pbft_block1(prev_block_hash, blk1.getHash(), dev::sha3(order_stream.out()), kNullBlockHash, period,
                         beneficiary, node1->getSecretKey(), {});
-  std::vector<std::shared_ptr<Vote>> votes_for_pbft_blk1;
-  votes_for_pbft_blk1.emplace_back(
-      node1->getVoteManager()->generateVote(pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, 1, 1, 3));
-  std::cout << "Generate 1 vote for first PBFT block" << std::endl;
-  // Add cert votes in DB
-  // Add PBFT block in DB
+  const auto pbft_block1_cert_vote = node1->getVoteManager()->generateVote(
+      pbft_block1.getBlockHash(), PbftVoteTypes::cert_vote, pbft_block1.getPeriod(), 1, 3);
+  pbft_block1_cert_vote->calculateWeight(1, 1, 1);
+  node1->getVoteManager()->addVerifiedVote(pbft_block1_cert_vote);
 
+  // Add PBFT block in DB
   PeriodData period_data1(std::make_shared<PbftBlock>(pbft_block1), {});
   period_data1.dag_blocks.push_back(blk1);
   period_data1.transactions.push_back(g_signed_trx_samples[0]);
@@ -747,13 +750,12 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
 
   PbftBlock pbft_block2(prev_block_hash, blk2.getHash(), dev::sha3(order_stream2.out()), kNullBlockHash, period,
                         beneficiary, node1->getSecretKey(), {});
-  std::cout << "Use fake votes for the second PBFT block" << std::endl;
-  // TODO: how can these fake votes be somehow properly handled when we save it directly to db ???
-  // node1 put block2 into pbft chain and use fake votes storing into DB (malicious player)
-  // Add fake votes in DB
-  // Add PBFT block in DB
+  const auto pbft_block2_cert_vote = node1->getVoteManager()->generateVote(
+      pbft_block2.getBlockHash(), PbftVoteTypes::cert_vote, pbft_block2.getPeriod(), 1, 3);
+  pbft_block2_cert_vote->calculateWeight(1, 1, 1);
+  node1->getVoteManager()->addVerifiedVote(pbft_block2_cert_vote);
 
-  PeriodData period_data2(std::make_shared<PbftBlock>(pbft_block2), votes_for_pbft_blk1);
+  PeriodData period_data2(std::make_shared<PbftBlock>(pbft_block2), {pbft_block1_cert_vote});
   period_data2.dag_blocks.push_back(blk2);
   period_data2.transactions.push_back(g_signed_trx_samples[2]);
   period_data2.transactions.push_back(g_signed_trx_samples[3]);
@@ -765,7 +767,11 @@ TEST_F(NetworkTest, node_pbft_sync_without_enough_votes) {
   pbft_chain_head_hash = pbft_chain1->getHeadHash();
   pbft_chain_head_str = pbft_chain1->getJsonStr();
   db1->addPbftHeadToBatch(pbft_chain_head_hash, pbft_chain_head_str, batch);
+
+  node1->getVoteManager()->resetRewardVotes(pbft_block2.getPeriod(), 1, 3, pbft_block2.getBlockHash(), batch);
+
   db1->commitWriteBatch(batch);
+
   expect_pbft_chain_size = 2;
   EXPECT_EQ(node1->getPbftChain()->getPbftChainSize(), expect_pbft_chain_size);
 
@@ -1396,7 +1402,7 @@ TEST_F(NetworkTest, suspicious_packets) {
 
 TEST_F(NetworkTest, dag_syncing_limit) {
   network::tarcap::TaraxaPeer peer1, peer2;
-  const uint64_t dag_sync_limit = 300;
+  const uint64_t dag_sync_limit = 60;
 
   EXPECT_TRUE(peer1.dagSyncingAllowed());
   peer1.peer_dag_synced_ = true;

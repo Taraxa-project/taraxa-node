@@ -49,20 +49,26 @@ struct FinalChainTest : WithDataDir {
     for (const auto& trx : trxs) {
       trx_hashes.emplace_back(trx->getHash());
     }
-    DagBlock dag_blk({}, {}, {}, trx_hashes, {}, {}, secret_t::random());
+
+    auto proposer_keys = dev::KeyPair::create();
+    DagBlock dag_blk({}, {}, {}, trx_hashes, {}, {}, proposer_keys.secret());
     db->saveDagBlock(dag_blk);
     std::vector<vote_hash_t> reward_votes_hashes;
     auto pbft_block =
         std::make_shared<PbftBlock>(kNullBlockHash, kNullBlockHash, kNullBlockHash, kNullBlockHash, expected_blk_num,
-                                    addr_t::random(), dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
+                                    addr_t::random(), proposer_keys.secret(), std::move(reward_votes_hashes));
+
     std::vector<std::shared_ptr<Vote>> votes;
     PeriodData period_data(pbft_block, votes);
     period_data.dag_blocks.push_back(dag_blk);
     period_data.transactions = trxs;
+    if (pbft_block->getPeriod() > 1) {
+      period_data.previous_block_cert_votes = {
+          genDummyVote(PbftVoteTypes::cert_vote, pbft_block->getPeriod() - 1, 1, 3, pbft_block->getBlockHash())};
+    }
 
     auto batch = db->createWriteBatch();
     db->savePeriodData(period_data, batch);
-
     db->commitWriteBatch(batch);
 
     auto result = SUT->finalize(std::move(period_data), {dag_blk.getHash()}).get();
@@ -447,6 +453,9 @@ TEST_F(FinalChainTest, failed_transaction_fee) {
   auto trx2_1 = std::make_shared<Transaction>(2, 101, 1, gas, dev::bytes(), sk, receiver);
 
   advance({trx1});
+  auto blk = SUT->block_header(expected_blk_num);
+  auto proposer_balance = SUT->getBalance(blk->author);
+  EXPECT_EQ(proposer_balance.first, 21000);
   advance({trx2});
   advance({trx3});
 
