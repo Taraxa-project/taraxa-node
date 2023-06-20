@@ -261,7 +261,7 @@ You should be able to build project following default MacOS building process. Bu
     # It output should be equal to `i386`
     conan profile new clang --detect && \
     conan profile update settings.compiler=clang clang && \
-    conan profile update settings.compiler.version=13 clang && \
+    conan profile update settings.compiler.version=14 clang && \
     conan profile update settings.compiler.libcxx=libc++ clang && \
     conan profile update env.CC=/usr/local/opt/llvm/bin/clang clang && \
     conan profile update env.CXX=/usr/local/opt/llvm/bin/clang++ clang

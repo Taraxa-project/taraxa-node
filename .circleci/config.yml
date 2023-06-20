@@ -389,6 +389,9 @@ commands:
               docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-release:${SHORT_GIT_HASH}
               docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-release:${DOCKER_BRANCH_TAG}-${CIRCLE_BUILD_NUM}
               docker tag ${IMAGE}:${VERSION} ${GCP_IMAGE}-release:latest
+
+              RC_TAG=$(echo ${CIRCLE_BRANCH} | sed 's/^release\///g')-rc.${CIRCLE_BUILD_NUM}
+              docker tag ${IMAGE}:${VERSION} taraxa/${IMAGE}:${RC_TAG}
             fi
 
             ### soon obsolete ###
@@ -469,15 +472,17 @@ commands:
       - run:
           name: Push Images
           command: |
-
+            # tag images for release (based on tag)
             if [[ ${CIRCLE_TAG} != "" ]];then
-              TAG=$(echo ${CIRCLE_TAG} | sed 's/^builder-//g')
-              docker push taraxa/${IMAGE}:${TAG}
+              docker push taraxa/${IMAGE}:${CIRCLE_TAG}
               docker push taraxa/${IMAGE}:latest
-            else
-              docker push taraxa/${IMAGE}:${VERSION}
             fi
 
+            # push images for 'release' branches
+            if [[ ${CIRCLE_BRANCH} =~ ^release.* ]]; then
+              RC_TAG=$(echo ${CIRCLE_BRANCH} | sed 's/^release\///g')-rc.${CIRCLE_BUILD_NUM}
+              docker push taraxa/${IMAGE}:${RC_TAG}
+            fi
 
 
   test:
@@ -1088,6 +1093,7 @@ workflows:
             branches:
               ignore:
                 - /^chart\/.*/
+                - /^release\/.*/
                 - /^chore\/chart-.*/
                 - /^fix\/chart-.*/
                 - /^feature\/chart-.*/
@@ -1101,6 +1107,27 @@ workflows:
             - K8S
             - GCR
             - DOCKERHUB
+
+  # run this workflow for all branches apart those reserved for chart
+  build-docker-image-rc:
+    when:
+      and:
+        - not: << pipeline.parameters.deploy_prnet >>
+        - not: << pipeline.parameters.redeploy_prnet >>
+        - not: << pipeline.parameters.cleanup_prnet >>
+    jobs:
+      - build-docker-image:
+          filters:
+            branches:
+              only:
+                - /^release\/.*/
+          context:
+            - TARAXA
+            - GCP
+            - K8S
+            - GCR
+            - DOCKERHUB
+
 
   # run this workflow for tags, like vX.Y.Z and vX.Y.Z-beta
   release-docker-image:

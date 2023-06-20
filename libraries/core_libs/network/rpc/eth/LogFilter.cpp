@@ -12,60 +12,35 @@ LogFilter::LogFilter(EthBlockNumber from_block, std::optional<EthBlockNumber> to
 }
 
 std::vector<LogBloom> LogFilter::bloomPossibilities() const {
-  // return combination of each of the addresses/topics
+  // We need to match every element that is added to the bloom filter. And to have OR logic h ere we need to construct
+  // multiple blooms | every address with every topic option addresses_ = [a0, a1]; topics_ = [[t0], [t1a, t1b], [],
+  // []]; blooms = [
+  //   a0 | t0 | t1a,
+  //   a0 | t0 | t1b,
+  //   a1 | t0 | t1a,
+  //   a1 | t0 | t1b
+  // ]
+  // init with addresses
   std::vector<LogBloom> ret;
-  // | every address with every topic
-  for (const auto& i : addresses_) {
-    // 1st case, there are addresses and topics
-    //
-    // m_addresses = [a0, a1];
-    // m_topics = [[t0], [t1a, t1b], [], []];
-    //
-    // blooms = [
-    // a0 | t0, a0 | t1a | t1b,
-    // a1 | t0, a1 | t1a | t1b
-    // ]
-    //
-    for (const auto& t : topics_) {
-      if (t.empty()) {
-        continue;
-      }
-      auto b = LogBloom().shiftBloom<3>(sha3(i));
-      for (const auto& j : t) {
-        b = b.shiftBloom<3>(sha3(j));
-      }
-      ret.push_back(b);
+  ret.reserve(std::accumulate(topics_.begin(), topics_.end(), addresses_.size(),
+                              [](size_t res, const auto& t) { return res + t.size(); }));
+  std::transform(addresses_.begin(), addresses_.end(), std::back_inserter(ret),
+                 [](const auto& a) { return LogBloom().shiftBloom<3>(sha3(a)); });
+
+  for (const auto& topic : topics_) {
+    // blooms won't change, continue
+    if (topic.empty()) {
+      continue;
     }
-  }
-
-  // 2nd case, there are no topics
-  //
-  // m_addresses = [a0, a1];
-  // m_topics = [[t0], [t1a, t1b], [], []];
-  //
-  // blooms = [a0, a1];
-  //
-  if (ret.empty()) {
-    std::transform(addresses_.cbegin(), addresses_.cend(), std::back_inserter(ret),
-                   [](const auto& i) { return LogBloom().shiftBloom<3>(sha3(i)); });
-  }
-
-  // 3rd case, there are no addresses, at least create blooms from topics
-  //
-  // m_addresses = [];
-  // m_topics = [[t0], [t1a, t1b], [], []];
-  //
-  // blooms = [t0, t1a | t1b];
-  //
-  if (addresses_.empty()) {
-    for (const auto& t : topics_) {
-      if (t.size()) {
-        LogBloom b;
-        for (const auto& j : t) {
-          b = b.shiftBloom<3>(sha3(j));
-        }
-        ret.push_back(b);
-      }
+    // move blooms from previous iteration
+    std::vector<LogBloom> local(std::move(ret));
+    ret.clear();
+    for (const auto& bloom : local) {
+      std::transform(topic.begin(), topic.end(), std::back_inserter(ret), [&bloom](const auto& o) {
+        // copy to not modify original bloom for future use and move it below
+        LogBloom b = bloom;
+        return std::move(b.shiftBloom<3>(sha3(o)));
+      });
     }
   }
   return ret;
