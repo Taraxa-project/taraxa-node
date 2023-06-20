@@ -24,7 +24,5 @@ var types_8hpp =
     [ "val_t", "types_8hpp.html#aad3ca55780e79a029c6a1ccf43f66e67", null ],
     [ "vec_blk_t", "types_8hpp.html#a3b0dfef1d0e54a4410d95b131a6203b3", null ],
     [ "vec_trx_t", "types_8hpp.html#ad0d27015d777d709bbfa9046a833ba55", null ],
-    [ "vote_hash_t", "types_8hpp.html#a4f575bc8f641426bf9abc034436b9083", null ],
-    [ "operator+=", "types_8hpp.html#a01b1a913c51e01e88c7dc2d3858f23ac", null ],
-    [ "toString", "types_8hpp.html#a81b5cfd508017d57dd0af6b688c799f1", null ]
+    [ "vote_hash_t", "types_8hpp.html#a4f575bc8f641426bf9abc034436b9083", null ]
 ];
