@@ -47,7 +47,7 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
     }
 
     dev::RLPStream s;
-    if (pbft_chain_synced && last_block && block_period > 1) {
+    if (pbft_chain_synced && last_block) {
       s.appendList(3);
       s << last_block;
       s.appendRaw(transformPeriodDataRlpToV1(data));
