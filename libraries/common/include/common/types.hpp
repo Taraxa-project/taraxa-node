@@ -58,13 +58,4 @@ using vec_trx_t = std::vector<trx_hash_t>;
 using byte = uint8_t;
 using bytes = std::vector<byte>;
 using trx_nonce_t = val_t;
-
-// val_t type related helper functions
-inline val_t operator+=(const val_t &val, const val_t &other) { return val + other; }
-inline std::string toString(const val_t &val) {
-  std::stringstream strm;
-  strm << val;
-  return strm.str();
-}
-
 }  // namespace taraxa
