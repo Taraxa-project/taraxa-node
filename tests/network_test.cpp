@@ -1437,6 +1437,32 @@ TEST_F(NetworkTest, dag_syncing_limit) {
   EXPECT_TRUE(peer2.requestDagSyncingAllowed());
 }
 
+TEST_F(NetworkTest, peer_cache_test) {
+  const uint64_t max_cache_size = 200000;
+  const uint64_t delete_step = 1000;
+  const uint64_t max_block_to_keep_in_cache = 10;
+  ExpirationBlockNumberCache<trx_hash_t> known_transactions_with_block_number(max_cache_size, delete_step,
+                                                                              max_block_to_keep_in_cache);
+  ExpirationCache<trx_hash_t> known_transactions(max_cache_size, delete_step);
+  for (uint64_t block_number = 1; block_number < 1000; block_number++) {
+    // Each block insert 2000 transactions
+    const uint64_t transactions_in_block = 2000;
+    for (uint64_t i = 0; i < transactions_in_block; i++) {
+      known_transactions_with_block_number.insert(trx_hash_t(block_number * transactions_in_block + i), block_number);
+      known_transactions.insert(trx_hash_t(block_number * transactions_in_block + i));
+    }
+    uint64_t number_of_insertion = block_number * transactions_in_block;
+    uint64_t expected_known_transactions = std::min(number_of_insertion, max_cache_size);
+    EXPECT_EQ(known_transactions.size(), expected_known_transactions);
+    uint64_t expected_known_transactions_with_block_number =
+        std::min(number_of_insertion, (max_block_to_keep_in_cache + 1) * transactions_in_block);
+    EXPECT_EQ(known_transactions_with_block_number.size(), expected_known_transactions_with_block_number);
+
+    std::cout << block_number << " " << known_transactions_with_block_number.size() << " " << known_transactions.size()
+              << std::endl;
+  }
+}
+
 }  // namespace taraxa::core_tests
 
 using namespace taraxa;
