@@ -116,11 +116,11 @@ class TaraxaPeer : public boost::noncopyable {
  private:
   dev::p2p::NodeID id_;
 
-  ExpirationCache<blk_hash_t> known_dag_blocks_;
-  ExpirationCache<trx_hash_t> known_transactions_;
+  ExpirationBlockNumberCache<blk_hash_t> known_dag_blocks_;
+  ExpirationBlockNumberCache<trx_hash_t> known_transactions_;
   // PBFT
-  ExpirationCache<blk_hash_t> known_pbft_blocks_;
-  ExpirationCache<vote_hash_t> known_votes_;  // for peers
+  ExpirationBlockNumberCache<blk_hash_t> known_pbft_blocks_;
+  ExpirationBlockNumberCache<vote_hash_t> known_votes_;  // for peers
 
   std::atomic<uint64_t> timestamp_suspicious_packet_ = 0;
   std::atomic<uint64_t> suspicious_packet_count_ = 0;

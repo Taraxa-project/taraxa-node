@@ -5,8 +5,11 @@
 #include <libdevcore/CommonJS.h>
 #include <libp2p/Common.h>
 
+#include <algorithm>
+
 #include "dag/dag_manager.hpp"
 #include "json/reader.h"
+#include "network/rpc/eth/data.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "transaction/transaction_manager.hpp"
 
@@ -85,7 +88,7 @@ std::string Taraxa::taraxa_pbftBlockHashByPeriod(const std::string& _period) {
   try {
     auto node = tryGetNode();
     auto db = node->getDB();
-    auto blk = db->getPbftBlock(std::stoull(_period, 0, 16));
+    auto blk = db->getPbftBlock(dev::jsToInt(_period));
     if (!blk.has_value()) {
       return {};
     }
@@ -97,13 +100,14 @@ std::string Taraxa::taraxa_pbftBlockHashByPeriod(const std::string& _period) {
 
 Json::Value Taraxa::taraxa_getScheduleBlockByPeriod(const std::string& _period) {
   try {
+    auto period = dev::jsToInt(_period);
     auto node = tryGetNode();
     auto db = node->getDB();
-    auto blk = db->getPbftBlock(std::stoull(_period, 0, 16));
+    auto blk = db->getPbftBlock(period);
     if (!blk.has_value()) {
       return Json::Value();
     }
-    return PbftBlock::toJson(*blk, db->getFinalizedDagBlockHashesByPeriod(std::stoull(_period, 0, 16)));
+    return PbftBlock::toJson(*blk, db->getFinalizedDagBlockHashesByPeriod(period));
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }
@@ -112,7 +116,7 @@ Json::Value Taraxa::taraxa_getScheduleBlockByPeriod(const std::string& _period) 
 Json::Value Taraxa::taraxa_getDagBlockByLevel(const string& _blockLevel, bool _includeTransactions) {
   try {
     auto node = tryGetNode();
-    auto blocks = node->getDB()->getDagBlocksAtLevel(std::stoull(_blockLevel, 0, 16), 1);
+    auto blocks = node->getDB()->getDagBlocksAtLevel(dev::jsToInt(_blockLevel), 1);
     auto res = Json::Value(Json::arrayValue);
     for (auto const& b : blocks) {
       auto block_json = b->getJson();
@@ -151,4 +155,82 @@ Json::Value Taraxa::taraxa_getChainStats() {
   }
   return res;
 }
+
+Json::Value mergeJsons(Json::Value&& o1, Json::Value&& o2) {
+  for (auto itr = o2.begin(); itr != o2.end(); ++itr) {
+    o1[itr.key().asString()] = *itr;
+  }
+  return o1;
+}
+
+template <class S, class FN>
+Json::Value transformToJsonParallel(const S& source, FN op) {
+  if (source.empty()) {
+    return Json::Value(Json::arrayValue);
+  }
+
+  static util::ThreadPool executor{std::thread::hardware_concurrency() / 2};
+
+  Json::Value out(Json::arrayValue);
+  out.resize(source.size());
+  std::atomic_uint processed = 0;
+  for (unsigned i = 0; i < source.size(); ++i) {
+    executor.post([&, i]() {
+      out[i] = op(source[i]);
+      ++processed;
+    });
+  }
+
+  while (true) {
+    if (processed == source.size()) {
+      break;
+    }
+  }
+  return out;
+}
+
+Json::Value Taraxa::taraxa_getPeriodTransactionsWithReceipts(const std::string& _period) {
+  try {
+    auto node = tryGetNode();
+    auto final_chain = node->getFinalChain();
+    auto period = dev::jsToInt(_period);
+    auto block_hash = final_chain->block_hash(period);
+    auto trxs = node->getDB()->getPeriodTransactions(period);
+    if (!trxs.has_value()) {
+      return Json::Value(Json::arrayValue);
+    }
+
+    return transformToJsonParallel(*trxs, [&final_chain, &block_hash](const auto& trx) {
+      auto hash = trx->getHash();
+      auto r = final_chain->transaction_receipt(hash);
+      auto location =
+          rpc::eth::ExtendedTransactionLocation{{*final_chain->transaction_location(hash), *block_hash}, hash};
+      auto transaction = rpc::eth::LocalisedTransaction{trx, location};
+      auto receipt = rpc::eth::LocalisedTransactionReceipt{*r, location, trx->getSender(), trx->getReceiver()};
+      auto receipt_json = rpc::eth::toJson(receipt);
+      receipt_json.removeMember("transactionHash");
+
+      return mergeJsons(rpc::eth::toJson(transaction), std::move(receipt_json));
+    });
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
+}
+
+Json::Value Taraxa::taraxa_getPeriodDagBlocks(const std::string& _period) {
+  try {
+    auto period = dev::jsToInt(_period);
+    auto node = tryGetNode();
+    auto dags = node->getDB()->getFinalizedDagBlockByPeriod(period);
+
+    return transformToJsonParallel(dags, [&period](const auto& dag) {
+      auto block_json = dag->getJson();
+      block_json["period"] = toJS(period);
+      return block_json;
+    });
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
+}
+
 }  // namespace taraxa::net
