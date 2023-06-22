@@ -97,12 +97,13 @@ Collaboration diagram for taraxa::network::tarcap::TaraxaPeer:</div>
 <div class="dyncontent">
 <div class="center"><img src="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer__coll__graph.png" border="0" usemap="#ataraxa_1_1network_1_1tarcap_1_1_taraxa_peer_coll__map" alt="Collaboration graph"/></div>
 <map name="ataraxa_1_1network_1_1tarcap_1_1_taraxa_peer_coll__map" id="ataraxa_1_1network_1_1tarcap_1_1_taraxa_peer_coll__map">
-<area shape="rect" title=" " alt="" coords="711,135,885,177"/>
-<area shape="rect" title=" " alt="" coords="365,5,514,32"/>
-<area shape="rect" href="class_expiration_cache.html" title=" " alt="" coords="356,99,523,141"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="359,165,519,192"/>
-<area shape="rect" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html" title="Stats for all packet types." alt="" coords="352,217,527,258"/>
-<area shape="rect" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html" title="Stats single packet type." alt="" coords="5,217,180,258"/>
+<area shape="rect" title=" " alt="" coords="752,129,927,170"/>
+<area shape="rect" title=" " alt="" coords="385,5,535,32"/>
+<area shape="rect" href="class_expiration_block_number_cache.html" title=" " alt="" coords="352,93,568,134"/>
+<area shape="rect" href="class_expiration_cache.html" title=" " alt="" coords="9,93,176,134"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="380,159,540,185"/>
+<area shape="rect" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html" title="Stats for all packet types." alt="" coords="373,210,547,251"/>
+<area shape="rect" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html" title="Stats single packet type." alt="" coords="5,210,180,251"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -187,14 +188,14 @@ Public Attributes</h2></td></tr>
 Private Attributes</h2></td></tr>
 <tr class="memitem:a96a0fd8846f1c950bff8146fc53a83cf"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a96a0fd8846f1c950bff8146fc53a83cf">id_</a></td></tr>
 <tr class="separator:a96a0fd8846f1c950bff8146fc53a83cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:afedf2147a84dcb41398c55f9957668f1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#afedf2147a84dcb41398c55f9957668f1">known_dag_blocks_</a></td></tr>
-<tr class="separator:afedf2147a84dcb41398c55f9957668f1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a4162116d00e91fa4ee27a147cefbb528"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a4162116d00e91fa4ee27a147cefbb528">known_transactions_</a></td></tr>
-<tr class="separator:a4162116d00e91fa4ee27a147cefbb528"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a0213e22fd4be56cda679a3b26d5d5ff0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a0213e22fd4be56cda679a3b26d5d5ff0">known_pbft_blocks_</a></td></tr>
-<tr class="separator:a0213e22fd4be56cda679a3b26d5d5ff0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a349df72690b85bbfc4196d87e428ed05"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a349df72690b85bbfc4196d87e428ed05">known_votes_</a></td></tr>
-<tr class="separator:a349df72690b85bbfc4196d87e428ed05"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a7298b48321ea7d1a9ed0f159bf7766c3"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_expiration_block_number_cache.html">ExpirationBlockNumberCache</a>&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a7298b48321ea7d1a9ed0f159bf7766c3">known_dag_blocks_</a></td></tr>
+<tr class="separator:a7298b48321ea7d1a9ed0f159bf7766c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3affad1936e904d0b257a480dca4bdef"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_expiration_block_number_cache.html">ExpirationBlockNumberCache</a>&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a3affad1936e904d0b257a480dca4bdef">known_transactions_</a></td></tr>
+<tr class="separator:a3affad1936e904d0b257a480dca4bdef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a77e0afd939def3544463b17361a2d0a8"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_expiration_block_number_cache.html">ExpirationBlockNumberCache</a>&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a77e0afd939def3544463b17361a2d0a8">known_pbft_blocks_</a></td></tr>
+<tr class="separator:a77e0afd939def3544463b17361a2d0a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6c45b3560f7f873d9a8fa5293af8a115"><td class="memItemLeft" align="right" valign="top"><a class="el" href="class_expiration_block_number_cache.html">ExpirationBlockNumberCache</a>&lt; <a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a6c45b3560f7f873d9a8fa5293af8a115">known_votes_</a></td></tr>
+<tr class="separator:a6c45b3560f7f873d9a8fa5293af8a115"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad372951c7af1d56b57d278f2e232d0ad"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ad372951c7af1d56b57d278f2e232d0ad">timestamp_suspicious_packet_</a> = 0</td></tr>
 <tr class="separator:ad372951c7af1d56b57d278f2e232d0ad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2ed69c0f95a95ce97ea3d7d672add234"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a2ed69c0f95a95ce97ea3d7d672add234">suspicious_packet_count_</a> = 0</td></tr>
@@ -665,8 +666,8 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="afedf2147a84dcb41398c55f9957668f1"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afedf2147a84dcb41398c55f9957668f1">&#9670;&nbsp;</a></span>known_dag_blocks_</h2>
+<a id="a7298b48321ea7d1a9ed0f159bf7766c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a7298b48321ea7d1a9ed0f159bf7766c3">&#9670;&nbsp;</a></span>known_dag_blocks_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -675,7 +676,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt;<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&gt; taraxa::network::tarcap::TaraxaPeer::known_dag_blocks_</td>
+          <td class="memname"><a class="el" href="class_expiration_block_number_cache.html">ExpirationBlockNumberCache</a>&lt;<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&gt; taraxa::network::tarcap::TaraxaPeer::known_dag_blocks_</td>
         </tr>
       </table>
   </td>
@@ -687,8 +688,8 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a0213e22fd4be56cda679a3b26d5d5ff0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a0213e22fd4be56cda679a3b26d5d5ff0">&#9670;&nbsp;</a></span>known_pbft_blocks_</h2>
+<a id="a77e0afd939def3544463b17361a2d0a8"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a77e0afd939def3544463b17361a2d0a8">&#9670;&nbsp;</a></span>known_pbft_blocks_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -697,7 +698,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt;<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&gt; taraxa::network::tarcap::TaraxaPeer::known_pbft_blocks_</td>
+          <td class="memname"><a class="el" href="class_expiration_block_number_cache.html">ExpirationBlockNumberCache</a>&lt;<a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>&gt; taraxa::network::tarcap::TaraxaPeer::known_pbft_blocks_</td>
         </tr>
       </table>
   </td>
@@ -709,8 +710,8 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a4162116d00e91fa4ee27a147cefbb528"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a4162116d00e91fa4ee27a147cefbb528">&#9670;&nbsp;</a></span>known_transactions_</h2>
+<a id="a3affad1936e904d0b257a480dca4bdef"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3affad1936e904d0b257a480dca4bdef">&#9670;&nbsp;</a></span>known_transactions_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -719,7 +720,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt;<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>&gt; taraxa::network::tarcap::TaraxaPeer::known_transactions_</td>
+          <td class="memname"><a class="el" href="class_expiration_block_number_cache.html">ExpirationBlockNumberCache</a>&lt;<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>&gt; taraxa::network::tarcap::TaraxaPeer::known_transactions_</td>
         </tr>
       </table>
   </td>
@@ -731,8 +732,8 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a349df72690b85bbfc4196d87e428ed05"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a349df72690b85bbfc4196d87e428ed05">&#9670;&nbsp;</a></span>known_votes_</h2>
+<a id="a6c45b3560f7f873d9a8fa5293af8a115"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6c45b3560f7f873d9a8fa5293af8a115">&#9670;&nbsp;</a></span>known_votes_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -741,7 +742,7 @@ Private Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname"><a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt;<a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a>&gt; taraxa::network::tarcap::TaraxaPeer::known_votes_</td>
+          <td class="memname"><a class="el" href="class_expiration_block_number_cache.html">ExpirationBlockNumberCache</a>&lt;<a class="el" href="namespacetaraxa.html#a4f575bc8f641426bf9abc034436b9083">vote_hash_t</a>&gt; taraxa::network::tarcap::TaraxaPeer::known_votes_</td>
         </tr>
       </table>
   </td>

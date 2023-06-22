@@ -1,5 +1,13 @@
 var NAVTREEINDEX8 =
 {
+"classtaraxa_1_1net_1_1_eth_client.html#abde8ef48945fa01197d9d00b22ef44bb":[15,0,3,4,14,17],
+"classtaraxa_1_1net_1_1_eth_client.html#ac102359192af6e052d24e993d351016b":[15,0,3,4,14,7],
+"classtaraxa_1_1net_1_1_eth_client.html#ac682e67c28b205363bcb0a02be22d556":[15,0,3,4,14,14],
+"classtaraxa_1_1net_1_1_eth_client.html#acea263b3c39bf3b5df29d3447a79ea5a":[15,0,3,4,14,31],
+"classtaraxa_1_1net_1_1_eth_client.html#ad3792cc0450ff3305a223b6d63a14cd9":[15,0,3,4,14,9],
+"classtaraxa_1_1net_1_1_eth_client.html#ad8276b8087ddeb636bcc73782a6638bb":[15,0,3,4,14,25],
+"classtaraxa_1_1net_1_1_eth_client.html#ada420b2ff36412a32ecaffa1f88cf25f":[15,0,3,4,14,18],
+"classtaraxa_1_1net_1_1_eth_face.html":[15,0,3,4,15],
 "classtaraxa_1_1net_1_1_eth_face.html#a0360d8a46f99bae81c7e61c5fe39e5f0":[15,0,3,4,15,23],
 "classtaraxa_1_1net_1_1_eth_face.html#a0367da85318c00e83af5594e986c976b":[15,0,3,4,15,1],
 "classtaraxa_1_1net_1_1_eth_face.html#a093d42538582eac75cf09aec275e5c24":[15,0,3,4,15,59],
@@ -241,13 +249,5 @@ var NAVTREEINDEX8 =
 "classtaraxa_1_1net_1_1_test_client.html#a95a257bb21422bf463f1bd1f13700b4c":[15,0,3,4,26,6],
 "classtaraxa_1_1net_1_1_test_client.html#ab4c11abd80eb5191c81292a94f170fe9":[15,0,3,4,26,5],
 "classtaraxa_1_1net_1_1_test_client.html#ac03b4ca821eb5d48c557723549c98f14":[15,0,3,4,26,0],
-"classtaraxa_1_1net_1_1_test_client.html#ad21045df8bef569aabef8acb9f85cabf":[15,0,3,4,26,4],
-"classtaraxa_1_1net_1_1_test_client.html#ad28154fbb78c218788da74f4b6643c7b":[15,0,3,4,26,2],
-"classtaraxa_1_1net_1_1_test_face.html":[15,0,3,4,27],
-"classtaraxa_1_1net_1_1_test_face.html#a07680fc88d0716eb65f948fafb279ad5":[15,0,3,4,27,6],
-"classtaraxa_1_1net_1_1_test_face.html#a18064861df173d5669b2409ac339ce0d":[15,0,3,4,27,7],
-"classtaraxa_1_1net_1_1_test_face.html#a1d5f6d6f5dcd4e1871ddfb758adea14f":[15,0,3,4,27,10],
-"classtaraxa_1_1net_1_1_test_face.html#a3888f944740293d511ee6a3761eb5443":[15,0,3,4,27,2],
-"classtaraxa_1_1net_1_1_test_face.html#a408774c2df482b4dac82bb6e9823218b":[15,0,3,4,27,8],
-"classtaraxa_1_1net_1_1_test_face.html#a54c7987cedbb47d7652a9e2ceb1c0d82":[15,0,3,4,27,5]
+"classtaraxa_1_1net_1_1_test_client.html#ad21045df8bef569aabef8acb9f85cabf":[15,0,3,4,26,4]
 };

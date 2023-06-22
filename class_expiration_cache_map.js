@@ -13,8 +13,8 @@ var class_expiration_cache_map =
     [ "update", "class_expiration_cache_map.html#ae8611ed886dc89c736f922213ae54973", null ],
     [ "updateWithGet", "class_expiration_cache_map.html#ad78c7be3b3233e3693383fe16077f69c", null ],
     [ "cache_", "class_expiration_cache_map.html#a63378c4a3f301d81a62015cbbabdd1db", null ],
-    [ "delete_step_", "class_expiration_cache_map.html#a8859549534fb7c2f2ceb8c8c43b19338", null ],
     [ "expiration_", "class_expiration_cache_map.html#a596c8153a800bea6bfb21368208e6865", null ],
-    [ "max_size_", "class_expiration_cache_map.html#af3a85ba58e063ca4a264549c2c7419f5", null ],
+    [ "kDeleteStep", "class_expiration_cache_map.html#a89eb56fa425c7c0b9474abf3efe5c644", null ],
+    [ "kMaxSize", "class_expiration_cache_map.html#ada867ea734019493f4c0085dfd3d8fca", null ],
     [ "mtx_", "class_expiration_cache_map.html#a9c15459bfcfd44d2011a69641d956c30", null ]
 ];

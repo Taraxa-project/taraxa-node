@@ -135,8 +135,12 @@ var hierarchy =
       [ "taraxa::net::InvalidTracingParams", "classtaraxa_1_1net_1_1_invalid_tracing_params.html", null ]
     ] ],
     [ "taraxa::state_api::ExecutionResult", "group___final_chain.html#structtaraxa_1_1state__api_1_1_execution_result", null ],
-    [ "ExpirationCache< Key >", "class_expiration_cache.html", null ],
-    [ "ExpirationCache< dev::FixedHash >", "class_expiration_cache.html", null ],
+    [ "ExpirationCache< Key >", "class_expiration_cache.html", [
+      [ "ExpirationBlockNumberCache< Key >", "class_expiration_block_number_cache.html", null ]
+    ] ],
+    [ "ExpirationCache< dev::FixedHash >", "class_expiration_cache.html", [
+      [ "ExpirationBlockNumberCache< dev::FixedHash >", "class_expiration_block_number_cache.html", null ]
+    ] ],
     [ "ExpirationCacheMap< Key, Value >", "class_expiration_cache_map.html", null ],
     [ "ExpirationCacheMap< dev::FixedHash, taraxa::DagBlock >", "class_expiration_cache_map.html", null ],
     [ "taraxa::final_chain::FinalChain", "group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain", [

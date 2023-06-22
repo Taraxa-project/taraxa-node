@@ -1,5 +1,13 @@
 var NAVTREEINDEX20 =
 {
+"namespacetaraxa_1_1state__api.html#affb25c212fee2a8eeed95be39a47f163":[16,0,1,3,0,0,7,2,12],
+"namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config":[16,0,1,3,0,0,7,2],
+"namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config":[16,0,1,3,0,0,7,0],
+"namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts":[16,0,1,3,0,0,7,4],
+"namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts_d_b":[16,0,1,3,0,0,7,5],
+"namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_validator_info":[16,0,1,3,0,0,7,1],
+"network_2rpc_2eth_2data_8hpp.html":[16,0,1,4,1,2,0,0],
+"network_2rpc_2eth_2data_8hpp.html#a21b988af46ba8b9f7c613aee79d61ab5":[16,0,1,4,1,2,0,0,13],
 "network_2rpc_2eth_2data_8hpp.html#a2afeacbec02bbfc4191244df912baed6":[16,0,1,4,1,2,0,0,11],
 "network_2rpc_2eth_2data_8hpp.html#a2e8f8c258b130976cd2ac009f13b6b91":[16,0,1,4,1,2,0,0,15],
 "network_2rpc_2eth_2data_8hpp.html#a340bc91663d886575b83dabfdeda98fc":[16,0,1,4,1,2,0,0,10],
@@ -241,13 +249,5 @@ var NAVTREEINDEX20 =
 "structdev_1_1_generic_guard_bool.html#a094757d358b87eb4fc99e89163722819":[15,0,0,14,0],
 "structdev_1_1_generic_guard_bool.html#a2676e3ba81e271d7a67a414517386bdd":[15,0,0,14,1],
 "structdev_1_1_generic_unguard_bool.html":[15,0,0,15],
-"structdev_1_1_generic_unguard_bool.html#a5bd1cf1f061df9c9365f2105fa3a6159":[15,0,0,15,1],
-"structdev_1_1_generic_unguard_bool.html#a6acf0815f5dcf8773f5d88767ce5df02":[15,0,0,15,3],
-"structdev_1_1_generic_unguard_bool.html#aa21aac5dd65c4aabb9b72c728cca497d":[15,0,0,15,0],
-"structdev_1_1_generic_unguard_bool.html#adc2e4a266ca7d84cecc5293947f9f976":[15,0,0,15,2],
-"structdev_1_1_generic_unguard_shared_bool.html":[15,0,0,16],
-"structdev_1_1_generic_unguard_shared_bool.html#a75cab29ef147555c077d23fe693aa06a":[15,0,0,16,3],
-"structdev_1_1_generic_unguard_shared_bool.html#a7da5427fd9453f37d49349e6081cd16c":[15,0,0,16,2],
-"structdev_1_1_generic_unguard_shared_bool.html#af9a6720c81c1ee411ce77e94d66f52a0":[15,0,0,16,1],
-"structdev_1_1_generic_unguard_shared_bool.html#afb46de6b3e76f522f4166ca74cbd3645":[15,0,0,16,0]
+"structdev_1_1_generic_unguard_bool.html#a5bd1cf1f061df9c9365f2105fa3a6159":[15,0,0,15,1]
 };

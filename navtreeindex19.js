@@ -1,5 +1,13 @@
 var NAVTREEINDEX19 =
 {
+"md_doc_coding_practices.html#autotoc_md84":[22],
+"md_doc_coding_practices.html#autotoc_md85":[23],
+"md_doc_coding_practices.html#autotoc_md86":[24],
+"md_doc_coding_practices.html#autotoc_md87":[3,0,5],
+"md_doc_coding_practices.html#autotoc_md88":[25],
+"md_doc_coding_practices.html#autotoc_md89":[26],
+"md_doc_coding_practices.html#autotoc_md90":[27],
+"md_doc_coding_practices.html#autotoc_md91":[3,0,6],
 "md_doc_coding_practices.html#autotoc_md92":[28],
 "md_doc_coding_practices.html#autotoc_md93":[29],
 "md_doc_coding_practices.html#autotoc_md94":[30],
@@ -159,8 +167,8 @@ var NAVTREEINDEX19 =
 "namespacemembers_w.html":[14,0,22],
 "namespacemembers_z.html":[14,0,23],
 "namespacetaraxa.html#a009be38daa65710a670613c7d9428e76":[16,0,1,8,0,0,0,1,0],
-"namespacetaraxa.html#a0849089d35105b6fcb8ef8f7b350b89d":[16,0,1,4,0,0,6,0,0,0,0],
 "namespacetaraxa.html#a0849089d35105b6fcb8ef8f7b350b89d":[16,0,1,4,0,0,6,0,1,0],
+"namespacetaraxa.html#a0849089d35105b6fcb8ef8f7b350b89d":[16,0,1,4,0,0,6,0,0,0,0],
 "namespacetaraxa.html#a13ec6be411c3c352858744678e0690da":[16,0,1,3,0,0,5,2,2],
 "namespacetaraxa.html#a20a355304a30d8893626b16bf7c78595":[16,0,1,3,0,0,0,0,0],
 "namespacetaraxa.html#a25279da4cb5c51a252df1a2c42d8fdc6":[16,0,1,3,0,0,0,0,2],
@@ -241,13 +249,5 @@ var NAVTREEINDEX19 =
 "namespacetaraxa_1_1state__api.html#ad4691677fe3777ad9cda380c7cd120b3":[16,0,1,3,0,0,7,1,0],
 "namespacetaraxa_1_1state__api.html#ad8eb3f9eb0841e339ef13826d264e183":[16,0,1,3,0,0,7,2,9],
 "namespacetaraxa_1_1state__api.html#ad98233293c73914facb8f4b31084838d":[16,0,1,3,0,0,7,2,8],
-"namespacetaraxa_1_1state__api.html#aef9819bc22722fa155b8f2980a7847f4":[16,0,1,3,0,0,7,2,6],
-"namespacetaraxa_1_1state__api.html#affb25c212fee2a8eeed95be39a47f163":[16,0,1,3,0,0,7,2,12],
-"namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config":[16,0,1,3,0,0,7,2],
-"namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config":[16,0,1,3,0,0,7,0],
-"namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts":[16,0,1,3,0,0,7,4],
-"namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts_d_b":[16,0,1,3,0,0,7,5],
-"namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_validator_info":[16,0,1,3,0,0,7,1],
-"network_2rpc_2eth_2data_8hpp.html":[16,0,1,4,1,2,0,0],
-"network_2rpc_2eth_2data_8hpp.html#a21b988af46ba8b9f7c613aee79d61ab5":[16,0,1,4,1,2,0,0,13]
+"namespacetaraxa_1_1state__api.html#aef9819bc22722fa155b8f2980a7847f4":[16,0,1,3,0,0,7,2,6]
 };

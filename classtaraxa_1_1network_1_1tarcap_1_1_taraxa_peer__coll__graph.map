@@ -1,8 +1,9 @@
 <map id="taraxa::network::tarcap::TaraxaPeer" name="taraxa::network::tarcap::TaraxaPeer">
-<area shape="rect" id="node1" title=" " alt="" coords="711,135,885,177"/>
-<area shape="rect" id="node2" title=" " alt="" coords="365,5,514,32"/>
-<area shape="rect" id="node3" href="$class_expiration_cache.html" title=" " alt="" coords="356,99,523,141"/>
-<area shape="rect" id="node4" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="359,165,519,192"/>
-<area shape="rect" id="node5" href="$classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html" title="Stats for all packet types." alt="" coords="352,217,527,258"/>
-<area shape="rect" id="node6" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html" title="Stats single packet type." alt="" coords="5,217,180,258"/>
+<area shape="rect" id="node1" title=" " alt="" coords="752,129,927,170"/>
+<area shape="rect" id="node2" title=" " alt="" coords="385,5,535,32"/>
+<area shape="rect" id="node3" href="$class_expiration_block_number_cache.html" title=" " alt="" coords="352,93,568,134"/>
+<area shape="rect" id="node4" href="$class_expiration_cache.html" title=" " alt="" coords="9,93,176,134"/>
+<area shape="rect" id="node5" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="380,159,540,185"/>
+<area shape="rect" id="node6" href="$classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html" title="Stats for all packet types." alt="" coords="373,210,547,251"/>
+<area shape="rect" id="node7" href="$classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html" title="Stats single packet type." alt="" coords="5,210,180,251"/>
 </map>

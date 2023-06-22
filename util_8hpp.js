@@ -2,6 +2,7 @@ var util_8hpp =
 [
     [ "StatusTable", "classtaraxa_1_1_status_table.html", "classtaraxa_1_1_status_table" ],
     [ "ExpirationCache", "class_expiration_cache.html", "class_expiration_cache" ],
+    [ "ExpirationBlockNumberCache", "class_expiration_block_number_cache.html", "class_expiration_block_number_cache" ],
     [ "ExpirationCacheMap", "class_expiration_cache_map.html", "class_expiration_cache_map" ],
     [ "ThreadSafeMap", "class_thread_safe_map.html", "class_thread_safe_map" ],
     [ "ThreadSafeSet", "class_thread_safe_set.html", "class_thread_safe_set" ],

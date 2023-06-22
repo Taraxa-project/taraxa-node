@@ -83,6 +83,7 @@ $(document).ready(function(){initNavTree('class_expiration_cache.html',''); init
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pro-attribs">Protected Attributes</a> &#124;
 <a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="class_expiration_cache-members.html">List of all members</a>  </div>
   <div class="headertitle">
@@ -105,21 +106,26 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:ab54091d7a34e5e1ab098390c400d1557"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a373866690d674639d5a5f711c5e6d2ee"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_expiration_cache.html#a373866690d674639d5a5f711c5e6d2ee">count</a> (Key const &amp;key) const</td></tr>
 <tr class="separator:a373866690d674639d5a5f711c5e6d2ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae5702e7f844bd5f8b2057c5484f3244e"><td class="memItemLeft" align="right" valign="top">std::size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_expiration_cache.html#ae5702e7f844bd5f8b2057c5484f3244e">size</a> () const</td></tr>
+<tr class="separator:ae5702e7f844bd5f8b2057c5484f3244e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a925a7b67254e19995dfaf40ec05e5dc4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_expiration_cache.html#a925a7b67254e19995dfaf40ec05e5dc4">clear</a> ()</td></tr>
 <tr class="separator:a925a7b67254e19995dfaf40ec05e5dc4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
-<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
-Private Attributes</h2></td></tr>
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
+Protected Attributes</h2></td></tr>
 <tr class="memitem:adf4f2fb0ac2d0d2b33b288bab73b1471"><td class="memItemLeft" align="right" valign="top">std::unordered_set&lt; Key &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_expiration_cache.html#adf4f2fb0ac2d0d2b33b288bab73b1471">cache_</a></td></tr>
 <tr class="separator:adf4f2fb0ac2d0d2b33b288bab73b1471"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:af7c5c21e7b7bd451fd624144e9d692bb"><td class="memItemLeft" align="right" valign="top">std::deque&lt; Key &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_expiration_cache.html#af7c5c21e7b7bd451fd624144e9d692bb">expiration_</a></td></tr>
-<tr class="separator:af7c5c21e7b7bd451fd624144e9d692bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab0328edb649d8d6d5495ed2a6a4158fe"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_expiration_cache.html#ab0328edb649d8d6d5495ed2a6a4158fe">max_size_</a></td></tr>
-<tr class="separator:ab0328edb649d8d6d5495ed2a6a4158fe"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad2ffa68615bc371f7d2829637debdd03"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_expiration_cache.html#ad2ffa68615bc371f7d2829637debdd03">delete_step_</a></td></tr>
-<tr class="separator:ad2ffa68615bc371f7d2829637debdd03"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4382e32c27b2303bcd29f8b575546124"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_expiration_cache.html#a4382e32c27b2303bcd29f8b575546124">kMaxSize</a></td></tr>
+<tr class="separator:a4382e32c27b2303bcd29f8b575546124"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0e1d6373eb6b0709cfcde3ce534fa39f"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_expiration_cache.html#a0e1d6373eb6b0709cfcde3ce534fa39f">kDeleteStep</a></td></tr>
+<tr class="separator:a0e1d6373eb6b0709cfcde3ce534fa39f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a51ff85cac595e5d0c592ff2b3a3fb191"><td class="memItemLeft" align="right" valign="top">std::shared_mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_expiration_cache.html#a51ff85cac595e5d0c592ff2b3a3fb191">mtx_</a></td></tr>
 <tr class="separator:a51ff85cac595e5d0c592ff2b3a3fb191"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:af7c5c21e7b7bd451fd624144e9d692bb"><td class="memItemLeft" align="right" valign="top">std::deque&lt; Key &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="class_expiration_cache.html#af7c5c21e7b7bd451fd624144e9d692bb">expiration_</a></td></tr>
+<tr class="separator:af7c5c21e7b7bd451fd624144e9d692bb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a7c33bf9a8cb52e6370536fa954e6425c"></a>
@@ -309,6 +315,33 @@ template&lt;class Key &gt; </div>
 
 </div>
 </div>
+<a id="ae5702e7f844bd5f8b2057c5484f3244e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae5702e7f844bd5f8b2057c5484f3244e">&#9670;&nbsp;</a></span>size()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Key &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::size_t <a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt; Key &gt;::size </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <h2 class="groupheader">Member Data Documentation</h2>
 <a id="adf4f2fb0ac2d0d2b33b288bab73b1471"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#adf4f2fb0ac2d0d2b33b288bab73b1471">&#9670;&nbsp;</a></span>cache_</h2>
@@ -327,31 +360,7 @@ template&lt;class Key &gt; </div>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="ad2ffa68615bc371f7d2829637debdd03"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad2ffa68615bc371f7d2829637debdd03">&#9670;&nbsp;</a></span>delete_step_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<div class="memtemplate">
-template&lt;class Key &gt; </div>
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">const uint32_t <a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt; Key &gt;::delete_step_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -382,8 +391,8 @@ template&lt;class Key &gt; </div>
 
 </div>
 </div>
-<a id="ab0328edb649d8d6d5495ed2a6a4158fe"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ab0328edb649d8d6d5495ed2a6a4158fe">&#9670;&nbsp;</a></span>max_size_</h2>
+<a id="a0e1d6373eb6b0709cfcde3ce534fa39f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0e1d6373eb6b0709cfcde3ce534fa39f">&#9670;&nbsp;</a></span>kDeleteStep</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -394,12 +403,36 @@ template&lt;class Key &gt; </div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const uint32_t <a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt; Key &gt;::max_size_</td>
+          <td class="memname">const uint32_t <a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt; Key &gt;::kDeleteStep</td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a4382e32c27b2303bcd29f8b575546124"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4382e32c27b2303bcd29f8b575546124">&#9670;&nbsp;</a></span>kMaxSize</h2>
+
+<div class="memitem">
+<div class="memproto">
+<div class="memtemplate">
+template&lt;class Key &gt; </div>
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">const uint32_t <a class="el" href="class_expiration_cache.html">ExpirationCache</a>&lt; Key &gt;::kMaxSize</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -423,7 +456,7 @@ template&lt;class Key &gt; </div>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">mutable</span><span class="mlabel">private</span></span>  </td>
+<span class="mlabels"><span class="mlabel">mutable</span><span class="mlabel">protected</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">

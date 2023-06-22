@@ -1,5 +1,13 @@
 var NAVTREEINDEX23 =
 {
+"structtaraxa_1_1_genesis.html#a57c5d9f217c08e43990a49c3d6dadf7d":[15,0,3,19,0],
+"structtaraxa_1_1_genesis.html#a67910cc1bf07fc821bbfa9a7ccdb1be4":[15,0,3,19,5],
+"structtaraxa_1_1_genesis.html#a6a4725f2d7a19c5afb24e3a184f9f524":[15,0,3,19,7],
+"structtaraxa_1_1_genesis.html#a6e2a4bfc0bedb6548b4a859f8dc275e5":[15,0,3,19,8],
+"structtaraxa_1_1_genesis.html#a8877888c0c2e5ac4f854bf1f6c1067f9":[15,0,3,19,6],
+"structtaraxa_1_1_genesis.html#af92358af85a9c44119de93ea0e41bcb6":[15,0,3,19,2],
+"structtaraxa_1_1_network_config.html":[15,0,3,24],
+"structtaraxa_1_1_network_config.html#a1af8e0e3927577c35e290542d2fb8697":[15,0,3,24,17],
 "structtaraxa_1_1_network_config.html#a1be513a0f2892dea7dcc8e5dfd4b5c50":[15,0,3,24,15],
 "structtaraxa_1_1_network_config.html#a1d2a7adf7856df0eb52bf87bc7932143":[15,0,3,24,6],
 "structtaraxa_1_1_network_config.html#a1fca5b8fec5dc8e8d596c957b14a12b9":[15,0,3,24,10],
@@ -241,13 +249,5 @@ var NAVTREEINDEX23 =
 "tools_8cpp.html#a0155ee84696d6d8fbc532b317e9d7964":[16,0,1,1,1,2,1],
 "tools_8cpp.html#a25e9e4b11942e2f228683bfc8df9f365":[16,0,1,1,1,2,3],
 "tools_8cpp.html#a27887c82e6f5ab3508065eb49bbd4b8a":[16,0,1,1,1,2,2],
-"tools_8cpp.html#a4593c739f5901c861856b711cd7fd798":[16,0,1,1,1,2,0],
-"tools_8cpp.html#a56a1b406f30af3f7a1e8483886f17d5c":[16,0,1,1,1,2,8],
-"tools_8cpp.html#a5dcfd9e02330e5c11402248fa850edf4":[16,0,1,1,1,2,12],
-"tools_8cpp.html#a6bbd495d21ee3a686d5bc8f695270349":[16,0,1,1,1,2,13],
-"tools_8cpp.html#a6faa605dc03f24fc87bfd798e42bacc8":[16,0,1,1,1,2,18],
-"tools_8cpp.html#a77e6b42e5c28596e36805e806c77cc5a":[16,0,1,1,1,2,7],
-"tools_8cpp.html#a793f65ff5116126682096812693b0b7d":[16,0,1,1,1,2,16],
-"tools_8cpp.html#a7aa9641a017a85118d2718cfdde0138a":[16,0,1,1,1,2,4],
-"tools_8cpp.html#a7bea8c0640537805e5ec7c0599d9462b":[16,0,1,1,1,2,11]
+"tools_8cpp.html#a4593c739f5901c861856b711cd7fd798":[16,0,1,1,1,2,0]
 };

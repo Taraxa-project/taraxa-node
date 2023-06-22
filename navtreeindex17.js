@@ -1,5 +1,13 @@
 var NAVTREEINDEX17 =
 {
+"jsonrpc__http__processor_8hpp.html":[16,0,1,4,1,2,8],
+"jsonrpc__http__processor_8hpp_source.html":[16,0,1,4,1,2,8],
+"jsonrpc__ws__server_8cpp.html":[16,0,1,4,1,2,9],
+"jsonrpc__ws__server_8hpp.html":[16,0,1,4,1,2,10],
+"jsonrpc__ws__server_8hpp_source.html":[16,0,1,4,1,2,10],
+"key__manager_8cpp.html":[16,0,1,4,0,1,2,0],
+"key__manager_8cpp.html#a10105b152578aaf566cb89722b17385b":[16,0,1,4,0,1,2,0,0],
+"key__manager_8hpp.html":[16,0,1,4,0,0,2,0],
 "key__manager_8hpp_source.html":[16,0,1,4,0,0,2,0],
 "latest_2get__next__votes__bundle__packet__handler_8cpp.html":[16,0,1,4,1,3,0,0,0,4],
 "latest_2get__next__votes__bundle__packet__handler_8hpp.html":[16,0,1,4,1,1,0,0,0,0,4],
@@ -241,13 +249,5 @@ var NAVTREEINDEX17 =
 "logger__config_8hpp.html#abfd338f661318bf300011371d66578da":[16,0,1,5,0,0,1,3],
 "logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04":[16,0,1,5,0,0,1,2],
 "logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04a3036c178ffa5cac125360f9e478099b4":[16,0,1,5,0,0,1,2,3],
-"logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04a4b39a43108e3d9e4ed99ca5ca126c1d8":[16,0,1,5,0,0,1,2,0],
-"logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04a6c9719bf320a9faad4a3f128280dc4c1":[16,0,1,5,0,0,1,2,4],
-"logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04a70e20badfd3992083cfd6fbf842f46be":[16,0,1,5,0,0,1,2,5],
-"logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04a737b0fd32fc71a78ba8e7ebd2f0803fd":[16,0,1,5,0,0,1,2,2],
-"logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04adb0b5b09b75c8444187b01d7fc94a5bc":[16,0,1,5,0,0,1,2,1],
-"logger__config_8hpp_source.html":[16,0,1,5,0,0,1],
-"max__stats_8cpp.html":[16,0,1,4,1,3,0,2,0],
-"max__stats_8hpp.html":[16,0,1,4,1,1,0,0,2,0],
-"max__stats_8hpp_source.html":[16,0,1,4,1,1,0,0,2,0]
+"logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04a4b39a43108e3d9e4ed99ca5ca126c1d8":[16,0,1,5,0,0,1,2,0]
 };

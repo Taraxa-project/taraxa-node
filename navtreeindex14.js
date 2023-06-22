@@ -1,5 +1,13 @@
 var NAVTREEINDEX14 =
 {
+"group___d_a_g.html#a7d2d20da7fc504c22810038aa83cd5db":[13,0,7,12],
+"group___d_a_g.html#a7def37042439fa3c713ea8861d40b199":[13,0,0,15],
+"group___d_a_g.html#a7f00185a260406eb025c473f2f74da1c":[13,0,1,5],
+"group___d_a_g.html#a819aa6076a9305d48ec7e18c2912a4c5":[13,0,7,14],
+"group___d_a_g.html#a82fda6692132d23ca947de8dbc3ad1ac":[13,0,6,4],
+"group___d_a_g.html#a847af2af7e5e6f9b2e09ad71d21e92ad":[13,0,5,26],
+"group___d_a_g.html#a8a5501aae6db9f6a2e22ab2d12a7e962":[13,0,5,48],
+"group___d_a_g.html#a8c17782f68f11b4d687028612dbc4ae8":[13,0,5,20],
 "group___d_a_g.html#a8df95cccdea775300aec10f65ab0cdea":[13,0,5,53],
 "group___d_a_g.html#a8ec46166cc8cb10a3f4bd1493fc60800":[13,0,4,19],
 "group___d_a_g.html#a90ad08747b1ddb6fdfc415d7c9fafb84":[13,0,4,23],
@@ -218,8 +226,8 @@ var NAVTREEINDEX14 =
 "group___final_chain.html#adb132d664d6d9c27c0968ca4f5f5caab":[13,1,0,8],
 "group___final_chain.html#add84b37513bf456c4dc32ce8f7a617db":[13,1,6,19],
 "group___final_chain.html#ae36baa84c36579d3f2c1b0b3dc676488":[13,1,6,5],
-"group___final_chain.html#ae54b366dd6df5dfb522c28a43f17e74f":[13,1,8,0],
 "group___final_chain.html#ae54b366dd6df5dfb522c28a43f17e74f":[13,1,9,0],
+"group___final_chain.html#ae54b366dd6df5dfb522c28a43f17e74f":[13,1,8,0],
 "group___final_chain.html#ae7041e404054d9157b02a1fb4467cbf3":[13,1,14,2],
 "group___final_chain.html#ae71c5be266ef7366c0650c6ff9a31947":[13,1,6,13],
 "group___final_chain.html#ae8310bd008463bad92c1fa31849e8d2a":[13,1,7,9],
@@ -241,13 +249,5 @@ var NAVTREEINDEX14 =
 "group___final_chain.html#gab574ac6d6a7a462feef4499a61a17be2":[13,1,28],
 "group___final_chain.html#gab778dd415cc20f3ce082af8d41fba3ef":[13,1,21],
 "group___final_chain.html#gabf02617246115ac51e89118a617ca5ca":[13,1,26],
-"group___final_chain.html#gafa74492224d3e9c12af3c0f31e9c7afb":[13,1,24],
-"group___final_chain.html#gafa9d5d8f0427b57b0a22530677e2e99b":[13,1,27],
-"group___final_chain.html#gga649a511610909f817c366b4315f74425aa9a86bce9374c2830787105c02766385":[13,1,25,0],
-"group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header":[13,1,0],
-"group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result":[13,1,5],
-"group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry":[13,1,1],
-"group___final_chain.html#structtaraxa_1_1final__chain_1_1_new_block":[13,1,4],
-"group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location":[13,1,3],
-"group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt":[13,1,2]
+"group___final_chain.html#gafa74492224d3e9c12af3c0f31e9c7afb":[13,1,24]
 };
