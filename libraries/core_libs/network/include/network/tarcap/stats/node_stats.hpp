@@ -55,6 +55,8 @@ class NodeStats {
   uint64_t syncing_duration_seconds{0};
   uint64_t stalled_syncing_duration_seconds{0};
 
+  const std::string kNodeAddress;
+
   LOG_OBJECTS_DEFINE
 };
 
