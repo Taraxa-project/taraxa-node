@@ -7,6 +7,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_node_stats =
     [ "dag_mgr_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a178b3edbfb69bbc60a7f009d66abbf7c", null ],
     [ "intervals_in_sync_since_launch_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#afe3b1759755fb264173dbb7db41b366c", null ],
     [ "intervals_syncing_since_launch_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a0be8e8d17158a4500fa71b81d9224222", null ],
+    [ "kNodeAddress", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a72793b79adcb40e7218cac2c239de876", null ],
     [ "local_chain_size_prev_interval_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a31a6106e06e7e75749b52be5e203ea77", null ],
     [ "local_max_level_in_dag_prev_interval_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#aeb19852ece458f1bdf5b8c1a0b0b855b", null ],
     [ "local_pbft_round_prev_interval_", "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a38b65a6499eccaf9c017fcd06de1571f", null ],

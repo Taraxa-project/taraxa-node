@@ -1,5 +1,6 @@
 var NAVTREEINDEX19 =
 {
+"md_doc_coding_practices.html#autotoc_md83":[21],
 "md_doc_coding_practices.html#autotoc_md84":[22],
 "md_doc_coding_practices.html#autotoc_md85":[23],
 "md_doc_coding_practices.html#autotoc_md86":[24],
@@ -114,8 +115,8 @@ var NAVTREEINDEX19 =
 "namespacedev_1_1p2p.html#af43282a970fe54591278ceb38be2590b":[16,0,1,0,2,24,0,5],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_peer_session_info":[16,0,1,0,2,3,4],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_taraxa_network_config":[16,0,1,0,2,24,0],
-"namespacemembers.html":[14,0],
 "namespacemembers.html":[14,0,0],
+"namespacemembers.html":[14,0],
 "namespacemembers_a.html":[14,0,1],
 "namespacemembers_b.html":[14,0,2],
 "namespacemembers_c.html":[14,0,3],
@@ -174,8 +175,8 @@ var NAVTREEINDEX19 =
 "namespacetaraxa.html#a25279da4cb5c51a252df1a2c42d8fdc6":[16,0,1,3,0,0,0,0,2],
 "namespacetaraxa.html#a274099357513e9346beed7aefafb5a71":[16,0,1,3,0,0,0,0,4],
 "namespacetaraxa.html#a3747de5ec38a001ef934c2764b539ef3":[16,0,1,4,0,0,6,0,0,2],
-"namespacetaraxa.html#a41b6bc15bf8fbbecfd3b53037e4f37c2":[16,0,1,4,0,0,6,0,0,0,1],
 "namespacetaraxa.html#a41b6bc15bf8fbbecfd3b53037e4f37c2":[16,0,1,4,0,0,6,0,1,1],
+"namespacetaraxa.html#a41b6bc15bf8fbbecfd3b53037e4f37c2":[16,0,1,4,0,0,6,0,0,0,1],
 "namespacetaraxa.html#a4faf253efde7446f593b1d0a5063bffc":[16,0,1,3,0,0,5,2,0],
 "namespacetaraxa.html#a750ea236fc9a952abc71508807c75ce8":[16,0,1,3,0,0,5,0,2],
 "namespacetaraxa.html#a755e4a0a6744a31b65b04cb9022d6a47":[16,0,1,8,0,0,0,1,2],
@@ -248,6 +249,5 @@ var NAVTREEINDEX19 =
 "namespacetaraxa_1_1state__api.html#acf8492fa86e6ac73c82ae55d9db33c2e":[16,0,1,3,0,0,7,1,5],
 "namespacetaraxa_1_1state__api.html#ad4691677fe3777ad9cda380c7cd120b3":[16,0,1,3,0,0,7,1,0],
 "namespacetaraxa_1_1state__api.html#ad8eb3f9eb0841e339ef13826d264e183":[16,0,1,3,0,0,7,2,9],
-"namespacetaraxa_1_1state__api.html#ad98233293c73914facb8f4b31084838d":[16,0,1,3,0,0,7,2,8],
-"namespacetaraxa_1_1state__api.html#aef9819bc22722fa155b8f2980a7847f4":[16,0,1,3,0,0,7,2,6]
+"namespacetaraxa_1_1state__api.html#ad98233293c73914facb8f4b31084838d":[16,0,1,3,0,0,7,2,8]
 };
