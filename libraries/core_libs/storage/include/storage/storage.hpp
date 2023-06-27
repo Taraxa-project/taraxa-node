@@ -96,7 +96,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN_W_COMP(period_data, getIntComparator<PbftPeriod>());
     COLUMN(genesis);
     COLUMN(dag_blocks);
-    COLUMN(dag_blocks_index);
+    COLUMN_W_COMP(dag_blocks_level, getIntComparator<uint64_t>());
     COLUMN(transactions);
     COLUMN(trx_period);
     COLUMN(status);
@@ -199,7 +199,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // Period data
   void savePeriodData(const PeriodData& period_data, Batch& write_batch);
-  void clearPeriodDataHistory(PbftPeriod period);
+  void clearPeriodDataHistory(PbftPeriod period, uint64_t dag_level_to_keep);
   dev::bytes getPeriodDataRaw(PbftPeriod period) const;
   std::optional<PbftBlock> getPbftBlock(PbftPeriod period) const;
   std::vector<std::shared_ptr<Vote>> getPeriodCertVotes(PbftPeriod period) const;

@@ -1477,9 +1477,8 @@ TEST_F(FullNodeTest, clear_period_data) {
   for (uint64_t i = 0; i < nodes[1]->getPbftChain()->getPbftChainSize(); i++) {
     const auto pbft_block = nodes[1]->getDB()->getPbftBlock(i);
     if (pbft_block && pbft_block->getPivotDagBlockHash() != kNullBlockHash) {
-      if (nodes[1]->getDB()->getDagBlock(pbft_block->getPivotDagBlockHash())->getLevel() +
-              node_cfgs[0].dag_expiry_limit >=
-          last_anchor_level) {
+      auto dag_block = nodes[1]->getDB()->getDagBlock(pbft_block->getPivotDagBlockHash());
+      if (dag_block && (dag_block->getLevel() + node_cfgs[0].dag_expiry_limit >= last_anchor_level)) {
         first_over_limit = i;
         break;
       }
