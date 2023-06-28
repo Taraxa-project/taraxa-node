@@ -76,6 +76,12 @@
     "params": [""],
     "order": [],
     "returns": []
+  },
+  {
+    "name": "taraxa_getPreviousBlockCertVotes",
+    "params": [""],
+    "order": [],
+    "returns": {}
   }
 ]
 

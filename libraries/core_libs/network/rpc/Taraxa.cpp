@@ -233,4 +233,31 @@ Json::Value Taraxa::taraxa_getPeriodDagBlocks(const std::string& _period) {
   }
 }
 
+Json::Value Taraxa::taraxa_getPreviousBlockCertVotes(const std::string& _period) {
+  try {
+    auto node = tryGetNode();
+    auto final_chain = node->getFinalChain();
+    auto vote_manager = node->getVoteManager();
+
+    Json::Value res(Json::objectValue);
+
+    auto period = dev::jsToInt(_period);
+    auto votes = node->getDB()->getPeriodCertVotes(period);
+    if (votes.empty()) {
+      return res;
+    }
+
+    const auto votes_period = votes.front()->getPeriod();
+    const uint64_t total_dpos_votes_count = final_chain->dpos_eligible_total_vote_count(votes_period - 1);
+    res["total_votes_count"] = total_dpos_votes_count;
+    res["votes"] = transformToJsonParallel(votes, [&](const auto& vote) {
+      vote_manager->validateVote(vote);
+      return vote->toJSON();
+    });
+    return res;
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
+}
+
 }  // namespace taraxa::net
