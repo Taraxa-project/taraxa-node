@@ -148,12 +148,18 @@ class Vote {
     strm << "[Vote] " << std::endl;
     strm << "  vote_hash: " << vote.vote_hash_ << std::endl;
     strm << "  voter: " << vote.getVoter() << std::endl;
-    strm << "  vote_signatue: " << vote.vote_signature_ << std::endl;
+    strm << "  vote_signature: " << vote.vote_signature_ << std::endl;
     strm << "  blockhash: " << vote.blockhash_ << std::endl;
     if (vote.weight_) strm << "  weight: " << vote.weight_.value() << std::endl;
     strm << "  vrf_sorition: " << vote.vrf_sortition_ << std::endl;
     return strm;
   }
+
+  /**
+   * @brief Get vote in JSON representation
+   * @return vote JSON
+   */
+  Json::Value toJSON() const;
 
  private:
   /**

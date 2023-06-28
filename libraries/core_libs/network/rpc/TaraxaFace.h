@@ -50,6 +50,9 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getPeriodDagBlocks", jsonrpc::PARAMS_BY_POSITION,
                                               jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_STRING, NULL),
                            &taraxa::net::TaraxaFace::taraxa_getPeriodDagBlocksI);
+    this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getPreviousBlockCertVotes", jsonrpc::PARAMS_BY_POSITION,
+                                              jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_STRING, NULL),
+                           &taraxa::net::TaraxaFace::taraxa_getPeriodPreviousBlockCertVotesI);
   }
 
   inline virtual void taraxa_protocolVersionI(const Json::Value &request, Json::Value &response) {
@@ -94,6 +97,10 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
   inline virtual void taraxa_getPeriodDagBlocksI(const Json::Value &request, Json::Value &response) {
     response = this->taraxa_getPeriodDagBlocks(request[0u].asString());
   }
+  inline virtual void taraxa_getPeriodPreviousBlockCertVotesI(const Json::Value &request, Json::Value &response) {
+    response = this->taraxa_getPreviousBlockCertVotes(request[0u].asString());
+  }
+
   virtual std::string taraxa_protocolVersion() = 0;
   virtual Json::Value taraxa_getVersion() = 0;
   virtual Json::Value taraxa_getDagBlockByHash(const std::string &param1, bool param2) = 0;
@@ -106,6 +113,7 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
   virtual std::string taraxa_pbftBlockHashByPeriod(const std::string &param1) = 0;
   virtual Json::Value taraxa_getPeriodTransactionsWithReceipts(const std::string &param1) = 0;
   virtual Json::Value taraxa_getPeriodDagBlocks(const std::string &param1) = 0;
+  virtual Json::Value taraxa_getPreviousBlockCertVotes(const std::string &param1) = 0;
 };
 
 }  // namespace net

@@ -643,6 +643,41 @@ curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getPeriodDagBlocks","para
 }
 ```
 
+### taraxa_getPreviousBlockCertVotes
+
+Returns all previous block cert votes for specified period 
+
+#### Parameters
+
+`QUANTITY` - period
+
+#### Returns
+
+`ARRAY` of `OBJECT` - A Vote block object:
+* `hash`: `DATA`, 32 Bytes - Hash of the vote
+* `voter`: `DATA`, 20 Bytes - Address of vote creator
+* `sig`: `DATA`, 65 Bytes - Vote signature
+* `block_hash`: `DATA`, 32 Bytes - Hash of the block vote
+* `weight`: `QUANTITY` - weight of the vote
+
+#### Example
+
+```json
+// Request
+curl -X POST --data '{"jsonrpc":"2.0","method":"taraxa_getPreviousBlockCertVotes","params":["0x100"],"id":1}'
+
+// Result
+{
+  "id": 1,
+  "jsonrpc": "2.0",
+  "result": [
+    {
+      
+    }, ...
+  ]
+}
+```
+
 ## Test API
 
 ### get_sortition_change
