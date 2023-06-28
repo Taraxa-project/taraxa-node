@@ -175,6 +175,7 @@ void DbStorage::replaceColumn(const Column& to_be_replaced_col,
   }
 
   handles_[to_be_replaced_col.ordinal_] = replaced_col.release();
+  checkStatus(db_->DropColumnFamily(replacing_col.get()));
 }
 
 void DbStorage::deleteColumnData(const Column& c) {
