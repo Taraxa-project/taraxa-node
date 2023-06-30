@@ -17,6 +17,24 @@
     "returns": {}
   },
   {
+    "name": "debug_getPeriodTransactionsWithReceipts",
+    "params": [""],
+    "order": [],
+    "returns": []
+  },
+  {
+    "name": "debug_getPeriodDagBlocks",
+    "params": [""],
+    "order": [],
+    "returns": []
+  },
+  {
+    "name": "debug_getPreviousBlockCertVotes",
+    "params": [""],
+    "order": [],
+    "returns": {}
+  },
+  {
     "name": "trace_call",
     "params": [
       {},
