@@ -64,24 +64,6 @@
     "params": [""],
     "order": [],
     "returns": ""
-  },
-  {
-    "name": "taraxa_getPeriodTransactionsWithReceipts",
-    "params": [""],
-    "order": [],
-    "returns": []
-  },
-  {
-    "name": "taraxa_getPeriodDagBlocks",
-    "params": [""],
-    "order": [],
-    "returns": []
-  },
-  {
-    "name": "taraxa_getPreviousBlockCertVotes",
-    "params": [""],
-    "order": [],
-    "returns": {}
   }
 ]
 

@@ -34,6 +34,9 @@ class Debug : public DebugFace {
 
   virtual Json::Value debug_traceTransaction(const std::string& param1) override;
   virtual Json::Value debug_traceCall(const Json::Value& param1, const std::string& param2) override;
+  virtual Json::Value debug_getPeriodTransactionsWithReceipts(const std::string& _period) override;
+  virtual Json::Value debug_getPeriodDagBlocks(const std::string& _period) override;
+  virtual Json::Value debug_getPreviousBlockCertVotes(const std::string& _period) override;
   virtual Json::Value trace_call(const Json::Value& param1, const Json::Value& param2,
                                  const std::string& param3) override;
   virtual Json::Value trace_replayTransaction(const std::string& param1, const Json::Value& param2) override;

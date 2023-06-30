@@ -57,7 +57,9 @@ Json::Value Vote::toJSON() const {
   json["voter"] = dev::toJS(getVoterAddr());
   json["signature"] = dev::toJS(getVoteSignature());
   json["block_hash"] = dev::toJS(getBlockHash());
-  json["weight"] = dev::toJS(*weight_);
+  if (weight_.has_value()) {
+    json["weight"] = dev::toJS(*weight_);
+  }
 
   return json;
 }
