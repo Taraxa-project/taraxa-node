@@ -53,6 +53,9 @@ DagManager::DagManager(const DagBlock &dag_genesis_block, addr_t node_addr, cons
     db_->saveProposalPeriodDagLevelsMap(max_levels_per_period, 0);
   }
   recoverDag();
+  if (is_light_node_) {
+    clearLightNodeHistory(true);
+  }
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
 }
@@ -279,9 +282,9 @@ std::vector<blk_hash_t> DagManager::getDagBlockOrder(blk_hash_t const &anchor, P
   return blk_orders;
 }
 
-void DagManager::clearLightNodeHistory() {
+void DagManager::clearLightNodeHistory(bool force) {
   // Actual history size will be between 100% and 110% of light_node_history_ to avoid deleting on every period
-  if (((period_ % (std::max(light_node_history_ / 10, (uint64_t)1)) == 0)) && period_ > light_node_history_ &&
+  if (((period_ % (std::max(light_node_history_ / 10, (uint64_t)1)) == 0) || force) && period_ > light_node_history_ &&
       dag_expiry_level_ > max_levels_per_period_ + 1) {
     // This will happen at most once a day so log a silent log
     LOG(log_si_) << "Clear light node history";
@@ -296,7 +299,11 @@ void DagManager::clearLightNodeHistory() {
     LOG(log_tr_) << "dag_expiry_level - max_levels_per_period_ - 1: " << dag_expiry_level_ - max_levels_per_period_ - 1
                  << " *proposal_period " << *proposal_period;
     LOG(log_tr_) << "Delete period history from: " << start << " to " << end;
-    db_->clearPeriodDataHistory(end);
+    uint64_t dag_level_to_keep = 1;
+    if (dag_expiry_level_ > max_levels_per_period_) {
+      dag_level_to_keep = dag_expiry_level_ - max_levels_per_period_;
+    }
+    db_->clearPeriodDataHistory(end, dag_level_to_keep);
     LOG(log_si_) << "Clear light node history completed";
   }
 }
@@ -459,6 +466,11 @@ void DagManager::recoverDag() {
         anchor_ = anchor;
         LOG(log_nf_) << "Recover anchor " << anchor_;
         addToDag(anchor_, kNullBlockHash, vec_blk_t(), 0, true);
+
+        const auto anchor_block_level = getDagBlock(anchor_)->getLevel();
+        if (anchor_block_level > dag_expiry_limit_) {
+          dag_expiry_level_ = anchor_block_level - dag_expiry_limit_;
+        }
         break;
       }
     }
