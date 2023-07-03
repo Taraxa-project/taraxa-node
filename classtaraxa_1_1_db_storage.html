@@ -185,8 +185,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a3b5913c661bb192e45c7a6b659886aed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a55029b172261c0dc91da128fef909e06"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a55029b172261c0dc91da128fef909e06">savePeriodData</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;period_data, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">Batch</a> &amp;write_batch)</td></tr>
 <tr class="separator:a55029b172261c0dc91da128fef909e06"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a56b74f6282c0ead7cb428a3ebe046aad"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a56b74f6282c0ead7cb428a3ebe046aad">clearPeriodDataHistory</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
-<tr class="separator:a56b74f6282c0ead7cb428a3ebe046aad"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6b6957e4c2d6e706975cc4fa1a7a9912"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a6b6957e4c2d6e706975cc4fa1a7a9912">clearPeriodDataHistory</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, uint64_t dag_level_to_keep)</td></tr>
+<tr class="separator:a6b6957e4c2d6e706975cc4fa1a7a9912"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab1523d59c5c4bd4a2992406574b17083"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a70b2e7ff6ed93ac6c8ca25b55ac6173d">dev::bytes</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ab1523d59c5c4bd4a2992406574b17083">getPeriodDataRaw</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) const</td></tr>
 <tr class="separator:ab1523d59c5c4bd4a2992406574b17083"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7c5b83f06af69153fbb86037ecda6a1f"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a7c5b83f06af69153fbb86037ecda6a1f">getPbftBlock</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period) const</td></tr>
@@ -1017,8 +1017,8 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a56b74f6282c0ead7cb428a3ebe046aad"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a56b74f6282c0ead7cb428a3ebe046aad">&#9670;&nbsp;</a></span>clearPeriodDataHistory()</h2>
+<a id="a6b6957e4c2d6e706975cc4fa1a7a9912"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a6b6957e4c2d6e706975cc4fa1a7a9912">&#9670;&nbsp;</a></span>clearPeriodDataHistory()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1027,8 +1027,18 @@ Private Attributes</h2></td></tr>
           <td class="memname">void taraxa::DbStorage::clearPeriodDataHistory </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
-          <td class="paramname"><em>period</em></td><td>)</td>
+          <td class="paramname"><em>period</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>dag_level_to_keep</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">

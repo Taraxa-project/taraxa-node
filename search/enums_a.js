@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['watchtype_7229',['WatchType',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#aeb19a0c91d9b3f39936dcbb097ccd138',1,'taraxa::net::rpc::eth']]],
-  ['whenerror_7230',['WhenError',['../namespacedev.html#a7d630db95b674f8768ae006ef31c0670',1,'dev']]]
+  ['watchtype_7230',['WatchType',['../namespacetaraxa_1_1net_1_1rpc_1_1eth.html#aeb19a0c91d9b3f39936dcbb097ccd138',1,'taraxa::net::rpc::eth']]],
+  ['whenerror_7231',['WhenError',['../namespacedev.html#a7d630db95b674f8768ae006ef31c0670',1,'dev']]]
 ];
