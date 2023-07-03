@@ -217,6 +217,23 @@ void DbStorage::rebuildColumns(const rocksdb::Options& options) {
     const auto it = std::find_if(Columns::all.begin(), Columns::all.end(),
                                  [&handles, i](const Column& col) { return col.name() == handles[i]->GetName(); });
     if (it == Columns::all.end()) {
+      // All the data from dag_blocks_index is moved to dag_blocks_level
+      if (handles[i]->GetName() == "dag_blocks_index") {
+        rocksdb::ColumnFamilyHandle* handle_dag_blocks_level;
+
+        auto options = rocksdb::ColumnFamilyOptions();
+        options.comparator = getIntComparator<uint64_t>();
+        checkStatus(db->CreateColumnFamily(options, Columns::dag_blocks_level.name(), &handle_dag_blocks_level));
+
+        auto it_dag_level = std::unique_ptr<rocksdb::Iterator>(db->NewIterator(read_options_, handles[i]));
+        it_dag_level->SeekToFirst();
+
+        while (it_dag_level->Valid()) {
+          checkStatus(db->Put(write_options_, handle_dag_blocks_level, toSlice(it_dag_level->key()),
+                              toSlice(it_dag_level->value())));
+          it_dag_level->Next();
+        }
+      }
       LOG(log_si_) << "Removing column: " << handles[i]->GetName();
       checkStatus(db->DropColumnFamily(handles[i]));
     }
@@ -409,14 +426,14 @@ bool DbStorage::dagBlockInDb(blk_hash_t const& hash) {
 }
 
 std::set<blk_hash_t> DbStorage::getBlocksByLevel(level_t level) {
-  auto data = asBytes(lookup(toSlice(level), Columns::dag_blocks_index));
+  auto data = asBytes(lookup(toSlice(level), Columns::dag_blocks_level));
   dev::RLP rlp(data);
   return rlp.toSet<blk_hash_t>();
 }
 
 level_t DbStorage::getLastBlocksLevel() const {
   level_t level = 0;
-  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::dag_blocks_index)));
+  auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::dag_blocks_level)));
   it->SeekToLast();
   if (it->Valid()) {
     memcpy(&level, it->key().data(), sizeof(level_t));
@@ -476,7 +493,7 @@ void DbStorage::updateDagBlockCounters(std::vector<DagBlock> blks) {
     for (auto const& hash : block_hashes) {
       blocks_stream << hash;
     }
-    insert(write_batch, Columns::dag_blocks_index, toSlice(level), toSlice(blocks_stream.out()));
+    insert(write_batch, Columns::dag_blocks_level, toSlice(level), toSlice(blocks_stream.out()));
     dag_blocks_count_.fetch_add(1);
     dag_edge_count_.fetch_add(blk.getTips().size() + 1);
   }
@@ -501,7 +518,7 @@ void DbStorage::saveDagBlock(DagBlock const& blk, Batch* write_batch_p) {
   for (auto const& hash : block_hashes) {
     blocks_stream << hash;
   }
-  insert(write_batch, Columns::dag_blocks_index, toSlice(level), toSlice(blocks_stream.out()));
+  insert(write_batch, Columns::dag_blocks_level, toSlice(level), toSlice(blocks_stream.out()));
 
   dag_blocks_count_.fetch_add(1);
   dag_edge_count_.fetch_add(blk.getTips().size() + 1);
@@ -542,7 +559,7 @@ std::optional<SortitionParamsChange> DbStorage::getParamsChangeForPeriod(PbftPer
   return SortitionParamsChange::from_rlp(dev::RLP(it->value().ToString()));
 }
 
-void DbStorage::clearPeriodDataHistory(PbftPeriod end_period) {
+void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level_to_keep) {
   // This is expensive operation but it should not be run more than once a day
   auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::period_data)));
   // Find the first non-deleted period
@@ -560,12 +577,11 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period) {
         // Find transactions included in the old blocks and delete data related to these transactions to free disk
         // space
         auto trx_hashes_raw = lookup(period, DB::Columns::final_chain_transaction_hashes_by_blk_number);
-        auto hashes_count = trx_hashes_raw.size() / trx_hash_t::size;
-        for (uint32_t i = 0; i < hashes_count; i++) {
-          auto hash = trx_hash_t(reinterpret_cast<uint8_t*>(trx_hashes_raw.data() + i * trx_hash_t::size),
-                                 trx_hash_t::ConstructFromPointer);
+        TransactionHashes trx_hashes = (util::rlp_dec<TransactionHashes>(dev::RLP(trx_hashes_raw)));
+
+        for (auto hash : trx_hashes) {
           remove(write_batch, Columns::final_chain_receipt_by_trx_hash, hash);
-          remove(write_batch, Columns::period_data, hash);
+          remove(write_batch, Columns::trx_period, hash);
         }
         remove(write_batch, Columns::final_chain_transaction_hashes_by_blk_number, EthBlockNumber(period));
         if ((period - start_period + 1) % max_batch_delete == 0) {
@@ -573,14 +589,47 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period) {
           write_batch = createWriteBatch();
         }
       }
+
       commitWriteBatch(write_batch);
 
       db_->DeleteRange(write_options_, handle(Columns::period_data), start_slice, end_slice);
+
       // Deletion alone does not guarantee that the disk space is freed, these CompactRange methods actually compact
       // the data in the database and free disk space
       db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
       db_->CompactRange({}, handle(Columns::final_chain_receipt_by_trx_hash), nullptr, nullptr);
       db_->CompactRange({}, handle(Columns::final_chain_transaction_hashes_by_blk_number), nullptr, nullptr);
+      db_->CompactRange({}, handle(Columns::trx_period), nullptr, nullptr);
+    }
+  }
+
+  it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::dag_blocks_level)));
+  it->SeekToFirst();
+  if (it->Valid()) {
+    uint64_t start_level;
+    memcpy(&start_level, it->key().data(), sizeof(uint64_t));
+    if (start_level < dag_level_to_keep) {
+      auto write_batch = createWriteBatch();
+      // Delete up to max 10000 period at once
+      const uint32_t max_batch_delete = 10000;
+      auto start_slice = toSlice(start_level);
+      auto end_slice = toSlice(dag_level_to_keep - 1);
+      for (auto level = start_level; level < dag_level_to_keep; level++) {
+        // Find old dag blocks and delete data related to these blocks to free disk space
+        auto dag_block_hashes = getBlocksByLevel(start_level);
+        for (auto dag_block_hash : dag_block_hashes) {
+          remove(write_batch, Columns::dag_block_period, dag_block_hash);
+        }
+        if ((dag_level_to_keep - start_level + 1) % max_batch_delete == 0) {
+          commitWriteBatch(write_batch);
+          write_batch = createWriteBatch();
+        }
+      }
+      commitWriteBatch(write_batch);
+      db_->DeleteRange(write_options_, handle(Columns::dag_blocks_level), start_slice, end_slice);
+
+      db_->CompactRange({}, handle(Columns::dag_block_period), nullptr, nullptr);
+      db_->CompactRange({}, handle(Columns::dag_blocks_level), nullptr, nullptr);
     }
   }
 }
