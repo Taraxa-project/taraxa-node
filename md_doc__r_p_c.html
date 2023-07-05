@@ -552,141 +552,17 @@ Example</h3>
 <div class="line">    &quot;transactions_executed&quot;: 200</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md307"></a>
-taraxa_getPeriodTransactionsWithReceipts</h2>
-<p>Returns all transactions from block at specified period</p>
-<h3><a class="anchor" id="autotoc_md308"></a>
-Parameters</h3>
-<p><code>QUANTITY</code> - period</p>
-<h3><a class="anchor" id="autotoc_md309"></a>
-Returns</h3>
-<p><code>ARRAY</code> of <code>OBJECT</code> - Object that is result of transaction and receipt objects merging <br  />
-</p><ul>
-<li><code>blockHash</code>: <code>DATA</code>, 32 Bytes - hash of the block where this transaction was in. null when its pending.</li>
-<li><code>blockNumber</code>: <code>QUANTITY</code> - block number where this transaction was in. null when its pending.</li>
-<li><code>from</code>: <code>DATA</code>, 20 Bytes - address of the sender.</li>
-<li><code>gas</code>: <code>QUANTITY</code> - gas provided by the sender.</li>
-<li><code>gasPrice</code>: <code>QUANTITY</code> - gas price provided by the sender in Wei.</li>
-<li><code>hash</code>: <code>DATA</code>, 32 Bytes - hash of the transaction.</li>
-<li><code>input</code>: <code>DATA</code> - the data send along with the transaction.</li>
-<li><code>nonce</code>: <code>QUANTITY</code> - the number of transactions made by the sender prior to this one.</li>
-<li><code>to</code>: <code>DATA</code>, 20 Bytes - address of the receiver. null when its a contract creation transaction.</li>
-<li><code>transactionIndex</code>: <code>QUANTITY</code> - integer of the transactions index position in the block. null when its pending.</li>
-<li><code>value</code>: <code>QUANTITY</code> - value transferred in Wei.</li>
-<li><code>v</code>: <code>QUANTITY</code> - ECDSA recovery id</li>
-<li><code>r</code>: <code>QUANTITY</code> - ECDSA signature r</li>
-<li><code>s</code>: <code>QUANTITY</code> - ECDSA signature s</li>
-<li><code>cumulativeGasUsed</code>: <code>QUANTITY</code> - The total amount of gas used when this transaction was executed in the block.</li>
-<li><code>gasUsed</code>: <code>QUANTITY</code> - The amount of gas used by this specific transaction alone.</li>
-<li><code>contractAddress</code>: <code>DATA</code>, 20 Bytes - The contract address created, if the transaction was a contract creation, otherwise null.</li>
-<li><code>logs</code>: <code>Array</code> - Array of log objects, which this transaction generated.</li>
-<li><code>logsBloom</code>: <code>DATA</code>, 256 Bytes - Bloom filter for light clients to quickly retrieve related logs.</li>
-<li><code>status</code>: <code>QUANTITY</code> either 1 (success) or 0 (failure)</li>
-</ul>
-<h3><a class="anchor" id="autotoc_md310"></a>
-Example</h3>
-<div class="fragment"><div class="line">// Request</div>
-<div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;taraxa_getPeriodTransactionsWithReceipts&quot;,&quot;params&quot;:[&quot;0x100&quot;],&quot;id&quot;:1}&#39;</div>
-<div class="line"> </div>
-<div class="line">// Result</div>
-<div class="line">{</div>
-<div class="line">  &quot;id&quot;: 1,</div>
-<div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
-<div class="line">  &quot;result&quot;: [</div>
-<div class="line">    {</div>
-<div class="line">      &quot;blockHash&quot;: &quot;0x9f27c225f7b645299a023d59d5407537e05cbc1aee09b8b338e2893e3a1c3698&quot;,</div>
-<div class="line">      &quot;blockNumber&quot;: &quot;0x100&quot;,</div>
-<div class="line">      &quot;contractAddress&quot;: null,</div>
-<div class="line">      &quot;cumulativeGasUsed&quot;: &quot;0x5208&quot;,</div>
-<div class="line">      &quot;from&quot;: &quot;0x111f91441efc8c6c0edf6534970cc887e2fabaa8&quot;,</div>
-<div class="line">      &quot;gas&quot;: &quot;0x5208&quot;,</div>
-<div class="line">      &quot;gasPrice&quot;: &quot;0x1&quot;,</div>
-<div class="line">      &quot;gasUsed&quot;: &quot;0x5208&quot;,</div>
-<div class="line">      &quot;hash&quot;: &quot;0xca4f7b0c2bb4d0fd0ba525aee8c5148dbb10a4f937f5f39270c95e7735b48552&quot;,</div>
-<div class="line">      &quot;input&quot;: &quot;0x&quot;,</div>
-<div class="line">      &quot;logs&quot;: [],</div>
-<div class="line">      &quot;logsBloom&quot;: &quot;0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000&quot;,</div>
-<div class="line">      &quot;nonce&quot;: &quot;0x2761&quot;,</div>
-<div class="line">      &quot;r&quot;: &quot;0x9069748f0ea83d278e70b585c97f6033698d39b17aa60d74bb47b67c3f275429&quot;,</div>
-<div class="line">      &quot;s&quot;: &quot;0x235abed51caca24778c4ce13ebd92811a61fef53d6a318dfa0c2340000e20dc3&quot;,</div>
-<div class="line">      &quot;status&quot;: &quot;0x1&quot;,</div>
-<div class="line">      &quot;to&quot;: &quot;0x8dcc94cc57c72eaa6609ee77cb50c84141fa39bd&quot;,</div>
-<div class="line">      &quot;transactionHash&quot;: &quot;0xca4f7b0c2bb4d0fd0ba525aee8c5148dbb10a4f937f5f39270c95e7735b48552&quot;,</div>
-<div class="line">      &quot;transactionIndex&quot;: &quot;0x0&quot;,</div>
-<div class="line">      &quot;v&quot;: &quot;0x0&quot;,</div>
-<div class="line">      &quot;value&quot;: &quot;0x1&quot;</div>
-<div class="line">    }, ...</div>
-<div class="line">  ]</div>
-<div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md311"></a>
-taraxa_getPeriodDagBlocks</h2>
-<p>Returns all dag blocks for specified period</p>
-<h3><a class="anchor" id="autotoc_md312"></a>
-Parameters</h3>
-<p><code>QUANTITY</code> - period</p>
-<h3><a class="anchor" id="autotoc_md313"></a>
-Returns</h3>
-<p><code>ARRAY</code> of <code>OBJECT</code> - A DAG block object:</p><ul>
-<li><code>pivot</code>: <code>DATA</code>, 32 Bytes -</li>
-<li><code>level</code>: <code>QUANTITY</code> - Level at which block was produced</li>
-<li><code>period</code>: <code>QUANTITY</code> - Finalization period of this block</li>
-<li><code>tips</code>: <code>ARRAY</code> - List of tips</li>
-<li><code>transactions</code>: <code>ARRAY</code> - Array of transaction objects, or 32 Bytes transaction hashes depending on the last given parameter.</li>
-<li><code>trx_estimations</code>: <code>ARRAY</code> - Array of <code>QUANTITIES</code> that means transaction gas estimation for corresponding transaction. For example <code>trx_estimations[0]</code> is for <code>transactions[0]</code></li>
-<li><code>sig</code>: <code>DATA</code>, 65 Bytes - Signature of block creator</li>
-<li><code>hash</code>: <code>DATA</code>, 32 Bytes - Hash of this block</li>
-<li><code>sender</code>: <code>DATA</code>, 20 Bytes - Address of block creator</li>
-<li><code>timestamp</code>: <code>QUANTITY</code> - Time of block creation</li>
-<li><code>vdf</code>: <code>OBJECT</code> - vdf proof for this block<ul>
-<li><code>pk</code>: <code>DATA</code>, 32 Bytes - Public key</li>
-<li><code>proof</code>: <code>DATA</code>, 80 Bytes - Bytes of proof</li>
-<li><code>sol1</code>: <code>DATA</code> - First part of solution</li>
-<li><code>sol1</code>: <code>DATA</code> - Second part of solution</li>
-<li><code>difficulty</code>: <code>QUANTITY</code> - Difficulty with which block was produced</li>
-</ul>
-</li>
-</ul>
-<h3><a class="anchor" id="autotoc_md314"></a>
-Example</h3>
-<div class="fragment"><div class="line">// Request</div>
-<div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;taraxa_getPeriodDagBlocks&quot;,&quot;params&quot;:[&quot;0x100&quot;],&quot;id&quot;:1}&#39;</div>
-<div class="line"> </div>
-<div class="line">// Result</div>
-<div class="line">{</div>
-<div class="line">  &quot;id&quot;: 1,</div>
-<div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
-<div class="line">  &quot;result&quot;: [</div>
-<div class="line">    {</div>
-<div class="line">      &quot;hash&quot;: &quot;0xc142fafaebd46803a8c5bd8d7411a202e163fad0513e3fa2431d379b5c267a77&quot;,</div>
-<div class="line">      &quot;level&quot;: &quot;0x1f9&quot;,</div>
-<div class="line">      &quot;period&quot;: &quot;0x100&quot;,</div>
-<div class="line">      &quot;pivot&quot;: &quot;0xa1e8e5485167951b81172ff6fe04b0d9fa7ac02280824da97e8af42cab783daa&quot;,</div>
-<div class="line">      &quot;sender&quot;: &quot;0xe143ededbf9285dc39daf64c120037a4b9a0f095&quot;,</div>
-<div class="line">      &quot;sig&quot;: &quot;0x8b5ba54ef14ee89255a4db84007f119589e73cb0b98befb3d04fd9fa0d92dc923dcb6ec2f6ffe60cd31a5d28fd2c290c293fa12fabff7e25d0051b701118748501&quot;,</div>
-<div class="line">      &quot;timestamp&quot;: &quot;0x642ab512&quot;,</div>
-<div class="line">      &quot;tips&quot;: [],</div>
-<div class="line">      &quot;transactions&quot;: [...],</div>
-<div class="line">      &quot;trx_estimations&quot;: &quot;0x668a0&quot;,</div>
-<div class="line">      &quot;vdf&quot;: {</div>
-<div class="line">        &quot;difficulty&quot;: &quot;0x10&quot;,</div>
-<div class="line">        &quot;proof&quot;: &quot;0x7ef44c562d64fb9169e6db68d720d182e4d9648c80349699a82c5b358cd9bc4f9b3ee50c97651bbc5579f98f412b642aa4b3c4af5a038816e54457152459e1e90cee85bcdc5fb386748777586186a10b&quot;,</div>
-<div class="line">        &quot;sol1&quot;: &quot;0x041536b789da11f68c22b2ce1c23ed969a28e6269d3e0e65f81bfa3049e021875cff724803fe6f5ec3fe5362054eee9965978a004372b7249f4ce8485c7e92a64696aada82150329764612f9f5fabeabf0fb08e1ec33d7b52db165259033ca52d6f75284bb0163c993e0e6a4725e9a3417948ddf3dad8581aa596c2aeb53f321d6675d53ead1bafdee2d31928d77ad61452ad0e3c2c04cb6d27bfff2aaf94e2a47098f0270c62e7c5d1eb8e8c98398d2a75146a70b7bcbfc03be12c9deaf427562a9c37fbb93d466e6055ecd52abf6f9e14b49d4df19dc24187e22f62d0ed061c91b4c1b1712be47987e785094e91ea973af806c6b14299783ea0481070853d8&quot;,</div>
-<div class="line">        &quot;sol2&quot;: &quot;0x2bb0760e2b5b4cbe2dfbe5c740206ad0f8606d397a7e16b157ebc4dcf899e67175d8ea83ac7c1b13cd7e84f1032f625b3d216c6595c5285898257a2d3b8359079cc6d6a7d5381a77756fe021747d3dcbae7cdaabc6def80eb9ee2e0b7cd9c7a85d06acaee456198d45b6652872b47f5dd5895548fc459d0ac854334c3ec3749b7011df27ee1b22ab7f8ad6ed731fbc2d8dc96eaf9e4d2fc87e2e8a1c52bff11e087e5da1f5c1e1ee316d1cd279d628c4a38cfb727b0aff896a82d9fe68a3c64490809f002615954ccd6422818210b4cafacd21dcf542c4c81263b71ccd149869d3077c3af5b674ae08b01059414247410f6f76f5215cfe40e10d0d95d5936197&quot;</div>
-<div class="line">      }</div>
-<div class="line">    }, ...</div>
-<div class="line">  ]</div>
-<div class="line">}</div>
-</div><!-- fragment --><h1><a class="anchor" id="autotoc_md315"></a>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md307"></a>
 Test API</h1>
-<h2><a class="anchor" id="autotoc_md316"></a>
+<h2><a class="anchor" id="autotoc_md308"></a>
 get_sortition_change</h2>
 <p>Get sortition params changes for closest smaller period to specified</p>
-<h3><a class="anchor" id="autotoc_md317"></a>
+<h3><a class="anchor" id="autotoc_md309"></a>
 Parameters</h3>
 <p><code>OBJECT</code> - param is wrapped into object</p><ul>
 <li><code>period</code>: QUANTITY` - period number to get sortition parameters for</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md318"></a>
+<h3><a class="anchor" id="autotoc_md310"></a>
 Returns</h3>
 <p><code>OBJECT</code> - sortition parameters</p><ul>
 <li><code>interval_efficiency</code>: <code>QUANTITY</code> - efficiency of interval</li>
@@ -694,7 +570,7 @@ Returns</h3>
 <li><code>threshold_upper</code>: <code>QUANTITY</code> - upper bound of selection</li>
 <li><code>kThresholdUpperMinValue</code>: <code>QUANTITY</code> - const that represents minimum value of <code>threshold_upper</code></li>
 </ul>
-<h3><a class="anchor" id="autotoc_md319"></a>
+<h3><a class="anchor" id="autotoc_md311"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_sortition_change&quot;,&quot;params&quot;:[{&quot;period&quot;: 3000}],&quot;id&quot;:1}&#39;</div>
@@ -710,10 +586,10 @@ Example</h3>
 <div class="line">    &quot;threshold_upper&quot;: 31953</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md320"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md312"></a>
 send_coin_transaction</h2>
 <p>Method to create and send transfer transaction. Used in some tests and CI</p>
-<h3><a class="anchor" id="autotoc_md321"></a>
+<h3><a class="anchor" id="autotoc_md313"></a>
 Parameters</h3>
 <p><code>OBJECT</code> - block json to insert</p><ul>
 <li><code>secret</code>: <code>DATA</code>, 32 Bytes - Secret key for account to send transaction from</li>
@@ -723,10 +599,10 @@ Parameters</h3>
 <li><code>gas</code>: <code>QUANTITY</code> - Amount of gas transaction can use</li>
 <li><code>receiver</code>: <code>DATA</code>, 20 Bytes - Address of receiver account</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md322"></a>
+<h3><a class="anchor" id="autotoc_md314"></a>
 Returns</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md323"></a>
+<h3><a class="anchor" id="autotoc_md315"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;send_coin_transaction&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -737,10 +613,10 @@ Example</h3>
 <div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
 <div class="line">  &quot;result&quot;: null</div>
 <div class="line">}</div>
-</div><!-- fragment --> <h2><a class="anchor" id="autotoc_md324"></a>
+</div><!-- fragment --> <h2><a class="anchor" id="autotoc_md316"></a>
 send_coin_transactions</h2>
 <p>Method to create and send multiple transaction. Used to create high transactions load in tests</p>
-<h3><a class="anchor" id="autotoc_md325"></a>
+<h3><a class="anchor" id="autotoc_md317"></a>
 Parameters</h3>
 <p><code>OBJECT</code> - block json to insert</p><ul>
 <li><code>secret</code>: <code>DATA</code>, 32 Bytes - Secret key for account to send transactions from</li>
@@ -751,19 +627,19 @@ Parameters</h3>
 <li><code>receiver</code>: <code>DATA</code>, 20 Bytes - Array of Addresses of receiver account</li>
 <li><code>transaction_count</code>: <code>QUANTITY</code>, - Number of transactions to create</li>
 </ul>
-<h3><a class="anchor" id="autotoc_md326"></a>
+<h3><a class="anchor" id="autotoc_md318"></a>
 Returns</h3>
 <p>Number of transactions inserted successfully, in case of transaction insertion failure, error message is returned</p>
-<h2><a class="anchor" id="autotoc_md327"></a>
+<h2><a class="anchor" id="autotoc_md319"></a>
 get_account_address</h2>
 <p>Returns address of account on current node</p>
-<h3><a class="anchor" id="autotoc_md328"></a>
+<h3><a class="anchor" id="autotoc_md320"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md329"></a>
+<h3><a class="anchor" id="autotoc_md321"></a>
 Returns</h3>
 <p><code>DATA</code>, 20 Bytes - address of account on current node</p>
-<h3><a class="anchor" id="autotoc_md330"></a>
+<h3><a class="anchor" id="autotoc_md322"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_account_address&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -776,16 +652,16 @@ Example</h3>
 <div class="line">    &quot;value&quot;: &quot;b3888b0bafcf1f9481a0ec97ff032d84f22254ec&quot;</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md331"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md323"></a>
 get_peer_count</h2>
 <p>Returns count of peers that node is connected to</p>
-<h3><a class="anchor" id="autotoc_md332"></a>
+<h3><a class="anchor" id="autotoc_md324"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md333"></a>
+<h3><a class="anchor" id="autotoc_md325"></a>
 Returns</h3>
 <p><code>QUANTITY</code> - count of peers that node is connected to</p>
-<h3><a class="anchor" id="autotoc_md334"></a>
+<h3><a class="anchor" id="autotoc_md326"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_peer_count&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -798,16 +674,16 @@ Example</h3>
 <div class="line">    &quot;value&quot;: 50</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md335"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md327"></a>
 get_node_status</h2>
 <p>Returns current taraxa network protocol version</p>
-<h3><a class="anchor" id="autotoc_md336"></a>
+<h3><a class="anchor" id="autotoc_md328"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md337"></a>
+<h3><a class="anchor" id="autotoc_md329"></a>
 Returns</h3>
 <p><code>OBJECT</code> - with a lot of info about node status including networking. See Example</p>
-<h3><a class="anchor" id="autotoc_md338"></a>
+<h3><a class="anchor" id="autotoc_md330"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_node_status&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -854,16 +730,16 @@ Example</h3>
 <div class="line">    &quot;trx_pool_size&quot;: 7</div>
 <div class="line">  }</div>
 <div class="line">}</div>
-</div><!-- fragment --><h2><a class="anchor" id="autotoc_md339"></a>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md331"></a>
 get_all_nodes</h2>
 <p>Returns info of current connected nodes including its id, ip_address and port</p>
-<h3><a class="anchor" id="autotoc_md340"></a>
+<h3><a class="anchor" id="autotoc_md332"></a>
 Parameters</h3>
 <p>none</p>
-<h3><a class="anchor" id="autotoc_md341"></a>
+<h3><a class="anchor" id="autotoc_md333"></a>
 Returns</h3>
 <p><code>STRING</code> - string that contains info about peer if format <code>id ip_address:port</code> separated with <code>\n</code>.</p>
-<h3><a class="anchor" id="autotoc_md342"></a>
+<h3><a class="anchor" id="autotoc_md334"></a>
 Example</h3>
 <div class="fragment"><div class="line">// Request</div>
 <div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;get_all_nodes&quot;,&quot;params&quot;:[],&quot;id&quot;:1}&#39;</div>
@@ -873,6 +749,162 @@ Example</h3>
 <div class="line">  &quot;id&quot;: 1,</div>
 <div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
 <div class="line">  &quot;result&quot;: &quot;f8ff62f2df819566023ec3cda97f73697e789089b5c97c22a24c175edec3256242796a7a843fe1b949558160dae0fd5510e31c93440798212ef99a55c64e7b0f 66.94.114.186:10002\n45022ea1765d3a569003e2088a0893ffe00656c25f32ee414b39c6e45c8aa05cc41453158d832c67b5bba710edb648223f654fae9e2a1f513d7e42447f25a2d6 38.242.218.203:10002&quot;</div>
+<div class="line">}</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md335"></a>
+Debug API</h1>
+<h2><a class="anchor" id="autotoc_md336"></a>
+debug_getPeriodTransactionsWithReceipts</h2>
+<p>Returns all transactions from block at specified period</p>
+<h3><a class="anchor" id="autotoc_md337"></a>
+Parameters</h3>
+<p><code>QUANTITY</code> - period</p>
+<h3><a class="anchor" id="autotoc_md338"></a>
+Returns</h3>
+<p><code>ARRAY</code> of <code>OBJECT</code> - Object that is result of transaction and receipt objects merging <br  />
+</p><ul>
+<li><code>blockHash</code>: <code>DATA</code>, 32 Bytes - hash of the block where this transaction was in. null when its pending.</li>
+<li><code>blockNumber</code>: <code>QUANTITY</code> - block number where this transaction was in. null when its pending.</li>
+<li><code>from</code>: <code>DATA</code>, 20 Bytes - address of the sender.</li>
+<li><code>gas</code>: <code>QUANTITY</code> - gas provided by the sender.</li>
+<li><code>gasPrice</code>: <code>QUANTITY</code> - gas price provided by the sender in Wei.</li>
+<li><code>hash</code>: <code>DATA</code>, 32 Bytes - hash of the transaction.</li>
+<li><code>input</code>: <code>DATA</code> - the data send along with the transaction.</li>
+<li><code>nonce</code>: <code>QUANTITY</code> - the number of transactions made by the sender prior to this one.</li>
+<li><code>to</code>: <code>DATA</code>, 20 Bytes - address of the receiver. null when its a contract creation transaction.</li>
+<li><code>transactionIndex</code>: <code>QUANTITY</code> - integer of the transactions index position in the block. null when its pending.</li>
+<li><code>value</code>: <code>QUANTITY</code> - value transferred in Wei.</li>
+<li><code>v</code>: <code>QUANTITY</code> - ECDSA recovery id</li>
+<li><code>r</code>: <code>QUANTITY</code> - ECDSA signature r</li>
+<li><code>s</code>: <code>QUANTITY</code> - ECDSA signature s</li>
+<li><code>cumulativeGasUsed</code>: <code>QUANTITY</code> - The total amount of gas used when this transaction was executed in the block.</li>
+<li><code>gasUsed</code>: <code>QUANTITY</code> - The amount of gas used by this specific transaction alone.</li>
+<li><code>contractAddress</code>: <code>DATA</code>, 20 Bytes - The contract address created, if the transaction was a contract creation, otherwise null.</li>
+<li><code>logs</code>: <code>Array</code> - Array of log objects, which this transaction generated.</li>
+<li><code>logsBloom</code>: <code>DATA</code>, 256 Bytes - Bloom filter for light clients to quickly retrieve related logs.</li>
+<li><code>status</code>: <code>QUANTITY</code> either 1 (success) or 0 (failure)</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md339"></a>
+Example</h3>
+<div class="fragment"><div class="line">// Request</div>
+<div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;debug_getPeriodTransactionsWithReceipts&quot;,&quot;params&quot;:[&quot;0x100&quot;],&quot;id&quot;:1}&#39;</div>
+<div class="line"> </div>
+<div class="line">// Result</div>
+<div class="line">{</div>
+<div class="line">  &quot;id&quot;: 1,</div>
+<div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
+<div class="line">  &quot;result&quot;: [</div>
+<div class="line">    {</div>
+<div class="line">      &quot;blockHash&quot;: &quot;0x9f27c225f7b645299a023d59d5407537e05cbc1aee09b8b338e2893e3a1c3698&quot;,</div>
+<div class="line">      &quot;blockNumber&quot;: &quot;0x100&quot;,</div>
+<div class="line">      &quot;contractAddress&quot;: null,</div>
+<div class="line">      &quot;cumulativeGasUsed&quot;: &quot;0x5208&quot;,</div>
+<div class="line">      &quot;from&quot;: &quot;0x111f91441efc8c6c0edf6534970cc887e2fabaa8&quot;,</div>
+<div class="line">      &quot;gas&quot;: &quot;0x5208&quot;,</div>
+<div class="line">      &quot;gasPrice&quot;: &quot;0x1&quot;,</div>
+<div class="line">      &quot;gasUsed&quot;: &quot;0x5208&quot;,</div>
+<div class="line">      &quot;hash&quot;: &quot;0xca4f7b0c2bb4d0fd0ba525aee8c5148dbb10a4f937f5f39270c95e7735b48552&quot;,</div>
+<div class="line">      &quot;input&quot;: &quot;0x&quot;,</div>
+<div class="line">      &quot;logs&quot;: [],</div>
+<div class="line">      &quot;logsBloom&quot;: &quot;0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000&quot;,</div>
+<div class="line">      &quot;nonce&quot;: &quot;0x2761&quot;,</div>
+<div class="line">      &quot;r&quot;: &quot;0x9069748f0ea83d278e70b585c97f6033698d39b17aa60d74bb47b67c3f275429&quot;,</div>
+<div class="line">      &quot;s&quot;: &quot;0x235abed51caca24778c4ce13ebd92811a61fef53d6a318dfa0c2340000e20dc3&quot;,</div>
+<div class="line">      &quot;status&quot;: &quot;0x1&quot;,</div>
+<div class="line">      &quot;to&quot;: &quot;0x8dcc94cc57c72eaa6609ee77cb50c84141fa39bd&quot;,</div>
+<div class="line">      &quot;transactionHash&quot;: &quot;0xca4f7b0c2bb4d0fd0ba525aee8c5148dbb10a4f937f5f39270c95e7735b48552&quot;,</div>
+<div class="line">      &quot;transactionIndex&quot;: &quot;0x0&quot;,</div>
+<div class="line">      &quot;v&quot;: &quot;0x0&quot;,</div>
+<div class="line">      &quot;value&quot;: &quot;0x1&quot;</div>
+<div class="line">    }, ...</div>
+<div class="line">  ]</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md340"></a>
+debug_getPeriodDagBlocks</h2>
+<p>Returns all dag blocks for specified period</p>
+<h3><a class="anchor" id="autotoc_md341"></a>
+Parameters</h3>
+<p><code>QUANTITY</code> - period</p>
+<h3><a class="anchor" id="autotoc_md342"></a>
+Returns</h3>
+<p><code>ARRAY</code> of <code>OBJECT</code> - A DAG block object:</p><ul>
+<li><code>pivot</code>: <code>DATA</code>, 32 Bytes -</li>
+<li><code>level</code>: <code>QUANTITY</code> - Level at which block was produced</li>
+<li><code>period</code>: <code>QUANTITY</code> - Finalization period of this block</li>
+<li><code>tips</code>: <code>ARRAY</code> - List of tips</li>
+<li><code>transactions</code>: <code>ARRAY</code> - Array of transaction objects, or 32 Bytes transaction hashes depending on the last given parameter.</li>
+<li><code>trx_estimations</code>: <code>ARRAY</code> - Array of <code>QUANTITIES</code> that means transaction gas estimation for corresponding transaction. For example <code>trx_estimations[0]</code> is for <code>transactions[0]</code></li>
+<li><code>sig</code>: <code>DATA</code>, 65 Bytes - Signature of block creator</li>
+<li><code>hash</code>: <code>DATA</code>, 32 Bytes - Hash of this block</li>
+<li><code>sender</code>: <code>DATA</code>, 20 Bytes - Address of block creator</li>
+<li><code>timestamp</code>: <code>QUANTITY</code> - Time of block creation</li>
+<li><code>vdf</code>: <code>OBJECT</code> - vdf proof for this block<ul>
+<li><code>pk</code>: <code>DATA</code>, 32 Bytes - Public key</li>
+<li><code>proof</code>: <code>DATA</code>, 80 Bytes - Bytes of proof</li>
+<li><code>sol1</code>: <code>DATA</code> - First part of solution</li>
+<li><code>sol1</code>: <code>DATA</code> - Second part of solution</li>
+<li><code>difficulty</code>: <code>QUANTITY</code> - Difficulty with which block was produced</li>
+</ul>
+</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md343"></a>
+Example</h3>
+<div class="fragment"><div class="line">// Request</div>
+<div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;debug_getPeriodDagBlocks&quot;,&quot;params&quot;:[&quot;0x100&quot;],&quot;id&quot;:1}&#39;</div>
+<div class="line"> </div>
+<div class="line">// Result</div>
+<div class="line">{</div>
+<div class="line">  &quot;id&quot;: 1,</div>
+<div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
+<div class="line">  &quot;result&quot;: [</div>
+<div class="line">    {</div>
+<div class="line">      &quot;hash&quot;: &quot;0xc142fafaebd46803a8c5bd8d7411a202e163fad0513e3fa2431d379b5c267a77&quot;,</div>
+<div class="line">      &quot;level&quot;: &quot;0x1f9&quot;,</div>
+<div class="line">      &quot;period&quot;: &quot;0x100&quot;,</div>
+<div class="line">      &quot;pivot&quot;: &quot;0xa1e8e5485167951b81172ff6fe04b0d9fa7ac02280824da97e8af42cab783daa&quot;,</div>
+<div class="line">      &quot;sender&quot;: &quot;0xe143ededbf9285dc39daf64c120037a4b9a0f095&quot;,</div>
+<div class="line">      &quot;sig&quot;: &quot;0x8b5ba54ef14ee89255a4db84007f119589e73cb0b98befb3d04fd9fa0d92dc923dcb6ec2f6ffe60cd31a5d28fd2c290c293fa12fabff7e25d0051b701118748501&quot;,</div>
+<div class="line">      &quot;timestamp&quot;: &quot;0x642ab512&quot;,</div>
+<div class="line">      &quot;tips&quot;: [],</div>
+<div class="line">      &quot;transactions&quot;: [...],</div>
+<div class="line">      &quot;trx_estimations&quot;: &quot;0x668a0&quot;,</div>
+<div class="line">      &quot;vdf&quot;: {</div>
+<div class="line">        &quot;difficulty&quot;: &quot;0x10&quot;,</div>
+<div class="line">        &quot;proof&quot;: &quot;0x7ef44c562d64fb9169e6db68d720d182e4d9648c80349699a82c5b358cd9bc4f9b3ee50c97651bbc5579f98f412b642aa4b3c4af5a038816e54457152459e1e90cee85bcdc5fb386748777586186a10b&quot;,</div>
+<div class="line">        &quot;sol1&quot;: &quot;0x041536b789da11f68c22b2ce1c23ed969a28e6269d3e0e65f81bfa3049e021875cff724803fe6f5ec3fe5362054eee9965978a004372b7249f4ce8485c7e92a64696aada82150329764612f9f5fabeabf0fb08e1ec33d7b52db165259033ca52d6f75284bb0163c993e0e6a4725e9a3417948ddf3dad8581aa596c2aeb53f321d6675d53ead1bafdee2d31928d77ad61452ad0e3c2c04cb6d27bfff2aaf94e2a47098f0270c62e7c5d1eb8e8c98398d2a75146a70b7bcbfc03be12c9deaf427562a9c37fbb93d466e6055ecd52abf6f9e14b49d4df19dc24187e22f62d0ed061c91b4c1b1712be47987e785094e91ea973af806c6b14299783ea0481070853d8&quot;,</div>
+<div class="line">        &quot;sol2&quot;: &quot;0x2bb0760e2b5b4cbe2dfbe5c740206ad0f8606d397a7e16b157ebc4dcf899e67175d8ea83ac7c1b13cd7e84f1032f625b3d216c6595c5285898257a2d3b8359079cc6d6a7d5381a77756fe021747d3dcbae7cdaabc6def80eb9ee2e0b7cd9c7a85d06acaee456198d45b6652872b47f5dd5895548fc459d0ac854334c3ec3749b7011df27ee1b22ab7f8ad6ed731fbc2d8dc96eaf9e4d2fc87e2e8a1c52bff11e087e5da1f5c1e1ee316d1cd279d628c4a38cfb727b0aff896a82d9fe68a3c64490809f002615954ccd6422818210b4cafacd21dcf542c4c81263b71ccd149869d3077c3af5b674ae08b01059414247410f6f76f5215cfe40e10d0d95d5936197&quot;</div>
+<div class="line">      }</div>
+<div class="line">    }, ...</div>
+<div class="line">  ]</div>
+<div class="line">}</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md344"></a>
+debug_getPreviousBlockCertVotes</h2>
+<p>Returns all previous block cert votes for specified period</p>
+<h3><a class="anchor" id="autotoc_md345"></a>
+Parameters</h3>
+<p><code>QUANTITY</code> - period</p>
+<h3><a class="anchor" id="autotoc_md346"></a>
+Returns</h3>
+<p><code>ARRAY</code> of <code>OBJECT</code> - A Vote block object:</p><ul>
+<li><code>hash</code>: <code>DATA</code>, 32 Bytes - Hash of the vote</li>
+<li><code>voter</code>: <code>DATA</code>, 20 Bytes - Address of vote creator</li>
+<li><code>sig</code>: <code>DATA</code>, 65 Bytes - Vote signature</li>
+<li><code>block_hash</code>: <code>DATA</code>, 32 Bytes - Hash of the block vote</li>
+<li><code>weight</code>: <code>QUANTITY</code> - weight of the vote</li>
+</ul>
+<h3><a class="anchor" id="autotoc_md347"></a>
+Example</h3>
+<div class="fragment"><div class="line">// Request</div>
+<div class="line">curl -X POST --data &#39;{&quot;jsonrpc&quot;:&quot;2.0&quot;,&quot;method&quot;:&quot;debug_getPreviousBlockCertVotes&quot;,&quot;params&quot;:[&quot;0x100&quot;],&quot;id&quot;:1}&#39;</div>
+<div class="line"> </div>
+<div class="line">// Result</div>
+<div class="line">{</div>
+<div class="line">  &quot;id&quot;: 1,</div>
+<div class="line">  &quot;jsonrpc&quot;: &quot;2.0&quot;,</div>
+<div class="line">  &quot;result&quot;: [</div>
+<div class="line">    {</div>
+<div class="line">      </div>
+<div class="line">    }, ...</div>
+<div class="line">  ]</div>
 <div class="line">}</div>
 </div><!-- fragment --> </div></div><!-- contents -->
 </div><!-- PageDoc -->

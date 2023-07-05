@@ -85,6 +85,7 @@ var group___vote =
       [ "optimizedRlp", "group___vote.html#a3811ddf49cda58565fb87a7bcfeca942", null ],
       [ "rlp", "group___vote.html#acba0f5fe7ab3479d8b622b013ee6b7cf", null ],
       [ "sha3", "group___vote.html#ad1ee3c8e4288b4e166d2aedd9ee325b6", null ],
+      [ "toJSON", "group___vote.html#a202fee0792473c18cec0b6374b4c0cff", null ],
       [ "verifyVote", "group___vote.html#a6528bb14bb94e196d5ffb65693acda19", null ],
       [ "verifyVrfSortition", "group___vote.html#a8ad105bcb6457cd15953cc1cf146b3dd", null ],
       [ "operator<<", "group___vote.html#a98ee040183ce7e5147bbee2283263cd9", null ],

@@ -1,6 +1,9 @@
 var classtaraxa_1_1net_1_1_debug =
 [
     [ "Debug", "classtaraxa_1_1net_1_1_debug.html#ae52c9ee7c3fc2c69af9bf6dd293629a8", null ],
+    [ "debug_getPeriodDagBlocks", "classtaraxa_1_1net_1_1_debug.html#ab9ea195630ec06900ca67adf1a320516", null ],
+    [ "debug_getPeriodTransactionsWithReceipts", "classtaraxa_1_1net_1_1_debug.html#ab5da92d536ed095b93d72b8441a8f42d", null ],
+    [ "debug_getPreviousBlockCertVotes", "classtaraxa_1_1net_1_1_debug.html#a2d8e5c4e50fe689e781591b4ba95e296", null ],
     [ "debug_traceCall", "classtaraxa_1_1net_1_1_debug.html#a85f1d4335d4676a3735967ad0d2cfbea", null ],
     [ "debug_traceTransaction", "classtaraxa_1_1net_1_1_debug.html#a3daf730fcb91d8266c2eb4f327741289", null ],
     [ "get_transaction_with_location", "classtaraxa_1_1net_1_1_debug.html#a360d4b66ba85efd523268f8b3daf1cde", null ],

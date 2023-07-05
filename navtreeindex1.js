@@ -1,5 +1,7 @@
 var NAVTREEINDEX1 =
 {
+"_log_8h.html#a8fd9fe8df23eb93de375a40c1ae78814":[16,0,1,0,0,16,33],
+"_log_8h.html#a91397733f5ecba864e69d1b52b459a83":[16,0,1,0,0,16,31],
 "_log_8h.html#a9b089503d2613b83726c3a591bbae9c6":[16,0,1,0,0,16,20],
 "_log_8h.html#a9e9559eae7bb66811be1df68edf2e877":[16,0,1,0,0,16,15],
 "_log_8h.html#aa6e9407be44878b3602655852c0b41c1":[16,0,1,0,0,16,3],
@@ -99,8 +101,6 @@ var NAVTREEINDEX1 =
 "_session_8h.html":[16,0,1,0,2,23],
 "_session_8h_source.html":[16,0,1,0,2,23],
 "_taraxa_8cpp.html":[16,0,1,4,1,2,15],
-"_taraxa_8cpp.html#a6c9724375dc00fc54e49fd622bd98c2e":[16,0,1,4,1,2,15,1],
-"_taraxa_8cpp.html#a7c1af82cec2ac066ea2f49c13a87e6cb":[16,0,1,4,1,2,15,0],
 "_taraxa_8h.html":[16,0,1,4,1,2,16],
 "_taraxa_8h_source.html":[16,0,1,4,1,2,16],
 "_taraxa_client_8h.html":[16,0,1,4,1,2,17],
