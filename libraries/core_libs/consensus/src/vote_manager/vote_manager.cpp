@@ -868,7 +868,6 @@ std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Vot
   try {
     const uint64_t voter_dpos_votes_count =
         final_chain_->dpos_eligible_vote_count(vote_period - 1, vote->getVoterAddr());
-    const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(vote_period - 1);
 
     // Mark vote as validated only after getting dpos_eligible_vote_count and other values from dpos contract. It is
     // possible that we are behind in processing pbft blocks, in which case we wont be able to get values from dpos
@@ -896,6 +895,7 @@ std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Vot
       return {false, err_msg.str()};
     }
 
+    const uint64_t total_dpos_votes_count = final_chain_->dpos_eligible_total_vote_count(vote_period - 1);
     const uint64_t pbft_sortition_threshold = getPbftSortitionThreshold(total_dpos_votes_count, vote->getType());
     if (!vote->calculateWeight(voter_dpos_votes_count, total_dpos_votes_count, pbft_sortition_threshold)) {
       err_msg << "Invalid vote " << vote->getHash() << ": zero weight";

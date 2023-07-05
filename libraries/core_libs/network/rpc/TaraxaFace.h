@@ -44,12 +44,6 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
     this->bindAndAddMethod(jsonrpc::Procedure("taraxa_pbftBlockHashByPeriod", jsonrpc::PARAMS_BY_POSITION,
                                               jsonrpc::JSON_STRING, "param1", jsonrpc::JSON_STRING, NULL),
                            &taraxa::net::TaraxaFace::taraxa_pbftBlockHashByPeriodI);
-    this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getPeriodTransactionsWithReceipts", jsonrpc::PARAMS_BY_POSITION,
-                                              jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_STRING, NULL),
-                           &taraxa::net::TaraxaFace::taraxa_getPeriodTransactionsWithReceiptsI);
-    this->bindAndAddMethod(jsonrpc::Procedure("taraxa_getPeriodDagBlocks", jsonrpc::PARAMS_BY_POSITION,
-                                              jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_STRING, NULL),
-                           &taraxa::net::TaraxaFace::taraxa_getPeriodDagBlocksI);
   }
 
   inline virtual void taraxa_protocolVersionI(const Json::Value &request, Json::Value &response) {
@@ -88,12 +82,7 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
   inline virtual void taraxa_pbftBlockHashByPeriodI(const Json::Value &request, Json::Value &response) {
     response = this->taraxa_pbftBlockHashByPeriod(request[0u].asString());
   }
-  inline virtual void taraxa_getPeriodTransactionsWithReceiptsI(const Json::Value &request, Json::Value &response) {
-    response = this->taraxa_getPeriodTransactionsWithReceipts(request[0u].asString());
-  }
-  inline virtual void taraxa_getPeriodDagBlocksI(const Json::Value &request, Json::Value &response) {
-    response = this->taraxa_getPeriodDagBlocks(request[0u].asString());
-  }
+
   virtual std::string taraxa_protocolVersion() = 0;
   virtual Json::Value taraxa_getVersion() = 0;
   virtual Json::Value taraxa_getDagBlockByHash(const std::string &param1, bool param2) = 0;
@@ -104,8 +93,6 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
   virtual Json::Value taraxa_getConfig() = 0;
   virtual Json::Value taraxa_getChainStats() = 0;
   virtual std::string taraxa_pbftBlockHashByPeriod(const std::string &param1) = 0;
-  virtual Json::Value taraxa_getPeriodTransactionsWithReceipts(const std::string &param1) = 0;
-  virtual Json::Value taraxa_getPeriodDagBlocks(const std::string &param1) = 0;
 };
 
 }  // namespace net

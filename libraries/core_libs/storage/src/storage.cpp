@@ -815,7 +815,11 @@ std::vector<std::shared_ptr<Vote>> DbStorage::getPeriodCertVotes(PbftPeriod peri
   }
 
   auto period_data_rlp = dev::RLP(period_data);
-  return decodeVotesBundleRlp(period_data_rlp[CERT_VOTES_POS_IN_PERIOD_DATA]);
+  auto votes_rlp = period_data_rlp[CERT_VOTES_POS_IN_PERIOD_DATA];
+  if (votes_rlp.itemCount() == 0) {
+    return {};
+  }
+  return decodeVotesBundleRlp(votes_rlp);
 }
 
 std::optional<SharedTransactions> DbStorage::getPeriodTransactions(PbftPeriod period) const {

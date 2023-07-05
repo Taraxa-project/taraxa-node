@@ -18,6 +18,15 @@ class DebugFace : public ServerInterface<DebugFace> {
     this->bindAndAddMethod(jsonrpc::Procedure("debug_traceCall", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT,
                                               "param1", jsonrpc::JSON_OBJECT, "param2", jsonrpc::JSON_STRING, NULL),
                            &taraxa::net::DebugFace::debug_traceCallI);
+    this->bindAndAddMethod(jsonrpc::Procedure("debug_getPreviousBlockCertVotes", jsonrpc::PARAMS_BY_POSITION,
+                                              jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_STRING, NULL),
+                           &taraxa::net::DebugFace::debug_getPreviousBlockCertVotesI);
+    this->bindAndAddMethod(jsonrpc::Procedure("debug_getPeriodTransactionsWithReceipts", jsonrpc::PARAMS_BY_POSITION,
+                                              jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_STRING, NULL),
+                           &taraxa::net::DebugFace::debug_getPeriodTransactionsWithReceiptsI);
+    this->bindAndAddMethod(jsonrpc::Procedure("debug_getPeriodDagBlocks", jsonrpc::PARAMS_BY_POSITION,
+                                              jsonrpc::JSON_OBJECT, "param1", jsonrpc::JSON_STRING, NULL),
+                           &taraxa::net::DebugFace::debug_getPeriodDagBlocksI);
     this->bindAndAddMethod(
         jsonrpc::Procedure("trace_call", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_OBJECT, "param1",
                            jsonrpc::JSON_OBJECT, "param2", jsonrpc::JSON_ARRAY, "param3", jsonrpc::JSON_STRING, NULL),
@@ -38,6 +47,15 @@ class DebugFace : public ServerInterface<DebugFace> {
   inline virtual void debug_traceCallI(const Json::Value& request, Json::Value& response) {
     response = this->debug_traceCall(request[0u], request[1u].asString());
   }
+  inline virtual void debug_getPreviousBlockCertVotesI(const Json::Value& request, Json::Value& response) {
+    response = this->debug_getPreviousBlockCertVotes(request[0u].asString());
+  }
+  inline virtual void debug_getPeriodTransactionsWithReceiptsI(const Json::Value& request, Json::Value& response) {
+    response = this->debug_getPeriodTransactionsWithReceipts(request[0u].asString());
+  }
+  inline virtual void debug_getPeriodDagBlocksI(const Json::Value& request, Json::Value& response) {
+    response = this->debug_getPeriodDagBlocks(request[0u].asString());
+  }
   inline virtual void trace_callI(const Json::Value& request, Json::Value& response) {
     response = this->trace_call(request[0u], request[1u], request[2u].asString());
   }
@@ -49,6 +67,9 @@ class DebugFace : public ServerInterface<DebugFace> {
   }
   virtual Json::Value debug_traceTransaction(const std::string& param1) = 0;
   virtual Json::Value debug_traceCall(const Json::Value& param1, const std::string& param2) = 0;
+  virtual Json::Value debug_getPreviousBlockCertVotes(const std::string& param1) = 0;
+  virtual Json::Value debug_getPeriodTransactionsWithReceipts(const std::string& param1) = 0;
+  virtual Json::Value debug_getPeriodDagBlocks(const std::string& param1) = 0;
   virtual Json::Value trace_call(const Json::Value& param1, const Json::Value& param2, const std::string& param3) = 0;
   virtual Json::Value trace_replayTransaction(const std::string& param1, const Json::Value& param2) = 0;
   virtual Json::Value trace_replayBlockTransactions(const std::string& param1, const Json::Value& param2) = 0;
