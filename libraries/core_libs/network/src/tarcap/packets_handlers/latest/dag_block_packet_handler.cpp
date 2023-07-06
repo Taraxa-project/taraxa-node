@@ -231,13 +231,12 @@ void DagBlockPacketHandler::onNewBlockVerified(const DagBlock &block, bool propo
           if (peer->isTransactionKnown(trx_hash)) {
             continue;
           }
+
           // Db can be nullptr in some unit tests
-          if (db_ != nullptr) {
-            auto trx = db_->getTransaction(trx_hash);
-            assert(trx != nullptr);
-            transactions_to_send.push_back(trx);
-            peer_and_transactions_to_log += trx_hash.abridged();
-          }
+          auto trx = db_->getTransaction(trx_hash);
+          assert(trx != nullptr);
+          transactions_to_send.push_back(trx);
+          peer_and_transactions_to_log += trx_hash.abridged();
         }
 
         sendBlock(peer_id, block, transactions_to_send);

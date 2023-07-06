@@ -33,6 +33,7 @@ namespace taraxa {
 namespace metrics {
 class MetricsService;
 }
+
 class Network;
 class DagBlockProposer;
 class DagManager;
@@ -45,15 +46,46 @@ struct NetworkConfig;
 class KeyManager;
 
 class FullNode : public std::enable_shared_from_this<FullNode> {
-  using shared_ptr_t = std::shared_ptr<FullNode>;
-  using vrf_pk_t = vrf_wrapper::vrf_pk_t;
-  using vrf_sk_t = vrf_wrapper::vrf_sk_t;
-  using vrf_proof_t = vrf_wrapper::vrf_proof_t;
-  using jsonrpc_server_t = ModularServer<net::TaraxaFace, net::NetFace, net::EthFace, net::TestFace, net::DebugFace>;
+ public:
+  explicit FullNode(FullNodeConfig const &conf);
+  ~FullNode();
+
+  FullNode(const FullNode &) = delete;
+  FullNode(FullNode &&) = delete;
+  FullNode &operator=(const FullNode &) = delete;
+  FullNode &operator=(FullNode &&) = delete;
+
+  void start();
+  bool isStarted() const { return started_; }
+  auto const &getConfig() const { return conf_; }
+  auto const &getNetwork() const { return network_; }
+  auto const &getTransactionManager() const { return trx_mgr_; }
+  auto const &getDagManager() const { return dag_mgr_; }
+  auto const &getDB() const { return db_; }
+  auto const &getPbftManager() const { return pbft_mgr_; }
+  auto const &getVoteManager() const { return vote_mgr_; }
+  auto const &getPbftChain() const { return pbft_chain_; }
+  auto const &getFinalChain() const { return final_chain_; }
+  // used only in tests
+  auto &getDagBlockProposer() { return dag_block_proposer_; }
+  auto const &getGasPricer() const { return gas_pricer_; }
+
+  auto const &getAddress() const { return kp_.address(); }
+  auto const &getSecretKey() const { return kp_.secret(); }
+  auto const &getVrfSecretKey() const { return conf_.vrf_secret; }
+
+  // For Debug
+  uint64_t getProposedBlocksCount() const;
+
+  void rebuildDb();
+
+ private:
+  using JsonRpcServer = ModularServer<net::TaraxaFace, net::NetFace, net::EthFace, net::TestFace, net::DebugFace>;
 
   // should be destroyed after all components, since they may depend on it through unsafe pointers
   std::unique_ptr<util::ThreadPool> rpc_thread_pool_;
   std::unique_ptr<util::ThreadPool> graphql_thread_pool_;
+
   // In cae we will you config for this TP, it needs to be unique_ptr !!!
   util::ThreadPool subscription_pool_;
 
@@ -62,6 +94,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   FullNodeConfig conf_;
   // Ethereum key pair
   dev::KeyPair kp_;
+
   // components
   std::shared_ptr<DbStorage> db_;
   std::shared_ptr<DbStorage> old_db_;
@@ -79,7 +112,7 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
   std::shared_ptr<net::HttpServer> graphql_http_;
   std::shared_ptr<net::WsServer> jsonrpc_ws_;
   std::shared_ptr<net::WsServer> graphql_ws_;
-  std::unique_ptr<jsonrpc_server_t> jsonrpc_api_;
+  std::unique_ptr<JsonRpcServer> jsonrpc_api_;
   std::unique_ptr<metrics::MetricsService> metrics_;
 
   // logging
@@ -95,41 +128,6 @@ class FullNode : public std::enable_shared_from_this<FullNode> {
    * So we don't need to pass metrics classes instances in other classes.
    */
   void setupMetricsUpdaters();
-
- public:
-  explicit FullNode(FullNodeConfig const &conf);
-  ~FullNode();
-
-  FullNode(const FullNode &) = delete;
-  FullNode(FullNode &&) = delete;
-  FullNode &operator=(const FullNode &) = delete;
-  FullNode &operator=(FullNode &&) = delete;
-
-  void start();
-  bool isStarted() const { return started_; }
-  shared_ptr_t getShared() { return shared_from_this(); }
-  auto const &getConfig() const { return conf_; }
-  auto const &getNetwork() const { return network_; }
-  auto const &getTransactionManager() const { return trx_mgr_; }
-  auto const &getDagManager() const { return dag_mgr_; }
-  auto const &getDB() const { return db_; }
-  auto const &getPbftManager() const { return pbft_mgr_; }
-  auto const &getVoteManager() const { return vote_mgr_; }
-  auto const &getPbftChain() const { return pbft_chain_; }
-  auto const &getFinalChain() const { return final_chain_; }
-  // used only in tests
-  auto &getDagBlockProposer() { return dag_block_proposer_; }
-  auto const &getGasPricer() const { return gas_pricer_; }
-
-  auto const &getAddress() const { return kp_.address(); }
-  auto const &getPublicKey() const { return kp_.pub(); }
-  auto const &getSecretKey() const { return kp_.secret(); }
-  auto const &getVrfSecretKey() const { return conf_.vrf_secret; }
-
-  // For Debug
-  uint64_t getProposedBlocksCount() const;
-
-  void rebuildDb();
 };
 
 }  // namespace taraxa

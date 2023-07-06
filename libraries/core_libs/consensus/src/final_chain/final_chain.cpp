@@ -1,6 +1,5 @@
 #include "final_chain/final_chain.hpp"
 
-#include <cstdint>
 #include <string>
 
 #include "common/constants.hpp"

@@ -9,13 +9,11 @@
 #include <vector>
 
 #include "common/static_init.hpp"
-#include "config/config.hpp"
 #include "logger/logger.hpp"
-#include "network/network.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
-#include "network/tarcap/taraxa_capability.hpp"
+#include "network/tarcap/tarcap_version.hpp"
 #include "test_util/samples.hpp"
 #include "test_util/test_util.hpp"
 
@@ -32,35 +30,37 @@ auto g_signed_trx_samples = Lazy([] { return samples::createSignedTrxSamples(0, 
 
 struct P2PTest : NodesTest {};
 
-// TODO this needs to be removed and called from tracap->setPendingPeersToReady() directly
-void setPendingPeersToReady(std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> taraxa_capability) {
-  const auto &peers_state = taraxa_capability->getPeersState();
+class TestTaraxaCapability final : public dev::p2p::CapabilityFace {
+ public:
+  TestTaraxaCapability(taraxa::network::tarcap::TarcapVersion version) : version_(version) {}
 
-  auto peerIds = peers_state->getAllPendingPeersIDs();
-  for (const auto &peerId : peerIds) {
-    auto peer = peers_state->getPendingPeer(peerId);
-    if (peer) {
-      peers_state->setPeerAsReadyToSendMessages(peerId, peer);
+  std::string name() const override { return ""; }
+  taraxa::network::tarcap::TarcapVersion version() const override { return version_; }
+  unsigned messageCount() const override { return 0; }
+  void onConnect(std::weak_ptr<dev::p2p::Session>, u256 const &) override {}
+  void onDisconnect(dev::p2p::NodeID const &) override {}
+  void interpretCapabilityPacket(std::weak_ptr<dev::p2p::Session>, unsigned, dev::RLP const &) override {}
+  std::string packetTypeToString(unsigned) const override { return ""; }
+
+ private:
+  taraxa::network::tarcap::TarcapVersion version_{1};
+};
+
+std::shared_ptr<dev::p2p::Host> makeTestNode(unsigned short listenPort,
+                                             std::vector<taraxa::network::tarcap::TarcapVersion> tarcap_versions,
+                                             std::filesystem::path state_file_path) {
+  auto makeTestTarcaps = [tarcap_versions](std::weak_ptr<dev::p2p::Host>) {
+    Host::CapabilityList tarcaps;
+    for (const auto &version : tarcap_versions) {
+      tarcaps.emplace_back(std::make_shared<TestTaraxaCapability>(version));
     }
-  }
-}
 
-std::shared_ptr<taraxa::network::tarcap::TaraxaCapability> makeTarcap(std::weak_ptr<dev::p2p::Host> host,
-                                                                      const dev::KeyPair &key,
-                                                                      const FullNodeConfig &conf,
-                                                                      const h256 &genesis_hash, unsigned version) {
-  auto thread_pool = std::make_shared<network::threadpool::PacketsThreadPool>(conf.network.packets_processing_threads);
-  auto packets_stats = std::make_shared<network::tarcap::TimePeriodPacketsStats>(
-      conf.network.ddos_protection.packets_stats_time_period_ms, Address{});
-  auto syncing_state = std::make_shared<network::tarcap::PbftSyncingState>(conf.network.deep_syncing_threshold);
+    return tarcaps;
+  };
 
-  auto tarcap = std::make_shared<network::tarcap::TaraxaCapability>(version, conf, genesis_hash, host, key, thread_pool,
-                                                                    packets_stats, syncing_state, nullptr, nullptr,
-                                                                    nullptr, nullptr, nullptr, nullptr);
-
-  thread_pool->startProcessing();
-
-  return tarcap;
+  return Host::make("TaraxaNode", makeTestTarcaps, dev::KeyPair::create(),
+                    dev::p2p::NetworkConfig("127.0.0.1", listenPort, false, true), TaraxaNetworkConfig{},
+                    state_file_path);
 }
 
 /*
@@ -98,77 +98,61 @@ TEST_F(P2PTest, p2p_discovery) {
 }
 
 TEST_F(P2PTest, multiple_capabilities) {
-  auto node_cfgs = make_node_cfgs(3);
-  h256 genesis_hash;
-  NetworkConfig network_conf;
-  network_conf.transaction_interval_ms = 1000;
-  auto cleanup = []() {
+  // Create boot node
+  auto secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd",
+                            dev::Secret::ConstructFromStringType::FromHex);
+  auto key = dev::KeyPair(secret);
+  dev::p2p::NetworkConfig net_conf("127.0.0.1", 20001, false, true);
+  TaraxaNetworkConfig taraxa_net_conf;
+  taraxa_net_conf.is_boot_node = true;
+  auto boot_node = Host::make(
+      "TaraxaNode", [](auto /*host*/) { return Host::CapabilityList{}; }, key, net_conf, taraxa_net_conf);
+  const auto &boot_node_key = boot_node->id();
+
+  util::ThreadPool boot_node_tp;
+  boot_node_tp.post_loop({}, [=] { boot_node->do_work(); });
+
+  // Create 2 nodes(hosts) with specified tarcap versionS and wait for their connection being established
+  auto test_tarcaps = [boot_node_key](std::vector<taraxa::network::tarcap::TarcapVersion> node1_tarcap_versions,
+                                      std::vector<taraxa::network::tarcap::TarcapVersion> node2_tarcap_versions,
+                                      bool wait_for_connection = true) -> std::vector<std::shared_ptr<dev::p2p::Host>> {
+    std::filesystem::remove_all("/tmp/nw1");
     std::filesystem::remove_all("/tmp/nw2");
-    std::filesystem::remove_all("/tmp/nw3");
+
+    util::ThreadPool tp;
+
+    const auto node1 = makeTestNode(20002, node1_tarcap_versions, "/tmp/nw1");
+    std::cout << "node1->peer_count(): " << node1->peer_count() << std::endl;
+    node1->addNode(Node(boot_node_key, dev::p2p::NodeIPEndpoint(bi::address::from_string("127.0.0.1"), 20001, 20001)));
+    tp.post_loop({}, [=] { node1->do_work(); });
+
+    const auto node2 = makeTestNode(20003, node2_tarcap_versions, "/tmp/nw2");
+    node2->addNode(Node(boot_node_key, dev::p2p::NodeIPEndpoint(bi::address::from_string("127.0.0.1"), 20001, 20001)));
+    tp.post_loop({}, [=] { node2->do_work(); });
+
+    if (wait_for_connection) {
+      wait({60s, 500ms}, [&](auto &ctx) {
+        WAIT_EXPECT_EQ(ctx, node1->peer_count(), 1 /* boot node + node2 */);
+        WAIT_EXPECT_EQ(ctx, node2->peer_count(), 1 /* boot node + node1 */);
+      });
+
+      return {nullptr, nullptr};
+    }
+
+    return {node1, node2};
   };
-  auto wait_for_connection = [](std::shared_ptr<Network> nw1, std::shared_ptr<Network> nw2) {
-    EXPECT_HAPPENS({60s, 100ms}, [&](auto &ctx) {
-      nw1->setPendingPeersToReady();
-      nw2->setPendingPeersToReady();
-      WAIT_EXPECT_EQ(ctx, nw1->getPeerCount(), 1)
-      WAIT_EXPECT_EQ(ctx, nw2->getPeerCount(), 1)
-    });
-  };
-  const auto kp1 = KeyPair::create();
-  const auto kp2 = KeyPair::create();
-  cleanup();
-  {
-    auto nw1 =
-        std::make_shared<taraxa::Network>(node_cfgs[0], genesis_hash, "/tmp/nw2", kp1, nullptr, nullptr, nullptr,
-                                          nullptr, nullptr, nullptr, std::vector<network::tarcap::TarcapVersion>{3});
-    auto nw2 =
-        std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, "/tmp/nw3", kp2, nullptr, nullptr, nullptr,
-                                          nullptr, nullptr, nullptr, std::vector<network::tarcap::TarcapVersion>{3});
 
-    nw1->start();
-    nw2->start();
-    wait_for_connection(nw1, nw2);
-  }
-  cleanup();
-  {
-    auto nw1 = std::make_shared<taraxa::Network>(node_cfgs[0], genesis_hash, "/tmp/nw2", kp1, nullptr, nullptr, nullptr,
-                                                 nullptr, nullptr, nullptr,
-                                                 std::vector<network::tarcap::TarcapVersion>{1, 2, 3});
-    auto nw2 = std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, "/tmp/nw3", kp2, nullptr, nullptr, nullptr,
-                                                 nullptr, nullptr, nullptr,
-                                                 std::vector<network::tarcap::TarcapVersion>{1, 2, 3});
-    nw1->start();
-    nw2->start();
-    wait_for_connection(nw1, nw2);
-  }
-  cleanup();
-  {
-    auto nw1 = std::make_shared<taraxa::Network>(node_cfgs[0], genesis_hash, "/tmp/nw2", kp1, nullptr, nullptr, nullptr,
-                                                 nullptr, nullptr, nullptr,
-                                                 std::vector<network::tarcap::TarcapVersion>{1, 2, 3});
-    auto nw2 = std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, "/tmp/nw3", kp2, nullptr, nullptr, nullptr,
-                                                 nullptr, nullptr, nullptr,
-                                                 std::vector<network::tarcap::TarcapVersion>{2, 3, 4});
-    nw1->start();
-    nw2->start();
-    wait_for_connection(nw1, nw2);
-  }
-  cleanup();
-  {
-    auto nw1 = std::make_shared<taraxa::Network>(node_cfgs[0], genesis_hash, "/tmp/nw2", kp1, nullptr, nullptr, nullptr,
-                                                 nullptr, nullptr, nullptr,
-                                                 std::vector<network::tarcap::TarcapVersion>{1, 2, 3});
-    auto nw2 = std::make_shared<taraxa::Network>(node_cfgs[1], genesis_hash, "/tmp/nw3", kp2, nullptr, nullptr, nullptr,
-                                                 nullptr, nullptr, nullptr,
-                                                 std::vector<network::tarcap::TarcapVersion>{4, 5, 6});
+  // At least 1 common tarcap version - connection should be established
+  { test_tarcaps({1}, {1}); }
+  { test_tarcaps({1, 2, 3}, {3, 4, 5}); }
 
-    nw1->start();
-    nw2->start();
-
+  // No common tarcapm version, connection should not be established
+  {
+    auto nodes = test_tarcaps({1, 2, 3}, {4, 5, 6}, false);
     // check that connection wasn't established
     std::this_thread::sleep_for(5s);
-    EXPECT_EQ(nw1->getPeerCount(), 0);
-    EXPECT_EQ(nw2->getPeerCount(), 0);
+    EXPECT_EQ(nodes[0]->peer_count(), 0);
+    EXPECT_EQ(nodes[1]->peer_count(), 0);
   }
 }
 

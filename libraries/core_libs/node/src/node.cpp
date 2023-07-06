@@ -211,7 +211,7 @@ void FullNode::start() {
       debug_json_rpc = std::make_shared<net::Debug>(shared_from_this(), conf_.genesis.dag.gas_limit);
     }
 
-    jsonrpc_api_ = std::make_unique<jsonrpc_server_t>(
+    jsonrpc_api_ = std::make_unique<JsonRpcServer>(
         std::make_shared<net::Taraxa>(shared_from_this()),  // TODO Because this object refers to FullNode, the
                                                             // lifecycle/dependency management is more complicated
         std::make_shared<net::Net>(shared_from_this()),     // TODO Because this object refers to FullNode, the

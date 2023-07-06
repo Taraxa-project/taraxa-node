@@ -104,26 +104,6 @@ void PbftManager::stop() {
   LOG(log_dg_) << "PBFT daemon terminated ...";
 }
 
-// Only to be used for tests...
-void PbftManager::resume() {
-  // Will only appear in testing...
-  LOG(log_si_) << "Resuming PBFT daemon...";
-
-  if (step_ == 1) {
-    state_ = value_proposal_state;
-  } else if (step_ == 2) {
-    state_ = filter_state;
-  } else if (step_ == 3) {
-    state_ = certify_state;
-  } else if (step_ % 2 == 0) {
-    state_ = finish_state;
-  } else {
-    state_ = finish_polling_state;
-  }
-
-  daemon_ = std::make_unique<std::thread>([this]() { run(); });
-}
-
 /* When a node starts up it has to sync to the current phase (type of block
  * being generated) and step (within the block generation round)
  * Five step loop for block generation over three phases of blocks

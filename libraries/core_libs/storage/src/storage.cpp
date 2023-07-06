@@ -97,6 +97,10 @@ void DbStorage::removeOldLogFiles() const {
 }
 
 void DbStorage::removeFilesWithPattern(const std::string& directory, const std::regex& pattern) const {
+  if (!std::filesystem::exists(directory)) {
+    return;
+  }
+
   try {
     for (const auto& entry : std::filesystem::directory_iterator(directory)) {
       const std::string& filename = entry.path().filename().string();
