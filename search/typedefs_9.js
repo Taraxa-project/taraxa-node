@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['jsonrpc_5fserver_5ft_7075',['jsonrpc_server_t',['../classtaraxa_1_1_full_node.html#ad9a5d6a57fb0abbba5bc28a750783e65',1,'taraxa::FullNode']]]
+  ['jsonrpcserver_7078',['JsonRpcServer',['../classtaraxa_1_1_full_node.html#ae4771e8b2b3c98ef7ae0baa219aabbc6',1,'taraxa::FullNode']]]
 ];

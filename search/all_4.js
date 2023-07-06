@@ -1,11 +1,12 @@
 var searchData=
 [
-  ['con_450',['con',['../namespacedev_1_1con.html',1,'dev']]],
-  ['crypto_451',['crypto',['../namespacedev_1_1crypto.html',1,'dev']]],
-  ['daemon_5f_452',['daemon_',['../group___p_b_f_t.html#adcd7ff1c28e3c0b6b0a0108118b479fa',1,'taraxa::PbftManager']]],
-  ['dag_453',['DAG',['../group___d_a_g.html',1,'']]],
+  ['con_449',['con',['../namespacedev_1_1con.html',1,'dev']]],
+  ['crypto_450',['crypto',['../namespacedev_1_1crypto.html',1,'dev']]],
+  ['daemon_5f_451',['daemon_',['../group___p_b_f_t.html#adcd7ff1c28e3c0b6b0a0108118b479fa',1,'taraxa::PbftManager']]],
+  ['dag_452',['DAG',['../group___d_a_g.html',1,'']]],
+  ['dag_453',['Dag',['../group___d_a_g.html#a91d4f1eb81776e18f3908374d0eef614',1,'taraxa::Dag::Dag(Dag &amp;&amp;)=default'],['../group___d_a_g.html#a6266d656a7eba53bac6fa8dc7e7eb5da',1,'taraxa::Dag::Dag(const Dag &amp;)=default'],['../group___d_a_g.html#a7def37042439fa3c713ea8861d40b199',1,'taraxa::Dag::Dag(blk_hash_t const &amp;dag_genesis_block_hash, addr_t node_addr)']]],
   ['dag_454',['dag',['../structtaraxa_1_1_genesis.html#a8877888c0c2e5ac4f854bf1f6c1067f9',1,'taraxa::Genesis']]],
-  ['dag_455',['Dag',['../group___d_a_g.html#a91d4f1eb81776e18f3908374d0eef614',1,'taraxa::Dag::Dag(Dag &amp;&amp;)=default'],['../group___d_a_g.html#a6266d656a7eba53bac6fa8dc7e7eb5da',1,'taraxa::Dag::Dag(const Dag &amp;)=default'],['../group___d_a_g.html#a7def37042439fa3c713ea8861d40b199',1,'taraxa::Dag::Dag(blk_hash_t const &amp;dag_genesis_block_hash, addr_t node_addr)'],['../group___d_a_g.html#classtaraxa_1_1_dag',1,'taraxa::Dag']]],
+  ['dag_455',['Dag',['../group___d_a_g.html#classtaraxa_1_1_dag',1,'taraxa']]],
   ['dag_2ecpp_456',['dag.cpp',['../dag_8cpp.html',1,'']]],
   ['dag_2ehpp_457',['dag.hpp',['../dag_8hpp.html',1,'']]],
   ['dag_5fblk_5fhashes_458',['dag_blk_hashes',['../group___final_chain.html#ad360623c4773be2ccbc2074479a5699e',1,'taraxa::final_chain::NewBlock']]],

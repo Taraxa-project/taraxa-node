@@ -1,6 +1,6 @@
 var classtaraxa_1_1_network =
 [
-    [ "Network", "classtaraxa_1_1_network.html#a19f11093e1ba6f250f1b8a1d59a71c04", null ],
+    [ "Network", "classtaraxa_1_1_network.html#a58a7cc207622efda246517a1fee3fa56", null ],
     [ "~Network", "classtaraxa_1_1_network.html#a82e2d087554fb6a9ad796bf0cdf1306d", null ],
     [ "Network", "classtaraxa_1_1_network.html#a3eca30ac818e799ad5e4908ab6b552d1", null ],
     [ "Network", "classtaraxa_1_1_network.html#ad9faf0457b7ba90aacae80230a744376", null ],
@@ -23,7 +23,6 @@ var classtaraxa_1_1_network =
     [ "pbft_syncing", "classtaraxa_1_1_network.html#a1e175776bb9c8a12bc3ba8c4da70fde1", null ],
     [ "registerPeriodicEvents", "classtaraxa_1_1_network.html#a9e200ab1ad2ebb3c0064c887d8d75ac4", null ],
     [ "resolveHost", "classtaraxa_1_1_network.html#af124cdbf5349f09740c52d12db45ee7d", null ],
-    [ "setPendingPeersToReady", "classtaraxa_1_1_network.html#afc615dfd48254b3ab628ff78bad2d9b6", null ],
     [ "setSyncStatePeriod", "classtaraxa_1_1_network.html#af42c6f99348955b2beb1461abbd6d729", null ],
     [ "start", "classtaraxa_1_1_network.html#a0f512b48547b33de0e7b03e195d63892", null ],
     [ "syncTimeSeconds", "classtaraxa_1_1_network.html#a6bd999923abfc08d54c1fbb573d0daae", null ],

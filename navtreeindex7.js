@@ -1,12 +1,5 @@
 var NAVTREEINDEX7 =
 {
-"classtaraxa_1_1_uint_comparator.html#a1957e709ac6976670f99f2bf549b68fe":[15,0,3,53,4],
-"classtaraxa_1_1_uint_comparator.html#a44451da7ac81ce80bed5d7c873401f97":[15,0,3,53,1],
-"classtaraxa_1_1_uint_comparator.html#a5ffa272381361149531a5833dfadcf5b":[15,0,3,53,0],
-"classtaraxa_1_1_uint_comparator.html#a70a5882293ea862fad1dd00b9113161f":[15,0,3,53,2],
-"classtaraxa_1_1_uint_comparator.html#aad975d7bed2fddd7d1cc379cff949e58":[15,0,3,53,3],
-"classtaraxa_1_1_value_by_block_cache.html":[15,0,3,35],
-"classtaraxa_1_1_value_by_block_cache.html#a0a28b1c85d345912fa296dc8931eedaf":[15,0,3,35,6],
 "classtaraxa_1_1_value_by_block_cache.html#a1bddfd3f6608005ea00dd3f51547de1c":[15,0,3,35,9],
 "classtaraxa_1_1_value_by_block_cache.html#a2555511afb42337f7564ec69a7057fe3":[15,0,3,35,14],
 "classtaraxa_1_1_value_by_block_cache.html#a45cb21699df657e2f814e0af0674a8c0":[15,0,3,35,4],
@@ -249,5 +242,12 @@ var NAVTREEINDEX7 =
 "classtaraxa_1_1net_1_1_eth_client.html#a498e722ee3767f567cbd9f65cffe7016":[15,0,3,4,14,1],
 "classtaraxa_1_1net_1_1_eth_client.html#a4ca110556aa1293199892aecde493027":[15,0,3,4,14,21],
 "classtaraxa_1_1net_1_1_eth_client.html#a5d200145320b876672a93f906ed77210":[15,0,3,4,14,10],
-"classtaraxa_1_1net_1_1_eth_client.html#a5f40749411a6bda70c3eccfb99d2ff70":[15,0,3,4,14,24]
+"classtaraxa_1_1net_1_1_eth_client.html#a5f40749411a6bda70c3eccfb99d2ff70":[15,0,3,4,14,24],
+"classtaraxa_1_1net_1_1_eth_client.html#a68ec7c1acdb5254e7c4717ccfedce3e9":[15,0,3,4,14,19],
+"classtaraxa_1_1net_1_1_eth_client.html#a6cc92d877c4e9bcbd3256daf79d4f039":[15,0,3,4,14,16],
+"classtaraxa_1_1net_1_1_eth_client.html#a6e6a2ee2888ef943f0ee4b104002bf13":[15,0,3,4,14,20],
+"classtaraxa_1_1net_1_1_eth_client.html#a7832a440709f369d1f8a4cb946055e5c":[15,0,3,4,14,0],
+"classtaraxa_1_1net_1_1_eth_client.html#a7b082f0cf22b8ceaad6f1d62ae0bfcf7":[15,0,3,4,14,2],
+"classtaraxa_1_1net_1_1_eth_client.html#a87ac887409f106b5b59263185f6d59cc":[15,0,3,4,14,34],
+"classtaraxa_1_1net_1_1_eth_client.html#a88738ddbff8564caa7cf38ba00352951":[15,0,3,4,14,32]
 };

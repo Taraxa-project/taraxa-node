@@ -1,12 +1,5 @@
 var NAVTREEINDEX8 =
 {
-"classtaraxa_1_1net_1_1_eth_client.html#a68ec7c1acdb5254e7c4717ccfedce3e9":[15,0,3,4,14,19],
-"classtaraxa_1_1net_1_1_eth_client.html#a6cc92d877c4e9bcbd3256daf79d4f039":[15,0,3,4,14,16],
-"classtaraxa_1_1net_1_1_eth_client.html#a6e6a2ee2888ef943f0ee4b104002bf13":[15,0,3,4,14,20],
-"classtaraxa_1_1net_1_1_eth_client.html#a7832a440709f369d1f8a4cb946055e5c":[15,0,3,4,14,0],
-"classtaraxa_1_1net_1_1_eth_client.html#a7b082f0cf22b8ceaad6f1d62ae0bfcf7":[15,0,3,4,14,2],
-"classtaraxa_1_1net_1_1_eth_client.html#a87ac887409f106b5b59263185f6d59cc":[15,0,3,4,14,34],
-"classtaraxa_1_1net_1_1_eth_client.html#a88738ddbff8564caa7cf38ba00352951":[15,0,3,4,14,32],
 "classtaraxa_1_1net_1_1_eth_client.html#a899d47eaa301c0ef6b023e895dbae3c6":[15,0,3,4,14,28],
 "classtaraxa_1_1net_1_1_eth_client.html#a93d0fb910f1e7e451c650ab62a0f2ba2":[15,0,3,4,14,6],
 "classtaraxa_1_1net_1_1_eth_client.html#a96f140182bc373fbd8104651b19bc230":[15,0,3,4,14,23],
@@ -249,5 +242,12 @@ var NAVTREEINDEX8 =
 "classtaraxa_1_1net_1_1_test_client.html":[15,0,3,4,26],
 "classtaraxa_1_1net_1_1_test_client.html#a014de636e220f91c6086d4fe71e6a080":[15,0,3,4,26,3],
 "classtaraxa_1_1net_1_1_test_client.html#a347a4180845878faed3984decfbb0445":[15,0,3,4,26,7],
-"classtaraxa_1_1net_1_1_test_client.html#a899c1fd89ae299155a39df95453585d6":[15,0,3,4,26,1]
+"classtaraxa_1_1net_1_1_test_client.html#a899c1fd89ae299155a39df95453585d6":[15,0,3,4,26,1],
+"classtaraxa_1_1net_1_1_test_client.html#a95a257bb21422bf463f1bd1f13700b4c":[15,0,3,4,26,6],
+"classtaraxa_1_1net_1_1_test_client.html#ab4c11abd80eb5191c81292a94f170fe9":[15,0,3,4,26,5],
+"classtaraxa_1_1net_1_1_test_client.html#ac03b4ca821eb5d48c557723549c98f14":[15,0,3,4,26,0],
+"classtaraxa_1_1net_1_1_test_client.html#ad21045df8bef569aabef8acb9f85cabf":[15,0,3,4,26,4],
+"classtaraxa_1_1net_1_1_test_client.html#ad28154fbb78c218788da74f4b6643c7b":[15,0,3,4,26,2],
+"classtaraxa_1_1net_1_1_test_face.html":[15,0,3,4,27],
+"classtaraxa_1_1net_1_1_test_face.html#a07680fc88d0716eb65f948fafb279ad5":[15,0,3,4,27,6]
 };

@@ -56,7 +56,6 @@ var group___p_b_f_t_classtaraxa_1_1_pbft_manager =
     [ "reorderTransactions", "group___p_b_f_t.html#ac56a08de3cdfb214776b6c10f9f03ac4", null ],
     [ "resetPbftConsensus", "group___p_b_f_t.html#a86fb4dfbc3db98abda8f55cedab01b83", null ],
     [ "resetStep", "group___p_b_f_t.html#ab73326ab27d582aff6c83adb1a02b536", null ],
-    [ "resume", "group___p_b_f_t.html#ad13b43c3f0bd4d1a94ea942f98765779", null ],
     [ "run", "group___p_b_f_t.html#ae54faf644c974b68a585795d1bb2ad44", null ],
     [ "secondFinish_", "group___p_b_f_t.html#a13caf4d2fb3f8f32c5e9cbc1b4faff09", null ],
     [ "setCertifyState_", "group___p_b_f_t.html#a41c26a8791a8fc12b0c7190c3c960c0e", null ],

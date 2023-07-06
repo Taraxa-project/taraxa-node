@@ -24,5 +24,5 @@ var classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability =
     [ "pbft_syncing_state_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a3f781760904296d022e2c221854cbc3a", null ],
     [ "peers_state_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ae3bd8b37fc085d21a4a3034b5b5f1cbd", null ],
     [ "thread_pool_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#ad041eedebc836e35186f63be6481617c", null ],
-    [ "version_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a961c8c910c4bba06afc07e2a26d1c59b", null ]
+    [ "version_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_capability.html#a0594c16d6d4e55cb14ffb1a3e5a0c843", null ]
 ];

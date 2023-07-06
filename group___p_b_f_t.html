@@ -711,15 +711,14 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <div class="dyncontent">
 <div class="center"><img src="classtaraxa_1_1_pbft_manager__coll__graph.png" border="0" usemap="#ataraxa_1_1_pbft_manager_coll__map" alt="Collaboration graph"/></div>
 <map name="ataraxa_1_1_pbft_manager_coll__map" id="ataraxa_1_1_pbft_manager_coll__map">
-<area shape="rect" title="PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks..." alt="" coords="629,189,784,215"/>
-<area shape="rect" title=" " alt="" coords="213,5,416,47"/>
-<area shape="rect" title=" " alt="" coords="283,71,347,98"/>
-<area shape="rect" href="classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="233,123,397,164"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,130,164,157"/>
-<area shape="rect" href="group___p_b_f_t.html#classtaraxa_1_1_period_data_queue" title="PeriodDataQueue class is a syncing queue, the queue stores blocks synced from peers." alt="" coords="221,189,408,215"/>
-<area shape="rect" href="structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="245,239,384,266"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="235,309,395,335"/>
-<area shape="rect" href="classtaraxa_1_1_proposed_blocks.html" title="class ProposedBlocks holds proposed pbft blocks together with propose votes hashes per period &amp; round" alt="" coords="227,359,402,386"/>
+<area shape="rect" title="PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks..." alt="" coords="613,145,768,172"/>
+<area shape="rect" title=" " alt="" coords="275,5,339,32"/>
+<area shape="rect" href="classdev_1_1_secure_fixed_hash.html" title=" " alt="" coords="225,57,389,98"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,64,164,91"/>
+<area shape="rect" href="group___p_b_f_t.html#classtaraxa_1_1_period_data_queue" title="PeriodDataQueue class is a syncing queue, the queue stores blocks synced from peers." alt="" coords="213,123,400,149"/>
+<area shape="rect" href="structtaraxa_1_1_pbft_config.html" title=" " alt="" coords="237,173,376,200"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="227,243,387,269"/>
+<area shape="rect" href="classtaraxa_1_1_proposed_blocks.html" title="class ProposedBlocks holds proposed pbft blocks together with propose votes hashes per period &amp; round" alt="" coords="219,293,394,320"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -813,9 +812,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:a2a58df3ce1ecf8c2439b27ed1e2524c4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a2a58df3ce1ecf8c2439b27ed1e2524c4">processProposedBlock</a> (const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;proposed_block, const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;propose_vote)</td></tr>
 <tr class="memdesc:a2a58df3ce1ecf8c2439b27ed1e2524c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Push proposed block into the proposed_blocks_ in case it is not there yet.  <a href="group___p_b_f_t.html#a2a58df3ce1ecf8c2439b27ed1e2524c4">More...</a><br /></td></tr>
 <tr class="separator:a2a58df3ce1ecf8c2439b27ed1e2524c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ad13b43c3f0bd4d1a94ea942f98765779"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ad13b43c3f0bd4d1a94ea942f98765779">resume</a> ()</td></tr>
-<tr class="memdesc:ad13b43c3f0bd4d1a94ea942f98765779"><td class="mdescLeft">&#160;</td><td class="mdescRight">Resume PBFT daemon. Only to be used for unit tests.  <a href="group___p_b_f_t.html#ad13b43c3f0bd4d1a94ea942f98765779">More...</a><br /></td></tr>
-<tr class="separator:ad13b43c3f0bd4d1a94ea942f98765779"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a77b52c27a3bb2c65aa1f98f8e8aa4c9d"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a77b52c27a3bb2c65aa1f98f8e8aa4c9d">getPbftProposedBlock</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period, const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;block_hash) const</td></tr>
 <tr class="memdesc:a77b52c27a3bb2c65aa1f98f8e8aa4c9d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get a proposed PBFT block based on specified period and block hash.  <a href="group___p_b_f_t.html#a77b52c27a3bb2c65aa1f98f8e8aa4c9d">More...</a><br /></td></tr>
 <tr class="separator:a77b52c27a3bb2c65aa1f98f8e8aa4c9d"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2772,25 +2768,6 @@ Collaboration diagram for taraxa::PbftManager:</div>
 </div><div class="memdoc">
 
 <p>Reset PBFT step to 1. </p>
-
-</div>
-</div>
-<a id="ad13b43c3f0bd4d1a94ea942f98765779"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad13b43c3f0bd4d1a94ea942f98765779">&#9670;&nbsp;</a></span>resume()</h2>
-
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void taraxa::PbftManager::resume </td>
-          <td>(</td>
-          <td class="paramname"></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Resume PBFT daemon. Only to be used for unit tests. </p>
 
 </div>
 </div>

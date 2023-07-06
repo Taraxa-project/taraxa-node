@@ -1,13 +1,5 @@
 var NAVTREEINDEX18 =
 {
-"logger__config_8cpp.html#abfd338f661318bf300011371d66578da":[16,0,1,5,1,1,0],
-"logger__config_8hpp.html":[16,0,1,5,0,0,1],
-"logger__config_8hpp.html#abfd338f661318bf300011371d66578da":[16,0,1,5,0,0,1,3],
-"logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04":[16,0,1,5,0,0,1,2],
-"logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04a3036c178ffa5cac125360f9e478099b4":[16,0,1,5,0,0,1,2,3],
-"logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04a4b39a43108e3d9e4ed99ca5ca126c1d8":[16,0,1,5,0,0,1,2,0],
-"logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04a6c9719bf320a9faad4a3f128280dc4c1":[16,0,1,5,0,0,1,2,4],
-"logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04a70e20badfd3992083cfd6fbf842f46be":[16,0,1,5,0,0,1,2,5],
 "logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04a737b0fd32fc71a78ba8e7ebd2f0803fd":[16,0,1,5,0,0,1,2,2],
 "logger__config_8hpp.html#aceaf6df58f5b07f6884928392f007d04adb0b5b09b75c8444187b01d7fc94a5bc":[16,0,1,5,0,0,1,2,1],
 "logger__config_8hpp_source.html":[16,0,1,5,0,0,1],
@@ -249,5 +241,13 @@ var NAVTREEINDEX18 =
 "md_doc_coding_practices.html#autotoc_md69":[9],
 "md_doc_coding_practices.html#autotoc_md70":[10],
 "md_doc_coding_practices.html#autotoc_md71":[11],
-"md_doc_coding_practices.html#autotoc_md72":[12]
+"md_doc_coding_practices.html#autotoc_md72":[12],
+"md_doc_coding_practices.html#autotoc_md73":[3,0,3],
+"md_doc_coding_practices.html#autotoc_md74":[13],
+"md_doc_coding_practices.html#autotoc_md75":[14],
+"md_doc_coding_practices.html#autotoc_md76":[15],
+"md_doc_coding_practices.html#autotoc_md77":[16],
+"md_doc_coding_practices.html#autotoc_md78":[17],
+"md_doc_coding_practices.html#autotoc_md79":[18],
+"md_doc_coding_practices.html#autotoc_md80":[19]
 };
