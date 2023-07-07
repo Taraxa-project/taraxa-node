@@ -239,7 +239,7 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   bool validateBlockNotExpired(const std::shared_ptr<DagBlock> &dag_block,
                                std::unordered_map<blk_hash_t, std::shared_ptr<DagBlock>> &expired_dag_blocks_to_remove);
   void handleExpiredDagBlocksTransactions(const std::vector<trx_hash_t> &transactions_from_expired_dag_blocks) const;
-  void clearLightNodeHistory(bool force = false);
+  void clearLightNodeHistory(bool initial = false);
 
   std::pair<blk_hash_t, std::vector<blk_hash_t>> getFrontier() const;  // return pivot and tips
   void updateFrontier();
