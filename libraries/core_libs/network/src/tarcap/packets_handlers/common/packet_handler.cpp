@@ -51,30 +51,43 @@ void PacketHandler::processPacket(const PacketData& packet_data) {
       packets_stats_->addReceivedPacket(packet_data.type_str_, packet_data.from_node_id_, packet_stats);
     }
 
-  } catch (const PacketProcessingException& e) {
+  } catch (const MaliciousPeerException& e) {
     // thrown during packets processing -> malicious peer, invalid rlp items count, ...
-    handle_caught_exception(e.what(), packet_data, e.getDisconnectReason(), true /* set peer as malicious */);
+    // If there is custom peer set in exception, disconnect him, not packet sender
+    if (const auto custom_peer = e.getPeer(); custom_peer.has_value()) {
+      handle_caught_exception(e.what(), packet_data, *custom_peer, e.getDisconnectReason(),
+                              true /* set peer as malicious */);
+    } else {
+      handle_caught_exception(e.what(), packet_data, packet_data.from_node_id_, e.getDisconnectReason(),
+                              true /* set peer as malicious */);
+    }
+  } catch (const PacketProcessingException& e) {
+    // thrown during packets processing...
+    handle_caught_exception(e.what(), packet_data, packet_data.from_node_id_, e.getDisconnectReason(),
+                            true /* set peer as malicious */);
   } catch (const dev::RLPException& e) {
     // thrown during parsing inside aleth/libdevcore -> type mismatch
-    handle_caught_exception(e.what(), packet_data, dev::p2p::DisconnectReason::BadProtocol,
+    handle_caught_exception(e.what(), packet_data, packet_data.from_node_id_, dev::p2p::DisconnectReason::BadProtocol,
                             true /* set peer as malicious */);
   } catch (const std::exception& e) {
-    handle_caught_exception(e.what(), packet_data);
+    handle_caught_exception(e.what(), packet_data, packet_data.from_node_id_);
   } catch (...) {
-    handle_caught_exception("Unknown exception", packet_data);
+    handle_caught_exception("Unknown exception", packet_data, packet_data.from_node_id_);
   }
 }
 
 void PacketHandler::handle_caught_exception(std::string_view exception_msg, const PacketData& packet_data,
-                                            dev::p2p::DisconnectReason disconnect_reason, bool set_peer_as_malicious) {
+                                            const dev::p2p::NodeID& peer, dev::p2p::DisconnectReason disconnect_reason,
+                                            bool set_peer_as_malicious) {
   LOG(log_er_) << "Exception caught during packet processing: " << exception_msg << " ."
-               << "PacketData: " << jsonToUnstyledString(packet_data.getPacketDataJson());
+               << "PacketData: " << jsonToUnstyledString(packet_data.getPacketDataJson())
+               << ", disconnect peer: " << peer.toString();
 
   if (set_peer_as_malicious) {
-    peers_state_->set_peer_malicious(packet_data.from_node_id_);
+    peers_state_->set_peer_malicious(peer);
   }
 
-  disconnect(packet_data.from_node_id_, disconnect_reason);
+  disconnect(peer, disconnect_reason);
 }
 
 bool PacketHandler::sealAndSend(const dev::p2p::NodeID& node_id, SubprotocolPacketType packet_type,

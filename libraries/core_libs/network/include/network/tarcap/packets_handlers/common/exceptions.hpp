@@ -35,8 +35,19 @@ class InvalidRlpItemsCountException : public PacketProcessingException {
  */
 class MaliciousPeerException : public PacketProcessingException {
  public:
-  MaliciousPeerException(const std::string &msg)
-      : PacketProcessingException("MaliciousPeer: " + msg, dev::p2p::DisconnectReason::UserReason) {}
+  MaliciousPeerException(const std::string &msg, std::optional<dev::p2p::NodeID> peer = {})
+      : PacketProcessingException("MaliciousPeer " + (peer ? peer->abridged() : "") + ": " + msg,
+                                  dev::p2p::DisconnectReason::UserReason),
+        peer_(std::move(peer)) {}
+
+  /**
+   * @return peer that should be disconnected in case it was set
+   */
+  std::optional<dev::p2p::NodeID> getPeer() const { return peer_; }
+
+ private:
+  // Peer that should be disconnected - sometimes we want to disconnect data author, not packet sender
+  std::optional<dev::p2p::NodeID> peer_;
 };
 
 }  // namespace taraxa

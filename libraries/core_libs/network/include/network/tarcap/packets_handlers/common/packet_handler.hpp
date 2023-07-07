@@ -44,6 +44,7 @@ class PacketHandler {
 
  private:
   void handle_caught_exception(std::string_view exception_msg, const PacketData& packet_data,
+                               const dev::p2p::NodeID& peer,
                                dev::p2p::DisconnectReason disconnect_reason = dev::p2p::DisconnectReason::UserReason,
                                bool set_peer_as_malicious = false);
 

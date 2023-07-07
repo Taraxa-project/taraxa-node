@@ -40,7 +40,7 @@ bool ExtVotesPacketHandler::processVote(const std::shared_ptr<Vote> &vote, const
   // (for a value that isn't NBH) per period, round & step
   if (auto vote_valid = vote_mgr_->isUniqueVote(vote); !vote_valid.first) {
     LOG(log_er_) << "Vote uniqueness " << vote->getHash() << " validation failed. Err: " << vote_valid.second;
-    throw MaliciousPeerException("Received double vote");
+    throw MaliciousPeerException("Received double vote", vote->getVoter());
   }
 
   // Validate vote's signature, vrf, etc...
