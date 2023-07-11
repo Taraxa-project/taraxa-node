@@ -158,6 +158,9 @@ Json::Value Debug::debug_getPeriodTransactionsWithReceipts(const std::string& _p
       return Json::Value(Json::arrayValue);
     }
 
+    // TODO[2495]: remove after a proper fox of transactions ordering in PeriodData
+    PbftManager::reorderTransactions(*trxs);
+
     return transformToJsonParallel(*trxs, [&final_chain, &block_hash](const auto& trx) {
       auto hash = trx->getHash();
       auto r = final_chain->transaction_receipt(hash);
