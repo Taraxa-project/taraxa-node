@@ -93,12 +93,11 @@ void VotePacketHandler::onNewPbftVote(const std::shared_ptr<Vote> &vote, const s
       continue;
     }
 
-    // Peer already has pbft block, do not send it (do not check it for propose votes as it could happen that nodes
-    // re-propose the same block for new round, in which case we need to send the block again
-    if (vote->getType() != PbftVoteTypes::propose_vote && peer.second->isPbftBlockKnown(vote->getBlockHash())) {
-      sendPbftVote(peer.second, vote, nullptr);
-    } else {
+    // Send also block in case it is not known for the pear or rebroadcast == true
+    if (rebroadcast || !peer.second->isPbftBlockKnown(vote->getBlockHash())) {
       sendPbftVote(peer.second, vote, block);
+    } else {
+      sendPbftVote(peer.second, vote, nullptr);
     }
   }
 }
