@@ -144,15 +144,12 @@ Json::Value Taraxa::taraxa_getConfig() { return enc_json(tryGetNode()->getConfig
 
 Json::Value Taraxa::taraxa_getChainStats() {
   Json::Value res;
-  try {
-    if (auto node = full_node_.lock()) {
-      res["pbft_period"] = Json::UInt64(node->getPbftChain()->getPbftChainSize());
-      res["dag_blocks_executed"] = Json::UInt64(node->getDB()->getNumBlockExecuted());
-      res["transactions_executed"] = Json::UInt64(node->getDB()->getNumTransactionExecuted());
-    }
-  } catch (std::exception& e) {
-    res["status"] = e.what();
+  if (auto node = full_node_.lock()) {
+    res["pbft_period"] = Json::UInt64(node->getPbftChain()->getPbftChainSize());
+    res["dag_blocks_executed"] = Json::UInt64(node->getDB()->getNumBlockExecuted());
+    res["transactions_executed"] = Json::UInt64(node->getDB()->getNumTransactionExecuted());
   }
+
   return res;
 }
 
