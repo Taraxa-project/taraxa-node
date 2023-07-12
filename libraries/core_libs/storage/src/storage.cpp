@@ -580,13 +580,12 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
       for (auto period = start_period; period < end_period; period++) {
         // Find transactions included in the old blocks and delete data related to these transactions to free disk
         // space
-        auto trx_hashes_raw = lookup(period, DB::Columns::final_chain_transaction_hashes_by_blk_number);
-        TransactionHashes trx_hashes = (util::rlp_dec<TransactionHashes>(dev::RLP(trx_hashes_raw)));
-
-        for (auto hash : trx_hashes) {
-          remove(write_batch, Columns::final_chain_receipt_by_trx_hash, hash);
+        const auto& transactions = getPeriodTransactions(period);
+        if (transactions.has_value()) {
+          for (const auto& trx : *transactions) {
+            remove(write_batch, Columns::final_chain_receipt_by_trx_hash, trx->getHash());
+          }
         }
-        remove(write_batch, Columns::final_chain_transaction_hashes_by_blk_number, EthBlockNumber(period));
         if ((period - start_period + 1) % max_batch_delete == 0) {
           commitWriteBatch(write_batch);
           write_batch = createWriteBatch();
@@ -600,7 +599,6 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
         // the data in the database and free disk space
         db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
         db_->CompactRange({}, handle(Columns::final_chain_receipt_by_trx_hash), nullptr, nullptr);
-        db_->CompactRange({}, handle(Columns::final_chain_transaction_hashes_by_blk_number), nullptr, nullptr);
       }
     }
   }

@@ -113,7 +113,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(dag_block_period);
     COLUMN_W_COMP(proposal_period_levels_map, getIntComparator<uint64_t>());
     COLUMN(final_chain_meta);
-    COLUMN(final_chain_transaction_hashes_by_blk_number);
     COLUMN(final_chain_blk_by_number);
     COLUMN(final_chain_blk_hash_by_number);
     COLUMN(final_chain_blk_number_by_hash);
