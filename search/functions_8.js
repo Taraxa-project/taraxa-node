@@ -1,7 +1,7 @@
 var searchData=
 [
   ['handle_5052',['handle',['../classtaraxa_1_1_db_storage.html#ac0b98de59537f7274bc9d1c57576e78b',1,'taraxa::DbStorage']]],
-  ['handle_5fcaught_5fexception_5053',['handle_caught_exception',['../classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a178584112f3dc4584e2bcbdbf7577a30',1,'taraxa::network::tarcap::PacketHandler']]],
+  ['handle_5fcaught_5fexception_5053',['handle_caught_exception',['../classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a811346c7f84b17fc3ea4b808e0efe734',1,'taraxa::network::tarcap::PacketHandler']]],
   ['handleenrrequest_5054',['handleENRRequest',['../classdev_1_1p2p_1_1_node_table.html#a0fcb0bd36dd0ad9938489d8b22c52bda',1,'dev::p2p::NodeTable']]],
   ['handleenrresponse_5055',['handleENRResponse',['../classdev_1_1p2p_1_1_node_table.html#a4ddd57cf476103eea8dcdb5053fbffa1',1,'dev::p2p::NodeTable']]],
   ['handleexpireddagblockstransactions_5056',['handleExpiredDagBlocksTransactions',['../group___d_a_g.html#a05d925eccd7403ab607e5f70793c19e0',1,'taraxa::DagManager']]],

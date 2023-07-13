@@ -6,7 +6,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_packet_handler =
     [ "PacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a0b2d7afcbf210dbd66c7f23ba0d08e76", null ],
     [ "checkPacketRlpIsList", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a72f989f9bc8b6ce0bcad6e17ddb7ae92", null ],
     [ "disconnect", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a60a25f09bb4858e081bdfcde7a1361a0", null ],
-    [ "handle_caught_exception", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a178584112f3dc4584e2bcbdbf7577a30", null ],
+    [ "handle_caught_exception", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a811346c7f84b17fc3ea4b808e0efe734", null ],
     [ "operator=", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a9d2384ad1dea95fda981ecc2becd70d0", null ],
     [ "operator=", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a210bbf7823cacb6a75b6f08b875015a6", null ],
     [ "process", "classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#abec580a0a3f1ec080832cc0f121e64aa", null ],

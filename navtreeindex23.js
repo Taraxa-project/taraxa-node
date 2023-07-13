@@ -1,5 +1,7 @@
 var NAVTREEINDEX23 =
 {
+"structtaraxa_1_1_genesis.html#a67910cc1bf07fc821bbfa9a7ccdb1be4":[15,0,3,19,5],
+"structtaraxa_1_1_genesis.html#a6a4725f2d7a19c5afb24e3a184f9f524":[15,0,3,19,7],
 "structtaraxa_1_1_genesis.html#a6e2a4bfc0bedb6548b4a859f8dc275e5":[15,0,3,19,8],
 "structtaraxa_1_1_genesis.html#a8877888c0c2e5ac4f854bf1f6c1067f9":[15,0,3,19,6],
 "structtaraxa_1_1_genesis.html#af92358af85a9c44119de93ea0e41bcb6":[15,0,3,19,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX23 =
 "tools_8cpp.html#a6faa605dc03f24fc87bfd798e42bacc8":[16,0,1,1,1,2,18],
 "tools_8cpp.html#a77e6b42e5c28596e36805e806c77cc5a":[16,0,1,1,1,2,7],
 "tools_8cpp.html#a793f65ff5116126682096812693b0b7d":[16,0,1,1,1,2,16],
-"tools_8cpp.html#a7aa9641a017a85118d2718cfdde0138a":[16,0,1,1,1,2,4],
-"tools_8cpp.html#a7bea8c0640537805e5ec7c0599d9462b":[16,0,1,1,1,2,11],
-"tools_8cpp.html#a89c2e7fd58f992c177c988f393f17f1d":[16,0,1,1,1,2,9]
+"tools_8cpp.html#a7aa9641a017a85118d2718cfdde0138a":[16,0,1,1,1,2,4]
 };

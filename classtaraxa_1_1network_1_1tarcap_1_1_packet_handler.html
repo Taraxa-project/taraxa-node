@@ -176,8 +176,8 @@ Protected Attributes</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
 Private Member Functions</h2></td></tr>
-<tr class="memitem:a178584112f3dc4584e2bcbdbf7577a30"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a178584112f3dc4584e2bcbdbf7577a30">handle_caught_exception</a> (std::string_view exception_msg, const <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">threadpool::PacketData</a> &amp;packet_data, <a class="el" href="namespacedev_1_1p2p.html#ab97a033c9bbe0fb22e2b4f093593f276">dev::p2p::DisconnectReason</a> disconnect_reason=dev::p2p::DisconnectReason::UserReason, bool set_peer_as_malicious=false)</td></tr>
-<tr class="separator:a178584112f3dc4584e2bcbdbf7577a30"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a811346c7f84b17fc3ea4b808e0efe734"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#a811346c7f84b17fc3ea4b808e0efe734">handle_caught_exception</a> (std::string_view exception_msg, const <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">threadpool::PacketData</a> &amp;packet_data, const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;peer, <a class="el" href="namespacedev_1_1p2p.html#ab97a033c9bbe0fb22e2b4f093593f276">dev::p2p::DisconnectReason</a> disconnect_reason=dev::p2p::DisconnectReason::UserReason, bool set_peer_as_malicious=false)</td></tr>
+<tr class="separator:a811346c7f84b17fc3ea4b808e0efe734"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:abec580a0a3f1ec080832cc0f121e64aa"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#abec580a0a3f1ec080832cc0f121e64aa">process</a> (const <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">threadpool::PacketData</a> &amp;packet_data, const std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt; &amp;peer)=0</td></tr>
 <tr class="memdesc:abec580a0a3f1ec080832cc0f121e64aa"><td class="mdescLeft">&#160;</td><td class="mdescRight">Main packet processing function.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_packet_handler.html#abec580a0a3f1ec080832cc0f121e64aa">More...</a><br /></td></tr>
 <tr class="separator:abec580a0a3f1ec080832cc0f121e64aa"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -388,8 +388,8 @@ Private Member Functions</h2></td></tr>
 
 </div>
 </div>
-<a id="a178584112f3dc4584e2bcbdbf7577a30"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a178584112f3dc4584e2bcbdbf7577a30">&#9670;&nbsp;</a></span>handle_caught_exception()</h2>
+<a id="a811346c7f84b17fc3ea4b808e0efe734"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a811346c7f84b17fc3ea4b808e0efe734">&#9670;&nbsp;</a></span>handle_caught_exception()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -408,6 +408,12 @@ Private Member Functions</h2></td></tr>
           <td></td>
           <td class="paramtype">const <a class="el" href="classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html">threadpool::PacketData</a> &amp;&#160;</td>
           <td class="paramname"><em>packet_data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;&#160;</td>
+          <td class="paramname"><em>peer</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>

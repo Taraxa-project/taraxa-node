@@ -1,5 +1,7 @@
 var NAVTREEINDEX19 =
 {
+"md_doc_coding_practices.html#autotoc_md85":[23],
+"md_doc_coding_practices.html#autotoc_md86":[24],
 "md_doc_coding_practices.html#autotoc_md87":[3,0,5],
 "md_doc_coding_practices.html#autotoc_md88":[25],
 "md_doc_coding_practices.html#autotoc_md89":[26],
@@ -111,8 +113,8 @@ var NAVTREEINDEX19 =
 "namespacedev_1_1p2p.html#af43282a970fe54591278ceb38be2590b":[16,0,1,0,2,24,0,5],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_peer_session_info":[16,0,1,0,2,3,4],
 "namespacedev_1_1p2p.html#structdev_1_1p2p_1_1_taraxa_network_config":[16,0,1,0,2,24,0],
-"namespacemembers.html":[14,0,0],
 "namespacemembers.html":[14,0],
+"namespacemembers.html":[14,0,0],
 "namespacemembers_a.html":[14,0,1],
 "namespacemembers_b.html":[14,0,2],
 "namespacemembers_c.html":[14,0,3],
@@ -164,8 +166,8 @@ var NAVTREEINDEX19 =
 "namespacemembers_w.html":[14,0,22],
 "namespacemembers_z.html":[14,0,23],
 "namespacetaraxa.html#a009be38daa65710a670613c7d9428e76":[16,0,1,8,0,0,0,1,0],
-"namespacetaraxa.html#a0849089d35105b6fcb8ef8f7b350b89d":[16,0,1,4,0,0,6,0,1,0],
 "namespacetaraxa.html#a0849089d35105b6fcb8ef8f7b350b89d":[16,0,1,4,0,0,6,0,0,0,0],
+"namespacetaraxa.html#a0849089d35105b6fcb8ef8f7b350b89d":[16,0,1,4,0,0,6,0,1,0],
 "namespacetaraxa.html#a13ec6be411c3c352858744678e0690da":[16,0,1,3,0,0,5,2,2],
 "namespacetaraxa.html#a20a355304a30d8893626b16bf7c78595":[16,0,1,3,0,0,0,0,0],
 "namespacetaraxa.html#a25279da4cb5c51a252df1a2c42d8fdc6":[16,0,1,3,0,0,0,0,2],
@@ -247,7 +249,5 @@ var NAVTREEINDEX19 =
 "namespacetaraxa_1_1state__api.html#ad8eb3f9eb0841e339ef13826d264e183":[16,0,1,3,0,0,7,2,9],
 "namespacetaraxa_1_1state__api.html#ad98233293c73914facb8f4b31084838d":[16,0,1,3,0,0,7,2,8],
 "namespacetaraxa_1_1state__api.html#aef9819bc22722fa155b8f2980a7847f4":[16,0,1,3,0,0,7,2,6],
-"namespacetaraxa_1_1state__api.html#affb25c212fee2a8eeed95be39a47f163":[16,0,1,3,0,0,7,2,12],
-"namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_d_p_o_s_config":[16,0,1,3,0,0,7,2],
-"namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_e_v_m_chain_config":[16,0,1,3,0,0,7,0]
+"namespacetaraxa_1_1state__api.html#affb25c212fee2a8eeed95be39a47f163":[16,0,1,3,0,0,7,2,12]
 };

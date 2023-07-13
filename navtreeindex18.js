@@ -1,5 +1,7 @@
 var NAVTREEINDEX18 =
 {
+"max__stats_8hpp.html":[16,0,1,4,1,1,0,0,2,0],
+"max__stats_8hpp_source.html":[16,0,1,4,1,1,0,0,2,0],
 "md_doc__r_p_c.html":[10],
 "md_doc__r_p_c.html#autotoc_md263":[10,0],
 "md_doc__r_p_c.html#autotoc_md264":[10,0,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX18 =
 "md_doc_coding_practices.html#autotoc_md81":[20],
 "md_doc_coding_practices.html#autotoc_md82":[3,0,4],
 "md_doc_coding_practices.html#autotoc_md83":[21],
-"md_doc_coding_practices.html#autotoc_md84":[22],
-"md_doc_coding_practices.html#autotoc_md85":[23],
-"md_doc_coding_practices.html#autotoc_md86":[24]
+"md_doc_coding_practices.html#autotoc_md84":[22]
 };

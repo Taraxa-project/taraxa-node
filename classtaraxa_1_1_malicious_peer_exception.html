@@ -83,6 +83,7 @@ $(document).ready(function(){initNavTree('classtaraxa_1_1_malicious_peer_excepti
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-attribs">Private Attributes</a> &#124;
 <a href="classtaraxa_1_1_malicious_peer_exception-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">taraxa::MaliciousPeerException Class Reference</div>  </div>
@@ -106,19 +107,26 @@ Collaboration diagram for taraxa::MaliciousPeerException:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:afff163456ccc8703e4e79eef57d830b5"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_malicious_peer_exception.html#afff163456ccc8703e4e79eef57d830b5">MaliciousPeerException</a> (const std::string &amp;msg)</td></tr>
-<tr class="separator:afff163456ccc8703e4e79eef57d830b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aade387af4b9ecbb5d2ce1c90e1a3d46a"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_malicious_peer_exception.html#aade387af4b9ecbb5d2ce1c90e1a3d46a">MaliciousPeerException</a> (const std::string &amp;msg, std::optional&lt; <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &gt; peer={})</td></tr>
+<tr class="separator:aade387af4b9ecbb5d2ce1c90e1a3d46a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a2dec390e1d9482ed67924f379d3f4c35"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_malicious_peer_exception.html#a2dec390e1d9482ed67924f379d3f4c35">getPeer</a> () const</td></tr>
+<tr class="separator:a2dec390e1d9482ed67924f379d3f4c35"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="inherit_header pub_methods_classtaraxa_1_1_packet_processing_exception"><td colspan="2" onclick="javascript:toggleInherit('pub_methods_classtaraxa_1_1_packet_processing_exception')"><img src="closed.png" alt="-"/>&#160;Public Member Functions inherited from <a class="el" href="classtaraxa_1_1_packet_processing_exception.html">taraxa::PacketProcessingException</a></td></tr>
 <tr class="memitem:a7080900c6ce07a5e67166bd80b84f37a inherit pub_methods_classtaraxa_1_1_packet_processing_exception"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_packet_processing_exception.html#a7080900c6ce07a5e67166bd80b84f37a">PacketProcessingException</a> (const std::string &amp;msg, <a class="el" href="namespacedev_1_1p2p.html#ab97a033c9bbe0fb22e2b4f093593f276">dev::p2p::DisconnectReason</a> disconnect_reason)</td></tr>
 <tr class="separator:a7080900c6ce07a5e67166bd80b84f37a inherit pub_methods_classtaraxa_1_1_packet_processing_exception"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac21e7ffb13b25f5146f3f8115f196792 inherit pub_methods_classtaraxa_1_1_packet_processing_exception"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev_1_1p2p.html#ab97a033c9bbe0fb22e2b4f093593f276">dev::p2p::DisconnectReason</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_packet_processing_exception.html#ac21e7ffb13b25f5146f3f8115f196792">getDisconnectReason</a> () const</td></tr>
 <tr class="separator:ac21e7ffb13b25f5146f3f8115f196792 inherit pub_methods_classtaraxa_1_1_packet_processing_exception"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-attribs"></a>
+Private Attributes</h2></td></tr>
+<tr class="memitem:a8a7aab282bb4be77d908421338606515"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_malicious_peer_exception.html#a8a7aab282bb4be77d908421338606515">peer_</a></td></tr>
+<tr class="separator:a8a7aab282bb4be77d908421338606515"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Exception thrown in case peer seems malicious based on data he sent. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="afff163456ccc8703e4e79eef57d830b5"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afff163456ccc8703e4e79eef57d830b5">&#9670;&nbsp;</a></span>MaliciousPeerException()</h2>
+<a id="aade387af4b9ecbb5d2ce1c90e1a3d46a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aade387af4b9ecbb5d2ce1c90e1a3d46a">&#9670;&nbsp;</a></span>MaliciousPeerException()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -130,13 +138,73 @@ Public Member Functions</h2></td></tr>
           <td class="memname">taraxa::MaliciousPeerException::MaliciousPeerException </td>
           <td>(</td>
           <td class="paramtype">const std::string &amp;&#160;</td>
-          <td class="paramname"><em>msg</em></td><td>)</td>
+          <td class="paramname"><em>msg</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">std::optional&lt; <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &gt;&#160;</td>
+          <td class="paramname"><em>peer</em> = <code>{}</code>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<h2 class="groupheader">Member Function Documentation</h2>
+<a id="a2dec390e1d9482ed67924f379d3f4c35"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a2dec390e1d9482ed67924f379d3f4c35">&#9670;&nbsp;</a></span>getPeer()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt;<a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a>&gt; taraxa::MaliciousPeerException::getPeer </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<dl class="section return"><dt>Returns</dt><dd>peer that should be disconnected in case it was set </dd></dl>
+
+</div>
+</div>
+<h2 class="groupheader">Member Data Documentation</h2>
+<a id="a8a7aab282bb4be77d908421338606515"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8a7aab282bb4be77d908421338606515">&#9670;&nbsp;</a></span>peer_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::optional&lt;<a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a>&gt; taraxa::MaliciousPeerException::peer_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
