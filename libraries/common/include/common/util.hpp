@@ -207,7 +207,7 @@ std::string fmt(const std::string &pattern, const TS &...args) {
 template <class Key>
 class ExpirationCache {
  public:
-  ExpirationCache(uint32_t max_size, uint32_t delete_step) : max_size_(max_size), delete_step_(delete_step) {}
+  ExpirationCache(uint32_t max_size, uint32_t delete_step) : kMaxSize(max_size), kDeleteStep(delete_step) {}
 
   /**
    * @brief Inserts key into the cache map. In case provided key is already in cache, only shared lock
@@ -229,8 +229,8 @@ class ExpirationCache {
     }
 
     expiration_.push_back(key);
-    if (cache_.size() > max_size_) {
-      for (uint32_t i = 0; i < delete_step_; i++) {
+    if (cache_.size() > kMaxSize) {
+      for (uint32_t i = 0; i < kDeleteStep; i++) {
         cache_.erase(expiration_.front());
         expiration_.pop_front();
       }
@@ -254,18 +254,85 @@ class ExpirationCache {
     return cache_.count(key);
   }
 
+  std::size_t size() const {
+    std::shared_lock lck(mtx_);
+    return cache_.size();
+  }
+
   void clear() {
     std::unique_lock lck(mtx_);
     cache_.clear();
     expiration_.clear();
   }
 
- private:
+ protected:
   std::unordered_set<Key> cache_;
-  std::deque<Key> expiration_;
-  const uint32_t max_size_;
-  const uint32_t delete_step_;
+  const uint32_t kMaxSize;
+  const uint32_t kDeleteStep;
   mutable std::shared_mutex mtx_;
+
+ private:
+  std::deque<Key> expiration_;
+};
+
+template <class Key>
+class ExpirationBlockNumberCache : public ExpirationCache<Key> {
+ public:
+  ExpirationBlockNumberCache(uint32_t max_size, uint32_t delete_step, uint32_t blocks_to_keep)
+      : ExpirationCache<Key>(max_size, delete_step), kBlocksToKeep(blocks_to_keep) {}
+
+  /**
+   * @brief Inserts key into the cache map. In case provided key is already in cache, only shared lock
+   *        is acquired and function returns false. This means insert does not need to be used together with count()
+   *        to save the performance by not acquiring unique lock
+   *
+   * @param key
+   * @param block_number
+   * @return true if actual insertion took place, otherwise false
+   */
+  bool insert(Key const &key, uint64_t block_number) {
+    if (this->contains(key)) {
+      return false;
+    }
+    // There must be double check if key is not already in cache due to possible race condition
+    std::unique_lock lock(this->mtx_);
+    if (!this->cache_.insert(key).second) {
+      return false;
+    }
+
+    if (block_number > last_block_number_) {
+      last_block_number_ = block_number;
+      while (block_expiration_.size() > 0) {
+        const auto &exp = block_expiration_.front();
+        if (block_number > kBlocksToKeep && exp.second < block_number - kBlocksToKeep) {
+          this->cache_.erase(exp.first);
+          block_expiration_.pop_front();
+        } else {
+          break;
+        }
+      }
+    }
+    block_expiration_.push_back({key, block_number});
+    if (this->cache_.size() > this->kMaxSize) {
+      for (uint32_t i = 0; i < this->kDeleteStep; i++) {
+        this->cache_.erase(block_expiration_.front().first);
+        block_expiration_.pop_front();
+      }
+    }
+
+    return true;
+  }
+
+  void clear() {
+    std::shared_lock lck(this->mtx_);
+    this->cache_.clear();
+    block_expiration_.clear();
+  }
+
+ private:
+  std::deque<std::pair<Key, uint64_t>> block_expiration_;
+  const uint32_t kBlocksToKeep;
+  uint64_t last_block_number_ = 0;
 };
 
 template <typename T>
@@ -284,7 +351,7 @@ auto getRlpBytes(T const &t) {
 template <class Key, class Value>
 class ExpirationCacheMap {
  public:
-  ExpirationCacheMap(uint32_t max_size, uint32_t delete_step) : max_size_(max_size), delete_step_(delete_step) {}
+  ExpirationCacheMap(uint32_t max_size, uint32_t delete_step) : kMaxSize(max_size), kDeleteStep(delete_step) {}
 
   /**
    * @brief Inserts <key,value> pair into the cache map. In case provided key is already in cache, only shared lock
@@ -311,7 +378,7 @@ class ExpirationCacheMap {
     }
 
     expiration_.push_back(key);
-    if (cache_.size() > max_size_) {
+    if (cache_.size() > kMaxSize) {
       eraseOldest();
     }
     return true;
@@ -350,8 +417,8 @@ class ExpirationCacheMap {
     cache_[key] = value;
     expiration_.push_back(key);
 
-    if (cache_.size() > max_size_) {
-      for (uint32_t i = 0; i < delete_step_; i++) {
+    if (cache_.size() > kMaxSize) {
+      for (uint32_t i = 0; i < kDeleteStep; i++) {
         cache_.erase(expiration_.front());
         expiration_.pop_front();
       }
@@ -375,8 +442,8 @@ class ExpirationCacheMap {
     }
     cache_[key] = value;
     expiration_.push_back(key);
-    if (cache_.size() > max_size_) {
-      for (uint32_t i = 0; i < delete_step_; i++) {
+    if (cache_.size() > kMaxSize) {
+      for (uint32_t i = 0; i < kDeleteStep; i++) {
         cache_.erase(expiration_.front());
         expiration_.pop_front();
       }
@@ -395,8 +462,8 @@ class ExpirationCacheMap {
     if (it != cache_.end() && it->second == expected_value) {
       it->second = value;
       expiration_.push_back(key);
-      if (cache_.size() > max_size_) {
-        for (auto i = 0; i < delete_step_; i++) {
+      if (cache_.size() > kMaxSize) {
+        for (auto i = 0; i < kDeleteStep; i++) {
           cache_.erase(expiration_.front());
           expiration_.pop_front();
         }
@@ -408,7 +475,7 @@ class ExpirationCacheMap {
 
  protected:
   virtual void eraseOldest() {
-    for (uint32_t i = 0; i < delete_step_; i++) {
+    for (uint32_t i = 0; i < kDeleteStep; i++) {
       cache_.erase(expiration_.front());
       expiration_.pop_front();
     }
@@ -416,8 +483,8 @@ class ExpirationCacheMap {
 
   std::unordered_map<Key, Value> cache_;
   std::deque<Key> expiration_;
-  const uint32_t max_size_;
-  const uint32_t delete_step_;
+  const uint32_t kMaxSize;
+  const uint32_t kDeleteStep;
   mutable std::shared_mutex mtx_;
 };
 

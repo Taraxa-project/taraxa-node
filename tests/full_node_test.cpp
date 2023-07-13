@@ -155,23 +155,16 @@ TEST_F(FullNodeTest, db_test) {
   // Certified votes
   std::vector<std::shared_ptr<Vote>> cert_votes;
   for (auto i = 0; i < 3; i++) {
-    VrfPbftMsg msg(PbftVoteTypes::cert_vote, 2, 2, 3);
-    vrf_wrapper::vrf_sk_t vrf_sk(
-        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
-        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-    VrfPbftSortition vrf_sortition(vrf_sk, msg);
-    Vote vote(g_secret, vrf_sortition, blk_hash_t(10));
-    cert_votes.emplace_back(std::make_shared<Vote>(vote));
+    cert_votes.emplace_back(genDummyVote(PbftVoteTypes::cert_vote, 2, 2, 3, blk_hash_t(1)));
   }
 
-  batch = db.createWriteBatch();
-  std::vector<std::shared_ptr<Vote>> votes;
-
+  std::vector<std::shared_ptr<Vote>> votes{genDummyVote(PbftVoteTypes::cert_vote, 1, 1, 3, blk_hash_t(1))};
   PeriodData period_data1(pbft_block1, cert_votes);
   PeriodData period_data2(pbft_block2, votes);
   PeriodData period_data3(pbft_block3, votes);
   PeriodData period_data4(pbft_block4, votes);
 
+  batch = db.createWriteBatch();
   db.savePeriodData(period_data1, batch);
   db.savePeriodData(period_data2, batch);
   db.savePeriodData(period_data3, batch);
@@ -218,20 +211,11 @@ TEST_F(FullNodeTest, db_test) {
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedBlkCount), 10);
   EXPECT_EQ(db.getStatusField(StatusDbField::ExecutedTrxCount), 20);
 
-  auto genVote = [](PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step) {
-    VrfPbftMsg msg(type, period, round, step);
-    vrf_wrapper::vrf_sk_t vrf_sk(
-        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
-        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
-    VrfPbftSortition vrf_sortition(vrf_sk, msg);
-    return std::make_shared<Vote>(g_secret, vrf_sortition, blk_hash_t(1));
-  };
-
   // Own verified votes
   EXPECT_TRUE(db.getOwnVerifiedVotes().empty());
   std::vector<std::shared_ptr<Vote>> verified_votes;
   for (auto i = 0; i < 3; i++) {
-    const auto vote = genVote(PbftVoteTypes::soft_vote, i, i, 2);
+    const auto vote = genDummyVote(PbftVoteTypes::soft_vote, i, i, 2);
     verified_votes.push_back(vote);
     db.saveOwnVerifiedVote(vote);
   }
@@ -256,15 +240,15 @@ TEST_F(FullNodeTest, db_test) {
   }
 
   // Save new votes for different TwoTPlusOneVotedBlockType
-  const auto cert_vote = genVote(PbftVoteTypes::cert_vote, 1, 1, 3);
+  const auto cert_vote = genDummyVote(PbftVoteTypes::cert_vote, 1, 1, 3);
   verified_votes.push_back(cert_vote);
   db.replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType::CertVotedBlock, {cert_vote});
 
-  const auto next_vote = genVote(PbftVoteTypes::next_vote, 1, 1, 4);
+  const auto next_vote = genDummyVote(PbftVoteTypes::next_vote, 1, 1, 4);
   verified_votes.push_back(next_vote);
   db.replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType::NextVotedBlock, {next_vote});
 
-  const auto next_null_vote = genVote(PbftVoteTypes::next_vote, 1, 1, 5);
+  const auto next_null_vote = genDummyVote(PbftVoteTypes::next_vote, 1, 1, 5);
   verified_votes.push_back(next_null_vote);
   db.replaceTwoTPlusOneVotes(TwoTPlusOneVotedBlockType::NextVotedNullBlock, {next_null_vote});
   EXPECT_EQ(db.getAllTwoTPlusOneVotes().size(), verified_votes.size());
@@ -293,7 +277,7 @@ TEST_F(FullNodeTest, db_test) {
     EXPECT_EQ(db_vote->rlp(true, true), verified_votes_map[db_vote->getHash()]->rlp(true, true));
   }
 
-  const auto new_reward_vote = genVote(PbftVoteTypes::cert_vote, 10, 10, 3);
+  const auto new_reward_vote = genDummyVote(PbftVoteTypes::cert_vote, 10, 10, 3);
   verified_votes_map[new_reward_vote->getHash()] = new_reward_vote;
   db.saveExtraRewardVote(new_reward_vote);
 
@@ -1450,7 +1434,9 @@ TEST_F(FullNodeTest, light_node) {
   }
   // Verify light node keeps at least light_node_history and it deletes old blocks
   EXPECT_GE(non_empty_counter, node_cfgs[1].light_node_history);
-  EXPECT_LE(non_empty_counter, node_cfgs[1].light_node_history + 5);
+  // Actual history size will be between 100% and 110% of light_node_history_ to
+  // avoid deleting on every period
+  EXPECT_LE(non_empty_counter, node_cfgs[1].light_node_history * 1.1 + node_cfgs[1].dag_expiry_limit);
 }
 
 TEST_F(FullNodeTest, clear_period_data) {
@@ -1491,9 +1477,8 @@ TEST_F(FullNodeTest, clear_period_data) {
   for (uint64_t i = 0; i < nodes[1]->getPbftChain()->getPbftChainSize(); i++) {
     const auto pbft_block = nodes[1]->getDB()->getPbftBlock(i);
     if (pbft_block && pbft_block->getPivotDagBlockHash() != kNullBlockHash) {
-      if (nodes[1]->getDB()->getDagBlock(pbft_block->getPivotDagBlockHash())->getLevel() +
-              node_cfgs[0].dag_expiry_limit >=
-          last_anchor_level) {
+      auto dag_block = nodes[1]->getDB()->getDagBlock(pbft_block->getPivotDagBlockHash());
+      if (dag_block && (dag_block->getLevel() + node_cfgs[0].dag_expiry_limit >= last_anchor_level)) {
         first_over_limit = i;
         break;
       }

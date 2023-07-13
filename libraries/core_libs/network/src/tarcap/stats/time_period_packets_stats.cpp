@@ -38,7 +38,7 @@ std::pair<bool, std::chrono::milliseconds> TimePeriodPacketsStats::validMaxStats
   return {false, reset_time_period};
 }
 
-void TimePeriodPacketsStats::processStats(const std::shared_ptr<PeersState>& peers_state) {
+void TimePeriodPacketsStats::processStats(const std::vector<std::shared_ptr<TaraxaPeer>>& all_peers) {
   LOG(log_nf_) << "Received packets stats: " << jsonToUnstyledString(received_packets_stats_.getStatsJson());
   LOG(log_nf_) << "Sent packets stats: " << jsonToUnstyledString(sent_packets_stats_.getStatsJson());
 
@@ -48,12 +48,12 @@ void TimePeriodPacketsStats::processStats(const std::shared_ptr<PeersState>& pee
 
   MaxStats peer_max_stats_per_time_window;
 
-  for (const auto& peer : peers_state->getAllPeers()) {
-    const auto [start_time, peer_packets_stats] = peer.second->getAllPacketsStatsCopy();
+  for (const auto& peer : all_peers) {
+    const auto [start_time, peer_packets_stats] = peer->getAllPacketsStatsCopy();
 
     // Check if processStats was called on expected time period so we can use current stats for max stats
     if (const auto valid_reset_period = validMaxStatsTimePeriod(start_time); !valid_reset_period.first) {
-      LOG(log_wr_) << "Cannot process stats from peer " << peer.first << " for \"max\" stats. Current reset period "
+      LOG(log_wr_) << "Cannot process stats from peer " << peer->getId() << " for \"max\" stats. Current reset period "
                    << valid_reset_period.second.count() << ", expected reset period " << kResetTimePeriod.count();
       continue;
     }

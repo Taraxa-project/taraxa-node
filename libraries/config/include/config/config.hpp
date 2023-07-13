@@ -16,6 +16,7 @@ struct DBConfig {
   PbftPeriod db_revert_to_period = 0;
   bool rebuild_db = false;
   bool prune_state_db = false;
+  bool migrate_only = false;
   PbftPeriod rebuild_db_period = 0;
 };
 

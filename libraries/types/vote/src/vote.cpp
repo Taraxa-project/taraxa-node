@@ -6,6 +6,23 @@
 
 namespace taraxa {
 
+Vote::Vote(const blk_hash_t& block_hash, PbftPeriod period, PbftRound round, PbftStep step, dev::RLP const& rlp)
+    : blockhash_(block_hash) {
+  vrf_wrapper::vrf_proof_t vrf_proof;
+  sig_t vote_signature;
+  util::rlp_tuple(util::RLPDecoderRef(rlp, true), vrf_proof, vote_signature);
+
+  VrfPbftSortition vrf_sortition;
+  vrf_sortition.pbft_msg_.period_ = period;
+  vrf_sortition.pbft_msg_.round_ = round;
+  vrf_sortition.pbft_msg_.step_ = step;
+  vrf_sortition.proof_ = vrf_proof;
+
+  vrf_sortition_ = std::move(vrf_sortition);
+  vote_signature_ = std::move(vote_signature);
+  vote_hash_ = sha3(true);
+}
+
 Vote::Vote(dev::RLP const& rlp) {
   bytes vrf_bytes;
   if (rlp.itemCount() == 3) {
@@ -51,6 +68,14 @@ bytes Vote::rlp(bool inc_sig, bool inc_weight) const {
   return s.invalidate();
 }
 
+bytes Vote::optimizedRlp() const {
+  dev::RLPStream s(2);
+  s << vrf_sortition_.proof_;
+  s << vote_signature_;
+
+  return s.invalidate();
+}
+
 Json::Value Vote::toJSON() const {
   Json::Value json(Json::objectValue);
   json["hash"] = dev::toJS(getHash());
@@ -63,4 +88,5 @@ Json::Value Vote::toJSON() const {
 
   return json;
 }
+
 }  // namespace taraxa

@@ -96,7 +96,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN_W_COMP(period_data, getIntComparator<PbftPeriod>());
     COLUMN(genesis);
     COLUMN(dag_blocks);
-    COLUMN(dag_blocks_index);
+    COLUMN_W_COMP(dag_blocks_level, getIntComparator<uint64_t>());
     COLUMN(transactions);
     COLUMN(trx_period);
     COLUMN(status);
@@ -121,9 +121,13 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(final_chain_log_blooms_index);
     COLUMN_W_COMP(sortition_params_change, getIntComparator<PbftPeriod>());
 
+    COLUMN_W_COMP(block_rewards_stats, getIntComparator<uint64_t>());
+
 #undef COLUMN
 #undef COLUMN_W_COMP
   };
+
+  auto handle(Column const& col) const { return handles_[col.ordinal_]; }
 
  private:
   fs::path path_;
@@ -146,8 +150,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   uint32_t kMajorVersion_;
   bool major_version_changed_ = false;
   bool minor_version_changed_ = false;
-
-  auto handle(Column const& col) const { return handles_[col.ordinal_]; }
 
   LOG_OBJECTS_DEFINE
 
@@ -177,9 +179,19 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   void disableSnapshots();
   void enableSnapshots();
   void updateDbVersions();
+  void deleteColumnData(const Column& c);
+
+  void replaceColumn(const Column& to_be_replaced_col, std::unique_ptr<rocksdb::ColumnFamilyHandle>&& replacing_col);
+  std::unique_ptr<rocksdb::ColumnFamilyHandle> copyColumn(rocksdb::ColumnFamilyHandle* orig_column,
+                                                          const std::string& new_col_name, bool move_data = false);
+
+  // For removal of LOG.old.* files in the database
+  void removeOldLogFiles() const;
+  void removeFilesWithPattern(const std::string& directory, const std::regex& pattern) const;
 
   uint32_t getMajorVersion() const;
   std::unique_ptr<rocksdb::Iterator> getColumnIterator(const Column& c);
+  std::unique_ptr<rocksdb::Iterator> getColumnIterator(rocksdb::ColumnFamilyHandle* c);
 
   // Genesis
   void setGenesisHash(const h256& genesis_hash);
@@ -187,7 +199,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // Period data
   void savePeriodData(const PeriodData& period_data, Batch& write_batch);
-  void clearPeriodDataHistory(PbftPeriod period);
+  void clearPeriodDataHistory(PbftPeriod period, uint64_t dag_level_to_keep);
   dev::bytes getPeriodDataRaw(PbftPeriod period) const;
   std::optional<PbftBlock> getPbftBlock(PbftPeriod period) const;
   std::vector<std::shared_ptr<Vote>> getPeriodCertVotes(PbftPeriod period) const;
@@ -391,6 +403,11 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   }
 
   static void checkStatus(rocksdb::Status const& status);
+
+  template <typename K, typename V>
+  void insert(rocksdb::ColumnFamilyHandle* col, const K& k, const V& v) {
+    checkStatus(db_->Put(write_options_, col, toSlice(k), toSlice(v)));
+  }
 
   template <typename K, typename V>
   void insert(Column const& col, K const& k, V const& v) {

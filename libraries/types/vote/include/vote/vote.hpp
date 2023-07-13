@@ -20,6 +20,10 @@ class Vote {
   Vote() = default;
   Vote(secret_t const& node_sk, VrfPbftSortition vrf_sortition, blk_hash_t const& blockhash);
 
+  // Ctor for optimized rlp vote objects - only signature and vrf proof are in the rlp
+  explicit Vote(const blk_hash_t& block_hash, PbftPeriod period, PbftRound round, PbftStep step, dev::RLP const& rlp);
+
+  // Ctors for full rlp vote objects - all data are encoded in the rlp
   explicit Vote(dev::RLP const& rlp);
   explicit Vote(bytes const& rlp);
   bool operator==(Vote const& other) const { return rlp() == other.rlp(); }
@@ -117,6 +121,14 @@ class Vote {
   bytes rlp(bool inc_sig = true, bool inc_weight = false) const;
 
   /**
+   * @brief Optimed Recursive Length Prefix
+   * @note Encode only vote's signature and vrf proof into the rlp
+   *
+   * @return bytes of RLP stream
+   */
+  bytes optimizedRlp() const;
+
+  /**
    * @brief Verify vote
    * @return true if passed
    */
@@ -176,20 +188,6 @@ class Vote {
   mutable public_t cached_voter_;
   mutable addr_t cached_voter_addr_;
   mutable std::optional<uint64_t> weight_;
-};
-
-/**
- * @brief VotesBundle struct stores a bunch of votes that vote on the same voting value in the specific PBFT round and
- * step, the total votes weights must be greater or equal to PBFT 2t+1.
- */
-struct VotesBundle {
-  blk_hash_t voted_block_hash;
-  PbftPeriod votes_period{0};
-  std::vector<std::shared_ptr<Vote>> votes;  // Greater than 2t+1 votes
-
-  VotesBundle() {}
-  VotesBundle(blk_hash_t const& voted_block_hash, std::vector<std::shared_ptr<Vote>> const& votes)
-      : voted_block_hash(voted_block_hash), votes(votes) {}
 };
 
 /** @}*/
