@@ -10,8 +10,7 @@ var hierarchy =
     [ "graphql::taraxa::Account", "classgraphql_1_1taraxa_1_1_account.html", null ],
     [ "taraxa::state_api::Account", "group___final_chain.html#structtaraxa_1_1state__api_1_1_account", null ],
     [ "taraxa::storage::migration::Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", [
-      [ "taraxa::storage::migration::PeriodData", "classtaraxa_1_1storage_1_1migration_1_1_period_data.html", null ],
-      [ "taraxa::storage::migration::TransactionHashes", "classtaraxa_1_1storage_1_1migration_1_1_transaction_hashes.html", null ]
+      [ "taraxa::storage::migration::PeriodData", "classtaraxa_1_1storage_1_1migration_1_1_period_data.html", null ]
     ] ],
     [ "graphql::taraxa::Block", "classgraphql_1_1taraxa_1_1_block.html", null ],
     [ "taraxa::final_chain::BlockHeader", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header", null ],
@@ -244,7 +243,6 @@ var hierarchy =
       [ "taraxa::network::tarcap::TaraxaPeer", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html", null ]
     ] ],
     [ "dev::Notified< N >", "classdev_1_1_notified.html", null ],
-    [ "taraxa::storage::migration::OldTransactionsHashes", "structtaraxa_1_1storage_1_1migration_1_1_old_transactions_hashes.html", null ],
     [ "taraxa::state_api::Opts", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts", null ],
     [ "taraxa::state_api::OptsDB", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_opts_d_b", null ],
     [ "taraxa::logger::Config::OutputConfig", "structtaraxa_1_1logger_1_1_config_1_1_output_config.html", null ],

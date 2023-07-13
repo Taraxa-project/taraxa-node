@@ -1,11 +1,5 @@
 var NAVTREEINDEX14 =
 {
-"group___d_a_g.html#a819aa6076a9305d48ec7e18c2912a4c5":[13,0,7,14],
-"group___d_a_g.html#a82fda6692132d23ca947de8dbc3ad1ac":[13,0,6,4],
-"group___d_a_g.html#a847af2af7e5e6f9b2e09ad71d21e92ad":[13,0,5,26],
-"group___d_a_g.html#a8a5501aae6db9f6a2e22ab2d12a7e962":[13,0,5,48],
-"group___d_a_g.html#a8c17782f68f11b4d687028612dbc4ae8":[13,0,5,20],
-"group___d_a_g.html#a8df95cccdea775300aec10f65ab0cdea":[13,0,5,53],
 "group___d_a_g.html#a8ec46166cc8cb10a3f4bd1493fc60800":[13,0,4,19],
 "group___d_a_g.html#a90ad08747b1ddb6fdfc415d7c9fafb84":[13,0,4,23],
 "group___d_a_g.html#a91d4f1eb81776e18f3908374d0eef614":[13,0,0,18],
@@ -35,6 +29,7 @@ var NAVTREEINDEX14 =
 "group___d_a_g.html#ab62614d14c2cef62ba1ab1b82c0b68fb":[13,0,7,13],
 "group___d_a_g.html#ab633081885d6c5821e3517ca150e575d":[13,0,5,24],
 "group___d_a_g.html#ab6d80eccedea603e03d4a194c5df0327":[13,0,4,3],
+"group___d_a_g.html#ab7dcbf0fd0ebf2387a0367a5cfe6a871":[13,0,5,6],
 "group___d_a_g.html#abce853c7b3f9c2ad1d7f8f645573254a":[13,0,5,11],
 "group___d_a_g.html#abe7ac85bab1992c7eb368d899cf5fc58":[13,0,4,20],
 "group___d_a_g.html#abea7e9c5ba25d47874d3a417f2de3bf0":[13,0,0,5],
@@ -60,7 +55,6 @@ var NAVTREEINDEX14 =
 "group___d_a_g.html#ad5f6eb4c57da4b322cf14c6b519a2764":[13,0,7,1],
 "group___d_a_g.html#ad6eccaff817737c918abbd6a0a495549":[13,0,4,36],
 "group___d_a_g.html#ad7028483092a37dc7870ef8ad99e23b8":[13,0,3,2],
-"group___d_a_g.html#ada1e225d7da46273d232c5548515350b":[13,0,5,6],
 "group___d_a_g.html#adb365d2833220da49328246bde503bcd":[13,0,5,27],
 "group___d_a_g.html#add3f6cbfe7dc61c09e9843c1d05c41cd":[13,0,7,9],
 "group___d_a_g.html#add5a435648a429250f1ce54dc8b0ec63":[13,0,5,39],
@@ -249,5 +243,11 @@ var NAVTREEINDEX14 =
 "group___final_chain.html#gabf02617246115ac51e89118a617ca5ca":[13,1,26],
 "group___final_chain.html#gafa74492224d3e9c12af3c0f31e9c7afb":[13,1,24],
 "group___final_chain.html#gafa9d5d8f0427b57b0a22530677e2e99b":[13,1,27],
-"group___final_chain.html#gga649a511610909f817c366b4315f74425aa9a86bce9374c2830787105c02766385":[13,1,25,0]
+"group___final_chain.html#gga649a511610909f817c366b4315f74425aa9a86bce9374c2830787105c02766385":[13,1,25,0],
+"group___final_chain.html#structtaraxa_1_1final__chain_1_1_block_header":[13,1,0],
+"group___final_chain.html#structtaraxa_1_1final__chain_1_1_finalization_result":[13,1,5],
+"group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry":[13,1,1],
+"group___final_chain.html#structtaraxa_1_1final__chain_1_1_new_block":[13,1,4],
+"group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location":[13,1,3],
+"group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt":[13,1,2]
 };

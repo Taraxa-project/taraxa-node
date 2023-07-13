@@ -18,7 +18,7 @@ var group___d_a_g_classtaraxa_1_1_dag_manager =
     [ "DagManager", "group___d_a_g.html#a1a957529304d407e997ca611b4530ab7", null ],
     [ "addDagBlock", "group___d_a_g.html#af03ed62a5da2149160bf80318f94fc17", null ],
     [ "addToDag", "group___d_a_g.html#ae531eee634d1d0d5bad60586dc5bbc89", null ],
-    [ "clearLightNodeHistory", "group___d_a_g.html#ada1e225d7da46273d232c5548515350b", null ],
+    [ "clearLightNodeHistory", "group___d_a_g.html#ab7dcbf0fd0ebf2387a0367a5cfe6a871", null ],
     [ "drawGraph", "group___d_a_g.html#a4338078fd5288067701b3f276076c01a", null ],
     [ "drawPivotGraph", "group___d_a_g.html#a6358aeccb8b0ed554c321dda03a02768", null ],
     [ "drawTotalGraph", "group___d_a_g.html#a4ab4fb411fe6447b8a556a53c1ea700c", null ],

@@ -259,9 +259,7 @@ var annotated_dup =
         [ "migration", "namespacetaraxa_1_1storage_1_1migration.html", [
           [ "Base", "classtaraxa_1_1storage_1_1migration_1_1_base.html", "classtaraxa_1_1storage_1_1migration_1_1_base" ],
           [ "Manager", "classtaraxa_1_1storage_1_1migration_1_1_manager.html", "classtaraxa_1_1storage_1_1migration_1_1_manager" ],
-          [ "PeriodData", "classtaraxa_1_1storage_1_1migration_1_1_period_data.html", "classtaraxa_1_1storage_1_1migration_1_1_period_data" ],
-          [ "TransactionHashes", "classtaraxa_1_1storage_1_1migration_1_1_transaction_hashes.html", "classtaraxa_1_1storage_1_1migration_1_1_transaction_hashes" ],
-          [ "OldTransactionsHashes", "structtaraxa_1_1storage_1_1migration_1_1_old_transactions_hashes.html", "structtaraxa_1_1storage_1_1migration_1_1_old_transactions_hashes" ]
+          [ "PeriodData", "classtaraxa_1_1storage_1_1migration_1_1_period_data.html", "classtaraxa_1_1storage_1_1migration_1_1_period_data" ]
         ] ]
       ] ],
       [ "util", "namespacetaraxa_1_1util.html", [

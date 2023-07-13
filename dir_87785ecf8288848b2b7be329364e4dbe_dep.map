@@ -1,18 +1,13 @@
 <map id="libraries/core_libs/storage/include/storage/migration" name="libraries/core_libs/storage/include/storage/migration">
-<area shape="rect" id="node1" href="dir_87785ecf8288848b2b7be329364e4dbe.html" title="migration" alt="" coords="78,52,164,100"/>
-<area shape="rect" id="node2" href="dir_468f50b028e1e94ed0441083f377df37.html" title="common" alt="" coords="108,340,187,388"/>
-<area shape="rect" id="edge1-headlabel" href="dir_000085_000022.html" title="1" alt="" coords="152,314,161,329"/>
-<area shape="rect" id="node3" href="dir_bb181686c77a27360510480f210f31ff.html" title="types" alt="" coords="200,244,272,292"/>
-<area shape="rect" id="edge2-headlabel" href="dir_000085_000050.html" title="2" alt="" coords="224,217,233,231"/>
-<area shape="rect" id="node4" href="dir_bb5b5f24c752375767f5169004c876a2.html" title="aleth" alt="" coords="64,436,136,484"/>
-<area shape="rect" id="edge3-headlabel" href="dir_000085_000002.html" title="2" alt="" coords="76,409,86,423"/>
-<area shape="rect" id="node5" href="dir_cfe3fd7e5f3bdd0f5dfa2b6860f93e94.html" title="consensus" alt="" coords="34,148,125,196"/>
-<area shape="rect" id="edge4-headlabel" href="dir_000085_000028.html" title="1" alt="" coords="100,127,110,142"/>
-<area shape="rect" id="edge7-headlabel" href="dir_000022_000002.html" title="9" alt="" coords="123,416,132,431"/>
-<area shape="rect" id="edge5-headlabel" href="dir_000050_000022.html" title="12" alt="" coords="179,325,196,340"/>
-<area shape="rect" id="edge6-headlabel" href="dir_000050_000002.html" title="20" alt="" coords="147,432,164,446"/>
-<area shape="rect" id="edge8-headlabel" href="dir_000028_000022.html" title="30" alt="" coords="133,312,150,327"/>
-<area shape="rect" id="edge9-headlabel" href="dir_000028_000050.html" title="22" alt="" coords="180,221,197,236"/>
-<area shape="rect" id="edge10-headlabel" href="dir_000028_000002.html" title="17" alt="" coords="97,410,114,424"/>
-<area shape="rect" id="clust1" href="dir_69a8fb4845d2d4324aca6db3fdf9cd76.html" title="storage" alt="" coords="68,16,174,111"/>
+<area shape="rect" id="node1" href="dir_87785ecf8288848b2b7be329364e4dbe.html" title="migration" alt="" coords="66,52,151,100"/>
+<area shape="rect" id="node2" href="dir_468f50b028e1e94ed0441083f377df37.html" title="common" alt="" coords="5,244,84,292"/>
+<area shape="rect" id="edge1-headlabel" href="dir_000085_000022.html" title="1" alt="" coords="49,219,59,233"/>
+<area shape="rect" id="node3" href="dir_bb181686c77a27360510480f210f31ff.html" title="types" alt="" coords="73,148,145,196"/>
+<area shape="rect" id="edge2-headlabel" href="dir_000085_000050.html" title="1" alt="" coords="112,122,122,137"/>
+<area shape="rect" id="node4" href="dir_bb5b5f24c752375767f5169004c876a2.html" title="aleth" alt="" coords="86,340,158,388"/>
+<area shape="rect" id="edge3-headlabel" href="dir_000085_000002.html" title="1" alt="" coords="142,319,152,333"/>
+<area shape="rect" id="edge6-headlabel" href="dir_000022_000002.html" title="9" alt="" coords="93,313,103,328"/>
+<area shape="rect" id="edge4-headlabel" href="dir_000050_000022.html" title="12" alt="" coords="69,226,86,241"/>
+<area shape="rect" id="edge5-headlabel" href="dir_000050_000002.html" title="20" alt="" coords="119,314,136,328"/>
+<area shape="rect" id="clust1" href="dir_69a8fb4845d2d4324aca6db3fdf9cd76.html" title="storage" alt="" coords="55,16,162,111"/>
 </map>

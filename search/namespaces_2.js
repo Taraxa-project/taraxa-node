@@ -1,5 +1,5 @@
 var searchData=
 [
-  ['graphql_4001',['graphql',['../namespacegraphql.html',1,'']]],
-  ['taraxa_4002',['taraxa',['../namespacegraphql_1_1taraxa.html',1,'graphql']]]
+  ['graphql_3987',['graphql',['../namespacegraphql.html',1,'']]],
+  ['taraxa_3988',['taraxa',['../namespacegraphql_1_1taraxa.html',1,'graphql']]]
 ];
