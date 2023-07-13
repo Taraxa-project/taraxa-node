@@ -20,6 +20,7 @@ namespace taraxa {
 class FullNode;
 
 enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_state, finish_polling_state };
+enum class PbftStateRootValidation { Valid = 0, Missing, Invalid };
 
 /**
  * @brief PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks by using
@@ -448,11 +449,11 @@ class PbftManager {
   bool validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block) const;
 
   /**
-   * @brief Validates pbft block state root. It checks if:
+   * @brief Validates pbft block state root.
    * @param pbft_block PBFT block
-   * @return true if pbft block is valid, otherwise false
+   * @return validation result
    */
-  bool validatePbftBlockStateRoot(const std::shared_ptr<PbftBlock> &pbft_block) const;
+  PbftStateRootValidation validatePbftBlockStateRoot(const std::shared_ptr<PbftBlock> &pbft_block) const;
 
   /**
    * @brief If there are enough certify votes, push the vote PBFT block in PBFT chain
