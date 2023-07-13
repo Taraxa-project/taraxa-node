@@ -563,8 +563,7 @@ std::optional<SortitionParamsChange> DbStorage::getParamsChangeForPeriod(PbftPer
   return SortitionParamsChange::from_rlp(dev::RLP(it->value().ToString()));
 }
 
-void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level_to_keep) {
-  // This is expensive operation but it should not be run more than once a day
+void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level_to_keep, bool initial) {
   auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::period_data)));
   // Find the first non-deleted period
   it->SeekToFirst();
@@ -577,33 +576,30 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
       const uint32_t max_batch_delete = 10000;
       auto start_slice = toSlice(start_period);
       auto end_slice = toSlice(end_period);
+
       for (auto period = start_period; period < end_period; period++) {
         // Find transactions included in the old blocks and delete data related to these transactions to free disk
         // space
-        auto trx_hashes_raw = lookup(period, DB::Columns::final_chain_transaction_hashes_by_blk_number);
-        TransactionHashes trx_hashes = (util::rlp_dec<TransactionHashes>(dev::RLP(trx_hashes_raw)));
-
-        for (auto hash : trx_hashes) {
-          remove(write_batch, Columns::final_chain_receipt_by_trx_hash, hash);
-          remove(write_batch, Columns::trx_period, hash);
+        const auto& transactions = getPeriodTransactions(period);
+        if (transactions.has_value()) {
+          for (const auto& trx : *transactions) {
+            remove(write_batch, Columns::final_chain_receipt_by_trx_hash, trx->getHash());
+          }
         }
-        remove(write_batch, Columns::final_chain_transaction_hashes_by_blk_number, EthBlockNumber(period));
         if ((period - start_period + 1) % max_batch_delete == 0) {
           commitWriteBatch(write_batch);
           write_batch = createWriteBatch();
         }
       }
-
       commitWriteBatch(write_batch);
-
       db_->DeleteRange(write_options_, handle(Columns::period_data), start_slice, end_slice);
 
-      // Deletion alone does not guarantee that the disk space is freed, these CompactRange methods actually compact
-      // the data in the database and free disk space
-      db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
-      db_->CompactRange({}, handle(Columns::final_chain_receipt_by_trx_hash), nullptr, nullptr);
-      db_->CompactRange({}, handle(Columns::final_chain_transaction_hashes_by_blk_number), nullptr, nullptr);
-      db_->CompactRange({}, handle(Columns::trx_period), nullptr, nullptr);
+      if (initial) {
+        // Deletion alone does not guarantee that the disk space is freed, CompactRange  actually compacts
+        // the data in the database and free disk space
+        db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
+        db_->CompactRange({}, handle(Columns::final_chain_receipt_by_trx_hash), nullptr, nullptr);
+      }
     }
   }
 
@@ -632,8 +628,10 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
       commitWriteBatch(write_batch);
       db_->DeleteRange(write_options_, handle(Columns::dag_blocks_level), start_slice, end_slice);
 
-      db_->CompactRange({}, handle(Columns::dag_block_period), nullptr, nullptr);
-      db_->CompactRange({}, handle(Columns::dag_blocks_level), nullptr, nullptr);
+      if (initial) {
+        db_->CompactRange({}, handle(Columns::dag_block_period), nullptr, nullptr);
+        db_->CompactRange({}, handle(Columns::dag_blocks_level), nullptr, nullptr);
+      }
     }
   }
 }
