@@ -113,7 +113,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
     COLUMN(dag_block_period);
     COLUMN_W_COMP(proposal_period_levels_map, getIntComparator<uint64_t>());
     COLUMN(final_chain_meta);
-    COLUMN(final_chain_transaction_hashes_by_blk_number);
     COLUMN(final_chain_blk_by_number);
     COLUMN(final_chain_blk_hash_by_number);
     COLUMN(final_chain_blk_number_by_hash);
@@ -199,7 +198,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // Period data
   void savePeriodData(const PeriodData& period_data, Batch& write_batch);
-  void clearPeriodDataHistory(PbftPeriod period, uint64_t dag_level_to_keep);
+  void clearPeriodDataHistory(PbftPeriod period, uint64_t dag_level_to_keep, bool initial);
   dev::bytes getPeriodDataRaw(PbftPeriod period) const;
   std::optional<PbftBlock> getPbftBlock(PbftPeriod period) const;
   std::vector<std::shared_ptr<Vote>> getPeriodCertVotes(PbftPeriod period) const;

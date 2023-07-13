@@ -308,8 +308,6 @@ class FinalChainImpl final : public FinalChain {
       chunk_to_alter[index % c_bloomIndexSize] |= log_bloom_for_index;
       db_->insert(batch, DB::Columns::final_chain_log_blooms_index, chunk_id, util::rlp_enc(rlp_strm, chunk_to_alter));
     }
-    db_->insert(batch, DB::Columns::final_chain_transaction_hashes_by_blk_number, blk_header.number,
-                dev::rlp(hashes_from_transactions(transactions)));
     db_->insert(batch, DB::Columns::final_chain_blk_hash_by_number, blk_header.number, blk_header.hash);
     db_->insert(batch, DB::Columns::final_chain_blk_number_by_hash, blk_header.hash, blk_header.number);
     db_->insert(batch, DB::Columns::final_chain_meta, DBMetaKeys::LAST_NUMBER, blk_header.number);
@@ -438,9 +436,15 @@ class FinalChainImpl final : public FinalChain {
 
  private:
   std::shared_ptr<TransactionHashes> get_transaction_hashes(std::optional<EthBlockNumber> n = {}) const {
-    auto res = db_->lookup(last_if_absent(n), DB::Columns::final_chain_transaction_hashes_by_blk_number);
-
-    return std::make_shared<TransactionHashes>(util::rlp_dec<TransactionHashes>(dev::RLP(res)));
+    const auto& trxs = db_->getPeriodTransactions(last_if_absent(n));
+    auto ret = std::make_shared<TransactionHashes>();
+    if (!trxs) {
+      return ret;
+    }
+    ret->reserve(trxs->size());
+    std::transform(trxs->cbegin(), trxs->cend(), std::back_inserter(*ret),
+                   [](auto const& trx) { return trx->getHash(); });
+    return ret;
   }
 
   const SharedTransactions get_transactions(std::optional<EthBlockNumber> n = {}) const {
