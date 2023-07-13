@@ -82,6 +82,7 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
   inline virtual void taraxa_pbftBlockHashByPeriodI(const Json::Value &request, Json::Value &response) {
     response = this->taraxa_pbftBlockHashByPeriod(request[0u].asString());
   }
+
   virtual std::string taraxa_protocolVersion() = 0;
   virtual Json::Value taraxa_getVersion() = 0;
   virtual Json::Value taraxa_getDagBlockByHash(const std::string &param1, bool param2) = 0;

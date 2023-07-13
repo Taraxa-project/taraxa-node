@@ -5,8 +5,11 @@
 #include <libdevcore/CommonJS.h>
 #include <libp2p/Common.h>
 
+#include <algorithm>
+
 #include "dag/dag_manager.hpp"
 #include "json/reader.h"
+#include "network/rpc/eth/data.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "transaction/transaction_manager.hpp"
 
@@ -85,7 +88,7 @@ std::string Taraxa::taraxa_pbftBlockHashByPeriod(const std::string& _period) {
   try {
     auto node = tryGetNode();
     auto db = node->getDB();
-    auto blk = db->getPbftBlock(std::stoull(_period, 0, 16));
+    auto blk = db->getPbftBlock(dev::jsToInt(_period));
     if (!blk.has_value()) {
       return {};
     }
@@ -97,13 +100,14 @@ std::string Taraxa::taraxa_pbftBlockHashByPeriod(const std::string& _period) {
 
 Json::Value Taraxa::taraxa_getScheduleBlockByPeriod(const std::string& _period) {
   try {
+    auto period = dev::jsToInt(_period);
     auto node = tryGetNode();
     auto db = node->getDB();
-    auto blk = db->getPbftBlock(std::stoull(_period, 0, 16));
+    auto blk = db->getPbftBlock(period);
     if (!blk.has_value()) {
       return Json::Value();
     }
-    return PbftBlock::toJson(*blk, db->getFinalizedDagBlockHashesByPeriod(std::stoull(_period, 0, 16)));
+    return PbftBlock::toJson(*blk, db->getFinalizedDagBlockHashesByPeriod(period));
   } catch (...) {
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }
@@ -112,7 +116,7 @@ Json::Value Taraxa::taraxa_getScheduleBlockByPeriod(const std::string& _period) 
 Json::Value Taraxa::taraxa_getDagBlockByLevel(const string& _blockLevel, bool _includeTransactions) {
   try {
     auto node = tryGetNode();
-    auto blocks = node->getDB()->getDagBlocksAtLevel(std::stoull(_blockLevel, 0, 16), 1);
+    auto blocks = node->getDB()->getDagBlocksAtLevel(dev::jsToInt(_blockLevel), 1);
     auto res = Json::Value(Json::arrayValue);
     for (auto const& b : blocks) {
       auto block_json = b->getJson();
@@ -151,4 +155,5 @@ Json::Value Taraxa::taraxa_getChainStats() {
   }
   return res;
 }
+
 }  // namespace taraxa::net

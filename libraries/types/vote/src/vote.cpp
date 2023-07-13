@@ -1,5 +1,7 @@
 #include "vote/vote.hpp"
 
+#include <libdevcore/CommonJS.h>
+
 #include "common/encoding_rlp.hpp"
 
 namespace taraxa {
@@ -49,4 +51,16 @@ bytes Vote::rlp(bool inc_sig, bool inc_weight) const {
   return s.invalidate();
 }
 
+Json::Value Vote::toJSON() const {
+  Json::Value json(Json::objectValue);
+  json["hash"] = dev::toJS(getHash());
+  json["voter"] = dev::toJS(getVoterAddr());
+  json["signature"] = dev::toJS(getVoteSignature());
+  json["block_hash"] = dev::toJS(getBlockHash());
+  if (weight_.has_value()) {
+    json["weight"] = dev::toJS(*weight_);
+  }
+
+  return json;
+}
 }  // namespace taraxa

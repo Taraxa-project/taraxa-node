@@ -5,6 +5,7 @@
 
 #include "common/jsoncpp.hpp"
 #include "final_chain/state_api_data.hpp"
+#include "network/rpc/eth/data.hpp"
 #include "pbft/pbft_manager.hpp"
 
 using namespace std;
@@ -109,6 +110,123 @@ Json::Value Debug::trace_replayBlockTransactions(const std::string& block_num, c
     res["status"] = e.what();
   }
   return res;
+}
+
+template <class S, class FN>
+Json::Value transformToJsonParallel(const S& source, FN op) {
+  if (source.empty()) {
+    return Json::Value(Json::arrayValue);
+  }
+  static util::ThreadPool executor{std::thread::hardware_concurrency() / 2};
+
+  Json::Value out(Json::arrayValue);
+  out.resize(source.size());
+  std::atomic_uint processed = 0;
+  for (unsigned i = 0; i < source.size(); ++i) {
+    executor.post([&, i]() {
+      out[i] = op(source[i]);
+      ++processed;
+    });
+  }
+
+  while (true) {
+    if (processed == source.size()) {
+      break;
+    }
+  }
+  return out;
+}
+
+Json::Value mergeJsons(Json::Value&& o1, Json::Value&& o2) {
+  for (auto itr = o2.begin(); itr != o2.end(); ++itr) {
+    o1[itr.key().asString()] = *itr;
+  }
+  return o1;
+}
+
+Json::Value Debug::debug_getPeriodTransactionsWithReceipts(const std::string& _period) {
+  try {
+    auto node = full_node_.lock();
+    if (!node) {
+      BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
+    }
+    auto final_chain = node->getFinalChain();
+    auto period = dev::jsToInt(_period);
+    auto block_hash = final_chain->block_hash(period);
+    auto trxs = node->getDB()->getPeriodTransactions(period);
+    if (!trxs.has_value()) {
+      return Json::Value(Json::arrayValue);
+    }
+
+    // TODO[2495]: remove after a proper fox of transactions ordering in PeriodData
+    PbftManager::reorderTransactions(*trxs);
+
+    return transformToJsonParallel(*trxs, [&final_chain, &block_hash](const auto& trx) {
+      auto hash = trx->getHash();
+      auto r = final_chain->transaction_receipt(hash);
+      auto location =
+          rpc::eth::ExtendedTransactionLocation{{*final_chain->transaction_location(hash), *block_hash}, hash};
+      auto transaction = rpc::eth::LocalisedTransaction{trx, location};
+      auto receipt = rpc::eth::LocalisedTransactionReceipt{*r, location, trx->getSender(), trx->getReceiver()};
+      auto receipt_json = rpc::eth::toJson(receipt);
+      receipt_json.removeMember("transactionHash");
+
+      return mergeJsons(rpc::eth::toJson(transaction), std::move(receipt_json));
+    });
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
+}
+
+Json::Value Debug::debug_getPeriodDagBlocks(const std::string& _period) {
+  try {
+    auto node = full_node_.lock();
+    if (!node) {
+      BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
+    }
+
+    auto period = dev::jsToInt(_period);
+    auto dags = node->getDB()->getFinalizedDagBlockByPeriod(period);
+
+    return transformToJsonParallel(dags, [&period](const auto& dag) {
+      auto block_json = dag->getJson();
+      block_json["period"] = toJS(period);
+      return block_json;
+    });
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
+}
+
+Json::Value Debug::debug_getPreviousBlockCertVotes(const std::string& _period) {
+  try {
+    auto node = full_node_.lock();
+    if (!node) {
+      BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
+    }
+
+    auto final_chain = node->getFinalChain();
+    auto vote_manager = node->getVoteManager();
+
+    Json::Value res(Json::objectValue);
+
+    auto period = dev::jsToInt(_period);
+    auto votes = node->getDB()->getPeriodCertVotes(period);
+    if (votes.empty()) {
+      return res;
+    }
+
+    const auto votes_period = votes.front()->getPeriod();
+    const uint64_t total_dpos_votes_count = final_chain->dpos_eligible_total_vote_count(votes_period - 1);
+    res["total_votes_count"] = total_dpos_votes_count;
+    res["votes"] = transformToJsonParallel(votes, [&](const auto& vote) {
+      vote_manager->validateVote(vote);
+      return vote->toJSON();
+    });
+    return res;
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
 }
 
 state_api::Tracing Debug::parse_tracking_parms(const Json::Value& json) const {
