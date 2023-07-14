@@ -189,7 +189,7 @@ void Network::registerPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mg
   // Check nodes connections and refresh boot nodes
   auto checkNodesConnections = [this]() {
     // If node count drops to zero add boot nodes again and retry
-    if (host_->peer_count() == 0) {
+    if (host_->peer_count() == 0 || host_->getNodeCount() == 0) {
       addBootNodes();
     }
   };
