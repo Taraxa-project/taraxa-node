@@ -695,10 +695,13 @@ void NodeTable::doHandleTimeouts() {
     for (auto it = m_sentPings.begin(); it != m_sentPings.end();) {
       if (chrono::steady_clock::now() > it->second.pingSentTime + m_requestTimeToLive) {
         if (auto node = nodeEntry(it->second.nodeID)) {
-          dropNode(std::move(node));
+          if (node->endpoint() == it->first) {
+            dropNode(std::move(node));
 
-          // save the replacement node that should be activated
-          if (it->second.replacementNodeEntry) nodesToActivate.emplace_back(std::move(it->second.replacementNodeEntry));
+            // save the replacement node that should be activated
+            if (it->second.replacementNodeEntry)
+              nodesToActivate.emplace_back(std::move(it->second.replacementNodeEntry));
+          }
         }
 
         it = m_sentPings.erase(it);
