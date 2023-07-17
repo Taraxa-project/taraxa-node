@@ -19,7 +19,10 @@ void dec_json(Json::Value const &json, DBConfig &db_config) {
 }
 
 std::vector<logger::Config> FullNodeConfig::loadLoggingConfigs(const Json::Value &logging) {
-  last_json_update_time = std::filesystem::last_write_time(std::filesystem::path(json_file_name));
+  // could be empty if config loaded from json e.g. tests
+  if (!json_file_name.empty()) {
+    last_json_update_time = std::filesystem::last_write_time(std::filesystem::path(json_file_name));
+  }
   std::vector<logger::Config> res;
   if (!logging.isNull()) {
     if (auto path = getConfigData(logging, {"log_path"}, true); !path.isNull()) {
@@ -152,6 +155,10 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::
 }
 
 void FullNodeConfig::scheduleLoggingConfigUpdate() {
+  // no file to check updates for (e.g. tests)
+  if (json_file_name.empty()) {
+    return;
+  }
   static util::ThreadPool executor_{1};
   static auto node_address = dev::KeyPair(node_secret).address();
   executor_.post([&]() {
