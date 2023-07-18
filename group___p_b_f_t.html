@@ -120,6 +120,11 @@ Enumerations</h2></td></tr>
 <br />
  }</td></tr>
 <tr class="separator:gaa671924d435517347832c7f40f1f6cfc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga39898c94848b6a52779d398d677f0a9b"><td class="memItemLeft" align="right" valign="top">enum class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#ga39898c94848b6a52779d398d677f0a9b">taraxa::PbftStateRootValidation</a> { <a class="el" href="group___p_b_f_t.html#gga39898c94848b6a52779d398d677f0a9ba3ac705f2acd51a4613f9188c05c91d0d">taraxa::Valid</a> = 0
+, <a class="el" href="group___p_b_f_t.html#gga39898c94848b6a52779d398d677f0a9ba2aee0be2678ee90fd327cc186826438e">taraxa::Missing</a>
+, <a class="el" href="group___p_b_f_t.html#gga39898c94848b6a52779d398d677f0a9ba4bbb8f967da6d1a610596d7257179c2b">taraxa::Invalid</a>
+ }</td></tr>
+<tr class="separator:ga39898c94848b6a52779d398d677f0a9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
@@ -915,9 +920,9 @@ Collaboration diagram for taraxa::PbftManager:</div>
 <tr class="memitem:a7d13114eb26c13f00d7a4850773c8948"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a7d13114eb26c13f00d7a4850773c8948">validatePbftBlock</a> (const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;pbft_block) const</td></tr>
 <tr class="memdesc:a7d13114eb26c13f00d7a4850773c8948"><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates pbft block. It checks if:  <a href="group___p_b_f_t.html#a7d13114eb26c13f00d7a4850773c8948">More...</a><br /></td></tr>
 <tr class="separator:a7d13114eb26c13f00d7a4850773c8948"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1f80e9a22be9cdb0f1a3f6e1d3164668"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a1f80e9a22be9cdb0f1a3f6e1d3164668">validatePbftBlockStateRoot</a> (const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;pbft_block) const</td></tr>
-<tr class="memdesc:a1f80e9a22be9cdb0f1a3f6e1d3164668"><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates pbft block state root. It checks if:  <a href="group___p_b_f_t.html#a1f80e9a22be9cdb0f1a3f6e1d3164668">More...</a><br /></td></tr>
-<tr class="separator:a1f80e9a22be9cdb0f1a3f6e1d3164668"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3f200f171e0946a3b273f8971cab72ae"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group___p_b_f_t.html#ga39898c94848b6a52779d398d677f0a9b">PbftStateRootValidation</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#a3f200f171e0946a3b273f8971cab72ae">validatePbftBlockStateRoot</a> (const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;pbft_block) const</td></tr>
+<tr class="memdesc:a3f200f171e0946a3b273f8971cab72ae"><td class="mdescLeft">&#160;</td><td class="mdescRight">Validates pbft block state root.  <a href="group___p_b_f_t.html#a3f200f171e0946a3b273f8971cab72ae">More...</a><br /></td></tr>
+<tr class="separator:a3f200f171e0946a3b273f8971cab72ae"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aaf68a7e4b5cc663ed90ea2a126265cbf"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___p_b_f_t.html#aaf68a7e4b5cc663ed90ea2a126265cbf">pushCertVotedPbftBlockIntoChain_</a> (const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;pbft_block, std::vector&lt; std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt;&gt; &amp;&amp;current_round_cert_votes)</td></tr>
 <tr class="memdesc:aaf68a7e4b5cc663ed90ea2a126265cbf"><td class="mdescLeft">&#160;</td><td class="mdescRight">If there are enough certify votes, push the vote PBFT block in PBFT chain.  <a href="group___p_b_f_t.html#aaf68a7e4b5cc663ed90ea2a126265cbf">More...</a><br /></td></tr>
 <tr class="separator:aaf68a7e4b5cc663ed90ea2a126265cbf"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -3230,8 +3235,8 @@ Collaboration diagram for taraxa::PbftManager:</div>
 
 </div>
 </div>
-<a id="a1f80e9a22be9cdb0f1a3f6e1d3164668"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1f80e9a22be9cdb0f1a3f6e1d3164668">&#9670;&nbsp;</a></span>validatePbftBlockStateRoot()</h2>
+<a id="a3f200f171e0946a3b273f8971cab72ae"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3f200f171e0946a3b273f8971cab72ae">&#9670;&nbsp;</a></span>validatePbftBlockStateRoot()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -3240,7 +3245,7 @@ Collaboration diagram for taraxa::PbftManager:</div>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">bool taraxa::PbftManager::validatePbftBlockStateRoot </td>
+          <td class="memname"><a class="el" href="group___p_b_f_t.html#ga39898c94848b6a52779d398d677f0a9b">PbftStateRootValidation</a> taraxa::PbftManager::validatePbftBlockStateRoot </td>
           <td>(</td>
           <td class="paramtype">const std::shared_ptr&lt; <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_pbft_block">PbftBlock</a> &gt; &amp;&#160;</td>
           <td class="paramname"><em>pbft_block</em></td><td>)</td>
@@ -3254,14 +3259,14 @@ Collaboration diagram for taraxa::PbftManager:</div>
 </table>
 </div><div class="memdoc">
 
-<p>Validates pbft block state root. It checks if: </p>
+<p>Validates pbft block state root. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">pbft_block</td><td>PBFT block </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>true if pbft block is valid, otherwise false </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>validation result </dd></dl>
 
 </div>
 </div>
@@ -5808,6 +5813,33 @@ Collaboration diagram for taraxa::PeriodData:</div>
 </div>
 </div>
 <h2 class="groupheader">Enumeration Type Documentation</h2>
+<a id="ga39898c94848b6a52779d398d677f0a9b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ga39898c94848b6a52779d398d677f0a9b">&#9670;&nbsp;</a></span>PbftStateRootValidation</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">enum <a class="el" href="group___p_b_f_t.html#ga39898c94848b6a52779d398d677f0a9b">taraxa::PbftStateRootValidation</a></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">strong</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<table class="fieldtable">
+<tr><th colspan="2">Enumerator</th></tr><tr><td class="fieldname"><a id="gga39898c94848b6a52779d398d677f0a9ba3ac705f2acd51a4613f9188c05c91d0d"></a>Valid&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="gga39898c94848b6a52779d398d677f0a9ba2aee0be2678ee90fd327cc186826438e"></a>Missing&#160;</td><td class="fielddoc"></td></tr>
+<tr><td class="fieldname"><a id="gga39898c94848b6a52779d398d677f0a9ba4bbb8f967da6d1a610596d7257179c2b"></a>Invalid&#160;</td><td class="fielddoc"></td></tr>
+</table>
+
+</div>
+</div>
 <a id="gaa671924d435517347832c7f40f1f6cfc"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#gaa671924d435517347832c7f40f1f6cfc">&#9670;&nbsp;</a></span>PbftStates</h2>
 

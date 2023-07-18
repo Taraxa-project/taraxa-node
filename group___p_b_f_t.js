@@ -95,7 +95,7 @@ var group___p_b_f_t =
       [ "tryPushCertVotesBlock", "group___p_b_f_t.html#ada3b947a91cf04d2474cfb1cc4a84bdd", null ],
       [ "validatePbftBlock", "group___p_b_f_t.html#a7d13114eb26c13f00d7a4850773c8948", null ],
       [ "validatePbftBlockCertVotes", "group___p_b_f_t.html#ab98c1841139d0440c38fac78d97ee438", null ],
-      [ "validatePbftBlockStateRoot", "group___p_b_f_t.html#a1f80e9a22be9cdb0f1a3f6e1d3164668", null ],
+      [ "validatePbftBlockStateRoot", "group___p_b_f_t.html#a3f200f171e0946a3b273f8971cab72ae", null ],
       [ "waitForPeriodFinalization", "group___p_b_f_t.html#aeb681d02abbfcf938cb5ceca9ab34419", null ],
       [ "already_next_voted_null_block_hash_", "group___p_b_f_t.html#a31a503946d63d7a6cd3f6cd7d300172a", null ],
       [ "already_next_voted_value_", "group___p_b_f_t.html#acdef7513247069e09745ec7780b5b475", null ],
@@ -200,6 +200,11 @@ var group___p_b_f_t =
       [ "pbft_blk", "group___p_b_f_t.html#a65b044ffd5778ee985dd4fdff34b5d0d", null ],
       [ "previous_block_cert_votes", "group___p_b_f_t.html#ae4cda577538fab03cda161a89aa2a228", null ],
       [ "transactions", "group___p_b_f_t.html#a61d2fa08bce4f962f062136a2b420a8d", null ]
+    ] ],
+    [ "PbftStateRootValidation", "group___p_b_f_t.html#ga39898c94848b6a52779d398d677f0a9b", [
+      [ "Valid", "group___p_b_f_t.html#gga39898c94848b6a52779d398d677f0a9ba3ac705f2acd51a4613f9188c05c91d0d", null ],
+      [ "Missing", "group___p_b_f_t.html#gga39898c94848b6a52779d398d677f0a9ba2aee0be2678ee90fd327cc186826438e", null ],
+      [ "Invalid", "group___p_b_f_t.html#gga39898c94848b6a52779d398d677f0a9ba4bbb8f967da6d1a610596d7257179c2b", null ]
     ] ],
     [ "PbftStates", "group___p_b_f_t.html#gaa671924d435517347832c7f40f1f6cfc", [
       [ "value_proposal_state", "group___p_b_f_t.html#ggaa671924d435517347832c7f40f1f6cfcaac67fcdf2515b0a2fcc7747d14b52ce3", null ],
