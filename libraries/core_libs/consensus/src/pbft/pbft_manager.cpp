@@ -1297,7 +1297,7 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(PbftRound round, Pb
   return empty_leader_block;
 }
 
-bool PbftManager::validatePbftBlockStateRoot(const std::shared_ptr<PbftBlock> &pbft_block) const {
+PbftStateRootValidation PbftManager::validatePbftBlockStateRoot(const std::shared_ptr<PbftBlock> &pbft_block) const {
   auto period = pbft_block->getPeriod();
   auto const &pbft_block_hash = pbft_block->getBlockHash();
   {
@@ -1307,16 +1307,16 @@ bool PbftManager::validatePbftBlockStateRoot(const std::shared_ptr<PbftBlock> &p
         prev_state_root_hash = header->state_root;
       } else {
         LOG(log_wr_) << "Block " << pbft_block_hash << " could not be validated as we are behind";
-        return false;
+        return PbftStateRootValidation::Missing;
       }
     }
     if (pbft_block->getPrevStateRoot() != prev_state_root_hash) {
       LOG(log_er_) << "Block " << pbft_block_hash << " state root " << pbft_block->getPrevStateRoot()
                    << " isn't matching actual " << prev_state_root_hash;
-      return false;
+      return PbftStateRootValidation::Invalid;
     }
   }
-  return true;
+  return PbftStateRootValidation::Valid;
 }
 
 bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block) const {
@@ -1332,7 +1332,7 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
 
   auto const &pbft_block_hash = pbft_block->getBlockHash();
 
-  if (!validatePbftBlockStateRoot(pbft_block)) {
+  if (validatePbftBlockStateRoot(pbft_block) != PbftStateRootValidation::Valid) {
     return false;
   }
 
@@ -1641,8 +1641,27 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
     return std::nullopt;
   }
 
-  if (!validatePbftBlockStateRoot(period_data.pbft_blk)) {
-    return std::nullopt;
+  bool retry_logged = false;
+  while (true) {
+    auto validation_result = validatePbftBlockStateRoot(period_data.pbft_blk);
+    if (validation_result != PbftStateRootValidation::Missing) {
+      if (validation_result == PbftStateRootValidation::Invalid) {
+        LOG(log_er_) << "Failed verifying block " << pbft_block_hash
+                     << " with invalid state root: " << period_data.pbft_blk->getPrevStateRoot()
+                     << ". Disconnect malicious peer " << node_id.abridged();
+        sync_queue_.clear();
+        net->handleMaliciousSyncPeer(node_id);
+        return std::nullopt;
+      }
+      break;
+    }
+    // If syncing and pbft manager is faster than execution a delay might be needed to allow EVM to catch up
+    thisThreadSleepForMilliSeconds(10);
+    if (!retry_logged) {
+      LOG(log_wr_) << "PBFT block " << pbft_block_hash
+                   << " validation delayed, state root missing, execution is behind";
+      retry_logged = true;
+    }
   }
 
   // Check reward votes
