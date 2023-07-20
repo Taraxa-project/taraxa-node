@@ -14,6 +14,7 @@ class Transaction final : public std::enable_shared_from_this<Transaction> {
  public:
   explicit Transaction(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain,
                        std::shared_ptr<::taraxa::TransactionManager> trx_manager,
+                       std::function<std::shared_ptr<object::Block>(::taraxa::EthBlockNumber)>,
                        std::shared_ptr<::taraxa::Transaction> transaction) noexcept;
 
   response::Value getHash() const noexcept;
@@ -38,6 +39,7 @@ class Transaction final : public std::enable_shared_from_this<Transaction> {
  private:
   std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain_;
   std::shared_ptr<::taraxa::TransactionManager> trx_manager_;
+  std::function<std::shared_ptr<object::Block>(::taraxa::EthBlockNumber)> get_block_by_num_;
   std::shared_ptr<::taraxa::Transaction> transaction_;
   // Caching for performance
   mutable std::optional<::taraxa::final_chain::TransactionReceipt> receipt_;
