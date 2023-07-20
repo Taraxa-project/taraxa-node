@@ -12,7 +12,8 @@ class DagBlock {
   explicit DagBlock(std::shared_ptr<::taraxa::DagBlock> dag_block,
                     std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain,
                     std::shared_ptr<::taraxa::PbftManager> pbft_manager,
-                    std::shared_ptr<::taraxa::TransactionManager> transaction_manager) noexcept;
+                    std::shared_ptr<::taraxa::TransactionManager> transaction_manager,
+                    std::function<std::shared_ptr<object::Block>(::taraxa::EthBlockNumber)> get_block_by_num) noexcept;
 
   response::Value getHash() const noexcept;
   response::Value getPivot() const noexcept;
@@ -31,6 +32,7 @@ class DagBlock {
   std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain_;
   std::shared_ptr<::taraxa::PbftManager> pbft_manager_;
   std::shared_ptr<::taraxa::TransactionManager> transaction_manager_;
+  std::function<std::shared_ptr<object::Block>(::taraxa::EthBlockNumber)> get_block_by_num_;
 
   mutable std::optional<uint64_t> period_;
 };
