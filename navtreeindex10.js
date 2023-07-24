@@ -1,5 +1,6 @@
 var NAVTREEINDEX10 =
 {
+"classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a0997a3935943d78b2a9977f0b45023a2":[15,0,3,5,0,18,12],
 "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a0be8e8d17158a4500fa71b81d9224222":[15,0,3,5,0,18,6],
 "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a178b3edbfb69bbc60a7f009d66abbf7c":[15,0,3,5,0,18,4],
 "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a1793d0c11adbd901eaf3eb5621626e7b":[15,0,3,5,0,18,18],
@@ -248,6 +249,5 @@ var NAVTREEINDEX10 =
 "classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#a21b8ff7e113f47a953f569f8092f10ce":[15,0,3,5,1,0,9],
 "classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#a29a4a1e724858edc4846987d740de4cc":[15,0,3,5,1,0,0],
 "classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#a36881dc3fd567f65c5698b8209c71ba0":[15,0,3,5,1,0,1],
-"classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#a36881dc3fd567f65c5698b8209c71ba0a0cba6eb984522d310a423dcf5fe120ec":[15,0,3,5,1,0,1,3],
-"classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#a36881dc3fd567f65c5698b8209c71ba0a31dd6fdc064b3ea668b651b96c1e900c":[15,0,3,5,1,0,1,2]
+"classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#a36881dc3fd567f65c5698b8209c71ba0a0cba6eb984522d310a423dcf5fe120ec":[15,0,3,5,1,0,1,3]
 };

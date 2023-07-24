@@ -1,5 +1,6 @@
 var NAVTREEINDEX23 =
 {
+"structtaraxa_1_1_genesis.html":[15,0,3,19],
 "structtaraxa_1_1_genesis.html#a08913d4bd402e2b6ce8c5ec5377652f6":[15,0,3,19,4],
 "structtaraxa_1_1_genesis.html#a11a61b5ee33b56661ea9f69132b6afb4":[15,0,3,19,9],
 "structtaraxa_1_1_genesis.html#a13f783b0946481686eae47fe919c42b3":[15,0,3,19,1],
@@ -248,6 +249,5 @@ var NAVTREEINDEX23 =
 "tools_8cpp.html":[16,0,1,1,1,2],
 "tools_8cpp.html#a0155ee84696d6d8fbc532b317e9d7964":[16,0,1,1,1,2,1],
 "tools_8cpp.html#a25e9e4b11942e2f228683bfc8df9f365":[16,0,1,1,1,2,3],
-"tools_8cpp.html#a27887c82e6f5ab3508065eb49bbd4b8a":[16,0,1,1,1,2,2],
-"tools_8cpp.html#a4593c739f5901c861856b711cd7fd798":[16,0,1,1,1,2,0]
+"tools_8cpp.html#a27887c82e6f5ab3508065eb49bbd4b8a":[16,0,1,1,1,2,2]
 };
