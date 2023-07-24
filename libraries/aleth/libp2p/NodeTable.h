@@ -316,8 +316,6 @@ class NodeTable : UDPSocketEvents {
   // Remove old records in m_endpointTracker.
   void doEndpointTracking();
 
-  // Useful only for tests.
-  void setRequestTimeToLive(std::chrono::seconds const& _time) { m_requestTimeToLive = _time; }
   uint32_t nextRequestExpirationTime() const { return RLPXDatagramFace::futureFromEpoch(m_requestTimeToLive); }
 
   /// Determines if a node with the supplied endpoint is allowed to participate
@@ -374,7 +372,7 @@ class NodeTable : UDPSocketEvents {
   std::unordered_map<bi::udp::endpoint, NodeValidation> m_sentPings;
 
   // Expiration time of sent discovery packets.
-  std::chrono::seconds m_requestTimeToLive;
+  const std::chrono::seconds m_requestTimeToLive;
 
   mutable Logger m_logger{createLogger(VerbosityDebug, "discov")};
 
