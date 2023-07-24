@@ -461,6 +461,14 @@ shared_ptr<NodeEntry> NodeTable::handlePong(bi::udp::endpoint const& _from, Disc
   }
 
   m_sentPings.erase(_from);
+  // Remove any other sent pings which was sent to other endpoints for the same nodeID
+  for (auto it = m_sentPings.begin(); it != m_sentPings.end();) {
+    if (nodeValidation.nodeID == it->second.nodeID) {
+      it = m_sentPings.erase(it);
+    } else {
+      ++it;
+    }
+  }
 
   // update our external endpoint address and UDP port
   if (m_endpointTracker.addEndpointStatement(_from, pong.destination) >= c_minEndpointTrackStatements) {
@@ -505,8 +513,7 @@ shared_ptr<NodeEntry> NodeTable::handleNeighbours(bi::udp::endpoint const& _from
     return true;
   });
   if (!expected) {
-    LOG(m_logger) << "Dropping unsolicited neighbours packet from " << _packet.sourceid << "@" << _from.address() << ":"
-                  << _from.port();
+    LOG(m_logger) << "Dropping unsolicited neighbours packet from " << _packet.sourceid << "@" << _from.address();
     return sourceNodeEntry;
   }
 
@@ -696,11 +703,8 @@ void NodeTable::doHandleTimeouts() {
     for (auto it = m_sentPings.begin(); it != m_sentPings.end();) {
       if (chrono::steady_clock::now() > it->second.pingSentTime + m_requestTimeToLive) {
         if (auto node = nodeEntry(it->second.nodeID)) {
-          if (node->lastPongReceivedTime < RLPXDatagramFace::secondsSinceEpoch() - m_requestTimeToLive.count()) {
-            dropNode(std::move(node));
-          } else {
-            LOG(m_logger) << "Not dropping node " << it->second.nodeID << " " << it->first << " as it was updated";
-          }
+          dropNode(std::move(node));
+
           // save the replacement node that should be activated
           if (it->second.replacementNodeEntry) nodesToActivate.emplace_back(std::move(it->second.replacementNodeEntry));
         }
