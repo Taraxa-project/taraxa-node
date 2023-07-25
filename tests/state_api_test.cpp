@@ -25,9 +25,8 @@ struct TestBlock {
   h256 state_root;
   EVMBlock evm_block;
   vector<EVMTransaction> transactions;
-  vector<UncleBlock> uncle_blocks;
 
-  RLP_FIELDS_DEFINE_INPLACE(hash, state_root, evm_block, transactions, uncle_blocks)
+  RLP_FIELDS_DEFINE_INPLACE(hash, state_root, evm_block, transactions)
 };
 
 template <typename T>
@@ -202,8 +201,7 @@ TEST_F(StateAPITest, DISABLED_eth_mainnet_smoke) {
       progress_pct_log_threshold += 10;
     }
     auto const& test_block = test_blocks[blk_num];
-    auto const& result =
-        SUT.transition_state(test_block.evm_block, test_block.transactions, {}, test_block.uncle_blocks);
+    auto const& result = SUT.transition_state(test_block.evm_block, test_block.transactions);
     ASSERT_EQ(result.state_root, test_block.state_root);
     SUT.transition_state_commit();
   }

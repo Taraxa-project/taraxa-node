@@ -461,6 +461,14 @@ shared_ptr<NodeEntry> NodeTable::handlePong(bi::udp::endpoint const& _from, Disc
   }
 
   m_sentPings.erase(_from);
+  // Remove any other sent pings which was sent to other endpoints for the same nodeID
+  for (auto it = m_sentPings.begin(); it != m_sentPings.end();) {
+    if (nodeValidation.nodeID == it->second.nodeID) {
+      it = m_sentPings.erase(it);
+    } else {
+      ++it;
+    }
+  }
 
   // update our external endpoint address and UDP port
   if (m_endpointTracker.addEndpointStatement(_from, pong.destination) >= c_minEndpointTrackStatements) {
