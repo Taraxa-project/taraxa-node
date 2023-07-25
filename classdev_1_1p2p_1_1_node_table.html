@@ -219,8 +219,6 @@ Protected Member Functions</h2></td></tr>
 <tr class="separator:a6dea38ad360fe5a2eafbd822a0774ed0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a008f3077a46a7dbc8cd14cc00f76aa49"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#a008f3077a46a7dbc8cd14cc00f76aa49">doEndpointTracking</a> ()</td></tr>
 <tr class="separator:a008f3077a46a7dbc8cd14cc00f76aa49"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8cb8f224cd76984cc0dfe8403fb5e1f4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#a8cb8f224cd76984cc0dfe8403fb5e1f4">setRequestTimeToLive</a> (std::chrono::seconds const &amp;_time)</td></tr>
-<tr class="separator:a8cb8f224cd76984cc0dfe8403fb5e1f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a268445591f71b43fc8eb9e085cb1fa7c"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#a268445591f71b43fc8eb9e085cb1fa7c">nextRequestExpirationTime</a> () const</td></tr>
 <tr class="separator:a268445591f71b43fc8eb9e085cb1fa7c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a81bd6cc00f6ebc92d808537b5dd2bd19"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#a81bd6cc00f6ebc92d808537b5dd2bd19">isAllowedEndpoint</a> (<a class="el" href="classdev_1_1p2p_1_1_node_i_p_endpoint.html">NodeIPEndpoint</a> const &amp;_endpointToCheck) const</td></tr>
@@ -277,8 +275,8 @@ Protected Attributes</h2></td></tr>
 <tr class="separator:a7bcd7ce68cec06ca89fc584e0c174d9e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae1d9a153f6d72f9fd7915952d55ec69f"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; bi::udp::endpoint, <a class="el" href="structdev_1_1p2p_1_1_node_table_1_1_node_validation.html">NodeValidation</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#ae1d9a153f6d72f9fd7915952d55ec69f">m_sentPings</a></td></tr>
 <tr class="separator:ae1d9a153f6d72f9fd7915952d55ec69f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a80c25d5361d7601f8b89ee370d52440c"><td class="memItemLeft" align="right" valign="top">std::chrono::seconds&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#a80c25d5361d7601f8b89ee370d52440c">m_requestTimeToLive</a></td></tr>
-<tr class="separator:a80c25d5361d7601f8b89ee370d52440c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a92c64ace79e05f17576bcde63dd5e200"><td class="memItemLeft" align="right" valign="top">const std::chrono::seconds&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#a92c64ace79e05f17576bcde63dd5e200">m_requestTimeToLive</a></td></tr>
+<tr class="separator:a92c64ace79e05f17576bcde63dd5e200"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afdbddbd02225acb05be4680c60725770"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a47e383bc41ef3b6ad64b26324a79b948">Logger</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#afdbddbd02225acb05be4680c60725770">m_logger</a> {<a class="el" href="namespacedev.html#adb1208e9bab817458c3b4a94ed06cfc6">createLogger</a>(<a class="el" href="namespacedev.html#a7fc4649ee123b939f2786c757b3d4491a73f1cfe530632048dd623729258af859">VerbosityDebug</a>, &quot;discov&quot;)}</td></tr>
 <tr class="separator:afdbddbd02225acb05be4680c60725770"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5040a39ab412f595949822dc80854ded"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classdev_1_1p2p_1_1_endpoint_tracker.html">EndpointTracker</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classdev_1_1p2p_1_1_node_table.html#a5040a39ab412f595949822dc80854ded">m_endpointTracker</a></td></tr>
@@ -1647,32 +1645,6 @@ nodes</td>
 
 </div>
 </div>
-<a id="a8cb8f224cd76984cc0dfe8403fb5e1f4"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8cb8f224cd76984cc0dfe8403fb5e1f4">&#9670;&nbsp;</a></span>setRequestTimeToLive()</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">void dev::p2p::NodeTable::setRequestTimeToLive </td>
-          <td>(</td>
-          <td class="paramtype">std::chrono::seconds const &amp;&#160;</td>
-          <td class="paramname"><em>_time</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
 <a id="ab014c448a521aa00ca72dbd2b7241d90"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ab014c448a521aa00ca72dbd2b7241d90">&#9670;&nbsp;</a></span>snapshot()</h2>
 
@@ -2254,8 +2226,8 @@ nodes</td>
 
 </div>
 </div>
-<a id="a80c25d5361d7601f8b89ee370d52440c"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a80c25d5361d7601f8b89ee370d52440c">&#9670;&nbsp;</a></span>m_requestTimeToLive</h2>
+<a id="a92c64ace79e05f17576bcde63dd5e200"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a92c64ace79e05f17576bcde63dd5e200">&#9670;&nbsp;</a></span>m_requestTimeToLive</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2264,7 +2236,7 @@ nodes</td>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::chrono::seconds dev::p2p::NodeTable::m_requestTimeToLive</td>
+          <td class="memname">const std::chrono::seconds dev::p2p::NodeTable::m_requestTimeToLive</td>
         </tr>
       </table>
   </td>
