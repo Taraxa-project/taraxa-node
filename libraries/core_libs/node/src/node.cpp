@@ -26,6 +26,7 @@
 #include "network/rpc/jsonrpc_http_processor.hpp"
 #include "network/rpc/jsonrpc_ws_server.hpp"
 #include "pbft/pbft_manager.hpp"
+#include "slashing_manager/slashing_manager.hpp"
 #include "storage/migration/migration_manager.hpp"
 #include "transaction/gas_pricer.hpp"
 #include "transaction/transaction_manager.hpp"
@@ -134,8 +135,10 @@ void FullNode::init() {
   dag_block_proposer_ = std::make_shared<DagBlockProposer>(
       conf_.genesis.dag.block_proposer, dag_mgr_, trx_mgr_, final_chain_, db_, key_manager_, node_addr, getSecretKey(),
       getVrfSecretKey(), conf_.genesis.pbft.gas_limit, conf_.genesis.dag.gas_limit);
+  auto slashing_manager =
+      std::make_shared<SlashingManager>(final_chain_, trx_mgr_, gas_pricer_, conf_.genesis.chain_id, kp_.secret());
   network_ = std::make_shared<Network>(conf_, genesis_hash, conf_.net_file_path().string(), kp_, db_, pbft_mgr_,
-                                       pbft_chain_, vote_mgr_, dag_mgr_, trx_mgr_);
+                                       pbft_chain_, vote_mgr_, dag_mgr_, trx_mgr_, std::move(slashing_manager));
 }
 
 void FullNode::setupMetricsUpdaters() {
