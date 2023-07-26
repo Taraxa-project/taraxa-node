@@ -14,6 +14,7 @@
 #include "network/tarcap/tarcap_version.hpp"
 #include "network/threadpool/tarcap_thread_pool.hpp"
 #include "pbft/pbft_chain.hpp"
+#include "slashing_manager/slashing_manager.hpp"
 
 namespace taraxa {
 class DbStorage;
@@ -22,6 +23,7 @@ class PbftChain;
 class VoteManager;
 class DagManager;
 class TransactionManager;
+class SlashingManager;
 enum class TransactionStatus;
 }  // namespace taraxa
 
@@ -43,7 +45,8 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
       const std::shared_ptr<tarcap::TimePeriodPacketsStats> &packets_stats, const std::shared_ptr<DbStorage> &db,
       const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
       const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<DagManager> &dag_mgr,
-      const std::shared_ptr<TransactionManager> &trx_mgr, const addr_t &node_addr)>;
+      const std::shared_ptr<TransactionManager> &trx_mgr, const std::shared_ptr<SlashingManager> &slashing_manager,
+      const addr_t &node_addr)>;
 
   /**
    * @brief Default InitPacketsHandlers function definition with the latest version of packets handlers
@@ -58,7 +61,7 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
                    std::shared_ptr<PbftSyncingState> syncing_state, std::shared_ptr<DbStorage> db,
                    std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                    std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
-                   std::shared_ptr<TransactionManager> trx_mgr,
+                   std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<SlashingManager> slashing_manager,
                    InitPacketsHandlers init_packets_handlers = kInitLatestVersionHandlers);
 
   virtual ~TaraxaCapability() = default;

@@ -22,7 +22,8 @@ namespace taraxa {
 Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::filesystem::path const &network_file_path,
                  dev::KeyPair const &key, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
                  std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
-                 std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr)
+                 std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
+                 std::shared_ptr<SlashingManager> slashing_manager)
     : kConf(config),
       pub_key_(key.pub()),
       all_packets_stats_(nullptr),
@@ -75,13 +76,13 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::fi
     // Register old version (V1) of taraxa capability
     auto v1_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
         kV1NetworkVersion, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
-        pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, network::tarcap::v1::kInitV1Handlers);
+        pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, network::tarcap::v1::kInitV1Handlers);
     capabilities.emplace_back(v1_tarcap);
 
     // Register latest version of taraxa capability
     auto latest_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
         TARAXA_NET_VERSION, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
-        pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr);
+        pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager);
     capabilities.emplace_back(latest_tarcap);
 
     return capabilities;
