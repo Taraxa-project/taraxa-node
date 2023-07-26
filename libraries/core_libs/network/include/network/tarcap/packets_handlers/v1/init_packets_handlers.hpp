@@ -10,6 +10,7 @@
 #include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
 #include "network/tarcap/taraxa_capability.hpp"
 #include "pbft_sync_packet_handler.hpp"
+#include "slashing_manager/slashing_manager.hpp"
 #include "votes_bundle_packet_handler.hpp"
 
 namespace taraxa::network::tarcap::v1 {
@@ -23,7 +24,8 @@ static const TaraxaCapability::InitPacketsHandlers kInitV1Handlers =
        const std::shared_ptr<tarcap::TimePeriodPacketsStats> &packets_stats, const std::shared_ptr<DbStorage> &db,
        const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
        const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<DagManager> &dag_mgr,
-       const std::shared_ptr<TransactionManager> &trx_mgr, const addr_t &node_addr) {
+       const std::shared_ptr<TransactionManager> &trx_mgr,
+       const std::shared_ptr<SlashingManager> & /*slashing_manager*/, const addr_t &node_addr) {
       auto packets_handlers = std::make_shared<PacketsHandler>();
 
       // Consensus packets with high processing priority
