@@ -1,5 +1,7 @@
 var NAVTREEINDEX16 =
 {
+"group___transaction.html#a557720dd0574c559a4646436601f39af":[13,3,1,10],
+"group___transaction.html#a588755a2ff79905c2e8a88cec3cd56ee":[13,3,1,17],
 "group___transaction.html#a5a7dad897350041d7a5a11579666d666":[13,3,2,6],
 "group___transaction.html#a5db6e2bdd3ab302a2d4305702264ba69":[13,3,1,20],
 "group___transaction.html#a5fda2f7af43fa418f5735fe70284a677":[13,3,0,15],
@@ -247,7 +249,5 @@ var NAVTREEINDEX16 =
 "jsoncpp_8hpp.html#aae0d1a2af185914f61e3152821947037":[16,0,1,2,0,0,7,1],
 "jsoncpp_8hpp_source.html":[16,0,1,2,0,0,7],
 "jsonrpc__http__processor_8cpp.html":[16,0,1,4,1,2,7],
-"jsonrpc__http__processor_8hpp.html":[16,0,1,4,1,2,8],
-"jsonrpc__http__processor_8hpp_source.html":[16,0,1,4,1,2,8],
-"jsonrpc__ws__server_8cpp.html":[16,0,1,4,1,2,9]
+"jsonrpc__http__processor_8hpp.html":[16,0,1,4,1,2,8]
 };

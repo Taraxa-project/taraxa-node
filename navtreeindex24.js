@@ -1,5 +1,7 @@
 var NAVTREEINDEX24 =
 {
+"tools_8cpp.html#a27887c82e6f5ab3508065eb49bbd4b8a":[16,0,1,1,1,2,2],
+"tools_8cpp.html#a4593c739f5901c861856b711cd7fd798":[16,0,1,1,1,2,0],
 "tools_8cpp.html#a56a1b406f30af3f7a1e8483886f17d5c":[16,0,1,1,1,2,8],
 "tools_8cpp.html#a5dcfd9e02330e5c11402248fa850edf4":[16,0,1,1,1,2,12],
 "tools_8cpp.html#a6bbd495d21ee3a686d5bc8f695270349":[16,0,1,1,1,2,13],
@@ -247,6 +249,5 @@ var NAVTREEINDEX24 =
 "watches_8hpp.html#aeb19a0c91d9b3f39936dcbb097ccd138a52423efbc71c06fa6f327a19224da1b8":[16,0,1,4,1,2,0,6,8,0],
 "watches_8hpp.html#aeb19a0c91d9b3f39936dcbb097ccd138a5f59a76c9b6d9f12d3249747bfb1dbf7":[16,0,1,4,1,2,0,6,8,3],
 "watches_8hpp.html#aeb19a0c91d9b3f39936dcbb097ccd138a8da0004c4e246548486bfb9e1a4f3731":[16,0,1,4,1,2,0,6,8,2],
-"watches_8hpp.html#aef067206e31328c698e6134b9b613a83":[16,0,1,4,1,2,0,6,10],
-"watches_8hpp_source.html":[16,0,1,4,1,2,0,6]
+"watches_8hpp.html#aef067206e31328c698e6134b9b613a83":[16,0,1,4,1,2,0,6,10]
 };

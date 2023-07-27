@@ -83,6 +83,7 @@ $(document).ready(function(){initNavTree('classtaraxa_1_1net_1_1_json_rpc_ws_ses
 <div class="header">
   <div class="summary">
 <a href="#pub-methods">Public Member Functions</a> &#124;
+<a href="#pri-methods">Private Member Functions</a> &#124;
 <a href="classtaraxa_1_1net_1_1_json_rpc_ws_session-members.html">List of all members</a>  </div>
   <div class="headertitle">
 <div class="title">taraxa::net::JsonRpcWsSession Class Reference<span class="mlabels"><span class="mlabel">final</span></span></div>  </div>
@@ -138,6 +139,13 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a0ac5a482061fe062756b2fc12f710a4e inherit pub_methods_classtaraxa_1_1net_1_1_ws_session"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_ws_session.html#a0ac5a482061fe062756b2fc12f710a4e">is_normal</a> (const beast::error_code &amp;ec) const</td></tr>
 <tr class="separator:a0ac5a482061fe062756b2fc12f710a4e inherit pub_methods_classtaraxa_1_1net_1_1_ws_session"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pri-methods"></a>
+Private Member Functions</h2></td></tr>
+<tr class="memitem:aff0a484c4d323e3565f3420fc55fead6"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_json_rpc_ws_session.html#aff0a484c4d323e3565f3420fc55fead6">handleRequest</a> (const Json::Value &amp;req)</td></tr>
+<tr class="separator:aff0a484c4d323e3565f3420fc55fead6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a348e8eb9601e98a7c0824ed61e7fadb1"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1net_1_1_json_rpc_ws_session.html#a348e8eb9601e98a7c0824ed61e7fadb1">handleSubscription</a> (const Json::Value &amp;req)</td></tr>
+<tr class="separator:a348e8eb9601e98a7c0824ed61e7fadb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="inherited"></a>
 Additional Inherited Members</h2></td></tr>
 <tr class="inherit_header pro_methods_classtaraxa_1_1net_1_1_ws_session"><td colspan="2" onclick="javascript:toggleInherit('pro_methods_classtaraxa_1_1net_1_1_ws_session')"><img src="closed.png" alt="-"/>&#160;Protected Member Functions inherited from <a class="el" href="classtaraxa_1_1net_1_1_ws_session.html">taraxa::net::WsSession</a></td></tr>
@@ -172,6 +180,58 @@ Additional Inherited Members</h2></td></tr>
 <tr class="separator:adab966a3da09dca80949abb17b9cc9cc inherit pro_attribs_classtaraxa_1_1net_1_1_ws_session"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="aff0a484c4d323e3565f3420fc55fead6"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aff0a484c4d323e3565f3420fc55fead6">&#9670;&nbsp;</a></span>handleRequest()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string taraxa::net::JsonRpcWsSession::handleRequest </td>
+          <td>(</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>req</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a348e8eb9601e98a7c0824ed61e7fadb1"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a348e8eb9601e98a7c0824ed61e7fadb1">&#9670;&nbsp;</a></span>handleSubscription()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string taraxa::net::JsonRpcWsSession::handleSubscription </td>
+          <td>(</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>req</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a209486afcd57ba7373625cd695b9db96"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a209486afcd57ba7373625cd695b9db96">&#9670;&nbsp;</a></span>processRequest()</h2>
 

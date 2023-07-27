@@ -1,5 +1,7 @@
 var NAVTREEINDEX15 =
 {
+"group___final_chain.html#structtaraxa_1_1final__chain_1_1_new_block":[13,1,4],
+"group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_location":[13,1,3],
 "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt":[13,1,2],
 "group___final_chain.html#structtaraxa_1_1state__api_1_1_account":[13,1,16],
 "group___final_chain.html#structtaraxa_1_1state__api_1_1_e_v_m_block":[13,1,10],
@@ -247,7 +249,5 @@ var NAVTREEINDEX15 =
 "group___transaction.html#a4a14493411b6e059a45ed8ae906a23d5":[13,3,1,32],
 "group___transaction.html#a4cd27f99d369af399f855725adfccbe6":[13,3,2,14],
 "group___transaction.html#a50f1bb894c6ebf89cff9d80a238d1492":[13,3,0,8],
-"group___transaction.html#a5518e05109ea6a098343f4e2a0f58711":[13,3,1,1],
-"group___transaction.html#a557720dd0574c559a4646436601f39af":[13,3,1,10],
-"group___transaction.html#a588755a2ff79905c2e8a88cec3cd56ee":[13,3,1,17]
+"group___transaction.html#a5518e05109ea6a098343f4e2a0f58711":[13,3,1,1]
 };
