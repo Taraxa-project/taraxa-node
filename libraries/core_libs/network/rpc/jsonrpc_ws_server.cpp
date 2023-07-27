@@ -25,53 +25,66 @@ std::string JsonRpcWsSession::processRequest(const std::string_view &request) {
     return {};
   }
 
-  auto id = json.get("id", 0);
-  Json::Value json_response;
-  auto method = json.get("method", "");
-  std::string response;
-  if (method == "eth_subscribe") {
-    auto params = json.get("params", Json::Value(Json::Value(Json::arrayValue)));
-    json_response["id"] = id;
-    json_response["jsonrpc"] = "2.0";
-    subscription_id_++;
-    if (params.size() > 0) {
-      if (params[0].asString() == "newHeads") {
-        new_heads_subscription_ = subscription_id_;
-      } else if (params[0].asString() == "newPendingTransactions") {
-        new_transactions_subscription_ = subscription_id_;
-      } else if (params[0].asString() == "newDagBlocks") {
-        new_dag_blocks_subscription_ = subscription_id_;
-      } else if (params[0].asString() == "newDagBlocksFinalized") {
-        new_dag_block_finalized_subscription_ = subscription_id_;
-      } else if (params[0].asString() == "newPbftBlocks") {
-        new_pbft_block_executed_subscription_ = subscription_id_;
-      }
+  // Check for Batch requests
+  if (!json.isArray()) {
+    if (const auto method = json.get("method", ""); method == "eth_subscribe") {
+      return handleSubscription(json);
     }
-    json_response["result"] = dev::toJS(subscription_id_);
-    response = util::to_string(json_response);
-    LOG(log_tr_) << "WS WRITE " << response.c_str();
-  } else {
-    auto ws_server = ws_server_.lock();
-    if (ws_server) {
-      auto handler = ws_server->GetHandler();
-      if (handler != NULL) {
-        try {
-          LOG(log_tr_) << "WS Read: " << static_cast<char *>(buffer_.data().data());
-          handler->HandleRequest(static_cast<char *>(buffer_.data().data()), response);
-        } catch (std::exception const &e) {
-          LOG(log_er_) << "Exception " << e.what();
-          auto &res_json_error = json_response["error"] = Json::Value(Json::objectValue);
-          res_json_error["code"] = jsonrpc::Errors::ERROR_RPC_INTERNAL_ERROR;
-          res_json_error["message"] = e.what();
-          json_response["id"] = id;
-          json_response["jsonrpc"] = "2.0";
-          response = util::to_string(json_response);
-        }
-        LOG(log_tr_) << "WS Write: " << response;
+  }
+
+  return handleRequest(json);
+}
+
+std::string JsonRpcWsSession::handleRequest(const Json::Value &req) {
+  std::string response;
+  auto ws_server = ws_server_.lock();
+  if (ws_server) {
+    auto handler = ws_server->GetHandler();
+    if (handler != NULL) {
+      try {
+        handler->HandleRequest(util::to_string(req), response);
+      } catch (std::exception const &e) {
+        LOG(log_er_) << "Exception " << e.what();
+        Json::Value json_response;
+        auto &res_json_error = json_response["error"] = Json::Value(Json::objectValue);
+        res_json_error["code"] = jsonrpc::Errors::ERROR_RPC_INTERNAL_ERROR;
+        res_json_error["message"] = e.what();
+        json_response["id"] = req.get("id", 0);
+        json_response["jsonrpc"] = "2.0";
+        return util::to_string(json_response);
       }
     }
   }
   return response;
+}
+
+std::string JsonRpcWsSession::handleSubscription(const Json::Value &req) {
+  Json::Value json_response;
+
+  const auto params = req.get("params", Json::Value(Json::Value(Json::arrayValue)));
+
+  json_response["id"] = req.get("id", 0);
+  ;
+  json_response["jsonrpc"] = "2.0";
+  subscription_id_++;
+
+  if (params.size() > 0) {
+    if (params[0].asString() == "newHeads") {
+      new_heads_subscription_ = subscription_id_;
+    } else if (params[0].asString() == "newPendingTransactions") {
+      new_transactions_subscription_ = subscription_id_;
+    } else if (params[0].asString() == "newDagBlocks") {
+      new_dag_blocks_subscription_ = subscription_id_;
+    } else if (params[0].asString() == "newDagBlocksFinalized") {
+      new_dag_block_finalized_subscription_ = subscription_id_;
+    } else if (params[0].asString() == "newPbftBlocks") {
+      new_pbft_block_executed_subscription_ = subscription_id_;
+    }
+  }
+
+  json_response["result"] = dev::toJS(subscription_id_);
+
+  return util::to_string(json_response);
 }
 
 std::shared_ptr<WsSession> JsonRpcWsServer::createSession(tcp::socket &&socket) {
