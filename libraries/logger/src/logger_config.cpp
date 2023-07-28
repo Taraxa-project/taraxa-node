@@ -23,7 +23,7 @@ Verbosity stringToVerbosity(std::string _verbosity) {
   if (_verbosity == "INFO") return Verbosity::Info;
   if (_verbosity == "DEBUG") return Verbosity::Debug;
   if (_verbosity == "TRACE") return Verbosity::Trace;
-  throw("Unknown verbosity string");
+  throw ConfigException("Unknown verbosity string: " + _verbosity);
 }
 
 Config::Config(fs::path log_path) {

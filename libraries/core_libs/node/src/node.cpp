@@ -46,6 +46,8 @@ void FullNode::init() {
     logging.InitLogging(node_addr);
   }
 
+  conf_.scheduleLoggingConfigUpdate();
+
   LOG_OBJECTS_CREATE("FULLND");
 
   LOG(log_si_) << "Node public key: " << EthGreen << kp_.pub().toString() << std::endl
