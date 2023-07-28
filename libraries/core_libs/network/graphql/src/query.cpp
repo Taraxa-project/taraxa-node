@@ -26,40 +26,41 @@ Query::Query(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain,
       db_(std::move(db)),
       gas_pricer_(std::move(gas_pricer)),
       network_(std::move(network)),
-      kChainId(chain_id) {}
+      kChainId(chain_id) {
+  get_block_by_num_ = [&](::taraxa::EthBlockNumber num) {
+    return getBlock(response::Value(static_cast<int>(num)), std::nullopt);
+  };
+}
 
 std::shared_ptr<object::Block> Query::getBlock(std::optional<response::Value>&& number,
                                                std::optional<response::Value>&& hash) const {
+  std::optional<::taraxa::EthBlockNumber> block_number;
   if (number) {
-    const uint64_t block_number = number->get<int>();
+    block_number = number->get<int>();
     if (const auto last_block_number = final_chain_->last_block_number(); last_block_number < block_number) {
       return nullptr;
     }
-    if (auto block_header = final_chain_->block_header(block_number)) {
-      return std::make_shared<object::Block>(
-          std::make_shared<Block>(final_chain_, transaction_manager_, std::move(block_header)));
-    }
-    return nullptr;
   }
   if (hash) {
-    if (auto block_number = final_chain_->block_number(dev::h256(hash->get<std::string>()))) {
-      if (auto block_header = final_chain_->block_header(block_number)) {
-        return std::make_shared<object::Block>(
-            std::make_shared<Block>(final_chain_, transaction_manager_, std::move(block_header)));
-      }
-    }
+    block_number = final_chain_->block_number(dev::h256(hash->get<std::string>()));
+  }
+  auto block_header = final_chain_->block_header(block_number);
+
+  auto pbft_block = db_->getPbftBlock(block_header->number);
+  if (!pbft_block) {
+    // shouldn't be possible
     return nullptr;
   }
-  return std::make_shared<object::Block>(
-      std::make_shared<Block>(final_chain_, transaction_manager_, final_chain_->block_header()));
+  return std::make_shared<object::Block>(std::make_shared<Block>(final_chain_, transaction_manager_, get_block_by_num_,
+                                                                 pbft_block->getBlockHash(), block_header));
 }
 
 std::vector<std::shared_ptr<object::Block>> Query::getBlocks(response::Value&& fromArg,
                                                              std::optional<response::Value>&& toArg) const {
   std::vector<std::shared_ptr<object::Block>> blocks;
 
-  uint64_t start_block_num = fromArg.get<int>();
-  uint64_t end_block_num = toArg ? toArg->get<int>() : (start_block_num + Query::kMaxPropagationLimit);
+  int start_block_num = fromArg.get<int>();
+  int end_block_num = toArg ? toArg->get<int>() : (start_block_num + Query::kMaxPropagationLimit);
 
   // Incase of reverse order of blocks
   if (start_block_num > end_block_num) {
@@ -68,11 +69,11 @@ std::vector<std::shared_ptr<object::Block>> Query::getBlocks(response::Value&& f
     end_block_num = tmp;
   }
 
-  if (end_block_num - start_block_num > Query::kMaxPropagationLimit) {
+  if (end_block_num - start_block_num > static_cast<int>(Query::kMaxPropagationLimit)) {
     end_block_num = start_block_num + Query::kMaxPropagationLimit;
   }
 
-  const auto last_block_number = final_chain_->last_block_number();
+  const int last_block_number = final_chain_->last_block_number();
   if (start_block_num > last_block_number) {
     return blocks;
   } else if (end_block_num > last_block_number) {
@@ -81,9 +82,8 @@ std::vector<std::shared_ptr<object::Block>> Query::getBlocks(response::Value&& f
 
   blocks.reserve(end_block_num - start_block_num);
 
-  for (uint64_t block_num = start_block_num; block_num <= end_block_num; block_num++) {
-    blocks.emplace_back(std::make_shared<object::Block>(
-        std::make_shared<Block>(final_chain_, transaction_manager_, final_chain_->block_header(block_num))));
+  for (int block_num = start_block_num; block_num <= end_block_num; block_num++) {
+    blocks.emplace_back(getBlock(response::Value(block_num), std::nullopt));
   }
 
   return blocks;
@@ -92,7 +92,7 @@ std::vector<std::shared_ptr<object::Block>> Query::getBlocks(response::Value&& f
 std::shared_ptr<object::Transaction> Query::getTransaction(response::Value&& hashArg) const {
   if (auto transaction = transaction_manager_->getTransaction(::taraxa::trx_hash_t(hashArg.get<std::string>()))) {
     return std::make_shared<object::Transaction>(
-        std::make_shared<Transaction>(final_chain_, transaction_manager_, std::move(transaction)));
+        std::make_shared<Transaction>(final_chain_, transaction_manager_, get_block_by_num_, std::move(transaction)));
   }
   return nullptr;
 }
@@ -130,10 +130,11 @@ std::shared_ptr<object::DagBlock> Query::getDagBlock(std::optional<response::Val
       taraxa_dag_block = dag_blocks.front();
     }
   }
-
-  return taraxa_dag_block ? std::make_shared<object::DagBlock>(std::make_shared<DagBlock>(
-                                std::move(taraxa_dag_block), final_chain_, pbft_manager_, transaction_manager_))
-                          : nullptr;
+  if (taraxa_dag_block) {
+    return std::make_shared<object::DagBlock>(std::make_shared<DagBlock>(
+        std::move(taraxa_dag_block), final_chain_, pbft_manager_, transaction_manager_, get_block_by_num_));
+  }
+  return nullptr;
 }
 
 std::vector<std::shared_ptr<object::DagBlock>> Query::getPeriodDagBlocks(
@@ -149,8 +150,8 @@ std::vector<std::shared_ptr<object::DagBlock>> Query::getPeriodDagBlocks(
   if (dag_blocks.size()) {
     blocks.reserve(dag_blocks.size());
     for (auto block : dag_blocks) {
-      blocks.emplace_back(std::make_shared<object::DagBlock>(
-          std::make_shared<DagBlock>(std::move(block), final_chain_, pbft_manager_, transaction_manager_)));
+      blocks.emplace_back(std::make_shared<object::DagBlock>(std::make_shared<DagBlock>(
+          std::move(block), final_chain_, pbft_manager_, transaction_manager_, get_block_by_num_)));
     }
   }
   return blocks;
@@ -170,11 +171,11 @@ std::vector<std::shared_ptr<object::DagBlock>> Query::getDagBlocks(std::optional
   }
 
   auto addDagBlocks = [final_chain = final_chain_, pbft_manager = pbft_manager_,
-                       transaction_manager = transaction_manager_](auto taraxa_dag_blocks,
-                                                                   auto& result_dag_blocks) -> size_t {
+                       transaction_manager = transaction_manager_, get_block_by_num = get_block_by_num_](
+                          auto taraxa_dag_blocks, auto& result_dag_blocks) -> size_t {
     for (auto& dag_block : taraxa_dag_blocks) {
-      result_dag_blocks.emplace_back(std::make_shared<object::DagBlock>(
-          std::make_shared<DagBlock>(std::move(dag_block), final_chain, pbft_manager, transaction_manager)));
+      result_dag_blocks.emplace_back(std::make_shared<object::DagBlock>(std::make_shared<DagBlock>(
+          std::move(dag_block), final_chain, pbft_manager, transaction_manager, get_block_by_num)));
     }
 
     return taraxa_dag_blocks.size();

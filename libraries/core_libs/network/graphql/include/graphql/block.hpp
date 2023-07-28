@@ -8,15 +8,17 @@
 #include "transaction/transaction_manager.hpp"
 
 namespace graphql::taraxa {
-
 class Block {
  public:
   explicit Block(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain,
                  std::shared_ptr<::taraxa::TransactionManager> trx_manager,
+                 std::function<std::shared_ptr<object::Block>(::taraxa::EthBlockNumber)> get_block_by_num,
+                 const ::taraxa::blk_hash_t& pbft_block_hash,
                  std::shared_ptr<const ::taraxa::final_chain::BlockHeader> block_header) noexcept;
 
   response::Value getNumber() const noexcept;
   response::Value getHash() const noexcept;
+  response::Value getPbftHash() const noexcept;
   std::shared_ptr<object::Block> getParent() const noexcept;
   response::Value getNonce() const noexcept;
   response::Value getTransactionsRoot() const noexcept;
@@ -46,6 +48,8 @@ class Block {
  private:
   std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain_;
   std::shared_ptr<::taraxa::TransactionManager> trx_manager_;
+  std::function<std::shared_ptr<object::Block>(::taraxa::EthBlockNumber)> get_block_by_num_;
+  const ::taraxa::blk_hash_t kPBftBlockHash;
   std::shared_ptr<const ::taraxa::final_chain::BlockHeader> block_header_;
   mutable std::vector<std::shared_ptr<::taraxa::Transaction>> transactions_;
 };

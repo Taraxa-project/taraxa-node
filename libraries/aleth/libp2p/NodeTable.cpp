@@ -505,7 +505,8 @@ shared_ptr<NodeEntry> NodeTable::handleNeighbours(bi::udp::endpoint const& _from
     return true;
   });
   if (!expected) {
-    LOG(m_logger) << "Dropping unsolicited neighbours packet from " << _packet.sourceid << "@" << _from.address();
+    LOG(m_logger) << "Dropping unsolicited neighbours packet from " << _packet.sourceid << "@" << _from.address() << ":"
+                  << _from.port();
     return sourceNodeEntry;
   }
 
@@ -695,13 +696,13 @@ void NodeTable::doHandleTimeouts() {
     for (auto it = m_sentPings.begin(); it != m_sentPings.end();) {
       if (chrono::steady_clock::now() > it->second.pingSentTime + m_requestTimeToLive) {
         if (auto node = nodeEntry(it->second.nodeID)) {
-          if (node->endpoint() == it->first) {
+          if (node->lastPongReceivedTime < RLPXDatagramFace::secondsSinceEpoch() - m_requestTimeToLive.count()) {
             dropNode(std::move(node));
-
-            // save the replacement node that should be activated
-            if (it->second.replacementNodeEntry)
-              nodesToActivate.emplace_back(std::move(it->second.replacementNodeEntry));
+          } else {
+            LOG(m_logger) << "Not dropping node " << it->second.nodeID << " " << it->first << " as it was updated";
           }
+          // save the replacement node that should be activated
+          if (it->second.replacementNodeEntry) nodesToActivate.emplace_back(std::move(it->second.replacementNodeEntry));
         }
 
         it = m_sentPings.erase(it);
