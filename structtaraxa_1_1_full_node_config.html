@@ -138,6 +138,12 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a82539ddcbc6d23432896dcfbc4110829"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a2c448f29c13e83cf18eb1108cdc75c9c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#a2c448f29c13e83cf18eb1108cdc75c9c">overwriteConfigFromJson</a> (const Json::Value &amp;config_json)</td></tr>
 <tr class="separator:a2c448f29c13e83cf18eb1108cdc75c9c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a3c3a85b4c00e792f76588f75ba4ff19f"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classtaraxa_1_1logger_1_1_config.html">logger::Config</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#a3c3a85b4c00e792f76588f75ba4ff19f">loadLoggingConfigs</a> (const Json::Value &amp;logging)</td></tr>
+<tr class="separator:a3c3a85b4c00e792f76588f75ba4ff19f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa8d2b1c0b4c80ef1e1f427204258862e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#aa8d2b1c0b4c80ef1e1f427204258862e">scheduleLoggingConfigUpdate</a> ()</td></tr>
+<tr class="separator:aa8d2b1c0b4c80ef1e1f427204258862e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae98c2428e305229a166a4497c1ad0eeb"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#ae98c2428e305229a166a4497c1ad0eeb">InitLogging</a> (const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;node_address)</td></tr>
+<tr class="separator:ae98c2428e305229a166a4497c1ad0eeb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae79d1a5da89550572a64d0850f9bc845"><td class="memItemLeft" align="right" valign="top">auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#ae79d1a5da89550572a64d0850f9bc845">net_file_path</a> () const</td></tr>
 <tr class="separator:ae79d1a5da89550572a64d0850f9bc845"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aad4a40f97ab5a5dafcbc5909bd869c4d"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#aad4a40f97ab5a5dafcbc5909bd869c4d">validate</a> () const</td></tr>
@@ -148,6 +154,8 @@ Public Member Functions</h2></td></tr>
 Public Attributes</h2></td></tr>
 <tr class="memitem:ad62102338c52adccaa31fab23541fd68"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#ad62102338c52adccaa31fab23541fd68">json_file_name</a></td></tr>
 <tr class="separator:ad62102338c52adccaa31fab23541fd68"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac560fb999600baff868525631e81eca0"><td class="memItemLeft" align="right" valign="top">std::filesystem::file_time_type&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#ac560fb999600baff868525631e81eca0">last_json_update_time</a></td></tr>
+<tr class="separator:ac560fb999600baff868525631e81eca0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a21a1f640ba90bfeb59c42efa0f0afbe1"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacedev.html#a04a16f8a4c264a7868151d49e2223f04">dev::Secret</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#a21a1f640ba90bfeb59c42efa0f0afbe1">node_secret</a></td></tr>
 <tr class="separator:a21a1f640ba90bfeb59c42efa0f0afbe1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0a81eb125af3592470454f1f932b07fe"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#af96b06f21607d29faa75f7e006c8ea9e">vrf_wrapper::vrf_sk_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_full_node_config.html#a0a81eb125af3592470454f1f932b07fe">vrf_secret</a></td></tr>
@@ -265,6 +273,42 @@ Static Public Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
+<a id="ae98c2428e305229a166a4497c1ad0eeb"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae98c2428e305229a166a4497c1ad0eeb">&#9670;&nbsp;</a></span>InitLogging()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::FullNodeConfig::InitLogging </td>
+          <td>(</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;&#160;</td>
+          <td class="paramname"><em>node_address</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a3c3a85b4c00e792f76588f75ba4ff19f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a3c3a85b4c00e792f76588f75ba4ff19f">&#9670;&nbsp;</a></span>loadLoggingConfigs()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; <a class="el" href="classtaraxa_1_1logger_1_1_config.html">logger::Config</a> &gt; taraxa::FullNodeConfig::loadLoggingConfigs </td>
+          <td>(</td>
+          <td class="paramtype">const Json::Value &amp;&#160;</td>
+          <td class="paramname"><em>logging</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="ae79d1a5da89550572a64d0850f9bc845"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae79d1a5da89550572a64d0850f9bc845">&#9670;&nbsp;</a></span>net_file_path()</h2>
 
@@ -301,6 +345,23 @@ Static Public Attributes</h2></td></tr>
           <td>(</td>
           <td class="paramtype">const Json::Value &amp;&#160;</td>
           <td class="paramname"><em>config_json</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aa8d2b1c0b4c80ef1e1f427204258862e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa8d2b1c0b4c80ef1e1f427204258862e">&#9670;&nbsp;</a></span>scheduleLoggingConfigUpdate()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void taraxa::FullNodeConfig::scheduleLoggingConfigUpdate </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
           <td></td>
         </tr>
       </table>
@@ -487,6 +548,20 @@ Static Public Attributes</h2></td></tr>
 <span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
   </tr>
 </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ac560fb999600baff868525631e81eca0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac560fb999600baff868525631e81eca0">&#9670;&nbsp;</a></span>last_json_update_time</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::filesystem::file_time_type taraxa::FullNodeConfig::last_json_update_time</td>
+        </tr>
+      </table>
 </div><div class="memdoc">
 
 </div>
