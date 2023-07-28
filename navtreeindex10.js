@@ -1,5 +1,11 @@
 var NAVTREEINDEX10 =
 {
+"classtaraxa_1_1network_1_1tarcap_1_1_max_stats.html#a0e66d83a8149a23ec9d6c60a174d8b1a":[15,0,3,5,0,17,5],
+"classtaraxa_1_1network_1_1tarcap_1_1_max_stats.html#a304c78c99de7158c575a4c34a53c335d":[15,0,3,5,0,17,1],
+"classtaraxa_1_1network_1_1tarcap_1_1_max_stats.html#a6589cb9fd281d18ca232d41c28a4b1c3":[15,0,3,5,0,17,0],
+"classtaraxa_1_1network_1_1tarcap_1_1_max_stats.html#a8425ec4c54bf2607bd396365abcf2ae5":[15,0,3,5,0,17,4],
+"classtaraxa_1_1network_1_1tarcap_1_1_max_stats.html#a85615f0c9058903c27b01a71ecd49bda":[15,0,3,5,0,17,3],
+"classtaraxa_1_1network_1_1tarcap_1_1_max_stats.html#ae1b7b1bec0adec29feaf088f9e189954":[15,0,3,5,0,17,2],
 "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html":[15,0,3,5,0,18],
 "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a0997a3935943d78b2a9977f0b45023a2":[15,0,3,5,0,18,12],
 "classtaraxa_1_1network_1_1tarcap_1_1_node_stats.html#a0be8e8d17158a4500fa71b81d9224222":[15,0,3,5,0,18,6],
@@ -243,11 +249,5 @@ var NAVTREEINDEX10 =
 "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_votes_bundle_packet_handler.html":[15,0,3,5,0,0,3],
 "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_votes_bundle_packet_handler.html#a16f7e39f330c3de9c3424ec81748c97a":[15,0,3,5,0,0,3,2],
 "classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_votes_bundle_packet_handler.html#a8fb7bdc679fdcbb2f860e98e18be3ada":[15,0,3,5,0,0,3,0],
-"classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_votes_bundle_packet_handler.html#af1399cea3018862b606cf6610a651393":[15,0,3,5,0,0,3,1],
-"classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html":[15,0,3,5,1,0],
-"classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#a0add3a60981266b518823480a49776cb":[15,0,3,5,1,0,15],
-"classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#a19e2f8b0ad86876e120c23f899d6ffcb":[15,0,3,5,1,0,3],
-"classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#a21b8ff7e113f47a953f569f8092f10ce":[15,0,3,5,1,0,9],
-"classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#a29a4a1e724858edc4846987d740de4cc":[15,0,3,5,1,0,0],
-"classtaraxa_1_1network_1_1threadpool_1_1_packet_data.html#a36881dc3fd567f65c5698b8209c71ba0":[15,0,3,5,1,0,1]
+"classtaraxa_1_1network_1_1tarcap_1_1v1_1_1_votes_bundle_packet_handler.html#af1399cea3018862b606cf6610a651393":[15,0,3,5,0,0,3,1]
 };

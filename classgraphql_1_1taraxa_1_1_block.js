@@ -1,6 +1,6 @@
 var classgraphql_1_1taraxa_1_1_block =
 [
-    [ "Block", "classgraphql_1_1taraxa_1_1_block.html#ae1967a17731e63316a0f4adedb2d4099", null ],
+    [ "Block", "classgraphql_1_1taraxa_1_1_block.html#a88d6647550b6c02b2e92c80b1364cbb5", null ],
     [ "getAccount", "classgraphql_1_1taraxa_1_1_block.html#a96060ecd589e9063f14095009b9b05fd", null ],
     [ "getCall", "classgraphql_1_1taraxa_1_1_block.html#a668c11a020987bc2c1b4ff1fad9041b0", null ],
     [ "getDifficulty", "classgraphql_1_1taraxa_1_1_block.html#a0abb206a60b4509eb2396eface8b8314", null ],
@@ -20,6 +20,7 @@ var classgraphql_1_1taraxa_1_1_block =
     [ "getOmmerHash", "classgraphql_1_1taraxa_1_1_block.html#a6f4fc19e4878468eb06b0004580273fc", null ],
     [ "getOmmers", "classgraphql_1_1taraxa_1_1_block.html#aa00b625fbe0cb640fa0339b84550aad8", null ],
     [ "getParent", "classgraphql_1_1taraxa_1_1_block.html#a53e081aaddd87d1d3bc8f38fbb4f6717", null ],
+    [ "getPbftHash", "classgraphql_1_1taraxa_1_1_block.html#a11361f1595d447f7e71f5d603442447d", null ],
     [ "getReceiptsRoot", "classgraphql_1_1taraxa_1_1_block.html#a37dcf952bdafc69a4e5c4728d3504f31", null ],
     [ "getStateRoot", "classgraphql_1_1taraxa_1_1_block.html#a7fe0eeb2e4ace49b8f09cdde51107154", null ],
     [ "getTimestamp", "classgraphql_1_1taraxa_1_1_block.html#a7053f738ee0077133ad68aa7461ef8b0", null ],
@@ -30,6 +31,8 @@ var classgraphql_1_1taraxa_1_1_block =
     [ "getTransactionsRoot", "classgraphql_1_1taraxa_1_1_block.html#a4df9b36420b2cb53f0133775cbabd598", null ],
     [ "block_header_", "classgraphql_1_1taraxa_1_1_block.html#a60cb36444c98a04faa0392c2fac3212b", null ],
     [ "final_chain_", "classgraphql_1_1taraxa_1_1_block.html#a28fffacfe49605e87cc04e87ffc9613e", null ],
+    [ "get_block_by_num_", "classgraphql_1_1taraxa_1_1_block.html#a93ade8edcfcb70fdc476e5c5a9e2cc7a", null ],
+    [ "kPBftBlockHash", "classgraphql_1_1taraxa_1_1_block.html#a1fad950c17ae086771cbf9926b19e29e", null ],
     [ "transactions_", "classgraphql_1_1taraxa_1_1_block.html#a272214f2065c534012fce7921c32f257", null ],
     [ "trx_manager_", "classgraphql_1_1taraxa_1_1_block.html#af34bf8cce518dc641bbc1f88fe25fb5c", null ]
 ];

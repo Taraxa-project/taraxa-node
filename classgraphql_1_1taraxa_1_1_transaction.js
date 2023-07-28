@@ -1,6 +1,6 @@
 var classgraphql_1_1taraxa_1_1_transaction =
 [
-    [ "Transaction", "classgraphql_1_1taraxa_1_1_transaction.html#ad2a22b68d3c3b0a0ec5aad9dfed96084", null ],
+    [ "Transaction", "classgraphql_1_1taraxa_1_1_transaction.html#a730fc6eb89188afb8178f29a244d8e36", null ],
     [ "getBlock", "classgraphql_1_1taraxa_1_1_transaction.html#aeb5ea0c8c2b641a3f65e701af9e435f5", null ],
     [ "getCreatedContract", "classgraphql_1_1taraxa_1_1_transaction.html#a333c1908457ca8954bad605efacff217", null ],
     [ "getCumulativeGasUsed", "classgraphql_1_1taraxa_1_1_transaction.html#a56f34404b5c5a3be4ca74e173dcd3736", null ],
@@ -20,6 +20,7 @@ var classgraphql_1_1taraxa_1_1_transaction =
     [ "getV", "classgraphql_1_1taraxa_1_1_transaction.html#a98f7316ba927906ea251d40bd903b366", null ],
     [ "getValue", "classgraphql_1_1taraxa_1_1_transaction.html#ac41d7906dd0c476a3fc75ee0d63f5b38", null ],
     [ "final_chain_", "classgraphql_1_1taraxa_1_1_transaction.html#a6d95c8547d2e80024579750385b5ddcd", null ],
+    [ "get_block_by_num_", "classgraphql_1_1taraxa_1_1_transaction.html#afd0799c56bc51a537ec4310077aba670", null ],
     [ "location_", "classgraphql_1_1taraxa_1_1_transaction.html#a216e3ea16415e8da3c37cbb0161ab3b2", null ],
     [ "receipt_", "classgraphql_1_1taraxa_1_1_transaction.html#a4129ca4f8bc6d3f45dc2e4e3372d122f", null ],
     [ "transaction_", "classgraphql_1_1taraxa_1_1_transaction.html#a548eeebd06374697ae07dce6f35f56e5", null ],

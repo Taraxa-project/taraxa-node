@@ -103,8 +103,8 @@ Collaboration diagram for graphql::taraxa::Transaction:</div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:ad2a22b68d3c3b0a0ec5aad9dfed96084"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html#ad2a22b68d3c3b0a0ec5aad9dfed96084">Transaction</a> (std::shared_ptr&lt;::<a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">taraxa::final_chain::FinalChain</a> &gt; final_chain, std::shared_ptr&lt;::<a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">taraxa::TransactionManager</a> &gt; trx_manager, std::shared_ptr&lt;::<a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html">taraxa::Transaction</a> &gt; transaction) noexcept</td></tr>
-<tr class="separator:ad2a22b68d3c3b0a0ec5aad9dfed96084"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a730fc6eb89188afb8178f29a244d8e36"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html#a730fc6eb89188afb8178f29a244d8e36">Transaction</a> (std::shared_ptr&lt;::<a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">taraxa::final_chain::FinalChain</a> &gt; final_chain, std::shared_ptr&lt;::<a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">taraxa::TransactionManager</a> &gt; trx_manager, std::function&lt; std::shared_ptr&lt; object::Block &gt;(::<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">taraxa::EthBlockNumber</a>)&gt;, std::shared_ptr&lt;::<a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html">taraxa::Transaction</a> &gt; transaction) noexcept</td></tr>
+<tr class="separator:a730fc6eb89188afb8178f29a244d8e36"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a5ce043a6f8df570cf174287d4659222b"><td class="memItemLeft" align="right" valign="top">response::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html#a5ce043a6f8df570cf174287d4659222b">getHash</a> () const noexcept</td></tr>
 <tr class="separator:a5ce043a6f8df570cf174287d4659222b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acb6632104e0581d4722da2077cf59479"><td class="memItemLeft" align="right" valign="top">response::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html#acb6632104e0581d4722da2077cf59479">getNonce</a> () const noexcept</td></tr>
@@ -148,6 +148,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a6d95c8547d2e80024579750385b5ddcd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a05680ec4965d2e2e0a754b8cb259f701"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt;::<a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">taraxa::TransactionManager</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html#a05680ec4965d2e2e0a754b8cb259f701">trx_manager_</a></td></tr>
 <tr class="separator:a05680ec4965d2e2e0a754b8cb259f701"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:afd0799c56bc51a537ec4310077aba670"><td class="memItemLeft" align="right" valign="top">std::function&lt; std::shared_ptr&lt; object::Block &gt;::<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">taraxa::EthBlockNumber</a>)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html#afd0799c56bc51a537ec4310077aba670">get_block_by_num_</a></td></tr>
+<tr class="separator:afd0799c56bc51a537ec4310077aba670"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a548eeebd06374697ae07dce6f35f56e5"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt;::<a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html">taraxa::Transaction</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html#a548eeebd06374697ae07dce6f35f56e5">transaction_</a></td></tr>
 <tr class="separator:a548eeebd06374697ae07dce6f35f56e5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4129ca4f8bc6d3f45dc2e4e3372d122f"><td class="memItemLeft" align="right" valign="top">std::optional&lt;::<a class="el" href="group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt">taraxa::final_chain::TransactionReceipt</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_transaction.html#a4129ca4f8bc6d3f45dc2e4e3372d122f">receipt_</a></td></tr>
@@ -156,8 +158,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a216e3ea16415e8da3c37cbb0161ab3b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="ad2a22b68d3c3b0a0ec5aad9dfed96084"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ad2a22b68d3c3b0a0ec5aad9dfed96084">&#9670;&nbsp;</a></span>Transaction()</h2>
+<a id="a730fc6eb89188afb8178f29a244d8e36"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a730fc6eb89188afb8178f29a244d8e36">&#9670;&nbsp;</a></span>Transaction()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -176,6 +178,12 @@ Private Attributes</h2></td></tr>
           <td></td>
           <td class="paramtype">std::shared_ptr&lt;::<a class="el" href="group___transaction.html#classtaraxa_1_1_transaction_manager">taraxa::TransactionManager</a> &gt;&#160;</td>
           <td class="paramname"><em>trx_manager</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::function&lt; std::shared_ptr&lt; object::Block &gt;(::<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">taraxa::EthBlockNumber</a>)&gt;&#160;</td>
+          <td class="paramname"><em>get_block_by_num</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -640,6 +648,28 @@ Private Attributes</h2></td></tr>
       <table class="memname">
         <tr>
           <td class="memname">std::shared_ptr&lt;::<a class="el" href="group___final_chain.html#classtaraxa_1_1final__chain_1_1_final_chain">taraxa::final_chain::FinalChain</a>&gt; graphql::taraxa::Transaction::final_chain_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="afd0799c56bc51a537ec4310077aba670"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#afd0799c56bc51a537ec4310077aba670">&#9670;&nbsp;</a></span>get_block_by_num_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::function&lt;std::shared_ptr&lt;object::Block&gt;::<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">taraxa::EthBlockNumber</a>)&gt; graphql::taraxa::Transaction::get_block_by_num_</td>
         </tr>
       </table>
   </td>

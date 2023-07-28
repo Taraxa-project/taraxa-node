@@ -1,5 +1,11 @@
 var NAVTREEINDEX20 =
 {
+"namespacetaraxa_1_1state__api.html#a9d7316cafe803848e671557efb79b754":[16,0,1,3,0,0,7,2,11],
+"namespacetaraxa_1_1state__api.html#ab094db016ae63d9e76541fbd2e016fda":[16,0,1,3,0,0,7,1,4],
+"namespacetaraxa_1_1state__api.html#ab2b4c9752dae77c339d0c5d2d51fced5":[16,0,1,3,0,0,7,2,2],
+"namespacetaraxa_1_1state__api.html#ac4aaee6dbf60f4917c72a4d660a6c576":[16,0,1,3,0,0,7,2,0],
+"namespacetaraxa_1_1state__api.html#ac56c39245ee1448b3bbdbf7364183632":[16,0,1,3,0,0,7,4,1],
+"namespacetaraxa_1_1state__api.html#acf8492fa86e6ac73c82ae55d9db33c2e":[16,0,1,3,0,0,7,1,5],
 "namespacetaraxa_1_1state__api.html#ad4691677fe3777ad9cda380c7cd120b3":[16,0,1,3,0,0,7,1,0],
 "namespacetaraxa_1_1state__api.html#ad8eb3f9eb0841e339ef13826d264e183":[16,0,1,3,0,0,7,2,9],
 "namespacetaraxa_1_1state__api.html#ad98233293c73914facb8f4b31084838d":[16,0,1,3,0,0,7,2,8],
@@ -243,11 +249,5 @@ var NAVTREEINDEX20 =
 "structdev_1_1_converter_3_01uint16__t_01_4.html":[15,0,0,27],
 "structdev_1_1_converter_3_01uint16__t_01_4.html#add0ac28d1b3ff3d39343a601ac2ad796":[15,0,0,27,0],
 "structdev_1_1_converter_3_01uint32__t_01_4.html":[15,0,0,28],
-"structdev_1_1_converter_3_01uint32__t_01_4.html#ad3531c95597586b1aa975b38b8709023":[15,0,0,28,0],
-"structdev_1_1_converter_3_01uint64__t_01_4.html":[15,0,0,29],
-"structdev_1_1_converter_3_01uint64__t_01_4.html#ac8728eca05c6cb9863516d8c76bca9b7":[15,0,0,29,0],
-"structdev_1_1_converter_3_01uint8__t_01_4.html":[15,0,0,26],
-"structdev_1_1_converter_3_01uint8__t_01_4.html#ac90c9dc44e87c4b598bde04a57386995":[15,0,0,26,0],
-"structdev_1_1_exception.html":[15,0,0,8],
-"structdev_1_1_exception.html#ae4d8c318a8d5b7217fa7f71f3a67d975":[15,0,0,8,0]
+"structdev_1_1_converter_3_01uint32__t_01_4.html#ad3531c95597586b1aa975b38b8709023":[15,0,0,28,0]
 };

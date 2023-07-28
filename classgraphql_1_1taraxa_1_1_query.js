@@ -16,6 +16,7 @@ var classgraphql_1_1taraxa_1_1_query =
     [ "db_", "classgraphql_1_1taraxa_1_1_query.html#a160ca0fd743bd8a937ee1926e9ab27fd", null ],
     [ "final_chain_", "classgraphql_1_1taraxa_1_1_query.html#aeeb343c42c73c54e9c76f50c8a5f8d2f", null ],
     [ "gas_pricer_", "classgraphql_1_1taraxa_1_1_query.html#a66829d45205106022a778f4e9e753ff0", null ],
+    [ "get_block_by_num_", "classgraphql_1_1taraxa_1_1_query.html#afa5c627f879192a12eaffc51f8d074b1", null ],
     [ "kChainId", "classgraphql_1_1taraxa_1_1_query.html#a7727baae17bbf800c5029c9ab10d3c09", null ],
     [ "kMaxPropagationLimit", "classgraphql_1_1taraxa_1_1_query.html#a7501e6e7be9d61cff952b8742ae4074e", null ],
     [ "network_", "classgraphql_1_1taraxa_1_1_query.html#a18f11be4d6bd92b11d0b1435982d6eb9", null ],
