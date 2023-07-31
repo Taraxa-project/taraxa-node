@@ -117,7 +117,7 @@ Json::Value transformToJsonParallel(const S& source, FN op) {
   if (source.empty()) {
     return Json::Value(Json::arrayValue);
   }
-  static util::ThreadPool executor{std::thread::hardware_concurrency() / 2};
+  static util::ThreadPool executor{std::thread::hardware_concurrency()};
 
   Json::Value out(Json::arrayValue);
   out.resize(source.size());
