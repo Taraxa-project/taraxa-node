@@ -34,7 +34,7 @@ class Stats {
    * @param current_blk block to process
    * @return block statistics needed for rewards distribution
    */
-  BlockStats getBlockStats(const PeriodData& current_blk, std::vector<gas_t> trxs_fees);
+  BlockStats getBlockStats(const PeriodData& current_blk, const std::vector<gas_t>& trxs_fees);
   /**
    * @brief saves stats to database to not lose this data in case of node restart
    */
