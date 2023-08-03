@@ -41,7 +41,7 @@ void Stats::clear() {
   db_->deleteColumnData(DB::Columns::block_rewards_stats);
 }
 
-BlockStats Stats::getBlockStats(const PeriodData& blk, std::vector<gas_t> trxs_fees) {
+BlockStats Stats::getBlockStats(const PeriodData& blk, const std::vector<gas_t>& trxs_fees) {
   uint64_t dpos_vote_count = kCommitteeSize;
 
   // Block zero
@@ -49,7 +49,7 @@ BlockStats Stats::getBlockStats(const PeriodData& blk, std::vector<gas_t> trxs_f
     dpos_vote_count = dpos_eligible_total_vote_count_(blk.previous_block_cert_votes[0]->getPeriod() - 1);
   }
   if (blk.pbft_blk->getPeriod() < kHardforks.magnolia_hf_block_num) {
-    trxs_fees = {};
+    return BlockStats{blk, {}, dpos_vote_count, kCommitteeSize};
   }
 
   return BlockStats{blk, trxs_fees, dpos_vote_count, kCommitteeSize};
