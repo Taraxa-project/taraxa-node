@@ -147,7 +147,7 @@ class TransactionManager : public std::enable_shared_from_this<TransactionManage
    * @param hashes
    * @return Only transactions that are not finalized
    */
-  std::vector<trx_hash_t> excludeFinalizedTransactions(const std::vector<trx_hash_t> &hashes);
+  std::unordered_set<trx_hash_t> excludeFinalizedTransactions(const std::vector<trx_hash_t> &hashes);
 
   /**
    * @brief Get the block transactions

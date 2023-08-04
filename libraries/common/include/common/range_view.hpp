@@ -3,7 +3,7 @@
 #include <functional>
 #include <type_traits>
 
-namespace taraxa::util::range_view {
+namespace taraxa::util {
 
 template <typename Element>
 struct RangeView {
@@ -72,9 +72,4 @@ auto make_range_view(Seq const &seq) {
   return RangeView<decltype(*seq.begin())>(seq);
 }
 
-}  // namespace taraxa::util::range_view
-
-namespace taraxa::util {
-using range_view::make_range_view;
-using range_view::RangeView;
 }  // namespace taraxa::util

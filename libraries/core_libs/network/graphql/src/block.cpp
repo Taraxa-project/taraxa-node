@@ -13,19 +13,23 @@ namespace graphql::taraxa {
 
 Block::Block(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain,
              std::shared_ptr<::taraxa::TransactionManager> trx_manager,
+             std::function<std::shared_ptr<object::Block>(::taraxa::EthBlockNumber)> get_block_by_num,
+             const ::taraxa::blk_hash_t& pbft_block_hash,
              std::shared_ptr<const ::taraxa::final_chain::BlockHeader> block_header) noexcept
     : final_chain_(std::move(final_chain)),
       trx_manager_(std::move(trx_manager)),
+      get_block_by_num_(std::move(get_block_by_num)),
+      kPBftBlockHash(pbft_block_hash),
       block_header_(std::move(block_header)) {}
 
 response::Value Block::getNumber() const noexcept { return response::Value(static_cast<int>(block_header_->number)); }
 
 response::Value Block::getHash() const noexcept { return response::Value(block_header_->hash.toString()); }
 
+response::Value Block::getPbftHash() const noexcept { return response::Value(kPBftBlockHash.toString()); }
+
 std::shared_ptr<object::Block> Block::getParent() const noexcept {
-  return std::make_shared<object::Block>(std::make_shared<Block>(
-      final_chain_, trx_manager_,
-      final_chain_->block_header(final_chain_->block_number(dev::h256(block_header_->parent_hash)))));
+  return get_block_by_num_(block_header_->number - 1);
 }
 
 response::Value Block::getNonce() const noexcept { return response::Value(block_header_->nonce().toString()); }
@@ -99,8 +103,8 @@ std::optional<std::vector<std::shared_ptr<object::Transaction>>> Block::getTrans
   }
   ret.reserve(transactions_.size());
   for (auto& t : transactions_) {
-    ret.emplace_back(
-        std::make_shared<object::Transaction>(std::make_shared<Transaction>(final_chain_, trx_manager_, t)));
+    ret.emplace_back(std::make_shared<object::Transaction>(
+        std::make_shared<Transaction>(final_chain_, trx_manager_, get_block_by_num_, t)));
   }
   return ret;
 }
@@ -114,7 +118,7 @@ std::shared_ptr<object::Transaction> Block::getTransactionAt(response::IntType&&
     return nullptr;
   }
   return std::make_shared<object::Transaction>(
-      std::make_shared<Transaction>(final_chain_, trx_manager_, transactions_[index]));
+      std::make_shared<Transaction>(final_chain_, trx_manager_, get_block_by_num_, transactions_[index]));
 }
 
 std::vector<std::shared_ptr<object::Log>> Block::getLogs(BlockFilterCriteria&&) const noexcept {

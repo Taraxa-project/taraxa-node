@@ -169,7 +169,7 @@ state_api::BalanceMap effective_initial_balances(const state_api::Config& cfg);
 u256 own_effective_genesis_bal(const FullNodeConfig& cfg);
 
 std::shared_ptr<PbftBlock> make_simple_pbft_block(const h256& hash, uint64_t period,
-                                                  const h256& anchor_hash = kNullBlockHash);
+                                                  const secret_t& pk = secret_t::random());
 
 std::vector<blk_hash_t> getOrderedDagBlocks(const std::shared_ptr<DbStorage>& db);
 
@@ -180,6 +180,9 @@ void wait_for_balances(const std::vector<std::shared_ptr<FullNode>>& nodes, cons
 
 std::shared_ptr<Vote> genDummyVote(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
                                    blk_hash_t block_hash, const std::shared_ptr<VoteManager> vote_mgr);
+
+std::shared_ptr<Vote> genDummyVote(PbftVoteTypes type, PbftPeriod period, PbftRound round, PbftStep step,
+                                   blk_hash_t block_hash = blk_hash_t(1));
 
 std::pair<PbftPeriod, PbftRound> clearAllVotes(const std::vector<std::shared_ptr<FullNode>>& nodes);
 

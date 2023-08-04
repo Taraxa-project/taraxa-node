@@ -3,6 +3,7 @@
 #include "QueryObject.h"
 #include "dag/dag_manager.hpp"
 #include "final_chain/final_chain.hpp"
+#include "graphql/block.hpp"
 #include "network/network.hpp"
 #include "pbft/pbft_manager.hpp"
 #include "transaction/gas_pricer.hpp"
@@ -46,6 +47,7 @@ class Query {
   std::shared_ptr<::taraxa::GasPricer> gas_pricer_;
   std::weak_ptr<::taraxa::Network> network_;
   const uint64_t kChainId;
+  std::function<std::shared_ptr<object::Block>(::taraxa::EthBlockNumber)> get_block_by_num_;
 };
 
 }  // namespace graphql::taraxa
