@@ -8,6 +8,10 @@ class JsonRpcWsSession final : public WsSession {
  public:
   using WsSession::WsSession;
   std::string processRequest(const std::string_view& request) override;
+
+ private:
+  std::string handleRequest(const Json::Value& req);
+  std::string handleSubscription(const Json::Value& req);
 };
 
 class JsonRpcWsServer final : public WsServer {
