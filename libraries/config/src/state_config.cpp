@@ -22,14 +22,14 @@ void dec_json(const Json::Value& /*json*/, uint64_t chain_id, EVMChainConfig& ob
 void append_json(Json::Value& json, const Config& obj) {
   json["evm_chain_config"] = enc_json(obj.evm_chain_config);
   json["initial_balances"] = enc_json(obj.initial_balances);
-  // json["hardforks"] = enc_json(obj.hardforks);
+  json["hardforks"] = enc_json(obj.hardforks);
   json["dpos"] = enc_json(obj.dpos);
 }
 
 void dec_json(const Json::Value& json, Config& obj) {
   dec_json(json["evm_chain_config"], json["chain_id"].asUInt(), obj.evm_chain_config);
   dec_json(json["initial_balances"], obj.initial_balances);
-  // dec_json(json["hardforks"], obj.hardforks);
+  dec_json(json["hardforks"], obj.hardforks);
   dec_json(json["dpos"], obj.dpos);
 }
 

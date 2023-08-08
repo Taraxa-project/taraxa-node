@@ -6,7 +6,7 @@
 #include "common/encoding_rlp.hpp"
 #include "common/types.hpp"
 #include "common/vrf_wrapper.hpp"
-// #include "config/hardfork.hpp"
+#include "config/hardfork.hpp"
 
 namespace taraxa::state_api {
 
@@ -61,7 +61,7 @@ struct Config {
   EVMChainConfig evm_chain_config;
   BalanceMap initial_balances;
   DPOSConfig dpos;
-  // Hardforks hardforks;
+  Hardforks hardforks;
 
   HAS_RLP_FIELDS
 };
