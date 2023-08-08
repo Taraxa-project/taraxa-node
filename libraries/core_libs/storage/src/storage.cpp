@@ -580,10 +580,11 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
       for (auto period = start_period; period < end_period; period++) {
         // Find transactions included in the old blocks and delete data related to these transactions to free disk
         // space
-        const auto& transactions = getPeriodTransactions(period);
-        if (transactions.has_value()) {
-          for (const auto& trx : *transactions) {
-            remove(write_batch, Columns::final_chain_receipt_by_trx_hash, trx->getHash());
+        const auto& dag_blocks = getFinalizedDagBlockByPeriod(period);
+
+        for (const auto& dag_block : dag_blocks) {
+          for (const auto& trx_hash : dag_block->getTrxs()) {
+            remove(write_batch, Columns::final_chain_receipt_by_trx_hash, trx_hash);
           }
         }
         if ((period - start_period + 1) % max_batch_delete == 0) {
@@ -591,6 +592,7 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
           write_batch = createWriteBatch();
         }
       }
+
       commitWriteBatch(write_batch);
       db_->DeleteRange(write_options_, handle(Columns::period_data), start_slice, end_slice);
 
