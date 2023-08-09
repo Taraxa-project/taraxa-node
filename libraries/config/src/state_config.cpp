@@ -74,6 +74,17 @@ void dec_json(const Json::Value& json, ValidatorInfo& obj) {
   dec_json(json["delegations"], obj.delegations);
 }
 
+Json::Value enc_json(const Slashing& obj) {
+  Json::Value json(Json::objectValue);
+  json["jail_time"] = dev::toJS(obj.jail_time);
+
+  return json;
+}
+
+void dec_json(const Json::Value& json, Slashing& obj) {
+  obj.jail_time = static_cast<uint32_t>(dev::getUInt(json["jail_time"].asString()));
+}
+
 Json::Value enc_json(const DPOSConfig& obj) {
   Json::Value json(Json::objectValue);
   json["eligibility_balance_threshold"] = dev::toJS(obj.eligibility_balance_threshold);
@@ -93,6 +104,9 @@ Json::Value enc_json(const DPOSConfig& obj) {
   for (const auto& v : obj.initial_validators) {
     json["initial_validators"].append(enc_json(v));
   }
+
+  json["slashing"] = enc_json(obj.slashing);
+
   return json;
 }
 
@@ -116,14 +130,17 @@ void dec_json(const Json::Value& json, DPOSConfig& obj) {
   for (uint32_t i = 0; i < initial_validators_json.size(); ++i) {
     dec_json(initial_validators_json[i], obj.initial_validators[i]);
   }
+
+  dec_json(json["slashing"], obj.slashing);
 }
 
 RLP_FIELDS_DEFINE(EVMChainConfig, chain_id)
 RLP_FIELDS_DEFINE(ValidatorInfo, address, owner, vrf_key, commission, endpoint, description, delegations)
+RLP_FIELDS_DEFINE(Slashing, jail_time)
 RLP_FIELDS_DEFINE(DPOSConfig, eligibility_balance_threshold, vote_eligibility_balance_step, validator_maximum_stake,
                   minimum_deposit, max_block_author_reward, dag_proposers_reward, commission_change_delta,
                   commission_change_frequency, delegation_delay, delegation_locking_period, blocks_per_year,
-                  yield_percentage, initial_validators)
+                  yield_percentage, initial_validators, slashing)
 RLP_FIELDS_DEFINE(Config, evm_chain_config, initial_balances, dpos, hardforks)
 RLP_FIELDS_DEFINE(Opts, expected_max_trx_per_block, max_trie_full_node_levels_to_cache)
 RLP_FIELDS_DEFINE(OptsDB, db_path, disable_most_recent_trie_value_views)
