@@ -37,6 +37,14 @@ struct ValidatorInfo {
 Json::Value enc_json(const ValidatorInfo& obj);
 void dec_json(const Json::Value& json, ValidatorInfo& obj);
 
+struct Slashing {
+  uint32_t jail_time = 0;  // number of blocks
+
+  HAS_RLP_FIELDS
+};
+Json::Value enc_json(const Slashing& obj);
+void dec_json(const Json::Value& json, Slashing& obj);
+
 struct DPOSConfig {
   u256 eligibility_balance_threshold;
   u256 vote_eligibility_balance_step;
@@ -51,6 +59,9 @@ struct DPOSConfig {
   uint32_t blocks_per_year = 0;              // number of blocks - it is calculated from lambda_ms
   uint16_t yield_percentage = 0;             // [%]
   std::vector<ValidatorInfo> initial_validators;
+
+  // Slashing
+  Slashing slashing;
 
   HAS_RLP_FIELDS
 };
