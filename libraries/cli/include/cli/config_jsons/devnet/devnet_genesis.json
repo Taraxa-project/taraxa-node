@@ -262,9 +262,5 @@
       "difficulty_stale": 22,
       "lambda_bound": "0x64"
     }
-  },
-  "hardforks" : {
-		"fix_redelegate_block_num" : 1000,
-		"redelegations": {"0x0000000000000000000000000000000000000001" : "0x0000000000000000000000000000000000000002"}
-	}
+  }
 }
