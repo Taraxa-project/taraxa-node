@@ -38,6 +38,8 @@ struct Hardforks {
   // 2. changing fee rewards distribution.
   //  Rewards will be distributed to dag blocks creator commission pool, but not directly to the balance of pbft block
   //  creator.
+  // 3. Introducing slashing/jailing contract - in case someone double votes - he is jailed for N blocks and unable to
+  //    participate in consensus
   uint64_t magnolia_hf_block_num = -1;
 
   HAS_RLP_FIELDS
