@@ -130,5 +130,10 @@
       "difficulty_stale": 22,
       "lambda_bound": "0x64"
     }
+  },
+  "hardforks": {
+    //TODO[2547]
+    //   "fix_redelegate_block_num": 0,
+    "rewards_distribution_frequency": {}
   }
 }

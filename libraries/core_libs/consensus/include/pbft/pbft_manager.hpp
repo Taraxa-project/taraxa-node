@@ -8,7 +8,6 @@
 #include "final_chain/final_chain.hpp"
 #include "logger/logger.hpp"
 #include "network/network.hpp"
-#include "network/tarcap/taraxa_capability.hpp"
 #include "pbft/period_data_queue.hpp"
 #include "pbft/proposed_blocks.hpp"
 
@@ -21,6 +20,7 @@ namespace taraxa {
 class FullNode;
 
 enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_state, finish_polling_state };
+enum class PbftStateRootValidation { Valid = 0, Missing, Invalid };
 
 /**
  * @brief PbftManager class is a daemon that is used to finalize a bench of directed acyclic graph (DAG) blocks by using
@@ -51,7 +51,7 @@ enum PbftStates { value_proposal_state = 1, filter_state, certify_state, finish_
  * - Finish polling state: Start after first finish state. If node receives enough next voting votes within 2 lambda
  * duration, PBFT will go to next round. Otherwise that will go back to Finish state.
  */
-class PbftManager : public std::enable_shared_from_this<PbftManager> {
+class PbftManager {
  public:
   using time_point = std::chrono::system_clock::time_point;
 
@@ -247,12 +247,6 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
                             const std::shared_ptr<Vote> &propose_vote);
 
   // **** Notice: functions used only in tests ****
-  // TODO: Add a check for some kind of guards to ensure these are only called from within a test
-  /**
-   * @brief Resume PBFT daemon. Only to be used for unit tests
-   */
-  void resume();
-
   /**
    * @brief Get a proposed PBFT block based on specified period and block hash
    * @param period
@@ -455,11 +449,11 @@ class PbftManager : public std::enable_shared_from_this<PbftManager> {
   bool validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block) const;
 
   /**
-   * @brief Validates pbft block state root. It checks if:
+   * @brief Validates pbft block state root.
    * @param pbft_block PBFT block
-   * @return true if pbft block is valid, otherwise false
+   * @return validation result
    */
-  bool validatePbftBlockStateRoot(const std::shared_ptr<PbftBlock> &pbft_block) const;
+  PbftStateRootValidation validatePbftBlockStateRoot(const std::shared_ptr<PbftBlock> &pbft_block) const;
 
   /**
    * @brief If there are enough certify votes, push the vote PBFT block in PBFT chain

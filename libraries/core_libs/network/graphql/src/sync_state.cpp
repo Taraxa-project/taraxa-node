@@ -1,7 +1,7 @@
 
 #include "graphql/sync_state.hpp"
 
-#include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp"
 
 namespace graphql::taraxa {
 
@@ -16,12 +16,17 @@ response::Value SyncState::getCurrentBlock() const noexcept {
 }
 
 response::Value SyncState::getHighestBlock() const noexcept {
-  if (auto net = network_.lock(); net) {
-    const auto peer = net->getSpecificHandler<::taraxa::network::tarcap::PbftSyncPacketHandler>()->getMaxChainPeer();
-    return response::Value(static_cast<int>(peer->pbft_chain_size_));
-  } else {
-    return response::Value(0);
+  auto net = network_.lock();
+  if (!net) {
+    return {};
   }
+
+  const auto peer = net->getMaxChainPeer();
+  if (!peer) {
+    return {};
+  }
+
+  return response::Value(static_cast<int>(peer->pbft_chain_size_));
 }
 
 std::optional<response::Value> SyncState::getPulledStates() const noexcept { return std::nullopt; }
