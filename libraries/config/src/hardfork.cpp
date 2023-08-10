@@ -1,15 +1,40 @@
 #include "config/hardfork.hpp"
 
+Json::Value enc_json(const Redelegation& obj) {
+  Json::Value json(Json::objectValue);
+  json["validator"] = dev::toJS(obj.validator);
+  json["delegator"] = dev::toJS(obj.delegator);
+  json["amount"] = dev::toJS(obj.amount);
+  return json;
+}
+
+void dec_json(const Json::Value& json, Redelegation& obj) {
+  obj.validator = taraxa::addr_t(json["validator"].asString());
+  obj.delegator = taraxa::addr_t(json["delegator"].asString());
+  obj.amount = dev::jsToU256(json["amount"].asString());
+}
+
+RLP_FIELDS_DEFINE(Redelegation, validator, delegator, amount)
+
 Json::Value enc_json(const Hardforks& obj) {
   Json::Value json(Json::objectValue);
-  json["fix_genesis_fork_block"] = dev::toJS(obj.fix_genesis_fork_block);
+  json["fix_redelegate_block_num"] = dev::toJS(obj.fix_redelegate_block_num);
+  json["initial_validators"] = Json::Value(Json::arrayValue);
+  for (const auto& v : obj.redelegations) {
+    json["redelegations"].append(enc_json(v));
+  }
   return json;
 }
 
 void dec_json(const Json::Value& json, Hardforks& obj) {
-  if (auto const& e = json["fix_genesis_fork_block"]) {
-    obj.fix_genesis_fork_block = dev::getUInt(e);
+  obj.fix_redelegate_block_num = dev::getUInt(json["fix_redelegate_block_num"]);
+
+  const auto& redelegations_json = json["redelegations"];
+  obj.redelegations = std::vector<Redelegation>(redelegations_json.size());
+
+  for (uint32_t i = 0; i < redelegations_json.size(); ++i) {
+    dec_json(redelegations_json[i], obj.redelegations[i]);
   }
 }
 
-RLP_FIELDS_DEFINE(Hardforks, fix_genesis_fork_block)
+RLP_FIELDS_DEFINE(Hardforks, fix_redelegate_block_num, redelegations)
