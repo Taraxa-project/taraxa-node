@@ -38,7 +38,7 @@ Json::Value enc_json(const ValidatorInfo& obj);
 void dec_json(const Json::Value& json, ValidatorInfo& obj);
 
 struct Slashing {
-  uint32_t jail_time = 0;  // number of blocks
+  uint64_t jail_time{0};  // number of blocks
 
   HAS_RLP_FIELDS
 };
