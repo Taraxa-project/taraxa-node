@@ -81,9 +81,7 @@ Json::Value enc_json(const Slashing& obj) {
   return json;
 }
 
-void dec_json(const Json::Value& json, Slashing& obj) {
-  obj.jail_time = static_cast<uint32_t>(dev::getUInt(json["jail_time"].asString()));
-}
+void dec_json(const Json::Value& json, Slashing& obj) { obj.jail_time = dev::getUInt(json["jail_time"].asString()); }
 
 Json::Value enc_json(const DPOSConfig& obj) {
   Json::Value json(Json::objectValue);
