@@ -219,7 +219,10 @@
         },
         "vrf_key": "37bf145ac98e7de7db6e5b933e72737fbf190fd4fb1d193b15cf8b00db30ba30"
       }
-    ]
+    ],
+    "slashing": {
+      "jail_time": "0x5"
+    }
   },
   "initial_balances": {
     "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027e72f1f12813088000000",
@@ -227,9 +230,7 @@
     "ee1326fbf7d9322e5ea02c6fe5eb63535fceccd1": "0x52b7d2dcc80cd2e4000000"
   },
   "hardforks": {
-    "rewards_distribution_frequency": {
-    },
-    "magnolia_hf_block_num" : 0
+    "magnolia_hf_block_num" : "0x0"
   },
   "gas_price": {
     "blocks": 200,
