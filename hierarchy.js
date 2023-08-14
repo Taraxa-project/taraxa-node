@@ -294,6 +294,7 @@ var hierarchy =
     [ "taraxa::ProposedBlocks", "classtaraxa_1_1_proposed_blocks.html", null ],
     [ "graphql::taraxa::Query", "classgraphql_1_1taraxa_1_1_query.html", null ],
     [ "taraxa::util::RangeView< Element >", "structtaraxa_1_1util_1_1_range_view.html", null ],
+    [ "Redelegation", "hardfork_8hpp.html#struct_redelegation", null ],
     [ "RewardsStats", "namespace_3global_scope_4.html#class_rewards_stats", null ],
     [ "dev::RLP", "classdev_1_1_r_l_p.html", null ],
     [ "taraxa::util::RLPDecoderRef", "structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html", null ],

@@ -7,7 +7,6 @@ var classtaraxa_1_1cli_1_1_config =
       [ "LastNetworkId", "classtaraxa_1_1cli_1_1_config.html#abae7b6b0870424c869316e2e105eb3b5a64b6ff4ea8584ef14c950f064e63e6f9", null ]
     ] ],
     [ "Config", "classtaraxa_1_1cli_1_1_config.html#a7b463f3b303b6f6d8c97c7ca92943617", null ],
-    [ "addNewHardforks", "classtaraxa_1_1cli_1_1_config.html#ab9b106b6bb9dd1334d6da93e143af4ed", null ],
     [ "dirNameFromFile", "classtaraxa_1_1cli_1_1_config.html#a34933d60f04538b88a80bccff8f95bff", null ],
     [ "getNodeConfiguration", "classtaraxa_1_1cli_1_1_config.html#ab38c7a1400e791c5508ffe228fb96d01", null ],
     [ "nodeConfigured", "classtaraxa_1_1cli_1_1_config.html#ac39b3fa325ebfd964fb752af045f9dd0", null ],

@@ -344,6 +344,7 @@ var annotated_dup =
     [ "Hardforks", "hardfork_8hpp.html#struct_hardforks", "hardfork_8hpp_struct_hardforks" ],
     [ "ModularServer", "class_modular_server.html", "class_modular_server" ],
     [ "ModularServer< I, Is... >", "class_modular_server_3_01_i_00_01_is_8_8_8_01_4.html", "class_modular_server_3_01_i_00_01_is_8_8_8_01_4" ],
+    [ "Redelegation", "hardfork_8hpp.html#struct_redelegation", "hardfork_8hpp_struct_redelegation" ],
     [ "RewardsStats", "namespace_3global_scope_4.html#class_rewards_stats", null ],
     [ "ServerInterface", "class_server_interface.html", "class_server_interface" ],
     [ "ThreadSafeMap", "class_thread_safe_map.html", "class_thread_safe_map" ],

@@ -1,5 +1,14 @@
 var NAVTREEINDEX19 =
 {
+"md_doc_coding_practices.html#autotoc_md65":[6],
+"md_doc_coding_practices.html#autotoc_md66":[7],
+"md_doc_coding_practices.html#autotoc_md67":[8],
+"md_doc_coding_practices.html#autotoc_md68":[3,0,2],
+"md_doc_coding_practices.html#autotoc_md69":[9],
+"md_doc_coding_practices.html#autotoc_md70":[10],
+"md_doc_coding_practices.html#autotoc_md71":[11],
+"md_doc_coding_practices.html#autotoc_md72":[12],
+"md_doc_coding_practices.html#autotoc_md73":[3,0,3],
 "md_doc_coding_practices.html#autotoc_md74":[13],
 "md_doc_coding_practices.html#autotoc_md75":[14],
 "md_doc_coding_practices.html#autotoc_md76":[15],
@@ -134,8 +143,8 @@ var NAVTREEINDEX19 =
 "namespacemembers_enum.html":[14,4],
 "namespacemembers_eval.html":[14,5],
 "namespacemembers_f.html":[14,0,6],
-"namespacemembers_func.html":[14,1,0],
 "namespacemembers_func.html":[14,1],
+"namespacemembers_func.html":[14,1,0],
 "namespacemembers_func_a.html":[14,1,1],
 "namespacemembers_func_b.html":[14,1,2],
 "namespacemembers_func_c.html":[14,1,3],
@@ -240,14 +249,5 @@ var NAVTREEINDEX19 =
 "namespacetaraxa_1_1state__api.html#a13aa11cb2ea1bbd6a159176729bafd90":[16,0,1,3,0,0,7,5,0],
 "namespacetaraxa_1_1state__api.html#a1a9997e4f7fcc0fd915039afd6a5c31d":[16,0,1,3,0,0,7,5,1],
 "namespacetaraxa_1_1state__api.html#a1e41db5c557bcf515334890ecc5bbe79":[16,0,1,3,0,0,7,0,0],
-"namespacetaraxa_1_1state__api.html#a44e4ba25df78de1b6df129dc4c2bdca0":[16,0,1,3,0,0,7,1,3],
-"namespacetaraxa_1_1state__api.html#a475307748393c38ee606fb5de76f7172":[16,0,1,3,0,0,7,1,1],
-"namespacetaraxa_1_1state__api.html#a5568229f7e6ebff75a5c9f59d5bed351":[16,0,1,3,0,0,7,2,3],
-"namespacetaraxa_1_1state__api.html#a66c3ef108fefa0436f3abdf1eeee3384":[16,0,1,3,0,0,7,1,6],
-"namespacetaraxa_1_1state__api.html#a675ca6539814532483aef9cb91caf8a1":[16,0,1,3,0,0,7,2,4],
-"namespacetaraxa_1_1state__api.html#a6aa169090ee01a5aa0dc420811ae5205":[16,0,1,3,0,0,7,4,0],
-"namespacetaraxa_1_1state__api.html#a6b490366005c76a313d9e7fd1d1307ea":[16,0,1,3,0,0,7,1,2],
-"namespacetaraxa_1_1state__api.html#a7335fd9b4fd13740b7db232bb3093501":[16,0,1,3,0,0,7,2,1],
-"namespacetaraxa_1_1state__api.html#a7cba8e74712f847021e5118974cf97ae":[16,0,1,3,0,0,7,2,7],
-"namespacetaraxa_1_1state__api.html#a8c3b02a035312481a460ddce3d2ad06a":[16,0,1,3,0,0,7,2,5]
+"namespacetaraxa_1_1state__api.html#a44e4ba25df78de1b6df129dc4c2bdca0":[16,0,1,3,0,0,7,1,3]
 };
