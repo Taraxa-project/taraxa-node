@@ -18,8 +18,6 @@ class Config {
   // Retrieves loaded node configuration
   FullNodeConfig getNodeConfiguration();
 
-  static void addNewHardforks(Json::Value& config, const Json::Value& default_config);
-
   enum class ChainIdType { Mainnet = 841, Testnet, Devnet, LastNetworkId };
   static constexpr ChainIdType DEFAULT_CHAIN_ID = ChainIdType::Mainnet;
 

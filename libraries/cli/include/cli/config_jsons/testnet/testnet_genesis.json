@@ -94,10 +94,6 @@
     "f4a52b8f6dc8ab046fec6ad02e77023c044342e4": "0x9b18ab5df7180b6b8000000",
     "ee1326fbf7d9322e5ea02c6fe5eb63535fceccd1": "0x52b7d2dcc80cd2e4000000"
   },
-  "hardforks": {
-    "rewards_distribution_frequency": {
-    }
-  },
   "gas_price": {
     "blocks": 200,
     "percentile": 60,
@@ -134,5 +130,10 @@
       "difficulty_stale": 22,
       "lambda_bound": "0x64"
     }
+  },
+  "hardforks": {
+    //TODO[2547]
+    //   "fix_redelegate_block_num": 0,
+    "rewards_distribution_frequency": {}
   }
 }

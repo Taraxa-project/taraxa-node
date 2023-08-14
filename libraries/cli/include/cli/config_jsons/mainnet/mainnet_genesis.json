@@ -243,10 +243,6 @@
       }
     ]
   },
-  "hardforks": {
-    "rewards_distribution_frequency": {
-    }
-  },
   "initial_balances": {
     "723304d1357a2334fcf902aa3d232f5139080a1b": "0xd53323b7ca3737afbb45000",
     "b0800c7af0a6aec0ff8dbe01708bd8e300c6305b": "0x208b1d135e4a8000",
@@ -1595,7 +1591,7 @@
   "gas_price": {
     "blocks": 200,
     "percentile": 60,
-    "minimum_price" : 1
+    "minimum_price": 1
   },
   "pbft": {
     "committee_size": "0x3e8",
@@ -1628,5 +1624,16 @@
       "difficulty_stale": 22,
       "lambda_bound": "0x64"
     }
+  },
+  "hardforks": {
+    "fix_redelegate_block_num": 3091000,
+    "redelegations": [
+      {
+        "validator": "0x6671df8b597c0A14a9361b4B98F97AF1360e4352",
+        "delegator": "0xaf5a5cd6da86838efac0ea91a712857d6aca53ac",
+        "amount": "0x3e8"
+      }
+    ],
+    "rewards_distribution_frequency": {}
   }
 }
