@@ -1626,7 +1626,7 @@
     }
   },
   "hardforks": {
-    "fix_redelegate_block_num": 3067000,
+    "fix_redelegate_block_num": 3091000,
     "redelegations": [
       {
         "validator": "0x6671df8b597c0A14a9361b4B98F97AF1360e4352",
