@@ -374,6 +374,7 @@ std::optional<h256> DbStorage::getGenesisHash() {
 }
 
 DbStorage::~DbStorage() {
+  if (clear_history_thread_) clear_history_thread_->join();
   for (auto cf : handles_) {
     checkStatus(db_->DestroyColumnFamilyHandle(cf));
   }
@@ -564,75 +565,85 @@ std::optional<SortitionParamsChange> DbStorage::getParamsChangeForPeriod(PbftPer
 }
 
 void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level_to_keep, bool initial) {
+  LOG(log_si_) << "Clear light node history";
   auto it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::period_data)));
   // Find the first non-deleted period
   it->SeekToFirst();
   if (it->Valid()) {
     uint64_t start_period;
     memcpy(&start_period, it->key().data(), sizeof(uint64_t));
-    if (start_period < end_period) {
-      auto write_batch = createWriteBatch();
-      // Delete up to max 10000 period at once
-      const uint32_t max_batch_delete = 10000;
-      auto start_slice = toSlice(start_period);
-      auto end_slice = toSlice(end_period);
+    it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::dag_blocks_level)));
+    it->SeekToFirst();
+    if (it->Valid()) {
+      uint64_t start_level;
+      memcpy(&start_level, it->key().data(), sizeof(uint64_t));
+      if (clear_history_thread_) clear_history_thread_->join();
+      clear_history_thread_ =
+          std::make_unique<std::thread>([this, start_period, start_level, initial, dag_level_to_keep, end_period]() {
+            if (start_period < end_period) {
+              auto write_batch = createWriteBatch();
+              // Delete up to max 10000 period at once
+              const uint32_t max_batch_delete = 10000;
+              auto start_slice = toSlice(start_period);
+              auto end_slice = toSlice(end_period);
 
-      for (auto period = start_period; period < end_period; period++) {
-        // Find transactions included in the old blocks and delete data related to these transactions to free disk
-        // space
-        const auto& dag_blocks = getFinalizedDagBlockByPeriod(period);
+              for (auto period = start_period; period < end_period; period++) {
+                // Find transactions included in the old blocks and delete data related to these transactions to free
+                // disk space
+                const auto& dag_blocks = getFinalizedDagBlockByPeriod(period);
 
-        for (const auto& dag_block : dag_blocks) {
-          for (const auto& trx_hash : dag_block->getTrxs()) {
-            remove(write_batch, Columns::final_chain_receipt_by_trx_hash, trx_hash);
-          }
-        }
-        if ((period - start_period + 1) % max_batch_delete == 0) {
-          commitWriteBatch(write_batch);
-          write_batch = createWriteBatch();
-        }
-      }
+                for (const auto& dag_block : dag_blocks) {
+                  for (const auto& trx_hash : dag_block->getTrxs()) {
+                    remove(write_batch, Columns::final_chain_receipt_by_trx_hash, trx_hash);
+                  }
+                }
+                if ((period - start_period + 1) % max_batch_delete == 0) {
+                  commitWriteBatch(write_batch);
+                  write_batch = createWriteBatch();
+                }
+              }
 
-      commitWriteBatch(write_batch);
-      db_->DeleteRange(write_options_, handle(Columns::period_data), start_slice, end_slice);
+              commitWriteBatch(write_batch);
+              db_->DeleteRange(write_options_, handle(Columns::period_data), start_slice, end_slice);
 
+              if (initial) {
+                // Deletion alone does not guarantee that the disk space is freed, CompactRange  actually compacts
+                // the data in the database and free disk space
+                db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
+                db_->CompactRange({}, handle(Columns::final_chain_receipt_by_trx_hash), nullptr, nullptr);
+              }
+            }
+
+            if (start_level < dag_level_to_keep) {
+              auto write_batch = createWriteBatch();
+              // Delete up to max 10000 period at once
+              const uint32_t max_batch_delete = 10000;
+              auto start_slice = toSlice(start_level);
+              auto end_slice = toSlice(dag_level_to_keep - 1);
+              for (auto level = start_level; level < dag_level_to_keep; level++) {
+                // Find old dag blocks and delete data related to these blocks to free disk space
+                auto dag_block_hashes = getBlocksByLevel(start_level);
+                for (auto dag_block_hash : dag_block_hashes) {
+                  remove(write_batch, Columns::dag_block_period, dag_block_hash);
+                }
+                if ((dag_level_to_keep - start_level + 1) % max_batch_delete == 0) {
+                  commitWriteBatch(write_batch);
+                  write_batch = createWriteBatch();
+                }
+              }
+              commitWriteBatch(write_batch);
+              db_->DeleteRange(write_options_, handle(Columns::dag_blocks_level), start_slice, end_slice);
+
+              if (initial) {
+                db_->CompactRange({}, handle(Columns::dag_block_period), nullptr, nullptr);
+                db_->CompactRange({}, handle(Columns::dag_blocks_level), nullptr, nullptr);
+              }
+              LOG(log_si_) << "Clear light node history completed";
+            }
+          });
       if (initial) {
-        // Deletion alone does not guarantee that the disk space is freed, CompactRange  actually compacts
-        // the data in the database and free disk space
-        db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
-        db_->CompactRange({}, handle(Columns::final_chain_receipt_by_trx_hash), nullptr, nullptr);
-      }
-    }
-  }
-
-  it = std::unique_ptr<rocksdb::Iterator>(db_->NewIterator(read_options_, handle(Columns::dag_blocks_level)));
-  it->SeekToFirst();
-  if (it->Valid()) {
-    uint64_t start_level;
-    memcpy(&start_level, it->key().data(), sizeof(uint64_t));
-    if (start_level < dag_level_to_keep) {
-      auto write_batch = createWriteBatch();
-      // Delete up to max 10000 period at once
-      const uint32_t max_batch_delete = 10000;
-      auto start_slice = toSlice(start_level);
-      auto end_slice = toSlice(dag_level_to_keep - 1);
-      for (auto level = start_level; level < dag_level_to_keep; level++) {
-        // Find old dag blocks and delete data related to these blocks to free disk space
-        auto dag_block_hashes = getBlocksByLevel(start_level);
-        for (auto dag_block_hash : dag_block_hashes) {
-          remove(write_batch, Columns::dag_block_period, dag_block_hash);
-        }
-        if ((dag_level_to_keep - start_level + 1) % max_batch_delete == 0) {
-          commitWriteBatch(write_batch);
-          write_batch = createWriteBatch();
-        }
-      }
-      commitWriteBatch(write_batch);
-      db_->DeleteRange(write_options_, handle(Columns::dag_blocks_level), start_slice, end_slice);
-
-      if (initial) {
-        db_->CompactRange({}, handle(Columns::dag_block_period), nullptr, nullptr);
-        db_->CompactRange({}, handle(Columns::dag_blocks_level), nullptr, nullptr);
+        clear_history_thread_->join();
+        clear_history_thread_ = nullptr;
       }
     }
   }

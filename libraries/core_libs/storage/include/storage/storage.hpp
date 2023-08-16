@@ -145,6 +145,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::atomic<bool> snapshots_enabled_ = true;
   const uint32_t kDbSnapshotsMaxCount = 0;
   std::set<PbftPeriod> snapshots_;
+  std::unique_ptr<std::thread> clear_history_thread_;
 
   uint32_t kMajorVersion_;
   bool major_version_changed_ = false;
