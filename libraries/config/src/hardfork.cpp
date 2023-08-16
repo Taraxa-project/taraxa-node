@@ -58,4 +58,4 @@ void dec_json(const Json::Value& json, Hardforks& obj) {
 }
 
 RLP_FIELDS_DEFINE(Hardforks, fix_redelegate_block_num, redelegations, rewards_distribution_frequency,
-                  fee_rewards_block_num, magnolia_hf_block_num)
+                  magnolia_hf_block_num)
