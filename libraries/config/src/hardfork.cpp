@@ -16,7 +16,7 @@ void dec_json(const Json::Value& json, Redelegation& obj) {
 
 RLP_FIELDS_DEFINE(Redelegation, validator, delegator, amount)
 
-Json::Value enc_json(const Hardforks& obj) {
+Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);
   json["fix_redelegate_block_num"] = dev::toJS(obj.fix_redelegate_block_num);
   json["initial_validators"] = Json::Value(Json::arrayValue);
@@ -35,7 +35,7 @@ Json::Value enc_json(const Hardforks& obj) {
   return json;
 }
 
-void dec_json(const Json::Value& json, Hardforks& obj) {
+void dec_json(const Json::Value& json, HardforksConfig& obj) {
   obj.fix_redelegate_block_num = dev::getUInt(json["fix_redelegate_block_num"]);
 
   const auto& redelegations_json = json["redelegations"];
@@ -57,5 +57,4 @@ void dec_json(const Json::Value& json, Hardforks& obj) {
   }
 }
 
-RLP_FIELDS_DEFINE(Hardforks, fix_redelegate_block_num, redelegations, rewards_distribution_frequency,
-                  magnolia_hf_block_num)
+RLP_FIELDS_DEFINE(HardforksConfig, rewards_distribution_frequency, magnolia_hf_block_num)
