@@ -393,9 +393,9 @@ std::pair<bool, std::shared_ptr<Vote>> VoteManager::isUniqueVote(const std::shar
     return {true, nullptr};
   }
 
-  // Next votes are special case, where we allow voting for both kNullBlockHash and some other specific block hash
-  // at the same time
-  if (vote->getType() == PbftVoteTypes::next_vote) {
+  // Next votes (second finishing steps) are special case, where we allow voting for both kNullBlockHash and
+  // some other specific block hash at the same time -> 2 unique votes per round & step & voter
+  if (vote->getType() == PbftVoteTypes::next_vote && vote->getStep() % 2) {
     // New second next vote
     if (found_voter_it->second.second == nullptr) {
       // One of the next votes == kNullBlockHash -> valid scenario
@@ -449,6 +449,8 @@ bool VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote) {
     if (inserted_vote.second) {
       return true;
     }
+
+    const auto existing_vote = inserted_vote.first->second.first;
 
     // There was already some vote inserted, check if it is the same vote as we are trying to insert
     if (inserted_vote.first->second.first->getHash() != vote->getHash()) {
