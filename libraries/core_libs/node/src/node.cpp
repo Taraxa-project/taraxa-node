@@ -128,7 +128,7 @@ void FullNode::init() {
                                           conf_.genesis.pbft.gas_limit, conf_.is_light_node, conf_.light_node_history,
                                           conf_.max_levels_per_period, conf_.dag_expiry_limit);
   auto slashing_manager =
-      std::make_shared<SlashingManager>(final_chain_, trx_mgr_, gas_pricer_, conf_.genesis.chain_id, kp_.secret());
+      std::make_shared<SlashingManager>(final_chain_, trx_mgr_, gas_pricer_, conf_.genesis, kp_.secret());
   vote_mgr_ = std::make_shared<VoteManager>(node_addr, conf_.genesis.pbft, kp_.secret(), conf_.vrf_secret, db_,
                                             pbft_chain_, final_chain_, key_manager_, slashing_manager);
   pbft_mgr_ =
