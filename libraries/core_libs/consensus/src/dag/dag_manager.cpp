@@ -290,7 +290,6 @@ void DagManager::clearLightNodeHistory(bool initial) {
   bool period_over_history_condition = period_ > light_node_history_;
   if (((period_ % clear_interval == 0) || initial) && period_over_history_condition && dag_expiry_level_condition) {
     // This will happen at most once a day so log a silent log
-    LOG(log_si_) << "Clear light node history";
     const auto proposal_period = db_->getProposalPeriodForDagLevel(dag_expiry_level_ - max_levels_per_period_ - 1);
     assert(proposal_period);
 
@@ -307,7 +306,6 @@ void DagManager::clearLightNodeHistory(bool initial) {
       dag_level_to_keep = dag_expiry_level_ - max_levels_per_period_;
     }
     db_->clearPeriodDataHistory(end, dag_level_to_keep, initial);
-    LOG(log_si_) << "Clear light node history completed";
   }
 }
 
