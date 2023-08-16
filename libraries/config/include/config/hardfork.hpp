@@ -15,7 +15,7 @@ struct Redelegation {
 Json::Value enc_json(const Redelegation& obj);
 void dec_json(const Json::Value& json, Redelegation& obj);
 
-struct Hardforks {
+struct HardforksConfig {
   // disable it by default (set to max uint64)
   uint64_t fix_redelegate_block_num = -1;
   std::vector<Redelegation> redelegations;
@@ -45,5 +45,5 @@ struct Hardforks {
   HAS_RLP_FIELDS
 };
 
-Json::Value enc_json(const Hardforks& obj);
-void dec_json(const Json::Value& json, Hardforks& obj);
+Json::Value enc_json(const HardforksConfig& obj);
+void dec_json(const Json::Value& json, HardforksConfig& obj);

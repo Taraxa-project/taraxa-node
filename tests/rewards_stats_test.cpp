@@ -47,7 +47,7 @@ TEST_F(RewardsStatsTest, statsSaving) {
   auto db = std::make_shared<DbStorage>(data_dir / "db");
 
   // distribute every 5 blocks
-  Hardforks::RewardsDistributionMap distribution{{0, 5}};
+  HardforksConfig::RewardsDistributionMap distribution{{0, 5}};
 
   std::vector<std::shared_ptr<Vote>> empty_votes;
   std::vector<addr_t> block_authors;
@@ -81,7 +81,7 @@ TEST_F(RewardsStatsTest, statsCleaning) {
   auto db = std::make_shared<DbStorage>(data_dir / "db");
 
   // distribute every 5 blocks
-  Hardforks::RewardsDistributionMap distribution{{0, 5}};
+  HardforksConfig::RewardsDistributionMap distribution{{0, 5}};
 
   std::vector<std::shared_ptr<Vote>> empty_votes;
   std::vector<addr_t> block_authors;
@@ -144,7 +144,7 @@ TEST_F(RewardsStatsTest, statsProcessing) {
 TEST_F(RewardsStatsTest, distributionChange) {
   auto db = std::make_shared<DbStorage>(data_dir / "db");
 
-  Hardforks::RewardsDistributionMap distribution{{6, 5}, {11, 2}};
+  HardforksConfig::RewardsDistributionMap distribution{{6, 5}, {11, 2}};
 
   auto rewards_stats = TestableRewardsStats(distribution, db);
 
@@ -175,7 +175,7 @@ TEST_F(RewardsStatsTest, feeRewards) {
   auto pbft_proposer = dev::KeyPair::create();
   auto dag_proposer = dev::KeyPair::create();
 
-  Hardforks::RewardsDistributionMap distribution{};
+  HardforksConfig::RewardsDistributionMap distribution{};
 
   auto rewards_stats = TestableRewardsStats(distribution, db);
 

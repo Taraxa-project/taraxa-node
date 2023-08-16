@@ -103,7 +103,7 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::
   if (const auto &v = genesis_json; v.isObject()) {
     dec_json(v, genesis);
   } else {
-    genesis = Genesis();
+    genesis = GenesisConfig();
   }
 
   is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, is_light_node);

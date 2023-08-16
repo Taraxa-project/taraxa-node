@@ -3,7 +3,7 @@
 #include "storage/storage.hpp"
 
 namespace taraxa::rewards {
-Stats::Stats(uint32_t committee_size, const Hardforks& hardforks, std::shared_ptr<DB> db,
+Stats::Stats(uint32_t committee_size, const HardforksConfig& hardforks, std::shared_ptr<DB> db,
              std::function<uint64_t(EthBlockNumber)>&& dpos_eligible_total_vote_count)
     : kCommitteeSize(committee_size),
       kHardforks(hardforks),

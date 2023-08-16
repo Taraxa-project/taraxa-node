@@ -228,8 +228,8 @@ TEST_F(StateAPITest, slashing) {
   // Commit double voting proof
   auto slashing_manager =
       std::make_shared<SlashingManager>(node->getFinalChain(), node->getTransactionManager(), node->getGasPricer(),
-                                        node_cfg.genesis.chain_id, node->getSecretKey());
-  ASSERT_EQ(true, slashing_manager->submitDoubleVotingProof(vote_a, vote_b));
+                                        node_cfg.genesis, node->getSecretKey());
+  ASSERT_EQ(true, slashing_manager->submitDoubleVotingProof(node->getPbftChain()->getPbftChainSize(), vote_a, vote_b));
 
   // After few blocks malicious validator should be jailed
   ASSERT_HAPPENS({5s, 100ms}, [&](auto& ctx) {
