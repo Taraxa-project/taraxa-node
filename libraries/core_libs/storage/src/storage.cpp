@@ -374,7 +374,7 @@ std::optional<h256> DbStorage::getGenesisHash() {
 }
 
 DbStorage::~DbStorage() {
-  if (clear_history_thread_) clear_history_thread_->join();
+  if (clear_history_future_) clear_history_future_->wait();
   for (auto cf : handles_) {
     checkStatus(db_->DestroyColumnFamilyHandle(cf));
   }
@@ -577,9 +577,9 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
     if (it->Valid()) {
       uint64_t start_level;
       memcpy(&start_level, it->key().data(), sizeof(uint64_t));
-      if (clear_history_thread_) clear_history_thread_->join();
-      clear_history_thread_ =
-          std::make_unique<std::thread>([this, start_period, start_level, initial, dag_level_to_keep, end_period]() {
+      if (clear_history_future_) clear_history_future_->wait();
+      clear_history_future_ = std::make_unique<std::future<void>>(
+          std::async(std::launch::async, [this, start_period, start_level, initial, dag_level_to_keep, end_period]() {
             if (start_period < end_period) {
               auto write_batch = createWriteBatch();
               // Delete up to max 10000 period at once
@@ -640,10 +640,10 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
               }
               LOG(log_si_) << "Clear light node history completed";
             }
-          });
+          }));
       if (initial) {
-        clear_history_thread_->join();
-        clear_history_thread_ = nullptr;
+        clear_history_future_->wait();
+        clear_history_future_ = nullptr;
       }
     }
   }
