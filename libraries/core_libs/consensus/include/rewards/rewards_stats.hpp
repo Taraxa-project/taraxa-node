@@ -10,7 +10,7 @@ namespace taraxa::rewards {
  */
 class Stats {
  public:
-  Stats(uint32_t committee_size, const Hardforks& hardforks, std::shared_ptr<DB> db,
+  Stats(uint32_t committee_size, const HardforksConfig& hardforks, std::shared_ptr<DB> db,
         std::function<uint64_t(EthBlockNumber)>&& dpos_eligible_total_vote_count);
 
   /**
@@ -46,7 +46,7 @@ class Stats {
   void clear();
 
   const uint32_t kCommitteeSize;
-  const Hardforks kHardforks;
+  const HardforksConfig kHardforks;
   std::shared_ptr<DB> db_;
   const std::function<uint64_t(EthBlockNumber)> dpos_eligible_total_vote_count_;
   std::vector<BlockStats> blocks_stats_;
