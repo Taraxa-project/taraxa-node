@@ -19,7 +19,7 @@ struct RewardsStatsTest : NodesTest {};
 class TestableRewardsStats : public rewards::Stats {
  public:
   TestableRewardsStats(const Hardforks::RewardsDistributionMap& rdm, std::shared_ptr<DB> db)
-      : rewards::Stats(100, Hardforks{rdm, 0}, db, [](auto) { return 100; }) {}
+      : rewards::Stats(100, Hardforks{0, {}, rdm, 0}, db, [](auto) { return 100; }) {}
   std::vector<rewards::BlockStats> getStats() { return blocks_stats_; }
 };
 
