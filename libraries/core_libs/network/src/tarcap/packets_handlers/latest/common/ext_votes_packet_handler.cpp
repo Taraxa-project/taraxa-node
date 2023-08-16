@@ -11,14 +11,16 @@ ExtVotesPacketHandler::ExtVotesPacketHandler(const FullNodeConfig &conf, std::sh
                                              std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                              std::shared_ptr<PbftManager> pbft_mgr,
                                              std::shared_ptr<PbftChain> pbft_chain,
-                                             std::shared_ptr<VoteManager> vote_mgr, const addr_t &node_addr,
+                                             std::shared_ptr<VoteManager> vote_mgr,
+                                             std::shared_ptr<SlashingManager> slashing_manager, const addr_t &node_addr,
                                              const std::string &log_channel_name)
     : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, log_channel_name),
       last_votes_sync_request_time_(std::chrono::system_clock::now()),
       last_pbft_block_sync_request_time_(std::chrono::system_clock::now()),
       pbft_mgr_(std::move(pbft_mgr)),
       pbft_chain_(std::move(pbft_chain)),
-      vote_mgr_(std::move(vote_mgr)) {}
+      vote_mgr_(std::move(vote_mgr)),
+      slashing_manager_(std::move(slashing_manager)) {}
 
 bool ExtVotesPacketHandler::processVote(const std::shared_ptr<Vote> &vote, const std::shared_ptr<PbftBlock> &pbft_block,
                                         const std::shared_ptr<TaraxaPeer> &peer, bool validate_max_round_step) {
@@ -40,7 +42,8 @@ bool ExtVotesPacketHandler::processVote(const std::shared_ptr<Vote> &vote, const
   // Check is vote is unique per period, round & step & voter -> each address can generate just 1 vote
   // (for a value that isn't NBH) per period, round & step
   if (auto vote_valid = vote_mgr_->isUniqueVote(vote); !vote_valid.first) {
-    LOG(log_er_) << "Vote uniqueness " << vote->getHash() << " validation failed. Err: " << vote_valid.second;
+    // Create double voting proof
+    slashing_manager_->submitDoubleVotingProof(vote, vote_valid.second);
     throw MaliciousPeerException("Received double vote", vote->getVoter());
   }
 
