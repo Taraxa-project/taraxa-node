@@ -137,6 +137,7 @@ var classtaraxa_1_1_db_storage =
     [ "transactionsInDb", "classtaraxa_1_1_db_storage.html#a5370e33d423e4cf63443a862a04c8867", null ],
     [ "updateDagBlockCounters", "classtaraxa_1_1_db_storage.html#a7ab3d35941a4d9bc7ad20554bf404a43", null ],
     [ "updateDbVersions", "classtaraxa_1_1_db_storage.html#ad462163041fc976cacd980b387071e06", null ],
+    [ "clear_history_future_", "classtaraxa_1_1_db_storage.html#a2fc039f59a3a1ad782ca19a1f3aae0e6", null ],
     [ "dag_blocks_count_", "classtaraxa_1_1_db_storage.html#a08e047fd250cb0d786c208eddb78fdd6", null ],
     [ "dag_blocks_mutex_", "classtaraxa_1_1_db_storage.html#a15486ac2fabf4c44484ca52c44bf667e", null ],
     [ "dag_edge_count_", "classtaraxa_1_1_db_storage.html#ac3ae348d98de4c56703b03a442d7b9f9", null ],

@@ -1,5 +1,6 @@
 var NAVTREEINDEX18 =
 {
+"logger_8hpp.html#a41399a11426ea3272948aca283625fb5":[16,0,1,5,0,0,0,3],
 "logger_8hpp.html#a65ec35addf583c82df610354d05d8769":[16,0,1,5,0,0,0,7],
 "logger_8hpp.html#a9acd43b09e6273f2daa1e209d23db989":[16,0,1,5,0,0,0,5],
 "logger_8hpp.html#aa10a0f22210c83fe10627ce57b472fd9":[16,0,1,5,0,0,0,6],
@@ -248,6 +249,5 @@ var NAVTREEINDEX18 =
 "md_doc_coding_practices.html#autotoc_md60":[2],
 "md_doc_coding_practices.html#autotoc_md61":[3,0,1],
 "md_doc_coding_practices.html#autotoc_md62":[3],
-"md_doc_coding_practices.html#autotoc_md63":[4],
-"md_doc_coding_practices.html#autotoc_md64":[5]
+"md_doc_coding_practices.html#autotoc_md63":[4]
 };
