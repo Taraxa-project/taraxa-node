@@ -210,7 +210,7 @@ TEST_F(StateAPITest, DISABLED_eth_mainnet_smoke) {
 
 TEST_F(StateAPITest, slashing) {
   auto node_cfgs = make_node_cfgs(1, 1, 20);
-  for (auto &cfg : node_cfgs) {
+  for (auto& cfg : node_cfgs) {
     cfg.genesis.state.dpos.slashing.jail_time = 100;
     cfg.genesis.state.hardforks.magnolia_hf_block_num = 0;
   }
@@ -218,20 +218,24 @@ TEST_F(StateAPITest, slashing) {
   auto nodes = launch_nodes(node_cfgs);
   auto node = nodes.begin()->get();
   auto node_cfg = node_cfgs[0];
-  ASSERT_EQ(true, node->getFinalChain()->dpos_is_eligible(node->getFinalChain()->last_block_number(), node->getAddress()));
+  ASSERT_EQ(true,
+            node->getFinalChain()->dpos_is_eligible(node->getFinalChain()->last_block_number(), node->getAddress()));
 
   // Generate 2 cert votes for 2 different blocks
-  auto vote_a = node->getVoteManager()->generateVote( blk_hash_t{1}, PbftVoteTypes::cert_vote, 1, 1, 3);
-  auto vote_b = node->getVoteManager()->generateVote( blk_hash_t{2}, PbftVoteTypes::cert_vote, 1, 1, 3);
+  auto vote_a = node->getVoteManager()->generateVote(blk_hash_t{1}, PbftVoteTypes::cert_vote, 1, 1, 3);
+  auto vote_b = node->getVoteManager()->generateVote(blk_hash_t{2}, PbftVoteTypes::cert_vote, 1, 1, 3);
 
   // Commit double voting proof
   auto slashing_manager =
-      std::make_shared<SlashingManager>(node->getFinalChain(), node->getTransactionManager(), node->getGasPricer(), node_cfg.genesis.chain_id, node->getSecretKey());
+      std::make_shared<SlashingManager>(node->getFinalChain(), node->getTransactionManager(), node->getGasPricer(),
+                                        node_cfg.genesis.chain_id, node->getSecretKey());
   ASSERT_EQ(true, slashing_manager->submitDoubleVotingProof(vote_a, vote_b));
 
   // After few blocks malicious validator should be jailed
-  ASSERT_HAPPENS({5s, 100ms}, [&](auto &ctx) {
-    WAIT_EXPECT_EQ(ctx, false, node->getFinalChain()->dpos_is_eligible(node->getFinalChain()->last_block_number(), node->getAddress()))
+  ASSERT_HAPPENS({5s, 100ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(
+        ctx, false,
+        node->getFinalChain()->dpos_is_eligible(node->getFinalChain()->last_block_number(), node->getAddress()))
   });
 }
 

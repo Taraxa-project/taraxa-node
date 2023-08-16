@@ -365,31 +365,32 @@ bool VoteManager::voteInVerifiedMap(const std::shared_ptr<Vote>& vote) const {
   return found_voted_value_it->second.second.find(vote->getHash()) != found_voted_value_it->second.second.end();
 }
 
-std::pair<bool, std::string> VoteManager::isUniqueVote(const std::shared_ptr<Vote>& vote) const {
+std::pair<bool, std::shared_ptr<Vote>> VoteManager::isUniqueVote(const std::shared_ptr<Vote>& vote) const {
   std::shared_lock lock(verified_votes_access_);
 
   const auto found_period_it = verified_votes_.find(vote->getPeriod());
   if (found_period_it == verified_votes_.end()) {
-    return {true, ""};
+    return {true, nullptr};
   }
 
   const auto found_round_it = found_period_it->second.find(vote->getRound());
   if (found_round_it == found_period_it->second.end()) {
-    return {true, ""};
+    return {true, nullptr};
   }
 
   const auto found_step_it = found_round_it->second.step_votes.find(vote->getStep());
   if (found_step_it == found_round_it->second.step_votes.end()) {
-    return {true, ""};
+    return {true, nullptr};
   }
 
   const auto found_voter_it = found_step_it->second.unique_voters.find(vote->getVoterAddr());
   if (found_voter_it == found_step_it->second.unique_voters.end()) {
-    return {true, ""};
+    return {true, nullptr};
   }
 
-  if (found_voter_it->second.first->getHash() == vote->getHash()) {
-    return {true, ""};
+  const auto found_vote = found_voter_it->second.first;
+  if (found_vote->getHash() == vote->getHash()) {
+    return {true, nullptr};
   }
 
   // Next votes are special case, where we allow voting for both kNullBlockHash and some other specific block hash
@@ -399,13 +400,13 @@ std::pair<bool, std::string> VoteManager::isUniqueVote(const std::shared_ptr<Vot
     if (found_voter_it->second.second == nullptr) {
       // One of the next votes == kNullBlockHash -> valid scenario
       if (found_voter_it->second.first->getBlockHash() == kNullBlockHash && vote->getBlockHash() != kNullBlockHash) {
-        return {true, ""};
+        return {true, nullptr};
       } else if (found_voter_it->second.first->getBlockHash() != kNullBlockHash &&
                  vote->getBlockHash() == kNullBlockHash) {
-        return {true, ""};
+        return {true, nullptr};
       }
     } else if (found_voter_it->second.second->getHash() == vote->getHash()) {
-      return {true, ""};
+      return {true, nullptr};
     }
   }
 
@@ -420,7 +421,9 @@ std::pair<bool, std::string> VoteManager::isUniqueVote(const std::shared_ptr<Vot
         << found_voter_it->second.second->getBlockHash().abridged() << ")";
   }
   err << ", round: " << vote->getRound() << ", step: " << vote->getStep() << ", voter: " << vote->getVoterAddr();
-  return {false, err.str()};
+  LOG(log_er_) << err.str();
+
+  return {false, found_vote};
 }
 
 bool VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote) {

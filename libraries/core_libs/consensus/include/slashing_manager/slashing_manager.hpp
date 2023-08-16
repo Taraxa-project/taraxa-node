@@ -14,12 +14,16 @@ class SlashingManager {
   SlashingManager &operator=(const SlashingManager &) = delete;
   SlashingManager &operator=(SlashingManager &&) = delete;
 
-  bool submitDoubleVotingProof(const std::shared_ptr<Vote> &vote_a, const std::shared_ptr<Vote> &vote_b) const;
+  bool submitDoubleVotingProof(const std::shared_ptr<Vote> &vote_a, const std::shared_ptr<Vote> &vote_b);
 
  private:
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<TransactionManager> trx_manager_;
   std::shared_ptr<GasPricer> gas_pricer_;
+
+  // Already processed double voting proofs
+  ExpirationCache<dev::h256> double_voting_proofs_;
+
   const uint64_t kChainId;
   const addr_t kAddress;
   const secret_t kPrivateKey;
