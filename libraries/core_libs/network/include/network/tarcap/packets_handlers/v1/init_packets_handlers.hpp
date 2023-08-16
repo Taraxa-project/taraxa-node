@@ -24,17 +24,17 @@ static const TaraxaCapability::InitPacketsHandlers kInitV1Handlers =
        const std::shared_ptr<tarcap::TimePeriodPacketsStats> &packets_stats, const std::shared_ptr<DbStorage> &db,
        const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
        const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<DagManager> &dag_mgr,
-       const std::shared_ptr<TransactionManager> &trx_mgr,
-       const std::shared_ptr<SlashingManager> & /*slashing_manager*/, const addr_t &node_addr) {
+       const std::shared_ptr<TransactionManager> &trx_mgr, const std::shared_ptr<SlashingManager> &slashing_manager,
+       const addr_t &node_addr) {
       auto packets_handlers = std::make_shared<PacketsHandler>();
 
       // Consensus packets with high processing priority
-      packets_handlers->registerHandler<tarcap::VotePacketHandler>(config, peers_state, packets_stats, pbft_mgr,
-                                                                   pbft_chain, vote_mgr, node_addr, logs_prefix);
+      packets_handlers->registerHandler<tarcap::VotePacketHandler>(
+          config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, slashing_manager, node_addr, logs_prefix);
       packets_handlers->registerHandler<tarcap::v1::GetNextVotesBundlePacketHandler>(
-          config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, node_addr, logs_prefix);
+          config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, slashing_manager, node_addr, logs_prefix);
       packets_handlers->registerHandler<tarcap::v1::VotesBundlePacketHandler>(
-          config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, node_addr, logs_prefix);
+          config, peers_state, packets_stats, pbft_mgr, pbft_chain, vote_mgr, slashing_manager, node_addr, logs_prefix);
 
       // Standard packets with mid processing priority
       packets_handlers->registerHandler<tarcap::DagBlockPacketHandler>(config, peers_state, packets_stats,

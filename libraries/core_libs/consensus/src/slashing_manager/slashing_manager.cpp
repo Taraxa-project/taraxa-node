@@ -14,22 +14,35 @@ SlashingManager::SlashingManager(std::shared_ptr<FinalChain> final_chain,
     : final_chain_(std::move(final_chain)),
       trx_manager_(std::move(trx_manager)),
       gas_pricer_(std::move(gas_pricer)),
+      double_voting_proofs_(10000, 1000),
       kChainId(chain_id),
       kAddress(toAddress(node_sk)),
       kPrivateKey(std::move(node_sk)) {}
 
 bool SlashingManager::submitDoubleVotingProof(const std::shared_ptr<Vote> &vote_a,
-                                           const std::shared_ptr<Vote> &vote_b) const {
-  // First we need to check the balance
+                                              const std::shared_ptr<Vote> &vote_b) {
+  // Create votes combination hash
+  dev::RLPStream hash_rlp(2);
+  if (vote_a->getHash() < vote_b->getHash()) {
+    hash_rlp << vote_a->getHash();
+    hash_rlp << vote_b->getHash();
+  } else {
+    hash_rlp << vote_b->getHash();
+    hash_rlp << vote_a->getHash();
+  }
+  const auto hash_bytes = hash_rlp.invalidate();
+  const auto hash = dev::sha3(hash_bytes);
+
+  // Check if this proof wasn't already processed
+  if (double_voting_proofs_.contains(hash)) {
+    return false;
+  }
+
+  // Check the balance
   const auto account = final_chain_->get_account(kAddress).value_or(taraxa::state_api::ZeroAccount);
   if (account.balance == 0) {
     return false;
   }
-
-  // function commitDoubleVotingProof(
-  //     bytes memory vote1,
-  //     bytes memory vote2
-  // ) external;
 
   auto input = final_chain::ContractInterface::packFunctionCall("commitDoubleVotingProof(bytes,bytes)", vote_a->rlp(),
                                                                 vote_b->rlp());
@@ -38,6 +51,12 @@ bool SlashingManager::submitDoubleVotingProof(const std::shared_ptr<Vote> &vote_
   // CommitDoubleVotingProofGas uint64 = 20000
   const auto trx = std::make_shared<Transaction>(account.nonce, 0, gas_pricer_->bid(), 1000000, std::move(input),
                                                  kPrivateKey, kContractAddress, kChainId);
-  return trx_manager_->insertTransaction(trx).first;
+
+  if (trx_manager_->insertTransaction(trx).first) {
+    double_voting_proofs_.insert(hash);
+    return true;
+  }
+
+  return false;
 }
 }  // namespace taraxa

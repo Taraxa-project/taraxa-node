@@ -57,9 +57,9 @@ class VoteManager {
 
   /**
    * @param vote
-   * @return <true, ""> if vote is unique per round & step & voter, otherwise <false, "err msg">
+   * @return <true, nullptr> if vote is unique per round & step & voter, otherwise <false, existing vote>
    */
-  std::pair<bool, std::string> isUniqueVote(const std::shared_ptr<Vote>& vote) const;
+  std::pair<bool, std::shared_ptr<Vote>> isUniqueVote(const std::shared_ptr<Vote>& vote) const;
 
   /**
    * @brief Get all verified votes
