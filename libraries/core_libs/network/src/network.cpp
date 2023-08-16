@@ -216,7 +216,19 @@ void Network::registerPeriodicEvents(const std::shared_ptr<PbftManager> &pbft_mg
   // SUMMARY log
   const auto node_stats_log_interval = 5 * 6 * lambda_ms;
   auto summaryLog = [getAllPeers, node_stats = node_stats_, host = host_]() {
-    node_stats->logNodeStats(getAllPeers(), host->getNodeCount());
+    std::vector<std::string> nodes_addresses;
+    auto nodes = host->getNodes();
+    nodes_addresses.reserve(nodes.size());
+    for (auto node : nodes) {
+      auto endpoint = node.endpoint();
+      if (endpoint.tcpPort() == endpoint.udpPort())
+        nodes_addresses.push_back(node.id().abridged() + ":" + endpoint.address().to_string() + ":" +
+                                  std::to_string(endpoint.tcpPort()));
+      else
+        nodes_addresses.push_back(node.id().abridged() + ":" + endpoint.address().to_string() + ":" +
+                                  std::to_string(endpoint.tcpPort()) + ":" + std::to_string(endpoint.udpPort()));
+    }
+    node_stats->logNodeStats(getAllPeers(), nodes_addresses);
   };
   periodic_events_tp_.post_loop({node_stats_log_interval}, summaryLog);
 }

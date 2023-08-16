@@ -31,7 +31,8 @@ class NodeStats {
             std::shared_ptr<TimePeriodPacketsStats> packets_stats,
             std::shared_ptr<const threadpool::PacketsThreadPool> thread_pool, const addr_t& node_addr);
 
-  void logNodeStats(const std::vector<std::shared_ptr<network::tarcap::TaraxaPeer>>& all_peers, size_t nodes_count);
+  void logNodeStats(const std::vector<std::shared_ptr<network::tarcap::TaraxaPeer>>& all_peers,
+                    const std::vector<std::string>& nodes);
   uint64_t syncTimeSeconds() const;
   Json::Value getStatus(
       std::map<network::tarcap::TarcapVersion, std::shared_ptr<network::tarcap::TaraxaPeer>> peers) const;

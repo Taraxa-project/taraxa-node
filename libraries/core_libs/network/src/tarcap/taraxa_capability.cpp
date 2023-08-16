@@ -73,7 +73,7 @@ void TaraxaCapability::onConnect(std::weak_ptr<dev::p2p::Session> session, u256 
     return;
   }
 
-  peers_state_->addPendingPeer(node_id);
+  peers_state_->addPendingPeer(node_id, session_p->info().host + ":" + std::to_string(session_p->info().port));
   LOG(log_nf_) << "Node " << node_id << " connected";
 
   auto status_packet_handler = packets_handlers_->getSpecificHandler<StatusPacketHandler>();

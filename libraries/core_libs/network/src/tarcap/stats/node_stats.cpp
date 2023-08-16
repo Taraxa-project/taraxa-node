@@ -33,7 +33,7 @@ NodeStats::NodeStats(std::shared_ptr<PbftSyncingState> pbft_syncing_state, std::
 uint64_t NodeStats::syncTimeSeconds() const { return syncing_duration_seconds; }
 
 void NodeStats::logNodeStats(const std::vector<std::shared_ptr<network::tarcap::TaraxaPeer>> &all_peers,
-                             size_t nodes_count) {
+                             const std::vector<std::string> &nodes) {
   bool is_pbft_syncing = pbft_syncing_state_->isPbftSyncing();
 
   dev::p2p::NodeID max_pbft_round_node_id;
@@ -45,8 +45,9 @@ void NodeStats::logNodeStats(const std::vector<std::shared_ptr<network::tarcap::
 
   const size_t peers_size = all_peers.size();
   std::string connected_peers_str{""};
+  std::string connected_peers_str_with_ip{""};
 
-  size_t number_of_discov_peers = nodes_count;
+  size_t number_of_discov_peers = nodes.size();
   for (auto const &peer : all_peers) {
     // Find max pbft chain size
     if (peer->pbft_chain_size_ > peer_max_pbft_chain_size) {
@@ -67,6 +68,7 @@ void NodeStats::logNodeStats(const std::vector<std::shared_ptr<network::tarcap::
     }
 
     connected_peers_str += peer->getId().abridged() + " ";
+    connected_peers_str_with_ip += peer->getId().abridged() + ":" + peer->address_ + " ";
   }
 
   // Local dag info...
@@ -132,7 +134,9 @@ void NodeStats::logNodeStats(const std::vector<std::shared_ptr<network::tarcap::
   LOG(log_nf_) << "Build version: " << TARAXA_COMMIT_HASH;
   LOG(log_nf_) << "Node address: " << kNodeAddress;
   LOG(log_nf_) << "Connected to " << peers_size << " peers: [ " << connected_peers_str << "]";
+  LOG(log_dg_) << "Connected peers: [ " << connected_peers_str_with_ip << "]";
   LOG(log_nf_) << "Number of discovered peers: " << number_of_discov_peers;
+  LOG(log_dg_) << "Discovered peers: " << nodes;
 
   if (is_pbft_syncing) {
     // Syncing...

@@ -13,7 +13,7 @@ namespace taraxa::network::tarcap {
 class TaraxaPeer : public boost::noncopyable {
  public:
   TaraxaPeer();
-  TaraxaPeer(const dev::p2p::NodeID& id, size_t transaction_pool_size);
+  TaraxaPeer(const dev::p2p::NodeID& id, size_t transaction_pool_size, std::string address);
 
   /**
    * @brief Mark dag block as known
@@ -109,6 +109,7 @@ class TaraxaPeer : public boost::noncopyable {
   std::atomic_uint64_t peer_requested_dag_syncing_time_ = 0;
   std::atomic_bool peer_light_node = false;
   std::atomic<PbftPeriod> peer_light_node_history = 0;
+  std::string address_;
 
   // Mutex used to prevent race condition between dag syncing and gossiping
   mutable boost::shared_mutex mutex_for_sending_dag_blocks_;
