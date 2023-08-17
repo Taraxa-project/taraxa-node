@@ -37,8 +37,8 @@ Json::Value toJson(const Transaction& trx, const optional<TransactionLocationWit
   res["nonce"] = toJS(trx.getNonce());
   res["value"] = toJS(trx.getValue());
   const auto& vrs = trx.getVRS();
-  res["r"] = toJS(vrs.r);
-  res["s"] = toJS(vrs.s);
+  res["r"] = toJS(u256(vrs.r));
+  res["s"] = toJS(u256(vrs.s));
   res["v"] = toJS(vrs.v);
   return res;
 }
