@@ -243,7 +243,7 @@
       }
     ],
     "slashing": {
-      "jail_time": "0x5"
+      "jail_time": 163459
     }
   },
   "initial_balances": {
@@ -1591,9 +1591,6 @@
     "c7cbe7d179857ea0ee5721f6b8b1b0dab193daf9": "0x381ce3ea85dc8f21bf0000",
     "6ba16abe80af8be7c9b6c852c6bd3e381a493c92": "0x4958bc77396e445c569000"
   },
-  "hardforks": {
-    "magnolia_hf_block_num" : "0x0"
-  },
   "gas_price": {
     "blocks": 200,
     "percentile": 60,
@@ -1640,6 +1637,7 @@
         "amount": "0x3e8"
       }
     ],
-    "rewards_distribution_frequency": {}
+    "rewards_distribution_frequency": {},
+    "magnolia_hf_block_num" : 0
   }
 }
