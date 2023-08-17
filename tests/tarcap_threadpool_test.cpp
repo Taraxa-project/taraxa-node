@@ -231,7 +231,7 @@ HandlersInitData createHandlersInitData() {
   ret_init_data.packets_processing_info = std::make_shared<PacketsProcessingInfo>();
 
   // Enable packets from sending peer to be processed
-  auto peer = ret_init_data.peers_state->addPendingPeer(ret_init_data.sender_node_id);
+  auto peer = ret_init_data.peers_state->addPendingPeer(ret_init_data.sender_node_id, "");
   ret_init_data.peers_state->setPeerAsReadyToSendMessages(ret_init_data.sender_node_id, peer);
 
   return ret_init_data;
@@ -316,7 +316,7 @@ TEST_F(TarcapTpTest, block_free_packets) {
   // Creates sender 2 to bypass peer order block on Transaction -> DagBlock packet. In case those packets sent
   // 2 different senders those packets are "block-free"
   dev::p2p::NodeID sender2(3);
-  auto peer = init_data.peers_state->addPendingPeer(sender2);
+  auto peer = init_data.peers_state->addPendingPeer(sender2, "");
   init_data.peers_state->setPeerAsReadyToSendMessages(sender2, peer);
 
   auto packets_handler = std::make_shared<tarcap::PacketsHandler>();
