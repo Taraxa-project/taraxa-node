@@ -158,8 +158,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:acfa1218ef9093b6e09d3610a77d86e72"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aede7f9df5a4c2ac716b040f769d0fb6b"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#aede7f9df5a4c2ac716b040f769d0fb6b">getPeersCount</a> () const</td></tr>
 <tr class="separator:aede7f9df5a4c2ac716b040f769d0fb6b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:adea10383cd7e203ced427a0c7c5a75df"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#adea10383cd7e203ced427a0c7c5a75df">addPendingPeer</a> (const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;node_id)</td></tr>
-<tr class="separator:adea10383cd7e203ced427a0c7c5a75df"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a8e830ea3a4b10053c05a56bd50f99817"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a8e830ea3a4b10053c05a56bd50f99817">addPendingPeer</a> (const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;node_id, const std::string &amp;address)</td></tr>
+<tr class="separator:a8e830ea3a4b10053c05a56bd50f99817"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a0133cde253f39258728a57ccd59d7524"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a0133cde253f39258728a57ccd59d7524">erasePeer</a> (const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;node_id)</td></tr>
 <tr class="separator:a0133cde253f39258728a57ccd59d7524"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad2d210f8cd976c98b1149f1506f0d6aa"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ad2d210f8cd976c98b1149f1506f0d6aa">setPeerAsReadyToSendMessages</a> (<a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> const &amp;node_id, std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt; peer)</td></tr>
@@ -236,8 +236,8 @@ Private Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="adea10383cd7e203ced427a0c7c5a75df"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#adea10383cd7e203ced427a0c7c5a75df">&#9670;&nbsp;</a></span>addPendingPeer()</h2>
+<a id="a8e830ea3a4b10053c05a56bd50f99817"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a8e830ea3a4b10053c05a56bd50f99817">&#9670;&nbsp;</a></span>addPendingPeer()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -246,8 +246,18 @@ Private Attributes</h2></td></tr>
           <td class="memname">std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html">TaraxaPeer</a> &gt; taraxa::network::tarcap::PeersState::addPendingPeer </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;&#160;</td>
-          <td class="paramname"><em>node_id</em></td><td>)</td>
+          <td class="paramname"><em>node_id</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const std::string &amp;&#160;</td>
+          <td class="paramname"><em>address</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">

@@ -1,5 +1,6 @@
 var NAVTREEINDEX23 =
 {
+"structtaraxa_1_1_full_node_config.html#a936cfee38f236d99e4505fbff2f40155":[15,0,3,15,26],
 "structtaraxa_1_1_full_node_config.html#a944aff6d1ac6d851475babe34c2cbcea":[15,0,3,15,22],
 "structtaraxa_1_1_full_node_config.html#aa39ce68f57655792c78dcdac574bca99":[15,0,3,15,10],
 "structtaraxa_1_1_full_node_config.html#aa8d2b1c0b4c80ef1e1f427204258862e":[15,0,3,15,6],
@@ -248,6 +249,5 @@ var NAVTREEINDEX23 =
 "taraxa__capability_8hpp.html":[16,0,1,4,1,1,0,0,5],
 "taraxa__capability_8hpp_source.html":[16,0,1,4,1,1,0,0,5],
 "taraxa__peer_8cpp.html":[16,0,1,4,1,3,0,5],
-"taraxa__peer_8hpp.html":[16,0,1,4,1,1,0,0,6],
-"taraxa__peer_8hpp_source.html":[16,0,1,4,1,1,0,0,6]
+"taraxa__peer_8hpp.html":[16,0,1,4,1,1,0,0,6]
 };

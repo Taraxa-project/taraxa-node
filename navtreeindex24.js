@@ -1,5 +1,6 @@
 var NAVTREEINDEX24 =
 {
+"taraxa__peer_8hpp_source.html":[16,0,1,4,1,1,0,0,6],
 "taraxad_2main_8cpp.html":[16,0,2,1,0],
 "taraxad_2main_8cpp.html#ac0f2228420376f4db7e1274f2b41667c":[16,0,2,1,0,0],
 "tarcap__thread__pool_8cpp.html":[16,0,1,4,1,3,1,4],
@@ -248,6 +249,5 @@ var NAVTREEINDEX24 =
 "vrf__wrapper_8cpp.html#af775ba6ae2f51626fabaf1a68a8791d7":[16,0,1,2,1,4,3],
 "vrf__wrapper_8hpp.html":[16,0,1,2,0,0,14],
 "vrf__wrapper_8hpp.html#a01a98b4e6e59f230848a2a16c224b455":[16,0,1,2,0,0,14,2],
-"vrf__wrapper_8hpp.html#a26c19d0b1e6a30c6bca71af853399ee0":[16,0,1,2,0,0,14,5],
-"vrf__wrapper_8hpp.html#a679f1f0a3854e89e0a56df7bd60368bd":[16,0,1,2,0,0,14,6]
+"vrf__wrapper_8hpp.html#a26c19d0b1e6a30c6bca71af853399ee0":[16,0,1,2,0,0,14,5]
 };

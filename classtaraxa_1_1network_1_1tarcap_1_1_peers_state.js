@@ -2,7 +2,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_peers_state =
 [
     [ "PeersMap", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ad316f57c3fa0f1271d24a5a266d885f5", null ],
     [ "PeersState", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#af7c1e14696c88292e4439079174d5cb8", null ],
-    [ "addPendingPeer", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#adea10383cd7e203ced427a0c7c5a75df", null ],
+    [ "addPendingPeer", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a8e830ea3a4b10053c05a56bd50f99817", null ],
     [ "erasePeer", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#a0133cde253f39258728a57ccd59d7524", null ],
     [ "getAllPeers", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#ac84650c157075e190e76aa6ddcea979f", null ],
     [ "getAllPendingPeersIDs", "classtaraxa_1_1network_1_1tarcap_1_1_peers_state.html#acfa1218ef9093b6e09d3610a77d86e72", null ],

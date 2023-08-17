@@ -1,7 +1,7 @@
 var classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer =
 [
     [ "TaraxaPeer", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ae9b3def56efaad65ee07dc1090522860", null ],
-    [ "TaraxaPeer", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a367c830e803fd80a33ae63551fc37e3f", null ],
+    [ "TaraxaPeer", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#aefb9ae24a47226852e0b3d8d9b422961", null ],
     [ "addSentPacket", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#aa4e1e9682330387196553d5ecc8f17fb", null ],
     [ "dagSyncingAllowed", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a2ca9c17057d092453dd4e0337a27bafe", null ],
     [ "getAllPacketsStatsCopy", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#aad1b292988be596017f166bec2a51ac6", null ],
@@ -17,6 +17,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer =
     [ "reportSuspiciousPacket", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ab011392ed8dd7d78307fc747e9917b76", null ],
     [ "requestDagSyncingAllowed", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a056101dcc9778dd470abcb835e0f8044", null ],
     [ "resetPacketsStats", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a12ad09bcae81855dfe143c889554a95a", null ],
+    [ "address_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a158780b09d00bd6f528ee3b0e584529b", null ],
     [ "dag_level_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a9b031e2882f6e9bf7972741d0acca2d0", null ],
     [ "id_", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a96a0fd8846f1c950bff8146fc53a83cf", null ],
     [ "kDagSyncingLimit", "classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a301deafbd1816dac80780aee08811c85", null ],

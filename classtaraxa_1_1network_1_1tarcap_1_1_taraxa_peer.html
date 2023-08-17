@@ -97,13 +97,14 @@ Collaboration diagram for taraxa::network::tarcap::TaraxaPeer:</div>
 <div class="dyncontent">
 <div class="center"><img src="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer__coll__graph.png" border="0" usemap="#ataraxa_1_1network_1_1tarcap_1_1_taraxa_peer_coll__map" alt="Collaboration graph"/></div>
 <map name="ataraxa_1_1network_1_1tarcap_1_1_taraxa_peer_coll__map" id="ataraxa_1_1network_1_1tarcap_1_1_taraxa_peer_coll__map">
-<area shape="rect" title=" " alt="" coords="752,129,927,170"/>
+<area shape="rect" title=" " alt="" coords="752,151,927,193"/>
 <area shape="rect" title=" " alt="" coords="385,5,535,32"/>
 <area shape="rect" href="class_expiration_block_number_cache.html" title=" " alt="" coords="352,93,568,134"/>
 <area shape="rect" href="class_expiration_cache.html" title=" " alt="" coords="9,93,176,134"/>
-<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="380,159,540,185"/>
-<area shape="rect" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html" title="Stats for all packet types." alt="" coords="373,210,547,251"/>
-<area shape="rect" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html" title="Stats single packet type." alt="" coords="5,210,180,251"/>
+<area shape="rect" title=" " alt="" coords="431,159,489,185"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="380,209,540,236"/>
+<area shape="rect" href="classtaraxa_1_1network_1_1tarcap_1_1_packets_stats.html" title="Stats for all packet types." alt="" coords="373,261,547,302"/>
+<area shape="rect" href="classtaraxa_1_1network_1_1tarcap_1_1_packet_stats.html" title="Stats single packet type." alt="" coords="5,261,180,302"/>
 </map>
 <center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
@@ -111,8 +112,8 @@ Collaboration diagram for taraxa::network::tarcap::TaraxaPeer:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ae9b3def56efaad65ee07dc1090522860"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ae9b3def56efaad65ee07dc1090522860">TaraxaPeer</a> ()</td></tr>
 <tr class="separator:ae9b3def56efaad65ee07dc1090522860"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a367c830e803fd80a33ae63551fc37e3f"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a367c830e803fd80a33ae63551fc37e3f">TaraxaPeer</a> (const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;id, size_t transaction_pool_size)</td></tr>
-<tr class="separator:a367c830e803fd80a33ae63551fc37e3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aefb9ae24a47226852e0b3d8d9b422961"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#aefb9ae24a47226852e0b3d8d9b422961">TaraxaPeer</a> (const <a class="el" href="namespacedev_1_1p2p.html#abbde6b5aa63ddcf129cc2ccdda42e5d5">dev::p2p::NodeID</a> &amp;id, size_t transaction_pool_size, std::string address)</td></tr>
+<tr class="separator:aefb9ae24a47226852e0b3d8d9b422961"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a6d0440c826c6fbff002b249508466706"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a6d0440c826c6fbff002b249508466706">markDagBlockAsKnown</a> (const <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a> &amp;hash)</td></tr>
 <tr class="memdesc:a6d0440c826c6fbff002b249508466706"><td class="mdescLeft">&#160;</td><td class="mdescRight">Mark dag block as known.  <a href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a6d0440c826c6fbff002b249508466706">More...</a><br /></td></tr>
 <tr class="separator:a6d0440c826c6fbff002b249508466706"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -181,6 +182,8 @@ Public Attributes</h2></td></tr>
 <tr class="separator:a7fa53a355bc2e16e91d9e2ee0891601e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae6e1470f37c84dacdd7b56a87aac98a2"><td class="memItemLeft" align="right" valign="top">std::atomic&lt; <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ae6e1470f37c84dacdd7b56a87aac98a2">peer_light_node_history</a> = 0</td></tr>
 <tr class="separator:ae6e1470f37c84dacdd7b56a87aac98a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a158780b09d00bd6f528ee3b0e584529b"><td class="memItemLeft" align="right" valign="top">std::string&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#a158780b09d00bd6f528ee3b0e584529b">address_</a></td></tr>
+<tr class="separator:a158780b09d00bd6f528ee3b0e584529b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad4f58e3c7594a6599eff8cb450355a9a"><td class="memItemLeft" align="right" valign="top">boost::shared_mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1network_1_1tarcap_1_1_taraxa_peer.html#ad4f58e3c7594a6599eff8cb450355a9a">mutex_for_sending_dag_blocks_</a></td></tr>
 <tr class="separator:ad4f58e3c7594a6599eff8cb450355a9a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
@@ -225,8 +228,8 @@ Private Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a367c830e803fd80a33ae63551fc37e3f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a367c830e803fd80a33ae63551fc37e3f">&#9670;&nbsp;</a></span>TaraxaPeer() <span class="overload">[2/2]</span></h2>
+<a id="aefb9ae24a47226852e0b3d8d9b422961"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aefb9ae24a47226852e0b3d8d9b422961">&#9670;&nbsp;</a></span>TaraxaPeer() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -241,7 +244,13 @@ Private Attributes</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>transaction_pool_size</em>&#160;</td>
+          <td class="paramname"><em>transaction_pool_size</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">std::string&#160;</td>
+          <td class="paramname"><em>address</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -586,6 +595,20 @@ Private Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
+<a id="a158780b09d00bd6f528ee3b0e584529b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a158780b09d00bd6f528ee3b0e584529b">&#9670;&nbsp;</a></span>address_</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::string taraxa::network::tarcap::TaraxaPeer::address_</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
 <a id="a9b031e2882f6e9bf7972741d0acca2d0"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a9b031e2882f6e9bf7972741d0acca2d0">&#9670;&nbsp;</a></span>dag_level_</h2>
 
