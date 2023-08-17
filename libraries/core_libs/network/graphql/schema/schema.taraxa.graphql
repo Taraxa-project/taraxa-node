@@ -159,6 +159,8 @@ type Block {
     number: Long!
     # Hash is the block hash of this block.
     hash: Bytes32!
+    # Pbft hash of this block.
+    pbftHash: Bytes32!
     # Parent is the parent block of this block.
     parent: Block
     # Nonce is the block nonce, an 8 byte sequence determined by the miner.

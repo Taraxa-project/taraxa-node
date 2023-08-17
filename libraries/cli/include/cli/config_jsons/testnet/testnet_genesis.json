@@ -133,6 +133,7 @@
   },
   "hardforks": {
     "fix_redelegate_block_num": 0,
-    "redelegations": []
+    "redelegations": [],
+    "rewards_distribution_frequency": {}
   }
 }
