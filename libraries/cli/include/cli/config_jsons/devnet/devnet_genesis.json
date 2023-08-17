@@ -221,7 +221,7 @@
       }
     ],
     "slashing": {
-      "jail_time": "0x5"
+      "jail_time": 163459
     }
   },
   "initial_balances": {
@@ -269,6 +269,6 @@
   "hardforks": {
     "fix_redelegate_block_num": 0,
     "rewards_distribution_frequency": {},
-    "magnolia_hf_block_num" : "0x0"
+    "magnolia_hf_block_num" : 0
   }
 }
