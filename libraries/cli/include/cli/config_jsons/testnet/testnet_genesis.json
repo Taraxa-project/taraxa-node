@@ -89,16 +89,13 @@
       }
     ],
     "slashing": {
-      "jail_time": "0x5"
+      "jail_time": 163459
     }
   },
   "initial_balances": {
     "76870407332398322576505f3c5423d0a71af296": "0x1d14a0219e54822428000000",
     "f4a52b8f6dc8ab046fec6ad02e77023c044342e4": "0x19d971e4fe8401e74000000",
     "ee1326fbf7d9322e5ea02c6fe5eb63535fceccd1": "0x19d971e4fe8401e74000000"
-  },
-  "hardforks": {
-    "magnolia_hf_block_num" : "0x0"
   },
   "gas_price": {
     "blocks": 200,
@@ -140,6 +137,7 @@
   "hardforks": {
     "fix_redelegate_block_num": 0,
     "redelegations": [],
-    "rewards_distribution_frequency": {}
+    "rewards_distribution_frequency": {},
+    "magnolia_hf_block_num" : 0
   }
 }
