@@ -211,8 +211,8 @@ TEST_F(StateAPITest, DISABLED_eth_mainnet_smoke) {
 TEST_F(StateAPITest, slashing) {
   auto node_cfgs = make_node_cfgs(1, 1, 20);
   for (auto& cfg : node_cfgs) {
-    cfg.genesis.state.dpos.slashing.jail_time = 100;
-    cfg.genesis.state.hardforks.magnolia_hf_block_num = 0;
+    cfg.genesis.state.hardforks.magnolia_hf.jail_time = 100;
+    cfg.genesis.state.hardforks.magnolia_hf.block_num = 0;
   }
 
   auto nodes = launch_nodes(node_cfgs);
@@ -229,7 +229,7 @@ TEST_F(StateAPITest, slashing) {
   auto slashing_manager =
       std::make_shared<SlashingManager>(node->getFinalChain(), node->getTransactionManager(), node->getGasPricer(),
                                         node_cfg.genesis, node->getSecretKey());
-  ASSERT_EQ(true, slashing_manager->submitDoubleVotingProof(node->getPbftChain()->getPbftChainSize(), vote_a, vote_b));
+  ASSERT_EQ(true, slashing_manager->submitDoubleVotingProof(vote_a, vote_b));
 
   // After few blocks malicious validator should be jailed
   ASSERT_HAPPENS({5s, 100ms}, [&](auto& ctx) {

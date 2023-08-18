@@ -43,7 +43,7 @@ bool ExtVotesPacketHandler::processVote(const std::shared_ptr<Vote> &vote, const
   // (for a value that isn't NBH) per period, round & step
   if (auto vote_valid = vote_mgr_->isUniqueVote(vote); !vote_valid.first) {
     // Create double voting proof
-    slashing_manager_->submitDoubleVotingProof(pbft_chain_->getPbftChainSize(), vote, vote_valid.second);
+    slashing_manager_->submitDoubleVotingProof(vote, vote_valid.second);
     throw MaliciousPeerException("Received double vote", vote->getVoter());
   }
 

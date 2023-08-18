@@ -14,14 +14,19 @@ SlashingManager::SlashingManager(std::shared_ptr<FinalChain> final_chain,
     : final_chain_(std::move(final_chain)),
       trx_manager_(std::move(trx_manager)),
       gas_pricer_(std::move(gas_pricer)),
-      double_voting_proofs_(10000, 1000),
+      double_voting_proofs_(1000, 100),
       kGenesisConfig(genesis_config),
       kAddress(toAddress(node_sk)),
       kPrivateKey(std::move(node_sk)) {}
 
-bool SlashingManager::submitDoubleVotingProof(PbftPeriod current_period, const std::shared_ptr<Vote> &vote_a,
+bool SlashingManager::submitDoubleVotingProof(const std::shared_ptr<Vote> &vote_a,
                                               const std::shared_ptr<Vote> &vote_b) {
-  if (current_period < kGenesisConfig.state.hardforks.magnolia_hf_block_num) {
+  if (vote_a->getPeriod() != vote_b->getPeriod() || vote_a->getRound() != vote_b->getRound() ||
+      vote_a->getStep() != vote_b->getStep()) {
+    return false;
+  }
+
+  if (vote_a->getPeriod() < kGenesisConfig.state.hardforks.magnolia_hf.block_num) {
     return false;
   }
 
