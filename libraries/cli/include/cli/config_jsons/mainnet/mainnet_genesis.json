@@ -241,10 +241,7 @@
         },
         "vrf_key": "a25053afb5316ff12137ae573b6272b1258020454606631308d32cbf776788c0"
       }
-    ],
-    "slashing": {
-      "jail_time": 163459
-    }
+    ]
   },
   "initial_balances": {
     "723304d1357a2334fcf902aa3d232f5139080a1b": "0xd53323b7ca3737afbb45000",
@@ -1638,6 +1635,9 @@
       }
     ],
     "rewards_distribution_frequency": {},
-    "magnolia_hf_block_num" : 0
+    "magnolia_hf" : {
+      "block_num" : 0,
+      "jail_time": 163459
+    }
   }
 }

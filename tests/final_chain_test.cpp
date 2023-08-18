@@ -746,7 +746,7 @@ TEST_F(FinalChainTest, fee_rewards_distribution) {
   const auto& sk = sender_keys.secret();
   cfg.genesis.state.initial_balances = {};
   cfg.genesis.state.initial_balances[addr] = 100000;
-  cfg.genesis.state.hardforks.magnolia_hf_block_num = 2;
+  cfg.genesis.state.hardforks.magnolia_hf.block_num = 2;
   create_validators();
   init();
   const auto gas_price = 1;

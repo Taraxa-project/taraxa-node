@@ -199,7 +199,7 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
     if (auto vote_inserted = insertUniqueVote(vote); !vote_inserted.first) {
       LOG(log_wr_) << "Non unique vote " << vote->getHash().abridged() << " (race condition)";
       // Create double voting proof
-      slashing_manager_->submitDoubleVotingProof(pbft_chain_->getPbftChainSize(), vote, vote_inserted.second);
+      slashing_manager_->submitDoubleVotingProof(vote, vote_inserted.second);
       return false;
     }
 

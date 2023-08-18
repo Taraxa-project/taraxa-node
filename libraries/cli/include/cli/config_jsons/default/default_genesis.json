@@ -54,10 +54,7 @@
         },
         "vrf_key": "f8d5c00ce9fa3058341e051b36a1e6ccf69df81fb865568b2bf1507d085691e2"
       }
-    ],
-    "slashing": {
-      "jail_time": 163459
-    }
+    ]
   },
   "initial_balances": {
     "2cd4da7d3b345e022ca7e997c2bb3276a4d3d2e9": "0x1027e72f1f12813088000000",
@@ -103,6 +100,9 @@
   "hardforks": {
     "fix_redelegate_block_num": 0,
     "rewards_distribution_frequency": {},
-    "magnolia_hf_block_num" : 0
+    "magnolia_hf" : {
+      "block_num" : 0,
+      "jail_time": 163459
+    }
   }
 }

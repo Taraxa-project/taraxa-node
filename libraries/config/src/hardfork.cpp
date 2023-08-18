@@ -16,6 +16,19 @@ void dec_json(const Json::Value& json, Redelegation& obj) {
 
 RLP_FIELDS_DEFINE(Redelegation, validator, delegator, amount)
 
+Json::Value enc_json(const MagnoliaHardfork& obj) {
+  Json::Value json(Json::objectValue);
+  json["block_num"] = dev::toJS(obj.block_num);
+  json["jail_time"] = dev::toJS(obj.jail_time);
+  return json;
+}
+
+void dec_json(const Json::Value& json, MagnoliaHardfork& obj) {
+  obj.block_num = dev::getUInt(json["block_num"]);
+  obj.jail_time = dev::getUInt(json["jail_time"]);
+}
+RLP_FIELDS_DEFINE(MagnoliaHardfork, block_num, jail_time)
+
 Json::Value enc_json(const HardforksConfig& obj) {
   Json::Value json(Json::objectValue);
   json["fix_redelegate_block_num"] = dev::toJS(obj.fix_redelegate_block_num);
@@ -30,7 +43,7 @@ Json::Value enc_json(const HardforksConfig& obj) {
     rewards[std::to_string(i->first)] = i->second;
   }
 
-  json["magnolia_hf_block_num"] = obj.magnolia_hf_block_num;
+  json["magnolia_hf"] = enc_json(obj.magnolia_hf);
 
   return json;
 }
@@ -52,10 +65,9 @@ void dec_json(const Json::Value& json, HardforksConfig& obj) {
       obj.rewards_distribution_frequency[dev::getUInt(itr.key())] = dev::getUInt(*itr);
     }
   }
-  if (const auto& e = json["magnolia_hf_block_num"]) {
-    obj.magnolia_hf_block_num = dev::getUInt(e);
+  if (const auto& e = json["magnolia_hf"]) {
+    dec_json(e, obj.magnolia_hf);
   }
 }
 
-RLP_FIELDS_DEFINE(HardforksConfig, fix_redelegate_block_num, redelegations, rewards_distribution_frequency,
-                  magnolia_hf_block_num)
+RLP_FIELDS_DEFINE(HardforksConfig, fix_redelegate_block_num, redelegations, rewards_distribution_frequency, magnolia_hf)

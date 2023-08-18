@@ -48,7 +48,7 @@ BlockStats Stats::getBlockStats(const PeriodData& blk, const std::vector<gas_t>&
   if (!blk.previous_block_cert_votes.empty()) [[likely]] {
     dpos_vote_count = dpos_eligible_total_vote_count_(blk.previous_block_cert_votes[0]->getPeriod() - 1);
   }
-  if (blk.pbft_blk->getPeriod() < kHardforks.magnolia_hf_block_num) {
+  if (blk.pbft_blk->getPeriod() < kHardforks.magnolia_hf.block_num) {
     return BlockStats{blk, {}, dpos_vote_count, kCommitteeSize};
   }
 

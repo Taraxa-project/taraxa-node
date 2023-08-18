@@ -11,9 +11,17 @@ struct Redelegation {
   taraxa::uint256_t amount;
   HAS_RLP_FIELDS
 };
-
 Json::Value enc_json(const Redelegation& obj);
 void dec_json(const Json::Value& json, Redelegation& obj);
+
+struct MagnoliaHardfork {
+  uint64_t block_num = -1;
+  uint64_t jail_time = 0;  // number of blocks
+
+  HAS_RLP_FIELDS
+};
+Json::Value enc_json(const MagnoliaHardfork& obj);
+void dec_json(const Json::Value& json, MagnoliaHardfork& obj);
 
 struct HardforksConfig {
   // disable it by default (set to max uint64)
@@ -40,7 +48,7 @@ struct HardforksConfig {
   //  creator.
   // 3. Introducing slashing/jailing contract - in case someone double votes - he is jailed for N blocks and unable to
   //    participate in consensus
-  uint64_t magnolia_hf_block_num = -1;
+  MagnoliaHardfork magnolia_hf;
 
   HAS_RLP_FIELDS
 };
