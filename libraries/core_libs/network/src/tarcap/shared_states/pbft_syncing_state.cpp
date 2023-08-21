@@ -35,6 +35,8 @@ bool PbftSyncingState::setPbftSyncing(bool syncing, PbftPeriod current_period,
     peer_ = std::move(peer);
 
     if (syncing) {
+      // If pbft syncing, set dag synced state to false
+      peer_->peer_dag_synced_ = false;
       deep_pbft_syncing_ = (peer_->pbft_chain_size_ - current_period >= kDeepSyncingThreshold);
       // Reset last sync packet time when syncing is restarted/fresh syncing flag is set
       setLastSyncPacketTime();

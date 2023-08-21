@@ -131,9 +131,16 @@ void DagBlockPacketHandler::onNewBlockReceived(DagBlock &&block, const std::shar
       break;
     case DagManager::VerifyBlockReturnType::MissingTip:
       if (peer->peer_dag_synced_) {
-        std::ostringstream err_msg;
-        err_msg << "DagBlock has missing tip";
-        throw MaliciousPeerException(err_msg.str());
+        if (peer->dagSyncingAllowed()) {
+          LOG(log_wr_) << "NewBlock " << block_hash.toString() << " from peer " << peer->getId()
+                       << " is missing tip, requesting dag sync";
+          peer->peer_dag_synced_ = false;
+          requestPendingDagBlocks(peer);
+        } else {
+          std::ostringstream err_msg;
+          err_msg << "DagBlock has missing tip";
+          throw MaliciousPeerException(err_msg.str());
+        }
       } else {
         // peer_dag_synced_ flag ensures that this can only be performed once for a peer
         requestPendingDagBlocks(peer);
