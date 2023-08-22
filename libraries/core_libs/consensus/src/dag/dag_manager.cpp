@@ -54,7 +54,7 @@ DagManager::DagManager(const DagBlock &dag_genesis_block, addr_t node_addr, cons
   }
   recoverDag();
   if (is_light_node_) {
-    clearLightNodeHistory(true);
+    clearLightNodeHistory();
   }
 } catch (std::exception &e) {
   std::cerr << e.what() << std::endl;
@@ -282,14 +282,10 @@ std::vector<blk_hash_t> DagManager::getDagBlockOrder(blk_hash_t const &anchor, P
   return blk_orders;
 }
 
-void DagManager::clearLightNodeHistory(bool initial) {
-  // Delete once size 1% over the light_node_history_, by default light node history is a week of data so this condition
-  // will pass once an hour
-  uint64_t clear_interval = std::max(light_node_history_ / 100, (uint64_t)1);
+void DagManager::clearLightNodeHistory() {
   bool dag_expiry_level_condition = dag_expiry_level_ > max_levels_per_period_ + 1;
   bool period_over_history_condition = period_ > light_node_history_;
-  if (((period_ % clear_interval == 0) || initial) && period_over_history_condition && dag_expiry_level_condition) {
-    // This will happen at most once a day so log a silent log
+  if (period_over_history_condition && dag_expiry_level_condition) {
     const auto proposal_period = db_->getProposalPeriodForDagLevel(dag_expiry_level_ - max_levels_per_period_ - 1);
     assert(proposal_period);
 
@@ -305,7 +301,7 @@ void DagManager::clearLightNodeHistory(bool initial) {
     if (dag_expiry_level_ > max_levels_per_period_) {
       dag_level_to_keep = dag_expiry_level_ - max_levels_per_period_;
     }
-    db_->clearPeriodDataHistory(end, dag_level_to_keep, initial);
+    db_->clearPeriodDataHistory(end, dag_level_to_keep);
   }
 }
 

@@ -145,7 +145,6 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
   std::atomic<bool> snapshots_enabled_ = true;
   const uint32_t kDbSnapshotsMaxCount = 0;
   std::set<PbftPeriod> snapshots_;
-  std::unique_ptr<std::future<void>> clear_history_future_;
 
   uint32_t kMajorVersion_;
   bool major_version_changed_ = false;
@@ -199,7 +198,7 @@ class DbStorage : public std::enable_shared_from_this<DbStorage> {
 
   // Period data
   void savePeriodData(const PeriodData& period_data, Batch& write_batch);
-  void clearPeriodDataHistory(PbftPeriod period, uint64_t dag_level_to_keep, bool initial);
+  void clearPeriodDataHistory(PbftPeriod period, uint64_t dag_level_to_keep);
   dev::bytes getPeriodDataRaw(PbftPeriod period) const;
   std::optional<PbftBlock> getPbftBlock(PbftPeriod period) const;
   std::vector<std::shared_ptr<Vote>> getPeriodCertVotes(PbftPeriod period) const;
