@@ -65,13 +65,10 @@ will build out of the box without further effort:
     # Export needed var for conan
     export CONAN_REVISIONS_ENABLED=1
 
-    # Fetch and compile libraries fetched from conan
-    conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
-
     # Compile project using cmake
     mkdir cmake-build
     cd cmake-build
-    cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo ../
+    cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo -DTARAXA_ENABLE_LTO=OFF -DTARAXA_STATIC_BUILD=OFF ../
     make -j$(nproc)
 
 ## Building on Ubuntu 20.04
@@ -153,13 +150,10 @@ will build out of the box without further effort:
     # Export needed var for conan
     export CONAN_REVISIONS_ENABLED=1
 
-    # Fetch and compile libraries fetched from conan
-    conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
-
     # Compile project using cmake
     mkdir cmake-build
     cd cmake-build
-    cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo ../
+    cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo -DTARAXA_ENABLE_LTO=OFF -DTARAXA_STATIC_BUILD=OFF ../
     make -j$(nproc)
 
 And optional:
@@ -196,8 +190,6 @@ First you need to get (Brew)[https://brew.sh/] package manager. After that you n
 
     # Export needed var for conan
     export CONAN_REVISIONS_ENABLED=1
-    # Add bincrafters remote
-    conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
 
     # Build project
     mkdir cmake-build
@@ -265,10 +257,9 @@ You should be able to build project following default MacOS building process. Bu
     conan profile update settings.compiler.libcxx=libc++ clang && \
     conan profile update env.CC=/usr/local/opt/llvm/bin/clang clang && \
     conan profile update env.CXX=/usr/local/opt/llvm/bin/clang++ clang
+
     # Export needed var for conan
     export CONAN_REVISIONS_ENABLED=1
-    # Add bincrafters remote
-    conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
 
     # Build project
     mkdir cmake-build
