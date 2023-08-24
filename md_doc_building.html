@@ -144,13 +144,10 @@ conan profile update env.CXX=clang++-14 clang
 # Export needed var for conan
 export CONAN_REVISIONS_ENABLED=1
 
-# Fetch and compile libraries fetched from conan
-conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
-
 # Compile project using cmake
 mkdir cmake-build
 cd cmake-build
-cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo ../
+cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo -DTARAXA_ENABLE_LTO=OFF -DTARAXA_STATIC_BUILD=OFF ../
 make -j$(nproc)
 </pre> <h1><a class="anchor" id="autotoc_md34"></a>
 Building on Ubuntu 20.04</h1>
@@ -228,13 +225,10 @@ conan profile update env.CXX=clang++-14 clang
 # Export needed var for conan
 export CONAN_REVISIONS_ENABLED=1
 
-# Fetch and compile libraries fetched from conan
-conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
-
 # Compile project using cmake
 mkdir cmake-build
 cd cmake-build
-cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo ../
+cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo -DTARAXA_ENABLE_LTO=OFF -DTARAXA_STATIC_BUILD=OFF ../
 make -j$(nproc)
 </pre><p> And optional: </p><pre class="fragment"># optional
 make install  # defaults to /usr/local
@@ -263,8 +257,6 @@ conan profile update env.CXX=clang++ clang
 
 # Export needed var for conan
 export CONAN_REVISIONS_ENABLED=1
-# Add bincrafters remote
-conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
 
 # Build project
 mkdir cmake-build
@@ -314,10 +306,9 @@ conan profile update settings.compiler.version=14 clang &amp;&amp; \
 conan profile update settings.compiler.libcxx=libc++ clang &amp;&amp; \
 conan profile update env.CC=/usr/local/opt/llvm/bin/clang clang &amp;&amp; \
 conan profile update env.CXX=/usr/local/opt/llvm/bin/clang++ clang
+
 # Export needed var for conan
 export CONAN_REVISIONS_ENABLED=1
-# Add bincrafters remote
-conan remote add -f bincrafters "https://bincrafters.jfrog.io/artifactory/api/conan/public-conan"
 
 # Build project
 mkdir cmake-build
