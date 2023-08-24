@@ -85,6 +85,8 @@ void FullNodeConfig::overwriteConfigFromJson(const Json::Value &root) {
 
   is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, is_light_node);
   light_node_history = getConfigDataAsUInt(root, {"light_node_history"}, true, light_node_history);
+  report_malicious_behaviour =
+      getConfigDataAsUInt(root, {"report_malicious_behaviour"}, true, report_malicious_behaviour);
 }
 
 FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::Value &wallet,

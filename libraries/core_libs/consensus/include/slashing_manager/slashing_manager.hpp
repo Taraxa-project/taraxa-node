@@ -8,7 +8,7 @@ namespace taraxa {
 class SlashingManager {
  public:
   SlashingManager(std::shared_ptr<FinalChain> final_chain, std::shared_ptr<TransactionManager> trx_manager,
-                  std::shared_ptr<GasPricer> gas_pricer, const GenesisConfig &genesis_config, secret_t node_sk);
+                  std::shared_ptr<GasPricer> gas_pricer, const FullNodeConfig &config, secret_t node_sk);
   SlashingManager(const SlashingManager &) = delete;
   SlashingManager(SlashingManager &&) = delete;
   SlashingManager &operator=(const SlashingManager &) = delete;
@@ -24,7 +24,7 @@ class SlashingManager {
   // Already processed double voting proofs
   ExpirationCache<dev::h256> double_voting_proofs_;
 
-  const GenesisConfig kGenesisConfig;
+  const FullNodeConfig kConfig;
   const addr_t kAddress;
   const secret_t kPrivateKey;
 };

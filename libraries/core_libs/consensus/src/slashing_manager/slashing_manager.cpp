@@ -10,23 +10,27 @@ const auto kContractAddress = addr_t("0x00000000000000000000000000000000000000EE
 
 SlashingManager::SlashingManager(std::shared_ptr<FinalChain> final_chain,
                                  std::shared_ptr<TransactionManager> trx_manager, std::shared_ptr<GasPricer> gas_pricer,
-                                 const GenesisConfig &genesis_config, secret_t node_sk)
+                                 const FullNodeConfig &config, secret_t node_sk)
     : final_chain_(std::move(final_chain)),
       trx_manager_(std::move(trx_manager)),
       gas_pricer_(std::move(gas_pricer)),
       double_voting_proofs_(1000, 100),
-      kGenesisConfig(genesis_config),
+      kConfig(config),
       kAddress(toAddress(node_sk)),
       kPrivateKey(std::move(node_sk)) {}
 
 bool SlashingManager::submitDoubleVotingProof(const std::shared_ptr<Vote> &vote_a,
                                               const std::shared_ptr<Vote> &vote_b) {
-  if (vote_a->getPeriod() != vote_b->getPeriod() || vote_a->getRound() != vote_b->getRound() ||
-      vote_a->getStep() != vote_b->getStep()) {
+  if (!kConfig.report_malicious_behaviour) {
     return false;
   }
 
-  if (vote_a->getPeriod() < kGenesisConfig.state.hardforks.magnolia_hf.block_num) {
+  if (vote_a->getPeriod() < kConfig.genesis.state.hardforks.magnolia_hf.block_num) {
+    return false;
+  }
+
+  if (vote_a->getPeriod() != vote_b->getPeriod() || vote_a->getRound() != vote_b->getRound() ||
+      vote_a->getStep() != vote_b->getStep()) {
     return false;
   }
 
@@ -59,7 +63,7 @@ bool SlashingManager::submitDoubleVotingProof(const std::shared_ptr<Vote> &vote_
   // TODO we need to calculate gas for this transaction and hardcode it
   // CommitDoubleVotingProofGas uint64 = 20000
   const auto trx = std::make_shared<Transaction>(account.nonce, 0, gas_pricer_->bid(), 1000000, std::move(input),
-                                                 kPrivateKey, kContractAddress, kGenesisConfig.chain_id);
+                                                 kPrivateKey, kContractAddress, kConfig.genesis.chain_id);
 
   if (trx_manager_->insertTransaction(trx).first) {
     double_voting_proofs_.insert(hash);
