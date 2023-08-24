@@ -1,6 +1,5 @@
 var NAVTREEINDEX17 =
 {
-"init__packets__handlers_8hpp_source.html":[16,0,1,4,1,1,0,0,0,1,2],
 "jsoncpp_8cpp.html":[16,0,1,2,1,1],
 "jsoncpp_8cpp.html#a2ed9745be56eea6c0bb6e200b586d95a":[16,0,1,2,1,1,4],
 "jsoncpp_8cpp.html#a58e760801a33b3cf8ed3ea2720ed6c62":[16,0,1,2,1,1,5],
@@ -249,5 +248,6 @@ var NAVTREEINDEX17 =
 "logger_8cpp.html#a65ec35addf583c82df610354d05d8769":[16,0,1,5,1,0,1],
 "logger_8cpp.html#aa10a0f22210c83fe10627ce57b472fd9":[16,0,1,5,1,0,0],
 "logger_8hpp.html":[16,0,1,5,0,0,0],
-"logger_8hpp.html#a159ca84d25a5487d8e81e4438725df19":[16,0,1,5,0,0,0,0]
+"logger_8hpp.html#a159ca84d25a5487d8e81e4438725df19":[16,0,1,5,0,0,0,0],
+"logger_8hpp.html#a32d1e1885c2d8304b53417ceb5a0da6a":[16,0,1,5,0,0,0,8]
 };

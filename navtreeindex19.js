@@ -1,6 +1,5 @@
 var NAVTREEINDEX19 =
 {
-"md_doc_coding_practices.html#autotoc_md63":[4],
 "md_doc_coding_practices.html#autotoc_md64":[5],
 "md_doc_coding_practices.html#autotoc_md65":[6],
 "md_doc_coding_practices.html#autotoc_md66":[7],
@@ -249,5 +248,6 @@ var NAVTREEINDEX19 =
 "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1placeholder__t":[16,0,1,4,1,2,0,6,1],
 "namespacetaraxa_1_1state__api.html#a07ec4cf31d69e169a6187e45821d86f4":[16,0,1,3,0,0,7,2,10],
 "namespacetaraxa_1_1state__api.html#a13aa11cb2ea1bbd6a159176729bafd90":[16,0,1,3,0,0,7,5,0],
-"namespacetaraxa_1_1state__api.html#a1a9997e4f7fcc0fd915039afd6a5c31d":[16,0,1,3,0,0,7,5,1]
+"namespacetaraxa_1_1state__api.html#a1a9997e4f7fcc0fd915039afd6a5c31d":[16,0,1,3,0,0,7,5,1],
+"namespacetaraxa_1_1state__api.html#a1e41db5c557bcf515334890ecc5bbe79":[16,0,1,3,0,0,7,0,0]
 };
