@@ -63,6 +63,9 @@ struct FullNodeConfig {
   // config values that limits transactions pool
   uint32_t transactions_pool_size = kDefaultTransactionPoolSize;
 
+  // Report malicious behaviour like double voting, etc... to slashing/jailing contract
+  bool report_malicious_behaviour = false;
+
   auto net_file_path() const { return data_path / "net"; }
 
   /**
