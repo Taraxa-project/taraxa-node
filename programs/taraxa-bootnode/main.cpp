@@ -54,9 +54,9 @@ void setupLogging(dev::LoggingOptions const& options) {
 
   boost::log::core::get()->add_sink(sink);
 
-  auto file_sink = boost::log::add_file_log(
-      boost::log::keywords::file_name = "boot-node.log", boost::log::keywords::rotation_size = 10000000,
-      boost::log::keywords::max_size = 10000000l);
+  auto file_sink = boost::log::add_file_log(boost::log::keywords::file_name = "boot-node.log",
+                                            boost::log::keywords::rotation_size = 10000000,
+                                            boost::log::keywords::max_size = 10000000l);
 
   file_sink->set_formatter(boost::log::aux::acquire_formatter("%Channel% [%TimeStamp%] %SeverityStr%: %Message%"));
   file_sink->locked_backend()->auto_flush(true);
