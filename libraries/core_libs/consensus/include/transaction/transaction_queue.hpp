@@ -144,7 +144,7 @@ class TransactionQueue {
 
   // If transactions are dropped within last kTransactionOverflowTimeLimit seconds, dag blocks with missing transactions
   // will not be treated as malicious
-  const std::chrono::seconds kTransactionOverflowTimeLimit{300};
+  const std::chrono::seconds kTransactionOverflowTimeLimit{600};
 
   // Limit when non proposable transactions expire
   const size_t kNonProposableTransactionsPeriodExpiryLimit = 10;

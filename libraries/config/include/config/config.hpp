@@ -16,6 +16,7 @@ struct DBConfig {
   PbftPeriod db_revert_to_period = 0;
   bool rebuild_db = false;
   bool prune_state_db = false;
+  bool migrate_only = false;
   PbftPeriod rebuild_db_period = 0;
 };
 
@@ -35,8 +36,12 @@ struct FullNodeConfig {
                           const Json::Value &genesis = Json::Value::null, const std::string &config_file_path = "");
 
   void overwriteConfigFromJson(const Json::Value &config_json);
+  std::vector<logger::Config> loadLoggingConfigs(const Json::Value &logging);
+  void scheduleLoggingConfigUpdate();
+  void InitLogging(const addr_t &node_address);
 
   std::string json_file_name;
+  std::filesystem::file_time_type last_json_update_time;
   dev::Secret node_secret;
   vrf_wrapper::vrf_sk_t vrf_secret;
   fs::path data_path;

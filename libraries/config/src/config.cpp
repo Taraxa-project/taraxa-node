@@ -5,6 +5,7 @@
 #include <fstream>
 
 #include "common/jsoncpp.hpp"
+#include "common/thread_pool.hpp"
 #include "config/config_utils.hpp"
 
 namespace taraxa {
@@ -17,29 +18,19 @@ void dec_json(Json::Value const &json, DBConfig &db_config) {
   db_config.db_max_open_files = getConfigDataAsUInt(json, {"db_max_open_files"}, true, db_config.db_max_open_files);
 }
 
-void FullNodeConfig::overwriteConfigFromJson(const Json::Value &root) {
-  data_path = getConfigDataAsString(root, {"data_path"});
-  db_path = data_path / "db";
-
-  final_chain_cache_in_blocks =
-      getConfigDataAsUInt(root, {"final_chain_cache_in_blocks"}, true, final_chain_cache_in_blocks);
-
-  // config values that limits transactions and blocks memory pools
-  transactions_pool_size = getConfigDataAsUInt(root, {"transactions_pool_size"}, true, kDefaultTransactionPoolSize);
-
-  dec_json(root["network"], network);
-
-  dec_json(root["db_config"], db_config);
-
-  // Network logging in p2p library creates performance issues even with
-  // channel/verbosity off Disable it completely in net channel is not present
-  if (!root["logging"].isNull()) {
-    if (auto path = getConfigData(root["logging"], {"log_path"}, true); !path.isNull()) {
+std::vector<logger::Config> FullNodeConfig::loadLoggingConfigs(const Json::Value &logging) {
+  // could be empty if config loaded from json e.g. tests
+  if (!json_file_name.empty()) {
+    last_json_update_time = std::filesystem::last_write_time(std::filesystem::path(json_file_name));
+  }
+  std::vector<logger::Config> res;
+  if (!logging.isNull()) {
+    if (auto path = getConfigData(logging, {"log_path"}, true); !path.isNull()) {
       log_path = path.asString();
     } else {
       log_path = data_path / "logs";
     }
-    for (auto &item : root["logging"]["configurations"]) {
+    for (auto &item : logging["configurations"]) {
       auto on = getConfigDataAsBoolean(item, {"on"});
       if (on) {
         logger::Config logging;
@@ -69,10 +60,28 @@ void FullNodeConfig::overwriteConfigFromJson(const Json::Value &root) {
           }
           logging.outputs.push_back(output);
         }
-        log_configs.push_back(logging);
+        res.push_back(logging);
       }
     }
   }
+  return res;
+}
+
+void FullNodeConfig::overwriteConfigFromJson(const Json::Value &root) {
+  data_path = getConfigDataAsString(root, {"data_path"});
+  db_path = data_path / "db";
+
+  final_chain_cache_in_blocks =
+      getConfigDataAsUInt(root, {"final_chain_cache_in_blocks"}, true, final_chain_cache_in_blocks);
+
+  // config values that limits transactions and blocks memory pools
+  transactions_pool_size = getConfigDataAsUInt(root, {"transactions_pool_size"}, true, kDefaultTransactionPoolSize);
+
+  dec_json(root["network"], network);
+
+  dec_json(root["db_config"], db_config);
+
+  log_configs = loadLoggingConfigs(root["logging"]);
 
   is_light_node = getConfigDataAsBoolean(root, {"is_light_node"}, true, is_light_node);
   light_node_history = getConfigDataAsUInt(root, {"light_node_history"}, true, light_node_history);
@@ -143,6 +152,40 @@ FullNodeConfig::FullNodeConfig(const Json::Value &string_or_object, const Json::
   // TODO configurable
   opts_final_chain.expected_max_trx_per_block = 1000;
   opts_final_chain.max_trie_full_node_levels_to_cache = 4;
+}
+
+void FullNodeConfig::scheduleLoggingConfigUpdate() {
+  // no file to check updates for (e.g. tests)
+  if (json_file_name.empty()) {
+    return;
+  }
+  static util::ThreadPool executor_{1};
+  static auto node_address = dev::KeyPair(node_secret).address();
+  executor_.post([&]() {
+    while (true) {
+      std::this_thread::sleep_for(std::chrono::minutes(1));
+      auto update_time = std::filesystem::last_write_time(std::filesystem::path(json_file_name));
+      if (last_json_update_time >= update_time) {
+        continue;
+      }
+      last_json_update_time = update_time;
+      try {
+        auto config = getJsonFromFileOrString(json_file_name);
+        log_configs = loadLoggingConfigs(config["logging"]);
+        InitLogging(node_address);
+      } catch (const ConfigException &e) {
+        std::cerr << "FullNodeConfig: Failed to update logging config: " << e.what() << std::endl;
+        continue;
+      }
+      std::cout << "FullNodeConfig: Updated logging config" << std::endl;
+    }
+  });
+}
+
+void FullNodeConfig::InitLogging(const addr_t &node_address) {
+  for (auto &logging : log_configs) {
+    logging.InitLogging(node_address);
+  }
 }
 
 void FullNodeConfig::validate() const {

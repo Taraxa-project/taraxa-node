@@ -53,6 +53,16 @@ void setupLogging(dev::LoggingOptions const& options) {
   sink->set_formatter(boost::log::aux::acquire_formatter("%Channel% [%TimeStamp%] %SeverityStr%: %Message%"));
 
   boost::log::core::get()->add_sink(sink);
+
+  auto file_sink = boost::log::add_file_log(boost::log::keywords::file_name = "boot-node.log",
+                                            boost::log::keywords::rotation_size = 10000000,
+                                            boost::log::keywords::max_size = 10000000l);
+
+  file_sink->set_formatter(boost::log::aux::acquire_formatter("%Channel% [%TimeStamp%] %SeverityStr%: %Message%"));
+  file_sink->locked_backend()->auto_flush(true);
+
+  boost::log::core::get()->add_sink(file_sink);
+
   boost::log::core::get()->add_global_attribute("TimeStamp", boost::log::attributes::local_clock());
 
   boost::log::core::get()->set_exception_handler(boost::log::make_exception_handler<std::exception>(
