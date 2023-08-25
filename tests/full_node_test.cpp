@@ -1419,6 +1419,7 @@ TEST_F(FullNodeTest, light_node) {
     // broadcast dummy transaction
     nodes[1]->getTransactionManager()->insertTransaction(dummy_trx);
     thisThreadSleepForMilliSeconds(200);
+    nodes[1]->getDagManager()->clearLightNodeHistory();
   }
   EXPECT_HAPPENS({10s, 1s}, [&](auto &ctx) {
     // Verify full node and light node sync without any issues
