@@ -390,10 +390,6 @@ uint DagManager::setDagBlockOrder(blk_hash_t const &new_anchor, PbftPeriod perio
   period_ = period;
   updateFrontier();
 
-  if (is_light_node_) {
-    clearLightNodeHistory();
-  }
-
   LOG(log_nf_) << "Set new period " << period << " with anchor " << new_anchor;
 
   return dag_order_set.size();
