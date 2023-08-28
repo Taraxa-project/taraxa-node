@@ -697,7 +697,12 @@ void NodeTable::doHandleTimeouts() {
       if (chrono::steady_clock::now() > it->second.pingSentTime + m_requestTimeToLive) {
         if (auto node = nodeEntry(it->second.nodeID)) {
           if (node->lastPongReceivedTime < RLPXDatagramFace::secondsSinceEpoch() - m_requestTimeToLive.count()) {
-            dropNode(std::move(node));
+            if (it->first == node->endpoint()) {
+              dropNode(std::move(node));
+            } else {
+              LOG(m_logger) << "Not dropping node " << it->second.nodeID << " on ping timeout for " << it->first << " "
+                            << " as previous endpoint still valid " << node->endpoint();
+            }
           } else {
             LOG(m_logger) << "Not dropping node " << it->second.nodeID << " " << it->first << " as it was updated";
           }
