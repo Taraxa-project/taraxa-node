@@ -3,6 +3,8 @@
 #include <libdevcore/CommonData.h>
 #include <libdevcore/CommonJS.h>
 
+#include <exception>
+
 #include "common/jsoncpp.hpp"
 #include "final_chain/state_api_data.hpp"
 #include "network/rpc/eth/data.hpp"
@@ -21,32 +23,23 @@ inline EthBlockNumber get_ctx_block_num(EthBlockNumber block_number) {
 
 Json::Value Debug::debug_traceTransaction(const std::string& transaction_hash) {
   Json::Value res;
-  try {
-    auto [trx, loc] = get_transaction_with_location(transaction_hash);
-    if (!trx || !loc) {
-      res["status"] = "Transaction not found";
-      return res;
-    }
-    if (auto node = full_node_.lock()) {
-      return util::readJsonFromString(
-          node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, get_ctx_block_num(loc->blk_n)));
-    }
-  } catch (std::exception& e) {
-    res["status"] = e.what();
+  auto [trx, loc] = get_transaction_with_location(transaction_hash);
+  if (!trx || !loc) {
+    throw std::runtime_error("Transaction not found");
+  }
+  if (auto node = full_node_.lock()) {
+    return util::readJsonFromString(
+        node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, get_ctx_block_num(loc->blk_n)));
   }
   return res;
 }
 
 Json::Value Debug::debug_traceCall(const Json::Value& call_params, const std::string& blk_num) {
   Json::Value res;
-  try {
-    const auto block = parse_blk_num(blk_num);
-    auto trx = to_eth_trx(call_params, block);
-    if (auto node = full_node_.lock()) {
-      return util::readJsonFromString(node->getFinalChain()->trace({std::move(trx)}, block));
-    }
-  } catch (std::exception& e) {
-    res["status"] = e.what();
+  const auto block = parse_blk_num(blk_num);
+  auto trx = to_eth_trx(call_params, block);
+  if (auto node = full_node_.lock()) {
+    return util::readJsonFromString(node->getFinalChain()->trace({std::move(trx)}, block));
   }
   return res;
 }
@@ -54,60 +47,46 @@ Json::Value Debug::debug_traceCall(const Json::Value& call_params, const std::st
 Json::Value Debug::trace_call(const Json::Value& call_params, const Json::Value& trace_params,
                               const std::string& blk_num) {
   Json::Value res;
-  try {
-    const auto block = parse_blk_num(blk_num);
-    auto params = parse_tracking_parms(trace_params);
-    if (auto node = full_node_.lock()) {
-      return util::readJsonFromString(
-          node->getFinalChain()->trace({to_eth_trx(call_params, block)}, block, std::move(params)));
-    }
-  } catch (std::exception& e) {
-    res["status"] = e.what();
+  const auto block = parse_blk_num(blk_num);
+  auto params = parse_tracking_parms(trace_params);
+  if (auto node = full_node_.lock()) {
+    return util::readJsonFromString(
+        node->getFinalChain()->trace({to_eth_trx(call_params, block)}, block, std::move(params)));
   }
   return res;
 }
 
 Json::Value Debug::trace_replayTransaction(const std::string& transaction_hash, const Json::Value& trace_params) {
   Json::Value res;
-  try {
-    auto params = parse_tracking_parms(trace_params);
-    auto [trx, loc] = get_transaction_with_location(transaction_hash);
-    if (!trx || !loc) {
-      res["status"] = "Transaction not found";
-      return res;
-    }
-    if (auto node = full_node_.lock()) {
-      return util::readJsonFromString(
-          node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, get_ctx_block_num(loc->blk_n), std::move(params)));
-    }
-  } catch (std::exception& e) {
-    res["status"] = e.what();
+  auto params = parse_tracking_parms(trace_params);
+  auto [trx, loc] = get_transaction_with_location(transaction_hash);
+  if (!trx || !loc) {
+    throw std::runtime_error("Transaction not found");
+  }
+  if (auto node = full_node_.lock()) {
+    return util::readJsonFromString(
+        node->getFinalChain()->trace({to_eth_trx(std::move(trx))}, get_ctx_block_num(loc->blk_n), std::move(params)));
   }
   return res;
 }
 
 Json::Value Debug::trace_replayBlockTransactions(const std::string& block_num, const Json::Value& trace_params) {
   Json::Value res;
-  try {
-    const auto block = parse_blk_num(block_num);
-    auto params = parse_tracking_parms(trace_params);
-    if (auto node = full_node_.lock()) {
-      auto transactions = node->getDB()->getPeriodTransactions(block);
-      if (!transactions.has_value() || transactions->empty()) {
-        res["status"] = "Block has no transactions";
-        return res;
-      }
-      // TODO[2495]: remove after a proper fox of transactions ordering in PeriodData
-      PbftManager::reorderTransactions(*transactions);
-      std::vector<state_api::EVMTransaction> trxs;
-      trxs.reserve(transactions->size());
-      std::transform(transactions->begin(), transactions->end(), std::back_inserter(trxs),
-                     [this](auto t) { return to_eth_trx(std::move(t)); });
-      return util::readJsonFromString(
-          node->getFinalChain()->trace(std::move(trxs), get_ctx_block_num(block), std::move(params)));
+  const auto block = parse_blk_num(block_num);
+  auto params = parse_tracking_parms(trace_params);
+  if (auto node = full_node_.lock()) {
+    auto transactions = node->getDB()->getPeriodTransactions(block);
+    if (!transactions.has_value() || transactions->empty()) {
+      return Json::Value(Json::arrayValue);
     }
-  } catch (std::exception& e) {
-    res["status"] = e.what();
+    // TODO[2495]: remove after a proper fox of transactions ordering in PeriodData
+    PbftManager::reorderTransactions(*transactions);
+    std::vector<state_api::EVMTransaction> trxs;
+    trxs.reserve(transactions->size());
+    std::transform(transactions->begin(), transactions->end(), std::back_inserter(trxs),
+                   [this](auto t) { return to_eth_trx(std::move(t)); });
+    return util::readJsonFromString(
+        node->getFinalChain()->trace(std::move(trxs), get_ctx_block_num(block), std::move(params)));
   }
   return res;
 }
@@ -157,9 +136,6 @@ Json::Value Debug::debug_getPeriodTransactionsWithReceipts(const std::string& _p
     if (!trxs.has_value()) {
       return Json::Value(Json::arrayValue);
     }
-
-    // TODO[2495]: remove after a proper fox of transactions ordering in PeriodData
-    PbftManager::reorderTransactions(*trxs);
 
     return transformToJsonParallel(*trxs, [&final_chain, &block_hash](const auto& trx) {
       auto hash = trx->getHash();

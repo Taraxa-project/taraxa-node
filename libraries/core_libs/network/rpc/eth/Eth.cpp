@@ -343,12 +343,12 @@ class EthImpl : public Eth, EthParams {
   }
 
   optional<LocalisedTransaction> get_transaction(uint64_t trx_pos, EthBlockNumber blk_n) const {
-    auto hashes = final_chain->transaction_hashes(blk_n);
-    if (hashes->size() <= trx_pos) {
+    const auto& trxs = final_chain->transactions(blk_n);
+    if (trxs.size() <= trx_pos) {
       return {};
     }
     return LocalisedTransaction{
-        get_trx(hashes->at(trx_pos)),
+        trxs[trx_pos],
         TransactionLocationWithBlockHash{
             {blk_n, trx_pos},
             *final_chain->block_hash(blk_n),
