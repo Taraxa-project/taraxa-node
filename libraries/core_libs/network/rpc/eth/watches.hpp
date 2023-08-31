@@ -91,11 +91,13 @@ class WatchGroup {
   void uninstall_stale_watches() const {
     std::unique_lock l(watches_mu_);
     bool did_uninstall = false;
-    for (auto& [id, watch] : watches_) {
+    for (auto it = watches_.begin(); it != watches_.end();) {
       if (cfg_.idle_timeout <=
-          duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - watch.last_touched)) {
-        watches_.erase(id);
+          duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - it->second.last_touched)) {
+        it = watches_.erase(it);
         did_uninstall = true;
+      } else {
+        it++;
       }
     }
     if (auto num_buckets = watches_.bucket_count(); did_uninstall && (1 << 10) < num_buckets) {
