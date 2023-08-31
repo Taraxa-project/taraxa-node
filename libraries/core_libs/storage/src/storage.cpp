@@ -8,6 +8,7 @@
 
 #include "config/version.hpp"
 #include "dag/sortition_params_manager.hpp"
+#include "final_chain/final_chain.hpp"
 #include "rocksdb/utilities/checkpoint.h"
 #include "storage/uint_comparator.hpp"
 #include "vote/vote.hpp"
@@ -20,6 +21,7 @@ static constexpr uint16_t PBFT_BLOCK_POS_IN_PERIOD_DATA = 0;
 static constexpr uint16_t CERT_VOTES_POS_IN_PERIOD_DATA = 1;
 static constexpr uint16_t DAG_BLOCKS_POS_IN_PERIOD_DATA = 2;
 static constexpr uint16_t TRANSACTIONS_POS_IN_PERIOD_DATA = 3;
+static constexpr uint16_t PREV_BLOCK_HASH_POS_IN_PBFT_BLOCK = 0;
 
 DbStorage::DbStorage(fs::path const& path, uint32_t db_snapshot_each_n_pbft_block, uint32_t max_open_files,
                      uint32_t db_max_snapshots, PbftPeriod db_revert_to_period, addr_t node_addr, bool rebuild)
@@ -586,13 +588,22 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
         for (auto period = start_period; period < end_period; period++) {
           // Find transactions included in the old blocks and delete data related to these transactions to free
           // disk space
-          const auto& dag_blocks = getFinalizedDagBlockByPeriod(period);
+          const auto& [pbft_block_hash, dag_blocks] = getLastPbftblockHashAndFinalizedDagBlockByPeriod(period);
 
           for (const auto& dag_block : dag_blocks) {
             for (const auto& trx_hash : dag_block->getTrxs()) {
               remove(write_batch, Columns::final_chain_receipt_by_trx_hash, trx_hash);
+              remove(write_batch, Columns::trx_period, toSlice(trx_hash.asBytes()));
             }
           }
+          remove(write_batch, Columns::pbft_block_period, toSlice(pbft_block_hash.asBytes()));
+
+          for (uint64_t level = 0, index = period; level < final_chain::c_bloomIndexLevels;
+               ++level, index /= final_chain::c_bloomIndexSize) {
+            auto chunk_id = h256(index / final_chain::c_bloomIndexSize * 0xff + level);
+            remove(write_batch, Columns::final_chain_log_blooms_index, chunk_id);
+          }
+
           if ((period - start_period + 1) % max_batch_delete == 0) {
             commitWriteBatch(write_batch);
             write_batch = createWriteBatch();
@@ -606,6 +617,9 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
         // the data in the database and free disk space
         db_->CompactRange({}, handle(Columns::period_data), &start_slice, &end_slice);
         db_->CompactRange({}, handle(Columns::final_chain_receipt_by_trx_hash), nullptr, nullptr);
+        db_->CompactRange({}, handle(Columns::trx_period), nullptr, nullptr);
+        db_->CompactRange({}, handle(Columns::pbft_block_period), nullptr, nullptr);
+        db_->CompactRange({}, handle(Columns::final_chain_log_blooms_index), nullptr, nullptr);
       }
 
       if (start_level < dag_level_to_keep) {
@@ -616,11 +630,11 @@ void DbStorage::clearPeriodDataHistory(PbftPeriod end_period, uint64_t dag_level
         auto end_slice = toSlice(dag_level_to_keep - 1);
         for (auto level = start_level; level < dag_level_to_keep; level++) {
           // Find old dag blocks and delete data related to these blocks to free disk space
-          auto dag_block_hashes = getBlocksByLevel(start_level);
+          auto dag_block_hashes = getBlocksByLevel(level);
           for (auto dag_block_hash : dag_block_hashes) {
-            remove(write_batch, Columns::dag_block_period, dag_block_hash);
+            remove(write_batch, Columns::dag_block_period, toSlice(dag_block_hash.asBytes()));
           }
-          if ((dag_level_to_keep - start_level + 1) % max_batch_delete == 0) {
+          if ((level - start_level + 1) % max_batch_delete == 0) {
             commitWriteBatch(write_batch);
             write_batch = createWriteBatch();
           }
@@ -1120,6 +1134,23 @@ std::vector<std::shared_ptr<DagBlock>> DbStorage::getFinalizedDagBlockByPeriod(P
     }
   }
   return ret;
+}
+
+std::pair<blk_hash_t, std::vector<std::shared_ptr<DagBlock>>>
+DbStorage::getLastPbftblockHashAndFinalizedDagBlockByPeriod(PbftPeriod period) {
+  std::vector<std::shared_ptr<DagBlock>> ret;
+  blk_hash_t last_pbft_block_hash;
+  if (auto period_data = getPeriodDataRaw(period); period_data.size() > 0) {
+    auto const period_data_rlp = dev::RLP(period_data);
+    auto dag_blocks_data = period_data_rlp[DAG_BLOCKS_POS_IN_PERIOD_DATA];
+    ret.reserve(dag_blocks_data.size());
+    for (auto const block : dag_blocks_data) {
+      ret.emplace_back(std::make_shared<DagBlock>(block));
+    }
+    last_pbft_block_hash =
+        period_data_rlp[PBFT_BLOCK_POS_IN_PERIOD_DATA][PREV_BLOCK_HASH_POS_IN_PBFT_BLOCK].toHash<blk_hash_t>();
+  }
+  return {last_pbft_block_hash, ret};
 }
 
 std::optional<PbftPeriod> DbStorage::getProposalPeriodForDagLevel(uint64_t level) {
