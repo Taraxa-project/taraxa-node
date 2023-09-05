@@ -334,6 +334,8 @@ Public Member Functions</h2></td></tr>
 <tr class="separator:a40229bddbced5243a1cdf57bbccc4bc7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c2a8b3742a98a95db170e4d1cf49001"><td class="memItemLeft" align="right" valign="top">std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a9c2a8b3742a98a95db170e4d1cf49001">getFinalizedDagBlockByPeriod</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
 <tr class="separator:a9c2a8b3742a98a95db170e4d1cf49001"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aefef0b130c28177416ff54cead2b65e2"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt; &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#aefef0b130c28177416ff54cead2b65e2">getLastPbftblockHashAndFinalizedDagBlockByPeriod</a> (<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
+<tr class="separator:aefef0b130c28177416ff54cead2b65e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a14db1e88a6b4a4dd71f6a2c15d8e46c7"><td class="memItemLeft" align="right" valign="top">std::optional&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#a14db1e88a6b4a4dd71f6a2c15d8e46c7">getProposalPeriodForDagLevel</a> (uint64_t level)</td></tr>
 <tr class="separator:a14db1e88a6b4a4dd71f6a2c15d8e46c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ab47b8c737823242ffe4a374cac60b690"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_db_storage.html#ab47b8c737823242ffe4a374cac60b690">saveProposalPeriodDagLevelsMap</a> (uint64_t level, <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a> period)</td></tr>
@@ -1708,6 +1710,24 @@ template&lt;typename K &gt; </div>
           <td>(</td>
           <td class="paramname"></td><td>)</td>
           <td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="aefef0b130c28177416ff54cead2b65e2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aefef0b130c28177416ff54cead2b65e2">&#9670;&nbsp;</a></span>getLastPbftblockHashAndFinalizedDagBlockByPeriod()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::pair&lt; <a class="el" href="namespacetaraxa.html#a55e7078ff4a35de49d82da478b6d135b">blk_hash_t</a>, std::vector&lt; std::shared_ptr&lt; <a class="el" href="classtaraxa_1_1_dag_block.html">DagBlock</a> &gt; &gt; &gt; taraxa::DbStorage::getLastPbftblockHashAndFinalizedDagBlockByPeriod </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>&#160;</td>
+          <td class="paramname"><em>period</em></td><td>)</td>
+          <td></td>
         </tr>
       </table>
 </div><div class="memdoc">
