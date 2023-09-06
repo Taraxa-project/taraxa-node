@@ -207,11 +207,14 @@ add_custom_target(check-static DEPENDS cpp-check clang-format clang-format-check
 # execute command to get git info
 include(CMakeModules/git_info.cmake)
 
+include(ExternalProject)
+
 # find and include system libraries used in submodues and libraries
 find_package(GMP)
 find_package(MPFR)
+# used in libraries/aleth & submodules/libBLS
+include(ProjectLibFF)
 
-include(ExternalProject)
 # use JSONCPP library from conan for JSONRPCCPP build
 set(JSONCPP_INCLUDE_DIR ${CONAN_INCLUDE_DIRS_JSONCPP})
 include(ProjectJSONRPCCPP)
