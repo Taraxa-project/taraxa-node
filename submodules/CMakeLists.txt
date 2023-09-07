@@ -149,3 +149,6 @@ add_custom_command(
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND cd ./taraxa-evm && ${EVM_BUILD_ENV} go test ./...
     COMMENT "Running Go EVM tests")
+
+# Alternative libBLS cmake
+include(CMakeLists_bls.cmake)
