@@ -16,4 +16,4 @@
 	ignore = dirty
 [submodule "submodules/libBLS"]
 	path = submodules/libBLS
-	url = git@github.com:skalenetwork/libBLS.git
+	url = https://github.com/skalenetwork/libBLS.git
