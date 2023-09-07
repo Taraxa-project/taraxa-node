@@ -3,7 +3,6 @@ add_subdirectory(test_util)
 # Enable testing for current directory and below.
 enable_testing(true)
 
-
 add_executable(abi_test abi_test.cpp)
 target_link_libraries(abi_test test_util)
 add_test(abi_test ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/abi_test)
