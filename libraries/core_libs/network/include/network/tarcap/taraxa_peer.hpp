@@ -7,6 +7,7 @@
 
 #include "common/util.hpp"
 #include "network/tarcap/stats/packets_stats.hpp"
+#include "pillar_chain/bls_signature.hpp"
 
 namespace taraxa::network::tarcap {
 
@@ -53,6 +54,16 @@ class TaraxaPeer : public boost::noncopyable {
    */
   bool markPbftBlockAsKnown(const blk_hash_t& hash);
   bool isPbftBlockKnown(const blk_hash_t& hash) const;
+
+  /**
+   * @brief Mark bls signature as known
+   *
+   * @param _hash
+   * @return true in case bls signature was actually marked as known(was not known before), otherwise false (was already
+   * known)
+   */
+  bool markBlsSigAsKnown(const BlsSignature::Hash& hash);
+  bool isBlsSigKnown(const BlsSignature::Hash& hash) const;
 
   const dev::p2p::NodeID& getId() const;
 
@@ -126,7 +137,8 @@ class TaraxaPeer : public boost::noncopyable {
   ExpirationBlockNumberCache<trx_hash_t> known_transactions_;
   // PBFT
   ExpirationBlockNumberCache<blk_hash_t> known_pbft_blocks_;
-  ExpirationBlockNumberCache<vote_hash_t> known_votes_;  // for peers
+  ExpirationBlockNumberCache<vote_hash_t> known_votes_;
+  ExpirationBlockNumberCache<vote_hash_t> known_bls_signature_;
 
   std::atomic<uint64_t> timestamp_suspicious_packet_ = 0;
   std::atomic<uint64_t> suspicious_packet_count_ = 0;

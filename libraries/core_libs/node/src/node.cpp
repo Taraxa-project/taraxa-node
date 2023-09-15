@@ -26,6 +26,7 @@
 #include "network/rpc/jsonrpc_http_processor.hpp"
 #include "network/rpc/jsonrpc_ws_server.hpp"
 #include "pbft/pbft_manager.hpp"
+#include "pillar_chain/pillar_chain_manager.hpp"
 #include "slashing_manager/slashing_manager.hpp"
 #include "storage/migration/migration_manager.hpp"
 #include "storage/migration/transaction_period.hpp"
@@ -128,10 +129,11 @@ void FullNode::init() {
   }
 
   pbft_chain_ = std::make_shared<PbftChain>(node_addr, db_);
-  dag_mgr_ = std::make_shared<DagManager>(
-      conf_.genesis.dag_genesis_block, node_addr, conf_.genesis.sortition, conf_.genesis.dag, trx_mgr_, pbft_chain_,
-      final_chain_, db_, key_manager_, conf_.genesis.pbft.gas_limit, conf_.genesis.state, conf_.is_light_node,
-      conf_.light_node_history, conf_.max_levels_per_period, conf_.dag_expiry_limit);
+  pillar_chain_ = std::make_shared<PillarChainManager>(db_, node_addr);
+  dag_mgr_ = std::make_shared<DagManager>(conf_.genesis.dag_genesis_block, node_addr, conf_.genesis.sortition,
+                                          conf_.genesis.dag, trx_mgr_, pbft_chain_, final_chain_, db_, key_manager_,
+                                          conf_.genesis.pbft.gas_limit, conf_.genesis.state, conf_.light_node_history,
+                                          conf_.max_levels_per_period, conf_.dag_expiry_limit);
   auto slashing_manager = std::make_shared<SlashingManager>(final_chain_, trx_mgr_, gas_pricer_, conf_, kp_.secret());
   vote_mgr_ = std::make_shared<VoteManager>(node_addr, conf_.genesis.pbft, kp_.secret(), conf_.vrf_secret, db_,
                                             pbft_chain_, final_chain_, key_manager_, slashing_manager);
@@ -322,6 +324,15 @@ void FullNode::start() {
           }
         },
         subscription_pool_);
+
+  // TODO: send new block to pillar chain for processing
+  final_chain_->block_finalized_.subscribe(
+      [pillar_chain_weak = as_weak(pillar_chain_)](const auto &res) {
+        if (auto pillar_chain = pillar_chain_weak.lock()) {
+          pillar_chain->newFinalBlock(res);
+        }
+      },
+      subscription_pool_);
   }
 
   vote_mgr_->setNetwork(network_);

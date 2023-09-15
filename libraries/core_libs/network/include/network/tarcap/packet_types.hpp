@@ -29,6 +29,7 @@ enum SubprotocolPacketType : uint32_t {
   GetPbftSyncPacket,
   PbftSyncPacket,
   GetDagSyncPacket,
+  BlsSigPacket,
 
   PacketCount
 };
