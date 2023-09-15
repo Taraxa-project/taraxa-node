@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "network/tarcap/packets_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/bls_sig_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/get_dag_sync_packet_handler.hpp"
@@ -213,7 +214,7 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersion
        const std::shared_ptr<PbftManager> &pbft_mgr, const std::shared_ptr<PbftChain> &pbft_chain,
        const std::shared_ptr<VoteManager> &vote_mgr, const std::shared_ptr<DagManager> &dag_mgr,
        const std::shared_ptr<TransactionManager> &trx_mgr, const std::shared_ptr<SlashingManager> &slashing_manager,
-       const addr_t &node_addr) {
+       const std::shared_ptr<PillarChainManager> &pillar_chain_mgr, const addr_t &node_addr) {
       auto packets_handlers = std::make_shared<PacketsHandler>();
       // Consensus packets with high processing priority
       packets_handlers->registerHandler<VotePacketHandler>(config, peers_state, packets_stats, pbft_mgr, pbft_chain,
@@ -248,6 +249,8 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersion
       packets_handlers->registerHandler<PbftSyncPacketHandler>(config, peers_state, packets_stats, pbft_syncing_state,
                                                                pbft_chain, pbft_mgr, dag_mgr, vote_mgr, db, node_addr,
                                                                logs_prefix);
+      packets_handlers->registerHandler<BlsSigPacketHandler>(config, peers_state, packets_stats, pillar_chain_mgr,
+                                                             node_addr, logs_prefix);
 
       return packets_handlers;
     };
