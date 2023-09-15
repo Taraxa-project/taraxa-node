@@ -9,11 +9,10 @@
 
 #include "config/version.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/bls_sig_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/latest/status_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v1/init_packets_handlers.hpp"
 #include "network/tarcap/shared_states/pbft_syncing_state.hpp"
 #include "network/tarcap/stats/node_stats.hpp"
 #include "network/tarcap/stats/time_period_packets_stats.hpp"
@@ -70,7 +69,17 @@ Network::Network(const FullNodeConfig &config, const h256 &genesis_hash, std::fi
   // Create taraxa capabilities
   dev::p2p::Host::CapabilitiesFactory constructCapabilities = [&](std::weak_ptr<dev::p2p::Host> host) {
     assert(!host.expired());
+
+    const size_t kV1NetworkVersion = 1;
+    assert(kV1NetworkVersion < TARAXA_NET_VERSION);
+
     dev::p2p::Host::CapabilityList capabilities;
+
+    // Register old version (V1) of taraxa capability
+    auto v1_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
+        kV1NetworkVersion, config, genesis_hash, host, key, packets_tp_, all_packets_stats_, pbft_syncing_state_, db,
+        pbft_mgr, pbft_chain, vote_mgr, dag_mgr, trx_mgr, slashing_manager, network::tarcap::v1::kInitV1Handlers);
+    capabilities.emplace_back(v1_tarcap);
 
     // Register latest version of taraxa capability
     auto latest_tarcap = std::make_shared<network::tarcap::TaraxaCapability>(
