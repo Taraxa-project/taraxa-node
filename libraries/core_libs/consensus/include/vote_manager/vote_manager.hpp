@@ -38,7 +38,7 @@ class VoteManager {
 
   /**
    * @brief Set network as a weak pointer
-   * @param network a weak pinter
+   * @param network a weak pointer
    */
   void setNetwork(std::weak_ptr<Network> network);
 
