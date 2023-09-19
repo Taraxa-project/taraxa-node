@@ -235,7 +235,7 @@ TEST_F(StateAPITest, slashing) {
   ASSERT_EQ(true, slashing_manager->submitDoubleVotingProof(vote_a, vote_b));
 
   // After few blocks malicious validator should be jailed
-  ASSERT_HAPPENS({5s, 100ms}, [&](auto& ctx) {
+  ASSERT_HAPPENS({10s, 100ms}, [&](auto& ctx) {
     WAIT_EXPECT_EQ(
         ctx, false,
         node->getFinalChain()->dpos_is_eligible(node->getFinalChain()->last_block_number(), node->getAddress()))

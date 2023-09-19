@@ -307,7 +307,7 @@ bool PbftManager::advancePeriod() {
   // Cleanup proposed blocks
   proposed_blocks_.cleanupProposedPbftBlocksByPeriod(new_period);
 
-  LOG(log_er_) << "Period advanced to: " << new_period << ", round and step reset to 1";
+  LOG(log_nf_) << "Period advanced to: " << new_period << ", round and step reset to 1";
 
   // Restart while loop...
   return true;

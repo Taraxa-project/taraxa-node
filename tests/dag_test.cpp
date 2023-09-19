@@ -135,9 +135,9 @@ TEST_F(DagTest, compute_epoch) {
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   const blk_hash_t GENESIS = node_cfgs[0].genesis.dag_genesis_block.getHash();
-  auto mgr =
-      std::make_shared<DagManager>(node_cfgs[0].genesis.dag_genesis_block, addr_t(), node_cfgs[0].genesis.sortition,
-                                   node_cfgs[0].genesis.dag, trx_mgr, pbft_chain, nullptr, db_ptr, nullptr, 100000);
+  auto mgr = std::make_shared<DagManager>(node_cfgs[0].genesis.dag_genesis_block, addr_t(),
+                                          node_cfgs[0].genesis.sortition, node_cfgs[0].genesis.dag, trx_mgr, pbft_chain,
+                                          nullptr, db_ptr, nullptr, 100000, node_cfgs[0].genesis.state);
 
   DagBlock blkA(GENESIS, 1, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkB(GENESIS, 1, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
@@ -228,9 +228,9 @@ TEST_F(DagTest, dag_expiry) {
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   const blk_hash_t GENESIS = node_cfgs[0].genesis.dag_genesis_block.getHash();
-  auto mgr = std::make_shared<DagManager>(node_cfgs[0].genesis.dag_genesis_block, addr_t(),
-                                          node_cfgs[0].genesis.sortition, node_cfgs[0].genesis.dag, trx_mgr, pbft_chain,
-                                          nullptr, db_ptr, nullptr, 100000, false, 0, 3, EXPIRY_LIMIT);
+  auto mgr = std::make_shared<DagManager>(
+      node_cfgs[0].genesis.dag_genesis_block, addr_t(), node_cfgs[0].genesis.sortition, node_cfgs[0].genesis.dag,
+      trx_mgr, pbft_chain, nullptr, db_ptr, nullptr, 100000, node_cfgs[0].genesis.state, false, 0, 3, EXPIRY_LIMIT);
 
   DagBlock blkA(GENESIS, 1, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkB(GENESIS, 1, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
@@ -304,9 +304,9 @@ TEST_F(DagTest, receive_block_in_order) {
   auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   const blk_hash_t GENESIS = node_cfgs[0].genesis.dag_genesis_block.getHash();
-  auto mgr =
-      std::make_shared<DagManager>(node_cfgs[0].genesis.dag_genesis_block, addr_t(), node_cfgs[0].genesis.sortition,
-                                   node_cfgs[0].genesis.dag, trx_mgr, pbft_chain, nullptr, db_ptr, nullptr, 100000);
+  auto mgr = std::make_shared<DagManager>(node_cfgs[0].genesis.dag_genesis_block, addr_t(),
+                                          node_cfgs[0].genesis.sortition, node_cfgs[0].genesis.dag, trx_mgr, pbft_chain,
+                                          nullptr, db_ptr, nullptr, 100000, node_cfgs[0].genesis.state);
 
   DagBlock blk1(GENESIS, 1, {}, {}, sig_t(777), blk_hash_t(1), addr_t(15));
   DagBlock blk2(blk_hash_t(1), 2, {}, {}, sig_t(777), blk_hash_t(2), addr_t(15));
@@ -336,9 +336,9 @@ TEST_F(DagTest, compute_epoch_2) {
   auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   const blk_hash_t GENESIS = node_cfgs[0].genesis.dag_genesis_block.getHash();
-  auto mgr =
-      std::make_shared<DagManager>(node_cfgs[0].genesis.dag_genesis_block, addr_t(), node_cfgs[0].genesis.sortition,
-                                   node_cfgs[0].genesis.dag, trx_mgr, pbft_chain, nullptr, db_ptr, nullptr, 100000);
+  auto mgr = std::make_shared<DagManager>(node_cfgs[0].genesis.dag_genesis_block, addr_t(),
+                                          node_cfgs[0].genesis.sortition, node_cfgs[0].genesis.dag, trx_mgr, pbft_chain,
+                                          nullptr, db_ptr, nullptr, 100000, node_cfgs[0].genesis.state);
 
   DagBlock blkA(GENESIS, 1, {}, {trx_hash_t(2)}, sig_t(1), blk_hash_t(2), addr_t(1));
   DagBlock blkB(GENESIS, 1, {}, {trx_hash_t(3), trx_hash_t(4)}, sig_t(1), blk_hash_t(3), addr_t(1));
@@ -419,9 +419,9 @@ TEST_F(DagTest, get_latest_pivot_tips) {
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
   const blk_hash_t GENESIS = node_cfgs[0].genesis.dag_genesis_block.getHash();
-  auto mgr =
-      std::make_shared<DagManager>(node_cfgs[0].genesis.dag_genesis_block, addr_t(), node_cfgs[0].genesis.sortition,
-                                   node_cfgs[0].genesis.dag, trx_mgr, pbft_chain, nullptr, db_ptr, nullptr, 100000);
+  auto mgr = std::make_shared<DagManager>(node_cfgs[0].genesis.dag_genesis_block, addr_t(),
+                                          node_cfgs[0].genesis.sortition, node_cfgs[0].genesis.dag, trx_mgr, pbft_chain,
+                                          nullptr, db_ptr, nullptr, 100000, node_cfgs[0].genesis.state);
 
   DagBlock blk2(GENESIS, 1, {}, {}, sig_t(1), blk_hash_t(2), addr_t(15));
   DagBlock blk3(blk_hash_t(2), 2, {}, {}, sig_t(1), blk_hash_t(3), addr_t(15));
@@ -446,9 +446,9 @@ TEST_F(DagTest, initial_pivot) {
   auto db_ptr = std::make_shared<DbStorage>(data_dir / "db");
   auto trx_mgr = std::make_shared<TransactionManager>(FullNodeConfig(), db_ptr, nullptr, addr_t());
   auto pbft_chain = std::make_shared<PbftChain>(addr_t(), db_ptr);
-  auto mgr =
-      std::make_shared<DagManager>(node_cfgs[0].genesis.dag_genesis_block, addr_t(), node_cfgs[0].genesis.sortition,
-                                   node_cfgs[0].genesis.dag, trx_mgr, pbft_chain, nullptr, db_ptr, nullptr, 100000);
+  auto mgr = std::make_shared<DagManager>(node_cfgs[0].genesis.dag_genesis_block, addr_t(),
+                                          node_cfgs[0].genesis.sortition, node_cfgs[0].genesis.dag, trx_mgr, pbft_chain,
+                                          nullptr, db_ptr, nullptr, 100000, node_cfgs[0].genesis.state);
 
   auto pt = mgr->getLatestPivotAndTips();
 
