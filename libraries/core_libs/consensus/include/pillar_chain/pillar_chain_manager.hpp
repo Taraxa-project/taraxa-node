@@ -54,10 +54,10 @@ class PillarChainManager {
   bool addVerifiedBlsSig(const std::shared_ptr<BlsSignature>& signature);
 
   /**
-   * @brief Get all bls signatures
+   * @brief Get all bls signatures for specified pillar block
    * @return all bls signatures
    */
-  // std::vector<std::shared_ptr<BlsSignature>> getVerifiedBlsSigs() const;
+  std::vector<std::shared_ptr<BlsSignature>> getVerifiedBlsSigs(const PillarBlock::Hash pillar_block_hash) const;
 
  private:
   std::shared_ptr<DbStorage> db_;

@@ -1,13 +1,14 @@
 #pragma once
 
-#include "common/types.hpp"
 #include <bls/bls.h>
 #include <libdevcore/RLP.h>
+
 #include <optional>
+
+#include "common/types.hpp"
 #include "pillar_chain/pillar_block.hpp"
 
 namespace taraxa {
-
 
 /** @addtogroup PILLAR_CHAIN
  * @{
@@ -23,7 +24,8 @@ class BlsSignature {
 
  public:
   BlsSignature(const dev::RLP& rlp);
-  BlsSignature(PillarBlock::Hash pillar_block_hash, const libff::alt_bn128_G2& public_key, const libff::alt_bn128_Fr& secret);
+  BlsSignature(PillarBlock::Hash pillar_block_hash, const libff::alt_bn128_G2& public_key,
+               const libff::alt_bn128_Fr& secret);
 
   /**
    * @brief Validates BLS signature
