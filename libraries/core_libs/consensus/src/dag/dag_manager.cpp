@@ -19,8 +19,8 @@ DagManager::DagManager(const DagBlock &dag_genesis_block, addr_t node_addr, cons
                        const DagConfig &dag_config, std::shared_ptr<TransactionManager> trx_mgr,
                        std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
                        std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager, uint64_t pbft_gas_limit,
-                       bool is_light_node, uint64_t light_node_history, uint32_t max_levels_per_period,
-                       uint32_t dag_expiry_limit) try
+                       const state_api::Config &state_config, bool is_light_node, uint64_t light_node_history,
+                       uint32_t max_levels_per_period, uint32_t dag_expiry_limit) try
     : max_level_(db->getLastBlocksLevel()),
       pivot_tree_(std::make_shared<PivotTree>(dag_genesis_block.getHash(), node_addr)),
       total_dag_(std::make_shared<Dag>(dag_genesis_block.getHash(), node_addr)),
@@ -39,7 +39,9 @@ DagManager::DagManager(const DagBlock &dag_genesis_block, addr_t node_addr, cons
       dag_expiry_limit_(dag_expiry_limit),
       seen_blocks_(cache_max_size_, cache_delete_step_),
       final_chain_(std::move(final_chain)),
-      kPbftGasLimit(pbft_gas_limit) {
+      kPbftGasLimit(pbft_gas_limit),
+      kHardforks(state_config.hardforks),
+      kValidatorMaxVote(state_config.dpos.validator_maximum_stake / state_config.dpos.vote_eligibility_balance_step) {
   LOG_OBJECTS_CREATE("DAGMGR");
   if (auto ret = getLatestPivotAndTips(); ret) {
     frontier_.pivot = ret->first;
@@ -502,10 +504,15 @@ void DagManager::recoverDag() {
         }
         // Verify VDF solution
         try {
-          const auto total_vote_count = final_chain_->dpos_eligible_total_vote_count(*propose_period);
+          uint64_t max_vote_count = 0;
           const auto vote_count = final_chain_->dpos_eligible_vote_count(*propose_period, blk.getSender());
+          if (*propose_period < kHardforks.magnolia_hf.block_num) {
+            max_vote_count = final_chain_->dpos_eligible_total_vote_count(*propose_period);
+          } else {
+            max_vote_count = kValidatorMaxVote;
+          }
           blk.verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period),
-                        db_->getPeriodBlockHash(*propose_period), *pk, vote_count, total_vote_count);
+                        db_->getPeriodBlockHash(*propose_period), *pk, vote_count, max_vote_count);
         } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
           LOG(log_er_) << "DAG block " << blk.getHash() << " with " << blk.getLevel()
                        << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason "
@@ -630,10 +637,15 @@ DagManager::VerifyBlockReturnType DagManager::verifyBlock(const DagBlock &blk) {
 
   try {
     const auto proposal_period_hash = db_->getPeriodBlockHash(*propose_period);
-    const auto total_vote_count = final_chain_->dpos_eligible_total_vote_count(*propose_period);
+    uint64_t max_vote_count = 0;
     const auto vote_count = final_chain_->dpos_eligible_vote_count(*propose_period, blk.getSender());
+    if (*propose_period < kHardforks.magnolia_hf.block_num) {
+      max_vote_count = final_chain_->dpos_eligible_total_vote_count(*propose_period);
+    } else {
+      max_vote_count = kValidatorMaxVote;
+    }
     blk.verifyVdf(sortition_params_manager_.getSortitionParams(*propose_period), proposal_period_hash, *pk, vote_count,
-                  total_vote_count);
+                  max_vote_count);
   } catch (vdf_sortition::VdfSortition::InvalidVdfSortition const &e) {
     LOG(log_er_) << "DAG block " << block_hash << " with " << blk.getLevel()
                  << " level failed on VDF verification with pivot hash " << blk.getPivot() << " reason " << e.what();

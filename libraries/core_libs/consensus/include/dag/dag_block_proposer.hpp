@@ -38,7 +38,8 @@ class DagBlockProposer {
   DagBlockProposer(const DagBlockProposerConfig& bp_config, std::shared_ptr<DagManager> dag_mgr,
                    std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<final_chain::FinalChain> final_chain,
                    std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager, addr_t node_addr,
-                   secret_t node_sk, vrf_wrapper::vrf_sk_t vrf_sk, uint64_t pbft_gas_limit, uint64_t dag_gas_limit);
+                   secret_t node_sk, vrf_wrapper::vrf_sk_t vrf_sk, uint64_t pbft_gas_limit, uint64_t dag_gas_limit,
+                   const state_api::Config& state_config);
   ~DagBlockProposer() { stop(); }
   DagBlockProposer(const DagBlockProposer&) = delete;
   DagBlockProposer(DagBlockProposer&&) = delete;
@@ -148,6 +149,9 @@ class DagBlockProposer {
 
   const uint64_t kPbftGasLimit;
   const uint64_t kDagGasLimit;
+
+  const HardforksConfig kHardforks;
+  const uint64_t kValidatorMaxVote;
 
   LOG_OBJECTS_DEFINE
 };
