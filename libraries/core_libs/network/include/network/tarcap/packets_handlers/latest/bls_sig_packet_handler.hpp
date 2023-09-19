@@ -1,11 +1,10 @@
 #pragma once
 
-#include "common/packet_handler.hpp"
-#include "pillar_chain/pillar_chain_manager.hpp"
+#include "common/ext_bls_sig_packet_handler.hpp"
 
 namespace taraxa::network::tarcap {
 
-class BlsSigPacketHandler : public PacketHandler {
+class BlsSigPacketHandler : public ExtBlsSigPacketHandler {
  public:
   BlsSigPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                       std::shared_ptr<TimePeriodPacketsStats> packets_stats,
@@ -24,8 +23,6 @@ class BlsSigPacketHandler : public PacketHandler {
 
  protected:
   constexpr static size_t kBlsSigPacketSize{1};
-
-  std::shared_ptr<PillarChainManager> pillar_chain_manager_;
 };
 
 }  // namespace taraxa::network::tarcap

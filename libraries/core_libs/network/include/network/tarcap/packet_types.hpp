@@ -30,6 +30,8 @@ enum SubprotocolPacketType : uint32_t {
   PbftSyncPacket,
   GetDagSyncPacket,
   BlsSigPacket,
+  GetBlsSigsBundlePacket,
+  BlsSigsBundlePacket,
 
   PacketCount
 };
@@ -60,6 +62,12 @@ inline std::string convertPacketTypeToString(SubprotocolPacketType packet_type) 
       return "GetPbftSyncPacket";
     case PbftSyncPacket:
       return "PbftSyncPacket";
+    case BlsSigPacket:
+      return "BlsSigPacket";
+    case GetBlsSigsBundlePacket:
+      return "GetBlsSigsBundlePacket";
+    case BlsSigsBundlePacket:
+      return "BlsSigsBundlePacket";
     default:
       break;
   }
