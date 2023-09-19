@@ -70,8 +70,28 @@ bool PillarChainManager::isRelevantBlsSig(const std::shared_ptr<BlsSignature> si
 bool PillarChainManager::addVerifiedBlsSig(const std::shared_ptr<BlsSignature>& signature) {
   std::scoped_lock<std::shared_mutex> lock(mutex_);
 
-  // TODO: adjust also last_pillar_block_signatures_weight_
-  return last_pillar_block_signatures_.emplace(std::make_pair(signature->getHash(), signature)).second;
+  if (last_pillar_block_signatures_.emplace(std::make_pair(signature->getHash(), signature)).second) {
+    // TODO: adjust also last_pillar_block_signatures_weight_
+
+    return true;
+  }
+
+  return false;
+}
+
+std::vector<std::shared_ptr<BlsSignature>> PillarChainManager::getVerifiedBlsSigs(const PillarBlock::Hash pillar_block_hash) const {
+  std::shared_lock<std::shared_mutex> lock(mutex_);
+  if (pillar_block_hash != last_pillar_block_->getHash()) {
+    return {};
+  }
+
+  std::vector<std::shared_ptr<BlsSignature>> signatures;
+  signatures.reserve(last_pillar_block_signatures_.size());
+  for (const auto& sig: last_pillar_block_signatures_) {
+    signatures.push_back(sig.second);
+  }
+
+  return signatures;
 }
 
 void PillarChainManager::setNetwork(std::weak_ptr<Network> network) { network_ = std::move(network); }
