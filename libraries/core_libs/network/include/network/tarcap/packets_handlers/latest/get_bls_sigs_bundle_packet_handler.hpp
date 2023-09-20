@@ -13,7 +13,7 @@ class GetBlsSigsBundlePacketHandler : public PacketHandler {
                                 std::shared_ptr<PillarChainManager> pillar_chain_manager, const addr_t& node_addr,
                                 const std::string& logs_prefix);
 
-  void requestBlsSigsBundle(PillarBlock::Hash pillar_block_hash, const std::shared_ptr<TaraxaPeer>& peer);
+  void requestBlsSigsBundle(const PillarBlock::Hash& pillar_block_hash, const std::shared_ptr<TaraxaPeer>& peer);
 
   // Packet type that is processed by this handler
   static constexpr SubprotocolPacketType kPacketType_ = SubprotocolPacketType::GetBlsSigsBundlePacket;
