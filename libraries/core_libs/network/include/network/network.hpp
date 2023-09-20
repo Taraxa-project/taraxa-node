@@ -68,6 +68,13 @@ class Network {
   void handleMaliciousSyncPeer(const dev::p2p::NodeID &id);
   std::shared_ptr<network::tarcap::TaraxaPeer> getMaxChainPeer() const;
 
+  /**
+   * @brief Request bls signatures bundle packet from random peer
+   *
+   * @param pillar_block_hash
+   */
+  void requestBlsSigBundle(const PillarBlock::Hash &pillar_block_hash);
+
   // METHODS USED IN TESTS ONLY
   template <typename PacketHandlerType>
   std::shared_ptr<PacketHandlerType> getSpecificHandler() const;

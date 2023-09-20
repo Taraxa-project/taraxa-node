@@ -7,7 +7,8 @@ GetBlsSigsBundlePacketHandler::GetBlsSigsBundlePacketHandler(const FullNodeConfi
                                                              std::shared_ptr<TimePeriodPacketsStats> packets_stats,
                                                              std::shared_ptr<PillarChainManager> pillar_chain_manager,
                                                              const addr_t &node_addr, const std::string &logs_prefix)
-    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr, logs_prefix + "GET_BLS_SIGS_BUNDLE_PH"),
+    : PacketHandler(conf, std::move(peers_state), std::move(packets_stats), node_addr,
+                    logs_prefix + "GET_BLS_SIGS_BUNDLE_PH"),
       pillar_chain_manager_(std::move(std::move(pillar_chain_manager))) {}
 
 void GetBlsSigsBundlePacketHandler::validatePacketRlpFormat(
@@ -26,12 +27,12 @@ void GetBlsSigsBundlePacketHandler::process(const threadpool::PacketData &packet
 
   // TODO: split packet to multiple with kGetBlsSigsPacketSize sigs containing each
   dev::RLPStream s(signatures.size());
-  for (const auto& sig : signatures) {
+  for (const auto &sig : signatures) {
     s.appendRaw(sig->getRlp());
   }
 
-  if (sealAndSend(peer->getId(), SubprotocolPacketType::BlsSigsBundlePacket, std::move(s))) {\
-    for (const auto& sig : signatures) {
+  if (sealAndSend(peer->getId(), SubprotocolPacketType::BlsSigsBundlePacket, std::move(s))) {
+    for (const auto &sig : signatures) {
       peer->markBlsSigAsKnown(sig->getHash());
     }
 
@@ -39,12 +40,14 @@ void GetBlsSigsBundlePacketHandler::process(const threadpool::PacketData &packet
   }
 }
 
-void GetBlsSigsBundlePacketHandler::requestBlsSigsBundle(PillarBlock::Hash pillar_block_hash, const std::shared_ptr<TaraxaPeer>& peer) {
+void GetBlsSigsBundlePacketHandler::requestBlsSigsBundle(const PillarBlock::Hash &pillar_block_hash,
+                                                         const std::shared_ptr<TaraxaPeer> &peer) {
   dev::RLPStream s(1);
   s << pillar_block_hash;
 
   sealAndSend(peer->getId(), SubprotocolPacketType::GetBlsSigsBundlePacket, std::move(s));
-  LOG(log_dg_) << "Requested BLS signatures bundle for pillar block " << pillar_block_hash << " from peer " << peer->getId();
+  LOG(log_dg_) << "Requested BLS signatures bundle for pillar block " << pillar_block_hash << " from peer "
+               << peer->getId();
 }
 
 }  // namespace taraxa::network::tarcap
