@@ -46,10 +46,16 @@ void PillarChainManager::newFinalBlock(const final_chain::FinalizationResult& bl
     }
 
   } else if (block_data.final_chain_blk->number % kCheckLatestBlockBlsSigs == 0) {
-    // Check if the node has 2t+1 bls signatures. If not, request it
-    std::shared_lock<std::shared_mutex> lock(mutex_);
+    PillarBlock::Hash last_pillar_block_hash;
+    {
+      std::shared_lock<std::shared_mutex> lock(mutex_);
+      last_pillar_block_hash = last_pillar_block_->getHash();
+    }
 
-    // TODO: request bls signatures
+    // TODO: Request signature only if node does not have 2t+1 bls signatures
+    if (auto net = network_.lock()) {
+      net->requestBlsSigBundle(last_pillar_block_hash);
+    }
   }
 }
 
@@ -79,7 +85,8 @@ bool PillarChainManager::addVerifiedBlsSig(const std::shared_ptr<BlsSignature>& 
   return false;
 }
 
-std::vector<std::shared_ptr<BlsSignature>> PillarChainManager::getVerifiedBlsSigs(const PillarBlock::Hash pillar_block_hash) const {
+std::vector<std::shared_ptr<BlsSignature>> PillarChainManager::getVerifiedBlsSigs(
+    const PillarBlock::Hash pillar_block_hash) const {
   std::shared_lock<std::shared_mutex> lock(mutex_);
   if (pillar_block_hash != last_pillar_block_->getHash()) {
     return {};
@@ -87,7 +94,7 @@ std::vector<std::shared_ptr<BlsSignature>> PillarChainManager::getVerifiedBlsSig
 
   std::vector<std::shared_ptr<BlsSignature>> signatures;
   signatures.reserve(last_pillar_block_signatures_.size());
-  for (const auto& sig: last_pillar_block_signatures_) {
+  for (const auto& sig : last_pillar_block_signatures_) {
     signatures.push_back(sig.second);
   }
 
