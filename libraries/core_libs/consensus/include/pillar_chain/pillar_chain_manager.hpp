@@ -91,7 +91,7 @@ class PillarChainManager {
   // How often to check if node has 2t+1 bls signature for the latest pillar block & potentially trigger syncing
   // TODO: validation: kCheckLatestBlockBlsSigs should be way smaller than kEpochBlocksNum and bigger than
   // kBlsSigBroadcastDelayBlocks
-  static constexpr uint16_t kCheckLatestBlockBlsSigs = 5;
+  static constexpr uint16_t kCheckLatestBlockBlsSigs = 10;
 
   LOG_OBJECTS_DEFINE
 };
