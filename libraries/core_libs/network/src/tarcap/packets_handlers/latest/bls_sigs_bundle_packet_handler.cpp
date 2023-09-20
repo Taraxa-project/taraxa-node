@@ -20,6 +20,8 @@ void BlsSigsBundlePacketHandler::validatePacketRlpFormat(
 
 void BlsSigsBundlePacketHandler::process(const threadpool::PacketData &packet_data,
                                          const std::shared_ptr<TaraxaPeer> &peer) {
+  // TODO: there could be the same protection as in pbft syncing that only requested bundle packet is accepted
+
   for (const auto signature_rlp : packet_data.rlp_) {
     const auto bls_signature = std::make_shared<BlsSignature>(signature_rlp);
     processBlsSignature(bls_signature, peer);

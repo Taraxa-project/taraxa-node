@@ -9,6 +9,7 @@
 
 #include "config/version.hpp"
 #include "network/tarcap/packets_handlers/latest/bls_sig_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/get_bls_sigs_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/v1/init_packets_handlers.hpp"
@@ -335,6 +336,22 @@ std::shared_ptr<network::tarcap::TaraxaPeer> Network::getMaxChainPeer() const {
   }
 
   return max_chain_peer;
+}
+
+void Network::requestBlsSigBundle(const PillarBlock::Hash &pillar_block_hash) {
+  for (const auto &tarcap : tarcaps_) {
+    // Try to get most up-to-date peer
+    const auto peer =
+        tarcap.second->getSpecificHandler<::taraxa::network::tarcap::PbftSyncPacketHandler>()->getMaxChainPeer();
+
+    if (!peer) {
+      continue;
+    }
+
+    // TODO: is it good enough to request it just from 1 peer without knowing if he has all of the signatures ?
+    tarcap.second->getSpecificHandler<network::tarcap::GetBlsSigsBundlePacketHandler>()->requestBlsSigsBundle(
+        pillar_block_hash, peer);
+  }
 }
 
 // METHODS USED IN TESTS ONLY
