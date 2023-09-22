@@ -59,7 +59,7 @@ var group___d_a_g =
       [ "weight", "group___d_a_g.html#ad7028483092a37dc7870ef8ad99e23b8", null ]
     ] ],
     [ "DagBlockProposer", "group___d_a_g.html#classtaraxa_1_1_dag_block_proposer", [
-      [ "DagBlockProposer", "group___d_a_g.html#ade71bd4eb9aa6db990841e3173e4fa03", null ],
+      [ "DagBlockProposer", "group___d_a_g.html#a32b558c1ef9413eca9b144811b1538b7", null ],
       [ "~DagBlockProposer", "group___d_a_g.html#a168ea7c60b4c3535c6ec999a8ff0b5d0", null ],
       [ "DagBlockProposer", "group___d_a_g.html#aace097ada959a377e46c6a6e57c43c21", null ],
       [ "DagBlockProposer", "group___d_a_g.html#ab6d80eccedea603e03d4a194c5df0327", null ],
@@ -82,7 +82,9 @@ var group___d_a_g =
       [ "final_chain_", "group___d_a_g.html#abe7ac85bab1992c7eb368d899cf5fc58", null ],
       [ "kDagGasLimit", "group___d_a_g.html#a37c728c8e45b35f8030a3278cd0f157e", null ],
       [ "key_manager_", "group___d_a_g.html#a5a36c04f481e9c1dd344fd2af990a3cc", null ],
+      [ "kHardforks", "group___d_a_g.html#afbabead5b9d3b67d6419adcf03f823f7", null ],
       [ "kPbftGasLimit", "group___d_a_g.html#a90ad08747b1ddb6fdfc415d7c9fafb84", null ],
+      [ "kValidatorMaxVote", "group___d_a_g.html#a7b45feab13cb8c4e3b7f933e74f8cc88", null ],
       [ "last_propose_level_", "group___d_a_g.html#a26dce41a1d3475e3458bf9947537bbaf", null ],
       [ "max_num_tries_", "group___d_a_g.html#ad2c8f8841a2703497fd4a6a6538ddb84", null ],
       [ "my_trx_shard_", "group___d_a_g.html#a63e4b7ff61c17af0eee9e1249037da2a", null ],
@@ -232,7 +234,7 @@ var group___d_a_g =
         [ "FailedTipsVerification", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484adef7264cfb315c8a66080e035af83b16", null ],
         [ "MissingTip", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484acd9ea5e61108c6f8d0592a48ffae5f36", null ]
       ] ],
-      [ "DagManager", "group___d_a_g.html#ac9aed798e9b30f18abf9dc910adeb991", null ],
+      [ "DagManager", "group___d_a_g.html#a235e8769bbfc5b0a0cc5f4a3df9087d9", null ],
       [ "DagManager", "group___d_a_g.html#aa0fe82cc22a187cab97099ef465bed02", null ],
       [ "DagManager", "group___d_a_g.html#a1a957529304d407e997ca611b4530ab7", null ],
       [ "addDagBlock", "group___d_a_g.html#af03ed62a5da2149160bf80318f94fc17", null ],
@@ -290,7 +292,9 @@ var group___d_a_g =
       [ "genesis_block_", "group___d_a_g.html#ac2cbd5c2284f9a75e3eb012ad2ea371d", null ],
       [ "is_light_node_", "group___d_a_g.html#a304bc3dd4e16a2e6fe824960998fa85c", null ],
       [ "key_manager_", "group___d_a_g.html#a24126b789e44798ff62e6f7504ee659f", null ],
+      [ "kHardforks", "group___d_a_g.html#a3c5af2522862d0458aee92adbacfabe7", null ],
       [ "kPbftGasLimit", "group___d_a_g.html#a97b3d149f23d11279211f66cfd609324", null ],
+      [ "kValidatorMaxVote", "group___d_a_g.html#a17a0bbbef6aff32c2275c9915ec8aa8b", null ],
       [ "light_node_history_", "group___d_a_g.html#a9da5c3fb13e2ae292e70a030efdfbdec", null ],
       [ "max_level_", "group___d_a_g.html#ab34b96991cbcfd2f72be34a8813ca335", null ],
       [ "max_levels_per_period_", "group___d_a_g.html#a07187ee4b316918016d048c7c48d14f7", null ],

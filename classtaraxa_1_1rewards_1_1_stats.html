@@ -91,34 +91,52 @@ $(document).ready(function(){initNavTree('classtaraxa_1_1rewards_1_1_stats.html'
 </div><!--header-->
 <div class="contents">
 
+<p>class that is managing rewards stats processing and hardforks(intervals changes) So intermediate blocks stats are stored in the vector in data(to restore on the node restart) and full list of interval stats is returned in the end of interval  
+ <a href="classtaraxa_1_1rewards_1_1_stats.html#details">More...</a></p>
+
 <p><code>#include &lt;<a class="el" href="rewards__stats_8hpp_source.html">rewards_stats.hpp</a>&gt;</code></p>
+<div class="dynheader">
+Collaboration diagram for taraxa::rewards::Stats:</div>
+<div class="dyncontent">
+<div class="center"><img src="classtaraxa_1_1rewards_1_1_stats__coll__graph.png" border="0" usemap="#ataraxa_1_1rewards_1_1_stats_coll__map" alt="Collaboration graph"/></div>
+<map name="ataraxa_1_1rewards_1_1_stats_coll__map" id="ataraxa_1_1rewards_1_1_stats_coll__map">
+<area shape="rect" title="class that is managing rewards stats processing and hardforks(intervals changes) So intermediate bloc..." alt="" coords="5,184,171,211"/>
+<area shape="rect" href="hardfork_8hpp.html#struct_hardforks_config" title=" " alt="" coords="25,95,151,121"/>
+<area shape="rect" href="hardfork_8hpp.html#struct_magnolia_hardfork" title=" " alt="" coords="19,5,157,32"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:a89e133567b9c75523d0fdec22909595b"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a89e133567b9c75523d0fdec22909595b">Stats</a> (uint32_t committee_size, const <a class="el" href="hardfork_8hpp.html#a909f1cd3f7b2ea1bd8c3a024675e26ac">Hardforks::RewardsDistributionMap</a> &amp;rdm, std::shared_ptr&lt; <a class="el" href="namespacetaraxa.html#a32216cff36a3565783afe8fa0099ae89">DB</a> &gt; db, std::function&lt; uint64_t(<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>)&gt; &amp;&amp;dpos_eligible_total_vote_count)</td></tr>
-<tr class="separator:a89e133567b9c75523d0fdec22909595b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aada29110fa4a8d7f50b87d9989b98cd6"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#aada29110fa4a8d7f50b87d9989b98cd6">processStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;current_blk)</td></tr>
-<tr class="separator:aada29110fa4a8d7f50b87d9989b98cd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a150bce39d0a2ff217e96641d35e59997"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a150bce39d0a2ff217e96641d35e59997">Stats</a> (uint32_t committee_size, const <a class="el" href="hardfork_8hpp.html#struct_hardforks_config">HardforksConfig</a> &amp;hardforks, std::shared_ptr&lt; <a class="el" href="namespacetaraxa.html#a32216cff36a3565783afe8fa0099ae89">DB</a> &gt; db, std::function&lt; uint64_t(<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>)&gt; &amp;&amp;dpos_eligible_total_vote_count)</td></tr>
+<tr class="separator:a150bce39d0a2ff217e96641d35e59997"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:acb574376d53a8829818f59065e852323"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#acb574376d53a8829818f59065e852323">processStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;current_blk, const std::vector&lt; <a class="el" href="namespacetaraxa.html#ae64cd164e0402036777a1aab63d2a66f">gas_t</a> &gt; &amp;trxs_gas_used)</td></tr>
+<tr class="memdesc:acb574376d53a8829818f59065e852323"><td class="mdescLeft">&#160;</td><td class="mdescRight">processing passed block and returns stats that should be processed at this block  <a href="classtaraxa_1_1rewards_1_1_stats.html#acb574376d53a8829818f59065e852323">More...</a><br /></td></tr>
+<tr class="separator:acb574376d53a8829818f59065e852323"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
 <tr class="memitem:a5de3533e81125615f2c8b8fa78cc96b3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a5de3533e81125615f2c8b8fa78cc96b3">loadFromDb</a> ()</td></tr>
+<tr class="memdesc:a5de3533e81125615f2c8b8fa78cc96b3"><td class="mdescLeft">&#160;</td><td class="mdescRight">load current interval stats from database  <a href="classtaraxa_1_1rewards_1_1_stats.html#a5de3533e81125615f2c8b8fa78cc96b3">More...</a><br /></td></tr>
 <tr class="separator:a5de3533e81125615f2c8b8fa78cc96b3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a47268a8f89eeb03af9a978ddf1cc2c94"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a47268a8f89eeb03af9a978ddf1cc2c94">getCurrentDistributionFrequency</a> (uint64_t current_period) const</td></tr>
+<tr class="memdesc:a47268a8f89eeb03af9a978ddf1cc2c94"><td class="mdescLeft">&#160;</td><td class="mdescRight">returns rewards distribution frequency for specified period  <a href="classtaraxa_1_1rewards_1_1_stats.html#a47268a8f89eeb03af9a978ddf1cc2c94">More...</a><br /></td></tr>
 <tr class="separator:a47268a8f89eeb03af9a978ddf1cc2c94"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a3a8a00d24c8bf56b2b1a98c1d117f127"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a3a8a00d24c8bf56b2b1a98c1d117f127">getBlockStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;current_blk)</td></tr>
-<tr class="separator:a3a8a00d24c8bf56b2b1a98c1d117f127"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad87f33929689bc48fbf2c6459eebfb22"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#ad87f33929689bc48fbf2c6459eebfb22">getBlockStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;current_blk, const std::vector&lt; <a class="el" href="namespacetaraxa.html#ae64cd164e0402036777a1aab63d2a66f">gas_t</a> &gt; &amp;trxs_fees)</td></tr>
+<tr class="separator:ad87f33929689bc48fbf2c6459eebfb22"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7ee94a56daddf88600a843dc6f141d70"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a7ee94a56daddf88600a843dc6f141d70">saveBlockStats</a> (uint64_t number, const <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a> &amp;stats)</td></tr>
+<tr class="memdesc:a7ee94a56daddf88600a843dc6f141d70"><td class="mdescLeft">&#160;</td><td class="mdescRight">saves stats to database to not lose this data in case of node restart  <a href="classtaraxa_1_1rewards_1_1_stats.html#a7ee94a56daddf88600a843dc6f141d70">More...</a><br /></td></tr>
 <tr class="separator:a7ee94a56daddf88600a843dc6f141d70"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a34abce543a1fed9cbf6107383241e291"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a34abce543a1fed9cbf6107383241e291">clear</a> ()</td></tr>
+<tr class="memdesc:a34abce543a1fed9cbf6107383241e291"><td class="mdescLeft">&#160;</td><td class="mdescRight">called on start of new rewards interval. clears blocks_stats_ collection and removes all data saved in db column  <a href="classtaraxa_1_1rewards_1_1_stats.html#a34abce543a1fed9cbf6107383241e291">More...</a><br /></td></tr>
 <tr class="separator:a34abce543a1fed9cbf6107383241e291"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:a76a2d33a81bb57fd74b4468c42d8a807"><td class="memItemLeft" align="right" valign="top">const uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a76a2d33a81bb57fd74b4468c42d8a807">kCommitteeSize</a></td></tr>
 <tr class="separator:a76a2d33a81bb57fd74b4468c42d8a807"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ae66989ee88f357869f642fe0e54abe7f"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="hardfork_8hpp.html#a909f1cd3f7b2ea1bd8c3a024675e26ac">Hardforks::RewardsDistributionMap</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#ae66989ee88f357869f642fe0e54abe7f">kRewardsDistributionFrequency</a></td></tr>
-<tr class="separator:ae66989ee88f357869f642fe0e54abe7f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a796b2a6e4df943ffd8efa6339a79727e"><td class="memItemLeft" align="right" valign="top">const <a class="el" href="hardfork_8hpp.html#struct_hardforks_config">HardforksConfig</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a796b2a6e4df943ffd8efa6339a79727e">kHardforks</a></td></tr>
+<tr class="separator:a796b2a6e4df943ffd8efa6339a79727e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a64f04da4989b1c4b21859d9a5f3b337d"><td class="memItemLeft" align="right" valign="top">std::shared_ptr&lt; <a class="el" href="namespacetaraxa.html#a32216cff36a3565783afe8fa0099ae89">DB</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a64f04da4989b1c4b21859d9a5f3b337d">db_</a></td></tr>
 <tr class="separator:a64f04da4989b1c4b21859d9a5f3b337d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae2cdad256d0ca829bc2fc69fe320f481"><td class="memItemLeft" align="right" valign="top">const std::function&lt; uint64_t(<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#ae2cdad256d0ca829bc2fc69fe320f481">dpos_eligible_total_vote_count_</a></td></tr>
@@ -126,9 +144,11 @@ Protected Attributes</h2></td></tr>
 <tr class="memitem:a1ffcbaea4cc7d1789d660c7ff1d79bc0"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a1ffcbaea4cc7d1789d660c7ff1d79bc0">blocks_stats_</a></td></tr>
 <tr class="separator:a1ffcbaea4cc7d1789d660c7ff1d79bc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
-<h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="a89e133567b9c75523d0fdec22909595b"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a89e133567b9c75523d0fdec22909595b">&#9670;&nbsp;</a></span>Stats()</h2>
+<a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
+<div class="textblock"><p>class that is managing rewards stats processing and hardforks(intervals changes) So intermediate blocks stats are stored in the vector in data(to restore on the node restart) and full list of interval stats is returned in the end of interval </p>
+</div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
+<a id="a150bce39d0a2ff217e96641d35e59997"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a150bce39d0a2ff217e96641d35e59997">&#9670;&nbsp;</a></span>Stats()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -142,8 +162,8 @@ Protected Attributes</h2></td></tr>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype">const <a class="el" href="hardfork_8hpp.html#a909f1cd3f7b2ea1bd8c3a024675e26ac">Hardforks::RewardsDistributionMap</a> &amp;&#160;</td>
-          <td class="paramname"><em>rdm</em>, </td>
+          <td class="paramtype">const <a class="el" href="hardfork_8hpp.html#struct_hardforks_config">HardforksConfig</a> &amp;&#160;</td>
+          <td class="paramname"><em>hardforks</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -191,10 +211,12 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>called on start of new rewards interval. clears blocks_stats_ collection and removes all data saved in db column </p>
+
 </div>
 </div>
-<a id="a3a8a00d24c8bf56b2b1a98c1d117f127"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a3a8a00d24c8bf56b2b1a98c1d117f127">&#9670;&nbsp;</a></span>getBlockStats()</h2>
+<a id="ad87f33929689bc48fbf2c6459eebfb22"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad87f33929689bc48fbf2c6459eebfb22">&#9670;&nbsp;</a></span>getBlockStats()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -206,8 +228,18 @@ Protected Attributes</h2></td></tr>
           <td class="memname"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a> taraxa::rewards::Stats::getBlockStats </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&#160;</td>
-          <td class="paramname"><em>current_blk</em></td><td>)</td>
+          <td class="paramname"><em>current_blk</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="namespacetaraxa.html#ae64cd164e0402036777a1aab63d2a66f">gas_t</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>trxs_fees</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -243,6 +275,8 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>returns rewards distribution frequency for specified period </p>
+
 </div>
 </div>
 <a id="a5de3533e81125615f2c8b8fa78cc96b3"></a>
@@ -268,10 +302,12 @@ Protected Attributes</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
+<p>load current interval stats from database </p>
+
 </div>
 </div>
-<a id="aada29110fa4a8d7f50b87d9989b98cd6"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aada29110fa4a8d7f50b87d9989b98cd6">&#9670;&nbsp;</a></span>processStats()</h2>
+<a id="acb574376d53a8829818f59065e852323"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#acb574376d53a8829818f59065e852323">&#9670;&nbsp;</a></span>processStats()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -280,11 +316,30 @@ Protected Attributes</h2></td></tr>
           <td class="memname">std::vector&lt; <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a> &gt; taraxa::rewards::Stats::processStats </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&#160;</td>
-          <td class="paramname"><em>current_blk</em></td><td>)</td>
+          <td class="paramname"><em>current_blk</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="namespacetaraxa.html#ae64cd164e0402036777a1aab63d2a66f">gas_t</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>trxs_gas_used</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
+
+<p>processing passed block and returns stats that should be processed at this block </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">current_blk</td><td>block to process </td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>vector&lt;BlockStats&gt; that should be processed at current block </dd></dl>
 
 </div>
 </div>
@@ -321,6 +376,8 @@ Protected Attributes</h2></td></tr>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>saves stats to database to not lose this data in case of node restart </p>
 
 </div>
 </div>
@@ -413,8 +470,8 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="ae66989ee88f357869f642fe0e54abe7f"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#ae66989ee88f357869f642fe0e54abe7f">&#9670;&nbsp;</a></span>kRewardsDistributionFrequency</h2>
+<a id="a796b2a6e4df943ffd8efa6339a79727e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a796b2a6e4df943ffd8efa6339a79727e">&#9670;&nbsp;</a></span>kHardforks</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -423,7 +480,7 @@ Protected Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">const <a class="el" href="hardfork_8hpp.html#a909f1cd3f7b2ea1bd8c3a024675e26ac">Hardforks::RewardsDistributionMap</a> taraxa::rewards::Stats::kRewardsDistributionFrequency</td>
+          <td class="memname">const <a class="el" href="hardfork_8hpp.html#struct_hardforks_config">HardforksConfig</a> taraxa::rewards::Stats::kHardforks</td>
         </tr>
       </table>
   </td>

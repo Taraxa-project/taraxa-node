@@ -136,7 +136,7 @@ Classes</h2></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_gas_price_config.html">GasPriceConfig</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_genesis.html">Genesis</a></td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="structtaraxa_1_1_genesis_config.html">GenesisConfig</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:structtaraxa_1_1_prometheus_config"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#structtaraxa_1_1_prometheus_config">PrometheusConfig</a></td></tr>
 <tr class="separator:structtaraxa_1_1_prometheus_config"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -188,6 +188,8 @@ Classes</h2></td></tr>
 <tr class="separator:classtaraxa_1_1_period_data_queue"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_proposed_blocks.html">ProposedBlocks</a></td></tr>
 <tr class="memdesc:"><td class="mdescLeft">&#160;</td><td class="mdescRight">class <a class="el" href="classtaraxa_1_1_proposed_blocks.html" title="class ProposedBlocks holds proposed pbft blocks together with propose votes hashes per period &amp; round">ProposedBlocks</a> holds proposed pbft blocks together with propose votes hashes per period &amp; round  <a href="classtaraxa_1_1_proposed_blocks.html#details">More...</a><br /></td></tr>
+<tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1_slashing_manager.html">SlashingManager</a></td></tr>
 <tr class="separator:"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:classtaraxa_1_1_gas_pricer"><td class="memItemLeft" align="right" valign="top">class &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___transaction.html#classtaraxa_1_1_gas_pricer">GasPricer</a></td></tr>
 <tr class="memdesc:classtaraxa_1_1_gas_pricer"><td class="mdescLeft">&#160;</td><td class="mdescRight">Basic gas price calculator. We calculate the gas price based on the lowest price in last number_of_blocks blocks. Then all of those values are sorted and current price is selected based on percentile.  <a href="group___transaction.html#classtaraxa_1_1_gas_pricer">More...</a><br /></td></tr>
@@ -476,10 +478,10 @@ Functions</h2></td></tr>
 <tr class="separator:a7d7f3b69fe4c31d0649cf77226d9b155"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1a7add6cdc2ba2969325ea1ad4723859"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a1a7add6cdc2ba2969325ea1ad4723859">dec_json</a> (Json::Value const &amp;json, <a class="el" href="structtaraxa_1_1_gas_price_config.html">GasPriceConfig</a> &amp;obj)</td></tr>
 <tr class="separator:a1a7add6cdc2ba2969325ea1ad4723859"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a38da04aa3ccaa8dc8284943292a95c61"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a38da04aa3ccaa8dc8284943292a95c61">enc_json</a> (<a class="el" href="structtaraxa_1_1_genesis.html">Genesis</a> const &amp;obj)</td></tr>
-<tr class="separator:a38da04aa3ccaa8dc8284943292a95c61"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a110379ae3c76cbe68346680bc1aab397"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a110379ae3c76cbe68346680bc1aab397">dec_json</a> (Json::Value const &amp;json, <a class="el" href="structtaraxa_1_1_genesis.html">Genesis</a> &amp;obj)</td></tr>
-<tr class="separator:a110379ae3c76cbe68346680bc1aab397"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab4dc280636aaaa5319a32818b944ae7e"><td class="memItemLeft" align="right" valign="top">Json::Value&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#ab4dc280636aaaa5319a32818b944ae7e">enc_json</a> (<a class="el" href="structtaraxa_1_1_genesis_config.html">GenesisConfig</a> const &amp;obj)</td></tr>
+<tr class="separator:ab4dc280636aaaa5319a32818b944ae7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a0d1168f714806db0733d6a1749ae6618"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a0d1168f714806db0733d6a1749ae6618">dec_json</a> (Json::Value const &amp;json, <a class="el" href="structtaraxa_1_1_genesis_config.html">GenesisConfig</a> &amp;obj)</td></tr>
+<tr class="separator:a0d1168f714806db0733d6a1749ae6618"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a74ad03c0d7a830dd89d7f10d6f941077"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a74ad03c0d7a830dd89d7f10d6f941077">dec_json</a> (const Json::Value &amp;json, <a class="el" href="structtaraxa_1_1_connection_config.html">ConnectionConfig</a> &amp;config)</td></tr>
 <tr class="separator:a74ad03c0d7a830dd89d7f10d6f941077"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa5e15ca58e0ad240f75a8c70883a00e0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#aa5e15ca58e0ad240f75a8c70883a00e0">dec_json</a> (const Json::Value &amp;json, <a class="el" href="structtaraxa_1_1_network_config.html">NetworkConfig</a> &amp;network)</td></tr>
@@ -576,6 +578,8 @@ Variables</h2></td></tr>
 <tr class="separator:a568055ae86bee5e4c6bff09eff8c5336"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aabafad8a9eda2b4f3a4dec9da77ace14"><td class="memItemLeft" align="right" valign="top">constexpr <a class="el" href="namespacetaraxa.html#a1b866c209a558125f9ca8e204144c215">PbftStep</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#aabafad8a9eda2b4f3a4dec9da77ace14">kMaxSteps</a> {13}</td></tr>
 <tr class="separator:aabafad8a9eda2b4f3a4dec9da77ace14"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae7f08bb13176376d75b748ce9ba7554a"><td class="memItemLeft" align="right" valign="top">const auto&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#ae7f08bb13176376d75b748ce9ba7554a">kContractAddress</a> = <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>(&quot;0x00000000000000000000000000000000000000EE&quot;)</td></tr>
+<tr class="separator:ae7f08bb13176376d75b748ce9ba7554a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a68e682168971290c106a9d9792a973cf"><td class="memItemLeft" align="right" valign="top">static constexpr uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#a68e682168971290c106a9d9792a973cf">PBFT_BLOCK_POS_IN_PERIOD_DATA</a> = 0</td></tr>
 <tr class="separator:a68e682168971290c106a9d9792a973cf"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae2f5fd388cce3480b1f74c81569cc50d"><td class="memItemLeft" align="right" valign="top">static constexpr uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="namespacetaraxa.html#ae2f5fd388cce3480b1f74c81569cc50d">CERT_VOTES_POS_IN_PERIOD_DATA</a> = 1</td></tr>
@@ -1827,8 +1831,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a110379ae3c76cbe68346680bc1aab397"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a110379ae3c76cbe68346680bc1aab397">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[13/14]</span></h2>
+<a id="a0d1168f714806db0733d6a1749ae6618"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a0d1168f714806db0733d6a1749ae6618">&#9670;&nbsp;</a></span>dec_json() <span class="overload">[13/14]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -1842,7 +1846,7 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="paramkey"></td>
           <td></td>
-          <td class="paramtype"><a class="el" href="structtaraxa_1_1_genesis.html">Genesis</a> &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structtaraxa_1_1_genesis_config.html">GenesisConfig</a> &amp;&#160;</td>
           <td class="paramname"><em>obj</em>&#160;</td>
         </tr>
         <tr>
@@ -2009,8 +2013,8 @@ template&lt;typename T &gt; </div>
 
 </div>
 </div>
-<a id="a38da04aa3ccaa8dc8284943292a95c61"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a38da04aa3ccaa8dc8284943292a95c61">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[8/9]</span></h2>
+<a id="ab4dc280636aaaa5319a32818b944ae7e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab4dc280636aaaa5319a32818b944ae7e">&#9670;&nbsp;</a></span>enc_json() <span class="overload">[8/9]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -2018,7 +2022,7 @@ template&lt;typename T &gt; </div>
         <tr>
           <td class="memname">Json::Value taraxa::enc_json </td>
           <td>(</td>
-          <td class="paramtype"><a class="el" href="structtaraxa_1_1_genesis.html">Genesis</a> const &amp;&#160;</td>
+          <td class="paramtype"><a class="el" href="structtaraxa_1_1_genesis_config.html">GenesisConfig</a> const &amp;&#160;</td>
           <td class="paramname"><em>obj</em></td><td>)</td>
           <td></td>
         </tr>
@@ -3062,6 +3066,20 @@ template&lt;typename T &gt; </div>
 <span class="mlabels"><span class="mlabel">static</span><span class="mlabel">constexpr</span></span>  </td>
   </tr>
 </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="ae7f08bb13176376d75b748ce9ba7554a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ae7f08bb13176376d75b748ce9ba7554a">&#9670;&nbsp;</a></span>kContractAddress</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const auto taraxa::kContractAddress = <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>(&quot;0x00000000000000000000000000000000000000EE&quot;)</td>
+        </tr>
+      </table>
 </div><div class="memdoc">
 
 </div>

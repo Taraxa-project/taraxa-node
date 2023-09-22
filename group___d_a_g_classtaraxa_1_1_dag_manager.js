@@ -13,7 +13,7 @@ var group___d_a_g_classtaraxa_1_1_dag_manager =
       [ "FailedTipsVerification", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484adef7264cfb315c8a66080e035af83b16", null ],
       [ "MissingTip", "group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484acd9ea5e61108c6f8d0592a48ffae5f36", null ]
     ] ],
-    [ "DagManager", "group___d_a_g.html#ac9aed798e9b30f18abf9dc910adeb991", null ],
+    [ "DagManager", "group___d_a_g.html#a235e8769bbfc5b0a0cc5f4a3df9087d9", null ],
     [ "DagManager", "group___d_a_g.html#aa0fe82cc22a187cab97099ef465bed02", null ],
     [ "DagManager", "group___d_a_g.html#a1a957529304d407e997ca611b4530ab7", null ],
     [ "addDagBlock", "group___d_a_g.html#af03ed62a5da2149160bf80318f94fc17", null ],
@@ -71,7 +71,9 @@ var group___d_a_g_classtaraxa_1_1_dag_manager =
     [ "genesis_block_", "group___d_a_g.html#ac2cbd5c2284f9a75e3eb012ad2ea371d", null ],
     [ "is_light_node_", "group___d_a_g.html#a304bc3dd4e16a2e6fe824960998fa85c", null ],
     [ "key_manager_", "group___d_a_g.html#a24126b789e44798ff62e6f7504ee659f", null ],
+    [ "kHardforks", "group___d_a_g.html#a3c5af2522862d0458aee92adbacfabe7", null ],
     [ "kPbftGasLimit", "group___d_a_g.html#a97b3d149f23d11279211f66cfd609324", null ],
+    [ "kValidatorMaxVote", "group___d_a_g.html#a17a0bbbef6aff32c2275c9915ec8aa8b", null ],
     [ "light_node_history_", "group___d_a_g.html#a9da5c3fb13e2ae292e70a030efdfbdec", null ],
     [ "max_level_", "group___d_a_g.html#ab34b96991cbcfd2f72be34a8813ca335", null ],
     [ "max_levels_per_period_", "group___d_a_g.html#a07187ee4b316918016d048c7c48d14f7", null ],

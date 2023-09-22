@@ -112,18 +112,16 @@ Classes</h2></td></tr>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:ab67a44f047c05e976f1c03cc2c7c9658"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#ab67a44f047c05e976f1c03cc2c7c9658">BlockStats</a> ()=default</td></tr>
 <tr class="separator:ab67a44f047c05e976f1c03cc2c7c9658"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a8bdc1447c71b6ca2d6508b0c8ebb8ac0"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#a8bdc1447c71b6ca2d6508b0c8ebb8ac0">BlockStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;block, uint64_t dpos_vote_count, uint32_t committee_size)</td></tr>
-<tr class="memdesc:a8bdc1447c71b6ca2d6508b0c8ebb8ac0"><td class="mdescLeft">&#160;</td><td class="mdescRight">setting block_author_, max_votes_weight_ and calls processStats function  <a href="classtaraxa_1_1rewards_1_1_block_stats.html#a8bdc1447c71b6ca2d6508b0c8ebb8ac0">More...</a><br /></td></tr>
-<tr class="separator:a8bdc1447c71b6ca2d6508b0c8ebb8ac0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a9c07e505285b3a47d2ad9e531cfba551"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#a9c07e505285b3a47d2ad9e531cfba551">BlockStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;block, const std::vector&lt; <a class="el" href="namespacetaraxa.html#ae64cd164e0402036777a1aab63d2a66f">gas_t</a> &gt; &amp;trxs_gas_used, uint64_t dpos_vote_count, uint32_t committee_size)</td></tr>
+<tr class="memdesc:a9c07e505285b3a47d2ad9e531cfba551"><td class="mdescLeft">&#160;</td><td class="mdescRight">setting block_author_, max_votes_weight_ and calls processStats function  <a href="classtaraxa_1_1rewards_1_1_block_stats.html#a9c07e505285b3a47d2ad9e531cfba551">More...</a><br /></td></tr>
+<tr class="separator:a9c07e505285b3a47d2ad9e531cfba551"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-attribs"></a>
 Protected Attributes</h2></td></tr>
 <tr class="memitem:a49838fe0d66255b46d1a263561e38625"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#a49838fe0d66255b46d1a263561e38625">block_author_</a></td></tr>
 <tr class="separator:a49838fe0d66255b46d1a263561e38625"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2e229096f7b9821739ba23a8aaec5342"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#a2e229096f7b9821739ba23a8aaec5342">validator_by_tx_hash_</a></td></tr>
-<tr class="separator:a2e229096f7b9821739ba23a8aaec5342"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a814b17f27f484c3ce89128b403372bce"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#a814b17f27f484c3ce89128b403372bce">txs_validators_</a></td></tr>
-<tr class="separator:a814b17f27f484c3ce89128b403372bce"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:adfccdf39c111e535045d44998a2860e7"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, <a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#adfccdf39c111e535045d44998a2860e7">fee_by_trx_hash_</a></td></tr>
+<tr class="separator:adfccdf39c111e535045d44998a2860e7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a9c0222ab71a509f3997751698ba39f42"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>, <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#structtaraxa_1_1rewards_1_1_block_stats_1_1_validator_stats">ValidatorStats</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#a9c0222ab71a509f3997751698ba39f42">validators_stats_</a></td></tr>
 <tr class="separator:a9c0222ab71a509f3997751698ba39f42"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:af0a4709c7f51e942c5883a61cf26988e"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#af0a4709c7f51e942c5883a61cf26988e">total_dag_blocks_count_</a> {0}</td></tr>
@@ -138,11 +136,12 @@ Private Member Functions</h2></td></tr>
 <tr class="memitem:aee29ad4ece13bfffb110054f712a33c3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#aee29ad4ece13bfffb110054f712a33c3">processStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;block)</td></tr>
 <tr class="memdesc:aee29ad4ece13bfffb110054f712a33c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Process <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data" title="PeriodData class is for block execution, that includes PBFT block, certify votes, DAG blocks,...">PeriodData</a> and save stats in class for future serialization. returns.  <a href="classtaraxa_1_1rewards_1_1_block_stats.html#aee29ad4ece13bfffb110054f712a33c3">More...</a><br /></td></tr>
 <tr class="separator:aee29ad4ece13bfffb110054f712a33c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:aec7049be33daaae4d9256dfd094da3fd"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#aec7049be33daaae4d9256dfd094da3fd">addTransaction</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;tx_hash, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;validator)</td></tr>
-<tr class="memdesc:aec7049be33daaae4d9256dfd094da3fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">In case unique tx_hash is provided, it is mapped to it's validator's address + validator's unique txs count is incremented. If provided tx_hash was already processed, nothing happens.  <a href="classtaraxa_1_1rewards_1_1_block_stats.html#aec7049be33daaae4d9256dfd094da3fd">More...</a><br /></td></tr>
-<tr class="separator:aec7049be33daaae4d9256dfd094da3fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2fd67545911c2999f034af814570d9ba"><td class="memItemLeft" align="right" valign="top">std::optional&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#a2fd67545911c2999f034af814570d9ba">getTransactionValidator</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;tx_hash)</td></tr>
-<tr class="separator:a2fd67545911c2999f034af814570d9ba"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a50a816f000bbf528d77207fba7e2bc8a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#a50a816f000bbf528d77207fba7e2bc8a">initFeeByTrxHash</a> (const <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> &amp;transactions, const std::vector&lt; <a class="el" href="namespacetaraxa.html#ae64cd164e0402036777a1aab63d2a66f">gas_t</a> &gt; &amp;trxs_gas_used)</td></tr>
+<tr class="memdesc:a50a816f000bbf528d77207fba7e2bc8a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prepare fee_by_trx_hash_ map with trx fee by trx hash.  <a href="classtaraxa_1_1rewards_1_1_block_stats.html#a50a816f000bbf528d77207fba7e2bc8a">More...</a><br /></td></tr>
+<tr class="separator:a50a816f000bbf528d77207fba7e2bc8a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a476195f457b66bc7b64ad1cb5bc5055f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#a476195f457b66bc7b64ad1cb5bc5055f">addTransaction</a> (const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;trx_hash, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;validator)</td></tr>
+<tr class="memdesc:a476195f457b66bc7b64ad1cb5bc5055f"><td class="mdescLeft">&#160;</td><td class="mdescRight">In case unique trx_hash is provided, it is mapped to it's validator's address + validator's unique trxs count is incremented. If provided trx_hash was already processed, nothing happens.  <a href="classtaraxa_1_1rewards_1_1_block_stats.html#a476195f457b66bc7b64ad1cb5bc5055f">More...</a><br /></td></tr>
+<tr class="separator:a476195f457b66bc7b64ad1cb5bc5055f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a816d316dbdb7fa7490beb95bccdbdcd1"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html#a816d316dbdb7fa7490beb95bccdbdcd1">addVote</a> (const std::shared_ptr&lt; <a class="el" href="group___vote.html#classtaraxa_1_1_vote">Vote</a> &gt; &amp;vote)</td></tr>
 <tr class="memdesc:a816d316dbdb7fa7490beb95bccdbdcd1"><td class="mdescLeft">&#160;</td><td class="mdescRight">In case unique vote is provided, author's votes weight is updated. If provided vote was already processed, nothing happens.  <a href="classtaraxa_1_1rewards_1_1_block_stats.html#a816d316dbdb7fa7490beb95bccdbdcd1">More...</a><br /></td></tr>
 <tr class="separator:a816d316dbdb7fa7490beb95bccdbdcd1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -165,6 +164,12 @@ Private Member Functions</h2></td></tr>
 <a id="a8fd93952dcd0b00354a1d0b76ecd3920"></a>uint32_t</td>
 <td class="fieldname">
 dag_blocks_count_</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a id="abdda4d9c87e9208098a0c1aa998cce7d"></a><a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a></td>
+<td class="fieldname">
+fees_rewards_</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
@@ -203,8 +208,8 @@ vote_weight_</td>
 
 </div>
 </div>
-<a id="a8bdc1447c71b6ca2d6508b0c8ebb8ac0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a8bdc1447c71b6ca2d6508b0c8ebb8ac0">&#9670;&nbsp;</a></span>BlockStats() <span class="overload">[2/2]</span></h2>
+<a id="a9c07e505285b3a47d2ad9e531cfba551"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a9c07e505285b3a47d2ad9e531cfba551">&#9670;&nbsp;</a></span>BlockStats() <span class="overload">[2/2]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -214,6 +219,12 @@ vote_weight_</td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;&#160;</td>
           <td class="paramname"><em>block</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="namespacetaraxa.html#ae64cd164e0402036777a1aab63d2a66f">gas_t</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>trxs_gas_used</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -247,8 +258,8 @@ vote_weight_</td>
 </div>
 </div>
 <h2 class="groupheader">Member Function Documentation</h2>
-<a id="aec7049be33daaae4d9256dfd094da3fd"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#aec7049be33daaae4d9256dfd094da3fd">&#9670;&nbsp;</a></span>addTransaction()</h2>
+<a id="a476195f457b66bc7b64ad1cb5bc5055f"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a476195f457b66bc7b64ad1cb5bc5055f">&#9670;&nbsp;</a></span>addTransaction()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -260,7 +271,7 @@ vote_weight_</td>
           <td class="memname">bool taraxa::rewards::BlockStats::addTransaction </td>
           <td>(</td>
           <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>tx_hash</em>, </td>
+          <td class="paramname"><em>trx_hash</em>, </td>
         </tr>
         <tr>
           <td class="paramkey"></td>
@@ -281,15 +292,15 @@ vote_weight_</td>
 </table>
 </div><div class="memdoc">
 
-<p>In case unique tx_hash is provided, it is mapped to it's validator's address + validator's unique txs count is incremented. If provided tx_hash was already processed, nothing happens. </p>
+<p>In case unique trx_hash is provided, it is mapped to it's validator's address + validator's unique trxs count is incremented. If provided trx_hash was already processed, nothing happens. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">tx_hash</td><td></td></tr>
+    <tr><td class="paramname">trx_hash</td><td></td></tr>
     <tr><td class="paramname">validator</td><td></td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>true in case tx_hash was unique and processed, otherwise false </dd></dl>
+<dl class="section return"><dt>Returns</dt><dd>true in case trx_hash was unique and processed, otherwise false </dd></dl>
 
 </div>
 </div>
@@ -328,8 +339,8 @@ vote_weight_</td>
 
 </div>
 </div>
-<a id="a2fd67545911c2999f034af814570d9ba"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2fd67545911c2999f034af814570d9ba">&#9670;&nbsp;</a></span>getTransactionValidator()</h2>
+<a id="a50a816f000bbf528d77207fba7e2bc8a"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a50a816f000bbf528d77207fba7e2bc8a">&#9670;&nbsp;</a></span>initFeeByTrxHash()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -338,11 +349,21 @@ vote_weight_</td>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::optional&lt; <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &gt; taraxa::rewards::BlockStats::getTransactionValidator </td>
+          <td class="memname">void taraxa::rewards::BlockStats::initFeeByTrxHash </td>
           <td>(</td>
-          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a> &amp;&#160;</td>
-          <td class="paramname"><em>tx_hash</em></td><td>)</td>
+          <td class="paramtype">const <a class="el" href="namespacetaraxa.html#a68b2e0a2fce70993a89d2ccb78746e7e">SharedTransactions</a> &amp;&#160;</td>
+          <td class="paramname"><em>transactions</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
           <td></td>
+          <td class="paramtype">const std::vector&lt; <a class="el" href="namespacetaraxa.html#ae64cd164e0402036777a1aab63d2a66f">gas_t</a> &gt; &amp;&#160;</td>
+          <td class="paramname"><em>trxs_gas_used</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
         </tr>
       </table>
   </td>
@@ -351,13 +372,15 @@ vote_weight_</td>
   </tr>
 </table>
 </div><div class="memdoc">
+
+<p>Prepare fee_by_trx_hash_ map with trx fee by trx hash. </p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramname">tx_hash</td><td></td></tr>
+    <tr><td class="paramname">transactions</td><td>collection with transactions included in the block </td></tr>
+    <tr><td class="paramname">trxs_gas_used</td><td>collection with gas used by transactions </td></tr>
   </table>
   </dd>
 </dl>
-<dl class="section return"><dt>Returns</dt><dd>dag block validator, who included tx_hash as first in his block. If no validator is found, empty optional is returned </dd></dl>
 
 </div>
 </div>
@@ -407,6 +430,28 @@ vote_weight_</td>
       <table class="memname">
         <tr>
           <td class="memname"><a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> taraxa::rewards::BlockStats::block_author_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="adfccdf39c111e535045d44998a2860e7"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#adfccdf39c111e535045d44998a2860e7">&#9670;&nbsp;</a></span>fee_by_trx_hash_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, <a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a>&gt; taraxa::rewards::BlockStats::fee_by_trx_hash_</td>
         </tr>
       </table>
   </td>
@@ -473,50 +518,6 @@ vote_weight_</td>
       <table class="memname">
         <tr>
           <td class="memname">uint64_t taraxa::rewards::BlockStats::total_votes_weight_ {0}</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a814b17f27f484c3ce89128b403372bce"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a814b17f27f484c3ce89128b403372bce">&#9670;&nbsp;</a></span>txs_validators_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::vector&lt;<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>&gt; taraxa::rewards::BlockStats::txs_validators_</td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">protected</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-</div>
-</div>
-<a id="a2e229096f7b9821739ba23a8aaec5342"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2e229096f7b9821739ba23a8aaec5342">&#9670;&nbsp;</a></span>validator_by_tx_hash_</h2>
-
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#a547380b2fdd6d759f86e4819e84ec314">trx_hash_t</a>, <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a>&gt; taraxa::rewards::BlockStats::validator_by_tx_hash_</td>
         </tr>
       </table>
   </td>

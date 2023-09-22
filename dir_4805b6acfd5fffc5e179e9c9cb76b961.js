@@ -5,6 +5,7 @@ var dir_4805b6acfd5fffc5e179e9c9cb76b961 =
     [ "key_manager", "dir_9c82cf3ea057240581a617b723f7eaa2.html", "dir_9c82cf3ea057240581a617b723f7eaa2" ],
     [ "pbft", "dir_04722538dfecff0f34a91172ea4fb1e3.html", "dir_04722538dfecff0f34a91172ea4fb1e3" ],
     [ "rewards", "dir_8f1ebc5f78a551b1f7396ca8ee53b4c6.html", "dir_8f1ebc5f78a551b1f7396ca8ee53b4c6" ],
+    [ "slashing_manager", "dir_8bcefc4ee7f0ba6b605bd854def7154a.html", "dir_8bcefc4ee7f0ba6b605bd854def7154a" ],
     [ "transaction", "dir_178de5eb6e7ee29929dd1be2bca94f4e.html", "dir_178de5eb6e7ee29929dd1be2bca94f4e" ],
     [ "vote_manager", "dir_09dd6a089b30e1a573a85a200966bea6.html", "dir_09dd6a089b30e1a573a85a200966bea6" ]
 ];

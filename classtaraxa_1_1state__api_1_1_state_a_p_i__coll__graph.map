@@ -1,7 +1,8 @@
 <map id="taraxa::state_api::StateAPI" name="taraxa::state_api::StateAPI">
-<area shape="rect" id="node1" title=" " alt="" coords="188,213,328,255"/>
-<area shape="rect" id="node2" href="$group___final_chain.html#structtaraxa_1_1state__api_1_1_state_transition_result" title=" " alt="" coords="9,95,169,136"/>
-<area shape="rect" id="node3" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,172,32"/>
-<area shape="rect" id="node4" title=" " alt="" coords="229,102,287,129"/>
-<area shape="rect" id="node5" href="$classdev_1_1_r_l_p_stream.html" title="Class for writing to an RLP bytestream." alt="" coords="312,102,436,129"/>
+<area shape="rect" id="node1" title=" " alt="" coords="740,95,880,136"/>
+<area shape="rect" id="node2" href="$group___final_chain.html#structtaraxa_1_1state__api_1_1_rewards_distribution_result" title=" " alt="" coords="297,5,491,47"/>
+<area shape="rect" id="node3" href="$classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,13,172,39"/>
+<area shape="rect" id="node4" title=" " alt="" coords="365,71,423,98"/>
+<area shape="rect" id="node5" href="$group___final_chain.html#structtaraxa_1_1state__api_1_1_transactions_execution_result" title=" " alt="" coords="291,124,497,165"/>
+<area shape="rect" id="node6" href="$classdev_1_1_r_l_p_stream.html" title="Class for writing to an RLP bytestream." alt="" coords="332,206,456,233"/>
 </map>

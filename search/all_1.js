@@ -56,7 +56,7 @@ var searchData=
   ['addstatement_55',['addStatement',['../classdev_1_1p2p_1_1_endpoint_tracker.html#aa79acd5f1ca84280570ccc7f44ee57cd',1,'dev::p2p::EndpointTracker']]],
   ['addstatusfieldtobatch_56',['addStatusFieldToBatch',['../classtaraxa_1_1_db_storage.html#a0093c29ef1e270e9200a112453790b1c',1,'taraxa::DbStorage']]],
   ['addtodag_57',['addToDag',['../group___d_a_g.html#ae531eee634d1d0d5bad60586dc5bbc89',1,'taraxa::DagManager']]],
-  ['addtransaction_58',['addTransaction',['../classtaraxa_1_1rewards_1_1_block_stats.html#aec7049be33daaae4d9256dfd094da3fd',1,'taraxa::rewards::BlockStats']]],
+  ['addtransaction_58',['addTransaction',['../classtaraxa_1_1rewards_1_1_block_stats.html#a476195f457b66bc7b64ad1cb5bc5055f',1,'taraxa::rewards::BlockStats']]],
   ['addtransactionperiodtobatch_59',['addTransactionPeriodToBatch',['../classtaraxa_1_1_db_storage.html#a362415461a739b199a254084d64c71a0',1,'taraxa::DbStorage']]],
   ['addtransactiontobatch_60',['addTransactionToBatch',['../classtaraxa_1_1_db_storage.html#a91cb10fa3a8499a93c36a435efe09dae',1,'taraxa::DbStorage']]],
   ['addvees_61',['addVEEs',['../group___d_a_g.html#a50d307a99d2ce78294d970a67b07038b',1,'taraxa::Dag']]],

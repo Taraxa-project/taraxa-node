@@ -160,11 +160,11 @@ var hierarchy =
     [ "taraxa::GasPricer", "group___transaction.html#classtaraxa_1_1_gas_pricer", null ],
     [ "dev::GenericUnguardBool< MutexType >", "structdev_1_1_generic_unguard_bool.html", null ],
     [ "dev::GenericUnguardSharedBool< MutexType >", "structdev_1_1_generic_unguard_shared_bool.html", null ],
-    [ "taraxa::Genesis", "structtaraxa_1_1_genesis.html", null ],
+    [ "taraxa::GenesisConfig", "structtaraxa_1_1_genesis_config.html", null ],
     [ "GuardType", null, [
       [ "dev::GenericGuardBool< GuardType, MutexType >", "structdev_1_1_generic_guard_bool.html", null ]
     ] ],
-    [ "Hardforks", "hardfork_8hpp.html#struct_hardforks", null ],
+    [ "HardforksConfig", "hardfork_8hpp.html#struct_hardforks_config", null ],
     [ "dev::FixedHash< N >::hash", "structdev_1_1_fixed_hash_1_1hash.html", [
       [ "std::hash< dev::h128 >", "structstd_1_1hash_3_01dev_1_1h128_01_4.html", null ],
       [ "std::hash< dev::h160 >", "structstd_1_1hash_3_01dev_1_1h160_01_4.html", null ],
@@ -206,6 +206,7 @@ var hierarchy =
     [ "taraxa::final_chain::LogEntry", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_log_entry", null ],
     [ "taraxa::net::rpc::eth::LogFilter", "structtaraxa_1_1net_1_1rpc_1_1eth_1_1_log_filter.html", null ],
     [ "taraxa::state_api::LogRecord", "group___final_chain.html#structtaraxa_1_1state__api_1_1_log_record", null ],
+    [ "MagnoliaHardfork", "hardfork_8hpp.html#struct_magnolia_hardfork", null ],
     [ "taraxa::storage::migration::Manager", "classtaraxa_1_1storage_1_1migration_1_1_manager.html", null ],
     [ "taraxa::MapByBlockCache< Key, Value >", "classtaraxa_1_1_map_by_block_cache.html", null ],
     [ "taraxa::MapByBlockCache< dev::FixedHash, std::optional< const taraxa::state_api::Account > >", "classtaraxa_1_1_map_by_block_cache.html", null ],
@@ -295,6 +296,7 @@ var hierarchy =
     [ "graphql::taraxa::Query", "classgraphql_1_1taraxa_1_1_query.html", null ],
     [ "taraxa::util::RangeView< Element >", "structtaraxa_1_1util_1_1_range_view.html", null ],
     [ "Redelegation", "hardfork_8hpp.html#struct_redelegation", null ],
+    [ "taraxa::state_api::RewardsDistributionResult", "group___final_chain.html#structtaraxa_1_1state__api_1_1_rewards_distribution_result", null ],
     [ "RewardsStats", "namespace_3global_scope_4.html#class_rewards_stats", null ],
     [ "dev::RLP", "classdev_1_1_r_l_p.html", null ],
     [ "taraxa::util::RLPDecoderRef", "structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html", null ],
@@ -355,6 +357,7 @@ var hierarchy =
       ] ]
     ] ],
     [ "dev::SignatureStruct", "structdev_1_1_signature_struct.html", null ],
+    [ "taraxa::SlashingManager", "classtaraxa_1_1_slashing_manager.html", null ],
     [ "taraxa::SortitionParams", "structtaraxa_1_1_sortition_params.html", [
       [ "taraxa::SortitionConfig", "structtaraxa_1_1_sortition_config.html", null ]
     ] ],
@@ -363,7 +366,6 @@ var hierarchy =
     [ "taraxa::util::event::EventSubscriber< Payload >::State", "classtaraxa_1_1util_1_1event_1_1_event_subscriber_1_1_state.html", null ],
     [ "taraxa::state_api::StateAPI", "group___final_chain.html#classtaraxa_1_1state__api_1_1_state_a_p_i", null ],
     [ "taraxa::state_api::StateDescriptor", "group___final_chain.html#structtaraxa_1_1state__api_1_1_state_descriptor", null ],
-    [ "taraxa::state_api::StateTransitionResult", "group___final_chain.html#structtaraxa_1_1state__api_1_1_state_transition_result", null ],
     [ "dev::StaticLog2< N >", "structdev_1_1_static_log2.html", null ],
     [ "dev::StaticLog2< 1 >", "structdev_1_1_static_log2_3_011_01_4.html", null ],
     [ "taraxa::rewards::Stats", "classtaraxa_1_1rewards_1_1_stats.html", null ],
@@ -390,6 +392,7 @@ var hierarchy =
     ] ],
     [ "taraxa::TransactionQueue", "group___transaction.html#classtaraxa_1_1_transaction_queue", null ],
     [ "taraxa::final_chain::TransactionReceipt", "group___final_chain.html#structtaraxa_1_1final__chain_1_1_transaction_receipt", null ],
+    [ "taraxa::state_api::TransactionsExecutionResult", "group___final_chain.html#structtaraxa_1_1state__api_1_1_transactions_execution_result", null ],
     [ "taraxa::net::rpc::eth::TransactionSkeleton", "namespacetaraxa_1_1net_1_1rpc_1_1eth.html#structtaraxa_1_1net_1_1rpc_1_1eth_1_1_transaction_skeleton", null ],
     [ "dev::p2p::UDPDatagram", "classdev_1_1p2p_1_1_u_d_p_datagram.html", [
       [ "dev::p2p::RLPXDatagramFace", "structdev_1_1p2p_1_1_r_l_p_x_datagram_face.html", [

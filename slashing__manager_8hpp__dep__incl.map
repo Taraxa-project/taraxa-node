@@ -1,0 +1,43 @@
+<map id="libraries/core_libs/consensus/include/slashing_manager/slashing_manager.hpp" name="libraries/core_libs/consensus/include/slashing_manager/slashing_manager.hpp">
+<area shape="rect" id="node1" title=" " alt="" coords="815,5,1053,61"/>
+<area shape="rect" id="node2" href="$slashing__manager_8cpp.html" title=" " alt="" coords="519,109,755,165"/>
+<area shape="rect" id="node3" href="$init__packets__handlers_8hpp.html" title=" " alt="" coords="5,213,220,284"/>
+<area shape="rect" id="node5" href="$taraxa__capability_8hpp.html" title=" " alt="" coords="829,109,1039,165"/>
+<area shape="rect" id="node9" href="$node_8cpp.html" title=" " alt="" coords="4947,681,5091,722"/>
+<area shape="rect" id="node35" href="$taraxa__capability_8cpp.html" title=" " alt="" coords="5181,451,5345,507"/>
+<area shape="rect" id="node4" href="$core__libs_2network_2src_2_network_8cpp.html" title=" " alt="" coords="31,458,218,499"/>
+<area shape="rect" id="node6" href="$core__libs_2network_2include_2network_2network_8hpp.html" title=" " alt="" coords="841,221,1027,277"/>
+<area shape="rect" id="node7" href="$dag__block__proposer_8hpp.html" title=" " alt="" coords="4928,332,5111,388"/>
+<area shape="rect" id="node10" href="$pbft__manager_8hpp.html" title=" " alt="" coords="2689,332,2864,388"/>
+<area shape="rect" id="node13" href="$vote__manager_8cpp.html" title=" " alt="" coords="522,451,733,507"/>
+<area shape="rect" id="node14" href="$query_8hpp.html" title=" " alt="" coords="4675,451,4857,507"/>
+<area shape="rect" id="node15" href="$http__processor_8hpp.html" title=" " alt="" coords="3695,569,3898,625"/>
+<area shape="rect" id="node23" href="$_test_8cpp.html" title=" " alt="" coords="757,458,917,499"/>
+<area shape="rect" id="node37" href="$dag_8cpp.html" title=" " alt="" coords="834,339,1034,381"/>
+<area shape="rect" id="node38" href="$dag__manager_8cpp.html" title=" " alt="" coords="1058,332,1231,388"/>
+<area shape="rect" id="node39" href="$sync__state_8hpp.html" title=" " alt="" coords="393,332,576,388"/>
+<area shape="rect" id="node41" href="$_net_8cpp.html" title=" " alt="" coords="1255,339,1413,381"/>
+<area shape="rect" id="node8" href="$dag__block__proposer_8cpp.html" title=" " alt="" coords="4933,451,5106,507"/>
+<area shape="rect" id="node11" href="$pbft__chain_8cpp.html" title=" " alt="" coords="4133,451,4279,507"/>
+<area shape="rect" id="node12" href="$pbft__manager_8cpp.html" title=" " alt="" coords="4303,451,4450,507"/>
+<area shape="rect" id="node19" href="$core__libs_2network_2graphql_2include_2graphql_2types_2dag__block_8hpp.html" title=" " alt="" coords="3895,451,4109,507"/>
+<area shape="rect" id="node21" href="$_debug_8cpp.html" title=" " alt="" coords="4474,458,4650,499"/>
+<area shape="rect" id="node22" href="$_taraxa_8cpp.html" title=" " alt="" coords="941,458,1119,499"/>
+<area shape="rect" id="node24" href="$ext__syncing__packet__handler_8cpp.html" title=" " alt="" coords="1143,436,1357,521"/>
+<area shape="rect" id="node25" href="$ext__votes__packet__handler_8cpp.html" title=" " alt="" coords="1381,436,1583,521"/>
+<area shape="rect" id="node26" href="$latest_2get__next__votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="1607,436,1834,521"/>
+<area shape="rect" id="node27" href="$latest_2pbft__sync__packet__handler_8cpp.html" title=" " alt="" coords="1859,443,2079,514"/>
+<area shape="rect" id="node28" href="$status__packet__handler_8cpp.html" title=" " alt="" coords="2103,443,2301,514"/>
+<area shape="rect" id="node29" href="$vote__packet__handler_8cpp.html" title=" " alt="" coords="2326,443,2513,514"/>
+<area shape="rect" id="node30" href="$latest_2votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="2537,443,2782,514"/>
+<area shape="rect" id="node31" href="$v1_2get__next__votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="2807,436,2984,521"/>
+<area shape="rect" id="node32" href="$v1_2pbft__sync__packet__handler_8cpp.html" title=" " alt="" coords="3008,443,3228,514"/>
+<area shape="rect" id="node33" href="$v1_2votes__bundle__packet__handler_8cpp.html" title=" " alt="" coords="3253,443,3498,514"/>
+<area shape="rect" id="node34" href="$node__stats_8cpp.html" title=" " alt="" coords="3522,451,3682,507"/>
+<area shape="rect" id="node36" href="$core__libs_2storage_2src_2migration_2period__data_8cpp.html" title=" " alt="" coords="3706,451,3871,507"/>
+<area shape="rect" id="node17" href="$query_8cpp.html" title=" " alt="" coords="4106,569,4261,625"/>
+<area shape="rect" id="node18" href="$graphql_2src_2ws__server_8cpp.html" title=" " alt="" coords="4689,569,4843,625"/>
+<area shape="rect" id="node16" href="$http__processor_8cpp.html" title=" " alt="" coords="3719,673,3874,729"/>
+<area shape="rect" id="node20" href="$core__libs_2network_2graphql_2src_2types_2dag__block_8cpp.html" title=" " alt="" coords="3923,569,4081,625"/>
+<area shape="rect" id="node40" href="$sync__state_8cpp.html" title=" " alt="" coords="293,451,447,507"/>
+</map>

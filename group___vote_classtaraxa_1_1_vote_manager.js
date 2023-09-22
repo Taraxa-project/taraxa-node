@@ -1,6 +1,6 @@
 var group___vote_classtaraxa_1_1_vote_manager =
 [
-    [ "VoteManager", "group___vote.html#a2876b72592443f97d036ccc693e14448", null ],
+    [ "VoteManager", "group___vote.html#adbe36f53be8ddc081c215a7741d4963f", null ],
     [ "~VoteManager", "group___vote.html#a030b575a581433e9d0d6da3fba0ee29f", null ],
     [ "VoteManager", "group___vote.html#a2f609a3b7a3ea1f5adb0e026abad8246", null ],
     [ "VoteManager", "group___vote.html#a958687409ea47afffc8e2bc179528683", null ],
@@ -23,8 +23,8 @@ var group___vote_classtaraxa_1_1_vote_manager =
     [ "getTwoTPlusOneVotedBlockVotes", "group___vote.html#ae186428314e91dedaee0532279033d86", null ],
     [ "getVerifiedVotes", "group___vote.html#af8fbe3c4b695c519a9dc239b05823b89", null ],
     [ "getVerifiedVotesSize", "group___vote.html#add0a1c70fc728cdb3ef074330a129060", null ],
-    [ "insertUniqueVote", "group___vote.html#a5778529b1a6b677dafb00cdefa2d8446", null ],
-    [ "isUniqueVote", "group___vote.html#a657bbf95ad1866cbf01a6f170998bce2", null ],
+    [ "insertUniqueVote", "group___vote.html#a51bb33917dd6a38013540afb4524ceff", null ],
+    [ "isUniqueVote", "group___vote.html#a940e643f80ad2236c9e434aa8d026ba1", null ],
     [ "isValidRewardVote", "group___vote.html#ad9887aa224a11b723e647f13c04e335f", null ],
     [ "operator=", "group___vote.html#a38bd14449af576be965293785cc4d8ac", null ],
     [ "operator=", "group___vote.html#a71368f8f7056743c74eb64be733d4e5a", null ],
@@ -56,6 +56,7 @@ var group___vote_classtaraxa_1_1_vote_manager =
     [ "reward_votes_info_mutex_", "group___vote.html#a0431bfe5e227da1f109b45a3dfabba51", null ],
     [ "reward_votes_period_", "group___vote.html#aec11b666e3865562a105cfce6d8afd71", null ],
     [ "reward_votes_round_", "group___vote.html#ae62ea14eb028a03f52450b4beacbca62", null ],
+    [ "slashing_manager_", "group___vote.html#a82b50afe77651f3db222db39c4658b14", null ],
     [ "verified_votes_", "group___vote.html#ae2238e11e37f563fcdfe94fb87d22e09", null ],
     [ "verified_votes_access_", "group___vote.html#a90b43db0bc6fbe231ed10b86ef33255e", null ]
 ];
