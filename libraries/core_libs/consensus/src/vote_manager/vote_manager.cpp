@@ -16,7 +16,7 @@ namespace taraxa {
 VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config, const secret_t& node_sk,
                          const vrf_wrapper::vrf_sk_t& vrf_sk, std::shared_ptr<DbStorage> db,
                          std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
-                         std::shared_ptr<KeyManager> key_manager)
+                         std::shared_ptr<KeyManager> key_manager, std::shared_ptr<SlashingManager> slashing_manager)
     : kNodeAddr(node_addr),
       kPbftConfig(pbft_config),
       kVrfSk(vrf_sk),
@@ -26,6 +26,7 @@ VoteManager::VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config,
       pbft_chain_(std::move(pbft_chain)),
       final_chain_(std::move(final_chain)),
       key_manager_(std::move(key_manager)),
+      slashing_manager_(std::move(slashing_manager)),
       already_validated_votes_(1000000, 1000) {
   LOG_OBJECTS_CREATE("VOTE_MGR");
 
@@ -195,8 +196,10 @@ bool VoteManager::addVerifiedVote(const std::shared_ptr<Vote>& vote) {
   {
     std::scoped_lock lock(verified_votes_access_);
 
-    if (!insertUniqueVote(vote)) {
+    if (auto vote_inserted = insertUniqueVote(vote); !vote_inserted.first) {
       LOG(log_wr_) << "Non unique vote " << vote->getHash().abridged() << " (race condition)";
+      // Create double voting proof
+      slashing_manager_->submitDoubleVotingProof(vote, vote_inserted.second);
       return false;
     }
 
@@ -365,47 +368,47 @@ bool VoteManager::voteInVerifiedMap(const std::shared_ptr<Vote>& vote) const {
   return found_voted_value_it->second.second.find(vote->getHash()) != found_voted_value_it->second.second.end();
 }
 
-std::pair<bool, std::string> VoteManager::isUniqueVote(const std::shared_ptr<Vote>& vote) const {
+std::pair<bool, std::shared_ptr<Vote>> VoteManager::isUniqueVote(const std::shared_ptr<Vote>& vote) const {
   std::shared_lock lock(verified_votes_access_);
 
   const auto found_period_it = verified_votes_.find(vote->getPeriod());
   if (found_period_it == verified_votes_.end()) {
-    return {true, ""};
+    return {true, nullptr};
   }
 
   const auto found_round_it = found_period_it->second.find(vote->getRound());
   if (found_round_it == found_period_it->second.end()) {
-    return {true, ""};
+    return {true, nullptr};
   }
 
   const auto found_step_it = found_round_it->second.step_votes.find(vote->getStep());
   if (found_step_it == found_round_it->second.step_votes.end()) {
-    return {true, ""};
+    return {true, nullptr};
   }
 
   const auto found_voter_it = found_step_it->second.unique_voters.find(vote->getVoterAddr());
   if (found_voter_it == found_step_it->second.unique_voters.end()) {
-    return {true, ""};
+    return {true, nullptr};
   }
 
   if (found_voter_it->second.first->getHash() == vote->getHash()) {
-    return {true, ""};
+    return {true, nullptr};
   }
 
-  // Next votes are special case, where we allow voting for both kNullBlockHash and some other specific block hash
-  // at the same time
-  if (vote->getType() == PbftVoteTypes::next_vote) {
+  // Next votes (second finishing steps) are special case, where we allow voting for both kNullBlockHash and
+  // some other specific block hash at the same time -> 2 unique votes per round & step & voter
+  if (vote->getType() == PbftVoteTypes::next_vote && vote->getStep() % 2) {
     // New second next vote
     if (found_voter_it->second.second == nullptr) {
       // One of the next votes == kNullBlockHash -> valid scenario
       if (found_voter_it->second.first->getBlockHash() == kNullBlockHash && vote->getBlockHash() != kNullBlockHash) {
-        return {true, ""};
+        return {true, nullptr};
       } else if (found_voter_it->second.first->getBlockHash() != kNullBlockHash &&
                  vote->getBlockHash() == kNullBlockHash) {
-        return {true, ""};
+        return {true, nullptr};
       }
     } else if (found_voter_it->second.second->getHash() == vote->getHash()) {
-      return {true, ""};
+      return {true, nullptr};
     }
   }
 
@@ -420,75 +423,83 @@ std::pair<bool, std::string> VoteManager::isUniqueVote(const std::shared_ptr<Vot
         << found_voter_it->second.second->getBlockHash().abridged() << ")";
   }
   err << ", round: " << vote->getRound() << ", step: " << vote->getStep() << ", voter: " << vote->getVoterAddr();
-  return {false, err.str()};
+  LOG(log_er_) << err.str();
+
+  // Return existing vote
+  if (found_voter_it->second.second && vote->getHash() != found_voter_it->second.second->getHash()) {
+    return {false, found_voter_it->second.second};
+  }
+  return {false, found_voter_it->second.first};
 }
 
-bool VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote) {
-  auto insertVote = [this](const std::shared_ptr<Vote>& vote) -> bool {
-    auto found_period_it = verified_votes_.find(vote->getPeriod());
-    if (found_period_it == verified_votes_.end()) {
-      found_period_it = verified_votes_.insert({vote->getPeriod(), {}}).first;
-    }
+std::pair<bool, std::shared_ptr<Vote>> VoteManager::insertUniqueVote(const std::shared_ptr<Vote>& vote) {
+  auto found_period_it = verified_votes_.find(vote->getPeriod());
+  if (found_period_it == verified_votes_.end()) {
+    found_period_it = verified_votes_.insert({vote->getPeriod(), {}}).first;
+  }
 
-    auto found_round_it = found_period_it->second.find(vote->getRound());
-    if (found_round_it == found_period_it->second.end()) {
-      found_round_it = found_period_it->second.insert({vote->getRound(), {}}).first;
-    }
+  auto found_round_it = found_period_it->second.find(vote->getRound());
+  if (found_round_it == found_period_it->second.end()) {
+    found_round_it = found_period_it->second.insert({vote->getRound(), {}}).first;
+  }
 
-    auto found_step_it = found_round_it->second.step_votes.find(vote->getStep());
-    if (found_step_it == found_round_it->second.step_votes.end()) {
-      found_step_it = found_round_it->second.step_votes.insert({vote->getStep(), {}}).first;
-    }
+  auto found_step_it = found_round_it->second.step_votes.find(vote->getStep());
+  if (found_step_it == found_round_it->second.step_votes.end()) {
+    found_step_it = found_round_it->second.step_votes.insert({vote->getStep(), {}}).first;
+  }
 
-    auto inserted_vote = found_step_it->second.unique_voters.insert({vote->getVoterAddr(), {vote, nullptr}});
+  auto inserted_vote = found_step_it->second.unique_voters.insert({vote->getVoterAddr(), {vote, nullptr}});
 
-    // Vote was successfully inserted -> it is unique
-    if (inserted_vote.second) {
-      return true;
-    }
+  // Vote was successfully inserted -> it is unique
+  if (inserted_vote.second) {
+    return {true, nullptr};
+  }
 
-    // There was already some vote inserted, check if it is the same vote as we are trying to insert
-    if (inserted_vote.first->second.first->getHash() != vote->getHash()) {
-      // Next votes (second finishing steps) are special case, where we allow voting for both kNullBlockHash and
-      // some other specific block hash at the same time -> 2 unique votes per round & step & voter
-      if (vote->getType() == PbftVoteTypes::next_vote && vote->getStep() % 2) {
-        // New second next vote
-        if (inserted_vote.first->second.second == nullptr) {
-          // One of the next votes == kNullBlockHash -> valid scenario
-          if (inserted_vote.first->second.first->getBlockHash() == kNullBlockHash &&
-              vote->getBlockHash() != kNullBlockHash) {
-            inserted_vote.first->second.second = vote;
-            return true;
-          } else if (inserted_vote.first->second.first->getBlockHash() != kNullBlockHash &&
-                     vote->getBlockHash() == kNullBlockHash) {
-            inserted_vote.first->second.second = vote;
-            return true;
-          }
-        } else if (inserted_vote.first->second.second->getHash() == vote->getHash()) {
-          return true;
+  const auto existing_vote = inserted_vote.first->second.first;
+
+  // There was already some vote inserted, check if it is the same vote as we are trying to insert
+  if (inserted_vote.first->second.first->getHash() != vote->getHash()) {
+    // Next votes (second finishing steps) are special case, where we allow voting for both kNullBlockHash and
+    // some other specific block hash at the same time -> 2 unique votes per round & step & voter
+    if (vote->getType() == PbftVoteTypes::next_vote && vote->getStep() % 2) {
+      // New second next vote
+      if (inserted_vote.first->second.second == nullptr) {
+        // One of the next votes == kNullBlockHash -> valid scenario
+        if (inserted_vote.first->second.first->getBlockHash() == kNullBlockHash &&
+            vote->getBlockHash() != kNullBlockHash) {
+          inserted_vote.first->second.second = vote;
+          return {true, nullptr};
+        } else if (inserted_vote.first->second.first->getBlockHash() != kNullBlockHash &&
+                   vote->getBlockHash() == kNullBlockHash) {
+          inserted_vote.first->second.second = vote;
+          return {true, nullptr};
         }
+      } else if (inserted_vote.first->second.second->getHash() == vote->getHash()) {
+        return {true, nullptr};
       }
-
-      std::stringstream err;
-      err << "Unable to insert new unique vote(race condition): "
-          << ", new vote hash (voted value): " << vote->getHash().abridged() << " (" << vote->getBlockHash() << ")"
-          << ", orig. vote hash (voted value): " << inserted_vote.first->second.first->getHash().abridged() << " ("
-          << inserted_vote.first->second.first->getBlockHash() << ")";
-      if (inserted_vote.first->second.second != nullptr) {
-        err << ", orig. vote 2 hash (voted value): " << inserted_vote.first->second.second->getHash().abridged() << " ("
-            << inserted_vote.first->second.second->getBlockHash() << ")";
-      }
-      err << ", period: " << vote->getPeriod() << ", round: " << vote->getRound() << ", step: " << vote->getStep()
-          << ", voter: " << vote->getVoterAddr();
-      LOG(log_er_) << err.str();
-
-      return false;
     }
 
-    return true;
-  };
+    std::stringstream err;
+    err << "Unable to insert new unique vote(race condition): "
+        << ", new vote hash (voted value): " << vote->getHash().abridged() << " (" << vote->getBlockHash() << ")"
+        << ", orig. vote hash (voted value): " << inserted_vote.first->second.first->getHash().abridged() << " ("
+        << inserted_vote.first->second.first->getBlockHash() << ")";
+    if (inserted_vote.first->second.second != nullptr) {
+      err << ", orig. vote 2 hash (voted value): " << inserted_vote.first->second.second->getHash().abridged() << " ("
+          << inserted_vote.first->second.second->getBlockHash() << ")";
+    }
+    err << ", period: " << vote->getPeriod() << ", round: " << vote->getRound() << ", step: " << vote->getStep()
+        << ", voter: " << vote->getVoterAddr();
+    LOG(log_er_) << err.str();
 
-  return insertVote(vote);
+    // Return existing vote
+    if (inserted_vote.first->second.second && vote->getHash() != inserted_vote.first->second.second->getHash()) {
+      return {false, inserted_vote.first->second.second};
+    }
+    return {false, inserted_vote.first->second.first};
+  }
+
+  return {true, nullptr};
 }
 
 void VoteManager::cleanupVotesByPeriod(PbftPeriod pbft_period) {

@@ -27,7 +27,7 @@ struct GasPriceConfig {
 Json::Value enc_json(GasPriceConfig const& obj);
 void dec_json(Json::Value const& json, GasPriceConfig& obj);
 
-struct Genesis {
+struct GenesisConfig {
   uint64_t chain_id = 0;
   DagBlock dag_genesis_block;
   GasPriceConfig gas_price;
@@ -36,14 +36,14 @@ struct Genesis {
   state_api::Config state;
   DagConfig dag;
 
-  Genesis();
+  GenesisConfig();
   void validate() const;
   bytes rlp() const;
   blk_hash_t genesisHash() const;
   void updateBlocksPerYear();
 };
 
-Json::Value enc_json(Genesis const& obj);
-void dec_json(Json::Value const& json, Genesis& obj);
+Json::Value enc_json(GenesisConfig const& obj);
+void dec_json(Json::Value const& json, GenesisConfig& obj);
 
 }  // namespace taraxa

@@ -93,6 +93,7 @@ Json::Value enc_json(const DPOSConfig& obj) {
   for (const auto& v : obj.initial_validators) {
     json["initial_validators"].append(enc_json(v));
   }
+
   return json;
 }
 

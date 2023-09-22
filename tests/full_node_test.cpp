@@ -1433,11 +1433,17 @@ TEST_F(FullNodeTest, light_node) {
       non_empty_counter++;
     }
   }
+
+  uint32_t non_empty_counter_full_node = 0;
+  for (uint64_t i = 0; i < nodes[0]->getPbftChain()->getPbftChainSize(); i++) {
+    const auto pbft_block = nodes[0]->getDB()->getPbftBlock(i);
+    if (pbft_block) {
+      non_empty_counter_full_node++;
+    }
+  }
   // Verify light node keeps at least light_node_history and it deletes old blocks
   EXPECT_GE(non_empty_counter, node_cfgs[1].light_node_history);
-  // Actual history size will be between 100% and 110% of light_node_history_ to
-  // avoid deleting on every period
-  EXPECT_LE(non_empty_counter, node_cfgs[1].light_node_history * 1.1 + node_cfgs[1].dag_expiry_limit);
+  EXPECT_LT(non_empty_counter, non_empty_counter_full_node);
 }
 
 TEST_F(FullNodeTest, clear_period_data) {

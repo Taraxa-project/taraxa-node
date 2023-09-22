@@ -173,6 +173,69 @@ TEST_F(CryptoTest, vdf_stake_test) {
                 << (count_dag_blocks_production[i] * 1000 / total_dags % 100) << "%" << std::endl;
     }
   }
+
+  // Post magnolia hardfork stakes
+  for (uint32_t upper_threshold = 0x5ff; upper_threshold < 0xffff; upper_threshold *= 3) {
+    std::cout << "Upper threshold: " << upper_threshold << std::endl;
+    SortitionParams sortition_params(upper_threshold, 16, 21, 23, 0x64);
+    uint64_t total_vote_count = 800;
+    const uint64_t voters_count = 8;
+    uint64_t voters_vote_count[voters_count];
+    uint64_t count_dag_blocks_production[voters_count];
+    for (uint64_t i = 0; i < voters_count; i++) {
+      count_dag_blocks_production[i] = 0;
+    }
+    voters_vote_count[0] = 50;
+    voters_vote_count[1] = 100;
+    voters_vote_count[2] = 200;
+    voters_vote_count[3] = 300;
+    voters_vote_count[4] = 400;
+    voters_vote_count[5] = 500;
+    voters_vote_count[6] = 650;
+    voters_vote_count[7] = 800;
+    vrf_sk_t sk(
+        "0b6627a6680e01cea3d9f36fa797f7f34e8869c3a526d9ed63ed8170e35542aad05dc12c"
+        "1df1edc9f3367fba550b7971fc2de6c5998d8784051c5be69abc9644");
+    for (uint32_t counter = 1; counter < 3000; counter++) {
+      level_t level = counter * voters_count;
+      uint64_t difficulties[voters_count];
+      for (uint64_t i = 0; i < voters_count; i++) {
+        VdfSortition vdf(sortition_params, sk, getRlpBytes(level + i), voters_vote_count[i], total_vote_count);
+        difficulties[i] = vdf.getDifficulty();
+      }
+      uint64_t min_diff = 24;
+      for (uint64_t i = 0; i < voters_count; i++) {
+        if (difficulties[i] < min_diff) {
+          min_diff = difficulties[i];
+        }
+      }
+      // Stale block is produced by random node
+      if (min_diff == 23) {
+        count_dag_blocks_production[rand() % voters_count]++;
+      } else {
+        for (uint64_t i = 0; i < voters_count; i++) {
+          if (difficulties[i] == min_diff) {
+            count_dag_blocks_production[i]++;
+            // std::cout << "min AT " << i << std::endl;
+          }
+        }
+      }
+    }
+    uint64_t total_dags = 0;
+    for (auto count : count_dag_blocks_production) {
+      total_dags += count;
+    }
+    std::cout << "total_dags: " << total_dags << std::endl;
+    for (uint64_t i = 0; i < voters_count; i++) {
+      if (i > 0) {
+        // Verify that greater stake produce more dag blocks
+        EXPECT_GE(count_dag_blocks_production[i], count_dag_blocks_production[i - 1]);
+      }
+      std::cout << "Vote stake " << voters_vote_count[i] / 8 << "." << voters_vote_count[i] % 8
+                << "% - Dag ratio: " << count_dag_blocks_production[i] * 100 / total_dags << "."
+                << (count_dag_blocks_production[i] * 1000 / total_dags % 100) << "%" << std::endl;
+    }
+  }
 }
 
 TEST_F(CryptoTest, vdf_sortition) {

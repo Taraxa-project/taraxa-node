@@ -286,6 +286,7 @@ def node_worker(binary, worker_name, enable_test_rpc):
     cmd = f'{binary} --config ./{data_dir}/conf-{worker_name}.json --wallet ./{data_dir}/wallet-{worker_name}.json --genesis ./{data_dir}/genesis-{worker_name}.json'
     if enable_test_rpc:
         cmd += ' --enable-test-rpc '
+
     process = subprocess.Popen(cmd,
                                shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
     logs(worker_name, process)
