@@ -17,7 +17,8 @@ DagBlockProposer::DagBlockProposer(const DagBlockProposerConfig& bp_config, std:
                                    std::shared_ptr<TransactionManager> trx_mgr,
                                    std::shared_ptr<final_chain::FinalChain> final_chain, std::shared_ptr<DbStorage> db,
                                    std::shared_ptr<KeyManager> key_manager, addr_t node_addr, secret_t node_sk,
-                                   vrf_wrapper::vrf_sk_t vrf_sk, uint64_t pbft_gas_limit, uint64_t dag_gas_limit)
+                                   vrf_wrapper::vrf_sk_t vrf_sk, uint64_t pbft_gas_limit, uint64_t dag_gas_limit,
+                                   const state_api::Config& state_config)
     : bp_config_(bp_config),
       total_trx_shards_(std::max(bp_config_.shard, uint16_t(1))),
       dag_mgr_(std::move(dag_mgr)),
@@ -30,7 +31,9 @@ DagBlockProposer::DagBlockProposer(const DagBlockProposerConfig& bp_config, std:
       vrf_sk_(std::move(vrf_sk)),
       vrf_pk_(vrf_wrapper::getVrfPublicKey(vrf_sk_)),
       kPbftGasLimit(pbft_gas_limit),
-      kDagGasLimit(dag_gas_limit) {
+      kDagGasLimit(dag_gas_limit),
+      kHardforks(state_config.hardforks),
+      kValidatorMaxVote(state_config.dpos.validator_maximum_stake / state_config.dpos.vote_eligibility_balance_step) {
   LOG_OBJECTS_CREATE("DAG_PROPOSER");
 
   // Add a random component in proposing stale blocks so that not all nodes propose stale blocks at the same time
@@ -69,15 +72,20 @@ bool DagBlockProposer::proposeDagBlock() {
     return false;
   }
 
-  const auto total_vote_count = final_chain_->dpos_eligible_total_vote_count(*proposal_period);
+  uint64_t max_vote_count = 0;
   const auto vote_count = final_chain_->dpos_eligible_vote_count(*proposal_period, node_addr_);
+  if (*proposal_period < kHardforks.magnolia_hf.block_num) {
+    max_vote_count = final_chain_->dpos_eligible_total_vote_count(*proposal_period);
+  } else {
+    max_vote_count = kValidatorMaxVote;
+  }
 
   const auto period_block_hash = db_->getPeriodBlockHash(*proposal_period);
   // get sortition
   const auto sortition_params = dag_mgr_->sortitionParamsManager().getSortitionParams(*proposal_period);
   vdf_sortition::VdfSortition vdf(sortition_params, vrf_sk_,
                                   VrfSortitionBase::makeVrfInput(propose_level, period_block_hash), vote_count,
-                                  total_vote_count);
+                                  max_vote_count);
   if (vdf.isStale(sortition_params)) {
     if (last_propose_level_ == propose_level) {
       if (num_tries_ < max_num_tries_) {

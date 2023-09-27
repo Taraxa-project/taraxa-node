@@ -41,7 +41,7 @@ bytes GasPriceConfig::rlp() const {
   return s.out();
 }
 
-Json::Value enc_json(const Genesis& obj) {
+Json::Value enc_json(const GenesisConfig& obj) {
   Json::Value json(Json::objectValue);
   json["chain_id"] = obj.chain_id;
   json["dag_genesis_block"] = obj.dag_genesis_block.getJson(false);
@@ -53,7 +53,7 @@ Json::Value enc_json(const Genesis& obj) {
   return json;
 }
 
-void dec_json(Json::Value const& json, Genesis& obj) {
+void dec_json(Json::Value const& json, GenesisConfig& obj) {
   obj.chain_id = json["chain_id"].asUInt();
   obj.dag_genesis_block = DagBlock(json["dag_genesis_block"]);
   dec_json(json["sortition"], obj.sortition);
@@ -64,7 +64,7 @@ void dec_json(Json::Value const& json, Genesis& obj) {
   obj.updateBlocksPerYear();
 }
 
-Genesis::Genesis() {
+GenesisConfig::GenesisConfig() {
   dag_genesis_block = DagBlock(string(R"({
     "level": 0,
     "tips": [],
@@ -103,7 +103,7 @@ Genesis::Genesis() {
   updateBlocksPerYear();
 }
 
-void Genesis::updateBlocksPerYear() {
+void GenesisConfig::updateBlocksPerYear() {
   uint64_t year_ms = 365 * 24 * 60 * 60;
   year_ms *= 1000;
   // we have fixed 2*lambda time for proposing step and adding some expecting value for filter and certify steps
@@ -111,9 +111,9 @@ void Genesis::updateBlocksPerYear() {
   state.dpos.blocks_per_year = year_ms / expected_block_time;
 }
 
-void Genesis::validate() const { gas_price.validate(); }
+void GenesisConfig::validate() const { gas_price.validate(); }
 
-bytes Genesis::rlp() const {
+bytes GenesisConfig::rlp() const {
   dev::RLPStream s;
   s.appendList(6);
 
@@ -127,6 +127,6 @@ bytes Genesis::rlp() const {
   return s.out();
 }
 
-blk_hash_t Genesis::genesisHash() const { return dev::sha3(rlp()); }
+blk_hash_t GenesisConfig::genesisHash() const { return dev::sha3(rlp()); }
 
 }  // namespace taraxa

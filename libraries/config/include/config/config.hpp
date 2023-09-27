@@ -49,7 +49,7 @@ struct FullNodeConfig {
   fs::path log_path;
   NetworkConfig network;
   DBConfig db_config;
-  Genesis genesis;
+  GenesisConfig genesis;
   state_api::Opts opts_final_chain;
   std::vector<logger::Config> log_configs;
   bool is_light_node = false;                            // Is light node
@@ -62,6 +62,9 @@ struct FullNodeConfig {
 
   // config values that limits transactions pool
   uint32_t transactions_pool_size = kDefaultTransactionPoolSize;
+
+  // Report malicious behaviour like double voting, etc... to slashing/jailing contract
+  bool report_malicious_behaviour = false;
 
   auto net_file_path() const { return data_path / "net"; }
 
