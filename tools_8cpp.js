@@ -17,6 +17,6 @@ var tools_8cpp =
     [ "getTaraxaDefaultDir", "tools_8cpp.html#af025832254c59368104f4122b217b190", null ],
     [ "getTaraxaDefaultGenesisFile", "tools_8cpp.html#ae8caf849c6aa5a12eccc23b1de267b0f", null ],
     [ "getTaraxaDefaultWalletFile", "tools_8cpp.html#a793f65ff5116126682096812693b0b7d", null ],
-    [ "overrideConfig", "tools_8cpp.html#ae0a585ba6993574f9b86827d59c8f485", null ],
+    [ "overrideConfig", "tools_8cpp.html#a93df239d5062502e931b9fd665e69750", null ],
     [ "overrideWallet", "tools_8cpp.html#a6faa605dc03f24fc87bfd798e42bacc8", null ]
 ];

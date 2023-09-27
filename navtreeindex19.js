@@ -1,10 +1,5 @@
 var NAVTREEINDEX19 =
 {
-"md_doc_coding_practices.html#autotoc_md177":[3,0,22],
-"md_doc_coding_practices.html#autotoc_md178":[98],
-"md_doc_coding_practices.html#autotoc_md179":[99],
-"md_doc_coding_practices.html#autotoc_md180":[100],
-"md_doc_coding_practices.html#autotoc_md181":[101],
 "md_doc_coding_practices.html#autotoc_md182":[3,0,23],
 "md_doc_coding_practices.html#autotoc_md183":[102],
 "md_doc_coding_practices.html#autotoc_md184":[103],
@@ -179,8 +174,8 @@ var NAVTREEINDEX19 =
 "namespacemembers_enum.html":[14,4],
 "namespacemembers_eval.html":[14,5],
 "namespacemembers_f.html":[14,0,6],
-"namespacemembers_func.html":[14,1,0],
 "namespacemembers_func.html":[14,1],
+"namespacemembers_func.html":[14,1,0],
 "namespacemembers_func_a.html":[14,1,1],
 "namespacemembers_func_b.html":[14,1,2],
 "namespacemembers_func_c.html":[14,1,3],
@@ -222,8 +217,8 @@ var NAVTREEINDEX19 =
 "namespacemembers_w.html":[14,0,22],
 "namespacemembers_z.html":[14,0,23],
 "namespacetaraxa.html#a009be38daa65710a670613c7d9428e76":[16,0,1,8,0,0,0,1,0],
-"namespacetaraxa.html#a0849089d35105b6fcb8ef8f7b350b89d":[16,0,1,4,0,0,7,0,0,0,0],
 "namespacetaraxa.html#a0849089d35105b6fcb8ef8f7b350b89d":[16,0,1,4,0,0,7,0,1,0],
+"namespacetaraxa.html#a0849089d35105b6fcb8ef8f7b350b89d":[16,0,1,4,0,0,7,0,0,0,0],
 "namespacetaraxa.html#a13ec6be411c3c352858744678e0690da":[16,0,1,3,0,0,5,2,2],
 "namespacetaraxa.html#a20a355304a30d8893626b16bf7c78595":[16,0,1,3,0,0,0,0,0],
 "namespacetaraxa.html#a25279da4cb5c51a252df1a2c42d8fdc6":[16,0,1,3,0,0,0,0,2],
@@ -249,5 +244,10 @@ var NAVTREEINDEX19 =
 "namespacetaraxa.html#structtaraxa_1_1_d_b_config":[16,0,1,3,0,0,0,0],
 "namespacetaraxa.html#structtaraxa_1_1_node_config":[16,0,1,3,0,0,5,2],
 "namespacetaraxa.html#structtaraxa_1_1_prometheus_config":[16,0,1,3,0,0,5,0],
-"namespacetaraxa.html#structtaraxa_1_1_vdf_params":[16,0,1,8,0,0,0,1]
+"namespacetaraxa.html#structtaraxa_1_1_vdf_params":[16,0,1,8,0,0,0,1],
+"namespacetaraxa.html#structtaraxa_1_1_verified_votes":[16,0,1,4,0,0,7,0,0],
+"namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[16,0,1,4,0,0,7,0,0,0],
+"namespacetaraxa.html#structtaraxa_1_1_verified_votes_1_1_step_votes":[16,0,1,4,0,0,7,0,1],
+"namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a1e15a59a79691f16628fd670283ecf80":[16,0,1,4,1,2,0,0,5,2],
+"namespacetaraxa_1_1net_1_1rpc_1_1eth.html#a2f6cd6b167f36d948149b2cbd69eca30":[16,0,1,4,1,2,0,6,0,1]
 };

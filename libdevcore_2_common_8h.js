@@ -46,6 +46,5 @@ var libdevcore_2_common_8h =
     [ "u2s", "libdevcore_2_common_8h.html#a77de08c93fd79ea2417149185651bf48", null ],
     [ "utcTime", "libdevcore_2_common_8h.html#a9ec0fad72b75dc7e13ea0aebd51e3b0f", null ],
     [ "c_steadyClockMin", "libdevcore_2_common_8h.html#af046732b9eabd8a277a5c99f3104dc0d", null ],
-    [ "Invalid256", "libdevcore_2_common_8h.html#ab6c4f65584227a8bdbddbaf18981f75d", null ],
     [ "Version", "libdevcore_2_common_8h.html#a0b8b7ae6678082075edbad2fc862cbab", null ]
 ];

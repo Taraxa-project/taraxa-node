@@ -49,7 +49,6 @@ var classtaraxa_1_1final__chain_1_1_final_chain_impl =
     [ "kLightNode", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a0bd20b9995125122e8857c7fbb92aade", null ],
     [ "kLightNodeHistory", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a6c9c655fc843fe182ff3e8f4104c18a7", null ],
     [ "kMaxLevelsPerPeriod", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#aafff15677f0f1cff83ace3c00e89acf8", null ],
-    [ "kRewardsDistributionInterval", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab988bea28c84390d9861da1602681e48", null ],
     [ "num_executed_dag_blk_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a7e4b48d1c452fb9384e2c69a5f595560", null ],
     [ "num_executed_trx_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ae93239105e5ce019b97a88ef69e80527", null ],
     [ "rewards_", "classtaraxa_1_1final__chain_1_1_final_chain_impl.html#a6fca86942967327ef164f05805f13d51", null ],
