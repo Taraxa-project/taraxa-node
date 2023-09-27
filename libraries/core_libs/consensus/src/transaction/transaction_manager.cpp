@@ -1,6 +1,7 @@
 #include "transaction/transaction_manager.hpp"
 
 #include <string>
+#include <unordered_set>
 #include <utility>
 
 #include "dag/dag.hpp"
@@ -103,11 +104,12 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const std::sh
     return {false, reason};
   }
 
-  auto transaction = trx;
-  if (insertValidatedTransaction(std::move(transaction), status)) {
+  const auto trx_hash = trx->getHash();
+  auto trx_copy = trx;
+  if (insertValidatedTransaction(std::move(trx_copy), status)) {
     return {true, ""};
   } else {
-    const auto period = db_->getTransactionPeriod(trx->getHash());
+    const auto period = db_->getTransactionPeriod(trx_hash);
     if (period != std::nullopt) {
       return {false, "Transaction already finalized in period" + std::to_string(period->first)};
     } else {
@@ -119,18 +121,14 @@ std::pair<bool, std::string> TransactionManager::insertTransaction(const std::sh
 bool TransactionManager::insertValidatedTransaction(std::shared_ptr<Transaction> &&tx, const TransactionStatus status) {
   const auto trx_hash = tx->getHash();
 
-  // This lock synchronizes inserting and removing transactions from transactions memory pool with database insertion.
-  // It is very important to lock checking the db state of transaction together with transaction pool checking to be
-  // protected from new DAG block and Period data transactions insertions which are inserted directly in the database.
+  // This lock synchronizes inserting and removing transactions from transactions memory pool.
+  // It is very important to lock transaction pool checking to be
+  // protected from new DAG block and Period data transactions insertions.
   std::unique_lock transactions_lock(transactions_mutex_);
-  const auto last_block_number = final_chain_->last_block_number();
-
-  // Check the db with if transaction is really new
-  if (db_->transactionInDb(trx_hash)) {
-    transactions_pool_.markTransactionKnown(trx_hash);
+  if (nonfinalized_transactions_in_dag_.contains(trx_hash)) {
     return false;
   }
-
+  const auto last_block_number = final_chain_->last_block_number();
   LOG(log_dg_) << "Transaction " << trx_hash << " inserted in trx pool";
   return transactions_pool_.insert(std::move(tx), status, last_block_number);
 }
@@ -259,14 +257,14 @@ std::vector<std::shared_ptr<Transaction>> TransactionManager::getNonfinalizedTrx
   return ret;
 }
 
-std::vector<trx_hash_t> TransactionManager::excludeFinalizedTransactions(const std::vector<trx_hash_t> &hashes) {
-  std::vector<trx_hash_t> ret;
+std::unordered_set<trx_hash_t> TransactionManager::excludeFinalizedTransactions(const std::vector<trx_hash_t> &hashes) {
+  std::unordered_set<trx_hash_t> ret;
   ret.reserve(hashes.size());
   std::shared_lock transactions_lock(transactions_mutex_);
   for (const auto &hash : hashes) {
     if (!recently_finalized_transactions_.contains(hash)) {
       if (!db_->transactionFinalized(hash)) {
-        ret.push_back(hash);
+        ret.insert(hash);
       }
     }
   }
@@ -314,14 +312,17 @@ void TransactionManager::updateFinalizedTransactionsStatus(PeriodData const &per
       recently_finalized_transactions_.clear();
     }
     for (auto const &trx : period_data.transactions) {
-      recently_finalized_transactions_[trx->getHash()] = trx;
-      if (!nonfinalized_transactions_in_dag_.erase(trx->getHash())) {
+      const auto hash = trx->getHash();
+      recently_finalized_transactions_[hash] = trx;
+      // we should mark trx as know just in case it was only synchronized from the period data
+      transactions_pool_.markTransactionKnown(hash);
+      if (!nonfinalized_transactions_in_dag_.erase(hash)) {
         trx_count_++;
       } else {
-        LOG(log_dg_) << "Transaction " << trx->getHash() << " removed from nonfinalized transactions";
+        LOG(log_dg_) << "Transaction " << hash << " removed from nonfinalized transactions";
       }
-      if (transactions_pool_.erase(trx->getHash())) {
-        LOG(log_dg_) << "Transaction " << trx->getHash() << " removed from transactions_pool_";
+      if (transactions_pool_.erase(hash)) {
+        LOG(log_dg_) << "Transaction " << hash << " removed from transactions_pool_";
       }
     }
     db_->saveStatusField(StatusDbField::TrxCount, trx_count_);
@@ -380,7 +381,7 @@ std::optional<SharedTransactions> TransactionManager::getBlockTransactions(DagBl
       transactions.emplace_back(std::move(trx));
     }
   } else {
-    LOG(log_er_) << "Block " << blk.getHash() << " has missing transaction " << finalizedTransactions.second;
+    LOG(log_nf_) << "Block " << blk.getHash() << " has missing transaction " << finalizedTransactions.second;
     return std::nullopt;
   }
 

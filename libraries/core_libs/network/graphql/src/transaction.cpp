@@ -13,9 +13,11 @@ namespace graphql::taraxa {
 
 Transaction::Transaction(std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain,
                          std::shared_ptr<::taraxa::TransactionManager> trx_manager,
+                         std::function<std::shared_ptr<object::Block>(::taraxa::EthBlockNumber)> get_block_by_num,
                          std::shared_ptr<::taraxa::Transaction> transaction) noexcept
     : final_chain_(std::move(final_chain)),
       trx_manager_(std::move(trx_manager)),
+      get_block_by_num_(std::move(get_block_by_num)),
       transaction_(std::move(transaction)) {}
 
 response::Value Transaction::getHash() const noexcept { return response::Value(transaction_->getHash().toString()); }
@@ -70,8 +72,7 @@ std::shared_ptr<object::Block> Transaction::getBlock() const {
     location_ = final_chain_->transaction_location(transaction_->getHash());
     if (!location_) return nullptr;
   }
-  return std::make_shared<object::Block>(
-      std::make_shared<Block>(final_chain_, trx_manager_, final_chain_->block_header(location_->blk_n)));
+  return get_block_by_num_(location_->blk_n);
 }
 
 std::optional<response::Value> Transaction::getStatus() const noexcept {

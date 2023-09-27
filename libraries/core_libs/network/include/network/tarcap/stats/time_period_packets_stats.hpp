@@ -8,6 +8,7 @@
 namespace taraxa::network::tarcap {
 
 class PeersState;
+class TaraxaPeer;
 
 /**
  * @brief Stats for all received and sent packets of all types
@@ -22,7 +23,7 @@ class TimePeriodPacketsStats {
   /**
    * @brief Logs both received as well as sent packets stats + updates max count/size and reset stats
    */
-  void processStats(const std::shared_ptr<PeersState>& peers_state);
+  void processStats(const std::vector<std::shared_ptr<TaraxaPeer>>& all_peers);
 
  private:
   /**

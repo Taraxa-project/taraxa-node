@@ -2,7 +2,7 @@
 
 namespace taraxa {
 
-std::string getConfigErr(std::vector<std::string> path) {
+std::string getConfigErr(const std::vector<std::string> &path) {
   std::string res = "Error in processing configuration file on param: ";
   for (size_t i = 0; i < path.size(); i++) res += path[i] + ".";
   res += " ";

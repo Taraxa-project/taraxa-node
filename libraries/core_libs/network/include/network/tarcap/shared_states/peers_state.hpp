@@ -38,7 +38,7 @@ class PeersState {
   PeersMap getAllPeers() const;
   std::vector<dev::p2p::NodeID> getAllPendingPeersIDs() const;
   size_t getPeersCount() const;
-  std::shared_ptr<TaraxaPeer> addPendingPeer(const dev::p2p::NodeID& node_id);
+  std::shared_ptr<TaraxaPeer> addPendingPeer(const dev::p2p::NodeID& node_id, const std::string& address);
   void erasePeer(const dev::p2p::NodeID& node_id);
   std::shared_ptr<TaraxaPeer> setPeerAsReadyToSendMessages(dev::p2p::NodeID const& node_id,
                                                            std::shared_ptr<TaraxaPeer> peer);

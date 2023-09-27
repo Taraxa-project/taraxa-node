@@ -26,6 +26,7 @@
 #include "network/rpc/jsonrpc_http_processor.hpp"
 #include "network/rpc/jsonrpc_ws_server.hpp"
 #include "pbft/pbft_manager.hpp"
+#include "slashing_manager/slashing_manager.hpp"
 #include "storage/migration/migration_manager.hpp"
 #include "transaction/gas_pricer.hpp"
 #include "transaction/transaction_manager.hpp"
@@ -46,6 +47,8 @@ void FullNode::init() {
     logging.InitLogging(node_addr);
   }
 
+  conf_.scheduleLoggingConfigUpdate();
+
   LOG_OBJECTS_CREATE("FULLND");
 
   LOG(log_si_) << "Node public key: " << EthGreen << kp_.pub().toString() << std::endl
@@ -63,7 +66,9 @@ void FullNode::init() {
                                             conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
                                             conf_.db_config.db_revert_to_period, node_addr, true);
     }
-    db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.db_config.db_snapshot_each_n_pbft_block,
+    db_ = std::make_shared<DbStorage>(conf_.db_path,
+                                      // Snapshots should be disabled while rebuilding
+                                      conf_.db_config.rebuild_db ? 0 : conf_.db_config.db_snapshot_each_n_pbft_block,
                                       conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
                                       conf_.db_config.db_revert_to_period, node_addr, false);
 
@@ -74,12 +79,14 @@ void FullNode::init() {
       old_db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.db_config.db_snapshot_each_n_pbft_block,
                                             conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
                                             conf_.db_config.db_revert_to_period, node_addr, true);
-      db_ = std::make_shared<DbStorage>(conf_.db_path, conf_.db_config.db_snapshot_each_n_pbft_block,
+      db_ = std::make_shared<DbStorage>(conf_.db_path,
+                                        0,  // Snapshots should be disabled while rebuilding
                                         conf_.db_config.db_max_open_files, conf_.db_config.db_max_snapshots,
                                         conf_.db_config.db_revert_to_period, node_addr);
     }
 
     db_->updateDbVersions();
+
     storage::migration::Manager(db_).applyAll();
 
     if (db_->getDagBlocksCount() == 0) {
@@ -116,21 +123,22 @@ void FullNode::init() {
   }
 
   pbft_chain_ = std::make_shared<PbftChain>(node_addr, db_);
-  dag_mgr_ = std::make_shared<DagManager>(conf_.genesis.dag_genesis_block, node_addr, conf_.genesis.sortition,
-                                          conf_.genesis.dag, trx_mgr_, pbft_chain_, final_chain_, db_, key_manager_,
-                                          conf_.genesis.pbft.gas_limit, conf_.is_light_node, conf_.light_node_history,
-                                          conf_.max_levels_per_period, conf_.dag_expiry_limit);
+  dag_mgr_ = std::make_shared<DagManager>(
+      conf_.genesis.dag_genesis_block, node_addr, conf_.genesis.sortition, conf_.genesis.dag, trx_mgr_, pbft_chain_,
+      final_chain_, db_, key_manager_, conf_.genesis.pbft.gas_limit, conf_.genesis.state, conf_.is_light_node,
+      conf_.light_node_history, conf_.max_levels_per_period, conf_.dag_expiry_limit);
+  auto slashing_manager = std::make_shared<SlashingManager>(final_chain_, trx_mgr_, gas_pricer_, conf_, kp_.secret());
   vote_mgr_ = std::make_shared<VoteManager>(node_addr, conf_.genesis.pbft, kp_.secret(), conf_.vrf_secret, db_,
-                                            pbft_chain_, final_chain_, key_manager_);
+                                            pbft_chain_, final_chain_, key_manager_, slashing_manager);
   pbft_mgr_ =
       std::make_shared<PbftManager>(conf_.genesis.pbft, conf_.genesis.dag_genesis_block.getHash(), node_addr, db_,
                                     pbft_chain_, vote_mgr_, dag_mgr_, trx_mgr_, final_chain_, kp_.secret());
   dag_block_proposer_ = std::make_shared<DagBlockProposer>(
       conf_.genesis.dag.block_proposer, dag_mgr_, trx_mgr_, final_chain_, db_, key_manager_, node_addr, getSecretKey(),
-      getVrfSecretKey(), conf_.genesis.pbft.gas_limit, conf_.genesis.dag.gas_limit);
-  network_ = std::make_shared<Network>(conf_, genesis_hash, dev::p2p::Host::CapabilitiesFactory(),
-                                       conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_, vote_mgr_,
-                                       dag_mgr_, trx_mgr_);
+      getVrfSecretKey(), conf_.genesis.pbft.gas_limit, conf_.genesis.dag.gas_limit, conf_.genesis.state);
+
+  network_ = std::make_shared<Network>(conf_, genesis_hash, conf_.net_file_path().string(), kp_, db_, pbft_mgr_,
+                                       pbft_chain_, vote_mgr_, dag_mgr_, trx_mgr_, std::move(slashing_manager));
 }
 
 void FullNode::setupMetricsUpdaters() {
@@ -208,7 +216,7 @@ void FullNode::start() {
       debug_json_rpc = std::make_shared<net::Debug>(shared_from_this(), conf_.genesis.dag.gas_limit);
     }
 
-    jsonrpc_api_ = std::make_unique<jsonrpc_server_t>(
+    jsonrpc_api_ = std::make_unique<JsonRpcServer>(
         std::make_shared<net::Taraxa>(shared_from_this()),  // TODO Because this object refers to FullNode, the
                                                             // lifecycle/dependency management is more complicated
         std::make_shared<net::Net>(shared_from_this()),     // TODO Because this object refers to FullNode, the
@@ -312,6 +320,10 @@ void FullNode::start() {
   if (conf_.db_config.rebuild_db) {
     rebuildDb();
     LOG(log_si_) << "Rebuild db completed successfully. Restart node without db_rebuild option";
+    started_ = false;
+    return;
+  } else if (conf_.db_config.migrate_only) {
+    LOG(log_si_) << "DB migrated successfully, please restart the node without the flag";
     started_ = false;
     return;
   } else {

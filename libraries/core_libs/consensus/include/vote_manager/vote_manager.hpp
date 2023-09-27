@@ -15,6 +15,7 @@ namespace taraxa {
  */
 
 class Network;
+class SlashingManager;
 
 namespace network::tarcap {
 class TaraxaPeer;
@@ -27,7 +28,8 @@ class VoteManager {
  public:
   VoteManager(const addr_t& node_addr, const PbftConfig& pbft_config, const secret_t& node_sk,
               const vrf_wrapper::vrf_sk_t& vrf_sk, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftChain> pbft_chain,
-              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<KeyManager> key_manager);
+              std::shared_ptr<FinalChain> final_chain, std::shared_ptr<KeyManager> key_manager,
+              std::shared_ptr<SlashingManager> slashing_manager);
   ~VoteManager() = default;
   VoteManager(const VoteManager&) = delete;
   VoteManager(VoteManager&&) = delete;
@@ -57,9 +59,9 @@ class VoteManager {
 
   /**
    * @param vote
-   * @return <true, ""> if vote is unique per round & step & voter, otherwise <false, "err msg">
+   * @return <true, nullptr> if vote is unique per round & step & voter, otherwise <false, existing vote>
    */
-  std::pair<bool, std::string> isUniqueVote(const std::shared_ptr<Vote>& vote) const;
+  std::pair<bool, std::shared_ptr<Vote>> isUniqueVote(const std::shared_ptr<Vote>& vote) const;
 
   /**
    * @brief Get all verified votes
@@ -225,15 +227,6 @@ class VoteManager {
                                                                    TwoTPlusOneVotedBlockType type) const;
 
   /**
-   * Get all 2t+1 voted block next votes(both for null block as well as specific block) for specific period and round
-   *
-   * @param period
-   * @param round
-   * @return vector of next votes if 2t+1 voted block votes found, otherwise empty vector
-   */
-  std::vector<std::shared_ptr<Vote>> getAllTwoTPlusOneNextVotes(PbftPeriod period, PbftRound round) const;
-
-  /**
    * @brief Sets current pbft period & round. It also checks if we dont alredy have 2t+1 vote bundles(pf any type) for
    *                the provided period & round and if so, it saves these bundles into db
    *
@@ -263,10 +256,9 @@ class VoteManager {
   /**
    * @brief Inserts unique vote
    * @param vote
-   * @return true if vote was successfully inserted(it was unique) or this specific vote was already inserted, otherwise
-   * false
+   * @return <true, nullptr> if vote is unique per round & step & voter, otherwise <false, existing vote>
    */
-  bool insertUniqueVote(const std::shared_ptr<Vote>& vote);
+  std::pair<bool, std::shared_ptr<Vote>> insertUniqueVote(const std::shared_ptr<Vote>& vote);
 
   /**
    * @brief Get PBFT sortition threshold for specific period
@@ -288,6 +280,7 @@ class VoteManager {
   std::shared_ptr<FinalChain> final_chain_;
   std::shared_ptr<KeyManager> key_manager_;
   std::weak_ptr<Network> network_;
+  std::shared_ptr<SlashingManager> slashing_manager_;
 
   // Current pbft period based on pbft_manager
   std::atomic<PbftPeriod> current_pbft_period_{0};

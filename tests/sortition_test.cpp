@@ -27,6 +27,12 @@ PeriodData createBlock(PbftPeriod period, uint16_t efficiency, size_t dag_blocks
   std::vector<vote_hash_t> reward_votes_hashes;
   b.pbft_blk = std::make_shared<PbftBlock>(kNullBlockHash, anchor_hash, kNullBlockHash, kNullBlockHash, period,
                                            addr_t(0), dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
+
+  if (period > 1) {
+    b.previous_block_cert_votes = {
+        genDummyVote(PbftVoteTypes::cert_vote, b.pbft_blk->getPeriod() - 1, 1, 3, b.pbft_blk->getBlockHash())};
+  }
+
   size_t effective_transactions = kTrxCount * efficiency / (100 * kOnePercent);
   auto trx_hashes = generateTrxHashes(effective_transactions);
   auto trx_per_block = effective_transactions / dag_blocks_count;

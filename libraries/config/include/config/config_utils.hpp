@@ -7,7 +7,7 @@
 #include "common/util.hpp"
 
 namespace taraxa {
-std::string getConfigErr(std::vector<std::string> path);
+std::string getConfigErr(const std::vector<std::string> &path);
 
 Json::Value getConfigData(Json::Value root, const std::vector<std::string> &path, bool optional = false);
 

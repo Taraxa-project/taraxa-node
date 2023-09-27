@@ -18,16 +18,15 @@ using boost::filesystem::temp_directory_path;
 using namespace std;
 // using namespace core_tests;
 
-struct StateAPITest : WithDataDir {};
+struct StateAPITest : NodesTest {};
 
 struct TestBlock {
   h256 hash;
   h256 state_root;
   EVMBlock evm_block;
   vector<EVMTransaction> transactions;
-  vector<UncleBlock> uncle_blocks;
 
-  RLP_FIELDS_DEFINE_INPLACE(hash, state_root, evm_block, transactions, uncle_blocks)
+  RLP_FIELDS_DEFINE_INPLACE(hash, state_root, evm_block, transactions)
 };
 
 template <typename T>
@@ -202,11 +201,53 @@ TEST_F(StateAPITest, DISABLED_eth_mainnet_smoke) {
       progress_pct_log_threshold += 10;
     }
     auto const& test_block = test_blocks[blk_num];
-    auto const& result =
-        SUT.transition_state(test_block.evm_block, test_block.transactions, {}, test_block.uncle_blocks);
+    SUT.execute_transactions(test_block.evm_block, test_block.transactions);
+    const auto& result = SUT.distribute_rewards({});
     ASSERT_EQ(result.state_root, test_block.state_root);
     SUT.transition_state_commit();
   }
+}
+
+TEST_F(StateAPITest, slashing) {
+  auto node_cfgs = make_node_cfgs(1, 1, 5);
+  // Option 2: more sophisticated and longer test
+  // auto node_cfgs = make_node_cfgs(4, 4, 5);
+  for (auto& cfg : node_cfgs) {
+    cfg.genesis.state.dpos.delegation_delay = 2;
+    cfg.genesis.state.hardforks.magnolia_hf.jail_time = 2;
+    cfg.genesis.state.hardforks.magnolia_hf.block_num = 0;
+    cfg.report_malicious_behaviour = true;
+  }
+
+  auto nodes = launch_nodes(node_cfgs);
+  auto node = nodes.begin()->get();
+  auto node_cfg = node_cfgs.begin();
+  ASSERT_EQ(true,
+            node->getFinalChain()->dpos_is_eligible(node->getFinalChain()->last_block_number(), node->getAddress()));
+
+  // Generate 2 cert votes for 2 different blocks
+  auto vote_a = node->getVoteManager()->generateVote(blk_hash_t{1}, PbftVoteTypes::cert_vote, 1, 1, 3);
+  auto vote_b = node->getVoteManager()->generateVote(blk_hash_t{2}, PbftVoteTypes::cert_vote, 1, 1, 3);
+
+  // Commit double voting proof
+  auto slashing_manager = std::make_shared<SlashingManager>(node->getFinalChain(), node->getTransactionManager(),
+                                                            node->getGasPricer(), *node_cfg, node->getSecretKey());
+  ASSERT_EQ(true, slashing_manager->submitDoubleVotingProof(vote_a, vote_b));
+
+  // After few blocks malicious validator should be jailed
+  ASSERT_HAPPENS({10s, 100ms}, [&](auto& ctx) {
+    WAIT_EXPECT_EQ(
+        ctx, false,
+        node->getFinalChain()->dpos_is_eligible(node->getFinalChain()->last_block_number(), node->getAddress()))
+  });
+
+  // Option 2: more sophisticated and longer test
+  // After few blocks malicious validator should be unjailed
+  //  ASSERT_HAPPENS({5s, 100ms}, [&](auto& ctx) {
+  //    WAIT_EXPECT_EQ(
+  //        ctx, true,
+  //        node->getFinalChain()->dpos_is_eligible(node->getFinalChain()->last_block_number(), node->getAddress()))
+  //  });
 }
 
 }  // namespace taraxa::state_api

@@ -229,7 +229,7 @@
   "gas_price": {
     "blocks": 200,
     "percentile": 60,
-    "minimum_price" : 1
+    "minimum_price": 1
   },
   "pbft": {
     "committee_size": "0x3e8",
@@ -261,6 +261,14 @@
       "difficulty_min": 16,
       "difficulty_stale": 22,
       "lambda_bound": "0x64"
+    }
+  },
+  "hardforks": {
+    "fix_redelegate_block_num": 0,
+    "rewards_distribution_frequency": {"1230000" : 100},
+    "magnolia_hf" : {
+      "block_num" : 1230000,
+      "jail_time": 163459
     }
   }
 }

@@ -35,8 +35,9 @@ Json::Value getGenesis(Config::ChainIdType chain_id);
 void generateWallet(const std::string& wallet);
 
 // Override existing config and wallet files
-Json::Value overrideConfig(Json::Value& config, std::string& data_dir, std::vector<std::string> boot_nodes,
-                           std::vector<std::string> log_channels, std::vector<std::string> log_configurations,
+Json::Value overrideConfig(Json::Value& config, std::string& data_dir, const std::vector<std::string>& boot_nodes,
+                           const std::vector<std::string>& log_channels,
+                           const std::vector<std::string>& log_configurations,
                            const std::vector<std::string>& boot_nodes_append,
                            const std::vector<std::string>& log_channels_append);
 Json::Value overrideWallet(Json::Value& wallet, const std::string& node_key, const std::string& vrf_key);

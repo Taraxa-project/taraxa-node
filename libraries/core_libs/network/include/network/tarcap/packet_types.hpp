@@ -4,7 +4,7 @@
 
 #include "common/types.hpp"
 
-namespace taraxa::network::tarcap {
+namespace taraxa::network {
 
 /**
  * @brief SubprotocolPacketType is used in networking layer to differentiate packet types
@@ -14,7 +14,7 @@ enum SubprotocolPacketType : uint32_t {
   HighPriorityPackets = 0,
   VotePacket,  // Vote packer can contain (optional) also pbft block
   GetNextVotesSyncPacket,
-  VotesSyncPacket,
+  VotesBundlePacket,
 
   // Standard packets with mid processing priority
   MidPriorityPackets,
@@ -53,8 +53,8 @@ inline std::string convertPacketTypeToString(SubprotocolPacketType packet_type) 
       return "VotePacket";
     case GetNextVotesSyncPacket:
       return "GetNextVotesSyncPacket";
-    case VotesSyncPacket:
-      return "VotesSyncPacket";
+    case VotesBundlePacket:
+      return "VotesBundlePacket";
     case GetPbftSyncPacket:
       return "GetPbftSyncPacket";
     case PbftSyncPacket:
@@ -66,4 +66,4 @@ inline std::string convertPacketTypeToString(SubprotocolPacketType packet_type) 
   return "Unknown packet type: " + std::to_string(packet_type);
 }
 
-}  // namespace taraxa::network::tarcap
+}  // namespace taraxa::network
