@@ -1,5 +1,7 @@
 #include "final_chain/final_chain.hpp"
 
+#include <cstdint>
+#include <stdexcept>
 #include <string>
 
 #include "common/constants.hpp"
@@ -400,6 +402,9 @@ class FinalChainImpl final : public FinalChain {
   state_api::ExecutionResult call(state_api::EVMTransaction const& trx,
                                   std::optional<EthBlockNumber> blk_n = {}) const override {
     auto const blk_header = block_header(last_if_absent(blk_n));
+    if (!blk_header) {
+      throw std::runtime_error("Future block");
+    }
     return state_api_.dry_run_transaction(blk_header->number,
                                           {
                                               blk_header->author,
@@ -413,6 +418,9 @@ class FinalChainImpl final : public FinalChain {
   std::string trace(std::vector<state_api::EVMTransaction> trxs, EthBlockNumber blk_n,
                     std::optional<state_api::Tracing> params = {}) const override {
     const auto blk_header = block_header(last_if_absent(blk_n));
+    if (!blk_header) {
+      throw std::runtime_error("Future block");
+    }
     return dev::asString(state_api_.trace(blk_header->number,
                                           {
                                               blk_header->author,
