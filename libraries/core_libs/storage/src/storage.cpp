@@ -923,7 +923,9 @@ void DbStorage::addPbftMgrFieldToBatch(PbftMgrField field, uint32_t value, Batch
 bool DbStorage::getPbftMgrStatus(PbftMgrStatus field) {
   auto status = lookup(toSlice(field), Columns::pbft_mgr_status);
   if (!status.empty()) {
-    return *(bool*)&status[0];
+    bool value;
+    memcpy(&value, status.data(), sizeof(bool));
+    return value;
   }
   return false;
 }

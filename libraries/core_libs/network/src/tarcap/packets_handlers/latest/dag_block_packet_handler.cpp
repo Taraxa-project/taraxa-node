@@ -67,7 +67,7 @@ void DagBlockPacketHandler::sendBlock(dev::p2p::NodeID const &peer_id, taraxa::D
 
     taraxa::bytes trx_bytes;
     for (uint32_t i = index; i < index + trx_count_to_send; i++) {
-      auto &trx_data = trxs[i]->rlp();
+      auto trx_data = trxs[i]->rlp();
       s << trxs[i]->getHash();
       trx_bytes.insert(trx_bytes.end(), std::begin(trx_data), std::end(trx_data));
     }

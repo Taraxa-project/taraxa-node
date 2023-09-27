@@ -23,12 +23,5 @@ using Addresses = h160s;
 using AddressSet = std::unordered_set<h160>;
 
 /// The zero address.
-extern Address const ZeroAddress;
-
-/// The last address.
-extern Address const MaxAddress;
-
-/// The SYSTEM address.
-extern Address const SystemAddress;
-
+Address const ZeroAddress;
 }  // namespace dev

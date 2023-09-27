@@ -64,8 +64,8 @@ Json::Value getGenesis(Config::ChainIdType chain_id) {
   return genesis;
 }
 
-Json::Value overrideConfig(Json::Value& conf, std::string& data_dir, vector<string> boot_nodes,
-                           vector<string> log_channels, vector<string> log_configurations,
+Json::Value overrideConfig(Json::Value& conf, std::string& data_dir, const vector<string>& boot_nodes,
+                           const vector<string>& log_channels, const vector<string>& log_configurations,
                            const vector<string>& boot_nodes_append, const vector<string>& log_channels_append) {
   if (data_dir.empty()) {
     if (conf["data_path"].asString().empty()) {
@@ -88,10 +88,7 @@ Json::Value overrideConfig(Json::Value& conf, std::string& data_dir, vector<stri
     conf["network"]["boot_nodes"] = Json::Value(Json::arrayValue);
   }
   if (boot_nodes_append.size() > 0) {
-    boot_nodes = boot_nodes_append;
-  }
-  if (boot_nodes.size() > 0) {
-    for (auto const& b : boot_nodes) {
+    for (auto const& b : boot_nodes_append) {
       vector<string> result;
       boost::split(result, b, boost::is_any_of(":/"));
       if (result.size() != 3) throw invalid_argument("Boot node in boot_nodes not specified correctly");
@@ -130,10 +127,7 @@ Json::Value overrideConfig(Json::Value& conf, std::string& data_dir, vector<stri
     }
   }
   if (log_channels_append.size() > 0) {
-    log_channels = log_channels_append;
-  }
-  if (log_channels.size() > 0) {
-    for (auto const& l : log_channels) {
+    for (auto const& l : log_channels_append) {
       vector<string> result;
       boost::split(result, l, boost::is_any_of(":"));
       if (result.size() != 2) throw invalid_argument("Log channel in log_channels not specified correctly");

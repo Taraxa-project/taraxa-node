@@ -18,7 +18,6 @@ class FinalChainImpl final : public FinalChain {
   const bool kLightNode = false;
   const uint64_t kLightNodeHistory = 0;
   const uint32_t kMaxLevelsPerPeriod;
-  const uint32_t kRewardsDistributionInterval = 100;
   rewards::Stats rewards_;
 
   // It is not prepared to use more then 1 thread. Examine it if you want to change threads count
