@@ -3,6 +3,7 @@
 #include <taraxa-evm/taraxa-evm.h>
 
 #include <functional>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp>
 
 #include "common/range_view.hpp"
 #include "final_chain/state_api_data.hpp"
@@ -59,6 +60,7 @@ class StateAPI {
   u256 get_staking_balance(EthBlockNumber blk_num, const addr_t& addr) const;
   vrf_wrapper::vrf_pk_t dpos_get_vrf_key(EthBlockNumber blk_num, const addr_t& addr) const;
   std::vector<ValidatorStake> dpos_validators_total_stakes(EthBlockNumber blk_num) const;
+  libff::alt_bn128_G2 dpos_get_bls_key(EthBlockNumber blk_num, const addr_t& addr) const;
   uint64_t dpos_yield(EthBlockNumber blk_num) const;
   u256 dpos_total_supply(EthBlockNumber blk_num) const;
   u256 dpos_total_amount_delegated(EthBlockNumber blk_num) const;
