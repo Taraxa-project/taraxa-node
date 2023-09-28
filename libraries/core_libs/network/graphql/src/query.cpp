@@ -43,8 +43,14 @@ std::shared_ptr<object::Block> Query::getBlock(std::optional<response::Value>&& 
   }
   if (hash) {
     block_number = final_chain_->block_number(dev::h256(hash->get<std::string>()));
+    if (!block_number) {
+      return nullptr;
+    }
   }
   auto block_header = final_chain_->block_header(block_number);
+  if (!block_header) {
+    return nullptr;
+  }
 
   auto pbft_block = db_->getPbftBlock(block_header->number);
   if (!pbft_block) {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 #include "DagBlockObject.h"
 #include "final_chain/final_chain.hpp"
 #include "pbft/pbft_manager.hpp"
@@ -34,6 +36,7 @@ class DagBlock {
   std::shared_ptr<::taraxa::TransactionManager> transaction_manager_;
   std::function<std::shared_ptr<object::Block>(::taraxa::EthBlockNumber)> get_block_by_num_;
 
+  mutable std::mutex mu_;
   mutable std::optional<uint64_t> period_;
 };
 
