@@ -83,12 +83,30 @@ void HttpConnection::read() {
       socket_, buffer_, request_, [this, this_sp = getShared()](boost::system::error_code const &ec, size_t) {
         if (ec) {
           LOG(server_->log_er_) << "Error! HttpConnection connection read fail ... " << ec.message() << std::endl;
+          if (socket_.is_open()) {
+            try {
+              boost::asio::socket_base::linger option(true, 0);
+              socket_.set_option(option);
+              socket_.close();
+            } catch (...) {
+            }
+          }
         } else {
           assert(server_->request_processor_);
           LOG(server_->log_dg_) << "Received: " << request_;
           response_ = server_->request_processor_->process(request_);
+
           boost::beast::http::async_write(socket_, response_,
-                                          [this_sp = getShared()](auto const & /*ec*/, auto /*bytes_transfered*/) {});
+                                          [this_sp = getShared()](auto const & /*ec*/, auto /*bytes_transfered*/) {
+                                            if (this_sp->socket_.is_open()) {
+                                              try {
+                                                boost::asio::socket_base::linger option(true, 0);
+                                                this_sp->socket_.set_option(option);
+                                                this_sp->socket_.close();
+                                              } catch (...) {
+                                              }
+                                            }
+                                          });
         }
       });
 }
