@@ -10,11 +10,13 @@ namespace graphql::taraxa {
 DagBlock::DagBlock(std::shared_ptr<::taraxa::DagBlock> dag_block,
                    std::shared_ptr<::taraxa::final_chain::FinalChain> final_chain,
                    std::shared_ptr<::taraxa::PbftManager> pbft_manager,
-                   std::shared_ptr<::taraxa::TransactionManager> transaction_manager) noexcept
+                   std::shared_ptr<::taraxa::TransactionManager> transaction_manager,
+                   std::function<std::shared_ptr<object::Block>(::taraxa::EthBlockNumber)> get_block_by_num) noexcept
     : dag_block_(std::move(dag_block)),
       final_chain_(std::move(final_chain)),
       pbft_manager_(std::move(pbft_manager)),
-      transaction_manager_(std::move(transaction_manager)) {}
+      transaction_manager_(std::move(transaction_manager)),
+      get_block_by_num_(get_block_by_num) {}
 
 response::Value DagBlock::getHash() const noexcept { return response::Value(dag_block_->getHash().toString()); }
 
@@ -35,6 +37,7 @@ response::Value DagBlock::getLevel() const noexcept {
 }
 
 std::optional<response::Value> DagBlock::getPbftPeriod() const noexcept {
+  std::lock_guard<std::mutex> lock{mu_};
   if (period_) {
     return response::Value(static_cast<int>(*period_));
   }
@@ -47,6 +50,7 @@ std::optional<response::Value> DagBlock::getPbftPeriod() const noexcept {
 }
 
 std::shared_ptr<object::Account> DagBlock::getAuthor() const noexcept {
+  std::lock_guard<std::mutex> lock{mu_};
   if (!period_) {
     const auto [has_period, period] = pbft_manager_->getDagBlockPeriod(::taraxa::blk_hash_t(dag_block_->getHash()));
     if (has_period) {
@@ -72,7 +76,7 @@ std::optional<std::vector<std::shared_ptr<object::Transaction>>> DagBlock::getTr
   std::vector<std::shared_ptr<object::Transaction>> transactions_result;
   for (const auto& trx_hash : dag_block_->getTrxs()) {
     transactions_result.push_back(std::make_shared<object::Transaction>(std::make_shared<Transaction>(
-        final_chain_, transaction_manager_, transaction_manager_->getTransaction(trx_hash))));
+        final_chain_, transaction_manager_, get_block_by_num_, transaction_manager_->getTransaction(trx_hash))));
   }
 
   return transactions_result;
