@@ -41,7 +41,7 @@ spec:
                 name: {{ .Release.Name }}
                 key: TRANSACTION_GENERATION_PRIVATE_KEY
           - name: PROVIDER_URL
-            value: http://{{ include "taraxa-node.fullname" . }}-head:7777
+            value: http://{{ include "taraxa-consensus-node.fullname" . }}:7777
           command: ["/bin/bash", "-c", "--"]
           args: [ "pip install -r /app/requirements.txt && python /app/transactions.py" ]
           volumeMounts:

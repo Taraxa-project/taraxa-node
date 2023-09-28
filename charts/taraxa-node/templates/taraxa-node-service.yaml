@@ -26,6 +26,7 @@ spec:
       protocol: {{ $port.protocol }}
       {{- end }}
   {{- end }}
+  externalTrafficPolicy: Local
 
 ---
 apiVersion: v1
@@ -52,6 +53,7 @@ spec:
       protocol: {{ $port.protocol }}
       {{- end }}
   {{- end }}
+  externalTrafficPolicy: Local
 
 {{ if .Values.node.loadBalancer.enabled }}
 {{- range $key, $value := .Values.node.loadBalancer.addresses }}
