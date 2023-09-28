@@ -12,6 +12,11 @@ namespace taraxa {
 class DbStorage;
 class Network;
 class BlsSignature;
+class KeyManager;
+
+namespace final_chain {
+class FinalChain;
+}
 
 /** @addtogroup PILLAR_CHAIN
  * @{
@@ -22,7 +27,8 @@ class BlsSignature;
  */
 class PillarChainManager {
  public:
-  PillarChainManager(std::shared_ptr<DbStorage> db, addr_t node_addr);
+  PillarChainManager(std::shared_ptr<DbStorage> db, std::shared_ptr<final_chain::FinalChain> final_chain,
+                     std::shared_ptr<KeyManager> key_manager, addr_t node_addr);
 
   /**
    * @Process new final block
@@ -62,6 +68,10 @@ class PillarChainManager {
  private:
   std::shared_ptr<DbStorage> db_;
   std::weak_ptr<Network> network_;
+  std::shared_ptr<final_chain::FinalChain> final_chain_;
+  std::shared_ptr<KeyManager> key_manager_;
+
+  const addr_t node_addr_;
 
   // TODO: from wallet-config file
   std::pair<libff::alt_bn128_Fr, libff::alt_bn128_G2> bls_keys_;
