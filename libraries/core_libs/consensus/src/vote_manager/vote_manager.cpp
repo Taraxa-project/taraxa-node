@@ -890,7 +890,7 @@ std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Vot
       return {false, err_msg.str()};
     }
 
-    const auto pk = key_manager_->get(vote_period - 1, vote->getVoterAddr());
+    const auto pk = key_manager_->getVrfKey(vote_period - 1, vote->getVoterAddr());
     if (!pk) {
       err_msg << "No vrf key mapped for vote author " << vote->getVoterAddr();
       return {false, err_msg.str()};

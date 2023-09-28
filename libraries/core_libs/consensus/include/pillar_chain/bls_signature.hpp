@@ -19,20 +19,19 @@ namespace taraxa {
  */
 class BlsSignature {
  public:
-  using Signature = libff::alt_bn128_G1;
   using Hash = uint256_hash_t;
 
  public:
   BlsSignature(const dev::RLP& rlp);
-  BlsSignature(PillarBlock::Hash pillar_block_hash, const libff::alt_bn128_G2& public_key,
-               const libff::alt_bn128_Fr& secret);
+  BlsSignature(PillarBlock::Hash pillar_block_hash, PbftPeriod period, const addr_t& validator, const libff::alt_bn128_Fr& secret);
 
   /**
    * @brief Validates BLS signature
    *
-   * @return true if valid, otherwise false
+   * @param bls_puk_key
+   * @return
    */
-  bool isValid() const;
+  bool isValid(const std::shared_ptr<libff::alt_bn128_G2>& bls_pub_key) const;
 
   /**
    * @return bls signature rlp
@@ -44,14 +43,27 @@ class BlsSignature {
    */
   Hash getHash() const;
 
+  /**
+   * @return pillar block hash
+   */
   PillarBlock::Hash getPillarBlockHash() const;
+
+  /**
+   * @return signature pbft period
+   */
+  PbftPeriod getPeriod() const;
+
+  /**
+   * @return bls signature author address
+   */
+  addr_t getSignerAddr() const;
 
  private:
   PillarBlock::Hash pillar_block_hash_{0};
-
-  Signature signature_;
-  // TODO: seems like pub key is needed for verification of sig ???
-  libff::alt_bn128_G2 public_key_;
+  // Pbft period of pillar block & period during which ws=as the signature created
+  PbftPeriod period_;
+  addr_t signer_addr_;
+  libff::alt_bn128_G1 signature_;
 
   mutable std::optional<Hash> cached_hash_;
 };

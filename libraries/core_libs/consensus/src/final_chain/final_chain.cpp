@@ -453,6 +453,10 @@ class FinalChainImpl final : public FinalChain {
     finalized_cv_.wait_for(lck, std::chrono::milliseconds(10));
   }
 
+  libff::alt_bn128_G2 dpos_get_bls_key(EthBlockNumber blk_n, const addr_t& addr) const override {
+    return state_api_.dpos_get_bls_key(blk_n, addr);
+  }
+
  private:
   std::shared_ptr<TransactionHashes> get_transaction_hashes(std::optional<EthBlockNumber> n = {}) const {
     const auto& trxs = db_->getPeriodTransactions(last_if_absent(n));
