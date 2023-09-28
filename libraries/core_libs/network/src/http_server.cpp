@@ -78,17 +78,32 @@ std::shared_ptr<HttpConnection> HttpConnection::getShared() {
 HttpConnection::HttpConnection(const std::shared_ptr<HttpServer> &http_server)
     : server_(http_server), socket_(http_server->getIoContext()) {}
 
+void HttpConnection::stop() {
+  if (socket_.is_open()) {
+    try {
+      LOG(server_->log_dg_) << "Closing connection...";
+      boost::asio::socket_base::linger option(true, 0);
+      socket_.set_option(option);
+      socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
+      socket_.close();
+    } catch (...) {
+    }
+  }
+}
+
 void HttpConnection::read() {
   boost::beast::http::async_read(
       socket_, buffer_, request_, [this, this_sp = getShared()](boost::system::error_code const &ec, size_t) {
         if (ec) {
           LOG(server_->log_er_) << "Error! HttpConnection connection read fail ... " << ec.message() << std::endl;
+          stop();
         } else {
           assert(server_->request_processor_);
           LOG(server_->log_dg_) << "Received: " << request_;
           response_ = server_->request_processor_->process(request_);
-          boost::beast::http::async_write(socket_, response_,
-                                          [this_sp = getShared()](auto const & /*ec*/, auto /*bytes_transfered*/) {});
+          boost::beast::http::async_write(
+              socket_, response_,
+              [this_sp = getShared()](auto const & /*ec*/, auto /*bytes_transfered*/) { this_sp->stop(); });
         }
       });
 }
