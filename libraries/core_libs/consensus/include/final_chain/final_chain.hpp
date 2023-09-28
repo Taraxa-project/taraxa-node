@@ -1,6 +1,7 @@
 #pragma once
 
 #include <future>
+#include <libff/algebra/curves/alt_bn128/alt_bn128_g2.hpp>
 
 #include "common/event.hpp"
 #include "common/range_view.hpp"
@@ -216,6 +217,14 @@ class FinalChain {
    * @return vrf_wrapper::vrf_pk_t
    */
   virtual vrf_wrapper::vrf_pk_t dpos_get_vrf_key(EthBlockNumber blk_n, const addr_t& addr) const = 0;
+
+  /**
+   * @brief Get the bls key object from DPOS state
+   * @param addr account address
+   * @param blk_n number of block we are getting state from
+   * @return libff::alt_bn128_G2
+   */
+  virtual libff::alt_bn128_G2 dpos_get_bls_key(EthBlockNumber blk_n, const addr_t& addr) const = 0;
 
   /**
    * @brief Prune state db for all blocks older than blk_n
