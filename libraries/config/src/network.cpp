@@ -15,7 +15,7 @@ void ConnectionConfig::validate() const {
   }
 
   // Max enabled number of threads for processing rpc requests
-  constexpr uint16_t MAX_RPC_THREADS_NUM = 10;
+  constexpr uint16_t MAX_RPC_THREADS_NUM = 20;
   if (threads_num <= 0 || threads_num > MAX_RPC_THREADS_NUM) {
     throw ConfigException(std::string("threads_num must be in range (0, ") + std::to_string(MAX_RPC_THREADS_NUM) + "]");
   }
