@@ -1,17 +1,19 @@
 #pragma once
 
-#include "get_next_votes_bundle_packet_handler.hpp"
-#include "get_pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/bls_sig_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/bls_sigs_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/get_dag_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/status_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v1/get_next_votes_bundle_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v1/get_pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v1/pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/v1/votes_bundle_packet_handler.hpp"
 #include "network/tarcap/taraxa_capability.hpp"
-#include "pbft_sync_packet_handler.hpp"
 #include "slashing_manager/slashing_manager.hpp"
-#include "votes_bundle_packet_handler.hpp"
 
 namespace taraxa::network::tarcap::v1 {
 
@@ -65,6 +67,9 @@ static const TaraxaCapability::InitPacketsHandlers kInitV1Handlers =
       // TODO: should ut be registered also for V1 ?
       packets_handlers->registerHandler<BlsSigPacketHandler>(config, peers_state, packets_stats, pillar_chain_mgr,
                                                              node_addr, logs_prefix);
+
+      packets_handlers->registerHandler<BlsSigsBundlePacketHandler>(config, peers_state, packets_stats,
+                                                                    pillar_chain_mgr, node_addr, logs_prefix);
 
       return packets_handlers;
     };

@@ -63,6 +63,7 @@ class TaraxaCapability final : public dev::p2p::CapabilityFace {
                    std::shared_ptr<PbftManager> pbft_mgr, std::shared_ptr<PbftChain> pbft_chain,
                    std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<DagManager> dag_mgr,
                    std::shared_ptr<TransactionManager> trx_mgr, std::shared_ptr<SlashingManager> slashing_manager,
+                   std::shared_ptr<PillarChainManager> pillar_chain_mgr,
                    InitPacketsHandlers init_packets_handlers = kInitLatestVersionHandlers);
 
   virtual ~TaraxaCapability() = default;

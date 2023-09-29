@@ -11,7 +11,7 @@ namespace final_chain {
 class FinalChain;
 }
 
-}
+}  // namespace taraxa
 
 namespace taraxa::network::tarcap {
 
@@ -19,9 +19,7 @@ class ExtBlsSigPacketHandler : public PacketHandler {
  public:
   ExtBlsSigPacketHandler(const FullNodeConfig& conf, std::shared_ptr<PeersState> peers_state,
                          std::shared_ptr<TimePeriodPacketsStats> packets_stats,
-                         std::shared_ptr<PillarChainManager> pillar_chain_manager,
-                         std::shared_ptr<KeyManager> key_manager,
-                         std::shared_ptr<final_chain::FinalChain> final_chain, const addr_t& node_addr,
+                         std::shared_ptr<PillarChainManager> pillar_chain_manager, const addr_t& node_addr,
                          const std::string& logs_prefix);
 
  protected:
@@ -29,8 +27,6 @@ class ExtBlsSigPacketHandler : public PacketHandler {
 
  protected:
   std::shared_ptr<PillarChainManager> pillar_chain_manager_;
-  std::shared_ptr<KeyManager> key_manager_;
-  std::shared_ptr<final_chain::FinalChain> final_chain_;
 };
 
 }  // namespace taraxa::network::tarcap

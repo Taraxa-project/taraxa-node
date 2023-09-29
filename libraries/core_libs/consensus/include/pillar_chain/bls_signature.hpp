@@ -23,7 +23,8 @@ class BlsSignature {
 
  public:
   BlsSignature(const dev::RLP& rlp);
-  BlsSignature(PillarBlock::Hash pillar_block_hash, PbftPeriod period, const addr_t& validator, const libff::alt_bn128_Fr& secret);
+  BlsSignature(PillarBlock::Hash pillar_block_hash, PbftPeriod period, const addr_t& validator,
+               const libff::alt_bn128_Fr& secret);
 
   /**
    * @brief Validates BLS signature
@@ -58,9 +59,14 @@ class BlsSignature {
    */
   addr_t getSignerAddr() const;
 
+  /**
+   * @return actual bls signature
+   */
+  libff::alt_bn128_G1 getSignature() const;
+
  private:
   PillarBlock::Hash pillar_block_hash_{0};
-  // Pbft period of pillar block & period during which ws=as the signature created
+  // Pbft period of pillar block & period during which was the signature created
   PbftPeriod period_;
   addr_t signer_addr_;
   libff::alt_bn128_G1 signature_;

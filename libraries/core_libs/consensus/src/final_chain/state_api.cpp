@@ -259,8 +259,8 @@ std::vector<ValidatorStake> StateAPI::dpos_validators_total_stakes(EthBlockNumbe
 }
 
 libff::alt_bn128_G2 StateAPI::dpos_get_bls_key(EthBlockNumber blk_num, const addr_t& addr) const {
-
-  dev::bytes sig_bytes = c_method_args_rlp<bytes, to_bytes, taraxa_evm_state_api_dpos_get_bls_key>(this_c_, blk_num, addr);
+  dev::bytes sig_bytes =
+      c_method_args_rlp<bytes, to_bytes, taraxa_evm_state_api_dpos_get_bls_key>(this_c_, blk_num, addr);
 
   // TODO: will this work ???
   std::stringstream sig_ss;
