@@ -23,7 +23,7 @@ void GetBlsSigsBundlePacketHandler::process(const threadpool::PacketData &packet
                                             const std::shared_ptr<TaraxaPeer> &peer) {
   const PillarBlock::Hash pillar_block_hash = packet_data.rlp_.toHash<PillarBlock::Hash>();
 
-  const auto signatures = pillar_chain_manager_->getVerifiedBlsSigs(pillar_block_hash);
+  const auto signatures = pillar_chain_manager_->getVerifiedBlsSignatures(pillar_block_hash);
 
   // TODO: split packet to multiple with kGetBlsSigsPacketSize sigs containing each
   dev::RLPStream s(signatures.size());
