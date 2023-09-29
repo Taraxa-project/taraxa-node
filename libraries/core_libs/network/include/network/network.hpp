@@ -37,7 +37,7 @@ class Network {
           const dev::KeyPair &key, std::shared_ptr<DbStorage> db, std::shared_ptr<PbftManager> pbft_mgr,
           std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<VoteManager> vote_mgr,
           std::shared_ptr<DagManager> dag_mgr, std::shared_ptr<TransactionManager> trx_mgr,
-          std::shared_ptr<SlashingManager> slashing_manager);
+          std::shared_ptr<SlashingManager> slashing_manager, std::shared_ptr<PillarChainManager> pillar_chain_mgr);
 
   ~Network();
   Network(const Network &) = delete;

@@ -13,6 +13,7 @@ class DbStorage;
 class Network;
 class BlsSignature;
 class KeyManager;
+class VoteManager;
 
 namespace final_chain {
 class FinalChain;
@@ -28,14 +29,14 @@ class FinalChain;
 class PillarChainManager {
  public:
   PillarChainManager(std::shared_ptr<DbStorage> db, std::shared_ptr<final_chain::FinalChain> final_chain,
-                     std::shared_ptr<KeyManager> key_manager, addr_t node_addr);
+                     std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<KeyManager> key_manager, addr_t node_addr);
 
   /**
    * @Process new final block
    *
    * @param block_data
    */
-  void newFinalBlock(const final_chain::FinalizationResult& block_data);
+  void newFinalBlock(const std::shared_ptr<final_chain::FinalizationResult>& block_data);
 
   /**
    * @brief Set network as a weak pointer
@@ -52,6 +53,14 @@ class PillarChainManager {
   bool isRelevantBlsSig(const std::shared_ptr<BlsSignature> signature) const;
 
   /**
+   * @brief Validates bls signature
+   *
+   * @param signature
+   * @return true if valid, otherwise false
+   */
+  bool validateBlsSignature(const std::shared_ptr<BlsSignature> signature) const;
+
+  /**
    * @brief Add a signature to the bls signatures map
    * @param signature signature
    *
@@ -63,12 +72,13 @@ class PillarChainManager {
    * @brief Get all bls signatures for specified pillar block
    * @return all bls signatures
    */
-  std::vector<std::shared_ptr<BlsSignature>> getVerifiedBlsSigs(const PillarBlock::Hash pillar_block_hash) const;
+  std::vector<std::shared_ptr<BlsSignature>> getVerifiedBlsSignatures(const PillarBlock::Hash pillar_block_hash) const;
 
  private:
   std::shared_ptr<DbStorage> db_;
   std::weak_ptr<Network> network_;
   std::shared_ptr<final_chain::FinalChain> final_chain_;
+  std::shared_ptr<VoteManager> vote_mgr_;
   std::shared_ptr<KeyManager> key_manager_;
 
   const addr_t node_addr_;
@@ -79,6 +89,9 @@ class PillarChainManager {
   // Last processed pillar block
   // TODO: might be just atomic hash
   std::shared_ptr<PillarBlock> last_pillar_block_;
+
+  // 2t+1 threshold for last pillar block period
+  uint64_t last_pillar_block_two_t_plus_one_;
 
   // Last processed pillar block signatures
   std::unordered_map<BlsSignature::Hash, std::shared_ptr<BlsSignature>> last_pillar_block_signatures_;
