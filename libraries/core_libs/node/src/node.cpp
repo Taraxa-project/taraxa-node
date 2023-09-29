@@ -129,7 +129,6 @@ void FullNode::init() {
   }
 
   pbft_chain_ = std::make_shared<PbftChain>(node_addr, db_);
-  pillar_chain_ = std::make_shared<PillarChainManager>(db_, node_addr);
   dag_mgr_ = std::make_shared<DagManager>(conf_.genesis.dag_genesis_block, node_addr, conf_.genesis.sortition,
                                           conf_.genesis.dag, trx_mgr_, pbft_chain_, final_chain_, db_, key_manager_,
                                           conf_.genesis.pbft.gas_limit, conf_.genesis.state, conf_.light_node_history,
@@ -143,8 +142,10 @@ void FullNode::init() {
       conf_.genesis.dag.block_proposer, dag_mgr_, trx_mgr_, final_chain_, db_, key_manager_, node_addr, getSecretKey(),
       getVrfSecretKey(), conf_.genesis.pbft.gas_limit, conf_.genesis.dag.gas_limit, conf_.genesis.state);
 
-  network_ = std::make_shared<Network>(conf_, genesis_hash, conf_.net_file_path().string(), kp_, db_, pbft_mgr_,
-                                       pbft_chain_, vote_mgr_, dag_mgr_, trx_mgr_, std::move(slashing_manager));
+  pillar_chain_ = std::make_shared<PillarChainManager>(db_, final_chain_, vote_mgr_, key_manager_, node_addr);
+  network_ =
+      std::make_shared<Network>(conf_, genesis_hash, conf_.net_file_path().string(), kp_, db_, pbft_mgr_, pbft_chain_,
+                                vote_mgr_, dag_mgr_, trx_mgr_, std::move(slashing_manager), pillar_chain_);
 }
 
 void FullNode::setupMetricsUpdaters() {
@@ -337,6 +338,7 @@ void FullNode::start() {
   vote_mgr_->setNetwork(network_);
   pbft_mgr_->setNetwork(network_);
   dag_mgr_->setNetwork(network_);
+  pillar_chain_->setNetwork(network_);
 
   if (conf_.db_config.rebuild_db) {
     rebuildDb();

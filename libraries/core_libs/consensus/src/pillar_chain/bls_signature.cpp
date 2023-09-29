@@ -8,7 +8,7 @@ namespace taraxa {
 
 BlsSignature::BlsSignature(const dev::RLP& rlp) {
   std::string sig_str;
-  util::rlp_tuple(util::RLPDecoderRef(rlp, true), pillar_block_hash_, period_,signer_addr_, sig_str);
+  util::rlp_tuple(util::RLPDecoderRef(rlp, true), pillar_block_hash_, period_, signer_addr_, sig_str);
 
   std::stringstream(sig_str) >> signature_;
 }
@@ -26,11 +26,11 @@ bool BlsSignature::isValid(const std::shared_ptr<libff::alt_bn128_G2>& bls_pub_k
 
 blk_hash_t BlsSignature::getPillarBlockHash() const { return pillar_block_hash_; }
 
-PbftPeriod BlsSignature::getPeriod() const {
-  return period_;
-}
+PbftPeriod BlsSignature::getPeriod() const { return period_; }
 
 addr_t BlsSignature::getSignerAddr() const { return signer_addr_; }
+
+libff::alt_bn128_G1 BlsSignature::getSignature() const { return signature_; }
 
 dev::bytes BlsSignature::getRlp() const {
   dev::RLPStream s(4);
