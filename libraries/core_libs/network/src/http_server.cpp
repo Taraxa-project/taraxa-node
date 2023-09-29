@@ -82,8 +82,6 @@ void HttpConnection::stop() {
   if (socket_.is_open()) {
     try {
       LOG(server_->log_dg_) << "Closing connection...";
-      boost::asio::socket_base::linger option(true, 0);
-      socket_.set_option(option);
       socket_.shutdown(boost::asio::ip::tcp::socket::shutdown_both);
       socket_.close();
     } catch (...) {
