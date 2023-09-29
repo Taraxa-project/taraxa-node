@@ -9,6 +9,7 @@
 #include "final_chain/cache.hpp"
 #include "final_chain/rewards_stats.hpp"
 #include "final_chain/trie_common.hpp"
+#include "pbft/pbft_manager.hpp"
 #include "vote/vote.hpp"
 
 namespace taraxa::final_chain {
@@ -457,15 +458,12 @@ class FinalChainImpl final : public FinalChain {
   }
 
   const SharedTransactions get_transactions(std::optional<EthBlockNumber> n = {}) const {
-    SharedTransactions ret;
-    auto hashes = transaction_hashes(n);
-    ret.reserve(hashes->size());
-    for (size_t i = 0; i < ret.capacity(); ++i) {
-      auto trx = db_->getTransaction(hashes->at(i));
-      assert(trx);
-      ret.emplace_back(trx);
+    if (auto trxs = db_->getPeriodTransactions(last_if_absent(n))) {
+      // TODO[2495]: remove after a proper fix of transactions ordering in PeriodData
+      PbftManager::reorderTransactions(*trxs);
+      return *trxs;
     }
-    return ret;
+    return {};
   }
 
   std::shared_ptr<const BlockHeader> get_block_header(EthBlockNumber n) const {

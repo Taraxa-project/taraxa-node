@@ -97,7 +97,7 @@ Json::Value Debug::trace_replayBlockTransactions(const std::string& block_num, c
         res["status"] = "Block has no transactions";
         return res;
       }
-      // TODO[2495]: remove after a proper fox of transactions ordering in PeriodData
+      // TODO[2495]: remove after a proper fix of transactions ordering in PeriodData
       PbftManager::reorderTransactions(*transactions);
       std::vector<state_api::EVMTransaction> trxs;
       trxs.reserve(transactions->size());
