@@ -16,6 +16,7 @@ struct DBConfig {
   PbftPeriod db_revert_to_period = 0;
   bool rebuild_db = false;
   bool prune_state_db = false;
+  bool migrate_only = false;
   PbftPeriod rebuild_db_period = 0;
 };
 
@@ -35,8 +36,12 @@ struct FullNodeConfig {
                           const Json::Value &genesis = Json::Value::null, const std::string &config_file_path = "");
 
   void overwriteConfigFromJson(const Json::Value &config_json);
+  std::vector<logger::Config> loadLoggingConfigs(const Json::Value &logging);
+  void scheduleLoggingConfigUpdate();
+  void InitLogging(const addr_t &node_address);
 
   std::string json_file_name;
+  std::filesystem::file_time_type last_json_update_time;
   dev::Secret node_secret;
   vrf_wrapper::vrf_sk_t vrf_secret;
   fs::path data_path;
@@ -44,7 +49,7 @@ struct FullNodeConfig {
   fs::path log_path;
   NetworkConfig network;
   DBConfig db_config;
-  Genesis genesis;
+  GenesisConfig genesis;
   state_api::Opts opts_final_chain;
   std::vector<logger::Config> log_configs;
   bool is_light_node = false;                            // Is light node
@@ -57,6 +62,9 @@ struct FullNodeConfig {
 
   // config values that limits transactions pool
   uint32_t transactions_pool_size = kDefaultTransactionPoolSize;
+
+  // Report malicious behaviour like double voting, etc... to slashing/jailing contract
+  bool report_malicious_behaviour = false;
 
   auto net_file_path() const { return data_path / "net"; }
 

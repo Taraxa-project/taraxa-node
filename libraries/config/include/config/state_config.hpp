@@ -61,7 +61,7 @@ struct Config {
   EVMChainConfig evm_chain_config;
   BalanceMap initial_balances;
   DPOSConfig dpos;
-  Hardforks hardforks;
+  HardforksConfig hardforks;
 
   void rlp_without_hardforks(util::RLPEncoderRef encoding) const;
   HAS_RLP_FIELDS

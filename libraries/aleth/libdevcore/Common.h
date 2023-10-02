@@ -127,7 +127,6 @@ using strings = std::vector<std::string>;
 
 // Null/Invalid values for convenience.
 extern bytes const NullBytes;
-u256 constexpr Invalid256 = 0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff_cppui256;
 
 /// Interprets @a _u as a two's complement signed number and returns the
 /// resulting s256.

@@ -48,8 +48,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
                       const DagConfig &dag_config, std::shared_ptr<TransactionManager> trx_mgr,
                       std::shared_ptr<PbftChain> pbft_chain, std::shared_ptr<FinalChain> final_chain,
                       std::shared_ptr<DbStorage> db, std::shared_ptr<KeyManager> key_manager, uint64_t pbft_gas_limit,
-                      bool is_light_node = false, uint64_t light_node_history = 0,
-                      uint32_t max_levels_per_period = kMaxLevelsPerPeriod,
+                      const state_api::Config &state_config, bool is_light_node = false,
+                      uint64_t light_node_history = 0, uint32_t max_levels_per_period = kMaxLevelsPerPeriod,
                       uint32_t dag_expiry_limit = kDagExpiryLevelLimit);
 
   DagManager(const DagManager &) = delete;
@@ -232,6 +232,12 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
    */
   static dev::bytes getVdfMessage(blk_hash_t const &hash, std::vector<trx_hash_t> const &trx_hashes);
 
+  /**
+   * @brief Clears light node history
+   *
+   */
+  void clearLightNodeHistory();
+
  private:
   void recoverDag();
   void addToDag(blk_hash_t const &hash, blk_hash_t const &pivot, std::vector<blk_hash_t> const &tips, uint64_t level,
@@ -239,7 +245,6 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   bool validateBlockNotExpired(const std::shared_ptr<DagBlock> &dag_block,
                                std::unordered_map<blk_hash_t, std::shared_ptr<DagBlock>> &expired_dag_blocks_to_remove);
   void handleExpiredDagBlocksTransactions(const std::vector<trx_hash_t> &transactions_from_expired_dag_blocks) const;
-  void clearLightNodeHistory();
 
   std::pair<blk_hash_t, std::vector<blk_hash_t>> getFrontier() const;  // return pivot and tips
   void updateFrontier();
@@ -277,6 +282,8 @@ class DagManager : public std::enable_shared_from_this<DagManager> {
   ExpirationCacheMap<blk_hash_t, DagBlock> seen_blocks_;
   std::shared_ptr<FinalChain> final_chain_;
   const uint64_t kPbftGasLimit;
+  const HardforksConfig kHardforks;
+  const uint64_t kValidatorMaxVote;
 
   LOG_OBJECTS_DEFINE
 };

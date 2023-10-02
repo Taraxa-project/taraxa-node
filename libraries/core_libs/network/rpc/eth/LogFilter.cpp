@@ -48,14 +48,12 @@ std::vector<LogBloom> LogFilter::bloomPossibilities() const {
 
 bool LogFilter::matches(LogBloom b) const {
   if (!addresses_.empty()) {
-    auto ok = false;
-    for (const auto& i : addresses_) {
-      if (b.containsBloom<3>(sha3(i))) {
-        ok = true;
-        break;
-      }
-    }
-    if (!ok) {
+    if (std::none_of(addresses_.cbegin(), addresses_.cend(), [&b](const auto& i) {
+          if (b.containsBloom<3>(sha3(i))) {
+            return true;
+          }
+          return false;
+        })) {
       return false;
     }
   }
@@ -63,14 +61,13 @@ bool LogFilter::matches(LogBloom b) const {
     if (t.empty()) {
       continue;
     }
-    auto ok = false;
-    for (const auto& i : t) {
-      if (b.containsBloom<3>(sha3(i))) {
-        ok = true;
-        break;
-      }
-    }
-    if (!ok) {
+
+    if (std::none_of(t.cbegin(), t.cend(), [&b](const auto& i) {
+          if (b.containsBloom<3>(sha3(i))) {
+            return true;
+          }
+          return false;
+        })) {
       return false;
     }
   }

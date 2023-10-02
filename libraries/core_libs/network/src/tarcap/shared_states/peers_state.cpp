@@ -71,9 +71,10 @@ PeersState::PeersMap PeersState::getAllPeers() const {
   return peers_;
 }
 
-std::shared_ptr<TaraxaPeer> PeersState::addPendingPeer(const dev::p2p::NodeID& node_id) {
+std::shared_ptr<TaraxaPeer> PeersState::addPendingPeer(const dev::p2p::NodeID& node_id, const std::string& address) {
   std::unique_lock lock(peers_mutex_);
-  auto ret = pending_peers_.emplace(node_id, std::make_shared<TaraxaPeer>(node_id, kConf.transactions_pool_size));
+  auto ret =
+      pending_peers_.emplace(node_id, std::make_shared<TaraxaPeer>(node_id, kConf.transactions_pool_size, address));
   if (!ret.second) {
     // LOG(log_er_) << "Peer " << node_id.abridged() << " is already in pending peers list";
   }
