@@ -91,6 +91,15 @@ $(document).ready(function(){initNavTree('classgraphql_1_1taraxa_1_1_dag_block.h
 <div class="contents">
 
 <p><code>#include &lt;<a class="el" href="core__libs_2network_2graphql_2include_2graphql_2types_2dag__block_8hpp_source.html">dag_block.hpp</a>&gt;</code></p>
+<div class="dynheader">
+Collaboration diagram for graphql::taraxa::DagBlock:</div>
+<div class="dyncontent">
+<div class="center"><img src="classgraphql_1_1taraxa_1_1_dag_block__coll__graph.png" border="0" usemap="#agraphql_1_1taraxa_1_1_dag_block_coll__map" alt="Collaboration graph"/></div>
+<map name="agraphql_1_1taraxa_1_1_dag_block_coll__map" id="agraphql_1_1taraxa_1_1_dag_block_coll__map">
+<area shape="rect" title=" " alt="" coords="5,95,196,121"/>
+<area shape="rect" title=" " alt="" coords="69,5,133,32"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
@@ -131,6 +140,8 @@ Private Attributes</h2></td></tr>
 <tr class="separator:a62db2b51be5f3c8941927e095d7b9076"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a7f3ea2e6d68a21a09dc04c5fbe290afe"><td class="memItemLeft" align="right" valign="top">std::function&lt; std::shared_ptr&lt; object::Block &gt;::<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">taraxa::EthBlockNumber</a>)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_dag_block.html#a7f3ea2e6d68a21a09dc04c5fbe290afe">get_block_by_num_</a></td></tr>
 <tr class="separator:a7f3ea2e6d68a21a09dc04c5fbe290afe"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a686e67242e3dd539c3e1e51d8267484b"><td class="memItemLeft" align="right" valign="top">std::mutex&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_dag_block.html#a686e67242e3dd539c3e1e51d8267484b">mu_</a></td></tr>
+<tr class="separator:a686e67242e3dd539c3e1e51d8267484b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a02d9fa9864ec9276255f0d99f1830110"><td class="memItemLeft" align="right" valign="top">std::optional&lt; uint64_t &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classgraphql_1_1taraxa_1_1_dag_block.html#a02d9fa9864ec9276255f0d99f1830110">period_</a></td></tr>
 <tr class="separator:a02d9fa9864ec9276255f0d99f1830110"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
@@ -526,6 +537,28 @@ Private Attributes</h2></td></tr>
   </td>
   <td class="mlabels-right">
 <span class="mlabels"><span class="mlabel">private</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a686e67242e3dd539c3e1e51d8267484b"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a686e67242e3dd539c3e1e51d8267484b">&#9670;&nbsp;</a></span>mu_</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::mutex graphql::taraxa::DagBlock::mu_</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">mutable</span><span class="mlabel">private</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">

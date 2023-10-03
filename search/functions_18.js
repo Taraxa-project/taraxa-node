@@ -17,7 +17,7 @@ var searchData=
   ['_7egenericunguardbool_5927',['~GenericUnguardBool',['../structdev_1_1_generic_unguard_bool.html#a5bd1cf1f061df9c9365f2105fa3a6159',1,'dev::GenericUnguardBool']]],
   ['_7egenericunguardsharedbool_5928',['~GenericUnguardSharedBool',['../structdev_1_1_generic_unguard_shared_bool.html#af9a6720c81c1ee411ce77e94d66f52a0',1,'dev::GenericUnguardSharedBool']]],
   ['_7ehost_5929',['~Host',['../structdev_1_1p2p_1_1_host.html#a6c14f16c39ae6bc5db2672e0141adccd',1,'dev::p2p::Host']]],
-  ['_7ehttpconnection_5930',['~HttpConnection',['../classtaraxa_1_1net_1_1_http_connection.html#ae2fbef308186b87de87c39daf1a0809c',1,'taraxa::net::HttpConnection']]],
+  ['_7ehttpconnection_5930',['~HttpConnection',['../classtaraxa_1_1net_1_1_http_connection.html#a4179fbe3ce52f9fdad84c57c99a06205',1,'taraxa::net::HttpConnection']]],
   ['_7ehttpserver_5931',['~HttpServer',['../classtaraxa_1_1net_1_1_http_server.html#abdd748d62f5aabadc68699952bfbcf53',1,'taraxa::net::HttpServer']]],
   ['_7elazy_5932',['~Lazy',['../classtaraxa_1_1util_1_1lazy_1_1_lazy.html#a1c5f083f94d53d366981fe022b6a6767',1,'taraxa::util::lazy::Lazy']]],
   ['_7emetricsgroup_5933',['~MetricsGroup',['../classtaraxa_1_1metrics_1_1_metrics_group.html#aff6492fcfe6fc0db1dcb6d9ec1a80cbe',1,'taraxa::metrics::MetricsGroup']]],

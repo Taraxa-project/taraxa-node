@@ -1,5 +1,7 @@
 var NAVTREEINDEX25 =
 {
+"vote_8cpp.html":[16,0,1,7,3,1,0],
+"vote_8hpp.html":[16,0,1,7,3,0,0,0],
 "vote_8hpp_source.html":[16,0,1,7,3,0,0,0],
 "vote__manager_8cpp.html":[16,0,1,4,0,1,7,0],
 "vote__manager_8hpp.html":[16,0,1,4,0,0,7,1],

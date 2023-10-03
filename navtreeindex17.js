@@ -1,5 +1,7 @@
 var NAVTREEINDEX17 =
 {
+"hardfork_8hpp.html#ae6551b937467c5972009ffa1ac192aec":[16,0,1,3,0,0,4,4],
+"hardfork_8hpp.html#aee3750fcf3856743f5e71f64f88ad959":[16,0,1,3,0,0,4,3],
 "hardfork_8hpp.html#struct_hardforks_config":[16,0,1,3,0,0,4,2],
 "hardfork_8hpp.html#struct_magnolia_hardfork":[16,0,1,3,0,0,4,1],
 "hardfork_8hpp.html#struct_redelegation":[16,0,1,3,0,0,4,0],
@@ -247,7 +249,5 @@ var NAVTREEINDEX17 =
 "libp2p_2_common_8h.html#ab97a033c9bbe0fb22e2b4f093593f276a1cf1a918a3e2bccd63557c66cc6ffd31":[16,0,1,0,2,3,17,12],
 "libp2p_2_common_8h.html#ab97a033c9bbe0fb22e2b4f093593f276a1e150fbbf1f3df3932933c6a7f2c6797":[16,0,1,0,2,3,17,10],
 "libp2p_2_common_8h.html#ab97a033c9bbe0fb22e2b4f093593f276a67efdee1cd15777e4ef97a7c3678e55f":[16,0,1,0,2,3,17,0],
-"libp2p_2_common_8h.html#ab97a033c9bbe0fb22e2b4f093593f276a7fe779ca2982f389ebaec860bcb0cb0f":[16,0,1,0,2,3,17,5],
-"libp2p_2_common_8h.html#ab97a033c9bbe0fb22e2b4f093593f276a880a702816242fde2bebf57cbde78987":[16,0,1,0,2,3,17,11],
-"libp2p_2_common_8h.html#ab97a033c9bbe0fb22e2b4f093593f276a89c6cceb269d42d0e0175249ad4e50e6":[16,0,1,0,2,3,17,6]
+"libp2p_2_common_8h.html#ab97a033c9bbe0fb22e2b4f093593f276a7fe779ca2982f389ebaec860bcb0cb0f":[16,0,1,0,2,3,17,5]
 };

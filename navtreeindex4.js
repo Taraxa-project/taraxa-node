@@ -246,7 +246,7 @@ var NAVTREEINDEX4 =
 "classgraphql_1_1taraxa_1_1_current_state.html#aab5308ceceed33330be705970b063155":[15,0,1,0,8,3],
 "classgraphql_1_1taraxa_1_1_current_state.html#ace87b515cf134af145daf0ff6aa1cbb2":[15,0,1,0,8,4],
 "classgraphql_1_1taraxa_1_1_dag_block.html":[15,0,1,0,9],
-"classgraphql_1_1taraxa_1_1_dag_block.html#a02d9fa9864ec9276255f0d99f1830110":[15,0,1,0,9,16],
+"classgraphql_1_1taraxa_1_1_dag_block.html#a02d9fa9864ec9276255f0d99f1830110":[15,0,1,0,9,17],
 "classgraphql_1_1taraxa_1_1_dag_block.html#a19cea62dc4902352c6ad11eeb1ebf261":[15,0,1,0,9,4],
 "classgraphql_1_1taraxa_1_1_dag_block.html#a1f6138a2169e7ec5f5a03462eef34094":[15,0,1,0,9,9],
 "classgraphql_1_1taraxa_1_1_dag_block.html#a321e8b051a6966608b46ec243d7b64e3":[15,0,1,0,9,5]
