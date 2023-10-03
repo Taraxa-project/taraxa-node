@@ -37,6 +37,7 @@ response::Value DagBlock::getLevel() const noexcept {
 }
 
 std::optional<response::Value> DagBlock::getPbftPeriod() const noexcept {
+  std::lock_guard<std::mutex> lock{mu_};
   if (period_) {
     return response::Value(static_cast<int>(*period_));
   }
@@ -49,6 +50,7 @@ std::optional<response::Value> DagBlock::getPbftPeriod() const noexcept {
 }
 
 std::shared_ptr<object::Account> DagBlock::getAuthor() const noexcept {
+  std::lock_guard<std::mutex> lock{mu_};
   if (!period_) {
     const auto [has_period, period] = pbft_manager_->getDagBlockPeriod(::taraxa::blk_hash_t(dag_block_->getHash()));
     if (has_period) {

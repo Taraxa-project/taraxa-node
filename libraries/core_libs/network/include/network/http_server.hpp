@@ -60,10 +60,11 @@ class HttpServer : public std::enable_shared_from_this<HttpServer> {
 class HttpConnection : public std::enable_shared_from_this<HttpConnection> {
  public:
   explicit HttpConnection(const std::shared_ptr<HttpServer>& http_server);
-  virtual ~HttpConnection() = default;
+  virtual ~HttpConnection() { HttpConnection::stop(); }
   boost::asio::ip::tcp::socket& getSocket() { return socket_; }
   virtual std::shared_ptr<HttpConnection> getShared();
   void read();
+  void stop();
 
  protected:
   std::shared_ptr<HttpServer> server_;
