@@ -76,13 +76,19 @@ bool ExtSyncingPacketHandler::syncPeerPbft(PbftPeriod request_period) {
                      std::move(dev::RLPStream(1) << request_period));
 }
 
-std::shared_ptr<TaraxaPeer> ExtSyncingPacketHandler::getMaxChainPeer() {
+std::shared_ptr<TaraxaPeer> ExtSyncingPacketHandler::getMaxChainPeer(
+    std::function<bool(const std::shared_ptr<TaraxaPeer> &)> filter_func) {
   std::shared_ptr<TaraxaPeer> max_pbft_chain_peer;
   PbftPeriod max_pbft_chain_size = 0;
   uint64_t max_node_dag_level = 0;
 
   // Find peer with max pbft chain and dag level
   for (auto const &peer : peers_state_->getAllPeers()) {
+    // Apply the filter function
+    if (!filter_func(peer.second)) {
+      continue;
+    }
+
     if (peer.second->pbft_chain_size_ > max_pbft_chain_size) {
       if (peer.second->peer_light_node &&
           pbft_mgr_->pbftSyncingPeriod() + peer.second->peer_light_node_history < peer.second->pbft_chain_size_) {
@@ -105,7 +111,16 @@ std::shared_ptr<TaraxaPeer> ExtSyncingPacketHandler::getMaxChainPeer() {
 
 void ExtSyncingPacketHandler::requestPendingDagBlocks(std::shared_ptr<TaraxaPeer> peer) {
   if (!peer) {
-    peer = getMaxChainPeer();
+    peer = getMaxChainPeer([](const std::shared_ptr<TaraxaPeer> &peer) {
+      if (peer->peer_dag_synced_ || !peer->dagSyncingAllowed()) {
+        return false;
+      }
+      return true;
+    });
+    if (!peer) {
+      LOG(log_nf_) << "requestPendingDagBlocks not possible since no peers are matching conditions";
+      return;
+    }
   }
 
   if (!peer) {
