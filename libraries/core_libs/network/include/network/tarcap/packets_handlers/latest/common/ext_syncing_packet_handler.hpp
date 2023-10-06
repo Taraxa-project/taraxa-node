@@ -50,7 +50,8 @@ class ExtSyncingPacketHandler : public PacketHandler {
                         PbftPeriod period);
   void requestPendingDagBlocks(std::shared_ptr<TaraxaPeer> peer = nullptr);
 
-  std::shared_ptr<TaraxaPeer> getMaxChainPeer();
+  std::shared_ptr<TaraxaPeer> getMaxChainPeer(std::function<bool(const std::shared_ptr<TaraxaPeer> &)> filter_func =
+                                                  [](const std::shared_ptr<TaraxaPeer> &) { return true; });
 
  protected:
   std::shared_ptr<PbftSyncingState> pbft_syncing_state_{nullptr};
