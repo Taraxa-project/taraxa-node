@@ -110,9 +110,9 @@ Collaboration diagram for taraxa::rewards::Stats:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a150bce39d0a2ff217e96641d35e59997"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a150bce39d0a2ff217e96641d35e59997">Stats</a> (uint32_t committee_size, const <a class="el" href="hardfork_8hpp.html#struct_hardforks_config">HardforksConfig</a> &amp;hardforks, std::shared_ptr&lt; <a class="el" href="namespacetaraxa.html#a32216cff36a3565783afe8fa0099ae89">DB</a> &gt; db, std::function&lt; uint64_t(<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>)&gt; &amp;&amp;dpos_eligible_total_vote_count)</td></tr>
 <tr class="separator:a150bce39d0a2ff217e96641d35e59997"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:acb574376d53a8829818f59065e852323"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#acb574376d53a8829818f59065e852323">processStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;current_blk, const std::vector&lt; <a class="el" href="namespacetaraxa.html#ae64cd164e0402036777a1aab63d2a66f">gas_t</a> &gt; &amp;trxs_gas_used)</td></tr>
-<tr class="memdesc:acb574376d53a8829818f59065e852323"><td class="mdescLeft">&#160;</td><td class="mdescRight">processing passed block and returns stats that should be processed at this block  <a href="classtaraxa_1_1rewards_1_1_stats.html#acb574376d53a8829818f59065e852323">More...</a><br /></td></tr>
-<tr class="separator:acb574376d53a8829818f59065e852323"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ac93f9d829288b1a36079aa6152e715b5"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#ac93f9d829288b1a36079aa6152e715b5">processStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;current_blk, const std::vector&lt; <a class="el" href="namespacetaraxa.html#ae64cd164e0402036777a1aab63d2a66f">gas_t</a> &gt; &amp;trxs_gas_used, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DbStorage::Batch</a> &amp;write_batch)</td></tr>
+<tr class="memdesc:ac93f9d829288b1a36079aa6152e715b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">processing passed block and returns stats that should be processed at this block  <a href="classtaraxa_1_1rewards_1_1_stats.html#ac93f9d829288b1a36079aa6152e715b5">More...</a><br /></td></tr>
+<tr class="separator:ac93f9d829288b1a36079aa6152e715b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="pro-methods"></a>
 Protected Member Functions</h2></td></tr>
@@ -124,9 +124,9 @@ Protected Member Functions</h2></td></tr>
 <tr class="separator:a47268a8f89eeb03af9a978ddf1cc2c94"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ad87f33929689bc48fbf2c6459eebfb22"><td class="memItemLeft" align="right" valign="top"><a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#ad87f33929689bc48fbf2c6459eebfb22">getBlockStats</a> (const <a class="el" href="group___p_b_f_t.html#classtaraxa_1_1_period_data">PeriodData</a> &amp;current_blk, const std::vector&lt; <a class="el" href="namespacetaraxa.html#ae64cd164e0402036777a1aab63d2a66f">gas_t</a> &gt; &amp;trxs_fees)</td></tr>
 <tr class="separator:ad87f33929689bc48fbf2c6459eebfb22"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a7ee94a56daddf88600a843dc6f141d70"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a7ee94a56daddf88600a843dc6f141d70">saveBlockStats</a> (uint64_t number, const <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a> &amp;stats)</td></tr>
-<tr class="memdesc:a7ee94a56daddf88600a843dc6f141d70"><td class="mdescLeft">&#160;</td><td class="mdescRight">saves stats to database to not lose this data in case of node restart  <a href="classtaraxa_1_1rewards_1_1_stats.html#a7ee94a56daddf88600a843dc6f141d70">More...</a><br /></td></tr>
-<tr class="separator:a7ee94a56daddf88600a843dc6f141d70"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aa5ee14c99f535c17db18f6620ab606c3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#aa5ee14c99f535c17db18f6620ab606c3">saveBlockStats</a> (uint64_t number, const <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a> &amp;stats, <a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DbStorage::Batch</a> &amp;write_batch)</td></tr>
+<tr class="memdesc:aa5ee14c99f535c17db18f6620ab606c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">saves stats to database to not lose this data in case of node restart  <a href="classtaraxa_1_1rewards_1_1_stats.html#aa5ee14c99f535c17db18f6620ab606c3">More...</a><br /></td></tr>
+<tr class="separator:aa5ee14c99f535c17db18f6620ab606c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a34abce543a1fed9cbf6107383241e291"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a34abce543a1fed9cbf6107383241e291">clear</a> ()</td></tr>
 <tr class="memdesc:a34abce543a1fed9cbf6107383241e291"><td class="mdescLeft">&#160;</td><td class="mdescRight">called on start of new rewards interval. clears blocks_stats_ collection and removes all data saved in db column  <a href="classtaraxa_1_1rewards_1_1_stats.html#a34abce543a1fed9cbf6107383241e291">More...</a><br /></td></tr>
 <tr class="separator:a34abce543a1fed9cbf6107383241e291"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -306,8 +306,8 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="acb574376d53a8829818f59065e852323"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#acb574376d53a8829818f59065e852323">&#9670;&nbsp;</a></span>processStats()</h2>
+<a id="ac93f9d829288b1a36079aa6152e715b5"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ac93f9d829288b1a36079aa6152e715b5">&#9670;&nbsp;</a></span>processStats()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -322,7 +322,13 @@ Protected Attributes</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const std::vector&lt; <a class="el" href="namespacetaraxa.html#ae64cd164e0402036777a1aab63d2a66f">gas_t</a> &gt; &amp;&#160;</td>
-          <td class="paramname"><em>trxs_gas_used</em>&#160;</td>
+          <td class="paramname"><em>trxs_gas_used</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DbStorage::Batch</a> &amp;&#160;</td>
+          <td class="paramname"><em>write_batch</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -343,8 +349,8 @@ Protected Attributes</h2></td></tr>
 
 </div>
 </div>
-<a id="a7ee94a56daddf88600a843dc6f141d70"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a7ee94a56daddf88600a843dc6f141d70">&#9670;&nbsp;</a></span>saveBlockStats()</h2>
+<a id="aa5ee14c99f535c17db18f6620ab606c3"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aa5ee14c99f535c17db18f6620ab606c3">&#9670;&nbsp;</a></span>saveBlockStats()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -362,7 +368,13 @@ Protected Attributes</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">const <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a> &amp;&#160;</td>
-          <td class="paramname"><em>stats</em>&#160;</td>
+          <td class="paramname"><em>stats</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="classtaraxa_1_1_db_storage.html#ac3ed22973ae9def566967947aed72c63">DbStorage::Batch</a> &amp;&#160;</td>
+          <td class="paramname"><em>write_batch</em>&#160;</td>
         </tr>
         <tr>
           <td></td>

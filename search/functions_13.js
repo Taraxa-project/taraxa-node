@@ -2,7 +2,7 @@ var searchData=
 [
   ['s2u_5580',['s2u',['../namespacedev.html#ae7f7baf09aabec43e7a80a3efcad63ce',1,'dev']]],
   ['save_5fstate_5581',['save_state',['../structdev_1_1p2p_1_1_host.html#aa933e4971277ca0f189da7a34a4e6e04',1,'dev::p2p::Host']]],
-  ['saveblockstats_5582',['saveBlockStats',['../classtaraxa_1_1rewards_1_1_stats.html#a7ee94a56daddf88600a843dc6f141d70',1,'taraxa::rewards::Stats']]],
+  ['saveblockstats_5582',['saveBlockStats',['../classtaraxa_1_1rewards_1_1_stats.html#aa5ee14c99f535c17db18f6620ab606c3',1,'taraxa::rewards::Stats']]],
   ['savecertvotedblockinround_5583',['saveCertVotedBlockInRound',['../classtaraxa_1_1_db_storage.html#a1baabb14538ea94b01ac49586f00410b',1,'taraxa::DbStorage']]],
   ['savedagblock_5584',['saveDagBlock',['../classtaraxa_1_1_db_storage.html#a78da78cc5c8beadb10b5884f848403ee',1,'taraxa::DbStorage']]],
   ['saveextrarewardvote_5585',['saveExtraRewardVote',['../classtaraxa_1_1_db_storage.html#a9123ca0b983ccc62667b671bb98e6cc1',1,'taraxa::DbStorage']]],

@@ -13,7 +13,7 @@ var searchData=
   ['s_5ffixedhashengine_2798',['s_fixedHashEngine',['../namespacedev.html#a3af443ba4bd5c264aa634c6eecf1e2f6',1,'dev']]],
   ['s_5fmaxsteps_2799',['s_maxSteps',['../classdev_1_1p2p_1_1_node_table.html#a10e331c15bb77e61c54ebca1a7de68c7',1,'dev::p2p::NodeTable']]],
   ['save_5fstate_2800',['save_state',['../structdev_1_1p2p_1_1_host.html#aa933e4971277ca0f189da7a34a4e6e04',1,'dev::p2p::Host']]],
-  ['saveblockstats_2801',['saveBlockStats',['../classtaraxa_1_1rewards_1_1_stats.html#a7ee94a56daddf88600a843dc6f141d70',1,'taraxa::rewards::Stats']]],
+  ['saveblockstats_2801',['saveBlockStats',['../classtaraxa_1_1rewards_1_1_stats.html#aa5ee14c99f535c17db18f6620ab606c3',1,'taraxa::rewards::Stats']]],
   ['savecertvotedblockinround_2802',['saveCertVotedBlockInRound',['../classtaraxa_1_1_db_storage.html#a1baabb14538ea94b01ac49586f00410b',1,'taraxa::DbStorage']]],
   ['savedagblock_2803',['saveDagBlock',['../classtaraxa_1_1_db_storage.html#a78da78cc5c8beadb10b5884f848403ee',1,'taraxa::DbStorage']]],
   ['saveextrarewardvote_2804',['saveExtraRewardVote',['../classtaraxa_1_1_db_storage.html#a9123ca0b983ccc62667b671bb98e6cc1',1,'taraxa::DbStorage']]],
