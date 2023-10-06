@@ -193,7 +193,7 @@ var searchData=
   ['getlogs_1205',['getLogs',['../classgraphql_1_1taraxa_1_1_block.html#a1955f1cc6bea232b44585a8360aa2af3',1,'graphql::taraxa::Block::getLogs()'],['../classgraphql_1_1taraxa_1_1_transaction.html#ac81a0398b682b9c570844d7b6a7da1fc',1,'graphql::taraxa::Transaction::getLogs()']]],
   ['getlogsbloom_1206',['getLogsBloom',['../classgraphql_1_1taraxa_1_1_block.html#ad68e31fa27230a47c1a7a64c42ad666f',1,'graphql::taraxa::Block']]],
   ['getmajorversion_1207',['getMajorVersion',['../classtaraxa_1_1_db_storage.html#a9c216a3511b4e530505a25198f7181e6',1,'taraxa::DbStorage']]],
-  ['getmaxchainpeer_1208',['getMaxChainPeer',['../classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#ae6a1e1ca4f9df4eebf67b7225b94d1da',1,'taraxa::network::tarcap::ExtSyncingPacketHandler::getMaxChainPeer()'],['../classtaraxa_1_1_network.html#ae625dde518700883338d3dbbbf31528e',1,'taraxa::Network::getMaxChainPeer()']]],
+  ['getmaxchainpeer_1208',['getMaxChainPeer',['../classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a5b43c935ef8b1e2945b81481c15b32c1',1,'taraxa::network::tarcap::ExtSyncingPacketHandler::getMaxChainPeer()'],['../classtaraxa_1_1_network.html#ae625dde518700883338d3dbbbf31528e',1,'taraxa::Network::getMaxChainPeer()']]],
   ['getmaxlevel_1209',['getMaxLevel',['../group___d_a_g.html#ab633081885d6c5821e3517ca150e575d',1,'taraxa::DagManager']]],
   ['getmaxstatsjson_1210',['getMaxStatsJson',['../classtaraxa_1_1network_1_1tarcap_1_1_max_stats.html#a6589cb9fd281d18ca232d41c28a4b1c3',1,'taraxa::network::tarcap::MaxStats']]],
   ['getmetrics_1211',['getMetrics',['../classtaraxa_1_1metrics_1_1_metrics_service.html#a9f363a7cb1400e6db2cd7daf43c48e63',1,'taraxa::metrics::MetricsService']]],

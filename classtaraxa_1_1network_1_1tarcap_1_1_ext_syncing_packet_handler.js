@@ -2,7 +2,7 @@ var classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler =
 [
     [ "ExtSyncingPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#ab1b15187d601be7388ec154863d62dd6", null ],
     [ "~ExtSyncingPacketHandler", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a882802e8b3533db5c4fb3d0a1e8c8c37", null ],
-    [ "getMaxChainPeer", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#ae6a1e1ca4f9df4eebf67b7225b94d1da", null ],
+    [ "getMaxChainPeer", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a5b43c935ef8b1e2945b81481c15b32c1", null ],
     [ "operator=", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a04292a6e55e1db98ee488b7818e598f1", null ],
     [ "operator=", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#aac920a3811f89dd8c6e3051972007136", null ],
     [ "requestDagBlocks", "classtaraxa_1_1network_1_1tarcap_1_1_ext_syncing_packet_handler.html#a20d7a5d06fcb94763b48bd6db79b1b4c", null ],
