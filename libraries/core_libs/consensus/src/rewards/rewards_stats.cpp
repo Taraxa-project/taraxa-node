@@ -19,11 +19,11 @@ void Stats::loadFromDb() {
   }
 }
 
-void Stats::saveBlockStats(uint64_t period, const BlockStats& stats) {
+void Stats::saveBlockStats(uint64_t period, const BlockStats& stats, DbStorage::Batch& write_batch) {
   dev::RLPStream encoding;
   stats.rlp(encoding);
 
-  db_->insert(DB::Columns::block_rewards_stats, period, encoding.out());
+  db_->insert(write_batch, DB::Columns::block_rewards_stats, period, encoding.out());
 }
 
 uint32_t Stats::getCurrentDistributionFrequency(uint64_t current_block) const {
@@ -55,7 +55,8 @@ BlockStats Stats::getBlockStats(const PeriodData& blk, const std::vector<gas_t>&
   return BlockStats{blk, trxs_fees, dpos_vote_count, kCommitteeSize};
 }
 
-std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk, const std::vector<gas_t>& trxs_gas_used) {
+std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk, const std::vector<gas_t>& trxs_gas_used,
+                                            DbStorage::Batch& write_batch) {
   const auto current_period = current_blk.pbft_blk->getPeriod();
   const auto frequency = getCurrentDistributionFrequency(current_period);
   auto block_stats = getBlockStats(current_blk, trxs_gas_used);
@@ -68,7 +69,7 @@ std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk, const
   // Blocks between distribution. Process and save for future processing
   if (current_period % frequency != 0) {
     // Save to db, so in case of restart data could be just loaded for the period
-    saveBlockStats(current_period, *blocks_stats_.rbegin());
+    saveBlockStats(current_period, *blocks_stats_.rbegin(), write_batch);
     return {};
   }
 
