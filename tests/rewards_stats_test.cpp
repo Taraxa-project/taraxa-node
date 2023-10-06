@@ -5,6 +5,7 @@
 #include <libdevcore/Common.h>
 #include <libdevcore/CommonJS.h>
 
+#include "storage/storage.hpp"
 #include "test_util/gtest.hpp"
 #include "test_util/samples.hpp"
 
@@ -31,16 +32,18 @@ class TestableBlockStats : public rewards::BlockStats {
 
 TEST_F(RewardsStatsTest, defaultDistribution) {
   auto db = std::make_shared<DbStorage>(data_dir / "db");
+  auto batch = db->createWriteBatch();
 
   std::vector<std::shared_ptr<Vote>> empty_votes;
   auto rewards_stats = TestableRewardsStats({}, db);
 
   for (auto i = 1; i < 5; ++i) {
     PeriodData block(make_simple_pbft_block(blk_hash_t(i), i), empty_votes);
-    auto stats = rewards_stats.processStats(block, {});
+    auto stats = rewards_stats.processStats(block, {}, batch);
     ASSERT_EQ(stats.size(), 1);
     ASSERT_TRUE(rewards_stats.getStats().empty());
   }
+  db->commitWriteBatch(batch);
 }
 
 TEST_F(RewardsStatsTest, statsSaving) {
@@ -53,16 +56,18 @@ TEST_F(RewardsStatsTest, statsSaving) {
   std::vector<addr_t> block_authors;
   {
     auto rewards_stats = TestableRewardsStats(distribution, db);
+    auto batch = db->createWriteBatch();
 
     for (auto i = 1; i < 5; ++i) {
       auto kp = dev::KeyPair::create();
       block_authors.push_back(kp.address());
 
       PeriodData block(make_simple_pbft_block(blk_hash_t(i), i, kp.secret()), empty_votes);
-      auto stats = rewards_stats.processStats(block, {});
+      auto stats = rewards_stats.processStats(block, {}, batch);
       ASSERT_EQ(rewards_stats.getStats().size(), block_authors.size());
       ASSERT_TRUE(stats.empty());
     }
+    db->commitWriteBatch(batch);
   }
   {
     // Load from db
@@ -79,6 +84,7 @@ TEST_F(RewardsStatsTest, statsSaving) {
 
 TEST_F(RewardsStatsTest, statsCleaning) {
   auto db = std::make_shared<DbStorage>(data_dir / "db");
+  auto batch = db->createWriteBatch();
 
   // distribute every 5 blocks
   HardforksConfig::RewardsDistributionMap distribution{{0, 5}};
@@ -93,14 +99,15 @@ TEST_F(RewardsStatsTest, statsCleaning) {
       block_authors.push_back(kp.address());
 
       PeriodData block(make_simple_pbft_block(blk_hash_t(i), i, kp.secret()), empty_votes);
-      auto stats = rewards_stats.processStats(block, {});
+      auto stats = rewards_stats.processStats(block, {}, batch);
       ASSERT_EQ(rewards_stats.getStats().size(), block_authors.size());
       ASSERT_TRUE(stats.empty());
     }
-
+    db->commitWriteBatch(batch);
     // Process block 5 after which we should have no stats elements in db
     PeriodData block(make_simple_pbft_block(blk_hash_t(5), 5), empty_votes);
-    rewards_stats.processStats(block, {});
+    rewards_stats.processStats(block, {}, batch);
+    db->commitWriteBatch(batch);
   }
 
   // Load from db
@@ -112,6 +119,7 @@ TEST_F(RewardsStatsTest, statsProcessing) {
   auto db = std::make_shared<DbStorage>(data_dir / "db");
   // distribute every 10 blocks
   auto rewards_stats = TestableRewardsStats({{0, 10}}, db);
+  auto batch = db->createWriteBatch();
 
   std::vector<std::shared_ptr<Vote>> empty_votes;
   std::vector<addr_t> block_authors;
@@ -122,7 +130,7 @@ TEST_F(RewardsStatsTest, statsProcessing) {
     block_authors.push_back(kp.address());
 
     PeriodData block(make_simple_pbft_block(blk_hash_t(i), i, kp.secret()), empty_votes);
-    auto stats = rewards_stats.processStats(block, {});
+    auto stats = rewards_stats.processStats(block, {}, batch);
     ASSERT_TRUE(stats.empty());
     ASSERT_EQ(rewards_stats.getStats().size(), block_authors.size());
   }
@@ -131,7 +139,7 @@ TEST_F(RewardsStatsTest, statsProcessing) {
   block_authors.push_back(kp.address());
 
   PeriodData block(make_simple_pbft_block(blk_hash_t(10), 10, kp.secret()), empty_votes);
-  auto stats = rewards_stats.processStats(block, {});
+  auto stats = rewards_stats.processStats(block, {}, batch);
   ASSERT_EQ(stats.size(), block_authors.size());
 
   for (size_t i = 0; i < stats.size(); ++i) {
@@ -143,6 +151,7 @@ TEST_F(RewardsStatsTest, statsProcessing) {
 
 TEST_F(RewardsStatsTest, distributionChange) {
   auto db = std::make_shared<DbStorage>(data_dir / "db");
+  auto batch = db->createWriteBatch();
 
   HardforksConfig::RewardsDistributionMap distribution{{6, 5}, {11, 2}};
 
@@ -152,26 +161,27 @@ TEST_F(RewardsStatsTest, distributionChange) {
   uint64_t period = 1;
   for (; period <= 5; ++period) {
     PeriodData block(make_simple_pbft_block(blk_hash_t(period), period), empty_votes);
-    auto stats = rewards_stats.processStats(block, {});
+    auto stats = rewards_stats.processStats(block, {}, batch);
     ASSERT_FALSE(stats.empty());
   }
   {
     // make blocks [1,9] and process them. output of processStats should be empty
     for (; period < 10; ++period) {
       PeriodData block(make_simple_pbft_block(blk_hash_t(period), period), empty_votes);
-      auto stats = rewards_stats.processStats(block, {});
+      auto stats = rewards_stats.processStats(block, {}, batch);
       ASSERT_TRUE(stats.empty());
     }
     PeriodData block(make_simple_pbft_block(blk_hash_t(period), period), empty_votes);
-    auto stats = rewards_stats.processStats(block, {});
+    auto stats = rewards_stats.processStats(block, {}, batch);
   }
 
   PeriodData block(make_simple_pbft_block(blk_hash_t(period), period), empty_votes);
-  auto stats = rewards_stats.processStats(block, {});
+  auto stats = rewards_stats.processStats(block, {}, batch);
 }
 
 TEST_F(RewardsStatsTest, feeRewards) {
   auto db = std::make_shared<DbStorage>(data_dir / "db");
+  auto batch = db->createWriteBatch();
   auto pbft_proposer = dev::KeyPair::create();
   auto dag_proposer = dev::KeyPair::create();
 
@@ -198,7 +208,7 @@ TEST_F(RewardsStatsTest, feeRewards) {
   period_data.dag_blocks.push_back(dag_blk);
   period_data.transactions = {trx};
 
-  auto stats = rewards_stats.processStats(period_data, {trx_gas_fee}).front();
+  auto stats = rewards_stats.processStats(period_data, {trx_gas_fee}, batch).front();
 
   auto testable_stats = reinterpret_cast<TestableBlockStats*>(&stats);
   auto validators_stats = testable_stats->getValidatorStats();

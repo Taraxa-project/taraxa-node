@@ -197,7 +197,7 @@ class FinalChainImpl final : public FinalChain {
       });
     }
 
-    auto rewards_stats = rewards_.processStats(new_blk, transactions_gas_used);
+    auto rewards_stats = rewards_.processStats(new_blk, transactions_gas_used, batch);
     const auto& [state_root, total_reward] = state_api_.distribute_rewards(rewards_stats);
 
     auto blk_header = append_block(batch, new_blk.pbft_blk->getBeneficiary(), new_blk.pbft_blk->getTimestamp(),

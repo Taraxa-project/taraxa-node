@@ -18,7 +18,8 @@ class Stats {
    * @param current_blk block to process
    * @return vector<BlockStats> that should be processed at current block
    */
-  std::vector<BlockStats> processStats(const PeriodData& current_blk, const std::vector<gas_t>& trxs_gas_used);
+  std::vector<BlockStats> processStats(const PeriodData& current_blk, const std::vector<gas_t>& trxs_gas_used,
+                                       DbStorage::Batch& write_batch);
 
  protected:
   /**
@@ -38,7 +39,7 @@ class Stats {
   /**
    * @brief saves stats to database to not lose this data in case of node restart
    */
-  void saveBlockStats(uint64_t number, const BlockStats& stats);
+  void saveBlockStats(uint64_t number, const BlockStats& stats, DbStorage::Batch& write_batch);
   /**
    * @brief called on start of new rewards interval. clears blocks_stats_ collection
    * and removes all data saved in db column
