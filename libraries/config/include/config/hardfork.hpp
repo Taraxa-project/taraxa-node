@@ -71,6 +71,9 @@ struct HardforksConfig {
   // Aspen hardfork implements new yield curve
   AspenHardfork aspen_hf;
 
+  // Ficus hardfork: implementation of pillar block & bls signatures required for bridge
+  uint64_t ficus_hf_block_num;
+
   HAS_RLP_FIELDS
 };
 
