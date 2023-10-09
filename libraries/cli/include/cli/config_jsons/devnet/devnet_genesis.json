@@ -30,7 +30,8 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0xd3c21bcecceda1000000"
         },
-        "vrf_key": "05fe580fd2d461ee5f762a33bbe669403bb04a851f2e9ed8d2579a9c9b77c3ec"
+        "vrf_key": "05fe580fd2d461ee5f762a33bbe669403bb04a851f2e9ed8d2579a9c9b77c3ec",
+        "bls_key": ""
       },
       {
         "address": "0x56e0de6933d9d0453d0363caf42b136eb5854e4e",
@@ -41,7 +42,8 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0xd3c21bcecceda1000000"
         },
-        "vrf_key": "70d34c86787e5f7bd0f266cad291cb521e23176fa37c6efc034858a1620ac69e"
+        "vrf_key": "70d34c86787e5f7bd0f266cad291cb521e23176fa37c6efc034858a1620ac69e",
+        "bls_key": ""
       },
       {
         "address": "0x71bdcbec7e3642782447b0fbf31eed068dfbdbb1",
@@ -52,7 +54,8 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0xd3c21bcecceda1000000"
         },
-        "vrf_key": "f8d5c00ce9fa3058341e051b36a1e6ccf69df81fb865568b2bf1507d085691e2"
+        "vrf_key": "f8d5c00ce9fa3058341e051b36a1e6ccf69df81fb865568b2bf1507d085691e2",
+        "bls_key": ""
       },
       {
         "address": "0xac24bc60a491bd0c29414e5f34aa6bbd8d4aa499",
@@ -63,7 +66,8 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0xd3c21bcecceda1000000"
         },
-        "vrf_key": "aa12507d00c992b95e65d80b21fd2db5b48c4f7ff4393064828d1adc930710b4"
+        "vrf_key": "aa12507d00c992b95e65d80b21fd2db5b48c4f7ff4393064828d1adc930710b4",
+        "bls_key": ""
       },
       {
         "address": "0x635d3831ad5d1252a2a07f09b8d3539b3af34df8",
@@ -74,7 +78,8 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0xd3c21bcecceda1000000"
         },
-        "vrf_key": "bd34898ae0080187c408b5724f05682855c4425fda61d332f5f9d746d4eb753a"
+        "vrf_key": "bd34898ae0080187c408b5724f05682855c4425fda61d332f5f9d746d4eb753a",
+        "bls_key": ""
       },
       {
         "address": "0x43af71034ed7fd0b54496a30ba4a5889a94e7088",
@@ -85,7 +90,8 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0xd3c21bcecceda1000000"
         },
-        "vrf_key": "25d35fed93989c40b4e8685d9d7ee02213230221ea9efcbe8cfccfc788670dba"
+        "vrf_key": "25d35fed93989c40b4e8685d9d7ee02213230221ea9efcbe8cfccfc788670dba",
+        "bls_key": ""
       },
       {
         "address": "0x4546f088bf636ed4652d1635c98ef5422805dfa3",
@@ -96,7 +102,8 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0xd3c21bcecceda1000000"
         },
-        "vrf_key": "55c0bd1af84fb793a5dd7b960e330248d8a0acde566922b3e210f43592700dad"
+        "vrf_key": "55c0bd1af84fb793a5dd7b960e330248d8a0acde566922b3e210f43592700dad",
+        "bls_key": ""
       },
       {
         "address": "0x8ca042649a263272442bee8b7209fa19426e54c4",
@@ -107,7 +114,8 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0xd3c21bcecceda1000000"
         },
-        "vrf_key": "33131367e7279ee51c0f26c6f9b6627848f822d134abef21a88be467dfbaae7b"
+        "vrf_key": "33131367e7279ee51c0f26c6f9b6627848f822d134abef21a88be467dfbaae7b",
+        "bls_key": ""
       },
       {
         "address": "0x7d7319df8950546850a01a0d793ee602f6eb390f",
@@ -118,7 +126,8 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0xd3c21bcecceda1000000"
         },
-        "vrf_key": "da63de37c69a59cb3ebbcfb79ef8d561b18b448b544a14438c62cd56bc0a29f5"
+        "vrf_key": "da63de37c69a59cb3ebbcfb79ef8d561b18b448b544a14438c62cd56bc0a29f5",
+        "bls_key": ""
       },
       {
         "address": "0x64c171b9845c15c4555f7a4489895f0e687c496c",
@@ -129,7 +138,8 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0xd3c21bcecceda1000000"
         },
-        "vrf_key": "337178752602a5ca38928bf0d8d434ec653505c92b280b0edab6c39d5e79f4fd"
+        "vrf_key": "337178752602a5ca38928bf0d8d434ec653505c92b280b0edab6c39d5e79f4fd",
+        "bls_key": ""
       },
       {
         "address": "0x614c85fad6f17f03949f735e05b1a24c5155b726",
@@ -140,7 +150,8 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0xd3c21bcecceda1000000"
         },
-        "vrf_key": "ac08e4ca5f1bcdd61dbefa7551ab839bdd4545e59ee8a4ab5d3aabb71104ab73"
+        "vrf_key": "ac08e4ca5f1bcdd61dbefa7551ab839bdd4545e59ee8a4ab5d3aabb71104ab73",
+        "bls_key": ""
       },
       {
         "address": "0xeff3dd2b0a6c29146c46ca01764aae0691ee1744",
@@ -151,7 +162,8 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0xd3c21bcecceda1000000"
         },
-        "vrf_key": "189b05cca0a816a36f977f0541ef7585218b2087f04b23444ab58d0c755adecc"
+        "vrf_key": "189b05cca0a816a36f977f0541ef7585218b2087f04b23444ab58d0c755adecc",
+        "bls_key": ""
       },
       {
         "address": "0xe543a20db4fa1820cc9f00144fc402bb1f31aa29",
@@ -162,7 +174,8 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0xd3c21bcecceda1000000"
         },
-        "vrf_key": "8e95172f90b68ee753132bf6342ee00b398e2417312f610d58c34729ab0608ee"
+        "vrf_key": "8e95172f90b68ee753132bf6342ee00b398e2417312f610d58c34729ab0608ee",
+        "bls_key": ""
       },
       {
         "address": "0x211a5ec33fec843b14319bcd62ab30c2a064745e",
@@ -173,7 +186,8 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0xd3c21bcecceda1000000"
         },
-        "vrf_key": "959551740ff948d9714f15a2bfb2183c4ead897dd79775a0a18488aa8936e2ba"
+        "vrf_key": "959551740ff948d9714f15a2bfb2183c4ead897dd79775a0a18488aa8936e2ba",
+        "bls_key": ""
       },
       {
         "address": "0x5354adf587cad5fe74e4912d4b6c1f754538891d",
@@ -184,7 +198,8 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0xd3c21bcecceda1000000"
         },
-        "vrf_key": "56b7831cb3e35c1d6d1e3f661de2068d6feeaa54074b3e02709a87d7f0d6c72a"
+        "vrf_key": "56b7831cb3e35c1d6d1e3f661de2068d6feeaa54074b3e02709a87d7f0d6c72a",
+        "bls_key": ""
       },
       {
         "address": "0x1473a6c154655fdc1f19d98e5823d3bb3f09a895",
@@ -195,7 +210,8 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0xd3c21bcecceda1000000"
         },
-        "vrf_key": "e774c519814cbc04008aa958932e7adb82ebbbd6ca69089c0a1458ea34fb4299"
+        "vrf_key": "e774c519814cbc04008aa958932e7adb82ebbbd6ca69089c0a1458ea34fb4299",
+        "bls_key": ""
       },
       {
         "address": "0x9588f6457d67792f141424983a93978f44331054",
@@ -206,7 +222,8 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0xd3c21bcecceda1000000"
         },
-        "vrf_key": "1b15b7bef6a1dbe9aeb2792f2e38d6222d31f8c6c15cff1152f258013d70d933"
+        "vrf_key": "1b15b7bef6a1dbe9aeb2792f2e38d6222d31f8c6c15cff1152f258013d70d933",
+        "bls_key": ""
       },
       {
         "address": "0xb48da366e19f141f5647dcdb0960eb88719e1c8d",
@@ -217,7 +234,8 @@
         "delegations": {
           "0x7e4aa664f71de4e9d0b4a6473d796372639bdcde": "0xd3c21bcecceda1000000"
         },
-        "vrf_key": "37bf145ac98e7de7db6e5b933e72737fbf190fd4fb1d193b15cf8b00db30ba30"
+        "vrf_key": "37bf145ac98e7de7db6e5b933e72737fbf190fd4fb1d193b15cf8b00db30ba30",
+        "bls_key": ""
       }
     ]
   },
