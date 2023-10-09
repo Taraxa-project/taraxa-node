@@ -1640,6 +1640,7 @@
     "magnolia_hf" : {
       "block_num" : 5730000,
       "jail_time": 163459
-    }
+    },
+    "ficus_hf_block_num": 0
   }
 }
