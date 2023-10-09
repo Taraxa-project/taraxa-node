@@ -74,6 +74,9 @@ struct HardforksConfig {
   bool isAspenHardforkPartOne(uint64_t block_number) const { return block_number >= aspen_hf.block_num_part_one; }
   bool isAspenHardforkPartTwo(uint64_t block_number) const { return block_number >= aspen_hf.block_num_part_two; }
 
+  // Ficus hardfork: implementation of pillar block & bls signatures required for bridge
+  uint64_t ficus_hf_block_num;
+
   HAS_RLP_FIELDS
 };
 
