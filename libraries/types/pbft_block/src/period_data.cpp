@@ -17,6 +17,25 @@ PeriodData::PeriodData(std::shared_ptr<PbftBlock> pbft_blk,
     : pbft_blk(std::move(pbft_blk)), previous_block_cert_votes(previous_block_cert_votes) {}
 
 PeriodData::PeriodData(const dev::RLP& rlp) {
+  // TODO[2587] Old Data
+  if (rlp.itemCount() == 4) {
+    try {
+      pbft_blk = std::make_shared<PbftBlock>(rlp[0]);
+      for (auto const vote_rlp : rlp[1]) {
+        previous_block_cert_votes.emplace_back(std::make_shared<Vote>(vote_rlp));
+      }
+
+      for (auto const dag_block_rlp : rlp[2]) {
+        dag_blocks.emplace_back(dag_block_rlp);
+      }
+
+      for (auto const trx_rlp : rlp[3]) {
+        transactions.emplace_back(std::make_shared<Transaction>(trx_rlp));
+      }
+      return;
+    } catch (...) {
+    }
+  }
   auto it = rlp.begin();
   pbft_blk = std::make_shared<PbftBlock>(*it++);
 
