@@ -789,6 +789,74 @@ TEST_F(FinalChainTest, fee_rewards_distribution) {
   }
 }
 
+std::shared_ptr<Transaction> makeDoubleVotingProofTx(const std::shared_ptr<Vote>& vote_a,
+                                                     const std::shared_ptr<Vote>& vote_b, uint64_t nonce,
+                                                     const dev::KeyPair& keys) {
+  const auto kSlashingContractAddress = addr_t("0x00000000000000000000000000000000000000EE");
+  // Create votes combination hash
+  dev::RLPStream hash_rlp(2);
+  if (vote_a->getHash() < vote_b->getHash()) {
+    hash_rlp << vote_a->getHash();
+    hash_rlp << vote_b->getHash();
+  } else {
+    hash_rlp << vote_b->getHash();
+    hash_rlp << vote_a->getHash();
+  }
+  const auto hash_bytes = hash_rlp.invalidate();
+  // const auto hash = dev::sha3(hash_bytes);
+
+  auto input = final_chain::ContractInterface::packFunctionCall("commitDoubleVotingProof(bytes,bytes)", vote_a->rlp(),
+                                                                vote_b->rlp());
+
+  // TODO we need to calculate gas for this transaction and hardcode it
+  // CommitDoubleVotingProofGas uint64 = 20000
+  return std::make_shared<Transaction>(nonce, 0, 1, 1000000, std::move(input), keys.secret(), kSlashingContractAddress);
+}
+
+TEST_F(FinalChainTest, remove_jailed_validator_votes_from_total) {
+  const dev::KeyPair key = dev::KeyPair::create();
+  const std::vector<dev::KeyPair> validator_keys = {dev::KeyPair::create(), dev::KeyPair::create(),
+                                                    dev::KeyPair::create()};
+  fillConfigForGenesisTests(key.address());
+  cfg.genesis.state.hardforks.magnolia_hf.block_num = 1;
+  cfg.genesis.state.hardforks.magnolia_hf.jail_time = 50;
+
+  for (const auto& vk : validator_keys) {
+    const auto [vrf_key, _] = taraxa::vrf_wrapper::getVrfKeyPair();
+    state_api::ValidatorInfo validator{vk.address(), key.address(), vrf_key, 0, "", "", {}};
+    validator.delegations.emplace(key.address(), cfg.genesis.state.dpos.validator_maximum_stake);
+    cfg.genesis.state.dpos.initial_validators.emplace_back(validator);
+  }
+
+  init();
+  const auto votes_per_address =
+      cfg.genesis.state.dpos.validator_maximum_stake / cfg.genesis.state.dpos.vote_eligibility_balance_step;
+  const auto total_votes_before = SUT->dpos_eligible_total_vote_count(SUT->last_block_number());
+  for (const auto& vk : validator_keys) {
+    const auto address_votes = SUT->dpos_eligible_vote_count(SUT->last_block_number(), vk.address());
+    EXPECT_EQ(votes_per_address, address_votes);
+    EXPECT_EQ(validator_keys.size() * votes_per_address, total_votes_before);
+  }
+  advance({});
+  // submit double votes for one validator
+  const auto [vrf_key, vrf_sk] = taraxa::vrf_wrapper::getVrfKeyPair();
+  VrfPbftSortition vrf_sortition(vrf_sk, {PbftVoteTypes::propose_vote, 1, 1, 1});
+  auto vote_a = std::make_shared<Vote>(validator_keys[0].secret(), vrf_sortition, blk_hash_t(1));
+  vote_a->calculateWeight(1, 1, 1);
+  auto vote_b = std::make_shared<Vote>(validator_keys[0].secret(), vrf_sortition, blk_hash_t(2));
+  vote_b->calculateWeight(1, 1, 1);
+
+  auto trx = makeDoubleVotingProofTx(vote_a, vote_b, 1, key);
+  auto res = advance({trx}, {true});
+  advance({});
+  advance({});
+  advance({});
+  advance({});
+  advance({});
+  const auto total_votes = SUT->dpos_eligible_total_vote_count(SUT->last_block_number());
+  EXPECT_EQ(total_votes_before - votes_per_address, total_votes);
+}
+
 // This test should be last as state_api isn't destructed correctly because of exception
 TEST_F(FinalChainTest, initial_validator_exceed_maximum_stake) {
   const dev::KeyPair key = dev::KeyPair::create();
