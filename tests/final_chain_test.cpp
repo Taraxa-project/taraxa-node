@@ -789,21 +789,6 @@ TEST_F(FinalChainTest, fee_rewards_distribution) {
   }
 }
 
-// This test should be last as state_api isn't destructed correctly because of exception
-TEST_F(FinalChainTest, initial_validator_exceed_maximum_stake) {
-  const dev::KeyPair key = dev::KeyPair::create();
-  const dev::KeyPair validator_key = dev::KeyPair::create();
-  const auto [vrf_key, _] = taraxa::vrf_wrapper::getVrfKeyPair();
-  fillConfigForGenesisTests(key.address());
-
-  state_api::ValidatorInfo validator{validator_key.address(), key.address(), vrf_key, 0, "", "", {}};
-  validator.delegations.emplace(key.address(), cfg.genesis.state.dpos.validator_maximum_stake);
-  validator.delegations.emplace(validator_key.address(), cfg.genesis.state.dpos.minimum_deposit);
-  cfg.genesis.state.dpos.initial_validators.emplace_back(validator);
-
-  EXPECT_THROW(init(), std::exception);
-}
-
 std::shared_ptr<Transaction> makeDoubleVotingProofTx(const std::shared_ptr<Vote>& vote_a,
                                                      const std::shared_ptr<Vote>& vote_b, uint64_t nonce,
                                                      const dev::KeyPair& keys) {
@@ -862,10 +847,7 @@ TEST_F(FinalChainTest, remove_jailed_validator_votes_from_total) {
   vote_b->calculateWeight(1, 1, 1);
 
   auto trx = makeDoubleVotingProofTx(vote_a, vote_b, 1, key);
-  std::cout << "trx to " << trx->getReceiver()->hex() << " with code: " << dev::toHex(trx->getData()) << std::endl;
   auto res = advance({trx}, {true});
-  std::cout << "res: " << res->trx_receipts[0].status_code << " logs: " << res->trx_receipts[0].logs.size()
-            << std::endl;
   advance({});
   advance({});
   advance({});
@@ -873,6 +855,21 @@ TEST_F(FinalChainTest, remove_jailed_validator_votes_from_total) {
   advance({});
   const auto total_votes = SUT->dpos_eligible_total_vote_count(SUT->last_block_number());
   EXPECT_EQ(total_votes_before - votes_per_address, total_votes);
+}
+
+// This test should be last as state_api isn't destructed correctly because of exception
+TEST_F(FinalChainTest, initial_validator_exceed_maximum_stake) {
+  const dev::KeyPair key = dev::KeyPair::create();
+  const dev::KeyPair validator_key = dev::KeyPair::create();
+  const auto [vrf_key, _] = taraxa::vrf_wrapper::getVrfKeyPair();
+  fillConfigForGenesisTests(key.address());
+
+  state_api::ValidatorInfo validator{validator_key.address(), key.address(), vrf_key, 0, "", "", {}};
+  validator.delegations.emplace(key.address(), cfg.genesis.state.dpos.validator_maximum_stake);
+  validator.delegations.emplace(validator_key.address(), cfg.genesis.state.dpos.minimum_deposit);
+  cfg.genesis.state.dpos.initial_validators.emplace_back(validator);
+
+  EXPECT_THROW(init(), std::exception);
 }
 
 }  // namespace taraxa::final_chain
