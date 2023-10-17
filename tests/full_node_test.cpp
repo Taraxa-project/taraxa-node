@@ -1322,6 +1322,10 @@ TEST_F(FullNodeTest, db_rebuild) {
     node_cfgs[0].db_config.rebuild_db = true;
     node_cfgs[0].db_config.rebuild_db_period = 5;
     auto nodes = launch_nodes(node_cfgs);
+    EXPECT_HAPPENS({10s, 100ms}, [&](auto &ctx) {
+      WAIT_EXPECT_EQ(ctx, nodes[0]->getDB()->getNumTransactionExecuted(), trxs_count_at_pbft_size_5)
+      WAIT_EXPECT_EQ(ctx, nodes[0]->getFinalChain()->last_block_number(), 5)
+    });
   }
 
   {

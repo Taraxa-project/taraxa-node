@@ -384,7 +384,7 @@ void FullNode::rebuildDb() {
       cert_votes = next_period_data->previous_block_cert_votes;
     }
 
-    LOG(log_er_) << "Adding PBFT block " << period_data->pbft_blk->getBlockHash().toString()
+    LOG(log_nf_) << "Adding PBFT block " << period_data->pbft_blk->getBlockHash().toString()
                  << " from old DB into syncing queue for processing, final chain size: "
                  << final_chain_->last_block_number();
     pbft_mgr_->addRebuildDBPeriodData(std::move(*period_data), std::move(cert_votes));
