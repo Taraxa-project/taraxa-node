@@ -385,19 +385,19 @@ void FullNode::rebuildDb() {
     }
 
     LOG(log_nf_) << "Adding PBFT block " << period_data->pbft_blk->getBlockHash().toString()
-                 << " from old DB into syncing queue for processing";
+                 << " from old DB into syncing queue for processing, final chain size: "
+                 << final_chain_->last_block_number();
     pbft_mgr_->addRebuildDBPeriodData(std::move(*period_data), std::move(cert_votes));
     period++;
 
     if (period - 1 == conf_.db_config.rebuild_db_period) {
       break;
     }
-  }
-
-  while (final_chain_->last_block_number() != period - 1) {
-    thisThreadSleepForMilliSeconds(1000);
-    LOG(log_nf_) << "Waiting on PBFT blocks to be processed. PBFT chain size " << pbft_mgr_->pbftSyncingPeriod()
-                 << ", final chain size: " << final_chain_->last_block_number();
+    while (final_chain_->last_block_number() != period - 1) {
+      thisThreadSleepForMilliSeconds(5);
+      LOG(log_nf_) << "Waiting on PBFT blocks to be processed. PBFT chain size " << pbft_mgr_->pbftSyncingPeriod()
+                   << ", final chain size: " << final_chain_->last_block_number();
+    }
   }
 }
 

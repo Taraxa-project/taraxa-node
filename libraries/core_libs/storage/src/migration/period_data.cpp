@@ -47,19 +47,7 @@ void PeriodData::migrate(logger::Logger& log) {
       const auto period_data_old_rlp = dev::RLP(bytes);
       assert(period_data_old_rlp.itemCount() == 4);
 
-      ::taraxa::PeriodData period_data;
-      period_data.pbft_blk = std::make_shared<PbftBlock>(period_data_old_rlp[0]);
-      for (auto const vote_rlp : period_data_old_rlp[1]) {
-        period_data.previous_block_cert_votes.emplace_back(std::make_shared<Vote>(vote_rlp));
-      }
-
-      for (auto const dag_block_rlp : period_data_old_rlp[2]) {
-        period_data.dag_blocks.emplace_back(dag_block_rlp);
-      }
-
-      for (auto const trx_rlp : period_data_old_rlp[3]) {
-        period_data.transactions.emplace_back(std::make_shared<Transaction>(trx_rlp));
-      }
+      auto period_data = ::taraxa::PeriodData(period_data_old_rlp);
 
       // Reorder transactions
       PbftManager::reorderTransactions(period_data.transactions);
