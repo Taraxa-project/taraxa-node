@@ -79,8 +79,6 @@ Json::Value Debug::trace_replayBlockTransactions(const std::string& block_num, c
     if (!transactions.has_value() || transactions->empty()) {
       return Json::Value(Json::arrayValue);
     }
-    // TODO[2495]: remove after a proper fox of transactions ordering in PeriodData
-    PbftManager::reorderTransactions(*transactions);
     std::vector<state_api::EVMTransaction> trxs;
     trxs.reserve(transactions->size());
     std::transform(transactions->begin(), transactions->end(), std::back_inserter(trxs),
