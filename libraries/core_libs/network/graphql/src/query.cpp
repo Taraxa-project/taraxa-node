@@ -52,6 +52,12 @@ std::shared_ptr<object::Block> Query::getBlock(std::optional<response::Value>&& 
     return nullptr;
   }
 
+  // Special case for genesis
+  if (block_number == 0) [[unlikely]] {
+    return std::make_shared<object::Block>(std::make_shared<Block>(
+        final_chain_, transaction_manager_, get_block_by_num_, ::taraxa::blk_hash_t(), block_header));
+  }
+
   auto pbft_block = db_->getPbftBlock(block_header->number);
   if (!pbft_block) {
     // shouldn't be possible
