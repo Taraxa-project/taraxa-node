@@ -21,7 +21,7 @@ class TestableRewardsStats : public rewards::Stats {
  public:
   TestableRewardsStats(const HardforksConfig::RewardsDistributionMap& rdm, std::shared_ptr<DB> db)
       : rewards::Stats(100, HardforksConfig{0, {}, rdm, MagnoliaHardfork{0, 0}}, db, [](auto) { return 100; }) {}
-  std::vector<rewards::BlockStats> getStats() { return blocks_stats_; }
+  auto getStats() { return blocks_stats_; }
 };
 
 class TestableBlockStats : public rewards::BlockStats {
@@ -75,9 +75,9 @@ TEST_F(RewardsStatsTest, statsSaving) {
     auto stats = rewards_stats.getStats();
     ASSERT_EQ(rewards_stats.getStats().size(), block_authors.size());
 
-    for (size_t i = 0; i < stats.size(); ++i) {
+    for (size_t i = 1; i <= stats.size(); ++i) {
       auto stats_with_get = reinterpret_cast<TestableBlockStats*>(&stats[i]);
-      ASSERT_EQ(stats_with_get->getAuthor(), block_authors[i]);
+      ASSERT_EQ(stats_with_get->getAuthor(), block_authors[i - 1]);
     }
   }
 }
@@ -142,9 +142,13 @@ TEST_F(RewardsStatsTest, statsProcessing) {
   auto stats = rewards_stats.processStats(block, {}, batch);
   ASSERT_EQ(stats.size(), block_authors.size());
 
-  for (size_t i = 0; i < stats.size(); ++i) {
-    auto stats_with_get = reinterpret_cast<TestableBlockStats*>(&stats[i]);
-    ASSERT_EQ(stats_with_get->getAuthor(), block_authors[i]);
+  for (auto& block_author : block_authors) {
+    bool found = false;
+    for (size_t i = 0; i < stats.size(); ++i) {
+      auto stats_with_get = reinterpret_cast<TestableBlockStats*>(&stats[i]);
+      if (stats_with_get->getAuthor() == block_author) found = true;
+    }
+    assert(found);
   }
   ASSERT_TRUE(rewards_stats.getStats().empty());
 }

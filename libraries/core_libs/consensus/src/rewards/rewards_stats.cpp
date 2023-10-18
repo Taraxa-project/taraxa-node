@@ -15,14 +15,15 @@ Stats::Stats(uint32_t committee_size, const HardforksConfig& hardforks, std::sha
 void Stats::loadFromDb() {
   auto i = db_->getColumnIterator(DB::Columns::block_rewards_stats);
   for (i->SeekToFirst(); i->Valid(); i->Next()) {
-    blocks_stats_.push_back(util::rlp_dec<BlockStats>(dev::RLP(i->value().ToString())));
+    PbftPeriod period;
+    memcpy(&period, i->key().data(), sizeof(PbftPeriod));
+    blocks_stats_[period] = util::rlp_dec<BlockStats>(dev::RLP(i->value().ToString()));
   }
 }
 
 void Stats::saveBlockStats(uint64_t period, const BlockStats& stats, DbStorage::Batch& write_batch) {
   dev::RLPStream encoding;
   stats.rlp(encoding);
-
   db_->insert(write_batch, DB::Columns::block_rewards_stats, period, encoding.out());
 }
 
@@ -57,6 +58,7 @@ BlockStats Stats::getBlockStats(const PeriodData& blk, const std::vector<gas_t>&
 
 std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk, const std::vector<gas_t>& trxs_gas_used,
                                             DbStorage::Batch& write_batch) {
+  std::vector<BlockStats> res;
   const auto current_period = current_blk.pbft_blk->getPeriod();
   const auto frequency = getCurrentDistributionFrequency(current_period);
   auto block_stats = getBlockStats(current_blk, trxs_gas_used);
@@ -65,15 +67,17 @@ std::vector<BlockStats> Stats::processStats(const PeriodData& current_blk, const
     return {block_stats};
   }
 
-  blocks_stats_.push_back(std::move(block_stats));
+  blocks_stats_.emplace(current_period, std::move(block_stats));
   // Blocks between distribution. Process and save for future processing
   if (current_period % frequency != 0) {
     // Save to db, so in case of restart data could be just loaded for the period
-    saveBlockStats(current_period, *blocks_stats_.rbegin(), write_batch);
+    saveBlockStats(current_period, blocks_stats_[current_period], write_batch);
     return {};
   }
 
-  std::vector<BlockStats> res(std::move(blocks_stats_));
+  res.reserve(blocks_stats_.size());
+  std::transform(blocks_stats_.begin(), blocks_stats_.end(), std::back_inserter(res),
+                 [](auto& t) { return std::move(t.second); });
   clear();
   return res;
 }
