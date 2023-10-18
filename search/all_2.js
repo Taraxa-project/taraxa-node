@@ -53,7 +53,7 @@ var searchData=
   ['blocknumbernil_173',['BlockNumberNIL',['../namespacetaraxa_1_1state__api.html#a9aa3f912b525631665f9049907d9001f',1,'taraxa::state_api']]],
   ['blocks_174',['blocks',['../structtaraxa_1_1_gas_price_config.html#a2174af152df290df7d18798a2b66df61',1,'taraxa::GasPriceConfig']]],
   ['blocks_5fper_5fyear_175',['blocks_per_year',['../namespacetaraxa_1_1state__api.html#ac4aaee6dbf60f4917c72a4d660a6c576',1,'taraxa::state_api::DPOSConfig']]],
-  ['blocks_5fstats_5f_176',['blocks_stats_',['../classtaraxa_1_1rewards_1_1_stats.html#a1ffcbaea4cc7d1789d660c7ff1d79bc0',1,'taraxa::rewards::Stats']]],
+  ['blocks_5fstats_5f_176',['blocks_stats_',['../classtaraxa_1_1rewards_1_1_stats.html#a4655cca7130eb3e898fe8373df8c7035',1,'taraxa::rewards::Stats']]],
   ['blocksblooms_177',['BlocksBlooms',['../group___final_chain.html#ga135593595f98c5905f60e3a4d9c61112',1,'taraxa::final_chain']]],
   ['blockstats_178',['BlockStats',['../classtaraxa_1_1rewards_1_1_block_stats.html#a9c07e505285b3a47d2ad9e531cfba551',1,'taraxa::rewards::BlockStats::BlockStats(const PeriodData &amp;block, const std::vector&lt; gas_t &gt; &amp;trxs_gas_used, uint64_t dpos_vote_count, uint32_t committee_size)'],['../classtaraxa_1_1rewards_1_1_block_stats.html#ab67a44f047c05e976f1c03cc2c7c9658',1,'taraxa::rewards::BlockStats::BlockStats()=default'],['../classtaraxa_1_1rewards_1_1_block_stats.html',1,'taraxa::rewards::BlockStats']]],
   ['blocktoobig_179',['BlockTooBig',['../group___d_a_g.html#a3445d6e089f93e4e521fb98a0699d484a6acb71e475d0aaa76f18fde586c6d6db',1,'taraxa::DagManager']]],

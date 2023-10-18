@@ -141,8 +141,8 @@ Protected Attributes</h2></td></tr>
 <tr class="separator:a64f04da4989b1c4b21859d9a5f3b337d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ae2cdad256d0ca829bc2fc69fe320f481"><td class="memItemLeft" align="right" valign="top">const std::function&lt; uint64_t(<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#ae2cdad256d0ca829bc2fc69fe320f481">dpos_eligible_total_vote_count_</a></td></tr>
 <tr class="separator:ae2cdad256d0ca829bc2fc69fe320f481"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a1ffcbaea4cc7d1789d660c7ff1d79bc0"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a1ffcbaea4cc7d1789d660c7ff1d79bc0">blocks_stats_</a></td></tr>
-<tr class="separator:a1ffcbaea4cc7d1789d660c7ff1d79bc0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4655cca7130eb3e898fe8373df8c7035"><td class="memItemLeft" align="right" valign="top">std::unordered_map&lt; <a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>, <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classtaraxa_1_1rewards_1_1_stats.html#a4655cca7130eb3e898fe8373df8c7035">blocks_stats_</a></td></tr>
+<tr class="separator:a4655cca7130eb3e898fe8373df8c7035"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>class that is managing rewards stats processing and hardforks(intervals changes) So intermediate blocks stats are stored in the vector in data(to restore on the node restart) and full list of interval stats is returned in the end of interval </p>
@@ -394,8 +394,8 @@ Protected Attributes</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Member Data Documentation</h2>
-<a id="a1ffcbaea4cc7d1789d660c7ff1d79bc0"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a1ffcbaea4cc7d1789d660c7ff1d79bc0">&#9670;&nbsp;</a></span>blocks_stats_</h2>
+<a id="a4655cca7130eb3e898fe8373df8c7035"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4655cca7130eb3e898fe8373df8c7035">&#9670;&nbsp;</a></span>blocks_stats_</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -404,7 +404,7 @@ Protected Attributes</h2></td></tr>
   <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">std::vector&lt;<a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a>&gt; taraxa::rewards::Stats::blocks_stats_</td>
+          <td class="memname">std::unordered_map&lt;<a class="el" href="namespacetaraxa.html#a65a103ca2c7b87e38da64ba76ffe0eac">PbftPeriod</a>, <a class="el" href="classtaraxa_1_1rewards_1_1_block_stats.html">BlockStats</a>&gt; taraxa::rewards::Stats::blocks_stats_</td>
         </tr>
       </table>
   </td>
