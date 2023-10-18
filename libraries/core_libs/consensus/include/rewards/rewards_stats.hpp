@@ -50,6 +50,6 @@ class Stats {
   const HardforksConfig kHardforks;
   std::shared_ptr<DB> db_;
   const std::function<uint64_t(EthBlockNumber)> dpos_eligible_total_vote_count_;
-  std::vector<BlockStats> blocks_stats_;
+  std::unordered_map<PbftPeriod, BlockStats> blocks_stats_;
 };
 }  // namespace taraxa::rewards
