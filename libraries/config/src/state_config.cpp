@@ -56,7 +56,9 @@ Json::Value enc_json(const ValidatorInfo& obj) {
   json["address"] = dev::toJS(obj.address);
   json["owner"] = dev::toJS(obj.owner);
   json["vrf_key"] = dev::toJS(obj.vrf_key);
-  json["bls_key"] = dev::toJS(obj.bls_key);
+  if (obj.bls_key.has_value()) {
+    json["bls_key"] = dev::toJS(*obj.bls_key);
+  }
   json["commission"] = dev::toJS(obj.commission);
   json["endpoint"] = obj.endpoint;
   json["description"] = obj.description;
@@ -68,7 +70,9 @@ void dec_json(const Json::Value& json, ValidatorInfo& obj) {
   obj.address = addr_t(json["address"].asString());
   obj.owner = addr_t(json["owner"].asString());
   obj.vrf_key = vrf_wrapper::vrf_pk_t(json["vrf_key"].asString());
-  std::stringstream(json["bls_key"].asString()) >> obj.bls_key;
+  if (!json["bls_key"].isNull()) {
+    std::stringstream(json["bls_key"].asString()) >> *obj.bls_key;
+  }
   obj.commission = dev::getUInt(json["commission"]);
   obj.endpoint = json["endpoint"].asString();
   obj.description = json["description"].asString();

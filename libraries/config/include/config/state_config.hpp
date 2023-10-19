@@ -28,7 +28,7 @@ struct ValidatorInfo {
   addr_t address;
   addr_t owner;
   vrf_wrapper::vrf_pk_t vrf_key;
-  libff::alt_bn128_G2 bls_key;
+  std::optional<libff::alt_bn128_G2> bls_key;
   uint16_t commission = 0;
   std::string endpoint;
   std::string description;
