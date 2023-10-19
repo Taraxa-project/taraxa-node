@@ -13,15 +13,14 @@ namespace taraxa {
 PillarChainManager::PillarChainManager(std::shared_ptr<DbStorage> db,
                                        std::shared_ptr<final_chain::FinalChain> final_chain,
                                        std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<KeyManager> key_manager,
-                                       addr_t node_addr)
+                                       const libff::alt_bn128_Fr& bls_secret_key, addr_t node_addr)
     : db_(std::move(db)),
       network_{},
       final_chain_{std::move(final_chain)},
       vote_mgr_(std::move(vote_mgr)),
       key_manager_(std::move(key_manager)),
       node_addr_(node_addr),
-      // TODO: from wallet-config
-      bls_keys_(libBLS::Bls::KeyGeneration()),
+      kBlsSecretKey(bls_secret_key),
       // TODO: last_pillar_block_ might be optional ???
       last_pillar_block_{std::make_shared<PillarBlock>(0, blk_hash_t{0}, blk_hash_t{0})},
       last_pillar_block_signatures_{},
@@ -84,7 +83,7 @@ void PillarChainManager::newFinalBlock(const std::shared_ptr<final_chain::Finali
     {
       std::shared_lock<std::shared_mutex> lock(mutex_);
       signature = std::make_shared<BlsSignature>(last_pillar_block_->getHash(), block_data->final_chain_blk->number,
-                                                 node_addr_, bls_keys_.first);
+                                                 node_addr_, kBlsSecretKey);
     }
 
     addVerifiedBlsSig(signature);

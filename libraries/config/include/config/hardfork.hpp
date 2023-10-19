@@ -72,7 +72,7 @@ struct HardforksConfig {
   AspenHardfork aspen_hf;
 
   // Ficus hardfork: implementation of pillar block & bls signatures required for bridge
-  uint64_t ficus_hf_block_num;
+  uint64_t ficus_hf_block_num = -1;
 
   HAS_RLP_FIELDS
 };
