@@ -21,9 +21,14 @@ void GetBlsSigsBundlePacketHandler::validatePacketRlpFormat(
 
 void GetBlsSigsBundlePacketHandler::process(const threadpool::PacketData &packet_data,
                                             const std::shared_ptr<TaraxaPeer> &peer) {
-  const PillarBlock::Hash pillar_block_hash = packet_data.rlp_.toHash<PillarBlock::Hash>();
+  // TODO: use without [0] ?
+  const PillarBlock::Hash pillar_block_hash = packet_data.rlp_[0].toHash<PillarBlock::Hash>();
 
   const auto signatures = pillar_chain_manager_->getVerifiedBlsSignatures(pillar_block_hash);
+  if (signatures.empty()) {
+    LOG(log_dg_) << "No BLS signatures for " << pillar_block_hash;
+    return;
+  }
 
   // TODO: split packet to multiple with kGetBlsSigsPacketSize sigs containing each
   dev::RLPStream s(signatures.size());
