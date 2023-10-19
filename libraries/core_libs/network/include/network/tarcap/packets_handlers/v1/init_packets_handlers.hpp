@@ -4,6 +4,7 @@
 #include "network/tarcap/packets_handlers/latest/bls_sigs_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/get_bls_sigs_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/get_dag_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/status_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/transaction_packet_handler.hpp"
@@ -67,7 +68,8 @@ static const TaraxaCapability::InitPacketsHandlers kInitV1Handlers =
       // TODO: should ut be registered also for V1 ?
       packets_handlers->registerHandler<BlsSigPacketHandler>(config, peers_state, packets_stats, pillar_chain_mgr,
                                                              node_addr, logs_prefix);
-
+      packets_handlers->registerHandler<GetBlsSigsBundlePacketHandler>(config, peers_state, packets_stats,
+                                                                       pillar_chain_mgr, node_addr, logs_prefix);
       packets_handlers->registerHandler<BlsSigsBundlePacketHandler>(config, peers_state, packets_stats,
                                                                     pillar_chain_mgr, node_addr, logs_prefix);
 

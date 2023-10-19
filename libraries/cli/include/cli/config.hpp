@@ -55,6 +55,7 @@ class Config {
   static constexpr const char* LOG_CHANNELS_APPEND = "log-channels-append";
   static constexpr const char* NODE_SECRET = "node-secret";
   static constexpr const char* VRF_SECRET = "vrf-secret";
+  static constexpr const char* BLS_SECRET = "bls-secret";
   static constexpr const char* OVERWRITE_CONFIG = "overwrite-config";
   static constexpr const char* ENABLE_TEST_RPC = "enable-test-rpc";
   static constexpr const char* ENABLE_DEBUG = "debug";

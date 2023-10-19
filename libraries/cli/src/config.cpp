@@ -33,6 +33,7 @@ Config::Config(int argc, const char* argv[]) {
   std::vector<std::string> log_channels_append;
   std::string node_secret;
   std::string vrf_secret;
+  std::string bls_secret;
   bool overwrite_config;
 
   bool destroy_db = false;
@@ -120,6 +121,8 @@ Config::Config(int argc, const char* argv[]) {
   node_command_options.add_options()(NODE_SECRET, bpo::value<std::string>(&node_secret), "Nose secret key to use");
 
   node_command_options.add_options()(VRF_SECRET, bpo::value<std::string>(&vrf_secret), "Vrf secret key to use");
+
+  node_command_options.add_options()(BLS_SECRET, bpo::value<std::string>(&bls_secret), "Bls secret key to use");
 
   node_command_options.add_options()(
       OVERWRITE_CONFIG, bpo::bool_switch(&overwrite_config),
@@ -222,7 +225,7 @@ Config::Config(int argc, const char* argv[]) {
     // Override config values with values from CLI
     config_json = tools::overrideConfig(config_json, data_dir, boot_nodes, log_channels, log_configurations,
                                         boot_nodes_append, log_channels_append);
-    wallet_json = tools::overrideWallet(wallet_json, node_secret, vrf_secret);
+    wallet_json = tools::overrideWallet(wallet_json, node_secret, vrf_secret, bls_secret);
 
     if (light_node) {
       config_json["is_light_node"] = true;
