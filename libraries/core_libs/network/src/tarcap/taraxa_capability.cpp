@@ -7,6 +7,7 @@
 #include "network/tarcap/packets_handlers/latest/bls_sigs_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_block_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/dag_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/get_bls_sigs_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/get_dag_sync_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/get_next_votes_bundle_packet_handler.hpp"
 #include "network/tarcap/packets_handlers/latest/get_pbft_sync_packet_handler.hpp"
@@ -253,6 +254,8 @@ const TaraxaCapability::InitPacketsHandlers TaraxaCapability::kInitLatestVersion
                                                                logs_prefix);
       packets_handlers->registerHandler<BlsSigPacketHandler>(config, peers_state, packets_stats, pillar_chain_mgr,
                                                              node_addr, logs_prefix);
+      packets_handlers->registerHandler<GetBlsSigsBundlePacketHandler>(config, peers_state, packets_stats,
+                                                                       pillar_chain_mgr, node_addr, logs_prefix);
       packets_handlers->registerHandler<BlsSigsBundlePacketHandler>(config, peers_state, packets_stats,
                                                                     pillar_chain_mgr, node_addr, logs_prefix);
 

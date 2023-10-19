@@ -209,7 +209,7 @@ include(CMakeModules/git_info.cmake)
 
 include(ExternalProject)
 
-# find and include system libraries used in submodues and libraries
+# find and include system libraries used in submodules and libraries
 find_package(GMP)
 find_package(MPFR)
 # used in libraries/aleth & submodules/libBLS

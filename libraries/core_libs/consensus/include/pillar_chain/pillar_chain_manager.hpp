@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "config/config.hpp"
 #include "final_chain/data.hpp"
 #include "logger/logger.hpp"
 #include "pillar_chain/bls_signature.hpp"
@@ -29,7 +30,8 @@ class FinalChain;
 class PillarChainManager {
  public:
   PillarChainManager(std::shared_ptr<DbStorage> db, std::shared_ptr<final_chain::FinalChain> final_chain,
-                     std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<KeyManager> key_manager, addr_t node_addr);
+                     std::shared_ptr<VoteManager> vote_mgr, std::shared_ptr<KeyManager> key_manager,
+                     const libff::alt_bn128_Fr& bls_secret_key, addr_t node_addr);
 
   /**
    * @Process new final block
@@ -83,8 +85,7 @@ class PillarChainManager {
 
   const addr_t node_addr_;
 
-  // TODO: from wallet-config file
-  std::pair<libff::alt_bn128_Fr, libff::alt_bn128_G2> bls_keys_;
+  const libff::alt_bn128_Fr kBlsSecretKey;
 
   // Last processed pillar block
   // TODO: might be just atomic hash

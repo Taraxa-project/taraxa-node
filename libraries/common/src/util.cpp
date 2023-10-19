@@ -11,6 +11,10 @@ std::string jsonToUnstyledString(const Json::Value &value) {
   return Json::writeString(builder, value);
 }
 
+libff::alt_bn128_G2 getBlsPublicKey(const libff::alt_bn128_Fr &bls_secret) {
+  return bls_secret * libff::alt_bn128_G2::one();
+}
+
 void thisThreadSleepForSeconds(unsigned sec) { std::this_thread::sleep_for(std::chrono::seconds(sec)); }
 
 void thisThreadSleepForMilliSeconds(unsigned millisec) {
