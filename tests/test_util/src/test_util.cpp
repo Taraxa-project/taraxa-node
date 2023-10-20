@@ -2,6 +2,8 @@
 
 #include "pbft/pbft_manager.hpp"
 #include "vote_manager/vote_manager.hpp"
+// TODO: should ne #include <libBLS/tools/utils.h>
+#include <tools/utils.h>
 
 namespace taraxa {
 
@@ -183,6 +185,9 @@ std::pair<PbftPeriod, PbftRound> clearAllVotes(const std::vector<std::shared_ptr
 }
 
 NodesTest::NodesTest() {
+  // Required for libBLS::Bls::KeyGeneration()
+  libBLS::ThresholdUtils::initCurve();
+
   for (uint16_t i = 0; i < 5; ++i) {
     taraxa::FullNodeConfig cfg;
 
@@ -198,6 +203,7 @@ NodesTest::NodesTest() {
     cfg.network.rpc->ws_port = 8778 + i;
     cfg.node_secret = dev::KeyPair::create().secret();
     cfg.vrf_secret = taraxa::vdf_sortition::getVrfKeyPair().second;
+    cfg.bls_secret = libBLS::Bls::KeyGeneration().first;
     cfg.network.listen_port = 10003 + i;
 
     cfg.genesis.gas_price.minimum_price = 0;
@@ -210,6 +216,7 @@ NodesTest::NodesTest() {
         taraxa::NodeConfig{"7b1fcf0ec1078320117b96e9e9ad9032c06d030cf4024a598347a4623a14a421d4f030cf25ef368ab394a45e9"
                            "20e14b57a259a09c41767dd50d1da27b627412a",
                            "127.0.0.1", 10003});
+    cfg.genesis.state.hardforks.ficus_hf_block_num = 0;
     node_cfgs.emplace_back(cfg);
   }
   node_cfgs.front().node_secret = dev::Secret("3800b2875669d9b2053c1aff9224ecfdc411423aac5b5a73d7a45ced1c3b9dcd");
@@ -269,10 +276,15 @@ std::vector<taraxa::FullNodeConfig> NodesTest::make_node_cfgs(size_t total_count
       continue;
     }
 
+    std::optional<libff::alt_bn128_G2> bls_key;
+    if (cfg.genesis.state.hardforks.ficus_hf_block_num == 0) {
+      bls_key = getBlsPublicKey(cfg.bls_secret);
+    }
+
     taraxa::state_api::BalanceMap delegations;
     delegations.emplace(node_addr, cfg.genesis.state.dpos.eligibility_balance_threshold);
     initial_validators.emplace_back(taraxa::state_api::ValidatorInfo{
-        node_addr, node_addr, taraxa::vrf_wrapper::getVrfPublicKey(cfg.vrf_secret), 100, "", "", delegations});
+        node_addr, node_addr, taraxa::vrf_wrapper::getVrfPublicKey(cfg.vrf_secret), bls_key, 100, "", "", delegations});
   }
 
   for (size_t idx = 0; idx < total_count; idx++) {
