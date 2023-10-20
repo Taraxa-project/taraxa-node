@@ -807,10 +807,7 @@ std::shared_ptr<Transaction> makeDoubleVotingProofTx(const std::shared_ptr<Vote>
 
   auto input = final_chain::ContractInterface::packFunctionCall("commitDoubleVotingProof(bytes,bytes)", vote_a->rlp(),
                                                                 vote_b->rlp());
-
-  // TODO we need to calculate gas for this transaction and hardcode it
-  // CommitDoubleVotingProofGas uint64 = 20000
-  return std::make_shared<Transaction>(nonce, 0, 1, 1000000, std::move(input), keys.secret(), kSlashingContractAddress);
+  return std::make_shared<Transaction>(nonce, 0, 1, 100000, std::move(input), keys.secret(), kSlashingContractAddress);
 }
 
 TEST_F(FinalChainTest, remove_jailed_validator_votes_from_total) {

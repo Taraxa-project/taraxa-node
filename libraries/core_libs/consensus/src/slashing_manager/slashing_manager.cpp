@@ -59,10 +59,7 @@ bool SlashingManager::submitDoubleVotingProof(const std::shared_ptr<Vote> &vote_
 
   auto input = final_chain::ContractInterface::packFunctionCall("commitDoubleVotingProof(bytes,bytes)", vote_a->rlp(),
                                                                 vote_b->rlp());
-
-  // TODO we need to calculate gas for this transaction and hardcode it
-  // CommitDoubleVotingProofGas uint64 = 20000
-  const auto trx = std::make_shared<Transaction>(account.nonce, 0, gas_pricer_->bid(), 1000000, std::move(input),
+  const auto trx = std::make_shared<Transaction>(account.nonce, 0, gas_pricer_->bid(), 100000, std::move(input),
                                                  kPrivateKey, kContractAddress, kConfig.genesis.chain_id);
 
   if (trx_manager_->insertTransaction(trx).first) {
