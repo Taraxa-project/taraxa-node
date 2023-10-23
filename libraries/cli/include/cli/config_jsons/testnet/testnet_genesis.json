@@ -137,8 +137,8 @@
     "rewards_distribution_frequency": {
       "251000": 100
     },
-    "magnolia_hf" : {
-      "block_num" : 251000,
+    "magnolia_hf": {
+      "block_num": 297000,
       "jail_time": 163459
     }
   }
