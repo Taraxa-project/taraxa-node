@@ -220,7 +220,7 @@ Json::Value Debug::debug_dposValidatorTotalStakes(const std::string& _period) {
 
     for (auto const& validatorStake : validatorsStakes) {
       Json::Value validatorStakeJson(Json::objectValue);
-      validatorStakeJson["address"] = validatorStake.addr.toString();
+      validatorStakeJson["address"] = "0x" + validatorStake.addr.toString();
       validatorStakeJson["total_stake"] = validatorStake.stake.str();
       res.append(validatorStakeJson);
     }
