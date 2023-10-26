@@ -112,5 +112,11 @@ struct Tracing {
   HAS_RLP_FIELDS
 };
 
+struct ValidatorStake {
+  addr_t addr;
+  u256 stake;
+
+  HAS_RLP_FIELDS
+};
 /** @} */
 }  // namespace taraxa::state_api
