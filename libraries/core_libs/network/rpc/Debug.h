@@ -41,6 +41,7 @@ class Debug : public DebugFace {
                                  const std::string& param3) override;
   virtual Json::Value trace_replayTransaction(const std::string& param1, const Json::Value& param2) override;
   virtual Json::Value trace_replayBlockTransactions(const std::string& param1, const Json::Value& param2) override;
+  virtual Json::Value debug_dposValidatorTotalStakes(const std::string& param1) override;
 
  private:
   state_api::EVMTransaction to_eth_trx(std::shared_ptr<Transaction> t) const;

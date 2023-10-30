@@ -21,4 +21,6 @@ RLP_FIELDS_DEFINE(RewardsDistributionResult, state_root, total_reward)
 RLP_FIELDS_DEFINE(Account, nonce, balance, storage_root_hash, code_hash, code_size)
 RLP_FIELDS_DEFINE(StateDescriptor, blk_num, state_root)
 RLP_FIELDS_DEFINE(Tracing, vmTrace, trace, stateDiff)
+RLP_FIELDS_DEFINE(ValidatorStake, addr, stake)
+
 }  // namespace taraxa::state_api

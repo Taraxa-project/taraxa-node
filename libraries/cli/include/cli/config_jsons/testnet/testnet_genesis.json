@@ -134,10 +134,12 @@
   "hardforks": {
     "fix_redelegate_block_num": 0,
     "redelegations": [],
-    "rewards_distribution_frequency": {},
-    "magnolia_hf" : {
-      "block_num" : 0,
-      "jail_time": 1000
+    "rewards_distribution_frequency": {
+      "297000": 100
+    },
+    "magnolia_hf": {
+      "block_num": 297000,
+      "jail_time": 163459
     }
   }
 }

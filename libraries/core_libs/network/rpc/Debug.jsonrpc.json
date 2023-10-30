@@ -18,19 +18,25 @@
   },
   {
     "name": "debug_getPeriodTransactionsWithReceipts",
-    "params": [""],
+    "params": [
+      ""
+    ],
     "order": [],
     "returns": []
   },
   {
     "name": "debug_getPeriodDagBlocks",
-    "params": [""],
+    "params": [
+      ""
+    ],
     "order": [],
     "returns": []
   },
   {
     "name": "debug_getPreviousBlockCertVotes",
-    "params": [""],
+    "params": [
+      ""
+    ],
     "order": [],
     "returns": {}
   },
@@ -58,6 +64,14 @@
     "params": [
       "",
       []
+    ],
+    "order": [],
+    "returns": {}
+  },
+  {
+    "name": "debug_dposValidatorTotalStakes",
+    "params": [
+      ""
     ],
     "order": [],
     "returns": {}

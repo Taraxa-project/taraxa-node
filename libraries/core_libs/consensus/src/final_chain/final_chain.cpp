@@ -447,6 +447,10 @@ class FinalChainImpl final : public FinalChain {
     return state_api_.dpos_get_vrf_key(blk_n, addr);
   }
 
+  std::vector<state_api::ValidatorStake> dpos_validators_total_stakes(EthBlockNumber blk_num) const override {
+    return state_api_.dpos_validators_total_stakes(blk_num);
+  }
+
  private:
   std::shared_ptr<TransactionHashes> get_transaction_hashes(std::optional<EthBlockNumber> n = {}) const {
     const auto& trxs = db_->getPeriodTransactions(last_if_absent(n));
