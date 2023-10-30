@@ -1,5 +1,10 @@
 var NAVTREEINDEX10 =
 {
+"classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#af3f2f50ee9cc1226193c189887bc9fcf":[15,0,3,5,0,7,6],
+"classtaraxa_1_1network_1_1tarcap_1_1_get_dag_sync_packet_handler.html#af72989a4803e44f6844063ef587a1157":[15,0,3,5,0,7,7],
+"classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet_handler.html":[15,0,3,5,0,8],
+"classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet_handler.html#a344241bbd68629ba499d1b73fb0ae44f":[15,0,3,5,0,8,1],
+"classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet_handler.html#a4b2f3f3529212014d6ac5d455a2fbcbf":[15,0,3,5,0,8,2],
 "classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet_handler.html#a9ba67260710ab28e249ea2b42c8cc471":[15,0,3,5,0,8,0],
 "classtaraxa_1_1network_1_1tarcap_1_1_get_next_votes_bundle_packet_handler.html#af595b34620b4e3a2c5d389419e529cfb":[15,0,3,5,0,8,3],
 "classtaraxa_1_1network_1_1tarcap_1_1_get_pbft_sync_packet_handler.html":[15,0,3,5,0,9],
@@ -244,10 +249,5 @@ var NAVTREEINDEX10 =
 "classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a2f946f2c4e2bbd44a9da1496041d0017":[15,0,3,5,0,13,1],
 "classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a407f59c8205c48d498066712108c3d69":[15,0,3,5,0,13,5],
 "classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a8d801b7364fab5d508a30bf43dc1eae6":[15,0,3,5,0,13,6],
-"classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a92c5ebec35efa9aae5f105a215fc6710":[15,0,3,5,0,13,7],
-"classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a94b97652504bcd4c3da0b803fe05f00a":[15,0,3,5,0,13,2],
-"classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#af2c56ac63f95ba962e8a3a86f4b10a1f":[15,0,3,5,0,13,3],
-"classtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet_handler.html":[15,0,3,5,0,14],
-"classtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet_handler.html#a03214ebeae70f3a824c9de1710681d19":[15,0,3,5,0,14,1],
-"classtaraxa_1_1network_1_1tarcap_1_1_votes_bundle_packet_handler.html#a10a212641e266f1ca1fea9e898e5448b":[15,0,3,5,0,14,2]
+"classtaraxa_1_1network_1_1tarcap_1_1_vote_packet_handler.html#a92c5ebec35efa9aae5f105a215fc6710":[15,0,3,5,0,13,7]
 };

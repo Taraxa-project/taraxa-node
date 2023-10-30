@@ -10,6 +10,7 @@ var group___final_chain_classtaraxa_1_1state__api_1_1_state_a_p_i =
     [ "dpos_eligible_vote_count", "group___final_chain.html#a954304ae0af99b51d175d9ba4a09a976", null ],
     [ "dpos_get_vrf_key", "group___final_chain.html#a36c579a28c11da0a88eabf8cbf601770", null ],
     [ "dpos_is_eligible", "group___final_chain.html#a87694ae315e7ad895031180ea979bd76", null ],
+    [ "dpos_validators_total_stakes", "group___final_chain.html#a5022eba73f454bf6a794b85c68320c74", null ],
     [ "dry_run_transaction", "group___final_chain.html#ae8310bd008463bad92c1fa31849e8d2a", null ],
     [ "execute_transactions", "group___final_chain.html#a3766cda343bb6662885edf6c610dde43", null ],
     [ "get_account", "group___final_chain.html#a7ad7ae1a73eeada4a51680dfd2b5a0ff", null ],

@@ -135,6 +135,8 @@ Classes</h2></td></tr>
 <tr class="separator:structtaraxa_1_1state__api_1_1_state_descriptor"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:structtaraxa_1_1state__api_1_1_tracing"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_tracing">taraxa::state_api::Tracing</a></td></tr>
 <tr class="separator:structtaraxa_1_1state__api_1_1_tracing"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:structtaraxa_1_1state__api_1_1_validator_stake"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_validator_stake">taraxa::state_api::ValidatorStake</a></td></tr>
+<tr class="separator:structtaraxa_1_1state__api_1_1_validator_stake"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
@@ -1092,6 +1094,8 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <tr class="memitem:a7206ab974911e06f78e50084b1f0f87a"><td class="memItemLeft" align="right" valign="top">virtual void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a7206ab974911e06f78e50084b1f0f87a">prune</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_n)=0</td></tr>
 <tr class="memdesc:a7206ab974911e06f78e50084b1f0f87a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Prune state db for all blocks older than blk_n.  <a href="group___final_chain.html#a7206ab974911e06f78e50084b1f0f87a">More...</a><br /></td></tr>
 <tr class="separator:a7206ab974911e06f78e50084b1f0f87a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ad9f46da3a897b3cf463ef9d40d768614"><td class="memItemLeft" align="right" valign="top">virtual std::vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_validator_stake">state_api::ValidatorStake</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#ad9f46da3a897b3cf463ef9d40d768614">dpos_validators_total_stakes</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num) const =0</td></tr>
+<tr class="separator:ad9f46da3a897b3cf463ef9d40d768614"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:afcb9ccbdd87a08842e591ed1c228d66f"><td class="memItemLeft" align="right" valign="top">std::pair&lt; <a class="el" href="namespacetaraxa.html#aad3ca55780e79a029c6a1ccf43f66e67">val_t</a>, bool &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#afcb9ccbdd87a08842e591ed1c228d66f">getBalance</a> (<a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> const &amp;addr) const</td></tr>
 <tr class="separator:afcb9ccbdd87a08842e591ed1c228d66f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Public Attributes</h3></td></tr>
@@ -1573,6 +1577,34 @@ Collaboration diagram for taraxa::final_chain::FinalChain:</div>
 <dl class="section return"><dt>Returns</dt><dd>is address eligible </dd></dl>
 
 <p>Implemented in <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ab3d690c5e49bc20d724a4f041aa9e6f9">taraxa::final_chain::FinalChainImpl</a>.</p>
+
+</div>
+</div>
+<a id="ad9f46da3a897b3cf463ef9d40d768614"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ad9f46da3a897b3cf463ef9d40d768614">&#9670;&nbsp;</a></span>dpos_validators_total_stakes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">virtual std::vector&lt;<a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_validator_stake">state_api::ValidatorStake</a>&gt; taraxa::final_chain::FinalChain::dpos_validators_total_stakes </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td>
+          <td class="paramname"><em>blk_num</em></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">pure virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Implemented in <a class="el" href="classtaraxa_1_1final__chain_1_1_final_chain_impl.html#ae864ae14f6ce00db133024bda8626be1">taraxa::final_chain::FinalChainImpl</a>.</p>
 
 </div>
 </div>
@@ -2432,6 +2464,8 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
 <tr class="separator:a95c64474d9b590c0a57755f8a486a7d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a36c579a28c11da0a88eabf8cbf601770"><td class="memItemLeft" align="right" valign="top"><a class="el" href="namespacetaraxa_1_1vrf__wrapper.html#a01a98b4e6e59f230848a2a16c224b455">vrf_wrapper::vrf_pk_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a36c579a28c11da0a88eabf8cbf601770">dpos_get_vrf_key</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num, const <a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a> &amp;addr) const</td></tr>
 <tr class="separator:a36c579a28c11da0a88eabf8cbf601770"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a5022eba73f454bf6a794b85c68320c74"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_validator_stake">ValidatorStake</a> &gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a5022eba73f454bf6a794b85c68320c74">dpos_validators_total_stakes</a> (<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a> blk_num) const</td></tr>
+<tr class="separator:a5022eba73f454bf6a794b85c68320c74"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr><td colspan="2"><h3>Private Attributes</h3></td></tr>
 <tr class="memitem:a27d63c2bf04bb3681016e58f6c191991"><td class="memItemLeft" align="right" valign="top">std::function&lt; <a class="el" href="namespacedev.html#ac5875388a1e0345bba6f8219172a6644">h256</a>(<a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>)&gt;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group___final_chain.html#a27d63c2bf04bb3681016e58f6c191991">get_blk_hash_</a></td></tr>
 <tr class="separator:a27d63c2bf04bb3681016e58f6c191991"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -2693,6 +2727,24 @@ Collaboration diagram for taraxa::state_api::StateAPI:</div>
           <td></td>
           <td>)</td>
           <td></td><td> const</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+</div>
+</div>
+<a id="a5022eba73f454bf6a794b85c68320c74"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a5022eba73f454bf6a794b85c68320c74">&#9670;&nbsp;</a></span>dpos_validators_total_stakes()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">std::vector&lt; <a class="el" href="group___final_chain.html#structtaraxa_1_1state__api_1_1_validator_stake">ValidatorStake</a> &gt; taraxa::state_api::StateAPI::dpos_validators_total_stakes </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="namespacetaraxa.html#a376e12232232a6437159f77ba13e3bf2">EthBlockNumber</a>&#160;</td>
+          <td class="paramname"><em>blk_num</em></td><td>)</td>
+          <td> const</td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -3879,6 +3931,44 @@ trace</td>
 <a id="a96bbdd2b7efb749144faac5567ea2a80"></a>bool</td>
 <td class="fieldname">
 vmTrace</td>
+<td class="fielddoc">
+</td></tr>
+</table>
+
+</div>
+</div>
+<a name="structtaraxa_1_1state__api_1_1_validator_stake" id="structtaraxa_1_1state__api_1_1_validator_stake"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#structtaraxa_1_1state__api_1_1_validator_stake">&#9670;&nbsp;</a></span>taraxa::state_api::ValidatorStake</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct taraxa::state_api::ValidatorStake</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="textblock"></div><div class="dynheader">
+Collaboration diagram for taraxa::state_api::ValidatorStake:</div>
+<div class="dyncontent">
+<div class="center"><img src="structtaraxa_1_1state__api_1_1_validator_stake__coll__graph.png" border="0" usemap="#ataraxa_1_1state__api_1_1_validator_stake_coll__map" alt="Collaboration graph"/></div>
+<map name="ataraxa_1_1state__api_1_1_validator_stake_coll__map" id="ataraxa_1_1state__api_1_1_validator_stake_coll__map">
+<area shape="rect" title=" " alt="" coords="15,95,155,136"/>
+<area shape="rect" href="classdev_1_1_fixed_hash.html" title=" " alt="" coords="5,5,165,32"/>
+</map>
+<center><span class="legend">[<a target="top" href="graph_legend.html">legend</a>]</span></center></div>
+<table class="fieldtable">
+<tr><th colspan="3">Class Members</th></tr>
+<tr><td class="fieldtype">
+<a id="a6ebcf3fdfa57aa033a49aa2cc2f6642d"></a><a class="el" href="namespacetaraxa.html#ad3e82d51831adf27d1db73c289aa28d5">addr_t</a></td>
+<td class="fieldname">
+addr</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
+<a id="a0cca7962a2d5db04ddc7956d87d57923"></a><a class="el" href="namespacedev.html#aa5acc12a0b3af6711895a98fd7dc4d7c">u256</a></td>
+<td class="fieldname">
+stake</td>
 <td class="fielddoc">
 </td></tr>
 </table>

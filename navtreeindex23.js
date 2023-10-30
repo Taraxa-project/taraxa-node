@@ -1,5 +1,15 @@
 var NAVTREEINDEX23 =
 {
+"structstd_1_1hash_3_01pair_3_01dev_1_1p2p_1_1_node_i_d_00_01string_01_4_01_4.html#aab8f501ba9a22e9afbef9eadd42cca87":[15,0,2,6,0],
+"structtaraxa_1_1_config_exception.html":[15,0,3,12],
+"structtaraxa_1_1_connection_config.html":[15,0,3,21],
+"structtaraxa_1_1_connection_config.html#a4da8ed1a4f8954cad2c0cfe5d16beec3":[15,0,3,21,1],
+"structtaraxa_1_1_connection_config.html#a63839e6c9f335628ed460210504c10c7":[15,0,3,21,3],
+"structtaraxa_1_1_connection_config.html#a75d34d84f83d25636560c44ab81e01af":[15,0,3,21,0],
+"structtaraxa_1_1_connection_config.html#ab8db9e9bd678b3fc0e9873870162c442":[15,0,3,21,2],
+"structtaraxa_1_1_connection_config.html#af56373e330f688c74f33eb5f5da837d7":[15,0,3,21,4],
+"structtaraxa_1_1_dag_block_proposer_config.html":[15,0,3,16],
+"structtaraxa_1_1_dag_block_proposer_config.html#a3f2633feb15c50291edc9d92b252d643":[15,0,3,16,1],
 "structtaraxa_1_1_dag_block_proposer_config.html#a6270d10b3d0d127439e2c8eaf07ddd89":[15,0,3,16,0],
 "structtaraxa_1_1_dag_config.html":[15,0,3,17],
 "structtaraxa_1_1_dag_config.html#a419301f94753159f7657c59e24433883":[15,0,3,17,0],
@@ -239,15 +249,5 @@ var NAVTREEINDEX23 =
 "structtaraxa_1_1util_1_1_invalid_encoding_size.html#a3bcde54c0f4c767e4d2be383a1ea182c":[15,0,3,9,4,2],
 "structtaraxa_1_1util_1_1_invalid_encoding_size.html#a79fed176866c509ddd23a71d3ab629d5":[15,0,3,9,4,0],
 "structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html":[15,0,3,9,3],
-"structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html#a5d50116f52cf13bf7829104b1da6a0df":[15,0,3,9,3,1],
-"structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html#abe131f2e32bc64fa4504f5b9789a0851":[15,0,3,9,3,0],
-"structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html#adc68655e36be8847608155f6a0c009c1":[15,0,3,9,3,3],
-"structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html#adec4a53bdd3d6515740ad2a7a24dea87":[15,0,3,9,3,2],
-"structtaraxa_1_1util_1_1_range_view.html":[15,0,3,9,5],
-"structtaraxa_1_1util_1_1_range_view.html#a0f7079d773250d01a7164d77f1666e44":[15,0,3,9,5,2],
-"structtaraxa_1_1util_1_1_range_view.html#a2fb9c4efc432a587b0dc4beff38e7312":[15,0,3,9,5,10],
-"structtaraxa_1_1util_1_1_range_view.html#a44db4adde90580d68d58a1a72c48d746":[15,0,3,9,5,9],
-"structtaraxa_1_1util_1_1_range_view.html#a550999a919ff2792db8bdf11a743db86":[15,0,3,9,5,3],
-"structtaraxa_1_1util_1_1_range_view.html#a62448012a5b5ab9a97bb222be9e9586d":[15,0,3,9,5,13],
-"structtaraxa_1_1util_1_1_range_view.html#a643956825bb85c2b5808927311cc799b":[15,0,3,9,5,4]
+"structtaraxa_1_1util_1_1_r_l_p_decoder_ref.html#a5d50116f52cf13bf7829104b1da6a0df":[15,0,3,9,3,1]
 };

@@ -254,6 +254,7 @@ var annotated_dup =
         [ "Account", "group___final_chain.html#structtaraxa_1_1state__api_1_1_account", "group___final_chain_structtaraxa_1_1state__api_1_1_account" ],
         [ "StateDescriptor", "group___final_chain.html#structtaraxa_1_1state__api_1_1_state_descriptor", "group___final_chain_structtaraxa_1_1state__api_1_1_state_descriptor" ],
         [ "Tracing", "group___final_chain.html#structtaraxa_1_1state__api_1_1_tracing", "group___final_chain_structtaraxa_1_1state__api_1_1_tracing" ],
+        [ "ValidatorStake", "group___final_chain.html#structtaraxa_1_1state__api_1_1_validator_stake", "group___final_chain_structtaraxa_1_1state__api_1_1_validator_stake" ],
         [ "ErrorHandler", "classtaraxa_1_1state__api_1_1_error_handler.html", "classtaraxa_1_1state__api_1_1_error_handler" ]
       ] ],
       [ "storage", "namespacetaraxa_1_1storage.html", [

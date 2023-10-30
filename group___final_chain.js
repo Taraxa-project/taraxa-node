@@ -63,6 +63,7 @@ var group___final_chain =
       [ "dpos_eligible_vote_count", "group___final_chain.html#a92cea442deb2f451264773571de49e06", null ],
       [ "dpos_get_vrf_key", "group___final_chain.html#ab193319e8081030abcfa62a172ab6cfd", null ],
       [ "dpos_is_eligible", "group___final_chain.html#a218a8d86259ff424fdbda18138fb0bad", null ],
+      [ "dpos_validators_total_stakes", "group___final_chain.html#ad9f46da3a897b3cf463ef9d40d768614", null ],
       [ "finalize", "group___final_chain.html#ae71c5be266ef7366c0650c6ff9a31947", null ],
       [ "get_account", "group___final_chain.html#a4dd6baa7b56ef75d07e95fe604458be5", null ],
       [ "get_account_storage", "group___final_chain.html#a20d7b88f1fef839aacb13035bb65e2be", null ],
@@ -97,6 +98,7 @@ var group___final_chain =
       [ "dpos_eligible_vote_count", "group___final_chain.html#a954304ae0af99b51d175d9ba4a09a976", null ],
       [ "dpos_get_vrf_key", "group___final_chain.html#a36c579a28c11da0a88eabf8cbf601770", null ],
       [ "dpos_is_eligible", "group___final_chain.html#a87694ae315e7ad895031180ea979bd76", null ],
+      [ "dpos_validators_total_stakes", "group___final_chain.html#a5022eba73f454bf6a794b85c68320c74", null ],
       [ "dry_run_transaction", "group___final_chain.html#ae8310bd008463bad92c1fa31849e8d2a", null ],
       [ "execute_transactions", "group___final_chain.html#a3766cda343bb6662885edf6c610dde43", null ],
       [ "get_account", "group___final_chain.html#a7ad7ae1a73eeada4a51680dfd2b5a0ff", null ],
@@ -181,6 +183,10 @@ var group___final_chain =
       [ "stateDiff", "group___final_chain.html#a56056dfdd0142da54f83d0841b93692f", null ],
       [ "trace", "group___final_chain.html#a04f7664ce78f250fd3bf41faca987273", null ],
       [ "vmTrace", "group___final_chain.html#a96bbdd2b7efb749144faac5567ea2a80", null ]
+    ] ],
+    [ "ValidatorStake", "group___final_chain.html#structtaraxa_1_1state__api_1_1_validator_stake", [
+      [ "addr", "group___final_chain.html#a6ebcf3fdfa57aa033a49aa2cc2f6642d", null ],
+      [ "stake", "group___final_chain.html#a0cca7962a2d5db04ddc7956d87d57923", null ]
     ] ],
     [ "BlocksBlooms", "group___final_chain.html#ga135593595f98c5905f60e3a4d9c61112", null ],
     [ "LogBloom", "group___final_chain.html#ga7c637c1037e99cfc76922e6cbb3f88a4", null ],

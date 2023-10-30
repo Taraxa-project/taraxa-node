@@ -415,6 +415,7 @@ var hierarchy =
     [ "taraxa::state_api::UncleBlock", "group___final_chain.html#structtaraxa_1_1state__api_1_1_uncle_block", null ],
     [ "dev::p2p::UPnP", "classdev_1_1p2p_1_1_u_pn_p.html", null ],
     [ "taraxa::state_api::ValidatorInfo", "namespacetaraxa_1_1state__api.html#structtaraxa_1_1state__api_1_1_validator_info", null ],
+    [ "taraxa::state_api::ValidatorStake", "group___final_chain.html#structtaraxa_1_1state__api_1_1_validator_stake", null ],
     [ "taraxa::rewards::BlockStats::ValidatorStats", "classtaraxa_1_1rewards_1_1_block_stats.html#structtaraxa_1_1rewards_1_1_block_stats_1_1_validator_stats", null ],
     [ "taraxa::ValueByBlockCache< Value >", "classtaraxa_1_1_value_by_block_cache.html", null ],
     [ "taraxa::ValueByBlockCache< const SharedTransactions >", "classtaraxa_1_1_value_by_block_cache.html", null ],
