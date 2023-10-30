@@ -249,4 +249,13 @@ vrf_wrapper::vrf_pk_t StateAPI::dpos_get_vrf_key(EthBlockNumber blk_num, const a
       c_method_args_rlp<bytes, to_bytes, taraxa_evm_state_api_dpos_get_vrf_key>(this_c_, blk_num, addr));
 }
 
+std::vector<ValidatorStake> StateAPI::dpos_validators_total_stakes(EthBlockNumber blk_num) const {
+  ErrorHandler err_h;
+  std::vector<ValidatorStake> ret;
+  taraxa_evm_state_api_validators_stakes(this_c_, blk_num, decoder_cb_c<std::vector<ValidatorStake>, from_rlp>(ret),
+                                         err_h.cgo_part_);
+  err_h.check();
+  return ret;
+}
+
 }  // namespace taraxa::state_api

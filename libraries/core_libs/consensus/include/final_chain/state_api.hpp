@@ -58,6 +58,7 @@ class StateAPI {
   bool dpos_is_eligible(EthBlockNumber blk_num, const addr_t& addr) const;
   u256 get_staking_balance(EthBlockNumber blk_num, const addr_t& addr) const;
   vrf_wrapper::vrf_pk_t dpos_get_vrf_key(EthBlockNumber blk_num, const addr_t& addr) const;
+  std::vector<ValidatorStake> dpos_validators_total_stakes(EthBlockNumber blk_num) const;
 };
 /** @} */
 

@@ -203,6 +203,33 @@ Json::Value Debug::debug_getPreviousBlockCertVotes(const std::string& _period) {
   }
 }
 
+Json::Value Debug::debug_dposValidatorTotalStakes(const std::string& _period) {
+  try {
+    auto node = full_node_.lock();
+    if (!node) {
+      BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
+    }
+
+    auto final_chain = node->getFinalChain();
+    auto vote_manager = node->getVoteManager();
+
+    auto period = dev::jsToInt(_period);
+    auto validatorsStakes = final_chain->dpos_validators_total_stakes(period);
+
+    Json::Value res(Json::arrayValue);
+
+    for (auto const& validatorStake : validatorsStakes) {
+      Json::Value validatorStakeJson(Json::objectValue);
+      validatorStakeJson["address"] = "0x" + validatorStake.addr.toString();
+      validatorStakeJson["total_stake"] = validatorStake.stake.str();
+      res.append(validatorStakeJson);
+    }
+    return res;
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
+}
+
 state_api::Tracing Debug::parse_tracking_parms(const Json::Value& json) const {
   state_api::Tracing ret;
   if (!json.isArray() || json.empty()) {
