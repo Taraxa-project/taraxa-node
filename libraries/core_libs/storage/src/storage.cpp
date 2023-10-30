@@ -209,8 +209,10 @@ void DbStorage::rebuildColumns(const rocksdb::Options& options) {
   std::vector<rocksdb::ColumnFamilyHandle*> handles;
   handles.reserve(column_families.size());
   std::transform(column_families.begin(), column_families.end(), std::back_inserter(descriptors), [](const auto& name) {
-    const auto it = std::find_if(Columns::all.begin(), Columns::all.end(),
-                                 [&name](const Column& col) { return col.name() == name; });
+    const auto it = std::find_if(Columns::all.begin(), Columns::all.end(), [&name](const Column& col) {
+      // "-copy" is there, so we will removed unsuccessful migrations
+      return col.name() == name || col.name() + "-copy" == name;
+    });
     auto options = rocksdb::ColumnFamilyOptions();
     if (it != Columns::all.end() && it->comparator_) options.comparator = it->comparator_;
     return rocksdb::ColumnFamilyDescriptor(name, options);
