@@ -118,5 +118,25 @@ struct ValidatorStake {
 
   HAS_RLP_FIELDS
 };
+
+struct StorageProof {
+  h256 key;
+  bytes value;
+  std::vector<bytes> proof;
+
+  HAS_RLP_FIELDS
+};
+
+struct ProofResponse {
+  u256 balance;
+  h256 code_hash;
+  u256 nonce;
+  h256 storage_hash;
+  std::vector<bytes> account_proof;
+  std::vector<StorageProof> storage_proof;
+
+  HAS_RLP_FIELDS
+};
+
 /** @} */
 }  // namespace taraxa::state_api

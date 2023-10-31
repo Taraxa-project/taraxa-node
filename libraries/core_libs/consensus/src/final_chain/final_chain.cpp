@@ -16,7 +16,7 @@ namespace taraxa::final_chain {
 class FinalChainImpl final : public FinalChain {
   std::shared_ptr<DB> db_;
   const uint64_t kBlockGasLimit;
-  StateAPI state_api_;
+  state_api::StateAPI state_api_;
   const bool kLightNode = false;
   const uint64_t kLightNodeHistory = 0;
   const uint32_t kMaxLevelsPerPeriod;
@@ -449,6 +449,12 @@ class FinalChainImpl final : public FinalChain {
 
   std::vector<state_api::ValidatorStake> dpos_validators_total_stakes(EthBlockNumber blk_num) const override {
     return state_api_.dpos_validators_total_stakes(blk_num);
+  }
+
+  state_api::ProofResponse get_proof(EthBlockNumber blk_num, const addr_t& addr,
+                                     const std::vector<h256>& keys) const override {
+    auto h = get_block_header(blk_num);
+    return state_api_.get_proof(blk_num, addr, h->state_root, keys);
   }
 
  private:

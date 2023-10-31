@@ -52,6 +52,9 @@ class StateAPI {
   void create_snapshot(PbftPeriod period);
   void prune(const std::vector<dev::h256>& state_root_to_keep, EthBlockNumber blk_num);
 
+  ProofResponse get_proof(EthBlockNumber blk_num, const addr_t& addr, const h256& state_root,
+                          const std::vector<h256>& keys) const;
+
   // DPOS
   uint64_t dpos_eligible_total_vote_count(EthBlockNumber blk_num) const;
   uint64_t dpos_eligible_vote_count(EthBlockNumber blk_num, const addr_t& addr) const;
@@ -59,11 +62,7 @@ class StateAPI {
   u256 get_staking_balance(EthBlockNumber blk_num, const addr_t& addr) const;
   vrf_wrapper::vrf_pk_t dpos_get_vrf_key(EthBlockNumber blk_num, const addr_t& addr) const;
   std::vector<ValidatorStake> dpos_validators_total_stakes(EthBlockNumber blk_num) const;
+  /** @} */
 };
-/** @} */
 
 }  // namespace taraxa::state_api
-
-namespace taraxa {
-using state_api::StateAPI;
-}

@@ -22,5 +22,7 @@ RLP_FIELDS_DEFINE(Account, nonce, balance, storage_root_hash, code_hash, code_si
 RLP_FIELDS_DEFINE(StateDescriptor, blk_num, state_root)
 RLP_FIELDS_DEFINE(Tracing, vmTrace, trace, stateDiff)
 RLP_FIELDS_DEFINE(ValidatorStake, addr, stake)
+RLP_FIELDS_DEFINE(StorageProof, key, value, proof)
+RLP_FIELDS_DEFINE(ProofResponse, balance, code_hash, nonce, storage_hash, account_proof, storage_proof)
 
 }  // namespace taraxa::state_api

@@ -22,7 +22,7 @@ struct Transaction {
     explicit InvalidFormat(const std::string &msg) : InvalidTransaction("rlp format:\n" + msg) {}
   };
 
- private:
+ public:
   trx_nonce_t nonce_ = 0;
   val_t value_ = 0;
   val_t gas_price_;
@@ -73,6 +73,8 @@ struct Transaction {
   bool operator==(Transaction const &other) const { return getHash() == other.getHash(); }
 
   const bytes &rlp() const;
+
+  const bytes &sig_rlp() const;
 
   Json::Value toJSON() const;
 };
