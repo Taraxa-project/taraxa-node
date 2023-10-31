@@ -224,6 +224,9 @@ class FinalChain {
   virtual void prune(EthBlockNumber blk_n) = 0;
 
   virtual std::vector<state_api::ValidatorStake> dpos_validators_total_stakes(EthBlockNumber blk_num) const = 0;
+  virtual state_api::ProofResponse get_proof(EthBlockNumber blk_n, const addr_t& addr,
+                                             const std::vector<h256>& keys) const = 0;
+
   // TODO move out of here:
 
   std::pair<val_t, bool> getBalance(addr_t const& addr) const {

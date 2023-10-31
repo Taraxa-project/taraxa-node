@@ -109,6 +109,41 @@ Json::Value toJson(const SyncStatus& obj) {
   return res;
 }
 
+Json::Value toJson(const state_api::StorageProof& obj) {
+  Json::Value res(Json::objectValue);
+  res["key"] = toJS(obj.key);
+  Json::Value arr(Json::arrayValue);
+  for (const auto& v : obj.proof) {
+    arr.append(toJS(v));
+  }
+  res["proof"] = arr;
+  res["value"] = toJS(obj.value);
+  return res;
+}
+
+Json::Value toJson(const state_api::ProofResponse& obj) {
+  Json::Value res(Json::objectValue);
+  res["balance"] = toJS(obj.balance);
+  res["codeHash"] = toJS(obj.code_hash);
+  res["nonce"] = toJS(obj.nonce);
+  res["storageHash"] = toJS(obj.storage_hash);
+  {
+    Json::Value arr(Json::arrayValue);
+    for (const auto& v : obj.account_proof) {
+      arr.append(toJS(v));
+    }
+    res["accountProof"] = arr;
+  }
+  {
+    Json::Value arr(Json::arrayValue);
+    for (const auto& v : obj.storage_proof) {
+      arr.append(toJson(v));
+    }
+    res["storageProof"] = arr;
+  }
+  return res;
+}
+
 class EthImpl : public Eth, EthParams {
   Watches watches_;
 
@@ -291,6 +326,18 @@ class EthImpl : public Eth, EthParams {
   }
 
   Json::Value eth_chainId() override { return chain_id ? Json::Value(toJS(chain_id)) : Json::Value(); }
+
+  Json::Value eth_getProof(const string& _address, const Json::Value& _keys, const Json::Value& _block) override {
+    const auto block_number = get_block_number_from_json(_block);
+    std::vector<h256> keys;
+    keys.reserve(_keys.size());
+    std::transform(_keys.begin(), _keys.end(), std::back_inserter(keys),
+                   [](const auto& k) { return jsToFixed<32>(k.asString()); });
+    const auto proof = final_chain->get_proof(block_number, addr_t(_address), keys);
+    // std::cout << proof.storage_hash << std::endl;
+    // return to JS(final_chain->get_account_storage(toAddress(_address), jsToU256(_position), block_number));
+    return toJson(proof);
+  }
 
   void note_block_executed(const BlockHeader& blk_header, const SharedTransactions& trxs,
                            const TransactionReceipts& receipts) override {

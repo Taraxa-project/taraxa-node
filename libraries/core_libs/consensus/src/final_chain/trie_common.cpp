@@ -111,6 +111,9 @@ h256 hash256(BytesMap const& _s) {
   HexMap hexMap;
   for (auto i = _s.rbegin(); i != _s.rend(); ++i) hexMap[asNibbles(bytesConstRef(&i->first))] = i->second;
   RLPStream s;
+  for (const auto& [k, v] : hexMap) {
+    std::cout << toHex(k) << ": " << toHex(v) << std::endl;
+  }
   hash256rlp(hexMap, hexMap.cbegin(), hexMap.cend(), 0, s);
   return sha3(s.out());
 }

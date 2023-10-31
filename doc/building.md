@@ -156,11 +156,6 @@ will build out of the box without further effort:
     cmake -DCONAN_PROFILE=clang -DCMAKE_BUILD_TYPE=RelWithDebInfo -DTARAXA_ENABLE_LTO=OFF -DTARAXA_STATIC_BUILD=OFF ../
     make -j$(nproc)
 
-And optional:
-
-    # optional
-    make install  # defaults to /usr/local
-
 ## Building on MacOS
 
 ### Install taraxa-node dependencies:

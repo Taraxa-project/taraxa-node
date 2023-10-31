@@ -1,4 +1,4 @@
-aiohttp==3.8.5
+aiohttp==3.7.4.post0
 async-timeout==3.0.1
 attrs==21.2.0
 base58==2.1.0
