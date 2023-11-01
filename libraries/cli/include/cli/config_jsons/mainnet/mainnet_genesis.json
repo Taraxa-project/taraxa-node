@@ -1640,6 +1640,10 @@
     "magnolia_hf" : {
       "block_num" : 5730000,
       "jail_time": 163459
+    },
+    "aspen_hf" : {
+      "block_num" : 0,
+      "mas_supply": "0x26C62AD77DC602DAE0000000"
     }
   }
 }
