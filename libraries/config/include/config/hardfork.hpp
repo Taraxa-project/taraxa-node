@@ -23,6 +23,15 @@ struct MagnoliaHardfork {
 Json::Value enc_json(const MagnoliaHardfork& obj);
 void dec_json(const Json::Value& json, MagnoliaHardfork& obj);
 
+struct AspenHardfork {
+  uint64_t block_num{0};
+  taraxa::uint256_t max_supply{"0x26C62AD77DC602DAE0000000"};  // 12 Billion
+
+  HAS_RLP_FIELDS
+};
+Json::Value enc_json(const AspenHardfork& obj);
+void dec_json(const Json::Value& json, AspenHardfork& obj);
+
 struct HardforksConfig {
   // disable it by default (set to max uint64)
   uint64_t fix_redelegate_block_num = -1;
@@ -49,6 +58,9 @@ struct HardforksConfig {
   // 3. Introducing slashing/jailing contract - in case someone double votes - he is jailed for N blocks and unable to
   //    participate in consensus
   MagnoliaHardfork magnolia_hf;
+
+  // Aspen hardfork implements new yield curve
+  AspenHardfork aspen_hf;
 
   HAS_RLP_FIELDS
 };
