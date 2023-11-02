@@ -153,4 +153,32 @@ Json::Value Taraxa::taraxa_getChainStats() {
   return res;
 }
 
+std::string Taraxa::taraxa_yield(const std::string& _period) {
+  try {
+    auto node = full_node_.lock();
+    if (!node) {
+      BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
+    }
+
+    auto period = dev::jsToInt(_period);
+    return toJS(node->getFinalChain()->dpos_yield(period));
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
+}
+
+std::string Taraxa::taraxa_totalSupply(const std::string& _period) {
+  try {
+    auto node = full_node_.lock();
+    if (!node) {
+      BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
+    }
+
+    auto period = dev::jsToInt(_period);
+    return toJS(node->getFinalChain()->dpos_total_supply(period));
+  } catch (...) {
+    BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
+  }
+}
+
 }  // namespace taraxa::net
