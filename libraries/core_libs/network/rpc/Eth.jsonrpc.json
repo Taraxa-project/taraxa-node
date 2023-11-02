@@ -265,6 +265,15 @@
     "params": [],
     "order": [],
     "returns": {}
+  },
+  {
+    "name": "eth_getProof",
+    "params": [
+      "",
+      [],
+      ""
+    ],
+    "order": [],
+    "returns": {}
   }
 ]
-

@@ -193,6 +193,12 @@ const RewardsDistributionResult& StateAPI::distribute_rewards(const std::vector<
   return result_buf_rewards_distribution_;
 }
 
+ProofResponse StateAPI::get_proof(EthBlockNumber blk_num, const addr_t& addr, const h256& state_root,
+                                  const std::vector<h256>& keys) const {
+  return c_method_args_rlp<ProofResponse, from_rlp, taraxa_evm_state_api_get_proof>(this_c_, blk_num, addr, state_root,
+                                                                                    keys);
+}
+
 void StateAPI::transition_state_commit() {
   ErrorHandler err_h;
   taraxa_evm_state_api_transition_state_commit(this_c_, err_h.cgo_part_);

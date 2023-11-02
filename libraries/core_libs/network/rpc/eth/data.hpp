@@ -59,6 +59,8 @@ Json::Value toJson(const final_chain::BlockHeader& obj);
 Json::Value toJson(const LocalisedLogEntry& lle);
 Json::Value toJson(const LocalisedTransactionReceipt& ltr);
 Json::Value toJson(const SyncStatus& obj);
+Json::Value toJson(const state_api::StorageProof& obj);
+Json::Value toJson(const state_api::ProofResponse& obj);
 
 template <typename T>
 Json::Value toJson(const T& t) {

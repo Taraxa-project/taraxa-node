@@ -152,6 +152,19 @@ const bytes &Transaction::rlp() const {
   return cached_rlp_;
 }
 
+const bytes &Transaction::sig_rlp() const {
+  if (!cached_rlp_set_.load()) {
+    std::unique_lock l(cached_rlp_mu_);
+    if (!cached_rlp_set_.load()) {
+      dev::RLPStream s;
+      streamRLP<true>(s);
+      cached_rlp_ = s.invalidate();
+      cached_rlp_set_ = true;
+    }
+  }
+  return cached_rlp_;
+}
+
 trx_hash_t Transaction::hash_for_signature() const {
   dev::RLPStream s;
   streamRLP<true>(s);
