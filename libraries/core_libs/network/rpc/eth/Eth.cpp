@@ -333,10 +333,9 @@ class EthImpl : public Eth, EthParams {
     keys.reserve(_keys.size());
     std::transform(_keys.begin(), _keys.end(), std::back_inserter(keys),
                    [](const auto& k) { return jsToFixed<32>(k.asString()); });
-    const auto proof = final_chain->get_proof(block_number, addr_t(_address), keys);
-    // std::cout << proof.storage_hash << std::endl;
-    // return to JS(final_chain->get_account_storage(toAddress(_address), jsToU256(_position), block_number));
-    return toJson(proof);
+    auto proof = toJson(final_chain->get_proof(block_number, addr_t(_address), keys));
+    proof["address"] = _address;
+    return proof;
   }
 
   void note_block_executed(const BlockHeader& blk_header, const SharedTransactions& trxs,

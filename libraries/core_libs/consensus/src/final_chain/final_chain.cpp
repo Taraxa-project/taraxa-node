@@ -454,6 +454,9 @@ class FinalChainImpl final : public FinalChain {
   state_api::ProofResponse get_proof(EthBlockNumber blk_num, const addr_t& addr,
                                      const std::vector<h256>& keys) const override {
     auto h = get_block_header(blk_num);
+    if (!h) {
+      throw std::runtime_error("Future block");
+    }
     return state_api_.get_proof(blk_num, addr, h->state_root, keys);
   }
 
