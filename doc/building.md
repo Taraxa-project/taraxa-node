@@ -24,7 +24,6 @@ will build out of the box without further effort:
         clang-tidy-14 \
         golang-go \
         python3-pip \
-        libgflags-dev \
         # this libs are required for arm build by go part. you can skip it for amd64 build
         libzstd-dev \
         libsnappy-dev \
@@ -169,7 +168,7 @@ And optional:
 First you need to get (Brew)[https://brew.sh/] package manager. After that you need tot install dependencies with it. Clang-14 is used for compilation.
 
     brew update
-    brew install coreutils go autoconf automake gflags git libtool llvm@14 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr libmicrohttpd
+    brew install coreutils go autoconf automake gflags git libtool llvm@14 make pkg-config cmake conan snappy zstd rapidjson gmp mpfr libmicrohttpd 
 
 ### Clone the Repository
 
