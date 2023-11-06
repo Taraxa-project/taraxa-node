@@ -10,6 +10,7 @@ file(GLOB_RECURSE NETWORK_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/network/*.cpp)
 include(${PROJECT_SOURCE_DIR}/CMakeModules/cpp_graphql_gen.cmake)
 file(GLOB_RECURSE NETWORK_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/network/*.h)
 
+include(${PROJECT_SOURCE_DIR}/CMakeModules/rocksDB_gen.cmake)
 file(GLOB_RECURSE STORAGE_HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/storage/*.hpp)
 file(GLOB_RECURSE STORAGE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/storage/*.cpp)
 
@@ -56,7 +57,7 @@ target_link_libraries(core_libs PUBLIC
   p2p
   metrics
   Jsonrpccpp
-  CONAN_PKG::rocksdb
+  rocksdb
 
   # GraphQL
   cppgraphqlgen::graphqlservice
