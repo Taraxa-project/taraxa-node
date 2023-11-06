@@ -30,6 +30,19 @@ struct FinalChainTest : WithDataDir {
   bool assume_only_toplevel_transfers = true;
   std::unordered_map<addr_t, u256> expected_balances;
   uint64_t expected_blk_num = 0;
+  dev::KeyPair dag_proposer_keys = dev::KeyPair::create();
+  dev::KeyPair pbft_proposer_keys = dev::KeyPair::create();
+  void create_validators() {
+    dev::KeyPair validator_owner_keys = dev::KeyPair::create();
+    cfg.genesis.state.initial_balances[validator_owner_keys.address()] =
+        10 * cfg.genesis.state.dpos.validator_maximum_stake;
+    for (const auto& keys : {dag_proposer_keys, pbft_proposer_keys}) {
+      const auto [vrf_key, _] = taraxa::vrf_wrapper::getVrfKeyPair();
+      state_api::ValidatorInfo validator{keys.address(), validator_owner_keys.address(), vrf_key, 0, "", "", {}};
+      validator.delegations.emplace(validator_owner_keys.address(), cfg.genesis.state.dpos.validator_maximum_stake);
+      cfg.genesis.state.dpos.initial_validators.emplace_back(validator);
+    }
+  }
   void init() {
     SUT = NewFinalChain(db, cfg);
     const auto& effective_balances = effective_initial_balances(cfg.genesis.state);
@@ -49,20 +62,25 @@ struct FinalChainTest : WithDataDir {
     for (const auto& trx : trxs) {
       trx_hashes.emplace_back(trx->getHash());
     }
-    DagBlock dag_blk({}, {}, {}, trx_hashes, {}, {}, secret_t::random());
+
+    DagBlock dag_blk({}, {}, {}, trx_hashes, {}, {}, dag_proposer_keys.secret());
     db->saveDagBlock(dag_blk);
     std::vector<vote_hash_t> reward_votes_hashes;
     auto pbft_block =
         std::make_shared<PbftBlock>(kNullBlockHash, kNullBlockHash, kNullBlockHash, kNullBlockHash, expected_blk_num,
-                                    addr_t::random(), dev::KeyPair::create().secret(), std::move(reward_votes_hashes));
+                                    addr_t::random(), pbft_proposer_keys.secret(), std::move(reward_votes_hashes));
+
     std::vector<std::shared_ptr<Vote>> votes;
     PeriodData period_data(pbft_block, votes);
     period_data.dag_blocks.push_back(dag_blk);
     period_data.transactions = trxs;
+    if (pbft_block->getPeriod() > 1) {
+      period_data.previous_block_cert_votes = {
+          genDummyVote(PbftVoteTypes::cert_vote, pbft_block->getPeriod() - 1, 1, 3, pbft_block->getBlockHash())};
+    }
 
     auto batch = db->createWriteBatch();
     db->savePeriodData(period_data, batch);
-
     db->commitWriteBatch(batch);
 
     auto result = SUT->finalize(std::move(period_data), {dag_blk.getHash()}).get();
@@ -447,6 +465,9 @@ TEST_F(FinalChainTest, failed_transaction_fee) {
   auto trx2_1 = std::make_shared<Transaction>(2, 101, 1, gas, dev::bytes(), sk, receiver);
 
   advance({trx1});
+  auto blk = SUT->block_header(expected_blk_num);
+  auto proposer_balance = SUT->getBalance(blk->author);
+  EXPECT_EQ(proposer_balance.first, 21000);
   advance({trx2});
   advance({trx3});
 
@@ -725,15 +746,112 @@ TEST_F(FinalChainTest, fee_rewards_distribution) {
   const auto& sk = sender_keys.secret();
   cfg.genesis.state.initial_balances = {};
   cfg.genesis.state.initial_balances[addr] = 100000;
+  cfg.genesis.state.hardforks.magnolia_hf.block_num = 2;
+  create_validators();
   init();
   const auto gas_price = 1;
-  auto trx1 = std::make_shared<Transaction>(1, 100, gas_price, gas, dev::bytes(), sk, receiver);
+  {
+    auto trx = std::make_shared<Transaction>(1, 100, gas_price, gas, dev::bytes(), sk, receiver);
 
-  auto res = advance({trx1});
-  auto gas_used = res->trx_receipts.front().gas_used;
-  auto blk = SUT->block_header(expected_blk_num);
-  auto proposer_balance = SUT->getBalance(blk->author);
-  EXPECT_EQ(proposer_balance.first, gas_used * gas_price);
+    auto res = advance({trx});
+    auto gas_used = res->trx_receipts.front().gas_used;
+    EXPECT_EQ(SUT->getBalance(pbft_proposer_keys.address()).first, gas_used * gas_price);
+  }
+  {
+    auto trx = std::make_shared<Transaction>(2, 100, gas_price, gas, dev::bytes(), sk, receiver);
+
+    auto res = advance({trx});
+    EXPECT_EQ(2, expected_blk_num);
+    EXPECT_EQ(res->trx_receipts.size(), 1);
+    auto gas_used = res->trx_receipts.front().gas_used;
+    auto dags = db->getFinalizedDagBlockByPeriod(expected_blk_num);
+    EXPECT_EQ(dags.size(), 1);
+    EXPECT_EQ(SUT->getBalance(dag_proposer_keys.address()).first, 0);
+
+    auto get_commission_rewards = [&](addr_t a) {
+      const addr_t dpos_contract("0x00000000000000000000000000000000000000FE");
+      auto ret = SUT->call({
+          addr,
+          0,
+          dpos_contract,
+          0,
+          0,
+          1000000,
+          // getValidator()
+          dev::fromHex("0x1904bb2e000000000000000000000000" + a.toString()),
+      });
+      EXPECT_GE(ret.code_retval.size(), 96);
+      // for some reason parsing u256 from bytes is failing check after
+      auto hex_commission = "0x" + dev::toHex(bytes(ret.code_retval.begin() + 64, ret.code_retval.begin() + 96));
+      return u256(hex_commission);
+    };
+    EXPECT_EQ(get_commission_rewards(dag_proposer_keys.address()), u256(gas_used * gas_price));
+  }
+}
+
+std::shared_ptr<Transaction> makeDoubleVotingProofTx(const std::shared_ptr<Vote>& vote_a,
+                                                     const std::shared_ptr<Vote>& vote_b, uint64_t nonce,
+                                                     const dev::KeyPair& keys) {
+  const auto kSlashingContractAddress = addr_t("0x00000000000000000000000000000000000000EE");
+  // Create votes combination hash
+  dev::RLPStream hash_rlp(2);
+  if (vote_a->getHash() < vote_b->getHash()) {
+    hash_rlp << vote_a->getHash();
+    hash_rlp << vote_b->getHash();
+  } else {
+    hash_rlp << vote_b->getHash();
+    hash_rlp << vote_a->getHash();
+  }
+  const auto hash_bytes = hash_rlp.invalidate();
+  // const auto hash = dev::sha3(hash_bytes);
+
+  auto input = final_chain::ContractInterface::packFunctionCall("commitDoubleVotingProof(bytes,bytes)", vote_a->rlp(),
+                                                                vote_b->rlp());
+  return std::make_shared<Transaction>(nonce, 0, 1, 100000, std::move(input), keys.secret(), kSlashingContractAddress);
+}
+
+TEST_F(FinalChainTest, remove_jailed_validator_votes_from_total) {
+  const dev::KeyPair key = dev::KeyPair::create();
+  const std::vector<dev::KeyPair> validator_keys = {dev::KeyPair::create(), dev::KeyPair::create(),
+                                                    dev::KeyPair::create()};
+  fillConfigForGenesisTests(key.address());
+  cfg.genesis.state.hardforks.magnolia_hf.block_num = 1;
+  cfg.genesis.state.hardforks.magnolia_hf.jail_time = 50;
+
+  for (const auto& vk : validator_keys) {
+    const auto [vrf_key, _] = taraxa::vrf_wrapper::getVrfKeyPair();
+    state_api::ValidatorInfo validator{vk.address(), key.address(), vrf_key, 0, "", "", {}};
+    validator.delegations.emplace(key.address(), cfg.genesis.state.dpos.validator_maximum_stake);
+    cfg.genesis.state.dpos.initial_validators.emplace_back(validator);
+  }
+
+  init();
+  const auto votes_per_address =
+      cfg.genesis.state.dpos.validator_maximum_stake / cfg.genesis.state.dpos.vote_eligibility_balance_step;
+  const auto total_votes_before = SUT->dpos_eligible_total_vote_count(SUT->last_block_number());
+  for (const auto& vk : validator_keys) {
+    const auto address_votes = SUT->dpos_eligible_vote_count(SUT->last_block_number(), vk.address());
+    EXPECT_EQ(votes_per_address, address_votes);
+    EXPECT_EQ(validator_keys.size() * votes_per_address, total_votes_before);
+  }
+  advance({});
+  // submit double votes for one validator
+  const auto [vrf_key, vrf_sk] = taraxa::vrf_wrapper::getVrfKeyPair();
+  VrfPbftSortition vrf_sortition(vrf_sk, {PbftVoteTypes::propose_vote, 1, 1, 1});
+  auto vote_a = std::make_shared<Vote>(validator_keys[0].secret(), vrf_sortition, blk_hash_t(1));
+  vote_a->calculateWeight(1, 1, 1);
+  auto vote_b = std::make_shared<Vote>(validator_keys[0].secret(), vrf_sortition, blk_hash_t(2));
+  vote_b->calculateWeight(1, 1, 1);
+
+  auto trx = makeDoubleVotingProofTx(vote_a, vote_b, 1, key);
+  auto res = advance({trx}, {true});
+  advance({});
+  advance({});
+  advance({});
+  advance({});
+  advance({});
+  const auto total_votes = SUT->dpos_eligible_total_vote_count(SUT->last_block_number());
+  EXPECT_EQ(total_votes_before - votes_per_address, total_votes);
 }
 
 // This test should be last as state_api isn't destructed correctly because of exception

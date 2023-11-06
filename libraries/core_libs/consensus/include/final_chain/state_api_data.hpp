@@ -72,8 +72,13 @@ struct ExecutionResult {
   HAS_RLP_FIELDS
 };
 
-struct StateTransitionResult {
+struct TransactionsExecutionResult {
   std::vector<ExecutionResult> execution_results;
+
+  HAS_RLP_FIELDS
+};
+
+struct RewardsDistributionResult {
   h256 state_root;
   u256 total_reward;
 
@@ -107,5 +112,11 @@ struct Tracing {
   HAS_RLP_FIELDS
 };
 
+struct ValidatorStake {
+  addr_t addr;
+  u256 stake;
+
+  HAS_RLP_FIELDS
+};
 /** @} */
 }  // namespace taraxa::state_api

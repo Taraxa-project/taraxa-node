@@ -13,7 +13,7 @@ namespace taraxa::network::tarcap {
 class TaraxaPeer : public boost::noncopyable {
  public:
   TaraxaPeer();
-  TaraxaPeer(const dev::p2p::NodeID& id, size_t transaction_pool_size);
+  TaraxaPeer(const dev::p2p::NodeID& id, size_t transaction_pool_size, std::string address);
 
   /**
    * @brief Mark dag block as known
@@ -109,6 +109,7 @@ class TaraxaPeer : public boost::noncopyable {
   std::atomic_uint64_t peer_requested_dag_syncing_time_ = 0;
   std::atomic_bool peer_light_node = false;
   std::atomic<PbftPeriod> peer_light_node_history = 0;
+  std::string address_;
 
   // Mutex used to prevent race condition between dag syncing and gossiping
   mutable boost::shared_mutex mutex_for_sending_dag_blocks_;
@@ -116,18 +117,18 @@ class TaraxaPeer : public boost::noncopyable {
  private:
   dev::p2p::NodeID id_;
 
-  ExpirationCache<blk_hash_t> known_dag_blocks_;
-  ExpirationCache<trx_hash_t> known_transactions_;
+  ExpirationBlockNumberCache<blk_hash_t> known_dag_blocks_;
+  ExpirationBlockNumberCache<trx_hash_t> known_transactions_;
   // PBFT
-  ExpirationCache<blk_hash_t> known_pbft_blocks_;
-  ExpirationCache<vote_hash_t> known_votes_;  // for peers
+  ExpirationBlockNumberCache<blk_hash_t> known_pbft_blocks_;
+  ExpirationBlockNumberCache<vote_hash_t> known_votes_;  // for peers
 
   std::atomic<uint64_t> timestamp_suspicious_packet_ = 0;
   std::atomic<uint64_t> suspicious_packet_count_ = 0;
   const uint64_t kMaxSuspiciousPacketPerMinute = 1000;
 
   // Performance extensive dag syncing is only allowed to be requested once each kDagSyncingLimit seconds
-  const uint64_t kDagSyncingLimit = 300;
+  const uint64_t kDagSyncingLimit = 60;
 
   // Packets stats for packets sent by *this TaraxaPeer
   PacketsStats sent_packets_stats_;

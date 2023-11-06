@@ -147,4 +147,4 @@ add_custom_command(
     DEPENDS ${TARAXA_EVM_SOURCES}
     WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     COMMAND cd ./taraxa-evm && ${EVM_BUILD_ENV} go test ./...
-    COMMENT "Running Go DPOS tests")
+    COMMENT "Running Go EVM tests")

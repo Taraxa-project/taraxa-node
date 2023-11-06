@@ -118,8 +118,9 @@ StateAPI::StateAPI(decltype(get_blk_hash_) get_blk_hash, const Config& state_con
           },
       },
       db_path_(opts_db.db_path) {
-  result_buf_transition_state_.execution_results.reserve(opts.expected_max_trx_per_block);
-  rlp_enc_transition_state_.reserve(opts.expected_max_trx_per_block * 1024, opts.expected_max_trx_per_block * 128);
+  result_buf_execution_result_.execution_results.reserve(opts.expected_max_trx_per_block);
+  rlp_enc_execution_result_.reserve(opts.expected_max_trx_per_block * 1024, opts.expected_max_trx_per_block * 128);
+  rlp_enc_rewards_distribution_.reserve(opts.expected_max_trx_per_block * 1024, opts.expected_max_trx_per_block * 128);
   dev::RLPStream encoding;
   util::rlp_tuple(encoding, reinterpret_cast<uintptr_t>(&get_blk_hash_c_), state_config, opts, opts_db);
   ErrorHandler err_h;
@@ -175,17 +176,21 @@ StateDescriptor StateAPI::get_last_committed_state_descriptor() const {
   return ret;
 }
 
-const StateTransitionResult& StateAPI::transition_state(const EVMBlock& block,
-                                                        const util::RangeView<EVMTransaction>& transactions,
-                                                        const util::RangeView<addr_t>& transactions_validators,
-                                                        const util::RangeView<UncleBlock>& uncles,
-                                                        const RewardsStats& rewards_stats) {
-  result_buf_transition_state_.execution_results.clear();
-  rlp_enc_transition_state_.clear();
-  c_method_args_rlp<StateTransitionResult, from_rlp, taraxa_evm_state_api_transition_state>(
-      this_c_, rlp_enc_transition_state_, result_buf_transition_state_, block, transactions, transactions_validators,
-      uncles, rewards_stats);
-  return result_buf_transition_state_;
+const TransactionsExecutionResult& StateAPI::execute_transactions(const EVMBlock& block,
+                                                                  const util::RangeView<EVMTransaction>& transactions) {
+  result_buf_execution_result_.execution_results.clear();
+  rlp_enc_execution_result_.clear();
+  c_method_args_rlp<TransactionsExecutionResult, from_rlp, taraxa_evm_state_api_execute_transactions>(
+      this_c_, rlp_enc_execution_result_, result_buf_execution_result_, block, transactions);
+  return result_buf_execution_result_;
+}
+
+const RewardsDistributionResult& StateAPI::distribute_rewards(const std::vector<rewards::BlockStats>& rewards_stats) {
+  // result_buf_rewards_distribution_;
+  rlp_enc_rewards_distribution_.clear();
+  c_method_args_rlp<RewardsDistributionResult, from_rlp, taraxa_evm_state_api_distribute_rewards>(
+      this_c_, rlp_enc_rewards_distribution_, result_buf_rewards_distribution_, rewards_stats);
+  return result_buf_rewards_distribution_;
 }
 
 void StateAPI::transition_state_commit() {
@@ -242,6 +247,15 @@ u256 StateAPI::get_staking_balance(EthBlockNumber blk_num, const addr_t& addr) c
 vrf_wrapper::vrf_pk_t StateAPI::dpos_get_vrf_key(EthBlockNumber blk_num, const addr_t& addr) const {
   return vrf_wrapper::vrf_pk_t(
       c_method_args_rlp<bytes, to_bytes, taraxa_evm_state_api_dpos_get_vrf_key>(this_c_, blk_num, addr));
+}
+
+std::vector<ValidatorStake> StateAPI::dpos_validators_total_stakes(EthBlockNumber blk_num) const {
+  ErrorHandler err_h;
+  std::vector<ValidatorStake> ret;
+  taraxa_evm_state_api_validators_stakes(this_c_, blk_num, decoder_cb_c<std::vector<ValidatorStake>, from_rlp>(ret),
+                                         err_h.cgo_part_);
+  err_h.check();
+  return ret;
 }
 
 }  // namespace taraxa::state_api

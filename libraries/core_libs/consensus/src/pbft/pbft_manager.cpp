@@ -16,9 +16,9 @@
 
 #include "dag/dag.hpp"
 #include "final_chain/final_chain.hpp"
-#include "network/tarcap/packets_handlers/pbft_sync_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/vote_packet_handler.hpp"
-#include "network/tarcap/packets_handlers/votes_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/pbft_sync_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/vote_packet_handler.hpp"
+#include "network/tarcap/packets_handlers/latest/votes_bundle_packet_handler.hpp"
 #include "pbft/period_data.hpp"
 #include "vote_manager/vote_manager.hpp"
 
@@ -102,26 +102,6 @@ void PbftManager::stop() {
   final_chain_->stop();
 
   LOG(log_dg_) << "PBFT daemon terminated ...";
-}
-
-// Only to be used for tests...
-void PbftManager::resume() {
-  // Will only appear in testing...
-  LOG(log_si_) << "Resuming PBFT daemon...";
-
-  if (step_ == 1) {
-    state_ = value_proposal_state;
-  } else if (step_ == 2) {
-    state_ = filter_state;
-  } else if (step_ == 3) {
-    state_ = certify_state;
-  } else if (step_ % 2 == 0) {
-    state_ = finish_state;
-  } else {
-    state_ = finish_polling_state;
-  }
-
-  daemon_ = std::make_unique<std::thread>([this]() { run(); });
 }
 
 /* When a node starts up it has to sync to the current phase (type of block
@@ -560,15 +540,13 @@ void PbftManager::broadcastVotes() {
     return;
   }
 
-  const auto votes_sync_packet_handler = net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>();
-
   // Send votes to the other peers
-  auto gossipVotes = [this, &votes_sync_packet_handler](std::vector<std::shared_ptr<Vote>> &&votes,
-                                                        const std::string &votes_type_str, bool rebroadcast) {
+  auto gossipVotes = [this, &net](const std::vector<std::shared_ptr<Vote>> &votes, const std::string &votes_type_str,
+                                  bool rebroadcast) {
     if (!votes.empty()) {
       LOG(log_dg_) << "Broadcast " << votes_type_str << " for period " << votes.back()->getPeriod() << ", round "
                    << votes.back()->getRound();
-      votes_sync_packet_handler->onNewPbftVotesBundle(std::move(votes), rebroadcast);
+      net->gossipVotesBundle(votes, rebroadcast);
     }
   };
 
@@ -585,19 +563,20 @@ void PbftManager::broadcastVotes() {
 
     // Broadcast previous round 2t+1 next votes
     if (round > 1) {
-      gossipVotes(vote_mgr_->getAllTwoTPlusOneNextVotes(period, round - 1), "2t+1 next votes", rebroadcast);
+      gossipVotes(
+          vote_mgr_->getTwoTPlusOneVotedBlockVotes(period, round - 1, TwoTPlusOneVotedBlockType::NextVotedBlock),
+          "2t+1 next votes", rebroadcast);
+      gossipVotes(
+          vote_mgr_->getTwoTPlusOneVotedBlockVotes(period, round - 1, TwoTPlusOneVotedBlockType::NextVotedNullBlock),
+          "2t+1 next null votes", rebroadcast);
     }
 
-    // Broadcast own votes
-    auto vote_packet_handler = net->getSpecificHandler<network::tarcap::VotePacketHandler>();
-    // TODO: this could be optimized to use VotesSyncPacketHandler if we drop some of the checks in process function
-    // Send votes by one as votes sync packet must contain votes with the same type, period and round
-    const auto &own_votes = vote_mgr_->getOwnVerifiedVotes();
-    for (const auto &vote : own_votes) {
-      vote_packet_handler->onNewPbftVote(vote, getPbftProposedBlock(vote->getPeriod(), vote->getBlockHash()),
-                                         rebroadcast);
-    }
-    if (!own_votes.empty()) {
+    // Broadcast own votes - send votes by one as they have different type, period, round, step
+    if (const auto &own_votes = vote_mgr_->getOwnVerifiedVotes(); !own_votes.empty()) {
+      for (const auto &vote : own_votes) {
+        net->gossipVote(vote, getPbftProposedBlock(vote->getPeriod(), vote->getBlockHash()), rebroadcast);
+      }
+
       LOG(log_dg_) << "Broadcast own votes for period " << period << ", round " << round;
     }
   };
@@ -664,12 +643,16 @@ bool PbftManager::stateOperations_() {
   // Process synced blocks
   pushSyncedPbftBlocksIntoChain();
 
-  // (Re)broadcast votes if needed
-  broadcastVotes();
+  auto net = network_.lock();
+  // Only broadcast votes and try to push cert voted block if node is not syncing
+  if (net && !net->pbft_syncing()) {
+    // (Re)broadcast votes if needed
+    broadcastVotes();
 
-  // Check if there is 2t+1 cert votes for some valid block, if so - push it into the chain
-  if (tryPushCertVotesBlock()) {
-    return true;
+    // Check if there is 2t+1 cert votes for some valid block, if so - push it into the chain
+    if (tryPushCertVotesBlock()) {
+      return true;
+    }
   }
 
   // Check if there is 2t+1 next votes for some valid block, if so - advance round
@@ -755,8 +738,7 @@ bool PbftManager::genAndPlaceProposeVote(const std::shared_ptr<PbftBlock> &propo
     LOG(log_dg_) << "Broadcast propose block reward votes for block " << proposed_block->getBlockHash()
                  << ", num of reward votes: " << reward_votes.size() << ", period " << current_pbft_period << ", round "
                  << current_pbft_round;
-    net->getSpecificHandler<network::tarcap::VotesSyncPacketHandler>()->onNewPbftVotesBundle(std::move(reward_votes),
-                                                                                             false);
+    net->gossipVotesBundle(reward_votes, false);
   }
 
   if (!placeVote(propose_vote, "propose vote", proposed_block)) {
@@ -779,7 +761,7 @@ void PbftManager::gossipNewVote(const std::shared_ptr<Vote> &vote, const std::sh
     return;
   }
 
-  net->getSpecificHandler<network::tarcap::VotePacketHandler>()->onNewPbftVote(vote, voted_block);
+  net->gossipVote(vote, voted_block);
 
   auto found_voted_block_it = current_round_broadcasted_votes_.find(vote->getBlockHash());
   if (found_voted_block_it == current_round_broadcasted_votes_.end()) {
@@ -1315,7 +1297,7 @@ std::shared_ptr<PbftBlock> PbftManager::identifyLeaderBlock_(PbftRound round, Pb
   return empty_leader_block;
 }
 
-bool PbftManager::validatePbftBlockStateRoot(const std::shared_ptr<PbftBlock> &pbft_block) const {
+PbftStateRootValidation PbftManager::validatePbftBlockStateRoot(const std::shared_ptr<PbftBlock> &pbft_block) const {
   auto period = pbft_block->getPeriod();
   auto const &pbft_block_hash = pbft_block->getBlockHash();
   {
@@ -1325,16 +1307,16 @@ bool PbftManager::validatePbftBlockStateRoot(const std::shared_ptr<PbftBlock> &p
         prev_state_root_hash = header->state_root;
       } else {
         LOG(log_wr_) << "Block " << pbft_block_hash << " could not be validated as we are behind";
-        return false;
+        return PbftStateRootValidation::Missing;
       }
     }
     if (pbft_block->getPrevStateRoot() != prev_state_root_hash) {
       LOG(log_er_) << "Block " << pbft_block_hash << " state root " << pbft_block->getPrevStateRoot()
                    << " isn't matching actual " << prev_state_root_hash;
-      return false;
+      return PbftStateRootValidation::Invalid;
     }
   }
-  return true;
+  return PbftStateRootValidation::Valid;
 }
 
 bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block) const {
@@ -1350,7 +1332,7 @@ bool PbftManager::validatePbftBlock(const std::shared_ptr<PbftBlock> &pbft_block
 
   auto const &pbft_block_hash = pbft_block->getBlockHash();
 
-  if (!validatePbftBlockStateRoot(pbft_block)) {
+  if (validatePbftBlockStateRoot(pbft_block) != PbftStateRootValidation::Valid) {
     return false;
   }
 
@@ -1527,8 +1509,6 @@ void PbftManager::finalize_(PeriodData &&period_data, std::vector<h256> &&finali
                             bool synchronous_processing) {
   std::shared_ptr<DagBlock> anchor_block = nullptr;
 
-  reorderTransactions(period_data.transactions);
-
   if (const auto anchor = period_data.pbft_blk->getPivotDagBlockHash()) {
     anchor_block = dag_mgr_->getDagBlock(anchor);
     if (!anchor_block) {
@@ -1573,6 +1553,9 @@ bool PbftManager::pushPbftBlock_(PeriodData &&period_data, std::vector<std::shar
   dag_blocks_order.reserve(period_data.dag_blocks.size());
   std::transform(period_data.dag_blocks.begin(), period_data.dag_blocks.end(), std::back_inserter(dag_blocks_order),
                  [](const DagBlock &dag_block) { return dag_block.getHash(); });
+
+  // We need to reorder transactions before saving them
+  reorderTransactions(period_data.transactions);
 
   db_->savePeriodData(period_data, batch);
 
@@ -1652,13 +1635,33 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
                  << "; prevHash: " << period_data.pbft_blk->getPrevBlockHash() << " from peer " << node_id.abridged()
                  << " received, stop syncing.";
     sync_queue_.clear();
+
     // Handle malicious peer on network level
-    net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
+    net->handleMaliciousSyncPeer(node_id);
     return std::nullopt;
   }
 
-  if (!validatePbftBlockStateRoot(period_data.pbft_blk)) {
-    return std::nullopt;
+  bool retry_logged = false;
+  while (true) {
+    auto validation_result = validatePbftBlockStateRoot(period_data.pbft_blk);
+    if (validation_result != PbftStateRootValidation::Missing) {
+      if (validation_result == PbftStateRootValidation::Invalid) {
+        LOG(log_er_) << "Failed verifying block " << pbft_block_hash
+                     << " with invalid state root: " << period_data.pbft_blk->getPrevStateRoot()
+                     << ". Disconnect malicious peer " << node_id.abridged();
+        sync_queue_.clear();
+        net->handleMaliciousSyncPeer(node_id);
+        return std::nullopt;
+      }
+      break;
+    }
+    // If syncing and pbft manager is faster than execution a delay might be needed to allow EVM to catch up
+    thisThreadSleepForMilliSeconds(10);
+    if (!retry_logged) {
+      LOG(log_wr_) << "PBFT block " << pbft_block_hash
+                   << " validation delayed, state root missing, execution is behind";
+      retry_logged = true;
+    }
   }
 
   // Check reward votes
@@ -1667,7 +1670,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
     LOG(log_er_) << "Failed verifying reward votes for block " << pbft_block_hash << ". Disconnect malicious peer "
                  << node_id.abridged();
     sync_queue_.clear();
-    net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
+    net->handleMaliciousSyncPeer(node_id);
     return std::nullopt;
   }
 
@@ -1683,7 +1686,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
     LOG(log_er_) << "Synced PBFT block " << pbft_block_hash
                  << " doesn't have enough valid cert votes. Clear synced PBFT blocks!";
     sync_queue_.clear();
-    net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
+    net->handleMaliciousSyncPeer(node_id);
     return std::nullopt;
   }
 
@@ -1703,7 +1706,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
     LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << " transactions count " << period_data.transactions.size()
                  << " incorrect, expected: " << non_finalized_transactions.size();
     sync_queue_.clear();
-    net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
+    net->handleMaliciousSyncPeer(node_id);
     return std::nullopt;
   }
   for (uint32_t i = 0; i < period_data.transactions.size(); i++) {
@@ -1711,7 +1714,7 @@ std::optional<std::pair<PeriodData, std::vector<std::shared_ptr<Vote>>>> PbftMan
       LOG(log_er_) << "Synced PBFT block " << pbft_block_hash << " has incorrect transaction "
                    << period_data.transactions[i]->getHash();
       sync_queue_.clear();
-      net->getSpecificHandler<network::tarcap::PbftSyncPacketHandler>()->handleMaliciousSyncPeer(node_id);
+      net->handleMaliciousSyncPeer(node_id);
       return std::nullopt;
     }
   }

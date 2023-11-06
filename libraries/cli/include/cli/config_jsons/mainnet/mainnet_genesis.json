@@ -1633,6 +1633,13 @@
         "delegator": "0xaf5a5cd6da86838efac0ea91a712857d6aca53ac",
         "amount": "0x3e8"
       }
-    ]
+    ],
+    "rewards_distribution_frequency": {
+      "5566000" : 100
+    },
+    "magnolia_hf" : {
+      "block_num" : 5566000,
+      "jail_time": 163459
+    }
   }
 }

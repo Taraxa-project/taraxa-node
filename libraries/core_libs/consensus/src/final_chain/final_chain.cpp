@@ -7,21 +7,20 @@
 #include "common/constants.hpp"
 #include "common/thread_pool.hpp"
 #include "final_chain/cache.hpp"
-#include "final_chain/rewards_stats.hpp"
 #include "final_chain/trie_common.hpp"
-#include "pbft/pbft_manager.hpp"
+#include "rewards/rewards_stats.hpp"
 #include "vote/vote.hpp"
 
 namespace taraxa::final_chain {
 
 class FinalChainImpl final : public FinalChain {
   std::shared_ptr<DB> db_;
-  const uint32_t kCommitteeSize;
   const uint64_t kBlockGasLimit;
   StateAPI state_api_;
   const bool kLightNode = false;
   const uint64_t kLightNodeHistory = 0;
   const uint32_t kMaxLevelsPerPeriod;
+  rewards::Stats rewards_;
 
   // It is not prepared to use more then 1 thread. Examine it if you want to change threads count
   boost::asio::thread_pool executor_thread_{1};
@@ -51,7 +50,6 @@ class FinalChainImpl final : public FinalChain {
  public:
   FinalChainImpl(const std::shared_ptr<DB>& db, const taraxa::FullNodeConfig& config, const addr_t& node_addr)
       : db_(db),
-        kCommitteeSize(config.genesis.pbft.committee_size),
         kBlockGasLimit(config.genesis.pbft.gas_limit),
         state_api_([this](auto n) { return block_hash(n).value_or(ZeroHash()); },  //
                    config.genesis.state, config.opts_final_chain,
@@ -61,6 +59,8 @@ class FinalChainImpl final : public FinalChain {
         kLightNode(config.is_light_node),
         kLightNodeHistory(config.light_node_history),
         kMaxLevelsPerPeriod(config.max_levels_per_period),
+        rewards_(config.genesis.pbft.committee_size, config.genesis.state.hardforks, db_,
+                 [this](EthBlockNumber n) { return dpos_eligible_total_vote_count(n); }),
         block_headers_cache_(config.final_chain_cache_in_blocks,
                              [this](uint64_t blk) { return get_block_header(blk); }),
         block_hashes_cache_(config.final_chain_cache_in_blocks, [this](uint64_t blk) { return get_block_hash(blk); }),
@@ -151,15 +151,6 @@ class FinalChainImpl final : public FinalChain {
                                                       std::shared_ptr<DagBlock>&& anchor) {
     auto batch = db_->createWriteBatch();
 
-    RewardsStats rewards_stats;
-    uint64_t dpos_vote_count = kCommitteeSize;
-    // Block zero
-    if (!new_blk.previous_block_cert_votes.empty()) [[unlikely]] {
-      dpos_vote_count = dpos_eligible_total_vote_count(new_blk.previous_block_cert_votes[0]->getPeriod() - 1);
-    }
-    // returns list of validators for new_blk.transactions
-    const std::vector<addr_t> txs_validators = rewards_stats.processStats(new_blk, dpos_vote_count, kCommitteeSize);
-
     block_applying_emitter_.emit(block_header()->number + 1);
 
     /*
@@ -179,13 +170,16 @@ class FinalChainImpl final : public FinalChain {
       }
     } */
 
-    auto const& [exec_results, state_root, total_reward] =
-        state_api_.transition_state({new_blk.pbft_blk->getBeneficiary(), kBlockGasLimit,
-                                     new_blk.pbft_blk->getTimestamp(), BlockHeader::difficulty()},
-                                    to_state_api_transactions(new_blk.transactions), txs_validators, {}, rewards_stats);
+    auto const& [exec_results] =
+        state_api_.execute_transactions({new_blk.pbft_blk->getBeneficiary(), kBlockGasLimit,
+                                         new_blk.pbft_blk->getTimestamp(), BlockHeader::difficulty()},
+                                        to_state_api_transactions(new_blk.transactions));
 
     TransactionReceipts receipts;
     receipts.reserve(exec_results.size());
+    std::vector<gas_t> transactions_gas_used;
+    transactions_gas_used.reserve(exec_results.size());
+
     gas_t cumulative_gas_used = 0;
     for (auto const& r : exec_results) {
       LogEntries logs;
@@ -193,6 +187,7 @@ class FinalChainImpl final : public FinalChain {
       std::transform(r.logs.cbegin(), r.logs.cend(), std::back_inserter(logs), [](const auto& l) {
         return LogEntry{l.address, l.topics, l.data};
       });
+      transactions_gas_used.push_back(r.gas_used);
       receipts.emplace_back(TransactionReceipt{
           r.code_err.empty() && r.consensus_err.empty(),
           r.gas_used,
@@ -201,6 +196,10 @@ class FinalChainImpl final : public FinalChain {
           r.new_contract_addr ? std::optional(r.new_contract_addr) : std::nullopt,
       });
     }
+
+    auto rewards_stats = rewards_.processStats(new_blk, transactions_gas_used, batch);
+    const auto& [state_root, total_reward] = state_api_.distribute_rewards(rewards_stats);
+
     auto blk_header = append_block(batch, new_blk.pbft_blk->getBeneficiary(), new_blk.pbft_blk->getTimestamp(),
                                    kBlockGasLimit, state_root, total_reward, new_blk.transactions, receipts);
     // Update number of executed DAG blocks and transactions
@@ -316,8 +315,6 @@ class FinalChainImpl final : public FinalChain {
       chunk_to_alter[index % c_bloomIndexSize] |= log_bloom_for_index;
       db_->insert(batch, DB::Columns::final_chain_log_blooms_index, chunk_id, util::rlp_enc(rlp_strm, chunk_to_alter));
     }
-    db_->insert(batch, DB::Columns::final_chain_transaction_hashes_by_blk_number, blk_header.number,
-                dev::rlp(hashes_from_transactions(transactions)));
     db_->insert(batch, DB::Columns::final_chain_blk_hash_by_number, blk_header.number, blk_header.hash);
     db_->insert(batch, DB::Columns::final_chain_blk_number_by_hash, blk_header.hash, blk_header.number);
     db_->insert(batch, DB::Columns::final_chain_meta, DBMetaKeys::LAST_NUMBER, blk_header.number);
@@ -450,17 +447,25 @@ class FinalChainImpl final : public FinalChain {
     return state_api_.dpos_get_vrf_key(blk_n, addr);
   }
 
+  std::vector<state_api::ValidatorStake> dpos_validators_total_stakes(EthBlockNumber blk_num) const override {
+    return state_api_.dpos_validators_total_stakes(blk_num);
+  }
+
  private:
   std::shared_ptr<TransactionHashes> get_transaction_hashes(std::optional<EthBlockNumber> n = {}) const {
-    auto res = db_->lookup(last_if_absent(n), DB::Columns::final_chain_transaction_hashes_by_blk_number);
-
-    return std::make_shared<TransactionHashes>(util::rlp_dec<TransactionHashes>(dev::RLP(res)));
+    const auto& trxs = db_->getPeriodTransactions(last_if_absent(n));
+    auto ret = std::make_shared<TransactionHashes>();
+    if (!trxs) {
+      return ret;
+    }
+    ret->reserve(trxs->size());
+    std::transform(trxs->cbegin(), trxs->cend(), std::back_inserter(*ret),
+                   [](auto const& trx) { return trx->getHash(); });
+    return ret;
   }
 
   const SharedTransactions get_transactions(std::optional<EthBlockNumber> n = {}) const {
     if (auto trxs = db_->getPeriodTransactions(last_if_absent(n))) {
-      // TODO[2495]: remove after a proper fix of transactions ordering in PeriodData
-      PbftManager::reorderTransactions(*trxs);
       return *trxs;
     }
     return {};
