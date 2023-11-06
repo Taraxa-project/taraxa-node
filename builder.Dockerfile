@@ -46,6 +46,7 @@ RUN add-apt-repository ppa:ethereum/ethereum \
     binutils \
     cmake \
     ccache \
+    libgflags-dev \
     # this libs are required for arm build by go part
     libzstd-dev \
     libsnappy-dev \
