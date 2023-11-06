@@ -160,9 +160,12 @@ std::string Taraxa::taraxa_yield(const std::string& _period) {
       BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INTERNAL_ERROR));
     }
 
+    std::cout << "taraxa_yield period\n";
     auto period = dev::jsToInt(_period);
+    std::cout << "taraxa_yield toJS\n";
     return toJS(node->getFinalChain()->dpos_yield(period));
   } catch (...) {
+    std::cout << "taraxa_yield exception\n";
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }
 }
@@ -177,6 +180,7 @@ std::string Taraxa::taraxa_totalSupply(const std::string& _period) {
     auto period = dev::jsToInt(_period);
     return toJS(node->getFinalChain()->dpos_total_supply(period));
   } catch (...) {
+    std::cout << "taraxa_totalSupply exception\n";
     BOOST_THROW_EXCEPTION(JsonRpcException(Errors::ERROR_RPC_INVALID_PARAMS));
   }
 }
