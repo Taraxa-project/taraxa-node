@@ -273,8 +273,8 @@
       "jail_time": 1000
     },
     "aspen_hf" : {
-      "block_num" : 0,
-      "mas_supply": "0x26C62AD77DC602DAE0000000"
+      "block_num" : -1,
+      "max_supply": "0x26C62AD77DC602DAE0000000"
     }
   }
 }
