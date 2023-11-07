@@ -25,7 +25,7 @@ set(WITH_TOOLS OFF CACHE INTERNAL "")
 set(WITH_BENCHMARK_TOOLS  OFF CACHE INTERNAL "")
 set(WITH_CORE_TOOLS  OFF CACHE INTERNAL "")
 set(WITH_TRACE_TOOLS  OFF CACHE INTERNAL "")
-set(CMAKE_ENABLE_SHARED OFF CACHE INTERNAL "")
+set(CMAKE_ENABLE_SHARED ${BUILD_SHARED_LIBS} CACHE INTERNAL "")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=unused-const-variable -Wno-error=pedantic -Wno-error=format-pedantic -Wno-error=gnu-zero-variadic-macro-arguments -Wno-error=extra-semi -Wc++98-compat-extra-semi -Wno-error=deprecated-copy -Wno-deprecated-copy -Wno-error=pessimizing-move -Wno-pessimizing-move -Wno-pessimizing-move")
 
 FetchContent_Populate(rocksdb)
