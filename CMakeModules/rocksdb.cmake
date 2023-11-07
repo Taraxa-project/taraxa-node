@@ -29,5 +29,3 @@ set(ROCKSDB_BUILD_SHARED ${BUILD_SHARED_LIBS} CACHE INTERNAL "")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -w -Wno-error=unused-const-variable -Wno-error=pedantic -Wno-error=format-pedantic -Wno-error=gnu-zero-variadic-macro-arguments -Wno-error=extra-semi -Wc++98-compat-extra-semi -Wno-error=deprecated-copy -Wno-deprecated-copy -Wno-error=pessimizing-move -Wno-pessimizing-move -Wno-pessimizing-move")
 
 FetchContent_MakeAvailable(rocksdb)
-
-install(DIRECTORY "${rocksdb_SOURCE_DIR}/include" DESTINATION include)
