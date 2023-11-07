@@ -3,7 +3,7 @@
 # ========================================================================== #
 include(FetchContent)
 
-set(Boost_NO_WARN_NEW_VERSIONS 1)
+set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 FetchContent_Declare(
   rocksdb
@@ -30,3 +30,4 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-error=unused-const-variable -Wno-er
 
 FetchContent_Populate(rocksdb)
 add_subdirectory(${rocksdb_SOURCE_DIR} ${rocksdb_BINARY_DIR} EXCLUDE_FROM_ALL)
+include_directories("${rocksdb_SOURCE_DIR}/include")
