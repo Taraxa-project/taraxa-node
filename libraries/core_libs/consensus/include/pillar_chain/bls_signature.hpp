@@ -38,8 +38,9 @@ class BlsSignature {
 
   /**
    * @return bls signature rlp
+   * @param include_sig
    */
-  dev::bytes getRlp() const;
+  dev::bytes getRlp(bool include_sig = true) const;
 
   /**
    * @return bls signature hash
