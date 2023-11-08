@@ -32,22 +32,26 @@ addr_t BlsSignature::getSignerAddr() const { return signer_addr_; }
 
 libff::alt_bn128_G1 BlsSignature::getSignature() const { return signature_; }
 
-dev::bytes BlsSignature::getRlp() const {
-  dev::RLPStream s(kRlpSize);
+dev::bytes BlsSignature::getRlp(bool include_sig) const {
+  size_t rlp_size = include_sig ? kRlpSize : kRlpSize - 1;
+
+  dev::RLPStream s(rlp_size);
   s << pillar_block_hash_;
   s << period_;
   s << signer_addr_;
 
-  std::stringstream sig_ss;
-  sig_ss << signature_;
-  s << sig_ss.str();
+  if (include_sig) {
+    std::stringstream sig_ss;
+    sig_ss << signature_;
+    s << sig_ss.str();
+  }
 
   return s.invalidate();
 }
 
 BlsSignature::Hash BlsSignature::getHash() const {
   if (!cached_hash_.has_value()) {
-    cached_hash_ = dev::sha3(getRlp());
+    cached_hash_ = dev::sha3(getRlp(false));
   }
 
   return *cached_hash_;
