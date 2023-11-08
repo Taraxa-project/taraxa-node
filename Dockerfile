@@ -25,6 +25,9 @@ RUN cd $BUILD_OUTPUT_DIR && make -j$(nproc) all \
     # keep only required shared libraries and final binaries
     # && find . -maxdepth 1 ! -name "lib" ! -name "bin" -exec rm -rfv {} \;
 
+# Set LD_LIBRARY_PATH so taraxad binary finds shared libs
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib
+
 ###############################################################################
 ##### Taraxa image containing taraxad binary + dynamic libraries + config #####
 ###############################################################################
