@@ -33,7 +33,7 @@ addr_t BlsSignature::getSignerAddr() const { return signer_addr_; }
 libff::alt_bn128_G1 BlsSignature::getSignature() const { return signature_; }
 
 dev::bytes BlsSignature::getRlp() const {
-  dev::RLPStream s(4);
+  dev::RLPStream s(kRlpSize);
   s << pillar_block_hash_;
   s << period_;
   s << signer_addr_;
