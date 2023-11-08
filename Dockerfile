@@ -20,9 +20,10 @@ RUN mkdir $BUILD_OUTPUT_DIR && cd $BUILD_OUTPUT_DIR \
 
 RUN cd $BUILD_OUTPUT_DIR && make -j$(nproc) all \
     # Copy CMake generated Testfile to be able to trigger ctest from bin directory
-    && cp tests/CTestTestfile.cmake bin/ \
+    && cp tests/CTestTestfile.cmake bin/;
+    # \
     # keep only required shared libraries and final binaries
-    && find . -maxdepth 1 ! -name "lib" ! -name "bin" -exec rm -rfv {} \;
+    # && find . -maxdepth 1 ! -name "lib" ! -name "bin" -exec rm -rfv {} \;
 
 ###############################################################################
 ##### Taraxa image containing taraxad binary + dynamic libraries + config #####
