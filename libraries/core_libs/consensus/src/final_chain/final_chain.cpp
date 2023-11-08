@@ -135,6 +135,9 @@ class FinalChainImpl final : public FinalChain {
   std::future<std::shared_ptr<const FinalizationResult>> finalize(
       PeriodData&& new_blk, std::vector<h256>&& finalized_dag_blk_hashes,
       std::shared_ptr<DagBlock>&& anchor = nullptr) override {
+    // if (new_blk.pbft_blk->getPeriod() % 10000 == 0) {
+    LOG(log_er_) << "Finalizing block " << new_blk.pbft_blk->getPeriod();
+    // }
     auto p = std::make_shared<std::promise<std::shared_ptr<const FinalizationResult>>>();
     boost::asio::post(executor_thread_, [this, new_blk = std::move(new_blk),
                                          finalized_dag_blk_hashes = std::move(finalized_dag_blk_hashes),

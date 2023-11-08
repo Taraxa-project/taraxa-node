@@ -362,43 +362,50 @@ void FullNode::rebuildDb() {
   // Read pbft blocks one by one
   PbftPeriod period = 1;
   std::shared_ptr<PeriodData> period_data, next_period_data;
-  while (true) {
-    std::vector<std::shared_ptr<Vote>> cert_votes;
-    if (next_period_data != nullptr) {
-      period_data = next_period_data;
-    } else {
-      auto data = old_db_->getPeriodDataRaw(period);
-      if (data.size() == 0) break;
-      period_data = std::make_shared<PeriodData>(std::move(data));
-    }
-    auto data = old_db_->getPeriodDataRaw(period + 1);
-    if (data.size() == 0) {
-      next_period_data = nullptr;
-      // Latest finalized block cert votes are saved in db as 2t+1 cert votes
-      auto votes = old_db_->getAllTwoTPlusOneVotes();
-      for (auto v : votes) {
-        if (v->getType() == PbftVoteTypes::cert_vote) cert_votes.push_back(v);
+  auto res = std::async(std::launch::async, [&]() {
+    while (true) {
+      std::vector<std::shared_ptr<Vote>> cert_votes;
+      if (next_period_data != nullptr) {
+        period_data = next_period_data;
+      } else {
+        auto data = old_db_->getPeriodDataRaw(period);
+        if (data.size() == 0) break;
+        period_data = std::make_shared<PeriodData>(std::move(data));
       }
-    } else {
-      next_period_data = std::make_shared<PeriodData>(std::move(data));
-      cert_votes = next_period_data->previous_block_cert_votes;
-    }
+      auto data = old_db_->getPeriodDataRaw(period + 1);
+      if (data.size() == 0) {
+        next_period_data = nullptr;
+        // Latest finalized block cert votes are saved in db as 2t+1 cert votes
+        auto votes = old_db_->getAllTwoTPlusOneVotes();
+        for (auto v : votes) {
+          if (v->getType() == PbftVoteTypes::cert_vote) cert_votes.push_back(v);
+        }
+      } else {
+        next_period_data = std::make_shared<PeriodData>(std::move(data));
+        cert_votes = next_period_data->previous_block_cert_votes;
+      }
 
-    LOG(log_nf_) << "Adding PBFT block " << period_data->pbft_blk->getBlockHash().toString()
-                 << " from old DB into syncing queue for processing, final chain size: "
-                 << final_chain_->last_block_number();
-    pbft_mgr_->addRebuildDBPeriodData(std::move(*period_data), std::move(cert_votes));
-    period++;
+      LOG(log_nf_) << "Adding PBFT block " << period_data->pbft_blk->getBlockHash().toString()
+                   << " from old DB into syncing queue for processing, final chain size: "
+                   << final_chain_->last_block_number();
+      period++;
 
-    if (period - 1 == conf_.db_config.rebuild_db_period) {
-      break;
+      pbft_mgr_->periodDataQueuePush(std::move(*period_data), dev::p2p::NodeID(), std::move(cert_votes));
+
+      if (period - 1 == conf_.db_config.rebuild_db_period) {
+        break;
+      }
+
+      // Limit the growth of sync queue
+      while (pbft_mgr_->pbftSyncingPeriod() > final_chain_->last_block_number() + 100) {
+        thisThreadSleepForMilliSeconds(5);
+        LOG(log_nf_) << "Waiting on PBFT blocks to be processed. PBFT chain size " << pbft_mgr_->pbftSyncingPeriod()
+                     << ", final chain size: " << final_chain_->last_block_number();
+      }
     }
-    while (final_chain_->last_block_number() != period - 1) {
-      thisThreadSleepForMilliSeconds(5);
-      LOG(log_nf_) << "Waiting on PBFT blocks to be processed. PBFT chain size " << pbft_mgr_->pbftSyncingPeriod()
-                   << ", final chain size: " << final_chain_->last_block_number();
-    }
-  }
+  });
+  std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+  pbft_mgr_->pushSyncedPbftBlocksIntoChain();
 }
 
 uint64_t FullNode::getProposedBlocksCount() const { return dag_block_proposer_->getProposedBlocksCount(); }
