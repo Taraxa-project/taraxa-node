@@ -39,7 +39,7 @@ void BlsSigPacketHandler::onNewBlsSig(const std::shared_ptr<BlsSignature> &signa
 
 void BlsSigPacketHandler::sendBlsSig(const std::shared_ptr<TaraxaPeer> &peer,
                                      const std::shared_ptr<BlsSignature> &signature) {
-  dev::RLPStream s(1);
+  dev::RLPStream s;
   s.appendRaw(signature->getRlp());
 
   if (sealAndSend(peer->getId(), SubprotocolPacketType::BlsSigPacket, std::move(s))) {

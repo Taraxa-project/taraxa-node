@@ -22,7 +22,7 @@ class BlsSigPacketHandler : public ExtBlsSigPacketHandler {
   virtual void process(const threadpool::PacketData& packet_data, const std::shared_ptr<TaraxaPeer>& peer) override;
 
  protected:
-  constexpr static size_t kBlsSigPacketSize{1};
+  constexpr static size_t kBlsSigPacketSize{BlsSignature::kRlpSize};
 };
 
 }  // namespace taraxa::network::tarcap
