@@ -11,6 +11,8 @@ namespace taraxa {
 namespace net {
 class TaraxaFace : public ServerInterface<TaraxaFace> {
  public:
+  static constexpr int JSON_ANY = 0;
+
   TaraxaFace() {
     this->bindAndAddMethod(
         jsonrpc::Procedure("taraxa_protocolVersion", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, NULL),
@@ -45,11 +47,11 @@ class TaraxaFace : public ServerInterface<TaraxaFace> {
                                               jsonrpc::JSON_STRING, "param1", jsonrpc::JSON_STRING, NULL),
                            &taraxa::net::TaraxaFace::taraxa_pbftBlockHashByPeriodI);
     this->bindAndAddMethod(
-        jsonrpc::Procedure("taraxa_yield", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1", NULL),
+        jsonrpc::Procedure("taraxa_yield", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1", JSON_ANY, NULL),
         &taraxa::net::TaraxaFace::taraxa_yieldI);
-    this->bindAndAddMethod(
-        jsonrpc::Procedure("taraxa_totalSupply", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING, "param1", NULL),
-        &taraxa::net::TaraxaFace::taraxa_totalSupplyI);
+    this->bindAndAddMethod(jsonrpc::Procedure("taraxa_totalSupply", jsonrpc::PARAMS_BY_POSITION, jsonrpc::JSON_STRING,
+                                              "param1", JSON_ANY, NULL),
+                           &taraxa::net::TaraxaFace::taraxa_totalSupplyI);
   }
 
   inline virtual void taraxa_protocolVersionI(const Json::Value &request, Json::Value &response) {
