@@ -24,7 +24,7 @@ Json::Value enc_json(const MagnoliaHardfork& obj);
 void dec_json(const Json::Value& json, MagnoliaHardfork& obj);
 
 struct AspenHardfork {
-  uint64_t block_num{0};
+  uint64_t block_num = -1;
   taraxa::uint256_t max_supply{"0x26C62AD77DC602DAE0000000"};  // 12 Billion
 
   HAS_RLP_FIELDS
