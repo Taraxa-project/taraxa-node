@@ -21,6 +21,8 @@ class BlsSignature {
  public:
   using Hash = uint256_hash_t;
 
+  constexpr static size_t kRlpSize{4};
+
  public:
   BlsSignature(const dev::RLP& rlp);
   BlsSignature(PillarBlock::Hash pillar_block_hash, PbftPeriod period, const addr_t& validator,
