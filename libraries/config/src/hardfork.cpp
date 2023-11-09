@@ -70,7 +70,8 @@ void dec_json(const Json::Value& json, HardforksConfig& obj) {
     dec_json(e, obj.magnolia_hf);
   }
 
-  obj.ficus_hf_block_num = dev::getUInt(json["ficus_hf_block_num"]);
+  obj.ficus_hf_block_num =
+      json["ficus_hf_block_num"].isUInt64() ? dev::getUInt(json["ficus_hf_block_num"]) : uint64_t(-1);
 }
 
 RLP_FIELDS_DEFINE(HardforksConfig, fix_redelegate_block_num, redelegations, rewards_distribution_frequency, magnolia_hf,
