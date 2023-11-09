@@ -296,6 +296,7 @@
       "block_num_part_two" : 2000,
       "max_supply": "0x26C62AD77DC602DAE0000000",
       "generated_rewards": "0x16E59F7481A7EC1F60"
-    }
+    },
+    "ficus_hf_block_num": -1
   }
 }
