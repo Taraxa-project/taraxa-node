@@ -148,6 +148,6 @@
       "max_supply": "0x26C62AD77DC602DAE0000000",
       "generated_rewards": "0x0"
     },
-    "ficus_hf_block_num": 0
+    "ficus_hf_block_num": -1
   }
 }
