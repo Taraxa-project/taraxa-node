@@ -872,7 +872,7 @@ std::shared_ptr<Vote> VoteManager::generateVote(const blk_hash_t& blockhash, Pbf
   return std::make_shared<Vote>(kNodeSk, std::move(vrf_sortition), blockhash);
 }
 
-std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Vote>& vote) const {
+std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Vote>& vote, bool strict) const {
   std::stringstream err_msg;
   const uint64_t vote_period = vote->getPeriod();
 
@@ -901,7 +901,7 @@ std::pair<bool, std::string> VoteManager::validateVote(const std::shared_ptr<Vot
       return {false, err_msg.str()};
     }
 
-    if (!vote->verifyVrfSortition(*pk)) {
+    if (!vote->verifyVrfSortition(*pk, strict)) {
       err_msg << "Invalid vote " << vote->getHash() << ": invalid vrf proof";
       return {false, err_msg.str()};
     }

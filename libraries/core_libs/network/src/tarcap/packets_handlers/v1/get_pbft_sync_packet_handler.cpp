@@ -42,8 +42,9 @@ void GetPbftSyncPacketHandler::sendPbftBlocks(const std::shared_ptr<TaraxaPeer> 
     auto data = db_->getPeriodDataRaw(block_period);
 
     if (data.size() == 0) {
+      // This can happen when switching from light node to full node setting
       LOG(log_er_) << "DB corrupted. Cannot find period " << block_period << " PBFT block in db";
-      assert(false);
+      return;
     }
 
     dev::RLPStream s;

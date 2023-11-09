@@ -223,6 +223,11 @@ class FinalChain {
    */
   virtual void prune(EthBlockNumber blk_n) = 0;
 
+  /**
+   * @brief Wait until next block is finalized
+   */
+  virtual void wait_for_finalized() = 0;
+
   virtual std::vector<state_api::ValidatorStake> dpos_validators_total_stakes(EthBlockNumber blk_num) const = 0;
   // TODO move out of here:
 

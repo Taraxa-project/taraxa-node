@@ -1112,7 +1112,7 @@ TEST_F(FullNodeTest, receive_send_transaction) {
 }
 
 TEST_F(FullNodeTest, detect_overlap_transactions) {
-  auto node_cfgs = make_node_cfgs(5, 1, 20);
+  auto node_cfgs = make_node_cfgs(5, 1, 10);
   auto nodes = launch_nodes(node_cfgs);
   const auto expected_balances = effective_initial_balances(node_cfgs[0].genesis.state);
   const auto node_1_genesis_bal = own_effective_genesis_bal(node_cfgs[0]);
