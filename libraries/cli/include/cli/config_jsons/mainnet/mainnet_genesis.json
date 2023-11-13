@@ -1635,10 +1635,10 @@
       }
     ],
     "rewards_distribution_frequency": {
-      "5566000" : 100
+      "5730000" : 100
     },
     "magnolia_hf" : {
-      "block_num" : 5566000,
+      "block_num" : 5730000,
       "jail_time": 163459
     }
   }
