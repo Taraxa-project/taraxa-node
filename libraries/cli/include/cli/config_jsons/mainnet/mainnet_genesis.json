@@ -1634,9 +1634,11 @@
         "amount": "0x3e8"
       }
     ],
-    "rewards_distribution_frequency": {},
+    "rewards_distribution_frequency": {
+      "5730000" : 100
+    },
     "magnolia_hf" : {
-      "block_num" : 0,
+      "block_num" : 5730000,
       "jail_time": 163459
     }
   }

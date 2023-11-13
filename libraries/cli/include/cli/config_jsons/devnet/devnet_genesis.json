@@ -266,10 +266,10 @@
   "hardforks": {
     "fix_redelegate_block_num": 0,
     "rewards_distribution_frequency": {
-      "1000": 100
+      "0": 100
     },
     "magnolia_hf": {
-      "block_num": 1000,
+      "block_num": 0,
       "jail_time": 1000
     }
   }
