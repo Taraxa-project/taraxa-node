@@ -8,6 +8,9 @@
 #include "common/static_init.hpp"
 #include "config/config.hpp"
 
+// TODO: should ne #include <libBLS/tools/utils.h>
+#include <tools/utils.h>
+
 namespace fs = std::filesystem;
 using ::taraxa::util::lazy::Lazy;
 
@@ -45,6 +48,9 @@ struct WithDataDir : virtual BaseTest {
   WithDataDir() : BaseTest() {
     std::filesystem::remove_all(data_dir);
     std::filesystem::create_directories(data_dir);
+
+    // Required for libBLS::Bls::KeyGeneration()
+    libBLS::ThresholdUtils::initCurve();
   }
   virtual ~WithDataDir() { std::filesystem::remove_all(data_dir); }
 
