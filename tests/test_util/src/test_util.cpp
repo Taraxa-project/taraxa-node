@@ -2,8 +2,6 @@
 
 #include "pbft/pbft_manager.hpp"
 #include "vote_manager/vote_manager.hpp"
-// TODO: should ne #include <libBLS/tools/utils.h>
-#include <tools/utils.h>
 
 namespace taraxa {
 
@@ -185,9 +183,6 @@ std::pair<PbftPeriod, PbftRound> clearAllVotes(const std::vector<std::shared_ptr
 }
 
 NodesTest::NodesTest() {
-  // Required for libBLS::Bls::KeyGeneration()
-  libBLS::ThresholdUtils::initCurve();
-
   for (uint16_t i = 0; i < 5; ++i) {
     taraxa::FullNodeConfig cfg;
 
